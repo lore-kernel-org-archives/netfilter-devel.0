@@ -2,139 +2,47 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84E98C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Jul 2022 23:33:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B158C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Jul 2022 14:17:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238709AbiGHXdw (ORCPT
+        id S229477AbiGIORg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Jul 2022 19:33:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36006 "EHLO
+        Sat, 9 Jul 2022 10:17:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237856AbiGHXdv (ORCPT
+        with ESMTP id S229379AbiGIORf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Jul 2022 19:33:51 -0400
-Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B951A2BB35
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Jul 2022 16:33:50 -0700 (PDT)
-Received: by mail-lf1-x12f.google.com with SMTP id j21so164267lfe.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 08 Jul 2022 16:33:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=f6TCUIosa5W4/Vb9XWvZYFOtAww3GSDuGtA/pDdfbF4=;
-        b=kLfgt0CyeLHwI1Zct0de1ZglNn4qUt2rr5geGoDsSTgx69fJt12j4VOiv3EMjJhrfP
-         4EfxQ8s9or1yPVXNnB6Nnv+VmaDKbN+Y8QSK1/izwn1niA9dh2Jau5kg1IoqVeJ2zL+/
-         yri/FIwuFlMNvsLB47gk6qvyn8+Hi7j5NeF62JksRYesZuV12v1mWoWdBrJdpgDH47LX
-         7qysqkSMPCfQnvyYybnOBfUTIiRSP67jOamssr8f+Pl0B7zgnLGjBqA617wXrmGj+mub
-         yU1Nn/n/9oKGz3f0hZFQVGZBJ3ZroXY+pe4WZkE4BpigDyIrjeTx/mys2PDNQj/dfO8I
-         3giQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=f6TCUIosa5W4/Vb9XWvZYFOtAww3GSDuGtA/pDdfbF4=;
-        b=lKYVJE6jKNoVgA8kiyZWdKAQfpSOiiOUeE+GT30wnh6QWb2F0473tk4faKuHNPxoMa
-         yyfVLyN25QLx80OryxrUJO2+4zR84wv+PKk3O3HUHjwEKsW4A3Bqcqj1q0TTZXGoJPYU
-         oJKKlvj7gfqND+PzOi671cmWcNSfc7aCflhQVVfxTrsgb5Any3L4ecahqzkIWUbZ2Za1
-         TvzDc8pRahebpAXpdSITi+69MuO8R6Hn3bqwQnsTYR9QDH3oBSovUzciK68++WA8PmpO
-         sxNBnvvq++hspdRZFryd5Tjls18jE1M9w+rHbnezhJ1wUnMa08RughZdrRmZrwpVpIJM
-         DUwA==
-X-Gm-Message-State: AJIora/l7ScCP/m/b2EZIWJ9LKagKzGL3ThCzJcHqw9y/8F0Jz3T+SG0
-        GHxfyw8faJ6BSI+2AB1hMbevp9EdEyRmJEyoVpFSGQ==
-X-Google-Smtp-Source: AGRyM1sYwzFO76ZbUUlO+uxQCC5vi+M7eJm5XjlDoev9CqoJeGkALjAG+zYM/rC7CZhTfV/eDMYh4GGeHBCX1ORWazI=
-X-Received: by 2002:a05:6512:2623:b0:47d:ace7:c804 with SMTP id
- bt35-20020a056512262300b0047dace7c804mr3904909lfb.647.1657323228912; Fri, 08
- Jul 2022 16:33:48 -0700 (PDT)
+        Sat, 9 Jul 2022 10:17:35 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 80BE7CE32
+        for <netfilter-devel@vger.kernel.org>; Sat,  9 Jul 2022 07:17:34 -0700 (PDT)
+Date:   Sat, 9 Jul 2022 16:17:30 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf,v2 1/2] netfilter: nf_tables: release element key when
+ parser fails
+Message-ID: <YsmN+h5c6OazXBgn@salvia>
+References: <20220708100633.18896-1-pablo@netfilter.org>
 MIME-Version: 1.0
-References: <20220707191745.840590-1-justinstitt@google.com>
-In-Reply-To: <20220707191745.840590-1-justinstitt@google.com>
-From:   Nick Desaulniers <ndesaulniers@google.com>
-Date:   Fri, 8 Jul 2022 16:33:37 -0700
-Message-ID: <CAKwvOd=qjQxGmRD29DrFjhEpbrDHyTUhRfHKJGJ2i-oo_RvF_A@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: xt_TPROXY: fix clang -Wformat warnings:
-To:     Justin Stitt <justinstitt@google.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Tom Rix <trix@redhat.com>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220708100633.18896-1-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 7, 2022 at 12:18 PM Justin Stitt <justinstitt@google.com> wrote:
->
-> When building with Clang we encounter these warnings:
-> | net/netfilter/xt_TPROXY.c:173:5: error: format specifies type 'unsigned
-> | char' but the argument has type 'int' [-Werror,-Wformat] tproto,
-> | &iph->saddr, ntohs(hp->source),
-> -
-> | net/netfilter/xt_TPROXY.c:181:4: error: format specifies type 'unsigned
-> | char' but the argument has type 'int' [-Werror,-Wformat] tproto,
-> | &iph->saddr, ntohs(hp->source),
->
-> The format specifier `%hhu` refers to a u8 while tproto is an int. In
-> this case we weren't losing any data because ipv6_find_hdr returns an
-> int but its return value (nexthdr) is a u8. This u8 gets widened to an
-> int when returned from ipv6_find_hdr and assigned to tproto. The
-> previous format specifier is functionally fine but still produces a
-> warning due to a type mismatch.
->
-> The fix is simply to listen to Clang and change `%hhu` to `%d` for both
-> instances of the warning.
->
-> Link: https://github.com/ClangBuiltLinux/linux/issues/378
-> Signed-off-by: Justin Stitt <justinstitt@google.com>
-
-Thanks for the patch, this fixes the warning I observe when building
-ARCH=arm64 allmodconfig with -Wno-format removed!
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nick Desaulniers <ndesaulniers@google.com>
-
+On Fri, Jul 08, 2022 at 12:06:32PM +0200, Pablo Neira Ayuso wrote:
+> Call nft_data_release() to release the element keys otherwise this
+> might leak chain reference counter.
+> 
+> Fixes: 7b225d0b5c6d ("netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute")
+> Fixes: ba0e4d9917b4 ("netfilter: nf_tables: get set elements via netlink")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
-> It should be noted that for this entire file to build without -Wformat
-> warnings you should apply this `ntohs` patch which fixed many, many
-> -Wformat warnings in the kernel.
-> https://lore.kernel.org/all/20220608223539.470472-1-justinstitt@google.com/
->
->  net/netfilter/xt_TPROXY.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-> index 459d0696c91a..5d74abffc94f 100644
-> --- a/net/netfilter/xt_TPROXY.c
-> +++ b/net/netfilter/xt_TPROXY.c
-> @@ -169,7 +169,7 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
->                    targets on the same rule yet */
->                 skb->mark = (skb->mark & ~tgi->mark_mask) ^ tgi->mark_value;
->
-> -               pr_debug("redirecting: proto %hhu %pI6:%hu -> %pI6:%hu, mark: %x\n",
-> +               pr_debug("redirecting: proto %d %pI6:%hu -> %pI6:%hu, mark: %x\n",
->                          tproto, &iph->saddr, ntohs(hp->source),
->                          laddr, ntohs(lport), skb->mark);
->
-> @@ -177,7 +177,7 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
->                 return NF_ACCEPT;
->         }
->
-> -       pr_debug("no socket, dropping: proto %hhu %pI6:%hu -> %pI6:%hu, mark: %x\n",
-> +       pr_debug("no socket, dropping: proto %d %pI6:%hu -> %pI6:%hu, mark: %x\n",
->                  tproto, &iph->saddr, ntohs(hp->source),
->                  &iph->daddr, ntohs(hp->dest), skb->mark);
->
-> --
-> 2.37.0.rc0.161.g10f37bed90-goog
->
+> v2: coalesce two similar patches:
+>     https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220708084453.11066-1-pablo@netfilter.org/
+>     https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220708085805.12310-1-pablo@netfilter.org/
 
-
--- 
-Thanks,
-~Nick Desaulniers
+Scratch this. nft_data_release() is noop for NFT_DATA_VERDICT case.
+Calling this is good for consistency, but let's schedule this patch
+for nf-next instead.
