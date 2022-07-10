@@ -2,52 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19FA0CCA47C
-	for <netfilter-devel@archiver.kernel.org>; Sat,  9 Jul 2022 14:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA757C43334
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Jul 2022 14:45:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229816AbiGIOVD (ORCPT
+        id S229482AbiGJOpm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 9 Jul 2022 10:21:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50764 "EHLO
+        Sun, 10 Jul 2022 10:45:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229744AbiGIOUu (ORCPT
+        with ESMTP id S229450AbiGJOpl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 9 Jul 2022 10:20:50 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 90B341583F
-        for <netfilter-devel@vger.kernel.org>; Sat,  9 Jul 2022 07:20:48 -0700 (PDT)
-Date:   Sat, 9 Jul 2022 16:20:45 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Sun, 10 Jul 2022 10:45:41 -0400
+X-Greylist: delayed 318 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 10 Jul 2022 07:45:37 PDT
+Received: from buexe.b-5.de (buexe.b-5.de [IPv6:2a00:f820:14::89d1:8364])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50677AE46
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Jul 2022 07:45:37 -0700 (PDT)
+Received: from alanya.lupe-christoph.de (alanya.lupe-christoph.de [172.17.0.19])
+        by buexe.b-5.de (8.15.2/8.15.2/b-5/buexe-3.6.3) with ESMTP id 26AEeFhe035432;
+        Sun, 10 Jul 2022 16:40:16 +0200
+Received: from localhost (localhost [127.0.0.1])
+        by alanya.lupe-christoph.de (Postfix) with ESMTP id E22F03E2;
+        Sun, 10 Jul 2022 16:40:15 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at lupe-christoph.de
+Received: from alanya.lupe-christoph.de ([127.0.0.1])
+        by localhost (alanya.lupe-christoph.de [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id AL1nw726ejSa; Sun, 10 Jul 2022 16:40:15 +0200 (CEST)
+Received: by alanya.lupe-christoph.de (Postfix, from userid 1000)
+        id C8514420; Sun, 10 Jul 2022 16:40:15 +0200 (CEST)
+Date:   Sun, 10 Jul 2022 16:40:15 +0200
+From:   Lupe Christoph <lupe@lupe-christoph.de>
 To:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf,v2 1/2] netfilter: nf_tables: release element key when
- parser fails
-Message-ID: <YsmOvf3cQYme89zy@salvia>
-References: <20220708100633.18896-1-pablo@netfilter.org>
- <YsmN+h5c6OazXBgn@salvia>
+Cc:     Robert Kirmayer <kiri@kiri.de>
+Subject: FTBS on Debian  Bullseye with xtables-addons-dkms 3.13-1 and kernel
+ 5.10.0-16-amd64
+Message-ID: <Ysrkz8OHUK8TbPCs@lupe-christoph.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <YsmN+h5c6OazXBgn@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Jul 09, 2022 at 04:17:30PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Jul 08, 2022 at 12:06:32PM +0200, Pablo Neira Ayuso wrote:
-> > Call nft_data_release() to release the element keys otherwise this
-> > might leak chain reference counter.
-> > 
-> > Fixes: 7b225d0b5c6d ("netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute")
-> > Fixes: ba0e4d9917b4 ("netfilter: nf_tables: get set elements via netlink")
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> > v2: coalesce two similar patches:
-> >     https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220708084453.11066-1-pablo@netfilter.org/
-> >     https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220708085805.12310-1-pablo@netfilter.org/
-> 
-> Scratch this. nft_data_release() is noop for NFT_DATA_VERDICT case.
+Hi!
 
-s/NFT_DATA_VERDICT/NFT_DATA_VALUE
+In case you're not already aware of this, please have a look at
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1014680
 
-> Calling this is good for consistency, but let's schedule this patch
-> for nf-next instead.
+Thank you!
+Lupe Christoph
+-- 
+| Demokratie kann man bloß nicht exportieren, sie ist kein Werkzeug           |
+| zur Veränderung der Gesellschaft, sondern ein Produkt ihrer                 |
+| Entwicklung. Demokratien sind wie Gurken, manche reifen früher und die      |
+| anderen später, man muss nur Geduld haben und zeitig gießen.                |
+| Wladimir Kaminer in der taz "Die Russen und der Ukrainekrieg"               |
