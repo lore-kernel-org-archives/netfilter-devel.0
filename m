@@ -2,235 +2,100 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8864C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 16:34:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 899E7C43334
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 19:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229740AbiGKQeo (ORCPT
+        id S230186AbiGKToT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Jul 2022 12:34:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55256 "EHLO
+        Mon, 11 Jul 2022 15:44:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbiGKQeo (ORCPT
+        with ESMTP id S229811AbiGKToS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Jul 2022 12:34:44 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D20DB2C127;
-        Mon, 11 Jul 2022 09:34:41 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E233A1596;
-        Mon, 11 Jul 2022 09:34:41 -0700 (PDT)
-Received: from e126311.manchester.arm.com (unknown [10.57.72.24])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D11CA3F792;
-        Mon, 11 Jul 2022 09:34:39 -0700 (PDT)
-Date:   Mon, 11 Jul 2022 17:34:25 +0100
-From:   Kajetan Puchalski <kajetan.puchalski@arm.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, regressions@lists.linux.dev,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will@kernel.org>, Mel Gorman <mgorman@suse.de>,
-        lukasz.luba@arm.com, dietmar.eggemann@arm.com,
-        kajetan.puchalski@arm.com
-Subject: Re: [PATCH nf v3] netfilter: conntrack: fix crash due to confirmed
- bit load reordering
-Message-ID: <YsxREc/UcpT2hdni@e126311.manchester.arm.com>
+        Mon, 11 Jul 2022 15:44:18 -0400
+Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1904BF69
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2022 12:44:17 -0700 (PDT)
+Received: by mail-ej1-x629.google.com with SMTP id h23so10532862ejj.12
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2022 12:44:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=BwEDVdKbnbZtn9p0uC93yaXB5Vwp4sXmO/V6mgJc1hE=;
+        b=Opt4AN70UWDNIKd9DrhmzqMlFdNVINRChnpwp92hsWrOpZvBTfEZJN7paVV3K1qBFM
+         7OZBpDZMglnQFlcLjrZ9pDfXTkdTQoUzuP0Hz6eUeQux4XKzh2WKfUasuN2gSwWsHLep
+         DzWiJVcrraZfXmxMQGs9Pb2Y/u1AF7nC4xlTKtrnqEUhJhoVIbnrdnqPX2Iy3Rfk7bXT
+         5SFxJySXeTvn6G4IFMg7HMX+a9tR0UjYWpLwPE3Q0biZEU0kBbtVAuQNo8jYH7ImbN+0
+         PlwWct+os2RQ50ZmFHtlRB1eot1RVM7cLSdtJgMbb737jfzbRmo5RVd/r5jq5syWOwH8
+         K+ew==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=BwEDVdKbnbZtn9p0uC93yaXB5Vwp4sXmO/V6mgJc1hE=;
+        b=ClV+iVtKWRH5lDIztfyVQD7CPdiMfT3I0OWDp42fyJhft7XPSvjFq3Mi6CfCiSh8My
+         B0pfNzY7AJG7vQXzr53h+4k8xkRqgnp3E5q37gFFiXRwU6R1P6DbWUTkJDAxq8Pvp7pv
+         DczaxDvEwpWXC22wAsu2yuqD0mq026cS1VnBluzXwM7MFGa812uLJZlIdiLGE1Dhmj5+
+         ii9rJI5CS+ALZPbfFcJGyLVdxbV+urQsGlk9XC0Ir06RU6wfC+K9INTNLLq3JymoK7NI
+         ryVLzzE06bAgM7YzKL4pmOMV1tXjQg6t1rVIUhs4yRKcqLPny8dVx6DuYghYQ9cZThVZ
+         zS9Q==
+X-Gm-Message-State: AJIora/FxarrvpgUErS4f1Cd5Mz0n22G83ivlrFKxGt8zedCRXMnA9Oz
+        D1LWRVwsppM9ePzXv0MIr922kp0R02CEsOkNFM/5OA==
+X-Google-Smtp-Source: AGRyM1tHofXUqkdW7BnM1C245t2ran6VcnZvUJuKy6J7zLT7nKrsoMbm7F1S99ufXtKPsrkkFHcy/q7Q5UPlTaovmsk=
+X-Received: by 2002:a17:907:60cc:b0:72b:40a8:a5b with SMTP id
+ hv12-20020a17090760cc00b0072b40a80a5bmr11795359ejc.379.1657568656253; Mon, 11
+ Jul 2022 12:44:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220706145004.22355-1-fw@strlen.de>
+References: <20220707191745.840590-1-justinstitt@google.com> <YsvniilEnfUOd+yk@salvia>
+In-Reply-To: <YsvniilEnfUOd+yk@salvia>
+From:   Justin Stitt <justinstitt@google.com>
+Date:   Mon, 11 Jul 2022 12:44:05 -0700
+Message-ID: <CAFhGd8qDwoWLTJEGtap3s2_+AOLdnSg57DO8VgoMrqDtcFY7qQ@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: xt_TPROXY: fix clang -Wformat warnings:
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Tom Rix <trix@redhat.com>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, llvm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> v3: keep smp_acquire__after_ctrl_dep close to refcount_inc_not_zero call
->     add comment in nf_conntrack_netlink, no control dependency there
->     due to locks.
-
-Just to follow up on that, I tested v3 for 24 hours with the workload in
-question and found no issues so looks like the fix is stable.
-
-In case someone is interested in performance differences, seeing as I
-was running benchmarks regardless I thought I might share the numbers on
-how using refcount vs atomic here seems to affect networking workloads.
-
-The results were collected using mmtests, the means containing asterisks
-are the results that the framework considered statistically significant.
-
-netperf-udp
-                                     atomic                     v3
-Hmean     send-64         189.36 (   0.00%)      227.14 *  19.95%*
-Hmean     send-128        378.77 (   0.00%)      387.94 (   2.42%)
-Hmean     send-256        925.96 (   0.00%)      922.77 (  -0.34%)
-Hmean     send-1024      3550.03 (   0.00%)     3528.63 (  -0.60%)
-Hmean     send-2048      6545.45 (   0.00%)     6655.64 *   1.68%*
-Hmean     send-3312     10282.12 (   0.00%)    10388.78 *   1.04%*
-Hmean     send-4096     11902.15 (   0.00%)    12052.30 *   1.26%*
-Hmean     send-8192     19369.15 (   0.00%)    20363.82 *   5.14%*
-Hmean     send-16384    32610.44 (   0.00%)    33080.30 (   1.44%)
-Hmean     recv-64         189.36 (   0.00%)      226.34 *  19.53%*
-Hmean     recv-128        378.77 (   0.00%)      386.81 (   2.12%)
-Hmean     recv-256        925.95 (   0.00%)      922.77 (  -0.34%)
-Hmean     recv-1024      3549.90 (   0.00%)     3528.51 (  -0.60%)
-Hmean     recv-2048      6542.82 (   0.00%)     6653.05 *   1.68%*
-Hmean     recv-3312     10278.46 (   0.00%)    10385.45 *   1.04%*
-Hmean     recv-4096     11892.86 (   0.00%)    12041.68 *   1.25%*
-Hmean     recv-8192     19345.14 (   0.00%)    20343.76 *   5.16%*
-Hmean     recv-16384    32574.38 (   0.00%)    33030.53 (   1.40%)
-
-netperf-tcp
-                                atomic                     v3
-Hmean     64        1324.25 (   0.00%)     1328.90 *   0.35%*
-Hmean     128       2576.89 (   0.00%)     2579.71 (   0.11%)
-Hmean     256       4882.34 (   0.00%)     4889.49 (   0.15%)
-Hmean     1024     14560.89 (   0.00%)    14423.39 *  -0.94%*
-Hmean     2048     20995.91 (   0.00%)    20818.49 *  -0.85%*
-Hmean     3312     25440.20 (   0.00%)    25318.16 *  -0.48%*
-Hmean     4096     27309.32 (   0.00%)    27282.26 (  -0.10%)
-Hmean     8192     31204.34 (   0.00%)    31326.23 *   0.39%*
-Hmean     16384    34370.49 (   0.00%)    34298.25 (  -0.21%)
-
-Additionally, the reason I bumped into this issue in the first place was
-running benchmarks on different CPUIdle governors so below are the
-results for what happens if in additon to changing from atomic to
-v3 refcount I also switch the idle governor from menu to TEO.
-
-netperf-udp
-                                     atomic                     v3
-                                      menu                     teo
-Hmean     send-64         189.36 (   0.00%)      248.79 *  31.38%*
-Hmean     send-128        378.77 (   0.00%)      439.06 (  15.92%)
-Hmean     send-256        925.96 (   0.00%)     1101.20 *  18.93%*
-Hmean     send-1024      3550.03 (   0.00%)     3298.19 (  -7.09%)
-Hmean     send-2048      6545.45 (   0.00%)     7714.21 *  17.86%*
-Hmean     send-3312     10282.12 (   0.00%)    12090.56 *  17.59%*
-Hmean     send-4096     11902.15 (   0.00%)    13766.56 *  15.66%*
-Hmean     send-8192     19369.15 (   0.00%)    22943.77 *  18.46%*
-Hmean     send-16384    32610.44 (   0.00%)    37370.44 *  14.60%*
-Hmean     recv-64         189.36 (   0.00%)      248.79 *  31.38%*
-Hmean     recv-128        378.77 (   0.00%)      439.06 (  15.92%)
-Hmean     recv-256        925.95 (   0.00%)     1101.19 *  18.92%*
-Hmean     recv-1024      3549.90 (   0.00%)     3298.16 (  -7.09%)
-Hmean     recv-2048      6542.82 (   0.00%)     7711.59 *  17.86%*
-Hmean     recv-3312     10278.46 (   0.00%)    12087.81 *  17.60%*
-Hmean     recv-4096     11892.86 (   0.00%)    13755.48 *  15.66%*
-Hmean     recv-8192     19345.14 (   0.00%)    22933.98 *  18.55%*
-Hmean     recv-16384    32574.38 (   0.00%)    37332.10 *  14.61%*
-
-netperf-tcp
-                                atomic                     v3
-                                 menu                     teo
-Hmean     64        1324.25 (   0.00%)     1351.86 *   2.08%*
-Hmean     128       2576.89 (   0.00%)     2629.08 *   2.03%*
-Hmean     256       4882.34 (   0.00%)     5003.19 *   2.48%*
-Hmean     1024     14560.89 (   0.00%)    15237.15 *   4.64%*
-Hmean     2048     20995.91 (   0.00%)    22804.40 *   8.61%*
-Hmean     3312     25440.20 (   0.00%)    27815.23 *   9.34%*
-Hmean     4096     27309.32 (   0.00%)    30171.81 *  10.48%*
-Hmean     8192     31204.34 (   0.00%)    37112.55 *  18.93%*
-Hmean     16384    34370.49 (   0.00%)    42952.01 *  24.97%*
-
-The absolute values might be skewed by the characteristics of the
-machine in question but I thought the comparative differences between
-different patches were interesting enough to share.
-
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Reported-by: Kajetan Puchalski <kajetan.puchalski@arm.com>
-> Diagnosed-by: Will Deacon <will@kernel.org>
-> Fixes: 719774377622 ("netfilter: conntrack: convert to refcount_t api")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  net/netfilter/nf_conntrack_core.c       | 22 ++++++++++++++++++++++
->  net/netfilter/nf_conntrack_netlink.c    |  1 +
->  net/netfilter/nf_conntrack_standalone.c |  3 +++
->  3 files changed, 26 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 082a2fd8d85b..369aeabb94fe 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -729,6 +729,9 @@ static void nf_ct_gc_expired(struct nf_conn *ct)
->  	if (!refcount_inc_not_zero(&ct->ct_general.use))
->  		return;
->  
-> +	/* load ->status after refcount increase */
-> +	smp_acquire__after_ctrl_dep();
-> +
->  	if (nf_ct_should_gc(ct))
->  		nf_ct_kill(ct);
->  
-> @@ -795,6 +798,9 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
->  		 */
->  		ct = nf_ct_tuplehash_to_ctrack(h);
->  		if (likely(refcount_inc_not_zero(&ct->ct_general.use))) {
-> +			/* re-check key after refcount */
-> +			smp_acquire__after_ctrl_dep();
-> +
->  			if (likely(nf_ct_key_equal(h, tuple, zone, net)))
->  				goto found;
->  
-> @@ -1387,6 +1393,9 @@ static unsigned int early_drop_list(struct net *net,
->  		if (!refcount_inc_not_zero(&tmp->ct_general.use))
->  			continue;
->  
-> +		/* load ->ct_net and ->status after refcount increase */
-> +		smp_acquire__after_ctrl_dep();
-> +
->  		/* kill only if still in same netns -- might have moved due to
->  		 * SLAB_TYPESAFE_BY_RCU rules.
->  		 *
-> @@ -1536,6 +1545,9 @@ static void gc_worker(struct work_struct *work)
->  			if (!refcount_inc_not_zero(&tmp->ct_general.use))
->  				continue;
->  
-> +			/* load ->status after refcount increase */
-> +			smp_acquire__after_ctrl_dep();
-> +
->  			if (gc_worker_skip_ct(tmp)) {
->  				nf_ct_put(tmp);
->  				continue;
-> @@ -1775,6 +1787,16 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->  	if (!exp)
->  		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
->  
-> +	/* Other CPU might have obtained a pointer to this object before it was
-> +	 * released.  Because refcount is 0, refcount_inc_not_zero() will fail.
-> +	 *
-> +	 * After refcount_set(1) it will succeed; ensure that zeroing of
-> +	 * ct->status and the correct ct->net pointer are visible; else other
-> +	 * core might observe CONFIRMED bit which means the entry is valid and
-> +	 * in the hash table, but its not (anymore).
-> +	 */
-> +	smp_wmb();
-> +
->  	/* Now it is going to be associated with an sk_buff, set refcount to 1. */
->  	refcount_set(&ct->ct_general.use, 1);
->  
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 722af5e309ba..f5905b5201a7 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -1203,6 +1203,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
->  					   hnnode) {
->  			ct = nf_ct_tuplehash_to_ctrack(h);
->  			if (nf_ct_is_expired(ct)) {
-> +				/* need to defer nf_ct_kill() until lock is released */
->  				if (i < ARRAY_SIZE(nf_ct_evict) &&
->  				    refcount_inc_not_zero(&ct->ct_general.use))
->  					nf_ct_evict[i++] = ct;
-> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-> index 6ad7bbc90d38..05895878610c 100644
-> --- a/net/netfilter/nf_conntrack_standalone.c
-> +++ b/net/netfilter/nf_conntrack_standalone.c
-> @@ -306,6 +306,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
->  	if (unlikely(!refcount_inc_not_zero(&ct->ct_general.use)))
->  		return 0;
->  
-> +	/* load ->status after refcount increase */
-> +	smp_acquire__after_ctrl_dep();
-> +
->  	if (nf_ct_should_gc(ct)) {
->  		nf_ct_kill(ct);
->  		goto release;
-> -- 
-> 2.35.1
-> 
+On Mon, Jul 11, 2022 at 2:04 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> On Thu, Jul 07, 2022 at 12:17:45PM -0700, Justin Stitt wrote:
+> > diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+> > index 459d0696c91a..5d74abffc94f 100644
+> > --- a/net/netfilter/xt_TPROXY.c
+> > +++ b/net/netfilter/xt_TPROXY.c
+> > @@ -169,7 +169,7 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
+> >                  targets on the same rule yet */
+> >               skb->mark = (skb->mark & ~tgi->mark_mask) ^ tgi->mark_value;
+> >
+> > -             pr_debug("redirecting: proto %hhu %pI6:%hu -> %pI6:%hu, mark: %x\n",
+> > +             pr_debug("redirecting: proto %d %pI6:%hu -> %pI6:%hu, mark: %x\n",
+> >                        tproto, &iph->saddr, ntohs(hp->source),
+> >                        laddr, ntohs(lport), skb->mark);
+> >
+> > @@ -177,7 +177,7 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
+> >               return NF_ACCEPT;
+> >       }
+> >
+> > -     pr_debug("no socket, dropping: proto %hhu %pI6:%hu -> %pI6:%hu, mark: %x\n",
+> > +     pr_debug("no socket, dropping: proto %d %pI6:%hu -> %pI6:%hu, mark: %x\n",
+> >                tproto, &iph->saddr, ntohs(hp->source),
+> >                &iph->daddr, ntohs(hp->dest), skb->mark);
+>
+> Could you instead send a patch to remove these pr_debug calls?
+Do you mean all Instances of pr_debug in `xt_TPROXY.c` (of which there
+are six) or just these two specific cases @ +169 and +177.
+> Thanks.
