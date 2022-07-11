@@ -2,86 +2,238 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4876CCA483
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 11:29:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8913C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 14:05:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229820AbiGKL32 (ORCPT
+        id S229968AbiGKOFS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Jul 2022 07:29:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49074 "EHLO
+        Mon, 11 Jul 2022 10:05:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231508AbiGKL2q (ORCPT
+        with ESMTP id S229635AbiGKOFR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Jul 2022 07:28:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41F6C24F0D;
-        Mon, 11 Jul 2022 04:10:16 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3EE0BB80EBF;
-        Mon, 11 Jul 2022 11:10:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id D3F73C341C0;
-        Mon, 11 Jul 2022 11:10:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1657537812;
-        bh=woKfRlYHE/JalE0K0VARx7uvTGgdKxCKEBUwiIxfqNQ=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=DVDPWrF/64PtUWU4WQPtL8GgGcFSVGUgb83di+gJZCIvyoCctwjzODP+P0hEMsQSr
-         2qloHXN+CWTid1fEGRV+EKfWfbLHu1MtsKDXjxQIInh4GD/hGJ3ZS9ZqsOc/j+igMZ
-         AGkPO+JZh5bZGOC7Z+uwvNU5JGUm3+WFVrq3TMSYtNXLX7hAD6mcVHaWRlZwhlaqwi
-         1pmkIzI7g/bqwRS6uiifFuWJyqyzZZaht88EVpmjrugdW5iz8Ossl4CawNixGOGWqk
-         g/yLa5apasrdn6/69rlQzqbDUpgktRIB7P+RAx39Vdbq7Dm/4kbZHn1HxVBATWZu1S
-         XWZaSXWdNybwQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B90E2E45229;
-        Mon, 11 Jul 2022 11:10:12 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Mon, 11 Jul 2022 10:05:17 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D4010548;
+        Mon, 11 Jul 2022 07:05:15 -0700 (PDT)
+Received: from fraeml744-chm.china.huawei.com (unknown [172.18.147.201])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LhQbY0V8hz6HJdj;
+        Mon, 11 Jul 2022 22:03:53 +0800 (CST)
+Received: from lhreml745-chm.china.huawei.com (10.201.108.195) by
+ fraeml744-chm.china.huawei.com (10.206.15.225) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Mon, 11 Jul 2022 16:05:12 +0200
+Received: from [10.122.132.241] (10.122.132.241) by
+ lhreml745-chm.china.huawei.com (10.201.108.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Mon, 11 Jul 2022 15:05:11 +0100
+Message-ID: <223e6a19-058e-439e-ef29-a53d086838d9@huawei.com>
+Date:   Mon, 11 Jul 2022 17:05:11 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v6 02/17] landlock: refactors landlock_find/insert_rule
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <anton.sirazetdinov@huawei.com>
+References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
+ <20220621082313.3330667-3-konstantin.meskhidze@huawei.com>
+ <0bbbcf21-1e7d-5585-545f-bf89d8ebd527@digikod.net>
+ <7735ae47-9088-be29-2696-c5170031d7c2@huawei.com>
+ <b08fe5cc-3be0-390b-3575-4f27f795f609@digikod.net>
+ <6ee7e769-ce91-a6cc-378b-f206e04d112a@huawei.com>
+ <582f8ace-1f95-16a6-fa9e-4014ddd8b7f2@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <582f8ace-1f95-16a6-fa9e-4014ddd8b7f2@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: conntrack: fix crash due to confirmed bit
- load reordering
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <165753781275.22782.1054032536535408834.git-patchwork-notify@kernel.org>
-Date:   Mon, 11 Jul 2022 11:10:12 +0000
-References: <20220711093357.107260-2-pablo@netfilter.org>
-In-Reply-To: <20220711093357.107260-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml753-chm.china.huawei.com (10.201.108.203) To
+ lhreml745-chm.china.huawei.com (10.201.108.195)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Mon, 11 Jul 2022 11:33:55 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
+7/8/2022 5:35 PM, Mickaël Salaün пишет:
 > 
-> Kajetan Puchalski reports crash on ARM, with backtrace of:
+> On 08/07/2022 16:14, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 7/8/2022 4:59 PM, Mickaël Salaün пишет:
+>>>
+>>> On 08/07/2022 15:10, Konstantin Meskhidze (A) wrote:
+>>>>
+>>>>
+>>>> 7/7/2022 7:44 PM, Mickaël Salaün пишет:
+>>>>>
+>>>>> On 21/06/2022 10:22, Konstantin Meskhidze wrote:
+>>>>>> Adds a new object union to support a socket port
+>>>>>> rule type. Refactors landlock_insert_rule() and
+>>>>>> landlock_find_rule() to support coming network
+>>>>>> modifications. Now adding or searching a rule
+>>>>>> in a ruleset depends on a rule_type argument
+>>>>>> provided in refactored functions mentioned above.
+>>>>>>
+>>>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>>>>> ---
+>>>>>>
+>>>>>> Changes since v5:
+>>>>>> * Formats code with clang-format-14.
+>>>>>>
+>>>>>> Changes since v4:
+>>>>>> * Refactors insert_rule() and create_rule() functions by deleting
+>>>>>> rule_type from their arguments list, it helps to reduce useless code.
+>>>>>>
+>>>>>> Changes since v3:
+>>>>>> * Splits commit.
+>>>>>> * Refactors landlock_insert_rule and landlock_find_rule functions.
+>>>>>> * Rename new_ruleset->root_inode.
+>>>>>>
+>>>>>> ---
+>>>>>>   security/landlock/fs.c      |   7 ++-
+>>>>>>   security/landlock/ruleset.c | 105 
+>>>>>> ++++++++++++++++++++++++++----------
+>>>>>>   security/landlock/ruleset.h |  27 +++++-----
+>>>>>>   3 files changed, 96 insertions(+), 43 deletions(-)
+>>>>>>
+>>>>>> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
+>>>>>> index e6da08ed99d1..46aedc2a05a8 100644
+>>>>>> --- a/security/landlock/fs.c
+>>>>>> +++ b/security/landlock/fs.c
+>>>>>> @@ -173,7 +173,8 @@ int landlock_append_fs_rule(struct 
+>>>>>> landlock_ruleset *const ruleset,
+>>>>>>       if (IS_ERR(object))
+>>>>>>           return PTR_ERR(object);
+>>>>>>       mutex_lock(&ruleset->lock);
+>>>>>> -    err = landlock_insert_rule(ruleset, object, access_rights);
+>>>>>> +    err = landlock_insert_rule(ruleset, object, 0, access_rights,
+>>>>>> +                   LANDLOCK_RULE_PATH_BENEATH);
+>>>>>>       mutex_unlock(&ruleset->lock);
+>>>>>>       /*
+>>>>>>        * No need to check for an error because landlock_insert_rule()
+>>>>>> @@ -204,7 +205,9 @@ find_rule(const struct landlock_ruleset *const 
+>>>>>> domain,
+>>>>>>       inode = d_backing_inode(dentry);
+>>>>>>       rcu_read_lock();
+>>>>>>       rule = landlock_find_rule(
+>>>>>> -        domain, rcu_dereference(landlock_inode(inode)->object));
+>>>>>> +        domain,
+>>>>>> +        (uintptr_t)rcu_dereference(landlock_inode(inode)->object),
+>>>>>> +        LANDLOCK_RULE_PATH_BENEATH);
+>>>>>>       rcu_read_unlock();
+>>>>>>       return rule;
+>>>>>>   }
+>>>>>> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+>>>>>> index a3fd58d01f09..5f13f8a12aee 100644
+>>>>>> --- a/security/landlock/ruleset.c
+>>>>>> +++ b/security/landlock/ruleset.c
+>>>>>> @@ -35,7 +35,7 @@ static struct landlock_ruleset 
+>>>>>> *create_ruleset(const u32 num_layers)
+>>>>>>           return ERR_PTR(-ENOMEM);
+>>>>>>       refcount_set(&new_ruleset->usage, 1);
+>>>>>>       mutex_init(&new_ruleset->lock);
+>>>>>> -    new_ruleset->root = RB_ROOT;
+>>>>>> +    new_ruleset->root_inode = RB_ROOT;
+>>>>>>       new_ruleset->num_layers = num_layers;
+>>>>>>       /*
+>>>>>>        * hierarchy = NULL
+>>>>>> @@ -69,7 +69,8 @@ static void build_check_rule(void)
+>>>>>>   }
+>>>>>>
+>>>>>>   static struct landlock_rule *
+>>>>>> -create_rule(struct landlock_object *const object,
+>>>>>> +create_rule(struct landlock_object *const object_ptr,
+>>>>>> +        const uintptr_t object_data,
+>>>>>>           const struct landlock_layer (*const layers)[], const u32 
+>>>>>> num_layers,
+>>>>>>           const struct landlock_layer *const new_layer)
+>>>>>>   {
+>>>>>> @@ -90,8 +91,15 @@ create_rule(struct landlock_object *const object,
+>>>>>>       if (!new_rule)
+>>>>>>           return ERR_PTR(-ENOMEM);
+>>>>>>       RB_CLEAR_NODE(&new_rule->node);
+>>>>>> -    landlock_get_object(object);
+>>>>>> -    new_rule->object = object;
+>>>>>> +
+>>>>>> +    if (object_ptr) {
+>>>>>> +        landlock_get_object(object_ptr);
+>>>>>> +        new_rule->object.ptr = object_ptr;
+>>>>>> +    } else if (object_ptr && object_data) {
+>>>>>
+>>>>> Something is wrong with this second check: else + object_ptr?
+>>>>
+>>>>   Sorry. Do you mean logical error here? I got your point.
+>>>>   You are right!
+>>>>
+>>>>   I think it must be refactored like this:
+>>>>
+>>>>      if (object_ptr && !object_data) {
+>>>>          landlock_get_object(object_ptr);
+>>>>          new_rule->object.ptr = object_ptr;
+>>>>      } else if (object_ptr && object_data) {
+>>>>          ...
+>>>>      }
+>>>
+>>> There is indeed a logical error but this doesn't fix everything. Please
+>>> include my previous suggestion instead.
+>>>
+>>     By the way, in the next commits I have fixed this logic error.
+>> Anyway I will refactor this one also. Thanks.
+>>>
+>>>> Plus, I will add a test for this case.
+>>>
+>>> That would be great but I don't think this code is reachable from user
+>>> space. I think that would require kunit but I may be missing something.
+>>> How would you test this?
+>> 
+>> You are correct. I checked it. It's impossible to reach this line from 
+>> userpace (insert both object_ptr and object_data). But create_rule() 
+>> must be used carefuly by other developers (if any in future). Do you 
+>> think if its possible to have some internal kernel tests that could 
+>> handle this issue?
 > 
-> __nf_ct_delete_from_lists
-> nf_ct_delete
-> early_drop
-> __nf_conntrack_alloc
-> 
-> [...]
+> We can use kunit tests for such kernel functions, but in this case I'm
+> not sure what could be tested. I started working on bringing kunit tests
+> to Landlock but it's not ready yet. Please list all non-userspace tests
+> you can think about.
 
-Here is the summary with links:
-  - [net,1/3] netfilter: conntrack: fix crash due to confirmed bit load reordering
-    https://git.kernel.org/netdev/net/c/0ed8f619b412
-  - [net,2/3] netfilter: nf_log: incorrect offset to network header
-    https://git.kernel.org/netdev/net/c/7a847c00eeba
-  - [net,3/3] netfilter: nf_tables: replace BUG_ON by element length check
-    https://git.kernel.org/netdev/net/c/c39ba4de6b0a
+  I'm thinking about ones that we can't reach from the userspace.
+  I analyzed test coverage logs finding lines that are untouched by the 
+userspace tests.
+  Let's discus this list:
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+	1. create_rule():  - insert both  object_ptr and object_data.
 
+	2. insert_rule():  - insert both  object_ptr and object_data.
+			   - insert NULL (*const layers).
+			   - insert layers[0].level != 0.
+			   - insert num_layers != 1.
+			   - insert default rule_type.
+	
+	3. tree_merge():   - insert default rule_type.
+			   - insert walker_rule->num_layers != 1.
+			   - insert walker_rule->layers[0].level != 0.
+	
+	4. tree_copy():    - insert default rule_type.
+	
+	5. merge_ruleset:  - insert !dst || !dst->hierarchy.
+			   - insert src->num_layers != 1 ||
+                                     dst->num_layers < 1.
 
+	6. inherit_ruleset(): - insert child->num_layers <=
+				   parent->num_layers.
+  			      - insert parent->hierarchy = NULL.
+
+	7. landlock_merge_ruleset(): - insert ruleset = NULL.
+				     - insert parent = ruleset
+
+	8. landlock_find_rule(): - insert default rule_type.
+
+  Please your opinion?
+> .
