@@ -2,74 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82A55CCA480
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 14:35:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E641C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 14:36:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231129AbiGKOfo (ORCPT
+        id S231309AbiGKOgy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Jul 2022 10:35:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56022 "EHLO
+        Mon, 11 Jul 2022 10:36:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229495AbiGKOfn (ORCPT
+        with ESMTP id S229477AbiGKOgx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Jul 2022 10:35:43 -0400
+        Mon, 11 Jul 2022 10:36:53 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 39A3565572;
-        Mon, 11 Jul 2022 07:35:43 -0700 (PDT)
-Date:   Mon, 11 Jul 2022 16:35:39 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5583565D7C
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2022 07:36:53 -0700 (PDT)
+Date:   Mon, 11 Jul 2022 16:36:50 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Bill Wendling <morbo@google.com>
-Cc:     isanbard@gmail.com, Tony Luck <tony.luck@intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Phillip Potter <phil@philpotter.co.uk>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Jan Kara <jack@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>,
-        Ross Philipson <ross.philipson@oracle.com>,
-        Daniel Kiper <daniel.kiper@oracle.com>,
-        linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, alsa-devel@alsa-project.org,
-        llvm@lists.linux.dev
-Subject: Re: [PATCH 12/12] netfilter: conntrack: use correct format characters
-Message-ID: <Ysw1O0HwLk0zYtmM@salvia>
-References: <20220609221702.347522-1-morbo@google.com>
- <20220609221702.347522-13-morbo@google.com>
+To:     Vlad Buslov <vladbu@nvidia.com>
+Cc:     netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
+        fw@strlen.de, ozsh@nvidia.com, paulb@nvidia.com
+Subject: Re: [PATCH net-next v4 0/2] Conntrack offload debuggability
+ improvements
+Message-ID: <Ysw1grKWm/OUO0qx@salvia>
+References: <20220615104355.391249-1-vladbu@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220609221702.347522-13-morbo@google.com>
+In-Reply-To: <20220615104355.391249-1-vladbu@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 09, 2022 at 10:16:31PM +0000, Bill Wendling wrote:
-> From: Bill Wendling <isanbard@gmail.com>
+On Wed, Jun 15, 2022 at 12:43:53PM +0200, Vlad Buslov wrote:
+> Current conntrack offload implementation doesn't provide much visibility
+> and control over offload code. There is no way to determine current load
+> on workqueues that process the offload tasks which makes it hard to
+> debug the cases where offload is significantly delayed due to rate of
+> new connections being higher than driver or hardware offload rate.
 > 
-> When compiling with -Wformat, clang emits the following warnings:
-> 
-> net/netfilter/nf_conntrack_helper.c:168:18: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
->                 request_module(mod_name);
->                                ^~~~~~~~
-> 
-> Use a string literal for the format string.
+> Improve the debuggability by introducing procfs for current total of
+> workqueue tasks for nf_ft_offload_add, nf_ft_offload_del and
+> nf_ft_offload_stats queues. This allows visibility for flow offload
+> delay due to system scheduling offload tasks faster than driver/hardware
+> can process them.
 
-Applied this patch to nf-next, thanks
+Series applied, thanks
