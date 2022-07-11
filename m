@@ -2,238 +2,131 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8913C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 14:05:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19136C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 11 Jul 2022 14:27:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229968AbiGKOFS (ORCPT
+        id S229536AbiGKO1C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 11 Jul 2022 10:05:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58438 "EHLO
+        Mon, 11 Jul 2022 10:27:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229635AbiGKOFR (ORCPT
+        with ESMTP id S229478AbiGKO1C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Jul 2022 10:05:17 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D4010548;
-        Mon, 11 Jul 2022 07:05:15 -0700 (PDT)
-Received: from fraeml744-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LhQbY0V8hz6HJdj;
-        Mon, 11 Jul 2022 22:03:53 +0800 (CST)
-Received: from lhreml745-chm.china.huawei.com (10.201.108.195) by
- fraeml744-chm.china.huawei.com (10.206.15.225) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 11 Jul 2022 16:05:12 +0200
-Received: from [10.122.132.241] (10.122.132.241) by
- lhreml745-chm.china.huawei.com (10.201.108.195) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 11 Jul 2022 15:05:11 +0100
-Message-ID: <223e6a19-058e-439e-ef29-a53d086838d9@huawei.com>
-Date:   Mon, 11 Jul 2022 17:05:11 +0300
+        Mon, 11 Jul 2022 10:27:02 -0400
+Received: from mail-qt1-x832.google.com (mail-qt1-x832.google.com [IPv6:2607:f8b0:4864:20::832])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C4443E777
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2022 07:27:01 -0700 (PDT)
+Received: by mail-qt1-x832.google.com with SMTP id w1so7118126qtv.9
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2022 07:27:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=GJoZ0ZdcMpsGQR1aPIKZfzn2AbPiQH95WRrbJO8R//M=;
+        b=QLXXvTjkaj/xgymbkGfGv0bK/sJoWZo6j3Bq/vkyptI1f+fxlQfDA4hVPFbXsmvwFx
+         xsE4DdESab3vMBHWsUXbpiAK5oJCesu78G9vwAm2tR+AMNwBU4UfKFRy9m4+o9Vvw/Zn
+         AoY8jPaEL+HBxKPtmmHuIPoFhYOjbMiUVYSkJ7w9E7ZTrfpaPm/sLArgeAvog8t2unmH
+         mpGNKQjH+hmm22i6tcOKhPzgtAs/rW9qa7Q2l0GXuACb8jey+jR/qNymZPKzP1ZSkuHX
+         XFSxu3cOHMpPG19/Fqidnovf3RmTeIAnjC5vrGI4NXd4iTcdBZneDDHebbntNg8yOWQE
+         tznQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=GJoZ0ZdcMpsGQR1aPIKZfzn2AbPiQH95WRrbJO8R//M=;
+        b=QeGIlmmEsC0Ne8eHDXMm6UStzdcSU+tLimwq8s6kKAcQ7Woo4WCUnsD6jb2skIe2q7
+         fyZLSIMShxmv4abBFY8OuRn4qDEBOfP7xZi3YgL3a1gU4pVOW2MPTQO15lzO7qGbgpk+
+         nhPlpBGvpKW5GttRZIJiHH9cCF4IVOOjVp8lkBSJxinv9nrPVvixu4Z9l1b+Rq+Ikj46
+         LqPRlA/3imKYw8uJu1STaCo2FF9AanPku4PPxQvIdB3ajmeZKVM8eysbjbeliWegNGKT
+         hDXK4UTApkexU/LLmKj9oPVeeuSLuXIiGRhZubWAP06UG0Mo/7VViX6Nvamj4rT8JDnx
+         y7NA==
+X-Gm-Message-State: AJIora8if0mWTqkHJToLlB7x05x0IIVp/YXA68lchNA0K3Sx/o3HBTsr
+        KcVIL/ZK3zQyUWa6sDKeAuzoIknPEao=
+X-Google-Smtp-Source: AGRyM1uxL6aW9ezkrCZlf2iskMyu+ww2jxbC3dnAVF94X+yocEBh5Ad3FE+iHboxJsAyqH6G9esVpg==
+X-Received: by 2002:a05:622a:1901:b0:31e:bb55:dc44 with SMTP id w1-20020a05622a190100b0031ebb55dc44mr496940qtc.168.1657549620211;
+        Mon, 11 Jul 2022 07:27:00 -0700 (PDT)
+Received: from yuluo.com (cpe-68-175-122-13.nyc.res.rr.com. [68.175.122.13])
+        by smtp.gmail.com with ESMTPSA id d3-20020a05620a240300b006afc53e0be2sm6804336qkn.117.2022.07.11.07.26.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 Jul 2022 07:26:59 -0700 (PDT)
+From:   Yuxuan Luo <luoyuxuan.carl@gmail.com>
+X-Google-Original-From: Yuxuan Luo <yuluo@redhat.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, marcelo.leitner@gmail.com, lucien.xin@gmail.com,
+        Yuxuan Luo <yuluo@redhat.com>,
+        Yuxuan Luo <luoyuxuan.carl@gmail.com>
+Subject: [IPTABLES][PATCHv2] xt_sctp: support a couple of new chunk types
+Date:   Mon, 11 Jul 2022 10:21:46 -0400
+Message-Id: <20220711142145.364328-1-yuluo@redhat.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v6 02/17] landlock: refactors landlock_find/insert_rule
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <anton.sirazetdinov@huawei.com>
-References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
- <20220621082313.3330667-3-konstantin.meskhidze@huawei.com>
- <0bbbcf21-1e7d-5585-545f-bf89d8ebd527@digikod.net>
- <7735ae47-9088-be29-2696-c5170031d7c2@huawei.com>
- <b08fe5cc-3be0-390b-3575-4f27f795f609@digikod.net>
- <6ee7e769-ce91-a6cc-378b-f206e04d112a@huawei.com>
- <582f8ace-1f95-16a6-fa9e-4014ddd8b7f2@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <582f8ace-1f95-16a6-fa9e-4014ddd8b7f2@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml753-chm.china.huawei.com (10.201.108.203) To
- lhreml745-chm.china.huawei.com (10.201.108.195)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+There are new chunks added in Linux SCTP not being traced by iptables.
 
+This patch introduces the following chunks for tracing:
+I_DATA, I_FORWARD_TSN (RFC8260), RE_CONFIG(RFC6525) and PAD(RFC4820)
 
-7/8/2022 5:35 PM, Mickaël Salaün пишет:
-> 
-> On 08/07/2022 16:14, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 7/8/2022 4:59 PM, Mickaël Salaün пишет:
->>>
->>> On 08/07/2022 15:10, Konstantin Meskhidze (A) wrote:
->>>>
->>>>
->>>> 7/7/2022 7:44 PM, Mickaël Salaün пишет:
->>>>>
->>>>> On 21/06/2022 10:22, Konstantin Meskhidze wrote:
->>>>>> Adds a new object union to support a socket port
->>>>>> rule type. Refactors landlock_insert_rule() and
->>>>>> landlock_find_rule() to support coming network
->>>>>> modifications. Now adding or searching a rule
->>>>>> in a ruleset depends on a rule_type argument
->>>>>> provided in refactored functions mentioned above.
->>>>>>
->>>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>>>> ---
->>>>>>
->>>>>> Changes since v5:
->>>>>> * Formats code with clang-format-14.
->>>>>>
->>>>>> Changes since v4:
->>>>>> * Refactors insert_rule() and create_rule() functions by deleting
->>>>>> rule_type from their arguments list, it helps to reduce useless code.
->>>>>>
->>>>>> Changes since v3:
->>>>>> * Splits commit.
->>>>>> * Refactors landlock_insert_rule and landlock_find_rule functions.
->>>>>> * Rename new_ruleset->root_inode.
->>>>>>
->>>>>> ---
->>>>>>   security/landlock/fs.c      |   7 ++-
->>>>>>   security/landlock/ruleset.c | 105 
->>>>>> ++++++++++++++++++++++++++----------
->>>>>>   security/landlock/ruleset.h |  27 +++++-----
->>>>>>   3 files changed, 96 insertions(+), 43 deletions(-)
->>>>>>
->>>>>> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
->>>>>> index e6da08ed99d1..46aedc2a05a8 100644
->>>>>> --- a/security/landlock/fs.c
->>>>>> +++ b/security/landlock/fs.c
->>>>>> @@ -173,7 +173,8 @@ int landlock_append_fs_rule(struct 
->>>>>> landlock_ruleset *const ruleset,
->>>>>>       if (IS_ERR(object))
->>>>>>           return PTR_ERR(object);
->>>>>>       mutex_lock(&ruleset->lock);
->>>>>> -    err = landlock_insert_rule(ruleset, object, access_rights);
->>>>>> +    err = landlock_insert_rule(ruleset, object, 0, access_rights,
->>>>>> +                   LANDLOCK_RULE_PATH_BENEATH);
->>>>>>       mutex_unlock(&ruleset->lock);
->>>>>>       /*
->>>>>>        * No need to check for an error because landlock_insert_rule()
->>>>>> @@ -204,7 +205,9 @@ find_rule(const struct landlock_ruleset *const 
->>>>>> domain,
->>>>>>       inode = d_backing_inode(dentry);
->>>>>>       rcu_read_lock();
->>>>>>       rule = landlock_find_rule(
->>>>>> -        domain, rcu_dereference(landlock_inode(inode)->object));
->>>>>> +        domain,
->>>>>> +        (uintptr_t)rcu_dereference(landlock_inode(inode)->object),
->>>>>> +        LANDLOCK_RULE_PATH_BENEATH);
->>>>>>       rcu_read_unlock();
->>>>>>       return rule;
->>>>>>   }
->>>>>> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
->>>>>> index a3fd58d01f09..5f13f8a12aee 100644
->>>>>> --- a/security/landlock/ruleset.c
->>>>>> +++ b/security/landlock/ruleset.c
->>>>>> @@ -35,7 +35,7 @@ static struct landlock_ruleset 
->>>>>> *create_ruleset(const u32 num_layers)
->>>>>>           return ERR_PTR(-ENOMEM);
->>>>>>       refcount_set(&new_ruleset->usage, 1);
->>>>>>       mutex_init(&new_ruleset->lock);
->>>>>> -    new_ruleset->root = RB_ROOT;
->>>>>> +    new_ruleset->root_inode = RB_ROOT;
->>>>>>       new_ruleset->num_layers = num_layers;
->>>>>>       /*
->>>>>>        * hierarchy = NULL
->>>>>> @@ -69,7 +69,8 @@ static void build_check_rule(void)
->>>>>>   }
->>>>>>
->>>>>>   static struct landlock_rule *
->>>>>> -create_rule(struct landlock_object *const object,
->>>>>> +create_rule(struct landlock_object *const object_ptr,
->>>>>> +        const uintptr_t object_data,
->>>>>>           const struct landlock_layer (*const layers)[], const u32 
->>>>>> num_layers,
->>>>>>           const struct landlock_layer *const new_layer)
->>>>>>   {
->>>>>> @@ -90,8 +91,15 @@ create_rule(struct landlock_object *const object,
->>>>>>       if (!new_rule)
->>>>>>           return ERR_PTR(-ENOMEM);
->>>>>>       RB_CLEAR_NODE(&new_rule->node);
->>>>>> -    landlock_get_object(object);
->>>>>> -    new_rule->object = object;
->>>>>> +
->>>>>> +    if (object_ptr) {
->>>>>> +        landlock_get_object(object_ptr);
->>>>>> +        new_rule->object.ptr = object_ptr;
->>>>>> +    } else if (object_ptr && object_data) {
->>>>>
->>>>> Something is wrong with this second check: else + object_ptr?
->>>>
->>>>   Sorry. Do you mean logical error here? I got your point.
->>>>   You are right!
->>>>
->>>>   I think it must be refactored like this:
->>>>
->>>>      if (object_ptr && !object_data) {
->>>>          landlock_get_object(object_ptr);
->>>>          new_rule->object.ptr = object_ptr;
->>>>      } else if (object_ptr && object_data) {
->>>>          ...
->>>>      }
->>>
->>> There is indeed a logical error but this doesn't fix everything. Please
->>> include my previous suggestion instead.
->>>
->>     By the way, in the next commits I have fixed this logic error.
->> Anyway I will refactor this one also. Thanks.
->>>
->>>> Plus, I will add a test for this case.
->>>
->>> That would be great but I don't think this code is reachable from user
->>> space. I think that would require kunit but I may be missing something.
->>> How would you test this?
->> 
->> You are correct. I checked it. It's impossible to reach this line from 
->> userpace (insert both object_ptr and object_data). But create_rule() 
->> must be used carefuly by other developers (if any in future). Do you 
->> think if its possible to have some internal kernel tests that could 
->> handle this issue?
-> 
-> We can use kunit tests for such kernel functions, but in this case I'm
-> not sure what could be tested. I started working on bringing kunit tests
-> to Landlock but it's not ready yet. Please list all non-userspace tests
-> you can think about.
+Signed-off-by: Yuxuan Luo <luoyuxuan.carl@gmail.com>
+---
+ extensions/libxt_sctp.c   | 4 ++++
+ extensions/libxt_sctp.man | 4 +++-
+ extensions/libxt_sctp.t   | 4 ++++
+ 3 files changed, 11 insertions(+), 1 deletion(-)
 
-  I'm thinking about ones that we can't reach from the userspace.
-  I analyzed test coverage logs finding lines that are untouched by the 
-userspace tests.
-  Let's discus this list:
+diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
+index a4c5415f..3fb6cf1a 100644
+--- a/extensions/libxt_sctp.c
++++ b/extensions/libxt_sctp.c
+@@ -112,9 +112,13 @@ static const struct sctp_chunk_names sctp_chunk_names[]
+     { .name = "ECN_ECNE",	.chunk_type = 12,  .valid_flags = "--------", .nftname = "ecne" },
+     { .name = "ECN_CWR",	.chunk_type = 13,  .valid_flags = "--------", .nftname = "cwr" },
+     { .name = "SHUTDOWN_COMPLETE", .chunk_type = 14,  .valid_flags = "-------T", .nftname = "shutdown-complete" },
++    { .name = "I_DATA",		.chunk_type = 64,   .valid_flags = "----IUBE", .nftname = "i-data"},
++    { .name = "RE_CONFIG",	.chunk_type = 130,  .valid_flags = "--------", .nftname = "re-config"},
++    { .name = "PAD",		.chunk_type = 132,  .valid_flags = "--------", .nftname = "pad"},
+     { .name = "ASCONF",		.chunk_type = 193,  .valid_flags = "--------", .nftname = "asconf" },
+     { .name = "ASCONF_ACK",	.chunk_type = 128,  .valid_flags = "--------", .nftname = "asconf-ack" },
+     { .name = "FORWARD_TSN",	.chunk_type = 192,  .valid_flags = "--------", .nftname = "forward-tsn" },
++    { .name = "I_FORWARD_TSN",	.chunk_type = 194,  .valid_flags = "--------", .nftname = "i-forward-tsn" },
+ };
+ 
+ static void
+diff --git a/extensions/libxt_sctp.man b/extensions/libxt_sctp.man
+index 3e5ffa09..06da04f8 100644
+--- a/extensions/libxt_sctp.man
++++ b/extensions/libxt_sctp.man
+@@ -19,12 +19,14 @@ Match if any of the given chunk types is present with given flags.
+ only
+ Match if only the given chunk types are present with given flags and none are missing.
+ 
+-Chunk types: DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUTDOWN_ACK ERROR COOKIE_ECHO COOKIE_ACK ECN_ECNE ECN_CWR SHUTDOWN_COMPLETE ASCONF ASCONF_ACK FORWARD_TSN
++Chunk types: DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUTDOWN_ACK ERROR COOKIE_ECHO COOKIE_ACK ECN_ECNE ECN_CWR SHUTDOWN_COMPLETE I_DATA RE_CONFIG PAD ASCONF ASCONF_ACK FORWARD_TSN I_FORWARD_TSN
+ 
+ chunk type            available flags      
+ .br
+ DATA                  I U B E i u b e
+ .br
++I_DATA                I U B E i u b e
++.br
+ ABORT                 T t                 
+ .br
+ SHUTDOWN_COMPLETE     T t                 
+diff --git a/extensions/libxt_sctp.t b/extensions/libxt_sctp.t
+index 4016e4fb..6f04f1db 100644
+--- a/extensions/libxt_sctp.t
++++ b/extensions/libxt_sctp.t
+@@ -27,3 +27,7 @@
+ -p sctp -m sctp --chunk-types all ASCONF_ACK;=;OK
+ -p sctp -m sctp --chunk-types all FORWARD_TSN;=;OK
+ -p sctp -m sctp --chunk-types all SHUTDOWN_COMPLETE;=;OK
++-p sctp -m sctp --chunk-types all I_DATA;=;OK
++-p sctp -m sctp --chunk-types all RE_CONFIG;=;OK
++-p sctp -m sctp --chunk-types all PAD;=;OK
++-p sctp -m sctp --chunk-types all I_FORWARD_FSN;=;OK
+-- 
+2.31.1
 
-	1. create_rule():  - insert both  object_ptr and object_data.
-
-	2. insert_rule():  - insert both  object_ptr and object_data.
-			   - insert NULL (*const layers).
-			   - insert layers[0].level != 0.
-			   - insert num_layers != 1.
-			   - insert default rule_type.
-	
-	3. tree_merge():   - insert default rule_type.
-			   - insert walker_rule->num_layers != 1.
-			   - insert walker_rule->layers[0].level != 0.
-	
-	4. tree_copy():    - insert default rule_type.
-	
-	5. merge_ruleset:  - insert !dst || !dst->hierarchy.
-			   - insert src->num_layers != 1 ||
-                                     dst->num_layers < 1.
-
-	6. inherit_ruleset(): - insert child->num_layers <=
-				   parent->num_layers.
-  			      - insert parent->hierarchy = NULL.
-
-	7. landlock_merge_ruleset(): - insert ruleset = NULL.
-				     - insert parent = ruleset
-
-	8. landlock_find_rule(): - insert default rule_type.
-
-  Please your opinion?
-> .
