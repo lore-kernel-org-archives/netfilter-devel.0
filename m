@@ -2,163 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5767C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Jul 2022 20:53:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71BFAC43334
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Jul 2022 21:53:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237271AbiGMUxE (ORCPT
+        id S236975AbiGMVxi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Jul 2022 16:53:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46484 "EHLO
+        Wed, 13 Jul 2022 17:53:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236631AbiGMUxB (ORCPT
+        with ESMTP id S231769AbiGMVxh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Jul 2022 16:53:01 -0400
-Received: from mx0a-00190b01.pphosted.com (mx0a-00190b01.pphosted.com [IPv6:2620:100:9001:583::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A11EB31904
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Jul 2022 13:52:56 -0700 (PDT)
-Received: from pps.filterd (m0122332.ppops.net [127.0.0.1])
-        by mx0a-00190b01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26DHjExj023193;
-        Wed, 13 Jul 2022 21:52:44 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=akamai.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=jan2016.eng;
- bh=nJky6PdDwgdQTBjTFiP4BjhQbDctiysHWADp80ptRY8=;
- b=oBx5aeA6mv/1/93tUlTAiqIMrEwp3Y/20GrNXcX+WCL853gkrd6Ny4oa7W3KV6LJGIa7
- +a959rc55ZeIn7nxt9+QEn4HbjJHBCMRB6BuVHyjoHn7cMB1UQhAJkZwTAsqUD/Nkej0
- bl9DYq8wCs0c2JCjNJxaIkxlTBJq13dMp7Awk7uShAi3pS7tktLliXzcAHB3GaEkkVja
- nSOTqsLJspt+r/n3ZU0s9p+lH895ymZJ/SpMzvQ0jy1PWHik3DeWy4ttaE62FBF8/oM+
- G4bdOGn5xVFQlSokQWvOceRo0xRZ0qNhRfuNRyqb2nrcHI30kq8+eAr5XO9fVHeEOtnx Ww== 
-Received: from prod-mail-ppoint6 (prod-mail-ppoint6.akamai.com [184.51.33.61] (may be forged))
-        by mx0a-00190b01.pphosted.com (PPS) with ESMTPS id 3h94n52gg9-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 13 Jul 2022 21:52:43 +0100
-Received: from pps.filterd (prod-mail-ppoint6.akamai.com [127.0.0.1])
-        by prod-mail-ppoint6.akamai.com (8.17.1.5/8.17.1.5) with ESMTP id 26DI18Se025910;
-        Wed, 13 Jul 2022 16:52:42 -0400
-Received: from prod-mail-relay11.akamai.com ([172.27.118.250])
-        by prod-mail-ppoint6.akamai.com (PPS) with ESMTP id 3h750y1h54-1;
-        Wed, 13 Jul 2022 16:52:42 -0400
-Received: from [0.0.0.0] (prod-ssh-gw01.bos01.corp.akamai.com [172.27.119.138])
-        by prod-mail-relay11.akamai.com (Postfix) with ESMTP id 6F6192D643;
-        Wed, 13 Jul 2022 20:52:42 +0000 (GMT)
-Message-ID: <1b873df4-9b87-11b0-63f7-9a0de0a33e99@akamai.com>
-Date:   Wed, 13 Jul 2022 16:52:42 -0400
+        Wed, 13 Jul 2022 17:53:37 -0400
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B0DDF44;
+        Wed, 13 Jul 2022 14:53:36 -0700 (PDT)
+Received: by mail-ed1-x533.google.com with SMTP id t3so131834edd.0;
+        Wed, 13 Jul 2022 14:53:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=T6h8nwT3wHI/G8fWECnnlp48GjuVHmio/5V1kdbrTAg=;
+        b=fVEvcxa6Zg5/R5hgh/I2OAeCJsJ8mp5FVqJO+2kTq/pv3Toq4sV+zfDMyudGVeX4AD
+         EyHRPuPnPaDzlDntlz+SbYmeBzv8p2nu1+e2/K07YhlySg7kTo2Z24kNYn0ult7JXC7c
+         Yk3JnZoJ1RjpZjYXQ9AcA81gTa/pMf6oZLlumoIYJ5WomcqLSRaQKbLg3VBdGzCj45/y
+         OhgXPBcV+kSe/9olpU32uQdKT8AMxIpITUL8ZWqPPx/CeuLzw1JproyeQJs+oJnlalZy
+         tFpO8shm2eSHGF/mNhI+RfbuJ7eQh/bGdxbsamgWZVV4zWfwDMWYdqskq6sp/uoIVQc9
+         yDIA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=T6h8nwT3wHI/G8fWECnnlp48GjuVHmio/5V1kdbrTAg=;
+        b=PhHco417ekApHrXMJxMVr1acXZwzzjdzg2owhyw+IW6hEHgMBWUCQeKZKH5gqJjY44
+         AMD6YQbuRaeGQH9owIn/mh6+7pCs+m516ismdqhvzDBhw5xKEOvzzh3xkr5Wre9l6L3J
+         HWm20LkRkpjYbCQvG+LUb2erHpszR+N+AVGs3CewDD2h8lD1t02TXptwnytgvlYH4wl+
+         enfoozycTeprQ7S7cHnivz2z0u+WxUH1BUYk4JANp5Z/Lo/70A/ZFtX1ou3ORHfYdB3o
+         5nz5dM+h+/t3MMBsLtglzf5mwe1WoxBynoiG7pzPMZ2ceFpzVej+YvGWeOV455h+kXwy
+         FYAw==
+X-Gm-Message-State: AJIora8B3OwnwTnL7SU/KG9hnXCj2/rs/Sk+oBoDJS7BVY+Ps9ZUW5JN
+        VXS0RmHPx9aAbga06PV5npn1HaSL/I9w2Gup3JA=
+X-Google-Smtp-Source: AGRyM1vBas0lLGWrTC7WLCsEbmA4FhW75fzZJVJfZ4kfchJdJ0JNKVDsHUxiirrUsdD9hzdwgoJc+Tz5kHRURQ0NQBw=
+X-Received: by 2002:a05:6402:350c:b0:43a:e25f:d73 with SMTP id
+ b12-20020a056402350c00b0043ae25f0d73mr7986308edd.66.1657749214964; Wed, 13
+ Jul 2022 14:53:34 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH 1/6] netfilter: ipset: include linux/nf_inet_addr.h
-Content-Language: en-US
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     pablo@netfilter.org, fw@strlen.de, johunt@akamai.com,
-        netfilter-devel@vger.kernel.org
-References: <20220629211902.3045703-1-vpai@akamai.com>
- <20220629211902.3045703-2-vpai@akamai.com>
- <2671440-40b6-1789-25a5-9f16971595cd@netfilter.org>
-From:   Vishwanath Pai <vpai@akamai.com>
-In-Reply-To: <2671440-40b6-1789-25a5-9f16971595cd@netfilter.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
- definitions=2022-07-13_11,2022-07-13_03,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 phishscore=0
- suspectscore=0 mlxlogscore=999 bulkscore=0 mlxscore=0 adultscore=0
- spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2206140000 definitions=main-2207130086
-X-Proofpoint-GUID: S8iVshbJqLyDy1fUxRVs_H3W5bncVAvO
-X-Proofpoint-ORIG-GUID: S8iVshbJqLyDy1fUxRVs_H3W5bncVAvO
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
- definitions=2022-07-13_11,2022-07-13_03,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 suspectscore=0
- priorityscore=1501 malwarescore=0 impostorscore=0 mlxlogscore=999
- lowpriorityscore=0 spamscore=0 bulkscore=0 clxscore=1015 mlxscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2206140000 definitions=main-2207130086
+References: <20220623192637.3866852-1-memxor@gmail.com> <20220623192637.3866852-2-memxor@gmail.com>
+ <20220629032304.h5ck7tizbfehiwut@macbook-pro-3.dhcp.thefacebook.com>
+ <CAP01T77fsU8u6GP+HXfQQ_gdu+kp3Am1+Ao-mNYULjDazHs38Q@mail.gmail.com>
+ <CAP01T75cVLehQbkE3LLwSG5wVecNz0FH9QZpmzoqs-e8YKpGtg@mail.gmail.com>
+ <20220706184436.mf7oeexxfwswgdqf@MacBook-Pro-3.local> <CAP01T75-EZfdBx+W+6pV0vDDD3Qi07KVLsFTupPfptTyAFxx1Q@mail.gmail.com>
+ <20220706212903.az2mtqodtzmn2gwq@MacBook-Pro-3.local> <CAADnVQJsAfjFwgoiWdsmuWBi9BX7eaCw8Tpe7sd=HPG4QQck1A@mail.gmail.com>
+ <CAP01T77GxdU6AQE3ADVFZ6YA89diFFAev3aQFpYNboxM76QJ6w@mail.gmail.com>
+In-Reply-To: <CAP01T77GxdU6AQE3ADVFZ6YA89diFFAev3aQFpYNboxM76QJ6w@mail.gmail.com>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Wed, 13 Jul 2022 14:53:23 -0700
+Message-ID: <CAADnVQL1=cxAhowFsMLDDUup10okDcRSfBwndCKx99qjCDEcnA@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v5 1/8] bpf: Add support for forcing kfunc args
+ to be referenced
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf <bpf@vger.kernel.org>, Yonghong Song <yhs@fb.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 7/12/22 18:48, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> On Wed, 29 Jun 2022, Vishwanath Pai wrote:
-> 
->> We redefined a few things from nf_inet_addr.h, this will prevent others
->> from including nf_inet_addr.h and ipset headers in the same file.
->>
->> Remove the duplicate definitions and include nf_inet_addr.h instead.
-> 
-> Please don't do that or add the required compatibility stuff into 
-> configure.ac and ip_set_compat.h.in in order not to break support for 
-> older kernels.
-> 
-> Best regards,
-> Jozsef
->  
->> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
->> Signed-off-by: Joshua Hunt <johunt@akamai.com>
->> ---
->>  include/libipset/nf_inet_addr.h |  9 +--------
->>  include/libipset/nfproto.h      | 15 +--------------
->>  2 files changed, 2 insertions(+), 22 deletions(-)
->>
->> diff --git a/include/libipset/nf_inet_addr.h b/include/libipset/nf_inet_addr.h
->> index f3bdf01..e1e058c 100644
->> --- a/include/libipset/nf_inet_addr.h
->> +++ b/include/libipset/nf_inet_addr.h
->> @@ -10,13 +10,6 @@
->>  #include <stdint.h>				/* uint32_t */
->>  #include <netinet/in.h>				/* struct in[6]_addr */
->>  
->> -/* The structure to hold IP addresses, same as in linux/netfilter.h */
->> -union nf_inet_addr {
->> -	uint32_t	all[4];
->> -	uint32_t	ip;
->> -	uint32_t	ip6[4];
->> -	struct in_addr	in;
->> -	struct in6_addr in6;
->> -};
->> +#include <linux/netfilter.h>
->>  
->>  #endif /* LIBIPSET_NF_INET_ADDR_H */
->> diff --git a/include/libipset/nfproto.h b/include/libipset/nfproto.h
->> index 800da11..5265176 100644
->> --- a/include/libipset/nfproto.h
->> +++ b/include/libipset/nfproto.h
->> @@ -1,19 +1,6 @@
->>  #ifndef LIBIPSET_NFPROTO_H
->>  #define LIBIPSET_NFPROTO_H
->>  
->> -/*
->> - * The constants to select, same as in linux/netfilter.h.
->> - * Like nf_inet_addr.h, this is just here so that we need not to rely on
->> - * the presence of a recent-enough netfilter.h.
->> - */
->> -enum {
->> -	NFPROTO_UNSPEC =  0,
->> -	NFPROTO_IPV4   =  2,
->> -	NFPROTO_ARP    =  3,
->> -	NFPROTO_BRIDGE =  7,
->> -	NFPROTO_IPV6   = 10,
->> -	NFPROTO_DECNET = 12,
->> -	NFPROTO_NUMPROTO,
->> -};
->> +#include <linux/netfilter.h>
->>  
->>  #endif /* LIBIPSET_NFPROTO_H */
->> -- 
->> 2.25.1
->>
->>
-> 
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-> PGP key : https://urldefense.com/v3/__https://wigner.hu/*kadlec/pgp_public_key.txt__;fg!!GjvTz_vk!RpoeCRFI0PWc4oBxSqKNzLH0ay8yDHYgfzLW5sGYtJy4bMW0G8Vd73lAZEOwigOZXdQAS8906hLTeg$ 
-> Address : Wigner Research Centre for Physics
->           H-1525 Budapest 114, POB. 49, Hungary
+On Wed, Jul 13, 2022 at 5:13 AM Kumar Kartikeya Dwivedi
+<memxor@gmail.com> wrote:
+> > > Ahh. Now I remember. Thanks for reminding :)
+> > > Could you please summarize this thread and add all of it as a big comment
+> > > in the source code next to __ref handling to explain the motivation
+> > > and an example on when and how this __ref suffix should be used.
+> > > Otherwise somebody, like me, will forget the context soon.
+> > >
+> > > I was thinking of better name than __ref, but couldn't come up with one.
+> > > __ref fits this use case the best.
+> >
+> > Actually, maybe a kfunc flag will be better?
+> > Like REF_ARGS
+> > that would apply to all arguments of the kfunc
+> > (not only those with __ref suffix).
+> >
+> > We have three types of ptr_btf_id:
+> > - ref counted
+> > - untrusted
+> > - old legacy that we cannot be break due to backward compat
+> >
+> > In the future we'll probably be adding new kfuncs where we'd want
+> > every argument to be trusted. In our naming convention these are
+> > the refcounted ptr_to_btf_id that come from lookup-like kfuncs.
+> > To consume them in the release kfunc they have to be refcounted,
+> > but non-release kfunc (like set_timeout) also want a trusted ptr.
+> > So the simple way of describe the intent would be:
+> > BTF_ID(func, bpf_ct_release, RELEASE)
+> > BTF_ID(func, bpf_ct_set_timeout, REF_ARGS)
+> >
+> > or maybe TRUSTED_ARGS would be a better flag name.
+> > wdyt?
+>
+> Ok, I've implemented the kfunc flags and kept TRUSTED_ARGS as the
+> name. Just need to do a little bit of testing and will post it
+> together with this.
 
-Ah, thanks for pointing that out. I'll take care of this in V2.
+Awesome!
 
-Thanks,
-Vishwanath
+> Just to confirm, should I still keep __ref or drop it? I think
+> TRUSTED_ARGS has its use but it may be too coarse. I already have the
+> patch so if you like we can add both ways now.
+
+TRUSTED_ARGS may become too coarse, but let's cross that bridge
+when there is actual need.
+If we land __ref support right now there won't be any users
+and the code will start to bit rot. So let's delay it.
+Pls post that patch as an extra RFC patch anyway, so
+it won't get lost.
