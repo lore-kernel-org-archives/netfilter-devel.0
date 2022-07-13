@@ -2,208 +2,169 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ABBAC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Jul 2022 12:13:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23E0CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 13 Jul 2022 20:07:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235303AbiGMMN5 (ORCPT
+        id S236653AbiGMUHv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 13 Jul 2022 08:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33778 "EHLO
+        Wed, 13 Jul 2022 16:07:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231236AbiGMMN4 (ORCPT
+        with ESMTP id S229955AbiGMUHu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Jul 2022 08:13:56 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4623286E4;
-        Wed, 13 Jul 2022 05:13:54 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id l24so10606927ion.13;
-        Wed, 13 Jul 2022 05:13:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=uX4s6SH9kIRL3r8hlHVS4pJZBU9yNhZ8vlkpIT1/TDI=;
-        b=NZtdL0ID/m/l1wOVhESbnM3o0GLOBzDO/oUXPF/2ASH+HhDppsH7VdazxJkNUbPmo4
-         NJ1tQtm5bg0++tn5y8MtG+Zhbr7kN1bExxfmbnwKPFOf8kPasaGgOmB1/rRyoCXuScD9
-         vmzWix/sCjiFsv9tq+IRf8ZYQgdds4bWiVOmMav2sVzB3yGJuASK1vImlZGQ+YDb579h
-         FrU6YcqYnS7x+92jsN+LzySVK1CSqn4/f2OogRIvcQdY1ol8zmqctWflumjRH+G6KqcU
-         m1u1ixcPVppk/kQ0EBj6TPHlxFI+wRq9j8NURL7ja686lF+ILToZD9LarlRP6sWgyftX
-         gNdQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=uX4s6SH9kIRL3r8hlHVS4pJZBU9yNhZ8vlkpIT1/TDI=;
-        b=pnYtSH3HoBEVsOtf5YN1xhMTwUrRqSO1SHEZjY62ig95WhjdrLYPGUxRzCVi+RdxUU
-         7K0naobJL65F1QpU9dzHt2BH0fqhuUFu3DesCP9fsvyt61w0wXaRIZ+pp5tcNwg/Uru3
-         1/e528EKtVdHIZi483OeYXn5tTN0Woc9Ague1fGLsBqncwES3TLjp0G+Qc7P5BiVDXwq
-         GJQmnw45cVkKfxwNhaiPkqHFsqjWCpWwlEPW3Hev1FxYrQFxg4X7QG9HvH4JRAL1MWad
-         iIPoytuOxIoiVNEAlDfQWXT8EetE6IVp/DXBKWyd0+ha5884msxTDidvPd5MqFSRP6Pn
-         bEeA==
-X-Gm-Message-State: AJIora+EUyw4vwh2YeIk5yvietOL/qw6p07CEIUFL8TbZimwj4qZndSs
-        6pK3InKexs2F0ss91VWyLCYmJL+MksRwMHo+rZA=
-X-Google-Smtp-Source: AGRyM1vlNjEAgp4pnWVHHXwmroczpGqs6jkw2j3LXXKfgnHgqZJyR1Cr1b7Z9v673yiEmxPI2PmbBT3VhraaBnpOrdc=
-X-Received: by 2002:a05:6638:3802:b0:32e:3d9a:9817 with SMTP id
- i2-20020a056638380200b0032e3d9a9817mr1839946jav.206.1657714434367; Wed, 13
- Jul 2022 05:13:54 -0700 (PDT)
+        Wed, 13 Jul 2022 16:07:50 -0400
+Received: from mx0b-00190b01.pphosted.com (mx0b-00190b01.pphosted.com [IPv6:2620:100:9005:57f::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E85930F54
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Jul 2022 13:07:47 -0700 (PDT)
+Received: from pps.filterd (m0122331.ppops.net [127.0.0.1])
+        by mx0b-00190b01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26DHisEG021489;
+        Wed, 13 Jul 2022 21:07:37 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=akamai.com; h=message-id : date :
+ mime-version : subject : to : cc : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=jan2016.eng;
+ bh=t2CH7/qbBTPWDrsk1mrs7/NyTQ2ozs0qEsfgoUMw6Es=;
+ b=l06J/lGfg1BARRyyfJRgDzfUcJZeRKp5qF2BCCkPzSFtJMVRwH19fBkLIaIc4dfuOJWS
+ eR3pu8OEVWm82+TJzlNCdpFI/2i+UWoIcuo1jMVPdVnHWZPgydv4ejpqOMi1mPyG6utR
+ KDuumSiqHA0nvOuKITtK8O6xcNALLy7b6aRwTLWRCLF/DKVl4pP1MMiJB0Pa87hlC8w7
+ APwVUtFabUo6fjREc+6YaFHwXb4W8ETFYL14hpTCBA8/dbp0nX7SWpbDHD5n0h+rMRMz
+ 5vSs3mlN+TTqXbXKDLkevggMjmvGaBhdp2v+GJQVigkyOUbDRcTYFJXm6TOV0Rf1KkQA lw== 
+Received: from prod-mail-ppoint3 (a72-247-45-31.deploy.static.akamaitechnologies.com [72.247.45.31] (may be forged))
+        by mx0b-00190b01.pphosted.com (PPS) with ESMTPS id 3h9dsrxn9q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 13 Jul 2022 21:07:36 +0100
+Received: from pps.filterd (prod-mail-ppoint3.akamai.com [127.0.0.1])
+        by prod-mail-ppoint3.akamai.com (8.17.1.5/8.17.1.5) with ESMTP id 26DGrAR2031753;
+        Wed, 13 Jul 2022 16:07:36 -0400
+Received: from prod-mail-relay19.dfw02.corp.akamai.com ([172.27.165.173])
+        by prod-mail-ppoint3.akamai.com (PPS) with ESMTP id 3h7q6pcts8-1;
+        Wed, 13 Jul 2022 16:07:36 -0400
+Received: from [0.0.0.0] (prod-ssh-gw01.bos01.corp.akamai.com [172.27.119.138])
+        by prod-mail-relay19.dfw02.corp.akamai.com (Postfix) with ESMTP id C62BD60062;
+        Wed, 13 Jul 2022 20:07:35 +0000 (GMT)
+Message-ID: <1ed749ee-f338-348c-e788-0bb71ca70485@akamai.com>
+Date:   Wed, 13 Jul 2022 16:07:35 -0400
 MIME-Version: 1.0
-References: <20220623192637.3866852-1-memxor@gmail.com> <20220623192637.3866852-2-memxor@gmail.com>
- <20220629032304.h5ck7tizbfehiwut@macbook-pro-3.dhcp.thefacebook.com>
- <CAP01T77fsU8u6GP+HXfQQ_gdu+kp3Am1+Ao-mNYULjDazHs38Q@mail.gmail.com>
- <CAP01T75cVLehQbkE3LLwSG5wVecNz0FH9QZpmzoqs-e8YKpGtg@mail.gmail.com>
- <20220706184436.mf7oeexxfwswgdqf@MacBook-Pro-3.local> <CAP01T75-EZfdBx+W+6pV0vDDD3Qi07KVLsFTupPfptTyAFxx1Q@mail.gmail.com>
- <20220706212903.az2mtqodtzmn2gwq@MacBook-Pro-3.local> <CAADnVQJsAfjFwgoiWdsmuWBi9BX7eaCw8Tpe7sd=HPG4QQck1A@mail.gmail.com>
-In-Reply-To: <CAADnVQJsAfjFwgoiWdsmuWBi9BX7eaCw8Tpe7sd=HPG4QQck1A@mail.gmail.com>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Wed, 13 Jul 2022 14:13:17 +0200
-Message-ID: <CAP01T77GxdU6AQE3ADVFZ6YA89diFFAev3aQFpYNboxM76QJ6w@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v5 1/8] bpf: Add support for forcing kfunc args
- to be referenced
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     bpf <bpf@vger.kernel.org>, Yonghong Song <yhs@fb.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [PATCH] netfilter: ipset: regression in ip_set_hash_ip.c
+Content-Language: en-US
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     pablo@netfilter.org, fw@strlen.de, johunt@akamai.com,
+        netfilter-devel@vger.kernel.org
+References: <20220629212109.3045794-1-vpai@akamai.com>
+ <20220629212109.3045794-2-vpai@akamai.com>
+ <e394ba75-afe1-c50-54eb-dfceee45bd7a@netfilter.org>
+From:   Vishwanath Pai <vpai@akamai.com>
+In-Reply-To: <e394ba75-afe1-c50-54eb-dfceee45bd7a@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-07-13_10,2022-07-13_03,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 adultscore=0 bulkscore=0
+ malwarescore=0 mlxlogscore=999 phishscore=0 suspectscore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2206140000
+ definitions=main-2207130073
+X-Proofpoint-GUID: FCvKPygpaMjneuq39eKQYCGqBsSQKhsq
+X-Proofpoint-ORIG-GUID: FCvKPygpaMjneuq39eKQYCGqBsSQKhsq
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-07-13_09,2022-07-13_03,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015 spamscore=0 bulkscore=0
+ priorityscore=1501 malwarescore=0 phishscore=0 mlxscore=0 impostorscore=0
+ adultscore=0 mlxlogscore=999 lowpriorityscore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2206140000
+ definitions=main-2207130073
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 7 Jul 2022 at 00:04, Alexei Starovoitov
-<alexei.starovoitov@gmail.com> wrote:
->
-> On Wed, Jul 6, 2022 at 2:29 PM Alexei Starovoitov
-> <alexei.starovoitov@gmail.com> wrote:
-> >
-> > On Thu, Jul 07, 2022 at 12:51:15AM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > On Thu, 7 Jul 2022 at 00:14, Alexei Starovoitov
-> > > <alexei.starovoitov@gmail.com> wrote:
-> > > >
-> > > > On Sun, Jul 03, 2022 at 11:04:22AM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > > > On Sun, 3 Jul 2022 at 10:54, Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
-> > > > > >
-> > > > > > On Wed, 29 Jun 2022 at 08:53, Alexei Starovoitov
-> > > > > > <alexei.starovoitov@gmail.com> wrote:
-> > > > > > >
-> > > > > > > On Fri, Jun 24, 2022 at 12:56:30AM +0530, Kumar Kartikeya Dwivedi wrote:
-> > > > > > > > Similar to how we detect mem, size pairs in kfunc, teach verifier to
-> > > > > > > > treat __ref suffix on argument name to imply that it must be a
-> > > > > > > > referenced pointer when passed to kfunc. This is required to ensure that
-> > > > > > > > kfunc that operate on some object only work on acquired pointers and not
-> > > > > > > > normal PTR_TO_BTF_ID with same type which can be obtained by pointer
-> > > > > > > > walking. Release functions need not specify such suffix on release
-> > > > > > > > arguments as they are already expected to receive one referenced
-> > > > > > > > argument.
-> > > > > > > >
-> > > > > > > > Note that we use strict type matching when a __ref suffix is present on
-> > > > > > > > the argument.
-> > > > > > > ...
-> > > > > > > > +             /* Check if argument must be a referenced pointer, args + i has
-> > > > > > > > +              * been verified to be a pointer (after skipping modifiers).
-> > > > > > > > +              */
-> > > > > > > > +             arg_ref = is_kfunc_arg_ref(btf, args + i);
-> > > > > > > > +             if (is_kfunc && arg_ref && !reg->ref_obj_id) {
-> > > > > > > > +                     bpf_log(log, "R%d must be referenced\n", regno);
-> > > > > > > > +                     return -EINVAL;
-> > > > > > > > +             }
-> > > > > > > > +
-> > > > > > >
-> > > > > > > imo this suffix will be confusing to use.
-> > > > > > > If I understand the intent the __ref should only be used
-> > > > > > > in acquire (and other) kfuncs that also do release.
-> > > > > > > Adding __ref to actual release kfunc will be a nop.
-> > > > > > > It will be checked, but it's not necessary.
-> > > > > > >
-> > > > > > > At the end
-> > > > > > > +struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct__ref)
-> > > > > > > will behave like kptr_xchg with exception that kptr_xchg takes any btf_id
-> > > > > > > while here it's fixed.
-> > > > > > >
-> > > > > > > The code:
-> > > > > > >  if (rel && reg->ref_obj_id)
-> > > > > > >         arg_type |= OBJ_RELEASE;
-> > > > > > > should probably be updated with '|| arg_ref'
-> > > > > > > to make sure reg->off == 0 ?
-> > > > > > > That looks like a small bug.
-> > > > > > >
-> > > > > >
-> > > > > > Indeed, I missed that. Thanks for catching it.
-> > > > > >
-> > > > > > > But stepping back... why __ref is needed ?
-> > > > > > > We can add bpf_ct_insert_entry to acq and rel sets and it should work?
-> > > > > > > I'm assuming you're doing the orthogonal cleanup of resolve_btfid,
-> > > > > > > so we will have a single kfunc set where bpf_ct_insert_entry will
-> > > > > > > have both acq and rel flags.
-> > > > > > > I'm surely missing something.
-> > > > > >
-> > > > > > It is needed to prevent the case where someone might do:
-> > > > > > ct = bpf_xdp_ct_alloc(...);
-> > > > > > bpf_ct_set_timeout(ct->master, ...);
-> > > > > >
-> > > > >
-> > > > > A better illustration is probably bpf_xdp_ct_lookup and
-> > > > > bpf_ct_change_timeout, since here the type for ct->master won't match
-> > > > > with bpf_ct_set_timeout, but the point is the same.
-> > > >
-> > > > Sorry, I'm still not following.
-> > > > Didn't we make pointer walking 'untrusted' so ct->master cannot be
-> > > > passed into any kfunc?
-> > > >
-> > >
-> > > I don't believe that is the case, it is only true for kptrs loaded
-> > > from BPF maps (that too those with BPF_LDX, not the ones with
-> > > kptr_xchg). There we had a chance to do things differently. For normal
-> > > PTR_TO_BTF_ID obtained from kfuncs/BPF helpers, there is no untrusted
-> > > flag set on them, nor is it set when walking them.
-> > >
-> > > I also think we discussed switching to this mode, by making many cases
-> > > untrusted by default, and using annotation to allow cases, making
-> > > pointers trusted at one level (like args for tracing/lsm progs, but
-> > > next deref becomes untrusted), but admittedly it may not cover enough
-> > > ground, and you didn't like it much either, so I stopped pursuing it.
-> >
-> > Ahh. Now I remember. Thanks for reminding :)
-> > Could you please summarize this thread and add all of it as a big comment
-> > in the source code next to __ref handling to explain the motivation
-> > and an example on when and how this __ref suffix should be used.
-> > Otherwise somebody, like me, will forget the context soon.
-> >
-> > I was thinking of better name than __ref, but couldn't come up with one.
-> > __ref fits this use case the best.
->
-> Actually, maybe a kfunc flag will be better?
-> Like REF_ARGS
-> that would apply to all arguments of the kfunc
-> (not only those with __ref suffix).
->
-> We have three types of ptr_btf_id:
-> - ref counted
-> - untrusted
-> - old legacy that we cannot be break due to backward compat
->
-> In the future we'll probably be adding new kfuncs where we'd want
-> every argument to be trusted. In our naming convention these are
-> the refcounted ptr_to_btf_id that come from lookup-like kfuncs.
-> To consume them in the release kfunc they have to be refcounted,
-> but non-release kfunc (like set_timeout) also want a trusted ptr.
-> So the simple way of describe the intent would be:
-> BTF_ID(func, bpf_ct_release, RELEASE)
-> BTF_ID(func, bpf_ct_set_timeout, REF_ARGS)
->
-> or maybe TRUSTED_ARGS would be a better flag name.
-> wdyt?
+On 7/12/22 17:42, Jozsef Kadlecsik wrote:
+> Hi Vishwanath,
+> 
+> On Wed, 29 Jun 2022, Vishwanath Pai wrote:
+> 
+>> This patch introduced a regression: commit 48596a8ddc46 ("netfilter:
+>> ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
+>>
+>> The variable e.ip is passed to adtfn() function which finally adds the
+>> ip address to the set. The patch above refactored the for loop and moved
+>> e.ip = htonl(ip) to the end of the for loop.
+>>
+>> What this means is that if the value of "ip" changes between the first
+>> assignement of e.ip and the forloop, then e.ip is pointing to a
+>> different ip address than "ip".
+>>
+>> Test case:
+>> $ ipset create jdtest_tmp hash:ip family inet hashsize 2048 maxelem 100000
+>> $ ipset add jdtest_tmp 10.0.1.1/31
+>> ipset v6.21.1: Element cannot be added to the set: it's already added
+>>
+>> The value of ip gets updated inside the  "else if (tb[IPSET_ATTR_CIDR])"
+>> block but e.ip is still pointing to the old value.
+>>
+>> Reviewed-by: Joshua Hunt <johunt@akamai.com>
+>> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+>> ---
+>>  net/netfilter/ipset/ip_set_hash_ip.c | 12 +++++++++---
+>>  1 file changed, 9 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+>> index dd30c03d5a23..258aeb324483 100644
+>> --- a/net/netfilter/ipset/ip_set_hash_ip.c
+>> +++ b/net/netfilter/ipset/ip_set_hash_ip.c
+>> @@ -120,12 +120,14 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+>>  		return ret;
+>>  
+>>  	ip &= ip_set_hostmask(h->netmask);
+>> -	e.ip = htonl(ip);
+>> -	if (e.ip == 0)
+>> +
+>> +	if (ip == 0)
+>>  		return -IPSET_ERR_HASH_ELEM;
+>>  
+>> -	if (adt == IPSET_TEST)
+>> +	if (adt == IPSET_TEST) {
+>> +		e.ip = htonl(ip);
+>>  		return adtfn(set, &e, &ext, &ext, flags);
+>> +	}
+>>  
+>>  	ip_to = ip;
+>>  	if (tb[IPSET_ATTR_IP_TO]) {
+>> @@ -145,6 +147,10 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+>>  		ip_set_mask_from_to(ip, ip_to, cidr);
+>>  	}
+>>  
+>> +	e.ip = htonl(ip);
+>> +	if (e.ip == 0)
+>> +		return -IPSET_ERR_HASH_ELEM;
+>> +
+>>  	hosts = h->netmask == 32 ? 1 : 2 << (32 - h->netmask - 1);
+>>  
+>>  	/* 64bit division is not allowed on 32bit */
+> 
+> You are right, however the patch can be made much smaller if the e.ip 
+> conversion is simply moved from
+> 
+>         if (retried) {
+>                 ip = ntohl(h->next.ip);
+>                 e.ip = htonl(ip);
+>         }
+> 
+> into the next for loop as the first instruction. Could you resend 
+> your patch that way?
+> 
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+> PGP key : https://urldefense.com/v3/__https://wigner.hu/*kadlec/pgp_public_key.txt__;fg!!GjvTz_vk!Ueht58Jfq7I9Q7kUGd0c_P7hXtIX50eqzQrTiCXOlath9rqfr5WF4srmHwNQ06rfNxUsBM7lCp3bew$ 
+> Address : Wigner Research Centre for Physics
+>           H-1525 Budapest 114, POB. 49, Hungary
 
-Ok, I've implemented the kfunc flags and kept TRUSTED_ARGS as the
-name. Just need to do a little bit of testing and will post it
-together with this.
+Hi Jozsef,
 
-Just to confirm, should I still keep __ref or drop it? I think
-TRUSTED_ARGS has its use but it may be too coarse. I already have the
-patch so if you like we can add both ways now.
+Agreed that would be much simpler. I'll send a v2.
+
+Thanks,
+Vishwanath
