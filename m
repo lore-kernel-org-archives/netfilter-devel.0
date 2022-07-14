@@ -2,79 +2,156 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01367C43334
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jul 2022 06:09:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E61C433EF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jul 2022 15:16:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233598AbiGNGJH (ORCPT
+        id S237379AbiGNPQF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Jul 2022 02:09:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37232 "EHLO
+        Thu, 14 Jul 2022 11:16:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233255AbiGNGI7 (ORCPT
+        with ESMTP id S232135AbiGNPQE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Jul 2022 02:08:59 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31C7D1125
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Jul 2022 23:08:51 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 88F54CC00F3;
-        Thu, 14 Jul 2022 08:08:49 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 14 Jul 2022 08:08:47 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 0CB4FCC00EA;
-        Thu, 14 Jul 2022 08:08:47 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id F19CD3431DE; Thu, 14 Jul 2022 08:08:46 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id EFF00343155;
-        Thu, 14 Jul 2022 08:08:46 +0200 (CEST)
-Date:   Thu, 14 Jul 2022 08:08:46 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Vishwanath Pai <vpai@akamai.com>
-cc:     pablo@netfilter.org, fw@strlen.de, johunt@akamai.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: ipset: ipset list may return wrong member
- count on bitmap types
-In-Reply-To: <b7264c2a-dc7e-dd60-ee04-f2cd87ec761a@akamai.com>
-Message-ID: <5e494928-aeb8-2b71-d28e-1f4aad7c38e@netfilter.org>
-References: <20220629212109.3045794-1-vpai@akamai.com> <73de8f7a-365-ef8c-77fa-52c6ad94cde@netfilter.org> <b7264c2a-dc7e-dd60-ee04-f2cd87ec761a@akamai.com>
+        Thu, 14 Jul 2022 11:16:04 -0400
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B850DE8E;
+        Thu, 14 Jul 2022 08:16:03 -0700 (PDT)
+Received: by mail-ed1-x531.google.com with SMTP id g1so2807267edb.12;
+        Thu, 14 Jul 2022 08:16:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:date:to:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=oI7lmGca+toUm4ZWMa5XQfNQqVbbESkf3BrNPAtrMII=;
+        b=Ejda51ia8PRknUgSAK7emz2//RircokgfWr+i6dRLVuO6FtI69rY1lqUC9Ta4Zho8x
+         FYd+/tGA2zrm4U9Zuj8+FD5WD72oFXVhiuNy+JcT7ltlfjt5OO90tEL1hv4J2q5y73bI
+         rL9A52+hPey36subBOjdFoB+f8dPaWXLtj8/tadtGy1W0gx6guwucxD5FNsCSS1eC8TP
+         3/fyzUxyD67iymhl3k1zHPmON2HQZZt3W7T8vebsyvGLOI3kAxpDQn173VOEBPL93ftK
+         DWPHmLNOpAbMKKbffhWV1+QN4enCmVbu1jn6azJeWM5uQhgBkcLVvX3S80a4GupmOWw1
+         rgKg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:date:to:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=oI7lmGca+toUm4ZWMa5XQfNQqVbbESkf3BrNPAtrMII=;
+        b=wlvyC8V0H68s+A8OfD09//dddS8lXODE29ex/08iCbXpAfIR79ICJWihBCkicT2LG5
+         2luOjdD5n4IfHBcVrFp2ZtgsT1dHlyqdU+wYExxRP6lM93Zzts3WLnW0hySn7zvkE/4m
+         jRySuTqRmG5roAMXnp49DhBjcdZ9cArmymUKap9mVUESOQ/QTbKySN9vioY0xILhk4Bq
+         /6ktZwPtrgTzK6gfh25dzAKxkqEpsgFkXk0fssCnoSkx41NSv7fb2RuwbH9m9rkWPCoY
+         qDWe3g4BarjzofwwuDthHOcvDXoszq7cbDYFOCUoGDWroqZwYaSc37QOSfxOKyEV+Zx1
+         R55w==
+X-Gm-Message-State: AJIora+DwySLPqOVHXG7KdiAMaYDKX03ZR6h/ydYXt/e5tikLBODtCNv
+        4Fsg6Qp7zCIAHD0E7G1Kv3w=
+X-Google-Smtp-Source: AGRyM1tSMIUGzFu5xvfDtbcr0unqUo7guIFXtL+nx/hK8ueisxLVKYPx4SyUH6gxSlI9Y00A2zBkiw==
+X-Received: by 2002:aa7:db50:0:b0:43a:6319:e2bc with SMTP id n16-20020aa7db50000000b0043a6319e2bcmr12994540edt.237.1657811762092;
+        Thu, 14 Jul 2022 08:16:02 -0700 (PDT)
+Received: from debian ([156.146.33.241])
+        by smtp.gmail.com with ESMTPSA id 6-20020a170906318600b006f3ef214e27sm812664ejy.141.2022.07.14.08.15.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 14 Jul 2022 08:16:01 -0700 (PDT)
+From:   Mathias Lark <mathiaslark@gmail.com>
+X-Google-Original-From: Mathias Lark <mathias.lark@gmail.com>
+Date:   Thu, 14 Jul 2022 17:13:58 +0200
+To:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+        kuba@kernel.org, pabeni@redhat.com, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH net-next] improve handling of ICMP_EXT_ECHO icmp type
+Message-ID: <20220714151358.GA16615@debian>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 13 Jul 2022, Vishwanath Pai wrote:
+Introduce a helper for icmp type checking - icmp_is_valid_type.
 
-> On 7/12/22 17:06, Jozsef Kadlecsik wrote:
-> > 
-> > On Wed, 29 Jun 2022, Vishwanath Pai wrote:
-> > 
-> >> We fixed a similar problem before in commit 7f4f7dd4417d ("netfilter:
-> >> ipset: ipset list may return wrong member count for set with timeout").
-> >> The same issue exists in ip_set_bitmap_gen.h as well.
-> > 
-> > Could you rework the patch to solve the issue the same way as for the hash 
-> > types (i.e. scanning the set without locking) like in the commit 
-> > 33f08da28324 (netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" 
-> > reports)? I know the bitmap types have got a limited size but it'd be 
-> > great if the general method would be the same across the different types.
->
-> Sure, I'll give it a try. It might take me a bit longer cause it looks like a
-> complex set of changes.
+There is a number of code paths handling ICMP packets. To check
+icmp type validity, some of those code paths perform the check
+`type <= NR_ICMP_TYPES`. Since the introduction of ICMP_EXT_ECHO
+and ICMP_EXT_ECHOREPLY (RFC 8335), this check is no longer correct.
 
-I meant not the whole commit 33f08da28324, of course there is no need for 
-region locking at the bitmap types. Just to count non-expired elements 
-(and extension size) so that it's a reader function and doesn't need 
-locking.
+To fix this inconsistency and avoid further problems with future
+ICMP types, the patch inserts the icmp_is_valid_type helper
+wherever it is required.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Signed-off-by: Mathias Lark <mathias.lark@gmail.com>
+---
+ include/uapi/linux/icmp.h               | 5 +++++
+ net/ipv4/icmp.c                         | 8 +++-----
+ net/netfilter/nf_conntrack_proto_icmp.c | 4 +---
+ 3 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/include/uapi/linux/icmp.h b/include/uapi/linux/icmp.h
+index 163c0998aec9..ad736a24f0c8 100644
+--- a/include/uapi/linux/icmp.h
++++ b/include/uapi/linux/icmp.h
+@@ -159,4 +159,9 @@ struct icmp_ext_echo_iio {
+ 		} addr;
+ 	} ident;
+ };
++
++static inline bool icmp_is_valid_type(__u8 type)
++{
++	return type <= NR_ICMP_TYPES || type == ICMP_EXT_ECHO || type == ICMP_EXT_ECHOREPLY;
++}
+ #endif /* _UAPI_LINUX_ICMP_H */
+diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
+index 236debd9fded..686f3133370f 100644
+--- a/net/ipv4/icmp.c
++++ b/net/ipv4/icmp.c
+@@ -273,7 +273,7 @@ EXPORT_SYMBOL(icmp_global_allow);
+ 
+ static bool icmpv4_mask_allow(struct net *net, int type, int code)
+ {
+-	if (type > NR_ICMP_TYPES)
++	if (!icmp_is_valid_type(type))
+ 		return true;
+ 
+ 	/* Don't limit PMTU discovery. */
+@@ -661,7 +661,7 @@ void __icmp_send(struct sk_buff *skb_in, int type, int code, __be32 info,
+ 			 *	Assume any unknown ICMP type is an error. This
+ 			 *	isn't specified by the RFC, but think about it..
+ 			 */
+-			if (*itp > NR_ICMP_TYPES ||
++			if (!icmp_is_valid_type(*itp) ||
+ 			    icmp_pointers[*itp].error)
+ 				goto out;
+ 		}
+@@ -1225,12 +1225,10 @@ int icmp_rcv(struct sk_buff *skb)
+ 	}
+ 
+ 	/*
+-	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+-	 *
+ 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
+ 	 *		  discarded.
+ 	 */
+-	if (icmph->type > NR_ICMP_TYPES) {
++	if (!icmp_is_valid_type(icmph->type)) {
+ 		reason = SKB_DROP_REASON_UNHANDLED_PROTO;
+ 		goto error;
+ 	}
+diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
+index b38b7164acd5..ba4462c393be 100644
+--- a/net/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/netfilter/nf_conntrack_proto_icmp.c
+@@ -225,12 +225,10 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
+ 	}
+ 
+ 	/*
+-	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+-	 *
+ 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
+ 	 *		  discarded.
+ 	 */
+-	if (icmph->type > NR_ICMP_TYPES) {
++	if (!icmp_is_valid_type(icmph->type)) {
+ 		icmp_error_log(skb, state, "invalid icmp type");
+ 		return -NF_ACCEPT;
+ 	}
+-- 
+2.36.1
+
