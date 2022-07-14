@@ -2,156 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E61C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jul 2022 15:16:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59D2ECCA47B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 14 Jul 2022 21:19:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237379AbiGNPQF (ORCPT
+        id S232564AbiGNVTl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 14 Jul 2022 11:16:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51910 "EHLO
+        Thu, 14 Jul 2022 17:19:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232135AbiGNPQE (ORCPT
+        with ESMTP id S229458AbiGNVTk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Jul 2022 11:16:04 -0400
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B850DE8E;
-        Thu, 14 Jul 2022 08:16:03 -0700 (PDT)
-Received: by mail-ed1-x531.google.com with SMTP id g1so2807267edb.12;
-        Thu, 14 Jul 2022 08:16:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:date:to:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=oI7lmGca+toUm4ZWMa5XQfNQqVbbESkf3BrNPAtrMII=;
-        b=Ejda51ia8PRknUgSAK7emz2//RircokgfWr+i6dRLVuO6FtI69rY1lqUC9Ta4Zho8x
-         FYd+/tGA2zrm4U9Zuj8+FD5WD72oFXVhiuNy+JcT7ltlfjt5OO90tEL1hv4J2q5y73bI
-         rL9A52+hPey36subBOjdFoB+f8dPaWXLtj8/tadtGy1W0gx6guwucxD5FNsCSS1eC8TP
-         3/fyzUxyD67iymhl3k1zHPmON2HQZZt3W7T8vebsyvGLOI3kAxpDQn173VOEBPL93ftK
-         DWPHmLNOpAbMKKbffhWV1+QN4enCmVbu1jn6azJeWM5uQhgBkcLVvX3S80a4GupmOWw1
-         rgKg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:date:to:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=oI7lmGca+toUm4ZWMa5XQfNQqVbbESkf3BrNPAtrMII=;
-        b=wlvyC8V0H68s+A8OfD09//dddS8lXODE29ex/08iCbXpAfIR79ICJWihBCkicT2LG5
-         2luOjdD5n4IfHBcVrFp2ZtgsT1dHlyqdU+wYExxRP6lM93Zzts3WLnW0hySn7zvkE/4m
-         jRySuTqRmG5roAMXnp49DhBjcdZ9cArmymUKap9mVUESOQ/QTbKySN9vioY0xILhk4Bq
-         /6ktZwPtrgTzK6gfh25dzAKxkqEpsgFkXk0fssCnoSkx41NSv7fb2RuwbH9m9rkWPCoY
-         qDWe3g4BarjzofwwuDthHOcvDXoszq7cbDYFOCUoGDWroqZwYaSc37QOSfxOKyEV+Zx1
-         R55w==
-X-Gm-Message-State: AJIora+DwySLPqOVHXG7KdiAMaYDKX03ZR6h/ydYXt/e5tikLBODtCNv
-        4Fsg6Qp7zCIAHD0E7G1Kv3w=
-X-Google-Smtp-Source: AGRyM1tSMIUGzFu5xvfDtbcr0unqUo7guIFXtL+nx/hK8ueisxLVKYPx4SyUH6gxSlI9Y00A2zBkiw==
-X-Received: by 2002:aa7:db50:0:b0:43a:6319:e2bc with SMTP id n16-20020aa7db50000000b0043a6319e2bcmr12994540edt.237.1657811762092;
-        Thu, 14 Jul 2022 08:16:02 -0700 (PDT)
-Received: from debian ([156.146.33.241])
-        by smtp.gmail.com with ESMTPSA id 6-20020a170906318600b006f3ef214e27sm812664ejy.141.2022.07.14.08.15.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 Jul 2022 08:16:01 -0700 (PDT)
-From:   Mathias Lark <mathiaslark@gmail.com>
-X-Google-Original-From: Mathias Lark <mathias.lark@gmail.com>
-Date:   Thu, 14 Jul 2022 17:13:58 +0200
-To:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, pabeni@redhat.com, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH net-next] improve handling of ICMP_EXT_ECHO icmp type
-Message-ID: <20220714151358.GA16615@debian>
+        Thu, 14 Jul 2022 17:19:40 -0400
+Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E43BC13CF9;
+        Thu, 14 Jul 2022 14:19:37 -0700 (PDT)
+Received: from sslproxy03.your-server.de ([88.198.220.132])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1oC6FD-0000Xu-Sf; Thu, 14 Jul 2022 23:19:35 +0200
+Received: from [85.1.206.226] (helo=linux-3.home)
+        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1oC6FD-000XEQ-KJ; Thu, 14 Jul 2022 23:19:35 +0200
+Subject: LPC 2022 Networking and BPF Track CFP (Reminder)
+References: <cd33ca74-aec9-ff57-97d5-55d8b908b0ba@iogearbox.net>
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc:     xdp-newbies@vger.kernel.org, iovisor-dev@lists.iovisor.org,
+        linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        lwn@lwn.net
+From:   Daniel Borkmann <daniel@iogearbox.net>
+X-Forwarded-Message-Id: <cd33ca74-aec9-ff57-97d5-55d8b908b0ba@iogearbox.net>
+Message-ID: <fa09a9f1-7d99-cafb-3c10-7a3e474d8da6@iogearbox.net>
+Date:   Thu, 14 Jul 2022 23:19:35 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <cd33ca74-aec9-ff57-97d5-55d8b908b0ba@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.6/26601/Thu Jul 14 09:57:26 2022)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce a helper for icmp type checking - icmp_is_valid_type.
+This is a reminder for the Call for Proposals (CFP) for the Networking and
+BPF track at the 2022 edition of the Linux Plumbers Conference (LPC), which is
+planned to be held in Dublin, Ireland, on September 12th - 14th, 2022.
 
-There is a number of code paths handling ICMP packets. To check
-icmp type validity, some of those code paths perform the check
-`type <= NR_ICMP_TYPES`. Since the introduction of ICMP_EXT_ECHO
-and ICMP_EXT_ECHOREPLY (RFC 8335), this check is no longer correct.
+Note that the conference is planned to be both in person and remote (hybrid).
+CFP submitters should ideally be able to give their presentation in person to
+minimize technical issues if circumstances permit, although presenting remotely
+will also be possible.
 
-To fix this inconsistency and avoid further problems with future
-ICMP types, the patch inserts the icmp_is_valid_type helper
-wherever it is required.
+This year's Networking and BPF track technical committee is comprised of:
 
-Signed-off-by: Mathias Lark <mathias.lark@gmail.com>
----
- include/uapi/linux/icmp.h               | 5 +++++
- net/ipv4/icmp.c                         | 8 +++-----
- net/netfilter/nf_conntrack_proto_icmp.c | 4 +---
- 3 files changed, 9 insertions(+), 8 deletions(-)
+    David S. Miller <davem@davemloft.net>
+    Jakub Kicinski <kuba@kernel.org>
+    Paolo Abeni <pabeni@redhat.com>
+    Eric Dumazet <edumazet@google.com>
+    Alexei Starovoitov <ast@kernel.org>
+    Daniel Borkmann <daniel@iogearbox.net>
+    Andrii Nakryiko <andrii@kernel.org>
 
-diff --git a/include/uapi/linux/icmp.h b/include/uapi/linux/icmp.h
-index 163c0998aec9..ad736a24f0c8 100644
---- a/include/uapi/linux/icmp.h
-+++ b/include/uapi/linux/icmp.h
-@@ -159,4 +159,9 @@ struct icmp_ext_echo_iio {
- 		} addr;
- 	} ident;
- };
-+
-+static inline bool icmp_is_valid_type(__u8 type)
-+{
-+	return type <= NR_ICMP_TYPES || type == ICMP_EXT_ECHO || type == ICMP_EXT_ECHOREPLY;
-+}
- #endif /* _UAPI_LINUX_ICMP_H */
-diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
-index 236debd9fded..686f3133370f 100644
---- a/net/ipv4/icmp.c
-+++ b/net/ipv4/icmp.c
-@@ -273,7 +273,7 @@ EXPORT_SYMBOL(icmp_global_allow);
- 
- static bool icmpv4_mask_allow(struct net *net, int type, int code)
- {
--	if (type > NR_ICMP_TYPES)
-+	if (!icmp_is_valid_type(type))
- 		return true;
- 
- 	/* Don't limit PMTU discovery. */
-@@ -661,7 +661,7 @@ void __icmp_send(struct sk_buff *skb_in, int type, int code, __be32 info,
- 			 *	Assume any unknown ICMP type is an error. This
- 			 *	isn't specified by the RFC, but think about it..
- 			 */
--			if (*itp > NR_ICMP_TYPES ||
-+			if (!icmp_is_valid_type(*itp) ||
- 			    icmp_pointers[*itp].error)
- 				goto out;
- 		}
-@@ -1225,12 +1225,10 @@ int icmp_rcv(struct sk_buff *skb)
- 	}
- 
- 	/*
--	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
--	 *
- 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
- 	 *		  discarded.
- 	 */
--	if (icmph->type > NR_ICMP_TYPES) {
-+	if (!icmp_is_valid_type(icmph->type)) {
- 		reason = SKB_DROP_REASON_UNHANDLED_PROTO;
- 		goto error;
- 	}
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index b38b7164acd5..ba4462c393be 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -225,12 +225,10 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
- 	}
- 
- 	/*
--	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
--	 *
- 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
- 	 *		  discarded.
- 	 */
--	if (icmph->type > NR_ICMP_TYPES) {
-+	if (!icmp_is_valid_type(icmph->type)) {
- 		icmp_error_log(skb, state, "invalid icmp type");
- 		return -NF_ACCEPT;
- 	}
--- 
-2.36.1
+We are seeking proposals of 40 minutes in length (including Q&A discussion).
 
+Any kind of advanced Linux networking and/or BPF related topic will be considered.
+
+Please submit your proposals through the official LPC website at:
+
+    https://lpc.events/event/16/abstracts/
+
+Make sure to select "eBPF & Networking" in the track pull-down menu.
+
+Proposals must be submitted by August 10th, and submitters will be notified of
+acceptance by August 12th.
+
+Final slides (as PDF) are due on the first day of the conference.
+
+We are very much looking forward to a great conference and seeing you all!
