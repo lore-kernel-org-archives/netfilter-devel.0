@@ -2,67 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E39EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Jul 2022 09:12:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E111BC43334
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Jul 2022 11:56:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230214AbiGPJMy (ORCPT
+        id S229730AbiGPL4e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Jul 2022 05:12:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43532 "EHLO
+        Sat, 16 Jul 2022 07:56:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229502AbiGPJMx (ORCPT
+        with ESMTP id S229619AbiGPL4d (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Jul 2022 05:12:53 -0400
-Received: from zeeaster.vergenet.net (zeeaster.vergenet.net [206.189.110.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CFC61EC54;
-        Sat, 16 Jul 2022 02:12:47 -0700 (PDT)
-Received: from madeliefje.horms.nl (86-88-72-229.fixed.kpn.net [86.88.72.229])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by zeeaster.vergenet.net (Postfix) with ESMTPSA id E9B4C20088;
-        Sat, 16 Jul 2022 09:12:44 +0000 (UTC)
-Received: by madeliefje.horms.nl (Postfix, from userid 7100)
-        id 6A21E28BD; Sat, 16 Jul 2022 10:12:44 +0100 (BST)
-Date:   Sat, 16 Jul 2022 11:12:44 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Sat, 16 Jul 2022 07:56:33 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBDE9DB5
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jul 2022 04:56:31 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1oCgPM-0000og-Sd; Sat, 16 Jul 2022 13:56:28 +0200
+Date:   Sat, 16 Jul 2022 13:56:28 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] parser_bison: bail out on too long names
+Message-ID: <YtKnbGh/FdJHlil3@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH] netfilter: ipvs: Use the bitmap API to allocate bitmaps
-Message-ID: <YtKBDApu3y4noIGC@vergenet.net>
-References: <420d8b70560e8711726ff639f0a55364e212ff26.1656962678.git.christophe.jaillet@wanadoo.fr>
- <b69d7ba1-22f8-80c3-c870-debd7aaf4cea@ssi.bg>
+        netfilter-devel@vger.kernel.org
+References: <20220716080549.162980-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <b69d7ba1-22f8-80c3-c870-debd7aaf4cea@ssi.bg>
-Organisation: Horms Solutions BV
-X-Virus-Scanned: clamav-milter 0.103.6 at zeeaster
-X-Virus-Status: Clean
+In-Reply-To: <20220716080549.162980-1-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 05, 2022 at 01:05:54PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 4 Jul 2022, Christophe JAILLET wrote:
-> 
-> > Use bitmap_zalloc()/bitmap_free() instead of hand-writing them.
-> > 
-> > It is less verbose and it improves the semantic.
-> > 
-> > Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> 
-> 	Looks good to me for -next! Thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+Hi,
 
-Acked-by: Simon Horman <horms@verge.net.au>
+On Sat, Jul 16, 2022 at 10:05:49AM +0200, Pablo Neira Ayuso wrote:
+> If user specifies a too long object name, bail out.
 
+Shouldn't this be done in eval phase or so? As-is, this patch introduces
+a standard syntax-specific limitation people may circumvent using JSON,
+no?
+
+Cheers, Phil
