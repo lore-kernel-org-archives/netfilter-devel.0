@@ -2,98 +2,227 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11BE7C433EF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Jul 2022 21:35:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA618C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 16 Jul 2022 08:05:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231671AbiGOVfv (ORCPT
+        id S230096AbiGPIF4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Jul 2022 17:35:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41250 "EHLO
+        Sat, 16 Jul 2022 04:05:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229528AbiGOVfu (ORCPT
+        with ESMTP id S229497AbiGPIFz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Jul 2022 17:35:50 -0400
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C06158841;
-        Fri, 15 Jul 2022 14:35:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657920949; x=1689456949;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=vFAX1UVh0i4rvEsH7mYrdzd8F6INE5/AtplT3ycQd/M=;
-  b=LSH6UYujYW71I7Lrvh46GbvmFMapnuXFqQUuzIzlxQy3FxvJTtEIdvVf
-   TCL5ZnoMTMQLXJ7N2Kw6hTiZTNbI6yHdWwOCg7jvVFoSS7jOnvKN6Op58
-   m/LoITxgLbe1d7RfBCK55HCw3DofHTs5HYeGdAWtEIUf+tXf+O/Tvgnx+
-   nbutFP5nWAdCTNcXBKDfuCANIVhtaD/TlLEaJ6XsN28hfNTKMuHqNzNqh
-   8ktQbH5h3sWAh7xz8PBlRrDBn6F0fdi7YgIBLCRoVRAjGaIrxNL15qKh1
-   c7fsi4mpFxEoStF+sT/uTbqmXXzOdcf9p1Mkb0E+r2FPnG4n47CzmNZdP
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10409"; a="286640942"
-X-IronPort-AV: E=Sophos;i="5.92,275,1650956400"; 
-   d="scan'208";a="286640942"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2022 14:35:49 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,275,1650956400"; 
-   d="scan'208";a="571689965"
-Received: from lkp-server02.sh.intel.com (HELO ff137eb26ff1) ([10.239.97.151])
-  by orsmga006.jf.intel.com with ESMTP; 15 Jul 2022 14:35:46 -0700
-Received: from kbuild by ff137eb26ff1 with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1oCSyP-0000mO-Bd;
-        Fri, 15 Jul 2022 21:35:45 +0000
-Date:   Sat, 16 Jul 2022 05:35:33 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Mathias Lark <mathiaslark@gmail.com>, davem@davemloft.net,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org
-Subject: Re: [PATCH net-next] improve handling of ICMP_EXT_ECHO icmp type
-Message-ID: <202207160519.M8OOdyfX-lkp@intel.com>
-References: <20220714151358.GA16615@debian>
+        Sat, 16 Jul 2022 04:05:55 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BCA4C3DBF7
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jul 2022 01:05:54 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] parser_bison: bail out on too long names
+Date:   Sat, 16 Jul 2022 10:05:49 +0200
+Message-Id: <20220716080549.162980-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220714151358.GA16615@debian>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Mathias,
+If user specifies a too long object name, bail out.
 
-Thank you for the patch! Yet something to improve:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 93 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
 
-[auto build test ERROR on net-next/master]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Mathias-Lark/improve-handling-of-ICMP_EXT_ECHO-icmp-type/20220714-231818
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git b126047f43f11f61f1dd64802979765d71795dae
-config: x86_64-randconfig-a016 (https://download.01.org/0day-ci/archive/20220716/202207160519.M8OOdyfX-lkp@intel.com/config)
-compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project 5e61b9c556267086ef9b743a0b57df302eef831b)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/d238a024060b9cf5095b5027301f5921c9140c4e
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Mathias-Lark/improve-handling-of-ICMP_EXT_ECHO-icmp-type/20220714-231818
-        git checkout d238a024060b9cf5095b5027301f5921c9140c4e
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash
-
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
-   In file included from <built-in>:1:
->> ./usr/include/linux/icmp.h:163:19: error: unknown type name 'bool'
-   static __inline__ bool icmp_is_valid_type(__u8 type)
-                     ^
-   1 error generated.
-
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index ae14eb1a690b..c1ca15b49b81 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1533,6 +1533,13 @@ basehook_spec		:	ruleset_spec
+ 			|	ruleset_spec    basehook_device_name
+ 			{
+ 				if ($2) {
++					if (strlen($2) > NFT_NAME_MAXLEN) {
++						erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++								 NFT_NAME_MAXLEN),
++							   state->msgs);
++						xfree($2);
++						YYERROR;
++					}
+ 					$1.obj.name = $2;
+ 					$1.obj.location = @2;
+ 				}
+@@ -2597,6 +2604,13 @@ table_spec		:	family_spec	identifier
+ 				$$.family	= $1;
+ 				$$.table.location = @2;
+ 				$$.table.name	= $2;
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2614,6 +2628,13 @@ chain_spec		:	table_spec	identifier
+ 				$$		= $1;
+ 				$$.chain.name	= $2;
+ 				$$.chain.location = @2;
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2630,6 +2651,13 @@ chain_identifier	:	identifier
+ 				memset(&$$, 0, sizeof($$));
+ 				$$.chain.name		= $1;
+ 				$$.chain.location	= @1;
++				if (strlen($1) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@1, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($1);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2638,6 +2666,13 @@ set_spec		:	table_spec	identifier
+ 				$$		= $1;
+ 				$$.set.name	= $2;
+ 				$$.set.location	= @2;
++				if (strlen($$.set.name) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2654,6 +2689,13 @@ set_identifier		:	identifier
+ 				memset(&$$, 0, sizeof($$));
+ 				$$.set.name	= $1;
+ 				$$.set.location	= @1;
++				if (strlen($$.set.name) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@1, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($1);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2662,6 +2704,13 @@ flowtable_spec		:	table_spec	identifier
+ 				$$			= $1;
+ 				$$.flowtable.name	= $2;
+ 				$$.flowtable.location	= @2;
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2678,6 +2727,13 @@ flowtable_identifier	:	identifier
+ 				memset(&$$, 0, sizeof($$));
+ 				$$.flowtable.name	= $1;
+ 				$$.flowtable.location	= @1;
++				if (strlen($1) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@1, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($1);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2686,6 +2742,13 @@ obj_spec		:	table_spec	identifier
+ 				$$		= $1;
+ 				$$.obj.name	= $2;
+ 				$$.obj.location	= @2;
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -2702,6 +2765,13 @@ obj_identifier		:	identifier
+ 				memset(&$$, 0, sizeof($$));
+ 				$$.obj.name		= $1;
+ 				$$.obj.location		= @1;
++				if (strlen($1) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@1, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($1);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -3980,6 +4050,13 @@ flow_stmt_opts		:	flow_stmt_opt
+ flow_stmt_opt		:	TABLE			identifier
+ 			{
+ 				$<stmt>0->meter.name = $2;
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
+@@ -3991,6 +4068,14 @@ meter_stmt_alloc	:	METER	identifier		'{' meter_key_expr stmt '}'
+ 				$$->meter.key  = $4;
+ 				$$->meter.stmt = $5;
+ 				$$->location  = @$;
++
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			|	METER	identifier	SIZE	NUM	'{' meter_key_expr stmt '}'
+ 			{
+@@ -4000,6 +4085,14 @@ meter_stmt_alloc	:	METER	identifier		'{' meter_key_expr stmt '}'
+ 				$$->meter.key  = $6;
+ 				$$->meter.stmt = $7;
+ 				$$->location  = @$;
++
++				if (strlen($2) > NFT_NAME_MAXLEN) {
++					erec_queue(error(&@2, "name too long, %d characters maximum allowed",
++							 NFT_NAME_MAXLEN),
++						   state->msgs);
++					xfree($2);
++					YYERROR;
++				}
+ 			}
+ 			;
+ 
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+2.30.2
+
