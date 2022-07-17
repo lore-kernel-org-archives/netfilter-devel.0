@@ -2,95 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3F0EC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Jul 2022 03:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 320AEC43334
+	for <netfilter-devel@archiver.kernel.org>; Sun, 17 Jul 2022 13:39:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232631AbiGQDHM (ORCPT
+        id S232938AbiGQNjZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 16 Jul 2022 23:07:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38554 "EHLO
+        Sun, 17 Jul 2022 09:39:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232453AbiGQDHL (ORCPT
+        with ESMTP id S229463AbiGQNjX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Jul 2022 23:07:11 -0400
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BBB314015;
-        Sat, 16 Jul 2022 20:07:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1658027230; x=1689563230;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=uUmr0gfp7sBu+1FQAMYo1RIRCsFIUDNOcndHmpvNGVk=;
-  b=DcbFiLT2wXpdPvENL8dBIYYUZCT4PaC2ZT1n/7JLBvd569GQ5Zrd2odY
-   UJi7E0ZYcf3lLJr5D8PYu40vFuGd0kfjn1ks0+hy6OUkf2CE8YQDhKyqw
-   iA3Ccb1N6O0S8VzxMdezcrzABR7ZO5cBjJH/WcQsOlsClzD4BLXHTBJGU
-   UNMnarMS5LdtDwMcWucRpxBPX3nor4SZP8CTSbEX2xcEKgeiUjhPbwRfm
-   TXzb7ojCG4EWzMZy6Ggyxq4mxIUeQau/mGu1fJ6iDeYdZ24tLbLb1k6Aj
-   DNHLGAK+HCbzqyV8IicbhURTfiIL8bL/SsMnmtLCzHyrdZ2JjFQtQWYRX
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10410"; a="283588339"
-X-IronPort-AV: E=Sophos;i="5.92,278,1650956400"; 
-   d="scan'208";a="283588339"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2022 20:07:10 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,278,1650956400"; 
-   d="scan'208";a="739080825"
-Received: from lkp-server02.sh.intel.com (HELO ff137eb26ff1) ([10.239.97.151])
-  by fmsmga001.fm.intel.com with ESMTP; 16 Jul 2022 20:07:07 -0700
-Received: from kbuild by ff137eb26ff1 with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1oCucc-0002aS-Nh;
-        Sun, 17 Jul 2022 03:07:06 +0000
-Date:   Sun, 17 Jul 2022 11:06:43 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Mathias Lark <mathiaslark@gmail.com>, davem@davemloft.net,
-        yoshfuji@linux-ipv6.org, dsahern@kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Cc:     kbuild-all@lists.01.org
-Subject: Re: [PATCH net-next] improve handling of ICMP_EXT_ECHO icmp type
-Message-ID: <202207171049.oU9toH2Z-lkp@intel.com>
-References: <20220714151358.GA16615@debian>
+        Sun, 17 Jul 2022 09:39:23 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EFAA0A1AF
+        for <netfilter-devel@vger.kernel.org>; Sun, 17 Jul 2022 06:39:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1658065161;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=fPn6vHWTTXwJ/WSPByyok+BFMNE4FTaMJDqdlyphMQA=;
+        b=hbNXCQIN0dCNyi6btk6QNGT18ujjKlg5gOCZeHSZEJJNTXAS3zhNmKxTFcKpezlSp/Uka8
+        VzkbwOyb83tVmNRD2NbvjYV0pEN+E89ZdriqONYwdA/kOSw3ZNeJMgaYq1gbe9xDTf6PBA
+        WjxvXfZb8jVUwly1ZcQ/CJEfLWPotJU=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-144-oJU8XdilOB-N28nqd4-VZA-1; Sun, 17 Jul 2022 09:39:14 -0400
+X-MC-Unique: oJU8XdilOB-N28nqd4-VZA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E46B480A0BC;
+        Sun, 17 Jul 2022 13:39:13 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (unknown [10.40.208.11])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id B73052166B26;
+        Sun, 17 Jul 2022 13:39:13 +0000 (UTC)
+Date:   Sun, 17 Jul 2022 15:39:10 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] nft_set_rbtree: Switch to node list walk for overlap
+ detection
+Message-ID: <20220717153910.474aa5d6@elisabeth>
+In-Reply-To: <YtFL8OWnViZGma3g@salvia>
+References: <20220614010704.1416375-1-sbrivio@redhat.com>
+        <Yrnh2lqhvvzrT2ii@salvia>
+        <20220702015510.08ee9401@elisabeth>
+        <YsQmS4+qdFz8s+sN@salvia>
+        <20220706231242.492ba5d1@elisabeth>
+        <YtFL8OWnViZGma3g@salvia>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220714151358.GA16615@debian>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.78 on 10.11.54.6
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Mathias,
+On Fri, 15 Jul 2022 13:13:52 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Thank you for the patch! Yet something to improve:
+> On Wed, Jul 06, 2022 at 11:12:42PM +0200, Stefano Brivio wrote:
+> > On Tue, 5 Jul 2022 13:53:47 +0200
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:  
+> [...]
+> > This simplifies the handling of those cases, we wouldn't need all those
+> > clauses anymore, but I really think that the existing problem comes from
+> > the fact we can *not* descend the tree just by selecting key values.  
+> 
+> Thanks for explaining.
+> 
+> The traversal rbtree via rb_first() and rb_next() is like an ordered
+> linear list walk, maybe it is possible to reduce the number of
+> elements to find an overlap?
 
-[auto build test ERROR on net-next/master]
+Hah, yes, that's what I was also thinking about, but:
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Mathias-Lark/improve-handling-of-ICMP_EXT_ECHO-icmp-type/20220714-231818
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git b126047f43f11f61f1dd64802979765d71795dae
-config: x86_64-allyesconfig (https://download.01.org/0day-ci/archive/20220717/202207171049.oU9toH2Z-lkp@intel.com/config)
-compiler: gcc-11 (Debian 11.3.0-3) 11.3.0
-reproduce (this is a W=1 build):
-        # https://github.com/intel-lab-lkp/linux/commit/d238a024060b9cf5095b5027301f5921c9140c4e
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Mathias-Lark/improve-handling-of-ICMP_EXT_ECHO-icmp-type/20220714-231818
-        git checkout d238a024060b9cf5095b5027301f5921c9140c4e
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        make W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash
+> I'm attaching an incremental patch on top of yours, idea is:
+> 
+> 1) find the closest element whose key is less than the new element
+>    by descending the tree. This provides the first node to walk.
 
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
+this step is also prone to the original issue, that is, the choice of
+the first node to walk might also be affected by inactive elements.
 
-All errors (new ones prefixed by >>):
+Now, I _guess_ the way you implemented it (not checking if elements
+are active in this step) should be correct in any case, because the
+tree ordering is always correct, so any active element that might be
+"hidden" should become part of the walk anyway.
 
-   In file included from <command-line>:
->> ./usr/include/linux/icmp.h:163:19: error: unknown type name 'bool'
-     163 | static __inline__ bool icmp_is_valid_type(__u8 type)
-         |                   ^~~~
+But give me a couple of days to think about it and if there might be
+other corner cases.
+
+> 2) annotate closest active element that is less than the new element,
+>    walking over the ordered list.
+> 
+> 3) annotate closest active element that is more than the new element,
+>    Stop walking the ordered list.
+> 
+> 4) if new element is an exact match, then EEXIST.
+> 
+> 5) if new element is end and closest less than element is end, or
+>    if new element is start and closest less than element is start, or
+>    if new element is end and closest more than element is end,
+>    Then ENOTEMPTY.
+
+All these look safe (and correct) to me.
+
+> Inactive/expired elements are skipped while walking the ordered linear
+> list as usual.
+> 
+> With this incremental patch, I don't observe longer time to load
+> interval sets.
+
+Thanks a lot. I'll get back to you in a bit.
 
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+Stefano
+
