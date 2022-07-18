@@ -2,177 +2,70 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24883C43334
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Jul 2022 15:45:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAD50C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Jul 2022 17:43:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231629AbiGRPpt (ORCPT
+        id S234595AbiGRRne (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Jul 2022 11:45:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56328 "EHLO
+        Mon, 18 Jul 2022 13:43:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230440AbiGRPps (ORCPT
+        with ESMTP id S231821AbiGRRnd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Jul 2022 11:45:48 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F270710FEE
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2022 08:45:45 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2,v4] cache: validate handle string length
-Date:   Mon, 18 Jul 2022 17:45:39 +0200
-Message-Id: <20220718154539.681522-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 18 Jul 2022 13:43:33 -0400
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C881B2CDFE
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2022 10:43:31 -0700 (PDT)
+Received: by mail-ed1-x531.google.com with SMTP id w12so16301376edd.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2022 10:43:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=b+gmIONhiXxkz2QJGmvVZScE/IgGuCeLYBs+pSoO9pY=;
+        b=RGPUIhfoMFuO8Nz6WNTx5S6fXzIrWaujiJ8+ZVTxL0UMEI1w8YjhuXZASMY/1PkOEf
+         wrDuh+xkXq2veGdBhkHADlnD4KK3QudpUdUqUjmMlq/vBQKFdgpt1N1bySIrbFRiMqRp
+         J4wVHKuRL13W3MVrXhJqtIAOdKm6cxzUE9NHXqi9vJYyBI2WiBMGPxXA2P5dO9iazDwA
+         F3iog7f555bBhhktMA8gyzP9Wz3NVFS3Q93ZkRP9hbfl5Loq/B/du4XHpXhcMQbQmvMt
+         ZAa/A57EtA/Hz2P8PJkHCI5B/Sf4YdG/SG+J/fMPknvUi8mjM8GKfDPYvzEdQc+XdD97
+         oVCw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=b+gmIONhiXxkz2QJGmvVZScE/IgGuCeLYBs+pSoO9pY=;
+        b=gPBS6usXwfM5QJR7tDzn41zO32RMYBWEyAuEQRBPaW8FTmD8s/7KtbMtDe/RNPciZg
+         GcXdkIuYfvcoFuaxArWXZvUtu74APIIj1n1fCXEM5+e65li80+Dh06g0SQgNB9G14CVy
+         e4KcViv6e23xlNeeF87zdysx6c9n6cOrzu/JAvvd/rDAjn395UGDUa9/3Oo1iyZ1twiI
+         geeTOd36/URnALKGNMp3yx5oI8Q3I+824JHLuM+TNAn/3Kh/ojiNW2UQxuHGFUv4WAg4
+         RgS2e/sDg8x68hITmNtRtjLv5V1GYgVUZ9Zz27BoI+GNnU4aNrNYArBFqjg+Iquufurv
+         NOeQ==
+X-Gm-Message-State: AJIora9k3eWlFpPYPZT2sUL8FyIVfdKJBEMSD7F73mOAo/SUb9glWEN0
+        TMghEoAQrFi1zSATp2di3u/WJ8LL4p4wx5r7Xx7QJg==
+X-Google-Smtp-Source: AGRyM1vE21LyXnyQ/OrPc3rCfEUlrSagjLX1JjDE56Zzri+Os/07JIqlU6uqq/K10QqFVfs4y8jvMIl1/dbEDe2aMQs=
+X-Received: by 2002:aa7:d9ce:0:b0:43a:6758:7652 with SMTP id
+ v14-20020aa7d9ce000000b0043a67587652mr38817237eds.351.1658166210314; Mon, 18
+ Jul 2022 10:43:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <Ys3DwnYiF9eDwr2T@dev-arch.thelio-3990X> <20220712204900.660569-1-justinstitt@google.com>
+In-Reply-To: <20220712204900.660569-1-justinstitt@google.com>
+From:   Justin Stitt <justinstitt@google.com>
+Date:   Mon, 18 Jul 2022 10:43:17 -0700
+Message-ID: <CAFhGd8p2o45-mw50=4dPxmpKe5kZf2t_p=vpy7T5vZt3VUkYiA@mail.gmail.com>
+Subject: Re: [PATCH v2] netfilter: xt_TPROXY: remove pr_debug invocations
+To:     nathan@kernel.org
+Cc:     coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
+        fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, llvm@lists.linux.dev,
+        ndesaulniers@google.com, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+        pablo@netfilter.org, trix@redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Maximum supported string length for handle is NFT_NAME_MAXLEN, report an
-error if user is exceeding this limit.
-
-By validating from the cache evaluation phase, both the native and json
-parsers handle input are validated.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v4: table is optional for CMD_OBJ_CHAINS.
-    use h->... instead of cmd->... for flowtable.
-
- src/cache.c | 106 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 106 insertions(+)
-
-diff --git a/src/cache.c b/src/cache.c
-index 9e2fe950a884..d0c645daa5c0 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -16,6 +16,7 @@
- #include <mnl.h>
- #include <libnftnl/chain.h>
- #include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
- 
- static unsigned int evaluate_cache_add(struct cmd *cmd, unsigned int flags)
- {
-@@ -262,6 +263,108 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
- 	return flags;
- }
- 
-+static int nft_cmd_validate(const struct cmd *cmd, struct list_head *msgs)
-+{
-+	const struct handle *h = &cmd->handle;
-+	const struct location *loc;
-+
-+	switch (cmd->obj) {
-+	case CMD_OBJ_TABLE:
-+		if (h->table.name &&
-+		    strlen(h->table.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->table.location;
-+			goto err_name_too_long;
-+		}
-+		break;
-+	case CMD_OBJ_RULE:
-+	case CMD_OBJ_CHAIN:
-+	case CMD_OBJ_CHAINS:
-+		if (h->table.name &&
-+		    strlen(h->table.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->table.location;
-+			goto err_name_too_long;
-+		}
-+		if (h->chain.name &&
-+		    strlen(h->chain.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->chain.location;
-+			goto err_name_too_long;
-+		}
-+		break;
-+	case CMD_OBJ_ELEMENTS:
-+	case CMD_OBJ_SET:
-+	case CMD_OBJ_SETS:
-+	case CMD_OBJ_MAP:
-+	case CMD_OBJ_MAPS:
-+	case CMD_OBJ_METER:
-+	case CMD_OBJ_METERS:
-+		if (h->table.name &&
-+		    strlen(h->table.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->table.location;
-+			goto err_name_too_long;
-+		}
-+		if (h->set.name &&
-+		    strlen(h->set.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->set.location;
-+			goto err_name_too_long;
-+		}
-+		break;
-+	case CMD_OBJ_FLOWTABLE:
-+	case CMD_OBJ_FLOWTABLES:
-+		if (h->table.name &&
-+		    strlen(h->table.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->table.location;
-+			goto err_name_too_long;
-+		}
-+		if (h->flowtable.name &&
-+		    strlen(h->flowtable.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->flowtable.location;
-+			goto err_name_too_long;
-+		}
-+		break;
-+	case CMD_OBJ_INVALID:
-+	case CMD_OBJ_EXPR:
-+	case CMD_OBJ_RULESET:
-+	case CMD_OBJ_MARKUP:
-+	case CMD_OBJ_MONITOR:
-+	case CMD_OBJ_SETELEMS:
-+	case CMD_OBJ_HOOKS:
-+		break;
-+	case CMD_OBJ_COUNTER:
-+	case CMD_OBJ_COUNTERS:
-+	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_QUOTAS:
-+	case CMD_OBJ_LIMIT:
-+	case CMD_OBJ_LIMITS:
-+	case CMD_OBJ_SECMARK:
-+	case CMD_OBJ_SECMARKS:
-+	case CMD_OBJ_SYNPROXY:
-+	case CMD_OBJ_SYNPROXYS:
-+	case CMD_OBJ_CT_HELPER:
-+	case CMD_OBJ_CT_HELPERS:
-+	case CMD_OBJ_CT_TIMEOUT:
-+	case CMD_OBJ_CT_EXPECT:
-+		if (h->table.name &&
-+		    strlen(h->table.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->table.location;
-+			goto err_name_too_long;
-+		}
-+		if (h->obj.name &&
-+		    strlen(h->obj.name) > NFT_NAME_MAXLEN) {
-+			loc = &h->obj.location;
-+			goto err_name_too_long;
-+		}
-+		break;
-+	}
-+
-+	return 0;
-+
-+err_name_too_long:
-+	erec_queue(error(loc, "name too long, %d characters maximum allowed",
-+			 NFT_NAME_MAXLEN),
-+		   msgs);
-+	return -1;
-+}
-+
- int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
- 		       struct list_head *msgs, struct nft_cache_filter *filter,
- 		       unsigned int *pflags)
-@@ -270,6 +373,9 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
- 	struct cmd *cmd;
- 
- 	list_for_each_entry(cmd, cmds, list) {
-+		if (nft_cmd_validate(cmd, msgs) < 0)
-+			return -1;
-+
- 		if (filter->list.table && cmd->op != CMD_LIST)
- 			memset(&filter->list, 0, sizeof(filter->list));
- 
--- 
-2.30.2
-
+Any chance a maintainer could take a look at this patch? I am trying
+to get it through this cycle and we are so close to enabling the
+-Wformat option for Clang. There's only a handful of patches remaining
+until the patch enabling this warning can be sent!
