@@ -2,28 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EDC1C43334
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Jul 2022 15:02:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92EC6C433EF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Jul 2022 15:05:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234926AbiGRPCd (ORCPT
+        id S235041AbiGRPFc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Jul 2022 11:02:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53080 "EHLO
+        Mon, 18 Jul 2022 11:05:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229639AbiGRPCd (ORCPT
+        with ESMTP id S235070AbiGRPFb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Jul 2022 11:02:33 -0400
+        Mon, 18 Jul 2022 11:05:31 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3CDBA22BF8
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2022 08:02:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E9439252A2
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2022 08:05:30 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] cache: validate handle string length
-Date:   Mon, 18 Jul 2022 17:02:27 +0200
-Message-Id: <20220718150227.506532-2-pablo@netfilter.org>
+Subject: [PATCH nft 2/2,v3] cache: validate handle string length
+Date:   Mon, 18 Jul 2022 17:05:27 +0200
+Message-Id: <20220718150527.507265-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220718150227.506532-1-pablo@netfilter.org>
-References: <20220718150227.506532-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -38,11 +36,13 @@ parsers handle input are validated.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/cache.c | 106 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 104 insertions(+), 2 deletions(-)
+v3: do not remove filter reset code.
+
+ src/cache.c | 105 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 105 insertions(+)
 
 diff --git a/src/cache.c b/src/cache.c
-index 9e2fe950a884..8cae35deb90a 100644
+index 9e2fe950a884..2e1bcfcece57 100644
 --- a/src/cache.c
 +++ b/src/cache.c
 @@ -16,6 +16,7 @@
@@ -161,17 +161,16 @@ index 9e2fe950a884..8cae35deb90a 100644
  int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
  		       struct list_head *msgs, struct nft_cache_filter *filter,
  		       unsigned int *pflags)
-@@ -270,8 +372,8 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
+@@ -270,6 +372,9 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
  	struct cmd *cmd;
  
  	list_for_each_entry(cmd, cmds, list) {
--		if (filter->list.table && cmd->op != CMD_LIST)
--			memset(&filter->list, 0, sizeof(filter->list));
 +		if (nft_cmd_validate(cmd, msgs) < 0)
 +			return -1;
++
+ 		if (filter->list.table && cmd->op != CMD_LIST)
+ 			memset(&filter->list, 0, sizeof(filter->list));
  
- 		switch (cmd->op) {
- 		case CMD_ADD:
 -- 
 2.30.2
 
