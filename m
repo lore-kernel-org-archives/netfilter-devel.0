@@ -2,312 +2,187 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 200FCCCA486
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jul 2022 14:09:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9264CC433EF
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jul 2022 15:47:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237598AbiGSOJR (ORCPT
+        id S237532AbiGSPrl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Jul 2022 10:09:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42950 "EHLO
+        Tue, 19 Jul 2022 11:47:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238509AbiGSOIJ (ORCPT
+        with ESMTP id S236955AbiGSPrk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Jul 2022 10:08:09 -0400
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C7AB1FCC8;
-        Tue, 19 Jul 2022 06:24:49 -0700 (PDT)
-Received: by mail-ed1-x542.google.com with SMTP id y8so19583967eda.3;
-        Tue, 19 Jul 2022 06:24:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=b9IGdu44vIQhiDdyqYUwInJvoHZ34VCzR5hVYbDWwvA=;
-        b=jJhI3Lb5phf/F+fZWHiU4CLdhETLQnG30QWo3u4wBfappml+o40ttaS60NQ5FFWY35
-         4Jh1aMqqHUVVS60OeNK8kpFyCfvLiFPxNIK2oBuStwSazSOWjg8zeLANlxB54C4sxTX6
-         9pZpiLBFhQAykLBNQ2Mb9V4PoZfhLL4V2TsOuBI3nQ1fIZGzeT231cAUx+8BC1wWVC9l
-         w1QY9zRfw7Tv4JwvYxrpnpLXgpDxVlef1B2LxvPgusoRPpWQf/o59VhpByfXvg7mbkUZ
-         a6mX6Ynt5aGFQOCbblQmWFCQ+RJC/0ijTC807BgtjcqKWCigS0ywjlZBLnRDdILX1Lnu
-         Paww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=b9IGdu44vIQhiDdyqYUwInJvoHZ34VCzR5hVYbDWwvA=;
-        b=2FEJU3In5LkL025KB168DrmunNqy3/A0c+kSewUJ3betkHduPkg2AfAHEBA7sI9Lnr
-         QJmyCCPtxwQT/Ic3+AaZKEq0+FZG2UfeSPsWonbfbdCxn3e+9f1DCkvyZvNLxC/rLX+t
-         29NKVW7RZWQWzYZBaFc3xLMfhsdvgsCOn0ke75Q0QlvRSwnmGErsuzvjYk8P9zihro4t
-         JHdf7Epn1yDzGTiv/szmmURCK8AaC7+07RVpOIHetnyfBnIDpdO3gTVbOky36uqc9BvY
-         5qC2ReXawhQrO/pFNpyPhsXXEtTzfi4nyzPkjW64dbj0w2brYWUvRE9pQ65vUCfQykJf
-         Ekug==
-X-Gm-Message-State: AJIora8sMd2H1JX7OkaUiTDHjf3FXY2Y/NWNaCHA52n1+IyXMZDKsRok
-        JEHqym/baATX787OH4D4Oz7bMjUn7hw7iQ==
-X-Google-Smtp-Source: AGRyM1sKLPJ3n/btEK7eAWLgUCpUR23XIsquul9wlCplJ9QrRUPxtSwDDSa+aVsFMWMM94MVQM3Iew==
-X-Received: by 2002:aa7:cd0a:0:b0:43a:8ffd:d8de with SMTP id b10-20020aa7cd0a000000b0043a8ffdd8demr43337204edw.5.1658237087697;
-        Tue, 19 Jul 2022 06:24:47 -0700 (PDT)
-Received: from localhost (icdhcp-1-189.epfl.ch. [128.178.116.189])
-        by smtp.gmail.com with ESMTPSA id l9-20020a170906078900b00722e31fcf42sm6596668ejc.184.2022.07.19.06.24.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Jul 2022 06:24:47 -0700 (PDT)
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-To:     bpf@vger.kernel.org
-Cc:     Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: [PATCH bpf-next v6 12/13] selftests/bpf: Add negative tests for new nf_conntrack kfuncs
-Date:   Tue, 19 Jul 2022 15:24:29 +0200
-Message-Id: <20220719132430.19993-13-memxor@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220719132430.19993-1-memxor@gmail.com>
-References: <20220719132430.19993-1-memxor@gmail.com>
+        Tue, 19 Jul 2022 11:47:40 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E7A5C54673
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Jul 2022 08:47:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1658245658;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=NOQSnYNWtNwKVsCZ4mVNAS7O6pjyrN18QYcF00yAN0U=;
+        b=NR5168nQ+61tBqgSqeQ2SpbeOF3v06lTPXcU7AUG7pekqR6ZZheVNBEU/pu7lJUxlQxA/D
+        OiDMK6FQq9TeqBIPspgaeTUErGBpzloW7y4XzuAVhDtoXndARnsgT8nNQF+9tMRTAqfvFF
+        qcnFZkOdigZY50ulzZI13AyO8bkNFPA=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-16-Pk0rJFgZOuS7J821r44EVw-1; Tue, 19 Jul 2022 11:47:28 -0400
+X-MC-Unique: Pk0rJFgZOuS7J821r44EVw-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A664C29AA3BC;
+        Tue, 19 Jul 2022 15:47:28 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (unknown [10.40.208.11])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4FCFA492C3B;
+        Tue, 19 Jul 2022 15:47:28 +0000 (UTC)
+Date:   Tue, 19 Jul 2022 17:47:25 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] nft_set_rbtree: Switch to node list walk for overlap
+ detection
+Message-ID: <20220719174725.31999b32@elisabeth>
+In-Reply-To: <YtFL8OWnViZGma3g@salvia>
+References: <20220614010704.1416375-1-sbrivio@redhat.com>
+        <Yrnh2lqhvvzrT2ii@salvia>
+        <20220702015510.08ee9401@elisabeth>
+        <YsQmS4+qdFz8s+sN@salvia>
+        <20220706231242.492ba5d1@elisabeth>
+        <YtFL8OWnViZGma3g@salvia>
+Organization: Red Hat
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7143; i=memxor@gmail.com; h=from:subject; bh=5LcT2LZrEhjoAiEPR4V8pZ6D9kYF7/wjj/hDJlCMNNY=; b=owEBbQKS/ZANAwAKAUzgyIZIvxHKAcsmYgBi1rBmVrdejOOcHIycoxy5z5ZvoPl7G3z81nWF9S3e Bt3swsOJAjMEAAEKAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYtawZgAKCRBM4MiGSL8Rys1AEA CH1K8MCETteOHVrnfYtkrfOX7tfaWp8iUVHt8MmqXBkUN5IK965Zt4E6cVVsqIDO7K5JPBk6Ai57FS NmjxgWSHvPCzm+fhVS0k5b0Yywfnf9Eo4zxZwJqzZXxz20MaU2hjHjN6A/ps8PAqDSphsPU80+haGx VbSBFbUBnigBhwVrAza5GTE5mu57gNATzrKWbJhDOj4sLxpUM2jdRXtdiBy3+iXhgR95hW4uAu9lCw a6Olu6bGtbOf1E2+mGwFGItOW7teBphP7c1SBkWRFW8FeD0XMfACRc5nO3KnEolPTEJJbR4xCuStQW R5XnkX8aBlgkIE4+zLSfJ6C/+SylU+HhSbY7VzPFzZ6tLMgxEjkdeSD1xZ5L56wruZAvY3iIFjroEy stXcIJATexu8AGQmM/upeZG7mVUby1jdX+4PYtmsXrjhL430xEA0PJ2PiFgTygsj+kjr7SJgb7oEdh fYiPU9XNvrize5nB4NZ50lj71vkRdGbL3BctMUsDZIAbrh74iNDvYU2DmJx3+SgWdablcWdoww/C8E s3S9kKr6ofVZlz757+byON/aXOXDhKgMF1EPnFdSnUs3aYAO8XZCIGfGSzEeNtOUsAY0t0yOVUHGZh kBtvdpX6CWyMOJRBMeec0N9z9Bj6anWCf5zrw+yuuLqSrpj8qqUx0054g1lg==
-X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.85 on 10.11.54.10
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Test cases we care about and ensure improper usage is caught and
-rejected by the verifier.
+On Fri, 15 Jul 2022 13:13:52 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
----
- .../testing/selftests/bpf/prog_tests/bpf_nf.c |  56 +++++++-
- .../selftests/bpf/progs/test_bpf_nf_fail.c    | 134 ++++++++++++++++++
- 2 files changed, 189 insertions(+), 1 deletion(-)
- create mode 100644 tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
+> On Wed, Jul 06, 2022 at 11:12:42PM +0200, Stefano Brivio wrote:
+> > On Tue, 5 Jul 2022 13:53:47 +0200
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:  
+> [...]
+> > This simplifies the handling of those cases, we wouldn't need all those
+> > clauses anymore, but I really think that the existing problem comes from
+> > the fact we can *not* descend the tree just by selecting key values.  
+> 
+> Thanks for explaining.
+> 
+> The traversal rbtree via rb_first() and rb_next() is like an ordered
+> linear list walk, maybe it is possible to reduce the number of
+> elements to find an overlap?
+> 
+> I'm attaching an incremental patch on top of yours, idea is:
+> 
+> 1) find the closest element whose key is less than the new element
+>    by descending the tree. This provides the first node to walk.
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-index cbada73a61f8..7a74a1579076 100644
---- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-+++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-@@ -2,13 +2,29 @@
- #include <test_progs.h>
- #include <network_helpers.h>
- #include "test_bpf_nf.skel.h"
-+#include "test_bpf_nf_fail.skel.h"
-+
-+static char log_buf[1024 * 1024];
-+
-+struct {
-+	const char *prog_name;
-+	const char *err_msg;
-+} test_bpf_nf_fail_tests[] = {
-+	{ "alloc_release", "kernel function bpf_ct_release args#0 expected pointer to STRUCT nf_conn but" },
-+	{ "insert_insert", "kernel function bpf_ct_insert_entry args#0 expected pointer to STRUCT nf_conn___init but" },
-+	{ "lookup_insert", "kernel function bpf_ct_insert_entry args#0 expected pointer to STRUCT nf_conn___init but" },
-+	{ "set_timeout_after_insert", "kernel function bpf_ct_set_timeout args#0 expected pointer to STRUCT nf_conn___init but" },
-+	{ "set_status_after_insert", "kernel function bpf_ct_set_status args#0 expected pointer to STRUCT nf_conn___init but" },
-+	{ "change_timeout_after_alloc", "kernel function bpf_ct_change_timeout args#0 expected pointer to STRUCT nf_conn but" },
-+	{ "change_status_after_alloc", "kernel function bpf_ct_change_status args#0 expected pointer to STRUCT nf_conn but" },
-+};
- 
- enum {
- 	TEST_XDP,
- 	TEST_TC_BPF,
- };
- 
--void test_bpf_nf_ct(int mode)
-+static void test_bpf_nf_ct(int mode)
- {
- 	struct test_bpf_nf *skel;
- 	int prog_fd, err;
-@@ -51,10 +67,48 @@ void test_bpf_nf_ct(int mode)
- 	test_bpf_nf__destroy(skel);
- }
- 
-+static void test_bpf_nf_ct_fail(const char *prog_name, const char *err_msg)
-+{
-+	LIBBPF_OPTS(bpf_object_open_opts, opts, .kernel_log_buf = log_buf,
-+						.kernel_log_size = sizeof(log_buf),
-+						.kernel_log_level = 1);
-+	struct test_bpf_nf_fail *skel;
-+	struct bpf_program *prog;
-+	int ret;
-+
-+	skel = test_bpf_nf_fail__open_opts(&opts);
-+	if (!ASSERT_OK_PTR(skel, "test_bpf_nf_fail__open"))
-+		return;
-+
-+	prog = bpf_object__find_program_by_name(skel->obj, prog_name);
-+	if (!ASSERT_OK_PTR(prog, "bpf_object__find_program_by_name"))
-+		goto end;
-+
-+	bpf_program__set_autoload(prog, true);
-+
-+	ret = test_bpf_nf_fail__load(skel);
-+	if (!ASSERT_ERR(ret, "test_bpf_nf_fail__load must fail"))
-+		goto end;
-+
-+	if (!ASSERT_OK_PTR(strstr(log_buf, err_msg), "expected error message")) {
-+		fprintf(stderr, "Expected: %s\n", err_msg);
-+		fprintf(stderr, "Verifier: %s\n", log_buf);
-+	}
-+
-+end:
-+	test_bpf_nf_fail__destroy(skel);
-+}
-+
- void test_bpf_nf(void)
- {
-+	int i;
- 	if (test__start_subtest("xdp-ct"))
- 		test_bpf_nf_ct(TEST_XDP);
- 	if (test__start_subtest("tc-bpf-ct"))
- 		test_bpf_nf_ct(TEST_TC_BPF);
-+	for (i = 0; i < ARRAY_SIZE(test_bpf_nf_fail_tests); i++) {
-+		if (test__start_subtest(test_bpf_nf_fail_tests[i].prog_name))
-+			test_bpf_nf_ct_fail(test_bpf_nf_fail_tests[i].prog_name,
-+					    test_bpf_nf_fail_tests[i].err_msg);
-+	}
- }
-diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c b/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
-new file mode 100644
-index 000000000000..bf79af15c808
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
-@@ -0,0 +1,134 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <vmlinux.h>
-+#include <bpf/bpf_tracing.h>
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
-+
-+struct nf_conn;
-+
-+struct bpf_ct_opts___local {
-+	s32 netns_id;
-+	s32 error;
-+	u8 l4proto;
-+	u8 reserved[3];
-+} __attribute__((preserve_access_index));
-+
-+struct nf_conn *bpf_skb_ct_alloc(struct __sk_buff *, struct bpf_sock_tuple *, u32,
-+				 struct bpf_ct_opts___local *, u32) __ksym;
-+struct nf_conn *bpf_skb_ct_lookup(struct __sk_buff *, struct bpf_sock_tuple *, u32,
-+				  struct bpf_ct_opts___local *, u32) __ksym;
-+struct nf_conn *bpf_ct_insert_entry(struct nf_conn *) __ksym;
-+void bpf_ct_release(struct nf_conn *) __ksym;
-+void bpf_ct_set_timeout(struct nf_conn *, u32) __ksym;
-+int bpf_ct_change_timeout(struct nf_conn *, u32) __ksym;
-+int bpf_ct_set_status(struct nf_conn *, u32) __ksym;
-+int bpf_ct_change_status(struct nf_conn *, u32) __ksym;
-+
-+SEC("?tc")
-+int alloc_release(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_alloc(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	bpf_ct_release(ct);
-+	return 0;
-+}
-+
-+SEC("?tc")
-+int insert_insert(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_alloc(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	ct = bpf_ct_insert_entry(ct);
-+	if (!ct)
-+		return 0;
-+	ct = bpf_ct_insert_entry(ct);
-+	return 0;
-+}
-+
-+SEC("?tc")
-+int lookup_insert(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_lookup(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	bpf_ct_insert_entry(ct);
-+	return 0;
-+}
-+
-+SEC("?tc")
-+int set_timeout_after_insert(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_alloc(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	ct = bpf_ct_insert_entry(ct);
-+	if (!ct)
-+		return 0;
-+	bpf_ct_set_timeout(ct, 0);
-+	return 0;
-+}
-+
-+SEC("?tc")
-+int set_status_after_insert(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_alloc(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	ct = bpf_ct_insert_entry(ct);
-+	if (!ct)
-+		return 0;
-+	bpf_ct_set_status(ct, 0);
-+	return 0;
-+}
-+
-+SEC("?tc")
-+int change_timeout_after_alloc(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_alloc(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	bpf_ct_change_timeout(ct, 0);
-+	return 0;
-+}
-+
-+SEC("?tc")
-+int change_status_after_alloc(struct __sk_buff *ctx)
-+{
-+	struct bpf_ct_opts___local opts = {};
-+	struct bpf_sock_tuple tup = {};
-+	struct nf_conn *ct;
-+
-+	ct = bpf_skb_ct_alloc(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
-+	if (!ct)
-+		return 0;
-+	bpf_ct_change_status(ct, 0);
-+	return 0;
-+}
-+
-+char _license[] SEC("license") = "GPL";
+I think this is almost correct, but we need to modify it slightly.
+Consider this tree:
+
+      A: 1 (s, a)
+       /        \
+      /          \
+B: 1 (s, i)    C: 3 (e, i)
+
+where, again, 's': starts, 'e': ends, 'a': active, 'i': inactive. Nodes
+are additionally named.
+
+We want to insert 2 as a start element, and 'first' in your patch
+becomes leaf B, "1 (s, i)" -- not the A node, "1 (s, a)".
+
+Now, depending on the red-black tree insertion implementation (I didn't
+bother to check, I guess it should be independent), in the list walk,
+A might come before or after B.
+
+If B is before A, fine, we'll meet A and mark it as "rbe_le" (closest
+from left).
+
+If A comes before B, we won't meet A, and we won't have a closest
+element from the left. This affects the overlapping decision.
+
+The only ambiguity here is represented by elements having the same key,
+and a set of such elements is allowed in the tree iff at most one is
+active. So we just need to avoid replacing an active "first" by an
+inactive node with the same key. Eventually, we'll visit all the nodes
+having the same keys, if any:
+
+> +	parent = NULL;
+> +	p = &priv->root.rb_node;
+> +	while (*p != NULL) {
+> +		parent = *p;
+> +		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
+> +		d = nft_rbtree_cmp(set, rbe, new);
+> +
+> +		if (d < 0)
+> +			p = &parent->rb_left;
+> +		else if (d > 0) {
+> +			first = &rbe->node;
+
+			if (!first || nft_rbtree_cmp(set, rbe, first) ||
+			    nft_set_elem_expired(&first->ext)) ||
+			    !nft_set_elem_active(&first->ext, genmask))
+				first = &rbe->node;
+
+> +			p = &parent->rb_right;
+> +		} else {
+> +			first = &rbe->node;
+
+...and the same here. Maybe we should re-introduce the "expired or
+inactive" helper.
+
+> +			if (nft_rbtree_interval_end(rbe))
+> +				p = &parent->rb_left;
+> +			else
+> +				p = &parent->rb_right;
+> +		}
+> +	}
+> +
+> +	if (!first)
+> +		first = rb_first(&priv->root);
+
+> 2) annotate closest active element that is less than the new element,
+>    walking over the ordered list.
+
+The description looks correct to me, but I'm not sure why you add a
+break here:
+
+> -		if (d <= 0 && (!rbe_le || nft_rbtree_cmp(set, rbe, rbe_le) > 0))
+> +		/* annotate element coming before new element. */
+> +		if (d < 0 && (!rbe_le || nft_rbtree_cmp(set, rbe, rbe_le) > 0)) {
+>  			rbe_le = rbe;
+> +			break;
+> +		}
+
+we should stop here iff rbe_ge is already set, right? Otherwise we are
+skipping step 3) below.
+
+> 3) annotate closest active element that is more than the new element,
+>    Stop walking the ordered list.
+> 
+> 4) if new element is an exact match, then EEXIST.
+> 
+> 5) if new element is end and closest less than element is end, or
+>    if new element is start and closest less than element is start, or
+>    if new element is end and closest more than element is end,
+>    Then ENOTEMPTY.
+> 
+> Inactive/expired elements are skipped while walking the ordered linear
+> list as usual.
+> 
+> With this incremental patch, I don't observe longer time to load
+> interval sets.
+
+Everything else looks good to me, thanks a lot, I hope we're finally
+sorting this for good :)
+
 -- 
-2.34.1
+Stefano
 
