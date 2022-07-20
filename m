@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB255CCA483
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23596CCA489
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231453AbiGTXIJ (ORCPT
+        id S231480AbiGTXIL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Jul 2022 19:08:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56662 "EHLO
+        Wed, 20 Jul 2022 19:08:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231414AbiGTXID (ORCPT
+        with ESMTP id S231426AbiGTXIF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Jul 2022 19:08:03 -0400
+        Wed, 20 Jul 2022 19:08:05 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 591C81B795;
-        Wed, 20 Jul 2022 16:08:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5B932275E6;
+        Wed, 20 Jul 2022 16:08:04 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH nf-next 05/18] netfilter: nf_conntrack: add missing __rcu annotations
-Date:   Thu, 21 Jul 2022 01:07:41 +0200
-Message-Id: <20220720230754.209053-6-pablo@netfilter.org>
+Subject: [PATCH nf-next 08/18] netfilter: nft_set_bitmap: Fix spelling mistake
+Date:   Thu, 21 Jul 2022 01:07:44 +0200
+Message-Id: <20220720230754.209053-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220720230754.209053-1-pablo@netfilter.org>
 References: <20220720230754.209053-1-pablo@netfilter.org>
@@ -32,86 +32,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Zhang Jiaming <jiaming@nfschina.com>
 
-Access to the hook pointers use correct helpers but the pointers lack
-the needed __rcu annotation.
+Change 'succesful' to 'successful'.
+Change 'transation' to 'transaction'.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Zhang Jiaming <jiaming@nfschina.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nf_conntrack_sip.h   | 2 +-
- include/net/netfilter/nf_conntrack_timeout.h | 2 +-
- net/netfilter/nf_conntrack_pptp.c            | 2 +-
- net/netfilter/nf_conntrack_sip.c             | 2 +-
- net/netfilter/nf_conntrack_timeout.c         | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/nft_set_bitmap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index c620521c42bc..dbc614dfe0d5 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -164,7 +164,7 @@ struct nf_nat_sip_hooks {
- 				  unsigned int medialen,
- 				  union nf_inet_addr *rtp_addr);
- };
--extern const struct nf_nat_sip_hooks *nf_nat_sip_hooks;
-+extern const struct nf_nat_sip_hooks __rcu *nf_nat_sip_hooks;
- 
- int ct_sip_parse_request(const struct nf_conn *ct, const char *dptr,
- 			 unsigned int datalen, unsigned int *matchoff,
-diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
-index fea258983d23..9fdaba911de6 100644
---- a/include/net/netfilter/nf_conntrack_timeout.h
-+++ b/include/net/netfilter/nf_conntrack_timeout.h
-@@ -105,7 +105,7 @@ struct nf_ct_timeout_hooks {
- 	void (*timeout_put)(struct nf_ct_timeout *timeout);
- };
- 
--extern const struct nf_ct_timeout_hooks *nf_ct_timeout_hook;
-+extern const struct nf_ct_timeout_hooks __rcu *nf_ct_timeout_hook;
- #endif
- 
- #endif /* _NF_CONNTRACK_TIMEOUT_H */
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index f3fa367b455f..4c679638df06 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -45,7 +45,7 @@ MODULE_ALIAS_NFCT_HELPER("pptp");
- 
- static DEFINE_SPINLOCK(nf_pptp_lock);
- 
--const struct nf_nat_pptp_hook *nf_nat_pptp_hook;
-+const struct nf_nat_pptp_hook __rcu *nf_nat_pptp_hook;
- EXPORT_SYMBOL_GPL(nf_nat_pptp_hook);
- 
- #if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index b83dc9bf0a5d..a88b43624b27 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -60,7 +60,7 @@ module_param(sip_external_media, int, 0600);
- MODULE_PARM_DESC(sip_external_media, "Expect Media streams between external "
- 				     "endpoints (default 0)");
- 
--const struct nf_nat_sip_hooks *nf_nat_sip_hooks;
-+const struct nf_nat_sip_hooks __rcu *nf_nat_sip_hooks;
- EXPORT_SYMBOL_GPL(nf_nat_sip_hooks);
- 
- static int string_len(const struct nf_conn *ct, const char *dptr,
-diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
-index 0f828d05ea60..821365ed5b2c 100644
---- a/net/netfilter/nf_conntrack_timeout.c
-+++ b/net/netfilter/nf_conntrack_timeout.c
-@@ -22,7 +22,7 @@
- #include <net/netfilter/nf_conntrack_l4proto.h>
- #include <net/netfilter/nf_conntrack_timeout.h>
- 
--const struct nf_ct_timeout_hooks *nf_ct_timeout_hook __read_mostly;
-+const struct nf_ct_timeout_hooks __rcu *nf_ct_timeout_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_timeout_hook);
- 
- static int untimeout(struct nf_conn *ct, void *timeout)
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index e7ae5914971e..96081ac8d2b4 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -21,7 +21,7 @@ struct nft_bitmap_elem {
+  * the element state in the current and the future generation.
+  *
+  * An element can be in three states. The generation cursor is represented using
+- * the ^ character, note that this cursor shifts on every succesful transaction.
++ * the ^ character, note that this cursor shifts on every successful transaction.
+  * If no transaction is going on, we observe all elements are in the following
+  * state:
+  *
+@@ -39,7 +39,7 @@ struct nft_bitmap_elem {
+  * 10 = this element is active in the current generation and it becomes inactive
+  * ^    in the next one. This happens when the element is deactivated but commit
+  *      path has not yet been executed yet, so removal is still pending. On
+- *      transation abortion, the next generation bit is reset to go back to
++ *      transaction abortion, the next generation bit is reset to go back to
+  *      restore its previous state.
+  */
+ struct nft_bitmap {
 -- 
 2.30.2
 
