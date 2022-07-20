@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFA61C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFE3DCCA485
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230131AbiGTXID (ORCPT
+        id S230125AbiGTXIB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Jul 2022 19:08:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56618 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231319AbiGTXIB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 20 Jul 2022 19:08:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56612 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230131AbiGTXIA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Jul 2022 19:08:00 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A600F1B795;
-        Wed, 20 Jul 2022 16:08:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E78231B78E;
+        Wed, 20 Jul 2022 16:07:59 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH nf-next 02/18] netfilter: conntrack: use correct format characters
-Date:   Thu, 21 Jul 2022 01:07:38 +0200
-Message-Id: <20220720230754.209053-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 01/18] netfilter: conntrack: use fallthrough to cleanup
+Date:   Thu, 21 Jul 2022 01:07:37 +0200
+Message-Id: <20220720230754.209053-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220720230754.209053-1-pablo@netfilter.org>
 References: <20220720230754.209053-1-pablo@netfilter.org>
@@ -32,36 +32,55 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Bill Wendling <isanbard@gmail.com>
+From: Jackie Liu <liuyun01@kylinos.cn>
 
-When compiling with -Wformat, clang emits the following warnings:
+These cases all use the same function. we can simplify the code through
+fallthrough.
 
-net/netfilter/nf_conntrack_helper.c:168:18: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
-                request_module(mod_name);
-                               ^~~~~~~~
+$ size net/netfilter/nf_conntrack_core.o
 
-Use a string literal for the format string.
+        text	   data	    bss	    dec	    hex	filename
+before  81601	  81430	    768	 163799	  27fd7	net/netfilter/nf_conntrack_core.o
+after   80361	  81430	    768	 162559	  27aff	net/netfilter/nf_conntrack_core.o
 
-Link: https://github.com/ClangBuiltLinux/linux/issues/378
-Signed-off-by: Bill Wendling <isanbard@gmail.com>
+Arch: aarch64
+Gcc : gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1)
+
+Reported-by: k2ci <kernel-bot@kylinos.cn>
+Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_helper.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_core.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index c12a87ebc3ee..1e0424d37abc 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -165,7 +165,7 @@ nf_nat_helper_try_module_get(const char *name, u16 l3num, u8 protonum)
- 	if (!nat) {
- 		snprintf(mod_name, sizeof(mod_name), "%s", h->nat_mod_name);
- 		rcu_read_unlock();
--		request_module(mod_name);
-+		request_module("%s", mod_name);
- 
- 		rcu_read_lock();
- 		nat = nf_conntrack_nat_helper_find(mod_name);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 082a2fd8d85b..363c3e8f9d1b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -329,20 +329,18 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		return gre_pkt_to_tuple(skb, dataoff, net, tuple);
+ #endif
+ 	case IPPROTO_TCP:
+-	case IPPROTO_UDP: /* fallthrough */
+-		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
++	case IPPROTO_UDP:
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+ 	case IPPROTO_UDPLITE:
+-		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ 	case IPPROTO_SCTP:
+-		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ 	case IPPROTO_DCCP:
+-		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
+ #endif
++		/* fallthrough */
++		return nf_ct_get_tuple_ports(skb, dataoff, tuple);
+ 	default:
+ 		break;
+ 	}
 -- 
 2.30.2
 
