@@ -2,122 +2,162 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1399C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Jul 2022 18:37:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B94F0C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 08:30:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238250AbiGSShv (ORCPT
+        id S240519AbiGTIab (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Jul 2022 14:37:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37504 "EHLO
+        Wed, 20 Jul 2022 04:30:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235311AbiGSShu (ORCPT
+        with ESMTP id S240509AbiGTIa2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Jul 2022 14:37:50 -0400
-Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84CBF4D832;
-        Tue, 19 Jul 2022 11:37:49 -0700 (PDT)
-Received: by mail-pf1-x42c.google.com with SMTP id c3so13465063pfb.13;
-        Tue, 19 Jul 2022 11:37:49 -0700 (PDT)
+        Wed, 20 Jul 2022 04:30:28 -0400
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D91DB491EC;
+        Wed, 20 Jul 2022 01:30:25 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id ez10so31699111ejc.13;
+        Wed, 20 Jul 2022 01:30:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=wJ5Ojd6kShb79O9mahIFggm0V7bnmYUCaYihQuOlx0s=;
-        b=FpMZ70NauUPMpfgQmItV9B90OGWaHQsY2HLseqWTlLaWajPpT6v4f+kMTdMhbAHEca
-         GPm11Zq/deIN5Peuvwr9o47o0zRCnHVMwI+AZjEsg35DaeLIu+Rhq0O8O4Qvs3hjGieT
-         qeTAwEU4PNmQn+5vCyVBMFgZf92Xy98/lXd6gjC8/fSl9idr4tvJcSDIrjBCs01LkW3i
-         y75FU/AwVspg9K54QrdDDV7TpgtUALZWGplZwK2b3RLwKo+gj+BQ1Ktc5y5N/SE+Sw6w
-         w8Em0XzSHJzMBnzfQaD69z7Ux4VpxBKXm/Vbb9Yng1lk1N55SnBzi1Q6sFMsG6sxmO6g
-         Vyag==
+        h=from:date:to:subject:message-id:mime-version:content-disposition
+         :user-agent;
+        bh=58zZ0dZk/I6ddTuNmOqxAUp0PHDAU1gxo0sDWGaX870=;
+        b=Wf7zJJpO6QOfuHHzV921vPoBt1/gRWv5Y7cVmjHm3gOcJWiN2OJVUo2TdW6tMaEcgV
+         uFcVQ4oJeB0Kr3G5IS7A1tPJd43DlTOHtKTGXN3yMvh0VrVfbKWdHEKVBomxVBAobG1h
+         HT9uPqqMW0rxzV2WzczxKJFvL9TgBSmTYKUlq6D8BWRcM8AbrHXSdlkQYpamRwPsOYgk
+         Ra1ODugRTWWBQjMkfpTOgRRdCqkBWnQu7+OzGfV5ihF+AN3EUa7V7+OybomdUrS7Szde
+         CgbJsx8rkbNAMR/XcTI4dOIAMFRDR9QTU6rwXyr7qI1nf51QwqZJwgN/n7wG1C+MOc1t
+         sVfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=wJ5Ojd6kShb79O9mahIFggm0V7bnmYUCaYihQuOlx0s=;
-        b=5cCSKmGwggeYaay27o7DYQMnjGk10hQrG/0I5eqPNFrqNvcBwgLx9gPHcSj8ErZT9I
-         jjejemMEPH2O09Pz6QYrXwNm/T66ANoFxWLLp3ZKDRzGil249JuZd4Jv/L+ZU12tLA/J
-         elF+EtLxbNs0LWl6Ob7MDmfVoiIgqCaWwxB+etbW+UsRpW14DUQMlMO7gIFpLVYI26Rm
-         g5k+Ml3GNcCMpbWYAr0fEdcEpQIGNNnJLmJ/3KrKL98TxKHTZroxwERMW6GoqYprLyf6
-         WdxGC5t+U01VToGmX8OV6EtbfkHkptljDxEqmkRuqM/9VQ7dWyRO3oiHwb8HGH0NpFIZ
-         Jr1g==
-X-Gm-Message-State: AJIora9Ixr2r1CS/Q6KNE/PhFbtRPO2NTdGDTjorLKc7Tic/npCvkmk5
-        BT8J3QA4bpTeEDEhkqSD52jwkGHo3lQ=
-X-Google-Smtp-Source: AGRyM1uqPxX4R64vBZ0PZOQRY4f/yJyDgiD+Gxu5WENAvfeZJN2S9JvQNz64HK+j1ZtDzgGy2GcdMg==
-X-Received: by 2002:a63:1a4c:0:b0:416:1821:733d with SMTP id a12-20020a631a4c000000b004161821733dmr30128624pgm.444.1658255868680;
-        Tue, 19 Jul 2022 11:37:48 -0700 (PDT)
-Received: from MacBook-Pro-3.local ([2620:10d:c090:500::1:8aa3])
-        by smtp.gmail.com with ESMTPSA id x89-20020a17090a6c6200b001e2f892b352sm13979540pjj.45.2022.07.19.11.37.47
+        h=x-gm-message-state:from:date:to:subject:message-id:mime-version
+         :content-disposition:user-agent;
+        bh=58zZ0dZk/I6ddTuNmOqxAUp0PHDAU1gxo0sDWGaX870=;
+        b=hi7aS+LFOApm4c1ZKuitQGTl7KT93r0zL/m/S2r3cj0g2BjKDhvP6vDiIKzkS/MFhs
+         mTjXBLc9MY4/iInlj807Ckk18UzmN2gxWArzLjPOGruX6udkCdTrqXzbD9p1B2uvH9ju
+         HOt3Z05l/0EvNj4TvbKiM2Ko3D6Ml1mVqlIdyS8A0kiVSGRXHPlTzCfe6wCCCV2/sd1d
+         7yBDlfd2nE48gHj2hZF0bVnlkZGAKDewgbAAyfeCokZfQgQcYRWXdTovHQMLNgR9Cxn2
+         4VXHQrbtGQ85loGj3qacIZt9O2Q1v/L3jM1Qcz0hTXIdXI7TkfONxphPJqfqZby05hkA
+         uiNw==
+X-Gm-Message-State: AJIora8X8Jl3xroHQfM3bzmKfIsAeqHtHKSwQSLBzyStFu/5hxUV8DBo
+        ooRc1tRk9U1CBMcJxSMryNE=
+X-Google-Smtp-Source: AGRyM1sWsO3sS9m7YX3rzXOiTSeAwjg+z2TZ3hRPGND7I2KuUc+BplqHNa9Z/Zh9clQnKQrszHvxPg==
+X-Received: by 2002:a17:906:93ef:b0:72b:3e88:a47 with SMTP id yl15-20020a17090693ef00b0072b3e880a47mr35179073ejb.706.1658305824326;
+        Wed, 20 Jul 2022 01:30:24 -0700 (PDT)
+Received: from debian ([138.199.38.49])
+        by smtp.gmail.com with ESMTPSA id g21-20020a1709061e1500b00722f8d02928sm7775807ejj.174.2022.07.20.01.30.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Jul 2022 11:37:48 -0700 (PDT)
-Date:   Tue, 19 Jul 2022 11:37:45 -0700
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH bpf-next v6 01/13] bpf: Introduce BTF ID flags and 8-byte
- BTF set
-Message-ID: <20220719183745.4ojhwpuo7ookjvvk@MacBook-Pro-3.local>
-References: <20220719132430.19993-1-memxor@gmail.com>
- <20220719132430.19993-2-memxor@gmail.com>
+        Wed, 20 Jul 2022 01:30:24 -0700 (PDT)
+From:   Mathias Lark <mathiaslark@gmail.com>
+X-Google-Original-From: Mathias Lark <mathias.lark@gmail.com>
+Date:   Wed, 20 Jul 2022 10:28:34 +0200
+To:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+        kuba@kernel.org, pabeni@redhat.com, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH v2] net-next: improve handling of ICMP_EXT_ECHO icmp type
+Message-ID: <20220720082435.GA31932@debian>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220719132430.19993-2-memxor@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jul 19, 2022 at 03:24:18PM +0200, Kumar Kartikeya Dwivedi wrote:
->  
-> +#define ____BTF_ID_FLAGS_LIST(_0, _1, _2, _3, _4, _5, N, ...) _1##_##_2##_##_3##_##_4##_##_5##__
-> +#define __BTF_ID_FLAGS_LIST(...) ____BTF_ID_FLAGS_LIST(0x0, ##__VA_ARGS__, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
-> +
-> +#define __FLAGS(prefix, ...) \
-> +	__PASTE(prefix, __BTF_ID_FLAGS_LIST(__VA_ARGS__))
-> +
-> +#define BTF_ID_FLAGS(prefix, name, ...) \
-> +	BTF_ID(prefix, name)		\
-> +	__BTF_ID(__ID(__FLAGS(__BTF_ID__flags__, ##__VA_ARGS__)))
-> +
->  /*
->   * The BTF_ID_LIST macro defines pure (unsorted) list
->   * of BTF IDs, with following layout:
-> @@ -145,10 +164,53 @@ asm(							\
->  ".popsection;                                 \n");	\
->  extern struct btf_id_set name;
->  
-> +/*
-> + * The BTF_SET8_START/END macros pair defines sorted list of
-> + * BTF IDs and their flags plus its members count, with the
-> + * following layout:
-> + *
-> + * BTF_SET8_START(list)
-> + * BTF_ID_FLAGS(type1, name1, flags...)
-> + * BTF_ID_FLAGS(type2, name2, flags...)
-> + * BTF_SET8_END(list)
-> + *
-> + * __BTF_ID__set8__list:
-> + * .zero 8
-> + * list:
-> + * __BTF_ID__type1__name1__3:
-> + * .zero 4
-> + * __BTF_ID__flags__0x0_0x0_0x0_0x0_0x0__4:
-> + * .zero 4
+Introduce a helper for icmp type checking - icmp_is_valid_type.
 
-Overall looks great,
-but why encode flags into a name?
-Why reuse ____BTF_ID for flags and complicate resolve_btfid?
-Instead of .zero 4 insert the actual flags as .word ?
+There is a number of code paths handling ICMP packets. To check
+icmp type validity, some of those code paths perform the check
+`type <= NR_ICMP_TYPES`. Since the introduction of ICMP_EXT_ECHO
+and ICMP_EXT_ECHOREPLY (RFC 8335), this check is no longer correct.
 
-The usage will be slightly different.
-Instead of:
-BTF_ID_FLAGS(func, bpf_get_task_pid, KF_ACQUIRE, KF_RET_NULL)
-it will be
-BTF_ID_FLAGS(func, bpf_get_task_pid, KF_ACQUIRE | KF_RET_NULL)
+To fix this inconsistency and avoid further problems with future
+ICMP types, the patch inserts the icmp_is_valid type helper
+wherever it is required. The helper checks if the type is less than
+NR_ICMP_TYPES or is equal to ICMP_EXT_ECHO/REPLY.
+
+NR_ICMP_TYPES could theoretically be increased to ICMP_EXT_ECHOREPLY
+(43), but that would not make sense as types 19-41 are not used.
+
+Signed-off-by: Mathias Lark <mathias.lark@gmail.com>
+---
+ include/linux/icmp.h                    | 4 ++++
+ net/ipv4/icmp.c                         | 8 +++-----
+ net/netfilter/nf_conntrack_proto_icmp.c | 4 +---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/include/linux/icmp.h b/include/linux/icmp.h
+index 0af4d210ee31..e979c80696b0 100644
+--- a/include/linux/icmp.h
++++ b/include/linux/icmp.h
+@@ -36,6 +36,11 @@ static inline bool icmp_is_err(int type)
+ 	return false;
+ }
+ 
++static inline bool icmp_is_valid_type(int type)
++{
++	return type <= NR_ICMP_TYPES || type == ICMP_EXT_ECHO || type == ICMP_EXT_ECHOREPLY;
++}
++
+ void ip_icmp_error_rfc4884(const struct sk_buff *skb,
+ 			   struct sock_ee_data_rfc4884 *out,
+ 			   int thlen, int off);
+diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
+index 236debd9fded..686f3133370f 100644
+--- a/net/ipv4/icmp.c
++++ b/net/ipv4/icmp.c
+@@ -273,7 +273,7 @@ EXPORT_SYMBOL(icmp_global_allow);
+ 
+ static bool icmpv4_mask_allow(struct net *net, int type, int code)
+ {
+-	if (type > NR_ICMP_TYPES)
++	if (!icmp_is_valid_type(type))
+ 		return true;
+ 
+ 	/* Don't limit PMTU discovery. */
+@@ -661,7 +661,7 @@ void __icmp_send(struct sk_buff *skb_in, int type, int code, __be32 info,
+ 			 *	Assume any unknown ICMP type is an error. This
+ 			 *	isn't specified by the RFC, but think about it..
+ 			 */
+-			if (*itp > NR_ICMP_TYPES ||
++			if (!icmp_is_valid_type(*itp) ||
+ 			    icmp_pointers[*itp].error)
+ 				goto out;
+ 		}
+@@ -1225,12 +1225,10 @@ int icmp_rcv(struct sk_buff *skb)
+ 	}
+ 
+ 	/*
+-	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+-	 *
+ 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
+ 	 *		  discarded.
+ 	 */
+-	if (icmph->type > NR_ICMP_TYPES) {
++	if (!icmp_is_valid_type(icmph->type)) {
+ 		reason = SKB_DROP_REASON_UNHANDLED_PROTO;
+ 		goto error;
+ 	}
+diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
+index b38b7164acd5..ba4462c393be 100644
+--- a/net/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/netfilter/nf_conntrack_proto_icmp.c
+@@ -225,12 +225,10 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
+ 	}
+ 
+ 	/*
+-	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+-	 *
+ 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
+ 	 *		  discarded.
+ 	 */
+-	if (icmph->type > NR_ICMP_TYPES) {
++	if (!icmp_is_valid_type(icmph->type)) {
+ 		icmp_error_log(skb, state, "invalid icmp type");
+ 		return -NF_ACCEPT;
+ 	}
+-- 
+2.36.1
+
