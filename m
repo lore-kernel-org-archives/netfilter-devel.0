@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7F36C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8005C43334
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231469AbiGTXIY (ORCPT
+        id S231633AbiGTXIZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Jul 2022 19:08:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57028 "EHLO
+        Wed, 20 Jul 2022 19:08:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231414AbiGTXIK (ORCPT
+        with ESMTP id S231485AbiGTXIL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Jul 2022 19:08:10 -0400
+        Wed, 20 Jul 2022 19:08:11 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 06AD566AC6;
-        Wed, 20 Jul 2022 16:08:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDEFC66BAB;
+        Wed, 20 Jul 2022 16:08:08 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH nf-next 14/18] netfilter: nf_tables: move nft_cmp_fast_mask to where its used
-Date:   Thu, 21 Jul 2022 01:07:50 +0200
-Message-Id: <20220720230754.209053-15-pablo@netfilter.org>
+Subject: [PATCH nf-next 16/18] netfilter: ipvs: Use the bitmap API to allocate bitmaps
+Date:   Thu, 21 Jul 2022 01:07:52 +0200
+Message-Id: <20220720230754.209053-17-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220720230754.209053-1-pablo@netfilter.org>
 References: <20220720230754.209053-1-pablo@netfilter.org>
@@ -32,61 +32,43 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-... and cast result to u32 so sparse won't complain anymore.
+Use bitmap_zalloc()/bitmap_free() instead of hand-writing them.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+It is less verbose and it improves the semantic.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_core.h | 10 ----------
- net/netfilter/nft_cmp.c                | 12 ++++++++++++
- 2 files changed, 12 insertions(+), 10 deletions(-)
+ net/netfilter/ipvs/ip_vs_mh.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 0ea7c55cea4d..1223af68cd9a 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -56,16 +56,6 @@ struct nft_immediate_expr {
- 	u8			dlen;
- };
+diff --git a/net/netfilter/ipvs/ip_vs_mh.c b/net/netfilter/ipvs/ip_vs_mh.c
+index da0280cec506..e3d7f5c879ce 100644
+--- a/net/netfilter/ipvs/ip_vs_mh.c
++++ b/net/netfilter/ipvs/ip_vs_mh.c
+@@ -174,8 +174,7 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
+ 		return 0;
+ 	}
  
--/* Calculate the mask for the nft_cmp_fast expression. On big endian the
-- * mask needs to include the *upper* bytes when interpreting that data as
-- * something smaller than the full u32, therefore a cpu_to_le32 is done.
-- */
--static inline u32 nft_cmp_fast_mask(unsigned int len)
--{
--	return cpu_to_le32(~0U >> (sizeof_field(struct nft_cmp_fast_expr,
--						data) * BITS_PER_BYTE - len));
--}
--
- extern const struct nft_expr_ops nft_cmp_fast_ops;
- extern const struct nft_expr_ops nft_cmp16_fast_ops;
+-	table = kcalloc(BITS_TO_LONGS(IP_VS_MH_TAB_SIZE),
+-			sizeof(unsigned long), GFP_KERNEL);
++	table = bitmap_zalloc(IP_VS_MH_TAB_SIZE, GFP_KERNEL);
+ 	if (!table)
+ 		return -ENOMEM;
  
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index bec22584395f..777f09e4dc60 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -197,6 +197,18 @@ static const struct nft_expr_ops nft_cmp_ops = {
- 	.offload	= nft_cmp_offload,
- };
+@@ -227,7 +226,7 @@ static int ip_vs_mh_populate(struct ip_vs_mh_state *s,
+ 	}
  
-+/* Calculate the mask for the nft_cmp_fast expression. On big endian the
-+ * mask needs to include the *upper* bytes when interpreting that data as
-+ * something smaller than the full u32, therefore a cpu_to_le32 is done.
-+ */
-+static u32 nft_cmp_fast_mask(unsigned int len)
-+{
-+	__le32 mask = cpu_to_le32(~0U >> (sizeof_field(struct nft_cmp_fast_expr,
-+					  data) * BITS_PER_BYTE - len));
-+
-+	return (__force u32)mask;
-+}
-+
- static int nft_cmp_fast_init(const struct nft_ctx *ctx,
- 			     const struct nft_expr *expr,
- 			     const struct nlattr * const tb[])
+ out:
+-	kfree(table);
++	bitmap_free(table);
+ 	return 0;
+ }
+ 
 -- 
 2.30.2
 
