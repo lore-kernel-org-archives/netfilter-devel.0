@@ -2,162 +2,189 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B94F0C433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 08:30:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D023C43334
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 10:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240519AbiGTIab (ORCPT
+        id S231133AbiGTKNx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Jul 2022 04:30:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43420 "EHLO
+        Wed, 20 Jul 2022 06:13:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240509AbiGTIa2 (ORCPT
+        with ESMTP id S229618AbiGTKNw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Jul 2022 04:30:28 -0400
-Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D91DB491EC;
-        Wed, 20 Jul 2022 01:30:25 -0700 (PDT)
-Received: by mail-ej1-x62c.google.com with SMTP id ez10so31699111ejc.13;
-        Wed, 20 Jul 2022 01:30:25 -0700 (PDT)
+        Wed, 20 Jul 2022 06:13:52 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F17257216;
+        Wed, 20 Jul 2022 03:13:51 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id n12so12582752wrc.8;
+        Wed, 20 Jul 2022 03:13:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:date:to:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=58zZ0dZk/I6ddTuNmOqxAUp0PHDAU1gxo0sDWGaX870=;
-        b=Wf7zJJpO6QOfuHHzV921vPoBt1/gRWv5Y7cVmjHm3gOcJWiN2OJVUo2TdW6tMaEcgV
-         uFcVQ4oJeB0Kr3G5IS7A1tPJd43DlTOHtKTGXN3yMvh0VrVfbKWdHEKVBomxVBAobG1h
-         HT9uPqqMW0rxzV2WzczxKJFvL9TgBSmTYKUlq6D8BWRcM8AbrHXSdlkQYpamRwPsOYgk
-         Ra1ODugRTWWBQjMkfpTOgRRdCqkBWnQu7+OzGfV5ihF+AN3EUa7V7+OybomdUrS7Szde
-         CgbJsx8rkbNAMR/XcTI4dOIAMFRDR9QTU6rwXyr7qI1nf51QwqZJwgN/n7wG1C+MOc1t
-         sVfA==
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :references:from:in-reply-to:content-transfer-encoding;
+        bh=MfV6mgLjqSvYm2RRUtM49X5eL3j9597vYOropcPDVEA=;
+        b=WkZIlskWl6p5tANC0a09cCEttR42hf+Rnrdw2IveT64Xn6r1hoMHKy2Eg5et3crkGl
+         TChUPNsR7Kj9Kfas3O8Kqkb9YQ4gtmtGbdI0pdi9vpBKp05L8fJOf9y6G1m/LHLk/fLO
+         +t2wlLVS/62S2CMt+qagVwC+rXl2a3Ceb/yn/Q6QaYt2d6cJ4ckYVeduimBVfijJBbxJ
+         KbDBGF3QT0qmej3iOPG1aGFK+P6mz1TaAz1gY/BKGAfbVWJYoCw0+6GOu7sfocfUVNc8
+         Q/dUQ5vPXBuYX1BZC+/RGsm1UbOGvUCAkxnBzVUAPQ4dBr54H5vmSe+CbqP9p4rQeUXG
+         SFZg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:date:to:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=58zZ0dZk/I6ddTuNmOqxAUp0PHDAU1gxo0sDWGaX870=;
-        b=hi7aS+LFOApm4c1ZKuitQGTl7KT93r0zL/m/S2r3cj0g2BjKDhvP6vDiIKzkS/MFhs
-         mTjXBLc9MY4/iInlj807Ckk18UzmN2gxWArzLjPOGruX6udkCdTrqXzbD9p1B2uvH9ju
-         HOt3Z05l/0EvNj4TvbKiM2Ko3D6Ml1mVqlIdyS8A0kiVSGRXHPlTzCfe6wCCCV2/sd1d
-         7yBDlfd2nE48gHj2hZF0bVnlkZGAKDewgbAAyfeCokZfQgQcYRWXdTovHQMLNgR9Cxn2
-         4VXHQrbtGQ85loGj3qacIZt9O2Q1v/L3jM1Qcz0hTXIdXI7TkfONxphPJqfqZby05hkA
-         uiNw==
-X-Gm-Message-State: AJIora8X8Jl3xroHQfM3bzmKfIsAeqHtHKSwQSLBzyStFu/5hxUV8DBo
-        ooRc1tRk9U1CBMcJxSMryNE=
-X-Google-Smtp-Source: AGRyM1sWsO3sS9m7YX3rzXOiTSeAwjg+z2TZ3hRPGND7I2KuUc+BplqHNa9Z/Zh9clQnKQrszHvxPg==
-X-Received: by 2002:a17:906:93ef:b0:72b:3e88:a47 with SMTP id yl15-20020a17090693ef00b0072b3e880a47mr35179073ejb.706.1658305824326;
-        Wed, 20 Jul 2022 01:30:24 -0700 (PDT)
-Received: from debian ([138.199.38.49])
-        by smtp.gmail.com with ESMTPSA id g21-20020a1709061e1500b00722f8d02928sm7775807ejj.174.2022.07.20.01.30.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 Jul 2022 01:30:24 -0700 (PDT)
-From:   Mathias Lark <mathiaslark@gmail.com>
-X-Google-Original-From: Mathias Lark <mathias.lark@gmail.com>
-Date:   Wed, 20 Jul 2022 10:28:34 +0200
-To:     davem@davemloft.net, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, pabeni@redhat.com, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH v2] net-next: improve handling of ICMP_EXT_ECHO icmp type
-Message-ID: <20220720082435.GA31932@debian>
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=MfV6mgLjqSvYm2RRUtM49X5eL3j9597vYOropcPDVEA=;
+        b=jNiizv3y0WwpbkshqKZYIpCgDrQqEsq14NZPCBdM7DuHnBnMPIPFRoEgx4s3QEV8it
+         VN0H1Z0rSWRQ2iLMFKhwSyuOT2dSmRW0Sx9fhvtNX/U3OhsNrn8SSiVH+6eHuaYHAqrF
+         i2SdGbOrhJTXjv/B3BUu66BGhDqLORdaG4qI65aaCtrvNEr6SOpPU6BX4SkgG3pGQFuj
+         hKK9FYJE4WcfjosrFg/Bg+GPfy6gbnKFcBQHNNDntPG/eGY5nCLi7XtPA9TmhNyBgucy
+         y81ZrWno1JOxEf5XwREyLnPw4ziyE+hoJW8/RsULskSJFoNl4hGJ0vrUbgJ3QlhUA8QB
+         by6Q==
+X-Gm-Message-State: AJIora+nZMGLniKHy3jtTkYE3JQZVLmlnznoiau4WjAN6US1TSvYdGVc
+        LBZ/yjOqLCppVctIUphf74g=
+X-Google-Smtp-Source: AGRyM1tVv+YUrulb0SJtCvBQSt9xHX2vLAJnb60QwEUpL6HLktYZVe+oykrtaZwZbg8zO/2NA2szQQ==
+X-Received: by 2002:a5d:598e:0:b0:21d:86b2:f35 with SMTP id n14-20020a5d598e000000b0021d86b20f35mr31220916wri.54.1658312030079;
+        Wed, 20 Jul 2022 03:13:50 -0700 (PDT)
+Received: from [10.0.0.4] ([37.170.95.122])
+        by smtp.gmail.com with ESMTPSA id z14-20020a05600c220e00b003a2e7c13a3asm1842632wml.42.2022.07.20.03.13.48
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 20 Jul 2022 03:13:49 -0700 (PDT)
+Message-ID: <b2473419-c7e4-48e2-e6ab-ab3ef8f88800@gmail.com>
+Date:   Wed, 20 Jul 2022 12:13:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.10.1 (2018-07-13)
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [PATCH v2] net-next: improve handling of ICMP_EXT_ECHO icmp type
+Content-Language: en-US
+To:     Mathias Lark <mathiaslark@gmail.com>, davem@davemloft.net,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <20220720082435.GA31932@debian>
+From:   Eric Dumazet <eric.dumazet@gmail.com>
+In-Reply-To: <20220720082435.GA31932@debian>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Introduce a helper for icmp type checking - icmp_is_valid_type.
 
-There is a number of code paths handling ICMP packets. To check
-icmp type validity, some of those code paths perform the check
-`type <= NR_ICMP_TYPES`. Since the introduction of ICMP_EXT_ECHO
-and ICMP_EXT_ECHOREPLY (RFC 8335), this check is no longer correct.
+On 7/20/22 10:28, Mathias Lark wrote:
+> Introduce a helper for icmp type checking - icmp_is_valid_type.
+>
+> There is a number of code paths handling ICMP packets. To check
+> icmp type validity, some of those code paths perform the check
+> `type <= NR_ICMP_TYPES`. Since the introduction of ICMP_EXT_ECHO
+> and ICMP_EXT_ECHOREPLY (RFC 8335), this check is no longer correct.
+>
+> To fix this inconsistency and avoid further problems with future
+> ICMP types, the patch inserts the icmp_is_valid type helper
+> wherever it is required. The helper checks if the type is less than
+> NR_ICMP_TYPES or is equal to ICMP_EXT_ECHO/REPLY.
 
-To fix this inconsistency and avoid further problems with future
-ICMP types, the patch inserts the icmp_is_valid type helper
-wherever it is required. The helper checks if the type is less than
-NR_ICMP_TYPES or is equal to ICMP_EXT_ECHO/REPLY.
 
-NR_ICMP_TYPES could theoretically be increased to ICMP_EXT_ECHOREPLY
-(43), but that would not make sense as types 19-41 are not used.
+It is not clear what is the nature of the inconsistency,
 
-Signed-off-by: Mathias Lark <mathias.lark@gmail.com>
----
- include/linux/icmp.h                    | 4 ++++
- net/ipv4/icmp.c                         | 8 +++-----
- net/netfilter/nf_conntrack_proto_icmp.c | 4 +---
- 3 files changed, 8 insertions(+), 8 deletions(-)
+and if this patch needs to be backported to versions
 
-diff --git a/include/linux/icmp.h b/include/linux/icmp.h
-index 0af4d210ee31..e979c80696b0 100644
---- a/include/linux/icmp.h
-+++ b/include/linux/icmp.h
-@@ -36,6 +36,11 @@ static inline bool icmp_is_err(int type)
- 	return false;
- }
- 
-+static inline bool icmp_is_valid_type(int type)
-+{
-+	return type <= NR_ICMP_TYPES || type == ICMP_EXT_ECHO || type == ICMP_EXT_ECHOREPLY;
-+}
-+
- void ip_icmp_error_rfc4884(const struct sk_buff *skb,
- 			   struct sock_ee_data_rfc4884 *out,
- 			   int thlen, int off);
-diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
-index 236debd9fded..686f3133370f 100644
---- a/net/ipv4/icmp.c
-+++ b/net/ipv4/icmp.c
-@@ -273,7 +273,7 @@ EXPORT_SYMBOL(icmp_global_allow);
- 
- static bool icmpv4_mask_allow(struct net *net, int type, int code)
- {
--	if (type > NR_ICMP_TYPES)
-+	if (!icmp_is_valid_type(type))
- 		return true;
- 
- 	/* Don't limit PMTU discovery. */
-@@ -661,7 +661,7 @@ void __icmp_send(struct sk_buff *skb_in, int type, int code, __be32 info,
- 			 *	Assume any unknown ICMP type is an error. This
- 			 *	isn't specified by the RFC, but think about it..
- 			 */
--			if (*itp > NR_ICMP_TYPES ||
-+			if (!icmp_is_valid_type(*itp) ||
- 			    icmp_pointers[*itp].error)
- 				goto out;
- 		}
-@@ -1225,12 +1225,10 @@ int icmp_rcv(struct sk_buff *skb)
- 	}
- 
- 	/*
--	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
--	 *
- 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
- 	 *		  discarded.
- 	 */
--	if (icmph->type > NR_ICMP_TYPES) {
-+	if (!icmp_is_valid_type(icmph->type)) {
- 		reason = SKB_DROP_REASON_UNHANDLED_PROTO;
- 		goto error;
- 	}
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index b38b7164acd5..ba4462c393be 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -225,12 +225,10 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
- 	}
- 
- 	/*
--	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
--	 *
- 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
- 	 *		  discarded.
- 	 */
--	if (icmph->type > NR_ICMP_TYPES) {
-+	if (!icmp_is_valid_type(icmph->type)) {
- 		icmp_error_log(skb, state, "invalid icmp type");
- 		return -NF_ACCEPT;
- 	}
--- 
-2.36.1
+after 5.13 (commit d329ea5bd884)
 
+What happens if we do not backport this patch (if it is ever applied after
+
+being reviewed)
+
+
+>
+> NR_ICMP_TYPES could theoretically be increased to ICMP_EXT_ECHOREPLY
+> (43), but that would not make sense as types 19-41 are not used.
+>
+> Signed-off-by: Mathias Lark <mathias.lark@gmail.com>
+> ---
+>   include/linux/icmp.h                    | 4 ++++
+>   net/ipv4/icmp.c                         | 8 +++-----
+>   net/netfilter/nf_conntrack_proto_icmp.c | 4 +---
+>   3 files changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/include/linux/icmp.h b/include/linux/icmp.h
+> index 0af4d210ee31..e979c80696b0 100644
+> --- a/include/linux/icmp.h
+> +++ b/include/linux/icmp.h
+> @@ -36,6 +36,11 @@ static inline bool icmp_is_err(int type)
+>   	return false;
+>   }
+>   
+> +static inline bool icmp_is_valid_type(int type)
+> +{
+> +	return type <= NR_ICMP_TYPES || type == ICMP_EXT_ECHO || type == ICMP_EXT_ECHOREPLY;
+> +}
+> +
+>   void ip_icmp_error_rfc4884(const struct sk_buff *skb,
+>   			   struct sock_ee_data_rfc4884 *out,
+>   			   int thlen, int off);
+> diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
+> index 236debd9fded..686f3133370f 100644
+> --- a/net/ipv4/icmp.c
+> +++ b/net/ipv4/icmp.c
+> @@ -273,7 +273,7 @@ EXPORT_SYMBOL(icmp_global_allow);
+>   
+>   static bool icmpv4_mask_allow(struct net *net, int type, int code)
+>   {
+> -	if (type > NR_ICMP_TYPES)
+> +	if (!icmp_is_valid_type(type))
+>   		return true;
+>   
+
+And later this function will trigger an overflow after your patch is 
+applied,
+
+because (1 << 42) is undefined, and sysctl_icmp_ratemask is 32 bit anyway...
+
+if (!((1 << type) & net->ipv4.sysctl_icmp_ratemask))
+
+
+
+>   	/* Don't limit PMTU discovery. */
+> @@ -661,7 +661,7 @@ void __icmp_send(struct sk_buff *skb_in, int type, int code, __be32 info,
+>   			 *	Assume any unknown ICMP type is an error. This
+>   			 *	isn't specified by the RFC, but think about it..
+>   			 */
+> -			if (*itp > NR_ICMP_TYPES ||
+> +			if (!icmp_is_valid_type(*itp) ||
+>   			    icmp_pointers[*itp].error)
+>   				goto out;
+>   		}
+> @@ -1225,12 +1225,10 @@ int icmp_rcv(struct sk_buff *skb)
+>   	}
+>   
+>   	/*
+> -	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+> -	 *
+>   	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
+>   	 *		  discarded.
+>   	 */
+> -	if (icmph->type > NR_ICMP_TYPES) {
+> +	if (!icmp_is_valid_type(icmph->type)) {
+>   		reason = SKB_DROP_REASON_UNHANDLED_PROTO;
+>   		goto error;
+>   	}
+> diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
+> index b38b7164acd5..ba4462c393be 100644
+> --- a/net/netfilter/nf_conntrack_proto_icmp.c
+> +++ b/net/netfilter/nf_conntrack_proto_icmp.c
+> @@ -225,12 +225,10 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
+>   	}
+>   
+>   	/*
+> -	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+> -	 *
+>   	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
+>   	 *		  discarded.
+>   	 */
+> -	if (icmph->type > NR_ICMP_TYPES) {
+> +	if (!icmp_is_valid_type(icmph->type)) {
+>   		icmp_error_log(skb, state, "invalid icmp type");
+>   		return -NF_ACCEPT;
+>   	}
