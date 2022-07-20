@@ -2,47 +2,163 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B44EFC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 22:58:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A3AC43334
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 23:08:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230396AbiGTW6I (ORCPT
+        id S231146AbiGTXIB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Jul 2022 18:58:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49646 "EHLO
+        Wed, 20 Jul 2022 19:08:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229504AbiGTW6H (ORCPT
+        with ESMTP id S230125AbiGTXIA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Jul 2022 18:58:07 -0400
+        Wed, 20 Jul 2022 19:08:00 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DD2FF58854;
-        Wed, 20 Jul 2022 15:58:06 -0700 (PDT)
-Date:   Thu, 21 Jul 2022 00:58:02 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8E753140C9;
+        Wed, 20 Jul 2022 16:07:58 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH] netfilter: ipvs: Use the bitmap API to allocate bitmaps
-Message-ID: <YtiIekld0M+bDXQa@salvia>
-References: <420d8b70560e8711726ff639f0a55364e212ff26.1656962678.git.christophe.jaillet@wanadoo.fr>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH nf-next 00/18] Netfilter/IPVS updates for net-next
+Date:   Thu, 21 Jul 2022 01:07:36 +0200
+Message-Id: <20220720230754.209053-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <420d8b70560e8711726ff639f0a55364e212ff26.1656962678.git.christophe.jaillet@wanadoo.fr>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 04, 2022 at 09:24:46PM +0200, Christophe JAILLET wrote:
-> Use bitmap_zalloc()/bitmap_free() instead of hand-writing them.
-> 
-> It is less verbose and it improves the semantic.
+Hi,
 
-Applied to nf-next, thanks
+The following patchset contains Netfilter/IPVS updates for net-next:
+
+1) Simplify nf_ct_get_tuple(), from Jackie Liu.
+
+2) Add format to request_module() call, from Bill Wendling.
+
+3) Add /proc/net/stats/nf_flowtable to monitor in-flight pending
+   hardware offload objects to be processed, from Vlad Buslov.
+
+4) Missing rcu annotation and accessors in the netfilter tree,
+   from Florian Westphal.
+
+5) Merge h323 conntrack helper nat hooks into single object,
+   also from Florian.
+
+6) A batch of update to fix sparse warnings treewide,
+   from Florian Westphal.
+
+7) Move nft_cmp_fast_mask() where it used, from Florian.
+
+8) Missing const in nf_nat_initialized(), from James Yonan.
+
+9) Use bitmap API for Maglev IPVS scheduler, from Christophe Jaillet.
+
+10) Use refcount_inc instead of _inc_not_zero in flowtable,
+    from Florian Westphal.
+
+11) Remove pr_debug in xt_TPROXY, from Nathan Cancellor.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit edb2c3476db9898a63fb5d0011ecaa43ebf46c9b:
+
+  fddi/skfp: fix repeated words in comments (2022-07-11 14:12:54 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git HEAD
+
+for you to fetch changes up to aa8c7cdbae58b695ed79a0129b6b8c887b25969f:
+
+  netfilter: xt_TPROXY: remove pr_debug invocations (2022-07-21 00:56:00 +0200)
+
+----------------------------------------------------------------
+Bill Wendling (1):
+      netfilter: conntrack: use correct format characters
+
+Christophe JAILLET (1):
+      netfilter: ipvs: Use the bitmap API to allocate bitmaps
+
+Florian Westphal (10):
+      netfilter: nf_conntrack: add missing __rcu annotations
+      netfilter: nf_conntrack: use rcu accessors where needed
+      netfilter: h323: merge nat hook pointers into one
+      netfilter: nfnetlink: add missing __be16 cast
+      netfilter: x_tables: use correct integer types
+      netfilter: nf_tables: use the correct get/put helpers
+      netfilter: nf_tables: add and use BE register load-store helpers
+      netfilter: nf_tables: use correct integer types
+      netfilter: nf_tables: move nft_cmp_fast_mask to where its used
+      netfilter: flowtable: prefer refcount_inc
+
+Jackie Liu (1):
+      netfilter: conntrack: use fallthrough to cleanup
+
+James Yonan (1):
+      netfilter: nf_nat: in nf_nat_initialized(), use const struct nf_conn *
+
+Justin Stitt (1):
+      netfilter: xt_TPROXY: remove pr_debug invocations
+
+Vlad Buslov (2):
+      net/sched: act_ct: set 'net' pointer when creating new nf_flow_table
+      netfilter: nf_flow_table: count pending offload workqueue tasks
+
+Zhang Jiaming (1):
+      netfilter: nft_set_bitmap: Fix spelling mistake
+
+ include/linux/netfilter/nf_conntrack_h323.h  | 109 +++++------
+ include/linux/netfilter/nf_conntrack_sip.h   |   2 +-
+ include/net/net_namespace.h                  |   6 +
+ include/net/netfilter/nf_conntrack_timeout.h |   2 +-
+ include/net/netfilter/nf_flow_table.h        |  21 +++
+ include/net/netfilter/nf_nat.h               |   2 +-
+ include/net/netfilter/nf_tables.h            |  15 ++
+ include/net/netfilter/nf_tables_core.h       |  10 --
+ include/net/netns/flow_table.h               |  14 ++
+ net/bridge/netfilter/nft_meta_bridge.c       |   2 +-
+ net/ipv4/netfilter/nf_nat_h323.c             |  42 ++---
+ net/netfilter/Kconfig                        |   9 +
+ net/netfilter/Makefile                       |   1 +
+ net/netfilter/ipvs/ip_vs_mh.c                |   5 +-
+ net/netfilter/nf_conntrack_broadcast.c       |   6 +-
+ net/netfilter/nf_conntrack_core.c            |   8 +-
+ net/netfilter/nf_conntrack_h323_main.c       | 260 ++++++++++-----------------
+ net/netfilter/nf_conntrack_helper.c          |   4 +-
+ net/netfilter/nf_conntrack_netlink.c         |   9 +-
+ net/netfilter/nf_conntrack_pptp.c            |   2 +-
+ net/netfilter/nf_conntrack_sip.c             |   9 +-
+ net/netfilter/nf_conntrack_timeout.c         |  18 +-
+ net/netfilter/nf_flow_table_core.c           |  73 +++++++-
+ net/netfilter/nf_flow_table_offload.c        |  17 +-
+ net/netfilter/nf_flow_table_procfs.c         |  80 +++++++++
+ net/netfilter/nfnetlink.c                    |   2 +-
+ net/netfilter/nfnetlink_cthelper.c           |  10 +-
+ net/netfilter/nft_byteorder.c                |   3 +-
+ net/netfilter/nft_cmp.c                      |  18 +-
+ net/netfilter/nft_ct.c                       |   4 +-
+ net/netfilter/nft_exthdr.c                   |  10 +-
+ net/netfilter/nft_osf.c                      |   2 +-
+ net/netfilter/nft_set_bitmap.c               |   4 +-
+ net/netfilter/nft_socket.c                   |   8 +-
+ net/netfilter/nft_tproxy.c                   |   6 +-
+ net/netfilter/nft_tunnel.c                   |   3 +-
+ net/netfilter/nft_xfrm.c                     |   8 +-
+ net/netfilter/xt_CT.c                        |  23 ++-
+ net/netfilter/xt_DSCP.c                      |   8 +-
+ net/netfilter/xt_TCPMSS.c                    |   4 +-
+ net/netfilter/xt_TPROXY.c                    |  25 +--
+ net/netfilter/xt_connlimit.c                 |   6 +-
+ net/sched/act_ct.c                           |   5 +-
+ 43 files changed, 518 insertions(+), 357 deletions(-)
+ create mode 100644 include/net/netns/flow_table.h
+ create mode 100644 net/netfilter/nf_flow_table_procfs.c
