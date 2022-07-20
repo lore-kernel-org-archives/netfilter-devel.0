@@ -2,161 +2,126 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F28AC433EF
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 17:52:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA5C3C433EF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Jul 2022 18:43:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231416AbiGTRwt (ORCPT
+        id S229690AbiGTSnc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Jul 2022 13:52:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47676 "EHLO
+        Wed, 20 Jul 2022 14:43:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231420AbiGTRwt (ORCPT
+        with ESMTP id S229752AbiGTSnb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Jul 2022 13:52:49 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED99A5C9EB
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2022 10:52:47 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1oEDsM-0008MF-Hj; Wed, 20 Jul 2022 19:52:46 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     kadlec@netfilter.org, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/3] netfilter: conntrack: remove unneeded indent level
-Date:   Wed, 20 Jul 2022 19:52:28 +0200
-Message-Id: <20220720175228.17880-4-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220720175228.17880-1-fw@strlen.de>
-References: <20220720175228.17880-1-fw@strlen.de>
+        Wed, 20 Jul 2022 14:43:31 -0400
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B668B6053B;
+        Wed, 20 Jul 2022 11:43:30 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id q14so14956005iod.3;
+        Wed, 20 Jul 2022 11:43:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=F6sC7tMBDUtAsFVPIV6SMLMegSZ+oOONijeKBuLgh+U=;
+        b=gTcrsY7YLW/CBUYVqmQOhPFLPf9FGyj/7z3H6aScCTSNGvrjTY7rv5TUlP7mAZ/YCs
+         vgDYmR9oqV4pQ52txs18sILfw09VBrk7ZcdGObjIS1IrH9BGXX1DwIKFt6PHS9nQzjVD
+         GPhXQzdwYue3zcuV1iVJudXmqG0lTEF7dzpe387+2PqgBlw8SBChRy9c4wRAQqwgxVrv
+         1qqIG6VTY+4R2at1O0XPFCxjcfSOuogC8tEoADjFu51MU/zJXPCvnul/qhXp/6USOBTX
+         jjPWimyj2zbKpInHAOB1b6IIuItnzx9Tvhopjm+lUtzz5m0iytdJJw/LYvogphXW4DRd
+         cgPg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=F6sC7tMBDUtAsFVPIV6SMLMegSZ+oOONijeKBuLgh+U=;
+        b=V2Plw+KSgonk3lxRyi2QnrFq0aTfppI12mAoQI+K7Pp1YiLVNFcHhxyh4juaQGXkEf
+         mSAyh/uMNC/6WCj+NwRAbMyllIGpUINJDfLqPnVBPYNoBcDAsJDk1N8f7ydUvLuSittn
+         DcmlR0Tsgo8ArF8D/FLhZ09luRf5lv7HlJiOYsdYnfBSJoqmq5HP/IzkCQEAfEBCaMaQ
+         4brX+vEhCWvuE8LB6H57dHzv2RZaRcUj5M7n8xd7oa6zcPnFxoS/vMNQVM/6ddxodtAH
+         NKw6LJJ3ZHsnf7IwSbeV05oYBN6I/wJKEHKnjll4VguMXSWXrcG6r+0oFKJ12GTo2/Dp
+         Rf/A==
+X-Gm-Message-State: AJIora8nJ1/RqgDDerNTCYSAiVdJACDogaZ93lidiNcHSRGIsshna//l
+        C8WHyDZwLYcteMt9IsuOSRB0oL1f+b+rz45XB/Q=
+X-Google-Smtp-Source: AGRyM1u6WY6OfwxwkRdscSiFzfWrQpQyj+r3TzDQuxrIoCI9zUcwTYo2kpbZSRzqvJxnljIYejNdZzWOPDd6gxQ1DsY=
+X-Received: by 2002:a05:6602:395:b0:67b:d0c6:50cb with SMTP id
+ f21-20020a056602039500b0067bd0c650cbmr16559106iov.110.1658342610017; Wed, 20
+ Jul 2022 11:43:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220719132430.19993-1-memxor@gmail.com> <20220719132430.19993-2-memxor@gmail.com>
+ <20220719183745.4ojhwpuo7ookjvvk@MacBook-Pro-3.local>
+In-Reply-To: <20220719183745.4ojhwpuo7ookjvvk@MacBook-Pro-3.local>
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Date:   Wed, 20 Jul 2022 20:42:54 +0200
+Message-ID: <CAP01T753gZgg2501YR9rhCTCiHAf-zUe3USPqptAV43RWzJCVg@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v6 01/13] bpf: Introduce BTF ID flags and 8-byte
+ BTF set
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-After previous patch, the conditional branch is obsolete, reformat it.
-gcc generates same code as before this change.
+On Tue, 19 Jul 2022 at 20:37, Alexei Starovoitov
+<alexei.starovoitov@gmail.com> wrote:
+>
+> On Tue, Jul 19, 2022 at 03:24:18PM +0200, Kumar Kartikeya Dwivedi wrote:
+> >
+> > +#define ____BTF_ID_FLAGS_LIST(_0, _1, _2, _3, _4, _5, N, ...) _1##_##_2##_##_3##_##_4##_##_5##__
+> > +#define __BTF_ID_FLAGS_LIST(...) ____BTF_ID_FLAGS_LIST(0x0, ##__VA_ARGS__, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
+> > +
+> > +#define __FLAGS(prefix, ...) \
+> > +     __PASTE(prefix, __BTF_ID_FLAGS_LIST(__VA_ARGS__))
+> > +
+> > +#define BTF_ID_FLAGS(prefix, name, ...) \
+> > +     BTF_ID(prefix, name)            \
+> > +     __BTF_ID(__ID(__FLAGS(__BTF_ID__flags__, ##__VA_ARGS__)))
+> > +
+> >  /*
+> >   * The BTF_ID_LIST macro defines pure (unsorted) list
+> >   * of BTF IDs, with following layout:
+> > @@ -145,10 +164,53 @@ asm(                                                    \
+> >  ".popsection;                                 \n");  \
+> >  extern struct btf_id_set name;
+> >
+> > +/*
+> > + * The BTF_SET8_START/END macros pair defines sorted list of
+> > + * BTF IDs and their flags plus its members count, with the
+> > + * following layout:
+> > + *
+> > + * BTF_SET8_START(list)
+> > + * BTF_ID_FLAGS(type1, name1, flags...)
+> > + * BTF_ID_FLAGS(type2, name2, flags...)
+> > + * BTF_SET8_END(list)
+> > + *
+> > + * __BTF_ID__set8__list:
+> > + * .zero 8
+> > + * list:
+> > + * __BTF_ID__type1__name1__3:
+> > + * .zero 4
+> > + * __BTF_ID__flags__0x0_0x0_0x0_0x0_0x0__4:
+> > + * .zero 4
+>
+> Overall looks great,
+> but why encode flags into a name?
+> Why reuse ____BTF_ID for flags and complicate resolve_btfid?
+> Instead of .zero 4 insert the actual flags as .word ?
+>
+> The usage will be slightly different.
+> Instead of:
+> BTF_ID_FLAGS(func, bpf_get_task_pid, KF_ACQUIRE, KF_RET_NULL)
+> it will be
+> BTF_ID_FLAGS(func, bpf_get_task_pid, KF_ACQUIRE | KF_RET_NULL)
 
-Also includes cleanups to pacify checkpatch.pl.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 100 +++++++++++--------------
- 1 file changed, 45 insertions(+), 55 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index c72588382421..e1e354ea62ef 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -635,63 +635,53 @@ tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 					  "ignored ACK under lower bound %u (possible overly delayed)",
- 					  receiver->td_end - MAXACKWINDOW(sender) - 1);
- 
--
--	if (1) {
--		/*
--		 * Take into account window scaling (RFC 1323).
--		 */
--		if (!tcph->syn)
--			win <<= sender->td_scale;
--
--		/*
--		 * Update sender data.
--		 */
--		swin = win + (sack - ack);
--		if (sender->td_maxwin < swin)
--			sender->td_maxwin = swin;
--		if (after(end, sender->td_end)) {
--			sender->td_end = end;
--			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
--		}
--		if (tcph->ack) {
--			if (!(sender->flags & IP_CT_TCP_FLAG_MAXACK_SET)) {
--				sender->td_maxack = ack;
--				sender->flags |= IP_CT_TCP_FLAG_MAXACK_SET;
--			} else if (after(ack, sender->td_maxack))
--				sender->td_maxack = ack;
--		}
--
--		/*
--		 * Update receiver data.
--		 */
--		if (receiver->td_maxwin != 0 && after(end, sender->td_maxend))
--			receiver->td_maxwin += end - sender->td_maxend;
--		if (after(sack + win, receiver->td_maxend - 1)) {
--			receiver->td_maxend = sack + win;
--			if (win == 0)
--				receiver->td_maxend++;
-+	/* Take into account window scaling (RFC 1323). */
-+	if (!tcph->syn)
-+		win <<= sender->td_scale;
-+
-+	/* Update sender data. */
-+	swin = win + (sack - ack);
-+	if (sender->td_maxwin < swin)
-+		sender->td_maxwin = swin;
-+	if (after(end, sender->td_end)) {
-+		sender->td_end = end;
-+		sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+	}
-+	if (tcph->ack) {
-+		if (!(sender->flags & IP_CT_TCP_FLAG_MAXACK_SET)) {
-+			sender->td_maxack = ack;
-+			sender->flags |= IP_CT_TCP_FLAG_MAXACK_SET;
-+		} else if (after(ack, sender->td_maxack)) {
-+			sender->td_maxack = ack;
- 		}
--		if (ack == receiver->td_end)
--			receiver->flags &= ~IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+	}
- 
--		/*
--		 * Check retransmissions.
--		 */
--		if (index == TCP_ACK_SET) {
--			if (state->last_dir == dir
--			    && state->last_seq == seq
--			    && state->last_ack == ack
--			    && state->last_end == end
--			    && state->last_win == win_raw)
--				state->retrans++;
--			else {
--				state->last_dir = dir;
--				state->last_seq = seq;
--				state->last_ack = ack;
--				state->last_end = end;
--				state->last_win = win_raw;
--				state->retrans = 0;
--			}
-+	/* Update receiver data. */
-+	if (receiver->td_maxwin != 0 && after(end, sender->td_maxend))
-+		receiver->td_maxwin += end - sender->td_maxend;
-+	if (after(sack + win, receiver->td_maxend - 1)) {
-+		receiver->td_maxend = sack + win;
-+		if (win == 0)
-+			receiver->td_maxend++;
-+	}
-+	if (ack == receiver->td_end)
-+		receiver->flags &= ~IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+
-+	/* Check retransmissions. */
-+	if (index == TCP_ACK_SET) {
-+		if (state->last_dir == dir &&
-+		    state->last_seq == seq &&
-+		    state->last_ack == ack &&
-+		    state->last_end == end &&
-+		    state->last_win == win_raw) {
-+			state->retrans++;
-+		} else {
-+			state->last_dir = dir;
-+			state->last_seq = seq;
-+			state->last_ack = ack;
-+			state->last_end = end;
-+			state->last_win = win_raw;
-+			state->retrans = 0;
- 		}
- 	}
- 
--- 
-2.35.1
-
+Nice, I didn't know you could do complex expressions like this for asm
+directives like .word, but it makes sense now. TIL. I'm not very well
+versed with GNU as. I will rework this and drop the resolve_btfids
+changes for flags. Thanks a lot!
