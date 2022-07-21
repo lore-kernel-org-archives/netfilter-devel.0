@@ -2,200 +2,202 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 964DAC43334
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jul 2022 18:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDC65C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jul 2022 20:51:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232170AbiGUSCR (ORCPT
+        id S229498AbiGUUvc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Jul 2022 14:02:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51834 "EHLO
+        Thu, 21 Jul 2022 16:51:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232546AbiGUSCK (ORCPT
+        with ESMTP id S229472AbiGUUva (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Jul 2022 14:02:10 -0400
-Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B10C8B4B6;
-        Thu, 21 Jul 2022 11:02:09 -0700 (PDT)
-Received: by mail-il1-x143.google.com with SMTP id o17so971644ils.9;
-        Thu, 21 Jul 2022 11:02:09 -0700 (PDT)
+        Thu, 21 Jul 2022 16:51:30 -0400
+Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A09298F52C;
+        Thu, 21 Jul 2022 13:51:29 -0700 (PDT)
+Received: by mail-ed1-x536.google.com with SMTP id y4so3639890edc.4;
+        Thu, 21 Jul 2022 13:51:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=GgkMsMzEHCdMt0/fh/u0HS1Z5V8qgrEgR8PXqRko9GY=;
-        b=DqNYyEmGFZlbexquB9UnX1yaNueE1z1B122rIgbHhWJe/nOEE4h5arelwrZwNke68Z
-         veXAz3loXHikGJz7cYSuxcJ33ZLSFL4vlXlL1peZPklXeNBWXwe4m/dFO3hfqrhIrmUV
-         m7fNZihjdhPGn6/9Ks6ddRv/d7U/dalvniubB/SBo5dDgLVOet4STGE/TzfO77ckYLYv
-         g3Rwp380nkmP2sF57qNryBHkQC0PNG2l75luENTSrcyHPe3b+GYokmyoDLOKJf0MmXJL
-         cacA2axTy4BDuug9jOUsLu6fSiu4EHafFkD9dqCgv96uiJmIARKBj2s/Iueee5vpRqWv
-         WUcA==
+        h=from:date:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=6vGrA0nNuCMZeyTertcq3i3Pav7G1W9MuISFp9Y13/E=;
+        b=Q5tLlnqSkJp2N9i8gaTXHwGSFc8mgaRW2jaI948gVDzJn33enWzEyYNKK/qnek96G7
+         Clj/TK5p3RYF0rsp8LUGVapH5Gdg9Dm/hS2Bb6OS/SaX+Z9/8B3E6kbEHeT+iTFBCLyV
+         otLw4TYi+nkkGJxIEjQo5pEfEfidYUZoOJ+mgd4ezuvZQ2osf7mZmE213jeK61Gs346d
+         lDX+GpczwDY5mTqP4FX1lgKD3gHteBcytsudyI/9tiTL+kPtfY025qGYs0qfo6pAwwx2
+         rZ257wl41ckTxCLUMLwR98CYFeTL2zMupDdRWC0frb44/9ZP8//Oz5DtYXsih9bUEMuq
+         kDNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=GgkMsMzEHCdMt0/fh/u0HS1Z5V8qgrEgR8PXqRko9GY=;
-        b=IQcHxcl+pFNncIhMZi9D/Zr+IEfgjt+8KBth3ssgVd4jE1AKjdx5ARWjC6dAGLdd8u
-         4dMMx8LqLyo5TMwh5i9hFdsVPI+LCCawrMP3fRyp+hoMgVldFIEsxUYwPvOJtv1zKWaU
-         +l4Veic+dYWd/oCu/peywjV1B4zDTknYa5lyBvoChl+KYZniQA9fRByZ/g7rZLd3PHIQ
-         IM5fKHIujZAt6xiunLKCtsYZljoXe4fBPMbSwu8qXHcFo8kolBRMpv7bjl68sw2D2CVD
-         FyDWkww4zowwEmGEjz4vYvxr3E36bPQocLW65tyxn2+NoEh8aqDeubORwYODl70HhwGH
-         oqmg==
-X-Gm-Message-State: AJIora9ebe+Ojz8WfYiYskg06JdikVgX+H+SXG4d2aA8I0TMcBUe4gwj
-        XuHL8lwgIVLRExXZ1mH0SQyXfXdyPigiNaXHLnuhO6piwRc=
-X-Google-Smtp-Source: AGRyM1usQT+XAil24tP/cBwL2fHVXIwNnKBoAMM4UcerlAQnp2Xx6SvB/+F3H3elMmvSDSI25Mm67IgZIc9DBec8MpQ=
-X-Received: by 2002:a05:6e02:1d0c:b0:2dc:8919:2768 with SMTP id
- i12-20020a056e021d0c00b002dc89192768mr21676431ila.164.1658426528866; Thu, 21
- Jul 2022 11:02:08 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220721134245.2450-1-memxor@gmail.com> <CAC1LvL3dh+cdSPcLNZso9RSdOJfZjTZmpb6wC8e1UFcsEYbpvg@mail.gmail.com>
-In-Reply-To: <CAC1LvL3dh+cdSPcLNZso9RSdOJfZjTZmpb6wC8e1UFcsEYbpvg@mail.gmail.com>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Thu, 21 Jul 2022 20:01:31 +0200
-Message-ID: <CAP01T75ULCUwoZ80A=gLG_HXWFKR0gNePOtnm1UrN8a_yPDUdA@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v7 00/13] New nf_conntrack kfuncs for insertion,
- changing timeout, status
-To:     Zvi Effron <zeffron@riotgames.com>
+        h=x-gm-message-state:from:date:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=6vGrA0nNuCMZeyTertcq3i3Pav7G1W9MuISFp9Y13/E=;
+        b=6Ca79X9fw/DUm2nd6DgU9HrkMrypt+9Mcd5+4ig5zm0SaQqxzpG9ES32k4xuLdIkbR
+         ZPu85Tk39aU5uAleSEmi2vJhkNRpfyZOdAN3+mbcMzvh0D+XlFYRQipIqiIOLcpzTpEZ
+         S0VXsT0/m8cebtT6247W1f/u58pw5wCK6YOF0hUP2QowpztXS/fM3bvR7xXE8Su2wacd
+         VrnBSV23sjMTFEY6s89UREV6UON6rskAU76/FqBwFz2hD0ATKPOpUEo+lbeKOYCVBhkI
+         aQI7CmzDgx0OoYLM3N1aL7NRmIetH2cegm3pcY+cIfiZXwoOiPKCQjlmKN7rckkZwoBy
+         LEBQ==
+X-Gm-Message-State: AJIora8E0WOM0Jab4d7+TfSwdub0fRtwXmGVYUArniIZapIYZj+HT2aE
+        kKJyEr2Cwo/6qiohuc+ziU4=
+X-Google-Smtp-Source: AGRyM1sejFx2dIvgh7pJ2wm4ypgEIBeC/PBjq+5YRwLWBGz/qmyT4pWgbajntb6KxSE9TgNo7OVv8A==
+X-Received: by 2002:a05:6402:1546:b0:43b:bc2a:36ad with SMTP id p6-20020a056402154600b0043bbc2a36admr203308edx.330.1658436688135;
+        Thu, 21 Jul 2022 13:51:28 -0700 (PDT)
+Received: from krava ([83.240.60.135])
+        by smtp.gmail.com with ESMTPSA id n2-20020a056402060200b0043a87e6196esm1576295edv.6.2022.07.21.13.51.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Jul 2022 13:51:27 -0700 (PDT)
+From:   Jiri Olsa <olsajiri@gmail.com>
+X-Google-Original-From: Jiri Olsa <jolsa@kernel.org>
+Date:   Thu, 21 Jul 2022 22:51:24 +0200
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
         Andrii Nakryiko <andrii@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
         Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH bpf-next v7 02/13] tools/resolve_btfids: Add support for
+ 8-byte BTF sets
+Message-ID: <Ytm8TCggRg6xJe/q@krava>
+References: <20220721134245.2450-1-memxor@gmail.com>
+ <20220721134245.2450-3-memxor@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220721134245.2450-3-memxor@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 21 Jul 2022 at 19:29, Zvi Effron <zeffron@riotgames.com> wrote:
->
-> On Thu, Jul 21, 2022 at 6:43 AM Kumar Kartikeya Dwivedi
-> <memxor@gmail.com> wrote:
-> >
-> > Introduce the following new kfuncs:
-> > - bpf_{xdp,skb}_ct_alloc
-> > - bpf_ct_insert_entry
-> > - bpf_ct_{set,change}_timeout
-> > - bpf_ct_{set,change}_status
-> >
-> > The setting of timeout and status on allocated or inserted/looked up CT
-> > is same as the ctnetlink interface, hence code is refactored and shared
-> > with the kfuncs. It is ensured allocated CT cannot be passed to kfuncs
-> > that expected inserted CT, and vice versa. Please see individual patches
-> > for details.
-> >
->
-> Is it expected that using these helpers and the kernel's conntrack to manage
-> connection state from XDP will outperform using maps and eBPF timers (for XDP
-> use cases that don't have a userspace component that also needs the information
-> in conntrack)? Have you done any benchmarking on the performance of using
-> conntrack from XDP?
->
+On Thu, Jul 21, 2022 at 03:42:34PM +0200, Kumar Kartikeya Dwivedi wrote:
+> A flag is a 4-byte symbol that may follow a BTF ID in a set8. This is
+> used in the kernel to tag kfuncs in BTF sets with certain flags. Add
+> support to adjust the sorting code so that it passes size as 8 bytes
+> for 8-byte BTF sets.
+> 
+> Cc: Jiri Olsa <jolsa@kernel.org>
+> Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 
-No, I haven't done any benchmarking against a BPF based conntrack.
-The goal here is to give XDP and TC programs access to kernel's
-existing conntrack, so that in cases where implementing one in BPF is
-not desired/needed, the user can leverage the existing implementation
-in the kernel.
+Acked-by: Jiri Olsa <jolsa@kernel.org>
 
-> Thanks!
-> --Zvi
->
-> > Changelog:
-> > ----------
-> > v6 -> v7:
-> > v6: https://lore.kernel.org/bpf/20220719132430.19993-1-memxor@gmail.com
-> >
-> > * Use .long to encode flags (Alexei)
-> > * Fix description of KF_RET_NULL in documentation (Toke)
-> >
-> > v5 -> v6:
-> > v5: https://lore.kernel.org/bpf/20220623192637.3866852-1-memxor@gmail.com
-> >
-> > * Introduce kfunc flags, rework verifier to work with them
-> > * Add documentation for kfuncs
-> > * Add comment explaining TRUSTED_ARGS kfunc flag (Alexei)
-> > * Fix missing offset check for trusted arguments (Alexei)
-> > * Change nf_conntrack test minimum delta value to 8
-> >
-> > v4 -> v5:
-> > v4: https://lore.kernel.org/bpf/cover.1653600577.git.lorenzo@kernel.org
-> >
-> > * Drop read-only PTR_TO_BTF_ID approach, use struct nf_conn___init (Alexei)
-> > * Drop acquire release pair code that is no longer required (Alexei)
-> > * Disable writes into nf_conn, use dedicated helpers (Florian, Alexei)
-> > * Refactor and share ctnetlink code for setting timeout and status
-> > * Do strict type matching on finding __ref suffix on argument to
-> > prevent passing nf_conn___init as nf_conn (offset = 0, match on walk)
-> > * Remove bpf_ct_opts parameter from bpf_ct_insert_entry
-> > * Update selftests for new additions, add more negative tests
-> >
-> > v3 -> v4:
-> > v3: https://lore.kernel.org/bpf/cover.1652870182.git.lorenzo@kernel.org
-> >
-> > * split bpf_xdp_ct_add in bpf_xdp_ct_alloc/bpf_skb_ct_alloc and
-> > bpf_ct_insert_entry
-> > * add verifier code to properly populate/configure ct entry
-> > * improve selftests
-> >
-> > v2 -> v3:
-> > v2: https://lore.kernel.org/bpf/cover.1652372970.git.lorenzo@kernel.org
-> >
-> > * add bpf_xdp_ct_add and bpf_ct_refresh_timeout kfunc helpers
-> > * remove conntrack dependency from selftests
-> > * add support for forcing kfunc args to be referenced and related selftests
-> >
-> > v1 -> v2:
-> > v1: https://lore.kernel.org/bpf/1327f8f5696ff2bc60400e8f3b79047914ccc837.1651595019.git.lorenzo@kernel.org
-> >
-> > * add bpf_ct_refresh_timeout kfunc selftest
-> >
-> > Kumar Kartikeya Dwivedi (10):
-> > bpf: Introduce 8-byte BTF set
-> > tools/resolve_btfids: Add support for 8-byte BTF sets
-> > bpf: Switch to new kfunc flags infrastructure
-> > bpf: Add support for forcing kfunc args to be trusted
-> > bpf: Add documentation for kfuncs
-> > net: netfilter: Deduplicate code in bpf_{xdp,skb}_ct_lookup
-> > net: netfilter: Add kfuncs to set and change CT timeout
-> > selftests/bpf: Add verifier tests for trusted kfunc args
-> > selftests/bpf: Add negative tests for new nf_conntrack kfuncs
-> > selftests/bpf: Fix test_verifier failed test in unprivileged mode
-> >
-> > Lorenzo Bianconi (3):
-> > net: netfilter: Add kfuncs to allocate and insert CT
-> > net: netfilter: Add kfuncs to set and change CT status
-> > selftests/bpf: Add tests for new nf_conntrack kfuncs
-> >
-> > Documentation/bpf/index.rst | 1 +
-> > Documentation/bpf/kfuncs.rst | 170 ++++++++
-> > include/linux/bpf.h | 3 +-
-> > include/linux/btf.h | 65 ++--
-> > include/linux/btf_ids.h | 68 +++-
-> > include/net/netfilter/nf_conntrack_core.h | 19 +
-> > kernel/bpf/btf.c | 123 +++---
-> > kernel/bpf/verifier.c | 14 +-
-> > net/bpf/test_run.c | 75 ++--
-> > net/ipv4/bpf_tcp_ca.c | 18 +-
-> > net/ipv4/tcp_bbr.c | 24 +-
-> > net/ipv4/tcp_cubic.c | 20 +-
-> > net/ipv4/tcp_dctcp.c | 20 +-
-> > net/netfilter/nf_conntrack_bpf.c | 365 +++++++++++++-----
-> > net/netfilter/nf_conntrack_core.c | 62 +++
-> > net/netfilter/nf_conntrack_netlink.c | 54 +--
-> > tools/bpf/resolve_btfids/main.c | 40 +-
-> > .../selftests/bpf/bpf_testmod/bpf_testmod.c | 10 +-
-> > .../testing/selftests/bpf/prog_tests/bpf_nf.c | 64 ++-
-> > .../testing/selftests/bpf/progs/test_bpf_nf.c | 85 +++-
-> > .../selftests/bpf/progs/test_bpf_nf_fail.c | 134 +++++++
-> > .../selftests/bpf/verifier/bpf_loop_inline.c | 1 +
-> > tools/testing/selftests/bpf/verifier/calls.c | 53 +++
-> > 23 files changed, 1139 insertions(+), 349 deletions(-)
-> > create mode 100644 Documentation/bpf/kfuncs.rst
-> > create mode 100644 tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
-> >
-> > --
-> > 2.34.1
-> >
+jirka
+
+> ---
+>  tools/bpf/resolve_btfids/main.c | 40 ++++++++++++++++++++++++++++-----
+>  1 file changed, 34 insertions(+), 6 deletions(-)
+> 
+> diff --git a/tools/bpf/resolve_btfids/main.c b/tools/bpf/resolve_btfids/main.c
+> index 5d26f3c6f918..80cd7843c677 100644
+> --- a/tools/bpf/resolve_btfids/main.c
+> +++ b/tools/bpf/resolve_btfids/main.c
+> @@ -45,6 +45,19 @@
+>   *             .zero 4
+>   *             __BTF_ID__func__vfs_fallocate__4:
+>   *             .zero 4
+> + *
+> + *   set8    - store symbol size into first 4 bytes and sort following
+> + *             ID list
+> + *
+> + *             __BTF_ID__set8__list:
+> + *             .zero 8
+> + *             list:
+> + *             __BTF_ID__func__vfs_getattr__3:
+> + *             .zero 4
+> + *	       .word (1 << 0) | (1 << 2)
+> + *             __BTF_ID__func__vfs_fallocate__5:
+> + *             .zero 4
+> + *	       .word (1 << 3) | (1 << 1) | (1 << 2)
+>   */
+>  
+>  #define  _GNU_SOURCE
+> @@ -72,6 +85,7 @@
+>  #define BTF_TYPEDEF	"typedef"
+>  #define BTF_FUNC	"func"
+>  #define BTF_SET		"set"
+> +#define BTF_SET8	"set8"
+>  
+>  #define ADDR_CNT	100
+>  
+> @@ -84,6 +98,7 @@ struct btf_id {
+>  	};
+>  	int		 addr_cnt;
+>  	bool		 is_set;
+> +	bool		 is_set8;
+>  	Elf64_Addr	 addr[ADDR_CNT];
+>  };
+>  
+> @@ -231,14 +246,14 @@ static char *get_id(const char *prefix_end)
+>  	return id;
+>  }
+>  
+> -static struct btf_id *add_set(struct object *obj, char *name)
+> +static struct btf_id *add_set(struct object *obj, char *name, bool is_set8)
+>  {
+>  	/*
+>  	 * __BTF_ID__set__name
+>  	 * name =    ^
+>  	 * id   =         ^
+>  	 */
+> -	char *id = name + sizeof(BTF_SET "__") - 1;
+> +	char *id = name + (is_set8 ? sizeof(BTF_SET8 "__") : sizeof(BTF_SET "__")) - 1;
+>  	int len = strlen(name);
+>  
+>  	if (id >= name + len) {
+> @@ -444,9 +459,21 @@ static int symbols_collect(struct object *obj)
+>  		} else if (!strncmp(prefix, BTF_FUNC, sizeof(BTF_FUNC) - 1)) {
+>  			obj->nr_funcs++;
+>  			id = add_symbol(&obj->funcs, prefix, sizeof(BTF_FUNC) - 1);
+> +		/* set8 */
+> +		} else if (!strncmp(prefix, BTF_SET8, sizeof(BTF_SET8) - 1)) {
+> +			id = add_set(obj, prefix, true);
+> +			/*
+> +			 * SET8 objects store list's count, which is encoded
+> +			 * in symbol's size, together with 'cnt' field hence
+> +			 * that - 1.
+> +			 */
+> +			if (id) {
+> +				id->cnt = sym.st_size / sizeof(uint64_t) - 1;
+> +				id->is_set8 = true;
+> +			}
+>  		/* set */
+>  		} else if (!strncmp(prefix, BTF_SET, sizeof(BTF_SET) - 1)) {
+> -			id = add_set(obj, prefix);
+> +			id = add_set(obj, prefix, false);
+>  			/*
+>  			 * SET objects store list's count, which is encoded
+>  			 * in symbol's size, together with 'cnt' field hence
+> @@ -571,7 +598,8 @@ static int id_patch(struct object *obj, struct btf_id *id)
+>  	int *ptr = data->d_buf;
+>  	int i;
+>  
+> -	if (!id->id && !id->is_set)
+> +	/* For set, set8, id->id may be 0 */
+> +	if (!id->id && !id->is_set && !id->is_set8)
+>  		pr_err("WARN: resolve_btfids: unresolved symbol %s\n", id->name);
+>  
+>  	for (i = 0; i < id->addr_cnt; i++) {
+> @@ -643,13 +671,13 @@ static int sets_patch(struct object *obj)
+>  		}
+>  
+>  		idx = idx / sizeof(int);
+> -		base = &ptr[idx] + 1;
+> +		base = &ptr[idx] + (id->is_set8 ? 2 : 1);
+>  		cnt = ptr[idx];
+>  
+>  		pr_debug("sorting  addr %5lu: cnt %6d [%s]\n",
+>  			 (idx + 1) * sizeof(int), cnt, id->name);
+>  
+> -		qsort(base, cnt, sizeof(int), cmp_id);
+> +		qsort(base, cnt, id->is_set8 ? sizeof(uint64_t) : sizeof(int), cmp_id);
+>  
+>  		next = rb_next(next);
+>  	}
+> -- 
+> 2.34.1
+> 
