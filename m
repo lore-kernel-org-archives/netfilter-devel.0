@@ -2,56 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38E89C433EF
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jul 2022 13:43:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E282C43334
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Jul 2022 13:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229750AbiGUNnY (ORCPT
+        id S230063AbiGUNno (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Jul 2022 09:43:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49086 "EHLO
+        Thu, 21 Jul 2022 09:43:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229849AbiGUNmz (ORCPT
+        with ESMTP id S229880AbiGUNnA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Jul 2022 09:42:55 -0400
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EDA08239C;
-        Thu, 21 Jul 2022 06:42:53 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id bk26so2321744wrb.11;
-        Thu, 21 Jul 2022 06:42:52 -0700 (PDT)
+        Thu, 21 Jul 2022 09:43:00 -0400
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 401FA7E83B;
+        Thu, 21 Jul 2022 06:42:55 -0700 (PDT)
+Received: by mail-wm1-x341.google.com with SMTP id v67-20020a1cac46000000b003a1888b9d36so3377011wme.0;
+        Thu, 21 Jul 2022 06:42:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ixm0TpOqb7EkbcZmFxoYYjjun9V4WdmLtfPgexkV81E=;
-        b=fnuECT4WkBw1F0kfOU1C8ZVm68ls3Q5nTCTAPfDuQuWBeu+5nwA4cCeBSABicn1ee9
-         X9O0kn/3XySyssCv3diiJ0xoLlw2eZ/D9TTZA1iFdafTjyG6CQv2bs0qTaHd7TExJH96
-         wXPwQ8XwEnf2J87v3Q3uy96/+mlsSnCjHLdrn0jqEwbWtZPPx3aLFPgQQxcpxH09Biz6
-         fAm29eUaDMOpSIUaAFPWLb6IUpDAnv8sTMkYY6+iKQlKj/znQdEE7yztGhc3fLtQKMAe
-         Ck696Qm3z1lQYNZ0HYweflTbGoyaNYPg+tMMfz2HHLFNCgULqwh3Q9iIdj8XADVuYzj/
-         IFAQ==
+        bh=aKDQvr4Ha1ihCYQYI2WnPngxgXWoBDxQkBDVJ/HQ+2c=;
+        b=JOfA0CrB+z9kMyu+BrMsNlDlutUR/4rdDtTKE+rYTGKuZUJtY57sPOwXNjB4RP28Hl
+         fxV58yLWDmPwlpZ0ltfXQ64bm196MgLEhhKhyQfm1rr+1zYsfVYN55wOGaaGFqM1e3dH
+         Be/pLQfFeL4ttP1zRYLAfwy5Aogm7bQPh6zJF0gl/KmGxqP2PsD1LbZFfy0Mz6XBYnIU
+         O+qi44PR9MmL+yRMrI6vC0wb6vqkdBSLSeNxynZ6VNfIqtZuyCL6YKDfXa1EA7NNfsCj
+         qpKXxvH7y0hmcEIvVb7ED5yCIbQZtWwjIeLkRT4vHSYGggttjRjO3oAN4soGBwFdJkVY
+         o93w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ixm0TpOqb7EkbcZmFxoYYjjun9V4WdmLtfPgexkV81E=;
-        b=VoQ4ZgoqZo9zh5tWQ41oo2Nn1LXvrMgW4ONBUE+zu7IkhOFv6hMNF+h16tTzbFF8F/
-         qqy78WYv23Zo6eq1Os0LVEBlznBHN4osVNaO4DFaKGIoNN/C2NyJZtSjkTpU+JGvha8Q
-         /DUQzJqwgNXYQ6+FdqcvkWKE5NcQuyFpfe6nempBkKVXPSpyU+glX2RQ5aKSo/dkXzkt
-         CF3rFSmAtZ4qFBnVZA1W6L+6hs9bIm3dTtHmDuCQviB3SCGPi9ktN2RmZ4tecVnb2w5e
-         P8iVBnL0QXGorpFs4QuJd3xZ6Nj9wKX4c7clsG/LN5CNP41rp3rRZr8iw3xL48tpkRPj
-         YMSA==
-X-Gm-Message-State: AJIora8nthSXU17383F4qQrAsTLfNRnQq+f5uAie//gp7O+XEL+0v0m/
-        7yAJ09vGS5B2G6trhDApsJHjFnYrxljVBw==
-X-Google-Smtp-Source: AGRyM1uDITsFaWtdl0LbaSZzHTAVUahP1Da7igpBjfKuawGhKAPb9Dx+biyLFpae4D2Qlua55xBh7A==
-X-Received: by 2002:a5d:584d:0:b0:21d:b7f8:7d19 with SMTP id i13-20020a5d584d000000b0021db7f87d19mr34095407wrf.260.1658410970850;
-        Thu, 21 Jul 2022 06:42:50 -0700 (PDT)
+        bh=aKDQvr4Ha1ihCYQYI2WnPngxgXWoBDxQkBDVJ/HQ+2c=;
+        b=hIsesyql/dQSo9kwnoTy4oOuFRIeANcq6vCLcYcvJRd0ff552yKeVlEt8YiIOFE0cM
+         Iue0IJ4eV7e9X0jASpNre10/PIfylM17u/yg1qei/HKMcusc4d/1AjKxv932myvvo4kF
+         B5HlWsDpgowrCGvoDfMAIG/x0yNbJ0hZ7ISi1PlwyRFaRTIyHUbF3cVE8g7tj+nsw1Hr
+         7qJafxiATOnVFS/VuaEUNlMFxkbPECi/RksJKCnULfZFgs0+Ijyz974NwERqUOjAhMKW
+         AtyqJ2MIa7GCHGo1IEQfyw1GJNlkFyfWQq8H4XkYv/43vrz/PJyUnWLwMGNDiajfNsfc
+         wR+w==
+X-Gm-Message-State: AJIora+wfcLIagI1xEYOdoMmoy3MiQQobXNIuvamAwiG0od+Fz6Het0/
+        MezDntCandsWy7xgkpJBm+XMIA3Elr1tKw==
+X-Google-Smtp-Source: AGRyM1vHcrDGI21ugSZ0fwHqE4uLxkGQ+WihPsJ2i3HZC9kx12C9Xe5ageUInDtitf+Ha92mjj6o2A==
+X-Received: by 2002:a05:600c:19cc:b0:3a3:10bd:9211 with SMTP id u12-20020a05600c19cc00b003a310bd9211mr8301568wmq.106.1658410973348;
+        Thu, 21 Jul 2022 06:42:53 -0700 (PDT)
 Received: from localhost (212.191.202.62.dynamic.cgnat.res.cust.swisscom.ch. [62.202.191.212])
-        by smtp.gmail.com with ESMTPSA id t11-20020a5d460b000000b0021b970a68f9sm1930740wrq.26.2022.07.21.06.42.50
+        by smtp.gmail.com with ESMTPSA id s23-20020a1cf217000000b003a2e2a2e294sm1915169wmc.18.2022.07.21.06.42.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jul 2022 06:42:50 -0700 (PDT)
+        Thu, 21 Jul 2022 06:42:52 -0700 (PDT)
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
 To:     bpf@vger.kernel.org
-Cc:     Jiri Olsa <jolsa@kernel.org>, Alexei Starovoitov <ast@kernel.org>,
+Cc:     Alexei Starovoitov <ast@kernel.org>,
         Andrii Nakryiko <andrii@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -60,137 +60,163 @@ Cc:     Jiri Olsa <jolsa@kernel.org>, Alexei Starovoitov <ast@kernel.org>,
         =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
         Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: [PATCH bpf-next v7 02/13] tools/resolve_btfids: Add support for 8-byte BTF sets
-Date:   Thu, 21 Jul 2022 15:42:34 +0200
-Message-Id: <20220721134245.2450-3-memxor@gmail.com>
+Subject: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc args to be trusted
+Date:   Thu, 21 Jul 2022 15:42:36 +0200
+Message-Id: <20220721134245.2450-5-memxor@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220721134245.2450-1-memxor@gmail.com>
 References: <20220721134245.2450-1-memxor@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3720; i=memxor@gmail.com; h=from:subject; bh=ouOEzgiZrkDu5OXi7dfFyFaLhODxyDcFNQ/GHcdVKRc=; b=owEBbQKS/ZANAwAKAUzgyIZIvxHKAcsmYgBi2VfNrmYwg0/YXwLTZrgylzTjjk8SF8Sjnf80B00x 8zQzP6OJAjMEAAEKAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYtlXzQAKCRBM4MiGSL8RysWpEA CTLZwz7rPIFu0tLaSqbtjlTyr4OOwZQl/5qr/rtyYdmtnpx/9tAUrXnYespixLalOf1aBX85mgOJLe HWo4vUSFAHzLpxPpxEmU2Ue7shC5kiPRs8Zs7RpfSmOxZ5u3pJBw5tjijjVi2CrGlqcONglDOYZCPe CqbKQ6JNSvE6j5BSI6iSrLjEx9AIVAqurYE5PrMT7EU9V6RbYX8GVBidmL2XFx7OSH2tYvsYuI3/d7 nGzvw12LyqtzkK6ezwiPNnsH6927H9AyPjfomBosKLExVXWBQnclXuJ+WsGf/m0AiEmTboL0w23L1v nd0Fcp6Y4WDJyFaNvqfJuUc7QFLeYoqt4fRUJ3jhBsqAtEbrLGP6IHai7PhRn90D6th2tQUH5KeIGh JF9EU2CvvNLdUVssIoRi+wqARxF7IJUtn20tnVbqkAypq3ASLVX12dWsJ8FR4r64O/reWLMj94iQ/E RCdeU+HLBpcJUss1TdpwosOrz5I49kjBXQnSsKxch1dHDphCSu57l2zzRbjcu743JaY1ngJ/w05k2O OuDv7m02su6rfxmctu71lljNIe3a2s88oSLdWrZteWRHqMCQ/9ElRgILePEkvw2OJJge2RLGwhfqEE mYknEJOburfAh5ZRggh5TkknnQ/40slVksJKQnW28anrOWRnpe3yGkWR4uFg==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5959; i=memxor@gmail.com; h=from:subject; bh=BHiQPw04vFEmpC2vFjwdUDUZ6v33xbb9HRikP4q55rA=; b=owEBbQKS/ZANAwAKAUzgyIZIvxHKAcsmYgBi2VfOJiUhpF22fBHYMRbOvxT02mRY1qIxK1d+MmNU FAricliJAjMEAAEKAB0WIQRLvip+Buz51YI8YRFM4MiGSL8RygUCYtlXzgAKCRBM4MiGSL8Ryt24D/ 0edK8mcFRBr4+RM92mRzOskZlL9uIYEZ9m9oAnbrDIefGm6maDTT8WsfyJJoaJGvXwkGpy6Rbx8z+s ixySjfngirKHXZcv+rIWf8+9P6TQJ4u25tvcCsj9viPMJcS7c587Hr6mCVGlqpfYeoSNb/ZFMRbKar nBspWCWE5OKUYYr5YrELqXjXeXz4OZMhDrbt1/fvGZQIpShlCWkvLME60U2A+XZ3dUj7N3g/0uxS6g EDfEAGChHpQUv+0ojAz7lgzRNe+IGW+JFNgmmhrg55rDibjla5Smp9YNnyqSOR2ehKp+oBgLVimVSQ TBrDMHFshr8n43+S6rNinSf/Wy09usPDiwT5VM+IaWvlJXh5LjbrlZoH8VKqxk4aaXQTMO61U5aDVn n1BVJ/iBEJ0i8Iu/csbGOgT7ecLdRbgDdClB7s7MZqxfECyV+vW8YsSOsamDxK8S/cUd/KIUHcfBGC IXujY02B47s6R/fO7rowQYskmmGe6S4DZamA/JpwFKkklb8T9RYFvDejwGKTPkgJX8T39SDOgtB9zc DIFJSt0kmCvNkvZo28fpSroTcLKVxB5vErxKdDQVxKHEJK8I37KNzXwB16SCrqNY6p+C7P/hULMxVN iqDAbg9PjSSBasE+dPRuEgCdKteFBhM7YUHfuWz2rCvJAy89ts/iKOOoBzJA==
 X-Developer-Key: i=memxor@gmail.com; a=openpgp; fpr=4BBE2A7E06ECF9D5823C61114CE0C88648BF11CA
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A flag is a 4-byte symbol that may follow a BTF ID in a set8. This is
-used in the kernel to tag kfuncs in BTF sets with certain flags. Add
-support to adjust the sorting code so that it passes size as 8 bytes
-for 8-byte BTF sets.
+Teach the verifier to detect a new KF_TRUSTED_ARGS kfunc flag, which
+means each pointer argument must be trusted, which we define as a
+pointer that is referenced (has non-zero ref_obj_id) and also needs to
+have its offset unchanged, similar to how release functions expect their
+argument. This allows a kfunc to receive pointer arguments unchanged
+from the result of the acquire kfunc.
 
-Cc: Jiri Olsa <jolsa@kernel.org>
+This is required to ensure that kfunc that operate on some object only
+work on acquired pointers and not normal PTR_TO_BTF_ID with same type
+which can be obtained by pointer walking. The restrictions applied to
+release arguments also apply to trusted arguments. This implies that
+strict type matching (not deducing type by recursively following members
+at offset) and OBJ_RELEASE offset checks (ensuring they are zero) are
+used for trusted pointer arguments.
+
 Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 ---
- tools/bpf/resolve_btfids/main.c | 40 ++++++++++++++++++++++++++++-----
- 1 file changed, 34 insertions(+), 6 deletions(-)
+ include/linux/btf.h | 32 ++++++++++++++++++++++++++++++++
+ kernel/bpf/btf.c    | 17 ++++++++++++++---
+ net/bpf/test_run.c  |  5 +++++
+ 3 files changed, 51 insertions(+), 3 deletions(-)
 
-diff --git a/tools/bpf/resolve_btfids/main.c b/tools/bpf/resolve_btfids/main.c
-index 5d26f3c6f918..80cd7843c677 100644
---- a/tools/bpf/resolve_btfids/main.c
-+++ b/tools/bpf/resolve_btfids/main.c
-@@ -45,6 +45,19 @@
-  *             .zero 4
-  *             __BTF_ID__func__vfs_fallocate__4:
-  *             .zero 4
+diff --git a/include/linux/btf.h b/include/linux/btf.h
+index 6dfc6eaf7f8c..cb63aa71e82f 100644
+--- a/include/linux/btf.h
++++ b/include/linux/btf.h
+@@ -17,6 +17,38 @@
+ #define KF_RELEASE	(1 << 1) /* kfunc is a release function */
+ #define KF_RET_NULL	(1 << 2) /* kfunc returns a pointer that may be NULL */
+ #define KF_KPTR_GET	(1 << 3) /* kfunc returns reference to a kptr */
++/* Trusted arguments are those which are meant to be referenced arguments with
++ * unchanged offset. It is used to enforce that pointers obtained from acquire
++ * kfuncs remain unmodified when being passed to helpers taking trusted args.
 + *
-+ *   set8    - store symbol size into first 4 bytes and sort following
-+ *             ID list
++ * Consider
++ *	struct foo {
++ *		int data;
++ *		struct foo *next;
++ *	};
 + *
-+ *             __BTF_ID__set8__list:
-+ *             .zero 8
-+ *             list:
-+ *             __BTF_ID__func__vfs_getattr__3:
-+ *             .zero 4
-+ *	       .word (1 << 0) | (1 << 2)
-+ *             __BTF_ID__func__vfs_fallocate__5:
-+ *             .zero 4
-+ *	       .word (1 << 3) | (1 << 1) | (1 << 2)
-  */
++ *	struct bar {
++ *		int data;
++ *		struct foo f;
++ *	};
++ *
++ *	struct foo *f = alloc_foo(); // Acquire kfunc
++ *	struct bar *b = alloc_bar(); // Acquire kfunc
++ *
++ * If a kfunc set_foo_data() wants to operate only on the allocated object, it
++ * will set the KF_TRUSTED_ARGS flag, which will prevent unsafe usage like:
++ *
++ *	set_foo_data(f, 42);	   // Allowed
++ *	set_foo_data(f->next, 42); // Rejected, non-referenced pointer
++ *	set_foo_data(&f->next, 42);// Rejected, referenced, but bad offset
++ *	set_foo_data(&b->f, 42);   // Rejected, referenced, but wrong type
++ *
++ * In the final case, usually for the purposes of type matching, it is deduced
++ * by looking at the type of the member at the offset, but due to the
++ * requirement of trusted argument, this deduction will be strict and not done
++ * for this case.
++ */
++#define KF_TRUSTED_ARGS (1 << 4) /* kfunc only takes trusted pointer arguments */
  
- #define  _GNU_SOURCE
-@@ -72,6 +85,7 @@
- #define BTF_TYPEDEF	"typedef"
- #define BTF_FUNC	"func"
- #define BTF_SET		"set"
-+#define BTF_SET8	"set8"
- 
- #define ADDR_CNT	100
- 
-@@ -84,6 +98,7 @@ struct btf_id {
- 	};
- 	int		 addr_cnt;
- 	bool		 is_set;
-+	bool		 is_set8;
- 	Elf64_Addr	 addr[ADDR_CNT];
- };
- 
-@@ -231,14 +246,14 @@ static char *get_id(const char *prefix_end)
- 	return id;
- }
- 
--static struct btf_id *add_set(struct object *obj, char *name)
-+static struct btf_id *add_set(struct object *obj, char *name, bool is_set8)
+ struct btf;
+ struct btf_member;
+diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
+index 4d9c2d88720f..7ac971ea98d1 100644
+--- a/kernel/bpf/btf.c
++++ b/kernel/bpf/btf.c
+@@ -6174,10 +6174,10 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 				    u32 kfunc_flags)
  {
- 	/*
- 	 * __BTF_ID__set__name
- 	 * name =    ^
- 	 * id   =         ^
- 	 */
--	char *id = name + sizeof(BTF_SET "__") - 1;
-+	char *id = name + (is_set8 ? sizeof(BTF_SET8 "__") : sizeof(BTF_SET "__")) - 1;
- 	int len = strlen(name);
+ 	enum bpf_prog_type prog_type = resolve_prog_type(env->prog);
++	bool rel = false, kptr_get = false, trusted_arg = false;
+ 	struct bpf_verifier_log *log = &env->log;
+ 	u32 i, nargs, ref_id, ref_obj_id = 0;
+ 	bool is_kfunc = btf_is_kernel(btf);
+-	bool rel = false, kptr_get = false;
+ 	const char *func_name, *ref_tname;
+ 	const struct btf_type *t, *ref_t;
+ 	const struct btf_param *args;
+@@ -6211,6 +6211,7 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 		/* Only kfunc can be release func */
+ 		rel = kfunc_flags & KF_RELEASE;
+ 		kptr_get = kfunc_flags & KF_KPTR_GET;
++		trusted_arg = kfunc_flags & KF_TRUSTED_ARGS;
+ 	}
  
- 	if (id >= name + len) {
-@@ -444,9 +459,21 @@ static int symbols_collect(struct object *obj)
- 		} else if (!strncmp(prefix, BTF_FUNC, sizeof(BTF_FUNC) - 1)) {
- 			obj->nr_funcs++;
- 			id = add_symbol(&obj->funcs, prefix, sizeof(BTF_FUNC) - 1);
-+		/* set8 */
-+		} else if (!strncmp(prefix, BTF_SET8, sizeof(BTF_SET8) - 1)) {
-+			id = add_set(obj, prefix, true);
-+			/*
-+			 * SET8 objects store list's count, which is encoded
-+			 * in symbol's size, together with 'cnt' field hence
-+			 * that - 1.
-+			 */
-+			if (id) {
-+				id->cnt = sym.st_size / sizeof(uint64_t) - 1;
-+				id->is_set8 = true;
-+			}
- 		/* set */
- 		} else if (!strncmp(prefix, BTF_SET, sizeof(BTF_SET) - 1)) {
--			id = add_set(obj, prefix);
-+			id = add_set(obj, prefix, false);
- 			/*
- 			 * SET objects store list's count, which is encoded
- 			 * in symbol's size, together with 'cnt' field hence
-@@ -571,7 +598,8 @@ static int id_patch(struct object *obj, struct btf_id *id)
- 	int *ptr = data->d_buf;
- 	int i;
- 
--	if (!id->id && !id->is_set)
-+	/* For set, set8, id->id may be 0 */
-+	if (!id->id && !id->is_set && !id->is_set8)
- 		pr_err("WARN: resolve_btfids: unresolved symbol %s\n", id->name);
- 
- 	for (i = 0; i < id->addr_cnt; i++) {
-@@ -643,13 +671,13 @@ static int sets_patch(struct object *obj)
+ 	/* check that BTF function arguments match actual types that the
+@@ -6235,10 +6236,19 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 			return -EINVAL;
  		}
  
- 		idx = idx / sizeof(int);
--		base = &ptr[idx] + 1;
-+		base = &ptr[idx] + (id->is_set8 ? 2 : 1);
- 		cnt = ptr[idx];
++		/* Check if argument must be a referenced pointer, args + i has
++		 * been verified to be a pointer (after skipping modifiers).
++		 */
++		if (is_kfunc && trusted_arg && !reg->ref_obj_id) {
++			bpf_log(log, "R%d must be referenced\n", regno);
++			return -EINVAL;
++		}
++
+ 		ref_t = btf_type_skip_modifiers(btf, t->type, &ref_id);
+ 		ref_tname = btf_name_by_offset(btf, ref_t->name_off);
  
- 		pr_debug("sorting  addr %5lu: cnt %6d [%s]\n",
- 			 (idx + 1) * sizeof(int), cnt, id->name);
+-		if (rel && reg->ref_obj_id)
++		/* Trusted args have the same offset checks as release arguments */
++		if (trusted_arg || (rel && reg->ref_obj_id))
+ 			arg_type |= OBJ_RELEASE;
+ 		ret = check_func_arg_reg_off(env, reg, regno, arg_type);
+ 		if (ret < 0)
+@@ -6336,7 +6346,8 @@ static int btf_check_func_arg_match(struct bpf_verifier_env *env,
+ 			reg_ref_tname = btf_name_by_offset(reg_btf,
+ 							   reg_ref_t->name_off);
+ 			if (!btf_struct_ids_match(log, reg_btf, reg_ref_id,
+-						  reg->off, btf, ref_id, rel && reg->ref_obj_id)) {
++						  reg->off, btf, ref_id,
++						  trusted_arg || (rel && reg->ref_obj_id))) {
+ 				bpf_log(log, "kernel function %s args#%d expected pointer to %s %s but R%d has a pointer to %s %s\n",
+ 					func_name, i,
+ 					btf_type_str(ref_t), ref_tname,
+diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
+index ca5b7234a350..cbc9cd5058cb 100644
+--- a/net/bpf/test_run.c
++++ b/net/bpf/test_run.c
+@@ -691,6 +691,10 @@ noinline void bpf_kfunc_call_test_mem_len_fail2(u64 *mem, int len)
+ {
+ }
  
--		qsort(base, cnt, sizeof(int), cmp_id);
-+		qsort(base, cnt, id->is_set8 ? sizeof(uint64_t) : sizeof(int), cmp_id);
++noinline void bpf_kfunc_call_test_ref(struct prog_test_ref_kfunc *p)
++{
++}
++
+ __diag_pop();
  
- 		next = rb_next(next);
- 	}
+ ALLOW_ERROR_INJECTION(bpf_modify_return_test, ERRNO);
+@@ -714,6 +718,7 @@ BTF_ID_FLAGS(func, bpf_kfunc_call_test_fail3)
+ BTF_ID_FLAGS(func, bpf_kfunc_call_test_mem_len_pass1)
+ BTF_ID_FLAGS(func, bpf_kfunc_call_test_mem_len_fail1)
+ BTF_ID_FLAGS(func, bpf_kfunc_call_test_mem_len_fail2)
++BTF_ID_FLAGS(func, bpf_kfunc_call_test_ref, KF_TRUSTED_ARGS)
+ BTF_SET8_END(test_sk_check_kfunc_ids)
+ 
+ static void *bpf_test_init(const union bpf_attr *kattr, u32 user_size,
 -- 
 2.34.1
 
