@@ -2,111 +2,100 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9672AC43334
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Jul 2022 04:11:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4DEDC433EF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Jul 2022 07:48:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229905AbiGVELB (ORCPT
+        id S229519AbiGVHsh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Jul 2022 00:11:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46172 "EHLO
+        Fri, 22 Jul 2022 03:48:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbiGVELB (ORCPT
+        with ESMTP id S234351AbiGVHsd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Jul 2022 00:11:01 -0400
-Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9F6D89AA0;
-        Thu, 21 Jul 2022 21:11:00 -0700 (PDT)
-Received: by mail-pj1-x102a.google.com with SMTP id b7-20020a17090a12c700b001f20eb82a08so7122561pjg.3;
-        Thu, 21 Jul 2022 21:11:00 -0700 (PDT)
+        Fri, 22 Jul 2022 03:48:33 -0400
+Received: from mail-lf1-x131.google.com (mail-lf1-x131.google.com [IPv6:2a00:1450:4864:20::131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 446B243E5C
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2022 00:48:32 -0700 (PDT)
+Received: by mail-lf1-x131.google.com with SMTP id bf9so6340211lfb.13
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2022 00:48:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=2Hbsikftw7Ck+qtgf2iU/lIUQA7uKjUidRMS9WyjJwE=;
-        b=kmuDdEgzaqZNfJRplcZwi1REHeoWn0ZcztTXgCclg1tmtiO8lfr4u3xTNqHY6hL5cO
-         dFEFPLo8OkEK7jBaSN+IxH44BFY7YxAkQWfm+CO+szn3vIX/z3u1qY4xRrtqZJrYgPXw
-         8jrVGTj9wL5ipeNXnC1gH8Yr+toSEFVMp7LInjohhYFZBEv6GcnsmnW8jRr+yykcI93u
-         xBFCDmgOYptUE6KNyWzAbhRHhZRYrbKbGxzL2R2eP7NHdTuwtfrOK9teJJEILpcUEMUJ
-         z0132+b65ElBIXfRwyMBfevSqd/brYV9ClhJ77/0+jEwLkCUTVDoY02zu29f2H0gkIjA
-         jXPA==
+        h=mime-version:from:date:message-id:subject:to;
+        bh=nMVYuooHpuSRFWA94y31ZT+4CjOqQBQ0PcZ52rs1hb4=;
+        b=cWywlRUj6Ipq0dLZq6D6HvuisiIbRXW6S9gufRzJF2HMJz2owHi0zcRPvDRftFU5WH
+         sPeDWxIde2OsRH9zuPqsxcG4A/PazKlMev4DN1KEbhRb6gQBVQsV+7XVNYVNDA2FOoWE
+         PXkI53jBpWW2lAta25hoEr8mSjOa+UZdcPdP/s3ccQKgySp+IsrNw8h6aVdDSV2Ohd1h
+         ptpybKhCdp3xtwkKr+O6mWPJr72l7Yi8F0kpX1Xa+yOdNN5ccRk/WqIigHySnTYJjL4O
+         0dx0Fb/fk5qnVb09sjN2YTghNljDixFEKGWeubmMMrTC1fhoNbsQN62N7dZDNXC0BZFl
+         HqpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=2Hbsikftw7Ck+qtgf2iU/lIUQA7uKjUidRMS9WyjJwE=;
-        b=xMqsiV/ORhqGz8R2bF1Qx7sG2TlzW/UiBcPR4/ipwlnlwDSV4KBSbTKCKQd2Y/yWC6
-         c6+xHPyZuNP7O3Dsq1H123UPF4QpYemv40PCnnLaG3nUTGVSU82g7z3aB8VO0F0A4T7m
-         V2KaLlfgcVoEyc0K+JUCmGHfdxpjI+Sa4ojwSgX24bFcrRnXtQfxgtXu8xQTAUzTDn9P
-         GdOiAHUNjzHPdKSUmA1n5K1fo208ClMHo/yl0FECwN78lzszcTNx29geXa2K+J74t0Bq
-         foifpyCSS3Wcl26JlgvjvmwTjFsi4/DUFeqXqORxk7pskzAvRyB8jlM6GD3fBGwCyd7y
-         XQyw==
-X-Gm-Message-State: AJIora+Sv/K7EpglRqH8pX2W8DBOjBmjG3YNJyZbHBEJ3SrGnqxjcNXa
-        TQczdswpG3lRdDOIS7BGsIg=
-X-Google-Smtp-Source: AGRyM1tUe0HM8qSeNJ2sBlFZGiFYctTy8eEVtrGRGmW8+MxGXqPZPhTqeRag6bmrpEIgHeu/icZF4g==
-X-Received: by 2002:a17:903:1111:b0:16a:acf4:e951 with SMTP id n17-20020a170903111100b0016aacf4e951mr1531884plh.72.1658463059957;
-        Thu, 21 Jul 2022 21:10:59 -0700 (PDT)
-Received: from macbook-pro-3.dhcp.thefacebook.com ([2620:10d:c090:400::5:3424])
-        by smtp.gmail.com with ESMTPSA id s27-20020a63525b000000b00419b02043e1sm2307013pgl.38.2022.07.21.21.10.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Jul 2022 21:10:59 -0700 (PDT)
-Date:   Thu, 21 Jul 2022 21:10:56 -0700
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc
- args to be trusted
-Message-ID: <20220722041056.r2ozhs4p3s7mt7go@macbook-pro-3.dhcp.thefacebook.com>
-References: <20220721134245.2450-1-memxor@gmail.com>
- <20220721134245.2450-5-memxor@gmail.com>
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=nMVYuooHpuSRFWA94y31ZT+4CjOqQBQ0PcZ52rs1hb4=;
+        b=Xd8lR/mKKKQybM5tqtdbjtekgcTrhBn4Rc0jColNYSjCC7REeZgK6nmOF/bVQm/sx1
+         tfC+j+61pnQQYKwkM7f1PR+F6V2ST3CywAc+TORVsXU5UrUYr8GJnUs6z6MJQPw37Pxz
+         rxz7pzhE4z8i23ebdkwxFotCVM8KyI71Papo3HIfYEnokhKHxGANR1jQTn/Xs9fst0SM
+         JJ2XdhvWju0v+mxRI9AhhOlPOB/NSB1iTzf92OwevnEkq1hOvwmifjXpDv1uWrABUFI7
+         HTw1TQ4PzG+RSIb8bpU6wNZ7n1w56rJlg2yS3XpoRAVBeR67AEOetJc6RuPE1d4+4swg
+         4exg==
+X-Gm-Message-State: AJIora/oLG76uemdPoacj1JvH6RV0VhJ1IdsugRlMrcanYVacOTFD8oG
+        suMROtG9LqDRmjSAk3d9rhgn0czw4FTsg2EKoCpSOnyR4sE=
+X-Google-Smtp-Source: AGRyM1sbdkTnCoRi3mtqCMkErh5O+pDMlPs+j2SuvXeNF181tS8glSR7dgDrbVyFUuZhSxy2VmKRS1ME9uVbuzXUxys=
+X-Received: by 2002:a05:6512:3c99:b0:489:fe21:3a38 with SMTP id
+ h25-20020a0565123c9900b00489fe213a38mr841548lfv.144.1658476110105; Fri, 22
+ Jul 2022 00:48:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220721134245.2450-5-memxor@gmail.com>
+From:   Eve Adam <adameve1981zero@gmail.com>
+Date:   Fri, 22 Jul 2022 15:48:18 +0800
+Message-ID: <CA+bdBU5gEpSOkhExTKE1Y-HvEg4gqFbSKiM8LVMb4-QZpLpDEA@mail.gmail.com>
+Subject: A probable bug in nftables doc
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 21, 2022 at 03:42:36PM +0200, Kumar Kartikeya Dwivedi wrote:
-> +/* Trusted arguments are those which are meant to be referenced arguments with
-> + * unchanged offset. It is used to enforce that pointers obtained from acquire
-> + * kfuncs remain unmodified when being passed to helpers taking trusted args.
-> + *
-> + * Consider
-> + *	struct foo {
-> + *		int data;
-> + *		struct foo *next;
-> + *	};
-> + *
-> + *	struct bar {
-> + *		int data;
-> + *		struct foo f;
-> + *	};
-> + *
-> + *	struct foo *f = alloc_foo(); // Acquire kfunc
-> + *	struct bar *b = alloc_bar(); // Acquire kfunc
-> + *
-> + * If a kfunc set_foo_data() wants to operate only on the allocated object, it
-> + * will set the KF_TRUSTED_ARGS flag, which will prevent unsafe usage like:
-> + *
-> + *	set_foo_data(f, 42);	   // Allowed
-> + *	set_foo_data(f->next, 42); // Rejected, non-referenced pointer
-> + *	set_foo_data(&f->next, 42);// Rejected, referenced, but bad offset
-> + *	set_foo_data(&b->f, 42);   // Rejected, referenced, but wrong type
+Hello,
 
-I think you meant to swap above two comments ?
-That's what I did while applying.
+It seems that section 'ICMPV6 TYPE TYPE' and 'ICMPVX CODE TYPE' of
+nftables doc have some problems:
 
-Also fixed typo in Fixes tag in patch 13. It was missing a letter in sha.
+The keyword of 'icmpv6 type type' probably should be 'icmpv6_type'
+rather than 'icmpx_code';
+meanwhile, the keyword of 'icmpvx code type' probably should be
+'icmpx_code' rather than 'icmpv6_type'.
 
-Since there are 3 other pending patchsets in patchwork that add new kfuncs
-this cleanup of kfunc registration couldn't have come at better time.
+This issue can also be verified by typing the command 'nft describe
+icmpv6_type' and 'nft describe icmpx_code' and comparing their actual
+output with the output described by the doc.
 
-Thank you for doing this work.
+I found the issue in 'nftables v0.9.8 (E.D.S.)'. But it is also the
+case in the newest version v1.0.4.
+v1.0.4 source code
+(https://git.netfilter.org/nftables/tree/doc/data-types.txt?h=v1.0.4):
+
+from line 267:
+
+ICMPV6 TYPE TYPE
+~~~~~~~~~~~~~~~~
+[options="header"]
+|==================
+|Name | Keyword | Size | Base type
+|ICMPv6 Type |
+icmpx_code |
+8 bit |
+integer
+|===================
+
+from line 361:
+
+ICMPVX CODE TYPE
+~~~~~~~~~~~~~~~~
+[options="header"]
+|==================
+|Name | Keyword | Size | Base type
+|ICMPvX Code |
+icmpv6_type |
+8 bit |
+integer
+|===================
