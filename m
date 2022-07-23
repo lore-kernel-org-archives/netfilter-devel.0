@@ -2,112 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C56BCCA47F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Jul 2022 10:28:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAA8FC43334
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Jul 2022 07:50:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235032AbiGVK2N (ORCPT
+        id S231871AbiGWHtG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Jul 2022 06:28:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57464 "EHLO
+        Sat, 23 Jul 2022 03:49:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235243AbiGVK1m (ORCPT
+        with ESMTP id S231272AbiGWHtF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Jul 2022 06:27:42 -0400
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA0F7B5C9C;
-        Fri, 22 Jul 2022 03:26:48 -0700 (PDT)
-Received: by mail-io1-xd42.google.com with SMTP id q14so3324215iod.3;
-        Fri, 22 Jul 2022 03:26:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=++ZOFlOZxMjrOsr2efl/yr+NEpCsW/HIcT4Q3CtS1EA=;
-        b=h0FeYf4usPtRPDWKkAXmKGyuKsyZDBNxj65yEkSBH87oEq5m9ADC2r8UZyeo8robS0
-         PqT684mRn+fJb8PpiOxsBCTODXQ3VU+owR7jj1ELG4QSmRs4OiDX7lOlMwION71AciVq
-         h2842VtVKSGlN8nq9nPkWsvZQk9G8GmLfH5ekuaUFt4aqhRCfYKEZR63A1ep8akYJSVS
-         yQ0Q4ssZzvL+gGyCLigwIgp+L0inHimgwrLJnMqy2v+iiQzk6dFCwV1PMN7D6CRoynqf
-         m8Dpc3TTQ1F3lQ9MpvxS+recTxDue27hx9BkQuZ35sLhyDLC+29oN3e2Ub6Jke3d3dlC
-         iWfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=++ZOFlOZxMjrOsr2efl/yr+NEpCsW/HIcT4Q3CtS1EA=;
-        b=Lxk4Ey6bnV1RetpWZCT90KtbHaTWxzd/Pvik1AjziS3QjPnkvRM0afbwO2LyA6J5Mt
-         nmG1KJD6Occ4c00pewwamXP05vh2Ote0UlmVr6MI3jAQ03CbyALCCILjRLWKIja2Inyi
-         NjH1Vyybr561tHvqiPmNOZT6CofjSxoXI9GZ5fz5YTIQCcH0Ty4MeavaOW770cgrM43V
-         xIBhCnYLFkNvH/dIKEFImREPDNdzReQal6kSgxhAHsDuLzcSSlMdebZR8d+PIcSZFYzk
-         lp58xGuNq8jWKBAQ6jHybDRlTw6EhyVWsoU1/SEa77GloIJo+cN/Ze39FZXCCJlAF2PQ
-         y+Sg==
-X-Gm-Message-State: AJIora+bzzSa4OL9/9RtM2LC9bMMin5GIcESnVCt1Qtqj2BFINoiiaa1
-        lbt6VJ1aKJS2U3Cf2MW4fE50okzBvA1ZCC0Kc04=
-X-Google-Smtp-Source: AGRyM1uE3dnjcjkHa9ZDYr6Pi2e/HLy1hn85fMSmA7vDXmZ6J9uPot1KYZ4SLW+O+JKzWO69H3e53X5SlrQsChafoEU=
-X-Received: by 2002:a02:c4c3:0:b0:33f:4fb4:834b with SMTP id
- h3-20020a02c4c3000000b0033f4fb4834bmr1237811jaj.231.1658485608235; Fri, 22
- Jul 2022 03:26:48 -0700 (PDT)
+        Sat, 23 Jul 2022 03:49:05 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BBB4854AD4
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2022 00:49:02 -0700 (PDT)
+Date:   Sat, 23 Jul 2022 09:48:56 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>, fw@strlen.de
+Subject: Re: iptables 1.8.8 misses -j CT calls
+Message-ID: <Ytun6DBdk5Kkx4vX@salvia>
+References: <124qoqo1-q45p-133s-o334-4s59r4s43p4@vanv.qr>
 MIME-Version: 1.0
-References: <20220721134245.2450-1-memxor@gmail.com> <20220721134245.2450-5-memxor@gmail.com>
- <20220722041056.r2ozhs4p3s7mt7go@macbook-pro-3.dhcp.thefacebook.com>
-In-Reply-To: <20220722041056.r2ozhs4p3s7mt7go@macbook-pro-3.dhcp.thefacebook.com>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Fri, 22 Jul 2022 12:26:11 +0200
-Message-ID: <CAP01T77M27ZxZ-_oMujCCpCkSYJ9iMnm4EHTNgTe2odbCfPt2w@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc args
- to be trusted
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <124qoqo1-q45p-133s-o334-4s59r4s43p4@vanv.qr>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 22 Jul 2022 at 06:11, Alexei Starovoitov
-<alexei.starovoitov@gmail.com> wrote:
->
-> On Thu, Jul 21, 2022 at 03:42:36PM +0200, Kumar Kartikeya Dwivedi wrote:
-> > +/* Trusted arguments are those which are meant to be referenced arguments with
-> > + * unchanged offset. It is used to enforce that pointers obtained from acquire
-> > + * kfuncs remain unmodified when being passed to helpers taking trusted args.
-> > + *
-> > + * Consider
-> > + *   struct foo {
-> > + *           int data;
-> > + *           struct foo *next;
-> > + *   };
-> > + *
-> > + *   struct bar {
-> > + *           int data;
-> > + *           struct foo f;
-> > + *   };
-> > + *
-> > + *   struct foo *f = alloc_foo(); // Acquire kfunc
-> > + *   struct bar *b = alloc_bar(); // Acquire kfunc
-> > + *
-> > + * If a kfunc set_foo_data() wants to operate only on the allocated object, it
-> > + * will set the KF_TRUSTED_ARGS flag, which will prevent unsafe usage like:
-> > + *
-> > + *   set_foo_data(f, 42);       // Allowed
-> > + *   set_foo_data(f->next, 42); // Rejected, non-referenced pointer
-> > + *   set_foo_data(&f->next, 42);// Rejected, referenced, but bad offset
-> > + *   set_foo_data(&b->f, 42);   // Rejected, referenced, but wrong type
->
-> I think you meant to swap above two comments ?
-> That's what I did while applying.
->
-> Also fixed typo in Fixes tag in patch 13. It was missing a letter in sha.
->
-> Since there are 3 other pending patchsets in patchwork that add new kfuncs
-> this cleanup of kfunc registration couldn't have come at better time.
->
-> Thank you for doing this work.
+On Thu, Jul 21, 2022 at 04:20:32PM +0200, Jan Engelhardt wrote:
+> 
+> Bug report.
+> 
+> Input
+> =====
+> *raw
+> :PREROUTING ACCEPT [0:0]
+> :OUTPUT ACCEPT [0:0]
+> -A PREROUTING -i lo -j CT --notrack
+> -A PREROUTING -i ve-+ -p tcp --dport 21 -j CT --helper ftp
+> COMMIT
+> 
+> 
+> Output
+> ======
+> # Translated by iptables-restore-translate v1.8.8 on Thu Jul 21 16:18:58 2022
+> add table ip raw
+> add chain ip raw PREROUTING { type filter hook prerouting priority -300; policy accept; }
+> add chain ip raw OUTPUT { type filter hook output priority -300; policy accept; }
+> add rule ip raw PREROUTING iifname "lo" counter notrack
+> # -t raw -A PREROUTING -i ve-+ -p tcp --dport 21 -j CT --helper ftp
+> # Completed on Thu Jul 21 16:18:58 2022
 
-Thank you for doing the fixups!
+the problem with this translation is that nftables expects the helper
+to be set after the input conntrack hook.
+
+IIRC Florian preferred not to use the conntrack template (which is
+used before the conntrack object is attached to the skb). Instead, the
+help is attached once after the conntrack lookup.
+
+> Expected output
+> ===============
+> An nft rule involving port 21.
