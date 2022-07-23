@@ -2,78 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D6DDC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Jul 2022 07:50:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA925C433EF
+	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Jul 2022 08:17:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233023AbiGWHuz (ORCPT
+        id S231429AbiGWIRd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Jul 2022 03:50:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59616 "EHLO
+        Sat, 23 Jul 2022 04:17:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230240AbiGWHuy (ORCPT
+        with ESMTP id S229770AbiGWIRc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Jul 2022 03:50:54 -0400
+        Sat, 23 Jul 2022 04:17:32 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 975321580F;
-        Sat, 23 Jul 2022 00:50:53 -0700 (PDT)
-Date:   Sat, 23 Jul 2022 09:50:50 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9B653286FA
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2022 01:17:31 -0700 (PDT)
+Date:   Sat, 23 Jul 2022 10:17:28 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc:     bpf@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH bpf-next v7 07/13] net: netfilter: Add kfuncs to allocate
- and insert CT
-Message-ID: <YtuoWpOJmfcb/3Yu@salvia>
-References: <20220721134245.2450-1-memxor@gmail.com>
- <20220721134245.2450-8-memxor@gmail.com>
- <YtpnmI1oPOQRv3j3@salvia>
- <CAP01T75r6OQffvq8u3e4Srj6c1vsN_NP0PohWikYPUbdp1nDXQ@mail.gmail.com>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Netfilter Developer Mailing List 
+        <netfilter-devel@vger.kernel.org>, fw@strlen.de
+Subject: Re: iptables 1.8.8 misses -j CT calls
+Message-ID: <YtuumBWikVhxj2S+@salvia>
+References: <124qoqo1-q45p-133s-o334-4s59r4s43p4@vanv.qr>
+ <Ytun6DBdk5Kkx4vX@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAP01T75r6OQffvq8u3e4Srj6c1vsN_NP0PohWikYPUbdp1nDXQ@mail.gmail.com>
+In-Reply-To: <Ytun6DBdk5Kkx4vX@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 22, 2022 at 11:39:49AM +0200, Kumar Kartikeya Dwivedi wrote:
-> On Fri, 22 Jul 2022 at 11:02, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > Hi,
-> >
-> > On Thu, Jul 21, 2022 at 03:42:39PM +0200, Kumar Kartikeya Dwivedi wrote:
-> > > diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-> > > index 37866c8386e2..83a60c684e6c 100644
-> > > --- a/include/net/netfilter/nf_conntrack_core.h
-> > > +++ b/include/net/netfilter/nf_conntrack_core.h
-> > > @@ -84,4 +84,19 @@ void nf_conntrack_lock(spinlock_t *lock);
-> > >
-> > >  extern spinlock_t nf_conntrack_expect_lock;
-> > >
-> > > +/* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
-> > > +
-> > > +#if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
-> > > +    (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES) || \
-> > > +    IS_ENABLED(CONFIG_NF_CT_NETLINK))
-> >
-> > There must be a better way to do this without ifdef pollution?
-> >
-> > Could you fix this?
+On Sat, Jul 23, 2022 at 09:48:56AM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Jul 21, 2022 at 04:20:32PM +0200, Jan Engelhardt wrote:
+> > 
+> > Bug report.
+> > 
+> > Input
+> > =====
+> > *raw
+> > :PREROUTING ACCEPT [0:0]
+> > :OUTPUT ACCEPT [0:0]
+> > -A PREROUTING -i lo -j CT --notrack
+> > -A PREROUTING -i ve-+ -p tcp --dport 21 -j CT --helper ftp
+> > COMMIT
+> > 
+> > 
+> > Output
+> > ======
+> > # Translated by iptables-restore-translate v1.8.8 on Thu Jul 21 16:18:58 2022
+> > add table ip raw
+> > add chain ip raw PREROUTING { type filter hook prerouting priority -300; policy accept; }
+> > add chain ip raw OUTPUT { type filter hook output priority -300; policy accept; }
+> > add rule ip raw PREROUTING iifname "lo" counter notrack
+> > # -t raw -A PREROUTING -i ve-+ -p tcp --dport 21 -j CT --helper ftp
+> > # Completed on Thu Jul 21 16:18:58 2022
 > 
-> I can just remove the ifdefs completely. The first part of the ifdef
-> is the correct way to detect BPF support for nf_conntrack, the second
-> is for ct netlink. These are the only two users. But it's not a lot of
-> code, so until it grows too much we can compile it unconditionally.
+> the problem with this translation is that nftables expects the helper
+> to be set after the input conntrack hook.
 
-I would suggest to compile in these small functions unconditionally.
+for the sake of clarity:
 
-> Or do you have anything else in mind (like defining a macro for the
-> bpf one and making the ifdef look less ugly)?
+NF_IP_PRI_CONNTRACK = -200 in the prerouting hook.
 
-it's the ifdef pollution that it would be good to avoid IMO.
+which is coming _after_ the NF_IP_PRI_RAW = -300
+
+> IIRC Florian preferred not to use the conntrack template (which is
+> used before the conntrack object is attached to the skb). Instead, the
+> help is attached once after the conntrack lookup.
+> 
+> > Expected output
+> > ===============
+> > An nft rule involving port 21.
