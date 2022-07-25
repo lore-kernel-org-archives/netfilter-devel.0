@@ -2,65 +2,125 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 104ACC433EF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 23 Jul 2022 12:35:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B069CCA473
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jul 2022 08:51:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230063AbiGWMfw (ORCPT
+        id S233598AbiGYIvm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 23 Jul 2022 08:35:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55862 "EHLO
+        Mon, 25 Jul 2022 04:51:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229462AbiGWMfw (ORCPT
+        with ESMTP id S233186AbiGYIvk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 23 Jul 2022 08:35:52 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B8FA2DDF
-        for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2022 05:35:50 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1oFEME-0006Cd-0h; Sat, 23 Jul 2022 14:35:46 +0200
-Date:   Sat, 23 Jul 2022 14:35:45 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        Jan Engelhardt <jengelh@inai.de>,
-        Erik Skultety <eskultet@redhat.com>,
+        Mon, 25 Jul 2022 04:51:40 -0400
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5205514027;
+        Mon, 25 Jul 2022 01:51:39 -0700 (PDT)
+Received: by mail-ed1-x543.google.com with SMTP id z18so644666edb.10;
+        Mon, 25 Jul 2022 01:51:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7VDIfJeDLEQjiAoLKeDhLnV53pDE54HSkUBU93kqjMs=;
+        b=RP/7JHtL4ED/RiMs6sUUdJbaXFTS+nPl6RYIzG6dLkHxDhR0GXLrvXF8MJNQk6+wzL
+         pt9KDi2iLDraRGcADN4bcWIo0n4r3CTu/V9aNRBevCzUcV6XHw9V64X/4agMPM9r2Bgg
+         ZEI87i7xbFSvMD/aUiOSuN6fXYrpPONE/h4lfKSEr0GVHpVI+dqAlRIOEnykS7KLmvDV
+         6n+3mx7UKVRfGn1zQzJGmGp6c50ga0rTMW4H/CwEPX20zszL6xnpyQefemmhQvuvZlTh
+         e2Rcgo4ANCr1UYv8V9q3bAVaLHBmPFlIAFSvcYCifRRNhU+kwJsP+io4rEDSn/Amwtg1
+         xlvQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7VDIfJeDLEQjiAoLKeDhLnV53pDE54HSkUBU93kqjMs=;
+        b=Tb5Yx15/mAzx3kWje0Ny0LzCdB53zxWG1OkMEm7Fr96wrX7vpPcB41kNyOfVoKuurl
+         V+YjGx+nifYJlEdLbNhcroBzTCEBK94DuRYtNOY4nnS82CbfKD0wZ44wnm9pqlXLgsQ/
+         i8SCz2stGW3LXd1XR4tw9eeFcbFceNZBRJ5YaaFmpcRTXMQiKisrrfMj5qbxpTvCxbj1
+         LLqffVrN4czyBabYDPWqMzmFJfgblu1XzhcdYyrVes/VGB7cc4iucO4+onQFl9mrEg32
+         yllVl94wNPHJLvmwTi+iaYt5ZQ9puR6AhOoaAEEK9AKd8GJerjwfCtKL6iCr1hDn4m8t
+         QNKg==
+X-Gm-Message-State: AJIora9cCjYYvyOp4uGDldYUA68l9FH497NU3KYBdb/hNZb5iHUyb1NV
+        aDFm0GjvcrwR8jZI4iZ4BuXsqtfESuWujQ==
+X-Google-Smtp-Source: AGRyM1sdDwoqIrKCiJ9CA9hvp2tP3l8yF16RtWH52vlyVDgdhlg61in62cp8scrtgSQUg9qpFbB3XQ==
+X-Received: by 2002:a05:6402:371a:b0:43a:ece9:ab8e with SMTP id ek26-20020a056402371a00b0043aece9ab8emr11943370edb.126.1658739097423;
+        Mon, 25 Jul 2022 01:51:37 -0700 (PDT)
+Received: from localhost (icdhcp-1-189.epfl.ch. [128.178.116.189])
+        by smtp.gmail.com with ESMTPSA id o26-20020a170906769a00b0070e238ff66fsm5117576ejm.96.2022.07.25.01.51.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Jul 2022 01:51:37 -0700 (PDT)
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+To:     bpf@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] iptables: xshared: Ouptut '--' in the opt field
- in ipv6's fake mode
-Message-ID: <20220723123545.GA20457@breakpoint.cc>
-References: <bb391c763171f0c5511f73e383e1b2e6a53e2014.1658322396.git.eskultet@redhat.com>
- <20220720142002.GA22790@breakpoint.cc>
- <YtgpJ9FNZmmuniLV@nautilus.home.lan>
- <YtvDzOxd1/eEMaFo@orbyte.nwl.cc>
+Subject: [PATCH bpf-next] net: netfilter: Remove ifdefs for code shared by BPF and ctnetlink
+Date:   Mon, 25 Jul 2022 10:51:30 +0200
+Message-Id: <20220725085130.11553-1-memxor@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YtvDzOxd1/eEMaFo@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Another bug I found while playing around is this:
-> 
-> | # iptables -A FORWARD -p icmpv6
-> | # iptables -vnL FORWARD
-> | Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
-> |  pkts bytes target     prot opt in     out     source               destination
-> |     0     0            ipv6-icmp--  *      *       0.0.0.0/0            0.0.0.0/0
-> 
-> print_rule_details() does not append a space after the protocol name if it is
-> longer or equal to five characters.
-> 
-> Both bugs seem to exist since day 1, I'm still tempted to fix them, i.e.:
-> 
-> - Print protocol numbers with --numeric
-> - Adjust the protocol format string from "%-5s" to "%-4s " for protocol
->   names and from "%-5hu" to "%-4hu " for protocol numbers to force a
->   single white space
-> 
-> Objections anyone?
+The current ifdefry for code shared by the BPF and ctnetlink side looks
+ugly. As per Pablo's request, simplify this by unconditionally compiling
+in the code. This can be revisited when the shared code between the two
+grows further.
 
-No, go ahead.  Also, I think that the proposed "--" change is the least
-intrusive option so I'm inclined to apply the patch as-is.
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+---
+ include/net/netfilter/nf_conntrack_core.h | 6 ------
+ net/netfilter/nf_conntrack_core.c         | 6 ------
+ 2 files changed, 12 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 3cd3a6e631aa..b2b9de70d9f4 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -86,10 +86,6 @@ extern spinlock_t nf_conntrack_expect_lock;
+
+ /* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
+
+-#if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
+-    (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES) || \
+-    IS_ENABLED(CONFIG_NF_CT_NETLINK))
+-
+ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
+ {
+ 	if (timeout > INT_MAX)
+@@ -101,6 +97,4 @@ int __nf_ct_change_timeout(struct nf_conn *ct, u64 cta_timeout);
+ void __nf_ct_change_status(struct nf_conn *ct, unsigned long on, unsigned long off);
+ int nf_ct_change_status_common(struct nf_conn *ct, unsigned int status);
+
+-#endif
+-
+ #endif /* _NF_CONNTRACK_CORE_H */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 66a0aa8dbc3b..afe02772c010 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2787,10 +2787,6 @@ int nf_conntrack_init_net(struct net *net)
+ 	return ret;
+ }
+
+-#if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
+-    (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES) || \
+-    IS_ENABLED(CONFIG_NF_CT_NETLINK))
+-
+ /* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
+
+ int __nf_ct_change_timeout(struct nf_conn *ct, u64 timeout)
+@@ -2846,5 +2842,3 @@ int nf_ct_change_status_common(struct nf_conn *ct, unsigned int status)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_change_status_common);
+-
+-#endif
+--
+2.34.1
+
