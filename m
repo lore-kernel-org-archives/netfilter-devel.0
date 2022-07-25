@@ -2,111 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72A45C433EF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jul 2022 08:53:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0508DC43334
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Jul 2022 09:52:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234154AbiGYIxQ (ORCPT
+        id S233903AbiGYJwN convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Jul 2022 04:53:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36908 "EHLO
+        Mon, 25 Jul 2022 05:52:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233186AbiGYIxP (ORCPT
+        with ESMTP id S232747AbiGYJwL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Jul 2022 04:53:15 -0400
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2140140EC;
-        Mon, 25 Jul 2022 01:53:14 -0700 (PDT)
-Received: by mail-io1-xd42.google.com with SMTP id q14so8278062iod.3;
-        Mon, 25 Jul 2022 01:53:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=y7mPPGBazqAqwkG20jnC2+HFnRE+pbJ+wiyr1+LAzNw=;
-        b=i/gA2XQn/Y6GgFJ9rkRMzR/UGa5jaNoyQZszlL86X66MxlmCNzXiGAFxKDiwDiVvOQ
-         ZGzbLgHdrXcoDbcu5e4KDZhzJC+2sc1fuSSpPklhf/C7w/LPsigSgnSC8prgHf0HVSiA
-         ZAP9qryEjPT3bI2BSGMjf12Fz3tbTSjSuKKfQz+jEiTkUbFekDlJLExpAMXhRCdMltDA
-         MZdczjsgVjs+YdqG6MPITqBE/mD5F1GWViwyxTsO+7Tf+Fk279dk5FR1j1nYPAAGfQU+
-         /9lW0RkxjlkbWLwLbuaVMSwBQuSmhQUFS6bPh/vJuDedCeRQ+3r8CDH+CLAO/pcdq3Ea
-         jC8g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=y7mPPGBazqAqwkG20jnC2+HFnRE+pbJ+wiyr1+LAzNw=;
-        b=C+NGt5vl+EdWpzWkyEYvLmQFOGkYVP/vZ/c3CMP876I71G4J5pIz0kRYojnIez2IkX
-         pGqCwhZwROxAuriFruizQCOfmTugXqQOXw1hWeOqNSDJkf4ffRoXPWrXtH/DW9UxbR+Y
-         xKnJ2s1nkL6xxEZNC62l1GYKEeBUGJX+IC98kdklhEMcpsLKc6XjIs2xCAPkKqgOFhs9
-         27QhwvKpYsG2l59zkPUCbopro+hRX+CyqDG4saekXK6DWsfTQX9/UPbnhvn5KaRUjHj6
-         VFANKf7V1aw1KN3JBArL0ajTaDNIhCg5ShmZV9v7f04AiSGTcHBwInG2dcXkf8ykW+2E
-         NtTA==
-X-Gm-Message-State: AJIora+wx9kbXy9jG7T5+u+Sx9fkFWlf/LYeSnhD6Xc2+uG8VO9EV6Tf
-        +f7jklBSMsx9IOdjBrnIOAnjTXA1MhlM0Ueb2qU=
-X-Google-Smtp-Source: AGRyM1sbiuPk0HpUlbbEg/nBRULpqJ+5dTNsVogYxIefkExm5aZ1WVRbly3b/PqnIycVphZuOBNvGEDjLn56+XZFTuA=
-X-Received: by 2002:a05:6602:395:b0:67b:d0c6:50cb with SMTP id
- f21-20020a056602039500b0067bd0c650cbmr4155629iov.110.1658739194008; Mon, 25
- Jul 2022 01:53:14 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220721134245.2450-1-memxor@gmail.com> <20220721134245.2450-8-memxor@gmail.com>
- <YtpnmI1oPOQRv3j3@salvia> <CAP01T75r6OQffvq8u3e4Srj6c1vsN_NP0PohWikYPUbdp1nDXQ@mail.gmail.com>
- <YtuoWpOJmfcb/3Yu@salvia>
-In-Reply-To: <YtuoWpOJmfcb/3Yu@salvia>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Mon, 25 Jul 2022 10:52:35 +0200
-Message-ID: <CAP01T74fNZo4SD++NWxmM+FVWk0yybG0xhwCnYuOi5NFkv8ekg@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v7 07/13] net: netfilter: Add kfuncs to allocate
- and insert CT
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     bpf@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
+        Mon, 25 Jul 2022 05:52:11 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A70214029;
+        Mon, 25 Jul 2022 02:52:10 -0700 (PDT)
+Received: from fraeml712-chm.china.huawei.com (unknown [172.18.147.201])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LrwGL3BCDz67Q5R;
+        Mon, 25 Jul 2022 17:48:26 +0800 (CST)
+Received: from fraeml714-chm.china.huawei.com (10.206.15.33) by
+ fraeml712-chm.china.huawei.com (10.206.15.61) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Mon, 25 Jul 2022 11:52:07 +0200
+Received: from fraeml714-chm.china.huawei.com ([10.206.15.33]) by
+ fraeml714-chm.china.huawei.com ([10.206.15.33]) with mapi id 15.01.2375.024;
+ Mon, 25 Jul 2022 11:52:07 +0200
+From:   Roberto Sassu <roberto.sassu@huawei.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+        "bpf@vger.kernel.org" <bpf@vger.kernel.org>
+CC:     Alexei Starovoitov <ast@kernel.org>,
         Andrii Nakryiko <andrii@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        "Jesper Dangaard Brouer" <brouer@redhat.com>,
+        =?iso-8859-1?Q?Toke_H=F8iland-J=F8rgensen?= <toke@redhat.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: RE: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc args
+ to be trusted
+Thread-Topic: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc
+ args to be trusted
+Thread-Index: AQHYnQf5YGGK69PM90+FORw5bILjSq2O3aig
+Date:   Mon, 25 Jul 2022 09:52:07 +0000
+Message-ID: <64f5b92546c14b69a20e9007bb31146b@huawei.com>
+References: <20220721134245.2450-1-memxor@gmail.com>
+ <20220721134245.2450-5-memxor@gmail.com>
+In-Reply-To: <20220721134245.2450-5-memxor@gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.221.98.153]
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 23 Jul 2022 at 09:50, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> On Fri, Jul 22, 2022 at 11:39:49AM +0200, Kumar Kartikeya Dwivedi wrote:
-> > On Fri, 22 Jul 2022 at 11:02, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > >
-> > > Hi,
-> > >
-> > > On Thu, Jul 21, 2022 at 03:42:39PM +0200, Kumar Kartikeya Dwivedi wrote:
-> > > > diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-> > > > index 37866c8386e2..83a60c684e6c 100644
-> > > > --- a/include/net/netfilter/nf_conntrack_core.h
-> > > > +++ b/include/net/netfilter/nf_conntrack_core.h
-> > > > @@ -84,4 +84,19 @@ void nf_conntrack_lock(spinlock_t *lock);
-> > > >
-> > > >  extern spinlock_t nf_conntrack_expect_lock;
-> > > >
-> > > > +/* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
-> > > > +
-> > > > +#if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
-> > > > +    (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES) || \
-> > > > +    IS_ENABLED(CONFIG_NF_CT_NETLINK))
-> > >
-> > > There must be a better way to do this without ifdef pollution?
-> > >
-> > > Could you fix this?
-> >
-> > I can just remove the ifdefs completely. The first part of the ifdef
-> > is the correct way to detect BPF support for nf_conntrack, the second
-> > is for ct netlink. These are the only two users. But it's not a lot of
-> > code, so until it grows too much we can compile it unconditionally.
->
-> I would suggest to compile in these small functions unconditionally.
->
-> > Or do you have anything else in mind (like defining a macro for the
-> > bpf one and making the ifdef look less ugly)?
->
-> it's the ifdef pollution that it would be good to avoid IMO.
+> From: Kumar Kartikeya Dwivedi [mailto:memxor@gmail.com]
+> Sent: Thursday, July 21, 2022 3:43 PM
+> Teach the verifier to detect a new KF_TRUSTED_ARGS kfunc flag, which
+> means each pointer argument must be trusted, which we define as a
+> pointer that is referenced (has non-zero ref_obj_id) and also needs to
+> have its offset unchanged, similar to how release functions expect their
+> argument. This allows a kfunc to receive pointer arguments unchanged
+> from the result of the acquire kfunc.
+> 
+> This is required to ensure that kfunc that operate on some object only
+> work on acquired pointers and not normal PTR_TO_BTF_ID with same type
+> which can be obtained by pointer walking. The restrictions applied to
+> release arguments also apply to trusted arguments. This implies that
+> strict type matching (not deducing type by recursively following members
+> at offset) and OBJ_RELEASE offset checks (ensuring they are zero) are
+> used for trusted pointer arguments.
+> 
+> Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> ---
+>  include/linux/btf.h | 32 ++++++++++++++++++++++++++++++++
+>  kernel/bpf/btf.c    | 17 ++++++++++++++---
+>  net/bpf/test_run.c  |  5 +++++
+>  3 files changed, 51 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/btf.h b/include/linux/btf.h
+> index 6dfc6eaf7f8c..cb63aa71e82f 100644
+> --- a/include/linux/btf.h
+> +++ b/include/linux/btf.h
+> @@ -17,6 +17,38 @@
+>  #define KF_RELEASE	(1 << 1) /* kfunc is a release function */
+>  #define KF_RET_NULL	(1 << 2) /* kfunc returns a pointer that may be NULL */
+>  #define KF_KPTR_GET	(1 << 3) /* kfunc returns reference to a kptr */
+> +/* Trusted arguments are those which are meant to be referenced arguments
+> with
+> + * unchanged offset. It is used to enforce that pointers obtained from acquire
+> + * kfuncs remain unmodified when being passed to helpers taking trusted args.
+> + *
+> + * Consider
+> + *	struct foo {
+> + *		int data;
+> + *		struct foo *next;
+> + *	};
+> + *
+> + *	struct bar {
+> + *		int data;
+> + *		struct foo f;
+> + *	};
+> + *
+> + *	struct foo *f = alloc_foo(); // Acquire kfunc
+> + *	struct bar *b = alloc_bar(); // Acquire kfunc
+> + *
+> + * If a kfunc set_foo_data() wants to operate only on the allocated object, it
+> + * will set the KF_TRUSTED_ARGS flag, which will prevent unsafe usage like:
+> + *
+> + *	set_foo_data(f, 42);	   // Allowed
+> + *	set_foo_data(f->next, 42); // Rejected, non-referenced pointer
+> + *	set_foo_data(&f->next, 42);// Rejected, referenced, but bad offset
+> + *	set_foo_data(&b->f, 42);   // Rejected, referenced, but wrong type
+> + *
+> + * In the final case, usually for the purposes of type matching, it is deduced
+> + * by looking at the type of the member at the offset, but due to the
+> + * requirement of trusted argument, this deduction will be strict and not done
+> + * for this case.
+> + */
+> +#define KF_TRUSTED_ARGS (1 << 4) /* kfunc only takes trusted pointer
+> arguments */
 
-Ok, I have sent a fix to remove these ifdefs. We can revisit this when
-more shared functions appear.
+Hi Kumar
+
+would it make sense to introduce per-parameter flags? I have a function
+that has several parameters, but only one is referenced.
+
+Thanks
+
+Roberto
