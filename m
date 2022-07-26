@@ -2,154 +2,142 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E435C433EF
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jul 2022 09:31:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BDA4CCA489
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jul 2022 10:02:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232182AbiGZJbC (ORCPT
+        id S232239AbiGZKCH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Jul 2022 05:31:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36214 "EHLO
+        Tue, 26 Jul 2022 06:02:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229746AbiGZJbA (ORCPT
+        with ESMTP id S231492AbiGZKCH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Jul 2022 05:31:00 -0400
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B84F32408B;
-        Tue, 26 Jul 2022 02:30:59 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id r70so10766705iod.10;
-        Tue, 26 Jul 2022 02:30:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4kqawzU8YqYeREn9Zamqwq5uu/0p4HW8DmKCCGP/2nw=;
-        b=DOa65H1KvvzI06fMBXMB3HHSnhNT0nzew/WcuW5EkQARbH6504UJcitigreZDZkRnP
-         5On4VGZoEw/LL2Sv5pkdrxo65v/P/3ez7/qS95zpeNsSZQktkmuVMKQT03io3ZMmV3Ld
-         fpbQadga3H3vArSB5h2hn2lRI41cZZGoTcrN3hVtx6YHsab0vWSHEO/3uxBK8RggnHym
-         6+pgsxeXT7TmUY07RnhrJTt4EIQbSrAMTw+XuQ0hZs1uHcZiRPJQM5iBzaq+v/fHG2ZV
-         c5vz8qg3yet+RwkR2njziwcipAyPTiJpppASOCuMla/8w9EltvcVe0BjWwAmGIrWdS8+
-         /guA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4kqawzU8YqYeREn9Zamqwq5uu/0p4HW8DmKCCGP/2nw=;
-        b=2TFgjiM4boMwKNvwxnSp5KhbGxU0c+lS1b0g1dnz9GrHq+ekQHhm64ULArmPEzf+lg
-         KSXBuQy8U++uMF5LqVsVCxw4/wkY7+nUmHV/cqFtnt4mxPU0awI5V0KH4a6YC6UOMZGR
-         lvCVrkDa74a99TCHR5pOIlPRdjPLYP9XYcCy4IxFXMhPS0/ufk+n1FRnre6EbRJ0ojEp
-         4mL1pL5YbpyLgOeoqikOBKJdgWrp1rD+4UxDv7nkKKsd8Aw1Ra0rBPK/wg8ovtOIQ63C
-         rqH2UdFwVO40VIyfV0BJPjivZL8BVWJ67ItsO4Rtw9xHkABUK1iVkcu9tqn7p3dDXfPg
-         IG3g==
-X-Gm-Message-State: AJIora+ykNxxtqodLHrn44dNsz4UJzJHcDNcS0zwhNL83bbyhcxTzFTe
-        /+iWVhoGSmFRKNEOED4O4RQ9Y3L3cxzOLGxxMRE=
-X-Google-Smtp-Source: AGRyM1uTVRRrkS/Dnp+01c3OBOmM022cneGzDFzCOwWy95+NxHWeKEdvrIAdxrCFPalJ7KLaWqOTKB1OBgm06Dbhe0k=
-X-Received: by 2002:a05:6638:210b:b0:33f:5635:4c4b with SMTP id
- n11-20020a056638210b00b0033f56354c4bmr6836090jaj.116.1658827859051; Tue, 26
- Jul 2022 02:30:59 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220721134245.2450-1-memxor@gmail.com> <20220721134245.2450-5-memxor@gmail.com>
- <64f5b92546c14b69a20e9007bb31146b@huawei.com>
-In-Reply-To: <64f5b92546c14b69a20e9007bb31146b@huawei.com>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Tue, 26 Jul 2022 11:30:21 +0200
-Message-ID: <CAP01T7683DcToXdYPPZ5gQxiksuJRyrf_=k8PvQGtwNXt0+S-w@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc args
- to be trusted
-To:     Roberto Sassu <roberto.sassu@huawei.com>
-Cc:     "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+        Tue, 26 Jul 2022 06:02:07 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46FFD2CDCD;
+        Tue, 26 Jul 2022 03:02:05 -0700 (PDT)
+Received: from fraeml715-chm.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LsXQ93YV7z6893p;
+        Tue, 26 Jul 2022 17:57:21 +0800 (CST)
+Received: from fraeml714-chm.china.huawei.com (10.206.15.33) by
+ fraeml715-chm.china.huawei.com (10.206.15.34) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Tue, 26 Jul 2022 12:02:02 +0200
+Received: from fraeml714-chm.china.huawei.com ([10.206.15.33]) by
+ fraeml714-chm.china.huawei.com ([10.206.15.33]) with mapi id 15.01.2375.024;
+ Tue, 26 Jul 2022 12:02:02 +0200
+From:   Roberto Sassu <roberto.sassu@huawei.com>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+CC:     "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Andrii Nakryiko <andrii@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
+        "Florian Westphal" <fw@strlen.de>,
         Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        Lorenzo Bianconi <lorenzo@kernel.org>,
+        =?utf-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        "Lorenzo Bianconi" <lorenzo@kernel.org>,
         "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: RE: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc args
+ to be trusted
+Thread-Topic: [PATCH bpf-next v7 04/13] bpf: Add support for forcing kfunc
+ args to be trusted
+Thread-Index: AQHYnQf5YGGK69PM90+FORw5bILjSq2O3aiggAFrZ4CAACjgMA==
+Date:   Tue, 26 Jul 2022 10:02:02 +0000
+Message-ID: <e612d596b547456797dfee98f23bbd62@huawei.com>
+References: <20220721134245.2450-1-memxor@gmail.com>
+ <20220721134245.2450-5-memxor@gmail.com>
+ <64f5b92546c14b69a20e9007bb31146b@huawei.com>
+ <CAP01T7683DcToXdYPPZ5gQxiksuJRyrf_=k8PvQGtwNXt0+S-w@mail.gmail.com>
+In-Reply-To: <CAP01T7683DcToXdYPPZ5gQxiksuJRyrf_=k8PvQGtwNXt0+S-w@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.221.98.153]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 25 Jul 2022 at 11:52, Roberto Sassu <roberto.sassu@huawei.com> wrote:
->
-> > From: Kumar Kartikeya Dwivedi [mailto:memxor@gmail.com]
-> > Sent: Thursday, July 21, 2022 3:43 PM
-> > Teach the verifier to detect a new KF_TRUSTED_ARGS kfunc flag, which
-> > means each pointer argument must be trusted, which we define as a
-> > pointer that is referenced (has non-zero ref_obj_id) and also needs to
-> > have its offset unchanged, similar to how release functions expect their
-> > argument. This allows a kfunc to receive pointer arguments unchanged
-> > from the result of the acquire kfunc.
-> >
-> > This is required to ensure that kfunc that operate on some object only
-> > work on acquired pointers and not normal PTR_TO_BTF_ID with same type
-> > which can be obtained by pointer walking. The restrictions applied to
-> > release arguments also apply to trusted arguments. This implies that
-> > strict type matching (not deducing type by recursively following members
-> > at offset) and OBJ_RELEASE offset checks (ensuring they are zero) are
-> > used for trusted pointer arguments.
-> >
-> > Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> > ---
-> >  include/linux/btf.h | 32 ++++++++++++++++++++++++++++++++
-> >  kernel/bpf/btf.c    | 17 ++++++++++++++---
-> >  net/bpf/test_run.c  |  5 +++++
-> >  3 files changed, 51 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/include/linux/btf.h b/include/linux/btf.h
-> > index 6dfc6eaf7f8c..cb63aa71e82f 100644
-> > --- a/include/linux/btf.h
-> > +++ b/include/linux/btf.h
-> > @@ -17,6 +17,38 @@
-> >  #define KF_RELEASE   (1 << 1) /* kfunc is a release function */
-> >  #define KF_RET_NULL  (1 << 2) /* kfunc returns a pointer that may be NULL */
-> >  #define KF_KPTR_GET  (1 << 3) /* kfunc returns reference to a kptr */
-> > +/* Trusted arguments are those which are meant to be referenced arguments
-> > with
-> > + * unchanged offset. It is used to enforce that pointers obtained from acquire
-> > + * kfuncs remain unmodified when being passed to helpers taking trusted args.
-> > + *
-> > + * Consider
-> > + *   struct foo {
-> > + *           int data;
-> > + *           struct foo *next;
-> > + *   };
-> > + *
-> > + *   struct bar {
-> > + *           int data;
-> > + *           struct foo f;
-> > + *   };
-> > + *
-> > + *   struct foo *f = alloc_foo(); // Acquire kfunc
-> > + *   struct bar *b = alloc_bar(); // Acquire kfunc
-> > + *
-> > + * If a kfunc set_foo_data() wants to operate only on the allocated object, it
-> > + * will set the KF_TRUSTED_ARGS flag, which will prevent unsafe usage like:
-> > + *
-> > + *   set_foo_data(f, 42);       // Allowed
-> > + *   set_foo_data(f->next, 42); // Rejected, non-referenced pointer
-> > + *   set_foo_data(&f->next, 42);// Rejected, referenced, but bad offset
-> > + *   set_foo_data(&b->f, 42);   // Rejected, referenced, but wrong type
-> > + *
-> > + * In the final case, usually for the purposes of type matching, it is deduced
-> > + * by looking at the type of the member at the offset, but due to the
-> > + * requirement of trusted argument, this deduction will be strict and not done
-> > + * for this case.
-> > + */
-> > +#define KF_TRUSTED_ARGS (1 << 4) /* kfunc only takes trusted pointer
-> > arguments */
->
-> Hi Kumar
->
-> would it make sense to introduce per-parameter flags? I have a function
-> that has several parameters, but only one is referenced.
->
-
-I have a patch for that in my local branch, I can fix it up and post
-it. But first, can you give an example of where you think you need it?
-
-> Thanks
->
-> Roberto
+PiBGcm9tOiBLdW1hciBLYXJ0aWtleWEgRHdpdmVkaSBbbWFpbHRvOm1lbXhvckBnbWFpbC5jb21d
+DQo+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMjYsIDIwMjIgMTE6MzAgQU0NCj4gT24gTW9uLCAyNSBK
+dWwgMjAyMiBhdCAxMTo1MiwgUm9iZXJ0byBTYXNzdSA8cm9iZXJ0by5zYXNzdUBodWF3ZWkuY29t
+Pg0KPiB3cm90ZToNCj4gPg0KPiA+ID4gRnJvbTogS3VtYXIgS2FydGlrZXlhIER3aXZlZGkgW21h
+aWx0bzptZW14b3JAZ21haWwuY29tXQ0KPiA+ID4gU2VudDogVGh1cnNkYXksIEp1bHkgMjEsIDIw
+MjIgMzo0MyBQTQ0KPiA+ID4gVGVhY2ggdGhlIHZlcmlmaWVyIHRvIGRldGVjdCBhIG5ldyBLRl9U
+UlVTVEVEX0FSR1Mga2Z1bmMgZmxhZywgd2hpY2gNCj4gPiA+IG1lYW5zIGVhY2ggcG9pbnRlciBh
+cmd1bWVudCBtdXN0IGJlIHRydXN0ZWQsIHdoaWNoIHdlIGRlZmluZSBhcyBhDQo+ID4gPiBwb2lu
+dGVyIHRoYXQgaXMgcmVmZXJlbmNlZCAoaGFzIG5vbi16ZXJvIHJlZl9vYmpfaWQpIGFuZCBhbHNv
+IG5lZWRzIHRvDQo+ID4gPiBoYXZlIGl0cyBvZmZzZXQgdW5jaGFuZ2VkLCBzaW1pbGFyIHRvIGhv
+dyByZWxlYXNlIGZ1bmN0aW9ucyBleHBlY3QgdGhlaXINCj4gPiA+IGFyZ3VtZW50LiBUaGlzIGFs
+bG93cyBhIGtmdW5jIHRvIHJlY2VpdmUgcG9pbnRlciBhcmd1bWVudHMgdW5jaGFuZ2VkDQo+ID4g
+PiBmcm9tIHRoZSByZXN1bHQgb2YgdGhlIGFjcXVpcmUga2Z1bmMuDQo+ID4gPg0KPiA+ID4gVGhp
+cyBpcyByZXF1aXJlZCB0byBlbnN1cmUgdGhhdCBrZnVuYyB0aGF0IG9wZXJhdGUgb24gc29tZSBv
+YmplY3Qgb25seQ0KPiA+ID4gd29yayBvbiBhY3F1aXJlZCBwb2ludGVycyBhbmQgbm90IG5vcm1h
+bCBQVFJfVE9fQlRGX0lEIHdpdGggc2FtZSB0eXBlDQo+ID4gPiB3aGljaCBjYW4gYmUgb2J0YWlu
+ZWQgYnkgcG9pbnRlciB3YWxraW5nLiBUaGUgcmVzdHJpY3Rpb25zIGFwcGxpZWQgdG8NCj4gPiA+
+IHJlbGVhc2UgYXJndW1lbnRzIGFsc28gYXBwbHkgdG8gdHJ1c3RlZCBhcmd1bWVudHMuIFRoaXMg
+aW1wbGllcyB0aGF0DQo+ID4gPiBzdHJpY3QgdHlwZSBtYXRjaGluZyAobm90IGRlZHVjaW5nIHR5
+cGUgYnkgcmVjdXJzaXZlbHkgZm9sbG93aW5nIG1lbWJlcnMNCj4gPiA+IGF0IG9mZnNldCkgYW5k
+IE9CSl9SRUxFQVNFIG9mZnNldCBjaGVja3MgKGVuc3VyaW5nIHRoZXkgYXJlIHplcm8pIGFyZQ0K
+PiA+ID4gdXNlZCBmb3IgdHJ1c3RlZCBwb2ludGVyIGFyZ3VtZW50cy4NCj4gPiA+DQo+ID4gPiBT
+aWduZWQtb2ZmLWJ5OiBLdW1hciBLYXJ0aWtleWEgRHdpdmVkaSA8bWVteG9yQGdtYWlsLmNvbT4N
+Cj4gPiA+IC0tLQ0KPiA+ID4gIGluY2x1ZGUvbGludXgvYnRmLmggfCAzMiArKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKw0KPiA+ID4gIGtlcm5lbC9icGYvYnRmLmMgICAgfCAxNyArKysr
+KysrKysrKysrKy0tLQ0KPiA+ID4gIG5ldC9icGYvdGVzdF9ydW4uYyAgfCAgNSArKysrKw0KPiA+
+ID4gIDMgZmlsZXMgY2hhbmdlZCwgNTEgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkNCj4g
+PiA+DQo+ID4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9idGYuaCBiL2luY2x1ZGUvbGlu
+dXgvYnRmLmgNCj4gPiA+IGluZGV4IDZkZmM2ZWFmN2Y4Yy4uY2I2M2FhNzFlODJmIDEwMDY0NA0K
+PiA+ID4gLS0tIGEvaW5jbHVkZS9saW51eC9idGYuaA0KPiA+ID4gKysrIGIvaW5jbHVkZS9saW51
+eC9idGYuaA0KPiA+ID4gQEAgLTE3LDYgKzE3LDM4IEBADQo+ID4gPiAgI2RlZmluZSBLRl9SRUxF
+QVNFICAgKDEgPDwgMSkgLyoga2Z1bmMgaXMgYSByZWxlYXNlIGZ1bmN0aW9uICovDQo+ID4gPiAg
+I2RlZmluZSBLRl9SRVRfTlVMTCAgKDEgPDwgMikgLyoga2Z1bmMgcmV0dXJucyBhIHBvaW50ZXIg
+dGhhdCBtYXkgYmUgTlVMTA0KPiAqLw0KPiA+ID4gICNkZWZpbmUgS0ZfS1BUUl9HRVQgICgxIDw8
+IDMpIC8qIGtmdW5jIHJldHVybnMgcmVmZXJlbmNlIHRvIGEga3B0ciAqLw0KPiA+ID4gKy8qIFRy
+dXN0ZWQgYXJndW1lbnRzIGFyZSB0aG9zZSB3aGljaCBhcmUgbWVhbnQgdG8gYmUgcmVmZXJlbmNl
+ZA0KPiBhcmd1bWVudHMNCj4gPiA+IHdpdGgNCj4gPiA+ICsgKiB1bmNoYW5nZWQgb2Zmc2V0LiBJ
+dCBpcyB1c2VkIHRvIGVuZm9yY2UgdGhhdCBwb2ludGVycyBvYnRhaW5lZCBmcm9tDQo+IGFjcXVp
+cmUNCj4gPiA+ICsgKiBrZnVuY3MgcmVtYWluIHVubW9kaWZpZWQgd2hlbiBiZWluZyBwYXNzZWQg
+dG8gaGVscGVycyB0YWtpbmcgdHJ1c3RlZA0KPiBhcmdzLg0KPiA+ID4gKyAqDQo+ID4gPiArICog
+Q29uc2lkZXINCj4gPiA+ICsgKiAgIHN0cnVjdCBmb28gew0KPiA+ID4gKyAqICAgICAgICAgICBp
+bnQgZGF0YTsNCj4gPiA+ICsgKiAgICAgICAgICAgc3RydWN0IGZvbyAqbmV4dDsNCj4gPiA+ICsg
+KiAgIH07DQo+ID4gPiArICoNCj4gPiA+ICsgKiAgIHN0cnVjdCBiYXIgew0KPiA+ID4gKyAqICAg
+ICAgICAgICBpbnQgZGF0YTsNCj4gPiA+ICsgKiAgICAgICAgICAgc3RydWN0IGZvbyBmOw0KPiA+
+ID4gKyAqICAgfTsNCj4gPiA+ICsgKg0KPiA+ID4gKyAqICAgc3RydWN0IGZvbyAqZiA9IGFsbG9j
+X2ZvbygpOyAvLyBBY3F1aXJlIGtmdW5jDQo+ID4gPiArICogICBzdHJ1Y3QgYmFyICpiID0gYWxs
+b2NfYmFyKCk7IC8vIEFjcXVpcmUga2Z1bmMNCj4gPiA+ICsgKg0KPiA+ID4gKyAqIElmIGEga2Z1
+bmMgc2V0X2Zvb19kYXRhKCkgd2FudHMgdG8gb3BlcmF0ZSBvbmx5IG9uIHRoZSBhbGxvY2F0ZWQg
+b2JqZWN0LA0KPiBpdA0KPiA+ID4gKyAqIHdpbGwgc2V0IHRoZSBLRl9UUlVTVEVEX0FSR1MgZmxh
+Zywgd2hpY2ggd2lsbCBwcmV2ZW50IHVuc2FmZSB1c2FnZSBsaWtlOg0KPiA+ID4gKyAqDQo+ID4g
+PiArICogICBzZXRfZm9vX2RhdGEoZiwgNDIpOyAgICAgICAvLyBBbGxvd2VkDQo+ID4gPiArICog
+ICBzZXRfZm9vX2RhdGEoZi0+bmV4dCwgNDIpOyAvLyBSZWplY3RlZCwgbm9uLXJlZmVyZW5jZWQg
+cG9pbnRlcg0KPiA+ID4gKyAqICAgc2V0X2Zvb19kYXRhKCZmLT5uZXh0LCA0Mik7Ly8gUmVqZWN0
+ZWQsIHJlZmVyZW5jZWQsIGJ1dCBiYWQgb2Zmc2V0DQo+ID4gPiArICogICBzZXRfZm9vX2RhdGEo
+JmItPmYsIDQyKTsgICAvLyBSZWplY3RlZCwgcmVmZXJlbmNlZCwgYnV0IHdyb25nIHR5cGUNCj4g
+PiA+ICsgKg0KPiA+ID4gKyAqIEluIHRoZSBmaW5hbCBjYXNlLCB1c3VhbGx5IGZvciB0aGUgcHVy
+cG9zZXMgb2YgdHlwZSBtYXRjaGluZywgaXQgaXMgZGVkdWNlZA0KPiA+ID4gKyAqIGJ5IGxvb2tp
+bmcgYXQgdGhlIHR5cGUgb2YgdGhlIG1lbWJlciBhdCB0aGUgb2Zmc2V0LCBidXQgZHVlIHRvIHRo
+ZQ0KPiA+ID4gKyAqIHJlcXVpcmVtZW50IG9mIHRydXN0ZWQgYXJndW1lbnQsIHRoaXMgZGVkdWN0
+aW9uIHdpbGwgYmUgc3RyaWN0IGFuZCBub3QNCj4gZG9uZQ0KPiA+ID4gKyAqIGZvciB0aGlzIGNh
+c2UuDQo+ID4gPiArICovDQo+ID4gPiArI2RlZmluZSBLRl9UUlVTVEVEX0FSR1MgKDEgPDwgNCkg
+Lyoga2Z1bmMgb25seSB0YWtlcyB0cnVzdGVkIHBvaW50ZXINCj4gPiA+IGFyZ3VtZW50cyAqLw0K
+PiA+DQo+ID4gSGkgS3VtYXINCj4gPg0KPiA+IHdvdWxkIGl0IG1ha2Ugc2Vuc2UgdG8gaW50cm9k
+dWNlIHBlci1wYXJhbWV0ZXIgZmxhZ3M/IEkgaGF2ZSBhIGZ1bmN0aW9uDQo+ID4gdGhhdCBoYXMg
+c2V2ZXJhbCBwYXJhbWV0ZXJzLCBidXQgb25seSBvbmUgaXMgcmVmZXJlbmNlZC4NCj4gPg0KPiAN
+Cj4gSSBoYXZlIGEgcGF0Y2ggZm9yIHRoYXQgaW4gbXkgbG9jYWwgYnJhbmNoLCBJIGNhbiBmaXgg
+aXQgdXAgYW5kIHBvc3QNCj4gaXQuIEJ1dCBmaXJzdCwgY2FuIHlvdSBnaXZlIGFuIGV4YW1wbGUg
+b2Ygd2hlcmUgeW91IHRoaW5rIHlvdSBuZWVkIGl0Pw0KDQpJIGhhdmUgcHVzaGVkIHRoZSBjb21w
+bGV0ZSBwYXRjaCBzZXQgaGVyZSwgZm9yIHRlc3Rpbmc6DQoNCmh0dHBzOi8vZ2l0aHViLmNvbS9y
+b2JlcnRvc2Fzc3Uvdm10ZXN0L3RyZWUvYnBmLXZlcmlmeS1zaWctdjkvdHJhdmlzLWNpL2RpZmZz
+DQoNCkkgcmViYXNlZCB0byBicGYtbmV4dC9tYXN0ZXIsIGFuZCBpbnRyb2R1Y2VkIEtGX1NMRUVQ
+QUJMRSAoc2ltaWxhcg0KZnVuY3Rpb25hbGl0eSBvZiAiIGJ0ZjogQWRkIGEgbmV3IGtmdW5jIHNl
+dCB3aGljaCBhbGxvd3MgdG8gbWFyaw0KYSBmdW5jdGlvbiB0byBiZSBzbGVlcGFibGUiIGZyb20g
+QmVuamFtaW4gVGlzc29pcmVzKS4NCg0KVGhlIHBhdGNoIHdoZXJlIEkgd291bGQgdXNlIHBlci1w
+YXJhbWV0ZXIgS0ZfVFJVU1RFRF9BUkdTIGlzDQpudW1iZXIgOC4gSSBhbHNvIHVzZWQgeW91ciBu
+ZXcgQVBJIGluIHBhdGNoIDcgYW5kIGl0IHdvcmtzIHdlbGwuDQoNCkkgZGlkbid0IHJlcG9zdCwg
+YXMgSSdtIHdhaXRpbmcgZm9yIGNvbW1lbnRzIG9uIHY4Lg0KDQpUaGFua3MNCg0KUm9iZXJ0bw0K
