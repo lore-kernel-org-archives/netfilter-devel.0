@@ -2,122 +2,113 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC4E9C43334
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jul 2022 04:55:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64777C43334
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Jul 2022 06:55:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230332AbiGZEz3 (ORCPT
+        id S229709AbiGZGzd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Jul 2022 00:55:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49464 "EHLO
+        Tue, 26 Jul 2022 02:55:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231389AbiGZEz3 (ORCPT
+        with ESMTP id S231689AbiGZGzb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Jul 2022 00:55:29 -0400
-X-Greylist: delayed 570 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 25 Jul 2022 21:55:23 PDT
-Received: from chinatelecom.cn (prt-mail.chinatelecom.cn [42.123.76.221])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0D8C85F97
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jul 2022 21:55:22 -0700 (PDT)
-HMM_SOURCE_IP: 172.18.0.188:51252.1464825350
-HMM_ATTACHE_NUM: 0000
-HMM_SOURCE_TYPE: SMTP
-Received: from clientip-180.167.241.60 (unknown [172.18.0.188])
-        by chinatelecom.cn (HERMES) with SMTP id E03F12800AB;
-        Tue, 26 Jul 2022 12:45:46 +0800 (CST)
-X-189-SAVE-TO-SEND: wenxu@chinatelecom.cn
-Received: from  ([172.18.0.188])
-        by app0023 with ESMTP id 118ad983f4a94e4e87826153003e6e2b for pablo@netfilter.org;
-        Tue, 26 Jul 2022 12:45:47 CST
-X-Transaction-ID: 118ad983f4a94e4e87826153003e6e2b
-X-Real-From: wenxu@chinatelecom.cn
-X-Receive-IP: 172.18.0.188
-X-MEDUSA-Status: 0
-Sender: wenxu@chinatelecom.cn
-From:   wenxu@chinatelecom.cn
-To:     pablo@netfilter.org
+        Tue, 26 Jul 2022 02:55:31 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EACBB1116E
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jul 2022 23:55:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1658818528;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=DxMnO8HPvIoD0RCMMAKdeIqoI+W+svLUawAv8Ra/Q9Y=;
+        b=L8eIJ0TQX9fPiPrsNyl5GjFbPqYu90puNpjEZgiNyiZ4iL9cspGQI/1j1Ua6gud0VYeOMb
+        9Sqss2SqtXfLZTc46QX8/KciYPue9seusN/c0/+Bpo+it/KMcAzQGMQPx89xEsEwInNUxC
+        tVJmfVRh99u/XglmjgPuvMFMb3p50RQ=
+Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
+ [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-85-NncvSnWtNiqWsFmsMuaWxA-1; Tue, 26 Jul 2022 02:55:27 -0400
+X-MC-Unique: NncvSnWtNiqWsFmsMuaWxA-1
+Received: by mail-ej1-f71.google.com with SMTP id ji2-20020a170907980200b0072b5b6d60c2so3923784ejc.22
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jul 2022 23:55:26 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=DxMnO8HPvIoD0RCMMAKdeIqoI+W+svLUawAv8Ra/Q9Y=;
+        b=YdKuuNzwO+l5KAqZ2dcbyk8cczQtRFA25wG2Hxc6KbO/AgxJuASL4lQfc0RvblEGsE
+         fECU+7HjL6GuoBvoV0SqPgGA4OPKS/LdmuVqrlwhXQPtCizItTCa/48uxOLMjsfo611G
+         7ip3tIitovym35OW27gsmmkt9adR8mmPKCAhyKVtETeev3gaFH975RLu9IeB5QHDur3w
+         mkW7CNN48eVG7ZCmszrBcrcb/c79lvq8g/SO7woYkP+AKcXK7XWn/CfwyJkKHVJUwZJ9
+         saH17U5YjhMHtQbcAM5+8/cFUzx+Mun/4L5qie/CHUQZXXICzhGtdxhCaxRlWxcLtkVD
+         Yb1g==
+X-Gm-Message-State: AJIora/MibcFUQGYdOkSqPw/4BcGBZx1/P1c19rf4MN8SvFLJ/harc7S
+        wsjDvaSK6+VBVGJfEvFd7nNhuE7w2F8zFAVVhcOTflUk6iDv0VQmAGAUlE5kPmeaTHatYUUtCsV
+        j2Jhq/CAsXBI+fblZB5KYIvUO/Bwa
+X-Received: by 2002:a05:6402:40c3:b0:43b:d65a:cbf7 with SMTP id z3-20020a05640240c300b0043bd65acbf7mr17068728edb.380.1658818525979;
+        Mon, 25 Jul 2022 23:55:25 -0700 (PDT)
+X-Google-Smtp-Source: AGRyM1tR9edohf6x8yPVHVkqajDAf5gyJV2/4R69dSbB0bufe7hc35lVv6om1nXPelEiLqV+uNBm8A==
+X-Received: by 2002:a05:6402:40c3:b0:43b:d65a:cbf7 with SMTP id z3-20020a05640240c300b0043bd65acbf7mr17068709edb.380.1658818525681;
+        Mon, 25 Jul 2022 23:55:25 -0700 (PDT)
+Received: from nautilus.home.lan (cst2-15-35.cust.vodafone.cz. [31.30.15.35])
+        by smtp.gmail.com with ESMTPSA id a17-20020a50ff11000000b00435a62d35b5sm8091268edu.45.2022.07.25.23.55.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Jul 2022 23:55:25 -0700 (PDT)
+Date:   Tue, 26 Jul 2022 08:55:23 +0200
+From:   Erik Skultety <eskultet@redhat.com>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nf_flow_table: delay teardown the offload flow until fin packet recv from both direction
-Date:   Tue, 26 Jul 2022 00:45:16 -0400
-Message-Id: <1658810716-106274-1-git-send-email-wenxu@chinatelecom.cn>
-X-Mailer: git-send-email 1.8.3.1
+Subject: Re: [iptables PATCH] iptables: xshared: Ouptut '--' in the opt field
+ in ipv6's fake mode
+Message-ID: <Yt+P25lN4AmDuCie@nautilus.home.lan>
+References: <bb391c763171f0c5511f73e383e1b2e6a53e2014.1658322396.git.eskultet@redhat.com>
+ <20220725213914.GC20457@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220725213914.GC20457@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: wenxu <wenxu@chinatelecom.cn>
+On Mon, Jul 25, 2022 at 11:39:14PM +0200, Florian Westphal wrote:
+> Erik Skultety <eskultet@redhat.com> wrote:
+> > The fact that the 'opt' table field reports spaces instead of '--' for
+> > IPv6 as it would have been the case with IPv4 has a bit of an
+> > unfortunate side effect that it completely confuses the 'jc' JSON
+> > formatter tool (which has an iptables formatter module).
+> > Consider:
+> >     # ip6tables -L test
+> >     Chain test (0 references)
+> >     target     prot opt source   destination
+> >     ACCEPT     all      a:b:c::  anywhere    MAC01:02:03:04:05:06
+> > 
+> > Then:
+> >     # ip6tables -L test | jc --iptables
+> >     [{"chain":"test",
+> >       "rules":[
+> >           {"target":"ACCEPT",
+> >            "prot":"all",
+> >            "opt":"a:b:c::",
+> >            "source":"anywhere",
+> >            "destination":"MAC01:02:03:04:05:06"
+> >           }]
+> >     }]
+> > 
+> > which as you can see is wrong simply because whitespaces are considered
+> > as a column delimiter.
+> 
+> Applied.  I amended the commit message to include a Link to this thread
+> on lore.kernel.org so in case something else breaks because of this
+> change.
+> 
 
-A fin packet receive not always means the tcp connection teardown.
-For tcp half close case, only the client shutdown the connection
-and the server still can sendmsg to the client. The connection
-can still be offloaded until the server shutdown the connection.
+Thanks!
+However, given Phil's findings in his reply to the patch I think my patch is an
+incomplete fix without his suggested/proposed follow-ups, so hopefully those
+could land upstream as well.
 
-Signed-off-by: wenxu <wenxu@chinatelecom.cn>
----
- include/net/netfilter/nf_flow_table.h |  3 ++-
- net/netfilter/nf_flow_table_ip.c      | 14 ++++++++++----
- 2 files changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index d5326c4..0c4864d 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -129,7 +129,8 @@ struct flow_offload_tuple {
- 	/* All members above are keys for lookups, see flow_offload_hash(). */
- 	struct { }			__hash;
- 
--	u8				dir:2,
-+	u8				dir:1,
-+					fin:1,
- 					xmit_type:3,
- 					encap_num:2,
- 					in_vlan_ingress:2;
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index b350fe9..c191861 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -19,7 +19,8 @@
- #include <linux/udp.h>
- 
- static int nf_flow_state_check(struct flow_offload *flow, int proto,
--			       struct sk_buff *skb, unsigned int thoff)
-+			       struct sk_buff *skb, unsigned int thoff,
-+			       enum flow_offload_tuple_dir dir)
- {
- 	struct tcphdr *tcph;
- 
-@@ -27,9 +28,14 @@ static int nf_flow_state_check(struct flow_offload *flow, int proto,
- 		return 0;
- 
- 	tcph = (void *)(skb_network_header(skb) + thoff);
--	if (unlikely(tcph->fin || tcph->rst)) {
-+	if (unlikely(tcph->rst)) {
- 		flow_offload_teardown(flow);
- 		return -1;
-+	} else if (unlikely(tcph->fin)) {
-+		flow->tuplehash[dir].tuple.fin = 1;
-+		if (flow->tuplehash[!dir].tuple.fin == 1)
-+			flow_offload_teardown(flow);
-+		return -1;
- 	}
- 
- 	return 0;
-@@ -373,7 +379,7 @@ static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
- 
- 	iph = (struct iphdr *)(skb_network_header(skb) + offset);
- 	thoff = (iph->ihl * 4) + offset;
--	if (nf_flow_state_check(flow, iph->protocol, skb, thoff))
-+	if (nf_flow_state_check(flow, iph->protocol, skb, thoff, dir))
- 		return NF_ACCEPT;
- 
- 	if (!nf_flow_dst_check(&tuplehash->tuple)) {
-@@ -635,7 +641,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- 
- 	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
- 	thoff = sizeof(*ip6h) + offset;
--	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff))
-+	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff, dir))
- 		return NF_ACCEPT;
- 
- 	if (!nf_flow_dst_check(&tuplehash->tuple)) {
--- 
-1.8.3.1
+Regards,
+Erik
 
