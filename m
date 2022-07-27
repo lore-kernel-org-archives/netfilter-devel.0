@@ -2,35 +2,35 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 640D4C19F29
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jul 2022 19:55:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 124DCC19F29
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jul 2022 20:21:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231496AbiG0TzA (ORCPT
+        id S229839AbiG0UVe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Jul 2022 15:55:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38194 "EHLO
+        Wed, 27 Jul 2022 16:21:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230245AbiG0Ty7 (ORCPT
+        with ESMTP id S229653AbiG0UVd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Jul 2022 15:54:59 -0400
-Received: from smtp-190e.mail.infomaniak.ch (smtp-190e.mail.infomaniak.ch [IPv6:2001:1600:4:17::190e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22EBA57201
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2022 12:54:57 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LtPdB18x9zMqMfb;
-        Wed, 27 Jul 2022 21:54:54 +0200 (CEST)
+        Wed, 27 Jul 2022 16:21:33 -0400
+Received: from smtp-42a8.mail.infomaniak.ch (smtp-42a8.mail.infomaniak.ch [84.16.66.168])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E8205F994
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2022 13:21:31 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LtQCs2nzDzMqNR4;
+        Wed, 27 Jul 2022 22:21:29 +0200 (CEST)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4LtPd94vGmzln8VM;
-        Wed, 27 Jul 2022 21:54:53 +0200 (CEST)
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4LtQCr6BDRzlqwsJ;
+        Wed, 27 Jul 2022 22:21:28 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1658951694;
-        bh=4vCIXI/5V3E0JoYph3HCIwV+ywjIiRGEiTJoYTbvjqU=;
+        s=20191114; t=1658953289;
+        bh=JKr5DzVZLIPLJ6glnuETRKhQUD4XmhlJo4KogRklnSo=;
         h=Date:From:To:Cc:References:Subject:In-Reply-To:From;
-        b=JLd6rI6QFfGKUYvO4L//xHwQ8B+HcmzFAMiLSZeXtx8kqBbP4EIV8HqrjIe4IDYRH
-         q8hUmmzO2vfdwXSJBaky84TvrgNPe8ppj0BrilJuQ6quZNrKV/j9n1EoBuVH8H1wxE
-         MEFHY+JouSLlPOBQAEJVRxpI3DV3HDTKnubrcZRo=
-Message-ID: <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
-Date:   Wed, 27 Jul 2022 21:54:52 +0200
+        b=anHVAl4aLCzl7l5G1qJAV9xPgsAz/JNVR3kTa89rnm6g0vPTl1folFIjVANzKXtds
+         3OspShKSpbBr8qdclBTWbhyUQNBMOmpfBKOug8qdxuvJAVeZJ/Gdgoh9cht+oB8dsw
+         vr0tFuzE89n+WA4eXTLmfnVZ+TER+b1i37okJnnY=
+Message-ID: <75c66214-5735-36d8-b237-32dd9af48a4f@digikod.net>
+Date:   Wed, 27 Jul 2022 22:21:28 +0200
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
@@ -49,7 +49,6 @@ Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
-
 
 
 On 26/07/2022 19:43, Mickaël Salaün wrote:
@@ -151,6 +150,63 @@ On 26/07/2022 19:43, Mickaël Salaün wrote:
 > patch miscellaneous fixes and improvement, with some TODOs to get rid of 
 > this layer limit. We'll need a test to check that too. You'll need to 
 > integrate this diff into your patches though.
+> 
+> 
 
-You can find the related patch here: 
-https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
+[...]
+
+> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+> index 469811a77675..e7555b16069a 100644
+> --- a/security/landlock/ruleset.c
+> +++ b/security/landlock/ruleset.c
+
+[...]
+
+> @@ -719,15 +679,43 @@ bool unmask_layers(const struct landlock_rule 
+> *const rule,
+>       return false;
+>   }
+> 
+> +typedef access_mask_t
+> +get_access_mask_t(const struct landlock_ruleset *const ruleset,
+> +          const u16 layer_level);
+> +
+> +/*
+> + * @layer_masks must contain LANDLOCK_NUM_ACCESS_FS or 
+> LANDLOCK_NUM_ACCESS_NET
+> + * elements according to @key_type.
+> + */
+>   access_mask_t init_layer_masks(const struct landlock_ruleset *const 
+> domain,
+>                      const access_mask_t access_request,
+>                      layer_mask_t (*const layer_masks)[],
+> -                   size_t masks_size, u16 rule_type)
+> +                   const enum landlock_key_type key_type)
+>   {
+>       access_mask_t handled_accesses = 0;
+> -    size_t layer_level;
+> +    size_t layer_level, num_access;
+> +    get_access_mask_t *get_access_mask;
+> +
+> +    switch (key_type) {
+> +    case LANDLOCK_KEY_INODE:
+> +        // XXX: landlock_get_fs_access_mask() should not be removed
+
+There is an extra "not", it should be: "landlock_get_fs_access_mask() 
+and landlock_get_net_access_mask() should be removed".
+
+
+> +        // once we use ruleset->net_access_mask, and we can then
+> +        // replace the @key_type argument with num_access to make the
+> +        // code simpler.
+> +        get_access_mask = landlock_get_fs_access_mask;
+> +        num_access = LANDLOCK_NUM_ACCESS_FS;
+> +        break;
+> +    case LANDLOCK_KEY_NET_PORT:
+> +        get_access_mask = landlock_get_net_access_mask;
+> +        num_access = LANDLOCK_NUM_ACCESS_NET;
+> +        break;
+> +    default:
+> +        WARN_ON_ONCE(1);
+> +        return 0;
+> +    }
