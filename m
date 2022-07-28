@@ -2,134 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8E64C19F29
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Jul 2022 20:26:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2808C04A68
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 08:13:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230274AbiG0U0U (ORCPT
+        id S235095AbiG1INP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Jul 2022 16:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60364 "EHLO
+        Thu, 28 Jul 2022 04:13:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230365AbiG0U0T (ORCPT
+        with ESMTP id S234482AbiG1INN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Jul 2022 16:26:19 -0400
-Received: from smtp-8fa8.mail.infomaniak.ch (smtp-8fa8.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fa8])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E52C64D4FA
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2022 13:26:18 -0700 (PDT)
-Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LtQKP2DcxzMqR8X;
-        Wed, 27 Jul 2022 22:26:17 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4LtQKN5kMNzlqV0d;
-        Wed, 27 Jul 2022 22:26:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1658953577;
-        bh=hLCaudxmTLn46TzdaaEDyaJ1LW+mZoCAbGYIV24EY24=;
-        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=BrVNFm3AcZPEr7U7GUUVSRzgny1p6Xmv13vAfms1zeANQ833+rFqI4pHRBS/ZQI+v
-         2i/EFqXJsrTWeu56U4mX3TjGQBcvXBWxpdW5L8H3Lzh3k5KMzlMRduz287SLWgcRdq
-         SfAInsit0fLrzUWeMvDac007zsjyMBBFCV7UDxjU=
-Message-ID: <78b7cd69-46d2-2868-8c9c-f4f29958a679@digikod.net>
-Date:   Wed, 27 Jul 2022 22:26:16 +0200
+        Thu, 28 Jul 2022 04:13:13 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CED6361D9D
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jul 2022 01:13:06 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1oGydj-0001vP-Im; Thu, 28 Jul 2022 10:13:03 +0200
+Date:   Thu, 28 Jul 2022 10:13:03 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Justin Swartz <justin.swartz@risingedge.co.za>
+Cc:     netfilter-devel@vger.kernel.org, rkolchmeyer@google.com,
+        pablo@netfilter.org
+Subject: Re: [PATCH resend] ebtables: extend the 'static' build target fix.
+Message-ID: <YuJFD5/1y1rhhyCZ@strlen.de>
+References: <20220625081441.13323-1-justin.swartz@risingedge.co.za>
+ <42ed3ff1408e811918f138e1f1aefec1@risingedge.co.za>
 MIME-Version: 1.0
-User-Agent: 
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        anton.sirazetdinov@huawei.com
-References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
- <20220621082313.3330667-18-konstantin.meskhidze@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [PATCH v6 17/17] samples/landlock: adds network demo
-In-Reply-To: <20220621082313.3330667-18-konstantin.meskhidze@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42ed3ff1408e811918f138e1f1aefec1@risingedge.co.za>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Justin Swartz <justin.swartz@risingedge.co.za> wrote:
+> Assign "-all-static" (instead of "-static") to "static_LDFLAGS" in
+> Makefile.am, as libtool will only produce a static binary if it is
+> explicitly told that all of the linked libraries should be static.
 
-On 21/06/2022 10:23, Konstantin Meskhidze wrote:
-> This commit adds network demo. It's possible to
-> allow a sandoxer to bind/connect to a list of
-> particular ports restricting networks actions to
-> the rest of ports.
-> 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> ---
-> 
-> Changes since v5:
-> * Makes network ports sandboxing optional.
-> * Fixes some logic errors.
-> * Formats code with clang-format-14.
-> 
-> Changes since v4:
-> * Adds ENV_TCP_BIND_NAME "LL_TCP_BIND" and
-> ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT" variables
-> to insert TCP ports.
-> * Renames populate_ruleset() to populate_ruleset_fs().
-> * Adds populate_ruleset_net() and parse_port_num() helpers.
-> * Refactors main() to support network sandboxing.
-> 
-> ---
->   samples/landlock/sandboxer.c | 118 +++++++++++++++++++++++++++++++----
->   1 file changed, 107 insertions(+), 11 deletions(-)
-> 
-> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
-> index 3e404e51ec64..0606c676fded 100644
-> --- a/samples/landlock/sandboxer.c
-> +++ b/samples/landlock/sandboxer.c
+Before libtool conversion "make static" did not create a static binary
+either.  It builds a version of ebtables that has libebtables.so 
+baked in.
 
+So, as far as I can see, "make static" does the same thing it
+did prio to automake/libtool conversion, place all the extensions
+and libebtables in the "static" binary, but link libc.so dynamically.
 
-[...]
-
-> @@ -232,16 +308,36 @@ int main(const int argc, char *const argv[], char *const *const envp)
->   		access_fs_rw &= ~ACCESS_ABI_2;
-
-We need to check the ABI to make this sample work without a kernel 
-supporting Landlock network access rights, and error out if the user 
-explicitely asked for it anyway (with the environement variable).
-
-
->   	}
-> 
-> +	/* Adds optionally network bind() support. */
-> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
-> +	if (env_port_name) {
-> +		access_net_tcp |= LANDLOCK_ACCESS_NET_BIND_TCP;
-> +	}
-> +	/* Adds optionally network connect() support. */
-> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
-> +	if (env_port_name) {
-> +		access_net_tcp |= LANDLOCK_ACCESS_NET_CONNECT_TCP;
-> +	}
-> +	ruleset_attr.handled_access_net = access_net_tcp;
-> +
->   	ruleset_fd =
->   		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
->   	if (ruleset_fd < 0) {
->   		perror("Failed to create a ruleset");
->   		return 1;
->   	}
-> -	if (populate_ruleset(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
-> +	if (populate_ruleset_fs(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
-> +		goto err_close_ruleset;
-> +	}
-> +	if (populate_ruleset_fs(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
-> +		goto err_close_ruleset;
-> +	}
-> +	if (populate_ruleset_net(ENV_TCP_BIND_NAME, ruleset_fd,
-> +				 LANDLOCK_ACCESS_NET_BIND_TCP)) {
->   		goto err_close_ruleset;
->   	}
-> -	if (populate_ruleset(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
-> +	if (populate_ruleset_net(ENV_TCP_CONNECT_NAME, ruleset_fd,
-> +				 LANDLOCK_ACCESS_NET_CONNECT_TCP)) {
->   		goto err_close_ruleset;
->   	}
->   	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
-> --
-> 2.25.1
-> 
