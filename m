@@ -2,129 +2,166 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CC30C04A68
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 08:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C019C3F6B0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 09:19:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234490AbiG1I4R (ORCPT
+        id S234908AbiG1JTr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Jul 2022 04:56:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38216 "EHLO
+        Thu, 28 Jul 2022 05:19:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234672AbiG1I4Q (ORCPT
+        with ESMTP id S234427AbiG1JTq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Jul 2022 04:56:16 -0400
-Received: from outgoing12.flk.host-h.net (outgoing12.flk.host-h.net [188.40.208.242])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B94F655B0
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jul 2022 01:56:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=risingedge.co.za; s=xneelo; h=Message-ID:References:In-Reply-To:Subject:Cc:
-        To:From:Date:Content-Transfer-Encoding:Content-Type:MIME-Version:reply-to:
-        sender:bcc; bh=mQdOr3XI7ioMhBw5IW/BC3N5zWmrmFm18JebNOQR1Io=; b=oql6esq3QDaNYO
-        Be6sksiEomEU8Si7iUyxKM7J+pRn8f6bFqlKD6RRka3osDAvmbqbEuk7jucBbZstU8wU/yk0/oSxf
-        BMCPb2ERbMbCp61hRFfn6Px5ohhHSXKRVfT/QQjDSsLMSQPwwONnyatl4zNpkIFPEGv88KaQTJssE
-        H1Z2ub7DgmXEw+NBeRfqu+LZQWf3DtFNHR7/6f42RtHhLWMtJhH5kaCI5XTcCGPWMIlGQ7dDHfpWt
-        FgZYM9Xv3DroQdvaVQeUapuxzA5BjzvE4oxCgie6y9+FITjTECHWSzsieuYx/ZBsQOrQ1Zot8pXTP
-        ovXTJmq56/TMh3Cu6dhg==;
-Received: from www31.flk1.host-h.net ([188.40.1.173])
-        by antispam3-flk1.host-h.net with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <justin.swartz@risingedge.co.za>)
-        id 1oGzJJ-0007d5-2Q; Thu, 28 Jul 2022 10:56:08 +0200
-Received: from roundcubeweb1.flk1.host-h.net ([138.201.244.33] helo=webmail9.konsoleh.co.za)
-        by www31.flk1.host-h.net with esmtpa (Exim 4.92)
-        (envelope-from <justin.swartz@risingedge.co.za>)
-        id 1oGzJI-0007Su-9k; Thu, 28 Jul 2022 10:56:00 +0200
+        Thu, 28 Jul 2022 05:19:46 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3392961B3A;
+        Thu, 28 Jul 2022 02:19:45 -0700 (PDT)
+Received: from fraeml702-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LtlRM2QHWz687qT;
+        Thu, 28 Jul 2022 17:17:35 +0800 (CST)
+Received: from lhreml745-chm.china.huawei.com (10.201.108.195) by
+ fraeml702-chm.china.huawei.com (10.206.15.51) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.24; Thu, 28 Jul 2022 11:19:42 +0200
+Received: from [10.122.132.241] (10.122.132.241) by
+ lhreml745-chm.china.huawei.com (10.201.108.195) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Thu, 28 Jul 2022 10:19:41 +0100
+Message-ID: <3d3b683d-8dfe-1b45-c7ee-a4dadeb4c1c5@huawei.com>
+Date:   Thu, 28 Jul 2022 12:19:40 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date:   Thu, 28 Jul 2022 10:56:00 +0200
-From:   Justin Swartz <justin.swartz@risingedge.co.za>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, rkolchmeyer@google.com,
-        pablo@netfilter.org
-Subject: Re: [PATCH resend] ebtables: extend the 'static' build target fix.
-In-Reply-To: <YuJFD5/1y1rhhyCZ@strlen.de>
-References: <20220625081441.13323-1-justin.swartz@risingedge.co.za>
- <42ed3ff1408e811918f138e1f1aefec1@risingedge.co.za>
- <YuJFD5/1y1rhhyCZ@strlen.de>
-Message-ID: <e8710ee1bd03701352fb89dfcc385308@risingedge.co.za>
-X-Sender: justin.swartz@risingedge.co.za
-User-Agent: Roundcube Webmail/1.3.17
-X-Authenticated-Sender: justin.swartz@risingedge.co.za
-X-Virus-Scanned: Clear
-X-Originating-IP: 188.40.1.173
-X-SpamExperts-Domain: risingedge.co.za
-X-SpamExperts-Username: 
-Authentication-Results: host-h.net; auth=pass (login) smtp.auth=@risingedge.co.za
-X-SpamExperts-Outgoing-Class: ham
-X-SpamExperts-Outgoing-Evidence: Combined (0.12)
-X-Recommended-Action: accept
-X-Filter-ID: Pt3MvcO5N4iKaDQ5O6lkdGlMVN6RH8bjRMzItlySaT+geq1cqfVyixSvgwtxKPbkPUtbdvnXkggZ
- 3YnVId/Y5jcf0yeVQAvfjHznO7+bT5xntEluci+0hyorrNrHYHDz1gBL3A/jgxey63tL9TfYNUIt
- 21NnLo1Lxyjhuus5kwwKW9sWwyYFlYTTZ48Qq31ZznUV/Bs9bwbqVU0orhg67S4TIW52pZm6lpzo
- LRTveWL+xIvF2YPOraOR7WdbmOke/KGVJwdEtxHtQ5nZL3g3VgTJsjWw5+0eZIpQIcK9yrTJeXoU
- xPozdon+5NjDz4Lpjd12v0hRQV2TuWFKPYIZhdEijaOYwIo3VWtNfh+T9pEV3Ptb+ZU+Z0HPYy6m
- EBi18U54yHbe0U2Q73dIPYtLRYxgb6PaYLiS14zYnAdK8AIV8bsd7WYc4sS5nxHe02gIZsN/DZ4i
- BHU1jKlc4dIeTtVzfBpUNIJbCsp5zJU0MGPpxOsB8gG0slV7ra6jI4BSJGlDdAt5iE2wWUUtBv7R
- wyGL9OyxAMsMu5TiHOeDBqW2s3BysOB3xpjrd5YzJziOi2bznHJ53CHS5fL+CC61pCZsm4iYatgr
- Ye8fqbmOW/SkIDJ+MiVFRiOp2cMOF3I6vCrJPmnnTHzVkpybMK7ZTdFnwBH6KS7vdcGZnFPEDmjB
- o9WPi4IE45J8SMIBWsA7UC4FahA5qoitJXNe5RxfYUHbpksF+Uf/PBuopB+R+LWB1R4c8SpbSl/z
- Imjpsfml8WF2VeyCHG6Wgx/xolPx8tBKNuisYrStde2dIjiiWgBIk6krh21EwctQ9Ij191Ndkspr
- Votsy2Wg/F23iule85BaCQ4fsNty+U1eVDaROUXhlz3SIJom9yXeeCrNObnUrjydPdMAYCO+eRwE
- NA+5ArHYhXQwhXELIBZC+BuxdgITIbXwR2snFsekbN2WcuVC3uP1GCj2SOP6Sno0pHt4TAuzPYHI
- sj91NoCnEZPoYOntuptTB2n+gg5ygHhLl0q6l6ACzEsMGeWTpZ/NLDHv5PB4agWOBURF9vZZEPKb
- P7YL/PyVSe2/DDFq5n7HBuKWZWWGwVvz5fzAKuWzP95bkbFuZA8ZSc8y6eaZ+9uhaKg2yPRk3H1E
- 4ANRdN1BlPI5FzmGiR0+LS+gWFeuUoaxzghV2FSwgYONUpBsA1NBhDo=
-X-Report-Abuse-To: spam@antispammaster.host-h.net
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v6 00/17] Network support for Landlock
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <anton.sirazetdinov@huawei.com>
+References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
+ <4c57a0c2-e207-10d6-c73d-bcda66bf3963@digikod.net>
+ <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhreml751-chm.china.huawei.com (10.201.108.201) To
+ lhreml745-chm.china.huawei.com (10.201.108.195)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 2022-07-28 10:13, Florian Westphal wrote:
-> Justin Swartz <justin.swartz@risingedge.co.za> wrote:
->> Assign "-all-static" (instead of "-static") to "static_LDFLAGS" in
->> Makefile.am, as libtool will only produce a static binary if it is
->> explicitly told that all of the linked libraries should be static.
+
+
+7/27/2022 10:54 PM, Mickaël Salaün пишет:
 > 
-> Before libtool conversion "make static" did not create a static binary
-> either.  It builds a version of ebtables that has libebtables.so
-> baked in.
 > 
-> So, as far as I can see, "make static" does the same thing it
-> did prio to automake/libtool conversion, place all the extensions
-> and libebtables in the "static" binary, but link libc.so dynamically.
+> On 26/07/2022 19:43, Mickaël Salaün wrote:
+>> 
+>> On 21/06/2022 10:22, Konstantin Meskhidze wrote:
+>>> Hi,
+>>> This is a new V6 patch related to Landlock LSM network confinement.
+>>> It is based on the latest landlock-wip branch on top of v5.19-rc2:
+>>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=landlock-wip
+>>>
+>>> It brings refactoring of previous patch version V5:
+>>>      - Fixes some logic errors and typos.
+>>>      - Adds additional FIXTURE_VARIANT and FIXTURE_VARIANT_ADD helpers
+>>>      to support both ip4 and ip6 families and shorten seltests' code.
+>>>      - Makes TCP sockets confinement support optional in sandboxer demo.
+>>>      - Formats the code with clang-format-14
+>>>
+>>> All test were run in QEMU evironment and compiled with
+>>>   -static flag.
+>>>   1. network_test: 18/18 tests passed.
+>>>   2. base_test: 7/7 tests passed.
+>>>   3. fs_test: 59/59 tests passed.
+>>>   4. ptrace_test: 8/8 tests passed.
+>>>
+>>> Still have issue with base_test were compiled without -static flag
+>>> (landlock-wip branch without network support)
+>>> 1. base_test: 6/7 tests passed.
+>>>   Error:
+>>>   #  RUN           global.inconsistent_attr ...
+>>>   # base_test.c:54:inconsistent_attr:Expected ENOMSG (42) == errno (22)
+>>>   # inconsistent_attr: Test terminated by assertion
+>>>   #          FAIL  global.inconsistent_attr
+>>> not ok 1 global.inconsistent_attr
+>>>
+>>> LCOV - code coverage report:
+>>>              Hit  Total  Coverage
+>>> Lines:      952  1010    94.3 %
+>>> Functions:  79   82      96.3 %
+>>>
+>>> Previous versions:
+>>> v5: 
+>>> https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
+>>> v4: 
+>>> https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
+>>> v3: 
+>>> https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
+>>> v2: 
+>>> https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
+>>> v1: 
+>>> https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
+>>>
+>>> Konstantin Meskhidze (17):
+>>>    landlock: renames access mask
+>>>    landlock: refactors landlock_find/insert_rule
+>>>    landlock: refactors merge and inherit functions
+>>>    landlock: moves helper functions
+>>>    landlock: refactors helper functions
+>>>    landlock: refactors landlock_add_rule syscall
+>>>    landlock: user space API network support
+>>>    landlock: adds support network rules
+>>>    landlock: implements TCP network hooks
+>>>    seltests/landlock: moves helper function
+>>>    seltests/landlock: adds tests for bind() hooks
+>>>    seltests/landlock: adds tests for connect() hooks
+>>>    seltests/landlock: adds AF_UNSPEC family test
+>>>    seltests/landlock: adds rules overlapping test
+>>>    seltests/landlock: adds ruleset expanding test
+>>>    seltests/landlock: adds invalid input data test
+>>>    samples/landlock: adds network demo
+>>>
+>>>   include/uapi/linux/landlock.h               |  49 ++
+>>>   samples/landlock/sandboxer.c                | 118 ++-
+>>>   security/landlock/Kconfig                   |   1 +
+>>>   security/landlock/Makefile                  |   2 +
+>>>   security/landlock/fs.c                      | 162 +---
+>>>   security/landlock/limits.h                  |   8 +-
+>>>   security/landlock/net.c                     | 155 ++++
+>>>   security/landlock/net.h                     |  26 +
+>>>   security/landlock/ruleset.c                 | 448 +++++++++--
+>>>   security/landlock/ruleset.h                 |  91 ++-
+>>>   security/landlock/setup.c                   |   2 +
+>>>   security/landlock/syscalls.c                | 168 +++--
+>>>   tools/testing/selftests/landlock/common.h   |  10 +
+>>>   tools/testing/selftests/landlock/config     |   4 +
+>>>   tools/testing/selftests/landlock/fs_test.c  |  10 -
+>>>   tools/testing/selftests/landlock/net_test.c | 774 ++++++++++++++++++++
+>>>   16 files changed, 1737 insertions(+), 291 deletions(-)
+>>>   create mode 100644 security/landlock/net.c
+>>>   create mode 100644 security/landlock/net.h
+>>>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+>>>
+>>> -- 
+>>> 2.25.1
+>>>
+>> 
+>> I did a thorough review of all the code. I found that the main issue 
+>> with this version is that we stick to the layers limit whereas it is 
+>> only relevant for filesystem hierarchies. You'll find in the following 
+>> patch miscellaneous fixes and improvement, with some TODOs to get rid of 
+>> this layer limit. We'll need a test to check that too. You'll need to 
+>> integrate this diff into your patches though.
+> 
+> You can find the related patch here:
+> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
 
-Thanks for the clarification.
-
-I assumed "make static" was intended to produce an actual static binary.
-
-As part of a small distribution that I use on a few bridging firewalls,
-I have only ebtables and busybox, both built as static binaries, plus
-inittab and a few init scripts.
-
-I don't mind patching "Makefile.am" for myself, but I would also be 
-happy
-to submit something like the following, if nice-to-have, to provide an
-"allstatic" which shouldn't break anything for those who require 
-"static"
-in its current form.
-
---%--
-
-  sbin_PROGRAMS = ebtables-legacy ebtablesd ebtablesu 
-ebtables-legacy-restore
--EXTRA_PROGRAMS = static examples/ulog/test_ulog
-+EXTRA_PROGRAMS = allstatic static examples/ulog/test_ulog
-  sysconf_DATA = ethertypes
-
-  ...
-
-  static_SOURCES = ebtables-standalone.c $(libebtc_la_SOURCES)
-  static_LDFLAGS = -static
-+allstatic_SOURCES = $(static_SOURCES)
-+allstatic_LDFLAGS = -all-static
-  examples_ulog_test_ulog_SOURCES = examples/ulog/test_ulog.c 
-getethertype.c
-
---%--
+  Ok. Thank you.
+  I will split your patch among my next V7 version.
+> .
