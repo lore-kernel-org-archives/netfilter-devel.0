@@ -2,521 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F622C19F21
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 13:17:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66F6FC19F21
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 13:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235859AbiG1NRt (ORCPT
+        id S229648AbiG1NYl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Jul 2022 09:17:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55530 "EHLO
+        Thu, 28 Jul 2022 09:24:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237227AbiG1NRs (ORCPT
+        with ESMTP id S235195AbiG1NYl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Jul 2022 09:17:48 -0400
-Received: from smtp-8faa.mail.infomaniak.ch (smtp-8faa.mail.infomaniak.ch [IPv6:2001:1600:4:17::8faa])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D23BB558D7
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jul 2022 06:17:46 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LtrmS4LzDzMqVbR;
-        Thu, 28 Jul 2022 15:17:44 +0200 (CEST)
+        Thu, 28 Jul 2022 09:24:41 -0400
+Received: from smtp-190d.mail.infomaniak.ch (smtp-190d.mail.infomaniak.ch [IPv6:2001:1600:3:17::190d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CBAE53D32
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jul 2022 06:24:40 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4LtrwN52BQzMqNMF;
+        Thu, 28 Jul 2022 15:24:36 +0200 (CEST)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4LtrmS0H7gzlnSD3;
-        Thu, 28 Jul 2022 15:17:43 +0200 (CEST)
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4LtrwN1XcBzlqwwk;
+        Thu, 28 Jul 2022 15:24:36 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1659014264;
-        bh=nHm9W7xbwS9ymeljpVvmgDPr/A8TS8l2KbJ67dDzUsM=;
-        h=Date:From:To:Cc:References:Subject:In-Reply-To:From;
-        b=e7yLjT0vMyQJxzwbr6mpF9gA+GJrGl8o08+0m9fUmX+9AGLkQMkhn0XbGI+IZcPax
-         Ey9jh8L3FFp+VzzKbNPBetkaBxm4XCnTHp8o+naLFUcSJi2SRNS8zGnPn7BqGh3aA6
-         N4fBrp69NiWIiTnIOEGBmF7BrCYmnxYY6K+SCJVk=
-Message-ID: <86db9124-ea11-0fa5-9dff-61744b2f80b4@digikod.net>
-Date:   Thu, 28 Jul 2022 15:17:43 +0200
+        s=20191114; t=1659014676;
+        bh=RAweEF+huCI4AjPNTonqz95NxOvYJYl24mF2cUDIipo=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=OPgJqbWri/qJZotQKZQvql1WiQZIiEksauuDKbSxuFE1Qrhe5ONPLebh/8ehusQr2
+         815uADrpa9sH6gaMVEJZnO346PhC4t4ApLtI1G1L9ko7tLXmrVKEjSd87A7dICogOz
+         RB7yab6zG7n2UHkuhJim4rHAo7jfUyvIzPpXjajE=
+Message-ID: <16ce6dc2-6b9c-da02-5737-eb9d26865590@digikod.net>
+Date:   Thu, 28 Jul 2022 15:24:35 +0200
 MIME-Version: 1.0
 User-Agent: 
 Content-Language: en-US
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
 To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 Cc:     willemdebruijn.kernel@gmail.com,
         linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         anton.sirazetdinov@huawei.com
 References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
- <4c57a0c2-e207-10d6-c73d-bcda66bf3963@digikod.net>
- <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
-Subject: Re: [PATCH v6 00/17] Network support for Landlock
-In-Reply-To: <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
+ <20220621082313.3330667-12-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v6 11/17] seltests/landlock: adds tests for bind() hooks
+In-Reply-To: <20220621082313.3330667-12-konstantin.meskhidze@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 27/07/2022 21:54, Mickaël Salaün wrote:
+On 21/06/2022 10:23, Konstantin Meskhidze wrote:
+> Adds selftests for bind() socket action.
+> The first is with no landlock restrictions:
+>      - bind without restrictions for ip4;
+>      - bind without restrictions for ip6;
+> The second ones is with mixed landlock rules:
+>      - bind with restrictions for ip4;
+>      - bind with restrictions for ip6;
 > 
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
 > 
-> On 26/07/2022 19:43, Mickaël Salaün wrote:
->>
->> On 21/06/2022 10:22, Konstantin Meskhidze wrote:
->>> Hi,
->>> This is a new V6 patch related to Landlock LSM network confinement.
->>> It is based on the latest landlock-wip branch on top of v5.19-rc2:
->>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=landlock-wip
->>>
->>> It brings refactoring of previous patch version V5:
->>>       - Fixes some logic errors and typos.
->>>       - Adds additional FIXTURE_VARIANT and FIXTURE_VARIANT_ADD helpers
->>>       to support both ip4 and ip6 families and shorten seltests' code.
->>>       - Makes TCP sockets confinement support optional in sandboxer demo.
->>>       - Formats the code with clang-format-14
->>>
->>> All test were run in QEMU evironment and compiled with
->>>    -static flag.
->>>    1. network_test: 18/18 tests passed.
->>>    2. base_test: 7/7 tests passed.
->>>    3. fs_test: 59/59 tests passed.
->>>    4. ptrace_test: 8/8 tests passed.
->>>
->>> Still have issue with base_test were compiled without -static flag
->>> (landlock-wip branch without network support)
->>> 1. base_test: 6/7 tests passed.
->>>    Error:
->>>    #  RUN           global.inconsistent_attr ...
->>>    # base_test.c:54:inconsistent_attr:Expected ENOMSG (42) == errno (22)
->>>    # inconsistent_attr: Test terminated by assertion
->>>    #          FAIL  global.inconsistent_attr
->>> not ok 1 global.inconsistent_attr
->>>
->>> LCOV - code coverage report:
->>>               Hit  Total  Coverage
->>> Lines:      952  1010    94.3 %
->>> Functions:  79   82      96.3 %
->>>
->>> Previous versions:
->>> v5:
->>> https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
->>> v4:
->>> https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
->>> v3:
->>> https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
->>> v2:
->>> https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
->>> v1:
->>> https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
->>>
->>> Konstantin Meskhidze (17):
->>>     landlock: renames access mask
->>>     landlock: refactors landlock_find/insert_rule
->>>     landlock: refactors merge and inherit functions
->>>     landlock: moves helper functions
->>>     landlock: refactors helper functions
->>>     landlock: refactors landlock_add_rule syscall
->>>     landlock: user space API network support
->>>     landlock: adds support network rules
->>>     landlock: implements TCP network hooks
->>>     seltests/landlock: moves helper function
->>>     seltests/landlock: adds tests for bind() hooks
->>>     seltests/landlock: adds tests for connect() hooks
->>>     seltests/landlock: adds AF_UNSPEC family test
->>>     seltests/landlock: adds rules overlapping test
->>>     seltests/landlock: adds ruleset expanding test
->>>     seltests/landlock: adds invalid input data test
->>>     samples/landlock: adds network demo
->>>
->>>    include/uapi/linux/landlock.h               |  49 ++
->>>    samples/landlock/sandboxer.c                | 118 ++-
->>>    security/landlock/Kconfig                   |   1 +
->>>    security/landlock/Makefile                  |   2 +
->>>    security/landlock/fs.c                      | 162 +---
->>>    security/landlock/limits.h                  |   8 +-
->>>    security/landlock/net.c                     | 155 ++++
->>>    security/landlock/net.h                     |  26 +
->>>    security/landlock/ruleset.c                 | 448 +++++++++--
->>>    security/landlock/ruleset.h                 |  91 ++-
->>>    security/landlock/setup.c                   |   2 +
->>>    security/landlock/syscalls.c                | 168 +++--
->>>    tools/testing/selftests/landlock/common.h   |  10 +
->>>    tools/testing/selftests/landlock/config     |   4 +
->>>    tools/testing/selftests/landlock/fs_test.c  |  10 -
->>>    tools/testing/selftests/landlock/net_test.c | 774 ++++++++++++++++++++
->>>    16 files changed, 1737 insertions(+), 291 deletions(-)
->>>    create mode 100644 security/landlock/net.c
->>>    create mode 100644 security/landlock/net.h
->>>    create mode 100644 tools/testing/selftests/landlock/net_test.c
->>>
->>> -- 
->>> 2.25.1
->>>
->>
->> I did a thorough review of all the code. I found that the main issue
->> with this version is that we stick to the layers limit whereas it is
->> only relevant for filesystem hierarchies. You'll find in the following
->> patch miscellaneous fixes and improvement, with some TODOs to get rid of
->> this layer limit. We'll need a test to check that too. You'll need to
->> integrate this diff into your patches though.
-> 
-> You can find the related patch here:
-> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
+> Changes since v5:
+> * Splits commit.
+> * Adds local address 127.0.0.1.
+> * Adds FIXTURE_VARIANT and FIXTURE_VARIANT_ADD
+> helpers to support both ip4 and ip6 family tests and
+> shorten the code.
+> * Adds create_socket_variant() and bind_variant() helpers.
+> * Gets rid of reuse_addr variable in create_socket_variant.
+> * Formats code with clang-format-14.
 
-Thinking more about the layer limit, I think you should keep your
-changes and continue using ruleset.access_masks . Indeed, while it might
-be a good thing to not be limited by the 16 layers, it would be an issue
-with the upcoming audit feature, i.e. being able to point to the ruleset
-responsible for a denied access. Here is a new patch (on top of the
-other) to improve the current code:
-https://git.kernel.org/mic/c/7d6cf40a6f81adf607ad3cc17aaa11e256beeea4
-
-
-* Add a new access_masks_t for struct ruleset.  This is now u16 but
-   would soon need to change to u32 (because of the upcoming
-   LANDLOCK_ACCESS_FS_TRUNCATE).  Set back rules' access_masks_t to u16,
-   it should be enough for a while.
-* Rename LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
-   LANDLOCK_NUM_ACCESS_FS as value.
-* Rename landlock_set_*_access_mask() to landlock_add_*_access_mask()
-   because it OR values.
-* Make landlock_add_*_access_mask() more resilient incorrect values.
-* Rename some variable to make them more consistent with the rest of the
-   code.
-* Add and update kernel documentation.
-* Remove unused code.
----
-  security/landlock/limits.h  |   8 +-
-  security/landlock/ruleset.c |  31 +++-----
-  security/landlock/ruleset.h | 150 +++++++++++++++++++++---------------
-  3 files changed, 105 insertions(+), 84 deletions(-)
-
-diff --git a/security/landlock/limits.h b/security/landlock/limits.h
-index 660335258466..e50a12c1b797 100644
---- a/security/landlock/limits.h
-+++ b/security/landlock/limits.h
-@@ -21,15 +21,13 @@
-  #define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_REFER
-  #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
-  #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
-+#define LANDLOCK_SHIFT_ACCESS_FS	0
-  
-  #define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
-  #define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
-  #define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
--// TODO: LANDLOCK_MASK_SHIFT_NET will not be useful with the new
--// ruleset->net_access_mask
--#define LANDLOCK_MASK_SHIFT_NET		16
--
--#define LANDLOCK_RULE_TYPE_NUM		LANDLOCK_RULE_NET_SERVICE
-+#define LANDLOCK_SHIFT_ACCESS_NET	LANDLOCK_NUM_ACCESS_FS
-  
-  /* clang-format on */
-+
-  #endif /* _SECURITY_LANDLOCK_LIMITS_H */
-diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
-index e7555b16069a..1b3433ea4c61 100644
---- a/security/landlock/ruleset.c
-+++ b/security/landlock/ruleset.c
-@@ -47,21 +47,21 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
-  }
-  
-  struct landlock_ruleset *
--landlock_create_ruleset(const access_mask_t access_mask_fs,
--			const access_mask_t access_mask_net)
-+landlock_create_ruleset(const access_mask_t fs_access_mask,
-+			const access_mask_t net_access_mask)
-  {
-  	struct landlock_ruleset *new_ruleset;
-  
-  	/* Informs about useless ruleset. */
--	if (!access_mask_fs && !access_mask_net)
-+	if (!fs_access_mask && !net_access_mask)
-  		return ERR_PTR(-ENOMSG);
-  	new_ruleset = create_ruleset(1);
-  	if (IS_ERR(new_ruleset))
-  		return new_ruleset;
--	if (access_mask_fs)
--		landlock_set_fs_access_mask(new_ruleset, access_mask_fs, 0);
--	if (access_mask_net)
--		landlock_set_net_access_mask(new_ruleset, access_mask_net, 0);
-+	if (fs_access_mask)
-+		landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
-+	if (net_access_mask)
-+		landlock_add_net_access_mask(new_ruleset, net_access_mask, 0);
-  	return new_ruleset;
-  }
-  
-@@ -160,13 +160,14 @@ static void build_check_ruleset(void)
-  		.num_rules = ~0,
-  		.num_layers = ~0,
-  	};
--	typeof(ruleset.access_masks[0]) fs_access_mask = ~0;
--	typeof(ruleset.access_masks[0]) net_access_mask = ~0;
-+	typeof(ruleset.access_masks[0]) access_masks = ~0;
-  
-  	BUILD_BUG_ON(ruleset.num_rules < LANDLOCK_MAX_NUM_RULES);
-  	BUILD_BUG_ON(ruleset.num_layers < LANDLOCK_MAX_NUM_LAYERS);
--	BUILD_BUG_ON(fs_access_mask < LANDLOCK_MASK_ACCESS_FS);
--	BUILD_BUG_ON(net_access_mask < LANDLOCK_MASK_ACCESS_NET);
-+	BUILD_BUG_ON(access_masks <
-+		     (LANDLOCK_MASK_ACCESS_FS << LANDLOCK_SHIFT_ACCESS_FS) +
-+			     (LANDLOCK_MASK_ACCESS_NET
-+			      << LANDLOCK_SHIFT_ACCESS_NET));
-  }
-  
-  /**
-@@ -250,8 +251,6 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
-  		 * Intersects access rights when it is a merge between a
-  		 * ruleset and a domain.
-  		 */
--		// TODO: Don't create a new rule but AND accesses (of the first
--		// and only layer) if !is_object_pointer(id.type)
-  		new_rule = create_rule(id, &this->layers, this->num_layers,
-  				       &(*layers)[0]);
-  		if (IS_ERR(new_rule))
-@@ -332,7 +331,6 @@ static int merge_tree(struct landlock_ruleset *const dst,
-  	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
-  					     node) {
-  		struct landlock_layer layers[] = { {
--			// TODO: Set level to 1 if !is_object_pointer(key_type).
-  			.level = dst->num_layers,
-  		} };
-  		const struct landlock_id id = {
-@@ -531,7 +529,6 @@ landlock_merge_ruleset(struct landlock_ruleset *const parent,
-  		if (parent->num_layers >= LANDLOCK_MAX_NUM_LAYERS)
-  			return ERR_PTR(-E2BIG);
-  		num_layers = parent->num_layers + 1;
--		// TODO: Don't increment num_layers if RB_EMPTY_ROOT(&ruleset->root_inode).
-  	} else {
-  		num_layers = 1;
-  	}
-@@ -698,10 +695,6 @@ access_mask_t init_layer_masks(const struct landlock_ruleset *const domain,
-  
-  	switch (key_type) {
-  	case LANDLOCK_KEY_INODE:
--		// XXX: landlock_get_fs_access_mask() should not be removed
--		// once we use ruleset->net_access_mask, and we can then
--		// replace the @key_type argument with num_access to make the
--		// code simpler.
-  		get_access_mask = landlock_get_fs_access_mask;
-  		num_access = LANDLOCK_NUM_ACCESS_FS;
-  		break;
-diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
-index 59229be378d6..669de66094ed 100644
---- a/security/landlock/ruleset.h
-+++ b/security/landlock/ruleset.h
-@@ -19,8 +19,8 @@
-  #include "limits.h"
-  #include "object.h"
-  
--// TODO: get back to u16 thanks to ruleset->net_access_mask
--typedef u32 access_mask_t;
-+/* Rule access mask. */
-+typedef u16 access_mask_t;
-  /* Makes sure all filesystem access rights can be stored. */
-  static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
-  /* Makes sure all network access rights can be stored. */
-@@ -28,6 +28,12 @@ static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_NET);
-  /* Makes sure for_each_set_bit() and for_each_clear_bit() calls are OK. */
-  static_assert(sizeof(unsigned long) >= sizeof(access_mask_t));
-  
-+/* Ruleset access masks. */
-+typedef u16 access_masks_t;
-+/* Makes sure all ruleset access rights can be stored. */
-+static_assert(BITS_PER_TYPE(access_masks_t) >=
-+	      LANDLOCK_NUM_ACCESS_FS + LANDLOCK_NUM_ACCESS_NET);
-+
-  typedef u16 layer_mask_t;
-  /* Makes sure all layers can be checked. */
-  static_assert(BITS_PER_TYPE(layer_mask_t) >= LANDLOCK_MAX_NUM_LAYERS);
-@@ -47,16 +53,33 @@ struct landlock_layer {
-  	access_mask_t access;
-  };
-  
-+/**
-+ * union landlock_key - Key of a ruleset's red-black tree
-+ */
-  union landlock_key {
-  	struct landlock_object *object;
-  	uintptr_t data;
-  };
-  
-+/**
-+ * enum landlock_key_type - Type of &union landlock_key
-+ */
-  enum landlock_key_type {
-+	/**
-+	 * @LANDLOCK_KEY_INODE: Type of &landlock_ruleset.root_inode's node
-+	 * keys.
-+	 */
-  	LANDLOCK_KEY_INODE = 1,
-+	/**
-+	 * @LANDLOCK_KEY_NET_PORT: Type of &landlock_ruleset.root_net_port's
-+	 * node keys.
-+	 */
-  	LANDLOCK_KEY_NET_PORT = 2,
-  };
-  
-+/**
-+ * struct landlock_id - Unique rule identifier for a ruleset
-+ */
-  struct landlock_id {
-  	union landlock_key key;
-  	const enum landlock_key_type type;
-@@ -113,15 +136,17 @@ struct landlock_hierarchy {
-   */
-  struct landlock_ruleset {
-  	/**
--	 * @root: Root of a red-black tree containing &struct landlock_rule
--	 * nodes.  Once a ruleset is tied to a process (i.e. as a domain), this
--	 * tree is immutable until @usage reaches zero.
-+	 * @root_inode: Root of a red-black tree containing &struct
-+	 * landlock_rule nodes with inode object.  Once a ruleset is tied to a
-+	 * process (i.e. as a domain), this tree is immutable until @usage
-+	 * reaches zero.
-  	 */
-  	struct rb_root root_inode;
-  	/**
--	 * @root_net_port: Root of a red-black tree containing object nodes
--	 * for network port. Once a ruleset is tied to a process (i.e. as a domain),
--	 * this tree is immutable until @usage reaches zero.
-+	 * @root_net_port: Root of a red-black tree containing &struct
-+	 * landlock_rule nodes with network port. Once a ruleset is tied to a
-+	 * process (i.e. as a domain), this tree is immutable until @usage
-+	 * reaches zero.
-  	 */
-  	struct rb_root root_net_port;
-  	/**
-@@ -162,32 +187,25 @@ struct landlock_ruleset {
-  			 */
-  			u32 num_layers;
-  			/**
--			 * TODO: net_access_mask: Contains the subset of network
--			 * actions that are restricted by a ruleset.
--			 */
--			access_mask_t net_access_mask;
--			/**
--			 * @access_masks: Contains the subset of filesystem
--			 * actions that are restricted by a ruleset.  A domain
--			 * saves all layers of merged rulesets in a stack
--			 * (FAM), starting from the first layer to the last
--			 * one.  These layers are used when merging rulesets,
--			 * for user space backward compatibility (i.e.
--			 * future-proof), and to properly handle merged
-+			 * @access_masks: Contains the subset of filesystem and
-+			 * network actions that are restricted by a ruleset.
-+			 * A domain saves all layers of merged rulesets in a
-+			 * stack (FAM), starting from the first layer to the
-+			 * last one.  These layers are used when merging
-+			 * rulesets, for user space backward compatibility
-+			 * (i.e. future-proof), and to properly handle merged
-  			 * rulesets without overlapping access rights.  These
-  			 * layers are set once and never changed for the
-  			 * lifetime of the ruleset.
-  			 */
--			// TODO: rename (back) to fs_access_mask because layers
--			// are only useful for file hierarchies.
--			access_mask_t access_masks[];
-+			access_masks_t access_masks[];
-  		};
-  	};
-  };
-  
-  struct landlock_ruleset *
--landlock_create_ruleset(const access_mask_t access_mask_fs,
--			const access_mask_t access_mask_net);
-+landlock_create_ruleset(const access_mask_t fs_access_mask,
-+			const access_mask_t net_access_mask);
-  
-  void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
-  void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
-@@ -210,41 +228,7 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
-  		refcount_inc(&ruleset->usage);
-  }
-  
--// TODO: These helpers should not be required thanks to the new ruleset->net_access_mask.
--/* A helper function to set a filesystem mask. */
--static inline void
--landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
--			    const access_mask_t access_mask_fs, u16 mask_level)
--{
--	ruleset->access_masks[mask_level] = access_mask_fs;
--}
--
--/* A helper function to get a filesystem mask. */
--static inline u32
--landlock_get_fs_access_mask(const struct landlock_ruleset *ruleset,
--			    u16 mask_level)
--{
--	return (ruleset->access_masks[mask_level] & LANDLOCK_MASK_ACCESS_FS);
--}
--
--/* A helper function to set a network mask. */
--static inline void
--landlock_set_net_access_mask(struct landlock_ruleset *ruleset,
--			     const access_mask_t access_mask_net,
--			     u16 mask_level)
--{
--	ruleset->access_masks[mask_level] |=
--		(access_mask_net << LANDLOCK_MASK_SHIFT_NET);
--}
--
--/* A helper function to get a network mask. */
--static inline u32
--landlock_get_net_access_mask(const struct landlock_ruleset *ruleset,
--			     u16 mask_level)
--{
--	return (ruleset->access_masks[mask_level] >> LANDLOCK_MASK_SHIFT_NET);
--}
--
-+// TODO: Remove if only relevant for fs.c
-  access_mask_t get_handled_accesses(const struct landlock_ruleset *const domain,
-  				   const u16 rule_type, const u16 num_access);
-  
-@@ -258,4 +242,50 @@ access_mask_t init_layer_masks(const struct landlock_ruleset *const domain,
-  			       layer_mask_t (*const layer_masks)[],
-  			       const enum landlock_key_type key_type);
-  
-+static inline void
-+landlock_add_fs_access_mask(struct landlock_ruleset *const ruleset,
-+			    const access_mask_t fs_access_mask,
-+			    const u16 layer_level)
-+{
-+	access_mask_t fs_mask = fs_access_mask & LANDLOCK_MASK_ACCESS_FS;
-+
-+	/* Should already be checked in sys_landlock_create_ruleset(). */
-+	WARN_ON_ONCE(fs_access_mask != fs_mask);
-+	// TODO: Add tests to check "|=" and not "="
-+	ruleset->access_masks[layer_level] |=
-+		(fs_mask << LANDLOCK_SHIFT_ACCESS_FS);
-+}
-+
-+static inline void
-+landlock_add_net_access_mask(struct landlock_ruleset *const ruleset,
-+			     const access_mask_t net_access_mask,
-+			     const u16 layer_level)
-+{
-+	access_mask_t net_mask = net_access_mask & LANDLOCK_MASK_ACCESS_NET;
-+
-+	/* Should already be checked in sys_landlock_create_ruleset(). */
-+	WARN_ON_ONCE(net_access_mask != net_mask);
-+	// TODO: Add tests to check "|=" and not "="
-+	ruleset->access_masks[layer_level] |=
-+		(net_mask << LANDLOCK_SHIFT_ACCESS_NET);
-+}
-+
-+static inline access_mask_t
-+landlock_get_fs_access_mask(const struct landlock_ruleset *const ruleset,
-+			    const u16 layer_level)
-+{
-+	return (ruleset->access_masks[layer_level] >>
-+		LANDLOCK_SHIFT_ACCESS_FS) &
-+	       LANDLOCK_MASK_ACCESS_FS;
-+}
-+
-+static inline access_mask_t
-+landlock_get_net_access_mask(const struct landlock_ruleset *const ruleset,
-+			     const u16 layer_level)
-+{
-+	return (ruleset->access_masks[layer_level] >>
-+		LANDLOCK_SHIFT_ACCESS_NET) &
-+	       LANDLOCK_MASK_ACCESS_NET;
-+}
-+
-  #endif /* _SECURITY_LANDLOCK_RULESET_H */
+It seems that a formatting pass is missing for FIXTURE_VARIANT().
