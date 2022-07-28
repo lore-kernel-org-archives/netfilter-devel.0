@@ -2,182 +2,90 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A7E2C04A68
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 11:27:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A9D4C04A68
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Jul 2022 11:31:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232924AbiG1L1i (ORCPT
+        id S235072AbiG1Lb5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Jul 2022 07:27:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58032 "EHLO
+        Thu, 28 Jul 2022 07:31:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231272AbiG1L1h (ORCPT
+        with ESMTP id S235357AbiG1Lby (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Jul 2022 07:27:37 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E893BD;
-        Thu, 28 Jul 2022 04:27:35 -0700 (PDT)
-Received: from fraeml709-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LtpGs0scTz6H7Bh;
-        Thu, 28 Jul 2022 19:25:25 +0800 (CST)
-Received: from lhreml745-chm.china.huawei.com (10.201.108.195) by
- fraeml709-chm.china.huawei.com (10.206.15.37) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 28 Jul 2022 13:27:32 +0200
-Received: from [10.122.132.241] (10.122.132.241) by
- lhreml745-chm.china.huawei.com (10.201.108.195) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 28 Jul 2022 12:27:31 +0100
-Message-ID: <69215fd9-6f85-9329-14c6-2dd830af9528@huawei.com>
-Date:   Thu, 28 Jul 2022 14:27:30 +0300
+        Thu, 28 Jul 2022 07:31:54 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 796A548E8D
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jul 2022 04:31:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=I/4u7zWtc7g5k4HgYNLZ9kwIi/eQFq8mb9upAPEgHK8=; b=nmtmd8U2Wq0A6QO4lfhCP+XMZl
+        YVMAWOlnjDG7dziRaB+y9WuR/KTopJDRujX6a9zQXipbTa56EQVMR1ouZbaQR7ovnMl1Kd2A+yDLX
+        Bwhe3B9VEYFaEw39jZF1197JJTtUUwbfGmLyaUXdAi3FnHMt3DYFJa/ApFnH7CuElK/5BfXzC34vN
+        +g+cWiS2MEgXKk1c//gnmWE9Njyi+16SS6L1Yrg7lMGKTftIW0W8KSTZg3af0wHoIW/U1o7FGDDCM
+        iRwmX8ojVEpc0ppUb5EPd97SI1bcNPZlG68f3O3CtSmLac+KPqCrWOH7XvlFHYl44AvWVirQN/k+x
+        sXsM1mvg==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1oH1k6-0001rG-SN; Thu, 28 Jul 2022 13:31:50 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Erik Skultety <eskultet@redhat.com>,
+        Florian Westphal <fw@strlen.de>
+Subject: [iptables PATCH 2/3] xshared: Fix for missing space after 'prot' column
+Date:   Thu, 28 Jul 2022 13:31:35 +0200
+Message-Id: <20220728113136.24376-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220728113136.24376-1-phil@nwl.cc>
+References: <20220728113136.24376-1-phil@nwl.cc>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v6 00/17] Network support for Landlock
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <anton.sirazetdinov@huawei.com>
-References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
- <4c57a0c2-e207-10d6-c73d-bcda66bf3963@digikod.net>
- <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
- <38fa02c6-a8d1-892b-3f30-4a2d6b38efe5@huawei.com>
- <83796b1f-d2c0-06f9-c5fd-eb81d51a1a95@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <83796b1f-d2c0-06f9-c5fd-eb81d51a1a95@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
- lhreml745-chm.china.huawei.com (10.201.108.195)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Format string ensured a minimum field width of five characters, but
+allowed for longer strings to eat the column delimiting white space.
 
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../tests/shell/testcases/ip6tables/0002-verbose-output_0     | 2 +-
+ iptables/xshared.c                                            | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-7/28/2022 1:12 PM, Mickaël Salaün пишет:
-> 
-> 
-> On 28/07/2022 11:25, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 7/27/2022 10:54 PM, Mickaël Salaün пишет:
->>>
->>>
->>> On 26/07/2022 19:43, Mickaël Salaün wrote:
->>>>
->>>> On 21/06/2022 10:22, Konstantin Meskhidze wrote:
->>>>> Hi,
->>>>> This is a new V6 patch related to Landlock LSM network confinement.
->>>>> It is based on the latest landlock-wip branch on top of v5.19-rc2:
->>>>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=landlock-wip
->>>>>
->>>>> It brings refactoring of previous patch version V5:
->>>>>      - Fixes some logic errors and typos.
->>>>>      - Adds additional FIXTURE_VARIANT and FIXTURE_VARIANT_ADD helpers
->>>>>      to support both ip4 and ip6 families and shorten seltests' code.
->>>>>      - Makes TCP sockets confinement support optional in sandboxer 
->>>>> demo.
->>>>>      - Formats the code with clang-format-14
->>>>>
->>>>> All test were run in QEMU evironment and compiled with
->>>>>   -static flag.
->>>>>   1. network_test: 18/18 tests passed.
->>>>>   2. base_test: 7/7 tests passed.
->>>>>   3. fs_test: 59/59 tests passed.
->>>>>   4. ptrace_test: 8/8 tests passed.
->>>>>
->>>>> Still have issue with base_test were compiled without -static flag
->>>>> (landlock-wip branch without network support)
->>>>> 1. base_test: 6/7 tests passed.
->>>>>   Error:
->>>>>   #  RUN           global.inconsistent_attr ...
->>>>>   # base_test.c:54:inconsistent_attr:Expected ENOMSG (42) == errno (22)
->>>>>   # inconsistent_attr: Test terminated by assertion
->>>>>   #          FAIL  global.inconsistent_attr
->>>>> not ok 1 global.inconsistent_attr
->>>>>
->>>>> LCOV - code coverage report:
->>>>>              Hit  Total  Coverage
->>>>> Lines:      952  1010    94.3 %
->>>>> Functions:  79   82      96.3 %
->>>>>
->>>>> Previous versions:
->>>>> v5: 
->>>>> https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
->>>>> v4: 
->>>>> https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
->>>>> v3: 
->>>>> https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
->>>>> v2: 
->>>>> https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
->>>>> v1: 
->>>>> https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
->>>>>
->>>>> Konstantin Meskhidze (17):
->>>>>    landlock: renames access mask
->>>>>    landlock: refactors landlock_find/insert_rule
->>>>>    landlock: refactors merge and inherit functions
->>>>>    landlock: moves helper functions
->>>>>    landlock: refactors helper functions
->>>>>    landlock: refactors landlock_add_rule syscall
->>>>>    landlock: user space API network support
->>>>>    landlock: adds support network rules
->>>>>    landlock: implements TCP network hooks
->>>>>    seltests/landlock: moves helper function
->>>>>    seltests/landlock: adds tests for bind() hooks
->>>>>    seltests/landlock: adds tests for connect() hooks
->>>>>    seltests/landlock: adds AF_UNSPEC family test
->>>>>    seltests/landlock: adds rules overlapping test
->>>>>    seltests/landlock: adds ruleset expanding test
->>>>>    seltests/landlock: adds invalid input data test
->>>>>    samples/landlock: adds network demo
->>>>>
->>>>>   include/uapi/linux/landlock.h               |  49 ++
->>>>>   samples/landlock/sandboxer.c                | 118 ++-
->>>>>   security/landlock/Kconfig                   |   1 +
->>>>>   security/landlock/Makefile                  |   2 +
->>>>>   security/landlock/fs.c                      | 162 +---
->>>>>   security/landlock/limits.h                  |   8 +-
->>>>>   security/landlock/net.c                     | 155 ++++
->>>>>   security/landlock/net.h                     |  26 +
->>>>>   security/landlock/ruleset.c                 | 448 +++++++++--
->>>>>   security/landlock/ruleset.h                 |  91 ++-
->>>>>   security/landlock/setup.c                   |   2 +
->>>>>   security/landlock/syscalls.c                | 168 +++--
->>>>>   tools/testing/selftests/landlock/common.h   |  10 +
->>>>>   tools/testing/selftests/landlock/config     |   4 +
->>>>>   tools/testing/selftests/landlock/fs_test.c  |  10 -
->>>>>   tools/testing/selftests/landlock/net_test.c | 774 
->>>>> ++++++++++++++++++++
->>>>>   16 files changed, 1737 insertions(+), 291 deletions(-)
->>>>>   create mode 100644 security/landlock/net.c
->>>>>   create mode 100644 security/landlock/net.h
->>>>>   create mode 100644 tools/testing/selftests/landlock/net_test.c
->>>>>
->>>>> -- 
->>>>> 2.25.1
->>>>>
->>>>
->>>> I did a thorough review of all the code. I found that the main issue 
->>>> with this version is that we stick to the layers limit whereas it is 
->>>> only relevant for filesystem hierarchies. You'll find in the 
->>>> following patch miscellaneous fixes and improvement, with some TODOs 
->>>> to get rid of this layer limit. We'll need a test to check that too. 
->>>> You'll need to integrate this diff into your patches though.
->>>
->>> You can find the related patch here:
->>> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
->> 
->>   Is this patch based on your updated landlock-wip branch or it's still 
->> on Linux 5.19-rc2 version?
-> 
-> It's based on v5.19-rc2 but it doesn't really matter. I removed the
-> landlock-wip branch, which is not needed anymore. You can base your
-> patches on Linus' master branch.
+diff --git a/iptables/tests/shell/testcases/ip6tables/0002-verbose-output_0 b/iptables/tests/shell/testcases/ip6tables/0002-verbose-output_0
+index 4e754156ba589..dad01a982a915 100755
+--- a/iptables/tests/shell/testcases/ip6tables/0002-verbose-output_0
++++ b/iptables/tests/shell/testcases/ip6tables/0002-verbose-output_0
+@@ -35,7 +35,7 @@ Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source               destination
+     0     0 ACCEPT     all  --  eth2   eth3    feed:babe::1         feed:babe::2
+     0     0 ACCEPT     all  --  eth2   eth3    feed:babe::4         feed:babe::5
+-    0     0            ipv6-icmp--  *      *       ::/0                 ::/0                 ipv6-icmptype 1 code 0
++    0     0            ipv6-icmp --  *      *       ::/0                 ::/0                 ipv6-icmptype 1 code 0
+     0     0            all  --  *      *       ::/0                 ::/0                 dst length:42  rt type:23
+     0     0 LOG        all  --  *      *       ::/0                 ::/0                 frag id:1337 LOG flags 0 level 4
+ 
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index b1088c8234426..ccec4ff1bceef 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -1093,9 +1093,9 @@ void print_rule_details(unsigned int linenum, const struct xt_counters *ctrs,
+ 	fputc(invflags & XT_INV_PROTO ? '!' : ' ', stdout);
+ 
+ 	if (pname)
+-		printf(FMT("%-5s", "%s "), pname);
++		printf(FMT("%-4s ", "%s "), pname);
+ 	else
+-		printf(FMT("%-5hu", "%hu "), proto);
++		printf(FMT("%-4hu ", "%hu "), proto);
+ }
+ 
+ void save_rule_details(const char *iniface, unsigned const char *iniface_mask,
+-- 
+2.34.1
 
-   Ok. Thank you.
-> .
