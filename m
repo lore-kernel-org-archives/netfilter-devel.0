@@ -2,829 +2,428 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 223B6C00144
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jul 2022 09:31:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6099CC19F2B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Jul 2022 09:31:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231848AbiG2Jbj (ORCPT
+        id S231952AbiG2Jbk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Jul 2022 05:31:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59748 "EHLO
+        Fri, 29 Jul 2022 05:31:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231454AbiG2Jbi (ORCPT
+        with ESMTP id S231454AbiG2Jbk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Jul 2022 05:31:38 -0400
+        Fri, 29 Jul 2022 05:31:40 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4311B4D4C2
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jul 2022 02:31:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1AB824D4FE
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Jul 2022 02:31:39 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH RFC 1/3] netfilter: add Aho-Corasick string match implementation
-Date:   Fri, 29 Jul 2022 11:31:27 +0200
-Message-Id: <20220729093129.3108-2-pablo@netfilter.org>
+Subject: [PATCH RFC 3/3] netfilter: nf_tables: add string expression
+Date:   Fri, 29 Jul 2022 11:31:29 +0200
+Message-Id: <20220729093129.3108-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220729093129.3108-1-pablo@netfilter.org>
 References: <20220729093129.3108-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This implementation uses a tree of arrays for constant access time at
-pattern search time. The tree is composed of two type of state nodes:
+Add string expression to allow to match patterns on packets. These
+patterns are specified by an existing string set which uses the
+Aho-Corasick tree to store patterns.
 
-- Normal state, that has an array of edge pointers to the next state.
-  The current matching character is used as the array index to access
-  the next state.
+This expression allows for a packet base offset to be specified: network,
+transport or inner header offset. On top of this, you can specify an offset
+range to restrict the pattern search.
 
-- Final state has no edge pointers, it represents the last state for a
-  matching pattern. Final state provides an output field which specifies
-  the number of bytes that have been matched.
+This patch uses the existing sequencial read skbuff API to search for
+matching patterns.
 
-Additionally, a normal state might also have a output field. This
-implementation allows to store two words with the same prefix pattern in
-the tree, the search algorithm stops at the shortest length pattern
-match.
-
-Each state also has a fail pointer to backtrack in the tree states in
-case of mismatching, so this tree is actually a graph that represents
-a state-machine.
-
-The implementation provides no specific locking mechanism, it is up to
-the user to protect this data structure from concurrent access.
-Nftables follows a lockless approach by allowing updates on a clone,
-then use RCU to replace the stale tree by the updated clone from the
-commit phase.
-
-An internal stack is used to iterate over the tree nodes to avoid
-recursive calls, to delete patterns and to walk the tree.
-
-Maximum string size is 128 bytes.
-
-A dictionary of 370105 English words consumes ~150 Mbytes.
-
-This algorithm is described in "Efficient string matching: An aid to
-bibliographic search" by Alfred V. Aho and Margaret J. Corasick (published in
-June 1975) at Communications of the ACM 18 (6): 333–340.
+Currently, it only supports for the NFT_STR_F_PRESENT flags which is
+mandatory to test whether a pattern is matching the payload. This leaves
+room to extend this expression to support for more new matching modes in
+the future.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/ahocorasick.h |  27 ++
- net/netfilter/Kconfig               |   7 +
- net/netfilter/Makefile              |   2 +
- net/netfilter/ahocorasick.c         | 677 ++++++++++++++++++++++++++++
- 4 files changed, 713 insertions(+)
- create mode 100644 include/net/netfilter/ahocorasick.h
- create mode 100644 net/netfilter/ahocorasick.c
+ include/net/netfilter/nf_tables.h        |   4 +
+ include/net/netfilter/nf_tables_core.h   |   1 +
+ include/uapi/linux/netfilter/nf_tables.h |  26 +++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nf_tables_api.c            |   7 +-
+ net/netfilter/nf_tables_core.c           |   1 +
+ net/netfilter/nft_string.c               | 254 +++++++++++++++++++++++
+ 7 files changed, 290 insertions(+), 4 deletions(-)
+ create mode 100644 net/netfilter/nft_string.c
 
-diff --git a/include/net/netfilter/ahocorasick.h b/include/net/netfilter/ahocorasick.h
-new file mode 100644
-index 000000000000..2e7795912558
---- /dev/null
-+++ b/include/net/netfilter/ahocorasick.h
-@@ -0,0 +1,27 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _NET_NF_AHOCORASICK_H
-+#define _NET_NF_AHOCORASICK_H
-+
-+#define AC_MAXLEN	128
-+
-+struct ac_tree;
-+
-+struct ac_tree *ac_create(void);
-+void ac_destroy(struct ac_tree *tree);
-+
-+int ac_add(struct ac_tree *tree, const char *word, uint32_t len, bool create);
-+void ac_del(struct ac_tree *tree, const char *word, uint32_t len);
-+int ac_resolve_fail(struct ac_tree *tree);
-+
-+int ac_find(struct ac_tree *tree, const char *text, size_t text_len);
-+bool ac_find_word(struct ac_tree *tree, const char *word, uint32_t len);
-+
-+struct ac_iter;
-+
-+struct ac_iter *ac_iter_create(struct ac_tree *tree);
-+int ac_iterate(struct ac_iter *iter, int (*cb)(const char *word, void *data), void *data);
-+void ac_iter_destroy(struct ac_iter *ctx);
-+
-+struct ac_tree *ac_clone(struct ac_tree *tree);
-+
-+#endif
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index ddc54b6d18ee..383af17f0399 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -662,6 +662,13 @@ config NFT_TPROXY
- 	help
- 	  This makes transparent proxy support available in nftables.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index c4e9a969122a..20e12a881246 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1365,6 +1365,10 @@ struct nft_strset {
+ 	u32				use;
+ };
  
-+config NFT_STRING
-+	bool "Netfilter nf_tables string expression support"
-+	help
-+	   The string expression allows you to look for pattern matchings in
-+	   packets using an implementation of Aho-Corasick string matching
-+	   algorithm.
++struct nft_strset *nft_strset_lookup(const struct net *net,
++				     struct nft_table *table,
++				     const struct nlattr *nla, u8 genmask);
 +
- config NFT_SYNPROXY
- 	tristate "Netfilter nf_tables SYNPROXY expression support"
- 	depends on NF_CONNTRACK && NETFILTER_ADVANCED
+ /**
+  *	struct nft_traceinfo - nft tracing information and state
+  *
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 0ea7c55cea4d..f5a4bef2afba 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -12,6 +12,7 @@ extern struct nft_expr_type nft_lookup_type;
+ extern struct nft_expr_type nft_bitwise_type;
+ extern struct nft_expr_type nft_byteorder_type;
+ extern struct nft_expr_type nft_payload_type;
++extern struct nft_expr_type nft_string_type;
+ extern struct nft_expr_type nft_dynset_type;
+ extern struct nft_expr_type nft_range_type;
+ extern struct nft_expr_type nft_meta_type;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index d7a668199611..8ce2400952c0 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1711,6 +1711,32 @@ enum nft_string_hook_attributes {
+ };
+ #define NFTA_STRING_MAX	(__NFTA_STRING_MAX - 1)
+ 
++enum nft_string_flags {
++	NFT_STR_F_PRESENT = (1 << 0),
++};
++
++/**
++ * enum nft_str_hook_attributes - nf_tables string expression netlink attributes
++ *
++ * @NFTA_STR_NAME: string set name (NLA_STRING)
++ * @NFTA_STR_BASE: payload base (NLA_U32: nft_payload_bases)
++ * @NFTA_STR_FROM: offset to start matching from (NLA_U32)
++ * @NFTA_STR_TO: offset to end matching to (NLA_U32)
++ * @NFTA_STR_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_STR_FLAGS: flags (NLA_U32)
++ */
++enum nft_str_hook_attributes {
++	NFTA_STR_UNSPEC,
++	NFTA_STR_NAME,
++	NFTA_STR_BASE,
++	NFTA_STR_FROM,
++	NFTA_STR_TO,
++	NFTA_STR_DREG,
++	NFTA_STR_FLAGS,
++	__NFTA_STR_MAX
++};
++#define NFTA_STR_MAX	(__NFTA_STR_MAX - 1)
++
+ /**
+  * enum nft_osf_attributes - nftables osf expression netlink attributes
+  *
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 238b6a620e88..18127c83b88c 100644
+index 18127c83b88c..47ed19be4ac6 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -90,6 +90,8 @@ nf_tables-objs += nft_set_pipapo_avx2.o
- endif
+@@ -91,6 +91,7 @@ endif
  endif
  
-+nf_tables-$(CONFIG_NFT_STRING)	+= ahocorasick.o
-+
+ nf_tables-$(CONFIG_NFT_STRING)	+= ahocorasick.o
++nf_tables-$(CONFIG_NFT_STRING)	+= nft_string.o
+ 
  obj-$(CONFIG_NF_TABLES)		+= nf_tables.o
  obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
- obj-$(CONFIG_NFT_CONNLIMIT)	+= nft_connlimit.o
-diff --git a/net/netfilter/ahocorasick.c b/net/netfilter/ahocorasick.c
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 736bdf6b9671..854ee78884aa 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8117,10 +8117,9 @@ static const struct nla_policy nft_strset_policy[NFTA_STRSET_MAX + 1] = {
+ 	[NFTA_STRSET_HANDLE]	= { .type = NLA_U64 },
+ };
+ 
+-static struct nft_strset *nft_strset_lookup(const struct net *net,
+-					    struct nft_table *table,
+-					    const struct nlattr *nla,
+-					    u8 genmask)
++struct nft_strset *nft_strset_lookup(const struct net *net,
++				     struct nft_table *table,
++				     const struct nlattr *nla, u8 genmask)
+ {
+ 	struct nft_strset *strset;
+ 
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 3ddce24ac76d..ffa413378d7a 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -336,6 +336,7 @@ static struct nft_expr_type *nft_basic_types[] = {
+ 	&nft_payload_type,
+ 	&nft_dynset_type,
+ 	&nft_range_type,
++	&nft_string_type,
+ 	&nft_meta_type,
+ 	&nft_rt_type,
+ 	&nft_exthdr_type,
+diff --git a/net/netfilter/nft_string.c b/net/netfilter/nft_string.c
 new file mode 100644
-index 000000000000..67bdd1b85110
+index 000000000000..e3bf4be59c7c
 --- /dev/null
-+++ b/net/netfilter/ahocorasick.c
-@@ -0,0 +1,677 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
++++ b/net/netfilter/nft_string.c
+@@ -0,0 +1,254 @@
++// SPDX-License-Identifier: GPL-2.0-only
 +/*
-+ * (C) 2022 Pablo Neira Ayuso <pablo@netfilter.org>
++ * Copyright (c) 2022 Pablo Neira Ayuso <pablo@netfilter.org>
 + */
 +
 +#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
 +#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
 +#include <net/netfilter/ahocorasick.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
 +
-+enum {
-+	AC_STATE_NORMAL = 0,
-+	AC_STATE_FINAL,
++struct nft_string {
++	struct nft_strset	*strset;
++	u8			dreg;
++	u8			base;
++	u8			flags;
++	u32			from;
++	u32			to;
 +};
 +
-+struct ac_state {
-+	uint8_t			type;
-+	uint16_t		use;
-+	uint16_t		output;
-+	void			*fail;
-+	/* same layout as ac_state_final */
-+	uint8_t			from;
-+	uint8_t			len;
-+	void			**edge;
-+};
-+
-+/* this is a subset of struct ac_state, do not change the layout. */
-+struct ac_state_final {
-+	uint8_t			type;
-+	uint16_t		use;
-+	uint16_t		output;
-+	void			*fail;
-+};
-+
-+struct ac_stack {
-+	struct ac_state		*state;
-+	struct ac_state		*next;
-+	uint8_t			pos;
-+};
-+
-+struct ac_tree {
-+	struct ac_state		root;
-+	struct ac_stack		stack[AC_MAXLEN];
-+	int			stack_num;
-+};
-+
-+#define ac_state_fail(__s)	((struct ac_state *)__s)->fail
-+#define ac_state_output(__s)	((struct ac_state *)__s)->output
-+#define ac_state_use(__s)	((struct ac_state *)__s)->use
-+#define ac_state_type(__s)	((struct ac_state *)__s)->type
-+
-+static int ac_state_pos(const struct ac_state *state, int pos)
++static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
 +{
-+	return pos - state->from;
-+}
++	unsigned int thoff = nft_thoff(pkt);
 +
-+static int ac_state_edge_len(const struct ac_state *state)
-+{
-+	return state->from + state->len;
-+}
-+
-+static void *ac_state_edge(const struct ac_state *state, int pos)
-+{
-+	if (pos < state->from)
-+		return NULL;
-+	else if (pos >= ac_state_edge_len(state))
-+		return NULL;
-+
-+	return state->edge[ac_state_pos(state, pos)];
-+}
-+
-+static void ac_state_set_edge(struct ac_state *state, int pos, void *edge)
-+{
-+	state->edge[ac_state_pos(state, pos)] = edge;
-+}
-+
-+static inline uint8_t ac_text_get_char(const char *word, int pos)
-+{
-+	return (uint8_t)word[pos];
-+}
-+
-+static void ac_state_free(const struct ac_state *state)
-+{
-+	if (ac_state_type(state) == AC_STATE_NORMAL)
-+		kfree((void *)state->edge);
-+
-+	kfree((void *)state);
-+}
-+
-+void ac_del(struct ac_tree *tree, const char *word, uint32_t len)
-+{
-+	struct ac_state *cur = &tree->root, *this;
-+	struct ac_stack *ss;
-+	int i, pos;
-+
-+	for (i = 0; i < len; i++) {
-+		pos = ac_text_get_char(word, i);
-+
-+		ss = &tree->stack[tree->stack_num++];
-+		ss->state = cur;
-+		ss->pos = pos;
-+
-+		cur = ac_state_edge(cur, pos);
-+		if (WARN_ON_ONCE(cur == NULL))
-+			return;
-+	}
-+
-+	i = 0;
-+	while (tree->stack_num > 0) {
-+		ss = &tree->stack[--tree->stack_num];
-+
-+		this = ac_state_edge(ss->state, ss->pos);
-+
-+		if (i == 0 && ac_state_type(this) == AC_STATE_NORMAL && ac_state_output(this))
-+			ac_state_output(this) = 0;
-+
-+		ac_state_use(this)--;
-+		if (ac_state_use(this) == 0) {
-+			ac_state_free(this);
-+			ac_state_set_edge(ss->state, ss->pos, NULL);
-+		}
-+		i++;
-+	}
-+}
-+
-+bool ac_find_word(struct ac_tree *tree, const char *word, uint32_t len)
-+{
-+	struct ac_state *cur = &tree->root, *next;
-+	int i = 0;
-+
-+	while (i < len) {
-+		if (ac_state_type(cur) == AC_STATE_FINAL)
-+			break;
-+
-+		next = ac_state_edge(cur, ac_text_get_char(word, i));
-+		if (next != NULL) {
-+			cur = next;
-+			i++;
-+			continue;
-+		}
-+
-+		return false;
-+	}
-+
-+	if (!cur || !ac_state_output(cur))
-+		return false;
-+
-+	return i == len ? true : false;
-+}
-+
-+static int ac_state_resize(struct ac_state *cur, int pos)
-+{
-+	int old_from;
-+	uint8_t len;
-+	void **edge;
-+
-+	if (cur == NULL || ac_state_type(cur) == AC_STATE_FINAL)
-+		return 0;
-+
-+	if (pos < cur->from) {
-+		len = cur->len + (cur->from - pos);
-+		edge = kcalloc(len, sizeof(void *), GFP_KERNEL_ACCOUNT);
-+		if (!edge)
-+			return -ENOMEM;
-+
-+		old_from = cur->from - pos;
-+		memcpy(&edge[old_from], &cur->edge[0], cur->len * sizeof(void *));
-+		kfree(cur->edge);
-+		cur->edge = edge;
-+		cur->len = len;
-+		cur->from = pos;
-+
-+	} else if (pos >= ac_state_edge_len(cur)) {
-+		len = pos - cur->from + 1;
-+
-+		edge = krealloc(cur->edge, len * sizeof(void *), GFP_KERNEL_ACCOUNT);
-+		if (!edge)
-+			return -ENOMEM;
-+
-+		memset(&edge[cur->len], 0, (len - cur->len) * sizeof(void *));
-+
-+		cur->edge = edge;
-+		cur->len = len;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ac_add_state(struct ac_state *cur, uint8_t pos, uint8_t next_pos)
-+{
-+	struct ac_state *tmp = ac_state_edge(cur, pos);
-+
-+	if (ac_state_resize(cur, pos) < 0)
-+		return -ENOMEM;
-+
-+	if (tmp == NULL) {
-+		tmp = kcalloc(1, sizeof(struct ac_state), GFP_KERNEL_ACCOUNT);
-+		if (!tmp)
-+			return -ENOMEM;
-+
-+		tmp->from = next_pos;
-+		tmp->len = 1;
-+		tmp->edge = kcalloc(1, sizeof(void *), GFP_KERNEL_ACCOUNT);
-+		if (!tmp->edge) {
-+			kfree(tmp);
-+			return -ENOMEM;
-+		}
-+
-+		tmp->use = 1;
-+		ac_state_set_edge(cur, pos, tmp);
-+
-+	} else if (tmp->output != 0 && tmp->type == AC_STATE_FINAL) {
-+		struct ac_state *this;
-+
-+		/* There are two words with the same prefix, replace the final
-+		 * state by a normal state. By now, we only match the word with
-+		 * the shorter prefix, to match the longest word, we have to
-+		 * extend the find function.
-+		 */
-+		tmp = kcalloc(1, sizeof(struct ac_state), GFP_KERNEL_ACCOUNT);
-+		if (!tmp)
-+			return -ENOMEM;
-+
-+		tmp->from = next_pos;
-+		tmp->len = 1;
-+		tmp->edge = kcalloc(1, sizeof(void *), GFP_KERNEL_ACCOUNT);
-+		if (!tmp->edge) {
-+			kfree(tmp);
-+			return -ENOMEM;
-+		}
-+
-+		this = ac_state_edge(cur, pos);
-+		if (WARN_ON_ONCE(this == NULL))
-+			return -EINVAL;
-+
-+		if (this->use + 1 == 0) {
-+			kfree(tmp);
-+			return -EOVERFLOW;
-+		}
-+
-+		memcpy(tmp, this, sizeof(struct ac_state_final));
-+		tmp->use++;
-+		tmp->type = AC_STATE_NORMAL;
-+		ac_state_free(this);
-+		ac_state_set_edge(cur, pos, tmp);
-+	} else {
-+		if (tmp->use + 1 == 0)
-+			return -EOVERFLOW;
-+
-+		tmp->use++;
-+	}
-+	return 0;
-+}
-+
-+static int ac_add_state_final(struct ac_state *cur, uint8_t pos, const char *word, uint32_t len)
-+{
-+	struct ac_state_final *tmp = ac_state_edge(cur, pos);
-+
-+	if (ac_state_resize(cur, pos) < 0)
-+		return -ENOMEM;
-+
-+	if (!tmp) {
-+		tmp = kcalloc(1, sizeof(struct ac_state_final), GFP_KERNEL_ACCOUNT);
-+		if (!tmp)
-+			return -ENOMEM;
-+
-+		tmp->use = 1;
-+		ac_state_set_edge(cur, pos, tmp);
-+		ac_state_output(tmp) = len;
-+		ac_state_type(tmp) = AC_STATE_FINAL;
-+	} else {
-+		ac_state_output(tmp) = len;
-+		tmp->use++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __ac_add(struct ac_tree *tree, const char *word, uint32_t len)
-+{
-+	struct ac_state *cur = &tree->root;
-+	uint8_t pos, next_pos;
-+	int i, err;
-+
-+	for (i = 0; i < len - 1; i++) {
-+		pos = ac_text_get_char(word, i);
-+		next_pos = ac_text_get_char(word, i + 1);
-+		err = ac_add_state(cur, pos, next_pos);
-+		if (err < 0)
-+			goto err_add;
-+
-+		cur = ac_state_edge(cur, pos);
-+		if (WARN_ON_ONCE(cur == NULL)) {
-+			err = -EINVAL;
-+			goto err_add;
-+		}
-+	}
-+	pos = ac_text_get_char(word, i);
-+	err = ac_add_state_final(cur, pos, word, len);
-+	if (err < 0)
-+		goto err_add;
-+
-+	return 0;
-+err_add:
-+	if (i > 0)
-+		ac_del(tree, word, i);
-+
-+	return err;
-+}
-+
-+int ac_add(struct ac_tree *tree, const char *word, uint32_t len, bool create)
-+{
-+	if (len == 0)
-+		return -EINVAL;
-+	else if (len > AC_MAXLEN)
-+		return -E2BIG;
-+
-+	if (ac_find_word(tree, word, len)) {
-+		if (create)
-+			return -EEXIST;
-+
-+		return 0;
-+	}
-+
-+	return __ac_add(tree, word, len);
-+}
-+
-+struct ac_queue_state {
-+	struct list_head	head;
-+	struct ac_state		*state;
-+};
-+
-+int ac_resolve_fail(struct ac_tree *tree)
-+{
-+	struct ac_state *cur = &tree->root, *s, *fail;
-+	struct ac_queue_state *q;
-+	LIST_HEAD(queue);
-+	int i;
-+
-+	/* first level of the tree. */
-+	for (i = cur->from; i < ac_state_edge_len(cur); i++) {
-+		if (ac_state_edge(cur, i) != NULL) {
-+			struct ac_queue_state *new;
-+
-+			ac_state_fail(ac_state_edge(cur, i)) = tree;
-+
-+			new = kmalloc(sizeof(struct ac_queue_state), GFP_KERNEL_ACCOUNT);
-+			if (new == NULL)
-+				return -ENOMEM;
-+
-+			new->state = ac_state_edge(cur, i);
-+			list_add_tail(&new->head, &queue);
-+		}
-+	}
-+	/* second level of tree and further. */
-+	while (!list_empty(&queue)) {
-+		q = (struct ac_queue_state *) queue.next;
-+
-+		/* we reached final state, next in queue. */
-+		if (ac_state_output(q->state) != 0 &&
-+		    ac_state_type(q->state) == AC_STATE_FINAL) {
-+			list_del(&q->head);
-+			kfree(q);
-+			continue;
-+		}
-+		/* this is a normal state, add edges to queue. */
-+		for (i = q->state->from; i < ac_state_edge_len(q->state); i++) {
-+			struct ac_queue_state *new;
-+
-+			s = ac_state_edge(q->state, i);
-+			if (s == NULL)
-+				continue;
-+
-+			fail = ac_state_fail(q->state);
-+
-+			/* our zerostate has fail set to NULL. */
-+			while (fail && (ac_state_type(fail) == AC_STATE_FINAL ||
-+					ac_state_edge(fail, i) == NULL)) {
-+				fail = ac_state_fail(fail);
-+			}
-+			if (fail)
-+				ac_state_fail(s) = ac_state_edge(fail, i);
-+			else
-+				ac_state_fail(s) = cur;
-+
-+			new = kmalloc(sizeof(struct ac_queue_state), GFP_KERNEL_ACCOUNT);
-+			if (new == NULL)
-+				return -ENOMEM;
-+
-+			new->state = s;
-+			list_add_tail(&new->head, &queue);
-+		}
-+		list_del(&q->head);
-+		kfree(q);
-+	}
-+	return 0;
-+}
-+
-+static void
-+ac_add_edges_to_stack(struct ac_tree *tree, struct ac_state *cur, int i)
-+{
-+	struct ac_stack *ss;
-+
-+	while (1) {
-+		if (ac_state_output(cur) != 0 &&
-+		    ac_state_type(cur) == AC_STATE_FINAL)
-+			return;
-+
-+		if (i >= cur->from + cur->len)
-+			break;
-+
-+		if (ac_state_edge(cur, i) == NULL) {
-+			i++;
-+			continue;
-+		}
-+
-+		ss = &tree->stack[tree->stack_num++];
-+		if (tree->stack_num >= AC_MAXLEN)
-+			return;
-+
-+		ss->pos = i;
-+		ss->state = cur;
-+		ss->next = ac_state_edge(cur, i);
-+		cur = ac_state_edge(cur, i);
-+		i = 0;
-+	}
-+}
-+
-+static void ac_free_edges(struct ac_tree *tree)
-+{
-+	struct ac_state *cur = &tree->root;
-+	int i = cur->from;
-+
-+	while (1) {
-+		struct ac_stack *ss;
-+
-+		ac_add_edges_to_stack(tree, cur, i);
-+
-+		if (tree->stack_num == 0)
-+			break;
-+
-+		ss = &tree->stack[--tree->stack_num];
-+		i = ss->pos + 1;
-+		cur = ss->state;
-+		ac_state_free(ss->next);
-+	}
-+}
-+
-+struct ac_tree *ac_create(void)
-+{
-+	struct ac_state *root;
-+	struct ac_tree *tree;
-+
-+	tree = kcalloc(1, sizeof(struct ac_tree), GFP_KERNEL_ACCOUNT);
-+	if (!tree)
-+		return NULL;
-+
-+	root = &tree->root;
-+	root->from = 'a';
-+	root->len = 64;
-+	root->edge = kcalloc(root->len, sizeof(void *), GFP_KERNEL_ACCOUNT);
-+	if (!root->edge) {
-+		kfree(tree);
-+		return NULL;
-+	}
-+
-+	return tree;
-+}
-+
-+void ac_destroy(struct ac_tree *tree)
-+{
-+	ac_free_edges(tree);
-+	kfree(tree->root.edge);
-+	kfree(tree);
-+}
-+
-+int ac_find(struct ac_tree *tree, const char *text, size_t text_len)
-+{
-+	struct ac_state *cur = &tree->root, *edge;
-+	bool found = false;
-+	int i = 0, pos;
-+
-+	while (i < text_len) {
-+		pos = ac_text_get_char(text, i);
-+
-+		edge = ac_state_edge(cur, pos);
-+		if (edge != NULL) {
-+			if (ac_state_output(edge)) {
-+				found = true;
-+				break;
-+			}
-+			WARN_ON_ONCE(ac_state_type(cur) == AC_STATE_FINAL);
-+
-+			cur = edge;
-+			i++;
-+
-+			/* special case: fail state takes us to output state,
-+			 * this is a matching infix in the existing pattern.
-+			 */
-+			if (ac_state_fail(edge) &&
-+			    ac_state_output(ac_state_fail(edge)))
-+				return i - ac_state_output(ac_state_fail(edge));
-+
-+			/* special case: single character word as infix. */
-+			edge = ac_state_edge(&tree->root, pos);
-+			if (edge != NULL && ac_state_output(edge) != 0)
-+				return i - ac_state_output(edge);
-+
-+			if (i < text_len)
-+				continue;
-+
-+			edge = NULL;
-+		}
-+		while (edge == NULL) {
-+			cur = ac_state_fail(cur);
-+
-+			/* our zerostate has fail set to NULL or root. */
-+			if (cur == NULL || cur == &tree->root) {
-+				cur = &tree->root;
-+				/* otherwise retry with existing mismatch. */
-+				if (ac_state_edge(cur, pos) == NULL)
-+					i++;
-+				break;
-+			}
-+
-+			if (ac_state_output(cur))
-+				return i - ac_state_output(cur);
-+
-+			edge = ac_state_edge(cur, pos);
-+			/* don't increase i, test again the fail case. */
-+		}
-+	}
-+
-+	return found ? i - ac_state_output(edge) + 1 : -1;
-+}
-+
-+struct ac_iter {
-+	struct ac_tree *tree;
-+	struct ac_stack stack[AC_MAXLEN];
-+	char word[AC_MAXLEN];
-+	bool pending;
-+};
-+
-+struct ac_iter *ac_iter_create(struct ac_tree *tree)
-+{
-+	struct ac_iter *iter;
-+
-+	iter = kcalloc(1, sizeof(struct ac_iter), GFP_KERNEL_ACCOUNT);
-+	if (!iter)
-+		return NULL;
-+
-+	iter->tree = tree;
-+
-+	return iter;
-+}
-+
-+int ac_iterate(struct ac_iter *iter, int (*cb)(const char *word, void *data), void *data)
-+{
-+	struct ac_state *cur = &iter->tree->root, *next;
-+	struct ac_stack *stack = iter->stack;
-+	char *word = iter->word;
-+	int level = 0, i, err;
-+	struct ac_stack *ss;
-+	int stack_num = 0;
-+
-+	if (iter->pending) {
-+		if (WARN_ON_ONCE(cb(word, data) < 0))
-+			return -EINVAL;
-+
-+		iter->pending = false;
-+	}
-+
-+	i = cur->from;
-+	while (1) {
-+		if (i >= ac_state_edge_len(cur)) {
-+			if (stack_num <= 0)
-+				break;
-+
-+			ss = &stack[--stack_num];
-+			cur = ss->state;
-+			i = ss->pos;
-+			level--;
-+			continue;
-+		}
-+
-+		if (ac_state_edge(cur, i) == NULL) {
-+			i++;
-+			continue;
-+		}
-+
-+		next = ac_state_edge(cur, i);
-+		if (ac_state_type(next) == AC_STATE_FINAL) {
-+			word[level] = i;
-+			word[level + 1] = '\0';
-+			i++;
-+			err = cb(word, data);
-+			if (err == 0) {
-+				iter->pending = true;
-+				return err;
-+			} else if (err < 0) {
-+				return err;
-+			}
-+			continue;
-+		}
-+
-+		if (level >= AC_MAXLEN)
-+			break;
-+
-+		word[level++] = i;
-+		ss = &stack[stack_num++];
-+		ss->pos = i + 1;
-+		ss->state = cur;
-+		cur = next;
-+		i = next->from;
-+
-+		if (ac_state_output(next)) {
-+			word[level + 1] = '\0';
-+			err = cb(word, data);
-+			if (err == 0) {
-+				iter->pending = true;
-+				return err;
-+			} else if (err < 0) {
-+				return err;
-+			}
-+		}
-+	}
-+
-+	return 1;
-+}
-+
-+void ac_iter_destroy(struct ac_iter *iter)
-+{
-+	kfree(iter);
-+}
-+
-+static int ac_clone_cb(const char *word, void *data)
-+{
-+	if (__ac_add(data, word, strlen(word)) < 0)
++	if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
 +		return -1;
 +
-+	return 1;
++	switch (pkt->tprot) {
++	case IPPROTO_UDP:
++		pkt->inneroff = thoff + sizeof(struct udphdr);
++		break;
++	case IPPROTO_TCP: {
++		struct tcphdr *th, _tcph;
++
++		th = skb_header_pointer(pkt->skb, thoff, sizeof(_tcph), &_tcph);
++		if (!th)
++			return -1;
++
++		pkt->inneroff = thoff + __tcp_hdrlen(th);
++		}
++		break;
++	default:
++		return -1;
++	}
++
++	pkt->flags |= NFT_PKTINFO_INNER;
++
++	return 0;
 +}
 +
-+struct ac_tree *ac_clone(struct ac_tree *tree)
++static int nft_payload_inner_offset(const struct nft_pktinfo *pkt)
 +{
-+	struct ac_tree *newtree;
-+	struct ac_iter *iter;
-+	int ret;
++	if (!(pkt->flags & NFT_PKTINFO_INNER) &&
++	    __nft_payload_inner_offset((struct nft_pktinfo *)pkt) < 0)
++		return -1;
 +
-+	iter = ac_iter_create(tree);
-+	if (!iter)
-+		return NULL;
-+
-+	newtree = ac_create();
-+	if (!newtree) {
-+		ret = -1;
-+		goto err_out;
-+	}
-+
-+	ret = ac_iterate(iter, ac_clone_cb, newtree);
-+
-+err_out:
-+	ac_iter_destroy(iter);
-+
-+	if (ret < 0) {
-+		ac_destroy(newtree);
-+		return NULL;
-+	}
-+
-+	if (ac_resolve_fail(newtree) < 0) {
-+		ac_destroy(newtree);
-+		return NULL;
-+	}
-+
-+	return newtree;
++	return pkt->inneroff;
 +}
++
++static int nft_string_base(const struct nft_string *priv,
++			   const struct nft_pktinfo *pkt)
++{
++	int base_offset;
++
++	switch (priv->base) {
++	case NFT_PAYLOAD_NETWORK_HEADER:
++		base_offset = skb_network_offset(pkt->skb);
++		break;
++	case NFT_PAYLOAD_TRANSPORT_HEADER:
++		base_offset = skb_transport_offset(pkt->skb);
++		break;
++	case NFT_PAYLOAD_INNER_HEADER:
++		if (nft_payload_inner_offset(pkt))
++			base_offset = pkt->inneroff;
++		else
++			base_offset = 0;
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		break;
++	}
++
++	if (WARN_ON_ONCE(base_offset < 0))
++		base_offset = 0;
++
++	return base_offset;
++}
++
++static void nft_string_eval(const struct nft_expr *expr,
++			    struct nft_regs *regs,
++			    const struct nft_pktinfo *pkt)
++{
++	const struct nft_string *priv = nft_expr_priv(expr);
++	bool genbit = READ_ONCE(nft_net(pkt)->nft.gencursor);
++	u32 *dest = &regs->data[priv->dreg];
++	unsigned int consumed = 0, len;
++	struct sk_buff *skb = pkt->skb;
++	struct ac_tree __rcu *tree;
++	struct skb_seq_state state;
++	int base_offset, pos = -1;
++	const u8 *data;
++	u32 from, to;
++
++	base_offset = nft_string_base(priv, pkt);
++	if (priv->from + base_offset < priv->from)
++		from = priv->from;
++	else
++		from = priv->from + base_offset;
++
++	if (priv->to + base_offset < priv->to)
++		to = priv->to;
++	else
++		to = priv->to + base_offset;
++
++	skb_prepare_seq_read(skb, from, to, &state);
++
++	tree = rcu_dereference(priv->strset->tree[genbit]);
++
++	len = skb_seq_read(consumed, &data, &state);
++	while (len > 0) {
++		pos = ac_find(tree, data, len);
++		if (pos >= 0)
++			break;
++
++		consumed += len;
++		len = skb_seq_read(consumed, &data, &state);
++	}
++	skb_abort_seq_read(&state);
++
++	if (pos < 0)
++		*dest = 0;
++	else
++		*dest = 1;
++}
++
++static const struct nla_policy nft_string_policy[NFTA_STR_MAX + 1] = {
++	[NFTA_STR_DREG]		= { .type = NLA_U32 },
++	[NFTA_STR_NAME]		= { .type = NLA_STRING },
++	[NFTA_STR_BASE]		= { .type = NLA_U32 },
++	[NFTA_STR_FROM]		= { .type = NLA_U32 },
++	[NFTA_STR_TO]		= { .type = NLA_U32 },
++	[NFTA_STR_FLAGS]	= { .type = NLA_U32 },
++};
++
++static int nft_string_init(const struct nft_ctx *ctx,
++			   const struct nft_expr *expr,
++			   const struct nlattr * const tb[])
++{
++	struct nft_string *priv = nft_expr_priv(expr);
++	u8 genmask = nft_genmask_next(ctx->net);
++	uint32_t from, to, flags, base;
++	struct nft_strset *strset;
++	int err;
++
++	if (!tb[NFTA_STR_NAME] ||
++	    !tb[NFTA_STR_BASE] ||
++	    !tb[NFTA_STR_FROM] ||
++	    !tb[NFTA_STR_TO] ||
++	    !tb[NFTA_STR_DREG] ||
++	    !tb[NFTA_STR_FLAGS])
++		return -EINVAL;
++
++	from = ntohl(nla_get_be32(tb[NFTA_STR_FROM]));
++	to = ntohl(nla_get_be32(tb[NFTA_STR_TO]));
++	if (from > to)
++		return -EINVAL;
++
++	flags = ntohl(nla_get_be32(tb[NFTA_STR_FLAGS]));
++	if (flags & ~NFT_STR_F_PRESENT)
++		return -EOPNOTSUPP;
++	else if (flags == 0)	/* always NFT_STR_F_PRESENT set on by now. */
++		return -EOPNOTSUPP;
++
++	base = ntohl(nla_get_be32(tb[NFTA_STR_BASE]));
++	switch (base) {
++	case NFT_PAYLOAD_NETWORK_HEADER:
++	case NFT_PAYLOAD_TRANSPORT_HEADER:
++	case NFT_PAYLOAD_INNER_HEADER:
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++	priv->base = base;
++
++	err = nft_parse_register_store(ctx, tb[NFTA_STR_DREG], &priv->dreg,
++				       NULL, NFT_DATA_VALUE, sizeof(u32));
++	if (err < 0)
++		return err;
++
++	strset = nft_strset_lookup(ctx->net, ctx->table, tb[NFTA_STR_NAME],
++				   genmask);
++	if (IS_ERR(strset))
++		return PTR_ERR(strset);
++
++	strset->use++;
++
++	priv->strset = strset;
++	priv->from = from;
++	priv->to = to;
++
++	return 0;
++}
++
++static void nft_string_destroy(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
++{
++	const struct nft_string *priv = nft_expr_priv(expr);
++
++	priv->strset->use--;
++}
++
++static int nft_string_dump(struct sk_buff *skb,
++			   const struct nft_expr *expr)
++{
++	const struct nft_string *priv = nft_expr_priv(expr);
++
++	if (nla_put_string(skb, NFTA_STR_NAME, priv->strset->name))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_STR_BASE, htonl(priv->base)))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_STR_FROM, htonl(priv->from)))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_STR_TO, htonl(priv->to)))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_STR_FLAGS, htonl(priv->flags)))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_STR_DREG, priv->dreg))
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static const struct nft_expr_ops nft_string_get_ops = {
++	.type		= &nft_string_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_string)),
++	.eval		= nft_string_eval,
++	.init		= nft_string_init,
++	.destroy	= nft_string_destroy,
++	.dump		= nft_string_dump,
++};
++
++struct nft_expr_type nft_string_type __read_mostly = {
++	.name		= "string",
++	.ops		= &nft_string_get_ops,
++	.policy		= nft_string_policy,
++	.maxattr	= NFTA_STR_MAX,
++	.owner		= THIS_MODULE,
++};
 -- 
 2.30.2
 
