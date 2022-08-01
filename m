@@ -2,54 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6A62C00144
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Aug 2022 14:17:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99F22C00144
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Aug 2022 17:16:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232474AbiHAORx (ORCPT
+        id S231983AbiHARQG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Aug 2022 10:17:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36234 "EHLO
+        Mon, 1 Aug 2022 13:16:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232161AbiHAORx (ORCPT
+        with ESMTP id S234268AbiHARPq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Aug 2022 10:17:53 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 792AE22BF6
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2022 07:17:52 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] parser_json: fix device parsing in netdev family
-Date:   Mon,  1 Aug 2022 16:17:47 +0200
-Message-Id: <20220801141747.107519-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 1 Aug 2022 13:15:46 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E06E0E
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2022 10:15:45 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oIZ14-0001hM-VW; Mon, 01 Aug 2022 19:15:43 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 0/2] netfilter: nf_tables: fix nf_trace related crash
+Date:   Mon,  1 Aug 2022 19:15:34 +0200
+Message-Id: <20220801171536.21372-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-json_unpack() function is not designed to take a pre-allocated buffer.
+The commit e34b9ed96ce3 ("netfilter: nf_tables: avoid skb access on nf_stolen")
+is broken, it adds read-access to a structure that might contain
+garbage.
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1612
-Fixes: 3fdc7541fba0 ("src: add multidevice support for netdev chain")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/parser_json.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Fix this and extend the existing nft_trans_stress.sh script to
+cover this.
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index fb401009a499..e136cb2b43b0 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2781,7 +2781,7 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
- 		.table.location = *int_loc,
- 	};
- 	const char *family = "", *policy = "", *type, *hookstr;
--	const char name[IFNAMSIZ];
-+	const char *name = "";
- 	struct chain *chain;
- 	int prio;
- 
+Florian Westphal (2):
+  netfilter: nf_tables: fix crash when nf_trace is enabled
+  selftests: netfilter: add test case for nf trace infrastructure
+
+ net/netfilter/nf_tables_core.c                | 21 +++--
+ .../selftests/netfilter/nft_trans_stress.sh   | 78 ++++++++++++++++++-
+ 2 files changed, 86 insertions(+), 13 deletions(-)
 -- 
-2.30.2
+2.35.1
 
