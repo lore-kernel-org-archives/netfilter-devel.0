@@ -2,96 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F803C00144
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Aug 2022 10:01:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7790DC00144
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Aug 2022 10:21:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229920AbiHAKBK (ORCPT
+        id S229818AbiHAKVV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 1 Aug 2022 06:01:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44804 "EHLO
+        Mon, 1 Aug 2022 06:21:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229818AbiHAKBJ (ORCPT
+        with ESMTP id S229732AbiHAKVV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 Aug 2022 06:01:09 -0400
+        Mon, 1 Aug 2022 06:21:21 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 800B92C66B
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2022 03:01:08 -0700 (PDT)
-Date:   Mon, 1 Aug 2022 12:01:02 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 404AD2FA
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2022 03:21:20 -0700 (PDT)
+Date:   Mon, 1 Aug 2022 12:21:16 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
+To:     wenxu@chinatelecom.cn
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/7] netlink_delinearize: postprocess binary ands in
- set expressions
-Message-ID: <YuekXoqvZkGdQJRJ@salvia>
-References: <20220727112003.26022-1-fw@strlen.de>
- <20220727112003.26022-3-fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: nf_flow_table: delay teardown the
+ offload flow until fin packet recv from both direction
+Message-ID: <YuepHPfKs6UtI3TF@salvia>
+References: <1658810716-106274-1-git-send-email-wenxu@chinatelecom.cn>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220727112003.26022-3-fw@strlen.de>
+In-Reply-To: <1658810716-106274-1-git-send-email-wenxu@chinatelecom.cn>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Hi,
 
-On Wed, Jul 27, 2022 at 01:19:58PM +0200, Florian Westphal wrote:
-[..]
-> diff --git a/include/netlink.h b/include/netlink.h
-> index e8e0f68ae1a4..2d5532387c0c 100644
-> --- a/include/netlink.h
-> +++ b/include/netlink.h
-[...]
-> @@ -2569,6 +2582,24 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
->  			expr_set_type(expr->right, &integer_type,
->  				      BYTEORDER_HOST_ENDIAN);
->  			break;
-> +		case OP_AND:
-> +			expr_set_type(expr->right, expr->left->dtype,
-> +				      expr->left->byteorder);
-> +
-> +			/* Only process OP_AND if we are inside a concatenation.
-> +			 *
-> +			 * Else, we remove it too early, for normal contect OP_AND
-> +			 * removal needs to be performed as part of the relational
-> +			 * operation because the RHS constant might need to be adjusted
-> +			 * (shifted).
-> +			 */
-> +			if ((ctx->flags & RULE_PP_IN_CONCATENATION) &&
-> +			    expr->left->etype == EXPR_PAYLOAD &&
-> +			    expr->right->etype == EXPR_VALUE) {
-> +				__binop_postprocess(ctx, expr, expr->left, expr->right, exprp);
-> +				return;
-> +			}
-> +			break;
+On Tue, Jul 26, 2022 at 12:45:16AM -0400, wenxu@chinatelecom.cn wrote:
+> From: wenxu <wenxu@chinatelecom.cn>
+> 
+> A fin packet receive not always means the tcp connection teardown.
+> For tcp half close case, only the client shutdown the connection
+> and the server still can sendmsg to the client. The connection
+> can still be offloaded until the server shutdown the connection.
+> 
+> Signed-off-by: wenxu <wenxu@chinatelecom.cn>
+> ---
+>  include/net/netfilter/nf_flow_table.h |  3 ++-
+>  net/netfilter/nf_flow_table_ip.c      | 14 ++++++++++----
+>  2 files changed, 12 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+> index d5326c4..0c4864d 100644
+> --- a/include/net/netfilter/nf_flow_table.h
+> +++ b/include/net/netfilter/nf_flow_table.h
+> @@ -129,7 +129,8 @@ struct flow_offload_tuple {
+>  	/* All members above are keys for lookups, see flow_offload_hash(). */
+>  	struct { }			__hash;
+>  
+> -	u8				dir:2,
+> +	u8				dir:1,
+> +					fin:1,
+>  					xmit_type:3,
+>  					encap_num:2,
+>  					in_vlan_ingress:2;
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index b350fe9..c191861 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -19,7 +19,8 @@
+>  #include <linux/udp.h>
+>  
+>  static int nf_flow_state_check(struct flow_offload *flow, int proto,
+> -			       struct sk_buff *skb, unsigned int thoff)
+> +			       struct sk_buff *skb, unsigned int thoff,
+> +			       enum flow_offload_tuple_dir dir)
+>  {
+>  	struct tcphdr *tcph;
+>  
+> @@ -27,9 +28,14 @@ static int nf_flow_state_check(struct flow_offload *flow, int proto,
+>  		return 0;
+>  
+>  	tcph = (void *)(skb_network_header(skb) + thoff);
+> -	if (unlikely(tcph->fin || tcph->rst)) {
+> +	if (unlikely(tcph->rst)) {
+>  		flow_offload_teardown(flow);
+>  		return -1;
+> +	} else if (unlikely(tcph->fin)) {
+> +		flow->tuplehash[dir].tuple.fin = 1;
+> +		if (flow->tuplehash[!dir].tuple.fin == 1)
+> +			flow_offload_teardown(flow);
 
-Not sure this flag is enough. If I load this ruleset
-
- table netdev nt {
-       set macset {
-               typeof vlan id
-               size 1024
-               flags dynamic,timeout
-       }
-        chain y {
-        }
- }
- add rule netdev nt y update @macset { vlan id timeout 5s }
-
-listing still shows the raw expression:
-
- table netdev nt {
-        set macset {
-                typeof vlan id
-                size 1024
-                flags dynamic,timeout
-        }
-
-        chain y {
-                update @macset { @ll,112,16 & 0xfff timeout 5s }
-        }
- }
-
-looks like the problem is related to expressions in set statements?
-
-Remaining patches in this series LGTM.
+Maybe add a new flag to enum nf_flow_flags instead?
