@@ -2,127 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F9EEC3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Aug 2022 02:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7DC4C00144
+	for <netfilter-devel@archiver.kernel.org>; Mon,  1 Aug 2022 08:13:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238480AbiHACUp (ORCPT
+        id S229514AbiHAINA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 31 Jul 2022 22:20:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41052 "EHLO
+        Mon, 1 Aug 2022 04:13:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238437AbiHACUm (ORCPT
+        with ESMTP id S229447AbiHAIM7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 31 Jul 2022 22:20:42 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B1F912ABB;
-        Sun, 31 Jul 2022 19:20:38 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 038D8CE0F0E;
-        Mon,  1 Aug 2022 02:20:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6678CC433D6;
-        Mon,  1 Aug 2022 02:20:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1659320435;
-        bh=8+H9rIFxtVXMLizyjzjdfAN5H4rrg+kZwIAaizE2yzQ=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=qbHrryCgLDT40La7RvFNZvpswRq37MotxkwMrnSgvThg10C5P0Wuvbhb+kgAW2IV/
-         7l9AinfPyV+s0mp74V/lgRfNNWtXpVcoBhJZq6nNU0+Y+uztq9mnx8qZUNJtGfOmBy
-         z9E4MQQrlRBjePrgwRm5wkSRkYp1eh67rIz1eWdsjiCrWjEg7KPlp9UuuRYFvVdF4H
-         AG5ozENZQdt/UaSewznbAtfMQ42eqJ8Aijum4zvDsoNX31z1VJqC3WWFB8VpixZRdN
-         eZ7vzT+qAn+vAnbV2YEMFy6M4I4SzFXOjvGZzYicWbyrhI6mijE08eH8oBJNpMbil5
-         HrwTfHKih8DWg==
-Message-ID: <65fb5e26-2000-ffa5-5a3b-21db87da9e3b@kernel.org>
-Date:   Sun, 31 Jul 2022 20:20:31 -0600
+        Mon, 1 Aug 2022 04:12:59 -0400
+Received: from outgoing12.flk.host-h.net (outgoing12.flk.host-h.net [188.40.208.242])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0B582B270
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2022 01:12:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=risingedge.co.za; s=xneelo; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:reply-to:sender:bcc:in-reply-to:references
+        :content-type; bh=DhCSylOqMK9RK62jSG42tkSHvX1U9k17Jxtsz0NJ8Ss=; b=d3u8VlRndOa
+        1WgipKpvT8JSIX8ap3vy7zenK3vA+MwX2N8vKQG0eUYI9TgqAjW4KYqFRE7g8CSigg9eg1Qvb4UuM
+        XRLvoalWnOLqOXoEjE+e23KyfiRuBVdCqzcPgmIxqYNbCwcldNI+bVhmBrtaH4Nrf+BJUW8G6yVwz
+        sMhZKwFD6lxkLyCFFEfug27PaFW0hzqcNmG3W0IPjATyb+84SpDSUcs39Tf/ZT7OANpDjs9ttHRIV
+        fQT57d8CiHCEGUU+VxPniPa/5I/QRHNKGuLHCq2KpLkLtKsECMTXAvUrPyr6cD9NjPsDMN66ha63d
+        114Pwc/uHtyKHLFV5Tpy8rg==;
+Received: from www31.flk1.host-h.net ([188.40.1.173])
+        by antispam3-flk1.host-h.net with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <justin.swartz@risingedge.co.za>)
+        id 1oIQXc-0007e9-2T; Mon, 01 Aug 2022 10:12:51 +0200
+Received: from 8ta-249-0-202.telkomadsl.co.za ([102.249.0.202] helo=localhost.localdomain)
+        by www31.flk1.host-h.net with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <justin.swartz@risingedge.co.za>)
+        id 1oIQWT-0008Qi-VX; Mon, 01 Aug 2022 10:11:34 +0200
+From:   Justin Swartz <justin.swartz@risingedge.co.za>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Robert Kolchmeyer <rkolchmeyer@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        Justin Swartz <justin.swartz@risingedge.co.za>
+Subject: [PATCH] ebtables: add "allstatic" build target
+Date:   Mon,  1 Aug 2022 10:10:32 +0200
+Message-Id: <20220801081032.13366-1-justin.swartz@risingedge.co.za>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.11.0
-Subject: Re: [RFC] Remove DECNET support from kernel
-Content-Language: en-US
-To:     Stephen Hemminger <stephen@networkplumber.org>,
-        netdev@vger.kernel.org
-Cc:     Jonathan Corbet <corbet@lwn.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Borislav Petkov <bp@suse.de>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Damien Le Moal <damien.lemoal@opensource.wdc.com>,
-        Xin Long <lucien.xin@gmail.com>,
-        Akhmat Karakotov <hmukos@yandex-team.ru>,
-        Antoine Tenart <atenart@kernel.org>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Juergen Gross <jgross@suse.com>, Jens Axboe <axboe@kernel.dk>,
-        Xie Yongji <xieyongji@bytedance.com>,
-        Chen Yu <yu.c.chen@intel.com>,
-        William Breathitt Gray <vilhelm.gray@gmail.com>,
-        Suma Hegde <suma.hegde@amd.com>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali@kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Ghiti <alexandre.ghiti@canonical.com>,
-        Scott Wood <oss@buserror.net>,
-        Paul Gortmaker <paul.gortmaker@windriver.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Menglong Dong <imagedong@tencent.com>,
-        Petr Machata <petrm@nvidia.com>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Yajun Deng <yajun.deng@linux.dev>,
-        Yuwei Wang <wangyuweihx@gmail.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Soheil Hassas Yeganeh <soheil@google.com>,
-        Kuniyuki Iwashima <kuniyu@amazon.com>,
-        Marc Kleine-Budde <mkl@pengutronix.de>,
-        Stefano Garzarella <sgarzare@redhat.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Wang Qing <wangqing@vivo.com>, Yu Zhe <yuzhe@nfschina.com>,
-        Benjamin Poirier <bpoirier@nvidia.com>,
-        Victor Erminpour <victor.erminpour@oracle.com>,
-        "GONG, Ruiqi" <gongruiqi1@huawei.com>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:MIPS" <linux-mips@vger.kernel.org>,
-        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
-        <linuxppc-dev@lists.ozlabs.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>
-References: <20220731190646.97039-1-stephen@networkplumber.org>
-From:   David Ahern <dsahern@kernel.org>
-In-Reply-To: <20220731190646.97039-1-stephen@networkplumber.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Authenticated-Sender: justin.swartz@risingedge.co.za
+X-Virus-Scanned: Clear
+X-Originating-IP: 188.40.1.173
+X-SpamExperts-Domain: risingedge.co.za
+X-SpamExperts-Username: 
+Authentication-Results: host-h.net; auth=pass (login) smtp.auth=@risingedge.co.za
+X-SpamExperts-Outgoing-Class: ham
+X-SpamExperts-Outgoing-Evidence: SB/global_tokens (0.00771144909719)
+X-Recommended-Action: accept
+X-Filter-ID: Pt3MvcO5N4iKaDQ5O6lkdGlMVN6RH8bjRMzItlySaT8lRd3oTOTGlAWwRIN0W98VPUtbdvnXkggZ
+ 3YnVId/Y5jcf0yeVQAvfjHznO7+bT5wv+E/fDc7/R1GVAcdgTNkU3+rkdHDmDkl/alK+GLnpksVV
+ WRRXsM9Zt/2RWzM3RWYM3XeRrJb2hC17YoWceuut8F85JWDVq6BR5Ixa1z85PE1/gzQfM88V/+BY
+ 6rSZm+R3nndK8gxXHOR8xmpBSielAc0uXzxyDVCcVc2YNWS6fWb2tXPmns7zjSZElZ3mHNBnidc8
+ aj4UEJ9BbvNM19Eseaby5Ye7KJZ4TnuMw0v7mkcURWqRjbaTpjZ76SnwtaKCA58glIAOJzlMb7vU
+ dtXkIupF9oVoJxOgiAc/hMxCqRTC6zwh9gnyR6ZGKSRKnJ7aUnOFsLmxiteAg/Lg3QQf9KF0/TSf
+ HOH+bfnK0v9ZiKHuIBQAIL3H1ZJjKsJ4pLltSMkk9WyhqTYvpQ3xeVkJAuG5f5F796+TigZXI7V3
+ aGRmcDSGeScA/yd1y7ZE0d6h3DIh8+TiMeSiXYNg5CxOxBYp7Y2GZHv0xh6b+oGJmF+7HpiXZfFn
+ rsvPrZTEk0OD3gWUs/hlb/LcbWXLm4j4bEI0+1qiZCID5pC0mn1iDZXGZD0auzYaMcjMKovENt2Z
+ GHIMse5MIvqHTiGLpZNE/s8o8aPw1d4YK6Uv9AkSo3oSKlHMxVnkurBPHtW+f1Lk4FnztaYXJcGb
+ +ggC0uY6OQ/UtmVgvi7puaKdTUCKjVqTeKuR3eGZMxAk3xxtpu3na+v1v1FeW2bZzTWI5LrTB5hQ
+ 6nsDvccjqgmDvD9Wh1oGFEGE+pSoTK1YsOONTD9fJA3h62VnA3NT5IypeAnHaGwuEtG+OI4l45m8
+ ocw/TMoobmxVmqF3TjPZT8f3j/71l6AsHQsaknfXPk6nquQmgeO+LRk3vZWpXU1livMwYlz1pRXW
+ hjh9fdbl44I0Df1h2JtGUs6HARbNwQfH/DiPEwtPTXAgD42KSFzY1Rwd+RpLRuLAdXmBOzuQPJ1I
+ A4ZDOjqPH696SEBPk7q9MTcQCV0v6rQfiGmzg5fUcz3U8kGWpI9w5vt/LUkuaPnl/34bDW6jQ0+C
+ n/DXxtVx8KQIkAKT5X9XrQfol8meyDvbAcawvZuxmYkRonGQLKYp5Fs=
+X-Report-Abuse-To: spam@antispammaster.host-h.net
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 7/31/22 1:06 PM, Stephen Hemminger wrote:
-> Decnet is an obsolete network protocol that receives more attention
-> from kernel janitors than users. It belongs in computer protocol
-> history museum not in Linux kernel.
-> 
-> It has been Orphaned in kernel since 2010.
-> And the documentation link on Sourceforge says it is abandoned there.
-> 
-> Leave the UAPI alone to keep userspace programs compiling.
-> 
-> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
-> ---
+The "allstatic" target produces a statically linked (or standalone)
+binary, in contrast to "static" which produces a dynamically linked
+binary with libebtc baked in.
 
-Acked-by: David Ahern <dsahern@kernel.org>
+Signed-off-by: Justin Swartz <justin.swartz@risingedge.co.za>
+---
+ Makefile.am | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
+diff --git a/Makefile.am b/Makefile.am
+index b246064..05556d2 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -25,7 +25,7 @@ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include \
+ AM_CFLAGS = ${regular_CFLAGS}
+ 
+ sbin_PROGRAMS = ebtables-legacy ebtablesd ebtablesu ebtables-legacy-restore
+-EXTRA_PROGRAMS = static examples/ulog/test_ulog
++EXTRA_PROGRAMS = allstatic static examples/ulog/test_ulog
+ sysconf_DATA = ethertypes
+ sbin_SCRIPTS = ebtables-legacy-save
+ man8_MANS = ebtables-legacy.8
+@@ -52,6 +52,8 @@ ebtables_legacy_restore_SOURCES = ebtables-restore.c
+ ebtables_legacy_restore_LDADD = libebtc.la
+ static_SOURCES = ebtables-standalone.c $(libebtc_la_SOURCES)
+ static_LDFLAGS = -static
++allstatic_SOURCES = $(static_SOURCES)
++allstatic_LDFLAGS = -all-static
+ examples_ulog_test_ulog_SOURCES = examples/ulog/test_ulog.c getethertype.c
+ 
+ daemon: ebtablesd ebtablesu
+-- 
 
