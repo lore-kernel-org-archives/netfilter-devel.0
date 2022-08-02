@@ -2,44 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4513C00140
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Aug 2022 08:10:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F8CC00140
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 Aug 2022 09:12:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235653AbiHBIKe (ORCPT
+        id S236146AbiHBJMi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 Aug 2022 04:10:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50262 "EHLO
+        Tue, 2 Aug 2022 05:12:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236357AbiHBIKd (ORCPT
+        with ESMTP id S235611AbiHBJL6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Aug 2022 04:10:33 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37856BE2D
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 Aug 2022 01:10:30 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 26B6858728B81; Tue,  2 Aug 2022 10:10:28 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 2572060C2ED22;
-        Tue,  2 Aug 2022 10:10:28 +0200 (CEST)
-Date:   Tue, 2 Aug 2022 10:10:28 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Nicolas MAFFRE <nicolas.maffre.external@airbus.com>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: iptables v1.6.2 EOS date
-In-Reply-To: <CAHWqpUO3v0gtUYND=JNHwCU3W2qVaeVujYaKvZudvmmFqMpwpQ@mail.gmail.com>
-Message-ID: <o60354r-66p8-1o50-322n-4pn92o58ron9@vanv.qr>
-References: <CAHWqpUO3v0gtUYND=JNHwCU3W2qVaeVujYaKvZudvmmFqMpwpQ@mail.gmail.com>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        Tue, 2 Aug 2022 05:11:58 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C02A11EEC7
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 Aug 2022 02:11:47 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft,v2] parser_json: fix device parsing in netdev family
+Date:   Tue,  2 Aug 2022 11:11:42 +0200
+Message-Id: <20220802091142.164272-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tuesday 2022-08-02 08:21, Nicolas MAFFRE wrote:
->
->I'm working on a project that uses iptables v1.6.2 and I need to know
->if there is an "End of support" date for this version of the software
->iptables ?
+json_unpack() function is not designed to take a pre-allocated buffer.
 
-Thu Jul 5 20:54:11 2018
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1612
+Fixes: 3fdc7541fba0 ("src: add multidevice support for netdev chain")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: skip initialization and add test.
+
+ src/parser_json.c                 |  3 +--
+ tests/shell/testcases/json/netdev | 17 +++++++++++++++++
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+ create mode 100755 tests/shell/testcases/json/netdev
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index fb401009a499..9e93927a9a2b 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2780,8 +2780,7 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
+ 	struct handle h = {
+ 		.table.location = *int_loc,
+ 	};
+-	const char *family = "", *policy = "", *type, *hookstr;
+-	const char name[IFNAMSIZ];
++	const char *family = "", *policy = "", *type, *hookstr, *name;
+ 	struct chain *chain;
+ 	int prio;
+ 
+diff --git a/tests/shell/testcases/json/netdev b/tests/shell/testcases/json/netdev
+new file mode 100755
+index 000000000000..2cbc7e1f266c
+--- /dev/null
++++ b/tests/shell/testcases/json/netdev
+@@ -0,0 +1,17 @@
++#!/bin/bash
++
++ip link add d0 type dummy || {
++        echo "Skipping, no dummy interface available"
++        exit 0
++}
++trap "ip link del d0" EXIT
++
++$NFT flush ruleset
++$NFT add table inet test
++$NFT add chain inet test c
++
++$NFT flush ruleset
++
++RULESET='{"nftables":[{"flush":{"ruleset":null}},{"add":{"table":{"family":"netdev","name":"test_table"}}},{"add":{"chain":{"family":"netdev","table":"test_table","name":"test_chain","type":"filter","hook":"ingress","prio":0,"dev":"d0","policy":"accept"}}}]}'
++
++$NFT -j -f - <<< $RULESET
+-- 
+2.30.2
+
