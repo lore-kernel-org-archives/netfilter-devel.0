@@ -2,99 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EAD8C19F29
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Aug 2022 03:27:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 389B6C19F29
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Aug 2022 03:30:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233267AbiHDD1H (ORCPT
+        id S231948AbiHDDaQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 Aug 2022 23:27:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34792 "EHLO
+        Wed, 3 Aug 2022 23:30:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231368AbiHDD1F (ORCPT
+        with ESMTP id S231368AbiHDDaP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Aug 2022 23:27:05 -0400
-Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE91927FEE
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Aug 2022 20:27:02 -0700 (PDT)
-Received: by mail-pg1-x532.google.com with SMTP id f65so16788162pgc.12
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Aug 2022 20:27:02 -0700 (PDT)
+        Wed, 3 Aug 2022 23:30:15 -0400
+Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5379BC64
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Aug 2022 20:30:13 -0700 (PDT)
+Received: by mail-pj1-x102b.google.com with SMTP id v16-20020a17090abb9000b001f25244c65dso3984195pjr.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Aug 2022 20:30:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :from:to:cc;
-        bh=x09574+pXCwiGrXT2tPSSjDuO0yVXoTOMcQhYtQJwjo=;
-        b=ip9mIO4HYjcqdfZNUZrLRUPCrU5rL3vBSc+qA79VF7Izx42YyUJb5+kmUzyRRYw2R0
-         Hw1iV+7ewMuLrpu+9A25nFGBP+OX+IeE+eJ7BRh8BAQvYWRFAA6TELkJ+RW5t3la5gMl
-         gVFF3XNy/WofnOmreO9GvXEe+eUQCTDT5fjWlHM8FgccgACgd0hNnRNs21SmK5O+q5mV
-         zP1RsdSEaeVUT2rkWaMCX8GqtLFccGE2Q72jA/e6Hynppc6FNBEapbhfDygXGJyG3oZE
-         qElaIcsgBqf3MrgtW93ly1Jm3CLZtltya6zzm1PkOrmycwc1tMKf+y3xxMejmTiwEm7n
-         HMXw==
+        bh=guLIMUdwuV5GvPy0OAqvFarUkyvMBx3mLzcnUVQtYec=;
+        b=Q3wviX2GuNanje9NbUn7YEoalNBVLc6XcTRAuCPx7RoEoCUKfJV9Y6IZZpwmLsyJzR
+         yNhU7DlN670dMljYUnxXip70hmE1ZuAW0xEJHHASs7qz5UnPEEOMf34Hv/YNm8l+Aa/W
+         sZSV5obxYvqglVjlBcDdYqMh7+QwS4SYpfEt9w41yh7GvozeYYxNtkc1Ko/Xd2mPHOU8
+         YAPa5TSUStfXzCvxZnQ8NBZC8LF8JGTuuCNLyFjhvKzEIbdqKKVSYUibpAim3ZiX4ZVp
+         NTynpGalaPBVEKwndL1+u1ZQ+W4SEH3MjBhhKYFgaWZ17d4pD18tgBrolNK5xe1U9MN1
+         xjCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :x-gm-message-state:from:to:cc;
-        bh=x09574+pXCwiGrXT2tPSSjDuO0yVXoTOMcQhYtQJwjo=;
-        b=imPVXu7pHtMri9KVR7ikzF3jBkwH9sEJPA3cHi3NTTtEBOlMzAuywK2//bo3I0m4qC
-         zXBN/QRmnlBbTpJVE6sZ31dX0I02JV3qIlOQWDbmQrS6+v9nY/9kANFHw8GDJAqdbWC4
-         rEkZZJBmoYPdwS22jYD1RRtPBe5fSZHJHls7+XilCBpw4wZATmAShpH9MhnIDQIDOkb0
-         Tzgvw5FEWut1O9fmLLJ8R8Rstask96NDK818tUFl7y21sT9rOVjsv3PAQcInUEaFrcQU
-         3YCI0cG6jySifDcI7T7NSgWiCxLn/vUW7Ai/GC+v1h4FVNfCht6mCS0QufvL9dRc4V8G
-         IFpQ==
-X-Gm-Message-State: AJIora+rOu/HWzrXyiQbNVtzLrO+VQuM9owp1GJv7kV8vRQGJ3Zl0LZ2
-        6AD8q5QUfvZDNjHmRW+ld58XUy0B2qc=
-X-Google-Smtp-Source: AGRyM1sGz8TJD6BDDAWwrqcMCahU6AamjVDl3XZ3i8uUZ9Qe26QoXokBThE48SpFN4N8BUV+KTd1yw==
-X-Received: by 2002:a63:4608:0:b0:41a:617f:e194 with SMTP id t8-20020a634608000000b0041a617fe194mr24299827pga.152.1659583621775;
-        Wed, 03 Aug 2022 20:27:01 -0700 (PDT)
+        bh=guLIMUdwuV5GvPy0OAqvFarUkyvMBx3mLzcnUVQtYec=;
+        b=0mUPuvUZtpz/lPBLhvERsThKWM9tJqOdA1u8eHQpfx4lCtnlOZByQx1OligeP8Ls8H
+         4nkmHQ8O/U3X0rVJYdwA3EXzv0IEVvI9C9wP8YXKU98OXpGG58yvO3fnhWNt7tpELPJo
+         F0BVho4ewikEJHzRUorg4OWY6nT1rlGolTFxum11VDhX7T0OoS09HvCaOEOOrrD+iM0V
+         s2ePBq2hQXB1v0qgRk0yGKGzrK6z935r+X/++Dx2NWfm0MD+G8MoeMs95zch8oO43b1o
+         7Mq3Hoo9WEcbESkwUwpaaFD2QxmvScPnYZcInNisTzJe0Vobze40DWheWVgRaTxxWVXy
+         KXLA==
+X-Gm-Message-State: ACgBeo0KwGFoudgCCRD2KIWwqf3/C4BRCK1Wtq8VF6WP3M0qMVQ//bfb
+        N55vGaUUCxv7VTuKm5Qi1Bc1UlJV9g0=
+X-Google-Smtp-Source: AA6agR7A8fnNSPSPLgUSIRP6imuqGY8W9zUjiLQyPiEyNcgHYq+0S5y781elpFck1xLfsuwBrMtKwg==
+X-Received: by 2002:a17:903:283:b0:16e:f604:1408 with SMTP id j3-20020a170903028300b0016ef6041408mr15637506plr.119.1659583812838;
+        Wed, 03 Aug 2022 20:30:12 -0700 (PDT)
 Received: from slk15.local.net (n110-23-108-30.sun3.vic.optusnet.com.au. [110.23.108.30])
-        by smtp.gmail.com with ESMTPSA id a1-20020a170902ecc100b0016be681f008sm2779093plh.290.2022.08.03.20.26.59
+        by smtp.gmail.com with ESMTPSA id j15-20020a170902da8f00b0016db1b67fb9sm2852200plx.224.2022.08.03.20.30.10
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 Aug 2022 20:27:01 -0700 (PDT)
+        Wed, 03 Aug 2022 20:30:12 -0700 (PDT)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date:   Thu, 4 Aug 2022 13:26:57 +1000
-To:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Cc:     Mark Mentovai <mark@mentovai.com>
+Date:   Thu, 4 Aug 2022 13:30:08 +1000
+To:     Mark Mentovai <mark@mentovai.com>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
 Subject: Re: [PATCH libmnl] build: doc: refer to bash as bash, not /bin/bash
-Message-ID: <Yus8gaO78GKDROy1@slk15.local.net>
+Message-ID: <Yus9QHuk5Xr/29Xy@slk15.local.net>
 Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Mark Mentovai <mark@mentovai.com>
+Mail-Followup-To: Mark Mentovai <mark@mentovai.com>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
 References: <20220801172620.34547-1-mark@mentovai.com>
+ <YuhyM1TE7a/vTjFu@slk15.local.net>
+ <2152a8fd-a06f-bad2-fbae-36828e4919a@mentovai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220801172620.34547-1-mark@mentovai.com>
+In-Reply-To: <2152a8fd-a06f-bad2-fbae-36828e4919a@mentovai.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 01, 2022 at 01:26:20PM -0400, Mark Mentovai wrote:
-> This locates bash according to its presence in the PATH, not at a
-> hard-coded path which may not exist or may not be the most suitable bash
-> to use.
+On Tue, Aug 02, 2022 at 02:14:29PM -0400, Mark Mentovai wrote:
+[...]
 >
-> Signed-off-by: Mark Mentovai <mark@mentovai.com>
-> ---
->  doxygen/Makefile.am | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> The context here is in OpenWrt,
+> https://github.com/openwrt/openwrt/commit/beeb49740bb4. The use of /bin/bash
+> is a problem during a cross build of libmnl, with a build system running
+> macOS or BSD. /bin/bash on macOS is an unsuitably old version, and the
+> OpenWrt build ensures that a recent bash is available in PATH. BSD
+> derivatives tend not to have /bin/bash at all, although bash may be present
+> elsewhere in PATH. Again, the OpenWrt build ensures this.
 >
-> diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
-> index 29078dee122a..189a233f3760 100644
-> --- a/doxygen/Makefile.am
-> +++ b/doxygen/Makefile.am
-> @@ -21,7 +21,7 @@ doxyfile.stamp: $(doc_srcs) Makefile.am
->  # The command has to be a single line so the functions work
->  # and so `make` gives all lines to `bash -c`
->  # (hence ";\" at the end of every line but the last).
-> -	/bin/bash -p -c 'declare -A renamed_page;\
-> +	bash -p -c 'declare -A renamed_page;\
->  main(){ set -e; cd man/man3; rm -f _*;\
->    count_real_pages;\
->    rename_real_pages;\
-> --
-> 2.37.1
+> I would not expect the same treatment to be strictly necessary for scripts
+> like libnetfilter_queue or libnetfilter_log, which run on the target system,
+> but the reliance on /bin/bash is a problem for cross builds and in
+> particular non-Linux build systems. Considering that these cross builds are
+> otherwise perfectly clean given an appropriate toolchain, it seems
+> unnecessary to leave them broken for something like this, when a simple
+> reliance on locating bash via PATH ought to suffice for everyone.
 >
-Acked-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> Mark
+
+Good enough for me - I acked the original patch.
+
+Cheers ... Duncan.
