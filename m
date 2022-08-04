@@ -2,344 +2,255 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25253C25B06
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Aug 2022 22:06:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65322C25B06
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Aug 2022 22:12:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235203AbiHDWGQ (ORCPT
+        id S232491AbiHDWM6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Aug 2022 18:06:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40716 "EHLO
+        Thu, 4 Aug 2022 18:12:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231321AbiHDWGQ (ORCPT
+        with ESMTP id S230335AbiHDWM5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Aug 2022 18:06:16 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E57626118
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Aug 2022 15:06:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1659650774; x=1691186774;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=o/vxs79V2CiMB+3Hq98IMUcUWJ3HDEAbfKsg6Dsi8P4=;
-  b=QwIBDhMTFkTKpz+ssyNSoIEjdywa/CoDHxcY34wzu8s9U53sSVokLyxC
-   F6Exounc3P76xIFv1F7kjbQXFteNFX9RFkUDLuMftVPrMHzMvEwomPQwE
-   JmYvBfjgUf/efsXP1gERKY7UZohbpB33YUKD0J433JywPOiso+pUmbbZt
-   C4fbG+1aR4pVBiQ+0hEhruvgA5LQvJVAQQkMWIE4LiRLWyUSrDO1rIbAW
-   KNjUYyT5eFIfe1t+gdavfzEZM1kQ+PRiWCJwjXCg0PMTIc28TrCzRIiRM
-   8X9buW1DxhEvIE46y3QZ6NPMPdZmTgSFchJXtfZwH4BqGOJhCj/ieVUng
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10429"; a="291275950"
-X-IronPort-AV: E=Sophos;i="5.93,216,1654585200"; 
-   d="scan'208";a="291275950"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2022 15:06:02 -0700
-X-IronPort-AV: E=Sophos;i="5.93,216,1654585200"; 
-   d="scan'208";a="706365363"
-Received: from jekeller-desk.amr.corp.intel.com (HELO jekeller-desk.jekeller.internal) ([10.166.241.7])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2022 15:06:02 -0700
-From:   Jacob Keller <jacob.e.keller@intel.com>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Cc:     Duncan Roe <duncan_roe@optusnet.com.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jacob Keller <jacob.e.keller@intel.com>
-Subject: [PATCH libmnl] libmnl: add support for signed types
-Date:   Thu,  4 Aug 2022 15:05:55 -0700
-Message-Id: <20220804220555.2681949-1-jacob.e.keller@intel.com>
-X-Mailer: git-send-email 2.37.1.208.ge72d93e88cb2
+        Thu, 4 Aug 2022 18:12:57 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CC17B13EA6
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 Aug 2022 15:12:55 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf,v2] netfilter: nf_tables: validate variable length element extension
+Date:   Fri,  5 Aug 2022 00:12:48 +0200
+Message-Id: <20220804221248.2939-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-libmnl has get and put functions for unsigned integer types. It lacks
-support for the signed variations. On some level this is technically
-sufficient. A user could use the unsigned variations and then cast to a
-signed value at use. However, this makes resulting code in the application
-more difficult to follow. Introduce signed variations of the integer get
-and put functions.
+Update template to validate variable length extensions. This patch adds
+a new .ext_len[id] field to the template to store the expected extension
+length. This is used to sanity check the initialization of the variable
+length extension.
 
-Signed-off-by: Jacob Keller <jacob.e.keller@intel.com>
+Use PTR_ERR() in nft_set_elem_init() to report errors since, after this
+update, there are two reason why this might fail, either because of
+ENOMEM or insufficient room in the extension field (EINVAL).
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libmnl/libmnl.h |  16 ++++
- src/attr.c              | 194 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 210 insertions(+)
+v2: rebase on top of nf.git
 
-diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-index 4bd0b92e8742..6c37cd532a3d 100644
---- a/include/libmnl/libmnl.h
-+++ b/include/libmnl/libmnl.h
-@@ -92,6 +92,10 @@ extern uint8_t mnl_attr_get_u8(const struct nlattr *attr);
- extern uint16_t mnl_attr_get_u16(const struct nlattr *attr);
- extern uint32_t mnl_attr_get_u32(const struct nlattr *attr);
- extern uint64_t mnl_attr_get_u64(const struct nlattr *attr);
-+extern int8_t mnl_attr_get_s8(const struct nlattr *attr);
-+extern int16_t mnl_attr_get_s16(const struct nlattr *attr);
-+extern int32_t mnl_attr_get_s32(const struct nlattr *attr);
-+extern int64_t mnl_attr_get_s64(const struct nlattr *attr);
- extern const char *mnl_attr_get_str(const struct nlattr *attr);
- 
- /* TLV attribute putters */
-@@ -100,6 +104,10 @@ extern void mnl_attr_put_u8(struct nlmsghdr *nlh, uint16_t type, uint8_t data);
- extern void mnl_attr_put_u16(struct nlmsghdr *nlh, uint16_t type, uint16_t data);
- extern void mnl_attr_put_u32(struct nlmsghdr *nlh, uint16_t type, uint32_t data);
- extern void mnl_attr_put_u64(struct nlmsghdr *nlh, uint16_t type, uint64_t data);
-+extern void mnl_attr_put_s8(struct nlmsghdr *nlh, uint16_t type, int8_t data);
-+extern void mnl_attr_put_s16(struct nlmsghdr *nlh, uint16_t type, int16_t data);
-+extern void mnl_attr_put_s32(struct nlmsghdr *nlh, uint16_t type, int32_t data);
-+extern void mnl_attr_put_s64(struct nlmsghdr *nlh, uint16_t type, int64_t data);
- extern void mnl_attr_put_str(struct nlmsghdr *nlh, uint16_t type, const char *data);
- extern void mnl_attr_put_strz(struct nlmsghdr *nlh, uint16_t type, const char *data);
- 
-@@ -109,6 +117,10 @@ extern bool mnl_attr_put_u8_check(struct nlmsghdr *nlh, size_t buflen, uint16_t
- extern bool mnl_attr_put_u16_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, uint16_t data);
- extern bool mnl_attr_put_u32_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, uint32_t data);
- extern bool mnl_attr_put_u64_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, uint64_t data);
-+extern bool mnl_attr_put_s8_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, int8_t data);
-+extern bool mnl_attr_put_s16_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, int16_t data);
-+extern bool mnl_attr_put_s32_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, int32_t data);
-+extern bool mnl_attr_put_s64_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, int64_t data);
- extern bool mnl_attr_put_str_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, const char *data);
- extern bool mnl_attr_put_strz_check(struct nlmsghdr *nlh, size_t buflen, uint16_t type, const char *data);
- 
-@@ -127,6 +139,10 @@ enum mnl_attr_data_type {
- 	MNL_TYPE_U16,
- 	MNL_TYPE_U32,
- 	MNL_TYPE_U64,
-+	MNL_TYPE_S8,
-+	MNL_TYPE_S16,
-+	MNL_TYPE_S32,
-+	MNL_TYPE_S64,
- 	MNL_TYPE_STRING,
- 	MNL_TYPE_FLAG,
- 	MNL_TYPE_MSECS,
-diff --git a/src/attr.c b/src/attr.c
-index 838eab063981..cf971d6ed3c1 100644
---- a/src/attr.c
-+++ b/src/attr.c
-@@ -192,6 +192,10 @@ static const size_t mnl_attr_data_type_len[MNL_TYPE_MAX] = {
- 	[MNL_TYPE_U16]		= sizeof(uint16_t),
- 	[MNL_TYPE_U32]		= sizeof(uint32_t),
- 	[MNL_TYPE_U64]		= sizeof(uint64_t),
-+	[MNL_TYPE_S8]		= sizeof(int8_t),
-+	[MNL_TYPE_S16]		= sizeof(int16_t),
-+	[MNL_TYPE_S32]		= sizeof(int32_t),
-+	[MNL_TYPE_S64]		= sizeof(int64_t),
- 	[MNL_TYPE_MSECS]	= sizeof(uint64_t),
+ include/net/netfilter/nf_tables.h |  4 +-
+ net/netfilter/nf_tables_api.c     | 82 +++++++++++++++++++++++++------
+ net/netfilter/nft_dynset.c        |  2 +-
+ 3 files changed, 72 insertions(+), 16 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 64cf655c818c..ed02ecc2fd3b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -636,6 +636,7 @@ extern const struct nft_set_ext_type nft_set_ext_types[];
+ struct nft_set_ext_tmpl {
+ 	u16	len;
+ 	u8	offset[NFT_SET_EXT_NUM];
++	u8	ext_len[NFT_SET_EXT_NUM];
  };
  
-@@ -371,6 +375,54 @@ EXPORT_SYMBOL uint64_t mnl_attr_get_u64(const struct nlattr *attr)
- 	return tmp;
+ /**
+@@ -665,7 +666,8 @@ static inline int nft_set_ext_add_length(struct nft_set_ext_tmpl *tmpl, u8 id,
+ 		return -EINVAL;
+ 
+ 	tmpl->offset[id] = tmpl->len;
+-	tmpl->len	+= nft_set_ext_types[id].len + len;
++	tmpl->ext_len[id] = nft_set_ext_types[id].len + len;
++	tmpl->len	+= tmpl->ext_len[id];
+ 
+ 	return 0;
+ }
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 9f976b11d896..1ddb02e12dc8 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5467,6 +5467,27 @@ struct nft_expr *nft_set_elem_expr_alloc(const struct nft_ctx *ctx,
+ 	return ERR_PTR(err);
  }
  
-+/**
-+ * mnl_attr_get_s8 - returns 8-bit signed integer attribute payload
-+ * \param attr pointer to netlink attribute
-+ *
-+ * This function returns the 8-bit value of the attribute payload.
-+ */
-+EXPORT_SYMBOL int8_t mnl_attr_get_s8(const struct nlattr *attr)
++static int nft_set_ext_check(const struct nft_set_ext_tmpl *tmpl, u8 id, u32 len)
 +{
-+	return *((int8_t *)mnl_attr_get_payload(attr));
++	len += nft_set_ext_types[id].len;
++	if (len > tmpl->ext_len[id] ||
++	    len > U8_MAX)
++		return -1;
++
++	return 0;
 +}
 +
-+/**
-+ * mnl_attr_get_s16 - returns 16-bit signed integer attribute payload
-+ * \param attr pointer to netlink attribute
-+ *
-+ * This function returns the 16-bit value of the attribute payload.
-+ */
-+EXPORT_SYMBOL int16_t mnl_attr_get_s16(const struct nlattr *attr)
++static int nft_set_ext_memcpy(const struct nft_set_ext_tmpl *tmpl, u8 id,
++			      void *to, const void *from, u32 len)
 +{
-+	return *((int16_t *)mnl_attr_get_payload(attr));
++	if (nft_set_ext_check(tmpl, id, len) < 0)
++		return -1;
++
++	memcpy(to, from, len);
++
++	return 0;
 +}
 +
-+/**
-+ * mnl_attr_get_s32 - returns 32-bit signed integer attribute payload
-+ * \param attr pointer to netlink attribute
-+ *
-+ * This function returns the 32-bit value of the attribute payload.
-+ */
-+EXPORT_SYMBOL int32_t mnl_attr_get_s32(const struct nlattr *attr)
-+{
-+	return *((int32_t *)mnl_attr_get_payload(attr));
-+}
+ void *nft_set_elem_init(const struct nft_set *set,
+ 			const struct nft_set_ext_tmpl *tmpl,
+ 			const u32 *key, const u32 *key_end,
+@@ -5477,17 +5498,26 @@ void *nft_set_elem_init(const struct nft_set *set,
+ 
+ 	elem = kzalloc(set->ops->elemsize + tmpl->len, gfp);
+ 	if (elem == NULL)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	ext = nft_set_elem_ext(set, elem);
+ 	nft_set_ext_init(ext, tmpl);
+ 
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY))
+-		memcpy(nft_set_ext_key(ext), key, set->klen);
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END))
+-		memcpy(nft_set_ext_key_end(ext), key_end, set->klen);
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
+-		memcpy(nft_set_ext_data(ext), data, set->dlen);
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY) &&
++	    nft_set_ext_memcpy(tmpl, NFT_SET_EXT_KEY,
++			       nft_set_ext_key(ext), key, set->klen) < 0)
++		goto err_ext_check;
 +
-+/**
-+ * mnl_attr_get_s64 - returns 64-bit signed integer attribute.
-+ * \param attr pointer to netlink attribute
-+ *
-+ * This function returns the 64-bit value of the attribute payload. This
-+ * function is align-safe, since accessing 64-bit Netlink attributes is a
-+ * common source of alignment issues.
-+ */
-+EXPORT_SYMBOL int64_t mnl_attr_get_s64(const struct nlattr *attr)
-+{
-+	int64_t tmp;
-+	memcpy(&tmp, mnl_attr_get_payload(attr), sizeof(tmp));
-+	return tmp;
-+}
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END) &&
++	    nft_set_ext_memcpy(tmpl, NFT_SET_EXT_KEY_END,
++			       nft_set_ext_key_end(ext), key_end, set->klen) < 0)
++		goto err_ext_check;
 +
- /**
-  * mnl_attr_get_str - returns pointer to string attribute.
-  * \param attr pointer to netlink attribute
-@@ -469,6 +521,66 @@ EXPORT_SYMBOL void mnl_attr_put_u64(struct nlmsghdr *nlh, uint16_t type,
- 	mnl_attr_put(nlh, type, sizeof(uint64_t), &data);
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
++	    nft_set_ext_memcpy(tmpl, NFT_SET_EXT_DATA,
++			       nft_set_ext_data(ext), data, set->dlen) < 0)
++		goto err_ext_check;
++
+ 	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
+ 		*nft_set_ext_expiration(ext) = get_jiffies_64() + expiration;
+ 		if (expiration == 0)
+@@ -5497,6 +5527,11 @@ void *nft_set_elem_init(const struct nft_set *set,
+ 		*nft_set_ext_timeout(ext) = timeout;
+ 
+ 	return elem;
++
++err_ext_check:
++	kfree(elem);
++
++	return ERR_PTR(-EINVAL);
  }
  
-+/**
-+ * mnl_attr_put_s8 - add 8-bit signed integer attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param type netlink attribute type
-+ * \param data 8-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL void mnl_attr_put_s8(struct nlmsghdr *nlh, uint16_t type,
-+				   int8_t data)
-+{
-+	mnl_attr_put(nlh, type, sizeof(int8_t), &data);
-+}
-+
-+/**
-+ * mnl_attr_put_s16 - add 16-bit signed integer attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param type netlink attribute type
-+ * \param data 16-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL void mnl_attr_put_s16(struct nlmsghdr *nlh, uint16_t type,
-+				    int16_t data)
-+{
-+	mnl_attr_put(nlh, type, sizeof(int16_t), &data);
-+}
-+
-+/**
-+ * mnl_attr_put_s32 - add 32-bit signed integer attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param type netlink attribute type
-+ * \param data 32-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL void mnl_attr_put_s32(struct nlmsghdr *nlh, uint16_t type,
-+				    int32_t data)
-+{
-+	mnl_attr_put(nlh, type, sizeof(int32_t), &data);
-+}
-+
-+/**
-+ * mnl_attr_put_s64 - add 64-bit signed integer attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param type netlink attribute type
-+ * \param data 64-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL void mnl_attr_put_s64(struct nlmsghdr *nlh, uint16_t type,
-+				    int64_t data)
-+{
-+	mnl_attr_put(nlh, type, sizeof(int64_t), &data);
-+}
-+
- /**
-  * mnl_attr_put_str - add string attribute to netlink message
-  * \param nlh  pointer to the netlink message
-@@ -629,6 +741,88 @@ EXPORT_SYMBOL bool mnl_attr_put_u64_check(struct nlmsghdr *nlh, size_t buflen,
- 	return mnl_attr_put_check(nlh, buflen, type, sizeof(uint64_t), &data);
+ static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
+@@ -5584,14 +5619,25 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
  }
  
-+/**
-+ * mnl_attr_put_s8_check - add 8-bit signed int attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param buflen size of buffer which stores the message
-+ * \param type netlink attribute type
-+ * \param data 8-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function first checks that the data can be added to the message
-+ * (fits into the buffer) and then updates the length field of the Netlink
-+ * message (nlmsg_len) by adding the size (header + payload) of the new
-+ * attribute. The function returns true if the attribute could be added
-+ * to the message, otherwise false is returned.
-+ */
-+EXPORT_SYMBOL bool mnl_attr_put_s8_check(struct nlmsghdr *nlh, size_t buflen,
-+					 uint16_t type, int8_t data)
-+{
-+	return mnl_attr_put_check(nlh, buflen, type, sizeof(data), &data);
-+}
+ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
++				   const struct nft_set_ext_tmpl *tmpl,
+ 				   const struct nft_set_ext *ext,
+ 				   struct nft_expr *expr_array[],
+ 				   u32 num_exprs)
+ {
+ 	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
++	u32 len = sizeof(struct nft_set_elem_expr);
+ 	struct nft_expr *expr;
+ 	int i, err;
+ 
++	if (num_exprs == 0)
++		return 0;
 +
-+/**
-+ * mnl_attr_put_s16_check - add 16-bit signed int attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param buflen size of buffer which stores the message
-+ * \param type netlink attribute type
-+ * \param data 16-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function first checks that the data can be added to the message
-+ * (fits into the buffer) and then updates the length field of the Netlink
-+ * message (nlmsg_len) by adding the size (header + payload) of the new
-+ * attribute. The function returns true if the attribute could be added
-+ * to the message, otherwise false is returned.
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL bool mnl_attr_put_s16_check(struct nlmsghdr *nlh, size_t buflen,
-+					  uint16_t type, int16_t data)
-+{
-+	return mnl_attr_put_check(nlh, buflen, type, sizeof(data), &data);
-+}
++	for (i = 0; i < num_exprs; i++)
++		len += expr_array[i]->ops->size;
 +
-+/**
-+ * mnl_attr_put_s32_check - add 32-bit signed int attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param buflen size of buffer which stores the message
-+ * \param type netlink attribute type
-+ * \param data 32-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function first checks that the data can be added to the message
-+ * (fits into the buffer) and then updates the length field of the Netlink
-+ * message (nlmsg_len) by adding the size (header + payload) of the new
-+ * attribute. The function returns true if the attribute could be added
-+ * to the message, otherwise false is returned.
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL bool mnl_attr_put_s32_check(struct nlmsghdr *nlh, size_t buflen,
-+					  uint16_t type, int32_t data)
-+{
-+	return mnl_attr_put_check(nlh, buflen, type, sizeof(data), &data);
-+}
++	if (nft_set_ext_check(tmpl, NFT_SET_EXT_EXPRESSIONS, len) < 0)
++		return -EINVAL;
 +
-+/**
-+ * mnl_attr_put_s64_check - add 64-bit signed int attribute to netlink message
-+ * \param nlh pointer to the netlink message
-+ * \param buflen size of buffer which stores the message
-+ * \param type netlink attribute type
-+ * \param data 64-bit signed integer data that is stored by the new attribute
-+ *
-+ * This function first checks that the data can be added to the message
-+ * (fits into the buffer) and then updates the length field of the Netlink
-+ * message (nlmsg_len) by adding the size (header + payload) of the new
-+ * attribute. The function returns true if the attribute could be added
-+ * to the message, otherwise false is returned.
-+ * This function updates the length field of the Netlink message (nlmsg_len)
-+ * by adding the size (header + payload) of the new attribute.
-+ */
-+EXPORT_SYMBOL bool mnl_attr_put_s64_check(struct nlmsghdr *nlh, size_t buflen,
-+					  uint16_t type, int64_t data)
-+{
-+	return mnl_attr_put_check(nlh, buflen, type, sizeof(data), &data);
-+}
+ 	for (i = 0; i < num_exprs; i++) {
+ 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
+ 		err = nft_expr_clone(expr, expr_array[i]);
+@@ -6054,17 +6100,23 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		}
+ 	}
+ 
+-	err = -ENOMEM;
+ 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data,
+ 				      elem.key_end.val.data, elem.data.val.data,
+ 				      timeout, expiration, GFP_KERNEL_ACCOUNT);
+-	if (elem.priv == NULL)
++	if (IS_ERR(elem.priv)) {
++		err = PTR_ERR(elem.priv);
+ 		goto err_parse_data;
++	}
+ 
+ 	ext = nft_set_elem_ext(set, elem.priv);
+ 	if (flags)
+ 		*nft_set_ext_flags(ext) = flags;
 +
- /**
-  * mnl_attr_put_str_check - add string attribute to netlink message
-  * \param nlh  pointer to the netlink message
+ 	if (ulen > 0) {
++		if (nft_set_ext_check(&tmpl, NFT_SET_EXT_USERDATA, ulen) < 0) {
++			err = -EINVAL;
++			goto err_elem_free;
++		}
+ 		udata = nft_set_ext_userdata(ext);
+ 		udata->len = ulen - 1;
+ 		nla_memcpy(&udata->data, nla[NFTA_SET_ELEM_USERDATA], ulen);
+@@ -6073,14 +6125,14 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		*nft_set_ext_obj(ext) = obj;
+ 		obj->use++;
+ 	}
+-	err = nft_set_elem_expr_setup(ctx, ext, expr_array, num_exprs);
++	err = nft_set_elem_expr_setup(ctx, &tmpl, ext, expr_array, num_exprs);
+ 	if (err < 0)
+-		goto err_elem_expr;
++		goto err_elem_free;
+ 
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+ 	if (trans == NULL) {
+ 		err = -ENOMEM;
+-		goto err_elem_expr;
++		goto err_elem_free;
+ 	}
+ 
+ 	ext->genmask = nft_genmask_cur(ctx->net) | NFT_SET_ELEM_BUSY_MASK;
+@@ -6126,7 +6178,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	nft_setelem_remove(ctx->net, set, &elem);
+ err_element_clash:
+ 	kfree(trans);
+-err_elem_expr:
++err_elem_free:
+ 	if (obj)
+ 		obj->use--;
+ 
+@@ -6311,8 +6363,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data,
+ 				      elem.key_end.val.data, NULL, 0, 0,
+ 				      GFP_KERNEL_ACCOUNT);
+-	if (elem.priv == NULL)
++	if (IS_ERR(elem.priv)) {
++		err = PTR_ERR(elem.priv);
+ 		goto fail_elem_key_end;
++	}
+ 
+ 	ext = nft_set_elem_ext(set, elem.priv);
+ 	if (flags)
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 22f70b543fa2..6983e6ddeef9 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -60,7 +60,7 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 				 &regs->data[priv->sreg_key], NULL,
+ 				 &regs->data[priv->sreg_data],
+ 				 timeout, 0, GFP_ATOMIC);
+-	if (elem == NULL)
++	if (IS_ERR(elem))
+ 		goto err1;
+ 
+ 	ext = nft_set_elem_ext(set, elem);
 -- 
-2.37.1.208.ge72d93e88cb2
+2.30.2
 
