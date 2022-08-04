@@ -2,82 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B8E6C19F2B
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Aug 2022 11:07:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77529C25B06
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 Aug 2022 16:52:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239251AbiHDLHQ (ORCPT
+        id S232054AbiHDQwp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 Aug 2022 07:07:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54934 "EHLO
+        Thu, 4 Aug 2022 12:52:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233704AbiHDLHP (ORCPT
+        with ESMTP id S230177AbiHDQwp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 Aug 2022 07:07:15 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 360BE5925D
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 Aug 2022 04:07:13 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1oJYh5-0003wk-Ff; Thu, 04 Aug 2022 13:07:11 +0200
-Date:   Thu, 4 Aug 2022 13:07:11 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2 0/8] really handle stacked l2 headers
-Message-ID: <20220804110711.GC2741@breakpoint.cc>
-References: <20220801135633.5317-1-fw@strlen.de>
- <Yuum/f/DPpnbawkX@salvia>
+        Thu, 4 Aug 2022 12:52:45 -0400
+Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22822252B4;
+        Thu,  4 Aug 2022 09:52:44 -0700 (PDT)
+Received: from sslproxy03.your-server.de ([88.198.220.132])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1oJe5Q-0000fd-HW; Thu, 04 Aug 2022 18:52:40 +0200
+Received: from [85.1.206.226] (helo=linux.home)
+        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1oJe5Q-000XjY-AK; Thu, 04 Aug 2022 18:52:40 +0200
+Subject: LPC 2022 Networking and BPF Track CFP (Final Reminder)
+References: <fa09a9f1-7d99-cafb-3c10-7a3e474d8da6@iogearbox.net>
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc:     xdp-newbies@vger.kernel.org, iovisor-dev@lists.iovisor.org,
+        linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        lwn@lwn.net
+From:   Daniel Borkmann <daniel@iogearbox.net>
+X-Forwarded-Message-Id: <fa09a9f1-7d99-cafb-3c10-7a3e474d8da6@iogearbox.net>
+Message-ID: <e710903a-c436-08f5-12a4-1b7292372aed@iogearbox.net>
+Date:   Thu, 4 Aug 2022 18:52:39 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Yuum/f/DPpnbawkX@salvia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <fa09a9f1-7d99-cafb-3c10-7a3e474d8da6@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.6/26617/Thu Aug  4 09:54:12 2022)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> series LGTM.
-> 
-> A few more nits:
-> 
-> # cat test.nft
-> add table netdev x
-> add chain netdev x y
-> add rule netdev x y ip saddr 1.2.3.4 vlan id 10
-> # nft -f test.nft
-> test.nft:3:38-44: Error: conflicting protocols specified: ether vs. vlan
-> add rule netdev x y ip saddr 1.2.3.4 vlan id 10
->                                      ^^^^^^^
+This is the final reminder for the Call for Proposals (CFP) for the Networking
+and BPF track at the 2022 edition of the Linux Plumbers Conference (LPC), which
+is planned to be held in Dublin, Ireland, on September 12th - 14th, 2022.
 
-But thats not a regression, right?
+Note that the conference is planned to be both in person and remote (hybrid).
+CFP submitters should ideally be able to give their presentation in person to
+minimize technical issues if circumstances permit, although presenting remotely
+will also be possible.
 
-> # cat test.nft
-> add table netdev x
-> add chain netdev x y
-> add set netdev x macset { typeof ip saddr . vlan id; flags dynamic,timeout; }
-> add rule netdev x y update @macset { ip saddr . vlan id }
-> # nft -f test.nft
-> test.nft:4:49-55: Error: conflicting protocols specified: ether vs. vlan
-> add rule netdev x y update @macset { ip saddr . vlan id }
->                                                 ^^^^^^^
-> 
-> This is related to an implicit ether dependency.
+This year's Networking and BPF track technical committee is comprised of:
 
-Yes, it needs two implcit deps.
+    David S. Miller <davem@davemloft.net>
+    Jakub Kicinski <kuba@kernel.org>
+    Paolo Abeni <pabeni@redhat.com>
+    Eric Dumazet <edumazet@google.com>
+    Alexei Starovoitov <ast@kernel.org>
+    Daniel Borkmann <daniel@iogearbox.net>
+    Andrii Nakryiko <andrii@kernel.org>
 
-> If you see a way to fix this incrementally, I'm fine with you pushing
-> out this series and then you follow up.
+We are seeking proposals of 40 minutes in length (including Q&A discussion).
 
-OK, will do that then.
+Any kind of advanced Linux networking and/or BPF related topic will be considered.
 
-> Another issue: probably it would make sense to bail out when trying to
-> use 'vlan id' (and any other vlan fields) from ip/ip6/inet families?
-> vlan_do_receive() sets skb->dev to the vlan device, and the vlan
-> fields in the skbuff are cleared. In iptables, there is not vlan match
-> for this reason.
+Please submit your proposals through the official LPC website at:
 
-Thanks for the hint.  Right, so it makes sense to refuse the implcit dep
-and/or reject it from eval phase.
+    https://lpc.events/event/16/abstracts/
 
-I will have a look next week.
+Make sure to select "eBPF & Networking" in the track pull-down menu.
+
+Proposals must be submitted by August 10th, and submitters will be notified of
+acceptance by August 12th.
+
+Final slides (as PDF) are due on the first day of the conference.
+
+We are very much looking forward to a great conference and seeing you all!
