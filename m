@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E9FAC00140
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Aug 2022 13:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17BCBC00140
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 Aug 2022 13:46:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242651AbiHHNpK (ORCPT
+        id S236290AbiHHNqR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 Aug 2022 09:45:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51090 "EHLO
+        Mon, 8 Aug 2022 09:46:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242421AbiHHNpJ (ORCPT
+        with ESMTP id S242981AbiHHNqQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Aug 2022 09:45:09 -0400
+        Mon, 8 Aug 2022 09:46:16 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0FF9ABE2E
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2022 06:45:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 54ECB103B
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2022 06:46:15 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3] netfilter: nf_tables: validate variable length element extension
-Date:   Mon,  8 Aug 2022 15:45:01 +0200
-Message-Id: <20220808134501.235552-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: upfront validation of data via nft_data_init()
+Date:   Mon,  8 Aug 2022 15:46:10 +0200
+Message-Id: <20220808134610.235708-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,233 +28,512 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Update template to validate variable length extensions. This patch adds
-a new .ext_len[id] field to the template to store the expected extension
-length. This is used to sanity check the initialization of the variable
-length extension.
+Instead of parsing the data and then validate that type and length are
+correct, pass a description of the expected data so it can be validated
+upfront before parsing it to bail out earlier.
 
-Use PTR_ERR() in nft_set_elem_init() to report errors since, after this
-update, there are two reason why this might fail, either because of
-ENOMEM or insufficient room in the extension field (EINVAL).
+This patch adds a new .size field to specify the maximum size of the
+data area. The .len field is optional and it is used as an input/output
+field, it provides the specific length of the expected data in the input
+path. If then .len field is not specified, then obtained length from the
+netlink attribute is stored. This is required by cmp, bitwise, range and
+immediate, which provide no netlink attribute that describes the data
+length. The immediate expression uses the destination register type to
+infer the expected data type.
 
-Kernels up until 7e6bc1f6cabc ("netfilter: nf_tables: stricter
-validation of element data") allowed to copy more data to the extension
-than was allocated. This ext_len field allows to validate if the
-destination has the correct size as additional check.
+Relying on opencoded validation of the expected data might lead to
+subtle bugs as described in 7e6bc1f6cabc ("netfilter: nf_tables:
+stricter validation of element data").
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: extend commit description (requested by Florian)
-
  include/net/netfilter/nf_tables.h |  4 +-
- net/netfilter/nf_tables_api.c     | 82 +++++++++++++++++++++++++------
- net/netfilter/nft_dynset.c        |  2 +-
- 3 files changed, 72 insertions(+), 16 deletions(-)
+ net/netfilter/nf_tables_api.c     | 76 ++++++++++++++++---------------
+ net/netfilter/nft_bitwise.c       | 66 +++++++++++++--------------
+ net/netfilter/nft_cmp.c           | 44 ++++++++----------
+ net/netfilter/nft_immediate.c     | 22 +++++++--
+ net/netfilter/nft_range.c         | 27 +++++------
+ 6 files changed, 125 insertions(+), 114 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 64cf655c818c..ed02ecc2fd3b 100644
+index ed02ecc2fd3b..dc81f4b74ddf 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -636,6 +636,7 @@ extern const struct nft_set_ext_type nft_set_ext_types[];
- struct nft_set_ext_tmpl {
- 	u16	len;
- 	u8	offset[NFT_SET_EXT_NUM];
-+	u8	ext_len[NFT_SET_EXT_NUM];
+@@ -208,11 +208,11 @@ struct nft_ctx {
+ 
+ struct nft_data_desc {
+ 	enum nft_data_types		type;
++	unsigned int			size;
+ 	unsigned int			len;
  };
  
- /**
-@@ -665,7 +666,8 @@ static inline int nft_set_ext_add_length(struct nft_set_ext_tmpl *tmpl, u8 id,
- 		return -EINVAL;
- 
- 	tmpl->offset[id] = tmpl->len;
--	tmpl->len	+= nft_set_ext_types[id].len + len;
-+	tmpl->ext_len[id] = nft_set_ext_types[id].len + len;
-+	tmpl->len	+= tmpl->ext_len[id];
- 
- 	return 0;
- }
+-int nft_data_init(const struct nft_ctx *ctx,
+-		  struct nft_data *data, unsigned int size,
++int nft_data_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 		  struct nft_data_desc *desc, const struct nlattr *nla);
+ void nft_data_hold(const struct nft_data *data, enum nft_data_types type);
+ void nft_data_release(const struct nft_data *data, enum nft_data_types type);
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9f976b11d896..1ddb02e12dc8 100644
+index 1ddb02e12dc8..8858da3cc943 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5467,6 +5467,27 @@ struct nft_expr *nft_set_elem_expr_alloc(const struct nft_ctx *ctx,
- 	return ERR_PTR(err);
- }
- 
-+static int nft_set_ext_check(const struct nft_set_ext_tmpl *tmpl, u8 id, u32 len)
-+{
-+	len += nft_set_ext_types[id].len;
-+	if (len > tmpl->ext_len[id] ||
-+	    len > U8_MAX)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static int nft_set_ext_memcpy(const struct nft_set_ext_tmpl *tmpl, u8 id,
-+			      void *to, const void *from, u32 len)
-+{
-+	if (nft_set_ext_check(tmpl, id, len) < 0)
-+		return -1;
-+
-+	memcpy(to, from, len);
-+
-+	return 0;
-+}
-+
- void *nft_set_elem_init(const struct nft_set *set,
- 			const struct nft_set_ext_tmpl *tmpl,
- 			const u32 *key, const u32 *key_end,
-@@ -5477,17 +5498,26 @@ void *nft_set_elem_init(const struct nft_set *set,
- 
- 	elem = kzalloc(set->ops->elemsize + tmpl->len, gfp);
- 	if (elem == NULL)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	ext = nft_set_elem_ext(set, elem);
- 	nft_set_ext_init(ext, tmpl);
- 
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY))
--		memcpy(nft_set_ext_key(ext), key, set->klen);
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END))
--		memcpy(nft_set_ext_key_end(ext), key_end, set->klen);
--	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
--		memcpy(nft_set_ext_data(ext), data, set->dlen);
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY) &&
-+	    nft_set_ext_memcpy(tmpl, NFT_SET_EXT_KEY,
-+			       nft_set_ext_key(ext), key, set->klen) < 0)
-+		goto err_ext_check;
-+
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_KEY_END) &&
-+	    nft_set_ext_memcpy(tmpl, NFT_SET_EXT_KEY_END,
-+			       nft_set_ext_key_end(ext), key_end, set->klen) < 0)
-+		goto err_ext_check;
-+
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
-+	    nft_set_ext_memcpy(tmpl, NFT_SET_EXT_DATA,
-+			       nft_set_ext_data(ext), data, set->dlen) < 0)
-+		goto err_ext_check;
-+
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
- 		*nft_set_ext_expiration(ext) = get_jiffies_64() + expiration;
- 		if (expiration == 0)
-@@ -5497,6 +5527,11 @@ void *nft_set_elem_init(const struct nft_set *set,
- 		*nft_set_ext_timeout(ext) = timeout;
- 
- 	return elem;
-+
-+err_ext_check:
-+	kfree(elem);
-+
-+	return ERR_PTR(-EINVAL);
- }
- 
- static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
-@@ -5584,14 +5619,25 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
- }
- 
- static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
-+				   const struct nft_set_ext_tmpl *tmpl,
- 				   const struct nft_set_ext *ext,
- 				   struct nft_expr *expr_array[],
- 				   u32 num_exprs)
+@@ -5195,19 +5195,13 @@ static int nft_setelem_parse_flags(const struct nft_set *set,
+ static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *set,
+ 				 struct nft_data *key, struct nlattr *attr)
  {
- 	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
-+	u32 len = sizeof(struct nft_set_elem_expr);
- 	struct nft_expr *expr;
- 	int i, err;
+-	struct nft_data_desc desc;
+-	int err;
+-
+-	err = nft_data_init(ctx, key, NFT_DATA_VALUE_MAXLEN, &desc, attr);
+-	if (err < 0)
+-		return err;
+-
+-	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen) {
+-		nft_data_release(key, desc.type);
+-		return -EINVAL;
+-	}
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= NFT_DATA_VALUE_MAXLEN,
++		.len	= set->klen,
++	};
  
-+	if (num_exprs == 0)
-+		return 0;
+-	return 0;
++	return nft_data_init(ctx, key, &desc, attr);
+ }
+ 
+ static int nft_setelem_parse_data(struct nft_ctx *ctx, struct nft_set *set,
+@@ -5216,24 +5210,17 @@ static int nft_setelem_parse_data(struct nft_ctx *ctx, struct nft_set *set,
+ 				  struct nlattr *attr)
+ {
+ 	u32 dtype;
+-	int err;
+-
+-	err = nft_data_init(ctx, data, NFT_DATA_VALUE_MAXLEN, desc, attr);
+-	if (err < 0)
+-		return err;
+ 
+ 	if (set->dtype == NFT_DATA_VERDICT)
+ 		dtype = NFT_DATA_VERDICT;
+ 	else
+ 		dtype = NFT_DATA_VALUE;
+ 
+-	if (dtype != desc->type ||
+-	    set->dlen != desc->len) {
+-		nft_data_release(data, desc->type);
+-		return -EINVAL;
+-	}
++	desc->type = dtype;
++	desc->size = NFT_DATA_VALUE_MAXLEN;
++	desc->len = set->dlen;
+ 
+-	return 0;
++	return nft_data_init(ctx, data, desc, attr);
+ }
+ 
+ static void *nft_setelem_catchall_get(const struct net *net,
+@@ -9731,20 +9718,25 @@ int nft_verdict_dump(struct sk_buff *skb, int type, const struct nft_verdict *v)
+ }
+ 
+ static int nft_value_init(const struct nft_ctx *ctx,
+-			  struct nft_data *data, unsigned int size,
+-			  struct nft_data_desc *desc, const struct nlattr *nla)
++			  struct nft_data *data, struct nft_data_desc *desc,
++			  const struct nlattr *nla)
+ {
+ 	unsigned int len;
+ 
+ 	len = nla_len(nla);
+ 	if (len == 0)
+ 		return -EINVAL;
+-	if (len > size)
++	if (len > desc->size)
+ 		return -EOVERFLOW;
++	if (desc->len) {
++		if (len != desc->len)
++			return -EINVAL;
++	} else {
++		desc->len = len;
++	}
+ 
+ 	nla_memcpy(data->data, nla, len);
+-	desc->type = NFT_DATA_VALUE;
+-	desc->len  = len;
 +
-+	for (i = 0; i < num_exprs; i++)
-+		len += expr_array[i]->ops->size;
-+
-+	if (nft_set_ext_check(tmpl, NFT_SET_EXT_EXPRESSIONS, len) < 0)
+ 	return 0;
+ }
+ 
+@@ -9764,7 +9756,6 @@ static const struct nla_policy nft_data_policy[NFTA_DATA_MAX + 1] = {
+  *
+  *	@ctx: context of the expression using the data
+  *	@data: destination struct nft_data
+- *	@size: maximum data length
+  *	@desc: data description
+  *	@nla: netlink attribute containing data
+  *
+@@ -9774,24 +9765,35 @@ static const struct nla_policy nft_data_policy[NFTA_DATA_MAX + 1] = {
+  *	The caller can indicate that it only wants to accept data of type
+  *	NFT_DATA_VALUE by passing NULL for the ctx argument.
+  */
+-int nft_data_init(const struct nft_ctx *ctx,
+-		  struct nft_data *data, unsigned int size,
++int nft_data_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 		  struct nft_data_desc *desc, const struct nlattr *nla)
+ {
+ 	struct nlattr *tb[NFTA_DATA_MAX + 1];
+ 	int err;
+ 
++	if (WARN_ON_ONCE(!desc->size))
 +		return -EINVAL;
 +
- 	for (i = 0; i < num_exprs; i++) {
- 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
- 		err = nft_expr_clone(expr, expr_array[i]);
-@@ -6054,17 +6100,23 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		}
- 	}
- 
--	err = -ENOMEM;
- 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data,
- 				      elem.key_end.val.data, elem.data.val.data,
- 				      timeout, expiration, GFP_KERNEL_ACCOUNT);
--	if (elem.priv == NULL)
-+	if (IS_ERR(elem.priv)) {
-+		err = PTR_ERR(elem.priv);
- 		goto err_parse_data;
-+	}
- 
- 	ext = nft_set_elem_ext(set, elem.priv);
- 	if (flags)
- 		*nft_set_ext_flags(ext) = flags;
-+
- 	if (ulen > 0) {
-+		if (nft_set_ext_check(&tmpl, NFT_SET_EXT_USERDATA, ulen) < 0) {
-+			err = -EINVAL;
-+			goto err_elem_free;
-+		}
- 		udata = nft_set_ext_userdata(ext);
- 		udata->len = ulen - 1;
- 		nla_memcpy(&udata->data, nla[NFTA_SET_ELEM_USERDATA], ulen);
-@@ -6073,14 +6125,14 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		*nft_set_ext_obj(ext) = obj;
- 		obj->use++;
- 	}
--	err = nft_set_elem_expr_setup(ctx, ext, expr_array, num_exprs);
-+	err = nft_set_elem_expr_setup(ctx, &tmpl, ext, expr_array, num_exprs);
+ 	err = nla_parse_nested_deprecated(tb, NFTA_DATA_MAX, nla,
+ 					  nft_data_policy, NULL);
  	if (err < 0)
--		goto err_elem_expr;
-+		goto err_elem_free;
+ 		return err;
  
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
- 	if (trans == NULL) {
- 		err = -ENOMEM;
--		goto err_elem_expr;
-+		goto err_elem_free;
+-	if (tb[NFTA_DATA_VALUE])
+-		return nft_value_init(ctx, data, size, desc,
+-				      tb[NFTA_DATA_VALUE]);
+-	if (tb[NFTA_DATA_VERDICT] && ctx != NULL)
+-		return nft_verdict_init(ctx, data, desc, tb[NFTA_DATA_VERDICT]);
+-	return -EINVAL;
++	if (tb[NFTA_DATA_VALUE]) {
++		if (desc->type != NFT_DATA_VALUE)
++			return -EINVAL;
++
++		err = nft_value_init(ctx, data, desc, tb[NFTA_DATA_VALUE]);
++	} else if (tb[NFTA_DATA_VERDICT] && ctx != NULL) {
++		if (desc->type != NFT_DATA_VERDICT)
++			return -EINVAL;
++
++		err = nft_verdict_init(ctx, data, desc, tb[NFTA_DATA_VERDICT]);
++	} else {
++		err = -EINVAL;
++	}
++
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(nft_data_init);
+ 
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 83590afe3768..e6e402b247d0 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -93,7 +93,16 @@ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
+ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
+ 				 const struct nlattr *const tb[])
+ {
+-	struct nft_data_desc mask, xor;
++	struct nft_data_desc mask = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->mask),
++		.len	= priv->len,
++	};
++	struct nft_data_desc xor = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->xor),
++		.len	= priv->len,
++	};
+ 	int err;
+ 
+ 	if (tb[NFTA_BITWISE_DATA])
+@@ -103,37 +112,30 @@ static int nft_bitwise_init_bool(struct nft_bitwise *priv,
+ 	    !tb[NFTA_BITWISE_XOR])
+ 		return -EINVAL;
+ 
+-	err = nft_data_init(NULL, &priv->mask, sizeof(priv->mask), &mask,
+-			    tb[NFTA_BITWISE_MASK]);
++	err = nft_data_init(NULL, &priv->mask, &mask, tb[NFTA_BITWISE_MASK]);
+ 	if (err < 0)
+ 		return err;
+-	if (mask.type != NFT_DATA_VALUE || mask.len != priv->len) {
+-		err = -EINVAL;
+-		goto err_mask_release;
+-	}
+ 
+-	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &xor,
+-			    tb[NFTA_BITWISE_XOR]);
++	err = nft_data_init(NULL, &priv->xor, &xor, tb[NFTA_BITWISE_XOR]);
+ 	if (err < 0)
+-		goto err_mask_release;
+-	if (xor.type != NFT_DATA_VALUE || xor.len != priv->len) {
+-		err = -EINVAL;
+-		goto err_xor_release;
+-	}
++		goto err_xor_err;
+ 
+ 	return 0;
+ 
+-err_xor_release:
+-	nft_data_release(&priv->xor, xor.type);
+-err_mask_release:
++err_xor_err:
+ 	nft_data_release(&priv->mask, mask.type);
++
+ 	return err;
+ }
+ 
+ static int nft_bitwise_init_shift(struct nft_bitwise *priv,
+ 				  const struct nlattr *const tb[])
+ {
+-	struct nft_data_desc d;
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->data),
++		.len	= sizeof(u32),
++	};
+ 	int err;
+ 
+ 	if (tb[NFTA_BITWISE_MASK] ||
+@@ -143,13 +145,12 @@ static int nft_bitwise_init_shift(struct nft_bitwise *priv,
+ 	if (!tb[NFTA_BITWISE_DATA])
+ 		return -EINVAL;
+ 
+-	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &d,
+-			    tb[NFTA_BITWISE_DATA]);
++	err = nft_data_init(NULL, &priv->data, &desc, tb[NFTA_BITWISE_DATA]);
+ 	if (err < 0)
+ 		return err;
+-	if (d.type != NFT_DATA_VALUE || d.len != sizeof(u32) ||
+-	    priv->data.data[0] >= BITS_PER_TYPE(u32)) {
+-		nft_data_release(&priv->data, d.type);
++
++	if (priv->data.data[0] >= BITS_PER_TYPE(u32)) {
++		nft_data_release(&priv->data, desc.type);
+ 		return -EINVAL;
  	}
  
- 	ext->genmask = nft_genmask_cur(ctx->net) | NFT_SET_ELEM_BUSY_MASK;
-@@ -6126,7 +6178,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	nft_setelem_remove(ctx->net, set, &elem);
- err_element_clash:
- 	kfree(trans);
--err_elem_expr:
-+err_elem_free:
- 	if (obj)
- 		obj->use--;
+@@ -339,22 +340,21 @@ static const struct nft_expr_ops nft_bitwise_ops = {
+ static int
+ nft_bitwise_extract_u32_data(const struct nlattr * const tb, u32 *out)
+ {
+-	struct nft_data_desc desc;
+ 	struct nft_data data;
+-	int err = 0;
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(data),
++		.len	= sizeof(u32),
++	};
++	int err;
  
-@@ -6311,8 +6363,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data,
- 				      elem.key_end.val.data, NULL, 0, 0,
- 				      GFP_KERNEL_ACCOUNT);
--	if (elem.priv == NULL)
-+	if (IS_ERR(elem.priv)) {
-+		err = PTR_ERR(elem.priv);
- 		goto fail_elem_key_end;
-+	}
+-	err = nft_data_init(NULL, &data, sizeof(data), &desc, tb);
++	err = nft_data_init(NULL, &data, &desc, tb);
+ 	if (err < 0)
+ 		return err;
  
- 	ext = nft_set_elem_ext(set, elem.priv);
- 	if (flags)
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 22f70b543fa2..6983e6ddeef9 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -60,7 +60,7 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 				 &regs->data[priv->sreg_key], NULL,
- 				 &regs->data[priv->sreg_data],
- 				 timeout, 0, GFP_ATOMIC);
--	if (elem == NULL)
-+	if (IS_ERR(elem))
+-	if (desc.type != NFT_DATA_VALUE || desc.len != sizeof(u32)) {
+-		err = -EINVAL;
+-		goto err;
+-	}
+ 	*out = data.data[0];
+-err:
+-	nft_data_release(&data, desc.type);
+-	return err;
++
++	return 0;
+ }
+ 
+ static int nft_bitwise_fast_init(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 6528f76ca29e..8481e72269d7 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -73,20 +73,16 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			const struct nlattr * const tb[])
+ {
+ 	struct nft_cmp_expr *priv = nft_expr_priv(expr);
+-	struct nft_data_desc desc;
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->data),
++	};
+ 	int err;
+ 
+-	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
+-			    tb[NFTA_CMP_DATA]);
++	err = nft_data_init(NULL, &priv->data, &desc, tb[NFTA_CMP_DATA]);
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (desc.type != NFT_DATA_VALUE) {
+-		err = -EINVAL;
+-		nft_data_release(&priv->data, desc.type);
+-		return err;
+-	}
+-
+ 	err = nft_parse_register_load(tb[NFTA_CMP_SREG], &priv->sreg, desc.len);
+ 	if (err < 0)
+ 		return err;
+@@ -202,12 +198,14 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
+ 			     const struct nlattr * const tb[])
+ {
+ 	struct nft_cmp_fast_expr *priv = nft_expr_priv(expr);
+-	struct nft_data_desc desc;
+ 	struct nft_data data;
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(data),
++	};
+ 	int err;
+ 
+-	err = nft_data_init(NULL, &data, sizeof(data), &desc,
+-			    tb[NFTA_CMP_DATA]);
++	err = nft_data_init(NULL, &data, &desc, tb[NFTA_CMP_DATA]);
+ 	if (err < 0)
+ 		return err;
+ 
+@@ -301,11 +299,13 @@ static int nft_cmp16_fast_init(const struct nft_ctx *ctx,
+ 			       const struct nlattr * const tb[])
+ {
+ 	struct nft_cmp16_fast_expr *priv = nft_expr_priv(expr);
+-	struct nft_data_desc desc;
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->data),
++	};
+ 	int err;
+ 
+-	err = nft_data_init(NULL, &priv->data, sizeof(priv->data), &desc,
+-			    tb[NFTA_CMP_DATA]);
++	err = nft_data_init(NULL, &priv->data, &desc, tb[NFTA_CMP_DATA]);
+ 	if (err < 0)
+ 		return err;
+ 
+@@ -368,8 +368,11 @@ const struct nft_expr_ops nft_cmp16_fast_ops = {
+ static const struct nft_expr_ops *
+ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ {
+-	struct nft_data_desc desc;
+ 	struct nft_data data;
++	struct nft_data_desc desc = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(data),
++	};
+ 	enum nft_cmp_ops op;
+ 	u8 sreg;
+ 	int err;
+@@ -392,14 +395,10 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+-	err = nft_data_init(NULL, &data, sizeof(data), &desc,
+-			    tb[NFTA_CMP_DATA]);
++	err = nft_data_init(NULL, &data, &desc, tb[NFTA_CMP_DATA]);
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+ 
+-	if (desc.type != NFT_DATA_VALUE)
+-		goto err1;
+-
+ 	sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
+ 
+ 	if (op == NFT_CMP_EQ || op == NFT_CMP_NEQ) {
+@@ -411,9 +410,6 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 			return &nft_cmp16_fast_ops;
+ 	}
+ 	return &nft_cmp_ops;
+-err1:
+-	nft_data_release(&data, desc.type);
+-	return ERR_PTR(-EINVAL);
+ }
+ 
+ struct nft_expr_type nft_cmp_type __read_mostly = {
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index b80f7b507349..5f28b21abc7d 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -29,20 +29,36 @@ static const struct nla_policy nft_immediate_policy[NFTA_IMMEDIATE_MAX + 1] = {
+ 	[NFTA_IMMEDIATE_DATA]	= { .type = NLA_NESTED },
+ };
+ 
++static enum nft_data_types nft_reg_to_type(const struct nlattr *nla)
++{
++	enum nft_data_types type;
++	u8 reg;
++
++	reg = ntohl(nla_get_be32(nla));
++	if (reg == NFT_REG_VERDICT)
++		type = NFT_DATA_VERDICT;
++	else
++		type = NFT_DATA_VALUE;
++
++	return type;
++}
++
+ static int nft_immediate_init(const struct nft_ctx *ctx,
+ 			      const struct nft_expr *expr,
+ 			      const struct nlattr * const tb[])
+ {
+ 	struct nft_immediate_expr *priv = nft_expr_priv(expr);
+-	struct nft_data_desc desc;
++	struct nft_data_desc desc = {
++		.size	= sizeof(priv->data),
++	};
+ 	int err;
+ 
+ 	if (tb[NFTA_IMMEDIATE_DREG] == NULL ||
+ 	    tb[NFTA_IMMEDIATE_DATA] == NULL)
+ 		return -EINVAL;
+ 
+-	err = nft_data_init(ctx, &priv->data, sizeof(priv->data), &desc,
+-			    tb[NFTA_IMMEDIATE_DATA]);
++	desc.type = nft_reg_to_type(tb[NFTA_IMMEDIATE_DREG]);
++	err = nft_data_init(ctx, &priv->data, &desc, tb[NFTA_IMMEDIATE_DATA]);
+ 	if (err < 0)
+ 		return err;
+ 
+diff --git a/net/netfilter/nft_range.c b/net/netfilter/nft_range.c
+index 66f77484c227..832f0d725a9e 100644
+--- a/net/netfilter/nft_range.c
++++ b/net/netfilter/nft_range.c
+@@ -51,7 +51,14 @@ static int nft_range_init(const struct nft_ctx *ctx, const struct nft_expr *expr
+ 			const struct nlattr * const tb[])
+ {
+ 	struct nft_range_expr *priv = nft_expr_priv(expr);
+-	struct nft_data_desc desc_from, desc_to;
++	struct nft_data_desc desc_from = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->data_from),
++	};
++	struct nft_data_desc desc_to = {
++		.type	= NFT_DATA_VALUE,
++		.size	= sizeof(priv->data_to),
++	};
+ 	int err;
+ 	u32 op;
+ 
+@@ -61,26 +68,16 @@ static int nft_range_init(const struct nft_ctx *ctx, const struct nft_expr *expr
+ 	    !tb[NFTA_RANGE_TO_DATA])
+ 		return -EINVAL;
+ 
+-	err = nft_data_init(NULL, &priv->data_from, sizeof(priv->data_from),
+-			    &desc_from, tb[NFTA_RANGE_FROM_DATA]);
++	err = nft_data_init(NULL, &priv->data_from, &desc_from,
++			    tb[NFTA_RANGE_FROM_DATA]);
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (desc_from.type != NFT_DATA_VALUE) {
+-		err = -EINVAL;
+-		goto err1;
+-	}
+-
+-	err = nft_data_init(NULL, &priv->data_to, sizeof(priv->data_to),
+-			    &desc_to, tb[NFTA_RANGE_TO_DATA]);
++	err = nft_data_init(NULL, &priv->data_to, &desc_to,
++			    tb[NFTA_RANGE_TO_DATA]);
+ 	if (err < 0)
  		goto err1;
  
- 	ext = nft_set_elem_ext(set, elem);
+-	if (desc_to.type != NFT_DATA_VALUE) {
+-		err = -EINVAL;
+-		goto err2;
+-	}
+-
+ 	if (desc_from.len != desc_to.len) {
+ 		err = -EINVAL;
+ 		goto err2;
 -- 
 2.30.2
 
