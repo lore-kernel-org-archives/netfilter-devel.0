@@ -2,103 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A80AC32763
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B311CC32768
 	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 22:06:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230176AbiHIWGN (ORCPT
+        id S230181AbiHIWGQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Aug 2022 18:06:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50744 "EHLO
+        Tue, 9 Aug 2022 18:06:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230055AbiHIWFo (ORCPT
+        with ESMTP id S230050AbiHIWFo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 9 Aug 2022 18:05:44 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1844814012;
-        Tue,  9 Aug 2022 15:05:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CCA8313F94;
+        Tue,  9 Aug 2022 15:05:40 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 4/8] netfilter: nf_tables: do not allow RULE_ID to refer to another chain
-Date:   Wed, 10 Aug 2022 00:05:28 +0200
-Message-Id: <20220809220532.130240-5-pablo@netfilter.org>
+Subject: [PATCH net 0/8] Netfilter fixes for net
+Date:   Wed, 10 Aug 2022 00:05:24 +0200
+Message-Id: <20220809220532.130240-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220809220532.130240-1-pablo@netfilter.org>
-References: <20220809220532.130240-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
+Hi,
 
-When doing lookups for rules on the same batch by using its ID, a rule from
-a different chain can be used. If a rule is added to a chain but tries to
-be positioned next to a rule from a different chain, it will be linked to
-chain2, but the use counter on chain1 would be the one to be incremented.
+The following patchset contains Netfilter fixes for net:
 
-When looking for rules by ID, use the chain that was used for the lookup by
-name. The chain used in the context copied to the transaction needs to
-match that same chain. That way, struct nft_rule does not need to get
-enlarged with another member.
+1) Harden set element field checks to avoid out-of-bound memory access,
+   this patch also fixes the type of issue described in 7e6bc1f6cabc
+   ("netfilter: nf_tables: stricter validation of element data") in a
+   broader way.
 
-Fixes: 1a94e38d254b ("netfilter: nf_tables: add NFTA_RULE_ID attribute")
-Fixes: 75dd48e2e420 ("netfilter: nf_tables: Support RULE_ID reference in new rule")
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+2) Patches to restrict the chain, set, and rule id lookup in the
+   transaction to the corresponding top-level table, patches from
+   Thadeu Lima de Souza Cascardo.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 041accbaca32..0c3c0523e5f2 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3373,6 +3373,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- }
- 
- static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
-+					     const struct nft_chain *chain,
- 					     const struct nlattr *nla);
- 
- #define NFT_RULE_MAXEXPRS	128
-@@ -3461,7 +3462,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 				return PTR_ERR(old_rule);
- 			}
- 		} else if (nla[NFTA_RULE_POSITION_ID]) {
--			old_rule = nft_rule_lookup_byid(net, nla[NFTA_RULE_POSITION_ID]);
-+			old_rule = nft_rule_lookup_byid(net, chain, nla[NFTA_RULE_POSITION_ID]);
- 			if (IS_ERR(old_rule)) {
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_POSITION_ID]);
- 				return PTR_ERR(old_rule);
-@@ -3606,6 +3607,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- }
- 
- static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
-+					     const struct nft_chain *chain,
- 					     const struct nlattr *nla)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
-@@ -3616,6 +3618,7 @@ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
- 		struct nft_rule *rule = nft_trans_rule(trans);
- 
- 		if (trans->msg_type == NFT_MSG_NEWRULE &&
-+		    trans->ctx.chain == chain &&
- 		    id == nft_trans_rule_id(trans))
- 			return rule;
- 	}
-@@ -3665,7 +3668,7 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 			err = nft_delrule(&ctx, rule);
- 		} else if (nla[NFTA_RULE_ID]) {
--			rule = nft_rule_lookup_byid(net, nla[NFTA_RULE_ID]);
-+			rule = nft_rule_lookup_byid(net, chain, nla[NFTA_RULE_ID]);
- 			if (IS_ERR(rule)) {
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_ID]);
- 				return PTR_ERR(rule);
--- 
-2.30.2
+3) Fix incorrect comment in ip6t_LOG.h
 
+4) nft_data_init() performs upfront validation of the expected data.
+   struct nft_data_desc is used to describe the expected data to be
+   received from userspace. The .size field represents the maximum size
+   that can be stored, for bound checks. Then, .len is an input/output field
+   which stores the expected length as input (this is optional, to restrict
+   the checks), as output it stores the real length received from userspace
+   (if it was not specified as input). This patch comes in response to
+   7e6bc1f6cabc ("netfilter: nf_tables: stricter validation of element data")
+   to address this type of issue in a more generic way by avoid opencoded
+   data validation. Next patch requires this as a dependency.
+
+5) Disallow jump to implicit chain from set element, this configuration
+   is invalid. Only allow jump to chain via immediate expression is
+   supported at this stage.
+
+6) Fix possible null-pointer derefence in the error path of table updates,
+   if memory allocation of the transaction fails. From Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit b8c3bf0ed2edf2deaedba5f0bf0bb54c76dee71d:
+
+  Merge tag 'for-net-2022-08-08' of git://git.kernel.org/pub/scm/linux/kernel/git/bluetooth/bluetooth (2022-08-08 20:59:07 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 580077855a40741cf511766129702d97ff02f4d9:
+
+  netfilter: nf_tables: fix null deref due to zeroed list head (2022-08-09 20:13:30 +0200)
+
+----------------------------------------------------------------
+Christophe JAILLET (1):
+      netfilter: ip6t_LOG: Fix a typo in a comment
+
+Florian Westphal (1):
+      netfilter: nf_tables: fix null deref due to zeroed list head
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: validate variable length element extension
+      netfilter: nf_tables: upfront validation of data via nft_data_init()
+      netfilter: nf_tables: disallow jump to implicit chain from set element
+
+Thadeu Lima de Souza Cascardo (3):
+      netfilter: nf_tables: do not allow SET_ID to refer to another table
+      netfilter: nf_tables: do not allow CHAIN_ID to refer to another table
+      netfilter: nf_tables: do not allow RULE_ID to refer to another chain
+
+ include/net/netfilter/nf_tables.h            |  13 +-
+ include/uapi/linux/netfilter_ipv6/ip6t_LOG.h |   2 +-
+ net/netfilter/nf_tables_api.c                | 184 ++++++++++++++++++---------
+ net/netfilter/nft_bitwise.c                  |  66 +++++-----
+ net/netfilter/nft_cmp.c                      |  44 +++----
+ net/netfilter/nft_dynset.c                   |   2 +-
+ net/netfilter/nft_immediate.c                |  22 +++-
+ net/netfilter/nft_range.c                    |  27 ++--
+ 8 files changed, 222 insertions(+), 138 deletions(-)
