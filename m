@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB563C32767
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 22:06:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49794C3276B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 22:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230055AbiHIWGP (ORCPT
+        id S230014AbiHIWGM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Aug 2022 18:06:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50738 "EHLO
+        Tue, 9 Aug 2022 18:06:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229688AbiHIWFr (ORCPT
+        with ESMTP id S229929AbiHIWFs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Aug 2022 18:05:47 -0400
+        Tue, 9 Aug 2022 18:05:48 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C4D93DFC6;
-        Tue,  9 Aug 2022 15:05:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 96B2C13D02;
+        Tue,  9 Aug 2022 15:05:46 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 5/8] netfilter: ip6t_LOG: Fix a typo in a comment
-Date:   Wed, 10 Aug 2022 00:05:29 +0200
-Message-Id: <20220809220532.130240-6-pablo@netfilter.org>
+Subject: [PATCH net 8/8] netfilter: nf_tables: fix null deref due to zeroed list head
+Date:   Wed, 10 Aug 2022 00:05:32 +0200
+Message-Id: <20220809220532.130240-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220809220532.130240-1-pablo@netfilter.org>
 References: <20220809220532.130240-1-pablo@netfilter.org>
@@ -32,28 +32,45 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+From: Florian Westphal <fw@strlen.de>
 
-s/_IPT_LOG_H/_IP6T_LOG_H/
+In nf_tables_updtable, if nf_tables_table_enable returns an error,
+nft_trans_destroy is called to free the transaction object.
 
-While at it add some surrounding space to ease reading.
+nft_trans_destroy() calls list_del(), but the transaction was never
+placed on a list -- the list head is all zeroes, this results in
+a null dereference:
 
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+BUG: KASAN: null-ptr-deref in nft_trans_destroy+0x26/0x59
+Call Trace:
+ nft_trans_destroy+0x26/0x59
+ nf_tables_newtable+0x4bc/0x9bc
+ [..]
+
+Its sane to assume that nft_trans_destroy() can be called
+on the transaction object returned by nft_trans_alloc(), so
+make sure the list head is initialised.
+
+Fixes: 55dd6f93076b ("netfilter: nf_tables: use new transaction infrastructure to handle table")
+Reported-by: mingi cho <mgcho.minic@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter_ipv6/ip6t_LOG.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h b/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
-index 23e91a9c2583..0b7b16dbdec2 100644
---- a/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_LOG.h
-@@ -17,4 +17,4 @@ struct ip6t_log_info {
- 	char prefix[30];
- };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 460b0925ea60..3cc88998b879 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -153,6 +153,7 @@ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
+ 	if (trans == NULL)
+ 		return NULL;
  
--#endif /*_IPT_LOG_H*/
-+#endif /* _IP6T_LOG_H */
++	INIT_LIST_HEAD(&trans->list);
+ 	trans->msg_type = msg_type;
+ 	trans->ctx	= *ctx;
+ 
 -- 
 2.30.2
 
