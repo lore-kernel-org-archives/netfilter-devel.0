@@ -2,39 +2,194 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF4CC19F2D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 19:40:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E813C19F2D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 19:54:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344179AbiHITj2 (ORCPT
+        id S1345133AbiHITyp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Aug 2022 15:39:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40674 "EHLO
+        Tue, 9 Aug 2022 15:54:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232576AbiHITi6 (ORCPT
+        with ESMTP id S1345109AbiHITyo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Aug 2022 15:38:58 -0400
-Received: from server.ikt-service.com (server.ikt-service.com [62.116.165.19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02B1C248FF
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2022 12:38:55 -0700 (PDT)
-Received: by server.ikt-service.com (Postfix, from userid 10064)
-        id EFB961AB948; Tue,  9 Aug 2022 21:38:52 +0200 (CEST)
-To:     netfilter-devel@vger.kernel.org
-Subject: =?UTF-8?Q?AQV_Personalleasing_=E2=80=9EFINANZKRISE_KANN_SIE_?=  =?UTF-8?Q?REICH_MACHEN!=E2=80=9C?=
-Date:   Tue, 9 Aug 2022 19:38:52 +0000
-From:   AQV Personalleasing <wordpress@aqv-personal.de>
-Reply-To: holger.czerwonka@ikt-service.com
-Message-ID: <5x4LZ7S3M4AKxIEZNZTqRQunFdiPP2ZepObSmYj10qY@aqv-personal.de>
-X-Mailer: PHPMailer 6.6.0 (https://github.com/PHPMailer/PHPMailer)
+        Tue, 9 Aug 2022 15:54:44 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CEA162250A;
+        Tue,  9 Aug 2022 12:54:41 -0700 (PDT)
+Date:   Tue, 9 Aug 2022 21:54:38 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] nftables 1.0.5 release
+Message-ID: <YvK7fkPf6P52MV+w@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="fzRi0kwIlpLps75v"
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Nachrichtentext:
-Der Preisverfall von Bitcoin macht Sie zum Millionar https://telegra.ph/Passives-Einkommen-und-7500000-Euro-auf-KryptowГ¤hrung-189938-08-09
 
--- 
-Diese E-Mail wurde von einem Kontaktformular von AQV Personalleasing (https://aqv-personal.de) gesendet
+--fzRi0kwIlpLps75v
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
+Hi!
+
+The Netfilter project proudly presents:
+
+        nftables 1.0.5
+
+This release contains bugfixes (highlights):
+
+- Fixes for the -o/--optimize, run this --optimize option to automagically
+  compact your ruleset using sets, maps and concatenations, eg.
+
+     # cat ruleset.nft
+     table ip x {
+            chain y {
+                    type nat hook postrouting priority srcnat; policy drop;
+                    ip saddr 1.1.1.1 tcp dport 8000 snat to 4.4.4.4:80
+                    ip saddr 2.2.2.2 tcp dport 8001 snat to 5.5.5.5:90
+            }
+     }
+
+     # nft -o -c -f ruleset.nft
+     Merging:
+     ruleset.nft:4:3-52:                ip saddr 1.1.1.1 tcp dport 8000 snat to 4.4.4.4:80
+     ruleset.nft:5:3-52:                ip saddr 2.2.2.2 tcp dport 8001 snat to 5.5.5.5:90
+     into:
+            snat to ip saddr . tcp dport map { 1.1.1.1 . 8000 : 4.4.4.4 . 80, 2.2.2.2 . 8001 : 5.5.5.5 . 90 }
+
+- Fix ethernet and vlan concatenations, eg. define a dynamic set which
+  is populated from the packet path.
+
+     add table netdev x
+     add chain netdev x y { type filter hook ingress device enp0s25 priority 0; }
+     add set netdev x macset { typeof ether daddr . vlan id; flags dynamic,timeout; }
+     add rule netdev x y update @macset { ether daddr . vlan id timeout 60s }
+
+  or simply match using a concatenation:
+
+     add rule netdev x y ether saddr . vlan id { 0a:0b:0c:0d:0e:0f . 42, 0a:0b:0c:0d:0e:0f . 4095 } counter accept
+
+- Fix ruleset listing with interface wildcard map, eg.
+
+     table inet filter {
+        chain INPUT {
+            iifname vmap {
+                "eth0" : jump input_lan,
+                "wg*" : jump input_vpn
+            }
+        }
+        chain input_lan {}
+        chain input_vpn {}
+     }
+
+- Fix several regressions in the input lexer which broke valid rulesets.
+- Fix slowdown with large lists of singleton interval elements.
+- Fix set automerge feature for large lists of singleton interval elements.
+- Fix bogus error reporting for exact overlaps.
+- Fix segfault when adding elements to invalid set.
+- fix device parsing in netdev family in json.
+
+See changelog for more details (attached to this email).
+
+You can download this new release from:
+
+https://www.netfilter.org/projects/nftables/downloads.html
+https://www.netfilter.org/pub/nftables/
+
+To build the code, libnftnl >= 1.2.3 and libmnl >= 1.0.4 are required:
+
+* https://netfilter.org/projects/libnftnl/index.html
+* https://netfilter.org/projects/libmnl/index.html
+
+Visit our wikipage for user documentation at:
+
+* https://wiki.nftables.org
+
+For the manpage reference, check man(8) nft.
+
+In case of bugs and feature requests, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling.
+
+--fzRi0kwIlpLps75v
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="changes-nftables-1.0.5.txt"
+
+Florian Westphal (12):
+      Revert "scanner: flags: move to own scope"
+      parser: add missing synproxy scope closure
+      scanner: don't pop active flex scanner scope
+      scanner: allow prefix in ip6 scope
+      netlink_delinearize: allow postprocessing on concatenated elements
+      netlink_delinearize: postprocess binary ands in concatenations
+      proto: track full stack of seen l2 protocols, not just cumulative offset
+      debug: dump the l2 protocol stack
+      tests: add a test case for ether and vlan listing
+      netlink_delinearize: also postprocess OP_AND in set element context
+      evaluate: search stacked header list for matching payload dep
+      src: allow anon set concatenation with ether and vlan
+
+Jo-Philipp Wich (1):
+      meta: don't use non-POSIX formats in strptime()
+
+Oleksandr Natalenko (1):
+      src: proto: support DF, LE PHB, VA for DSCP
+
+Pablo Neira Ayuso (38):
+      tests: shell: runtime set element automerge
+      rule: collapse set element commands
+      intervals: do not report exact overlaps for new elements
+      intervals: do not empty cache for maps
+      optimize: do not compare relational expression rhs when collecting statements
+      optimize: do not merge rules with set reference in rhs
+      optimize: do not print stateful information
+      optimize: remove comment after merging
+      optimize: fix reject statement
+      optimize: fix verdict map merging
+      optimize: add osf expression support
+      optimize: add xfrm expression support
+      optimize: add fib expression support
+      optimize: add binop expression support
+      optimize: add numgen expression support
+      optimize: add hash expression support
+      optimize: add unsupported statement
+      tests: shell: run -c -o on ruleset
+      optimize: only merge OP_IMPLICIT and OP_EQ relational
+      optimize: assume verdict is same when rules have no verdict
+      optimize: limit statement is not supported yet
+      libnftables: release top level scope
+      netlink_delinearize: memleak when parsing concatenation data
+      intervals: fix crash when trying to remove element in empty set
+      intervals: check for EXPR_F_REMOVE in case of element mismatch
+      parser_bison: fix error location for set elements
+      src: remove NFT_NLATTR_LOC_MAX limit for netlink location error reporting
+      mnl: store netlink error location for set elements
+      segtree: fix map listing with interface wildcard
+      evaluate: report missing interval flag when using prefix/range in concatenation
+      cache: release pending rules when chain binding lookup fails
+      rule: crash when uncollapsing command with unexisting table or set
+      cache: prepare nft_cache_evaluate() to return error
+      cache: validate handle string length
+      cache: report an error message if cache initialization fails
+      parser_json: fix device parsing in netdev family
+      tests/py: disable arp family for queue statement
+      build: Bump version to 1.0.5
+
+Peter Tirsek (1):
+      evaluate: fix segfault when adding elements to invalid set
+
+Phil Sutter (3):
+      intervals: Do not sort cached set elements over and over again
+      tests/py: Add a test for failing ipsec after counter
+      doc: Document limitations of ipsec expression with xfrm_interface
+
+
+--fzRi0kwIlpLps75v--
