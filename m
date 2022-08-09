@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 986CBC19F2D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 11:22:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54B4AC19F2D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 Aug 2022 11:39:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240092AbiHILWL (ORCPT
+        id S230178AbiHILjX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 9 Aug 2022 07:22:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48144 "EHLO
+        Tue, 9 Aug 2022 07:39:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232697AbiHILWK (ORCPT
+        with ESMTP id S230508AbiHILjW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Aug 2022 07:22:10 -0400
+        Tue, 9 Aug 2022 07:39:22 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B6CCD1EC65
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2022 04:22:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1712D17A84
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2022 04:39:22 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] netfilter: nf_tables: use READ_ONCE and WRITE_ONCE for shared generation id access
-Date:   Tue,  9 Aug 2022 13:22:01 +0200
-Message-Id: <20220809112201.264516-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: disallow NFTA_SET_ELEM_KEY_END with NFT_SET_ELEM_INTERVAL_END flag
+Date:   Tue,  9 Aug 2022 13:39:18 +0200
+Message-Id: <20220809113918.313262-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,106 +28,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The generation ID is bumped from the commit path while holding the
-mutex, however, netlink dump operations rely on RCU.
+These are mutually exclusive, actually NFTA_SET_ELEM_KEY_END replaces
+the flag notation.
 
-This patch also adds missing cb->base_eq initialization in
-nf_tables_dump_set().
-
-Fixes: 38e029f14a97 ("netfilter: nf_tables: set NLM_F_DUMP_INTR if netlink dumping is stale")
+Fixes: 7b225d0b5c6d ("netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index be6dea8484b7..5248e38a6e4e 100644
+index 5248e38a6e4e..75d9e386fb2c 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -888,7 +888,7 @@ static int nf_tables_dump_tables(struct sk_buff *skb,
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
--	cb->seq = nft_net->base_seq;
-+	cb->seq = READ_ONCE(nft_net->base_seq);
- 
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (family != NFPROTO_UNSPEC && family != table->family)
-@@ -1704,7 +1704,7 @@ static int nf_tables_dump_chains(struct sk_buff *skb,
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
--	cb->seq = nft_net->base_seq;
-+	cb->seq = READ_ONCE(nft_net->base_seq);
- 
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (family != NFPROTO_UNSPEC && family != table->family)
-@@ -3146,7 +3146,7 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
--	cb->seq = nft_net->base_seq;
-+	cb->seq = READ_ONCE(nft_net->base_seq);
- 
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (family != NFPROTO_UNSPEC && family != table->family)
-@@ -4125,7 +4125,7 @@ static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
--	cb->seq = nft_net->base_seq;
-+	cb->seq = READ_ONCE(nft_net->base_seq);
- 
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (ctx->family != NFPROTO_UNSPEC &&
-@@ -5053,6 +5053,8 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
-+	cb->seq = READ_ONCE(nft_net->base_seq);
-+
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (dump_ctx->ctx.family != NFPROTO_UNSPEC &&
- 		    dump_ctx->ctx.family != table->family)
-@@ -6933,7 +6935,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
--	cb->seq = nft_net->base_seq;
-+	cb->seq = READ_ONCE(nft_net->base_seq);
- 
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (family != NFPROTO_UNSPEC && family != table->family)
-@@ -7865,7 +7867,7 @@ static int nf_tables_dump_flowtable(struct sk_buff *skb,
- 
- 	rcu_read_lock();
- 	nft_net = nft_pernet(net);
--	cb->seq = nft_net->base_seq;
-+	cb->seq = READ_ONCE(nft_net->base_seq);
- 
- 	list_for_each_entry_rcu(table, &nft_net->tables, list) {
- 		if (family != NFPROTO_UNSPEC && family != table->family)
-@@ -8798,6 +8800,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	struct nft_trans_elem *te;
- 	struct nft_chain *chain;
- 	struct nft_table *table;
-+	unsigned int base_seq;
- 	LIST_HEAD(adl);
- 	int err;
- 
-@@ -8847,9 +8850,12 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	 * Bump generation counter, invalidate any dump in progress.
- 	 * Cannot fail after this point.
- 	 */
--	while (++nft_net->base_seq == 0)
-+	base_seq = READ_ONCE(nft_net->base_seq);
-+	while (++base_seq == 0)
- 		;
- 
-+	WRITE_ONCE(nft_net->base_seq, base_seq);
-+
- 	/* step 3. Start new generation, rules_gen_X now in use. */
- 	net->nft.gencursor = nft_gencursor_next(net);
+@@ -5893,6 +5893,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	      nla[NFTA_SET_ELEM_EXPIRATION] ||
+ 	      nla[NFTA_SET_ELEM_USERDATA] ||
+ 	      nla[NFTA_SET_ELEM_EXPR] ||
++	      nla[NFTA_SET_ELEM_KEY_END] ||
+ 	      nla[NFTA_SET_ELEM_EXPRESSIONS]))
+ 		return -EINVAL;
  
 -- 
 2.30.2
