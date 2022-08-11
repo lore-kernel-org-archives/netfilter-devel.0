@@ -2,84 +2,124 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AA8AC19F2A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Aug 2022 17:13:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D2C3C19F2A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Aug 2022 21:50:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234919AbiHKRNv (ORCPT
+        id S235716AbiHKVu3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 Aug 2022 13:13:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44792 "EHLO
+        Thu, 11 Aug 2022 17:50:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235747AbiHKRNd (ORCPT
+        with ESMTP id S233840AbiHKVu2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Aug 2022 13:13:33 -0400
-X-Greylist: delayed 62 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 11 Aug 2022 09:54:23 PDT
-Received: from smtp-out-2.tiscali.co.uk (smtp-out-2.tiscali.co.uk [62.24.135.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79A9297D66
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Aug 2022 09:54:23 -0700 (PDT)
-Received: from nabal.armitage.org.uk ([92.27.6.192])
-        by smtp.talktalk.net with SMTP
-        id MBQtocKhLzHAsMBQtoEude; Thu, 11 Aug 2022 17:53:19 +0100
-X-Originating-IP: [92.27.6.192]
-Received: from localhost (nabal.armitage.org.uk [127.0.0.1])
-        by nabal.armitage.org.uk (Postfix) with ESMTP id 42DA42E452C;
-        Thu, 11 Aug 2022 17:53:12 +0100 (BST)
-Authentication-Results: nabal.armitage.org.uk (amavisd-new);
-        dkim=pass (1024-bit key) reason="pass (just generated, assumed good)"
-        header.d=armitage.org.uk
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=armitage.org.uk;
-         h=content-transfer-encoding:mime-version:x-mailer:message-id
-        :date:date:subject:subject:from:from:received; s=20200110; t=
-        1660236775; x=1661100776; bh=PhtXAcup8zcHRzp3aPBL9UQviSbC+rz55rM
-        puFG/1lg=; b=pNaV4zAuj0SmlCyx5koqTPAny7ZDMBkAXPg3U3J0qBzgQZMew1w
-        UKH9TR4Fxv+0neRestaSEYSOgNVzRSMEqOOgGJmFxmHdnwKTXTCiRmpvNx48aas8
-        Y27oehIP4t/mr6OCMbJM8whTPQxi9PBuNMUuev0NbjamS4PdQ6RfSlgc=
-X-Virus-Scanned: amavisd-new at armitage.org.uk
-Received: from samson.armitage.org.uk (samson.armitage.org.uk [IPv6:2001:470:69dd:35::210])
-        by nabal.armitage.org.uk (Postfix) with ESMTPSA id 6B8202E4524;
-        Thu, 11 Aug 2022 17:52:55 +0100 (BST)
-From:   Quentin Armitage <quentin@armitage.org.uk>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Quentin Armitage <quentin@armitage.org.uk>
-Subject: [PATCH] ipset-translate: allow invoking with a path name
-Date:   Thu, 11 Aug 2022 17:52:18 +0100
-Message-Id: <20220811165218.59854-1-quentin@armitage.org.uk>
-X-Mailer: git-send-email 2.34.3
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CMAE-Envelope: MS4wfPvZ99TE3hiRAA53wB5sS3X7/T3exFsl7lVGyqMr0nOkEDXxI1fIGRP1wxYAqIK9tjy9yTNs5qE9tcnQMsSUa07mIk4OywvV5FHIcO1Xtd37/Scm6JYJ
- F4Uo/V4BxizYsWivQO3pcaIsQTaAqWUgb6AA1ktjgAkpMbQHRR6S2foT5EwDFpUjaqAYB03vLrfQnjFaHJlruTW66lNqsOQKpkk=
+        Thu, 11 Aug 2022 17:50:28 -0400
+Received: from wout3-smtp.messagingengine.com (wout3-smtp.messagingengine.com [64.147.123.19])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7273CC43;
+        Thu, 11 Aug 2022 14:50:25 -0700 (PDT)
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+        by mailout.west.internal (Postfix) with ESMTP id DAE5532009E6;
+        Thu, 11 Aug 2022 17:50:21 -0400 (EDT)
+Received: from imap42 ([10.202.2.92])
+  by compute2.internal (MEProxy); Thu, 11 Aug 2022 17:50:22 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to; s=fm3; t=1660254621; x=1660341021; bh=I/keUvi7Am
+        GbWU/V5AvwZOlORkyxExBC2HWeHMx4odc=; b=R8wmLyt7ZCB91Dl7x+r1r2/P31
+        cB13juyNvSpj8A9w2WPneEKRmphKUnf0QLZGEXpUvmpGI3980wVvkmQhdaM/OZLj
+        g+qGo71BdyTmWx60t1aaNs++33VehETc6REzXdId8mBVX+32xy6zhPDLCqU7pUVt
+        kqSuuI7tE44FvUDD8n64rEoMEyRAmN7h6n2Z1V19TCwKH0Gt9Wxy5mxiDCqT3Zx4
+        iKkKMeMKmk/EdRAyuFJVNVBcIBTgpQVJ8nw0N3p01ued5LZXgOO8opWl4ldu+hYD
+        ZMBVzTeEX8fe8aEeN5P8+HlHzFSEM9bpB16y6b4VdGT26+GyU0YIVI5relPg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm1; t=1660254621; x=1660341021; bh=I/keUvi7AmGbWU/V5AvwZOlORkyx
+        ExBC2HWeHMx4odc=; b=aDzqGYg1F8m6Rk1xKA3+QhqrUA5mPG1BNqMs42ILWEAe
+        XBnQeOwQA5foLTg2tRu/KjJBSGYTAOCkjDf29Q4rg5vmn1upTGRP2pyY2m1XuQqe
+        UhhQIphisRJaPV0bShX4FrDvG42YLrM57XTN0MXUxm1QRQ1s0UaE86wcjwH7eVqG
+        60PPAnxzpepBOYyD5hsWamCSxs5XvYIgScPRmgB7E0Q7KVKQkOwyaNLGbnOuY4GT
+        fOg6t8mN4QnwsCZbFYY4KWm7LGofR4ng2o82If0wO09bGXfePTRY2qSqtjEIWtoi
+        Q0inyOvpc7f7Bqi9Suy3lN2Sq34nFZl5EddNO+oO0Q==
+X-ME-Sender: <xms:nHn1YgbCjjF2uJMtNuy-fFIi78-yHR5zb9yaK1HxZgrkF-96YuYRVQ>
+    <xme:nHn1YrYcmLWO1786HIIOt26XR7qxppFqMDSjawuc-C9DpuL2xG4zXTFILpot679oJ
+    DYQq9RCqdjcLMQYeg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdeghedgtdefucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    gfrhhlucfvnfffucdlfeehmdenucfjughrpefofgggkfgjfhffhffvvefutgesthdtredt
+    reertdenucfhrhhomhepfdffrghnihgvlhcuighufdcuoegugihusegugihuuhhurdighi
+    iiqeenucggtffrrghtthgvrhhnpedtudehudfhveduieeikeejudeljeffuddtieffieel
+    jedtudehhfekheehuedvkeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmh
+    grihhlfhhrohhmpegugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:nHn1Yq8VuD7zqNaXnNb2onxytvCRniO4PaAqu5RpNZQKyqeZdfJ7Ow>
+    <xmx:nHn1YqrhExwBfeDXeK_mVcD3PEQ5fUe7_4h6c86IVUTrzF-GasZK-g>
+    <xmx:nHn1YrqVMYJGcxKI6as3Hk5cM0QHQOdXxodLvsvFgrIxgGKS-HSH_g>
+    <xmx:nXn1YvfH4wdiAeGgXhPiQIYbixE7QCmLWQQjb0xEJIbzJIZJCvv7Ww>
+Feedback-ID: i6a694271:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 73EC5BC0075; Thu, 11 Aug 2022 17:50:20 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.7.0-alpha0-811-gb808317eab-fm-20220801.001-gb808317e
+Mime-Version: 1.0
+Message-Id: <8bd57a25-4034-4fa8-a22d-66298cb1a667@www.fastmail.com>
+In-Reply-To: <CAP01T74aWUW-iyPCV_VfASO6YqfAZmnkYQMN2B4L8ngMMgnAcw@mail.gmail.com>
+References: <cover.1660173222.git.dxu@dxuuu.xyz>
+ <CAP01T74aWUW-iyPCV_VfASO6YqfAZmnkYQMN2B4L8ngMMgnAcw@mail.gmail.com>
+Date:   Thu, 11 Aug 2022 15:50:00 -0600
+From:   "Daniel Xu" <dxu@dxuuu.xyz>
+To:     "Kumar Kartikeya Dwivedi" <memxor@gmail.com>
+Cc:     "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+        "Alexei Starovoitov" <ast@kernel.org>,
+        "Daniel Borkmann" <daniel@iogearbox.net>,
+        "Andrii Nakryiko" <andrii@kernel.org>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
+        "toke@redhat.com" <toke@redhat.com>
+Subject: Re: [PATCH bpf-next v3 0/3] Add more bpf_*_ct_lookup() selftests
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Quentin Armitage <quentin@armitage.org.uk>
----
- src/ipset.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Hi Kumar,
 
-diff --git a/src/ipset.c b/src/ipset.c
-index 6d42b60..e53ffb1 100644
---- a/src/ipset.c
-+++ b/src/ipset.c
-@@ -6,6 +6,8 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+#define _GNU_SOURCE
-+
- #include <assert.h>			/* assert */
- #include <stdio.h>			/* fprintf */
- #include <stdlib.h>			/* exit */
-@@ -31,7 +33,7 @@ main(int argc, char *argv[])
- 		exit(1);
- 	}
- 
--	if (!strcmp(argv[0], "ipset-translate")) {
-+	if (!strcmp(basename(argv[0]), "ipset-translate")) {
- 		ret = ipset_xlate_argv(ipset, argc, argv);
- 	} else {
- 		ret = ipset_parse_argv(ipset, argc, argv);
--- 
-2.34.3
+On Wed, Aug 10, 2022, at 6:25 PM, Kumar Kartikeya Dwivedi wrote:
+> On Thu, 11 Aug 2022 at 01:16, Daniel Xu <dxu@dxuuu.xyz> wrote:
+>>
+>> This patchset adds more bpf_*_ct_lookup() selftests. The goal is to test
+>> interaction with netfilter subsystem as well as reading from `struct
+>> nf_conn`. The first is important when migrating legacy systems towards
+>> bpf. The latter is important in general to take full advantage of
+>> connection tracking.
+>>
+>
+> Thank you for contributing these tests. Feel free to add:
+> Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+>
+> People often look at selftests for usage examples these days, so it's
+> great to have coverage + examples for more use cases.
 
+I also want this interaction to still work when I start using it later :).
+
+>
+>> I'll follow this patchset up with support for writing to `struct nf_conn`.
+>>
+>
+> Please also cc netfilter-devel, netdev, Pablo, and Florian when you send it.
+>
+
+Ack.
+
+> I think we can directly enable stores to ct->mark, since that is what
+> ctnetlink is doing too, so adding another helper for this would be
+> unnecessary overhead.
+
+Ack.
+
+[...]
+
+Thanks,
+Danel
