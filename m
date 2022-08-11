@@ -2,193 +2,114 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 127E9C00140
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 Aug 2022 09:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21601C00140
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 Aug 2022 00:26:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbiHJJst (ORCPT
+        id S230491AbiHKA0a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 Aug 2022 05:48:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54572 "EHLO
+        Wed, 10 Aug 2022 20:26:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbiHJJss (ORCPT
+        with ESMTP id S229488AbiHKA03 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Aug 2022 05:48:48 -0400
-X-Greylist: delayed 2613 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 10 Aug 2022 02:48:43 PDT
-Received: from wood.hillside.co.uk (wood.hillside.co.uk [IPv6:2a00:1098:82:11::1:1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C83A061DA6
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2022 02:48:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=wood.hillside.co.uk; s=wood; h=Sender:Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=4r6cmUhLl4TWphiJehmHHV4Lhz+05z/fkJpTz0EU3/I=; b=g0YUqsivxY+0CCwxKjOi4QUBJy
-        qtATh65DZI9Wfj8mqVbvA5igqT8dTt69Er9wVa3ShljEFCfj4ww+B6yk5bLFtAdFT47pAdpD3VRQy
-        wiFKluSLAuCg3LEdLthPQLKmdF7VZcJkDBIGMWKBek5f9EUh6fgPvfx+Qo6IcH1bt7+u7FnQyi5Cz
-        3PNexkcWU1uo32wf7eNygOfhaRflSi4/QgoGdoQaIX+RX+mN2+toTEkm6to3votk9UXwW2Da+LVu1
-        oEkzuUUbkgqGokgA5RfOLnsc9oZ5gSFtPqIadIWqthY3wloSo2QgiEMkz4stT479GCIJ6v2O2Xl26
-        qFlpz8zA==;
-Received: from craggy.hillside.co.uk ([81.138.86.234])
-        by wood.hillside.co.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pc@wood.hillside.co.uk>)
-        id 1oLheH-000Q2j-J7; Wed, 10 Aug 2022 10:05:08 +0100
-Received: from pc by craggy.hillside.co.uk with local (Exim 4.94.2)
-        (envelope-from <pc@hillside.co.uk>)
-        id 1oLheF-0007aE-Ct; Wed, 10 Aug 2022 10:05:07 +0100
-From:   Peter Collinson <11645080+pcollinson@users.noreply.github.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Peter Collinson <11645080+pcollinson@users.noreply.github.com>,
-        Peter Collinson <pc@hillside.co.uk>
-Subject: [PATCH] Extends py/nftables.py
-Date:   Wed, 10 Aug 2022 10:04:50 +0100
-Message-Id: <20220810090450.29054-1-11645080+pcollinson@users.noreply.github.com>
-X-Mailer: git-send-email 2.30.2
+        Wed, 10 Aug 2022 20:26:29 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A00A874367;
+        Wed, 10 Aug 2022 17:26:28 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id x64so13569441iof.1;
+        Wed, 10 Aug 2022 17:26:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc;
+        bh=52hp91B4o6nctmi+AsMxs5+KDTzl/WmhmAFz8/MIyO8=;
+        b=dDGa+Qwz8mCmY2TmXJMA83qpGLhEMolwQKzllwhArJrLqKH758YGEe2g5eSvz+6Y3h
+         ih63pohWsDK1LVUKnPqz+AMx3QhNpBaigoweKA8EqRcwrV4UqIkWfRn9BLz3JhODisjh
+         U3u0Vv1zEHCtGpxJUKyA/visum/Z2/MxEd+fSAIKYDkMrhac2whVsh8P5d4REL+mjiPj
+         Qjhq04zgQtu7AifOY3ATpFwdZnmGRkP+L7p3QTQviT80ipeUb4+4tSqHHR9wMtUgDZCn
+         vJcVRyA16bKMlXnuXyuCHndQr53PHvI2hALBixnAvZ1mX8FijtCMn3Mq8zRzI8TIYk2D
+         6tvQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc;
+        bh=52hp91B4o6nctmi+AsMxs5+KDTzl/WmhmAFz8/MIyO8=;
+        b=m8VeFLVen4GpmsHgcbt1fZ/RIoF3MXJHzq/SYuMql3r/zjoZnYlYe7dF2A+cj21vEg
+         bSUgTvMW7y2SKz4MK4fKw7rmsErpdT74FNf9Chk5GSIvNQcz+MrvLjy7oZhreLJcGeSS
+         yU4qHsyzjJAq3iIGtdhVzAZib5bOBCmbC6qB7Ap309GSKhm8P9nOd3khaPWKZVweG8v3
+         LslQHTZWwKxhMy9m8uzU7hnMLsjeuipNFkzFGO+oRwPFpwW1nONb/gqHrAPvIGbg3IyI
+         smP3sx6U60Kko3Eh8geu5oKcyxDCY1d4EBnJB6h/l/kNKLclkYUQ4jlnHcwFXzwL1GIb
+         whHA==
+X-Gm-Message-State: ACgBeo17moqMnEZPe0OtxGpNnIZESwY9zItTHkV+8OLWRdM0dEPMHvo1
+        XovE7q00kE/JvL2Q/BWlhcdVyh6rJTAYCU+gp6s=
+X-Google-Smtp-Source: AA6agR6DsMDCdJeapz0WBl/syPB6ijuEbr1lhiarDGdRh9X+4I+zvtKXZdBqrPsy9smZ+wdvIrvRbGCzFhCsYNKz5AA=
+X-Received: by 2002:a05:6638:238b:b0:343:ff4:a62 with SMTP id
+ q11-20020a056638238b00b003430ff40a62mr7319334jat.124.1660177588008; Wed, 10
+ Aug 2022 17:26:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: pc@wood.hillside.co.uk
+References: <cover.1660173222.git.dxu@dxuuu.xyz>
+In-Reply-To: <cover.1660173222.git.dxu@dxuuu.xyz>
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Date:   Thu, 11 Aug 2022 02:25:51 +0200
+Message-ID: <CAP01T74aWUW-iyPCV_VfASO6YqfAZmnkYQMN2B4L8ngMMgnAcw@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v3 0/3] Add more bpf_*_ct_lookup() selftests
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, fw@strlen.de,
+        "toke@redhat.com" <toke@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Allows py/nftables.py to support full mapping to the libnftables API. The
-changes allow python code to talk in text to the kernel rather than just
-using json. The Python API can now also use dryruns to test changes.
+On Thu, 11 Aug 2022 at 01:16, Daniel Xu <dxu@dxuuu.xyz> wrote:
+>
+> This patchset adds more bpf_*_ct_lookup() selftests. The goal is to test
+> interaction with netfilter subsystem as well as reading from `struct
+> nf_conn`. The first is important when migrating legacy systems towards
+> bpf. The latter is important in general to take full advantage of
+> connection tracking.
+>
 
-Functions added are:
+Thank you for contributing these tests. Feel free to add:
+Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 
-add_include_path(filename)
-clear_include_paths()
-cmd_from_file(filename)
-get_dry_run()
-set_dry_run(onoff)
+People often look at selftests for usage examples these days, so it's
+great to have coverage + examples for more use cases.
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1591
-Signed-off-by: Peter Collinson <pc@hillside.co.uk>
----
- py/nftables.py | 92 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 91 insertions(+), 1 deletion(-)
+> I'll follow this patchset up with support for writing to `struct nf_conn`.
+>
 
-diff --git a/py/nftables.py b/py/nftables.py
-index 2a0a1e89..bb9d49d4 100644
---- a/py/nftables.py
-+++ b/py/nftables.py
-@@ -13,13 +13,21 @@
- # You should have received a copy of the GNU General Public License
- # along with this program; if not, write to the Free Software
- # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+#
-+# Extended to add
-+# add_include_path(self, filename)
-+# clear_include_paths(self)
-+# cmd_from_file(self, filename)
-+# get_dry_run(self)
-+# set_dry_run(self, onoff)
-+# Peter Collinson March 2022
+Please also cc netfilter-devel, netdev, Pablo, and Florian when you send it.
 
- import json
- from ctypes import *
- import sys
- import os
+I think we can directly enable stores to ct->mark, since that is what
+ctnetlink is doing too, so adding another helper for this would be
+unnecessary overhead.
 
--NFTABLES_VERSION = "0.1"
-+NFTABLES_VERSION = "0.2"
 
- class SchemaValidator:
-     """Libnftables JSON validator using jsonschema"""
-@@ -116,6 +124,24 @@ class Nftables:
-         self.nft_run_cmd_from_buffer.restype = c_int
-         self.nft_run_cmd_from_buffer.argtypes = [c_void_p, c_char_p]
-
-+        self.nft_run_cmd_from_filename = lib.nft_run_cmd_from_filename
-+        self.nft_run_cmd_from_filename.restype = c_int
-+        self.nft_run_cmd_from_filename.argtypes = [c_void_p, c_char_p]
-+
-+        self.nft_ctx_add_include_path = lib.nft_ctx_add_include_path
-+        self.nft_ctx_add_include_path.restype = c_int
-+        self.nft_ctx_add_include_path.argtypes = [c_void_p, c_char_p]
-+
-+        self.nft_ctx_clear_include_paths = lib.nft_ctx_clear_include_paths
-+        self.nft_ctx_clear_include_paths.argtypes = [c_void_p]
-+
-+        self.nft_ctx_get_dry_run = lib.nft_ctx_get_dry_run
-+        self.nft_ctx_get_dry_run.restype = c_bool
-+        self.nft_ctx_get_dry_run.argtypes = [c_void_p]
-+
-+        self.nft_ctx_set_dry_run = lib.nft_ctx_set_dry_run
-+        self.nft_ctx_set_dry_run.argtypes = [c_void_p, c_bool]
-+
-         self.nft_ctx_free = lib.nft_ctx_free
-         lib.nft_ctx_free.argtypes = [c_void_p]
-
-@@ -446,3 +472,67 @@ class Nftables:
-
-         self.validator.validate(json_root)
-         return True
-+
-+    def cmd_from_file(self, filename):
-+        """Run a nftables command set from a file
-+
-+        filename can be a str or a Path
-+
-+        Returns a tuple (rc, output, error):
-+        rc     -- return code as returned by nft_run_cmd_from_buffer() function
-+        output -- a string containing output written to stdout
-+        error  -- a string containing output written to stderr
-+        """
-+
-+        filename_is_unicode = False
-+        if not isinstance(filename, bytes):
-+            filename_is_unicode = True
-+            # allow filename to be a Path
-+            filename = str(filename)
-+            filename= filename.encode("utf-8")
-+        rc = self.nft_run_cmd_from_filename(self.__ctx, filename)
-+        output = self.nft_ctx_get_output_buffer(self.__ctx)
-+        error = self.nft_ctx_get_error_buffer(self.__ctx)
-+        if filename_is_unicode:
-+            output = output.decode("utf-8")
-+            error = error.decode("utf-8")
-+        return (rc, output, error)
-+
-+    def add_include_path(self, filename):
-+        """Add a path to the include file list
-+        The default list includes /etc
-+
-+        Returns True on success
-+        False if memory allocation fails
-+        """
-+
-+        if not isinstance(filename, bytes):
-+            # allow filename to be a Path
-+            filename = str(filename)
-+            filename= filename.encode("utf-8")
-+        rc = self.nft_ctx_add_include_path(self.__ctx, filename)
-+        return rc == 0
-+
-+    def clear_include_paths(self):
-+        """Clear include path list
-+
-+        Will also remove /etc
-+        """
-+
-+        self.nft_ctx_clear_include_paths(self.__ctx)
-+
-+    def get_dry_run(self):
-+        """Get dry run state
-+
-+        Returns True if set, False otherwise
-+        """
-+
-+        return self.nft_ctx_get_dry_run(self.__ctx)
-+
-+    def set_dry_run(self, onoff):
-+        """ Set dry run state
-+
-+        Called with True/False
-+        """
-+
-+        self.nft_ctx_set_dry_run(self.__ctx, onoff)
---
-2.30.2
+> Past discussion:
+> - v2: https://lore.kernel.org/bpf/cover.1660062725.git.dxu@dxuuu.xyz/
+> - v1: https://lore.kernel.org/bpf/cover.1659209738.git.dxu@dxuuu.xyz/
+>
+> Changes since v2:
+> - Add bpf-ci kconfig changes
+>
+> Changes since v1:
+> - Reword commit message / cover letter to not mention connmark writing
+>
+>
+> Daniel Xu (3):
+>   selftests/bpf: Add existing connection bpf_*_ct_lookup() test
+>   selftests/bpf: Add connmark read test
+>   selftests/bpf: Update CI kconfig
+>
+>  tools/testing/selftests/bpf/config            |  2 +
+>  .../testing/selftests/bpf/prog_tests/bpf_nf.c | 60 +++++++++++++++++++
+>  .../testing/selftests/bpf/progs/test_bpf_nf.c | 21 +++++++
+>  3 files changed, 83 insertions(+)
+>
+> --
+> 2.37.1
+>
