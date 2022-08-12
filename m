@@ -2,68 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 214ACC3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Aug 2022 14:49:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BEDC00140
+	for <netfilter-devel@archiver.kernel.org>; Fri, 12 Aug 2022 19:17:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237826AbiHLOtE (ORCPT
+        id S230461AbiHLTRX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Aug 2022 10:49:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41504 "EHLO
+        Fri, 12 Aug 2022 15:17:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229760AbiHLOtD (ORCPT
+        with ESMTP id S230433AbiHLTRX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Aug 2022 10:49:03 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1D040AB4CF
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2022 07:49:02 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nf_tables: validate NFTA_SET_ELEM_KEY_END based on NFT_SET_CONCAT flag
-Date:   Fri, 12 Aug 2022 16:48:52 +0200
-Message-Id: <20220812144852.316952-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220812144852.316952-1-pablo@netfilter.org>
-References: <20220812144852.316952-1-pablo@netfilter.org>
+        Fri, 12 Aug 2022 15:17:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7960B088F;
+        Fri, 12 Aug 2022 12:17:21 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 56048617A7;
+        Fri, 12 Aug 2022 19:17:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64D1CC433C1;
+        Fri, 12 Aug 2022 19:17:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1660331840;
+        bh=0jIwtskoACNMrG6LuvpBTh7ehg3jcPRIFzQUMEx2Tvk=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=J6harPh0u6YqAcKdxSSwA1rKEt/X9Rw2eI1fDeOrc77QRRhVlxaymEXe6AKQ4Cohj
+         7sCzTX5nXljiLltDoTte/I4TQajUP4cX6D6KBhOKcnFy0Uu9EhELXb7lq+HC0ysTY9
+         xex0dW5ZeXJwo1vC/T2jRIrYUFe0DZB0k/xW1H3tbRjhoVhNbkrj+sZt5OpMzp83Qi
+         4Y03lzAu09uQuiMh3r1qJgyAm5D/iDBdqfzevnm9vegEDVyfgOxwAFwreyAmVFx1+s
+         7ZLVNrH6bqrZxCoG6J3mga6nxnNHw3e5Sl3gQ9T+ob/YFn1y3IsC+9ttIJECIQXrHx
+         mY2pNuR3cir7A==
+Date:   Fri, 12 Aug 2022 12:17:19 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Neal Cardwell <ncardwell@google.com>, stable@kernel.org
+Cc:     patchwork-bot+netdevbpf@kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, Yuchung Cheng <ycheng@google.com>,
+        Eric Dumazet <edumazet@google.com>
+Subject: Re: [PATCH net 1/3] netfilter: nf_conntrack_tcp: re-init for syn
+ packets only
+Message-ID: <20220812121719.0aff4cba@kernel.org>
+In-Reply-To: <CADVnQykD5NRcjmrbP9bgNaVuhpOaSiC1dxCOF03bL5nTo2HP7g@mail.gmail.com>
+References: <20220428142109.38726-2-pablo@netfilter.org>
+        <165116521266.24173.17359123747982099697.git-patchwork-notify@kernel.org>
+        <CADVnQykD5NRcjmrbP9bgNaVuhpOaSiC1dxCOF03bL5nTo2HP7g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the NFT_SET_CONCAT flag is set on, then the netlink attribute
-NFTA_SET_ELEM_KEY_END must be specified. Otherwise, NFTA_SET_ELEM_KEY_END
-should not be present.
+On Fri, 12 Aug 2022 09:34:14 -0400 Neal Cardwell wrote:
+> This first commit is an important bug fix for a serious bug that causes
+> TCP connection hangs for users of TCP fast open and nf_conntrack:
+> 
+>   c7aab4f17021b netfilter: nf_conntrack_tcp: re-init for syn packets only
+> 
+> We are continuing to get reports about the bug that this commit fixes.
+> 
+> It seems this fix was only backported to v5.17 stable release, and not further,
+> due to a cherry-pick conflict, because this fix implicitly depends on a
+> slightly earlier v5.17 fix in the same spot:
+> 
+>   82b72cb94666 netfilter: conntrack: re-init state for retransmitted syn-ack
+> 
+> I manually verified that the fix c7aab4f17021b can be cleanly cherry-picked
+> into the oldest (v4.9.325) and newest (v5.15.60) longterm release kernels as
+> long as we first cherry-pick that related fix that it implicitly depends on:
+> 
+> 82b72cb94666b3dbd7152bb9f441b068af7a921b
+> netfilter: conntrack: re-init state for retransmitted syn-ack
+> 
+> c7aab4f17021b636a0ee75bcf28e06fb7c94ab48
+> netfilter: nf_conntrack_tcp: re-init for syn packets only
+> 
+> So would it be possible to backport both of those fixes with the following
+> cherry-picks, to all LTS stable releases?
+> 
+> git cherry-pick 82b72cb94666b3dbd7152bb9f441b068af7a921b
+> git cherry-pick c7aab4f17021b636a0ee75bcf28e06fb7c94ab48
 
-There are two special cases where NFTA_SET_ELEM_KEY_END is optional,
-either if this is a closing interval element or this is a catch-all
-element.
+Thanks a lot Neal! FWIW we have recently changed our process and no
+longer handle stable submissions ourselves, so in the future feel free
+to talk directly to stable@ (and add CC: stable@ tags to patches).
 
-Fixes: 7b225d0b5c6d ("netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index bcfe8120e014..6e7eb47e14e9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5903,6 +5903,15 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			return -EINVAL;
- 	}
- 
-+	if (set->flags & NFT_SET_CONCAT) {
-+		if (!nla[NFTA_SET_ELEM_KEY_END] &&
-+		    !(flags & (NFT_SET_ELEM_INTERVAL_END | NFT_SET_ELEM_CATCHALL)))
-+			return -EINVAL;
-+	} else {
-+		if (nla[NFTA_SET_ELEM_KEY_END])
-+			return -EINVAL;
-+	}
-+
- 	if ((flags & NFT_SET_ELEM_INTERVAL_END) &&
- 	     (nla[NFTA_SET_ELEM_DATA] ||
- 	      nla[NFTA_SET_ELEM_OBJREF] ||
--- 
-2.30.2
-
+I'm adding stable@, let's see if Greg & team can pick things up based
+on your instructions :)
