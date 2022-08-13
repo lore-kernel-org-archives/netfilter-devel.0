@@ -2,111 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13112C00140
-	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Aug 2022 01:27:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 001DAC19F2D
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 Aug 2022 12:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236163AbiHMB1J (ORCPT
+        id S234712AbiHMMRP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 Aug 2022 21:27:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42880 "EHLO
+        Sat, 13 Aug 2022 08:17:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237768AbiHMB1G (ORCPT
+        with ESMTP id S230127AbiHMMRP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Aug 2022 21:27:06 -0400
-Received: from mail-4323.proton.ch (mail-4323.proton.ch [185.70.43.23])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0F0FAB192
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2022 18:27:02 -0700 (PDT)
-Date:   Sat, 13 Aug 2022 01:26:45 +0000
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tmb.nu;
-        s=protonmail; t=1660354019; x=1660613219;
-        bh=kb625J0IUauTJO8d7XhQ3BjkqrKcF1EBIVDd+tdFmp0=;
-        h=Date:To:From:Cc:Reply-To:Subject:Message-ID:Feedback-ID:From:To:
-         Cc:Date:Subject:Reply-To:Feedback-ID:Message-ID;
-        b=oNKczTNJvaJrmJvcdAhg5h9+zDVZW0YN9xCjs7ffDRwN9nPuE5Eyj/kSX0y5q+Vun
-         Y7bqJGlQU6C/U6CZHI7JJyIwyQMlgI28kj3BFasLjZuZc8hfkXtrJajkQ/T4Jkswz9
-         Q9GOEUdhcxQxeoVAf3udc+j5JahBLQxOFU8pOwPE=
-To:     Jakub Kicinski <kuba@kernel.org>,
-        Neal Cardwell <ncardwell@google.com>, stable@kernel.org
-From:   Thomas Backlund <tmb@tmb.nu>
-Cc:     patchwork-bot+netdevbpf@kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, Yuchung Cheng <ycheng@google.com>,
-        Eric Dumazet <edumazet@google.com>
-Reply-To: Thomas Backlund <tmb@tmb.nu>
-Subject: Re: [PATCH net 1/3] netfilter: nf_conntrack_tcp: re-init for syn packets only
-Message-ID: <17c87824-7d04-c34e-bf6a-d8b874242636@tmb.nu>
-Feedback-ID: 19711308:user:proton
+        Sat, 13 Aug 2022 08:17:15 -0400
+X-Greylist: delayed 312 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 13 Aug 2022 05:17:14 PDT
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 36FD06DF97
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Aug 2022 05:17:14 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id 9599113E0E;
+        Sat, 13 Aug 2022 15:11:59 +0300 (EEST)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id C7E3F13E09;
+        Sat, 13 Aug 2022 15:11:57 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 04AE23C043A;
+        Sat, 13 Aug 2022 15:11:54 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 27DCBmNp019049;
+        Sat, 13 Aug 2022 15:11:51 +0300
+Date:   Sat, 13 Aug 2022 15:11:48 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Jiri Wiesner <jwiesner@suse.de>
+cc:     netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org
+Subject: Re: [RFC PATCH nf-next] netfilter: ipvs: Divide estimators into
+ groups
+In-Reply-To: <20220812103459.GA7521@incl>
+Message-ID: <f1657ace-59fb-7265-faf8-8a1a26aaf560@ssi.bg>
+References: <20220812103459.GA7521@incl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Den 2022-08-12 kl. 22:17, skrev Jakub Kicinski:
-> On Fri, 12 Aug 2022 09:34:14 -0400 Neal Cardwell wrote:
->> This first commit is an important bug fix for a serious bug that causes
->> TCP connection hangs for users of TCP fast open and nf_conntrack:
->>
->>    c7aab4f17021b netfilter: nf_conntrack_tcp: re-init for syn packets on=
-ly
->>
->> We are continuing to get reports about the bug that this commit fixes.
->>
->> It seems this fix was only backported to v5.17 stable release, and not f=
-urther,
->> due to a cherry-pick conflict, because this fix implicitly depends on a
->> slightly earlier v5.17 fix in the same spot:
->>
->>    82b72cb94666 netfilter: conntrack: re-init state for retransmitted sy=
-n-ack
->>
->> I manually verified that the fix c7aab4f17021b can be cleanly cherry-pic=
-ked
->> into the oldest (v4.9.325) and newest (v5.15.60) longterm release kernel=
-s as
->> long as we first cherry-pick that related fix that it implicitly depends=
- on:
->>
->> 82b72cb94666b3dbd7152bb9f441b068af7a921b
->> netfilter: conntrack: re-init state for retransmitted syn-ack
->>
->> c7aab4f17021b636a0ee75bcf28e06fb7c94ab48
->> netfilter: nf_conntrack_tcp: re-init for syn packets only
->>
->> So would it be possible to backport both of those fixes with the followi=
-ng
->> cherry-picks, to all LTS stable releases?
->>
->> git cherry-pick 82b72cb94666b3dbd7152bb9f441b068af7a921b
->> git cherry-pick c7aab4f17021b636a0ee75bcf28e06fb7c94ab48
->
-> Thanks a lot Neal! FWIW we have recently changed our process and no
-> longer handle stable submissions ourselves, so in the future feel free
-> to talk directly to stable@ (and add CC: stable@ tags to patches).
->
-> I'm adding stable@, let's see if Greg & team can pick things up based
-> on your instructions :)
->
 
-besides testing that they apply,
-one should also check that the resulting code actually builds...
+	Hello,
 
-net/netfilter/nf_conntrack_proto_tcp.c: In function 'tcp_in_window':
-net/netfilter/nf_conntrack_proto_tcp.c:560:3: error: implicit
-declaration of function 'tcp_init_sender'; did you mean 'tcp_init_cwnd'?
-[-Werror=3Dimplicit-function-declaration]
+On Fri, 12 Aug 2022, Jiri Wiesner wrote:
 
+> The calculation of rate estimates for IPVS services and destinations will
+> cause an increase in scheduling latency to hundreds of milliseconds when
+> the number of estimators reaches tens of thousands or more. This issue has
+> been reported upstream [1]. Design changes to the algorithm to compute the
+> estimates were proposed in the same email thread.
+> 
+> By implementing some of the proposed design changes, this patch seeks to
+> address the latency issue by dividing the estimators into groups for which
+> estimates are calculated in a 2-second interval (same as before). Each of
+> the groups is processed once in each 2-second interval. Instead of
+> allocating an array of lists, groups are identified by their group_id,
+> which has the advantage that estimators can stay in the same list to which
+> they have been added by ip_vs_start_estimator(). The implementation of
+> estimator grouping is able to scale up with an increasing number of
+> estimators as well as scale down when estimators are being removed.
+> The changes to group size can be monitored with dynamic debugging:
+> echo 'file net/netfilter/ipvs/ip_vs_est.c +pfl' >> /sys/kernel/debug/dynamic_debug/control
+> 
+> Rebalacing of estimator groups is implemented and can be triggered only
+> after all the calculations for a 2-second interval have finished. After a
+> limit is exceeded, adding or removing estimators will triger rebalacing,
+> which will cause estimates to be inaccurate in the next 2-second interval.
+> For example, removing estimators that results in the removal of an entire
+> group will shorten the time interval used for computing rates, which will
+> lead to the rates being underestimated in the next 2-second interval.
+> 
+> Testing was carried out on a 2-socket machine with Intel Xeon Gold 6326
+> CPUs (64 logical CPUs). Tests with up to 600,000 estimators were
+> successfully completed. The expectation is that, given the current default
+> limits, the implementation can handle 150,000 estimators on most machines
+> in use today. In a test with 100,000 estimators, the default group size of
+> 1024 estimators resulted in the processing time for one group to be circa
+> 2.3 milliseconds and a timer period of 5 jiffies. Despite estimators being
+> added or removed throughout most of the test, the overhead of
+> ip_vs_estimator_rebalance() was less than 10% of the overhead of
+>  estimation_timer():
+>      7.66%        124093  swapper          [kernel.kallsyms]         [k] intel_idle
+>      2.86%         14296  ipvsadm          [kernel.kallsyms]         [k] native_queued_spin_lock_slowpath
+>      2.64%         16827  ipvsadm          [kernel.kallsyms]         [k] ip_vs_genl_parse_service
+>      2.15%         18457  ipvsadm          libc-2.31.so              [.] _dl_addr
+>      2.08%          4562  ipvsadm          [kernel.kallsyms]         [k] ip_vs_genl_dump_services
+>      2.06%         18326  ipvsadm          ld-2.31.so                [.] do_lookup_x
+>      1.78%         17251  swapper          [kernel.kallsyms]         [k] estimation_timer
+> ...
+>      0.14%           855  swapper          [kernel.kallsyms]         [k] ip_vs_estimator_rebalance
+> 
+> The intention is to develop this RFC patch into a short series addressing
+> the design changes proposed in [1]. Also, after moving the rate estimation
+> out of softirq context, the whole estimator list could be processed
+> concurrently - more than one work item would be used.
+> 
+> [1] https://lore.kernel.org/netdev/D25792C1-1B89-45DE-9F10-EC350DC04ADC@gmail.com
+> 
+> Signed-off-by: Jiri Wiesner <jwiesner@suse.de>
 
+	Other developers tried solutions with workqueues
+but so far we don't see any results. Give me some days, may be
+I can come up with solution that uses kthread(s) to allow later
+nice/cpumask cfg tuning and to avoid overload of the system
+workqueues.
 
-So this one is also needed:
-cc4f9d62037ebcb811f4908bba2986c01df1bd50
-netfilter: conntrack: move synack init code to helper
-
-for it to actually build on 5.15
-
+Regards
 
 --
-Thomas
+Julian Anastasov <ja@ssi.bg>
 
