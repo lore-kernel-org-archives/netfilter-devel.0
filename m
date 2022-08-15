@@ -2,298 +2,118 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E7C5C25B08
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 22:02:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6015C25B0D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Aug 2022 00:04:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344683AbiHOWCw (ORCPT
+        id S1352007AbiHPAEj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Aug 2022 18:02:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57870 "EHLO
+        Mon, 15 Aug 2022 20:04:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350147AbiHOWBx (ORCPT
+        with ESMTP id S1355795AbiHPABh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Aug 2022 18:01:53 -0400
-Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CF4E112FB7;
-        Mon, 15 Aug 2022 12:36:10 -0700 (PDT)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.nyi.internal (Postfix) with ESMTP id 270B35C019F;
-        Mon, 15 Aug 2022 15:36:06 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute5.internal (MEProxy); Mon, 15 Aug 2022 15:36:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-transfer-encoding:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1660592166; x=1660678566; bh=ba
-        v66PMTSC/VY8B9jYgWNMdcK75gc9L0KS6MRDdO0Fo=; b=MKG6XBb5H97YS61px1
-        y0qA2EjTU2nG7iZFDr32hZpHkP8TqM7W+dXr1XgkAAywlPLmTfAiUOIyn+rqpRTE
-        cmSiWxxUaV2D+EwFkn6C5LbN7xqAqti887VvJlTAwKG4qzqYIVKjC5dkrJCZO54+
-        S/PAu/u/vGTl6Hpbg0P2qWR4QQzsDjRez6+m2ei3APkQWWwQK/4bZHOyewA3Ljmr
-        yQJF3D9aVQ1sQzcO1JvC6dsV6exDnRpzyPNlKF8XQn0U5XAuoKvdNGvqGZS1jAQV
-        sPJ27F4yzmsQ7tN4t0qv8ITYtkKOkFKaF9+Wg3LH902mO3pNPavih6B3niZrNu/k
-        HqMw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; t=1660592166; x=1660678566; bh=bav66PMTSC/VY
-        8B9jYgWNMdcK75gc9L0KS6MRDdO0Fo=; b=oWHZdtc+ZTD55xjf82gv0R46PXHDC
-        nEBndVyy9cMut8/1UDYam64wZu9NCFUbG1zGx80/SwbJjo6inFBXIt3vK6izaf8R
-        bzXRR6rzsYoWyM1N5WEf3bysiw314TbcW/19L5wlYxwEVVPFLaBSsU5mHS/HM5yO
-        Zc8MXWu9XE9msVZoKQQfR2//8L4ohc7bvqtTUy16+YguvYgi06RkcbJDfpQeq/o6
-        s9+0J9/1ydhGYKWwN5xh2jr5lu3IFGnuP66e2z8dfwEGZ4/kfXx2QQWx3lacfImg
-        VwI0t+ik9eS9t4Op7ZhnjCoOHDtbiHLT9Mwwor+E1y+mYyoS6Hh1bk+iA==
-X-ME-Sender: <xms:JaD6YjMvU9WtketLpI15JLt4AygbBp8ZLtvwUyyhRjrjxz3IlLQ5jQ>
-    <xme:JaD6Yt8GzZXokBxA2VLb8Si9gd92tGekCTHw0xkQ-K42JQruCcg7NaNJc4BmmYaZR
-    RSrmDHkOFF1EwxgXg>
-X-ME-Received: <xmr:JaD6YiSfbKvDrQdNIBuVKqrDHuXSY8-IGj08VIXWSn4NdnvxyuNPvSACYyjzhGYvfrLd9CSIujs>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdehvddgudegudcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdejtddmnecujfgurhephf
-    fvvefufffkofgjfhgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcu
-    oegugihusegugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpefgfefggeejhfduie
-    ekvdeuteffleeifeeuvdfhheejleejjeekgfffgefhtddtteenucevlhhushhtvghrufhi
-    iigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:JqD6YnuGTcYzzssB7lZSrGi25qEPISe_QUhJZmB19zJm9oghGBhHJQ>
-    <xmx:JqD6YreIfPVzz-p5LgldL_czrKIWxkF8j0_fKllKoPvHgqFWNClRJA>
-    <xmx:JqD6Yj08daQpO7VCn0E1wj-CQHdULUjVWcZpXk-SE2mluGEmMMuyBQ>
-    <xmx:JqD6Yv47jSEtpSGzJzy1MKFXIo0LlxO8QYq-j0YrOUhhH4m6nlrvfg>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 15 Aug 2022 15:36:04 -0400 (EDT)
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, memxor@gmail.com
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH bpf-next 2/3] bpf: Add support for writing to nf_conn:mark
-Date:   Mon, 15 Aug 2022 13:35:47 -0600
-Message-Id: <f850bb7e20950736d9175c61d7e0691098e06182.1660592020.git.dxu@dxuuu.xyz>
-X-Mailer: git-send-email 2.37.1
-In-Reply-To: <cover.1660592020.git.dxu@dxuuu.xyz>
-References: <cover.1660592020.git.dxu@dxuuu.xyz>
+        Mon, 15 Aug 2022 20:01:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A1431677E6;
+        Mon, 15 Aug 2022 13:23:19 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A20D961073;
+        Mon, 15 Aug 2022 20:23:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F317C4347C;
+        Mon, 15 Aug 2022 20:23:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1660594998;
+        bh=nm4OJZwJEZv1pIUYaeMBoUGeJreDgEESneK9E8E3b3k=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=lSAAncBPiQ2YgCq4e62Ecin6KV0I185U97hJryIcyI7cyk95gfT0PrYn2Q+uF80v5
+         Y5sv8Il153qjhpoN1H5h7gMILfbCH89lmuB4s34ZHncCbNPcUyhcHVq5QUyhEgIEaC
+         Ji12bYkNdhEVDzGbbRU4OzQnBMDU9xyHAtJh1zHg=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        stable@vger.kernel.org, Manoj Basapathi <manojbm@codeaurora.org>,
+        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 5.19 0617/1157] netfilter: xtables: Bring SPDX identifier back
+Date:   Mon, 15 Aug 2022 19:59:33 +0200
+Message-Id: <20220815180504.337897081@linuxfoundation.org>
+X-Mailer: git-send-email 2.37.2
+In-Reply-To: <20220815180439.416659447@linuxfoundation.org>
+References: <20220815180439.416659447@linuxfoundation.org>
+User-Agent: quilt/0.67
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Support direct writes to nf_conn:mark from TC and XDP prog types. This
-is useful when applications want to store per-connection metadata. This
-is also particularly useful for applications that run both bpf and
-iptables/nftables because the latter can trivially access this metadata.
+From: Thomas Gleixner <tglx@linutronix.de>
 
-One example use case would be if a bpf prog is responsible for advanced
-packet classification and iptables/nftables is later used for routing
-due to pre-existing/legacy code.
+[ Upstream commit 20646f5b1e798bcc20044ae90ac3702f177bf254 ]
 
-Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+Commit e2be04c7f995 ("License cleanup: add SPDX license identifier to
+uapi header files with a license") added the correct SPDX identifier to
+include/uapi/linux/netfilter/xt_IDLETIMER.h.
+
+A subsequent commit removed it for no reason and reintroduced the UAPI
+license incorrectness as the file is now missing the UAPI exception
+again.
+
+Add it back and remove the GPLv2 boilerplate while at it.
+
+Fixes: 68983a354a65 ("netfilter: xtables: Add snapshot of hardidletimer target")
+Cc: Manoj Basapathi <manojbm@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/net/netfilter/nf_conntrack_bpf.h | 18 +++++++++
- net/core/filter.c                        | 34 ++++++++++++++++
- net/netfilter/nf_conntrack_bpf.c         | 50 ++++++++++++++++++++++++
- 3 files changed, 102 insertions(+)
+ include/uapi/linux/netfilter/xt_IDLETIMER.h | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
-index a473b56842c5..0f584c2bd475 100644
---- a/include/net/netfilter/nf_conntrack_bpf.h
-+++ b/include/net/netfilter/nf_conntrack_bpf.h
-@@ -3,6 +3,7 @@
- #ifndef _NF_CONNTRACK_BPF_H
- #define _NF_CONNTRACK_BPF_H
- 
-+#include <linux/bpf.h>
- #include <linux/btf.h>
- #include <linux/kconfig.h>
- 
-@@ -10,6 +11,12 @@
-     (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
- 
- extern int register_nf_conntrack_bpf(void);
-+extern int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
-+					  const struct btf *btf,
-+					  const struct btf_type *t, int off,
-+					  int size, enum bpf_access_type atype,
-+					  u32 *next_btf_id,
-+					  enum bpf_type_flag *flag);
- 
- #else
- 
-@@ -18,6 +25,17 @@ static inline int register_nf_conntrack_bpf(void)
- 	return 0;
- }
- 
-+static inline int
-+nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
-+			       const struct btf *btf,
-+			       const struct btf_type *t, int off,
-+			       int size, enum bpf_access_type atype,
-+			       u32 *next_btf_id,
-+			       enum bpf_type_flag *flag)
-+{
-+	return -EACCES;
-+}
-+
- #endif
- 
- #endif /* _NF_CONNTRACK_BPF_H */
-diff --git a/net/core/filter.c b/net/core/filter.c
-index 5669248aff25..d7b768fe9de7 100644
---- a/net/core/filter.c
-+++ b/net/core/filter.c
-@@ -18,6 +18,7 @@
-  */
- 
- #include <linux/atomic.h>
-+#include <linux/bpf_verifier.h>
- #include <linux/module.h>
- #include <linux/types.h>
- #include <linux/mm.h>
-@@ -55,6 +56,7 @@
- #include <net/sock_reuseport.h>
- #include <net/busy_poll.h>
- #include <net/tcp.h>
-+#include <net/netfilter/nf_conntrack_bpf.h>
- #include <net/xfrm.h>
- #include <net/udp.h>
- #include <linux/bpf_trace.h>
-@@ -8710,6 +8712,21 @@ static bool tc_cls_act_is_valid_access(int off, int size,
- 	return bpf_skb_is_valid_access(off, size, type, prog, info);
- }
- 
-+static int tc_cls_act_btf_struct_access(struct bpf_verifier_log *log,
-+					const struct btf *btf,
-+					const struct btf_type *t, int off,
-+					int size, enum bpf_access_type atype,
-+					u32 *next_btf_id,
-+					enum bpf_type_flag *flag)
-+{
-+	if (atype == BPF_READ)
-+		return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
-+					 flag);
-+
-+	return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
-+					      next_btf_id, flag);
-+}
-+
- static bool __is_valid_xdp_access(int off, int size)
- {
- 	if (off < 0 || off >= sizeof(struct xdp_md))
-@@ -8769,6 +8786,21 @@ void bpf_warn_invalid_xdp_action(struct net_device *dev, struct bpf_prog *prog,
- }
- EXPORT_SYMBOL_GPL(bpf_warn_invalid_xdp_action);
- 
-+static int xdp_btf_struct_access(struct bpf_verifier_log *log,
-+				 const struct btf *btf,
-+				 const struct btf_type *t, int off,
-+				 int size, enum bpf_access_type atype,
-+				 u32 *next_btf_id,
-+				 enum bpf_type_flag *flag)
-+{
-+	if (atype == BPF_READ)
-+		return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
-+					 flag);
-+
-+	return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
-+					      next_btf_id, flag);
-+}
-+
- static bool sock_addr_is_valid_access(int off, int size,
- 				      enum bpf_access_type type,
- 				      const struct bpf_prog *prog,
-@@ -10663,6 +10695,7 @@ const struct bpf_verifier_ops tc_cls_act_verifier_ops = {
- 	.convert_ctx_access	= tc_cls_act_convert_ctx_access,
- 	.gen_prologue		= tc_cls_act_prologue,
- 	.gen_ld_abs		= bpf_gen_ld_abs,
-+	.btf_struct_access	= tc_cls_act_btf_struct_access,
- };
- 
- const struct bpf_prog_ops tc_cls_act_prog_ops = {
-@@ -10674,6 +10707,7 @@ const struct bpf_verifier_ops xdp_verifier_ops = {
- 	.is_valid_access	= xdp_is_valid_access,
- 	.convert_ctx_access	= xdp_convert_ctx_access,
- 	.gen_prologue		= bpf_noop_prologue,
-+	.btf_struct_access	= xdp_btf_struct_access,
- };
- 
- const struct bpf_prog_ops xdp_prog_ops = {
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 1cd87b28c9b0..8010cc542d17 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -6,6 +6,7 @@
-  * are exposed through to BPF programs is explicitly unstable.
-  */
- 
-+#include <linux/bpf_verifier.h>
- #include <linux/bpf.h>
- #include <linux/btf.h>
- #include <linux/types.h>
-@@ -15,6 +16,8 @@
- #include <net/netfilter/nf_conntrack_bpf.h>
- #include <net/netfilter/nf_conntrack_core.h>
- 
-+static const struct btf_type *nf_conn_type;
-+
- /* bpf_ct_opts - Options for CT lookup helpers
+diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+index 49ddcdc61c09..7bfb31a66fc9 100644
+--- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
++++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
+@@ -1,6 +1,5 @@
++/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
+ /*
+- * linux/include/linux/netfilter/xt_IDLETIMER.h
+- *
+  * Header file for Xtables timer target module.
   *
-  * Members:
-@@ -184,6 +187,53 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
- 	return ct;
- }
+  * Copyright (C) 2004, 2010 Nokia Corporation
+@@ -10,20 +9,6 @@
+  * by Luciano Coelho <luciano.coelho@nokia.com>
+  *
+  * Contact: Luciano Coelho <luciano.coelho@nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+  */
  
-+/* Check writes into `struct nf_conn` */
-+int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
-+				   const struct btf *btf,
-+				   const struct btf_type *t, int off,
-+				   int size, enum bpf_access_type atype,
-+				   u32 *next_btf_id,
-+				   enum bpf_type_flag *flag)
-+{
-+	const struct btf_type *nct = READ_ONCE(nf_conn_type);
-+	s32 type_id;
-+	size_t end;
-+
-+	if (!nct) {
-+		type_id = btf_find_by_name_kind(btf, "nf_conn", BTF_KIND_STRUCT);
-+		if (type_id < 0)
-+			return -EINVAL;
-+
-+		nct = btf_type_by_id(btf, type_id);
-+		WRITE_ONCE(nf_conn_type, nct);
-+	}
-+
-+	if (t != nct) {
-+		bpf_log(log, "only read is supported\n");
-+		return -EACCES;
-+	}
-+
-+	switch (off) {
-+#if defined(CONFIG_NF_CONNTRACK_MARK)
-+	case offsetof(struct nf_conn, mark):
-+		end = offsetofend(struct nf_conn, mark);
-+		break;
-+#endif
-+	default:
-+		bpf_log(log, "no write support to nf_conn at off %d\n", off);
-+		return -EACCES;
-+	}
-+
-+	if (off + size > end) {
-+		bpf_log(log,
-+			"write access at off %d with size %d beyond the member of nf_conn ended at %zu\n",
-+			off, size, end);
-+		return -EACCES;
-+	}
-+
-+	return NOT_INIT;
-+}
-+
- __diag_push();
- __diag_ignore_all("-Wmissing-prototypes",
- 		  "Global functions as their definitions will be in nf_conntrack BTF");
+ #ifndef _XT_IDLETIMER_H
 -- 
-2.37.1
+2.35.1
+
+
 
