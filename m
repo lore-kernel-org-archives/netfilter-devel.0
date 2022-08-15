@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08FF1C00140
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 16:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37490C00140
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 16:19:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232174AbiHOQRo (ORCPT
+        id S230396AbiHOQTD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Aug 2022 12:17:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36926 "EHLO
+        Mon, 15 Aug 2022 12:19:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232176AbiHOQRn (ORCPT
+        with ESMTP id S229810AbiHOQTC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Aug 2022 12:17:43 -0400
+        Mon, 15 Aug 2022 12:19:02 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4AA40167C1
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2022 09:17:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 03793167C1
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2022 09:19:02 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v4 2/2] netfilter: nf_tables: NFTA_SET_ELEM_KEY_END requires concat and interval flags
-Date:   Mon, 15 Aug 2022 18:17:35 +0200
-Message-Id: <20220815161735.199502-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: check NFT_SET_CONCAT flag if field_count is specified
+Date:   Mon, 15 Aug 2022 18:18:55 +0200
+Message-Id: <20220815161855.199776-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,71 +28,35 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the NFT_SET_CONCAT|NFT_SET_INTERVAL flags are set on, then the
-netlink attribute NFTA_SET_ELEM_KEY_END must be specified. Otherwise,
-NFTA_SET_ELEM_KEY_END should not be present.
+Since f3a2181e16f1 ("netfilter: nf_tables: Support for sets with
+multiple ranged fields"), it possible to combine intervals and
+concatenations. Later on, ef516e8625dd ("netfilter: nf_tables:
+reintroduce the NFT_SET_CONCAT flag") provides the NFT_SET_CONCAT flag
+for userspace to report that the set stores a concatenation.
 
-For catch-all element, NFTA_SET_ELEM_KEY_END should not be present.
-The NFT_SET_ELEM_INTERVAL_END is never used with this set flags
-combination.
+Make sure NFT_SET_CONCAT is set on if field_count is specified for
+consistency.
 
-Fixes: 7b225d0b5c6d ("netfilter: nf_tables: add NFTA_SET_ELEM_KEY_END attribute")
+Fixes: ef516e8625dd ("netfilter: nf_tables: reintroduce the NFT_SET_CONCAT flag")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v4: check delete set element path too.
-
- net/netfilter/nf_tables_api.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ net/netfilter/nf_tables_api.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index bcfe8120e014..1d14d694f654 100644
+index b1b12e083abb..37249cab2ab4 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -5844,6 +5844,24 @@ static void nft_setelem_remove(const struct net *net,
- 		set->ops->remove(net, set, elem);
- }
- 
-+static bool nft_setelem_valid_key_end(const struct nft_set *set,
-+				      struct nlattr **nla, u32 flags)
-+{
-+	if ((set->flags & (NFT_SET_CONCAT | NFT_SET_INTERVAL)) ==
-+			  (NFT_SET_CONCAT | NFT_SET_INTERVAL)) {
-+		if (flags & NFT_SET_ELEM_INTERVAL_END)
-+			return false;
-+		if (!nla[NFTA_SET_ELEM_KEY_END] &&
-+		    !(flags & NFT_SET_ELEM_CATCHALL))
-+			return false;
-+	} else {
-+		if (nla[NFTA_SET_ELEM_KEY_END])
-+			return false;
-+	}
+@@ -4451,6 +4451,9 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 		err = nf_tables_set_desc_parse(&desc, nla[NFTA_SET_DESC]);
+ 		if (err < 0)
+ 			return err;
 +
-+	return true;
-+}
-+
- static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr, u32 nlmsg_flags)
- {
-@@ -5903,6 +5921,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			return -EINVAL;
++		if (desc.field_count > 1 && !(flags & NFT_SET_CONCAT))
++			return -EINVAL;
  	}
  
-+	if (!nft_setelem_valid_key_end(set, nla, flags))
-+		return -EINVAL;
-+
- 	if ((flags & NFT_SET_ELEM_INTERVAL_END) &&
- 	     (nla[NFTA_SET_ELEM_DATA] ||
- 	      nla[NFTA_SET_ELEM_OBJREF] ||
-@@ -6333,6 +6354,9 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (!nla[NFTA_SET_ELEM_KEY] && !(flags & NFT_SET_ELEM_CATCHALL))
- 		return -EINVAL;
- 
-+	if (!nft_setelem_valid_key_end(set, nla, flags))
-+		return -EINVAL;
-+
- 	nft_set_ext_prepare(&tmpl);
- 
- 	if (flags != 0) {
+ 	if (nla[NFTA_SET_EXPR] || nla[NFTA_SET_EXPRESSIONS])
 -- 
 2.30.2
 
