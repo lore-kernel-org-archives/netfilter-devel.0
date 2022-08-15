@@ -2,52 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C625C25B08
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 22:02:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA4D9C00140
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 22:02:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345954AbiHOWCs (ORCPT
+        id S1346709AbiHOWCt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Aug 2022 18:02:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35176 "EHLO
+        Mon, 15 Aug 2022 18:02:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350166AbiHOWBx (ORCPT
+        with ESMTP id S1350148AbiHOWBx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 15 Aug 2022 18:01:53 -0400
 Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D05E112FB8;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D3F4112FBA;
         Mon, 15 Aug 2022 12:36:10 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailout.nyi.internal (Postfix) with ESMTP id E22FE5C0100;
-        Mon, 15 Aug 2022 15:36:03 -0400 (EDT)
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+        by mailout.nyi.internal (Postfix) with ESMTP id 3431B5C01C5;
+        Mon, 15 Aug 2022 15:36:08 -0400 (EDT)
 Received: from mailfrontend1 ([10.202.2.162])
-  by compute3.internal (MEProxy); Mon, 15 Aug 2022 15:36:03 -0400
+  by compute1.internal (MEProxy); Mon, 15 Aug 2022 15:36:08 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
         :cc:content-transfer-encoding:date:date:from:from:in-reply-to
         :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1660592163; x=1660678563; bh=Wc
-        b6Pbj94UhSYNHvOvjVvvYzPv6vZiSSIkN/TpJnmyo=; b=KrEF1DWh+zvKxjJ895
-        Oy8naFMlbLUVSY8dqRzjqgrJd3nKni+Zh09T/AjK9a0c/dAQ2523oVFd0LZSLCI+
-        0ZmXhnA6wIlMNipev4h4785lJtK8AlTBKG6jy19wZfmLihgWqQO52GqVQdOHdDIL
-        t+e8XFDWQcGD47OY8ifgsMLTWlBSXPv9QG4uegnbRWeo5+/yIXPYtWV8lK4emFNd
-        y7xiGtTntciGZ7QgYyRRsFdyaKjdRZC/NssWpxOvlTLdcEQ2UQzFA6F5eXxqLa2s
-        /L6pZPBTkPsSKJXTa2AGs4wAdde1kvy6xGFFFdQbvKB6n9kdRlKmqrHU8lGWLbX0
-        kv7g==
+        :subject:subject:to:to; s=fm3; t=1660592168; x=1660678568; bh=5Z
+        RUO9fZWr4iLqIUqA1TD+ufCzt/V4tcVExTpw7qFl8=; b=i5vCNCqszLM1beHaJQ
+        2wBEJ4Y/JZqn54UHXUt78W1fRMBTqQpZV1jPSTcbb1usCqGjbV+i3K0a6BMJb24w
+        tukKM1y/DFLAf+hYuWdnYilWVRZT9912p9/eO0e6jaaHoHQBfYnzg5O3ojtd0Qb6
+        xbTY24k7YDLTtgEKPeKFkhKBknZfHUFaXf0O5W/MQ9PoAzg136mFOzWScwGaXN/Q
+        4Rah4FEwPFsrzy5kD/Mk1eV2WYTsFFPmwxQpEbbbEH2lfQwGKPLn6gY/1ahaQYa1
+        YlPUwL2fv3cUGooz4/Jz7McftasUAUjJDEqPRklpre4EKRpH70nnViqJUdBRv+Sh
+        W2DA==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
         :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
         :message-id:mime-version:references:reply-to:sender:subject
         :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; t=1660592163; x=1660678563; bh=Wcb6Pbj94UhSY
-        NHvOvjVvvYzPv6vZiSSIkN/TpJnmyo=; b=uTOYFmjfsC3q+8Yfb3wB4OA9BPegC
-        iCYM/aED/1qmeo2lM1uGVF1ViquL2H5V+8sGGP+Dye7j9OWTIJqyDG9Pni8aLmKJ
-        9L3BhqLRzjbpbFzfrc7iu+dABFo8KZEPDYGqgXCkfIKCQtxSx9gKW+RUEC3h3eKv
-        D7+ABfCl4yYSm9BvWRNUxjU6Aiitj06Rh3mIw0tRAWhShRDAm5tH7x6/fdCCzVhi
-        rogAI2h04J+VpxqnJnXIQkzQySfBYKGAUPZQkhllxX22yWWKiZ2fLgV64dTL/K5s
-        PXDGvK9d+dVY68hAib8FeCVonaATAF7mVdCNXlJYZQK9QHWa44tBQf6ag==
-X-ME-Sender: <xms:I6D6Yj2p3ifSUyadtDsxGiyeMmiGXJRiEuhog_7qy40S0nzoKHbWEA>
-    <xme:I6D6YiH5DDi1B-LUm0uhlyG2KPxm26HSXFihYfPTKkjCRR1uod7Pt_t2zp-W3S4Oe
-    I5ae03hwYfue9jUIA>
-X-ME-Received: <xmr:I6D6Yj4RJsU3swyOTYBr0vuVI85LKbzr4eZZIy8uN1FdHZ4Jogfv-yQeL-k4rhlmJMbtgfBMHvY>
+        :x-sasl-enc; s=fm1; t=1660592168; x=1660678568; bh=5ZRUO9fZWr4iL
+        qIUqA1TD+ufCzt/V4tcVExTpw7qFl8=; b=UPkL0h3Q3B/mjFdU2ZfLxpsb4humL
+        Z/LW7WAPCV/SjSFPd6/9lzS4fo0zzrtOh719YB1DacXb7J4hvXBFPs3J8Vn1NrJ4
+        UKKlHxZOQsRQXuRprCwGkbjirgkVM0rBXfXohq8PjNO5Fi40hmEx90ODbcEu611+
+        wj3D0Owc8fbGQkqvPHEPzbSsbJSrCYhNQtmsL5x6i2xagfRzVeWdKgCR/jtnglGF
+        49+UabBz5/r11KHlqCFd97Pc6DtJoGFG3QnOUVoz0Muf0CYzQ+781rZirmJVWoPO
+        09MQ+ccxzdCzk9LkCmmr9VchNX+xZiAlkDG9kuHavEsMI/YYOqFqjStiQ==
+X-ME-Sender: <xms:J6D6YnhD8kw8M9N2ZUE_vzH6LoeHcekkInkLlv2cCCL6roHcYbNRgw>
+    <xme:J6D6YkCmWvZ7wU_b51a1hDvPfwi8nQ38vqQ_8F2o3LltMsyohp0tfXM9hUyU-_mVE
+    03p8gJpsfGmKL9-XA>
+X-ME-Received: <xmr:J6D6YnGhVhBzQVf4X6wRfWxm9ZtyYa8VfMifmyyh21KRHI56wEisXpRmOD8yHLmCqzxJXMDN49M>
 X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdehvddgudegudcutefuodetggdotefrod
     ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
     necuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdejtddmnecujfgurhephf
@@ -55,22 +55,22 @@ X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdehvddgudegudcutefuodetgg
     oegugihusegugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpefgfefggeejhfduie
     ekvdeuteffleeifeeuvdfhheejleejjeekgfffgefhtddtteenucevlhhushhtvghrufhi
     iigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:I6D6Yo13vhJBy7Y8IqMUTDaAgX-xFHPsC1DXwPtrOiabbhKhqEM2yQ>
-    <xmx:I6D6YmFZwdIlA4hlfkXn4TJ3E7amIhiTrATDL46pCHMdq_3s2ZoK_w>
-    <xmx:I6D6Yp_Q8naXVH4mU9NwZt_MNGbA6XkObESkiLAlLyn_IZerhFmW0g>
-    <xmx:I6D6YpCVRGiUn16e5baEF_K92HW-2NYe3i3OLlAXYC2YhX7J0i1cQg>
+X-ME-Proxy: <xmx:J6D6YkSv_eCsCsfChPNFF0vcx8M5qf2j-0R8D9Mve3lEzpWM5FMAUw>
+    <xmx:J6D6Ykx8bn78CFx_913-nu3ZDgRD46BNPSjNb-06spHEJ2Z-ABBqag>
+    <xmx:J6D6Yq7QrRcThNzpcipMVK5okzw9xgtD1tlJbGLA9Ijm2gnKEMM1RQ>
+    <xmx:KKD6YgcprSMorS4VMKJJsDlssICHwT0hTPYcWuf3ecux_Flkke8d4Q>
 Feedback-ID: i6a694271:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 15 Aug 2022 15:36:02 -0400 (EDT)
+ 15 Aug 2022 15:36:06 -0400 (EDT)
 From:   Daniel Xu <dxu@dxuuu.xyz>
 To:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
         andrii@kernel.org, memxor@gmail.com
 Cc:     Daniel Xu <dxu@dxuuu.xyz>, pablo@netfilter.org, fw@strlen.de,
         netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH bpf-next 1/3] bpf: Remove duplicate PTR_TO_BTF_ID RO check
-Date:   Mon, 15 Aug 2022 13:35:46 -0600
-Message-Id: <03eb20693dc9d0e5a859471a9e072538a1a366c8.1660592020.git.dxu@dxuuu.xyz>
+Subject: [PATCH bpf-next 3/3] selftests/bpf: Add tests for writing to nf_conn:mark
+Date:   Mon, 15 Aug 2022 13:35:48 -0600
+Message-Id: <2407d87f6b6f9e0c66101cd68dcb1e2cfbd135c3.1660592020.git.dxu@dxuuu.xyz>
 X-Mailer: git-send-email 2.37.1
 In-Reply-To: <cover.1660592020.git.dxu@dxuuu.xyz>
 References: <cover.1660592020.git.dxu@dxuuu.xyz>
@@ -80,49 +80,70 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since commit 27ae7997a661 ("bpf: Introduce BPF_PROG_TYPE_STRUCT_OPS")
-there has existed bpf_verifier_ops:btf_struct_access. When
-btf_struct_access is _unset_ for a prog type, the verifier runs the
-default implementation, which is to enforce read only:
-
-        if (env->ops->btf_struct_access) {
-                [...]
-        } else {
-                if (atype != BPF_READ) {
-                        verbose(env, "only read is supported\n");
-                        return -EACCES;
-                }
-
-                [...]
-        }
-
-When btf_struct_access is _set_, the expectation is that
-btf_struct_access has full control over accesses, including if writes
-are allowed.
-
-Rather than carve out an exception for each prog type that may write to
-BTF ptrs, delete the redundant check and give full control to
-btf_struct_access.
+Add a simple extension to the existing selftest to write to
+nf_conn:mark. Also add a failure test for writing to unsupported field.
 
 Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
 ---
- kernel/bpf/verifier.c | 3 ---
- 1 file changed, 3 deletions(-)
+ tools/testing/selftests/bpf/prog_tests/bpf_nf.c    |  1 +
+ tools/testing/selftests/bpf/progs/test_bpf_nf.c    |  6 ++++--
+ .../testing/selftests/bpf/progs/test_bpf_nf_fail.c | 14 ++++++++++++++
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index 2c1f8069f7b7..ca2311bf0cfd 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -13474,9 +13474,6 @@ static int convert_ctx_accesses(struct bpf_verifier_env *env)
- 				insn->code = BPF_LDX | BPF_PROBE_MEM |
- 					BPF_SIZE((insn)->code);
- 				env->prog->aux->num_exentries++;
--			} else if (resolve_prog_type(env->prog) != BPF_PROG_TYPE_STRUCT_OPS) {
--				verbose(env, "Writes through BTF pointers are not allowed\n");
--				return -EINVAL;
- 			}
- 			continue;
- 		default:
+diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+index 544bf90ac2a7..45389c39f211 100644
+--- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
++++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+@@ -17,6 +17,7 @@ struct {
+ 	{ "set_status_after_insert", "kernel function bpf_ct_set_status args#0 expected pointer to STRUCT nf_conn___init but" },
+ 	{ "change_timeout_after_alloc", "kernel function bpf_ct_change_timeout args#0 expected pointer to STRUCT nf_conn but" },
+ 	{ "change_status_after_alloc", "kernel function bpf_ct_change_status args#0 expected pointer to STRUCT nf_conn but" },
++	{ "write_not_allowlisted_field", "no write support to nf_conn at off" },
+ };
+ 
+ enum {
+diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+index 2722441850cc..638b6642d20f 100644
+--- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
++++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+@@ -175,8 +175,10 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
+ 		       sizeof(opts_def));
+ 	if (ct) {
+ 		test_exist_lookup = 0;
+-		if (ct->mark == 42)
+-			test_exist_lookup_mark = 43;
++		if (ct->mark == 42) {
++			ct->mark++;
++			test_exist_lookup_mark = ct->mark;
++		}
+ 		bpf_ct_release(ct);
+ 	} else {
+ 		test_exist_lookup = opts_def.error;
+diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c b/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
+index bf79af15c808..0e4759ab38ff 100644
+--- a/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
++++ b/tools/testing/selftests/bpf/progs/test_bpf_nf_fail.c
+@@ -69,6 +69,20 @@ int lookup_insert(struct __sk_buff *ctx)
+ 	return 0;
+ }
+ 
++SEC("?tc")
++int write_not_allowlisted_field(struct __sk_buff *ctx)
++{
++	struct bpf_ct_opts___local opts = {};
++	struct bpf_sock_tuple tup = {};
++	struct nf_conn *ct;
++
++	ct = bpf_skb_ct_lookup(ctx, &tup, sizeof(tup.ipv4), &opts, sizeof(opts));
++	if (!ct)
++		return 0;
++	ct->status = 0xF00;
++	return 0;
++}
++
+ SEC("?tc")
+ int set_timeout_after_insert(struct __sk_buff *ctx)
+ {
 -- 
 2.37.1
 
