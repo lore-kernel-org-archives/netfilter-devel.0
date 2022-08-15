@@ -2,118 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72349C00140
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 19:06:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 518ADC25B08
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 Aug 2022 20:19:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244867AbiHOTGz (ORCPT
+        id S1345876AbiHOUTZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 Aug 2022 15:06:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60408 "EHLO
+        Mon, 15 Aug 2022 16:19:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245724AbiHOTGJ (ORCPT
+        with ESMTP id S242296AbiHOURX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Aug 2022 15:06:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50ABD39B84;
-        Mon, 15 Aug 2022 11:34:47 -0700 (PDT)
+        Mon, 15 Aug 2022 16:17:23 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24950F46;
+        Mon, 15 Aug 2022 12:00:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A138610A4;
-        Mon, 15 Aug 2022 18:34:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79E12C433C1;
-        Mon, 15 Aug 2022 18:34:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1660588485;
-        bh=nm4OJZwJEZv1pIUYaeMBoUGeJreDgEESneK9E8E3b3k=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=sKdlEJhNFvP323RDwTZqZ+JXSA/zlg7Tkp+Pa0UkM9A1/q12QwxdFxSitlkOtBn6i
-         blDIByiCiDINRiHzkqDNloh8yB2XT049BteJosQXkVvFb8GZ2DEoYjEoay9ozXzTVB
-         dYh8fUMbUvhwNxcurrFAxxPaSkFLzFqQ8ccxD7Jk=
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        stable@vger.kernel.org, Manoj Basapathi <manojbm@codeaurora.org>,
-        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 5.15 418/779] netfilter: xtables: Bring SPDX identifier back
-Date:   Mon, 15 Aug 2022 20:01:02 +0200
-Message-Id: <20220815180355.133254650@linuxfoundation.org>
-X-Mailer: git-send-email 2.37.2
-In-Reply-To: <20220815180337.130757997@linuxfoundation.org>
-References: <20220815180337.130757997@linuxfoundation.org>
-User-Agent: quilt/0.67
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6833FB81113;
+        Mon, 15 Aug 2022 19:00:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 11F38C4347C;
+        Mon, 15 Aug 2022 19:00:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1660590014;
+        bh=igEtDFyDX86Zzd6H6ZqMLRuFCiTeU4CezPBsoU96YE4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=c2rm9cGD0iojsVby0QXR3dyizi/DpuQu4QRgtk7T/5+c64xKH/1UTgBzKJOwJTce7
+         ycO2cIRkHEJ1YFpO4iCsDifaTUhMV8Lu46ddd63PL9IwAtXGOHWTbfavSyOLRahHS/
+         Iq7jEBItDlMTbe1b69EMnV0v3BR0ZSFhG5c6Wyf0G1VrRife6W8jXw1eRMTCiFwMIi
+         lO0HswApYjh7bdf8sh6XjCYbQqsNyTLwZ6RTZp13UQdgRNvSiR1PDKVIpettx3iHzT
+         NnbOJfggTIdVmqkulPfaleaZx8/SbdB6gD22nnmQE+5giIX05+2ipMtfdHSyxT0ESr
+         ZvyAQVT001Gww==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EB6DCE2A051;
+        Mon, 15 Aug 2022 19:00:13 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH bpf-next v4 0/3] Add more bpf_*_ct_lookup() selftests
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166059001395.9081.18240847737000160882.git-patchwork-notify@kernel.org>
+Date:   Mon, 15 Aug 2022 19:00:13 +0000
+References: <cover.1660254747.git.dxu@dxuuu.xyz>
+In-Reply-To: <cover.1660254747.git.dxu@dxuuu.xyz>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, memxor@gmail.com, pablo@netfilter.org,
+        fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Hello:
 
-[ Upstream commit 20646f5b1e798bcc20044ae90ac3702f177bf254 ]
+This series was applied to bpf/bpf-next.git (master)
+by Daniel Borkmann <daniel@iogearbox.net>:
 
-Commit e2be04c7f995 ("License cleanup: add SPDX license identifier to
-uapi header files with a license") added the correct SPDX identifier to
-include/uapi/linux/netfilter/xt_IDLETIMER.h.
+On Thu, 11 Aug 2022 15:55:24 -0600 you wrote:
+> This patchset adds more bpf_*_ct_lookup() selftests. The goal is to test
+> interaction with netfilter subsystem as well as reading from `struct
+> nf_conn`. The first is important when migrating legacy systems towards
+> bpf. The latter is important in general to take full advantage of
+> connection tracking.
+> 
+> I'll follow this patchset up with support for writing to `struct nf_conn`.
+> 
+> [...]
 
-A subsequent commit removed it for no reason and reintroduced the UAPI
-license incorrectness as the file is now missing the UAPI exception
-again.
+Here is the summary with links:
+  - [bpf-next,v4,1/3] selftests/bpf: Add existing connection bpf_*_ct_lookup() test
+    https://git.kernel.org/bpf/bpf-next/c/e81fbd4c1ba7
+  - [bpf-next,v4,2/3] selftests/bpf: Add connmark read test
+    https://git.kernel.org/bpf/bpf-next/c/99799de2cba2
+  - [bpf-next,v4,3/3] selftests/bpf: Update CI kconfig
+    https://git.kernel.org/bpf/bpf-next/c/8308bf207ce6
 
-Add it back and remove the GPLv2 boilerplate while at it.
-
-Fixes: 68983a354a65 ("netfilter: xtables: Add snapshot of hardidletimer target")
-Cc: Manoj Basapathi <manojbm@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- include/uapi/linux/netfilter/xt_IDLETIMER.h | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-index 49ddcdc61c09..7bfb31a66fc9 100644
---- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
-+++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-@@ -1,6 +1,5 @@
-+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
- /*
-- * linux/include/linux/netfilter/xt_IDLETIMER.h
-- *
-  * Header file for Xtables timer target module.
-  *
-  * Copyright (C) 2004, 2010 Nokia Corporation
-@@ -10,20 +9,6 @@
-  * by Luciano Coelho <luciano.coelho@nokia.com>
-  *
-  * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-  */
- 
- #ifndef _XT_IDLETIMER_H
+You are awesome, thank you!
 -- 
-2.35.1
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
 
