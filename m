@@ -2,359 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7011C3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Aug 2022 12:18:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 642E6C25B0E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Aug 2022 16:23:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232431AbiHPMS0 (ORCPT
+        id S236102AbiHPQXH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Aug 2022 08:18:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46460 "EHLO
+        Tue, 16 Aug 2022 12:23:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234889AbiHPMSH (ORCPT
+        with ESMTP id S236305AbiHPQXC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Aug 2022 08:18:07 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8020C3134B;
-        Tue, 16 Aug 2022 05:15:40 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1oNvTu-0000oi-Ol; Tue, 16 Aug 2022 14:15:38 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     shuah@kernel.org, linux-kselftest@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 2/2] testing: selftests: nft_flowtable.sh: rework test to detect offload failure
-Date:   Tue, 16 Aug 2022 14:15:22 +0200
-Message-Id: <20220816121522.14278-3-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220816121522.14278-1-fw@strlen.de>
-References: <20220816121522.14278-1-fw@strlen.de>
+        Tue, 16 Aug 2022 12:23:02 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B90C379A49;
+        Tue, 16 Aug 2022 09:22:59 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 7036137645;
+        Tue, 16 Aug 2022 16:22:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1660666978; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oJeBNMRfo88AxUhhWQ0t4TxTFqdEjT8eIfnKmX+Lkrg=;
+        b=WW4MUIcKFTW5QnJMfkOhGqQ9Ap07SJnZhbgBx/dohfT7e2Z1OL7W8xqmuLKft9LMUWxfcI
+        y/KwYl268nHGVBftHhct+wj3WtE7/dJ9E4RiCM+wxiz9/DT/SZWatp2z01dvM2QyPYTA6R
+        p10LH3P4I/yk2uq+gnSuRCG0aK36r7k=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1660666978;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oJeBNMRfo88AxUhhWQ0t4TxTFqdEjT8eIfnKmX+Lkrg=;
+        b=rGUG0IM+6XGR+A0FCPwffxIyze32E0j/WMhhR1nD30ck//eiHvp0le+J6VxRS85PTXk0cI
+        va8HOkEWAOes9HAA==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 53C63139B7;
+        Tue, 16 Aug 2022 16:22:58 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id zxpoFGLE+2LQNwAAMHmgww
+        (envelope-from <jwiesner@suse.de>); Tue, 16 Aug 2022 16:22:58 +0000
+Received: by incl.suse.cz (Postfix, from userid 1000)
+        id 53E0DDB70; Tue, 16 Aug 2022 18:22:57 +0200 (CEST)
+Date:   Tue, 16 Aug 2022 18:22:57 +0200
+From:   Jiri Wiesner <jwiesner@suse.de>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org
+Subject: Re: [RFC PATCH nf-next] netfilter: ipvs: Divide estimators into
+ groups
+Message-ID: <20220816162257.GA18621@incl>
+References: <20220812103459.GA7521@incl>
+ <f1657ace-59fb-7265-faf8-8a1a26aaf560@ssi.bg>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f1657ace-59fb-7265-faf8-8a1a26aaf560@ssi.bg>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This test fails on current kernel releases because the flotwable path
-now calls dst_check from packet path and will then remove the offload.
+On Sat, Aug 13, 2022 at 03:11:48PM +0300, Julian Anastasov wrote:
+> > The intention is to develop this RFC patch into a short series addressing
+> > the design changes proposed in [1]. Also, after moving the rate estimation
+> > out of softirq context, the whole estimator list could be processed
+> > concurrently - more than one work item would be used.
+> 
+> 	Other developers tried solutions with workqueues
+> but so far we don't see any results. Give me some days, may be
+> I can come up with solution that uses kthread(s) to allow later
+> nice/cpumask cfg tuning and to avoid overload of the system
+> workqueues.
 
-Test script has two purposes:
-1. check that file (random content) can be sent to other netns (and vv)
-2. check that the flow is offloaded (rather than handled by classic
-   forwarding path).
-
-Since dst_check is in place, 2) fails because the nftables ruleset in
-router namespace 1 intentionally blocks traffic under the assumption
-that packets are not passed via classic path at all.
-
-Rework this: Instead of blocking traffic, create two named counters, one
-for original and one for reverse direction.
-
-The first three test cases are handled by classic forwarding path
-(path mtu discovery is disabled and packets exceed MTU).
-
-But all other tests enable PMTUD, so the originator and responder are
-expected to lower packet size and flowtable is expected to do the packet
-forwarding.
-
-For those tests, check that the packet counters (which are only
-incremented for packets that are passed up to classic forward path)
-are significantly lower than the file size transferred.
-
-I've tested that the counter-checks fail as expected when the 'flow add'
-statement is removed from the ruleset.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/netfilter/nft_flowtable.sh      | 141 +++++++++++-------
- 1 file changed, 84 insertions(+), 57 deletions(-)
-
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index c336e6c148d1..e31d3d68a251 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -24,8 +24,7 @@ nsr2="nsr2-$sfx"
- ksft_skip=4
- ret=0
- 
--ns1in=""
--ns2in=""
-+nsin=""
- ns1out=""
- ns2out=""
- 
-@@ -53,8 +52,7 @@ cleanup() {
- 	ip netns del $nsr1
- 	ip netns del $nsr2
- 
--	rm -f "$ns1in" "$ns1out"
--	rm -f "$ns2in" "$ns2out"
-+	rm -f "$nsin" "$ns1out"
- 
- 	[ $log_netns -eq 0 ] && sysctl -q net.netfilter.nf_log_all_netns=$log_netns
- }
-@@ -165,36 +163,20 @@ table inet filter {
-      devices = { veth0, veth1 }
-    }
- 
-+   counter routed_orig { }
-+   counter routed_repl { }
-+
-    chain forward {
-       type filter hook forward priority 0; policy drop;
- 
-       # flow offloaded? Tag ct with mark 1, so we can detect when it fails.
--      meta oif "veth1" tcp dport 12345 flow offload @f1 counter
--
--      # use packet size to trigger 'should be offloaded by now'.
--      # otherwise, if 'flow offload' expression never offloads, the
--      # test will pass.
--      tcp dport 12345 meta length gt 200 ct mark set 1 counter
--
--      # this turns off flow offloading internally, so expect packets again
--      tcp flags fin,rst ct mark set 0 accept
--
--      # this allows large packets from responder, we need this as long
--      # as PMTUd is off.
--      # This rule is deleted for the last test, when we expect PMTUd
--      # to kick in and ensure all packets meet mtu requirements.
--      meta length gt $lmtu accept comment something-to-grep-for
-+      meta oif "veth1" tcp dport 12345 ct mark set 1 flow add @f1 counter name routed_orig accept
- 
--      # next line blocks connection w.o. working offload.
--      # we only do this for reverse dir, because we expect packets to
--      # enter slow path due to MTU mismatch of veth0 and veth1.
--      tcp sport 12345 ct mark 1 counter log prefix "mark failure " drop
-+      # count packets supposedly offloaded as per direction.
-+      ct mark 1 counter name ct direction map { original : routed_orig, reply : routed_repl } accept
- 
-       ct state established,related accept
- 
--      # for packets that we can't offload yet, i.e. SYN (any ct that is not confirmed)
--      meta length lt 200 oif "veth1" tcp dport 12345 counter accept
--
-       meta nfproto ipv4 meta l4proto icmp accept
-       meta nfproto ipv6 meta l4proto icmpv6 accept
-    }
-@@ -221,16 +203,16 @@ if [ $ret -eq 0 ];then
- 	echo "PASS: netns routing/connectivity: $ns1 can reach $ns2"
- fi
- 
--ns1in=$(mktemp)
-+nsin=$(mktemp)
- ns1out=$(mktemp)
--ns2in=$(mktemp)
- ns2out=$(mktemp)
- 
- make_file()
- {
- 	name=$1
- 
--	SIZE=$((RANDOM % (1024 * 8)))
-+	SIZE=$((RANDOM % (1024 * 128)))
-+	SIZE=$((SIZE + (1024 * 8)))
- 	TSIZE=$((SIZE * 1024))
- 
- 	dd if=/dev/urandom of="$name" bs=1024 count=$SIZE 2> /dev/null
-@@ -241,6 +223,38 @@ make_file()
- 	dd if=/dev/urandom conf=notrunc of="$name" bs=1 count=$SIZE 2> /dev/null
- }
- 
-+check_counters()
-+{
-+	local what=$1
-+	local ok=1
-+
-+	local orig=$(ip netns exec $nsr1 nft reset counter inet filter routed_orig | grep packets)
-+	local repl=$(ip netns exec $nsr1 nft reset counter inet filter routed_repl | grep packets)
-+
-+	local orig_cnt=${orig#*bytes}
-+	local repl_cnt=${repl#*bytes}
-+
-+	local fs=$(du -sb $nsin)
-+	local max_orig=${fs%%/*}
-+	local max_repl=$((max_orig/4))
-+
-+	if [ $orig_cnt -gt $max_orig ];then
-+		echo "FAIL: $what: original counter $orig_cnt exceeds expected value $max_orig" 1>&2
-+		ret=1
-+		ok=0
-+	fi
-+
-+	if [ $repl_cnt -gt $max_repl ];then
-+		echo "FAIL: $what: reply counter $repl_cnt exceeds expected value $max_repl" 1>&2
-+		ret=1
-+		ok=0
-+	fi
-+
-+	if [ $ok -eq 1 ]; then
-+		echo "PASS: $what"
-+	fi
-+}
-+
- check_transfer()
- {
- 	in=$1
-@@ -265,11 +279,11 @@ test_tcp_forwarding_ip()
- 	local dstport=$4
- 	local lret=0
- 
--	ip netns exec $nsb nc -w 5 -l -p 12345 < "$ns2in" > "$ns2out" &
-+	ip netns exec $nsb nc -w 5 -l -p 12345 < "$nsin" > "$ns2out" &
- 	lpid=$!
- 
- 	sleep 1
--	ip netns exec $nsa nc -w 4 "$dstip" "$dstport" < "$ns1in" > "$ns1out" &
-+	ip netns exec $nsa nc -w 4 "$dstip" "$dstport" < "$nsin" > "$ns1out" &
- 	cpid=$!
- 
- 	sleep 3
-@@ -284,11 +298,11 @@ test_tcp_forwarding_ip()
- 
- 	wait
- 
--	if ! check_transfer "$ns1in" "$ns2out" "ns1 -> ns2"; then
-+	if ! check_transfer "$nsin" "$ns2out" "ns1 -> ns2"; then
- 		lret=1
- 	fi
- 
--	if ! check_transfer "$ns2in" "$ns1out" "ns1 <- ns2"; then
-+	if ! check_transfer "$nsin" "$ns1out" "ns1 <- ns2"; then
- 		lret=1
- 	fi
- 
-@@ -305,23 +319,40 @@ test_tcp_forwarding()
- test_tcp_forwarding_nat()
- {
- 	local lret
-+	local pmtu
- 
- 	test_tcp_forwarding_ip "$1" "$2" 10.0.2.99 12345
- 	lret=$?
- 
-+	pmtu=$3
-+	what=$4
-+
- 	if [ $lret -eq 0 ] ; then
-+		if [ $pmtu -eq 1 ] ;then
-+			check_counters "flow offload for ns1/ns2 with masquerade and pmtu discovery $what"
-+		else
-+			echo "PASS: flow offload for ns1/ns2 with masquerade $what"
-+		fi
-+
- 		test_tcp_forwarding_ip "$1" "$2" 10.6.6.6 1666
- 		lret=$?
-+		if [ $pmtu -eq 1 ] ;then
-+			check_counters "flow offload for ns1/ns2 with dnat and pmtu discovery $what"
-+		elif [ $lret -eq 0 ] ; then
-+			echo "PASS: flow offload for ns1/ns2 with dnat $what"
-+		fi
- 	fi
- 
- 	return $lret
- }
- 
--make_file "$ns1in"
--make_file "$ns2in"
-+make_file "$nsin"
- 
- # First test:
- # No PMTU discovery, nsr1 is expected to fragment packets from ns1 to ns2 as needed.
-+# Due to MTU mismatch in both directions, all packets (except small packets like pure
-+# acks) have to be handled by normal forwarding path.  Therefore, packet counters
-+# are not checked.
- if test_tcp_forwarding $ns1 $ns2; then
- 	echo "PASS: flow offloaded for ns1/ns2"
- else
-@@ -338,7 +369,8 @@ ip -net $ns2 route del default via dead:2::1
- ip -net $ns2 route add 192.168.10.1 via 10.0.2.1
- 
- # Second test:
--# Same, but with NAT enabled.
-+# Same, but with NAT enabled.  Same as in first test: we expect normal forward path
-+# to handle most packets.
- ip netns exec $nsr1 nft -f - <<EOF
- table ip nat {
-    chain prerouting {
-@@ -353,29 +385,27 @@ table ip nat {
- }
- EOF
- 
--if test_tcp_forwarding_nat $ns1 $ns2; then
--	echo "PASS: flow offloaded for ns1/ns2 with NAT"
--else
-+if ! test_tcp_forwarding_nat $ns1 $ns2 0 ""; then
- 	echo "FAIL: flow offload for ns1/ns2 with NAT" 1>&2
- 	ip netns exec $nsr1 nft list ruleset
- 	ret=1
- fi
- 
- # Third test:
--# Same as second test, but with PMTU discovery enabled.
--handle=$(ip netns exec $nsr1 nft -a list table inet filter | grep something-to-grep-for | cut -d \# -f 2)
--
--if ! ip netns exec $nsr1 nft delete rule inet filter forward $handle; then
--	echo "FAIL: Could not delete large-packet accept rule"
--	exit 1
--fi
--
-+# Same as second test, but with PMTU discovery enabled. This
-+# means that we expect the fastpath to handle packets as soon
-+# as the endpoints adjust the packet size.
- ip netns exec $ns1 sysctl net.ipv4.ip_no_pmtu_disc=0 > /dev/null
- ip netns exec $ns2 sysctl net.ipv4.ip_no_pmtu_disc=0 > /dev/null
- 
--if test_tcp_forwarding_nat $ns1 $ns2; then
--	echo "PASS: flow offloaded for ns1/ns2 with NAT and pmtu discovery"
--else
-+# reset counters.
-+# With pmtu in-place we'll also check that nft counters
-+# are lower than file size and packets were forwarded via flowtable layer.
-+# For earlier tests (large mtus), packets cannot be handled via flowtable
-+# (except pure acks and other small packets).
-+ip netns exec $nsr1 nft reset counters table inet filter >/dev/null
-+
-+if ! test_tcp_forwarding_nat $ns1 $ns2 1 ""; then
- 	echo "FAIL: flow offload for ns1/ns2 with NAT and pmtu discovery" 1>&2
- 	ip netns exec $nsr1 nft list ruleset
- fi
-@@ -408,14 +438,13 @@ table ip nat {
- }
- EOF
- 
--if test_tcp_forwarding_nat $ns1 $ns2; then
--	echo "PASS: flow offloaded for ns1/ns2 with bridge NAT"
--else
-+if ! test_tcp_forwarding_nat $ns1 $ns2 1 "on bridge"; then
- 	echo "FAIL: flow offload for ns1/ns2 with bridge NAT" 1>&2
- 	ip netns exec $nsr1 nft list ruleset
- 	ret=1
- fi
- 
-+
- # Another test:
- # Add bridge interface br0 to Router1, with NAT and VLAN.
- ip -net $nsr1 link set veth0 nomaster
-@@ -433,9 +462,7 @@ ip -net $ns1 addr add 10.0.1.99/24 dev eth0.10
- ip -net $ns1 route add default via 10.0.1.1
- ip -net $ns1 addr add dead:1::99/64 dev eth0.10
- 
--if test_tcp_forwarding_nat $ns1 $ns2; then
--	echo "PASS: flow offloaded for ns1/ns2 with bridge NAT and VLAN"
--else
-+if ! test_tcp_forwarding_nat $ns1 $ns2 1 "bridge and VLAN"; then
- 	echo "FAIL: flow offload for ns1/ns2 with bridge NAT and VLAN" 1>&2
- 	ip netns exec $nsr1 nft list ruleset
- 	ret=1
-@@ -502,7 +529,7 @@ ip -net $ns2 route add default via 10.0.2.1
- ip -net $ns2 route add default via dead:2::1
- 
- if test_tcp_forwarding $ns1 $ns2; then
--	echo "PASS: ipsec tunnel mode for ns1/ns2"
-+	check_counters "ipsec tunnel mode for ns1/ns2"
- else
- 	echo "FAIL: ipsec tunnel mode for ns1/ns2"
- 	ip netns exec $nsr1 nft list ruleset 1>&2
--- 
-2.35.1
-
+The RFC patch already resolves the issue despite having the code still run in softirq context. Even if estimators were processed in groups, moving the rate estimation out of softirq context is a good idea. I am interested in implementing this. An alternative approach would be moving the rate estimation out of softirq context and reworking locking so that cond_resched() could be used to let other processes run as the scheduler sees fit. I would be willing to try to implement this alternative approach as well.
+Jiri Wiesner
+SUSE Labs
