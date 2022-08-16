@@ -2,113 +2,60 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67638C3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Aug 2022 11:29:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2E62C32792
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 Aug 2022 12:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232584AbiHPL22 (ORCPT
+        id S235545AbiHPMSW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 Aug 2022 07:28:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48988 "EHLO
+        Tue, 16 Aug 2022 08:18:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234125AbiHPL2E (ORCPT
+        with ESMTP id S235518AbiHPMSE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Aug 2022 07:28:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ADAA2CDF7;
-        Tue, 16 Aug 2022 03:43:37 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 03D99B8165D;
-        Tue, 16 Aug 2022 10:43:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86EA3C433C1;
-        Tue, 16 Aug 2022 10:43:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1660646614;
-        bh=yqe/EMQmD3VLnGHghypui0+k7E1d1JAMjbBdNpJp/Ac=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=WmDtk6Cf5S1czeeVK0DAKEntmyWn/ucxbgRUOJ7EvCnJ+hlnMmXKs7d2LzLusOWjG
-         P9BZUnyFCygTSaBGyI+/ZMRsimDcw4lKZrmIl00p7YDKYDDZRS07+VkGYYjkDQNVZE
-         /NHOq/5udUF8/K0YgcGNQGgSV+Ea36YQkWf7qRPhQgneFDWP9m6nB5Vly8RrTfkWTj
-         Gx54EcrUu0WWbaHKs8uubbJDflr8MXwUMFtLvri3hNPrkYfanr9K/Ae48SXOeGfelg
-         0y7pVw8dF2stIh5VXYLv1fnS+4FQo+ZvQ2DKZC+sGfyc7TYLSt7uY6amkS3OtqU5wE
-         xT3sWq5r6idFg==
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 0ED1D55F5FC; Tue, 16 Aug 2022 12:43:32 +0200 (CEST)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+        Tue, 16 Aug 2022 08:18:04 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 463BA95A2;
+        Tue, 16 Aug 2022 05:15:33 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oNvTm-0000oK-FB; Tue, 16 Aug 2022 14:15:30 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     shuah@kernel.org, linux-kselftest@vger.kernel.org,
         Florian Westphal <fw@strlen.de>
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, bpf <bpf@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH bpf-next 2/3] bpf: Add support for writing to nf_conn:mark
-In-Reply-To: <CAADnVQLB1SQoYAYEzU_VuJ=q3azeyhBiK-NkU5OZC7rrumi0xQ@mail.gmail.com>
-References: <CAADnVQLB1SQoYAYEzU_VuJ=q3azeyhBiK-NkU5OZC7rrumi0xQ@mail.gmail.com>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Tue, 16 Aug 2022 12:43:32 +0200
-Message-ID: <87v8qswjsb.fsf@toke.dk>
+Subject: [PATCH nf 0/2] testing: selftests: nft_flowtable.sh: unbreak test script
+Date:   Tue, 16 Aug 2022 14:15:20 +0200
+Message-Id: <20220816121522.14278-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Alexei Starovoitov <alexei.starovoitov@gmail.com> writes:
+nft_flowtable.sh fails most of the time since
+2738d9d963bd1f0 ("netfilter: flowtable: move dst_check to packet path").
+Arguably the test scripts way of detecting 'offloaded' vs 'offload
+failed' was always flaky/broken.
 
-> On Mon, Aug 15, 2022 at 3:40 PM Florian Westphal <fw@strlen.de> wrote:
->>
->> Toke H=C3=B8iland-J=C3=B8rgensen <toke@kernel.org> wrote:
->> > > Support direct writes to nf_conn:mark from TC and XDP prog types. Th=
-is
->> > > is useful when applications want to store per-connection metadata. T=
-his
->> > > is also particularly useful for applications that run both bpf and
->> > > iptables/nftables because the latter can trivially access this metad=
-ata.
->> > >
->> > > One example use case would be if a bpf prog is responsible for advan=
-ced
->> > > packet classification and iptables/nftables is later used for routing
->> > > due to pre-existing/legacy code.
->> > >
->> > > Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
->> >
->> > Didn't we agree the last time around that all field access should be
->> > using helper kfuncs instead of allowing direct writes to struct nf_con=
-n?
->>
->> I don't see why ct->mark needs special handling.
->>
->> It might be possible we need to change accesses on nf/tc side to use
->> READ/WRITE_ONCE though.
->
-> +1
-> I don't think we need to have a hard rule.
-> If fields is safe to access directly than it's faster
-> to let bpf prog read/write it.
-> There are no backward compat concerns. If conntrack side decides
-> to make that field special we can disallow direct writes in
-> the same kernel version.
+These patches fix this up:
+1. first patch moves to random netns names so we don't trip
+   over existing 'ns1' name (too generic...).
+2. second patch reworks the 'offload appears to be non-working'
+   by means of packet counters.
 
-Right, I was under the impression we wanted all fields to be wrapper by
-helpers so that the struct owner could change their semantics without
-affecting users (and solve the performance issue by figuring out a
-generic way to inline those helpers). I guess there could also be an API
-consistency argument for doing this.
+Because counters are only incremented when a packet is handled
+by the classic forward path, check that the counter is lower than
+a given threshold (25% of file size).
 
-However, I don't have a strong opinion on this, so if y'all prefer
-keeping these as direct field writes, that's OK with me.
+Florian Westphal (2):
+  testing: selftests: nft_flowtable.sh: use random netns names
+  testing: selftests: nft_flowtable.sh: rework test to detect offload
+    failure
 
-> These accesses, just like kfuncs, are unstable.
+ .../selftests/netfilter/nft_flowtable.sh      | 377 ++++++++++--------
+ 1 file changed, 207 insertions(+), 170 deletions(-)
 
-Well, it will be interesting to see how that plays out the first time
-an application relying on one of these breaks on a kernel upgrade :)
+-- 
+2.35.1
 
--Toke
