@@ -2,72 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ADD2C32772
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Aug 2022 20:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0187EC32772
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 Aug 2022 21:30:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241584AbiHQUJD (ORCPT
+        id S231396AbiHQVaR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 Aug 2022 16:09:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51920 "EHLO
+        Wed, 17 Aug 2022 17:30:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241590AbiHQUIU (ORCPT
+        with ESMTP id S241766AbiHQVaQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 Aug 2022 16:08:20 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1FBE1025;
-        Wed, 17 Aug 2022 13:08:19 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id q74so7380686iod.9;
-        Wed, 17 Aug 2022 13:08:19 -0700 (PDT)
+        Wed, 17 Aug 2022 17:30:16 -0400
+Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C764390C56;
+        Wed, 17 Aug 2022 14:30:14 -0700 (PDT)
+Received: by mail-ej1-x62d.google.com with SMTP id a7so26797366ejp.2;
+        Wed, 17 Aug 2022 14:30:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc;
-        bh=JCgNCnBmoMTmDvvCiS4lXyw582xnOmRe3hBk8pGv54A=;
-        b=Jw3DxXzUB1rR7pOYgySvosGI70W3Z4JpmQOZUAIlOMR2rfMjlBBAT9xnsrQus8QDCy
-         hK6SCOF8Ki+W1NDTasXIFK1Jtp0xOfSTpnxpfLtNePSjMgmBUTHFeNZqo6rGAjMKpEv5
-         T2DN0lvCgmWG9YxPuEyOkSUs5Oj9/eMsdUSZWW2fpCWmDBGrwM/TrRH6JQtHyLsejUzl
-         2CQnXHIWutGaeP2TyqfMbPjlhxMs6FOOwDGxgcXKEBj/ccRrVcFv77rMOpzBTtsCjpD7
-         qSn8SzOTtCbMsnlET3H9dDgnli69SBpxNqhghAnfgqokaQyypoR4dx4mFzNh8rw4mtnN
-         baZg==
+        bh=1WahhERX691CESd1ffbJud3Y+oZ8wMt9XQmOZisGAO4=;
+        b=Qe9HJqjJVkpt9ngOfi1SC4JuyFO279d6GmPGr+m7JUf5xARUiAYC82F8IYAoMRWUuH
+         Ick6Mncg5vhH1GPIkrgWo0M3oeah3nV7VGow9GlBeWAwGf+ptHvRze9Viu7DtJLqzEyq
+         CdbFGYMxHNVCCc3G2N/Xi6DssMJwvB5vrLa4dGm6j/oitdez+dT5fwD6PZxMXsvMObTS
+         gJHBo4eqg3dVCiio9YPKDBRvAe3YEttVP3X0KAJ1jA06JCwWql7+8EuLhq3JuX/N5w0O
+         +Tz9RP5geRhjqgeApy/HhGtteAUCvkF7Rob7w9WBr/ymI91naRV0C5rMz3Bjw1i+UiTE
+         yvLQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc;
-        bh=JCgNCnBmoMTmDvvCiS4lXyw582xnOmRe3hBk8pGv54A=;
-        b=sNGeACltLTtiqw9uL2s8aCOdsVcwcfC7WS/W/GnpwtLOIg1WMSeziy0OrOcyu/xddd
-         XCpYh5iCWbnzidyaQk+CcNgVeR2s81FojVilRWYn36sMzvBmUQOXhz25d+3zDISyUiXy
-         StlXXbs7sCNdymwLIAb4WM0O0JFuHNBKBnwD1Czr4MZLZkm+2G8/g4GBdIl3oyEohZk2
-         iHrxwI7EsLmjV+v5nb/6XJtk2n53/WIGJfgnkVJXUjFbWbWXmtOLy89ghec0iXjxesrf
-         LUBq20YWhxIr9KP1bUgOmsWBZhNIHHUozlOQSwIjjdPE+fMFzj2+OTLrTcwrJXEnnDTX
-         fIMg==
-X-Gm-Message-State: ACgBeo3DAglrqwg8OFrO6hffTuedU84SqAzzW3I7tP3AUnFacjqvSu2+
-        lb/Ku1ec2lvTaD5hYHct2kazewswgMcsPrAz9QI=
-X-Google-Smtp-Source: AA6agR4Z9yJ9LvneZHFRhrCvN4J6stu2Qk3WYhEcKR4FDLl5XM5VN3tFVf4DBBjoVdEEMKKhv/6zN3seiz3wtZMGCcM=
-X-Received: by 2002:a05:6602:150c:b0:67c:149b:a349 with SMTP id
- g12-20020a056602150c00b0067c149ba349mr11920881iow.168.1660766899208; Wed, 17
- Aug 2022 13:08:19 -0700 (PDT)
+        bh=1WahhERX691CESd1ffbJud3Y+oZ8wMt9XQmOZisGAO4=;
+        b=Ku0H0BW1ly9Ul5dyGBXjn1SFfNu4t3imCAqcu6umXyZ0ToXgHrMLN7bnrNr0chUyJw
+         cTKxqMOXbJupBisn2gLi5QQg8p521LC7Jx+CI8uFPESY69l+EHzywrOdUObYdYiEgLEe
+         l25J/X8r30smy2n6y+9Ei4mo+NjX8/XFBKAfZxibIhBj5AAgcXTLjgM4BAVsn4FaGhsO
+         UWyikRPDRq8OaAp888WAtIOawmKGKW9VH8IvgxN8hp9o15p07V67piFKdJxlFREH49Tp
+         Mf9EadQ13ttVNRuGw0M+sicnhPTx+Akb7ZKaDEQdure26IDZ1XutAPrXWa2O8VV2r+tS
+         YiEg==
+X-Gm-Message-State: ACgBeo3Gf2oE9kw4lgD+k9UadN7z05F+0AULaaK8l+bInIgDVxfMvLc0
+        cTGpb0gyxP85RNPk3Qskv8rEVkUOQWgzr/rka3o=
+X-Google-Smtp-Source: AA6agR4CMlusqqwkMYPqZBWzDqnHs10L6iaVvsd1N80IUKEqJWg8pd0K6sV2lnzisB10uvUvY41yjFw1xWJS629TJC4=
+X-Received: by 2002:a17:907:272a:b0:731:4699:b375 with SMTP id
+ d10-20020a170907272a00b007314699b375mr17814804ejl.633.1660771813165; Wed, 17
+ Aug 2022 14:30:13 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1660761470.git.dxu@dxuuu.xyz> <3a707dd1ec4a2441425a8882072c69ffb774ed4d.1660761470.git.dxu@dxuuu.xyz>
-In-Reply-To: <3a707dd1ec4a2441425a8882072c69ffb774ed4d.1660761470.git.dxu@dxuuu.xyz>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Wed, 17 Aug 2022 22:07:43 +0200
-Message-ID: <CAP01T76-nocaXY9B28a6cvwLY_3irFyOTF8xgoV9ZdcChj4T+A@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v2 2/4] bpf: Add stub for btf_struct_access()
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, pablo@netfilter.org, fw@strlen.de,
-        toke@kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1660761470.git.dxu@dxuuu.xyz> <edbca42217a73161903a50ba07ec63c5fa5fde00.1660761470.git.dxu@dxuuu.xyz>
+In-Reply-To: <edbca42217a73161903a50ba07ec63c5fa5fde00.1660761470.git.dxu@dxuuu.xyz>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Wed, 17 Aug 2022 14:30:01 -0700
+Message-ID: <CAADnVQ+G0Hju-OeN6e=JLPQzODxGXCsP7OuVbex1y-EYr6Z5Yw@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v2 3/4] bpf: Add support for writing to nf_conn:mark
+To:     Daniel Xu <dxu@dxuuu.xyz>, Martin KaFai Lau <martin.lau@linux.dev>,
+        Martin KaFai Lau <kafai@fb.com>
+Cc:     bpf <bpf@vger.kernel.org>, Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 17 Aug 2022 at 20:43, Daniel Xu <dxu@dxuuu.xyz> wrote:
+On Wed, Aug 17, 2022 at 11:43 AM Daniel Xu <dxu@dxuuu.xyz> wrote:
 >
-> Add corresponding unimplemented stub for when CONFIG_BPF_SYSCALL=n
->
-> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
-> ---
+> +/* Check writes into `struct nf_conn` */
+> +int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> +                                  const struct btf *btf,
+> +                                  const struct btf_type *t, int off,
+> +                                  int size, enum bpf_access_type atype,
+> +                                  u32 *next_btf_id,
+> +                                  enum bpf_type_flag *flag)
+> +{
+> +       const struct btf_type *nct = READ_ONCE(nf_conn_type);
+> +       s32 type_id;
+> +       size_t end;
+> +
+> +       if (!nct) {
+> +               type_id = btf_find_by_name_kind(btf, "nf_conn", BTF_KIND_STRUCT);
+> +               if (type_id < 0)
+> +                       return -EINVAL;
+> +
+> +               nct = btf_type_by_id(btf, type_id);
+> +               WRITE_ONCE(nf_conn_type, nct);
+> +       }
+> +
+> +       if (t != nct) {
+> +               bpf_log(log, "only read is supported\n");
+> +               return -EACCES;
+> +       }
+> +
+> +       switch (off) {
+> +#if defined(CONFIG_NF_CONNTRACK_MARK)
+> +       case offsetof(struct nf_conn, mark):
+> +               end = offsetofend(struct nf_conn, mark);
+> +               break;
+> +#endif
+> +       default:
+> +               bpf_log(log, "no write support to nf_conn at off %d\n", off);
+> +               return -EACCES;
+> +       }
+> +
+> +       if (off + size > end) {
+> +               bpf_log(log,
+> +                       "write access at off %d with size %d beyond the member of nf_conn ended at %zu\n",
+> +                       off, size, end);
+> +               return -EACCES;
+> +       }
+> +
+> +       return NOT_INIT;
 
-Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Took me a long time to realize that this is a copy-paste
+from net/ipv4/bpf_tcp_ca.c.
+It's not wrong, but misleading.
+When atype == BPF_READ the return value from
+btf_struct_access should only be error<0, SCALAR_VALUE, PTR_TO_BTF_ID.
+For atype == BPF_WRITE we should probably standardize on
+error<0, or 0.
+
+The NOT_INIT happens to be zero, but explicit 0
+is cleaner to avoid confusion that this is somehow enum bpf_reg_type.
+
+Martin,
+since you've added this code in bpf_tcp_ca, wdyt?
