@@ -2,113 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EAD11C00140
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 05:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 428AEC25B0E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 07:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243032AbiHRFAX (ORCPT
+        id S243770AbiHRHJN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Aug 2022 01:00:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56908 "EHLO
+        Thu, 18 Aug 2022 03:09:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231149AbiHRFAV (ORCPT
+        with ESMTP id S239063AbiHRHJI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Aug 2022 01:00:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EF5893521;
-        Wed, 17 Aug 2022 22:00:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 28360B81FC7;
-        Thu, 18 Aug 2022 05:00:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id C5C46C433D6;
-        Thu, 18 Aug 2022 05:00:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1660798817;
-        bh=ZkCiJD8d64W4BrQyucUgzkoAUyBXdh3zCp0YdfFpLsI=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=mtUoiOciYpJMR34qH+V3MZ0jcsGLvtw39KciOKZMbpjnn2Vna7sqyTNkmO5sitcje
-         Ka7DiuSgk1nf71TgDOVRcya/jbrcqheqJAhem7HTDO953iQf3gBSdwhq7+O5hryPob
-         vuGyDoaR2thN7KIC0QfLR04dT26Nk2ce5wtGI2VPuk8fSjZWx7LOWo8+umZ0v9elJh
-         8KusaHconsOja+d4ZwiplJagoXPp7RDfyAIGyy0A7wxpW3w69JYv/mnvsvPzqLSFFh
-         r39WVwnNEHlb4C7oz5hSv/r4HuCr3DqFaFOr7aTemo8eiPdTYUJ81dtOx5yTEjNsxU
-         jVmEn4A16fcbA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A8833C4166F;
-        Thu, 18 Aug 2022 05:00:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 18 Aug 2022 03:09:08 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABAC57CABB
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 00:09:06 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id j8so1579448ejx.9
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 00:09:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=blackwall-org.20210112.gappssmtp.com; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc;
+        bh=uB1dny6tZXinATmuz0fIf4H2QaK3MjZ8vYEWovRHfu4=;
+        b=8WejKLL+aMqLWC0O3FQnTQmsIGmJCsnGHI2BDlBU8o4VWw/LcfeBgWzHmX3qQ0kNdP
+         i2wsCNg8dEG2PeAx3BljZBM7q9E11q3FuTEevJM6v/fsy6yCCds3XLZ0KNJgMEwickhT
+         5pX++joOCNvyGmso9a/ojzehd7Cu+02vF5ZdH+w627ZOLQGf12vEwqgwdFkq2GSxyk3o
+         qKVx23t5WYxxqDzVDlUxryvOZHIM45E9l9h0uZxMmePvFva3B4rfwF+trq833C+5x8YJ
+         SqjNNHj/sd925+/MH11H9yWzWNmxhAGk+W5tp0j6FKddjOmqYwdrEqQ2VLWtuHStlIh3
+         ns3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc;
+        bh=uB1dny6tZXinATmuz0fIf4H2QaK3MjZ8vYEWovRHfu4=;
+        b=NOvl0QEdSeFl/5zo38nTeIjK8pGZufPOBHviJlk5nBGZmyQ0gY24Di7vKEm/e0wq2M
+         ESMMMESFGG6gbPr+IiUg/wIZLBLLO42XBYWTEE8No27yqqYmByh1ZDzKBfL0jVxgLpE0
+         5Z+SipOwgrCKXO1AuZ5O70rffNSYrJE/cdnnypx1QtNg2ptWCQAVpcZJgsf0fRvk9Um8
+         +ltyuWsONP6vw6De9+yoyigtGmT6IxV8z3wVzdIx4u9SDf5hm2s2GGEL4bc7P4s3LTgJ
+         tHd1005Z5bOm1hegyV2qvr5SEPuotWBGbeOgf5hgzCFgS6c33vtY7JoYDRIIjYEHU12f
+         SvTw==
+X-Gm-Message-State: ACgBeo3NW/ByyRLVu4F/ylJxAq5Fa3jBTIyFU4kA9Gt1qjCYL/AM38T4
+        DL3GxaiFjYzdZcNddy5eCUedSw==
+X-Google-Smtp-Source: AA6agR6L6Nq587p/lJCgXhHMIohS0fuUSvnisu370SwFRdqGr62Y3rWmL+GZ/dHscdaOTusJwrlmKQ==
+X-Received: by 2002:a17:906:6a2a:b0:730:a3f1:aee with SMTP id qw42-20020a1709066a2a00b00730a3f10aeemr1105108ejc.387.1660806544983;
+        Thu, 18 Aug 2022 00:09:04 -0700 (PDT)
+Received: from [192.168.0.111] (87-243-81-1.ip.btc-net.bg. [87.243.81.1])
+        by smtp.gmail.com with ESMTPSA id f28-20020a056402329c00b004418c7d633bsm594454eda.18.2022.08.18.00.09.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 18 Aug 2022 00:09:04 -0700 (PDT)
+Message-ID: <10091e35-491a-c10f-35ec-044357f09e3e@blackwall.org>
+Date:   Thu, 18 Aug 2022 10:09:00 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 01/17] netfilter: nf_tables: use READ_ONCE and WRITE_ONCE
- for shared generation id access
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166079881768.30070.17888086152925379966.git-patchwork-notify@kernel.org>
-Date:   Thu, 18 Aug 2022 05:00:17 +0000
-References: <20220817140015.25843-2-fw@strlen.de>
-In-Reply-To: <20220817140015.25843-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, pabeni@redhat.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.10.0
+Subject: Re: [PATCH net-next] Remove DECnet support from kernel
+Content-Language: en-US
+To:     Stephen Hemminger <stephen@networkplumber.org>,
+        netdev@vger.kernel.org
+Cc:     David Ahern <dsahern@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Borislav Petkov <bp@suse.de>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Neeraj Upadhyay <quic_neeraju@quicinc.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Akhmat Karakotov <hmukos@yandex-team.ru>,
+        Antoine Tenart <atenart@kernel.org>,
+        Xin Long <lucien.xin@gmail.com>,
+        Juergen Gross <jgross@suse.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Nathan Fontenot <nathan.fontenot@amd.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Suma Hegde <suma.hegde@amd.com>, Chen Yu <yu.c.chen@intel.com>,
+        William Breathitt Gray <vilhelm.gray@gmail.com>,
+        Xie Yongji <xieyongji@bytedance.com>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Ghiti <alexandre.ghiti@canonical.com>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Jeff Layton <jlayton@kernel.org>,
+        Paul Gortmaker <paul.gortmaker@windriver.com>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Menglong Dong <imagedong@tencent.com>,
+        Petr Machata <petrm@nvidia.com>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Yuwei Wang <wangyuweihx@gmail.com>,
+        Shakeel Butt <shakeelb@google.com>,
+        Kuniyuki Iwashima <kuniyu@amazon.com>,
+        Kees Cook <keescook@chromium.org>,
+        Stefano Garzarella <sgarzare@redhat.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Wang Qing <wangqing@vivo.com>, Yu Zhe <yuzhe@nfschina.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:MIPS" <linux-mips@vger.kernel.org>,
+        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
+        <linuxppc-dev@lists.ozlabs.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>
+References: <20220818004357.375695-1-stephen@networkplumber.org>
+From:   Nikolay Aleksandrov <razor@blackwall.org>
+In-Reply-To: <20220818004357.375695-1-stephen@networkplumber.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net.git (master)
-by Florian Westphal <fw@strlen.de>:
-
-On Wed, 17 Aug 2022 15:59:59 +0200 you wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
+On 18/08/2022 03:43, Stephen Hemminger wrote:
+> DECnet is an obsolete network protocol that receives more attention
+> from kernel janitors than users. It belongs in computer protocol
+> history museum not in Linux kernel.
 > 
-> The generation ID is bumped from the commit path while holding the
-> mutex, however, netlink dump operations rely on RCU.
+> It has been "Orphaned" in kernel since 2010. The iproute2 support
+> for DECnet was dropped in 5.0 release. The documentation link on
+> Sourceforge says it is abandoned there as well.
 > 
-> This patch also adds missing cb->base_eq initialization in
-> nf_tables_dump_set().
+> Leave the UAPI alone to keep userspace programs compiling.
+> This means that there is still an empty neighbour table
+> for AF_DECNET.
 > 
-> [...]
+> The table of /proc/sys/net entries was updated to match
+> current directories and reformatted to be alphabetical.
+> 
+> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+> Acked-by: David Ahern <dsahern@kernel.org>
+> ---
+> 
+> Incorporates feedback from the initial RFC.
+> The MPLS neighbour table to family table is left alone.
+> 
 
-Here is the summary with links:
-  - [net,01/17] netfilter: nf_tables: use READ_ONCE and WRITE_ONCE for shared generation id access
-    https://git.kernel.org/netdev/net/c/340027832828
-  - [net,02/17] netfilter: nf_tables: disallow NFTA_SET_ELEM_KEY_END with NFT_SET_ELEM_INTERVAL_END flag
-    https://git.kernel.org/netdev/net/c/4963674c2e71
-  - [net,03/17] netfilter: nf_tables: possible module reference underflow in error path
-    https://git.kernel.org/netdev/net/c/c485c35ff678
-  - [net,04/17] netfilter: nf_ct_sane: remove pseudo skb linearization
-    https://git.kernel.org/netdev/net/c/a664375da76c
-  - [net,05/17] netfilter: nf_ct_h323: cap packet size at 64k
-    https://git.kernel.org/netdev/net/c/f3e124c36f70
-  - [net,06/17] netfilter: nf_ct_ftp: prefer skb_linearize
-    https://git.kernel.org/netdev/net/c/c783a29c7e59
-  - [net,07/17] netfilter: nf_ct_irc: cap packet search space to 4k
-    https://git.kernel.org/netdev/net/c/976bf59c69cd
-  - [net,08/17] netfilter: nf_tables: fix scheduling-while-atomic splat
-    https://git.kernel.org/netdev/net/c/2024439bd5ce
-  - [net,09/17] netfilter: nfnetlink: re-enable conntrack expectation events
-    https://git.kernel.org/netdev/net/c/0b2f3212b551
-  - [net,10/17] netfilter: nf_tables: really skip inactive sets when allocating name
-    https://git.kernel.org/netdev/net/c/271c5ca826e0
-  - [net,11/17] netfilter: nf_tables: validate NFTA_SET_ELEM_OBJREF based on NFT_SET_OBJECT flag
-    https://git.kernel.org/netdev/net/c/5a2f3dc31811
-  - [net,12/17] netfilter: nf_tables: NFTA_SET_ELEM_KEY_END requires concat and interval flags
-    https://git.kernel.org/netdev/net/c/88cccd908d51
-  - [net,13/17] netfilter: nf_tables: disallow NFT_SET_ELEM_CATCHALL and NFT_SET_ELEM_INTERVAL_END
-    https://git.kernel.org/netdev/net/c/fc0ae524b5fd
-  - [net,14/17] netfilter: nf_tables: check NFT_SET_CONCAT flag if field_count is specified
-    https://git.kernel.org/netdev/net/c/1b6345d4160e
-  - [net,15/17] netfilter: conntrack: NF_CONNTRACK_PROCFS should no longer default to y
-    https://git.kernel.org/netdev/net/c/aa5762c34213
-  - [net,16/17] testing: selftests: nft_flowtable.sh: use random netns names
-    https://git.kernel.org/netdev/net/c/b71b7bfeac38
-  - [net,17/17] testing: selftests: nft_flowtable.sh: rework test to detect offload failure
-    https://git.kernel.org/netdev/net/c/c8550b9077d2
+Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
 
