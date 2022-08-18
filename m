@@ -2,160 +2,216 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94B69C00140
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 22:42:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD48EC25B0E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 23:04:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343923AbiHRWm5 (ORCPT
+        id S243037AbiHRXEW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Aug 2022 18:42:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37656 "EHLO
+        Thu, 18 Aug 2022 19:04:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245337AbiHRWm4 (ORCPT
+        with ESMTP id S231467AbiHRXEV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Aug 2022 18:42:56 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00842DC5D9;
-        Thu, 18 Aug 2022 15:42:54 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1oOoE0-0003vt-Ns; Fri, 19 Aug 2022 00:42:52 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     ncardwell@google.com, Eric Dumazet <edumazet@google.com>,
-        <netdev@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: conntrack: work around exceeded receive window
-Date:   Fri, 19 Aug 2022 00:42:31 +0200
-Message-Id: <20220818224231.11583-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+        Thu, 18 Aug 2022 19:04:21 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F22846BD48;
+        Thu, 18 Aug 2022 16:04:19 -0700 (PDT)
+Date:   Fri, 19 Aug 2022 01:04:10 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Paul Blakey <paulb@nvidia.com>
+Cc:     Oz Shlomo <ozsh@nvidia.com>, Roi Dayan <roid@nvidia.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net 1/1] netfilter: flowtable: Fix use after free after
+ freeing flow table
+Message-ID: <Yv7FauVMX2Smkiqb@salvia>
+References: <1660807674-28447-1-git-send-email-paulb@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="PNruHMamiA0etryc"
+Content-Disposition: inline
+In-Reply-To: <1660807674-28447-1-git-send-email-paulb@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When a TCP sends more bytes than allowed by the receive window, all future
-packets can be marked as invalid.
-This can clog up the conntrack table because of 5-day default timeout.
 
-Sequence of packets:
- 01 initiator > responder: [S], seq 171, win 5840, options [mss 1330,sackOK,TS val 63 ecr 0,nop,wscale 1]
- 02 responder > initiator: [S.], seq 33211, ack 172, win 65535, options [mss 1460,sackOK,TS val 010 ecr 63,nop,wscale 8]
- 03 initiator > responder: [.], ack 33212, win 2920, options [nop,nop,TS val 068 ecr 010], length 0
- 04 initiator > responder: [P.], seq 172:240, ack 33212, win 2920, options [nop,nop,TS val 279 ecr 010], length 68
+--PNruHMamiA0etryc
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Window is 5840 starting from 33212 -> 39052.
+Hi Paul,
 
- 05 responder > initiator: [.], ack 240, win 256, options [nop,nop,TS val 872 ecr 279], length 0
- 06 responder > initiator: [.], seq 33212:34530, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
+On Thu, Aug 18, 2022 at 10:27:54AM +0300, Paul Blakey wrote:
+[...]
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index f2def06d1070..19fd3b5f8a1b 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -605,6 +605,7 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+>  	mutex_unlock(&flowtable_lock);
+>  
+>  	cancel_delayed_work_sync(&flow_table->gc_work);
+> +	nf_flow_table_offload_flush(flow_table);
+>  	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+>  	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
+>  	nf_flow_table_offload_flush(flow_table);
 
-This is fine, conntrack will flag the connection as having outstanding
-data (UNACKED), which lowers the conntrack timeout to 300s.
+patch looks very similar to:
 
- 07 responder > initiator: [.], seq 34530:35848, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
- 08 responder > initiator: [.], seq 35848:37166, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
- 09 responder > initiator: [.], seq 37166:38484, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
- 10 responder > initiator: [.], seq 38484:39802, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/1633854320-12326-1-git-send-email-volodymyr.mytnyk@plvision.eu/
 
-Packet 10 is already sending more than permitted, but conntrack doesn't
-validate this (only seq is tested vs. maxend, not 'seq+len').
+I proposed these two instead to avoid reiterative calls to flush from
+the cleanup path (see attached).
 
-38484 is acceptable, but only up to 39052, so this packet should
-not have been sent (or only 568 bytes, not 1318).
+It should be possible to either take your patch to nf.git (easier for
+-stable backport), then look into my patches for nf-next.git, would
+you pick up on these follow up?
 
-At this point, connection is still in '300s' mode.
+--PNruHMamiA0etryc
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-netfilter-flowtable-add-nf_flow_table_gc_run.patch"
 
-Next packet however will get flagged:
- 11 responder > initiator: [P.], seq 39802:40128, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 326
+From 81dd33c687b1e868b40e1aac066529d93fa396d8 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 18 Nov 2021 22:16:37 +0100
+Subject: [PATCH 1/2] netfilter: flowtable: add nf_flow_table_gc_run()
 
-nf_ct_proto_6: SEQ is over the upper bound (over the window of the receiver) .. LEN=378 .. SEQ=39802 ACK=240 ACK PSH ..
+Expose nf_flow_table_gc_run() to force a garbage collector run from the
+offload infrastructure.
 
-Now, a couple of replies/acks comes in:
-
- 12 initiator > responder: [.], ack 34530, win 4368,
-[.. irrelevant acks removed ]
- 16 initiator > responder: [.], ack 39802, win 8712, options [nop,nop,TS val 296201291 ecr 2982371892], length 0
-
-This ack is significant -- this acks the last packet send by the
-responder that conntrack considered valid.
-
-This means that ack == td_end.  This will withdraw the
-'unacked data' flag, the connection moves back to the 5-day timeout
-of established conntracks.
-
- 17 initiator > responder: ack 40128, win 10030, ...
-
-This packet is also flagged as invalid.
-
-Because conntrack only updates state based on packets that are
-considered valid, packet 11 'did not exist' and that gets us:
-
-nf_ct_proto_6: ACK is over upper bound 39803 (ACKed data not seen yet) .. SEQ=240 ACK=40128 WINDOW=10030 RES=0x00 ACK URG
-
-Because this received and processed by the endpoints, the conntrack entry
-remains in a bad state, no packets will ever be considered valid again:
-
- 30 responder > initiator: [F.], seq 40432, ack 2045, win 391, ..
- 31 initiator > responder: [.], ack 40433, win 11348, ..
- 32 initiator > responder: [F.], seq 2045, ack 40433, win 11348 ..
-
-... all trigger 'ACK is over bound' test and we end up with
-non-early-evictable 5-day default timeout.
-
-NB: This patch triggers a bunch of checkpatch warnings because of silly
-indent.  I will resend the cleanup series linked below to reduce the
-indent level once this change has propagated to net-next.
-
-I could route the cleanup via nf but that causes extra backport work for
-stable maintainers.
-
-Link: https://lore.kernel.org/netfilter-devel/20220720175228.17880-1-fw@strlen.de/T/#mb1d7147d36294573cc4f81d00f9f8dadfdd06cd8
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 31 ++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ include/net/netfilter/nf_flow_table.h |  1 +
+ net/netfilter/nf_flow_table_core.c    | 13 +++++++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index a63b51dceaf2..a634c72b1ffc 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -655,6 +655,37 @@ static bool tcp_in_window(struct nf_conn *ct,
- 		    tn->tcp_be_liberal)
- 			res = true;
- 		if (!res) {
-+			bool seq_ok = before(seq, sender->td_maxend + 1);
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index a3647fadf1cc..6dc19d1ceeff 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -264,6 +264,7 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
+ 
+ struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_table,
+ 						     struct flow_offload_tuple *tuple);
++void nf_flow_table_gc_run(struct nf_flowtable *flow_table);
+ void nf_flow_table_gc_cleanup(struct nf_flowtable *flowtable,
+ 			      struct net_device *dev);
+ void nf_flow_table_cleanup(struct net_device *dev);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 87a7388b6c89..37fd6c646ccb 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -474,12 +474,17 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
+ 	}
+ }
+ 
++void nf_flow_table_gc_run(struct nf_flowtable *flow_table)
++{
++	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++}
 +
-+			if (!seq_ok) {
-+				u32 overshot = end - sender->td_maxend + 1;
-+				bool ack_ok;
+ static void nf_flow_offload_work_gc(struct work_struct *work)
+ {
+ 	struct nf_flowtable *flow_table;
+ 
+ 	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
+-	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++	nf_flow_table_gc_run(flow_table);
+ 	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
+ }
+ 
+@@ -637,11 +642,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+-	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
++	nf_flow_table_gc_run(flow_table);
+ 	nf_flow_table_offload_flush(flow_table);
+ 	if (nf_flowtable_hw_offload(flow_table))
+-		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step,
+-				      flow_table);
++		nf_flow_table_gc_run(flow_table);
 +
-+				ack_ok = after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1);
-+
-+				if (in_recv_win &&
-+				    ack_ok &&
-+				    overshot <= receiver->td_maxwin &&
-+				    before(sack, receiver->td_end + 1)) {
-+					/* Work around TCPs that send more bytes than allowed by
-+					 * the receive window.
-+					 *
-+					 * If the (marked as invalid) packet is allowed to pass by
-+					 * the ruleset and the peer acks this data, then its possible
-+					 * all future packets will trigger 'ACK is over upper bound' check.
-+					 *
-+					 * Thus if only the sequence check fails then do update td_end so
-+					 * possible ACK for this data can update internal state.
-+					 */
-+					sender->td_end = end;
-+					sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+
-+					nf_ct_l4proto_log_invalid(skb, ct, hook_state,
-+								  "%u bytes more than expected", overshot);
-+					return res;
-+				}
-+			}
-+
- 			nf_ct_l4proto_log_invalid(skb, ct, hook_state,
- 			"%s",
- 			before(seq, sender->td_maxend + 1) ?
+ 	rhashtable_destroy(&flow_table->rhashtable);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
 -- 
-2.35.1
+2.30.2
 
+
+--PNruHMamiA0etryc
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0002-netfilter-flowtable-fix-stuck-flows-on-cleanup-due-t.patch"
+
+From 737a4ff4df8b3e6791352b2b379e102f7682fa0f Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 18 Nov 2021 22:24:15 +0100
+Subject: [PATCH 2/2] netfilter: flowtable: fix stuck flows on cleanup due to
+ pending work
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_flow_table.h | 2 ++
+ net/netfilter/nf_flow_table_core.c    | 7 +++----
+ net/netfilter/nf_flow_table_offload.c | 8 ++++++++
+ 3 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 6dc19d1ceeff..4c3d537f1069 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -301,6 +301,8 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 			   struct flow_offload *flow);
+ 
+ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable);
++void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable);
++
+ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 				struct net_device *dev,
+ 				enum flow_block_command cmd);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 37fd6c646ccb..fddc44de3550 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -641,12 +641,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	mutex_unlock(&flowtable_lock);
+ 
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
++	nf_flow_table_offload_flush(flow_table);
++	/* ... no more pending work after this stage ... */
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+ 	nf_flow_table_gc_run(flow_table);
+-	nf_flow_table_offload_flush(flow_table);
+-	if (nf_flowtable_hw_offload(flow_table))
+-		nf_flow_table_gc_run(flow_table);
+-
++	nf_flow_table_offload_flush_cleanup(flow_table);
+ 	rhashtable_destroy(&flow_table->rhashtable);
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index b561e0a44a45..c4559fae8acd 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1050,6 +1050,14 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 	flow_offload_queue_work(offload);
+ }
+ 
++void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable)
++{
++	if (nf_flowtable_hw_offload(flowtable)) {
++		flush_workqueue(nf_flow_offload_del_wq);
++		nf_flow_table_gc_run(flowtable);
++	}
++}
++
+ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
+ {
+ 	if (nf_flowtable_hw_offload(flowtable)) {
+-- 
+2.30.2
+
+
+--PNruHMamiA0etryc--
