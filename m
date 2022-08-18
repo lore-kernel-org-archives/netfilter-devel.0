@@ -2,122 +2,120 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 815E6C3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 20:08:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE431C32792
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 21:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345745AbiHRUIs (ORCPT
+        id S1346693AbiHRVLZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Aug 2022 16:08:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43424 "EHLO
+        Thu, 18 Aug 2022 17:11:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345529AbiHRUIY (ORCPT
+        with ESMTP id S1346819AbiHRVKf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Aug 2022 16:08:24 -0400
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 134D13AE59;
-        Thu, 18 Aug 2022 13:03:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1660853006; x=1692389006;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=hK4joLjW67roEfSg9L3o4RSW3LVg032fexmMiJB4qHE=;
-  b=GkDAWOARvETiowcvSZ4tteFXcJrlxFrfCe5AHfrbu16u9Wj7WV70WEcQ
-   gLSanioLOadt4kCSOC7NVO8RbgzaH1sTlxCtU3ZWYbnEjV5naMPe6UQeB
-   UJrTaZYuLGUGOy4c4pK0KrWQUSNXRT9AA8n8Hh3Fv7ajHVuFXNrFik7+E
-   KKpbtj7eD1QIiXUXcM8bDQ3o+bNXO4DjPxb3wKz/W/+jlcu3R9h5INmob
-   AS6rtmtsMpaq0lBAGqlN0eOdPG11JV8GsmuuEpVitS314RaKQ+niuPkGP
-   qDaEB1GDUWDeafAt46lfPqXdZ5Hu0v/pvJdyB37nvehljvKIiwmG6KSjY
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10443"; a="293648497"
-X-IronPort-AV: E=Sophos;i="5.93,247,1654585200"; 
-   d="scan'208";a="293648497"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Aug 2022 13:02:11 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,247,1654585200"; 
-   d="scan'208";a="734179034"
-Received: from lkp-server01.sh.intel.com (HELO 44b6dac04a33) ([10.239.97.150])
-  by orsmga004.jf.intel.com with ESMTP; 18 Aug 2022 13:02:07 -0700
-Received: from kbuild by 44b6dac04a33 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1oOliR-0000WH-01;
-        Thu, 18 Aug 2022 20:02:07 +0000
-Date:   Fri, 19 Aug 2022 04:01:31 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Daniel Xu <dxu@dxuuu.xyz>, bpf@vger.kernel.org, ast@kernel.org,
-        daniel@iogearbox.net, andrii@kernel.org, memxor@gmail.com
-Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org,
-        Daniel Xu <dxu@dxuuu.xyz>, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH bpf-next 2/3] bpf: Add support for writing to nf_conn:mark
-Message-ID: <202208190318.HygywK17-lkp@intel.com>
-References: <f850bb7e20950736d9175c61d7e0691098e06182.1660592020.git.dxu@dxuuu.xyz>
+        Thu, 18 Aug 2022 17:10:35 -0400
+Received: from mail.zeus03.de (www.zeus03.de [194.117.254.33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3D7DD8E3F
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 14:05:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple; d=sang-engineering.com; h=
+        from:to:cc:subject:date:message-id:mime-version
+        :content-transfer-encoding; s=k1; bh=Pu930IAe/AYCg8Oap5bmCJ32MkT
+        AAiu9pRH3YePSC4E=; b=RN7z5/75Ie/+RG/Uj4zpOfHWaZltdHhdnjx53b60RHh
+        R0rjwBFAShGPJcUbURxwYUamgmYbnymY2BzsJ0FAvP20KDq336J5etnpCMAd54hG
+        ZEzZVsHe82UB45xh80eBlVYEWLySnXM0JK12rQHdnDxubdZnSHD9cdWEJlBQvKi0
+        =
+Received: (qmail 3962995 invoked from network); 18 Aug 2022 23:02:13 +0200
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 18 Aug 2022 23:02:13 +0200
+X-UD-Smtp-Session: l3s3148p1@JXWsS4rmHKYucref
+From:   Wolfram Sang <wsa+renesas@sang-engineering.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH] bridge: move from strlcpy with unused retval to strscpy
+Date:   Thu, 18 Aug 2022 23:02:12 +0200
+Message-Id: <20220818210212.8347-1-wsa+renesas@sang-engineering.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f850bb7e20950736d9175c61d7e0691098e06182.1660592020.git.dxu@dxuuu.xyz>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Daniel,
+Follow the advice of the below link and prefer 'strscpy' in this
+subsystem. Conversion is 1:1 because the return value is not used.
+Generated by a coccinelle script.
 
-Thank you for the patch! Yet something to improve:
+Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ net/bridge/br_device.c          | 8 ++++----
+ net/bridge/br_sysfs_if.c        | 4 ++--
+ net/bridge/netfilter/ebtables.c | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-[auto build test ERROR on bpf-next/master]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Daniel-Xu/Support-direct-writes-to-nf_conn-mark/20220816-060429
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git master
-config: arm-versatile_defconfig (https://download.01.org/0day-ci/archive/20220819/202208190318.HygywK17-lkp@intel.com/config)
-compiler: clang version 16.0.0 (https://github.com/llvm/llvm-project aed5e3bea138ce581d682158eb61c27b3cfdd6ec)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # install arm cross compiling tool for clang build
-        # apt-get install binutils-arm-linux-gnueabi
-        # https://github.com/intel-lab-lkp/linux/commit/c7b21d163eb9c61514dd86baf4281deb4d4387bb
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Daniel-Xu/Support-direct-writes-to-nf_conn-mark/20220816-060429
-        git checkout c7b21d163eb9c61514dd86baf4281deb4d4387bb
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=arm SHELL=/bin/bash
-
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
->> net/core/filter.c:8723:10: error: call to undeclared function 'btf_struct_access'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-                   return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
-                          ^
-   net/core/filter.c:8797:10: error: call to undeclared function 'btf_struct_access'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-                   return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
-                          ^
-   2 errors generated.
-
-
-vim +/btf_struct_access +8723 net/core/filter.c
-
-  8714	
-  8715	static int tc_cls_act_btf_struct_access(struct bpf_verifier_log *log,
-  8716						const struct btf *btf,
-  8717						const struct btf_type *t, int off,
-  8718						int size, enum bpf_access_type atype,
-  8719						u32 *next_btf_id,
-  8720						enum bpf_type_flag *flag)
-  8721	{
-  8722		if (atype == BPF_READ)
-> 8723			return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
-  8724						 flag);
-  8725	
-  8726		return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
-  8727						      next_btf_id, flag);
-  8728	}
-  8729	
-
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index 58a4f70e01e3..b82906fc999a 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -251,10 +251,10 @@ static int br_set_mac_address(struct net_device *dev, void *p)
+ 
+ static void br_getinfo(struct net_device *dev, struct ethtool_drvinfo *info)
+ {
+-	strlcpy(info->driver, "bridge", sizeof(info->driver));
+-	strlcpy(info->version, BR_VERSION, sizeof(info->version));
+-	strlcpy(info->fw_version, "N/A", sizeof(info->fw_version));
+-	strlcpy(info->bus_info, "N/A", sizeof(info->bus_info));
++	strscpy(info->driver, "bridge", sizeof(info->driver));
++	strscpy(info->version, BR_VERSION, sizeof(info->version));
++	strscpy(info->fw_version, "N/A", sizeof(info->fw_version));
++	strscpy(info->bus_info, "N/A", sizeof(info->bus_info));
+ }
+ 
+ static int br_get_link_ksettings(struct net_device *dev,
+diff --git a/net/bridge/br_sysfs_if.c b/net/bridge/br_sysfs_if.c
+index 07fa76080512..74fdd8105dca 100644
+--- a/net/bridge/br_sysfs_if.c
++++ b/net/bridge/br_sysfs_if.c
+@@ -384,7 +384,7 @@ int br_sysfs_addif(struct net_bridge_port *p)
+ 			return err;
+ 	}
+ 
+-	strlcpy(p->sysfs_name, p->dev->name, IFNAMSIZ);
++	strscpy(p->sysfs_name, p->dev->name, IFNAMSIZ);
+ 	return sysfs_create_link(br->ifobj, &p->kobj, p->sysfs_name);
+ }
+ 
+@@ -406,7 +406,7 @@ int br_sysfs_renameif(struct net_bridge_port *p)
+ 		netdev_notice(br->dev, "unable to rename link %s to %s",
+ 			      p->sysfs_name, p->dev->name);
+ 	else
+-		strlcpy(p->sysfs_name, p->dev->name, IFNAMSIZ);
++		strscpy(p->sysfs_name, p->dev->name, IFNAMSIZ);
+ 
+ 	return err;
+ }
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index f2dbefb61ce8..3c3ecd4cddb5 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1446,7 +1446,7 @@ static inline int ebt_obj_to_user(char __user *um, const char *_name,
+ 	/* ebtables expects 31 bytes long names but xt_match names are 29 bytes
+ 	 * long. Copy 29 bytes and fill remaining bytes with zeroes.
+ 	 */
+-	strlcpy(name, _name, sizeof(name));
++	strscpy(name, _name, sizeof(name));
+ 	if (copy_to_user(um, name, EBT_EXTENSION_MAXNAMELEN) ||
+ 	    put_user(revision, (u8 __user *)(um + EBT_EXTENSION_MAXNAMELEN)) ||
+ 	    put_user(datasize, (int __user *)(um + EBT_EXTENSION_MAXNAMELEN + 1)) ||
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+2.35.1
+
