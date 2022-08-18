@@ -2,268 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A683C25B0E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 21:11:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86AF5C3F6B0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 22:10:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346726AbiHRVL0 (ORCPT
+        id S1345975AbiHRWKp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Aug 2022 17:11:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34772 "EHLO
+        Thu, 18 Aug 2022 18:10:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346876AbiHRVKm (ORCPT
+        with ESMTP id S1346119AbiHRWKl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Aug 2022 17:10:42 -0400
-Received: from mail.zeus03.de (www.zeus03.de [194.117.254.33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37237D91D1
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 14:05:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple; d=sang-engineering.com; h=
-        from:to:cc:subject:date:message-id:mime-version
-        :content-transfer-encoding; s=k1; bh=RA2w/36JYK/N5a93gnOj0211yhM
-        29baV46azSB3f5us=; b=vz8kjQXZZgU36dV28vr5PUMoPSEJJSxRK5MK+6O/+Rj
-        gX8LqFHkpANoRCGHxdm6Dn2eha5vrPyw9XDo7zYEJmfK7a3QJGeIQxKbOY5VjKob
-        Vn4Ue4CFZG9UAfuJ5UvrlwL5a5JB49jEu95d9o1vGYtNJQiV8nnxtoCgiGqYiLxk
-        =
-Received: (qmail 3963250 invoked from network); 18 Aug 2022 23:02:25 +0200
-Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 18 Aug 2022 23:02:25 +0200
-X-UD-Smtp-Session: l3s3148p1@W8lhTIrm5asucref
-From:   Wolfram Sang <wsa+renesas@sang-engineering.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org
-Subject: [PATCH] netfilter: move from strlcpy with unused retval to strscpy
-Date:   Thu, 18 Aug 2022 23:02:24 +0200
-Message-Id: <20220818210224.8563-1-wsa+renesas@sang-engineering.com>
-X-Mailer: git-send-email 2.35.1
+        Thu, 18 Aug 2022 18:10:41 -0400
+Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C612D25FF;
+        Thu, 18 Aug 2022 15:10:39 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.west.internal (Postfix) with ESMTP id 5C0313200900;
+        Thu, 18 Aug 2022 18:10:35 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute5.internal (MEProxy); Thu, 18 Aug 2022 18:10:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to; s=fm3; t=1660860634; x=
+        1660947034; bh=bqimtuRDECWOfamqyR5FSsot1AL5746ILjJxrzbyYOY=; b=Q
+        tZNFrMEXwo0B/LI90hb4Vym5HO+fB2OVHlsZMXzn0/O8oJtRrNKyNi1ZZbg1WyVm
+        araWUv9Qy7Yuw8OW+YqLca5pwRHzLmItXKyzwwzdFlJumA/bTfrjbaCgijKvWLIK
+        5ifR+qZa27xAHiQFhKPH5KmEdR/0HUYQcT6nZkTDs3rTI3Y3vBmSBrzFhO+l7lLB
+        QXqe0kE0l3mE8q0JgfqtIeU3ewC1tKcyurtI3Xc/Nvhhtkhqfayg5ge4DjUB48Wi
+        qeEi1HlMXy7fzARInCGAyQwNRaNtcQCH4XS0D1KftDk9hQYMcUxZ+fJT+ntYAieA
+        VULTmDq+MoU4THN2faB8Q==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:date:date:feedback-id:feedback-id:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1660860634; x=
+        1660947034; bh=bqimtuRDECWOfamqyR5FSsot1AL5746ILjJxrzbyYOY=; b=1
+        2+QZkWF9inCmGBBPYFj60fys2jhoL/3SnCrhktpZphBqWhTcqUj59eUGgOKxQgEJ
+        HerW6z/V36bbAnZa5z3tLpafPSDPXPt1u4kzZQxxglUBHMaoiDSGfPHu7pH0b9MV
+        VW/U2u5k3xrKeImFqhIxNMsMIg+6uwCTtMfUDzPv4IP2I3xFNySUCSOkgS/nYEqI
+        ZBXX5OYBD53szxY781XN/i97bXvvy/vuO660DcARFLbpg7k0S89t82Kit+g5JM1m
+        ePP+qx5OAR7zFScALBVoHDJIz48BeFzqBbBTAxdIA1rJeWOe4T/Rxvrm3KceNMfk
+        Zvr8Kl79bfjJqEUH7TH0A==
+X-ME-Sender: <xms:2rj-YqlSCFiFZGwtTi1iUFeeXfZJOIUeSTtdm42Zvln3Uz08FSrXxg>
+    <xme:2rj-Yh0kkf_3W6Fdz4BdUpe9uPmhpfFnejHWvH47F3mTu2Za0DoM3qDmdDgK8dX32
+    vUiP513TGoUYm1ZaA>
+X-ME-Received: <xmr:2rj-YorGWp8ATbOrmOjxKA-Iy2MUS9uFkHsM0PKxoJ7w2Igxhe6hOxuhUbtYiM7kSnq5rRy7ccYzeOHzgqdTMBz815ulREZ8lNIC>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdeitddgtdeiucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    gfrhhlucfvnfffucdljedtmdenucfjughrpeffhffvvefukfhfgggtugfgjgesthekredt
+    tddtudenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihusegugihuuhhurdighiiiqe
+    enucggtffrrghtthgvrhhnpeegvdejveeuvdeigfejjeeufefhffetfeekuddtuddvuedt
+    ueffvdejleehgeetffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrih
+    hlfhhrohhmpegugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:2rj-YunwIWChXgRMS44dcdI6nJCXA2VmImGp9L8GBJBZIiCgARf7gg>
+    <xmx:2rj-Yo2t9M2iHf492Xd8c4qtZ0pEWYskuKHCCenOEqRtJTe3emEXtg>
+    <xmx:2rj-Ylsv_UmfO_P-N9XhMU-rbWUcG_bebhw7S3jIljAgUF5D8NqHAw>
+    <xmx:2rj-YuwdKVOYeqcFjtpM5iF1aavXvOlD40cpMhzTCN1RXm1pqkiDSg>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 18 Aug 2022 18:10:33 -0400 (EDT)
+Date:   Thu, 18 Aug 2022 16:10:32 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, memxor@gmail.com, pablo@netfilter.org,
+        fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH bpf-next v2 3/4] bpf: Add support for writing to
+ nf_conn:mark
+Message-ID: <20220818221032.7b4lcpa7i4gchdvl@kashmir.localdomain>
+References: <cover.1660761470.git.dxu@dxuuu.xyz>
+ <edbca42217a73161903a50ba07ec63c5fa5fde00.1660761470.git.dxu@dxuuu.xyz>
+ <87pmgxuy6v.fsf@toke.dk>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <87pmgxuy6v.fsf@toke.dk>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Follow the advice of the below link and prefer 'strscpy' in this
-subsystem. Conversion is 1:1 because the return value is not used.
-Generated by a coccinelle script.
+Hi Toke,
 
-Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
----
- net/netfilter/ipset/ip_set_core.c |  4 ++--
- net/netfilter/ipvs/ip_vs_ctl.c    |  8 ++++----
- net/netfilter/nf_log.c            |  4 ++--
- net/netfilter/nf_tables_api.c     |  2 +-
- net/netfilter/nft_osf.c           |  2 +-
- net/netfilter/x_tables.c          | 20 ++++++++++----------
- net/netfilter/xt_RATEEST.c        |  2 +-
- 7 files changed, 21 insertions(+), 21 deletions(-)
+On Thu, Aug 18, 2022 at 09:52:08PM +0200, Toke Høiland-Jørgensen wrote:
+> Daniel Xu <dxu@dxuuu.xyz> writes:
+> 
+> > Support direct writes to nf_conn:mark from TC and XDP prog types. This
+> > is useful when applications want to store per-connection metadata. This
+> > is also particularly useful for applications that run both bpf and
+> > iptables/nftables because the latter can trivially access this
+> > metadata.
+> 
+> Looking closer at the nf_conn definition, the mark field (and possibly
+> secmark) seems to be the only field that is likely to be feasible to
+> support direct writes to, as everything else either requires special
+> handling (like status and timeout), or they are composite field that
+> will require helpers anyway to use correctly.
+> 
+> Which means we're in the process of creating an API where users have to
+> call helpers to fill in all fields *except* this one field that happens
+> to be directly writable. That seems like a really confusing and
+> inconsistent API, so IMO it strengthens the case for just making a
+> helper for this field as well, even though it adds a bit of overhead
+> (and then solving the overhead issue in a more generic way such as by
+> supporting clever inlining).
+> 
+> -Toke
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 16ae92054baa..97130bca3ecb 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -353,7 +353,7 @@ ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
- 	c = kmalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
- 	if (unlikely(!c))
- 		return;
--	strlcpy(c->str, ext->comment, len + 1);
-+	strscpy(c->str, ext->comment, len + 1);
- 	set->ext_size += sizeof(*c) + strlen(c->str) + 1;
- 	rcu_assign_pointer(comment->c, c);
- }
-@@ -1072,7 +1072,7 @@ static int ip_set_create(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (!set)
- 		return -ENOMEM;
- 	spin_lock_init(&set->lock);
--	strlcpy(set->name, name, IPSET_MAXNAMELEN);
-+	strscpy(set->name, name, IPSET_MAXNAMELEN);
- 	set->family = family;
- 	set->revision = revision;
- 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index efab2b06d373..83e14c704310 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2611,7 +2611,7 @@ ip_vs_copy_service(struct ip_vs_service_entry *dst, struct ip_vs_service *src)
- 	dst->addr = src->addr.ip;
- 	dst->port = src->port;
- 	dst->fwmark = src->fwmark;
--	strlcpy(dst->sched_name, sched_name, sizeof(dst->sched_name));
-+	strscpy(dst->sched_name, sched_name, sizeof(dst->sched_name));
- 	dst->flags = src->flags;
- 	dst->timeout = src->timeout / HZ;
- 	dst->netmask = src->netmask;
-@@ -2805,13 +2805,13 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 		mutex_lock(&ipvs->sync_mutex);
- 		if (ipvs->sync_state & IP_VS_STATE_MASTER) {
- 			d[0].state = IP_VS_STATE_MASTER;
--			strlcpy(d[0].mcast_ifn, ipvs->mcfg.mcast_ifn,
-+			strscpy(d[0].mcast_ifn, ipvs->mcfg.mcast_ifn,
- 				sizeof(d[0].mcast_ifn));
- 			d[0].syncid = ipvs->mcfg.syncid;
- 		}
- 		if (ipvs->sync_state & IP_VS_STATE_BACKUP) {
- 			d[1].state = IP_VS_STATE_BACKUP;
--			strlcpy(d[1].mcast_ifn, ipvs->bcfg.mcast_ifn,
-+			strscpy(d[1].mcast_ifn, ipvs->bcfg.mcast_ifn,
- 				sizeof(d[1].mcast_ifn));
- 			d[1].syncid = ipvs->bcfg.syncid;
- 		}
-@@ -3561,7 +3561,7 @@ static int ip_vs_genl_new_daemon(struct netns_ipvs *ipvs, struct nlattr **attrs)
- 	      attrs[IPVS_DAEMON_ATTR_MCAST_IFN] &&
- 	      attrs[IPVS_DAEMON_ATTR_SYNC_ID]))
- 		return -EINVAL;
--	strlcpy(c.mcast_ifn, nla_data(attrs[IPVS_DAEMON_ATTR_MCAST_IFN]),
-+	strscpy(c.mcast_ifn, nla_data(attrs[IPVS_DAEMON_ATTR_MCAST_IFN]),
- 		sizeof(c.mcast_ifn));
- 	c.syncid = nla_get_u32(attrs[IPVS_DAEMON_ATTR_SYNC_ID]);
- 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index edee7fa944c1..8a29290149bd 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -443,9 +443,9 @@ static int nf_log_proc_dostring(struct ctl_table *table, int write,
- 		mutex_lock(&nf_log_mutex);
- 		logger = nft_log_dereference(net->nf.nf_loggers[tindex]);
- 		if (!logger)
--			strlcpy(buf, "NONE", sizeof(buf));
-+			strscpy(buf, "NONE", sizeof(buf));
- 		else
--			strlcpy(buf, logger->name, sizeof(buf));
-+			strscpy(buf, logger->name, sizeof(buf));
- 		mutex_unlock(&nf_log_mutex);
- 		r = proc_dostring(&tmp, write, buffer, lenp, ppos);
- 	}
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3cc88998b879..4ef8d723b495 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -743,7 +743,7 @@ __printf(2, 3) int nft_request_module(struct net *net, const char *fmt,
- 		return -ENOMEM;
- 
- 	req->done = false;
--	strlcpy(req->module, module_name, MODULE_NAME_LEN);
-+	strscpy(req->module, module_name, MODULE_NAME_LEN);
- 	list_add_tail(&req->list, &nft_net->module_list);
- 
- 	return -EAGAIN;
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index 0053a697c931..5d2b88091e5d 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -51,7 +51,7 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 			snprintf(os_match, NFT_OSF_MAXGENRELEN, "%s:%s",
- 				 data.genre, data.version);
- 		else
--			strlcpy(os_match, data.genre, NFT_OSF_MAXGENRELEN);
-+			strscpy(os_match, data.genre, NFT_OSF_MAXGENRELEN);
- 
- 		strncpy((char *)dest, os_match, NFT_OSF_MAXGENRELEN);
- 	}
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 54a489f16b17..470282cf3fae 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -766,7 +766,7 @@ void xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
- 
- 	msize += off;
- 	m->u.user.match_size = msize;
--	strlcpy(name, match->name, sizeof(name));
-+	strscpy(name, match->name, sizeof(name));
- 	module_put(match->me);
- 	strncpy(m->u.user.name, name, sizeof(m->u.user.name));
- 
-@@ -1146,7 +1146,7 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
- 
- 	tsize += off;
- 	t->u.user.target_size = tsize;
--	strlcpy(name, target->name, sizeof(name));
-+	strscpy(name, target->name, sizeof(name));
- 	module_put(target->me);
- 	strncpy(t->u.user.name, name, sizeof(t->u.user.name));
- 
-@@ -1827,7 +1827,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 	root_uid = make_kuid(net->user_ns, 0);
- 	root_gid = make_kgid(net->user_ns, 0);
- 
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc = proc_create_net_data(buf, 0440, net->proc_net, &xt_table_seq_ops,
- 			sizeof(struct seq_net_private),
-@@ -1837,7 +1837,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 	if (uid_valid(root_uid) && gid_valid(root_gid))
- 		proc_set_user(proc, root_uid, root_gid);
- 
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	proc = proc_create_seq_private(buf, 0440, net->proc_net,
- 			&xt_match_seq_ops, sizeof(struct nf_mttg_trav),
-@@ -1847,7 +1847,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 	if (uid_valid(root_uid) && gid_valid(root_gid))
- 		proc_set_user(proc, root_uid, root_gid);
- 
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
- 	proc = proc_create_seq_private(buf, 0440, net->proc_net,
- 			 &xt_target_seq_ops, sizeof(struct nf_mttg_trav),
-@@ -1862,12 +1862,12 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 
- #ifdef CONFIG_PROC_FS
- out_remove_matches:
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	remove_proc_entry(buf, net->proc_net);
- 
- out_remove_tables:
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	remove_proc_entry(buf, net->proc_net);
- out:
-@@ -1881,15 +1881,15 @@ void xt_proto_fini(struct net *net, u_int8_t af)
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
- 
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	remove_proc_entry(buf, net->proc_net);
- 
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
- 	remove_proc_entry(buf, net->proc_net);
- 
--	strlcpy(buf, xt_prefix[af], sizeof(buf));
-+	strscpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
- 	remove_proc_entry(buf, net->proc_net);
- #endif /*CONFIG_PROC_FS*/
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 8aec1b529364..80f6624e2355 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -144,7 +144,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
- 		goto err1;
- 
- 	gnet_stats_basic_sync_init(&est->bstats);
--	strlcpy(est->name, info->name, sizeof(est->name));
-+	strscpy(est->name, info->name, sizeof(est->name));
- 	spin_lock_init(&est->lock);
- 	est->refcnt		= 1;
- 	est->params.interval	= info->interval;
--- 
-2.35.1
+I don't particularly have a strong opinion here. But to play devil's
+advocate:
 
+* It may be confusing now, but over time I expect to see more direct
+  write support via BTF, especially b/c there is support for unstable
+  helpers now. So perhaps in the future it will seem more sensible.
+
+* The unstable helpers do not have external documentation. Nor should
+  they in my opinion as their unstableness + stale docs may lead to
+  undesirable outcomes. So users of the unstable API already have to
+  splunk through kernel code and/or selftests to figure out how to wield
+  the APIs. All this to say there may not be an argument for
+  discoverability.
+
+* Direct writes are slightly more ergnomic than using a helper.
+
+Thanks,
+Daniel
