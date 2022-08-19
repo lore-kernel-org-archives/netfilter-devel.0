@@ -2,118 +2,153 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9C3FC32772
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 16:21:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 680BBC28B2B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 17:21:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352044AbiHSQVK (ORCPT
+        id S1351153AbiHSRVQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Aug 2022 12:21:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52276 "EHLO
+        Fri, 19 Aug 2022 13:21:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352298AbiHSQUc (ORCPT
+        with ESMTP id S1352751AbiHSRVB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Aug 2022 12:20:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F325A10A764;
-        Fri, 19 Aug 2022 09:01:25 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BBE22612DF;
-        Fri, 19 Aug 2022 16:01:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBADBC433C1;
-        Fri, 19 Aug 2022 16:01:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1660924883;
-        bh=nm4OJZwJEZv1pIUYaeMBoUGeJreDgEESneK9E8E3b3k=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uhf7A9n+wNzi5jkb60mJLRYdnpIRU9ENfylqEZWQqv9GM7KD8wdQhvbQjyQn73CH/
-         2K4iM92s6yV9tFfX0rK0wQX8YnOBckMHd7AGQVbqHoMHc82+NejACLqrymxFNDTGaT
-         70YGDZEpUH8cun17TRKXg9t8/F6Gnv/GBFBIw6EI=
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        stable@vger.kernel.org, Manoj Basapathi <manojbm@codeaurora.org>,
-        Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 5.10 283/545] netfilter: xtables: Bring SPDX identifier back
-Date:   Fri, 19 Aug 2022 17:40:53 +0200
-Message-Id: <20220819153841.970605527@linuxfoundation.org>
-X-Mailer: git-send-email 2.37.2
-In-Reply-To: <20220819153829.135562864@linuxfoundation.org>
-References: <20220819153829.135562864@linuxfoundation.org>
-User-Agent: quilt/0.67
+        Fri, 19 Aug 2022 13:21:01 -0400
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89F4314D065;
+        Fri, 19 Aug 2022 09:40:16 -0700 (PDT)
+Received: by mail-ed1-x52f.google.com with SMTP id c39so6341086edf.0;
+        Fri, 19 Aug 2022 09:40:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc;
+        bh=Fya4fZM01wtpV6jSWWXM/JoqlH2BGCdszj83hyqTE9Q=;
+        b=a/OpAIk/kN1DVTd5wBYF+F7EgMXvFSvBuTaOGIBJxkeaU8wKI4dpl3ipvq1YyIb3A9
+         nrqBZAIr8x029+uxX0c19j1Bu7RPlwwbp0N+N9FYHNbYVjaULrG/wI91keaVSZs8dLeP
+         UZJJBqZRaTln9uAFaklc0MmXBdPK254cAHipMS9AzpffDHST92WPwjkXWoV3t9GaHVhz
+         U/U9RBBOJu+dEmuba0S/fliA3OQ00hZZtvsMWKreQ/WjRjjWBxJFWND5CvsmxkazTBdo
+         oYg8NWCpRNn8Pe3SebfAYINWGdfJ66+PexCUqNYQl99Zk44ZdjhTgAalyi5mviVVcZ4H
+         +Gfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc;
+        bh=Fya4fZM01wtpV6jSWWXM/JoqlH2BGCdszj83hyqTE9Q=;
+        b=Uh3HyiW7BAU/wRVGlAYNEsGOxdAisHoSV3tSgthCPq2gp00tqzNMtffgzxC/UYI2FN
+         Ws5Z2oxaIyuvcXAR3vrTvYbKBpojTRWhzENJ4vFpuDOrPJ5bSb0D6cAauQJ7k3zbH+Cf
+         IeuymnOYAAzp1iGZ0FTqVGO2wW4iQ8WmRGi4MURYvLYFRTDk0KrXOYQi+Njkoh6RxcmX
+         nXWm8Ger54AesXmWkCy8GVW2plH2p/oG0ETC1IAhaLdeRQI6bevUo4Po7PxMMYAwUnrx
+         j+IpOhasNbQC/WVYzageMPWkn2es3hzByuqrMcBuGPFfXq1l6h4yJBMpl9aWZoVAhJMH
+         +/6w==
+X-Gm-Message-State: ACgBeo37iW80cHRU8oKkCvfhgfudfI0RmxS7VcDW2aS/yHe0ryzKKWUa
+        BsyFHKEeKiI0u8Oa7vWzaaRGM82GaefX+5dhyH4=
+X-Google-Smtp-Source: AA6agR5lfMOKEBoDzHA6/bVtt1G+RY9+YHXqTlh41y4Yzsem3FQcp824i65YTAGU77Xssxh3e5ilE2fVkRoq6psxDq8=
+X-Received: by 2002:a05:6402:298c:b0:446:a97:1800 with SMTP id
+ eq12-20020a056402298c00b004460a971800mr6829163edb.421.1660927211176; Fri, 19
+ Aug 2022 09:40:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <cover.1660761470.git.dxu@dxuuu.xyz> <edbca42217a73161903a50ba07ec63c5fa5fde00.1660761470.git.dxu@dxuuu.xyz>
+ <87pmgxuy6v.fsf@toke.dk> <20220818221032.7b4lcpa7i4gchdvl@kashmir.localdomain>
+ <87wnb4tmc0.fsf@toke.dk>
+In-Reply-To: <87wnb4tmc0.fsf@toke.dk>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Fri, 19 Aug 2022 09:39:59 -0700
+Message-ID: <CAADnVQ+YtLQPa3fifFn5vazydP1fZtE2RmjOBY4F5tF2t8MmSQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v2 3/4] bpf: Add support for writing to nf_conn:mark
+To:     =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@kernel.org>
+Cc:     Daniel Xu <dxu@dxuuu.xyz>, bpf <bpf@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+On Fri, Aug 19, 2022 at 6:05 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@kern=
+el.org> wrote:
+>
+> Daniel Xu <dxu@dxuuu.xyz> writes:
+>
+> > Hi Toke,
+> >
+> > On Thu, Aug 18, 2022 at 09:52:08PM +0200, Toke H=C3=B8iland-J=C3=B8rgen=
+sen wrote:
+> >> Daniel Xu <dxu@dxuuu.xyz> writes:
+> >>
+> >> > Support direct writes to nf_conn:mark from TC and XDP prog types. Th=
+is
+> >> > is useful when applications want to store per-connection metadata. T=
+his
+> >> > is also particularly useful for applications that run both bpf and
+> >> > iptables/nftables because the latter can trivially access this
+> >> > metadata.
+> >>
+> >> Looking closer at the nf_conn definition, the mark field (and possibly
+> >> secmark) seems to be the only field that is likely to be feasible to
+> >> support direct writes to, as everything else either requires special
+> >> handling (like status and timeout), or they are composite field that
+> >> will require helpers anyway to use correctly.
+> >>
+> >> Which means we're in the process of creating an API where users have t=
+o
+> >> call helpers to fill in all fields *except* this one field that happen=
+s
+> >> to be directly writable. That seems like a really confusing and
+> >> inconsistent API, so IMO it strengthens the case for just making a
+> >> helper for this field as well, even though it adds a bit of overhead
+> >> (and then solving the overhead issue in a more generic way such as by
+> >> supporting clever inlining).
+> >>
+> >> -Toke
+> >
+> > I don't particularly have a strong opinion here. But to play devil's
+> > advocate:
+> >
+> > * It may be confusing now, but over time I expect to see more direct
+> >   write support via BTF, especially b/c there is support for unstable
+> >   helpers now. So perhaps in the future it will seem more sensible.
+>
+> Right, sure, for other structs. My point was that it doesn't look like
+> this particular one (nf_conn) is likely to grow any other members we can
+> access directly, so it'll be a weird one-off for that single field...
+>
+> > * The unstable helpers do not have external documentation. Nor should
+> >   they in my opinion as their unstableness + stale docs may lead to
+> >   undesirable outcomes. So users of the unstable API already have to
+> >   splunk through kernel code and/or selftests to figure out how to wiel=
+d
+> >   the APIs. All this to say there may not be an argument for
+> >   discoverability.
+>
+> This I don't buy at all. Just because it's (supposedly) "unstable" is no
 
-[ Upstream commit 20646f5b1e798bcc20044ae90ac3702f177bf254 ]
+They're unstable. Please don't start this 'but can we actually remove
+them' doubts. You're only confusing yourself and others.
+We tweaked kfuncs already. We removed tracepoints too after they
+were in a full kernel release.
 
-Commit e2be04c7f995 ("License cleanup: add SPDX license identifier to
-uapi header files with a license") added the correct SPDX identifier to
-include/uapi/linux/netfilter/xt_IDLETIMER.h.
+> excuse to design a bad API, or make it actively user-hostile by hiding
 
-A subsequent commit removed it for no reason and reintroduced the UAPI
-license incorrectness as the file is now missing the UAPI exception
-again.
+'bad API'? what? It's a direct field write.
+We do allow it in other data structures.
 
-Add it back and remove the GPLv2 boilerplate while at it.
+> things so users have to go browse kernel code to know how to use it. So
+> in any case, we should definitely document everything.
+>
+> > * Direct writes are slightly more ergnomic than using a helper.
+>
+> This is true, and that's the main argument for doing it this way. The
+> point of my previous email was that since it's only a single field,
+> consistency weighs heavier than ergonomics :)
 
-Fixes: 68983a354a65 ("netfilter: xtables: Add snapshot of hardidletimer target")
-Cc: Manoj Basapathi <manojbm@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- include/uapi/linux/netfilter/xt_IDLETIMER.h | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/xt_IDLETIMER.h b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-index 49ddcdc61c09..7bfb31a66fc9 100644
---- a/include/uapi/linux/netfilter/xt_IDLETIMER.h
-+++ b/include/uapi/linux/netfilter/xt_IDLETIMER.h
-@@ -1,6 +1,5 @@
-+/* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
- /*
-- * linux/include/linux/netfilter/xt_IDLETIMER.h
-- *
-  * Header file for Xtables timer target module.
-  *
-  * Copyright (C) 2004, 2010 Nokia Corporation
-@@ -10,20 +9,6 @@
-  * by Luciano Coelho <luciano.coelho@nokia.com>
-  *
-  * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-  */
- 
- #ifndef _XT_IDLETIMER_H
--- 
-2.35.1
-
-
-
+I don't think the 'consistency' argument applies here.
+We already allow direct read of all fields.
+Also the field access is easier to handle with CO-RE.
