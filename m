@@ -2,59 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 025E1C00140
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 02:34:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ECB0C00140
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 02:40:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239340AbiHSCei (ORCPT
+        id S244750AbiHSCkd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Aug 2022 22:34:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59258 "EHLO
+        Thu, 18 Aug 2022 22:40:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230441AbiHSCei (ORCPT
+        with ESMTP id S244770AbiHSCkc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Aug 2022 22:34:38 -0400
-Received: from mail-pg1-x52c.google.com (mail-pg1-x52c.google.com [IPv6:2607:f8b0:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEC80CB5DD
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 19:34:36 -0700 (PDT)
-Received: by mail-pg1-x52c.google.com with SMTP id s206so2702517pgs.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 19:34:36 -0700 (PDT)
+        Thu, 18 Aug 2022 22:40:32 -0400
+Received: from mail-pj1-x1031.google.com (mail-pj1-x1031.google.com [IPv6:2607:f8b0:4864:20::1031])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ABE3C3F58
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 19:40:31 -0700 (PDT)
+Received: by mail-pj1-x1031.google.com with SMTP id r14-20020a17090a4dce00b001faa76931beso6356827pjl.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 19:40:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc;
-        bh=Y+9XskWUKVyD0SylCLdXjWTSILZFfO2Y+oELusmeej0=;
-        b=nQ/depy/aZPYdphBwfhWrimxiSLTru59sM53YCfJdcrQOnznAstAVpTDE2RZfI6Eu7
-         7iTf7l9xRKGFrRs5zNQ83+c0F2O8GaftMOUZqazdYs/RsdIxORDiWwCJ1uBmGbs1cgxJ
-         0FlxdsdMhc/kN3SwQIcyeFWPm0p5kkIW8DmTtGangDV/cLfb7Qx2ZJB8YfXT8hK71Wle
-         5Goy8vo7GHRftJol/I9fP2mgBlKvXxH5x/A7oBr95uOx4uBhFyL3cpL+mvyKG3H5pK+Q
-         VWcootKjgtTVire6bp0aB89meU+wo2TtZtIEqDn/giLOROmHnz62IaI1uaZTLP7ymRIt
-         UjEg==
+        bh=FHYOI69YsCmZezTdERDv64AqMlCQrvKlNGROdQ5HRas=;
+        b=ZXdYULO2QFYwny9u5bWiyOWjWv7rtoJKmw8fvmGzza7SvepUsQ/7NUEq/f0gQbbGgy
+         R7MbsM/z1OLLZ3HJxSlLNNxdBfQUdG85LENqwg9ZpSH9IiOGWkHzz3CRXwytfTdG6+Ng
+         5XsY1MQPvPGdQKMx6hM7W+oCmv9jfA1hCZWluBlY21QINP8mBe9POUUKjP1ULS93z6MN
+         qIbfx9i3gSUMNMm6rOzo1xuC0ShNn3LlR5r/lCRBENZtKEfMwGzqfDL7gG07AfiZTLBI
+         SWS2YAMGn+dzABsovT0buBoMWu04qjawrBD3to1WvKzySp8T8p41LDJ5VZCeElwQHlFl
+         51qQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc;
-        bh=Y+9XskWUKVyD0SylCLdXjWTSILZFfO2Y+oELusmeej0=;
-        b=K9qYPyLGXttLlKmtDDsspiKFsJdp+t6OwP7RueqMDPmz6XkarNuAAshPLclrnDQQoB
-         NPSA/hzR9Sq9D8PJ3UCgl9Y9e/xumheUljEkVJGQBYtpz5lk8MOvvM6WHy1t9UipNkE7
-         baVPWBoBQzcLfbMSURR/fDqntdiDSWFUu84t11Y8lxzgwdD3hvY0s3pZN+w+0D4Z9xe+
-         Ahf/TD4novoTPSvRaKvaEejpcqzRFmkMRzFnvHOIag4xktcilFDXeP7piuSOLP3KOyXL
-         JjIejY6VCYev7lpH8QZv/x5iAm6xYau/GPDX1lrv4xcUzj0Z9qna6OXJoGbBUbW13T1t
-         2Mdw==
-X-Gm-Message-State: ACgBeo3sIDXYGJC1DCBsb3u+lTNDEPbTDBgNdWme0WzxKm2vHbeeS5jV
-        RXQNHw50ogQQGAcCaT4y2mvpzQADUlyAvw==
-X-Google-Smtp-Source: AA6agR7kyf42kiryYUccObkVYsyvXBuCKN7LKWT1gKLaLvhUUtZGhX0vUmYuYgmMnXc8ZJKkEBTcgA==
-X-Received: by 2002:a05:6a00:189d:b0:52d:d4ae:d9f2 with SMTP id x29-20020a056a00189d00b0052dd4aed9f2mr5698818pfh.2.1660876475965;
-        Thu, 18 Aug 2022 19:34:35 -0700 (PDT)
+        bh=FHYOI69YsCmZezTdERDv64AqMlCQrvKlNGROdQ5HRas=;
+        b=5BjqqCP5QtWXfDzWSjG9vyzQ++yXq4xMwwLsXcFqRjkEP6HEVw08JWDSTtcspy7aYQ
+         B6mo0zi92UngfCrCIVex7/OnfMhjCmKVhXnpIR1m6EdcziNffOqiRLkfavVcUxOJIPTH
+         1LXmi6sctJ+IH/c7yN+1uXEO1IQnIfcdgQfVIp9osKJYlbQ6kD8WnsAfnua2UFYsouUP
+         dA/bC10Jv+sXc5Pqdav7zUFcccegGu0oMtd4dp9mZA+TYGavWbMfngP4B6oNZBIimjSa
+         Ddy1A89HPtcTszbKYsD1toeYFUTm6RIt82ta7XMY5Lpd5v8Yx+oos3+GWBwVKvK8Ncy4
+         fmzg==
+X-Gm-Message-State: ACgBeo1aG9oUjQ5qVGqMAb6n19sL+FwoBx/doxOh4M1Yr/ffznGR9cLk
+        WpcMe+LAievn+CWhzoaDL4LxRCUFKfVQ5A==
+X-Google-Smtp-Source: AA6agR62PDI2lpHXFIL9cdieJ/9fm/bRJKKpHdrrBYob5NNJ7VnnE5K4ggfUllsFrmBBdEc4EFzV3g==
+X-Received: by 2002:a17:90a:ea0c:b0:1fa:c77a:cb05 with SMTP id w12-20020a17090aea0c00b001fac77acb05mr6013621pjy.228.1660876830730;
+        Thu, 18 Aug 2022 19:40:30 -0700 (PDT)
 Received: from nova-ws.. ([103.220.11.9])
-        by smtp.gmail.com with ESMTPSA id s185-20020a625ec2000000b0052e82c7d91bsm2319860pfb.135.2022.08.18.19.34.34
+        by smtp.gmail.com with ESMTPSA id t32-20020a635360000000b00429e093cbadsm1904246pgl.10.2022.08.18.19.40.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Aug 2022 19:34:35 -0700 (PDT)
+        Thu, 18 Aug 2022 19:40:30 -0700 (PDT)
 From:   Xiao Liang <shaw.leon@gmail.com>
 To:     netfilter-devel <netfilter-devel@vger.kernel.org>
 Cc:     Xiao Liang <shaw.leon@gmail.com>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft v2] src: Don't parse string as verdict in map
-Date:   Fri, 19 Aug 2022 10:33:36 +0800
-Message-Id: <20220819023336.148516-1-shaw.leon@gmail.com>
+Subject: [PATCH nft v3] src: Don't parse string as verdict in map
+Date:   Fri, 19 Aug 2022 10:40:23 +0800
+Message-Id: <20220819024023.148764-1-shaw.leon@gmail.com>
 X-Mailer: git-send-email 2.37.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -145,13 +145,13 @@ index 919c38c5..d9c9ca28 100644
  				return expr_error(ctx->msgs, stmt->expr->chain,
 diff --git a/tests/shell/testcases/nft-f/0031vmap_string_0 b/tests/shell/testcases/nft-f/0031vmap_string_0
 new file mode 100755
-index 00000000..615cdbea
+index 00000000..2af846a4
 --- /dev/null
 +++ b/tests/shell/testcases/nft-f/0031vmap_string_0
 @@ -0,0 +1,21 @@
 +#!/bin/bash
 +
-+# Tests use of variables in jump statements
++# Tests parse of corrupted verdicts
 +
 +set -e
 +
