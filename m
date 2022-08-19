@@ -2,153 +2,113 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 680BBC28B2B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 17:21:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26180C3F6B0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 23:23:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351153AbiHSRVQ (ORCPT
+        id S244032AbiHSXXx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Aug 2022 13:21:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44338 "EHLO
+        Fri, 19 Aug 2022 19:23:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352751AbiHSRVB (ORCPT
+        with ESMTP id S243553AbiHSXXw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Aug 2022 13:21:01 -0400
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89F4314D065;
-        Fri, 19 Aug 2022 09:40:16 -0700 (PDT)
-Received: by mail-ed1-x52f.google.com with SMTP id c39so6341086edf.0;
-        Fri, 19 Aug 2022 09:40:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc;
-        bh=Fya4fZM01wtpV6jSWWXM/JoqlH2BGCdszj83hyqTE9Q=;
-        b=a/OpAIk/kN1DVTd5wBYF+F7EgMXvFSvBuTaOGIBJxkeaU8wKI4dpl3ipvq1YyIb3A9
-         nrqBZAIr8x029+uxX0c19j1Bu7RPlwwbp0N+N9FYHNbYVjaULrG/wI91keaVSZs8dLeP
-         UZJJBqZRaTln9uAFaklc0MmXBdPK254cAHipMS9AzpffDHST92WPwjkXWoV3t9GaHVhz
-         U/U9RBBOJu+dEmuba0S/fliA3OQ00hZZtvsMWKreQ/WjRjjWBxJFWND5CvsmxkazTBdo
-         oYg8NWCpRNn8Pe3SebfAYINWGdfJ66+PexCUqNYQl99Zk44ZdjhTgAalyi5mviVVcZ4H
-         +Gfg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc;
-        bh=Fya4fZM01wtpV6jSWWXM/JoqlH2BGCdszj83hyqTE9Q=;
-        b=Uh3HyiW7BAU/wRVGlAYNEsGOxdAisHoSV3tSgthCPq2gp00tqzNMtffgzxC/UYI2FN
-         Ws5Z2oxaIyuvcXAR3vrTvYbKBpojTRWhzENJ4vFpuDOrPJ5bSb0D6cAauQJ7k3zbH+Cf
-         IeuymnOYAAzp1iGZ0FTqVGO2wW4iQ8WmRGi4MURYvLYFRTDk0KrXOYQi+Njkoh6RxcmX
-         nXWm8Ger54AesXmWkCy8GVW2plH2p/oG0ETC1IAhaLdeRQI6bevUo4Po7PxMMYAwUnrx
-         j+IpOhasNbQC/WVYzageMPWkn2es3hzByuqrMcBuGPFfXq1l6h4yJBMpl9aWZoVAhJMH
-         +/6w==
-X-Gm-Message-State: ACgBeo37iW80cHRU8oKkCvfhgfudfI0RmxS7VcDW2aS/yHe0ryzKKWUa
-        BsyFHKEeKiI0u8Oa7vWzaaRGM82GaefX+5dhyH4=
-X-Google-Smtp-Source: AA6agR5lfMOKEBoDzHA6/bVtt1G+RY9+YHXqTlh41y4Yzsem3FQcp824i65YTAGU77Xssxh3e5ilE2fVkRoq6psxDq8=
-X-Received: by 2002:a05:6402:298c:b0:446:a97:1800 with SMTP id
- eq12-20020a056402298c00b004460a971800mr6829163edb.421.1660927211176; Fri, 19
- Aug 2022 09:40:11 -0700 (PDT)
+        Fri, 19 Aug 2022 19:23:52 -0400
+Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73ED22CE1F;
+        Fri, 19 Aug 2022 16:23:51 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.west.internal (Postfix) with ESMTP id D78D332001FC;
+        Fri, 19 Aug 2022 19:23:49 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute5.internal (MEProxy); Fri, 19 Aug 2022 19:23:51 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm3; t=1660951429; x=1661037829; bh=LS
+        KB15JNkOM6IStOUGGM5d6X8gu4EdQM8BDl4wVbxpY=; b=aNnhkpkMM66t/nF6lx
+        rxcIKVCKw1dh1rDSWLWYFGdO9EWptrDD3I/bH83Wx8ElgFAnEUYoBc1L821VqsPa
+        SOU9x0s0XvXeTVVwzppaiT+a7hZRApxjcJPEnF882GypKiUDcAreUC8QE7OHdAbO
+        Gdri5mMQPA2vS/baf2D/yjZHM55qHF+NtNmBbr5+bWv2eJLmNfAI2W+2lH1jzBV7
+        tDyVksP/KhKjjaN9DDDufebvR87fLHbx3srukx0ki5fP35f62pc0dJ2Yof3IXZED
+        uve9GK6xiNYBVrzVwaYw3lvWO+ubLMdBbzmpZUWwi6TyHQQuThGYc/GtewluSnGK
+        PhHg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm1; t=1660951429; x=1661037829; bh=LSKB15JNkOM6I
+        StOUGGM5d6X8gu4EdQM8BDl4wVbxpY=; b=ctNYSGSp0ImYJGkkPZQXTQ1a0wrDG
+        4bwogzeUHbKr+DCOHuWVJs3WVf6LHzYUCE63tBMrEP3akaQVI6KWLbF+nllWPq0O
+        /uWOPPCMs3dQ0CwAMjFVZTFQ2GIh/sjwvoF07UidVzQeOtmBQCl1FsPfalBgn22V
+        nRH56LPTFL5A11MP8APngo4obBCSs2j3oQJDg4OlZk50tBSH7f/9qLcl4+5j61JG
+        v3eu/jainwIR+mYSIvYbcfGAO107KGVmlO2Xara3d7GyWSqBImwt5BGbj4jGsFDV
+        0ut3PX9VngmhHSnXdPAYpnhZHbWJtD3XoLmeJzl/NP/Wb15xyaMfKEsiQ==
+X-ME-Sender: <xms:hRsAY-XvoYkWLxQ_fulC-Yz_zpiPrP0cpxpwSCopf_u3si6xNok9kA>
+    <xme:hRsAY6n-jBy-TerGhj8wbWitd8otRgU-3BRUdUcSMBGO2St1Ra9maimyg2wL6JkPf
+    T81HWUs6JbYg5kH_A>
+X-ME-Received: <xmr:hRsAYyacAB7jdfTHC2z6AUMQBMKxB1e11OaPcjCnmza9aTo2exGlnEFFCUgziG-cb5EZurk1DRP93o8EwFtaPxl8IgeXQLWG1ouw>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdeivddgvdduucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfeehmdenucfjughrpefhvf
+    evufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpeffrghnihgvlhcuighuuceo
+    ugiguhesugiguhhuuhdrgiihiieqnecuggftrfgrthhtvghrnhepgfefgfegjefhudeike
+    dvueetffelieefuedvhfehjeeljeejkefgffeghfdttdetnecuvehluhhsthgvrhfuihii
+    vgeptdenucfrrghrrghmpehmrghilhhfrhhomhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:hRsAY1UMeH4BYXQC14LD-Idykv2KbeiPuPNsq0t3FFcVCcBtq7_U9A>
+    <xmx:hRsAY4li0QQz0_U0gtS4KpO9dc1TXrdJiJp9Mm5k7HrCXhR3jVLUQQ>
+    <xmx:hRsAY6em4FDUknbxrqoJiDczosujBnjZqgdoRk9A7uhSqBgL8gckfg>
+    <xmx:hRsAYyexmazcuglZNvl-iMsslpSE1-xd9ltntUiQBC2aC94q0nxFgg>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
+ 19 Aug 2022 19:23:48 -0400 (EDT)
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, memxor@gmail.com
+Cc:     Daniel Xu <dxu@dxuuu.xyz>, pablo@netfilter.org, fw@strlen.de,
+        toke@kernel.org, martin.lau@linux.dev,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH bpf-next v3 2/5] bpf: Add stub for btf_struct_access()
+Date:   Fri, 19 Aug 2022 17:23:31 -0600
+Message-Id: <d99c0ed59940c82eb2d249f8559fb6cb83db3fc3.1660951028.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.37.1
+In-Reply-To: <cover.1660951028.git.dxu@dxuuu.xyz>
+References: <cover.1660951028.git.dxu@dxuuu.xyz>
 MIME-Version: 1.0
-References: <cover.1660761470.git.dxu@dxuuu.xyz> <edbca42217a73161903a50ba07ec63c5fa5fde00.1660761470.git.dxu@dxuuu.xyz>
- <87pmgxuy6v.fsf@toke.dk> <20220818221032.7b4lcpa7i4gchdvl@kashmir.localdomain>
- <87wnb4tmc0.fsf@toke.dk>
-In-Reply-To: <87wnb4tmc0.fsf@toke.dk>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Fri, 19 Aug 2022 09:39:59 -0700
-Message-ID: <CAADnVQ+YtLQPa3fifFn5vazydP1fZtE2RmjOBY4F5tF2t8MmSQ@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v2 3/4] bpf: Add support for writing to nf_conn:mark
-To:     =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@kernel.org>
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, bpf <bpf@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 19, 2022 at 6:05 AM Toke H=C3=B8iland-J=C3=B8rgensen <toke@kern=
-el.org> wrote:
->
-> Daniel Xu <dxu@dxuuu.xyz> writes:
->
-> > Hi Toke,
-> >
-> > On Thu, Aug 18, 2022 at 09:52:08PM +0200, Toke H=C3=B8iland-J=C3=B8rgen=
-sen wrote:
-> >> Daniel Xu <dxu@dxuuu.xyz> writes:
-> >>
-> >> > Support direct writes to nf_conn:mark from TC and XDP prog types. Th=
-is
-> >> > is useful when applications want to store per-connection metadata. T=
-his
-> >> > is also particularly useful for applications that run both bpf and
-> >> > iptables/nftables because the latter can trivially access this
-> >> > metadata.
-> >>
-> >> Looking closer at the nf_conn definition, the mark field (and possibly
-> >> secmark) seems to be the only field that is likely to be feasible to
-> >> support direct writes to, as everything else either requires special
-> >> handling (like status and timeout), or they are composite field that
-> >> will require helpers anyway to use correctly.
-> >>
-> >> Which means we're in the process of creating an API where users have t=
-o
-> >> call helpers to fill in all fields *except* this one field that happen=
-s
-> >> to be directly writable. That seems like a really confusing and
-> >> inconsistent API, so IMO it strengthens the case for just making a
-> >> helper for this field as well, even though it adds a bit of overhead
-> >> (and then solving the overhead issue in a more generic way such as by
-> >> supporting clever inlining).
-> >>
-> >> -Toke
-> >
-> > I don't particularly have a strong opinion here. But to play devil's
-> > advocate:
-> >
-> > * It may be confusing now, but over time I expect to see more direct
-> >   write support via BTF, especially b/c there is support for unstable
-> >   helpers now. So perhaps in the future it will seem more sensible.
->
-> Right, sure, for other structs. My point was that it doesn't look like
-> this particular one (nf_conn) is likely to grow any other members we can
-> access directly, so it'll be a weird one-off for that single field...
->
-> > * The unstable helpers do not have external documentation. Nor should
-> >   they in my opinion as their unstableness + stale docs may lead to
-> >   undesirable outcomes. So users of the unstable API already have to
-> >   splunk through kernel code and/or selftests to figure out how to wiel=
-d
-> >   the APIs. All this to say there may not be an argument for
-> >   discoverability.
->
-> This I don't buy at all. Just because it's (supposedly) "unstable" is no
+Add corresponding unimplemented stub for when CONFIG_BPF_SYSCALL=n
 
-They're unstable. Please don't start this 'but can we actually remove
-them' doubts. You're only confusing yourself and others.
-We tweaked kfuncs already. We removed tracepoints too after they
-were in a full kernel release.
+Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+---
+ include/linux/bpf.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-> excuse to design a bad API, or make it actively user-hostile by hiding
+diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+index 39bd36359c1e..fcde14ae6e60 100644
+--- a/include/linux/bpf.h
++++ b/include/linux/bpf.h
+@@ -2157,6 +2157,15 @@ static inline struct bpf_prog *bpf_prog_by_id(u32 id)
+ 	return ERR_PTR(-ENOTSUPP);
+ }
+ 
++static inline int btf_struct_access(struct bpf_verifier_log *log,
++				    const struct btf *btf,
++				    const struct btf_type *t, int off, int size,
++				    enum bpf_access_type atype,
++				    u32 *next_btf_id, enum bpf_type_flag *flag)
++{
++	return -EACCES;
++}
++
+ static inline const struct bpf_func_proto *
+ bpf_base_func_proto(enum bpf_func_id func_id)
+ {
+-- 
+2.37.1
 
-'bad API'? what? It's a direct field write.
-We do allow it in other data structures.
-
-> things so users have to go browse kernel code to know how to use it. So
-> in any case, we should definitely document everything.
->
-> > * Direct writes are slightly more ergnomic than using a helper.
->
-> This is true, and that's the main argument for doing it this way. The
-> point of my previous email was that since it's only a single field,
-> consistency weighs heavier than ergonomics :)
-
-I don't think the 'consistency' argument applies here.
-We already allow direct read of all fields.
-Also the field access is easier to handle with CO-RE.
