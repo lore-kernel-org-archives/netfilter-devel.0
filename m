@@ -2,216 +2,174 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD48EC25B0E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 Aug 2022 23:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 025E1C00140
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 02:34:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243037AbiHRXEW (ORCPT
+        id S239340AbiHSCei (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 Aug 2022 19:04:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36638 "EHLO
+        Thu, 18 Aug 2022 22:34:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59258 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231467AbiHRXEV (ORCPT
+        with ESMTP id S230441AbiHSCei (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Aug 2022 19:04:21 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F22846BD48;
-        Thu, 18 Aug 2022 16:04:19 -0700 (PDT)
-Date:   Fri, 19 Aug 2022 01:04:10 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Paul Blakey <paulb@nvidia.com>
-Cc:     Oz Shlomo <ozsh@nvidia.com>, Roi Dayan <roid@nvidia.com>,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net 1/1] netfilter: flowtable: Fix use after free after
- freeing flow table
-Message-ID: <Yv7FauVMX2Smkiqb@salvia>
-References: <1660807674-28447-1-git-send-email-paulb@nvidia.com>
+        Thu, 18 Aug 2022 22:34:38 -0400
+Received: from mail-pg1-x52c.google.com (mail-pg1-x52c.google.com [IPv6:2607:f8b0:4864:20::52c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEC80CB5DD
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 19:34:36 -0700 (PDT)
+Received: by mail-pg1-x52c.google.com with SMTP id s206so2702517pgs.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2022 19:34:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc;
+        bh=Y+9XskWUKVyD0SylCLdXjWTSILZFfO2Y+oELusmeej0=;
+        b=nQ/depy/aZPYdphBwfhWrimxiSLTru59sM53YCfJdcrQOnznAstAVpTDE2RZfI6Eu7
+         7iTf7l9xRKGFrRs5zNQ83+c0F2O8GaftMOUZqazdYs/RsdIxORDiWwCJ1uBmGbs1cgxJ
+         0FlxdsdMhc/kN3SwQIcyeFWPm0p5kkIW8DmTtGangDV/cLfb7Qx2ZJB8YfXT8hK71Wle
+         5Goy8vo7GHRftJol/I9fP2mgBlKvXxH5x/A7oBr95uOx4uBhFyL3cpL+mvyKG3H5pK+Q
+         VWcootKjgtTVire6bp0aB89meU+wo2TtZtIEqDn/giLOROmHnz62IaI1uaZTLP7ymRIt
+         UjEg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc;
+        bh=Y+9XskWUKVyD0SylCLdXjWTSILZFfO2Y+oELusmeej0=;
+        b=K9qYPyLGXttLlKmtDDsspiKFsJdp+t6OwP7RueqMDPmz6XkarNuAAshPLclrnDQQoB
+         NPSA/hzR9Sq9D8PJ3UCgl9Y9e/xumheUljEkVJGQBYtpz5lk8MOvvM6WHy1t9UipNkE7
+         baVPWBoBQzcLfbMSURR/fDqntdiDSWFUu84t11Y8lxzgwdD3hvY0s3pZN+w+0D4Z9xe+
+         Ahf/TD4novoTPSvRaKvaEejpcqzRFmkMRzFnvHOIag4xktcilFDXeP7piuSOLP3KOyXL
+         JjIejY6VCYev7lpH8QZv/x5iAm6xYau/GPDX1lrv4xcUzj0Z9qna6OXJoGbBUbW13T1t
+         2Mdw==
+X-Gm-Message-State: ACgBeo3sIDXYGJC1DCBsb3u+lTNDEPbTDBgNdWme0WzxKm2vHbeeS5jV
+        RXQNHw50ogQQGAcCaT4y2mvpzQADUlyAvw==
+X-Google-Smtp-Source: AA6agR7kyf42kiryYUccObkVYsyvXBuCKN7LKWT1gKLaLvhUUtZGhX0vUmYuYgmMnXc8ZJKkEBTcgA==
+X-Received: by 2002:a05:6a00:189d:b0:52d:d4ae:d9f2 with SMTP id x29-20020a056a00189d00b0052dd4aed9f2mr5698818pfh.2.1660876475965;
+        Thu, 18 Aug 2022 19:34:35 -0700 (PDT)
+Received: from nova-ws.. ([103.220.11.9])
+        by smtp.gmail.com with ESMTPSA id s185-20020a625ec2000000b0052e82c7d91bsm2319860pfb.135.2022.08.18.19.34.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 18 Aug 2022 19:34:35 -0700 (PDT)
+From:   Xiao Liang <shaw.leon@gmail.com>
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     Xiao Liang <shaw.leon@gmail.com>, Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft v2] src: Don't parse string as verdict in map
+Date:   Fri, 19 Aug 2022 10:33:36 +0800
+Message-Id: <20220819023336.148516-1-shaw.leon@gmail.com>
+X-Mailer: git-send-email 2.37.1
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="PNruHMamiA0etryc"
-Content-Disposition: inline
-In-Reply-To: <1660807674-28447-1-git-send-email-paulb@nvidia.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+In verdict map, string values are accidentally treated as verdicts.
 
---PNruHMamiA0etryc
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+For example:
 
-Hi Paul,
+table t {
+    map foo {
+        type ipv4_addr : verdict
+        elements = {
+            192.168.0.1 : bar
+        }
+    }
+    chain output {
+        type filter hook output priority mangle;
+        ip daddr vmap @foo
+    }
+}
 
-On Thu, Aug 18, 2022 at 10:27:54AM +0300, Paul Blakey wrote:
-[...]
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index f2def06d1070..19fd3b5f8a1b 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -605,6 +605,7 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
->  	mutex_unlock(&flowtable_lock);
->  
->  	cancel_delayed_work_sync(&flow_table->gc_work);
-> +	nf_flow_table_offload_flush(flow_table);
->  	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
->  	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
->  	nf_flow_table_offload_flush(flow_table);
+Though "bar" is not a valid verdict (should be "jump bar" or something),
+the string is taken as the element value. Then NFTA_DATA_VALUE is sent
+to the kernel instead of NFTA_DATA_VERDICT. This would be rejected by
+recent kernels. On older ones (e.g. v5.4.x) that don't validate the
+type, a warning can be seen when the rule is hit, because of the
+corrupted verdict value:
 
-patch looks very similar to:
+[5120263.467627] WARNING: CPU: 12 PID: 303303 at net/netfilter/nf_tables_core.c:229 nft_do_chain+0x394/0x500 [nf_tables]
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/1633854320-12326-1-git-send-email-volodymyr.mytnyk@plvision.eu/
+Indeed, we don't parse verdicts during evaluation, but only chain names,
+which is of type string rather than verdict. For example, "jump $var" is
+a verdict while "$var" is a string.
 
-I proposed these two instead to avoid reiterative calls to flush from
-the cleanup path (see attached).
-
-It should be possible to either take your patch to nf.git (easier for
--stable backport), then look into my patches for nf-next.git, would
-you pick up on these follow up?
-
---PNruHMamiA0etryc
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment;
-	filename="0001-netfilter-flowtable-add-nf_flow_table_gc_run.patch"
-
-From 81dd33c687b1e868b40e1aac066529d93fa396d8 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 18 Nov 2021 22:16:37 +0100
-Subject: [PATCH 1/2] netfilter: flowtable: add nf_flow_table_gc_run()
-
-Expose nf_flow_table_gc_run() to force a garbage collector run from the
-offload infrastructure.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: c64457cff967 ("src: Allow goto and jump to a variable")
+Signed-off-by: Xiao Liang <shaw.leon@gmail.com>
 ---
- include/net/netfilter/nf_flow_table.h |  1 +
- net/netfilter/nf_flow_table_core.c    | 13 +++++++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ src/datatype.c                                | 12 -----------
+ src/evaluate.c                                |  3 ++-
+ tests/shell/testcases/nft-f/0031vmap_string_0 | 21 +++++++++++++++++++
+ 3 files changed, 23 insertions(+), 13 deletions(-)
+ create mode 100755 tests/shell/testcases/nft-f/0031vmap_string_0
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index a3647fadf1cc..6dc19d1ceeff 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -264,6 +264,7 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
- 
- struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_table,
- 						     struct flow_offload_tuple *tuple);
-+void nf_flow_table_gc_run(struct nf_flowtable *flow_table);
- void nf_flow_table_gc_cleanup(struct nf_flowtable *flowtable,
- 			      struct net_device *dev);
- void nf_flow_table_cleanup(struct net_device *dev);
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 87a7388b6c89..37fd6c646ccb 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -474,12 +474,17 @@ static void nf_flow_offload_gc_step(struct flow_offload *flow, void *data)
+diff --git a/src/datatype.c b/src/datatype.c
+index 2e31c858..002ed46a 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -321,23 +321,11 @@ static void verdict_type_print(const struct expr *expr, struct output_ctx *octx)
  	}
  }
  
-+void nf_flow_table_gc_run(struct nf_flowtable *flow_table)
-+{
-+	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+}
-+
- static void nf_flow_offload_work_gc(struct work_struct *work)
- {
- 	struct nf_flowtable *flow_table;
- 
- 	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
--	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_gc_run(flow_table);
- 	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
- }
- 
-@@ -637,11 +642,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
--	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
-+	nf_flow_table_gc_run(flow_table);
- 	nf_flow_table_offload_flush(flow_table);
- 	if (nf_flowtable_hw_offload(flow_table))
--		nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step,
--				      flow_table);
-+		nf_flow_table_gc_run(flow_table);
-+
- 	rhashtable_destroy(&flow_table->rhashtable);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
--- 
-2.30.2
-
-
---PNruHMamiA0etryc
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment;
-	filename="0002-netfilter-flowtable-fix-stuck-flows-on-cleanup-due-t.patch"
-
-From 737a4ff4df8b3e6791352b2b379e102f7682fa0f Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 18 Nov 2021 22:24:15 +0100
-Subject: [PATCH 2/2] netfilter: flowtable: fix stuck flows on cleanup due to
- pending work
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_flow_table.h | 2 ++
- net/netfilter/nf_flow_table_core.c    | 7 +++----
- net/netfilter/nf_flow_table_offload.c | 8 ++++++++
- 3 files changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 6dc19d1ceeff..4c3d537f1069 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -301,6 +301,8 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
- 			   struct flow_offload *flow);
- 
- void nf_flow_table_offload_flush(struct nf_flowtable *flowtable);
-+void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable);
-+
- int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- 				struct net_device *dev,
- 				enum flow_block_command cmd);
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 37fd6c646ccb..fddc44de3550 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -641,12 +641,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	mutex_unlock(&flowtable_lock);
- 
- 	cancel_delayed_work_sync(&flow_table->gc_work);
-+	nf_flow_table_offload_flush(flow_table);
-+	/* ... no more pending work after this stage ... */
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
- 	nf_flow_table_gc_run(flow_table);
--	nf_flow_table_offload_flush(flow_table);
--	if (nf_flowtable_hw_offload(flow_table))
--		nf_flow_table_gc_run(flow_table);
+-static struct error_record *verdict_type_parse(struct parse_ctx *ctx,
+-					       const struct expr *sym,
+-					       struct expr **res)
+-{
+-	*res = constant_expr_alloc(&sym->location, &string_type,
+-				   BYTEORDER_HOST_ENDIAN,
+-				   (strlen(sym->identifier) + 1) * BITS_PER_BYTE,
+-				   sym->identifier);
+-	return NULL;
+-}
 -
-+	nf_flow_table_offload_flush_cleanup(flow_table);
- 	rhashtable_destroy(&flow_table->rhashtable);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index b561e0a44a45..c4559fae8acd 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1050,6 +1050,14 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
- 	flow_offload_queue_work(offload);
- }
+ const struct datatype verdict_type = {
+ 	.type		= TYPE_VERDICT,
+ 	.name		= "verdict",
+ 	.desc		= "netfilter verdict",
+ 	.print		= verdict_type_print,
+-	.parse		= verdict_type_parse,
+ };
  
-+void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable)
-+{
-+	if (nf_flowtable_hw_offload(flowtable)) {
-+		flush_workqueue(nf_flow_offload_del_wq);
-+		nf_flow_table_gc_run(flowtable);
-+	}
-+}
+ static const struct symbol_table nfproto_tbl = {
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 919c38c5..d9c9ca28 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2575,7 +2575,8 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (stmt->expr->verdict != NFT_CONTINUE)
+ 			stmt->flags |= STMT_F_TERMINAL;
+ 		if (stmt->expr->chain != NULL) {
+-			if (expr_evaluate(ctx, &stmt->expr->chain) < 0)
++			if (stmt_evaluate_arg(ctx, stmt, &string_type, 0, 0,
++					      &stmt->expr->chain) < 0)
+ 				return -1;
+ 			if (stmt->expr->chain->etype != EXPR_VALUE) {
+ 				return expr_error(ctx->msgs, stmt->expr->chain,
+diff --git a/tests/shell/testcases/nft-f/0031vmap_string_0 b/tests/shell/testcases/nft-f/0031vmap_string_0
+new file mode 100755
+index 00000000..615cdbea
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0031vmap_string_0
+@@ -0,0 +1,21 @@
++#!/bin/bash
 +
- void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
- {
- 	if (nf_flowtable_hw_offload(flowtable)) {
++# Tests use of variables in jump statements
++
++set -e
++
++RULESET="
++table ip foo {
++	map bar {
++		type ipv4_addr : verdict
++		elements = {
++			192.168.0.1 : ber
++		}
++	}
++
++	chain ber {
++	}
++}"
++
++$NFT -f - <<< "$RULESET" && exit 1
++exit 0
 -- 
-2.30.2
+2.37.1
 
-
---PNruHMamiA0etryc--
