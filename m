@@ -2,56 +2,57 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 568C9C3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 23:46:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 756C9C32789
+	for <netfilter-devel@archiver.kernel.org>; Fri, 19 Aug 2022 23:53:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239587AbiHSXqm (ORCPT
+        id S243888AbiHSXxX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 19 Aug 2022 19:46:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57238 "EHLO
+        Fri, 19 Aug 2022 19:53:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbiHSXql (ORCPT
+        with ESMTP id S243799AbiHSXxX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Aug 2022 19:46:41 -0400
-Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E86FC108968;
-        Fri, 19 Aug 2022 16:46:40 -0700 (PDT)
-Received: by mail-il1-x142.google.com with SMTP id p9so3022880ilq.13;
-        Fri, 19 Aug 2022 16:46:40 -0700 (PDT)
+        Fri, 19 Aug 2022 19:53:23 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9541E63DB;
+        Fri, 19 Aug 2022 16:53:21 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id o2so4426963iof.8;
+        Fri, 19 Aug 2022 16:53:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc;
-        bh=ciaIRFjxJgwWQk4FZ9TLXWaq2XObOfBUrupVf0qUl/U=;
-        b=OLRJTH/0s+9H+0/1l/4JgfDU46IgB+R+76qm7nlO/h8miTy069mE2GJN1qoQ9ER8zp
-         cedaB33WWIGDzjnOVVu64qVpESqTogSiDDTCK44jLu3ScYrqkF5aIVOMDJB3CKd0rfc/
-         r5Atc79IkUQC6t2Uv2lIlpZ/rDF2TRg2XS2TwdtMLkKLG8ywCiSoXDVQHHwVoehDeEFy
-         OQ+/1PDDdDnjm0cXll5Dk+TmOTWpRRvDXQVfhgLX/ZhzwHmjDAMmU1nEelPCRC6G8uzJ
-         Ghceck87L++GpFQ7lp2+nhXK/bkPmwJgyXxIFdtNWzy/8SBBv4/q7ne78wMJYXuaaFcc
-         GqZQ==
+        bh=UX9DFt9pgifkj/QY4mu++ikMopOnydaJKN+iCFeyvjI=;
+        b=PusEjCLI++Ed6692tp9RT9MfbJaYlC2Tmx94F1gdSvkzEyjBp1TqpNY49wXhZR5hGX
+         51ISmjseJ2/wRKt0cCNT9FwBMzCXp7oU3I2zc8Gamy7yV0rIHzDq2eDzvTrAHCan7jdO
+         +1stTYv0OkVLa2zaISqIN//vUuNdPquArflukgNsATTk8ELTR8zBvGFLX1L8FaAvMP9o
+         6xRN4zGIMumKA/yUMPmU1d2866sHqgLpX8D17E+TGcndHkZPQdK1miIdSLOnfIGU2qe8
+         HpdfOOqVWwY8waLHdNGmR6WItyl/KrsMQMFo/yiGvgQwXSTJ/ldDDQLz9KO4LrOb1ZiZ
+         TbPw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc;
-        bh=ciaIRFjxJgwWQk4FZ9TLXWaq2XObOfBUrupVf0qUl/U=;
-        b=cpkloYTQoRYWgBsI21yG14keYtH/jnrb8KbuCSNpiCIA8o5d4IeoEIo8vNjHVCLWNz
-         oDuWbdOffJNsixGol4sEDjaePHSCPhAkF5fAblRjHCtWnqGlaPnet5POIFnTldrO+oPJ
-         JTfNslgcCqilSuBNGefmyoR9poUsJY34Q+zUDu1I9Pa0PrOlJWSL0jnF7oYk5AYUkPf1
-         CEk6z1/TsGKlgyDnQfBx1MIA+kSSnN6xySs1Thd0cSo2fKlsLkR7SKLye6I7QGIv1dvW
-         1Z+TuwAA5VixvxZfvfjpDJbUztRk2f+cEIcZjj5EhG2LSLILWHqKO65GfOSAj1ndkYMm
-         NS8A==
-X-Gm-Message-State: ACgBeo33/2qsoB5G/VIIc9iH1LBEYEZHB3m8yoFsJ5TheE/NE4ufgH0T
-        NvKbhCJGWfWtKM1YsKlNiQ55di8fLD/An88F3YI=
-X-Google-Smtp-Source: AA6agR5pcSY/S5nlAyKMZAceBx8UB6SisICUd/x6Jxz4WBNu23K8M2aQjqjKQQPyD39zpmcq9WSJ3dR/ctIUgBopZW4=
-X-Received: by 2002:a05:6e02:1c04:b0:2df:6b58:5fe8 with SMTP id
- l4-20020a056e021c0400b002df6b585fe8mr4916468ilh.68.1660952800281; Fri, 19 Aug
- 2022 16:46:40 -0700 (PDT)
+        bh=UX9DFt9pgifkj/QY4mu++ikMopOnydaJKN+iCFeyvjI=;
+        b=VXJYoJS85qJDQZpwZ9Jrv8MGvcg9WWQGpcxrwRX2EYctkrncviCQdY93dHLFxyVWNh
+         +GQ8i+xs6/wKLeysq9wnhOAnqOvX5ZTPqoEuHcnKpdZ7wR2oeF82HKoNk1kdVygR2U0i
+         8cqi8WKSOKFdLKXfJSUEjxsSepw5yLXeTsTFPdIhy7lyqwBNnptNdI9MkCan4p69MHFd
+         tSIK2ZCvaFmdd+jhazhKXW9NfygSB3JqSfL7vsGAAmGm2m30UviQhk1kJO139+NkapoV
+         91TpboyS8Bh6E+ybPx34Yvb3zo7Ed6hd8pPDyrKsX0mBwDCqCE7ZaQP+8u4j+C2G+d9r
+         a/SA==
+X-Gm-Message-State: ACgBeo21iapGn1W9JHCXtZC1jc4PmBkxtq3LmARRA0ZJSguvETrA6C6m
+        1dhMZ/eZivHcLANMAsweks2k7YNJh9d93epamTU=
+X-Google-Smtp-Source: AA6agR7jmYMnylg6asONp2GAAfNY5ON6YCWcavS/uvHPv+dbmjW2WszcXZkTVw7T9qXk3bZbqddE9WA58W2wb0oqKUA=
+X-Received: by 2002:a05:6638:2381:b0:346:c583:9fa0 with SMTP id
+ q1-20020a056638238100b00346c5839fa0mr4410776jat.93.1660953200967; Fri, 19 Aug
+ 2022 16:53:20 -0700 (PDT)
 MIME-Version: 1.0
 References: <cover.1660951028.git.dxu@dxuuu.xyz> <f44b2eebe48f0653949f59c5bcf23af029490692.1660951028.git.dxu@dxuuu.xyz>
-In-Reply-To: <f44b2eebe48f0653949f59c5bcf23af029490692.1660951028.git.dxu@dxuuu.xyz>
+ <CAP01T74fSh6Z=54O+ORKJD7i_izb7rUe3-mHKLgRdrckcisvkw@mail.gmail.com>
+In-Reply-To: <CAP01T74fSh6Z=54O+ORKJD7i_izb7rUe3-mHKLgRdrckcisvkw@mail.gmail.com>
 From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Sat, 20 Aug 2022 01:46:04 +0200
-Message-ID: <CAP01T74fSh6Z=54O+ORKJD7i_izb7rUe3-mHKLgRdrckcisvkw@mail.gmail.com>
+Date:   Sat, 20 Aug 2022 01:52:44 +0200
+Message-ID: <CAP01T76zWax4YSQO5nP2Kt_85JvUPvxTwpOn5Dho6co32r+FBA@mail.gmail.com>
 Subject: Re: [PATCH bpf-next v3 4/5] bpf: Add support for writing to nf_conn:mark
 To:     Daniel Xu <dxu@dxuuu.xyz>
 Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
@@ -64,138 +65,26 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 20 Aug 2022 at 01:23, Daniel Xu <dxu@dxuuu.xyz> wrote:
+On Sat, 20 Aug 2022 at 01:46, Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
 >
-> Support direct writes to nf_conn:mark from TC and XDP prog types. This
-> is useful when applications want to store per-connection metadata. This
-> is also particularly useful for applications that run both bpf and
-> iptables/nftables because the latter can trivially access this metadata.
+> CPU 0                                              CPU 1
+> sa = READ_ONCE(nf_ct_bsa);
 >
-> One example use case would be if a bpf prog is responsible for advanced
-> packet classification and iptables/nftables is later used for routing
-> due to pre-existing/legacy code.
+> delete_module("nf_conntrack", ..);
 >
-> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
-> ---
->  include/net/netfilter/nf_conntrack_bpf.h | 13 +++++
->  net/core/filter.c                        | 50 ++++++++++++++++++
->  net/netfilter/nf_conntrack_bpf.c         | 64 +++++++++++++++++++++++-
->  net/netfilter/nf_conntrack_core.c        |  1 +
->  4 files changed, 127 insertions(+), 1 deletion(-)
+> WRITE_ONCE(nf_ct_bsa, NULL);
+>                                                          // finishes
+> successfully
+> if (sa)
+>     return sa(...); // oops
 >
-> diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
-> index a473b56842c5..4ef89ee5b5a9 100644
-> --- a/include/net/netfilter/nf_conntrack_bpf.h
-> +++ b/include/net/netfilter/nf_conntrack_bpf.h
-> @@ -3,13 +3,22 @@
->  #ifndef _NF_CONNTRACK_BPF_H
->  #define _NF_CONNTRACK_BPF_H
->
-> +#include <linux/bpf.h>
->  #include <linux/btf.h>
->  #include <linux/kconfig.h>
->
-> +extern int (*nf_conntrack_btf_struct_access)(struct bpf_verifier_log *log,
-> +                                            const struct btf *btf,
-> +                                            const struct btf_type *t, int off,
-> +                                            int size, enum bpf_access_type atype,
-> +                                            u32 *next_btf_id,
-> +                                            enum bpf_type_flag *flag);
-> +
->  #if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
->      (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
->
->  extern int register_nf_conntrack_bpf(void);
-> +extern void cleanup_nf_conntrack_bpf(void);
->
->  #else
->
-> @@ -18,6 +27,10 @@ static inline int register_nf_conntrack_bpf(void)
->         return 0;
->  }
->
-> +static inline void cleanup_nf_conntrack_bpf(void)
-> +{
-> +}
-> +
->  #endif
->
->  #endif /* _NF_CONNTRACK_BPF_H */
-> diff --git a/net/core/filter.c b/net/core/filter.c
-> index 1acfaffeaf32..e5f48e6030b7 100644
-> --- a/net/core/filter.c
-> +++ b/net/core/filter.c
-> @@ -18,6 +18,7 @@
->   */
->
->  #include <linux/atomic.h>
-> +#include <linux/bpf_verifier.h>
->  #include <linux/module.h>
->  #include <linux/types.h>
->  #include <linux/mm.h>
-> @@ -55,6 +56,7 @@
->  #include <net/sock_reuseport.h>
->  #include <net/busy_poll.h>
->  #include <net/tcp.h>
-> +#include <net/netfilter/nf_conntrack_bpf.h>
->  #include <net/xfrm.h>
->  #include <net/udp.h>
->  #include <linux/bpf_trace.h>
-> @@ -8628,6 +8630,32 @@ static bool tc_cls_act_is_valid_access(int off, int size,
->         return bpf_skb_is_valid_access(off, size, type, prog, info);
->  }
->
-> +typedef int (*btf_struct_access_t)(struct bpf_verifier_log *log,
-> +                                const struct btf *btf,
-> +                                const struct btf_type *t, int off, int size,
-> +                                enum bpf_access_type atype,
-> +                                u32 *next_btf_id, enum bpf_type_flag *flag);
-> +
-> +static int tc_cls_act_btf_struct_access(struct bpf_verifier_log *log,
-> +                                       const struct btf *btf,
-> +                                       const struct btf_type *t, int off,
-> +                                       int size, enum bpf_access_type atype,
-> +                                       u32 *next_btf_id,
-> +                                       enum bpf_type_flag *flag)
-> +{
-> +       btf_struct_access_t sa;
-> +
-> +       if (atype == BPF_READ)
-> +               return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
-> +                                        flag);
-> +
-> +       sa = READ_ONCE(nf_conntrack_btf_struct_access);
 
-This looks unsafe. How do you prevent this race?
+Ew, I completely screwed it up. Not trying again.
 
-CPU 0                                              CPU 1
+CPU 0 does:
 sa = READ_ONCE(nf_ct_bsa);
-
-delete_module("nf_conntrack", ..);
-
-WRITE_ONCE(nf_ct_bsa, NULL);
-                                                         // finishes
-successfully
-if (sa)
-    return sa(...); // oops
-
-i.e. what keeps the module alive while we execute its callback?
-
-Using a mutex is one way (as I suggested previously), either you
-acquire it before unload, or after. If after, you see cb as NULL,
-otherwise if unload is triggered concurrently it waits to acquire the
-mutex held by us. Unsetting the cb would be the first thing the module
-would do.
-
-You can also hold a module reference, but then you must verify it is
-nf_conntrack's BTF before using btf_try_get_module.
-But _something_ needs to be done to prevent the module from going away
-while we execute its code.
-
-> +       if (sa)
-> +               return sa(log, btf, t, off, size, atype, next_btf_id, flag);
-> +
-> +       return -EACCES;
-> +}
-> +
-> [...]
+then CPU 1 does:
+delete_module("nf_conntrack", ...);
+   WRITE_ONCE(nf_ct_bsa, NULL);
+then CPU 0 does:
+if (sa) sa(...); // bad
