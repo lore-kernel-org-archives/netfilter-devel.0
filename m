@@ -2,262 +2,197 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0332C25B08
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Aug 2022 07:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C31FC25B08
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Aug 2022 14:04:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244401AbiHTHNz (ORCPT
+        id S1345691AbiHTOEh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Aug 2022 03:13:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53982 "EHLO
+        Sat, 20 Aug 2022 10:04:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243618AbiHTHNy (ORCPT
+        with ESMTP id S1344493AbiHTOEh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Aug 2022 03:13:54 -0400
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66D2D3DF30;
-        Sat, 20 Aug 2022 00:13:52 -0700 (PDT)
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 27K73qqC005180;
-        Sat, 20 Aug 2022 07:13:18 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding;
- s=corp-2022-7-12; bh=dWGrWl+UMhlJQeLNhVrfQNRrr4ww1miYbYawyZs4VUM=;
- b=u1ve8juOr6vqm4Lj2Mp4xn6tvYqoHSg2svQrEWZgyOeO55ROnrupKhlByR0SqBxlvqw7
- Ii43OYg0JAf4/B0p5BeEfqAMVlfZwUmugoyNJl/9Ren7TXKRput4dBBzN2G1Eu1u0+/K
- DqOYAUwvNb9KdCOIcUjJkqqE9YCu/PVm5hezan/b7pdzNRPpykLXcOLJtFNaFUflwjiF
- 2xggAUACXhgFGUwWspjs576xca0774E/fV0RplRqJ2SPQbK4xEWDE+aAV0uB2ussXdod
- 9VbjEV7ytYzQDehlf+SciOH054f4e29sERWKxH0KupfSGSXmxjUNxSr9SS4kkC6E05/2 qg== 
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-        by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3j2tvx0085-2
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 20 Aug 2022 07:13:18 +0000
-Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.5/8.17.1.5) with ESMTP id 27K1WpGK035366;
-        Sat, 20 Aug 2022 07:03:52 GMT
-Received: from pps.reinject (localhost [127.0.0.1])
-        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3j2p203r96-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 20 Aug 2022 07:03:52 +0000
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 27K73pYX023337;
-        Sat, 20 Aug 2022 07:03:51 GMT
-Received: from ca-dev112.us.oracle.com (ca-dev112.us.oracle.com [10.147.25.63])
-        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3j2p203r8u-1;
-        Sat, 20 Aug 2022 07:03:51 +0000
-From:   Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
-To:     syzkaller@googlegroups.com
-Cc:     harshit.m.mogalapalli@oracle.com, george.kennedy@oracle.com,
-        vegard.nossum@oracle.com, john.p.donnelly@oracle.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] netfilter: ebtables: fix a NULL pointer dereference in ebt_do_table()
-Date:   Sat, 20 Aug 2022 00:03:29 -0700
-Message-Id: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
-X-Mailer: git-send-email 2.31.1
+        Sat, 20 Aug 2022 10:04:37 -0400
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72E6A25C4F
+        for <netfilter-devel@vger.kernel.org>; Sat, 20 Aug 2022 07:04:35 -0700 (PDT)
+Received: by mail-pj1-x102d.google.com with SMTP id pm17so7027616pjb.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 20 Aug 2022 07:04:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc;
+        bh=gv8nVRUX0uussLjMEWqQWlZ7tog2GUkCRyX/I+MUqJE=;
+        b=P9ssHn4OPE9nPiau4tnmgDhaVsLU1HQAknf9X6MP7UUZEb7KEcbb7eAwIxOLpkKvng
+         6WtPpvzszypVm1T8opxBCmjyBJNjb9eklbtaZfmlliSXI2Ev+1Q2QY5ihylQlauM39BC
+         mm7PXfsEjyxy738XP/6TtRnsne46TD8hS8qMqdn3pIFVaqXvvFvqAkKmKY/Jtl7RwWWS
+         +X4rfvqMyvXsBQYJ5j6nDa2rAqM9x9b6ocNca1xLB4Lv/jylJGdPxwg+7JL78lCBiTqf
+         gEsOKSHxmugYhvCFU+aEzTugmO/m7znlqk/D4Yiqi+6kkOEf6/8kZgaOWmkKvgy/AJqM
+         SVnA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc;
+        bh=gv8nVRUX0uussLjMEWqQWlZ7tog2GUkCRyX/I+MUqJE=;
+        b=ZhixYessDgrqp9Aa6nVKAtSZsscVmwnqbefKX8n+MjflWO+sAB3S4nDoYf8EvtrFKp
+         0Py6R8xfZzpmyQjHvlrYZM89Y2Pty32qIKc2kk5eoXgRriF0UDkYlL1+ujJ1B75DYfet
+         kf9iKTQHWZSBlhEaxEDG8ue7i7ehyNOrneNISwjZb3BnM+RI4pOEVBWbIdK/nKHo9M2z
+         3BQeVJ2/MhSjqrSALID2sJm32CtoXcqxyXyTDDZUb5lXk8OyvaEXhGKIqRPTyRFTeL5J
+         wz/ogcP6p7ujKp6pf2yfPB1IcVwt1Q3LkyriOEGsZ5uWoEBm7XBtIREGEsKbbsL0mb/V
+         jVcQ==
+X-Gm-Message-State: ACgBeo2AwmhUFccJ97dVPAQM7u6BElC5M//+of6br+nwO5MQtLSuxjn1
+        ri9H24VJcMZGwjmjCJUHXfRZ1lZewQ8QcxzAND3i3pKkfan1W05cqdY=
+X-Google-Smtp-Source: AA6agR6U0caM2gyCvoEj2zXGUo+LXv+U+NALCZY6AxKQqj/OUGWV14Lyby6qpkyKBApII3lIQLSjLNRucDE7SaCee1o=
+X-Received: by 2002:a17:902:da92:b0:16e:f4a4:9f93 with SMTP id
+ j18-20020a170902da9200b0016ef4a49f93mr12017946plx.27.1661004274542; Sat, 20
+ Aug 2022 07:04:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.895,Hydra:6.0.517,FMLib:17.11.122.1
- definitions=2022-08-20_04,2022-08-18_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 suspectscore=0
- spamscore=0 mlxlogscore=999 mlxscore=0 bulkscore=0 adultscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2207270000 definitions=main-2208200027
-X-Proofpoint-GUID: H3nWHTMoMdOJVycV1j3LQSwuoVb8gUJO
-X-Proofpoint-ORIG-GUID: H3nWHTMoMdOJVycV1j3LQSwuoVb8gUJO
+From:   Shell Chen <xierch@gmail.com>
+Date:   Sat, 20 Aug 2022 22:04:22 +0800
+Message-ID: <CAAqMkDxLzFZ9YT-DiRh5cVQRha=JzZ+8RYcmkcn8iinrucA+GA@mail.gmail.com>
+Subject: [BUG] nft_tproxy: Null pointer dereference on local-send UDP
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In ebt_do_table() function dereferencing 'private->hook_entry[hook]'
-can lead to NULL pointer dereference. So add a check to prevent that.
+Hi,
 
-Kernel panic:
+It occurs when tproxy is set for any UDP packets that are sent from local.
+Both IPv4 and IPv6 have the same issue. I reproduced it on at least 5.4.8,
+5.19.1, and 6.0.0-rc1.
 
-[  119.229105][   T31] general protection fault, probably for
-non-canonical address 0xdffffc0000000005: 0000 [#1] PREEMPT SMP KASAN
-[  119.230280][   T31] KASAN: null-ptr-deref in range
-[0x0000000000000028-0x000000000000002f]
-[  119.231043][   T31] CPU: 3 PID: 31 Comm: kworker/3:0 Not tainted
-6.0.0-rc1 #1
-[  119.231652][   T31] Hardware name: QEMU Standard PC (i440FX + PIIX,
-1996), BIOS 1.11.0-2.el7 04/01/2014
-[  119.232440][   T31] Workqueue: mld mld_ifc_work
-[  119.232846][   T31] RIP: 0010:ebt_do_table+0x1dc/0x1ce0
-[  119.233291][   T31] Code: 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 5c 16
-00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 6c df 08 48 8d 7d 2c 48 89 fa
-48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2
-0f 85 88
-[  119.234920][   T31] RSP: 0018:ffffc90000347178 EFLAGS: 00010217
-[  119.235425][   T31] RAX: dffffc0000000000 RBX: 0000000000000003 RCX:
-ffffffff8158677b
-[  119.236097][   T31] RDX: 0000000000000005 RSI: ffffffff889a7b80 RDI:
-000000000000002c
-[  119.236764][   T31] RBP: 0000000000000000 R08: 0000000000000001 R09:
-ffff888101a78443
-[  119.237425][   T31] R10: ffffed102034f088 R11: 000200100040dd86 R12:
-ffffc90001111018
-[  119.238100][   T31] R13: ffffc90001103080 R14: ffffc90001111000 R15:
-ffffc90001103000
-[  119.238769][   T31] FS:  0000000000000000(0000)
-GS:ffff88811a380000(0000) knlGS:0000000000000000
-[  119.239592][   T31] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  119.240221][   T31] CR2: 00007f6a9adda000 CR3: 0000000100be3000 CR4:
-00000000000006e0
-[  119.240970][   T31] Call Trace:
-[  119.241253][   T31]  <TASK>
-[  119.241495][   T31]  ? ip6_output+0x1f4/0x6e0
-[  119.241877][   T31]  ? NF_HOOK.constprop.0+0xe6/0x5f0
-[  119.242309][   T31]  ? mld_ifc_work+0x564/0xaa0
-[  119.242708][   T31]  ? kthread+0x297/0x340
-[  119.243060][   T31]  ? ret_from_fork+0x22/0x30
-[  119.243454][   T31]  ? br_multicast_count+0xbf/0x8d0
-[  119.243896][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.244356][   T31]  ? compat_copy_ebt_replace_from_user+0x380/0x380
-[  119.244907][   T31]  ? compat_copy_ebt_replace_from_user+0x380/0x380
-[  119.245454][   T31]  nf_hook_slow+0xb1/0x170
-[  119.245835][   T31]  __br_forward+0x289/0x730
-[  119.246219][   T31]  ? br_forward_finish+0x320/0x320
-[  119.246656][   T31]  ? br_dev_queue_push_xmit+0x650/0x650
-[  119.247118][   T31]  ? memcpy+0x39/0x60
-[  119.247444][   T31]  ? __skb_clone+0x56c/0x750
-[  119.247845][   T31]  maybe_deliver+0x24b/0x380
-[  119.248234][   T31]  br_flood+0xc6/0x390
-[  119.248577][   T31]  br_dev_xmit+0xa2e/0x12c0
-[  119.248975][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.249498][   T31]  ? br_netpoll_setup+0x170/0x170
-[  119.249987][   T31]  ? fib_rules_lookup+0x2eb/0x9d0
-[  119.250462][   T31]  ? lock_repin_lock+0x30/0x420
-[  119.250922][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.251376][   T31]  ? lock_acquire+0x510/0x630
-[  119.251773][   T31]  ? netif_inherit_tso_max+0x1e0/0x1e0
-[  119.252228][   T31]  dev_hard_start_xmit+0x151/0x660
-[  119.252663][   T31]  __dev_queue_xmit+0x240e/0x3200
-[  119.253080][   T31]  ? ip6mr_rtm_dumproute+0x530/0x530
-[  119.253522][   T31]  ? netdev_core_pick_tx+0x2a0/0x2a0
-[  119.253968][   T31]  ? unwind_next_frame+0x3de/0x1c90
-[  119.254403][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.254872][   T31]  ? lock_acquire+0x510/0x630
-[  119.255266][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.255724][   T31]  ? lock_release+0x5a2/0x840
-[  119.256119][   T31]  ? mroute6_is_socket+0x14d/0x220
-[  119.256549][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.257064][   T31]  ? lock_acquire+0x510/0x630
-[  119.257507][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.258016][   T31]  ? lock_release+0x5a2/0x840
-[  119.258410][   T31]  ? lock_release+0x840/0x840
-[  119.258812][   T31]  ? ip6_finish_output+0x779/0x1190
-[  119.259304][   T31]  ? lock_downgrade+0x7b0/0x7b0
-[  119.259778][   T31]  ? rcu_read_lock_bh_held+0xd/0x90
-[  119.260275][   T31]  ? ___neigh_lookup_noref.constprop.0+0x266/0x6d0
-[  119.260896][   T31]  ? ip6_finish_output2+0x861/0x1690
-[  119.261343][   T31]  ip6_finish_output2+0x861/0x1690
-[  119.261776][   T31]  ? lock_release+0x5a2/0x840
-[  119.262176][   T31]  ? __kasan_kmalloc+0x7f/0xa0
-[  119.262574][   T31]  ? ip6_mtu+0x139/0x320
-[  119.262942][   T31]  ? ip6_frag_next+0xcc0/0xcc0
-[  119.263341][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.263816][   T31]  ? nf_ct_netns_get+0xe0/0xe0
-[  119.264214][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.264679][   T31]  ? lock_release+0x5a2/0x840
-[  119.265066][   T31]  ? nf_conntrack_in.cold+0x9b/0xe2
-[  119.265504][   T31]  ? ip6_output+0x4c9/0x6e0
-[  119.265891][   T31]  ip6_finish_output+0x779/0x1190
-[  119.266315][   T31]  ? nf_hook_slow+0xb1/0x170
-[  119.266711][   T31]  ip6_output+0x1f4/0x6e0
-[  119.267069][   T31]  ? rcu_read_lock_sched_held+0xd/0xa0
-[  119.267520][   T31]  ? ip6_finish_output+0x1190/0x1190
-[  119.267969][   T31]  ? NF_HOOK.constprop.0+0x1b3/0x5f0
-[  119.268415][   T31]  ? lock_pin_lock+0x184/0x380
-[  119.268817][   T31]  ? ip6_fragment+0x2910/0x2910
-[  119.269269][   T31]  ? nf_ct_netns_do_get+0x6c0/0x6c0
-[  119.269773][   T31]  ? nf_hook_slow+0xb1/0x170
-[  119.270211][   T31]  NF_HOOK.constprop.0+0xe6/0x5f0
-[  119.270697][   T31]  ? igmp6_mcf_seq_next+0x460/0x460
-[  119.271159][   T31]  ? igmp6_mcf_seq_stop+0x130/0x130
-[  119.271600][   T31]  ? icmp6_dst_alloc+0x3dc/0x610
-[  119.272030][   T31]  mld_sendpack+0x619/0xb50
-[  119.272413][   T31]  ? NF_HOOK.constprop.0+0x5f0/0x5f0
-[  119.272867][   T31]  ? lock_release+0x840/0x840
-[  119.273254][   T31]  mld_ifc_work+0x564/0xaa0
-[  119.273642][   T31]  ? pwq_activate_inactive_work+0xb2/0x190
-[  119.274126][   T31]  process_one_work+0x875/0x1440
-[  119.274543][   T31]  ? lock_release+0x840/0x840
-[  119.274936][   T31]  ? pwq_dec_nr_in_flight+0x230/0x230
-[  119.275381][   T31]  ? rwlock_bug.part.0+0x90/0x90
-[  119.275801][   T31]  worker_thread+0x598/0xec0
-[  119.276187][   T31]  ? process_one_work+0x1440/0x1440
-[  119.276613][   T31]  kthread+0x297/0x340
-[  119.276958][   T31]  ? kthread_complete_and_exit+0x20/0x20
-[  119.277422][   T31]  ret_from_fork+0x22/0x30
-[  119.277796][   T31]  </TASK>
-[  119.278048][   T31] Modules linked in:
-[  119.278377][   T31] Dumping ftrace buffer:
-[  119.278733][   T31]    (ftrace buffer empty)
-[  119.279151][   T31] ---[ end trace 0000000000000000 ]---
-[  119.279679][   T31] RIP: 0010:ebt_do_table+0x1dc/0x1ce0
-[  119.280187][   T31] Code: 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 5c 16
-00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 6c df 08 48 8d 7d 2c 48 89 fa
-48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2
-0f 85 88
-[  119.282006][   T31] RSP: 0018:ffffc90000347178 EFLAGS: 00010217
-[  119.282569][   T31] RAX: dffffc0000000000 RBX: 0000000000000003 RCX:
-ffffffff8158677b
-[  119.283308][   T31] RDX: 0000000000000005 RSI: ffffffff889a7b80 RDI:
-000000000000002c
-[  119.284056][   T31] RBP: 0000000000000000 R08: 0000000000000001 R09:
-ffff888101a78443
-[  119.284811][   T31] R10: ffffed102034f088 R11: 000200100040dd86 R12:
-ffffc90001111018
-[  119.285549][   T31] R13: ffffc90001103080 R14: ffffc90001111000 R15:
-ffffc90001103000
-[  119.286284][   T31] FS:  0000000000000000(0000)
-GS:ffff88811a380000(0000) knlGS:0000000000000000
-[  119.287119][   T31] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  119.287741][   T31] CR2: 00007f6a9adda000 CR3: 0000000100be3000 CR4:
-00000000000006e0
-[  119.288489][   T31] Kernel panic - not syncing: Fatal exception in
-interrupt
-[  119.298556][   T31] Dumping ftrace buffer:
-[  119.298974][   T31]    (ftrace buffer empty)
-[  119.299399][   T31] Kernel Offset: disabled
-[  119.299823][   T31] Rebooting in 86400 seconds..
+To reproduce:
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reported-by: syzkaller <syzkaller@googlegroups.com>
-Signed-off-by: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
----
-Testing is only done with reproducer.
+1. Load nft rules:
 
- net/bridge/netfilter/ebtables.c | 5 +++++
- 1 file changed, 5 insertions(+)
+  table inet filter {
+    chain output {
+      type filter hook output priority 0;
+      udp dport 1234 tproxy ip to 127.0.0.1
+    }
+  }
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index f2dbefb61ce8..d19d439a66c5 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -217,6 +217,11 @@ unsigned int ebt_do_table(void *priv, struct sk_buff *skb,
- 	else
- 		cs = NULL;
- 	chaininfo = private->hook_entry[hook];
-+	if (!chaininfo) {
-+		read_unlock_bh(&table->lock);
-+		return NF_DROP;
-+	}
-+
- 	nentries = private->hook_entry[hook]->nentries;
- 	point = (struct ebt_entry *)(private->hook_entry[hook]->data);
- 	counter_base = cb_base + private->hook_entry[hook]->counter_offset;
--- 
-2.31.1
+2. Send UDP packet from local:
 
+  $ dig . -p 1234
+
+Log:
+
+[   35.428124] BUG: kernel NULL pointer dereference, address: 00000000000000d8
+[   35.428147] #PF: supervisor read access in kernel mode
+[   35.428157] #PF: error_code(0x0000) - not-present page
+[   35.428164] PGD 0 P4D 0
+[   35.428171] Oops: 0000 [#1] PREEMPT SMP NOPTI
+[   35.428179] CPU: 1 PID: 864 Comm: isc-net-0000 Not tainted
+6.0.0-rc1 #1 e15cb1b777bcaea4bb9ecf9297c3d0508f7a779f
+[   35.428193] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+BIOS 1.15.0-1 04/01/2014
+[   35.428204] RIP: 0010:nf_tproxy_get_sock_v4+0x175/0x300 [nf_tproxy_ipv4]
+[   35.430220] Code: c1 08 44 89 e2 45 89 f8 4c 89 df 50 45 0f b7 c9
+48 c7 c6 40 67 18 83 e8 39 66 4c c1 5a 59 48 89 c5 e9 e4 fe ff ff 41
+0f b7 d1 <45> 8b 88 d8 00 00 00 44 89 f9 45 0f b7 c5 44 89 e6 e8 b5 b9
+4f c1
+[   35.430257] RSP: 0018:ffffa2ad80d0f470 EFLAGS: 00010246
+[   35.430295] RAX: 0000000000000000 RBX: 0000000000000011 RCX: 000000000f02000a
+[   35.430305] RDX: 000000000000ce8e RSI: ffff96abc8c01000 RDI: ffffffff83183e40
+[   35.430314] RBP: ffffa2ad80d0f570 R08: 0000000000000000 R09: 000000000000ce8e
+[   35.430323] R10: ffff96abca114824 R11: ffffffff83183e40 R12: 000000000f02000a
+[   35.430331] R13: 000000000000d204 R14: 000000000000ce8e R15: 00000000fe00a8c0
+[   35.430348] FS:  00007fe1933ff6c0(0000) GS:ffff96acf7a40000(0000)
+knlGS:0000000000000000
+[   35.430359] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   35.430368] CR2: 00000000000000d8 CR3: 00000001038d6000 CR4: 0000000000350ee0
+[   35.430384] Call Trace:
+[   35.430392]  <TASK>
+[   35.430400]  nft_tproxy_eval+0x127/0x525 [nft_tproxy
+8d7725141545ae8b9fb380ea47ee66df8e48f101]
+[   35.430414]  ? nft_do_chain+0x19c/0x5d0 [nf_tables
+a934f55f630af424ff3c14d01532077582f9f85d]
+[   35.430430]  ? nft_tproxy_destroy+0x40/0x40 [nft_tproxy
+8d7725141545ae8b9fb380ea47ee66df8e48f101]
+[   35.430443]  nft_do_chain+0x19c/0x5d0 [nf_tables
+a934f55f630af424ff3c14d01532077582f9f85d]
+[   35.430465]  nft_nat_do_chain+0xa8/0x10d [nft_chain_nat
+a850356582360f7dc2d2dcaf1fb11475e05f226f]
+[   35.430478]  nf_nat_inet_fn+0x165/0x320 [nf_nat
+0be50e0b8e30f7db00eef996b18522498e81b155]
+[   35.430491]  nf_nat_ipv4_local_fn+0x4f/0x120 [nf_nat
+0be50e0b8e30f7db00eef996b18522498e81b155]
+[   35.430505]  nf_hook_slow+0x45/0xc0
+[   35.430531]  __ip_local_out+0xe1/0x160
+[   35.430540]  ? ip_output+0x130/0x130
+[   35.430548]  ip_send_skb+0x22/0x90
+[   35.430555]  udp_send_skb+0x154/0x350
+[   35.430564]  udp_sendmsg+0xb08/0xe90
+[   35.430572]  ? ip_mc_finish_output+0x1a0/0x1a0
+[   35.430584]  ? sock_sendmsg+0x5c/0x70
+[   35.430592]  sock_sendmsg+0x5c/0x70
+[   35.430600]  ____sys_sendmsg+0x17f/0x2b0
+[   35.430608]  ? copy_msghdr_from_user+0x7d/0xc0
+[   35.430617]  ___sys_sendmsg+0x9a/0xe0
+[   35.430627]  __sys_sendmmsg+0xe3/0x210
+[   35.430638]  __x64_sys_sendmmsg+0x21/0x30
+[   35.430646]  do_syscall_64+0x5f/0x90
+[   35.430655]  ? do_syscall_64+0x6b/0x90
+[   35.430663]  ? syscall_exit_to_user_mode+0x1b/0x40
+[   35.430673]  ? do_syscall_64+0x6b/0x90
+[   35.430681]  ? handle_mm_fault+0xb2/0x290
+[   35.431249]  ? do_user_addr_fault+0x1e0/0x6a0
+[   35.432019]  ? exc_page_fault+0x74/0x170
+[   35.433697]  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+[   35.434025] RIP: 0033:0x7fe196d0056d
+[   35.434313] Code: 5d c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e
+fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24
+08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 03 78 0d 00 f7 d8 64 89
+01 48
+[   35.434901] RSP: 002b:00007fe1933fa468 EFLAGS: 00000246 ORIG_RAX:
+0000000000000133
+[   35.435215] RAX: ffffffffffffffda RBX: 00007fe192613018 RCX: 00007fe196d0056d
+[   35.435498] RDX: 0000000000000001 RSI: 00007fe1933fa470 RDI: 0000000000000009
+[   35.435776] RBP: 0000000000000001 R08: 00007fe196bff0b4 R09: 0000000000000000
+[   35.436038] R10: 0000000000000000 R11: 0000000000000246 R12: 00007fe1926130d0
+[   35.436299] R13: 00007fe1933fa470 R14: 0000000000000001 R15: 00007fe19266c720
+[   35.436546]  </TASK>
+[   35.436806] Modules linked in: nft_tproxy nf_tproxy_ipv6
+nf_tproxy_ipv4 nft_reject_inet nf_reject_ipv4 nf_reject_ipv6
+nft_reject nft_limit nft_ct nft_chain_nat nf_nat nf_conntrack
+nf_defrag_ipv6 nf_defrag_ipv4 nf_tables nfnetlink intel_rapl_msr
+intel_rapl_common kvm_amd ccp rng_core kvm irqbypass joydev
+crct10dif_pclmul bochs ppdev crc32_pclmul cfg80211 ghash_clmulni_intel
+mousedev drm_vram_helper aesni_intel drm_ttm_helper parport_pc e1000
+psmouse intel_agp i2c_piix4 crypto_simd ttm rfkill pcspkr parport
+cryptd intel_gtt mac_hid fuse qemu_fw_cfg ip_tables x_tables btrfs
+blake2b_generic libcrc32c crc32c_generic xor raid6_pq serio_raw sr_mod
+atkbd cdrom libps2 vivaldi_fmap ata_generic i8042 pata_acpi
+crc32c_intel floppy serio ata_piix
+[   35.436909] Unloaded tainted modules: edac_mce_amd():1
+edac_mce_amd():1 edac_mce_amd():1 edac_mce_amd():1 edac_mce_amd():1
+edac_mce_amd():1 edac_mce_amd():1 edac_mce_amd():1 pcc_cpufreq():1
+edac_mce_amd():1 edac_mce_amd():1 pcc_cpufreq():1 acpi_cpufreq():1
+edac_mce_amd():1 acpi_cpufreq():1 pcc_cpufreq():1 edac_mce_amd():1
+pcc_cpufreq():1 edac_mce_amd():1 acpi_cpufreq():1 pcc_cpufreq():1
+edac_mce_amd():1 acpi_cpufreq():1 acpi_cpufreq():1 pcc_cpufreq():1
+edac_mce_amd():1 edac_mce_amd():1 acpi_cpufreq():1 pcc_cpufreq():1
+acpi_cpufreq():1 pcc_cpufreq():1 pcc_cpufreq():1 acpi_cpufreq():1
+acpi_cpufreq():1 pcc_cpufreq():1 pcc_cpufreq():1 acpi_cpufreq():1
+pcc_cpufreq():1 acpi_cpufreq():1 pcc_cpufreq():1 acpi_cpufreq():1
+pcc_cpufreq():1 acpi_cpufreq():1 acpi_cpufreq():1 pcc_cpufreq():1
+acpi_cpufreq():1 pcc_cpufreq():1 acpi_cpufreq():1 bpf_preload():1
+[   35.440118] CR2: 00000000000000d8
+[   35.440377] ---[ end trace 0000000000000000 ]---
+[   35.440627] RIP: 0010:nf_tproxy_get_sock_v4+0x175/0x300 [nf_tproxy_ipv4]
+[   35.444920] Code: c1 08 44 89 e2 45 89 f8 4c 89 df 50 45 0f b7 c9
+48 c7 c6 40 67 18 83 e8 39 66 4c c1 5a 59 48 89 c5 e9 e4 fe ff ff 41
+0f b7 d1 <45> 8b 88 d8 00 00 00 44 89 f9 45 0f b7 c5 44 89 e6 e8 b5 b9
+4f c1
+[   35.445565] RSP: 0018:ffffa2ad80d0f470 EFLAGS: 00010246
+[   35.445843] RAX: 0000000000000000 RBX: 0000000000000011 RCX: 000000000f02000a
+[   35.446120] RDX: 000000000000ce8e RSI: ffff96abc8c01000 RDI: ffffffff83183e40
+[   35.446407] RBP: ffffa2ad80d0f570 R08: 0000000000000000 R09: 000000000000ce8e
+[   35.446687] R10: ffff96abca114824 R11: ffffffff83183e40 R12: 000000000f02000a
+[   35.446969] R13: 000000000000d204 R14: 000000000000ce8e R15: 00000000fe00a8c0
+[   35.447272] FS:  00007fe1933ff6c0(0000) GS:ffff96acf7a40000(0000)
+knlGS:0000000000000000
+[   35.447564] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   35.448378] CR2: 00000000000000d8 CR3: 00000001038d6000 CR4: 0000000000350ee0
