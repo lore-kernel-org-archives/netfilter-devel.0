@@ -2,74 +2,57 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF57BC25B08
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Aug 2022 15:54:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 135E8C25B08
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Aug 2022 16:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241526AbiHTPyX (ORCPT
+        id S1345955AbiHTQ1T (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Aug 2022 11:54:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58110 "EHLO
+        Sat, 20 Aug 2022 12:27:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230343AbiHTPyW (ORCPT
+        with ESMTP id S229605AbiHTQ1T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Aug 2022 11:54:22 -0400
+        Sat, 20 Aug 2022 12:27:19 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70EBC26545
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 Aug 2022 08:54:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB0F55927D;
+        Sat, 20 Aug 2022 09:27:17 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1oPQnh-0006Fm-UM; Sat, 20 Aug 2022 17:54:17 +0200
+        (envelope-from <fw@strlen.de>)
+        id 1oPRJJ-0006ky-Aj; Sat, 20 Aug 2022 18:26:57 +0200
+Date:   Sat, 20 Aug 2022 18:26:57 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Shell Chen <xierch@gmail.com>
-Subject: [PATCH nf] nefilter: nft_tproxy: restrict to prerouting hook
-Date:   Sat, 20 Aug 2022 17:54:06 +0200
-Message-Id: <20220820155406.84029-1-fw@strlen.de>
-X-Mailer: git-send-email 2.37.2
-In-Reply-To: <CAAqMkDxLzFZ9YT-DiRh5cVQRha=JzZ+8RYcmkcn8iinrucA+GA@mail.gmail.com>
-References: <CAAqMkDxLzFZ9YT-DiRh5cVQRha=JzZ+8RYcmkcn8iinrucA+GA@mail.gmail.com>
+To:     Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+Cc:     syzkaller@googlegroups.com, george.kennedy@oracle.com,
+        vegard.nossum@oracle.com, john.p.donnelly@oracle.com,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ebtables: fix a NULL pointer dereference in
+ ebt_do_table()
+Message-ID: <YwELUWJw1qTatIiI@strlen.de>
+References: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-TPROXY is only allowed from prerouting, but nft_tproxy doesn't check this.
-This fixes a crash (null dereference) when using tproxy from e.g. output.
+Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com> wrote:
+> In ebt_do_table() function dereferencing 'private->hook_entry[hook]'
+> can lead to NULL pointer dereference. So add a check to prevent that.
 
-Fixes: 4ed8eb6570a4 ("netfilter: nf_tables: Add native tproxy support")
-Reported-by: Shell Chen <xierch@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_tproxy.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This looks incorrect, i.e. paperimg over the problem.
 
-diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
-index 68b2eed742df..62da25ad264b 100644
---- a/net/netfilter/nft_tproxy.c
-+++ b/net/netfilter/nft_tproxy.c
-@@ -312,6 +312,13 @@ static int nft_tproxy_dump(struct sk_buff *skb,
- 	return 0;
- }
- 
-+static int nft_tproxy_validate(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr,
-+			       const struct nft_data **data)
-+{
-+	return nft_chain_validate_hooks(ctx->chain, 1 << NF_INET_PRE_ROUTING);
-+}
-+
- static struct nft_expr_type nft_tproxy_type;
- static const struct nft_expr_ops nft_tproxy_ops = {
- 	.type		= &nft_tproxy_type,
-@@ -321,6 +328,7 @@ static const struct nft_expr_ops nft_tproxy_ops = {
- 	.destroy	= nft_tproxy_destroy,
- 	.dump		= nft_tproxy_dump,
- 	.reduce		= NFT_REDUCE_READONLY,
-+	.validate	= nft_tproxy_validate,
- };
- 
- static struct nft_expr_type nft_tproxy_type __read_mostly = {
--- 
-2.37.2
+If hook_entry[hook] is NULL, how did this make it to the eval loop?
 
+I guess ebtables lacks a sanity check on incoming ruleset?
