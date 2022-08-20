@@ -2,57 +2,182 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 135E8C25B08
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Aug 2022 16:27:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ED26C25B08
+	for <netfilter-devel@archiver.kernel.org>; Sat, 20 Aug 2022 17:36:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345955AbiHTQ1T (ORCPT
+        id S1346547AbiHTRgO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 Aug 2022 12:27:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35320 "EHLO
+        Sat, 20 Aug 2022 13:36:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbiHTQ1T (ORCPT
+        with ESMTP id S231989AbiHTRgN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Aug 2022 12:27:19 -0400
+        Sat, 20 Aug 2022 13:36:13 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB0F55927D;
-        Sat, 20 Aug 2022 09:27:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8F6752812;
+        Sat, 20 Aug 2022 10:36:12 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1oPRJJ-0006ky-Aj; Sat, 20 Aug 2022 18:26:57 +0200
-Date:   Sat, 20 Aug 2022 18:26:57 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oPSOB-0007Ea-1e; Sat, 20 Aug 2022 19:36:03 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+To:     <netfilter-devel@vger.kernel.org>
 Cc:     syzkaller@googlegroups.com, george.kennedy@oracle.com,
         vegard.nossum@oracle.com, john.p.donnelly@oracle.com,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: ebtables: fix a NULL pointer dereference in
- ebt_do_table()
-Message-ID: <YwELUWJw1qTatIiI@strlen.de>
+        linux-kernel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+Subject: [PATCH nf] netfilter: ebtables: reject blobs that don't provide all entry points
+Date:   Sat, 20 Aug 2022 19:35:55 +0200
+Message-Id: <20220820173555.131326-1-fw@strlen.de>
+X-Mailer: git-send-email 2.37.2
+In-Reply-To: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
 References: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com> wrote:
-> In ebt_do_table() function dereferencing 'private->hook_entry[hook]'
-> can lead to NULL pointer dereference. So add a check to prevent that.
+For some reason ebtables reject blobs that provide entry points that are
+not supported by the table.
 
-This looks incorrect, i.e. paperimg over the problem.
+What it should instead reject is the opposite, i.e. rulesets that
+DO NOT provide an entry point that is supported by the table.
 
-If hook_entry[hook] is NULL, how did this make it to the eval loop?
+t->valid_hooks is the bitmask of hooks (input, forward ...) that will
+see packets.  So, providing an entry point that is not support is
+harmless (never called/used), but the reverse is NOT, this will cause
+crash because the ebtables traverser doesn't expect a NULL blob for
+a location its receiving packets for.
 
-I guess ebtables lacks a sanity check on incoming ruleset?
+Instead of fixing all the individual checks, do what iptables is doing and
+reject all blobs that doesn't provide the expected hooks.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-by: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Harshit, can you check if this also silences your reproducer?
+
+ Thanks!
+
+ include/linux/netfilter_bridge/ebtables.h | 4 ----
+ net/bridge/netfilter/ebtable_broute.c     | 8 --------
+ net/bridge/netfilter/ebtable_filter.c     | 8 --------
+ net/bridge/netfilter/ebtable_nat.c        | 8 --------
+ net/bridge/netfilter/ebtables.c           | 8 +-------
+ 5 files changed, 1 insertion(+), 35 deletions(-)
+
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+index a13296d6c7ce..fd533552a062 100644
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -94,10 +94,6 @@ struct ebt_table {
+ 	struct ebt_replace_kernel *table;
+ 	unsigned int valid_hooks;
+ 	rwlock_t lock;
+-	/* e.g. could be the table explicitly only allows certain
+-	 * matches, targets, ... 0 == let it in */
+-	int (*check)(const struct ebt_table_info *info,
+-	   unsigned int valid_hooks);
+ 	/* the data used by the kernel */
+ 	struct ebt_table_info *private;
+ 	struct nf_hook_ops *ops;
+diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
+index 1a11064f9990..8f19253024b0 100644
+--- a/net/bridge/netfilter/ebtable_broute.c
++++ b/net/bridge/netfilter/ebtable_broute.c
+@@ -36,18 +36,10 @@ static struct ebt_replace_kernel initial_table = {
+ 	.entries	= (char *)&initial_chain,
+ };
+ 
+-static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+-{
+-	if (valid_hooks & ~(1 << NF_BR_BROUTING))
+-		return -EINVAL;
+-	return 0;
+-}
+-
+ static const struct ebt_table broute_table = {
+ 	.name		= "broute",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= 1 << NF_BR_BROUTING,
+-	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+ 
+diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+index cb949436bc0e..278f324e6752 100644
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -43,18 +43,10 @@ static struct ebt_replace_kernel initial_table = {
+ 	.entries	= (char *)initial_chains,
+ };
+ 
+-static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+-{
+-	if (valid_hooks & ~FILTER_VALID_HOOKS)
+-		return -EINVAL;
+-	return 0;
+-}
+-
+ static const struct ebt_table frame_filter = {
+ 	.name		= "filter",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+-	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+ 
+diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
+index 5ee0531ae506..9066f7f376d5 100644
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -43,18 +43,10 @@ static struct ebt_replace_kernel initial_table = {
+ 	.entries	= (char *)initial_chains,
+ };
+ 
+-static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+-{
+-	if (valid_hooks & ~NAT_VALID_HOOKS)
+-		return -EINVAL;
+-	return 0;
+-}
+-
+ static const struct ebt_table frame_nat = {
+ 	.name		= "nat",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= NAT_VALID_HOOKS,
+-	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+ 
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index f2dbefb61ce8..9a0ae59cdc50 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1040,8 +1040,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 		goto free_iterate;
+ 	}
+ 
+-	/* the table doesn't like it */
+-	if (t->check && (ret = t->check(newinfo, repl->valid_hooks)))
++	if (repl->valid_hooks != t->valid_hooks)
+ 		goto free_unlock;
+ 
+ 	if (repl->num_counters && repl->num_counters != t->private->nentries) {
+@@ -1231,11 +1230,6 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
+ 	if (ret != 0)
+ 		goto free_chainstack;
+ 
+-	if (table->check && table->check(newinfo, table->valid_hooks)) {
+-		ret = -EINVAL;
+-		goto free_chainstack;
+-	}
+-
+ 	table->private = newinfo;
+ 	rwlock_init(&table->lock);
+ 	mutex_lock(&ebt_mutex);
+-- 
+2.37.2
+
