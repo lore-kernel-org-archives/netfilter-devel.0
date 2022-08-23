@@ -2,156 +2,324 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 216F0C32792
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 Aug 2022 21:29:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD3ADC32792
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 00:17:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238105AbiHVV3o (ORCPT
+        id S239049AbiHWARW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Aug 2022 17:29:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54354 "EHLO
+        Mon, 22 Aug 2022 20:17:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238109AbiHVV3m (ORCPT
+        with ESMTP id S238815AbiHWARW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2022 17:29:42 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AA2C052088
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2022 14:29:41 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     paulb@nvidia.com, roid@nvidia.com, ozsh@nvidia.com,
-        saeedm@nvidia.com
-Subject: [PATCH nf 2/2] netfilter: flowtable: fix stuck flows on cleanup due to pending work
-Date:   Mon, 22 Aug 2022 23:29:23 +0200
-Message-Id: <20220822212923.13677-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220822212923.13677-1-pablo@netfilter.org>
-References: <20220822212923.13677-1-pablo@netfilter.org>
+        Mon, 22 Aug 2022 20:17:22 -0400
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D19ED1AE;
+        Mon, 22 Aug 2022 17:17:20 -0700 (PDT)
+Received: by mail-il1-x142.google.com with SMTP id t17so2284878ilp.13;
+        Mon, 22 Aug 2022 17:17:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc;
+        bh=Q1e6J5MEZ22W6voao2fUVGiYKAXZ68HBiqOCl6kZ8+g=;
+        b=Oc8FV9uFE/koUzEiq5yuXW/Ueo5n/dqHvEKy2vXdhmdL+YuUSm0gwnSPV/sqiBnwe3
+         +udyuuSbsh3OrQPA6WKG7nnVfqCWdZnAhImjYwtOnvxXdF1RsuHXxqWNqaNLm7XHAhIG
+         jqD2z3TfOG6k/F4hYx1Lrnzw/jVQwsldylgY15araiWPZWLvO/kijKm2dayEXDnBGNyp
+         dwN2pjjleNK6T/aFSSonMoTXs33OUWBldvpE3gtiReSIu14M+n8BYtN9ShtdnjJ+ZdQB
+         kwMWKWeFGI5j6V8ti3+wNztpU+BfT4bKP6ZQUH+uaQWb0xLAWqC2p7ldEPpjqtfCV1GW
+         iT8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc;
+        bh=Q1e6J5MEZ22W6voao2fUVGiYKAXZ68HBiqOCl6kZ8+g=;
+        b=e3dId6LlVxGum1vS4n8HJHhwH+rXFS1TE9khWhsS74dXhbsL24dmyKFp9rJ15B2oBO
+         hEepS2LUyCPDPeozGb0QFfYhM6fExY+IqvPqBYaqrwWrhXH2PQlgG8xaLumrHK8t/DjI
+         1/Z6Hj+mcRo+zv+002/bDhODj6gB/22iixNCueI9/gHJWlZyhy8Fnuc2G4gemol1ZSRx
+         9W6Gvp3hAhBcJq3ZILOI7eGFqgtWlkvI/7KhyXdYsiSJKYV0xWW0bDshZ2dHtQwVghus
+         mr9h0nW2wPcoBWo/geImKek59M7p1EjPcPEJ3UuXcgb0LvuHAeDbXVrcE9Sdr80gnw5x
+         7oKw==
+X-Gm-Message-State: ACgBeo1HNb2Qc4gWirLGtd89x9GSDrxRoMmgqfYzxzu5OJcxEJ4UctFd
+        4fl/iokZSD/tONM/mtetWNS40+OPnZhaoQz0gQtAXBt0xKg=
+X-Google-Smtp-Source: AA6agR4RWu51SsS2QRW3pRf/omz5hfFeHMf5WRKN1yIdhHnMISRXu+dIdkbZr70jvwyFHWw+tvMUYNDrB/ToV17uSWI=
+X-Received: by 2002:a05:6e02:661:b0:2e2:be22:67f0 with SMTP id
+ l1-20020a056e02066100b002e2be2267f0mr11250109ilt.91.1661213840141; Mon, 22
+ Aug 2022 17:17:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <cover.1661192455.git.dxu@dxuuu.xyz> <073173502d762faf87bde0ca23e609c84848dd7e.1661192455.git.dxu@dxuuu.xyz>
+In-Reply-To: <073173502d762faf87bde0ca23e609c84848dd7e.1661192455.git.dxu@dxuuu.xyz>
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Date:   Tue, 23 Aug 2022 02:16:42 +0200
+Message-ID: <CAP01T74XK_6wMi+tzReTkBqmZkKbUqCmV6pVwcbCMrHrv0X0SA@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v4 4/5] bpf: Add support for writing to nf_conn:mark
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, pablo@netfilter.org, fw@strlen.de,
+        toke@kernel.org, martin.lau@linux.dev,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-To clear the flow table on flow table free, the following sequence
-normally happens in order:
+On Mon, 22 Aug 2022 at 20:26, Daniel Xu <dxu@dxuuu.xyz> wrote:
+>
+> Support direct writes to nf_conn:mark from TC and XDP prog types. This
+> is useful when applications want to store per-connection metadata. This
+> is also particularly useful for applications that run both bpf and
+> iptables/nftables because the latter can trivially access this metadata.
+>
+> One example use case would be if a bpf prog is responsible for advanced
+> packet classification and iptables/nftables is later used for routing
+> due to pre-existing/legacy code.
+>
+> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+> ---
+>  include/net/netfilter/nf_conntrack_bpf.h | 22 ++++++
+>  net/core/filter.c                        | 34 +++++++++
+>  net/netfilter/nf_conntrack_bpf.c         | 91 +++++++++++++++++++++++-
+>  net/netfilter/nf_conntrack_core.c        |  1 +
+>  4 files changed, 147 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
+> index a473b56842c5..6fc03066846b 100644
+> --- a/include/net/netfilter/nf_conntrack_bpf.h
+> +++ b/include/net/netfilter/nf_conntrack_bpf.h
+> @@ -3,6 +3,7 @@
+>  #ifndef _NF_CONNTRACK_BPF_H
+>  #define _NF_CONNTRACK_BPF_H
+>
+> +#include <linux/bpf.h>
+>  #include <linux/btf.h>
+>  #include <linux/kconfig.h>
+>
+> @@ -10,6 +11,13 @@
+>      (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
+>
+>  extern int register_nf_conntrack_bpf(void);
+> +extern void cleanup_nf_conntrack_bpf(void);
+> +extern int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> +                                         const struct btf *btf,
+> +                                         const struct btf_type *t, int off,
+> +                                         int size, enum bpf_access_type atype,
+> +                                         u32 *next_btf_id,
+> +                                         enum bpf_type_flag *flag);
+>
+>  #else
+>
+> @@ -18,6 +26,20 @@ static inline int register_nf_conntrack_bpf(void)
+>         return 0;
+>  }
+>
+> +static inline void cleanup_nf_conntrack_bpf(void)
+> +{
+> +}
+> +
+> +static inline int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> +                                                const struct btf *btf,
+> +                                                const struct btf_type *t, int off,
+> +                                                int size, enum bpf_access_type atype,
+> +                                                u32 *next_btf_id,
+> +                                                enum bpf_type_flag *flag)
+> +{
+> +       return -EACCES;
+> +}
+> +
+>  #endif
+>
+>  #endif /* _NF_CONNTRACK_BPF_H */
+> diff --git a/net/core/filter.c b/net/core/filter.c
+> index 1acfaffeaf32..25bdbf6dc76b 100644
+> --- a/net/core/filter.c
+> +++ b/net/core/filter.c
+> @@ -18,6 +18,7 @@
+>   */
+>
+>  #include <linux/atomic.h>
+> +#include <linux/bpf_verifier.h>
+>  #include <linux/module.h>
+>  #include <linux/types.h>
+>  #include <linux/mm.h>
+> @@ -55,6 +56,7 @@
+>  #include <net/sock_reuseport.h>
+>  #include <net/busy_poll.h>
+>  #include <net/tcp.h>
+> +#include <net/netfilter/nf_conntrack_bpf.h>
+>  #include <net/xfrm.h>
+>  #include <net/udp.h>
+>  #include <linux/bpf_trace.h>
+> @@ -8628,6 +8630,21 @@ static bool tc_cls_act_is_valid_access(int off, int size,
+>         return bpf_skb_is_valid_access(off, size, type, prog, info);
+>  }
+>
+> +static int tc_cls_act_btf_struct_access(struct bpf_verifier_log *log,
+> +                                       const struct btf *btf,
+> +                                       const struct btf_type *t, int off,
+> +                                       int size, enum bpf_access_type atype,
+> +                                       u32 *next_btf_id,
+> +                                       enum bpf_type_flag *flag)
+> +{
+> +       if (atype == BPF_READ)
+> +               return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
+> +                                        flag);
+> +
+> +       return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
+> +                                             next_btf_id, flag);
+> +}
+> +
+>  static bool __is_valid_xdp_access(int off, int size)
+>  {
+>         if (off < 0 || off >= sizeof(struct xdp_md))
+> @@ -8687,6 +8704,21 @@ void bpf_warn_invalid_xdp_action(struct net_device *dev, struct bpf_prog *prog,
+>  }
+>  EXPORT_SYMBOL_GPL(bpf_warn_invalid_xdp_action);
+>
+> +static int xdp_btf_struct_access(struct bpf_verifier_log *log,
+> +                                const struct btf *btf,
+> +                                const struct btf_type *t, int off,
+> +                                int size, enum bpf_access_type atype,
+> +                                u32 *next_btf_id,
+> +                                enum bpf_type_flag *flag)
+> +{
+> +       if (atype == BPF_READ)
+> +               return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
+> +                                        flag);
+> +
+> +       return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
+> +                                             next_btf_id, flag);
+> +}
+> +
+>  static bool sock_addr_is_valid_access(int off, int size,
+>                                       enum bpf_access_type type,
+>                                       const struct bpf_prog *prog,
+> @@ -10581,6 +10613,7 @@ const struct bpf_verifier_ops tc_cls_act_verifier_ops = {
+>         .convert_ctx_access     = tc_cls_act_convert_ctx_access,
+>         .gen_prologue           = tc_cls_act_prologue,
+>         .gen_ld_abs             = bpf_gen_ld_abs,
+> +       .btf_struct_access      = tc_cls_act_btf_struct_access,
+>  };
+>
+>  const struct bpf_prog_ops tc_cls_act_prog_ops = {
+> @@ -10592,6 +10625,7 @@ const struct bpf_verifier_ops xdp_verifier_ops = {
+>         .is_valid_access        = xdp_is_valid_access,
+>         .convert_ctx_access     = xdp_convert_ctx_access,
+>         .gen_prologue           = bpf_noop_prologue,
+> +       .btf_struct_access      = xdp_btf_struct_access,
+>  };
+>
+>  const struct bpf_prog_ops xdp_prog_ops = {
+> diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+> index 1cd87b28c9b0..da54355927d4 100644
+> --- a/net/netfilter/nf_conntrack_bpf.c
+> +++ b/net/netfilter/nf_conntrack_bpf.c
+> @@ -6,8 +6,10 @@
+>   * are exposed through to BPF programs is explicitly unstable.
+>   */
+>
+> +#include <linux/bpf_verifier.h>
+>  #include <linux/bpf.h>
+>  #include <linux/btf.h>
+> +#include <linux/mutex.h>
+>  #include <linux/types.h>
+>  #include <linux/btf_ids.h>
+>  #include <linux/net_namespace.h>
+> @@ -184,6 +186,79 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+>         return ct;
+>  }
+>
+> +BTF_ID_LIST(btf_nf_conn_ids)
+> +BTF_ID(struct, nf_conn)
+> +BTF_ID(struct, nf_conn___init)
+> +
+> +static DEFINE_MUTEX(btf_access_lock);
+> +static int (*nfct_bsa)(struct bpf_verifier_log *log,
+> +                      const struct btf *btf,
+> +                      const struct btf_type *t, int off,
+> +                      int size, enum bpf_access_type atype,
+> +                      u32 *next_btf_id,
+> +                      enum bpf_type_flag *flag);
+> +
+> +/* Check writes into `struct nf_conn` */
+> +static int _nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> +                                          const struct btf *btf,
+> +                                          const struct btf_type *t, int off,
+> +                                          int size, enum bpf_access_type atype,
+> +                                          u32 *next_btf_id,
+> +                                          enum bpf_type_flag *flag)
+> +{
+> +       const struct btf_type *ncit;
+> +       const struct btf_type *nct;
+> +       size_t end;
+> +
+> +       ncit = btf_type_by_id(btf, btf_nf_conn_ids[1]);
+> +       nct = btf_type_by_id(btf, btf_nf_conn_ids[0]);
+> +
+> +       if (t != nct && t != ncit) {
+> +               bpf_log(log, "only read is supported\n");
+> +               return -EACCES;
+> +       }
+> +
+> +       /* `struct nf_conn` and `struct nf_conn___init` have the same layout
+> +        * so we are safe to simply merge offset checks here
+> +        */
+> +       switch (off) {
+> +#if defined(CONFIG_NF_CONNTRACK_MARK)
+> +       case offsetof(struct nf_conn, mark):
+> +               end = offsetofend(struct nf_conn, mark);
+> +               break;
+> +#endif
+> +       default:
+> +               bpf_log(log, "no write support to nf_conn at off %d\n", off);
+> +               return -EACCES;
+> +       }
+> +
+> +       if (off + size > end) {
+> +               bpf_log(log,
+> +                       "write access at off %d with size %d beyond the member of nf_conn ended at %zu\n",
+> +                       off, size, end);
+> +               return -EACCES;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> +                                  const struct btf *btf,
+> +                                  const struct btf_type *t, int off,
+> +                                  int size, enum bpf_access_type atype,
+> +                                  u32 *next_btf_id,
+> +                                  enum bpf_type_flag *flag)
+> +{
+> +       int ret = -EACCES;
+> +
+> +       mutex_lock(&btf_access_lock);
+> +       if (nfct_bsa)
+> +               ret = nfct_bsa(log, btf, t, off, size, atype, next_btf_id, flag);
+> +       mutex_unlock(&btf_access_lock);
+> +
+> +       return ret;
+> +}
 
-  1) gc_step work is stopped to disable any further stats/del requests.
-  2) All flow table entries are set to teardown state.
-  3) Run gc_step which will queue HW del work for each flow table entry.
-  4) Waiting for the above del work to finish (flush).
-  5) Run gc_step again, deleting all entries from the flow table.
-  6) Flow table is freed.
+Did you test this for CONFIG_NF_CONNTRACK=m? For me it isn't building :P.
 
-But if a flow table entry already has pending HW stats or HW add work
-step 3 will not queue HW del work (it will be skipped), step 4 will wait
-for the pending add/stats to finish, and step 5 will queue HW del work
-which might execute after freeing of the flow table.
+It won't work like this. When nf_conntrack is a module, the vmlinux.o
+of the kernel isn't linked to the object file nf_conntrack_bpf.o.
+Hence it would be an undefined reference error. You don't see it in
+BPF CI as we set CONFIG_NF_CONNTRACK=y (to simplify testing).
 
-To fix the above, this patch flushes the pending work, then it sets the
-teardown flag to all flows in the flowtable and it forces a garbage
-collector run to queue work to remove the flows from hardware, then it
-flushes this new pending work and (finally) it forces another garbage
-collector run to remove the entry from the software flowtable.
+So you need to have code that locks and checks the cb pointer when
+calling it outside the module, which means the global lock variable
+and global cb pointer also need to be in the kernel. The module then
+takes the same lock and sets cb pointer when loading. During unload,
+it takes the same lock and sets it back to NULL.
 
-Stack trace:
-[47773.882335] BUG: KASAN: use-after-free in down_read+0x99/0x460
-[47773.883634] Write of size 8 at addr ffff888103b45aa8 by task kworker/u20:6/543704
-[47773.885634] CPU: 3 PID: 543704 Comm: kworker/u20:6 Not tainted 5.12.0-rc7+ #2
-[47773.886745] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009)
-[47773.888438] Workqueue: nf_ft_offload_del flow_offload_work_handler [nf_flow_table]
-[47773.889727] Call Trace:
-[47773.890214]  dump_stack+0xbb/0x107
-[47773.890818]  print_address_description.constprop.0+0x18/0x140
-[47773.892990]  kasan_report.cold+0x7c/0xd8
-[47773.894459]  kasan_check_range+0x145/0x1a0
-[47773.895174]  down_read+0x99/0x460
-[47773.899706]  nf_flow_offload_tuple+0x24f/0x3c0 [nf_flow_table]
-[47773.907137]  flow_offload_work_handler+0x72d/0xbe0 [nf_flow_table]
-[47773.913372]  process_one_work+0x8ac/0x14e0
-[47773.921325]
-[47773.921325] Allocated by task 592159:
-[47773.922031]  kasan_save_stack+0x1b/0x40
-[47773.922730]  __kasan_kmalloc+0x7a/0x90
-[47773.923411]  tcf_ct_flow_table_get+0x3cb/0x1230 [act_ct]
-[47773.924363]  tcf_ct_init+0x71c/0x1156 [act_ct]
-[47773.925207]  tcf_action_init_1+0x45b/0x700
-[47773.925987]  tcf_action_init+0x453/0x6b0
-[47773.926692]  tcf_exts_validate+0x3d0/0x600
-[47773.927419]  fl_change+0x757/0x4a51 [cls_flower]
-[47773.928227]  tc_new_tfilter+0x89a/0x2070
-[47773.936652]
-[47773.936652] Freed by task 543704:
-[47773.937303]  kasan_save_stack+0x1b/0x40
-[47773.938039]  kasan_set_track+0x1c/0x30
-[47773.938731]  kasan_set_free_info+0x20/0x30
-[47773.939467]  __kasan_slab_free+0xe7/0x120
-[47773.940194]  slab_free_freelist_hook+0x86/0x190
-[47773.941038]  kfree+0xce/0x3a0
-[47773.941644]  tcf_ct_flow_table_cleanup_work
+You can have global variables in vmlinux that you reference from
+modules. The compiler will emit a relocation for the module object
+file which will be handled by the kernel during module load.
 
-Original patch description and stack trace by Paul Blakey.
-
-Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
-Reported-by: Paul Blakey <paulb@nvidia.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_flow_table.h | 2 ++
- net/netfilter/nf_flow_table_core.c    | 7 +++----
- net/netfilter/nf_flow_table_offload.c | 8 ++++++++
- 3 files changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 476cc4423a90..cd982f4a0f50 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -307,6 +307,8 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
- 			   struct flow_offload *flow);
- 
- void nf_flow_table_offload_flush(struct nf_flowtable *flowtable);
-+void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable);
-+
- int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
- 				struct net_device *dev,
- 				enum flow_block_command cmd);
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 60fc1e1b7182..81c26a96c30b 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -605,12 +605,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	mutex_unlock(&flowtable_lock);
- 
- 	cancel_delayed_work_sync(&flow_table->gc_work);
-+	nf_flow_table_offload_flush(flow_table);
-+	/* ... no more pending work after this stage ... */
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
- 	nf_flow_table_gc_run(flow_table);
--	nf_flow_table_offload_flush(flow_table);
--	if (nf_flowtable_hw_offload(flow_table))
--		nf_flow_table_gc_run(flow_table);
--
-+	nf_flow_table_offload_flush_cleanup(flow_table);
- 	rhashtable_destroy(&flow_table->rhashtable);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 103b6cbf257f..b04645ced89b 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1074,6 +1074,14 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
- 	flow_offload_queue_work(offload);
- }
- 
-+void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable)
-+{
-+	if (nf_flowtable_hw_offload(flowtable)) {
-+		flush_workqueue(nf_flow_offload_del_wq);
-+		nf_flow_table_gc_run(flowtable);
-+	}
-+}
-+
- void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
- {
- 	if (nf_flowtable_hw_offload(flowtable)) {
--- 
-2.30.2
-
+So please test it once with nf_conntrack built as a module before
+sending the next revision. The only thing you need to do before
+running ./test_progs -t bpf_nf is loading the module nf_conntrack.ko
+(and its dependencies, nf_defrag_ipv{4,6}.ko).
