@@ -2,189 +2,267 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB20C32772
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 12:42:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D63C6C32772
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 13:05:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242344AbiHWMm0 (ORCPT
+        id S240447AbiHWNF5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Aug 2022 08:42:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45090 "EHLO
+        Tue, 23 Aug 2022 09:05:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237244AbiHWMlv (ORCPT
+        with ESMTP id S242860AbiHWNFc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Aug 2022 08:41:51 -0400
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2061a.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e88::61a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 826839E2CF;
-        Tue, 23 Aug 2022 02:51:42 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Tk3wVCQF7XkEWjtmaTD6i4bTAfQVERgtBW/9+I7ss4F3a+PvPGEgYNsoaYWuv57NmK4wAV4ggSOq1M6dUOF+9+eSQsYE8GQznX+kkQIotUUKSOPHJR5HIsJtJF9TyBkWWXMYA6z1T+Oh6qv9TYLnCQHJVSAGRJ2SuOgjECSjMzo4C7HrrjRpGr4kcjjcG+E+Ivqp+qd3BarlDKma7Gt57GKLPZnfQ/ObhvsVBQoyrxljMbpO16Oo5kixj5Wvixge4LcpuLtRG67FO1maxYtuVqYnM3VWTqfYERbE3DgHYQsLwgbWhw1AkkS+Up8uBiEbCBOTM3v9IbzoL+EDAN8RbQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=LvC5oy8u9XljxPECQ+8Ds2040Wwvq2MQhl/R6ed/Xn4=;
- b=NophFi2QYFzLCbJ3eesmXV6jEZ6FgkvcLEmxJHnucpzGWtMZNb+nmAOwxeTG1E1j+g75QYxoB5dN5PP5ghFtGQK9Ns8mkL68rnG7BCNB/dp/VsVanUbU71kksEEybF4N06d6S7hsOQRcVWl5/8obvAC8jh7im5Dsf1ew8LbFXt2pu7vFGwEk1AaT2wZ+l2h/auEgPPazfNxXOAHxYNjozMafW57/lLEH4JD+REmm2i0uYQivnnQF/HNu4G2E0T9nqcnlCcRwTXQ8avbRVQ+oSutW4AkhNeJ5yQL5ES2TOG9Uha9mL6xvup+NuVhQ94nFN+G/KBszec7bzqT8uWwUlA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=LvC5oy8u9XljxPECQ+8Ds2040Wwvq2MQhl/R6ed/Xn4=;
- b=sa++8eJ6m7jlVFd9w/nkCQqj6jjElHwr5Nt0TA9u1KF24A+AL7qE2A1KGMWRHxS8i4ROlotx+NYQik0fz1yT86wyW1AQN2qZxJzdYZAqGMVzwXI2YxLfun4OZ324uqnHfcxkXSelUPRmAKG9jvm4NK9bdQYsTMCvHhc3xZVXNkJwzeNEe9BQ4hbFporTSB2cST6kMyFJiQJA7lT0BqIfKuxch+LUKl15FCnaPnRJCMe3lyavVYOTKQhHZIazGN9MhmeUaJvbF48hcdibUiO713j4sKezbM6z4K6FY572ofml0Q4yYgf8tdkVZkfBrLPVkPqVJB7njfzu2Yga1xDoxQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from PH0PR12MB5629.namprd12.prod.outlook.com (2603:10b6:510:141::10)
- by SA0PR12MB7003.namprd12.prod.outlook.com (2603:10b6:806:2c0::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.19; Tue, 23 Aug
- 2022 09:49:10 +0000
-Received: from PH0PR12MB5629.namprd12.prod.outlook.com
- ([fe80::61f4:2661:ffa2:e365]) by PH0PR12MB5629.namprd12.prod.outlook.com
- ([fe80::61f4:2661:ffa2:e365%5]) with mapi id 15.20.5546.016; Tue, 23 Aug 2022
- 09:49:10 +0000
-Message-ID: <aaa31105-6b1a-c026-ab26-00b6b99094b1@nvidia.com>
-Date:   Tue, 23 Aug 2022 12:49:01 +0300
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.12.0
-Subject: Re: [PATCH net 1/1] netfilter: flowtable: Fix use after free after
- freeing flow table
-Content-Language: en-US
-From:   Paul Blakey <paulb@nvidia.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Oz Shlomo <ozsh@nvidia.com>, Roi Dayan <roid@nvidia.com>,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-        netfilter-devel@vger.kernel.org
-References: <1660807674-28447-1-git-send-email-paulb@nvidia.com>
- <Yv7FauVMX2Smkiqb@salvia> <11b87f33-98fb-e49a-5f63-491d4f27e908@nvidia.com>
- <YwPw1ZqiiuGdCGeB@salvia> <379a510a-310d-7479-6751-995c6c05ff7e@nvidia.com>
-In-Reply-To: <379a510a-310d-7479-6751-995c6c05ff7e@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO2P265CA0297.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:a5::21) To PH0PR12MB5629.namprd12.prod.outlook.com
- (2603:10b6:510:141::10)
+        Tue, 23 Aug 2022 09:05:32 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C26F512E25F
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2022 03:07:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1661249271; x=1692785271;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=R3fk2LXJj3qtn40DbYaVUYor64b/ys7w638UXb2s/AY=;
+  b=XOq+jfNLOU0LK7GsSorXlmoG7WFkWQMSuZiwQJc5tq34bK2BLZRp2AxX
+   4clWuX+EJxhQho7r3u5iab34erHxJ9Tyrah8t8pt211I0SADwkB3KSWTF
+   vjKUN36r0xdU2JA4np92hbPQjxjhF14xBT3BusE2emNJkp1uPdB1CQg3f
+   WSuzAt3RKoBqyBEmvs8Mnajdr6pg54wSJVqKUMd36FnLngBDuiUqfWU6T
+   yH8VTWSkvzQywhX66gUmEdaOoIC0kE+5yHulVORAfhdjvOHaBPSoau1vY
+   Z57FTlj8ZSE0NPHGzP7J7184AzXWAvNhVJmwEBg7yLUk9mREZYAjY0o6b
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10447"; a="293645073"
+X-IronPort-AV: E=Sophos;i="5.93,257,1654585200"; 
+   d="scan'208";a="293645073"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 03:06:49 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,257,1654585200"; 
+   d="scan'208";a="642389190"
+Received: from lkp-server02.sh.intel.com (HELO 9bbcefcddf9f) ([10.239.97.151])
+  by orsmga001.jf.intel.com with ESMTP; 23 Aug 2022 03:06:48 -0700
+Received: from kbuild by 9bbcefcddf9f with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1oQQo3-00008D-1I;
+        Tue, 23 Aug 2022 10:06:47 +0000
+Date:   Tue, 23 Aug 2022 18:06:11 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: remove NFPROTO_DECNET
+Message-ID: <202208231725.M6uhYNZi-lkp@intel.com>
+References: <20220822144121.22026-1-fw@strlen.de>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 1ab30852-ce0c-49c6-b68b-08da84ecbaa8
-X-MS-TrafficTypeDiagnostic: SA0PR12MB7003:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: qHOG7Lx+WX8eCNXyfpgGPLnOQI2pQ2i63yiMZkI1S2VhICQqJTIcQCkRo5ySG8F6zyBWKMnIMw4qhipfh3M+QubIDuNHjh1164OK5kgKcl0cNaAwszs4H/oOYF/3l6FNg+IMlnX65oOIUxXTlgVlh5UcA34zG6c3Fvki/Yp30BXcDwa94GohKf+1zxk42U7ptpe6pKy30FPXVlGnZ/v44XcwmEA+b+aBllwIza6oaQucifsYYhJQuwVa+r09fC6Pk+gQMaZ66Moz0HqYkLZihm6qxiWrvb6kvYozZWVEzGZmtxJJLoGVBJ3Lz5GG3PPyX6bkAR1Gi4QdzsjPl9KCWV5tw+BwABl5r4H4QHLlq444m07bf9YF+RIj5ajz2j6/JKXbP4rhpeAjFsbSzvYVvD3OojZLYQLth44OOyOrKvwS2S/1ZWqgOo4yUt0RMozpFnYR0qKsZL/6pv0pPVjSIoTmrl/U5SV6u/E4ECtHYtyAJcc4xrmCp9d5dZ0+WzR5tGSsQBQd/xRAEpsXWnyI9iuCiGLZ92pJJylLA2YL+rT8jOIKEwHltZOhCnOKp5foFupAi11FB8OAY0RIFEbkzQtkgSmZW2MAjoe+Tch/Wlv3/nkeL6ntF75QCe8xCoyhdERyUOkARBNVp7GzHna69oLuQgQ+aBsbvN+0/iZ5hvSqfaJPqljBV3aGozfWLA3ng57y8VD2XOkcPG2LlJbWsabib2nY/IB2x3wyp3W0UjzmTpmSRyVoQ9LdXBXGbXr4bYROf6pnWrEmX5pw61aZL/eSqlRAa0MEmUnN+st/W34=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR12MB5629.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(136003)(376002)(366004)(39860400002)(396003)(346002)(6666004)(6506007)(6486002)(41300700001)(478600001)(186003)(26005)(6512007)(2616005)(2906002)(53546011)(8936002)(5660300002)(316002)(6916009)(54906003)(66556008)(4326008)(8676002)(66946007)(86362001)(38100700002)(31686004)(31696002)(36756003)(66476007)(45980500001)(43740500002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?UHo1SndKKzFRQUFEMUJzMm9jdFV6NlRKT1Y4QURoN3BRYWhpUTFkL1pDQnRx?=
- =?utf-8?B?WEwxQ1N3SnRkd0ZqMWZTUTRpbzJhaHhUZVZPTjJYSm51ZURIajdKMkFFdjUw?=
- =?utf-8?B?cjNERnBpRHdSclFqNnJ3VFhrMkEzUHhvQ253SWpTM21rWUZmOEFoRmZub1BO?=
- =?utf-8?B?RjhIT0luNGZGd1ZYRkFZVlpoWW1TM2pIalBPeC9WQXdUUkkzdlFPL2dkOExJ?=
- =?utf-8?B?MTFZaTRXWGx0Q0sxUVpwMmhpVm9hQmR6cm9nQnZNT3dtQmsrQVNSOXp6enZ0?=
- =?utf-8?B?UnVNbDBpeVhMbllENURQeFhhekk5ZjJBYkRRTzBEbnhYc1FlRjQxNjdqQW94?=
- =?utf-8?B?WVF0SEFlTTA1c3IrR2h2R2p5alJ5L1RWZDJkMzk2MWxGbFNTK2kzdExuRENv?=
- =?utf-8?B?Qm1HME5TbnJwWHBKOFpiZHl5aVczVVVsMUJ2bk1jQzE0UXp3eWk5Q2Jnbmt4?=
- =?utf-8?B?TGdIYU1WR2pwMlNDYjF3OUFIYVd2M1FsSnhJL2dhdFZObUFKWnA1dE5zU0Vm?=
- =?utf-8?B?QkF1V1JFaHV5VE94VEdlYkpmU3NwSXQyQWNMYWczQU5zeVdUMFZNa3crZzdh?=
- =?utf-8?B?Uzl2Vm1jUm5NRm9od0I3cEFIRWJCRGpEK0VhcWR0WklJcWc2Q25wcUJubmxN?=
- =?utf-8?B?UlliK1lVRmFLaEFUYmw4WGIvYVUzaFdoMHdtWnFJMTA4b1VkV1BOM2N6WUc4?=
- =?utf-8?B?R01iSlo4S1UvQVN5aWdwZlJlRkt4Zlk2MTlQVnRxMG1yWWhnUDNnOCtaYTlj?=
- =?utf-8?B?cWdUTW9FUHJXTy9iM0ZhV2k1ZUw0U2NNQko3K3UvUm9KdmFIUlBCdjJHWjJV?=
- =?utf-8?B?YWFBYVpJNDFwSmFLU1ZHdTBjdmdBWk5MRzBNZ3djTmpHWTZwaWtOa2RUMUIx?=
- =?utf-8?B?b2I2Q09qTHR0LzNYZVFlbXdiV0gySXBrWXUwU2tvZ3lTOXk1enpkOFZSSTdx?=
- =?utf-8?B?MmhXY1k1bWpDOTRYaVZWVnYwd2QrQkxQVlM3TTdZV0F5Y3A3U2hXMStDVkdY?=
- =?utf-8?B?enlzdGJyOWNpaUpnNzdRWGhLSWRHNi9xSkVwRFJuZHlsckkzU1lJUWhUYUpx?=
- =?utf-8?B?RzR0ai92RUlaUFp2RUxYdHlDUENzSEZYeHBzNmF1YW4xc3k3Vnl6UnNhTmJz?=
- =?utf-8?B?eXptM1BhR3JudEtySTVFTnRrWnZFMXFBNkxCNG1MT2F5Slo4U09BWjE4ZWZL?=
- =?utf-8?B?ZWUva09GN0wwbHVYcW9ZZndCdVhkNTU2eDlUUmtIRlRFQVhtNndjYmN0eEx5?=
- =?utf-8?B?b2V6TUttSXhqRlpGc3JSSlJFeENGR1VvL2RwazhXeGJzSG0rVk50VUl4Tk5i?=
- =?utf-8?B?eW1ORTQ2aldmY2hBMTFMdHM3UnQzZzc2QkhDNnZ4OUNaQ2p4QXY0WFBrUHNa?=
- =?utf-8?B?MUM4dEZGMVk5by9oaDhXS0hod3hEdmprdlRxVTVPK3BJL2Q5WlMxK204TlIy?=
- =?utf-8?B?clVWWnh4d29EcHhrdVlHWDFHeWdEUXNSVjREL0tiKzRiYVA1SW1BY0E5aWJR?=
- =?utf-8?B?eHIrZHhZRjJsRHpkM2hXV2FaaUNyZjg0SzlyNkRodmVtSllqem8xZkRzbk8y?=
- =?utf-8?B?SjRwVVhBekZOSVorUXN6Q2RiY0ljKzlOYkhZVDYwUHk5TEhGRnZRcHZabFYy?=
- =?utf-8?B?M0hKRFR3dDU1dEVIZWdkcXIrQW9BNytFNVZLb0FXRVFlenFVTTYvTzVzWTg4?=
- =?utf-8?B?QmFrdFA5YXF3UUQvU3M1QWsrcUxqT0NpQjNkSDJoaWF3QnR3Tmh4Nys3ZFRR?=
- =?utf-8?B?SjNjb01pcVphN2N3VHNBZlNYME1nTUkwVlU2S0NNV1VaS2hqQTdOK0FOVFdI?=
- =?utf-8?B?NVhKallnNjVqYlI0eGpoRTA0RTg5ZThsbEVHaG5LeUZ2bWRaVzl5UWlnd1NZ?=
- =?utf-8?B?Q3F3VXRpUmo3NFVLT0d6VXJmTzQ5OGFqVVFsRWE5ODU1MWhyTFd3WDd6Y2VD?=
- =?utf-8?B?cEx5RmsyWWlXNStucy94RisrKzluajBmaFVSUWUwcjRzUGFta2UyVmxuQWM5?=
- =?utf-8?B?cjV1OEhwRm9VWHBIMGdFaENXNjFNY3RiYkRkZ2lCak9XeW1nblNxU09KNXpk?=
- =?utf-8?B?S1dzdXBSWmNoVERQd0FCNmpBVUdyc0YyUlBlWVl5NTYzSTBVSXpLY3U0Q2d5?=
- =?utf-8?Q?mrH3J9NIeXJq9kbFe7X74OYKm?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1ab30852-ce0c-49c6-b68b-08da84ecbaa8
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR12MB5629.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Aug 2022 09:49:10.7926
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KnLPKNl50sJqZX/aMREsVAK0n+V48lbjvlvzcjSjxGT79hGfOsek9nEDrO9AEJaa7h3Jjrt6tmIN+xIEWCvEoA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB7003
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220822144121.22026-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Florian,
+
+I love your patch! Perhaps something to improve:
+
+[auto build test WARNING on nf-next/master]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-remove-NFPROTO_DECNET/20220822-224303
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+config: mips-randconfig-r014-20220822 (https://download.01.org/0day-ci/archive/20220823/202208231725.M6uhYNZi-lkp@intel.com/config)
+compiler: clang version 16.0.0 (https://github.com/llvm/llvm-project b04d01c009d7f66bcca9138d2ce40999eedf104d)
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # install mips cross compiling tool for clang build
+        # apt-get install binutils-mips-linux-gnu
+        # https://github.com/intel-lab-lkp/linux/commit/0776a7974c60171c4c1322add934ecc73273f538
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Florian-Westphal/netfilter-remove-NFPROTO_DECNET/20220822-224303
+        git checkout 0776a7974c60171c4c1322add934ecc73273f538
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=mips SHELL=/bin/bash net/decnet/ net/netfilter/
+
+If you fix the issue, kindly add following tag where applicable
+Reported-by: kernel test robot <lkp@intel.com>
+
+All warnings (new ones prefixed by >>):
+
+   In file included from net/decnet/af_decnet.c:109:
+   include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           case NFPROTO_DECNET:
+                ^~~~~~~~~~~~~~
+                NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   In file included from net/decnet/af_decnet.c:111:
+   In file included from include/net/sock.h:60:
+>> include/linux/poll.h:140:27: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                           ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   include/linux/poll.h:140:39: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                                       ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   2 warnings and 1 error generated.
+--
+   In file included from net/decnet/dn_neigh.c:37:
+   In file included from include/uapi/linux/netfilter_decnet.h:11:
+   include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           case NFPROTO_DECNET:
+                ^~~~~~~~~~~~~~
+                NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   In file included from net/decnet/dn_neigh.c:47:
+   In file included from include/net/dn.h:6:
+   In file included from include/net/sock.h:60:
+>> include/linux/poll.h:140:27: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                           ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   include/linux/poll.h:140:39: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                                       ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   net/decnet/dn_neigh.c:250:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING,
+                          ^~~~~~~~~~~~~~
+                          NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   net/decnet/dn_neigh.c:291:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING,
+                          ^~~~~~~~~~~~~~
+                          NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   net/decnet/dn_neigh.c:333:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING,
+                          ^~~~~~~~~~~~~~
+                          NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   2 warnings and 4 errors generated.
+--
+   In file included from net/netfilter/core.c:10:
+   include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           case NFPROTO_DECNET:
+                ^~~~~~~~~~~~~~
+                NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   In file included from net/netfilter/core.c:19:
+   In file included from include/linux/netfilter_ipv6.h:11:
+   In file included from include/net/tcp.h:20:
+   In file included from include/linux/tcp.h:19:
+   In file included from include/net/sock.h:60:
+>> include/linux/poll.h:140:27: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                           ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   include/linux/poll.h:140:39: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                                       ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   net/netfilter/core.c:304:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           case NFPROTO_DECNET:
+                ^~~~~~~~~~~~~~
+                NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   2 warnings and 2 errors generated.
+--
+   In file included from net/decnet/netfilter/dn_rtmsg.c:18:
+   include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           case NFPROTO_DECNET:
+                ^~~~~~~~~~~~~~
+                NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   In file included from net/decnet/netfilter/dn_rtmsg.c:23:
+   In file included from include/net/sock.h:60:
+>> include/linux/poll.h:140:27: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                           ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   include/linux/poll.h:140:39: warning: division by zero is undefined [-Wdivision-by-zero]
+                   M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+                                                       ^~~~~~~~~
+   include/linux/poll.h:138:32: note: expanded from macro 'M'
+   #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/linux/poll.h:124:51: note: expanded from macro '__MAP'
+           (from < to ? (v & from) * (to/from) : (v & from) / (from/to))
+                                                            ^ ~~~~~~~~~
+   net/decnet/netfilter/dn_rtmsg.c:118:9: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
+           .pf             = NFPROTO_DECNET,
+                             ^~~~~~~~~~~~~~
+                             NFPROTO_INET
+   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
+           NFPROTO_INET   =  1,
+           ^
+   2 warnings and 2 errors generated.
 
 
-On 23/08/2022 10:56, Paul Blakey wrote:
-> 
-> 
-> On 23/08/2022 00:10, Pablo Neira Ayuso wrote:
->> Hi Paul,
->>
->> On Sun, Aug 21, 2022 at 12:23:39PM +0300, Paul Blakey wrote:
->>> Hi!
->>>
->>> The only functional difference here (for HW table) is your patches call
->>> flush just for the del workqueue instead of del/stats/add, right?
->>>
->>> Because in the end you do:
->>> cancel_delayed_work_sync(&flow_table->gc_work);
->>> nf_flow_table_offload_flush(flow_table);
->>> nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
->>> nf_flow_table_gc_run(flow_table);
->>> nf_flow_table_offload_flush_cleanup(flow_table);
->>>
->>>
->>> resulting in the following sequence (after expending flush_cleanup()):
->>>
->>> cancel_delayed_work_sync(&flow_table->gc_work);
->>> nf_flow_table_offload_flush(flow_table);
->>> nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
->>> nf_flow_table_gc_run(flow_table);
->>> flush_workqueue(nf_flow_offload_del_wq);
->>> nf_flow_table_gc_run(flowtable);
->>>
->>>
->>> Where as my (and Volodymyr's) patch does:
->>>
->>> cancel_delayed_work_sync(&flow_table->gc_work);
->>> nf_flow_table_offload_flush(flow_table);
->>> nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
->>> nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
->>> nf_flow_table_offload_flush(flow_table);
->>> nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
->>>
->>>
->>> so almost identical, I don't see "extra reiterative calls to flush" 
->>> here,
->>> but I'm fine with just your patch as it's more efficient, can we take 
->>> yours
->>> to both gits?
->>
->> Yes, I'll submit them. I'll re-use your patch description.
->>
->> Maybe I get a Tested-by: tag from you?
->>
->> Thanks!
-> 
-> Sure I'll test and post.
-> Thanks.
+vim +140 include/linux/poll.h
 
-Tested-By: Paul Blakey <paulb@nvidia.com>
+7a163b2195cda0 Al Viro 2018-02-01  135  
+7a163b2195cda0 Al Viro 2018-02-01  136  static inline __poll_t demangle_poll(u16 val)
+7a163b2195cda0 Al Viro 2018-02-01  137  {
+7a163b2195cda0 Al Viro 2018-02-01  138  #define M(X) (__force __poll_t)__MAP(val, POLL##X, (__force __u16)EPOLL##X)
+7a163b2195cda0 Al Viro 2018-02-01  139  	return M(IN) | M(OUT) | M(PRI) | M(ERR) | M(NVAL) |
+7a163b2195cda0 Al Viro 2018-02-01 @140  		M(RDNORM) | M(RDBAND) | M(WRNORM) | M(WRBAND) |
+7a163b2195cda0 Al Viro 2018-02-01  141  		M(HUP) | M(RDHUP) | M(MSG);
+7a163b2195cda0 Al Viro 2018-02-01  142  #undef M
+7a163b2195cda0 Al Viro 2018-02-01  143  }
+7a163b2195cda0 Al Viro 2018-02-01  144  #undef __MAP
+7a163b2195cda0 Al Viro 2018-02-01  145  
+7a163b2195cda0 Al Viro 2018-02-01  146  
 
-Works, thanks.
-
-
-
-
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
