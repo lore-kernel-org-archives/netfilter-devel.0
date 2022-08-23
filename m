@@ -2,298 +2,361 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DDE3C28D13
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 01:17:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 312CAC28D13
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 02:19:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239018AbiHWBRX (ORCPT
+        id S231627AbiHWCTe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 Aug 2022 21:17:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46842 "EHLO
+        Mon, 22 Aug 2022 22:19:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237907AbiHWBRW (ORCPT
+        with ESMTP id S231491AbiHWCTd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2022 21:17:22 -0400
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0F0657279
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2022 18:17:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661217441; x=1692753441;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=irbDdwULTts+VnsVfChGmEHc/uan+ubZUuhXAxQ2mSE=;
-  b=GDmDeK3h+At7YkP5Wb+zk3xykFRho4Q1CPmc9o6FqYJ5qOBzWGsnw55v
-   Lj5cSOoSE4OJlGuq1CjXyKQb5JizgedGCE3LZ1G+jc9nyZFxKo/wtm4Fy
-   LbrSnyRdkNClnB9cYWnL+PUL6T8YyUkki+FbaEiS2I0UQVKTHQcFbl/mU
-   0Bgp9CCT+KbU3l8u7pVuMYr7hz6l7KPQ7+K0yrxtdT8XzODOC2SFABgpE
-   l7iO/yPeVYflTJ8tQgxCcFYFriODQtD+uKh5KM5kLSjfcFEaxB7cqDLru
-   H3mnY8nQFyvoAhz5kuGtrudHBBKKf4PJpU/4fQAfUTihSrfZ7I4ighPaR
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10447"; a="357543214"
-X-IronPort-AV: E=Sophos;i="5.93,256,1654585200"; 
-   d="scan'208";a="357543214"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Aug 2022 18:17:21 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,256,1654585200"; 
-   d="scan'208";a="638441942"
-Received: from lkp-server01.sh.intel.com (HELO dd9b29378baa) ([10.239.97.150])
-  by orsmga008.jf.intel.com with ESMTP; 22 Aug 2022 18:17:20 -0700
-Received: from kbuild by dd9b29378baa with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1oQIXf-0000yN-1A;
-        Tue, 23 Aug 2022 01:17:19 +0000
-Date:   Tue, 23 Aug 2022 09:16:42 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: remove NFPROTO_DECNET
-Message-ID: <202208230953.khEWYODC-lkp@intel.com>
-References: <20220822144121.22026-1-fw@strlen.de>
+        Mon, 22 Aug 2022 22:19:33 -0400
+Received: from wout4-smtp.messagingengine.com (wout4-smtp.messagingengine.com [64.147.123.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01CB757235;
+        Mon, 22 Aug 2022 19:19:31 -0700 (PDT)
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+        by mailout.west.internal (Postfix) with ESMTP id 9A5E33200A27;
+        Mon, 22 Aug 2022 22:19:28 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute4.internal (MEProxy); Mon, 22 Aug 2022 22:19:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to; s=fm3; t=1661221168; x=1661307568; bh=TLwpmg8vHO
+        B4GXzZydz9UyD4FFMxizILcM5xJmtqCLo=; b=RGhXHmVIwEwXgAOQlm0+TOtraL
+        SgSIrGOcy27P9hIo47PPNmnjp0QB1hOB3TY9IXJB+NDAiTwi0FRAiXsY1XqlLvUU
+        WW/3OSbo1+xvpP6QdtQLJeY88fnEcbSUWENahCwbHlXOnbq1CcmQ1nwKoBHZ7+6F
+        iaTGcArdWbaFAftWeugFbIWdb/48hpCc+iCRK3yUIr1btEFz1zGZda8hJo2/s93N
+        Vo5qy30Okzn0Bz8rLkKWd47JG12mzNkR3xyyGGi0Ra/BwldiDyj+I+HGHIHZ1z8Y
+        ZIoSMpdgjPdOhkI/+2ucjtwOR8FeQqon4f6gJQER6PoYq7w/dr+8QOzb3fjw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm1; t=1661221168; x=1661307568; bh=TLwpmg8vHOB4GXzZydz9UyD4FFMx
+        izILcM5xJmtqCLo=; b=PDRCDqbP0cfj6D9e/XgnRaHoVf+KaqvF/bgiY330x+sl
+        Hginuge/ZtLKGPkYO1xsyoTOKgINxW2I20X0kle5y/MF6fGsIakTDtz26R3H85kc
+        bhqJpMo2PSStBDvUugAy8DlkqWqng1loesvEDdEPsy/Eacaa1r0m8WXTBNds5KoS
+        AejhbzAs7Ti7pZncOzxssEoYDc5oSB5oBx13NmwinVbr7u9+wmIO5bRPUIDmRFjp
+        yJaubk+YsFnLspH4PcWrQdhtHH59alsql8xdMUlW1r7At5EzyEmagH31/XfRXRzB
+        7NXoUXeD4Xkdc4t/yXV5w10H57FVLLOFgs2swjN/Aw==
+X-ME-Sender: <xms:LzkEYyCjaZlrr3rb1gXCwNEjQDIUgm0vOYrAGEkpumFt4KLPP8SejA>
+    <xme:LzkEY8hQ_6Owodujg1qsD6MUOeBOOgqARq-B5RRpqqXrMAH1xLaoG01Sff4YKMp7q
+    U_Ibg9AIMnfkLdN9A>
+X-ME-Received: <xmr:LzkEY1ltCRb2uwEqfa5b5kqIs8_h7FGplE5ycoLr_sXAfKxffHafPSZTNjKqgAfzil4WXzR2e4Gwt61NRMebrqu4m9OZqSBUNX-q>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdeikedgheelucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdljedtmdenucfjughrpeffhf
+    fvvefukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpeffrghnihgvlhcuighuuceo
+    ugiguhesugiguhhuuhdrgiihiieqnecuggftrfgrthhtvghrnhepveduudegiefhtdffhe
+    fggfdugeeggeehtefgvefhkeekieelueeijeelkeeivdfgnecuvehluhhsthgvrhfuihii
+    vgeptdenucfrrghrrghmpehmrghilhhfrhhomhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:LzkEYwzxMBvZyDw2OzdGwCzsPTrtrgm5I3rwYoZ1wzkFBMD5-H-zGg>
+    <xmx:LzkEY3Quu2cn8eCcgjxs3-ioH5YHYkVgsmZkGCJEw0aH6HHmmiM7xg>
+    <xmx:LzkEY7abRUIvQOQ5HZCU0dUZNRzHpjzcywRfKl09FK3b3PcPjKeYeg>
+    <xmx:MDkEY8JF2ul_8MRFOxk8EVhKLV7LUO7qU1yAtyaFA7jCO7g8hs0njg>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 22 Aug 2022 22:19:26 -0400 (EDT)
+Date:   Mon, 22 Aug 2022 20:19:23 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, pablo@netfilter.org, fw@strlen.de,
+        toke@kernel.org, martin.lau@linux.dev,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH bpf-next v4 4/5] bpf: Add support for writing to
+ nf_conn:mark
+Message-ID: <20220823021923.vmhp5r76dvgwvh2j@kashmir.localdomain>
+References: <cover.1661192455.git.dxu@dxuuu.xyz>
+ <073173502d762faf87bde0ca23e609c84848dd7e.1661192455.git.dxu@dxuuu.xyz>
+ <CAP01T74XK_6wMi+tzReTkBqmZkKbUqCmV6pVwcbCMrHrv0X0SA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220822144121.22026-1-fw@strlen.de>
+In-Reply-To: <CAP01T74XK_6wMi+tzReTkBqmZkKbUqCmV6pVwcbCMrHrv0X0SA@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+On Tue, Aug 23, 2022 at 02:16:42AM +0200, Kumar Kartikeya Dwivedi wrote:
+> On Mon, 22 Aug 2022 at 20:26, Daniel Xu <dxu@dxuuu.xyz> wrote:
+> >
+> > Support direct writes to nf_conn:mark from TC and XDP prog types. This
+> > is useful when applications want to store per-connection metadata. This
+> > is also particularly useful for applications that run both bpf and
+> > iptables/nftables because the latter can trivially access this metadata.
+> >
+> > One example use case would be if a bpf prog is responsible for advanced
+> > packet classification and iptables/nftables is later used for routing
+> > due to pre-existing/legacy code.
+> >
+> > Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+> > ---
+> >  include/net/netfilter/nf_conntrack_bpf.h | 22 ++++++
+> >  net/core/filter.c                        | 34 +++++++++
+> >  net/netfilter/nf_conntrack_bpf.c         | 91 +++++++++++++++++++++++-
+> >  net/netfilter/nf_conntrack_core.c        |  1 +
+> >  4 files changed, 147 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
+> > index a473b56842c5..6fc03066846b 100644
+> > --- a/include/net/netfilter/nf_conntrack_bpf.h
+> > +++ b/include/net/netfilter/nf_conntrack_bpf.h
+> > @@ -3,6 +3,7 @@
+> >  #ifndef _NF_CONNTRACK_BPF_H
+> >  #define _NF_CONNTRACK_BPF_H
+> >
+> > +#include <linux/bpf.h>
+> >  #include <linux/btf.h>
+> >  #include <linux/kconfig.h>
+> >
+> > @@ -10,6 +11,13 @@
+> >      (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
+> >
+> >  extern int register_nf_conntrack_bpf(void);
+> > +extern void cleanup_nf_conntrack_bpf(void);
+> > +extern int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> > +                                         const struct btf *btf,
+> > +                                         const struct btf_type *t, int off,
+> > +                                         int size, enum bpf_access_type atype,
+> > +                                         u32 *next_btf_id,
+> > +                                         enum bpf_type_flag *flag);
+> >
+> >  #else
+> >
+> > @@ -18,6 +26,20 @@ static inline int register_nf_conntrack_bpf(void)
+> >         return 0;
+> >  }
+> >
+> > +static inline void cleanup_nf_conntrack_bpf(void)
+> > +{
+> > +}
+> > +
+> > +static inline int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> > +                                                const struct btf *btf,
+> > +                                                const struct btf_type *t, int off,
+> > +                                                int size, enum bpf_access_type atype,
+> > +                                                u32 *next_btf_id,
+> > +                                                enum bpf_type_flag *flag)
+> > +{
+> > +       return -EACCES;
+> > +}
+> > +
+> >  #endif
+> >
+> >  #endif /* _NF_CONNTRACK_BPF_H */
+> > diff --git a/net/core/filter.c b/net/core/filter.c
+> > index 1acfaffeaf32..25bdbf6dc76b 100644
+> > --- a/net/core/filter.c
+> > +++ b/net/core/filter.c
+> > @@ -18,6 +18,7 @@
+> >   */
+> >
+> >  #include <linux/atomic.h>
+> > +#include <linux/bpf_verifier.h>
+> >  #include <linux/module.h>
+> >  #include <linux/types.h>
+> >  #include <linux/mm.h>
+> > @@ -55,6 +56,7 @@
+> >  #include <net/sock_reuseport.h>
+> >  #include <net/busy_poll.h>
+> >  #include <net/tcp.h>
+> > +#include <net/netfilter/nf_conntrack_bpf.h>
+> >  #include <net/xfrm.h>
+> >  #include <net/udp.h>
+> >  #include <linux/bpf_trace.h>
+> > @@ -8628,6 +8630,21 @@ static bool tc_cls_act_is_valid_access(int off, int size,
+> >         return bpf_skb_is_valid_access(off, size, type, prog, info);
+> >  }
+> >
+> > +static int tc_cls_act_btf_struct_access(struct bpf_verifier_log *log,
+> > +                                       const struct btf *btf,
+> > +                                       const struct btf_type *t, int off,
+> > +                                       int size, enum bpf_access_type atype,
+> > +                                       u32 *next_btf_id,
+> > +                                       enum bpf_type_flag *flag)
+> > +{
+> > +       if (atype == BPF_READ)
+> > +               return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
+> > +                                        flag);
+> > +
+> > +       return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
+> > +                                             next_btf_id, flag);
+> > +}
+> > +
+> >  static bool __is_valid_xdp_access(int off, int size)
+> >  {
+> >         if (off < 0 || off >= sizeof(struct xdp_md))
+> > @@ -8687,6 +8704,21 @@ void bpf_warn_invalid_xdp_action(struct net_device *dev, struct bpf_prog *prog,
+> >  }
+> >  EXPORT_SYMBOL_GPL(bpf_warn_invalid_xdp_action);
+> >
+> > +static int xdp_btf_struct_access(struct bpf_verifier_log *log,
+> > +                                const struct btf *btf,
+> > +                                const struct btf_type *t, int off,
+> > +                                int size, enum bpf_access_type atype,
+> > +                                u32 *next_btf_id,
+> > +                                enum bpf_type_flag *flag)
+> > +{
+> > +       if (atype == BPF_READ)
+> > +               return btf_struct_access(log, btf, t, off, size, atype, next_btf_id,
+> > +                                        flag);
+> > +
+> > +       return nf_conntrack_btf_struct_access(log, btf, t, off, size, atype,
+> > +                                             next_btf_id, flag);
+> > +}
+> > +
+> >  static bool sock_addr_is_valid_access(int off, int size,
+> >                                       enum bpf_access_type type,
+> >                                       const struct bpf_prog *prog,
+> > @@ -10581,6 +10613,7 @@ const struct bpf_verifier_ops tc_cls_act_verifier_ops = {
+> >         .convert_ctx_access     = tc_cls_act_convert_ctx_access,
+> >         .gen_prologue           = tc_cls_act_prologue,
+> >         .gen_ld_abs             = bpf_gen_ld_abs,
+> > +       .btf_struct_access      = tc_cls_act_btf_struct_access,
+> >  };
+> >
+> >  const struct bpf_prog_ops tc_cls_act_prog_ops = {
+> > @@ -10592,6 +10625,7 @@ const struct bpf_verifier_ops xdp_verifier_ops = {
+> >         .is_valid_access        = xdp_is_valid_access,
+> >         .convert_ctx_access     = xdp_convert_ctx_access,
+> >         .gen_prologue           = bpf_noop_prologue,
+> > +       .btf_struct_access      = xdp_btf_struct_access,
+> >  };
+> >
+> >  const struct bpf_prog_ops xdp_prog_ops = {
+> > diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+> > index 1cd87b28c9b0..da54355927d4 100644
+> > --- a/net/netfilter/nf_conntrack_bpf.c
+> > +++ b/net/netfilter/nf_conntrack_bpf.c
+> > @@ -6,8 +6,10 @@
+> >   * are exposed through to BPF programs is explicitly unstable.
+> >   */
+> >
+> > +#include <linux/bpf_verifier.h>
+> >  #include <linux/bpf.h>
+> >  #include <linux/btf.h>
+> > +#include <linux/mutex.h>
+> >  #include <linux/types.h>
+> >  #include <linux/btf_ids.h>
+> >  #include <linux/net_namespace.h>
+> > @@ -184,6 +186,79 @@ static struct nf_conn *__bpf_nf_ct_lookup(struct net *net,
+> >         return ct;
+> >  }
+> >
+> > +BTF_ID_LIST(btf_nf_conn_ids)
+> > +BTF_ID(struct, nf_conn)
+> > +BTF_ID(struct, nf_conn___init)
+> > +
+> > +static DEFINE_MUTEX(btf_access_lock);
+> > +static int (*nfct_bsa)(struct bpf_verifier_log *log,
+> > +                      const struct btf *btf,
+> > +                      const struct btf_type *t, int off,
+> > +                      int size, enum bpf_access_type atype,
+> > +                      u32 *next_btf_id,
+> > +                      enum bpf_type_flag *flag);
+> > +
+> > +/* Check writes into `struct nf_conn` */
+> > +static int _nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> > +                                          const struct btf *btf,
+> > +                                          const struct btf_type *t, int off,
+> > +                                          int size, enum bpf_access_type atype,
+> > +                                          u32 *next_btf_id,
+> > +                                          enum bpf_type_flag *flag)
+> > +{
+> > +       const struct btf_type *ncit;
+> > +       const struct btf_type *nct;
+> > +       size_t end;
+> > +
+> > +       ncit = btf_type_by_id(btf, btf_nf_conn_ids[1]);
+> > +       nct = btf_type_by_id(btf, btf_nf_conn_ids[0]);
+> > +
+> > +       if (t != nct && t != ncit) {
+> > +               bpf_log(log, "only read is supported\n");
+> > +               return -EACCES;
+> > +       }
+> > +
+> > +       /* `struct nf_conn` and `struct nf_conn___init` have the same layout
+> > +        * so we are safe to simply merge offset checks here
+> > +        */
+> > +       switch (off) {
+> > +#if defined(CONFIG_NF_CONNTRACK_MARK)
+> > +       case offsetof(struct nf_conn, mark):
+> > +               end = offsetofend(struct nf_conn, mark);
+> > +               break;
+> > +#endif
+> > +       default:
+> > +               bpf_log(log, "no write support to nf_conn at off %d\n", off);
+> > +               return -EACCES;
+> > +       }
+> > +
+> > +       if (off + size > end) {
+> > +               bpf_log(log,
+> > +                       "write access at off %d with size %d beyond the member of nf_conn ended at %zu\n",
+> > +                       off, size, end);
+> > +               return -EACCES;
+> > +       }
+> > +
+> > +       return 0;
+> > +}
+> > +
+> > +int nf_conntrack_btf_struct_access(struct bpf_verifier_log *log,
+> > +                                  const struct btf *btf,
+> > +                                  const struct btf_type *t, int off,
+> > +                                  int size, enum bpf_access_type atype,
+> > +                                  u32 *next_btf_id,
+> > +                                  enum bpf_type_flag *flag)
+> > +{
+> > +       int ret = -EACCES;
+> > +
+> > +       mutex_lock(&btf_access_lock);
+> > +       if (nfct_bsa)
+> > +               ret = nfct_bsa(log, btf, t, off, size, atype, next_btf_id, flag);
+> > +       mutex_unlock(&btf_access_lock);
+> > +
+> > +       return ret;
+> > +}
+> 
+> Did you test this for CONFIG_NF_CONNTRACK=m? For me it isn't building :P.
+> 
+> It won't work like this. When nf_conntrack is a module, the vmlinux.o
+> of the kernel isn't linked to the object file nf_conntrack_bpf.o.
+> Hence it would be an undefined reference error. You don't see it in
+> BPF CI as we set CONFIG_NF_CONNTRACK=y (to simplify testing).
 
-I love your patch! Yet something to improve:
+Sorry about that. Will make sure to test that config setting.
 
-[auto build test ERROR on nf-next/master]
+> So you need to have code that locks and checks the cb pointer when
+> calling it outside the module, which means the global lock variable
+> and global cb pointer also need to be in the kernel. The module then
+> takes the same lock and sets cb pointer when loading. During unload,
+> it takes the same lock and sets it back to NULL.
+> 
+> You can have global variables in vmlinux that you reference from
+> modules. The compiler will emit a relocation for the module object
+> file which will be handled by the kernel during module load.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-remove-NFPROTO_DECNET/20220822-224303
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-config: hexagon-randconfig-r041-20220821 (https://download.01.org/0day-ci/archive/20220823/202208230953.khEWYODC-lkp@intel.com/config)
-compiler: clang version 16.0.0 (https://github.com/llvm/llvm-project abce7acebd4c06c977bc4bd79170697f1122bc5e)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/0776a7974c60171c4c1322add934ecc73273f538
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Florian-Westphal/netfilter-remove-NFPROTO_DECNET/20220822-224303
-        git checkout 0776a7974c60171c4c1322add934ecc73273f538
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=hexagon SHELL=/bin/bash net/decnet/ net/netfilter/
+Sure, I'll take a look. I was trying to keep conntrack symbols out of
+the core object files as much as possible but looks like that won't be
+possible.
 
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
+However, I think to keep the globals symbols in vmlinux we'll need to
+EXPORT_SYMBOL_GPL() some symbols. Hopefully that is OK.
 
-All errors (new ones prefixed by >>):
+There's also some other issues I'm uncovering with duplicate BTF IDs for
+nf_conn. Might have to do a lookup by name instead of the BTF_ID_LIST().
 
-   In file included from net/decnet/af_decnet.c:109:
->> include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   1 error generated.
---
-   In file included from net/decnet/dn_nsp_in.c:64:
-   In file included from include/uapi/linux/netfilter_decnet.h:11:
->> include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
->> net/decnet/dn_nsp_in.c:808:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_LOCAL_IN,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   2 errors generated.
---
-   In file included from net/decnet/dn_route.c:69:
-   In file included from include/uapi/linux/netfilter_decnet.h:11:
->> include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
->> net/decnet/dn_route.c:567:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_PRE_ROUTING,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:595:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_PRE_ROUTING,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:700:19: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-                           return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
-                                          ^~~~~~~~~~~~~~
-                                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:706:19: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-                           return NF_HOOK(NFPROTO_DECNET, NF_DN_ROUTE,
-                                          ^~~~~~~~~~~~~~
-                                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:710:19: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-                           return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
-                                          ^~~~~~~~~~~~~~
-                                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:715:19: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-                           return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
-                                          ^~~~~~~~~~~~~~
-                                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:765:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_LOCAL_OUT,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_route.c:812:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_FORWARD,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   9 errors generated.
---
-   In file included from net/decnet/dn_neigh.c:37:
-   In file included from include/uapi/linux/netfilter_decnet.h:11:
->> include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
->> net/decnet/dn_neigh.c:250:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_neigh.c:291:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   net/decnet/dn_neigh.c:333:17: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING,
-                          ^~~~~~~~~~~~~~
-                          NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   4 errors generated.
---
-   In file included from net/netfilter/core.c:10:
->> include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
->> net/netfilter/core.c:304:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   2 errors generated.
---
-   In file included from net/decnet/netfilter/dn_rtmsg.c:18:
->> include/linux/netfilter.h:247:7: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           case NFPROTO_DECNET:
-                ^~~~~~~~~~~~~~
-                NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
->> net/decnet/netfilter/dn_rtmsg.c:118:9: error: use of undeclared identifier 'NFPROTO_DECNET'; did you mean 'NFPROTO_INET'?
-           .pf             = NFPROTO_DECNET,
-                             ^~~~~~~~~~~~~~
-                             NFPROTO_INET
-   include/uapi/linux/netfilter.h:60:2: note: 'NFPROTO_INET' declared here
-           NFPROTO_INET   =  1,
-           ^
-   2 errors generated.
+> So please test it once with nf_conntrack built as a module before
+> sending the next revision. The only thing you need to do before
+> running ./test_progs -t bpf_nf is loading the module nf_conntrack.ko
+> (and its dependencies, nf_defrag_ipv{4,6}.ko).
 
+Will do.
 
-vim +247 include/linux/netfilter.h
-
-af4610c39589d8 Florian Westphal  2016-02-25  225  
-e3b37f11e6e4e6 Aaron Conole      2016-09-21  226  	rcu_read_lock();
-b0f38338aef2da Florian Westphal  2017-12-03  227  	switch (pf) {
-b0f38338aef2da Florian Westphal  2017-12-03  228  	case NFPROTO_IPV4:
-b0f38338aef2da Florian Westphal  2017-12-03  229  		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
-b0f38338aef2da Florian Westphal  2017-12-03  230  		break;
-b0f38338aef2da Florian Westphal  2017-12-03  231  	case NFPROTO_IPV6:
-b0f38338aef2da Florian Westphal  2017-12-03  232  		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
-b0f38338aef2da Florian Westphal  2017-12-03  233  		break;
-b0f38338aef2da Florian Westphal  2017-12-03  234  	case NFPROTO_ARP:
-2a95183a5e0375 Florian Westphal  2017-12-07  235  #ifdef CONFIG_NETFILTER_FAMILY_ARP
-421c119f558761 Florian Westphal  2018-09-24  236  		if (WARN_ON_ONCE(hook >= ARRAY_SIZE(net->nf.hooks_arp)))
-421c119f558761 Florian Westphal  2018-09-24  237  			break;
-b0f38338aef2da Florian Westphal  2017-12-03  238  		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
-2a95183a5e0375 Florian Westphal  2017-12-07  239  #endif
-b0f38338aef2da Florian Westphal  2017-12-03  240  		break;
-b0f38338aef2da Florian Westphal  2017-12-03  241  	case NFPROTO_BRIDGE:
-2a95183a5e0375 Florian Westphal  2017-12-07  242  #ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-b0f38338aef2da Florian Westphal  2017-12-03  243  		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
-2a95183a5e0375 Florian Westphal  2017-12-07  244  #endif
-b0f38338aef2da Florian Westphal  2017-12-03  245  		break;
-bb4badf3a3dc81 Florian Westphal  2017-12-07  246  #if IS_ENABLED(CONFIG_DECNET)
-b0f38338aef2da Florian Westphal  2017-12-03 @247  	case NFPROTO_DECNET:
-b0f38338aef2da Florian Westphal  2017-12-03  248  		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
-b0f38338aef2da Florian Westphal  2017-12-03  249  		break;
-bb4badf3a3dc81 Florian Westphal  2017-12-07  250  #endif
-b0f38338aef2da Florian Westphal  2017-12-03  251  	default:
-b0f38338aef2da Florian Westphal  2017-12-03  252  		WARN_ON_ONCE(1);
-b0f38338aef2da Florian Westphal  2017-12-03  253  		break;
-b0f38338aef2da Florian Westphal  2017-12-03  254  	}
-b0f38338aef2da Florian Westphal  2017-12-03  255  
-e3b37f11e6e4e6 Aaron Conole      2016-09-21  256  	if (hook_head) {
-107a9f4dc9211c David Miller      2015-04-05  257  		struct nf_hook_state state;
-cfdfab314647b1 David S. Miller   2015-04-03  258  
-01886bd91f1ba4 Pablo Neira Ayuso 2016-11-03  259  		nf_hook_state_init(&state, hook, pf, indev, outdev,
-1610a73c4175e7 Pablo Neira Ayuso 2016-11-03  260  				   sk, net, okfn);
-fe72926b792e52 Florian Westphal  2016-09-21  261  
-960632ece6949b Aaron Conole      2017-08-24  262  		ret = nf_hook_slow(skb, &state, hook_head, 0);
-e3b37f11e6e4e6 Aaron Conole      2016-09-21  263  	}
-fe72926b792e52 Florian Westphal  2016-09-21  264  	rcu_read_unlock();
-e3b37f11e6e4e6 Aaron Conole      2016-09-21  265  
-fe72926b792e52 Florian Westphal  2016-09-21  266  	return ret;
-cfdfab314647b1 David S. Miller   2015-04-03  267  }
-16a6677fdf1d11 Patrick McHardy   2006-01-06  268  
-
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+Thanks again for the reviews,
+Daniel
