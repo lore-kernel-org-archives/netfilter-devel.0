@@ -2,530 +2,189 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75B65C32774
-	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 10:45:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB20C32772
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 Aug 2022 12:42:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355866AbiHWKpF (ORCPT
+        id S242344AbiHWMm0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 23 Aug 2022 06:45:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53490 "EHLO
+        Tue, 23 Aug 2022 08:42:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236710AbiHWKm7 (ORCPT
+        with ESMTP id S237244AbiHWMlv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Aug 2022 06:42:59 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFCC4AB042;
-        Tue, 23 Aug 2022 02:10:21 -0700 (PDT)
-Received: from fraeml734-chm.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MBk2j2wN4z67Prq;
-        Tue, 23 Aug 2022 17:10:05 +0800 (CST)
-Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
- fraeml734-chm.china.huawei.com (10.206.15.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 23 Aug 2022 11:10:18 +0200
-Received: from [10.122.132.241] (10.122.132.241) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 23 Aug 2022 10:10:17 +0100
-Message-ID: <20126d38-a9d2-d805-6331-276fa436a172@huawei.com>
-Date:   Tue, 23 Aug 2022 12:10:16 +0300
-MIME-Version: 1.0
+        Tue, 23 Aug 2022 08:41:51 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2061a.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e88::61a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 826839E2CF;
+        Tue, 23 Aug 2022 02:51:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Tk3wVCQF7XkEWjtmaTD6i4bTAfQVERgtBW/9+I7ss4F3a+PvPGEgYNsoaYWuv57NmK4wAV4ggSOq1M6dUOF+9+eSQsYE8GQznX+kkQIotUUKSOPHJR5HIsJtJF9TyBkWWXMYA6z1T+Oh6qv9TYLnCQHJVSAGRJ2SuOgjECSjMzo4C7HrrjRpGr4kcjjcG+E+Ivqp+qd3BarlDKma7Gt57GKLPZnfQ/ObhvsVBQoyrxljMbpO16Oo5kixj5Wvixge4LcpuLtRG67FO1maxYtuVqYnM3VWTqfYERbE3DgHYQsLwgbWhw1AkkS+Up8uBiEbCBOTM3v9IbzoL+EDAN8RbQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=LvC5oy8u9XljxPECQ+8Ds2040Wwvq2MQhl/R6ed/Xn4=;
+ b=NophFi2QYFzLCbJ3eesmXV6jEZ6FgkvcLEmxJHnucpzGWtMZNb+nmAOwxeTG1E1j+g75QYxoB5dN5PP5ghFtGQK9Ns8mkL68rnG7BCNB/dp/VsVanUbU71kksEEybF4N06d6S7hsOQRcVWl5/8obvAC8jh7im5Dsf1ew8LbFXt2pu7vFGwEk1AaT2wZ+l2h/auEgPPazfNxXOAHxYNjozMafW57/lLEH4JD+REmm2i0uYQivnnQF/HNu4G2E0T9nqcnlCcRwTXQ8avbRVQ+oSutW4AkhNeJ5yQL5ES2TOG9Uha9mL6xvup+NuVhQ94nFN+G/KBszec7bzqT8uWwUlA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LvC5oy8u9XljxPECQ+8Ds2040Wwvq2MQhl/R6ed/Xn4=;
+ b=sa++8eJ6m7jlVFd9w/nkCQqj6jjElHwr5Nt0TA9u1KF24A+AL7qE2A1KGMWRHxS8i4ROlotx+NYQik0fz1yT86wyW1AQN2qZxJzdYZAqGMVzwXI2YxLfun4OZ324uqnHfcxkXSelUPRmAKG9jvm4NK9bdQYsTMCvHhc3xZVXNkJwzeNEe9BQ4hbFporTSB2cST6kMyFJiQJA7lT0BqIfKuxch+LUKl15FCnaPnRJCMe3lyavVYOTKQhHZIazGN9MhmeUaJvbF48hcdibUiO713j4sKezbM6z4K6FY572ofml0Q4yYgf8tdkVZkfBrLPVkPqVJB7njfzu2Yga1xDoxQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH0PR12MB5629.namprd12.prod.outlook.com (2603:10b6:510:141::10)
+ by SA0PR12MB7003.namprd12.prod.outlook.com (2603:10b6:806:2c0::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.19; Tue, 23 Aug
+ 2022 09:49:10 +0000
+Received: from PH0PR12MB5629.namprd12.prod.outlook.com
+ ([fe80::61f4:2661:ffa2:e365]) by PH0PR12MB5629.namprd12.prod.outlook.com
+ ([fe80::61f4:2661:ffa2:e365%5]) with mapi id 15.20.5546.016; Tue, 23 Aug 2022
+ 09:49:10 +0000
+Message-ID: <aaa31105-6b1a-c026-ab26-00b6b99094b1@nvidia.com>
+Date:   Tue, 23 Aug 2022 12:49:01 +0300
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v6 00/17] Network support for Landlock
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <anton.sirazetdinov@huawei.com>
-References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
- <4c57a0c2-e207-10d6-c73d-bcda66bf3963@digikod.net>
- <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
- <86db9124-ea11-0fa5-9dff-61744b2f80b4@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <86db9124-ea11-0fa5-9dff-61744b2f80b4@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+ Thunderbird/91.12.0
+Subject: Re: [PATCH net 1/1] netfilter: flowtable: Fix use after free after
+ freeing flow table
+Content-Language: en-US
+From:   Paul Blakey <paulb@nvidia.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Oz Shlomo <ozsh@nvidia.com>, Roi Dayan <roid@nvidia.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
+        netfilter-devel@vger.kernel.org
+References: <1660807674-28447-1-git-send-email-paulb@nvidia.com>
+ <Yv7FauVMX2Smkiqb@salvia> <11b87f33-98fb-e49a-5f63-491d4f27e908@nvidia.com>
+ <YwPw1ZqiiuGdCGeB@salvia> <379a510a-310d-7479-6751-995c6c05ff7e@nvidia.com>
+In-Reply-To: <379a510a-310d-7479-6751-995c6c05ff7e@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: LO2P265CA0297.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:a5::21) To PH0PR12MB5629.namprd12.prod.outlook.com
+ (2603:10b6:510:141::10)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 1ab30852-ce0c-49c6-b68b-08da84ecbaa8
+X-MS-TrafficTypeDiagnostic: SA0PR12MB7003:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: qHOG7Lx+WX8eCNXyfpgGPLnOQI2pQ2i63yiMZkI1S2VhICQqJTIcQCkRo5ySG8F6zyBWKMnIMw4qhipfh3M+QubIDuNHjh1164OK5kgKcl0cNaAwszs4H/oOYF/3l6FNg+IMlnX65oOIUxXTlgVlh5UcA34zG6c3Fvki/Yp30BXcDwa94GohKf+1zxk42U7ptpe6pKy30FPXVlGnZ/v44XcwmEA+b+aBllwIza6oaQucifsYYhJQuwVa+r09fC6Pk+gQMaZ66Moz0HqYkLZihm6qxiWrvb6kvYozZWVEzGZmtxJJLoGVBJ3Lz5GG3PPyX6bkAR1Gi4QdzsjPl9KCWV5tw+BwABl5r4H4QHLlq444m07bf9YF+RIj5ajz2j6/JKXbP4rhpeAjFsbSzvYVvD3OojZLYQLth44OOyOrKvwS2S/1ZWqgOo4yUt0RMozpFnYR0qKsZL/6pv0pPVjSIoTmrl/U5SV6u/E4ECtHYtyAJcc4xrmCp9d5dZ0+WzR5tGSsQBQd/xRAEpsXWnyI9iuCiGLZ92pJJylLA2YL+rT8jOIKEwHltZOhCnOKp5foFupAi11FB8OAY0RIFEbkzQtkgSmZW2MAjoe+Tch/Wlv3/nkeL6ntF75QCe8xCoyhdERyUOkARBNVp7GzHna69oLuQgQ+aBsbvN+0/iZ5hvSqfaJPqljBV3aGozfWLA3ng57y8VD2XOkcPG2LlJbWsabib2nY/IB2x3wyp3W0UjzmTpmSRyVoQ9LdXBXGbXr4bYROf6pnWrEmX5pw61aZL/eSqlRAa0MEmUnN+st/W34=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR12MB5629.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(136003)(376002)(366004)(39860400002)(396003)(346002)(6666004)(6506007)(6486002)(41300700001)(478600001)(186003)(26005)(6512007)(2616005)(2906002)(53546011)(8936002)(5660300002)(316002)(6916009)(54906003)(66556008)(4326008)(8676002)(66946007)(86362001)(38100700002)(31686004)(31696002)(36756003)(66476007)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?UHo1SndKKzFRQUFEMUJzMm9jdFV6NlRKT1Y4QURoN3BRYWhpUTFkL1pDQnRx?=
+ =?utf-8?B?WEwxQ1N3SnRkd0ZqMWZTUTRpbzJhaHhUZVZPTjJYSm51ZURIajdKMkFFdjUw?=
+ =?utf-8?B?cjNERnBpRHdSclFqNnJ3VFhrMkEzUHhvQ253SWpTM21rWUZmOEFoRmZub1BO?=
+ =?utf-8?B?RjhIT0luNGZGd1ZYRkFZVlpoWW1TM2pIalBPeC9WQXdUUkkzdlFPL2dkOExJ?=
+ =?utf-8?B?MTFZaTRXWGx0Q0sxUVpwMmhpVm9hQmR6cm9nQnZNT3dtQmsrQVNSOXp6enZ0?=
+ =?utf-8?B?UnVNbDBpeVhMbllENURQeFhhekk5ZjJBYkRRTzBEbnhYc1FlRjQxNjdqQW94?=
+ =?utf-8?B?WVF0SEFlTTA1c3IrR2h2R2p5alJ5L1RWZDJkMzk2MWxGbFNTK2kzdExuRENv?=
+ =?utf-8?B?Qm1HME5TbnJwWHBKOFpiZHl5aVczVVVsMUJ2bk1jQzE0UXp3eWk5Q2Jnbmt4?=
+ =?utf-8?B?TGdIYU1WR2pwMlNDYjF3OUFIYVd2M1FsSnhJL2dhdFZObUFKWnA1dE5zU0Vm?=
+ =?utf-8?B?QkF1V1JFaHV5VE94VEdlYkpmU3NwSXQyQWNMYWczQU5zeVdUMFZNa3crZzdh?=
+ =?utf-8?B?Uzl2Vm1jUm5NRm9od0I3cEFIRWJCRGpEK0VhcWR0WklJcWc2Q25wcUJubmxN?=
+ =?utf-8?B?UlliK1lVRmFLaEFUYmw4WGIvYVUzaFdoMHdtWnFJMTA4b1VkV1BOM2N6WUc4?=
+ =?utf-8?B?R01iSlo4S1UvQVN5aWdwZlJlRkt4Zlk2MTlQVnRxMG1yWWhnUDNnOCtaYTlj?=
+ =?utf-8?B?cWdUTW9FUHJXTy9iM0ZhV2k1ZUw0U2NNQko3K3UvUm9KdmFIUlBCdjJHWjJV?=
+ =?utf-8?B?YWFBYVpJNDFwSmFLU1ZHdTBjdmdBWk5MRzBNZ3djTmpHWTZwaWtOa2RUMUIx?=
+ =?utf-8?B?b2I2Q09qTHR0LzNYZVFlbXdiV0gySXBrWXUwU2tvZ3lTOXk1enpkOFZSSTdx?=
+ =?utf-8?B?MmhXY1k1bWpDOTRYaVZWVnYwd2QrQkxQVlM3TTdZV0F5Y3A3U2hXMStDVkdY?=
+ =?utf-8?B?enlzdGJyOWNpaUpnNzdRWGhLSWRHNi9xSkVwRFJuZHlsckkzU1lJUWhUYUpx?=
+ =?utf-8?B?RzR0ai92RUlaUFp2RUxYdHlDUENzSEZYeHBzNmF1YW4xc3k3Vnl6UnNhTmJz?=
+ =?utf-8?B?eXptM1BhR3JudEtySTVFTnRrWnZFMXFBNkxCNG1MT2F5Slo4U09BWjE4ZWZL?=
+ =?utf-8?B?ZWUva09GN0wwbHVYcW9ZZndCdVhkNTU2eDlUUmtIRlRFQVhtNndjYmN0eEx5?=
+ =?utf-8?B?b2V6TUttSXhqRlpGc3JSSlJFeENGR1VvL2RwazhXeGJzSG0rVk50VUl4Tk5i?=
+ =?utf-8?B?eW1ORTQ2aldmY2hBMTFMdHM3UnQzZzc2QkhDNnZ4OUNaQ2p4QXY0WFBrUHNa?=
+ =?utf-8?B?MUM4dEZGMVk5by9oaDhXS0hod3hEdmprdlRxVTVPK3BJL2Q5WlMxK204TlIy?=
+ =?utf-8?B?clVWWnh4d29EcHhrdVlHWDFHeWdEUXNSVjREL0tiKzRiYVA1SW1BY0E5aWJR?=
+ =?utf-8?B?eHIrZHhZRjJsRHpkM2hXV2FaaUNyZjg0SzlyNkRodmVtSllqem8xZkRzbk8y?=
+ =?utf-8?B?SjRwVVhBekZOSVorUXN6Q2RiY0ljKzlOYkhZVDYwUHk5TEhGRnZRcHZabFYy?=
+ =?utf-8?B?M0hKRFR3dDU1dEVIZWdkcXIrQW9BNytFNVZLb0FXRVFlenFVTTYvTzVzWTg4?=
+ =?utf-8?B?QmFrdFA5YXF3UUQvU3M1QWsrcUxqT0NpQjNkSDJoaWF3QnR3Tmh4Nys3ZFRR?=
+ =?utf-8?B?SjNjb01pcVphN2N3VHNBZlNYME1nTUkwVlU2S0NNV1VaS2hqQTdOK0FOVFdI?=
+ =?utf-8?B?NVhKallnNjVqYlI0eGpoRTA0RTg5ZThsbEVHaG5LeUZ2bWRaVzl5UWlnd1NZ?=
+ =?utf-8?B?Q3F3VXRpUmo3NFVLT0d6VXJmTzQ5OGFqVVFsRWE5ODU1MWhyTFd3WDd6Y2VD?=
+ =?utf-8?B?cEx5RmsyWWlXNStucy94RisrKzluajBmaFVSUWUwcjRzUGFta2UyVmxuQWM5?=
+ =?utf-8?B?cjV1OEhwRm9VWHBIMGdFaENXNjFNY3RiYkRkZ2lCak9XeW1nblNxU09KNXpk?=
+ =?utf-8?B?S1dzdXBSWmNoVERQd0FCNmpBVUdyc0YyUlBlWVl5NTYzSTBVSXpLY3U0Q2d5?=
+ =?utf-8?Q?mrH3J9NIeXJq9kbFe7X74OYKm?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1ab30852-ce0c-49c6-b68b-08da84ecbaa8
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR12MB5629.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Aug 2022 09:49:10.7926
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: KnLPKNl50sJqZX/aMREsVAK0n+V48lbjvlvzcjSjxGT79hGfOsek9nEDrO9AEJaa7h3Jjrt6tmIN+xIEWCvEoA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB7003
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-7/28/2022 4:17 PM, Mickaël Salaün пишет:
+On 23/08/2022 10:56, Paul Blakey wrote:
 > 
-> On 27/07/2022 21:54, Mickaël Salaün wrote:
->> 
->> 
->> On 26/07/2022 19:43, Mickaël Salaün wrote:
+> 
+> On 23/08/2022 00:10, Pablo Neira Ayuso wrote:
+>> Hi Paul,
+>>
+>> On Sun, Aug 21, 2022 at 12:23:39PM +0300, Paul Blakey wrote:
+>>> Hi!
 >>>
->>> On 21/06/2022 10:22, Konstantin Meskhidze wrote:
->>>> Hi,
->>>> This is a new V6 patch related to Landlock LSM network confinement.
->>>> It is based on the latest landlock-wip branch on top of v5.19-rc2:
->>>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=landlock-wip
->>>>
->>>> It brings refactoring of previous patch version V5:
->>>>       - Fixes some logic errors and typos.
->>>>       - Adds additional FIXTURE_VARIANT and FIXTURE_VARIANT_ADD helpers
->>>>       to support both ip4 and ip6 families and shorten seltests' code.
->>>>       - Makes TCP sockets confinement support optional in sandboxer demo.
->>>>       - Formats the code with clang-format-14
->>>>
->>>> All test were run in QEMU evironment and compiled with
->>>>    -static flag.
->>>>    1. network_test: 18/18 tests passed.
->>>>    2. base_test: 7/7 tests passed.
->>>>    3. fs_test: 59/59 tests passed.
->>>>    4. ptrace_test: 8/8 tests passed.
->>>>
->>>> Still have issue with base_test were compiled without -static flag
->>>> (landlock-wip branch without network support)
->>>> 1. base_test: 6/7 tests passed.
->>>>    Error:
->>>>    #  RUN           global.inconsistent_attr ...
->>>>    # base_test.c:54:inconsistent_attr:Expected ENOMSG (42) == errno (22)
->>>>    # inconsistent_attr: Test terminated by assertion
->>>>    #          FAIL  global.inconsistent_attr
->>>> not ok 1 global.inconsistent_attr
->>>>
->>>> LCOV - code coverage report:
->>>>               Hit  Total  Coverage
->>>> Lines:      952  1010    94.3 %
->>>> Functions:  79   82      96.3 %
->>>>
->>>> Previous versions:
->>>> v5:
->>>> https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
->>>> v4:
->>>> https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
->>>> v3:
->>>> https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
->>>> v2:
->>>> https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
->>>> v1:
->>>> https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
->>>>
->>>> Konstantin Meskhidze (17):
->>>>     landlock: renames access mask
->>>>     landlock: refactors landlock_find/insert_rule
->>>>     landlock: refactors merge and inherit functions
->>>>     landlock: moves helper functions
->>>>     landlock: refactors helper functions
->>>>     landlock: refactors landlock_add_rule syscall
->>>>     landlock: user space API network support
->>>>     landlock: adds support network rules
->>>>     landlock: implements TCP network hooks
->>>>     seltests/landlock: moves helper function
->>>>     seltests/landlock: adds tests for bind() hooks
->>>>     seltests/landlock: adds tests for connect() hooks
->>>>     seltests/landlock: adds AF_UNSPEC family test
->>>>     seltests/landlock: adds rules overlapping test
->>>>     seltests/landlock: adds ruleset expanding test
->>>>     seltests/landlock: adds invalid input data test
->>>>     samples/landlock: adds network demo
->>>>
->>>>    include/uapi/linux/landlock.h               |  49 ++
->>>>    samples/landlock/sandboxer.c                | 118 ++-
->>>>    security/landlock/Kconfig                   |   1 +
->>>>    security/landlock/Makefile                  |   2 +
->>>>    security/landlock/fs.c                      | 162 +---
->>>>    security/landlock/limits.h                  |   8 +-
->>>>    security/landlock/net.c                     | 155 ++++
->>>>    security/landlock/net.h                     |  26 +
->>>>    security/landlock/ruleset.c                 | 448 +++++++++--
->>>>    security/landlock/ruleset.h                 |  91 ++-
->>>>    security/landlock/setup.c                   |   2 +
->>>>    security/landlock/syscalls.c                | 168 +++--
->>>>    tools/testing/selftests/landlock/common.h   |  10 +
->>>>    tools/testing/selftests/landlock/config     |   4 +
->>>>    tools/testing/selftests/landlock/fs_test.c  |  10 -
->>>>    tools/testing/selftests/landlock/net_test.c | 774 ++++++++++++++++++++
->>>>    16 files changed, 1737 insertions(+), 291 deletions(-)
->>>>    create mode 100644 security/landlock/net.c
->>>>    create mode 100644 security/landlock/net.h
->>>>    create mode 100644 tools/testing/selftests/landlock/net_test.c
->>>>
->>>> -- 
->>>> 2.25.1
->>>>
+>>> The only functional difference here (for HW table) is your patches call
+>>> flush just for the del workqueue instead of del/stats/add, right?
 >>>
->>> I did a thorough review of all the code. I found that the main issue
->>> with this version is that we stick to the layers limit whereas it is
->>> only relevant for filesystem hierarchies. You'll find in the following
->>> patch miscellaneous fixes and improvement, with some TODOs to get rid of
->>> this layer limit. We'll need a test to check that too. You'll need to
->>> integrate this diff into your patches though.
->> 
->> You can find the related patch here:
->> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
+>>> Because in the end you do:
+>>> cancel_delayed_work_sync(&flow_table->gc_work);
+>>> nf_flow_table_offload_flush(flow_table);
+>>> nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+>>> nf_flow_table_gc_run(flow_table);
+>>> nf_flow_table_offload_flush_cleanup(flow_table);
+>>>
+>>>
+>>> resulting in the following sequence (after expending flush_cleanup()):
+>>>
+>>> cancel_delayed_work_sync(&flow_table->gc_work);
+>>> nf_flow_table_offload_flush(flow_table);
+>>> nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+>>> nf_flow_table_gc_run(flow_table);
+>>> flush_workqueue(nf_flow_offload_del_wq);
+>>> nf_flow_table_gc_run(flowtable);
+>>>
+>>>
+>>> Where as my (and Volodymyr's) patch does:
+>>>
+>>> cancel_delayed_work_sync(&flow_table->gc_work);
+>>> nf_flow_table_offload_flush(flow_table);
+>>> nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+>>> nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
+>>> nf_flow_table_offload_flush(flow_table);
+>>> nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, NULL);
+>>>
+>>>
+>>> so almost identical, I don't see "extra reiterative calls to flush" 
+>>> here,
+>>> but I'm fine with just your patch as it's more efficient, can we take 
+>>> yours
+>>> to both gits?
+>>
+>> Yes, I'll submit them. I'll re-use your patch description.
+>>
+>> Maybe I get a Tested-by: tag from you?
+>>
+>> Thanks!
 > 
-> Thinking more about the layer limit, I think you should keep your
-> changes and continue using ruleset.access_masks . Indeed, while it might
-> be a good thing to not be limited by the 16 layers, it would be an issue
-> with the upcoming audit feature, i.e. being able to point to the ruleset
-> responsible for a denied access. Here is a new patch (on top of the
-> other) to improve the current code:
-> https://git.kernel.org/mic/c/7d6cf40a6f81adf607ad3cc17aaa11e256beeea4
-> 
-   Thank you for help here. I have been refactoring my commits with your 
-updates. Sorry for delay, had to deal with another issues.
-> 
-> * Add a new access_masks_t for struct ruleset.  This is now u16 but
->     would soon need to change to u32 (because of the upcoming
->     LANDLOCK_ACCESS_FS_TRUNCATE).  Set back rules' access_masks_t to u16,
->     it should be enough for a while.
-> * Rename LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
->     LANDLOCK_NUM_ACCESS_FS as value.
-> * Rename landlock_set_*_access_mask() to landlock_add_*_access_mask()
->     because it OR values.
-> * Make landlock_add_*_access_mask() more resilient incorrect values.
-> * Rename some variable to make them more consistent with the rest of the
->     code.
-> * Add and update kernel documentation.
-> * Remove unused code.
-> ---
->    security/landlock/limits.h  |   8 +-
->    security/landlock/ruleset.c |  31 +++-----
->    security/landlock/ruleset.h | 150 +++++++++++++++++++++---------------
->    3 files changed, 105 insertions(+), 84 deletions(-)
-> 
-> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
-> index 660335258466..e50a12c1b797 100644
-> --- a/security/landlock/limits.h
-> +++ b/security/landlock/limits.h
-> @@ -21,15 +21,13 @@
->    #define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_REFER
->    #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
->    #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
-> +#define LANDLOCK_SHIFT_ACCESS_FS	0
->    
->    #define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
->    #define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
->    #define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
-> -// TODO: LANDLOCK_MASK_SHIFT_NET will not be useful with the new
-> -// ruleset->net_access_mask
-> -#define LANDLOCK_MASK_SHIFT_NET		16
-> -
-> -#define LANDLOCK_RULE_TYPE_NUM		LANDLOCK_RULE_NET_SERVICE
-> +#define LANDLOCK_SHIFT_ACCESS_NET	LANDLOCK_NUM_ACCESS_FS
->    
->    /* clang-format on */
-> +
->    #endif /* _SECURITY_LANDLOCK_LIMITS_H */
-> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
-> index e7555b16069a..1b3433ea4c61 100644
-> --- a/security/landlock/ruleset.c
-> +++ b/security/landlock/ruleset.c
-> @@ -47,21 +47,21 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
->    }
->    
->    struct landlock_ruleset *
-> -landlock_create_ruleset(const access_mask_t access_mask_fs,
-> -			const access_mask_t access_mask_net)
-> +landlock_create_ruleset(const access_mask_t fs_access_mask,
-> +			const access_mask_t net_access_mask)
->    {
->    	struct landlock_ruleset *new_ruleset;
->    
->    	/* Informs about useless ruleset. */
-> -	if (!access_mask_fs && !access_mask_net)
-> +	if (!fs_access_mask && !net_access_mask)
->    		return ERR_PTR(-ENOMSG);
->    	new_ruleset = create_ruleset(1);
->    	if (IS_ERR(new_ruleset))
->    		return new_ruleset;
-> -	if (access_mask_fs)
-> -		landlock_set_fs_access_mask(new_ruleset, access_mask_fs, 0);
-> -	if (access_mask_net)
-> -		landlock_set_net_access_mask(new_ruleset, access_mask_net, 0);
-> +	if (fs_access_mask)
-> +		landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
-> +	if (net_access_mask)
-> +		landlock_add_net_access_mask(new_ruleset, net_access_mask, 0);
->    	return new_ruleset;
->    }
->    
-> @@ -160,13 +160,14 @@ static void build_check_ruleset(void)
->    		.num_rules = ~0,
->    		.num_layers = ~0,
->    	};
-> -	typeof(ruleset.access_masks[0]) fs_access_mask = ~0;
-> -	typeof(ruleset.access_masks[0]) net_access_mask = ~0;
-> +	typeof(ruleset.access_masks[0]) access_masks = ~0;
->    
->    	BUILD_BUG_ON(ruleset.num_rules < LANDLOCK_MAX_NUM_RULES);
->    	BUILD_BUG_ON(ruleset.num_layers < LANDLOCK_MAX_NUM_LAYERS);
-> -	BUILD_BUG_ON(fs_access_mask < LANDLOCK_MASK_ACCESS_FS);
-> -	BUILD_BUG_ON(net_access_mask < LANDLOCK_MASK_ACCESS_NET);
-> +	BUILD_BUG_ON(access_masks <
-> +		     (LANDLOCK_MASK_ACCESS_FS << LANDLOCK_SHIFT_ACCESS_FS) +
-> +			     (LANDLOCK_MASK_ACCESS_NET
-> +			      << LANDLOCK_SHIFT_ACCESS_NET));
->    }
->    
->    /**
-> @@ -250,8 +251,6 @@ static int insert_rule(struct landlock_ruleset *const ruleset,
->    		 * Intersects access rights when it is a merge between a
->    		 * ruleset and a domain.
->    		 */
-> -		// TODO: Don't create a new rule but AND accesses (of the first
-> -		// and only layer) if !is_object_pointer(id.type)
->    		new_rule = create_rule(id, &this->layers, this->num_layers,
->    				       &(*layers)[0]);
->    		if (IS_ERR(new_rule))
-> @@ -332,7 +331,6 @@ static int merge_tree(struct landlock_ruleset *const dst,
->    	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
->    					     node) {
->    		struct landlock_layer layers[] = { {
-> -			// TODO: Set level to 1 if !is_object_pointer(key_type).
->    			.level = dst->num_layers,
->    		} };
->    		const struct landlock_id id = {
-> @@ -531,7 +529,6 @@ landlock_merge_ruleset(struct landlock_ruleset *const parent,
->    		if (parent->num_layers >= LANDLOCK_MAX_NUM_LAYERS)
->    			return ERR_PTR(-E2BIG);
->    		num_layers = parent->num_layers + 1;
-> -		// TODO: Don't increment num_layers if RB_EMPTY_ROOT(&ruleset->root_inode).
->    	} else {
->    		num_layers = 1;
->    	}
-> @@ -698,10 +695,6 @@ access_mask_t init_layer_masks(const struct landlock_ruleset *const domain,
->    
->    	switch (key_type) {
->    	case LANDLOCK_KEY_INODE:
-> -		// XXX: landlock_get_fs_access_mask() should not be removed
-> -		// once we use ruleset->net_access_mask, and we can then
-> -		// replace the @key_type argument with num_access to make the
-> -		// code simpler.
->    		get_access_mask = landlock_get_fs_access_mask;
->    		num_access = LANDLOCK_NUM_ACCESS_FS;
->    		break;
-> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
-> index 59229be378d6..669de66094ed 100644
-> --- a/security/landlock/ruleset.h
-> +++ b/security/landlock/ruleset.h
-> @@ -19,8 +19,8 @@
->    #include "limits.h"
->    #include "object.h"
->    
-> -// TODO: get back to u16 thanks to ruleset->net_access_mask
-> -typedef u32 access_mask_t;
-> +/* Rule access mask. */
-> +typedef u16 access_mask_t;
->    /* Makes sure all filesystem access rights can be stored. */
->    static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
->    /* Makes sure all network access rights can be stored. */
-> @@ -28,6 +28,12 @@ static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_NET);
->    /* Makes sure for_each_set_bit() and for_each_clear_bit() calls are OK. */
->    static_assert(sizeof(unsigned long) >= sizeof(access_mask_t));
->    
-> +/* Ruleset access masks. */
-> +typedef u16 access_masks_t;
-> +/* Makes sure all ruleset access rights can be stored. */
-> +static_assert(BITS_PER_TYPE(access_masks_t) >=
-> +	      LANDLOCK_NUM_ACCESS_FS + LANDLOCK_NUM_ACCESS_NET);
-> +
->    typedef u16 layer_mask_t;
->    /* Makes sure all layers can be checked. */
->    static_assert(BITS_PER_TYPE(layer_mask_t) >= LANDLOCK_MAX_NUM_LAYERS);
-> @@ -47,16 +53,33 @@ struct landlock_layer {
->    	access_mask_t access;
->    };
->    
-> +/**
-> + * union landlock_key - Key of a ruleset's red-black tree
-> + */
->    union landlock_key {
->    	struct landlock_object *object;
->    	uintptr_t data;
->    };
->    
-> +/**
-> + * enum landlock_key_type - Type of &union landlock_key
-> + */
->    enum landlock_key_type {
-> +	/**
-> +	 * @LANDLOCK_KEY_INODE: Type of &landlock_ruleset.root_inode's node
-> +	 * keys.
-> +	 */
->    	LANDLOCK_KEY_INODE = 1,
-> +	/**
-> +	 * @LANDLOCK_KEY_NET_PORT: Type of &landlock_ruleset.root_net_port's
-> +	 * node keys.
-> +	 */
->    	LANDLOCK_KEY_NET_PORT = 2,
->    };
->    
-> +/**
-> + * struct landlock_id - Unique rule identifier for a ruleset
-> + */
->    struct landlock_id {
->    	union landlock_key key;
->    	const enum landlock_key_type type;
-> @@ -113,15 +136,17 @@ struct landlock_hierarchy {
->     */
->    struct landlock_ruleset {
->    	/**
-> -	 * @root: Root of a red-black tree containing &struct landlock_rule
-> -	 * nodes.  Once a ruleset is tied to a process (i.e. as a domain), this
-> -	 * tree is immutable until @usage reaches zero.
-> +	 * @root_inode: Root of a red-black tree containing &struct
-> +	 * landlock_rule nodes with inode object.  Once a ruleset is tied to a
-> +	 * process (i.e. as a domain), this tree is immutable until @usage
-> +	 * reaches zero.
->    	 */
->    	struct rb_root root_inode;
->    	/**
-> -	 * @root_net_port: Root of a red-black tree containing object nodes
-> -	 * for network port. Once a ruleset is tied to a process (i.e. as a domain),
-> -	 * this tree is immutable until @usage reaches zero.
-> +	 * @root_net_port: Root of a red-black tree containing &struct
-> +	 * landlock_rule nodes with network port. Once a ruleset is tied to a
-> +	 * process (i.e. as a domain), this tree is immutable until @usage
-> +	 * reaches zero.
->    	 */
->    	struct rb_root root_net_port;
->    	/**
-> @@ -162,32 +187,25 @@ struct landlock_ruleset {
->    			 */
->    			u32 num_layers;
->    			/**
-> -			 * TODO: net_access_mask: Contains the subset of network
-> -			 * actions that are restricted by a ruleset.
-> -			 */
-> -			access_mask_t net_access_mask;
-> -			/**
-> -			 * @access_masks: Contains the subset of filesystem
-> -			 * actions that are restricted by a ruleset.  A domain
-> -			 * saves all layers of merged rulesets in a stack
-> -			 * (FAM), starting from the first layer to the last
-> -			 * one.  These layers are used when merging rulesets,
-> -			 * for user space backward compatibility (i.e.
-> -			 * future-proof), and to properly handle merged
-> +			 * @access_masks: Contains the subset of filesystem and
-> +			 * network actions that are restricted by a ruleset.
-> +			 * A domain saves all layers of merged rulesets in a
-> +			 * stack (FAM), starting from the first layer to the
-> +			 * last one.  These layers are used when merging
-> +			 * rulesets, for user space backward compatibility
-> +			 * (i.e. future-proof), and to properly handle merged
->    			 * rulesets without overlapping access rights.  These
->    			 * layers are set once and never changed for the
->    			 * lifetime of the ruleset.
->    			 */
-> -			// TODO: rename (back) to fs_access_mask because layers
-> -			// are only useful for file hierarchies.
-> -			access_mask_t access_masks[];
-> +			access_masks_t access_masks[];
->    		};
->    	};
->    };
->    
->    struct landlock_ruleset *
-> -landlock_create_ruleset(const access_mask_t access_mask_fs,
-> -			const access_mask_t access_mask_net);
-> +landlock_create_ruleset(const access_mask_t fs_access_mask,
-> +			const access_mask_t net_access_mask);
->    
->    void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
->    void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
-> @@ -210,41 +228,7 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
->    		refcount_inc(&ruleset->usage);
->    }
->    
-> -// TODO: These helpers should not be required thanks to the new ruleset->net_access_mask.
-> -/* A helper function to set a filesystem mask. */
-> -static inline void
-> -landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
-> -			    const access_mask_t access_mask_fs, u16 mask_level)
-> -{
-> -	ruleset->access_masks[mask_level] = access_mask_fs;
-> -}
-> -
-> -/* A helper function to get a filesystem mask. */
-> -static inline u32
-> -landlock_get_fs_access_mask(const struct landlock_ruleset *ruleset,
-> -			    u16 mask_level)
-> -{
-> -	return (ruleset->access_masks[mask_level] & LANDLOCK_MASK_ACCESS_FS);
-> -}
-> -
-> -/* A helper function to set a network mask. */
-> -static inline void
-> -landlock_set_net_access_mask(struct landlock_ruleset *ruleset,
-> -			     const access_mask_t access_mask_net,
-> -			     u16 mask_level)
-> -{
-> -	ruleset->access_masks[mask_level] |=
-> -		(access_mask_net << LANDLOCK_MASK_SHIFT_NET);
-> -}
-> -
-> -/* A helper function to get a network mask. */
-> -static inline u32
-> -landlock_get_net_access_mask(const struct landlock_ruleset *ruleset,
-> -			     u16 mask_level)
-> -{
-> -	return (ruleset->access_masks[mask_level] >> LANDLOCK_MASK_SHIFT_NET);
-> -}
-> -
-> +// TODO: Remove if only relevant for fs.c
->    access_mask_t get_handled_accesses(const struct landlock_ruleset *const domain,
->    				   const u16 rule_type, const u16 num_access);
->    
-> @@ -258,4 +242,50 @@ access_mask_t init_layer_masks(const struct landlock_ruleset *const domain,
->    			       layer_mask_t (*const layer_masks)[],
->    			       const enum landlock_key_type key_type);
->    
-> +static inline void
-> +landlock_add_fs_access_mask(struct landlock_ruleset *const ruleset,
-> +			    const access_mask_t fs_access_mask,
-> +			    const u16 layer_level)
-> +{
-> +	access_mask_t fs_mask = fs_access_mask & LANDLOCK_MASK_ACCESS_FS;
-> +
-> +	/* Should already be checked in sys_landlock_create_ruleset(). */
-> +	WARN_ON_ONCE(fs_access_mask != fs_mask);
-> +	// TODO: Add tests to check "|=" and not "="
-> +	ruleset->access_masks[layer_level] |=
-> +		(fs_mask << LANDLOCK_SHIFT_ACCESS_FS);
-> +}
-> +
-> +static inline void
-> +landlock_add_net_access_mask(struct landlock_ruleset *const ruleset,
-> +			     const access_mask_t net_access_mask,
-> +			     const u16 layer_level)
-> +{
-> +	access_mask_t net_mask = net_access_mask & LANDLOCK_MASK_ACCESS_NET;
-> +
-> +	/* Should already be checked in sys_landlock_create_ruleset(). */
-> +	WARN_ON_ONCE(net_access_mask != net_mask);
-> +	// TODO: Add tests to check "|=" and not "="
-> +	ruleset->access_masks[layer_level] |=
-> +		(net_mask << LANDLOCK_SHIFT_ACCESS_NET);
-> +}
-> +
-> +static inline access_mask_t
-> +landlock_get_fs_access_mask(const struct landlock_ruleset *const ruleset,
-> +			    const u16 layer_level)
-> +{
-> +	return (ruleset->access_masks[layer_level] >>
-> +		LANDLOCK_SHIFT_ACCESS_FS) &
-> +	       LANDLOCK_MASK_ACCESS_FS;
-> +}
-> +
-> +static inline access_mask_t
-> +landlock_get_net_access_mask(const struct landlock_ruleset *const ruleset,
-> +			     const u16 layer_level)
-> +{
-> +	return (ruleset->access_masks[layer_level] >>
-> +		LANDLOCK_SHIFT_ACCESS_NET) &
-> +	       LANDLOCK_MASK_ACCESS_NET;
-> +}
-> +
->    #endif /* _SECURITY_LANDLOCK_RULESET_H */
-> .
+> Sure I'll test and post.
+> Thanks.
+
+Tested-By: Paul Blakey <paulb@nvidia.com>
+
+Works, thanks.
+
+
+
+
