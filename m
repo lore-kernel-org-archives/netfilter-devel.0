@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2CB6C04AA5
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Aug 2022 22:03:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B21F0C64990
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 Aug 2022 22:03:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240798AbiHXWDv (ORCPT
+        id S240790AbiHXWDv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 24 Aug 2022 18:03:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33048 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237672AbiHXWDq (ORCPT
+        with ESMTP id S240793AbiHXWDs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Aug 2022 18:03:46 -0400
+        Wed, 24 Aug 2022 18:03:48 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DB3307675C;
-        Wed, 24 Aug 2022 15:03:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 863C976954;
+        Wed, 24 Aug 2022 15:03:47 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 02/14] netfilter: conntrack: work around exceeded receive window
-Date:   Thu, 25 Aug 2022 00:03:18 +0200
-Message-Id: <20220824220330.64283-3-pablo@netfilter.org>
+Subject: [PATCH net 04/14] netfilter: nf_tables: disallow updates of implicit chain
+Date:   Thu, 25 Aug 2022 00:03:20 +0200
+Message-Id: <20220824220330.64283-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220824220330.64283-1-pablo@netfilter.org>
 References: <20220824220330.64283-1-pablo@netfilter.org>
@@ -32,131 +32,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Updates on existing implicit chain make no sense, disallow this.
 
-When a TCP sends more bytes than allowed by the receive window, all future
-packets can be marked as invalid.
-This can clog up the conntrack table because of 5-day default timeout.
-
-Sequence of packets:
- 01 initiator > responder: [S], seq 171, win 5840, options [mss 1330,sackOK,TS val 63 ecr 0,nop,wscale 1]
- 02 responder > initiator: [S.], seq 33211, ack 172, win 65535, options [mss 1460,sackOK,TS val 010 ecr 63,nop,wscale 8]
- 03 initiator > responder: [.], ack 33212, win 2920, options [nop,nop,TS val 068 ecr 010], length 0
- 04 initiator > responder: [P.], seq 172:240, ack 33212, win 2920, options [nop,nop,TS val 279 ecr 010], length 68
-
-Window is 5840 starting from 33212 -> 39052.
-
- 05 responder > initiator: [.], ack 240, win 256, options [nop,nop,TS val 872 ecr 279], length 0
- 06 responder > initiator: [.], seq 33212:34530, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
-
-This is fine, conntrack will flag the connection as having outstanding
-data (UNACKED), which lowers the conntrack timeout to 300s.
-
- 07 responder > initiator: [.], seq 34530:35848, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
- 08 responder > initiator: [.], seq 35848:37166, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
- 09 responder > initiator: [.], seq 37166:38484, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
- 10 responder > initiator: [.], seq 38484:39802, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 1318
-
-Packet 10 is already sending more than permitted, but conntrack doesn't
-validate this (only seq is tested vs. maxend, not 'seq+len').
-
-38484 is acceptable, but only up to 39052, so this packet should
-not have been sent (or only 568 bytes, not 1318).
-
-At this point, connection is still in '300s' mode.
-
-Next packet however will get flagged:
- 11 responder > initiator: [P.], seq 39802:40128, ack 240, win 256, options [nop,nop,TS val 892 ecr 279], length 326
-
-nf_ct_proto_6: SEQ is over the upper bound (over the window of the receiver) .. LEN=378 .. SEQ=39802 ACK=240 ACK PSH ..
-
-Now, a couple of replies/acks comes in:
-
- 12 initiator > responder: [.], ack 34530, win 4368,
-[.. irrelevant acks removed ]
- 16 initiator > responder: [.], ack 39802, win 8712, options [nop,nop,TS val 296201291 ecr 2982371892], length 0
-
-This ack is significant -- this acks the last packet send by the
-responder that conntrack considered valid.
-
-This means that ack == td_end.  This will withdraw the
-'unacked data' flag, the connection moves back to the 5-day timeout
-of established conntracks.
-
- 17 initiator > responder: ack 40128, win 10030, ...
-
-This packet is also flagged as invalid.
-
-Because conntrack only updates state based on packets that are
-considered valid, packet 11 'did not exist' and that gets us:
-
-nf_ct_proto_6: ACK is over upper bound 39803 (ACKed data not seen yet) .. SEQ=240 ACK=40128 WINDOW=10030 RES=0x00 ACK URG
-
-Because this received and processed by the endpoints, the conntrack entry
-remains in a bad state, no packets will ever be considered valid again:
-
- 30 responder > initiator: [F.], seq 40432, ack 2045, win 391, ..
- 31 initiator > responder: [.], ack 40433, win 11348, ..
- 32 initiator > responder: [F.], seq 2045, ack 40433, win 11348 ..
-
-... all trigger 'ACK is over bound' test and we end up with
-non-early-evictable 5-day default timeout.
-
-NB: This patch triggers a bunch of checkpatch warnings because of silly
-indent.  I will resend the cleanup series linked below to reduce the
-indent level once this change has propagated to net-next.
-
-I could route the cleanup via nf but that causes extra backport work for
-stable maintainers.
-
-Link: https://lore.kernel.org/netfilter-devel/20220720175228.17880-1-fw@strlen.de/T/#mb1d7147d36294573cc4f81d00f9f8dadfdd06cd8
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: d0e2c7de92c7 ("netfilter: nf_tables: add NFT_CHAIN_BINDING")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 31 ++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ net/netfilter/nf_tables_api.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index a63b51dceaf2..a634c72b1ffc 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -655,6 +655,37 @@ static bool tcp_in_window(struct nf_conn *ct,
- 		    tn->tcp_be_liberal)
- 			res = true;
- 		if (!res) {
-+			bool seq_ok = before(seq, sender->td_maxend + 1);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 62cfb0e31c40..dff2b5851bbb 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2574,6 +2574,9 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, chain, nla);
+ 
+ 	if (chain != NULL) {
++		if (chain->flags & NFT_CHAIN_BINDING)
++			return -EINVAL;
 +
-+			if (!seq_ok) {
-+				u32 overshot = end - sender->td_maxend + 1;
-+				bool ack_ok;
-+
-+				ack_ok = after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1);
-+
-+				if (in_recv_win &&
-+				    ack_ok &&
-+				    overshot <= receiver->td_maxwin &&
-+				    before(sack, receiver->td_end + 1)) {
-+					/* Work around TCPs that send more bytes than allowed by
-+					 * the receive window.
-+					 *
-+					 * If the (marked as invalid) packet is allowed to pass by
-+					 * the ruleset and the peer acks this data, then its possible
-+					 * all future packets will trigger 'ACK is over upper bound' check.
-+					 *
-+					 * Thus if only the sequence check fails then do update td_end so
-+					 * possible ACK for this data can update internal state.
-+					 */
-+					sender->td_end = end;
-+					sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-+
-+					nf_ct_l4proto_log_invalid(skb, ct, hook_state,
-+								  "%u bytes more than expected", overshot);
-+					return res;
-+				}
-+			}
-+
- 			nf_ct_l4proto_log_invalid(skb, ct, hook_state,
- 			"%s",
- 			before(seq, sender->td_maxend + 1) ?
+ 		if (info->nlh->nlmsg_flags & NLM_F_EXCL) {
+ 			NL_SET_BAD_ATTR(extack, attr);
+ 			return -EEXIST;
 -- 
 2.30.2
 
