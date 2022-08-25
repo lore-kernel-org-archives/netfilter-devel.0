@@ -2,87 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB57EC3F6B0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Aug 2022 01:47:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7A2FC3F6B0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Aug 2022 02:17:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236409AbiHYBr4 (ORCPT
+        id S230450AbiHYCRm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Aug 2022 21:47:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57704 "EHLO
+        Wed, 24 Aug 2022 22:17:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52362 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235830AbiHYBrM (ORCPT
+        with ESMTP id S229529AbiHYCRl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Aug 2022 21:47:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7C1B9CCF4;
-        Wed, 24 Aug 2022 18:41:21 -0700 (PDT)
+        Wed, 24 Aug 2022 22:17:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0A4A8FD4E;
+        Wed, 24 Aug 2022 19:17:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BCFB061AEC;
-        Thu, 25 Aug 2022 01:40:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8063C433D6;
-        Thu, 25 Aug 2022 01:40:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8C52AB826DB;
+        Thu, 25 Aug 2022 02:17:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D89CC433D6;
+        Thu, 25 Aug 2022 02:17:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661391640;
-        bh=OhiCheoA+yiXdAopqj9Zlyv1wWQsfEjgr6m1eBF4ka0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GJTpWWlSocc2Lz1OPkVKYpZ1HPV1wzcTyGQFz6qU7tzdoub1i2UGCE8LYpSTGv17u
-         gZWMCOPSWISClOsySJb9dWtBy65zXypENDrYR458HFaukOoit39yc92qLhcBDZ6rdT
-         bHuiBKJiHoU1Y3vdSaYohQqh98dSmVd2KelAOQIdNFEWQ3OFLG+vXdZazBFT5/onEn
-         AwTtn20FWeyLMoB4uil2/mm94ljZ6h2CslrH8ZTF6Ad6Mtm9ZzLdqNNc30FP/1vWFL
-         9Yzaw2vVT4DdMTr9gbdO9e/SKFzAHc1AIh5jRsdNJFbaoEmn8JHwahWMpP97/ml69u
-         jhzIVgXqGQiaA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        Florian Westphal <fw@strlen.de>,
-        Sasha Levin <sashal@kernel.org>, pablo@netfilter.org,
-        kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 2/3] netfilter: conntrack: NF_CONNTRACK_PROCFS should no longer default to y
-Date:   Wed, 24 Aug 2022 21:40:31 -0400
-Message-Id: <20220825014035.24239-2-sashal@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220825014035.24239-1-sashal@kernel.org>
-References: <20220825014035.24239-1-sashal@kernel.org>
+        s=k20201202; t=1661393858;
+        bh=kq1JidIMwZaAE/E4q/UVs6JBseqoK4aZ6GCspgj6cRU=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=XwAL8YZPhz4UjlVFJERhp0AY12rfsSxLwDvV6PUKmshvG1mZQZRoO2D/lZ8CuobPK
+         t/N2DsxTPUyMOd/3Wjm6iWfdOlqc1NKOMVJTQwPy1nZGemau3fi52xltWz50uuHwKn
+         BNZwPxd/JW4/Lfj+B+8VjdU2U/XJKsfXpcB/FRy9Wxm2O1NQUabez9OTBwVc/FEKIL
+         jU3CQ9BSs1dwp6NJHZUId5oRjnkHvSlLN/kM/WQTmcmFu/XFhH+Lcrp4O4OexXhH+v
+         Kze4O84C1b7V1IjuVp0E/SSlMYMFss9vxdMTaXQp7vpNVIGY/Sqb7rpa5dTA3cjRZV
+         qbvlq0Z7/H4fw==
+Date:   Wed, 24 Aug 2022 19:17:37 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com
+Subject: Re: [PATCH net 14/14] netfilter: nf_defrag_ipv6: allow
+ nf_conntrack_frag6_high_thresh increases
+Message-ID: <20220824191737.27369f7f@kernel.org>
+In-Reply-To: <20220824220330.64283-15-pablo@netfilter.org>
+References: <20220824220330.64283-1-pablo@netfilter.org>
+ <20220824220330.64283-15-pablo@netfilter.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+On Thu, 25 Aug 2022 00:03:30 +0200 Pablo Neira Ayuso wrote:
+> Fixes: 8db3d41569bb ("netfilter: nf_defrag_ipv6: use net_generic infra")
 
-[ Upstream commit aa5762c34213aba7a72dc58e70601370805fa794 ]
+Incorrect hash here, should have been:
 
-NF_CONNTRACK_PROCFS was marked obsolete in commit 54b07dca68557b09
-("netfilter: provide config option to disable ancient procfs parts") in
-v3.3.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- net/netfilter/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index dacd2d34a790..f7cc20641b09 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -96,7 +96,6 @@ config NF_CONNTRACK_ZONES
- 
- config NF_CONNTRACK_PROCFS
- 	bool "Supply CT list in procfs (OBSOLETE)"
--	default y
- 	depends on PROC_FS
- 	---help---
- 	This option enables for the list of known conntrack entries
--- 
-2.35.1
-
+Fixes: 8b0adbe3e38d ("netfilter: nf_defrag_ipv6: use net_generic infra")
