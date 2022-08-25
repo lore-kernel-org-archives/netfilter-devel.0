@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A81FC64990
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Aug 2022 01:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1AD7C48BE4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Aug 2022 01:41:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233529AbiHYBkE (ORCPT
+        id S234226AbiHYBla (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 Aug 2022 21:40:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53682 "EHLO
+        Wed, 24 Aug 2022 21:41:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233561AbiHYBjN (ORCPT
+        with ESMTP id S234758AbiHYBkk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Aug 2022 21:39:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02DD59AF8F;
-        Wed, 24 Aug 2022 18:37:46 -0700 (PDT)
+        Wed, 24 Aug 2022 21:40:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 050FB9D111;
+        Wed, 24 Aug 2022 18:38:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5238CB826E2;
-        Thu, 25 Aug 2022 01:36:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EB87C4347C;
-        Thu, 25 Aug 2022 01:36:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C7FE161A2D;
+        Thu, 25 Aug 2022 01:38:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD8D7C433B5;
+        Thu, 25 Aug 2022 01:38:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661391418;
-        bh=8LySNvavf0C4AvLzk48MTafbWk1bIvW/zo6ROrDL8Qk=;
+        s=k20201202; t=1661391499;
+        bh=3kGQ2Pfpittpgwfh+fnOyBRvhVwMwQcJ/Pr2LtBr+nc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=bFmQyr9nMyMn433JS2XDXsqRLJVbE5kjP5KcQiAvpkudRaTyYvL8ItRo20kLWyVOs
-         01a8NdCuKQSMa7nofLe4Y7lZ+hnM9C2pTWyKJyBGhqX1E7vQk1jlJAY6UBxzLHDjW8
-         6YoILHy0Fyk9FS3SElJB2SADkp1lKE/rt71n7TXbPkkSPO53Vk/+RfJ5DYe3LDUDEd
-         Rk/2JkWci8PZaAsB8uDNkq49ZkTm4ecXRgq2VHiZ9vs5m5Vf+B54OhHNdTOh60L1KC
-         4qBiU9sA7EiQSDFxLtdCQj+6DB6082PSEhGWUymsvyQl5xil8DLrTuhIhMUDpk3azW
-         eZlrCAU+pArkw==
+        b=VopWGAxU9d2lyMl2rpQrrc0a5ARbpU4xbKc0nItp/aiXeRP4tRCU41eiPb/4ORno6
+         Lpjy9uynR3Gs5XbB7xXKbZ0c+NGUQz3RPfHEJUf/UPW2Tj6aMwtJO0OvN/t/Fc3xT0
+         /8U72WLPYKfSKFYkywt424jSb9CrbGEjYG2jxbnATtypXHtJ8DklMmo8B+ac3wWdBH
+         y5hyBcSVcTI0uWz3zQCtn8tcEBgj8FmRMYsvyJMCupOijmP2YoH2RsYcY6Mi4Uh8lg
+         0ULpAks5IOA2fb9N3pRx9vVQwUKs9TGARWKTZQciWZ1XeFgi6gBLt2ECNgZesrzevp
+         Bi+7WI5FVXcrw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -42,12 +42,12 @@ Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
         kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.19 31/38] netfilter: conntrack: NF_CONNTRACK_PROCFS should no longer default to y
-Date:   Wed, 24 Aug 2022 21:33:54 -0400
-Message-Id: <20220825013401.22096-31-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 15/20] netfilter: conntrack: NF_CONNTRACK_PROCFS should no longer default to y
+Date:   Wed, 24 Aug 2022 21:37:07 -0400
+Message-Id: <20220825013713.22656-15-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220825013401.22096-1-sashal@kernel.org>
-References: <20220825013401.22096-1-sashal@kernel.org>
+In-Reply-To: <20220825013713.22656-1-sashal@kernel.org>
+References: <20220825013713.22656-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -72,10 +72,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 deletion(-)
 
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index ddc54b6d18ee..8c0fea1bdc8d 100644
+index 92a747896f80..4f645d51c257 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -144,7 +144,6 @@ config NF_CONNTRACK_ZONES
+@@ -133,7 +133,6 @@ config NF_CONNTRACK_ZONES
  
  config NF_CONNTRACK_PROCFS
  	bool "Supply CT list in procfs (OBSOLETE)"
