@@ -2,161 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D700ECAA2E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 Aug 2022 19:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B390EECAAD2
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Aug 2022 05:03:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243144AbiHYTWN (ORCPT
+        id S231734AbiHZFDz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 Aug 2022 15:22:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33946 "EHLO
+        Fri, 26 Aug 2022 01:03:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243643AbiHYTWK (ORCPT
+        with ESMTP id S229662AbiHZFDy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Aug 2022 15:22:10 -0400
-Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C62BABD157
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2022 12:22:03 -0700 (PDT)
-Received: by mail-oi1-x22e.google.com with SMTP id a133so16655168oif.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2022 12:22:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc;
-        bh=j11I9jJbBdP2EsV8zm8vGrZ8to2ALD+DZiEMfyWlhf4=;
-        b=KjzVxnhpw6QKMn5c7oLhZ2YXfy0o0q7ppQDDA/IUG9Tba1CyII5IegLq2jiOsTx6sf
-         9PktWYsvLhv6OduPZa78FKjas33U49IxO+UttcDOMAdp3MTlGJvDXLmU3ofAZEoFFqZT
-         pafvPKdLl3l0hKSE9VWBcm6msZs1UGsFX0W0WhRtsci35MLKycrvSxbg6GiEiXprLSDz
-         35gtzDXDspqbKE6U1rd+mL/P+1w92XWlGqtbdRRUw9gw3+q3FfhdBiDfZom+YIwlZBrE
-         iSIuTPlKIwHdWrtxWrdA/Tch392Qi6e4omMMHzm85TUdvnZFdOZSQACivsWz9KW0c6uk
-         JDjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc;
-        bh=j11I9jJbBdP2EsV8zm8vGrZ8to2ALD+DZiEMfyWlhf4=;
-        b=5aTDbmCdw7ZlVQro082jmWaADlA6ypgaDEdDEId7FfB+BHoRcprOAM51IuW7DPdIIN
-         Z/6miC9nrEGacKwKGfK06uMBH4lYtAOV123L1b3zcOIVhvJTXczGw5lB6Tz4VLF+IVsl
-         eh3cU8QdXpRKPoZ0xmRzlYnY/O7xH5ppcBl9nl9z340FWQZ7IvbdDgJdqqgTfMy8cLmC
-         wLYMO/nA9KG228cJP5b7YgoUhhM4UloHMf5Yt8kM4VN8Yd9SFGsAbEnvl1ajFd7g85TY
-         9vD148pRz4A9q6d8fNitrjsbUBLdTed8WL+wE1gVzErxFqF7p8al5TdTvaWLCBbcvq9X
-         o3Og==
-X-Gm-Message-State: ACgBeo3MaDkyMX69603REwgv4dVzT+1S5zcNwwlI+M/RaVc6Q6DNkD5J
-        SRMc6HbTtRUFR0xxwSrqwZbVWPf6rAhceUt+8WJn
-X-Google-Smtp-Source: AA6agR5+NrNDgFeVEqQOH6xO8KzleveZvD24+0ma4hp6CR5I88pcrQbnickGgaR7sl54W0OczwK1VkCsRh+9Rsqv/HQ=
-X-Received: by 2002:a05:6808:3a9:b0:343:4b14:ccce with SMTP id
- n9-20020a05680803a900b003434b14cccemr243316oie.41.1661455322788; Thu, 25 Aug
- 2022 12:22:02 -0700 (PDT)
+        Fri, 26 Aug 2022 01:03:54 -0400
+X-Greylist: delayed 399 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 25 Aug 2022 22:03:51 PDT
+Received: from babylon.otherwize.co.uk (babylon.otherwize.co.uk [85.119.82.119])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF495205D1
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2022 22:03:51 -0700 (PDT)
+Received: (qmail 24654 invoked from network); 26 Aug 2022 04:57:09 -0000
+From:   David Leadbeater <dgl@dgl.cx>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Cc:     David Leadbeater <dgl@dgl.cx>
+Subject: [PATCH 1/2] netfilter: nf_conntrack_irc: Tighten matching on DCC message
+Date:   Fri, 26 Aug 2022 14:56:57 +1000
+Message-Id: <20220826045658.100360-1-dgl@dgl.cx>
+X-Mailer: git-send-email 2.37.1
 MIME-Version: 1.0
-References: <20220825001830.1911524-1-kuba@kernel.org>
-In-Reply-To: <20220825001830.1911524-1-kuba@kernel.org>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 25 Aug 2022 15:21:52 -0400
-Message-ID: <CAHC9VhSxesi0TSSvcQSr1kDhP3Vce4+O3w2diEExGEGnjGpmiw@mail.gmail.com>
-Subject: Re: [PATCH net-next] genetlink: start to validate reserved header bytes
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
-        pabeni@redhat.com, jiri@resnulli.us, johannes@sipsolutions.net,
-        linux-block@vger.kernel.org, osmocom-net-gprs@lists.osmocom.org,
-        linux-wpan@vger.kernel.org, wireguard@lists.zx2c4.com,
-        linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-        target-devel@vger.kernel.org, linux-pm@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        linux-cifs@vger.kernel.org, cluster-devel@redhat.com,
-        mptcp@lists.linux.dev, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        linux-security-module@vger.kernel.org, dev@openvswitch.org,
-        linux-s390@vger.kernel.org, tipc-discussion@lists.sourceforge.net
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 24, 2022 at 8:18 PM Jakub Kicinski <kuba@kernel.org> wrote:
->
-> We had historically not checked that genlmsghdr.reserved
-> is 0 on input which prevents us from using those precious
-> bytes in the future.
->
-> One use case would be to extend the cmd field, which is
-> currently just 8 bits wide and 256 is not a lot of commands
-> for some core families.
->
-> To make sure that new families do the right thing by default
-> put the onus of opting out of validation on existing families.
->
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> ---
-> CC: jiri@resnulli.us
-> CC: johannes@sipsolutions.net
-> CC: linux-block@vger.kernel.org
-> CC: osmocom-net-gprs@lists.osmocom.org
-> CC: linux-wpan@vger.kernel.org
-> CC: wireguard@lists.zx2c4.com
-> CC: linux-wireless@vger.kernel.org
-> CC: linux-scsi@vger.kernel.org
-> CC: target-devel@vger.kernel.org
-> CC: linux-pm@vger.kernel.org
-> CC: virtualization@lists.linux-foundation.org
-> CC: linux-cifs@vger.kernel.org
-> CC: cluster-devel@redhat.com
-> CC: mptcp@lists.linux.dev
-> CC: lvs-devel@vger.kernel.org
-> CC: netfilter-devel@vger.kernel.org
-> CC: linux-security-module@vger.kernel.org
-> CC: dev@openvswitch.org
-> CC: linux-s390@vger.kernel.org
-> CC: tipc-discussion@lists.sourceforge.net
-> ---
->  drivers/block/nbd.c                      | 1 +
->  drivers/net/gtp.c                        | 1 +
->  drivers/net/ieee802154/mac802154_hwsim.c | 1 +
->  drivers/net/macsec.c                     | 1 +
->  drivers/net/team/team.c                  | 1 +
->  drivers/net/wireguard/netlink.c          | 1 +
->  drivers/net/wireless/mac80211_hwsim.c    | 1 +
->  drivers/target/target_core_user.c        | 1 +
->  drivers/thermal/thermal_netlink.c        | 1 +
->  drivers/vdpa/vdpa.c                      | 1 +
->  fs/cifs/netlink.c                        | 1 +
->  fs/dlm/netlink.c                         | 1 +
->  fs/ksmbd/transport_ipc.c                 | 1 +
->  include/linux/genl_magic_func.h          | 1 +
->  include/net/genetlink.h                  | 3 +++
->  kernel/taskstats.c                       | 1 +
->  net/batman-adv/netlink.c                 | 1 +
->  net/core/devlink.c                       | 1 +
->  net/core/drop_monitor.c                  | 1 +
->  net/ethtool/netlink.c                    | 1 +
->  net/hsr/hsr_netlink.c                    | 1 +
->  net/ieee802154/netlink.c                 | 1 +
->  net/ieee802154/nl802154.c                | 1 +
->  net/ipv4/fou.c                           | 1 +
->  net/ipv4/tcp_metrics.c                   | 1 +
->  net/ipv6/ila/ila_main.c                  | 1 +
->  net/ipv6/ioam6.c                         | 1 +
->  net/ipv6/seg6.c                          | 1 +
->  net/l2tp/l2tp_netlink.c                  | 1 +
->  net/mptcp/pm_netlink.c                   | 1 +
->  net/ncsi/ncsi-netlink.c                  | 1 +
->  net/netfilter/ipvs/ip_vs_ctl.c           | 1 +
->  net/netlabel/netlabel_calipso.c          | 1 +
->  net/netlabel/netlabel_cipso_v4.c         | 1 +
->  net/netlabel/netlabel_mgmt.c             | 1 +
->  net/netlabel/netlabel_unlabeled.c        | 1 +
->  net/netlink/genetlink.c                  | 4 ++++
->  net/nfc/netlink.c                        | 1 +
->  net/openvswitch/conntrack.c              | 1 +
->  net/openvswitch/datapath.c               | 3 +++
->  net/openvswitch/meter.c                  | 1 +
->  net/psample/psample.c                    | 1 +
->  net/smc/smc_netlink.c                    | 3 ++-
->  net/smc/smc_pnet.c                       | 3 ++-
->  net/tipc/netlink.c                       | 1 +
->  net/tipc/netlink_compat.c                | 1 +
->  net/wireless/nl80211.c                   | 1 +
->  47 files changed, 56 insertions(+), 2 deletions(-)
+CTCP messages should only be at the start of an IRC message, not
+anywhere within it.
 
-Acked-by: Paul Moore <paul@paul-moore.com> (NetLabel)
+Fixes: 869f37d8 ("[NETFILTER]: nf_conntrack/nf_nat: add IRC helper port")
+Signed-off-by: David Leadbeater <dgl@dgl.cx>
+---
+ net/netfilter/nf_conntrack_irc.c | 34 ++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
 
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 1796c456ac98..3b9d6f8ba436 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -157,15 +157,37 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 	data = ib_ptr;
+ 	data_limit = ib_ptr + datalen;
+ 
+-	/* strlen("\1DCC SENT t AAAAAAAA P\1\n")=24
+-	 * 5+MINMATCHLEN+strlen("t AAAAAAAA P\1\n")=14 */
+-	while (data < data_limit - (19 + MINMATCHLEN)) {
+-		if (memcmp(data, "\1DCC ", 5)) {
++	/* Skip any whitespace */
++	while (data < data_limit - 10) {
++		if (*data == ' ' || *data == '\r' || *data == '\n')
++			data++;
++		else
++			break;
++	}
++
++	/* strlen("PRIVMSG x ")=10 */
++	if (data < data_limit - 10) {
++		if (strncasecmp("PRIVMSG ", data, 8))
++			goto out;
++		data += 8;
++	}
++
++	/* strlen(" :\1DCC SENT t AAAAAAAA P\1\n")=26
++	 * 7+MINMATCHLEN+strlen("t AAAAAAAA P\1\n")=26
++	 */
++	while (data < data_limit - (21 + MINMATCHLEN)) {
++		/* Find first " :", the start of message */
++		if (memcmp(data, " :", 2)) {
+ 			data++;
+ 			continue;
+ 		}
++		data += 2;
++
++		/* then check that place only for the DCC command */
++		if (memcmp(data, "\1DCC ", 5))
++			goto out;
+ 		data += 5;
+-		/* we have at least (19+MINMATCHLEN)-5 bytes valid data left */
++		/* we have at least (21+MINMATCHLEN)-(2+5) bytes valid data left */
+ 
+ 		iph = ip_hdr(skb);
+ 		pr_debug("DCC found in master %pI4:%u %pI4:%u\n",
+@@ -181,7 +203,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 			pr_debug("DCC %s detected\n", dccprotos[i]);
+ 
+ 			/* we have at least
+-			 * (19+MINMATCHLEN)-5-dccprotos[i].matchlen bytes valid
++			 * (21+MINMATCHLEN)-7-dccprotos[i].matchlen bytes valid
+ 			 * data left (== 14/13 bytes) */
+ 			if (parse_dcc(data, data_limit, &dcc_ip,
+ 				       &dcc_port, &addr_beg_p, &addr_end_p)) {
 -- 
-paul-moore.com
+2.37.1
+
