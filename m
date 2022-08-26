@@ -2,81 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A231ECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Aug 2022 13:14:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEFB5ECAAA3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 26 Aug 2022 13:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238844AbiHZNOm (ORCPT
+        id S233694AbiHZNck (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 26 Aug 2022 09:14:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49780 "EHLO
+        Fri, 26 Aug 2022 09:32:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232629AbiHZNOj (ORCPT
+        with ESMTP id S231664AbiHZNcj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Aug 2022 09:14:39 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 917213F1DD
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Aug 2022 06:14:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=rQK+vhG1aAtMdTMAj2dXZgH0n7fP4+mFRMMzXaU2Tmk=; b=p5uDk5KGrb7ORNRzADMFPz1oVh
-        hJAQu1PAUqgUfdN42SkTvqtEorQiOZaaIKv49uF1zMCOFHZFZGoH2j4Cqj4v288ACmbid+zC118iL
-        DTDoYDfeFDewTWKvn+NtMXqlO6hW3cX6X26ZoWct+4ein2b/MtJTSTJoh7J3U8Nzv118wDJqIgIqP
-        HTtiOwG/YeAd1swiuXug5Ji1DfIMpLeJETxpWKCfwiBYhqTqTI5UulhhSId2oSXZnNZ/EAUQs5qsz
-        nl2wulrSY84EKpzEtnvCjHeIfR6KVsuo4yz+7vfw6iPDqekJyOo3QSkzOTjIyjsKzH+XPj7sCsdBR
-        RceuPhdw==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1oRZAR-00070X-Ou; Fri, 26 Aug 2022 15:14:35 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] doc: nft.8: Extend limit statement's burst value info
-Date:   Fri, 26 Aug 2022 15:14:31 +0200
-Message-Id: <20220826131431.19696-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Fri, 26 Aug 2022 09:32:39 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22ED3DC0B0
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Aug 2022 06:32:37 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oRZRr-0002fU-Jr; Fri, 26 Aug 2022 15:32:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next 0/4] netfilter: conntrack: ignore overly delayed tcp packets
+Date:   Fri, 26 Aug 2022 15:32:23 +0200
+Message-Id: <20220826133227.3673-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Describe how the burst value influences the kernel module's token
-bucket in each of the two modes.
+v2:
+ - rebase on top of nf-next
+ - add patch 4, this was not part of v1.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Looking at the code, maybe one should make byte-based limit burst
-default to either zero or four times the rate value instead of the
-seemingly arbitrary 5 bytes.
----
- doc/statements.txt | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+Consider following ruleset:
+... ct state new accept
+... ct state invalid drop
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 6aaf806bcff25..af8ccb8603c67 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -332,8 +332,13 @@ ____
- A limit statement matches at a limited rate using a token bucket filter. A rule
- using this statement will match until this limit is reached. It can be used in
- combination with the log statement to give limited logging. The optional
--*over* keyword makes it match over the specified rate. Default *burst* is 5.
--if you specify *burst*, it must be non-zero value.
-+*over* keyword makes it match over the specified rate.
-+
-+The *burst* value influences the bucket size, i.e. jitter tolerance. With
-+packet-based *limit*, the bucket holds exactly *burst* packets, by default
-+five. With byte-based *limit*, the bucket's minimum size is the given rate's
-+byte value and the *burst* value adds to that, by default five bytes. If you
-+specify *burst*, it must be a non-zero value.
- 
- .limit statement values
- [options="header"]
+Normally a tcp receiver will reply with an ack once it receives
+a delayed packet. Example:
+
++0.0001 < P. 1:1461(1460) ack 1 win 257
++.0 > . 1:1(0) ack 1461 win 65535
++0.0001 < P. 1461:2921(1460) ack 1 win 257
+[..]
++0.0001 < P. 65701:67161(1460) ack 1 win 257
++.0 > . 1:1(0) ack 67161 win 65535 // all data received
+
+// delayed packet, already acked
++0.0001 < P. 1:1461(1460) ack 1 win 257
+
+// nf_ct_proto_6: SEQ is under the lower bound (already ACKed data retransmitted) IN=.. SEQ=1 ACK=4162510439 WINDOW=257 ACK PSHR
++.0 > . 1:1(0) ack 67161 win 65535
+
+If the delayed packet is not dropped, the receiver can
+immediately send another ack, but this doesn't happen if
+INVALID packets are dropped by the ruleset (which is a common thing to do).
+
+This changes conntrack to treat such packets as valid, with the caveat
+that they will not extend the tcp timeout or cause state changes.
+
+Ideally we could augment state matching so that this decision
+is pushed to the ruleset but so far I don't see how this could be done
+with the limited space we have in sk_buff (except for yet another skb
+extension, but that appears to be too much for such a narrow use case).
+
+Florian Westphal (4):
+  netfilter: conntrack: prepare tcp_in_window for ternary return value
+  netfilter: conntrack: ignore overly delayed tcp packets
+  netfilter: conntrack: remove unneeded indent level
+  netfilter: conntrack: reduce timeout when receiving out-of-window fin
+    or rst
+
+ net/netfilter/nf_conntrack_proto_tcp.c | 318 ++++++++++++++++---------
+ 1 file changed, 199 insertions(+), 119 deletions(-)
+
 -- 
-2.34.1
+2.35.1
 
