@@ -2,96 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85FFAECAAD2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 14:48:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23775C64991
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 16:33:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229747AbiH2Os2 (ORCPT
+        id S229630AbiH2QdK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 10:48:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53620 "EHLO
+        Mon, 29 Aug 2022 12:33:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbiH2Os1 (ORCPT
+        with ESMTP id S229488AbiH2QdH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 10:48:27 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA60D8E4D8
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 07:48:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1661784506;
+        Mon, 29 Aug 2022 12:33:07 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F7E2252B6;
+        Mon, 29 Aug 2022 09:33:06 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 1EE6FCE130F;
+        Mon, 29 Aug 2022 16:33:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EF56C433D6;
+        Mon, 29 Aug 2022 16:32:59 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="kNQTi4K8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1661790778;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=iDWY21XZ+Mxzv6a2uyCuIbhj0NbbXrdLTZc43XeVG0A=;
-        b=GMeX7hVckIPvUew0cJmA+bxedY0khoaDPPCDmHX5PPmBgDqS0ZoAtpj6Z5hSAeYg2TojgR
-        nvSDLxJ5ZRkPwE/wgf+Xf90qdNA8kOqJ7nwwYoPlLhAgU93Brzm8+e4DMWNjGLGFjQEEZC
-        Fj10/ctr2j8gWSdAR7CLfVLha0TaBkY=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-494-3aqHkrDCMauYaem793o2Cw-1; Mon, 29 Aug 2022 10:48:24 -0400
-X-MC-Unique: 3aqHkrDCMauYaem793o2Cw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 73CE4858F11;
-        Mon, 29 Aug 2022 14:48:19 +0000 (UTC)
-Received: from RHTPC1VM0NT (unknown [10.22.9.178])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id EEA301121314;
-        Mon, 29 Aug 2022 14:48:18 +0000 (UTC)
-From:   Aaron Conole <aconole@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, i.maximets@ovn.org,
-        pshelar@ovn.org, dev@openvswitch.org
-Subject: Re: [PATCH nf] netfilter: remove nf_conntrack_helper sysctl toggle
-References: <20220826070600.8404-1-pablo@netfilter.org>
-Date:   Mon, 29 Aug 2022 10:48:18 -0400
-In-Reply-To: <20220826070600.8404-1-pablo@netfilter.org> (Pablo Neira Ayuso's
-        message of "Fri, 26 Aug 2022 09:06:00 +0200")
-Message-ID: <f7t1qszjebx.fsf@redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.2 (gnu/linux)
+        bh=3F5bs6wEmRDmdIQe96V5iwCeWjK5YoVTeKEuPdxSfN4=;
+        b=kNQTi4K8egLdu1zNarBL47SQOYWe4WMkhvHrAwskcAG/1adfCVQBMB0gvduSpWFDbav2Tj
+        2LIfVOx4v++zHCwTjVPKSR+kizVUx5w5Af4coUKZm2ZWFtmVrqoa79XBz+/8OYj2RpZKfG
+        GTXOi7IPk9NkM/oVEZTI4HyRLLvuSmE=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 1de32b3b (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Mon, 29 Aug 2022 16:32:58 +0000 (UTC)
+Date:   Mon, 29 Aug 2022 12:32:54 -0400
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
+        pabeni@redhat.com, jiri@resnulli.us, johannes@sipsolutions.net,
+        linux-block@vger.kernel.org, osmocom-net-gprs@lists.osmocom.org,
+        linux-wpan@vger.kernel.org, wireguard@lists.zx2c4.com,
+        linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-pm@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-cifs@vger.kernel.org, cluster-devel@redhat.com,
+        mptcp@lists.linux.dev, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        linux-security-module@vger.kernel.org, dev@openvswitch.org,
+        linux-s390@vger.kernel.org, tipc-discussion@lists.sourceforge.net
+Subject: Re: [PATCH net-next] genetlink: start to validate reserved header
+ bytes
+Message-ID: <YwzqNgj/bJoawrwh@zx2c4.com>
+References: <20220825001830.1911524-1-kuba@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Scanned-By: MIMEDefang 2.78 on 10.11.54.3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220825001830.1911524-1-kuba@kernel.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Hi Jakub,
 
-> __nf_ct_try_assign_helper() remains in place but it now requires a
-> template to configure the helper.
->
-> A toggle to disable automatic helper assignment was added by:
->
->   a9006892643a ("netfilter: nf_ct_helper: allow to disable automatic helper assignment")
->
-> in 2012 to address the issues described in "Secure use of iptables and
-> connection tracking helpers". Automatic conntrack helper assignment was
-> disabled by:
->
->   3bb398d925ec ("netfilter: nf_ct_helper: disable automatic helper assignment")
->
-> back in 2016.
->
-> This patch removes the sysctl toggle, users now have to rely on explicit
-> conntrack helper configuration via ruleset.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
+On Wed, Aug 24, 2022 at 05:18:30PM -0700, Jakub Kicinski wrote:
+> diff --git a/drivers/net/wireguard/netlink.c b/drivers/net/wireguard/netlink.c
+> index d0f3b6d7f408..0c0644e762e5 100644
+> --- a/drivers/net/wireguard/netlink.c
+> +++ b/drivers/net/wireguard/netlink.c
+> @@ -621,6 +621,7 @@ static const struct genl_ops genl_ops[] = {
+>  static struct genl_family genl_family __ro_after_init = {
+>  	.ops = genl_ops,
+>  	.n_ops = ARRAY_SIZE(genl_ops),
+> +	.resv_start_op = WG_CMD_SET_DEVICE + 1,
+>  	.name = WG_GENL_NAME,
+>  	.version = WG_GENL_VERSION,
+>  	.maxattr = WGDEVICE_A_MAX,
 
-Acked-by: Aaron Conole <aconole@redhat.com>
+FWIW, I wouldn't object to just leaving this at zero. I don't know of
+any wireguard userspaces doing anything with the reserved header field.
 
-Ilya / Pravin,
-
-We will likely need to make a change in the ovs test-suite from:
-
-  sysctl -w net.netfilter.nf_conntrack_helper=0
-
-to:
-
-  sysctl -ew net.netfilter.nf_conntrack_helper=0
-
-I will cook up a quick patch
-
--Aaron
-
+Jason
