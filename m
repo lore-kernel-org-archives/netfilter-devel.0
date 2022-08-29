@@ -2,54 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58A69ECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 12:11:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CB9C0502C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 12:21:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230377AbiH2MLP (ORCPT
+        id S231769AbiH2MVP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 08:11:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54586 "EHLO
+        Mon, 29 Aug 2022 08:21:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229513AbiH2MK4 (ORCPT
+        with ESMTP id S231240AbiH2MU4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 08:10:56 -0400
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED2B02BE2;
-        Mon, 29 Aug 2022 04:55:58 -0700 (PDT)
-Received: by mail-wm1-f42.google.com with SMTP id m17-20020a7bce11000000b003a5bedec07bso8044844wmc.0;
-        Mon, 29 Aug 2022 04:55:58 -0700 (PDT)
+        Mon, 29 Aug 2022 08:20:56 -0400
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B077A6C27;
+        Mon, 29 Aug 2022 05:04:19 -0700 (PDT)
+Received: by mail-wm1-x32e.google.com with SMTP id ay39-20020a05600c1e2700b003a5503a80cfso4308443wmb.2;
+        Mon, 29 Aug 2022 05:04:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=user-agent:content-disposition:mime-version:message-id:subject:to
          :from:date:from:to:cc;
-        bh=IRQQodgrI0rD6EnFTbfw2xeJ3D9VPk4cilZ4rKqcs2s=;
-        b=I2gVmNfGRk97P073p11Fzfpoyc8jaV4344s+6x4KYyqkS6KxaPxEgqOgN9IBzfgs98
-         bpnrYyraIgjSQqwsyD0O/xQ4CkQiL31avQ172TXu1bkeWN+V6gAt3FVtALYDUD4Fc4dZ
-         0i6LYUdM/iNJArhk8oPo0VbLXrkLsL6SHiKvneLgmq00JGCmkM0+yLzmyXLUQ0+RRS5j
-         40GhMeoTcpaOc9A0wiCefIu1M3Sn9KCF8IEUDzoR8/hrcUbiW3d4U9hp5RGin/HHBEFb
-         TFu8y7DwF0XIdB12y83MR758WPbQO31QN+z3jF+nLjUaGf38uK65ndmLr8MrG+k6mb0o
-         VEOA==
+        bh=hxqAbFcpuVmdCzBbtEdTgdjeLFVRaXCJcGCpu8UlHog=;
+        b=iZzG6XdkeygsKjHjT6RHpXFX6DlmUVFzmovWRy8vNxWLeceNyeXYUKr7L2XB4+8AVq
+         aahDfhtahb9AAneV5jaW2aYoF+XY26cVuqyDoLP5zOeN57xcRIicsllLxN2YrHhBJWFF
+         f2+pHPwMdJOcfsrSB/qE2aIjOGfrwCYmc2X3awL4QPEeLhFp6eR2bQ7uhoxf15GL7Qcc
+         LmA8cXhgJ+zR9f3Bq6Nq7fyPEqxDBuHAEq0wuMSTFfURW3nElycUDfgfX6p1JCsdgyjf
+         XqSL+QnTp4e15Yz/u+jtPc+QXYOvwhTcnS8kLQvdI9J4qFa2KG4qj0bHUmYne1tcX+f4
+         rBFg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=user-agent:content-disposition:mime-version:message-id:subject:to
          :from:date:x-gm-message-state:from:to:cc;
-        bh=IRQQodgrI0rD6EnFTbfw2xeJ3D9VPk4cilZ4rKqcs2s=;
-        b=Et85OrLTu1pmtbsjbMy2Gcrx5TO3brdkix/JRz2mVxXZG3S7pt50SLymA4Py98Ry3P
-         ntXnAxCKC+VeJZ1ENOYIxfq0jVe+TQuWSBK9xkbuMH/ulqHUejZGTrJOJc/x8rePpsQ4
-         Re6k5m8pYM8q0jj/lPHlGkktrlG4O76Cvi021bU8XjObRCR0ctasm9oPvJvGDaf1vUPm
-         nEJHKkDiR4k0DTFuiUCtY/EPreVBHOh5BIK8gdjdr96g91qo0MDSA2VWKna72U2pRD8x
-         zYcb8uxsymYTfClPsGao00ozKVg5tpj1VbmSvjzuY2fz/3CSasCjHpLwbhvpoj/oVj6V
-         BAkg==
-X-Gm-Message-State: ACgBeo3mqJQxMQw5YTMsJgyoRmcjn8n4dbtAQpq7tO89budd2W6voYIh
-        FMKr1KxE/QIvugG7ajJ8nAM=
-X-Google-Smtp-Source: AA6agR5+TRvLKL/hosvHkbd9eCcEl4Wk9DuFLZLrpdGPTJ0t4wvGsTFJIwtXVuOLW+wjIaYxu+H/Mw==
-X-Received: by 2002:a05:600c:1c88:b0:3a8:3e79:7214 with SMTP id k8-20020a05600c1c8800b003a83e797214mr5101643wms.155.1661773782991;
-        Mon, 29 Aug 2022 04:49:42 -0700 (PDT)
+        bh=hxqAbFcpuVmdCzBbtEdTgdjeLFVRaXCJcGCpu8UlHog=;
+        b=mJVvjSYyfFUjLfAS/mMZULatd0WHiDEke5qX1UD7NkofsY3tUKOaCykwteyT7ja6j8
+         L/WS8BlGK0cq91vZ/IafHDGGdIoFPe6hNmzt4zLZbZAhvIGZg4o41Oq5JetMmOEAg0zl
+         Ko/n7yLfTLm5/5ABxCStTnfG8ZzUw7NM/3TysTE2XivHSqHCBT2vZGrOuCACEK2Sgy5z
+         qpVNuC3Yxb1QtRmggRYOAlifj2otK/cy7lKICeC66PvdL98fNxswrzCaZwTnkMGeY0op
+         cIqFfWbaQKiY3e4azrXga9BE/htAsSv6ISdCXShC3u/yLR8t8uKr23+tf/20NjG3LnsW
+         rpeA==
+X-Gm-Message-State: ACgBeo0++LOYr2JpCMmdCAaXh6ItEkR0tFUnE/muF0rIPfpKIes5bwh6
+        gj7+cn4gqBmV/8d2eRFfDacmf/tAe5I=
+X-Google-Smtp-Source: AA6agR7YxhHVMj9XWpJVMLkVYl9/G+NCIxQVTy6U5aONCYYoP9w92jav+CBywTEPIw3JdyMrtVUZ+g==
+X-Received: by 2002:a05:600c:3b8c:b0:3a6:71a:f286 with SMTP id n12-20020a05600c3b8c00b003a6071af286mr6463379wms.120.1661773632330;
+        Mon, 29 Aug 2022 04:47:12 -0700 (PDT)
 Received: from debian ([89.238.191.199])
-        by smtp.gmail.com with ESMTPSA id r10-20020adff10a000000b002211fc70174sm7851027wro.99.2022.08.29.04.49.27
+        by smtp.gmail.com with ESMTPSA id o7-20020adfeac7000000b00226332f9275sm6768446wrn.22.2022.08.29.04.46.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 29 Aug 2022 04:49:42 -0700 (PDT)
-Date:   Mon, 29 Aug 2022 13:47:49 +0200
+        Mon, 29 Aug 2022 04:47:12 -0700 (PDT)
+Date:   Mon, 29 Aug 2022 13:45:20 +0200
 From:   Richard Gobert <richardbgobert@gmail.com>
 To:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
         pabeni@redhat.com, corbet@lwn.net, yoshfuji@linux-ipv6.org,
@@ -59,8 +59,8 @@ To:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
         netdev@vger.kernel.org, linux-doc@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-wpan@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH 4/4] net-next: frags: dynamic timeout under load
-Message-ID: <20220829114739.GA2436@debian>
+Subject: [PATCH 1/4] net-next: frags: move inetpeer from ip4 to inet
+Message-ID: <20220829114507.GA2348@debian>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -69,113 +69,117 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Calculate a dynamic fragment reassembly timeout, taking into
-consideration the current fqdir load and the load introduced by
-the peer. Reintroduce low_thresh, which now acts as a knob for
-adjusting per-peer memory limits.
+Move frags-related inetpeer logic from ip4 to inet. This allows us to
+access peer information inside inet_frag logic.
 
 Signed-off-by: Richard Gobert <richardbgobert@gmail.com>
 ---
- Documentation/networking/ip-sysctl.rst |  3 +++
- include/net/inet_frag.h                |  1 +
- net/ipv4/inet_fragment.c               | 30 +++++++++++++++++++++++++-
- net/ipv4/ip_fragment.c                 |  2 +-
- 4 files changed, 34 insertions(+), 2 deletions(-)
+ include/net/inet_frag.h  |  1 +
+ net/ipv4/inet_fragment.c | 11 ++++++++++-
+ net/ipv4/ip_fragment.c   | 19 +++----------------
+ 3 files changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/networking/ip-sysctl.rst b/Documentation/networking/ip-sysctl.rst
-index 56cd4ea059b2..fb25aa6e22a2 100644
---- a/Documentation/networking/ip-sysctl.rst
-+++ b/Documentation/networking/ip-sysctl.rst
-@@ -247,6 +247,9 @@ ipfrag_low_thresh - LONG INTEGER
- 	begins to remove incomplete fragment queues to free up resources.
- 	The kernel still accepts new fragments for defragmentation.
- 
-+	(Since linux-6.1)
-+	Maximum memory used to reassemble IP fragments sent by a single peer.
-+
- ipfrag_time - INTEGER
- 	Time in seconds to keep an IP fragment in memory.
- 
 diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
-index 077a0ec78a58..595a6db57a0e 100644
+index 0b0876610553..05d95fad8a1a 100644
 --- a/include/net/inet_frag.h
 +++ b/include/net/inet_frag.h
-@@ -99,6 +99,7 @@ struct inet_frag_queue {
+@@ -98,6 +98,7 @@ struct inet_frag_queue {
+ 	__u8			flags;
  	u16			max_size;
  	struct fqdir		*fqdir;
- 	struct inet_peer	*peer;
-+	u64			timeout;
++	struct inet_peer	*peer;
  	struct rcu_head		rcu;
  };
  
 diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
-index 8b8d77d548d4..34c5ebba4951 100644
+index c9f9ac5013a7..c3ec1dbe7081 100644
 --- a/net/ipv4/inet_fragment.c
 +++ b/net/ipv4/inet_fragment.c
-@@ -314,6 +314,30 @@ void inet_frag_free(struct inet_frag_queue *q)
- 	call_rcu(&q->rcu, inet_frag_destroy_rcu);
- }
+@@ -23,6 +23,7 @@
+ #include <net/inet_ecn.h>
+ #include <net/ip.h>
+ #include <net/ipv6.h>
++#include <net/inetpeer.h>
  
-+static int inet_frag_update_timeout(struct inet_frag_queue *q)
+ /* Use skb->cb to track consecutive/adjacent fragments coming at
+  * the end of the queue. Nodes in the rb-tree queue will
+@@ -282,6 +283,14 @@ unsigned int inet_frag_rbtree_purge(struct rb_root *root)
+ }
+ EXPORT_SYMBOL(inet_frag_rbtree_purge);
+ 
++void inet_frag_free(struct inet_frag_queue *q)
 +{
-+	u64 peer_timeout, inet_timeout;
-+	long peer_mem, inet_mem;
-+	long high_thresh = READ_ONCE(q->fqdir->high_thresh);
-+	long low_thresh  = READ_ONCE(q->fqdir->low_thresh);
-+	u64 base_timeout = READ_ONCE(q->fqdir->timeout);
++	if (q->peer)
++		inet_putpeer(q->peer);
 +
-+	peer_mem = low_thresh - peer_mem_limit(q);
-+	inet_mem = high_thresh - frag_mem_limit(q->fqdir);
-+
-+	if (peer_mem <= 0 || inet_mem <= 0)
-+		return -ENOMEM;
-+
-+	/* Timeout changes linearly with respect to the amount of free memory.
-+	 * Choose the more permissive of the two timeouts, to avoid limiting
-+	 * the system while there is still enough memory.
-+	 */
-+	peer_timeout = div64_long(base_timeout * peer_mem, low_thresh);
-+	inet_timeout = div64_long(base_timeout * inet_mem, high_thresh);
-+	q->timeout = max_t(u64, peer_timeout, inet_timeout);
-+	return 0;
++	call_rcu(&q->rcu, inet_frag_destroy_rcu);
 +}
 +
  void inet_frag_destroy(struct inet_frag_queue *q)
  {
  	struct fqdir *fqdir;
-@@ -346,6 +370,10 @@ static struct inet_frag_queue *inet_frag_alloc(struct fqdir *fqdir,
+@@ -297,7 +306,7 @@ void inet_frag_destroy(struct inet_frag_queue *q)
+ 	sum_truesize = inet_frag_rbtree_purge(&q->rb_fragments);
+ 	sum = sum_truesize + f->qsize;
  
- 	q->fqdir = fqdir;
- 	f->constructor(q, arg);
-+	if (inet_frag_update_timeout(q)) {
-+		inet_frag_free(q);
-+		return NULL;
-+	}
- 	add_frag_mem_limit(q, f->qsize);
+-	call_rcu(&q->rcu, inet_frag_destroy_rcu);
++	inet_frag_free(q);
  
- 	timer_setup(&q->timer, f->frag_expire, 0);
-@@ -367,7 +395,7 @@ static struct inet_frag_queue *inet_frag_create(struct fqdir *fqdir,
- 		*prev = ERR_PTR(-ENOMEM);
- 		return NULL;
- 	}
--	mod_timer(&q->timer, jiffies + fqdir->timeout);
-+	mod_timer(&q->timer, jiffies + q->timeout);
- 
- 	*prev = rhashtable_lookup_get_insert_key(&fqdir->rhashtable, &q->key,
- 						 &q->node, f->rhash_params);
+ 	sub_frag_mem_limit(fqdir, sum);
+ }
 diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
-index e35061f6aadb..88a99242d721 100644
+index fb153569889e..d0c22c41cf26 100644
 --- a/net/ipv4/ip_fragment.c
 +++ b/net/ipv4/ip_fragment.c
-@@ -236,7 +236,7 @@ static int ip_frag_reinit(struct ipq *qp)
- {
- 	unsigned int sum_truesize = 0;
+@@ -65,7 +65,6 @@ struct ipq {
+ 	u16		max_df_size; /* largest frag with DF set seen */
+ 	int             iif;
+ 	unsigned int    rid;
+-	struct inet_peer *peer;
+ };
  
--	if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
-+	if (!mod_timer(&qp->q.timer, jiffies + qp->q.timeout)) {
- 		refcount_inc(&qp->q.refcnt);
- 		return -ETIMEDOUT;
- 	}
+ static u8 ip4_frag_ecn(u8 tos)
+@@ -88,21 +87,9 @@ static void ip4_frag_init(struct inet_frag_queue *q, const void *a)
+ 
+ 	q->key.v4 = *key;
+ 	qp->ecn = 0;
+-	qp->peer = q->fqdir->max_dist ?
+-		inet_getpeer_v4(net->ipv4.peers, key->saddr, key->vif, 1) :
+-		NULL;
++	q->peer = inet_getpeer_v4(net->ipv4.peers, key->saddr, key->vif, 1);
+ }
+ 
+-static void ip4_frag_free(struct inet_frag_queue *q)
+-{
+-	struct ipq *qp;
+-
+-	qp = container_of(q, struct ipq, q);
+-	if (qp->peer)
+-		inet_putpeer(qp->peer);
+-}
+-
+-
+ /* Destruction primitives. */
+ 
+ static void ipq_put(struct ipq *ipq)
+@@ -224,7 +211,7 @@ static struct ipq *ip_find(struct net *net, struct iphdr *iph,
+ /* Is the fragment too far ahead to be part of ipq? */
+ static int ip_frag_too_far(struct ipq *qp)
+ {
+-	struct inet_peer *peer = qp->peer;
++	struct inet_peer *peer = qp->q.peer;
+ 	unsigned int max = qp->q.fqdir->max_dist;
+ 	unsigned int start, end;
+ 
+@@ -741,7 +728,7 @@ static const struct rhashtable_params ip4_rhash_params = {
+ void __init ipfrag_init(void)
+ {
+ 	ip4_frags.constructor = ip4_frag_init;
+-	ip4_frags.destructor = ip4_frag_free;
++	ip4_frags.destructor = NULL;
+ 	ip4_frags.qsize = sizeof(struct ipq);
+ 	ip4_frags.frag_expire = ip_expire;
+ 	ip4_frags.frags_cache_name = ip_frag_cache_name;
 -- 
 2.36.1
 
