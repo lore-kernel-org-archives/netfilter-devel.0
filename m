@@ -2,163 +2,204 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4895ECAAD2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 17:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60378ECAAD2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 17:16:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231422AbiH2RHE (ORCPT
+        id S231336AbiH2RQM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 13:07:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43030 "EHLO
+        Mon, 29 Aug 2022 13:16:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231331AbiH2RFg (ORCPT
+        with ESMTP id S231351AbiH2RQJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 13:05:36 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B99DB9C230;
-        Mon, 29 Aug 2022 10:04:36 -0700 (PDT)
-Received: from fraeml702-chm.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MGcGq0Xjgz688y7;
-        Tue, 30 Aug 2022 01:04:03 +0800 (CST)
-Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
- fraeml702-chm.china.huawei.com (10.206.15.51) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.31; Mon, 29 Aug 2022 19:04:34 +0200
-Received: from mscphis00759.huawei.com (10.123.66.134) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 29 Aug 2022 18:04:33 +0100
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-To:     <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <hukeping@huawei.com>, <anton.sirazetdinov@huawei.com>
-Subject: [PATCH v7 16/18] seltests/landlock: add invalid input data test
-Date:   Tue, 30 Aug 2022 01:03:59 +0800
-Message-ID: <20220829170401.834298-17-konstantin.meskhidze@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
-References: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
+        Mon, 29 Aug 2022 13:16:09 -0400
+Received: from mail-yw1-x1135.google.com (mail-yw1-x1135.google.com [IPv6:2607:f8b0:4864:20::1135])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE2297963A
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 10:16:07 -0700 (PDT)
+Received: by mail-yw1-x1135.google.com with SMTP id 00721157ae682-33dce2d4bc8so212518637b3.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 10:16:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc;
+        bh=Gx2HQD0tpQBbdWem1ACm9Xo5vyJERkm6qbJN/TC6ltY=;
+        b=B7Tf35tRw6Fx3gjD21CLlEspBY/2Z8HSGoqTK8Tg9huokbrUtPaH6Z/cspLcFc2SNf
+         3/3ARPjswphIwIvNvWYPPjCkREnm7BJPdfPKcyMIzqQDeD5Rt58E2HCCC6O5CdcJw7fx
+         3nVMdy7zdOP5tqdQ11duqwxnvNcgy4sMU6BEuaR9pH2DBqSd4YA5yPcZ5+k5aIeHuba3
+         /xYlUKvo8dzzt8BAFRJvUBh3ps/CzBBtVypB1yGWGzJniKIxqdbvZE2ma4XLkS1PBNGz
+         KPsAAwDHZFdr4fz3sWKY0C3m9nsSfdJOVcMi6nTm0ONhvfELwFicDBEENKmeoDNhs7+I
+         dMJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc;
+        bh=Gx2HQD0tpQBbdWem1ACm9Xo5vyJERkm6qbJN/TC6ltY=;
+        b=fQUmEE6r1UCX9FHw3MvDaE7rf3jc9u4ks6E7ExQhbxlbp62cQkOzMG9q1NpFyQV+7T
+         qgOoUA559xwL1qyP+TY+mC8AzTPUgv9G304vKNZqWMm4a1t2+yV0OB6Us1MfOkQij1qk
+         wrX3GugLWlFStk/gGU9w3Ft0t4I+n1b8wm5d+cqYjVRp6GOHDnStIkEMAx0s6bWug+mR
+         oX5wdrueusqkr1rRZUglPmaX9CGLbAGHMlZFUVyd+ZWhJhlOGtQ0kzeZJtVNXqW/1v93
+         Kw9Ls7cwFMyE3ZGNGsHT/vxdsqeIckUvfyOspoyKuGwmrUNU3UBYDaMDi69+C5SaPyDn
+         C3kQ==
+X-Gm-Message-State: ACgBeo264hD7Ra0k2xgC9k/UHJgO7jYexOzk+qsYHJ6oF5pQJjtXW/c3
+        A4AD4JtQaojQOfGdZjBP9pOXzdQvO7O63yEiHQrerA==
+X-Google-Smtp-Source: AA6agR4s3M6fT1YIBYTzPwf5QgHCTKfc8Go4cV5CsmWe7M8dZfI4OnqvJFUMFUCnQ0aNZD5HzxPJuzguDe5979zEuYc=
+X-Received: by 2002:a0d:c681:0:b0:33c:2e21:4756 with SMTP id
+ i123-20020a0dc681000000b0033c2e214756mr10499738ywd.467.1661793366537; Mon, 29
+ Aug 2022 10:16:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.66.134]
-X-ClientProxiedBy: mscpeml100002.china.huawei.com (7.188.26.75) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+References: <20220829114739.GA2436@debian>
+In-Reply-To: <20220829114739.GA2436@debian>
+From:   Eric Dumazet <edumazet@google.com>
+Date:   Mon, 29 Aug 2022 10:15:55 -0700
+Message-ID: <CANn89iL0hCwDKGquYyGvriPEc+GXSzf+UuZG4vb0Ah-NaVL7cA@mail.gmail.com>
+Subject: Re: [PATCH 4/4] net-next: frags: dynamic timeout under load
+To:     Richard Gobert <richardbgobert@gmail.com>
+Cc:     David Miller <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        Alexander Aring <alex.aring@gmail.com>,
+        Stefan Schmidt <stefan@datenfreihafen.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Martin KaFai Lau <kafai@fb.com>,
+        netdev <netdev@vger.kernel.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-wpan@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds rules with invalid user space supplied data:
-    - out of range ruleset attribute;
-    - unhandled allowed access;
-    - zero port value;
-    - zero access value;
+On Mon, Aug 29, 2022 at 4:49 AM Richard Gobert <richardbgobert@gmail.com> wrote:
+>
+> Calculate a dynamic fragment reassembly timeout, taking into
+> consideration the current fqdir load and the load introduced by
+> the peer. Reintroduce low_thresh, which now acts as a knob for
+> adjusting per-peer memory limits.
+>
+> Signed-off-by: Richard Gobert <richardbgobert@gmail.com>
+> ---
+>  Documentation/networking/ip-sysctl.rst |  3 +++
+>  include/net/inet_frag.h                |  1 +
+>  net/ipv4/inet_fragment.c               | 30 +++++++++++++++++++++++++-
+>  net/ipv4/ip_fragment.c                 |  2 +-
+>  4 files changed, 34 insertions(+), 2 deletions(-)
+>
+> diff --git a/Documentation/networking/ip-sysctl.rst b/Documentation/networking/ip-sysctl.rst
+> index 56cd4ea059b2..fb25aa6e22a2 100644
+> --- a/Documentation/networking/ip-sysctl.rst
+> +++ b/Documentation/networking/ip-sysctl.rst
+> @@ -247,6 +247,9 @@ ipfrag_low_thresh - LONG INTEGER
+>         begins to remove incomplete fragment queues to free up resources.
+>         The kernel still accepts new fragments for defragmentation.
+>
+> +       (Since linux-6.1)
+> +       Maximum memory used to reassemble IP fragments sent by a single peer.
+> +
+>  ipfrag_time - INTEGER
+>         Time in seconds to keep an IP fragment in memory.
+>
+> diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
+> index 077a0ec78a58..595a6db57a0e 100644
+> --- a/include/net/inet_frag.h
+> +++ b/include/net/inet_frag.h
+> @@ -99,6 +99,7 @@ struct inet_frag_queue {
+>         u16                     max_size;
+>         struct fqdir            *fqdir;
+>         struct inet_peer        *peer;
+> +       u64                     timeout;
 
-Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
----
+Why u64 ?
 
-Changes since v6:
-* Adds invalid ruleset attribute test.
+This is not what the timer interface uses (look at mod_timer(), it
+uses "unsigned long")
 
-Changes since v5:
-* Formats code with clang-format-14.
+>         struct rcu_head         rcu;
+>  };
+>
+> diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+> index 8b8d77d548d4..34c5ebba4951 100644
+> --- a/net/ipv4/inet_fragment.c
+> +++ b/net/ipv4/inet_fragment.c
+> @@ -314,6 +314,30 @@ void inet_frag_free(struct inet_frag_queue *q)
+>         call_rcu(&q->rcu, inet_frag_destroy_rcu);
+>  }
+>
+> +static int inet_frag_update_timeout(struct inet_frag_queue *q)
+> +{
+> +       u64 peer_timeout, inet_timeout;
+> +       long peer_mem, inet_mem;
+> +       long high_thresh = READ_ONCE(q->fqdir->high_thresh);
+> +       long low_thresh  = READ_ONCE(q->fqdir->low_thresh);
+> +       u64 base_timeout = READ_ONCE(q->fqdir->timeout);
+> +
+> +       peer_mem = low_thresh - peer_mem_limit(q);
+> +       inet_mem = high_thresh - frag_mem_limit(q->fqdir);
+> +
+> +       if (peer_mem <= 0 || inet_mem <= 0)
+> +               return -ENOMEM;
+> +
+> +       /* Timeout changes linearly with respect to the amount of free memory.
+> +        * Choose the more permissive of the two timeouts, to avoid limiting
+> +        * the system while there is still enough memory.
+> +        */
+> +       peer_timeout = div64_long(base_timeout * peer_mem, low_thresh);
+> +       inet_timeout = div64_long(base_timeout * inet_mem, high_thresh);
+> +       q->timeout = max_t(u64, peer_timeout, inet_timeout);
 
-Changes since v4:
-* Refactors code with self->port variable.
+If/when under load, timeout is close to zero,
+we would fire many timers (increased system load) and make impossible
+for datagrams to complete.
 
-Changes since v3:
-* Adds inval test.
+In contrast, a reasonable timer and probabilistic drops of new datagrams
+when the queue is full lets some datagrams to complete.
 
----
- tools/testing/selftests/landlock/net_test.c | 66 ++++++++++++++++++++-
- 1 file changed, 65 insertions(+), 1 deletion(-)
+Make sure to test your change under a real DDOS, not only non malicious netperf
 
-diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
-index a93224d1521b..067ba45f58a5 100644
---- a/tools/testing/selftests/landlock/net_test.c
-+++ b/tools/testing/selftests/landlock/net_test.c
-@@ -26,9 +26,12 @@
-
- #define IP_ADDRESS "127.0.0.1"
-
--/* Number pending connections queue to be hold */
-+/* Number pending connections queue to be hold. */
- #define BACKLOG 10
-
-+/* Invalid attribute, out of landlock network access range. */
-+#define LANDLOCK_INVAL_ATTR 7
-+
- FIXTURE(socket)
- {
- 	uint port[MAX_SOCKET_NUM];
-@@ -719,4 +722,65 @@ TEST_F(socket, ruleset_expanding)
- 	/* Closes socket 1. */
- 	ASSERT_EQ(0, close(sockfd_1));
- }
-+
-+TEST_F(socket, inval)
-+{
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP
-+	};
-+	struct landlock_ruleset_attr ruleset_attr_inval = {
-+		.handled_access_net = LANDLOCK_INVAL_ATTR
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+		.port = self->port[0],
-+	};
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = 0,
-+	};
-+	struct landlock_net_service_attr net_service_3 = {
-+		.allowed_access = 0,
-+		.port = self->port[1],
-+	};
-+	struct landlock_net_service_attr net_service_4 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = self->port[2],
-+	};
-+
-+	/* Checks invalid ruleset attribute. */
-+	const int ruleset_fd_inv = landlock_create_ruleset(
-+		&ruleset_attr_inval, sizeof(ruleset_attr_inval), 0);
-+	ASSERT_EQ(-1, ruleset_fd_inv);
-+	ASSERT_EQ(EINVAL, errno);
-+
-+	/* Gets ruleset. */
-+	const int ruleset_fd =
-+		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-+	ASSERT_LE(0, ruleset_fd);
-+
-+	/* Checks unhandled allowed_access. */
-+	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_1, 0));
-+	ASSERT_EQ(EINVAL, errno);
-+
-+	/* Checks zero port value. */
-+	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_2, 0));
-+	ASSERT_EQ(EINVAL, errno);
-+
-+	/* Checks zero access value. */
-+	ASSERT_EQ(-1, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+					&net_service_3, 0));
-+	ASSERT_EQ(ENOMSG, errno);
-+
-+	/* Adds with legitimate values. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_4, 0));
-+
-+	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd);
-+	ASSERT_EQ(0, close(ruleset_fd));
-+}
- TEST_HARNESS_MAIN
---
-2.25.1
-
+> +       return 0;
+> +}
+> +
+>  void inet_frag_destroy(struct inet_frag_queue *q)
+>  {
+>         struct fqdir *fqdir;
+> @@ -346,6 +370,10 @@ static struct inet_frag_queue *inet_frag_alloc(struct fqdir *fqdir,
+>
+>         q->fqdir = fqdir;
+>         f->constructor(q, arg);
+> +       if (inet_frag_update_timeout(q)) {
+> +               inet_frag_free(q);
+> +               return NULL;
+> +       }
+>         add_frag_mem_limit(q, f->qsize);
+>
+>         timer_setup(&q->timer, f->frag_expire, 0);
+> @@ -367,7 +395,7 @@ static struct inet_frag_queue *inet_frag_create(struct fqdir *fqdir,
+>                 *prev = ERR_PTR(-ENOMEM);
+>                 return NULL;
+>         }
+> -       mod_timer(&q->timer, jiffies + fqdir->timeout);
+> +       mod_timer(&q->timer, jiffies + q->timeout);
+>
+>         *prev = rhashtable_lookup_get_insert_key(&fqdir->rhashtable, &q->key,
+>                                                  &q->node, f->rhash_params);
+> diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+> index e35061f6aadb..88a99242d721 100644
+> --- a/net/ipv4/ip_fragment.c
+> +++ b/net/ipv4/ip_fragment.c
+> @@ -236,7 +236,7 @@ static int ip_frag_reinit(struct ipq *qp)
+>  {
+>         unsigned int sum_truesize = 0;
+>
+> -       if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
+> +       if (!mod_timer(&qp->q.timer, jiffies + qp->q.timeout)) {
+>                 refcount_inc(&qp->q.refcnt);
+>                 return -ETIMEDOUT;
+>         }
+> --
+> 2.36.1
+>
