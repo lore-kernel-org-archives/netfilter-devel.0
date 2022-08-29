@@ -2,121 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C3EDECAAD8
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 22:21:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F5E5ECAAD4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 23:33:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230013AbiH2WVN (ORCPT
+        id S229601AbiH2Xdn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 18:21:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57040 "EHLO
+        Mon, 29 Aug 2022 19:33:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229938AbiH2WVK (ORCPT
+        with ESMTP id S229732AbiH2Xde (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 18:21:10 -0400
-Received: from mail-yw1-x112b.google.com (mail-yw1-x112b.google.com [IPv6:2607:f8b0:4864:20::112b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 193DD7C1A7
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 15:21:06 -0700 (PDT)
-Received: by mail-yw1-x112b.google.com with SMTP id 00721157ae682-334dc616f86so230776047b3.8
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 15:21:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc;
-        bh=yC7Xn5oBtw6noXWiTwMxITW9fGUbbPFit3BuwbqYikY=;
-        b=rbjMIzikOkFtg718VqJL0ohceKlt+MCOFy0LBZwxmorGqOKrAL1O8ljSeN2BpObl7t
-         kh6ILRZ7YV00BzIOPJAJZng/RfqomVhVbjIL1ursV3rXAl1HxyPtihZkZGXmqdDyhekX
-         HP9MM6TwZBVcpPoAW2FGmWm/R8LOcrqxoVRNec2EC71cfV7Z1yzrNYFtZg2//AOWYNT8
-         aYChVlC68fgwynn2foxgINFyeHbFqRPirrJmnD5/X7+PxrpqpuyNu7qlkVbNAV8jgbVt
-         CyLw3XmKmUgs9rVyBAw7fHCi9iz55ooz5gkv5QWMpqfFuzW2BEMLwCVRVlPnIKLnRhkj
-         EU4w==
+        Mon, 29 Aug 2022 19:33:34 -0400
+Received: from mail-il1-f200.google.com (mail-il1-f200.google.com [209.85.166.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08929857E0
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 16:33:33 -0700 (PDT)
+Received: by mail-il1-f200.google.com with SMTP id a4-20020a056e0208a400b002e4621942dfso7022621ilt.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 16:33:32 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc;
-        bh=yC7Xn5oBtw6noXWiTwMxITW9fGUbbPFit3BuwbqYikY=;
-        b=o7ZGnbrHJmzmkppHw9kq3LGGna39dCI9Y0sBruxLYCd5JTVRjc/PG9dtX+JIb8A8px
-         uE+YNAUw4LfHWHx/q0CmPaOdPXsMjKSkNhQSaT/cMTwejz7O2TClmwk5eleEo/2b1vYd
-         Xf+weAfcjsREEpHXNkgW7aiaMHm3d9mVP9RIisrB6slhAru7XtKZ0r+KWN6nUTcIiszl
-         Da+j4IxMuSr1A1rm3ns0iJrbDtgT0ZCZnApJfesxWNvMS1e4IwFSgheUZtiJyJuuWii9
-         mX8IfkvoE3jOb7d7Xt2dzLpUFcyJubxe1qv/c5KpomPiZ/O9ezlGE/9BpJRQNSMrXifv
-         lymg==
-X-Gm-Message-State: ACgBeo31wYGuYBXM/ZqUYMj9lTF64BMKmvMP6VhNK+IQ10MZjMrPDbHF
-        eYO6XX2T9eBSbsfgOZGdlL6jEdoj03yVGNYry7qzvw==
-X-Google-Smtp-Source: AA6agR7sSIXDEvLT4XuoInlUnsIOULuJa/QxwlWgVInrtLsyoolb69zlECWbq8HnRHyGUVDjsMpv9iBBolse7YKTTTQ=
-X-Received: by 2002:a25:b083:0:b0:695:9a91:317d with SMTP id
- f3-20020a25b083000000b006959a91317dmr9108585ybj.387.1661811665051; Mon, 29
- Aug 2022 15:21:05 -0700 (PDT)
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc;
+        bh=pQsvM0lNlMEBpkZs+6Ir9JLbqpOTi5k2pYARw9hKdac=;
+        b=XOnAN2juWTgswf9nNx+LX5+4jEQvlGhwNOEPfMLypFJpbuQJfm5LXoy4tYUThJceU4
+         ZAUrYvdv3oyEbDeVzCaaRimD1JzbToVDkXGKnsldapCI9czK3NVikgzqFsUnVGSjCcl8
+         6OE4TtVulieNwtYvHOZwveY9aFnhEK1vyfh+LhVJ/f9nQYvAysRXXg5WC4PFhl5jPxci
+         E406KhVXZXycMGDMUUSwaZ+QEp+tegKd8vzC+IUXCySYEktZSSTPd8zNivGcL/3scuL+
+         O+SnHDD+HDH7WczPIH2qz4nBT7QgQff2Bi5/nb56XbQJhkUlMfegHfQc91HspNOrCgz8
+         6J1A==
+X-Gm-Message-State: ACgBeo3XLZGXwcki4lzHTQrbXdElydOg9w3Sha0YeZWVe9Lnr+UNWi5W
+        IeC8djdJlVzaDVdvnArT+fHmtzwcAkkZQYpbNX7FsCvXe6ni
+X-Google-Smtp-Source: AA6agR5C6Qga/30TVGHv4ICPLSc92WhV+sBpWb2mo+IP20l01OrArs+sJYQqXxJXN4xomqaZsq9enJTHDKmB7j3DDMS+mDXr00nb
 MIME-Version: 1.0
-References: <20220829114600.GA2374@debian>
-In-Reply-To: <20220829114600.GA2374@debian>
-From:   Eric Dumazet <edumazet@google.com>
-Date:   Mon, 29 Aug 2022 15:20:54 -0700
-Message-ID: <CANn89iLH4nDuOHS-0AzYBYOz4f3byZndKXG3_VefVxUbujJZNg@mail.gmail.com>
-Subject: Re: [PATCH 2/4] net-next: ip6: fetch inetpeer in ip6frag_init
-To:     Richard Gobert <richardbgobert@gmail.com>
-Cc:     David Miller <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Martin KaFai Lau <kafai@fb.com>,
-        netdev <netdev@vger.kernel.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, linux-wpan@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+X-Received: by 2002:a05:6638:3804:b0:349:881b:a4bc with SMTP id
+ i4-20020a056638380400b00349881ba4bcmr10689708jav.313.1661816012409; Mon, 29
+ Aug 2022 16:33:32 -0700 (PDT)
+Date:   Mon, 29 Aug 2022 16:33:32 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000001a12f105e769b1eb@google.com>
+Subject: [syzbot] memory leak in nft_chain_parse_hook
+From:   syzbot <syzbot+5fcdbfab6d6744c57418@syzkaller.appspotmail.com>
+To:     coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
+        fw@strlen.de, kadlec@netfilter.org, kuba@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 29, 2022 at 4:48 AM Richard Gobert <richardbgobert@gmail.com> wrote:
->
-> Obtain the IPv6 peer in ip6frag_init, to allow for peer memory tracking
-> in the IPv6 fragment reassembly logic.
+Hello,
 
-Sorry, this is adding yet another bottleneck, and will make DDOS
-attacks based on fragments more effective.
+syzbot found the following issue on:
 
-Whole concept of 'peers' based on IPv6 addresses is rather weak, as
-hosts with IPv6 can easily
-get millions of different 'addresses'.
+HEAD commit:    4c612826bec1 Merge tag 'net-6.0-rc3' of git://git.kernel.o..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13db4765080000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=b1831d905b683446
+dashboard link: https://syzkaller.appspot.com/bug?extid=5fcdbfab6d6744c57418
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1263c283080000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=111b6545080000
 
->
-> Signed-off-by: Richard Gobert <richardbgobert@gmail.com>
-> ---
->  include/net/ipv6_frag.h | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/include/net/ipv6_frag.h b/include/net/ipv6_frag.h
-> index 5052c66e22d2..62760cd3bdd1 100644
-> --- a/include/net/ipv6_frag.h
-> +++ b/include/net/ipv6_frag.h
-> @@ -6,6 +6,7 @@
->  #include <net/addrconf.h>
->  #include <net/ipv6.h>
->  #include <net/inet_frag.h>
-> +#include <net/inetpeer.h>
->
->  enum ip6_defrag_Richard Goberts {
->         IP6_DEFRAG_LOCAL_DELIVER,
-> @@ -33,9 +34,11 @@ static inline void ip6frag_init(struct inet_frag_queue *q, const void *a)
->  {
->         struct frag_queue *fq = container_of(q, struct frag_queue, q);
->         const struct frag_v6_compare_key *key = a;
-> +       const struct net *net = q->fqdir->net;
->
->         q->key.v6 = *key;
->         fq->ecn = 0;
-> +       q->peer = inet_getpeer_v6(net->ipv6.peers, &key->saddr, 1);
->  }
->
->  static inline u32 ip6frag_key_hashfn(const void *data, u32 len, u32 seed)
-> --
-> 2.36.1
->
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+5fcdbfab6d6744c57418@syzkaller.appspotmail.com
+
+executing program
+executing program
+BUG: memory leak
+unreferenced object 0xffff88810180b100 (size 96):
+  comm "syz-executor133", pid 3619, jiffies 4294945714 (age 12.690s)
+  hex dump (first 32 bytes):
+    28 64 23 02 81 88 ff ff 28 64 23 02 81 88 ff ff  (d#.....(d#.....
+    90 a8 aa 83 ff ff ff ff 00 00 b5 0f 81 88 ff ff  ................
+  backtrace:
+    [<ffffffff83a8c59b>] kmalloc include/linux/slab.h:600 [inline]
+    [<ffffffff83a8c59b>] nft_netdev_hook_alloc+0x3b/0xc0 net/netfilter/nf_tables_api.c:1901
+    [<ffffffff83a9239a>] nft_chain_parse_netdev net/netfilter/nf_tables_api.c:1998 [inline]
+    [<ffffffff83a9239a>] nft_chain_parse_hook+0x33a/0x530 net/netfilter/nf_tables_api.c:2073
+    [<ffffffff83a9b14b>] nf_tables_addchain.constprop.0+0x10b/0x950 net/netfilter/nf_tables_api.c:2218
+    [<ffffffff83a9c41b>] nf_tables_newchain+0xa8b/0xc60 net/netfilter/nf_tables_api.c:2593
+    [<ffffffff83a3d6a6>] nfnetlink_rcv_batch+0xa46/0xd20 net/netfilter/nfnetlink.c:517
+    [<ffffffff83a3db79>] nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:638 [inline]
+    [<ffffffff83a3db79>] nfnetlink_rcv+0x1f9/0x220 net/netfilter/nfnetlink.c:656
+    [<ffffffff83a13b17>] netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+    [<ffffffff83a13b17>] netlink_unicast+0x397/0x4c0 net/netlink/af_netlink.c:1345
+    [<ffffffff83a13fd6>] netlink_sendmsg+0x396/0x710 net/netlink/af_netlink.c:1921
+    [<ffffffff83865ab6>] sock_sendmsg_nosec net/socket.c:714 [inline]
+    [<ffffffff83865ab6>] sock_sendmsg+0x56/0x80 net/socket.c:734
+    [<ffffffff8386601c>] ____sys_sendmsg+0x36c/0x390 net/socket.c:2482
+    [<ffffffff8386a918>] ___sys_sendmsg+0xa8/0x110 net/socket.c:2536
+    [<ffffffff8386aaa8>] __sys_sendmsg+0x88/0x100 net/socket.c:2565
+    [<ffffffff845e5955>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff845e5955>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
