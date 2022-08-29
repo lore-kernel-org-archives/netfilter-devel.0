@@ -2,57 +2,57 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60378ECAAD2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 17:16:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FC9ECAAD8
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 22:16:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231336AbiH2RQM (ORCPT
+        id S229927AbiH2WQF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 13:16:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35864 "EHLO
+        Mon, 29 Aug 2022 18:16:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231351AbiH2RQJ (ORCPT
+        with ESMTP id S229854AbiH2WQC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 13:16:09 -0400
-Received: from mail-yw1-x1135.google.com (mail-yw1-x1135.google.com [IPv6:2607:f8b0:4864:20::1135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE2297963A
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 10:16:07 -0700 (PDT)
-Received: by mail-yw1-x1135.google.com with SMTP id 00721157ae682-33dce2d4bc8so212518637b3.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 10:16:07 -0700 (PDT)
+        Mon, 29 Aug 2022 18:16:02 -0400
+Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2045D6D578
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 15:16:00 -0700 (PDT)
+Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-33da3a391d8so230946647b3.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 15:16:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc;
-        bh=Gx2HQD0tpQBbdWem1ACm9Xo5vyJERkm6qbJN/TC6ltY=;
-        b=B7Tf35tRw6Fx3gjD21CLlEspBY/2Z8HSGoqTK8Tg9huokbrUtPaH6Z/cspLcFc2SNf
-         3/3ARPjswphIwIvNvWYPPjCkREnm7BJPdfPKcyMIzqQDeD5Rt58E2HCCC6O5CdcJw7fx
-         3nVMdy7zdOP5tqdQ11duqwxnvNcgy4sMU6BEuaR9pH2DBqSd4YA5yPcZ5+k5aIeHuba3
-         /xYlUKvo8dzzt8BAFRJvUBh3ps/CzBBtVypB1yGWGzJniKIxqdbvZE2ma4XLkS1PBNGz
-         KPsAAwDHZFdr4fz3sWKY0C3m9nsSfdJOVcMi6nTm0ONhvfELwFicDBEENKmeoDNhs7+I
-         dMJw==
+        bh=rqtjA3ycvFVDXfKtFrFvUJoaJ8uMW4Qj8zP4lq7xxuk=;
+        b=Zcp7TuQVMdNRqCDTjABe+e6bbyC5h/8l5nChIUF6DqtmLLY4/dhuO1NlihVLDETkwP
+         aJd+UJ/ZSS/3BBHWlVnVZiCVTfXAqB2g2pWyOIlilXfXOddpFdRFqNYSmjsaeCC2rzuP
+         dXSPye/2e7cDvPehKkidIlm9/tprvWZYYSd4FQIeXaTUnD0f2kfuqiO+FFv+e7V7dfDH
+         yN2eNXfaiahoymufGhWUbIn5ZST4qseZd91mOeQm6ZvI4X3gf7zXnNxwnOs9esX5wUw4
+         cEjNu1w2xRloqmhhd5u/dOwN2mduw5qa/qq8gocJk3IMeCco/fzQQMT3/JoPKSkfz7kG
+         WnwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc;
-        bh=Gx2HQD0tpQBbdWem1ACm9Xo5vyJERkm6qbJN/TC6ltY=;
-        b=fQUmEE6r1UCX9FHw3MvDaE7rf3jc9u4ks6E7ExQhbxlbp62cQkOzMG9q1NpFyQV+7T
-         qgOoUA559xwL1qyP+TY+mC8AzTPUgv9G304vKNZqWMm4a1t2+yV0OB6Us1MfOkQij1qk
-         wrX3GugLWlFStk/gGU9w3Ft0t4I+n1b8wm5d+cqYjVRp6GOHDnStIkEMAx0s6bWug+mR
-         oX5wdrueusqkr1rRZUglPmaX9CGLbAGHMlZFUVyd+ZWhJhlOGtQ0kzeZJtVNXqW/1v93
-         Kw9Ls7cwFMyE3ZGNGsHT/vxdsqeIckUvfyOspoyKuGwmrUNU3UBYDaMDi69+C5SaPyDn
-         C3kQ==
-X-Gm-Message-State: ACgBeo264hD7Ra0k2xgC9k/UHJgO7jYexOzk+qsYHJ6oF5pQJjtXW/c3
-        A4AD4JtQaojQOfGdZjBP9pOXzdQvO7O63yEiHQrerA==
-X-Google-Smtp-Source: AA6agR4s3M6fT1YIBYTzPwf5QgHCTKfc8Go4cV5CsmWe7M8dZfI4OnqvJFUMFUCnQ0aNZD5HzxPJuzguDe5979zEuYc=
-X-Received: by 2002:a0d:c681:0:b0:33c:2e21:4756 with SMTP id
- i123-20020a0dc681000000b0033c2e214756mr10499738ywd.467.1661793366537; Mon, 29
- Aug 2022 10:16:06 -0700 (PDT)
+        bh=rqtjA3ycvFVDXfKtFrFvUJoaJ8uMW4Qj8zP4lq7xxuk=;
+        b=BszRpXibS22h3+4qOontcg5NmIm5llvKNkGmrXjJ3Lzmk8VUFZrszw0h7pWkNQ3AOr
+         bzsr0UWfxxiQ3NRMFHFwHZKadX1OzQIp1QyyDDaTHofIFfaR12mMJpJHdnTEV3gy5jTt
+         Cup9M2vr4IhSlwPTG+VUYW9m1lZLTVKfi87yxvibTggifojI5od7uU5pukn0zzypK5Vg
+         kcFeRmbEqFk2cnzeguj4pXX79GCnW5sH0q2ippwuKMu1SP69PnKxHHxG1P68zL1mArWZ
+         1s82DGaVqWSv+78KSvnro88J7jcqUeQCrepx2i0Ni27oQ4sZiumjlSapMWS8LX0V8FoF
+         TLwA==
+X-Gm-Message-State: ACgBeo2QFaxlgLnW9oHgJ3OFIPfa/pg+bQKbHFfyU1TkDE20Ztsc0uV9
+        6BOGQB4XkA1dNiOq3r+cf7uS/bJo+CCPLPAdGi9vWA==
+X-Google-Smtp-Source: AA6agR42PMhqlidw+YU2MJU+wDfmio2UkR5G8PhTe+66ayL9PeCfHy2X4AoWBqPOLUQHO9ryU1vygZGwJryLUIUd7vw=
+X-Received: by 2002:a25:7cc6:0:b0:67a:6a2e:3d42 with SMTP id
+ x189-20020a257cc6000000b0067a6a2e3d42mr9800590ybc.231.1661811359012; Mon, 29
+ Aug 2022 15:15:59 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220829114739.GA2436@debian>
-In-Reply-To: <20220829114739.GA2436@debian>
+References: <20220829114648.GA2409@debian>
+In-Reply-To: <20220829114648.GA2409@debian>
 From:   Eric Dumazet <edumazet@google.com>
-Date:   Mon, 29 Aug 2022 10:15:55 -0700
-Message-ID: <CANn89iL0hCwDKGquYyGvriPEc+GXSzf+UuZG4vb0Ah-NaVL7cA@mail.gmail.com>
-Subject: Re: [PATCH 4/4] net-next: frags: dynamic timeout under load
+Date:   Mon, 29 Aug 2022 15:15:47 -0700
+Message-ID: <CANn89iLkfMUK8n5w00naST9J+KrLaAqqg2r0X9Sd-L0XzpLzSQ@mail.gmail.com>
+Subject: Re: [PATCH 3/4] net-next: frags: add inetpeer frag_mem tracking
 To:     Richard Gobert <richardbgobert@gmail.com>
 Cc:     David Miller <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -75,131 +75,230 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 29, 2022 at 4:49 AM Richard Gobert <richardbgobert@gmail.com> wrote:
+On Mon, Aug 29, 2022 at 4:48 AM Richard Gobert <richardbgobert@gmail.com> wrote:
 >
-> Calculate a dynamic fragment reassembly timeout, taking into
-> consideration the current fqdir load and the load introduced by
-> the peer. Reintroduce low_thresh, which now acts as a knob for
-> adjusting per-peer memory limits.
+> Track per-peer fragment memory usage, using the existing per-fqdir
+> memory tracking logic.
+
+This is a rather terse changelog.
+
+We tried to get rid of any dependence over inetpeer, which is not
+resistant against DDOS attacks.
+
+So I would not add a new dependency.
+
+Also, tracking memory per peer will not really help in case of bursts ?
+
 >
 > Signed-off-by: Richard Gobert <richardbgobert@gmail.com>
 > ---
->  Documentation/networking/ip-sysctl.rst |  3 +++
->  include/net/inet_frag.h                |  1 +
->  net/ipv4/inet_fragment.c               | 30 +++++++++++++++++++++++++-
->  net/ipv4/ip_fragment.c                 |  2 +-
->  4 files changed, 34 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/networking/ip-sysctl.rst b/Documentation/networking/ip-sysctl.rst
-> index 56cd4ea059b2..fb25aa6e22a2 100644
-> --- a/Documentation/networking/ip-sysctl.rst
-> +++ b/Documentation/networking/ip-sysctl.rst
-> @@ -247,6 +247,9 @@ ipfrag_low_thresh - LONG INTEGER
->         begins to remove incomplete fragment queues to free up resources.
->         The kernel still accepts new fragments for defragmentation.
->
-> +       (Since linux-6.1)
-> +       Maximum memory used to reassemble IP fragments sent by a single peer.
-> +
->  ipfrag_time - INTEGER
->         Time in seconds to keep an IP fragment in memory.
+>  include/net/inet_frag.h                 | 11 ++------
+>  include/net/inetpeer.h                  |  1 +
+>  net/ieee802154/6lowpan/reassembly.c     |  2 +-
+>  net/ipv4/inet_fragment.c                | 36 ++++++++++++++++++++-----
+>  net/ipv4/inetpeer.c                     |  1 +
+>  net/ipv4/ip_fragment.c                  |  4 +--
+>  net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
+>  net/ipv6/reassembly.c                   |  2 +-
+>  8 files changed, 38 insertions(+), 21 deletions(-)
 >
 > diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
-> index 077a0ec78a58..595a6db57a0e 100644
+> index 05d95fad8a1a..077a0ec78a58 100644
 > --- a/include/net/inet_frag.h
 > +++ b/include/net/inet_frag.h
-> @@ -99,6 +99,7 @@ struct inet_frag_queue {
->         u16                     max_size;
->         struct fqdir            *fqdir;
->         struct inet_peer        *peer;
-> +       u64                     timeout;
-
-Why u64 ?
-
-This is not what the timer interface uses (look at mod_timer(), it
-uses "unsigned long")
-
->         struct rcu_head         rcu;
->  };
->
-> diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
-> index 8b8d77d548d4..34c5ebba4951 100644
-> --- a/net/ipv4/inet_fragment.c
-> +++ b/net/ipv4/inet_fragment.c
-> @@ -314,6 +314,30 @@ void inet_frag_free(struct inet_frag_queue *q)
->         call_rcu(&q->rcu, inet_frag_destroy_rcu);
+> @@ -155,15 +155,8 @@ static inline long frag_mem_limit(const struct fqdir *fqdir)
+>         return atomic_long_read(&fqdir->mem);
 >  }
 >
-> +static int inet_frag_update_timeout(struct inet_frag_queue *q)
+> -static inline void sub_frag_mem_limit(struct fqdir *fqdir, long val)
+> -{
+> -       atomic_long_sub(val, &fqdir->mem);
+> -}
+> -
+> -static inline void add_frag_mem_limit(struct fqdir *fqdir, long val)
+> -{
+> -       atomic_long_add(val, &fqdir->mem);
+> -}
+> +void sub_frag_mem_limit(struct inet_frag_queue *q, long val);
+> +void add_frag_mem_limit(struct inet_frag_queue *q, long val);
+>
+>  /* RFC 3168 support :
+>   * We want to check ECN values of all fragments, do detect invalid combinations.
+> diff --git a/include/net/inetpeer.h b/include/net/inetpeer.h
+> index 74ff688568a0..1c602a706742 100644
+> --- a/include/net/inetpeer.h
+> +++ b/include/net/inetpeer.h
+> @@ -41,6 +41,7 @@ struct inet_peer {
+>         u32                     rate_tokens;    /* rate limiting for ICMP */
+>         u32                     n_redirects;
+>         unsigned long           rate_last;
+> +       atomic_long_t           frag_mem;
+>         /*
+>          * Once inet_peer is queued for deletion (refcnt == 0), following field
+>          * is not available: rid
+> diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
+> index a91283d1e5bf..0bf207e94082 100644
+> --- a/net/ieee802154/6lowpan/reassembly.c
+> +++ b/net/ieee802154/6lowpan/reassembly.c
+> @@ -135,7 +135,7 @@ static int lowpan_frag_queue(struct lowpan_frag_queue *fq,
+>                 fq->q.flags |= INET_FRAG_FIRST_IN;
+>
+>         fq->q.meat += skb->len;
+> -       add_frag_mem_limit(fq->q.fqdir, skb->truesize);
+> +       add_frag_mem_limit(&fq->q, skb->truesize);
+>
+>         if (fq->q.flags == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
+>             fq->q.meat == fq->q.len) {
+> diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+> index c3ec1dbe7081..8b8d77d548d4 100644
+> --- a/net/ipv4/inet_fragment.c
+> +++ b/net/ipv4/inet_fragment.c
+> @@ -250,6 +250,29 @@ void inet_frag_kill(struct inet_frag_queue *fq)
+>  }
+>  EXPORT_SYMBOL(inet_frag_kill);
+>
+> +static inline long peer_mem_limit(const struct inet_frag_queue *q)
 > +{
-> +       u64 peer_timeout, inet_timeout;
-> +       long peer_mem, inet_mem;
-> +       long high_thresh = READ_ONCE(q->fqdir->high_thresh);
-> +       long low_thresh  = READ_ONCE(q->fqdir->low_thresh);
-> +       u64 base_timeout = READ_ONCE(q->fqdir->timeout);
-> +
-> +       peer_mem = low_thresh - peer_mem_limit(q);
-> +       inet_mem = high_thresh - frag_mem_limit(q->fqdir);
-> +
-> +       if (peer_mem <= 0 || inet_mem <= 0)
-> +               return -ENOMEM;
-> +
-> +       /* Timeout changes linearly with respect to the amount of free memory.
-> +        * Choose the more permissive of the two timeouts, to avoid limiting
-> +        * the system while there is still enough memory.
-> +        */
-> +       peer_timeout = div64_long(base_timeout * peer_mem, low_thresh);
-> +       inet_timeout = div64_long(base_timeout * inet_mem, high_thresh);
-> +       q->timeout = max_t(u64, peer_timeout, inet_timeout);
-
-If/when under load, timeout is close to zero,
-we would fire many timers (increased system load) and make impossible
-for datagrams to complete.
-
-In contrast, a reasonable timer and probabilistic drops of new datagrams
-when the queue is full lets some datagrams to complete.
-
-Make sure to test your change under a real DDOS, not only non malicious netperf
-
-> +       return 0;
+> +       if (!q->peer)
+> +               return 0;
+> +       return atomic_long_read(&q->peer->frag_mem);
 > +}
 > +
->  void inet_frag_destroy(struct inet_frag_queue *q)
+> +void sub_frag_mem_limit(struct inet_frag_queue *q, long val)
+> +{
+> +       if (q->peer)
+> +               atomic_long_sub(val, &q->peer->frag_mem);
+> +       atomic_long_sub(val, &q->fqdir->mem);
+> +}
+> +EXPORT_SYMBOL(sub_frag_mem_limit);
+> +
+> +void add_frag_mem_limit(struct inet_frag_queue *q, long val)
+> +{
+> +       if (q->peer)
+> +               atomic_long_add(val, &q->peer->frag_mem);
+> +       atomic_long_add(val, &q->fqdir->mem);
+> +}
+> +EXPORT_SYMBOL(add_frag_mem_limit);
+> +
+>  static void inet_frag_destroy_rcu(struct rcu_head *head)
 >  {
->         struct fqdir *fqdir;
-> @@ -346,6 +370,10 @@ static struct inet_frag_queue *inet_frag_alloc(struct fqdir *fqdir,
+>         struct inet_frag_queue *q = container_of(head, struct inet_frag_queue,
+> @@ -306,9 +329,8 @@ void inet_frag_destroy(struct inet_frag_queue *q)
+>         sum_truesize = inet_frag_rbtree_purge(&q->rb_fragments);
+>         sum = sum_truesize + f->qsize;
+>
+> +       sub_frag_mem_limit(q, sum);
+>         inet_frag_free(q);
+> -
+> -       sub_frag_mem_limit(fqdir, sum);
+>  }
+>  EXPORT_SYMBOL(inet_frag_destroy);
+>
+> @@ -324,7 +346,7 @@ static struct inet_frag_queue *inet_frag_alloc(struct fqdir *fqdir,
 >
 >         q->fqdir = fqdir;
 >         f->constructor(q, arg);
-> +       if (inet_frag_update_timeout(q)) {
-> +               inet_frag_free(q);
-> +               return NULL;
-> +       }
->         add_frag_mem_limit(q, f->qsize);
+> -       add_frag_mem_limit(fqdir, f->qsize);
+> +       add_frag_mem_limit(q, f->qsize);
 >
 >         timer_setup(&q->timer, f->frag_expire, 0);
-> @@ -367,7 +395,7 @@ static struct inet_frag_queue *inet_frag_create(struct fqdir *fqdir,
->                 *prev = ERR_PTR(-ENOMEM);
->                 return NULL;
->         }
-> -       mod_timer(&q->timer, jiffies + fqdir->timeout);
-> +       mod_timer(&q->timer, jiffies + q->timeout);
+>         spin_lock_init(&q->lock);
+> @@ -483,7 +505,7 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
 >
->         *prev = rhashtable_lookup_get_insert_key(&fqdir->rhashtable, &q->key,
->                                                  &q->node, f->rhash_params);
+>         delta += head->truesize;
+>         if (delta)
+> -               add_frag_mem_limit(q->fqdir, delta);
+> +               add_frag_mem_limit(q, delta);
+>
+>         /* If the first fragment is fragmented itself, we split
+>          * it to two chunks: the first with data and paged part
+> @@ -505,7 +527,7 @@ void *inet_frag_reasm_prepare(struct inet_frag_queue *q, struct sk_buff *skb,
+>                 head->truesize += clone->truesize;
+>                 clone->csum = 0;
+>                 clone->ip_summed = head->ip_summed;
+> -               add_frag_mem_limit(q->fqdir, clone->truesize);
+> +               add_frag_mem_limit(q, clone->truesize);
+>                 skb_shinfo(head)->frag_list = clone;
+>                 nextp = &clone->next;
+>         } else {
+> @@ -575,7 +597,7 @@ void inet_frag_reasm_finish(struct inet_frag_queue *q, struct sk_buff *head,
+>                         rbn = rbnext;
+>                 }
+>         }
+> -       sub_frag_mem_limit(q->fqdir, sum_truesize);
+> +       sub_frag_mem_limit(q, sum_truesize);
+>
+>         *nextp = NULL;
+>         skb_mark_not_on_list(head);
+> @@ -604,7 +626,7 @@ struct sk_buff *inet_frag_pull_head(struct inet_frag_queue *q)
+>         if (head == q->fragments_tail)
+>                 q->fragments_tail = NULL;
+>
+> -       sub_frag_mem_limit(q->fqdir, head->truesize);
+> +       sub_frag_mem_limit(q, head->truesize);
+>
+>         return head;
+>  }
+> diff --git a/net/ipv4/inetpeer.c b/net/ipv4/inetpeer.c
+> index e9fed83e9b3c..6e7325dba417 100644
+> --- a/net/ipv4/inetpeer.c
+> +++ b/net/ipv4/inetpeer.c
+> @@ -216,6 +216,7 @@ struct inet_peer *inet_getpeer(struct inet_peer_base *base,
+>                         p->dtime = (__u32)jiffies;
+>                         refcount_set(&p->refcnt, 2);
+>                         atomic_set(&p->rid, 0);
+> +                       atomic_long_set(&p->frag_mem, 0);
+>                         p->metrics[RTAX_LOCK-1] = INETPEER_METRICS_NEW;
+>                         p->rate_tokens = 0;
+>                         p->n_redirects = 0;
 > diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
-> index e35061f6aadb..88a99242d721 100644
+> index d0c22c41cf26..e35061f6aadb 100644
 > --- a/net/ipv4/ip_fragment.c
 > +++ b/net/ipv4/ip_fragment.c
-> @@ -236,7 +236,7 @@ static int ip_frag_reinit(struct ipq *qp)
->  {
->         unsigned int sum_truesize = 0;
->
-> -       if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
-> +       if (!mod_timer(&qp->q.timer, jiffies + qp->q.timeout)) {
->                 refcount_inc(&qp->q.refcnt);
->                 return -ETIMEDOUT;
+> @@ -242,7 +242,7 @@ static int ip_frag_reinit(struct ipq *qp)
 >         }
+>
+>         sum_truesize = inet_frag_rbtree_purge(&qp->q.rb_fragments);
+> -       sub_frag_mem_limit(qp->q.fqdir, sum_truesize);
+> +       sub_frag_mem_limit(&qp->q, sum_truesize);
+>
+>         qp->q.flags = 0;
+>         qp->q.len = 0;
+> @@ -339,7 +339,7 @@ static int ip_frag_queue(struct ipq *qp, struct sk_buff *skb)
+>         qp->q.mono_delivery_time = skb->mono_delivery_time;
+>         qp->q.meat += skb->len;
+>         qp->ecn |= ecn;
+> -       add_frag_mem_limit(qp->q.fqdir, skb->truesize);
+> +       add_frag_mem_limit(&qp->q, skb->truesize);
+>         if (offset == 0)
+>                 qp->q.flags |= INET_FRAG_FIRST_IN;
+>
+> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> index 7dd3629dd19e..11ce2335c584 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> @@ -269,7 +269,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+>         fq->ecn |= ecn;
+>         if (payload_len > fq->q.max_size)
+>                 fq->q.max_size = payload_len;
+> -       add_frag_mem_limit(fq->q.fqdir, skb->truesize);
+> +       add_frag_mem_limit(&fq->q, skb->truesize);
+>
+>         /* The first fragment.
+>          * nhoffset is obtained from the first fragment, of course.
+> diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+> index ff866f2a879e..cd4ba6cc956b 100644
+> --- a/net/ipv6/reassembly.c
+> +++ b/net/ipv6/reassembly.c
+> @@ -197,7 +197,7 @@ static int ip6_frag_queue(struct frag_queue *fq, struct sk_buff *skb,
+>         fq->q.mono_delivery_time = skb->mono_delivery_time;
+>         fq->q.meat += skb->len;
+>         fq->ecn |= ecn;
+> -       add_frag_mem_limit(fq->q.fqdir, skb->truesize);
+> +       add_frag_mem_limit(&fq->q, skb->truesize);
+>
+>         fragsize = -skb_network_offset(skb) + skb->len;
+>         if (fragsize > fq->q.max_size)
 > --
 > 2.36.1
 >
