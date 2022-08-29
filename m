@@ -2,195 +2,283 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E3CECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 12:55:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1079FECAAD2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 13:11:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230153AbiH2Mzn (ORCPT
+        id S230227AbiH2NL0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 08:55:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54666 "EHLO
+        Mon, 29 Aug 2022 09:11:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229690AbiH2Mz0 (ORCPT
+        with ESMTP id S230314AbiH2NLH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 08:55:26 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9A9F4205D0
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 05:45:22 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] optimize: expand implicit set element when merging into concatenation
-Date:   Mon, 29 Aug 2022 14:45:14 +0200
-Message-Id: <20220829124514.444833-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 29 Aug 2022 09:11:07 -0400
+Received: from smtp-8fae.mail.infomaniak.ch (smtp-8fae.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fae])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6E5B113B
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 06:10:32 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4MGW516TZ3zMrn0t;
+        Mon, 29 Aug 2022 15:10:13 +0200 (CEST)
+Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4MGW513Ttjzlh8TN;
+        Mon, 29 Aug 2022 15:10:13 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1661778613;
+        bh=+rv4+wg1hZWacpkN0Nxa2pPMiaAyuhGHyTIiCN2k9K0=;
+        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
+        b=BCFyVSWsPNNvp2U41XDQ2BGKkaspbjd8K25+nPLTl8Z8STnnhbIgU4PJDMuubWoXd
+         TbHkVxo5oUWrjAmWITCfLU+KwPesuGjaZmvWMen6K3vGPEsFuYE5FLSpJgFgka6YSn
+         QVG6EDJ4oaCuExRa1SZEPcf8ip+xC0ojKwM3zV6k=
+Message-ID: <f11b7754-b879-20be-0b22-94d94a68de71@digikod.net>
+Date:   Mon, 29 Aug 2022 15:10:12 +0200
 MIME-Version: 1.0
+User-Agent: 
+Content-Language: en-US
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, anton.sirazetdinov@huawei.com
+References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
+ <4c57a0c2-e207-10d6-c73d-bcda66bf3963@digikod.net>
+ <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
+ <86db9124-ea11-0fa5-9dff-61744b2f80b4@digikod.net>
+ <8eb6509f-8e79-d75c-08f4-80f52c0a26e7@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+Subject: Re: [PATCH v6 00/17] Network support for Landlock
+In-Reply-To: <8eb6509f-8e79-d75c-08f4-80f52c0a26e7@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Generalize the existing code to deal with implicit sets. When merging a
-ruleset like the following:
 
-	udp dport 128 iifname "foo"		#1
-        udp dport { 67, 123 } iifname "bar"	#2
+On 27/08/2022 15:30, Konstantin Meskhidze (A) wrote:
+> 
+> 
+> 7/28/2022 4:17 PM, Mickaël Salaün пишет:
 
-into a concatenation of statements, the following expansion need to
-be done for rule #2:
+[...]
 
-	67 . "bar"
-	123 . "bar"
+>> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+>> index 59229be378d6..669de66094ed 100644
+>> --- a/security/landlock/ruleset.h
+>> +++ b/security/landlock/ruleset.h
+>> @@ -19,8 +19,8 @@
+>>     #include "limits.h"
+>>     #include "object.h"
+>>     
+>> -// TODO: get back to u16 thanks to ruleset->net_access_mask
+>> -typedef u32 access_mask_t;
+>> +/* Rule access mask. */
+>> +typedef u16 access_mask_t;
+>>     /* Makes sure all filesystem access rights can be stored. */
+>>     static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
+>>     /* Makes sure all network access rights can be stored. */
+>> @@ -28,6 +28,12 @@ static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_NET);
+>>     /* Makes sure for_each_set_bit() and for_each_clear_bit() calls are OK. */
+>>     static_assert(sizeof(unsigned long) >= sizeof(access_mask_t));
+>>     
+>> +/* Ruleset access masks. */
+>> +typedef u16 access_masks_t;
+>> +/* Makes sure all ruleset access rights can be stored. */
+>> +static_assert(BITS_PER_TYPE(access_masks_t) >=
+>> +	      LANDLOCK_NUM_ACCESS_FS + LANDLOCK_NUM_ACCESS_NET);
+>> +
+>>     typedef u16 layer_mask_t;
+>>     /* Makes sure all layers can be checked. */
+>>     static_assert(BITS_PER_TYPE(layer_mask_t) >= LANDLOCK_MAX_NUM_LAYERS);
+>> @@ -47,16 +53,33 @@ struct landlock_layer {
+>>     	access_mask_t access;
+>>     };
+>>     
+>> +/**
+>> + * union landlock_key - Key of a ruleset's red-black tree
+>> + */
+>>     union landlock_key {
+>>     	struct landlock_object *object;
+>>     	uintptr_t data;
+>>     };
+>>     
+>> +/**
+>> + * enum landlock_key_type - Type of &union landlock_key
+>> + */
+>>     enum landlock_key_type {
+>> +	/**
+>> +	 * @LANDLOCK_KEY_INODE: Type of &landlock_ruleset.root_inode's node
+>> +	 * keys.
+>> +	 */
+>>     	LANDLOCK_KEY_INODE = 1,
+>> +	/**
+>> +	 * @LANDLOCK_KEY_NET_PORT: Type of &landlock_ruleset.root_net_port's
+>> +	 * node keys.
+>> +	 */
+>>     	LANDLOCK_KEY_NET_PORT = 2,
+>>     };
+>>     
+>> +/**
+>> + * struct landlock_id - Unique rule identifier for a ruleset
+>> + */
+>>     struct landlock_id {
+>>     	union landlock_key key;
+>>     	const enum landlock_key_type type;
+>> @@ -113,15 +136,17 @@ struct landlock_hierarchy {
+>>      */
+>>     struct landlock_ruleset {
+>>     	/**
+>> -	 * @root: Root of a red-black tree containing &struct landlock_rule
+>> -	 * nodes.  Once a ruleset is tied to a process (i.e. as a domain), this
+>> -	 * tree is immutable until @usage reaches zero.
+>> +	 * @root_inode: Root of a red-black tree containing &struct
+>> +	 * landlock_rule nodes with inode object.  Once a ruleset is tied to a
+>> +	 * process (i.e. as a domain), this tree is immutable until @usage
+>> +	 * reaches zero.
+>>     	 */
+>>     	struct rb_root root_inode;
+>>     	/**
+>> -	 * @root_net_port: Root of a red-black tree containing object nodes
+>> -	 * for network port. Once a ruleset is tied to a process (i.e. as a domain),
+>> -	 * this tree is immutable until @usage reaches zero.
+>> +	 * @root_net_port: Root of a red-black tree containing &struct
+>> +	 * landlock_rule nodes with network port. Once a ruleset is tied to a
+>> +	 * process (i.e. as a domain), this tree is immutable until @usage
+>> +	 * reaches zero.
+>>     	 */
+>>     	struct rb_root root_net_port;
+>>     	/**
+>> @@ -162,32 +187,25 @@ struct landlock_ruleset {
+>>     			 */
+>>     			u32 num_layers;
+>>     			/**
+>> -			 * TODO: net_access_mask: Contains the subset of network
+>> -			 * actions that are restricted by a ruleset.
+>> -			 */
+>> -			access_mask_t net_access_mask;
+>> -			/**
+>> -			 * @access_masks: Contains the subset of filesystem
+>> -			 * actions that are restricted by a ruleset.  A domain
+>> -			 * saves all layers of merged rulesets in a stack
+>> -			 * (FAM), starting from the first layer to the last
+>> -			 * one.  These layers are used when merging rulesets,
+>> -			 * for user space backward compatibility (i.e.
+>> -			 * future-proof), and to properly handle merged
+>> +			 * @access_masks: Contains the subset of filesystem and
+>> +			 * network actions that are restricted by a ruleset.
+>> +			 * A domain saves all layers of merged rulesets in a
+>> +			 * stack (FAM), starting from the first layer to the
+>> +			 * last one.  These layers are used when merging
+>> +			 * rulesets, for user space backward compatibility
+>> +			 * (i.e. future-proof), and to properly handle merged
+>>     			 * rulesets without overlapping access rights.  These
+>>     			 * layers are set once and never changed for the
+>>     			 * lifetime of the ruleset.
+>>     			 */
+>> -			// TODO: rename (back) to fs_access_mask because layers
+>> -			// are only useful for file hierarchies.
+>> -			access_mask_t access_masks[];
+>> +			access_masks_t access_masks[];
+>>     		};
+>>     	};
+>>     };
+>>     
+>>     struct landlock_ruleset *
+>> -landlock_create_ruleset(const access_mask_t access_mask_fs,
+>> -			const access_mask_t access_mask_net);
+>> +landlock_create_ruleset(const access_mask_t fs_access_mask,
+>> +			const access_mask_t net_access_mask);
+>>     
+>>     void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
+>>     void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
+>> @@ -210,41 +228,7 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
+>>     		refcount_inc(&ruleset->usage);
+>>     }
+>>     
+>> -// TODO: These helpers should not be required thanks to the new ruleset->net_access_mask.
+>> -/* A helper function to set a filesystem mask. */
+>> -static inline void
+>> -landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
+>> -			    const access_mask_t access_mask_fs, u16 mask_level)
+>> -{
+>> -	ruleset->access_masks[mask_level] = access_mask_fs;
+>> -}
+>> -
+>> -/* A helper function to get a filesystem mask. */
+>> -static inline u32
+>> -landlock_get_fs_access_mask(const struct landlock_ruleset *ruleset,
+>> -			    u16 mask_level)
+>> -{
+>> -	return (ruleset->access_masks[mask_level] & LANDLOCK_MASK_ACCESS_FS);
+>> -}
+>> -
+>> -/* A helper function to set a network mask. */
+>> -static inline void
+>> -landlock_set_net_access_mask(struct landlock_ruleset *ruleset,
+>> -			     const access_mask_t access_mask_net,
+>> -			     u16 mask_level)
+>> -{
+>> -	ruleset->access_masks[mask_level] |=
+>> -		(access_mask_net << LANDLOCK_MASK_SHIFT_NET);
+>> -}
+>> -
+>> -/* A helper function to get a network mask. */
+>> -static inline u32
+>> -landlock_get_net_access_mask(const struct landlock_ruleset *ruleset,
+>> -			     u16 mask_level)
+>> -{
+>> -	return (ruleset->access_masks[mask_level] >> LANDLOCK_MASK_SHIFT_NET);
+>> -}
+>> -
+>> +// TODO: Remove if only relevant for fs.c
+>>     access_mask_t get_handled_accesses(const struct landlock_ruleset *const domain,
+>>     				   const u16 rule_type, const u16 num_access);
+>>     
+>> @@ -258,4 +242,50 @@ access_mask_t init_layer_masks(const struct landlock_ruleset *const domain,
+>>     			       layer_mask_t (*const layer_masks)[],
+>>     			       const enum landlock_key_type key_type);
+>>     
+>> +static inline void
+>> +landlock_add_fs_access_mask(struct landlock_ruleset *const ruleset,
+>> +			    const access_mask_t fs_access_mask,
+>> +			    const u16 layer_level)
+>> +{
+>> +	access_mask_t fs_mask = fs_access_mask & LANDLOCK_MASK_ACCESS_FS;
+>> +
+>> +	/* Should already be checked in sys_landlock_create_ruleset(). */
+>> +	WARN_ON_ONCE(fs_access_mask != fs_mask);
+>> +	// TODO: Add tests to check "|=" and not "=" > Is it kunit test? If so, do you want to add this kind of tests in future
+> landlock versions?
 
-The expansion logic consists of cloning the existing concatenation being
-built and then append each element in the implicit set. A list of
-ongoing concatenations being built is maintained, so further expansions
-are also supported.
+In this sixth patch series, landlock_set_fs_access_mask() was replacing 
+the content of access_masks[] whereas landlock_set_net_access_mask() was 
+ORing it. It didn't lead to a bug because landlock_set_fs_access_mask() 
+was called before landlock_set_net_access_mask(), but it was brittle.
 
-Extend test to cover for this use-case.
+Anyway, it was a good reminder to add a test to check that filesystem 
+and network restrictions work well together. This can be added as a 
+basic filesystem test using a ruleset handling network restrictions but 
+no network rule (in fs_test.c), and as a basic network test using a 
+ruleset handling filesystem restrictions but no filestem rule (in 
+net_test.c).
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1628
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: cover EXPR_VALUE case too to remedy a tests/shell assertion being reported.
-    Now all tests/shell pass successfully.
+This could also be part of a kunit test in the future.
 
- src/optimize.c                                | 62 ++++++++++++++++---
- .../dumps/merge_stmts_concat.nft              | 12 ++++
- .../optimizations/merge_stmts_concat          | 19 ++++++
- 3 files changed, 83 insertions(+), 10 deletions(-)
 
-diff --git a/src/optimize.c b/src/optimize.c
-index ea067f80bce0..83fd6ec342ea 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -550,12 +550,60 @@ static void merge_stmts(const struct optimize_ctx *ctx,
- 	}
- }
- 
-+static void __merge_concat_stmts(const struct optimize_ctx *ctx, uint32_t i,
-+				 const struct merge *merge, struct expr *set)
-+{
-+	struct expr *concat, *next, *expr, *concat_clone, *clone, *elem;
-+	LIST_HEAD(pending_list);
-+	LIST_HEAD(concat_list);
-+	struct stmt *stmt_a;
-+	uint32_t k;
-+
-+	concat = concat_expr_alloc(&internal_location);
-+	list_add(&concat->list, &concat_list);
-+
-+	for (k = 0; k < merge->num_stmts; k++) {
-+		list_for_each_entry_safe(concat, next, &concat_list, list) {
-+			stmt_a = ctx->stmt_matrix[i][merge->stmt[k]];
-+			switch (stmt_a->expr->right->etype) {
-+			case EXPR_SET:
-+				list_for_each_entry(expr, &stmt_a->expr->right->expressions, list) {
-+					concat_clone = expr_clone(concat);
-+					clone = expr_clone(expr->key);
-+					compound_expr_add(concat_clone, clone);
-+					list_add_tail(&concat_clone->list, &pending_list);
-+				}
-+				list_del(&concat->list);
-+				expr_free(concat);
-+				break;
-+			case EXPR_SYMBOL:
-+			case EXPR_VALUE:
-+				clone = expr_clone(stmt_a->expr->right);
-+				compound_expr_add(concat, clone);
-+				break;
-+			default:
-+				assert(0);
-+				break;
-+			}
-+		}
-+		list_splice_init(&pending_list, &concat_list);
-+	}
-+
-+	list_for_each_entry_safe(concat, next, &concat_list, list) {
-+		list_del(&concat->list);
-+		elem = set_elem_expr_alloc(&internal_location, concat);
-+		compound_expr_add(set, elem);
-+	}
-+}
-+
- static void merge_concat_stmts(const struct optimize_ctx *ctx,
- 			       uint32_t from, uint32_t to,
- 			       const struct merge *merge)
- {
--	struct expr *concat, *elem, *set;
- 	struct stmt *stmt, *stmt_a;
-+	struct expr *concat, *set;
-+	LIST_HEAD(pending_list);
-+	LIST_HEAD(concat_list);
- 	uint32_t i, k;
- 
- 	stmt = ctx->stmt_matrix[from][merge->stmt[0]];
-@@ -573,15 +621,9 @@ static void merge_concat_stmts(const struct optimize_ctx *ctx,
- 	set = set_expr_alloc(&internal_location, NULL);
- 	set->set_flags |= NFT_SET_ANONYMOUS;
- 
--	for (i = from; i <= to; i++) {
--		concat = concat_expr_alloc(&internal_location);
--		for (k = 0; k < merge->num_stmts; k++) {
--			stmt_a = ctx->stmt_matrix[i][merge->stmt[k]];
--			compound_expr_add(concat, expr_get(stmt_a->expr->right));
--		}
--		elem = set_elem_expr_alloc(&internal_location, concat);
--		compound_expr_add(set, elem);
--	}
-+	for (i = from; i <= to; i++)
-+		__merge_concat_stmts(ctx, i, merge, set);
-+
- 	expr_free(stmt->expr->right);
- 	stmt->expr->right = set;
- 
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
-index 15cfa7e85c33..5d03cf8d9566 100644
---- a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
-+++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
-@@ -3,4 +3,16 @@ table ip x {
- 		iifname . ip saddr . ip daddr { "eth1" . 1.1.1.1 . 2.2.2.3, "eth1" . 1.1.1.2 . 2.2.2.4, "eth2" . 1.1.1.3 . 2.2.2.5 } accept
- 		ip protocol . th dport { tcp . 22, udp . 67 }
- 	}
-+
-+	chain c1 {
-+		udp dport . iifname { 51820 . "foo", 514 . "bar", 67 . "bar" } accept
-+	}
-+
-+	chain c2 {
-+		udp dport . iifname { 100 . "foo", 51820 . "foo", 514 . "bar", 67 . "bar" } accept
-+	}
-+
-+	chain c3 {
-+		udp dport . iifname { 100 . "foo", 51820 . "foo", 514 . "bar", 67 . "bar", 100 . "test", 51820 . "test" } accept
-+	}
- }
-diff --git a/tests/shell/testcases/optimizations/merge_stmts_concat b/tests/shell/testcases/optimizations/merge_stmts_concat
-index 623fdff9a649..0bcd95622a98 100755
---- a/tests/shell/testcases/optimizations/merge_stmts_concat
-+++ b/tests/shell/testcases/optimizations/merge_stmts_concat
-@@ -12,3 +12,22 @@ RULESET="table ip x {
- }"
- 
- $NFT -o -f - <<< $RULESET
-+
-+RULESET="table ip x {
-+	chain c1 {
-+		udp dport 51820 iifname "foo" accept
-+		udp dport { 67, 514 } iifname "bar" accept
-+	}
-+
-+	chain c2 {
-+		udp dport { 51820, 100 } iifname "foo" accept
-+		udp dport { 67, 514 } iifname "bar" accept
-+	}
-+
-+	chain c3 {
-+		udp dport { 51820, 100 } iifname { "foo", "test" } accept
-+		udp dport { 67, 514 } iifname "bar" accept
-+	}
-+}"
-+
-+$NFT -o -f - <<< $RULESET
--- 
-2.30.2
+>> +	ruleset->access_masks[layer_level] |=
+>> +		(fs_mask << LANDLOCK_SHIFT_ACCESS_FS);
+>> +}
+>> +
+>> +static inline void
+>> +landlock_add_net_access_mask(struct landlock_ruleset *const ruleset,
+>> +			     const access_mask_t net_access_mask,
+>> +			     const u16 layer_level)
+>> +{
+>> +	access_mask_t net_mask = net_access_mask & LANDLOCK_MASK_ACCESS_NET;
+>> +
+>> +	/* Should already be checked in sys_landlock_create_ruleset(). */
+>> +	WARN_ON_ONCE(net_access_mask != net_mask);
+>> +	// TODO: Add tests to check "|=" and not "="
+> The same above.
+> I'm going add invalid network attribute checking into TEST_F(socket,
+> inval) test in coming patch.
 
+Good
