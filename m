@@ -2,283 +2,306 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1079FECAAD2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 13:11:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47604ECAAD2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 29 Aug 2022 13:57:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230227AbiH2NL0 (ORCPT
+        id S229596AbiH2N5c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 29 Aug 2022 09:11:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51700 "EHLO
+        Mon, 29 Aug 2022 09:57:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230314AbiH2NLH (ORCPT
+        with ESMTP id S229605AbiH2N5b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2022 09:11:07 -0400
-Received: from smtp-8fae.mail.infomaniak.ch (smtp-8fae.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fae])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6E5B113B
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2022 06:10:32 -0700 (PDT)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4MGW516TZ3zMrn0t;
-        Mon, 29 Aug 2022 15:10:13 +0200 (CEST)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4MGW513Ttjzlh8TN;
-        Mon, 29 Aug 2022 15:10:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1661778613;
-        bh=+rv4+wg1hZWacpkN0Nxa2pPMiaAyuhGHyTIiCN2k9K0=;
-        h=Date:To:Cc:References:From:Subject:In-Reply-To:From;
-        b=BCFyVSWsPNNvp2U41XDQ2BGKkaspbjd8K25+nPLTl8Z8STnnhbIgU4PJDMuubWoXd
-         TbHkVxo5oUWrjAmWITCfLU+KwPesuGjaZmvWMen6K3vGPEsFuYE5FLSpJgFgka6YSn
-         QVG6EDJ4oaCuExRa1SZEPcf8ip+xC0ojKwM3zV6k=
-Message-ID: <f11b7754-b879-20be-0b22-94d94a68de71@digikod.net>
-Date:   Mon, 29 Aug 2022 15:10:12 +0200
-MIME-Version: 1.0
-User-Agent: 
+        Mon, 29 Aug 2022 09:57:31 -0400
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C06837F0B0;
+        Mon, 29 Aug 2022 06:57:30 -0700 (PDT)
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 27TClKYj020453;
+        Mon, 29 Aug 2022 13:57:21 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2022-7-12;
+ bh=Z39XGWxrVMnIIdmv9B+3ktyklH0w0l3gqW0VT6bQfxA=;
+ b=ONJKv6pJJ/DwseHTwTBxBzciXFO6wFMH/B3I5oZFXLyklA4lX1xgNCn1EcSnjR43eCAC
+ GOCgQQkUPsnguPWhag4f8jjKwx2K5JsTicGoXJHiJ8cA/JPpr6XH7lmO1FwYSDsp6dEQ
+ oSLGPOJ4KajlvoFSHzjawrDVLE04dbDpXEt44xjQ5NTBL/ixfI7Ta4m8ezrqnfMQ2c95
+ Uf5bWKJnkuecH+y7S8zb8CPtuHKrvaQ/h4Zccg991I79vI+apoJjCSXmRuqzQ0ZG7m/7
+ M8QZCz4U5tAsdtcb/bZhzBG3UW878MOiOdrdsl3qdU7VOcbc5VFv/RC+OLab+N3/SoyC mQ== 
+Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
+        by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3j7a223gd3-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 29 Aug 2022 13:57:21 +0000
+Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
+        by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.5/8.17.1.5) with ESMTP id 27TAwfBi033494;
+        Mon, 29 Aug 2022 13:57:20 GMT
+Received: from nam11-co1-obe.outbound.protection.outlook.com (mail-co1nam11lp2171.outbound.protection.outlook.com [104.47.56.171])
+        by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3j79q2csw6-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 29 Aug 2022 13:57:20 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=NVXeO8dyUfC74TwnhFJ1RyFMVEkD3CeMzN+63J6Ry/MQLBLlN1FXHZfk136s/4qo/TdufzTp42kRL0eC1rxhA0P5nh64OHROBvgJwvOeZP544nO3nJbTCcx0mIqlDl92ouIjJ+CIz4qFBLNRELZ2rCgbxVui86TQxo+jxSj2I87ofKOZ1ipN8Sl5/eVIslv4YEg3OQXFX7SZrUyne8IRUGD1J8ZIDIpfB0JEB1lxVb9yl0V5wY4e8ZHTRhYIca/gdHVophkKftH5IcyyzRa2w3eG0IQASxwIYh7wNDwTA6N1xczzF+STQgYrCzuu5j1590+sH8gFZVABBrNJc/idgA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Z39XGWxrVMnIIdmv9B+3ktyklH0w0l3gqW0VT6bQfxA=;
+ b=IibY1LJ5imJZQiLPNVpBLoTgVcY6SckQXiSPR09vyHChF6owU006KvkZIolconzdbAgyIAeD9DrvqjlQDONolbCU4FJzxlb8rAl0VpAgqyv0csR7ePXXsVQBbv8a3eqnKFoTDGNlQZuVfyDoeM3qNPsuANk2IXsmwrxuV0UeuS9KBhPtRM4LdtAVHGj9pHJvZGtYIavjVbAJDmLgTpW71F2A+rh+66QzBGqZ4IUR71GhAFu5XhOpK35BhQFoOWYCNbs25WQmHhK71BTyigTx6fjWBFSfQyAkZf+WaXAnDNhTse+XOMlCO6GB6g2gmx6H5EcgmloW0BlFZFuuNOn+Ow==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Z39XGWxrVMnIIdmv9B+3ktyklH0w0l3gqW0VT6bQfxA=;
+ b=cGvpR07hdBcLnW7TeYX1RJr+XNhWz9tlrda1xJLwuL4V+ovgJ3FZdQOcfMVrkeCOUdvhHfefm6ks80zU6LhEPPfEjGNxlcSnd9D7ndoPHQDVoy3/30FEggyLQVZhfxoXvn7DM2W1xU4Ied5tCZIC6/A92yYwUyDMzfdZS9ErkP4=
+Received: from CO1PR10MB4722.namprd10.prod.outlook.com (2603:10b6:303:9e::12)
+ by MN2PR10MB3933.namprd10.prod.outlook.com (2603:10b6:208:1bc::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5566.16; Mon, 29 Aug
+ 2022 13:57:18 +0000
+Received: from CO1PR10MB4722.namprd10.prod.outlook.com
+ ([fe80::d0c6:fa96:addf:6112]) by CO1PR10MB4722.namprd10.prod.outlook.com
+ ([fe80::d0c6:fa96:addf:6112%9]) with mapi id 15.20.5566.021; Mon, 29 Aug 2022
+ 13:57:18 +0000
+Message-ID: <93eca5ab-46ee-241a-b01c-a6131b28ba29@oracle.com>
+Date:   Mon, 29 Aug 2022 08:57:11 -0500
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.11.0
+Subject: Re: [PATCH nf] netfilter: ebtables: reject blobs that don't provide
+ all entry points
 Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, anton.sirazetdinov@huawei.com
-References: <20220621082313.3330667-1-konstantin.meskhidze@huawei.com>
- <4c57a0c2-e207-10d6-c73d-bcda66bf3963@digikod.net>
- <6691d91f-c03b-30fa-2fa0-d062b3b234b9@digikod.net>
- <86db9124-ea11-0fa5-9dff-61744b2f80b4@digikod.net>
- <8eb6509f-8e79-d75c-08f4-80f52c0a26e7@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-Subject: Re: [PATCH v6 00/17] Network support for Landlock
-In-Reply-To: <8eb6509f-8e79-d75c-08f4-80f52c0a26e7@huawei.com>
+To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc:     syzkaller@googlegroups.com, george.kennedy@oracle.com,
+        vegard.nossum@oracle.com, bridge@lists.linux-foundation.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+References: <20220820070331.48817-1-harshit.m.mogalapalli@oracle.com>
+ <20220820173555.131326-1-fw@strlen.de>
+From:   john.p.donnelly@oracle.com
+In-Reply-To: <20220820173555.131326-1-fw@strlen.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MN2PR14CA0010.namprd14.prod.outlook.com
+ (2603:10b6:208:23e::15) To CO1PR10MB4722.namprd10.prod.outlook.com
+ (2603:10b6:303:9e::12)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 18ba71ce-c7fa-4584-adaf-08da89c662af
+X-MS-TrafficTypeDiagnostic: MN2PR10MB3933:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: JbuAdRdq4oFzDvNk/WNouZIMh1wiBGaVtk+FmIr++GiRsknwnRjVNVWtsqh+yW/4ZK7EDPOsogdfTeG+lYlDKDaalDGfRL3M8kwxFVAlZrUp4rMfAg/8m476P/ClBbnJ7c4ROco5Oj03SWtrEWQk5SlfdtoUNg+HRAuWoZ3V68nwxySGocWMQuYWg12uTfmgz1f89vq/WQENey/qJlFOqyRM05HDAbjsr9eCN1QAKMHatZ8+sXEpl+gaifFQF49gWhj2aTxoCWz3FZS1wbjEbWaxtVlvS11V4K3q4HR9dhZfjv5aUwy8Uolw+qBg9qOVpxtJUpd30+8jQNcfmpYH3n1i+Q0Qsobrl16qS3yl8JCgKFwJ6Mo1dK9d9+3bS5D5Xbv4Bx8vU63zdCncUonz//grVgzC1oMaccT0d3n+Dr/sRVr8Fw3iNNMbl7sPFbVoSoXhpb/BF8qS46qvPqBuJLHzUSjxnnvCPKFTxZ2PHOVwNgsIXC3s5qJIvwMXajav88sNVg8ytS0ZbXseOYSXS64y5TZz370xJMM7URmxxKFpvA1GsmZzYEciQrEYrz1kltFsQq6gmHOawQ4opxdOblIJUIOcd1D9CIfZHX0azPAQbJFRtUl+vmue94QADyDObLJUgeYKoXDcVx6NxHNZW0KTeJn8TJHCNf6yk3BNYVzFTYrc/tmT1/HEVJ1IVACUa9uQuoSN0T4bHqZNt/Cj05wcOgHIookg+ehf8+JDprzAlZm1xHm3T7+e8dihPKigfUqCnWKj4L3sHk7QHLe4qQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CO1PR10MB4722.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(396003)(39860400002)(136003)(346002)(376002)(366004)(31686004)(107886003)(2906002)(66946007)(4326008)(8676002)(66556008)(66476007)(53546011)(6512007)(6666004)(9686003)(6506007)(8936002)(316002)(26005)(478600001)(6486002)(41300700001)(86362001)(186003)(2616005)(83380400001)(5660300002)(36756003)(31696002)(38100700002)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?d1VVRFBqMHdGYU82L3drcjhrd1MxZkZaUk5ZNXJVK3piVmV2ZnoyNE5VQVpj?=
+ =?utf-8?B?azY4di9mSEFTZkw1UDBETXVFM0J4ZEhvMVh4QzVlZ3J6ZkpkZVpidjBKZU5R?=
+ =?utf-8?B?blJHeUVzalN1bDNocnR3dzBRZ3pFOHVMRW1JdXFhKzRYTjJnQ2MvVnVDd1Fn?=
+ =?utf-8?B?NWV5TzI4amNVTENMb0xDS2xpWitGQ3hhWFVRYVgvRmg5T2RodnpPNnZlWjVF?=
+ =?utf-8?B?K2dFVTB5dG54c0ZpdEpFbllTc1JwRS9qQnZyZ0c0clRISkdoWVpoZHFvNStQ?=
+ =?utf-8?B?OXl4RXBKaS90Um1lMlZDeGFKU3N1cmJDenEzRG9BNDdaeEdQV2pLZ0xyUy9T?=
+ =?utf-8?B?czdrL0YrRlVuUUdkRjh0NDZrTHg3aUZscTFySDI5TDRnVEUvZFFnbk9MKzRM?=
+ =?utf-8?B?WHBIbFc2NzNNKzJMM1hhZmc5WXoyM09NUVMwRU1CRkV6MmZWSExOV0FHUnVM?=
+ =?utf-8?B?NTNnTEdKVzlRcWh2Q1c5Vkg3eUxyeUJXMmhGM0lJejFLQWtmN3JoaVRsV3kx?=
+ =?utf-8?B?bk4xL0F4Q21Ya2ZobjQwUlRKV2tpcUlNZmU4MTYra3BUWHlobmZrZ2VjRWFq?=
+ =?utf-8?B?UWtDWHp0R0JiVHJEK3F1ajI2N0tidlJUQWRTeXhRMk5QcEtxNnlFbmVaazlh?=
+ =?utf-8?B?TTlwaWdHSENDMklMOGJ1ZFpKbnRaZmEwYnV2RGwrejBjNVU5cEY2cnNRMkd3?=
+ =?utf-8?B?WkpPS1pSRVgxRzBYRXYvVWhLeHhzZjNkS3VmeWk0aXdvb3M5eFVwd1lOTGVt?=
+ =?utf-8?B?Q2tSRGFZdjVtTXEzRDJDL0NRaUdwZzlsODJYOXJKcXBQa2pFb0VCcWpSMnh4?=
+ =?utf-8?B?NkhrQjcydzkxSGM2WkVDUno3RGI4RGF6cmpBbko2YkxKeHNaY1YzQU1ZYjNw?=
+ =?utf-8?B?SU8vMENxYzFJTGtMMVF6cmRqamNmU2Rpc2FNUlV2c1ZLU01hRkRUQVQ0RWNk?=
+ =?utf-8?B?Z0dBUzlXRFcvWHVjcDhjbWFqZERrK0lDdFlXTEU0WFNBL2dqSWxuaTI0UmJD?=
+ =?utf-8?B?Y2d2V3ltQm9RVWJmSzJHSVdZSGxXd24yeGFWd1RmVlVUb20xQS9iZnZyWEVO?=
+ =?utf-8?B?aWhEV1lrbjh3SmJDcjBKdnRCYUZ4dTBTTXloY2RMbjI1U3NLbFkzNllqNy9M?=
+ =?utf-8?B?WFZka1pqOEVwdXo1Y0hkZy9YbUQ0Yi9XN3cyaVpkc1RKYWxMZ2hYNTk2cGFX?=
+ =?utf-8?B?WlQwMXBQZWZMdGpMd2xYK0JHR2hXNmtnRVN0UVF4NlE4a3ZJOVZ6YTUrNkd1?=
+ =?utf-8?B?U0lQVlBqYzQ2YTBORkd0OG14T1lsTnlIWmkrODV3MW9tUlZUNjV1aWljcXp4?=
+ =?utf-8?B?K201S0dCSlpvcTFNK3dlODRIQ2UwOGdvUHBrbnlYYUR5OFgyS1BBWER6dFRs?=
+ =?utf-8?B?WjBKNmV5WWVJTW85OVgrSjdhN083YVFyZDNDMXNxUG5acWp0Y1lhTW1DTGFq?=
+ =?utf-8?B?ZmdSeXlGd1YyNlV5T0pEa1M3aTFNZW13UWlVdzZoN0M2TUFGUXB5MloydDJB?=
+ =?utf-8?B?NCtnc2Y5VnFyNmxGV1hpdTlNeHdYK0drM01yblpRdW9rRWM3OFd6eHZFc1Az?=
+ =?utf-8?B?WHUzL3QvUGFoUnhWVElsSU1EWUt6NFBIWm9OakJNaTF1MEZCMTdTUE5lRHIr?=
+ =?utf-8?B?NFk2cXJsTURxODBDVEZXSjlUekIyQkNQY0NVMUFsK0orc3pZcXp5UGJvR1ZS?=
+ =?utf-8?B?azNyVTFsZjJCUnQ1d0tFckhHK2NpbWN3TFhVZlkzOHpGQ0FlbmgxOXUrcnBn?=
+ =?utf-8?B?M2hxWnhJeUxlK3RkR2lLcEkzZit1Q3dZQW5DSi80OGFWQW1KSlgwdDU4WnZX?=
+ =?utf-8?B?bk1qcWdyVkxHQW4xbzZ5Nit0dHpub0ZDMWdHRkRWMEE5YjhaZnl3WTBNVjg0?=
+ =?utf-8?B?UW9OVEc0b1R4VHlScjgvK3laYVo4Q21QRDNMY3lwMXFHYmZQZWd5U2N5RS9U?=
+ =?utf-8?B?NFYrQTlhU2NKWHRrUWxVN0hISXFvWVMrOTVDbUgzVGhsMzR1OG9zT3VxbnBM?=
+ =?utf-8?B?NUF0WHFiYWNpdWdLcDBHR21pQnh6K1V1Z2FGZGtwRGFKTjg3Z0w4ZFNDeEND?=
+ =?utf-8?B?dnNVTDNFMjdFaG9TTldCU2VuenloQTZuc2l6WUFIMWZDMFMzZFVJK1NlK1Mz?=
+ =?utf-8?B?Q0JMSUdFL1I0OXN5eFVBZU4xdmJZeEtqS0NoVE5sbndFSC9iaFA1N2lIR2hi?=
+ =?utf-8?B?WGc9PQ==?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 18ba71ce-c7fa-4584-adaf-08da89c662af
+X-MS-Exchange-CrossTenant-AuthSource: CO1PR10MB4722.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Aug 2022 13:57:18.1525
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: NEDSjpvFEB8tf4/50fVTMFi6L7taeaCGI92qaf6/Z+wzRV9X20D3WDPaXhAxjU5r1mlGrVXtKYmyeJNst5wLpxTh5XbjK2KzcPIlSj+MEHY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR10MB3933
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.895,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-08-29_07,2022-08-25_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 malwarescore=0 mlxscore=0
+ spamscore=0 mlxlogscore=999 phishscore=0 suspectscore=0 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2207270000
+ definitions=main-2208290064
+X-Proofpoint-GUID: hAxZH9ZwAjPrR80uPkPdH-kzCZrJSI6a
+X-Proofpoint-ORIG-GUID: hAxZH9ZwAjPrR80uPkPdH-kzCZrJSI6a
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 27/08/2022 15:30, Konstantin Meskhidze (A) wrote:
+On 8/20/22 12:35 PM, Florian Westphal wrote:
+> For some reason ebtables reject blobs that provide entry points that are
+> not supported by the table.
 > 
+> What it should instead reject is the opposite, i.e. rulesets that
+> DO NOT provide an entry point that is supported by the table.
 > 
-> 7/28/2022 4:17 PM, Mickaël Salaün пишет:
+> t->valid_hooks is the bitmask of hooks (input, forward ...) that will
+> see packets.  So, providing an entry point that is not support is
+> harmless (never called/used), but the reverse is NOT, this will cause
+> crash because the ebtables traverser doesn't expect a NULL blob for
+> a location its receiving packets for.
+> 
+> Instead of fixing all the individual checks, do what iptables is doing and
+> reject all blobs that doesn't provide the expected hooks.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Reported-by: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-[...]
+Hi,
 
->> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
->> index 59229be378d6..669de66094ed 100644
->> --- a/security/landlock/ruleset.h
->> +++ b/security/landlock/ruleset.h
->> @@ -19,8 +19,8 @@
->>     #include "limits.h"
->>     #include "object.h"
->>     
->> -// TODO: get back to u16 thanks to ruleset->net_access_mask
->> -typedef u32 access_mask_t;
->> +/* Rule access mask. */
->> +typedef u16 access_mask_t;
->>     /* Makes sure all filesystem access rights can be stored. */
->>     static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
->>     /* Makes sure all network access rights can be stored. */
->> @@ -28,6 +28,12 @@ static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_NET);
->>     /* Makes sure for_each_set_bit() and for_each_clear_bit() calls are OK. */
->>     static_assert(sizeof(unsigned long) >= sizeof(access_mask_t));
->>     
->> +/* Ruleset access masks. */
->> +typedef u16 access_masks_t;
->> +/* Makes sure all ruleset access rights can be stored. */
->> +static_assert(BITS_PER_TYPE(access_masks_t) >=
->> +	      LANDLOCK_NUM_ACCESS_FS + LANDLOCK_NUM_ACCESS_NET);
->> +
->>     typedef u16 layer_mask_t;
->>     /* Makes sure all layers can be checked. */
->>     static_assert(BITS_PER_TYPE(layer_mask_t) >= LANDLOCK_MAX_NUM_LAYERS);
->> @@ -47,16 +53,33 @@ struct landlock_layer {
->>     	access_mask_t access;
->>     };
->>     
->> +/**
->> + * union landlock_key - Key of a ruleset's red-black tree
->> + */
->>     union landlock_key {
->>     	struct landlock_object *object;
->>     	uintptr_t data;
->>     };
->>     
->> +/**
->> + * enum landlock_key_type - Type of &union landlock_key
->> + */
->>     enum landlock_key_type {
->> +	/**
->> +	 * @LANDLOCK_KEY_INODE: Type of &landlock_ruleset.root_inode's node
->> +	 * keys.
->> +	 */
->>     	LANDLOCK_KEY_INODE = 1,
->> +	/**
->> +	 * @LANDLOCK_KEY_NET_PORT: Type of &landlock_ruleset.root_net_port's
->> +	 * node keys.
->> +	 */
->>     	LANDLOCK_KEY_NET_PORT = 2,
->>     };
->>     
->> +/**
->> + * struct landlock_id - Unique rule identifier for a ruleset
->> + */
->>     struct landlock_id {
->>     	union landlock_key key;
->>     	const enum landlock_key_type type;
->> @@ -113,15 +136,17 @@ struct landlock_hierarchy {
->>      */
->>     struct landlock_ruleset {
->>     	/**
->> -	 * @root: Root of a red-black tree containing &struct landlock_rule
->> -	 * nodes.  Once a ruleset is tied to a process (i.e. as a domain), this
->> -	 * tree is immutable until @usage reaches zero.
->> +	 * @root_inode: Root of a red-black tree containing &struct
->> +	 * landlock_rule nodes with inode object.  Once a ruleset is tied to a
->> +	 * process (i.e. as a domain), this tree is immutable until @usage
->> +	 * reaches zero.
->>     	 */
->>     	struct rb_root root_inode;
->>     	/**
->> -	 * @root_net_port: Root of a red-black tree containing object nodes
->> -	 * for network port. Once a ruleset is tied to a process (i.e. as a domain),
->> -	 * this tree is immutable until @usage reaches zero.
->> +	 * @root_net_port: Root of a red-black tree containing &struct
->> +	 * landlock_rule nodes with network port. Once a ruleset is tied to a
->> +	 * process (i.e. as a domain), this tree is immutable until @usage
->> +	 * reaches zero.
->>     	 */
->>     	struct rb_root root_net_port;
->>     	/**
->> @@ -162,32 +187,25 @@ struct landlock_ruleset {
->>     			 */
->>     			u32 num_layers;
->>     			/**
->> -			 * TODO: net_access_mask: Contains the subset of network
->> -			 * actions that are restricted by a ruleset.
->> -			 */
->> -			access_mask_t net_access_mask;
->> -			/**
->> -			 * @access_masks: Contains the subset of filesystem
->> -			 * actions that are restricted by a ruleset.  A domain
->> -			 * saves all layers of merged rulesets in a stack
->> -			 * (FAM), starting from the first layer to the last
->> -			 * one.  These layers are used when merging rulesets,
->> -			 * for user space backward compatibility (i.e.
->> -			 * future-proof), and to properly handle merged
->> +			 * @access_masks: Contains the subset of filesystem and
->> +			 * network actions that are restricted by a ruleset.
->> +			 * A domain saves all layers of merged rulesets in a
->> +			 * stack (FAM), starting from the first layer to the
->> +			 * last one.  These layers are used when merging
->> +			 * rulesets, for user space backward compatibility
->> +			 * (i.e. future-proof), and to properly handle merged
->>     			 * rulesets without overlapping access rights.  These
->>     			 * layers are set once and never changed for the
->>     			 * lifetime of the ruleset.
->>     			 */
->> -			// TODO: rename (back) to fs_access_mask because layers
->> -			// are only useful for file hierarchies.
->> -			access_mask_t access_masks[];
->> +			access_masks_t access_masks[];
->>     		};
->>     	};
->>     };
->>     
->>     struct landlock_ruleset *
->> -landlock_create_ruleset(const access_mask_t access_mask_fs,
->> -			const access_mask_t access_mask_net);
->> +landlock_create_ruleset(const access_mask_t fs_access_mask,
->> +			const access_mask_t net_access_mask);
->>     
->>     void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
->>     void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
->> @@ -210,41 +228,7 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
->>     		refcount_inc(&ruleset->usage);
->>     }
->>     
->> -// TODO: These helpers should not be required thanks to the new ruleset->net_access_mask.
->> -/* A helper function to set a filesystem mask. */
->> -static inline void
->> -landlock_set_fs_access_mask(struct landlock_ruleset *ruleset,
->> -			    const access_mask_t access_mask_fs, u16 mask_level)
->> -{
->> -	ruleset->access_masks[mask_level] = access_mask_fs;
->> -}
->> -
->> -/* A helper function to get a filesystem mask. */
->> -static inline u32
->> -landlock_get_fs_access_mask(const struct landlock_ruleset *ruleset,
->> -			    u16 mask_level)
->> -{
->> -	return (ruleset->access_masks[mask_level] & LANDLOCK_MASK_ACCESS_FS);
->> -}
->> -
->> -/* A helper function to set a network mask. */
->> -static inline void
->> -landlock_set_net_access_mask(struct landlock_ruleset *ruleset,
->> -			     const access_mask_t access_mask_net,
->> -			     u16 mask_level)
->> -{
->> -	ruleset->access_masks[mask_level] |=
->> -		(access_mask_net << LANDLOCK_MASK_SHIFT_NET);
->> -}
->> -
->> -/* A helper function to get a network mask. */
->> -static inline u32
->> -landlock_get_net_access_mask(const struct landlock_ruleset *ruleset,
->> -			     u16 mask_level)
->> -{
->> -	return (ruleset->access_masks[mask_level] >> LANDLOCK_MASK_SHIFT_NET);
->> -}
->> -
->> +// TODO: Remove if only relevant for fs.c
->>     access_mask_t get_handled_accesses(const struct landlock_ruleset *const domain,
->>     				   const u16 rule_type, const u16 num_access);
->>     
->> @@ -258,4 +242,50 @@ access_mask_t init_layer_masks(const struct landlock_ruleset *const domain,
->>     			       layer_mask_t (*const layer_masks)[],
->>     			       const enum landlock_key_type key_type);
->>     
->> +static inline void
->> +landlock_add_fs_access_mask(struct landlock_ruleset *const ruleset,
->> +			    const access_mask_t fs_access_mask,
->> +			    const u16 layer_level)
->> +{
->> +	access_mask_t fs_mask = fs_access_mask & LANDLOCK_MASK_ACCESS_FS;
->> +
->> +	/* Should already be checked in sys_landlock_create_ruleset(). */
->> +	WARN_ON_ONCE(fs_access_mask != fs_mask);
->> +	// TODO: Add tests to check "|=" and not "=" > Is it kunit test? If so, do you want to add this kind of tests in future
-> landlock versions?
-
-In this sixth patch series, landlock_set_fs_access_mask() was replacing 
-the content of access_masks[] whereas landlock_set_net_access_mask() was 
-ORing it. It didn't lead to a bug because landlock_set_fs_access_mask() 
-was called before landlock_set_net_access_mask(), but it was brittle.
-
-Anyway, it was a good reminder to add a test to check that filesystem 
-and network restrictions work well together. This can be added as a 
-basic filesystem test using a ruleset handling network restrictions but 
-no network rule (in fs_test.c), and as a basic network test using a 
-ruleset handling filesystem restrictions but no filestem rule (in 
-net_test.c).
-
-This could also be part of a kunit test in the future.
+  Could you please add the panic stack mentioned above  and syzkaller 
+reproducer ID to the commit text ?
 
 
->> +	ruleset->access_masks[layer_level] |=
->> +		(fs_mask << LANDLOCK_SHIFT_ACCESS_FS);
->> +}
->> +
->> +static inline void
->> +landlock_add_net_access_mask(struct landlock_ruleset *const ruleset,
->> +			     const access_mask_t net_access_mask,
->> +			     const u16 layer_level)
->> +{
->> +	access_mask_t net_mask = net_access_mask & LANDLOCK_MASK_ACCESS_NET;
->> +
->> +	/* Should already be checked in sys_landlock_create_ruleset(). */
->> +	WARN_ON_ONCE(net_access_mask != net_mask);
->> +	// TODO: Add tests to check "|=" and not "="
-> The same above.
-> I'm going add invalid network attribute checking into TEST_F(socket,
-> inval) test in coming patch.
 
-Good
+> ---
+>   Harshit, can you check if this also silences your reproducer?
+> 
+>   Thanks!
+> 
+>   include/linux/netfilter_bridge/ebtables.h | 4 ----
+>   net/bridge/netfilter/ebtable_broute.c     | 8 --------
+>   net/bridge/netfilter/ebtable_filter.c     | 8 --------
+>   net/bridge/netfilter/ebtable_nat.c        | 8 --------
+>   net/bridge/netfilter/ebtables.c           | 8 +-------
+>   5 files changed, 1 insertion(+), 35 deletions(-)
+> 
+> diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+> index a13296d6c7ce..fd533552a062 100644
+> --- a/include/linux/netfilter_bridge/ebtables.h
+> +++ b/include/linux/netfilter_bridge/ebtables.h
+> @@ -94,10 +94,6 @@ struct ebt_table {
+>   	struct ebt_replace_kernel *table;
+>   	unsigned int valid_hooks;
+>   	rwlock_t lock;
+> -	/* e.g. could be the table explicitly only allows certain
+> -	 * matches, targets, ... 0 == let it in */
+> -	int (*check)(const struct ebt_table_info *info,
+> -	   unsigned int valid_hooks);
+>   	/* the data used by the kernel */
+>   	struct ebt_table_info *private;
+>   	struct nf_hook_ops *ops;
+> diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
+> index 1a11064f9990..8f19253024b0 100644
+> --- a/net/bridge/netfilter/ebtable_broute.c
+> +++ b/net/bridge/netfilter/ebtable_broute.c
+> @@ -36,18 +36,10 @@ static struct ebt_replace_kernel initial_table = {
+>   	.entries	= (char *)&initial_chain,
+>   };
+>   
+> -static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+> -{
+> -	if (valid_hooks & ~(1 << NF_BR_BROUTING))
+> -		return -EINVAL;
+> -	return 0;
+> -}
+> -
+>   static const struct ebt_table broute_table = {
+>   	.name		= "broute",
+>   	.table		= &initial_table,
+>   	.valid_hooks	= 1 << NF_BR_BROUTING,
+> -	.check		= check,
+>   	.me		= THIS_MODULE,
+>   };
+>   
+> diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+> index cb949436bc0e..278f324e6752 100644
+> --- a/net/bridge/netfilter/ebtable_filter.c
+> +++ b/net/bridge/netfilter/ebtable_filter.c
+> @@ -43,18 +43,10 @@ static struct ebt_replace_kernel initial_table = {
+>   	.entries	= (char *)initial_chains,
+>   };
+>   
+> -static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+> -{
+> -	if (valid_hooks & ~FILTER_VALID_HOOKS)
+> -		return -EINVAL;
+> -	return 0;
+> -}
+> -
+>   static const struct ebt_table frame_filter = {
+>   	.name		= "filter",
+>   	.table		= &initial_table,
+>   	.valid_hooks	= FILTER_VALID_HOOKS,
+> -	.check		= check,
+>   	.me		= THIS_MODULE,
+>   };
+>   
+> diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
+> index 5ee0531ae506..9066f7f376d5 100644
+> --- a/net/bridge/netfilter/ebtable_nat.c
+> +++ b/net/bridge/netfilter/ebtable_nat.c
+> @@ -43,18 +43,10 @@ static struct ebt_replace_kernel initial_table = {
+>   	.entries	= (char *)initial_chains,
+>   };
+>   
+> -static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+> -{
+> -	if (valid_hooks & ~NAT_VALID_HOOKS)
+> -		return -EINVAL;
+> -	return 0;
+> -}
+> -
+>   static const struct ebt_table frame_nat = {
+>   	.name		= "nat",
+>   	.table		= &initial_table,
+>   	.valid_hooks	= NAT_VALID_HOOKS,
+> -	.check		= check,
+>   	.me		= THIS_MODULE,
+>   };
+>   
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index f2dbefb61ce8..9a0ae59cdc50 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1040,8 +1040,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+>   		goto free_iterate;
+>   	}
+>   
+> -	/* the table doesn't like it */
+> -	if (t->check && (ret = t->check(newinfo, repl->valid_hooks)))
+> +	if (repl->valid_hooks != t->valid_hooks)
+>   		goto free_unlock;
+>   
+>   	if (repl->num_counters && repl->num_counters != t->private->nentries) {
+> @@ -1231,11 +1230,6 @@ int ebt_register_table(struct net *net, const struct ebt_table *input_table,
+>   	if (ret != 0)
+>   		goto free_chainstack;
+>   
+> -	if (table->check && table->check(newinfo, table->valid_hooks)) {
+> -		ret = -EINVAL;
+> -		goto free_chainstack;
+> -	}
+> -
+>   	table->private = newinfo;
+>   	rwlock_init(&table->lock);
+>   	mutex_lock(&ebt_mutex);
+
