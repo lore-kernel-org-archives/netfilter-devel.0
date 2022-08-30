@@ -2,25 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28347ECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Aug 2022 09:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E275CC0502A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Aug 2022 11:37:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229602AbiH3Juu (ORCPT
+        id S230402AbiH3Lhz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Aug 2022 05:50:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58380 "EHLO
+        Tue, 30 Aug 2022 07:37:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229490AbiH3Jut (ORCPT
+        with ESMTP id S230322AbiH3Lhi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2022 05:50:49 -0400
+        Tue, 30 Aug 2022 07:37:38 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 50CF4A2AB5
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2022 02:50:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BA7AEFE042
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2022 04:36:07 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: check offload flags before splicing hook list
-Date:   Tue, 30 Aug 2022 11:50:42 +0200
-Message-Id: <20220830095042.452456-1-pablo@netfilter.org>
+Cc:     fw@strlen.de, i.maximets@ovn.org, pshelar@ovn.org,
+        dev@openvswitch.org, aconole@redhat.com
+Subject: [PATCH nf,v2] netfilter: remove nf_conntrack_helper sysctl and modparam toggles
+Date:   Tue, 30 Aug 2022 13:34:54 +0200
+Message-Id: <20220830113454.1589-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,77 +30,351 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Splice the hook list after validating chain flags, otherwise
-nft_chain_release_hook() is called with an empty hook list from the
-error path, hence the hook list is memleaked.
+__nf_ct_try_assign_helper() remains in place but it now requires a
+template to configure the helper.
 
-BUG: memory leak
-unreferenced object 0xffff88810180b100 (size 96):
-  comm "syz-executor133", pid 3619, jiffies 4294945714 (age 12.690s)
-  hex dump (first 32 bytes):
-    28 64 23 02 81 88 ff ff 28 64 23 02 81 88 ff ff  (d#.....(d#.....
-    90 a8 aa 83 ff ff ff ff 00 00 b5 0f 81 88 ff ff  ................
-  backtrace:
-    [<ffffffff83a8c59b>] kmalloc include/linux/slab.h:600 [inline]
-    [<ffffffff83a8c59b>] nft_netdev_hook_alloc+0x3b/0xc0 net/netfilter/nf_tables_api.c:1901
-    [<ffffffff83a9239a>] nft_chain_parse_netdev net/netfilter/nf_tables_api.c:1998 [inline]
-    [<ffffffff83a9239a>] nft_chain_parse_hook+0x33a/0x530 net/netfilter/nf_tables_api.c:2073
-    [<ffffffff83a9b14b>] nf_tables_addchain.constprop.0+0x10b/0x950 net/netfilter/nf_tables_api.c:2218
-    [<ffffffff83a9c41b>] nf_tables_newchain+0xa8b/0xc60 net/netfilter/nf_tables_api.c:2593
-    [<ffffffff83a3d6a6>] nfnetlink_rcv_batch+0xa46/0xd20 net/netfilter/nfnetlink.c:517
-    [<ffffffff83a3db79>] nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:638 [inline]
-    [<ffffffff83a3db79>] nfnetlink_rcv+0x1f9/0x220 net/netfilter/nfnetlink.c:656
-    [<ffffffff83a13b17>] netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
-    [<ffffffff83a13b17>] netlink_unicast+0x397/0x4c0 net/netlink/af_netlink.c:1345
-    [<ffffffff83a13fd6>] netlink_sendmsg+0x396/0x710 net/netlink/af_netlink.c:1921
-    [<ffffffff83865ab6>] sock_sendmsg_nosec net/socket.c:714 [inline]
-    [<ffffffff83865ab6>] sock_sendmsg+0x56/0x80 net/socket.c:734
-    [<ffffffff8386601c>] ____sys_sendmsg+0x36c/0x390 net/socket.c:2482
-    [<ffffffff8386a918>] ___sys_sendmsg+0xa8/0x110 net/socket.c:2536
-    [<ffffffff8386aaa8>] __sys_sendmsg+0x88/0x100 net/socket.c:2565
-    [<ffffffff845e5955>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-    [<ffffffff845e5955>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
-    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+A toggle to disable automatic helper assignment was added by:
 
-Reported-by: syzbot+5fcdbfab6d6744c57418@syzkaller.appspotmail.com
+  a9006892643a ("netfilter: nf_ct_helper: allow to disable automatic helper assignment")
+
+in 2012 to address the issues described in "Secure use of iptables and
+connection tracking helpers". Automatic conntrack helper assignment was
+disabled by:
+
+  3bb398d925ec ("netfilter: nf_ct_helper: disable automatic helper assignment")
+
+back in 2016.
+
+This patch removes the sysctl and modparam toggles, users now have to
+rely on explicit conntrack helper configuration via ruleset.
+
+Update tools/testing/selftests/netfilter/nft_conntrack_helper.sh to
+check that auto-assignment does not happen anymore.
+
+Acked-by: Aaron Conole <aconole@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+v2: update nft_conntrack_helper, reported by Florian.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2ee50e23c9b7..9323ce8d9bc4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2149,8 +2149,15 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 	struct nft_hook *h;
+ include/net/netfilter/nf_conntrack.h          |  2 -
+ include/net/netns/conntrack.h                 |  1 -
+ net/netfilter/nf_conntrack_core.c             |  5 --
+ net/netfilter/nf_conntrack_helper.c           | 80 +++----------------
+ net/netfilter/nf_conntrack_netlink.c          |  5 --
+ net/netfilter/nf_conntrack_standalone.c       | 10 ---
+ net/netfilter/nft_ct.c                        |  3 -
+ .../netfilter/nft_conntrack_helper.sh         | 36 ++++++---
+ 8 files changed, 36 insertions(+), 106 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index a32be8aa7ed2..6a2019aaa464 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -53,8 +53,6 @@ struct nf_conntrack_net {
+ 	/* only used when new connection is allocated: */
+ 	atomic_t count;
+ 	unsigned int expect_count;
+-	u8 sysctl_auto_assign_helper;
+-	bool auto_assign_helper_warned;
  
- 	basechain->type = hook->type;
-+	basechain->policy = NF_ACCEPT;
- 	INIT_LIST_HEAD(&basechain->hook_list);
-+
- 	chain = &basechain->chain;
-+	chain->flags |= NFT_CHAIN_BASE | flags;
-+
-+	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
-+	    !nft_chain_offload_support(basechain))
-+		return -EOPNOTSUPP;
+ 	/* only used from work queues, configuration plane, and so on: */
+ 	unsigned int users4;
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index c396a3862e80..e1290c159184 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -101,7 +101,6 @@ struct netns_ct {
+ 	u8			sysctl_log_invalid; /* Log invalid packets */
+ 	u8			sysctl_events;
+ 	u8			sysctl_acct;
+-	u8			sysctl_auto_assign_helper;
+ 	u8			sysctl_tstamp;
+ 	u8			sysctl_checksum;
  
- 	if (nft_base_chain_netdev(family, hook->num)) {
- 		list_splice_init(&hook->list, &basechain->hook_list);
-@@ -2163,12 +2170,6 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 		nft_basechain_hook_init(&basechain->ops, family, hook, chain);
- 	}
- 
--	chain->flags |= NFT_CHAIN_BASE | flags;
--	basechain->policy = NF_ACCEPT;
--	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
--	    !nft_chain_offload_support(basechain))
--		return -EOPNOTSUPP;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 71c2f4f95d36..c07bb87ff1be 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2068,10 +2068,6 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+ 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
+ 	if (ct->master || (help && !hlist_empty(&help->expectations)))
+ 		return;
 -
- 	flow_block_init(&basechain->flow_block);
+-	rcu_read_lock();
+-	__nf_ct_try_assign_helper(ct, NULL, GFP_ATOMIC);
+-	rcu_read_unlock();
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+ 
+@@ -2797,7 +2793,6 @@ int nf_conntrack_init_net(struct net *net)
+ 	nf_conntrack_acct_pernet_init(net);
+ 	nf_conntrack_tstamp_pernet_init(net);
+ 	nf_conntrack_ecache_pernet_init(net);
+-	nf_conntrack_helper_pernet_init(net);
+ 	nf_conntrack_proto_pernet_init(net);
  
  	return 0;
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index e96b32221444..ff737a76052e 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -35,11 +35,6 @@ unsigned int nf_ct_helper_hsize __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_helper_hsize);
+ static unsigned int nf_ct_helper_count __read_mostly;
+ 
+-static bool nf_ct_auto_assign_helper __read_mostly = false;
+-module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool, 0644);
+-MODULE_PARM_DESC(nf_conntrack_helper,
+-		 "Enable automatic conntrack helper assignment (default 0)");
+-
+ static DEFINE_MUTEX(nf_ct_nat_helpers_mutex);
+ static struct list_head nf_ct_nat_helpers __read_mostly;
+ 
+@@ -51,24 +46,6 @@ static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
+ 		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
+ }
+ 
+-static struct nf_conntrack_helper *
+-__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+-{
+-	struct nf_conntrack_helper *helper;
+-	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
+-	unsigned int h;
+-
+-	if (!nf_ct_helper_count)
+-		return NULL;
+-
+-	h = helper_hash(tuple);
+-	hlist_for_each_entry_rcu(helper, &nf_ct_helper_hash[h], hnode) {
+-		if (nf_ct_tuple_src_mask_cmp(tuple, &helper->tuple, &mask))
+-			return helper;
+-	}
+-	return NULL;
+-}
+-
+ struct nf_conntrack_helper *
+ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
+ {
+@@ -209,33 +186,11 @@ nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
+ 
+-static struct nf_conntrack_helper *
+-nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+-{
+-	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+-
+-	if (!cnet->sysctl_auto_assign_helper) {
+-		if (cnet->auto_assign_helper_warned)
+-			return NULL;
+-		if (!__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple))
+-			return NULL;
+-		pr_info("nf_conntrack: default automatic helper assignment "
+-			"has been turned off for security reasons and CT-based "
+-			"firewall rule not found. Use the iptables CT target "
+-			"to attach helpers instead.\n");
+-		cnet->auto_assign_helper_warned = true;
+-		return NULL;
+-	}
+-
+-	return __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+-}
+-
+ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 			      gfp_t flags)
+ {
+ 	struct nf_conntrack_helper *helper = NULL;
+ 	struct nf_conn_help *help;
+-	struct net *net = nf_ct_net(ct);
+ 
+ 	/* We already got a helper explicitly attached. The function
+ 	 * nf_conntrack_alter_reply - in case NAT is in use - asks for looking
+@@ -246,23 +201,21 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 	if (test_bit(IPS_HELPER_BIT, &ct->status))
+ 		return 0;
+ 
+-	if (tmpl != NULL) {
+-		help = nfct_help(tmpl);
+-		if (help != NULL) {
+-			helper = rcu_dereference(help->helper);
+-			set_bit(IPS_HELPER_BIT, &ct->status);
+-		}
++	if (WARN_ON_ONCE(!tmpl))
++		return 0;
++
++	help = nfct_help(tmpl);
++	if (help != NULL) {
++		helper = rcu_dereference(help->helper);
++		set_bit(IPS_HELPER_BIT, &ct->status);
+ 	}
+ 
+ 	help = nfct_help(ct);
+ 
+ 	if (helper == NULL) {
+-		helper = nf_ct_lookup_helper(ct, net);
+-		if (helper == NULL) {
+-			if (help)
+-				RCU_INIT_POINTER(help->helper, NULL);
+-			return 0;
+-		}
++		if (help)
++			RCU_INIT_POINTER(help->helper, NULL);
++		return 0;
+ 	}
+ 
+ 	if (help == NULL) {
+@@ -545,19 +498,6 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
+ 
+-void nf_ct_set_auto_assign_helper_warned(struct net *net)
+-{
+-	nf_ct_pernet(net)->auto_assign_helper_warned = true;
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_set_auto_assign_helper_warned);
+-
+-void nf_conntrack_helper_pernet_init(struct net *net)
+-{
+-	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
+-
+-	cnet->sysctl_auto_assign_helper = nf_ct_auto_assign_helper;
+-}
+-
+ int nf_conntrack_helper_init(void)
+ {
+ 	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 04169b54f2a2..7562b215b932 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2298,11 +2298,6 @@ ctnetlink_create_conntrack(struct net *net,
+ 			ct->status |= IPS_HELPER;
+ 			RCU_INIT_POINTER(help->helper, helper);
+ 		}
+-	} else {
+-		/* try an implicit helper assignation */
+-		err = __nf_ct_try_assign_helper(ct, NULL, GFP_ATOMIC);
+-		if (err < 0)
+-			goto err2;
+ 	}
+ 
+ 	err = ctnetlink_setup_nat(ct, cda);
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 05895878610c..4ffe84c5a82c 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -561,7 +561,6 @@ enum nf_ct_sysctl_index {
+ 	NF_SYSCTL_CT_LOG_INVALID,
+ 	NF_SYSCTL_CT_EXPECT_MAX,
+ 	NF_SYSCTL_CT_ACCT,
+-	NF_SYSCTL_CT_HELPER,
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	NF_SYSCTL_CT_EVENTS,
+ #endif
+@@ -680,14 +679,6 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.extra1 	= SYSCTL_ZERO,
+ 		.extra2 	= SYSCTL_ONE,
+ 	},
+-	[NF_SYSCTL_CT_HELPER] = {
+-		.procname	= "nf_conntrack_helper",
+-		.maxlen		= sizeof(u8),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dou8vec_minmax,
+-		.extra1 	= SYSCTL_ZERO,
+-		.extra2 	= SYSCTL_ONE,
+-	},
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	[NF_SYSCTL_CT_EVENTS] = {
+ 		.procname	= "nf_conntrack_events",
+@@ -1100,7 +1091,6 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
+ 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
+ 	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
+-	table[NF_SYSCTL_CT_HELPER].data = &cnet->sysctl_auto_assign_helper;
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	table[NF_SYSCTL_CT_EVENTS].data = &net->ct.sysctl_events;
+ #endif
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index b04995c3e17f..a3f01f209a53 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1089,9 +1089,6 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		goto err_put_helper;
+ 
+-	/* Avoid the bogus warning, helper will be assigned after CT init */
+-	nf_ct_set_auto_assign_helper_warned(ctx->net);
+-
+ 	return 0;
+ 
+ err_put_helper:
+diff --git a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+index bf6b9626c7dd..faa7778d7bd1 100755
+--- a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
++++ b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
+@@ -102,26 +102,42 @@ check_for_helper()
+ 
+ 	ip netns exec ${netns} conntrack -L -f $family -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
+ 	if [ $? -ne 0 ] ; then
+-		echo "FAIL: ${netns} did not show attached helper $message" 1>&2
+-		ret=1
++		if [ $autoassign -eq 0 ] ;then
++			echo "FAIL: ${netns} did not show attached helper $message" 1>&2
++			ret=1
++		else
++			echo "PASS: ${netns} did not show attached helper $message" 1>&2
++		fi
++	else
++		if [ $autoassign -eq 0 ] ;then
++			echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
++		else
++			echo "FAIL: ${netns} connection on port $port has ftp helper attached" 1>&2
++			ret=1
++		fi
+ 	fi
+ 
+-	echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
+ 	return 0
+ }
+ 
+ test_helper()
+ {
+ 	local port=$1
+-	local msg=$2
++	local autoassign=$2
++
++	if [ $autoassign -eq 0 ] ;then
++		msg="set via ruleset"
++	else
++		msg="auto-assign"
++	fi
+ 
+ 	sleep 3 | ip netns exec ${ns2} nc -w 2 -l -p $port > /dev/null &
+ 
+ 	sleep 1 | ip netns exec ${ns1} nc -w 2 10.0.1.2 $port > /dev/null &
+ 	sleep 1
+ 
+-	check_for_helper "$ns1" "ip $msg" $port
+-	check_for_helper "$ns2" "ip $msg" $port
++	check_for_helper "$ns1" "ip $msg" $port $autoassign
++	check_for_helper "$ns2" "ip $msg" $port $autoassign
+ 
+ 	wait
+ 
+@@ -173,9 +189,9 @@ if [ $? -ne 0 ];then
+ 	fi
+ fi
+ 
+-test_helper 2121 "set via ruleset"
+-ip netns exec ${ns1} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
+-ip netns exec ${ns2} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
+-test_helper 21 "auto-assign"
++test_helper 2121 0
++ip netns exec ${ns1} sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
++ip netns exec ${ns2} sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
++test_helper 21 1
+ 
+ exit $ret
 -- 
 2.30.2
 
