@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7374ECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Aug 2022 17:22:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AE6ECAAD1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Aug 2022 17:34:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231135AbiH3RWV (ORCPT
+        id S231854AbiH3ReW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Aug 2022 13:22:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60388 "EHLO
+        Tue, 30 Aug 2022 13:34:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231164AbiH3RVm (ORCPT
+        with ESMTP id S232093AbiH3RdJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2022 13:21:42 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A6A8DDB63;
-        Tue, 30 Aug 2022 10:20:26 -0700 (PDT)
+        Tue, 30 Aug 2022 13:33:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E039E68FC;
+        Tue, 30 Aug 2022 10:29:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8953EB81D0C;
-        Tue, 30 Aug 2022 17:20:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3264C43150;
-        Tue, 30 Aug 2022 17:20:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 498A761780;
+        Tue, 30 Aug 2022 17:22:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C80DC43142;
+        Tue, 30 Aug 2022 17:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661880023;
-        bh=I5qbucz9hEvTK5aZplOe8XJDRDj5Cv0jBV9i3aOvbeo=;
+        s=k20201202; t=1661880159;
+        bh=viUhvXnEZZVKzg1dyNtgpmWDjQnR4hg7f8HjVdysiwo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Hsbkq94mxzlF1kLR/iTHL7BLWchmQ8bicn6kwHWHf6tGu5SzAw8CBmXR44fVkw8wn
-         AR0fpgvFVSCVvM3XiuMXgrw2HXfNSJfblp38p7kEe9FVxzrEwwy5zHSbj4pjezciuQ
-         87ZYIimcwG0yJWXQycuezMLcxIWCOrK3vezltlQkpBxU636y+EmQt6ZJn7XITeX+WM
-         TTyDybSn1gUp3v509uhd4dV/ydxrTZzxMVvaFSO6Oj29QCDlLGOvEdCxHp1O6Owzpj
-         aS1mh9vFYncWRrtFHCEmzbPgiwJrqHQZswoaQmIskBaaloxTw7VYWcqhFc1KQ+zw9W
-         zs/pV3s4iXwzg==
+        b=SZRzS73PExGaufjcFG/laMYE2T9Db0xe1h/GcN65p7Q1uxhK3IAhHuaxnsj7KO1Ku
+         PQ4mAbcCTeKqVdnN3IMIQt0NZtCBcUmAfV3HpI280ykrji6gR6HjAkhIG7kqwdq3iR
+         J9EfbyVd3m2V2S+kDNp2cKpYHwXn3iBNBpiEUCJMDVdPNUcyElLIIgMUahytMxjLgM
+         2oIjJ8RM/+CDH6mcUiAMLXeTCICrf03Zvqoiw1nsw5fA6gIQ6gOg9H/fgEfzM9jiXc
+         OkWKBFQ2VG5xphNa2YEXv3sO8DFjMyoaIg44xiNLbpdWff8ma3oDLjOOhPbkLwOSl4
+         OTLbi+aiEc+FA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Florian Westphal <fw@strlen.de>, Sasha Levin <sashal@kernel.org>,
@@ -40,12 +40,12 @@ Cc:     Florian Westphal <fw@strlen.de>, Sasha Levin <sashal@kernel.org>,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.19 21/33] netfilter: conntrack: work around exceeded receive window
-Date:   Tue, 30 Aug 2022 13:18:12 -0400
-Message-Id: <20220830171825.580603-21-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 15/23] netfilter: conntrack: work around exceeded receive window
+Date:   Tue, 30 Aug 2022 13:21:32 -0400
+Message-Id: <20220830172141.581086-15-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220830171825.580603-1-sashal@kernel.org>
-References: <20220830171825.580603-1-sashal@kernel.org>
+In-Reply-To: <20220830172141.581086-1-sashal@kernel.org>
+References: <20220830172141.581086-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -141,10 +141,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 31 insertions(+)
 
 diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index a63b51dceaf2c..a634c72b1ffcf 100644
+index 3cee5d8ee7027..1ecfdc4f23be8 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -655,6 +655,37 @@ static bool tcp_in_window(struct nf_conn *ct,
+@@ -671,6 +671,37 @@ static bool tcp_in_window(struct nf_conn *ct,
  		    tn->tcp_be_liberal)
  			res = true;
  		if (!res) {
