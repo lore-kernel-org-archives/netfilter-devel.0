@@ -2,27 +2,26 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7258CECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Aug 2022 15:33:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 836A0ECAAD1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 30 Aug 2022 15:37:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229608AbiH3Pdc (ORCPT
+        id S229837AbiH3Phw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 Aug 2022 11:33:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36144 "EHLO
+        Tue, 30 Aug 2022 11:37:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229521AbiH3Pdb (ORCPT
+        with ESMTP id S230183AbiH3Phv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2022 11:33:31 -0400
+        Tue, 30 Aug 2022 11:37:51 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 62A3D15C785
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2022 08:33:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9BA5B15C352
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2022 08:37:49 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, i.maximets@ovn.org, pshelar@ovn.org,
-        dev@openvswitch.org, aconole@redhat.com
-Subject: [PATCH nf,v3] netfilter: remove nf_conntrack_helper sysctl and modparam toggles
-Date:   Tue, 30 Aug 2022 17:33:19 +0200
-Message-Id: <20220830153319.71890-1-pablo@netfilter.org>
+Cc:     phil@nwl.cc
+Subject: [PATCH nft] src: allow burst 0 for byte ratelimit and use it as default
+Date:   Tue, 30 Aug 2022 17:37:46 +0200
+Message-Id: <20220830153746.94996-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -30,364 +29,349 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-__nf_ct_try_assign_helper() remains in place but it now requires a
-template to configure the helper.
+Packet-based limit burst is set to 5, as in iptables. However,
+byte-based limit burst adds to the rate to calculate the bucket size,
+and this is also sets this to 5 (... bytes in this case). Update it to
+use zero byte burst by default instead.
 
-A toggle to disable automatic helper assignment was added by:
+This patch also updates manpage to describe how the burst value
+influences the kernel module's token bucket in each of the two modes.
+This documentation update is based on original text by Phil Sutter.
 
-  a9006892643a ("netfilter: nf_ct_helper: allow to disable automatic helper assignment")
+Adjust tests/py to silence warnings due to mismatching byte burst.
 
-in 2012 to address the issues described in "Secure use of iptables and
-connection tracking helpers". Automatic conntrack helper assignment was
-disabled by:
-
-  3bb398d925ec ("netfilter: nf_ct_helper: disable automatic helper assignment")
-
-back in 2016.
-
-This patch removes the sysctl and modparam toggles, users now have to
-rely on explicit conntrack helper configuration via ruleset.
-
-Update tools/testing/selftests/netfilter/nft_conntrack_helper.sh to
-check that auto-assignment does not happen anymore.
-
-Acked-by: Aaron Conole <aconole@redhat.com>
+Fixes: 285baccfea46 ("src: disallow burst 0 in ratelimits")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: add:
+ doc/statements.txt               |  9 +++++++--
+ src/parser_bison.y               |  9 ++-------
+ src/parser_json.c                |  5 ++++-
+ src/statement.c                  |  2 +-
+ tests/py/any/limit.t.json        |  6 +++---
+ tests/py/any/limit.t.json.output | 24 ++++++++++++------------
+ tests/py/any/limit.t.payload     | 30 +++++++++++++++---------------
+ 7 files changed, 44 insertions(+), 41 deletions(-)
 
-	if (!exp && tmpl)
-
-otherwise WARN_ON_ONCE splat is posted if tmpl is NULL from init_conntrack.
-
- include/net/netfilter/nf_conntrack.h          |  2 -
- include/net/netns/conntrack.h                 |  1 -
- net/netfilter/nf_conntrack_core.c             |  7 +-
- net/netfilter/nf_conntrack_helper.c           | 80 +++----------------
- net/netfilter/nf_conntrack_netlink.c          |  5 --
- net/netfilter/nf_conntrack_standalone.c       | 10 ---
- net/netfilter/nft_ct.c                        |  3 -
- .../netfilter/nft_conntrack_helper.sh         | 36 ++++++---
- 8 files changed, 37 insertions(+), 107 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index a32be8aa7ed2..6a2019aaa464 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -53,8 +53,6 @@ struct nf_conntrack_net {
- 	/* only used when new connection is allocated: */
- 	atomic_t count;
- 	unsigned int expect_count;
--	u8 sysctl_auto_assign_helper;
--	bool auto_assign_helper_warned;
- 
- 	/* only used from work queues, configuration plane, and so on: */
- 	unsigned int users4;
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index c396a3862e80..e1290c159184 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -101,7 +101,6 @@ struct netns_ct {
- 	u8			sysctl_log_invalid; /* Log invalid packets */
- 	u8			sysctl_events;
- 	u8			sysctl_acct;
--	u8			sysctl_auto_assign_helper;
- 	u8			sysctl_tstamp;
- 	u8			sysctl_checksum;
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 71c2f4f95d36..1357a2729a4b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1782,7 +1782,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 		}
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
--	if (!exp)
-+	if (!exp && tmpl)
- 		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
- 
- 	/* Other CPU might have obtained a pointer to this object before it was
-@@ -2068,10 +2068,6 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
- 	if (ct->master || (help && !hlist_empty(&help->expectations)))
- 		return;
--
--	rcu_read_lock();
--	__nf_ct_try_assign_helper(ct, NULL, GFP_ATOMIC);
--	rcu_read_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
- 
-@@ -2797,7 +2793,6 @@ int nf_conntrack_init_net(struct net *net)
- 	nf_conntrack_acct_pernet_init(net);
- 	nf_conntrack_tstamp_pernet_init(net);
- 	nf_conntrack_ecache_pernet_init(net);
--	nf_conntrack_helper_pernet_init(net);
- 	nf_conntrack_proto_pernet_init(net);
- 
- 	return 0;
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index e96b32221444..ff737a76052e 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -35,11 +35,6 @@ unsigned int nf_ct_helper_hsize __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_helper_hsize);
- static unsigned int nf_ct_helper_count __read_mostly;
- 
--static bool nf_ct_auto_assign_helper __read_mostly = false;
--module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool, 0644);
--MODULE_PARM_DESC(nf_conntrack_helper,
--		 "Enable automatic conntrack helper assignment (default 0)");
--
- static DEFINE_MUTEX(nf_ct_nat_helpers_mutex);
- static struct list_head nf_ct_nat_helpers __read_mostly;
- 
-@@ -51,24 +46,6 @@ static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
- 		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
- }
- 
--static struct nf_conntrack_helper *
--__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
--{
--	struct nf_conntrack_helper *helper;
--	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
--	unsigned int h;
--
--	if (!nf_ct_helper_count)
--		return NULL;
--
--	h = helper_hash(tuple);
--	hlist_for_each_entry_rcu(helper, &nf_ct_helper_hash[h], hnode) {
--		if (nf_ct_tuple_src_mask_cmp(tuple, &helper->tuple, &mask))
--			return helper;
--	}
--	return NULL;
--}
--
- struct nf_conntrack_helper *
- __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
- {
-@@ -209,33 +186,11 @@ nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
- 
--static struct nf_conntrack_helper *
--nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
--{
--	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
--
--	if (!cnet->sysctl_auto_assign_helper) {
--		if (cnet->auto_assign_helper_warned)
--			return NULL;
--		if (!__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple))
--			return NULL;
--		pr_info("nf_conntrack: default automatic helper assignment "
--			"has been turned off for security reasons and CT-based "
--			"firewall rule not found. Use the iptables CT target "
--			"to attach helpers instead.\n");
--		cnet->auto_assign_helper_warned = true;
--		return NULL;
--	}
--
--	return __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
--}
--
- int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 			      gfp_t flags)
- {
- 	struct nf_conntrack_helper *helper = NULL;
- 	struct nf_conn_help *help;
--	struct net *net = nf_ct_net(ct);
- 
- 	/* We already got a helper explicitly attached. The function
- 	 * nf_conntrack_alter_reply - in case NAT is in use - asks for looking
-@@ -246,23 +201,21 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 	if (test_bit(IPS_HELPER_BIT, &ct->status))
- 		return 0;
- 
--	if (tmpl != NULL) {
--		help = nfct_help(tmpl);
--		if (help != NULL) {
--			helper = rcu_dereference(help->helper);
--			set_bit(IPS_HELPER_BIT, &ct->status);
--		}
-+	if (WARN_ON_ONCE(!tmpl))
-+		return 0;
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 6aaf806bcff2..6c6b1d8712d4 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -332,8 +332,13 @@ ____
+ A limit statement matches at a limited rate using a token bucket filter. A rule
+ using this statement will match until this limit is reached. It can be used in
+ combination with the log statement to give limited logging. The optional
+-*over* keyword makes it match over the specified rate. Default *burst* is 5.
+-if you specify *burst*, it must be non-zero value.
++*over* keyword makes it match over the specified rate.
 +
-+	help = nfct_help(tmpl);
-+	if (help != NULL) {
-+		helper = rcu_dereference(help->helper);
-+		set_bit(IPS_HELPER_BIT, &ct->status);
- 	}
++The *burst* value influences the bucket size, i.e. jitter tolerance. With
++packet-based *limit*, the bucket holds exactly *burst* packets, by default
++five. If you specify packet *burst*, it must be a non-zero value. With
++byte-based *limit*, the bucket's minimum size is the given rate's byte value
++and the *burst* value adds to that, by default zero bytes.
  
- 	help = nfct_help(ct);
+ .limit statement values
+ [options="header"]
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index ae14eb1a690b..0266819a779b 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3203,7 +3203,7 @@ log_flag_tcp		:	SEQUENCE
+ limit_stmt		:	LIMIT	RATE	limit_mode	limit_rate_pkts	limit_burst_pkts	close_scope_limit
+ 	    		{
+ 				if ($5 == 0) {
+-					erec_queue(error(&@5, "limit burst must be > 0"),
++					erec_queue(error(&@5, "packet limit burst must be > 0"),
+ 						   state->msgs);
+ 					YYERROR;
+ 				}
+@@ -3216,11 +3216,6 @@ limit_stmt		:	LIMIT	RATE	limit_mode	limit_rate_pkts	limit_burst_pkts	close_scope
+ 			}
+ 			|	LIMIT	RATE	limit_mode	limit_rate_bytes	limit_burst_bytes	close_scope_limit
+ 			{
+-				if ($5 == 0) {
+-					erec_queue(error(&@5, "limit burst must be > 0"),
+-						   state->msgs);
+-					YYERROR;
+-				}
+ 				$$ = limit_stmt_alloc(&@$);
+ 				$$->limit.rate	= $4.rate;
+ 				$$->limit.unit	= $4.unit;
+@@ -3301,7 +3296,7 @@ limit_rate_pkts		:	NUM     SLASH	time_unit
+ 			}
+ 			;
  
- 	if (helper == NULL) {
--		helper = nf_ct_lookup_helper(ct, net);
--		if (helper == NULL) {
--			if (help)
--				RCU_INIT_POINTER(help->helper, NULL);
--			return 0;
--		}
-+		if (help)
-+			RCU_INIT_POINTER(help->helper, NULL);
-+		return 0;
- 	}
+-limit_burst_bytes	:	/* empty */			{ $$ = 5; }
++limit_burst_bytes	:	/* empty */			{ $$ = 0; }
+ 			|	BURST	limit_bytes		{ $$ = $2; }
+ 			;
  
- 	if (help == NULL) {
-@@ -545,19 +498,6 @@ void nf_nat_helper_unregister(struct nf_conntrack_nat_helper *nat)
- }
- EXPORT_SYMBOL_GPL(nf_nat_helper_unregister);
- 
--void nf_ct_set_auto_assign_helper_warned(struct net *net)
--{
--	nf_ct_pernet(net)->auto_assign_helper_warned = true;
--}
--EXPORT_SYMBOL_GPL(nf_ct_set_auto_assign_helper_warned);
--
--void nf_conntrack_helper_pernet_init(struct net *net)
--{
--	struct nf_conntrack_net *cnet = nf_ct_pernet(net);
--
--	cnet->sysctl_auto_assign_helper = nf_ct_auto_assign_helper;
--}
--
- int nf_conntrack_helper_init(void)
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 9e93927a9a2b..2437b1bae178 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1826,7 +1826,7 @@ static struct stmt *json_parse_limit_stmt(struct json_ctx *ctx,
+ 					  const char *key, json_t *value)
  {
- 	nf_ct_helper_hsize = 1; /* gets rounded up to use one page */
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 04169b54f2a2..7562b215b932 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2298,11 +2298,6 @@ ctnetlink_create_conntrack(struct net *net,
- 			ct->status |= IPS_HELPER;
- 			RCU_INIT_POINTER(help->helper, helper);
- 		}
--	} else {
--		/* try an implicit helper assignation */
--		err = __nf_ct_try_assign_helper(ct, NULL, GFP_ATOMIC);
--		if (err < 0)
--			goto err2;
- 	}
+ 	struct stmt *stmt;
+-	uint64_t rate, burst = 5;
++	uint64_t rate, burst = 0;
+ 	const char *rate_unit = "packets", *time, *burst_unit = "bytes";
+ 	int inv = 0;
  
- 	err = ctnetlink_setup_nat(ct, cda);
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 05895878610c..4ffe84c5a82c 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -561,7 +561,6 @@ enum nf_ct_sysctl_index {
- 	NF_SYSCTL_CT_LOG_INVALID,
- 	NF_SYSCTL_CT_EXPECT_MAX,
- 	NF_SYSCTL_CT_ACCT,
--	NF_SYSCTL_CT_HELPER,
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	NF_SYSCTL_CT_EVENTS,
- #endif
-@@ -680,14 +679,6 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.extra1 	= SYSCTL_ZERO,
- 		.extra2 	= SYSCTL_ONE,
- 	},
--	[NF_SYSCTL_CT_HELPER] = {
--		.procname	= "nf_conntrack_helper",
--		.maxlen		= sizeof(u8),
--		.mode		= 0644,
--		.proc_handler	= proc_dou8vec_minmax,
--		.extra1 	= SYSCTL_ZERO,
--		.extra2 	= SYSCTL_ONE,
--	},
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	[NF_SYSCTL_CT_EVENTS] = {
- 		.procname	= "nf_conntrack_events",
-@@ -1100,7 +1091,6 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
- 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
- 	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
--	table[NF_SYSCTL_CT_HELPER].data = &cnet->sysctl_auto_assign_helper;
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	table[NF_SYSCTL_CT_EVENTS].data = &net->ct.sysctl_events;
- #endif
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index b04995c3e17f..a3f01f209a53 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -1089,9 +1089,6 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		goto err_put_helper;
+@@ -1840,6 +1840,9 @@ static struct stmt *json_parse_limit_stmt(struct json_ctx *ctx,
+ 		stmt = limit_stmt_alloc(int_loc);
  
--	/* Avoid the bogus warning, helper will be assigned after CT init */
--	nf_ct_set_auto_assign_helper_warned(ctx->net);
--
- 	return 0;
- 
- err_put_helper:
-diff --git a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-index bf6b9626c7dd..faa7778d7bd1 100755
---- a/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-+++ b/tools/testing/selftests/netfilter/nft_conntrack_helper.sh
-@@ -102,26 +102,42 @@ check_for_helper()
- 
- 	ip netns exec ${netns} conntrack -L -f $family -p tcp --dport $port 2> /dev/null |grep -q 'helper=ftp'
- 	if [ $? -ne 0 ] ; then
--		echo "FAIL: ${netns} did not show attached helper $message" 1>&2
--		ret=1
-+		if [ $autoassign -eq 0 ] ;then
-+			echo "FAIL: ${netns} did not show attached helper $message" 1>&2
-+			ret=1
-+		else
-+			echo "PASS: ${netns} did not show attached helper $message" 1>&2
-+		fi
-+	else
-+		if [ $autoassign -eq 0 ] ;then
-+			echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
-+		else
-+			echo "FAIL: ${netns} connection on port $port has ftp helper attached" 1>&2
-+			ret=1
-+		fi
- 	fi
- 
--	echo "PASS: ${netns} connection on port $port has ftp helper attached" 1>&2
- 	return 0
- }
- 
- test_helper()
- {
- 	local port=$1
--	local msg=$2
-+	local autoassign=$2
+ 		if (!strcmp(rate_unit, "packets")) {
++			if (burst == 0)
++				burst = 5;
 +
-+	if [ $autoassign -eq 0 ] ;then
-+		msg="set via ruleset"
-+	else
-+		msg="auto-assign"
-+	fi
+ 			stmt->limit.type = NFT_LIMIT_PKTS;
+ 			stmt->limit.rate = rate;
+ 			stmt->limit.burst = burst;
+diff --git a/src/statement.c b/src/statement.c
+index 30caf9c7f6e1..327d00f99200 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -465,7 +465,7 @@ static void limit_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ 		nft_print(octx,	"limit rate %s%" PRIu64 " %s/%s",
+ 			  inv ? "over " : "", rate, data_unit,
+ 			  get_unit(stmt->limit.unit));
+-		if (stmt->limit.burst != 5) {
++		if (stmt->limit.burst != 0) {
+ 			uint64_t burst;
  
- 	sleep 3 | ip netns exec ${ns2} nc -w 2 -l -p $port > /dev/null &
+ 			data_unit = get_rate(stmt->limit.burst, &burst);
+diff --git a/tests/py/any/limit.t.json b/tests/py/any/limit.t.json
+index b41ae60a3bd6..e001ba0fe9ac 100644
+--- a/tests/py/any/limit.t.json
++++ b/tests/py/any/limit.t.json
+@@ -129,7 +129,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1,
+@@ -142,7 +142,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1,
+@@ -155,7 +155,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1,
+diff --git a/tests/py/any/limit.t.json.output b/tests/py/any/limit.t.json.output
+index e6f26496e01c..5a95f5e10a86 100644
+--- a/tests/py/any/limit.t.json.output
++++ b/tests/py/any/limit.t.json.output
+@@ -57,7 +57,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1,
+@@ -70,7 +70,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 2,
+@@ -83,7 +83,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1025,
+@@ -96,7 +96,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1023,
+@@ -109,7 +109,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 10230,
+@@ -122,7 +122,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "per": "second",
+             "rate": 1023000,
+@@ -195,7 +195,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "inv": true,
+             "per": "second",
+@@ -209,7 +209,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "inv": true,
+             "per": "second",
+@@ -223,7 +223,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "inv": true,
+             "per": "second",
+@@ -237,7 +237,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "inv": true,
+             "per": "second",
+@@ -251,7 +251,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "inv": true,
+             "per": "second",
+@@ -265,7 +265,7 @@
+ [
+     {
+         "limit": {
+-            "burst": 5,
++            "burst": 0,
+             "burst_unit": "bytes",
+             "inv": true,
+             "per": "second",
+diff --git a/tests/py/any/limit.t.payload b/tests/py/any/limit.t.payload
+index 3bd85f4ebf45..0c7ee942927d 100644
+--- a/tests/py/any/limit.t.payload
++++ b/tests/py/any/limit.t.payload
+@@ -24,39 +24,39 @@ ip test-ip4 output
  
- 	sleep 1 | ip netns exec ${ns1} nc -w 2 10.0.1.2 $port > /dev/null &
- 	sleep 1
+ # limit rate 1 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1024/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1024/second burst 0 type bytes flags 0x0 ]
  
--	check_for_helper "$ns1" "ip $msg" $port
--	check_for_helper "$ns2" "ip $msg" $port
-+	check_for_helper "$ns1" "ip $msg" $port $autoassign
-+	check_for_helper "$ns2" "ip $msg" $port $autoassign
+ # limit rate 2 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 2048/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 2048/second burst 0 type bytes flags 0x0 ]
  
- 	wait
+ # limit rate 1025 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1049600/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1049600/second burst 0 type bytes flags 0x0 ]
  
-@@ -173,9 +189,9 @@ if [ $? -ne 0 ];then
- 	fi
- fi
+ # limit rate 1023 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1072693248/second burst 0 type bytes flags 0x0 ]
  
--test_helper 2121 "set via ruleset"
--ip netns exec ${ns1} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
--ip netns exec ${ns2} sysctl -q 'net.netfilter.nf_conntrack_helper=1'
--test_helper 21 "auto-assign"
-+test_helper 2121 0
-+ip netns exec ${ns1} sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
-+ip netns exec ${ns2} sysctl -qe 'net.netfilter.nf_conntrack_helper=1'
-+test_helper 21 1
+ # limit rate 10230 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 10726932480/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 10726932480/second burst 0 type bytes flags 0x0 ]
  
- exit $ret
+ # limit rate 1023000 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248000/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1072693248000/second burst 0 type bytes flags 0x0 ]
+ 
+ # limit rate 1 bytes / second
+ ip
+-  [ limit rate 1/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1/second burst 0 type bytes flags 0x0 ]
+ 
+ # limit rate 1 kbytes / second
+ ip
+-  [ limit rate 1024/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1024/second burst 0 type bytes flags 0x0 ]
+ 
+ # limit rate 1 mbytes / second
+ ip
+-  [ limit rate 1048576/second burst 5 type bytes flags 0x0 ]
++  [ limit rate 1048576/second burst 0 type bytes flags 0x0 ]
+ 
+ 
+ # limit rate 1025 bytes/second burst 512 bytes
+@@ -101,27 +101,27 @@ ip test-ip4 output
+ 
+ # limit rate over 1 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1024/second burst 5 type bytes flags 0x1 ]
++  [ limit rate 1024/second burst 0 type bytes flags 0x1 ]
+ 
+ # limit rate over 2 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 2048/second burst 5 type bytes flags 0x1 ]
++  [ limit rate 2048/second burst 0 type bytes flags 0x1 ]
+ 
+ # limit rate over 1025 kbytes/second
+ ip test-ip4 output
+-  [ limit rate 1049600/second burst 5 type bytes flags 0x1 ]
++  [ limit rate 1049600/second burst 0 type bytes flags 0x1 ]
+ 
+ # limit rate over 1023 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248/second burst 5 type bytes flags 0x1 ]
++  [ limit rate 1072693248/second burst 0 type bytes flags 0x1 ]
+ 
+ # limit rate over 10230 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 10726932480/second burst 5 type bytes flags 0x1 ]
++  [ limit rate 10726932480/second burst 0 type bytes flags 0x1 ]
+ 
+ # limit rate over 1023000 mbytes/second
+ ip test-ip4 output
+-  [ limit rate 1072693248000/second burst 5 type bytes flags 0x1 ]
++  [ limit rate 1072693248000/second burst 0 type bytes flags 0x1 ]
+ 
+ # limit rate over 1025 bytes/second burst 512 bytes
+ ip test-ip4 output
 -- 
 2.30.2
 
