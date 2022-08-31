@@ -2,88 +2,88 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F71AECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 11:27:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE23EECAAD1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 12:14:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229973AbiHaL1p (ORCPT
+        id S229565AbiHaMOB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 07:27:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44644 "EHLO
+        Wed, 31 Aug 2022 08:14:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbiHaL1o (ORCPT
+        with ESMTP id S229599AbiHaMN5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 07:27:44 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C4DE61F601
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 04:27:43 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: clean up hook list when offload flags check fails
-Date:   Wed, 31 Aug 2022 13:27:37 +0200
-Message-Id: <20220831112737.16018-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 31 Aug 2022 08:13:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7188D2EBC;
+        Wed, 31 Aug 2022 05:13:56 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4FE1A618DC;
+        Wed, 31 Aug 2022 12:13:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E296C433D6;
+        Wed, 31 Aug 2022 12:13:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1661948035;
+        bh=mCsUJD5LOfeuiHvACicA+nO9wvGQ9ZtmcAbbma6MWno=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=M48LuQOAc92LkpXkEtP6VCZrJZo6LCvB8UACTB/P6ipjYGlosID4fBmzPGr5O1Pd7
+         QSKmYklKtlZQzLjKmNVtiz/8p35FIy1xWgiJA6a7wNQ8ValGjhfe82yed5r4vogQYT
+         JYNsXtdWt/ImpjWgwA1iPOzUC38S3AcLiLkBbSR2bI12oufz89Cfz5Bd0BOylhQN4A
+         aydHX3kdJm2vYrCfNrc4h70z073rnjidOePquVCrn7wIG7iF/gGXvzedmw2WlvhyQt
+         Mr/uhFh5ev2bHyw+I1Ka/QpjG/tLxSgQDBmQAuYwHDhnEOuZ3kH/Iw7YSVtsQQNLga
+         6I76LiP2fFvRw==
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 3DAB9588AEC; Wed, 31 Aug 2022 14:13:53 +0200 (CEST)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
+To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
+In-Reply-To: <20220831101617.22329-1-fw@strlen.de>
+References: <20220831101617.22329-1-fw@strlen.de>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Wed, 31 Aug 2022 14:13:53 +0200
+Message-ID: <87v8q84nlq.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-splice back the hook list so nft_chain_release_hook() has a chance to
-release the hooks.
+Florian Westphal <fw@strlen.de> writes:
 
-BUG: memory leak
-unreferenced object 0xffff88810180b100 (size 96):
-  comm "syz-executor133", pid 3619, jiffies 4294945714 (age 12.690s)
-  hex dump (first 32 bytes):
-    28 64 23 02 81 88 ff ff 28 64 23 02 81 88 ff ff  (d#.....(d#.....
-    90 a8 aa 83 ff ff ff ff 00 00 b5 0f 81 88 ff ff  ................
-  backtrace:
-    [<ffffffff83a8c59b>] kmalloc include/linux/slab.h:600 [inline]
-    [<ffffffff83a8c59b>] nft_netdev_hook_alloc+0x3b/0xc0 net/netfilter/nf_tables_api.c:1901
-    [<ffffffff83a9239a>] nft_chain_parse_netdev net/netfilter/nf_tables_api.c:1998 [inline]
-    [<ffffffff83a9239a>] nft_chain_parse_hook+0x33a/0x530 net/netfilter/nf_tables_api.c:2073
-    [<ffffffff83a9b14b>] nf_tables_addchain.constprop.0+0x10b/0x950 net/netfilter/nf_tables_api.c:2218
-    [<ffffffff83a9c41b>] nf_tables_newchain+0xa8b/0xc60 net/netfilter/nf_tables_api.c:2593
-    [<ffffffff83a3d6a6>] nfnetlink_rcv_batch+0xa46/0xd20 net/netfilter/nfnetlink.c:517
-    [<ffffffff83a3db79>] nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:638 [inline]
-    [<ffffffff83a3db79>] nfnetlink_rcv+0x1f9/0x220 net/netfilter/nfnetlink.c:656
-    [<ffffffff83a13b17>] netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
-    [<ffffffff83a13b17>] netlink_unicast+0x397/0x4c0 net/netlink/af_netlink.c:1345
-    [<ffffffff83a13fd6>] netlink_sendmsg+0x396/0x710 net/netlink/af_netlink.c:1921
-    [<ffffffff83865ab6>] sock_sendmsg_nosec net/socket.c:714 [inline]
-    [<ffffffff83865ab6>] sock_sendmsg+0x56/0x80 net/socket.c:734
-    [<ffffffff8386601c>] ____sys_sendmsg+0x36c/0x390 net/socket.c:2482
-    [<ffffffff8386a918>] ___sys_sendmsg+0xa8/0x110 net/socket.c:2536
-    [<ffffffff8386aaa8>] __sys_sendmsg+0x88/0x100 net/socket.c:2565
-    [<ffffffff845e5955>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-    [<ffffffff845e5955>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
-    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+> This expression is a native replacement for xtables 'bpf' match "pinned" mode.
+> Userspace needs to pass a file descriptor referencing the program (of socket
+> filter type).
+> Userspace should also pass the original pathname for that fd so userspace can
+> print the original filename again.
+>
+> Tag and program id are dumped to userspace on 'list' to allow to see which
+> program is in use in case the filename isn't available/present.
 
-Reported-by: syzbot+5fcdbfab6d6744c57418@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Replaces:
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220830095042.452456-1-pablo@netfilter.org/
+It seems a bit odd to include the file path in the kernel as well. For
+one thing, the same object can be pinned multiple times in different
+paths (even in different mount namespaces), and there's also nothing
+preventing a different program to have been substituted by the pinned
+one by the time the value is echoed back.
 
- net/netfilter/nf_tables_api.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Also, there's nothing checking that the path attribute actually contains
+a path, so it's really just an arbitrary label that the kernel promises
+to echo back. But doesn't NFT already have a per-rule comment feature,
+so why add another specifically for BPF? Instead we could just teach the
+userspace utility to extract metadata from the BPF program (based on the
+ID) like bpftool does. This would include the program name, BTW, so it
+does have a semantic identifier.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2ee50e23c9b7..816052089b33 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2166,8 +2166,10 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 	chain->flags |= NFT_CHAIN_BASE | flags;
- 	basechain->policy = NF_ACCEPT;
- 	if (chain->flags & NFT_CHAIN_HW_OFFLOAD &&
--	    !nft_chain_offload_support(basechain))
-+	    !nft_chain_offload_support(basechain)) {
-+		list_splice_init(&basechain->hook_list, &hook->list);
- 		return -EOPNOTSUPP;
-+	}
- 
- 	flow_block_init(&basechain->flow_block);
- 
--- 
-2.30.2
+> cbpf bytecode isn't supported.
+>
+> No new Kconfig option is added: Its included if BPF_SYSCALL is enabled.
+>
+> Proposed nft userspace syntax is:
+>
+> add rule ... ebpf pinned "/sys/fs/bpf/myprog"
 
+Any plan to also teach the nft binary to load a BPF program from an ELF
+file (instead of relying on pinning)?
+
+-Toke
