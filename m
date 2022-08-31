@@ -2,74 +2,64 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A34FEECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 15:54:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB8E9ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 16:02:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232153AbiHaPyH (ORCPT
+        id S229882AbiHaQCm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 11:54:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36958 "EHLO
+        Wed, 31 Aug 2022 12:02:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232321AbiHaPxu (ORCPT
+        with ESMTP id S231913AbiHaQC1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 11:53:50 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFF30ACA17;
-        Wed, 31 Aug 2022 08:53:49 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1oTQ29-0004QL-Jx; Wed, 31 Aug 2022 17:53:41 +0200
-Date:   Wed, 31 Aug 2022 17:53:41 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-Message-ID: <20220831155341.GC15107@breakpoint.cc>
-References: <20220831101617.22329-1-fw@strlen.de>
- <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc>
- <87o7w04jjb.fsf@toke.dk>
- <20220831135757.GC8153@breakpoint.cc>
- <87ilm84goh.fsf@toke.dk>
- <20220831152624.GA15107@breakpoint.cc>
- <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
+        Wed, 31 Aug 2022 12:02:27 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA2B7DA3DC;
+        Wed, 31 Aug 2022 09:02:08 -0700 (PDT)
+Date:   Wed, 31 Aug 2022 18:02:04 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] 17th Netfilter Workshop in Seville, Spain
+Message-ID: <Yw+F/N3y9vIHnY+3@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> > 1 and 2 have the upside that its easy to handle a 'file not found'
-> > error.
-> 
-> I'm strongly against calling into bpf from the inner guts of nft.
-> Nack to all options discussed in this thread.
-> None of them make any sense.
+Hi,
 
--v please.  I can just rework userspace to allow going via xt_bpf
-but its brain damaged.
+We are pleased to announce a new round in the Netfilter workshop series.
+This year this event will take place from October 20 to October 21, 2022.
+The event will be held at Zevenet [1] facilities in Mairena del Aljarafe,
+Seville, Spain.
 
-This helps gradually moving towards move epbf for those that
-still heavily rely on the classic forwarding path.
+The Netfilter Workshop (NFWS) is the premier event organized by and for
+the Netfilter community. During the workshop days, Linux network and
+Netfilter developers meet and discuss the status of ongoing developments
+related to Netfilter and plans for the future.
 
-If you are open to BPF_PROG_TYPE_NETFILTER I can go that route
-as well, raw bpf program attachment via NF_HOOK and the bpf dispatcher,
-but it will take significantly longer to get there.
+Attendance requires an invitation. Linux network developers with
+significant contributions to any of the Netfilter subsystems and users
+with interesting use cases and open problems are also welcome. We have
+traditionally held a space for sister projects that build on the
+Netfilter infrastructure such as the Linux Virtual Server project.
 
-It involves reviving
-https://lore.kernel.org/netfilter-devel/20211014121046.29329-1-fw@strlen.de/
+You can send us a proposal to coreteam@netfilter.org in a very light
+format: title and quick abstract (no more than 500 words!), as well as
+the estimated time. Not later than September 30.
 
-as a first stage/merge goal.
+We are also looking for sponsors to cover expenses, if you think you can
+help us raise funds to hold the workshop, please contact us at
+coreteam@netfilter.org and we will be glad to send you our sponsorship
+policy.
+
+Join us.
+
+[1] https://www.zevenet.com
+
+P.S: This edition will celebrate 24 years since this project began in the
+     fall of 1998.
