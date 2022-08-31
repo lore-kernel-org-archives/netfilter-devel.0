@@ -2,72 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11166ECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 14:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37FE9ECAAD1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 15:02:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229735AbiHaO7g (ORCPT
+        id S230141AbiHaPC5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 10:59:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59220 "EHLO
+        Wed, 31 Aug 2022 11:02:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230355AbiHaO7f (ORCPT
+        with ESMTP id S230060AbiHaPCz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 10:59:35 -0400
+        Wed, 31 Aug 2022 11:02:55 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E4D05D5983
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 07:59:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D68ED399F
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 08:02:54 -0700 (PDT)
+Date:   Wed, 31 Aug 2022 17:02:50 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] tests/py: missing userdata in netlink payload
-Date:   Wed, 31 Aug 2022 16:59:22 +0200
-Message-Id: <20220831145922.3052-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] json: add set statement list support
+Message-ID: <Yw94Gux4j02HzCh2@salvia>
+References: <20220831123731.26249-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220831123731.26249-1-ffmancera@riseup.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since libnftnl's 212479ad2c92 ("rule, set_elem: fix printing of user
-data"), userdata is missing in netlink payload printing via --debug.
-Update tests/py/ip6/srh.t.payload to silence warning.
+Hi Fernando,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/py/ip6/srh.t.payload | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Wed, Aug 31, 2022 at 02:37:31PM +0200, Fernando Fernandez Mancera wrote:
+> When listing a set with statements with JSON support, the statements were
+> ignored.
+> 
+> Output example:
+> 
+> {
+>   "set": {
+>     "op": "add",
+>     "elem": {
+>       "payload": {
+>         "protocol": "ip",
+>         "field": "saddr"
+>       }
+>     },
+>     "stmt": [
+>       {
+>         "limit": {
+>           "rate": 10,
+>           "burst": 5,
+>           "per": "second"
+>         }
+>       },
+>       {
+>         "counter": {
+>           "packets": 0,
+>           "bytes": 0
+>         }
+>       }
+>     ],
+>     "set": "@my_ssh_meter"
+>   }
+> }
 
-diff --git a/tests/py/ip6/srh.t.payload b/tests/py/ip6/srh.t.payload
-index b6247456eb72..364940a95ee6 100644
---- a/tests/py/ip6/srh.t.payload
-+++ b/tests/py/ip6/srh.t.payload
-@@ -11,7 +11,7 @@ ip6 test-ip6 input
- # srh last-entry { 0, 4-127, 255 }
- __set%d test-ip6 7 size 5
- __set%d test-ip6 0
--	element 00000000  : 0 [end]	element 00000001  : 1 [end]	element 00000004  : 0 [end]	element 00000080  : 1 [end]	element 000000ff  : 0 [end]  userdata = {
-+	element 00000000  : 0 [end]	element 00000001  : 1 [end]	element 00000004  : 0 [end]	element 00000080  : 1 [end]	element 000000ff  : 0 [end]  userdata = { \x01\x04\x01\x00\x00\x00 }
- ip6 test-ip6 input
-   [ exthdr load ipv6 1b @ 43 + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
-@@ -29,7 +29,7 @@ ip6 test-ip6 input
- # srh flags { 0, 4-127, 255 }
- __set%d test-ip6 7 size 5
- __set%d test-ip6 0
--	element 00000000  : 0 [end]	element 00000001  : 1 [end]	element 00000004  : 0 [end]	element 00000080  : 1 [end]	element 000000ff  : 0 [end]  userdata = {
-+	element 00000000  : 0 [end]	element 00000001  : 1 [end]	element 00000004  : 0 [end]	element 00000080  : 1 [end]	element 000000ff  : 0 [end]  userdata = { \x01\x04\x01\x00\x00\x00 }
- ip6 test-ip6 input
-   [ exthdr load ipv6 1b @ 43 + 5 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
-@@ -47,7 +47,7 @@ ip6 test-ip6 input
- # srh tag { 0, 4-127, 0xffff }
- __set%d test-ip6 7 size 5
- __set%d test-ip6 0
--	element 00000000  : 0 [end]	element 00000100  : 1 [end]	element 00000400  : 0 [end]	element 00008000  : 1 [end]	element 0000ffff  : 0 [end]  userdata = {
-+	element 00000000  : 0 [end]	element 00000100  : 1 [end]	element 00000400  : 0 [end]	element 00008000  : 1 [end]	element 0000ffff  : 0 [end]  userdata = { \x01\x04\x01\x00\x00\x00 }
- ip6 test-ip6 input
-   [ exthdr load ipv6 2b @ 43 + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
--- 
-2.30.2
+LGTM, thanks.
 
+Would you also extend tests/shell? There is a
+tests/shell/testcases/json/ folder where you can add one.
+
+One example test can be found here: tests/shell/testcases/json/netdev
+
+If you also create this folder:
+
+  tests/shell/testcases/json/dump/mytest.dump
+
+where 'mytest' is the name of you script under tests/shell/testcases/json/
+
+Then, it also checks for the expected output via 'nft list ruleset'.
