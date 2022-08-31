@@ -2,125 +2,126 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D6E1ECAAD1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 13:58:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C41ECAAD4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 14:43:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232004AbiHaN6i (ORCPT
+        id S230527AbiHaOnd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 09:58:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35482 "EHLO
+        Wed, 31 Aug 2022 10:43:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232002AbiHaN6Z (ORCPT
+        with ESMTP id S230213AbiHaOnc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 09:58:25 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 472D1D7585;
-        Wed, 31 Aug 2022 06:57:59 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1oTOE9-0003mP-7S; Wed, 31 Aug 2022 15:57:57 +0200
-Date:   Wed, 31 Aug 2022 15:57:57 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        bpf@vger.kernel.org, netdev@vger.kernel.org
+        Wed, 31 Aug 2022 10:43:32 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B36B6AE226;
+        Wed, 31 Aug 2022 07:43:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5F590B8211C;
+        Wed, 31 Aug 2022 14:43:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD49EC433C1;
+        Wed, 31 Aug 2022 14:43:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1661957009;
+        bh=aOtFQJyStRVSZNBA0rTokycqBcHuGcBpjynEPy1SwCs=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=oyrpOsy9Rdv0sbxQnZ7GeO1K7hSAVEXywdr1CACLZsYv+Cjy6XuWoPzIw5+QWvmsB
+         wbygHPabakn2jJHymW2V/d3t//yLBlhxzEXtNVfEpDTPptqTA8yWLRQAieAO2NvkbQ
+         1mjKIP0ubRP5rbzVn5jhf3FlrKanFbqnjki3a2N/iBoUcmA4+PPJMncVAwmxe+30br
+         L8956jawFndWNc0XWEONRj72UBwG1i9VZdDKoFYezG8gu6d328eY7+0T4Cirzp/8wL
+         iF4U8CkgdKUCGLdy46+JaH7Y2QEsdm6EPIikJi+Ac6wGhYw2RbwR2ctKleQcI05r4X
+         Woh4cjkIk3Vhg==
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 844E1588B1B; Wed, 31 Aug 2022 16:43:26 +0200 (CEST)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
+        netdev@vger.kernel.org
 Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-Message-ID: <20220831135757.GC8153@breakpoint.cc>
-References: <20220831101617.22329-1-fw@strlen.de>
- <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc>
- <87o7w04jjb.fsf@toke.dk>
+In-Reply-To: <20220831135757.GC8153@breakpoint.cc>
+References: <20220831101617.22329-1-fw@strlen.de> <87v8q84nlq.fsf@toke.dk>
+ <20220831125608.GA8153@breakpoint.cc> <87o7w04jjb.fsf@toke.dk>
+ <20220831135757.GC8153@breakpoint.cc>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Wed, 31 Aug 2022 16:43:26 +0200
+Message-ID: <87ilm84goh.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <87o7w04jjb.fsf@toke.dk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Toke Høiland-Jørgensen <toke@kernel.org> wrote:
-> >> It seems a bit odd to include the file path in the kernel as well.
-> >
-> > Its needed to be able to re-load the ruleset.
-> 
-> How does that work, exactly? Is this so that the userspace binary can
-> query the current ruleset, and feed it back to the kernel expecting it
-> to stay the same?
+Florian Westphal <fw@strlen.de> writes:
 
-Yes.
+> Toke H=C3=B8iland-J=C3=B8rgensen <toke@kernel.org> wrote:
+>> >> It seems a bit odd to include the file path in the kernel as well.
+>> >
+>> > Its needed to be able to re-load the ruleset.
+>>=20
+>> How does that work, exactly? Is this so that the userspace binary can
+>> query the current ruleset, and feed it back to the kernel expecting it
+>> to stay the same?
+>
+> Yes.
+>
+>> Because in that case, if the pinned object goes away
+>> in the meantime (or changes to a different program), this could lead to
+>> some really hard to debug errors, where a reload subtly changes the
+>> behaviour because the BPF program is not in fact the same.
+>
+> Correct, but thats kind of expected when the user changes programs
+> logic.
+>
+> Same with a 'nft list ruleset > /etc/nft.txt', reboot,
+> 'nft -f /etc/nft.txt' fails because user forgot to load/pin the program
+> first.
 
-> Because in that case, if the pinned object goes away
-> in the meantime (or changes to a different program), this could lead to
-> some really hard to debug errors, where a reload subtly changes the
-> behaviour because the BPF program is not in fact the same.
+Right, so under what conditions is the identifier expected to survive,
+exactly? It's okay if it fails after a reboot, but it should keep
+working while the system is up?
 
-Correct, but thats kind of expected when the user changes programs
-logic.
+>> > This way was the most simple solution.
+>>=20
+>> My point here was more that if it's just a label for human consumption,
+>> the comment field should be fine, didn't realise it was needed for the
+>> tool operation (and see above re: that).
+>
+> Yes, this is unfortunate.  I would like to avoid introducing an
+> asymmetry between input and output (as in "... add rule ebpf pinned
+> bla', but 'nft list ruleset' showing 'ebpf id 42') or similar, UNLESS we
+> can somehow use that alternate output to reconstruct that was originally
+> intended.  And so far I can only see that happening with storing some
+> label in the kernel for userspace to consume (elf filename, pinned name,
+> program name ... ).
+>
+> To give an example:
+>
+> With 'ebpf id 42', we might be able to let this get echoed back as if
+> user would have said 'ebpf progname myfilter' (I am making this up!),
+> just to have a more 'stable' identifier.
+>
+> This would make it necessary to also support load-by-program-name, of
+> course.
 
-Same with a 'nft list ruleset > /etc/nft.txt', reboot,
-'nft -f /etc/nft.txt' fails because user forgot to load/pin the program
-first.
+Seems like this kind of mapping can be done in userspace without
+involving the kernel?
 
-> Using IDs would avoid this ambiguity at least, so I think that's a
-> better solution. We'd have to make sure the BPF program is not released
-> completely until after the reload has finished, so that it doesn't
-> suddenly disappear.
+For example, the 'progname' thing could be implemented by defining an
+nft-specific pinning location so that 'ebpf progname myfilter' is
+equivalent to 'ebpf pinned /sys/bpf/nft/myfilter' and when nft receives
+an ID from the kernel it goes looking in /sys/bpf/nft to see if it can
+find the program with that ID and echoes it with the appropriate
+progname if it does exist?
 
-This should be covered, the destructor runs after the ruleset has been
-detached from the data plan (and after a synchronize_rcu).
+This could also be extended, so that if a user does '... add rule ebpf
+file /usr/lib/bpf/myrule.o' the nft binary stashes the id -> .o file
+mapping somewhere (in /run for instance) so that it can echo back where
+it got it from later?
 
-> > This way was the most simple solution.
-> 
-> My point here was more that if it's just a label for human consumption,
-> the comment field should be fine, didn't realise it was needed for the
-> tool operation (and see above re: that).
+In either case I'm not really sure that there's much to be gained from
+asking the kernel to store an additional label with the program rule?
 
-Yes, this is unfortunate.  I would like to avoid introducing an
-asymmetry between input and output (as in "... add rule ebpf pinned
-bla', but 'nft list ruleset' showing 'ebpf id 42') or similar, UNLESS we
-can somehow use that alternate output to reconstruct that was originally
-intended.  And so far I can only see that happening with storing some
-label in the kernel for userspace to consume (elf filename, pinned name,
-program name ... ).
-
-To give an example:
-
-With 'ebpf id 42', we might be able to let this get echoed back as if
-user would have said 'ebpf progname myfilter' (I am making this up!),
-just to have a more 'stable' identifier.
-
-This would make it necessary to also support load-by-program-name, of
-course.
-
-> > Sure, I could change the grammar so it expects a tag or ID, e.g.
-> > 'ebpf id 42'
-> >
-> > If thats preferred, I can change this, it avoids the need for storing
-> > the name.
-> 
-> I think for echoing back, just relying on the ID is better as that is at
-> least guaranteed to stay constant for the lifetime of the BPF program in
-> the kernel.
-
-Yes, I realize that, this is why the id and tag are included in the
-netlink dump, but on the userspace side this information is currently
-hidden and only shown with --debug output.
-
-> >> Any plan to also teach the nft binary to load a BPF program from an ELF
-> >> file (instead of relying on pinning)?
-> >
-> > I used pinning because that is what '-m bpf' uses.
-> 
-> I'm not against supporting pinning, per se (except for the issues noted
-> above),
-
-Okay, thanks for clarifying.  -m bpf is a bit older so I was not sure if
-pinning has been deprecated or something like that.
-
-> But we could do multiple things, including supporting loading
-> the program from an object file. This is similar to how TC operates, for
-> instance...
-
-Right, there is no need to restrict this to one method.
+-Toke
