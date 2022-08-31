@@ -2,113 +2,107 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49975ECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 21:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E11F5ECAAD4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 21:58:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232245AbiHaVuF (ORCPT
+        id S232406AbiHaV6s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 17:50:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55246 "EHLO
+        Wed, 31 Aug 2022 17:58:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231210AbiHaVtz (ORCPT
+        with ESMTP id S232607AbiHaV6Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 17:49:55 -0400
-Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0ADDB7679;
-        Wed, 31 Aug 2022 14:49:51 -0700 (PDT)
-Received: from sslproxy03.your-server.de ([88.198.220.132])
-        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92.3)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1oTVai-000FnW-A8; Wed, 31 Aug 2022 23:49:44 +0200
-Received: from [85.1.206.226] (helo=linux-4.home)
-        by sslproxy03.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1oTVai-000NY6-0s; Wed, 31 Aug 2022 23:49:44 +0200
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Andrii Nakryiko <andrii@kernel.org>,
+        Wed, 31 Aug 2022 17:58:24 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E805275C5;
+        Wed, 31 Aug 2022 14:57:47 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1oTViL-0006Km-UW; Wed, 31 Aug 2022 23:57:37 +0200
+Date:   Wed, 31 Aug 2022 23:57:37 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
         Martin KaFai Lau <martin.lau@linux.dev>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Network Development <netdev@vger.kernel.org>,
-        =?UTF-8?Q?Toke_H=c3=b8iland-J=c3=b8rgensen?= <toke@kernel.org>,
+        Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
         bpf <bpf@vger.kernel.org>
-References: <20220831101617.22329-1-fw@strlen.de> <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc> <87o7w04jjb.fsf@toke.dk>
- <20220831135757.GC8153@breakpoint.cc> <87ilm84goh.fsf@toke.dk>
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
+Message-ID: <20220831215737.GE15107@breakpoint.cc>
+References: <20220831101617.22329-1-fw@strlen.de>
+ <87v8q84nlq.fsf@toke.dk>
+ <20220831125608.GA8153@breakpoint.cc>
+ <87o7w04jjb.fsf@toke.dk>
+ <20220831135757.GC8153@breakpoint.cc>
+ <87ilm84goh.fsf@toke.dk>
  <20220831152624.GA15107@breakpoint.cc>
  <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
  <20220831155341.GC15107@breakpoint.cc>
  <CAADnVQJGQmu02f5B=mc1xJvVWSmk_GNZj9WAUskekykmyo8FzA@mail.gmail.com>
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Message-ID: <1cc40302-f006-31a7-b270-30813b8f4b67@iogearbox.net>
-Date:   Wed, 31 Aug 2022 23:49:43 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <CAADnVQJGQmu02f5B=mc1xJvVWSmk_GNZj9WAUskekykmyo8FzA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.103.6/26644/Wed Aug 31 09:53:02 2022)
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 8/31/22 7:26 PM, Alexei Starovoitov wrote:
-> On Wed, Aug 31, 2022 at 8:53 AM Florian Westphal <fw@strlen.de> wrote:
->> Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
->>>> 1 and 2 have the upside that its easy to handle a 'file not found'
->>>> error.
->>>
->>> I'm strongly against calling into bpf from the inner guts of nft.
->>> Nack to all options discussed in this thread.
->>> None of them make any sense.
->>
->> -v please.  I can just rework userspace to allow going via xt_bpf
->> but its brain damaged.
-> 
-> Right. xt_bpf was a dead end from the start.
-> It's time to deprecate it and remove it.
-> 
->> This helps gradually moving towards move epbf for those that
->> still heavily rely on the classic forwarding path.
+Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
+> > This helps gradually moving towards move epbf for those that
+> > still heavily rely on the classic forwarding path.
 > 
 > No one is using it.
 > If it was, we would have seen at least one bug report over
 > all these years. We've seen none.
-> 
-> tbh we had a fair share of wrong design decisions that look
+
+Err, it IS used, else I would not have sent this patch.
+
 > very reasonable early on and turned out to be useless with
 > zero users.
 > BPF_PROG_TYPE_SCHED_ACT and BPF_PROG_TYPE_LWT*
-> are in this category. > All this code does is bit rot.
+> are in this category.
 
-+1
+I doubt it had 0 users.  Those users probably moved to something
+better?
 
 > As a minimum we shouldn't step on the same rakes.
 > xt_ebpf would be the same dead code as xt_bpf.
 
-+1, and on top, the user experience will just be horrible. :(
+Its just 160 LOC or so, I don't see it has a huge technical debt.
 
->> If you are open to BPF_PROG_TYPE_NETFILTER I can go that route
->> as well, raw bpf program attachment via NF_HOOK and the bpf dispatcher,
->> but it will take significantly longer to get there.
->>
->> It involves reviving
->> https://lore.kernel.org/netfilter-devel/20211014121046.29329-1-fw@strlen.de/
+> > If you are open to BPF_PROG_TYPE_NETFILTER I can go that route
+> > as well, raw bpf program attachment via NF_HOOK and the bpf dispatcher,
+> > but it will take significantly longer to get there.
+> >
+> > It involves reviving
+> > https://lore.kernel.org/netfilter-devel/20211014121046.29329-1-fw@strlen.de/
 > 
 > I missed it earlier. What is the end goal ?
+
+Immediate goal: get rid of all indirect calls from NF_HOOK()
+invocations. Its about 2% speedup in my tests (with connection
+tracking+defrag enabled).
+
+This series changes prototype of the callbacks to int foo(struct *),
+so I think it would be possible to build on this and allow attaching raw
+bpf progs/implement what is now a netfilter kernel module as a bpf
+program.
+
+I have not spent time on this so far though, so I don't know yet
+how the "please attach prog id 12345 at FORWARD with prio 42" should
+be done.
+
 > Optimize nft run-time with on the fly generation of bpf byte code ?
 
-Or rather to provide a pendant to nft given existence of xt_bpf, and the
-latter will be removed at some point? (If so, can't we just deprecate the
-old xt_bpf?)
+This could be done too, so far this JITs nf_hook_slow() only.
+The big question for nft run-time would be how and where to do the JIT
+translation.
 
-Thanks,
-Daniel
+I think that "nft run time jit" would be step 3, after allowing
+(re)implementation of netfilter modules via bpf programs.
