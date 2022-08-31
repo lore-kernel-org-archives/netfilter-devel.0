@@ -2,64 +2,114 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB8E9ECAAD3
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 16:02:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC577ECAAD4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 17:27:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229882AbiHaQCm (ORCPT
+        id S232294AbiHaR1Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 12:02:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54952 "EHLO
+        Wed, 31 Aug 2022 13:27:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231913AbiHaQC1 (ORCPT
+        with ESMTP id S232079AbiHaR1B (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 12:02:27 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA2B7DA3DC;
-        Wed, 31 Aug 2022 09:02:08 -0700 (PDT)
-Date:   Wed, 31 Aug 2022 18:02:04 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] 17th Netfilter Workshop in Seville, Spain
-Message-ID: <Yw+F/N3y9vIHnY+3@salvia>
+        Wed, 31 Aug 2022 13:27:01 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 665F9DAA1F;
+        Wed, 31 Aug 2022 10:26:24 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id y3so29830476ejc.1;
+        Wed, 31 Aug 2022 10:26:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc;
+        bh=EmVU6fQXplLhb5FJjrNDE6yAisAqWxYbsd3m0Nr1FHY=;
+        b=iMYwS8kagrFZzGSlezaXYi9K88IIxga4XxmCx61r2FTPdpOy7wULit4WrBLyGzPhJn
+         wB7FB1Mc1Fz4BKTwz2L1r6KXR0oYm7PPwTUKSoflslPqWPyuiT8i2KYMxHwE9lndS+NF
+         jB+S9EoEm3OD4gt1/Yz+iSdQbuKDupvtL9Os/9p4EhKrlc95h5ZwJk4DAXOTSctkZRy6
+         OEVn04kqE8fDU8XGRR/GnA4YQqhxjIB0YRHL3aEE8E+kQBdZL1kuGOAwqsmkzozpYpUN
+         0AMw3smLWsCmwwYHrpnDJ0fwauxM99Rj7FGKSfA6R1YN8KPnO5Zk3Sy4eEI9qkQABnbW
+         ewXw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc;
+        bh=EmVU6fQXplLhb5FJjrNDE6yAisAqWxYbsd3m0Nr1FHY=;
+        b=H2QTxs6JS6tlLhxlbLc7LQHeWgAqeWI+7snbb/FvevEmNhpfJsqriYx9MonJjpgjC6
+         fDGm94RKkYoLRnLNlGjhjv2ljuBVhDOkrX+A0YckOKLbNIPznOFHIsYTJhYxgRrqowwf
+         bkSQA2MG2p3We/Fwbk9BGOxJjPc6kTTJRF7C7MY09EOipCtDiudiKE+htSS+WGpTk1/8
+         pxRLOdZMtrDw+ybqeC8xeF2CVO2MURae0fiu3VTprEQqj+FaObynqTJzYEoeHyti/0n1
+         bwi2BneOiaqfbyCgMzv3EkGeaP1F2n+aQJtKdQMm0shwJqeD28yCzhb2t/pVa3dBbVl4
+         msrw==
+X-Gm-Message-State: ACgBeo0QcPGEguJLUoU/0YnN5lAi9MVoysClmL3WL03gUcNIXRd1iDrR
+        ZU4dwlzVD9NbH3BLL8bcStOo9OS7XoclQp/LlQQ=
+X-Google-Smtp-Source: AA6agR6SEN0GxOkWKPYfLlMOkffRTV2x2CO57YYxSdEkjKnORaSKFImfBPboCxiyUYnxraxc9fKsySMMigykfkl+HcE=
+X-Received: by 2002:a17:906:dc93:b0:742:133b:42c3 with SMTP id
+ cs19-20020a170906dc9300b00742133b42c3mr6999566ejc.502.1661966779730; Wed, 31
+ Aug 2022 10:26:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+References: <20220831101617.22329-1-fw@strlen.de> <87v8q84nlq.fsf@toke.dk>
+ <20220831125608.GA8153@breakpoint.cc> <87o7w04jjb.fsf@toke.dk>
+ <20220831135757.GC8153@breakpoint.cc> <87ilm84goh.fsf@toke.dk>
+ <20220831152624.GA15107@breakpoint.cc> <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
+ <20220831155341.GC15107@breakpoint.cc>
+In-Reply-To: <20220831155341.GC15107@breakpoint.cc>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Wed, 31 Aug 2022 10:26:08 -0700
+Message-ID: <CAADnVQJGQmu02f5B=mc1xJvVWSmk_GNZj9WAUskekykmyo8FzA@mail.gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        bpf <bpf@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Wed, Aug 31, 2022 at 8:53 AM Florian Westphal <fw@strlen.de> wrote:
+>
+> Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
+> > > 1 and 2 have the upside that its easy to handle a 'file not found'
+> > > error.
+> >
+> > I'm strongly against calling into bpf from the inner guts of nft.
+> > Nack to all options discussed in this thread.
+> > None of them make any sense.
+>
+> -v please.  I can just rework userspace to allow going via xt_bpf
+> but its brain damaged.
 
-We are pleased to announce a new round in the Netfilter workshop series.
-This year this event will take place from October 20 to October 21, 2022.
-The event will be held at Zevenet [1] facilities in Mairena del Aljarafe,
-Seville, Spain.
+Right. xt_bpf was a dead end from the start.
+It's time to deprecate it and remove it.
 
-The Netfilter Workshop (NFWS) is the premier event organized by and for
-the Netfilter community. During the workshop days, Linux network and
-Netfilter developers meet and discuss the status of ongoing developments
-related to Netfilter and plans for the future.
+> This helps gradually moving towards move epbf for those that
+> still heavily rely on the classic forwarding path.
 
-Attendance requires an invitation. Linux network developers with
-significant contributions to any of the Netfilter subsystems and users
-with interesting use cases and open problems are also welcome. We have
-traditionally held a space for sister projects that build on the
-Netfilter infrastructure such as the Linux Virtual Server project.
+No one is using it.
+If it was, we would have seen at least one bug report over
+all these years. We've seen none.
 
-You can send us a proposal to coreteam@netfilter.org in a very light
-format: title and quick abstract (no more than 500 words!), as well as
-the estimated time. Not later than September 30.
+tbh we had a fair share of wrong design decisions that look
+very reasonable early on and turned out to be useless with
+zero users.
+BPF_PROG_TYPE_SCHED_ACT and BPF_PROG_TYPE_LWT*
+are in this category.
+All this code does is bit rot.
+As a minimum we shouldn't step on the same rakes.
+xt_ebpf would be the same dead code as xt_bpf.
 
-We are also looking for sponsors to cover expenses, if you think you can
-help us raise funds to hold the workshop, please contact us at
-coreteam@netfilter.org and we will be glad to send you our sponsorship
-policy.
+> If you are open to BPF_PROG_TYPE_NETFILTER I can go that route
+> as well, raw bpf program attachment via NF_HOOK and the bpf dispatcher,
+> but it will take significantly longer to get there.
+>
+> It involves reviving
+> https://lore.kernel.org/netfilter-devel/20211014121046.29329-1-fw@strlen.de/
 
-Join us.
-
-[1] https://www.zevenet.com
-
-P.S: This edition will celebrate 24 years since this project began in the
-     fall of 1998.
+I missed it earlier. What is the end goal ?
+Optimize nft run-time with on the fly generation of bpf byte code ?
