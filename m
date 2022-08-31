@@ -2,126 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C41ECAAD4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 14:43:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF510ECAAD4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 Aug 2022 14:56:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230527AbiHaOnd (ORCPT
+        id S230340AbiHaO40 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 Aug 2022 10:43:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58850 "EHLO
+        Wed, 31 Aug 2022 10:56:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230213AbiHaOnc (ORCPT
+        with ESMTP id S231356AbiHaO4V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2022 10:43:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B36B6AE226;
-        Wed, 31 Aug 2022 07:43:31 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5F590B8211C;
-        Wed, 31 Aug 2022 14:43:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD49EC433C1;
-        Wed, 31 Aug 2022 14:43:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661957009;
-        bh=aOtFQJyStRVSZNBA0rTokycqBcHuGcBpjynEPy1SwCs=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=oyrpOsy9Rdv0sbxQnZ7GeO1K7hSAVEXywdr1CACLZsYv+Cjy6XuWoPzIw5+QWvmsB
-         wbygHPabakn2jJHymW2V/d3t//yLBlhxzEXtNVfEpDTPptqTA8yWLRQAieAO2NvkbQ
-         1mjKIP0ubRP5rbzVn5jhf3FlrKanFbqnjki3a2N/iBoUcmA4+PPJMncVAwmxe+30br
-         L8956jawFndWNc0XWEONRj72UBwG1i9VZdDKoFYezG8gu6d328eY7+0T4Cirzp/8wL
-         iF4U8CkgdKUCGLdy46+JaH7Y2QEsdm6EPIikJi+Ac6wGhYw2RbwR2ctKleQcI05r4X
-         Woh4cjkIk3Vhg==
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 844E1588B1B; Wed, 31 Aug 2022 16:43:26 +0200 (CEST)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-In-Reply-To: <20220831135757.GC8153@breakpoint.cc>
-References: <20220831101617.22329-1-fw@strlen.de> <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc> <87o7w04jjb.fsf@toke.dk>
- <20220831135757.GC8153@breakpoint.cc>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Wed, 31 Aug 2022 16:43:26 +0200
-Message-ID: <87ilm84goh.fsf@toke.dk>
+        Wed, 31 Aug 2022 10:56:21 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 40992D1E0D
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 07:55:52 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnftnl] rule, set_elem: remove trailing \n in userdata snprintf
+Date:   Wed, 31 Aug 2022 16:55:47 +0200
+Message-Id: <20220831145547.2854-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> writes:
+212479ad2c92 ("rule, set_elem: fix printing of user data") uncovered
+another an extra line break in the userdata printing, remove it.
 
-> Toke H=C3=B8iland-J=C3=B8rgensen <toke@kernel.org> wrote:
->> >> It seems a bit odd to include the file path in the kernel as well.
->> >
->> > Its needed to be able to re-load the ruleset.
->>=20
->> How does that work, exactly? Is this so that the userspace binary can
->> query the current ruleset, and feed it back to the kernel expecting it
->> to stay the same?
->
-> Yes.
->
->> Because in that case, if the pinned object goes away
->> in the meantime (or changes to a different program), this could lead to
->> some really hard to debug errors, where a reload subtly changes the
->> behaviour because the BPF program is not in fact the same.
->
-> Correct, but thats kind of expected when the user changes programs
-> logic.
->
-> Same with a 'nft list ruleset > /etc/nft.txt', reboot,
-> 'nft -f /etc/nft.txt' fails because user forgot to load/pin the program
-> first.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/rule.c     | 2 +-
+ src/set_elem.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Right, so under what conditions is the identifier expected to survive,
-exactly? It's okay if it fails after a reboot, but it should keep
-working while the system is up?
+diff --git a/src/rule.c b/src/rule.c
+index a1a64bd2837d..a52012b2177b 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -628,7 +628,7 @@ static int nftnl_rule_snprintf_default(char *buf, size_t remain,
+ 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 		}
+ 
+-		ret = snprintf(buf + offset, remain, " }\n");
++		ret = snprintf(buf + offset, remain, " }");
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 
+ 	}
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 1c8720dc7c57..884faff432a9 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -747,7 +747,7 @@ int nftnl_set_elem_snprintf_default(char *buf, size_t remain,
+ 			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 		}
+ 
+-		ret = snprintf(buf + offset, remain, " }\n");
++		ret = snprintf(buf + offset, remain, " }");
+ 		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
+ 	}
+ 
+-- 
+2.30.2
 
->> > This way was the most simple solution.
->>=20
->> My point here was more that if it's just a label for human consumption,
->> the comment field should be fine, didn't realise it was needed for the
->> tool operation (and see above re: that).
->
-> Yes, this is unfortunate.  I would like to avoid introducing an
-> asymmetry between input and output (as in "... add rule ebpf pinned
-> bla', but 'nft list ruleset' showing 'ebpf id 42') or similar, UNLESS we
-> can somehow use that alternate output to reconstruct that was originally
-> intended.  And so far I can only see that happening with storing some
-> label in the kernel for userspace to consume (elf filename, pinned name,
-> program name ... ).
->
-> To give an example:
->
-> With 'ebpf id 42', we might be able to let this get echoed back as if
-> user would have said 'ebpf progname myfilter' (I am making this up!),
-> just to have a more 'stable' identifier.
->
-> This would make it necessary to also support load-by-program-name, of
-> course.
-
-Seems like this kind of mapping can be done in userspace without
-involving the kernel?
-
-For example, the 'progname' thing could be implemented by defining an
-nft-specific pinning location so that 'ebpf progname myfilter' is
-equivalent to 'ebpf pinned /sys/bpf/nft/myfilter' and when nft receives
-an ID from the kernel it goes looking in /sys/bpf/nft to see if it can
-find the program with that ID and echoes it with the appropriate
-progname if it does exist?
-
-This could also be extended, so that if a user does '... add rule ebpf
-file /usr/lib/bpf/myrule.o' the nft binary stashes the id -> .o file
-mapping somewhere (in /run for instance) so that it can echo back where
-it got it from later?
-
-In either case I'm not really sure that there's much to be gained from
-asking the kernel to store an additional label with the program rule?
-
--Toke
