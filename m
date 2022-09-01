@@ -2,55 +2,55 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B8ADECAAD1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 06:49:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF28DECAAD2
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 07:13:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233350AbiIAGtF (ORCPT
+        id S233618AbiIAHNN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Sep 2022 02:49:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55412 "EHLO
+        Thu, 1 Sep 2022 03:13:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233363AbiIAGtE (ORCPT
+        with ESMTP id S233514AbiIAHM7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2022 02:49:04 -0400
-Received: from mail-pf1-x432.google.com (mail-pf1-x432.google.com [IPv6:2607:f8b0:4864:20::432])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB4C114FC96
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 23:49:02 -0700 (PDT)
-Received: by mail-pf1-x432.google.com with SMTP id y141so16651198pfb.7
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 23:49:02 -0700 (PDT)
+        Thu, 1 Sep 2022 03:12:59 -0400
+Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43C281243EC
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2022 00:12:40 -0700 (PDT)
+Received: by mail-pj1-x1036.google.com with SMTP id n65-20020a17090a5ac700b001fbb4fad865so1658950pji.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Sep 2022 00:12:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc;
-        bh=ZN0wlf/8I2US3eM7pqsH0yFkY6GDu2IDTHDWieRp2po=;
-        b=X/CJF0Tr5QeNRrDvXvoVRBol7+/ExtpCIaUOem2xX6N7aXB60RtHYcKxwjMH6Vty9F
-         NOQvGNdQVhvTFtGDc8xAODwnJvcxAxQyjyHd7InhTwWL9bZeIVFGpCBq76Rqb5hvYFJ8
-         zcomzqblXd+aht5XULk69wevTCaYmnptDe7mg=
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc;
+        bh=+62vKKdOWU4HT/68CsGjJSAqpptlLd13iGzU1vu3Cho=;
+        b=V9rAXkNWBAOv6EFqhEXBr6Um74ZiqRFJ0j7+N3/0N6Vjv0gRctwhEFd2eS7oEB59sp
+         S1rNHYRJZjvuTq+ob2GNcyMxv3K2ycg2GRaKq+Uyf60Ws5WKxM4dybETDycKY/uBKSOL
+         v8/7yvIqDQbSii/iNXNEjGNRMK23OZL4ps8os=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc;
-        bh=ZN0wlf/8I2US3eM7pqsH0yFkY6GDu2IDTHDWieRp2po=;
-        b=Ezs5TiGL2t/65WKWo2pCRpalKVTq/bkpXPhNECl6dF6z8EQXesS0nUjBqVGllNRzEF
-         SEISi5WI9aA9h+wzfx9/pG2s8wrQzjzl7ieemJ1kzaT79GCc/k8esNqvnKxog+xPQhYf
-         IwAY7JINdtZud1CaUZv0QKKNiQk/ba42CiU2DgGQu+KmnLeRa99QA7D6KAro/M+k+8pz
-         ClWG0I1Lsg89HhlDEj2ZgqphBQV+b/+JRF7zSJ5b+FhyRmA70ivaTeIV8bzLdWZ7LTDn
-         314g8duHVAQWue5hDc3155qfeoEpt8/QxdXre+9taVpuB6BlY1fkWuFRMwybqLg6oVPn
-         vXTw==
-X-Gm-Message-State: ACgBeo3Pho8DYfmD1gPK7UmwVvUnhM4Xy7agUBOVMhThQqAX8X1qdZgf
-        /90RyY+CfIeYPzx8D9ctzRjvSA==
-X-Google-Smtp-Source: AA6agR5Q403qJEV6Lfi3M3NQrLbZNuHS84/xKnEfJUrk+AQUgpa/ica9Wop9P5cEQBd2i673E/jetg==
-X-Received: by 2002:a63:6e09:0:b0:430:663:7757 with SMTP id j9-20020a636e09000000b0043006637757mr7319766pgc.340.1662014942305;
-        Wed, 31 Aug 2022 23:49:02 -0700 (PDT)
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc;
+        bh=+62vKKdOWU4HT/68CsGjJSAqpptlLd13iGzU1vu3Cho=;
+        b=x40ANTzN3uPWb9o5Ikwg329wiPeev8TWelWImmGspKGhRghZR2/N9Xbg+yZadkRz2y
+         x3qNVPGwJtja/wMq8WE24QRZDf9cNynzDzV2FzQwfr29E/RCSyOlhKpUOGlY9mXkEpUq
+         TriaX6UGmOR2zcmyYVSHAA1Kub7CV6mb0nWMB3cKKicpqjAg/69n4mqfejbhQOalkZ9p
+         oBGKFib3nN0IxuJDcTz5En24A84Ej93KouuvmGuvv612r/ySPto7wjoxdLq/FSAixTIb
+         kuGtUgYI9T933ruAo2EaQsRZfZ536NXBKONmek/mMi8wmRz58W9yPbzsBVgqECR8zHRb
+         l9Fw==
+X-Gm-Message-State: ACgBeo2ImsgFmhsrS/7INcusj3pW+jrb45eozxaKJltWeVv/BpT+FJEL
+        vLEhy65zPhQ2dmSv0I/J1ZDvqPCyY+wjtA==
+X-Google-Smtp-Source: AA6agR6lqSNmsXlecqs5/BwPbM7JHXhyGGcmWLul0aYun+6avfFe7U/OISjle+0r0+66NJ33d60+cQ==
+X-Received: by 2002:a17:903:1c4:b0:175:2c12:6e46 with SMTP id e4-20020a17090301c400b001752c126e46mr9984143plh.145.1662016359696;
+        Thu, 01 Sep 2022 00:12:39 -0700 (PDT)
 Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id w8-20020a1709026f0800b00172c298ba42sm1183219plk.28.2022.08.31.23.49.01
+        by smtp.gmail.com with ESMTPSA id h9-20020a170902680900b0015e8d4eb26esm12881885plk.184.2022.09.01.00.12.38
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 31 Aug 2022 23:49:01 -0700 (PDT)
+        Thu, 01 Sep 2022 00:12:38 -0700 (PDT)
+Date:   Thu, 1 Sep 2022 00:12:37 -0700
 From:   Kees Cook <keescook@chromium.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Kees Cook <keescook@chromium.org>,
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
@@ -59,179 +59,55 @@ Cc:     Kees Cook <keescook@chromium.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, Petr Machata <petrm@nvidia.com>,
         linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: [PATCH v2] netlink: Bounds-check struct nlmsgerr creation
-Date:   Wed, 31 Aug 2022 23:48:58 -0700
-Message-Id: <20220901064858.1417126-1-keescook@chromium.org>
-X-Mailer: git-send-email 2.34.1
+Subject: Re: [PATCH v2] netlink: Bounds-check struct nlmsgerr creation
+Message-ID: <202209010012.777DAE2@keescook>
+References: <20220901064858.1417126-1-keescook@chromium.org>
+ <5aad4860-b1c3-d78f-583d-26281626a49@netfilter.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5452; h=from:subject; bh=8yuSgL8t29LfBBmN/bpYmo03naVR7KsUIBiIJrZifO0=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBjEFXZHG0g03slkKZAfp1i1tVcHkNwSK+Q/MIEK8Pi 0ZNnt3CJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYxBV2QAKCRCJcvTf3G3AJsmiD/ wJTp0r9y/BO4058/6vDENLnnoGFoC+r21uBcF3NIhXeMOmdPmT2z9jj/0KG7fE9ioheBknqClFywq5 tzEXntFpVSgzz/ve19Xc+0GrRFu5sC/n6eFFpOAtutaBFPngsQl9xLS4U15U5SSOMkiN0XGITpqqUK gL871NId+UsPPuWpbcX413rgxFFT30ekWQElg8UKlScStGzKygaTuK+sa7C9pCyQMxg0SlSIvL8DOp AXWHH6UQtq5/gTT5/Se3VXmcH+iMgEgj3sUtx/1QsImFoFqr0AxnvCeLOsZMR+bkRkEZGo5ID/Q9bA 1SwMFKbVDAXWvJyQS4zcajisUvZm5oLJnJb5xre2KPoS8LDg2c62xnzm/XJqfyDyWoRYEALpXuORGq Ix3Q2kg+E2vzGiQpfCvBasuyuY+lJyYWFIA4+fuRbK6DAsuqNshCU+0243DCrI3ctsRB7d0z8UQ4ji HHzNftkzyoOGhmbdEwBRkVTZ7rG83RwhkXU3tpv0TAyVG2mxG1XYABVgLB7RK/C7MyMoNVAI0go/PZ bh2YxAOUUHAHI7GrhPfA6anPg6Tpvb+dmGvBumWdnrf0+lnOM48U2J45XFwwLfkcxyDuzngsFmX6n4 fM0TxICZEQqj+oyBvM9k/i25vREXb98a0q9fhTORiJpGMayayLs+ZbALCohA==
-X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5aad4860-b1c3-d78f-583d-26281626a49@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-For 32-bit systems, it might be possible to wrap lnmsgerr content
-lengths beyond SIZE_MAX. Explicitly test for all overflows, and mark the
-memcpy() as being unable to internally diagnose overflows.
+On Thu, Sep 01, 2022 at 09:06:03AM +0200, Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> On Wed, 31 Aug 2022, Kees Cook wrote:
+> 
+> > For 32-bit systems, it might be possible to wrap lnmsgerr content
+> > lengths beyond SIZE_MAX. Explicitly test for all overflows, and mark the
+> > memcpy() as being unable to internally diagnose overflows.
+> > 
+> > This also excludes netlink from the coming runtime bounds check on
+> > memcpy(), since it's an unusual case of open-coded sizing and
+> > allocation. Avoid this future run-time warning:
+> > 
+> >   memcpy: detected field-spanning write (size 32) of single field "&errmsg->msg" at net/netlink/af_netlink.c:2447 (size 16)
+> > 
+> > Cc: Jakub Kicinski <kuba@kernel.org>
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> > Cc: Florian Westphal <fw@strlen.de>
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Eric Dumazet <edumazet@google.com>
+> > Cc: Paolo Abeni <pabeni@redhat.com>
+> > Cc: syzbot <syzkaller@googlegroups.com>
+> > Cc: netfilter-devel@vger.kernel.org
+> > Cc: coreteam@netfilter.org
+> > Cc: netdev@vger.kernel.org
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > ---
+> > v2: Rebased to -next
+> > v1: https://lore.kernel.org/lkml/20220901030610.1121299-3-keescook@chromium.org
+> > ---
+> >  net/netlink/af_netlink.c | 81 +++++++++++++++++++++++++---------------
+> >  1 file changed, 51 insertions(+), 30 deletions(-)
+> 
+> Could you add back the net/netfilter/ipset/ip_set_core.c part? Thanks!
 
-This also excludes netlink from the coming runtime bounds check on
-memcpy(), since it's an unusual case of open-coded sizing and
-allocation. Avoid this future run-time warning:
+*face palm* Yes, thank you. v3 on the way.
 
-  memcpy: detected field-spanning write (size 32) of single field "&errmsg->msg" at net/netlink/af_netlink.c:2447 (size 16)
-
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: syzbot <syzkaller@googlegroups.com>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: netdev@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
-v2: Rebased to -next
-v1: https://lore.kernel.org/lkml/20220901030610.1121299-3-keescook@chromium.org
----
- net/netlink/af_netlink.c | 81 +++++++++++++++++++++++++---------------
- 1 file changed, 51 insertions(+), 30 deletions(-)
-
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index f89ba302ac6e..1285779d9ab6 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -2400,35 +2400,44 @@ int __netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- }
- EXPORT_SYMBOL(__netlink_dump_start);
- 
--static size_t
-+/* Returns false on overflow */
-+static bool __must_check
- netlink_ack_tlv_len(struct netlink_sock *nlk, int err,
--		    const struct netlink_ext_ack *extack)
-+		    const struct netlink_ext_ack *extack,
-+		    size_t *tlvlen)
- {
--	size_t tlvlen;
-+	*tlvlen = 0;
- 
- 	if (!extack || !(nlk->flags & NETLINK_F_EXT_ACK))
--		return 0;
-+		return true;
- 
--	tlvlen = 0;
--	if (extack->_msg)
--		tlvlen += nla_total_size(strlen(extack->_msg) + 1);
--	if (extack->cookie_len)
--		tlvlen += nla_total_size(extack->cookie_len);
-+	if (extack->_msg &&
-+	    check_add_overflow(*tlvlen, nla_total_size(strlen(extack->_msg) + 1), tlvlen))
-+		return false;
-+
-+	if (extack->cookie_len &&
-+	    check_add_overflow(*tlvlen, nla_total_size(extack->cookie_len), tlvlen))
-+		return false;
- 
- 	/* Following attributes are only reported as error (not warning) */
- 	if (!err)
--		return tlvlen;
-+		return true;
- 
--	if (extack->bad_attr)
--		tlvlen += nla_total_size(sizeof(u32));
--	if (extack->policy)
--		tlvlen += netlink_policy_dump_attr_size_estimate(extack->policy);
--	if (extack->miss_type)
--		tlvlen += nla_total_size(sizeof(u32));
--	if (extack->miss_nest)
--		tlvlen += nla_total_size(sizeof(u32));
-+	if (extack->bad_attr &&
-+	    check_add_overflow(*tlvlen, nla_total_size(sizeof(u32)), tlvlen))
-+		return false;
-+	if (extack->policy &&
-+	    check_add_overflow(*tlvlen, netlink_policy_dump_attr_size_estimate(extack->policy),
-+			       tlvlen))
-+		return false;
-+	if (extack->miss_type &&
-+	    check_add_overflow(*tlvlen, nla_total_size(sizeof(u32)), tlvlen))
-+		return false;
-+	if (extack->miss_nest &&
-+	    check_add_overflow(*tlvlen, nla_total_size(sizeof(u32)), tlvlen))
-+		return false;
- 
--	return tlvlen;
-+	return true;
- }
- 
- static void
-@@ -2472,33 +2481,39 @@ void netlink_ack(struct sk_buff *in_skb, struct nlmsghdr *nlh, int err,
- 	size_t payload = sizeof(*errmsg);
- 	struct netlink_sock *nlk = nlk_sk(NETLINK_CB(in_skb).sk);
- 	unsigned int flags = 0;
--	size_t tlvlen;
-+	size_t alloc_size, tlvlen = 0;
- 
- 	/* Error messages get the original request appened, unless the user
- 	 * requests to cap the error message, and get extra error data if
- 	 * requested.
- 	 */
--	if (err && !(nlk->flags & NETLINK_F_CAP_ACK))
--		payload += nlmsg_len(nlh);
-+	if (err && !(nlk->flags & NETLINK_F_CAP_ACK) &&
-+	    check_add_overflow(payload, (size_t)nlmsg_len(nlh), &payload))
-+		goto failure;
- 	else
- 		flags |= NLM_F_CAPPED;
- 
--	tlvlen = netlink_ack_tlv_len(nlk, err, extack);
-+	if (!netlink_ack_tlv_len(nlk, err, extack, &tlvlen))
-+		goto failure;
- 	if (tlvlen)
- 		flags |= NLM_F_ACK_TLVS;
- 
--	skb = nlmsg_new(payload + tlvlen, GFP_KERNEL);
--	if (!skb) {
--		NETLINK_CB(in_skb).sk->sk_err = ENOBUFS;
--		sk_error_report(NETLINK_CB(in_skb).sk);
--		return;
--	}
-+	if (check_add_overflow(payload, tlvlen, &alloc_size))
-+		goto failure;
-+
-+	skb = nlmsg_new(alloc_size, GFP_KERNEL);
-+	if (!skb)
-+		goto failure;
- 
- 	rep = __nlmsg_put(skb, NETLINK_CB(in_skb).portid, nlh->nlmsg_seq,
- 			  NLMSG_ERROR, payload, flags);
- 	errmsg = nlmsg_data(rep);
- 	errmsg->error = err;
--	memcpy(&errmsg->msg, nlh, payload > sizeof(*errmsg) ? nlh->nlmsg_len : sizeof(*nlh));
-+	unsafe_memcpy(&errmsg->msg, nlh, payload > sizeof(*errmsg)
-+					 ?  nlh->nlmsg_len : sizeof(*nlh),
-+		      /* "payload" was bounds checked against nlh->nlmsg_len,
-+		       * and overflow-checked as tlvlen was constructed.
-+		       */);
- 
- 	if (tlvlen)
- 		netlink_ack_tlv_fill(in_skb, skb, nlh, err, extack);
-@@ -2506,6 +2521,12 @@ void netlink_ack(struct sk_buff *in_skb, struct nlmsghdr *nlh, int err,
- 	nlmsg_end(skb, rep);
- 
- 	nlmsg_unicast(in_skb->sk, skb, NETLINK_CB(in_skb).portid);
-+	return;
-+
-+failure:
-+	NETLINK_CB(in_skb).sk->sk_err = ENOBUFS;
-+	sk_error_report(NETLINK_CB(in_skb).sk);
-+	return;
- }
- EXPORT_SYMBOL(netlink_ack);
- 
 -- 
-2.34.1
-
+Kees Cook
