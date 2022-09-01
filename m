@@ -2,143 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77B18ECAAD2
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 05:18:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0EDEECAAD2
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 06:27:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232982AbiIAFSp (ORCPT
+        id S233355AbiIAG1P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Sep 2022 01:18:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55396 "EHLO
+        Thu, 1 Sep 2022 02:27:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229746AbiIAFSg (ORCPT
+        with ESMTP id S233288AbiIAG1N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2022 01:18:36 -0400
-Received: from mail-qk1-x736.google.com (mail-qk1-x736.google.com [IPv6:2607:f8b0:4864:20::736])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9AE8109090;
-        Wed, 31 Aug 2022 22:18:33 -0700 (PDT)
-Received: by mail-qk1-x736.google.com with SMTP id w18so12447375qki.8;
-        Wed, 31 Aug 2022 22:18:33 -0700 (PDT)
+        Thu, 1 Sep 2022 02:27:13 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A12410DE40
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 23:27:11 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id y29so12525790pfq.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2022 23:27:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=uJN9pb7rprQ3Gc27MWDANcZXB9um/YbpQ3D1DbShuFk=;
-        b=nHT54Ai4WgBBeRKUFudNPXLH7cFO1Nz1vcHiy5oF16LxVVazKqfyM/PLQzCA07EX3c
-         6NF2qws42ylPRR2tgFaHjBk/wQYPpzcHvRglwEIExejYJbLcbgw/g3G9cPACfOeyLfRD
-         kzyE0kUUUwOsrWhDrj/YBhJQLXU7bXBhhYpZXgYmBSccq5D9oMsEHuCYX8yFsrMUCZH1
-         CIgo63wUTgvXVG6KetPqBKv4OiLOjTlttqBey63BlGb3AH8vVLfuQ2fnTiWxJSA//58Z
-         +qSQ2Sn2c6tav2vZ8depzxZcqJW0oa5Dsf9pRjl/QDkKrwJDTuf9CdcOsdZUDCganwku
-         gJHg==
+        d=chromium.org; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc;
+        bh=LUpbwDphPvtED1QTi1ZPW1+S2RNACcn+wb6hlFtY8XY=;
+        b=WWTU4lWTW/7wYi2qJpDzYN8K/NLpv7PlWS5uBAJkKppb81ks8aUuyIiL+aXKUp7YnF
+         YocMSdrWOvhufrkb5kbh/9BZJjVdEzZnGqmd7AB9AVSuhB8lMWZtfoVTtl6TvHeZJ81O
+         bcvx1UIUBnuqv3cP2vYFz0K6ohytRF3RkufYE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=uJN9pb7rprQ3Gc27MWDANcZXB9um/YbpQ3D1DbShuFk=;
-        b=l9E2hN8pignmskhimYqTLwRuoUiS7HaLpiyDbCE2QT8K47TDGvpQ5Ob+o+CjbcF2F6
-         P/77O989CspnSmNfaFUzfC9nXmiPx7GitZTlhgx+AkvthHe0Bpo4fiNU3dwexvM2HDGV
-         jEhFlkR31dkcUgsziY24KglqXSTYTnwLsKnIUnbIT7SIc4X2XhcmCcXvdn7Kep2EfJ4o
-         HerT3iNE6r3TyYlxhdTPzVpLCEspCgP9F75DJ3z4i6waz1Q2Gm31+85dHehYpghGeWYj
-         Mu4QLMYJZDQ0gkxS/mrP2+ZHzu7dmN55K/JrFkdJ+VM/hGKzA5vQ+HzHy7jA4znRD49X
-         jZuQ==
-X-Gm-Message-State: ACgBeo2WK0vLeA2VGzEYf2xX+xu72dz3wdWJXtSL9tnFmI0bSEqoCoEd
-        5AN4QJ5ggQMcwCOCqiuRQE28rEX/ptiGT7hltq4=
-X-Google-Smtp-Source: AA6agR6AdC+MzLwcwV0Hf/oJm8mb970XPtArxOTOVRrtSe0m8u+jnpLpQIT35Moe9q3hqYsnHNqsKT3mXXsJ3MUaexI=
-X-Received: by 2002:a05:620a:1786:b0:6bb:38b2:b1d7 with SMTP id
- ay6-20020a05620a178600b006bb38b2b1d7mr18289148qkb.510.1662009512690; Wed, 31
- Aug 2022 22:18:32 -0700 (PDT)
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc;
+        bh=LUpbwDphPvtED1QTi1ZPW1+S2RNACcn+wb6hlFtY8XY=;
+        b=PBg1jS8hO3KgV16KkfhT7TvsA0vnlU671AnXtQ/b+RGRNARxnkUureriEcrwnnVOtG
+         Yo+ZDUCFyR4Q8UukJenrokO1vg856JLc0Psr77lCYjYN6eQfTIbSX8r3oS4U5sacwFpq
+         7lPQOiOP7DCCjIjddjNDu3APc8w+uLt9HIEjMzjD3ziqydGF+KHF/LUQTXvNc4y1tG0N
+         WowltfItcIenjkvHXXsnjwbkWz0ExjhVT5CfiYOjRGl5pwfiDFCxoAN9myz4S9RESlKA
+         UAQXSXHsJNWtij5iAjmq2EiNRxATEt4KOj9tfPT253AabGMaLAqQ8LU32aO/aukIZ7vp
+         FppQ==
+X-Gm-Message-State: ACgBeo1t1ZQ1M5GgfxFkrwId+xQ3ESyHcSGfkz71kWHa5ibD6YCZSVQ9
+        h0WxpsUXVFz4myKU011mrKhFtA==
+X-Google-Smtp-Source: AA6agR5Ky2h+fMYEWE96VBtRDKYJx75ceGIbNnAxgjJV3/KyA3d0lDG2E0gucajihCuxLu510+QrZA==
+X-Received: by 2002:a05:6a00:a82:b0:530:2f3c:ec99 with SMTP id b2-20020a056a000a8200b005302f3cec99mr29438360pfl.53.1662013631087;
+        Wed, 31 Aug 2022 23:27:11 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id q12-20020a170902a3cc00b0016d8d277c02sm12816467plb.25.2022.08.31.23.27.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 31 Aug 2022 23:27:09 -0700 (PDT)
+Date:   Wed, 31 Aug 2022 23:27:08 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        syzbot <syzkaller@googlegroups.com>,
+        Yajun Deng <yajun.deng@linux.dev>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Oliver Hartkopp <socketcan@hartkopp.net>,
+        Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>,
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH 1/2] netlink: Bounds-check nlmsg_len()
+Message-ID: <202208312324.F2F8B28CA@keescook>
+References: <20220901030610.1121299-1-keescook@chromium.org>
+ <20220901030610.1121299-2-keescook@chromium.org>
+ <20220831201825.378d748d@kernel.org>
 MIME-Version: 1.0
-References: <20220831101617.22329-1-fw@strlen.de> <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc> <87o7w04jjb.fsf@toke.dk>
- <20220831135757.GC8153@breakpoint.cc> <87ilm84goh.fsf@toke.dk>
- <20220831152624.GA15107@breakpoint.cc> <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
- <20220831155341.GC15107@breakpoint.cc> <CAADnVQJGQmu02f5B=mc1xJvVWSmk_GNZj9WAUskekykmyo8FzA@mail.gmail.com>
- <1cc40302-f006-31a7-b270-30813b8f4b67@iogearbox.net>
-In-Reply-To: <1cc40302-f006-31a7-b270-30813b8f4b67@iogearbox.net>
-From:   Eyal Birger <eyal.birger@gmail.com>
-Date:   Thu, 1 Sep 2022 08:18:20 +0300
-Message-ID: <CAHsH6GtCgb1getXASkqzN75cNfm7_GOg8Mng5ZY37yK99XBVMQ@mail.gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-To:     Daniel Borkmann <daniel@iogearbox.net>,
-        Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>,
-        Shmulik Ladkani <shmulik.ladkani@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220831201825.378d748d@kernel.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Sep 1, 2022 at 1:16 AM Daniel Borkmann <daniel@iogearbox.net> wrote:
->
-> On 8/31/22 7:26 PM, Alexei Starovoitov wrote:
-> > On Wed, Aug 31, 2022 at 8:53 AM Florian Westphal <fw@strlen.de> wrote:
-> >> Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> >>>> 1 and 2 have the upside that its easy to handle a 'file not found'
-> >>>> error.
-> >>>
-> >>> I'm strongly against calling into bpf from the inner guts of nft.
-> >>> Nack to all options discussed in this thread.
-> >>> None of them make any sense.
-> >>
-> >> -v please.  I can just rework userspace to allow going via xt_bpf
-> >> but its brain damaged.
-> >
-> > Right. xt_bpf was a dead end from the start.
-> > It's time to deprecate it and remove it.
-> >
-> >> This helps gradually moving towards move epbf for those that
-> >> still heavily rely on the classic forwarding path.
-> >
-> > No one is using it.
-> > If it was, we would have seen at least one bug report over
-> > all these years. We've seen none.
-> >
-> > tbh we had a fair share of wrong design decisions that look
-> > very reasonable early on and turned out to be useless with
-> > zero users.
-> > BPF_PROG_TYPE_SCHED_ACT and BPF_PROG_TYPE_LWT*
-> > are in this category. > All this code does is bit rot.
->
-> +1
->
-> > As a minimum we shouldn't step on the same rakes.
-> > xt_ebpf would be the same dead code as xt_bpf.
->
-> +1, and on top, the user experience will just be horrible. :(
->
-> >> If you are open to BPF_PROG_TYPE_NETFILTER I can go that route
-> >> as well, raw bpf program attachment via NF_HOOK and the bpf dispatcher,
-> >> but it will take significantly longer to get there.
-> >>
-> >> It involves reviving
-> >> https://lore.kernel.org/netfilter-devel/20211014121046.29329-1-fw@strlen.de/
-> >
-> > I missed it earlier. What is the end goal ?
-> > Optimize nft run-time with on the fly generation of bpf byte code ?
->
-> Or rather to provide a pendant to nft given existence of xt_bpf, and the
-> latter will be removed at some point? (If so, can't we just deprecate the
-> old xt_bpf?)
+On Wed, Aug 31, 2022 at 08:18:25PM -0700, Jakub Kicinski wrote:
+> On Wed, 31 Aug 2022 20:06:09 -0700 Kees Cook wrote:
+> >  static inline int nlmsg_len(const struct nlmsghdr *nlh)
+> >  {
+> > -	return nlh->nlmsg_len - NLMSG_HDRLEN;
+> > +	u32 nlmsg_contents_len;
+> > +
+> > +	if (WARN_ON_ONCE(check_sub_overflow(nlh->nlmsg_len,
+> > +					    (u32)NLMSG_HDRLEN,
+> > +					    &nlmsg_contents_len)))
+> > +		return 0;
+> > +	if (WARN_ON_ONCE(nlmsg_contents_len > INT_MAX))
+> > +		return INT_MAX;
+> > +	return nlmsg_contents_len;
+> 
+> We check the messages on input, making sure the length is valid wrt
+> skb->len, and sane, ie > NLMSG_HDRLEN. See netlink_rcv_skb().
+> 
+> Can we not, pretty please? :(
 
-FWIW we've been using both lwt bpf and xt_bpf on our production workloads
-for a few years now.
+This would catch corrupted values...
 
-xt_bpf allows us to apply custom sophisticated policy logic at connection
-establishment - which is not really possible (or efficient) using
-iptables/nft constructs - without needing to reinvent all the facilities that
-nf provides like connection tracking, ALGs, and simple filtering.
+Is the concern the growth in image size? The check_sub_overflow() isn't
+large at all -- it's just adding a single overflow bit test. The WARNs
+are heavier, but they're all out-of-line.
 
-As for lwt bpf, We use it for load balancing towards collect md tunnels.
-While this can be done at tc egress for unfragmented packets, the lwt out hook -
-when used in tandem with nf fragment reassembly - provides a hooking point
-where a bpf program can see reassembled packets and load balance based on
-their internals.
-
-Eyal.
+-- 
+Kees Cook
