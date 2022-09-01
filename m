@@ -2,102 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 920B8C6FA82
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 20:54:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3304C54EE9
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 21:34:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233871AbiIAUyh (ORCPT
+        id S233034AbiIAVe3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Sep 2022 16:54:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47096 "EHLO
+        Thu, 1 Sep 2022 17:34:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229892AbiIAUyg (ORCPT
+        with ESMTP id S232865AbiIAVe2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2022 16:54:36 -0400
-Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B849398A72
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2022 13:54:34 -0700 (PDT)
-Received: by mail-yb1-xb2f.google.com with SMTP id y197so440459yby.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Sep 2022 13:54:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc;
-        bh=4jlXXthmnZbjTZtiVrsRSCOXepCwvjAKaezedZTf+1M=;
-        b=dww8G34SkCKoX5t98auUmen/B2j+GBXp6v4tE5lPg8O17Ou+bYMY7NGL0+OFiLmfPX
-         KB5TW3Hg05olsDbU2CzwQ+b0l2lXaobxlM0bqgJd9XPq2lkwiMhtg268U0LR1pgENUyg
-         mw9NHDwFHa5UrvAydPu1H6hHymu7U37QFWsbhjRhtTy3sd/4bQQDVlT2RD4CEIgqicfq
-         3vAOEfU4qC2vZ5VlgP4L4MGQSEnf35XUEk7uw7FC2H2NRZMCpev2bF2irrAkr91s2SgH
-         cZP7vWAiNZggz+AuEqXG93mTZqAu8LM40i5ToAdS8XYVSMYFvx/sLwdWdFANCqCL8K9k
-         UJtA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc;
-        bh=4jlXXthmnZbjTZtiVrsRSCOXepCwvjAKaezedZTf+1M=;
-        b=gL8xRUYsfKkqgL0JPy8eiOa6sCms94HF0hlNULy4D0GvVTfSSfsqLnBBemvOGBFpGJ
-         rmjR8MkhcD60ODKwUq0hJcPF+otCywRNhMpq3Bin/U48yMOrH9ARWytOVoyxqAKTA+LM
-         yesj4vqEeJ4Gb7Cgbat03h65kd1zE513MBR758mr0mhch/npvjCvUzRHH3HqFp5akQED
-         7LSW8Qj4jniKZW0Q2B0nuWq+cPgwvJRDZUQFlLjtwaKEmTOwECmGC70BSRt+5GPg2mGM
-         aQfZzsyIsk6/27Fq2Zm+OvXElDhi8ZpF/ysFgqTBKA4de4bq/7ME21oDOQq5ZDDxMF64
-         2MpQ==
-X-Gm-Message-State: ACgBeo2PsBHHDrz5gie4l767Nj5CBz2d4lAYjOpd0aHxGVZOFT6wrp0D
-        nwng7m7j9YIRjIZzzCxfj1UL4TsLAX474E8U0bwPuQ==
-X-Google-Smtp-Source: AA6agR6jgLiIHymOoujt2bkT4znI6OH8iUHG1AMhcO6J1HbWzop1c6DYcRaGmYydlzzhjkJk39ilU83dzTQekkbMduQ=
-X-Received: by 2002:a25:84cd:0:b0:67a:699e:4e84 with SMTP id
- x13-20020a2584cd000000b0067a699e4e84mr20165239ybm.407.1662065673654; Thu, 01
- Sep 2022 13:54:33 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220901030610.1121299-1-keescook@chromium.org>
- <20220901030610.1121299-2-keescook@chromium.org> <20220831201825.378d748d@kernel.org>
- <202208312324.F2F8B28CA@keescook> <20220901124915.24ebc067@kernel.org>
-In-Reply-To: <20220901124915.24ebc067@kernel.org>
-From:   Eric Dumazet <edumazet@google.com>
-Date:   Thu, 1 Sep 2022 13:54:22 -0700
-Message-ID: <CANn89iLPLu=cP0zu5r+hsXudSjMzieWke=nh0YwccH1QJUnzog@mail.gmail.com>
-Subject: Re: [PATCH 1/2] netlink: Bounds-check nlmsg_len()
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Kees Cook <keescook@chromium.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thu, 1 Sep 2022 17:34:28 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3631647C2;
+        Thu,  1 Sep 2022 14:34:27 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6040DB82912;
+        Thu,  1 Sep 2022 21:34:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FE7DC433D6;
+        Thu,  1 Sep 2022 21:34:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1662068065;
+        bh=QDEyvqWC8nhNHLRGUxwIJUlPQJaJftGhKLRNzHJ5P74=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=es4wWPyEBqXs7O5cniqk0ZQDYixX2uAvihc+bhGyIsh2JyGFpyUygc/Qxju1MLtN7
+         Magu0PQEAq2JAV6jUTObQnbTum7WH/3v+XSKhRyA9Gmxe8xG7lAB4IzNrOLrNXYjhs
+         ixVzGX29jNSis7E19atE4wEEHC7sfk4CXExqgHh+SgvxRqDs2kFb+3Am8OQLvfDp3X
+         zjp3UgyC+wokraQRgGfuowmFitx7M/x0B6IlmbdS0plhPi9CBOYdEasAgRGNh/gXPs
+         H4IyjbCju9jrmgWQKFye5GxfofpflIIUUztsS/o8THE3DfYE8fVipt1/ZuKHp+RS4k
+         YXG+yWtj96cbQ==
+Date:   Thu, 1 Sep 2022 14:34:23 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Kees Cook <keescook@chromium.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
         syzbot <syzkaller@googlegroups.com>,
-        Yajun Deng <yajun.deng@linux.dev>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Oliver Hartkopp <socketcan@hartkopp.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org,
         Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-hardening@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v3] netlink: Bounds-check struct nlmsgerr creation
+Message-ID: <20220901143423.2abc0ab0@kernel.org>
+In-Reply-To: <20220901071336.1418572-1-keescook@chromium.org>
+References: <20220901071336.1418572-1-keescook@chromium.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Sep 1, 2022 at 12:49 PM Jakub Kicinski <kuba@kernel.org> wrote:
->
-> On Wed, 31 Aug 2022 23:27:08 -0700 Kees Cook wrote:
-> > This would catch corrupted values...
-> >
-> > Is the concern the growth in image size? The check_sub_overflow() isn't
-> > large at all -- it's just adding a single overflow bit test. The WARNs
-> > are heavier, but they're all out-of-line.
->
-> It turns the most obvious function into a noodle bar :(
->
-> Looking at this function in particular is quite useful, because
-> it clearly indicates that the nlmsg_len includes the header.
->
-> How about we throw in a
->
->         WARN_ON_ONCE(nlh->nlmsg_len < NLMSG_HDRLEN ||
->                      nlh->nlmsg_len > INT_MAX);
->
-> but leave the actual calculation human readable C?
+On Thu,  1 Sep 2022 00:13:36 -0700 Kees Cook wrote:
+>  	rep = __nlmsg_put(skb, NETLINK_CB(in_skb).portid, nlh->nlmsg_seq,
+>  			  NLMSG_ERROR, payload, flags);
 
-This is inlined, and will add a lot of extra code. We are making the
-kernel slower at each release.
+All we should need here is __nlmsg_put() -> nlmsg_put(),
+that's idiomatic for netlink.
 
-What about letting fuzzers like syzbot find the potential issues ?
-
-DEBUG_NET_WARN_ON_ONCE(...);
+>  	errmsg = nlmsg_data(rep);
+>  	errmsg->error = err;
+> -	memcpy(&errmsg->msg, nlh, payload > sizeof(*errmsg) ? nlh->nlmsg_len : sizeof(*nlh));
+> +	unsafe_memcpy(&errmsg->msg, nlh, payload > sizeof(*errmsg)
+> +					 ?  nlh->nlmsg_len : sizeof(*nlh),
+> +		      /* "payload" was bounds checked against nlh->nlmsg_len,
+> +		       * and overflow-checked as tlvlen was constructed.
+> +		       */);
