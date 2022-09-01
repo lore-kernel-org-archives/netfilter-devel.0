@@ -2,87 +2,216 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B59EECAAD1
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 10:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19626ECAAD1
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 10:32:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233562AbiIAKOX (ORCPT
+        id S234036AbiIAKcH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Sep 2022 06:14:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57860 "EHLO
+        Thu, 1 Sep 2022 06:32:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233750AbiIAKOW (ORCPT
+        with ESMTP id S232813AbiIAKcG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2022 06:14:22 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E96C1321C2;
-        Thu,  1 Sep 2022 03:14:20 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1oThCz-0001ZC-AI; Thu, 01 Sep 2022 12:14:01 +0200
-Date:   Thu, 1 Sep 2022 12:14:01 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Borkmann <daniel@iogearbox.net>
-Cc:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-Message-ID: <20220901101401.GC4334@breakpoint.cc>
-References: <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc>
- <87o7w04jjb.fsf@toke.dk>
- <20220831135757.GC8153@breakpoint.cc>
- <87ilm84goh.fsf@toke.dk>
- <20220831152624.GA15107@breakpoint.cc>
- <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
- <20220831155341.GC15107@breakpoint.cc>
- <CAADnVQJGQmu02f5B=mc1xJvVWSmk_GNZj9WAUskekykmyo8FzA@mail.gmail.com>
- <1cc40302-f006-31a7-b270-30813b8f4b67@iogearbox.net>
+        Thu, 1 Sep 2022 06:32:06 -0400
+X-Greylist: delayed 68189 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 01 Sep 2022 03:32:05 PDT
+Received: from mx0.riseup.net (mx0.riseup.net [198.252.153.6])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71A9A122050
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2022 03:32:05 -0700 (PDT)
+Received: from fews1.riseup.net (fews1-pn.riseup.net [10.0.1.83])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
+         client-signature RSA-PSS (2048 bits) client-digest SHA256)
+        (Client CN "mail.riseup.net", Issuer "R3" (not verified))
+        by mx0.riseup.net (Postfix) with ESMTPS id 4MJHR85WZNz9s4M
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2022 10:32:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1662028324; bh=FQudl51P6qQiW03EglFAkeTF92dV2O+1Tg8QGAVKNz8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=WyAPByHEn08YQzLYDl0PTn2q7j1bAxvbQLSuo9U6k0AFLTaMJudOcww8agmf7Z7/v
+         KPfUtrcqKk9fPlEQOaXUFSEcymzaV7WT8Th/EhlsYrLtzs9DvYd00kVH27BW7+go6K
+         qm6/LCCJ1rE/A5l48Y8jx0IYGmS5c9hy8TYaoZLs=
+X-Riseup-User-ID: 833573A7CAF07BEAA314EBA20FFD26E0ED8FFF56E093627372279F79D6BEAF7F
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by fews1.riseup.net (Postfix) with ESMTPSA id 4MJHR76Wc8z5vTc;
+        Thu,  1 Sep 2022 10:32:03 +0000 (UTC)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nft v2] json: add set statement list support
+Date:   Thu,  1 Sep 2022 12:31:43 +0200
+Message-Id: <20220901103143.87974-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1cc40302-f006-31a7-b270-30813b8f4b67@iogearbox.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Borkmann <daniel@iogearbox.net> wrote:
-> On 8/31/22 7:26 PM, Alexei Starovoitov wrote:
-> > On Wed, Aug 31, 2022 at 8:53 AM Florian Westphal <fw@strlen.de> wrote:
-> > As a minimum we shouldn't step on the same rakes.
-> > xt_ebpf would be the same dead code as xt_bpf.
-> 
-> +1, and on top, the user experience will just be horrible. :(
+When listing a set with statements with JSON support, the statements were
+ignored.
 
-Compared to what?
+Output example:
 
-> > > If you are open to BPF_PROG_TYPE_NETFILTER I can go that route
-> > > as well, raw bpf program attachment via NF_HOOK and the bpf dispatcher,
-> > > but it will take significantly longer to get there.
-> > > 
-> > > It involves reviving
-> > > https://lore.kernel.org/netfilter-devel/20211014121046.29329-1-fw@strlen.de/
-> > 
-> > I missed it earlier. What is the end goal ?
-> > Optimize nft run-time with on the fly generation of bpf byte code ?
-> 
-> Or rather to provide a pendant to nft given existence of xt_bpf, and the
-> latter will be removed at some point? (If so, can't we just deprecate the
-> old xt_bpf?)
+{
+  "set": {
+    "op": "add",
+    "elem": {
+      "payload": {
+        "protocol": "ip",
+        "field": "saddr"
+      }
+    },
+    "stmt": [
+      {
+        "limit": {
+          "rate": 10,
+          "burst": 5,
+          "per": "second"
+        }
+      },
+      {
+        "counter": {
+          "packets": 0,
+          "bytes": 0
+        }
+      }
+    ],
+    "set": "@my_ssh_meter"
+  }
+}
 
-See my reply to Alexey, immediate goal was to get rid of the indirect
-calls by providing a tailored/jitted equivalent of nf_hook_slow().
+Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1495
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+v2: extend testcases
+---
+ src/json.c                                    | 19 +++++++++++-
+ src/parser_json.c                             | 29 ++++++++++++++++++-
+ .../shell/testcases/json/0001set_statements_0 |  9 ++++++
+ .../json/dumps/0001set_statements_0.nft       | 12 ++++++++
+ 4 files changed, 67 insertions(+), 2 deletions(-)
+ create mode 100755 tests/shell/testcases/json/0001set_statements_0
+ create mode 100644 tests/shell/testcases/json/dumps/0001set_statements_0.nft
 
-The next step could be to allow implementation of netfilter hooks
-(i.e., kernel modules that call nf_register_net_hook()) in bpf
-but AFAIU it requires addition of BPF_PROG_TYPE_NETFILTER etc.
+diff --git a/src/json.c b/src/json.c
+index a525fd1b..55959eea 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1439,11 +1439,28 @@ json_t *counter_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+ 			 "bytes", stmt->counter.bytes);
+ }
+ 
++static json_t *set_stmt_list_json(const struct list_head *stmt_list,
++	                           struct output_ctx *octx)
++{
++	json_t *root, *tmp;
++	struct stmt *i;
++
++	root = json_array();
++
++	list_for_each_entry(i, stmt_list, list) {
++		tmp = stmt_print_json(i, octx);
++		json_array_append_new(root, tmp);
++	}
++
++	return root;
++}
++
+ json_t *set_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+ {
+-	return json_pack("{s:{s:s, s:o, s:s+}}", "set",
++	return json_pack("{s:{s:s, s:o, s:o, s:s+}}", "set",
+ 			 "op", set_stmt_op_names[stmt->set.op],
+ 			 "elem", expr_print_json(stmt->set.key, octx),
++			 "stmt", set_stmt_list_json(&stmt->set.stmt_list, octx),
+ 			 "set", "@", stmt->set.set->set->handle.set.name);
+ }
+ 
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 9e93927a..a8dbb890 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2227,13 +2227,36 @@ static struct stmt *json_parse_reject_stmt(struct json_ctx *ctx,
+ 	return stmt;
+ }
+ 
++static void json_parse_set_stmt_list(struct json_ctx *ctx,
++				      struct list_head *stmt_list,
++				      json_t *stmt_json)
++{
++	struct list_head *head;
++	struct stmt *tmp;
++	json_t *value;
++	size_t index;
++
++	if (!stmt_json)
++		return;
++
++	if (!json_is_array(stmt_json))
++		json_error(ctx, "Unexpected object type in stmt");
++
++	head = stmt_list;
++	json_array_foreach(stmt_json, index, value) {
++		tmp = json_parse_stmt(ctx, value);
++		list_add(&tmp->list, head);
++		head = &tmp->list;
++	}
++}
++
+ static struct stmt *json_parse_set_stmt(struct json_ctx *ctx,
+ 					  const char *key, json_t *value)
+ {
+ 	const char *opstr, *set;
+ 	struct expr *expr, *expr2;
++	json_t *elem, *stmt_json;
+ 	struct stmt *stmt;
+-	json_t *elem;
+ 	int op;
+ 
+ 	if (json_unpack_err(ctx, value, "{s:s, s:o, s:s}",
+@@ -2268,6 +2291,10 @@ static struct stmt *json_parse_set_stmt(struct json_ctx *ctx,
+ 	stmt->set.op = op;
+ 	stmt->set.key = expr;
+ 	stmt->set.set = expr2;
++
++	if (!json_unpack(value, "{s:o}", "stmt", &stmt_json))
++		json_parse_set_stmt_list(ctx, &stmt->set.stmt_list, stmt_json);
++
+ 	return stmt;
+ }
+ 
+diff --git a/tests/shell/testcases/json/0001set_statements_0 b/tests/shell/testcases/json/0001set_statements_0
+new file mode 100755
+index 00000000..1c72d35b
+--- /dev/null
++++ b/tests/shell/testcases/json/0001set_statements_0
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++set -e
++
++$NFT flush ruleset
++
++RULESET='{"nftables": [{"metainfo": {"version": "1.0.5", "release_name": "Lester Gooch #4", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "testt", "handle": 3}}, {"set": {"family": "ip", "name": "ssh_meter", "table": "testt", "type": "ipv4_addr", "handle": 2, "size": 65535}}, {"chain": {"family": "ip", "table": "testt", "name": "testc", "handle": 1, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}}, {"rule": {"family": "ip", "table": "testt", "chain": "testc", "handle": 3, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 22}}, {"match": {"op": "in", "left": {"ct": {"key": "state"}}, "right": "new"}}, {"set": {"op": "add", "elem": {"payload": {"protocol": "ip", "field": "saddr"}}, "stmt": [{"limit": {"rate": 10, "burst": 5, "per": "second"}}], "set": "@ssh_meter"}}, {"accept": null}]}}]}'
++
++$NFT -j -f - <<< $RULESET
+diff --git a/tests/shell/testcases/json/dumps/0001set_statements_0.nft b/tests/shell/testcases/json/dumps/0001set_statements_0.nft
+new file mode 100644
+index 00000000..ee4a8670
+--- /dev/null
++++ b/tests/shell/testcases/json/dumps/0001set_statements_0.nft
+@@ -0,0 +1,12 @@
++table ip testt {
++	set ssh_meter {
++		type ipv4_addr
++		size 65535
++		flags dynamic
++	}
++
++	chain testc {
++		type filter hook input priority filter; policy accept;
++		tcp dport 22 ct state new add @ssh_meter { ip saddr limit rate 10/second } accept
++	}
++}
+-- 
+2.30.2
 
-After that, yes, one could think about how to jit nft_do_chain() and
-all the rest of the nft machinery.
