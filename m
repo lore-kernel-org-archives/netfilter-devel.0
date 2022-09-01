@@ -2,97 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DD51C64991
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 07:13:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46FE2ECAAD8
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Sep 2022 07:13:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233592AbiIAHNR (ORCPT
+        id S233700AbiIAHNS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Sep 2022 03:13:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48036 "EHLO
+        Thu, 1 Sep 2022 03:13:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233599AbiIAHM7 (ORCPT
+        with ESMTP id S233425AbiIAHNC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2022 03:12:59 -0400
+        Thu, 1 Sep 2022 03:13:02 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 096541243D2;
-        Thu,  1 Sep 2022 00:12:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75E08E193D;
+        Thu,  1 Sep 2022 00:13:01 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1oTeNf-0000Wx-Ot; Thu, 01 Sep 2022 09:12:51 +0200
+        id 1oTeNo-0000XX-1S; Thu, 01 Sep 2022 09:13:00 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     davem@davemloft.net, netfilter-devel@vger.kernel.org,
         kuba@kernel.org, pabeni@redhat.com, edumazet@google.com,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH net 0/4] netfilter: bug fixes for net
-Date:   Thu,  1 Sep 2022 09:12:34 +0200
-Message-Id: <20220901071238.3044-1-fw@strlen.de>
+        Harsh Modi <harshmodi@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net 2/4] netfilter: br_netfilter: Drop dst references before setting.
+Date:   Thu,  1 Sep 2022 09:12:36 +0200
+Message-Id: <20220901071238.3044-3-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220901071238.3044-1-fw@strlen.de>
+References: <20220901071238.3044-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+From: Harsh Modi <harshmodi@google.com>
 
-This patchset contains netfilter related fixes for the net tree.
+The IPv6 path already drops dst in the daddr changed case, but the IPv4
+path does not. This change makes the two code paths consistent.
 
-1. Fix IP address check in irc DCC conntrack helper, this should check
-   the opposite direction rather than the destination address of the
-   packets' direction, from David Leadbeater.
+Further, it is possible that there is already a metadata_dst allocated from
+ingress that might already be attached to skbuff->dst while following
+the bridge path. If it is not released before setting a new
+metadata_dst, it will be leaked. This is similar to what is done in
+bpf_set_tunnel_key() or ip6_route_input().
 
-2. bridge netfilter needs to drop dst references, from Harsh Modi.
-   This was fine back in the day the code was originally written,
-   but nowadays various tunnels can pre-set metadata dsts on packets.
+It is important to note that the memory being leaked is not the dst
+being set in the bridge code, but rather memory allocated from some
+other code path that is not being freed correctly before the skb dst is
+overwritten.
 
-3. Remove nf_conntrack_helper sysctl and the modparam toggle, users
-   need to explicitily assign the helpers to use via nftables or
-   iptables.  Conntrack helpers, by design, may be used to add dynamic
-   port redirections to internal machines, so its necessary to restrict
-   which hosts/peers are allowed to use them.
-   The auto-assign-for-everything mechanism has been in "please don't do this"
-   territory since 2012.  From Pablo.
+An example of the leakage fixed by this commit found using kmemleak:
 
-4. Fix a memory leak in the netdev hook error unwind path, also from Pablo.
+unreferenced object 0xffff888010112b00 (size 256):
+  comm "softirq", pid 0, jiffies 4294762496 (age 32.012s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 80 16 f1 83 ff ff ff ff  ................
+    e1 4e f6 82 ff ff ff ff 00 00 00 00 00 00 00 00  .N..............
+  backtrace:
+    [<00000000d79567ea>] metadata_dst_alloc+0x1b/0xe0
+    [<00000000be113e13>] udp_tun_rx_dst+0x174/0x1f0
+    [<00000000a36848f4>] geneve_udp_encap_recv+0x350/0x7b0
+    [<00000000d4afb476>] udp_queue_rcv_one_skb+0x380/0x560
+    [<00000000ac064aea>] udp_unicast_rcv_skb+0x75/0x90
+    [<000000009a8ee8c5>] ip_protocol_deliver_rcu+0xd8/0x230
+    [<00000000ef4980bb>] ip_local_deliver_finish+0x7a/0xa0
+    [<00000000d7533c8c>] __netif_receive_skb_one_core+0x89/0xa0
+    [<00000000a879497d>] process_backlog+0x93/0x190
+    [<00000000e41ade9f>] __napi_poll+0x28/0x170
+    [<00000000b4c0906b>] net_rx_action+0x14f/0x2a0
+    [<00000000b20dd5d4>] __do_softirq+0xf4/0x305
+    [<000000003a7d7e15>] __irq_exit_rcu+0xc3/0x140
+    [<00000000968d39a2>] sysvec_apic_timer_interrupt+0x9e/0xc0
+    [<000000009e920794>] asm_sysvec_apic_timer_interrupt+0x16/0x20
+    [<000000008942add0>] native_safe_halt+0x13/0x20
 
-----------------------------------------------------------------
-The following changes since commit 13a9d08c296228d18289de60b83792c586e1d073:
+Florian Westphal says: "Original code was likely fine because nothing
+ever did set a skb->dst entry earlier than bridge in those days."
 
-  net: lan966x: improve error handle in lan966x_fdma_rx_get_frame() (2022-08-30 23:18:17 -0700)
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Harsh Modi <harshmodi@google.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/bridge/br_netfilter_hooks.c | 2 ++
+ net/bridge/br_netfilter_ipv6.c  | 1 +
+ 2 files changed, 3 insertions(+)
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git 
-
-for you to fetch changes up to 0efe125cfb99e6773a7434f3463f7c2fa28f3a43:
-
-  netfilter: nf_conntrack_irc: Fix forged IP logic (2022-09-01 02:01:56 +0200)
-
-----------------------------------------------------------------
-David Leadbeater (1):
-      netfilter: nf_conntrack_irc: Fix forged IP logic
-
-Harsh Modi (1):
-      netfilter: br_netfilter: Drop dst references before setting.
-
-Pablo Neira Ayuso (2):
-      netfilter: remove nf_conntrack_helper sysctl and modparam toggles
-      netfilter: nf_tables: clean up hook list when offload flags check fails
-
- include/net/netfilter/nf_conntrack.h               |  2 -
- include/net/netns/conntrack.h                      |  1 -
- net/bridge/br_netfilter_hooks.c                    |  2 +
- net/bridge/br_netfilter_ipv6.c                     |  1 +
- net/netfilter/nf_conntrack_core.c                  |  7 +-
- net/netfilter/nf_conntrack_helper.c                | 80 +++-------------------
- net/netfilter/nf_conntrack_irc.c                   |  5 +-
- net/netfilter/nf_conntrack_netlink.c               |  5 --
- net/netfilter/nf_conntrack_standalone.c            | 10 ---
- net/netfilter/nf_tables_api.c                      |  4 +-
- net/netfilter/nft_ct.c                             |  3 -
- .../selftests/netfilter/nft_conntrack_helper.sh    | 36 +++++++---
- 12 files changed, 46 insertions(+), 110 deletions(-)
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index ff4779036649..f20f4373ff40 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -384,6 +384,7 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 				/* - Bridged-and-DNAT'ed traffic doesn't
+ 				 *   require ip_forwarding. */
+ 				if (rt->dst.dev == dev) {
++					skb_dst_drop(skb);
+ 					skb_dst_set(skb, &rt->dst);
+ 					goto bridged_dnat;
+ 				}
+@@ -413,6 +414,7 @@ static int br_nf_pre_routing_finish(struct net *net, struct sock *sk, struct sk_
+ 			kfree_skb(skb);
+ 			return 0;
+ 		}
++		skb_dst_drop(skb);
+ 		skb_dst_set_noref(skb, &rt->dst);
+ 	}
+ 
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index e4e0c836c3f5..6b07f30675bb 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -197,6 +197,7 @@ static int br_nf_pre_routing_finish_ipv6(struct net *net, struct sock *sk, struc
+ 			kfree_skb(skb);
+ 			return 0;
+ 		}
++		skb_dst_drop(skb);
+ 		skb_dst_set_noref(skb, &rt->dst);
+ 	}
+ 
 -- 
 2.35.1
 
