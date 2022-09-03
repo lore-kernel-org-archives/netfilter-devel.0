@@ -2,88 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 510F8ECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Sep 2022 02:53:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 234B3ECAAD4
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Sep 2022 04:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231472AbiICCxb (ORCPT
+        id S231750AbiICEUW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Sep 2022 22:53:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33654 "EHLO
+        Sat, 3 Sep 2022 00:20:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231363AbiICCxa (ORCPT
+        with ESMTP id S231757AbiICEUV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Sep 2022 22:53:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBE7A86C2A;
-        Fri,  2 Sep 2022 19:53:28 -0700 (PDT)
+        Sat, 3 Sep 2022 00:20:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3460937F98;
+        Fri,  2 Sep 2022 21:20:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A2C54B82D0E;
-        Sat,  3 Sep 2022 02:53:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9524C433D6;
-        Sat,  3 Sep 2022 02:53:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6AB06B82E31;
+        Sat,  3 Sep 2022 04:20:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0A67EC433B5;
+        Sat,  3 Sep 2022 04:20:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662173606;
-        bh=OUYx9zqyVhkPwKlBXjzCx3T9nSj8tuR4ByliWLPFxNM=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=LyWkGIYwv2Gpf20eWkMR5EpzxrZuPMrWhZ6Y8KlZzD+vLhsfN5a+A7/9k99ZGslxe
-         ganDQ8ch4bBysvmjAGq831CecqiRy3GHP6u5qSGQnne7YpVH3m4A5G0VPSrqyYc6uJ
-         hcxCh5zoPbJKk77ZwmYNhGOlEi5p1KR51RGjto5VG0bkwERGv8IO1hsyQ6U86lIqw1
-         LBMAFUmwCNgtHpYAWBRLYaOhg3yxqsLgzOBlxZLBZy4T4F+l7Iu4qS51goF9xHNOuf
-         tOJRghHz0+T43wkVhLJiQKRdtExWhwWLW3dd6yhXudD6ULme1lRIfzO3dmDQjxgCe9
-         nLI2K/UQYm/6Q==
-Date:   Fri, 2 Sep 2022 19:53:24 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Kees Cook <keescook@chromium.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        syzbot <syzkaller@googlegroups.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org,
-        Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH v3] netlink: Bounds-check struct nlmsgerr creation
-Message-ID: <20220902195324.15a9ae30@kernel.org>
-In-Reply-To: <202209021555.9EE2FBD3A@keescook>
-References: <20220901071336.1418572-1-keescook@chromium.org>
-        <202209021555.9EE2FBD3A@keescook>
+        s=k20201202; t=1662178817;
+        bh=bYM5yg9Ez5VYkbDGL+B+4sqkE1UITDolX2TVlpo8xXk=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=dR0P7v+iBZtr3mpYgzSS4+Mmh/pA/TKbkkMiBx+U5JxV/u8e/cEan7h8KB6GpGTC3
+         gzk5GN6fHzwIXnKqHij14UocR6zT7Bv0bKFmf9F2covpRcNVjY4WF6Re0rLW8t3wAd
+         9dEg8U8KgpefJcA1BhaH7dVk8TAAai5tN6cYidXoOnzSe9cmTooZ6rOHVW+kY0RWW+
+         oTEGUJXoiKQw4ZS/Oyxf8na3KuWDi9/+D6p/uitTY3nV4pl8auhoic6MO/+wbkzapp
+         +FVOtewA+TRvL92+SBTlFMRNyxtUJZFQB2FIAyYeoI1Iwo1f5qe3943mYuJnb3z0K6
+         f6N0YWecYjKrg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id DED9DC4166E;
+        Sat,  3 Sep 2022 04:20:16 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/4] netfilter: remove nf_conntrack_helper sysctl and
+ modparam toggles
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166217881690.4142.3378968788062574533.git-patchwork-notify@kernel.org>
+Date:   Sat, 03 Sep 2022 04:20:16 +0000
+References: <20220901071238.3044-2-fw@strlen.de>
+In-Reply-To: <20220901071238.3044-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com, pablo@netfilter.org,
+        aconole@redhat.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2 Sep 2022 16:08:01 -0700 Kees Cook wrote:
-> > -	if (extack->cookie_len)
-> > -		tlvlen += nla_total_size(extack->cookie_len);
-> > +	if (extack->_msg &&
-> > +	    check_add_overflow(*tlvlen, nla_total_size(strlen(extack->_msg) + 1), tlvlen))
-> > +		return false;  
+Hello:
+
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu,  1 Sep 2022 09:12:35 +0200 you wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> If that's not desirable, then I guess the question I want to ask is
-> "what can I put in the unsafe_memcpy() comment above that proves these
-> values have been sanity checked? In other words, how do we know that
-> tlvlen hasn't overflowed? (I don't know what other sanity checking may
-> have already happened, so I'm looking directly at the size calculations
-> here.)
+> __nf_ct_try_assign_helper() remains in place but it now requires a
+> template to configure the helper.
+> 
+> A toggle to disable automatic helper assignment was added by:
+> 
+> [...]
 
-The netlink helpers for adding attributes check whether there is enough
-space left in the skb. So if the calculation overflows, so be it. We'll
-hit EMSGSIZE in the writing phase and unwind. The writing should make
-no assumptions about the skb size. In fact all dumps will routinely hit
-EMSGSIZE as we try to fit as many objects into a skb as possible, so we
-unwind the one that would go over. Unwinding is well exercised in a lot
-of netlink code (not here, MSG_DONE/MSG_ERROR ain't a dump).
+Here is the summary with links:
+  - [net,1/4] netfilter: remove nf_conntrack_helper sysctl and modparam toggles
+    https://git.kernel.org/netdev/net/c/b118509076b3
+  - [net,2/4] netfilter: br_netfilter: Drop dst references before setting.
+    https://git.kernel.org/netdev/net/c/d047283a7034
+  - [net,3/4] netfilter: nf_tables: clean up hook list when offload flags check fails
+    https://git.kernel.org/netdev/net/c/77972a36ecc4
+  - [net,4/4] netfilter: nf_conntrack_irc: Fix forged IP logic
+    https://git.kernel.org/netdev/net/c/0efe125cfb99
 
-The pre-calculation is just an estimate, if the message size ends up
-being insane it really doesn't matter if the calculation is 0, INT_MAX
-or random(). User is not gonna get a response, anyway.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-... unless someone uses the unsafe helpers like __nlmsg_put() rather
-than nlmsg_put(), hence my suggestion in the other email.
+
