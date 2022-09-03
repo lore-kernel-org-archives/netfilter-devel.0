@@ -2,52 +2,56 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B12CC54EE9
-	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Sep 2022 02:43:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 510F8ECAAA1
+	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Sep 2022 02:53:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbiICCn3 (ORCPT
+        id S231472AbiICCxb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Sep 2022 22:43:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45958 "EHLO
+        Fri, 2 Sep 2022 22:53:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229508AbiICCn2 (ORCPT
+        with ESMTP id S231363AbiICCxa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Sep 2022 22:43:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F01CF490F;
-        Fri,  2 Sep 2022 19:43:26 -0700 (PDT)
+        Fri, 2 Sep 2022 22:53:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBE7A86C2A;
+        Fri,  2 Sep 2022 19:53:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AB4D162174;
-        Sat,  3 Sep 2022 02:43:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B23EBC433C1;
-        Sat,  3 Sep 2022 02:43:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A2C54B82D0E;
+        Sat,  3 Sep 2022 02:53:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9524C433D6;
+        Sat,  3 Sep 2022 02:53:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662173005;
-        bh=v3RCRn1nqw5sKhkOzByGnzAzgt6LPwwlEgNDyNXkLA4=;
+        s=k20201202; t=1662173606;
+        bh=OUYx9zqyVhkPwKlBXjzCx3T9nSj8tuR4ByliWLPFxNM=;
         h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=XDtUla1MRfqGIBwPmeb/itVYPlu5w9c4dywgti/8eYtQSrzrr9jacyjUTAq6HR4n+
-         N4+5Llz7vtrSCJDFHJsrSY0TMh03m727iiqpT4YGjUbvnmVTBeet71nBCov7EdtJam
-         lTrNMUom/cTm06J6kk5awGh6C4VoA8S9jGDFxVX9fPceAn6Eldm+zVU8bM4jJ/lNop
-         J5YcDskBbrDR5/aOPt0Tk3iYw/cWGv+IgXY4D7wWQNXReI6LnbWPYEecngcFRmWETR
-         qLlIniq2xKHCYfbtCOfEffDOqLId6F1323Azifs758H0fIVsuM1R8OH1yALF7X3KTR
-         GPoYFeBeYzBCQ==
-Date:   Fri, 2 Sep 2022 19:43:23 -0700
+        b=LyWkGIYwv2Gpf20eWkMR5EpzxrZuPMrWhZ6Y8KlZzD+vLhsfN5a+A7/9k99ZGslxe
+         ganDQ8ch4bBysvmjAGq831CecqiRy3GHP6u5qSGQnne7YpVH3m4A5G0VPSrqyYc6uJ
+         hcxCh5zoPbJKk77ZwmYNhGOlEi5p1KR51RGjto5VG0bkwERGv8IO1hsyQ6U86lIqw1
+         LBMAFUmwCNgtHpYAWBRLYaOhg3yxqsLgzOBlxZLBZy4T4F+l7Iu4qS51goF9xHNOuf
+         tOJRghHz0+T43wkVhLJiQKRdtExWhwWLW3dd6yhXudD6ULme1lRIfzO3dmDQjxgCe9
+         nLI2K/UQYm/6Q==
+Date:   Fri, 2 Sep 2022 19:53:24 -0700
 From:   Jakub Kicinski <kuba@kernel.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-        edumazet@google.com, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Aaron Conole <aconole@redhat.com>
-Subject: Re: [PATCH net 1/4] netfilter: remove nf_conntrack_helper sysctl
- and modparam toggles
-Message-ID: <20220902194323.5533a73f@kernel.org>
-In-Reply-To: <20220902053928.GA5881@breakpoint.cc>
-References: <20220901071238.3044-1-fw@strlen.de>
-        <20220901071238.3044-2-fw@strlen.de>
-        <20220901210715.00c7b4e1@kernel.org>
-        <20220902053928.GA5881@breakpoint.cc>
+To:     Kees Cook <keescook@chromium.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        syzbot <syzkaller@googlegroups.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org,
+        Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>,
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v3] netlink: Bounds-check struct nlmsgerr creation
+Message-ID: <20220902195324.15a9ae30@kernel.org>
+In-Reply-To: <202209021555.9EE2FBD3A@keescook>
+References: <20220901071336.1418572-1-keescook@chromium.org>
+        <202209021555.9EE2FBD3A@keescook>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -55,23 +59,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2 Sep 2022 07:39:28 +0200 Florian Westphal wrote:
-> > From the description itself it's unclear why this is a part of a net PR.
-> > Could you elucidate?  
+On Fri, 2 Sep 2022 16:08:01 -0700 Kees Cook wrote:
+> > -	if (extack->cookie_len)
+> > -		tlvlen += nla_total_size(extack->cookie_len);
+> > +	if (extack->_msg &&
+> > +	    check_add_overflow(*tlvlen, nla_total_size(strlen(extack->_msg) + 1), tlvlen))
+> > +		return false;  
 > 
-> Yes, there is improper checking in the irc dcc helper, its possible to
-> trigger the 'please do dynamic port forward' from outside by embedding
-> a 'DCC' in a PING request; if the client echos that back a expectation/
-> port forward gets added.
+> If that's not desirable, then I guess the question I want to ask is
+> "what can I put in the unsafe_memcpy() comment above that proves these
+> values have been sanity checked? In other words, how do we know that
+> tlvlen hasn't overflowed? (I don't know what other sanity checking may
+> have already happened, so I'm looking directly at the size calculations
+> here.)
 
-I see, thanks!
+The netlink helpers for adding attributes check whether there is enough
+space left in the skb. So if the calculation overflows, so be it. We'll
+hit EMSGSIZE in the writing phase and unwind. The writing should make
+no assumptions about the skb size. In fact all dumps will routinely hit
+EMSGSIZE as we try to fit as many objects into a skb as possible, so we
+unwind the one that would go over. Unwinding is well exercised in a lot
+of netlink code (not here, MSG_DONE/MSG_ERROR ain't a dump).
 
-> A fix for this will come in the next net PR, however, one part of the
-> issue is that point-blank-autassign is problematic and that helpers
-> should only be enabled for addresses that need it.
-> 
-> If you like I can resend the PR with an updated cover letter, or resend
-> with the dcc helper fix included as well.
+The pre-calculation is just an estimate, if the message size ends up
+being insane it really doesn't matter if the calculation is 0, INT_MAX
+or random(). User is not gonna get a response, anyway.
 
-No need, I'll fold more of your explanation into the merge commit,
-should be good enough.
+... unless someone uses the unsafe helpers like __nlmsg_put() rather
+than nlmsg_put(), hence my suggestion in the other email.
