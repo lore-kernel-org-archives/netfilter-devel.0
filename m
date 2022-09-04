@@ -2,50 +2,50 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84F30C6FA82
-	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Sep 2022 17:15:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9C35ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Sun,  4 Sep 2022 17:18:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230013AbiIDRO7 (ORCPT
+        id S230015AbiIDRSl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 4 Sep 2022 13:14:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52688 "EHLO
+        Sun, 4 Sep 2022 13:18:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234448AbiIDRO6 (ORCPT
+        with ESMTP id S235039AbiIDRSj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Sep 2022 13:14:58 -0400
+        Sun, 4 Sep 2022 13:18:39 -0400
 Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40F44286C8
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Sep 2022 10:14:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27C9733A2F
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Sep 2022 10:18:38 -0700 (PDT)
 Received: from fews1.riseup.net (fews1-pn.riseup.net [10.0.1.83])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
          client-signature RSA-PSS (2048 bits) client-digest SHA256)
         (Client CN "mail.riseup.net", Issuer "R3" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 4MLJDc40tlzDq6S
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Sep 2022 17:14:56 +0000 (UTC)
+        by mx1.riseup.net (Postfix) with ESMTPS id 4MLJJs6DlZzDrZZ
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Sep 2022 17:18:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1662311696; bh=ZjNQWmvS0R5Bf+tU11GluhxqMmxI9wdcgzXjFvSombM=;
+        t=1662311917; bh=yR6b2kkQ6V2ivCLwGV942MzngDFSHinE26K/Ag5lmso=;
         h=From:To:Cc:Subject:Date:From;
-        b=GqKrhih692wCunXkwCGO4C7alobyUutUMzYtu8R3vb2n3PWa3+9AHU1xlweWc1lNM
-         u2q1r/ThITk8ot2yoHM/ifjlL3RL9Ot2Yqz64kssd7kkgLo99vZZ3xiSidS3exY878
-         xoHC8rdjgtpI95KvYe+3uu+ysiBnpj2pe4Emo1P4=
-X-Riseup-User-ID: C1A44475B5DB8A7C51F36EF5630BEC9BF66835EC63475B3A959D9657FCF80C7A
+        b=NthewNfJwN5U3nGL9YaSSVItaIe8kXJTxHX5El5e8taCJ3nIutHPzJiWPAY4WY8pe
+         GAy0F1vsDNxkmJq0LwqkINv0o5DOcunKmjmkatyanvLRKAo8xrArEU3eYIiuwAgnGK
+         TSRmvNWEFcGsk1Qs+NMnbSCPsmo0yQDfGFvqL1Ns=
+X-Riseup-User-ID: 325E8B51ABB72BBEF87998726AA5A9F984185A965BDD625BFA0A07A0EA16D35B
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by fews1.riseup.net (Postfix) with ESMTPSA id 4MLJDb5GBDz5w5c;
-        Sun,  4 Sep 2022 17:14:55 +0000 (UTC)
+         by fews1.riseup.net (Postfix) with ESMTPSA id 4MLJJs08p3z5vNH;
+        Sun,  4 Sep 2022 17:18:36 +0000 (UTC)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft] json: fix empty statement list output in sets and maps
-Date:   Sun,  4 Sep 2022 19:14:40 +0200
-Message-Id: <20220904171440.74352-1-ffmancera@riseup.net>
+Subject: [PATCH nft v2] json: fix empty statement list output in sets and maps
+Date:   Sun,  4 Sep 2022 19:18:26 +0200
+Message-Id: <20220904171826.74525-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-JSON output of sets and map should not include the statements list if is is
+JSON output of sets and map should not include the statements list if is
 empty. The statement output should be stateless also.
 
 In addition, removes duplicated code.
@@ -53,6 +53,8 @@ In addition, removes duplicated code.
 Fixes: 07958ec53830 ("json: add set statement list support")
 Fixes: e66f3187d891 ("json: add table map statement support")
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+v2: fix typo in commit message
 ---
  src/json.c                                    | 64 ++++++++++---------
  .../shell/testcases/json/0001set_statements_0 |  2 +-
