@@ -2,82 +2,213 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB171ECAAD3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Sep 2022 14:00:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0FD8ECAAD5
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Sep 2022 15:38:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238266AbiIEOAV (ORCPT
+        id S231255AbiIEPiV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Sep 2022 10:00:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45048 "EHLO
+        Mon, 5 Sep 2022 11:38:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238252AbiIEOAT (ORCPT
+        with ESMTP id S236817AbiIEPiV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Sep 2022 10:00:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C0AA101E9;
-        Mon,  5 Sep 2022 07:00:17 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 11269B811E0;
-        Mon,  5 Sep 2022 14:00:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id AF067C433D6;
-        Mon,  5 Sep 2022 14:00:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662386414;
-        bh=XSSZTD2ALu36RR1GIQU7d/Edf2hF0Lo9I0MxTJEt9wk=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=AsRmGm9gXizIaHVFqbK7m9xJApGH6O4wmI0ylwbO0Xrb3mdn8Aj+1sbaT7pCyQPpJ
-         x6o6vLq/Ape+j/U0tLaIEhgpdD55wBhq4ZASeMHXwxA2E3xnFyHqdzQ3sJ/VyJWM2s
-         ok/XmsBeqavC5vIWqByFiTfJQbHI3i14CcOG4hJZ9YRIXjc5bqpu0bPW6kb7svE8A7
-         nmyTOBIStY/1NLYFHcU30gtwC9ixY81GxnZqGPZR+nEwHbDibbVjRAwyyVRng+nDYI
-         I6cOZA1vOHhG1H+dNqM8/rAas0oE3F4m1+8Cwz/Xwq8/q9j6Jr2DOCsnOkwi4HA9B+
-         4b4GlJrYj/AJg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 994F3C73FE8;
-        Mon,  5 Sep 2022 14:00:14 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Mon, 5 Sep 2022 11:38:21 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C15C419A9
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2022 08:38:19 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oVEAz-0005Sn-Mw; Mon, 05 Sep 2022 17:38:17 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] selftests: nft_concat_range: add socat support
+Date:   Mon,  5 Sep 2022 17:38:12 +0200
+Message-Id: <20220905153812.15048-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v4] netlink: Bounds-check struct nlmsgerr creation
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166238641462.11602.3818616103545497339.git-patchwork-notify@kernel.org>
-Date:   Mon, 05 Sep 2022 14:00:14 +0000
-References: <20220903043749.3102675-1-keescook@chromium.org>
-In-Reply-To: <20220903043749.3102675-1-keescook@chromium.org>
-To:     Kees Cook <keescook@chromium.org>
-Cc:     kuba@kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, davem@davemloft.net, edumazet@google.com,
-        pabeni@redhat.com, syzkaller@googlegroups.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, socketcan@hartkopp.net,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+There are different flavors of 'nc' around, this script fails on
+my test vm because 'nc' is 'nmap-ncat' which isn't 100% compatible.
 
-This patch was applied to netdev/net-next.git (master)
-by David S. Miller <davem@davemloft.net>:
+Add socat support and use it if available.
 
-On Fri,  2 Sep 2022 21:37:49 -0700 you wrote:
-> In preparation for FORTIFY_SOURCE doing bounds-check on memcpy(),
-> switch from __nlmsg_put to nlmsg_put(), and explain the bounds check
-> for dealing with the memcpy() across a composite flexible array struct.
-> Avoids this future run-time warning:
-> 
->   memcpy: detected field-spanning write (size 32) of single field "&errmsg->msg" at net/netlink/af_netlink.c:2447 (size 16)
-> 
-> [...]
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../selftests/netfilter/nft_concat_range.sh   | 65 +++++++++++++++----
+ 1 file changed, 53 insertions(+), 12 deletions(-)
 
-Here is the summary with links:
-  - [v4] netlink: Bounds-check struct nlmsgerr creation
-    https://git.kernel.org/netdev/net-next/c/710d21fdff9a
-
-You are awesome, thank you!
+diff --git a/tools/testing/selftests/netfilter/nft_concat_range.sh b/tools/testing/selftests/netfilter/nft_concat_range.sh
+index a6991877e50c..e908009576c7 100755
+--- a/tools/testing/selftests/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/netfilter/nft_concat_range.sh
+@@ -91,7 +91,7 @@ src
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	3
+@@ -116,7 +116,7 @@ src
+ start		10
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp6
+ 
+ race_repeat	3
+@@ -141,7 +141,7 @@ src
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	0
+@@ -163,7 +163,7 @@ src		mac
+ start		10
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp6
+ 
+ race_repeat	0
+@@ -185,7 +185,7 @@ src		mac proto
+ start		10
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp6
+ 
+ race_repeat	0
+@@ -207,7 +207,7 @@ src		addr4
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	3
+@@ -227,7 +227,7 @@ src		addr6 port
+ start		10
+ count		5
+ src_delta	2000
+-tools		sendip nc
++tools		sendip socat nc
+ proto		udp6
+ 
+ race_repeat	3
+@@ -247,7 +247,7 @@ src		mac proto addr4
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	0
+@@ -264,7 +264,7 @@ src		mac
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	0
+@@ -286,7 +286,7 @@ src		mac addr4
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	0
+@@ -337,7 +337,7 @@ src		addr4
+ start		1
+ count		5
+ src_delta	2000
+-tools		sendip nc
++tools		sendip socat nc
+ proto		udp
+ 
+ race_repeat	3
+@@ -363,7 +363,7 @@ src		mac
+ start		1
+ count		1
+ src_delta	2000
+-tools		sendip nc bash
++tools		sendip socat nc bash
+ proto		udp
+ 
+ race_repeat	0
+@@ -541,6 +541,24 @@ setup_send_udp() {
+ 			dst_port=
+ 			src_addr4=
+ 		}
++	elif command -v socat -v >/dev/null; then
++		send_udp() {
++			if [ -n "${src_addr4}" ]; then
++				B ip addr add "${src_addr4}" dev veth_b
++				__socatbind=",bind=${src_addr4}"
++				if [ -n "${src_port}" ];then
++					__socatbind="${__socatbind}:${src_port}"
++				fi
++			fi
++
++			ip addr add "${dst_addr4}" dev veth_a 2>/dev/null
++			[ -z "${dst_port}" ] && dst_port=12345
++
++			echo "test4" | B socat -t 0.01 STDIN UDP4-DATAGRAM:${dst_addr4}:${dst_port}"${__socatbind}"
++
++			src_addr4=
++			src_port=
++		}
+ 	elif command -v nc >/dev/null; then
+ 		if nc -u -w0 1.1.1.1 1 2>/dev/null; then
+ 			# OpenBSD netcat
+@@ -606,6 +624,29 @@ setup_send_udp6() {
+ 			dst_port=
+ 			src_addr6=
+ 		}
++	elif command -v socat -v >/dev/null; then
++		send_udp6() {
++			ip -6 addr add "${dst_addr6}" dev veth_a nodad \
++				2>/dev/null
++
++			__socatbind6=
++
++			if [ -n "${src_addr6}" ]; then
++				if [ -n "${src_addr6} != "${src_addr6_added} ]; then
++					B ip addr add "${src_addr6}" dev veth_b nodad
++
++					src_addr6_added=${src_addr6}
++				fi
++
++				__socatbind6=",bind=[${src_addr6}]"
++
++				if [ -n "${src_port}" ] ;then
++					__socatbind6="${__socatbind6}:${src_port}"
++				fi
++			fi
++
++			echo "test6" | B socat -t 0.01 STDIN UDP6-DATAGRAM:[${dst_addr6}]:${dst_port}"${__socatbind6}"
++		}
+ 	elif command -v nc >/dev/null && nc -u -w0 1.1.1.1 1 2>/dev/null; then
+ 		# GNU netcat might not work with IPv6, try next tool
+ 		send_udp6() {
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.35.1
 
