@@ -2,84 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B03C2ECAAD3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Sep 2022 13:26:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB171ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Sep 2022 14:00:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236575AbiIEN0B (ORCPT
+        id S238266AbiIEOAV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Sep 2022 09:26:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50496 "EHLO
+        Mon, 5 Sep 2022 10:00:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236326AbiIEN0B (ORCPT
+        with ESMTP id S238252AbiIEOAT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Sep 2022 09:26:01 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A45924F24
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2022 06:26:00 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1oVC6w-0004jR-GB; Mon, 05 Sep 2022 15:25:58 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: [PATCH v2 nf] netfilter: nf_conntrack_sip: fix ct_sip_walk_headers
-Date:   Mon,  5 Sep 2022 15:25:54 +0200
-Message-Id: <20220905132554.6603-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
+        Mon, 5 Sep 2022 10:00:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C0AA101E9;
+        Mon,  5 Sep 2022 07:00:17 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 11269B811E0;
+        Mon,  5 Sep 2022 14:00:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id AF067C433D6;
+        Mon,  5 Sep 2022 14:00:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1662386414;
+        bh=XSSZTD2ALu36RR1GIQU7d/Edf2hF0Lo9I0MxTJEt9wk=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=AsRmGm9gXizIaHVFqbK7m9xJApGH6O4wmI0ylwbO0Xrb3mdn8Aj+1sbaT7pCyQPpJ
+         x6o6vLq/Ape+j/U0tLaIEhgpdD55wBhq4ZASeMHXwxA2E3xnFyHqdzQ3sJ/VyJWM2s
+         ok/XmsBeqavC5vIWqByFiTfJQbHI3i14CcOG4hJZ9YRIXjc5bqpu0bPW6kb7svE8A7
+         nmyTOBIStY/1NLYFHcU30gtwC9ixY81GxnZqGPZR+nEwHbDibbVjRAwyyVRng+nDYI
+         I6cOZA1vOHhG1H+dNqM8/rAas0oE3F4m1+8Cwz/Xwq8/q9j6Jr2DOCsnOkwi4HA9B+
+         4b4GlJrYj/AJg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 994F3C73FE8;
+        Mon,  5 Sep 2022 14:00:14 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v4] netlink: Bounds-check struct nlmsgerr creation
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166238641462.11602.3818616103545497339.git-patchwork-notify@kernel.org>
+Date:   Mon, 05 Sep 2022 14:00:14 +0000
+References: <20220903043749.3102675-1-keescook@chromium.org>
+In-Reply-To: <20220903043749.3102675-1-keescook@chromium.org>
+To:     Kees Cook <keescook@chromium.org>
+Cc:     kuba@kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+        pabeni@redhat.com, syzkaller@googlegroups.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, socketcan@hartkopp.net,
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Igor Ryzhov <iryzhov@nfware.com>
+Hello:
 
-ct_sip_next_header and ct_sip_get_header return an absolute
-value of matchoff, not a shift from current dataoff.
-So dataoff should be assigned matchoff, not incremented by it.
+This patch was applied to netdev/net-next.git (master)
+by David S. Miller <davem@davemloft.net>:
 
-This issue can be seen in the scenario when there are multiple
-Contact headers and the first one is using a hostname and other headers
-use IP addresses. In this case, ct_sip_walk_headers will work as follows:
+On Fri,  2 Sep 2022 21:37:49 -0700 you wrote:
+> In preparation for FORTIFY_SOURCE doing bounds-check on memcpy(),
+> switch from __nlmsg_put to nlmsg_put(), and explain the bounds check
+> for dealing with the memcpy() across a composite flexible array struct.
+> Avoids this future run-time warning:
+> 
+>   memcpy: detected field-spanning write (size 32) of single field "&errmsg->msg" at net/netlink/af_netlink.c:2447 (size 16)
+> 
+> [...]
 
-The first ct_sip_get_header call to will find the first Contact header
-but will return -1 as the header uses a hostname. But matchoff will
-be changed to the offset of this header. After that, dataoff should be
-set to matchoff, so that the next ct_sip_get_header call find the next
-Contact header. But instead of assigning dataoff to matchoff, it is
-incremented by it, which is not correct, as matchoff is an absolute
-value of the offset. So on the next call to the ct_sip_get_header,
-dataoff will be incorrect, and the next Contact header may not be
-found at all.
+Here is the summary with links:
+  - [v4] netlink: Bounds-check struct nlmsgerr creation
+    https://git.kernel.org/netdev/net-next/c/710d21fdff9a
 
-Fixes: 05e3ced297fe ("[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper")
-Signed-off-by: Igor Ryzhov <iryzhov@nfware.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_sip.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index daf06f71d31c..77f5e82d8e3f 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -477,7 +477,7 @@ static int ct_sip_walk_headers(const struct nf_conn *ct, const char *dptr,
- 				return ret;
- 			if (ret == 0)
- 				break;
--			dataoff += *matchoff;
-+			dataoff = *matchoff;
- 		}
- 		*in_header = 0;
- 	}
-@@ -489,7 +489,7 @@ static int ct_sip_walk_headers(const struct nf_conn *ct, const char *dptr,
- 			break;
- 		if (ret == 0)
- 			return ret;
--		dataoff += *matchoff;
-+		dataoff = *matchoff;
- 	}
- 
- 	if (in_header)
+You are awesome, thank you!
 -- 
-2.35.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
