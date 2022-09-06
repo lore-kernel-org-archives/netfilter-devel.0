@@ -2,54 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27F13ECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Sep 2022 21:30:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 361D1C38145
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Sep 2022 21:37:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229449AbiIFVaZ (ORCPT
+        id S229721AbiIFVhJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Sep 2022 17:30:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49136 "EHLO
+        Tue, 6 Sep 2022 17:37:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbiIFVaW (ORCPT
+        with ESMTP id S229511AbiIFVhI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2022 17:30:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6F2F8E98B;
-        Tue,  6 Sep 2022 14:30:21 -0700 (PDT)
+        Tue, 6 Sep 2022 17:37:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB1789E2D1;
+        Tue,  6 Sep 2022 14:37:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5FFDE616C3;
-        Tue,  6 Sep 2022 21:30:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4222C433D7;
-        Tue,  6 Sep 2022 21:30:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 90A1BB81A4F;
+        Tue,  6 Sep 2022 21:37:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24317C433C1;
+        Tue,  6 Sep 2022 21:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662499820;
-        bh=0rqwqNXaNTcG/wk1HfpgV/BB4p8BnMNUe5bhTD5rs8o=;
+        s=k20201202; t=1662500225;
+        bh=vwK6RdaFY762tJiRgbnouER58jZq2nGr+V9lFAf/bSU=;
         h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=ixm1IhxmEF1jgZZJaf+DQgp6beyJ+m1DjvBCLI2LTdX2lIyx+V+Y1jCQVqHEG3n/v
-         1na6LgsiezBO89wTTUj5X8jcViu7/pOA3n5uSBiCEpc99rvTCL++p4v3N9P8QeU2oz
-         r4uZ8Va1KOWsbe+vZ9hV457DhseqO/2hLffwZaftPdbaKI6HlA5T8yD4hyb3zNcVuo
-         Pkk42cseMrGclbs5vMjJwnUyarvmM2KB2AeLd3hWXKbDWWQXKM6Tf2bPBVCl07UHyF
-         c9Ro01qr5A6S45JPa0FmqGZ08iHiBc6j0gwGnNwGRVQsc87F7zNtoTui/GaWfi45f/
-         +NSuAqpLgYRMg==
-Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-11e9a7135easo31424751fac.6;
-        Tue, 06 Sep 2022 14:30:20 -0700 (PDT)
-X-Gm-Message-State: ACgBeo3jlkXBibG0lKOHty1WXYrSP9B6d+wQ/3c4hUaOfzrnAWhZdtIs
-        DbixdAYa6biDY04ODSR8LM2vWgZbbeQ5NxtVN/4=
-X-Google-Smtp-Source: AA6agR5UHmOhAzZGMuMBsOYQ8SPDA8cj3HF2rIpe4ps4SZ9vZXeOOvmpgnGhMEksr/IMdoZg2jzKXOY5L/uT/M69I3c=
-X-Received: by 2002:a05:6870:32d2:b0:127:f0b4:418f with SMTP id
- r18-20020a05687032d200b00127f0b4418fmr174690oac.22.1662499819860; Tue, 06 Sep
- 2022 14:30:19 -0700 (PDT)
+        b=ddOeATtFk5xo9vM0LUqv+fLrErIsFlz2z2GY+ENj9zwfy0S7ZbuqEp/TmkLFtEiWC
+         9h6d3eaQQc2NUQVelvegWxbBCMztUxhTJQ1Y/8eZ3maVsVgk7ixWXEmMXKN1/yu7XO
+         y01+O6xRyKf/atij2cCBd8hq+W8uCsEpIvDui+WR0mra2DOUc7NRSIGBWiqI92IbYB
+         xZBgQZniDH5D4Pelr1dVOr5mXPFAavge8nBZVUEPfbOcFZt7vqsKW788lIgeU+rZa2
+         IeQyNr+V5Od6cTc5MkWqVlLwtwBbfhwML7qu6gq+ZasgXCs++5T4OHGYy1K26WzOWV
+         8j2hLNPjZNnYg==
+Received: by mail-oa1-f45.google.com with SMTP id 586e51a60fabf-1278624b7c4so13230940fac.5;
+        Tue, 06 Sep 2022 14:37:05 -0700 (PDT)
+X-Gm-Message-State: ACgBeo18ULyUzvQs9RNmQoLljtDvs9aJYv1MCVAoIoymraQiiwey0B8A
+        pzWct6CJMA/nfOqo3yBqzV6d+V9MhAMIqawEvDo=
+X-Google-Smtp-Source: AA6agR5ChQlvHJ0b03v8jKNgSuCFhptyi1QcPljJMhinNAfeX/DA3UxlvQanFdWM4bEyNU1UmGmL6LoMnPJUKxX1kO4=
+X-Received: by 2002:a05:6870:3127:b0:11c:8c2c:9015 with SMTP id
+ v39-20020a056870312700b0011c8c2c9015mr12340159oaa.31.1662500224336; Tue, 06
+ Sep 2022 14:37:04 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1662383493.git.lorenzo@kernel.org> <1bea1050068d7ad50baa2f6b6c09c9eb1ae5b4dd.1662383493.git.lorenzo@kernel.org>
-In-Reply-To: <1bea1050068d7ad50baa2f6b6c09c9eb1ae5b4dd.1662383493.git.lorenzo@kernel.org>
+References: <cover.1662383493.git.lorenzo@kernel.org> <fa02d93153b99bc994215c1644a2c75a226e3c7d.1662383493.git.lorenzo@kernel.org>
+In-Reply-To: <fa02d93153b99bc994215c1644a2c75a226e3c7d.1662383493.git.lorenzo@kernel.org>
 From:   Song Liu <song@kernel.org>
-Date:   Tue, 6 Sep 2022 14:30:09 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW49ZU+ak=uned=AfBbGNVboLguKVXjfsOy7hZLbUSkyag@mail.gmail.com>
-Message-ID: <CAPhsuW49ZU+ak=uned=AfBbGNVboLguKVXjfsOy7hZLbUSkyag@mail.gmail.com>
-Subject: Re: [PATCH v2 bpf-next 2/4] selftests/bpf: Extend KF_TRUSTED_ARGS
- test for __ref annotation
+Date:   Tue, 6 Sep 2022 14:36:53 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW5P=K7463Ka0CGxFD0BGChrEffbeO6UqReDtr80osDJLg@mail.gmail.com>
+Message-ID: <CAPhsuW5P=K7463Ka0CGxFD0BGChrEffbeO6UqReDtr80osDJLg@mail.gmail.com>
+Subject: Re: [PATCH v2 bpf-next 3/4] net: netfilter: add bpf_ct_set_nat_info
+ kfunc helper
 To:     Lorenzo Bianconi <lorenzo@kernel.org>
 Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
@@ -71,98 +71,48 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On Mon, Sep 5, 2022 at 6:15 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
 >
-> From: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> Introduce bpf_ct_set_nat_info kfunc helper in order to set source and
+> destination nat addresses/ports in a new allocated ct entry not inserted
+> in the connection tracking table yet.
 >
-> Extend the existing test for KF_TRUSTED_ARGS by also checking whether
-> the same happens when a __ref suffix is present in argument name of a
-> kfunc.
->
-> Signed-off-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-
-Acked-by: Song Liu <song@kernel.org>
-
 > ---
->  tools/testing/selftests/bpf/verifier/calls.c | 38 +++++++++++++++-----
->  1 file changed, 30 insertions(+), 8 deletions(-)
+>  net/netfilter/nf_conntrack_bpf.c | 49 +++++++++++++++++++++++++++++++-
+>  1 file changed, 48 insertions(+), 1 deletion(-)
 >
-> diff --git a/tools/testing/selftests/bpf/verifier/calls.c b/tools/testing/selftests/bpf/verifier/calls.c
-> index 3fb4f69b1962..891fcda50d9d 100644
-> --- a/tools/testing/selftests/bpf/verifier/calls.c
-> +++ b/tools/testing/selftests/bpf/verifier/calls.c
-> @@ -219,7 +219,7 @@
->         .errstr = "variable ptr_ access var_off=(0x0; 0x7) disallowed",
->  },
->  {
-> -       "calls: invalid kfunc call: referenced arg needs refcounted PTR_TO_BTF_ID",
-> +       "calls: invalid kfunc call: referenced arg needs refcounted PTR_TO_BTF_ID (KF_TRUSTED_ARGS)",
->         .insns = {
->         BPF_MOV64_REG(BPF_REG_1, BPF_REG_10),
->         BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, -8),
-> @@ -227,10 +227,30 @@
->         BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
->         BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1),
->         BPF_EXIT_INSN(),
-> -       BPF_MOV64_REG(BPF_REG_6, BPF_REG_0),
-> -       BPF_MOV64_REG(BPF_REG_1, BPF_REG_0),
-> +       BPF_LDX_MEM(BPF_DW, BPF_REG_1, BPF_REG_0, 16),
->         BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
-> -       BPF_LDX_MEM(BPF_DW, BPF_REG_1, BPF_REG_6, 16),
-> +       BPF_MOV64_IMM(BPF_REG_0, 0),
-> +       BPF_EXIT_INSN(),
-> +       },
-> +       .prog_type = BPF_PROG_TYPE_SCHED_CLS,
-> +       .fixup_kfunc_btf_id = {
-> +               { "bpf_kfunc_call_test_acquire", 3 },
-> +               { "bpf_kfunc_call_test_trusted", 7 },
-> +       },
-> +       .result_unpriv = REJECT,
-> +       .result = REJECT,
-> +       .errstr = "R1 must be referenced",
-> +},
-> +{
-> +       "calls: invalid kfunc call: referenced arg needs refcounted PTR_TO_BTF_ID (__ref)",
-> +       .insns = {
-> +       BPF_MOV64_REG(BPF_REG_1, BPF_REG_10),
-> +       BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, -8),
-> +       BPF_ST_MEM(BPF_DW, BPF_REG_1, 0, 0),
-> +       BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
-> +       BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, 1),
-> +       BPF_EXIT_INSN(),
-> +       BPF_LDX_MEM(BPF_DW, BPF_REG_1, BPF_REG_0, 16),
->         BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
->         BPF_MOV64_IMM(BPF_REG_0, 0),
->         BPF_EXIT_INSN(),
-> @@ -238,8 +258,7 @@
->         .prog_type = BPF_PROG_TYPE_SCHED_CLS,
->         .fixup_kfunc_btf_id = {
->                 { "bpf_kfunc_call_test_acquire", 3 },
-> -               { "bpf_kfunc_call_test_ref", 8 },
-> -               { "bpf_kfunc_call_test_ref", 10 },
-> +               { "bpf_kfunc_call_test_ref", 7 },
->         },
->         .result_unpriv = REJECT,
->         .result = REJECT,
-> @@ -259,14 +278,17 @@
->         BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
->         BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
->         BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
-> +       BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
-> +       BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, BPF_PSEUDO_KFUNC_CALL, 0, 0),
->         BPF_MOV64_IMM(BPF_REG_0, 0),
->         BPF_EXIT_INSN(),
->         },
->         .prog_type = BPF_PROG_TYPE_SCHED_CLS,
->         .fixup_kfunc_btf_id = {
->                 { "bpf_kfunc_call_test_acquire", 3 },
-> -               { "bpf_kfunc_call_test_ref", 8 },
-> -               { "bpf_kfunc_call_test_release", 10 },
-> +               { "bpf_kfunc_call_test_trusted", 8 },
-> +               { "bpf_kfunc_call_test_ref", 10 },
-> +               { "bpf_kfunc_call_test_release", 12 },
->         },
->         .result_unpriv = REJECT,
->         .result = ACCEPT,
-> --
-> 2.37.3
+> diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+> index 1cd87b28c9b0..85b8c7ee00af 100644
+> --- a/net/netfilter/nf_conntrack_bpf.c
+> +++ b/net/netfilter/nf_conntrack_bpf.c
+> @@ -14,6 +14,7 @@
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/netfilter/nf_conntrack_bpf.h>
+>  #include <net/netfilter/nf_conntrack_core.h>
+> +#include <net/netfilter/nf_nat.h>
 >
+>  /* bpf_ct_opts - Options for CT lookup helpers
+>   *
+> @@ -134,7 +135,6 @@ __bpf_nf_ct_alloc_entry(struct net *net, struct bpf_sock_tuple *bpf_tuple,
+>
+>         memset(&ct->proto, 0, sizeof(ct->proto));
+>         __nf_ct_set_timeout(ct, timeout * HZ);
+> -       ct->status |= IPS_CONFIRMED;
+>
+>  out:
+>         if (opts->netns_id >= 0)
+> @@ -339,6 +339,7 @@ struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct_i)
+>         struct nf_conn *nfct = (struct nf_conn *)nfct_i;
+>         int err;
+>
+> +       nfct->status |= IPS_CONFIRMED;
+>         err = nf_conntrack_hash_check_insert(nfct);
+>         if (err < 0) {
+>                 nf_conntrack_free(nfct);
+> @@ -424,6 +425,51 @@ int bpf_ct_change_status(struct nf_conn *nfct, u32 status)
+>         return nf_ct_change_status_common(nfct, status);
+>  }
+
+Why do we need the above two changes in this patch?
+
+Thanks,
+Song
