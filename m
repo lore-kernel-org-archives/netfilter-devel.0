@@ -2,146 +2,169 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 487BDC38145
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Sep 2022 21:54:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F0E5C38145
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Sep 2022 02:36:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229907AbiIFVys (ORCPT
+        id S229804AbiIGCgI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Sep 2022 17:54:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34290 "EHLO
+        Tue, 6 Sep 2022 22:36:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229663AbiIFVyq (ORCPT
+        with ESMTP id S229488AbiIGCgH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2022 17:54:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E8ED24BFA;
-        Tue,  6 Sep 2022 14:54:41 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4B45BB81A6B;
-        Tue,  6 Sep 2022 21:54:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F168AC43470;
-        Tue,  6 Sep 2022 21:54:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662501279;
-        bh=DSyRx2bBkTQsVsQY11wafbdQ9+J76SQa6EueQKCaLVk=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=NWR02DhEtG5iPhDB9GitNfXINspUdP3p6XlC5hfGIr9Sv7sf6E5gsn0YStYIVBn73
-         DNc80x9ErRzOPGOdPsZGqA333iOCjwxsd4UkeY9WesR7m8vny5uFBwUUvr0pEYMAnD
-         t8Q1myeHEMKvpxvIyfR/ahxSMmW0Wb3jljGCG185wIqQpm5gHw1BsTlUv5y2cqLO1x
-         RXiEL4xxycsmzeMIa51ytBAPlzbLuRhnCGvj/dOnN7N1LJUcUlSaXUPEJRjXyt60X1
-         RGsSohmp4HiEpywhI6Zft2D8OJuUEKANU9Oo09Uu4y1ul6PDApnkxwpOj631pp+znw
-         16vNUbvS9kyGA==
-Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-127dca21a7dso4271449fac.12;
-        Tue, 06 Sep 2022 14:54:38 -0700 (PDT)
-X-Gm-Message-State: ACgBeo0UtuVorFaMUaeaoqjoaLgL3f4Gw89tL7cELnC5hJ8iHR0514O3
-        J6CXRQsEUhelmTIfaAKHpGAf/F+hjCoaUxMdrZQ=
-X-Google-Smtp-Source: AA6agR5Yggwkyp/l6mS2xoV3DRxpkh94agwyPI6rnBh0EOtuGvz7rj4O5+TuiCCsr1rf/Dwb3FX5+SShl6BvHiwg5Gg=
-X-Received: by 2002:a05:6870:32d2:b0:127:f0b4:418f with SMTP id
- r18-20020a05687032d200b00127f0b4418fmr219502oac.22.1662501278093; Tue, 06 Sep
- 2022 14:54:38 -0700 (PDT)
+        Tue, 6 Sep 2022 22:36:07 -0400
+Received: from out2-smtp.messagingengine.com (out2-smtp.messagingengine.com [66.111.4.26])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BE357F112;
+        Tue,  6 Sep 2022 19:36:06 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.nyi.internal (Postfix) with ESMTP id 9FE815C0098;
+        Tue,  6 Sep 2022 22:36:03 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute5.internal (MEProxy); Tue, 06 Sep 2022 22:36:03 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to; s=fm1; t=1662518163; x=1662604563; bh=UvF1iyuJKX
+        q7GvuceIIhqaYE9S82z6ibv1ru64WCKdc=; b=bybK68XNIMVzk+3c/RNymCE2UC
+        g2D6xW8Z45awBvx6tOITVI0L7dMStE8kEEJ6QGwB5OjImAJT32HpYD2CHWTMRN97
+        8/BEFv4XahFjMhvb8KUxNEJIqaloK/Qh+Mgd97eZsMtxVkjv6IdDMi4eU7EZwtwK
+        Y/EP5MfBlXpXMJ6+jHccSW1FXOjyvJfdV8xWDD/tWL0Soc2Hp/kO4Hz7IbAq+0Nq
+        IcPH/Pnlf9qS3wKqVCx0nrE4TFfoAFQjQk9KKeHBOaKd5VXJ5OI5GCQf+lgNThR4
+        AzbEx2Vl/nIzfO+BDAkHW9xq7xADqsUgdH1iyRLtKHCyP0R4mI8SUgPhSJyA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm2; t=1662518163; x=1662604563; bh=UvF1iyuJKXq7GvuceIIhqaYE9S82
+        z6ibv1ru64WCKdc=; b=g/Ms29JUaxSVe+jMIChvRDNZfKFivNkazOSYXrZh5ok6
+        6dWw7gBXGSQDXf1LIzWoCobS8lYawRN5kyDycB2Hninoqu0IxHixZBT2BAyNVOy8
+        NrJUQClcIrxzr9mHMRb36ASirhr3OQqA9nhnsMC4ru5kmxH33eTfYU1Qsn7qhvnY
+        zwfyIvWW9zvStejmSPjSd7RYUTiJnpNo3GGjSsmzh+IFydHaK/gHIdWnieVmKlyH
+        iJ/sf7BcVujYK7TrXEh0yAA1ysfDo2IhguPWA/oygP72byIqwUOJwR+MDpoCi8Cb
+        eQUP+gPYSWc2VeCFDO2X09nxXw4yrVhvdY/YKPZumg==
+X-ME-Sender: <xms:kQMYY34JVm0p7oDx7hhJ6lvoaufVmGYLL5bLsMXpGLa_Gw9hWF0jZg>
+    <xme:kQMYY85aRyY8Z-QupbI3XEKBARn5yAL8R53XVY8m1nmHSXjLRBEn9394oQd4UnQBV
+    _n8nJdM3WgGmRUKRw>
+X-ME-Received: <xmr:kQMYY-cVP7mJbsbvcQhvEAky98IOSVslrlcgxWmI_i7gYavPQhmue0QWnVBmkKcmyaW8NEuN9kHBIxR0AuWLNhVuhxRBhS8HuB05-Mo>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrvdelledgieduucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfeehmdenucfjughrpeffhf
+    fvvefukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpeffrghnihgvlhcuighuuceo
+    ugiguhesugiguhhuuhdrgiihiieqnecuggftrfgrthhtvghrnhepheeltedvgffhgfduud
+    elleeguddtueefgfefvdeukeffvdeguddtvdeuteehteevnecuffhomhgrihhnpehkvghr
+    nhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfh
+    hrohhmpegugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:kQMYY4JJYVWpNWNKelD6ugCM7kqpE2U88j6teYM8OVUVpGfBY2BFIQ>
+    <xmx:kQMYY7Lckn6zshgDilaoCg72EFbgFppXr5657UpOYbMyJ5Q1va962Q>
+    <xmx:kQMYYxyAzifvgDd8EbcQOfP6BasZzhsNeuTJu6J816IyIX1qK9g5uw>
+    <xmx:kwMYY4D_EZpkBmZDijU0yOGmXVDBkJSrXdhQ2d_4p29AaPzjwtWuyA>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 6 Sep 2022 22:36:00 -0400 (EDT)
+Date:   Tue, 6 Sep 2022 20:35:59 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, pablo@netfilter.org, fw@strlen.de,
+        toke@kernel.org, martin.lau@linux.dev,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH bpf-next v4 4/5] bpf: Add support for writing to
+ nf_conn:mark
+Message-ID: <20220907023559.22juhtyl3qh2gsym@kashmir.localdomain>
+References: <cover.1661192455.git.dxu@dxuuu.xyz>
+ <073173502d762faf87bde0ca23e609c84848dd7e.1661192455.git.dxu@dxuuu.xyz>
+ <CAP01T74XK_6wMi+tzReTkBqmZkKbUqCmV6pVwcbCMrHrv0X0SA@mail.gmail.com>
+ <20220823021923.vmhp5r76dvgwvh2j@kashmir.localdomain>
+ <CAP01T77mwS=_sW803CaBgpFtuwMEd4fS81uTvVKYLdGyg5hv1A@mail.gmail.com>
 MIME-Version: 1.0
-References: <cover.1662383493.git.lorenzo@kernel.org> <6e77fb26ae5854061b6c2d004d6547bf971f7dcd.1662383493.git.lorenzo@kernel.org>
-In-Reply-To: <6e77fb26ae5854061b6c2d004d6547bf971f7dcd.1662383493.git.lorenzo@kernel.org>
-From:   Song Liu <song@kernel.org>
-Date:   Tue, 6 Sep 2022 14:54:27 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW7J6UOihzNsmBm=tOk6QzNjok2YEh5S0yVJLXb__7t5eA@mail.gmail.com>
-Message-ID: <CAPhsuW7J6UOihzNsmBm=tOk6QzNjok2YEh5S0yVJLXb__7t5eA@mail.gmail.com>
-Subject: Re: [PATCH v2 bpf-next 4/4] selftests/bpf: add tests for
- bpf_ct_set_nat_info kfunc
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
-Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, pablo@netfilter.org,
-        fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lorenzo.bianconi@redhat.com,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAP01T77mwS=_sW803CaBgpFtuwMEd4fS81uTvVKYLdGyg5hv1A@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 5, 2022 at 6:15 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
->
-> Introduce self-tests for bpf_ct_set_nat_info kfunc used to set the
-> source or destination nat addresses/ports.
->
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> ---
->  tools/testing/selftests/bpf/config            |  1 +
->  .../testing/selftests/bpf/prog_tests/bpf_nf.c |  2 ++
->  .../testing/selftests/bpf/progs/test_bpf_nf.c | 26 ++++++++++++++++++-
->  3 files changed, 28 insertions(+), 1 deletion(-)
->
-> diff --git a/tools/testing/selftests/bpf/config b/tools/testing/selftests/bpf/config
-> index 3fc46f9cfb22..8ce48f7213cb 100644
-> --- a/tools/testing/selftests/bpf/config
-> +++ b/tools/testing/selftests/bpf/config
-> @@ -57,6 +57,7 @@ CONFIG_NF_CONNTRACK=y
->  CONFIG_NF_CONNTRACK_MARK=y
->  CONFIG_NF_DEFRAG_IPV4=y
->  CONFIG_NF_DEFRAG_IPV6=y
-> +CONFIG_NF_NAT=y
->  CONFIG_RC_CORE=y
->  CONFIG_SECURITY=y
->  CONFIG_SECURITYFS=y
-> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> index 544bf90ac2a7..f16913f8fca2 100644
-> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> @@ -115,6 +115,8 @@ static void test_bpf_nf_ct(int mode)
->         ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
->         ASSERT_EQ(skel->data->test_exist_lookup, 0, "Test existing connection lookup");
->         ASSERT_EQ(skel->bss->test_exist_lookup_mark, 43, "Test existing connection lookup ctmark");
-> +       ASSERT_EQ(skel->data->test_snat_addr, 0, "Test for source natting");
-> +       ASSERT_EQ(skel->data->test_dnat_addr, 0, "Test for destination natting");
->  end:
->         if (srv_client_fd != -1)
->                 close(srv_client_fd);
-> diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> index 2722441850cc..3f441595098b 100644
-> --- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> @@ -23,6 +23,8 @@ int test_insert_entry = -EAFNOSUPPORT;
->  int test_succ_lookup = -ENOENT;
->  u32 test_delta_timeout = 0;
->  u32 test_status = 0;
-> +int test_snat_addr = -EINVAL;
-> +int test_dnat_addr = -EINVAL;
->  __be32 saddr = 0;
->  __be16 sport = 0;
->  __be32 daddr = 0;
-> @@ -53,6 +55,8 @@ void bpf_ct_set_timeout(struct nf_conn *, u32) __ksym;
->  int bpf_ct_change_timeout(struct nf_conn *, u32) __ksym;
->  int bpf_ct_set_status(struct nf_conn *, u32) __ksym;
->  int bpf_ct_change_status(struct nf_conn *, u32) __ksym;
-> +int bpf_ct_set_nat_info(struct nf_conn *, union nf_inet_addr *,
-> +                       __be16 *port, enum nf_nat_manip_type) __ksym;
->
->  static __always_inline void
->  nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
-> @@ -140,10 +144,19 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
->         ct = alloc_fn(ctx, &bpf_tuple, sizeof(bpf_tuple.ipv4), &opts_def,
->                       sizeof(opts_def));
->         if (ct) {
-> +               __be16 sport = bpf_get_prandom_u32();
-> +               __be16 dport = bpf_get_prandom_u32();
-> +               union nf_inet_addr saddr = {};
-> +               union nf_inet_addr daddr = {};
->                 struct nf_conn *ct_ins;
->
->                 bpf_ct_set_timeout(ct, 10000);
-> -               bpf_ct_set_status(ct, IPS_CONFIRMED);
+Hi Kumar,
 
-So this is paired with the IPS_CONFIRMED change in 3/4?
+On Tue, Aug 23, 2022 at 04:29:17AM +0200, Kumar Kartikeya Dwivedi wrote:
+> On Tue, 23 Aug 2022 at 04:19, Daniel Xu <dxu@dxuuu.xyz> wrote:
+
+[...]
+
+> > There's also some other issues I'm uncovering with duplicate BTF IDs for
+> > nf_conn. Might have to do a lookup by name instead of the BTF_ID_LIST().
+> >
+> 
+> I think I also hit this problem back when I was working on these
+> patches, is it similar to this?
+> https://lore.kernel.org/bpf/20211028014428.rsuq6rkfvqzq23tg@apollo.localdomain
+
+Yes, identical I think.
+
+> 
+> I think this might be a bug in the BTF generation, since there should
+> only be one BTF ID for a type, either in vmlinux or the module BTF.
+> Maybe Andrii would be able to confirm.
+
+Had to put out some fires last week.
+
+I chased this down a bit today and best I can tell was the `nf_conn`
+definitions in BTF were all slightly different.
+
+For example, here were the 3 definitions in nf_conntrack.ko alone:
+
+    [88439] STRUCT 'nf_conn' size=296 vlen=11
+            'ct_general' type_id=67058 bits_offset=0
+            'lock' type_id=373 bits_offset=64
+            'timeout' type_id=160 bits_offset=576
+            'tuplehash' type_id=67235 bits_offset=640
+            'status' type_id=1 bits_offset=1536
+            'ct_net' type_id=4298 bits_offset=1600
+            '__nfct_init_offset' type_id=4213 bits_offset=1664
+            'master' type_id=88438 bits_offset=1664
+            'mark' type_id=67192 bits_offset=1728
+            'ext' type_id=67236 bits_offset=1792
+            'proto' type_id=67234 bits_offset=1856
+            
+    [90882] STRUCT 'nf_conn' size=296 vlen=11
+            'ct_general' type_id=67058 bits_offset=0
+            'lock' type_id=373 bits_offset=64
+            'timeout' type_id=160 bits_offset=576
+            'tuplehash' type_id=67235 bits_offset=640
+            'status' type_id=1 bits_offset=1536
+            'ct_net' type_id=90574 bits_offset=1600
+            '__nfct_init_offset' type_id=4213 bits_offset=1664
+            'master' type_id=90881 bits_offset=1664
+            'mark' type_id=67192 bits_offset=1728
+            'ext' type_id=67236 bits_offset=1792
+            'proto' type_id=67234 bits_offset=1856
+            
+    [92469] STRUCT 'nf_conn' size=296 vlen=11
+            'ct_general' type_id=67058 bits_offset=0
+            'lock' type_id=373 bits_offset=64
+            'timeout' type_id=160 bits_offset=576
+            'tuplehash' type_id=67235 bits_offset=640
+            'status' type_id=1 bits_offset=1536
+            'ct_net' type_id=92160 bits_offset=1600
+            '__nfct_init_offset' type_id=4213 bits_offset=1664
+            'master' type_id=92468 bits_offset=1664
+            'mark' type_id=67192 bits_offset=1728
+            'ext' type_id=67236 bits_offset=1792
+            'proto' type_id=67234 bits_offset=1856
+
+Note how `master` and `ct_net` all have different BTF IDs. Best I can
+tell is that there's some kind of subtle difference in BTF types and
+it's confusing the dedup algorithm.
+
+I went and upgraded to latest pahole (built from today's source tree) to
+chase the issue down further but the problem went away.
+
+Figured I'd write this up in case someone stumbles onto this in the
+future.
+
+[...]
 
 Thanks,
-Song
+Daniel
