@@ -2,103 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B678ECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Sep 2022 03:04:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4992ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Sep 2022 04:27:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229839AbiIGDEd (ORCPT
+        id S229734AbiIGE1s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Sep 2022 23:04:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50412 "EHLO
+        Wed, 7 Sep 2022 00:27:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbiIGDEc (ORCPT
+        with ESMTP id S229706AbiIGE1q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2022 23:04:32 -0400
+        Wed, 7 Sep 2022 00:27:46 -0400
 Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1AC2CDF;
-        Tue,  6 Sep 2022 20:04:23 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id gh9so5502825ejc.8;
-        Tue, 06 Sep 2022 20:04:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0293A8C005;
+        Tue,  6 Sep 2022 21:27:46 -0700 (PDT)
+Received: by mail-ej1-x629.google.com with SMTP id kg20so870035ejc.12;
+        Tue, 06 Sep 2022 21:27:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date;
-        bh=HHiZpp/lkYp2ofvupKRP2VlnxkJw1jXBL0DKfMbVElQ=;
-        b=KgdQqC+WT7xbqnFc6SpJK5IiCLPs8+f8qafKpmNGPjPB+4oFJeI+lsOLOTyHJn3DvF
-         a0r/6p/oTjnz+ELV/2PXJSKRrA9e/V2MAyzxm20BsikGHwneXWqwtGjYqraxYgeOxaHP
-         X7zXZ9jXBhs+QGfx99DQnRKVwgiNnoL4wJy82crJfrizTBQUivp9Kd7K6CET3lSxkjVd
-         Cst02IEYzebWje29c0ANC4Vnse0DsQiADoR1FNcFedZpIu883LsQH07GSL6JzONusuKc
-         iJNbnByzcjmKX5eD9vRjJ6YjZ3vWh4PRF6EqwpKnGM2vwH2AlQCKzf3rBi8DBfBiT7rS
-         Uesg==
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=DtQEUbHrZXRVSvv8X3cr2fMxJ2Hd5j5uiQKjuorqFRg=;
+        b=gzHNKSTsW2UnOmGXJY/6xvJyQROkAckj3ZKV3yg1DqGwmgTFzW6PMygHfaZQLiNuOt
+         kVugpkIJX00CPBFesY3tI1m2aaY/5bg70boDpR8kofVad4cMlOuwZnl88XbtarkZihJt
+         5T96PjeDEQ5O8r93y8k//ubptfq4EEvg1XOMDP9Q77cZnKaOwphjakbfQMcBV2XD7m+S
+         m9QWrt9TH9q/LymBBeMjwlfI8BcT8F097C/o1y5UDIXT5UZfH4lDlckrSK4fc794TH7P
+         y3pWWCuBqqVVh85iC9V1ExxWJBDVtEXnat+FvYnv19bdH0h5TKwLxvey27XFEnmeMN+R
+         o/tg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=HHiZpp/lkYp2ofvupKRP2VlnxkJw1jXBL0DKfMbVElQ=;
-        b=GWBtxMgNR932nwuj6iqmQpvfFLmtZ7s0vFLGg0YYq6kPzEF2nk6I1SaiMVsi/EdZ0U
-         uAqDuzX3OIXbeHznUygG8kz4LXS06qSnNwIulAcbOKhf2upEZGO3QYYPFOFJXydm3I1/
-         dCyIQlkZd4jcMkg86fsYLfat03lOG5gzwygNHpp4gJL8qWhJWw3PTKdsdRZ0UCTi8nix
-         zn4vP1h9b1kcRZcf0RG1PKLCJGHNVaiC+3o5N+P8vasAmhHlp4I55+T1lnkpG7a6SaVw
-         ZrrjtDixWIDMkccBs7ioRxq9694reM8/QQExV+383rActgUDu5RiM2wwo/w4eW/dhbPi
-         Cudw==
-X-Gm-Message-State: ACgBeo3hRCd7Y72oK4k8tD3LlCiM2N9PS25Pzr0U0xfzjT2XDXUXlK/k
-        M2U00r1etZ6hsl2jHmZ+zssID1xb9RNYjuYYkLwnrdB5
-X-Google-Smtp-Source: AA6agR7LJES6Wnx7jzpyLYvs1KevE1iq41zkaB2RDhDld0XfThl7Ry6nu5J+5mTj6QZYfLYzxlAwQccYaAhcbDPy8sE=
-X-Received: by 2002:a17:906:58d1:b0:76d:af13:5ae3 with SMTP id
- e17-20020a17090658d100b0076daf135ae3mr942631ejs.708.1662519862193; Tue, 06
- Sep 2022 20:04:22 -0700 (PDT)
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=DtQEUbHrZXRVSvv8X3cr2fMxJ2Hd5j5uiQKjuorqFRg=;
+        b=Cxd7Fp7mQMphWEQDxgBZLwfNPUciXbrRef2IpIcNLIgXW2Kw9iBOZ6NPllIzKn8Y6T
+         SV/eWNL5XHsnNX/3U8ESHAVEUarMzDRV4GaUvCt5ON91ZxOgsS689hlncZsLF80ll/u5
+         VDVEOlZuZdF/dcYJaTWRS1Bxj+Wh+borfLtrRcim6QaMQDPOF05KH0ZEt9kfWbcUr6Y1
+         IBh7VecHi5nsS/6B8PuVSZ1wTdMMcOAceJXh7HC3wQemJGTsYzEKWgNzddsBEobE+vKw
+         GlsgaQxYMEU9A/UAAvhdeFi5vQfG0qq8xPsKDzhbtewHPrGH/Pk3Fm9V+PUGQm4roe8u
+         Hl6Q==
+X-Gm-Message-State: ACgBeo2zKvQU4vdh3irYsuwQ+IPdZeqvqJTFT909bjin8JJcLAOB0B0h
+        ecRKaU3YHJxGEx09S8dCXXmbNS7Wkya3h9T4gYw=
+X-Google-Smtp-Source: AA6agR7lq7k88REO9qL4S+HSxpM4lCI9Je0lcsEPs5OD64RGY135DA0Cz2F1x9ZE+oZ6bdcaZ8WWLBHKuc2TgOo/vO4=
+X-Received: by 2002:a17:907:2c74:b0:741:657a:89de with SMTP id
+ ib20-20020a1709072c7400b00741657a89demr1047973ejc.58.1662524864401; Tue, 06
+ Sep 2022 21:27:44 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220831101617.22329-1-fw@strlen.de> <87v8q84nlq.fsf@toke.dk>
- <20220831125608.GA8153@breakpoint.cc> <87o7w04jjb.fsf@toke.dk>
- <20220831135757.GC8153@breakpoint.cc> <87ilm84goh.fsf@toke.dk>
- <20220831152624.GA15107@breakpoint.cc> <CAADnVQJp5RJ0kZundd5ag-b3SDYir8cF4R_nVbN8Zj9Rcn0rww@mail.gmail.com>
- <20220831155341.GC15107@breakpoint.cc> <CAADnVQJGQmu02f5B=mc1xJvVWSmk_GNZj9WAUskekykmyo8FzA@mail.gmail.com>
- <20220831215737.GE15107@breakpoint.cc> <bf148d57-dab9-0e25-d406-332d1b28f045@6wind.com>
-In-Reply-To: <bf148d57-dab9-0e25-d406-332d1b28f045@6wind.com>
+References: <cover.1662383493.git.lorenzo@kernel.org> <fa02d93153b99bc994215c1644a2c75a226e3c7d.1662383493.git.lorenzo@kernel.org>
+In-Reply-To: <fa02d93153b99bc994215c1644a2c75a226e3c7d.1662383493.git.lorenzo@kernel.org>
 From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Tue, 6 Sep 2022 20:04:11 -0700
-Message-ID: <CAADnVQLYcjhpVaFJ3vriDcv=bczXddRd=q83exNNPrgnvsCEAg@mail.gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: add ebpf expression
-To:     Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc:     Florian Westphal <fw@strlen.de>,
+Date:   Tue, 6 Sep 2022 21:27:33 -0700
+Message-ID: <CAADnVQJ4XtFpsEsPRC-cepfQvXr-hN7e_3L5SchieeGHH40_4A@mail.gmail.com>
+Subject: Re: [PATCH v2 bpf-next 3/4] net: netfilter: add bpf_ct_set_nat_info
+ kfunc helper
+To:     Lorenzo Bianconi <lorenzo@kernel.org>
+Cc:     bpf <bpf@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
         "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>
+        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 5, 2022 at 11:57 PM Nicolas Dichtel
-<nicolas.dichtel@6wind.com> wrote:
->
->
-> Le 31/08/2022 =C3=A0 23:57, Florian Westphal a =C3=A9crit :
-> > Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> >>> This helps gradually moving towards move epbf for those that
-> >>> still heavily rely on the classic forwarding path.
-> >>
-> >> No one is using it.
-> >> If it was, we would have seen at least one bug report over
-> >> all these years. We've seen none.
-> >
-> > Err, it IS used, else I would not have sent this patch.
-> >
-> >> very reasonable early on and turned out to be useless with
-> >> zero users.
-> >> BPF_PROG_TYPE_SCHED_ACT and BPF_PROG_TYPE_LWT*
-> >> are in this category.
-> >
-> > I doubt it had 0 users.  Those users probably moved to something
-> > better?
-> We are using BPF_PROG_TYPE_SCHED_ACT to perform custom encapsulations.
-> What could we used to replace that?
+On Mon, Sep 5, 2022 at 6:14 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
+> +int bpf_ct_set_nat_info(struct nf_conn___init *nfct__ref,
+> +                       union nf_inet_addr *addr, __be16 *port,
+> +                       enum nf_nat_manip_type manip)
+> +{
+...
+> @@ -437,6 +483,7 @@ BTF_ID_FLAGS(func, bpf_ct_set_timeout, KF_TRUSTED_ARGS)
+>  BTF_ID_FLAGS(func, bpf_ct_change_timeout, KF_TRUSTED_ARGS)
+>  BTF_ID_FLAGS(func, bpf_ct_set_status, KF_TRUSTED_ARGS)
+>  BTF_ID_FLAGS(func, bpf_ct_change_status, KF_TRUSTED_ARGS)
+> +BTF_ID_FLAGS(func, bpf_ct_set_nat_info)
+>  BTF_SET8_END(nf_ct_kfunc_set)
 
-SCHED_CLS. It has all of the features of cls and act combined.
+Instead of __ref and patch 1 and 2 it would be better to
+change the meaning of "trusted_args".
+In this case "addr" and "port" are just as "trusted".
+They're not refcounted per verifier definition,
+but they need to be "trusted" by the helper.
+At the end the "trusted_args" flags would mean
+"this helper can assume that all pointers can be safely
+accessed without worrying about lifetime".
