@@ -2,54 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9713C38145
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 01:04:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2BE2C6FA83
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 07:46:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230131AbiIHBEp (ORCPT
+        id S230330AbiIHHqF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Sep 2022 21:04:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44384 "EHLO
+        Thu, 8 Sep 2022 03:46:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230220AbiIHBEk (ORCPT
+        with ESMTP id S229614AbiIHHqE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Sep 2022 21:04:40 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54D6B13DF5;
-        Wed,  7 Sep 2022 18:04:34 -0700 (PDT)
+        Thu, 8 Sep 2022 03:46:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98040C6FE5;
+        Thu,  8 Sep 2022 00:46:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1155CB81F7C;
-        Thu,  8 Sep 2022 01:04:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC175C4347C;
-        Thu,  8 Sep 2022 01:04:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 34D7E61B97;
+        Thu,  8 Sep 2022 07:46:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10C2CC433D6;
+        Thu,  8 Sep 2022 07:46:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662599071;
-        bh=pDKliAAXbuuHRjn1Tmw2PK6pJKiEg51Kk3HsHlIQUfk=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=YNNTXqSKtzq1oKkK0voUjm8ZKYC1iduun6DAdgJCwwfOLNKX8jG6cbQysIPTR87DM
-         y+HMl1QEEoetsmalSv4Uay1ZK3kB18HqlVAtILAbmy6u9MNn2qL9nA0j/cplojh6sb
-         8jpv6eblgFJB+qXjtJ4F7rAuRx3+O4xi+2ugVlKEclVhx6AwsIgIO9DC5ftjdaNwtO
-         KR0GPf6XCpudvxzcjpmrbIAXytjpNjjXRPV5ItRZ0PViOAgqy5D6YCvnj6Zv9p6PLW
-         J3bxZbWgib3PAlOH52MWGWKICf93BdtwE6KEC3WWkVSFm9RnwVY1qSOmXG/EdxviIz
-         g+RqHxVawOw6w==
-Received: by mail-wr1-f46.google.com with SMTP id t14so16037655wrx.8;
-        Wed, 07 Sep 2022 18:04:31 -0700 (PDT)
-X-Gm-Message-State: ACgBeo1Feq6zFHQkNmwrpw6bhcJ2KvHSCsRNaYXvFRsndVOoe5kMpC19
-        h29mQMu5dK6dZBiT/UKkMWMjedF90pugckSRbZk=
-X-Google-Smtp-Source: AA6agR6TiHrGhJmQC1WmULfwqDbYWxvDpIJUVuPL3xFAGnZeEq3rEYabuCKG1z3oIgWXoh9Pi/FO3vYTL0uf8rMPUqs=
-X-Received: by 2002:a5d:6da2:0:b0:228:64cb:5333 with SMTP id
- u2-20020a5d6da2000000b0022864cb5333mr3335307wrs.428.1662599070046; Wed, 07
- Sep 2022 18:04:30 -0700 (PDT)
-MIME-Version: 1.0
-References: <f35b32f3303b7cb70a5e55f5fbe0bd3a1d38c9a6.1662548037.git.lorenzo@kernel.org>
-In-Reply-To: <f35b32f3303b7cb70a5e55f5fbe0bd3a1d38c9a6.1662548037.git.lorenzo@kernel.org>
-From:   Song Liu <song@kernel.org>
-Date:   Wed, 7 Sep 2022 18:04:18 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
-Message-ID: <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
-Subject: Re: [PATCH bpf-next] selftests/bpf: fix ct status check in bpf_nf selftests
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
+        s=k20201202; t=1662623161;
+        bh=1qbcCEX+sQ8g0mZD9IjQGLMCvIx1Q+qXHBZvuLbiDvU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=X568Iaf00v9P6o7xOh7dG11HYFakaGf+cDqRvAJ0/esfarUgbFcE49iJeUCKvlpgD
+         Nt8ClCmVkcnVxgSnW4ZAb56CVPEGBJ9QwLKjLhe/bjVHQCPRg7Bd3GvXhPinslHFL0
+         QMmo+6Gni7zxjWkuv0wSNA0podZOBmZPRSnrneTNAub71uwE19xpx7H3Fkdk7mfo+y
+         iHR82Ro4qJ7dUYE8Rtng1t97hagS/q5QBIHIYIebtf5vu6XUKNL0VRPLNonAuZU1ky
+         y/03HScSP9lBjTSQy93Wborklg7UnDsJ/pb0g0VXMVChzLjISpyvdiXmZStjThcK8i
+         8CEDvmV592CFw==
+Date:   Thu, 8 Sep 2022 09:45:57 +0200
+From:   Lorenzo Bianconi <lorenzo@kernel.org>
+To:     Song Liu <song@kernel.org>
 Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
@@ -61,42 +47,84 @@ Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
         fw@strlen.de, netfilter-devel@vger.kernel.org,
         lorenzo.bianconi@redhat.com,
         Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
         Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH bpf-next] selftests/bpf: fix ct status check in bpf_nf
+ selftests
+Message-ID: <YxmdteGsAuSUT/Wc@lore-desk>
+References: <f35b32f3303b7cb70a5e55f5fbe0bd3a1d38c9a6.1662548037.git.lorenzo@kernel.org>
+ <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="FpTC8qmoeK9pm397"
+Content-Disposition: inline
+In-Reply-To: <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 7, 2022 at 3:56 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
->
-> Check properly the connection tracking entry status configured running
-> bpf_ct_change_status kfunc.
-> Remove unnecessary IPS_CONFIRMED status configuration since it is
-> already done during entry allocation.
->
-> Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfuncs")
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> ---
->  tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 4 ++--
->  tools/testing/selftests/bpf/progs/test_bpf_nf.c | 8 +++++---
->  2 files changed, 7 insertions(+), 5 deletions(-)
->
-> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> index 544bf90ac2a7..903d16e3abed 100644
-> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> @@ -111,8 +111,8 @@ static void test_bpf_nf_ct(int mode)
->         /* allow some tolerance for test_delta_timeout value to avoid races. */
->         ASSERT_GT(skel->bss->test_delta_timeout, 8, "Test for min ct timeout update");
->         ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct timeout update");
-> -       /* expected status is IPS_SEEN_REPLY */
-> -       ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
-> +       /* expected status is IPS_CONFIRMED | IPS_SEEN_REPLY */
-> +       ASSERT_EQ(skel->bss->test_status, 0xa, "Test for ct status update ");
 
-Why do we use 0xa instead of IPS_CONFIRMED | IPS_SEEN_REPLY?
-To avoid dependency on the header file?
+--FpTC8qmoeK9pm397
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Song
+> On Wed, Sep 7, 2022 at 3:56 AM Lorenzo Bianconi <lorenzo@kernel.org> wrot=
+e:
+> >
+> > Check properly the connection tracking entry status configured running
+> > bpf_ct_change_status kfunc.
+> > Remove unnecessary IPS_CONFIRMED status configuration since it is
+> > already done during entry allocation.
+> >
+> > Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfu=
+ncs")
+> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> > ---
+> >  tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 4 ++--
+> >  tools/testing/selftests/bpf/progs/test_bpf_nf.c | 8 +++++---
+> >  2 files changed, 7 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/te=
+sting/selftests/bpf/prog_tests/bpf_nf.c
+> > index 544bf90ac2a7..903d16e3abed 100644
+> > --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > @@ -111,8 +111,8 @@ static void test_bpf_nf_ct(int mode)
+> >         /* allow some tolerance for test_delta_timeout value to avoid r=
+aces. */
+> >         ASSERT_GT(skel->bss->test_delta_timeout, 8, "Test for min ct ti=
+meout update");
+> >         ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct t=
+imeout update");
+> > -       /* expected status is IPS_SEEN_REPLY */
+> > -       ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update=
+ ");
+> > +       /* expected status is IPS_CONFIRMED | IPS_SEEN_REPLY */
+> > +       ASSERT_EQ(skel->bss->test_status, 0xa, "Test for ct status upda=
+te ");
+>=20
+> Why do we use 0xa instead of IPS_CONFIRMED | IPS_SEEN_REPLY?
+> To avoid dependency on the header file?
+
+nope, thx for reporting it. I will fix it in v2.
+
+Regards,
+Lorenzo
+
+>=20
+> Thanks,
+> Song
+
+--FpTC8qmoeK9pm397
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCYxmdtQAKCRA6cBh0uS2t
+rPC9AP9mEeNA0FVy3StHmi5X6GQCdTh5rmO2hvLquhsD+aDT0wD/d+nClLO5HQPr
+X6pTY/4E97C0IuY7XZ41E6VLMsb36gw=
+=Oqzi
+-----END PGP SIGNATURE-----
+
+--FpTC8qmoeK9pm397--
