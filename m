@@ -2,225 +2,101 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB51AC38145
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Sep 2022 18:12:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9713C38145
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 01:04:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229701AbiIGSMs (ORCPT
+        id S230131AbiIHBEp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Sep 2022 14:12:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47320 "EHLO
+        Wed, 7 Sep 2022 21:04:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229793AbiIGSMq (ORCPT
+        with ESMTP id S230220AbiIHBEk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Sep 2022 14:12:46 -0400
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26BB3C0BE1;
-        Wed,  7 Sep 2022 11:12:43 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id y187so12218645iof.0;
-        Wed, 07 Sep 2022 11:12:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=DrpyAEhE7DhTjlqeVTjvIQAkM2Jo2m69QhDICp0fMik=;
-        b=jk+42+LAaCiSALau6Xp5GD6cKP6nmL3RPjGrfQAaZydDD5qxcQ2e0MzS4PUfJOA4yu
-         jeVGb0gBY8wMfXKP4PJxncD1yczagQ9nFzmBXlNCwB6hqk8lB6YB4DoDq7h72IVIJ8pS
-         3PUoJnyvG3/+uY+91ZA+OXazinBDkqMF5a3LLzDttPbrqm4trnJiab1Ni6bzeOMxw1RD
-         lLCd5tvKnrQbg/UqfQhw2w+J123yS6Zk3/w16Yw8Iji/imwYk4BaXUZtv4KkjdLqEQF1
-         SOmpbnflebnM+eDgCgzr7iWnhF1qzm7wSoJmYrMv6yEB5q2pj31gRV4vD6DXM8TQSZvj
-         5AnQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=DrpyAEhE7DhTjlqeVTjvIQAkM2Jo2m69QhDICp0fMik=;
-        b=NfmK6aXaLALbOSKNDmYhFTihRiGHC/nqUCnfPEVg/rXL9JifmPtSDjTnF9WMBJzjFF
-         dBPaCAvleh0+61ivi3UzN0KQ86ufdAdgodm4NluqA5ILiFb0uvTqYKQHdzpNsPNgHavR
-         Y5A4Js9R5bSaGOTJdsqRJnywSf3n47pu5iMR5Vzxu+DXJopD9rOos3PA0D9iUYy44SyE
-         xlpYnfV3zmZku8s2JVyozMYtAHlteyX1JzO1vn7ehUaduegtDQ7XYUzgT93a6T5UJ5Ig
-         K9v5cubi6OtvTMVt1j3uFvh8Gr7ne7CFLl98nA77HLWAjkPMrwhl8RPN94ndbzSQaYAo
-         OyWQ==
-X-Gm-Message-State: ACgBeo32PEEL6l0Np8AKGpilLCi8CxM9KmT5CEhen/qyHyiRNrVa0sWo
-        M09rG90poRBhjX6iD+40UE5DfZLCJ57aHtLEnac=
-X-Google-Smtp-Source: AA6agR56nvq1RLqmJJVyw/yeBU7f5o12BP7lVZbZo+gbOdPFw5uOM++Ap4m0LosF4LC/m7u9XDno/KLujto6LMaGmWU=
-X-Received: by 2002:a05:6638:3802:b0:351:d8a5:6d58 with SMTP id
- i2-20020a056638380200b00351d8a56d58mr2866775jav.206.1662574362252; Wed, 07
- Sep 2022 11:12:42 -0700 (PDT)
+        Wed, 7 Sep 2022 21:04:40 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54D6B13DF5;
+        Wed,  7 Sep 2022 18:04:34 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1155CB81F7C;
+        Thu,  8 Sep 2022 01:04:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC175C4347C;
+        Thu,  8 Sep 2022 01:04:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1662599071;
+        bh=pDKliAAXbuuHRjn1Tmw2PK6pJKiEg51Kk3HsHlIQUfk=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=YNNTXqSKtzq1oKkK0voUjm8ZKYC1iduun6DAdgJCwwfOLNKX8jG6cbQysIPTR87DM
+         y+HMl1QEEoetsmalSv4Uay1ZK3kB18HqlVAtILAbmy6u9MNn2qL9nA0j/cplojh6sb
+         8jpv6eblgFJB+qXjtJ4F7rAuRx3+O4xi+2ugVlKEclVhx6AwsIgIO9DC5ftjdaNwtO
+         KR0GPf6XCpudvxzcjpmrbIAXytjpNjjXRPV5ItRZ0PViOAgqy5D6YCvnj6Zv9p6PLW
+         J3bxZbWgib3PAlOH52MWGWKICf93BdtwE6KEC3WWkVSFm9RnwVY1qSOmXG/EdxviIz
+         g+RqHxVawOw6w==
+Received: by mail-wr1-f46.google.com with SMTP id t14so16037655wrx.8;
+        Wed, 07 Sep 2022 18:04:31 -0700 (PDT)
+X-Gm-Message-State: ACgBeo1Feq6zFHQkNmwrpw6bhcJ2KvHSCsRNaYXvFRsndVOoe5kMpC19
+        h29mQMu5dK6dZBiT/UKkMWMjedF90pugckSRbZk=
+X-Google-Smtp-Source: AA6agR6TiHrGhJmQC1WmULfwqDbYWxvDpIJUVuPL3xFAGnZeEq3rEYabuCKG1z3oIgWXoh9Pi/FO3vYTL0uf8rMPUqs=
+X-Received: by 2002:a5d:6da2:0:b0:228:64cb:5333 with SMTP id
+ u2-20020a5d6da2000000b0022864cb5333mr3335307wrs.428.1662599070046; Wed, 07
+ Sep 2022 18:04:30 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1662383493.git.lorenzo@kernel.org> <fa02d93153b99bc994215c1644a2c75a226e3c7d.1662383493.git.lorenzo@kernel.org>
- <CAADnVQJ4XtFpsEsPRC-cepfQvXr-hN7e_3L5SchieeGHH40_4A@mail.gmail.com>
- <CAP01T77BuY9VNBVt98SJio5D2SqkR5i3bynPXTZG4VVUng-bBA@mail.gmail.com>
- <CAADnVQJ7PnY+AQmyaMggx6twZ5a4bOncKApkjhPhjj2iniXoUQ@mail.gmail.com>
- <CAP01T77goGbF3GVithEuJ7yMQR9PxHNA9GXFODq_nfA66G=F9g@mail.gmail.com> <CAADnVQJxe1QT5bvcsrZQCLeZ6kei6WEESP5bDXf_5qcB2Bb6_Q@mail.gmail.com>
-In-Reply-To: <CAADnVQJxe1QT5bvcsrZQCLeZ6kei6WEESP5bDXf_5qcB2Bb6_Q@mail.gmail.com>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Wed, 7 Sep 2022 20:12:06 +0200
-Message-ID: <CAP01T76TjJrXMSwBJth=5GKEpv1NzwJ3Hw3wSAb0Zfy=b7ZdNA@mail.gmail.com>
-Subject: Re: [PATCH v2 bpf-next 3/4] net: netfilter: add bpf_ct_set_nat_info
- kfunc helper
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Lorenzo Bianconi <lorenzo@kernel.org>, bpf <bpf@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
+References: <f35b32f3303b7cb70a5e55f5fbe0bd3a1d38c9a6.1662548037.git.lorenzo@kernel.org>
+In-Reply-To: <f35b32f3303b7cb70a5e55f5fbe0bd3a1d38c9a6.1662548037.git.lorenzo@kernel.org>
+From:   Song Liu <song@kernel.org>
+Date:   Wed, 7 Sep 2022 18:04:18 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
+Message-ID: <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
+Subject: Re: [PATCH bpf-next] selftests/bpf: fix ct status check in bpf_nf selftests
+To:     Lorenzo Bianconi <lorenzo@kernel.org>
+Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Daniel Borkmann <daniel@iogearbox.net>,
         Andrii Nakryiko <andrii@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
+        "David S . Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>, pablo@netfilter.org,
+        fw@strlen.de, netfilter-devel@vger.kernel.org,
+        lorenzo.bianconi@redhat.com,
         Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 7 Sept 2022 at 19:33, Alexei Starovoitov
-<alexei.starovoitov@gmail.com> wrote:
+On Wed, Sep 7, 2022 at 3:56 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
 >
-> On Tue, Sep 6, 2022 at 10:52 PM Kumar Kartikeya Dwivedi
-> <memxor@gmail.com> wrote:
-> >
-> > On Wed, 7 Sept 2022 at 07:15, Alexei Starovoitov
-> > <alexei.starovoitov@gmail.com> wrote:
-> > >
-> > > On Tue, Sep 6, 2022 at 9:40 PM Kumar Kartikeya Dwivedi <memxor@gmail.com> wrote:
-> > > >
-> > > > On Wed, 7 Sept 2022 at 06:27, Alexei Starovoitov
-> > > > <alexei.starovoitov@gmail.com> wrote:
-> > > > >
-> > > > > On Mon, Sep 5, 2022 at 6:14 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
-> > > > > > +int bpf_ct_set_nat_info(struct nf_conn___init *nfct__ref,
-> > > > > > +                       union nf_inet_addr *addr, __be16 *port,
-> > > > > > +                       enum nf_nat_manip_type manip)
-> > > > > > +{
-> > > > > ...
-> > > > > > @@ -437,6 +483,7 @@ BTF_ID_FLAGS(func, bpf_ct_set_timeout, KF_TRUSTED_ARGS)
-> > > > > >  BTF_ID_FLAGS(func, bpf_ct_change_timeout, KF_TRUSTED_ARGS)
-> > > > > >  BTF_ID_FLAGS(func, bpf_ct_set_status, KF_TRUSTED_ARGS)
-> > > > > >  BTF_ID_FLAGS(func, bpf_ct_change_status, KF_TRUSTED_ARGS)
-> > > > > > +BTF_ID_FLAGS(func, bpf_ct_set_nat_info)
-> > > > > >  BTF_SET8_END(nf_ct_kfunc_set)
-> > > > >
-> > > > > Instead of __ref and patch 1 and 2 it would be better to
-> > > > > change the meaning of "trusted_args".
-> > > > > In this case "addr" and "port" are just as "trusted".
-> > > > > They're not refcounted per verifier definition,
-> > > > > but they need to be "trusted" by the helper.
-> > > > > At the end the "trusted_args" flags would mean
-> > > > > "this helper can assume that all pointers can be safely
-> > > > > accessed without worrying about lifetime".
-> > > >
-> > > > So you mean it only forces PTR_TO_BTF_ID to have reg->ref_obj_id > 0?
-> > > >
-> > > > But suppose in the future you have a type that has scalars only.
-> > > >
-> > > > struct foo { int a; int b; ... };
-> > > > Just data, and this is acquired from a kfunc and released using another kfunc.
-> > > > Now with this new definition you are proposing, verifier ends up
-> > > > allowing PTR_TO_MEM to also be passed to such helpers for the struct
-> > > > foo *.
-> > > >
-> > > > I guess even reg->ref_obj_id check is not enough, user may also pass
-> > > > PTR_TO_MEM | MEM_ALLOC which can be refcounted.
-> > > >
-> > > > It would be easy to forget such subtle details later.
-> > >
-> > > It may add headaches to the verifier side, but here we have to
-> > > think from pov of other subsystems that add kfuncs.
-> > > They shouldn't need to know the verifier details.
-> > > The internals will change anyway.
-> >
-> > Ok, I'll go with making it work for all args for this case.
-> >
-> > > Ideally KF_TRUSTED_ARGS will become the default flag that every kfunc
-> > > will use to indicate that the function assumes valid pointers.
-> > > How the verifier recognizes them is irrelevant from kfunc pov.
-> > > People that write bpf progs are not that much different from
-> > > people that write kfuncs that bpf progs use.
-> > > Both should be easy to write.
-> >
-> > That is a worthy goal, but it can't become the default unless we
-> > somehow fix how normal PTR_TO_BTF_ID without ref_obj_id is allowed to
-> > be valid, valid-looking-but-uaf pointer, NULL all at the same time
-> > depending on how it was obtained. Currently all helpers, even stable
-> > ones, are broken in this regard. Similarly recently added
-> > cgroup_rstat_flush etc. kfuncs are equally unsafe.
-> >
-> > All stable helpers taking PTR_TO_BTF_ID are not even checking for at
-> > least NULL, even though it's right there in bpf.h.
-> >    592         /* PTR_TO_BTF_ID points to a kernel struct that does not need
-> >    593          * to be null checked by the BPF program. This does not imply the
-> >    594          * pointer is _not_ null and in practice this can
-> > easily be a null
-> >    595          * pointer when reading pointer chains. The assumption is program
-> > which just proves how confusing it is right now. And "fixing" that by
-> > adding a NULL check doesn't fix it completely, since it can also be a
-> > seemingly valid looking but freed pointer.
-> >
-> > My previous proposal still stands, to accommodate direct PTR_TO_BTF_ID
-> > pointers from loads from PTR_TO_CTX of tracing progs into this
-> > definition of 'trusted', but not those obtained from walking them. It
-> > works for iterator arguments also.
-> >
-> > We could limit these restrictions only to kfuncs instead of stable helpers.
-> >
-> > It might be possible to instead just whitelist the function BTF IDs as
-> > well, even saying pointers from walks are also safe in this context
-> > for the kfuncs allowed there, or we work on annotating the safe cases
-> > using BTF tags.
-> >
-> > There are some problems currently (GCC not supporting BTF tags yet, is
-> > argument really trusted in fexit program in 'xyz_free' function), but
-> > overall it seems like a better state than status quo. It might also
-> > finally push GCC to begin supporting BTF tags.
-> >
-> > Mapping of a set of btf_ids can be done to a specific kfunc hook
-> > (instead of current program type), so you are basically composing a
-> > kfunc hook out of a set of btf_ids instead of program type. It
-> > represents a safe context to call those kfuncs in.
-> >
-> > It is impossible to know otherwise what case is safe to call a kfunc
-> > for and what is not statically - short of also allowing the unsafe
-> > cases.
-> >
-> > Then the kfuncs work on refcounted pointers, and also unrefcounted
-> > ones for known safe cases (basically where the lifetime is guaranteed
-> > by bpf program caller). For arguments it works by default. The only
-> > extra work is annotating things inside structures.
-> > Might not even need that extra annotation in many cases, since kernel
-> > already has __rcu etc. which we can start recognizing like __user to
-> > complain in non-sleepable programs (e.g. without explicit RCU section
-> > which may be added in the future).
-> >
-> > Then just flip KF_TRUSTED_ARGS by default, and people have to opt into
-> > 'unsafe' instead to make it work for some edge cases, with a big fat
-> > warning for the user of that kfunc.
+> Check properly the connection tracking entry status configured running
+> bpf_ct_change_status kfunc.
+> Remove unnecessary IPS_CONFIRMED status configuration since it is
+> already done during entry allocation.
 >
-> With few minor nits, that I don't want to get into right now,
-> all of the above makes sense. It can be a plan of record.
-> But all that will be done later.
-> The immediate first step I'm proposing is
-> to extend the definition of KF_TRUSTED_ARGS to include this
-> particular use case of:
-> union nf_inet_addr *addr, __be16 *port,
+> Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfuncs")
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+>  tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 4 ++--
+>  tools/testing/selftests/bpf/progs/test_bpf_nf.c | 8 +++++---
+>  2 files changed, 7 insertions(+), 5 deletions(-)
 >
-> Those won't be PTR_TO_BTF_ID so above plan doesn't affect this case.
-> They're PTR_TO_MEM (if I'm reading the selftest in the next patch
-> correctly) and we can relax:
->                 if (is_kfunc && trusted_arg && !reg->ref_obj_id) {
->
-> Just minimal amount of verifier work to enable this specific
-> bpf_ct_set_nat_info kfunc.
->
-> I think that's user friendlier approach than __ref suffix
-> which forces kfunc writers to understand all of the above
-> verifier details (valid-looking-but-uaf, null-but-not-null, etc).
+> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> index 544bf90ac2a7..903d16e3abed 100644
+> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> @@ -111,8 +111,8 @@ static void test_bpf_nf_ct(int mode)
+>         /* allow some tolerance for test_delta_timeout value to avoid races. */
+>         ASSERT_GT(skel->bss->test_delta_timeout, 8, "Test for min ct timeout update");
+>         ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct timeout update");
+> -       /* expected status is IPS_SEEN_REPLY */
+> -       ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
+> +       /* expected status is IPS_CONFIRMED | IPS_SEEN_REPLY */
+> +       ASSERT_EQ(skel->bss->test_status, 0xa, "Test for ct status update ");
 
-I agree, it seems better from a UX standpoint. I'll relax the
-trusted_args check for non-PTR_TO_BTF_ID, and send the patch to flip
-it to default as an RFC later.
+Why do we use 0xa instead of IPS_CONFIRMED | IPS_SEEN_REPLY?
+To avoid dependency on the header file?
+
+Thanks,
+Song
