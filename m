@@ -2,129 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2BE2C6FA83
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 07:46:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E598ECAAD5
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 08:06:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230330AbiIHHqF (ORCPT
+        id S230433AbiIHIGc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Sep 2022 03:46:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43238 "EHLO
+        Thu, 8 Sep 2022 04:06:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229614AbiIHHqE (ORCPT
+        with ESMTP id S230506AbiIHIG2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Sep 2022 03:46:04 -0400
+        Thu, 8 Sep 2022 04:06:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98040C6FE5;
-        Thu,  8 Sep 2022 00:46:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0540D2B3A;
+        Thu,  8 Sep 2022 01:06:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 34D7E61B97;
-        Thu,  8 Sep 2022 07:46:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10C2CC433D6;
-        Thu,  8 Sep 2022 07:46:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7B45261BBC;
+        Thu,  8 Sep 2022 08:06:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5734CC4347C;
+        Thu,  8 Sep 2022 08:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662623161;
-        bh=1qbcCEX+sQ8g0mZD9IjQGLMCvIx1Q+qXHBZvuLbiDvU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=X568Iaf00v9P6o7xOh7dG11HYFakaGf+cDqRvAJ0/esfarUgbFcE49iJeUCKvlpgD
-         Nt8ClCmVkcnVxgSnW4ZAb56CVPEGBJ9QwLKjLhe/bjVHQCPRg7Bd3GvXhPinslHFL0
-         QMmo+6Gni7zxjWkuv0wSNA0podZOBmZPRSnrneTNAub71uwE19xpx7H3Fkdk7mfo+y
-         iHR82Ro4qJ7dUYE8Rtng1t97hagS/q5QBIHIYIebtf5vu6XUKNL0VRPLNonAuZU1ky
-         y/03HScSP9lBjTSQy93Wborklg7UnDsJ/pb0g0VXMVChzLjISpyvdiXmZStjThcK8i
-         8CEDvmV592CFw==
-Date:   Thu, 8 Sep 2022 09:45:57 +0200
+        s=k20201202; t=1662624383;
+        bh=99N8urgmXc1eLWiQJCkk4lIJ8riw3A9WweOprQIo+KE=;
+        h=From:To:Cc:Subject:Date:From;
+        b=YmBrTiybj0Ivgs2gDTsXWD+HM0PRsIp5we8N4JpMBxWM0NFdouusm3G1sda2XVC2q
+         jGflQERFNsybjhmDM8okYUuOC9/Ti7bf9l9k4EODrUiwD92A4/oRZ0xiQdAamiED13
+         Zirgu43N/F/XQbj4Hl1P5h7KAcbouBpiKLmnFTx1isfBmWoZwELH9SZheYShKfZm1W
+         rmcObPipBkzoGX6kWsBugCBzv/mdkrqedOtY+SKS+KGlaJdHzP4HdhI9zIxGS7I2L0
+         7Q1g5E+koN6Q4KUNHizC2kvNyheRtKUi3XUqcrCGxltLHrcuJrudnkLciOT6mVTMSj
+         Qvg1rR/GwN83w==
 From:   Lorenzo Bianconi <lorenzo@kernel.org>
-To:     Song Liu <song@kernel.org>
-Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, pablo@netfilter.org,
+To:     bpf@vger.kernel.org
+Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
+        edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
         fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lorenzo.bianconi@redhat.com,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        Toke =?iso-8859-1?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Subject: Re: [PATCH bpf-next] selftests/bpf: fix ct status check in bpf_nf
- selftests
-Message-ID: <YxmdteGsAuSUT/Wc@lore-desk>
-References: <f35b32f3303b7cb70a5e55f5fbe0bd3a1d38c9a6.1662548037.git.lorenzo@kernel.org>
- <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
+        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
+        memxor@gmail.com, song@kernel.org
+Subject: [PATCH v2 bpf-next] selftests/bpf: fix ct status check in bpf_nf selftests
+Date:   Thu,  8 Sep 2022 10:06:12 +0200
+Message-Id: <813a5161a71911378dfac8770ec890428e4998aa.1662623574.git.lorenzo@kernel.org>
+X-Mailer: git-send-email 2.37.3
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="FpTC8qmoeK9pm397"
-Content-Disposition: inline
-In-Reply-To: <CAPhsuW4Vcn4GELkKWNdb+X4L+KfdtOiHqN0VijhWy+vLjvD74g@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Check properly the connection tracking entry status configured running
+bpf_ct_change_status kfunc.
+Remove unnecessary IPS_CONFIRMED status configuration since it is
+already done during entry allocation.
 
---FpTC8qmoeK9pm397
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfuncs")
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+---
+Change since v1:
+- rely on nf_conntrack_common.h definitions for ct status in bpf_nf.c
+---
+ tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 5 +++--
+ tools/testing/selftests/bpf/progs/test_bpf_nf.c | 8 +++++---
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-> On Wed, Sep 7, 2022 at 3:56 AM Lorenzo Bianconi <lorenzo@kernel.org> wrot=
-e:
-> >
-> > Check properly the connection tracking entry status configured running
-> > bpf_ct_change_status kfunc.
-> > Remove unnecessary IPS_CONFIRMED status configuration since it is
-> > already done during entry allocation.
-> >
-> > Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfu=
-ncs")
-> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> > ---
-> >  tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 4 ++--
-> >  tools/testing/selftests/bpf/progs/test_bpf_nf.c | 8 +++++---
-> >  2 files changed, 7 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/te=
-sting/selftests/bpf/prog_tests/bpf_nf.c
-> > index 544bf90ac2a7..903d16e3abed 100644
-> > --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> > +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> > @@ -111,8 +111,8 @@ static void test_bpf_nf_ct(int mode)
-> >         /* allow some tolerance for test_delta_timeout value to avoid r=
-aces. */
-> >         ASSERT_GT(skel->bss->test_delta_timeout, 8, "Test for min ct ti=
-meout update");
-> >         ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct t=
-imeout update");
-> > -       /* expected status is IPS_SEEN_REPLY */
-> > -       ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update=
- ");
-> > +       /* expected status is IPS_CONFIRMED | IPS_SEEN_REPLY */
-> > +       ASSERT_EQ(skel->bss->test_status, 0xa, "Test for ct status upda=
-te ");
->=20
-> Why do we use 0xa instead of IPS_CONFIRMED | IPS_SEEN_REPLY?
-> To avoid dependency on the header file?
+diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+index 544bf90ac2a7..cdaf6a7d6fd1 100644
+--- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
++++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <test_progs.h>
+ #include <network_helpers.h>
++#include <linux/netfilter/nf_conntrack_common.h>
+ #include "test_bpf_nf.skel.h"
+ #include "test_bpf_nf_fail.skel.h"
+ 
+@@ -111,8 +112,8 @@ static void test_bpf_nf_ct(int mode)
+ 	/* allow some tolerance for test_delta_timeout value to avoid races. */
+ 	ASSERT_GT(skel->bss->test_delta_timeout, 8, "Test for min ct timeout update");
+ 	ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct timeout update");
+-	/* expected status is IPS_SEEN_REPLY */
+-	ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
++	ASSERT_EQ(skel->bss->test_status, IPS_CONFIRMED | IPS_SEEN_REPLY,
++		  "Test for ct status update ");
+ 	ASSERT_EQ(skel->data->test_exist_lookup, 0, "Test existing connection lookup");
+ 	ASSERT_EQ(skel->bss->test_exist_lookup_mark, 43, "Test existing connection lookup ctmark");
+ end:
+diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+index 2722441850cc..a3b9d32d1555 100644
+--- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
++++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
+@@ -143,7 +143,6 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
+ 		struct nf_conn *ct_ins;
+ 
+ 		bpf_ct_set_timeout(ct, 10000);
+-		bpf_ct_set_status(ct, IPS_CONFIRMED);
+ 
+ 		ct_ins = bpf_ct_insert_entry(ct);
+ 		if (ct_ins) {
+@@ -156,8 +155,11 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
+ 				bpf_ct_change_timeout(ct_lk, 10000);
+ 				test_delta_timeout = ct_lk->timeout - bpf_jiffies64();
+ 				test_delta_timeout /= CONFIG_HZ;
+-				test_status = IPS_SEEN_REPLY;
+-				bpf_ct_change_status(ct_lk, IPS_SEEN_REPLY);
++
++				bpf_ct_change_status(ct_lk,
++						     IPS_CONFIRMED | IPS_SEEN_REPLY);
++				test_status = ct_lk->status;
++
+ 				bpf_ct_release(ct_lk);
+ 				test_succ_lookup = 0;
+ 			}
+-- 
+2.37.3
 
-nope, thx for reporting it. I will fix it in v2.
-
-Regards,
-Lorenzo
-
->=20
-> Thanks,
-> Song
-
---FpTC8qmoeK9pm397
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCYxmdtQAKCRA6cBh0uS2t
-rPC9AP9mEeNA0FVy3StHmi5X6GQCdTh5rmO2hvLquhsD+aDT0wD/d+nClLO5HQPr
-X6pTY/4E97C0IuY7XZ41E6VLMsb36gw=
-=Oqzi
------END PGP SIGNATURE-----
-
---FpTC8qmoeK9pm397--
