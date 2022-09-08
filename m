@@ -2,141 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFB91C54EE9
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 16:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F2B6C6FA86
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Sep 2022 17:30:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230092AbiIHQOe (ORCPT
+        id S232181AbiIHRad (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Sep 2022 12:14:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60202 "EHLO
+        Thu, 8 Sep 2022 13:30:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231604AbiIHQOJ (ORCPT
+        with ESMTP id S232187AbiIHRaH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Sep 2022 12:14:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4725E9019;
-        Thu,  8 Sep 2022 09:13:47 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 12D01B82194;
-        Thu,  8 Sep 2022 16:13:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C94CDC43470;
-        Thu,  8 Sep 2022 16:13:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662653624;
-        bh=B7XrbI01vmCZl/liBk15t2qf0rg7zB2mEM+/1MsxyIk=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=RKblNx1zeWRvN7J11OUtJ/11QvfYs7cLAJ1ANSDpmTBOh7pqu6GAPGgRJZ4uWHHle
-         B8quTr2ESvfVBhPqAAo8CD0l7W4zjtTt9WrU1Knv96q2m0njWDRIj2DmBdHkgAVcTK
-         NyXrFTI+X+dnMTTK5+h2hz1WaiDeSYL3D0ZTB8c10BXkLdkO71xfDpCX3h2vEtH3wZ
-         BAn15nVoR5q8lxDwnt7eXP/2I62aHp5KQjy0SOky7MZG/SMpVoUG2hHxF7uKlVPjx0
-         OtDOdPtRVMdzwqUf73w4F4C48lBaKT10LixDMsTfG5sDCc9K+dCYzJzLkjUZp2aR0f
-         FhSD0tvuPacnw==
-Received: by mail-oa1-f46.google.com with SMTP id 586e51a60fabf-127d10b4f19so19877743fac.9;
-        Thu, 08 Sep 2022 09:13:44 -0700 (PDT)
-X-Gm-Message-State: ACgBeo0zzhuhh6M++GNsNzot0Ua4vvysFvPF9g8HaQFxAa5Q+mKpYJvX
-        q/CpSZF9Ep6KhU3mxiiDcKRDuk9/Pu312Pxw52U=
-X-Google-Smtp-Source: AA6agR6zWBzv8NjivdRmS3k6VAcz/zm/btbHaYCYXD35FaSFXYhE06H34G+LdOpl17eIWJaPNU3AZY5dbBHVJs9wWNw=
-X-Received: by 2002:aca:3016:0:b0:345:9d47:5e11 with SMTP id
- w22-20020aca3016000000b003459d475e11mr1738615oiw.31.1662653623925; Thu, 08
- Sep 2022 09:13:43 -0700 (PDT)
+        Thu, 8 Sep 2022 13:30:07 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4712183
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Sep 2022 10:29:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1662658169;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+        bh=yd9DlqRTL8ppphh+h2DjZYhW5J5U8NhV4/fGSoXGbJg=;
+        b=BDor1gSzk/wfj2M24qhx7H6hG3EXixnXPmWQ9neWkpM9ajXNy8pIoCX69eZe8UiFPXtAR7
+        5AeskdILeYOmsAZ+F716HQMOdiK0/THzzEAY8ePW3tLKQOE6kfECYrNo9kmRM9QIY7+h7z
+        vZw7UByxrM1dnXQXdnfzerEQWHRRF1g=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-581-MPrjw8JYOkmhVUk-oEsScA-1; Thu, 08 Sep 2022 13:29:28 -0400
+X-MC-Unique: MPrjw8JYOkmhVUk-oEsScA-1
+Received: by mail-wm1-f70.google.com with SMTP id v128-20020a1cac86000000b003b33fab37e8so312630wme.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2022 10:29:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date;
+        bh=yd9DlqRTL8ppphh+h2DjZYhW5J5U8NhV4/fGSoXGbJg=;
+        b=abCqz5X8f9Mt0vdL66QWdAUvalJYYLjCBDnoiNBlbVt0gWni0HBEoVjhKQbl9q+ube
+         32JsnFaie3wl6vsPS7CXnOcfh7+wgGzT0zVqHar0tLsH3/H73fpHzlEDlTRMavea19Sm
+         iDr9YRBrCylT2QA4jKz8msLrSIQJV1gmbXj7vEeTEam1YWfryX979SuO8xlvoM1rxvwK
+         jbZibFN4K5e9LGS9rcsABgygquCX8Wv2ZVAfg8dAjaDHkGKSbRMhAGeY8cqUVYSJsixT
+         Eg6WcOhcTnnqXcKHZnO/TknovFwrSU6rQgA18ON62ZgdcaQmH0R3s+y1y7nHmrnC7Ju2
+         uxtw==
+X-Gm-Message-State: ACgBeo2y90nEWOrwj3EdnfG+QsAgwgXmO7lUiO268oO2ytNGvR67Ao0B
+        N+5HWmJRdAKL76kvNbUF1kfaf/pzggQ3zj1xtLLxgURfKst3FujndzDjku4tqb7enLvfwgtvBwP
+        TkP3Q3YwbZPS2l9s6JzakGIJSWDap
+X-Received: by 2002:a05:6000:1888:b0:222:c96d:862f with SMTP id a8-20020a056000188800b00222c96d862fmr5643699wri.706.1662658166934;
+        Thu, 08 Sep 2022 10:29:26 -0700 (PDT)
+X-Google-Smtp-Source: AA6agR5V0DdOkPCMr/j9FXcN2Chx+sxIgGKRIrEdUufGLwbGlRX2krS4Ks0T5x/cHIPBQAMZevmdkg==
+X-Received: by 2002:a05:6000:1888:b0:222:c96d:862f with SMTP id a8-20020a056000188800b00222c96d862fmr5643683wri.706.1662658166747;
+        Thu, 08 Sep 2022 10:29:26 -0700 (PDT)
+Received: from pc-4.home (2a01cb058918ce00dd1a5a4f9908f2d5.ipv6.abo.wanadoo.fr. [2a01:cb05:8918:ce00:dd1a:5a4f:9908:f2d5])
+        by smtp.gmail.com with ESMTPSA id v26-20020a05600c215a00b003a844885f88sm3302678wml.22.2022.09.08.10.29.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 Sep 2022 10:29:25 -0700 (PDT)
+Date:   Thu, 8 Sep 2022 19:29:23 +0200
+From:   Guillaume Nault <gnault@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        David Ahern <dsahern@kernel.org>
+Subject: [PATCH net-next] netfilter: rpfilter: Remove unused variable 'ret'.
+Message-ID: <a6201a69efe67d91ef62e1c3b25baa5f30bbbb7a.1662658015.git.gnault@redhat.com>
 MIME-Version: 1.0
-References: <813a5161a71911378dfac8770ec890428e4998aa.1662623574.git.lorenzo@kernel.org>
-In-Reply-To: <813a5161a71911378dfac8770ec890428e4998aa.1662623574.git.lorenzo@kernel.org>
-From:   Song Liu <song@kernel.org>
-Date:   Thu, 8 Sep 2022 09:13:33 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW7bR2cZzDGXhE0v2qkFH-a+1Sn1pSZ8kNzWW6qyWVYEEg@mail.gmail.com>
-Message-ID: <CAPhsuW7bR2cZzDGXhE0v2qkFH-a+1Sn1pSZ8kNzWW6qyWVYEEg@mail.gmail.com>
-Subject: Re: [PATCH v2 bpf-next] selftests/bpf: fix ct status check in bpf_nf selftests
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
-Cc:     bpf <bpf@vger.kernel.org>, Networking <netdev@vger.kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, pablo@netfilter.org,
-        fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lorenzo.bianconi@redhat.com,
-        Jesper Dangaard Brouer <brouer@redhat.com>,
-        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Sep 8, 2022 at 1:06 AM Lorenzo Bianconi <lorenzo@kernel.org> wrote:
->
-> Check properly the connection tracking entry status configured running
-> bpf_ct_change_status kfunc.
-> Remove unnecessary IPS_CONFIRMED status configuration since it is
-> already done during entry allocation.
->
-> Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfuncs")
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Commit 91a178258aea ("netfilter: rpfilter: Convert
+rpfilter_lookup_reverse to new dev helper") removed the need for the
+'ret' variable. This went unnoticed because of the __maybe_unused
+annotation.
 
-Acked-by: Song Liu <song@kernel.org>
+Signed-off-by: Guillaume Nault <gnault@redhat.com>
+---
+ net/ipv4/netfilter/ipt_rpfilter.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-> ---
-> Change since v1:
-> - rely on nf_conntrack_common.h definitions for ct status in bpf_nf.c
-> ---
->  tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 5 +++--
->  tools/testing/selftests/bpf/progs/test_bpf_nf.c | 8 +++++---
->  2 files changed, 8 insertions(+), 5 deletions(-)
->
-> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> index 544bf90ac2a7..cdaf6a7d6fd1 100644
-> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0
->  #include <test_progs.h>
->  #include <network_helpers.h>
-> +#include <linux/netfilter/nf_conntrack_common.h>
->  #include "test_bpf_nf.skel.h"
->  #include "test_bpf_nf_fail.skel.h"
->
-> @@ -111,8 +112,8 @@ static void test_bpf_nf_ct(int mode)
->         /* allow some tolerance for test_delta_timeout value to avoid races. */
->         ASSERT_GT(skel->bss->test_delta_timeout, 8, "Test for min ct timeout update");
->         ASSERT_LE(skel->bss->test_delta_timeout, 10, "Test for max ct timeout update");
-> -       /* expected status is IPS_SEEN_REPLY */
-> -       ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
-> +       ASSERT_EQ(skel->bss->test_status, IPS_CONFIRMED | IPS_SEEN_REPLY,
-> +                 "Test for ct status update ");
->         ASSERT_EQ(skel->data->test_exist_lookup, 0, "Test existing connection lookup");
->         ASSERT_EQ(skel->bss->test_exist_lookup_mark, 43, "Test existing connection lookup ctmark");
->  end:
-> diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> index 2722441850cc..a3b9d32d1555 100644
-> --- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> @@ -143,7 +143,6 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
->                 struct nf_conn *ct_ins;
->
->                 bpf_ct_set_timeout(ct, 10000);
-> -               bpf_ct_set_status(ct, IPS_CONFIRMED);
->
->                 ct_ins = bpf_ct_insert_entry(ct);
->                 if (ct_ins) {
-> @@ -156,8 +155,11 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
->                                 bpf_ct_change_timeout(ct_lk, 10000);
->                                 test_delta_timeout = ct_lk->timeout - bpf_jiffies64();
->                                 test_delta_timeout /= CONFIG_HZ;
-> -                               test_status = IPS_SEEN_REPLY;
-> -                               bpf_ct_change_status(ct_lk, IPS_SEEN_REPLY);
-> +
-> +                               bpf_ct_change_status(ct_lk,
-> +                                                    IPS_CONFIRMED | IPS_SEEN_REPLY);
-> +                               test_status = ct_lk->status;
-> +
->                                 bpf_ct_release(ct_lk);
->                                 test_succ_lookup = 0;
->                         }
-> --
-> 2.37.3
->
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 8cd3224d913e..8183bbcabb4a 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -33,7 +33,6 @@ static bool rpfilter_lookup_reverse(struct net *net, struct flowi4 *fl4,
+ 				const struct net_device *dev, u8 flags)
+ {
+ 	struct fib_result res;
+-	int ret __maybe_unused;
+ 
+ 	if (fib_lookup(net, fl4, &res, FIB_LOOKUP_IGNORE_LINKSTATE))
+ 		return false;
+-- 
+2.21.3
+
