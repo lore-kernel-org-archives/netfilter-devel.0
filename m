@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB3E5ECAAD3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 10:41:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA670ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 10:42:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230063AbiIIKlu (ORCPT
+        id S230525AbiIIKmQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Sep 2022 06:41:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
+        Fri, 9 Sep 2022 06:42:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229598AbiIIKlu (ORCPT
+        with ESMTP id S230353AbiIIKmP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2022 06:41:50 -0400
+        Fri, 9 Sep 2022 06:42:15 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D9D471377B9
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2022 03:41:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9D887138125
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2022 03:42:14 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: conntrack: remove nf_conntrack_helper
-Date:   Fri,  9 Sep 2022 12:41:44 +0200
-Message-Id: <20220909104144.61891-1-pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: conntrack: remove nf_conntrack_helper documentation
+Date:   Fri,  9 Sep 2022 12:42:11 +0200
+Message-Id: <20220909104211.61999-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
