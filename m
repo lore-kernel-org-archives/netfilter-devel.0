@@ -2,88 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F30D7ECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 10:00:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB3E5ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 10:41:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbiIIKAU (ORCPT
+        id S230063AbiIIKlu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Sep 2022 06:00:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38388 "EHLO
+        Fri, 9 Sep 2022 06:41:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229494AbiIIKAT (ORCPT
+        with ESMTP id S229598AbiIIKlu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2022 06:00:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C564E1AAC;
-        Fri,  9 Sep 2022 03:00:18 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 27C5BB82488;
-        Fri,  9 Sep 2022 10:00:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id C4C80C4347C;
-        Fri,  9 Sep 2022 10:00:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662717615;
-        bh=R9HoZkbyWxn4PuY/EGkdbHSP+SI2XIe1jypjIPMcctk=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=HBbU8sCsNaTEB6DpP5uoIFyO4kgenhzHXOn4HBMEAUsyaf41fNpa39W3cT5w6Dhxk
-         Zgm6inKPuXV6tGtv4zoVQfsnJRY58ugQwIiaSe37QJZurrgo0EhMHihngkIDIHJWnG
-         O1VMmuYlC+dXaBLZXv257m9ViG4GNQpzN8L9g5CMAPyk4Uga6XKLh4FXqajKN7urbP
-         769YgTR2Y5huITDyJ2gkVdaIHrXPB+6xmU4LOPFAR2wiQKGGbVzq88FomnM1x+1/pH
-         IyrNfrNZbXxS2hiEBa3qct5d/jIuru1FwtBx5uIqCpfcpUoEskyz9Dvk+ilYb/0vLb
-         L39paMzQN8VAg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A264EE1CABD;
-        Fri,  9 Sep 2022 10:00:15 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Fri, 9 Sep 2022 06:41:50 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D9D471377B9
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2022 03:41:48 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: conntrack: remove nf_conntrack_helper
+Date:   Fri,  9 Sep 2022 12:41:44 +0200
+Message-Id: <20220909104144.61891-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/4] netfilter: nf_conntrack_sip: fix ct_sip_walk_headers
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166271761566.31452.4750616270687780718.git-patchwork-notify@kernel.org>
-Date:   Fri, 09 Sep 2022 10:00:15 +0000
-References: <20220908095757.1755-2-fw@strlen.de>
-In-Reply-To: <20220908095757.1755-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, kuba@kernel.org, davem@davemloft.net,
-        edumazet@google.com, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, iryzhov@nfware.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+This toggle has been already remove by b118509076b3 ("netfilter: remove
+nf_conntrack_helper sysctl and modparam toggles").
 
-This series was applied to netdev/net.git (master)
-by Florian Westphal <fw@strlen.de>:
+Remove the documentation entry for this toggle too.
 
-On Thu,  8 Sep 2022 11:57:54 +0200 you wrote:
-> From: Igor Ryzhov <iryzhov@nfware.com>
-> 
-> ct_sip_next_header and ct_sip_get_header return an absolute
-> value of matchoff, not a shift from current dataoff.
-> So dataoff should be assigned matchoff, not incremented by it.
-> 
-> This issue can be seen in the scenario when there are multiple
-> Contact headers and the first one is using a hostname and other headers
-> use IP addresses. In this case, ct_sip_walk_headers will work as follows:
-> 
-> [...]
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ Documentation/networking/nf_conntrack-sysctl.rst | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-Here is the summary with links:
-  - [net,1/4] netfilter: nf_conntrack_sip: fix ct_sip_walk_headers
-    https://git.kernel.org/netdev/net/c/39aebedeaaa9
-  - [net,2/4] selftests: nft_concat_range: add socat support
-    https://git.kernel.org/netdev/net/c/25b327d4f818
-  - [net,3/4] netfilter: nf_conntrack_irc: Tighten matching on DCC message
-    https://git.kernel.org/netdev/net/c/e8d5dfd1d874
-  - [net,4/4] netfilter: nfnetlink_osf: fix possible bogus match in nf_osf_find()
-    https://git.kernel.org/netdev/net/c/559c36c5a8d7
-
-You are awesome, thank you!
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 834945ebc4cd..1120d71f28d7 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -70,15 +70,6 @@ nf_conntrack_generic_timeout - INTEGER (seconds)
+ 	Default for generic timeout.  This refers to layer 4 unknown/unsupported
+ 	protocols.
+ 
+-nf_conntrack_helper - BOOLEAN
+-	- 0 - disabled (default)
+-	- not 0 - enabled
+-
+-	Enable automatic conntrack helper assignment.
+-	If disabled it is required to set up iptables rules to assign
+-	helpers to connections.  See the CT target description in the
+-	iptables-extensions(8) man page for further information.
+-
+ nf_conntrack_icmp_timeout - INTEGER (seconds)
+ 	default 30
+ 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.30.2
 
