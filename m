@@ -2,91 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 238CEECAAD5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 07:53:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F30D7ECAAA1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 10:00:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231827AbiIIHxc (ORCPT
+        id S229534AbiIIKAU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Sep 2022 03:53:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60054 "EHLO
+        Fri, 9 Sep 2022 06:00:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231917AbiIIHww (ORCPT
+        with ESMTP id S229494AbiIIKAT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2022 03:52:52 -0400
+        Fri, 9 Sep 2022 06:00:19 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B7B596771;
-        Fri,  9 Sep 2022 00:50:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C564E1AAC;
+        Fri,  9 Sep 2022 03:00:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 53887B8236A;
-        Fri,  9 Sep 2022 07:40:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0CB60C43470;
-        Fri,  9 Sep 2022 07:40:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 27C5BB82488;
+        Fri,  9 Sep 2022 10:00:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C4C80C4347C;
+        Fri,  9 Sep 2022 10:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662709223;
-        bh=7Px0r7bQOUber1oDPazQ3nhoUpK7kSL/1s3eWNs9xI8=;
+        s=k20201202; t=1662717615;
+        bh=R9HoZkbyWxn4PuY/EGkdbHSP+SI2XIe1jypjIPMcctk=;
         h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=Kz2s1uE3pxOW3kWRt8KjFimJil/Go8F7xGKlbpuVgXOsaUlX9Jpy9x/Z3i9A8yO/9
-         BgwdHdq/AsFYTFOHK8KC+XwhiGdiRz1zBR5+Hut555VhpfYkwvzj6FhIln7m/CN8md
-         X76UzmuvYC/tDkH586uTg6jefV8he3AlVMysJvT4IRY7mvTBaccOvbZcgb95F3pK82
-         uFrZUomaayP2VfiGi9kOfWS+CN/NRr0tzfQAU2R8tGF6tHgPkgESOssePqXKerWS8B
-         mkg0GtvjVxda1t8vlZGBbCeveOYp5+GzZ5kgW9kHQ02cokXFQkg6V+bWvib7ettmIT
-         ZqCwu2Vaf9yfA==
+        b=HBbU8sCsNaTEB6DpP5uoIFyO4kgenhzHXOn4HBMEAUsyaf41fNpa39W3cT5w6Dhxk
+         Zgm6inKPuXV6tGtv4zoVQfsnJRY58ugQwIiaSe37QJZurrgo0EhMHihngkIDIHJWnG
+         O1VMmuYlC+dXaBLZXv257m9ViG4GNQpzN8L9g5CMAPyk4Uga6XKLh4FXqajKN7urbP
+         769YgTR2Y5huITDyJ2gkVdaIHrXPB+6xmU4LOPFAR2wiQKGGbVzq88FomnM1x+1/pH
+         IyrNfrNZbXxS2hiEBa3qct5d/jIuru1FwtBx5uIqCpfcpUoEskyz9Dvk+ilYb/0vLb
+         L39paMzQN8VAg==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E4E59C73FF1;
-        Fri,  9 Sep 2022 07:40:22 +0000 (UTC)
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A264EE1CABD;
+        Fri,  9 Sep 2022 10:00:15 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/8] netfilter: conntrack: prepare tcp_in_window for
- ternary return value
+Subject: Re: [PATCH net 1/4] netfilter: nf_conntrack_sip: fix ct_sip_walk_headers
 From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166270922293.30497.13371085701072223276.git-patchwork-notify@kernel.org>
-Date:   Fri, 09 Sep 2022 07:40:22 +0000
-References: <20220907154110.8898-2-fw@strlen.de>
-In-Reply-To: <20220907154110.8898-2-fw@strlen.de>
+Message-Id: <166271761566.31452.4750616270687780718.git-patchwork-notify@kernel.org>
+Date:   Fri, 09 Sep 2022 10:00:15 +0000
+References: <20220908095757.1755-2-fw@strlen.de>
+In-Reply-To: <20220908095757.1755-2-fw@strlen.de>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, edumazet@google.com, davem@davemloft.net,
-        pabeni@redhat.com, kuba@kernel.org, netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org, kuba@kernel.org, davem@davemloft.net,
+        edumazet@google.com, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, iryzhov@nfware.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hello:
 
-This series was applied to netdev/net-next.git (master)
+This series was applied to netdev/net.git (master)
 by Florian Westphal <fw@strlen.de>:
 
-On Wed,  7 Sep 2022 17:41:03 +0200 you wrote:
-> tcp_in_window returns true if the packet is in window and false if it is
-> not.
+On Thu,  8 Sep 2022 11:57:54 +0200 you wrote:
+> From: Igor Ryzhov <iryzhov@nfware.com>
 > 
-> If its outside of window, packet will be treated as INVALID.
+> ct_sip_next_header and ct_sip_get_header return an absolute
+> value of matchoff, not a shift from current dataoff.
+> So dataoff should be assigned matchoff, not incremented by it.
 > 
-> There are corner cases where the packet should still be tracked, because
-> rulesets may drop or log such packets, even though they can occur during
-> normal operation, such as overly delayed acks.
+> This issue can be seen in the scenario when there are multiple
+> Contact headers and the first one is using a hostname and other headers
+> use IP addresses. In this case, ct_sip_walk_headers will work as follows:
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next,1/8] netfilter: conntrack: prepare tcp_in_window for ternary return value
-    https://git.kernel.org/netdev/net-next/c/d9a6f0d0df18
-  - [net-next,2/8] netfilter: conntrack: ignore overly delayed tcp packets
-    https://git.kernel.org/netdev/net-next/c/6e250dcbff1d
-  - [net-next,3/8] netfilter: conntrack: remove unneeded indent level
-    https://git.kernel.org/netdev/net-next/c/09a59001b0d6
-  - [net-next,4/8] netfilter: conntrack: reduce timeout when receiving out-of-window fin or rst
-    https://git.kernel.org/netdev/net-next/c/628d694344a0
-  - [net-next,5/8] netfilter: remove NFPROTO_DECNET
-    https://git.kernel.org/netdev/net-next/c/a0a4de4d897f
-  - [net-next,6/8] netfilter: move from strlcpy with unused retval to strscpy
-    https://git.kernel.org/netdev/net-next/c/8556bceb9c40
-  - [net-next,7/8] netfilter: nat: move repetitive nat port reserve loop to a helper
-    https://git.kernel.org/netdev/net-next/c/c92c27171040
-  - [net-next,8/8] netfilter: nat: avoid long-running port range loop
-    https://git.kernel.org/netdev/net-next/c/adda60cc2bb0
+  - [net,1/4] netfilter: nf_conntrack_sip: fix ct_sip_walk_headers
+    https://git.kernel.org/netdev/net/c/39aebedeaaa9
+  - [net,2/4] selftests: nft_concat_range: add socat support
+    https://git.kernel.org/netdev/net/c/25b327d4f818
+  - [net,3/4] netfilter: nf_conntrack_irc: Tighten matching on DCC message
+    https://git.kernel.org/netdev/net/c/e8d5dfd1d874
+  - [net,4/4] netfilter: nfnetlink_osf: fix possible bogus match in nf_osf_find()
+    https://git.kernel.org/netdev/net/c/559c36c5a8d7
 
 You are awesome, thank you!
 -- 
