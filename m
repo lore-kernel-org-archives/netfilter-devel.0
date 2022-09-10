@@ -2,91 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E518DC6FA82
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Sep 2022 00:28:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C82CCC6FA82
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Sep 2022 02:02:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230150AbiIJA2S (ORCPT
+        id S229563AbiIJCC3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Sep 2022 20:28:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47432 "EHLO
+        Fri, 9 Sep 2022 22:02:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230283AbiIJA2R (ORCPT
+        with ESMTP id S229529AbiIJCC3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2022 20:28:17 -0400
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 794C8E622B;
-        Fri,  9 Sep 2022 17:28:15 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id 62so2740528iov.5;
-        Fri, 09 Sep 2022 17:28:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=LHVU+QXiGt07dK7ESmFeMKaxf7KrWiJkDIp3MS3i/HA=;
-        b=Yh7QAXEfHv5nIZFxP53NrXPMw5luZg5JL/pAqwL6379WEmjgn1w0epRFMVOgseoHFy
-         Rl5DtXHyWdXAJCBeT3w6I83CTF9sZXQV7NN+yD8p5MNQGjroKoK0F6pk0+32R+XoRrek
-         2jDpAULtRmdvYgm0Rhr3DvXv6gsqOKqeKnvZmlv02AAU3GRgHKZNG0+LQ9kS/3Wqzie8
-         YmlweZSrKVpATvTs8I/OssEU0k0ovsTecFXID+RgAjNJSaFA/1Xe2ea+zpawRJObyMgu
-         19cztYLUx1NH0JiZHCqMpTvMDeQFFxvfgHIm+IY1C/Mc7G7WmigbnAWE9e4IQ/d5dXCK
-         rR/w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=LHVU+QXiGt07dK7ESmFeMKaxf7KrWiJkDIp3MS3i/HA=;
-        b=aYRP+5xSBohyHzhZNP0RppOQNsv/zA4x/CjJ7wbkMHcuoZtdcl4Ee0WjRQHkofJVXv
-         6mNvRc0+O5cDUG1jc0KPjFK6YWLdbn57HacgnWq9BCpw+4HDrI47bD1TeYGMSufEbWMR
-         12xB+LZcH6sWx9bnP6tdVnWtGbBY9xme2Uot4blYd7ho8cNDPqfdVjGZqQulos4Q2QLT
-         0GvAK4aPG37fJqGuIU345yDl/Yk/Gyb6HKvmx40s8aWrrANhmFfJTycx1tRC2pE9Vq2I
-         2TUhuIfz0ZhWOwVWpGSzXSt5P6K1gwn5xbYX62hMerQmz2wgfAfhXuL/jvSKGfBuABUN
-         XoUQ==
-X-Gm-Message-State: ACgBeo1iKn3BZWtJs+nbtzs40NKXXTmsv51XJwTlT4nsnHVwOzEzfNzD
-        xeP1xV1s4CeiqjGNhM1t8+Fa/9hF1YS07y4T3LWEt2quBzo=
-X-Google-Smtp-Source: AA6agR4vsOByx7G2EqdM2wGeNdWjrxldUVUoAMh8pyLq9YUoOy40B4L6IfeYpNMlie8KjTBoQ6ZcmmiYLpEtk7rhxtA=
-X-Received: by 2002:a05:6638:2388:b0:34a:e033:396b with SMTP id
- q8-20020a056638238800b0034ae033396bmr8302215jat.93.1662769694877; Fri, 09 Sep
- 2022 17:28:14 -0700 (PDT)
+        Fri, 9 Sep 2022 22:02:29 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0B176B93;
+        Fri,  9 Sep 2022 19:02:27 -0700 (PDT)
+Date:   Sat, 10 Sep 2022 04:02:18 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Chris Clayton <chris2553@googlemail.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        regressions@lists.linux.dev, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: removing conntrack helper toggle to enable auto-assignment [was Re:
+ b118509076b3 (probably) breaks my firewall]
+Message-ID: <YxvwKlE+nyfUjHx8@salvia>
+References: <e5d757d7-69bc-a92a-9d19-0f7ed0a81743@googlemail.com>
+ <20220908191925.GB16543@breakpoint.cc>
+ <78611fbd-434e-c948-5677-a0bdb66f31a5@googlemail.com>
+ <20220908214859.GD16543@breakpoint.cc>
+ <YxsTMMFoaNSM9gLN@salvia>
+ <a3c79b7d-526f-92ce-144a-453ec3c200a5@googlemail.com>
 MIME-Version: 1.0
-References: <cover.1662568410.git.dxu@dxuuu.xyz>
-In-Reply-To: <cover.1662568410.git.dxu@dxuuu.xyz>
-From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Date:   Sat, 10 Sep 2022 02:27:38 +0200
-Message-ID: <CAP01T77JFBiO84iezH4Jh++vu=EEDf63KepK_jKFmjgjrHPgmw@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v5 0/6] Support direct writes to nf_conn:mark
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, pablo@netfilter.org, fw@strlen.de,
-        toke@kernel.org, martin.lau@linux.dev,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <a3c79b7d-526f-92ce-144a-453ec3c200a5@googlemail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 7 Sept 2022 at 18:41, Daniel Xu <dxu@dxuuu.xyz> wrote:
+On Fri, Sep 09, 2022 at 07:21:47PM +0100, Chris Clayton wrote:
+> On 09/09/2022 11:19, Pablo Neira Ayuso wrote:
+> > On Thu, Sep 08, 2022 at 11:48:59PM +0200, Florian Westphal wrote:
+> >> Chris Clayton <chris2553@googlemail.com> wrote:
+> >>
+> >> [ CC Pablo ]
+> >>
+> >>> On 08/09/2022 20:19, Florian Westphal wrote:
+> >>>> Chris Clayton <chris2553@googlemail.com> wrote:
+> >>>>> Just a heads up and a question...
+> >>>>>
+> >>>>> I've pulled the latest and greatest from Linus' tree and built and installed the kernel. git describe gives
+> >>>>> v6.0-rc4-126-g26b1224903b3.
+> >>>>>
+> >>>>> I find that my firewall is broken because /proc/sys/net/netfilter/nf_conntrack_helper no longer exists. It existed on an
+> >>>>> -rc4 kernel. Are changes like this supposed to be introduced at this stage of the -rc cycle?
+> >>>>
+> >>>> The problem is that the default-autoassign (nf_conntrack_helper=1) has
+> >>>> side effects that most people are not aware of.
+> >>>>
+> >>>> The bug that propmpted this toggle from getting axed was that the irc (dcc) helper allowed
+> >>>> a remote client to create a port forwarding to the local client.
+> >>>
+> >>>
+> >>> Ok, but I still think it's not the sort of change that should be introduced at this stage of the -rc cycle.
+> >>> The other problem is that the documentation (Documentation/networking/nf_conntrack-sysctl.rst) hasn't been updated. So I
+> >>> know my firewall is broken but there's nothing I can find that tells me how to fix it.
+> >>
+> >> Pablo, I don't think revert+move the 'next' will avoid this kinds of
+> >> problems, but at least the nf_conntrack-sysctl.rst should be amended to
+> >> reflect that this was removed.
+> > 
+> > I'll post a patch to amend the documentation.
+> > 
+> >> I'd keep it though because people that see an error wrt. this might be
+> >> looking at nf_conntrack-sysctl.rst.
+> >>
+> >> Maybe just a link to
+> >> https://home.regit.org/netfilter-en/secure-use-of-helpers/?
 >
-> Support direct writes to nf_conn:mark from TC and XDP prog types. This
-> is useful when applications want to store per-connection metadata. This
-> is also particularly useful for applications that run both bpf and
-> iptables/nftables because the latter can trivially access this metadata.
->
-> One example use case would be if a bpf prog is responsible for advanced
-> packet classification and iptables/nftables is later used for routing
-> due to pre-existing/legacy code.
->
+> but
+> I'm afraid that document isn't much use to a "Joe User" like me. It's written by people who know a lot about the subject
+> matter to be read by other people who know a lot about the subject matter.
 
-There are a couple of compile time warnings when conntrack is disabled,
+This is always an issue: deprecating stuff is problematic. After
+finally removing this toggle, there are chances that more users come
+to complain at the flag day to say they did not have enough time to
+update their setup to enable conntrack helpers by policy as the
+document recommends.
 
-../net/core/filter.c:8608:1: warning: symbol 'nf_conn_btf_access_lock'
-was not declared. Should it be static?
-../net/core/filter.c:8611:5: warning: symbol 'nfct_bsa' was not
-declared. Should it be static?
+This is the history behind this toggle:
 
-Most likely because extern declaration is guarded by ifdefs. So just
-moving those out of ifdef should work.
-I guess you can send that as a follow up fix, or roll it in if you end
-up respinning.
+- In 2012, the documentation above is released and a toggle is added
+  to disable the existing behaviour.
 
-Otherwise, for the series:
-Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+- In 2016, this toggle is set off by default, _that was already
+  breaking existing setups_ as a way to attract users' attention on
+  this topic. Yes, that was a tough way to attract attention on this
+  topic.
+
+  Moreover, this warning message was also available via dmesg:
+
+        nf_conntrack: default automatic helper assignment
+                      has been turned off for security reasons and CT-based
+                      firewall rule not found. Use the iptables CT target
+                      to attach helpers instead.
+
+  There was a simple way to restore the previous behaviour
+  by simply:
+
+        echo 1 > /proc/sys/net/netfilter/nf_conntrack_helper
+
+  Still, maybe not many people look at this warning message.
+
+- In 2022, the toggle is removed. There is still a way to restore your
+  setup, which is to enable conntrack helpers via policy. Yes, it
+  requires a bit more effort, but there is documentation available on
+  how to do this.
+
+  Why at -rc stage? Someone reported a security issue related to
+  one of the conntrack helpers, and the reporter claims many users
+  still rely on the insecure configuration. This attracted again
+  our attention on this toggle, and we decided it was a good idea to
+  finally remove it, the sooner the better.
+
+> >> What do you think?
+> > 
+> > I'll update netfilter.org to host a copy of the github sources.
+> > 
+> > We have been announcing this going deprecated for 10 years...
+> 
+> That may be the case, it should be broken before -rc1 is released. Breaking it at -rc4+ is, I think, a regression!
+> Adding Thorsten Leemuis to cc list
+
+Disagreed, reverting and waiting for one more release cycle will just
+postpone the fact that users must adapt their policies, and that they
+rely on a configuration which is not secure.
