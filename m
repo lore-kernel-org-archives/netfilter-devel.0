@@ -2,284 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59870ECAAD3
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Sep 2022 14:53:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E518DC6FA82
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Sep 2022 00:28:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231960AbiIIOx4 (ORCPT
+        id S230150AbiIJA2S (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Sep 2022 10:53:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38348 "EHLO
+        Fri, 9 Sep 2022 20:28:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231703AbiIIOxy (ORCPT
+        with ESMTP id S230283AbiIJA2R (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2022 10:53:54 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEDBD1332AE;
-        Fri,  9 Sep 2022 07:53:52 -0700 (PDT)
-Received: from fraeml701-chm.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MPJrB6nRSz67lnC;
-        Fri,  9 Sep 2022 22:52:42 +0800 (CST)
-Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
- fraeml701-chm.china.huawei.com (10.206.15.50) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.31; Fri, 9 Sep 2022 16:53:49 +0200
-Received: from [10.122.132.241] (10.122.132.241) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 9 Sep 2022 15:53:49 +0100
-Message-ID: <72db3ee6-06ee-0af8-06c6-ac16200bb83f@huawei.com>
-Date:   Fri, 9 Sep 2022 17:53:48 +0300
+        Fri, 9 Sep 2022 20:28:17 -0400
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 794C8E622B;
+        Fri,  9 Sep 2022 17:28:15 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id 62so2740528iov.5;
+        Fri, 09 Sep 2022 17:28:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=LHVU+QXiGt07dK7ESmFeMKaxf7KrWiJkDIp3MS3i/HA=;
+        b=Yh7QAXEfHv5nIZFxP53NrXPMw5luZg5JL/pAqwL6379WEmjgn1w0epRFMVOgseoHFy
+         Rl5DtXHyWdXAJCBeT3w6I83CTF9sZXQV7NN+yD8p5MNQGjroKoK0F6pk0+32R+XoRrek
+         2jDpAULtRmdvYgm0Rhr3DvXv6gsqOKqeKnvZmlv02AAU3GRgHKZNG0+LQ9kS/3Wqzie8
+         YmlweZSrKVpATvTs8I/OssEU0k0ovsTecFXID+RgAjNJSaFA/1Xe2ea+zpawRJObyMgu
+         19cztYLUx1NH0JiZHCqMpTvMDeQFFxvfgHIm+IY1C/Mc7G7WmigbnAWE9e4IQ/d5dXCK
+         rR/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=LHVU+QXiGt07dK7ESmFeMKaxf7KrWiJkDIp3MS3i/HA=;
+        b=aYRP+5xSBohyHzhZNP0RppOQNsv/zA4x/CjJ7wbkMHcuoZtdcl4Ee0WjRQHkofJVXv
+         6mNvRc0+O5cDUG1jc0KPjFK6YWLdbn57HacgnWq9BCpw+4HDrI47bD1TeYGMSufEbWMR
+         12xB+LZcH6sWx9bnP6tdVnWtGbBY9xme2Uot4blYd7ho8cNDPqfdVjGZqQulos4Q2QLT
+         0GvAK4aPG37fJqGuIU345yDl/Yk/Gyb6HKvmx40s8aWrrANhmFfJTycx1tRC2pE9Vq2I
+         2TUhuIfz0ZhWOwVWpGSzXSt5P6K1gwn5xbYX62hMerQmz2wgfAfhXuL/jvSKGfBuABUN
+         XoUQ==
+X-Gm-Message-State: ACgBeo1iKn3BZWtJs+nbtzs40NKXXTmsv51XJwTlT4nsnHVwOzEzfNzD
+        xeP1xV1s4CeiqjGNhM1t8+Fa/9hF1YS07y4T3LWEt2quBzo=
+X-Google-Smtp-Source: AA6agR4vsOByx7G2EqdM2wGeNdWjrxldUVUoAMh8pyLq9YUoOy40B4L6IfeYpNMlie8KjTBoQ6ZcmmiYLpEtk7rhxtA=
+X-Received: by 2002:a05:6638:2388:b0:34a:e033:396b with SMTP id
+ q8-20020a056638238800b0034ae033396bmr8302215jat.93.1662769694877; Fri, 09 Sep
+ 2022 17:28:14 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v7 03/18] landlock: refactor merge/inherit_ruleset
- functions
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <anton.sirazetdinov@huawei.com>
-References: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
- <20220829170401.834298-4-konstantin.meskhidze@huawei.com>
- <6839cc81-fa34-cda9-91d3-89f63750795c@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <6839cc81-fa34-cda9-91d3-89f63750795c@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+References: <cover.1662568410.git.dxu@dxuuu.xyz>
+In-Reply-To: <cover.1662568410.git.dxu@dxuuu.xyz>
+From:   Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Date:   Sat, 10 Sep 2022 02:27:38 +0200
+Message-ID: <CAP01T77JFBiO84iezH4Jh++vu=EEDf63KepK_jKFmjgjrHPgmw@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v5 0/6] Support direct writes to nf_conn:mark
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, pablo@netfilter.org, fw@strlen.de,
+        toke@kernel.org, martin.lau@linux.dev,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Wed, 7 Sept 2022 at 18:41, Daniel Xu <dxu@dxuuu.xyz> wrote:
+>
+> Support direct writes to nf_conn:mark from TC and XDP prog types. This
+> is useful when applications want to store per-connection metadata. This
+> is also particularly useful for applications that run both bpf and
+> iptables/nftables because the latter can trivially access this metadata.
+>
+> One example use case would be if a bpf prog is responsible for advanced
+> packet classification and iptables/nftables is later used for routing
+> due to pre-existing/legacy code.
+>
 
+There are a couple of compile time warnings when conntrack is disabled,
 
-9/6/2022 11:07 AM, Mickaël Salaün пишет:
-> 
-> On 29/08/2022 19:03, Konstantin Meskhidze wrote:
->> Refactors merge_ruleset() and inherit_ruleset() functions to support
->> new rule types. This patch adds merge_tree() and inherit_tree()
->> helpers. Each has key_type argument to choose a particular rb_tree
->> structure in a ruleset.
->> 
->> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->> 
->> Changes since v6:
->> * Refactors merge_ruleset() and inherit_ruleset() functions to support
->>    new rule types.
->> * Renames tree_merge() to merge_tree() (and reorder arguments), and
->>    tree_copy() to inherit_tree().
->> 
->> Changes since v5:
->> * Refactors some logic errors.
->> * Formats code with clang-format-14.
->> 
->> Changes since v4:
->> * None
->> 
->> ---
->>   security/landlock/ruleset.c | 108 +++++++++++++++++++++++-------------
->>   1 file changed, 69 insertions(+), 39 deletions(-)
->> 
->> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
->> index 41de17d1869e..3a5ef356aaa3 100644
->> --- a/security/landlock/ruleset.c
->> +++ b/security/landlock/ruleset.c
->> @@ -302,36 +302,18 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
->>   	}
->>   }
->> 
->> -static int merge_ruleset(struct landlock_ruleset *const dst,
->> -			 struct landlock_ruleset *const src)
->> +static int merge_tree(struct landlock_ruleset *const dst,
->> +		      struct landlock_ruleset *const src,
->> +		      const enum landlock_key_type key_type)
->>   {
->>   	struct landlock_rule *walker_rule, *next_rule;
->>   	struct rb_root *src_root;
->>   	int err = 0;
->> 
->> -	might_sleep();
->> -	/* Should already be checked by landlock_merge_ruleset() */
->> -	if (WARN_ON_ONCE(!src))
->> -		return 0;
->> -	/* Only merge into a domain. */
->> -	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
->> -		return -EINVAL;
->> -
->> -	src_root = get_root(src, LANDLOCK_KEY_INODE);
-> 
-> This hunk is a bit misleading, but please add a might_sleep() call here
-> because of the insert_rule() call, and some lock asserts:
-> 
-> might_sleep();
-> lockdep_assert_held(&dst->lock);
-> lockdep_assert_held(&src->lock);
+../net/core/filter.c:8608:1: warning: symbol 'nf_conn_btf_access_lock'
+was not declared. Should it be static?
+../net/core/filter.c:8611:5: warning: symbol 'nfct_bsa' was not
+declared. Should it be static?
 
-   it was moved into merge_ruleset() function,
-   please check below.
+Most likely because extern declaration is guarded by ifdefs. So just
+moving those out of ifdef should work.
+I guess you can send that as a follow up fix, or roll it in if you end
+up respinning.
 
-> 
-> 
->> +	src_root = get_root(src, key_type);
->>   	if (IS_ERR(src_root))
->>   		return PTR_ERR(src_root);
->> 
->> -	/* Locks @dst first because we are its only owner. */
->> -	mutex_lock(&dst->lock);
->> -	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
->> -
->> -	/* Stacks the new layer. */
->> -	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
->> -		err = -EINVAL;
->> -		goto out_unlock;
->> -	}
->> -	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
->> -
->>   	/* Merges the @src tree. */
->>   	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
->>   					     node) {
->> @@ -340,7 +322,7 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->>   		} };
->>   		const struct landlock_id id = {
->>   			.key = walker_rule->key,
->> -			.type = LANDLOCK_KEY_INODE,
->> +			.type = key_type,
->>   		};
->> 
->>   		if (WARN_ON_ONCE(walker_rule->num_layers != 1))
->> @@ -351,8 +333,39 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->> 
->>   		err = insert_rule(dst, id, &layers, ARRAY_SIZE(layers));
->>   		if (err)
->> -			goto out_unlock;
->> +			return err;
->> +	}
->> +	return err;
->> +}
->> +
->> +static int merge_ruleset(struct landlock_ruleset *const dst,
->> +			 struct landlock_ruleset *const src)
->> +{
->> +	int err = 0;
->> +
->> +	might_sleep();
->> +	/* Should already be checked by landlock_merge_ruleset() */
->> +	if (WARN_ON_ONCE(!src))
->> +		return 0;
->> +	/* Only merge into a domain. */
->> +	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
->> +		return -EINVAL;
->> +
->> +	/* Locks @dst first because we are its only owner. */
->> +	mutex_lock(&dst->lock);
->> +	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
->> +
->> +	/* Stacks the new layer. */
->> +	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
->> +		err = -EINVAL;
->> +		goto out_unlock;
->>   	}
->> +	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
->> +
->> +	/* Merges the @src inode tree. */
->> +	err = merge_tree(dst, src, LANDLOCK_KEY_INODE);
->> +	if (err)
->> +		goto out_unlock;
->> 
->>   out_unlock:
->>   	mutex_unlock(&src->lock);
->> @@ -360,43 +373,60 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->>   	return err;
->>   }
->> 
->> -static int inherit_ruleset(struct landlock_ruleset *const parent,
->> -			   struct landlock_ruleset *const child)
->> +static int inherit_tree(struct landlock_ruleset *const parent,
->> +			struct landlock_ruleset *const child,
->> +			const enum landlock_key_type key_type)
->>   {
->>   	struct landlock_rule *walker_rule, *next_rule;
->>   	struct rb_root *parent_root;
->>   	int err = 0;
->> 
->> -	might_sleep();
->> -	if (!parent)
->> -		return 0;
->> -
->> -	parent_root = get_root(parent, LANDLOCK_KEY_INODE);
-> 
-> This hunk is a bit misleading, but please add a might_sleep() call here
-> because of the insert_rule() call, and some lock asserts:
-> 
-> might_sleep();
-> lockdep_assert_held(&parent->lock);
-> lockdep_assert_held(&child->lock);
-> 
-   it was moved into inherit_ruleset() function,
-   please check below.
-> 
->> +	parent_root = get_root(parent, key_type);
->>   	if (IS_ERR(parent_root))
->>   		return PTR_ERR(parent_root);
->> 
->> -	/* Locks @child first because we are its only owner. */
->> -	mutex_lock(&child->lock);
->> -	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
->> -
->> -	/* Copies the @parent tree. */
->> +	/* Copies the @parent inode or network tree. */
->>   	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
->>   					     parent_root, node) {
->>   		const struct landlock_id id = {
->>   			.key = walker_rule->key,
->> -			.type = LANDLOCK_KEY_INODE,
->> +			.type = key_type,
->>   		};
->> +
->>   		err = insert_rule(child, id, &walker_rule->layers,
->>   				  walker_rule->num_layers);
->>   		if (err)
->> -			goto out_unlock;
->> +			return err;
->>   	}
->> +	return err;
->> +}
->> +
->> +static int inherit_ruleset(struct landlock_ruleset *const parent,
->> +			   struct landlock_ruleset *const child)
->> +{
->> +	int err = 0;
->> +
->> +	might_sleep();
->> +	if (!parent)
->> +		return 0;
->> +
->> +	/* Locks @child first because we are its only owner. */
->> +	mutex_lock(&child->lock);
->> +	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
->> +
->> +	/* Copies the @parent inode tree. */
->> +	err = inherit_tree(parent, child, LANDLOCK_KEY_INODE);
->> +	if (err)
->> +		goto out_unlock;
->> 
->>   	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
->>   		err = -EINVAL;
->>   		goto out_unlock;
->>   	}
->> -	/* Copies the parent layer stack and leaves a space for the new layer. */
->> +	/*
->> +	 * Copies the parent layer stack and leaves a space
->> +	 * for the new layer.
->> +	 */
->>   	memcpy(child->access_masks, parent->access_masks,
->>   	       flex_array_size(parent, access_masks, parent->num_layers));
->> 
->> --
->> 2.25.1
->> 
-> .
+Otherwise, for the series:
+Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
