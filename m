@@ -2,167 +2,304 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FA8DECAAD5
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Sep 2022 08:00:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A126C6FA86
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Sep 2022 16:50:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbiIJIAF (ORCPT
+        id S229529AbiIJQud (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Sep 2022 04:00:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42976 "EHLO
+        Sat, 10 Sep 2022 12:50:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229492AbiIJIAF (ORCPT
+        with ESMTP id S229464AbiIJQuc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Sep 2022 04:00:05 -0400
-Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B58A2E6B3
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Sep 2022 01:00:02 -0700 (PDT)
-Received: from fews1.riseup.net (fews1-pn.riseup.net [10.0.1.83])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
-         client-signature RSA-PSS (2048 bits) client-digest SHA256)
-        (Client CN "mail.riseup.net", Issuer "R3" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 4MPldY4ZpczDqqr
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Sep 2022 08:00:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1662796801; bh=ZEpJB/kX/S0X/B4I8fRK7sVmTqoXRKML9jW1af32zbY=;
-        h=From:To:Cc:Subject:Date:From;
-        b=GnVi8EO4FTOItoSUeblHdSbfrSXiBBTLlXV1AktXIQfElxI7GFQ5kSTBPKmeKiD2l
-         WYmmpirJkMZ+9rdHyUkfVFFw60CluMi8RYriYsEkcsXTQCLJsEL76L022wRrUC5Yn2
-         rVt5bKF3hnL9dIB53tl6F5yjpd60KxsQs7F3qZ2w=
-X-Riseup-User-ID: 7022B0F0CFA31255798AB732A863832A2C7031E8184F1294A3761F2345A07FFD
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by fews1.riseup.net (Postfix) with ESMTPSA id 4MPldX5jMbz5vcD;
-        Sat, 10 Sep 2022 08:00:00 +0000 (UTC)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft] json: add secmark object reference support
-Date:   Sat, 10 Sep 2022 09:59:48 +0200
-Message-Id: <20220910075948.58810-1-ffmancera@riseup.net>
+        Sat, 10 Sep 2022 12:50:32 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A34D303FD;
+        Sat, 10 Sep 2022 09:50:25 -0700 (PDT)
+Received: from fraeml742-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MPzJd36Ctz67DfB;
+        Sun, 11 Sep 2022 00:46:09 +0800 (CST)
+Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
+ fraeml742-chm.china.huawei.com (10.206.15.223) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Sat, 10 Sep 2022 18:50:22 +0200
+Received: from [10.122.132.241] (10.122.132.241) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Sat, 10 Sep 2022 17:50:22 +0100
+Message-ID: <71a51eaa-7c6b-edfa-b397-2597c06b32db@huawei.com>
+Date:   Sat, 10 Sep 2022 19:50:21 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v7 04/18] landlock: move helper functions
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <anton.sirazetdinov@huawei.com>
+References: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
+ <20220829170401.834298-5-konstantin.meskhidze@huawei.com>
+ <2299f034-e6f2-051c-97e3-bf93a0916a50@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <2299f034-e6f2-051c-97e3-bf93a0916a50@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The secmark object reference requires a json parser function and it was
-missing. In addition, extends the shell testcases.
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=3D1630
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
- src/parser_json.c                              | 18 ++++++++++++++++++
- .../shell/testcases/json/0005secmark_objref_0  |  9 +++++++++
- .../json/dumps/0005secmark_objref_0.nft        | 18 ++++++++++++++++++
- 3 files changed, 45 insertions(+)
- create mode 100755 tests/shell/testcases/json/0005secmark_objref_0
- create mode 100644 tests/shell/testcases/json/dumps/0005secmark_objref_0.n=
-ft
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 46dca9fd..1ffca2d1 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -1966,6 +1966,23 @@ static struct stmt *json_parse_dup_stmt(struct json_=
-ctx *ctx,
- 	return stmt;
- }
-=20
-+static struct stmt *json_parse_secmark_stmt(struct json_ctx *ctx,
-+					     const char *key, json_t *value)
-+{
-+	struct stmt *stmt;
-+
-+	stmt =3D objref_stmt_alloc(int_loc);
-+	stmt->objref.type =3D NFT_OBJECT_SECMARK;
-+	stmt->objref.expr =3D json_parse_stmt_expr(ctx, value);
-+	if (!stmt->objref.expr) {
-+		json_error(ctx, "Invalid secmark reference.");
-+		stmt_free(stmt);
-+		return NULL;
-+	}
-+
-+	return stmt;
-+}
-+
- static int json_parse_nat_flag(struct json_ctx *ctx,
- 			       json_t *root, int *flags)
- {
-@@ -2727,6 +2744,7 @@ static struct stmt *json_parse_stmt(struct json_ctx *=
-ctx, json_t *root)
- 		{ "tproxy", json_parse_tproxy_stmt },
- 		{ "synproxy", json_parse_synproxy_stmt },
- 		{ "reset", json_parse_optstrip_stmt },
-+		{ "secmark", json_parse_secmark_stmt },
- 	};
- 	const char *type;
- 	unsigned int i;
-diff --git a/tests/shell/testcases/json/0005secmark_objref_0 b/tests/shell/=
-testcases/json/0005secmark_objref_0
-new file mode 100755
-index 00000000..ae967435
---- /dev/null
-+++ b/tests/shell/testcases/json/0005secmark_objref_0
-@@ -0,0 +1,9 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT flush ruleset
-+
-+RULESET=3D'{"nftables": [{"metainfo": {"version": "1.0.5", "release_name":=
- "Lester Gooch #4", "json_schema_version": 1}}, {"table": {"family": "inet"=
-, "name": "x", "handle": 4}}, {"secmark": {"family": "inet", "name": "ssh_s=
-erver", "table": "x", "handle": 1, "context": "system_u:object_r:ssh_server=
-_packet_t:s0"}}, {"chain": {"family": "inet", "table": "x", "name": "y", "h=
-andle": 2, "type": "filter", "hook": "input", "prio": -225, "policy": "acce=
-pt"}}, {"chain": {"family": "inet", "table": "x", "name": "z", "handle": 3,=
- "type": "filter", "hook": "output", "prio": 225, "policy": "accept"}}, {"r=
-ule": {"family": "inet", "table": "x", "chain": "y", "handle": 4, "expr": [=
-{"match": {"op": "=3D=3D", "left": {"payload": {"protocol": "tcp", "field":=
- "dport"}}, "right": 2222}}, {"match": {"op": "in", "left": {"ct": {"key": =
-"state"}}, "right": "new"}}, {"secmark": "ssh_server"}]}}, {"rule": {"famil=
-y": "inet", "table": "x", "chain": "y", "handle": 5, "expr": [{"match": {"o=
-p": "in", "left": {"ct": {"key": "state"}}, "right": "new"}}, {"mangle": {"=
-key": {"ct": {"key": "secmark"}}, "value": {"meta": {"key": "secmark"}}}}]}=
-}, {"rule": {"family": "inet", "table": "x", "chain": "y", "handle": 6, "ex=
-pr": [{"match": {"op": "in", "left": {"ct": {"key": "state"}}, "right": ["e=
-stablished", "related"]}}, {"mangle": {"key": {"meta": {"key": "secmark"}},=
- "value": {"ct": {"key": "secmark"}}}}]}}, {"rule": {"family": "inet", "tab=
-le": "x", "chain": "z", "handle": 7, "expr": [{"match": {"op": "in", "left"=
-: {"ct": {"key": "state"}}, "right": "new"}}, {"mangle": {"key": {"ct": {"k=
-ey": "secmark"}}, "value": {"meta": {"key": "secmark"}}}}]}}, {"rule": {"fa=
-mily": "inet", "table": "x", "chain": "z", "handle": 8, "expr": [{"match": =
-{"op": "in", "left": {"ct": {"key": "state"}}, "right": ["established", "re=
-lated"]}}, {"mangle": {"key": {"meta": {"key": "secmark"}}, "value": {"ct":=
- {"key": "secmark"}}}}]}}]}'
-+
-+$NFT -j -f - <<< $RULESET
-diff --git a/tests/shell/testcases/json/dumps/0005secmark_objref_0.nft b/te=
-sts/shell/testcases/json/dumps/0005secmark_objref_0.nft
-new file mode 100644
-index 00000000..4c218e93
---- /dev/null
-+++ b/tests/shell/testcases/json/dumps/0005secmark_objref_0.nft
-@@ -0,0 +1,18 @@
-+table inet x {
-+	secmark ssh_server {
-+		"system_u:object_r:ssh_server_packet_t:s0"
-+	}
-+
-+	chain y {
-+		type filter hook input priority -225; policy accept;
-+		tcp dport 2222 ct state new meta secmark set "ssh_server"
-+		ct state new ct secmark set meta secmark
-+		ct state established,related meta secmark set ct secmark
-+	}
-+
-+	chain z {
-+		type filter hook output priority 225; policy accept;
-+		ct state new ct secmark set meta secmark
-+		ct state established,related meta secmark set ct secmark
-+	}
-+}
---=20
-2.30.2
-
+9/6/2022 11:07 AM, Mickaël Salaün пишет:
+> You can make the subject more informative with "landlock: Move
+> unmask_layers() and init_layer_masks()".
+> 
+  Ok. Thanks.
+> 
+> On 29/08/2022 19:03, Konstantin Meskhidze wrote:
+>> This patch moves unmask_layers() and init_layer_masks() helpers
+>> to ruleset.c to share with landlock network implementation in
+>> following commits.
+>> 
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
+>> 
+>> Changes since v6:
+>> * Moves get_handled_accesses() helper from ruleset.c back to fs.c,
+>>    cause it's not used in coming network commits.
+>> 
+>> Changes since v5:
+>> * Splits commit.
+>> * Moves init_layer_masks() and get_handled_accesses() helpers
+>> to ruleset.c and makes then non-static.
+>> * Formats code with clang-format-14.
+>> 
+>> ---
+>>   security/landlock/fs.c      | 85 -------------------------------------
+>>   security/landlock/ruleset.c | 84 ++++++++++++++++++++++++++++++++++++
+>>   security/landlock/ruleset.h | 10 +++++
+>>   3 files changed, 94 insertions(+), 85 deletions(-)
+>> 
+>> diff --git a/security/landlock/fs.c b/security/landlock/fs.c
+>> index cca87fcd222d..b03d6153f628 100644
+>> --- a/security/landlock/fs.c
+>> +++ b/security/landlock/fs.c
+>> @@ -215,60 +215,6 @@ find_rule(const struct landlock_ruleset *const domain,
+>>   	return rule;
+>>   }
+>> 
+>> -/*
+>> - * @layer_masks is read and may be updated according to the access request and
+>> - * the matching rule.
+>> - *
+>> - * Returns true if the request is allowed (i.e. relevant layer masks for the
+>> - * request are empty).
+>> - */
+>> -static inline bool
+>> -unmask_layers(const struct landlock_rule *const rule,
+>> -	      const access_mask_t access_request,
+>> -	      layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS])
+>> -{
+>> -	size_t layer_level;
+>> -
+>> -	if (!access_request || !layer_masks)
+>> -		return true;
+>> -	if (!rule)
+>> -		return false;
+>> -
+>> -	/*
+>> -	 * An access is granted if, for each policy layer, at least one rule
+>> -	 * encountered on the pathwalk grants the requested access,
+>> -	 * regardless of its position in the layer stack.  We must then check
+>> -	 * the remaining layers for each inode, from the first added layer to
+>> -	 * the last one.  When there is multiple requested accesses, for each
+>> -	 * policy layer, the full set of requested accesses may not be granted
+>> -	 * by only one rule, but by the union (binary OR) of multiple rules.
+>> -	 * E.g. /a/b <execute> + /a <read> => /a/b <execute + read>
+>> -	 */
+>> -	for (layer_level = 0; layer_level < rule->num_layers; layer_level++) {
+>> -		const struct landlock_layer *const layer =
+>> -			&rule->layers[layer_level];
+>> -		const layer_mask_t layer_bit = BIT_ULL(layer->level - 1);
+>> -		const unsigned long access_req = access_request;
+>> -		unsigned long access_bit;
+>> -		bool is_empty;
+>> -
+>> -		/*
+>> -		 * Records in @layer_masks which layer grants access to each
+>> -		 * requested access.
+>> -		 */
+>> -		is_empty = true;
+>> -		for_each_set_bit(access_bit, &access_req,
+>> -				 ARRAY_SIZE(*layer_masks)) {
+>> -			if (layer->access & BIT_ULL(access_bit))
+>> -				(*layer_masks)[access_bit] &= ~layer_bit;
+>> -			is_empty = is_empty && !(*layer_masks)[access_bit];
+>> -		}
+>> -		if (is_empty)
+>> -			return true;
+>> -	}
+>> -	return false;
+>> -}
+>> -
+>>   /*
+>>    * Allows access to pseudo filesystems that will never be mountable (e.g.
+>>    * sockfs, pipefs), but can still be reachable through
+>> @@ -303,37 +249,6 @@ get_handled_accesses(const struct landlock_ruleset *const domain)
+>>   	return access_dom;
+>>   }
+>> 
+>> -static inline access_mask_t
+>> -init_layer_masks(const struct landlock_ruleset *const domain,
+>> -		 const access_mask_t access_request,
+>> -		 layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS])
+>> -{
+>> -	access_mask_t handled_accesses = 0;
+>> -	size_t layer_level;
+>> -
+>> -	memset(layer_masks, 0, sizeof(*layer_masks));
+>> -	/* An empty access request can happen because of O_WRONLY | O_RDWR. */
+>> -	if (!access_request)
+>> -		return 0;
+>> -
+>> -	/* Saves all handled accesses per layer. */
+>> -	for (layer_level = 0; layer_level < domain->num_layers; layer_level++) {
+>> -		const unsigned long access_req = access_request;
+>> -		unsigned long access_bit;
+>> -
+>> -		for_each_set_bit(access_bit, &access_req,
+>> -				 ARRAY_SIZE(*layer_masks)) {
+>> -			if (landlock_get_fs_access_mask(domain, layer_level) &
+>> -			    BIT_ULL(access_bit)) {
+>> -				(*layer_masks)[access_bit] |=
+>> -					BIT_ULL(layer_level);
+>> -				handled_accesses |= BIT_ULL(access_bit);
+>> -			}
+>> -		}
+>> -	}
+>> -	return handled_accesses;
+>> -}
+>> -
+>>   /*
+>>    * Check that a destination file hierarchy has more restrictions than a source
+>>    * file hierarchy.  This is only used for link and rename actions.
+>> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+>> index 3a5ef356aaa3..671a95e2a345 100644
+>> --- a/security/landlock/ruleset.c
+>> +++ b/security/landlock/ruleset.c
+>> @@ -564,3 +564,87 @@ landlock_find_rule(const struct landlock_ruleset *const ruleset,
+>>   	}
+>>   	return NULL;
+>>   }
+>> +
+>> +/*
+>> + * @layer_masks is read and may be updated according to the access request and
+>> + * the matching rule.
+>> + *
+>> + * Returns true if the request is allowed (i.e. relevant layer masks for the
+>> + * request are empty).
+>> + */
+>> +bool unmask_layers(const struct landlock_rule *const rule,
+>> +		   const access_mask_t access_request,
+>> +		   layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS])
+>> +{
+>> +	size_t layer_level;
+>> +
+>> +	if (!access_request || !layer_masks)
+>> +		return true;
+>> +	if (!rule)
+>> +		return false;
+>> +
+>> +	/*
+>> +	 * An access is granted if, for each policy layer, at least one rule
+>> +	 * encountered on the pathwalk grants the requested access,
+>> +	 * regardless of its position in the layer stack.  We must then check
+>> +	 * the remaining layers for each inode, from the first added layer to
+>> +	 * the last one.  When there is multiple requested accesses, for each
+>> +	 * policy layer, the full set of requested accesses may not be granted
+>> +	 * by only one rule, but by the union (binary OR) of multiple rules.
+>> +	 * E.g. /a/b <execute> + /a <read> => /a/b <execute + read>
+>> +	 */
+>> +	for (layer_level = 0; layer_level < rule->num_layers; layer_level++) {
+>> +		const struct landlock_layer *const layer =
+>> +			&rule->layers[layer_level];
+>> +		const layer_mask_t layer_bit = BIT_ULL(layer->level - 1);
+>> +		const unsigned long access_req = access_request;
+>> +		unsigned long access_bit;
+>> +		bool is_empty;
+>> +
+>> +		/*
+>> +		 * Records in @layer_masks which layer grants access to each
+>> +		 * requested access.
+>> +		 */
+>> +		is_empty = true;
+>> +		for_each_set_bit(access_bit, &access_req,
+>> +				 ARRAY_SIZE(*layer_masks)) {
+>> +			if (layer->access & BIT_ULL(access_bit))
+>> +				(*layer_masks)[access_bit] &= ~layer_bit;
+>> +			is_empty = is_empty && !(*layer_masks)[access_bit];
+>> +		}
+>> +		if (is_empty)
+>> +			return true;
+>> +	}
+>> +	return false;
+>> +}
+>> +
+>> +access_mask_t
+>> +init_layer_masks(const struct landlock_ruleset *const domain,
+>> +		 const access_mask_t access_request,
+>> +		 layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS])
+>> +{
+>> +	access_mask_t handled_accesses = 0;
+>> +	size_t layer_level;
+>> +
+>> +	memset(layer_masks, 0, sizeof(*layer_masks));
+>> +	/* An empty access request can happen because of O_WRONLY | O_RDWR. */
+>> +	if (!access_request)
+>> +		return 0;
+>> +
+>> +	/* Saves all handled accesses per layer. */
+>> +	for (layer_level = 0; layer_level < domain->num_layers; layer_level++) {
+>> +		const unsigned long access_req = access_request;
+>> +		unsigned long access_bit;
+>> +
+>> +		for_each_set_bit(access_bit, &access_req,
+>> +				 ARRAY_SIZE(*layer_masks)) {
+>> +			if (landlock_get_fs_access_mask(domain, layer_level) &
+>> +			    BIT_ULL(access_bit)) {
+>> +				(*layer_masks)[access_bit] |=
+>> +					BIT_ULL(layer_level);
+>> +				handled_accesses |= BIT_ULL(access_bit);
+>> +			}
+>> +		}
+>> +	}
+>> +	return handled_accesses;
+>> +}
+>> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+>> index bb1408cc8dd2..d7d9b987829c 100644
+>> --- a/security/landlock/ruleset.h
+>> +++ b/security/landlock/ruleset.h
+>> @@ -235,4 +235,14 @@ landlock_get_fs_access_mask(const struct landlock_ruleset *const ruleset,
+>>   		LANDLOCK_SHIFT_ACCESS_FS) &
+>>   	       LANDLOCK_MASK_ACCESS_FS;
+>>   }
+>> +
+>> +bool unmask_layers(const struct landlock_rule *const rule,
+>> +		   const access_mask_t access_request,
+>> +		   layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS]);
+>> +
+>> +access_mask_t
+>> +init_layer_masks(const struct landlock_ruleset *const domain,
+>> +		 const access_mask_t access_request,
+>> +		 layer_mask_t (*const layer_masks)[LANDLOCK_NUM_ACCESS_FS]);
+>> +
+>>   #endif /* _SECURITY_LANDLOCK_RULESET_H */
+>> --
+>> 2.25.1
+>> 
+> .
