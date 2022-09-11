@@ -2,134 +2,93 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A998FC6FA82
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Sep 2022 22:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B008ECAAD5
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Sep 2022 00:40:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229597AbiIJWLj (ORCPT
+        id S229569AbiIKAkX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Sep 2022 18:11:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55578 "EHLO
+        Sat, 10 Sep 2022 20:40:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229576AbiIJWLj (ORCPT
+        with ESMTP id S229582AbiIKAkW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Sep 2022 18:11:39 -0400
-Received: from mx0.riseup.net (mx0.riseup.net [198.252.153.6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E0B0B5C
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Sep 2022 15:11:38 -0700 (PDT)
-Received: from fews2.riseup.net (fews2-pn.riseup.net [10.0.1.84])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
-         client-signature RSA-PSS (2048 bits) client-digest SHA256)
-        (Client CN "mail.riseup.net", Issuer "R3" (not verified))
-        by mx0.riseup.net (Postfix) with ESMTPS id 4MQ6X85HG2z9rxG
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Sep 2022 22:11:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1662847898; bh=mTomSQ2ICbCcgG7/IxkkrVLpO/jBurHkrLzR6yLu0Z0=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Df3/zEIXOAz2LmBEx0Ys6RkNuYxLIuZSJWKxQAsoWPG6EYy/2Fz6st/o2MDAF/JEU
-         cMn66k1O5rsYCukry2p8Y2HZ8rVM6EAYmGR+EEqJNwfKC8pB2PDPpkiAr9ShdhTgSx
-         uKAUduR/bFVcMVk7ijzELaw8VvuJm4/y4+wcvcF0=
-X-Riseup-User-ID: 96A30159D689D15CEAFD99B7AC9ECF6AC8F3D40F52EE8CDFD37D230ADBB1A2AA
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by fews2.riseup.net (Postfix) with ESMTPSA id 4MQ6X76DRKz1xx8;
-        Sat, 10 Sep 2022 22:11:35 +0000 (UTC)
-From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft] json: add stateful object comment support
-Date:   Sun, 11 Sep 2022 00:11:14 +0200
-Message-Id: <20220910221114.74863-1-ffmancera@riseup.net>
+        Sat, 10 Sep 2022 20:40:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B4A43DBF2;
+        Sat, 10 Sep 2022 17:40:18 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EECAE60D45;
+        Sun, 11 Sep 2022 00:40:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 406E7C433D7;
+        Sun, 11 Sep 2022 00:40:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1662856817;
+        bh=VHe5y+jAO6gJCiomfSt4X8g3GEnLnC9eWhfnpIYIqaA=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=JhY2819sYk/XJv9sTc/PRoToAyLBBuVqu483USGNIw+N0h/ayyly3cIZgWASkM+uq
+         FNH/M1MKDjC7yJWot9f5OG5D97FftXYWk+bKyakbwh0CL9c+WF5ZgZqwjemYFPlBtq
+         p4kcYkbTVyO/POd6a9dQTgsCZaNLF127GJPdfATpPT2ABx4BbYx7Tsug2Q5soz+dC+
+         mR4GXI4O+HSjyNrX38xLNQ6QLPKgUWj1m5RQ3fA8fZ73rA4WjbKB8Bcil7XDnTFt/G
+         CfiDOb760sHeGSpAEj342W7xLoYZqAh+GexScelhC94bvpe+zB32uTo8E63zCuXfro
+         xAiYGayR1JxiQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 1FADCC73FF0;
+        Sun, 11 Sep 2022 00:40:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH bpf-next v5 0/6] Support direct writes to nf_conn:mark
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166285681712.18334.81256966061837862.git-patchwork-notify@kernel.org>
+Date:   Sun, 11 Sep 2022 00:40:17 +0000
+References: <cover.1662568410.git.dxu@dxuuu.xyz>
+In-Reply-To: <cover.1662568410.git.dxu@dxuuu.xyz>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, memxor@gmail.com, pablo@netfilter.org,
+        fw@strlen.de, toke@kernel.org, martin.lau@linux.dev,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When listing a stateful object with JSON support, the comment was ignored.
+Hello:
 
-Output example:
+This series was applied to bpf/bpf-next.git (master)
+by Alexei Starovoitov <ast@kernel.org>:
 
-{
-  "counter": {
-    "family": "inet",
-    "name": "mycounter",
-    "table": "t",
-    "handle": 1,
-    "comment": "my comment in counter",
-    "packets": 0,
-    "bytes": 0
-  }
-}
+On Wed,  7 Sep 2022 10:40:35 -0600 you wrote:
+> Support direct writes to nf_conn:mark from TC and XDP prog types. This
+> is useful when applications want to store per-connection metadata. This
+> is also particularly useful for applications that run both bpf and
+> iptables/nftables because the latter can trivially access this metadata.
+> 
+> One example use case would be if a bpf prog is responsible for advanced
+> packet classification and iptables/nftables is later used for routing
+> due to pre-existing/legacy code.
+> 
+> [...]
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1611
-Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
----
- src/json.c                                             | 6 ++++++
- src/parser_json.c                                      | 3 +++
- tests/shell/testcases/json/0006obj_comment_0           | 9 +++++++++
- tests/shell/testcases/json/dumps/0006obj_comment_0.nft | 6 ++++++
- 4 files changed, 24 insertions(+)
- create mode 100755 tests/shell/testcases/json/0006obj_comment_0
- create mode 100644 tests/shell/testcases/json/dumps/0006obj_comment_0.nft
+Here is the summary with links:
+  - [bpf-next,v5,1/6] bpf: Remove duplicate PTR_TO_BTF_ID RO check
+    https://git.kernel.org/bpf/bpf-next/c/65269888c695
+  - [bpf-next,v5,2/6] bpf: Add stub for btf_struct_access()
+    https://git.kernel.org/bpf/bpf-next/c/d4f7bdb2ed7b
+  - [bpf-next,v5,3/6] bpf: Use 0 instead of NOT_INIT for btf_struct_access() writes
+    https://git.kernel.org/bpf/bpf-next/c/896f07c07da0
+  - [bpf-next,v5,4/6] bpf: Export btf_type_by_id() and bpf_log()
+    https://git.kernel.org/bpf/bpf-next/c/84c6ac417cea
+  - [bpf-next,v5,5/6] bpf: Add support for writing to nf_conn:mark
+    https://git.kernel.org/bpf/bpf-next/c/864b656f82cc
+  - [bpf-next,v5,6/6] selftests/bpf: Add tests for writing to nf_conn:mark
+    https://git.kernel.org/bpf/bpf-next/c/e2d75e954c0a
 
-diff --git a/src/json.c b/src/json.c
-index 6598863e..6662f808 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -329,6 +329,12 @@ static json_t *obj_print_json(const struct obj *obj)
- 			"table", obj->handle.table.name,
- 			"handle", obj->handle.handle.id);
- 
-+	if (obj->comment) {
-+		tmp = json_pack("{s:s}", "comment", obj->comment);
-+		json_object_update(root, tmp);
-+		json_decref(tmp);
-+	}
-+
- 	switch (obj->type) {
- 	case NFT_OBJECT_COUNTER:
- 		tmp = json_pack("{s:I, s:I}",
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 46dca9fd..b8c30b75 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3339,6 +3339,9 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- 
- 	obj = obj_alloc(int_loc);
- 
-+	if (!json_unpack(root, "{s:s}", "comment", &obj->comment))
-+		obj->comment = xstrdup(obj->comment);
-+
- 	switch (cmd_obj) {
- 	case CMD_OBJ_COUNTER:
- 		obj->type = NFT_OBJECT_COUNTER;
-diff --git a/tests/shell/testcases/json/0006obj_comment_0 b/tests/shell/testcases/json/0006obj_comment_0
-new file mode 100755
-index 00000000..76d8fe16
---- /dev/null
-+++ b/tests/shell/testcases/json/0006obj_comment_0
-@@ -0,0 +1,9 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT flush ruleset
-+
-+RULESET='{"nftables": [{"metainfo": {"version": "1.0.5", "release_name": "Lester Gooch #4", "json_schema_version": 1}}, {"table": {"family": "inet", "name": "t", "handle": 9}}, {"counter": {"family": "inet", "name": "mycounter", "table": "t", "handle": 1, "comment": "my comment in counter", "packets": 0, "bytes": 0}}]}'
-+
-+$NFT -j -f - <<< $RULESET
-diff --git a/tests/shell/testcases/json/dumps/0006obj_comment_0.nft b/tests/shell/testcases/json/dumps/0006obj_comment_0.nft
-new file mode 100644
-index 00000000..e52b21b4
---- /dev/null
-+++ b/tests/shell/testcases/json/dumps/0006obj_comment_0.nft
-@@ -0,0 +1,6 @@
-+table inet t {
-+	counter mycounter {
-+		comment "my comment in counter"
-+		packets 0 bytes 0
-+	}
-+}
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
