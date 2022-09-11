@@ -2,84 +2,142 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4258AC6FA82
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Sep 2022 00:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75BA5ECAAA1
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Sep 2022 12:10:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229727AbiIKAuT (ORCPT
+        id S229968AbiIKMKr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Sep 2022 20:50:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36582 "EHLO
+        Sun, 11 Sep 2022 08:10:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229569AbiIKAuS (ORCPT
+        with ESMTP id S230116AbiIKMKq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Sep 2022 20:50:18 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A009440BD6;
-        Sat, 10 Sep 2022 17:50:17 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 0908CCE0B04;
-        Sun, 11 Sep 2022 00:50:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 5ACFDC433D7;
-        Sun, 11 Sep 2022 00:50:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662857414;
-        bh=Vtm4P8fNdhOzhXWZOLB6CL1Oqs+jwbj3/shDxUT793o=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=nQadEecLAHR2pAFnr4z/9tQc+ARlkhX9zIrSL77DAHb0PwVe3S5mlQritepM06kB6
-         J18P9pfggJnMqYtjjgB35RaxGXDrtgpg3Wg/QxHykLI4S7oQrpIDOU/QZHw5h3K6Iu
-         XDgdeceKXCiamyJys86aCDx4IFXdHbZyVOviP0d7s7j41OocXRoKFjFSTSiP+KCufZ
-         m6FxGnnkUyWDfZP/5K7vYGDjKKr1AEyUW43yU6kh0fYjOvP/M7eGZv5V3LlROpRkWs
-         ZO/WkT/YZR0pzTi6bk33ANUpKwLsY1b9TPktLaqMC8a9EWEFpgN6VJiw2RJVJ4z8VB
-         qrdxotiI/fAUw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 378A3C73FE9;
-        Sun, 11 Sep 2022 00:50:14 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Sun, 11 Sep 2022 08:10:46 -0400
+Received: from smtp.smtpout.orange.fr (smtp07.smtpout.orange.fr [80.12.242.129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F2B4E240A4
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Sep 2022 05:10:44 -0700 (PDT)
+Received: from pop-os.home ([90.11.190.129])
+        by smtp.orange.fr with ESMTPA
+        id XLg7ovwaCu8plXLg7o0FVH; Sun, 11 Sep 2022 14:03:12 +0200
+X-ME-Helo: pop-os.home
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Sun, 11 Sep 2022 14:03:12 +0200
+X-ME-IP: 90.11.190.129
+From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH] headers: Remove some left-over license text in include/uapi/linux/netfilter/
+Date:   Sun, 11 Sep 2022 14:03:09 +0200
+Message-Id: <e41c6fd2ed7d55b432129403d7a2bd443b759b33.1662897784.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2 bpf-next] selftests/bpf: fix ct status check in bpf_nf
- selftests
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166285741421.23649.1792728113996334824.git-patchwork-notify@kernel.org>
-Date:   Sun, 11 Sep 2022 00:50:14 +0000
-References: <813a5161a71911378dfac8770ec890428e4998aa.1662623574.git.lorenzo@kernel.org>
-In-Reply-To: <813a5161a71911378dfac8770ec890428e4998aa.1662623574.git.lorenzo@kernel.org>
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
-Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org,
-        daniel@iogearbox.net, andrii@kernel.org, davem@davemloft.net,
-        kuba@kernel.org, edumazet@google.com, pabeni@redhat.com,
-        pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
-        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
-        memxor@gmail.com, song@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+When the SPDX-License-Identifier tag has been added, the corresponding
+license text has not been removed.
 
-This patch was applied to bpf/bpf-next.git (master)
-by Alexei Starovoitov <ast@kernel.org>:
+Remove it now.
 
-On Thu,  8 Sep 2022 10:06:12 +0200 you wrote:
-> Check properly the connection tracking entry status configured running
-> bpf_ct_change_status kfunc.
-> Remove unnecessary IPS_CONFIRMED status configuration since it is
-> already done during entry allocation.
-> 
-> Fixes: 6eb7fba007a7 ("selftests/bpf: Add tests for new nf_conntrack kfuncs")
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> 
-> [...]
+Also, in xt_connmark.h, move the copyright text at the top of the file
+which is a much more common pattern.
 
-Here is the summary with links:
-  - [v2,bpf-next] selftests/bpf: fix ct status check in bpf_nf selftests
-    https://git.kernel.org/bpf/bpf-next/c/f7c946f288e3
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ include/uapi/linux/netfilter/ipset/ip_set.h |  4 ----
+ include/uapi/linux/netfilter/xt_AUDIT.h     |  4 ----
+ include/uapi/linux/netfilter/xt_connmark.h  | 13 ++++---------
+ include/uapi/linux/netfilter/xt_osf.h       | 14 --------------
+ 4 files changed, 4 insertions(+), 31 deletions(-)
 
-You are awesome, thank you!
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
+index 6397d75899bc..79e5d68b87af 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -3,10 +3,6 @@
+  *                         Patrick Schaaf <bof@bof.de>
+  *                         Martin Josefsson <gandalf@wlug.westbo.se>
+  * Copyright (C) 2003-2011 Jozsef Kadlecsik <kadlec@netfilter.org>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+ #ifndef _UAPI_IP_SET_H
+ #define _UAPI_IP_SET_H
+diff --git a/include/uapi/linux/netfilter/xt_AUDIT.h b/include/uapi/linux/netfilter/xt_AUDIT.h
+index 1b314e2f84ac..56a3f6092e0c 100644
+--- a/include/uapi/linux/netfilter/xt_AUDIT.h
++++ b/include/uapi/linux/netfilter/xt_AUDIT.h
+@@ -4,10 +4,6 @@
+  *
+  * (C) 2010-2011 Thomas Graf <tgraf@redhat.com>
+  * (C) 2010-2011 Red Hat, Inc.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+ 
+ #ifndef _XT_AUDIT_TARGET_H
+diff --git a/include/uapi/linux/netfilter/xt_connmark.h b/include/uapi/linux/netfilter/xt_connmark.h
+index f01c19b83a2b..41b578ccd03b 100644
+--- a/include/uapi/linux/netfilter/xt_connmark.h
++++ b/include/uapi/linux/netfilter/xt_connmark.h
+@@ -1,18 +1,13 @@
+ /* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
++ * by Henrik Nordstrom <hno@marasystems.com>
++ */
++
+ #ifndef _XT_CONNMARK_H
+ #define _XT_CONNMARK_H
+ 
+ #include <linux/types.h>
+ 
+-/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+- * by Henrik Nordstrom <hno@marasystems.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+ enum {
+ 	XT_CONNMARK_SET = 0,
+ 	XT_CONNMARK_SAVE,
+diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
+index 6e466236ca4b..f1f097896bdf 100644
+--- a/include/uapi/linux/netfilter/xt_osf.h
++++ b/include/uapi/linux/netfilter/xt_osf.h
+@@ -1,20 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
+ /*
+  * Copyright (c) 2003+ Evgeniy Polyakov <johnpol@2ka.mxt.ru>
+- *
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+ #ifndef _XT_OSF_H
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
