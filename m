@@ -2,170 +2,152 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0594ECAAD5
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Sep 2022 08:59:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F369C6FA83
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Sep 2022 08:59:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbiILI7C (ORCPT
+        id S229635AbiILI7D (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Sep 2022 04:59:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38416 "EHLO
+        Mon, 12 Sep 2022 04:59:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229849AbiILI66 (ORCPT
+        with ESMTP id S230246AbiILI67 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2022 04:58:58 -0400
+        Mon, 12 Sep 2022 04:58:59 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF21A2AE17
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2022 01:58:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1139A31371
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2022 01:58:56 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1oXfHG-0001ZX-TH; Mon, 12 Sep 2022 10:58:50 +0200
+        id 1oXfHK-0001Zm-BH; Mon, 12 Sep 2022 10:58:54 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables-nft 1/2] nft: support ttl/hoplimit dissection
-Date:   Mon, 12 Sep 2022 10:58:44 +0200
-Message-Id: <20220912085846.9116-1-fw@strlen.de>
+Cc:     Yi Chen <yiche@redhat.com>, Florian Westphal <fw@strlen.de>
+Subject: [PATCH iptables] tests: add ebtables among testcase
+Date:   Mon, 12 Sep 2022 10:58:45 +0200
+Message-Id: <20220912085846.9116-2-fw@strlen.de>
 X-Mailer: git-send-email 2.37.3
+In-Reply-To: <20220912085846.9116-1-fw@strlen.de>
+References: <20220912085846.9116-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-xlate raw "nft ... ttl eq 1" and so on to the ttl/hl matches.
+From: Yi Chen <yiche@redhat.com>
+
+Validate that matching works as expected.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- iptables/nft-ipv4.c   |  3 ++
- iptables/nft-ipv6.c   |  3 ++
- iptables/nft-shared.c | 68 +++++++++++++++++++++++++++++++++++++++++++
- iptables/nft-shared.h |  2 ++
- 4 files changed, 76 insertions(+)
+ .../testcases/ebtables/0008-ebtables-among_0  | 98 +++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/ebtables/0008-ebtables-among_0
 
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index 59c4a41f1a05..1865d1515296 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -206,6 +206,9 @@ static void nft_ipv4_parse_payload(struct nft_xt_ctx *ctx,
- 		if (inv)
- 			cs->fw.ip.invflags |= IPT_INV_FRAG;
- 		break;
-+	case offsetof(struct iphdr, ttl):
-+		nft_parse_hl(ctx, e, cs);
-+		break;
- 	default:
- 		DEBUGP("unknown payload offset %d\n", ctx->payload.offset);
- 		break;
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index 9a29d18bc215..0ab1f9719344 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -169,6 +169,9 @@ static void nft_ipv6_parse_payload(struct nft_xt_ctx *ctx,
- 		cs->fw6.ipv6.proto = proto;
- 		if (inv)
- 			cs->fw6.ipv6.invflags |= IP6T_INV_PROTO;
-+	case offsetof(struct ip6_hdr, ip6_hlim):
-+		nft_parse_hl(ctx, e, cs);
-+		break;
- 	default:
- 		DEBUGP("unknown payload offset %d\n", ctx->payload.offset);
- 		break;
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 79c93fe82c60..71e2f18dab92 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -27,6 +27,8 @@
- #include <linux/netfilter/xt_mark.h>
- #include <linux/netfilter/xt_pkttype.h>
- 
-+#include <linux/netfilter_ipv6/ip6t_hl.h>
+diff --git a/iptables/tests/shell/testcases/ebtables/0008-ebtables-among_0 b/iptables/tests/shell/testcases/ebtables/0008-ebtables-among_0
+new file mode 100755
+index 000000000000..b5df972559e4
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ebtables/0008-ebtables-among_0
+@@ -0,0 +1,98 @@
++#!/bin/sh
 +
- #include <libmnl/libmnl.h>
- #include <libnftnl/rule.h>
- #include <libnftnl/expr.h>
-@@ -1449,3 +1451,69 @@ void nft_check_xt_legacy(int family, bool is_ipt_save)
- 			prefix, prefix, is_ipt_save ? "-save" : "");
- 	fclose(fp);
- }
++case "$XT_MULTI" in
++*xtables-nft-multi)
++	;;
++*)
++	echo "skip $XT_MULTI"
++	exit 0
++	;;
++esac
 +
-+int nft_parse_hl(struct nft_xt_ctx *ctx,
-+		 struct nftnl_expr *e,
-+		 struct iptables_command_state *cs)
++sfx=$(mktemp -u "XXXXXXXX")
++nsa="nsa-$sfx"
++nsb="nsb-$sfx"
++nsc="nsc-$sfx"
++
++cleanup()
 +{
-+	struct xtables_match *match;
-+	struct ip6t_hl_info *info;
-+	uint8_t hl, mode;
-+	int op;
-+
-+	hl = nftnl_expr_get_u8(e, NFTNL_EXPR_CMP_DATA);
-+	op = nftnl_expr_get_u32(e, NFTNL_EXPR_CMP_OP);
-+
-+	switch (op) {
-+	case NFT_CMP_NEQ:
-+		mode = IP6T_HL_NE;
-+		break;
-+	case NFT_CMP_EQ:
-+		mode = IP6T_HL_EQ;
-+		break;
-+	case NFT_CMP_LT:
-+		mode = IP6T_HL_LT;
-+		break;
-+	case NFT_CMP_GT:
-+		mode = IP6T_HL_GT;
-+		break;
-+	case NFT_CMP_LTE:
-+		mode = IP6T_HL_LT;
-+		if (hl == 255)
-+			return -1;
-+		hl++;
-+		break;
-+	case NFT_CMP_GTE:
-+		mode = IP6T_HL_GT;
-+		if (hl == 0)
-+			return -1;
-+		hl--;
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	/* ipt_ttl_info and ip6t_hl_info have same layout,
-+	 * IPT_TTL_x and IP6T_HL_x are aliases as well, so
-+	 * just use HL for both ipv4 and ipv6.
-+	 */
-+	switch (ctx->h->family) {
-+	case NFPROTO_IPV4:
-+		match = nft_create_match(ctx, ctx->cs, "ttl");
-+		break;
-+	case NFPROTO_IPV6:
-+		match = nft_create_match(ctx, ctx->cs, "hl");
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	if (!match)
-+		return -1;
-+
-+	info = (void*)match->m->data;
-+	info->hop_limit = hl;
-+	info->mode = mode;
-+
-+	return 0;
++	ip netns del "$nsa"
++	ip netns del "$nsb"
++	ip netns del "$nsc"
 +}
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index b04049047116..0718dc23e8b7 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -212,6 +212,8 @@ void xtables_restore_parse(struct nft_handle *h,
- 
- void nft_check_xt_legacy(int family, bool is_ipt_save);
- 
-+int nft_parse_hl(struct nft_xt_ctx *ctx, struct nftnl_expr *e, struct iptables_command_state *cs);
 +
- #define min(x, y) ((x) < (y) ? (x) : (y))
- #define max(x, y) ((x) > (y) ? (x) : (y))
- 
++trap cleanup EXIT
++
++assert_fail()
++{
++	if [ $1 -eq 0 ]; then
++		echo "FAILED: $2"
++		exit 1
++	fi
++}
++
++assert_pass()
++{
++	if [ $1 -ne 0 ]; then
++		echo "FAILED: $2"
++		exit 2
++	fi
++}
++
++ip netns add "$nsa"
++ip netns add "$nsb"
++ip netns add "$nsc"
++
++ip link add name c_b netns "$nsc" type veth peer name b_c netns "$nsb"
++ip link add name s_b netns "$nsa" type veth peer name b_s netns "$nsb"
++ip netns exec "$nsb" ip link add name br0 type bridge
++
++ip -net "$nsb" link set b_c up
++ip netns exec "$nsb" ip link set b_s up
++ip netns exec "$nsb" ip addr add 10.167.11.254/24 dev br0
++ip netns exec "$nsb" ip link set br0 up
++ip netns exec "$nsb" ip link set b_c master br0
++ip netns exec "$nsb" ip link set b_s master br0
++ip netns exec "$nsc" ip addr add 10.167.11.2/24 dev c_b
++ip netns exec "$nsc" ip link set c_b up
++ip -net "$nsa" addr add 10.167.11.1/24 dev s_b
++ip -net "$nsa" link set s_b up
++
++ip netns exec "$nsc" ping -q 10.167.11.1 -c1 >/dev/null  || exit 1
++
++bf_bridge_mac1=`ip netns exec "$nsb" cat /sys/class/net/b_s/address`
++bf_bridge_mac0=`ip netns exec "$nsb" cat /sys/class/net/b_c/address`
++bf_client_mac1=`ip netns exec "$nsc" cat /sys/class/net/c_b/address`
++bf_server_mac1=`ip netns exec "$nsa" cat /sys/class/net/s_b/address`
++
++bf_server_ip1="10.167.11.1"
++bf_bridge_ip0="10.167.11.254"
++bf_client_ip1="10.167.11.2"
++pktsize=64
++
++# --among-src [mac,IP]
++ip netns exec "$nsb" $XT_MULTI ebtables -F
++ip netns exec "$nsb" $XT_MULTI ebtables -A FORWARD -p ip --ip-dst $bf_server_ip1 --among-src $bf_bridge_mac0=$bf_bridge_ip0,$bf_client_mac1=$bf_client_ip1 -j DROP > /dev/null
++ip netns exec "$nsc" ping -q $bf_server_ip1 -c 1 -s $pktsize -W 1 >/dev/null
++assert_fail $? "--among-src [match]"
++
++# ip netns exec "$nsb" $XT_MULTI ebtables -L --Ln --Lc
++
++ip netns exec "$nsb" $XT_MULTI ebtables -F
++ip netns exec "$nsb" $XT_MULTI ebtables -A FORWARD -p ip --ip-dst $bf_server_ip1 --among-src ! $bf_bridge_mac0=$bf_bridge_ip0,$bf_client_mac1=$bf_client_ip1 -j DROP > /dev/null
++ip netns exec "$nsc" ping $bf_server_ip1 -c 1 -s $pktsize -W 1 >/dev/null
++assert_pass $? "--among-src [not match]"
++
++# --among-dst [mac,IP]
++ip netns exec "$nsb" $XT_MULTI ebtables -F
++ip netns exec "$nsb" $XT_MULTI ebtables -A FORWARD -p ip --ip-src $bf_client_ip1 --among-dst $bf_client_mac1=$bf_client_ip1,$bf_server_mac1=$bf_server_ip1 -j DROP > /dev/null
++ip netns exec "$nsc" ping -q $bf_server_ip1 -c 1 -s $pktsize -W 1 > /dev/null
++assert_fail $? "--among-dst [match]"
++
++# --among-dst ! [mac,IP]
++ip netns exec "$nsb" $XT_MULTI ebtables -F
++ip netns exec "$nsb" $XT_MULTI ebtables -A FORWARD -p ip --ip-src $bf_client_ip1 --among-dst ! $bf_client_mac1=$bf_client_ip1,$bf_server_mac1=$bf_server_ip1 -j DROP > /dev/null
++ip netns exec "$nsc" ping -q $bf_server_ip1 -c 1 -s $pktsize -W 1 > /dev/null
++assert_pass $? "--among-dst [not match]"
++
++exit 0
 -- 
-2.37.3
+2.37.1
 
