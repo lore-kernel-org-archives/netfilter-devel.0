@@ -2,104 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2805ECAAD8
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Sep 2022 09:29:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7FBFC54EE9
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Sep 2022 11:48:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230146AbiIPJ3z (ORCPT
+        id S229750AbiIPLsG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Sep 2022 05:29:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33392 "EHLO
+        Fri, 16 Sep 2022 07:48:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229895AbiIPJ3w (ORCPT
+        with ESMTP id S230495AbiIPLsF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Sep 2022 05:29:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894D5193C0;
-        Fri, 16 Sep 2022 02:29:51 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 263FC62990;
-        Fri, 16 Sep 2022 09:29:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ADFFC433D6;
-        Fri, 16 Sep 2022 09:29:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1663320590;
-        bh=mH+7FsWWlU4xLltqGgEz1Qg6OJXIWH4c9PbXakdU4qk=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Flr+J/78gOr/+njPfQrcd6VKAJajooc9fwFIcMOYvIgHf/Bv6nlfgyhtxYhMrhchD
-         0SLqSfJ3Da9yzjV8yBFwJtdQBd+rRC0YkEONGMh5THsbIIn/Kzo/L3urb6tFWuPvmi
-         2yzIpzWJH8RomhlPLvUodjHxMvLpZ/w4WXia3rq3XEaoeQ+epSpLCYvlK786OlhEqQ
-         LzxhIf/V1zecMFXbrpjKaJj8jnklJbzc4YXnn6S2wSooHJJKLfdVww5h4SGkmmRzCm
-         bk5O7upAzlnxllPYKXp+9PKIcldAKZJWkWnpMmzlShiGyO0Lr/Mk7X/4JlYW0tZN5v
-         Woe0vjnpIexxg==
-From:   Antoine Tenart <atenart@kernel.org>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
-Cc:     Antoine Tenart <atenart@kernel.org>,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: conntrack: revisit the gc initial rescheduling bias
-Date:   Fri, 16 Sep 2022 11:29:41 +0200
-Message-Id: <20220916092941.39121-3-atenart@kernel.org>
-X-Mailer: git-send-email 2.37.3
-In-Reply-To: <20220916092941.39121-1-atenart@kernel.org>
-References: <20220916092941.39121-1-atenart@kernel.org>
+        Fri, 16 Sep 2022 07:48:05 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7C59BAE9CC
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Sep 2022 04:48:02 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,RFC 0/1] nf_tables inner match support
+Date:   Fri, 16 Sep 2022 13:47:53 +0200
+Message-Id: <20220916114754.31913-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The previous commit changed the way the rescheduling delay is computed
-which has a side effect: the bias is now represented as much as the
-other entries in the rescheduling delay which makes the logic to kick in
-only with very large sets, as the initial interval is very large
-(INT_MAX).
+Hi,
 
-Revisit the GC initial bias to allow more frequent GC for smaller sets
-while still avoiding wakeups when a machine is mostly idle. We're moving
-from a large initial value to pretending we have 100 entries expiring at
-the upper bound. This way only a few entries having a small timeout
-won't impact much the rescheduling delay and non-idle machines will have
-enough entries to lower the delay when needed. This also improves
-readability as the initial bias is now linked to what is computed
-instead of being an arbitrary large value.
+This is an early RFC to show progress on the inner match support, which
+allows to match on inner header fields that are usually encapsulated by
+tunnel protocols.
 
-Fixes: 2cfadb761d3d ("netfilter: conntrack: revisit gc autotuning")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Antoine Tenart <atenart@kernel.org>
----
- net/netfilter/nf_conntrack_core.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+The inner expression provides a parser for the tunneled packet which
+uses a userspace description of the expected inner headers, then the
+inner expression (only payload supported at this stage) is used to match
+on the inner header protocol fields, using the new link, network and
+transport offsets.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2e6d5f1e6d63..8f261cd5b3a5 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -86,10 +86,12 @@ static DEFINE_MUTEX(nf_conntrack_mutex);
- /* clamp timeouts to this value (TCP unacked) */
- #define GC_SCAN_INTERVAL_CLAMP	(300ul * HZ)
- 
--/* large initial bias so that we don't scan often just because we have
-- * three entries with a 1s timeout.
-+/* Initial bias pretending we have 100 entries at the upper bound so we don't
-+ * wakeup often just because we have three entries with a 1s timeout while still
-+ * allowing non-idle machines to wakeup more often when needed.
-  */
--#define GC_SCAN_INTERVAL_INIT	INT_MAX
-+#define GC_SCAN_INITIAL_COUNT	100
-+#define GC_SCAN_INTERVAL_INIT	GC_SCAN_INTERVAL_MAX
- 
- #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
- #define GC_SCAN_EXPIRED_MAX	(64000u / HZ)
-@@ -1477,7 +1479,7 @@ static void gc_worker(struct work_struct *work)
- 
- 	if (i == 0) {
- 		gc_work->avg_timeout = GC_SCAN_INTERVAL_INIT;
--		gc_work->count = 1;
-+		gc_work->count = GC_SCAN_INITIAL_COUNT;
- 		gc_work->start_time = start_time;
- 	}
- 
+Only VxLAN is supported in this patchset, I have work-in-progress with
+other type of tunnel protocols, such as IPIP and GRE.
+
+Currently nft generated bytecode to match on ethernet link layer and
+IPv4/IPv6 header fields. More work in userspace is required to
+generalize protocol tracking and implicit dependencies by reusing the
+existing codebase. Matching on VxLAN containing a VLAN frame is also
+broken, for the same reason. Maybe VxLAN containing VLAN is not top
+priority to support at this stage, but the goal is to allow for such
+flexibility by allowing users to fetch this new feature via userspace
+tool update.
+
+As an example, the bytecode that nft generates using this new expression
+looks like this:
+
+# nft --debug=netlink add rule x y udp dport 7777 vxlan ip saddr 1.2.3.4
+ip x y
+  [ meta load l4proto => reg 1 ]
+  [ cmp eq reg 1 0x00000011 ]
+  [ payload load 2b @ transport header + 2 => reg 1 ]
+  [ cmp eq reg 1 0x0000611e ]
+  [ inner hdrsize 8 flags f type 1 nfproto 2 [ payload load 4b @ network header + 12 => reg 1 ] ]
+  [ cmp eq reg 1 0x04030201 ]
+
+Comments welcome.
+
+Pablo Neira Ayuso (1):
+  netfilter: nft_inner: support for inner header matching
+
+ include/net/netfilter/nf_tables.h        |   5 +
+ include/net/netfilter/nf_tables_core.h   |  22 ++
+ include/uapi/linux/netfilter/nf_tables.h |  27 ++
+ net/netfilter/Makefile                   |   2 +-
+ net/netfilter/nf_tables_api.c            |  37 +++
+ net/netfilter/nf_tables_core.c           |   1 +
+ net/netfilter/nft_inner.c                | 303 +++++++++++++++++++++++
+ net/netfilter/nft_payload.c              | 113 ++++++++-
+ 8 files changed, 508 insertions(+), 2 deletions(-)
+ create mode 100644 net/netfilter/nft_inner.c
+
 -- 
-2.37.3
+2.30.2
 
