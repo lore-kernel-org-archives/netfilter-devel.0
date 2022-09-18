@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B7EECAAD8
-	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Sep 2022 17:23:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E12EECAAD8
+	for <netfilter-devel@archiver.kernel.org>; Sun, 18 Sep 2022 17:23:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbiIRRXK (ORCPT
+        id S229497AbiIRRXO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 18 Sep 2022 13:23:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38538 "EHLO
+        Sun, 18 Sep 2022 13:23:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbiIRRXJ (ORCPT
+        with ESMTP id S229458AbiIRRXN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Sep 2022 13:23:09 -0400
+        Sun, 18 Sep 2022 13:23:13 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC526640D
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Sep 2022 10:23:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 599511758A
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Sep 2022 10:23:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=V9NqDssTA/re+0bfPSLAKXOUYyY5fisFk8nhtord1Jk=; b=OpUBCOy+gP7YE1r+5kOS2eMAJN
-        XkBBJRMOppqr7k5XeK//bWY21en9gIL8vd9+t/0b7qI6AQrmCgYpjd7yP3jZXMm7pNZaTg7XOiE9h
-        G2BHnHg0XNZ+nj2X/1Xsx9sSGOHlTg4eJ12t08jopXCVp+7u+rGVoRlNlyc5kPxYo0JN+3VszECml
-        t9wv2/T6WsAyN4YQ8OyYrLDOyfhnuQYZv5Z+/F51K3fo10qGwjbwQSomI9QdkoARLQEzZWe1ChT80
-        YipQjHjpMrywM9OHAJrHM2315mDLhnzc9nVbroJQRe1rRutnsu53juKV9PQ4Pzhcg2mvGhBY6R7JU
-        SRPMKyyw==;
+        bh=e4W97OQ7B8kveL2OyPDQejHsnXpeMJkh7Fx+zvsY3Bc=; b=M9dU1nqt/REqq11toxdn+qtO3z
+        zBN05pF54Hx2ap08+EhvlYKUAYxKiGjpbsntof7yp+CtOeIPmquiPOqeNOShHZvBQB6IztgQAeBnI
+        LCCG4ZdBGMp+8UkcHy8Pb0vvYq1CWV4vtmpqlyaYQnX9jM5vvysNB8SE2aLv8y5a8Z7bIELXCEazN
+        G6JXNmx8cnYvydhmCK5c6jJRSTdn15pswjFinh8vBp8Hv/l/hSbAYE5DHkpauLsNwjyuT5lE93oYq
+        fMYUphkqx/k7P6FFbZRoymiAMHibHwubE/xouvijQ4qLO5nX1Cp4/wENlgDRKmjGO9wOyB06L0ZiY
+        mme3e11Q==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1oZy0Z-004VxI-1N
-        for netfilter-devel@vger.kernel.org; Sun, 18 Sep 2022 18:23:07 +0100
+        id 1oZy0c-004VxI-Gh
+        for netfilter-devel@vger.kernel.org; Sun, 18 Sep 2022 18:23:10 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 1/2] segtree: refactor decomposition of closed intervals
-Date:   Sun, 18 Sep 2022 18:22:11 +0100
-Message-Id: <20220918172212.3681553-2-jeremy@azazel.net>
+Subject: [PATCH nft 2/2] segtree: fix decomposition of unclosed intervals containing address prefixes
+Date:   Sun, 18 Sep 2022 18:22:12 +0100
+Message-Id: <20220918172212.3681553-3-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220918172212.3681553-1-jeremy@azazel.net>
 References: <20220918172212.3681553-1-jeremy@azazel.net>
@@ -50,125 +50,166 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move the code in `interval_map_decompose` which adds a new closed
-interval to the set into a separate function.  In addition to the moving
-of the code, there is one other change: `compound_expr_add` is called
-once, after the main conditional, instead of being called in each
-branch.
+The code which decomposes unclosed intervals doesn't check for prefixes.  This
+leads to incorrect output for sets which contain these.  For example,
+
+  # nft -f - <<END
+  table ip t {
+    chain c {
+      ip saddr 192.0.0.0/2 drop
+      ip saddr 10.0.0.0/8 drop
+      ip saddr { 192.0.0.0/2, 10.0.0.0/8 } drop
+    }
+  }
+  table ip6 t {
+    chain c {
+      ip6 saddr ff00::/8 drop
+      ip6 saddr fe80::/10 drop
+      ip6 saddr { ff00::/8, fe80::/10 } drop
+    }
+  }
+  END
+  # nft list table ip6 t
+  table ip6 t {
+    chain c {
+      ip6 saddr ff00::/8 drop
+      ip6 saddr fe80::/10 drop
+      ip6 saddr { fe80::/10, ff00::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff } drop
+    }
+  }
+  # nft list table ip t
+  table ip t {
+    chain c {
+      ip saddr 192.0.0.0/2 drop
+      ip saddr 10.0.0.0/8 drop
+      ip saddr { 10.0.0.0/8, 192.0.0.0-255.255.255.255 } drop
+    }
+  }
+
+Instead of treating the final unclosed interval as a special case, reuse the
+code which correctly handles closed intervals.
+
+Add a shell test-case.
+
+Link: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1018156
+Fixes: 86b965bdab8d ("segtree: fix decomposition of unclosed intervals")
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+
+tests: shell: add case to test unclosed prefix intervals
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/segtree.c | 71 +++++++++++++++++++++++++++------------------------
- 1 file changed, 38 insertions(+), 33 deletions(-)
+ src/segtree.c                                 | 21 +++++------------
+ .../sets/0071unclosed_prefix_interval_0       | 23 +++++++++++++++++++
+ .../dumps/0071unclosed_prefix_interval_0.nft  | 19 +++++++++++++++
+ 3 files changed, 48 insertions(+), 15 deletions(-)
+ create mode 100755 tests/shell/testcases/sets/0071unclosed_prefix_interval_0
+ create mode 100644 tests/shell/testcases/sets/dumps/0071unclosed_prefix_interval_0.nft
 
 diff --git a/src/segtree.c b/src/segtree.c
-index c36497ce6253..d15c39f31f3a 100644
+index d15c39f31f3a..ad3821376dae 100644
 --- a/src/segtree.c
 +++ b/src/segtree.c
-@@ -493,12 +493,48 @@ static struct expr *interval_to_range(struct expr *low, struct expr *i, mpz_t ra
- 	return __expr_to_set_elem(low, tmp);
- }
+@@ -158,6 +158,8 @@ static struct expr *expr_value(struct expr *expr)
+ 		return expr->left->key;
+ 	case EXPR_SET_ELEM:
+ 		return expr->key;
++	case EXPR_VALUE:
++		return expr;
+ 	default:
+ 		BUG("invalid expression type %s\n", expr_name(expr));
+ 	}
+@@ -503,7 +505,8 @@ add_interval(struct expr *set, struct expr *low, struct expr *i)
+ 	mpz_init(p);
  
-+static void
-+add_interval(struct expr *set, struct expr *low, struct expr *i)
-+{
-+	struct expr *expr;
-+	mpz_t range, p;
-+
-+	mpz_init(range);
-+	mpz_init(p);
-+
-+	mpz_sub(range, expr_value(i)->value, expr_value(low)->value);
-+	mpz_sub_ui(range, range, 1);
-+
-+	mpz_and(p, expr_value(low)->value, range);
-+
-+	if (!mpz_cmp_ui(range, 0)) {
-+		if (expr_basetype(low)->type == TYPE_STRING)
-+			mpz_switch_byteorder(expr_value(low)->value,
-+					     expr_value(low)->len / BITS_PER_BYTE);
-+		low->flags |= EXPR_F_KERNEL;
-+		expr = expr_get(low);
-+	} else if (range_is_prefix(range) && !mpz_cmp_ui(p, 0)) {
-+
-+		if (i->dtype->flags & DTYPE_F_PREFIX)
-+			expr = interval_to_prefix(low, i, range);
-+		else if (expr_basetype(i)->type == TYPE_STRING)
-+			expr = interval_to_string(low, i, range);
-+		else
-+			expr = interval_to_range(low, i, range);
-+	} else
-+		expr = interval_to_range(low, i, range);
-+
-+	compound_expr_add(set, expr);
-+
-+	mpz_clear(range);
-+	mpz_clear(p);
-+}
-+
- void interval_map_decompose(struct expr *set)
- {
- 	struct expr *i, *next, *low = NULL, *end, *catchall = NULL, *key;
- 	struct expr **elements, **ranges;
- 	unsigned int n, m, size;
--	mpz_t range, p;
- 	bool interval;
+ 	mpz_sub(range, expr_value(i)->value, expr_value(low)->value);
+-	mpz_sub_ui(range, range, 1);
++	if (i->etype != EXPR_VALUE)
++		mpz_sub_ui(range, range, 1);
  
- 	if (set->size == 0)
-@@ -507,9 +543,6 @@ void interval_map_decompose(struct expr *set)
- 	elements = xmalloc_array(set->size, sizeof(struct expr *));
- 	ranges = xmalloc_array(set->size * 2, sizeof(struct expr *));
+ 	mpz_and(p, expr_value(low)->value, range);
  
--	mpz_init(range);
--	mpz_init(p);
--
- 	/* Sort elements */
- 	n = 0;
- 	list_for_each_entry_safe(i, next, &set->expressions, list) {
-@@ -568,32 +601,7 @@ void interval_map_decompose(struct expr *set)
- 			}
- 		}
+@@ -619,24 +622,12 @@ void interval_map_decompose(struct expr *set)
  
--		mpz_sub(range, expr_value(i)->value, expr_value(low)->value);
--		mpz_sub_ui(range, range, 1);
--
--		mpz_and(p, expr_value(low)->value, range);
--
--		if (!mpz_cmp_ui(range, 0)) {
--			if (expr_basetype(low)->type == TYPE_STRING)
--				mpz_switch_byteorder(expr_value(low)->value, expr_value(low)->len / BITS_PER_BYTE);
--			low->flags |= EXPR_F_KERNEL;
--			compound_expr_add(set, expr_get(low));
--		} else if (range_is_prefix(range) && !mpz_cmp_ui(p, 0)) {
--			struct expr *expr;
--
--			if (i->dtype->flags & DTYPE_F_PREFIX)
--				expr = interval_to_prefix(low, i, range);
--			else if (expr_basetype(i)->type == TYPE_STRING)
--				expr = interval_to_string(low, i, range);
--			else
--				expr = interval_to_range(low, i, range);
--
--			compound_expr_add(set, expr);
+ 	if (!mpz_cmp(i->value, expr_value(low)->value)) {
+ 		expr_free(i);
+-		i = low;
++		compound_expr_add(set, low);
+ 	} else {
+-		i = range_expr_alloc(&low->location,
+-				     expr_clone(expr_value(low)), i);
+-		i = set_elem_expr_alloc(&low->location, i);
+-		if (low->etype == EXPR_MAPPING) {
+-			i = mapping_expr_alloc(&i->location, i,
+-					       expr_clone(low->right));
+-			interval_expr_copy(i->left, low->left);
 -		} else {
--			struct expr *expr = interval_to_range(low, i, range);
--
--			compound_expr_add(set, expr);
+-			interval_expr_copy(i, low);
 -		}
+-		i->flags |= EXPR_F_KERNEL;
+-
 +		add_interval(set, low, i);
+ 		expr_free(low);
+ 	}
  
- 		if (i->flags & EXPR_F_INTERVAL_END) {
- 			expr_free(low);
-@@ -633,9 +641,6 @@ out:
+-	compound_expr_add(set, i);
+ out:
  	if (catchall)
  		compound_expr_add(set, catchall);
- 
--	mpz_clear(range);
--	mpz_clear(p);
--
- 	xfree(ranges);
- 	xfree(elements);
- }
+diff --git a/tests/shell/testcases/sets/0071unclosed_prefix_interval_0 b/tests/shell/testcases/sets/0071unclosed_prefix_interval_0
+new file mode 100755
+index 000000000000..79e3ca7da743
+--- /dev/null
++++ b/tests/shell/testcases/sets/0071unclosed_prefix_interval_0
+@@ -0,0 +1,23 @@
++#!/bin/bash
++
++set -e
++
++RULESET="
++table inet t {
++	set s1 {
++		type ipv4_addr
++		flags interval
++		elements = { 192.0.0.0/2, 10.0.0.0/8 }
++	}
++	set s2 {
++		type ipv6_addr
++		flags interval
++		elements = { ff00::/8, fe80::/10 }
++	}
++	chain c {
++		ip saddr @s1 accept
++		ip6 daddr @s2 accept
++	}
++}"
++
++$NFT -f - <<< "$RULESET"
+diff --git a/tests/shell/testcases/sets/dumps/0071unclosed_prefix_interval_0.nft b/tests/shell/testcases/sets/dumps/0071unclosed_prefix_interval_0.nft
+new file mode 100644
+index 000000000000..4eed94c2c884
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0071unclosed_prefix_interval_0.nft
+@@ -0,0 +1,19 @@
++table inet t {
++	set s1 {
++		type ipv4_addr
++		flags interval
++		elements = { 10.0.0.0/8, 192.0.0.0/2 }
++	}
++
++	set s2 {
++		type ipv6_addr
++		flags interval
++		elements = { fe80::/10,
++			     ff00::/8 }
++	}
++
++	chain c {
++		ip saddr @s1 accept
++		ip6 daddr @s2 accept
++	}
++}
 -- 
 2.35.1
 
