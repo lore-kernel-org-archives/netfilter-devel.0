@@ -2,143 +2,104 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E6CECAAD3
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Sep 2022 19:45:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1EF9ECAAD3
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Sep 2022 20:13:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229776AbiISTpC (ORCPT
+        id S229688AbiISUNE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Sep 2022 15:45:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42048 "EHLO
+        Mon, 19 Sep 2022 16:13:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229743AbiISTo5 (ORCPT
+        with ESMTP id S229686AbiISUND (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Sep 2022 15:44:57 -0400
-Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FEF012D2C;
-        Mon, 19 Sep 2022 12:44:55 -0700 (PDT)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.nyi.internal (Postfix) with ESMTP id 88BBA5C0485;
-        Mon, 19 Sep 2022 15:44:54 -0400 (EDT)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute5.internal (MEProxy); Mon, 19 Sep 2022 15:44:54 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-transfer-encoding:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm1; t=1663616694; x=1663703094; bh=Aj
-        GZWBeIHap1TSOlC1jQFkXlGehltvgA5iuog4FuANs=; b=V9NsluUDfaYIExb0xU
-        8poarDcLEc7ArDyzW+SlA+RkGMGh9p6SBynMSp5IlqxB5vW8Diie3iaSXOzqSJAG
-        oEQXSIvu2au++nlvGhhB4YFbcIkFoznupmgvxaHiYbegOhMYFtFDjhaGhnFtraM6
-        3ukN55LBuKGrDV8OoM3TIa4ZX+wov2iJd2IQFmqnSGpC38WY6mvuYv8CT2RByy28
-        BZN1gjx09pXbzSvxzQOlcuRZWcwEslPdzoP8tKoGfchHCw2+rPCK4oLjsPawIuAA
-        K4WYQ4iyW3Iwq97USEgSvXE4UUUELS0PvyLgF2Afp1gGYVumeRqXBacPvvcXTLhV
-        TvFw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1663616694; x=1663703094; bh=AjGZWBeIHap1T
-        SOlC1jQFkXlGehltvgA5iuog4FuANs=; b=0hzcvi5ARKh3+oiYP3LVgEJ742IJZ
-        0dEyXbA8WGaDBnYmDKcO0ojZGbpT4U2wbOdImigVd4HQLFcTUP1Osf/3oXMtX8a6
-        5m3Tk1jaRorFbtjfbUMDjSURi/c4XRi86g1UNsX3yGYWf5t6k9hHh20UyCyM0aAg
-        6RET41DUPhB4869r3xKiORUDoOjxSUVbNuDKGEYFTvOTDHBd4YMaR6hyxwdif4Eg
-        D1c3GcLy9KPo3Z5z9yXCgD022lDXEw7deZ/raS/1wfC75V5ofI6Q3RK5o8eEd4+Y
-        i9PO8OWQzdqlctHcafYY6sXpvaMjx4DL4fCHbD8VGh9gyiUb0FmjbLTUg==
-X-ME-Sender: <xms:tsYoYwKbvOwThjicKO8kXlMtTIKHyBzo1vfzwcZ4wHEvr0nK4Jazbw>
-    <xme:tsYoYwLoXyl2XPVfJt24Df2rJIxaUEqxTX7RU4z6ys4JoXN6Tv1kaaY4gmQyvJBpZ
-    fEQ33jjzMrRuxZJOQ>
-X-ME-Received: <xmr:tsYoYwvtf127-HyqKJLSg92om8tDUVeVE2DNVUR6PEnS4PHM8yIXAYGwKr7fP7p2WRO4vgl-bAeC7DkQLEibvn7ORCiHV2LkOjFpiWY>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfedvjedgudegfecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdejtddmnecujfgurhephf
-    fvvefufffkofgjfhgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcu
-    oegugihusegugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpefgfefggeejhfduie
-    ekvdeuteffleeifeeuvdfhheejleejjeekgfffgefhtddtteenucevlhhushhtvghrufhi
-    iigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:tsYoY9Y7dxNTzasnhS46Uo3ithrVjaJUZ7EGNMDvMi0nCsPtLyA2oA>
-    <xmx:tsYoY3aCEmOjzrOEMmyUFiNzaXb-GxMxsfrNBu_j2GuwYac4G8VJHQ>
-    <xmx:tsYoY5AsxuluTniRnzrQpPng_0BHNTiBSG7UYVDitvGiHSs28kTqEg>
-    <xmx:tsYoY1CDgFdHXvZWMOTnbPObkFV-TBq6qyTKmgkziWZWcfGHT_acEg>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 19 Sep 2022 15:44:53 -0400 (EDT)
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org, memxor@gmail.com, martin.lau@linux.dev
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, pablo@netfilter.org, fw@strlen.de,
-        toke@kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH bpf-next v2 3/3] bpf: Move nf_conn extern declarations to filter.h
-Date:   Mon, 19 Sep 2022 13:44:37 -0600
-Message-Id: <3c00fb8d15d543ae3b5df928c191047145c6b5fe.1663616584.git.dxu@dxuuu.xyz>
-X-Mailer: git-send-email 2.37.1
-In-Reply-To: <cover.1663616584.git.dxu@dxuuu.xyz>
-References: <cover.1663616584.git.dxu@dxuuu.xyz>
+        Mon, 19 Sep 2022 16:13:03 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 572B2481D5
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Sep 2022 13:13:02 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oaN8W-0002Aa-AC; Mon, 19 Sep 2022 22:13:00 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH iptables-nft] iptables-nft: must withdraw PAYLOAD flag after parsing
+Date:   Mon, 19 Sep 2022 22:12:54 +0200
+Message-Id: <20220919201254.32253-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We're seeing the following new warnings on netdev/build_32bit and
-netdev/build_allmodconfig_warn CI jobs:
+else, next payload is stacked via 'CTX_PREV_PAYLOAD'.
 
-    ../net/core/filter.c:8608:1: warning: symbol
-    'nf_conn_btf_access_lock' was not declared. Should it be static?
-    ../net/core/filter.c:8611:5: warning: symbol 'nfct_bsa' was not
-    declared. Should it be static?
+Example breakage:
 
-Fix by ensuring extern declaration is present while compiling filter.o.
+ip saddr 1.2.3.4 meta l4proto tcp
+... is dumped as
+-s 6.0.0.0 -p tcp
 
-Fixes: 864b656f82cc ("bpf: Add support for writing to nf_conn:mark")
-Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+iptables-nft -s 1.2.3.4 -p tcp is dumped correctly, because
+the expressions are ordered like:
+meta l4proto tcp ip saddr 1.2.3.4
+
+... and 'meta l4proto' will clear the PAYLOAD flag.
+
+Fixes: 250dce876d92 ("nft-shared: support native tcp port delinearize")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/filter.h                   | 6 ++++++
- include/net/netfilter/nf_conntrack_bpf.h | 7 +------
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ iptables/nft-shared.c                         |  2 ++
+ .../ipt-restore/0018-multi-payload_0          | 27 +++++++++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/ipt-restore/0018-multi-payload_0
 
-diff --git a/include/linux/filter.h b/include/linux/filter.h
-index 75335432fcbc..98e28126c24b 100644
---- a/include/linux/filter.h
-+++ b/include/linux/filter.h
-@@ -567,6 +567,12 @@ struct sk_filter {
- 
- DECLARE_STATIC_KEY_FALSE(bpf_stats_enabled_key);
- 
-+extern struct mutex nf_conn_btf_access_lock;
-+extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
-+				     const struct btf_type *t, int off, int size,
-+				     enum bpf_access_type atype, u32 *next_btf_id,
-+				     enum bpf_type_flag *flag);
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 71e2f18dab92..66e09e8fd533 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -986,6 +986,8 @@ static void nft_parse_cmp(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
+ 			nft_parse_transport(ctx, e, ctx->cs);
+ 			break;
+ 		}
 +
- typedef unsigned int (*bpf_dispatcher_fn)(const void *ctx,
- 					  const struct bpf_insn *insnsi,
- 					  unsigned int (*bpf_func)(const void *,
-diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
-index d1087e4da440..24d1ccc1f8df 100644
---- a/include/net/netfilter/nf_conntrack_bpf.h
-+++ b/include/net/netfilter/nf_conntrack_bpf.h
-@@ -5,6 +5,7 @@
++		ctx->flags &= ~NFT_XT_CTX_PAYLOAD;
+ 	}
+ }
  
- #include <linux/bpf.h>
- #include <linux/btf.h>
-+#include <linux/filter.h>
- #include <linux/kconfig.h>
- #include <linux/mutex.h>
- 
-@@ -14,12 +15,6 @@
- extern int register_nf_conntrack_bpf(void);
- extern void cleanup_nf_conntrack_bpf(void);
- 
--extern struct mutex nf_conn_btf_access_lock;
--extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
--				     const struct btf_type *t, int off, int size,
--				     enum bpf_access_type atype, u32 *next_btf_id,
--				     enum bpf_type_flag *flag);
--
- #else
- 
- static inline int register_nf_conntrack_bpf(void)
+diff --git a/iptables/tests/shell/testcases/ipt-restore/0018-multi-payload_0 b/iptables/tests/shell/testcases/ipt-restore/0018-multi-payload_0
+new file mode 100755
+index 000000000000..f27577540d6e
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ipt-restore/0018-multi-payload_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++# Make sure iptables-restore simply ignores
++# rules starting with -6
++
++set -e
++
++# show rules, drop uninteresting policy settings
++ipt_show() {
++	$XT_MULTI iptables-save | grep -- '-A INPUT'
++}
++
++# issue reproducer for iptables-restore
++
++$XT_MULTI iptables-restore <<EOF
++*filter
++-A INPUT -s 1.2.3.0/25 -p udp
++-A INPUT -s 1.2.3.0/26 -d 5.6.7.8/32
++-A INPUT -s 1.2.3.0/27 -d 10.2.0.0/16 -p tcp -j ACCEPT
++COMMIT
++EOF
++
++EXPECT='-A INPUT -s 1.2.3.0/25 -p udp
++-A INPUT -s 1.2.3.0/26 -d 5.6.7.8/32
++-A INPUT -s 1.2.3.0/27 -d 10.2.0.0/16 -p tcp -j ACCEPT'
++
++diff -u -Z <(echo -e "$EXPECT") <(ipt_show)
 -- 
-2.37.1
+2.35.1
 
