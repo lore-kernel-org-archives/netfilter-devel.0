@@ -2,66 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22208C6FA82
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 21:52:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EADAC6FA82
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 22:48:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbiITVwP (ORCPT
+        id S229512AbiITWsl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Sep 2022 17:52:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49782 "EHLO
+        Tue, 20 Sep 2022 18:48:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbiITVwO (ORCPT
+        with ESMTP id S229962AbiITWsh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2022 17:52:14 -0400
-Received: from out1.migadu.com (out1.migadu.com [IPv6:2001:41d0:2:863f::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BC4422BC4;
-        Tue, 20 Sep 2022 14:52:13 -0700 (PDT)
-Message-ID: <da5fdb0c-cf24-6356-206e-bdde00f0f8fa@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1663710731;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=klj5NmUbqfIc93G99y7Qpm3kf0ZTRJq/7uq19pl5XF4=;
-        b=aBkEdUmLY/EfW1ilM0/bGn2JVVfZNzNQekyFwmo1Jti3fNmtpLv2VsAWs2L7ADrl/s0XX4
-        aBDaax9depWMvY77qDJV67e1qi910tCZ6A4d3WVWB3HJAISZbhE1iD3P3mr5PJqPJ7rgup
-        WWdQn0Y9fBcfmfVISuvC/l8RKYQdD/8=
-Date:   Tue, 20 Sep 2022 14:52:05 -0700
+        Tue, 20 Sep 2022 18:48:37 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BFE04D821
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 15:48:35 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1oam2V-0002qT-Ff; Wed, 21 Sep 2022 00:48:27 +0200
+Date:   Wed, 21 Sep 2022 00:48:27 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf PATCH] netfilter: nft_fib: Fix for rpath check with VRF
+ devices
+Message-ID: <YypDOwT2QaHEgXfS@strlen.de>
+References: <20220920212432.4168-1-phil@nwl.cc>
 MIME-Version: 1.0
-Subject: Re: [PATCH bpf-next v3 3/3] bpf: Move nf_conn extern declarations to
- filter.h
-Content-Language: en-US
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     pablo@netfilter.org, fw@strlen.de, toke@kernel.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org, ast@kernel.org,
-        daniel@iogearbox.net, andrii@kernel.org, memxor@gmail.com
-References: <cover.1663683114.git.dxu@dxuuu.xyz>
- <2bd2e0283df36d8a4119605878edb1838d144174.1663683114.git.dxu@dxuuu.xyz>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Martin KaFai Lau <martin.lau@linux.dev>
-In-Reply-To: <2bd2e0283df36d8a4119605878edb1838d144174.1663683114.git.dxu@dxuuu.xyz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: linux.dev
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220920212432.4168-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 9/20/22 7:15 AM, Daniel Xu wrote:
-> --- a/include/net/netfilter/nf_conntrack_bpf.h
-> +++ b/include/net/netfilter/nf_conntrack_bpf.h
-> @@ -12,12 +12,6 @@
->   extern int register_nf_conntrack_bpf(void);
->   extern void cleanup_nf_conntrack_bpf(void);
->   
-> -extern struct mutex nf_conn_btf_access_lock;
-> -extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
-> -				     const struct btf_type *t, int off, int size,
-> -				     enum bpf_access_type atype, u32 *next_btf_id,
-> -				     enum bpf_type_flag *flag);
-> -
+Phil Sutter <phil@nwl.cc> wrote:
+> Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
+> dropping vrf packets by mistake") but for nftables fib expression:
+> Add special treatment of VRF devices so that typical reverse path
+> filtering via 'fib saddr . iif oif' expression works as expected.
+> 
+> Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
+>  net/ipv6/netfilter/nft_fib_ipv6.c | 7 ++++++-
+>  2 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+> index b75cac69bd7e6..7ade04ff972d7 100644
+> --- a/net/ipv4/netfilter/nft_fib_ipv4.c
+> +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+> @@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  	else
+>  		oif = NULL;
+>  
+> +	if (priv->flags & NFTA_FIB_F_IIF)
+> +		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
+> +
+>  	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+>  	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+>  		nft_fib_store_result(dest, priv, nft_in(pkt));
+> diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+> index 8970d0b4faeb4..3f860e331580d 100644
+> --- a/net/ipv6/netfilter/nft_fib_ipv6.c
+> +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+> @@ -170,6 +170,10 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  	else if (priv->flags & NFTA_FIB_F_OIF)
+>  		oif = nft_out(pkt);
+>  
+> +	if ((priv->flags & NFTA_FIB_F_IIF) &&
+> +	    (netif_is_l3_master(oif) || netif_is_l3_slave(oif)))
+> +		fl6.flowi6_oif = oif->ifindex;
+> +
 
-I removed the 'include mutex.h' from this header and applied.  Thanks.
+I was about to apply this, but this initialisation comes before
+nft_fib6_flowi_init(), should this be *after*, or part of
+nft_fib6_flowi_init() function instead?
