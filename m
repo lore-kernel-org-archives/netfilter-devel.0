@@ -2,102 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 263D1C54EE9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 21:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB0C9C54EE9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 21:50:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229437AbiITVYq (ORCPT
+        id S230406AbiITVuS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Sep 2022 17:24:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53792 "EHLO
+        Tue, 20 Sep 2022 17:50:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230020AbiITVYp (ORCPT
+        with ESMTP id S229865AbiITVuR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2022 17:24:45 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C783A13D12
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 14:24:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=Xru8RPO9mSWF5EXL4lIh5qqLFX0lFCSwIb/5Bpx6eHk=; b=Uw8QAtsk0P4vJP/TFSc6g5AMwk
-        bpNFDViQzdMcJ1ZQONNrOFN9JxlyPGU6S8Uc4mNYC+HkEKH0EtQ7xCKhkeUa/sMksuKvZl33JkU4x
-        +D2yHFRP2Uoxwxxz5MaFefSQI0HRAmjbWTogn8q7TT+1ZfEa0mEx1TpV73VZbVEtHoJPASOK8HfpT
-        C5i2HtTU8nooqDaC4w22yBPFQe+qHcpCPt7nibNyI8uZc5I2GfV2b6iZvS+WQZf9ULq6hpl84mFnP
-        4qkV/sxElZWQVoHVJ6868GupZkZrYImGlZPzCiTUCjBjnbHS/r/Rt1iXoWbASwxZj0yUiKpLocS1i
-        Why9RzOA==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1oakjR-0004cv-4S; Tue, 20 Sep 2022 23:24:41 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fwestpha@redhat.com>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [nf PATCH] netfilter: nft_fib: Fix for rpath check with VRF devices
-Date:   Tue, 20 Sep 2022 23:24:32 +0200
-Message-Id: <20220920212432.4168-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Tue, 20 Sep 2022 17:50:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BB7F63E7;
+        Tue, 20 Sep 2022 14:50:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CCEE62E49;
+        Tue, 20 Sep 2022 21:50:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 68153C433C1;
+        Tue, 20 Sep 2022 21:50:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1663710615;
+        bh=ARRvbxIcJ7M+YQg21nn//eBVp6Y44LRwd1TWR31zn+Q=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=FnKCuiZ5NHYpjX+lYO5LMGY8SePJ5m/2JLRCkM1WZTygn+cHDqUfpZS5IMr6jDa2z
+         B2aDLhpOh/0XGYbf5US4LJdWx4njvmQoooV5hEMlf19M7Lyn31CqdqzPI0Pb5SY607
+         k+tI7o27j3Tte2lLTyMwPBlgNcu9hmOkTtscFijh1i8VvRJKWH/l7rJOJ8R7pyIqlH
+         JQqrOF/WnEeJQlK7RSzdWUguUGh4bMMkuMtnv0KEYisLyYVt3Rh6iWF7BKnHAaqDtJ
+         Oj5xcsRrbW6JF/R5vwSfffaQrvkTPtnkfZvnhV3nwuUA2xDstbSONxsR2OT/97IifB
+         xErHn650daP5Q==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 46273E21EE0;
+        Tue, 20 Sep 2022 21:50:15 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH bpf-next v3 0/3] bpf: Small nf_conn cleanups
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166371061528.14033.10203496581444033110.git-patchwork-notify@kernel.org>
+Date:   Tue, 20 Sep 2022 21:50:15 +0000
+References: <cover.1663683114.git.dxu@dxuuu.xyz>
+In-Reply-To: <cover.1663683114.git.dxu@dxuuu.xyz>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, memxor@gmail.com, martin.lau@linux.dev,
+        pablo@netfilter.org, fw@strlen.de, toke@kernel.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
-dropping vrf packets by mistake") but for nftables fib expression:
-Add special treatment of VRF devices so that typical reverse path
-filtering via 'fib saddr . iif oif' expression works as expected.
+Hello:
 
-Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
- net/ipv6/netfilter/nft_fib_ipv6.c | 7 ++++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+This series was applied to bpf/bpf-next.git (master)
+by Martin KaFai Lau <martin.lau@kernel.org>:
 
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index b75cac69bd7e6..7ade04ff972d7 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	else
- 		oif = NULL;
- 
-+	if (priv->flags & NFTA_FIB_F_IIF)
-+		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
-+
- 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
- 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
- 		nft_fib_store_result(dest, priv, nft_in(pkt));
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 8970d0b4faeb4..3f860e331580d 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -170,6 +170,10 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	else if (priv->flags & NFTA_FIB_F_OIF)
- 		oif = nft_out(pkt);
- 
-+	if ((priv->flags & NFTA_FIB_F_IIF) &&
-+	    (netif_is_l3_master(oif) || netif_is_l3_slave(oif)))
-+		fl6.flowi6_oif = oif->ifindex;
-+
- 	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
- 	if (!iph) {
- 		regs->verdict.code = NFT_BREAK;
-@@ -197,7 +201,8 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
- 		goto put_rt_err;
- 
--	if (oif && oif != rt->rt6i_idev->dev)
-+	if (oif && oif != rt->rt6i_idev->dev &&
-+	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) != oif->ifindex)
- 		goto put_rt_err;
- 
- 	nft_fib_store_result(dest, priv, rt->rt6i_idev->dev);
+On Tue, 20 Sep 2022 08:15:21 -0600 you wrote:
+> This patchset cleans up a few small things:
+> 
+> * Delete unused stub
+> * Rename variable to be more descriptive
+> * Fix some `extern` declaration warnings
+> 
+> Past discussion:
+> - v2: https://lore.kernel.org/bpf/cover.1663616584.git.dxu@dxuuu.xyz/
+> 
+> [...]
+
+Here is the summary with links:
+  - [bpf-next,v3,1/3] bpf: Remove unused btf_struct_access stub
+    https://git.kernel.org/bpf/bpf-next/c/52bdae37c92a
+  - [bpf-next,v3,2/3] bpf: Rename nfct_bsa to nfct_btf_struct_access
+    https://git.kernel.org/bpf/bpf-next/c/5a090aa35038
+  - [bpf-next,v3,3/3] bpf: Move nf_conn extern declarations to filter.h
+    https://git.kernel.org/bpf/bpf-next/c/fdf214978a71
+
+You are awesome, thank you!
 -- 
-2.34.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
