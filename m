@@ -2,138 +2,122 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D98A6C6FA82
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Sep 2022 23:27:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16E2DC6FA82
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 05:21:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229761AbiISX1n (ORCPT
+        id S230160AbiITFVG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Sep 2022 19:27:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56350 "EHLO
+        Tue, 20 Sep 2022 01:21:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229551AbiISX1m (ORCPT
+        with ESMTP id S230137AbiITFU7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Sep 2022 19:27:42 -0400
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 519F84E844
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Sep 2022 16:27:39 -0700 (PDT)
-Received: by mail-io1-f69.google.com with SMTP id h205-20020a6bb7d6000000b006a1e6bef9c7so518019iof.17
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Sep 2022 16:27:39 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date;
-        bh=QcDADadZBFn2stVq46mmrKDcyHCKkZFC4s8yQUc8C/I=;
-        b=f4zBOYHxz46AzxPG0533e4O/FZ4g7ul7f2YPmRq1NSlksoHKOYgM2L4ihIbFIxrQhz
-         FEKNn/ELJMTFny3wlmbOHWr3085Y7Mrz/HmTEB1w22+Xkch3qb8wrD1rQH4obpbLuGKD
-         BECClOY/HHIJucUdDGWuOq4rWhiF6+Mm+C/URFh4T7bmcT3YEj4Zf54KB3Sqr3WHc1ff
-         uzGClFUpJR1aiJqPj/CU09A6hE5ZojbqHwC3KqSiG8Go+RxqA+2Ap/weeHXAAT5FvAN0
-         oBKn+OJSupWOHRjxzd8+yN9rBgFNL8biQEMMSAUj045PhTNkqqSmVvUxqG6TeCfxgPpL
-         6g+Q==
-X-Gm-Message-State: ACrzQf3CXpdg3qS4vR0xNmWnq/V90TzrfvnMCQEinrZBOyrRIDKU2wvu
-        7NlWZdYoByezyH+z/kqoqeevXuppDK/WS5TidaYmkHqeLfiW
-X-Google-Smtp-Source: AMsMyM7PZX8XNoVmOsMUB4zWdDvfVHmxf5heips0o6pfeb/pk5VnKxrKYxlVA0hTE6CeIhPMImoiFa665BtAybSm9ylUDI5LaRsv
+        Tue, 20 Sep 2022 01:20:59 -0400
+Received: from out0.migadu.com (out0.migadu.com [94.23.1.103])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 731C54DF11;
+        Mon, 19 Sep 2022 22:20:57 -0700 (PDT)
+Message-ID: <dc251395-78af-2ea3-9049-3b44cb831783@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1663651255;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=TVGJXeiSIPnNsdrflC1unlY5vaATUQ/jFuJkzfR1pHQ=;
+        b=btCPPae5EarmsG+9BOWEXhsgz/o3rsduU6OAewWB05fiEuDmdEhsg9roxgZbXBLYSYJRy5
+        2rQCzo2ZzUTF5ybbnrwlc5XkMXQw1JpZOtvFMSOFp+oAlA1BYvBeBIMpIgy0uOhE/w8RaP
+        /m73rDUTqIEKHTLRGoCZd4VMdBtnEPk=
+Date:   Mon, 19 Sep 2022 22:20:47 -0700
 MIME-Version: 1.0
-X-Received: by 2002:a05:6602:490:b0:678:d781:446d with SMTP id
- y16-20020a056602049000b00678d781446dmr8343778iov.115.1663630058719; Mon, 19
- Sep 2022 16:27:38 -0700 (PDT)
-Date:   Mon, 19 Sep 2022 16:27:38 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000b010bd05e9100e11@google.com>
-Subject: [syzbot] memory leak in do_replace
-From:   syzbot <syzbot+a24c5252f3e3ab733464@syzkaller.appspotmail.com>
-To:     bridge@lists.linux-foundation.org, coreteam@netfilter.org,
-        davem@davemloft.net, edumazet@google.com, fw@strlen.de,
-        kadlec@netfilter.org, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-        pablo@netfilter.org, razor@blackwall.org, roopa@nvidia.com,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH bpf-next v2 3/3] bpf: Move nf_conn extern declarations to
+ filter.h
+Content-Language: en-US
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     pablo@netfilter.org, fw@strlen.de, toke@kernel.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, bpf@vger.kernel.org, ast@kernel.org,
+        daniel@iogearbox.net, andrii@kernel.org, memxor@gmail.com
+References: <cover.1663616584.git.dxu@dxuuu.xyz>
+ <3c00fb8d15d543ae3b5df928c191047145c6b5fe.1663616584.git.dxu@dxuuu.xyz>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Martin KaFai Lau <martin.lau@linux.dev>
+In-Reply-To: <3c00fb8d15d543ae3b5df928c191047145c6b5fe.1663616584.git.dxu@dxuuu.xyz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+On 9/19/22 12:44 PM, Daniel Xu wrote:
+> We're seeing the following new warnings on netdev/build_32bit and
+> netdev/build_allmodconfig_warn CI jobs:
+> 
+>      ../net/core/filter.c:8608:1: warning: symbol
+>      'nf_conn_btf_access_lock' was not declared. Should it be static?
+>      ../net/core/filter.c:8611:5: warning: symbol 'nfct_bsa' was not
+>      declared. Should it be static?
+> 
+> Fix by ensuring extern declaration is present while compiling filter.o.
+> 
+> Fixes: 864b656f82cc ("bpf: Add support for writing to nf_conn:mark")
+> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+> ---
+>   include/linux/filter.h                   | 6 ++++++
+>   include/net/netfilter/nf_conntrack_bpf.h | 7 +------
+>   2 files changed, 7 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/linux/filter.h b/include/linux/filter.h
+> index 75335432fcbc..98e28126c24b 100644
+> --- a/include/linux/filter.h
+> +++ b/include/linux/filter.h
+> @@ -567,6 +567,12 @@ struct sk_filter {
+>   
+>   DECLARE_STATIC_KEY_FALSE(bpf_stats_enabled_key);
+>   
+> +extern struct mutex nf_conn_btf_access_lock;
+> +extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
+> +				     const struct btf_type *t, int off, int size,
+> +				     enum bpf_access_type atype, u32 *next_btf_id,
+> +				     enum bpf_type_flag *flag);
+> +
+>   typedef unsigned int (*bpf_dispatcher_fn)(const void *ctx,
+>   					  const struct bpf_insn *insnsi,
+>   					  unsigned int (*bpf_func)(const void *,
+> diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
+> index d1087e4da440..24d1ccc1f8df 100644
+> --- a/include/net/netfilter/nf_conntrack_bpf.h
+> +++ b/include/net/netfilter/nf_conntrack_bpf.h
+> @@ -5,6 +5,7 @@
+>   
+>   #include <linux/bpf.h>
+>   #include <linux/btf.h>
+> +#include <linux/filter.h>
 
-syzbot found the following issue on:
+The filter.h is only needed by nf_conntrack_bpf.c?  How about moving 
+this include to nf_conntrack_bpf.c.  nf_conntrack_bpf.h is included by 
+other conntrack core codes.  I would prefer not to spill over 
+unnecessary bpf headers to them.  The same goes for the above bpf.h and 
+btf.h which are only needed in nf_conntrack_bpf.c also?
 
-HEAD commit:    3245cb65fd91 Merge tag 'devicetree-fixes-for-6.0-2' of git..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=17a88ef7080000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a4afe4efcad47dde
-dashboard link: https://syzkaller.appspot.com/bug?extid=a24c5252f3e3ab733464
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14b0e87f080000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1100f1d8880000
+>   #include <linux/kconfig.h>
+>   #include <linux/mutex.h>
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/2d6c9d59c55a/disk-3245cb65.raw.xz
-vmlinux: https://storage.googleapis.com/0f52632026ad/vmlinux-3245cb65.xz
+Also, is mutex.h still needed?
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+a24c5252f3e3ab733464@syzkaller.appspotmail.com
+>   
+> @@ -14,12 +15,6 @@
+>   extern int register_nf_conntrack_bpf(void);
+>   extern void cleanup_nf_conntrack_bpf(void);
+>   
+> -extern struct mutex nf_conn_btf_access_lock;
+> -extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
+> -				     const struct btf_type *t, int off, int size,
+> -				     enum bpf_access_type atype, u32 *next_btf_id,
+> -				     enum bpf_type_flag *flag);
+> -
+>   #else
+>   
+>   static inline int register_nf_conntrack_bpf(void)
 
-executing program
-executing program
-executing program
-executing program
-BUG: memory leak
-unreferenced object 0xffffc90000ded000 (size 4096):
-  comm "syz-executor317", pid 3615, jiffies 4294946120 (age 22.550s)
-  hex dump (first 32 bytes):
-    90 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff8153105f>] __vmalloc_node_range+0xb3f/0xbd0 mm/vmalloc.c:3224
-    [<ffffffff81531239>] __vmalloc_node mm/vmalloc.c:3261 [inline]
-    [<ffffffff81531239>] __vmalloc+0x49/0x50 mm/vmalloc.c:3275
-    [<ffffffff83e28027>] do_replace+0x197/0x340 net/bridge/netfilter/ebtables.c:1131
-    [<ffffffff83e2880c>] do_ebt_set_ctl+0x22c/0x310 net/bridge/netfilter/ebtables.c:2520
-    [<ffffffff83a3fb68>] nf_setsockopt+0x68/0xa0 net/netfilter/nf_sockopt.c:101
-    [<ffffffff83bb5d69>] ip_setsockopt+0x259/0x2040 net/ipv4/ip_sockglue.c:1444
-    [<ffffffff83bcbe10>] tcp_setsockopt+0x70/0x1430 net/ipv4/tcp.c:3789
-    [<ffffffff8425d1d8>] smc_setsockopt+0xd8/0x5c0 net/smc/af_smc.c:2941
-    [<ffffffff8386dd2b>] __sys_setsockopt+0x1ab/0x380 net/socket.c:2252
-    [<ffffffff8386df22>] __do_sys_setsockopt net/socket.c:2263 [inline]
-    [<ffffffff8386df22>] __se_sys_setsockopt net/socket.c:2260 [inline]
-    [<ffffffff8386df22>] __x64_sys_setsockopt+0x22/0x30 net/socket.c:2260
-    [<ffffffff845eab35>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-    [<ffffffff845eab35>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
-    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
-
-BUG: memory leak
-unreferenced object 0xffffc90000df5000 (size 4096):
-  comm "syz-executor317", pid 3615, jiffies 4294946120 (age 22.550s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff8153105f>] __vmalloc_node_range+0xb3f/0xbd0 mm/vmalloc.c:3224
-    [<ffffffff81531239>] __vmalloc_node mm/vmalloc.c:3261 [inline]
-    [<ffffffff81531239>] __vmalloc+0x49/0x50 mm/vmalloc.c:3275
-    [<ffffffff83e28071>] do_replace+0x1e1/0x340 net/bridge/netfilter/ebtables.c:1138
-    [<ffffffff83e2880c>] do_ebt_set_ctl+0x22c/0x310 net/bridge/netfilter/ebtables.c:2520
-    [<ffffffff83a3fb68>] nf_setsockopt+0x68/0xa0 net/netfilter/nf_sockopt.c:101
-    [<ffffffff83bb5d69>] ip_setsockopt+0x259/0x2040 net/ipv4/ip_sockglue.c:1444
-    [<ffffffff83bcbe10>] tcp_setsockopt+0x70/0x1430 net/ipv4/tcp.c:3789
-    [<ffffffff8425d1d8>] smc_setsockopt+0xd8/0x5c0 net/smc/af_smc.c:2941
-    [<ffffffff8386dd2b>] __sys_setsockopt+0x1ab/0x380 net/socket.c:2252
-    [<ffffffff8386df22>] __do_sys_setsockopt net/socket.c:2263 [inline]
-    [<ffffffff8386df22>] __se_sys_setsockopt net/socket.c:2260 [inline]
-    [<ffffffff8386df22>] __x64_sys_setsockopt+0x22/0x30 net/socket.c:2260
-    [<ffffffff845eab35>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-    [<ffffffff845eab35>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
-    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
-
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
