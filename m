@@ -2,83 +2,102 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78880C54EE9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 16:36:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 263D1C54EE9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 21:24:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230239AbiITQgB (ORCPT
+        id S229437AbiITVYq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Sep 2022 12:36:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50786 "EHLO
+        Tue, 20 Sep 2022 17:24:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231150AbiITQf7 (ORCPT
+        with ESMTP id S230020AbiITVYp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2022 12:35:59 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9176C65816
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 09:35:58 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1oagE0-00013m-MX; Tue, 20 Sep 2022 18:35:56 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Bruno de Paula Larini <bruno.larini@riosoft.com.br>
-Subject: [PATCH nf] netfilter: nf_ct_ftp: fix deadlock when nat rewrite is needed
-Date:   Tue, 20 Sep 2022 18:35:50 +0200
-Message-Id: <20220920163550.5394-1-fw@strlen.de>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <b2f301f6-d335-04bd-43b2-001e5dcacc09@riosoft.com.br>
-References: <b2f301f6-d335-04bd-43b2-001e5dcacc09@riosoft.com.br>
+        Tue, 20 Sep 2022 17:24:45 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C783A13D12
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 14:24:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=Xru8RPO9mSWF5EXL4lIh5qqLFX0lFCSwIb/5Bpx6eHk=; b=Uw8QAtsk0P4vJP/TFSc6g5AMwk
+        bpNFDViQzdMcJ1ZQONNrOFN9JxlyPGU6S8Uc4mNYC+HkEKH0EtQ7xCKhkeUa/sMksuKvZl33JkU4x
+        +D2yHFRP2Uoxwxxz5MaFefSQI0HRAmjbWTogn8q7TT+1ZfEa0mEx1TpV73VZbVEtHoJPASOK8HfpT
+        C5i2HtTU8nooqDaC4w22yBPFQe+qHcpCPt7nibNyI8uZc5I2GfV2b6iZvS+WQZf9ULq6hpl84mFnP
+        4qkV/sxElZWQVoHVJ6868GupZkZrYImGlZPzCiTUCjBjnbHS/r/Rt1iXoWbASwxZj0yUiKpLocS1i
+        Why9RzOA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1oakjR-0004cv-4S; Tue, 20 Sep 2022 23:24:41 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fwestpha@redhat.com>,
+        Miaohe Lin <linmiaohe@huawei.com>,
+        netfilter-devel@vger.kernel.org
+Subject: [nf PATCH] netfilter: nft_fib: Fix for rpath check with VRF devices
+Date:   Tue, 20 Sep 2022 23:24:32 +0200
+Message-Id: <20220920212432.4168-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We can't use ct->lock, this is already used by the seqadj internals.
-When using ftp helper + nat, seqadj will attempt to acquire ct->lock
-again.
+Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
+dropping vrf packets by mistake") but for nftables fib expression:
+Add special treatment of VRF devices so that typical reverse path
+filtering via 'fib saddr . iif oif' expression works as expected.
 
-Revert back to a global lock for now.
-
-Fixes: c783a29c7e59 ("netfilter: nf_ct_ftp: prefer skb_linearize")
-Reported-by: Bruno de Paula Larini <bruno.larini@riosoft.com.br>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nf_conntrack_ftp.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
+ net/ipv6/netfilter/nft_fib_ipv6.c | 7 ++++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 0d9332e9cf71..617f744a2e3a 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -33,6 +33,7 @@ MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
- MODULE_DESCRIPTION("ftp connection tracking helper");
- MODULE_ALIAS("ip_conntrack_ftp");
- MODULE_ALIAS_NFCT_HELPER(HELPER_NAME);
-+static DEFINE_SPINLOCK(nf_ftp_lock);
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index b75cac69bd7e6..7ade04ff972d7 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	else
+ 		oif = NULL;
  
- #define MAX_PORTS 8
- static u_int16_t ports[MAX_PORTS];
-@@ -409,7 +410,8 @@ static int help(struct sk_buff *skb,
- 	}
- 	datalen = skb->len - dataoff;
++	if (priv->flags & NFTA_FIB_F_IIF)
++		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
++
+ 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+ 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+ 		nft_fib_store_result(dest, priv, nft_in(pkt));
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 8970d0b4faeb4..3f860e331580d 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -170,6 +170,10 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	else if (priv->flags & NFTA_FIB_F_OIF)
+ 		oif = nft_out(pkt);
  
--	spin_lock_bh(&ct->lock);
-+	/* seqadj (nat) uses ct->lock internally, nf_nat_ftp would cause deadlock */
-+	spin_lock_bh(&nf_ftp_lock);
- 	fb_ptr = skb->data + dataoff;
++	if ((priv->flags & NFTA_FIB_F_IIF) &&
++	    (netif_is_l3_master(oif) || netif_is_l3_slave(oif)))
++		fl6.flowi6_oif = oif->ifindex;
++
+ 	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
+ 	if (!iph) {
+ 		regs->verdict.code = NFT_BREAK;
+@@ -197,7 +201,8 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
+ 		goto put_rt_err;
  
- 	ends_in_nl = (fb_ptr[datalen - 1] == '\n');
-@@ -538,7 +540,7 @@ static int help(struct sk_buff *skb,
- 	if (ends_in_nl)
- 		update_nl_seq(ct, seq, ct_ftp_info, dir, skb);
-  out:
--	spin_unlock_bh(&ct->lock);
-+	spin_unlock_bh(&nf_ftp_lock);
- 	return ret;
- }
+-	if (oif && oif != rt->rt6i_idev->dev)
++	if (oif && oif != rt->rt6i_idev->dev &&
++	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) != oif->ifindex)
+ 		goto put_rt_err;
  
+ 	nft_fib_store_result(dest, priv, rt->rt6i_idev->dev);
 -- 
-2.35.1
+2.34.1
 
