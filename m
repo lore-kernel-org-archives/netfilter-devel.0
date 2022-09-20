@@ -2,70 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E3F8C6FA82
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 09:04:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1381AC54EE9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 12:20:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231235AbiITJEF (ORCPT
+        id S229783AbiITMUb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Sep 2022 05:04:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35968 "EHLO
+        Tue, 20 Sep 2022 08:20:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231158AbiITJCX (ORCPT
+        with ESMTP id S229530AbiITMUa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2022 05:02:23 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EEBB6CD08;
-        Tue, 20 Sep 2022 02:02:05 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1oaZ8W-0008Mk-G8; Tue, 20 Sep 2022 11:01:48 +0200
-Message-ID: <d6d6b208-aec0-a4c3-8350-dbe2f474e7c0@leemhuis.info>
-Date:   Tue, 20 Sep 2022 11:01:47 +0200
+        Tue, 20 Sep 2022 08:20:30 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADCA57332C
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 05:20:28 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oacEj-0007zH-PR; Tue, 20 Sep 2022 14:20:25 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>,
+        syzbot+a24c5252f3e3ab733464@syzkaller.appspotmail.com
+Subject: [PATCH nf] netfilter: ebtables: fix memory leak when blob is malformed
+Date:   Tue, 20 Sep 2022 14:20:17 +0200
+Message-Id: <20220920122017.2600-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <000000000000b010bd05e9100e11@google.com>
+References: <000000000000b010bd05e9100e11@google.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.1
-Content-Language: en-US, de-DE
-To:     Chris Clayton <chris2553@googlemail.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        regressions@lists.linux.dev, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-References: <e5d757d7-69bc-a92a-9d19-0f7ed0a81743@googlemail.com>
- <20220908191925.GB16543@breakpoint.cc>
- <78611fbd-434e-c948-5677-a0bdb66f31a5@googlemail.com>
- <20220908214859.GD16543@breakpoint.cc> <YxsTMMFoaNSM9gLN@salvia>
- <a3c79b7d-526f-92ce-144a-453ec3c200a5@googlemail.com>
- <YxvwKlE+nyfUjHx8@salvia> <20220919124024.0c341af4@kernel.org>
- <20220919202310.GA3498@breakpoint.cc> <20220919135715.6057331d@kernel.org>
- <fc8792bf-2d67-496a-6d90-940de21694d9@googlemail.com>
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-Subject: Re: removing conntrack helper toggle to enable auto-assignment [was
- Re: b118509076b3 (probably) breaks my firewall]
-In-Reply-To: <fc8792bf-2d67-496a-6d90-940de21694d9@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1663664525;eb65bcf0;
-X-HE-SMSGID: 1oaZ8W-0008Mk-G8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Chris, thx for CCing the regression list, I've been watching this thread.
+The bug fix was incomplete, it "replaced" crash with a memory leak.
+The old code had an assignment to "ret" embedded into the conditional,
+restore this.
 
-On 20.09.22 08:49, Chris Clayton wrote:
->
-> So I guess I'm an unusual case in that I don't rely on distro maintainers to fix up stuff like this on the rare
-> occasions it comes along. On reflection, I'd say leave it be
+Fixes: 7997eff82828 ("netfilter: ebtables: reject blobs that don't provide all entry points")
+Reported-and-tested-by: syzbot+a24c5252f3e3ab733464@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/netfilter/ebtables.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Okay. With a bit of luck only very few users are affected by this; if
-not we might need to revisit this.
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 8f6639e095a0..c4af063c0c8f 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1040,8 +1040,10 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 		goto free_iterate;
+ 	}
+ 
+-	if (repl->valid_hooks != t->valid_hooks)
++	if (repl->valid_hooks != t->valid_hooks) {
++		ret = -EINVAL;
+ 		goto free_unlock;
++	}
+ 
+ 	if (repl->num_counters && repl->num_counters != t->private->nentries) {
+ 		ret = -EINVAL;
+-- 
+2.18.1
 
-> - as I said earlier, it just seemed rather late in the 6.0
-> development cycle for this to pop up.
-
-With security fixes that can happen, as delaying the fix might the
-inferior of two choices. :-/
-
-Ciao, Thorsten
