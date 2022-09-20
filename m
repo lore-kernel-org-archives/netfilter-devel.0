@@ -2,161 +2,129 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6FBAECAAD8
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 14:22:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0A3DC6FA90
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 14:27:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231820AbiITOWl (ORCPT
+        id S229721AbiITO13 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Sep 2022 10:22:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41876 "EHLO
+        Tue, 20 Sep 2022 10:27:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231824AbiITOWX (ORCPT
+        with ESMTP id S230020AbiITO1V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2022 10:22:23 -0400
-Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E173867C9E;
-        Tue, 20 Sep 2022 07:20:36 -0700 (PDT)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.nyi.internal (Postfix) with ESMTP id B919C5C00E9;
-        Tue, 20 Sep 2022 10:20:35 -0400 (EDT)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute5.internal (MEProxy); Tue, 20 Sep 2022 10:20:35 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm1; t=1663683635; x=1663770035; bh=pPvqmUU71q
-        wrpLnIBmAaZIEwDK27ICHWN327l1OQYAo=; b=fZ6Mqcc89NTAsDirXXSi6QVtel
-        m3+eQsWM9NeVaLSGhBuI1E4e3ufB5/39QOpZkuIlTLBtJNRzhfYMxnDvFf5dKfLn
-        qyIwnOrsWO+Jv48UtHOI8avIzr35u9in3yYq4nEieNOeyTYkcMWU5futwjnkCQ8o
-        ySuZoBojvFOxiJ0kFckOAs3gLuuGX4qWcJipkYCd/UoP7a9ufI6xfvIdHs0xgLTE
-        htrUryD0lf9dXquJ6e3ElCbeDT2AXjUvxzjKCQtqf394saE526jUYwFcf9RIYRLm
-        v96ZMfkJp6v0OO+jH6xuM8RBm7sSnhsCLP1ejh2BUeAaiiiEvTMgRKp0dIAA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm2; t=1663683635; x=1663770035; bh=pPvqmUU71qwrpLnIBmAaZIEwDK27
-        ICHWN327l1OQYAo=; b=e11CPf1U3XKvfGGo4OukYtRjlapAfQEBEUOp/bT+JoZV
-        uT4PQWRcnw9iCTaUzZRreF6tawFiCrZP+iDMxrYGZclQ9owRqaEwv5CYIv+JKtg+
-        BYD8Dj3AfLYdzwq1gQnIjX2JT+KNIPHvlSs0YZsBIGIOvtk4X8KqiCQNwm9vxnX+
-        iQdlwjvZ0laymTUlJuTS9j8DHEHYBeM4bkc9RJDdq/wUisZBU7wzAFSFp2m0nvTn
-        LiNnB/rNNJV/McSA1NAhVgdytS7eSifV4lql1MrLaNcTq/tJOY0edF4ZN4vgs5V5
-        EvFA53/Xo1TUWFxsMCO2+CrE6KnsEUlPriERARWWnA==
-X-ME-Sender: <xms:M8wpY7eurYPBpJlK2devgHiI-zc1iBhkJL5vpLzQiBkSyu3NrnwkQg>
-    <xme:M8wpYxPqlSYO6hVwol8Wop3RpIZZbpMJd1uQKucsDvTTqoOy8KguZcEWAw7tWwK_X
-    vM7-2b0klvheU0Y-A>
-X-ME-Received: <xmr:M8wpY0gUBlm9qrFdeZcSD1UYKlTsrjaky0jDH1q-rGl7pauRO4X_nU1Zpo-nGBBhIfc9DoF4v6wNl8jyp_6bAI8eRoWQMjpyBvbWcTI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfedvledgjeehucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    gfrhhlucfvnfffucdlfeehmdenucfjughrpeffhffvvefukfhfgggtuggjsehttdertddt
-    tddvnecuhfhrohhmpeffrghnihgvlhcuighuuceougiguhesugiguhhuuhdrgiihiieqne
-    cuggftrfgrthhtvghrnhepgefhleevheekleejhfeggefhhfefteegieduudevleefudeh
-    veevfffgleegtdejnecuffhomhgrihhnpehinhgtlhhuuggvqdifhhgrthdqhihouhdquh
-    hsvgdrohhrghenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhr
-    ohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:M8wpY8--EsXlH4aY7IrmJaGbHF39U-MtOi9OCFkdQR3DlsvLb1PAUA>
-    <xmx:M8wpY3v8gGUi5RGohdBXvhi0ilM2ClkMN_SrAUkJHAU8MUj6yKRq2w>
-    <xmx:M8wpY7GeDAf_YAAU5KGvGZA_60PfwkYiaMkCbpCwxnzOyoINMin91g>
-    <xmx:M8wpY4mj299Ph9PE0v2ai0M-pBowxQGXQgJI1Dn6rrM5f0qPtVjMjg>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 20 Sep 2022 10:20:34 -0400 (EDT)
-Date:   Tue, 20 Sep 2022 08:20:33 -0600
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     Martin KaFai Lau <martin.lau@linux.dev>
-Cc:     pablo@netfilter.org, fw@strlen.de, toke@kernel.org,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org, ast@kernel.org,
-        daniel@iogearbox.net, andrii@kernel.org, memxor@gmail.com
-Subject: Re: [PATCH bpf-next v2 3/3] bpf: Move nf_conn extern declarations to
- filter.h
-Message-ID: <20220920142033.3k3yuupwyb5cxqxb@kashmir.localdomain>
-References: <cover.1663616584.git.dxu@dxuuu.xyz>
- <3c00fb8d15d543ae3b5df928c191047145c6b5fe.1663616584.git.dxu@dxuuu.xyz>
- <dc251395-78af-2ea3-9049-3b44cb831783@linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dc251395-78af-2ea3-9049-3b44cb831783@linux.dev>
+        Tue, 20 Sep 2022 10:27:21 -0400
+Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7067CE4
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 07:27:20 -0700 (PDT)
+Received: by mail-ej1-x635.google.com with SMTP id lc7so6743557ejb.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 07:27:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:in-reply-to:to:references:date:subject:mime-version
+         :content-transfer-encoding:from:from:to:cc:subject:date;
+        bh=vbogA3Hd9mXP1fkFaTT7JUNrDM33W6IuiTg6IbcuscY=;
+        b=InIjDcdQ36/hYY/bQWR2K0c2SWVtRUpav0g0Ecz9hBYN1hF2AmN34E+6+0CIZJazAQ
+         9v9YIfQp+Ottoir6fUXLHLds6e3EkSM59Ul48LAgkMi99QL8nYm+X+ICgHMgK9YkUqf1
+         WcGDf/g5EJ1MGQsFxFmrFHzfy+tsaA/TaTBZp57HGGBG+CXZdynzt5ndwnLlpKAzaxt5
+         gwPY3FDWxAFsHNj+J+9oibSATv83/lTbGc90YgZbDjMUjDdjdjVNIC+miF/z0ZmJYhWR
+         QBURsPTluYEjUiCy2Ar09GkOMUeA0zzKAQh603LRXKrCTfiRrAinC7O07VWRvcgXuVas
+         OpLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=message-id:in-reply-to:to:references:date:subject:mime-version
+         :content-transfer-encoding:from:x-gm-message-state:from:to:cc
+         :subject:date;
+        bh=vbogA3Hd9mXP1fkFaTT7JUNrDM33W6IuiTg6IbcuscY=;
+        b=nSi3at4m3/RXVi4CGnY7EE0uFsEGwJgzjdBXYNR26fixoYMuokhTI6gZKlORFqo/vq
+         dfqhAYlnz+7VRzCYlPxeW38hcPAdL7g0eLhuiOWEea6M/vpgRhb/sae2YhOP/tKRYYZY
+         PbexmJ9wvJWli8n9BS8Jbbkhrrejf71z4Bx07LHLuKBxWSmDbHkhnGiXtVwKzbvVPSW2
+         ByhkJvyGNNO6ZhpewsOFGPKGysS0UPz7iDgNsU0PDvFjqRRpnFfsr5bosBQmpXJw8hRi
+         RB3tIrppSlAblnBoD/LhRn5w7tWWZmyba0pxYVDhKnhXMka6lxj3TOP7CBBVeuYP0akz
+         CwaA==
+X-Gm-Message-State: ACrzQf0p+3n0wsojdnRXTnewOJyG3quaeBldrFFGxg+yxpT5s4RRyhbh
+        tw2o5mq2OBpH3Mp6bTrS0Ko=
+X-Google-Smtp-Source: AMsMyM5+Tk6/UnuSQTU0/v+K5pCZYCsDxJCMbIKkQq4alS4JYKlLPEx2hxfsMrRosFYjQg2uv+hkNA==
+X-Received: by 2002:a17:906:844a:b0:77c:1d87:b81e with SMTP id e10-20020a170906844a00b0077c1d87b81emr16741532ejy.675.1663684039263;
+        Tue, 20 Sep 2022 07:27:19 -0700 (PDT)
+Received: from smtpclient.apple ([178.254.237.20])
+        by smtp.gmail.com with ESMTPSA id h22-20020a17090791d600b00722e50dab2csm914603ejz.109.2022.09.20.07.27.18
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 20 Sep 2022 07:27:18 -0700 (PDT)
+From:   Martin Zaharinov <micron10@gmail.com>
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.120.0.1.13\))
+Subject: Re: Question for table netdev set list
+Date:   Tue, 20 Sep 2022 17:27:17 +0300
+References: <08BAFEF0-E82D-468C-A855-F5CB1A81ED8F@gmail.com>
+To:     Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org
+In-Reply-To: <08BAFEF0-E82D-468C-A855-F5CB1A81ED8F@gmail.com>
+Message-Id: <8DFC78BC-5511-4877-B27D-6C6C44D227DE@gmail.com>
+X-Mailer: Apple Mail (2.3654.120.0.1.13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 19, 2022 at 10:20:47PM -0700, Martin KaFai Lau wrote:
-> On 9/19/22 12:44 PM, Daniel Xu wrote:
-> > We're seeing the following new warnings on netdev/build_32bit and
-> > netdev/build_allmodconfig_warn CI jobs:
-> > 
-> >      ../net/core/filter.c:8608:1: warning: symbol
-> >      'nf_conn_btf_access_lock' was not declared. Should it be static?
-> >      ../net/core/filter.c:8611:5: warning: symbol 'nfct_bsa' was not
-> >      declared. Should it be static?
-> > 
-> > Fix by ensuring extern declaration is present while compiling filter.o.
-> > 
-> > Fixes: 864b656f82cc ("bpf: Add support for writing to nf_conn:mark")
-> > Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
-> > ---
-> >   include/linux/filter.h                   | 6 ++++++
-> >   include/net/netfilter/nf_conntrack_bpf.h | 7 +------
-> >   2 files changed, 7 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/include/linux/filter.h b/include/linux/filter.h
-> > index 75335432fcbc..98e28126c24b 100644
-> > --- a/include/linux/filter.h
-> > +++ b/include/linux/filter.h
-> > @@ -567,6 +567,12 @@ struct sk_filter {
-> >   DECLARE_STATIC_KEY_FALSE(bpf_stats_enabled_key);
-> > +extern struct mutex nf_conn_btf_access_lock;
-> > +extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
-> > +				     const struct btf_type *t, int off, int size,
-> > +				     enum bpf_access_type atype, u32 *next_btf_id,
-> > +				     enum bpf_type_flag *flag);
-> > +
-> >   typedef unsigned int (*bpf_dispatcher_fn)(const void *ctx,
-> >   					  const struct bpf_insn *insnsi,
-> >   					  unsigned int (*bpf_func)(const void *,
-> > diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
-> > index d1087e4da440..24d1ccc1f8df 100644
-> > --- a/include/net/netfilter/nf_conntrack_bpf.h
-> > +++ b/include/net/netfilter/nf_conntrack_bpf.h
-> > @@ -5,6 +5,7 @@
-> >   #include <linux/bpf.h>
-> >   #include <linux/btf.h>
-> > +#include <linux/filter.h>
-> 
-> The filter.h is only needed by nf_conntrack_bpf.c?  How about moving this
-> include to nf_conntrack_bpf.c.  nf_conntrack_bpf.h is included by other
-> conntrack core codes.  I would prefer not to spill over unnecessary bpf
-> headers to them.  The same goes for the above bpf.h and btf.h which are only
-> needed in nf_conntrack_bpf.c also?
+Or to send device like ppp* eth0.* tap*
 
-Ah yeah. Thanks for catching. Will send out a v3.
+in this case  no need to write list to set interface
 
-Now I'm wondering if https://include-what-you-use.org/ would work with
-kernel source. Might give it a try later.
+> On 20 Sep 2022, at 17:15, Martin Zaharinov <micron10@gmail.com> wrote:
+>=20
+> Hi Pablo and Florian
+>=20
+>=20
+> I have one question=20
+> is it possible to set list in netdev hook
+>=20
+>=20
+> Like this :=20
+>=20
+> table netdev test {
+> 	set test_list {
+> 		typeof iifname
+> 		flags dynamic
+> 		elements =3D { eth0, eth1 }
+> 	}
+>=20
+> 	chain INGRESS {
+> 		type filter hook ingress devices =3D { @test_list } =
+priority -450; policy accept;
+> 	}
+>=20
+> 	chain EGRESS {
+> 		type filter hook egress devices =3D { @test_list  } =
+priority -450; policy accept;
+> 	}
+> }
+> table inet filter {
+> 	set test_list {
+> 		typeof iifname
+> 		flags dynamic
+> 		elements =3D {  eth0, eth1 }
+> 	}
+> =09
+> 	flowtable fastpath {
+> 		hook ingress priority filter
+> 		devices =3D { @test_list }
+> 	}
+> }
+>=20
+>=20
+>=20
+> Idea is to set interface in list not to create many chains for every =
+interface=20
+>=20
+> now i receive:=20
+>=20
+> Error: syntax error, unexpected @, expecting string or quoted string =
+or '$'
+> type filter hook ingress devices =3D { @device_list }  priority -450; =
+policy accept;
+>=20
+>=20
+>=20
+> m.
 
-> 
-> >   #include <linux/kconfig.h>
-> >   #include <linux/mutex.h>
-> 
-> Also, is mutex.h still needed?
-
-Nope. But forgot to send that out in v3. I'll roll it into v4 if we need
-another respin or otherwise I'll send out a separate patch after.
-
-> 
-> > @@ -14,12 +15,6 @@
-> >   extern int register_nf_conntrack_bpf(void);
-> >   extern void cleanup_nf_conntrack_bpf(void);
-> > -extern struct mutex nf_conn_btf_access_lock;
-> > -extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log, const struct btf *btf,
-> > -				     const struct btf_type *t, int off, int size,
-> > -				     enum bpf_access_type atype, u32 *next_btf_id,
-> > -				     enum bpf_type_flag *flag);
-> > -
-> >   #else
-> >   static inline int register_nf_conntrack_bpf(void)
-> 
