@@ -2,92 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2837C54EE9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Sep 2022 23:24:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1F66ECAAD8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 07:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230063AbiITXYZ (ORCPT
+        id S229764AbiIUHim (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Sep 2022 19:24:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37224 "EHLO
+        Wed, 21 Sep 2022 03:38:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230025AbiITXYY (ORCPT
+        with ESMTP id S229811AbiIUHim (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2022 19:24:24 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5A497269E
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2022 16:24:22 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1oamb9-0005o0-0U; Wed, 21 Sep 2022 01:24:15 +0200
-Date:   Wed, 21 Sep 2022 01:24:15 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH] netfilter: nft_fib: Fix for rpath check with VRF
- devices
-Message-ID: <YypLn4qnEWoi4Ij4@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Miaohe Lin <linmiaohe@huawei.com>, netfilter-devel@vger.kernel.org
-References: <20220920212432.4168-1-phil@nwl.cc>
- <YypDOwT2QaHEgXfS@strlen.de>
+        Wed, 21 Sep 2022 03:38:42 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41C4483F07;
+        Wed, 21 Sep 2022 00:38:40 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oauJX-0005QG-R2; Wed, 21 Sep 2022 09:38:35 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH net 0/5] netfilter: bugfixes for net
+Date:   Wed, 21 Sep 2022 09:38:20 +0200
+Message-Id: <20220921073825.4658-1-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YypDOwT2QaHEgXfS@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 21, 2022 at 12:48:27AM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
-> > dropping vrf packets by mistake") but for nftables fib expression:
-> > Add special treatment of VRF devices so that typical reverse path
-> > filtering via 'fib saddr . iif oif' expression works as expected.
-> > 
-> > Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> >  net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
-> >  net/ipv6/netfilter/nft_fib_ipv6.c | 7 ++++++-
-> >  2 files changed, 9 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-> > index b75cac69bd7e6..7ade04ff972d7 100644
-> > --- a/net/ipv4/netfilter/nft_fib_ipv4.c
-> > +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-> > @@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
-> >  	else
-> >  		oif = NULL;
-> >  
-> > +	if (priv->flags & NFTA_FIB_F_IIF)
-> > +		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
-> > +
-> >  	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
-> >  	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
-> >  		nft_fib_store_result(dest, priv, nft_in(pkt));
-> > diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-> > index 8970d0b4faeb4..3f860e331580d 100644
-> > --- a/net/ipv6/netfilter/nft_fib_ipv6.c
-> > +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-> > @@ -170,6 +170,10 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
-> >  	else if (priv->flags & NFTA_FIB_F_OIF)
-> >  		oif = nft_out(pkt);
-> >  
-> > +	if ((priv->flags & NFTA_FIB_F_IIF) &&
-> > +	    (netif_is_l3_master(oif) || netif_is_l3_slave(oif)))
-> > +		fl6.flowi6_oif = oif->ifindex;
-> > +
-> 
-> I was about to apply this, but this initialisation comes before
-> nft_fib6_flowi_init(), should this be *after*, or part of
-> nft_fib6_flowi_init() function instead?
+Hello,
 
-Oh, I missed that one, sorry. I'll make it part of
-nft_fib6_flowi_init() to better align with ip6t_rpfilter.c.
+The following set contains netfilter fixes for the *net* tree.
 
-Thanks, Phil
+Regressions (rc only):
+recent ebtables crash fix was incomplete, it added a memory leak.
+
+The patch to fix possible buffer overrun for BIG TCP in ftp conntrack
+tried to be too clever, we cannot re-use ct->lock: NAT engine might
+grab it again -> deadlock.  Revert back to a global spinlock.
+Both from myself.
+
+Remove the documentation for the recently removed
+'nf_conntrack_helper' sysctl as well, from Pablo Neira.
+
+The static_branch_inc() that guards the 'chain stats enabled' path
+needs to be deferred further, until the entire transaction was created.
+From Tetsuo Handa.
+
+Older bugs:
+Since 5.3:
+nf_tables_addchain may leak pcpu memory in error path when
+offloading fails. Also from Tetsuo Handa.
+
+Please consider pulling these changes from
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+----------------------------------------------------------------
+The following changes since commit 603ccb3aca717d04a4b1a04e3a7bc3b91eba33e8:
+
+  MAINTAINERS: Add myself as a reviewer for Qualcomm ETHQOS Ethernet driver (2022-09-20 13:42:55 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git master
+
+for you to fetch changes up to d25088932227680988a6b794221e031a7232f137:
+
+  netfilter: nf_ct_ftp: fix deadlock when nat rewrite is needed (2022-09-20 23:50:03 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: ebtables: fix memory leak when blob is malformed
+      netfilter: nf_ct_ftp: fix deadlock when nat rewrite is needed
+
+Pablo Neira Ayuso (1):
+      netfilter: conntrack: remove nf_conntrack_helper documentation
+
+Tetsuo Handa (2):
+      netfilter: nf_tables: fix nft_counters_enabled underflow at nf_tables_addchain()
+      netfilter: nf_tables: fix percpu memory leak at nf_tables_addchain()
+
+ Documentation/networking/nf_conntrack-sysctl.rst | 9 ---------
+ net/bridge/netfilter/ebtables.c                  | 4 +++-
+ net/netfilter/nf_conntrack_ftp.c                 | 6 ++++--
+ net/netfilter/nf_tables_api.c                    | 8 ++++----
+ 4 files changed, 11 insertions(+), 16 deletions(-)
