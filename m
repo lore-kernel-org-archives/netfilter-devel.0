@@ -2,34 +2,34 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DD64ECAAD8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 07:38:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCC91ECAAD8
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 07:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230256AbiIUHix (ORCPT
+        id S230266AbiIUHi7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Sep 2022 03:38:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58882 "EHLO
+        Wed, 21 Sep 2022 03:38:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230257AbiIUHiv (ORCPT
+        with ESMTP id S230198AbiIUHi5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2022 03:38:51 -0400
+        Wed, 21 Sep 2022 03:38:57 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 175DD83F06;
-        Wed, 21 Sep 2022 00:38:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69581844C0;
+        Wed, 21 Sep 2022 00:38:54 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1oauJk-0005RG-F7; Wed, 21 Sep 2022 09:38:48 +0200
+        id 1oauJo-0005Rq-LX; Wed, 21 Sep 2022 09:38:52 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
-        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
-        Florian Westphal <fw@strlen.de>
-Subject: [PATCH net 3/5] netfilter: nf_tables: fix percpu memory leak at nf_tables_addchain()
-Date:   Wed, 21 Sep 2022 09:38:23 +0200
-Message-Id: <20220921073825.4658-4-fw@strlen.de>
+        Florian Westphal <fw@strlen.de>,
+        syzbot+a24c5252f3e3ab733464@syzkaller.appspotmail.com
+Subject: [PATCH net 4/5] netfilter: ebtables: fix memory leak when blob is malformed
+Date:   Wed, 21 Sep 2022 09:38:24 +0200
+Message-Id: <20220921073825.4658-5-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220921073825.4658-1-fw@strlen.de>
 References: <20220921073825.4658-1-fw@strlen.de>
@@ -39,31 +39,33 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+The bug fix was incomplete, it "replaced" crash with a memory leak.
+The old code had an assignment to "ret" embedded into the conditional,
+restore this.
 
-It seems to me that percpu memory for chain stats started leaking since
-commit 3bc158f8d0330f0a ("netfilter: nf_tables: map basechain priority to
-hardware priority") when nft_chain_offload_priority() returned an error.
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Fixes: 3bc158f8d0330f0a ("netfilter: nf_tables: map basechain priority to hardware priority")
+Fixes: 7997eff82828 ("netfilter: ebtables: reject blobs that don't provide all entry points")
+Reported-and-tested-by: syzbot+a24c5252f3e3ab733464@syzkaller.appspotmail.com
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/bridge/netfilter/ebtables.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e062754dc6cc..63c70141b3e5 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2243,6 +2243,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
- 		if (err < 0) {
- 			nft_chain_release_hook(&hook);
- 			kfree(basechain);
-+			free_percpu(stats);
- 			return err;
- 		}
- 		if (stats)
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 9a0ae59cdc50..4f385d52a1c4 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1040,8 +1040,10 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 		goto free_iterate;
+ 	}
+ 
+-	if (repl->valid_hooks != t->valid_hooks)
++	if (repl->valid_hooks != t->valid_hooks) {
++		ret = -EINVAL;
+ 		goto free_unlock;
++	}
+ 
+ 	if (repl->num_counters && repl->num_counters != t->private->nentries) {
+ 		ret = -EINVAL;
 -- 
 2.35.1
 
