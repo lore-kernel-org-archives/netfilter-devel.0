@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1966EC32771
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A7FEC6FA8E
 	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 09:53:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231684AbiIUJxP (ORCPT
+        id S231734AbiIUJxP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 21 Sep 2022 05:53:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33148 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230107AbiIUJwy (ORCPT
+        with ESMTP id S231706AbiIUJwz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2022 05:52:54 -0400
+        Wed, 21 Sep 2022 05:52:55 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77CDFE3B;
-        Wed, 21 Sep 2022 02:50:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01E4B641F;
+        Wed, 21 Sep 2022 02:50:20 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1oawMs-0006Pf-Ig; Wed, 21 Sep 2022 11:50:10 +0200
+        id 1oawN0-0006Q7-RY; Wed, 21 Sep 2022 11:50:18 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     <netfilter-devel@vger.kernel.org>,
@@ -26,60 +26,74 @@ Cc:     <netfilter-devel@vger.kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
+        Antoine Tenart <atenart@kernel.org>,
         Florian Westphal <fw@strlen.de>
-Subject: [PATCH net-next 0/4] netfilter patches for net-next
-Date:   Wed, 21 Sep 2022 11:49:56 +0200
-Message-Id: <20220921095000.29569-1-fw@strlen.de>
+Subject: [PATCH net-next 2/4] netfilter: conntrack: revisit the gc initial rescheduling bias
+Date:   Wed, 21 Sep 2022 11:49:58 +0200
+Message-Id: <20220921095000.29569-3-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220921095000.29569-1-fw@strlen.de>
+References: <20220921095000.29569-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+From: Antoine Tenart <atenart@kernel.org>
 
-The following set contains netfilter changes for the *net-next* tree.
+The previous commit changed the way the rescheduling delay is computed
+which has a side effect: the bias is now represented as much as the
+other entries in the rescheduling delay which makes the logic to kick in
+only with very large sets, as the initial interval is very large
+(INT_MAX).
 
-Remove GPL license copypastry in uapi files, those have SPDX tags.
-From Christophe Jaillet.
+Revisit the GC initial bias to allow more frequent GC for smaller sets
+while still avoiding wakeups when a machine is mostly idle. We're moving
+from a large initial value to pretending we have 100 entries expiring at
+the upper bound. This way only a few entries having a small timeout
+won't impact much the rescheduling delay and non-idle machines will have
+enough entries to lower the delay when needed. This also improves
+readability as the initial bias is now linked to what is computed
+instead of being an arbitrary large value.
 
-Remove unused variable in rpfilter, from Guillaume Nault.
+Fixes: 2cfadb761d3d ("netfilter: conntrack: revisit gc autotuning")
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Antoine Tenart <atenart@kernel.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_core.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Rework gc resched delay computation in conntrack, from Antoine Tenart.
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8efa6bd5703c..8208a28ea342 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -86,10 +86,12 @@ static DEFINE_MUTEX(nf_conntrack_mutex);
+ /* clamp timeouts to this value (TCP unacked) */
+ #define GC_SCAN_INTERVAL_CLAMP	(300ul * HZ)
+ 
+-/* large initial bias so that we don't scan often just because we have
+- * three entries with a 1s timeout.
++/* Initial bias pretending we have 100 entries at the upper bound so we don't
++ * wakeup often just because we have three entries with a 1s timeout while still
++ * allowing non-idle machines to wakeup more often when needed.
+  */
+-#define GC_SCAN_INTERVAL_INIT	INT_MAX
++#define GC_SCAN_INITIAL_COUNT	100
++#define GC_SCAN_INTERVAL_INIT	GC_SCAN_INTERVAL_MAX
+ 
+ #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
+ #define GC_SCAN_EXPIRED_MAX	(64000u / HZ)
+@@ -1477,7 +1479,7 @@ static void gc_worker(struct work_struct *work)
+ 
+ 	if (i == 0) {
+ 		gc_work->avg_timeout = GC_SCAN_INTERVAL_INIT;
+-		gc_work->count = 1;
++		gc_work->count = GC_SCAN_INITIAL_COUNT;
+ 		gc_work->start_time = start_time;
+ 	}
+ 
+-- 
+2.35.1
 
-Please consider pulling these changes from
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
-
-
-----------------------------------------------------------------
-The following changes since commit c29b068215906d33f75378d44526edc37ad08276:
-
-  liquidio: CN23XX: delete repeated words, add missing words and fix typo in comment (2022-09-20 16:50:21 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git master
-
-for you to fetch changes up to 72f5c89804636b5b4c8599354a92d6df8cff42cc:
-
-  netfilter: rpfilter: Remove unused variable 'ret'. (2022-09-21 10:44:56 +0200)
-
-----------------------------------------------------------------
-Antoine Tenart (2):
-      netfilter: conntrack: fix the gc rescheduling delay
-      netfilter: conntrack: revisit the gc initial rescheduling bias
-
-Christophe JAILLET (1):
-      headers: Remove some left-over license text in include/uapi/linux/netfilter/
-
-Guillaume Nault (1):
-      netfilter: rpfilter: Remove unused variable 'ret'.
-
- include/uapi/linux/netfilter/ipset/ip_set.h |  4 ----
- include/uapi/linux/netfilter/xt_AUDIT.h     |  4 ----
- include/uapi/linux/netfilter/xt_connmark.h  | 13 ++++---------
- include/uapi/linux/netfilter/xt_osf.h       | 14 --------------
- net/ipv4/netfilter/ipt_rpfilter.c           |  1 -
- net/netfilter/nf_conntrack_core.c           | 18 +++++++++++++-----
- 6 files changed, 17 insertions(+), 37 deletions(-)
