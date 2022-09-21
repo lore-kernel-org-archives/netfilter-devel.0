@@ -2,105 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C9CC32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 11:07:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0683C32771
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 11:49:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229929AbiIULHp (ORCPT
+        id S230265AbiIULtz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Sep 2022 07:07:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47768 "EHLO
+        Wed, 21 Sep 2022 07:49:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229519AbiIULHp (ORCPT
+        with ESMTP id S229560AbiIULtY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2022 07:07:45 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6102587095
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Sep 2022 04:07:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=eAWi4m8bZFggpMxERVt1ZGRyH0AxXuKxpQjBB1y3oG4=; b=Uk/mJbLYo8Lj0MXvgqvNxwpq6K
-        A+BI99zQw1vDRXuA02wYiSYcq64oQ77FqwSv4eiq9qARHIsTjpn8dA+vBTs/366lEEr28i76Ck0CM
-        2/6Jn2r+2zhDs+83Ge22fJcHvodknfVFCg/XNd2im6ql1rLk9hJ1fFq3vCOVRdIzzymKwW7qcqSw6
-        Ui9Z+/kGtUqEHRtFB9VQfh2yYiba4QuFACcL1T3USe8CZuNRNvgeZQW0M01LWVPMAAguQIMWktpUK
-        Tz99BU9xs4eJ3yj8Nndi4sxBBnqHTglPYLfsy7NFMqT/oYNXImQ0iW+otaCB/MvmCCwg+8XIn/b42
-        DszKvD2Q==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1oaxZs-0003zc-0C; Wed, 21 Sep 2022 13:07:40 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fwestpha@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Miaohe Lin <linmiaohe@huawei.com>,
-        netfilter-devel@vger.kernel.org
-Subject: [nf PATCH v2] netfilter: nft_fib: Fix for rpath check with VRF devices
-Date:   Wed, 21 Sep 2022 13:07:31 +0200
-Message-Id: <20220921110731.26465-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Wed, 21 Sep 2022 07:49:24 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D35E923FE
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Sep 2022 04:48:29 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1oayDL-0006y4-7n; Wed, 21 Sep 2022 13:48:27 +0200
+Date:   Wed, 21 Sep 2022 13:48:27 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 2/2] segtree: fix decomposition of unclosed intervals
+ containing address prefixes
+Message-ID: <Yyr6C+IKMrCM0hQJ@strlen.de>
+References: <20220918172212.3681553-1-jeremy@azazel.net>
+ <20220918172212.3681553-3-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220918172212.3681553-3-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
-dropping vrf packets by mistake") but for nftables fib expression:
-Add special treatment of VRF devices so that typical reverse path
-filtering via 'fib saddr . iif oif' expression works as expected.
+Jeremy Sowden <jeremy@azazel.net> wrote:
+> @@ -619,24 +622,12 @@ void interval_map_decompose(struct expr *set)
+>  
+>  	if (!mpz_cmp(i->value, expr_value(low)->value)) {
+>  		expr_free(i);
+> -		i = low;
+> +		compound_expr_add(set, low);
+>  	} else {
+> -		i = range_expr_alloc(&low->location,
+> -				     expr_clone(expr_value(low)), i);
+> -		i = set_elem_expr_alloc(&low->location, i);
+> -		if (low->etype == EXPR_MAPPING) {
+> -			i = mapping_expr_alloc(&i->location, i,
+> -					       expr_clone(low->right));
+> -			interval_expr_copy(i->left, low->left);
+> -		} else {
+> -			interval_expr_copy(i, low);
+> -		}
+> -		i->flags |= EXPR_F_KERNEL;
+> -
+> +		add_interval(set, low, i);
+>  		expr_free(low);
+>  	}
+>  
+> -	compound_expr_add(set, i);
 
-Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v1:
-- Move flowi6_oif initialization into nft_fib6_flowi_init() function as
-  suggested by fw.
----
- net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
- net/ipv6/netfilter/nft_fib_ipv6.c | 6 +++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+This results in a memory leak:
 
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index b75cac69bd7e6..7ade04ff972d7 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	else
- 		oif = NULL;
+__interceptor_malloc libsanitizer/asan/asan_malloc_linux.cpp:145
+xmalloc src/utils.c:36
+xzalloc src/utils.c:75
+expr_alloc src/expression.c:46
+constant_expr_alloc src/expression.c:420
+interval_map_decompose src/segtree.c:619
+
+Before, 'i' was assigned to the compund expr, but thats no longer the
+case.
+
+Does this look good to you?  If so, I will sqash this before applying:
+
+diff --git a/src/segtree.c b/src/segtree.c
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -621,13 +621,14 @@ void interval_map_decompose(struct expr *set)
+ 	mpz_bitmask(i->value, i->len);
  
-+	if (priv->flags & NFTA_FIB_F_IIF)
-+		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
-+
- 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
- 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
- 		nft_fib_store_result(dest, priv, nft_in(pkt));
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 8970d0b4faeb4..1d7e520d9966c 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -41,6 +41,9 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
- 	if (ipv6_addr_type(&fl6->daddr) & IPV6_ADDR_LINKLOCAL) {
- 		lookup_flags |= RT6_LOOKUP_F_IFACE;
- 		fl6->flowi6_oif = get_ifindex(dev ? dev : pkt->skb->dev);
-+	} else if ((priv->flags & NFTA_FIB_F_IIF) &&
-+		   (netif_is_l3_master(dev) || netif_is_l3_slave(dev))) {
-+		fl6->flowi6_oif = dev->ifindex;
+ 	if (!mpz_cmp(i->value, expr_value(low)->value)) {
+-		expr_free(i);
+ 		compound_expr_add(set, low);
+ 	} else {
+ 		add_interval(set, low, i);
+ 		expr_free(low);
  	}
  
- 	if (ipv6_addr_type(&fl6->saddr) & IPV6_ADDR_UNICAST)
-@@ -197,7 +200,8 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
- 		goto put_rt_err;
- 
--	if (oif && oif != rt->rt6i_idev->dev)
-+	if (oif && oif != rt->rt6i_idev->dev &&
-+	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) != oif->ifindex)
- 		goto put_rt_err;
- 
- 	nft_fib_store_result(dest, priv, rt->rt6i_idev->dev);
--- 
-2.34.1
-
++	expr_free(i);
++
+ out:
+ 	if (catchall)
+ 		compound_expr_add(set, catchall);
