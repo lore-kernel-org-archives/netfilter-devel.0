@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 926A4C6FA90
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 09:53:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 457C3C6FA91
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 09:53:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229821AbiIUJxQ (ORCPT
+        id S230316AbiIUJxR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Sep 2022 05:53:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59064 "EHLO
+        Wed, 21 Sep 2022 05:53:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231793AbiIUJwy (ORCPT
+        with ESMTP id S229945AbiIUJw4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2022 05:52:54 -0400
+        Wed, 21 Sep 2022 05:52:56 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A131883FA;
-        Wed, 21 Sep 2022 02:50:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06240E8F;
+        Wed, 21 Sep 2022 02:50:24 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1oawMw-0006Po-M3; Wed, 21 Sep 2022 11:50:14 +0200
+        id 1oawN5-0006QR-0x; Wed, 21 Sep 2022 11:50:23 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     <netfilter-devel@vger.kernel.org>,
@@ -26,11 +26,11 @@ Cc:     <netfilter-devel@vger.kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
-        Antoine Tenart <atenart@kernel.org>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
         Florian Westphal <fw@strlen.de>
-Subject: [PATCH net-next 1/4] netfilter: conntrack: fix the gc rescheduling delay
-Date:   Wed, 21 Sep 2022 11:49:57 +0200
-Message-Id: <20220921095000.29569-2-fw@strlen.de>
+Subject: [PATCH net-next 3/4] headers: Remove some left-over license text in include/uapi/linux/netfilter/
+Date:   Wed, 21 Sep 2022 11:49:59 +0200
+Message-Id: <20220921095000.29569-4-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220921095000.29569-1-fw@strlen.de>
 References: <20220921095000.29569-1-fw@strlen.de>
@@ -40,106 +40,107 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Antoine Tenart <atenart@kernel.org>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-Commit 2cfadb761d3d ("netfilter: conntrack: revisit gc autotuning")
-changed the eviction rescheduling to the use average expiry of scanned
-entries (within 1-60s) by doing:
+When the SPDX-License-Identifier tag has been added, the corresponding
+license text has not been removed.
 
-  for (...) {
-      expires = clamp(nf_ct_expires(tmp), ...);
-      next_run += expires;
-      next_run /= 2;
-  }
+Remove it now.
 
-The issue is the above will make the average ('next_run' here) more
-dependent on the last expiration values than the firsts (for sets > 2).
-Depending on the expiration values used to compute the average, the
-result can be quite different than what's expected. To fix this we can
-do the following:
+Also, in xt_connmark.h, move the copyright text at the top of the file
+which is a much more common pattern.
 
-  for (...) {
-      expires = clamp(nf_ct_expires(tmp), ...);
-      next_run += (expires - next_run) / ++count;
-  }
-
-Fixes: 2cfadb761d3d ("netfilter: conntrack: revisit gc autotuning")
-Cc: Florian Westphal <fw@strlen.de>
-Signed-off-by: Antoine Tenart <atenart@kernel.org>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/uapi/linux/netfilter/ipset/ip_set.h |  4 ----
+ include/uapi/linux/netfilter/xt_AUDIT.h     |  4 ----
+ include/uapi/linux/netfilter/xt_connmark.h  | 13 ++++---------
+ include/uapi/linux/netfilter/xt_osf.h       | 14 --------------
+ 4 files changed, 4 insertions(+), 31 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c5851e1321e7..8efa6bd5703c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -67,6 +67,7 @@ struct conntrack_gc_work {
- 	struct delayed_work	dwork;
- 	u32			next_bucket;
- 	u32			avg_timeout;
-+	u32			count;
- 	u32			start_time;
- 	bool			exiting;
- 	bool			early_drop;
-@@ -1466,6 +1467,7 @@ static void gc_worker(struct work_struct *work)
- 	unsigned int expired_count = 0;
- 	unsigned long next_run;
- 	s32 delta_time;
-+	long count;
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
+index 6397d75899bc..79e5d68b87af 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set.h
+@@ -3,10 +3,6 @@
+  *                         Patrick Schaaf <bof@bof.de>
+  *                         Martin Josefsson <gandalf@wlug.westbo.se>
+  * Copyright (C) 2003-2011 Jozsef Kadlecsik <kadlec@netfilter.org>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+ #ifndef _UAPI_IP_SET_H
+ #define _UAPI_IP_SET_H
+diff --git a/include/uapi/linux/netfilter/xt_AUDIT.h b/include/uapi/linux/netfilter/xt_AUDIT.h
+index 1b314e2f84ac..56a3f6092e0c 100644
+--- a/include/uapi/linux/netfilter/xt_AUDIT.h
++++ b/include/uapi/linux/netfilter/xt_AUDIT.h
+@@ -4,10 +4,6 @@
+  *
+  * (C) 2010-2011 Thomas Graf <tgraf@redhat.com>
+  * (C) 2010-2011 Red Hat, Inc.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
  
- 	gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
+ #ifndef _XT_AUDIT_TARGET_H
+diff --git a/include/uapi/linux/netfilter/xt_connmark.h b/include/uapi/linux/netfilter/xt_connmark.h
+index f01c19b83a2b..41b578ccd03b 100644
+--- a/include/uapi/linux/netfilter/xt_connmark.h
++++ b/include/uapi/linux/netfilter/xt_connmark.h
+@@ -1,18 +1,13 @@
+ /* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
++ * by Henrik Nordstrom <hno@marasystems.com>
++ */
++
+ #ifndef _XT_CONNMARK_H
+ #define _XT_CONNMARK_H
  
-@@ -1475,10 +1477,12 @@ static void gc_worker(struct work_struct *work)
+ #include <linux/types.h>
  
- 	if (i == 0) {
- 		gc_work->avg_timeout = GC_SCAN_INTERVAL_INIT;
-+		gc_work->count = 1;
- 		gc_work->start_time = start_time;
- 	}
+-/* Copyright (C) 2002,2004 MARA Systems AB <https://www.marasystems.com>
+- * by Henrik Nordstrom <hno@marasystems.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+ enum {
+ 	XT_CONNMARK_SET = 0,
+ 	XT_CONNMARK_SAVE,
+diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
+index 6e466236ca4b..f1f097896bdf 100644
+--- a/include/uapi/linux/netfilter/xt_osf.h
++++ b/include/uapi/linux/netfilter/xt_osf.h
+@@ -1,20 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
+ /*
+  * Copyright (c) 2003+ Evgeniy Polyakov <johnpol@2ka.mxt.ru>
+- *
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, see <http://www.gnu.org/licenses/>.
+  */
  
- 	next_run = gc_work->avg_timeout;
-+	count = gc_work->count;
- 
- 	end_time = start_time + GC_SCAN_MAX_DURATION;
- 
-@@ -1498,8 +1502,8 @@ static void gc_worker(struct work_struct *work)
- 
- 		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
- 			struct nf_conntrack_net *cnet;
--			unsigned long expires;
- 			struct net *net;
-+			long expires;
- 
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
- 
-@@ -1513,6 +1517,7 @@ static void gc_worker(struct work_struct *work)
- 
- 				gc_work->next_bucket = i;
- 				gc_work->avg_timeout = next_run;
-+				gc_work->count = count;
- 
- 				delta_time = nfct_time_stamp - gc_work->start_time;
- 
-@@ -1528,8 +1533,8 @@ static void gc_worker(struct work_struct *work)
- 			}
- 
- 			expires = clamp(nf_ct_expires(tmp), GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_CLAMP);
-+			expires = (expires - (long)next_run) / ++count;
- 			next_run += expires;
--			next_run /= 2u;
- 
- 			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
- 				continue;
-@@ -1570,6 +1575,7 @@ static void gc_worker(struct work_struct *work)
- 		delta_time = nfct_time_stamp - end_time;
- 		if (delta_time > 0 && i < hashsz) {
- 			gc_work->avg_timeout = next_run;
-+			gc_work->count = count;
- 			gc_work->next_bucket = i;
- 			next_run = 0;
- 			goto early_exit;
+ #ifndef _XT_OSF_H
 -- 
 2.35.1
 
