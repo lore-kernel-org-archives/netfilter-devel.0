@@ -2,232 +2,985 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 426C8C6FA82
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Sep 2022 08:01:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7FCBC6FA82
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Sep 2022 11:36:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229976AbiIVIB0 (ORCPT
+        id S230369AbiIVLg3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Sep 2022 04:01:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35954 "EHLO
+        Thu, 22 Sep 2022 07:36:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229918AbiIVIBZ (ORCPT
+        with ESMTP id S230397AbiIVLg2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Sep 2022 04:01:25 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 324A12034A
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2022 01:01:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=y8wUficPcqnUzQdiDwbfIngUyZb1rS//ofruSGAjyJE=; b=g5qtgyB7bVKWS9EVVWLblyEBKJ
-        yV53bOntP2b1BAHJXPJg0pw6jY818XwKRMYIhPLDKulqbyn15KSNHJ/g89Ua25zm0huwMZvcVwv5m
-        SPo8hnsknjKPwaapcPrgnlTZJWSDM/RfiRInaw0QLgnsUobUJjiP0F2IwrTj8iCrIHYo3tRxlOc/v
-        R3DzpL7hYdTmZPeo512mSKYZUOk/yQiyi8XpkuDiq5lEeRHS7VonLy5Fe0OljS/Ua24zDdBtkYdqS
-        3DG+AqlDIrKGR7XQl0rRpzJLXJobLEk97OU/fC82YqgpCUykeyGJw2pCs8ukO27Uco5Rmt2sIum8s
-        HuEidFtQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1obH97-007caZ-Oc
-        for netfilter-devel@vger.kernel.org; Thu, 22 Sep 2022 09:01:21 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH] doc, src: make some spelling and grammatical improvements
-Date:   Thu, 22 Sep 2022 09:00:42 +0100
-Message-Id: <20220922080042.4064979-1-jeremy@azazel.net>
+        Thu, 22 Sep 2022 07:36:28 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 690988991B
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2022 04:36:25 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1obKVD-0005Vh-8a; Thu, 22 Sep 2022 13:36:23 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH iptables-nft] nft: un-break among match with concatenation
+Date:   Thu, 22 Sep 2022 13:36:18 +0200
+Message-Id: <20220922113618.22558-1-fw@strlen.de>
 X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fix a couple of spelling mistakes:
+The kernel commit 88cccd908d51 ("netfilter: nf_tables: NFTA_SET_ELEM_KEY_END requires concat and interval flags")
+breaks ebtables-nft 'among' emulation, it sets NFTA_SET_ELEM_KEY_END but
+doesn't set the CONCAT flag.
 
-  'expresion' -> 'expression'
+Update uapi header and also set CONCAT.
 
-and correct some non-native usages:
-
-  'allows to' -> 'allows one to'
-
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- doc/libnftables-json.adoc  |  2 +-
- doc/libnftables.adoc       | 10 +++++-----
- doc/nft.txt                |  6 +++---
- doc/primary-expression.txt |  4 ++--
- doc/statements.txt         |  6 +++---
- src/evaluate.c             |  4 ++--
- 6 files changed, 16 insertions(+), 16 deletions(-)
+ include/linux/netfilter/nf_tables.h | 483 +++++++++++++++++++++++++++-
+ iptables/nft.c                      |   2 +-
+ 2 files changed, 476 insertions(+), 9 deletions(-)
 
-diff --git a/doc/libnftables-json.adoc b/doc/libnftables-json.adoc
-index 9cc17ff26306..bb59945fc510 100644
---- a/doc/libnftables-json.adoc
-+++ b/doc/libnftables-json.adoc
-@@ -1172,7 +1172,7 @@ point (*base*). The following *base* values are accepted:
- *"th"*::
- 	The offset is relative to Transport Layer header start offset.
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 66dceee0ae30..e94d1fa554cb 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -8,6 +8,7 @@
+ #define NFT_SET_MAXNAMELEN	NFT_NAME_MAXLEN
+ #define NFT_OBJ_MAXNAMELEN	NFT_NAME_MAXLEN
+ #define NFT_USERDATA_MAXLEN	256
++#define NFT_OSF_MAXGENRELEN	16
  
--The second form allows to reference a field by name (*field*) in a named packet
-+The second form allows one to reference a field by name (*field*) in a named packet
- header (*protocol*).
+ /**
+  * enum nft_registers - nf_tables registers
+@@ -47,6 +48,7 @@ enum nft_registers {
  
- === EXTHDR
-diff --git a/doc/libnftables.adoc b/doc/libnftables.adoc
-index 550012b45010..7ea0d56e9b1d 100644
---- a/doc/libnftables.adoc
-+++ b/doc/libnftables.adoc
-@@ -71,7 +71,7 @@ The *nft_ctx_free*() function frees the context object pointed to by 'ctx', incl
+ #define NFT_REG_SIZE	16
+ #define NFT_REG32_SIZE	4
++#define NFT_REG32_COUNT	(NFT_REG32_15 - NFT_REG32_00 + 1)
  
- === nft_ctx_get_dry_run() and nft_ctx_set_dry_run()
- Dry-run setting controls whether ruleset changes are actually committed on kernel side or not.
--It allows to check whether a given operation would succeed without making actual changes to the ruleset.
-+It allows one to check whether a given operation would succeed without making actual changes to the ruleset.
- The default setting is *false*.
+ /**
+  * enum nft_verdicts - nf_tables internal verdicts
+@@ -131,7 +133,7 @@ enum nf_tables_msg_types {
+  * @NFTA_LIST_ELEM: list element (NLA_NESTED)
+  */
+ enum nft_list_attributes {
+-	NFTA_LIST_UNPEC,
++	NFTA_LIST_UNSPEC,
+ 	NFTA_LIST_ELEM,
+ 	__NFTA_LIST_MAX
+ };
+@@ -143,12 +145,14 @@ enum nft_list_attributes {
+  * @NFTA_HOOK_HOOKNUM: netfilter hook number (NLA_U32)
+  * @NFTA_HOOK_PRIORITY: netfilter hook priority (NLA_U32)
+  * @NFTA_HOOK_DEV: netdevice name (NLA_STRING)
++ * @NFTA_HOOK_DEVS: list of netdevices (NLA_NESTED)
+  */
+ enum nft_hook_attributes {
+ 	NFTA_HOOK_UNSPEC,
+ 	NFTA_HOOK_HOOKNUM,
+ 	NFTA_HOOK_PRIORITY,
+ 	NFTA_HOOK_DEV,
++	NFTA_HOOK_DEVS,
+ 	__NFTA_HOOK_MAX
+ };
+ #define NFTA_HOOK_MAX		(__NFTA_HOOK_MAX - 1)
+@@ -160,7 +164,10 @@ enum nft_hook_attributes {
+  */
+ enum nft_table_flags {
+ 	NFT_TABLE_F_DORMANT	= 0x1,
++	NFT_TABLE_F_OWNER	= 0x2,
+ };
++#define NFT_TABLE_F_MASK	(NFT_TABLE_F_DORMANT | \
++				 NFT_TABLE_F_OWNER)
  
- The *nft_ctx_get_dry_run*() function returns the dry-run setting's value contained in 'ctx'.
-@@ -121,7 +121,7 @@ NFT_CTX_OUTPUT_JSON::
- 	This flag controls JSON output format, input is auto-detected.
- NFT_CTX_OUTPUT_ECHO::
- 	The echo setting makes libnftables print the changes once they are committed to the kernel, just like a running instance of *nft monitor* would.
--	Amongst other things, this allows to retrieve an added rule's handle atomically.
-+	Amongst other things, this allows one to retrieve an added rule's handle atomically.
- NFT_CTX_OUTPUT_GUID::
- 	Display UID and GID as described in the /etc/passwd and /etc/group files.
- NFT_CTX_OUTPUT_NUMERIC_PROTO::
-@@ -199,9 +199,9 @@ On failure, the functions return non-zero which may only happen if buffering was
- The *nft_ctx_get_output_buffer*() and *nft_ctx_get_error_buffer*() functions return a pointer to the buffered output (which may be empty).
+ /**
+  * enum nft_table_attributes - nf_tables table netlink attributes
+@@ -168,6 +175,8 @@ enum nft_table_flags {
+  * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
+  * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
+  * @NFTA_TABLE_USE: number of chains in this table (NLA_U32)
++ * @NFTA_TABLE_USERDATA: user data (NLA_BINARY)
++ * @NFTA_TABLE_OWNER: owner of this table through netlink portID (NLA_U32)
+  */
+ enum nft_table_attributes {
+ 	NFTA_TABLE_UNSPEC,
+@@ -176,10 +185,21 @@ enum nft_table_attributes {
+ 	NFTA_TABLE_USE,
+ 	NFTA_TABLE_HANDLE,
+ 	NFTA_TABLE_PAD,
++	NFTA_TABLE_USERDATA,
++	NFTA_TABLE_OWNER,
+ 	__NFTA_TABLE_MAX
+ };
+ #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
  
- === nft_ctx_add_include_path() and nft_ctx_clear_include_path()
--The *include* command in nftables rulesets allows to outsource parts of the ruleset into a different file.
-+The *include* command in nftables rulesets allows one to outsource parts of the ruleset into a different file.
- The include path defines where these files are searched for.
--Libnftables allows to have a list of those paths which are searched in order.
-+Libnftables allows one to have a list of those paths which are searched in order.
- The default include path list contains a single compile-time defined entry (typically '/etc/').
++enum nft_chain_flags {
++	NFT_CHAIN_BASE		= (1 << 0),
++	NFT_CHAIN_HW_OFFLOAD	= (1 << 1),
++	NFT_CHAIN_BINDING	= (1 << 2),
++};
++#define NFT_CHAIN_FLAGS		(NFT_CHAIN_BASE		| \
++				 NFT_CHAIN_HW_OFFLOAD	| \
++				 NFT_CHAIN_BINDING)
++
+ /**
+  * enum nft_chain_attributes - nf_tables chain netlink attributes
+  *
+@@ -191,6 +211,9 @@ enum nft_table_attributes {
+  * @NFTA_CHAIN_USE: number of references to this chain (NLA_U32)
+  * @NFTA_CHAIN_TYPE: type name of the string (NLA_NUL_STRING)
+  * @NFTA_CHAIN_COUNTERS: counter specification of the chain (NLA_NESTED: nft_counter_attributes)
++ * @NFTA_CHAIN_FLAGS: chain flags
++ * @NFTA_CHAIN_ID: uniquely identifies a chain in a transaction (NLA_U32)
++ * @NFTA_CHAIN_USERDATA: user data (NLA_BINARY)
+  */
+ enum nft_chain_attributes {
+ 	NFTA_CHAIN_UNSPEC,
+@@ -203,6 +226,9 @@ enum nft_chain_attributes {
+ 	NFTA_CHAIN_TYPE,
+ 	NFTA_CHAIN_COUNTERS,
+ 	NFTA_CHAIN_PAD,
++	NFTA_CHAIN_FLAGS,
++	NFTA_CHAIN_ID,
++	NFTA_CHAIN_USERDATA,
+ 	__NFTA_CHAIN_MAX
+ };
+ #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
+@@ -218,6 +244,7 @@ enum nft_chain_attributes {
+  * @NFTA_RULE_POSITION: numeric handle of the previous rule (NLA_U64)
+  * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
+  * @NFTA_RULE_ID: uniquely identifies a rule in a transaction (NLA_U32)
++ * @NFTA_RULE_POSITION_ID: transaction unique identifier of the previous rule (NLA_U32)
+  */
+ enum nft_rule_attributes {
+ 	NFTA_RULE_UNSPEC,
+@@ -230,6 +257,8 @@ enum nft_rule_attributes {
+ 	NFTA_RULE_USERDATA,
+ 	NFTA_RULE_PAD,
+ 	NFTA_RULE_ID,
++	NFTA_RULE_POSITION_ID,
++	NFTA_RULE_CHAIN_ID,
+ 	__NFTA_RULE_MAX
+ };
+ #define NFTA_RULE_MAX		(__NFTA_RULE_MAX - 1)
+@@ -266,8 +295,10 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
+  * @NFT_SET_TIMEOUT: set uses timeouts
+- * @NFT_SET_EVAL: set contains expressions for evaluation
++ * @NFT_SET_EVAL: set can be updated from the evaluation path
+  * @NFT_SET_OBJECT: set contains stateful objects
++ * @NFT_SET_CONCAT: set contains a concatenation
++ * @NFT_SET_EXPR: set contains expressions
+  */
+ enum nft_set_flags {
+ 	NFT_SET_ANONYMOUS		= 0x1,
+@@ -277,6 +308,8 @@ enum nft_set_flags {
+ 	NFT_SET_TIMEOUT			= 0x10,
+ 	NFT_SET_EVAL			= 0x20,
+ 	NFT_SET_OBJECT			= 0x40,
++	NFT_SET_CONCAT			= 0x80,
++	NFT_SET_EXPR			= 0x100,
+ };
  
- The *nft_ctx_add_include_path*() function extends the list of include paths in 'ctx' by the one given in 'path'.
-@@ -210,7 +210,7 @@ The function returns zero on success or non-zero if memory allocation failed.
- The *nft_ctx_clear_include_paths*() function removes all include paths, even the built-in default one.
+ /**
+@@ -294,14 +327,28 @@ enum nft_set_policies {
+  * enum nft_set_desc_attributes - set element description
+  *
+  * @NFTA_SET_DESC_SIZE: number of elements in set (NLA_U32)
++ * @NFTA_SET_DESC_CONCAT: description of field concatenation (NLA_NESTED)
+  */
+ enum nft_set_desc_attributes {
+ 	NFTA_SET_DESC_UNSPEC,
+ 	NFTA_SET_DESC_SIZE,
++	NFTA_SET_DESC_CONCAT,
+ 	__NFTA_SET_DESC_MAX
+ };
+ #define NFTA_SET_DESC_MAX	(__NFTA_SET_DESC_MAX - 1)
  
- === nft_ctx_add_var() and nft_ctx_clear_vars()
--The *define* command in nftables ruleset allows to define variables.
-+The *define* command in nftables ruleset allows one to define variables.
++/**
++ * enum nft_set_field_attributes - attributes of concatenated fields
++ *
++ * @NFTA_SET_FIELD_LEN: length of single field, in bits (NLA_U32)
++ */
++enum nft_set_field_attributes {
++	NFTA_SET_FIELD_UNSPEC,
++	NFTA_SET_FIELD_LEN,
++	__NFTA_SET_FIELD_MAX
++};
++#define NFTA_SET_FIELD_MAX	(__NFTA_SET_FIELD_MAX - 1)
++
+ /**
+  * enum nft_set_attributes - nf_tables set netlink attributes
+  *
+@@ -320,6 +367,8 @@ enum nft_set_desc_attributes {
+  * @NFTA_SET_USERDATA: user data (NLA_BINARY)
+  * @NFTA_SET_OBJ_TYPE: stateful object type (NLA_U32: NFT_OBJECT_*)
+  * @NFTA_SET_HANDLE: set handle (NLA_U64)
++ * @NFTA_SET_EXPR: set expression (NLA_NESTED: nft_expr_attributes)
++ * @NFTA_SET_EXPRESSIONS: list of expressions (NLA_NESTED: nft_list_attributes)
+  */
+ enum nft_set_attributes {
+ 	NFTA_SET_UNSPEC,
+@@ -339,6 +388,8 @@ enum nft_set_attributes {
+ 	NFTA_SET_PAD,
+ 	NFTA_SET_OBJ_TYPE,
+ 	NFTA_SET_HANDLE,
++	NFTA_SET_EXPR,
++	NFTA_SET_EXPRESSIONS,
+ 	__NFTA_SET_MAX
+ };
+ #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
+@@ -347,9 +398,11 @@ enum nft_set_attributes {
+  * enum nft_set_elem_flags - nf_tables set element flags
+  *
+  * @NFT_SET_ELEM_INTERVAL_END: element ends the previous interval
++ * @NFT_SET_ELEM_CATCHALL: special catch-all element
+  */
+ enum nft_set_elem_flags {
+ 	NFT_SET_ELEM_INTERVAL_END	= 0x1,
++	NFT_SET_ELEM_CATCHALL		= 0x2,
+ };
  
- The *nft_ctx_add_var*() function extends the list of variables in 'ctx'. The variable must be given in the format 'key=value'.
- The function returns zero on success or non-zero if the variable is malformed.
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 16c68322ffe5..02cf13a57c2e 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -411,7 +411,7 @@ statements for instance).
- |route | ip, ip6 | output |
- If a packet has traversed a chain of this type and is about to be accepted, a
- new route lookup is performed if relevant parts of the IP header have changed.
--This allows to e.g. implement policy routing selectors in nftables.
-+This allows one to e.g. implement policy routing selectors in nftables.
- |=================
+ /**
+@@ -363,6 +416,8 @@ enum nft_set_elem_flags {
+  * @NFTA_SET_ELEM_USERDATA: user data (NLA_BINARY)
+  * @NFTA_SET_ELEM_EXPR: expression (NLA_NESTED: nft_expr_attributes)
+  * @NFTA_SET_ELEM_OBJREF: stateful object reference (NLA_STRING)
++ * @NFTA_SET_ELEM_KEY_END: closing key value (NLA_NESTED: nft_data)
++ * @NFTA_SET_ELEM_EXPRESSIONS: list of expressions (NLA_NESTED: nft_list_attributes)
+  */
+ enum nft_set_elem_attributes {
+ 	NFTA_SET_ELEM_UNSPEC,
+@@ -375,6 +430,8 @@ enum nft_set_elem_attributes {
+ 	NFTA_SET_ELEM_EXPR,
+ 	NFTA_SET_ELEM_PAD,
+ 	NFTA_SET_ELEM_OBJREF,
++	NFTA_SET_ELEM_KEY_END,
++	NFTA_SET_ELEM_EXPRESSIONS,
+ 	__NFTA_SET_ELEM_MAX
+ };
+ #define NFTA_SET_ELEM_MAX	(__NFTA_SET_ELEM_MAX - 1)
+@@ -440,11 +497,13 @@ enum nft_data_attributes {
+  *
+  * @NFTA_VERDICT_CODE: nf_tables verdict (NLA_U32: enum nft_verdicts)
+  * @NFTA_VERDICT_CHAIN: jump target chain name (NLA_STRING)
++ * @NFTA_VERDICT_CHAIN_ID: jump target chain ID (NLA_U32)
+  */
+ enum nft_verdict_attributes {
+ 	NFTA_VERDICT_UNSPEC,
+ 	NFTA_VERDICT_CODE,
+ 	NFTA_VERDICT_CHAIN,
++	NFTA_VERDICT_CHAIN_ID,
+ 	__NFTA_VERDICT_MAX
+ };
+ #define NFTA_VERDICT_MAX	(__NFTA_VERDICT_MAX - 1)
+@@ -477,6 +536,20 @@ enum nft_immediate_attributes {
+ };
+ #define NFTA_IMMEDIATE_MAX	(__NFTA_IMMEDIATE_MAX - 1)
  
- Apart from the special cases illustrated above (e.g. *nat* type not supporting
-@@ -472,7 +472,7 @@ with these standard names to ease relative prioritizing, e.g. *mangle - 5* stand
- for *-155*.  Values will also be printed like this until the value is not
- further than 10 from the standard value.
++/**
++ * enum nft_bitwise_ops - nf_tables bitwise operations
++ *
++ * @NFT_BITWISE_BOOL: mask-and-xor operation used to implement NOT, AND, OR and
++ *                    XOR boolean operations
++ * @NFT_BITWISE_LSHIFT: left-shift operation
++ * @NFT_BITWISE_RSHIFT: right-shift operation
++ */
++enum nft_bitwise_ops {
++	NFT_BITWISE_BOOL,
++	NFT_BITWISE_LSHIFT,
++	NFT_BITWISE_RSHIFT,
++};
++
+ /**
+  * enum nft_bitwise_attributes - nf_tables bitwise expression netlink attributes
+  *
+@@ -485,16 +558,20 @@ enum nft_immediate_attributes {
+  * @NFTA_BITWISE_LEN: length of operands (NLA_U32)
+  * @NFTA_BITWISE_MASK: mask value (NLA_NESTED: nft_data_attributes)
+  * @NFTA_BITWISE_XOR: xor value (NLA_NESTED: nft_data_attributes)
++ * @NFTA_BITWISE_OP: type of operation (NLA_U32: nft_bitwise_ops)
++ * @NFTA_BITWISE_DATA: argument for non-boolean operations
++ *                     (NLA_NESTED: nft_data_attributes)
+  *
+- * The bitwise expression performs the following operation:
++ * The bitwise expression supports boolean and shift operations.  It implements
++ * the boolean operations by performing the following operation:
+  *
+  * dreg = (sreg & mask) ^ xor
+  *
+- * which allow to express all bitwise operations:
++ * with these mask and xor values:
+  *
+  * 		mask	xor
+  * NOT:		1	1
+- * OR:		0	x
++ * OR:		~x	x
+  * XOR:		1	x
+  * AND:		x	0
+  */
+@@ -505,6 +582,8 @@ enum nft_bitwise_attributes {
+ 	NFTA_BITWISE_LEN,
+ 	NFTA_BITWISE_MASK,
+ 	NFTA_BITWISE_XOR,
++	NFTA_BITWISE_OP,
++	NFTA_BITWISE_DATA,
+ 	__NFTA_BITWISE_MAX
+ };
+ #define NFTA_BITWISE_MAX	(__NFTA_BITWISE_MAX - 1)
+@@ -631,10 +710,12 @@ enum nft_lookup_attributes {
+ enum nft_dynset_ops {
+ 	NFT_DYNSET_OP_ADD,
+ 	NFT_DYNSET_OP_UPDATE,
++	NFT_DYNSET_OP_DELETE,
+ };
  
--Base chains also allow to set the chain's *policy*, i.e.  what happens to
-+Base chains also allow one to set the chain's *policy*, i.e.  what happens to
- packets not explicitly accepted or refused in contained rules. Supported policy
- values are *accept* (which is the default) or *drop*.
+ enum nft_dynset_flags {
+ 	NFT_DYNSET_F_INV	= (1 << 0),
++	NFT_DYNSET_F_EXPR	= (1 << 1),
+ };
  
-@@ -660,7 +660,7 @@ ____
- 'OPTIONS' := [*timeout* 'TIMESPEC'] [*expires* 'TIMESPEC'] [*comment* 'string']
- 'TIMESPEC' := ['num'*d*]['num'*h*]['num'*m*]['num'[*s*]]
- ____
--Element-related commands allow to change contents of named sets and maps.
-+Element-related commands allow one to change contents of named sets and maps.
- 'key_expression' is typically a value matching the set type.
- 'value_expression' is not allowed in sets but mandatory when adding to maps, where it
- matches the data part in its type definition. When deleting from maps, it may
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index 4d6b0878b252..e13970cfb650 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -442,7 +442,7 @@ Create a number generator. The *inc* or *random* keywords control its
- operation mode: In *inc* mode, the last returned value is simply incremented.
- In *random* mode, a new random number is returned. The value after *mod*
- keyword specifies an upper boundary (read: modulus) which is not reached by
--returned numbers. The optional *offset* allows to increment the returned value
-+returned numbers. The optional *offset* allows one to increment the returned value
- by a fixed offset.
+ /**
+@@ -648,6 +729,7 @@ enum nft_dynset_flags {
+  * @NFTA_DYNSET_TIMEOUT: timeout value for the new element (NLA_U64)
+  * @NFTA_DYNSET_EXPR: expression (NLA_NESTED: nft_expr_attributes)
+  * @NFTA_DYNSET_FLAGS: flags (NLA_U32)
++ * @NFTA_DYNSET_EXPRESSIONS: list of expressions (NLA_NESTED: nft_list_attributes)
+  */
+ enum nft_dynset_attributes {
+ 	NFTA_DYNSET_UNSPEC,
+@@ -660,6 +742,7 @@ enum nft_dynset_attributes {
+ 	NFTA_DYNSET_EXPR,
+ 	NFTA_DYNSET_PAD,
+ 	NFTA_DYNSET_FLAGS,
++	NFTA_DYNSET_EXPRESSIONS,
+ 	__NFTA_DYNSET_MAX,
+ };
+ #define NFTA_DYNSET_MAX		(__NFTA_DYNSET_MAX - 1)
+@@ -682,10 +765,12 @@ enum nft_payload_bases {
+  *
+  * @NFT_PAYLOAD_CSUM_NONE: no checksumming
+  * @NFT_PAYLOAD_CSUM_INET: internet checksum (RFC 791)
++ * @NFT_PAYLOAD_CSUM_SCTP: CRC-32c, for use in SCTP header (RFC 3309)
+  */
+ enum nft_payload_csum_types {
+ 	NFT_PAYLOAD_CSUM_NONE,
+ 	NFT_PAYLOAD_CSUM_INET,
++	NFT_PAYLOAD_CSUM_SCTP,
+ };
  
- A typical use-case for *numgen* is load-balancing:
-@@ -472,7 +472,7 @@ header to apply the hashing, concatenations are possible as well. The value
- after *mod* keyword specifies an upper boundary (read: modulus) which is
- not reached by returned numbers. The optional *seed* is used to specify an
- init value used as seed in the hashing function. The optional *offset*
--allows to increment the returned value by a fixed offset.
-+allows one to increment the returned value by a fixed offset.
+ enum nft_payload_csum_flags {
+@@ -727,10 +812,14 @@ enum nft_exthdr_flags {
+  *
+  * @NFT_EXTHDR_OP_IPV6: match against ipv6 extension headers
+  * @NFT_EXTHDR_OP_TCP: match against tcp options
++ * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
++ * @NFT_EXTHDR_OP_SCTP: match against sctp chunks
+  */
+ enum nft_exthdr_op {
+ 	NFT_EXTHDR_OP_IPV6,
+ 	NFT_EXTHDR_OP_TCPOPT,
++	NFT_EXTHDR_OP_IPV4,
++	NFT_EXTHDR_OP_SCTP,
+ 	__NFT_EXTHDR_OP_MAX
+ };
+ #define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
+@@ -788,6 +877,15 @@ enum nft_exthdr_attributes {
+  * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
+  * @NFT_META_PRANDOM: a 32bit pseudo-random number
+  * @NFT_META_SECPATH: boolean, secpath_exists (!!skb->sp)
++ * @NFT_META_IIFKIND: packet input interface kind name (dev->rtnl_link_ops->kind)
++ * @NFT_META_OIFKIND: packet output interface kind name (dev->rtnl_link_ops->kind)
++ * @NFT_META_BRI_IIFPVID: packet input bridge port pvid
++ * @NFT_META_BRI_IIFVPROTO: packet input bridge vlan proto
++ * @NFT_META_TIME_NS: time since epoch (in nanoseconds)
++ * @NFT_META_TIME_DAY: day of week (from 0 = Sunday to 6 = Saturday)
++ * @NFT_META_TIME_HOUR: hour of day (in seconds)
++ * @NFT_META_SDIF: slave device interface index
++ * @NFT_META_SDIFNAME: slave device interface name
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -816,6 +914,15 @@ enum nft_meta_keys {
+ 	NFT_META_CGROUP,
+ 	NFT_META_PRANDOM,
+ 	NFT_META_SECPATH,
++	NFT_META_IIFKIND,
++	NFT_META_OIFKIND,
++	NFT_META_BRI_IIFPVID,
++	NFT_META_BRI_IIFVPROTO,
++	NFT_META_TIME_NS,
++	NFT_META_TIME_DAY,
++	NFT_META_TIME_HOUR,
++	NFT_META_SDIF,
++	NFT_META_SDIFNAME,
+ };
  
- A typical use-case for *jhash* and *symhash* is load-balancing:
+ /**
+@@ -825,13 +932,17 @@ enum nft_meta_keys {
+  * @NFT_RT_NEXTHOP4: routing nexthop for IPv4
+  * @NFT_RT_NEXTHOP6: routing nexthop for IPv6
+  * @NFT_RT_TCPMSS: fetch current path tcp mss
++ * @NFT_RT_XFRM: boolean, skb->dst->xfrm != NULL
+  */
+ enum nft_rt_keys {
+ 	NFT_RT_CLASSID,
+ 	NFT_RT_NEXTHOP4,
+ 	NFT_RT_NEXTHOP6,
+ 	NFT_RT_TCPMSS,
++	NFT_RT_XFRM,
++	__NFT_RT_MAX
+ };
++#define NFT_RT_MAX		(__NFT_RT_MAX - 1)
  
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 6c6b1d8712d4..8076c21cded4 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -11,7 +11,7 @@ The verdict statement alters control flow in the ruleset and issues policy decis
- [horizontal]
- *accept*:: Terminate ruleset evaluation and accept the packet.
- The packet can still be dropped later by another hook, for instance accept
--in the forward hook still allows to drop the packet later in the postrouting hook,
-+in the forward hook still allows one to drop the packet later in the postrouting hook,
- or another forward base chain that has a higher priority number and is evaluated
- afterwards in the processing pipeline.
- *drop*:: Terminate ruleset evaluation and drop the packet.
-@@ -278,7 +278,7 @@ ct event set new,related,destroy
+ /**
+  * enum nft_hash_types - nf_tables hash expression types
+@@ -854,6 +965,8 @@ enum nft_hash_types {
+  * @NFTA_HASH_SEED: seed value (NLA_U32)
+  * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
+  * @NFTA_HASH_TYPE: hash operation (NLA_U32: nft_hash_types)
++ * @NFTA_HASH_SET_NAME: name of the map to lookup (NLA_STRING)
++ * @NFTA_HASH_SET_ID: id of the map (NLA_U32)
+  */
+ enum nft_hash_attributes {
+ 	NFTA_HASH_UNSPEC,
+@@ -864,6 +977,8 @@ enum nft_hash_attributes {
+ 	NFTA_HASH_SEED,
+ 	NFTA_HASH_OFFSET,
+ 	NFTA_HASH_TYPE,
++	NFTA_HASH_SET_NAME,	/* deprecated */
++	NFTA_HASH_SET_ID,	/* deprecated */
+ 	__NFTA_HASH_MAX,
+ };
+ #define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
+@@ -898,6 +1013,39 @@ enum nft_rt_attributes {
+ };
+ #define NFTA_RT_MAX		(__NFTA_RT_MAX - 1)
  
- NOTRACK STATEMENT
- ~~~~~~~~~~~~~~~~~
--The notrack statement allows to disable connection tracking for certain
-+The notrack statement allows one to disable connection tracking for certain
- packets.
++/**
++ * enum nft_socket_attributes - nf_tables socket expression netlink attributes
++ *
++ * @NFTA_SOCKET_KEY: socket key to match
++ * @NFTA_SOCKET_DREG: destination register
++ * @NFTA_SOCKET_LEVEL: cgroups2 ancestor level (only for cgroupsv2)
++ */
++enum nft_socket_attributes {
++	NFTA_SOCKET_UNSPEC,
++	NFTA_SOCKET_KEY,
++	NFTA_SOCKET_DREG,
++	NFTA_SOCKET_LEVEL,
++	__NFTA_SOCKET_MAX
++};
++#define NFTA_SOCKET_MAX		(__NFTA_SOCKET_MAX - 1)
++
++/*
++ * enum nft_socket_keys - nf_tables socket expression keys
++ *
++ * @NFT_SOCKET_TRANSPARENT: Value of the IP(V6)_TRANSPARENT socket option
++ * @NFT_SOCKET_MARK: Value of the socket mark
++ * @NFT_SOCKET_WILDCARD: Whether the socket is zero-bound (e.g. 0.0.0.0 or ::0)
++ * @NFT_SOCKET_CGROUPV2: Match on cgroups version 2
++ */
++enum nft_socket_keys {
++	NFT_SOCKET_TRANSPARENT,
++	NFT_SOCKET_MARK,
++	NFT_SOCKET_WILDCARD,
++	NFT_SOCKET_CGROUPV2,
++	__NFT_SOCKET_MAX
++};
++#define NFT_SOCKET_MAX	(__NFT_SOCKET_MAX - 1)
++
+ /**
+  * enum nft_ct_keys - nf_tables ct expression keys
+  *
+@@ -909,8 +1057,8 @@ enum nft_rt_attributes {
+  * @NFT_CT_EXPIRATION: relative conntrack expiration time in ms
+  * @NFT_CT_HELPER: connection tracking helper assigned to conntrack
+  * @NFT_CT_L3PROTOCOL: conntrack layer 3 protocol
+- * @NFT_CT_SRC: conntrack layer 3 protocol source (IPv4/IPv6 address)
+- * @NFT_CT_DST: conntrack layer 3 protocol destination (IPv4/IPv6 address)
++ * @NFT_CT_SRC: conntrack layer 3 protocol source (IPv4/IPv6 address, deprecated)
++ * @NFT_CT_DST: conntrack layer 3 protocol destination (IPv4/IPv6 address, deprecated)
+  * @NFT_CT_PROTOCOL: conntrack layer 4 protocol
+  * @NFT_CT_PROTO_SRC: conntrack layer 4 protocol source
+  * @NFT_CT_PROTO_DST: conntrack layer 4 protocol destination
+@@ -920,6 +1068,11 @@ enum nft_rt_attributes {
+  * @NFT_CT_AVGPKT: conntrack average bytes per packet
+  * @NFT_CT_ZONE: conntrack zone
+  * @NFT_CT_EVENTMASK: ctnetlink events to be generated for this conntrack
++ * @NFT_CT_SRC_IP: conntrack layer 3 protocol source (IPv4 address)
++ * @NFT_CT_DST_IP: conntrack layer 3 protocol destination (IPv4 address)
++ * @NFT_CT_SRC_IP6: conntrack layer 3 protocol source (IPv6 address)
++ * @NFT_CT_DST_IP6: conntrack layer 3 protocol destination (IPv6 address)
++ * @NFT_CT_ID: conntrack id
+  */
+ enum nft_ct_keys {
+ 	NFT_CT_STATE,
+@@ -941,7 +1094,14 @@ enum nft_ct_keys {
+ 	NFT_CT_AVGPKT,
+ 	NFT_CT_ZONE,
+ 	NFT_CT_EVENTMASK,
++	NFT_CT_SRC_IP,
++	NFT_CT_DST_IP,
++	NFT_CT_SRC_IP6,
++	NFT_CT_DST_IP6,
++	NFT_CT_ID,
++	__NFT_CT_MAX
+ };
++#define NFT_CT_MAX		(__NFT_CT_MAX - 1)
  
- [verse]
-@@ -613,7 +613,7 @@ ____
+ /**
+  * enum nft_ct_attributes - nf_tables ct expression netlink attributes
+@@ -1002,6 +1162,24 @@ enum nft_limit_attributes {
+ };
+ #define NFTA_LIMIT_MAX		(__NFTA_LIMIT_MAX - 1)
  
- QUEUE_EXPRESSION can be used to compute a queue number
- at run-time with the hash or numgen expressions. It also
--allows to use the map statement to assign fixed queue numbers
-+allows one to use the map statement to assign fixed queue numbers
- based on external inputs such as the source ip address or interface names.
++enum nft_connlimit_flags {
++	NFT_CONNLIMIT_F_INV	= (1 << 0),
++};
++
++/**
++ * enum nft_connlimit_attributes - nf_tables connlimit expression netlink attributes
++ *
++ * @NFTA_CONNLIMIT_COUNT: number of connections (NLA_U32)
++ * @NFTA_CONNLIMIT_FLAGS: flags (NLA_U32: enum nft_connlimit_flags)
++ */
++enum nft_connlimit_attributes {
++	NFTA_CONNLIMIT_UNSPEC,
++	NFTA_CONNLIMIT_COUNT,
++	NFTA_CONNLIMIT_FLAGS,
++	__NFTA_CONNLIMIT_MAX
++};
++#define NFTA_CONNLIMIT_MAX	(__NFTA_CONNLIMIT_MAX - 1)
++
+ /**
+  * enum nft_counter_attributes - nf_tables counter expression netlink attributes
+  *
+@@ -1017,6 +1195,21 @@ enum nft_counter_attributes {
+ };
+ #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
  
- .queue statement values
-diff --git a/src/evaluate.c b/src/evaluate.c
-index edebd7bcd8ab..f4b16076fb19 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3725,7 +3725,7 @@ static int stmt_evaluate_log_prefix(struct eval_ctx *ctx, struct stmt *stmt)
- 				       expr->sym->expr->identifier);
- 			break;
- 		default:
--			BUG("unknown expresion type %s\n", expr_name(expr));
-+			BUG("unknown expression type %s\n", expr_name(expr));
- 			break;
- 		}
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-@@ -4335,7 +4335,7 @@ static bool evaluate_device_expr(struct eval_ctx *ctx, struct expr **dev_expr)
- 		case EXPR_VALUE:
- 			break;
- 		default:
--			BUG("invalid expresion type %s\n", expr_name(expr));
-+			BUG("invalid expression type %s\n", expr_name(expr));
- 			break;
- 		}
++/**
++ * enum nft_last_attributes - nf_tables last expression netlink attributes
++ *
++ * @NFTA_LAST_SET: last update has been set, zero means never updated (NLA_U32)
++ * @NFTA_LAST_MSECS: milliseconds since last update (NLA_U64)
++ */
++enum nft_last_attributes {
++	NFTA_LAST_UNSPEC,
++	NFTA_LAST_SET,
++	NFTA_LAST_MSECS,
++	NFTA_LAST_PAD,
++	__NFTA_LAST_MAX
++};
++#define NFTA_LAST_MAX	(__NFTA_LAST_MAX - 1)
++
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+@@ -1039,6 +1232,33 @@ enum nft_log_attributes {
+ };
+ #define NFTA_LOG_MAX		(__NFTA_LOG_MAX - 1)
  
++/**
++ * enum nft_log_level - nf_tables log levels
++ *
++ * @NFT_LOGLEVEL_EMERG: system is unusable
++ * @NFT_LOGLEVEL_ALERT: action must be taken immediately
++ * @NFT_LOGLEVEL_CRIT: critical conditions
++ * @NFT_LOGLEVEL_ERR: error conditions
++ * @NFT_LOGLEVEL_WARNING: warning conditions
++ * @NFT_LOGLEVEL_NOTICE: normal but significant condition
++ * @NFT_LOGLEVEL_INFO: informational
++ * @NFT_LOGLEVEL_DEBUG: debug-level messages
++ * @NFT_LOGLEVEL_AUDIT: enabling audit logging
++ */
++enum nft_log_level {
++	NFT_LOGLEVEL_EMERG,
++	NFT_LOGLEVEL_ALERT,
++	NFT_LOGLEVEL_CRIT,
++	NFT_LOGLEVEL_ERR,
++	NFT_LOGLEVEL_WARNING,
++	NFT_LOGLEVEL_NOTICE,
++	NFT_LOGLEVEL_INFO,
++	NFT_LOGLEVEL_DEBUG,
++	NFT_LOGLEVEL_AUDIT,
++	__NFT_LOGLEVEL_MAX
++};
++#define NFT_LOGLEVEL_MAX	(__NFT_LOGLEVEL_MAX - 1)
++
+ /**
+  * enum nft_queue_attributes - nf_tables queue expression netlink attributes
+  *
+@@ -1083,6 +1303,21 @@ enum nft_quota_attributes {
+ };
+ #define NFTA_QUOTA_MAX		(__NFTA_QUOTA_MAX - 1)
+ 
++/**
++ * enum nft_secmark_attributes - nf_tables secmark object netlink attributes
++ *
++ * @NFTA_SECMARK_CTX: security context (NLA_STRING)
++ */
++enum nft_secmark_attributes {
++	NFTA_SECMARK_UNSPEC,
++	NFTA_SECMARK_CTX,
++	__NFTA_SECMARK_MAX,
++};
++#define NFTA_SECMARK_MAX	(__NFTA_SECMARK_MAX - 1)
++
++/* Max security context length */
++#define NFT_SECMARK_CTX_MAXLEN		256
++
+ /**
+  * enum nft_reject_types - nf_tables reject expression reject types
+  *
+@@ -1164,6 +1399,22 @@ enum nft_nat_attributes {
+ };
+ #define NFTA_NAT_MAX		(__NFTA_NAT_MAX - 1)
+ 
++/**
++ * enum nft_tproxy_attributes - nf_tables tproxy expression netlink attributes
++ *
++ * NFTA_TPROXY_FAMILY: Target address family (NLA_U32: nft_registers)
++ * NFTA_TPROXY_REG_ADDR: Target address register (NLA_U32: nft_registers)
++ * NFTA_TPROXY_REG_PORT: Target port register (NLA_U32: nft_registers)
++ */
++enum nft_tproxy_attributes {
++	NFTA_TPROXY_UNSPEC,
++	NFTA_TPROXY_FAMILY,
++	NFTA_TPROXY_REG_ADDR,
++	NFTA_TPROXY_REG_PORT,
++	__NFTA_TPROXY_MAX
++};
++#define NFTA_TPROXY_MAX		(__NFTA_TPROXY_MAX - 1)
++
+ /**
+  * enum nft_masq_attributes - nf_tables masquerade expression attributes
+  *
+@@ -1214,10 +1465,14 @@ enum nft_dup_attributes {
+  * enum nft_fwd_attributes - nf_tables fwd expression netlink attributes
+  *
+  * @NFTA_FWD_SREG_DEV: source register of output interface (NLA_U32: nft_register)
++ * @NFTA_FWD_SREG_ADDR: source register of destination address (NLA_U32: nft_register)
++ * @NFTA_FWD_NFPROTO: layer 3 family of source register address (NLA_U32: enum nfproto)
+  */
+ enum nft_fwd_attributes {
+ 	NFTA_FWD_UNSPEC,
+ 	NFTA_FWD_SREG_DEV,
++	NFTA_FWD_SREG_ADDR,
++	NFTA_FWD_NFPROTO,
+ 	__NFTA_FWD_MAX
+ };
+ #define NFTA_FWD_MAX	(__NFTA_FWD_MAX - 1)
+@@ -1302,12 +1557,38 @@ enum nft_ct_helper_attributes {
+ };
+ #define NFTA_CT_HELPER_MAX	(__NFTA_CT_HELPER_MAX - 1)
+ 
++enum nft_ct_timeout_timeout_attributes {
++	NFTA_CT_TIMEOUT_UNSPEC,
++	NFTA_CT_TIMEOUT_L3PROTO,
++	NFTA_CT_TIMEOUT_L4PROTO,
++	NFTA_CT_TIMEOUT_DATA,
++	__NFTA_CT_TIMEOUT_MAX,
++};
++#define NFTA_CT_TIMEOUT_MAX	(__NFTA_CT_TIMEOUT_MAX - 1)
++
++enum nft_ct_expectation_attributes {
++	NFTA_CT_EXPECT_UNSPEC,
++	NFTA_CT_EXPECT_L3PROTO,
++	NFTA_CT_EXPECT_L4PROTO,
++	NFTA_CT_EXPECT_DPORT,
++	NFTA_CT_EXPECT_TIMEOUT,
++	NFTA_CT_EXPECT_SIZE,
++	__NFTA_CT_EXPECT_MAX,
++};
++#define NFTA_CT_EXPECT_MAX	(__NFTA_CT_EXPECT_MAX - 1)
++
+ #define NFT_OBJECT_UNSPEC	0
+ #define NFT_OBJECT_COUNTER	1
+ #define NFT_OBJECT_QUOTA	2
+ #define NFT_OBJECT_CT_HELPER	3
+ #define NFT_OBJECT_LIMIT	4
+-#define __NFT_OBJECT_MAX	5
++#define NFT_OBJECT_CONNLIMIT	5
++#define NFT_OBJECT_TUNNEL	6
++#define NFT_OBJECT_CT_TIMEOUT	7
++#define NFT_OBJECT_SECMARK	8
++#define NFT_OBJECT_CT_EXPECT	9
++#define NFT_OBJECT_SYNPROXY	10
++#define __NFT_OBJECT_MAX	11
+ #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
+ 
+ /**
+@@ -1319,6 +1600,7 @@ enum nft_ct_helper_attributes {
+  * @NFTA_OBJ_DATA: stateful object data (NLA_NESTED)
+  * @NFTA_OBJ_USE: number of references to this expression (NLA_U32)
+  * @NFTA_OBJ_HANDLE: object handle (NLA_U64)
++ * @NFTA_OBJ_USERDATA: user data (NLA_BINARY)
+  */
+ enum nft_object_attributes {
+ 	NFTA_OBJ_UNSPEC,
+@@ -1329,10 +1611,24 @@ enum nft_object_attributes {
+ 	NFTA_OBJ_USE,
+ 	NFTA_OBJ_HANDLE,
+ 	NFTA_OBJ_PAD,
++	NFTA_OBJ_USERDATA,
+ 	__NFTA_OBJ_MAX
+ };
+ #define NFTA_OBJ_MAX		(__NFTA_OBJ_MAX - 1)
+ 
++/**
++ * enum nft_flowtable_flags - nf_tables flowtable flags
++ *
++ * @NFT_FLOWTABLE_HW_OFFLOAD: flowtable hardware offload is enabled
++ * @NFT_FLOWTABLE_COUNTER: enable flow counters
++ */
++enum nft_flowtable_flags {
++	NFT_FLOWTABLE_HW_OFFLOAD	= 0x1,
++	NFT_FLOWTABLE_COUNTER		= 0x2,
++	NFT_FLOWTABLE_MASK		= (NFT_FLOWTABLE_HW_OFFLOAD |
++					   NFT_FLOWTABLE_COUNTER)
++};
++
+ /**
+  * enum nft_flowtable_attributes - nf_tables flow table netlink attributes
+  *
+@@ -1341,6 +1637,7 @@ enum nft_object_attributes {
+  * @NFTA_FLOWTABLE_HOOK: netfilter hook configuration(NLA_U32)
+  * @NFTA_FLOWTABLE_USE: number of references to this flow table (NLA_U32)
+  * @NFTA_FLOWTABLE_HANDLE: object handle (NLA_U64)
++ * @NFTA_FLOWTABLE_FLAGS: flags (NLA_U32)
+  */
+ enum nft_flowtable_attributes {
+ 	NFTA_FLOWTABLE_UNSPEC,
+@@ -1350,6 +1647,7 @@ enum nft_flowtable_attributes {
+ 	NFTA_FLOWTABLE_USE,
+ 	NFTA_FLOWTABLE_HANDLE,
+ 	NFTA_FLOWTABLE_PAD,
++	NFTA_FLOWTABLE_FLAGS,
+ 	__NFTA_FLOWTABLE_MAX
+ };
+ #define NFTA_FLOWTABLE_MAX	(__NFTA_FLOWTABLE_MAX - 1)
+@@ -1370,6 +1668,42 @@ enum nft_flowtable_hook_attributes {
+ };
+ #define NFTA_FLOWTABLE_HOOK_MAX	(__NFTA_FLOWTABLE_HOOK_MAX - 1)
+ 
++/**
++ * enum nft_osf_attributes - nftables osf expression netlink attributes
++ *
++ * @NFTA_OSF_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_OSF_TTL: Value of the TTL osf option (NLA_U8)
++ * @NFTA_OSF_FLAGS: flags (NLA_U32)
++ */
++enum nft_osf_attributes {
++	NFTA_OSF_UNSPEC,
++	NFTA_OSF_DREG,
++	NFTA_OSF_TTL,
++	NFTA_OSF_FLAGS,
++	__NFTA_OSF_MAX,
++};
++#define NFTA_OSF_MAX (__NFTA_OSF_MAX - 1)
++
++enum nft_osf_flags {
++	NFT_OSF_F_VERSION = (1 << 0),
++};
++
++/**
++ * enum nft_synproxy_attributes - nf_tables synproxy expression netlink attributes
++ *
++ * @NFTA_SYNPROXY_MSS: mss value sent to the backend (NLA_U16)
++ * @NFTA_SYNPROXY_WSCALE: wscale value sent to the backend (NLA_U8)
++ * @NFTA_SYNPROXY_FLAGS: flags (NLA_U32)
++ */
++enum nft_synproxy_attributes {
++	NFTA_SYNPROXY_UNSPEC,
++	NFTA_SYNPROXY_MSS,
++	NFTA_SYNPROXY_WSCALE,
++	NFTA_SYNPROXY_FLAGS,
++	__NFTA_SYNPROXY_MAX,
++};
++#define NFTA_SYNPROXY_MAX (__NFTA_SYNPROXY_MAX - 1)
++
+ /**
+  * enum nft_device_attributes - nf_tables device netlink attributes
+  *
+@@ -1382,6 +1716,35 @@ enum nft_devices_attributes {
+ };
+ #define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
+ 
++/*
++ * enum nft_xfrm_attributes - nf_tables xfrm expr netlink attributes
++ *
++ * @NFTA_XFRM_DREG: destination register (NLA_U32)
++ * @NFTA_XFRM_KEY: enum nft_xfrm_keys (NLA_U32)
++ * @NFTA_XFRM_DIR: direction (NLA_U8)
++ * @NFTA_XFRM_SPNUM: index in secpath array (NLA_U32)
++ */
++enum nft_xfrm_attributes {
++	NFTA_XFRM_UNSPEC,
++	NFTA_XFRM_DREG,
++	NFTA_XFRM_KEY,
++	NFTA_XFRM_DIR,
++	NFTA_XFRM_SPNUM,
++	__NFTA_XFRM_MAX
++};
++#define NFTA_XFRM_MAX (__NFTA_XFRM_MAX - 1)
++
++enum nft_xfrm_keys {
++	NFT_XFRM_KEY_UNSPEC,
++	NFT_XFRM_KEY_DADDR_IP4,
++	NFT_XFRM_KEY_DADDR_IP6,
++	NFT_XFRM_KEY_SADDR_IP4,
++	NFT_XFRM_KEY_SADDR_IP6,
++	NFT_XFRM_KEY_REQID,
++	NFT_XFRM_KEY_SPI,
++	__NFT_XFRM_KEY_MAX,
++};
++#define NFT_XFRM_KEY_MAX (__NFT_XFRM_KEY_MAX - 1)
+ 
+ /**
+  * enum nft_trace_attributes - nf_tables trace netlink attributes
+@@ -1442,6 +1805,8 @@ enum nft_trace_types {
+  * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
+  * @NFTA_NG_TYPE: operation type (NLA_U32)
+  * @NFTA_NG_OFFSET: offset to be added to the counter (NLA_U32)
++ * @NFTA_NG_SET_NAME: name of the map to lookup (NLA_STRING)
++ * @NFTA_NG_SET_ID: id of the map (NLA_U32)
+  */
+ enum nft_ng_attributes {
+ 	NFTA_NG_UNSPEC,
+@@ -1449,6 +1814,8 @@ enum nft_ng_attributes {
+ 	NFTA_NG_MODULUS,
+ 	NFTA_NG_TYPE,
+ 	NFTA_NG_OFFSET,
++	NFTA_NG_SET_NAME,	/* deprecated */
++	NFTA_NG_SET_ID,		/* deprecated */
+ 	__NFTA_NG_MAX
+ };
+ #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
+@@ -1460,4 +1827,104 @@ enum nft_ng_types {
+ };
+ #define NFT_NG_MAX	(__NFT_NG_MAX - 1)
+ 
++enum nft_tunnel_key_ip_attributes {
++	NFTA_TUNNEL_KEY_IP_UNSPEC,
++	NFTA_TUNNEL_KEY_IP_SRC,
++	NFTA_TUNNEL_KEY_IP_DST,
++	__NFTA_TUNNEL_KEY_IP_MAX
++};
++#define NFTA_TUNNEL_KEY_IP_MAX	(__NFTA_TUNNEL_KEY_IP_MAX - 1)
++
++enum nft_tunnel_ip6_attributes {
++	NFTA_TUNNEL_KEY_IP6_UNSPEC,
++	NFTA_TUNNEL_KEY_IP6_SRC,
++	NFTA_TUNNEL_KEY_IP6_DST,
++	NFTA_TUNNEL_KEY_IP6_FLOWLABEL,
++	__NFTA_TUNNEL_KEY_IP6_MAX
++};
++#define NFTA_TUNNEL_KEY_IP6_MAX	(__NFTA_TUNNEL_KEY_IP6_MAX - 1)
++
++enum nft_tunnel_opts_attributes {
++	NFTA_TUNNEL_KEY_OPTS_UNSPEC,
++	NFTA_TUNNEL_KEY_OPTS_VXLAN,
++	NFTA_TUNNEL_KEY_OPTS_ERSPAN,
++	NFTA_TUNNEL_KEY_OPTS_GENEVE,
++	__NFTA_TUNNEL_KEY_OPTS_MAX
++};
++#define NFTA_TUNNEL_KEY_OPTS_MAX	(__NFTA_TUNNEL_KEY_OPTS_MAX - 1)
++
++enum nft_tunnel_opts_vxlan_attributes {
++	NFTA_TUNNEL_KEY_VXLAN_UNSPEC,
++	NFTA_TUNNEL_KEY_VXLAN_GBP,
++	__NFTA_TUNNEL_KEY_VXLAN_MAX
++};
++#define NFTA_TUNNEL_KEY_VXLAN_MAX	(__NFTA_TUNNEL_KEY_VXLAN_MAX - 1)
++
++enum nft_tunnel_opts_erspan_attributes {
++	NFTA_TUNNEL_KEY_ERSPAN_UNSPEC,
++	NFTA_TUNNEL_KEY_ERSPAN_VERSION,
++	NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX,
++	NFTA_TUNNEL_KEY_ERSPAN_V2_HWID,
++	NFTA_TUNNEL_KEY_ERSPAN_V2_DIR,
++	__NFTA_TUNNEL_KEY_ERSPAN_MAX
++};
++#define NFTA_TUNNEL_KEY_ERSPAN_MAX	(__NFTA_TUNNEL_KEY_ERSPAN_MAX - 1)
++
++enum nft_tunnel_opts_geneve_attributes {
++	NFTA_TUNNEL_KEY_GENEVE_UNSPEC,
++	NFTA_TUNNEL_KEY_GENEVE_CLASS,
++	NFTA_TUNNEL_KEY_GENEVE_TYPE,
++	NFTA_TUNNEL_KEY_GENEVE_DATA,
++	__NFTA_TUNNEL_KEY_GENEVE_MAX
++};
++#define NFTA_TUNNEL_KEY_GENEVE_MAX	(__NFTA_TUNNEL_KEY_GENEVE_MAX - 1)
++
++enum nft_tunnel_flags {
++	NFT_TUNNEL_F_ZERO_CSUM_TX	= (1 << 0),
++	NFT_TUNNEL_F_DONT_FRAGMENT	= (1 << 1),
++	NFT_TUNNEL_F_SEQ_NUMBER		= (1 << 2),
++};
++#define NFT_TUNNEL_F_MASK	(NFT_TUNNEL_F_ZERO_CSUM_TX | \
++				 NFT_TUNNEL_F_DONT_FRAGMENT | \
++				 NFT_TUNNEL_F_SEQ_NUMBER)
++
++enum nft_tunnel_key_attributes {
++	NFTA_TUNNEL_KEY_UNSPEC,
++	NFTA_TUNNEL_KEY_ID,
++	NFTA_TUNNEL_KEY_IP,
++	NFTA_TUNNEL_KEY_IP6,
++	NFTA_TUNNEL_KEY_FLAGS,
++	NFTA_TUNNEL_KEY_TOS,
++	NFTA_TUNNEL_KEY_TTL,
++	NFTA_TUNNEL_KEY_SPORT,
++	NFTA_TUNNEL_KEY_DPORT,
++	NFTA_TUNNEL_KEY_OPTS,
++	__NFTA_TUNNEL_KEY_MAX
++};
++#define NFTA_TUNNEL_KEY_MAX	(__NFTA_TUNNEL_KEY_MAX - 1)
++
++enum nft_tunnel_keys {
++	NFT_TUNNEL_PATH,
++	NFT_TUNNEL_ID,
++	__NFT_TUNNEL_MAX
++};
++#define NFT_TUNNEL_MAX	(__NFT_TUNNEL_MAX - 1)
++
++enum nft_tunnel_mode {
++	NFT_TUNNEL_MODE_NONE,
++	NFT_TUNNEL_MODE_RX,
++	NFT_TUNNEL_MODE_TX,
++	__NFT_TUNNEL_MODE_MAX
++};
++#define NFT_TUNNEL_MODE_MAX	(__NFT_TUNNEL_MODE_MAX - 1)
++
++enum nft_tunnel_attributes {
++	NFTA_TUNNEL_UNSPEC,
++	NFTA_TUNNEL_KEY,
++	NFTA_TUNNEL_DREG,
++	NFTA_TUNNEL_MODE,
++	__NFTA_TUNNEL_MAX
++};
++#define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/iptables/nft.c b/iptables/nft.c
+index f31c1603eb9e..61b56c919713 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1170,7 +1170,7 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
+ 		type = type << CONCAT_TYPE_BITS | NFT_DATATYPE_IPADDR;
+ 		len += sizeof(struct in_addr) + NETLINK_ALIGN - 1;
+ 		len &= ~(NETLINK_ALIGN - 1);
+-		flags = NFT_SET_INTERVAL;
++		flags = NFT_SET_INTERVAL | NFT_SET_CONCAT;
+ 	}
+ 
+ 	s = add_anon_set(h, table, flags, type, len, cnt);
 -- 
 2.35.1
 
