@@ -2,63 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31C23ECAAD8
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Sep 2022 20:27:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3757BC32771
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Sep 2022 02:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230408AbiIUU1E (ORCPT
+        id S229811AbiIVCAY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Sep 2022 16:27:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49518 "EHLO
+        Wed, 21 Sep 2022 22:00:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229804AbiIUU1D (ORCPT
+        with ESMTP id S229901AbiIVCAU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2022 16:27:03 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC8A3792EE
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Sep 2022 13:27:01 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1ob6J9-0001HQ-4x; Wed, 21 Sep 2022 22:26:59 +0200
-Date:   Wed, 21 Sep 2022 22:26:59 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 2/2] segtree: fix decomposition of unclosed intervals
- containing address prefixes
-Message-ID: <20220921202659.GA30050@breakpoint.cc>
-References: <20220918172212.3681553-1-jeremy@azazel.net>
- <20220918172212.3681553-3-jeremy@azazel.net>
- <Yyr6C+IKMrCM0hQJ@strlen.de>
- <YytqB90MypDn7gHr@azazel.net>
+        Wed, 21 Sep 2022 22:00:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF17F6DAFC;
+        Wed, 21 Sep 2022 19:00:19 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B6F1F630BB;
+        Thu, 22 Sep 2022 02:00:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1E836C433D6;
+        Thu, 22 Sep 2022 02:00:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1663812018;
+        bh=svAjlNUwQTeY/kE6fzHjE28pUyNdgYVlqUvMFYKW0C4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Cpzci1EGIb/wbbRJWMJd4sxYU5HBqFUemm4poRTuk0c2rOFe0v90optCze5+v7yf9
+         lKO69YlHyFd0al22Jkl9XMbMLii2MDYXtKeltZ6QGzHDuhlfVsqpMDJI5OdRbx40ku
+         HHj05R1OMznDt/UMSfOBdXF2R5BF4aDlKdsc1aw7RNU+TXw1VfhidoG+gJoDW9YaSu
+         04PWRDde1z+bDE9BDEXEq7TiP1n35NaPrZE+0DZ6kunS2YPR0nIkbuyyN7SLdom3YT
+         yTAg0QO4Flyg1zNy+IpWB5skiluPKQFSbx+5xWbUCzMsAKc4RlnocVy5I1EdiYmk8Q
+         FqHlWwKu6ECnw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 04A17E4D03D;
+        Thu, 22 Sep 2022 02:00:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YytqB90MypDn7gHr@azazel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/4] netfilter: conntrack: fix the gc rescheduling
+ delay
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166381201701.16388.7500974359204134271.git-patchwork-notify@kernel.org>
+Date:   Thu, 22 Sep 2022 02:00:17 +0000
+References: <20220921095000.29569-2-fw@strlen.de>
+In-Reply-To: <20220921095000.29569-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        kuba@kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, atenart@kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jeremy Sowden <jeremy@azazel.net> wrote:
-> > __interceptor_malloc libsanitizer/asan/asan_malloc_linux.cpp:145
-> > xmalloc src/utils.c:36
-> > xzalloc src/utils.c:75
-> > expr_alloc src/expression.c:46
-> > constant_expr_alloc src/expression.c:420
-> > interval_map_decompose src/segtree.c:619
-> 
-> I did try running the new shell test under valgrind: lots of noise, not
-> a lot of signal. :)
+Hello:
 
-Yes.  You can use -fsanitize=leak as alternative, that has a much better
-signal/noise ratio.
+This series was applied to netdev/net-next.git (master)
+by Florian Westphal <fw@strlen.de>:
 
-> > Before, 'i' was assigned to the compund expr, but thats no longer the
-> > case.
+On Wed, 21 Sep 2022 11:49:57 +0200 you wrote:
+> From: Antoine Tenart <atenart@kernel.org>
 > 
-> > Does this look good to you?
+> Commit 2cfadb761d3d ("netfilter: conntrack: revisit gc autotuning")
+> changed the eviction rescheduling to the use average expiry of scanned
+> entries (within 1-60s) by doing:
 > 
-> Yes, LTGM.
+>   for (...) {
+>       expires = clamp(nf_ct_expires(tmp), ...);
+>       next_run += expires;
+>       next_run /= 2;
+>   }
+> 
+> [...]
 
-Applied, thanks!
+Here is the summary with links:
+  - [net-next,1/4] netfilter: conntrack: fix the gc rescheduling delay
+    https://git.kernel.org/netdev/net-next/c/95eabdd20702
+  - [net-next,2/4] netfilter: conntrack: revisit the gc initial rescheduling bias
+    https://git.kernel.org/netdev/net-next/c/2aa192757005
+  - [net-next,3/4] headers: Remove some left-over license text in include/uapi/linux/netfilter/
+    https://git.kernel.org/netdev/net-next/c/7b5541a932c2
+  - [net-next,4/4] netfilter: rpfilter: Remove unused variable 'ret'.
+    https://git.kernel.org/netdev/net-next/c/72f5c8980463
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
