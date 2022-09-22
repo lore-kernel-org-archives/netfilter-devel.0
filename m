@@ -2,143 +2,91 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4489FC54EE9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Sep 2022 14:35:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B171C54EE9
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Sep 2022 17:05:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231482AbiIVOfu (ORCPT
+        id S230034AbiIVRFV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Sep 2022 10:35:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34562 "EHLO
+        Thu, 22 Sep 2022 13:05:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231656AbiIVOfr (ORCPT
+        with ESMTP id S231904AbiIVRE6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Sep 2022 10:35:47 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3AE8F2740
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2022 07:35:46 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1obNIm-0006lP-Hz; Thu, 22 Sep 2022 16:35:44 +0200
-Date:   Thu, 22 Sep 2022 16:35:44 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables-nft] iptables-nft: must withdraw PAYLOAD flag
- after parsing
-Message-ID: <20220922143544.GA22541@breakpoint.cc>
-References: <20220919201254.32253-1-fw@strlen.de>
- <20220919213109.GD3498@breakpoint.cc>
- <Yys3YhGiy7/kegkM@orbyte.nwl.cc>
+        Thu, 22 Sep 2022 13:04:58 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B25D1857C2
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2022 10:04:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=laT59cCdijbr8znRmwL2oycFcOzMTk63b3lDICMIqn4=; b=X7Bxf7LyU9XLPS6v3913klKBQK
+        rwY2PgN/MWbEAnYVpAYKooetKvta9goOUm+VGc4UhB0H/+B8nlOtoozESU9hxRHHF/C+5Kd19dQ6/
+        GNhjpru/a4mJwbfibDOrS7Oo1LqrfZXRRSrdCz4Hw5k+Foe+OfnQAYwWsoPfSvijp6fbnHxMZfZsM
+        THtWTEF1qWMV28C/CBmEJuNlWS25IJGQIr9bd6V8orl+dk/Zv0lKr2FiAQC6Yf/9Bv+g36JT1uw5a
+        s9yhFZbggzvF97UmGR2euBrZGJejqb6qsPJbMRYNzi1gVz1xeXZQ48Y0DNc172+id/whncIt3wI/w
+        YHKQJDyA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1obPcu-0007zH-Tr; Thu, 22 Sep 2022 19:04:40 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fwestpha@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [iptables PATCH] tests: shell: Test delinearization of native nftables expressions
+Date:   Thu, 22 Sep 2022 19:04:32 +0200
+Message-Id: <20220922170432.5414-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Yys3YhGiy7/kegkM@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> On Mon, Sep 19, 2022 at 11:31:09PM +0200, Florian Westphal wrote:
-> > Florian Westphal <fw@strlen.de> wrote:
-> > > else, next payload is stacked via 'CTX_PREV_PAYLOAD'.
-> > > 
-> > > Example breakage:
-> > > 
-> > > ip saddr 1.2.3.4 meta l4proto tcp
-> > > ... is dumped as
-> > > -s 6.0.0.0 -p tcp
-> > > 
-> > > iptables-nft -s 1.2.3.4 -p tcp is dumped correctly, because
-> > > the expressions are ordered like:
-> > > meta l4proto tcp ip saddr 1.2.3.4
-> > > 
-> > > ... and 'meta l4proto' will clear the PAYLOAD flag.
-> > > 
-> > > Fixes: 250dce876d92 ("nft-shared: support native tcp port delinearize")
-> > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > > ---
-> > >  iptables/nft-shared.c                         |  2 ++
-> > >  .../ipt-restore/0018-multi-payload_0          | 27 +++++++++++++++++++
-> > >  2 files changed, 29 insertions(+)
-> > >  create mode 100755 iptables/tests/shell/testcases/ipt-restore/0018-multi-payload_0
-> > > 
-> > > diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-> > > index 71e2f18dab92..66e09e8fd533 100644
-> > > --- a/iptables/nft-shared.c
-> > > +++ b/iptables/nft-shared.c
-> > > @@ -986,6 +986,8 @@ static void nft_parse_cmp(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
-> > >  			nft_parse_transport(ctx, e, ctx->cs);
-> > >  			break;
-> > >  		}
-> > > +
-> > > +		ctx->flags &= ~NFT_XT_CTX_PAYLOAD;
-> > >  	}
-> > 
-> > This isn't ideal either since this breaks dissection of '1-42' ranges
-> > that use two compare operands, i.e.:
-> > 
-> > cmp reg1 gte 1
-> > cmp reg1 lte 42
-> > 
-> > ...as first cmp 'hides' reg1 again.
-> > 
-> > I'd propose to rework this context stuff:
-> > no more payload/meta/whatever flags, instead 'mirror' the raw data
-> > registers.
-> > 
-> > Other ideas/suggestions?
-> 
-> When do we use multiple flags? I see we need NFT_XT_CTX_BITWISE in
-> addition to NFT_XT_CTX_META. Do we need e.g. NFT_XT_CTX_META and
-> NFT_XT_CTX_PAYLOAD at the same time?
+Even if iptables-nft doesn't generate them anymore, it should continue
+to correctly parse them. Make sure this is tested for.
 
-No, that makes no sense. I'm working on a new decoder that handles
-each dreg individually.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../nft-only/0010-native-delinearize_0        | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/nft-only/0010-native-delinearize_0
 
-Then, only one of meta/immediate/payload can be active per register.
-bitwise can be set in addition.
-
-I hope to have a rough RFC draft ready by tomorrw.
-One big advantage is that we would no longer have to clear the flags
-in the individual nft_expr -> xt_match/target dissectors.
-
-Instead, those are always auto-cleared when a nft expressio writes
-to the register.
-
-> the LHS expression which is overwritten by each consecutive LHS
-> expression and a bitfield for the "on top" stuff.
-
-Yes, thats the same concept that I'm aiming for:
-
-+enum nft_ctx_reg_type {
-+       NFT_XT_REG_UNDEF,
-+       NFT_XT_REG_PAYLOAD,
-+       NFT_XT_REG_IMMEDIATE,
-+       NFT_XT_REG_META,
-+};
+diff --git a/iptables/tests/shell/testcases/nft-only/0010-native-delinearize_0 b/iptables/tests/shell/testcases/nft-only/0010-native-delinearize_0
+new file mode 100755
+index 0000000000000..cca36fd88d6c7
+--- /dev/null
++++ b/iptables/tests/shell/testcases/nft-only/0010-native-delinearize_0
+@@ -0,0 +1,26 @@
++#!/bin/bash
 +
-+struct nft_xt_ctx_reg {
-+       enum nft_ctx_reg_type type:8;
++[[ $XT_MULTI == *xtables-nft-multi ]] || { echo "skip $XT_MULTI"; exit 0; }
++nft -v >/dev/null || exit 0
 +
-+       union {
-+               struct {
-+                       uint32_t base;
-+                       uint32_t offset;
-+                       uint32_t len;
-+               } payload;
-+               struct {
-+                       uint32_t data[4];
-+                       uint8_t len;
-+               } immediate;
-+               struct {
-+                       uint32_t key;
-+               } meta;
-+       };
++set -e
 +
-+       struct {
-+               uint32_t mask[4];
-+               uint32_t xor[4];
-+               bool set;
-+       } bitwise;
-+};
++nft -f - <<EOF
++table ip filter {
++	chain FORWARD {
++		type filter hook forward priority filter;
++		limit rate 10/day counter
++		udp dport 42 counter
++	}
++}
++EOF
++
++EXPECT="*filter
++:INPUT ACCEPT [0:0]
++:FORWARD ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++-A FORWARD -m limit --limit 10/day
++-A FORWARD -p udp -m udp --dport 42
++COMMIT"
++
++diff -u -Z <(echo -e "$EXPECT") <($XT_MULTI iptables-save | grep -v '^#')
+-- 
+2.34.1
+
