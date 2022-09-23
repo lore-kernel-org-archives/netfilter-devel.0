@@ -2,40 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68719C07E9D
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Sep 2022 21:34:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2D48C6FA83
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Sep 2022 22:20:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231994AbiIWVeV (ORCPT
+        id S232344AbiIWWUW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Sep 2022 17:34:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60524 "EHLO
+        Fri, 23 Sep 2022 18:20:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231623AbiIWVeU (ORCPT
+        with ESMTP id S231981AbiIWWUR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Sep 2022 17:34:20 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA70E8169C;
-        Fri, 23 Sep 2022 14:34:19 -0700 (PDT)
+        Fri, 23 Sep 2022 18:20:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42707F1638;
+        Fri, 23 Sep 2022 15:20:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 50BE5B826A7;
-        Fri, 23 Sep 2022 21:34:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20E61C433D6;
-        Fri, 23 Sep 2022 21:34:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 941A76236F;
+        Fri, 23 Sep 2022 22:20:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 795A1C4347C;
+        Fri, 23 Sep 2022 22:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1663968857;
-        bh=1bf394/ntfNf6tOullEYpHvqkLYxnSWWQADvxMCcEgI=;
+        s=k20201202; t=1663971614;
+        bh=iphMsQwCEatyNiW8kPPPZHeJUjzUh9AETptyz2n+4pQ=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=SP0hK8o8uULWrJgRoZ2lc3QXuzSBf0ejqXSyhgXvt5cM8Z6RdXWCRy32GcEU6Fva/
-         +76aIWTaiD539yqt3Va0I8NGmowDO1K75bGDGfMsWy3NFBaqdNjBe1pitQOZmZm7dN
-         INFo4Fxx14nT8yyOo5puYmAJlqx5VXIL+tZx6yA4l0qeW+6gstM0hfBUA5tMa3mVp6
-         dNTpv4S8Q69xjAnCAZsIjrfobPXGkZD+BLnwocNt5S8A4cnPu3OFTDkEm/Xa/L0Spq
-         MkyqqW9SseyDfpQueGC8uFArYMdvmt7veh3Lkoat/wNH868PuC+34mO0XXgsjc8z/Q
-         4bkgO2bqVrqxg==
-Date:   Fri, 23 Sep 2022 14:34:14 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
+        b=fgkYSbzwAxpeO6IKnmqmCnCF5Mi4ZnNhCqntVcIu7RAM0rWIAZ7xIGrJ1ct0mRxQj
+         uhveXCXo92QY31Eg2uF3WjoYOZls1dHpki99JXGRzBVf7Bv2CW0mVdQTgBcLJiElOT
+         I9AJcyqC8DWyF2vZY3YNAUpahrel4uhfHppVe7UFt829fZtzI35PdIzFg6m8UMy2Ir
+         IxFX+42sHuqY0R9OEzODR6abHIKjeye/yY4B1Sv/mbR7cCa/y9SJRLeVgZ3r/8QZf0
+         p2MYkAWN2nzG8ehF4gXszeYuWjvt07VZu4GfEKEUiHdZQ2AsTdkyg1XBuIlHZqvYmd
+         Fwbu/RF/D7F6g==
+Date:   Sat, 24 Sep 2022 00:20:09 +0200
+From:   Lorenzo Bianconi <lorenzo@kernel.org>
+To:     Nathan Chancellor <nathan@kernel.org>
 Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org,
         daniel@iogearbox.net, andrii@kernel.org, davem@davemloft.net,
         kuba@kernel.org, edumazet@google.com, pabeni@redhat.com,
@@ -44,48 +44,89 @@ Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org,
         memxor@gmail.com
 Subject: Re: [PATCH v3 bpf-next 2/3] net: netfilter: add bpf_ct_set_nat_info
  kfunc helper
-Message-ID: <Yy4mVv+4X/Tm3TK4@dev-arch.thelio-3990X>
+Message-ID: <Yy4xGT7XGGredCB2@lore-desk>
 References: <cover.1663778601.git.lorenzo@kernel.org>
  <9567db2fdfa5bebe7b7cc5870f7a34549418b4fc.1663778601.git.lorenzo@kernel.org>
+ <Yy4mVv+4X/Tm3TK4@dev-arch.thelio-3990X>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="sLfwbTjTW3kWkbf7"
 Content-Disposition: inline
-In-Reply-To: <9567db2fdfa5bebe7b7cc5870f7a34549418b4fc.1663778601.git.lorenzo@kernel.org>
+In-Reply-To: <Yy4mVv+4X/Tm3TK4@dev-arch.thelio-3990X>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Lorenzo,
 
-On Wed, Sep 21, 2022 at 06:48:26PM +0200, Lorenzo Bianconi wrote:
-> Introduce bpf_ct_set_nat_info kfunc helper in order to set source and
-> destination nat addresses/ports in a new allocated ct entry not inserted
-> in the connection tracking table yet.
-> 
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+--sLfwbTjTW3kWkbf7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This commit is now in -next as commit 0fabd2aa199f ("net: netfilter: add
-bpf_ct_set_nat_info kfunc helper"). Unfortunately, it introduces a
-circular dependency when I build with my distribution's (Arch Linux)
-configuration:
+> Hi Lorenzo,
 
-$ curl -LSso .config https://github.com/archlinux/svntogit-packages/raw/packages/linux/trunk/config
+Hi Nathan,
 
-$ make -skj"$(nproc)" INSTALL_MOD_PATH=rootfs INSTALL_MOD_STRIP=1 olddefconfig all modules_install
-...
-WARN: multiple IDs found for 'nf_conn': 99333, 114119 - using 99333
-WARN: multiple IDs found for 'nf_conn': 99333, 115663 - using 99333
-WARN: multiple IDs found for 'nf_conn': 99333, 117330 - using 99333
-WARN: multiple IDs found for 'nf_conn': 99333, 119583 - using 99333
-depmod: ERROR: Cycle detected: nf_conntrack -> nf_nat -> nf_conntrack
-depmod: ERROR: Found 2 modules in dependency cycles!
-...
+>=20
+> On Wed, Sep 21, 2022 at 06:48:26PM +0200, Lorenzo Bianconi wrote:
+> > Introduce bpf_ct_set_nat_info kfunc helper in order to set source and
+> > destination nat addresses/ports in a new allocated ct entry not inserted
+> > in the connection tracking table yet.
+> >=20
+> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+>=20
+> This commit is now in -next as commit 0fabd2aa199f ("net: netfilter: add
+> bpf_ct_set_nat_info kfunc helper"). Unfortunately, it introduces a
+> circular dependency when I build with my distribution's (Arch Linux)
+> configuration:
+>=20
+> $ curl -LSso .config https://github.com/archlinux/svntogit-packages/raw/p=
+ackages/linux/trunk/config
+>=20
+> $ make -skj"$(nproc)" INSTALL_MOD_PATH=3Drootfs INSTALL_MOD_STRIP=3D1 old=
+defconfig all modules_install
+> ...
+> WARN: multiple IDs found for 'nf_conn': 99333, 114119 - using 99333
+> WARN: multiple IDs found for 'nf_conn': 99333, 115663 - using 99333
+> WARN: multiple IDs found for 'nf_conn': 99333, 117330 - using 99333
+> WARN: multiple IDs found for 'nf_conn': 99333, 119583 - using 99333
+> depmod: ERROR: Cycle detected: nf_conntrack -> nf_nat -> nf_conntrack
+> depmod: ERROR: Found 2 modules in dependency cycles!
 
-The WARN lines are there before this change but I figured they were
-worth including anyways, in case they factor in here.
+I guess the issue occurs when we compile both nf_conntrack and nf_nat as mo=
+dule
+since now we introduced the dependency "nf_conntrack -> nf_nat".
+Discussing with Kumar, in order to fix it, we can move bpf_ct_set_nat_info(=
+) in
+nf_nat module (with some required registration code similar to register_nf_=
+conntrack_bpf()).
+What do you think?
+Sorry for the inconvenience.
 
-If there is any more information I can provide or patches I can test,
-please let me know!
+Regards,
+Lorenzo
 
-Cheers,
-Nathan
+
+> ...
+>=20
+> The WARN lines are there before this change but I figured they were
+> worth including anyways, in case they factor in here.
+>=20
+> If there is any more information I can provide or patches I can test,
+> please let me know!
+>=20
+> Cheers,
+> Nathan
+
+--sLfwbTjTW3kWkbf7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCYy4xGQAKCRA6cBh0uS2t
+rKXhAQDcu0w8dCuHn4bG7U4C5FsuDOebt3TwzaIVlpsaRhO8wQD/XWcM/WxnbB2F
+zk7Ls9BMjW35soUbeeWNPzWr5rpGiQE=
+=EKFJ
+-----END PGP SIGNATURE-----
+
+--sLfwbTjTW3kWkbf7--
