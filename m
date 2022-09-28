@@ -2,89 +2,55 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45B46C32771
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 17:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A406C32771
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 17:20:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233380AbiI1RS6 (ORCPT
+        id S233426AbiI1RUe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Sep 2022 13:18:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46756 "EHLO
+        Wed, 28 Sep 2022 13:20:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234565AbiI1RSy (ORCPT
+        with ESMTP id S234268AbiI1RUb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Sep 2022 13:18:54 -0400
+        Wed, 28 Sep 2022 13:20:31 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD83764FA
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2022 10:18:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=NNt2uAL/I9LGRauZkiLEyrxRmfrIbFDuImdj21QZTNo=; b=aaGpDSVelHasrez341reI2Y4zy
-        9tMQPatvORSUTX8Y+dXmRdyHtZRSQ05gNJj89vLHFtyU0Anoo7xKlRlYxFLxLDzd2waLcdgHFU/xM
-        2o97AVvyRN+cWQDEwPuf1c2nLFoGHHcNgMVaNd1pAxcFIG+hnYYMSZ829gEUCtu/c+izEVcvCt9Fu
-        TVtfaDYoV2Ldg5K7UVwf61bIdBd1WiO8wYxHy2WR+ZMR54ciKdtwZComxmRGXqCO732MnHxvKMHQx
-        d2TicX48djs9puf2338mLqJ8RGTzyomXMon7PRZQpHSzyST4BgvUxzAvF96sG5sanj1pXrOGhuZOh
-        9TlQiAoQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1odahs-0002Bs-Ab; Wed, 28 Sep 2022 19:18:48 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFCDB41D1E
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2022 10:20:29 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1odajT-0002Ff-UA
+        for netfilter-devel@vger.kernel.org; Wed, 28 Sep 2022 19:20:27 +0200
+Date:   Wed, 28 Sep 2022 19:20:27 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fwestpha@redhat.com>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] nft-bridge: Drop 'sreg_count' variable
-Date:   Wed, 28 Sep 2022 19:18:39 +0200
-Message-Id: <20220928171839.23522-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 5/5] ebtables: Support '-p Length'
+Message-ID: <YzSCW00VUZXnZzZn@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org
+References: <20220927221512.7400-1-phil@nwl.cc>
+ <20220927221512.7400-6-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220927221512.7400-6-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It is not needed, one can just use 'reg' function parameter in its
-place.
+On Wed, Sep 28, 2022 at 12:15:12AM +0200, Phil Sutter wrote:
+> To match on Ethernet frames using the etherproto field as length value,
+> ebtables accepts the special protocol name "LENGTH". Implement this in
+> ebtables-nft using a native match for 'ether type < 0x0600'.
+> 
+> Since extension 802_3 matches are valid only with such Ethernet frames,
+> add a local add_match() wrapper which complains if the extension is used
+> without '-p Length' parameter. Legacy ebtables does this within the
+> extension's final_check callback, but it's not possible here due for lack of
+> fw->bitmask field access.
+> 
+> While being at it, add xlate support, adjust tests and make ebtables-nft
+> print the case-insensitive argument with capital 'L' like legacy
+> ebtables does.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-bridge.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 596dfdf8991f1..d1385cc3593b9 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -324,7 +324,6 @@ static int lookup_analyze_payloads(struct nft_xt_ctx *ctx,
- 				   bool *dst, bool *ip)
- {
- 	const struct nft_xt_ctx_reg *reg;
--	uint32_t sreg_count;
- 	int val, val2 = -1;
- 
- 	reg = nft_xt_ctx_get_sreg(ctx, sreg);
-@@ -336,7 +335,6 @@ static int lookup_analyze_payloads(struct nft_xt_ctx *ctx,
- 		return -1;
- 	}
- 
--	sreg_count = sreg;
- 	switch (key_len) {
- 	case 12: /* ether + ipv4addr */
- 		val = lookup_check_ether_payload(reg->payload.base,
-@@ -349,9 +347,9 @@ static int lookup_analyze_payloads(struct nft_xt_ctx *ctx,
- 			return -1;
- 		}
- 
--		sreg_count = nft_get_next_reg(sreg_count, ETH_ALEN);
-+		sreg = nft_get_next_reg(sreg, ETH_ALEN);
- 
--		reg = nft_xt_ctx_get_sreg(ctx, sreg_count);
-+		reg = nft_xt_ctx_get_sreg(ctx, sreg);
- 		if (!reg) {
- 			ctx->errmsg = "next lookup register is invalid";
- 			return -1;
--- 
-2.34.1
-
+Missed needed adjustment in ebtables/0002-ebtables-save-restore_0 shell
+testcase, folded this into the commit.
