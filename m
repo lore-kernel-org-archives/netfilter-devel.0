@@ -2,81 +2,96 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C1E0C54EE9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Sep 2022 22:15:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5310C32771
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 11:39:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbiI0WPu (ORCPT
+        id S233538AbiI1Ljj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Sep 2022 18:15:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34728 "EHLO
+        Wed, 28 Sep 2022 07:39:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229940AbiI0WPu (ORCPT
+        with ESMTP id S233448AbiI1Lji (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Sep 2022 18:15:50 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2970F12756F
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Sep 2022 15:15:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=eySCsrAdPRN58Nug0bUZ4ndGA5g/vnqvCxk2Gl0sISc=; b=JttNcRg90MHGO0EzwhoUvM84ky
-        pzC1mQNSpFKZQ6evtn+FdTJdMJ09LkL+vsxBApZClcJTzWZoeqqCRZRlIf8PGMaGtpbAKFAX10ltG
-        +ziPiSE0UxIgNLt9lubmTiC/mNQzQ9EMG2REGUvJ0AVfcRui/HCRrhg/CNiILSHF1LRTORHVLTGQN
-        ew9sh2Y7kyFBRGOvhVA7dfXYqnHv1G7sdfLDCA+lBnY5rJfNnYqzsS3JuidlxvLGUd/QYhmHvZT27
-        x63Z6oO/ewUGsuEXgbi5dgtwSe92e6vQmwFlptxRxrrOKmmEqOg7Lszmc6HmTP9EiPIkkY0Ur0c9X
-        /W/e7B6A==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1odIrj-00006H-II
-        for netfilter-devel@vger.kernel.org; Wed, 28 Sep 2022 00:15:47 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 0/5] Fixes around ebtables' --proto match
-Date:   Wed, 28 Sep 2022 00:15:07 +0200
-Message-Id: <20220927221512.7400-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Wed, 28 Sep 2022 07:39:38 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B347FF0;
+        Wed, 28 Sep 2022 04:39:34 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1odVPT-0003vW-AZ; Wed, 28 Sep 2022 13:39:27 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        <netfilter-devel@vger.kernel.org>, Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] netfilter: nft_fib: Fix for rpath check with VRF devices
+Date:   Wed, 28 Sep 2022 13:39:08 +0200
+Message-Id: <20220928113908.4525-2-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220928113908.4525-1-fw@strlen.de>
+References: <20220928113908.4525-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-During some code merge, I created an ugly situation where local OPT_*
-defines in xtables-eb.c override OPT_* enum values from xshared.h with
-same name but different value.
+From: Phil Sutter <phil@nwl.cc>
 
-The above became problematic when I curtly added --verbose support to
-ebtables-nft in order to support -vv debug output. The used OPT_VERBOSE
-symbol stemmed from xshared.h and its value clashed with OPT_PROTOCOL.
-In practice, this turned verbose mode on for rules with protocol match.
+Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
+dropping vrf packets by mistake") but for nftables fib expression:
+Add special treatment of VRF devices so that typical reverse path
+filtering via 'fib saddr . iif oif' expression works as expected.
 
-Fix all the above by merging the different OPT_* symbols in the first
-three patches.
+Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
+ net/ipv6/netfilter/nft_fib_ipv6.c | 6 +++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-The second more relevant issue was ebtables' lack of support for '-p
-LENGTH', foremost a mandatory prerequisite for 802_3 extension matches
-validity. The last two patches resolve this.
-
-Phil Sutter (5):
-  ebtables: Drop unused OPT_* defines
-  ebtables: Eliminate OPT_TABLE
-  ebtables: Merge OPT_* flags with xshared ones
-  nft-shared: Introduce __get_cmp_data()
-  ebtables: Support '-p Length'
-
- extensions/generic.txlate |  6 +++++
- extensions/libebt_802_3.t |  6 +++--
- iptables/nft-bridge.c     | 46 ++++++++++++++++++++++++++++++---------
- iptables/nft-shared.c     | 17 +++++++++------
- iptables/nft-shared.h     |  1 +
- iptables/xshared.h        |  5 +++++
- iptables/xtables-eb.c     | 28 ++++++------------------
- 7 files changed, 69 insertions(+), 40 deletions(-)
-
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index b75cac69bd7e..7ade04ff972d 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	else
+ 		oif = NULL;
+ 
++	if (priv->flags & NFTA_FIB_F_IIF)
++		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
++
+ 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+ 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+ 		nft_fib_store_result(dest, priv, nft_in(pkt));
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 8970d0b4faeb..1d7e520d9966 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -41,6 +41,9 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
+ 	if (ipv6_addr_type(&fl6->daddr) & IPV6_ADDR_LINKLOCAL) {
+ 		lookup_flags |= RT6_LOOKUP_F_IFACE;
+ 		fl6->flowi6_oif = get_ifindex(dev ? dev : pkt->skb->dev);
++	} else if ((priv->flags & NFTA_FIB_F_IIF) &&
++		   (netif_is_l3_master(dev) || netif_is_l3_slave(dev))) {
++		fl6->flowi6_oif = dev->ifindex;
+ 	}
+ 
+ 	if (ipv6_addr_type(&fl6->saddr) & IPV6_ADDR_UNICAST)
+@@ -197,7 +200,8 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
+ 		goto put_rt_err;
+ 
+-	if (oif && oif != rt->rt6i_idev->dev)
++	if (oif && oif != rt->rt6i_idev->dev &&
++	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) != oif->ifindex)
+ 		goto put_rt_err;
+ 
+ 	nft_fib_store_result(dest, priv, rt->rt6i_idev->dev);
 -- 
-2.34.1
+2.35.1
 
