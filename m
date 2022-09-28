@@ -2,64 +2,83 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79C71C04A95
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 21:39:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB05DC04A95
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 21:55:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232298AbiI1Vjv (ORCPT
+        id S233015AbiI1Vz3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Sep 2022 17:39:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43120 "EHLO
+        Wed, 28 Sep 2022 17:55:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231314AbiI1Vjt (ORCPT
+        with ESMTP id S234680AbiI1VzM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Sep 2022 17:39:49 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 885B55209A
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2022 14:39:46 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1odemM-0004jO-Go; Wed, 28 Sep 2022 23:39:42 +0200
-Date:   Wed, 28 Sep 2022 23:39:42 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Florian Westphal <fwestpha@redhat.com>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] nft: Fix meta statement parsing
-Message-ID: <YzS/Htm4KqlXJGQ5@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        Florian Westphal <fwestpha@redhat.com>,
-        netfilter-devel@vger.kernel.org
-References: <20220928162300.1055-1-phil@nwl.cc>
- <20220928175723.GN12777@breakpoint.cc>
- <YzSM/KSLYpHFzTIN@orbyte.nwl.cc>
- <20220928212709.GO12777@breakpoint.cc>
+        Wed, 28 Sep 2022 17:55:12 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7513B13DC7
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2022 14:55:10 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: nft_payload: move struct nft_payload_set definition where it belongs
+Date:   Wed, 28 Sep 2022 23:55:06 +0200
+Message-Id: <20220928215506.981-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220928212709.GO12777@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 28, 2022 at 11:27:09PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > On Wed, Sep 28, 2022 at 07:57:23PM +0200, Florian Westphal wrote:
-> > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > The function nft_meta_set_to_target() would always bail since nothing
-> > > > sets 'sreg->meta_sreg.set' to true. This is obvious, as the immediate
-> > > > expression "filling" the source register does not indicate its purpose.
-> > > 
-> > > Hmm, is there a missing test case?  I did not see any failures.
-> > 
-> > extensions/libxt_TRACE.t was failing if I called iptables-test.py with
-> > '-n' option.
-> 
-> Argh, I only tested classic :-(
+Not required to expose this header in nf_tables_core.h, move it to where
+it is used, ie. nft_payload.
 
-Same here! Making nft changes and forgetting to run the testsuite in nft
-mode is a classic. :)
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables_core.h | 10 ----------
+ net/netfilter/nft_payload.c            | 10 ++++++++++
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-I guess we need a button to run them all at once.
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 1223af68cd9a..990c3767a350 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -66,16 +66,6 @@ struct nft_payload {
+ 	u8			dreg;
+ };
+ 
+-struct nft_payload_set {
+-	enum nft_payload_bases	base:8;
+-	u8			offset;
+-	u8			len;
+-	u8			sreg;
+-	u8			csum_type;
+-	u8			csum_offset;
+-	u8			csum_flags;
+-};
+-
+ extern const struct nft_expr_ops nft_payload_fast_ops;
+ 
+ extern const struct nft_expr_ops nft_bitwise_fast_ops;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index eb0e40c29712..99d971fc54ad 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -665,6 +665,16 @@ static int nft_payload_csum_inet(struct sk_buff *skb, const u32 *src,
+ 	return 0;
+ }
+ 
++struct nft_payload_set {
++	enum nft_payload_bases	base:8;
++	u8			offset;
++	u8			len;
++	u8			sreg;
++	u8			csum_type;
++	u8			csum_offset;
++	u8			csum_flags;
++};
++
+ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+-- 
+2.30.2
 
-Cheers, Phil
