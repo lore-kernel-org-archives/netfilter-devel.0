@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB05DC04A95
-	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 21:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A7A8C32771
+	for <netfilter-devel@archiver.kernel.org>; Wed, 28 Sep 2022 21:55:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233015AbiI1Vz3 (ORCPT
+        id S231650AbiI1Vzo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 28 Sep 2022 17:55:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46332 "EHLO
+        Wed, 28 Sep 2022 17:55:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234680AbiI1VzM (ORCPT
+        with ESMTP id S234367AbiI1Vzd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Sep 2022 17:55:12 -0400
+        Wed, 28 Sep 2022 17:55:33 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7513B13DC7
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2022 14:55:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4D9F511148
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2022 14:55:28 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next] netfilter: nft_payload: move struct nft_payload_set definition where it belongs
-Date:   Wed, 28 Sep 2022 23:55:06 +0200
-Message-Id: <20220928215506.981-1-pablo@netfilter.org>
+Subject: [PATCH nf-next 1/2] netfilter: nft_payload: access GRE payload via inner offset
+Date:   Wed, 28 Sep 2022 23:55:22 +0200
+Message-Id: <20220928215523.1045-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,57 +28,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Not required to expose this header in nf_tables_core.h, move it to where
-it is used, ie. nft_payload.
+Parse GRE packets to properly set up inner offset, this allow for
+matching on inner headers.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_core.h | 10 ----------
- net/netfilter/nft_payload.c            | 10 ++++++++++
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ net/netfilter/nft_payload.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 1223af68cd9a..990c3767a350 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -66,16 +66,6 @@ struct nft_payload {
- 	u8			dreg;
- };
- 
--struct nft_payload_set {
--	enum nft_payload_bases	base:8;
--	u8			offset;
--	u8			len;
--	u8			sreg;
--	u8			csum_type;
--	u8			csum_offset;
--	u8			csum_flags;
--};
--
- extern const struct nft_expr_ops nft_payload_fast_ops;
- 
- extern const struct nft_expr_ops nft_bitwise_fast_ops;
 diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index eb0e40c29712..99d971fc54ad 100644
+index 99d971fc54ad..81913b74f7c8 100644
 --- a/net/netfilter/nft_payload.c
 +++ b/net/netfilter/nft_payload.c
-@@ -665,6 +665,16 @@ static int nft_payload_csum_inet(struct sk_buff *skb, const u32 *src,
- 	return 0;
- }
- 
-+struct nft_payload_set {
-+	enum nft_payload_bases	base:8;
-+	u8			offset;
-+	u8			len;
-+	u8			sreg;
-+	u8			csum_type;
-+	u8			csum_offset;
-+	u8			csum_flags;
-+};
-+
- static void nft_payload_set_eval(const struct nft_expr *expr,
- 				 struct nft_regs *regs,
- 				 const struct nft_pktinfo *pkt)
+@@ -19,6 +19,7 @@
+ /* For layer 4 checksum field offset. */
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
++#include <net/gre.h>
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+@@ -100,6 +101,9 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
+ 		pkt->inneroff = thoff + __tcp_hdrlen(th);
+ 		}
+ 		break;
++	case IPPROTO_GRE:
++		pkt->inneroff = thoff + sizeof(struct gre_base_hdr);
++		break;
+ 	default:
+ 		return -1;
+ 	}
 -- 
 2.30.2
 
