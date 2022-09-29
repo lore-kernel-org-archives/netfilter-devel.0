@@ -2,110 +2,114 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B740C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Sep 2022 17:55:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17753C433F5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Sep 2022 19:14:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234024AbiI2RzB (ORCPT
+        id S229587AbiI2TN7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Sep 2022 13:55:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50938 "EHLO
+        Thu, 29 Sep 2022 15:13:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235001AbiI2Ryv (ORCPT
+        with ESMTP id S229461AbiI2TN6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Sep 2022 13:54:51 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8913D2A71D;
-        Thu, 29 Sep 2022 10:54:46 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B9F04B82623;
-        Thu, 29 Sep 2022 17:54:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E2DC433D7;
-        Thu, 29 Sep 2022 17:54:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1664474083;
-        bh=5cNXRd1M33fpSuvsDPGvMhqGKl7X3rs5VlVMGC+403Y=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=T+dclZFurVocAMmJNGZcNV8fYAWhhDFYo7tUQdF5/IE3WFJpZCePxUlijyxsRsS/6
-         b/UFpmq8GlAqPDpHet++6/KSsEMGbLFgZa5VBPDVff2C3S9D/+j6P911Ocdkpg7z1w
-         UvbbNOpPlvSJp2ud7Upu+f4Lh3A18T7jrjv4eu9XHG9Ymj+e7w4/RWlrjDIXskXZc+
-         RWXNQDVUlKyYtVV1eI7bqyysxMsOHHDxTfvx6oYGh31O4Ot9FIf5UAt3o5k6YGgZ4O
-         8nqarYTpOYy4869N5f64AznSA8fQZVUEGq1Gj9hbopepDVUGHFMuJ1kW62w+sKQPOb
-         2sM7f/mTnGhsQ==
-Message-ID: <d8adea18-2e1c-6c99-f334-bf6c19373baa@kernel.org>
-Date:   Thu, 29 Sep 2022 11:54:42 -0600
+        Thu, 29 Sep 2022 15:13:58 -0400
+Received: from out0.migadu.com (out0.migadu.com [94.23.1.103])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D530F10B58B;
+        Thu, 29 Sep 2022 12:13:56 -0700 (PDT)
+Message-ID: <6cf2c440-79a6-24ce-c9bb-1f1f92af4a0b@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1664478834;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=42KWQvHN39XmPscGdurGbP1Iyirh1/jHYHbJBbgOEgs=;
+        b=nEkp6hNsw8OyfFNnLm9v4rNgiCGJGbZbAk9mb0IKTzjFTzJ5775s2rxQo/jJtCx3XaCqx4
+        YdTfy/gjKDYEKPTMLiyRZRIO5BuCC1JApZfBqrQMCCmtX6E3TWCIEQ8MLeHrfeYYUYAx9L
+        hNxxS0icymTCT80hpJg1fT7cqdSSuBI=
+Date:   Thu, 29 Sep 2022 12:13:45 -0700
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.13.0
-Subject: Re: [PATCH 1/1] netfilter: nft_fib: Fix for rpath check with VRF
- devices
+Subject: Re: [PATCH bpf-next] net: netfilter: move bpf_ct_set_nat_info kfunc
+ in nf_nat_bpf.c
 Content-Language: en-US
-To:     Florian Westphal <fw@strlen.de>,
-        Guillaume Nault <gnault@redhat.com>
-Cc:     netdev@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
-References: <20220928113908.4525-1-fw@strlen.de>
- <20220928113908.4525-2-fw@strlen.de>
- <20220929161035.GE6761@localhost.localdomain>
- <20220929162129.GA10152@breakpoint.cc>
-From:   David Ahern <dsahern@kernel.org>
-In-Reply-To: <20220929162129.GA10152@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8
+To:     Lorenzo Bianconi <lorenzo@kernel.org>
+Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
+        edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
+        fw@strlen.de, netfilter-devel@vger.kernel.org,
+        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
+        memxor@gmail.com, nathan@kernel.org, bpf@vger.kernel.org
+References: <ddd17d808fe25917893eb035b20146479810124c.1664111646.git.lorenzo@kernel.org>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Martin KaFai Lau <martin.lau@linux.dev>
+In-Reply-To: <ddd17d808fe25917893eb035b20146479810124c.1664111646.git.lorenzo@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 9/29/22 9:21 AM, Florian Westphal wrote:
-> Guillaume Nault <gnault@redhat.com> wrote:
+On 9/25/22 6:26 AM, Lorenzo Bianconi wrote:
+> Remove circular dependency between nf_nat module and nf_conntrack one
+> moving bpf_ct_set_nat_info kfunc in nf_nat_bpf.c
 > 
-> [ CC David Ahern ]
+> Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
+> Suggested-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> Tested-by: Nathan Chancellor <nathan@kernel.org>
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+>   include/net/netfilter/nf_conntrack_bpf.h |  5 ++
+>   include/net/netfilter/nf_nat.h           | 14 +++++
+>   net/netfilter/Makefile                   |  6 ++
+>   net/netfilter/nf_conntrack_bpf.c         | 49 ---------------
+>   net/netfilter/nf_nat_bpf.c               | 79 ++++++++++++++++++++++++
+>   net/netfilter/nf_nat_core.c              |  2 +-
+>   6 files changed, 105 insertions(+), 50 deletions(-)
+>   create mode 100644 net/netfilter/nf_nat_bpf.c
 > 
->> On Wed, Sep 28, 2022 at 01:39:08PM +0200, Florian Westphal wrote:
->>> From: Phil Sutter <phil@nwl.cc>
->>>
->>> Analogous to commit b575b24b8eee3 ("netfilter: Fix rpfilter
->>> dropping vrf packets by mistake") but for nftables fib expression:
->>> Add special treatment of VRF devices so that typical reverse path
->>> filtering via 'fib saddr . iif oif' expression works as expected.
->>>
->>> Fixes: f6d0cbcf09c50 ("netfilter: nf_tables: add fib expression")
->>> Signed-off-by: Phil Sutter <phil@nwl.cc>
->>> Signed-off-by: Florian Westphal <fw@strlen.de>
->>> ---
->>>  net/ipv4/netfilter/nft_fib_ipv4.c | 3 +++
->>>  net/ipv6/netfilter/nft_fib_ipv6.c | 6 +++++-
->>>  2 files changed, 8 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
->>> index b75cac69bd7e..7ade04ff972d 100644
->>> --- a/net/ipv4/netfilter/nft_fib_ipv4.c
->>> +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
->>> @@ -83,6 +83,9 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
->>>  	else
->>>  		oif = NULL;
->>>  
->>> +	if (priv->flags & NFTA_FIB_F_IIF)
->>> +		fl4.flowi4_oif = l3mdev_master_ifindex_rcu(oif);
->>> +
->>
->> Shouldn't we set .flowi4_l3mdev instead of .flowi4_oif?
-> 
-> No idea.
-> db53cd3d88dc328dea2e968c9c8d3b4294a8a674 sets both.
-> rp_filter modules in iptables only set flowi(6)_oif.
-> 
-> David, can you give advice on what the correct fix is?
-> 
-> Then we could change all users in netfilter at once rather than the
-> current collection of random-looking guesses...
+> diff --git a/include/net/netfilter/nf_conntrack_bpf.h b/include/net/netfilter/nf_conntrack_bpf.h
+> index c8b80add1142..1ce46e406062 100644
+> --- a/include/net/netfilter/nf_conntrack_bpf.h
+> +++ b/include/net/netfilter/nf_conntrack_bpf.h
+> @@ -4,6 +4,11 @@
+>   #define _NF_CONNTRACK_BPF_H
+>   
+>   #include <linux/kconfig.h>
+> +#include <net/netfilter/nf_conntrack.h>
+> +
+> +struct nf_conn___init {
+> +	struct nf_conn ct;
+> +};
+>   
+>   #if (IS_BUILTIN(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
+>       (IS_MODULE(CONFIG_NF_CONNTRACK) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
+> diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+> index e9eb01e99d2f..cd084059a953 100644
+> --- a/include/net/netfilter/nf_nat.h
+> +++ b/include/net/netfilter/nf_nat.h
+> @@ -68,6 +68,20 @@ static inline bool nf_nat_oif_changed(unsigned int hooknum,
+>   #endif
+>   }
+>   
+> +#if (IS_BUILTIN(CONFIG_NF_NAT) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF)) || \
+> +    (IS_MODULE(CONFIG_NF_NAT) && IS_ENABLED(CONFIG_DEBUG_INFO_BTF_MODULES))
+> +
+> +extern int register_nf_nat_bpf(void);
+> +
+> +#else
+> +
+> +static inline int register_nf_nat_bpf(void)
+> +{
+> +	return 0;
+> +}
+> +
+> +#endif
+> +
 
-Old usage is setting flow oif and it gets converted to the L3 device if
-there is one. The new usage is flow l3mdev, but I only updated places I
-new I was testing.
+This looks similar to the ones in nf_conntrack_bpf.h.  Does it belong there 
+better?  No strong opinion here.
 
-ie.., use l3mdev in the flow struct if you have a VRF test case for it.
+The change looks good to me.  Can someone from the netfilter team ack this piece 
+also?
+
