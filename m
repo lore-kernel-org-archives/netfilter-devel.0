@@ -2,37 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC05CC433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Sep 2022 00:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EBBFC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Sep 2022 02:36:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbiI3Acy (ORCPT
+        id S230052AbiI3CgD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Sep 2022 20:32:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50548 "EHLO
+        Thu, 29 Sep 2022 22:36:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbiI3Acw (ORCPT
+        with ESMTP id S230023AbiI3Cfw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Sep 2022 20:32:52 -0400
-Received: from out0.migadu.com (out0.migadu.com [IPv6:2001:41d0:2:267::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29867201926;
-        Thu, 29 Sep 2022 17:32:51 -0700 (PDT)
-Message-ID: <abd188ce-a097-5626-87bf-607495035a66@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1664497969;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=oQQ9UnZcw+7W3tA3dX1+mkDW7xkF2LaunwbyXaFLHbI=;
-        b=rpSirTS+cnKO7SC2v5k0ChqWMOLVyXWrd+CX9YMjI6j206K2XJNcleIZ6sx9NCULWyDYIY
-        KN7Ebl3xHKFu13TW+CJqhRa/cNqXdtr0jsNd2ZVZG0PNy3E0z/PlgA/LbNzKTJ8GYOdTN0
-        AV10GIFGaIuqFGvP7M0USF+G/hnFuNg=
-Date:   Thu, 29 Sep 2022 17:32:43 -0700
-MIME-Version: 1.0
-Subject: Re: [PATCH v2 bpf-next] net: netfilter: move bpf_ct_set_nat_info
- kfunc in nf_nat_bpf.c
-Content-Language: en-US
-To:     Lorenzo Bianconi <lorenzo@kernel.org>
+        Thu, 29 Sep 2022 22:35:52 -0400
+Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CAC812CC9E;
+        Thu, 29 Sep 2022 19:35:37 -0700 (PDT)
+Received: by mail-pl1-x636.google.com with SMTP id v1so2800506plo.9;
+        Thu, 29 Sep 2022 19:35:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date;
+        bh=geOV+uiuYHteTOnoGFMTsZksd4tYLBBzKNa6NGFjrOs=;
+        b=EhVyddOpZhT+hunkmBFc6f0IPsN6CKlv6t7A8LHLS42qZK0CW/LVXyGYbatCNbZBM/
+         GtQl8dqZMrDXgDf25ATGKK+vRF5Y39tcSRqbXHi/tWm7RJbOg81Fpa0z+W+TdRmFKNl3
+         I8cl/R+PjLoX5lo2+35+x6zCUyW/TwKno8CixyGdgcdjcXMP2diC+lAdTpqdfLgEbTSM
+         AZv7aK0f3zWX5z9MrXuXArYQs8CVQdnsPA+3m1V75mGtkBn9Nx5XQnUzUY/jYqWsfI7b
+         EWxY4E0qGv9oTSrogoxpVPxyrzFBurx6WVPeguMjnY+hZ9Isrjx05EzXgWdh58sbdjPk
+         n3dQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:subject:references
+         :in-reply-to:message-id:cc:to:from:date:x-gm-message-state:from:to
+         :cc:subject:date;
+        bh=geOV+uiuYHteTOnoGFMTsZksd4tYLBBzKNa6NGFjrOs=;
+        b=gfPlsIim+SOsbnNbnlk3tKKi2srYpmuCNgq/XxKnX275whPQdEYHG/4Qq86whDKywG
+         ATUARvx36yBMvl3CSGWV1FsyS525rL+PX0Lw1lI7RUbCfJelDNsFsO9kNeg7v5lgEFSX
+         raTlEnsE5GrlM6/vey2gTXmmi618xwZtyWfqnkM1kMl5MxAWwT4bZSnvOBubOYCIyBn7
+         zuagvbWH4S4j01ge/VnmFMrzQY17o1D8gUIVg4Nok9dNwW6WfVNI/XxJxS+cZYjoHZJG
+         HXEvOwUHMfJuznlcI0RD8+YdaM7l1lJN+u9L3t2zP1d5budHwt3GtVRbAVrpKSJlXRzo
+         nrJw==
+X-Gm-Message-State: ACrzQf2LB+vGW6JTO58l48i6n2QXIyFmXD784AATbGau+R95eSOXb6t6
+        3YQIn9T1T8cGBkwUyVrYQ24=
+X-Google-Smtp-Source: AMsMyM5G7DJ6Ap0cl4ImexC9M45ZFTjzuKcsPyZZ8K9Sx67PnC0FiIhiMIT619+ZDsNq5j9d13UTtQ==
+X-Received: by 2002:a17:903:230e:b0:178:3356:b82a with SMTP id d14-20020a170903230e00b001783356b82amr6609023plh.138.1664505336975;
+        Thu, 29 Sep 2022 19:35:36 -0700 (PDT)
+Received: from localhost ([98.97.42.14])
+        by smtp.gmail.com with ESMTPSA id r9-20020a655089000000b0043a09d5c32bsm612197pgp.74.2022.09.29.19.35.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Sep 2022 19:35:36 -0700 (PDT)
+Date:   Thu, 29 Sep 2022 19:35:34 -0700
+From:   John Fastabend <john.fastabend@gmail.com>
+To:     Martin KaFai Lau <martin.lau@linux.dev>,
+        Lorenzo Bianconi <lorenzo@kernel.org>
 Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
         andrii@kernel.org, davem@davemloft.net, kuba@kernel.org,
         edumazet@google.com, pabeni@redhat.com, pablo@netfilter.org,
@@ -40,36 +61,44 @@ Cc:     netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net,
         lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
         memxor@gmail.com, nathan@kernel.org, ykaliuta@redhat.com,
         bpf <bpf@vger.kernel.org>
+Message-ID: <633655f64ff90_233df20817@john.notmuch>
+In-Reply-To: <abd188ce-a097-5626-87bf-607495035a66@linux.dev>
 References: <51a65513d2cda3eeb0754842e8025ab3966068d8.1664490511.git.lorenzo@kernel.org>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Martin KaFai Lau <martin.lau@linux.dev>
-In-Reply-To: <51a65513d2cda3eeb0754842e8025ab3966068d8.1664490511.git.lorenzo@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <abd188ce-a097-5626-87bf-607495035a66@linux.dev>
+Subject: Re: [PATCH v2 bpf-next] net: netfilter: move bpf_ct_set_nat_info
+ kfunc in nf_nat_bpf.c
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 9/29/22 3:38 PM, Lorenzo Bianconi wrote:
-> Remove circular dependency between nf_nat module and nf_conntrack one
-> moving bpf_ct_set_nat_info kfunc in nf_nat_bpf.c
+Martin KaFai Lau wrote:
+> On 9/29/22 3:38 PM, Lorenzo Bianconi wrote:
+> > Remove circular dependency between nf_nat module and nf_conntrack one
+> > moving bpf_ct_set_nat_info kfunc in nf_nat_bpf.c
+> > 
+> > Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
+> > Suggested-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> > Tested-by: Nathan Chancellor <nathan@kernel.org>
+> > Tested-by: Yauheni Kaliuta <ykaliuta@redhat.com>
+> > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> > ---
+> > Changes since v1:
+> > - move register_nf_nat_bpf declaration in nf_conntrack_bpf.h
+> > ---
+> >   include/net/netfilter/nf_conntrack_bpf.h | 19 ++++++
+> >   net/netfilter/Makefile                   |  6 ++
+> >   net/netfilter/nf_conntrack_bpf.c         | 50 ---------------
+> >   net/netfilter/nf_nat_bpf.c               | 79 ++++++++++++++++++++++++
+> >   net/netfilter/nf_nat_core.c              |  4 +-
 > 
-> Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
-> Suggested-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> Tested-by: Nathan Chancellor <nathan@kernel.org>
-> Tested-by: Yauheni Kaliuta <ykaliuta@redhat.com>
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> ---
-> Changes since v1:
-> - move register_nf_nat_bpf declaration in nf_conntrack_bpf.h
-> ---
->   include/net/netfilter/nf_conntrack_bpf.h | 19 ++++++
->   net/netfilter/Makefile                   |  6 ++
->   net/netfilter/nf_conntrack_bpf.c         | 50 ---------------
->   net/netfilter/nf_nat_bpf.c               | 79 ++++++++++++++++++++++++
->   net/netfilter/nf_nat_core.c              |  4 +-
+> lgtm.  It should have addressed Pablo's comment in v1.  Can the netfilter team 
+> give an ack for the patch?
+> 
 
-lgtm.  It should have addressed Pablo's comment in v1.  Can the netfilter team 
-give an ack for the patch?
+Also lgtm
 
+Acked-by: John Fastabend <john.fastabend@gmail.com>
