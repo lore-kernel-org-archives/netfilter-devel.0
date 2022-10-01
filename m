@@ -2,109 +2,200 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDDEAC43217
-	for <netfilter-devel@archiver.kernel.org>; Fri, 30 Sep 2022 15:08:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 994A3C433F5
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Oct 2022 00:42:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbiI3PI2 (ORCPT
+        id S231540AbiJAAmr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 30 Sep 2022 11:08:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36352 "EHLO
+        Fri, 30 Sep 2022 20:42:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231469AbiI3PI1 (ORCPT
+        with ESMTP id S232528AbiJAAmn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Sep 2022 11:08:27 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE2CC123862
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Sep 2022 08:08:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1664550506;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=1ThgIMG5jXzsQN6twWFk4fVY0qmWrtHR2kq3lK3VY7c=;
-        b=CwrcPKxNUicJxFVtPHTeZneHa+AFtsg2PZ1m4a49ERIPeYh3hnBzAt817lUJQ8x0jdb+xM
-        XYKmeNpbuOFFJR687WZP3KqACWQSxJxC2pP7yTP0wV4c+ReyGYfC+ue8PwzNP3peHfeu9u
-        LPUswT+5RBy/dhBnUYbmCgs82SRqnkg=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-94-i1yr8nnjMeKGc8cl3TzddA-1; Fri, 30 Sep 2022 11:08:22 -0400
-X-MC-Unique: i1yr8nnjMeKGc8cl3TzddA-1
-Received: by mail-wm1-f72.google.com with SMTP id n7-20020a1c2707000000b003a638356355so2201857wmn.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Sep 2022 08:08:22 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date;
-        bh=1ThgIMG5jXzsQN6twWFk4fVY0qmWrtHR2kq3lK3VY7c=;
-        b=AQn8+KtpN+TiixXQICKuV28ADtwQZNpYOM1TaRqlrRM1j8fFubDjsbVpzyByH/NLYT
-         +q/wpAhjLmOG3UbYhPXzYNIheTAIr2bXvx3T8bP40gso/QICAxc0RcNJd9MFBpQvnbbH
-         F9g4P4+ByFoN8HWbxO7K9NEMgag0t6pCa27JYrCiP9p4xoy6LMpIgb/BbVw6ezl32ic0
-         UDghjlyZB1DmPvXPTHbY+WUyOUyy7MtStEbmL/PfMDjAFvSiFQErn3bZZ6sIIcKqgJAx
-         Aw5Y8WL2XKvLOur6mMqbD1h62rIbFWf8lvDSu3nFwVwUfOL/OvKDURBtSGlyoc2Up0va
-         uxJg==
-X-Gm-Message-State: ACrzQf2Belu/Pees53rbEbRj58ZY5bHSuSRyFeAJ2HUJxHt291n82zTu
-        P9hqWAALseMNvC5RAsefBA07jljsR+q7F4WhHAmXRdyRpM6HunzU1/Nnns+BUs7kocVzMEcTd0F
-        Kg9nixntpyyUr9+z/uNlXGg1oNRib
-X-Received: by 2002:adf:eb83:0:b0:22c:f295:19a5 with SMTP id t3-20020adfeb83000000b0022cf29519a5mr2641085wrn.457.1664550501572;
-        Fri, 30 Sep 2022 08:08:21 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM5BtSGsnizcOAB9rv7VtThs8g0EBWhTN2l0qiqwUhqzDeB7hdtfsgspZw4zPNevNAoKLojONw==
-X-Received: by 2002:adf:eb83:0:b0:22c:f295:19a5 with SMTP id t3-20020adfeb83000000b0022cf29519a5mr2641064wrn.457.1664550501363;
-        Fri, 30 Sep 2022 08:08:21 -0700 (PDT)
-Received: from localhost.localdomain ([92.62.32.42])
-        by smtp.gmail.com with ESMTPSA id bv7-20020a0560001f0700b0022cdbc76b1bsm2123278wrb.82.2022.09.30.08.08.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Sep 2022 08:08:20 -0700 (PDT)
-Date:   Fri, 30 Sep 2022 17:08:18 +0200
-From:   Guillaume Nault <gnault@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH 1/1] netfilter: nft_fib: Fix for rpath check with VRF
- devices
-Message-ID: <20220930150818.GC10057@localhost.localdomain>
-References: <20220928113908.4525-1-fw@strlen.de>
- <20220928113908.4525-2-fw@strlen.de>
- <20220930141048.GA10057@localhost.localdomain>
- <20220930144752.GA8349@breakpoint.cc>
+        Fri, 30 Sep 2022 20:42:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 556EC199CA4;
+        Fri, 30 Sep 2022 17:42:41 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0E3D5B82ACA;
+        Sat,  1 Oct 2022 00:42:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9045EC433C1;
+        Sat,  1 Oct 2022 00:42:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1664584958;
+        bh=n/hDwtfOebc+FCFcLBZD65Wm0/S4cuMCFkQDrMXrKSo=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=AXYvzR7LG4qjRF1yJ3V9hMqsLkfCxsKOGkfkiOgMyz9PTPgx9tJepKIVY5peksmhG
+         aGK0dYuSbgGvE9/TNLld+4OtKh8f5wVNeR5Cc4gYrfL8Sz/Wd0nhj+oez09pWpCOQy
+         YJbCyOtfcSN0Y8/lWz5S+UwCrioogi3XXzx4SIbswyOGBbxNc4dxdBzZt40Sjd0Zdu
+         2TF15R6H9ZdykGaT5JHYlSG7hKimMsNEo9pjiCO0qmPqUS9Nz3F0yX0EaFOZOAmjdF
+         GihacY9F34yMs7SrWruhsGCrI3Tjv0n9reqw18tkJBVs/iWydWgcnuFrZpYTG4yHn6
+         hTxosRcp/7vJQ==
+Date:   Fri, 30 Sep 2022 17:42:37 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Maximilien Cuony <maximilien.cuony@arcanite.ch>
+Cc:     netdev@vger.kernel.org, Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Mike Manning <mvrmanning@gmail.com>,
+        David Ahern <dsahern@kernel.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [REGRESSION] Unable to NAT own TCP packets from another VRF
+ with tcp_l3mdev_accept = 1
+Message-ID: <20220930174237.2e89c9e1@kernel.org>
+In-Reply-To: <98348818-28c5-4cb2-556b-5061f77e112c@arcanite.ch>
+References: <98348818-28c5-4cb2-556b-5061f77e112c@arcanite.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220930144752.GA8349@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 30, 2022 at 04:47:52PM +0200, Florian Westphal wrote:
-> Guillaume Nault <gnault@redhat.com> wrote:
-> > On Wed, Sep 28, 2022 at 01:39:08PM +0200, Florian Westphal wrote:
-> > > diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-> > > index 8970d0b4faeb..1d7e520d9966 100644
-> > > --- a/net/ipv6/netfilter/nft_fib_ipv6.c
-> > > +++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-> > > @@ -41,6 +41,9 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
-> > >  	if (ipv6_addr_type(&fl6->daddr) & IPV6_ADDR_LINKLOCAL) {
-> > >  		lookup_flags |= RT6_LOOKUP_F_IFACE;
-> > >  		fl6->flowi6_oif = get_ifindex(dev ? dev : pkt->skb->dev);
-> > > +	} else if ((priv->flags & NFTA_FIB_F_IIF) &&
-> > > +		   (netif_is_l3_master(dev) || netif_is_l3_slave(dev))) {
-> > > +		fl6->flowi6_oif = dev->ifindex;
-> > >  	}
-> > 
-> > I'm not very familiar with nft code, but it seems dev can be NULL here,
-> > so netif_is_l3_master() can dereference a NULL pointer.
-> 
-> No, this should never be NULL, NFTA_FIB_F_IIF is restricted to
-> input/prerouting chains.
+Adding netfilter and vrf experts.
 
-Thanks, I didn't realise that.
-
-> > Shouldn't we test dev in the 'else if' condition?
-> 
-> We could do that in case it makes review easier.
-
-Then if it's just to help reviewers, a small comment should be enough.
+On Wed, 28 Sep 2022 16:02:43 +0200 Maximilien Cuony wrote:
+> Hello,
+>=20
+> We're using VRF with a machine used as a router and have a specific=20
+> issue where the router doesn't handle his own packets correctly during=20
+> NATing if the packet is coming from a different VRF.
+>=20
+> We had the issue with debian buster (4.19), but the issue solved itself=20
+> when we updated to debian bullseye (5.10.92).
+>=20
+> However, during an upgrade of debian bullseye to the latest kernel, the=20
+> issue appeared again (5.10.140).
+>=20
+> We did a bisection and this leaded us to=20
+> "b0d67ef5b43aedbb558b9def2da5b4fffeb19966 net: allow unbound socket for=20
+> packets in VRF when tcp_l3mdev_accept set [ Upstream commit=20
+> 944fd1aeacb627fa617f85f8e5a34f7ae8ea4d8e ]".
+>=20
+> Simplified case setup:
+>=20
+> There is two machines in the setup. They both forward packets=20
+> (net.ipv4.ip_forward =3D 1) and there is two interface between them.
+>=20
+> The main machine has two VRF. The default VRF is using the second=20
+> machine as the default route, on a specific interface.
+> The second machine has as default route to main machine, on the other=20
+> VRF using the second pair of interfaces.
+>=20
+> On the main machine, the second interface is in a specific VRF. In that=20
+> VRF, packets are NATed to the internet on a third interface.
+>=20
+> A visual schema with the normal flow is available there:=20
+> https://etinacra.ch/kernel.png
+>=20
+> Configuration command:
+>=20
+> Main machine:
+> sysctl -w net.ipv4.tcp_l3mdev_accept =3D 1
+> sysctl -w systnet.ipv4.ip_forward =3D 1
+> iptables -t raw -A PREROUTING -i eth0 -j CT --zone 5
+> iptables -t raw -A OUTPUT -o eth0 -j CT --zone 5
+> iptables -t nat -A POSTROUTING -o eth2 -j SNAT --to 192.168.1.1
+> cat /etc/network/interfaces
+>=20
+> auto firewall
+> iface firewall
+>  =C2=A0=C2=A0=C2=A0 vrf-table 1200
+>=20
+> auto eth0
+> iface eth0
+>  =C2=A0=C2=A0=C2=A0 address 192.168.5.1/24
+>  =C2=A0=C2=A0=C2=A0 gateway 192.168.5.2
+>=20
+> auto eth1
+> iface eth1
+>  =C2=A0=C2=A0=C2=A0 address 192.168.10.1/24
+>  =C2=A0=C2=A0=C2=A0 vrf firewall
+>  =C2=A0=C2=A0=C2=A0 up ip route add 192.168.5.0/24 via 192.168.10.2 vrf f=
+irewall
+>=20
+> auto eth2
+> iface eth2
+>  =C2=A0=C2=A0=C2=A0 address 192.168.1.1/24
+>  =C2=A0=C2=A0=C2=A0 gateway 192.168.1.250
+>  =C2=A0=C2=A0=C2=A0 vrf firewall
+>=20
+> =3D=3D
+>=20
+> Second machine:
+>=20
+> sysctl -w net.ipv4.ip_forward =3D 1
+>=20
+> cat /etc/network/interfaces
+>=20
+> auto eth0
+> iface eth0
+>  =C2=A0=C2=A0=C2=A0 address 192.168.5.2/24
+>=20
+> auto eth1
+> iface eth1
+>  =C2=A0=C2=A0=C2=A0 address 192.168.10.2/24
+>  =C2=A0=C2=A0=C2=A0 gateway 192.168.10.1
+>=20
+> =3D=3D
+>=20
+> Without issue, if we look at a tcpdump on all interface on the main=20
+> machine, everything is fine (output truncated):
+>=20
+> 10:28:32.811283 eth0 Out IP 192.168.5.1.55750 > 99.99.99.99.80: Flags=20
+> [S], seq 2216112145
+> 10:28:32.811666 eth1 In=C2=A0 IP 192.168.5.1.55750 > 99.99.99.99.80: Flag=
+s=20
+> [S], seq 2216112145
+> 10:28:32.811679 eth2 Out IP 192.168.1.1.55750 > 99.99.99.99.80: Flags=20
+> [S], seq 2216112145
+> 10:28:32.835138 eth2 In=C2=A0 IP 99.99.99.99.80 > 192.168.1.1.55750: Flag=
+s=20
+> [S.], seq 383992840, ack 2216112146
+> 10:28:32.835152 eth1 Out IP 99.99.99.99.80 > 192.168.5.1.55750: Flags=20
+> [S.], seq 383992840, ack 2216112146
+> 10:28:32.835457 eth0 In=C2=A0 IP 99.99.99.99.80 > 192.168.5.1.55750: Flag=
+s=20
+> [S.], seq 383992840, ack 2216112146
+> 10:28:32.835511 eth0 Out IP 192.168.5.1.55750 > 99.99.99.99.80: Flags=20
+> [.], ack 1, win 502
+>=20
+> However when the issue is present, the SYNACK does arrives on eth2, but=20
+> is never "unNATed" back to eth1:
+>=20
+> 10:25:07.644433 eth0 Out IP 192.168.5.1.48684 > 99.99.99.99.80: Flags=20
+> [S], seq 3207393154
+> 10:25:07.644782 eth1 In=C2=A0 IP 192.168.5.1.48684 > 99.99.99.99.80: Flag=
+s=20
+> [S], seq 3207393154
+> 10:25:07.644793 eth2 Out IP 192.168.1.1.48684 > 99.99.99.99.80: Flags=20
+> [S], seq 3207393154
+> 10:25:07.668551 eth2 In=C2=A0 IP 54.36.61.42.80 > 192.168.1.1.48684: Flag=
+s=20
+> [S.], seq 823335485, ack 3207393155
+>=20
+> The issue is only with TCP connections. UDP or ICMP works fine.
+>=20
+> Turing off net.ipv4.tcp_l3mdev_accept back to 0 also fix the issue, but=20
+> we need this flag since we use some sockets that does not understand VRFs.
+>=20
+> We did have a look at the diff and the code of inet_bound_dev_eq, but we=
+=20
+> didn't understand much the real problem - but it does seem now that=20
+> bound_dev_if if now checked not to be False before the bound_dev_if =3D=
+=3D=20
+> dif || bound_dev_if =3D=3D sdif comparison, something that was not the ca=
+se=20
+> before (especially since it's dependent on l3mdev_accept).
+>=20
+> Maybe our setup is wrong and we should not be able to route packets like=
+=20
+> that?
+>=20
+> Thanks a lot and have a nice day!
+>=20
+> Maximilien Cuony
+>=20
+>=20
 
