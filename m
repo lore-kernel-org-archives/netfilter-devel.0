@@ -2,76 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA33C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Oct 2022 08:36:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6410C433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Oct 2022 16:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231550AbiJCIgP (ORCPT
+        id S229820AbiJCQUZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Oct 2022 04:36:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47752 "EHLO
+        Mon, 3 Oct 2022 12:20:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231516AbiJCIfq (ORCPT
+        with ESMTP id S229817AbiJCQUS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Oct 2022 04:35:46 -0400
-X-Greylist: delayed 386 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 03 Oct 2022 01:08:26 PDT
-Received: from mail.lefinish.com (mail.lefinish.com [45.86.209.157])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCD8E175A8
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Oct 2022 01:08:26 -0700 (PDT)
-Received: by mail.lefinish.com (Postfix, from userid 1001)
-        id 1776B83031; Mon,  3 Oct 2022 10:00:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=lefinish.com; s=mail;
-        t=1664784067; bh=gfWmJwOZk+B/IN1TMPg7emKhIvoExrJdUiyEL8yd2Jk=;
-        h=Date:From:To:Subject:From;
-        b=lGXnkVOhxAoytqras81Km6okLg6vpJwVsh+32cE3/o4tcZaztkKFDOPqHXGJ2Ife9
-         wXJdT6gV/2w0OwuxjJIjCVuYPJr1Xu3DHMlSPIxF1UgNb8EjqTgE8LPpg3friwrN55
-         kLjIeFqoIBBybk8zgTR3l6Z7gKo1f1M7KSFBpRLUrDog1szPG/JUKyNRIiKtzYx1y3
-         eGo7Kub01/KLaX3oX2Wkfe6S3aQVfqWK/7HxTnvVRzPF97L85gGt3gayAGaSnsjXW7
-         W6ESs29KHQ5oz/J17mW752d8OfUwVAF2sftkOuKdus+WQy9qZ82Wj7Usmo3Nkd7ySu
-         +NyWCysQm+7xw==
-Received: by mail.lefinish.com for <netfilter-devel@vger.kernel.org>; Mon,  3 Oct 2022 08:00:33 GMT
-Message-ID: <20221003084500-0.1.1y.93f4.0.7hc6gf280o@lefinish.com>
-Date:   Mon,  3 Oct 2022 08:00:33 GMT
-From:   "Corey Webb" <corey.webb@lefinish.com>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: Help with the project
-X-Mailer: mail.lefinish.com
+        Mon, 3 Oct 2022 12:20:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F219715FF4;
+        Mon,  3 Oct 2022 09:20:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5631C61152;
+        Mon,  3 Oct 2022 16:20:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A758BC433C1;
+        Mon,  3 Oct 2022 16:20:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1664814015;
+        bh=o82mYUcMzZJ88bp9X2SIyeZOFEstJnAckAGwFH9r32k=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=NCrsFb7wlu0Dw+DyPRN18s/WcSrwLtwUXOYwniQVuO0JTwbAFl4rkehuamgfOm4/l
+         lUKYxbUNA0r2fEB1sPtWMsPWhWkw8+W6bSKzyluT0asrHAI1UFGSEk8zgh+BVaUKOB
+         kZd+dWpg8FawsUjM+Fn4r5YlCZLMWBP5VwdLKfSaVAEPsi03l5c/67ELJZNnH4+XWW
+         310xpaLzPX8Zih2R6vKaMnrrWnTvjM/z0P8vPWam3CKYy4N9NaJLl4U5kUgIJ1oHob
+         jytRiiTCMpKMTx0ryf2T6dW8Y7K2mdImmjCmG62QsJJFXlhIRz87QsWq1Y+R/KHu+G
+         s9bsq/Cg3kKpQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 897E6E4D03C;
+        Mon,  3 Oct 2022 16:20:15 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 bpf-next] net: netfilter: move bpf_ct_set_nat_info kfunc in
+ nf_nat_bpf.c
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166481401555.8397.6441469984124928795.git-patchwork-notify@kernel.org>
+Date:   Mon, 03 Oct 2022 16:20:15 +0000
+References: <51a65513d2cda3eeb0754842e8025ab3966068d8.1664490511.git.lorenzo@kernel.org>
+In-Reply-To: <51a65513d2cda3eeb0754842e8025ab3966068d8.1664490511.git.lorenzo@kernel.org>
+To:     Lorenzo Bianconi <lorenzo@kernel.org>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org,
+        daniel@iogearbox.net, andrii@kernel.org, davem@davemloft.net,
+        kuba@kernel.org, edumazet@google.com, pabeni@redhat.com,
+        pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
+        lorenzo.bianconi@redhat.com, brouer@redhat.com, toke@redhat.com,
+        memxor@gmail.com, nathan@kernel.org, martin.lau@linux.dev,
+        ykaliuta@redhat.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,=20
+Hello:
 
-I would like to reach the person responsible for the implementation of yo=
-ur company's goals, vision and mission or the decision-maker in the devel=
-opment of your technology strategy.
+This patch was applied to bpf/bpf-next.git (master)
+by Alexei Starovoitov <ast@kernel.org>:
 
-I represent provider of lucrative IT solutions that remove the barriers t=
-o process development resulting from limited access to appropriate IT res=
-ources.
+On Fri, 30 Sep 2022 00:38:43 +0200 you wrote:
+> Remove circular dependency between nf_nat module and nf_conntrack one
+> moving bpf_ct_set_nat_info kfunc in nf_nat_bpf.c
+> 
+> Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
+> Suggested-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> Tested-by: Nathan Chancellor <nathan@kernel.org>
+> Tested-by: Yauheni Kaliuta <ykaliuta@redhat.com>
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> 
+> [...]
 
-We guarantee you access to the knowledge and experience of outstanding 3,=
-000 software developers from Poland and 500 professional consultants and =
-senior developers in the United States and other Western countries. =20
+Here is the summary with links:
+  - [v2,bpf-next] net: netfilter: move bpf_ct_set_nat_info kfunc in nf_nat_bpf.c
+    https://git.kernel.org/bpf/bpf-next/c/820dc0523e05
 
-We respond to a variety of needs, ranging from expanding your project tea=
-m with specialists with specific skills to supporting project managers, e=
-xperienced innovation teams to creating a Minimum Viable Project (MVP).
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-The comprehensiveness of our services guarantees you dynamic software dev=
-elopment including creation, testing and implementation systems that are =
-the backbone of effective management of the entire organization.
-
-A partnership that lasts for years is the best proof that our clients mee=
-t their unique requirements within a specific timeframe, introduce new op=
-portunities and grow their business while we solve their problems.
-
-Are you available for a brief call? I will be looking forward to hearing =
-from you.
-
-
-Best regards
-Corey Webb
 
