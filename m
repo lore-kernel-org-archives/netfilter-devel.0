@@ -2,83 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE3E4C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Oct 2022 22:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55093C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Oct 2022 22:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229575AbiJEWho (ORCPT
+        id S229640AbiJEWhq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Oct 2022 18:37:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48774 "EHLO
+        Wed, 5 Oct 2022 18:37:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbiJEWho (ORCPT
+        with ESMTP id S229612AbiJEWhp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Oct 2022 18:37:44 -0400
+        Wed, 5 Oct 2022 18:37:45 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 67EC163F31
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 15:37:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D582D63F31
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 15:37:44 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 0/6] nf_tables inner tunnel header match support
-Date:   Thu,  6 Oct 2022 00:37:34 +0200
-Message-Id: <20221005223740.22991-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 1/6] netfilter: nft_payload: access GRE payload via inner offset
+Date:   Thu,  6 Oct 2022 00:37:35 +0200
+Message-Id: <20221005223740.22991-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221005223740.22991-1-pablo@netfilter.org>
+References: <20221005223740.22991-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Parse GRE packets to properly set up inner offset, this allow for
+matching on inner headers.
 
-This is version 2 for this patchset.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: interpret GRE flags to handle variable GRE header size.
 
-The inner expression provides a packet parser for the tunneled packet
-which uses a userspace description of the expected inner headers. Then,
-the inner expression (only payload and meta supported at this stage) is
-used to match on the inner header protocol fields, using the new link,
-network and transport offsets as well as inner metadata.
+ net/netfilter/nft_payload.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-This patchset adds support for VxLAN, Geneve, GRE and IPIP. More tunnel
-protocol can be supported via userspace updates only.
-
-Changes in this v2:
-
-Patch #1 interpret GRE flags to handle variable GRE header size.
-Patch #2 no changes in IPIP support.
-Patch #3 add nft_inner_parse_tunhdr() helper function to prepare
-         for caching the inner offset in percpu area.
-Patch #4 add NFT_PKTINFO_INNER_FULL flag and percpu area to cache
-         the inner link, network and transport offsets. So the inner
-         offsets are calculated one for the inner header type specified
-         by userspace.
-Patch #5 no changes in meta inner support.
-Patch #6 add geneve support, this is required because it has optional
-         TLV area which needs to be considered to accordingly calculate
-         the inner link layer offset.
-
-Thanks.
-
-Pablo Neira Ayuso (6):
-  netfilter: nft_payload: access GRE payload via inner offset
-  netfilter: nft_payload: access ipip payload for inner offset
-  netfilter: nft_inner: support for inner tunnel header matching
-  netfilter: nft_inner: add percpu inner context
-  netfilter: nft_meta: add inner match support
-  netfilter: nft_inner: add geneve support
-
- include/net/netfilter/nf_tables.h        |   6 +
- include/net/netfilter/nf_tables_core.h   |  25 ++
- include/net/netfilter/nft_meta.h         |   6 +
- include/uapi/linux/netfilter/nf_tables.h |  27 ++
- net/netfilter/Makefile                   |   3 +-
- net/netfilter/nf_tables_api.c            |  37 +++
- net/netfilter/nf_tables_core.c           |   1 +
- net/netfilter/nft_inner.c                | 366 +++++++++++++++++++++++
- net/netfilter/nft_meta.c                 |  62 ++++
- net/netfilter/nft_payload.c              | 114 ++++++-
- 10 files changed, 645 insertions(+), 2 deletions(-)
- create mode 100644 net/netfilter/nft_inner.c
-
---
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 99d971fc54ad..78a393d6a7c8 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -19,6 +19,8 @@
+ /* For layer 4 checksum field offset. */
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
++#include <net/gre.h>
++#include <net/pptp.h>
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+@@ -100,6 +102,26 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
+ 		pkt->inneroff = thoff + __tcp_hdrlen(th);
+ 		}
+ 		break;
++	case IPPROTO_GRE: {
++		struct gre_base_hdr *gre, _gre;
++		u32 offset = 0;
++
++		gre = skb_header_pointer(pkt->skb, thoff, sizeof(_gre), &_gre);
++		if (!gre)
++			return -1;
++
++		if (gre->flags & GRE_CSUM) {
++			offset += sizeof_field(struct gre_full_hdr, csum) +
++				  sizeof_field(struct gre_full_hdr, reserved1);
++		}
++		if (gre->flags & GRE_KEY)
++			offset += sizeof_field(struct gre_full_hdr, key);
++		if (gre->flags & GRE_SEQ)
++			offset += sizeof_field(struct pptp_gre_header, seq);
++
++		pkt->inneroff = thoff + sizeof(struct gre_base_hdr) + offset;
++		}
++		break;
+ 	default:
+ 		return -1;
+ 	}
+-- 
 2.30.2
 
