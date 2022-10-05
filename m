@@ -2,90 +2,70 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3EA9C433F5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Oct 2022 22:37:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B577C433F5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Oct 2022 22:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229658AbiJEWht (ORCPT
+        id S229543AbiJEWnY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Oct 2022 18:37:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48832 "EHLO
+        Wed, 5 Oct 2022 18:43:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229646AbiJEWhs (ORCPT
+        with ESMTP id S229802AbiJEWnN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Oct 2022 18:37:48 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 41A787F25C
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 15:37:47 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Wed, 5 Oct 2022 18:43:13 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56785855AC
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 15:43:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=a3VRwhczl5cBuBK6PJ4mJvG8WOgcSUXDMq3T3OgruZ4=; b=TRwzh0sP2OtXxcLhdRAxqNiBED
+        1hTUEwc15r6jFT4hpoBQl47DVYNHaEx61CuRE+mbaSRnuaV84v5zVcolVSoIcwTalJmFz2YaBuaDa
+        +r5sJDv7NP/eMtVSu+Gj0q6GpX06gM2ubDgFCO/lFCj1sABnONtjRTfQ5n+EogivmudXlpTVRGHVr
+        ooipez6BC6gQ0mwBnBXBwkAB9xTUj1Z0ySjjYqo6hchQUeOqAzR6zlnlQI70ZiG+KfbUqJVB3xION
+        FuhNekVFH/oikAEJBgA9M3fQdaBe9pdC9CXkLtvOROUOro6lDu6mZgBSdt579pWXyRa/FSKqaW6KD
+        +n/84SHw==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1ogD6W-0000tW-66
+        for netfilter-devel@vger.kernel.org; Thu, 06 Oct 2022 00:43:04 +0200
+From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 6/6] netfilter: nft_inner: add geneve support
-Date:   Thu,  6 Oct 2022 00:37:40 +0200
-Message-Id: <20221005223740.22991-7-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20221005223740.22991-1-pablo@netfilter.org>
-References: <20221005223740.22991-1-pablo@netfilter.org>
+Subject: [iptables PATCH] tests: libebt_stp.t: Drop duplicate whitespace
+Date:   Thu,  6 Oct 2022 00:42:55 +0200
+Message-Id: <20221005224255.31944-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Geneve tunnel header may contain options, parse geneve header and update
-offset to point to the link layer header according to the opt_len field.
+Code was fixed but the testcase adjustment slipped through.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 262dff31a998e ("extensions: libebt_stp: Eliminate duplicate space in output")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nft_inner.c                | 17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ extensions/libebt_stp.t | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 4608646f2103..d7b25a6693eb 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -783,6 +783,7 @@ enum nft_payload_csum_flags {
- enum nft_inner_type {
- 	NFT_INNER_UNSPEC	= 0,
- 	NFT_INNER_VXLAN,
-+	NFT_INNER_GENEVE,
- };
- 
- enum nft_inner_flags {
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index 6e874a986bfa..b2006a00d862 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -17,6 +17,7 @@
- #include <linux/tcp.h>
- #include <linux/udp.h>
- #include <net/gre.h>
-+#include <net/geneve.h>
- #include <net/ip.h>
- #include <linux/icmpv6.h>
- #include <linux/ip.h>
-@@ -170,6 +171,22 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
- 	ctx->flags |= NFT_PAYLOAD_CTX_INNER_TUN;
- 	*off += priv->hdrsize;
- 
-+	switch (priv->type) {
-+	case NFT_INNER_GENEVE: {
-+		struct genevehdr *gnvh, _gnvh;
-+
-+		gnvh = skb_header_pointer(pkt->skb, pkt->inneroff,
-+					  sizeof(_gnvh), &_gnvh);
-+		if (!gnvh)
-+			return -1;
-+
-+		*off += gnvh->opt_len * 4;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
- 	return 0;
- }
- 
+diff --git a/extensions/libebt_stp.t b/extensions/libebt_stp.t
+index 0c6b77b91454b..17d6c1c0978e3 100644
+--- a/extensions/libebt_stp.t
++++ b/extensions/libebt_stp.t
+@@ -1,7 +1,7 @@
+ :INPUT,FORWARD,OUTPUT
+ --stp-type 1;=;OK
+ --stp-flags 0x1;--stp-flags topology-change -j CONTINUE;OK
+---stp-root-prio 1  -j ACCEPT;=;OK
++--stp-root-prio 1 -j ACCEPT;=;OK
+ --stp-root-addr 0d:ea:d0:0b:ee:f0;=;OK
+ --stp-root-cost 1;=;OK
+ --stp-sender-prio 1;=;OK
 -- 
-2.30.2
+2.34.1
 
