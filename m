@@ -2,70 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EE68C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Oct 2022 16:43:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D76C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Oct 2022 19:29:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230019AbiJEQn2 (ORCPT
+        id S230234AbiJET3e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Oct 2022 12:43:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37638 "EHLO
+        Wed, 5 Oct 2022 15:29:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229592AbiJEQn1 (ORCPT
+        with ESMTP id S231297AbiJET3Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Oct 2022 12:43:27 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B51A957899
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 09:43:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=A5s7EVf9Wbed6Umv3BWEaJ4T0zfs3Wvg35PI8k4K6V8=; b=FcImKjXkCyauSBB1OoX0F82Zj1
-        tfH9DNveCvM8ObwB1qORBGBygPL7wjPl0W1j1PGM8a5TIeBiGQP4ZOIIfx46D3GsiNZrHzaP9EK5X
-        ctF2IhzrfExag3WqRDMOoEQ56FUO5HVjGpNhNEI/GE1zZWkxxalpOACVsGeOMq8GowvfMGB6G92u+
-        4rWuZABn46/7rSvYqbOKT8c3eMFSKUtgfi34LTCDHRlkf+gVKO95Ah16s3SY1XwvZg9nsOerqBqHe
-        lA7OdO/SXr48JduaqZVICEQy5z/13STj6xVLeYh7LT/l7VcX96Vt47rtmLtv+U9/EsqOgnEFH+VX9
-        HbnQ/Dag==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1og7UT-0005yM-3A
-        for netfilter-devel@vger.kernel.org; Wed, 05 Oct 2022 18:43:25 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] tests: IDLETIMER.t: Fix syntax, support for restore input
-Date:   Wed,  5 Oct 2022 18:43:16 +0200
-Message-Id: <20221005164316.11412-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Wed, 5 Oct 2022 15:29:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FB0E3B727
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 12:29:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DFF706175C
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 19:29:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11865C433C1;
+        Wed,  5 Oct 2022 19:29:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1664998162;
+        bh=VErIylgwxPyL8R+8NjwJ2vj5mwjhiFyateATxdSYpYs=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=hLm87sblYb+8XCylFtf2kpAaMuFjF3BprlW4yCOY9UrGhYQmJx+cJQ/km+rUzCj52
+         VPtPOnItdyHt1KGkKXYRRxB8lnzPosis7Yd37qNx4J9viePo2PFleUI0dKQXclIj3B
+         HqqESqPdcMCbY9k6DPbYaMXMLRq/0iF49IZEv49wi5wiHkMMgIxeGZa5MRPexXUG+e
+         PLyviaQWwD05vzIVk88tPe0zqnmkFyTXQvuzYDwTXo2lUxmh7DUME8hxOcAwFpGbdG
+         HDK1sl6T7TwvZfPc7Ez5EWuP4CW1DSqefUUjnUbT7DEQyBq4jjWvhAcFgWqtCZZ6Of
+         gUF8pB3lF2TLQ==
+Message-ID: <8cfd5bd0-e8e2-2d63-c8c1-267a71a81b7c@kernel.org>
+Date:   Wed, 5 Oct 2022 13:29:21 -0600
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.13.1
+Subject: Re: [nf-next PATCH 2/2] netfilter: rpfilter/fib: Populate
+ flowic_l3mdev field
+Content-Language: en-US
+To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Guillaume Nault <gnault@redhat.com>,
+        Miaohe Lin <linmiaohe@huawei.com>
+References: <20221005160705.8725-1-phil@nwl.cc>
+ <20221005160705.8725-2-phil@nwl.cc>
+From:   David Ahern <dsahern@kernel.org>
+In-Reply-To: <20221005160705.8725-2-phil@nwl.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Expected output was wrong in the last OK test, probably defeating rule
-search check. Also use a different label, otherwise the kernel will
-reject the second idletimer with same label but different type if both
-rules are added at once.
+On 10/5/22 10:07 AM, Phil Sutter wrote:
+> Use the introduced field for correct operation with VRF devices instead
+> of conditionally overwriting flowic_oif. This is a partial revert of
+> commit b575b24b8eee3 ("netfilter: Fix rpfilter dropping vrf packets by
+> mistake"), implementing a simpler solution.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  net/ipv4/netfilter/ipt_rpfilter.c  | 2 +-
+>  net/ipv4/netfilter/nft_fib_ipv4.c  | 2 +-
+>  net/ipv6/netfilter/ip6t_rpfilter.c | 9 +++------
+>  net/ipv6/netfilter/nft_fib_ipv6.c  | 5 ++---
+>  4 files changed, 7 insertions(+), 11 deletions(-)
+> 
 
-Fixes: 85b9ec8615428 ("extensions: IDLETIMER: Add alarm timer option")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- extensions/libxt_IDLETIMER.t | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+LGTM
 
-diff --git a/extensions/libxt_IDLETIMER.t b/extensions/libxt_IDLETIMER.t
-index e8f306d2462c7..3345d5bef9e38 100644
---- a/extensions/libxt_IDLETIMER.t
-+++ b/extensions/libxt_IDLETIMER.t
-@@ -2,4 +2,4 @@
- -j IDLETIMER --timeout;;FAIL
- -j IDLETIMER --timeout 42;;FAIL
- -j IDLETIMER --timeout 42 --label foo;=;OK
---j IDLETIMER --timeout 42 --label foo --alarm;;OK
-+-j IDLETIMER --timeout 42 --label bar --alarm;=;OK
--- 
-2.34.1
-
+Reviewed-by: David Ahern <dsahern@kernel.org>
