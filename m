@@ -2,89 +2,104 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEDB4C433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Oct 2022 11:54:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D32C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Oct 2022 12:47:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbiJFLyd (ORCPT
+        id S229548AbiJFMrB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Oct 2022 07:54:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50818 "EHLO
+        Thu, 6 Oct 2022 08:47:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230003AbiJFLyb (ORCPT
+        with ESMTP id S229454AbiJFMrA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Oct 2022 07:54:31 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5387297EEC
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Oct 2022 04:54:30 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1ogPSO-0008Mq-Ni; Thu, 06 Oct 2022 13:54:28 +0200
-Date:   Thu, 6 Oct 2022 13:54:28 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH 11/12] extensions: Do not print all-one's
- netmasks
-Message-ID: <Yz7B9DZ2IC6V+bjQ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-References: <20221006002802.4917-1-phil@nwl.cc>
- <20221006002802.4917-12-phil@nwl.cc>
- <65q0r47-p696-s4p1-25nq-o2q60snqr42@vanv.qr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <65q0r47-p696-s4p1-25nq-o2q60snqr42@vanv.qr>
+        Thu, 6 Oct 2022 08:47:00 -0400
+Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6352A033B;
+        Thu,  6 Oct 2022 05:46:58 -0700 (PDT)
+Received: by mail-ed1-x52d.google.com with SMTP id x59so2632464ede.7;
+        Thu, 06 Oct 2022 05:46:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date;
+        bh=TSQwygCFcZALa3sAZdIWMA5u8XrCQsY1FzdV6+Hipzw=;
+        b=TWbQSJERx43SxvXXXLZtcblxRN+si6cLYqYe6SqWHbTMiZQnE5dauSQaAsZIacaFJt
+         oDAZZqXa4CzLTgXcs7LlUv2pJNei4Cbf96Xs0EAcUp2Mak0RLItrYE48sGw/m0iqOG0m
+         sADJe8DL7f6gO07MY02WH62M/gXk/3YTdqi63NAjbkIyMJdWo3vlQq1yK5QQJjmgCt8n
+         0LVEv33mw2Ce2fCtBTGt0E0ZuuXYF5KonAp5DBz3Ik8ntvJHT07abj4jdLdgqqCI9ezE
+         MXj5X1Vosl+NIhBg/Lze8exZsj7zM+o8fMN+QazVtLy/SGtLgBhY1zqf5Iz1nlZ1KyF+
+         JXHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
+         :subject:date;
+        bh=TSQwygCFcZALa3sAZdIWMA5u8XrCQsY1FzdV6+Hipzw=;
+        b=mzLA2TOX7381zQO/LUicgPAXGYXihb698ccsfYL/arb50cpQPRp6+64KczkCIZtMJi
+         79qbi//2lzunhFQ7lJtaxDA12HCFz+VMuQ15S9Xwi7ExObbabDMjLxPQabhx00X+nCK7
+         yNOHAUEe4VDwp/4EEGf08zH/ehIXqBq4LYsc0k4qeJkJbNQoySfJz+yDvj0mMkkq9jfN
+         1sQSWFOFZZhT8QpbGLcLOPkYAOfhysZ+qp7xk/pW/nUruyvzqJK4Y5MWvXb2rVrwsL68
+         Eg2EEETjYlKtZ1J/XBEVsmxTFQD1yCDSO66bDPNVyxv97KOSvhKI/DFiVD8BwgnAlFGF
+         O+VA==
+X-Gm-Message-State: ACrzQf2i900cZxMlX0FsOURWjRHzu53+xTb/1gdHfA/1//CHpRxS2B+b
+        H0FzuBnVxs/3VyivD9Oi0Jo=
+X-Google-Smtp-Source: AMsMyM6fNyKjNPZL+RpgDWIeIe1xFWDmPWgZWbNY6D+Hye0iwj04PyVHAZrdsmYk9FfjeAdy64ABEw==
+X-Received: by 2002:a05:6402:2756:b0:443:4a6d:f05a with SMTP id z22-20020a056402275600b004434a6df05amr4460712edd.396.1665060416878;
+        Thu, 06 Oct 2022 05:46:56 -0700 (PDT)
+Received: from smtpclient.apple ([178.254.237.20])
+        by smtp.gmail.com with ESMTPSA id f4-20020a50fe04000000b00451319a43dasm5871231edt.2.2022.10.06.05.46.38
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 06 Oct 2022 05:46:43 -0700 (PDT)
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.120.0.1.13\))
+Subject: Re: Kernel 6.0.0 bug pptp not work
+From:   Martin Zaharinov <micron10@gmail.com>
+In-Reply-To: <20221006111811.GA3034@breakpoint.cc>
+Date:   Thu, 6 Oct 2022 15:46:37 +0300
+Cc:     pablo@netfilter.org, Paolo Abeni <pabeni@redhat.com>,
+        netfilter-devel@vger.kernel.org,
+        netfilter <netfilter@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <0DF040F3-ACC8-447E-99DA-BB77FEE03C7E@gmail.com>
+References: <3D70BC1B-A19E-45E3-B6BC-6B2719BA9B46@gmail.com>
+ <20221006111811.GA3034@breakpoint.cc>
+To:     Florian Westphal <fw@strlen.de>
+X-Mailer: Apple Mail (2.3654.120.0.1.13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Huh
+Very strange in kernel 6.0.0 i not found : =
+net.netfilter.nf_conntrack_helper
 
-On Thu, Oct 06, 2022 at 08:27:33AM +0200, Jan Engelhardt wrote:
-> 
-> On Thursday 2022-10-06 02:28, Phil Sutter wrote:
-> 
-> >All one's netmasks are a trivial default, no point in printing them.
-> >
-> >@@ -64,7 +64,7 @@ static void __NETMAP_print(const void *ip, const struct xt_entry_target *target,
-> > 	bits = xtables_ip6mask_to_cidr(&a);
-> > 	if (bits < 0)
-> > 		printf("/%s", xtables_ip6addr_to_numeric(&a));
-> >-	else
-> >+	else if (bits < sizeof(a) * 8)
-> > 		printf("/%d", bits);
-> 
-> I would rather see it stay.
-> - iproute2 also always prints the /128 suffix
-> - test parsers need not special case the absence of /128
 
-I get your point. Screen-scraping is also not uncommon among iptables
-users, so care has to be taken when "optimizing" output.
+in old kernel 5.19.14 in sysctl -a | grep =
+net.netfilter.nf_conntrack_helper=20
 
-OTOH we're a bit inconsistent: xtables_ip(6)mask_to_numeric() explicitly
-omits output if it would print "/32" or "/128".
+net.netfilter.nf_conntrack_helper =3D 1
 
-Maybe I'll just leave the code as-is and adjust only the test cases
-instead?
 
-> >--- a/extensions/libxt_MARK.c
-> >@@ -242,7 +242,9 @@ static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
-> > {
-> > 	const struct xt_mark_tginfo2 *info = (const void *)target->data;
-> > 
-> >-	printf(" --set-xmark 0x%x/0x%x", info->mark, info->mask);
-> >+	printf(" --set-xmark 0x%x", info->mark);
-> >+	if (info->mask != 0xffffffffU)
-> >+		printf("/0x%x", info->mask);
-> 
-> if (info->mask != UINT32_MAX)
+m.
 
-ACK. I copied from mark_tg_print(), so that's a useful fix unrelated to
-the discussion above.
+> On 6 Oct 2022, at 14:18, Florian Westphal <fw@strlen.de> wrote:
+>=20
+> Martin Zaharinov <micron10@gmail.com> wrote:
+>> Hi Team
+>>=20
+>> I make test image with kernel 6.0.0 and schem is :
+>>=20
+>> internet <> router NAT <> windows client pptp
+>>=20
+>> with l2tp all is fine and connections is establesh.
+>>=20
+>> But when try to make pptp connection  stay on finish phase and not =
+connect .
+>>=20
+>> try to remove module : nf_conntrack_pptp and same not work.
+>=20
+> Did you rely on
+> sysctl net.netfilter.nf_conntrack_helper=3D1, or are you assigning the
+> helper via ruleset?
 
-Thanks, Phil
