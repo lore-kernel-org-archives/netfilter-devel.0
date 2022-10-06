@@ -2,94 +2,77 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5CBAC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Oct 2022 00:13:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9666C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Oct 2022 00:28:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229727AbiJFANg (ORCPT
+        id S229826AbiJFA2h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Oct 2022 20:13:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32966 "EHLO
+        Wed, 5 Oct 2022 20:28:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229540AbiJFANf (ORCPT
+        with ESMTP id S229821AbiJFA23 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Oct 2022 20:13:35 -0400
+        Wed, 5 Oct 2022 20:28:29 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE0FA3340D
-        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 17:13:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E739582D13
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Oct 2022 17:28:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=4KMcOmTGYrw/nb9DYyhThJP8eqPo0btt4e1hYIZmLAM=; b=NxLct6A9Og8c8rTRfq8afmi4bi
-        MObEUUwqyz8XYUV/fD6hQJIzxmLPLg3IY8uYaX5OKGqwPQTb613emTqdGs24G3C73c912cvqSTGd6
-        uCwjfiUFPdXsKaXiTv9RGvkbqrjBi9oyRbprSFTHkxixT9TS5NGPpUoFNTR6FjtVX9FFQx+uKKQ5D
-        CEqlBNUZ/XsNQZ6KmWmaOja8PYm+q9/om2ljAghVyq0+9NuWFknfMbnINXPQILddcD6CAxSMlA3fJ
-        VIXQXjX5SPyXVbilPury6+8nK4luQr0pWz8A56LGeLrMe0X/+K6Y2we0x+/1Z2DrQ5XIC904Bcz1N
-        LmW2tphA==;
+        bh=RmV1Ibk4MkJ7Qkkw2qC+nVeDABlK/En6oJyoS7YRE7c=; b=S8CrPqXrqiaeucX9DEU61ylsA1
+        qb+Yuv5ZavtaNtu4rM0KaXerwnBO4YVF2yJh+NCB10YjeoAsmIZqydtloqoL1A2iabp81r9SmJBLy
+        LsCTP0/LCObOhlMbwL1r1ZLXg5cFTrldtUgItecYgDwp0uIc1bxklhzeE3ACW1YjCRhEGZTPXZSxH
+        JihXNmtuE3nEkzdEMo8esL8tvaLSZyTS9+2M+bpn+5ghWj5aKEJnrxgRH0pbvMxToRLuxln+rJ7UA
+        CcRbxiigEHNjslNvjYJ1jSNTjhOQJmwQ0fMEXinJSyNRL43ANhHvWQMxKsAwCVckjzd3LG68a2AwK
+        1kAmqFJQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1ogEW5-0001mq-47
-        for netfilter-devel@vger.kernel.org; Thu, 06 Oct 2022 02:13:33 +0200
+        id 1ogEkK-0001wa-K0; Thu, 06 Oct 2022 02:28:16 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 2/2] tests: shell: Fix expected ebtables log target output
-Date:   Thu,  6 Oct 2022 02:13:19 +0200
-Message-Id: <20221006001319.24644-2-phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jan Engelhardt <jengelh@inai.de>
+Subject: [iptables PATCH 02/12] tests: iptables-test: Cover for obligatory -j CONTINUE in ebtables
+Date:   Thu,  6 Oct 2022 02:27:52 +0200
+Message-Id: <20221006002802.4917-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20221006001319.24644-1-phil@nwl.cc>
-References: <20221006001319.24644-1-phil@nwl.cc>
+In-Reply-To: <20221006002802.4917-1-phil@nwl.cc>
+References: <20221006002802.4917-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Forgot to update shell testsuite when removing empty --log-prefix
-options.
+Unlike iptables, ebtables includes the default rule target in output.
+Instead of adding it to every rule in ebtables tests, add special casing
+to the testscript checking if the expected rule output contains a target
+already and adding the default one if not.
 
-Fixes: 9cdb52d655608 ("extensions: libebt_log: Avoid empty log-prefix in output")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .../shell/testcases/ebtables/0002-ebtables-save-restore_0     | 4 ++--
- .../shell/testcases/ebtables/0003-ebtables-restore-defaults_0 | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ iptables-test.py | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0 b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
-index 0537f5677c5d5..1091a4e80bebe 100755
---- a/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
-+++ b/iptables/tests/shell/testcases/ebtables/0002-ebtables-save-restore_0
-@@ -91,13 +91,13 @@ DUMP='*filter
- -A foo -p IPv6 --ip6-dst feed:babe::/64 -j ACCEPT
- -A foo -p IPv6 --ip6-proto tcp -j ACCEPT
- -A foo --limit 100/sec --limit-burst 42 -j ACCEPT
---A foo --log-level notice --log-prefix "" -j CONTINUE
-+-A foo --log-level notice -j CONTINUE
- -A foo -j mark --mark-set 0x23 --mark-target ACCEPT
- -A foo --nflog-group 1 -j CONTINUE
- -A foo --pkttype-type multicast -j ACCEPT
- -A foo --stp-type config -j ACCEPT
- -A foo -p Length --802_3-sap 0x23 --limit 100/sec --limit-burst 5 -j ACCEPT
---A foo --pkttype-type multicast --log-level notice --log-prefix "" -j CONTINUE
-+-A foo --pkttype-type multicast --log-level notice -j CONTINUE
- -A foo --pkttype-type multicast --limit 100/sec --limit-burst 5 -j ACCEPT
- *nat
- :PREROUTING ACCEPT
-diff --git a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0 b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
-index 63891c1bb731a..7554ef8571511 100755
---- a/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
-+++ b/iptables/tests/shell/testcases/ebtables/0003-ebtables-restore-defaults_0
-@@ -24,7 +24,7 @@ EXPECT='*filter
- -A FORWARD --limit 100/sec --limit-burst 42 -j ACCEPT
- -A FORWARD --limit 1000/sec --limit-burst 5 -j ACCEPT
- -A FORWARD --log-level notice --log-prefix "foobar" -j CONTINUE
---A FORWARD --log-level notice --log-prefix "" -j CONTINUE'
-+-A FORWARD --log-level notice -j CONTINUE'
+diff --git a/iptables-test.py b/iptables-test.py
+index 89220f29fe552..ac4f37c614452 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -323,6 +323,9 @@ STDERR_IS_TTY = sys.stderr.isatty()
+             else:
+                 rule_save = chain + " " + item[1]
  
- $XT_MULTI ebtables --init-table
- $XT_MULTI ebtables-restore <<<$DUMP
++            if iptables == EBTABLES and rule_save.find('-j') < 0:
++                rule_save += " -j CONTINUE"
++
+             res = item[2].rstrip()
+             if res != "OK":
+                 rule = chain + " -t " + table + " " + item[0]
 -- 
 2.34.1
 
