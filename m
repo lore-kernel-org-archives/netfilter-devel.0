@@ -2,89 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87509C433F5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Oct 2022 13:41:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF9BC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Oct 2022 14:42:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229981AbiJGNlF (ORCPT
+        id S229534AbiJGOm0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Oct 2022 09:41:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50832 "EHLO
+        Fri, 7 Oct 2022 10:42:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229749AbiJGNlE (ORCPT
+        with ESMTP id S229495AbiJGOmZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Oct 2022 09:41:04 -0400
-Received: from mail-qt1-x82f.google.com (mail-qt1-x82f.google.com [IPv6:2607:f8b0:4864:20::82f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 700BFB97B3
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Oct 2022 06:41:02 -0700 (PDT)
-Received: by mail-qt1-x82f.google.com with SMTP id fb18so2767608qtb.12
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Oct 2022 06:41:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sladewatkins.net; s=googled;
-        h=content-transfer-encoding:in-reply-to:from:references:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=UJEfQ0xmWlxtFl0I0KeuWqinB4UP4HOgFmXqCQp4x8A=;
-        b=ZmtFvEMVlw+iMlUQwuzhRlNJQd2kyHekMWr7X/ICFuJ0m0o5+y0HBEyoX/bs/w5Zkw
-         Y1yAHZUWHtb0rjk/SgYh5q5urD9jsBR4kAv39i5Tv+jcdM7tpK1zAUHa8jbxO+AYHRI/
-         X7g/TowPCAUsD0336PgTupzJEXOK6WAZMm/H3Ac0Q7YQnkv9S5eEpx52coQN6Fd5apXW
-         heX+BJ8PKguFj6Ys+sCF8nJqYMC/yZ+9Vb8gm38pW2cU4nZ4geBuo/nWJnlpSCgvoeSW
-         lHFBu+pSljJGHgPJyaBbhd4dEDVbUlwtZG3hdEo2lQQSbZyas3rTlpIYIL5FajRxJ1yo
-         00ag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=UJEfQ0xmWlxtFl0I0KeuWqinB4UP4HOgFmXqCQp4x8A=;
-        b=HSJRqfIQtmxRJEK0VjzFub5W2aFrdBKDVR+P43U5AB7ms8ssAS9R7u4sZZNrCAcbRu
-         GTofUG5FlrHYjcGllq74R4jWJA2a1AoX8ShzgCYz5aAMmLvDd/wtL3SzIM8hgUuLmqLt
-         E3IU6r5i63gAyKB7PqP3aqqvfHM/wAOwZ4y4Xp/a5KWi0NOHesFkO4fkDUx0N/MNSZJG
-         MkGOrqIitTxsvup4xG7O7xcj5HgeocghvgYGceFBwjuPhUNjPqLTfKRmmlbfc2ezM3OC
-         7Xwa87fy56MH2a4oFZuy3NBaQ/3nP1MehhHO1bT1EVOzHLDwyp/JVmvUsNNJeXA37UgF
-         EYXA==
-X-Gm-Message-State: ACrzQf2TZPEjWiBAc3aUOJs7bhn4422wCp2Y0QVI1hZqK5jQO5jEag++
-        i9m2R42jwQ7ZJuXjpWgtF4neGyhXBGO2edqvBCw=
-X-Google-Smtp-Source: AMsMyM6GhUPsaQ6UdyVh3qU4TwZGfLWThNpobAvFWFHv637CILwlHf+Va0Qdx42bi5yB5VyGKpIV4w==
-X-Received: by 2002:a05:622a:4cc:b0:35d:4f2f:9fc7 with SMTP id q12-20020a05622a04cc00b0035d4f2f9fc7mr4108810qtx.203.1665150061557;
-        Fri, 07 Oct 2022 06:41:01 -0700 (PDT)
-Received: from [192.168.1.30] (pool-108-4-135-94.albyny.fios.verizon.net. [108.4.135.94])
-        by smtp.gmail.com with ESMTPSA id u28-20020a05620a085c00b006ceafb1aa92sm1975586qku.96.2022.10.07.06.41.00
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 07 Oct 2022 06:41:01 -0700 (PDT)
-Message-ID: <bb3a25d5-76b4-b0e5-cff6-7098912c4176@sladewatkins.net>
-Date:   Fri, 7 Oct 2022 09:40:59 -0400
+        Fri, 7 Oct 2022 10:42:25 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F595FC1F1;
+        Fri,  7 Oct 2022 07:42:25 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C5F27B82391;
+        Fri,  7 Oct 2022 14:42:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 413D8C433C1;
+        Fri,  7 Oct 2022 14:42:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1665153742;
+        bh=N+Dkca/1ANmKCX95FuTD8Uh0PW316buLTk1oJ1PNBus=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=ONz6/ttwT2ihoBEF9GL/0QGxqYJspotmOaP6jlJwQJMjBjlO30xWYe+WMCxi4/JcY
+         Edzv5gX36waLnMxjBi95c7EniYLgcu/Icox2QODkKzc3cKjXrjpB+jhmXklSQAdP2g
+         6UGX5+IAUdFArVzvQUGjv2lg+Fdeg7K9x4X5yBCRqnbLsxuD8w82VKTViPD9XZjfMM
+         FKiOqp9ENXQ2kaWgbNNT6um8EtwGzReKhWwxRKuzWOjujh6CWhXW9IOaIqg36Op77A
+         nzL0BJkceKCpUL/m4W+JvsNSIMYOrcVpOWue1JlaRa017cymNjzAMopO4Fu7KvpZ+2
+         T7yA1H5Dbc/rA==
+Message-ID: <c898f060-90f7-d6a5-4f3d-8d40428b5c83@kernel.org>
+Date:   Fri, 7 Oct 2022 08:42:21 -0600
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.3.2
-Subject: Re: bridge:fragmented packets dropped by bridge
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.13.1
+Subject: Re: [REGRESSION] Unable to NAT own TCP packets from another VRF with
+ tcp_l3mdev_accept = 1
 Content-Language: en-US
-To:     Vyacheslav Salnikov <snordicstr16@gmail.com>,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org
-References: <CACzz7uzbSVpLu8iqBYXTULr2aUW_9FDdkEVozK+r-BiM2rMukw@mail.gmail.com>
-From:   Slade Watkins <srw@sladewatkins.net>
-In-Reply-To: <CACzz7uzbSVpLu8iqBYXTULr2aUW_9FDdkEVozK+r-BiM2rMukw@mail.gmail.com>
+To:     Jakub Kicinski <kuba@kernel.org>,
+        Maximilien Cuony <maximilien.cuony@arcanite.ch>
+Cc:     netdev@vger.kernel.org, Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Mike Manning <mvrmanning@gmail.com>,
+        netfilter-devel@vger.kernel.org
+References: <98348818-28c5-4cb2-556b-5061f77e112c@arcanite.ch>
+ <20220930174237.2e89c9e1@kernel.org>
+From:   David Ahern <dsahern@kernel.org>
+In-Reply-To: <20220930174237.2e89c9e1@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hey there,
+On 9/30/22 6:42 PM, Jakub Kicinski wrote:
+> Adding netfilter and vrf experts.
+> 
+> On Wed, 28 Sep 2022 16:02:43 +0200 Maximilien Cuony wrote:
+>> Hello,
+>>
+>> We're using VRF with a machine used as a router and have a specific 
+>> issue where the router doesn't handle his own packets correctly during 
+>> NATing if the packet is coming from a different VRF.
+>>
+>> We had the issue with debian buster (4.19), but the issue solved itself 
+>> when we updated to debian bullseye (5.10.92).
+>>
+>> However, during an upgrade of debian bullseye to the latest kernel, the 
+>> issue appeared again (5.10.140).
+>>
+>> We did a bisection and this leaded us to 
+>> "b0d67ef5b43aedbb558b9def2da5b4fffeb19966 net: allow unbound socket for 
+>> packets in VRF when tcp_l3mdev_accept set [ Upstream commit 
+>> 944fd1aeacb627fa617f85f8e5a34f7ae8ea4d8e ]".
+>>
 
-On 10/7/22 at 7:21 AM, Vyacheslav Salnikov wrote:
-> Why was this patch not accepted in the end?
+This is the discussion that led up to that commit:
 
-Huh...
+https://lore.kernel.org/netdev/940fa370-08ce-1d39-d5cc-51de8e853b47@gmail.com/
 
-I had to do just a little bit of digging to find the original thread,
-but it really doesn't seem to me like there was a consensus on whether
-or not to take the patch:
-https://lore.kernel.org/lkml/20190730122534.30687-1-rdong.ge@gmail.com/T/#u
+In short, users complained of the opposite problem.
 
-Reason I say that is that the thread is rather old, and died off quickly.
-
-Someone involved with that patch may be able to offer the answers you're
-looking for, if they haven't forgotten about it after all this time.
-
--srw
+Not sure how we can appease both wants.
