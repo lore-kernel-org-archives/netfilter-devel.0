@@ -2,58 +2,118 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9D8FC433F5
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Oct 2022 19:03:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C444FC433F5
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Oct 2022 08:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229642AbiJFTDK (ORCPT
+        id S229709AbiJGIYl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Oct 2022 15:03:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44288 "EHLO
+        Fri, 7 Oct 2022 04:24:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231984AbiJFTCj (ORCPT
+        with ESMTP id S229547AbiJGIYi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Oct 2022 15:02:39 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 887E4C894C
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Oct 2022 12:01:40 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 1CBF0586B5F5C; Thu,  6 Oct 2022 21:01:38 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 1A34B60DBC0D7;
-        Thu,  6 Oct 2022 21:01:38 +0200 (CEST)
-Date:   Thu, 6 Oct 2022 21:01:38 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Phil Sutter <phil@nwl.cc>
-cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH 11/12] extensions: Do not print all-one's
- netmasks
-In-Reply-To: <Yz7B9DZ2IC6V+bjQ@orbyte.nwl.cc>
-Message-ID: <o05060p9-8133-2q2q-69o7-41s9qn62636@vanv.qr>
-References: <20221006002802.4917-1-phil@nwl.cc> <20221006002802.4917-12-phil@nwl.cc> <65q0r47-p696-s4p1-25nq-o2q60snqr42@vanv.qr> <Yz7B9DZ2IC6V+bjQ@orbyte.nwl.cc>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        Fri, 7 Oct 2022 04:24:38 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C4B38288
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Oct 2022 01:24:34 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] parser_bison: display too many levels of nesting error
+Date:   Fri,  7 Oct 2022 10:24:29 +0200
+Message-Id: <20221007082430.333046-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Instead of hitting this assertion:
 
-On Thursday 2022-10-06 13:54, Phil Sutter wrote:
+ nft: parser_bison.y:70: open_scope: Assertion `state->scope < array_size(state->scopes) - 1' failed.
+ Aborted
 
->> >-	else
->> >+	else if (bits < sizeof(a) * 8)
->> > 		printf("/%d", bits);
->> 
->> I would rather see it stay.
->> - iproute2 also always prints the /128 suffix
->> - test parsers need not special case the absence of /128
->>   [as in, when something reads e.g. iptables-save output]
->
->[...] OTOH we're a bit inconsistent: xtables_ip(6)mask_to_numeric() explicitly
->omits output if it would print "/32" or "/128".
+this is easier to trigger with implicit chains where one level of
+nesting from the existing chain scope is supported.
 
-We could consider just changing those two functions.
-Any third-party program that interprets our output already has to deal
-with a "/N" suffix in the same spot anyway.
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1615
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/parser.h   |  1 +
+ src/parser_bison.y | 27 +++++++++++++++++++++++----
+ 2 files changed, 24 insertions(+), 4 deletions(-)
+
+diff --git a/include/parser.h b/include/parser.h
+index 2fb037cb8470..f55da0fd47bf 100644
+--- a/include/parser.h
++++ b/include/parser.h
+@@ -22,6 +22,7 @@ struct parser_state {
+ 
+ 	struct scope			*scopes[SCOPE_NEST_MAX];
+ 	unsigned int			scope;
++	bool				scope_err;
+ 
+ 	unsigned int			flex_state_pop;
+ 	unsigned int			startcond_type;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 0266819a779b..760c23cf3322 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -65,15 +65,26 @@ static struct scope *current_scope(const struct parser_state *state)
+ 	return state->scopes[state->scope];
+ }
+ 
+-static void open_scope(struct parser_state *state, struct scope *scope)
++static int open_scope(struct parser_state *state, struct scope *scope)
+ {
+-	assert(state->scope < array_size(state->scopes) - 1);
++	if (state->scope >= array_size(state->scopes) - 1) {
++		state->scope_err = true;
++		return -1;
++	}
++
+ 	scope_init(scope, current_scope(state));
+ 	state->scopes[++state->scope] = scope;
++
++	return 0;
+ }
+ 
+ static void close_scope(struct parser_state *state)
+ {
++	if (state->scope_err) {
++		state->scope_err = false;
++		return;
++	}
++
+ 	assert(state->scope > 0);
+ 	state->scope--;
+ }
+@@ -1674,7 +1685,11 @@ describe_cmd		:	primary_expr
+ table_block_alloc	:	/* empty */
+ 			{
+ 				$$ = table_alloc();
+-				open_scope(state, &$$->scope);
++				if (open_scope(state, &$$->scope) < 0) {
++					erec_queue(error(&@$, "too many levels of nesting"),
++						   state->msgs);
++					state->nerrs++;
++				}
+ 			}
+ 			;
+ 
+@@ -1836,7 +1851,11 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
+ chain_block_alloc	:	/* empty */
+ 			{
+ 				$$ = chain_alloc(NULL);
+-				open_scope(state, &$$->scope);
++				if (open_scope(state, &$$->scope) < 0) {
++					erec_queue(error(&@$, "too many levels of nesting"),
++						   state->msgs);
++					state->nerrs++;
++				}
+ 			}
+ 			;
+ 
+-- 
+2.30.2
+
