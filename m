@@ -2,85 +2,127 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69952C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 12:40:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73952C4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 15:18:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229823AbiJLMkU (ORCPT
+        id S229886AbiJLPSo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Oct 2022 08:40:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42590 "EHLO
+        Wed, 12 Oct 2022 11:18:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229867AbiJLMkT (ORCPT
+        with ESMTP id S229772AbiJLPSW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2022 08:40:19 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B56D77B2AA;
-        Wed, 12 Oct 2022 05:40:18 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 16BBECE1B2D;
-        Wed, 12 Oct 2022 12:40:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 3A028C433D7;
-        Wed, 12 Oct 2022 12:40:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665578415;
-        bh=xjMgXIvqMwoitiYdM8Fd/wo6GXLsZu3oIGa2mxFKVdc=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=UeSFF4TXZ4U1/LZR3QcjxuULfGHhLIiBQ9dF0O5b6OAOGzwV6D0b/Ccv91sQLlbex
-         DrdEMIc5bzvo0tXz+oniOPGTKfW554ffB4nX+B0VxcT7c8UxaG7NQ1KWJD+lEwIRt9
-         wxhsINqZfp5bdnCQDOgVlQ0Z5EWghTt8/3ZaNxWHLbzNI1YZZss084cwB8CwVG7pZy
-         EjoEqee2ko24QJcEQFu8Emm9NEi/4aD31nCzISju7VUpcuztgwOn54YXySFPDrUMAd
-         j1fvYvIaHnYRdkD6GRwAnhjLuhj7QEjQ3WWxosXxQHY4P8Sco3iTviCHAPIh4PnQwQ
-         fVL9yM51VOm7g==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 19D5FE21EC5;
-        Wed, 12 Oct 2022 12:40:15 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Wed, 12 Oct 2022 11:18:22 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34D6ACA881
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Oct 2022 08:18:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=q5wglFY7yBlDtkeTv0nNUh7li+MlaoTr40C0fI5FKEg=; b=C1AiG43cChlRcJF8mx7EEOUyn1
+        gVP2q3ORvHnyjmPki1KU6CbCMjclNgAOPQ3TYkbXsHdYyiJxWM7k6PxWb0rEGOix7tepggw4tic2u
+        W7SmKwAWTjahE00RUNozF8BeyMUwsyKOdE7NyAtY8Nn4soAalJ16mSZ6ZdlLv/U++nKYp6Fqw+NHZ
+        b+4vQ9/1Mf75zTfRUmIoqOcQQzv2OLJmILbb6MObUNP9vsuYfzhFDAtzps1n/0ilSqNrBzWQr6DmM
+        v1jTrR202HGMjkKwMLsbYhEh2oD9DFTmB82pNF/0N+0IgGrHdpC8vwO+5Hf1M8SeQv2kxKb0jHfIF
+        7zV1sZJw==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1oidUp-0002oZ-Ed; Wed, 12 Oct 2022 17:18:11 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: [iptables PATCH v2 05/12] tests: *.t: Fix for hexadecimal output
+Date:   Wed, 12 Oct 2022 17:17:55 +0200
+Message-Id: <20221012151802.11339-6-phil@nwl.cc>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20221012151802.11339-1-phil@nwl.cc>
+References: <20221012151802.11339-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] selftests: netfilter: Test reverse path filtering
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166557841510.32004.6740633560901619092.git-patchwork-notify@kernel.org>
-Date:   Wed, 12 Oct 2022 12:40:15 +0000
-References: <20221012121902.27738-2-fw@strlen.de>
-In-Reply-To: <20221012121902.27738-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-        davem@davemloft.net, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, phil@nwl.cc, gnault@redhat.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Use hex input to avoid having to specify an expected output in trivial
+cases.
 
-This series was applied to netdev/net.git (master)
-by Florian Westphal <fw@strlen.de>:
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_DSCP.t     | 2 +-
+ extensions/libxt_MARK.t     | 2 +-
+ extensions/libxt_connmark.t | 4 ++--
+ extensions/libxt_dscp.t     | 2 +-
+ extensions/libxt_mark.t     | 2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-On Wed, 12 Oct 2022 14:19:00 +0200 you wrote:
-> From: Phil Sutter <phil@nwl.cc>
-> 
-> Test reverse path (filter) matches in iptables, ip6tables and nftables.
-> Both with a regular interface and a VRF.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> Reviewed-by: Guillaume Nault <gnault@redhat.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/3] selftests: netfilter: Test reverse path filtering
-    https://git.kernel.org/netdev/net/c/6e31ce831c63
-  - [net,2/3] netfilter: rpfilter/fib: Populate flowic_l3mdev field
-    https://git.kernel.org/netdev/net/c/acc641ab95b6
-  - [net,3/3] selftests: netfilter: Fix nft_fib.sh for all.rp_filter=1
-    https://git.kernel.org/netdev/net/c/6a91e7270936
-
-You are awesome, thank you!
+diff --git a/extensions/libxt_DSCP.t b/extensions/libxt_DSCP.t
+index fcc55986dbcd7..762fcd31d4d28 100644
+--- a/extensions/libxt_DSCP.t
++++ b/extensions/libxt_DSCP.t
+@@ -1,6 +1,6 @@
+ :PREROUTING,INPUT,FORWARD,OUTPUT,POSTROUTING
+ *mangle
+--j DSCP --set-dscp 0;=;OK
++-j DSCP --set-dscp 0x00;=;OK
+ -j DSCP --set-dscp 0x3f;=;OK
+ -j DSCP --set-dscp -1;;FAIL
+ -j DSCP --set-dscp 0x40;;FAIL
+diff --git a/extensions/libxt_MARK.t b/extensions/libxt_MARK.t
+index 9d1aa7d7d58a4..2902a14f06742 100644
+--- a/extensions/libxt_MARK.t
++++ b/extensions/libxt_MARK.t
+@@ -1,6 +1,6 @@
+ :INPUT,FORWARD,OUTPUT
+ -j MARK --set-xmark 0xfeedcafe/0xfeedcafe;=;OK
+--j MARK --set-xmark 0;=;OK
++-j MARK --set-xmark 0x0;=;OK
+ -j MARK --set-xmark 4294967295;-j MARK --set-xmark 0xffffffff;OK
+ -j MARK --set-xmark 4294967296;;FAIL
+ -j MARK --set-xmark -1;;FAIL
+diff --git a/extensions/libxt_connmark.t b/extensions/libxt_connmark.t
+index 4dd7d9af265a5..353970a8995f6 100644
+--- a/extensions/libxt_connmark.t
++++ b/extensions/libxt_connmark.t
+@@ -2,8 +2,8 @@
+ *mangle
+ -m connmark --mark 0xffffffff;=;OK
+ -m connmark --mark 0xffffffff/0xffffffff;-m connmark --mark 0xffffffff;OK
+--m connmark --mark 0xffffffff/0;=;OK
+--m connmark --mark 0/0xffffffff;-m connmark --mark 0;OK
++-m connmark --mark 0xffffffff/0x0;=;OK
++-m connmark --mark 0/0xffffffff;-m connmark --mark 0x0;OK
+ -m connmark --mark -1;;FAIL
+ -m connmark --mark 0xfffffffff;;FAIL
+ -m connmark;;FAIL
+diff --git a/extensions/libxt_dscp.t b/extensions/libxt_dscp.t
+index 38d7f04e18698..e010190661ae8 100644
+--- a/extensions/libxt_dscp.t
++++ b/extensions/libxt_dscp.t
+@@ -1,5 +1,5 @@
+ :INPUT,FORWARD,OUTPUT
+--m dscp --dscp 0;=;OK
++-m dscp --dscp 0x00;=;OK
+ -m dscp --dscp 0x3f;=;OK
+ -m dscp --dscp -1;;FAIL
+ -m dscp --dscp 0x40;;FAIL
+diff --git a/extensions/libxt_mark.t b/extensions/libxt_mark.t
+index 7c005379f6d64..7aeb871588ca6 100644
+--- a/extensions/libxt_mark.t
++++ b/extensions/libxt_mark.t
+@@ -1,6 +1,6 @@
+ :INPUT,FORWARD,OUTPUT
+ -m mark --mark 0xfeedcafe/0xfeedcafe;=;OK
+--m mark --mark 0;=;OK
++-m mark --mark 0x0;=;OK
+ -m mark --mark 4294967295;-m mark --mark 0xffffffff;OK
+ -m mark --mark 4294967296;;FAIL
+ -m mark --mark -1;;FAIL
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.34.1
 
