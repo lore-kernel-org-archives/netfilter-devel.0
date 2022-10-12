@@ -2,119 +2,119 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC18DC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 11:02:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1B4DC43219
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 11:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229475AbiJLLCU (ORCPT
+        id S229477AbiJLLOD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Oct 2022 07:02:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34838 "EHLO
+        Wed, 12 Oct 2022 07:14:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229462AbiJLLCT (ORCPT
+        with ESMTP id S229657AbiJLLNq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2022 07:02:19 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D431527FFD
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Oct 2022 04:02:18 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] netlink_delinearize: do not transfer binary operation to non-anonymous sets
-Date:   Wed, 12 Oct 2022 13:02:12 +0200
-Message-Id: <20221012110212.438125-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 12 Oct 2022 07:13:46 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB62AC1D99;
+        Wed, 12 Oct 2022 04:13:45 -0700 (PDT)
+Received: from fraeml701-chm.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MnVM12bWSz688Cb;
+        Wed, 12 Oct 2022 19:10:53 +0800 (CST)
+Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
+ fraeml701-chm.china.huawei.com (10.206.15.50) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.31; Wed, 12 Oct 2022 13:13:42 +0200
+Received: from [10.122.132.241] (10.122.132.241) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 12 Oct 2022 12:13:42 +0100
+Message-ID: <534c5a0b-4c78-0524-a145-200ae3dea368@huawei.com>
+Date:   Wed, 12 Oct 2022 14:13:41 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v7 02/18] landlock: refactor
+ landlock_find_rule/insert_rule
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <hukeping@huawei.com>, <anton.sirazetdinov@huawei.com>
+References: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
+ <20220829170401.834298-3-konstantin.meskhidze@huawei.com>
+ <431e5311-7072-3a20-af75-d81907b22d61@digikod.net>
+ <1ba8c972-1b81-dd85-c24b-83525511083e@huawei.com>
+ <01283d8a-3319-af3c-7139-466fe22ca8e4@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <01283d8a-3319-af3c-7139-466fe22ca8e4@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Michael Braun says:
 
-This results for nft list ruleset in
-  nft: netlink_delinearize.c:1945: binop_adjust_one: Assertion `value->len >= binop->right->len' failed.
 
-This is due to binop_adjust_one setting value->len to left->len, which
-is shorther than right->len.
+10/12/2022 1:06 PM, Mickaël Salaün пишет:
+> 
+> On 12/10/2022 10:37, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 9/6/2022 11:07 AM, Mickaël Salaün пишет:
+>>> Good to see such clean commit!
+>>>
+>>> On 29/08/2022 19:03, Konstantin Meskhidze wrote:
+>>>> Adds a new landlock_key union and landlock_id structure to support
+>>>> a socket port rule type. Refactors landlock_insert_rule() and
+>>>> landlock_find_rule() to support coming network modifications.
+>>>
+>>>> This patch also adds is_object_pointer() and get_root() helpers.
+>>>
+>>> Please explain a bit what these helpers do.
+>>>
+>>>
+>>>> Now adding or searching a rule in a ruleset depends on a landlock id
+>>>> argument provided in refactored functions mentioned above.
+>>>
+>>> More explanation:
+>>> A struct landlock_id identifies a unique entry in a ruleset: either a
+>>> kernel object (e.g inode) or a typed data (e.g. TCP port). There is one
+>>> red-black tree per key type.
+>>>
+>>>>
+>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>>
+>>> Because most changes come from
+>>> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
+>>> and
+>>> https://git.kernel.org/mic/c/7d6cf40a6f81adf607ad3cc17aaa11e256beeea4
+>>> you can append
+>>> Co-developed-by: Mickaël Salaün <mic@digikod.net>
+>> 
+>>     Do I need to add Co-developed-by: Mickaël Salaün <mic@digikod.net>
+>>     and Signed-off-by: Mickaël Salaün <mic@digikod.net> or just
+>>     Co-developed-by: Mickaël Salaün <mic@digikod.net> ????
+>> 
+>>     Cause Submiting patches article says:
+>>     https://www.kernel.org/doc/html/latest/process/submitting-patches.html
+>> 
+>>     "...Since Co-developed-by: denotes authorship, every Co-developed-by:
+>> must be immediately followed by a Signed-off-by: of the associated
+>> co-author...."
+>> 
+>>     Is this correct signing for this patch:
+>> 
+>>     Co-developed-by: Mickaël Salaün <mic@digikod.net>
+>>     Signed-off-by: Mickaël Salaün <mic@digikod.net>
+>>     Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> 
+> Because I'll merge your patches in my tree, I'll add my Signed-off-by to
+> all patches. You can then just add Co-developed-by after your
+> Signed-off-by for this one and I'll add the rest.
 
-Additionally, it does not seem correct to alter set elements from parsing a
-rule, so remove that part all together.
-
-Reported-by: Michael Braun <michael-dev@fami-braun.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-To address:
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20200505094119.26407-1-michael-dev@fami-braun.de/
-
- src/netlink_delinearize.c                     |  3 +++
- .../testcases/sets/dumps/typeof_sets_1.nft    | 15 +++++++++++++
- tests/shell/testcases/sets/typeof_sets_1      | 22 +++++++++++++++++++
- 3 files changed, 40 insertions(+)
- create mode 100644 tests/shell/testcases/sets/dumps/typeof_sets_1.nft
- create mode 100755 tests/shell/testcases/sets/typeof_sets_1
-
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index e8b9724cbac9..828ad12d7536 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2228,6 +2228,9 @@ static void binop_adjust(const struct expr *binop, struct expr *right,
- 		binop_adjust_one(binop, right, shift);
- 		break;
- 	case EXPR_SET_REF:
-+		if (!set_is_anonymous(right->set->flags))
-+			break;
-+
- 		list_for_each_entry(i, &right->set->init->expressions, list) {
- 			switch (i->key->etype) {
- 			case EXPR_VALUE:
-diff --git a/tests/shell/testcases/sets/dumps/typeof_sets_1.nft b/tests/shell/testcases/sets/dumps/typeof_sets_1.nft
-new file mode 100644
-index 000000000000..89cbc8358831
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/typeof_sets_1.nft
-@@ -0,0 +1,15 @@
-+table bridge t {
-+	set nodhcpvlan {
-+		typeof vlan id
-+		elements = { 1 }
-+	}
-+
-+	chain c1 {
-+		vlan id != @nodhcpvlan vlan type arp counter packets 0 bytes 0 jump c2
-+		vlan id != @nodhcpvlan vlan type ip counter packets 0 bytes 0 jump c2
-+		vlan id != { 1, 2 } vlan type ip6 counter packets 0 bytes 0 jump c2
-+	}
-+
-+	chain c2 {
-+	}
-+}
-diff --git a/tests/shell/testcases/sets/typeof_sets_1 b/tests/shell/testcases/sets/typeof_sets_1
-new file mode 100755
-index 000000000000..e520270c09d8
---- /dev/null
-+++ b/tests/shell/testcases/sets/typeof_sets_1
-@@ -0,0 +1,22 @@
-+#!/bin/bash
-+
-+# regression test for corner case in netlink_delinearize
-+
-+EXPECTED="table bridge t {
-+	set nodhcpvlan {
-+		typeof vlan id
-+		elements = { 1 }
-+	}
-+
-+	chain c1 {
-+		vlan id != @nodhcpvlan vlan type arp counter packets 0 bytes 0 jump c2
-+		vlan id != @nodhcpvlan vlan type ip counter packets 0 bytes 0 jump c2
-+		vlan id != { 1, 2 } vlan type ip6 counter packets 0 bytes 0 jump c2
-+	}
-+
-+	chain c2 {
-+	}
-+}"
-+
-+set -e
-+$NFT -f - <<< $EXPECTED
--- 
-2.30.2
-
+   Ok. I got it. Thanks for the explaning.
+> .
