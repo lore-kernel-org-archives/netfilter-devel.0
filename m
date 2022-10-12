@@ -2,129 +2,176 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACAFFC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 05:49:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D05DBC43219
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 08:37:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229633AbiJLFtl (ORCPT
+        id S229529AbiJLIho (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Oct 2022 01:49:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52686 "EHLO
+        Wed, 12 Oct 2022 04:37:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbiJLFtl (ORCPT
+        with ESMTP id S229484AbiJLIhn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2022 01:49:41 -0400
-Received: from out2.migadu.com (out2.migadu.com [IPv6:2001:41d0:2:aacc::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7205EF47;
-        Tue, 11 Oct 2022 22:49:37 -0700 (PDT)
-Message-ID: <43bf4a5f-dac9-4fe9-1eba-9ab9beb650aa@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1665553775;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=40pZpkslxkeKFTGJuJ6oWOyvEYbIxCXMcmV6B+QVCKE=;
-        b=FPHUHxXPavilQJi/8GZV/2hlYEaBDl6tPElHTjQ7fQtQb8R43hdTwRPYoNrrr3wNB2ys+w
-        hwkxfTzI0qsGl2WNKzsbQMBhIrWF3fAfxQZbhUo1jk6z+ySK3eSa7kM4/VJPygXZIBsFAg
-        3eya216VizU5VPDOjGXNmmk04iyHxeQ=
-Date:   Tue, 11 Oct 2022 22:49:32 -0700
+        Wed, 12 Oct 2022 04:37:43 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CF0F286D1;
+        Wed, 12 Oct 2022 01:37:42 -0700 (PDT)
+Received: from fraeml736-chm.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MnQwP6Xl0z6H74T;
+        Wed, 12 Oct 2022 16:36:05 +0800 (CST)
+Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
+ fraeml736-chm.china.huawei.com (10.206.15.217) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 12 Oct 2022 10:37:39 +0200
+Received: from [10.122.132.241] (10.122.132.241) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 12 Oct 2022 09:37:38 +0100
+Message-ID: <1ba8c972-1b81-dd85-c24b-83525511083e@huawei.com>
+Date:   Wed, 12 Oct 2022 11:37:38 +0300
 MIME-Version: 1.0
-Subject: Re: [PATCH bpf-next v4 2/3] selftests/bpf: Add connmark read test
-Content-Language: en-US
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        andrii@kernel.org, daniel@iogearbox.net, ast@kernel.org,
-        bpf@vger.kernel.org, memxor@gmail.com
-References: <cover.1660254747.git.dxu@dxuuu.xyz>
- <d3bc620a491e4c626c20d80631063922cbe13e2b.1660254747.git.dxu@dxuuu.xyz>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Martin KaFai Lau <martin.lau@linux.dev>
-In-Reply-To: <d3bc620a491e4c626c20d80631063922cbe13e2b.1660254747.git.dxu@dxuuu.xyz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v7 02/18] landlock: refactor
+ landlock_find_rule/insert_rule
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <hukeping@huawei.com>, <anton.sirazetdinov@huawei.com>
+References: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
+ <20220829170401.834298-3-konstantin.meskhidze@huawei.com>
+ <431e5311-7072-3a20-af75-d81907b22d61@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <431e5311-7072-3a20-af75-d81907b22d61@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 8/11/22 2:55 PM, Daniel Xu wrote:
-> Test that the prog can read from the connection mark. This test is nice
-> because it ensures progs can interact with netfilter subsystem
-> correctly.
+
+
+9/6/2022 11:07 AM, Mickaël Salaün пишет:
+> Good to see such clean commit!
 > 
-> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
-> Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-> ---
->   tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 3 ++-
->   tools/testing/selftests/bpf/progs/test_bpf_nf.c | 3 +++
->   2 files changed, 5 insertions(+), 1 deletion(-)
+> On 29/08/2022 19:03, Konstantin Meskhidze wrote:
+>> Adds a new landlock_key union and landlock_id structure to support
+>> a socket port rule type. Refactors landlock_insert_rule() and
+>> landlock_find_rule() to support coming network modifications.
 > 
-> diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> index 88a2c0bdefec..544bf90ac2a7 100644
-> --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
-> @@ -44,7 +44,7 @@ static int connect_to_server(int srv_fd)
->   
->   static void test_bpf_nf_ct(int mode)
->   {
-> -	const char *iptables = "iptables -t raw %s PREROUTING -j CT";
-> +	const char *iptables = "iptables -t raw %s PREROUTING -j CONNMARK --set-mark 42/0";
-Hi Daniel Xu, this test starts failing recently in CI [0]:
+>> This patch also adds is_object_pointer() and get_root() helpers.
+> 
+> Please explain a bit what these helpers do.
+> 
+> 
+>> Now adding or searching a rule in a ruleset depends on a landlock id
+>> argument provided in refactored functions mentioned above.
+> 
+> More explanation:
+> A struct landlock_id identifies a unique entry in a ruleset: either a
+> kernel object (e.g inode) or a typed data (e.g. TCP port). There is one
+> red-black tree per key type.
+> 
+>> 
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> 
+> Because most changes come from
+> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
+> and
+> https://git.kernel.org/mic/c/7d6cf40a6f81adf607ad3cc17aaa11e256beeea4
+> you can append
+> Co-developed-by: Mickaël Salaün <mic@digikod.net>
 
-Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
-   iptables v1.8.8 (nf_tables): Could not fetch rule set generation id: Invalid 
-argument
+   Do I need to add Co-developed-by: Mickaël Salaün <mic@digikod.net>
+   and Signed-off-by: Mickaël Salaün <mic@digikod.net> or just
+   Co-developed-by: Mickaël Salaün <mic@digikod.net> ????
 
-   Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
-   iptables v1.8.8 (nf_tables): Could not fetch rule set generation id: Invalid 
-argument
+   Cause Submiting patches article says:
+   https://www.kernel.org/doc/html/latest/process/submitting-patches.html
 
-   Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
-   iptables v1.8.8 (nf_tables): Could not fetch rule set generation id: Invalid 
-argument
+   "...Since Co-developed-by: denotes authorship, every Co-developed-by: 
+must be immediately followed by a Signed-off-by: of the associated 
+co-author...."
 
-   Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
-   iptables v1.8.8 (nf_tables): Could not fetch rule set generation id: Invalid 
-argument
+   Is this correct signing for this patch:
 
-   test_bpf_nf_ct:PASS:test_bpf_nf__open_and_load 0 nsec
-   test_bpf_nf_ct:FAIL:iptables unexpected error: 1024 (errno 0)
-
-Could you help to take a look? Thanks.
-
-[0]: https://github.com/kernel-patches/bpf/actions/runs/3231598391/jobs/5291529292
-
->   	int srv_fd = -1, client_fd = -1, srv_client_fd = -1;
->   	struct sockaddr_in peer_addr = {};
->   	struct test_bpf_nf *skel;
-> @@ -114,6 +114,7 @@ static void test_bpf_nf_ct(int mode)
->   	/* expected status is IPS_SEEN_REPLY */
->   	ASSERT_EQ(skel->bss->test_status, 2, "Test for ct status update ");
->   	ASSERT_EQ(skel->data->test_exist_lookup, 0, "Test existing connection lookup");
-> +	ASSERT_EQ(skel->bss->test_exist_lookup_mark, 43, "Test existing connection lookup ctmark");
->   end:
->   	if (srv_client_fd != -1)
->   		close(srv_client_fd);
-> diff --git a/tools/testing/selftests/bpf/progs/test_bpf_nf.c b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> index 84e0fd479794..2722441850cc 100644
-> --- a/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> +++ b/tools/testing/selftests/bpf/progs/test_bpf_nf.c
-> @@ -28,6 +28,7 @@ __be16 sport = 0;
->   __be32 daddr = 0;
->   __be16 dport = 0;
->   int test_exist_lookup = -ENOENT;
-> +u32 test_exist_lookup_mark = 0;
->   
->   struct nf_conn;
->   
-> @@ -174,6 +175,8 @@ nf_ct_test(struct nf_conn *(*lookup_fn)(void *, struct bpf_sock_tuple *, u32,
->   		       sizeof(opts_def));
->   	if (ct) {
->   		test_exist_lookup = 0;
-> +		if (ct->mark == 42)
-> +			test_exist_lookup_mark = 43;
->   		bpf_ct_release(ct);
->   	} else {
->   		test_exist_lookup = opts_def.error;
-
+   Co-developed-by: Mickaël Salaün <mic@digikod.net>
+   Signed-off-by: Mickaël Salaün <mic@digikod.net>
+   Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> 
+>> ---
+>> 
+>> Changes since v6:
+>> * Adds union landlock_key, enum landlock_key_type, and struct
+>>    landlock_id.
+>> * Refactors ruleset functions and improves switch/cases: create_rule(),
+>>    insert_rule(), get_root(), is_object_pointer(), free_rule(),
+>>    landlock_find_rule().
+>> * Refactors landlock_append_fs_rule() functions to support new
+>>    landlock_id type.
+>> 
+>> Changes since v5:
+>> * Formats code with clang-format-14.
+>> 
+>> Changes since v4:
+>> * Refactors insert_rule() and create_rule() functions by deleting
+>> rule_type from their arguments list, it helps to reduce useless code.
+>> 
+>> Changes since v3:
+>> * Splits commit.
+>> * Refactors landlock_insert_rule and landlock_find_rule functions.
+>> * Rename new_ruleset->root_inode.
+>> 
+>> ---
+>>   security/landlock/fs.c      |  21 ++++--
+>>   security/landlock/ruleset.c | 146 +++++++++++++++++++++++++-----------
+>>   security/landlock/ruleset.h |  51 ++++++++++---
+>>   3 files changed, 156 insertions(+), 62 deletions(-)
+> 
+> [...]
+> 
+>> diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+>> index 647d44284080..bb1408cc8dd2 100644
+>> --- a/security/landlock/ruleset.h
+>> +++ b/security/landlock/ruleset.h
+>> @@ -49,6 +49,33 @@ struct landlock_layer {
+>>   	access_mask_t access;
+>>   };
+>> 
+>> +/**
+>> + * union landlock_key - Key of a ruleset's red-black tree
+>> + */
+>> +union landlock_key {
+>> +	struct landlock_object *object;
+>> +	uintptr_t data;
+>> +};
+>> +
+>> +/**
+>> + * enum landlock_key_type - Type of &union landlock_key
+>> + */
+>> +enum landlock_key_type {
+>> +	/**
+>> +	 * @LANDLOCK_KEY_INODE: Type of &landlock_ruleset.root_inode's node
+>> +	 * keys.
+>> +	 */
+>> +	LANDLOCK_KEY_INODE = 1,
+>> +};
+>> +
+>> +/**
+>> + * struct landlock_id - Unique rule identifier for a ruleset
+>> + */
+>> +struct landlock_id {
+>> +	union landlock_key key;
+>> +	const enum landlock_key_type type;
+>> +};
+> 
+> You can add these new types to Documentation/security/landlock.rst (with
+> this commit). You need to complete all the new field descriptions though
+> (otherwise you'll get Sphinx warnings): object, data, key, type.
+> .
