@@ -2,139 +2,111 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98FE1C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 15:31:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B20BC4167B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 19:26:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229839AbiJLPbW (ORCPT
+        id S229696AbiJLT0j convert rfc822-to-8bit (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Oct 2022 11:31:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44196 "EHLO
+        Wed, 12 Oct 2022 15:26:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229736AbiJLPbT (ORCPT
+        with ESMTP id S229748AbiJLT0b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2022 11:31:19 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F79BCA894
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Oct 2022 08:31:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=EIykTHimQ37TiCu3R2IgpiLWSVA83Ng2IwJG72aMLzY=; b=AtTjJdrAi09PX9/NjxMH1S/5Nx
-        dvQoawxitPBIUw9ANLOebDdHfgFif5gEV2U/tzu35+cVmU4nNdImd8HotILic+/I97dhEWg0x044N
-        wcF0vJxNWIebZmJCtpcwO3k9N/X1u1XwkPmaDyIXt/sGDgpDYfkqIgoKpruaFK1SeL2vgUbKjPVLj
-        itRnE6ahDv7KpKOYbaN5ZvlLizFUDNdYWjqicVhLOxkGK8kO+33JVtofiQl9cdpP9SRc7f03ibq1C
-        ozW0OYp0q2FcppeSlEG3A8ze6m+VL2XUavl67ceOn3IgdAWZfcQHJvwf9h4BQkBsX1AxHHSQLUIlp
-        qPgTNHSA==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1oidhU-00031V-BU; Wed, 12 Oct 2022 17:31:16 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, Eric Garver <e@erig.me>,
-        netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] Warn for tables with compat expressions in rules
-Date:   Wed, 12 Oct 2022 17:31:07 +0200
-Message-Id: <20221012153107.24574-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.34.1
+        Wed, 12 Oct 2022 15:26:31 -0400
+Received: from relay.hostedemail.com (smtprelay0011.hostedemail.com [216.40.44.11])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45A9910251A;
+        Wed, 12 Oct 2022 12:26:30 -0700 (PDT)
+Received: from omf12.hostedemail.com (a10.router.float.18 [10.200.18.1])
+        by unirelay01.hostedemail.com (Postfix) with ESMTP id 2096E1C6C41;
+        Wed, 12 Oct 2022 19:17:09 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf12.hostedemail.com (Postfix) with ESMTPA id AB9FC17;
+        Wed, 12 Oct 2022 19:16:43 +0000 (UTC)
+Message-ID: <f8ad3ba44d28dec1a5f7626b82c5e9c2aeefa729.camel@perches.com>
+Subject: Re: [PATCH v1 3/5] treewide: use get_random_u32() when possible
+From:   Joe Perches <joe@perches.com>
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        linux-kernel@vger.kernel.org
+Cc:     brcm80211-dev-list.pdl@broadcom.com, cake@lists.bufferbloat.net,
+        ceph-devel@vger.kernel.org, coreteam@netfilter.org,
+        dccp@vger.kernel.org, dev@openvswitch.org,
+        dmaengine@vger.kernel.org, drbd-dev@lists.linbit.com,
+        dri-devel@lists.freedesktop.org, kasan-dev@googlegroups.com,
+        linux-actions@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+        linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-hams@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mm@kvack.org, linux-mmc@vger.kernel.org,
+        linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-nvme@lists.infradead.org, linux-raid@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-sctp@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-xfs@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, rds-devel@oss.oracle.com,
+        SHA-cyfmac-dev-list@infineon.com, target-devel@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net
+Date:   Wed, 12 Oct 2022 12:16:53 -0700
+In-Reply-To: <20221005214844.2699-4-Jason@zx2c4.com>
+References: <20221005214844.2699-1-Jason@zx2c4.com>
+         <20221005214844.2699-4-Jason@zx2c4.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8BIT
+User-Agent: Evolution 3.44.4 (3.44.4-2.fc36) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Stat-Signature: c3d78nppyrywoyngway5d943fw3wwtdu
+X-Rspamd-Server: rspamout03
+X-Rspamd-Queue-Id: AB9FC17
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-Session-ID: U2FsdGVkX1/Qw27OeRP8/mQW0Su38d7rwhSo1NO9QCw=
+X-HE-Tag: 1665602203-428634
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-While being able to "look inside" compat expressions using nft is a nice
-feature, it is also (yet another) pitfall for unaware users, deceiving
-them into assuming interchangeability (or at least compatibility)
-between iptables-nft and nft.
+On Wed, 2022-10-05 at 23:48 +0200, Jason A. Donenfeld wrote:
+> The prandom_u32() function has been a deprecated inline wrapper around
+> get_random_u32() for several releases now, and compiles down to the
+> exact same code. Replace the deprecated wrapper with a direct call to
+> the real function.
+[]
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+[]
+> @@ -734,7 +734,7 @@ static int send_connect(struct c4iw_ep *ep)
+>  				   &ep->com.remote_addr;
+>  	int ret;
+>  	enum chip_type adapter_type = ep->com.dev->rdev.lldi.adapter_type;
+> -	u32 isn = (prandom_u32() & ~7UL) - 1;
+> +	u32 isn = (get_random_u32() & ~7UL) - 1;
 
-In reality, which involves 'nft list ruleset | nft -f -', any correctly
-translated compat expressions will turn into native nftables ones not
-understood by (the version of) iptables-nft which created them in the
-first place. Other compat expressions will vanish, potentially
-compromising the firewall ruleset.
+trivia:
 
-Emit a warning (as comment) to give users a chance to stop and
-reconsider before shooting their own foot.
+There are somewhat odd size mismatches here.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Sorry for the dup, forgot to Cc netfilter-devel.
----
- include/rule.h |  1 +
- src/rule.c     | 16 +++++++++++++---
- src/xt.c       |  2 ++
- 3 files changed, 16 insertions(+), 3 deletions(-)
+I had to think a tiny bit if random() returned a value from 0 to 7
+and was promoted to a 64 bit value then truncated to 32 bit.
 
-diff --git a/include/rule.h b/include/rule.h
-index ad9f912737228..00a1bac5a7737 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -169,6 +169,7 @@ struct table {
- 	unsigned int		refcnt;
- 	uint32_t		owner;
- 	const char		*comment;
-+	bool			has_xt_stmts;
- };
- 
- extern struct table *table_alloc(void);
-diff --git a/src/rule.c b/src/rule.c
-index 1caee58fb7622..e9f9b232aa244 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1227,6 +1227,11 @@ static void table_print(const struct table *table, struct output_ctx *octx)
- 	const char *delim = "";
- 	const char *family = family2str(table->handle.family);
- 
-+	if (table->has_xt_stmts)
-+		fprintf(octx->error_fp,
-+			"# Warning: table %s %s is managed by iptables-nft, do not touch!\n",
-+			family, table->handle.table.name);
-+
- 	nft_print(octx, "table %s %s {", family, table->handle.table.name);
- 	if (nft_output_handle(octx) || table->flags & TABLE_F_OWNER)
- 		nft_print(octx, " #");
-@@ -2381,9 +2386,14 @@ static int do_list_tables(struct netlink_ctx *ctx, struct cmd *cmd)
- static void table_print_declaration(struct table *table,
- 				    struct output_ctx *octx)
- {
--	nft_print(octx, "table %s %s {\n",
--		  family2str(table->handle.family),
--		  table->handle.table.name);
-+	const char *family = family2str(table->handle.family);
-+
-+	if (table->has_xt_stmts)
-+		fprintf(octx->error_fp,
-+			"# Warning: table %s %s is managed by iptables-nft, do not touch!\n",
-+			family, table->handle.table.name);
-+
-+	nft_print(octx, "table %s %s {\n", family, table->handle.table.name);
- }
- 
- static int do_list_chain(struct netlink_ctx *ctx, struct cmd *cmd,
-diff --git a/src/xt.c b/src/xt.c
-index 789de9926261b..a54173522c229 100644
---- a/src/xt.c
-+++ b/src/xt.c
-@@ -238,6 +238,7 @@ void netlink_parse_match(struct netlink_parse_ctx *ctx,
- 	stmt->xt.name = strdup(name);
- 	stmt->xt.type = NFT_XT_MATCH;
- #endif
-+	ctx->table->has_xt_stmts = true;
- 	rule_stmt_append(ctx->rule, stmt);
- }
- 
-@@ -283,6 +284,7 @@ void netlink_parse_target(struct netlink_parse_ctx *ctx,
- 	stmt->xt.name = strdup(name);
- 	stmt->xt.type = NFT_XT_TARGET;
- #endif
-+	ctx->table->has_xt_stmts = true;
- 	rule_stmt_append(ctx->rule, stmt);
- }
- 
--- 
-2.34.1
+Perhaps these would be clearer as ~7U and not ~7UL
+
+>  	struct net_device *netdev;
+>  	u64 params;
+>  
+> @@ -2469,7 +2469,7 @@ static int accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
+>  	}
+>  
+>  	if (!is_t4(adapter_type)) {
+> -		u32 isn = (prandom_u32() & ~7UL) - 1;
+> +		u32 isn = (get_random_u32() & ~7UL) - 1;
+
+etc...
+
+drivers/infiniband/hw/cxgb4/cm.c:	u32 isn = (prandom_u32() & ~7UL) - 1;
+drivers/infiniband/hw/cxgb4/cm.c:		u32 isn = (prandom_u32() & ~7UL) - 1;
+drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.c:	rpl5->iss = cpu_to_be32((prandom_u32() & ~7UL) - 1);
+drivers/scsi/cxgbi/cxgb4i/cxgb4i.c:		u32 isn = (prandom_u32() & ~7UL) - 1;
+drivers/scsi/cxgbi/cxgb4i/cxgb4i.c:		u32 isn = (prandom_u32() & ~7UL) - 1;
+drivers/target/iscsi/cxgbit/cxgbit_cm.c:	rpl5->iss = cpu_to_be32((prandom_u32() & ~7UL) - 1);
 
