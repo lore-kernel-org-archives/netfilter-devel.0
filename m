@@ -2,119 +2,224 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1B4DC43219
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 11:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 919CCC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Oct 2022 12:19:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbiJLLOD (ORCPT
+        id S229676AbiJLMTb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Oct 2022 07:14:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51480 "EHLO
+        Wed, 12 Oct 2022 08:19:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbiJLLNq (ORCPT
+        with ESMTP id S229803AbiJLMTa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2022 07:13:46 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB62AC1D99;
-        Wed, 12 Oct 2022 04:13:45 -0700 (PDT)
-Received: from fraeml701-chm.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4MnVM12bWSz688Cb;
-        Wed, 12 Oct 2022 19:10:53 +0800 (CST)
-Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
- fraeml701-chm.china.huawei.com (10.206.15.50) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.31; Wed, 12 Oct 2022 13:13:42 +0200
-Received: from [10.122.132.241] (10.122.132.241) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Wed, 12 Oct 2022 12:13:42 +0100
-Message-ID: <534c5a0b-4c78-0524-a145-200ae3dea368@huawei.com>
-Date:   Wed, 12 Oct 2022 14:13:41 +0300
+        Wed, 12 Oct 2022 08:19:30 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 186C9C4D87;
+        Wed, 12 Oct 2022 05:19:27 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1oiahm-0002ej-S5; Wed, 12 Oct 2022 14:19:22 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     Paolo Abeni <pabeni@redhat.com>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        <netfilter-devel@vger.kernel.org>, Phil Sutter <phil@nwl.cc>,
+        Guillaume Nault <gnault@redhat.com>,
+        Florian Westphal <fw@strlen.de>
+Subject: [PATCH net 1/3] selftests: netfilter: Test reverse path filtering
+Date:   Wed, 12 Oct 2022 14:19:00 +0200
+Message-Id: <20221012121902.27738-2-fw@strlen.de>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221012121902.27738-1-fw@strlen.de>
+References: <20221012121902.27738-1-fw@strlen.de>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v7 02/18] landlock: refactor
- landlock_find_rule/insert_rule
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <hukeping@huawei.com>, <anton.sirazetdinov@huawei.com>
-References: <20220829170401.834298-1-konstantin.meskhidze@huawei.com>
- <20220829170401.834298-3-konstantin.meskhidze@huawei.com>
- <431e5311-7072-3a20-af75-d81907b22d61@digikod.net>
- <1ba8c972-1b81-dd85-c24b-83525511083e@huawei.com>
- <01283d8a-3319-af3c-7139-466fe22ca8e4@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <01283d8a-3319-af3c-7139-466fe22ca8e4@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+From: Phil Sutter <phil@nwl.cc>
 
+Test reverse path (filter) matches in iptables, ip6tables and nftables.
+Both with a regular interface and a VRF.
 
-10/12/2022 1:06 PM, Mickaël Salaün пишет:
-> 
-> On 12/10/2022 10:37, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 9/6/2022 11:07 AM, Mickaël Salaün пишет:
->>> Good to see such clean commit!
->>>
->>> On 29/08/2022 19:03, Konstantin Meskhidze wrote:
->>>> Adds a new landlock_key union and landlock_id structure to support
->>>> a socket port rule type. Refactors landlock_insert_rule() and
->>>> landlock_find_rule() to support coming network modifications.
->>>
->>>> This patch also adds is_object_pointer() and get_root() helpers.
->>>
->>> Please explain a bit what these helpers do.
->>>
->>>
->>>> Now adding or searching a rule in a ruleset depends on a landlock id
->>>> argument provided in refactored functions mentioned above.
->>>
->>> More explanation:
->>> A struct landlock_id identifies a unique entry in a ruleset: either a
->>> kernel object (e.g inode) or a typed data (e.g. TCP port). There is one
->>> red-black tree per key type.
->>>
->>>>
->>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>
->>> Because most changes come from
->>> https://git.kernel.org/mic/c/8f4104b3dc59e7f110c9b83cdf034d010a2d006f
->>> and
->>> https://git.kernel.org/mic/c/7d6cf40a6f81adf607ad3cc17aaa11e256beeea4
->>> you can append
->>> Co-developed-by: Mickaël Salaün <mic@digikod.net>
->> 
->>     Do I need to add Co-developed-by: Mickaël Salaün <mic@digikod.net>
->>     and Signed-off-by: Mickaël Salaün <mic@digikod.net> or just
->>     Co-developed-by: Mickaël Salaün <mic@digikod.net> ????
->> 
->>     Cause Submiting patches article says:
->>     https://www.kernel.org/doc/html/latest/process/submitting-patches.html
->> 
->>     "...Since Co-developed-by: denotes authorship, every Co-developed-by:
->> must be immediately followed by a Signed-off-by: of the associated
->> co-author...."
->> 
->>     Is this correct signing for this patch:
->> 
->>     Co-developed-by: Mickaël Salaün <mic@digikod.net>
->>     Signed-off-by: Mickaël Salaün <mic@digikod.net>
->>     Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> 
-> Because I'll merge your patches in my tree, I'll add my Signed-off-by to
-> all patches. You can then just add Co-developed-by after your
-> Signed-off-by for this one and I'll add the rest.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+Reviewed-by: Guillaume Nault <gnault@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tools/testing/selftests/netfilter/Makefile |   2 +-
+ tools/testing/selftests/netfilter/rpath.sh | 147 +++++++++++++++++++++
+ 2 files changed, 148 insertions(+), 1 deletion(-)
+ create mode 100755 tools/testing/selftests/netfilter/rpath.sh
 
-   Ok. I got it. Thanks for the explaning.
-> .
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index 600e3a19d5e2..4504ee07be08 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -6,7 +6,7 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
+ 	nft_concat_range.sh nft_conntrack_helper.sh \
+ 	nft_queue.sh nft_meta.sh nf_nat_edemux.sh \
+ 	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
+-	conntrack_vrf.sh nft_synproxy.sh
++	conntrack_vrf.sh nft_synproxy.sh rpath.sh
+ 
+ CFLAGS += $(shell pkg-config --cflags libmnl 2>/dev/null || echo "-I/usr/include/libmnl")
+ LDLIBS = -lmnl
+diff --git a/tools/testing/selftests/netfilter/rpath.sh b/tools/testing/selftests/netfilter/rpath.sh
+new file mode 100755
+index 000000000000..2d8da7bd8ab7
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/rpath.sh
+@@ -0,0 +1,147 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++
++# return code to signal skipped test
++ksft_skip=4
++
++# search for legacy iptables (it uses the xtables extensions
++if iptables-legacy --version >/dev/null 2>&1; then
++	iptables='iptables-legacy'
++elif iptables --version >/dev/null 2>&1; then
++	iptables='iptables'
++else
++	iptables=''
++fi
++
++if ip6tables-legacy --version >/dev/null 2>&1; then
++	ip6tables='ip6tables-legacy'
++elif ! ip6tables --version >/dev/null 2>&1; then
++	ip6tables='ip6tables'
++else
++	ip6tables=''
++fi
++
++if nft --version >/dev/null 2>&1; then
++	nft='nft'
++else
++	nft=''
++fi
++
++if [ -z "$iptables$ip6tables$nft" ]; then
++	echo "SKIP: Test needs iptables, ip6tables or nft"
++	exit $ksft_skip
++fi
++
++sfx=$(mktemp -u "XXXXXXXX")
++ns1="ns1-$sfx"
++ns2="ns2-$sfx"
++trap "ip netns del $ns1; ip netns del $ns2" EXIT
++
++# create two netns, disable rp_filter in ns2 and
++# keep IPv6 address when moving into VRF
++ip netns add "$ns1"
++ip netns add "$ns2"
++ip netns exec "$ns2" sysctl -q net.ipv4.conf.all.rp_filter=0
++ip netns exec "$ns2" sysctl -q net.ipv4.conf.default.rp_filter=0
++ip netns exec "$ns2" sysctl -q net.ipv6.conf.all.keep_addr_on_down=1
++
++# a standard connection between the netns, should not trigger rp filter
++ip -net "$ns1" link add v0 type veth peer name v0 netns "$ns2"
++ip -net "$ns1" link set v0 up; ip -net "$ns2" link set v0 up
++ip -net "$ns1" a a 192.168.23.2/24 dev v0
++ip -net "$ns2" a a 192.168.23.1/24 dev v0
++ip -net "$ns1" a a fec0:23::2/64 dev v0 nodad
++ip -net "$ns2" a a fec0:23::1/64 dev v0 nodad
++
++# rp filter testing: ns1 sends packets via v0 which ns2 would route back via d0
++ip -net "$ns2" link add d0 type dummy
++ip -net "$ns2" link set d0 up
++ip -net "$ns1" a a 192.168.42.2/24 dev v0
++ip -net "$ns2" a a 192.168.42.1/24 dev d0
++ip -net "$ns1" a a fec0:42::2/64 dev v0 nodad
++ip -net "$ns2" a a fec0:42::1/64 dev d0 nodad
++
++# firewall matches to test
++ip netns exec "$ns2" "$iptables" -t raw -A PREROUTING -s 192.168.0.0/16 -m rpfilter
++ip netns exec "$ns2" "$ip6tables" -t raw -A PREROUTING -s fec0::/16 -m rpfilter
++ip netns exec "$ns2" nft -f - <<EOF
++table inet t {
++	chain c {
++		type filter hook prerouting priority raw;
++		ip saddr 192.168.0.0/16 fib saddr . iif oif exists counter
++		ip6 saddr fec0::/16 fib saddr . iif oif exists counter
++	}
++}
++EOF
++
++die() {
++	echo "FAIL: $*"
++	#ip netns exec "$ns2" "$iptables" -t raw -vS
++	#ip netns exec "$ns2" "$ip6tables" -t raw -vS
++	#ip netns exec "$ns2" nft list ruleset
++	exit 1
++}
++
++# check rule counters, return true if rule did not match
++ipt_zero_rule() { # (command)
++	[ -n "$1" ] || return 0
++	ip netns exec "$ns2" "$1" -t raw -vS | grep -q -- "-m rpfilter -c 0 0"
++}
++nft_zero_rule() { # (family)
++	[ -n "$nft" ] || return 0
++	ip netns exec "$ns2" "$nft" list chain inet t c | \
++		grep -q "$1 saddr .* counter packets 0 bytes 0"
++}
++
++netns_ping() { # (netns, args...)
++	local netns="$1"
++	shift
++	ip netns exec "$netns" ping -q -c 1 -W 1 "$@" >/dev/null
++}
++
++testrun() {
++	# clear counters first
++	[ -n "$iptables" ] && ip netns exec "$ns2" "$iptables" -t raw -Z
++	[ -n "$ip6tables" ] && ip netns exec "$ns2" "$ip6tables" -t raw -Z
++	if [ -n "$nft" ]; then
++		(
++			echo "delete table inet t";
++			ip netns exec "$ns2" nft -s list table inet t;
++		) | ip netns exec "$ns2" nft -f -
++	fi
++
++	# test 1: martian traffic should fail rpfilter matches
++	netns_ping "$ns1" -I v0 192.168.42.1 && \
++		die "martian ping 192.168.42.1 succeeded"
++	netns_ping "$ns1" -I v0 fec0:42::1 && \
++		die "martian ping fec0:42::1 succeeded"
++
++	ipt_zero_rule "$iptables" || die "iptables matched martian"
++	ipt_zero_rule "$ip6tables" || die "ip6tables matched martian"
++	nft_zero_rule ip || die "nft IPv4 matched martian"
++	nft_zero_rule ip6 || die "nft IPv6 matched martian"
++
++	# test 2: rpfilter match should pass for regular traffic
++	netns_ping "$ns1" 192.168.23.1 || \
++		die "regular ping 192.168.23.1 failed"
++	netns_ping "$ns1" fec0:23::1 || \
++		die "regular ping fec0:23::1 failed"
++
++	ipt_zero_rule "$iptables" && die "iptables match not effective"
++	ipt_zero_rule "$ip6tables" && die "ip6tables match not effective"
++	nft_zero_rule ip && die "nft IPv4 match not effective"
++	nft_zero_rule ip6 && die "nft IPv6 match not effective"
++
++}
++
++testrun
++
++# repeat test with vrf device in $ns2
++ip -net "$ns2" link add vrf0 type vrf table 10
++ip -net "$ns2" link set vrf0 up
++ip -net "$ns2" link set v0 master vrf0
++
++testrun
++
++echo "PASS: netfilter reverse path match works as intended"
++exit 0
+-- 
+2.35.1
+
