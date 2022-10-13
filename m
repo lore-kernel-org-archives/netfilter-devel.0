@@ -2,149 +2,165 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B4BC433FE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Oct 2022 14:38:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68C9CC43219
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Oct 2022 17:34:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229550AbiJMOiL (ORCPT
+        id S229661AbiJMRey (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Oct 2022 10:38:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56904 "EHLO
+        Thu, 13 Oct 2022 13:34:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229629AbiJMOiK (ORCPT
+        with ESMTP id S229651AbiJMRex (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Oct 2022 10:38:10 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A76E4F669
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2022 07:38:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1665671888;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-        bh=nC9c/Jm+RObmmIWeKgmV4nIyU2Y/0ZFQ8QWu0FDOBK0=;
-        b=Vxz0DegimTHilVgxcmE893k3kDMLvK8BWzr5eZSg5KSCDFVzEPtbPcLTqGi94yzlCt980p
-        4cC6g412LKaIuBYpwCp+/Ga5F01iprxc5csKY7CkZwHSSlT/dztctVYBlrCSAXxU/W40r5
-        5FB+peoqjNj5eZsaS+heN8xFmDEtBNI=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-460-zYW0GXlwMtKB86Jti4YJsQ-1; Thu, 13 Oct 2022 10:38:06 -0400
-X-MC-Unique: zYW0GXlwMtKB86Jti4YJsQ-1
-Received: by mail-wm1-f69.google.com with SMTP id b7-20020a05600c4e0700b003bde2d860d1so1275218wmq.8
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2022 07:38:06 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=nC9c/Jm+RObmmIWeKgmV4nIyU2Y/0ZFQ8QWu0FDOBK0=;
-        b=LMKp3u4EQITc/ShrBoknwFhPTxQkyKuuTVbi8t133JVTjAf/a0p6NSSQ5Am478vKgE
-         Bem2tZUiX2FT52dIWpxPy175ABqva4SQ+8hEu7Ple8DK6Aq0X0kdiITSrJTaKTO1euWi
-         9ynvoWKGYyssNHUWH4oGDYCGZWKGyfgRUa5v2U9ihiywOmQzbYEBvVs4Gx/AT4XMmWjL
-         +QlTMMbW3SbQhOtXAjb5poLbZ011I/eadMXI5PUDLUZ83XuVj4zsZ7isUvp3YZ5BlrkO
-         Jc9E8JtQu4SEx040Kd/vV/1tH6DC0S5pmP64dA8G8+j42jTwIyEgto4UA2Aq0a1+QQ01
-         V1ow==
-X-Gm-Message-State: ACrzQf3WAOJEthIRy02oWIKdLXzX/dwxo5+/CM+QYlLmeDbw3LcZwXy2
-        DSY/V0PCnL0R0GGiy5yuCzSRT1hMIlAvQBELzpo1fUTJcD81B4NkOVkskOGT9hXo5bGhZEl2JdD
-        TBec1vpkTMXg8KxVdEACvyKgJcLQe
-X-Received: by 2002:a1c:2507:0:b0:3b3:3681:f774 with SMTP id l7-20020a1c2507000000b003b33681f774mr6984117wml.134.1665671870398;
-        Thu, 13 Oct 2022 07:37:50 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM4APSDwcDxmBbyuFFlLl9MxcaVs8zOmKaldZaDbiBU/tW8rQnuf6Egvnmm/R4jzWr/9QxfPYg==
-X-Received: by 2002:a1c:2507:0:b0:3b3:3681:f774 with SMTP id l7-20020a1c2507000000b003b33681f774mr6984102wml.134.1665671870161;
-        Thu, 13 Oct 2022 07:37:50 -0700 (PDT)
-Received: from localhost.localdomain ([92.62.32.42])
-        by smtp.gmail.com with ESMTPSA id ay38-20020a05600c1e2600b003c6b70a4d69sm4463261wmb.42.2022.10.13.07.37.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 Oct 2022 07:37:49 -0700 (PDT)
-Date:   Thu, 13 Oct 2022 16:37:47 +0200
-From:   Guillaume Nault <gnault@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@netfilter.org,
-        Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org,
-        Lorenzo Colitti <lorenzo@google.com>
-Subject: [PATCH nf] netfilter: rpfilter/fib: Set ->flowic_uid correctly for
- user namespaces.
-Message-ID: <8853c474dc0f7baafcd3efb8e34a4d12be472495.1665671763.git.gnault@redhat.com>
+        Thu, 13 Oct 2022 13:34:53 -0400
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 941AC14D3D;
+        Thu, 13 Oct 2022 10:34:49 -0700 (PDT)
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+        by mailout.west.internal (Postfix) with ESMTP id C73EA3200926;
+        Thu, 13 Oct 2022 13:34:47 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute2.internal (MEProxy); Thu, 13 Oct 2022 13:34:48 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to; s=fm2; t=1665682487; x=1665768887; bh=DsLRBe3Kqg
+        11qxqyD8iEafKn/j01pfzBRrrJqScyfLo=; b=f7SZBH7WjhSQGZCuMHebwkT2sd
+        +viFn0CR3SIjXI2JL5ZQkUqV72KbP8lssa0nGl9NnHFp3u8dM930zmbj+k1EKXGT
+        dmyWSUG4ThZuPjlJzsmMhWssQ/vk336zYPL3SGF8Bp7sntMNHw3Ra/VplQWA/ya8
+        OKnug9TsNQ7E2PIb6gsn+kN/4HXcnz4b51MJcU3dkshI5SZPtiJEGDmZZlcVi/t6
+        eAf0w6otCS9bbAl3cs6kSBJqxwMVNMW8utR3tWMkT8cyla2zeMjuYBTHhA9LEvmy
+        lsUzNHN3yTXwi7wocJ7n5OeJgSLf2fkm5/wu49LM3w6BF5QZ49mFbE7EtW/w==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm3; t=1665682487; x=1665768887; bh=DsLRBe3Kqg11qxqyD8iEafKn/j01
+        pfzBRrrJqScyfLo=; b=L76Ve5FJL9Iz4Zy1s4a7laS8w+dlLAmgusGwE5w5DYvV
+        2XGZQabRX9k2/MsXSvu/J2Jp0UZcTvJcVcD2pFibsv8AfptxG+CzLmYPouydKWtm
+        Sw3rXl/TJAIAnTgEE9Hz7UYJ7MdKnIGC0/sHeWMyu/Ut8L8RPE4TMd91QnIxQn4l
+        cJ6G9095f3wEOWX1U9xYDB+HAOnSmMUCX72fd73OEVbAYXqCDKy51IphGcyvOjpa
+        JqOEdx9+lGEs1RZZHxO8+DlvnHjDLh6b0KXwNh9TT0DaaHvnTn3MQaoFNMtSJswY
+        sPsAUN5uEoEWtsM4hs3TjaXDtiOTwcqIdU6d+AkBFA==
+X-ME-Sender: <xms:NkxIYz1JAXnchSoQ40X737hlRnuXoNfxof9Q4CtPc8BjK0pf1PcEpQ>
+    <xme:NkxIYyEZi1_PbHefB_3ZLGDU7N94iA7oP-3F2ygeHHcnIVL12Qf-i0-DEBbRo6iJK
+    mjvq__qyxPMeAgMwA>
+X-ME-Received: <xmr:NkxIYz6xmWbheEiUBU1cQbfkZD6HSj4KAtfwr5vnikiWEeWBGRoLmN9Nesunp2js4s9fOEMkMyDXjIa5>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfeektddguddujecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enfghrlhcuvffnffculdefhedmnecujfgurhepfffhvfevuffkfhggtggujgesthdtredt
+    tddtvdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihusegugihuuhhurdighiiiqe
+    enucggtffrrghtthgvrhhnpeffffdvfefhudfhfeejjedvieduiefgvdfghfejkeehueeu
+    hfdvieeftdeugfffhfenucffohhmrghinhepghhithhhuhgsrdgtohhmnecuvehluhhsth
+    gvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepugiguhesugiguhhuuhdr
+    giihii
+X-ME-Proxy: <xmx:NkxIY42XuTKWSZPHKVCQDb6xQaYhp_x6WhDTrjBTHll6i_UoFT-qAw>
+    <xmx:NkxIY2H5bY_aJ91LAFSvfx0au0buKEIf3AXPLGAD312EnB2WbBUZ1g>
+    <xmx:NkxIY5_wMmQnIQh6eLuK0z_ECfmqVZjhi8bgaHlQfRSVdjbs4UhXog>
+    <xmx:N0xIY5C1R_0VE1OGECV3gCtROmkpxajr9K8vkdh2Fn_H255jVCFhSw>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 13 Oct 2022 13:34:46 -0400 (EDT)
+Date:   Thu, 13 Oct 2022 11:34:48 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Martin KaFai Lau <martin.lau@linux.dev>
+Cc:     pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        andrii@kernel.org, daniel@iogearbox.net, ast@kernel.org,
+        bpf@vger.kernel.org, memxor@gmail.com
+Subject: Re: [PATCH bpf-next v4 2/3] selftests/bpf: Add connmark read test
+Message-ID: <20221013173448.aprptjs5qq777342@k2>
+References: <cover.1660254747.git.dxu@dxuuu.xyz>
+ <d3bc620a491e4c626c20d80631063922cbe13e2b.1660254747.git.dxu@dxuuu.xyz>
+ <43bf4a5f-dac9-4fe9-1eba-9ab9beb650aa@linux.dev>
+ <20221012220953.i2xevhu36kxyxscl@k2>
+ <16bcda3b-989e-eadf-b6c3-803470b0afd6@linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <16bcda3b-989e-eadf-b6c3-803470b0afd6@linux.dev>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently netfilter's rpfilter and fib modules implicitely initialise
-->flowic_uid with 0. This is normally the root UID. However, this isn't
-the case in user namespaces, where user ID 0 is mapped to a different
-kernel UID. By initialising ->flowic_uid with sock_net_uid(), we get
-the root UID of the user namespace, thus keeping the same behaviour
-whether or not we're running in a user namepspace.
+On Wed, Oct 12, 2022 at 03:20:01PM -0700, Martin KaFai Lau wrote:
+> On 10/12/22 3:09 PM, Daniel Xu wrote:
+> > Hi Martin,
+> > 
+> > On Tue, Oct 11, 2022 at 10:49:32PM -0700, Martin KaFai Lau wrote:
+> > > On 8/11/22 2:55 PM, Daniel Xu wrote:
+> > > > Test that the prog can read from the connection mark. This test is nice
+> > > > because it ensures progs can interact with netfilter subsystem
+> > > > correctly.
+> > > > 
+> > > > Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+> > > > Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+> > > > ---
+> > > >    tools/testing/selftests/bpf/prog_tests/bpf_nf.c | 3 ++-
+> > > >    tools/testing/selftests/bpf/progs/test_bpf_nf.c | 3 +++
+> > > >    2 files changed, 5 insertions(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > > > index 88a2c0bdefec..544bf90ac2a7 100644
+> > > > --- a/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > > > +++ b/tools/testing/selftests/bpf/prog_tests/bpf_nf.c
+> > > > @@ -44,7 +44,7 @@ static int connect_to_server(int srv_fd)
+> > > >    static void test_bpf_nf_ct(int mode)
+> > > >    {
+> > > > -	const char *iptables = "iptables -t raw %s PREROUTING -j CT";
+> > > > +	const char *iptables = "iptables -t raw %s PREROUTING -j CONNMARK --set-mark 42/0";
+> > > Hi Daniel Xu, this test starts failing recently in CI [0]:
+> > > 
+> > > Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
+> > >    iptables v1.8.8 (nf_tables): Could not fetch rule set generation id:
+> > > Invalid argument
+> > > 
+> > >    Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
+> > >    iptables v1.8.8 (nf_tables): Could not fetch rule set generation id:
+> > > Invalid argument
+> > > 
+> > >    Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
+> > >    iptables v1.8.8 (nf_tables): Could not fetch rule set generation id:
+> > > Invalid argument
+> > > 
+> > >    Warning: Extension CONNMARK revision 0 not supported, missing kernel module?
+> > >    iptables v1.8.8 (nf_tables): Could not fetch rule set generation id:
+> > > Invalid argument
+> > > 
+> > >    test_bpf_nf_ct:PASS:test_bpf_nf__open_and_load 0 nsec
+> > >    test_bpf_nf_ct:FAIL:iptables unexpected error: 1024 (errno 0)
+> > > 
+> > > Could you help to take a look? Thanks.
+> > > 
+> > > [0]: https://github.com/kernel-patches/bpf/actions/runs/3231598391/jobs/5291529292
+> > 
+> > [...]
+> > 
+> > Thanks for letting me know. I took a quick look and it seems that
+> > synproxy selftest is also failing:
+> > 
+> >      2022-10-12T03:14:20.2007627Z test_synproxy:FAIL:iptables -t raw -I PREROUTING      -i tmp1 -p tcp -m tcp --syn --dport 8080 -j CT --notrack unexpected error: 1024 (errno 2)
+> > 
+> > Googling the "Could not fetch rule set generation id" yields a lot of
+> > hits. Most of the links are from downstream projects recommending user
+> > downgrade iptables (nftables) to iptables-legacy.
+> 
+> Thanks for looking into it!  We have been debugging a bit today also.  I
+> also think iptables-legacy is the one to use.  I posted a patch [0].  Let
+> see how the CI goes.
+> 
+> The rules that the selftest used is not a lot.  I wonder what it takes to
+> remove the iptables command usage from the selftest?
 
-Note, this is similar to commit 8bcfd0925ef1 ("ipv4: add missing
-initialization for flowi4_uid"), which fixed the rp_filter sysctl.
+At least the conntrack mark stuff, it would've been easier to write the
+selftests _without_ iptables. But I thought it was both good and
+necessary to test interop between BPF and netfilter. B/c that is
+what the user is doing (at least for me).
 
-Fixes: 622ec2c9d524 ("net: core: add UID to flows, rules, and routes")
-Signed-off-by: Guillaume Nault <gnault@redhat.com>
----
- net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
- net/ipv4/netfilter/nft_fib_ipv4.c  | 1 +
- net/ipv6/netfilter/ip6t_rpfilter.c | 1 +
- net/ipv6/netfilter/nft_fib_ipv6.c  | 2 ++
- 4 files changed, 5 insertions(+)
+However if it's causing maintenance trouble, I'll leave that call to
+you.
 
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index ff85db52b2e5..ded5bef02f77 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -78,6 +78,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	flow.flowi4_tos = iph->tos & IPTOS_RT_MASK;
- 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
- 	flow.flowi4_l3mdev = l3mdev_master_ifindex_rcu(xt_in(par));
-+	flow.flowi4_uid = sock_net_uid(xt_net(par), NULL);
- 
- 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
- }
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index e886147eed11..fc65d69f23e1 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -65,6 +65,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct flowi4 fl4 = {
- 		.flowi4_scope = RT_SCOPE_UNIVERSE,
- 		.flowi4_iif = LOOPBACK_IFINDEX,
-+		.flowi4_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
- 	const struct net_device *oif;
- 	const struct net_device *found;
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index 69d86b040a6a..a01d9b842bd0 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -40,6 +40,7 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		.flowi6_l3mdev = l3mdev_master_ifindex_rcu(dev),
- 		.flowlabel = (* (__be32 *) iph) & IPV6_FLOWINFO_MASK,
- 		.flowi6_proto = iph->nexthdr,
-+		.flowi6_uid = sock_net_uid(net, NULL),
- 		.daddr = iph->saddr,
- 	};
- 	int lookup_flags;
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 91faac610e03..36dc14b34388 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -66,6 +66,7 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 	struct flowi6 fl6 = {
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
-+		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
- 	u32 ret = 0;
- 
-@@ -163,6 +164,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct flowi6 fl6 = {
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
-+		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
- 	struct rt6_info *rt;
- 	int lookup_flags;
--- 
-2.21.3
-
+Thanks,
+Daniel
