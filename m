@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C7AEC4167D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Oct 2022 11:04:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3C5C43219
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Oct 2022 11:04:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230027AbiJQLEG (ORCPT
+        id S229916AbiJQLEF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Oct 2022 07:04:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34032 "EHLO
+        Mon, 17 Oct 2022 07:04:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231208AbiJQLDo (ORCPT
+        with ESMTP id S231196AbiJQLDn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2022 07:03:44 -0400
+        Mon, 17 Oct 2022 07:03:43 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F06F310C8
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2022 04:03:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CC89810C8
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2022 04:03:41 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v5 7/7] netfilter: nft_inner: set tunnel offset to GRE header offset
-Date:   Mon, 17 Oct 2022 13:03:35 +0200
-Message-Id: <20221017110335.742076-8-pablo@netfilter.org>
+Subject: [PATCH nf-next,v5 1/7] netfilter: nft_payload: access GRE payload via inner offset
+Date:   Mon, 17 Oct 2022 13:03:29 +0200
+Message-Id: <20221017110335.742076-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221017110335.742076-1-pablo@netfilter.org>
 References: <20221017110335.742076-1-pablo@netfilter.org>
@@ -30,39 +30,66 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set inner tunnel offset to the GRE header, this is redundant to existing
-transport header offset, but this normalizes the handling of the tunnel
-header regardless its location in the layering. GRE version 0 is overloaded
-with RFCs, the type decorator in the inner expression might also be useful
-to interpret matching fields from the netlink delinearize path in userspace.
+Parse GRE v0 packets to properly set up inner offset, this allow for
+matching on inner headers.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v5: new in the series.
+v5: skip if GRE_ROUTING flag is set.
 
- net/netfilter/nft_inner.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ net/netfilter/nft_payload.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index 19fdc8c70cd1..eae7caeff316 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -174,8 +174,13 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
- 				  const struct nft_pktinfo *pkt,
- 				  struct nft_inner_tun_ctx *ctx, u32 *off)
- {
--	if (pkt->tprot != IPPROTO_UDP ||
--	    pkt->tprot != IPPROTO_GRE)
-+	if (pkt->tprot == IPPROTO_GRE) {
-+		ctx->inner_tunoff = pkt->thoff;
-+		ctx->flags |= NFT_PAYLOAD_CTX_INNER_TUN;
-+		return 0;
-+	}
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 99d971fc54ad..c2ab64e12f79 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -19,6 +19,7 @@
+ /* For layer 4 checksum field offset. */
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
++#include <net/gre.h>
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+@@ -100,6 +101,37 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
+ 		pkt->inneroff = thoff + __tcp_hdrlen(th);
+ 		}
+ 		break;
++	case IPPROTO_GRE: {
++		u32 offset = sizeof(struct gre_base_hdr), version;
++		struct gre_base_hdr *gre, _gre;
 +
-+	if (pkt->tprot != IPPROTO_UDP)
++		gre = skb_header_pointer(pkt->skb, thoff, sizeof(_gre), &_gre);
++		if (!gre)
++			return -1;
++
++		version = gre->flags & GRE_VERSION;
++		switch (version) {
++		case GRE_VERSION_0:
++			if (gre->flags & GRE_ROUTING)
++				return -1;
++
++			if (gre->flags & GRE_CSUM) {
++				offset += sizeof_field(struct gre_full_hdr, csum) +
++					  sizeof_field(struct gre_full_hdr, reserved1);
++			}
++			if (gre->flags & GRE_KEY)
++				offset += sizeof_field(struct gre_full_hdr, key);
++
++			if (gre->flags & GRE_SEQ)
++				offset += sizeof_field(struct gre_full_hdr, seq);
++			break;
++		default:
++			return -1;
++		}
++
++		pkt->inneroff = thoff + offset;
++		}
++		break;
+ 	default:
  		return -1;
- 
- 	ctx->inner_tunoff = *off;
+ 	}
 -- 
 2.30.2
 
