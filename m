@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F344C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Oct 2022 11:04:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15D7DC4167B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Oct 2022 11:04:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbiJQLE3 (ORCPT
+        id S230174AbiJQLE3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 17 Oct 2022 07:04:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34624 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230224AbiJQLEW (ORCPT
+        with ESMTP id S230188AbiJQLEW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 17 Oct 2022 07:04:22 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0B66CE44
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2022 04:04:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 393562DA
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2022 04:04:20 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2 11/16] src: add geneve matching support
-Date:   Mon, 17 Oct 2022 13:04:03 +0200
-Message-Id: <20221017110408.742223-12-pablo@netfilter.org>
+Subject: [PATCH nft,v2 09/16] tests: py: add gre tests
+Date:   Mon, 17 Oct 2022 13:04:01 +0200
+Message-Id: <20221017110408.742223-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221017110408.742223-1-pablo@netfilter.org>
 References: <20221017110408.742223-1-pablo@netfilter.org>
@@ -30,184 +30,126 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add support for GENEVE vni and (ether) type header field.
-
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/proto.h    | 13 +++++++++++++
- src/parser_bison.y | 32 +++++++++++++++++++++++++++++---
- src/proto.c        | 28 ++++++++++++++++++++++++++++
- src/scanner.l      |  2 ++
- 4 files changed, 72 insertions(+), 3 deletions(-)
+ tests/py/inet/gre.t         | 22 +++++++++++
+ tests/py/inet/gre.t.payload | 78 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 100 insertions(+)
+ create mode 100644 tests/py/inet/gre.t
+ create mode 100644 tests/py/inet/gre.t.payload
 
-diff --git a/include/proto.h b/include/proto.h
-index 4b0c71467638..c2c973f383cf 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -97,6 +97,7 @@ enum proto_desc_id {
- 	PROTO_DESC_VLAN,
- 	PROTO_DESC_ETHER,
- 	PROTO_DESC_VXLAN,
-+	PROTO_DESC_GENEVE,
- 	PROTO_DESC_GRE,
- 	__PROTO_DESC_MAX
- };
-@@ -397,6 +398,17 @@ enum vxlan_hdr_fields {
- 	VXLANHDR_FLAGS,
- };
- 
-+struct gnvhdr {
-+	uint16_t flags;
-+	uint16_t type;
-+	uint32_t vni;
-+};
-+enum geneve_hdr_fields {
-+	GNVHDR_INVALID,
-+	GNVHDR_VNI,
-+	GNVHDR_TYPE,
-+};
+diff --git a/tests/py/inet/gre.t b/tests/py/inet/gre.t
+new file mode 100644
+index 000000000000..a3e046a1aea5
+--- /dev/null
++++ b/tests/py/inet/gre.t
+@@ -0,0 +1,22 @@
++:input;type filter hook input priority 0
++:ingress;type filter hook ingress device lo priority 0
++:egress;type filter hook egress device lo priority 0
 +
- struct grehdr {
- 	uint16_t flags;
- 	uint16_t protocol;
-@@ -410,6 +422,7 @@ enum gre_hdr_fields {
- };
- 
- extern const struct proto_desc proto_vxlan;
-+extern const struct proto_desc proto_geneve;
- extern const struct proto_desc proto_gre;
- 
- extern const struct proto_desc proto_icmp;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 9273a09a3727..99bb17e7fb07 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -444,6 +444,8 @@ int nft_lex(void *, void *, void *);
- 
- %token GRE			"gre"
- 
-+%token GENEVE			"geneve"
++*ip;test-ip4;input
++*ip6;test-ip6;input
++*inet;test-inet;input
++*netdev;test-netdev;ingress,egress
 +
- %token SCTP			"sctp"
- %token CHUNK			"chunk"
- %token DATA			"data"
-@@ -902,9 +904,12 @@ int nft_lex(void *, void *, void *);
- %type <val>			tcpopt_field_maxseg	tcpopt_field_mptcp	tcpopt_field_sack	 tcpopt_field_tsopt	tcpopt_field_window
- %type <tcp_kind_field>		tcp_hdr_option_kind_and_field
- 
--%type <expr>			inner_eth_expr inner_inet_expr inner_expr vxlan_hdr_expr gre_hdr_expr
--%destructor { expr_free($$); }	inner_eth_expr inner_inet_expr inner_expr vxlan_hdr_expr gre_hdr_expr
--%type <val>			vxlan_hdr_field gre_hdr_field
-+%type <expr>			inner_eth_expr inner_inet_expr inner_expr
-+%destructor { expr_free($$); }	inner_eth_expr inner_inet_expr inner_expr
++gre version 0;ok
++gre ip saddr 10.141.11.2;ok
++gre ip saddr 10.141.11.0/24;ok
++gre ip protocol 1;ok
++gre udp sport 8888;ok
++gre icmp type echo-reply;ok
++gre ether saddr 62:87:4d:d6:19:05;fail
++gre vlan id 10;fail
++gre ip dscp 0x02;ok
++gre ip dscp 0x02;ok
++gre ip saddr . gre ip daddr { 1.2.3.4 . 4.3.2.1 };ok
 +
-+%type <expr>			vxlan_hdr_expr geneve_hdr_expr gre_hdr_expr
-+%destructor { expr_free($$); }	vxlan_hdr_expr geneve_hdr_expr gre_hdr_expr
-+%type <val>			vxlan_hdr_field geneve_hdr_field gre_hdr_field
- 
- %type <stmt>			optstrip_stmt
- %destructor { stmt_free($$); }	optstrip_stmt
-@@ -5329,6 +5334,7 @@ payload_expr		:	payload_raw_expr
- 			|	sctp_hdr_expr
- 			|	th_hdr_expr
- 			|	vxlan_hdr_expr
-+			|	geneve_hdr_expr
- 			|	gre_hdr_expr
- 			;
- 
-@@ -5626,6 +5632,26 @@ vxlan_hdr_field		:	VNI			{ $$ = VXLANHDR_VNI; }
- 			|	FLAGS			{ $$ = VXLANHDR_FLAGS; }
- 			;
- 
-+geneve_hdr_expr		:	GENEVE	geneve_hdr_field
-+			{
-+				struct expr *expr;
++gre ip saddr set 1.2.3.4;fail
+diff --git a/tests/py/inet/gre.t.payload b/tests/py/inet/gre.t.payload
+new file mode 100644
+index 000000000000..333133ede415
+--- /dev/null
++++ b/tests/py/inet/gre.t.payload
+@@ -0,0 +1,78 @@
++# gre version 0
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
++  [ bitwise reg 1 = ( reg 1 & 0x00000007 ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000000 ]
 +
-+				expr = payload_expr_alloc(&@$, &proto_geneve, $2);
-+				expr->payload.inner_desc = &proto_geneve;
-+				$$ = expr;
-+			}
-+			|	GENEVE	inner_expr
-+			{
-+				$$ = $2;
-+				$$->location = @$;
-+				$$->payload.inner_desc = &proto_geneve;
-+			}
-+			;
++# gre ip saddr 10.141.11.2
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load protocol => reg 1 ] ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 4b @ network header + 12 => reg 1 ] ]
++  [ cmp eq reg 1 0x020b8d0a ]
 +
-+geneve_hdr_field	:	VNI			{ $$ = GNVHDR_VNI; }
-+			|	TYPE			{ $$ = GNVHDR_TYPE; }
-+			;
++# gre ip saddr 10.141.11.0/24
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load protocol => reg 1 ] ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 3b @ network header + 12 => reg 1 ] ]
++  [ cmp eq reg 1 0x000b8d0a ]
 +
- gre_hdr_expr		:	GRE	gre_hdr_field	close_scope_gre
- 			{
- 				$$ = payload_expr_alloc(&@$, &proto_gre, $2);
-diff --git a/src/proto.c b/src/proto.c
-index 3bb4ae74a439..0986a3800000 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -90,6 +90,7 @@ int proto_find_num(const struct proto_desc *base,
- 
- static const struct proto_desc *inner_protocols[] = {
- 	&proto_vxlan,
-+	&proto_geneve,
- 	&proto_gre,
- };
- 
-@@ -542,6 +543,7 @@ const struct proto_desc proto_udp = {
- 	},
- 	.protocols	= {
- 		PROTO_LINK(0,	&proto_vxlan),
-+		PROTO_LINK(0,	&proto_geneve),
- 	},
- };
- 
-@@ -1215,6 +1217,32 @@ const struct proto_desc proto_vxlan = {
- 	},
- };
- 
-+/*
-+ * GENEVE
-+ */
++# gre ip protocol 1
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load protocol => reg 1 ] ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 1b @ network header + 9 => reg 1 ] ]
++  [ cmp eq reg 1 0x00000001 ]
 +
-+const struct proto_desc proto_geneve = {
-+	.name		= "geneve",
-+	.id		= PROTO_DESC_GENEVE,
-+	.base		= PROTO_BASE_INNER_HDR,
-+	.templates	= {
-+		[GNVHDR_TYPE]	= HDR_TYPE("type", &ethertype_type, struct gnvhdr, type),
-+		[GNVHDR_VNI]	= HDR_BITFIELD("vni", &integer_type, (4 * BITS_PER_BYTE), 24),
-+	},
-+	.protocols	= {
-+		PROTO_LINK(__constant_htons(ETH_P_IP),		&proto_ip),
-+		PROTO_LINK(__constant_htons(ETH_P_ARP),		&proto_arp),
-+		PROTO_LINK(__constant_htons(ETH_P_IPV6),	&proto_ip6),
-+		PROTO_LINK(__constant_htons(ETH_P_8021Q),	&proto_vlan),
-+	},
-+	.inner		= {
-+		.hdrsize	= sizeof(struct gnvhdr),
-+		.flags		= NFT_INNER_HDRSIZE | NFT_INNER_LL | NFT_INNER_NH | NFT_INNER_TH,
-+		.type		= NFT_INNER_GENEVE,
-+	},
-+};
++# gre udp sport 8888
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load l4proto => reg 1 ] ]
++  [ cmp eq reg 1 0x00000011 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 2b @ transport header + 0 => reg 1 ] ]
++  [ cmp eq reg 1 0x0000b822 ]
 +
++# gre icmp type echo-reply
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load protocol => reg 1 ] ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ inner type 3 hdrsize 4 flags c [ meta load l4proto => reg 1 ] ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 1b @ transport header + 0 => reg 1 ] ]
++  [ cmp eq reg 1 0x00000000 ]
 +
- /*
-  * Dummy protocol for netdev tables.
-  */
-diff --git a/src/scanner.l b/src/scanner.l
-index 06ca4059f266..cc5b9c43233f 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -624,6 +624,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "vxlan"			{ return VXLAN; }
- "vni"			{ return VNI; }
- 
-+"geneve"		{ return GENEVE; }
++# gre ip dscp 0x02
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load protocol => reg 1 ] ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 1b @ network header + 1 => reg 1 ] ]
++  [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x00000008 ]
 +
- "gre"			{ scanner_push_start_cond(yyscanner, SCANSTATE_GRE); return GRE; }
- 
- "tcp"			{ scanner_push_start_cond(yyscanner, SCANSTATE_TCP); return TCP; }
++# gre ip saddr . gre ip daddr { 1.2.3.4 . 4.3.2.1 }
++__set%d test-ip4 3 size 1
++__set%d test-ip4 0
++	element 04030201 01020304  : 0 [end]
++ip test-ip4 input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000002f ]
++  [ inner type 3 hdrsize 4 flags c [ meta load protocol => reg 1 ] ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 4b @ network header + 12 => reg 1 ] ]
++  [ inner type 3 hdrsize 4 flags c [ payload load 4b @ network header + 16 => reg 9 ] ]
++  [ lookup reg 1 set __set%d ]
++
 -- 
 2.30.2
 
