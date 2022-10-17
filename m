@@ -2,78 +2,92 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31E82C43217
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Oct 2022 11:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4697EC4321E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Oct 2022 11:04:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229909AbiJQLEF (ORCPT
+        id S230024AbiJQLEG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Oct 2022 07:04:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34010 "EHLO
+        Mon, 17 Oct 2022 07:04:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231195AbiJQLDn (ORCPT
+        with ESMTP id S231203AbiJQLDo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2022 07:03:43 -0400
+        Mon, 17 Oct 2022 07:03:44 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CCE8A113E
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2022 04:03:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9D40E5FA9
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2022 04:03:43 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v5 0/7] nf_tables inner tunnel header match support
-Date:   Mon, 17 Oct 2022 13:03:28 +0200
-Message-Id: <20221017110335.742076-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v5 6/7] netfilter: nft_inner: add geneve support
+Date:   Mon, 17 Oct 2022 13:03:34 +0200
+Message-Id: <20221017110335.742076-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221017110335.742076-1-pablo@netfilter.org>
+References: <20221017110335.742076-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Geneve tunnel header may contain options, parse geneve header and update
+offset to point to the link layer header according to the opt_len field.
 
-This is version 5 for this patchset.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v5: no changes
 
-The inner expression provides a packet parser for the tunneled packet
-which uses a userspace description of the expected inner headers. Then,
-the inner expression (only payload and meta supported at this stage) is
-used to match on the inner header protocol fields, using the new link,
-network and transport offsets as well as inner metadata.
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nft_inner.c                | 17 +++++++++++++++++
+ 2 files changed, 18 insertions(+)
 
-This patchset adds support for VxLAN, Geneve, GRE and IPIP.
-
-Changes in this v5:
-
-Patch #1 skip if GRE_ROUTING flag is set
-Patch #2 no changes
-Patch #3 use absolute inner offsets
-         restrict tunnel header offset to GRE and UDP.
-         set ctx->llproto to outer ethertype to fix NFT_META_PROTOCOL semantics.
-Patch #4 no changes
-Patch #5 no changes
-Patch #6 no changes
-Patch #7 new in the series: set tunnel header offset to GRE header.
-
-Pablo Neira Ayuso (7):
-  netfilter: nft_payload: access GRE payload via inner offset
-  netfilter: nft_payload: access ipip payload for inner offset
-  netfilter: nft_inner: support for inner tunnel header matching
-  netfilter: nft_inner: add percpu inner context
-  netfilter: nft_meta: add inner match support
-  netfilter: nft_inner: add geneve support
-  netfilter: nft_inner: set tunnel offset to GRE header offset
-
- include/net/netfilter/nf_tables.h        |   6 +
- include/net/netfilter/nf_tables_core.h   |  25 ++
- include/net/netfilter/nft_meta.h         |   6 +
- include/uapi/linux/netfilter/nf_tables.h |  27 ++
- net/netfilter/Makefile                   |   3 +-
- net/netfilter/nf_tables_api.c            |  37 +++
- net/netfilter/nf_tables_core.c           |   1 +
- net/netfilter/nft_inner.c                | 384 +++++++++++++++++++++++
- net/netfilter/nft_meta.c                 |  62 ++++
- net/netfilter/nft_payload.c              | 124 +++++++-
- 10 files changed, 673 insertions(+), 2 deletions(-)
- create mode 100644 net/netfilter/nft_inner.c
-
---
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 05a15dce8271..e4b739d57480 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -783,6 +783,7 @@ enum nft_payload_csum_flags {
+ enum nft_inner_type {
+ 	NFT_INNER_UNSPEC	= 0,
+ 	NFT_INNER_VXLAN,
++	NFT_INNER_GENEVE,
+ };
+ 
+ enum nft_inner_flags {
+diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+index c43a2fe0ceb7..19fdc8c70cd1 100644
+--- a/net/netfilter/nft_inner.c
++++ b/net/netfilter/nft_inner.c
+@@ -17,6 +17,7 @@
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
+ #include <net/gre.h>
++#include <net/geneve.h>
+ #include <net/ip.h>
+ #include <linux/icmpv6.h>
+ #include <linux/ip.h>
+@@ -181,6 +182,22 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
+ 	ctx->flags |= NFT_PAYLOAD_CTX_INNER_TUN;
+ 	*off += priv->hdrsize;
+ 
++	switch (priv->type) {
++	case NFT_INNER_GENEVE: {
++		struct genevehdr *gnvh, _gnvh;
++
++		gnvh = skb_header_pointer(pkt->skb, pkt->inneroff,
++					  sizeof(_gnvh), &_gnvh);
++		if (!gnvh)
++			return -1;
++
++		*off += gnvh->opt_len * 4;
++		}
++		break;
++	default:
++		break;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
 2.30.2
 
