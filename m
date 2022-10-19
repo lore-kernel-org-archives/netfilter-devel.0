@@ -2,74 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22D2EC4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 06:52:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC9AFC43217
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 06:52:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230120AbiJSGwn (ORCPT
+        id S229922AbiJSGwp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Oct 2022 02:52:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53392 "EHLO
+        Wed, 19 Oct 2022 02:52:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230132AbiJSGwf (ORCPT
+        with ESMTP id S230150AbiJSGwh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Oct 2022 02:52:35 -0400
+        Wed, 19 Oct 2022 02:52:37 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA17A74CFB;
-        Tue, 18 Oct 2022 23:52:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4F90C754B7;
+        Tue, 18 Oct 2022 23:52:34 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date:   Wed, 19 Oct 2022 08:52:23 +0200
-Message-Id: <20221019065225.1006344-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] netfilter: nf_tables: relax NFTA_SET_ELEM_KEY_END set flags requirements
+Date:   Wed, 19 Oct 2022 08:52:25 +0200
+Message-Id: <20221019065225.1006344-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221019065225.1006344-1-pablo@netfilter.org>
+References: <20221019065225.1006344-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Otherwise EINVAL is bogusly reported to userspace when deleting a set
+element. NFTA_SET_ELEM_KEY_END does not need to be set in case of:
 
-The following patchset contains Netfilter fixes for net:
+- insertion: if not present, start key is used as end key.
+- deletion: only start key needs to be specified, end key is ignored.
 
-1) Missing flowi uid field in nft_fib expression, from Guillaume Nault.
-   This is broken since the creation of the fib expression.
+Hence, relax the sanity check.
 
-2) Relax sanity check to fix bogus EINVAL error when deleting elements
-   belonging set intervals. Broken since 6.0-rc.
+Fixes: 88cccd908d51 ("netfilter: nf_tables: NFTA_SET_ELEM_KEY_END requires concat and interval flags")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Please, pull these changes from:
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a0653a8dfa82..58d9cbc9ccdc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5865,8 +5865,9 @@ static bool nft_setelem_valid_key_end(const struct nft_set *set,
+ 			  (NFT_SET_CONCAT | NFT_SET_INTERVAL)) {
+ 		if (flags & NFT_SET_ELEM_INTERVAL_END)
+ 			return false;
+-		if (!nla[NFTA_SET_ELEM_KEY_END] &&
+-		    !(flags & NFT_SET_ELEM_CATCHALL))
++
++		if (nla[NFTA_SET_ELEM_KEY_END] &&
++		    flags & NFT_SET_ELEM_CATCHALL)
+ 			return false;
+ 	} else {
+ 		if (nla[NFTA_SET_ELEM_KEY_END])
+-- 
+2.30.2
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 1ca695207ed2271ecbf8ee6c641970f621c157cc:
-
-  ip6mr: fix UAF issue in ip6mr_sk_done() when addrconf_init_net() failed (2022-10-18 11:05:55 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
-
-for you to fetch changes up to 96df8360dbb435cc69f7c3c8db44bf8b1c24cd7b:
-
-  netfilter: nf_tables: relax NFTA_SET_ELEM_KEY_END set flags requirements (2022-10-19 08:46:48 +0200)
-
-----------------------------------------------------------------
-Guillaume Nault (1):
-      netfilter: rpfilter/fib: Set ->flowic_uid correctly for user namespaces.
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_tables: relax NFTA_SET_ELEM_KEY_END set flags requirements
-
- net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
- net/ipv4/netfilter/nft_fib_ipv4.c  | 1 +
- net/ipv6/netfilter/ip6t_rpfilter.c | 1 +
- net/ipv6/netfilter/nft_fib_ipv6.c  | 2 ++
- net/netfilter/nf_tables_api.c      | 5 +++--
- 5 files changed, 8 insertions(+), 2 deletions(-)
