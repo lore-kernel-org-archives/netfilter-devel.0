@@ -2,114 +2,87 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6180BC4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 06:52:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 428C0C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 13:05:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230154AbiJSGwu (ORCPT
+        id S230058AbiJSNFe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Oct 2022 02:52:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53714 "EHLO
+        Wed, 19 Oct 2022 09:05:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230157AbiJSGwl (ORCPT
+        with ESMTP id S229841AbiJSNFL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Oct 2022 02:52:41 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 203F375498;
-        Tue, 18 Oct 2022 23:52:33 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 1/2] netfilter: rpfilter/fib: Set ->flowic_uid correctly for user namespaces.
-Date:   Wed, 19 Oct 2022 08:52:24 +0200
-Message-Id: <20221019065225.1006344-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20221019065225.1006344-1-pablo@netfilter.org>
-References: <20221019065225.1006344-1-pablo@netfilter.org>
+        Wed, 19 Oct 2022 09:05:11 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 087B926EE
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2022 05:49:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1666183686;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Q8LPpnYpysqGSiJUPWry3p0iYpcsy7FD/788/f3PsSg=;
+        b=Qn0+rBGPLiyH9WHpiRTaD/2x699wQdTKEXjcYQCBqjxov9u8rlSP6+ShXtqWFCXOrb6euG
+        CSREjUN+CeBkrzKOAzlJB9dbjOpl8JSP0gSN6GAGy1ztbMk6saQeh5VMS17HpGGxFU6rVF
+        zM9mCHcFnjjeYpPnwpEe8uq2HT9fREk=
+Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
+ [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-526-bX29pvWPPFSQf0wSFDJAnA-1; Wed, 19 Oct 2022 08:41:30 -0400
+X-MC-Unique: bX29pvWPPFSQf0wSFDJAnA-1
+Received: by mail-ej1-f70.google.com with SMTP id hq13-20020a1709073f0d00b0078dce6a32fcso7973558ejc.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2022 05:41:30 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Q8LPpnYpysqGSiJUPWry3p0iYpcsy7FD/788/f3PsSg=;
+        b=DVIXMR4SaQjrIu+yAX+ZYaH96tnP7AV+S1AfAtdLyTyBbQtld2db3SQ83VTge73yx3
+         o5gQLsYJKnHcTIrdLKYLI6xc+wgqPqTR4Ngf77iCyPdOfR9na/oasBcF8oZmvB8VAg5a
+         ZyT4fQdsiE7jJobRnBVjJfgCZEXHdxotaN7t54ZykQpiHlqiMRz1mgPQx/qFIK7dsjSr
+         18MGV+nfbfxXCyEZTqeszZ0xVXvC4hwz+2ZDLJod9IRgqDUz8n6ycQzx89+3gx9J98W/
+         4MPZocUTPXpXz0GctnfDd/DEjGACTxHA2997xduHucYB54yqoPbOHZIhkk1nzfm9kppm
+         h5eg==
+X-Gm-Message-State: ACrzQf0gwxev18WDvabxKu4nfmHtmZzsa3uWV934HTLFfhFf1cQ9ZZyE
+        vdKzqOSqn1b74TRbaim9XIjwOcpK8AC/0GvzPbpPPXax97h6nq/Gpi0BmXLF+u2f4WfhdyRuDUa
+        cw23HLGOry0JA3qT2aCEsYym3Jqgc
+X-Received: by 2002:a17:906:5a4b:b0:78d:8790:d4a1 with SMTP id my11-20020a1709065a4b00b0078d8790d4a1mr6561277ejc.329.1666183287302;
+        Wed, 19 Oct 2022 05:41:27 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM6sWe0zylQfRJULRKTF9A5wU7VQf2KsdTVq4NOZsdUmfUsJ4OCFQfVUDSsqaTfCq+dVr7yOIg==
+X-Received: by 2002:a17:906:5a4b:b0:78d:8790:d4a1 with SMTP id my11-20020a1709065a4b00b0078d8790d4a1mr6561225ejc.329.1666183286337;
+        Wed, 19 Oct 2022 05:41:26 -0700 (PDT)
+Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
+        by smtp.gmail.com with ESMTPSA id k15-20020a17090632cf00b0078d38cda2b1sm8818709ejk.202.2022.10.19.05.41.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 19 Oct 2022 05:41:25 -0700 (PDT)
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 9D7306C25B2; Wed, 19 Oct 2022 14:41:24 +0200 (CEST)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+To:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org
+Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: netfilter+bpf road ahead
+In-Reply-To: <20221018182637.GA4631@breakpoint.cc>
+References: <20221018182637.GA4631@breakpoint.cc>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Wed, 19 Oct 2022 14:41:24 +0200
+Message-ID: <87a65shtor.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Guillaume Nault <gnault@redhat.com>
+Florian Westphal <fw@strlen.de> writes:
 
-Currently netfilter's rpfilter and fib modules implicitely initialise
-->flowic_uid with 0. This is normally the root UID. However, this isn't
-the case in user namespaces, where user ID 0 is mapped to a different
-kernel UID. By initialising ->flowic_uid with sock_net_uid(), we get
-the root UID of the user namespace, thus keeping the same behaviour
-whether or not we're running in a user namepspace.
+> - lots of details to be figured out, but if netfilter core folks
+> agree to this plan it will be one of the most exciting
+> projects in the linux networking. iptables will see significant
+> performance boost and major feature addition.
+> Blending bpf and netfilter worlds would be fantastic.
 
-Note, this is similar to commit 8bcfd0925ef1 ("ipv4: add missing
-initialization for flowi4_uid"), which fixed the rp_filter sysctl.
++1 on this; sounds like great news, and I look forward to seeing this
+effort come to fruition. Thank you both for taking time to hash this
+out! :)
 
-Fixes: 622ec2c9d524 ("net: core: add UID to flows, rules, and routes")
-Signed-off-by: Guillaume Nault <gnault@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
- net/ipv4/netfilter/nft_fib_ipv4.c  | 1 +
- net/ipv6/netfilter/ip6t_rpfilter.c | 1 +
- net/ipv6/netfilter/nft_fib_ipv6.c  | 2 ++
- 4 files changed, 5 insertions(+)
-
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index ff85db52b2e5..ded5bef02f77 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -78,6 +78,7 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	flow.flowi4_tos = iph->tos & IPTOS_RT_MASK;
- 	flow.flowi4_scope = RT_SCOPE_UNIVERSE;
- 	flow.flowi4_l3mdev = l3mdev_master_ifindex_rcu(xt_in(par));
-+	flow.flowi4_uid = sock_net_uid(xt_net(par), NULL);
- 
- 	return rpfilter_lookup_reverse(xt_net(par), &flow, xt_in(par), info->flags) ^ invert;
- }
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index e886147eed11..fc65d69f23e1 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -65,6 +65,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct flowi4 fl4 = {
- 		.flowi4_scope = RT_SCOPE_UNIVERSE,
- 		.flowi4_iif = LOOPBACK_IFINDEX,
-+		.flowi4_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
- 	const struct net_device *oif;
- 	const struct net_device *found;
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index 69d86b040a6a..a01d9b842bd0 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -40,6 +40,7 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		.flowi6_l3mdev = l3mdev_master_ifindex_rcu(dev),
- 		.flowlabel = (* (__be32 *) iph) & IPV6_FLOWINFO_MASK,
- 		.flowi6_proto = iph->nexthdr,
-+		.flowi6_uid = sock_net_uid(net, NULL),
- 		.daddr = iph->saddr,
- 	};
- 	int lookup_flags;
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 91faac610e03..36dc14b34388 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -66,6 +66,7 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 	struct flowi6 fl6 = {
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
-+		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
- 	u32 ret = 0;
- 
-@@ -163,6 +164,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct flowi6 fl6 = {
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
-+		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
- 	struct rt6_info *rt;
- 	int lookup_flags;
--- 
-2.30.2
+-Toke
 
