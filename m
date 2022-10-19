@@ -2,47 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E08D5C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 06:46:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22D2EC4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 06:52:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230073AbiJSGqp (ORCPT
+        id S230120AbiJSGwn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Oct 2022 02:46:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41962 "EHLO
+        Wed, 19 Oct 2022 02:52:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230058AbiJSGql (ORCPT
+        with ESMTP id S230132AbiJSGwf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Oct 2022 02:46:41 -0400
+        Wed, 19 Oct 2022 02:52:35 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 272C574BBF
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2022 23:46:36 -0700 (PDT)
-Date:   Wed, 19 Oct 2022 08:46:33 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA17A74CFB;
+        Tue, 18 Oct 2022 23:52:31 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Guillaume Nault <gnault@redhat.com>
-Cc:     kadlec@netfilter.org, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Lorenzo Colitti <lorenzo@google.com>
-Subject: Re: [PATCH nf] netfilter: rpfilter/fib: Set ->flowic_uid correctly
- for user namespaces.
-Message-ID: <Y0+dSZ2bVZN6mqgY@salvia>
-References: <8853c474dc0f7baafcd3efb8e34a4d12be472495.1665671763.git.gnault@redhat.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/2] Netfilter fixes for net
+Date:   Wed, 19 Oct 2022 08:52:23 +0200
+Message-Id: <20221019065225.1006344-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <8853c474dc0f7baafcd3efb8e34a4d12be472495.1665671763.git.gnault@redhat.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 13, 2022 at 04:37:47PM +0200, Guillaume Nault wrote:
-> Currently netfilter's rpfilter and fib modules implicitely initialise
-> ->flowic_uid with 0. This is normally the root UID. However, this isn't
-> the case in user namespaces, where user ID 0 is mapped to a different
-> kernel UID. By initialising ->flowic_uid with sock_net_uid(), we get
-> the root UID of the user namespace, thus keeping the same behaviour
-> whether or not we're running in a user namepspace.
-> 
-> Note, this is similar to commit 8bcfd0925ef1 ("ipv4: add missing
-> initialization for flowi4_uid"), which fixed the rp_filter sysctl.
+Hi,
 
-Applied, thanks
+The following patchset contains Netfilter fixes for net:
+
+1) Missing flowi uid field in nft_fib expression, from Guillaume Nault.
+   This is broken since the creation of the fib expression.
+
+2) Relax sanity check to fix bogus EINVAL error when deleting elements
+   belonging set intervals. Broken since 6.0-rc.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 1ca695207ed2271ecbf8ee6c641970f621c157cc:
+
+  ip6mr: fix UAF issue in ip6mr_sk_done() when addrconf_init_net() failed (2022-10-18 11:05:55 +0200)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 96df8360dbb435cc69f7c3c8db44bf8b1c24cd7b:
+
+  netfilter: nf_tables: relax NFTA_SET_ELEM_KEY_END set flags requirements (2022-10-19 08:46:48 +0200)
+
+----------------------------------------------------------------
+Guillaume Nault (1):
+      netfilter: rpfilter/fib: Set ->flowic_uid correctly for user namespaces.
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: relax NFTA_SET_ELEM_KEY_END set flags requirements
+
+ net/ipv4/netfilter/ipt_rpfilter.c  | 1 +
+ net/ipv4/netfilter/nft_fib_ipv4.c  | 1 +
+ net/ipv6/netfilter/ip6t_rpfilter.c | 1 +
+ net/ipv6/netfilter/nft_fib_ipv6.c  | 2 ++
+ net/netfilter/nf_tables_api.c      | 5 +++--
+ 5 files changed, 8 insertions(+), 2 deletions(-)
