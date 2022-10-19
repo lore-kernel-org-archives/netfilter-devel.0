@@ -2,80 +2,84 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30399C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 17:54:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1CF8C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Oct 2022 23:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229508AbiJSRyQ (ORCPT
+        id S231522AbiJSXB7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Oct 2022 13:54:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58408 "EHLO
+        Wed, 19 Oct 2022 19:01:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229826AbiJSRyP (ORCPT
+        with ESMTP id S231645AbiJSXBl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Oct 2022 13:54:15 -0400
-Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05AD71CC3D5
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2022 10:54:14 -0700 (PDT)
-Received: by mail-lf1-x130.google.com with SMTP id r14so29425594lfm.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2022 10:54:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:subject:from:content-language:to
-         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=zqOPXcu7sOH/vWd3cX22vB6AeLp8q+IOm/YhNnmp1/I=;
-        b=YaryscOMIsMFXh21gx4wHs6jKxzJTbm41drLgmOi3V1TF0913hOec+QwvhroSzKJDG
-         cxydzx6FuYFzy7WbScGkylJqNvZBICRRAd4nC5etwv48I0mUU41pZEvNKn+07JbCmkPw
-         kkeitIXs+ylbH35V9EhNdDZm/L+dTzn2+IR5+ocGIOhdr+gA2lsw3cItO6OZVMlVWu6b
-         m3Ssfx4uRnKg0TXf2IB+3BC3MTfZN/HnZBuqJI/ZY5W3w1BvHoZJ1T8tqeT2ewkQ3KA8
-         PAvcEFN+EYdokeuiHbbWGzqaManY2tGHeiMuXqIGZnIiqxzxyaop8fdopFEpaC9apDS6
-         K+mQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:subject:from:content-language:to
-         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=zqOPXcu7sOH/vWd3cX22vB6AeLp8q+IOm/YhNnmp1/I=;
-        b=jToTHakcJYHqsQkpLZYA8kYrVKm8x/Ser3mVxfuA1dGKASHnp5cHWPMS54C/ps3poX
-         KvXnaDnUnwRD6iwGqW+343f26G4tZch56plAOsX3HMdN/RQh9GbZuaQNS+zfMhvSnZUX
-         7FGg0RttbKehrsV4lwdbLSiHaS9nhMr6xhqxW2qIufYVSwr5Zy/hBjimKav0k+M+QPm8
-         bFMVaMt59/fhiHXe8Hep7mH7VSh6kxvu5fRS3h1RR9VLvLwMHfSM8qH43NjFsXdb9pr7
-         bSUyIuDxn6LE2nsKWCIMjLDHXX+F56u2mpgGkoJFlXk9tygqibWr6uKmLM1qaHKvdcO/
-         4J6w==
-X-Gm-Message-State: ACrzQf3pB2ukxOJ2ksZnFB+KSIoKspWV++XJHFOcosFB4lOcJbd0uY1m
-        C5/688fx7Qg1R8OMf5RAjUyY8lhtGbU=
-X-Google-Smtp-Source: AMsMyM4QkSh3GzTEawO9+sXgZ3C0Wx34YsyFl8qZ9S63Bp8Z+rP1sATkXTyTJrwgF9bIaVIeKQzvJw==
-X-Received: by 2002:ac2:592c:0:b0:4a2:3cde:ef7d with SMTP id v12-20020ac2592c000000b004a23cdeef7dmr3033479lfi.251.1666202051090;
-        Wed, 19 Oct 2022 10:54:11 -0700 (PDT)
-Received: from [192.168.1.10] (mail.dargis.net. [62.80.227.49])
-        by smtp.gmail.com with ESMTPSA id r13-20020a2e8e2d000000b0026dffd032b8sm2456757ljk.2.2022.10.19.10.54.09
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 Oct 2022 10:54:10 -0700 (PDT)
-Message-ID: <4fbbbf44-c6b0-bce1-6dbd-934ad2b9c20e@gmail.com>
-Date:   Wed, 19 Oct 2022 20:54:09 +0300
+        Wed, 19 Oct 2022 19:01:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 558E41D374B;
+        Wed, 19 Oct 2022 16:01:20 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B30BD619DA;
+        Wed, 19 Oct 2022 23:00:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1DBBDC433D7;
+        Wed, 19 Oct 2022 23:00:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666220418;
+        bh=Y9/uyJrfFT/bU5U9KFpV563J4cOo3twBZ/7HU8N47GQ=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=ZxbaxTEei1Zf4Pno82HdQ7QjoleFJ0nSVmQMgIlSsNWXLOImiEzZZbacXRfXpO1dy
+         DYnkMqFwwtoA/H1j93i40apZ7zlQY2He2/W39fGdBWzePVgMaIpEvqlZa7QCe13HtO
+         r6Zb0yJNwZxCrcNw8QioniY/Zohf3rctuq2BOEsuWtKI5rdvCHj4Ia2oUqXwLN38dy
+         ecy7I3FQyz2Aex/Fp5l6eJPIGXmvgr7ADZsyazO2/fKiYKslR0e4Ej9zsSUOkIW7Lj
+         G5tEsBMuYW/zEJ+htLAJqpOHy/y7BsewKm8g86vs/w6jVAo9SuRNMoWoO+bJ0aljnf
+         cSi9EJhlC7jgQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EE3C6E4D007;
+        Wed, 19 Oct 2022 23:00:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.3
-To:     netfilter-devel@vger.kernel.org
-Content-Language: en-US
-From:   Vincas Dargis <vindrg@gmail.com>
-Subject: Status of UID GID maching support in INPUT
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/2] netfilter: rpfilter/fib: Set ->flowic_uid correctly
+ for user namespaces.
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166622041796.8151.14904401756676019532.git-patchwork-notify@kernel.org>
+Date:   Wed, 19 Oct 2022 23:00:17 +0000
+References: <20221019065225.1006344-2-pablo@netfilter.org>
+In-Reply-To: <20221019065225.1006344-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hello:
 
-I've found a thread [0] about implementing UID, GID matching, but I am not sure what is the status of that patch.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-What is the status of UID, GID maching in input hook?
+On Wed, 19 Oct 2022 08:52:24 +0200 you wrote:
+> From: Guillaume Nault <gnault@redhat.com>
+> 
+> Currently netfilter's rpfilter and fib modules implicitely initialise
+> ->flowic_uid with 0. This is normally the root UID. However, this isn't
+> the case in user namespaces, where user ID 0 is mapped to a different
+> kernel UID. By initialising ->flowic_uid with sock_net_uid(), we get
+> the root UID of the user namespace, thus keeping the same behaviour
+> whether or not we're running in a user namepspace.
+> 
+> [...]
 
-Firewalld developer hinted that there might be some progress about this [1], but maybe you could clarify/confirm/deny that?
+Here is the summary with links:
+  - [net,1/2] netfilter: rpfilter/fib: Set ->flowic_uid correctly for user namespaces.
+    https://git.kernel.org/netdev/net/c/1fcc064b305a
+  - [net,2/2] netfilter: nf_tables: relax NFTA_SET_ELEM_KEY_END set flags requirements
+    https://git.kernel.org/netdev/net/c/96df8360dbb4
 
-Thanks!
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-[0] https://lore.kernel.org/netfilter-devel/20220420185447.10199-1-toiwoton@gmail.com/
-[1] https://github.com/firewalld/firewalld/issues/725#issuecomment-1245342595
+
