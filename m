@@ -2,39 +2,39 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D7B8C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Oct 2022 15:27:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D3DC433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Oct 2022 15:27:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230334AbiJUP1D (ORCPT
+        id S230335AbiJUP1F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Oct 2022 11:27:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45574 "EHLO
+        Fri, 21 Oct 2022 11:27:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230322AbiJUP1B (ORCPT
+        with ESMTP id S230339AbiJUP1C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Oct 2022 11:27:01 -0400
+        Fri, 21 Oct 2022 11:27:02 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 029FD175357;
-        Fri, 21 Oct 2022 08:26:56 -0700 (PDT)
-Received: from frapeml500001.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Mv7Zv5p6kz67Cp9;
-        Fri, 21 Oct 2022 23:25:43 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52CE924AE22;
+        Fri, 21 Oct 2022 08:27:01 -0700 (PDT)
+Received: from frapeml100007.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Mv7XX6gMTz67kVR;
+        Fri, 21 Oct 2022 23:23:40 +0800 (CST)
 Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
- frapeml500001.china.huawei.com (7.182.85.94) with Microsoft SMTP Server
+ frapeml100007.china.huawei.com (7.182.85.133) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 21 Oct 2022 17:26:54 +0200
+ 15.1.2375.31; Fri, 21 Oct 2022 17:26:59 +0200
 Received: from mscphis00759.huawei.com (10.123.66.134) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 21 Oct 2022 16:26:53 +0100
+ 15.1.2375.31; Fri, 21 Oct 2022 16:26:58 +0100
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <artem.kuzin@huawei.com>
-Subject: [PATCH v8 01/12] landlock: Make ruleset's access masks more generic
-Date:   Fri, 21 Oct 2022 23:26:33 +0800
-Message-ID: <20221021152644.155136-2-konstantin.meskhidze@huawei.com>
+Subject: [PATCH v8 03/12] landlock: Refactor merge/inherit_ruleset functions
+Date:   Fri, 21 Oct 2022 23:26:35 +0800
+Message-ID: <20221021152644.155136-4-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
 References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
@@ -49,259 +49,210 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-To support network type rules, this modification renames ruleset's
-access masks and modifies it's type to access_masks_t. This patch
-adds filesystem helper functions to add and get filesystem mask.
+Refactors merge_ruleset() and inherit_ruleset() functions to support
+new rule types. This patch adds merge_tree() and inherit_tree()
+helpers. Each has key_type argument to choose a particular rb_tree
+structure in a ruleset.
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v7:
-* Refactors commit message.
+* Adds missed lockdep_assert_held it inherit_tree() and merge_tree().
+* Fixes comment.
 
 Changes since v6:
-* Adds a new access_masks_t for struct ruleset.
-* Renames landlock_set_fs_access_mask() to landlock_add_fs_access_mask()
-  because it OR values.
-* Makes landlock_add_fs_access_mask() more resilient incorrect values.
-* Refactors landlock_get_fs_access_mask().
-
-Changes since v6:
-* Adds a new access_masks_t for struct ruleset.
-* Renames landlock_set_fs_access_mask() to landlock_add_fs_access_mask()
-  because it OR values.
-* Makes landlock_add_fs_access_mask() more resilient incorrect values.
-* Refactors landlock_get_fs_access_mask().
+* Refactors merge_ruleset() and inherit_ruleset() functions to support
+  new rule types.
+* Renames tree_merge() to merge_tree() (and reorder arguments), and
+  tree_copy() to inherit_tree().
 
 Changes since v5:
-* Changes access_mask_t to u32.
+* Refactors some logic errors.
 * Formats code with clang-format-14.
 
 Changes since v4:
-* Deletes struct landlock_access_mask.
-
-Changes since v3:
-* Splits commit.
-* Adds get_mask, set_mask helpers for filesystem.
-* Adds new struct landlock_access_mask.
+* None
 
 ---
- security/landlock/fs.c       | 10 +++++-----
- security/landlock/limits.h   |  1 +
- security/landlock/ruleset.c  | 17 +++++++++--------
- security/landlock/ruleset.h  | 35 +++++++++++++++++++++++++++++++----
- security/landlock/syscalls.c |  7 ++++---
- 5 files changed, 50 insertions(+), 20 deletions(-)
-
-diff --git a/security/landlock/fs.c b/security/landlock/fs.c
-index adcea0fe7e68..0d57c6479d29 100644
---- a/security/landlock/fs.c
-+++ b/security/landlock/fs.c
-@@ -178,9 +178,9 @@ int landlock_append_fs_rule(struct landlock_ruleset *const ruleset,
- 		return -EINVAL;
-
- 	/* Transforms relative access rights to absolute ones. */
--	access_rights |=
--		LANDLOCK_MASK_ACCESS_FS &
--		~(ruleset->fs_access_masks[0] | ACCESS_INITIALLY_DENIED);
-+	access_rights |= LANDLOCK_MASK_ACCESS_FS &
-+			 ~(landlock_get_fs_access_mask(ruleset, 0) |
-+			   ACCESS_INITIALLY_DENIED);
- 	object = get_inode_object(d_backing_inode(path->dentry));
- 	if (IS_ERR(object))
- 		return PTR_ERR(object);
-@@ -294,7 +294,7 @@ get_handled_accesses(const struct landlock_ruleset *const domain)
- 	size_t layer_level;
-
- 	for (layer_level = 0; layer_level < domain->num_layers; layer_level++)
--		access_dom |= domain->fs_access_masks[layer_level];
-+		access_dom |= landlock_get_fs_access_mask(domain, layer_level);
- 	return access_dom & LANDLOCK_MASK_ACCESS_FS;
- }
-
-@@ -336,7 +336,7 @@ init_layer_masks(const struct landlock_ruleset *const domain,
- 			 * access rights.
- 			 */
- 			if (BIT_ULL(access_bit) &
--			    (domain->fs_access_masks[layer_level] |
-+			    (landlock_get_fs_access_mask(domain, layer_level) |
- 			     ACCESS_INITIALLY_DENIED)) {
- 				(*layer_masks)[access_bit] |=
- 					BIT_ULL(layer_level);
-diff --git a/security/landlock/limits.h b/security/landlock/limits.h
-index 82288f0e9e5e..bafb3b8dc677 100644
---- a/security/landlock/limits.h
-+++ b/security/landlock/limits.h
-@@ -21,6 +21,7 @@
- #define LANDLOCK_LAST_ACCESS_FS		LANDLOCK_ACCESS_FS_TRUNCATE
- #define LANDLOCK_MASK_ACCESS_FS		((LANDLOCK_LAST_ACCESS_FS << 1) - 1)
- #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
-+#define LANDLOCK_SHIFT_ACCESS_FS	0
-
- /* clang-format on */
+ security/landlock/ruleset.c | 108 ++++++++++++++++++++++++------------
+ 1 file changed, 73 insertions(+), 35 deletions(-)
 
 diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
-index 996484f98bfd..1f3188b4e313 100644
+index 41de17d1869e..961ffe0c709e 100644
 --- a/security/landlock/ruleset.c
 +++ b/security/landlock/ruleset.c
-@@ -29,7 +29,7 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
- 	struct landlock_ruleset *new_ruleset;
-
- 	new_ruleset =
--		kzalloc(struct_size(new_ruleset, fs_access_masks, num_layers),
-+		kzalloc(struct_size(new_ruleset, access_masks, num_layers),
- 			GFP_KERNEL_ACCOUNT);
- 	if (!new_ruleset)
- 		return ERR_PTR(-ENOMEM);
-@@ -40,7 +40,7 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
- 	/*
- 	 * hierarchy = NULL
- 	 * num_rules = 0
--	 * fs_access_masks[] = 0
-+	 * access_masks[] = 0
- 	 */
- 	return new_ruleset;
- }
-@@ -55,7 +55,7 @@ landlock_create_ruleset(const access_mask_t fs_access_mask)
- 		return ERR_PTR(-ENOMSG);
- 	new_ruleset = create_ruleset(1);
- 	if (!IS_ERR(new_ruleset))
--		new_ruleset->fs_access_masks[0] = fs_access_mask;
-+		landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
- 	return new_ruleset;
- }
-
-@@ -117,11 +117,12 @@ static void build_check_ruleset(void)
- 		.num_rules = ~0,
- 		.num_layers = ~0,
- 	};
--	typeof(ruleset.fs_access_masks[0]) fs_access_mask = ~0;
-+	typeof(ruleset.access_masks[0]) access_masks = ~0;
-
- 	BUILD_BUG_ON(ruleset.num_rules < LANDLOCK_MAX_NUM_RULES);
- 	BUILD_BUG_ON(ruleset.num_layers < LANDLOCK_MAX_NUM_LAYERS);
--	BUILD_BUG_ON(fs_access_mask < LANDLOCK_MASK_ACCESS_FS);
-+	BUILD_BUG_ON(access_masks <
-+		     (LANDLOCK_MASK_ACCESS_FS << LANDLOCK_SHIFT_ACCESS_FS));
- }
-
- /**
-@@ -281,7 +282,7 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
- 		err = -EINVAL;
- 		goto out_unlock;
+@@ -302,36 +302,22 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
  	}
--	dst->fs_access_masks[dst->num_layers - 1] = src->fs_access_masks[0];
-+	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
+ }
 
+-static int merge_ruleset(struct landlock_ruleset *const dst,
+-			 struct landlock_ruleset *const src)
++static int merge_tree(struct landlock_ruleset *const dst,
++		      struct landlock_ruleset *const src,
++		      const enum landlock_key_type key_type)
+ {
+ 	struct landlock_rule *walker_rule, *next_rule;
+ 	struct rb_root *src_root;
+ 	int err = 0;
+
+ 	might_sleep();
+-	/* Should already be checked by landlock_merge_ruleset() */
+-	if (WARN_ON_ONCE(!src))
+-		return 0;
+-	/* Only merge into a domain. */
+-	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
+-		return -EINVAL;
++	lockdep_assert_held(&dst->lock);
++	lockdep_assert_held(&src->lock);
+
+-	src_root = get_root(src, LANDLOCK_KEY_INODE);
++	src_root = get_root(src, key_type);
+ 	if (IS_ERR(src_root))
+ 		return PTR_ERR(src_root);
+
+-	/* Locks @dst first because we are its only owner. */
+-	mutex_lock(&dst->lock);
+-	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
+-
+-	/* Stacks the new layer. */
+-	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
+-		err = -EINVAL;
+-		goto out_unlock;
+-	}
+-	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
+-
  	/* Merges the @src tree. */
- 	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, &src->root,
-@@ -340,8 +341,8 @@ static int inherit_ruleset(struct landlock_ruleset *const parent,
- 		goto out_unlock;
- 	}
- 	/* Copies the parent layer stack and leaves a space for the new layer. */
--	memcpy(child->fs_access_masks, parent->fs_access_masks,
--	       flex_array_size(parent, fs_access_masks, parent->num_layers));
-+	memcpy(child->access_masks, parent->access_masks,
-+	       flex_array_size(parent, access_masks, parent->num_layers));
-
- 	if (WARN_ON_ONCE(!parent->hierarchy)) {
- 		err = -EINVAL;
-diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
-index d43231b783e4..f2ad932d396c 100644
---- a/security/landlock/ruleset.h
-+++ b/security/landlock/ruleset.h
-@@ -25,6 +25,11 @@ static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
- /* Makes sure for_each_set_bit() and for_each_clear_bit() calls are OK. */
- static_assert(sizeof(unsigned long) >= sizeof(access_mask_t));
-
-+/* Ruleset access masks. */
-+typedef u16 access_masks_t;
-+/* Makes sure all ruleset access rights can be stored. */
-+static_assert(BITS_PER_TYPE(access_masks_t) >= LANDLOCK_NUM_ACCESS_FS);
-+
- typedef u16 layer_mask_t;
- /* Makes sure all layers can be checked. */
- static_assert(BITS_PER_TYPE(layer_mask_t) >= LANDLOCK_MAX_NUM_LAYERS);
-@@ -110,7 +115,7 @@ struct landlock_ruleset {
- 		 * section.  This is only used by
- 		 * landlock_put_ruleset_deferred() when @usage reaches zero.
- 		 * The fields @lock, @usage, @num_rules, @num_layers and
--		 * @fs_access_masks are then unused.
-+		 * @access_masks are then unused.
- 		 */
- 		struct work_struct work_free;
- 		struct {
-@@ -137,7 +142,7 @@ struct landlock_ruleset {
- 			 */
- 			u32 num_layers;
- 			/**
--			 * @fs_access_masks: Contains the subset of filesystem
-+			 * @access_masks: Contains the subset of filesystem
- 			 * actions that are restricted by a ruleset.  A domain
- 			 * saves all layers of merged rulesets in a stack
- 			 * (FAM), starting from the first layer to the last
-@@ -148,13 +153,13 @@ struct landlock_ruleset {
- 			 * layers are set once and never changed for the
- 			 * lifetime of the ruleset.
- 			 */
--			access_mask_t fs_access_masks[];
-+			access_masks_t access_masks[];
+ 	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
+ 					     node) {
+@@ -340,7 +326,7 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+ 		} };
+ 		const struct landlock_id id = {
+ 			.key = walker_rule->key,
+-			.type = LANDLOCK_KEY_INODE,
++			.type = key_type,
  		};
- 	};
- };
 
- struct landlock_ruleset *
--landlock_create_ruleset(const access_mask_t fs_access_mask);
-+landlock_create_ruleset(const access_mask_t access_mask);
+ 		if (WARN_ON_ONCE(walker_rule->num_layers != 1))
+@@ -351,8 +337,39 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
 
- void landlock_put_ruleset(struct landlock_ruleset *const ruleset);
- void landlock_put_ruleset_deferred(struct landlock_ruleset *const ruleset);
-@@ -177,4 +182,26 @@ static inline void landlock_get_ruleset(struct landlock_ruleset *const ruleset)
- 		refcount_inc(&ruleset->usage);
+ 		err = insert_rule(dst, id, &layers, ARRAY_SIZE(layers));
+ 		if (err)
+-			goto out_unlock;
++			return err;
++	}
++	return err;
++}
++
++static int merge_ruleset(struct landlock_ruleset *const dst,
++			 struct landlock_ruleset *const src)
++{
++	int err = 0;
++
++	might_sleep();
++	/* Should already be checked by landlock_merge_ruleset() */
++	if (WARN_ON_ONCE(!src))
++		return 0;
++	/* Only merge into a domain. */
++	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
++		return -EINVAL;
++
++	/* Locks @dst first because we are its only owner. */
++	mutex_lock(&dst->lock);
++	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
++
++	/* Stacks the new layer. */
++	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
++		err = -EINVAL;
++		goto out_unlock;
+ 	}
++	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
++
++	/* Merges the @src inode tree. */
++	err = merge_tree(dst, src, LANDLOCK_KEY_INODE);
++	if (err)
++		goto out_unlock;
+
+ out_unlock:
+ 	mutex_unlock(&src->lock);
+@@ -360,43 +377,64 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
+ 	return err;
  }
 
-+static inline void
-+landlock_add_fs_access_mask(struct landlock_ruleset *const ruleset,
-+			    const access_mask_t fs_access_mask,
-+			    const u16 layer_level)
-+{
-+	access_mask_t fs_mask = fs_access_mask & LANDLOCK_MASK_ACCESS_FS;
+-static int inherit_ruleset(struct landlock_ruleset *const parent,
+-			   struct landlock_ruleset *const child)
++static int inherit_tree(struct landlock_ruleset *const parent,
++			struct landlock_ruleset *const child,
++			const enum landlock_key_type key_type)
+ {
+ 	struct landlock_rule *walker_rule, *next_rule;
+ 	struct rb_root *parent_root;
+ 	int err = 0;
+
+ 	might_sleep();
+-	if (!parent)
+-		return 0;
++	lockdep_assert_held(&parent->lock);
++	lockdep_assert_held(&parent->lock);
+
+-	parent_root = get_root(parent, LANDLOCK_KEY_INODE);
++	parent_root = get_root(parent, key_type);
+ 	if (IS_ERR(parent_root))
+ 		return PTR_ERR(parent_root);
+
+-	/* Locks @child first because we are its only owner. */
+-	mutex_lock(&child->lock);
+-	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
+-
+-	/* Copies the @parent tree. */
++	/* Copies the @parent inode or network tree. */
+ 	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
+ 					     parent_root, node) {
+ 		const struct landlock_id id = {
+ 			.key = walker_rule->key,
+-			.type = LANDLOCK_KEY_INODE,
++			.type = key_type,
+ 		};
 +
-+	/* Should already be checked in sys_landlock_create_ruleset(). */
-+	WARN_ON_ONCE(fs_access_mask != fs_mask);
-+	// TODO: Add tests to check "|=" and not "="
-+	ruleset->access_masks[layer_level] |=
-+		(fs_mask << LANDLOCK_SHIFT_ACCESS_FS);
-+}
-+
-+static inline access_mask_t
-+landlock_get_fs_access_mask(const struct landlock_ruleset *const ruleset,
-+			    const u16 layer_level)
-+{
-+	return (ruleset->access_masks[layer_level] >>
-+		LANDLOCK_SHIFT_ACCESS_FS) &
-+	       LANDLOCK_MASK_ACCESS_FS;
-+}
- #endif /* _SECURITY_LANDLOCK_RULESET_H */
-diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-index 245cc650a4dc..71aca7f990bc 100644
---- a/security/landlock/syscalls.c
-+++ b/security/landlock/syscalls.c
-@@ -346,10 +346,11 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+ 		err = insert_rule(child, id, &walker_rule->layers,
+ 				  walker_rule->num_layers);
+ 		if (err)
+-			goto out_unlock;
++			return err;
  	}
- 	/*
- 	 * Checks that allowed_access matches the @ruleset constraints
--	 * (ruleset->fs_access_masks[0] is automatically upgraded to 64-bits).
-+	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
- 	 */
--	if ((path_beneath_attr.allowed_access | ruleset->fs_access_masks[0]) !=
--	    ruleset->fs_access_masks[0]) {
-+	if ((path_beneath_attr.allowed_access |
-+	     landlock_get_fs_access_mask(ruleset, 0)) !=
-+	    landlock_get_fs_access_mask(ruleset, 0)) {
++	return err;
++}
++
++static int inherit_ruleset(struct landlock_ruleset *const parent,
++			   struct landlock_ruleset *const child)
++{
++	int err = 0;
++
++	might_sleep();
++	if (!parent)
++		return 0;
++
++	/* Locks @child first because we are its only owner. */
++	mutex_lock(&child->lock);
++	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
++
++	/* Copies the @parent inode tree. */
++	err = inherit_tree(parent, child, LANDLOCK_KEY_INODE);
++	if (err)
++		goto out_unlock;
+
+ 	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
  		err = -EINVAL;
- 		goto out_put_ruleset;
+ 		goto out_unlock;
  	}
+-	/* Copies the parent layer stack and leaves a space for the new layer. */
++	/*
++	 * Copies the parent layer stack and leaves a space
++	 * for the new layer.
++	 */
+ 	memcpy(child->access_masks, parent->access_masks,
+ 	       flex_array_size(parent, access_masks, parent->num_layers));
+
 --
 2.25.1
 
