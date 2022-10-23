@@ -2,72 +2,69 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2820EC433FE
-	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Oct 2022 03:23:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E521FA373E
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Oct 2022 17:17:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230010AbiJWDXC (ORCPT
+        id S230167AbiJWRRb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 22 Oct 2022 23:23:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57484 "EHLO
+        Sun, 23 Oct 2022 13:17:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230003AbiJWDW7 (ORCPT
+        with ESMTP id S229882AbiJWRR3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 22 Oct 2022 23:22:59 -0400
-Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A318922285
-        for <netfilter-devel@vger.kernel.org>; Sat, 22 Oct 2022 20:22:58 -0700 (PDT)
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-        by mailout.west.internal (Postfix) with ESMTP id 199CA320047A;
-        Sat, 22 Oct 2022 23:22:56 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute4.internal (MEProxy); Sat, 22 Oct 2022 23:22:56 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.com.au;
-         h=cc:cc:content-transfer-encoding:date:date:from:from
-        :in-reply-to:message-id:mime-version:reply-to:sender:subject
-        :subject:to:to; s=fm3; t=1666495374; x=1666581774; bh=wYVG4Dx/QV
-        UwLfjtvj0JPAxTjlMCvWQmOT5pWInycSk=; b=WTHA33ZUXj1/1ctrRtP2nYookC
-        oYAhfnGI+L4kplHfHJNWEtStJCq8sDy1QeQPGC3HeyxDsC+KKiyTXWUAIKkb0iI0
-        QouK6LSkz5iiTVkV4oAhukb6tAHVxHSGfGPr7GlF97xWbIo1Y36tDMJMepZViSps
-        CiReye/b6Q/YPFi65nS0Yp3j2SbshlH2uotIvVNmb1ojepI7xwqOACo/ju0uSQPu
-        MAzcUlrz2+8N7ypaQ3g/P8nPqYnHJm+O1yCYVbBX38qDPrErJu24DsVTtsr1Ts0n
-        58kYBDkEm/Z3TPAICJLRjD+DMklJbEHkStgecN799VtIhUMRqycudt2OqC0w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:message-id
-        :mime-version:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-        1666495374; x=1666581774; bh=wYVG4Dx/QVUwLfjtvj0JPAxTjlMCvWQmOT5
-        pWInycSk=; b=Z/SzmTGd0nXCRH1RQA0YucKSDqBeQQARWeI5Y7kIba9Cl8jAbA8
-        qJp4VytRxvo2CiIiLdBZ6CY0Bu7rFS3+OjxvQfuys5H8qwtXz3XfDMEgJn114Brf
-        ISl4ibWYkJwKYM6Q25Vl2jDtgRxmD2d4VsIuu7IIFElpTgTPsNFB+EbvsSzfcZt5
-        +6OTZoDf+WBzOqGZKCSYgl2KORZGuIJfHqRcZE30il6hhzbW7AgUGErYSYJpI1zp
-        4lr6N52kbwcBmirfocmAWsX0XYhW7iM/QrpAKf7vPcS+NxDSOn/ztWBHI10MMEhF
-        J3kKXQHwVRaqI6F2eCipruV8kxAWoi56pfg==
-X-ME-Sender: <xms:jrNUY_UGDeb8kprj_gHs7wCTZ2zs7Ubf8Wj-qVkscSTMr-MOBKJUpA>
-    <xme:jrNUY3kwns-htSO_QjkXy-_wi40bZdxfhpERy4BZQc50hY1_LAQ4QtILfD6HSX3Pk
-    8-VDl5pJtfp7Z2Y_w>
-X-ME-Received: <xmr:jrNUY7ax0xo9hEc3E_UwpJ1TZa9W1ZiBOSvlu6SDpXW_mAYne1DCk31rTuT2-4AqibpuiiYyy6AQKCv_Jz9FcPYrEg9r040GEOtYd7XCW4cTCO5s9oq-kSo3nvvhkyE>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrgedtuddgieekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucenucfjughrpefhvfevufffkffoggfgsedtkeertd
-    ertddtnecuhfhrohhmpeflohhhnhcuvfhhohhmshhonhcuoehgihhtsehjohhhnhhthhho
-    mhhsohhnrdhfrghsthhmrghilhdrtghomhdrrghuqeenucggtffrrghtthgvrhhnpeetje
-    evgffggeekffduledthfevgfeugeelhfeuveeiueekgfegffetudevhfdutdenucevlhhu
-    shhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehgihhtsehjohhhnh
-    hthhhomhhsohhnrdhfrghsthhmrghilhdrtghomhdrrghu
-X-ME-Proxy: <xmx:jrNUY6Wad4pDhz2sA6WyCaSKZ3RY5lP3jUuZw1mM0pxSXyYjJTlDRA>
-    <xmx:jrNUY5naPEzyPxJtdffWkbo2kVEP-KLSCqXFIaiZkB-sboQXl8vRBg>
-    <xmx:jrNUY3clQdaOr3nCMmK9MO_rjzAFOQIpXOYioGrALbjbwkbSiCm5-Q>
-    <xmx:jrNUY4sPRdJpHJslLKCBtr5-bTypS6nkTHcmSxKttMVXJgDzFnjhCg>
-Feedback-ID: ic081425d:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
- 22 Oct 2022 23:22:53 -0400 (EDT)
-From:   John Thomson <git@johnthomson.fastmail.com.au>
-To:     netfilter-devel@vger.kernel.org
-Cc:     John Thomson <git@johnthomson.fastmail.com.au>
-Subject: [PATCH RFC xtables-addons] build: support for linux 6.1
-Date:   Sun, 23 Oct 2022 13:22:39 +1000
-Message-Id: <20221023032239.808311-1-git@johnthomson.fastmail.com.au>
+        Sun, 23 Oct 2022 13:17:29 -0400
+Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C03D5B710;
+        Sun, 23 Oct 2022 10:17:28 -0700 (PDT)
+Received: by mail-lj1-x234.google.com with SMTP id z24so75165ljn.4;
+        Sun, 23 Oct 2022 10:17:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jYyIMbJso6jJB2RiGcHZvZOyCs4ou0B3R3oCqDLm7rE=;
+        b=CZvtGR0W/Pw6pZm3dlwnotlIk5lvCjLfXTrWAIPW/O5oe0OdbD32iDzA/a69FZ/ryz
+         FtfNsjP/ngnNYwKCS/M4X1JpSFvqVfnF66HI8/owL6JJB9xlNIbmhi7oQxHtktWAzmAY
+         EhzkV2wnzQKWy3iTP2ENgD4fmOuUbHGLqbfw5BCuOZafu33Q0rjErimvx8jalHH187EI
+         qvUCUq0Qvj62yoRnTZOATIoz5RGjgd25D7KEUDaM9/jdAddIVnMF/s6SrHajA+Dy/RkG
+         j9Fgm9okzXGhRsItjJzMBlpc2+2uBBQ4gSVR5wThN35xvrnoGD08SCCmtZeUtLXTkqXA
+         cJ5Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=jYyIMbJso6jJB2RiGcHZvZOyCs4ou0B3R3oCqDLm7rE=;
+        b=YdH20TxRPS0uamm/9em4kB+GX738hCLwB/kkCqbjMGnemD3x5sHNO7mLhTGqNHTXmF
+         vD9DdM4hJL6OaqHXtztmOqctQvHVhSYLtagIkKflXqaapnC/CPqWysjDGUkOgpVMC6ue
+         nnzCKMdRMjekLF5YSCQvelDR0tJvzs+uU2fv9uowSrn/W+io4VWmWVHgYg+Jh6SWe3Af
+         RBeZGQHlfFCGBzMuSHSX/QVoDlVkUXYWFPBo3aLSbtog4tG8ubB7GtFEgAker3N8qxd1
+         +YGSGLgpd01ZgvOxZ1zXD0h5KQyHwZNswDalonhefS4NoSOTVxQwSZqf6kbu1cFPPUqL
+         6FvA==
+X-Gm-Message-State: ACrzQf0suvWu7Jy5v+fOqSuq96W3+spCSytFyPFudUSMOZ0EyruPwHTx
+        BSZzzRqM7qu1zSDIHEsGGHQ=
+X-Google-Smtp-Source: AMsMyM71qpqHAKBESCsgtbqB0echO6ZUSOpiCCuZi5nGsKe/8HY5OQoeeIGSbdh11laACPSKb4USHw==
+X-Received: by 2002:a2e:83c6:0:b0:26c:3550:bc14 with SMTP id s6-20020a2e83c6000000b0026c3550bc14mr10323785ljh.43.1666545446297;
+        Sun, 23 Oct 2022 10:17:26 -0700 (PDT)
+Received: from Michaels-MBP.home (188-177-109-202-dynamic.dk.customer.tdc.net. [188.177.109.202])
+        by smtp.gmail.com with ESMTPSA id s13-20020a056512314d00b00494a11c5f52sm1309886lfi.256.2022.10.23.10.17.24
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sun, 23 Oct 2022 10:17:25 -0700 (PDT)
+From:   Michael Lilja <michael.lilja@gmail.com>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     michael.lilja@gmail.com, netdev@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH] Periodically flow expire from flow offload tables
+Date:   Sun, 23 Oct 2022 19:16:58 +0200
+Message-Id: <20221023171658.69761-1-michael.lilja@gmail.com>
 X-Mailer: git-send-email 2.37.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -75,78 +72,177 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-6.1 commit de492c83cae0 ("prandom: remove unused functions") removed
-prandom_u32, which was replaced and deprecated for get_random_u32 in
-5.19 d4150779e60f ("random32: use real rng for non-deterministic
- randomness"). get_random_u32 was introduced in 4.11 c440408cf690
-("random: convert get_random_int/long into get_random_u32/u64")
+When a flow is added to a flow table for offload SW/HW-offload
+the user has no means of controlling the flow once it has
+been offloaded. If a number of firewall rules has been made using
+time schedules then these rules doesn't apply for the already
+offloaded flows. Adding new firewall rules also doesn't affect
+already offloaded flows.
 
-Use the cocci script from 81895a65ec63 ("treewide: use prandom_u32_max()
-when possible, part 1"), along with a best guess for _max changes, introduced:
-3.14 f337db64af05 ("random32: add prandom_u32_max and convert open coded users")
+This patch handle flow table retirement giving the user the option
+to at least periodically get the flow back into control of the
+firewall rules so already offloaded flows can be dropped or be
+pushed back to flow offload tables.
 
-Signed-off-by: John Thomson <git@johnthomson.fastmail.com.au>
+The flow retirement is disabled by default and can be set in seconds
+using sysctl -w net.netfilter.nf_flowtable_retire
+
+Signed-off-by: Michael Lilja <michael.lilja@gmail.com>
 ---
-RFC due to:
-only compile tested aarch64 6.1rc1
-not sure about the change for htonl(prandom_u32_max(~oth->seq + 1));
----
- extensions/xt_CHAOS.c  | 8 ++++++++
- extensions/xt_TARPIT.c | 6 +++---
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ .../networking/nf_conntrack-sysctl.rst        |  7 ++++++
+ include/net/netfilter/nf_flow_table.h         |  1 +
+ include/net/netns/conntrack.h                 |  3 +++
+ net/netfilter/nf_conntrack_standalone.c       | 17 ++++++++++++++
+ net/netfilter/nf_flow_table_core.c            | 23 +++++++++++++++----
+ 5 files changed, 47 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/xt_CHAOS.c b/extensions/xt_CHAOS.c
-index 69d2082..5db8431 100644
---- a/extensions/xt_CHAOS.c
-+++ b/extensions/xt_CHAOS.c
-@@ -67,7 +67,11 @@ xt_chaos_total(struct sk_buff *skb, const struct xt_action_param *par)
- 		ret = xm_tcp->match(skb, &local_par);
- 		hotdrop = local_par.hotdrop;
- 	}
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
-+	if (!ret || hotdrop || (unsigned int)get_random_u32() > delude_percentage)
-+#else
- 	if (!ret || hotdrop || (unsigned int)prandom_u32() > delude_percentage)
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 1120d71f28d7..ab4071bc64c1 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -201,3 +201,10 @@ nf_flowtable_udp_timeout - INTEGER (seconds)
+         Control offload timeout for udp connections.
+         UDP connections may be offloaded from nf conntrack to nf flow table.
+         Once aged, the connection is returned to nf conntrack with udp pickup timeout.
++
++nf_flowtable_retire - INTEGER (seconds)
++	- 0 - disabled (default)
++	- not 0 - enabled and set the number of seconds a flow is offloaded
++
++	If this option is enabled offloaded flows retire periodically and return the
++	control of the flow to conntrack/netfilter.
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index cd982f4a0f50..f5643c24fb55 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -177,6 +177,7 @@ struct flow_offload {
+ 	unsigned long				flags;
+ 	u16					type;
+ 	u32					timeout;
++	u32					retire;
+ 	struct rcu_head				rcu_head;
+ };
+ 
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index e1290c159184..7567d5fa8220 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -110,5 +110,8 @@ struct netns_ct {
+ #if defined(CONFIG_NF_CONNTRACK_LABELS)
+ 	unsigned int		labels_used;
+ #endif
++#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
++	unsigned int		sysctl_flowtable_retire;
 +#endif
+ };
+ #endif
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 4ffe84c5a82c..92ed07b93846 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -620,6 +620,9 @@ enum nf_ct_sysctl_index {
+ #ifdef CONFIG_LWTUNNEL
+ 	NF_SYSCTL_CT_LWTUNNEL,
+ #endif
++#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
++	NF_SYSCTL_CT_FLOWTABLE_RETIRE,
++#endif
+ 
+ 	__NF_SYSCTL_CT_LAST_SYSCTL,
+ };
+@@ -967,6 +970,15 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= nf_hooks_lwtunnel_sysctl_handler,
+ 	},
++#endif
++#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
++	[NF_SYSCTL_CT_FLOWTABLE_RETIRE] = {
++		.procname	= "nf_flowtable_retire",
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.data   = &init_net.ct.sysctl_flowtable_retire,
++		.proc_handler	= proc_dointvec_jiffies,
++	},
+ #endif
+ 	{}
+ };
+@@ -1111,6 +1123,11 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 	nf_conntrack_standalone_init_dccp_sysctl(net, table);
+ 	nf_conntrack_standalone_init_gre_sysctl(net, table);
+ 
++#if IS_ENABLED(CONFIG_NF_FLOW_TABLE)
++	/* Disable retire per default */
++	net->ct.sysctl_flowtable_retire = 0;
++#endif
++
+ 	/* Don't allow non-init_net ns to alter global sysctls */
+ 	if (!net_eq(&init_net, net)) {
+ 		table[NF_SYSCTL_CT_MAX].mode = 0444;
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 81c26a96c30b..0a449dec8565 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -285,6 +285,12 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ 	int err;
+ 
+ 	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
++	if (nf_ct_net(flow->ct)->ct.sysctl_flowtable_retire) {
++		flow->retire = nf_flowtable_time_stamp +
++			nf_ct_net(flow->ct)->ct.sysctl_flowtable_retire;
++	} else {
++		flow->retire = 0;
++	}
+ 
+ 	err = rhashtable_insert_fast(&flow_table->rhashtable,
+ 				     &flow->tuplehash[0].node,
+@@ -313,6 +319,11 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_add);
+ 
++static inline bool nf_flow_has_retired(const struct flow_offload *flow)
++{
++	return flow->retire && nf_flow_timeout_delta(flow->retire) <= 0;
++}
++
+ void flow_offload_refresh(struct nf_flowtable *flow_table,
+ 			  struct flow_offload *flow)
+ {
+@@ -327,7 +338,8 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
+ 	if (likely(!nf_flowtable_hw_offload(flow_table)))
  		return;
  
- 	destiny = (info->variant == XTCHAOS_TARPIT) ? xt_tarpit : xt_delude;
-@@ -94,7 +98,11 @@ chaos_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	const struct xt_chaos_tginfo *info = par->targinfo;
- 	const struct iphdr *iph = ip_hdr(skb);
+-	nf_flow_offload_add(flow_table, flow);
++	if (!nf_flow_has_retired(flow))
++		nf_flow_offload_add(flow_table, flow);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_refresh);
  
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
-+	if ((unsigned int)get_random_u32() <= reject_percentage) {
-+#else
- 	if ((unsigned int)prandom_u32() <= reject_percentage) {
-+#endif
- 		struct xt_action_param local_par;
- 		local_par.state    = par->state;
- 		local_par.target   = xt_reject;
-diff --git a/extensions/xt_TARPIT.c b/extensions/xt_TARPIT.c
-index 9a7ae5c..22e6125 100644
---- a/extensions/xt_TARPIT.c
-+++ b/extensions/xt_TARPIT.c
-@@ -107,8 +107,8 @@ static bool xttarpit_honeypot(struct tcphdr *tcph, const struct tcphdr *oth,
- 		tcph->syn     = true;
- 		tcph->ack     = true;
- 		tcph->window  = oth->window &
--			((prandom_u32() & 0x1f) - 0xf);
--		tcph->seq     = htonl(prandom_u32() & ~oth->seq);
-+			(prandom_u32_max(0x20) - 0xf);
-+		tcph->seq     = htonl(prandom_u32_max(~oth->seq + 1));
- 		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn);
- 	}
+@@ -339,6 +351,7 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
+ static void flow_offload_del(struct nf_flowtable *flow_table,
+ 			     struct flow_offload *flow)
+ {
++	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
+ 	rhashtable_remove_fast(&flow_table->rhashtable,
+ 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
+ 			       nf_flow_offload_rhash_params);
+@@ -423,12 +436,14 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 	    nf_ct_is_dying(flow->ct))
+ 		flow_offload_teardown(flow);
  
-@@ -117,7 +117,7 @@ static bool xttarpit_honeypot(struct tcphdr *tcph, const struct tcphdr *oth,
- 		tcph->syn     = false;
- 		tcph->ack     = true;
- 		tcph->window  = oth->window &
--			((prandom_u32() & 0x1f) - 0xf);
-+			(prandom_u32_max(0x20) - 0xf);
- 		tcph->ack_seq = payload > 100 ?
- 			htonl(ntohl(oth->seq) + payload) :
- 			oth->seq;
+-	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
++	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags) || nf_flow_has_retired(flow)) {
+ 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+-			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
++			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags)) {
+ 				nf_flow_offload_del(flow_table, flow);
+-			else if (test_bit(NF_FLOW_HW_DEAD, &flow->flags))
++			} else if (test_bit(NF_FLOW_HW_DEAD, &flow->flags)) {
++				clear_bit(NF_FLOW_HW, &flow->flags);
+ 				flow_offload_del(flow_table, flow);
++			}
+ 		} else {
+ 			flow_offload_del(flow_table, flow);
+ 		}
 -- 
 2.37.2
 
