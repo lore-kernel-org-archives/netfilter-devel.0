@@ -2,50 +2,44 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09F69C38A2D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Oct 2022 08:12:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC966C38A2D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Oct 2022 08:43:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229781AbiJXIM2 (ORCPT
+        id S229910AbiJXInF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Oct 2022 04:12:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36518 "EHLO
+        Mon, 24 Oct 2022 04:43:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229945AbiJXIM1 (ORCPT
+        with ESMTP id S229822AbiJXInF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Oct 2022 04:12:27 -0400
-Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2670261B3E
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Oct 2022 01:12:25 -0700 (PDT)
-Received: from mx0.riseup.net (mx0-pn.riseup.net [10.0.1.42])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
-         client-signature RSA-PSS (2048 bits) client-digest SHA256)
-        (Client CN "mx0.riseup.net", Issuer "R3" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 4MwnqX4fmxzDqVJ
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Oct 2022 08:12:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1666599144; bh=wafSqu/fpEdk2nSyIugDbdX5yxskx3Y878qCL8GnyCE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=oTaVGJmDNRNsLDxcjD284zW0jCgWv3Xl8Obam6eD7vYLEeNEf9n2d+X/1wgIfUcpA
-         7raecJr7jAhiopFzQnlL3a5+nDwK5sIvcw9RbqSIF/D3hgxJfU/Ckcc7JKGv2VGj3X
-         ybSb3ub+/qlJhseM0w5eBCH+Acd841kUckxQXHIA=
+        Mon, 24 Oct 2022 04:43:05 -0400
+X-Greylist: delayed 1838 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 24 Oct 2022 01:43:03 PDT
+Received: from mx0.riseup.net (mx0.riseup.net [198.252.153.6])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32C9C36877
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Oct 2022 01:43:02 -0700 (PDT)
 Received: from fews2.riseup.net (fews2-pn.riseup.net [10.0.1.84])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
          client-signature RSA-PSS (2048 bits) client-digest SHA256)
         (Client CN "mail.riseup.net", Issuer "R3" (not verified))
-        by mx0.riseup.net (Postfix) with ESMTPS id 4MwnqW6p83z9s3N
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Oct 2022 08:12:23 +0000 (UTC)
-X-Riseup-User-ID: B2E1E54C48251A3026EB2E29B3CC3BCD0C48BD0E48D623785C28BCDDFE1BADAE
+        by mx0.riseup.net (Postfix) with ESMTPS id 4MwpVt37rJz9scb
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Oct 2022 08:43:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1666600982; bh=G0ozwAhkurn65LLZArUjgsc6V5E49b7+xxPb+lM3eM0=;
+        h=From:To:Cc:Subject:Date:From;
+        b=KFkMUYEV0WSIfDZxRdb6pshxqUIgwW8Bgi/pLsObNSvocQtmsYbUUCj+VeOa8jKpg
+         pB3X3UP1d1sUvPmSvug21+jOzibK6cVkAltCTdz/6ueTfsGXlffgv5+8TMbHbEasrG
+         sgSUVZFcMMDp/O8+nxE5mySOJn074oxFkJenzf7k=
+X-Riseup-User-ID: B44592044B7ED92AB8C63CFE09E8ADD021D165BDBDBDB3119429C051E99FDD82
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by fews2.riseup.net (Postfix) with ESMTPSA id 4MwnqV3nntz1yPj;
-        Mon, 24 Oct 2022 08:12:22 +0000 (UTC)
+         by fews2.riseup.net (Postfix) with ESMTPSA id 4MwpVs0NXJz1yPj;
+        Mon, 24 Oct 2022 08:43:00 +0000 (UTC)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft] src: add support to command "destroy"
-Date:   Mon, 24 Oct 2022 10:11:54 +0200
-Message-Id: <20221024081154.66140-1-ffmancera@riseup.net>
+Subject: [PATCH nft v2] src: add support to command "destroy"
+Date:   Mon, 24 Oct 2022 10:42:28 +0200
+Message-Id: <20221024084228.47990-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -74,10 +68,13 @@ Example of use:
 
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
+v1: initial patch
+v2: improve error handling
+---
  include/rule.h                                |  2 +
  src/cache.c                                   |  1 +
  src/evaluate.c                                |  3 +
- src/libnftables.c                             | 20 ++++-
+ src/libnftables.c                             | 17 ++++-
  src/parser_bison.y                            | 75 ++++++++++++++++++-
  src/parser_json.c                             | 16 ++--
  src/rule.c                                    |  1 +
@@ -86,7 +83,7 @@ Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
  .../testcases/rule_management/0012destroy_0   |  7 ++
  .../rule_management/dumps/0011destroy_0.nft   |  4 +
  .../rule_management/dumps/0012destroy_0.nft   |  4 +
- 12 files changed, 130 insertions(+), 12 deletions(-)
+ 12 files changed, 127 insertions(+), 12 deletions(-)
  create mode 100755 tests/shell/testcases/rule_management/0011destroy_0
  create mode 100755 tests/shell/testcases/rule_management/0012destroy_0
  create mode 100644 tests/shell/testcases/rule_management/dumps/0011destroy_0.nft
@@ -153,14 +150,12 @@ index 0bf6a0d1..391a51f0 100644
  	case CMD_GET:
  		return cmd_evaluate_get(ctx, cmd);
 diff --git a/src/libnftables.c b/src/libnftables.c
-index a376825d..f8b83f47 100644
+index a376825d..fea9293b 100644
 --- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -29,9 +29,10 @@ static int nft_netlink(struct nft_ctx *nft,
- 		.batch = mnl_batch_init(),
+@@ -30,8 +30,8 @@ static int nft_netlink(struct nft_ctx *nft,
  	};
  	struct cmd *cmd;
-+	bool destroy_enoent = false;
  	struct mnl_err *err, *tmp;
 +	int ret = 0, err_num = 0;
  	LIST_HEAD(err_list);
@@ -168,36 +163,30 @@ index a376825d..f8b83f47 100644
  
  	if (list_empty(cmds))
  		goto out;
-@@ -71,12 +72,18 @@ static int nft_netlink(struct nft_ctx *nft,
- 		if (err->seqnum < last_seqnum)
- 			cmd = list_first_entry(cmds, struct cmd, list);
- 
-+		err_num++;
- 		list_for_each_entry_from(cmd, cmds, list) {
+@@ -75,8 +75,12 @@ static int nft_netlink(struct nft_ctx *nft,
  			last_seqnum = cmd->seqnum;
  			if (err->seqnum == cmd->seqnum ||
  			    err->seqnum == batch_seqnum) {
 -				nft_cmd_error(&ctx, cmd, err);
 -				errno = err->err;
-+				if (err->err == ENOENT &&
-+				    cmd->op == CMD_DESTROY) {
-+					destroy_enoent = true;
-+				} else {
++				if (!(err->err == ENOENT &&
++				    cmd->op == CMD_DESTROY)) {
 +					nft_cmd_error(&ctx, cmd, err);
 +					errno = err->err;
++					err_num++;
 +				}
  				if (err->seqnum == cmd->seqnum) {
  					mnl_err_list_free(err);
  					break;
-@@ -89,6 +96,13 @@ static int nft_netlink(struct nft_ctx *nft,
+@@ -89,6 +93,13 @@ static int nft_netlink(struct nft_ctx *nft,
  			last_seqnum = UINT32_MAX;
  		}
  	}
 +
-+	/* discard return code value when there is only one error and it comes
-+	 * from a ENOENT destroy operation.
++	/* discard return code value when all the errors are ENOENT from
++	 * destroy operations.
 +	 */
-+	if (err_num == 1 && destroy_enoent)
++	if (!err_num)
 +		ret = 0;
 +
  	/* nfnetlink uses the first netlink message header in the batch whose
