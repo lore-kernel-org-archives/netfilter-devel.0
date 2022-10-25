@@ -2,55 +2,76 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AB1BC04A95
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Oct 2022 08:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D3E1C38A2D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Oct 2022 10:17:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230366AbiJYIqZ (ORCPT
+        id S232400AbiJYKRJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Oct 2022 04:46:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48298 "EHLO
+        Tue, 25 Oct 2022 06:17:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229777AbiJYIqW (ORCPT
+        with ESMTP id S232373AbiJYKQg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Oct 2022 04:46:22 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D46B6F88DC
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Oct 2022 01:46:19 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 69A8B5868F19C; Tue, 25 Oct 2022 10:46:17 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 675BC60D756BC;
-        Tue, 25 Oct 2022 10:46:17 +0200 (CEST)
-Date:   Tue, 25 Oct 2022 10:46:17 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     John Thomson <git@johnthomson.fastmail.com.au>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [xtables-addons PATCH v1] build: support for linux 6.1
-In-Reply-To: <20221024095802.2494673-1-git@johnthomson.fastmail.com.au>
-Message-ID: <n46n815r-296o-100-16n-24n5pp113n56@vanv.qr>
-References: <20221023032239.808311-1-git@johnthomson.fastmail.com.au> <20221024095802.2494673-1-git@johnthomson.fastmail.com.au>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        Tue, 25 Oct 2022 06:16:36 -0400
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 923A3AE7C;
+        Tue, 25 Oct 2022 03:10:34 -0700 (PDT)
+Received: by mail-wr1-f46.google.com with SMTP id v1so19938769wrt.11;
+        Tue, 25 Oct 2022 03:10:34 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:cc:references:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=uc9p4pxgaPjOFwwgtFXQO+ezBU9GVgk+go6wbCb+AqY=;
+        b=WE1TXhJCvrqQ9Fc1H7HU3LWg8R9Z5vIANXFh+VnJXdeqK/L7TOtQ6zOmiLxCaFP5aB
+         kotIioE9VRWyVNLLeEApzFurgNmWdTzlHFxGWkFkRwqE/QztdGduRCIaWePh4XKlsI3U
+         bo2ggbSLQVn90ZCHzWQGmlqSqpVWTZ08HZijVqgH2eQs3ejAuBQcCBGDevb1rlROZsXS
+         9CBaxiap3UJARpmTUTontd70p9INXQCyvtAb5kZnBUHQr++XEPgy82l5OQggagxH+cAm
+         w0lghsWF3/6EAIMtUWTDmdxIs++AErJo/x98BnFNVDtJInBt+GHIY5PXH+Tm6OxIpb8f
+         D+vA==
+X-Gm-Message-State: ACrzQf24sh4/S9pvXNZDU6mqoOkaLoEHoUnI4e7Pr1Ei4pLiA+zNB8wd
+        v4edttFqbQ3TqfyL7QjBPY4UVexI30c=
+X-Google-Smtp-Source: AMsMyM4qMrEOgQ5nnxYDzhk1M+HkwrKg0RLxgJJgwJpBhbCk/RK+EQUp0ZBlOlG/vkkVjVnznZnipg==
+X-Received: by 2002:a5d:6d8a:0:b0:236:6123:a8a5 with SMTP id l10-20020a5d6d8a000000b002366123a8a5mr10388857wrs.229.1666692632981;
+        Tue, 25 Oct 2022 03:10:32 -0700 (PDT)
+Received: from [192.168.1.198] ([213.194.139.165])
+        by smtp.gmail.com with ESMTPSA id h20-20020a1ccc14000000b003b492753826sm2138877wmb.43.2022.10.25.03.10.31
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 25 Oct 2022 03:10:32 -0700 (PDT)
+Message-ID: <a9d40594-f05d-f669-3a7b-f2f3924f14c4@netfilter.org>
+Date:   Tue, 25 Oct 2022 12:10:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.3.3
+Subject: Re: [ANNOUNCE] 17th Netfilter Workshop in Seville, Spain
+Content-Language: en-US
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+References: <Yw+F/N3y9vIHnY+3@salvia>
+Cc:     netfilter@vger.kernel.org
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+In-Reply-To: <Yw+F/N3y9vIHnY+3@salvia>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On Monday 2022-10-24 11:58, John Thomson wrote:
 
->6.1 commit de492c83cae0 ("prandom: remove unused functions") removed
->prandom_u32, which was replaced and deprecated for get_random_u32 in
->5.19 d4150779e60f ("random32: use real rng for non-deterministic
-> randomness"). get_random_u32 was introduced in 4.11 c440408cf690
->("random: convert get_random_int/long into get_random_u32/u64")
->
->Use the cocci script from 81895a65ec63 ("treewide: use prandom_u32_max()
->when possible, part 1"), along with a best guess for _max changes, introduced:
->3.14 f337db64af05 ("random32: add prandom_u32_max and convert open coded users")
->
->Signed-off-by: John Thomson <git@johnthomson.fastmail.com.au>
->---
->v1: no #if kver: compat_xtables.h warns kernels below 4.16 not supported
+On 8/31/22 18:02, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> We are pleased to announce a new round in the Netfilter workshop series.
+> This year this event will take place from October 20 to October 21, 2022.
+> The event will be held at Zevenet [1] facilities in Mairena del Aljarafe,
+> Seville, Spain.
+> 
 
-Applied, pushed 3.22.
+Hi there,
+
+let me share my report/summary of what happened during the workshop:
+
+https://ral-arturo.org/2022/10/25/nfws2022.html
+
+regards.
