@@ -2,67 +2,125 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A86E5C38A2D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:23:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ABDBFA3741
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 14:20:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234077AbiJZNXg (ORCPT
+        id S234073AbiJZOUP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 09:23:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41348 "EHLO
+        Wed, 26 Oct 2022 10:20:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233986AbiJZNXB (ORCPT
+        with ESMTP id S234220AbiJZOUN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 09:23:01 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 942AB371BA;
-        Wed, 26 Oct 2022 06:23:00 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 10/10] netfilter: nft_inner: set tunnel offset to GRE header offset
-Date:   Wed, 26 Oct 2022 15:22:27 +0200
-Message-Id: <20221026132227.3287-11-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20221026132227.3287-1-pablo@netfilter.org>
-References: <20221026132227.3287-1-pablo@netfilter.org>
+        Wed, 26 Oct 2022 10:20:13 -0400
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0576E2E6BF;
+        Wed, 26 Oct 2022 07:20:11 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id 0964011C96;
+        Wed, 26 Oct 2022 17:20:11 +0300 (EEST)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 9C81211C33;
+        Wed, 26 Oct 2022 17:20:09 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id C2DE83C07E1;
+        Wed, 26 Oct 2022 17:20:06 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 29QEK3RO087932;
+        Wed, 26 Oct 2022 17:20:05 +0300
+Date:   Wed, 26 Oct 2022 17:20:03 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
+cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Simon Horman <horms@verge.net.au>, stable@vger.kernel.org
+Subject: Re: [PATCH] ipvs: use explicitly signed chars
+In-Reply-To: <20221026123216.1575440-1-Jason@zx2c4.com>
+Message-ID: <4cc36ff5-46fd-c2b3-3292-d6369337fec1@ssi.bg>
+References: <20221026123216.1575440-1-Jason@zx2c4.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set inner tunnel offset to the GRE header, this is redundant to existing
-transport header offset, but this normalizes the handling of the tunnel
-header regardless its location in the layering. GRE version 0 is overloaded
-with RFCs, the type decorator in the inner expression might also be useful
-to interpret matching fields from the netlink delinearize path in userspace.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_inner.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+	Hello,
 
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index 19fdc8c70cd1..eae7caeff316 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -174,8 +174,13 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
- 				  const struct nft_pktinfo *pkt,
- 				  struct nft_inner_tun_ctx *ctx, u32 *off)
- {
--	if (pkt->tprot != IPPROTO_UDP ||
--	    pkt->tprot != IPPROTO_GRE)
-+	if (pkt->tprot == IPPROTO_GRE) {
-+		ctx->inner_tunoff = pkt->thoff;
-+		ctx->flags |= NFT_PAYLOAD_CTX_INNER_TUN;
-+		return 0;
-+	}
-+
-+	if (pkt->tprot != IPPROTO_UDP)
- 		return -1;
- 
- 	ctx->inner_tunoff = *off;
--- 
-2.30.2
+On Wed, 26 Oct 2022, Jason A. Donenfeld wrote:
+
+> The `char` type with no explicit sign is sometimes signed and sometimes
+> unsigned. This code will break on platforms such as arm, where char is
+> unsigned. So mark it here as explicitly signed, so that the
+> todrop_counter decrement and subsequent comparison is correct.
+> 
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Julian Anastasov <ja@ssi.bg>
+> Cc: Simon Horman <horms@verge.net.au>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+
+	Looks good to me for -next, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> ---
+>  net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 8c04bb57dd6f..7c4866c04343 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -1249,40 +1249,40 @@ static const struct seq_operations ip_vs_conn_sync_seq_ops = {
+>  	.next  = ip_vs_conn_seq_next,
+>  	.stop  = ip_vs_conn_seq_stop,
+>  	.show  = ip_vs_conn_sync_seq_show,
+>  };
+>  #endif
+>  
+>  
+>  /* Randomly drop connection entries before running out of memory
+>   * Can be used for DATA and CTL conns. For TPL conns there are exceptions:
+>   * - traffic for services in OPS mode increases ct->in_pkts, so it is supported
+>   * - traffic for services not in OPS mode does not increase ct->in_pkts in
+>   * all cases, so it is not supported
+>   */
+>  static inline int todrop_entry(struct ip_vs_conn *cp)
+>  {
+>  	/*
+>  	 * The drop rate array needs tuning for real environments.
+>  	 * Called from timer bh only => no locking
+>  	 */
+> -	static const char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+> -	static char todrop_counter[9] = {0};
+> +	static const signed char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+> +	static signed char todrop_counter[9] = {0};
+>  	int i;
+>  
+>  	/* if the conn entry hasn't lasted for 60 seconds, don't drop it.
+>  	   This will leave enough time for normal connection to get
+>  	   through. */
+>  	if (time_before(cp->timeout + jiffies, cp->timer.expires + 60*HZ))
+>  		return 0;
+>  
+>  	/* Don't drop the entry if its number of incoming packets is not
+>  	   located in [0, 8] */
+>  	i = atomic_read(&cp->in_pkts);
+>  	if (i > 8 || i < 0) return 0;
+>  
+>  	if (!todrop_rate[i]) return 0;
+>  	if (--todrop_counter[i] > 0) return 0;
+>  
+>  	todrop_counter[i] = todrop_rate[i];
+>  	return 1;
+>  }
+> -- 
+> 2.38.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
