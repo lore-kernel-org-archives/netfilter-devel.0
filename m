@@ -2,104 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32958C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 19:40:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADFCAC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 20:27:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233940AbiJZTkb (ORCPT
+        id S233514AbiJZU1C (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 15:40:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59524 "EHLO
+        Wed, 26 Oct 2022 16:27:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233563AbiJZTk2 (ORCPT
+        with ESMTP id S229995AbiJZU1C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 15:40:28 -0400
-Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6994F2EF5A;
-        Wed, 26 Oct 2022 12:40:25 -0700 (PDT)
-Received: by mail-lj1-x22c.google.com with SMTP id b18so23681819ljr.13;
-        Wed, 26 Oct 2022 12:40:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=dPVb88y4xWxYfjGTde6zJkh3P40sPGSgdB6pg2a7hRo=;
-        b=fMWDjgDuFOiPoxHNLIxT6osZUXbZ4vLEWRZwOMWXyEc8dsjlTemSTN4FhK37fRWm/r
-         wIZWRNGp0E2r2oPkqwMS+VDyEGMFjguWJgamygwoFtQTnu4gaXUAFeaBbP9lJd4WoW83
-         ZIdjwp8cS2VbKs04FNnxUwLJ//3GoI+vOU35NGW0jH1OOWX9noqEdEQHntR8ZmVPv3Nj
-         8/MJuyLf0lkfkgArF0aWzKwgunrH0Rx4bHtBCRruliGqpujCsCFNNz2WHB+kBT9Qrheo
-         APj62yqr/lCNWn3EPBi/fgcNc2R1RvG8cZOp7TeErbDolhnHBE+7J4EAh+ORsa2gdMVz
-         Wdug==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=dPVb88y4xWxYfjGTde6zJkh3P40sPGSgdB6pg2a7hRo=;
-        b=HcjSd1Vx65khYgioZ00pA5gUySLCkVM8W6SUzbAZ+XtBQUmg2FHU5pYJCmSUr9zIVl
-         NPhetOFy34PJZ1KxC+tLKut/bLY6aG7J0ioZkzJrMr0LiBJpMNlmrlpmB3xLsb4JD+Wy
-         JtP20qVEysIQnc1/gAOzozGy3KGxtjVCtvgEPpa+PrdXJSGbWiA7wAnF3HztH8WieRac
-         DLtx6qI6PU4QcnrXs5SvBD1FgZkmaHqgVLt97zNIBxjCH8MVbFWOHDSmrfRvtv9vauAD
-         go9F+FmpFL5c8Khau+ew3TBQEhnWdzy+mZpAIaCirsILxCqdB6Dq5KbNSEOO59BcjYBg
-         hoJw==
-X-Gm-Message-State: ACrzQf3li+tmuV9uhkzCawtRY8HDJHb7lhR0kLp7RDPRviKOM5eEErMn
-        zFR9sFophoKpUIDZDxXFvXS2d7dA28UVxQ==
-X-Google-Smtp-Source: AMsMyM4QvKXjN8X4/dE/LQGxCciJeevRuDd4zp/3po7hQ2/xMUzwCSPFrHXAsehiVqc5EAH5wH8r1Q==
-X-Received: by 2002:a2e:be10:0:b0:26f:b35e:c29e with SMTP id z16-20020a2ebe10000000b0026fb35ec29emr17854751ljq.488.1666813223901;
-        Wed, 26 Oct 2022 12:40:23 -0700 (PDT)
-Received: from smtpclient.apple (188-177-109-202-dynamic.dk.customer.tdc.net. [188.177.109.202])
-        by smtp.gmail.com with ESMTPSA id i14-20020a0565123e0e00b0048a921664e8sm947779lfv.37.2022.10.26.12.40.22
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 26 Oct 2022 12:40:23 -0700 (PDT)
-Content-Type: text/plain;
-        charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3731.200.110.1.12\))
-Subject: Re: [PATCH] Periodically flow expire from flow offload tables
-From:   Michael Lilja <michael.lilja@gmail.com>
-In-Reply-To: <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
-Date:   Wed, 26 Oct 2022 21:40:11 +0200
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <03E5D5FA-5A0D-4E5A-BA32-3FE51764C02E@gmail.com>
-References: <20221023171658.69761-1-michael.lilja@gmail.com>
- <Y1fC5K0EalIYuB7Y@salvia> <381FF5B6-4FEF-45E9-92D6-6FE927A5CC2D@gmail.com>
- <Y1fd+DEPZ8xM2x5B@salvia> <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
- <Y1kQ9FhrwxCKIdoe@salvia> <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-X-Mailer: Apple Mail (2.3731.200.110.1.12)
+        Wed, 26 Oct 2022 16:27:02 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8234696E5
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Oct 2022 13:27:00 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1onmzK-000411-86; Wed, 26 Oct 2022 22:26:58 +0200
+Date:   Wed, 26 Oct 2022 22:26:58 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: Re: [iptables PATCH v2 00/12] Speed up iptables-test.py
+Message-ID: <Y1mYEpLHDBxNuNoQ@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+References: <20221012151802.11339-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221012151802.11339-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Wed, Oct 12, 2022 at 05:17:50PM +0200, Phil Sutter wrote:
+[...]
+> I had this in mind for a while now and finally got around to do it: When
+> testing an extensions/*.t file with iptables-tests.py, act in a "batch"
+> mode applying all rules at once and checking the expected output in one
+> go, thereby reducing the overhead per test file to a single
+> iptables-restore and iptables-save call each. This was a bit optimistic,
+> but the result is still significant - on my rather slow testing VM, a
+> full iptables-tests.py run completes in ~7min instead of ~30min (yes,
+> it's slow).
 
-I just quickly tried following the flow_offload_teardown() path instead =
-of clearing IPS_OFFLOAD in flow_offload_del() and it does have some side =
-effects. The flow is added again before the HW has actually reported it =
-to be NF_FLOW_HW_DEAD.=20
+FTR: I tested this once more on a not entirely broken machine which
+managed to complete a full testrun in 3min (i.e. a tenth of my VM). With
+this patch applied, the same run took merely 40s - so still significant.
 
-The sequence with my patch is:
-  : Retire -> Remove from hw tables -> Remove from sw tables -> =
-kfree(flow) -> flow_offload_add()
+Series applied meanwhile.
 
-But if flow_offload_teardown() is called on expire I see:
-  : Retire -> Remove from hw tables -> flow_offload_add() -> Remove from =
-sw tables -> kfree(flow)
-=20
-I need to investigate why this happens, maybe the IPS_OFFLOAD flag is =
-cleared too early and should not be cleared until the flow is actually =
-removed, like I do? Maybe the issue is not seen before because on =
-timeout or flow_is_dying() no packet arrive to create the flow again =
-prematurely?
-
-Thanks,
-Michael
-
+Cheers, Phil
