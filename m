@@ -2,59 +2,132 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D634C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 12:41:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B43A2C38A2D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233794AbiJZMlF (ORCPT
+        id S233142AbiJZNFt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 08:41:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54434 "EHLO
+        Wed, 26 Oct 2022 09:05:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233718AbiJZMkg (ORCPT
+        with ESMTP id S232823AbiJZNFr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 08:40:36 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9D5A6EF27;
-        Wed, 26 Oct 2022 05:40:08 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1onfhV-0006np-6n; Wed, 26 Oct 2022 14:40:05 +0200
-Message-ID: <156c9646-2cf6-ad32-56a7-d16342e87352@leemhuis.info>
-Date:   Wed, 26 Oct 2022 14:40:04 +0200
+        Wed, 26 Oct 2022 09:05:47 -0400
+X-Greylist: delayed 1200 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 26 Oct 2022 06:05:45 PDT
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73919ACF4E;
+        Wed, 26 Oct 2022 06:05:45 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 314E0CC016B;
+        Wed, 26 Oct 2022 14:26:11 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 754C6CC010C;
+        Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 3E6B03431DF; Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 3CF51343155;
+        Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
+Date:   Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ppenkov@aviatrix.com
+Subject: Re: ip_set_hash_netiface
+In-Reply-To: <9a91603a-7b8f-4c6d-9012-497335e4373b@app.fastmail.com>
+Message-ID: <7fcf3bbb-95d2-a286-e3a-4d4dd87f713a@netfilter.org>
+References: <9a91603a-7b8f-4c6d-9012-497335e4373b@app.fastmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.0
-Subject: Re: [REGRESSION] Unable to NAT own TCP packets from another VRF with
- tcp_l3mdev_accept = 1 #forregzbot
-Content-Language: en-US, de-DE
-To:     "regressions@lists.linux.dev" <regressions@lists.linux.dev>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-References: <98348818-28c5-4cb2-556b-5061f77e112c@arcanite.ch>
- <20220930174237.2e89c9e1@kernel.org>
- <1eca7cd0-ad6e-014f-d4e2-490b307ab61d@gmail.com>
- <d6c3cd78-741c-d528-129a-cf7ed7ef236d@arcanite.ch>
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-In-Reply-To: <d6c3cd78-741c-d528-129a-cf7ed7ef236d@arcanite.ch>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1666788008;dd472315;
-X-HE-SMSGID: 1onfhV-0006np-6n
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[Note: this mail is primarily send for documentation purposes and/or for
-regzbot, my Linux kernel regression tracking bot. That's why I removed
-most or all folks from the list of recipients, but left any that looked
-like a mailing lists. These mails usually contain '#forregzbot' in the
-subject, to make them easy to spot and filter out.]
+Hi Daniel,
 
-On 12.10.22 14:24, Maximilien Cuony wrote:
+On Tue, 25 Oct 2022, Daniel Xu wrote:
 
-> So we will try to not to have to use tcp_l3mdev_accept=1 to make it
-> working as expected.
+> I'm following up with our hallway chat yesterday about how ipset 
+> hash:net,iface can easily OOM.
 > 
-> Thanks for you help and have a nice day :)
+> Here's a quick reproducer (stolen from
+> https://bugzilla.kernel.org/show_bug.cgi?id=199107):
+> 
+>         $ ipset create ACL.IN.ALL_PERMIT hash:net,iface hashsize 1048576 timeout 0
+>         $ for i in $(seq 0 100); do /sbin/ipset add ACL.IN.ALL_PERMIT 0.0.0.0/0,kaf_$i timeout 0 -exist; done
+> 
+> This used to cause a NULL ptr deref panic before
+> https://github.com/torvalds/linux/commit/2b33d6ffa9e38f344418976b06 .
+> 
+> Now it'll either allocate a huge amount of memory or fail a
+> vmalloc():
+> 
+>         [Tue Oct 25 00:13:08 2022] ipset: vmalloc error: size 1073741848, exceeds total pages
+>         <...>
+>         [Tue Oct 25 00:13:08 2022] Call Trace:
+>         [Tue Oct 25 00:13:08 2022]  <TASK>
+>         [Tue Oct 25 00:13:08 2022]  dump_stack_lvl+0x48/0x60
+>         [Tue Oct 25 00:13:08 2022]  warn_alloc+0x155/0x180
+>         [Tue Oct 25 00:13:08 2022]  __vmalloc_node_range+0x72a/0x760
+>         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_add+0x7c0/0xb20
+>         [Tue Oct 25 00:13:08 2022]  ? __kmalloc_large_node+0x4a/0x90
+>         [Tue Oct 25 00:13:08 2022]  kvmalloc_node+0xa6/0xd0
+>         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_resize+0x99/0x710
+>         <...>
+> 
+> Note that this behavior is somewhat documented
+> (https://ipset.netfilter.org/ipset.man.html):
+> 
+> >  The internal restriction of the hash:net,iface set type is that the same
+> >  network prefix cannot be stored with more than 64 different interfaces
+> >  in a single set.
+> 
+> I'm not sure how hard it would be to enforce a limit, but I think it would
+> be a bit better to error than allocate many GBs of memory.
 
-#regzbot invalid: tricky situation, reporter will work around it
+That's a bug, actually the limit is not enforced in spite of the 
+documentation. The next patch fixes it and I'm going to submit to Pablo:
 
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 6e391308431d..3f8853ed32e9 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -61,10 +61,6 @@ tune_bucketsize(u8 curr, u32 multi)
+ 	 */
+ 	return n > curr && n <= AHASH_MAX_TUNED ? n : curr;
+ }
+-#define TUNE_BUCKETSIZE(h, multi)	\
+-	((h)->bucketsize = tune_bucketsize((h)->bucketsize, multi))
+-#else
+-#define TUNE_BUCKETSIZE(h, multi)
+ #endif
+ 
+ /* A hash bucket */
+@@ -936,7 +932,11 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		goto set_full;
+ 	/* Create a new slot */
+ 	if (n->pos >= n->size) {
+-		TUNE_BUCKETSIZE(h, multi);
++#ifdef IP_SET_HASH_WITH_MULTI
++		if (h->bucketsize >= AHASH_MAX_TUNED)
++			goto set_full;
++		h->bucketsize = tune_bucketsize(h->bucketsize, multi);
++#endif
+ 		if (n->size >= AHASH_MAX(h)) {
+ 			/* Trigger rehashing */
+ 			mtype_data_next(&h->next, d);
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
