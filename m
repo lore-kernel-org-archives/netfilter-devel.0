@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB995C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:23:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45764FA3742
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:23:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234067AbiJZNXb (ORCPT
+        id S233917AbiJZNXc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 09:23:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41052 "EHLO
+        Wed, 26 Oct 2022 09:23:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233894AbiJZNWw (ORCPT
+        with ESMTP id S233926AbiJZNW4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 09:22:52 -0400
+        Wed, 26 Oct 2022 09:22:56 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4214E58E96;
-        Wed, 26 Oct 2022 06:22:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 156225D88E;
+        Wed, 26 Oct 2022 06:22:55 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 05/10] netfilter: nft_payload: access ipip payload for inner offset
-Date:   Wed, 26 Oct 2022 15:22:22 +0200
-Message-Id: <20221026132227.3287-6-pablo@netfilter.org>
+Subject: [PATCH net-next 07/10] netfilter: nft_inner: add percpu inner context
+Date:   Wed, 26 Oct 2022 15:22:24 +0200
+Message-Id: <20221026132227.3287-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221026132227.3287-1-pablo@netfilter.org>
 References: <20221026132227.3287-1-pablo@netfilter.org>
@@ -32,29 +32,108 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ipip is an special case, transport and inner header offset are set to
-the same offset to use the upcoming inner expression for matching on
-inner tunnel headers.
+Add NFT_PKTINFO_INNER_FULL flag to annotate that inner offsets are
+available. Store nft_inner_tun_ctx object in percpu area to cache
+existing inner offsets for this skbuff.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_payload.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/net/netfilter/nf_tables.h      |  1 +
+ include/net/netfilter/nf_tables_core.h |  1 +
+ net/netfilter/nft_inner.c              | 26 ++++++++++++++++++++++----
+ 3 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 03a1f271bf4f..84b490d6cc75 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -132,6 +132,9 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
- 		pkt->inneroff = thoff + offset;
- 		}
- 		break;
-+	case IPPROTO_IPIP:
-+		pkt->inneroff = thoff;
-+		break;
- 	default:
- 		return -1;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 2dbfe7524a7e..38e2b396e38a 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -24,6 +24,7 @@ struct module;
+ enum {
+ 	NFT_PKTINFO_L4PROTO	= (1 << 0),
+ 	NFT_PKTINFO_INNER	= (1 << 1),
++	NFT_PKTINFO_INNER_FULL	= (1 << 2),
+ };
+ 
+ struct nft_pktinfo {
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index be2b2b5d0a52..3e825381ac5c 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -149,6 +149,7 @@ enum {
+ };
+ 
+ struct nft_inner_tun_ctx {
++	u16	type;
+ 	u16	inner_tunoff;
+ 	u16	inner_lloff;
+ 	u16	inner_nhoff;
+diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+index 1e4079b5b431..29f2eefe0357 100644
+--- a/net/netfilter/nft_inner.c
++++ b/net/netfilter/nft_inner.c
+@@ -21,6 +21,8 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+ 
++static DEFINE_PER_CPU(struct nft_inner_tun_ctx, nft_pcpu_tun_ctx);
++
+ /* Same layout as nft_expr but it embeds the private expression data area. */
+ struct __nft_expr {
+ 	const struct nft_expr_ops	*ops;
+@@ -180,7 +182,7 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
+ }
+ 
+ static int nft_inner_parse(const struct nft_inner *priv,
+-			   const struct nft_pktinfo *pkt,
++			   struct nft_pktinfo *pkt,
+ 			   struct nft_inner_tun_ctx *tun_ctx)
+ {
+ 	struct nft_inner_tun_ctx ctx = {};
+@@ -199,25 +201,41 @@ static int nft_inner_parse(const struct nft_inner *priv,
  	}
+ 
+ 	*tun_ctx = ctx;
++	tun_ctx->type = priv->type;
++	pkt->flags |= NFT_PKTINFO_INNER_FULL;
+ 
+ 	return 0;
+ }
+ 
++static bool nft_inner_parse_needed(const struct nft_inner *priv,
++				   const struct nft_pktinfo *pkt,
++				   const struct nft_inner_tun_ctx *tun_ctx)
++{
++	if (!(pkt->flags & NFT_PKTINFO_INNER_FULL))
++		return true;
++
++	if (priv->type != tun_ctx->type)
++		return true;
++
++	return false;
++}
++
+ static void nft_inner_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 			   const struct nft_pktinfo *pkt)
+ {
++	struct nft_inner_tun_ctx *tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
+ 	const struct nft_inner *priv = nft_expr_priv(expr);
+-	struct nft_inner_tun_ctx tun_ctx = {};
+ 
+ 	if (nft_payload_inner_offset(pkt) < 0)
+ 		goto err;
+ 
+-	if (nft_inner_parse(priv, pkt, &tun_ctx) < 0)
++	if (nft_inner_parse_needed(priv, pkt, tun_ctx) &&
++	    nft_inner_parse(priv, (struct nft_pktinfo *)pkt, tun_ctx) < 0)
+ 		goto err;
+ 
+ 	switch (priv->expr_type) {
+ 	case NFT_INNER_EXPR_PAYLOAD:
+-		nft_payload_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, &tun_ctx);
++		nft_payload_inner_eval((struct nft_expr *)&priv->expr, regs, pkt, tun_ctx);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
 -- 
 2.30.2
 
