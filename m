@@ -2,62 +2,62 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20915C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 17:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32958C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 19:40:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233931AbiJZRgj (ORCPT
+        id S233940AbiJZTkb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 13:36:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59204 "EHLO
+        Wed, 26 Oct 2022 15:40:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233672AbiJZRgi (ORCPT
+        with ESMTP id S233563AbiJZTk2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 13:36:38 -0400
-Received: from mail-lf1-x136.google.com (mail-lf1-x136.google.com [IPv6:2a00:1450:4864:20::136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13DB36567;
-        Wed, 26 Oct 2022 10:36:37 -0700 (PDT)
-Received: by mail-lf1-x136.google.com with SMTP id o12so30192016lfq.9;
-        Wed, 26 Oct 2022 10:36:36 -0700 (PDT)
+        Wed, 26 Oct 2022 15:40:28 -0400
+Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6994F2EF5A;
+        Wed, 26 Oct 2022 12:40:25 -0700 (PDT)
+Received: by mail-lj1-x22c.google.com with SMTP id b18so23681819ljr.13;
+        Wed, 26 Oct 2022 12:40:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=to:references:message-id:content-transfer-encoding:cc:date
          :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=GOBxO2vTj4pQ4aIbyzSDDJOcDDeM1TEViOD8cCWt4BY=;
-        b=YJ/QJUMubvUEs1kkmB6WihInHwiD6FV3O6Ifh2QzAVOjzezDSzxfJaTKgNMNDwLMys
-         Kz2vIYoYk8dgxtvyDC4LG08oOCwqHN3+gMG03ZUh/0YNSXHkO/2CAEkE0mlkUoDiQUaq
-         goBalu2lRkjO5rGdTuyGLGWkViMOJvy40eVncP5EroDYj/D82rZhIrX/0qCvX6TyDYGM
-         6kONH+kWwAgIIGvK/gHX5BS/68BAMEaR8zLf/KE6AnS2R/ROydwimiNKLrQWUz7+YLSl
-         YYeQoZyooY+uclKbVkxI21Da5qQw6TlRSzQPv+cZIeDTPKQf3KEf1npycUj9yUgdkTHY
-         mIkA==
+        bh=dPVb88y4xWxYfjGTde6zJkh3P40sPGSgdB6pg2a7hRo=;
+        b=fMWDjgDuFOiPoxHNLIxT6osZUXbZ4vLEWRZwOMWXyEc8dsjlTemSTN4FhK37fRWm/r
+         wIZWRNGp0E2r2oPkqwMS+VDyEGMFjguWJgamygwoFtQTnu4gaXUAFeaBbP9lJd4WoW83
+         ZIdjwp8cS2VbKs04FNnxUwLJ//3GoI+vOU35NGW0jH1OOWX9noqEdEQHntR8ZmVPv3Nj
+         8/MJuyLf0lkfkgArF0aWzKwgunrH0Rx4bHtBCRruliGqpujCsCFNNz2WHB+kBT9Qrheo
+         APj62yqr/lCNWn3EPBi/fgcNc2R1RvG8cZOp7TeErbDolhnHBE+7J4EAh+ORsa2gdMVz
+         Wdug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=to:references:message-id:content-transfer-encoding:cc:date
          :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=GOBxO2vTj4pQ4aIbyzSDDJOcDDeM1TEViOD8cCWt4BY=;
-        b=1ih6LN/A0v3K4BISmeb2GP+06Ltf5Fb8KAZ7vifXLj4WwkNxJnBy1ObY6wl23lTOyO
-         v9yFONbQyuaMOLCDKboLBtxGjknQlgzOGucjLl4POWjkRgYBYOeWuEMUYv+2NME/qetn
-         jaoxsj3GS5/6ou2FE4svUgIe6s8qyIbNUONDXvpGygW+IllZZtG6TE4QIPbJvmEFXxNH
-         28huO5TOUcfIR2YUNEvdRorIt2Nibhot3Z25t86DtMMv/YQ2ErpAWR089SJIyrEeQ2kc
-         IdY9pSzvAtIzmblNUlTpXORfQei3N/0ip4/cCqcFhLnTe4CEt3vVBgwu8724znC0cUet
-         CT2A==
-X-Gm-Message-State: ACrzQf08dv2H8E6HXv1YzgpcGnguG5Gm0fkU4shoLMBfjazrGlGWxIBu
-        GFHI5dZGes4V0gAecvmK9oI=
-X-Google-Smtp-Source: AMsMyM7graN5LI/64DZqEGICp6VHlD/7djtr6oZe2CFM3fq1Ao1iFbuJbwrbvjpRuB0qFhw2Z3Emng==
-X-Received: by 2002:ac2:4c82:0:b0:4a0:5825:a0ac with SMTP id d2-20020ac24c82000000b004a05825a0acmr15859970lfl.660.1666805795020;
-        Wed, 26 Oct 2022 10:36:35 -0700 (PDT)
+        bh=dPVb88y4xWxYfjGTde6zJkh3P40sPGSgdB6pg2a7hRo=;
+        b=HcjSd1Vx65khYgioZ00pA5gUySLCkVM8W6SUzbAZ+XtBQUmg2FHU5pYJCmSUr9zIVl
+         NPhetOFy34PJZ1KxC+tLKut/bLY6aG7J0ioZkzJrMr0LiBJpMNlmrlpmB3xLsb4JD+Wy
+         JtP20qVEysIQnc1/gAOzozGy3KGxtjVCtvgEPpa+PrdXJSGbWiA7wAnF3HztH8WieRac
+         DLtx6qI6PU4QcnrXs5SvBD1FgZkmaHqgVLt97zNIBxjCH8MVbFWOHDSmrfRvtv9vauAD
+         go9F+FmpFL5c8Khau+ew3TBQEhnWdzy+mZpAIaCirsILxCqdB6Dq5KbNSEOO59BcjYBg
+         hoJw==
+X-Gm-Message-State: ACrzQf3li+tmuV9uhkzCawtRY8HDJHb7lhR0kLp7RDPRviKOM5eEErMn
+        zFR9sFophoKpUIDZDxXFvXS2d7dA28UVxQ==
+X-Google-Smtp-Source: AMsMyM4QvKXjN8X4/dE/LQGxCciJeevRuDd4zp/3po7hQ2/xMUzwCSPFrHXAsehiVqc5EAH5wH8r1Q==
+X-Received: by 2002:a2e:be10:0:b0:26f:b35e:c29e with SMTP id z16-20020a2ebe10000000b0026fb35ec29emr17854751ljq.488.1666813223901;
+        Wed, 26 Oct 2022 12:40:23 -0700 (PDT)
 Received: from smtpclient.apple (188-177-109-202-dynamic.dk.customer.tdc.net. [188.177.109.202])
-        by smtp.gmail.com with ESMTPSA id a11-20020a19e30b000000b0048a757d1303sm911652lfh.217.2022.10.26.10.36.33
+        by smtp.gmail.com with ESMTPSA id i14-20020a0565123e0e00b0048a921664e8sm947779lfv.37.2022.10.26.12.40.22
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 26 Oct 2022 10:36:34 -0700 (PDT)
+        Wed, 26 Oct 2022 12:40:23 -0700 (PDT)
 Content-Type: text/plain;
-        charset=utf-8
+        charset=us-ascii
 Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3731.200.110.1.12\))
 Subject: Re: [PATCH] Periodically flow expire from flow offload tables
 From:   Michael Lilja <michael.lilja@gmail.com>
-In-Reply-To: <Y1kQ9FhrwxCKIdoe@salvia>
-Date:   Wed, 26 Oct 2022 19:36:22 +0200
+In-Reply-To: <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
+Date:   Wed, 26 Oct 2022 21:40:11 +0200
 Cc:     "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -68,11 +68,11 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
+Message-Id: <03E5D5FA-5A0D-4E5A-BA32-3FE51764C02E@gmail.com>
 References: <20221023171658.69761-1-michael.lilja@gmail.com>
  <Y1fC5K0EalIYuB7Y@salvia> <381FF5B6-4FEF-45E9-92D6-6FE927A5CC2D@gmail.com>
  <Y1fd+DEPZ8xM2x5B@salvia> <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
- <Y1kQ9FhrwxCKIdoe@salvia>
+ <Y1kQ9FhrwxCKIdoe@salvia> <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 X-Mailer: Apple Mail (2.3731.200.110.1.12)
 Precedence: bulk
@@ -81,27 +81,25 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi,
 
-I will look to use the flowable netlink interface. I have not yet, but =
-does this possible give the option of doing something like this:
+I just quickly tried following the flow_offload_teardown() path instead =
+of clearing IPS_OFFLOAD in flow_offload_del() and it does have some side =
+effects. The flow is added again before the HW has actually reported it =
+to be NF_FLOW_HW_DEAD.=20
 
-flowtable ft {
-	hook ingress priority filter
-	devices =3D { lan1, lan2, wan }
-	flags offload, timeout
-}
+The sequence with my patch is:
+  : Retire -> Remove from hw tables -> Remove from sw tables -> =
+kfree(flow) -> flow_offload_add()
 
+But if flow_offload_teardown() is called on expire I see:
+  : Retire -> Remove from hw tables -> flow_offload_add() -> Remove from =
+sw tables -> kfree(flow)
+=20
+I need to investigate why this happens, maybe the IPS_OFFLOAD flag is =
+cleared too early and should not be cleared until the flow is actually =
+removed, like I do? Maybe the issue is not seen before because on =
+timeout or flow_is_dying() no packet arrive to create the flow again =
+prematurely?
 
-I would say the above it the most flexible, I just didn=E2=80=99t =
-explore that, it would kinda be like with =E2=80=99sets=E2=80=99 where =
-you can specify a timeout on when the entries should expire?
-
-
-With regards to the IPS_OPPLOAD clear in flow_offload_del() then I added =
-that because I saw some weird timeout side effects due to =
-flow_offload_fixup_ct(), but I can re-investigate, it could be that it =
-was early in my investigations and some of the other changes I made has =
-made it obsolete.
-
-Thanks
+Thanks,
 Michael
 
