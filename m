@@ -2,64 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B535DC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 07:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48278C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 10:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232895AbiJZH4V (ORCPT
+        id S233155AbiJZKui (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 03:56:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54522 "EHLO
+        Wed, 26 Oct 2022 06:50:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232731AbiJZH4V (ORCPT
+        with ESMTP id S230090AbiJZKuh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 03:56:21 -0400
+        Wed, 26 Oct 2022 06:50:37 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B2FA48E714
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Oct 2022 00:56:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1A9CC419A4;
+        Wed, 26 Oct 2022 03:50:35 -0700 (PDT)
+Date:   Wed, 26 Oct 2022 12:50:28 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nf 1/2] netfilter: nf_tables: netlink notifier might race to release objects
-Date:   Wed, 26 Oct 2022 09:56:12 +0200
-Message-Id: <20221026075613.2560-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Michael Lilja <michael.lilja@gmail.com>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] Periodically flow expire from flow offload tables
+Message-ID: <Y1kQ9FhrwxCKIdoe@salvia>
+References: <20221023171658.69761-1-michael.lilja@gmail.com>
+ <Y1fC5K0EalIYuB7Y@salvia>
+ <381FF5B6-4FEF-45E9-92D6-6FE927A5CC2D@gmail.com>
+ <Y1fd+DEPZ8xM2x5B@salvia>
+ <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-commit release path is invoked via call_rcu and it runs lockless to
-release the objects after rcu grace period. The netlink notifier handler
-might win race to remove objects that the transaction context is still
-referencing from the commit release path.
+Hi,
 
-Call rcu_barrier() to ensure pending rcu callbacks run to completion
-if the list of transactions to be destroyed is not empty.
+On Tue, Oct 25, 2022 at 03:32:51PM +0200, Michael Lilja wrote:
+> Hi, 
+> 
+> Thanks for the optimisation suggestions, my nft is a rough
+> conversion from iptables, I will look into using maps.
+> 
+> The ingress chain will work fine for SW OFFLOAD but HW OFFLOAD is
+> not solved by this, at least what I see is that once a flow is
+> offloaded to HW the driver doesn’t see the packets?
+>
+> If I use the ingress chain I guess I don’t have access to ‘ct mark’
+> yet? I could think of a use-case where schedules should only some
+> ‘flow type’: meta mask != 0x12340000/16 meta day “Tuesday" meta hour
+> >= "06:00" meta hour < "07:00" drop 
+> 
+> I have more advanced rules that check the ct mark and will need to
+> drop if mark == something. These mark == something rules are applied
+> ‘runtime’ and flowables doesn’t seem to be flushed on nft load,
+> which is also a reason for my ‘flow retire’ from the tables.
 
-Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
-Reported-by: syzbot+8f747f62763bc6c32916@syzkaller.appspotmail.com
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-as a follow up to:
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20221024133104.77813-1-fw@strlen.de/
+It should be also possible to notify the flowtable that the ruleset
+has been updated. That won't cover the meta day, hour, time scenario
+though. I think both mechanism (the 'retire' feature you propose) and
+ruleset update notifications are complementary each other and they
+would be good to have.
 
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+> So my overall goal is to receive packets, mark them with a value
+> depending on 'flow type' and then for the flows that are allowed to
+> be forwarded offload them to the ingress flow table for either HW or
+> SW offload. Once in a while I will change the verdict of a ‘flow
+> type’ and will need that to apply for all existing flows and future
+> flows, besides the fixed schedules, and it should work both for SW
+> OFFLOAD and HW OFFLOAD.
+>
+> I only have the M7621 device to play with for HW OFFLOAD, but it
+> works fine with my patch.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 58d9cbc9ccdc..2197118aa7b0 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -10030,6 +10030,8 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
- 	nft_net = nft_pernet(net);
- 	deleted = 0;
- 	mutex_lock(&nft_net->commit_mutex);
-+	if (!list_empty(&nf_tables_destroy_list))
-+		rcu_barrier();
- again:
- 	list_for_each_entry(table, &nft_net->tables, list) {
- 		if (nft_table_has_owner(table) &&
--- 
-2.30.2
+Thanks for explaining.
 
+My suggestions are:
+
+- Add support for this in the flowtable netlink interface (instead of
+  sysctl), I'm going to post a patch to add support for setting the
+  flowtable size, it can be used as reference to expose this new
+  'retire' feature.
+
+- flow_offload_teardown() already unsets the IPS_OFFLOAD bit, so
+  probably your patch can follow that path too (instead of clearing
+  IPS_OFFLOAD_BIT from flow_offload_del).
+
+static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+                                    struct flow_offload *flow, void *data)
+{
+        if (nf_flow_has_expired(flow) ||
+            nf_ct_is_dying(flow->ct))
+                flow_offload_teardown(flow);
