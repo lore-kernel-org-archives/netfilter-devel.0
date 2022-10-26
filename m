@@ -2,103 +2,117 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48278C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 10:50:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F86C38A2D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 12:34:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233155AbiJZKui (ORCPT
+        id S233536AbiJZMeH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 06:50:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40606 "EHLO
+        Wed, 26 Oct 2022 08:34:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230090AbiJZKuh (ORCPT
+        with ESMTP id S232625AbiJZMeG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 06:50:37 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1A9CC419A4;
-        Wed, 26 Oct 2022 03:50:35 -0700 (PDT)
-Date:   Wed, 26 Oct 2022 12:50:28 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Michael Lilja <michael.lilja@gmail.com>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH] Periodically flow expire from flow offload tables
-Message-ID: <Y1kQ9FhrwxCKIdoe@salvia>
-References: <20221023171658.69761-1-michael.lilja@gmail.com>
- <Y1fC5K0EalIYuB7Y@salvia>
- <381FF5B6-4FEF-45E9-92D6-6FE927A5CC2D@gmail.com>
- <Y1fd+DEPZ8xM2x5B@salvia>
- <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
+        Wed, 26 Oct 2022 08:34:06 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A1A8AF1AA;
+        Wed, 26 Oct 2022 05:34:05 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 434DAB821D9;
+        Wed, 26 Oct 2022 12:34:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20DAFC433D6;
+        Wed, 26 Oct 2022 12:34:02 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="Xx5KKuxr"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1666787640;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=ZeAi1MGyrPwsr84DGCNB/7Ek0xszjHGR2vlAtEQhd1A=;
+        b=Xx5KKuxrtpwoY9Wy+CYd1WDXBT9sCoNC9fjwsGkstHhNbN1WpvKcBizZeRpT/FCzCiS4RQ
+        tcs+Bt7NF3eTh8IExPNnbvvnyDYVtjOIBQ7zCHExZIsoRAGhDA8m5Mp/+dUQ/2ed4jN+pX
+        1b2G92MsVRvv78DJhUgz7++3kx0ah/c=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 8a7530bf (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Wed, 26 Oct 2022 12:33:59 +0000 (UTC)
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        Simon Horman <horms@verge.net.au>, stable@vger.kernel.org
+Subject: [PATCH] ipvs: use explicitly signed chars
+Date:   Wed, 26 Oct 2022 14:32:16 +0200
+Message-Id: <20221026123216.1575440-1-Jason@zx2c4.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+The `char` type with no explicit sign is sometimes signed and sometimes
+unsigned. This code will break on platforms such as arm, where char is
+unsigned. So mark it here as explicitly signed, so that the
+todrop_counter decrement and subsequent comparison is correct.
 
-On Tue, Oct 25, 2022 at 03:32:51PM +0200, Michael Lilja wrote:
-> Hi, 
-> 
-> Thanks for the optimisation suggestions, my nft is a rough
-> conversion from iptables, I will look into using maps.
-> 
-> The ingress chain will work fine for SW OFFLOAD but HW OFFLOAD is
-> not solved by this, at least what I see is that once a flow is
-> offloaded to HW the driver doesn’t see the packets?
->
-> If I use the ingress chain I guess I don’t have access to ‘ct mark’
-> yet? I could think of a use-case where schedules should only some
-> ‘flow type’: meta mask != 0x12340000/16 meta day “Tuesday" meta hour
-> >= "06:00" meta hour < "07:00" drop 
-> 
-> I have more advanced rules that check the ct mark and will need to
-> drop if mark == something. These mark == something rules are applied
-> ‘runtime’ and flowables doesn’t seem to be flushed on nft load,
-> which is also a reason for my ‘flow retire’ from the tables.
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: stable@vger.kernel.org
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-It should be also possible to notify the flowtable that the ruleset
-has been updated. That won't cover the meta day, hour, time scenario
-though. I think both mechanism (the 'retire' feature you propose) and
-ruleset update notifications are complementary each other and they
-would be good to have.
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 8c04bb57dd6f..7c4866c04343 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1249,40 +1249,40 @@ static const struct seq_operations ip_vs_conn_sync_seq_ops = {
+ 	.next  = ip_vs_conn_seq_next,
+ 	.stop  = ip_vs_conn_seq_stop,
+ 	.show  = ip_vs_conn_sync_seq_show,
+ };
+ #endif
+ 
+ 
+ /* Randomly drop connection entries before running out of memory
+  * Can be used for DATA and CTL conns. For TPL conns there are exceptions:
+  * - traffic for services in OPS mode increases ct->in_pkts, so it is supported
+  * - traffic for services not in OPS mode does not increase ct->in_pkts in
+  * all cases, so it is not supported
+  */
+ static inline int todrop_entry(struct ip_vs_conn *cp)
+ {
+ 	/*
+ 	 * The drop rate array needs tuning for real environments.
+ 	 * Called from timer bh only => no locking
+ 	 */
+-	static const char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+-	static char todrop_counter[9] = {0};
++	static const signed char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
++	static signed char todrop_counter[9] = {0};
+ 	int i;
+ 
+ 	/* if the conn entry hasn't lasted for 60 seconds, don't drop it.
+ 	   This will leave enough time for normal connection to get
+ 	   through. */
+ 	if (time_before(cp->timeout + jiffies, cp->timer.expires + 60*HZ))
+ 		return 0;
+ 
+ 	/* Don't drop the entry if its number of incoming packets is not
+ 	   located in [0, 8] */
+ 	i = atomic_read(&cp->in_pkts);
+ 	if (i > 8 || i < 0) return 0;
+ 
+ 	if (!todrop_rate[i]) return 0;
+ 	if (--todrop_counter[i] > 0) return 0;
+ 
+ 	todrop_counter[i] = todrop_rate[i];
+ 	return 1;
+ }
+-- 
+2.38.1
 
-> So my overall goal is to receive packets, mark them with a value
-> depending on 'flow type' and then for the flows that are allowed to
-> be forwarded offload them to the ingress flow table for either HW or
-> SW offload. Once in a while I will change the verdict of a ‘flow
-> type’ and will need that to apply for all existing flows and future
-> flows, besides the fixed schedules, and it should work both for SW
-> OFFLOAD and HW OFFLOAD.
->
-> I only have the M7621 device to play with for HW OFFLOAD, but it
-> works fine with my patch.
-
-Thanks for explaining.
-
-My suggestions are:
-
-- Add support for this in the flowtable netlink interface (instead of
-  sysctl), I'm going to post a patch to add support for setting the
-  flowtable size, it can be used as reference to expose this new
-  'retire' feature.
-
-- flow_offload_teardown() already unsets the IPS_OFFLOAD bit, so
-  probably your patch can follow that path too (instead of clearing
-  IPS_OFFLOAD_BIT from flow_offload_del).
-
-static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
-                                    struct flow_offload *flow, void *data)
-{
-        if (nf_flow_has_expired(flow) ||
-            nf_ct_is_dying(flow->ct))
-                flow_offload_teardown(flow);
