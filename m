@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF99EFA3744
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:23:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A86E5C38A2D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:23:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234074AbiJZNXe (ORCPT
+        id S234077AbiJZNXg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 09:23:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41304 "EHLO
+        Wed, 26 Oct 2022 09:23:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233971AbiJZNXA (ORCPT
+        with ESMTP id S233986AbiJZNXB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 09:23:00 -0400
+        Wed, 26 Oct 2022 09:23:01 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B5ED469EE1;
-        Wed, 26 Oct 2022 06:22:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 942AB371BA;
+        Wed, 26 Oct 2022 06:23:00 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 09/10] netfilter: nft_inner: add geneve support
-Date:   Wed, 26 Oct 2022 15:22:26 +0200
-Message-Id: <20221026132227.3287-10-pablo@netfilter.org>
+Subject: [PATCH net-next 10/10] netfilter: nft_inner: set tunnel offset to GRE header offset
+Date:   Wed, 26 Oct 2022 15:22:27 +0200
+Message-Id: <20221026132227.3287-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221026132227.3287-1-pablo@netfilter.org>
 References: <20221026132227.3287-1-pablo@netfilter.org>
@@ -32,62 +32,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Geneve tunnel header may contain options, parse geneve header and update
-offset to point to the link layer header according to the opt_len field.
+Set inner tunnel offset to the GRE header, this is redundant to existing
+transport header offset, but this normalizes the handling of the tunnel
+header regardless its location in the layering. GRE version 0 is overloaded
+with RFCs, the type decorator in the inner expression might also be useful
+to interpret matching fields from the netlink delinearize path in userspace.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nft_inner.c                | 17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ net/netfilter/nft_inner.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 05a15dce8271..e4b739d57480 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -783,6 +783,7 @@ enum nft_payload_csum_flags {
- enum nft_inner_type {
- 	NFT_INNER_UNSPEC	= 0,
- 	NFT_INNER_VXLAN,
-+	NFT_INNER_GENEVE,
- };
- 
- enum nft_inner_flags {
 diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index c43a2fe0ceb7..19fdc8c70cd1 100644
+index 19fdc8c70cd1..eae7caeff316 100644
 --- a/net/netfilter/nft_inner.c
 +++ b/net/netfilter/nft_inner.c
-@@ -17,6 +17,7 @@
- #include <linux/tcp.h>
- #include <linux/udp.h>
- #include <net/gre.h>
-+#include <net/geneve.h>
- #include <net/ip.h>
- #include <linux/icmpv6.h>
- #include <linux/ip.h>
-@@ -181,6 +182,22 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
- 	ctx->flags |= NFT_PAYLOAD_CTX_INNER_TUN;
- 	*off += priv->hdrsize;
- 
-+	switch (priv->type) {
-+	case NFT_INNER_GENEVE: {
-+		struct genevehdr *gnvh, _gnvh;
-+
-+		gnvh = skb_header_pointer(pkt->skb, pkt->inneroff,
-+					  sizeof(_gnvh), &_gnvh);
-+		if (!gnvh)
-+			return -1;
-+
-+		*off += gnvh->opt_len * 4;
-+		}
-+		break;
-+	default:
-+		break;
+@@ -174,8 +174,13 @@ static int nft_inner_parse_tunhdr(const struct nft_inner *priv,
+ 				  const struct nft_pktinfo *pkt,
+ 				  struct nft_inner_tun_ctx *ctx, u32 *off)
+ {
+-	if (pkt->tprot != IPPROTO_UDP ||
+-	    pkt->tprot != IPPROTO_GRE)
++	if (pkt->tprot == IPPROTO_GRE) {
++		ctx->inner_tunoff = pkt->thoff;
++		ctx->flags |= NFT_PAYLOAD_CTX_INNER_TUN;
++		return 0;
 +	}
 +
- 	return 0;
- }
++	if (pkt->tprot != IPPROTO_UDP)
+ 		return -1;
  
+ 	ctx->inner_tunoff = *off;
 -- 
 2.30.2
 
