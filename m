@@ -2,132 +2,138 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B43A2C38A2D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:05:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 631A7C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 13:23:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233142AbiJZNFt (ORCPT
+        id S233452AbiJZNXG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 09:05:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56200 "EHLO
+        Wed, 26 Oct 2022 09:23:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232823AbiJZNFr (ORCPT
+        with ESMTP id S233745AbiJZNWn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 09:05:47 -0400
-X-Greylist: delayed 1200 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 26 Oct 2022 06:05:45 PDT
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73919ACF4E;
-        Wed, 26 Oct 2022 06:05:45 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 314E0CC016B;
-        Wed, 26 Oct 2022 14:26:11 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 754C6CC010C;
-        Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 3E6B03431DF; Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 3CF51343155;
-        Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
-Date:   Wed, 26 Oct 2022 14:26:08 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Daniel Xu <dxu@dxuuu.xyz>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        ppenkov@aviatrix.com
-Subject: Re: ip_set_hash_netiface
-In-Reply-To: <9a91603a-7b8f-4c6d-9012-497335e4373b@app.fastmail.com>
-Message-ID: <7fcf3bbb-95d2-a286-e3a-4d4dd87f713a@netfilter.org>
-References: <9a91603a-7b8f-4c6d-9012-497335e4373b@app.fastmail.com>
+        Wed, 26 Oct 2022 09:22:43 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BDA2543E4A;
+        Wed, 26 Oct 2022 06:22:42 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net-next 00/10] Netfilter updates for net-next
+Date:   Wed, 26 Oct 2022 15:22:17 +0200
+Message-Id: <20221026132227.3287-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Daniel,
+Hi,
 
-On Tue, 25 Oct 2022, Daniel Xu wrote:
+The following patchset contains Netfilter updates for net-next:
 
-> I'm following up with our hallway chat yesterday about how ipset 
-> hash:net,iface can easily OOM.
-> 
-> Here's a quick reproducer (stolen from
-> https://bugzilla.kernel.org/show_bug.cgi?id=199107):
-> 
->         $ ipset create ACL.IN.ALL_PERMIT hash:net,iface hashsize 1048576 timeout 0
->         $ for i in $(seq 0 100); do /sbin/ipset add ACL.IN.ALL_PERMIT 0.0.0.0/0,kaf_$i timeout 0 -exist; done
-> 
-> This used to cause a NULL ptr deref panic before
-> https://github.com/torvalds/linux/commit/2b33d6ffa9e38f344418976b06 .
-> 
-> Now it'll either allocate a huge amount of memory or fail a
-> vmalloc():
-> 
->         [Tue Oct 25 00:13:08 2022] ipset: vmalloc error: size 1073741848, exceeds total pages
->         <...>
->         [Tue Oct 25 00:13:08 2022] Call Trace:
->         [Tue Oct 25 00:13:08 2022]  <TASK>
->         [Tue Oct 25 00:13:08 2022]  dump_stack_lvl+0x48/0x60
->         [Tue Oct 25 00:13:08 2022]  warn_alloc+0x155/0x180
->         [Tue Oct 25 00:13:08 2022]  __vmalloc_node_range+0x72a/0x760
->         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_add+0x7c0/0xb20
->         [Tue Oct 25 00:13:08 2022]  ? __kmalloc_large_node+0x4a/0x90
->         [Tue Oct 25 00:13:08 2022]  kvmalloc_node+0xa6/0xd0
->         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_resize+0x99/0x710
->         <...>
-> 
-> Note that this behavior is somewhat documented
-> (https://ipset.netfilter.org/ipset.man.html):
-> 
-> >  The internal restriction of the hash:net,iface set type is that the same
-> >  network prefix cannot be stored with more than 64 different interfaces
-> >  in a single set.
-> 
-> I'm not sure how hard it would be to enforce a limit, but I think it would
-> be a bit better to error than allocate many GBs of memory.
+1) Move struct nft_payload_set definition to .c file where it is
+   only used.
 
-That's a bug, actually the limit is not enforced in spite of the 
-documentation. The next patch fixes it and I'm going to submit to Pablo:
+2) Shrink transport and inner header offset fields in the nft_pktinfo
+   structure to 16-bits, from Florian Westphal.
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 6e391308431d..3f8853ed32e9 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -61,10 +61,6 @@ tune_bucketsize(u8 curr, u32 multi)
- 	 */
- 	return n > curr && n <= AHASH_MAX_TUNED ? n : curr;
- }
--#define TUNE_BUCKETSIZE(h, multi)	\
--	((h)->bucketsize = tune_bucketsize((h)->bucketsize, multi))
--#else
--#define TUNE_BUCKETSIZE(h, multi)
- #endif
- 
- /* A hash bucket */
-@@ -936,7 +932,11 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 		goto set_full;
- 	/* Create a new slot */
- 	if (n->pos >= n->size) {
--		TUNE_BUCKETSIZE(h, multi);
-+#ifdef IP_SET_HASH_WITH_MULTI
-+		if (h->bucketsize >= AHASH_MAX_TUNED)
-+			goto set_full;
-+		h->bucketsize = tune_bucketsize(h->bucketsize, multi);
-+#endif
- 		if (n->size >= AHASH_MAX(h)) {
- 			/* Trigger rehashing */
- 			mtype_data_next(&h->next, d);
+3) Get rid of nft_objref Kbuild toggle, make it built-in into
+   nf_tables. This expression is used to instantiate conntrack helpers
+   in nftables. After removing the conntrack helper auto-assignment
+   toggle it this feature became more important so move it to the nf_tables
+   core module. Also from Florian.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+4) Extend the existing function to calculate payload inner header offset
+   to deal with the GRE and IPIP transport protocols.
+
+6) Add inner expression support for nf_tables. This new expression
+   provides a packet parser for tunneled packets which uses a userspace
+   description of the expected inner headers. The inner expression
+   invokes the payload expression (via direct call) to match on the
+   inner header protocol fields using the inner link, network and
+   transport header offsets.
+
+   An example of the bytecode generated from userspace to match on
+   IP source encapsulated in a VxLAN packet:
+
+   # nft --debug=netlink add rule netdev x y udp dport 4789 vxlan ip saddr 1.2.3.4
+     netdev x y
+       [ meta load l4proto => reg 1 ]
+       [ cmp eq reg 1 0x00000011 ]
+       [ payload load 2b @ transport header + 2 => reg 1 ]
+       [ cmp eq reg 1 0x0000b512 ]
+       [ inner type vxlan hdrsize 8 flags f [ meta load protocol => reg 1 ] ]
+       [ cmp eq reg 1 0x00000008 ]
+       [ inner type vxlan hdrsize 8 flags f [ payload load 4b @ network header + 12 => reg 1 ] ]
+       [ cmp eq reg 1 0x04030201 ]
+
+7) Store inner link, network and transport header offsets in percpu
+   area to parse inner packet header once only. Matching on a different
+   tunnel type invalidates existing offsets in the percpu area and it
+   invokes the inner tunnel parser again.
+
+8) Add support for inner meta matching. This support for
+   NFTA_META_PROTOCOL, which specifies the inner ethertype, and
+   NFT_META_L4PROTO, which specifies the inner transport protocol.
+
+9) Extend nft_inner to parse GENEVE optional fields to calculate the
+   link layer offset.
+
+10) Update inner expression so tunnel offset points to GRE header
+    to normalize tunnel header handling. This also allows to perform
+    different interpretations of the GRE header from userspace.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit d6dd508080a3cdc0ab34ebf66c3734f2dff907ad:
+
+  bnx2: Use kmalloc_size_roundup() to match ksize() usage (2022-10-25 12:59:04 +0200)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git HEAD
+
+for you to fetch changes up to 91619eb60aeccd3181d9b88975add706a9b763c1:
+
+  netfilter: nft_inner: set tunnel offset to GRE header offset (2022-10-25 13:48:42 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: nf_tables: reduce nft_pktinfo by 8 bytes
+      netfilter: nft_objref: make it builtin
+
+Pablo Neira Ayuso (8):
+      netfilter: nft_payload: move struct nft_payload_set definition where it belongs
+      netfilter: nft_payload: access GRE payload via inner offset
+      netfilter: nft_payload: access ipip payload for inner offset
+      netfilter: nft_inner: support for inner tunnel header matching
+      netfilter: nft_inner: add percpu inner context
+      netfilter: nft_meta: add inner match support
+      netfilter: nft_inner: add geneve support
+      netfilter: nft_inner: set tunnel offset to GRE header offset
+
+ include/net/netfilter/nf_tables.h        |  10 +-
+ include/net/netfilter/nf_tables_core.h   |  36 ++-
+ include/net/netfilter/nf_tables_ipv4.h   |   4 +
+ include/net/netfilter/nf_tables_ipv6.h   |   6 +-
+ include/net/netfilter/nft_meta.h         |   6 +
+ include/uapi/linux/netfilter/nf_tables.h |  27 +++
+ net/netfilter/Kconfig                    |   6 -
+ net/netfilter/Makefile                   |   4 +-
+ net/netfilter/nf_tables_api.c            |  37 +++
+ net/netfilter/nf_tables_core.c           |   2 +
+ net/netfilter/nft_inner.c                | 384 +++++++++++++++++++++++++++++++
+ net/netfilter/nft_meta.c                 |  62 +++++
+ net/netfilter/nft_objref.c               |  22 +-
+ net/netfilter/nft_payload.c              | 134 ++++++++++-
+ 14 files changed, 695 insertions(+), 45 deletions(-)
+ create mode 100644 net/netfilter/nft_inner.c
