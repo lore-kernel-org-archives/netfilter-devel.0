@@ -2,141 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE4DC38A2D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 14:30:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91F90C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Oct 2022 15:01:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233301AbiJZOaa (ORCPT
+        id S234411AbiJZPBR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Oct 2022 10:30:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34598 "EHLO
+        Wed, 26 Oct 2022 11:01:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233728AbiJZOa1 (ORCPT
+        with ESMTP id S234144AbiJZPBQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2022 10:30:27 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6DD1422C8;
-        Wed, 26 Oct 2022 07:30:25 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8A0CCB82033;
-        Wed, 26 Oct 2022 14:30:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFC1C433C1;
-        Wed, 26 Oct 2022 14:30:22 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=fail reason="signature verification failed" (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="PLquYrQz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1666794619;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=P6tG8AO+VnJ6tGDJZNZETw7TGH2GPbgVHdULos2RrT4=;
-        b=PLquYrQzd8Dq5Xpi6TjfwLK5bB+2sSOz0v/BByfpdPGjMfbUgMJhXqmAM9y9AU2ACHIoar
-        FeBoJ9q9KA+64KRL8LwyPRg5QXD1W+zY5CymoCEEQQDtl5rb2uq+qjj39Dd3qzJabVxr2k
-        IC8VyBw9KtRvh8LEkBQdKVDlzag0rts=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 1c5698b1 (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Wed, 26 Oct 2022 14:30:19 +0000 (UTC)
-Date:   Wed, 26 Oct 2022 16:30:17 +0200
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        Wed, 26 Oct 2022 11:01:16 -0400
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 765AB3F1C4;
+        Wed, 26 Oct 2022 08:01:14 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id D433911E33;
+        Wed, 26 Oct 2022 18:01:13 +0300 (EEST)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 9338911F07;
+        Wed, 26 Oct 2022 18:01:12 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 654093C07E1;
+        Wed, 26 Oct 2022 18:01:10 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 29QF19DQ097559;
+        Wed, 26 Oct 2022 18:01:09 +0300
+Date:   Wed, 26 Oct 2022 18:01:09 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
+cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Simon Horman <horms@verge.net.au>, stable@vger.kernel.org
 Subject: Re: [PATCH] ipvs: use explicitly signed chars
-Message-ID: <Y1lEebYfRwrtliDL@zx2c4.com>
-References: <20221026123216.1575440-1-Jason@zx2c4.com>
- <4cc36ff5-46fd-c2b3-3292-d6369337fec1@ssi.bg>
+In-Reply-To: <Y1lEebYfRwrtliDL@zx2c4.com>
+Message-ID: <bb93406f-6935-deee-22e4-c4b4be55bc60@ssi.bg>
+References: <20221026123216.1575440-1-Jason@zx2c4.com> <4cc36ff5-46fd-c2b3-3292-d6369337fec1@ssi.bg> <Y1lEebYfRwrtliDL@zx2c4.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <4cc36ff5-46fd-c2b3-3292-d6369337fec1@ssi.bg>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 26, 2022 at 05:20:03PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Wed, 26 Oct 2022, Jason A. Donenfeld wrote:
-> 
-> > The `char` type with no explicit sign is sometimes signed and sometimes
-> > unsigned. This code will break on platforms such as arm, where char is
-> > unsigned. So mark it here as explicitly signed, so that the
-> > todrop_counter decrement and subsequent comparison is correct.
-> > 
-> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Cc: Julian Anastasov <ja@ssi.bg>
-> > Cc: Simon Horman <horms@verge.net.au>
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
-> 
-> 	Looks good to me for -next, thanks!
 
-This is actually net.git material, not net-next.git material,
-considering it fixes a bug on arm and many other archs, and is marked
-with a stable@ tag.
+	Hello,
 
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> > ---
-> >  net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
+On Wed, 26 Oct 2022, Jason A. Donenfeld wrote:
+
+> On Wed, Oct 26, 2022 at 05:20:03PM +0300, Julian Anastasov wrote:
 > > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> > index 8c04bb57dd6f..7c4866c04343 100644
-> > --- a/net/netfilter/ipvs/ip_vs_conn.c
-> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> > @@ -1249,40 +1249,40 @@ static const struct seq_operations ip_vs_conn_sync_seq_ops = {
-> >  	.next  = ip_vs_conn_seq_next,
-> >  	.stop  = ip_vs_conn_seq_stop,
-> >  	.show  = ip_vs_conn_sync_seq_show,
-> >  };
-> >  #endif
-> >  
-> >  
-> >  /* Randomly drop connection entries before running out of memory
-> >   * Can be used for DATA and CTL conns. For TPL conns there are exceptions:
-> >   * - traffic for services in OPS mode increases ct->in_pkts, so it is supported
-> >   * - traffic for services not in OPS mode does not increase ct->in_pkts in
-> >   * all cases, so it is not supported
-> >   */
-> >  static inline int todrop_entry(struct ip_vs_conn *cp)
-> >  {
-> >  	/*
-> >  	 * The drop rate array needs tuning for real environments.
-> >  	 * Called from timer bh only => no locking
-> >  	 */
-> > -	static const char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-> > -	static char todrop_counter[9] = {0};
-> > +	static const signed char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-> > +	static signed char todrop_counter[9] = {0};
-> >  	int i;
-> >  
-> >  	/* if the conn entry hasn't lasted for 60 seconds, don't drop it.
-> >  	   This will leave enough time for normal connection to get
-> >  	   through. */
-> >  	if (time_before(cp->timeout + jiffies, cp->timer.expires + 60*HZ))
-> >  		return 0;
-> >  
-> >  	/* Don't drop the entry if its number of incoming packets is not
-> >  	   located in [0, 8] */
-> >  	i = atomic_read(&cp->in_pkts);
-> >  	if (i > 8 || i < 0) return 0;
-> >  
-> >  	if (!todrop_rate[i]) return 0;
-> >  	if (--todrop_counter[i] > 0) return 0;
-> >  
-> >  	todrop_counter[i] = todrop_rate[i];
-> >  	return 1;
-> >  }
-> > -- 
-> > 2.38.1
+> > 	Hello,
+> > 
+> > On Wed, 26 Oct 2022, Jason A. Donenfeld wrote:
+> > 
+> > > The `char` type with no explicit sign is sometimes signed and sometimes
+> > > unsigned. This code will break on platforms such as arm, where char is
+> > > unsigned. So mark it here as explicitly signed, so that the
+> > > todrop_counter decrement and subsequent comparison is correct.
+> > > 
+> > > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > Cc: Julian Anastasov <ja@ssi.bg>
+> > > Cc: Simon Horman <horms@verge.net.au>
+> > > Cc: stable@vger.kernel.org
+> > > Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+> > 
+> > 	Looks good to me for -next, thanks!
 > 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+> This is actually net.git material, not net-next.git material,
+> considering it fixes a bug on arm and many other archs, and is marked
+> with a stable@ tag.
+
+	OK. As algorithm is not SMP safe, the problem is
+not just for the first 256 packets on these platforms.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
