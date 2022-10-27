@@ -2,78 +2,123 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D9B1FA3740
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Oct 2022 20:36:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D91CECAAA1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Oct 2022 20:57:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236365AbiJ0Ugm (ORCPT
+        id S237042AbiJ0U5J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Oct 2022 16:36:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48140 "EHLO
+        Thu, 27 Oct 2022 16:57:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236327AbiJ0Ugl (ORCPT
+        with ESMTP id S237165AbiJ0U4w (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2022 16:36:41 -0400
-Received: from sipsolutions.net (s3.sipsolutions.net [IPv6:2a01:4f8:191:4433::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53268792EB;
-        Thu, 27 Oct 2022 13:36:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=sipsolutions.net; s=mail; h=MIME-Version:Content-Transfer-Encoding:
-        Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-To:
-        Resent-Cc:Resent-Message-ID; bh=MzB2rQ75d5Tt6rhAeYw/tTRK8zQ3E14+m3BrqpNczI0=;
-        t=1666903000; x=1668112600; b=RoEoNYGlw3mh/iWEtMAc2tp0p3KUjqtXyREcg5k1GcIRLyJ
-        Vuq7XFeg83qOgsK8d3pnqzkB4kf0W7LSk2kmyskpVVj10yYvFOi6GdobswO4GBFeuoiQmBqjyOV2y
-        fRM2LpbeQMe6UzJQqTc9JXU8v7nDvMY4E3mTE8+rUsSFyus0JuYGHaQChOoWKhqJK7BzupxjZtIh3
-        cQDgf6AWTA1x/epsbkNF81tvv3hiMw3IjGMB75LxBP9wIJcOOAbk3MFzY9VZ7hSp8EsdnFzjOcfAy
-        orrW2Ri4P/i3kMHb4TrPr3P0tMZvyaFUjyVkuG4vFhuMMuL3MBUaWZToUEoxm6lA==;
-Received: by sipsolutions.net with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-        (Exim 4.96)
-        (envelope-from <johannes@sipsolutions.net>)
-        id 1oo9cA-000aU0-0l;
-        Thu, 27 Oct 2022 22:36:34 +0200
-Message-ID: <2f528f1a320c55fdc7f3be55095c1f0eacee1032.camel@sipsolutions.net>
-Subject: Re: [PATCH net-next 1/2] netlink: introduce NLA_POLICY_MAX_BE
-From:   Johannes Berg <johannes@sipsolutions.net>
-To:     Jakub Kicinski <kuba@kernel.org>, Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Paolo Abeni <pabeni@redhat.com>
-Date:   Thu, 27 Oct 2022 22:36:33 +0200
-In-Reply-To: <20221027133109.590bd74f@kernel.org>
-References: <20220905100937.11459-1-fw@strlen.de>
-         <20220905100937.11459-2-fw@strlen.de> <20221027133109.590bd74f@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.44.4 (3.44.4-2.fc36) 
+        Thu, 27 Oct 2022 16:56:52 -0400
+Received: from mail-qk1-x736.google.com (mail-qk1-x736.google.com [IPv6:2607:f8b0:4864:20::736])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53966B2DB7
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2022 13:49:23 -0700 (PDT)
+Received: by mail-qk1-x736.google.com with SMTP id o2so2044557qkk.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2022 13:49:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=oSQGNRMEvUKfx6go8ULfblA0p1pLNMVNwBSwzmOAVIQ=;
+        b=KiOYl6oYgVWmVt5yfOwXFbg2uqh6VMRSaNrvgwmuxSGJROVhF0gOA1n6rrYx8VRW6R
+         VVZ63rmL9pY6OoKE9oUm6undU4L2Zw1Drahl+CZCyz+M4M06l6JRo9sMPUn+pAaD9PiI
+         Dk7dgLCKUTOIMkWDgv7w/+2Fdi4C07XO5WJgA=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oSQGNRMEvUKfx6go8ULfblA0p1pLNMVNwBSwzmOAVIQ=;
+        b=nUzbHs1YY4Gj32Yy7UUuzRl+pAT8RoUToXHrt7Vrm53OPusr8mEg0h9hIs9CB8nFQo
+         A0f/VmXawwnRHS+n2g3EsQ2ZHONl5jEP4GRZxrT4YH2bzGv4rGLveg1mo7DYZDibsZIg
+         MkmiJ3qANZgQ/W21pmEhqpGDkdk4dksN6p6lvWumR4ZxmqZVF4htDKIwwZhyzzy/w/0J
+         TPmoPd+sZase8fFL3ebes0Lsh/pC8ByJaFc10WJ1Xv/7Zlz+ite1TPc53WLSGXXpJjcM
+         Dr3MG3Ap6jFXZtiGNU2Fj0YDxTNgMjgpj8WgaNBmmJDfx3VxvMZ8OeRiQtIqgxELNs39
+         PeJg==
+X-Gm-Message-State: ACrzQf19cFGLgJ8QsMGNqCoH4r15bvD+c2pyrZARnIgdnJhAEwfAV0/c
+        SdYWIQiIXiQ71gpH44xnMoIWiegsEOMyGw==
+X-Google-Smtp-Source: AMsMyM6qDNtUjGdk0WiiOfzstENkDNvbjgs1GO+AW9Uo+0FT4vQ6Bj3mDUzPjlAHpgjuyXp3QzPWRQ==
+X-Received: by 2002:a37:648e:0:b0:6f9:f736:8e1d with SMTP id y136-20020a37648e000000b006f9f7368e1dmr3007418qkb.512.1666903762172;
+        Thu, 27 Oct 2022 13:49:22 -0700 (PDT)
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com. [209.85.219.181])
+        by smtp.gmail.com with ESMTPSA id w22-20020a05620a445600b006eeae49537bsm1641236qkp.98.2022.10.27.13.49.21
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 27 Oct 2022 13:49:21 -0700 (PDT)
+Received: by mail-yb1-f181.google.com with SMTP id 187so3809945ybe.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2022 13:49:21 -0700 (PDT)
+X-Received: by 2002:a05:6902:124f:b0:66e:e3da:487e with SMTP id
+ t15-20020a056902124f00b0066ee3da487emr49547816ybu.310.1666903751005; Thu, 27
+ Oct 2022 13:49:11 -0700 (PDT)
 MIME-Version: 1.0
-X-malware-bazaar: not-scanned
+References: <20221027150525.753064657@goodmis.org> <20221027150928.780676863@goodmis.org>
+ <20221027155513.60b211e2@gandalf.local.home> <CAHk-=wjAjW2P5To82+CAM0Rx8RexQBHPTVZBWBPHyEPGm37oFA@mail.gmail.com>
+ <20221027163453.383bbf8e@gandalf.local.home>
+In-Reply-To: <20221027163453.383bbf8e@gandalf.local.home>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 27 Oct 2022 13:48:54 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whoS+krLU7JNe=hMp2VOcwdcCdTXhdV8qqKoViwzzJWfA@mail.gmail.com>
+Message-ID: <CAHk-=whoS+krLU7JNe=hMp2VOcwdcCdTXhdV8qqKoViwzzJWfA@mail.gmail.com>
+Subject: Re: [RFC][PATCH v2 19/31] timers: net: Use del_timer_shutdown()
+ before freeing timer
+To:     Steven Rostedt <rostedt@goodmis.org>
+Cc:     linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Mirko Lindner <mlindner@marvell.com>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Martin KaFai Lau <martin.lau@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Kuniyuki Iwashima <kuniyu@amazon.com>,
+        Pavel Begunkov <asml.silence@gmail.com>,
+        Menglong Dong <imagedong@tencent.com>,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, lvs-devel@vger.kernel.org,
+        linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 2022-10-27 at 13:31 -0700, Jakub Kicinski wrote:
-> On Mon,  5 Sep 2022 12:09:36 +0200 Florian Westphal wrote:
-> >  		struct {
-> >  			s16 min, max;
-> > +			u8 network_byte_order:1;
-> >  		};
->=20
-> This makes the union 64bit even on 32bit systems.
-> Do we care? Should we accept that and start using
-> full 64bits in other validation members?
->=20
-> We can quite easily steal a bit elsewhere, which
-> I reckon may be the right thing to do, but I thought
-> I'd ask.
+On Thu, Oct 27, 2022 at 1:34 PM Steven Rostedt <rostedt@goodmis.org> wrote:
+>
+> What about del_timer_try_shutdown(), that if it removes the timer, it sets
+> the function to NULL (making it equivalent to a successful shutdown),
+> otherwise it does nothing. Allowing the the timer to be rearmed.
 
-Personally, I guess I might have preferred to steal a bit out of the
-type or validation_type. We have a lot of these structures... and I'd
-guess 32-bit systems are typically more memory constrained.
+Sounds sane to me and should work, but as mentioned, I think the
+networking people need to say "yeah" too.
 
-In fact we could easily just have three extra types NLA_BE16, NLA_BE32
-and NLA_BE64 types without even stealing a bit? We already have
-NLA_MSECS which is basically the same as NLA_U64 but just with the
-additional semantic information, for example.
+And maybe that function can also disallow any future re-arming even
+for the case where the timer couldn't be actively removed.
 
-johannes
+So any *currently* active timer wouldn't be waited for (either because
+locking may make that a deadlock situation, or simply due to
+performance issues), but at least it would guarantee that no new timer
+activations can happen.
+
+Because I do like the whole notion of "timer has been shutdown and
+cannot be used as a timer any more without re-initializing it" being a
+real state - even for a timer that may be "currently in flight".
+
+So this all sounds very worthwhile to me, but I'm not surprised that
+we have code that then knows about all the subtleties of "del_timer()
+might still have a running timer" and actually take advantage of it
+(where "advantage" is likely more of a "deal with the complexities"
+rather than anything really positive ;)
+
+And those existing subtle users might want particular semantics to at
+least make said complexities easier.
+
+               Linus
