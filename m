@@ -2,172 +2,245 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D1DFC38A02
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Oct 2022 07:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EEF4C38A02
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Oct 2022 09:38:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbiJ1Hvj convert rfc822-to-8bit (ORCPT
+        id S230189AbiJ1Jij (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Oct 2022 03:51:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47052 "EHLO
+        Fri, 28 Oct 2022 05:38:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229948AbiJ1Hvh (ORCPT
+        with ESMTP id S229597AbiJ1JiQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Oct 2022 03:51:37 -0400
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEC451BF85D
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Oct 2022 00:51:33 -0700 (PDT)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-32-5DrEyXUYNVeSOoVba2Mbxw-1; Fri, 28 Oct 2022 08:51:30 +0100
-X-MC-Unique: 5DrEyXUYNVeSOoVba2Mbxw-1
-Received: from AcuMS.Aculab.com (10.202.163.4) by AcuMS.aculab.com
- (10.202.163.4) with Microsoft SMTP Server (TLS) id 15.0.1497.42; Fri, 28 Oct
- 2022 08:51:28 +0100
-Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
- id 15.00.1497.042; Fri, 28 Oct 2022 08:51:28 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Jozsef Kadlecsik' <kadlec@netfilter.org>,
-        Daniel Xu <dxu@dxuuu.xyz>
-CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "ppenkov@aviatrix.com" <ppenkov@aviatrix.com>
-Subject: RE: ip_set_hash_netiface
-Thread-Topic: ip_set_hash_netiface
-Thread-Index: AQHY6Td/ZX+DEWvLgEGa9nnokIvRm64jbupg
-Date:   Fri, 28 Oct 2022 07:51:28 +0000
-Message-ID: <4a0da0bfe87b4e10a83b97508d3c853e@AcuMS.aculab.com>
-References: <9a91603a-7b8f-4c6d-9012-497335e4373b@app.fastmail.com>
- <7fcf3bbb-95d2-a286-e3a-4d4dd87f713a@netfilter.org>
-In-Reply-To: <7fcf3bbb-95d2-a286-e3a-4d4dd87f713a@netfilter.org>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        Fri, 28 Oct 2022 05:38:16 -0400
+Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C7C71C8D6C
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Oct 2022 02:37:20 -0700 (PDT)
+Received: from fews1.riseup.net (fews1-pn.riseup.net [10.0.1.83])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
+         client-signature RSA-PSS (2048 bits) client-digest SHA256)
+        (Client CN "mail.riseup.net", Issuer "R3" (not verified))
+        by mx1.riseup.net (Postfix) with ESMTPS id 4MzHWg62v3zDqj1
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Oct 2022 09:37:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+        t=1666949839; bh=fiJsOrRR1i2Oil3UCbzyNcTQm1hGAUyha7HwSiC9AzQ=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Nr4E0Z7ZclB5opNnjTK8ICMtRVTs0sdzpsQdYB6oZvsNoGkgmLw/0NjYFeRBX3nj3
+         9Rr12NnhYRjYAR4mFC+KMTn5neFnpXwHZ/SuqZwXAPokgXt6WXgKHIVuXLy9xN41LC
+         sGnm6PYNSz26wUteoV93N3eoOOw4DBJ8z9OCnMmU=
+X-Riseup-User-ID: 4FC92B21E19ECB905C5F77238578EFE337670A19961AA8E62FE057300F8A4159
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+         by fews1.riseup.net (Postfix) with ESMTPSA id 4MzHWf64brz5vXJ;
+        Fri, 28 Oct 2022 09:37:18 +0000 (UTC)
+From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH nf-next] netfilter: nf_tables: add support to destroy operation
+Date:   Fri, 28 Oct 2022 11:36:38 +0200
+Message-Id: <20221028093638.6346-1-ffmancera@riseup.net>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jozsef Kadlecsik
-> Sent: 26 October 2022 13:26
-> 
-> On Tue, 25 Oct 2022, Daniel Xu wrote:
-> 
-> > I'm following up with our hallway chat yesterday about how ipset
-> > hash:net,iface can easily OOM.
-> >
-> > Here's a quick reproducer (stolen from
-> > https://bugzilla.kernel.org/show_bug.cgi?id=199107):
-> >
-> >         $ ipset create ACL.IN.ALL_PERMIT hash:net,iface hashsize 1048576 timeout 0
-> >         $ for i in $(seq 0 100); do /sbin/ipset add ACL.IN.ALL_PERMIT 0.0.0.0/0,kaf_$i timeout 0 -
-> exist; done
-> >
-> > This used to cause a NULL ptr deref panic before
-> > https://github.com/torvalds/linux/commit/2b33d6ffa9e38f344418976b06 .
-> >
-> > Now it'll either allocate a huge amount of memory or fail a
-> > vmalloc():
-> >
-> >         [Tue Oct 25 00:13:08 2022] ipset: vmalloc error: size 1073741848, exceeds total pages
-> >         <...>
-> >         [Tue Oct 25 00:13:08 2022] Call Trace:
-> >         [Tue Oct 25 00:13:08 2022]  <TASK>
-> >         [Tue Oct 25 00:13:08 2022]  dump_stack_lvl+0x48/0x60
-> >         [Tue Oct 25 00:13:08 2022]  warn_alloc+0x155/0x180
-> >         [Tue Oct 25 00:13:08 2022]  __vmalloc_node_range+0x72a/0x760
-> >         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_add+0x7c0/0xb20
-> >         [Tue Oct 25 00:13:08 2022]  ? __kmalloc_large_node+0x4a/0x90
-> >         [Tue Oct 25 00:13:08 2022]  kvmalloc_node+0xa6/0xd0
-> >         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_resize+0x99/0x710
-> >         <...>
-> >
-> > Note that this behavior is somewhat documented
-> > (https://ipset.netfilter.org/ipset.man.html):
-> >
-> > >  The internal restriction of the hash:net,iface set type is that the same
-> > >  network prefix cannot be stored with more than 64 different interfaces
-> > >  in a single set.
-> >
-> > I'm not sure how hard it would be to enforce a limit, but I think it would
-> > be a bit better to error than allocate many GBs of memory.
-> 
-> That's a bug, actually the limit is not enforced in spite of the
-> documentation. The next patch fixes it and I'm going to submit to Pablo:
-> 
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 6e391308431d..3f8853ed32e9 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -61,10 +61,6 @@ tune_bucketsize(u8 curr, u32 multi)
->  	 */
->  	return n > curr && n <= AHASH_MAX_TUNED ? n : curr;
->  }
-> -#define TUNE_BUCKETSIZE(h, multi)	\
-> -	((h)->bucketsize = tune_bucketsize((h)->bucketsize, multi))
-> -#else
-> -#define TUNE_BUCKETSIZE(h, multi)
->  #endif
-> 
->  /* A hash bucket */
-> @@ -936,7 +932,11 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->  		goto set_full;
->  	/* Create a new slot */
->  	if (n->pos >= n->size) {
-> -		TUNE_BUCKETSIZE(h, multi);
-> +#ifdef IP_SET_HASH_WITH_MULTI
-> +		if (h->bucketsize >= AHASH_MAX_TUNED)
-> +			goto set_full;
-> +		h->bucketsize = tune_bucketsize(h->bucketsize, multi);
-> +#endif
+Introduce NFT_MSG_DESTROY* message type. The destroy operation performs a
+delete operation but ignoring the ENOENT errors.
 
-AFAICT this is the only call of tune_bucketsize().
-It is defined just above TUNE_BUCKETSIZE as:
-static u8
-tune_bucketsize(u8 curr, u32 multi)
-{
-	u32 n;
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 14 ++++++
+ net/netfilter/nf_tables_api.c            | 60 ++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+)
 
-	if (multi < curr)
-		return curr;
-
-	n = curr + AHASH_INIT_SIZE;
-	/* Currently, at listing one hash bucket must fit into a message.
-	 * Therefore we have a hard limit here.
-	 */
-	return n > curr && n <= AHASH_MAX_TUNED ? n : curr;
-}
-
-If I'm reading it correctly this is just:
-	return curr >= multi || curr >= 64 ? curr : curr + 2;
-(the 'n > curr' test is unconditionally true).
-The extra check is limiting it to 12 (AHASH_MAX_TUNED) not 64.
-
-Quite why the change makes a significant difference to the validity
-of the kvalloc() is another matter.
-Changing a multiplier from 64 to 12 seems unlikely to be that
-significant - if it is you wouldn't want to be multiplying by 12.
-
-I've not looked what 'multi' is, but I'm sort of surprised it isn't
-used as the new bucketsize.
-
-Also it doesn't really look right to have lots of static functions
-in a .h file?
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 466fd3f4447c..0442335693fe 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -97,6 +97,13 @@ enum nft_verdicts {
+  * @NFT_MSG_NEWFLOWTABLE: add new flow table (enum nft_flowtable_attributes)
+  * @NFT_MSG_GETFLOWTABLE: get flow table (enum nft_flowtable_attributes)
+  * @NFT_MSG_DELFLOWTABLE: delete flow table (enum nft_flowtable_attributes)
++ * @NFT_MSG_DESTROYTABLE: destroy a table (enum nft_table_attributes)
++ * @NFT_MSG_DESTROYCHAIN: destroy a chain (enum nft_chain_attributes)
++ * @NFT_MSG_DESTROYRULE: destroy a rule (enum nft_rule_attributes)
++ * @NFT_MSG_DESTROYSET: destroy a set (enum nft_set_attributes)
++ * @NFT_MSG_DESTROYSETELEM: destroy a set element (enum nft_set_elem_attributes)
++ * @NFT_MSG_DESTROYOBJ: destroy a stateful object (enum nft_object_attributes)
++ * @NFT_MSG_DESTROYFLOWTABLE: destroy flow table (enum nft_flowtable_attributes)
+  */
+ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWTABLE,
+@@ -124,6 +131,13 @@ enum nf_tables_msg_types {
+ 	NFT_MSG_NEWFLOWTABLE,
+ 	NFT_MSG_GETFLOWTABLE,
+ 	NFT_MSG_DELFLOWTABLE,
++	NFT_MSG_DESTROYTABLE,
++	NFT_MSG_DESTROYCHAIN,
++	NFT_MSG_DESTROYRULE,
++	NFT_MSG_DESTROYSET,
++	NFT_MSG_DESTROYSETELEM,
++	NFT_MSG_DESTROYOBJ,
++	NFT_MSG_DESTROYFLOWTABLE,
+ 	NFT_MSG_MAX,
+ };
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 12fc9cda4a2c..a37037df2bdb 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1373,6 +1373,9 @@ static int nf_tables_deltable(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
+ 
+ 	if (IS_ERR(table)) {
++		if (PTR_ERR(table) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYTABLE)
++			return 0;
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(table);
+ 	}
+@@ -2603,6 +2606,9 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 		chain = nft_chain_lookup(net, table, attr, genmask);
+ 	}
+ 	if (IS_ERR(chain)) {
++		if (PTR_ERR(chain) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYCHAIN)
++			return 0;
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(chain);
+ 	}
+@@ -3623,6 +3629,9 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 		chain = nft_chain_lookup(net, table, nla[NFTA_RULE_CHAIN],
+ 					 genmask);
+ 		if (IS_ERR(chain)) {
++			if (PTR_ERR(chain) == -ENOENT &&
++			    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYRULE)
++				return 0;
+ 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN]);
+ 			return PTR_ERR(chain);
+ 		}
+@@ -6396,6 +6405,9 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
+ 
+ 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
+ 		err = nft_del_setelem(&ctx, set, attr);
++		if (err == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYSETELEM)
++			err = 0;
+ 		if (err < 0)
+ 			break;
+ 	}
+@@ -7038,6 +7050,9 @@ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
+ 
+ 	if (IS_ERR(obj)) {
++		if (PTR_ERR(obj) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYOBJ)
++			return 0;
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(obj);
+ 	}
+@@ -7656,6 +7671,9 @@ static int nf_tables_delflowtable(struct sk_buff *skb,
+ 	}
+ 
+ 	if (IS_ERR(flowtable)) {
++		if (PTR_ERR(flowtable) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYFLOWTABLE)
++			return 0;
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(flowtable);
+ 	}
+@@ -8065,6 +8083,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_TABLE_MAX,
+ 		.policy		= nft_table_policy,
+ 	},
++	[NFT_MSG_DESTROYTABLE] = {
++		.call		= nf_tables_deltable,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_TABLE_MAX,
++		.policy		= nft_table_policy,
++	},
+ 	[NFT_MSG_NEWCHAIN] = {
+ 		.call		= nf_tables_newchain,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8083,6 +8107,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_CHAIN_MAX,
+ 		.policy		= nft_chain_policy,
+ 	},
++	[NFT_MSG_DESTROYCHAIN] = {
++		.call		= nf_tables_delchain,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_CHAIN_MAX,
++		.policy		= nft_chain_policy,
++	},
+ 	[NFT_MSG_NEWRULE] = {
+ 		.call		= nf_tables_newrule,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8101,6 +8131,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_RULE_MAX,
+ 		.policy		= nft_rule_policy,
+ 	},
++	[NFT_MSG_DESTROYRULE] = {
++		.call		= nf_tables_delrule,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_RULE_MAX,
++		.policy		= nft_rule_policy,
++	},
+ 	[NFT_MSG_NEWSET] = {
+ 		.call		= nf_tables_newset,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8119,6 +8155,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_SET_MAX,
+ 		.policy		= nft_set_policy,
+ 	},
++	[NFT_MSG_DESTROYSET] = {
++		.call		= nf_tables_delset,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_SET_MAX,
++		.policy		= nft_set_policy,
++	},
+ 	[NFT_MSG_NEWSETELEM] = {
+ 		.call		= nf_tables_newsetelem,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8137,6 +8179,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
+ 		.policy		= nft_set_elem_list_policy,
+ 	},
++	[NFT_MSG_DESTROYSETELEM] = {
++		.call		= nf_tables_delsetelem,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
++		.policy		= nft_set_elem_list_policy,
++	},
+ 	[NFT_MSG_GETGEN] = {
+ 		.call		= nf_tables_getgen,
+ 		.type		= NFNL_CB_RCU,
+@@ -8159,6 +8207,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_OBJ_MAX,
+ 		.policy		= nft_obj_policy,
+ 	},
++	[NFT_MSG_DESTROYOBJ] = {
++		.call		= nf_tables_delobj,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_OBJ_MAX,
++		.policy		= nft_obj_policy,
++	},
+ 	[NFT_MSG_GETOBJ_RESET] = {
+ 		.call		= nf_tables_getobj,
+ 		.type		= NFNL_CB_RCU,
+@@ -8183,6 +8237,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_FLOWTABLE_MAX,
+ 		.policy		= nft_flowtable_policy,
+ 	},
++	[NFT_MSG_DESTROYFLOWTABLE] = {
++		.call		= nf_tables_delflowtable,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_FLOWTABLE_MAX,
++		.policy		= nft_flowtable_policy,
++	},
+ };
+ 
+ static int nf_tables_validate(struct net *net)
+-- 
+2.30.2
 
