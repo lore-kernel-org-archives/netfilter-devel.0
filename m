@@ -2,69 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7EA9ECAAA1
-	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Oct 2022 16:15:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38EDAFA3742
+	for <netfilter-devel@archiver.kernel.org>; Fri, 28 Oct 2022 16:38:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231130AbiJ1QP5 (ORCPT
+        id S229678AbiJ1QiJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 28 Oct 2022 12:15:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59268 "EHLO
+        Fri, 28 Oct 2022 12:38:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231136AbiJ1QPZ (ORCPT
+        with ESMTP id S229647AbiJ1Qh7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Oct 2022 12:15:25 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25F301F9D9;
-        Fri, 28 Oct 2022 09:13:59 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CFCE1B82AE9;
-        Fri, 28 Oct 2022 16:13:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D10BC433C1;
-        Fri, 28 Oct 2022 16:13:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666973636;
-        bh=cyyqcm/JaENKJGOXUYiC10jl9feIzA5u6Tf4EihPGRM=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=bh9Vf4fgcCN0sc4enG4CeLLDpvVtzdBMoPzRaX88fslY7Cb9zdiuQGvN/aNg6yKDt
-         Fy7vKbEKL5MkoEk0Scgb+G4STfvEzeSyGjFIrSUpEgKtRKT7SO9XaT6deJblApfYns
-         R6CTotTWNwINPfbGnDepXMAlWkPF/4km774qQ5PmW9ow3GvQDSLJGRl80PGZs3FVJA
-         1GEQwTjMAYD//IBIlIVXesDHt9qxBHMdVHNjggxJE0t3Yoxz/z06EgtgqnllONy0m1
-         UvfW21nxONB8UvgcjxXmpmMZmBa4t/G71/zrl82FIrOkB6ZVlIywsZgL48TrVnvUmR
-         1dWlZeSUrIILA==
-Date:   Fri, 28 Oct 2022 09:13:54 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
+        Fri, 28 Oct 2022 12:37:59 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 592E81DF43E
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Oct 2022 09:37:58 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1ooSMm-0000W1-2L; Fri, 28 Oct 2022 18:37:56 +0200
+Date:   Fri, 28 Oct 2022 18:37:56 +0200
+From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     Johannes Berg <johannes@sipsolutions.net>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Paolo Abeni <pabeni@redhat.com>
-Subject: Re: [PATCH net-next 1/2] netlink: introduce NLA_POLICY_MAX_BE
-Message-ID: <20221028091354.6acf9c60@kernel.org>
-In-Reply-To: <20221028101613.GC1915@breakpoint.cc>
-References: <20220905100937.11459-1-fw@strlen.de>
-        <20220905100937.11459-2-fw@strlen.de>
-        <20221027133109.590bd74f@kernel.org>
-        <2f528f1a320c55fdc7f3be55095c1f0eacee1032.camel@sipsolutions.net>
-        <20221027233500.GA1915@breakpoint.cc>
-        <20221027193931.2adce94d@kernel.org>
-        <20221028101613.GC1915@breakpoint.cc>
+Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH iptables-nft] nft: disscect basic icmp type/code match
+Message-ID: <Y1wFZCWWdoU3sVQO@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+References: <20221021100208.7654-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221021100208.7654-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 28 Oct 2022 12:16:13 +0200 Florian Westphal wrote:
-> > The NLA_BE* idea seems appealing, but if the implementation gets
-> > tedious either way works for me.  
-> 
-> Doesn't look too bad.  I plan to do a formal submission once I'm back
-> home.
+Hi!
 
-Neat, FWIW:
+There's a typo in subject: s/disscect/dissect/
 
-Reviewed-by: Jakub Kicinski <kuba@kernel.org>
+Other than that:
+
+On Fri, Oct 21, 2022 at 12:02:08PM +0200, Florian Westphal wrote:
+[...]
+> +static void nft_parse_icmp(struct nft_xt_ctx *ctx,
+> +			   struct nft_xt_ctx_reg *sreg,
+> +			   struct nftnl_expr *e,
+> +			   struct iptables_command_state *cs,
+> +			   const char *name)
+> +{
+> +	struct xtables_rule_match *m;
+> +	struct xtables_match *match;
+> +	struct ipt_icmp *icmp;
+> +	const uint8_t *v;
+> +	unsigned int len;
+> +	int op;
+> +
+> +	v = nftnl_expr_get(e, NFTNL_EXPR_CMP_DATA, &len);
+> +	switch (sreg->payload.offset) {
+> +	case 0:
+> +		if (len == 1 || len == 2)
+> +			break;
+> +		return;
+
+At this point the match is ignored and the rule "loaded" without it. Not
+that we don't lack error handling in other spots, so this is fine for
+now. We should really fix it, though and mark the whole rule as
+incompatible. Maybe even a replacement for the overly simple
+nft_is_expr_compatible() (and callers)?
+
+Cheers, Phil
