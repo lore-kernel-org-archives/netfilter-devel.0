@@ -2,146 +2,82 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F8C4C38A02
-	for <netfilter-devel@archiver.kernel.org>; Sun, 30 Oct 2022 17:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D663C38A02
+	for <netfilter-devel@archiver.kernel.org>; Sun, 30 Oct 2022 20:57:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229665AbiJ3RXH (ORCPT
+        id S229497AbiJ3U5G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 30 Oct 2022 13:23:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60590 "EHLO
+        Sun, 30 Oct 2022 16:57:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229587AbiJ3RXF (ORCPT
+        with ESMTP id S229441AbiJ3U5E (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 30 Oct 2022 13:23:05 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3799627B
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 Oct 2022 10:22:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1667150531;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=xy7b3nRtAL8M7+VedHsmmAKhtOAAl2XLancWVFWUXlg=;
-        b=DprYLL7Egkml7INxACtxk2WTXNU/oB6vcLwo6VYQ8Wn5xXo94eBlZLumhMizda/1lglgEE
-        aDCIkAQbLRE8Y9+U57pXpJ3KxbHyKfFx4J73T8YH8JUODn05TQODtFXgUzM3r/90Aa2KVx
-        YwEs0hV/8gjZYRo8uL1ipAZ89Tn+kak=
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com
- [209.85.160.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-619-AoidspThP8GPVxeaUMwQjA-1; Sun, 30 Oct 2022 13:22:10 -0400
-X-MC-Unique: AoidspThP8GPVxeaUMwQjA-1
-Received: by mail-qt1-f200.google.com with SMTP id bz12-20020a05622a1e8c00b0039ae6e887ffso6222947qtb.8
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 Oct 2022 10:22:10 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:user-agent:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=xy7b3nRtAL8M7+VedHsmmAKhtOAAl2XLancWVFWUXlg=;
-        b=0Al0CDtweNUPsnX5OX/K2ScgJRrEi0XlHdQNrlM8KTNkaXH2wYA2Ilsbd4Z6pH89ZG
-         t6PM7RuIu6op2R5+9eaHx5hqHdpBamrq56dC6wIzQRWbbOeOUslEmPOH0rCKubEec41N
-         yT9VyuoiMSZqKQXZU9YLFF0l1JKYVN/i//erSFbShmae/Hk+CbSvyekNDaAzrhfyC/3T
-         0olXXNERNZV4tJ/SfG4BRY0VQr21/i+XDUL5796pT9QW9JnUTbyaMbYIJnhlFp451eh0
-         AL2OVJQ7dbN6uPfhAUhlJnJqL9MKTykk2ld4Mh0ciqbntD8uafBZwnFLkZpd0p6HToal
-         3hPQ==
-X-Gm-Message-State: ACrzQf3rD1VkpK6SAWpGyLYBVCvi71U4Pzigp8HlsM61mWM3CSGD6APH
-        VgeMMBqb7mTi6dK6KVFUDpdeYUJI55qO+macn2WTUpmlhHvMj+tlpo+A5nRBRVZI/Fz2Kq80g0U
-        cv+fH/R1QdswPCw640D42xLdIURJk
-X-Received: by 2002:ac8:598b:0:b0:39d:9b6:69b3 with SMTP id e11-20020ac8598b000000b0039d09b669b3mr7692927qte.39.1667150529822;
-        Sun, 30 Oct 2022 10:22:09 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM5Dk+KkOvrrP3MpVWYtppipjk4B4K/I4Euc13541SOxoveysaouQDittrzMAvU/bssh9bNjNA==
-X-Received: by 2002:ac8:598b:0:b0:39d:9b6:69b3 with SMTP id e11-20020ac8598b000000b0039d09b669b3mr7692910qte.39.1667150529468;
-        Sun, 30 Oct 2022 10:22:09 -0700 (PDT)
-Received: from gerbillo.redhat.com (146-241-106-170.dyn.eolo.it. [146.241.106.170])
-        by smtp.gmail.com with ESMTPSA id s16-20020a05620a255000b006ee7923c187sm3213642qko.42.2022.10.30.10.22.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 30 Oct 2022 10:22:08 -0700 (PDT)
-Message-ID: <27a6a587fee5e9172e41acd16ae1bc1f556fdbd7.camel@redhat.com>
-Subject: Re: [RFC][PATCH v2 19/31] timers: net: Use del_timer_shutdown()
- before freeing timer
-From:   Paolo Abeni <pabeni@redhat.com>
-To:     Jakub Kicinski <kuba@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Mirko Lindner <mlindner@marvell.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Martin KaFai Lau <martin.lau@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Kuniyuki Iwashima <kuniyu@amazon.com>,
-        Pavel Begunkov <asml.silence@gmail.com>,
-        Menglong Dong <imagedong@tencent.com>,
-        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-        bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, lvs-devel@vger.kernel.org,
-        linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net
-Date:   Sun, 30 Oct 2022 18:22:03 +0100
-In-Reply-To: <20221028154617.3c63ba68@kernel.org>
-References: <20221027150525.753064657@goodmis.org>
-         <20221027150928.780676863@goodmis.org>
-         <20221027155513.60b211e2@gandalf.local.home>
-         <CAHk-=wjAjW2P5To82+CAM0Rx8RexQBHPTVZBWBPHyEPGm37oFA@mail.gmail.com>
-         <20221027163453.383bbf8e@gandalf.local.home>
-         <CAHk-=whoS+krLU7JNe=hMp2VOcwdcCdTXhdV8qqKoViwzzJWfA@mail.gmail.com>
-         <20221027170720.31497319@gandalf.local.home>
-         <20221027183511.66b058c4@gandalf.local.home>
-         <20221028183149.2882a29b@gandalf.local.home>
-         <20221028154617.3c63ba68@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.42.4 (3.42.4-2.fc35) 
+        Sun, 30 Oct 2022 16:57:04 -0400
+X-Greylist: delayed 1183 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 30 Oct 2022 13:57:03 PDT
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 598EC9597
+        for <netfilter-devel@vger.kernel.org>; Sun, 30 Oct 2022 13:57:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Type:MIME-Version:Message-ID:Subject:To:From:Date:
+        Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=NtBWS840wXsguPcmvWl70EMTylvD42JTE/4vCuNPIpY=; b=PbYYSNsuRgLOAI9L5D9obNobcI
+        UCn5kyuQ34tUuTJ9EJoA4JwlD8bXU5BB30fd50WGQImM+P/7TgxlsTKD6+hYhep8OdNt7+vRL9jAS
+        6p44fSnxq4ax1/5M/n7k3MsfxhITOUaSBEwHzXkwWYx9KVuAVe/0XlRddtdqNdBrOqIFtoFm3Tp43
+        fjUW4WIPmx2yqCdfzY7FEo8TuN50a1GY7iZZwGD9QjPu6/ZAy9Jimjzc99b5oInW4VlSDTLytsaSj
+        fHIym1GUugtD92/ypDqjVTDup3oP1/ZQTuMor/jukzSRfr+3IMtih0VFMGx4xQzPYEV3qG3Xu94Co
+        7G0WwtOQ==;
+Received: from [2001:8b0:fb7d:d6d7:f47b:9ff:fe41:7a71] (helo=azazel.net)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1opF3W-004O6w-PC
+        for netfilter-devel@vger.kernel.org; Sun, 30 Oct 2022 20:37:18 +0000
+Date:   Sun, 30 Oct 2022 20:37:17 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: ulogd2 release?
+Message-ID: <Y17gfeqi1HyQ/l6F@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="M8OHIxtA2gkgHPTD"
+Content-Disposition: inline
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:f47b:9ff:fe41:7a71
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2022-10-28 at 15:46 -0700, Jakub Kicinski wrote:
-> On Fri, 28 Oct 2022 18:31:49 -0400 Steven Rostedt wrote:
-> > Could someone from networking confirm (or deny) that the timer being
-> > removed in sk_stop_timer() will no longer be used even if del_timer()
-> > returns false?
-> > 
-> > net/core/sock.c:
-> > 
-> > void sk_stop_timer(struct sock *sk, struct timer_list* timer)
-> > {
-> > 	if (del_timer(timer))
-> > 		__sock_put(sk);
-> > }
-> > 
-> > If this is the case, then I'll add the following interface:
-> > 
-> >    del_timer_sync_shutdown() // the common case which syncs
-> > 
-> >    del_timer_shutdown() // the uncommon case, that returns immediately
-> >                         // used for those cases that add extra code to
-> >                         // handle it, like sk_stop_timer()
-> 
-> Sorry too many bugs at once :)
-> 
-> FWIW Paolo was saying privately earlier today that he spotted some cases
-> of reuse, he gave an example of ccid2_hc_tx_packet_recv()
 
-For the records, there are other cases, e.g. after sk_stop_timer() in 
-clear_3rdack_retransmission() (mptcp code) the timer can be-rearmed
-without re-initializing. I *think* there are more of such use in the 
-in ax25/rose code.
+--M8OHIxtA2gkgHPTD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> So we can't convert all cases of sk_stop_timer() in one fell swoop :(
+It's been four years since the last ulogd2 release.  Time for 2.0.8?
 
-On the positive side, I think converting the sk_stop_timer in 
-inet_csk_clear_xmit_timers() should be safe and should cover the issue
-reported by Guenter
+J.
 
-Cheers,
+--M8OHIxtA2gkgHPTD
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Paolo
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmNe4HQACgkQKYasCr3x
+BA0AnA/+IuneaQvjtXuxdvo6dFb/eTcnGuEv9C46Y4bDE6WGXuG2LUJpQrXW/ySQ
+4JDWrqgJWhJKLz+Ar7elYAvwiBR9xwW1J/raB1ZdWgaON0wLXsCsnt8vePKxaHeO
+hy9Xe9Lt3iDXzjPGvaoqe+IlF9YuieSXeQmWXPqBIpKBpDU/zOke/pr+FCGONndY
+uLkB2AS6GOY4Du27GqrBqrP2IJ1J9d6ZPmfXnbDzygIm4D8p8cwPR6/dK5zHjmGf
+2nLt0V6IyxCAXQfO82V2JMmNYbIJEbXrbbhNqMpJ+Yr+1UJzgAd9A6SekM8hMgtl
+SM05zKQZD7hD2OLQWKyQmIsX82g3vlTpTSqqOYX2zK0rzY4vooqfSV8W8Xcs8IWT
+hWb+SXgJZvY8A+sJswszVA8RNczQ8adXJH7zoLlf1Jbx5uPOQsgDP2tdhUkvdCgY
+77vruRBOH3jJ3VdKUiR+qSciRzsl6eE5/wecqfQvyuNMjgGza2h2Y+Drao6P8ZWR
+o1+fTMpPjMXFn7/3Ku9D3YyfzCsKT9MybWZkjl8eYuRRbdTUQvi51sLlI/TTjnfl
+S1sGOG5CQvZgbN54qyYIK/GBfDWI0L3Rsgt0dOnZk7xS5YROgy0gnsBmFSmRCEDq
+6CAE/NOQekXtbap4KpEWj/lLO5/2ssIO+F+AEDmwtkF5nNIbQgg=
+=jfii
+-----END PGP SIGNATURE-----
+
+--M8OHIxtA2gkgHPTD--
