@@ -2,36 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCCDC38A02
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Oct 2022 11:50:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B41AC38A02
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Oct 2022 11:59:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230433AbiJaLuI (ORCPT
+        id S230228AbiJaL7s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Oct 2022 07:50:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47772 "EHLO
+        Mon, 31 Oct 2022 07:59:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230085AbiJaLuH (ORCPT
+        with ESMTP id S230045AbiJaL7s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Oct 2022 07:50:07 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7BDC1EE01
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2022 04:50:06 -0700 (PDT)
-Date:   Mon, 31 Oct 2022 12:50:03 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: ulogd2 release?
-Message-ID: <Y1+2a1rI5ertgQgy@salvia>
-References: <Y17gfeqi1HyQ/l6F@azazel.net>
+        Mon, 31 Oct 2022 07:59:48 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E65313892;
+        Mon, 31 Oct 2022 04:59:46 -0700 (PDT)
+Received: from dggpeml500026.china.huawei.com (unknown [172.30.72.57])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4N1BQr1q4tzmVc2;
+        Mon, 31 Oct 2022 19:54:44 +0800 (CST)
+Received: from huawei.com (10.175.101.6) by dggpeml500026.china.huawei.com
+ (7.185.36.106) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Mon, 31 Oct
+ 2022 19:59:43 +0800
+From:   Zhengchao Shao <shaozhengchao@huawei.com>
+To:     <netdev@vger.kernel.org>, <lvs-devel@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
+        <kadlec@netfilter.org>, <fw@strlen.de>, <davem@davemloft.net>,
+        <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>
+CC:     <hans.schillstrom@ericsson.com>, <ebiederm@xmission.com>,
+        <weiyongjun1@huawei.com>, <yuehaibing@huawei.com>,
+        <shaozhengchao@huawei.com>
+Subject: [PATCH net,v2 0/2] fix WARNING when removing file in ipvs
+Date:   Mon, 31 Oct 2022 20:07:03 +0800
+Message-ID: <20221031120705.230059-1-shaozhengchao@huawei.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Y17gfeqi1HyQ/l6F@azazel.net>
+Content-Type: text/plain
+X-Originating-IP: [10.175.101.6]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggpeml500026.china.huawei.com (7.185.36.106)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Oct 30, 2022 at 08:37:17PM +0000, Jeremy Sowden wrote:
-> It's been four years since the last ulogd2 release.  Time for 2.0.8?
+When using strace for fault injection, some warnings are trigged when
+files are removed. This is because the file fails to be created during
+the initialization, but the initialization continues normally. Therefore,
+a WARNING is reported when the file is removed during the exit.
 
-Preparing for this, thanks for the heads up.
+---
+v2: add macro isolation
+---
+Zhengchao Shao (2):
+  ipvs: fix WARNING in __ip_vs_cleanup_batch()
+  ipvs: fix WARNING in ip_vs_app_net_cleanup()
+
+ net/netfilter/ipvs/ip_vs_app.c  | 10 ++++++++--
+ net/netfilter/ipvs/ip_vs_conn.c | 26 +++++++++++++++++++++-----
+ 2 files changed, 29 insertions(+), 7 deletions(-)
+
+-- 
+2.17.1
+
