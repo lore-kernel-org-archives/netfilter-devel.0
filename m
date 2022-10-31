@@ -2,127 +2,80 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B378FA3746
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Oct 2022 11:59:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2078ECAAA1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Oct 2022 15:05:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230436AbiJaL7u (ORCPT
+        id S230416AbiJaPFM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Oct 2022 07:59:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60456 "EHLO
+        Mon, 31 Oct 2022 11:05:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230056AbiJaL7s (ORCPT
+        with ESMTP id S231715AbiJaPFK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Oct 2022 07:59:48 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6E583895;
-        Mon, 31 Oct 2022 04:59:46 -0700 (PDT)
-Received: from dggpeml500026.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4N1BQs0TYSzmVcX;
-        Mon, 31 Oct 2022 19:54:45 +0800 (CST)
-Received: from huawei.com (10.175.101.6) by dggpeml500026.china.huawei.com
- (7.185.36.106) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Mon, 31 Oct
- 2022 19:59:44 +0800
-From:   Zhengchao Shao <shaozhengchao@huawei.com>
-To:     <netdev@vger.kernel.org>, <lvs-devel@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <horms@verge.net.au>, <ja@ssi.bg>, <pablo@netfilter.org>,
-        <kadlec@netfilter.org>, <fw@strlen.de>, <davem@davemloft.net>,
-        <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>
-CC:     <hans.schillstrom@ericsson.com>, <ebiederm@xmission.com>,
-        <weiyongjun1@huawei.com>, <yuehaibing@huawei.com>,
-        <shaozhengchao@huawei.com>
-Subject: [PATCH net,v2 1/2] ipvs: fix WARNING in __ip_vs_cleanup_batch()
-Date:   Mon, 31 Oct 2022 20:07:04 +0800
-Message-ID: <20221031120705.230059-2-shaozhengchao@huawei.com>
-X-Mailer: git-send-email 2.17.1
+        Mon, 31 Oct 2022 11:05:10 -0400
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D54AD1117F
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2022 08:05:09 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.ssi.bg (Proxmox) with ESMTP id 3F82721BA2
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2022 17:05:09 +0200 (EET)
+Received: from ink.ssi.bg (unknown [193.238.174.40])
+        by mg.ssi.bg (Proxmox) with ESMTP id 274DC21BA1
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2022 17:05:08 +0200 (EET)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id E692D3C0437;
+        Mon, 31 Oct 2022 17:05:03 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 29VF52rh159370;
+        Mon, 31 Oct 2022 17:05:03 +0200
+Date:   Mon, 31 Oct 2022 17:05:02 +0200 (EET)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Zhengchao Shao <shaozhengchao@huawei.com>
+cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Simon Horman <horms@verge.net.au>, pablo@netfilter.org,
+        kadlec@netfilter.org, fw@strlen.de, weiyongjun1@huawei.com,
+        yuehaibing@huawei.com
+Subject: Re: [PATCH net,v2 0/2] fix WARNING when removing file in ipvs
 In-Reply-To: <20221031120705.230059-1-shaozhengchao@huawei.com>
+Message-ID: <9dfd739c-f7b-e758-9b46-f79ba9cec82@ssi.bg>
 References: <20221031120705.230059-1-shaozhengchao@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.175.101.6]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- dggpeml500026.china.huawei.com (7.185.36.106)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-During the initialization of ip_vs_conn_net_init(), if file ip_vs_conn
-or ip_vs_conn_sync fails to be created, the initialization is successful
-by default. Therefore, the ip_vs_conn or ip_vs_conn_sync file doesn't
-be found during the remove.
 
-The following is the stack information:
-name 'ip_vs_conn_sync'
-WARNING: CPU: 3 PID: 9 at fs/proc/generic.c:712
-remove_proc_entry+0x389/0x460
-Modules linked in:
-Workqueue: netns cleanup_net
-RIP: 0010:remove_proc_entry+0x389/0x460
-Call Trace:
-<TASK>
-__ip_vs_cleanup_batch+0x7d/0x120
-ops_exit_list+0x125/0x170
-cleanup_net+0x4ea/0xb00
-process_one_work+0x9bf/0x1710
-worker_thread+0x665/0x1080
-kthread+0x2e4/0x3a0
-ret_from_fork+0x1f/0x30
-</TASK>
+	Hello,
 
-Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
-Signed-off-by: Zhengchao Shao <shaozhengchao@huawei.com>
----
- net/netfilter/ipvs/ip_vs_conn.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+On Mon, 31 Oct 2022, Zhengchao Shao wrote:
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 8c04bb57dd6f..fa548c9e6aae 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1447,20 +1447,36 @@ int __net_init ip_vs_conn_net_init(struct netns_ipvs *ipvs)
- {
- 	atomic_set(&ipvs->conn_count, 0);
- 
--	proc_create_net("ip_vs_conn", 0, ipvs->net->proc_net,
--			&ip_vs_conn_seq_ops, sizeof(struct ip_vs_iter_state));
--	proc_create_net("ip_vs_conn_sync", 0, ipvs->net->proc_net,
--			&ip_vs_conn_sync_seq_ops,
--			sizeof(struct ip_vs_iter_state));
-+#ifdef CONFIG_PROC_FS
-+	if (!proc_create_net("ip_vs_conn", 0, ipvs->net->proc_net,
-+			     &ip_vs_conn_seq_ops,
-+			     sizeof(struct ip_vs_iter_state)))
-+		goto err_conn;
-+
-+	if (!proc_create_net("ip_vs_conn_sync", 0, ipvs->net->proc_net,
-+			     &ip_vs_conn_sync_seq_ops,
-+			     sizeof(struct ip_vs_iter_state)))
-+		goto err_conn_sync;
-+#endif
-+
- 	return 0;
-+
-+#ifdef CONFIG_PROC_FS
-+err_conn_sync:
-+	remove_proc_entry("ip_vs_conn", ipvs->net->proc_net);
-+err_conn:
-+	return -ENOMEM;
-+#endif
- }
- 
- void __net_exit ip_vs_conn_net_cleanup(struct netns_ipvs *ipvs)
- {
- 	/* flush all the connection entries first */
- 	ip_vs_conn_flush(ipvs);
-+#ifdef CONFIG_PROC_FS
- 	remove_proc_entry("ip_vs_conn", ipvs->net->proc_net);
- 	remove_proc_entry("ip_vs_conn_sync", ipvs->net->proc_net);
-+#endif
- }
- 
- int __init ip_vs_conn_init(void)
--- 
-2.17.1
+> When using strace for fault injection, some warnings are trigged when
+> files are removed. This is because the file fails to be created during
+> the initialization, but the initialization continues normally. Therefore,
+> a WARNING is reported when the file is removed during the exit.
+> 
+> ---
+> v2: add macro isolation
+> ---
+> Zhengchao Shao (2):
+>   ipvs: fix WARNING in __ip_vs_cleanup_batch()
+>   ipvs: fix WARNING in ip_vs_app_net_cleanup()
+
+	Both patches in v2 look good to me, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+>  net/netfilter/ipvs/ip_vs_app.c  | 10 ++++++++--
+>  net/netfilter/ipvs/ip_vs_conn.c | 26 +++++++++++++++++++++-----
+>  2 files changed, 29 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.17.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
