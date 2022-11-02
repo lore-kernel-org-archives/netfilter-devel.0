@@ -2,65 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FE51C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Nov 2022 18:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D188C4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Nov 2022 18:47:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230208AbiKBSRN (ORCPT
+        id S231336AbiKBSrI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Nov 2022 14:17:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43634 "EHLO
+        Wed, 2 Nov 2022 14:47:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229598AbiKBSRM (ORCPT
+        with ESMTP id S231668AbiKBSrG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Nov 2022 14:17:12 -0400
+        Wed, 2 Nov 2022 14:47:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3A0D31DF08
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Nov 2022 11:17:12 -0700 (PDT)
-Date:   Wed, 2 Nov 2022 19:17:07 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 592802F672;
+        Wed,  2 Nov 2022 11:47:05 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Daniel Xu <dxu@dxuuu.xyz>
-Subject: Re: [PATCH v2] netfilter: ipset: enforce documented limit to prevent
- allocating huge memory
-Message-ID: <Y2K0I2ttzKlKCbvN@salvia>
-References: <20221102094047.460574-1-kadlec@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/7] Netfilter/IPVS fixes for net
+Date:   Wed,  2 Nov 2022 19:46:52 +0100
+Message-Id: <20221102184659.2502-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20221102094047.460574-1-kadlec@netfilter.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Nov 02, 2022 at 10:40:47AM +0100, Jozsef Kadlecsik wrote:
-> Daniel Xu reported that the hash:net,iface type of the ipset subsystem does
-> not limit adding the same network with different interfaces to a set, which
-> can lead to huge memory usage or allocation failure.
-> 
-> The quick reproducer is
-> 
-> $ ipset create ACL.IN.ALL_PERMIT hash:net,iface hashsize 1048576 timeout 0
-> $ for i in $(seq 0 100); do /sbin/ipset add ACL.IN.ALL_PERMIT 0.0.0.0/0,kaf_$i timeout 0 -exist; done
-> 
-> The backtrace when vmalloc fails:
-> 
->         [Tue Oct 25 00:13:08 2022] ipset: vmalloc error: size 1073741848, exceeds total pages
->         <...>
->         [Tue Oct 25 00:13:08 2022] Call Trace:
->         [Tue Oct 25 00:13:08 2022]  <TASK>
->         [Tue Oct 25 00:13:08 2022]  dump_stack_lvl+0x48/0x60
->         [Tue Oct 25 00:13:08 2022]  warn_alloc+0x155/0x180
->         [Tue Oct 25 00:13:08 2022]  __vmalloc_node_range+0x72a/0x760
->         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_add+0x7c0/0xb20
->         [Tue Oct 25 00:13:08 2022]  ? __kmalloc_large_node+0x4a/0x90
->         [Tue Oct 25 00:13:08 2022]  kvmalloc_node+0xa6/0xd0
->         [Tue Oct 25 00:13:08 2022]  ? hash_netiface4_resize+0x99/0x710
->         <...>
-> 
-> The fix is to enforce the limit documented in the ipset(8) manpage:
-> 
-> >  The internal restriction of the hash:net,iface set type is that the same
-> >  network prefix cannot be stored with more than 64 different interfaces
-> >  in a single set.
+Hi,
 
-Applied, thanks
+The following patchset contains Netfilter/IPVS fixes for net:
+
+1) netlink socket notifier might win race to release objects that are
+   already pending to be released via commit release path, reported by
+   syzbot.
+
+2) No need to postpone flow rule release to commit release path, this
+   triggered the syzbot report, complementary fix to previous patch.
+
+3) Use explicit signed chars in IPVS to unbreak arm, from Jason A. Donenfeld.
+
+4) Missing check for proc entry creation failure in IPVS, from Zhengchao Shao.
+
+5) Incorrect error path handling when BPF NAT fails to register, from
+   Chen Zhongjin.
+
+6) Prevent huge memory allocation in ipset hash types, from Jozsef Kadlecsik.
+
+Except the incorrect BPF NAT error path which is broken in 6.1-rc, anything
+else has been broken for several releases.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 363a5328f4b0517e59572118ccfb7c626d81dca9:
+
+  net: tun: fix bugs for oversize packet when napi frags enabled (2022-10-31 20:04:55 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 510841da1fcc16f702440ab58ef0b4d82a9056b7:
+
+  netfilter: ipset: enforce documented limit to prevent allocating huge memory (2022-11-02 19:22:23 +0100)
+
+----------------------------------------------------------------
+Chen Zhongjin (1):
+      netfilter: nf_nat: Fix possible memory leak in nf_nat_init()
+
+Jason A. Donenfeld (1):
+      ipvs: use explicitly signed chars
+
+Jozsef Kadlecsik (1):
+      netfilter: ipset: enforce documented limit to prevent allocating huge memory
+
+Pablo Neira Ayuso (2):
+      netfilter: nf_tables: netlink notifier might race to release objects
+      netfilter: nf_tables: release flow rule object from commit path
+
+Zhengchao Shao (2):
+      ipvs: fix WARNING in __ip_vs_cleanup_batch()
+      ipvs: fix WARNING in ip_vs_app_net_cleanup()
+
+ net/netfilter/ipset/ip_set_hash_gen.h | 30 ++++++------------------------
+ net/netfilter/ipvs/ip_vs_app.c        | 10 ++++++++--
+ net/netfilter/ipvs/ip_vs_conn.c       | 30 +++++++++++++++++++++++-------
+ net/netfilter/nf_nat_core.c           | 11 ++++++++++-
+ net/netfilter/nf_tables_api.c         |  8 +++++---
+ 5 files changed, 52 insertions(+), 37 deletions(-)
