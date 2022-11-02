@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A52E7C43219
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Nov 2022 18:47:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CBEDC4321E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Nov 2022 18:47:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231666AbiKBSrU (ORCPT
+        id S231764AbiKBSrd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Nov 2022 14:47:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42442 "EHLO
+        Wed, 2 Nov 2022 14:47:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231543AbiKBSrR (ORCPT
+        with ESMTP id S231706AbiKBSrT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Nov 2022 14:47:17 -0400
+        Wed, 2 Nov 2022 14:47:19 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B9DEC2FFDB;
-        Wed,  2 Nov 2022 11:47:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 71B2C2FFEE;
+        Wed,  2 Nov 2022 11:47:14 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 4/7] ipvs: fix WARNING in __ip_vs_cleanup_batch()
-Date:   Wed,  2 Nov 2022 19:46:56 +0100
-Message-Id: <20221102184659.2502-5-pablo@netfilter.org>
+Subject: [PATCH net 6/7] netfilter: nf_nat: Fix possible memory leak in nf_nat_init()
+Date:   Wed,  2 Nov 2022 19:46:58 +0100
+Message-Id: <20221102184659.2502-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221102184659.2502-1-pablo@netfilter.org>
 References: <20221102184659.2502-1-pablo@netfilter.org>
@@ -32,85 +32,54 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Zhengchao Shao <shaozhengchao@huawei.com>
+From: Chen Zhongjin <chenzhongjin@huawei.com>
 
-During the initialization of ip_vs_conn_net_init(), if file ip_vs_conn
-or ip_vs_conn_sync fails to be created, the initialization is successful
-by default. Therefore, the ip_vs_conn or ip_vs_conn_sync file doesn't
-be found during the remove.
+In nf_nat_init(), register_nf_nat_bpf() can fail and return directly
+without any error handling.
+Then nf_nat_bysource will leak and registering of &nat_net_ops,
+&follow_master_nat and nf_nat_hook won't be reverted.
 
-The following is the stack information:
-name 'ip_vs_conn_sync'
-WARNING: CPU: 3 PID: 9 at fs/proc/generic.c:712
-remove_proc_entry+0x389/0x460
-Modules linked in:
-Workqueue: netns cleanup_net
-RIP: 0010:remove_proc_entry+0x389/0x460
-Call Trace:
-<TASK>
-__ip_vs_cleanup_batch+0x7d/0x120
-ops_exit_list+0x125/0x170
-cleanup_net+0x4ea/0xb00
-process_one_work+0x9bf/0x1710
-worker_thread+0x665/0x1080
-kthread+0x2e4/0x3a0
-ret_from_fork+0x1f/0x30
-</TASK>
+This leaves wild ops in linkedlists and when another module tries to
+call register_pernet_operations() or nf_ct_helper_expectfn_register()
+it triggers page fault:
 
-Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
-Signed-off-by: Zhengchao Shao <shaozhengchao@huawei.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+ BUG: unable to handle page fault for address: fffffbfff81b964c
+ RIP: 0010:register_pernet_operations+0x1b9/0x5f0
+ Call Trace:
+ <TASK>
+  register_pernet_subsys+0x29/0x40
+  ebtables_init+0x58/0x1000 [ebtables]
+  ...
+
+Fixes: 820dc0523e05 ("net: netfilter: move bpf_ct_set_nat_info kfunc in nf_nat_bpf.c")
+Signed-off-by: Chen Zhongjin <chenzhongjin@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ net/netfilter/nf_nat_core.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 7c4866c04343..13534e02346c 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1447,20 +1447,36 @@ int __net_init ip_vs_conn_net_init(struct netns_ipvs *ipvs)
- {
- 	atomic_set(&ipvs->conn_count, 0);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 18319a6e6806..e29e4ccb5c5a 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1152,7 +1152,16 @@ static int __init nf_nat_init(void)
+ 	WARN_ON(nf_nat_hook != NULL);
+ 	RCU_INIT_POINTER(nf_nat_hook, &nat_hook);
  
--	proc_create_net("ip_vs_conn", 0, ipvs->net->proc_net,
--			&ip_vs_conn_seq_ops, sizeof(struct ip_vs_iter_state));
--	proc_create_net("ip_vs_conn_sync", 0, ipvs->net->proc_net,
--			&ip_vs_conn_sync_seq_ops,
--			sizeof(struct ip_vs_iter_state));
-+#ifdef CONFIG_PROC_FS
-+	if (!proc_create_net("ip_vs_conn", 0, ipvs->net->proc_net,
-+			     &ip_vs_conn_seq_ops,
-+			     sizeof(struct ip_vs_iter_state)))
-+		goto err_conn;
+-	return register_nf_nat_bpf();
++	ret = register_nf_nat_bpf();
++	if (ret < 0) {
++		RCU_INIT_POINTER(nf_nat_hook, NULL);
++		nf_ct_helper_expectfn_unregister(&follow_master_nat);
++		synchronize_net();
++		unregister_pernet_subsys(&nat_net_ops);
++		kvfree(nf_nat_bysource);
++	}
 +
-+	if (!proc_create_net("ip_vs_conn_sync", 0, ipvs->net->proc_net,
-+			     &ip_vs_conn_sync_seq_ops,
-+			     sizeof(struct ip_vs_iter_state)))
-+		goto err_conn_sync;
-+#endif
-+
- 	return 0;
-+
-+#ifdef CONFIG_PROC_FS
-+err_conn_sync:
-+	remove_proc_entry("ip_vs_conn", ipvs->net->proc_net);
-+err_conn:
-+	return -ENOMEM;
-+#endif
++	return ret;
  }
  
- void __net_exit ip_vs_conn_net_cleanup(struct netns_ipvs *ipvs)
- {
- 	/* flush all the connection entries first */
- 	ip_vs_conn_flush(ipvs);
-+#ifdef CONFIG_PROC_FS
- 	remove_proc_entry("ip_vs_conn", ipvs->net->proc_net);
- 	remove_proc_entry("ip_vs_conn_sync", ipvs->net->proc_net);
-+#endif
- }
- 
- int __init ip_vs_conn_init(void)
+ static void __exit nf_nat_cleanup(void)
 -- 
 2.30.2
 
