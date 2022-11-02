@@ -2,23 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E8F0C43217
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Nov 2022 18:52:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58A75C43217
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Nov 2022 19:52:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231599AbiKBSwV (ORCPT
+        id S230045AbiKBTw6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Nov 2022 14:52:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49646 "EHLO
+        Wed, 2 Nov 2022 15:52:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231336AbiKBSwV (ORCPT
+        with ESMTP id S229949AbiKBTw5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Nov 2022 14:52:21 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9B196CEF;
-        Wed,  2 Nov 2022 11:52:20 -0700 (PDT)
-Date:   Wed, 2 Nov 2022 19:52:14 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Michael Lilja <michael.lilja@gmail.com>
+        Wed, 2 Nov 2022 15:52:57 -0400
+Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03BAA11445;
+        Wed,  2 Nov 2022 12:52:57 -0700 (PDT)
+Received: by mail-pg1-x534.google.com with SMTP id e129so17138888pgc.9;
+        Wed, 02 Nov 2022 12:52:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=aYp24omPHN0bbvzzSbeOByhwh1045NSDj6myAMlpHzs=;
+        b=X0cRKUPXI37K7E3OEd1U5rMMpOGGxC03pJ+1EwjWJdmI5LiX4uczxOBMELWxd9KcAv
+         73WNbc7D4Eag/SnB2DUJCJm5RcLvdceBox8LMtCDqSX5Bf3E/+zLJwZuTIud3FmGaqy7
+         NqTfck6bQQr7c4vYO5rj8eDmBSjGheN4utrC1tkHmdQebMxpOX9FHCT32HD/whTL8w0p
+         r9GyVZDD70+xV8kGpFO2OTmXxj/HD7vTPQ2YeqvoghFMrpH0j6B0hSQfVeH50y+0l0/k
+         IU4B3GEIiBDb/pftzMakfIru1eU9oEkWwW46y+Gci90eEvuukNwPmldLYbWGvTuNHByz
+         SOVw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=aYp24omPHN0bbvzzSbeOByhwh1045NSDj6myAMlpHzs=;
+        b=HXqTMylk9xB1G2VZJ8hzcC4oP1v2gr68MJbgKxPJvf/KZFUppeAsKF8hcsFKYJ24gf
+         gjRFsQDf6JgUKYpjzqWz8/VQQvpyN1c8YCzO1u9Oi1MWDDVL1uUQRYNh79wOn9G4BNfM
+         lGa0cqD6+pr9KZn8Yx+g+ZqbgAW9KgyhqLQs4/h7Dx4AVz4x7VWWTzi/Iwh09+toTyjX
+         y01/ok2YFLy7HxnmOajULfgQmC5a4b6S39dLdeDnYy6bqFnbxrka4AITsYQjflMWlvrE
+         yPYUPqn5gEJFfLN3YzPKIRlUdGf9EgApbLy9F8t0Im2VLN2X7bHOE+jTQqsU1P9q1fUb
+         8mCQ==
+X-Gm-Message-State: ACrzQf0jTV5XpNKF1Lr0hZuCBAo825e56An0ElbRzpLQmT7tvErv/uMF
+        wAJbdlT89ioFiSqd9IFGmqhGYtznkHuhVnwRHBE=
+X-Google-Smtp-Source: AMsMyM7jyv2hDc2xFubeC6LWZ79sPVywK7e70UBBaJ8PriKu575coH1OTW9AAD17pG20IROdxSkjMJcCos+BZXAV5HU=
+X-Received: by 2002:a63:d905:0:b0:46f:8979:30cf with SMTP id
+ r5-20020a63d905000000b0046f897930cfmr21275910pgg.87.1667418776200; Wed, 02
+ Nov 2022 12:52:56 -0700 (PDT)
+MIME-Version: 1.0
+References: <20221023171658.69761-1-michael.lilja@gmail.com>
+ <Y1fC5K0EalIYuB7Y@salvia> <381FF5B6-4FEF-45E9-92D6-6FE927A5CC2D@gmail.com>
+ <Y1fd+DEPZ8xM2x5B@salvia> <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
+ <Y1kQ9FhrwxCKIdoe@salvia> <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
+ <03E5D5FA-5A0D-4E5A-BA32-3FE51764C02E@gmail.com> <Y2K8XnFZvZeD4MEg@salvia>
+In-Reply-To: <Y2K8XnFZvZeD4MEg@salvia>
+From:   Michael Lilja <michael.lilja@gmail.com>
+Date:   Wed, 2 Nov 2022 20:52:45 +0100
+Message-ID: <CAHgAcbNOCSzQrCScdGumgFD6+X0BjdMgHdCiY4fkanPN_Qg86Q@mail.gmail.com>
+Subject: Re: [PATCH] Periodically flow expire from flow offload tables
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -28,39 +68,14 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH] Periodically flow expire from flow offload tables
-Message-ID: <Y2K8XnFZvZeD4MEg@salvia>
-References: <20221023171658.69761-1-michael.lilja@gmail.com>
- <Y1fC5K0EalIYuB7Y@salvia>
- <381FF5B6-4FEF-45E9-92D6-6FE927A5CC2D@gmail.com>
- <Y1fd+DEPZ8xM2x5B@salvia>
- <F754AC3A-D89A-4CF7-97AE-CA59B18A758E@gmail.com>
- <Y1kQ9FhrwxCKIdoe@salvia>
- <25246B91-B5BE-43CA-9D98-67950F17F0A1@gmail.com>
- <03E5D5FA-5A0D-4E5A-BA32-3FE51764C02E@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <03E5D5FA-5A0D-4E5A-BA32-3FE51764C02E@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 26, 2022 at 09:40:11PM +0200, Michael Lilja wrote:
-> Hi,
-> 
-> I just quickly tried following the flow_offload_teardown() path instead of clearing IPS_OFFLOAD in flow_offload_del() and it does have some side effects. The flow is added again before the HW has actually reported it to be NF_FLOW_HW_DEAD. 
-> 
-> The sequence with my patch is:
->   : Retire -> Remove from hw tables -> Remove from sw tables -> kfree(flow) -> flow_offload_add()
-> 
-> But if flow_offload_teardown() is called on expire I see:
->   : Retire -> Remove from hw tables -> flow_offload_add() -> Remove from sw tables -> kfree(flow)
->  
-> I need to investigate why this happens, maybe the IPS_OFFLOAD flag is cleared too early and should not be cleared until the flow is actually removed, like I do? Maybe the issue is not seen before because on timeout or flow_is_dying() no packet arrive to create the flow again prematurely?
+Hi,
 
-Hm, IPS_OFFLOAD should be cleared from flow_offload_del() then, it is
-cleared too early.
-
-I'll post a fix for nf.git first then I propose to follow up on this
-flowtable feature. I'll keep you on Cc.
+thanks. I have been too busy elsewhere so I have not yet looked at
+patching the IPS_OFFLOAD myself. When I quickly looked at it last
+week, the IPS_OFFLOAD got set a few places, so I'm not sure there is a
+race somewhere still.
