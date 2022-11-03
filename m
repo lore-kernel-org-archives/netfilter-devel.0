@@ -2,93 +2,48 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D6AC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Nov 2022 03:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73D21C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Nov 2022 11:04:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230233AbiKCDAX (ORCPT
+        id S230205AbiKCLEF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Nov 2022 23:00:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52996 "EHLO
+        Thu, 3 Nov 2022 07:04:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbiKCDAW (ORCPT
+        with ESMTP id S230094AbiKCLEE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Nov 2022 23:00:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6D2E13F86;
-        Wed,  2 Nov 2022 20:00:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C1B37B82611;
-        Thu,  3 Nov 2022 03:00:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 5A021C433C1;
-        Thu,  3 Nov 2022 03:00:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1667444417;
-        bh=S4igLbgxh3XNuAlk/q7S38LHWO7DyG+7OcqbV9YpJ6c=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=VzAs23HAgIfl6zXz0reY8bo94WKM4r00o8vDROQFaftH0nLUyYS2h8N1XFO9jA0+M
-         66K27/7Nm6/UU5UJhKJgjESnZg3e1E4OzU3llRsq4ZtyO+5SwoAmyOULoVGaze/H3t
-         qqlG8yb8At96YN/Vc6rtAEyNiQkWkgixTtBAcquPl+wrS56e5JfYeW31CU1zP4GTKQ
-         OTikAtZX8GYKpDTErlMYI3hIHV35ml6SAMQgN88JlwMslCwNcDyTa0442sbsd1K9P+
-         4Gf+zNlItZXfOLTlGyLqczoORR+BbCrQV/ekMnB2g1Rld4EsqZz6mAb/omJ7sWpb13
-         jeA0kzuu3UgpQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 3BA4EC395FF;
-        Thu,  3 Nov 2022 03:00:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 3 Nov 2022 07:04:04 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:12e:520::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 389A76168;
+        Thu,  3 Nov 2022 04:04:03 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1oqY0b-0001id-DU; Thu, 03 Nov 2022 12:03:41 +0100
+Date:   Thu, 3 Nov 2022 12:03:41 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Ziyang Xuan <william.xuanziyang@huawei.com>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nfnetlink: fix potential dead lock in
+ nfnetlink_rcv_msg()
+Message-ID: <20221103110341.GA29268@breakpoint.cc>
+References: <20221103011202.2160107-1-william.xuanziyang@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/7] netfilter: nf_tables: netlink notifier might race to
- release objects
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166744441724.18046.4557814101769741140.git-patchwork-notify@kernel.org>
-Date:   Thu, 03 Nov 2022 03:00:17 +0000
-References: <20221102184659.2502-2-pablo@netfilter.org>
-In-Reply-To: <20221102184659.2502-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221103011202.2160107-1-william.xuanziyang@huawei.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Ziyang Xuan <william.xuanziyang@huawei.com> wrote:
+> When type is NFNL_CB_MUTEX and -EAGAIN error occur in nfnetlink_rcv_msg(),
+> it does not execute nfnl_unlock(). That would trigger potential dead lock.
+>
+> Fixes: 50f2db9e368f ("netfilter: nfnetlink: consolidate callback types")
 
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Wed,  2 Nov 2022 19:46:53 +0100 you wrote:
-> commit release path is invoked via call_rcu and it runs lockless to
-> release the objects after rcu grace period. The netlink notifier handler
-> might win race to remove objects that the transaction context is still
-> referencing from the commit release path.
-> 
-> Call rcu_barrier() to ensure pending rcu callbacks run to completion
-> if the list of transactions to be destroyed is not empty.
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/7] netfilter: nf_tables: netlink notifier might race to release objects
-    https://git.kernel.org/netdev/net/c/d4bc8271db21
-  - [net,2/7] netfilter: nf_tables: release flow rule object from commit path
-    https://git.kernel.org/netdev/net/c/26b5934ff419
-  - [net,3/7] ipvs: use explicitly signed chars
-    https://git.kernel.org/netdev/net/c/5c26159c97b3
-  - [net,4/7] ipvs: fix WARNING in __ip_vs_cleanup_batch()
-    https://git.kernel.org/netdev/net/c/3d00c6a0da8d
-  - [net,5/7] ipvs: fix WARNING in ip_vs_app_net_cleanup()
-    https://git.kernel.org/netdev/net/c/5663ed63adb9
-  - [net,6/7] netfilter: nf_nat: Fix possible memory leak in nf_nat_init()
-    https://git.kernel.org/netdev/net/c/cbc1dd5b659f
-  - [net,7/7] netfilter: ipset: enforce documented limit to prevent allocating huge memory
-    https://git.kernel.org/netdev/net/c/510841da1fcc
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Applied to nf:testing, thanks.
