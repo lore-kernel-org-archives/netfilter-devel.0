@@ -2,174 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 847ECC433FE
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Nov 2022 00:00:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 544D7C433FE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Nov 2022 03:55:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230408AbiKDAAf (ORCPT
+        id S230205AbiKDDzu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Nov 2022 20:00:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38102 "EHLO
+        Thu, 3 Nov 2022 23:55:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229496AbiKDAAe (ORCPT
+        with ESMTP id S229523AbiKDDzq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Nov 2022 20:00:34 -0400
-Received: from mail-yw1-x112c.google.com (mail-yw1-x112c.google.com [IPv6:2607:f8b0:4864:20::112c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2162122290
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2022 17:00:33 -0700 (PDT)
-Received: by mail-yw1-x112c.google.com with SMTP id 00721157ae682-367cd2807f2so30590237b3.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Nov 2022 17:00:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=OIWN7urgPvg7gWQ/2jmCuNIcCwluarihUklEPGyHjcg=;
-        b=WfZQ7T5J19AGsPaNUJuOsP0Km5Ixqe3g2OjzWlZ48O9n++G6HOElr/NHRpLA9fDnwr
-         zjRaF+oN7J52K4Hkt1QfKpCQB5Wz5OV6RrsZAgAUs0tkU6h0aV7cYd6yEHz8xOWTUUaE
-         nTwx3sfZXExTHFKflgZ0kHbhOyWH5xYa/4o8baHcab29Hq9pAX7cOlT1SrWXDbt87QYk
-         qqJgjVZVqEHQO2qDmqBHDnF4n6wAmtRz5tmd/UsTP0SD10mD6uXXRAlwFdt5yYXaLs84
-         Q6NGteraqshFTYF08psP5WYnjWqJg/XADvug0NuClQLOveJFe7i203jnVfhv2iws1QsI
-         5poA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=OIWN7urgPvg7gWQ/2jmCuNIcCwluarihUklEPGyHjcg=;
-        b=um42bFuLENAm0FNuR8VTpaU4jl6vW4fpmu3BRNUYd6CpwI6T+kPuGty8UYUd7fVgl3
-         RqgP3XCd3uACLhjUr5NygAf+cz0WqlpV1bXN4VUqm+a6W0PN5tmmpjqWHO68gc3xg79I
-         62Cyy21u5+U3NM9aGux/6qz1u7YlGXM0plPXTW5orFEN7bYRuFTBWVCZJAHmaANxNH5z
-         +13fOnFX1Bz1yBX7hjFHl5YDmadCJTKbHLnUZw8+LUDzSaZYocD9H6cCQcB6yXtvd8PG
-         JBbxeAhuIf0HyacIOpQAygsnzsQDNerzH8qdVzIaQp21mzVCoHeu1qyMDM8ENZdsIb0o
-         nrCA==
-X-Gm-Message-State: ACrzQf0ZYZCJe2lTRUO/MZv8kUtn0784pqODuIhp1HRBEMoV6+kdvc09
-        QqVqFwwfwbt6d8XFAS2/DQvCcIh8pKOx0yNdfax0Dg==
-X-Google-Smtp-Source: AMsMyM4aPgSxRkszwf78hhXzMH4nUQ/6+7Nmf1bkd3EgAr4pZAmAEnobR0Kbs5o4qTyfKdYLFWynOitqShpFiKJNAxo=
-X-Received: by 2002:a81:6084:0:b0:370:10fa:c4ff with SMTP id
- u126-20020a816084000000b0037010fac4ffmr32397029ywb.255.1667520032026; Thu, 03
- Nov 2022 17:00:32 -0700 (PDT)
+        Thu, 3 Nov 2022 23:55:46 -0400
+Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D874E1CFCF;
+        Thu,  3 Nov 2022 20:55:44 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R521e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=jiapeng.chong@linux.alibaba.com;NM=1;PH=DS;RN=15;SR=0;TI=SMTPD_---0VTvE7XQ_1667534137;
+Received: from localhost(mailfrom:jiapeng.chong@linux.alibaba.com fp:SMTPD_---0VTvE7XQ_1667534137)
+          by smtp.aliyun-inc.com;
+          Fri, 04 Nov 2022 11:55:41 +0800
+From:   Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+To:     pablo@netfilter.org
+Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
+        Abaci Robot <abaci@linux.alibaba.com>
+Subject: [PATCH] netfilter: rpfilter/fib: clean up some inconsistent indenting
+Date:   Fri,  4 Nov 2022 11:55:04 +0800
+Message-Id: <20221104035504.14957-1-jiapeng.chong@linux.alibaba.com>
+X-Mailer: git-send-email 2.20.1.7.g153144c
 MIME-Version: 1.0
-References: <20221027150525.753064657@goodmis.org> <20221027150928.780676863@goodmis.org>
- <20221027155513.60b211e2@gandalf.local.home> <CAHk-=wjAjW2P5To82+CAM0Rx8RexQBHPTVZBWBPHyEPGm37oFA@mail.gmail.com>
- <20221027163453.383bbf8e@gandalf.local.home> <CAHk-=whoS+krLU7JNe=hMp2VOcwdcCdTXhdV8qqKoViwzzJWfA@mail.gmail.com>
- <20221027170720.31497319@gandalf.local.home> <20221027183511.66b058c4@gandalf.local.home>
- <20221028183149.2882a29b@gandalf.local.home> <20221028154617.3c63ba68@kernel.org>
- <27a6a587fee5e9172e41acd16ae1bc1f556fdbd7.camel@redhat.com> <20221103175123.744d0f37@rorschach.local.home>
-In-Reply-To: <20221103175123.744d0f37@rorschach.local.home>
-From:   Eric Dumazet <edumazet@google.com>
-Date:   Thu, 3 Nov 2022 17:00:20 -0700
-Message-ID: <CANn89iLv9cak6_vXJG5t=Kq+eiMPdMxF8w4AAuAuFB5sOsy2zg@mail.gmail.com>
-Subject: Re: [RFC][PATCH v2 19/31] timers: net: Use del_timer_shutdown()
- before freeing timer
-To:     Steven Rostedt <rostedt@goodmis.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Tony Nguyen <anthony.l.nguyen@intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Mirko Lindner <mlindner@marvell.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Martin KaFai Lau <martin.lau@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Kuniyuki Iwashima <kuniyu@amazon.com>,
-        Pavel Begunkov <asml.silence@gmail.com>,
-        Menglong Dong <imagedong@tencent.com>,
-        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-        bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, lvs-devel@vger.kernel.org,
-        linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 3, 2022 at 2:51 PM Steven Rostedt <rostedt@goodmis.org> wrote:
->
-> On Sun, 30 Oct 2022 18:22:03 +0100
-> Paolo Abeni <pabeni@redhat.com> wrote:
->
-> > On the positive side, I think converting the sk_stop_timer in
-> > inet_csk_clear_xmit_timers() should be safe and should cover the issue
-> > reported by Guenter
->
-> Would something like this be OK?
->
-> [ Note, talking with Thomas Gleixner, we agreed that we are changing the
->   name to: time_shutdown_sync() and timer_shutdown() (no wait version).
->   I'll be posting new patches soon. ]
->
-> -- Steve
->
-> diff --git a/include/net/sock.h b/include/net/sock.h
-> index 22f8bab583dd..0ef58697d4e5 100644
-> --- a/include/net/sock.h
-> +++ b/include/net/sock.h
-> @@ -2439,6 +2439,8 @@ void sk_stop_timer(struct sock *sk, struct timer_list *timer);
->
->  void sk_stop_timer_sync(struct sock *sk, struct timer_list *timer);
->
-> +void sk_shutdown_timer(struct sock *sk, struct timer_list *timer);
-> +
->  int __sk_queue_drop_skb(struct sock *sk, struct sk_buff_head *sk_queue,
->                         struct sk_buff *skb, unsigned int flags,
->                         void (*destructor)(struct sock *sk,
-> diff --git a/net/core/sock.c b/net/core/sock.c
-> index a3ba0358c77c..82124862b594 100644
-> --- a/net/core/sock.c
-> +++ b/net/core/sock.c
-> @@ -3357,6 +3357,13 @@ void sk_stop_timer_sync(struct sock *sk, struct timer_list *timer)
->  }
->  EXPORT_SYMBOL(sk_stop_timer_sync);
->
-> +void sk_shutdown_timer(struct sock *sk, struct timer_list* timer)
-> +{
-> +       if (timer_shutdown(timer))
-> +               __sock_put(sk);
-> +}
-> +EXPORT_SYMBOL(sk_shutdown_timer);
-> +
->  void sock_init_data(struct socket *sock, struct sock *sk)
->  {
->         sk_init_common(sk);
-> diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
-> index 5e70228c5ae9..71f398f51958 100644
-> --- a/net/ipv4/inet_connection_sock.c
-> +++ b/net/ipv4/inet_connection_sock.c
-> @@ -722,15 +722,15 @@ void inet_csk_clear_xmit_timers(struct sock *sk)
->
->         icsk->icsk_pending = icsk->icsk_ack.pending = 0;
->
-> -       sk_stop_timer(sk, &icsk->icsk_retransmit_timer);
-> -       sk_stop_timer(sk, &icsk->icsk_delack_timer);
-> -       sk_stop_timer(sk, &sk->sk_timer);
-> +       sk_shutdown_timer(sk, &icsk->icsk_retransmit_timer);
-> +       sk_shutdown_timer(sk, &icsk->icsk_delack_timer);
-> +       sk_shutdown_timer(sk, &sk->sk_timer);
->  }
->  EXPORT_SYMBOL(inet_csk_clear_xmit_timers);
+No functional modification involved.
 
- inet_csk_clear_xmit_timers() can be called multiple times during TCP
-socket lifetime.
+net/ipv4/netfilter/nft_fib_ipv4.c:141 nft_fib4_eval() warn: inconsistent indenting.
 
-(See tcp_disconnect(), which can be followed by another connect() ... and loop)
+Link: https://bugzilla.openanolis.cn/show_bug.cgi?id=2733
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+---
+ net/ipv4/netfilter/nft_fib_ipv4.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Maybe add a second parameter, or add a new
-inet_csk_shutdown_xmit_timers() only called from tcp_v4_destroy_sock() ?
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index fc65d69f23e1..9eee535c64dd 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -138,12 +138,11 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		break;
+ 	}
+ 
+-       if (!oif) {
+-               found = FIB_RES_DEV(res);
++	if (!oif) {
++		found = FIB_RES_DEV(res);
+ 	} else {
+ 		if (!fib_info_nh_uses_dev(res.fi, oif))
+ 			return;
+-
+ 		found = oif;
+ 	}
+ 
+-- 
+2.20.1.7.g153144c
 
->
->  void inet_csk_delete_keepalive_timer(struct sock *sk)
->  {
-> -       sk_stop_timer(sk, &sk->sk_timer);
-> +       sk_shutdown_timer(sk, &sk->sk_timer);
-
-SO_KEEPALIVE can be called multiple times in a TCP socket lifetime,
-on/off/on/off/...
-
-I suggest leaving sk_stop_timer() here.
-
-Eventually  inet_csk_clear_xmit_timers( sk, destroy=true) (or
-inet_csk_shutdown_xmit_timers(())
-   will  be called before the socket is destroyed.
