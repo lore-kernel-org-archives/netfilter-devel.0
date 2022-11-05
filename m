@@ -2,88 +2,89 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F94C43217
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Nov 2022 14:47:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6507BC4332F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Nov 2022 15:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229932AbiKEOro (ORCPT
+        id S229545AbiKEP5X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 5 Nov 2022 10:47:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46004 "EHLO
+        Sat, 5 Nov 2022 11:57:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbiKEOri (ORCPT
+        with ESMTP id S229517AbiKEP5W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 5 Nov 2022 10:47:38 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E6D3DFCB;
-        Sat,  5 Nov 2022 07:47:37 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 402A5B800C1;
-        Sat,  5 Nov 2022 14:47:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51DE4C433C1;
-        Sat,  5 Nov 2022 14:47:32 +0000 (UTC)
-Date:   Sat, 5 Nov 2022 10:47:30 -0400
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Guenter Roeck <linux@roeck-us.net>
-Cc:     linux-kernel@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Anna-Maria Gleixner <anna-maria@linutronix.de>,
-        Andrew Morton <akpm@linux-foundation.org>, rcu@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-edac@vger.kernel.org,
-        cgroups@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-acpi@vger.kernel.org,
-        linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
-        linux-pm@vger.kernel.org, drbd-dev@lists.linbit.com,
-        linux-bluetooth@vger.kernel.org,
-        openipmi-developer@lists.sourceforge.net,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org,
-        linux-input@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-leds@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev,
-        linux-ext4@vger.kernel.org, linux-nilfs@vger.kernel.org,
-        bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, lvs-devel@vger.kernel.org,
-        linux-afs@lists.infradead.org, linux-nfs@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v4a 00/38] timers: Use timer_shutdown*() before freeing
- timers
-Message-ID: <20221105104730.2bfd6740@rorschach.local.home>
-In-Reply-To: <20221105141817.GF1606271@roeck-us.net>
-References: <20221105060024.598488967@goodmis.org>
-        <20221105141817.GF1606271@roeck-us.net>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        Sat, 5 Nov 2022 11:57:22 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B80F4E0F0
+        for <netfilter-devel@vger.kernel.org>; Sat,  5 Nov 2022 08:57:21 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] optimize: handle prefix and range when merging into set + concatenation
+Date:   Sat,  5 Nov 2022 16:57:15 +0100
+Message-Id: <20221105155715.22229-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, 5 Nov 2022 07:18:17 -0700
-Guenter Roeck <linux@roeck-us.net> wrote:
+The following ruleset fails to be merged using set + concatenation:
 
-> Just in case you didn't notice:
-> 
-> Looking through the resulting code, I think some of the remaining
-> calls to del_singleshot_timer_sync() can be converted as well.
-> 
-> The calls in drivers/staging/wlan-ng/prism2usb.c:prism2sta_disconnect_usb()
-> are obvious (the containing data structure is freed in the same function).
-> For drivers/char/tpm/tpm-dev-common.c:tpm_common_release(), the containing
-> data structure is freed in the calling code.
+  meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.3.0/24 accept
+  meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.4.0-2.2.4.10 accept
 
-Well, actually it is. In patch 5/38:
+hitting the following assertion:
 
--#define del_singleshot_timer_sync(t) del_timer_sync(t)
-+#define del_singleshot_timer_sync(t) timer_shutdown_sync(t)
+  nft: optimize.c:585: __merge_concat_stmts: Assertion `0' failed.
+  Abort
 
-This was the reason for patch 1. It was the only user of that function
-that reused the timer after calling that function.
+This patch also updates tests/shell.
 
--- Steve
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/optimize.c                                                  | 2 ++
+ .../shell/testcases/optimizations/dumps/merge_stmts_concat.nft  | 2 +-
+ tests/shell/testcases/optimizations/merge_stmts_concat          | 2 ++
+ 3 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/optimize.c b/src/optimize.c
+index 180a7d55f18b..09013efc548c 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -578,6 +578,8 @@ static void __merge_concat_stmts(const struct optimize_ctx *ctx, uint32_t i,
+ 				break;
+ 			case EXPR_SYMBOL:
+ 			case EXPR_VALUE:
++			case EXPR_PREFIX:
++			case EXPR_RANGE:
+ 				clone = expr_clone(stmt_a->expr->right);
+ 				compound_expr_add(concat, clone);
+ 				break;
+diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
+index 5d03cf8d9566..f56cea1c4fd7 100644
+--- a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
++++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
+@@ -1,6 +1,6 @@
+ table ip x {
+ 	chain y {
+-		iifname . ip saddr . ip daddr { "eth1" . 1.1.1.1 . 2.2.2.3, "eth1" . 1.1.1.2 . 2.2.2.4, "eth2" . 1.1.1.3 . 2.2.2.5 } accept
++		iifname . ip saddr . ip daddr { "eth1" . 1.1.1.1 . 2.2.2.3, "eth1" . 1.1.1.2 . 2.2.2.4, "eth1" . 1.1.1.2 . 2.2.3.0/24, "eth1" . 1.1.1.2 . 2.2.4.0-2.2.4.10, "eth2" . 1.1.1.3 . 2.2.2.5 } accept
+ 		ip protocol . th dport { tcp . 22, udp . 67 }
+ 	}
+ 
+diff --git a/tests/shell/testcases/optimizations/merge_stmts_concat b/tests/shell/testcases/optimizations/merge_stmts_concat
+index 0bcd95622a98..9679d86223fd 100755
+--- a/tests/shell/testcases/optimizations/merge_stmts_concat
++++ b/tests/shell/testcases/optimizations/merge_stmts_concat
+@@ -6,6 +6,8 @@ RULESET="table ip x {
+ 	chain y {
+ 		meta iifname eth1 ip saddr 1.1.1.1 ip daddr 2.2.2.3 accept
+ 		meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.2.4 accept
++		meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.3.0/24 accept
++		meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.4.0-2.2.4.10 accept
+ 		meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.5 accept
+ 		ip protocol . th dport { tcp . 22, udp . 67 }
+ 	}
+-- 
+2.30.2
+
