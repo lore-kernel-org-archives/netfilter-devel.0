@@ -2,25 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0AF9C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Nov 2022 10:19:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A62AEC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Nov 2022 11:28:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230316AbiKIKTv (ORCPT
+        id S229715AbiKIL2g (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Nov 2022 05:19:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42822 "EHLO
+        Wed, 9 Nov 2022 06:28:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230349AbiKIKTu (ORCPT
+        with ESMTP id S229687AbiKIL2b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Nov 2022 05:19:50 -0500
+        Wed, 9 Nov 2022 06:28:31 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5A5A024BF0
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2022 02:19:49 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0C55410E9;
+        Wed,  9 Nov 2022 03:28:30 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] doc: document a few reset commands supported by the parser
-Date:   Wed,  9 Nov 2022 11:19:45 +0100
-Message-Id: <20221109101945.183081-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date:   Wed,  9 Nov 2022 12:28:17 +0100
+Message-Id: <20221109112820.206807-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,46 +30,51 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The following are missing in the manpage:
+Hi,
 
- *reset counters* ['family']
- *reset quotas* ['family']
- *reset counters* ['family'] *table* 'table'
- *reset quotas* ['family'] *table* 'table'
+The following patchset contains Netfilter fixes for net:
 
-While at it, expand type to the supported stateful objects.
+1) Fix deadlock in nfnetlink due to missing mutex release in error path,
+   from Ziyang Xuan.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- doc/nft.txt | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+2) Clean up pending autoload module list from nf_tables_exit_net() path,
+   from Shigeru Yoshida.
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 02cf13a57c2e..4f2af5e5548f 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -732,11 +732,19 @@ kernel modules, such as nf_conntrack.
- STATEFUL OBJECTS
- ----------------
- [verse]
--{*add* | *delete* | *list* | *reset*} 'type' ['family'] 'table' 'object'
--*delete* 'type' ['family'] 'table' *handle* 'handle'
-+{*add* | *delete* | *list* | *reset*} *counter* ['family'] 'table' 'object'
-+{*add* | *delete* | *list* | *reset*} *quota* ['family'] 'table' 'object'
-+{*add* | *delete* | *list* | *reset*} *limit* ['family'] 'table' 'object'
-+*delete* 'counter' ['family'] 'table' *handle* 'handle'
-+*delete* 'quota' ['family'] 'table' *handle* 'handle'
-+*delete* 'limit' ['family'] 'table' *handle* 'handle'
- *list counters* ['family']
- *list quotas* ['family']
- *list limits* ['family']
-+*reset counters* ['family']
-+*reset quotas* ['family']
-+*reset counters* ['family'] *table* 'table'
-+*reset quotas* ['family'] *table* 'table'
- 
- Stateful objects are attached to tables and are identified by a unique name.
- They group stateful information from rules, to reference them in rules the
--- 
-2.30.2
+3) Fixes for the netfilter's reverse path selftest, from Phil Sutter.
 
+All of these bugs have been around for several releases.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit ce9e57feeed81d17d5e80ed86f516ff0d39c3867:
+
+  drivers: net: xgene: disable napi when register irq failed in xgene_enet_open() (2022-11-08 15:15:55 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 58bb78ce02269c0cf5b1f2bd2e4a605500b44c6b:
+
+  selftests: netfilter: Fix and review rpath.sh (2022-11-09 10:29:57 +0100)
+
+----------------------------------------------------------------
+Phil Sutter (1):
+      selftests: netfilter: Fix and review rpath.sh
+
+Shigeru Yoshida (1):
+      netfilter: Cleanup nft_net->module_list from nf_tables_exit_net()
+
+Ziyang Xuan (1):
+      netfilter: nfnetlink: fix potential dead lock in nfnetlink_rcv_msg()
+
+ net/netfilter/nf_tables_api.c              |  3 ++-
+ net/netfilter/nfnetlink.c                  |  1 +
+ tools/testing/selftests/netfilter/rpath.sh | 14 ++++++++------
+ 3 files changed, 11 insertions(+), 7 deletions(-)
