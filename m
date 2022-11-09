@@ -2,104 +2,72 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A7BFC433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Nov 2022 10:16:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0AF9C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Nov 2022 10:19:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230297AbiKIKQT (ORCPT
+        id S230316AbiKIKTv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Nov 2022 05:16:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41680 "EHLO
+        Wed, 9 Nov 2022 05:19:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229787AbiKIKQR (ORCPT
+        with ESMTP id S230349AbiKIKTu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Nov 2022 05:16:17 -0500
+        Wed, 9 Nov 2022 05:19:50 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 10E111D316
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2022 02:16:17 -0800 (PST)
-Date:   Wed, 9 Nov 2022 11:16:14 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5A5A024BF0
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2022 02:19:49 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH 0/2] Support resetting rules' state
-Message-ID: <Y2t97iyVIMEzIF0q@salvia>
-References: <20221014214559.22254-1-phil@nwl.cc>
- <Y1fOAZkQU8u81mPf@salvia>
- <Y2qIlYGKGxysxkFN@orbyte.nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] doc: document a few reset commands supported by the parser
+Date:   Wed,  9 Nov 2022 11:19:45 +0100
+Message-Id: <20221109101945.183081-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Y2qIlYGKGxysxkFN@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Nov 08, 2022 at 05:49:25PM +0100, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Tue, Oct 25, 2022 at 01:52:33PM +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Oct 14, 2022 at 11:45:57PM +0200, Phil Sutter wrote:
-> > > In order to "zero" a rule (in the 'iptables -Z' sense), users had to
-> > > dump (parts of) the ruleset in stateless form and restore it again after
-> > > removing the dumped parts.
-> > > 
-> > > Introduce a simpler method to reset any stateful elements of a rule or
-> > > all rules of a chain/table/family. Affects both counter and quota
-> > > expressions.
-> > 
-> > Patchset LGTM.
-> > 
-> > For the record, we agreed on the workshop to extend this to:
-> > 
-> > - add support for this command to table, chain and set objects too.
-> > - validate that nft syntax is consistent from userspace with other
-> >   existing commands (for example, list).
-> 
-> Looking into this, I wonder if it might cause confusion with regards to
-> stateful objects:
-> 
-> My original patch implements:
-> 
-> - reset rule [<fam>] <table> <chain> handle <num>
-> - reset rules [<fam>]
-> - reset rules table [<fam>] <table>
-> - reset rules chain [<fam>] <table> <chain>
-> 
-> This is relatively consistent with list command, which (e.g.) has:
-> 
-> - list set [<fam>] <table> <set>
-> - list sets [<fam>]
-> - list sets table [<fam>] <table>
+The following are missing in the manpage:
 
-This also looks consistent with stateful objects:
+ *reset counters* ['family']
+ *reset quotas* ['family']
+ *reset counters* ['family'] *table* 'table'
+ *reset quotas* ['family'] *table* 'table'
 
-- reset counter [<fam>] <counter>
-- reset counters table [<fam>] table <table>
-- reset counters [<fam>]
+While at it, expand type to the supported stateful objects.
 
-> IIRC, your request at NFWS was to introduce something like:
-> 
-> - reset table (for 'reset rules table')
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ doc/nft.txt | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-This would require to make two calls, one to NFT_MSG_GETOBJ_RESET and
-another to NFT_MSG_GETRULE_RESET:
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 02cf13a57c2e..4f2af5e5548f 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -732,11 +732,19 @@ kernel modules, such as nf_conntrack.
+ STATEFUL OBJECTS
+ ----------------
+ [verse]
+-{*add* | *delete* | *list* | *reset*} 'type' ['family'] 'table' 'object'
+-*delete* 'type' ['family'] 'table' *handle* 'handle'
++{*add* | *delete* | *list* | *reset*} *counter* ['family'] 'table' 'object'
++{*add* | *delete* | *list* | *reset*} *quota* ['family'] 'table' 'object'
++{*add* | *delete* | *list* | *reset*} *limit* ['family'] 'table' 'object'
++*delete* 'counter' ['family'] 'table' *handle* 'handle'
++*delete* 'quota' ['family'] 'table' *handle* 'handle'
++*delete* 'limit' ['family'] 'table' *handle* 'handle'
+ *list counters* ['family']
+ *list quotas* ['family']
+ *list limits* ['family']
++*reset counters* ['family']
++*reset quotas* ['family']
++*reset counters* ['family'] *table* 'table'
++*reset quotas* ['family'] *table* 'table'
+ 
+ Stateful objects are attached to tables and are identified by a unique name.
+ They group stateful information from rules, to reference them in rules the
+-- 
+2.30.2
 
-> - reset chain (for 'reset rules chain')
-
-This could be implemented with the new NFT_MSG_GETRULE_RESET, which
-already allows to filter with chain.
-
-So these two would only require userspace code, this can be done
-later.
-
-> But the first one may seem like resetting *all* state of a table,
-> including named quotas, counters, etc. while in fact it only resets
-> state in rules.
-
-Yes, first should reset everything that is stateful and that is
-contained in the table.
-
-As said, this can be implemented later on from userspace.
-
-This is addressing all my questions then, I'm going to put this into
-nf-next.
-
-Thanks for explaining.
