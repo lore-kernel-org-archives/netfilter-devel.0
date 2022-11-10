@@ -2,89 +2,95 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98AA2C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Nov 2022 15:21:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FF3AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Nov 2022 18:04:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229541AbiKJPVe (ORCPT
+        id S230294AbiKJSE3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Nov 2022 10:21:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39008 "EHLO
+        Thu, 10 Nov 2022 13:04:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229533AbiKJPVd (ORCPT
+        with ESMTP id S231565AbiKJSEI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2022 10:21:33 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 17FB82A724;
-        Thu, 10 Nov 2022 07:21:31 -0800 (PST)
-Date:   Thu, 10 Nov 2022 16:21:28 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] libnftnl 1.2.4 release
-Message-ID: <Y20W+LT/+sq/i2rz@salvia>
+        Thu, 10 Nov 2022 13:04:08 -0500
+Received: from mail-oi1-x22f.google.com (mail-oi1-x22f.google.com [IPv6:2607:f8b0:4864:20::22f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A48364E40F
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2022 10:03:55 -0800 (PST)
+Received: by mail-oi1-x22f.google.com with SMTP id h132so2641208oif.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2022 10:03:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=arista.com; s=google;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=Xg5yap3etxX9SXgYQQEYxcIIT2ihJ45hJ2KlKRfDPvE=;
+        b=eB6Szji6Ceq/Sn+6mCBhXKilNPMqrj+OGrm9hF2vuKf0b6G/L5dm3H99wqb3wlDaUr
+         YSb5LTiCOLJ9P/Yer8vXAbqSeg/KGOLMMqoIPga+xzIq6Ph84iCdh1utMoQcoISFxTgC
+         GB69DDe+VYz27gJEb5NkJQEN1FNU2WWvEhJmel/2reUVs7bSsLssUmg1TEEw6EaJlOiL
+         DXq1tAWBYig6acpZN1HreVYHm8LP1rLvV/1lPtQZpxsPwwt3M9Txu8/M7Uu1QD0nWjCH
+         tw/CDKf8WqVJlx5qGcEaHDY3Bawei33vNclsIXwbyV07scumzVWG2tBFBn0P0QqKJB0x
+         PSUA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Xg5yap3etxX9SXgYQQEYxcIIT2ihJ45hJ2KlKRfDPvE=;
+        b=6hUrQPKWJx3lbpIkJm7kfFvVmczGHcqYLgbLDwVlZeSXwx+uYxDXHL0JCh4r/I0fZq
+         r6N05irk8pz34umAqyUF7kbiBBd8mtDzVYHwWJCPgEJ1wguHlBhmdyj+VRuLHzuqfj/c
+         8xoaXTy5vXL2+b/uUDKVRLqvS9rtKDfV+IIUbuja5uxvAlP9XYTT64NS8LarX+8+AuzR
+         4QR8sE91jVcQarwvXn/PJjmYPIDMMjDe5DTsbkuGtNN39J1vn3GjYbt+zcvP4SL1kjBG
+         Yj933ldKUz6BxLrAdnlcCvtZ4F/FG2MzNRzdhE3BYaR0AXkzyjtQJX8L8YLvbsG2ECpm
+         jSTA==
+X-Gm-Message-State: ANoB5pmzIMvUj3ma0w2r2XcMJ9W9OmMroIh9qmxxR4NkP+PkLu9iyt53
+        WW6auypvl7t8cSgbDA6wDb2a7PD6itZX4AdKhaI5xy/cwKK9Ag==
+X-Google-Smtp-Source: AA0mqf7DTzmYagULjG6Rt/yd+tIaogz3vb10pKRzUuPaCiJpxyPs+sy21odlJyH0e+UorbND13IIFp3nifAWjOBuobA=
+X-Received: by 2002:a05:6808:169f:b0:35a:8e8e:1c60 with SMTP id
+ bb31-20020a056808169f00b0035a8e8e1c60mr1259409oib.99.1668103434481; Thu, 10
+ Nov 2022 10:03:54 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="RdtRELJTBSCF7X6r"
-Content-Disposition: inline
+From:   Tula Kraiser <tkraiser@arista.com>
+Date:   Thu, 10 Nov 2022 10:03:43 -0800
+Message-ID: <CAKh0D7xP9rmwes4zjwDAYvrB706Au3aLvfA25NV0+sYR17+-NQ@mail.gmail.com>
+Subject: Avoid race between tcp_packet packet processing and timeout set by a
+ netfilter CTA_TIMEOUT message
+To:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello,
 
---RdtRELJTBSCF7X6r
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-
-Hi!
-
-The Netfilter project proudly presents:
-
-        libnftnl 1.2.4
-
-libnftnl is a userspace library providing a low-level netlink
-programming interface (API) to the in-kernel nf_tables subsystem.
-This library is currently used by nftables.
-
-This release includes two fixes for the printing of the set element
-user data area and the removal of an internal function without any
-clients.
-
-This release also includes a fix for the nfnetlink .res_id incorrect
-endianess. Note that there is a workaround in the kernel that has been
-available for a while which is present in -stable releases:
-
- commit a9de9777d613500b089a7416f936bf3ae5f070d2
- Author: Pablo Neira Ayuso <pablo@netfilter.org>
- Date:   Fri Aug 28 21:01:43 2015 +0200
-
-    netfilter: nfnetlink: work around wrong endianess in res_id field
-
-Old Linux kernel versions <= 4.9 might break without the above
-kernel patch since libnftnl >= 1.2.4.
-
-See ChangeLog that comes attached to this email for more details on
-the updates.
-
-You can download it from:
-
-https://www.netfilter.org/projects/libnftnl/downloads.html
-
-Happy firewalling.
-
---RdtRELJTBSCF7X6r
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename="changes-libnftnl-1.2.4.txt"
-
-Ian Pilcher (1):
-      libnftnl: Fix res_id byte order
-
-Jeremy Sowden (1):
-      rule, set_elem: fix printing of user data
-
-Pablo Neira Ayuso (3):
-      rule, set_elem: remove trailing \n in userdata snprintf
-      expr: payload: remove unused function
-      build: libnftnl 1.2.4 release
+We have been using the nat netfilter module to create NAT translations
+and then we offload the translations to our hardware. Once the
+translation is offloaded to hardware we expect only FIN and RST to be
+received by the linux stack. Once we finish programming the hardware
+we send a NETLINK message to the kernel setting the entry timeout to a
+larger value (we use the CTA_TIMEOUT for that). That's because we rely
+on hardware hitbit to indicate when the entry should be removed due to
+inactivity.
 
 
---RdtRELJTBSCF7X6r--
+Unfortunately there is a delay between receiving the notification of
+the translation (we subscribe to netfilter conntrack events for that)
+and the time we program the hardware where packets still make it into
+the kernel input queue. There is a race between the CTA_TIMEOUT
+message and the queue packets where the kernel can replace the timeout
+with its default values leading to the entry being removed
+prematurely.
+
+
+To avoid that we are proposing introducing a new attribute to the
+CTA_PROTOINFO for TCP where we set the IPS_FIXED_TIMEOUT_FLAG on the
+conntrack entry if the conntrack TCP state is less or equal to
+TCP_ESTABLISHED.  That takes care of the race.  We are modifying the
+tcp_packet routine to reset the IPS_FIXED_TIMEOUT_FLAG when the tcp
+state moves the established state so FINs can be processed correctly.
+
+
+Does this sound like a reasonable solution to the problem or are there
+better suggestions? Does this sound like an interesting patch to push
+upstream?
+
+Thanks,
+
+Tula
