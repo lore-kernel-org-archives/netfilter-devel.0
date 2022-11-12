@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E4E5C433FE
-	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Nov 2022 00:21:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D833DC433FE
+	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Nov 2022 00:21:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbiKLAVn (ORCPT
+        id S234163AbiKLAVr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 11 Nov 2022 19:21:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46560 "EHLO
+        Fri, 11 Nov 2022 19:21:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234004AbiKLAVl (ORCPT
+        with ESMTP id S234004AbiKLAVq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Nov 2022 19:21:41 -0500
+        Fri, 11 Nov 2022 19:21:46 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37619326F9
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Nov 2022 16:21:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B2783F074
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Nov 2022 16:21:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=kbFPFLttbn6v1XkusNuXu3NVNoHx3aduNGragfIJ4kk=; b=MbNT3T9HLg9V2znrusmzGTSVSo
-        lGHbHOPOFezd4Uw0eQoEAP4neSErOVdR8wF1iLYCGelno0XqstaTj1A4XdhpqEd3WCYxkDtn5Jw1M
-        JYdih7WIWJx9Zdh+jlne9JFSfniKlmC0dRG+xPqIQU/FtoEuHoA/jY/Y5ZXrGy7bkdYhhGXTE4Ig6
-        VNRyWv+Z3zwaawcbPnL6rlFqmV3Di6Kq/5GUivUPbcUgoFfTiT8va1mDcTnTUMS5ytYaKSKD+qA+g
-        z0tMQVEOIhxL2XeV8LNwG4lOCbY2XS+2ouDHyXjgkk7xk4BKbINPJQcEIPYRUUSXFDZCpBS0RsffC
-        6p4zNwcw==;
+        bh=OgYkTBRmCIgtUTHEwzgViOtBvjtRPGuls3RDvhus+v8=; b=YN2ZA7iRW1gXmo3WT6xjh5y+ci
+        Ib3YxNhRYV3Olmieu94DSr/9gzHTTqdF2L1yzhm0baiYafCqWXlz1e5T3/txj2DUeJHvNYCdoPnTI
+        IAR2QSygSckSGqivvsP0UdMLT7tWXeB0tSyMzwmmeIRoNIUqJretAzJyRZZMvvXocdQVG/osxVq43
+        aMv6nZuLhO+dqnYjg1rS7Ycubj3G9zU+egL3CcCvnsHHJ+6vSHZeudyaQfS3ql3C8kQbBIfC0e47K
+        HtXvXGbgOAAKkyTD0s7i8FD1M9AAvSOYcQKz3292yRoowMlmnVd0/nn3IYbrSAPmeuzs++TvtWJDI
+        HgbrYTPw==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1oteHC-00023n-Hf
-        for netfilter-devel@vger.kernel.org; Sat, 12 Nov 2022 01:21:38 +0100
+        id 1oteHH-000247-Tv
+        for netfilter-devel@vger.kernel.org; Sat, 12 Nov 2022 01:21:44 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 5/7] extensions: libebt_arp, libebt_ip: Use xtables_ipparse_any()
-Date:   Sat, 12 Nov 2022 01:20:54 +0100
-Message-Id: <20221112002056.31917-6-phil@nwl.cc>
+Subject: [iptables PATCH 1/7] xshared: Share make_delete_mask() between ip{,6}tables
+Date:   Sat, 12 Nov 2022 01:20:50 +0100
+Message-Id: <20221112002056.31917-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.38.0
 In-Reply-To: <20221112002056.31917-1-phil@nwl.cc>
 References: <20221112002056.31917-1-phil@nwl.cc>
@@ -47,273 +47,199 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The libxtables function covers all formerly supported inputs (and more).
-The extended libebt_arp.t passes before and after this patch.
+Function bodies were mostly identical, the only difference being the use
+of struct ipt_entry or ip6t_entry for size calculation. Pass this value
+via parameter to make them fully identical.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/libebt_arp.c | 89 ++++-------------------------------------
- extensions/libebt_arp.t |  3 ++
- extensions/libebt_ip.c  | 86 +++++----------------------------------
- 3 files changed, 21 insertions(+), 157 deletions(-)
+ iptables/ip6tables.c | 38 ++------------------------------------
+ iptables/iptables.c  | 38 ++------------------------------------
+ iptables/xshared.c   | 34 ++++++++++++++++++++++++++++++++++
+ iptables/xshared.h   |  4 ++++
+ 4 files changed, 42 insertions(+), 72 deletions(-)
 
-diff --git a/extensions/libebt_arp.c b/extensions/libebt_arp.c
-index d5035b956cc15..63a953d4637da 100644
---- a/extensions/libebt_arp.c
-+++ b/extensions/libebt_arp.c
-@@ -87,91 +87,17 @@ static void brarp_print_help(void)
- #define OPT_MAC_D  0x40
- #define OPT_GRAT   0x80
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 75984cc1bcdd8..ae2670357264b 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -277,40 +277,6 @@ insert_entry(const xt_chainlabel chain,
+ 	return ret;
+ }
  
--static int undot_ip(char *ip, unsigned char *ip2)
+-static unsigned char *
+-make_delete_mask(const struct xtables_rule_match *matches,
+-		 const struct xtables_target *target)
 -{
--	char *p, *q, *end;
--	long int onebyte;
--	int i;
--	char buf[20];
+-	/* Establish mask for comparison */
+-	unsigned int size;
+-	const struct xtables_rule_match *matchp;
+-	unsigned char *mask, *mptr;
 -
--	strncpy(buf, ip, sizeof(buf) - 1);
+-	size = sizeof(struct ip6t_entry);
+-	for (matchp = matches; matchp; matchp = matchp->next)
+-		size += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
 -
--	p = buf;
--	for (i = 0; i < 3; i++) {
--		if ((q = strchr(p, '.')) == NULL)
--			return -1;
--		*q = '\0';
--		onebyte = strtol(p, &end, 10);
--		if (*end != '\0' || onebyte > 255 || onebyte < 0)
--			return -1;
--		ip2[i] = (unsigned char)onebyte;
--		p = q + 1;
+-	mask = xtables_calloc(1, size
+-			 + XT_ALIGN(sizeof(struct xt_entry_target))
+-			 + target->size);
+-
+-	memset(mask, 0xFF, sizeof(struct ip6t_entry));
+-	mptr = mask + sizeof(struct ip6t_entry);
+-
+-	for (matchp = matches; matchp; matchp = matchp->next) {
+-		memset(mptr, 0xFF,
+-		       XT_ALIGN(sizeof(struct xt_entry_match))
+-		       + matchp->match->userspacesize);
+-		mptr += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
 -	}
 -
--	onebyte = strtol(p, &end, 10);
--	if (*end != '\0' || onebyte > 255 || onebyte < 0)
--		return -1;
--	ip2[3] = (unsigned char)onebyte;
+-	memset(mptr, 0xFF,
+-	       XT_ALIGN(sizeof(struct xt_entry_target))
+-	       + target->userspacesize);
 -
--	return 0;
--}
--
--static int ip_mask(char *mask, unsigned char *mask2)
--{
--	char *end;
--	long int bits;
--	uint32_t mask22;
--
--	if (undot_ip(mask, mask2)) {
--		/* not the /a.b.c.e format, maybe the /x format */
--		bits = strtol(mask, &end, 10);
--		if (*end != '\0' || bits > 32 || bits < 0)
--			return -1;
--		if (bits != 0) {
--			mask22 = htonl(0xFFFFFFFF << (32 - bits));
--			memcpy(mask2, &mask22, 4);
--		} else {
--			mask22 = 0xFFFFFFFF;
--			memcpy(mask2, &mask22, 4);
--		}
--	}
--	return 0;
--}
--
--static void ebt_parse_ip_address(char *address, uint32_t *addr, uint32_t *msk)
--{
--	char *p;
--
--	/* first the mask */
--	if ((p = strrchr(address, '/')) != NULL) {
--		*p = '\0';
--		if (ip_mask(p + 1, (unsigned char *)msk)) {
--			xtables_error(PARAMETER_PROBLEM,
--				      "Problem with the IP mask '%s'", p + 1);
--			return;
--		}
--	} else
--		*msk = 0xFFFFFFFF;
--
--	if (undot_ip(address, (unsigned char *)addr)) {
--		xtables_error(PARAMETER_PROBLEM,
--			      "Problem with the IP address '%s'", address);
--		return;
--	}
--	*addr = *addr & *msk;
+-	return mask;
 -}
 -
  static int
- brarp_parse(int c, char **argv, int invert, unsigned int *flags,
- 	    const void *entry, struct xt_entry_match **match)
- {
- 	struct ebt_arp_info *arpinfo = (struct ebt_arp_info *)(*match)->data;
-+	struct in_addr *ipaddr, ipmask;
- 	long int i;
- 	char *end;
--	uint32_t *addr;
--	uint32_t *mask;
- 	unsigned char *maddr;
- 	unsigned char *mmask;
-+	unsigned int ipnr;
+ delete_entry(const xt_chainlabel chain,
+ 	     struct ip6t_entry *fw,
+@@ -329,7 +295,7 @@ delete_entry(const xt_chainlabel chain,
+ 	int ret = 1;
+ 	unsigned char *mask;
  
- 	switch (c) {
- 	case ARP_OPCODE:
-@@ -231,24 +157,25 @@ brarp_parse(int c, char **argv, int invert, unsigned int *flags,
+-	mask = make_delete_mask(matches, target);
++	mask = make_delete_mask(matches, target, sizeof(*fw));
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ipv6.src = saddrs[i];
+ 		fw->ipv6.smsk = smasks[i];
+@@ -359,7 +325,7 @@ check_entry(const xt_chainlabel chain, struct ip6t_entry *fw,
+ 	int ret = 1;
+ 	unsigned char *mask;
  
- 	case ARP_IP_S:
- 	case ARP_IP_D:
-+		xtables_ipparse_any(optarg, &ipaddr, &ipmask, &ipnr);
- 		if (c == ARP_IP_S) {
- 			EBT_CHECK_OPTION(flags, OPT_IP_S);
--			addr = &arpinfo->saddr;
--			mask = &arpinfo->smsk;
-+			arpinfo->saddr = ipaddr->s_addr;
-+			arpinfo->smsk = ipmask.s_addr;
- 			arpinfo->bitmask |= EBT_ARP_SRC_IP;
- 		} else {
- 			EBT_CHECK_OPTION(flags, OPT_IP_D);
--			addr = &arpinfo->daddr;
--			mask = &arpinfo->dmsk;
-+			arpinfo->daddr = ipaddr->s_addr;
-+			arpinfo->dmsk = ipmask.s_addr;
- 			arpinfo->bitmask |= EBT_ARP_DST_IP;
- 		}
-+		free(ipaddr);
- 		if (invert) {
- 			if (c == ARP_IP_S)
- 				arpinfo->invflags |= EBT_ARP_SRC_IP;
- 			else
- 				arpinfo->invflags |= EBT_ARP_DST_IP;
- 		}
--		ebt_parse_ip_address(optarg, addr, mask);
- 		break;
- 	case ARP_MAC_S:
- 	case ARP_MAC_D:
-diff --git a/extensions/libebt_arp.t b/extensions/libebt_arp.t
-index 14ff0f097cfd8..96fbce906107c 100644
---- a/extensions/libebt_arp.t
-+++ b/extensions/libebt_arp.t
-@@ -6,6 +6,9 @@
- -p ARP ! --arp-ip-dst 1.2.3.4;-p ARP --arp-ip-dst ! 1.2.3.4 -j CONTINUE;OK
- -p ARP --arp-ip-src ! 0.0.0.0;=;OK
- -p ARP --arp-ip-dst ! 0.0.0.0/8;=;OK
-+-p ARP --arp-ip-src ! 1.2.3.4/32;-p ARP --arp-ip-src ! 1.2.3.4;OK
-+-p ARP --arp-ip-src ! 1.2.3.4/255.255.255.0;-p ARP --arp-ip-src ! 1.2.3.0/24;OK
-+-p ARP --arp-ip-src ! 1.2.3.4/255.0.255.255;-p ARP --arp-ip-src ! 1.0.3.4/255.0.255.255;OK
- -p ARP --arp-mac-src 00:de:ad:be:ef:00;=;OK
- -p ARP --arp-mac-dst de:ad:be:ef:00:00/ff:ff:ff:ff:00:00;=;OK
- -p ARP --arp-gratuitous;=;OK
-diff --git a/extensions/libebt_ip.c b/extensions/libebt_ip.c
-index 8413a5aa8dd57..d13e83c06895d 100644
---- a/extensions/libebt_ip.c
-+++ b/extensions/libebt_ip.c
-@@ -164,80 +164,6 @@ parse_port_range(const char *protocol, const char *portstring, uint16_t *ports)
+-	mask = make_delete_mask(matches, target);
++	mask = make_delete_mask(matches, target, sizeof(fw));
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ipv6.src = saddrs[i];
+ 		fw->ipv6.smsk = smasks[i];
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index e5207ba106057..591ec17886562 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -276,40 +276,6 @@ insert_entry(const xt_chainlabel chain,
+ 	return ret;
  }
  
- /* original code from ebtables: useful_functions.c */
--static int undot_ip(char *ip, unsigned char *ip2)
+-static unsigned char *
+-make_delete_mask(const struct xtables_rule_match *matches,
+-		 const struct xtables_target *target)
 -{
--	char *p, *q, *end;
--	long int onebyte;
--	int i;
--	char buf[20];
+-	/* Establish mask for comparison */
+-	unsigned int size;
+-	const struct xtables_rule_match *matchp;
+-	unsigned char *mask, *mptr;
 -
--	strncpy(buf, ip, sizeof(buf) - 1);
+-	size = sizeof(struct ipt_entry);
+-	for (matchp = matches; matchp; matchp = matchp->next)
+-		size += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
 -
--	p = buf;
--	for (i = 0; i < 3; i++) {
--		if ((q = strchr(p, '.')) == NULL)
--			return -1;
--		*q = '\0';
--		onebyte = strtol(p, &end, 10);
--		if (*end != '\0' || onebyte > 255 || onebyte < 0)
--			return -1;
--		ip2[i] = (unsigned char)onebyte;
--		p = q + 1;
+-	mask = xtables_calloc(1, size
+-			 + XT_ALIGN(sizeof(struct xt_entry_target))
+-			 + target->size);
+-
+-	memset(mask, 0xFF, sizeof(struct ipt_entry));
+-	mptr = mask + sizeof(struct ipt_entry);
+-
+-	for (matchp = matches; matchp; matchp = matchp->next) {
+-		memset(mptr, 0xFF,
+-		       XT_ALIGN(sizeof(struct xt_entry_match))
+-		       + matchp->match->userspacesize);
+-		mptr += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
 -	}
 -
--	onebyte = strtol(p, &end, 10);
--	if (*end != '\0' || onebyte > 255 || onebyte < 0)
--		return -1;
--	ip2[3] = (unsigned char)onebyte;
+-	memset(mptr, 0xFF,
+-	       XT_ALIGN(sizeof(struct xt_entry_target))
+-	       + target->userspacesize);
 -
--	return 0;
+-	return mask;
 -}
 -
--static int ip_mask(char *mask, unsigned char *mask2)
--{
--	char *end;
--	long int bits;
--	uint32_t mask22;
--
--	if (undot_ip(mask, mask2)) {
--		/* not the /a.b.c.e format, maybe the /x format */
--		bits = strtol(mask, &end, 10);
--		if (*end != '\0' || bits > 32 || bits < 0)
--			return -1;
--		if (bits != 0) {
--			mask22 = htonl(0xFFFFFFFF << (32 - bits));
--			memcpy(mask2, &mask22, 4);
--		} else {
--			mask22 = 0xFFFFFFFF;
--			memcpy(mask2, &mask22, 4);
--		}
--	}
--	return 0;
--}
--
--static void ebt_parse_ip_address(char *address, uint32_t *addr, uint32_t *msk)
--{
--	char *p;
--
--	/* first the mask */
--	if ((p = strrchr(address, '/')) != NULL) {
--		*p = '\0';
--		if (ip_mask(p + 1, (unsigned char *)msk)) {
--			xtables_error(PARAMETER_PROBLEM,
--				      "Problem with the IP mask '%s'", p + 1);
--			return;
--		}
--	} else
--		*msk = 0xFFFFFFFF;
--
--	if (undot_ip(address, (unsigned char *)addr)) {
--		xtables_error(PARAMETER_PROBLEM,
--			      "Problem with the IP address '%s'", address);
--		return;
--	}
--	*addr = *addr & *msk;
--}
--
- static char *parse_range(const char *str, unsigned int res[])
- {
- 	char *next;
-@@ -355,18 +281,26 @@ brip_parse(int c, char **argv, int invert, unsigned int *flags,
- 	   const void *entry, struct xt_entry_match **match)
- {
- 	struct ebt_ip_info *info = (struct ebt_ip_info *)(*match)->data;
-+	struct in_addr *ipaddr, ipmask;
-+	unsigned int ipnr;
+ static int
+ delete_entry(const xt_chainlabel chain,
+ 	     struct ipt_entry *fw,
+@@ -328,7 +294,7 @@ delete_entry(const xt_chainlabel chain,
+ 	int ret = 1;
+ 	unsigned char *mask;
  
- 	switch (c) {
- 	case IP_SOURCE:
- 		if (invert)
- 			info->invflags |= EBT_IP_SOURCE;
--		ebt_parse_ip_address(optarg, &info->saddr, &info->smsk);
-+		xtables_ipparse_any(optarg, &ipaddr, &ipmask, &ipnr);
-+		info->saddr = ipaddr->s_addr;
-+		info->smsk = ipmask.s_addr;
-+		free(ipaddr);
- 		info->bitmask |= EBT_IP_SOURCE;
- 		break;
- 	case IP_DEST:
- 		if (invert)
- 			info->invflags |= EBT_IP_DEST;
--		ebt_parse_ip_address(optarg, &info->daddr, &info->dmsk);
-+		xtables_ipparse_any(optarg, &ipaddr, &ipmask, &ipnr);
-+		info->daddr = ipaddr->s_addr;
-+		info->dmsk = ipmask.s_addr;
-+		free(ipaddr);
- 		info->bitmask |= EBT_IP_DEST;
- 		break;
- 	case IP_SPORT:
+-	mask = make_delete_mask(matches, target);
++	mask = make_delete_mask(matches, target, sizeof(*fw));
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ip.src.s_addr = saddrs[i].s_addr;
+ 		fw->ip.smsk.s_addr = smasks[i].s_addr;
+@@ -358,7 +324,7 @@ check_entry(const xt_chainlabel chain, struct ipt_entry *fw,
+ 	int ret = 1;
+ 	unsigned char *mask;
+ 
+-	mask = make_delete_mask(matches, target);
++	mask = make_delete_mask(matches, target, sizeof(*fw));
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ip.src.s_addr = saddrs[i].s_addr;
+ 		fw->ip.smsk.s_addr = smasks[i].s_addr;
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 695157896d521..0beacee61d487 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -2000,3 +2000,37 @@ void ipv6_post_parse(int command, struct iptables_command_state *cs,
+ 			      "! not allowed with multiple"
+ 			      " source or destination IP addresses");
+ }
++
++unsigned char *
++make_delete_mask(const struct xtables_rule_match *matches,
++		 const struct xtables_target *target,
++		 size_t entry_size)
++{
++	/* Establish mask for comparison */
++	unsigned int size = entry_size;
++	const struct xtables_rule_match *matchp;
++	unsigned char *mask, *mptr;
++
++	for (matchp = matches; matchp; matchp = matchp->next)
++		size += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
++
++	mask = xtables_calloc(1, size
++			 + XT_ALIGN(sizeof(struct xt_entry_target))
++			 + target->size);
++
++	memset(mask, 0xFF, entry_size);
++	mptr = mask + entry_size;
++
++	for (matchp = matches; matchp; matchp = matchp->next) {
++		memset(mptr, 0xFF,
++		       XT_ALIGN(sizeof(struct xt_entry_match))
++		       + matchp->match->userspacesize);
++		mptr += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
++	}
++
++	memset(mptr, 0xFF,
++	       XT_ALIGN(sizeof(struct xt_entry_target))
++	       + target->userspacesize);
++
++	return mask;
++}
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index f43c28f519a9c..bfae4b4e1b5d3 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -293,4 +293,8 @@ void ipv6_post_parse(int command, struct iptables_command_state *cs,
+ extern char *arp_opcodes[];
+ #define ARP_NUMOPCODES 9
+ 
++unsigned char *make_delete_mask(const struct xtables_rule_match *matches,
++				const struct xtables_target *target,
++				size_t entry_size);
++
+ #endif /* IPTABLES_XSHARED_H */
 -- 
 2.38.0
 
