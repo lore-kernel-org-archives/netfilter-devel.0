@@ -2,338 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF82C433FE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Nov 2022 17:29:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51A3EC4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Nov 2022 17:47:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235613AbiKNR3q (ORCPT
+        id S235961AbiKNRr6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Nov 2022 12:29:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34810 "EHLO
+        Mon, 14 Nov 2022 12:47:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230520AbiKNR3p (ORCPT
+        with ESMTP id S236963AbiKNRr5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2022 12:29:45 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AD50EA476
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 09:29:43 -0800 (PST)
-Date:   Mon, 14 Nov 2022 18:29:40 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [nf-next RFC] netfilter: nf_tables: Compatibility interface for
- nft_rule
-Message-ID: <Y3J7BD0hxG5BEMkz@salvia>
-References: <20221104221827.30335-1-phil@nwl.cc>
+        Mon, 14 Nov 2022 12:47:57 -0500
+Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 223C825C0
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 09:47:56 -0800 (PST)
+Received: by mail-qv1-xf2b.google.com with SMTP id j6so8190350qvn.12
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 09:47:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=foxtrot-research-com.20210112.gappssmtp.com; s=20210112;
+        h=content-language:thread-index:content-transfer-encoding
+         :mime-version:message-id:date:subject:in-reply-to:references:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jT6M4S56M6D9cMdnYJjo3BPQ9aWS21L96IVoMZNlIKs=;
+        b=fsjTt/EzEygpIXCuER9KbJiXyKYn6svyQZFKYjD90J5OHBJKuSv/jyMOJgUu8UXEi6
+         jXsWalnCdktNJdtAHuHjBXZJlpn6lTHyML3VmLM7Mr0fuzN7NC6YofyKJHgoQTxQYn3J
+         FPvdlEQiyHLAmKIEgLwGAW9vlKcfUv6BKl5gweh7YM94tURz01SdCqQxNFeJCyHjJPKu
+         fZcCR6MyEThk4xKvVRc2Fq7smY57+G3bmw7Ml0hRrz98vDsT7D8c9gbnnVlSCzJGIDmp
+         yGMCJyeJUJV4Z2DIPVgEjr1jiCgC9l5N4cX0WiKXDoj0eEPT9A2b6OLz860KB8T1cx4z
+         AJaQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-language:thread-index:content-transfer-encoding
+         :mime-version:message-id:date:subject:in-reply-to:references:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=jT6M4S56M6D9cMdnYJjo3BPQ9aWS21L96IVoMZNlIKs=;
+        b=E6qRfA4o8BvV31JR9D3BLbLn3PgexwU92x/BTUUARoNSRstGool1/6Ld9eGK/3vU4g
+         W/1OMbq59uNPKiwNyeibnNwctAjhpbiZcte+LmAcnRnh63hIzobEfwBXKNk7cUaFO5oQ
+         QDGkkEl4nprYuXiUqD4+YXJ1KhCyUnr4BSVE0ESG+cLkniFqg6QDnlr3uZByfM0z/Ay5
+         cuFYG3UQG9IBmySj4yvPpqhn8nI77sDYGSTRaQiVO+4ZlCweHESDV/wSl7tLvGaEYn5+
+         u0RRO3y7HO1bHh4isnw0K/66jj1sihJrKKSPv06SJcnWg5tPDhqJk7BB1b7oQBLxlP3k
+         Lc2g==
+X-Gm-Message-State: ANoB5pnHXlaGzFqZdR63F3Kb5QjFQudhQQv6FZ//0vM0yPQ6f7ULvpSd
+        WziQN9t6/t38v6Mi5WN4hEC3I9wkT56jsA==
+X-Google-Smtp-Source: AA0mqf7S/5qgf/q1gAKWMNGC3aNvfuh48QPwtIhMRgl+cQZ7T/b3RrCK171LFtlRrV/FlwWrroxXWA==
+X-Received: by 2002:a05:6214:5e0f:b0:4bb:b9b8:602b with SMTP id li15-20020a0562145e0f00b004bbb9b8602bmr13295479qvb.131.1668448074616;
+        Mon, 14 Nov 2022 09:47:54 -0800 (PST)
+Received: from robrienlt (static-47-206-165-165.tamp.fl.frontiernet.net. [47.206.165.165])
+        by smtp.gmail.com with ESMTPSA id r1-20020a05620a298100b006ecf030ef15sm6803780qkp.65.2022.11.14.09.47.53
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 14 Nov 2022 09:47:54 -0800 (PST)
+From:   "Robert O'Brien" <robrien@foxtrot-research.com>
+To:     "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Cc:     <netfilter-devel@vger.kernel.org>
+References: <004301d8f531$bb2c60c0$31852240$@foxtrot-research.com> <005601d8f532$49cd7080$dd685180$@foxtrot-research.com> <Y24taNAVtz53JPDB@salvia>
+In-Reply-To: <Y24taNAVtz53JPDB@salvia>
+Subject: RE: PATCH ulogd2 filter BASE ARP packet IP addresses
+Date:   Mon, 14 Nov 2022 12:47:52 -0500
+Message-ID: <001c01d8f851$38ac6050$aa0520f0$@foxtrot-research.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20221104221827.30335-1-phil@nwl.cc>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+X-Mailer: Microsoft Outlook 16.0
+Thread-Index: AQIqBV8VmspvNYO5UtuFnxy3osxChQJpAr0CARzCsUitgGk2wA==
+Content-Language: en-us
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+I will create a bug report and attach an example ulogd configuration =
+file that demonstrates the issue.
 
-Comments below.
+I will send a patch using git send-email and mention it in my bug =
+report. What is the email address to where I should send the patch?
 
-On Fri, Nov 04, 2022 at 11:18:27PM +0100, Phil Sutter wrote:
-> Accept extra expressions from user space which should replace active
-> one(s) when the rule is being dumped. Each of those expressions
-> specifies the index of the first expression to replace, the number of
-> consecutive expressions it replaces and a blob of data to dump. While
-> the latter should adhere to the expected NFTA_LIST_ELEM content format,
-> the kernel actually treats it as opaque data and therefore may not even
-> support the expression type being dumped.
-> 
-> The practical application of this is to enable iptables-nft to use
-> native nftables expressions while still maintaining compatibility
-> towards older versions not expecting (or correctly parsing) them.
-> 
-> Here's the effect in practice with a customized iptables-nft. First add
-> a rule with two matches that had been converted already, netlink dump
-> shows the native expressions used:
-> 
-> | # iptables-nft -vv -A FORWARD -m limit --limit 3/hour -m mark --mark 0x23/0x42
-> |   all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0   limit: avg 3/hour burst 5 mark match 0x23/0x42
-> | table filter ip flags 0 use 0 handle 0
-> | ip filter FORWARD use 0 type filter hook forward prio 0 policy accept packets 0 bytes 0
-> | ip filter FORWARD
-> |   [ limit rate 3/hour burst 5 type packets flags 0x0 ]
-> |   [ meta load mark => reg 1 ]
-> |   [ bitwise reg 1 = ( reg 1 & 0x00000042 ) ^ 0x00000000 ]
-> |   [ cmp eq reg 1 0x00000023 ]
-> |   [ counter pkts 0 bytes 0 ]
-> 
-> Listing the rule shows how the previously attached compat expressions
-> replaced the native code in output:
-> 
-> | # iptables-nft -vv -S
-> | ip filter FORWARD 2
-> |   [ match name limit rev 0 ]
-> |   [ match name mark rev 1 ]
-> |   [ counter pkts 0 bytes 0 ]
-> |
-> | -P INPUT ACCEPT -c 0 0
-> | -P FORWARD ACCEPT -c 0 0
-> | -P OUTPUT ACCEPT -c 0 0
-> | -A FORWARD -m limit --limit 3/hour -m mark --mark 0x23/0x42 -c 0 0
-> 
-> Note also how the rule is correctly interpreted since iptables-nft
-> continues to support the legacy limit and mark match extensions.
-> 
-> This patch should have relatively low impact if not in use: struct
-> nft_rule increases by one pointer which has to be checked upon dumping
-> or freeing of the rule.
-> 
-> Disclaimer: This is not the much simpler "attach the rule as text" we
-> discussed, but I would like to at least propose it since it works for
-> existing releases.
+-----Original Message-----
+From: Pablo Neira Ayuso <pablo@netfilter.org>=20
+Sent: Friday, November 11, 2022 6:09 AM
+To: Robert O'Brien <robrien@foxtrot-research.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: PATCH ulogd2 filter BASE ARP packet IP addresses
 
-I prefer this "structured" representation than resorting to using the
-userdata area to store a string.
+On Thu, Nov 10, 2022 at 01:28:53PM -0500, Robert O'Brien wrote:
+> I am developing for an embedded target and just recently deployed=20
+> libnetfilter and ulogd2 for logging packets which are rejected by=20
+> rules in ebtables. While performing this effort I discovered a bug=20
+> which generates incorrect values in the arp.saddr and arp.daddr fields =
 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  include/net/netfilter/nf_tables.h        |   8 ++
->  include/uapi/linux/netfilter/nf_tables.h |  18 ++++
->  net/netfilter/nf_tables_api.c            | 129 ++++++++++++++++++++++-
->  3 files changed, 153 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> index cdb7db9b0e252..cf00753b1446e 100644
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -939,6 +939,13 @@ struct nft_expr_ops {
->  	void				*data;
->  };
->  
-> +struct nft_compat_expr {
-> +        int pos;
-> +        int len;
-> +        int dlen;
-> +        void *data;
-> +};
-> +
->  /**
->   *	struct nft_rule - nf_tables rule
->   *
-> @@ -951,6 +958,7 @@ struct nft_expr_ops {
->   */
->  struct nft_rule {
->  	struct list_head		list;
-> +	struct nft_compat_expr		*compat_exprs;
->  	u64				handle:42,
->  					genmask:2,
->  					dlen:12,
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index 466fd3f4447c2..c8c0f1b2bd395 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -278,15 +278,33 @@ enum nft_rule_compat_flags {
->   *
->   * @NFTA_RULE_COMPAT_PROTO: numeric value of handled protocol (NLA_U32)
->   * @NFTA_RULE_COMPAT_FLAGS: bitmask of enum nft_rule_compat_flags (NLA_U32)
-> + * @NFTA_RULE_COMPAT_EXPRESSIONS: Replacement expressions in dumps (NLA_NESTED)
->   */
->  enum nft_rule_compat_attributes {
->  	NFTA_RULE_COMPAT_UNSPEC,
->  	NFTA_RULE_COMPAT_PROTO,
->  	NFTA_RULE_COMPAT_FLAGS,
-> +	NFTA_RULE_COMPAT_EXPRESSIONS,
->  	__NFTA_RULE_COMPAT_MAX
->  };
->  #define NFTA_RULE_COMPAT_MAX	(__NFTA_RULE_COMPAT_MAX - 1)
->  
-> +/**
-> + * enum nft_rule_compat_expression - compat expression data
-> + *
-> + * @NFTA_RULE_COMPAT_EXPR_POS: index of expression this replaces (NLA_U32)
-> + * @NFTA_RULE_COMPAT_EXPR_LEN: number of expressions this replaces (NLA_U32)
-> + * @NFTA_RULE_COMPAT_EXPR_INFO: expression blob to dump (NLA_BINARY)
-> + */
-> +enum nft_rule_compat_expression {
-> +	NFTA_RULE_COMPAT_EXPR_UNSPEC,
-> +	NFTA_RULE_COMPAT_EXPR_POS,
-> +	NFTA_RULE_COMPAT_EXPR_LEN,
-> +	NFTA_RULE_COMPAT_EXPR_INFO,
-> +	__NFTA_RULE_COMPAT_EXPR_MAX
-> +};
+> in the OPRINT and GPRINT outputs. I created a patch to resolve this=20
+> issue in my deployment and I believe it is a candidate for integration =
 
-Is this extra metainformation really required? I mean, this position
-and length mapping wrt. native representation.
+> into the repository. The files that this patch modifies have not=20
+> changed in many years so I'm thinking that the bug appeared due to=20
+> changes in another codebase but I'm not sure. Please review and =
+provide feedback.
 
-Why not simply use the NFTA_RULE_COMPAT_EXPRESSIONS to dump the rule
-fully using the xt blobs instead?
+Could you post an example ulogd configuration file to reproduce the =
+issue?
 
-That is, the rule is expressed using native expressions, but the
-original output using the blob dump is also available.
+> P.S. I could not find a way to submit a patch via Patchwork so I am=20
+> writing this email and attaching the patch. If there is a better way=20
+> to submit a patch, please tell me and I will re-submit it that way.
 
-> +#define NFTA_RULE_COMPAT_EXPR_MAX	(__NFTA_RULE_COMPAT_EXPR_MAX - 1)
-> +
->  /**
->   * enum nft_set_flags - nf_tables set flags
->   *
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index a0653a8dfa827..3a867a52bc3ad 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -16,6 +16,7 @@
->  #include <linux/netfilter.h>
->  #include <linux/netfilter/nfnetlink.h>
->  #include <linux/netfilter/nf_tables.h>
-> +#include <linux/netfilter/nf_tables_compat.h>
->  #include <net/netfilter/nf_flow_table.h>
->  #include <net/netfilter/nf_tables_core.h>
->  #include <net/netfilter/nf_tables.h>
-> @@ -2992,6 +2993,36 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
->  	[NFTA_RULE_CHAIN_ID]	= { .type = NLA_U32 },
->  };
->  
-> +static int nft_rule_dump_compat_exprs(struct sk_buff *skb,
-> +				      const struct nft_rule *rule)
-> +{
-> +	const struct nft_compat_expr *cur = rule->compat_exprs;
-> +	const struct nft_expr *expr, *next;
-> +	int expr_idx = -1, skip = 0;
-> +
-> +	nft_rule_for_each_expr(expr, next, rule) {
-> +		expr_idx++;
-> +
-> +		if (skip) {
-> +			skip--;
-> +			continue;
-> +		}
-> +
-> +		if (!cur->len || expr_idx != cur->pos) {
-> +			if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
-> +				return -1;
-> +			continue;
-> +		}
-> +
-> +		if (nla_put(skb, NFTA_LIST_ELEM, cur->dlen, cur->data) < 0)
-> +			return -1;
-> +
-> +		skip = cur->len - 1;
-> +		cur++;
-> +	}
-> +	return 0;
-> +}
-> +
->  static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
->  				    u32 portid, u32 seq, int event,
->  				    u32 flags, int family,
-> @@ -3029,9 +3060,14 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
->  	list = nla_nest_start_noflag(skb, NFTA_RULE_EXPRESSIONS);
->  	if (list == NULL)
->  		goto nla_put_failure;
-> -	nft_rule_for_each_expr(expr, next, rule) {
-> -		if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
-> +	if (rule->compat_exprs) {
-> +		if (nft_rule_dump_compat_exprs(skb, rule) < 0)
->  			goto nla_put_failure;
-> +	} else {
-> +		nft_rule_for_each_expr(expr, next, rule) {
-> +			if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
-> +				goto nla_put_failure;
-> +		}
->  	}
+For patches to show up in patchwork, you have to use the git =
+format-patch and git send-email tools.
 
-Instead of one-or-another, dump both native and xt representation?
+Thanks.
 
-So userspace can fall back to use compat_exprs if it fails to decode
-the native representation?
-
->  	nla_nest_end(skb, list);
->  
-> @@ -3318,6 +3354,15 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
->  		nf_tables_expr_destroy(ctx, expr);
->  		expr = next;
->  	}
-> +	if (rule->compat_exprs) {
-> +		struct nft_compat_expr *cur = rule->compat_exprs;
-> +
-> +		while (cur->len) {
-> +			kfree(cur->data);
-> +			cur++;
-> +		}
-> +		kfree(rule->compat_exprs);
-> +	}
->  	kfree(rule);
->  }
->  
-> @@ -3385,12 +3430,83 @@ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
->  
->  #define NFT_RULE_MAXEXPRS	128
->  
-> +static const struct nla_policy
-> +nft_rule_compat_expression_policy[NFTA_RULE_COMPAT_EXPR_MAX + 1] = {
-> +	[NFTA_RULE_COMPAT_EXPR_POS]	= { .type = NLA_U32 },
-> +	[NFTA_RULE_COMPAT_EXPR_LEN]	= { .type = NLA_U32 },
-> +	[NFTA_RULE_COMPAT_EXPR_INFO]	= { .type = NLA_BINARY },
-> +};
-> +
-> +static struct nft_compat_expr *
-> +nft_parse_compat_exprs_nla(const struct nlattr *nla)
-> +{
-> +	struct nft_compat_expr *compat_exprs, *cur;
-> +	int idx = 0, num_exprs = 0;
-> +	struct nlattr *tmp;
-> +	int err, rem;
-> +
-> +	nla = nla_find_nested(nla, NFTA_RULE_COMPAT_EXPRESSIONS);
-> +	if (!nla)
-> +		return NULL;
-> +
-> +	nla_for_each_nested(tmp, nla, rem)
-> +		num_exprs++;
-> +
-> +	if (!num_exprs)
-> +		return NULL;
-> +
-> +	compat_exprs = kvmalloc_array(num_exprs + 1,
-> +				      sizeof(*compat_exprs), GFP_KERNEL);
-> +	if (!compat_exprs)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	cur = compat_exprs;
-> +	nla_for_each_nested(tmp, nla, rem) {
-> +		struct nlattr *tb[NFTA_RULE_COMPAT_EXPR_MAX + 1];
-> +		int err;
-> +
-> +		if (idx >= NFT_RULE_MAXEXPRS)
-> +			return ERR_PTR(-ENOMEM);
-> +
-> +		err = nla_parse_nested_deprecated(tb, NFTA_RULE_COMPAT_EXPR_MAX,
-> +						  tmp, nft_rule_compat_expression_policy, NULL);
-> +		if (err < 0)
-> +			return ERR_PTR(err);
-> +
-> +		if (!tb[NFTA_RULE_COMPAT_EXPR_POS] ||
-> +		    !tb[NFTA_RULE_COMPAT_EXPR_LEN] ||
-> +		    !tb[NFTA_RULE_COMPAT_EXPR_INFO]) {
-> +			err = -EINVAL;
-> +			goto out_free;
-> +		}
-> +
-> +		cur->pos = nla_get_u32(tb[NFTA_RULE_COMPAT_EXPR_POS]);
-> +		cur->len = nla_get_u32(tb[NFTA_RULE_COMPAT_EXPR_LEN]);
-> +		cur->dlen = nla_len(tb[NFTA_RULE_COMPAT_EXPR_INFO]);
-> +		cur->data = kvmalloc(cur->dlen, GFP_KERNEL);
-> +		if (!cur->data) {
-> +			err = -ENOMEM;
-> +			goto out_free;
-> +		}
-> +
-> +		nla_memcpy(cur->data,
-> +			   tb[NFTA_RULE_COMPAT_EXPR_INFO], cur->dlen);
-> +		cur++;
-> +	}
-> +	cur->len = 0;
-> +	return compat_exprs;
-> +out_free:
-> +	kfree(compat_exprs);
-> +	return ERR_PTR(err);
-> +}
-
-Probably move this code to nft_compat.c?
