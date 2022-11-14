@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97254C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Nov 2022 16:44:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1C8AC433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Nov 2022 16:55:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237741AbiKNQoj (ORCPT
+        id S237129AbiKNQzV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Nov 2022 11:44:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54084 "EHLO
+        Mon, 14 Nov 2022 11:55:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237882AbiKNQoj (ORCPT
+        with ESMTP id S238005AbiKNQzL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2022 11:44:39 -0500
+        Mon, 14 Nov 2022 11:55:11 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6A4532A264
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 08:44:36 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 924EC2FFC5
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 08:55:02 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl] example: remove nftnl_batch_is_supported() call
-Date:   Mon, 14 Nov 2022 17:44:32 +0100
-Message-Id: <20221114164432.24407-1-pablo@netfilter.org>
+Subject: [PATCH iptables] nft: replace nftnl_.*_nlmsg_build_hdr() by nftnl_nlmsg_build_hdr()
+Date:   Mon, 14 Nov 2022 17:54:42 +0100
+Message-Id: <20221114165442.72214-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,115 +28,113 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Linux kernel <= 3.13 needs for this check, remove it from examples.
-
-Kernel commit:
-
-  958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
-
-added support for set into the batch.
+Replace alias to real nftnl_nlmsg_build_hdr() function call.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- examples/nft-flowtable-add.c | 19 ++++---------------
- examples/nft-flowtable-del.c | 20 +++++---------------
- 2 files changed, 9 insertions(+), 30 deletions(-)
+ iptables/nft-cache.c       | 16 ++++++++--------
+ iptables/nft.c             | 12 ++++++------
+ iptables/xtables-monitor.c |  2 +-
+ 3 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/examples/nft-flowtable-add.c b/examples/nft-flowtable-add.c
-index 5ca62be01a01..4e0e50b95cbf 100644
---- a/examples/nft-flowtable-add.c
-+++ b/examples/nft-flowtable-add.c
-@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
- 	int ret, family;
- 	struct nftnl_flowtable *t;
- 	struct mnl_nlmsg_batch *batch;
--	int batching;
+diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
+index 608e42a7aa01..d1e576553d98 100644
+--- a/iptables/nft-cache.c
++++ b/iptables/nft-cache.c
+@@ -141,8 +141,8 @@ static int fetch_table_cache(struct nft_handle *h)
+ 	char buf[16536];
+ 	int i, ret;
  
- 	if (argc != 6) {
- 		fprintf(stderr, "Usage: %s <family> <table> <name> <hook> <prio>\n",
-@@ -74,19 +73,11 @@ int main(int argc, char *argv[])
- 	if (t == NULL)
- 		exit(EXIT_FAILURE);
+-	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, h->family,
+-					NLM_F_DUMP, h->seq);
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, h->family,
++				    NLM_F_DUMP, h->seq);
  
--	batching = nftnl_batch_is_supported();
--	if (batching < 0) {
--		perror("cannot talk to nfnetlink");
--		exit(EXIT_FAILURE);
--	}
--
- 	seq = time(NULL);
- 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+ 	ret = mnl_talk(h, nlh, nftnl_table_list_cb, h);
+ 	if (ret < 0 && errno == EINTR)
+@@ -453,8 +453,8 @@ static int fetch_set_cache(struct nft_handle *h,
+ 		}
+ 	}
  
--	if (batching) {
--		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
--		mnl_nlmsg_batch_next(batch);
--	}
-+	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+	mnl_nlmsg_batch_next(batch);
+-	nlh = nftnl_set_nlmsg_build_hdr(buf, NFT_MSG_GETSET,
+-					h->family, flags, h->seq);
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETSET,
++				    h->family, flags, h->seq);
  
- 	flowtable_seq = seq;
- 	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-@@ -96,10 +87,8 @@ int main(int argc, char *argv[])
- 	nftnl_flowtable_free(t);
- 	mnl_nlmsg_batch_next(batch);
- 
--	if (batching) {
--		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
--		mnl_nlmsg_batch_next(batch);
--	}
-+	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+	mnl_nlmsg_batch_next(batch);
- 
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
-diff --git a/examples/nft-flowtable-del.c b/examples/nft-flowtable-del.c
-index 91e5d3a74410..ffc83b25f716 100644
---- a/examples/nft-flowtable-del.c
-+++ b/examples/nft-flowtable-del.c
-@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
+ 	if (s) {
+ 		nftnl_set_nlmsg_build_payload(nlh, s);
+@@ -496,8 +496,8 @@ static int __fetch_chain_cache(struct nft_handle *h,
  	struct nlmsghdr *nlh;
- 	uint32_t portid, seq, flowtable_seq;
- 	struct nftnl_flowtable *t;
--	int ret, family, batching;
-+	int ret, family;
+ 	int ret;
  
- 	if (argc != 4) {
- 		fprintf(stderr, "Usage: %s <family> <table> <flowtable>\n",
-@@ -60,19 +60,11 @@ int main(int argc, char *argv[])
- 	if (t == NULL)
+-	nlh = nftnl_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, h->family,
+-					  c ? NLM_F_ACK : NLM_F_DUMP, h->seq);
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, h->family,
++				    c ? NLM_F_ACK : NLM_F_DUMP, h->seq);
+ 	if (c)
+ 		nftnl_chain_nlmsg_build_payload(nlh, c);
+ 
+@@ -591,8 +591,8 @@ static int nft_rule_list_update(struct nft_chain *nc, void *data)
+ 	nftnl_rule_set_str(rule, NFTNL_RULE_CHAIN,
+ 			   nftnl_chain_get_str(c, NFTNL_CHAIN_NAME));
+ 
+-	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, h->family,
+-					NLM_F_DUMP, h->seq);
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, h->family,
++				    NLM_F_DUMP, h->seq);
+ 	nftnl_rule_nlmsg_build_payload(nlh, rule);
+ 
+ 	ret = mnl_talk(h, nlh, nftnl_rule_list_cb, &rld);
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 09cb19c98732..1afd368b0a8b 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2891,8 +2891,8 @@ static void nft_compat_table_batch_add(struct nft_handle *h, uint16_t type,
+ {
+ 	struct nlmsghdr *nlh;
+ 
+-	nlh = nftnl_table_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+-					type, h->family, flags, seq);
++	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
++				    type, h->family, flags, seq);
+ 	nftnl_table_nlmsg_build_payload(nlh, table);
+ 	nft_table_print_debug(h, table, nlh);
+ }
+@@ -2936,8 +2936,8 @@ static void nft_compat_chain_batch_add(struct nft_handle *h, uint16_t type,
+ {
+ 	struct nlmsghdr *nlh;
+ 
+-	nlh = nftnl_chain_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+-					type, h->family, flags, seq);
++	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
++				    type, h->family, flags, seq);
+ 	nftnl_chain_nlmsg_build_payload(nlh, chain);
+ 	nft_chain_print_debug(h, chain, nlh);
+ }
+@@ -2948,8 +2948,8 @@ static void nft_compat_rule_batch_add(struct nft_handle *h, uint16_t type,
+ {
+ 	struct nlmsghdr *nlh;
+ 
+-	nlh = nftnl_rule_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
+-				       type, h->family, flags, seq);
++	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(h->batch),
++				    type, h->family, flags, seq);
+ 	nftnl_rule_nlmsg_build_payload(nlh, rule);
+ 	nft_rule_print_debug(h, rule, nlh);
+ }
+diff --git a/iptables/xtables-monitor.c b/iptables/xtables-monitor.c
+index a1eba2f43407..cf2729d87968 100644
+--- a/iptables/xtables-monitor.c
++++ b/iptables/xtables-monitor.c
+@@ -227,7 +227,7 @@ static void trace_print_rule(const struct nftnl_trace *nlt, struct cb_arg *args)
  		exit(EXIT_FAILURE);
+ 	}
  
--	batching = nftnl_batch_is_supported();
--	if (batching < 0) {
--		perror("cannot talk to nfnetlink");
--		exit(EXIT_FAILURE);
--	}
--
- 	seq = time(NULL);
- 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+-	nlh = nftnl_chain_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, family, 0, 0);
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, family, 0, 0);
  
--	if (batching) {
--		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
--		mnl_nlmsg_batch_next(batch);
--	}
-+	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+	mnl_nlmsg_batch_next(batch);
- 
- 	flowtable_seq = seq;
- 	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-@@ -82,10 +74,8 @@ int main(int argc, char *argv[])
- 	nftnl_flowtable_free(t);
- 	mnl_nlmsg_batch_next(batch);
- 
--	if (batching) {
--		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
--		mnl_nlmsg_batch_next(batch);
--	}
-+	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+	mnl_nlmsg_batch_next(batch);
- 
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
+         nftnl_rule_set_u32(r, NFTNL_RULE_FAMILY, family);
+ 	nftnl_rule_set_str(r, NFTNL_RULE_CHAIN, chain);
 -- 
 2.30.2
 
