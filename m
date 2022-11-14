@@ -2,63 +2,141 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7301C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Nov 2022 10:48:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97254C4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Nov 2022 16:44:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236020AbiKNKsw (ORCPT
+        id S237741AbiKNQoj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 14 Nov 2022 05:48:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45832 "EHLO
+        Mon, 14 Nov 2022 11:44:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235946AbiKNKsw (ORCPT
+        with ESMTP id S237882AbiKNQoj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2022 05:48:52 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C09721B2
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 02:48:51 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ouX1B-0006Lx-SP; Mon, 14 Nov 2022 11:48:45 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, kernel test robot <lkp@intel.com>
-Subject: [PATCH nf-next] netfilter: conntrack: add __force annotation to silence harmless warning
-Date:   Mon, 14 Nov 2022 11:48:41 +0100
-Message-Id: <20221114104841.29891-1-fw@strlen.de>
-X-Mailer: git-send-email 2.37.4
+        Mon, 14 Nov 2022 11:44:39 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6A4532A264
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2022 08:44:36 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnftnl] example: remove nftnl_batch_is_supported() call
+Date:   Mon, 14 Nov 2022 17:44:32 +0100
+Message-Id: <20221114164432.24407-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_conntrack_core.c:222:14: sparse: cast from restricted __be16
-nf_conntrack_core.c:222:55: sparse: restricted __be16 degrades to integer
+Linux kernel <= 3.13 needs for this check, remove it from examples.
 
-no need to convert anything, just add __force to silence the warning.
+Kernel commit:
 
-Fixes: 21a92d58de4e ("netfilter: conntrack: use siphash_4u64")
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+  958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
+
+added support for set into the batch.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ examples/nft-flowtable-add.c | 19 ++++---------------
+ examples/nft-flowtable-del.c | 20 +++++---------------
+ 2 files changed, 9 insertions(+), 30 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d633ef028a3d..057ebdcc25d7 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -219,7 +219,9 @@ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple,
- 	a = (u64)tuple->src.u3.all[0] << 32 | tuple->src.u3.all[3];
- 	b = (u64)tuple->dst.u3.all[0] << 32 | tuple->dst.u3.all[3];
+diff --git a/examples/nft-flowtable-add.c b/examples/nft-flowtable-add.c
+index 5ca62be01a01..4e0e50b95cbf 100644
+--- a/examples/nft-flowtable-add.c
++++ b/examples/nft-flowtable-add.c
+@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
+ 	int ret, family;
+ 	struct nftnl_flowtable *t;
+ 	struct mnl_nlmsg_batch *batch;
+-	int batching;
  
--	c = (u64)tuple->src.u.all << 32 | tuple->dst.u.all << 16 | tuple->dst.protonum;
-+	c = (__force u64)tuple->src.u.all << 32 | (__force u64)tuple->dst.u.all << 16;
-+	c |= tuple->dst.protonum;
-+
- 	d = (u64)zoneid << 32 | net_hash_mix(net);
+ 	if (argc != 6) {
+ 		fprintf(stderr, "Usage: %s <family> <table> <name> <hook> <prio>\n",
+@@ -74,19 +73,11 @@ int main(int argc, char *argv[])
+ 	if (t == NULL)
+ 		exit(EXIT_FAILURE);
  
- 	/* IPv4: u3.all[1,2,3] == 0 */
+-	batching = nftnl_batch_is_supported();
+-	if (batching < 0) {
+-		perror("cannot talk to nfnetlink");
+-		exit(EXIT_FAILURE);
+-	}
+-
+ 	seq = time(NULL);
+ 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+ 
+-	if (batching) {
+-		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
+-		mnl_nlmsg_batch_next(batch);
+-	}
++	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
+ 
+ 	flowtable_seq = seq;
+ 	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+@@ -96,10 +87,8 @@ int main(int argc, char *argv[])
+ 	nftnl_flowtable_free(t);
+ 	mnl_nlmsg_batch_next(batch);
+ 
+-	if (batching) {
+-		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
+-		mnl_nlmsg_batch_next(batch);
+-	}
++	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
+ 
+ 	nl = mnl_socket_open(NETLINK_NETFILTER);
+ 	if (nl == NULL) {
+diff --git a/examples/nft-flowtable-del.c b/examples/nft-flowtable-del.c
+index 91e5d3a74410..ffc83b25f716 100644
+--- a/examples/nft-flowtable-del.c
++++ b/examples/nft-flowtable-del.c
+@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
+ 	struct nlmsghdr *nlh;
+ 	uint32_t portid, seq, flowtable_seq;
+ 	struct nftnl_flowtable *t;
+-	int ret, family, batching;
++	int ret, family;
+ 
+ 	if (argc != 4) {
+ 		fprintf(stderr, "Usage: %s <family> <table> <flowtable>\n",
+@@ -60,19 +60,11 @@ int main(int argc, char *argv[])
+ 	if (t == NULL)
+ 		exit(EXIT_FAILURE);
+ 
+-	batching = nftnl_batch_is_supported();
+-	if (batching < 0) {
+-		perror("cannot talk to nfnetlink");
+-		exit(EXIT_FAILURE);
+-	}
+-
+ 	seq = time(NULL);
+ 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
+ 
+-	if (batching) {
+-		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
+-		mnl_nlmsg_batch_next(batch);
+-	}
++	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
+ 
+ 	flowtable_seq = seq;
+ 	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+@@ -82,10 +74,8 @@ int main(int argc, char *argv[])
+ 	nftnl_flowtable_free(t);
+ 	mnl_nlmsg_batch_next(batch);
+ 
+-	if (batching) {
+-		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
+-		mnl_nlmsg_batch_next(batch);
+-	}
++	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
+ 
+ 	nl = mnl_socket_open(NETLINK_NETFILTER);
+ 	if (nl == NULL) {
 -- 
-2.37.4
+2.30.2
 
