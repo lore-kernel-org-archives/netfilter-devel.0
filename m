@@ -2,102 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1553AC43217
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Nov 2022 13:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AB8BC4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Nov 2022 16:34:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229975AbiKON0O (ORCPT
+        id S229611AbiKOQeC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Nov 2022 08:26:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56234 "EHLO
+        Tue, 15 Nov 2022 11:34:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229545AbiKON0N (ORCPT
+        with ESMTP id S231747AbiKOQeB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2022 08:26:13 -0500
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAF621116B;
-        Tue, 15 Nov 2022 05:26:12 -0800 (PST)
-Received: by mail-wr1-x42b.google.com with SMTP id l14so24247849wrw.2;
-        Tue, 15 Nov 2022 05:26:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=UkG9A5GEaL+iS91A1sP8f+OHFyccXyI/9fKl7gdZSI4=;
-        b=lYC5JBRTM5eHKD6SMbbqo7rjWAdVHt8UX8yK3yeoJdAquX9842yoOmuh6Ksj3+V2Xx
-         KVEHb/gU1xog5n1xXCS9ATcEiK4Hmw4comE9Ws9+2aiqXzujEhcuW5hTW1c1+2KeRksw
-         I7mSyYzo+jECQNfFsMeK5TLPoq9uYJC7TiA+tU9AsCIQTdSwo677tmmnZHcglrK4YYe9
-         moF5uN8rA3NdjVJo5uk6lnj7Yc6ZhoKqjx2phIGeOAlqJQLavqYKd8dSmYRFNHkz4lB+
-         BW/hjj6RYrtMdhFJoiluvtWNu9Q+z7mqc8eQ0cajwY8gP5rVQVO5grFMom3rw/qYmwen
-         VRGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=UkG9A5GEaL+iS91A1sP8f+OHFyccXyI/9fKl7gdZSI4=;
-        b=iSFrfPKU3QKYIbyyENYOtFkTVsIpfg0EX2IwBj4L/In5fzxPUMtF5ymFG+J54jgI+a
-         CXHLeidM1KR78bOJhvl0L3RLccoIufps7MiUSHtePLGTWMrINAltS53dtryrREfuEqo1
-         XEVif2jD4tcVEIXKC2Oq0fT2q8TLmbMIGKxlsSkkhr+VNmN1FHxIhzVYYZjjahO+Ua8j
-         BoRbHD9HDLYsPChHq8sgNYRaZLjn7omvX3dXf9f+mP5pp91LdCK2EKY1AlnIK/jaKRac
-         PAWwGV/ZPK9yTRDbTcK045mYnhO9KBqpo5JsGzbcViKC76SzN1OO+YdMVVvQBUbFzcTf
-         mU+A==
-X-Gm-Message-State: ANoB5pnB8NstQwyd8BlBRFxQEYRq4FEqXZGBVqRnU74vwd4lwXtFIn3O
-        iTVKOTPWHQle4OT9xhkk3Gk=
-X-Google-Smtp-Source: AA0mqf65gfPaZvyGgF2Go0sorV/aS1Gnaa76RvR8QG13OhEGBZmfq+49ld6g7elY235WTkAGgSYn4g==
-X-Received: by 2002:adf:fc0a:0:b0:22d:6988:30de with SMTP id i10-20020adffc0a000000b0022d698830demr10613276wrr.186.1668518771269;
-        Tue, 15 Nov 2022 05:26:11 -0800 (PST)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id r2-20020a5d6942000000b0022e47b57735sm12557498wrw.97.2022.11.15.05.26.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Nov 2022 05:26:10 -0800 (PST)
-Date:   Tue, 15 Nov 2022 16:26:07 +0300
-From:   Dan Carpenter <error27@gmail.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH net-next/netfilter] netfilter: nft_inner: fix IS_ERR() vs
- NULL check
-Message-ID: <Y2PTO4xIJrwhcgyM@kili>
+        Tue, 15 Nov 2022 11:34:01 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4877DB7F4
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2022 08:33:58 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1ouysl-0001ZS-Q7
+        for netfilter-devel@vger.kernel.org; Tue, 15 Nov 2022 17:33:55 +0100
+Date:   Tue, 15 Nov 2022 17:33:55 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 0/7] De-duplicate code here and there
+Message-ID: <Y3O/c2ynclNc98Gx@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org
+References: <20221112002056.31917-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-X-Mailer: git-send-email haha only kidding
+In-Reply-To: <20221112002056.31917-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The __nft_expr_type_get() function returns NULL on error.  It never
-returns error pointers.
+On Sat, Nov 12, 2022 at 01:20:49AM +0100, Phil Sutter wrote:
+> A series of unrelated patches reducing code size in different ways:
+> 
+> Patch 1 is a typical "move function to xshared.c for common use", patch
+> 2 eliminates some c'n'p programming in nft-shared.c, patch 3 merges
+> libipt_LOG.c and libip6t_LOG.c, patch 4 removes code from libebt_ip.c by
+> including the right header, patch 5 drops some local IP address parsers
+> in favor of the respective libxtables function and patches 6 and 7 move
+> duplicate definitions and code into a header shared by multiple
+> extensions.
+> 
+> Phil Sutter (7):
+>   xshared: Share make_delete_mask() between ip{,6}tables
+>   nft-shared: Introduce port_match_single_to_range()
+>   extensions: libip*t_LOG: Merge extensions
+>   extensions: libebt_ip: Include kernel header
+>   extensions: libebt_arp, libebt_ip: Use xtables_ipparse_any()
+>   extensions: Collate ICMP types/codes in libxt_icmp.h
+>   extensions: Unify ICMP parser into libxt_icmp.h
 
-Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
-Signed-off-by: Dan Carpenter <error27@gmail.com>
----
-This applies to net-next but presumably it's going to go through the
-netfilter tree?
-
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 62da204eed41..6b159494c86b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2873,8 +2873,8 @@ int nft_expr_inner_parse(const struct nft_ctx *ctx, const struct nlattr *nla,
- 		return -EINVAL;
- 
- 	type = __nft_expr_type_get(ctx->family, tb[NFTA_EXPR_NAME]);
--	if (IS_ERR(type))
--		return PTR_ERR(type);
-+	if (!type)
-+		return -ENOENT;
- 
- 	if (!type->inner_ops)
- 		return -EOPNOTSUPP;
--- 
-2.35.1
-
+Series applied.
