@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EF1FC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Nov 2022 09:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A22A2C43219
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Nov 2022 09:59:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232917AbiKOJ7b (ORCPT
+        id S232766AbiKOJ7e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Nov 2022 04:59:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50486 "EHLO
+        Tue, 15 Nov 2022 04:59:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237725AbiKOJ71 (ORCPT
+        with ESMTP id S232870AbiKOJ70 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2022 04:59:27 -0500
+        Tue, 15 Nov 2022 04:59:26 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4CE61DF4E;
-        Tue, 15 Nov 2022 01:59:26 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5DF85FC9;
+        Tue, 15 Nov 2022 01:59:25 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 2/6] netfilter: nft_inner: fix return value check in nft_inner_parse_l2l3()
-Date:   Tue, 15 Nov 2022 10:59:18 +0100
-Message-Id: <20221115095922.139954-3-pablo@netfilter.org>
+Subject: [PATCH net-next 1/6] netfilter: nft_payload: use __be16 to store gre version
+Date:   Tue, 15 Nov 2022 10:59:17 +0100
+Message-Id: <20221115095922.139954-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221115095922.139954-1-pablo@netfilter.org>
 References: <20221115095922.139954-1-pablo@netfilter.org>
@@ -32,31 +32,36 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Peng Wu <wupeng58@huawei.com>
+GRE_VERSION and GRE_VERSION0 are expressed in network byte order,
+use __be16. Uncovered by sparse:
 
-In nft_inner_parse_l2l3(), the return value of skb_header_pointer() is
-'veth' instead of 'eth' when case 'htons(ETH_P_8021Q)' and fix it.
+net/netfilter/nft_payload.c:112:25: warning: incorrect type in assignment (different base types)
+net/netfilter/nft_payload.c:112:25:    expected unsigned int [usertype] version
+net/netfilter/nft_payload.c:112:25:    got restricted __be16
+net/netfilter/nft_payload.c:114:22: warning: restricted __be16 degrades to integer
 
-Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
-Signed-off-by: Peng Wu <wupeng58@huawei.com>
+Fixes: c247897d7c19 ("netfilter: nft_payload: access GRE payload via inner offset")
+Reported-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_inner.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_payload.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index eae7caeff316..809f0d0787ec 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -72,7 +72,7 @@ static int nft_inner_parse_l2l3(const struct nft_inner *priv,
- 			break;
- 		case htons(ETH_P_8021Q):
- 			veth = skb_header_pointer(pkt->skb, off, sizeof(_veth), &_veth);
--			if (!eth)
-+			if (!veth)
- 				return -1;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 9d2ac764a14c..53e64d8aa01f 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -102,8 +102,9 @@ static int __nft_payload_inner_offset(struct nft_pktinfo *pkt)
+ 		}
+ 		break;
+ 	case IPPROTO_GRE: {
+-		u32 offset = sizeof(struct gre_base_hdr), version;
++		u32 offset = sizeof(struct gre_base_hdr);
+ 		struct gre_base_hdr *gre, _gre;
++		__be16 version;
  
- 			outer_llproto = veth->h_vlan_encapsulated_proto;
+ 		gre = skb_header_pointer(pkt->skb, thoff, sizeof(_gre), &_gre);
+ 		if (!gre)
 -- 
 2.30.2
 
