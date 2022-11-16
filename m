@@ -2,338 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C375C433FE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Nov 2022 14:33:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3A2C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Nov 2022 17:42:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232836AbiKPOd5 (ORCPT
+        id S238693AbiKPRml (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Nov 2022 09:33:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56858 "EHLO
+        Wed, 16 Nov 2022 12:42:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229666AbiKPOdv (ORCPT
+        with ESMTP id S234618AbiKPRmf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Nov 2022 09:33:51 -0500
-X-Greylist: delayed 467 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 16 Nov 2022 06:33:50 PST
-Received: from smtp-190f.mail.infomaniak.ch (smtp-190f.mail.infomaniak.ch [IPv6:2001:1600:3:17::190f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB081173
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2022 06:33:49 -0800 (PST)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4NC51y3DX0zMpr4P;
-        Wed, 16 Nov 2022 15:25:58 +0100 (CET)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4NC51x4tq8zMppFH;
-        Wed, 16 Nov 2022 15:25:57 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1668608758;
-        bh=cA2XiSre0ie8e9W9T/c7lFA0jun+XpBOtWP00kYEAZg=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=0csO3MmWnDppJ9r4WkZUi2gE/iXSp8G66IrNyhjT+9nvC9NUzRrH6HDzMJpK6Dm8p
-         mUGkVsFSdzitgLFomO2dwXcMVhYv/06IRYm46P3jhLi0ncH842OpYY6B3lK/AtC6ts
-         tZIHQ+hlbDBT8csDa802Twd+oPLw6d8Mn491qQjc=
-Message-ID: <2ff97355-18ef-e539-b4c1-720cd83daf1d@digikod.net>
-Date:   Wed, 16 Nov 2022 15:25:57 +0100
+        Wed, 16 Nov 2022 12:42:35 -0500
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8092B5E3DE
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2022 09:42:34 -0800 (PST)
+Received: by mail-ed1-x533.google.com with SMTP id u24so27634618edd.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2022 09:42:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:subject:from:content-language:to
+         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=b5x7RFTGmfFvFuO+uvDhR5hsnJsh3vXazZluYs6O79o=;
+        b=G0XvrHkWSTOaIcGkvrfyHUcVsScr8nlltX883kxqVquYHTnL+jCLh874AOLJ7KLp6s
+         6ZMIi0DL/os3HI2TFWjpk9J5SdgRjTCBkvDpXcpNClNcmwH5XUJGPJOOLDWe0BDMIWc/
+         O62aizeW2pBPmkQmNZKqAffn/vsRjhRHJCeQxLqw9aRrMaH2hu94NdU19FACu13eQIbI
+         46VwQcf0PTNZRmW9MfAiXX4ah4qCVbSNzpsPrNOeuvZ1S8ZEB7L9qatuiT5cTsjCbs3C
+         TCyjgRzO9E9pGFKfurj9IiR3mwwCnI0iehrrmMVAd57OLHmtTxy2k+S5Nd7iYV3o+Lav
+         wtvQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:subject:from:content-language:to
+         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=b5x7RFTGmfFvFuO+uvDhR5hsnJsh3vXazZluYs6O79o=;
+        b=aUy0zMNIiqemPHMZRKdQ20IJCzPIfTQFmEtRg4Z2bEpZYCOrN3yPImcZ+2Z5xu279w
+         C+ImGYaqMdZE/z93JUO9kDH5dWPkWoPQRJCoELvsSJ7J1CKbOcSq6DgL4bSRjP4gG+/K
+         lqL8aIHdUvHIz6jZI+iBWnTKRsyTepLmQwhw0WAVhCOaW0RIoSrLaQHDxISd7wYz5KIZ
+         jXfdOgb6I4SgaAhbbiEF35luSxE+fAb57cuyQBtCvJqT6AoIUVamo4qBke+wnG/tPqDz
+         zksLwU2gLP2usUhAFATb4BPJMZVdkpaNDhYEcTyJ6FXozwO2pq661NKp9rog1tsIZMGp
+         nRkw==
+X-Gm-Message-State: ANoB5pmmJrvwo3nSATFAru2ik3qLwMtcR1/nBIgvrEcrZcBgPmsZsAe0
+        1IZt+C+SCABFICjEcCVYrV4fRAq0Ck8=
+X-Google-Smtp-Source: AA0mqf4OMfRIXxWB6qT7oDHKgMladBMrLZd5Z9Q7h/H4BSxYR64BYt1lz407C3R8/7jrQSIUAWfz7w==
+X-Received: by 2002:a05:6402:5511:b0:468:dc9:ec08 with SMTP id fi17-20020a056402551100b004680dc9ec08mr10479361edb.17.1668620553138;
+        Wed, 16 Nov 2022 09:42:33 -0800 (PST)
+Received: from [192.168.151.190] ([89.136.166.99])
+        by smtp.googlemail.com with ESMTPSA id f6-20020a17090631c600b0073ae9ba9ba8sm7154328ejf.3.2022.11.16.09.42.32
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Nov 2022 09:42:32 -0800 (PST)
+Message-ID: <15e85292-dfce-edf4-794e-410d8cffaf33@gmail.com>
+Date:   Wed, 16 Nov 2022 19:42:01 +0200
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v8 11/12] samples/landlock: Add network demo
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.1
+To:     netfilter-devel@vger.kernel.org
 Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, artem.kuzin@huawei.com
-References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
- <20221021152644.155136-12-konstantin.meskhidze@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <20221021152644.155136-12-konstantin.meskhidze@huawei.com>
+From:   Shockedder <shockedder@gmail.com>
+Subject: Missing definition of struct "pkt_buff" for libnetfilter_queue
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello,
 
-On 21/10/2022 17:26, Konstantin Meskhidze wrote:
-> This commit adds network demo. It's possible to allow a sandboxer to
-> bind/connect to a list of particular ports restricting network
-> actions to the rest of ports.
-> 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> ---
-> 
-> Changes since v7:
-> * Removes network support if ABI < 4.
-> * Removes network support if not set by a user.
-> 
-> Changes since v6:
-> * Removes network support if ABI < 3.
-> 
-> Changes since v5:
-> * Makes network ports sandboxing optional.
-> * Fixes some logic errors.
-> * Formats code with clang-format-14.
-> 
-> Changes since v4:
-> * Adds ENV_TCP_BIND_NAME "LL_TCP_BIND" and
-> ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT" variables
-> to insert TCP ports.
-> * Renames populate_ruleset() to populate_ruleset_fs().
-> * Adds populate_ruleset_net() and parse_port_num() helpers.
-> * Refactors main() to support network sandboxing.
-> 
-> ---
->   samples/landlock/sandboxer.c | 129 +++++++++++++++++++++++++++++++----
->   1 file changed, 116 insertions(+), 13 deletions(-)
-> 
-> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
-> index fd4237c64fb2..68582b0d7c85 100644
-> --- a/samples/landlock/sandboxer.c
-> +++ b/samples/landlock/sandboxer.c
-> @@ -51,6 +51,8 @@ static inline int landlock_restrict_self(const int ruleset_fd,
-> 
->   #define ENV_FS_RO_NAME "LL_FS_RO"
->   #define ENV_FS_RW_NAME "LL_FS_RW"
-> +#define ENV_TCP_BIND_NAME "LL_TCP_BIND"
-> +#define ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT"
->   #define ENV_PATH_TOKEN ":"
-> 
->   static int parse_path(char *env_path, const char ***const path_list)
-> @@ -71,6 +73,20 @@ static int parse_path(char *env_path, const char ***const path_list)
->   	return num_paths;
->   }
-> 
-> +static int parse_port_num(char *env_port)
-> +{
-> +	int i, num_ports = 0;
-> +
-> +	if (env_port) {
-> +		num_ports++;
-> +		for (i = 0; env_port[i]; i++) {
-> +			if (env_port[i] == ENV_PATH_TOKEN[0])
-> +				num_ports++;
-> +		}
-> +	}
-> +	return num_ports;
-> +}
-> +
->   /* clang-format off */
-> 
->   #define ACCESS_FILE ( \
-> @@ -81,8 +97,8 @@ static int parse_path(char *env_path, const char ***const path_list)
-> 
->   /* clang-format on */
-> 
-> -static int populate_ruleset(const char *const env_var, const int ruleset_fd,
-> -			    const __u64 allowed_access)
-> +static int populate_ruleset_fs(const char *const env_var, const int ruleset_fd,
-> +			       const __u64 allowed_access)
->   {
->   	int num_paths, i, ret = 1;
->   	char *env_path_name;
-> @@ -143,6 +159,48 @@ static int populate_ruleset(const char *const env_var, const int ruleset_fd,
->   	return ret;
->   }
-> 
-> +static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
-> +				const __u64 allowed_access)
-> +{
-> +	int num_ports, i, ret = 1;
-> +	char *env_port_name;
-> +	struct landlock_net_service_attr net_service = {
-> +		.allowed_access = 0,
-> +		.port = 0,
-> +	};
-> +
-> +	env_port_name = getenv(env_var);
-> +	if (!env_port_name) {
-> +		ret = 0;
-> +		goto out_free_name;
+I'm running with a slightly older version of "libnetfilter_queue" (1.0.2).
 
-This is a bug because env_port_name is not allocated. This should simply 
-return 0.
+I have installed both the standard and devel packages, along with the 
+same for "libnfnetlink"
+I can't for the life of me find the definition of "struct pkt_buff" in 
+any of the source or headers.
+
+Due to that I'm getting errors when trying to compile accessing 
+structure members:
+
+"etf_nq.c:78:93: error: dereferencing pointer to incomplete type ‘struct 
+pkt_buff’
+        fprintf(stdout,"[PACKET] UDP pB->th pointer val=%p pktb_tail 
+pointer val=%p\n",pktBuff->transport_header,pktb_tail(pktBuff));"
+
+And also having issues accessing the payload for UDP (null pointer 
+exception).
+
+What am I missing ? Does something else also needs to be installed ?
+
+Please help.
+
+Kind regards,
+
+    -V
 
 
-> +	}
-> +	env_port_name = strdup(env_port_name);
-> +	unsetenv(env_var);
-> +	num_ports = parse_port_num(env_port_name);
-> +
-> +	if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == NULL)) {
-> +		ret = 0;
-> +		goto out_free_name;
-> +	}
-> +
-> +	for (i = 0; i < num_ports; i++) {
-> +		net_service.allowed_access = allowed_access;
-> +		net_service.port = atoi(strsep(&env_port_name, ENV_PATH_TOKEN));
-> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +				      &net_service, 0)) {
-> +			fprintf(stderr,
-> +				"Failed to update the ruleset with port \"%d\": %s\n",
-> +				net_service.port, strerror(errno));
-> +			goto out_free_name;
-> +		}
-> +	}
-> +	ret = 0;
-> +
-> +out_free_name:
-> +	free(env_port_name);
-> +	return ret;
-> +}
-> +
->   /* clang-format off */
-> 
->   #define ACCESS_FS_ROUGHLY_READ ( \
-> @@ -164,41 +222,63 @@ static int populate_ruleset(const char *const env_var, const int ruleset_fd,
->   	LANDLOCK_ACCESS_FS_REFER | \
->   	LANDLOCK_ACCESS_FS_TRUNCATE)
-> 
-> +#define ACCESS_NET_BIND_CONNECT ( \
-> +	LANDLOCK_ACCESS_NET_BIND_TCP | \
-> +	LANDLOCK_ACCESS_NET_CONNECT_TCP)
 
-You can remove ACCESS_NET_BIND_CONNECT and make the underlying access 
-rights explicit.
-
-
-> +
->   /* clang-format on */
-> 
-> -#define LANDLOCK_ABI_LAST 3
-> +#define LANDLOCK_ABI_LAST 4
-> 
->   int main(const int argc, char *const argv[], char *const *const envp)
->   {
->   	const char *cmd_path;
->   	char *const *cmd_argv;
->   	int ruleset_fd, abi;
-> +	char *env_port_name;
->   	__u64 access_fs_ro = ACCESS_FS_ROUGHLY_READ,
-> -	      access_fs_rw = ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE;
-> +	      access_fs_rw = ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE,
-> +	      access_net_tcp = ACCESS_NET_BIND_CONNECT;
->   	struct landlock_ruleset_attr ruleset_attr = {
->   		.handled_access_fs = access_fs_rw,
-> +		.handled_access_net = access_net_tcp,
->   	};
-> 
->   	if (argc < 2) {
->   		fprintf(stderr,
-> -			"usage: %s=\"...\" %s=\"...\" %s <cmd> [args]...\n\n",
-> -			ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
-> +			"usage: %s=\"...\" %s=\"...\" %s=\"...\" %s=\"...\"%s "
-> +			"<cmd> [args]...\n\n",
-> +			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
-> +			ENV_TCP_CONNECT_NAME, argv[0]);
->   		fprintf(stderr,
->   			"Launch a command in a restricted environment.\n\n");
-> -		fprintf(stderr, "Environment variables containing paths, "
-> -				"each separated by a colon:\n");
-> +		fprintf(stderr,
-> +			"Environment variables containing paths and ports "
-> +			"each separated by a colon:\n");
->   		fprintf(stderr,
->   			"* %s: list of paths allowed to be used in a read-only way.\n",
->   			ENV_FS_RO_NAME);
->   		fprintf(stderr,
-> -			"* %s: list of paths allowed to be used in a read-write way.\n",
-> +			"* %s: list of paths allowed to be used in a read-write way.\n\n",
->   			ENV_FS_RW_NAME);
-> +		fprintf(stderr,
-> +			"Environment variables containing ports are optional "
-> +			"and could be skipped.\n");
-> +		fprintf(stderr,
-> +			"* %s: list of ports allowed to bind (server).\n",
-> +			ENV_TCP_BIND_NAME);
-> +		fprintf(stderr,
-> +			"* %s: list of ports allowed to connect (client).\n",
-> +			ENV_TCP_CONNECT_NAME);
->   		fprintf(stderr,
->   			"\nexample:\n"
->   			"%s=\"/bin:/lib:/usr:/proc:/etc:/dev/urandom\" "
->   			"%s=\"/dev/null:/dev/full:/dev/zero:/dev/pts:/tmp\" "
-> +			"%s=\"9418\" "
-> +			"%s=\"80:443\" "
->   			"%s bash -i\n\n",
-> -			ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
-> +			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
-> +			ENV_TCP_CONNECT_NAME, argv[0]);
->   		fprintf(stderr,
->   			"This sandboxer can use Landlock features "
->   			"up to ABI version %d.\n",
-> @@ -240,7 +320,10 @@ int main(const int argc, char *const argv[], char *const *const envp)
->   	case 2:
->   		/* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
->   		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
-> -
-> +		__attribute__((fallthrough));
-> +	case 3:
-> +		/* Removes network support for ABI < 4 */
-> +		ruleset_attr.handled_access_net &= ~ACCESS_NET_BIND_CONNECT;
-
-You can check the TCP environment variables here and error out if one is 
-set.
-
-Please keep the newline here.
-
-
->   		fprintf(stderr,
->   			"Hint: You should update the running kernel "
->   			"to leverage Landlock features "
-> @@ -259,16 +342,36 @@ int main(const int argc, char *const argv[], char *const *const envp)
->   	access_fs_ro &= ruleset_attr.handled_access_fs;
->   	access_fs_rw &= ruleset_attr.handled_access_fs;
-> 
-> +	/* Removes bind access attribute if not supported by a user. */
-> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
-> +	if (!env_port_name) {
-
-You can move this logic at the populate_ruleset_net() call site and 
-update this helper to not call getenv() twice for the same variable.
-
-
-> +		access_net_tcp &= ~LANDLOCK_ACCESS_NET_BIND_TCP;
-> +	}
-> +	/* Removes connect access attribute if not supported by a user. */
-> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
-> +	if (!env_port_name) {
-> +		access_net_tcp &= ~LANDLOCK_ACCESS_NET_CONNECT_TCP;
-> +	}
-> +	ruleset_attr.handled_access_net &= access_net_tcp;
-
-There is no need for access_net_tcp.
-
-> +
->   	ruleset_fd =
->   		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
->   	if (ruleset_fd < 0) {
->   		perror("Failed to create a ruleset");
->   		return 1;
->   	}
-
-newline
-
-> -	if (populate_ruleset(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
-> +	if (populate_ruleset_fs(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
-> +		goto err_close_ruleset;
-> +	}
-> +	if (populate_ruleset_fs(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
-> +		goto err_close_ruleset;
-> +	}
-
-newline
-
-> +	if (populate_ruleset_net(ENV_TCP_BIND_NAME, ruleset_fd,
-> +				 LANDLOCK_ACCESS_NET_BIND_TCP)) {
->   		goto err_close_ruleset;
->   	}
-> -	if (populate_ruleset(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
-> +	if (populate_ruleset_net(ENV_TCP_CONNECT_NAME, ruleset_fd,
-> +				 LANDLOCK_ACCESS_NET_CONNECT_TCP)) {
->   		goto err_close_ruleset;
->   	}
-
-newline
-
->   	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
-> --
-> 2.25.1
-> 
