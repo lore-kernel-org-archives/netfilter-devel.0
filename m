@@ -2,91 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C518C43217
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Nov 2022 05:00:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B83EC4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Nov 2022 11:14:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230247AbiKPFAj (ORCPT
+        id S239105AbiKPLOq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Nov 2022 00:00:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43526 "EHLO
+        Wed, 16 Nov 2022 06:14:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231912AbiKPFA3 (ORCPT
+        with ESMTP id S239113AbiKPLOY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Nov 2022 00:00:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7C4B31FB5;
-        Tue, 15 Nov 2022 21:00:20 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 869A6618F5;
-        Wed, 16 Nov 2022 05:00:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id D97ECC433D6;
-        Wed, 16 Nov 2022 05:00:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1668574819;
-        bh=R5l7PZRrhEj7RzLm0We6a+ujpnlLXjczStLuQY95nS0=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=Vdj1CWE3OB/sAsVdEv69V7gQs9qYpgsY7iVaazMchz+r3ZarxI+klaDU5PPsETUr1
-         CErlSF1d/nELV3usGXzOGhl1yLWOhdMrP3CdTNF+wil8k+qzgmm9UC4vzhouIbrzW7
-         18EIk7np4WOK+ZpF5RjfFoOfUkBZ18U21u6R6k3RKGC2fNdqvnIw8MrGYI+yXqaKvV
-         9F2pXBS4EDmLrsqg4mt7ekxxr8d2HMfYgDzUMv6bz0UHuhuRy/vV/cNK0dO1sUXRFp
-         zOsTMnlD9lVarARbvLSr/UyNH4j2merFQ1GjaDWgRafrdsuLnryRKXOdTO93T2GFNP
-         5529Mo92JL3qw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B8122E21EFE;
-        Wed, 16 Nov 2022 05:00:19 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Wed, 16 Nov 2022 06:14:24 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B024257B7E
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2022 03:01:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=dpXyn9cJIatKljdow7dRjW1MnMvzEAiuD4td8D7Yr3w=; b=mKn3fpmQn8b3KxTKqkZlhefZ5K
+        drPMhaWjQfFr3g2tp+D9BpzvvyhKlfF48MO+dABpezoctyzC6B2wcnWn6iRcV0ArZBtnQ37aKfCr5
+        DK5U6dsh0+h3enKZuWE64/wwmpOOLuNTUdFzXMnkERTdEO3MadlfHJCCeQaucjtJBYr137AxILJyz
+        j+xXRXVbQEZEyBWxMuxWEzN0iLF3n0/Ay2F17ODMl2T4lj4ZaQT/7YD/Vl4Oy/lML/SAAg+dwZ+QY
+        fHC2Ln8gBdF1G1OHKusrmSuBhjIlWkBvX04A0PuSRtDpvN67teKpYOALHzugra7NWZt5P5FiJyCpc
+        z2lNXIKw==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1ovGAw-0002ue-Oc
+        for netfilter-devel@vger.kernel.org; Wed, 16 Nov 2022 12:01:50 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] extensions: mark: Test double bitwise in a rule
+Date:   Wed, 16 Nov 2022 12:01:42 +0100
+Message-Id: <20221116110142.17346-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.38.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/6] netfilter: nft_payload: use __be16 to store gre
- version
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166857481974.8148.14898836218257392922.git-patchwork-notify@kernel.org>
-Date:   Wed, 16 Nov 2022 05:00:19 +0000
-References: <20221115095922.139954-2-pablo@netfilter.org>
-In-Reply-To: <20221115095922.139954-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+In v1.8.8, the second bitwise changed the first one, messing
+iptables-nft-save output.
 
-This series was applied to netdev/net-next.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_mark.t | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Tue, 15 Nov 2022 10:59:17 +0100 you wrote:
-> GRE_VERSION and GRE_VERSION0 are expressed in network byte order,
-> use __be16. Uncovered by sparse:
-> 
-> net/netfilter/nft_payload.c:112:25: warning: incorrect type in assignment (different base types)
-> net/netfilter/nft_payload.c:112:25:    expected unsigned int [usertype] version
-> net/netfilter/nft_payload.c:112:25:    got restricted __be16
-> net/netfilter/nft_payload.c:114:22: warning: restricted __be16 degrades to integer
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,1/6] netfilter: nft_payload: use __be16 to store gre version
-    https://git.kernel.org/netdev/net-next/c/66394126bf20
-  - [net-next,2/6] netfilter: nft_inner: fix return value check in nft_inner_parse_l2l3()
-    https://git.kernel.org/netdev/net-next/c/7394c2dd62de
-  - [net-next,3/6] netfilter: nf_tables: Extend nft_expr_ops::dump callback parameters
-    https://git.kernel.org/netdev/net-next/c/7d34aa3e03b6
-  - [net-next,4/6] netfilter: nf_tables: Introduce NFT_MSG_GETRULE_RESET
-    https://git.kernel.org/netdev/net-next/c/8daa8fde3fc3
-  - [net-next,5/6] netfilter: rpfilter/fib: clean up some inconsistent indenting
-    https://git.kernel.org/netdev/net-next/c/971095c6fa4a
-  - [net-next,6/6] netfilter: conntrack: use siphash_4u64
-    https://git.kernel.org/netdev/net-next/c/d2c806abcf0b
-
-You are awesome, thank you!
+diff --git a/extensions/libxt_mark.t b/extensions/libxt_mark.t
+index 7aeb871588ca6..12c058655f6be 100644
+--- a/extensions/libxt_mark.t
++++ b/extensions/libxt_mark.t
+@@ -5,3 +5,4 @@
+ -m mark --mark 4294967296;;FAIL
+ -m mark --mark -1;;FAIL
+ -m mark;;FAIL
++-s 1.2.0.0/15 -m mark --mark 0x0/0xff0;=;OK
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.38.0
 
