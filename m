@@ -2,106 +2,368 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1496C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Nov 2022 17:46:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25FC5C433FE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 17 Nov 2022 18:08:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234944AbiKQRqT (ORCPT
+        id S240338AbiKQSIY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 17 Nov 2022 12:46:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34656 "EHLO
+        Thu, 17 Nov 2022 13:08:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234802AbiKQRqT (ORCPT
+        with ESMTP id S240343AbiKQSIU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Nov 2022 12:46:19 -0500
+        Thu, 17 Nov 2022 13:08:20 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7722B663E7
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Nov 2022 09:46:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=K6nafPsyPM8cQHdtBR0hZagy5G0SzPIdM6BzDNQts/8=; b=dh1uMH7d8g4UiOnV2a3QQpb8C8
-        JAWKzfDfV25PhxpBy8HC39LJBZr2odizjqmimzNFqQDunmEVwFsipHzQg1t6/yaTBuWMQlsjvKtET
-        9QwcVV4twKJYFUib+76rRzgiSY3wm5drzNkKd8zQY8/4h4h0jHA7qPLhjZrjG4OD+a1CoDlty9Gsm
-        4eQ97cXesoO7+17HRjzrdORkZFXEOqJ8F1m96MSJQiX/KPXPfvykUkrIjltQyNa7GW5+voCbhaoBk
-        02CtcQdV1hvW2IoUCTGuzH2aGUOO/OATABPROYzeau/9ZV+DrDRhiKmgpMRBc8JRvNltX3S5DZwjF
-        EN8FwVQQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1ovixs-0001km-Ru; Thu, 17 Nov 2022 18:46:16 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2DE582200
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Nov 2022 10:08:12 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1ovjJ4-0001vE-W9; Thu, 17 Nov 2022 19:08:11 +0100
+Date:   Thu, 17 Nov 2022 19:08:10 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v2 4/4] xt: Detect xlate callback failure
-Date:   Thu, 17 Nov 2022 18:45:46 +0100
-Message-Id: <20221117174546.21715-5-phil@nwl.cc>
-X-Mailer: git-send-email 2.38.0
-In-Reply-To: <20221117174546.21715-1-phil@nwl.cc>
-References: <20221117174546.21715-1-phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Compatibility interface for
+ nft_rule
+Message-ID: <Y3Z4ihfhBPKzN/Dl@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>
+References: <20221104221827.30335-1-phil@nwl.cc>
+ <Y3J7BD0hxG5BEMkz@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y3J7BD0hxG5BEMkz@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If an extension's xlate callback returns 0, translation is at least
-incomplete. Discard the result and resort to opaque dump format in this
-case.
+Hi Pablo,
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/xt.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+On Mon, Nov 14, 2022 at 06:29:40PM +0100, Pablo Neira Ayuso wrote:
+> Hi Phil,
+> 
+> Comments below.
+> 
+> On Fri, Nov 04, 2022 at 11:18:27PM +0100, Phil Sutter wrote:
+> > Accept extra expressions from user space which should replace active
+> > one(s) when the rule is being dumped. Each of those expressions
+> > specifies the index of the first expression to replace, the number of
+> > consecutive expressions it replaces and a blob of data to dump. While
+> > the latter should adhere to the expected NFTA_LIST_ELEM content format,
+> > the kernel actually treats it as opaque data and therefore may not even
+> > support the expression type being dumped.
+> > 
+> > The practical application of this is to enable iptables-nft to use
+> > native nftables expressions while still maintaining compatibility
+> > towards older versions not expecting (or correctly parsing) them.
+> > 
+> > Here's the effect in practice with a customized iptables-nft. First add
+> > a rule with two matches that had been converted already, netlink dump
+> > shows the native expressions used:
+> > 
+> > | # iptables-nft -vv -A FORWARD -m limit --limit 3/hour -m mark --mark 0x23/0x42
+> > |   all opt -- in * out *  0.0.0.0/0  -> 0.0.0.0/0   limit: avg 3/hour burst 5 mark match 0x23/0x42
+> > | table filter ip flags 0 use 0 handle 0
+> > | ip filter FORWARD use 0 type filter hook forward prio 0 policy accept packets 0 bytes 0
+> > | ip filter FORWARD
+> > |   [ limit rate 3/hour burst 5 type packets flags 0x0 ]
+> > |   [ meta load mark => reg 1 ]
+> > |   [ bitwise reg 1 = ( reg 1 & 0x00000042 ) ^ 0x00000000 ]
+> > |   [ cmp eq reg 1 0x00000023 ]
+> > |   [ counter pkts 0 bytes 0 ]
+> > 
+> > Listing the rule shows how the previously attached compat expressions
+> > replaced the native code in output:
+> > 
+> > | # iptables-nft -vv -S
+> > | ip filter FORWARD 2
+> > |   [ match name limit rev 0 ]
+> > |   [ match name mark rev 1 ]
+> > |   [ counter pkts 0 bytes 0 ]
+> > |
+> > | -P INPUT ACCEPT -c 0 0
+> > | -P FORWARD ACCEPT -c 0 0
+> > | -P OUTPUT ACCEPT -c 0 0
+> > | -A FORWARD -m limit --limit 3/hour -m mark --mark 0x23/0x42 -c 0 0
+> > 
+> > Note also how the rule is correctly interpreted since iptables-nft
+> > continues to support the legacy limit and mark match extensions.
+> > 
+> > This patch should have relatively low impact if not in use: struct
+> > nft_rule increases by one pointer which has to be checked upon dumping
+> > or freeing of the rule.
+> > 
+> > Disclaimer: This is not the much simpler "attach the rule as text" we
+> > discussed, but I would like to at least propose it since it works for
+> > existing releases.
+> 
+> I prefer this "structured" representation than resorting to using the
+> userdata area to store a string.
+> 
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> >  include/net/netfilter/nf_tables.h        |   8 ++
+> >  include/uapi/linux/netfilter/nf_tables.h |  18 ++++
+> >  net/netfilter/nf_tables_api.c            | 129 ++++++++++++++++++++++-
+> >  3 files changed, 153 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> > index cdb7db9b0e252..cf00753b1446e 100644
+> > --- a/include/net/netfilter/nf_tables.h
+> > +++ b/include/net/netfilter/nf_tables.h
+> > @@ -939,6 +939,13 @@ struct nft_expr_ops {
+> >  	void				*data;
+> >  };
+> >  
+> > +struct nft_compat_expr {
+> > +        int pos;
+> > +        int len;
+> > +        int dlen;
+> > +        void *data;
+> > +};
+> > +
+> >  /**
+> >   *	struct nft_rule - nf_tables rule
+> >   *
+> > @@ -951,6 +958,7 @@ struct nft_expr_ops {
+> >   */
+> >  struct nft_rule {
+> >  	struct list_head		list;
+> > +	struct nft_compat_expr		*compat_exprs;
+> >  	u64				handle:42,
+> >  					genmask:2,
+> >  					dlen:12,
+> > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > index 466fd3f4447c2..c8c0f1b2bd395 100644
+> > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > @@ -278,15 +278,33 @@ enum nft_rule_compat_flags {
+> >   *
+> >   * @NFTA_RULE_COMPAT_PROTO: numeric value of handled protocol (NLA_U32)
+> >   * @NFTA_RULE_COMPAT_FLAGS: bitmask of enum nft_rule_compat_flags (NLA_U32)
+> > + * @NFTA_RULE_COMPAT_EXPRESSIONS: Replacement expressions in dumps (NLA_NESTED)
+> >   */
+> >  enum nft_rule_compat_attributes {
+> >  	NFTA_RULE_COMPAT_UNSPEC,
+> >  	NFTA_RULE_COMPAT_PROTO,
+> >  	NFTA_RULE_COMPAT_FLAGS,
+> > +	NFTA_RULE_COMPAT_EXPRESSIONS,
+> >  	__NFTA_RULE_COMPAT_MAX
+> >  };
+> >  #define NFTA_RULE_COMPAT_MAX	(__NFTA_RULE_COMPAT_MAX - 1)
+> >  
+> > +/**
+> > + * enum nft_rule_compat_expression - compat expression data
+> > + *
+> > + * @NFTA_RULE_COMPAT_EXPR_POS: index of expression this replaces (NLA_U32)
+> > + * @NFTA_RULE_COMPAT_EXPR_LEN: number of expressions this replaces (NLA_U32)
+> > + * @NFTA_RULE_COMPAT_EXPR_INFO: expression blob to dump (NLA_BINARY)
+> > + */
+> > +enum nft_rule_compat_expression {
+> > +	NFTA_RULE_COMPAT_EXPR_UNSPEC,
+> > +	NFTA_RULE_COMPAT_EXPR_POS,
+> > +	NFTA_RULE_COMPAT_EXPR_LEN,
+> > +	NFTA_RULE_COMPAT_EXPR_INFO,
+> > +	__NFTA_RULE_COMPAT_EXPR_MAX
+> > +};
+> 
+> Is this extra metainformation really required? I mean, this position
+> and length mapping wrt. native representation.
+> 
+> Why not simply use the NFTA_RULE_COMPAT_EXPRESSIONS to dump the rule
+> fully using the xt blobs instead?
+> 
+> That is, the rule is expressed using native expressions, but the
+> original output using the blob dump is also available.
 
-diff --git a/src/xt.c b/src/xt.c
-index e3063612c353e..178761a42018d 100644
---- a/src/xt.c
-+++ b/src/xt.c
-@@ -116,6 +116,7 @@ static bool xt_stmt_xlate_match(const struct stmt *stmt, void *entry,
- 	};
- 	struct xtables_match *mt;
- 	struct xt_entry_match *m;
-+	int rc;
- 
- 	mt = xtables_find_match(stmt->xt.name, XTF_TRY_LOAD, NULL);
- 	if (!mt) {
-@@ -132,10 +133,10 @@ static bool xt_stmt_xlate_match(const struct stmt *stmt, void *entry,
- 	memcpy(&m->data, stmt->xt.info, stmt->xt.infolen);
- 
- 	params.match = m;
--	mt->xlate(xl, &params);
-+	rc = mt->xlate(xl, &params);
- 
- 	xfree(m);
--	return true;
-+	return rc != 0;
- }
- 
- static bool xt_stmt_xlate_target(const struct stmt *stmt, void *entry,
-@@ -149,6 +150,7 @@ static bool xt_stmt_xlate_target(const struct stmt *stmt, void *entry,
- 	};
- 	struct xtables_target *tg;
- 	struct xt_entry_target *t;
-+	int rc;
- 
- 	tg = xtables_find_target(stmt->xt.name, XTF_TRY_LOAD);
- 	if (!tg) {
-@@ -166,10 +168,10 @@ static bool xt_stmt_xlate_target(const struct stmt *stmt, void *entry,
- 	strcpy(t->u.user.name, tg->name);
- 
- 	params.target = t;
--	tg->xlate(xl, &params);
-+	rc = tg->xlate(xl, &params);
- 
- 	xfree(t);
--	return true;
-+	return rc != 0;
- }
- #endif
- 
--- 
-2.38.0
+My intention was to keep impact low by selectively replacing only those
+expressions which break compatibility. Your idea is interesting though,
+as it largely simplifies rule dumping and at the same time allows for
+more flexibility.
 
+Of course we can't "just" represent a rule in xt blobs only, some things
+are not supported (e.g. ebtables among match). But attaching native
+expressions to the compat expressions list is a simple workaround.
+
+> > +#define NFTA_RULE_COMPAT_EXPR_MAX	(__NFTA_RULE_COMPAT_EXPR_MAX - 1)
+> > +
+> >  /**
+> >   * enum nft_set_flags - nf_tables set flags
+> >   *
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index a0653a8dfa827..3a867a52bc3ad 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -16,6 +16,7 @@
+> >  #include <linux/netfilter.h>
+> >  #include <linux/netfilter/nfnetlink.h>
+> >  #include <linux/netfilter/nf_tables.h>
+> > +#include <linux/netfilter/nf_tables_compat.h>
+> >  #include <net/netfilter/nf_flow_table.h>
+> >  #include <net/netfilter/nf_tables_core.h>
+> >  #include <net/netfilter/nf_tables.h>
+> > @@ -2992,6 +2993,36 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+> >  	[NFTA_RULE_CHAIN_ID]	= { .type = NLA_U32 },
+> >  };
+> >  
+> > +static int nft_rule_dump_compat_exprs(struct sk_buff *skb,
+> > +				      const struct nft_rule *rule)
+> > +{
+> > +	const struct nft_compat_expr *cur = rule->compat_exprs;
+> > +	const struct nft_expr *expr, *next;
+> > +	int expr_idx = -1, skip = 0;
+> > +
+> > +	nft_rule_for_each_expr(expr, next, rule) {
+> > +		expr_idx++;
+> > +
+> > +		if (skip) {
+> > +			skip--;
+> > +			continue;
+> > +		}
+> > +
+> > +		if (!cur->len || expr_idx != cur->pos) {
+> > +			if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
+> > +				return -1;
+> > +			continue;
+> > +		}
+> > +
+> > +		if (nla_put(skb, NFTA_LIST_ELEM, cur->dlen, cur->data) < 0)
+> > +			return -1;
+> > +
+> > +		skip = cur->len - 1;
+> > +		cur++;
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+> >  static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+> >  				    u32 portid, u32 seq, int event,
+> >  				    u32 flags, int family,
+> > @@ -3029,9 +3060,14 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+> >  	list = nla_nest_start_noflag(skb, NFTA_RULE_EXPRESSIONS);
+> >  	if (list == NULL)
+> >  		goto nla_put_failure;
+> > -	nft_rule_for_each_expr(expr, next, rule) {
+> > -		if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
+> > +	if (rule->compat_exprs) {
+> > +		if (nft_rule_dump_compat_exprs(skb, rule) < 0)
+> >  			goto nla_put_failure;
+> > +	} else {
+> > +		nft_rule_for_each_expr(expr, next, rule) {
+> > +			if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
+> > +				goto nla_put_failure;
+> > +		}
+> >  	}
+> 
+> Instead of one-or-another, dump both native and xt representation?
+> 
+> So userspace can fall back to use compat_exprs if it fails to decode
+> the native representation?
+
+IMO the crucial benefit of the proposed solution is to fix for existing
+iptables binaries. Maintaining this with your "dump both" idea means the
+kernel would dump the compat_exprs as "regular" ones and the actual ones
+in a new attribute. New user space could fiddle this apart again, old
+user space would ignore the extra data. Does that sound feasible to you?
+
+> >  	nla_nest_end(skb, list);
+> >  
+> > @@ -3318,6 +3354,15 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+> >  		nf_tables_expr_destroy(ctx, expr);
+> >  		expr = next;
+> >  	}
+> > +	if (rule->compat_exprs) {
+> > +		struct nft_compat_expr *cur = rule->compat_exprs;
+> > +
+> > +		while (cur->len) {
+> > +			kfree(cur->data);
+> > +			cur++;
+> > +		}
+> > +		kfree(rule->compat_exprs);
+> > +	}
+> >  	kfree(rule);
+> >  }
+> >  
+> > @@ -3385,12 +3430,83 @@ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
+> >  
+> >  #define NFT_RULE_MAXEXPRS	128
+> >  
+> > +static const struct nla_policy
+> > +nft_rule_compat_expression_policy[NFTA_RULE_COMPAT_EXPR_MAX + 1] = {
+> > +	[NFTA_RULE_COMPAT_EXPR_POS]	= { .type = NLA_U32 },
+> > +	[NFTA_RULE_COMPAT_EXPR_LEN]	= { .type = NLA_U32 },
+> > +	[NFTA_RULE_COMPAT_EXPR_INFO]	= { .type = NLA_BINARY },
+> > +};
+> > +
+> > +static struct nft_compat_expr *
+> > +nft_parse_compat_exprs_nla(const struct nlattr *nla)
+> > +{
+> > +	struct nft_compat_expr *compat_exprs, *cur;
+> > +	int idx = 0, num_exprs = 0;
+> > +	struct nlattr *tmp;
+> > +	int err, rem;
+> > +
+> > +	nla = nla_find_nested(nla, NFTA_RULE_COMPAT_EXPRESSIONS);
+> > +	if (!nla)
+> > +		return NULL;
+> > +
+> > +	nla_for_each_nested(tmp, nla, rem)
+> > +		num_exprs++;
+> > +
+> > +	if (!num_exprs)
+> > +		return NULL;
+> > +
+> > +	compat_exprs = kvmalloc_array(num_exprs + 1,
+> > +				      sizeof(*compat_exprs), GFP_KERNEL);
+> > +	if (!compat_exprs)
+> > +		return ERR_PTR(-ENOMEM);
+> > +
+> > +	cur = compat_exprs;
+> > +	nla_for_each_nested(tmp, nla, rem) {
+> > +		struct nlattr *tb[NFTA_RULE_COMPAT_EXPR_MAX + 1];
+> > +		int err;
+> > +
+> > +		if (idx >= NFT_RULE_MAXEXPRS)
+> > +			return ERR_PTR(-ENOMEM);
+> > +
+> > +		err = nla_parse_nested_deprecated(tb, NFTA_RULE_COMPAT_EXPR_MAX,
+> > +						  tmp, nft_rule_compat_expression_policy, NULL);
+> > +		if (err < 0)
+> > +			return ERR_PTR(err);
+> > +
+> > +		if (!tb[NFTA_RULE_COMPAT_EXPR_POS] ||
+> > +		    !tb[NFTA_RULE_COMPAT_EXPR_LEN] ||
+> > +		    !tb[NFTA_RULE_COMPAT_EXPR_INFO]) {
+> > +			err = -EINVAL;
+> > +			goto out_free;
+> > +		}
+> > +
+> > +		cur->pos = nla_get_u32(tb[NFTA_RULE_COMPAT_EXPR_POS]);
+> > +		cur->len = nla_get_u32(tb[NFTA_RULE_COMPAT_EXPR_LEN]);
+> > +		cur->dlen = nla_len(tb[NFTA_RULE_COMPAT_EXPR_INFO]);
+> > +		cur->data = kvmalloc(cur->dlen, GFP_KERNEL);
+> > +		if (!cur->data) {
+> > +			err = -ENOMEM;
+> > +			goto out_free;
+> > +		}
+> > +
+> > +		nla_memcpy(cur->data,
+> > +			   tb[NFTA_RULE_COMPAT_EXPR_INFO], cur->dlen);
+> > +		cur++;
+> > +	}
+> > +	cur->len = 0;
+> > +	return compat_exprs;
+> > +out_free:
+> > +	kfree(compat_exprs);
+> > +	return ERR_PTR(err);
+> > +}
+> 
+> Probably move this code to nft_compat.c?
+
+I left it there to avoid dealing with module dependencies, but yeah. :)
+
+Thanks, Phil
