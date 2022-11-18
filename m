@@ -2,67 +2,59 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73467C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Nov 2022 10:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAA14C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Nov 2022 10:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240260AbiKRKLs (ORCPT
+        id S241610AbiKRK3a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Nov 2022 05:11:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42750 "EHLO
+        Fri, 18 Nov 2022 05:29:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241305AbiKRKLp (ORCPT
+        with ESMTP id S235171AbiKRK3a (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Nov 2022 05:11:45 -0500
+        Fri, 18 Nov 2022 05:29:30 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C471171F31
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Nov 2022 02:11:44 -0800 (PST)
-Date:   Fri, 18 Nov 2022 11:11:42 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1C47D18B3D;
+        Fri, 18 Nov 2022 02:29:29 -0800 (PST)
+Date:   Fri, 18 Nov 2022 11:29:25 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2 0/4] xt: Implement dump and restore support
-Message-ID: <Y3daXmuU0Nsyeij6@salvia>
-References: <20221117174546.21715-1-phil@nwl.cc>
- <20221117211347.GB15714@breakpoint.cc>
- <Y3dUxJZ6J4mg/KNh@orbyte.nwl.cc>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     fw@strlen.de, kadlec@netfilter.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] netfilter: ctmark: Fix data-races around ctmark
+Message-ID: <Y3dehd619g/2vlWv@salvia>
+References: <7220acad9aaefa2ab891d1bcbbc9d5cc4a8f0a7e.1668022522.git.dxu@dxuuu.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Y3dUxJZ6J4mg/KNh@orbyte.nwl.cc>
+In-Reply-To: <7220acad9aaefa2ab891d1bcbbc9d5cc4a8f0a7e.1668022522.git.dxu@dxuuu.xyz>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Merging threads.
+On Wed, Nov 09, 2022 at 12:39:07PM -0700, Daniel Xu wrote:
+> nf_conn:mark can be read from and written to in parallel. Use
+> READ_ONCE()/WRITE_ONCE() for reads and writes to prevent unwanted
+> compiler optimizations.
+> 
+> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+> ---
+> Changes since v1:
+> - Remove WRITE_ONCE() from init path
+> 
+>  net/core/flow_dissector.c               |  2 +-
+>  net/ipv4/netfilter/ipt_CLUSTERIP.c      |  4 ++--
+>  net/netfilter/nf_conntrack_core.c       |  2 +-
+>  net/netfilter/nf_conntrack_netlink.c    | 24 ++++++++++++++----------
+>  net/netfilter/nf_conntrack_standalone.c |  2 +-
+>  net/netfilter/nft_ct.c                  |  6 +++---
+>  net/netfilter/xt_connmark.c             | 18 ++++++++++--------
+>  net/openvswitch/conntrack.c             |  8 ++++----
+>  net/sched/act_connmark.c                |  4 ++--
+>  net/sched/act_ct.c                      |  8 ++++----
+>  net/sched/act_ctinfo.c                  |  6 +++---
+>  11 files changed, 45 insertions(+), 39 deletions(-)
 
-On Fri, Nov 18, 2022 at 10:55:04AM +0100, Phil Sutter wrote:
-[...]
-> > I think this more or less a summary of what we discussed in the NFWS.
->
-> Pablo, I think you're mixing up two things here:
->
-> This "support dump and load of compat expression" feature is to sanitize
-> the current situation with up to date iptables and nftables.
-
-OK, then the problem we discuss is mixing iptables-nft and nftables.
-
-On Fri, Nov 18, 2022 at 10:47:48AM +0100, Phil Sutter wrote:
-[...]
-> > At this time I'd rather like a time machine to prevent nft_compat.c from
-> > getting merged :-(
->
-> If you do, please convince Pablo to not push iptables commit 384958620a.
-> I think it opened the can of worms we're trying to confine here.
-
-It could be worst, if iptables-nft would not be in place, then old
-iptables-legacy and new nftables rules would have no visibility each
-other.
-
-With iptables-nft we have a way to move forward:
-
-- Replace nft_compat by native expressions from iptables-nft.
-- Extend iptables-nft to understand more complex expressions, worst
-  case dump a native representation.
-
-Why don't we just move ahead this path instead of spinning around the
-compat layer? This only requires userspace updates on iptables-nft.
+I am going to place this in nf.git, it's a bit late but it's
+relatively small and I think the sooner the better to have this fix.
