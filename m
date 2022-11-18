@@ -2,55 +2,86 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACC6FC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Nov 2022 14:11:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24747C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Nov 2022 14:29:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234213AbiKROLA (ORCPT
+        id S241473AbiKRO3Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Nov 2022 09:11:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46598 "EHLO
+        Fri, 18 Nov 2022 09:29:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235221AbiKROK7 (ORCPT
+        with ESMTP id S235313AbiKRO3Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Nov 2022 09:10:59 -0500
+        Fri, 18 Nov 2022 09:29:24 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6924A30550
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Nov 2022 06:10:58 -0800 (PST)
-Date:   Fri, 18 Nov 2022 15:10:54 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D2EB5DBB0;
+        Fri, 18 Nov 2022 06:29:23 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2 0/4] xt: Implement dump and restore support
-Message-ID: <Y3eSbhQ+ihCNeSpE@salvia>
-References: <20221117174546.21715-1-phil@nwl.cc>
- <20221117211347.GB15714@breakpoint.cc>
- <Y3dUxJZ6J4mg/KNh@orbyte.nwl.cc>
- <Y3daXmuU0Nsyeij6@salvia>
- <Y3dhhVpfoA73W3kA@orbyte.nwl.cc>
- <20221118114643.GD15714@breakpoint.cc>
- <Y3d2qqm2r8Z8Tbih@orbyte.nwl.cc>
- <Y3d4JEmztrNTbK99@salvia>
- <Y3d5eqTGTwEAa2Dq@orbyte.nwl.cc>
- <20221118133431.GE15714@breakpoint.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/2] Netfilter fixes for net
+Date:   Fri, 18 Nov 2022 15:29:16 +0100
+Message-Id: <20221118142918.196782-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20221118133431.GE15714@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 18, 2022 at 02:34:31PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > This one:
-> > 
-> > Subject: [nft PATCH] Warn for tables with compat expressions in rules
-> > Date: Wed, 12 Oct 2022 17:31:07 +0200
-> > Message-Id: <20221012153107.24574-1-phil@nwl.cc>
-> 
-> This is:
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20221012153107.24574-1-phil@nwl.cc/
-> 
-> LGTM, no objections from me.
+Hi,
 
-LGTM.
+The following patchset contains late Netfilter fixes for net:
+
+1) Use READ_ONCE()/WRITE_ONCE() to update ct->mark, from Daniel Xu.
+   Not reported by syzbot, but I presume KASAN would trigger post
+   a splat on this. This is a rather old issue, predating git history.
+
+2) Do not set up extensions for set element with end interval flag
+   set on. This leads to bogusly skipping this elements as expired
+   when listing the set/map to userspace as well as increasing
+   memory consumpton when stateful expressions are used. This issue
+   has been present since 4.18, when timeout support for rbtree set
+   was added.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 40b9d1ab63f5c4f3cb69450044d07b45e5af72e1:
+
+  ipvlan: hold lower dev to avoid possible use-after-free (2022-11-18 10:39:22 +0000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 33c7aba0b4ffd6d7cdab862a034eb582a5120a38:
+
+  netfilter: nf_tables: do not set up extensions for end interval (2022-11-18 15:21:32 +0100)
+
+----------------------------------------------------------------
+Daniel Xu (1):
+      netfilter: conntrack: Fix data-races around ct mark
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: do not set up extensions for end interval
+
+ net/core/flow_dissector.c               |  2 +-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c      |  4 ++--
+ net/netfilter/nf_conntrack_core.c       |  2 +-
+ net/netfilter/nf_conntrack_netlink.c    | 24 ++++++++++++++----------
+ net/netfilter/nf_conntrack_standalone.c |  2 +-
+ net/netfilter/nf_tables_api.c           |  6 ++++--
+ net/netfilter/nft_ct.c                  |  6 +++---
+ net/netfilter/xt_connmark.c             | 18 ++++++++++--------
+ net/openvswitch/conntrack.c             |  8 ++++----
+ net/sched/act_connmark.c                |  4 ++--
+ net/sched/act_ct.c                      |  8 ++++----
+ net/sched/act_ctinfo.c                  |  6 +++---
+ 12 files changed, 49 insertions(+), 41 deletions(-)
