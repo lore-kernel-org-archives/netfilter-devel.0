@@ -2,84 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CB97C43219
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 11:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89D2DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 13:59:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229733AbiKULlB (ORCPT
+        id S231562AbiKUN7j (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Nov 2022 06:41:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38552 "EHLO
+        Mon, 21 Nov 2022 08:59:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231417AbiKULkc (ORCPT
+        with ESMTP id S231246AbiKUN7P (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2022 06:40:32 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8EC612603;
-        Mon, 21 Nov 2022 03:40:16 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 575F461093;
-        Mon, 21 Nov 2022 11:40:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A3569C43470;
-        Mon, 21 Nov 2022 11:40:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1669030815;
-        bh=iz91hJ9SkNZPDFAotXScCr4KI624iw9t5ejxFcTcP5g=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=kZ6qLrrPkq6OfNuyuIwX4LuCsECuZ/BtK8wYXwjV6jnVQcFLsAztFeMOqfH14TVOR
-         AblP4AIkGA2MxzoX+BWyBE7qnWMqOu13bG6XmjhiiwoMS/mPPpG0Sv0eV8ZIz+cUkA
-         YMmGewHReDM8MWYqfHej60P4DU0iU/cNhTgJoecGwLluCVEaxTXS6i7f1ef0ye+Gkg
-         payJUs1F275WiqfEQtzh7PrE0BhjV34AKWgtzVVRvLPYAgzjlInrJdjStnaFuk/fBB
-         WjogbF4LrcBmEK/ktX5i1kdT0Jdf5Tm+mHf8/7PqLbkiJHu0uFrpfLrgRgFDp7l17R
-         hL7UISRa/NIAw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 871BDC395FF;
-        Mon, 21 Nov 2022 11:40:15 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Mon, 21 Nov 2022 08:59:15 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D0362A817D
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2022 05:58:09 -0800 (PST)
+Date:   Mon, 21 Nov 2022 14:58:04 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Vishwanath Pai <vpai@akamai.com>
+Cc:     kadlec@netfilter.org, fw@strlen.de, johunt@akamai.com,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] netfilter: ipset: regression in ip_set_hash_ip.c
+Message-ID: <Y3uD7DyMxY8ZEiiY@salvia>
+References: <20220928182651.602811-1-vpai@akamai.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: conntrack: Fix data-races around ct mark
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <166903081554.14617.12247850127073077689.git-patchwork-notify@kernel.org>
-Date:   Mon, 21 Nov 2022 11:40:15 +0000
-References: <20221118142918.196782-2-pablo@netfilter.org>
-In-Reply-To: <20221118142918.196782-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220928182651.602811-1-vpai@akamai.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Fri, 18 Nov 2022 15:29:17 +0100 you wrote:
-> From: Daniel Xu <dxu@dxuuu.xyz>
+On Wed, Sep 28, 2022 at 02:26:50PM -0400, Vishwanath Pai wrote:
+> This patch introduced a regression: commit 48596a8ddc46 ("netfilter:
+> ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
 > 
-> nf_conn:mark can be read from and written to in parallel. Use
-> READ_ONCE()/WRITE_ONCE() for reads and writes to prevent unwanted
-> compiler optimizations.
+> The variable e.ip is passed to adtfn() function which finally adds the
+> ip address to the set. The patch above refactored the for loop and moved
+> e.ip = htonl(ip) to the end of the for loop.
 > 
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> What this means is that if the value of "ip" changes between the first
+> assignement of e.ip and the forloop, then e.ip is pointing to a
+> different ip address than "ip".
 > 
-> [...]
+> Test case:
+> $ ipset create jdtest_tmp hash:ip family inet hashsize 2048 maxelem 100000
+> $ ipset add jdtest_tmp 10.0.1.1/31
+> ipset v6.21.1: Element cannot be added to the set: it's already added
+> 
+> The value of ip gets updated inside the  "else if (tb[IPSET_ATTR_CIDR])"
+> block but e.ip is still pointing to the old value.
 
-Here is the summary with links:
-  - [net,1/2] netfilter: conntrack: Fix data-races around ct mark
-    https://git.kernel.org/netdev/net/c/52d1aa8b8249
-  - [net,2/2] netfilter: nf_tables: do not set up extensions for end interval
-    https://git.kernel.org/netdev/net/c/33c7aba0b4ff
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Applied to nf.git, thanks
