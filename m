@@ -2,54 +2,94 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89D2DC4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 13:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E532CC433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 18:26:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231562AbiKUN7j (ORCPT
+        id S229622AbiKUS04 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Nov 2022 08:59:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34728 "EHLO
+        Mon, 21 Nov 2022 13:26:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231246AbiKUN7P (ORCPT
+        with ESMTP id S229913AbiKUS0k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2022 08:59:15 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D0362A817D
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2022 05:58:09 -0800 (PST)
-Date:   Mon, 21 Nov 2022 14:58:04 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Vishwanath Pai <vpai@akamai.com>
-Cc:     kadlec@netfilter.org, fw@strlen.de, johunt@akamai.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2] netfilter: ipset: regression in ip_set_hash_ip.c
-Message-ID: <Y3uD7DyMxY8ZEiiY@salvia>
-References: <20220928182651.602811-1-vpai@akamai.com>
+        Mon, 21 Nov 2022 13:26:40 -0500
+Received: from nbd.name (nbd.name [46.4.11.11])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 722E7D02D6;
+        Mon, 21 Nov 2022 10:26:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
+        s=20160729; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=Fz7dU5AsHIREf9gJ+3uHjaOYyC69u8wavjx25CmztKk=; b=bmtsOS4rDCd1b4M/f2CJG3mydH
+        MrOT08YZbpgJcOoOZ2dXOODZKLejl3USMNmxKOHXYdBPjqb92gjbWzBZZnN+DOKX0PDZlO9fxjStf
+        T5ZqmNr+vPvcR0V+7EtKn88L4iIublbw8fXn8P3rDt1hHhqcCnaDJPlwvIPSOjDsu16w=;
+Received: from p200300daa7225c007502151ad3a4cf6f.dip0.t-ipconnect.de ([2003:da:a722:5c00:7502:151a:d3a4:cf6f] helo=Maecks.lan)
+        by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+        (Exim 4.94.2)
+        (envelope-from <nbd@nbd.name>)
+        id 1oxBUm-003YoF-LG; Mon, 21 Nov 2022 19:26:16 +0100
+From:   Felix Fietkau <nbd@nbd.name>
+To:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: nf_flow_table: add missing locking
+Date:   Mon, 21 Nov 2022 19:26:15 +0100
+Message-Id: <20221121182615.90843-1-nbd@nbd.name>
+X-Mailer: git-send-email 2.38.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220928182651.602811-1-vpai@akamai.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 28, 2022 at 02:26:50PM -0400, Vishwanath Pai wrote:
-> This patch introduced a regression: commit 48596a8ddc46 ("netfilter:
-> ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
-> 
-> The variable e.ip is passed to adtfn() function which finally adds the
-> ip address to the set. The patch above refactored the for loop and moved
-> e.ip = htonl(ip) to the end of the for loop.
-> 
-> What this means is that if the value of "ip" changes between the first
-> assignement of e.ip and the forloop, then e.ip is pointing to a
-> different ip address than "ip".
-> 
-> Test case:
-> $ ipset create jdtest_tmp hash:ip family inet hashsize 2048 maxelem 100000
-> $ ipset add jdtest_tmp 10.0.1.1/31
-> ipset v6.21.1: Element cannot be added to the set: it's already added
-> 
-> The value of ip gets updated inside the  "else if (tb[IPSET_ATTR_CIDR])"
-> block but e.ip is still pointing to the old value.
+nf_flow_table_block_setup and the driver TC_SETUP_FT call can modify the flow
+block cb list while they are being traversed elsewhere, causing a crash.
+Add a write lock around the calls to protect readers
 
-Applied to nf.git, thanks
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
+---
+ net/netfilter/nf_flow_table_offload.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index b04645ced89b..00b522890d77 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1098,6 +1098,7 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 	struct flow_block_cb *block_cb, *next;
+ 	int err = 0;
+ 
++	down_write(&flowtable->flow_block_lock);
+ 	switch (cmd) {
+ 	case FLOW_BLOCK_BIND:
+ 		list_splice(&bo->cb_list, &flowtable->flow_block.cb_list);
+@@ -1112,6 +1113,7 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 		WARN_ON_ONCE(1);
+ 		err = -EOPNOTSUPP;
+ 	}
++	up_write(&flowtable->flow_block_lock);
+ 
+ 	return err;
+ }
+@@ -1168,7 +1170,9 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+ 
+ 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
+ 					 extack);
++	down_write(&flowtable->flow_block_lock);
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
++	up_write(&flowtable->flow_block_lock);
+ 	if (err < 0)
+ 		return err;
+ 
+-- 
+2.38.1
+
