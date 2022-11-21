@@ -2,110 +2,68 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFBCFC4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 19:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5B84C43217
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 19:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230490AbiKUTkv (ORCPT
+        id S231624AbiKUTpo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Nov 2022 14:40:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33814 "EHLO
+        Mon, 21 Nov 2022 14:45:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229501AbiKUTkv (ORCPT
+        with ESMTP id S231585AbiKUTpk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2022 14:40:51 -0500
-X-Greylist: delayed 550 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 21 Nov 2022 11:40:50 PST
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52D0CFCE4;
-        Mon, 21 Nov 2022 11:40:50 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 7196BCC0102;
-        Mon, 21 Nov 2022 20:31:36 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 21 Nov 2022 20:31:34 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 297B9CC00FF;
-        Mon, 21 Nov 2022 20:31:34 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 274FB343157; Mon, 21 Nov 2022 20:31:34 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 25FC4343156;
-        Mon, 21 Nov 2022 20:31:34 +0100 (CET)
-Date:   Mon, 21 Nov 2022 20:31:34 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [ANNOUNCE] ipset 7.16 released
-Message-ID: <d65fe5d8-d5ea-ef7-102d-aa1d15bb4d69@netfilter.org>
+        Mon, 21 Nov 2022 14:45:40 -0500
+Received: from nbd.name (nbd.name [46.4.11.11])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7441CFE9D;
+        Mon, 21 Nov 2022 11:45:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
+        s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:References:
+        Cc:To:From:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=HN21k88BYPW1IXLLNQAyuv3uXPjyMHl4EerDCx5rTIw=; b=ciQVnzPeChYZY2d0235iiTvSdi
+        c8MR22HaUxDx84Rs3LamdRvRvSu+9bt3tbvHGrpPBOP22b57oPgy/+phkeftG+l0TLTjcX1V98Q/F
+        Nrv2sSd3Cw4Sc8OTikN0eZFwV1fDi49wGoOi+gPBbBaXcr4lPArEXU5F6nWq6r3S0NnU=;
+Received: from p200300daa7225c007502151ad3a4cf6f.dip0.t-ipconnect.de ([2003:da:a722:5c00:7502:151a:d3a4:cf6f] helo=nf.local)
+        by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.94.2)
+        (envelope-from <nbd@nbd.name>)
+        id 1oxCjD-003axr-3p; Mon, 21 Nov 2022 20:45:15 +0100
+Message-ID: <3a9c2e94-3c45-5f83-c703-75e1cde13be1@nbd.name>
+Date:   Mon, 21 Nov 2022 20:45:14 +0100
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="110363376-945108895-1669059094=:505418"
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.5.0
+Subject: Re: [PATCH] netfilter: nf_flow_table: add missing locking
+Content-Language: en-US
+From:   Felix Fietkau <nbd@nbd.name>
+To:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20221121182615.90843-1-nbd@nbd.name>
+In-Reply-To: <20221121182615.90843-1-nbd@nbd.name>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 21.11.22 19:26, Felix Fietkau wrote:
+> nf_flow_table_block_setup and the driver TC_SETUP_FT call can modify the flow
+> block cb list while they are being traversed elsewhere, causing a crash.
+> Add a write lock around the calls to protect readers
+> 
+> Signed-off-by: Felix Fietkau <nbd@nbd.name>
+Sorry, I forgot to add this:
 
---110363376-945108895-1669059094=:505418
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Reported-by: Chad Monroe <chad.monroe@smartrg.com>
 
-Hi,
-
-I'm happy to announce ipset 7.16, which includes a few fixes,
-compatibility patches to support recent kernels and a new "bitmask"
-option for the hash:ip, hash:ipport, hash:netnet types to use
-any kind of netmask, from Vishwanath Pai.
-
-Userspace changes:
-  - Add new ipset_parse_bitmask() function to the library interface
-  - test: Make sure no more than 64 clashing elements can be added
-    to hash:net,iface sets
-  - Fix all debug mode warnings
-  - netfilter: ipset: add tests for the new bitmask feature (Vishwanath=20
-    Pai)
-  - netfilter: ipset: Update the man page to include netmask/bitmask=20
-    options (Vishwanath Pai)
-  - netfilter: ipset: Add bitmask support to hash:netnet (Vishwanath Pai)
-  - netfilter: ipset: Add bitmask support to hash:ipport (Vishwanath Pai)
-  - netfilter: ipset: Add bitmask support to hash:ip (Vishwanath Pai)
-  - netfilter: ipset: Add support for new bitmask parameter (Vishwanath=20
-    Pai)
-  - ipset-translate: allow invoking with a path name (Quentin Armitage)
-  - Fix IPv6 sets nftables translation (Pablo Neira Ayuso)
-  - Fix typo in ipset-translate man page (Bernhard M. Wiedemann)
-
-Kernel part changes:
-  - netfilter: ipset: restore allowing 64 clashing elements in=20
-    hash:net,iface
-  - netfilter: ipset: Add support for new bitmask parameter (Vishwanath=20
-    Pai)
-  - netfilter: ipset: regression in ip_set_hash_ip.c (Vishwanath Pai)
-  - netfilter: move from strlcpy with unused retval to strscpy
-    (Wolfram Sang)
-  - compatibility: handle unsafe_memcpy()
-  - netlink: Bounds-check struct nlmsgerr creation (Kees Cook)
-  - compatibility: move to skb_protocol in the code from tc_skb_protocol
-  - Compatibility: check kvcalloc, kvfree, kvzalloc in slab.h too
-  - sched: consistently handle layer3 header accesses in the presence
-    of VLANs (Toke H=C3=B8iland-J=C3=B8rgensen)
-  - treewide: Replace GPLv2 boilerplate/reference with SPDX
-    - rule 500 (Thomas Gleixner)
-  - headers: Remove some left-over license text in=20
-    include/uapi/linux/netfilter/ (Christophe JAILLET)
-  - netfilter: ipset: enforce documented limit to prevent allocating
-    huge memory
-  - netfilter: ipset: Fix oversized kvmalloc() calls
-
-You can download the source code of ipset from:
-        https://ipset.netfilter.org
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110363376-945108895-1669059094=:505418--
+- Felix
