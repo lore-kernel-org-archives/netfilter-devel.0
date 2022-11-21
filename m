@@ -2,91 +2,104 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE63C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 19:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFBCFC4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 19:40:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229645AbiKUTCQ (ORCPT
+        id S230490AbiKUTkv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Nov 2022 14:02:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34712 "EHLO
+        Mon, 21 Nov 2022 14:40:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229836AbiKUTCH (ORCPT
+        with ESMTP id S229501AbiKUTkv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2022 14:02:07 -0500
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E7A1CFE80
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2022 11:02:04 -0800 (PST)
+        Mon, 21 Nov 2022 14:40:51 -0500
+X-Greylist: delayed 550 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 21 Nov 2022 11:40:50 PST
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52D0CFCE4;
+        Mon, 21 Nov 2022 11:40:50 -0800 (PST)
 Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 104FECC010C;
-        Mon, 21 Nov 2022 20:01:56 +0100 (CET)
+        by smtp2.kfki.hu (Postfix) with ESMTP id 7196BCC0102;
+        Mon, 21 Nov 2022 20:31:36 +0100 (CET)
 X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
 Received: from smtp2.kfki.hu ([127.0.0.1])
         by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 21 Nov 2022 20:01:53 +0100 (CET)
+        with ESMTP; Mon, 21 Nov 2022 20:31:34 +0100 (CET)
 Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 17B5ACC00FF;
-        Mon, 21 Nov 2022 20:01:52 +0100 (CET)
+        by smtp2.kfki.hu (Postfix) with ESMTP id 297B9CC00FF;
+        Mon, 21 Nov 2022 20:31:34 +0100 (CET)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id F28C8343157; Mon, 21 Nov 2022 20:01:52 +0100 (CET)
+        id 274FB343157; Mon, 21 Nov 2022 20:31:34 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id F0D04343156;
-        Mon, 21 Nov 2022 20:01:52 +0100 (CET)
-Date:   Mon, 21 Nov 2022 20:01:52 +0100 (CET)
+        by blackhole.kfki.hu (Postfix) with ESMTP id 25FC4343156;
+        Mon, 21 Nov 2022 20:31:34 +0100 (CET)
+Date:   Mon, 21 Nov 2022 20:31:34 +0100 (CET)
 From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Vishwanath Pai <vpai@akamai.com>
-cc:     pablo@netfilter.org, fw@strlen.de, johunt@akamai.com,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v3 0/6] netfilter: ipset: Add support for new bitmask
- parameter (userspace)
-In-Reply-To: <20221110213131.2083331-1-vpai@akamai.com>
-Message-ID: <bca72b11-69e6-a795-5fe9-8c359df5cd5@netfilter.org>
-References: <20221110213131.2083331-1-vpai@akamai.com>
+To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 7.16 released
+Message-ID: <d65fe5d8-d5ea-ef7-102d-aa1d15bb4d69@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="110363376-945108895-1669059094=:505418"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Vishwanath,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Thu, 10 Nov 2022, Vishwanath Pai wrote:
+--110363376-945108895-1669059094=:505418
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> Add a new parameter to complement the existing 'netmask' option. The 
-> main difference between netmask and bitmask is that bitmask takes any 
-> arbitrary ip address as input, it does not have to be a valid netmask.
-> 
-> The name of the new parameter is 'bitmask'. This lets us mask out
-> arbitrary bits in the ip address, for example:
-> ipset create set1 hash:ip bitmask 255.128.255.0
-> ipset create set2 hash:ip,port family inet6 bitmask ffff::ff80
-> 
-> This patchset contains userspace patches, I will submit the kernel patch
-> separately.
-> 
-> Changes in v3:
-> * Add netmask option to hash:net,net
-> * Update man page for hash:net,net
-> * Add netmask tests to hash:net,net
-> * Add check in userspace to make sure netmask and bitmask options are mutually exclusive
-> * Add a test to make sure netmask/bitmask are mutually exclusive
-> 
-> Changes in v2:
->     * Removed the changes to nf_inet_addr.h and nfproto.h, this will break on older kernels
->     * Remove bitmask option from net,net since it is redundant, update the manpage
->     * Add tests for the new bitmask param (similar to netmask tests)
-> 
-> Vishwanath Pai (6):
->   netfilter: ipset: Add support for new bitmask parameter
->   netfilter: ipset: Add bitmask support to hash:ip
->   netfilter: ipset: Add bitmask support to hash:ipport
->   netfilter: ipset: Add bitmask support to hash:netnet
->   netfilter: ipset: Update the man page to include netmask/bitmask
->     options
->   netfilter: ipset: add tests for the new bitmask feature
+Hi,
 
-The patches including the kernel side one have been applied to the ipset 
-git repo and I'm about to submit the kernel patch for kernel inclusion. 
-Thanks!
+I'm happy to announce ipset 7.16, which includes a few fixes,
+compatibility patches to support recent kernels and a new "bitmask"
+option for the hash:ip, hash:ipport, hash:netnet types to use
+any kind of netmask, from Vishwanath Pai.
+
+Userspace changes:
+  - Add new ipset_parse_bitmask() function to the library interface
+  - test: Make sure no more than 64 clashing elements can be added
+    to hash:net,iface sets
+  - Fix all debug mode warnings
+  - netfilter: ipset: add tests for the new bitmask feature (Vishwanath=20
+    Pai)
+  - netfilter: ipset: Update the man page to include netmask/bitmask=20
+    options (Vishwanath Pai)
+  - netfilter: ipset: Add bitmask support to hash:netnet (Vishwanath Pai)
+  - netfilter: ipset: Add bitmask support to hash:ipport (Vishwanath Pai)
+  - netfilter: ipset: Add bitmask support to hash:ip (Vishwanath Pai)
+  - netfilter: ipset: Add support for new bitmask parameter (Vishwanath=20
+    Pai)
+  - ipset-translate: allow invoking with a path name (Quentin Armitage)
+  - Fix IPv6 sets nftables translation (Pablo Neira Ayuso)
+  - Fix typo in ipset-translate man page (Bernhard M. Wiedemann)
+
+Kernel part changes:
+  - netfilter: ipset: restore allowing 64 clashing elements in=20
+    hash:net,iface
+  - netfilter: ipset: Add support for new bitmask parameter (Vishwanath=20
+    Pai)
+  - netfilter: ipset: regression in ip_set_hash_ip.c (Vishwanath Pai)
+  - netfilter: move from strlcpy with unused retval to strscpy
+    (Wolfram Sang)
+  - compatibility: handle unsafe_memcpy()
+  - netlink: Bounds-check struct nlmsgerr creation (Kees Cook)
+  - compatibility: move to skb_protocol in the code from tc_skb_protocol
+  - Compatibility: check kvcalloc, kvfree, kvzalloc in slab.h too
+  - sched: consistently handle layer3 header accesses in the presence
+    of VLANs (Toke H=C3=B8iland-J=C3=B8rgensen)
+  - treewide: Replace GPLv2 boilerplate/reference with SPDX
+    - rule 500 (Thomas Gleixner)
+  - headers: Remove some left-over license text in=20
+    include/uapi/linux/netfilter/ (Christophe JAILLET)
+  - netfilter: ipset: enforce documented limit to prevent allocating
+    huge memory
+  - netfilter: ipset: Fix oversized kvmalloc() calls
+
+You can download the source code of ipset from:
+        https://ipset.netfilter.org
+        git://git.netfilter.org/ipset.git
 
 Best regards,
 Jozsef
@@ -95,3 +108,4 @@ E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
 PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
 Address : Wigner Research Centre for Physics
           H-1525 Budapest 114, POB. 49, Hungary
+--110363376-945108895-1669059094=:505418--
