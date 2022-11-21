@@ -2,79 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14076C43217
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 20:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C60DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 20:35:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231200AbiKUUIX (ORCPT
+        id S229658AbiKUUf5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Nov 2022 15:08:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55932 "EHLO
+        Mon, 21 Nov 2022 15:35:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229553AbiKUUIW (ORCPT
+        with ESMTP id S229509AbiKUUfz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2022 15:08:22 -0500
-Received: from nbd.name (nbd.name [46.4.11.11])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AA4C15831;
-        Mon, 21 Nov 2022 12:08:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
-        s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=hWWAojqdsRSVQu9mmlJr+UEwHfZNqJ2JQR14vWSq+ZU=; b=V48oykoV4CwB7MWCnl4eEysjLB
-        1CjUshTHpVjsaElOiqSY+vICHBA3usOUTQMgEI0qvidIJ8F8pInEGPiN/0UVuGftSKVjvkHxkTZdk
-        8UmR7gQiOzeE8eRe+C8UBY5JfZZR7WWdJssZ8ywY+PkGDAlEzcUKvOj0/dkpbeEUn/Hk=;
-Received: from p200300daa7225c007502151ad3a4cf6f.dip0.t-ipconnect.de ([2003:da:a722:5c00:7502:151a:d3a4:cf6f] helo=nf.local)
-        by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.94.2)
-        (envelope-from <nbd@nbd.name>)
-        id 1oxD5R-003bHe-80; Mon, 21 Nov 2022 21:08:13 +0100
-Message-ID: <441bcda3-403f-0bf6-2d6f-d8c9d2ce44d6@nbd.name>
-Date:   Mon, 21 Nov 2022 21:08:12 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.5.0
-Subject: Re: [PATCH] netfilter: nf_flow_table: add missing locking
-Content-Language: en-US
-To:     Eric Dumazet <edumazet@google.com>
-Cc:     netfilter-devel@vger.kernel.org,
+        Mon, 21 Nov 2022 15:35:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46FE6D9B80;
+        Mon, 21 Nov 2022 12:35:55 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D66B761465;
+        Mon, 21 Nov 2022 20:35:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF146C433D6;
+        Mon, 21 Nov 2022 20:35:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1669062954;
+        bh=uBI/+z4D892XWJGEL8Mg8igdUbmaBy3ZhQQHzB+U+wM=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=V4XnPYEyKLy8VWkqcBWKryJpFYf9qd6i+70Mc+f/pbEAJGgLoBi1eHYlPeoH36LbV
+         5lvYcJKHvy83VrB8g53ySbOy7tXlPLjC8bsjv4e7zJphptMpVn2jaBgRhzFVGLNcJY
+         q8Xj0+aJ2CORRaNzfgHPzibuOiyBenTlAN7oIi4tGqvdnzqTLwxnqe07dfupODDASn
+         U//nvOlxxqy2Mpx79G92Rfc2Bk3h3YT1auzWDBX7spGaoAfF6kI0Q/Rypb9AKbZ7z+
+         MCYNFEXJO2pLAgruXgs+wlQX9nalsw09SZS35ONJpPYJ9eO0ki1gSe+MiLDRIXdbuk
+         JmKC0569JAG7w==
+Date:   Mon, 21 Nov 2022 12:35:52 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Felix Fietkau <nbd@nbd.name>
+Cc:     Eric Dumazet <edumazet@google.com>,
+        netfilter-devel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nf_flow_table: add missing locking
+Message-ID: <20221121123552.16c00373@kernel.org>
+In-Reply-To: <441bcda3-403f-0bf6-2d6f-d8c9d2ce44d6@nbd.name>
 References: <20221121182615.90843-1-nbd@nbd.name>
- <3a9c2e94-3c45-5f83-c703-75e1cde13be1@nbd.name>
- <CANn89iKps9pM=DPn1aWF1SDMqrr=HHkHL8VofVHThUmtqzn=tQ@mail.gmail.com>
-From:   Felix Fietkau <nbd@nbd.name>
-In-Reply-To: <CANn89iKps9pM=DPn1aWF1SDMqrr=HHkHL8VofVHThUmtqzn=tQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+        <3a9c2e94-3c45-5f83-c703-75e1cde13be1@nbd.name>
+        <CANn89iKps9pM=DPn1aWF1SDMqrr=HHkHL8VofVHThUmtqzn=tQ@mail.gmail.com>
+        <441bcda3-403f-0bf6-2d6f-d8c9d2ce44d6@nbd.name>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 21.11.22 20:47, Eric Dumazet wrote:
-> On Mon, Nov 21, 2022 at 11:45 AM Felix Fietkau <nbd@nbd.name> wrote:
->>
->> On 21.11.22 19:26, Felix Fietkau wrote:
->> > nf_flow_table_block_setup and the driver TC_SETUP_FT call can modify the flow
->> > block cb list while they are being traversed elsewhere, causing a crash.
->> > Add a write lock around the calls to protect readers
->> >
->> > Signed-off-by: Felix Fietkau <nbd@nbd.name>
->> Sorry, I forgot to add this:
->>
->> Reported-by: Chad Monroe <chad.monroe@smartrg.com>
->>
->> - Felix
+On Mon, 21 Nov 2022 21:08:12 +0100 Felix Fietkau wrote:
+> > Could you also add a Fixes: tag ?  
 > 
-> Hi Felix
-> 
-> Could you also add a Fixes: tag ?
-I don't know which commit to use for that tag.
+> I don't know which commit to use for that tag.
 
-- Felix
+The oldest upstream commit where the problem you're solving 
+can trigger?
