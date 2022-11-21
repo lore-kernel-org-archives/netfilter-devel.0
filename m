@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C4EFC4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 22:57:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F7A1C43217
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Nov 2022 22:57:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229476AbiKUW5x (ORCPT
+        id S231475AbiKUW54 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Nov 2022 17:57:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52820 "EHLO
+        Mon, 21 Nov 2022 17:57:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229687AbiKUW5v (ORCPT
+        with ESMTP id S231927AbiKUW5x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2022 17:57:51 -0500
+        Mon, 21 Nov 2022 17:57:53 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38F7F7646
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2022 14:57:34 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEB31DF91
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2022 14:57:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=siqED/1CHnBajSfA8J66f7ue7A425WILCYaAqWXVGuI=; b=BLAGWImQLEsddAKsRikLQAGv6H
-        yeF2nNDb62yqi7og8RY8GnlXIIVXQPEbzHkp7vjXVPgPcabQHeiC+OGHD9DXV92PAJC42VhZgSDGT
-        Lv1PCT2DECNqknlLxnInu0hERbsH10o5kIckaLj40YH74rmEZ3FtniQluok9Ye8F96JWIEgs45B2c
-        pdvN3l9veWxHS4unHa0du6R8euQTLgutdRTaeTbAk5EH5o4rRtAdZHvlF8XQvpqY4A6DLcX4DuEk1
-        +z8rTIRPvCHN5l/5dh5N3HgrieTpGHKdjpxgYk4sWwG+CHGl33KaM6j/FzGvu620yZdJM03R74scl
-        sMf98Q9g==;
+        bh=zgNYzdjj32yueE4gnK03LoU+h3kmqBliZfhO1c8YME4=; b=PsOL0USOn6xBa+bFVYIojkiSM1
+        IX6CuwFM4WWAVGFC3gW/YMb2qIQ5WAlxMxnBH6gxKeKdZlk6kzfgjONkO7X44zYxLgF4rln/Y4gRY
+        cxL1JTUr9lqxeVlhBp+qRdTUBc1dOvopEdhq7t8T71iQ+72mDmtFJ8eTDrlt3JC83RLmWl8TxzA5c
+        pw+Nb7woQtqg6/4fkklepsfeQOyWodBSfQorZXAFW/vQNC+MRWC+4oQhMMHsPf7OgPcATw+4/nWCn
+        EdVWbAXHcPP/j56yNIoW/XSxHDRSklowo5DWqYzR3lyNgOmZ/4O7L2ghwO9StEK8TTShRE7lYOM4c
+        RWyfl+sw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1oxFGE-005LgP-QK
-        for netfilter-devel@vger.kernel.org; Mon, 21 Nov 2022 22:27:30 +0000
+        id 1oxFGG-005LgP-0O
+        for netfilter-devel@vger.kernel.org; Mon, 21 Nov 2022 22:27:32 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 23/34] db: refactor backlog
-Date:   Mon, 21 Nov 2022 22:26:00 +0000
-Message-Id: <20221121222611.3914559-24-jeremy@azazel.net>
+Subject: [PATCH ulogd2 31/34] output: pgsql: remove variable-length arrays
+Date:   Mon, 21 Nov 2022 22:26:08 +0000
+Message-Id: <20221121222611.3914559-32-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221121222611.3914559-1-jeremy@azazel.net>
 References: <20221121222611.3914559-1-jeremy@azazel.net>
@@ -50,180 +50,185 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move the backlog fields into a separate structure along the same lines
-as the ring-buffer.
+VLA's are deprecated.
+
+Group all the SQL macros at the top of the file and format them.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/ulogd/db.h | 18 +++++++++++++-----
- util/db.c          | 44 ++++++++++++++++++++++----------------------
- 2 files changed, 35 insertions(+), 27 deletions(-)
+ output/pgsql/ulogd_output_PGSQL.c | 95 ++++++++++++++++++++-----------
+ 1 file changed, 62 insertions(+), 33 deletions(-)
 
-diff --git a/include/ulogd/db.h b/include/ulogd/db.h
-index ebf4f42917c3..fc3b15ef0e0f 100644
---- a/include/ulogd/db.h
-+++ b/include/ulogd/db.h
-@@ -45,6 +45,18 @@ struct db_stmt_ring {
+diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
+index 70bfbee7f565..b125674b7364 100644
+--- a/output/pgsql/ulogd_output_PGSQL.c
++++ b/output/pgsql/ulogd_output_PGSQL.c
+@@ -79,20 +79,46 @@ static struct config_keyset pgsql_kset = {
+ #define schema_ce(x)	((x)->ces[DB_CE_NUM + 5])
+ #define connstr_ce(x)	((x)->ces[DB_CE_NUM + 6])
  
- };
- 
-+struct db_stmt_backlog {
+-#define PGSQL_HAVE_NAMESPACE_TEMPLATE 			\
+-	"SELECT nspname FROM pg_namespace n WHERE n.nspname='%s'"
++#define PGSQL_HAVE_NAMESPACE_TEMPLATE                         \
++	"SELECT nspname "                                     \
++	"FROM pg_namespace n "                                \
++	"WHERE n.nspname = '%s'"
 +
-+	struct llist_head items;
++#define PGSQL_GETCOLUMN_TEMPLATE                              \
++	"SELECT a.attname "                                   \
++	"FROM pg_class c, pg_attribute a "                    \
++	"WHERE c.relname = '%s' "                             \
++	"AND a.attnum > 0 "                                   \
++	"AND a.attrelid = c.oid "                             \
++	"ORDER BY a.attnum"
 +
-+	unsigned int memcap;
-+	unsigned int memusage;
-+	unsigned int oneshot;
-+
-+	int full;
-+
-+};
-+
- struct db_stmt {
- 	char *stmt;
- 	int len;
-@@ -61,11 +73,7 @@ struct db_instance {
- 	/* DB ring buffer */
- 	struct db_stmt_ring ring;
- 	/* Backlog system */
--	unsigned int backlog_memcap;
--	unsigned int backlog_memusage;
--	unsigned int backlog_oneshot;
--	unsigned char backlog_full;
--	struct llist_head backlog;
-+	struct db_stmt_backlog backlog;
- };
++#define PGSQL_GETCOLUMN_TEMPLATE_SCHEMA                       \
++	"SELECT a.attname "                                   \
++	"FROM pg_attribute a, pg_class c "                    \
++	"LEFT JOIN pg_namespace n ON c.relnamespace = n.oid " \
++	"WHERE c.relname = '%s' "                             \
++	"AND n.nspname = '%s' "                               \
++	"AND a.attnum > 0 "                                   \
++	"AND a.attrelid = c.oid "                             \
++	"AND a.attisdropped = FALSE "                         \
++	"ORDER BY a.attnum"
  
- #define RECONNECT_DEFAULT	2
-diff --git a/util/db.c b/util/db.c
-index 8a870846332b..89c81d8d1dc5 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -259,7 +259,7 @@ _interp_db_init(struct ulogd_pluginstance *upi)
- 
- 	if (di->reconnect && di->reconnect > time(NULL)) {
- 		/* store entry to backlog if it is active */
--		if (di->backlog_memcap && !di->backlog_full) {
-+		if (di->backlog.memcap && !di->backlog.full) {
- 			_bind_sql_stmt(upi, di->stmt);
- 			_add_to_backlog(upi, di->stmt, strlen(di->stmt));
- 		}
-@@ -268,7 +268,7 @@ _interp_db_init(struct ulogd_pluginstance *upi)
- 
- 	if (di->driver->open_db(upi) < 0) {
- 		ulogd_log(ULOGD_ERROR, "can't establish database connection\n");
--		if (di->backlog_memcap && !di->backlog_full) {
-+		if (di->backlog.memcap && !di->backlog.full) {
- 			_bind_sql_stmt(upi, di->stmt);
- 			_add_to_backlog(upi, di->stmt, strlen(di->stmt));
- 		}
-@@ -302,7 +302,7 @@ _interp_db_main(struct ulogd_pluginstance *upi)
- 	_bind_sql_stmt(upi, di->stmt);
- 
- 	/* if backup log is not empty we add current query to it */
--	if (!llist_empty(&di->backlog)) {
-+	if (!llist_empty(&di->backlog.items)) {
- 		int ret = _add_to_backlog(upi, di->stmt, strlen(di->stmt));
- 		if (ret == 0) {
- 			if (_process_backlog(upi) < 0)
-@@ -623,27 +623,27 @@ _configure_backlog(struct ulogd_pluginstance *upi)
+ /* Determine if server support schemas */
+ static int pgsql_namespace(struct ulogd_pluginstance *upi)
  {
- 	struct db_instance *di = (struct db_instance *) &upi->private;
+ 	struct pgsql_instance *pi = (struct pgsql_instance *) upi->private;
+-	char pgbuf[strlen(PGSQL_HAVE_NAMESPACE_TEMPLATE) +
+-		   strlen(schema_ce(upi->config_kset).u.string) + 1];
+ 	PGresult *pgres;
++	char *pgbuf;
++	int rv = -1;
  
--	INIT_LLIST_HEAD(&di->backlog);
-+	INIT_LLIST_HEAD(&di->backlog.items);
+ 	if (!pi->dbh)
+ 		return -1;
  
--	di->backlog_memusage = 0;
--	di->backlog_memcap = backlog_memcap_ce(upi->config_kset).u.value;
--	di->backlog_full = 0;
-+	di->backlog.memusage = 0;
-+	di->backlog.memcap = backlog_memcap_ce(upi->config_kset).u.value;
-+	di->backlog.full = 0;
- 
--	if (di->backlog_memcap == 0)
-+	if (di->backlog.memcap == 0)
- 		return 0;
- 
- 	if (ringsize_ce(upi->config_kset).u.value) {
- 		ulogd_log(ULOGD_ERROR,
- 			  "Ring buffer has precedence over backlog\n");
--		di->backlog_memcap = 0;
-+		di->backlog.memcap = 0;
- 		return 0;
++	pgbuf = malloc(sizeof(PGSQL_HAVE_NAMESPACE_TEMPLATE) +
++		       strlen(schema_ce(upi->config_kset).u.string));
++	if (!pgbuf)
++		return -1;
++
+ 	sprintf(pgbuf, PGSQL_HAVE_NAMESPACE_TEMPLATE,
+ 		schema_ce(upi->config_kset).u.string);
+ 	ulogd_log(ULOGD_DEBUG, "%s\n", pgbuf);
+@@ -100,7 +126,7 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
+ 	pgres = PQexec(pi->dbh, pgbuf);
+ 	if (!pgres) {
+ 		ulogd_log(ULOGD_DEBUG, "\n result false");
+-		return -1;
++		goto err_free_buf;
  	}
  
--	di->backlog_oneshot = backlog_oneshot_ce(upi->config_kset).u.value;
--	if (di->backlog_oneshot <= 2) {
-+	di->backlog.oneshot = backlog_oneshot_ce(upi->config_kset).u.value;
-+	if (di->backlog.oneshot <= 2) {
- 		ulogd_log(ULOGD_ERROR,
- 			  "backlog_oneshot_requests must be > 2 to be effective. Setting it to 3.\n");
--		di->backlog_oneshot = 3;
-+		di->backlog.oneshot = 3;
+ 	if (PQresultStatus(pgres) == PGRES_TUPLES_OK) {
+@@ -108,51 +134,50 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
+ 			ulogd_log(ULOGD_DEBUG, "using schema %s\n",
+ 				  schema_ce(upi->config_kset).u.string);
+ 			pi->db_inst.schema = schema_ce(upi->config_kset).u.string;
+-		} else {
++			rv = 0;
++		} else
+ 			ulogd_log(ULOGD_ERROR, "schema %s not found: %s\n",
+-				 schema_ce(upi->config_kset).u.string, PQerrorMessage(pi->dbh));
+-			PQclear(pgres);
+-			return -1;
+-		}
++				  schema_ce(upi->config_kset).u.string,
++				  PQerrorMessage(pi->dbh));
+ 	} else {
+ 		pi->db_inst.schema = NULL;
++		rv = 0;
  	}
  
- 	return 0;
-@@ -658,17 +658,17 @@ _add_to_backlog(struct ulogd_pluginstance *upi,
- 	struct db_stmt *query;
+ 	PQclear(pgres);
  
- 	/* check if we are using backlog */
--	if (di->backlog_memcap == 0)
-+	if (di->backlog.memcap == 0)
- 		return 0;
+-	return 0;
+-}
+-
+-#define PGSQL_GETCOLUMN_TEMPLATE 			\
+-	"SELECT  a.attname FROM pg_class c, pg_attribute a WHERE c.relname ='%s' AND a.attnum>0 AND a.attrelid=c.oid ORDER BY a.attnum"
++err_free_buf:
++	free(pgbuf);
  
- 	query_size = sizeof(*query) + len + 1;
+-#define PGSQL_GETCOLUMN_TEMPLATE_SCHEMA 		\
+-	"SELECT a.attname FROM pg_attribute a, pg_class c LEFT JOIN pg_namespace n ON c.relnamespace=n.oid WHERE c.relname ='%s' AND n.nspname='%s' AND a.attnum>0 AND a.attrelid=c.oid AND a.attisdropped=FALSE ORDER BY a.attnum"
++	return rv;
++}
  
- 	/* check len against backlog */
--	if (query_size + di->backlog_memcap - di->backlog_memusage) {
--		if (di->backlog_full == 0)
-+	if (query_size + di->backlog.memcap - di->backlog.memusage) {
-+		if (!di->backlog.full)
- 			ulogd_log(ULOGD_ERROR,
- 				  "Backlog is full starting to reject events.\n");
--		di->backlog_full = 1;
-+		di->backlog.full = 1;
+ /* find out which columns the table has */
+ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ {
+ 	struct pgsql_instance *pi = (struct pgsql_instance *) upi->private;
+-	char pgbuf[strlen(PGSQL_GETCOLUMN_TEMPLATE_SCHEMA)
+-		   + strlen(table_ce(upi->config_kset).u.string)
+-		   + strlen(pi->db_inst.schema) + 2];
+ 	PGresult *pgres;
+-	int rv;
++	char *pgbuf;
++	int rv = -1;
+ 
+ 	if (!pi->dbh) {
+ 		ulogd_log(ULOGD_ERROR, "no database handle\n");
  		return -1;
  	}
  
-@@ -684,10 +684,10 @@ _add_to_backlog(struct ulogd_pluginstance *upi,
- 		return -1;
+-	if (pi->db_inst.schema) {
+-		snprintf(pgbuf, sizeof(pgbuf)-1,
+-			 PGSQL_GETCOLUMN_TEMPLATE_SCHEMA,
+-			 table_ce(upi->config_kset).u.string,
+-			 pi->db_inst.schema);
+-	} else {
+-		snprintf(pgbuf, sizeof(pgbuf)-1, PGSQL_GETCOLUMN_TEMPLATE,
+-			 table_ce(upi->config_kset).u.string);
+-	}
++	pgbuf = malloc(sizeof(PGSQL_GETCOLUMN_TEMPLATE_SCHEMA) +
++		       strlen(table_ce(upi->config_kset).u.string) +
++		       strlen(pi->db_inst.schema));
++	if (!pgbuf)
++		return -1;
++
++	if (pi->db_inst.schema)
++		sprintf(pgbuf, PGSQL_GETCOLUMN_TEMPLATE_SCHEMA,
++			table_ce(upi->config_kset).u.string,
++			pi->db_inst.schema);
++	else
++		sprintf(pgbuf, PGSQL_GETCOLUMN_TEMPLATE,
++			table_ce(upi->config_kset).u.string);
+ 
+ 	ulogd_log(ULOGD_DEBUG, "%s\n", pgbuf);
+ 
+@@ -160,14 +185,13 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 	if (!pgres) {
+ 		ulogd_log(ULOGD_DEBUG, "result false (%s)",
+ 			  PQerrorMessage(pi->dbh));
+-		return -1;
++		goto err_free_buf;
  	}
  
--	di->backlog_memusage += query_size;
--	di->backlog_full = 0;
-+	di->backlog.memusage += query_size;
-+	di->backlog.full = 0;
+ 	if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
+ 		ulogd_log(ULOGD_DEBUG, "pres_command_not_ok (%s)",
+ 			  PQerrorMessage(pi->dbh));
+-		PQclear(pgres);
+-		return -1;
++		goto err_clear_res;
+ 	}
  
--	llist_add_tail(&query->list, &di->backlog);
-+	llist_add_tail(&query->list, &di->backlog.items);
+ 	rv = ulogd_db_alloc_input_keys(upi, PQntuples(pgres), pgres);
+@@ -176,7 +200,12 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 	if (!rv && upi->input.keys[0].name[0] == '.')
+ 		upi->input.keys[0].flags |= ULOGD_KEYF_INACTIVE;
  
- 	return 0;
++err_clear_res:
+ 	PQclear(pgres);
++
++err_free_buf:
++	free(pgbuf);
++
+ 	return rv;
  }
-@@ -696,7 +696,7 @@ static int
- _process_backlog(struct ulogd_pluginstance *upi)
- {
- 	struct db_instance *di = (struct db_instance *) &upi->private;
--	int i = di->backlog_oneshot;
-+	int i = di->backlog.oneshot;
- 	struct db_stmt *query;
- 	struct db_stmt *nquery;
  
-@@ -704,13 +704,13 @@ _process_backlog(struct ulogd_pluginstance *upi)
- 	if (di->reconnect && di->reconnect > time(NULL))
- 		return 0;
- 
--	llist_for_each_entry_safe(query, nquery, &di->backlog, list) {
-+	llist_for_each_entry_safe(query, nquery, &di->backlog.items, list) {
- 		if (di->driver->execute(upi, query->stmt, query->len) < 0) {
- 			/* error occur, database connexion need to be closed */
- 			di->driver->close_db(upi);
- 			return _reconnect_db(upi);
- 		} else {
--			di->backlog_memusage -= sizeof(*query) + query->len + 1;
-+			di->backlog.memusage -= sizeof(*query) + query->len + 1;
- 			llist_del(&query->list);
- 			free(query->stmt);
- 			free(query);
 -- 
 2.35.1
 
