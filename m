@@ -2,71 +2,79 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82975C433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Nov 2022 16:19:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E53C433FE
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Nov 2022 16:22:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234322AbiKVQTk (ORCPT
+        id S233036AbiKVQWS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Nov 2022 11:19:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50700 "EHLO
+        Tue, 22 Nov 2022 11:22:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234332AbiKVQTR (ORCPT
+        with ESMTP id S234429AbiKVQWK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Nov 2022 11:19:17 -0500
+        Tue, 22 Nov 2022 11:22:10 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D43E72712
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Nov 2022 08:16:45 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EACD263
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Nov 2022 08:22:09 -0800 (PST)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1oxVwx-0006cJ-V3; Tue, 22 Nov 2022 17:16:44 +0100
-Date:   Tue, 22 Nov 2022 17:16:43 +0100
+        id 1oxW2B-0006gT-Hu; Tue, 22 Nov 2022 17:22:07 +0100
+Date:   Tue, 22 Nov 2022 17:22:07 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables-nft RFC 5/5] generic.xlate: make one replay test case
- work
-Message-ID: <Y3z160WHbmhzKbt7@orbyte.nwl.cc>
+Subject: Re: [iptables-nft RFC 4/5] xlate-test: extra-escape of '"' for
+ replay mode
+Message-ID: <Y3z3Lxwh+RQUSJfG@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 References: <20221121111932.18222-1-fw@strlen.de>
- <20221121111932.18222-6-fw@strlen.de>
+ <20221121111932.18222-5-fw@strlen.de>
+ <Y3zwH69RX+1XjnTM@orbyte.nwl.cc>
+ <20221122160128.GA10048@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221121111932.18222-6-fw@strlen.de>
+In-Reply-To: <20221122160128.GA10048@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Nov 21, 2022 at 12:19:32PM +0100, Florian Westphal wrote:
-> This is just to demonstrate yet another problem.
+On Tue, Nov 22, 2022 at 05:01:28PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > On Mon, Nov 21, 2022 at 12:19:31PM +0100, Florian Westphal wrote:
+> > > Before, nft fails to restore some rules because it sees:
+> > > insert rule ip filter INPUT iifname iifname ip ...
+> > > 
+> > > Add extra escaping for " so that the shell won't remove it and
+> > > nft will see 'iifname "iifname"'.
+> > 
+> > This is fixing up the wrong side, see:
 > 
-> For the rule itself it doesn't matter if '-i' or '-s' is passed first,
-> but the test script has no deeper understanding for the rules and will
-> do a simple textual comparision, this will fail because as-is the output
-> is different than the input (options are written out in different
-> order).
+> Not sure what you mean here.
 > 
-> We either need to sanoitize the input or update the test script to
-> split lines and re-order the options or similar.
+> The quotes ARE printed, but the shell strips them away.
+> 
+> > struct xt_xlate_{mt,tg}_params::escape_quotes
+> 
+> Ick.
+> 
+> > this is set if iptables-translate was called and unset if
+> > iptables-restore-translate was called. I didn't invent this, but the
+> > logic seems to be escape quotes when printing a command, don't when
+> > printing a dump file content.
+> > 
+> > I have a patch in my queue which extends the conditional quoting to
+> > interface names. Will submit it later today along with other fixes in
+> > that corner.
+> 
+> I would prefer to rip this out, I don't think any of the tools should
+> print '\"' instead of '"'.
 
-My solution was to add replay records to test files like so:
+Either way is fine with me. See how I explicitly call 'echo "<input>" |
+nft -f -' in xlate-test.py to force evaluation by the shell - an earlier
+version of that code would break since nft saw the escapes. So *we*
+don't need them, but one could argue it educates users that they'll have
+to escape the quotes if they specify them on command line.
 
-| diff --git a/extensions/generic.txlate b/extensions/generic.txlate
-| index 6779d6f86dec8..8c3b7dbeb7320 100644
-| --- a/extensions/generic.txlate
-| +++ b/extensions/generic.txlate
-| @@ -1,69 +1,70 @@
-| -iptables-translate -I OUTPUT -p udp -d 8.8.8.8 -j ACCEPT
-| +iptables-translate -I OUTPUT -p udp -d 8.8.8.8 -j ACCEPT;-d 8.8.8.8/32 -p udp -j ACCEPT
-|  nft insert rule ip filter OUTPUT ip protocol udp ip daddr 8.8.8.8 counter accept
-|  
-|  iptables-translate -F -t nat
-|  nft flush table ip nat
-
-Since iptables is able to compare rules though, we could utilize this.
-So when checking the replay, instead of calling iptables-save and
-searching the output, we could call 'iptables -C'. I'll try this, it
-sounds simple and doable.
-
-Thanks, Phil
+Cheers, Phil
