@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53FB1C43219
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Nov 2022 21:28:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA9D2C43217
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Nov 2022 21:28:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232572AbiKVV2V (ORCPT
+        id S234490AbiKVV2Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Nov 2022 16:28:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53346 "EHLO
+        Tue, 22 Nov 2022 16:28:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234416AbiKVV2U (ORCPT
+        with ESMTP id S234664AbiKVV2W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Nov 2022 16:28:20 -0500
+        Tue, 22 Nov 2022 16:28:22 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CD3392A425;
-        Tue, 22 Nov 2022 13:28:19 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7365B2AC4C;
+        Tue, 22 Nov 2022 13:28:20 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 1/3] netfilter: ipset: regression in ip_set_hash_ip.c
-Date:   Tue, 22 Nov 2022 22:28:12 +0100
-Message-Id: <20221122212814.63177-2-pablo@netfilter.org>
+Subject: [PATCH net 3/3] netfilter: flowtable_offload: add missing locking
+Date:   Tue, 22 Nov 2022 22:28:14 +0100
+Message-Id: <20221122212814.63177-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221122212814.63177-1-pablo@netfilter.org>
 References: <20221122212814.63177-1-pablo@netfilter.org>
@@ -32,61 +32,50 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Vishwanath Pai <vpai@akamai.com>
+From: Felix Fietkau <nbd@nbd.name>
 
-This patch introduced a regression: commit 48596a8ddc46 ("netfilter:
-ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
+nf_flow_table_block_setup and the driver TC_SETUP_FT call can modify the flow
+block cb list while they are being traversed elsewhere, causing a crash.
+Add a write lock around the calls to protect readers
 
-The variable e.ip is passed to adtfn() function which finally adds the
-ip address to the set. The patch above refactored the for loop and moved
-e.ip = htonl(ip) to the end of the for loop.
-
-What this means is that if the value of "ip" changes between the first
-assignement of e.ip and the forloop, then e.ip is pointing to a
-different ip address than "ip".
-
-Test case:
-$ ipset create jdtest_tmp hash:ip family inet hashsize 2048 maxelem 100000
-$ ipset add jdtest_tmp 10.0.1.1/31
-ipset v6.21.1: Element cannot be added to the set: it's already added
-
-The value of ip gets updated inside the  "else if (tb[IPSET_ATTR_CIDR])"
-block but e.ip is still pointing to the old value.
-
-Fixes: 48596a8ddc46 ("netfilter: ipset: Fix adding an IPv4 range containing more than 2^31 addresses")
-Reviewed-by: Joshua Hunt <johunt@akamai.com>
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+Fixes: c29f74e0df7a ("netfilter: nf_flow_table: hardware offload support")
+Reported-by: Chad Monroe <chad.monroe@smartrg.com>
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_ip.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index dd30c03d5a23..75d556d71652 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -151,18 +151,16 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (((u64)ip_to - ip + 1) >> (32 - h->netmask) > IPSET_MAX_RANGE)
- 		return -ERANGE;
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index b04645ced89b..00b522890d77 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1098,6 +1098,7 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 	struct flow_block_cb *block_cb, *next;
+ 	int err = 0;
  
--	if (retried) {
-+	if (retried)
- 		ip = ntohl(h->next.ip);
--		e.ip = htonl(ip);
--	}
- 	for (; ip <= ip_to;) {
-+		e.ip = htonl(ip);
- 		ret = adtfn(set, &e, &ext, &ext, flags);
- 		if (ret && !ip_set_eexist(ret, flags))
- 			return ret;
++	down_write(&flowtable->flow_block_lock);
+ 	switch (cmd) {
+ 	case FLOW_BLOCK_BIND:
+ 		list_splice(&bo->cb_list, &flowtable->flow_block.cb_list);
+@@ -1112,6 +1113,7 @@ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 		WARN_ON_ONCE(1);
+ 		err = -EOPNOTSUPP;
+ 	}
++	up_write(&flowtable->flow_block_lock);
  
- 		ip += hosts;
--		e.ip = htonl(ip);
--		if (e.ip == 0)
-+		if (ip == 0)
- 			return 0;
+ 	return err;
+ }
+@@ -1168,7 +1170,9 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
  
- 		ret = 0;
+ 	nf_flow_table_block_offload_init(bo, dev_net(dev), cmd, flowtable,
+ 					 extack);
++	down_write(&flowtable->flow_block_lock);
+ 	err = dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_FT, bo);
++	up_write(&flowtable->flow_block_lock);
+ 	if (err < 0)
+ 		return err;
+ 
 -- 
 2.30.2
 
