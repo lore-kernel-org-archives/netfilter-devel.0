@@ -2,70 +2,100 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D46DC433FE
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Nov 2022 22:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9019C433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Nov 2022 09:34:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234070AbiKVWNy (ORCPT
+        id S237794AbiKWJe0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Nov 2022 17:13:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56986 "EHLO
+        Wed, 23 Nov 2022 04:34:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233239AbiKVWNx (ORCPT
+        with ESMTP id S237802AbiKWJd6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Nov 2022 17:13:53 -0500
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1292832066
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Nov 2022 14:13:50 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 58196CC0112;
-        Tue, 22 Nov 2022 23:13:49 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Tue, 22 Nov 2022 23:13:47 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 28E43CC0116;
-        Tue, 22 Nov 2022 23:13:47 +0100 (CET)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 24C35343157; Tue, 22 Nov 2022 23:13:47 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 23A89343156;
-        Tue, 22 Nov 2022 23:13:47 +0100 (CET)
-Date:   Tue, 22 Nov 2022 23:13:47 +0100 (CET)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 1/1] netfilter: ipset: restore allowing 64 clashing
- elements in hash:net,iface
-In-Reply-To: <Y30064mEhfsX1xQ1@salvia>
-Message-ID: <be565d60-e3b9-327a-7218-780b131bdb@netfilter.org>
-References: <20221122191858.1051777-1-kadlec@netfilter.org> <20221122191858.1051777-2-kadlec@netfilter.org> <Y30064mEhfsX1xQ1@salvia>
+        Wed, 23 Nov 2022 04:33:58 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6934C49B7B
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Nov 2022 01:31:56 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1oxm6k-0008Eq-8o; Wed, 23 Nov 2022 10:31:54 +0100
+Date:   Wed, 23 Nov 2022 10:31:54 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [iptables-nft RFC 4/5] xlate-test: extra-escape of '"' for
+ replay mode
+Message-ID: <20221123093154.GB10048@breakpoint.cc>
+References: <20221121111932.18222-1-fw@strlen.de>
+ <20221121111932.18222-5-fw@strlen.de>
+ <Y3zwH69RX+1XjnTM@orbyte.nwl.cc>
+ <20221122160128.GA10048@breakpoint.cc>
+ <Y3z3Lxwh+RQUSJfG@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y3z3Lxwh+RQUSJfG@orbyte.nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-On Tue, 22 Nov 2022, Pablo Neira Ayuso wrote:
-
-> On Tue, Nov 22, 2022 at 08:18:58PM +0100, Jozsef Kadlecsik wrote:
-> > The patch "netfilter: ipset: enforce documented limit to prevent allocating
-> > huge memory" was too strict and prevented to add up to 64 clashing elements
-> > to a hash:net,iface type of set. This patch fixes the issue and now the type
-> > behaves as documented.
+Phil Sutter <phil@nwl.cc> wrote:
+> On Tue, Nov 22, 2022 at 05:01:28PM +0100, Florian Westphal wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > > On Mon, Nov 21, 2022 at 12:19:31PM +0100, Florian Westphal wrote:
+> > > > Before, nft fails to restore some rules because it sees:
+> > > > insert rule ip filter INPUT iifname iifname ip ...
+> > > > 
+> > > > Add extra escaping for " so that the shell won't remove it and
+> > > > nft will see 'iifname "iifname"'.
+> > > 
+> > > This is fixing up the wrong side, see:
+> > 
+> > Not sure what you mean here.
+> > 
+> > The quotes ARE printed, but the shell strips them away.
+> > 
+> > > struct xt_xlate_{mt,tg}_params::escape_quotes
+> > 
+> > Ick.
+> > 
+> > > this is set if iptables-translate was called and unset if
+> > > iptables-restore-translate was called. I didn't invent this, but the
+> > > logic seems to be escape quotes when printing a command, don't when
+> > > printing a dump file content.
+> > > 
+> > > I have a patch in my queue which extends the conditional quoting to
+> > > interface names. Will submit it later today along with other fixes in
+> > > that corner.
+> > 
+> > I would prefer to rip this out, I don't think any of the tools should
+> > print '\"' instead of '"'.
 > 
-> I have manually applied, this to add the Fixes: tag, upstream 
-> maintainers usually require this and it also helps robots to identify 
-> patches which should go into -stable.
+> Either way is fine with me. See how I explicitly call 'echo "<input>" |
+> nft -f -' in xlate-test.py to force evaluation by the shell - an earlier
+> version of that code would break since nft saw the escapes. So *we*
+> don't need them, but one could argue it educates users that they'll have
+> to escape the quotes if they specify them on command line.
 
-I forgot to add the Fixes: tag, thanks!
+What if we replace:
+iptables-translate  -A INPUT -j LOG --log-prefix "foo bar"
+nft add rule ip filter INPUT counter log prefix \"foo bar\"
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+With
+nft add rule ip filter INPUT 'counter log prefix "foo bar"'
+
+IOW, get rid of all escaped_quotes code and change:
+
+-       printf("%s\n", xt_xlate_rule_get(xl));
++
++       if (cs->restore)
++               printf("%s\n", xt_xlate_rule_get(xl));
++       else
++               printf("'%s'\n", xt_xlate_rule_get(xl));
+
+
+... this would always place everything rule-related printed by xtables-translate in
+single quotes while leaving iptables-restore-translate alone.
+
+What do you think?
