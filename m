@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FFF2C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Nov 2022 12:15:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3EAFC433FE
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Nov 2022 12:16:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236562AbiKWMPL (ORCPT
+        id S235513AbiKWMQr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Nov 2022 07:15:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50898 "EHLO
+        Wed, 23 Nov 2022 07:16:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237426AbiKWMOp (ORCPT
+        with ESMTP id S235939AbiKWMQq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Nov 2022 07:14:45 -0500
+        Wed, 23 Nov 2022 07:16:46 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EA2B2A26B
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Nov 2022 04:14:42 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F29A214D39
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Nov 2022 04:16:45 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1oxoe9-0000lc-ON; Wed, 23 Nov 2022 13:14:33 +0100
+        id 1oxogF-0000m9-Tb; Wed, 23 Nov 2022 13:16:43 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>, Eric Garver <eric@garver.life>
-Subject: [PATCH nf] netfilter: conntrack: set icmpv6 redirects as RELATED
-Date:   Wed, 23 Nov 2022 13:14:23 +0100
-Message-Id: <20221123121423.26687-1-fw@strlen.de>
+Subject: [PATCH v2 nf] netfilter: conntrack: set icmpv6 redirects as RELATED
+Date:   Wed, 23 Nov 2022 13:16:39 +0100
+Message-Id: <20221123121639.27624-1-fw@strlen.de>
 X-Mailer: git-send-email 2.37.4
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -35,10 +35,10 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 icmp conntrack will set icmp redirects as RELATED, but icmpv6 will not
 do this.
 
-For icmpv6, only icmp errors (code <= 128) are examined for RELATED
-state.  ICMPV6 Redirects are part of neighbour discovery mechanism,
-those are handled by marking a selected subset (e.g.  neighbour solicitations)
-as UNTRACKED, but not REDIRECT -- they will thus be flagged as INVALID.
+For icmpv6, only icmp errors (code <= 128) are examined for RELATED state.
+ICMPV6 Redirects are part of neighbour discovery mechanism, those are
+handled by marking a selected subset (e.g.  neighbour solicitations) as
+UNTRACKED, but not REDIRECT -- they will thus be flagged as INVALID.
 
 Add minimal support for REDIRECTs.  No parsing of neighbour options is
 added for simplicity, so this will only check that we have the embeeded
@@ -51,12 +51,14 @@ Reported-by: Eric Garver <eric@garver.life>
 Link: https://github.com/firewalld/firewalld/issues/1046
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ v2: fix up comment typo and reformat commit message.  No other changes.
+
  net/netfilter/nf_conntrack_proto_icmpv6.c     | 53 +++++++++++++++++++
  .../netfilter/conntrack_icmp_related.sh       | 36 ++++++++++++-
  2 files changed, 87 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index 61e3b05cf02c..64af6940dc93 100644
+index 61e3b05cf02c..1a7d7bc732a2 100644
 --- a/net/netfilter/nf_conntrack_proto_icmpv6.c
 +++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
 @@ -129,6 +129,56 @@ static void icmpv6_error_log(const struct sk_buff *skb,
@@ -93,7 +95,7 @@ index 61e3b05cf02c..64af6940dc93 100644
 +
 +	dataoff += sizeof(*rd_msg);
 +
-+	/* warning: rd_msg no longer useable after this call */
++	/* warning: rd_msg no longer usable after this call */
 +	nd_opt = skb_header_pointer(skb, dataoff, sizeof(*nd_opt), &tmp.nd_opt);
 +	if (!nd_opt || nd_opt->nd_opt_len == 0) {
 +		icmpv6_error_log(skb, state, "redirect without options");
