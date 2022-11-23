@@ -2,109 +2,129 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6F7DC43219
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Nov 2022 10:08:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C8E6C4321E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Nov 2022 10:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236966AbiKWKIx (ORCPT
+        id S237228AbiKWKKO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Nov 2022 05:08:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60944 "EHLO
+        Wed, 23 Nov 2022 05:10:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237107AbiKWKHY (ORCPT
+        with ESMTP id S236442AbiKWKI4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Nov 2022 05:07:24 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02034252AA
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Nov 2022 01:57:48 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1oxmVm-0008CN-OT; Wed, 23 Nov 2022 10:57:46 +0100
-Date:   Wed, 23 Nov 2022 10:57:46 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables-nft RFC 4/5] xlate-test: extra-escape of '"' for
- replay mode
-Message-ID: <Y33umrZw65PK+m3N@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20221121111932.18222-1-fw@strlen.de>
- <20221121111932.18222-5-fw@strlen.de>
- <Y3zwH69RX+1XjnTM@orbyte.nwl.cc>
- <20221122160128.GA10048@breakpoint.cc>
- <Y3z3Lxwh+RQUSJfG@orbyte.nwl.cc>
- <20221123093154.GB10048@breakpoint.cc>
+        Wed, 23 Nov 2022 05:08:56 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 085CD10579;
+        Wed, 23 Nov 2022 01:58:45 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A4F77B81EF1;
+        Wed, 23 Nov 2022 09:58:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB87C433D6;
+        Wed, 23 Nov 2022 09:58:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1669197522;
+        bh=m6MbNbll0gZxzTxmpyO62Y8I/bMY5gacCHv+7TeqXy8=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=oQKAp7C0eXGRDmI34dMa520kmbpnrk7i/7+42DV/bUal0RYf3lUP/MTVnLe8OPdpT
+         tcSBCBfpV7OA5nPozvPif9TsRqsx8ZZw3P55QuCIj79SVBroZbQbc+scHnl3kQKHOP
+         /rQ35kQLZHPpUecgfgbP6TFCaYA7hNy+KU4j+IJY=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     stable@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        patches@lists.linux.dev, Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        syzbot <syzkaller@googlegroups.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Kees Cook <keescook@chromium.org>
+Subject: [PATCH 6.0 306/314] netlink: Bounds-check struct nlmsgerr creation
+Date:   Wed, 23 Nov 2022 09:52:31 +0100
+Message-Id: <20221123084639.430560487@linuxfoundation.org>
+X-Mailer: git-send-email 2.38.1
+In-Reply-To: <20221123084625.457073469@linuxfoundation.org>
+References: <20221123084625.457073469@linuxfoundation.org>
+User-Agent: quilt/0.67
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221123093154.GB10048@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Nov 23, 2022 at 10:31:54AM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > On Tue, Nov 22, 2022 at 05:01:28PM +0100, Florian Westphal wrote:
-> > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > On Mon, Nov 21, 2022 at 12:19:31PM +0100, Florian Westphal wrote:
-> > > > > Before, nft fails to restore some rules because it sees:
-> > > > > insert rule ip filter INPUT iifname iifname ip ...
-> > > > > 
-> > > > > Add extra escaping for " so that the shell won't remove it and
-> > > > > nft will see 'iifname "iifname"'.
-> > > > 
-> > > > This is fixing up the wrong side, see:
-> > > 
-> > > Not sure what you mean here.
-> > > 
-> > > The quotes ARE printed, but the shell strips them away.
-> > > 
-> > > > struct xt_xlate_{mt,tg}_params::escape_quotes
-> > > 
-> > > Ick.
-> > > 
-> > > > this is set if iptables-translate was called and unset if
-> > > > iptables-restore-translate was called. I didn't invent this, but the
-> > > > logic seems to be escape quotes when printing a command, don't when
-> > > > printing a dump file content.
-> > > > 
-> > > > I have a patch in my queue which extends the conditional quoting to
-> > > > interface names. Will submit it later today along with other fixes in
-> > > > that corner.
-> > > 
-> > > I would prefer to rip this out, I don't think any of the tools should
-> > > print '\"' instead of '"'.
-> > 
-> > Either way is fine with me. See how I explicitly call 'echo "<input>" |
-> > nft -f -' in xlate-test.py to force evaluation by the shell - an earlier
-> > version of that code would break since nft saw the escapes. So *we*
-> > don't need them, but one could argue it educates users that they'll have
-> > to escape the quotes if they specify them on command line.
-> 
-> What if we replace:
-> iptables-translate  -A INPUT -j LOG --log-prefix "foo bar"
-> nft add rule ip filter INPUT counter log prefix \"foo bar\"
-> 
-> With
-> nft add rule ip filter INPUT 'counter log prefix "foo bar"'
-> 
-> IOW, get rid of all escaped_quotes code and change:
-> 
-> -       printf("%s\n", xt_xlate_rule_get(xl));
-> +
-> +       if (cs->restore)
-> +               printf("%s\n", xt_xlate_rule_get(xl));
-> +       else
-> +               printf("'%s'\n", xt_xlate_rule_get(xl));
-> 
-> 
-> ... this would always place everything rule-related printed by xtables-translate in
-> single quotes while leaving iptables-restore-translate alone.
-> 
-> What do you think?
+From: Kees Cook <keescook@chromium.org>
 
-This looks like a very nice solution to eliminate the conditional
-escaping all over the place! Obviously, it means a mass-update of all
-txlate files.
+commit 710d21fdff9a98d621cd4e64167f3ef8af4e2fd1 upstream.
 
-Thanks, Phil
+In preparation for FORTIFY_SOURCE doing bounds-check on memcpy(),
+switch from __nlmsg_put to nlmsg_put(), and explain the bounds check
+for dealing with the memcpy() across a composite flexible array struct.
+Avoids this future run-time warning:
+
+  memcpy: detected field-spanning write (size 32) of single field "&errmsg->msg" at net/netlink/af_netlink.c:2447 (size 16)
+
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: syzbot <syzkaller@googlegroups.com>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Link: https://lore.kernel.org/r/20220901071336.1418572-1-keescook@chromium.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/netfilter/ipset/ip_set_core.c |    8 +++++---
+ net/netlink/af_netlink.c          |    8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1719,11 +1719,13 @@ call_ad(struct net *net, struct sock *ct
+ 		skb2 = nlmsg_new(payload, GFP_KERNEL);
+ 		if (!skb2)
+ 			return -ENOMEM;
+-		rep = __nlmsg_put(skb2, NETLINK_CB(skb).portid,
+-				  nlh->nlmsg_seq, NLMSG_ERROR, payload, 0);
++		rep = nlmsg_put(skb2, NETLINK_CB(skb).portid,
++				nlh->nlmsg_seq, NLMSG_ERROR, payload, 0);
+ 		errmsg = nlmsg_data(rep);
+ 		errmsg->error = ret;
+-		memcpy(&errmsg->msg, nlh, nlh->nlmsg_len);
++		unsafe_memcpy(&errmsg->msg, nlh, nlh->nlmsg_len,
++			      /* Bounds checked by the skb layer. */);
++
+ 		cmdattr = (void *)&errmsg->msg + min_len;
+ 
+ 		ret = nla_parse(cda, IPSET_ATTR_CMD_MAX, cmdattr,
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -2440,11 +2440,13 @@ void netlink_ack(struct sk_buff *in_skb,
+ 		return;
+ 	}
+ 
+-	rep = __nlmsg_put(skb, NETLINK_CB(in_skb).portid, nlh->nlmsg_seq,
+-			  NLMSG_ERROR, payload, flags);
++	rep = nlmsg_put(skb, NETLINK_CB(in_skb).portid, nlh->nlmsg_seq,
++			NLMSG_ERROR, payload, flags);
+ 	errmsg = nlmsg_data(rep);
+ 	errmsg->error = err;
+-	memcpy(&errmsg->msg, nlh, payload > sizeof(*errmsg) ? nlh->nlmsg_len : sizeof(*nlh));
++	unsafe_memcpy(&errmsg->msg, nlh, payload > sizeof(*errmsg)
++					 ? nlh->nlmsg_len : sizeof(*nlh),
++		      /* Bounds checked by the skb layer. */);
+ 
+ 	if (nlk_has_extack && extack) {
+ 		if (extack->_msg) {
+
+
