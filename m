@@ -2,136 +2,73 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59196C4321E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Nov 2022 17:21:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F06AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Nov 2022 17:22:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229834AbiKXRV5 (ORCPT
+        id S229436AbiKXRWl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Nov 2022 12:21:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47084 "EHLO
+        Thu, 24 Nov 2022 12:22:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229796AbiKXRVu (ORCPT
+        with ESMTP id S229812AbiKXRWg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Nov 2022 12:21:50 -0500
-Received: from mail-qk1-x730.google.com (mail-qk1-x730.google.com [IPv6:2607:f8b0:4864:20::730])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4E57109590;
-        Thu, 24 Nov 2022 09:21:49 -0800 (PST)
-Received: by mail-qk1-x730.google.com with SMTP id i9so1325109qkl.5;
-        Thu, 24 Nov 2022 09:21:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=swXPCJ3Vt8NybwpinVftzKi5NXB2BzwYuWxMwJ0OHjA=;
-        b=jTHy8g/xCy2WRdZpdom/1rJxLc6HT0ER5phslSKLIgLba2RPPAJlL+KXnjL6QuwamD
-         5IR+rv78yjKdTBggAXdCOw6WZAWoRyIEzfOHFYwXC2gBACVT30NN83ZtJiLikLiYX9MP
-         t4et5mAvYkgubaX6qI+bVo1yHG5hdOPjx/wyKBtol8mK9tn4eUN3USyB88Tf6klIcOLE
-         35nouecPsxlfUCiLufS6W2u7V2paZXG5tKVw2tBmKS4Auy8tRhi0C+8QnhWJ2m3C6I+t
-         9YFEc+n3tJeKbB15gZ9xiI2fxXtaD0aVc4Mtktn6vu88l5eUUEoZ31fTnRll5+C0dmqA
-         gtAg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=swXPCJ3Vt8NybwpinVftzKi5NXB2BzwYuWxMwJ0OHjA=;
-        b=VKswQam6bg+c958oPOnTiAFQxrtZ4fv0vqrGH3izE9Xf4LdEZiKNCkX8jINkr8ZjZZ
-         OsRH0N0QS34opNeETPrjiRhMDXnpO+xMk0qsc90uXTQSxSpRjGi28IyLUFvaCGuo7p8W
-         v9R1OwwLjOZTSfjH05m40AvdQmL6uiy32X5uGP6WEb61rk9nJL/X8Rm04DDPFtzYb8i1
-         1YdDUKDvZRAf9PDde9urcJii7Q3vxYs0baRfMdbYkg/Uhd55jKfLPT6ZqyaracJnwVdo
-         QbnUhlVsLXOVmXfjc4WYG+EoR+fNaI9ah+3+uGthV6IIKzywOlWOGNGnzWcn41M5icYg
-         hIKA==
-X-Gm-Message-State: ANoB5pkOH0cCUuqslmrUK5uRQS1Y89VVbhc1j0bwUQsZ3ye6d3J8pbJ1
-        4y6YAZR1jd8TeIXt2Jvd8SHjQP8bavc=
-X-Google-Smtp-Source: AA0mqf4TgWQQW9FXb1/4ItHSKTeVqZJ4yhCHU2xXjh45t0lYtHoR7pofAEayS0VM1IJQHL0xyyW8wQ==
-X-Received: by 2002:a05:620a:2205:b0:6fa:3d52:ca with SMTP id m5-20020a05620a220500b006fa3d5200camr29438508qkh.362.1669310508502;
-        Thu, 24 Nov 2022 09:21:48 -0800 (PST)
-Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
-        by smtp.gmail.com with ESMTPSA id bq10-20020a05622a1c0a00b003a582090530sm829101qtb.83.2022.11.24.09.21.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Nov 2022 09:21:48 -0800 (PST)
-From:   Xin Long <lucien.xin@gmail.com>
-To:     netfilter-devel@vger.kernel.org,
-        network dev <netdev@vger.kernel.org>
+        Thu, 24 Nov 2022 12:22:36 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A0D3E58
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2022 09:22:27 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1oyFvd-000171-KK; Thu, 24 Nov 2022 18:22:25 +0100
+Date:   Thu, 24 Nov 2022 18:22:25 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 3/4] xt: Rewrite unsupported compat expression dumping
+Message-ID: <Y3+oUeGrKbcdpntz@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>, davem@davemloft.net,
-        kuba@kernel.org, Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH nf] netfilter: fix using __this_cpu_add in preemptible in nf_conntrack_core
-Date:   Thu, 24 Nov 2022 12:21:46 -0500
-Message-Id: <24fafc682ed793651f7306023b1972323abcd97c.1669310506.git.lucien.xin@gmail.com>
-X-Mailer: git-send-email 2.31.1
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20221124165641.26921-1-phil@nwl.cc>
+ <20221124165641.26921-4-phil@nwl.cc>
+ <20221124170454.GG2753@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221124170454.GG2753@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently in nf_conntrack_hash_check_insert(), when it fails in
-nf_ct_ext_valid_pre/post(), NF_CT_STAT_INC() will be called in the
-preemptible context, a call trace can be triggered:
+On Thu, Nov 24, 2022 at 06:04:54PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > diff --git a/src/scanner.l b/src/scanner.l
+> > index 1371cd044b65a..4edd729c80dab 100644
+> > --- a/src/scanner.l
+> > +++ b/src/scanner.l
+> > @@ -214,6 +214,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+> >  %s SCANSTATE_TCP
+> >  %s SCANSTATE_TYPE
+> >  %s SCANSTATE_VLAN
+> > +%s SCANSTATE_XT
+> >  %s SCANSTATE_CMD_EXPORT
+> >  %s SCANSTATE_CMD_IMPORT
+> >  %s SCANSTATE_CMD_LIST
+> > @@ -799,6 +800,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+> >  
+> >  "secmark"		{ scanner_push_start_cond(yyscanner, SCANSTATE_SECMARK); return SECMARK; }
+> >  
+> > +"xt"			{ scanner_push_start_cond(yyscanner, SCANSTATE_XT); return XT; }
+> 
+> Why is there a new scanner state?  It has no tokens, so it doesn't do
+> anything.
+> 
+> Perhaps a leftover?  Or did you plan to make match/target/watcher scoped
+> tokens?
 
-   BUG: using __this_cpu_add() in preemptible [00000000] code: conntrack/1636
-   caller is nf_conntrack_hash_check_insert+0x45/0x430 [nf_conntrack]
-   Call Trace:
-    <TASK>
-    dump_stack_lvl+0x33/0x46
-    check_preemption_disabled+0xc3/0xf0
-    nf_conntrack_hash_check_insert+0x45/0x430 [nf_conntrack]
-    ctnetlink_create_conntrack+0x3cd/0x4e0 [nf_conntrack_netlink]
-    ctnetlink_new_conntrack+0x1c0/0x450 [nf_conntrack_netlink]
-    nfnetlink_rcv_msg+0x277/0x2f0 [nfnetlink]
-    netlink_rcv_skb+0x50/0x100
-    nfnetlink_rcv+0x65/0x144 [nfnetlink]
-    netlink_unicast+0x1ae/0x290
-    netlink_sendmsg+0x257/0x4f0
-    sock_sendmsg+0x5f/0x70
+We want to accept two arbitrary strings after "xt" and just complain
+about the whole thing. Without the scope, something like "xt target
+exthdr" will make the parser complain about the unexpected keyword.
 
-This patch is to fix it by changing to use NF_CT_STAT_INC_ATOMIC() for
-nf_ct_ext_valid_pre/post() check in nf_conntrack_hash_check_insert(),
-as well as nf_ct_ext_valid_post() in __nf_conntrack_confirm().
-
-Note that nf_ct_ext_valid_pre() check in __nf_conntrack_confirm() is
-safe to use NF_CT_STAT_INC(), as it's under local_bh_disable().
-
-Fixes: c56716c69ce1 ("netfilter: extensions: introduce extension genid count")
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
----
- net/netfilter/nf_conntrack_core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2692139ce417..23b3fedd619a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -891,7 +891,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	zone = nf_ct_zone(ct);
- 
- 	if (!nf_ct_ext_valid_pre(ct->ext)) {
--		NF_CT_STAT_INC(net, insert_failed);
-+		NF_CT_STAT_INC_ATOMIC(net, insert_failed);
- 		return -ETIMEDOUT;
- 	}
- 
-@@ -938,7 +938,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 
- 	if (!nf_ct_ext_valid_post(ct->ext)) {
- 		nf_ct_kill(ct);
--		NF_CT_STAT_INC(net, drop);
-+		NF_CT_STAT_INC_ATOMIC(net, drop);
- 		return -ETIMEDOUT;
- 	}
- 
-@@ -1275,7 +1275,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 */
- 	if (!nf_ct_ext_valid_post(ct->ext)) {
- 		nf_ct_kill(ct);
--		NF_CT_STAT_INC(net, drop);
-+		NF_CT_STAT_INC_ATOMIC(net, drop);
- 		return NF_DROP;
- 	}
- 
--- 
-2.31.1
-
+Cheers, Phil
