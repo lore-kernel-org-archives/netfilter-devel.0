@@ -2,50 +2,51 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C5D2C4167D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Nov 2022 20:27:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D523C46467
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Nov 2022 21:01:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234049AbiK1U1A (ORCPT
+        id S229929AbiK1VBI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Nov 2022 15:27:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39390 "EHLO
+        Mon, 28 Nov 2022 16:01:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234091AbiK1U0s (ORCPT
+        with ESMTP id S232674AbiK1VBH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2022 15:26:48 -0500
-Received: from smtp-8fa8.mail.infomaniak.ch (smtp-8fa8.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fa8])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CCFE2E684
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2022 12:26:43 -0800 (PST)
-Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4NLcSf0142zMq4cB;
-        Mon, 28 Nov 2022 21:26:42 +0100 (CET)
+        Mon, 28 Nov 2022 16:01:07 -0500
+Received: from smtp-190b.mail.infomaniak.ch (smtp-190b.mail.infomaniak.ch [IPv6:2001:1600:3:17::190b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 423C01E718;
+        Mon, 28 Nov 2022 13:01:03 -0800 (PST)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4NLdDC66VQzMpnfG;
+        Mon, 28 Nov 2022 22:00:59 +0100 (CET)
 Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4NLcSd1bktzwy;
-        Mon, 28 Nov 2022 21:26:41 +0100 (CET)
+        by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4NLdDC0lNdzMppBY;
+        Mon, 28 Nov 2022 22:00:59 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1669667201;
-        bh=PYhARmPRWBAR3gdL8U39SstQEnPL+gynR2X4/0WHpoc=;
+        s=20191114; t=1669669259;
+        bh=/1ZK7U9AzdLPF2AzAv3gVXDTqS8e0Pql7sOQaGFCoj8=;
         h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=CmSjedJNvuS3XEb1Y2Y2T0rYh+cTUOiVaMApMO22ISAmkKF4GeFr2btWYul19Z1fh
-         YNHQKt1dZVVlTMSZGT//kwnRFJc31bEYqQoAOP7YT/H+KFEOoMp4Of+VncgnWhLUZI
-         p5O52IFWmoX7jEOGWiow0PYEJC+uNkD+xMt8UZQc=
-Message-ID: <2bce0b5a-a679-93f2-995c-cb0e80c82bf2@digikod.net>
-Date:   Mon, 28 Nov 2022 21:26:40 +0100
+        b=h5DVGB+sEU0SPVa/H8FPfV9BLrjIOopwRqVm7HVnryhfe6hS/lq9VbiReGQ1rP274
+         hfdpcSg1QNbQlEktf+unfFj9bc3X0/zjpqJDdbxnRO2gSgB8zLKQh9tP3c8wJ0oed/
+         8icgp58Dov6ZP3tzdkQw3VaLSx0A9QggznS98KfM=
+Message-ID: <6071d053-a4b4-61f0-06f6-f94e6ce1e6d6@digikod.net>
+Date:   Mon, 28 Nov 2022 22:00:58 +0100
 MIME-Version: 1.0
 User-Agent: 
-Subject: Re: [PATCH v8 12/12] landlock: Document Landlock's network support
+Subject: Re: [PATCH v8 08/12] landlock: Implement TCP network hooks
 Content-Language: en-US
 To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
 Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
         linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, artem.kuzin@huawei.com,
-        linux-doc@vger.kernel.org
+        linux-api@vger.kernel.org,
+        "Alejandro Colomar (man-pages)" <alx.manpages@gmail.com>
 References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
- <20221021152644.155136-13-konstantin.meskhidze@huawei.com>
- <8a8ba39f-c7c2-eca6-93b1-f36d982726ca@digikod.net>
- <73a8a2f2-0d59-970d-eaba-c0da38a1c38b@huawei.com>
+ <20221021152644.155136-9-konstantin.meskhidze@huawei.com>
+ <3452964b-04d3-b297-92a1-1220e087323e@digikod.net>
+ <335a5372-e444-5deb-c04d-664cbc7cdc2e@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <73a8a2f2-0d59-970d-eaba-c0da38a1c38b@huawei.com>
+In-Reply-To: <335a5372-e444-5deb-c04d-664cbc7cdc2e@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Infomaniak-Routing: alpha
@@ -53,124 +54,92 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+The previous commit provides an interface to theoretically restrict 
+network access (i.e. ruleset handled network accesses), but in fact this 
+is not enforced until this commit. I like this split but to avoid any 
+inconsistency, please squash this commit into the previous one: "7/12 
+landlock: Add network rules support"
+You should keep all the commit messages but maybe tweak them a bit.
 
-On 28/11/2022 07:44, Konstantin Meskhidze (A) wrote:
+
+On 28/11/2022 09:21, Konstantin Meskhidze (A) wrote:
 > 
 > 
-> 11/17/2022 9:44 PM, Mickaël Salaün пишет:
+> 11/17/2022 9:43 PM, Mickaël Salaün пишет:
 >>
 >> On 21/10/2022 17:26, Konstantin Meskhidze wrote:
->>> Describes network access rules for TCP sockets. Adds network access
->>> example in the tutorial. Points out AF_UNSPEC socket family behaviour.
->>> Adds kernel configuration support for network.
+>>> This patch adds support of socket_bind() and socket_connect() hooks.
+>>> It's possible to restrict binding and connecting of TCP sockets to
+>>> particular ports.
+>>
+>> Implement socket_bind() and socket_connect LSM hooks, which enable to
+>> restrict TCP socket binding and connection to specific ports.
+>>
+>     Ok. Thanks.
+>>
 >>>
 >>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 >>> ---
->>>
->>> Changes since v7:
->>> * Fixes documentaion logic errors and typos as Mickaёl suggested:
->>> https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@digikod.net/
->>>
->>> Changes since v6:
->>> * Adds network support documentaion.
->>>
->>> ---
->>>    Documentation/userspace-api/landlock.rst | 72 +++++++++++++++++++-----
->>>    1 file changed, 59 insertions(+), 13 deletions(-)
->>>
->>> diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
->>> index d8cd8cd9ce25..d0610ec9ce05 100644
->>> --- a/Documentation/userspace-api/landlock.rst
->>> +++ b/Documentation/userspace-api/landlock.rst
->>> @@ -11,10 +11,10 @@ Landlock: unprivileged access control
->>>    :Date: October 2022
->>>
->>>    The goal of Landlock is to enable to restrict ambient rights (e.g. global
->>> -filesystem access) for a set of processes.  Because Landlock is a stackable
->>> -LSM, it makes possible to create safe security sandboxes as new security layers
->>> -in addition to the existing system-wide access-controls. This kind of sandbox
->>> -is expected to help mitigate the security impact of bugs or
->>> +filesystem or network access) for a set of processes.  Because Landlock
->>> +is a stackable LSM, it makes possible to create safe security sandboxes as new
->>> +security layers in addition to the existing system-wide access-controls. This
->>> +kind of sandbox is expected to help mitigate the security impact of bugs or
->>>    unexpected/malicious behaviors in user space applications.  Landlock empowers
->>>    any process, including unprivileged ones, to securely restrict themselves.
->>>
->>> @@ -30,18 +30,20 @@ Landlock rules
->>>
->>>    A Landlock rule describes an action on an object.  An object is currently a
->>>    file hierarchy, and the related filesystem actions are defined with `access
->>> -rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
->>> -the thread enforcing it, and its future children.
->>> +rights`_.  Since ABI version 4 a port data appears with related network actions
->>> +for TCP socket families.  A set of rules is aggregated in a ruleset, which
->>> +can then restrict the thread enforcing it, and its future children.
->>>
->>>    Defining and enforcing a security policy
->>>    ----------------------------------------
->>>
->>>    We first need to define the ruleset that will contain our rules.  For this
->>>    example, the ruleset will contain rules that only allow read actions, but write
->>> -actions will be denied.  The ruleset then needs to handle both of these kind of
->>> +actions will be denied. The ruleset then needs to handle both of these kind of
->>>    actions.  This is required for backward and forward compatibility (i.e. the
->>>    kernel and user space may not know each other's supported restrictions), hence
->>> -the need to be explicit about the denied-by-default access rights.
->>> +the need to be explicit about the denied-by-default access rights.  Also ruleset
->>> +will have network rules for specific ports, so it should handle network actions.
->>>
->>>    .. code-block:: c
->>>
->>> @@ -62,6 +64,9 @@ the need to be explicit about the denied-by-default access rights.
->>>                LANDLOCK_ACCESS_FS_MAKE_SYM |
->>>                LANDLOCK_ACCESS_FS_REFER |
->>>                LANDLOCK_ACCESS_FS_TRUNCATE,
->>> +        .handled_access_net =
->>> +            LANDLOCK_ACCESS_NET_BIND_TCP |
->>> +            LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>>        };
->>>
->>>    Because we may not know on which kernel version an application will be
->>> @@ -70,14 +75,18 @@ should try to protect users as much as possible whatever the kernel they are
->>>    using.  To avoid binary enforcement (i.e. either all security features or
->>>    none), we can leverage a dedicated Landlock command to get the current version
->>>    of the Landlock ABI and adapt the handled accesses.  Let's check if we should
->>> -remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE``
->>> -access rights, which are only supported starting with the second and third
->>> -version of the ABI.
->>> +remove the `LANDLOCK_ACCESS_FS_REFER` or `LANDLOCK_ACCESS_FS_TRUNCATE` or
->>> +network access rights, which are only supported starting with the second,
+
+[...]
+
+>>> +static int hook_socket_connect(struct socket *sock, struct sockaddr *address,
+>>> +			       int addrlen)
+>>> +{
+>>> +	const struct landlock_ruleset *const dom =
+>>> +		landlock_get_current_domain();
+>>> +
+>>> +	if (!dom)
+>>> +		return 0;
+>>> +
+>>> +	/* Check if it's a TCP socket. */
+>>> +	if (sock->type != SOCK_STREAM)
+>>> +		return 0;
+>>> +
+>>> +	/* Check if the hook is AF_INET* socket's action. */
+>>> +	switch (address->sa_family) {
+>>> +	case AF_INET:
+>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>> +	case AF_INET6:
+>>> +#endif
+>>> +		return check_socket_access(dom, get_port(address),
+>>> +					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+>>> +	case AF_UNSPEC: {
+>>> +		u16 i;
 >>
->> This is a bad rebase.
+>> You can move "i" after the "dom" declaration to remove the extra braces.
+>>
+>     Ok. Thanks.
+>>
+>>> +
+>>> +		/*
+>>> +		 * If just in a layer a mask supports connect access,
+>>> +		 * the socket_connect() hook with AF_UNSPEC family flag
+>>> +		 * must be banned. This prevents from disconnecting already
+>>> +		 * connected sockets.
+>>> +		 */
+>>> +		for (i = 0; i < dom->num_layers; i++) {
+>>> +			if (landlock_get_net_access_mask(dom, i) &
+>>> +			    LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>>> +				return -EACCES;
+>>
+>> I'm wondering if this is the right error code for this case. EPERM may
+>> be more appropriate.
 > 
->     Sorry. Did not get it.
-
-This hunk (and maybe others) changes unrelated things (e.g. back quotes).
-
-
+>     Ok. Will be refactored.
 >>
+>> Thinking more about this case, I don't understand what is the rationale
+>> to deny such action. What would be the consequence to always allow
+>> connection with AF_UNSPEC (i.e. to disconnect a socket)?
 >>
->>> +third and fourth version of the ABI.
->>>
->>>    .. code-block:: c
->>>
->>>        int abi;
->>>
->>> +    #define ACCESS_NET_BIND_CONNECT ( \
->>> +    LANDLOCK_ACCESS_NET_BIND_TCP | \
->>> +    LANDLOCK_ACCESS_NET_CONNECT_TCP)
->>
->> Please add a 4-spaces prefix for these two lines.
-> 
->     Like this??
-> 	#define ACCESS_NET_BIND_CONNECT ( \
->               LANDLOCK_ACCESS_NET_BIND_TCP | \
->               LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>     I thought we have come to a conclusion about connect(...AF_UNSPEC..)
+>    behaviour in the patchset V3:
+> https://lore.kernel.org/linux-security-module/19ad3a01-d76e-0e73-7833-99acd4afd97e@huawei.com/
 
-Like for other indentations in the documentation (e.g. ruleset_attr 
-definition):
+The conclusion was that AF_UNSPEC disconnects a socket, but I'm asking 
+if this is a security issue. I don't think it is more dangerous than a 
+new (unconnected) socket. Am I missing something? Which kind of rule 
+could be bypassed? What are we protecting against by restricting AF_UNSPEC?
 
-#define ACCESS_NET_BIND_CONNECT ( \
-     LANDLOCK_ACCESS_NET_BIND_TCP | \
-     LANDLOCK_ACCESS_NET_CONNECT_TCP)
+We could then reduce the hook codes to just:
+return current_check_access_socket(sock, address, LANDLOCK_ACCESS_NET_*);
