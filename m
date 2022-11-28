@@ -2,52 +2,53 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 843DFC46467
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Nov 2022 06:44:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA3EAC433FE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Nov 2022 08:21:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229629AbiK1Goe (ORCPT
+        id S230000AbiK1IVx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Nov 2022 01:44:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43674 "EHLO
+        Mon, 28 Nov 2022 03:21:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229602AbiK1God (ORCPT
+        with ESMTP id S230180AbiK1IVp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2022 01:44:33 -0500
+        Mon, 28 Nov 2022 03:21:45 -0500
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D1C15580;
-        Sun, 27 Nov 2022 22:44:31 -0800 (PST)
-Received: from fraeml705-chm.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NLGCc57mZz67Y4H;
-        Mon, 28 Nov 2022 14:44:12 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0A89DE96;
+        Mon, 28 Nov 2022 00:21:40 -0800 (PST)
+Received: from fraeml735-chm.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NLJMj3NDPz67xJM;
+        Mon, 28 Nov 2022 16:21:21 +0800 (CST)
 Received: from lhrpeml500004.china.huawei.com (7.191.163.9) by
- fraeml705-chm.china.huawei.com (10.206.15.54) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2375.31; Mon, 28 Nov 2022 07:44:29 +0100
+ fraeml735-chm.china.huawei.com (10.206.15.216) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Mon, 28 Nov 2022 09:21:38 +0100
 Received: from [10.122.132.241] (10.122.132.241) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Mon, 28 Nov 2022 06:44:28 +0000
-Message-ID: <73a8a2f2-0d59-970d-eaba-c0da38a1c38b@huawei.com>
-Date:   Mon, 28 Nov 2022 09:44:27 +0300
+ 15.1.2375.34; Mon, 28 Nov 2022 08:21:37 +0000
+Message-ID: <335a5372-e444-5deb-c04d-664cbc7cdc2e@huawei.com>
+Date:   Mon, 28 Nov 2022 11:21:36 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.4.1
-Subject: Re: [PATCH v8 12/12] landlock: Document Landlock's network support
+Subject: Re: [PATCH v8 08/12] landlock: Implement TCP network hooks
 Content-Language: ru
 To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <artem.kuzin@huawei.com>,
-        <linux-doc@vger.kernel.org>
+        <linux-api@vger.kernel.org>,
+        "Alejandro Colomar (man-pages)" <alx.manpages@gmail.com>
 References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
- <20221021152644.155136-13-konstantin.meskhidze@huawei.com>
- <8a8ba39f-c7c2-eca6-93b1-f36d982726ca@digikod.net>
+ <20221021152644.155136-9-konstantin.meskhidze@huawei.com>
+ <3452964b-04d3-b297-92a1-1220e087323e@digikod.net>
 From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <8a8ba39f-c7c2-eca6-93b1-f36d982726ca@digikod.net>
+In-Reply-To: <3452964b-04d3-b297-92a1-1220e087323e@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.122.132.241]
-X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  lhrpeml500004.china.huawei.com (7.191.163.9)
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -56,247 +57,465 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-11/17/2022 9:44 PM, Mickaël Salaün пишет:
+11/17/2022 9:43 PM, Mickaël Salaün пишет:
 > 
 > On 21/10/2022 17:26, Konstantin Meskhidze wrote:
->> Describes network access rules for TCP sockets. Adds network access
->> example in the tutorial. Points out AF_UNSPEC socket family behaviour.
->> Adds kernel configuration support for network.
+>> This patch adds support of socket_bind() and socket_connect() hooks.
+>> It's possible to restrict binding and connecting of TCP sockets to
+>> particular ports.
+> 
+> Implement socket_bind() and socket_connect LSM hooks, which enable to
+> restrict TCP socket binding and connection to specific ports.
+> 
+   Ok. Thanks.
+> 
 >> 
 >> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 >> ---
 >> 
 >> Changes since v7:
->> * Fixes documentaion logic errors and typos as Mickaёl suggested:
->> https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@digikod.net/
+>> * Minor fixes.
+>> * Refactors commit message.
 >> 
 >> Changes since v6:
->> * Adds network support documentaion.
+>> * Updates copyright.
+>> * Refactors landlock_append_net_rule() and check_socket_access()
+>>    functions with landlock_id type.
+>> 
+>> Changes since v5:
+>> * Fixes some logic errors.
+>> * Formats code with clang-format-14.
+>> 
+>> Changes since v4:
+>> * Factors out CONFIG_INET into make file.
+>> * Refactors check_socket_access().
+>> * Adds helper get_port().
+>> * Adds CONFIG_IPV6 in get_port(), hook_socket_bind/connect
+>> functions to support AF_INET6 family.
+>> * Adds AF_UNSPEC family support in hook_socket_bind/connect
+>> functions.
+>> * Refactors add_rule_net_service() and landlock_add_rule
+>> syscall to support network rule inserting.
+>> * Refactors init_layer_masks() to support network rules.
+>> 
+>> Changes since v3:
+>> * Splits commit.
+>> * Adds SECURITY_NETWORK in config.
+>> * Adds IS_ENABLED(CONFIG_INET) if a kernel has no INET configuration.
+>> * Adds hook_socket_bind and hook_socket_connect hooks.
 >> 
 >> ---
->>   Documentation/userspace-api/landlock.rst | 72 +++++++++++++++++++-----
->>   1 file changed, 59 insertions(+), 13 deletions(-)
+>>   security/landlock/Kconfig    |   1 +
+>>   security/landlock/Makefile   |   2 +
+>>   security/landlock/net.c      | 164 +++++++++++++++++++++++++++++++++++
+>>   security/landlock/net.h      |  26 ++++++
+>>   security/landlock/setup.c    |   2 +
+>>   security/landlock/syscalls.c |  59 ++++++++++++-
+>>   6 files changed, 251 insertions(+), 3 deletions(-)
+>>   create mode 100644 security/landlock/net.c
+>>   create mode 100644 security/landlock/net.h
 >> 
->> diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
->> index d8cd8cd9ce25..d0610ec9ce05 100644
->> --- a/Documentation/userspace-api/landlock.rst
->> +++ b/Documentation/userspace-api/landlock.rst
->> @@ -11,10 +11,10 @@ Landlock: unprivileged access control
->>   :Date: October 2022
+>> diff --git a/security/landlock/Kconfig b/security/landlock/Kconfig
+>> index 8e33c4e8ffb8..10c099097533 100644
+>> --- a/security/landlock/Kconfig
+>> +++ b/security/landlock/Kconfig
+>> @@ -3,6 +3,7 @@
+>>   config SECURITY_LANDLOCK
+>>   	bool "Landlock support"
+>>   	depends on SECURITY && !ARCH_EPHEMERAL_INODES
+>> +	select SECURITY_NETWORK
+>>   	select SECURITY_PATH
+>>   	help
+>>   	  Landlock is a sandboxing mechanism that enables processes to restrict
+>> diff --git a/security/landlock/Makefile b/security/landlock/Makefile
+>> index 7bbd2f413b3e..53d3c92ae22e 100644
+>> --- a/security/landlock/Makefile
+>> +++ b/security/landlock/Makefile
+>> @@ -2,3 +2,5 @@ obj-$(CONFIG_SECURITY_LANDLOCK) := landlock.o
 >> 
->>   The goal of Landlock is to enable to restrict ambient rights (e.g. global
->> -filesystem access) for a set of processes.  Because Landlock is a stackable
->> -LSM, it makes possible to create safe security sandboxes as new security layers
->> -in addition to the existing system-wide access-controls. This kind of sandbox
->> -is expected to help mitigate the security impact of bugs or
->> +filesystem or network access) for a set of processes.  Because Landlock
->> +is a stackable LSM, it makes possible to create safe security sandboxes as new
->> +security layers in addition to the existing system-wide access-controls. This
->> +kind of sandbox is expected to help mitigate the security impact of bugs or
->>   unexpected/malicious behaviors in user space applications.  Landlock empowers
->>   any process, including unprivileged ones, to securely restrict themselves.
->> 
->> @@ -30,18 +30,20 @@ Landlock rules
->> 
->>   A Landlock rule describes an action on an object.  An object is currently a
->>   file hierarchy, and the related filesystem actions are defined with `access
->> -rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
->> -the thread enforcing it, and its future children.
->> +rights`_.  Since ABI version 4 a port data appears with related network actions
->> +for TCP socket families.  A set of rules is aggregated in a ruleset, which
->> +can then restrict the thread enforcing it, and its future children.
->> 
->>   Defining and enforcing a security policy
->>   ----------------------------------------
->> 
->>   We first need to define the ruleset that will contain our rules.  For this
->>   example, the ruleset will contain rules that only allow read actions, but write
->> -actions will be denied.  The ruleset then needs to handle both of these kind of
->> +actions will be denied. The ruleset then needs to handle both of these kind of
->>   actions.  This is required for backward and forward compatibility (i.e. the
->>   kernel and user space may not know each other's supported restrictions), hence
->> -the need to be explicit about the denied-by-default access rights.
->> +the need to be explicit about the denied-by-default access rights.  Also ruleset
->> +will have network rules for specific ports, so it should handle network actions.
->> 
->>   .. code-block:: c
->> 
->> @@ -62,6 +64,9 @@ the need to be explicit about the denied-by-default access rights.
->>               LANDLOCK_ACCESS_FS_MAKE_SYM |
->>               LANDLOCK_ACCESS_FS_REFER |
->>               LANDLOCK_ACCESS_FS_TRUNCATE,
->> +        .handled_access_net =
->> +            LANDLOCK_ACCESS_NET_BIND_TCP |
->> +            LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>       };
->> 
->>   Because we may not know on which kernel version an application will be
->> @@ -70,14 +75,18 @@ should try to protect users as much as possible whatever the kernel they are
->>   using.  To avoid binary enforcement (i.e. either all security features or
->>   none), we can leverage a dedicated Landlock command to get the current version
->>   of the Landlock ABI and adapt the handled accesses.  Let's check if we should
->> -remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE``
->> -access rights, which are only supported starting with the second and third
->> -version of the ABI.
->> +remove the `LANDLOCK_ACCESS_FS_REFER` or `LANDLOCK_ACCESS_FS_TRUNCATE` or
->> +network access rights, which are only supported starting with the second,
+>>   landlock-y := setup.o syscalls.o object.o ruleset.o \
+>>   	cred.o ptrace.o fs.o
+>> +
+>> +landlock-$(CONFIG_INET) += net.o
+>> \ No newline at end of file
+>> diff --git a/security/landlock/net.c b/security/landlock/net.c
+>> new file mode 100644
+>> index 000000000000..39e8a156a1f4
+>> --- /dev/null
+>> +++ b/security/landlock/net.c
+>> @@ -0,0 +1,164 @@
+>> +// SPDX-License-Identifier: GPL-2.0-only
+>> +/*
+>> + * Landlock LSM - Network management and hooks
+>> + *
+>> + * Copyright © 2022 Huawei Tech. Co., Ltd.
+>> + * Copyright © 2022 Microsoft Corporation
+>> + */
+>> +
+>> +#include <linux/in.h>
+>> +#include <linux/net.h>
+>> +#include <linux/socket.h>
+>> +#include <net/ipv6.h>
+>> +
+>> +#include "common.h"
+>> +#include "cred.h"
+>> +#include "limits.h"
+>> +#include "net.h"
+>> +#include "ruleset.h"
+>> +
+>> +int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
+>> +			     const u16 port, access_mask_t access_rights)
+>> +{
+>> +	int err;
+>> +	const struct landlock_id id = {
+>> +		.key.data = port,
+>> +		.type = LANDLOCK_KEY_NET_PORT,
+>> +	};
+>> +	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+>> +
+>> +	/* Transforms relative access rights to absolute ones. */
+>> +	access_rights |= LANDLOCK_MASK_ACCESS_NET &
+>> +			 ~landlock_get_net_access_mask(ruleset, 0);
+>> +
+>> +	mutex_lock(&ruleset->lock);
+>> +	err = landlock_insert_rule(ruleset, id, access_rights);
+>> +	mutex_unlock(&ruleset->lock);
+>> +
+>> +	return err;
+>> +}
+>> +
+>> +static int check_socket_access(const struct landlock_ruleset *const domain,
+>> +			       u16 port, access_mask_t access_request)
+>> +{
+>> +	bool allowed = false;
+>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+>> +	const struct landlock_rule *rule;
+>> +	access_mask_t handled_access;
+>> +	const struct landlock_id id = {
+>> +		.key.data = port,
+>> +		.type = LANDLOCK_KEY_NET_PORT,
+>> +	};
+>> +
+>> +	if (WARN_ON_ONCE(!domain))
+>> +		return 0;
+>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+>> +		return -EACCES;
+>> +
+>> +	rule = landlock_find_rule(domain, id);
+>> +	handled_access = init_layer_masks(domain, access_request, &layer_masks,
+>> +					  LANDLOCK_KEY_NET_PORT);
+>> +	allowed = unmask_layers(rule, handled_access, &layer_masks,
+>> +				ARRAY_SIZE(layer_masks));
+>> +
+>> +	return allowed ? 0 : -EACCES;
+>> +}
+>> +
+>> +static u16 get_port(const struct sockaddr *const address)
 > 
-> This is a bad rebase.
+> get_port() should return a __be16 type. This enables to avoid converting
+> port when checking a rule.
+> 
+> make C=2 security/landlock/ must not print any warning.
 
-   Sorry. Did not get it.
+   Got it.
 > 
 > 
->> +third and fourth version of the ABI.
->> 
->>   .. code-block:: c
->> 
->>       int abi;
->> 
->> +    #define ACCESS_NET_BIND_CONNECT ( \
->> +    LANDLOCK_ACCESS_NET_BIND_TCP | \
->> +    LANDLOCK_ACCESS_NET_CONNECT_TCP)
-> 
-> Please add a 4-spaces prefix for these two lines.
-
-   Like this??
-	#define ACCESS_NET_BIND_CONNECT ( \
-             LANDLOCK_ACCESS_NET_BIND_TCP | \
-             LANDLOCK_ACCESS_NET_CONNECT_TCP)
-> 
-> 
+>> +{
+>> +	/* Gets port value in host byte order. */
+>> +	switch (address->sa_family) {
+>> +	case AF_UNSPEC:
+>> +	case AF_INET: {
+>> +		const struct sockaddr_in *const sockaddr =
+>> +			(struct sockaddr_in *)address;
+>> +		return ntohs(sockaddr->sin_port);
+>> +	}
+>> +#if IS_ENABLED(CONFIG_IPV6)
+>> +	case AF_INET6: {
+>> +		const struct sockaddr_in6 *const sockaddr_ip6 =
+>> +			(struct sockaddr_in6 *)address;
+>> +		return ntohs(sockaddr_ip6->sin6_port);
+>> +	}
+>> +#endif
+>> +	}
+>> +	WARN_ON_ONCE(1);
+>> +	return 0;
+>> +}
 >> +
->>       abi = landlock_create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION);
->>       if (abi < 0) {
->>           /* Degrades gracefully if Landlock is not handled. */
->> @@ -92,6 +101,9 @@ version of the ABI.
->>       case 2:
->>           /* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
->>           ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
->> +    case 3:
->> +        /* Removes network support for ABI < 4 */
->> +        ruleset_attr.handled_access_net &= ~ACCESS_NET_BIND_CONNECT;
->>       }
->> 
->>   This enables to create an inclusive ruleset that will contain our rules.
->> @@ -143,8 +155,22 @@ for the ruleset creation, by filtering access rights according to the Landlock
->>   ABI version.  In this example, this is not required because all of the requested
->>   ``allowed_access`` rights are already available in ABI 1.
->> 
->> +For network part we can add number of rules containing a port number and actions
->> +that a process is allowed to do for certian ports.
+>> +static int hook_socket_bind(struct socket *sock, struct sockaddr *address,
+>> +			    int addrlen)
+>> +{
+>> +	const struct landlock_ruleset *const dom =
+>> +		landlock_get_current_domain();
+>> +
+>> +	if (!dom)
+>> +		return 0;
+>> +
+>> +	/* Check if it's a TCP socket. */
+>> +	if (sock->type != SOCK_STREAM)
+>> +		return 0;
+>> +
+>> +	switch (address->sa_family) {
+>> +	case AF_UNSPEC:
+>> +	case AF_INET:
+>> +#if IS_ENABLED(CONFIG_IPV6)
+>> +	case AF_INET6:
+>> +#endif
+>> +		return check_socket_access(dom, get_port(address),
+>> +					   LANDLOCK_ACCESS_NET_BIND_TCP);
+>> +	default:
+>> +		return 0;
 > 
-> For the network access-control, we can add a set of rules that allow to
-> use a port number for a specific action.
+> You can remove this default case and move the return 0 at the end of the
+> function.
 > 
-   Ok. Will be fixed.
+   Ok. Will be refactored.
+> 
+>> +	}
+>> +}
 >> +
->> +.. code-block:: c
+>> +static int hook_socket_connect(struct socket *sock, struct sockaddr *address,
+>> +			       int addrlen)
+>> +{
+>> +	const struct landlock_ruleset *const dom =
+>> +		landlock_get_current_domain();
 >> +
->> +    struct landlock_net_service_attr net_service = {
->> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->> +        .port = 8080,
->> +    };
+>> +	if (!dom)
+>> +		return 0;
 >> +
->> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->> +                            &net_service, 0);
+>> +	/* Check if it's a TCP socket. */
+>> +	if (sock->type != SOCK_STREAM)
+>> +		return 0;
 >> +
->>   We now have a ruleset with one rule allowing read access to ``/usr`` while > -denying all other handled accesses for the filesystem.  The next 
-> step is to
-
+>> +	/* Check if the hook is AF_INET* socket's action. */
+>> +	switch (address->sa_family) {
+>> +	case AF_INET:
+>> +#if IS_ENABLED(CONFIG_IPV6)
+>> +	case AF_INET6:
+>> +#endif
+>> +		return check_socket_access(dom, get_port(address),
+>> +					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+>> +	case AF_UNSPEC: {
+>> +		u16 i;
+> 
+> You can move "i" after the "dom" declaration to remove the extra braces.
+> 
    Ok. Thanks.
+> 
+>> +
+>> +		/*
+>> +		 * If just in a layer a mask supports connect access,
+>> +		 * the socket_connect() hook with AF_UNSPEC family flag
+>> +		 * must be banned. This prevents from disconnecting already
+>> +		 * connected sockets.
+>> +		 */
+>> +		for (i = 0; i < dom->num_layers; i++) {
+>> +			if (landlock_get_net_access_mask(dom, i) &
+>> +			    LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>> +				return -EACCES;
+> 
+> I'm wondering if this is the right error code for this case. EPERM may
+> be more appropriate.
 
->> +denying all other handled accesses for the filesystem.  The ruleset also contains
->> +a rule allowing to bind current proccess to the port 8080.  The next step is to
+   Ok. Will be refactored.
 > 
-> We now have a ruleset with the first rule allowing read access to
-> ``/usr`` while denying all other handled accesses for the filesystem,
-> and a second rule allowing TCP binding on port 8080.
+> Thinking more about this case, I don't understand what is the rationale
+> to deny such action. What would be the consequence to always allow
+> connection with AF_UNSPEC (i.e. to disconnect a socket)?
 > 
+   I thought we have come to a conclusion about connect(...AF_UNSPEC..) 
+  behaviour in the patchset V3:
+https://lore.kernel.org/linux-security-module/19ad3a01-d76e-0e73-7833-99acd4afd97e@huawei.com/
+> 
+>> +		}
+>> +	}
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>> +static struct security_hook_list landlock_hooks[] __lsm_ro_after_init = {
+>> +	LSM_HOOK_INIT(socket_bind, hook_socket_bind),
+>> +	LSM_HOOK_INIT(socket_connect, hook_socket_connect),
+>> +};
+>> +
+>> +__init void landlock_add_net_hooks(void)
+>> +{
+>> +	security_add_hooks(landlock_hooks, ARRAY_SIZE(landlock_hooks),
+>> +			   LANDLOCK_NAME);
+>> +}
+>> diff --git a/security/landlock/net.h b/security/landlock/net.h
+>> new file mode 100644
+>> index 000000000000..0da1d9dff5ab
+>> --- /dev/null
+>> +++ b/security/landlock/net.h
+>> @@ -0,0 +1,26 @@
+>> +/* SPDX-License-Identifier: GPL-2.0-only */
+>> +/*
+>> + * Landlock LSM - Network management and hooks
+>> + *
+>> + * Copyright © 2022 Huawei Tech. Co., Ltd.
+>> + */
+>> +
+>> +#ifndef _SECURITY_LANDLOCK_NET_H
+>> +#define _SECURITY_LANDLOCK_NET_H
+>> +
+>> +#include "common.h"
+>> +#include "ruleset.h"
+>> +#include "setup.h"
+>> +
+>> +#if IS_ENABLED(CONFIG_INET)
+>> +__init void landlock_add_net_hooks(void);
+>> +
+>> +int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
+>> +			     const u16 port, access_mask_t access_rights);
+>> +#else /* IS_ENABLED(CONFIG_INET) */
+>> +static inline void landlock_add_net_hooks(void)
+>> +{
+>> +}
+>> +#endif /* IS_ENABLED(CONFIG_INET) */
+>> +
+>> +#endif /* _SECURITY_LANDLOCK_NET_H */
+>> diff --git a/security/landlock/setup.c b/security/landlock/setup.c
+>> index 3f196d2ce4f9..7e4a598177b8 100644
+>> --- a/security/landlock/setup.c
+>> +++ b/security/landlock/setup.c
+>> @@ -14,6 +14,7 @@
+>>   #include "fs.h"
+>>   #include "ptrace.h"
+>>   #include "setup.h"
+>> +#include "net.h"
+>> 
+>>   bool landlock_initialized __lsm_ro_after_init = false;
+>> 
+>> @@ -29,6 +30,7 @@ static int __init landlock_init(void)
+>>   	landlock_add_cred_hooks();
+>>   	landlock_add_ptrace_hooks();
+>>   	landlock_add_fs_hooks();
+>> +	landlock_add_net_hooks();
+>>   	landlock_initialized = true;
+>>   	pr_info("Up and running.\n");
+>>   	return 0;
+>> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+>> index c5a6ad4e2fca..7853f32e8325 100644
+>> --- a/security/landlock/syscalls.c
+>> +++ b/security/landlock/syscalls.c
+>> @@ -29,6 +29,7 @@
+>>   #include "cred.h"
+>>   #include "fs.h"
+>>   #include "limits.h"
+>> +#include "net.h"
+>>   #include "ruleset.h"
+>>   #include "setup.h"
+>> 
+>> @@ -74,7 +75,8 @@ static void build_check_abi(void)
+>>   {
+>>   	struct landlock_ruleset_attr ruleset_attr;
+>>   	struct landlock_path_beneath_attr path_beneath_attr;
+>> -	size_t ruleset_size, path_beneath_size;
+>> +	struct landlock_net_service_attr net_service_attr;
+>> +	size_t ruleset_size, path_beneath_size, net_service_size;
+>> 
+>>   	/*
+>>   	 * For each user space ABI structures, first checks that there is no
+>> @@ -90,6 +92,11 @@ static void build_check_abi(void)
+>>   	path_beneath_size += sizeof(path_beneath_attr.parent_fd);
+>>   	BUILD_BUG_ON(sizeof(path_beneath_attr) != path_beneath_size);
+>>   	BUILD_BUG_ON(sizeof(path_beneath_attr) != 12);
+>> +
+>> +	net_service_size = sizeof(net_service_attr.allowed_access);
+>> +	net_service_size += sizeof(net_service_attr.port);
+>> +	BUILD_BUG_ON(sizeof(net_service_attr) != net_service_size);
+>> +	BUILD_BUG_ON(sizeof(net_service_attr) != 10);
+>>   }
+>> 
+>>   /* Ruleset handling */
+>> @@ -322,13 +329,54 @@ static int add_rule_path_beneath(struct landlock_ruleset *const ruleset,
+>>   	return err;
+>>   }
+>> 
+>> +static int add_rule_net_service(struct landlock_ruleset *ruleset,
+>> +				const void __user *const rule_attr)
+>> +{
+>> +#if IS_ENABLED(CONFIG_INET)
+>> +	struct landlock_net_service_attr net_service_attr;
+>> +	int res;
+>> +	u32 mask;
+> 
+> access_mask_t mask;
+
   Got it. Thanks.
 > 
->>   restrict the current thread from gaining more privileges (e.g. thanks to a SUID
->>   binary).
->> 
->> @@ -296,6 +322,13 @@ not.  It is also possible to pass such file descriptors between processes,
->>   keeping their Landlock properties, even when these processes do not have an
->>   enforced Landlock ruleset.
->> 
->> +AF_UNSPEC socket family
->> +-----------------------
+> 
 >> +
->> +Sockets of AF_UNSPEC family types are treated as AF_INET(IPv4) socket for bind()
-> 
-> ``AF_UNSPEC`` sockets are handled as ``AF_INET`` sockets for the TCP
-> binding action. However, connecting an ``AF_UNSPEC`` socket is always
-> denied if at least one Landlock domain handles
-> ``LANDLOCK_NET_CONNECT_TCP``.  This restriction protects against…
-> 
-> As commented in patch 8/12, I don't think this is the right approach
-> anyway. It may then not be worth a dedicated section.
-> 
-   Ok. Let's discuss it in 8/12 patch.
-> 
->> +action.  But connect() one is not allowed by Landlock for AF_UNSPEC sockets. This
->> +logic prevents from disconnecting already connected sockets.
+>> +	/* Copies raw user space buffer, only one type for now. */
+>> +	res = copy_from_user(&net_service_attr, rule_attr,
+>> +			     sizeof(net_service_attr));
+>> +	if (res)
+>> +		return -EFAULT;
 >> +
->>   Compatibility
->>   =============
->> 
->> @@ -355,7 +388,7 @@ Access rights
->>   -------------
->> 
->>   .. kernel-doc:: include/uapi/linux/landlock.h
->> -    :identifiers: fs_access
->> +    :identifiers: fs_access net_access
->> 
->>   Creating a new ruleset
->>   ----------------------
->> @@ -374,6 +407,7 @@ Extending a ruleset
->> 
->>   .. kernel-doc:: include/uapi/linux/landlock.h
->>       :identifiers: landlock_rule_type landlock_path_beneath_attr
->> +                  landlock_net_service_attr
->> 
->>   Enforcing a ruleset
->>   -------------------
->> @@ -451,6 +485,13 @@ always allowed when using a kernel that only supports the first or second ABI.
->>   Starting with the Landlock ABI version 3, it is now possible to securely control
->>   truncation thanks to the new ``LANDLOCK_ACCESS_FS_TRUNCATE`` access right.
->> 
->> +Network support (ABI < 4)
->> +-------------------------
+>> +	/*
+>> +	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
+>> +	 * are ignored by network actions.
+>> +	 */
+>> +	if (!net_service_attr.allowed_access)
+>> +		return -ENOMSG;
 >> +
->> +Starting with the Landlock ABI version 4, it is now possible to restrict TCP
->> +sockets' bind() and connect() actions for specific ports allowing processes
->> +to establish restricted connections.
+>> +	/*
+>> +	 * Checks that allowed_access matches the @ruleset constraints
+>> +	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
+>> +	 */
+>> +	mask = landlock_get_net_access_mask(ruleset, 0);
+>> +	if ((net_service_attr.allowed_access | mask) != mask)
+>> +		return -EINVAL;
+>> +
+>> +	/* Denies inserting a rule with port 0. */
+>> +	if (net_service_attr.port == 0)
+>> +		return -EINVAL;
+>> +
+>> +	/* Imports the new rule. */
+>> +	return landlock_append_net_rule(ruleset, net_service_attr.port,
+>> +					net_service_attr.allowed_access);
+>> +#else /* IS_ENABLED(CONFIG_INET) */
+>> +	return -EAFNOSUPPORT;
+>> +#endif /* IS_ENABLED(CONFIG_INET) */
+>> +}
+>> +
+>>   /**
+>>    * sys_landlock_add_rule - Add a new rule to a ruleset
+>>    *
+>>    * @ruleset_fd: File descriptor tied to the ruleset that should be extended
+>>    *		with the new rule.
+>> - * @rule_type: Identify the structure type pointed to by @rule_attr (only
+>> - *             %LANDLOCK_RULE_PATH_BENEATH for now).
+>> + * @rule_type: Identify the structure type pointed to by @rule_attr:
+>> + *             %LANDLOCK_RULE_PATH_BENEATH or %LANDLOCK_RULE_NET_SERVICE.
+>>    * @rule_attr: Pointer to a rule (only of type &struct
+>>    *             landlock_path_beneath_attr for now).
+>>    * @flags: Must be 0.
+>> @@ -339,6 +387,8 @@ static int add_rule_path_beneath(struct landlock_ruleset *const ruleset,
+>>    * Possible returned errors are:
+>>    *
+>>    * - %EOPNOTSUPP: Landlock is supported by the kernel but disabled at boot time;
+>> + * - %EAFNOSUPPORT: @rule_type is LANDLOCK_RULE_NET_SERVICE but TCP/IP is not
 > 
-> it is now possible to restrict TCP bind and connect actions to only a
-> set of allowed ports.
+> %LANDLOCK_RULE_NET_SERVICE
 
-  Got it. Thanks.
+  Ok.
 > 
->> +
->>   .. _kernel_support:
->> 
->>   Kernel support
->> @@ -469,6 +510,11 @@ still enable it by adding ``lsm=landlock,[...]`` to
->>   Documentation/admin-guide/kernel-parameters.rst thanks to the bootloader
->>   configuration.
->> 
->> +To be able to explicitly allow TCP operations (e.g., adding a network rule with
->> +`LANDLOCK_ACCESS_NET_TCP_BIND`), the kernel must support TCP (`CONFIG_INET=y`).
 > 
-> Please use double backquotes everywhere, cf.
-> https://git.kernel.org/torvalds/c/2fff00c81d4c
-> 
-   Ok. I will check.
-> 
->> +Otherwise, sys_landlock_add_rule() returns an `EAFNOSUPPORT` error, which can
->> +safely be ignored because this kind of TCP operation is already not possible.
->> +
->>   Questions and answers
->>   =====================
->> 
+>> + *   supported by the running kernel;
+>>    * - %EINVAL: @flags is not 0, or inconsistent access in the rule (i.e.
+>>    *   &landlock_path_beneath_attr.allowed_access is not a subset of the
+>>    *   ruleset handled accesses);
+>> @@ -373,6 +423,9 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+>>   	case LANDLOCK_RULE_PATH_BENEATH:
+>>   		err = add_rule_path_beneath(ruleset, rule_attr);
+>>   		break;
+>> +	case LANDLOCK_RULE_NET_SERVICE:
+>> +		err = add_rule_net_service(ruleset, rule_attr);
+>> +		break;
+>>   	default:
+>>   		err = -EINVAL;
+>>   		break;
 >> --
 >> 2.25.1
 >> 
