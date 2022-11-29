@@ -2,56 +2,153 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18FC2C4321E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 12:32:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E12C4321E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 14:06:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230274AbiK2McR (ORCPT
+        id S232773AbiK2OGQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Nov 2022 07:32:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54784 "EHLO
+        Tue, 29 Nov 2022 09:06:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229529AbiK2McR (ORCPT
+        with ESMTP id S234851AbiK2OFw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2022 07:32:17 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1F5E5D6B7
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 04:32:15 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1ozzmW-0005ZQ-MB; Tue, 29 Nov 2022 13:32:12 +0100
-Date:   Tue, 29 Nov 2022 13:32:12 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
+        Tue, 29 Nov 2022 09:05:52 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F41F343AD8
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 06:05:49 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1p01F5-00041j-Np; Tue, 29 Nov 2022 15:05:47 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH 1/4] libxtables: xt_xlate_add() to take care of
- spacing
-Message-ID: <Y4X7zMSBlaPmZGZN@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20221125161229.18406-1-phil@nwl.cc>
+Subject: [PATCH v2 iptables-nft 0/3] remove escape_quotes support
+Date:   Tue, 29 Nov 2022 15:05:39 +0100
+Message-Id: <20221129140542.28311-1-fw@strlen.de>
+X-Mailer: git-send-email 2.37.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221125161229.18406-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 25, 2022 at 05:12:26PM +0100, Phil Sutter wrote:
-> Try to eliminate most of the whitespace issues by separating strings
-> from separate xt_xlate_add() calls by whitespace if needed.
-> 
-> Cover the common case of consecutive range, list or MAC/IP address
-> printing by inserting whitespace only if the string to be appended
-> starts with an alphanumeric character or a brace. The latter helps to
-> make spacing in anonymous sets consistent.
-> 
-> Provide *_nospc() variants which disable the auto-spacing for the
-> mandatory exception to the rule.
-> 
-> Make things round by dropping any trailing whitespace before returning
-> the buffer via xt_xlate_get().
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Changes since v2:
+- first patch keeps the struct members for ABI sake
+- get rid of patch 3, with Phils recent change the core eats
+  trailing whitespace itself without need to "fix" the extensions.
+- add a patch that removes the intermediate shell step during
+   "xtables-test.py -R".
 
-Series applied.
+Instead of escaping '"' for sake of the ability to do copy&paste from
+xtables-translate without the shell removing those "" again,
+unconditionally put the entire command line (except "nft") in ''.
+
+This allows to get rid of all quotes logic.  This logic was also
+incomplete because some shells also try to make sense of raw { or [.
+
+Patch 3 changes xtables-test.py to feed the nft -f input
+via stin without the shell.
+
+
+Florian Westphal (3):
+  xlate: get rid of escape_quotes
+  extensions: change expected output for new format
+  xlate-test: avoid shell entanglements
+
+ extensions/generic.txlate            | 56 ++++++++++++++--------------
+ extensions/libebt_dnat.txlate        |  6 +--
+ extensions/libebt_ip.txlate          | 18 ++++-----
+ extensions/libebt_ip6.txlate         | 20 +++++-----
+ extensions/libebt_limit.txlate       |  6 +--
+ extensions/libebt_log.c              |  8 +---
+ extensions/libebt_log.txlate         | 10 ++---
+ extensions/libebt_mark.txlate        |  8 ++--
+ extensions/libebt_mark_m.txlate      | 10 ++---
+ extensions/libebt_nflog.c            |  8 +---
+ extensions/libebt_nflog.txlate       |  8 ++--
+ extensions/libebt_pkttype.txlate     | 14 +++----
+ extensions/libebt_snat.txlate        |  4 +-
+ extensions/libebt_vlan.txlate        |  8 ++--
+ extensions/libip6t_LOG.txlate        |  6 +--
+ extensions/libip6t_MASQUERADE.txlate | 12 +++---
+ extensions/libip6t_REJECT.txlate     |  6 +--
+ extensions/libip6t_SNAT.txlate       |  8 ++--
+ extensions/libip6t_ah.txlate         | 12 +++---
+ extensions/libip6t_frag.txlate       | 12 +++---
+ extensions/libip6t_hbh.txlate        |  4 +-
+ extensions/libip6t_hl.txlate         |  4 +-
+ extensions/libip6t_icmp6.txlate      |  6 +--
+ extensions/libip6t_mh.txlate         |  4 +-
+ extensions/libip6t_rt.txlate         | 10 ++---
+ extensions/libipt_LOG.txlate         |  4 +-
+ extensions/libipt_MASQUERADE.txlate  | 12 +++---
+ extensions/libipt_REJECT.txlate      |  6 +--
+ extensions/libipt_SNAT.txlate        | 10 ++---
+ extensions/libipt_ah.txlate          |  6 +--
+ extensions/libipt_icmp.txlate        |  8 ++--
+ extensions/libipt_realm.txlate       |  8 ++--
+ extensions/libipt_ttl.txlate         |  4 +-
+ extensions/libxt_AUDIT.txlate        |  6 +--
+ extensions/libxt_CLASSIFY.txlate     |  6 +--
+ extensions/libxt_CONNMARK.txlate     | 16 ++++----
+ extensions/libxt_DNAT.txlate         | 24 ++++++------
+ extensions/libxt_DSCP.txlate         |  4 +-
+ extensions/libxt_LOG.c               |  8 +---
+ extensions/libxt_MARK.txlate         | 18 ++++-----
+ extensions/libxt_NFLOG.c             | 12 ++----
+ extensions/libxt_NFLOG.txlate        | 10 ++---
+ extensions/libxt_NFQUEUE.txlate      |  6 +--
+ extensions/libxt_NOTRACK.txlate      |  2 +-
+ extensions/libxt_REDIRECT.txlate     | 20 +++++-----
+ extensions/libxt_SYNPROXY.txlate     |  2 +-
+ extensions/libxt_TCPMSS.txlate       |  4 +-
+ extensions/libxt_TEE.txlate          |  8 ++--
+ extensions/libxt_TOS.txlate          | 18 ++++-----
+ extensions/libxt_TRACE.txlate        |  2 +-
+ extensions/libxt_addrtype.txlate     |  8 ++--
+ extensions/libxt_cgroup.txlate       |  4 +-
+ extensions/libxt_cluster.txlate      | 18 ++++-----
+ extensions/libxt_comment.c           |  7 +---
+ extensions/libxt_comment.txlate      |  6 +--
+ extensions/libxt_connbytes.txlate    | 10 ++---
+ extensions/libxt_connlabel.txlate    |  4 +-
+ extensions/libxt_connlimit.txlate    | 16 ++++----
+ extensions/libxt_connmark.txlate     | 10 ++---
+ extensions/libxt_conntrack.txlate    | 40 ++++++++++----------
+ extensions/libxt_cpu.txlate          |  4 +-
+ extensions/libxt_dccp.txlate         | 14 +++----
+ extensions/libxt_devgroup.txlate     | 12 +++---
+ extensions/libxt_dscp.txlate         |  4 +-
+ extensions/libxt_ecn.txlate          | 20 +++++-----
+ extensions/libxt_esp.txlate          |  8 ++--
+ extensions/libxt_hashlimit.txlate    |  4 +-
+ extensions/libxt_helper.c            |  8 +---
+ extensions/libxt_helper.txlate       |  4 +-
+ extensions/libxt_ipcomp.txlate       |  4 +-
+ extensions/libxt_iprange.txlate      | 10 ++---
+ extensions/libxt_length.txlate       |  8 ++--
+ extensions/libxt_limit.txlate        |  6 +--
+ extensions/libxt_mac.txlate          |  4 +-
+ extensions/libxt_mark.txlate         |  4 +-
+ extensions/libxt_multiport.txlate    | 10 ++---
+ extensions/libxt_owner.txlate        |  6 +--
+ extensions/libxt_pkttype.txlate      |  6 +--
+ extensions/libxt_policy.txlate       |  4 +-
+ extensions/libxt_quota.txlate        |  4 +-
+ extensions/libxt_rpfilter.txlate     |  6 +--
+ extensions/libxt_sctp.txlate         | 30 +++++++--------
+ extensions/libxt_statistic.txlate    |  4 +-
+ extensions/libxt_tcp.txlate          | 22 +++++------
+ extensions/libxt_tcpmss.txlate       |  8 ++--
+ extensions/libxt_time.txlate         | 18 ++++-----
+ extensions/libxt_udp.txlate          |  8 ++--
+ include/xtables.h                    |  4 +-
+ iptables/nft-bridge.c                |  2 -
+ iptables/xtables-eb-translate.c      | 12 +++---
+ iptables/xtables-translate.c         | 22 +++++------
+ xlate-test.py                        | 16 ++++----
+ 92 files changed, 441 insertions(+), 470 deletions(-)
+
+-- 
+2.37.4
+
