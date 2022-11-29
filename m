@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A962EC46467
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:48:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEB3EC4708D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:48:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236576AbiK2VsA (ORCPT
+        id S236984AbiK2VsC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Nov 2022 16:48:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34418 "EHLO
+        Tue, 29 Nov 2022 16:48:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236192AbiK2Vr6 (ORCPT
+        with ESMTP id S237001AbiK2Vr7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2022 16:47:58 -0500
+        Tue, 29 Nov 2022 16:47:59 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C6BC64A0D
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:47:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C5F764578
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:47:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=Cx37xVJxTIYoDBvY4mgkjoAKv+gPEA0mrr7wrbIkY2s=; b=rQ356hjxPh1cA7DOL5xir7QoOD
-        ClhVrCm+svy/5zf5ixk2yK0ZKFXyOd7mJXV2bDGpLl4futJogvSyNKXzJDXflHsYU6ZaksrYuWsNQ
-        XMwu/AcnXNvJ1XjgdO5cOC7pBKn3jggsnrxJrW848q8ctu+7L82MpLMWcmG5edtgyGSTK9yb/WSyk
-        P7Ml29OYqEWfk1d1Txn4DbJgxOcMgDHym3OkjsFvnNqFhkatU5rGiHfSDnqQhFLpktGyRW2A/Sr6N
-        8Crrib9tqiQaVvjFL+9DeUgYh3U2PhblOXw2GWxfjToboUX02gwQm7k8Jz37PgT+E6DU0V39COmrZ
-        VhBXnPQg==;
+        bh=FlQ9Jrlj9K0rNd7YBqYiZ+nBicTB8yIxOIaqIRskgKE=; b=YGtVoC7Gyi2Qa9B12ZyvEapXnI
+        qehDm+gVQL6wm+2Hy+EUZedCdis9ldHLvwu2+wnYD/2rtlK5nwDtxEGBOZo1JwcXto1LNvitmJkeH
+        WmRIpUrRN3lbzCTbsh11owozmk8uEaSZgXwmkWIoKsCVOrp/3OwxAOHZASjnUN2REpBBy2kNSyzym
+        1YGaMc/Vp08uDp995uR1vBdV3YxPqUz1R85nR4YzlxqAqnG6U0DlZp2i3R+BZZzMNxKCP92HdecHt
+        OY48p+M1sKq2kigQ/ClcQ/StcyX+Te03Bx8UVJclSk7UppPv+YHo+qbI5EmK+XDl0e8Mijhoz11uk
+        /JejlZzQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1p08SJ-00DjQp-Ed
+        id 1p08SJ-00DjQp-Af
         for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:55 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 v2 v2 08/34] src: parenthesize config-entry macro arguments
-Date:   Tue, 29 Nov 2022 21:47:23 +0000
-Message-Id: <20221129214749.247878-9-jeremy@azazel.net>
+Subject: [PATCH ulogd2 v2 v2 07/34] src: remove zero-valued config-key fields
+Date:   Tue, 29 Nov 2022 21:47:22 +0000
+Message-Id: <20221129214749.247878-8-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221129214749.247878-1-jeremy@azazel.net>
 References: <20221129214749.247878-1-jeremy@azazel.net>
@@ -50,271 +50,665 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-It's avoids problems with operator precedence.  For example, with no
-parentheses:
-
-  #define blah_ce(x) (x->ces[0])
-
-  blah_ce(&whatever)
-
-yields:
-
-  (&(whatever->ces[0]))
-
-instead of:
-
-  ((&whatever)->ces[0])
+Struct members are zero-initialized as a matter of course.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/ulogd/db.h                | 14 +++++++-------
- input/flow/ulogd_inpflow_NFCT.c   | 18 +++++++++---------
- input/packet/ulogd_inppkt_NFLOG.c | 24 ++++++++++++------------
- input/sum/ulogd_inpflow_NFACCT.c  |  6 +++---
- output/dbi/ulogd_output_DBI.c     | 14 +++++++-------
- output/ipfix/ulogd_output_IPFIX.c | 12 ++++++------
- output/mysql/ulogd_output_MYSQL.c | 10 +++++-----
- output/pgsql/ulogd_output_PGSQL.c | 14 +++++++-------
- output/ulogd_output_GRAPHITE.c    |  6 +++---
- output/ulogd_output_JSON.c        |  8 ++++----
- 10 files changed, 63 insertions(+), 63 deletions(-)
+ filter/ulogd_filter_MARK.c           |  3 --
+ include/ulogd/db.h                   |  1 -
+ input/flow/ulogd_inpflow_NFCT.c      | 14 ---------
+ input/packet/ulogd_inppkt_NFLOG.c    | 19 ------------
+ input/packet/ulogd_inppkt_ULOG.c     | 44 ++++++++++++----------------
+ input/packet/ulogd_inppkt_UNIXSOCK.c |  5 ----
+ input/sum/ulogd_inpflow_NFACCT.c     |  5 ----
+ output/dbi/ulogd_output_DBI.c        |  4 ---
+ output/ipfix/ulogd_output_IPFIX.c    |  2 --
+ output/pcap/ulogd_output_PCAP.c      |  2 --
+ output/pgsql/ulogd_output_PGSQL.c    |  5 ----
+ output/ulogd_output_GPRINT.c         |  7 +----
+ output/ulogd_output_GRAPHITE.c       |  3 --
+ output/ulogd_output_JSON.c           | 13 +-------
+ output/ulogd_output_LOGEMU.c         |  2 --
+ output/ulogd_output_NACCT.c          |  5 +---
+ output/ulogd_output_OPRINT.c         |  5 +---
+ output/ulogd_output_SYSLOG.c         | 16 +++++-----
+ output/ulogd_output_XML.c            |  5 ----
+ src/ulogd.c                          |  2 --
+ 20 files changed, 30 insertions(+), 132 deletions(-)
 
+diff --git a/filter/ulogd_filter_MARK.c b/filter/ulogd_filter_MARK.c
+index 149725d92574..94343a2b6b5b 100644
+--- a/filter/ulogd_filter_MARK.c
++++ b/filter/ulogd_filter_MARK.c
+@@ -35,13 +35,10 @@ static struct config_keyset libulog_kset = {
+ 		[MARK_MARK] = {
+ 			.key 	 = "mark",
+ 			.type 	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		[MARK_MASK] = {
+ 			.key 	 = "mask",
+ 			.type 	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 0xffffffff,
+ 		},
+ 
 diff --git a/include/ulogd/db.h b/include/ulogd/db.h
-index bf62f236d772..50925a69f240 100644
+index 9f9e96d6e077..bf62f236d772 100644
 --- a/include/ulogd/db.h
 +++ b/include/ulogd/db.h
-@@ -103,13 +103,13 @@ struct db_instance {
- 		}
- 
- #define DB_CE_NUM		7
--#define table_ce(x)		(x->ces[0])
--#define reconnect_ce(x)		(x->ces[1])
--#define timeout_ce(x)		(x->ces[2])
--#define procedure_ce(x)		(x->ces[3])
--#define backlog_memcap_ce(x)	(x->ces[4])
--#define backlog_oneshot_ce(x)	(x->ces[5])
--#define ringsize_ce(x)		(x->ces[6])
-+#define table_ce(x)		((x)->ces[0])
-+#define reconnect_ce(x)		((x)->ces[1])
-+#define timeout_ce(x)		((x)->ces[2])
-+#define procedure_ce(x)		((x)->ces[3])
-+#define backlog_memcap_ce(x)	((x)->ces[4])
-+#define backlog_oneshot_ce(x)	((x)->ces[5])
-+#define ringsize_ce(x)		((x)->ces[6])
- 
- void ulogd_db_signal(struct ulogd_pluginstance *upi, int signal);
- int ulogd_db_start(struct ulogd_pluginstance *upi);
+@@ -90,7 +90,6 @@ struct db_instance {
+ 		{						\
+ 			.key = "backlog_memcap",		\
+ 			.type = CONFIG_TYPE_INT,		\
+-			.u.value = 0,				\
+ 		},						\
+ 		{						\
+ 			.key = "backlog_oneshot_requests",	\
 diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index 76250f2a9982..04910601fb8c 100644
+index 899b7e3b8039..76250f2a9982 100644
 --- a/input/flow/ulogd_inpflow_NFCT.c
 +++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -137,15 +137,15 @@ static struct config_keyset nfct_kset = {
+@@ -83,71 +83,57 @@ static struct config_keyset nfct_kset = {
+ 		{
+ 			.key	 = "pollinterval",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "hash_enable",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 1,
+ 		},
+ 		{
+ 			.key	 = "hash_buckets",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = HTABLE_SIZE,
+ 		},
+ 		{
+ 			.key	 = "hash_max_entries",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = MAX_ENTRIES,
+ 		},
+ 		{
+ 			.key	 = "event_mask",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = EVENT_MASK,
+ 		},
+ 		{
+ 			.key	 = "netlink_socket_buffer_size",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "netlink_socket_buffer_maxsize",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "netlink_resync_timeout",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 60,
+ 		},
+ 		{
+ 			.key	 = "reliable",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "accept_src_filter",
+ 			.type	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key	 = "accept_dst_filter",
+ 			.type	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key	 = "accept_proto_filter",
+ 			.type	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
  		},
  	},
  };
--#define pollint_ce(x)	(x->ces[0])
--#define usehash_ce(x)	(x->ces[1])
--#define buckets_ce(x)	(x->ces[2])
--#define maxentries_ce(x) (x->ces[3])
--#define eventmask_ce(x) (x->ces[4])
--#define nlsockbufsize_ce(x) (x->ces[5])
--#define nlsockbufmaxsize_ce(x) (x->ces[6])
--#define nlresynctimeout_ce(x) (x->ces[7])
--#define reliable_ce(x)	(x->ces[8])
-+#define pollint_ce(x)		((x)->ces[0])
-+#define usehash_ce(x)		((x)->ces[1])
-+#define buckets_ce(x)		((x)->ces[2])
-+#define maxentries_ce(x)	((x)->ces[3])
-+#define eventmask_ce(x)		((x)->ces[4])
-+#define nlsockbufsize_ce(x)	((x)->ces[5])
-+#define nlsockbufmaxsize_ce(x)	((x)->ces[6])
-+#define nlresynctimeout_ce(x)	((x)->ces[7])
-+#define reliable_ce(x)		((x)->ces[8])
- #define src_filter_ce(x)	((x)->ces[9])
- #define dst_filter_ce(x)	((x)->ces[10])
- #define proto_filter_ce(x)	((x)->ces[11])
 diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-index e197a705cb4d..4cbae69fee20 100644
+index 4fdeb12886cc..e197a705cb4d 100644
 --- a/input/packet/ulogd_inppkt_NFLOG.c
 +++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -99,18 +99,18 @@ static struct config_keyset libulog_kset = {
+@@ -45,69 +45,50 @@ static struct config_keyset libulog_kset = {
+ 		{
+ 			.key 	 = "bufsize",
+ 			.type 	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = NFLOG_BUFSIZE_DEFAULT,
+ 		},
+ 		{
+ 			.key	 = "group",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = NFLOG_GROUP_DEFAULT,
+ 		},
+ 		{
+ 			.key	 = "unbind",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 1,
+ 		},
+ 		{
+ 			.key	 = "bind",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 
+ 		{
+ 			.key	 = "seq_local",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "seq_global",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "numeric_label",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key     = "netlink_socket_buffer_size",
+ 			.type    = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key     = "netlink_socket_buffer_maxsize",
+ 			.type    = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key     = "netlink_qthreshold",
+ 			.type    = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key     = "netlink_qtimeout",
+ 			.type    = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key     = "attach_conntrack",
+diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_ULOG.c
+index 45ffc8b57ac4..bc271dbfd0b1 100644
+--- a/input/packet/ulogd_inppkt_ULOG.c
++++ b/input/packet/ulogd_inppkt_ULOG.c
+@@ -37,31 +37,25 @@ struct ulog_input {
+ static struct config_keyset libulog_kset = {
+ 	.num_ces = 4,
+ 	.ces = {
+-	{
+-		.key 	 = "bufsize",
+-		.type 	 = CONFIG_TYPE_INT,
+-		.options = CONFIG_OPT_NONE,
+-		.u.value = ULOGD_BUFSIZE_DEFAULT,
+-	},
+-	{
+-		.key	 = "nlgroup",
+-		.type	 = CONFIG_TYPE_INT,
+-		.options = CONFIG_OPT_NONE,
+-		.u.value = ULOGD_NLGROUP_DEFAULT,
+-	},
+-	{
+-		.key	 = "rmem",
+-		.type	 = CONFIG_TYPE_INT,
+-		.options = CONFIG_OPT_NONE,
+-		.u.value = ULOGD_RMEM_DEFAULT,
+-	},
+-	{
+-		.key	 = "numeric_label",
+-		.type	 = CONFIG_TYPE_INT,
+-		.options = CONFIG_OPT_NONE,
+-		.u.value = 0,
+-	},
+-
++		{
++			.key 	 = "bufsize",
++			.type 	 = CONFIG_TYPE_INT,
++			.u.value = ULOGD_BUFSIZE_DEFAULT,
++		},
++		{
++			.key	 = "nlgroup",
++			.type	 = CONFIG_TYPE_INT,
++			.u.value = ULOGD_NLGROUP_DEFAULT,
++		},
++		{
++			.key	 = "rmem",
++			.type	 = CONFIG_TYPE_INT,
++			.u.value = ULOGD_RMEM_DEFAULT,
++		},
++		{
++			.key	 = "numeric_label",
++			.type	 = CONFIG_TYPE_INT,
++		},
  	}
  };
- 
--#define bufsiz_ce(x)	(x->ces[0])
--#define group_ce(x)	(x->ces[1])
--#define unbind_ce(x)	(x->ces[2])
--#define bind_ce(x)	(x->ces[3])
--#define seq_ce(x)	(x->ces[4])
--#define seq_global_ce(x)	(x->ces[5])
--#define label_ce(x)	(x->ces[6])
--#define nlsockbufsize_ce(x) (x->ces[7])
--#define nlsockbufmaxsize_ce(x) (x->ces[8])
--#define nlthreshold_ce(x) (x->ces[9])
--#define nltimeout_ce(x) (x->ces[10])
--#define attach_conntrack_ce(x) (x->ces[11])
-+#define bufsiz_ce(x)		((x)->ces[0])
-+#define group_ce(x)		((x)->ces[1])
-+#define unbind_ce(x)		((x)->ces[2])
-+#define bind_ce(x)		((x)->ces[3])
-+#define seq_ce(x)		((x)->ces[4])
-+#define seq_global_ce(x)	((x)->ces[5])
-+#define label_ce(x)		((x)->ces[6])
-+#define nlsockbufsize_ce(x)	((x)->ces[7])
-+#define nlsockbufmaxsize_ce(x)	((x)->ces[8])
-+#define nlthreshold_ce(x)	((x)->ces[9])
-+#define nltimeout_ce(x)		((x)->ces[10])
-+#define attach_conntrack_ce(x)	((x)->ces[11])
- 
- enum nflog_keys {
- 	NFLOG_KEY_RAW_MAC = 0,
+ enum ulog_keys {
+diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
+index f1d15348ccb3..0ce599bd9b84 100644
+--- a/input/packet/ulogd_inppkt_UNIXSOCK.c
++++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
+@@ -290,30 +290,25 @@ static struct config_keyset libunixsock_kset = {
+ 		{
+ 			.key 	 = "socket_path",
+ 			.type 	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.string = UNIXSOCK_UNIXPATH_DEFAULT,
+ 		},
+ 		{
+ 			.key 	 = "bufsize",
+ 			.type 	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = UNIXSOCK_BUFSIZE_DEFAULT,
+ 		},
+ 		{
+ 			.key 	 = "perms",
+ 			.type 	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = UNIXSOCK_PERMS_DEFAULT,
+ 		},
+ 		{
+ 			.key 	 = "owner",
+ 			.type 	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key 	 = "group",
+ 			.type 	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 	},
+ };
 diff --git a/input/sum/ulogd_inpflow_NFACCT.c b/input/sum/ulogd_inpflow_NFACCT.c
-index 539fb67f5863..c680a52a80e8 100644
+index b022e6373406..539fb67f5863 100644
 --- a/input/sum/ulogd_inpflow_NFACCT.c
 +++ b/input/sum/ulogd_inpflow_NFACCT.c
-@@ -51,9 +51,9 @@ static struct config_keyset nfacct_kset = {
+@@ -38,20 +38,15 @@ static struct config_keyset nfacct_kset = {
+ 		{
+ 			.key	 = "pollinterval",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		},
+ 		{
+ 			.key	 = "zerocounter",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = 1,
+ 		},
+ 		{
+ 			.key	 = "timestamp",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = 0,
+ 		}
  	},
  	.num_ces = 3,
- };
--#define pollint_ce(x)	(x->ces[0])
--#define zerocounter_ce(x) (x->ces[1])
--#define timestamp_ce(x) (x->ces[2])
-+#define pollint_ce(x)		((x)->ces[0])
-+#define zerocounter_ce(x)	((x)->ces[1])
-+#define timestamp_ce(x)		((x)->ces[2])
- 
- enum ulogd_nfacct_keys {
- 	ULOGD_NFACCT_NAME,
 diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
-index 5639125dde1f..95bd35789c08 100644
+index 1a623e14c41a..5639125dde1f 100644
 --- a/output/dbi/ulogd_output_DBI.c
 +++ b/output/dbi/ulogd_output_DBI.c
-@@ -78,13 +78,13 @@ static struct config_keyset dbi_kset = {
+@@ -52,7 +52,6 @@ static struct config_keyset dbi_kset = {
+ 		{
+ 			.key = "host",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
  		},
- 	},
- };
--#define db_ce(x)	(x->ces[DB_CE_NUM+0])
--#define host_ce(x)	(x->ces[DB_CE_NUM+1])
--#define user_ce(x)	(x->ces[DB_CE_NUM+2])
--#define pass_ce(x)	(x->ces[DB_CE_NUM+3])
--#define port_ce(x)	(x->ces[DB_CE_NUM+4])
--#define schema_ce(x)	(x->ces[DB_CE_NUM+5])
--#define dbtype_ce(x)	(x->ces[DB_CE_NUM+6])
-+#define db_ce(x)	((x)->ces[DB_CE_NUM + 0])
-+#define host_ce(x)	((x)->ces[DB_CE_NUM + 1])
-+#define user_ce(x)	((x)->ces[DB_CE_NUM + 2])
-+#define pass_ce(x)	((x)->ces[DB_CE_NUM + 3])
-+#define port_ce(x)	((x)->ces[DB_CE_NUM + 4])
-+#define schema_ce(x)	((x)->ces[DB_CE_NUM + 5])
-+#define dbtype_ce(x)	((x)->ces[DB_CE_NUM + 6])
- 
- 
- /* find out which columns the table has */
+ 		{
+ 			.key = "user",
+@@ -62,17 +61,14 @@ static struct config_keyset dbi_kset = {
+ 		{
+ 			.key = "pass",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "port",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "schema",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.string = "public",
+ 		},
+ 		{
 diff --git a/output/ipfix/ulogd_output_IPFIX.c b/output/ipfix/ulogd_output_IPFIX.c
-index 13d170108375..745d30a163b2 100644
+index 4863d008562e..13d170108375 100644
 --- a/output/ipfix/ulogd_output_IPFIX.c
 +++ b/output/ipfix/ulogd_output_IPFIX.c
-@@ -40,12 +40,12 @@ enum {
- 	SEND_TEMPLATE_CE
- };
- 
--#define oid_ce(x)		(x->ces[OID_CE])
--#define host_ce(x)		(x->ces[HOST_CE])
--#define port_ce(x)		(x->ces[PORT_CE])
--#define proto_ce(x)		(x->ces[PROTO_CE])
--#define mtu_ce(x)		(x->ces[MTU_CE])
--#define send_template_ce(x)	(x->ces[SEND_TEMPLATE_CE])
-+#define oid_ce(x)		((x)->ces[OID_CE])
-+#define host_ce(x)		((x)->ces[HOST_CE])
-+#define port_ce(x)		((x)->ces[PORT_CE])
-+#define proto_ce(x)		((x)->ces[PROTO_CE])
-+#define mtu_ce(x)		((x)->ces[MTU_CE])
-+#define send_template_ce(x)	((x)->ces[SEND_TEMPLATE_CE])
- 
- static const struct config_keyset ipfix_kset = {
- 	.num_ces = 6,
-diff --git a/output/mysql/ulogd_output_MYSQL.c b/output/mysql/ulogd_output_MYSQL.c
-index dc49a2ae4e5b..0b79a9cd270c 100644
---- a/output/mysql/ulogd_output_MYSQL.c
-+++ b/output/mysql/ulogd_output_MYSQL.c
-@@ -89,11 +89,11 @@ static struct config_keyset kset_mysql = {
+@@ -53,12 +53,10 @@ static const struct config_keyset ipfix_kset = {
+ 		{
+ 			.key = "oid",
+ 			.type = CONFIG_TYPE_INT,
+-			.u.value = 0
+ 		},
+ 		{
+ 			.key = "host",
+ 			.type = CONFIG_TYPE_STRING,
+-			.u.string = ""
+ 		},
+ 		{
+ 			.key = "port",
+diff --git a/output/pcap/ulogd_output_PCAP.c b/output/pcap/ulogd_output_PCAP.c
+index 6640087f55a5..c125ffcd2a8f 100644
+--- a/output/pcap/ulogd_output_PCAP.c
++++ b/output/pcap/ulogd_output_PCAP.c
+@@ -94,13 +94,11 @@ static struct config_keyset pcap_kset = {
+ 		{
+ 			.key = "file",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .string = ULOGD_PCAP_DEFAULT },
+ 		},
+ 		{
+ 			.key = "sync",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .value = ULOGD_PCAP_SYNC_DEFAULT },
  		},
  	},
- };
--#define db_ce(x)	(x->ces[DB_CE_NUM+0])
--#define	host_ce(x)	(x->ces[DB_CE_NUM+1])
--#define user_ce(x)	(x->ces[DB_CE_NUM+2])
--#define pass_ce(x)	(x->ces[DB_CE_NUM+3])
--#define port_ce(x)	(x->ces[DB_CE_NUM+4])
-+#define db_ce(x)	((x)->ces[DB_CE_NUM + 0])
-+#define host_ce(x)	((x)->ces[DB_CE_NUM + 1])
-+#define user_ce(x)	((x)->ces[DB_CE_NUM + 2])
-+#define pass_ce(x)	((x)->ces[DB_CE_NUM + 3])
-+#define port_ce(x)	((x)->ces[DB_CE_NUM + 4])
- /* find out which columns the table has */
- static int get_columns_mysql(struct ulogd_pluginstance *upi)
- {
 diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
-index 1890cb574a95..7f215f0fee4c 100644
+index 6f3cde61a312..1890cb574a95 100644
 --- a/output/pgsql/ulogd_output_PGSQL.c
 +++ b/output/pgsql/ulogd_output_PGSQL.c
-@@ -74,13 +74,13 @@ static struct config_keyset pgsql_kset = {
+@@ -49,7 +49,6 @@ static struct config_keyset pgsql_kset = {
+ 		{
+ 			.key = "host",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "user",
+@@ -59,23 +58,19 @@ static struct config_keyset pgsql_kset = {
+ 		{
+ 			.key = "pass",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "port",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "schema",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.string = "public",
+ 		},
+ 		{
+ 			.key = "connstring",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
  		},
  	},
  };
--#define db_ce(x)	(x->ces[DB_CE_NUM+0])
--#define host_ce(x)	(x->ces[DB_CE_NUM+1])
--#define user_ce(x)	(x->ces[DB_CE_NUM+2])
--#define pass_ce(x)	(x->ces[DB_CE_NUM+3])
--#define port_ce(x)	(x->ces[DB_CE_NUM+4])
--#define schema_ce(x)	(x->ces[DB_CE_NUM+5])
--#define connstr_ce(x)	(x->ces[DB_CE_NUM+6])
-+#define db_ce(x)	((x)->ces[DB_CE_NUM + 0])
-+#define host_ce(x)	((x)->ces[DB_CE_NUM + 1])
-+#define user_ce(x)	((x)->ces[DB_CE_NUM + 2])
-+#define pass_ce(x)	((x)->ces[DB_CE_NUM + 3])
-+#define port_ce(x)	((x)->ces[DB_CE_NUM + 4])
-+#define schema_ce(x)	((x)->ces[DB_CE_NUM + 5])
-+#define connstr_ce(x)	((x)->ces[DB_CE_NUM + 6])
- 
- #define PGSQL_HAVE_NAMESPACE_TEMPLATE 			\
- 	"SELECT nspname FROM pg_namespace n WHERE n.nspname='%s'"
-diff --git a/output/ulogd_output_GRAPHITE.c b/output/ulogd_output_GRAPHITE.c
-index 28280b200544..22434707bcf9 100644
---- a/output/ulogd_output_GRAPHITE.c
-+++ b/output/ulogd_output_GRAPHITE.c
-@@ -79,9 +79,9 @@ static struct config_keyset graphite_kset = {
+diff --git a/output/ulogd_output_GPRINT.c b/output/ulogd_output_GPRINT.c
+index aedd08e980f7..72365dd87cc1 100644
+--- a/output/ulogd_output_GPRINT.c
++++ b/output/ulogd_output_GPRINT.c
+@@ -51,20 +51,15 @@ static struct config_keyset gprint_kset = {
+ 		[GPRINT_CONF_FILENAME] = {
+ 			.key = "file",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+-			.u = {.string = ULOGD_GPRINT_DEFAULT },
++			.u = { .string = ULOGD_GPRINT_DEFAULT },
+ 		},
+ 		[GPRINT_CONF_SYNC] = {
+ 			.key = "sync",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 		[GPRINT_CONF_TIMESTAMP] = {
+ 			.key = "timestamp",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
  	},
  };
- 
--#define host_ce(x)	(x->ces[0])
--#define port_ce(x)	(x->ces[1])
--#define prefix_ce(x)	(x->ces[2])
-+#define host_ce(x)	((x)->ces[0])
-+#define port_ce(x)	((x)->ces[1])
-+#define prefix_ce(x)	((x)->ces[2])
- 
- struct graphite_instance {
- 	int sck;
+diff --git a/output/ulogd_output_GRAPHITE.c b/output/ulogd_output_GRAPHITE.c
+index 5328f8e95572..28280b200544 100644
+--- a/output/ulogd_output_GRAPHITE.c
++++ b/output/ulogd_output_GRAPHITE.c
+@@ -67,17 +67,14 @@ static struct config_keyset graphite_kset = {
+ 		{
+ 			.key = "host",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "port",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 		{
+ 			.key = "prefix",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 		},
+ 	},
+ };
 diff --git a/output/ulogd_output_JSON.c b/output/ulogd_output_JSON.c
-index 59aab305e545..76b51b2afaa7 100644
+index 700abc25e5ea..59aab305e545 100644
 --- a/output/ulogd_output_JSON.c
 +++ b/output/ulogd_output_JSON.c
-@@ -45,10 +45,10 @@
- #define ULOGD_JSON_DEFAULT_DEVICE "Netfilter"
- #endif
- 
--#define host_ce(x)	(x->ces[JSON_CONF_HOST])
--#define port_ce(x)	(x->ces[JSON_CONF_PORT])
--#define mode_ce(x)	(x->ces[JSON_CONF_MODE])
--#define file_ce(x)	(x->ces[JSON_CONF_FILENAME])
-+#define host_ce(x)	((x)->ces[JSON_CONF_HOST])
-+#define port_ce(x)	((x)->ces[JSON_CONF_PORT])
-+#define mode_ce(x)	((x)->ces[JSON_CONF_MODE])
-+#define file_ce(x)	((x)->ces[JSON_CONF_FILENAME])
- #define unlikely(x) __builtin_expect((x),0)
- 
- struct json_priv {
+@@ -87,26 +87,20 @@ static struct config_keyset json_kset = {
+ 		[JSON_CONF_FILENAME] = {
+ 			.key = "file",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+-			.u = {.string = ULOGD_JSON_DEFAULT },
++			.u = { .string = ULOGD_JSON_DEFAULT },
+ 		},
+ 		[JSON_CONF_SYNC] = {
+ 			.key = "sync",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 		[JSON_CONF_TIMESTAMP] = {
+ 			.key = "timestamp",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .value = 1 },
+ 		},
+ 		[JSON_CONF_EVENTV1] = {
+ 			.key = "eventv1",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 		[JSON_CONF_DEVICE] = {
+ 			.key = "device",
+@@ -117,25 +111,20 @@ static struct config_keyset json_kset = {
+ 		[JSON_CONF_BOOLEAN_LABEL] = {
+ 			.key = "boolean_label",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 		[JSON_CONF_MODE] = {
+ 			.key = "mode",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .string = "file" },
+ 		},
+ 		[JSON_CONF_HOST] = {
+ 			.key = "host",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .string = "127.0.0.1" },
+ 		},
+ 		[JSON_CONF_PORT] = {
+ 			.key = "port",
+ 			.type = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .string = "12345" },
+ 		},
+ 	},
+diff --git a/output/ulogd_output_LOGEMU.c b/output/ulogd_output_LOGEMU.c
+index cfcfab734746..c20ba1852be8 100644
+--- a/output/ulogd_output_LOGEMU.c
++++ b/output/ulogd_output_LOGEMU.c
+@@ -64,13 +64,11 @@ static struct config_keyset logemu_kset = {
+ 		{
+ 			.key 	 = "file",
+ 			.type	 = CONFIG_TYPE_STRING,
+-			.options = CONFIG_OPT_NONE,
+ 			.u	 = { .string = ULOGD_LOGEMU_DEFAULT },
+ 		},
+ 		{
+ 			.key	 = "sync",
+ 			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u	 = { .value = ULOGD_LOGEMU_SYNC_DEFAULT },
+ 		},
+ 	},
+diff --git a/output/ulogd_output_NACCT.c b/output/ulogd_output_NACCT.c
+index d369c7a87315..7f5d1c5ecbf2 100644
+--- a/output/ulogd_output_NACCT.c
++++ b/output/ulogd_output_NACCT.c
+@@ -163,14 +163,11 @@ static struct config_keyset nacct_kset = {
+ 		{
+ 			.key = "file", 
+ 			.type = CONFIG_TYPE_STRING, 
+-			.options = CONFIG_OPT_NONE,
+-			.u = {.string = NACCT_FILE_DEFAULT },
++			.u = { .string = NACCT_FILE_DEFAULT },
+ 		},
+ 		{
+ 			.key = "sync",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 	},
+ };
+diff --git a/output/ulogd_output_OPRINT.c b/output/ulogd_output_OPRINT.c
+index 6fde445ed1e4..265103a04719 100644
+--- a/output/ulogd_output_OPRINT.c
++++ b/output/ulogd_output_OPRINT.c
+@@ -105,14 +105,11 @@ static struct config_keyset oprint_kset = {
+ 		{
+ 			.key = "file", 
+ 			.type = CONFIG_TYPE_STRING, 
+-			.options = CONFIG_OPT_NONE,
+-			.u = {.string = ULOGD_OPRINT_DEFAULT },
++			.u = { .string = ULOGD_OPRINT_DEFAULT },
+ 		},
+ 		{
+ 			.key = "sync",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 	},
+ };
+diff --git a/output/ulogd_output_SYSLOG.c b/output/ulogd_output_SYSLOG.c
+index 9777f0fe9185..675db7daf16d 100644
+--- a/output/ulogd_output_SYSLOG.c
++++ b/output/ulogd_output_SYSLOG.c
+@@ -49,16 +49,14 @@ static struct config_keyset syslog_kset = {
+ 	.num_ces = 2,
+ 	.ces = {
+ 		{
+-		.key = "facility", 
+-		.type = CONFIG_TYPE_STRING, 
+-		.options = CONFIG_OPT_NONE, 
+-		.u = { .string = SYSLOG_FACILITY_DEFAULT } 
++			.key = "facility",
++			.type = CONFIG_TYPE_STRING,
++			.u = { .string = SYSLOG_FACILITY_DEFAULT }
+ 		},
+-		{ 
+-		.key = "level", 
+-		.type = CONFIG_TYPE_STRING,
+-		.options = CONFIG_OPT_NONE, 
+-		.u = { .string = SYSLOG_LEVEL_DEFAULT }
++		{
++			.key = "level",
++			.type = CONFIG_TYPE_STRING,
++			.u = { .string = SYSLOG_LEVEL_DEFAULT }
+ 		},
+ 	},
+ };
+diff --git a/output/ulogd_output_XML.c b/output/ulogd_output_XML.c
+index 44af596dc2bc..512293c506ae 100644
+--- a/output/ulogd_output_XML.c
++++ b/output/ulogd_output_XML.c
+@@ -75,20 +75,15 @@ static struct config_keyset xml_kset = {
+ 		[CFG_XML_DIR] = {
+ 			.key = "directory", 
+ 			.type = CONFIG_TYPE_STRING, 
+-			.options = CONFIG_OPT_NONE,
+ 			.u = { .string = ULOGD_XML_DEFAULT_DIR },
+ 		},
+ 		[CFG_XML_SYNC] = {
+ 			.key = "sync",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 		[CFG_XML_STDOUT] = {
+ 			.key = "stdout",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u = { .value = 0 },
+ 		},
+ 	},
+ };
+diff --git a/src/ulogd.c b/src/ulogd.c
+index cdb5c689ab36..ec0745e63169 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -133,7 +133,6 @@ static struct config_keyset ulogd_kset = {
+ 		{
+ 			.key = "logfile",
+ 			.type = CONFIG_TYPE_CALLBACK,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.parser = &logfile_open,
+ 		},
+ 		{
+@@ -145,7 +144,6 @@ static struct config_keyset ulogd_kset = {
+ 		{
+ 			.key = "loglevel",
+ 			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+ 			.u.value = ULOGD_NOTICE,
+ 		},
+ 		{
 -- 
 2.35.1
 
