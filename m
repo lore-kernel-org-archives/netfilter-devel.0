@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5BB5C4708C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC028C636F9
 	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:58:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236901AbiK2V6I (ORCPT
+        id S236909AbiK2V6I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 29 Nov 2022 16:58:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39818 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237112AbiK2V5y (ORCPT
+        with ESMTP id S237116AbiK2V55 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2022 16:57:54 -0500
+        Tue, 29 Nov 2022 16:57:57 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DE7A6DCE7
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:57:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7859963CD6
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:57:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=XjeXIdhBBpw19KAycAh3UCIZxi9ZCF6GJhernFI5USc=; b=fNEHlISrlXpDtj0AVcW5h7T+vd
-        yHsrGZOONsmS3BBr/1gmhUVazznGTt4wTXNb0wt3tv8D1BAG5l3d1KDRZHZIk0w7igJskOjVftLHK
-        qbuUxgGv18skODLaU4N4XGIAkHWQ6eF3L+Z+HVvQEn6XPtXpps9zRzJKB1N1SK7Q3ASPpVIU7Qzm/
-        pve3WsLuD6C/UoltEWZx/5Qs9P/vtKCAFkB4Gi/nXNmCYBFOzoR08D0ALfyy3pN0iSm1vhMmJ/aMS
-        /IbkGE8oJUM/3oYP1h5V/DKAo/pSo/h5P5ulHKpGlZpje1Lv1vqqE7G/J5d5v/bE5L7jvfMlGhlO9
-        Y9hFkM4w==;
+        bh=Wpdcwffk2/sqTd2hhZaeL1ieIWpf5w+DMnE4wbkGqBk=; b=c0KqeKVLj790BzFPGkgW6fQC0f
+        PGQeUGdlj6dFZyHQ26pxJVP1STRXW78hwdgzRJ3BUFfr6fkfFR29PYjhPiQXw94w+Hznf2IYIiM26
+        w26fnqxsVNyFqnjBk703F03PknJTSNdpKqs6SjJooWmh5R0LedydnWUWZvMNQ3/mPr7uq2WFsHJ31
+        YJtOJkbadacRkZ/GFEzCpWgqnL7bXuYsrrqhJ8ES6lPXxxt6PMJKln2pu8OC2GtNgUTAu1aOcamMV
+        avjvIv7j+fH1stnydpBakuwIfe3mONl2rle2AGRIMhsIwEjLZcH1dR421vpLY0C1G2Q3s+ypmrr/P
+        vDBRiReg==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1p08SM-00DjQp-0W
+        id 1p08SM-00DjQp-GE
         for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:58 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 v2 v2 27/34] db, IP2BIN: defer formatting of raw strings
-Date:   Tue, 29 Nov 2022 21:47:42 +0000
-Message-Id: <20221129214749.247878-28-jeremy@azazel.net>
+Subject: [PATCH ulogd2 v2 v2 30/34] output: pgsql: remove a couple of struct members
+Date:   Tue, 29 Nov 2022 21:47:45 +0000
+Message-Id: <20221129214749.247878-31-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221129214749.247878-1-jeremy@azazel.net>
 References: <20221129214749.247878-1-jeremy@azazel.net>
@@ -50,164 +50,160 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, the only use of the output of IP2BIN is embedding in literal
-SQL strings, so it converts the binary data to a suitably formatted
-hexadecimal string and propagates that.  However, we will shortly
-introduce prep & exec support to the DB API, at which point we may want
-the raw binary data in the output plug-ins.  Therefore, in order to
-avoid having to decode the hex back to binary, defer the hex encoding to
-where it is used.
-
-At the same time, resize the buffers.  IPv6 addresses are 128 *bits*, so the
-buffers do not need to be 128 *bytes*.
+The `pgsql_have_schemas` of `struct pgsql_instance` is never used.  The
+`pgres` member is always assigned and cleared in the same function.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- filter/ulogd_filter_IP2BIN.c | 61 +++++++++++++-----------------------
- util/db.c                    | 10 +++++-
- 2 files changed, 31 insertions(+), 40 deletions(-)
+ output/pgsql/ulogd_output_PGSQL.c | 46 ++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 22 deletions(-)
 
-diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
-index ca6d3abae884..6a4e10e4fb58 100644
---- a/filter/ulogd_filter_IP2BIN.c
-+++ b/filter/ulogd_filter_IP2BIN.c
-@@ -28,8 +28,6 @@
- #include <ulogd/ulogd.h>
- #include <netinet/if_ether.h>
+diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
+index 9dfef7946775..70bfbee7f565 100644
+--- a/output/pgsql/ulogd_output_PGSQL.c
++++ b/output/pgsql/ulogd_output_PGSQL.c
+@@ -31,8 +31,6 @@ struct pgsql_instance {
+ 	struct db_instance db_inst;
  
--#define IPADDR_LENGTH 128
--
- enum input_keys {
- 	KEY_OOB_FAMILY,
- 	KEY_OOB_PROTOCOL,
-@@ -89,32 +87,38 @@ static struct ulogd_key ip2bin_inp[] = {
- static struct ulogd_key ip2bin_keys[] = {
- 	{
- 		.type = ULOGD_RET_RAWSTR,
-+		.len  = sizeof(struct in6_addr),
- 		.name = "ip.saddr.bin",
- 	},
- 	{
- 		.type = ULOGD_RET_RAWSTR,
-+		.len  = sizeof(struct in6_addr),
- 		.name = "ip.daddr.bin",
- 	},
- 	{
- 		.type = ULOGD_RET_RAWSTR,
-+		.len  = sizeof(struct in6_addr),
- 		.name = "orig.ip.saddr.bin",
- 	},
- 	{
- 		.type = ULOGD_RET_RAWSTR,
-+		.len  = sizeof(struct in6_addr),
- 		.name = "orig.ip.daddr.bin",
- 	},
- 	{
- 		.type = ULOGD_RET_RAWSTR,
-+		.len  = sizeof(struct in6_addr),
- 		.name = "reply.ip.saddr.bin",
- 	},
- 	{
- 		.type = ULOGD_RET_RAWSTR,
-+		.len  = sizeof(struct in6_addr),
- 		.name = "reply.ip.daddr.bin",
- 	},
- 
+ 	PGconn *dbh;
+-	PGresult *pgres;
+-	unsigned char pgsql_have_schemas;
  };
  
--static char ipbin_array[MAX_KEY - START_KEY + 1][IPADDR_LENGTH];
-+static unsigned char ipbin_array[MAX_KEY - START_KEY + 1][sizeof(struct in6_addr)];
+ /* our configuration directives */
+@@ -90,6 +88,7 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
+ 	struct pgsql_instance *pi = (struct pgsql_instance *) upi->private;
+ 	char pgbuf[strlen(PGSQL_HAVE_NAMESPACE_TEMPLATE) +
+ 		   strlen(schema_ce(upi->config_kset).u.string) + 1];
++	PGresult *pgres;
  
- /**
-  * Convert IPv4 address (as 32-bit unsigned integer) to IPv6 address:
-@@ -130,13 +134,8 @@ static inline void uint32_to_ipv6(const uint32_t ipv4, struct in6_addr *ipv6)
+ 	if (!pi->dbh)
+ 		return -1;
+@@ -98,28 +97,28 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
+ 		schema_ce(upi->config_kset).u.string);
+ 	ulogd_log(ULOGD_DEBUG, "%s\n", pgbuf);
  
- static int ip2bin(struct ulogd_key *inp, int index, int oindex)
- {
--	char family = ikey_get_u8(&inp[KEY_OOB_FAMILY]);
--	char convfamily = family;
--	unsigned char *addr8;
--	struct in6_addr *addr;
--	struct in6_addr ip4_addr;
--	char *buffer;
--	int i, written;
-+	char family = ikey_get_u8(&inp[KEY_OOB_FAMILY]), convfamily = family;
-+	struct in6_addr *addr, ip4_addr;
- 
- 	if (family == AF_BRIDGE) {
- 		if (!pp_is_valid(inp, KEY_OOB_PROTOCOL)) {
-@@ -162,37 +161,21 @@ static int ip2bin(struct ulogd_key *inp, int index, int oindex)
+-	pi->pgres = PQexec(pi->dbh, pgbuf);
+-	if (!pi->pgres) {
++	pgres = PQexec(pi->dbh, pgbuf);
++	if (!pgres) {
+ 		ulogd_log(ULOGD_DEBUG, "\n result false");
+ 		return -1;
  	}
  
- 	switch (convfamily) {
--		case AF_INET6:
--			addr = (struct in6_addr *)ikey_get_u128(&inp[index]);
--			break;
--		case AF_INET:
--			/* Convert IPv4 to IPv4 in IPv6 */
--			addr = &ip4_addr;
--			uint32_to_ipv6(ikey_get_u32(&inp[index]), addr);
--			break;
--		default:
--			/* TODO handle error */
--			ulogd_log(ULOGD_NOTICE, "Unknown protocol family\n");
--			return ULOGD_IRET_ERR;
-+	case AF_INET6:
-+		addr = (struct in6_addr *)ikey_get_u128(&inp[index]);
-+		break;
-+	case AF_INET:
-+		/* Convert IPv4 to IPv4 in IPv6 */
-+		addr = &ip4_addr;
-+		uint32_to_ipv6(ikey_get_u32(&inp[index]), addr);
-+		break;
-+	default:
-+		/* TODO handle error */
-+		ulogd_log(ULOGD_NOTICE, "Unknown protocol family\n");
-+		return ULOGD_IRET_ERR;
+-	if (PQresultStatus(pi->pgres) == PGRES_TUPLES_OK) {
+-		if (PQntuples(pi->pgres)) {
++	if (PQresultStatus(pgres) == PGRES_TUPLES_OK) {
++		if (PQntuples(pgres)) {
+ 			ulogd_log(ULOGD_DEBUG, "using schema %s\n",
+ 				  schema_ce(upi->config_kset).u.string);
+ 			pi->db_inst.schema = schema_ce(upi->config_kset).u.string;
+ 		} else {
+ 			ulogd_log(ULOGD_ERROR, "schema %s not found: %s\n",
+ 				 schema_ce(upi->config_kset).u.string, PQerrorMessage(pi->dbh));
+-			PQclear(pi->pgres);
++			PQclear(pgres);
+ 			return -1;
+ 		}
+ 	} else {
+ 		pi->db_inst.schema = NULL;
  	}
  
--	buffer = ipbin_array[oindex];
--	/* format IPv6 to BINARY(16) as "0x..." */
--	buffer[0] = '0';
--	buffer[1] = 'x';
--	buffer += 2;
--	addr8 = &addr->s6_addr[0];
--	for (i = 0; i < 4; i++) {
--		written = sprintf(buffer, "%02x%02x%02x%02x",
--				  addr8[0], addr8[1], addr8[2], addr8[3]);
--		if (written != 2 * 4) {
--			buffer[0] = 0;
--			return ULOGD_IRET_ERR;
--		}
--		buffer += written;
--		addr8 += 4;
--	}
--	buffer[0] = 0;
-+	memcpy(ipbin_array[oindex], &addr->s6_addr, sizeof(addr->s6_addr));
+-	PQclear(pi->pgres);
++	PQclear(pgres);
  
- 	return ULOGD_IRET_OK;
+ 	return 0;
  }
-diff --git a/util/db.c b/util/db.c
-index 42b59cc6284c..271cd25efeaf 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -594,7 +594,15 @@ _bind_sql_stmt(struct ulogd_pluginstance *upi, struct db_stmt *stmt)
- 			sqlp += sprintf(sqlp, "',");
- 			break;
- 		case ULOGD_RET_RAWSTR:
--			sqlp += sprintf(sqlp, "%s,", (char *) res->u.value.ptr);
-+			strcpy(sqlp, "0x");
-+			sqlp += 2;
-+			{
-+				unsigned char *cp = res->u.value.ptr;
-+				unsigned int j;
-+				for (j = 0; j < res->len; ++j)
-+					sqlp += sprintf(sqlp, "%02x", cp[j]);
-+			}
-+			*sqlp++ = ',';
- 			break;
- 		case ULOGD_RET_RAW:
- 			ulogd_log(ULOGD_NOTICE,
+@@ -137,6 +136,7 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 	char pgbuf[strlen(PGSQL_GETCOLUMN_TEMPLATE_SCHEMA)
+ 		   + strlen(table_ce(upi->config_kset).u.string)
+ 		   + strlen(pi->db_inst.schema) + 2];
++	PGresult *pgres;
+ 	int rv;
+ 
+ 	if (!pi->dbh) {
+@@ -156,27 +156,27 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
+ 
+ 	ulogd_log(ULOGD_DEBUG, "%s\n", pgbuf);
+ 
+-	pi->pgres = PQexec(pi->dbh, pgbuf);
+-	if (!pi->pgres) {
++	pgres = PQexec(pi->dbh, pgbuf);
++	if (!pgres) {
+ 		ulogd_log(ULOGD_DEBUG, "result false (%s)",
+ 			  PQerrorMessage(pi->dbh));
+ 		return -1;
+ 	}
+ 
+-	if (PQresultStatus(pi->pgres) != PGRES_TUPLES_OK) {
++	if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
+ 		ulogd_log(ULOGD_DEBUG, "pres_command_not_ok (%s)",
+ 			  PQerrorMessage(pi->dbh));
+-		PQclear(pi->pgres);
++		PQclear(pgres);
+ 		return -1;
+ 	}
+ 
+-	rv = ulogd_db_alloc_input_keys(upi, PQntuples(pi->pgres), pi->pgres);
++	rv = ulogd_db_alloc_input_keys(upi, PQntuples(pgres), pgres);
+ 
+ 	/* ID (starting by '.') is a sequence */
+ 	if (!rv && upi->input.keys[0].name[0] == '.')
+ 		upi->input.keys[0].flags |= ULOGD_KEYF_INACTIVE;
+ 
+-	PQclear(pi->pgres);
++	PQclear(pgres);
+ 	return rv;
+ }
+ 
+@@ -207,6 +207,7 @@ static int open_db_pgsql(struct ulogd_pluginstance *upi)
+ 	char *connstr = connstr_ce(upi->config_kset).u.string;
+ 	char *schema = NULL;
+ 	char pgbuf[128];
++	PGresult *pgres;
+ 
+ 	if (!connstr[0]) {
+ 		char         *server = host_ce(upi->config_kset).u.string;
+@@ -260,13 +261,13 @@ static int open_db_pgsql(struct ulogd_pluginstance *upi)
+ 
+ 	if (!(schema == NULL) && (strcmp(schema,"public"))) {
+ 		snprintf(pgbuf, 128, "SET search_path='%.63s', \"$user\", 'public'", schema);
+-		pi->pgres = PQexec(pi->dbh, pgbuf);
+-		if ((PQresultStatus(pi->pgres) == PGRES_COMMAND_OK)) {
+-			PQclear(pi->pgres);
++		pgres = PQexec(pi->dbh, pgbuf);
++		if ((PQresultStatus(pgres) == PGRES_COMMAND_OK)) {
++			PQclear(pgres);
+ 		} else {
+ 			ulogd_log(ULOGD_ERROR, "could not set search path to (%s): %s\n",
+ 				 schema, PQerrorMessage(pi->dbh));
+-			PQclear(pi->pgres);
++			PQclear(pgres);
+ 			close_db_pgsql(upi);
+ 			return -1;
+ 		}
+@@ -286,16 +287,17 @@ static int execute_pgsql(struct ulogd_pluginstance *upi,
+ 			 const struct db_stmt *stmt)
+ {
+ 	struct pgsql_instance *pi = (struct pgsql_instance *) upi->private;
++	PGresult *pgres;
+ 
+-	pi->pgres = PQexec(pi->dbh, stmt->sql);
+-	if (!(pi->pgres && ((PQresultStatus(pi->pgres) == PGRES_COMMAND_OK)
+-		|| (PQresultStatus(pi->pgres) == PGRES_TUPLES_OK)))) {
++	pgres = PQexec(pi->dbh, stmt->sql);
++	if (!(pgres && ((PQresultStatus(pgres) == PGRES_COMMAND_OK)
++		|| (PQresultStatus(pgres) == PGRES_TUPLES_OK)))) {
+ 		ulogd_log(ULOGD_ERROR, "execute failed (%s)\n",
+ 			  PQerrorMessage(pi->dbh));
+ 		return -1;
+ 	}
+ 
+-	PQclear(pi->pgres);
++	PQclear(pgres);
+ 
+ 	return 0;
+ }
 -- 
 2.35.1
 
