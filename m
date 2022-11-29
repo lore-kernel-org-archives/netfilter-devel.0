@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C084C4708B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:48:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5445DC4167B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:48:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236192AbiK2VsB (ORCPT
+        id S236671AbiK2VsA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Nov 2022 16:48:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34402 "EHLO
+        Tue, 29 Nov 2022 16:48:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236845AbiK2Vr5 (ORCPT
+        with ESMTP id S236576AbiK2Vr5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 29 Nov 2022 16:47:57 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8561964556
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C57FA64562
         for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:47:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,22 +22,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=NOLlBsW8k7BgHGysVbxBhN4ePfhDjNMnNraKErPIVlg=; b=ObKo8k2vIGKUwKTB+hX73GWgXb
-        FXlGi1uuxA1oycA8ULvtWZzRfrkvg8IZ0DEGSlsKs6mwrJ5QMkn77RKVYKdEi70ztg3GY9f7Qeh+f
-        cSsu0ZCA/GG00urj8jWwPd+6EvjapW2Bv5mPEB4H+6efZsaC7SsliMqRKUVBJ5RXLe5kbjrGB4UAl
-        dn28jtMcuD05xpbg7ihMetWse3anNeKMeh+ZbmQddgOcpxZwmhq6j++Aa0/BCKiA05G2ZlK/Rhb/P
-        Cl/86eBoR8KqC4hyIgFXbsoita+eQWe5GThfJpa5sWQaFaKIiPDDB88vA+H2qcZBUAdPv1toZorXh
-        8NXeLx0w==;
+        bh=jG4vU6x+Lbbsbc2n/bNmUM7B/fewdV/zv7RDoVEpwso=; b=enRg+qNGzmfWpKpZ5+52QN10ms
+        mWkaU8eFHgDAG3NHtSi0FbS+XE+8nC220vCs/4jJFxorR9kHzWm35BFuAkKt7ex7Hy++YKnsgkB9H
+        YElH43vX9HqlyK1oh0J/YS4rw8TMRCgZg0scdwTULMrDdHropt7IWvpvttLjQ5g4JmllWAKmrMn34
+        4A2om8RCVhK5hplis5w+2L0mDMkDTn9kyGVIicMsyvynl4qo4KWV8qcovZok3IOSokalpUCN7hGuj
+        tgFjuQLo1pnhLo/tDzcXJr1XJHodqFhVSE7jauJ1/tdfT62qZHp2AnI2Ah+YRUY9Kb/fBifEPQwCs
+        ry4oVIQA==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1p08SI-00DjQp-RU
-        for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:54 +0000
+        id 1p08SI-00DjQp-VH
+        for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:55 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 v2 v2 03/34] output: JSON: remove incorrect config value check
-Date:   Tue, 29 Nov 2022 21:47:18 +0000
-Message-Id: <20221129214749.247878-4-jeremy@azazel.net>
+Subject: [PATCH ulogd2 v2 v2 04/34] db: fix back-log capacity checks
+Date:   Tue, 29 Nov 2022 21:47:19 +0000
+Message-Id: <20221129214749.247878-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221129214749.247878-1-jeremy@azazel.net>
 References: <20221129214749.247878-1-jeremy@azazel.net>
@@ -50,40 +50,68 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The `u.string` member of a config entry is an array, and so never NULL.
-Output the device string unconditionally.
+Previously, when adding queries to the back-log, the memory usage is
+incremented and decremented by the size of the query structure and the
+length of the SQL statement, `sizeof(struct db_stmt) + len`.  However,
+when checking whether there was available capacity to add a new query,
+the struct size was ignored.  Amend the check to include the struct
+size, and also account for the NUL that terminates the SQL.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- output/ulogd_output_JSON.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ util/db.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/output/ulogd_output_JSON.c b/output/ulogd_output_JSON.c
-index bbc3dba5d41a..700abc25e5ea 100644
---- a/output/ulogd_output_JSON.c
-+++ b/output/ulogd_output_JSON.c
-@@ -277,7 +277,7 @@ static int json_interp(struct ulogd_pluginstance *upi)
+diff --git a/util/db.c b/util/db.c
+index c1d24365239f..ebd9f152ed83 100644
+--- a/util/db.c
++++ b/util/db.c
+@@ -404,14 +404,17 @@ static void __format_query_db(struct ulogd_pluginstance *upi, char *start)
+ static int __add_to_backlog(struct ulogd_pluginstance *upi, const char *stmt, unsigned int len)
  {
- 	struct json_priv *opi = (struct json_priv *) &upi->private;
- 	unsigned int i;
--	char *buf, *tmp;
-+	char *dvc, *buf, *tmp;
- 	size_t buflen;
- 	json_t *msg;
+ 	struct db_instance *di = (struct db_instance *) &upi->private;
++	unsigned int query_size;
+ 	struct db_stmt *query;
  
-@@ -335,10 +335,8 @@ static int json_interp(struct ulogd_pluginstance *upi)
- 			json_object_set_new(msg, "timestamp", json_string(timestr));
+ 	/* check if we are using backlog */
+ 	if (di->backlog_memcap == 0)
+ 		return 0;
+ 
++	query_size = sizeof(*query) + len + 1;
++
+ 	/* check len against backlog */
+-	if (len + di->backlog_memusage > di->backlog_memcap) {
++	if (query_size + di->backlog_memcap - di->backlog_memusage) {
+ 		if (di->backlog_full == 0)
+ 			ulogd_log(ULOGD_ERROR,
+ 				  "Backlog is full starting to reject events.\n");
+@@ -419,7 +422,7 @@ static int __add_to_backlog(struct ulogd_pluginstance *upi, const char *stmt, un
+ 		return -1;
  	}
  
--	if (upi->config_kset->ces[JSON_CONF_DEVICE].u.string) {
--		char *dvc = upi->config_kset->ces[JSON_CONF_DEVICE].u.string;
--		json_object_set_new(msg, "dvc", json_string(dvc));
--	}
-+	dvc = upi->config_kset->ces[JSON_CONF_DEVICE].u.string;
-+	json_object_set_new(msg, "dvc", json_string(dvc));
+-	query = malloc(sizeof(struct db_stmt));
++	query = malloc(sizeof(*query));
+ 	if (query == NULL)
+ 		return -1;
  
- 	for (i = 0; i < upi->input.num_keys; i++) {
- 		struct ulogd_key *key = upi->input.keys[i].u.source;
+@@ -431,7 +434,7 @@ static int __add_to_backlog(struct ulogd_pluginstance *upi, const char *stmt, un
+ 		return -1;
+ 	}
+ 
+-	di->backlog_memusage += len + sizeof(struct db_stmt);
++	di->backlog_memusage += query_size;
+ 	di->backlog_full = 0;
+ 
+ 	llist_add_tail(&query->list, &di->backlog);
+@@ -489,7 +492,7 @@ static int __treat_backlog(struct ulogd_pluginstance *upi)
+ 			di->driver->close_db(upi);
+ 			return _init_reconnect(upi);
+ 		} else {
+-			di->backlog_memusage -= query->len + sizeof(struct db_stmt);
++			di->backlog_memusage -= sizeof(*query) + query->len + 1;
+ 			llist_del(&query->list);
+ 			free(query->stmt);
+ 			free(query);
 -- 
 2.35.1
 
