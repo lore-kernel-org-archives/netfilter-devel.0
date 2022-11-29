@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85917C4708D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD342C47090
 	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:58:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236879AbiK2V6H (ORCPT
+        id S236888AbiK2V6I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Nov 2022 16:58:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39536 "EHLO
+        Tue, 29 Nov 2022 16:58:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236987AbiK2V5r (ORCPT
+        with ESMTP id S237026AbiK2V5u (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2022 16:57:47 -0500
+        Tue, 29 Nov 2022 16:57:50 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09BF563CEE
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:57:44 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E88716C733
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:57:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=zgNYzdjj32yueE4gnK03LoU+h3kmqBliZfhO1c8YME4=; b=jh9NzD6vpxWfhNW2z2E8nbj0Ay
-        MR8amjZ0U5ajoeGruIS4EKRug1U/2esNNBQSuhSU90KJWww4cnwNRUKUwks9CwJDJbCPN0rDAKjs1
-        0F4B9hEaTu747zEie3kCxsUPt/xO16LD0DTvkIfa73c/eiLbasgTD5Vd2FDWnwFVVdLHKnqlObPay
-        4o2xXfk5ChZLGxv+/Db4C33ZTMrkCA7QkiFK0+11KpIo+Jqy2KuTH+gcnpv3dH+KTQkMpySB931fb
-        W1Vq4Bx2KT3P+phjhXuVcD7raOe3yMK8xd+w55WODzOdLr97SJG3+JwG9QM/vd7f7pxnsFONNxXND
-        EAVpnjhw==;
+        bh=I4JFRC9OM/P3q5tvU9PM+Tj6WfEoXwnDWKkCHUB1D7k=; b=CxC30RasMfGJO8I03+VWdI/Y1k
+        oQNOHG49+0yxKOTLIY69gYuqfKS6bjlTHEExionk+3C3JV7DVY8W5bVDtNYeEJFsfEDopSQMSG/9j
+        VPyYqBB8HuuY92XL9Xl1Pz4jmP8SmK3vnjfD35VmR1m9jibMCmv1PhpYJgdjvw7h8A2W21hpQqtIw
+        cD/G/TorxkJ8oe3yojxwS4mTDoDzSE/kJArGbvS6i2S/hJuS17Y58A7TZZFpaRF209FcazFbF0gDk
+        vcJreSrd2zbdbwGvOdDVlOMGkH3gI953jfvfu6zR95scN6SdsTcQ80amPj433vdEuXe3a5zQOtgGm
+        nDcm4Ecg==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1p08SM-00DjQp-K1
-        for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:58 +0000
+        id 1p08SK-00DjQp-RG
+        for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:56 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 v2 v2 31/34] output: pgsql: remove variable-length arrays
-Date:   Tue, 29 Nov 2022 21:47:46 +0000
-Message-Id: <20221129214749.247878-32-jeremy@azazel.net>
+Subject: [PATCH ulogd2 v2 v2 19/34] db: improve calculation of sql statement length
+Date:   Tue, 29 Nov 2022 21:47:34 +0000
+Message-Id: <20221129214749.247878-20-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221129214749.247878-1-jeremy@azazel.net>
 References: <20221129214749.247878-1-jeremy@azazel.net>
@@ -50,185 +50,243 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-VLA's are deprecated.
+Currently, we calculate the space required from a prefix which doesn't
+correspond to anything we use, space for each key, although the SQL
+statement may not contain the keys, and a fixed amount for each value.
+However, we can use snprintf to tighten up the estimate by using
+`snprintf(NULL, 0, ...)` to tell us how much room we actually need for
+the parts we know in advance.
 
-Group all the SQL macros at the top of the file and format them.
+Rename a couple of variables and replace `strlen` with `sizeof` where
+appropriate.
+
+Sort included headers.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- output/pgsql/ulogd_output_PGSQL.c | 95 ++++++++++++++++++++-----------
- 1 file changed, 62 insertions(+), 33 deletions(-)
+ util/db.c | 149 ++++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 105 insertions(+), 44 deletions(-)
 
-diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
-index 70bfbee7f565..b125674b7364 100644
---- a/output/pgsql/ulogd_output_PGSQL.c
-+++ b/output/pgsql/ulogd_output_PGSQL.c
-@@ -79,20 +79,46 @@ static struct config_keyset pgsql_kset = {
- #define schema_ce(x)	((x)->ces[DB_CE_NUM + 5])
- #define connstr_ce(x)	((x)->ces[DB_CE_NUM + 6])
+diff --git a/util/db.c b/util/db.c
+index afa86a3f137b..ce1273638ae0 100644
+--- a/util/db.c
++++ b/util/db.c
+@@ -24,15 +24,16 @@
+  *
+  */
  
--#define PGSQL_HAVE_NAMESPACE_TEMPLATE 			\
--	"SELECT nspname FROM pg_namespace n WHERE n.nspname='%s'"
-+#define PGSQL_HAVE_NAMESPACE_TEMPLATE                         \
-+	"SELECT nspname "                                     \
-+	"FROM pg_namespace n "                                \
-+	"WHERE n.nspname = '%s'"
-+
-+#define PGSQL_GETCOLUMN_TEMPLATE                              \
-+	"SELECT a.attname "                                   \
-+	"FROM pg_class c, pg_attribute a "                    \
-+	"WHERE c.relname = '%s' "                             \
-+	"AND a.attnum > 0 "                                   \
-+	"AND a.attrelid = c.oid "                             \
-+	"ORDER BY a.attnum"
-+
-+#define PGSQL_GETCOLUMN_TEMPLATE_SCHEMA                       \
-+	"SELECT a.attname "                                   \
-+	"FROM pg_attribute a, pg_class c "                    \
-+	"LEFT JOIN pg_namespace n ON c.relnamespace = n.oid " \
-+	"WHERE c.relname = '%s' "                             \
-+	"AND n.nspname = '%s' "                               \
-+	"AND a.attnum > 0 "                                   \
-+	"AND a.attrelid = c.oid "                             \
-+	"AND a.attisdropped = FALSE "                         \
-+	"ORDER BY a.attnum"
+-#include <unistd.h>
+-#include <stdlib.h>
+-#include <string.h>
+ #include <errno.h>
+-#include <netinet/in.h>
+-#include <arpa/inet.h>
+-#include <time.h>
+ #include <inttypes.h>
+ #include <pthread.h>
++#include <stdbool.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <unistd.h>
++#include <arpa/inet.h>
++#include <netinet/in.h>
  
- /* Determine if server support schemas */
- static int pgsql_namespace(struct ulogd_pluginstance *upi)
- {
- 	struct pgsql_instance *pi = (struct pgsql_instance *) upi->private;
--	char pgbuf[strlen(PGSQL_HAVE_NAMESPACE_TEMPLATE) +
--		   strlen(schema_ce(upi->config_kset).u.string) + 1];
- 	PGresult *pgres;
-+	char *pgbuf;
-+	int rv = -1;
+ #include <ulogd/ulogd.h>
+ #include <ulogd/db.h>
+@@ -47,6 +48,10 @@ static void _stop_db(struct ulogd_pluginstance *upi);
  
- 	if (!pi->dbh)
- 		return -1;
+ static char *_format_key(char *key);
+ static int _create_sql_stmt(struct ulogd_pluginstance *upi);
++static unsigned int _calc_sql_stmt_size(const char *procedure,
++					const char *schema, const char *table,
++					struct ulogd_key *keys,
++					unsigned int num_keys);
+ static void _bind_sql_stmt(struct ulogd_pluginstance *upi,
+ 			   char *stmt);
  
-+	pgbuf = malloc(sizeof(PGSQL_HAVE_NAMESPACE_TEMPLATE) +
-+		       strlen(schema_ce(upi->config_kset).u.string));
-+	if (!pgbuf)
-+		return -1;
-+
- 	sprintf(pgbuf, PGSQL_HAVE_NAMESPACE_TEMPLATE,
- 		schema_ce(upi->config_kset).u.string);
- 	ulogd_log(ULOGD_DEBUG, "%s\n", pgbuf);
-@@ -100,7 +126,7 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
- 	pgres = PQexec(pi->dbh, pgbuf);
- 	if (!pgres) {
- 		ulogd_log(ULOGD_DEBUG, "\n result false");
--		return -1;
-+		goto err_free_buf;
- 	}
- 
- 	if (PQresultStatus(pgres) == PGRES_TUPLES_OK) {
-@@ -108,51 +134,50 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
- 			ulogd_log(ULOGD_DEBUG, "using schema %s\n",
- 				  schema_ce(upi->config_kset).u.string);
- 			pi->db_inst.schema = schema_ce(upi->config_kset).u.string;
--		} else {
-+			rv = 0;
-+		} else
- 			ulogd_log(ULOGD_ERROR, "schema %s not found: %s\n",
--				 schema_ce(upi->config_kset).u.string, PQerrorMessage(pi->dbh));
--			PQclear(pgres);
--			return -1;
--		}
-+				  schema_ce(upi->config_kset).u.string,
-+				  PQerrorMessage(pi->dbh));
- 	} else {
- 		pi->db_inst.schema = NULL;
-+		rv = 0;
- 	}
- 
- 	PQclear(pgres);
- 
--	return 0;
--}
--
--#define PGSQL_GETCOLUMN_TEMPLATE 			\
--	"SELECT  a.attname FROM pg_class c, pg_attribute a WHERE c.relname ='%s' AND a.attnum>0 AND a.attrelid=c.oid ORDER BY a.attnum"
-+err_free_buf:
-+	free(pgbuf);
- 
--#define PGSQL_GETCOLUMN_TEMPLATE_SCHEMA 		\
--	"SELECT a.attname FROM pg_attribute a, pg_class c LEFT JOIN pg_namespace n ON c.relnamespace=n.oid WHERE c.relname ='%s' AND n.nspname='%s' AND a.attnum>0 AND a.attrelid=c.oid AND a.attisdropped=FALSE ORDER BY a.attnum"
-+	return rv;
-+}
- 
- /* find out which columns the table has */
- static int get_columns_pgsql(struct ulogd_pluginstance *upi)
- {
- 	struct pgsql_instance *pi = (struct pgsql_instance *) upi->private;
--	char pgbuf[strlen(PGSQL_GETCOLUMN_TEMPLATE_SCHEMA)
--		   + strlen(table_ce(upi->config_kset).u.string)
--		   + strlen(pi->db_inst.schema) + 2];
- 	PGresult *pgres;
--	int rv;
-+	char *pgbuf;
-+	int rv = -1;
- 
- 	if (!pi->dbh) {
- 		ulogd_log(ULOGD_ERROR, "no database handle\n");
- 		return -1;
- 	}
- 
--	if (pi->db_inst.schema) {
--		snprintf(pgbuf, sizeof(pgbuf)-1,
--			 PGSQL_GETCOLUMN_TEMPLATE_SCHEMA,
--			 table_ce(upi->config_kset).u.string,
--			 pi->db_inst.schema);
--	} else {
--		snprintf(pgbuf, sizeof(pgbuf)-1, PGSQL_GETCOLUMN_TEMPLATE,
--			 table_ce(upi->config_kset).u.string);
--	}
-+	pgbuf = malloc(sizeof(PGSQL_GETCOLUMN_TEMPLATE_SCHEMA) +
-+		       strlen(table_ce(upi->config_kset).u.string) +
-+		       strlen(pi->db_inst.schema));
-+	if (!pgbuf)
-+		return -1;
-+
-+	if (pi->db_inst.schema)
-+		sprintf(pgbuf, PGSQL_GETCOLUMN_TEMPLATE_SCHEMA,
-+			table_ce(upi->config_kset).u.string,
-+			pi->db_inst.schema);
-+	else
-+		sprintf(pgbuf, PGSQL_GETCOLUMN_TEMPLATE,
-+			table_ce(upi->config_kset).u.string);
- 
- 	ulogd_log(ULOGD_DEBUG, "%s\n", pgbuf);
- 
-@@ -160,14 +185,13 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
- 	if (!pgres) {
- 		ulogd_log(ULOGD_DEBUG, "result false (%s)",
- 			  PQerrorMessage(pi->dbh));
--		return -1;
-+		goto err_free_buf;
- 	}
- 
- 	if (PQresultStatus(pgres) != PGRES_TUPLES_OK) {
- 		ulogd_log(ULOGD_DEBUG, "pres_command_not_ok (%s)",
- 			  PQerrorMessage(pi->dbh));
--		PQclear(pgres);
--		return -1;
-+		goto err_clear_res;
- 	}
- 
- 	rv = ulogd_db_alloc_input_keys(upi, PQntuples(pgres), pgres);
-@@ -176,7 +200,12 @@ static int get_columns_pgsql(struct ulogd_pluginstance *upi)
- 	if (!rv && upi->input.keys[0].name[0] == '.')
- 		upi->input.keys[0].flags |= ULOGD_KEYF_INACTIVE;
- 
-+err_clear_res:
- 	PQclear(pgres);
-+
-+err_free_buf:
-+	free(pgbuf);
-+
- 	return rv;
+@@ -410,33 +415,23 @@ _format_key(char *key)
+ 	return key;
  }
  
+-#define SQL_INSERTTEMPL   "SELECT P(Y)"
+-#define SQL_VALSIZE	100
+-
+ /* create the static part of our insert statement */
+ static int
+ _create_sql_stmt(struct ulogd_pluginstance *upi)
+ {
+ 	struct db_instance *di = (struct db_instance *) upi->private;
++	char *procedure = procedure_ce(upi->config_kset).u.string;
++	char *table = table_ce(upi->config_kset).u.string;
+ 	unsigned int size;
+ 	unsigned int i;
+-	char *table = table_ce(upi->config_kset).u.string;
+-	char *procedure = procedure_ce(upi->config_kset).u.string;
++	char *stmtp;
+ 
+ 	if (di->stmt)
+ 		free(di->stmt);
+ 
+-	/* caclulate the size for the insert statement */
+-	size = strlen(SQL_INSERTTEMPL) + strlen(table);
+-
+-	for (i = 0; i < upi->input.num_keys; i++) {
+-		if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
+-			continue;
+-		/* we need space for the key and a comma, as well as
+-		 * enough space for the values */
+-		size += strlen(upi->input.keys[i].name) + 1 + SQL_VALSIZE;
+-	}
+-	size += strlen(procedure);
++	/* calculate the size for the insert statement */
++	size = _calc_sql_stmt_size(procedure, di->schema, table,
++				   upi->input.keys, upi->input.num_keys);
+ 
+ 	ulogd_log(ULOGD_DEBUG, "allocating %u bytes for statement\n", size);
+ 
+@@ -447,22 +442,22 @@ _create_sql_stmt(struct ulogd_pluginstance *upi)
+ 	}
+ 	di->ring.length = size + 1;
+ 
+-	if (strncasecmp(procedure,"INSERT", strlen("INSERT")) == 0 &&
+-	    (procedure[strlen("INSERT")] == '\0' ||
+-			procedure[strlen("INSERT")] == ' ')) {
+-		char *stmt_val = di->stmt;
++	stmtp = di->stmt;
++
++	if (strncasecmp(procedure, "INSERT", sizeof("INSERT") - 1) == 0 &&
++	    (procedure[sizeof("INSERT") - 1] == '\0' ||
++	     procedure[sizeof("INSERT") - 1] == ' ')) {
+ 
+-		if(procedure[6] == '\0') {
++		if(procedure[sizeof("INSERT") - 1] == '\0') {
+ 			/* procedure == "INSERT" */
+ 			if (di->schema)
+-				stmt_val += sprintf(stmt_val,
+-						    "insert into %s.%s (",
+-						    di->schema, table);
++				stmtp += sprintf(stmtp, "insert into %s.%s (",
++						di->schema, table);
+ 			else
+-				stmt_val += sprintf(stmt_val,
+-						    "insert into %s (", table);
++				stmtp += sprintf(stmtp, "insert into %s (",
++						table);
+ 		} else
+-			stmt_val += sprintf(stmt_val, "%s (", procedure);
++			stmtp += sprintf(stmtp, "%s (", procedure);
+ 
+ 		for (i = 0; i < upi->input.num_keys; i++) {
+ 			char *underscore;
+@@ -470,30 +465,96 @@ _create_sql_stmt(struct ulogd_pluginstance *upi)
+ 			if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
+ 				continue;
+ 
+-			underscore = stmt_val;
++			underscore = stmtp;
+ 
+-			stmt_val += sprintf(stmt_val, "%s,",
+-					    upi->input.keys[i].name);
++			stmtp += sprintf(stmtp, "%s,",
++					upi->input.keys[i].name);
+ 
+ 			while ((underscore = strchr(underscore, '.')))
+ 				*underscore = '_';
+ 		}
+-		*(stmt_val - 1) = ')';
++		stmtp --;
+ 
+-		sprintf(stmt_val, " values (");
+-	} else if (strncasecmp(procedure,"CALL", strlen("CALL")) == 0) {
+-		sprintf(di->stmt, "CALL %s(", procedure);
+-	} else {
+-		sprintf(di->stmt, "SELECT %s(", procedure);
+-	}
++		stmtp += sprintf(stmtp, ") values (");
++
++	} else if (strncasecmp(procedure, "CALL", sizeof("CALL") - 1) == 0)
++		stmtp += sprintf(stmtp, "CALL %s(", procedure);
++	else
++		stmtp += sprintf(stmtp, "SELECT %s(", procedure);
+ 
+-	di->stmt_offset = strlen(di->stmt);
++	di->stmt_offset = stmtp - di->stmt;
+ 
+ 	ulogd_log(ULOGD_DEBUG, "stmt='%s'\n", di->stmt);
+ 
+ 	return 0;
+ }
+ 
++#define SQL_VALSIZE 100
++
++static unsigned int
++_calc_sql_stmt_size(const char *procedure,
++		    const char *schema, const char *table,
++		    struct ulogd_key *keys, unsigned int num_keys)
++{
++	unsigned int i, size = 0;
++	bool include_keys;
++
++	/* Fixed size bit */
++
++	if (strncasecmp(procedure, "INSERT", sizeof("INSERT") - 1) == 0 &&
++	    (procedure[sizeof("INSERT") - 1] == '\0' ||
++	     procedure[sizeof("INSERT") - 1] == ' ')) {
++
++		/* insert into t (k0, k1, ...) values (v0, v1, ...) */
++
++		if(procedure[sizeof("INSERT") - 1] == '\0') {
++			/* procedure == "INSERT" */
++			if (schema)
++				size += snprintf(NULL, 0,
++						 "insert into %s.%s (",
++						 schema, table);
++			else
++				size += snprintf(NULL, 0,
++						 "insert into %s (", table);
++		} else
++			size += snprintf(NULL, 0, "%s (", procedure);
++
++		size += snprintf(NULL, 0, ") values (");
++
++		include_keys = true;
++
++	} else {
++
++		/* `call p(v0, v1, ...)` or `select p(v0, v1, ...)` */
++
++		if (strncasecmp(procedure, "CALL", sizeof("CALL") - 1) == 0)
++			size += snprintf(NULL, 0, "CALL %s(", procedure);
++		else
++			size += snprintf(NULL, 0, "SELECT %s(", procedure);
++
++		include_keys = false;
++
++	}
++
++	/* Per-field bits.
++	 *
++	 * We need space for the value and a comma or the closing parenthesis.
++	 * We may also need space for the key and a comma.
++	 */
++
++	for (i = 0; i < num_keys; i++) {
++		if (keys[i].flags & ULOGD_KEYF_INACTIVE)
++			continue;
++		if (include_keys)
++			size += strlen(keys[i].name) + 1;
++		size += SQL_VALSIZE + 1;
++	}
++
++	size++; /* Allow for the final NUL */
++
++	return size;
++}
++
+ static void
+ _bind_sql_stmt(struct ulogd_pluginstance *upi, char *start)
+ {
 -- 
 2.35.1
 
