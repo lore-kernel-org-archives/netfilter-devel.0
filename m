@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE2CC4708D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:59:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C80F4C4708C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Nov 2022 21:59:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236961AbiK2V6i (ORCPT
+        id S236860AbiK2V6f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Nov 2022 16:58:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40616 "EHLO
+        Tue, 29 Nov 2022 16:58:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236987AbiK2V6U (ORCPT
+        with ESMTP id S236932AbiK2V6J (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2022 16:58:20 -0500
+        Tue, 29 Nov 2022 16:58:09 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A1D66F0DB
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:58:20 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F35E96F0DB
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2022 13:58:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=WuRPrc2pRcRyzTqY+4/2eXOh+Zp2tl4wwjmKOY8jlm0=; b=UYwGK2JDE9tqPwnkVKcZi7CG9Z
-        qw3KiHp5VqLis+2C0JROR80JyVPg6bPee5tOKM1s84RDe004YCQwYThxgEL0svjbOY/dk9TKNTnc4
-        6BdV7QZQ8Bo62YCkjm1SRatjDzld3yTI2m+gB+wJSfRZsdiHzkDI5LzGS6yik1PETDKkSQDqWDJgu
-        Mg+FlNWbINptQBdyvUBud7Feza65xJJbn55puN322a/sJS2r9exL/O9eXNuO4x5fUZX8d98eSy2Km
-        Hk9SjJKco/bLcJ2kuvukHia7Hn9YmUCVQ9oiVJsmXnk7sbbxyCardv4054hfdN6e82ma/uaOdI04U
-        ZavChHIA==;
+        bh=usniqaP0qkNWXeW5J6DO7cLu7UJMOkOkzSaDhB2VG9M=; b=YN7QOaAG99aYdzfj0il+q5d0x2
+        N+1sXH1LCPQ8wkB69EdcBEUJI92fjFKVkgk79fRg7jPVA43BxaG8duyHac61D//RByxxPyL4sxNLX
+        1fJfZzA27VnYNvVv01M4ho2eEFG/aUauFj/DTQ4XYodKwF/IezWX6cfyIWrj1YHnBiBsOa092WjH3
+        kQiXMriQvdqF6Q/2HCaGqnFz4ZMgHjofP8Xn0qG+UKnq+Vw4lLjx/hebQDWSsbffEFvwKV9DGpul8
+        754AIpnhmbQl+/0pdYrDUmnYgU83fAS/KmNikwCy14iqPMR3jqYJqq52pqzB+iE5idN/2aomqCMTh
+        3XRcCeFw==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtp (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1p08SK-00DjQp-3U
-        for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:56 +0000
+        id 1p08SM-00DjQp-A1
+        for netfilter-devel@vger.kernel.org; Tue, 29 Nov 2022 21:47:58 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 v2 v2 13/34] output: remove zero-initialized `struct ulogd_plugin` members
-Date:   Tue, 29 Nov 2022 21:47:28 +0000
-Message-Id: <20221129214749.247878-14-jeremy@azazel.net>
+Subject: [PATCH ulogd2 v2 v2 29/34] output: mysql: add prep & exec support
+Date:   Tue, 29 Nov 2022 21:47:44 +0000
+Message-Id: <20221129214749.247878-30-jeremy@azazel.net>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20221129214749.247878-1-jeremy@azazel.net>
 References: <20221129214749.247878-1-jeremy@azazel.net>
@@ -50,200 +50,227 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Struct members are zero-initialized as a matter of course.
-
-Use consistent formatting.
+Now that the common DB API offers prep & exec support, update the MySQL
+plug-in to use it.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- output/dbi/ulogd_output_DBI.c         | 10 ++++------
- output/ipfix/ulogd_output_IPFIX.c     | 20 ++++++++++----------
- output/mysql/ulogd_output_MYSQL.c     | 22 ++++++++++------------
- output/pcap/ulogd_output_PCAP.c       |  6 +++---
- output/pgsql/ulogd_output_PGSQL.c     | 10 ++++------
- output/sqlite3/ulogd_output_SQLITE3.c | 18 +++++++++---------
- 6 files changed, 40 insertions(+), 46 deletions(-)
+ output/mysql/ulogd_output_MYSQL.c | 163 ++++++++++++++++++++++++------
+ 1 file changed, 131 insertions(+), 32 deletions(-)
 
-diff --git a/output/dbi/ulogd_output_DBI.c b/output/dbi/ulogd_output_DBI.c
-index 88b530ead034..6312ac1649e2 100644
---- a/output/dbi/ulogd_output_DBI.c
-+++ b/output/dbi/ulogd_output_DBI.c
-@@ -287,16 +287,14 @@ static int configure_dbi(struct ulogd_pluginstance *upi,
- }
- 
- static struct ulogd_plugin dbi_plugin = {
--	.name 		= "DBI",
--	.input 		= {
--		.keys	= NULL,
--		.num_keys = 0,
-+	.name		= "DBI",
-+	.input		= {
- 		.type	= ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
- 	},
--	.output 	= {
-+	.output		= {
- 		.type	= ULOGD_DTYPE_SINK,
- 	},
--	.config_kset 	= &dbi_kset,
-+	.config_kset	= &dbi_kset,
- 	.priv_size	= sizeof(struct dbi_instance),
- 	.configure	= &configure_dbi,
- 	.start		= &ulogd_db_start,
-diff --git a/output/ipfix/ulogd_output_IPFIX.c b/output/ipfix/ulogd_output_IPFIX.c
-index 45fd36bc271c..f252ec72b5f6 100644
---- a/output/ipfix/ulogd_output_IPFIX.c
-+++ b/output/ipfix/ulogd_output_IPFIX.c
-@@ -486,22 +486,22 @@ again:
- }
- 
- static struct ulogd_plugin ipfix_plugin = {
--	.name = "IPFIX",
--	.input = {
-+	.name           = "IPFIX",
-+	.input          = {
- 		.keys = ipfix_in_keys,
- 		.num_keys = ARRAY_SIZE(ipfix_in_keys),
- 		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW | ULOGD_DTYPE_SUM
- 	},
--	.output = {
-+	.output         = {
- 		.type = ULOGD_DTYPE_SINK
- 	},
--	.config_kset = (struct config_keyset *) &ipfix_kset,
--	.priv_size = sizeof(struct ipfix_priv),
--	.configure = ipfix_configure,
--	.start = ipfix_start,
--	.stop = ipfix_stop,
--	.interp = ipfix_interp,
--	.version = VERSION,
-+	.config_kset    = (struct config_keyset *) &ipfix_kset,
-+	.priv_size      = sizeof(struct ipfix_priv),
-+	.configure      = ipfix_configure,
-+	.start          = ipfix_start,
-+	.stop           = ipfix_stop,
-+	.interp         = ipfix_interp,
-+	.version        = VERSION,
- };
- 
- static void __attribute__ ((constructor)) init(void)
 diff --git a/output/mysql/ulogd_output_MYSQL.c b/output/mysql/ulogd_output_MYSQL.c
-index c98b98284748..5891207d5990 100644
+index bed1d7488019..d64da85a418a 100644
 --- a/output/mysql/ulogd_output_MYSQL.c
 +++ b/output/mysql/ulogd_output_MYSQL.c
-@@ -259,23 +259,21 @@ static int configure_mysql(struct ulogd_pluginstance *upi,
+@@ -37,11 +37,12 @@
+  * 	Port to ulogd2 (@ 0sec conference, Bern, Suisse)
+  */
+ 
++#include <assert.h>
++#ifdef DEBUG_MYSQL
++#include <stdio.h>
++#endif
+ #include <stdlib.h>
+ #include <string.h>
+-#include <errno.h>
+-#include <time.h>
+-#include <arpa/inet.h>
+ #include <mysql/mysql.h>
+ #include <ulogd/ulogd.h>
+ #include <ulogd/conffile.h>
+@@ -56,6 +57,12 @@
+ struct mysql_instance {
+ 	struct db_instance db_inst;
+ 	MYSQL *dbh; /* the database handle we are using */
++	MYSQL_STMT *sth;
++};
++
++struct mysql_buffer {
++	unsigned long length;
++	my_bool is_null;
+ };
+ 
+ /* our configuration directives */
+@@ -193,46 +200,138 @@ static int open_db_mysql(struct ulogd_pluginstance *upi)
+ 	return 0;
  }
  
- static struct ulogd_plugin plugin_mysql = {
--	.name = "MYSQL",
--	.input = {
--		.keys = NULL,
--		.num_keys = 0,
-+	.name	     = "MYSQL",
-+	.input	     = {
- 		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
- 	},
--	.output = {
-+	.output	     = {
- 		.type = ULOGD_DTYPE_SINK,
+-static int escape_string_mysql(struct ulogd_pluginstance *upi,
+-				char *dst, const char *src, unsigned int len)
++static int prepare_mysql(struct ulogd_pluginstance *upi,
++			 const struct db_stmt *stmt)
+ {
+ 	struct mysql_instance *mi = (struct mysql_instance *) upi->private;
+ 
+-#ifdef OLD_MYSQL
+-	return mysql_escape_string(dst, src, len);
+-#else
+-	return mysql_real_escape_string(mi->dbh, dst, src, len);
+-#endif /* OLD_MYSQL */
++	if (mi->sth)
++		mysql_stmt_close(mi->sth);
++
++	if (!(mi->sth = mysql_stmt_init(mi->dbh))) {
++		ulogd_log(ULOGD_ERROR,
++			  "Failed to initialize statement: %s\n",
++			  mysql_error(mi->dbh));
++		return -1;
++	}
++
++	if (mysql_stmt_prepare(mi->sth, stmt->sql, stmt->len) != 0) {
++		ulogd_log(ULOGD_ERROR,
++			  "Failed to prepare statement: %s\n",
++			  mysql_stmt_error(mi->sth));
++		return -1;
++	}
++
++	return 0;
+ }
+ 
+ static int execute_mysql(struct ulogd_pluginstance *upi,
+ 			 const struct db_stmt *stmt)
+ {
+ 	struct mysql_instance *mi = (struct mysql_instance *) upi->private;
+-	int ret;
+-	MYSQL_RES * result;
++	struct mysql_buffer *buffers;
++	MYSQL_BIND *bindings;
++	unsigned int i;
++	int rv = -1;
+ 
+-	ret = mysql_real_query(mi->dbh, stmt->sql, stmt->len);
+-	if (ret) {
+-		ulogd_log(ULOGD_ERROR, "execute failed (%s)\n",
+-			  mysql_error(mi->dbh));
+-		return -1;
++	if (!(bindings = calloc(stmt->nr_params, sizeof(*bindings))))
++		goto err_return;
++
++	if (!(buffers = calloc(stmt->nr_params, sizeof(*buffers))))
++		goto err_free_bindings;
++
++	for (i = 0; i < stmt->nr_params; i++) {
++		struct db_stmt_arg *arg = &stmt->args[i];
++		union db_stmt_arg_value *val = &arg->value;
++
++		if (arg->null) {
++			bindings[i++].buffer_type = MYSQL_TYPE_NULL;
++			continue;
++		}
++
++		switch (arg->type) {
++		case ULOGD_RET_BOOL:
++		case ULOGD_RET_INT8:
++		case ULOGD_RET_UINT8:
++			bindings[i].buffer_type = MYSQL_TYPE_TINY;
++			bindings[i].buffer = val;
++			bindings[i].is_unsigned = arg->type != ULOGD_RET_INT8;
++			break;
++		case ULOGD_RET_INT16:
++		case ULOGD_RET_UINT16:
++			bindings[i].buffer_type = MYSQL_TYPE_SHORT;
++			bindings[i].buffer = val;
++			bindings[i].is_unsigned = arg->type != ULOGD_RET_INT16;
++			break;
++		case ULOGD_RET_INT32:
++		case ULOGD_RET_UINT32:
++		case ULOGD_RET_IPADDR:
++			bindings[i].buffer_type = MYSQL_TYPE_LONG;
++			bindings[i].buffer = val;
++			bindings[i].is_unsigned = arg->type != ULOGD_RET_INT32;
++			break;
++		case ULOGD_RET_INT64:
++		case ULOGD_RET_UINT64:
++			bindings[i].buffer_type = MYSQL_TYPE_LONGLONG;
++			bindings[i].buffer = val;
++			bindings[i].is_unsigned = arg->type != ULOGD_RET_INT64;
++			break;
++		case ULOGD_RET_STRING:
++			bindings[i].buffer_type = MYSQL_TYPE_STRING;
++			bindings[i].is_null = &buffers[i].is_null;
++			bindings[i].length = &buffers[i].length;
++			if (val->ptr) {
++				bindings[i].buffer = val->ptr;
++				bindings[i].buffer_length = arg->len + 1;
++				buffers[i].length = arg->len;
++			} else
++				buffers[i].is_null = 1;
++			break;
++		case ULOGD_RET_RAWSTR:
++			bindings[i].buffer_type = MYSQL_TYPE_BLOB;
++			bindings[i].is_null = &buffers[i].is_null;
++			bindings[i].length = &buffers[i].length;
++			if (val->ptr) {
++				bindings[i].buffer = val->ptr;
++				bindings[i].buffer_length = arg->len;
++				buffers[i].length = arg->len;
++			} else
++				buffers[i].is_null = 1;
++			break;
++		}
+ 	}
+-	result = mysql_use_result(mi->dbh);
+-	if (result) {
+-		mysql_free_result(result);
++
++	if (mysql_stmt_bind_param(mi->sth, bindings) != 0) {
++		ulogd_log(ULOGD_ERROR,
++			  "Failed to bind statement parameters: %s\n",
++			  mysql_stmt_error(mi->sth));
++		goto err_free_buffers;
+ 	}
+ 
+-	return 0;
++	if (mysql_stmt_execute(mi->sth) != 0) {
++		ulogd_log(ULOGD_ERROR,
++			  "Failed to execute statement: %s\n",
++			  mysql_stmt_error(mi->sth));
++		goto err_free_buffers;
++	}
++
++	rv = 0;
++
++err_free_buffers:
++	free (buffers);
++err_free_bindings:
++	free (bindings);
++err_return:
++	return rv;
+ }
+ 
+ static struct db_driver db_driver_mysql = {
+-	.get_columns	= &get_columns_mysql,
+-	.get_column	= &get_column_mysql,
+-	.open_db	= &open_db_mysql,
+-	.close_db	= &close_db_mysql,
+-	.escape_string	= &escape_string_mysql,
+-	.execute	= &execute_mysql,
++	.get_columns	= get_columns_mysql,
++	.get_column	= get_column_mysql,
++	.open_db	= open_db_mysql,
++	.close_db	= close_db_mysql,
++	.prepare	= prepare_mysql,
++	.execute	= execute_mysql,
+ };
+ 
+ static int configure_mysql(struct ulogd_pluginstance *upi,
+@@ -254,11 +353,11 @@ static struct ulogd_plugin plugin_mysql = {
  	},
  	.config_kset = &kset_mysql,
--	.priv_size = sizeof(struct mysql_instance),
--	.configure = &configure_mysql,
--	.start	   = &ulogd_db_start,
--	.stop	   = &ulogd_db_stop,
--	.signal	   = &ulogd_db_signal,
--	.interp	   = &ulogd_db_interp,
--	.version   = VERSION,
-+	.priv_size   = sizeof(struct mysql_instance),
-+	.configure   = &configure_mysql,
-+	.start	     = &ulogd_db_start,
-+	.stop	     = &ulogd_db_stop,
-+	.signal	     = &ulogd_db_signal,
-+	.interp	     = &ulogd_db_interp,
-+	.version     = VERSION,
+ 	.priv_size   = sizeof(struct mysql_instance),
+-	.configure   = &configure_mysql,
+-	.start	     = &ulogd_db_start,
+-	.stop	     = &ulogd_db_stop,
+-	.signal	     = &ulogd_db_signal,
+-	.interp	     = &ulogd_db_interp,
++	.configure   = configure_mysql,
++	.start	     = ulogd_db_start,
++	.stop	     = ulogd_db_stop,
++	.signal	     = ulogd_db_signal,
++	.interp	     = ulogd_db_interp,
+ 	.version     = VERSION,
  };
  
- static void __attribute__ ((constructor)) init(void)
-diff --git a/output/pcap/ulogd_output_PCAP.c b/output/pcap/ulogd_output_PCAP.c
-index 5f9fde3c48ed..5336f88e539d 100644
---- a/output/pcap/ulogd_output_PCAP.c
-+++ b/output/pcap/ulogd_output_PCAP.c
-@@ -287,13 +287,13 @@ static int stop_pcap(struct ulogd_pluginstance *upi)
- }
- 
- static struct ulogd_plugin pcap_plugin = {
--	.name = "PCAP",
--	.input = {
-+	.name		= "PCAP",
-+	.input		= {
- 		.keys = pcap_keys,
- 		.num_keys = ARRAY_SIZE(pcap_keys),
- 		.type = ULOGD_DTYPE_PACKET,
- 	},
--	.output = {
-+	.output		= {
- 		.type = ULOGD_DTYPE_SINK,
- 	},
- 	.config_kset	= &pcap_kset,
-diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
-index b798555b5ade..bc0eae7558b3 100644
---- a/output/pgsql/ulogd_output_PGSQL.c
-+++ b/output/pgsql/ulogd_output_PGSQL.c
-@@ -337,16 +337,14 @@ static int configure_pgsql(struct ulogd_pluginstance *upi,
- }
- 
- static struct ulogd_plugin pgsql_plugin = {
--	.name 		= "PGSQL",
--	.input 		= {
--		.keys	= NULL,
--		.num_keys = 0,
-+	.name		= "PGSQL",
-+	.input		= {
- 		.type	= ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
- 	},
--	.output 	= {
-+	.output		= {
- 		.type	= ULOGD_DTYPE_SINK,
- 	},
--	.config_kset 	= &pgsql_kset,
-+	.config_kset	= &pgsql_kset,
- 	.priv_size	= sizeof(struct pgsql_instance),
- 	.configure	= &configure_pgsql,
- 	.start		= &ulogd_db_start,
-diff --git a/output/sqlite3/ulogd_output_SQLITE3.c b/output/sqlite3/ulogd_output_SQLITE3.c
-index 40d99ca3b249..32459dd6c4c5 100644
---- a/output/sqlite3/ulogd_output_SQLITE3.c
-+++ b/output/sqlite3/ulogd_output_SQLITE3.c
-@@ -419,20 +419,20 @@ sqlite3_stop(struct ulogd_pluginstance *pi)
- }
- 
- static struct ulogd_plugin sqlite3_plugin = {
--	.name = "SQLITE3",
--	.input = {
-+	.name	     = "SQLITE3",
-+	.input	     = {
- 		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
- 	},
--	.output = {
-+	.output	     = {
- 		.type = ULOGD_DTYPE_SINK,
- 	},
- 	.config_kset = &sqlite3_kset,
--	.priv_size = sizeof(struct sqlite3_priv),
--	.configure = sqlite3_configure,
--	.start = sqlite3_start,
--	.stop = sqlite3_stop,
--	.interp = sqlite3_interp,
--	.version = VERSION,
-+	.priv_size   = sizeof(struct sqlite3_priv),
-+	.configure   = sqlite3_configure,
-+	.start	     = sqlite3_start,
-+	.stop	     = sqlite3_stop,
-+	.interp	     = sqlite3_interp,
-+	.version     = VERSION,
- };
- 
- static void __attribute__ ((constructor)) init(void)
 -- 
 2.35.1
 
