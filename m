@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 901B4C4321E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Nov 2022 19:14:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 743C3C4321E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Nov 2022 19:14:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229448AbiK3TO1 (ORCPT
+        id S229483AbiK3TOe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Nov 2022 14:14:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33242 "EHLO
+        Wed, 30 Nov 2022 14:14:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229613AbiK3TO1 (ORCPT
+        with ESMTP id S229512AbiK3TOd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Nov 2022 14:14:27 -0500
+        Wed, 30 Nov 2022 14:14:33 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B666B62E8C
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2022 11:14:26 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61EBF62E8C
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2022 11:14:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=nsbi1ZNj67NQtY9RqGE+fQD3PpkE4QkX/XH8Z/PmN64=; b=og5C4o8k91wi2ctP7g+dAFqYQF
-        K4BaOpY4DZJPes+Hak/smHAC75jHDFmI2qaI6KjT2PsqiThxyY2rK/PK+tKmrOKKRF1NRGt1xOuX3
-        HapgOFPVI8reaTp9UzzEmjhDl4WPI58PnOs0ceG19YFwU9fxbxW4jVLN7eHsfrwliBC19SRh4bTHp
-        dmVANSLDgy4bYcUXcltUxX8uwM3CIR8jUBPhNzx4A0hG3RQftSTbVTATcc4Tnu5gAt1rwSWuTBdWk
-        Ecaqoxrema039XgpW/ciYYju3OTCk7FbDVLeF1VJSCLdnb9xBZ/kje3DUGu4DjstEo8c/+m7LoKKf
-        x1opcMKw==;
+        bh=jovq2wbxWZdDYrO7vYRD6TKEvmCNLYKADvqe6rpF6GI=; b=o+RP3Le0xhWgndPbiQVE5heYBI
+        /oJncbkiw4Zh5NxuPgUovb8FOnQFxDg02fUY25wXtaCUGn1XEBB8gJlPz5FCusCGis6YgqORuDxba
+        YJW16+xjYShQjSekyv9RnNQmWfVgKIgE76pu72DAGYDBEAsVtPkDEwuVkzV7Y95Ie6DcvD2k+Owkx
+        hLqqrwmiBzhbHNIzxfwBXH5MZygnlqNkNdv+lAzMwbo1A8hKnVVb3ihSLNnjHhqZKj2BY6UD88aSc
+        vDPIs27r3VwEFNjK1YSlPbKIm/G4jqfvBuO5BHTlR8xLQ13zUWPyBISDurp4zZgqyFczOrVF1K9eT
+        Ad3Z8YUA==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1p0SXJ-0001BP-2f
-        for netfilter-devel@vger.kernel.org; Wed, 30 Nov 2022 20:14:25 +0100
+        id 1p0SXO-0001Bn-Du
+        for netfilter-devel@vger.kernel.org; Wed, 30 Nov 2022 20:14:31 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 9/9] libiptc: Eliminate garbage access
-Date:   Wed, 30 Nov 2022 20:13:45 +0100
-Message-Id: <20221130191345.14543-10-phil@nwl.cc>
+Subject: [iptables PATCH 1/9] tests: shell: Fix valgrind mode for 0008-unprivileged_0
+Date:   Wed, 30 Nov 2022 20:13:37 +0100
+Message-Id: <20221130191345.14543-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.38.0
 In-Reply-To: <20221130191345.14543-1-phil@nwl.cc>
 References: <20221130191345.14543-1-phil@nwl.cc>
@@ -47,44 +47,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When adding a rule, valgrind prints:
+Valgrind is run as user nobody, let everyone write into the temporary
+directory.
 
-Syscall param socketcall.setsockopt(optval) points to uninitialised byte(s)
-   at 0x4A8165A: setsockopt (in /lib64/libc.so.6)
-   by 0x4857A48: iptc_commit (libiptc.c:2676)
-   by 0x10E4BB: iptables_main (iptables-standalone.c:61)
-   by 0x49A3349: (below main) (in /lib64/libc.so.6)
- Address 0x4b63788 is 40 bytes inside a block of size 1,448 alloc'd
-   at 0x484659F: calloc (vg_replace_malloc.c:1328)
-   by 0x4857654: iptc_commit (libiptc.c:2564)
-   by 0x10E4BB: iptables_main (iptables-standalone.c:61)
-   by 0x49A3349: (below main) (in /lib64/libc.so.6)
-
-This is because repl->counters is not initialized upon allocation. Since
-the field is an array, make use of calloc() which implicitly does the
-initialization.
-
-Fixes: e37c0dc100c51 ("Revert the recent addition of memset()'s to TC_COMMIT. One of them is bogus and the other one needs more investigation to why valgrind is complaining.")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- libiptc/libiptc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ iptables/tests/shell/run-tests.sh | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 97823f935d1ee..f9b7779efdba5 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -2554,8 +2554,8 @@ TC_COMMIT(struct xtc_handle *handle)
- 			+ sizeof(STRUCT_COUNTERS) * new_number;
- 
- 	/* These are the old counters we will get from kernel */
--	repl->counters = malloc(sizeof(STRUCT_COUNTERS)
--				* handle->info.num_entries);
-+	repl->counters = calloc(handle->info.num_entries,
-+				sizeof(STRUCT_COUNTERS));
- 	if (!repl->counters) {
- 		errno = ENOMEM;
- 		goto out_free_repl;
+diff --git a/iptables/tests/shell/run-tests.sh b/iptables/tests/shell/run-tests.sh
+index 7878760fdcc4d..7a80af3432285 100755
+--- a/iptables/tests/shell/run-tests.sh
++++ b/iptables/tests/shell/run-tests.sh
+@@ -122,7 +122,8 @@ EOF
+ if [ "$VALGRIND" == "y" ]; then
+ 	tmpd=$(mktemp -d)
+ 	msg_info "writing valgrind logs to $tmpd"
+-	chmod a+rx $tmpd
++	# let nobody write logs, too (././testcases/iptables/0008-unprivileged_0)
++	chmod 777 $tmpd
+ 	printscript "$XTABLES_NFT_MULTI" "$tmpd" >${tmpd}/xtables-nft-multi
+ 	printscript "$XTABLES_LEGACY_MULTI" "$tmpd" >${tmpd}/xtables-legacy-multi
+ 	trap "rm ${tmpd}/xtables-*-multi" EXIT
 -- 
 2.38.0
 
