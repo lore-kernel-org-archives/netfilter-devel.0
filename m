@@ -2,93 +2,52 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E88D4C43217
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Dec 2022 11:40:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 392E9C43217
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Dec 2022 11:58:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230204AbiLALkx (ORCPT
+        id S230054AbiLAL6a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Dec 2022 06:40:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55488 "EHLO
+        Thu, 1 Dec 2022 06:58:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229923AbiLALks (ORCPT
+        with ESMTP id S231219AbiLAL6a (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2022 06:40:48 -0500
+        Thu, 1 Dec 2022 06:58:30 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB0701D335
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2022 03:40:46 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A99AA1C0A
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2022 03:58:27 -0800 (PST)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p0hvn-0000CU-HT; Thu, 01 Dec 2022 12:40:44 +0100
-Date:   Thu, 1 Dec 2022 12:40:43 +0100
+        id 1p0iCv-0000KF-T1; Thu, 01 Dec 2022 12:58:25 +0100
+Date:   Thu, 1 Dec 2022 12:58:25 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [RFC ebtables-nft] unify ether type and meta protocol decoding
-Message-ID: <Y4iSu5DQmxXI5fIh@orbyte.nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables-nft] extensions: add xt_statistics random mode
+ translation
+Message-ID: <Y4iW4R1tusL9PecX@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <20221130113718.85576-1-fw@strlen.de>
- <Y4ds+Pk4ZrR+NxtT@orbyte.nwl.cc>
- <20221201101603.GF17072@breakpoint.cc>
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20221201101317.16818-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221201101603.GF17072@breakpoint.cc>
+In-Reply-To: <20221201101317.16818-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 01, 2022 at 11:16:03AM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > On Wed, Nov 30, 2022 at 12:37:18PM +0100, Florian Westphal wrote:
-> > > Handle "ether protocol" and "meta protcol" the same.
-> > > 
-> > > Problem is that this breaks the test case *again*:
-> > > 
-> > > I: [EXECUTING]   iptables/tests/shell/testcases/ebtables/0006-flush_0
-> > > --A FORWARD --among-dst fe:ed:ba:be:13:37=10.0.0.1 -j ACCEPT
-> > > --A OUTPUT --among-src c0:ff:ee:90:0:0=192.168.0.1 -j DROP
-> > > +-A FORWARD -p IPv4 --among-dst fe:ed:ba:be:13:37=10.0.0.1 -j ACCEPT
-> > > +-A OUTPUT -p IPv4 --among-src c0:ff:ee:90:0:0=192.168.0.1 -j DROP
-> > > 
-> > > ... because ebtables-nft will now render meta protocol as "-p IPv4".
-> > > 
-> > > ebtables-legacy does not have any special handling for this.
-> > > 
-> > > Solving this would need more internal annotations during decode, so
-> > > we can suppress/ignore "meta protocol" once a "among-type" set is
-> > > encountered.
-> > > 
-> > > Any (other) suggestions?
-> > 
-> > Since ebtables among does not support IPv6, match elimination should be
-> > pretty simple, no? Entirely untested:
-> > 
-> > diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-> > index 08c93feeba2c9..0daebfd983127 100644
-> > --- a/iptables/nft-bridge.c
-> > +++ b/iptables/nft-bridge.c
-> > @@ -520,6 +520,10 @@ static void nft_bridge_parse_lookup(struct nft_xt_ctx *ctx,
-> >         if (set_elems_to_among_pairs(among_data->pairs + poff, s, cnt))
-> >                 xtables_error(OTHER_PROBLEM,
-> >                               "ebtables among pair parsing failed");
-> > +
-> > +       if (!(ctx->cs.eb.bitmask & EBT_NOPROTO) &&
-> > +           ctx->cs.eb.ethproto == htons(0x0800))
-> > +               ctx->cs.eb.bitmask |= EBT_NOPROTO;
-> 
-> But that would munge
-> ebtables-nft -p ipv4 ....
-> ebtables-nft ....
-> 
-> We don't know if "-p" was added explicitly or not.
+On Thu, Dec 01, 2022 at 11:13:17AM +0100, Florian Westphal wrote:
+> Use meta random and bitops to replicate what xt_statistics
+> is doing.
 
-Ah, the infamous explicit vs. implicit problem. :(
+I didn't know about 'meta random', even though it's a bit older than
+numgen. What's the difference to 'numgen random'? I'm asking because I
+once tried to fix the same issue using the latter[1], it was never
+applied, though.
 
-Looking at ebt_among.c in kernel, it seems packets which are neither
-IPv4 nor ARP are treated as non-matching. Since ebtables-nft doesn't
-support ARP with among anyway, can we assume people will not specify '-p
-ipv4' when using among?
+Maybe you could reuse gcd_div() from my patch to reduce nominal values?
 
 Cheers, Phil
+
+[1] https://patchwork.ozlabs.org/project/netfilter-devel/patch/20170313160153.21120-1-phil@nwl.cc/
