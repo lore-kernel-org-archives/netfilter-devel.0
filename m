@@ -2,140 +2,253 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26D19C47088
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Dec 2022 16:40:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6AB5C4708D
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Dec 2022 18:00:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232296AbiLAQkc (ORCPT
+        id S230021AbiLASAn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Dec 2022 11:40:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58084 "EHLO
+        Thu, 1 Dec 2022 13:00:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232315AbiLAQkG (ORCPT
+        with ESMTP id S229999AbiLASAn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2022 11:40:06 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADE32ABA33
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2022 08:40:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=YYcn/PZ3E4akKl8eCSS5hrbAW9HorLFlD5yL21BcrK4=; b=Q/ExjC0xiKVF72kpoygF790Qus
-        Vub/tAbduNADR+pmKyWW1b/r8YPoY6s+2SRzwqJOjSL8Qa3QWcOjzt8FNgDf+/mOhDwrXUPcoyEAH
-        Mn2wHjcRivs/U7t4vlxVvelpKHMi+hTuisXkYZ1fWbUa2jHkkmWDtdK/4Km8IoN/qPUNsftL95C97
-        pazwtIswO9ZE9vajxQtUknlqZQksOAyisPGRWEPLLLIvVC1pN50PRMWse60NbxPq3QxIQ0PbgDemM
-        f/mZ9jkGL+l6qKT9RB3yYtqHaJ2dgQuqC8+W06XAW1wAoUCUQvJT92SrHuv+B+Qr7HhoDUev9ckhW
-        Gha8CohQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1p0mbS-0002be-1z; Thu, 01 Dec 2022 17:40:02 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [iptables PATCH 2/7] tests: xlate: Use --check to verify replay
-Date:   Thu,  1 Dec 2022 17:39:11 +0100
-Message-Id: <20221201163916.30808-3-phil@nwl.cc>
-X-Mailer: git-send-email 2.38.0
-In-Reply-To: <20221201163916.30808-1-phil@nwl.cc>
-References: <20221201163916.30808-1-phil@nwl.cc>
+        Thu, 1 Dec 2022 13:00:43 -0500
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D28BAB276F;
+        Thu,  1 Dec 2022 10:00:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1669917642; x=1701453642;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=7JbfxM0BIJTQeM0nqxSmNKYTXO3qQdt9sUjsZ0/oGGE=;
+  b=jHMZL/U8WDKsZDJOupEUiH4lpO0xGQeUKXLscWeSMapWNbH6qVscjlSc
+   +oge1Syfyuw1mPJzgi8Mq9DUDLJc4LKLFAknhi8K31eGrRgQ0/A9ro/AR
+   ZAw/Ng7kbcQ8gi/i7jNkxF5vCJku6WqNcPMkU29OGyRsnnxKckJwpWkbi
+   LtCIh2wxMNPuJC6bljTfMdpN4WRfU7ukjiTvRgKk1O3MkV8X11xqDv2Ux
+   xWvjuBftrYGF07G1RYfRQev5EnDvuX2fBvE+jMNZl4OaYrl9nQmMqI+1K
+   /R0Qu1CjKGKNzejC03QUXw1oppgiuuVF5HypAIqUAMZ5ldQUTmvd93hvz
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="317623783"
+X-IronPort-AV: E=Sophos;i="5.96,209,1665471600"; 
+   d="scan'208";a="317623783"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 10:00:41 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="750911949"
+X-IronPort-AV: E=Sophos;i="5.96,209,1665471600"; 
+   d="scan'208";a="750911949"
+Received: from lkp-server01.sh.intel.com (HELO 64a2d449c951) ([10.239.97.150])
+  by fmsmga002.fm.intel.com with ESMTP; 01 Dec 2022 10:00:37 -0800
+Received: from kbuild by 64a2d449c951 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1p0nrQ-000CnL-1t;
+        Thu, 01 Dec 2022 18:00:36 +0000
+Date:   Fri, 02 Dec 2022 02:00:20 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     nouveau@lists.freedesktop.org, netfilter-devel@vger.kernel.org,
+        loongarch@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
+        linux-omap@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        dri-devel@lists.freedesktop.org, coreteam@netfilter.org,
+        amd-gfx@lists.freedesktop.org,
+        Linux Memory Management List <linux-mm@kvack.org>
+Subject: [linux-next:master] BUILD REGRESSION
+ 2934ceb4e967b9233d0f97732e47175574a11406
+Message-ID: <6388ebb4.4fWHGaE8GeH20VVN%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-After applying the translated rule using nft, pass the untranslated rule
-to --check instead of dumping the ruleset and performing a string
-search. This fixes for mandatory match reordering (e.g. addresses before
-interfaces) and minor differences like /32 netmasks or even just
-whitespace changes.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+branch HEAD: 2934ceb4e967b9233d0f97732e47175574a11406  Add linux-next specific files for 20221201
 
-Fixes: 223e34b057b95 ("tests: xlate-test: Replay results for reverse direction testing")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- xlate-test.py | 46 ++++++++++++++++++----------------------------
- 1 file changed, 18 insertions(+), 28 deletions(-)
+Error/Warning reports:
 
-diff --git a/xlate-test.py b/xlate-test.py
-index 6513b314beb35..4f037ef6ed96d 100755
---- a/xlate-test.py
-+++ b/xlate-test.py
-@@ -67,6 +67,7 @@ xtables_nft_multi = 'xtables-nft-multi'
-     srcwords = sourceline.split()
- 
-     srccmd = srcwords[0]
-+    ipt = srccmd.split('-')[0]
-     table_idx = -1
-     chain_idx = -1
-     table_name = "filter"
-@@ -84,16 +85,12 @@ xtables_nft_multi = 'xtables-nft-multi'
- 
-     if searchline is None:
-         # adjust sourceline as required
--        srcwords[chain_idx] = "-A"
--        if table_idx >= 0:
--            srcwords.pop(table_idx)
--            srcwords.pop(table_idx)
--        searchline = " ".join(srcwords[1:])
--    elif not searchline.startswith("-A"):
--        tmp = ["-A", chain_name]
--        if len(searchline) > 0:
--            tmp.extend(searchline)
--        searchline = " ".join(tmp)
-+        checkcmd = srcwords[:]
-+        checkcmd[0] = ipt
-+        checkcmd[chain_idx] = "--check"
-+    else:
-+        checkcmd = [ipt, "-t", table_name]
-+        checkcmd += ["--check", chain_name, searchline]
- 
-     fam = ""
-     if srccmd.startswith("ip6"):
-@@ -110,30 +107,23 @@ xtables_nft_multi = 'xtables-nft-multi'
- 
-     rc, output, error = run_proc([args.nft, "-f", "-"], shell = False, input = "\n".join(nft_input))
-     if rc != 0:
--        result.append(name + ": " + red("Fail"))
-+        result.append(name + ": " + red("Replay Fail"))
-         result.append(args.nft + " call failed: " + error.rstrip('\n'))
-         for line in nft_input:
-             result.append(magenta("input: ") + line)
-         return False
- 
--    ipt = srccmd.split('-')[0]
--    rc, output, error = run_proc([xtables_nft_multi, ipt + "-save"])
-+    rc, output, error = run_proc([xtables_nft_multi] + checkcmd)
-     if rc != 0:
--        result.append(name + ": " + red("Fail"))
--        result.append(ipt + "-save call failed: " + error)
--        return False
--
--    if output.find(searchline) < 0:
--        outline = None
--        for l in output.split('\n'):
--            if l.startswith('-A '):
--                output = l
--                break
--        result.append(name + ": " + red("Replay fail"))
--        result.append(magenta("src: '") + str(expected) + "'")
--        result.append(magenta("exp: '") + searchline + "'")
--        for l in output.split('\n'):
--            result.append(magenta("res: ") + l)
-+        result.append(name + ": " + red("Check Fail"))
-+        result.append(magenta("check: ") + " ".join(checkcmd))
-+        result.append(magenta("error: ") + error)
-+        rc, output, error = run_proc([xtables_nft_multi, ipt + "-save"])
-+        for l in output.split("\n"):
-+            result.append(magenta("ipt: ") + l)
-+        rc, output, error = run_proc([args.nft, "list", "ruleset"])
-+        for l in output.split("\n"):
-+            result.append(magenta("nft: ") + l)
-         return False
- 
-     return True
+https://lore.kernel.org/oe-kbuild-all/202211041320.coq8EELJ-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202211090634.RyFKK0WS-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202211242021.FDZRFNA8-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202211242120.MzZVGULn-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202211301840.y7rROb13-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202212011005.7X5XAsmG-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202212020122.myyqvrXj-lkp@intel.com
+
+Error/Warning: (recently discovered and may have been fixed)
+
+arch/arm/mach-s3c/devs.c:32:10: fatal error: linux/platform_data/dma-s3c24xx.h: No such file or directory
+arch/loongarch/kernel/ftrace_dyn.c:47:36: error: invalid use of undefined type 'struct module'
+arch/powerpc/kernel/kvm_emul.o: warning: objtool: kvm_template_end(): can't find starting instruction
+arch/powerpc/kernel/optprobes_head.o: warning: objtool: optprobe_template_end(): can't find starting instruction
+drivers/gpu/drm/amd/amdgpu/../display/dc/irq/dcn201/irq_service_dcn201.c:40:20: warning: no previous prototype for 'to_dal_irq_source_dcn201' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/engine/fifo/gf100.c:451:1: warning: no previous prototype for 'gf100_fifo_nonstall_block' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/engine/fifo/gf100.c:451:1: warning: no previous prototype for function 'gf100_fifo_nonstall_block' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/engine/fifo/runl.c:34:1: warning: no previous prototype for 'nvkm_engn_cgrp_get' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/engine/fifo/runl.c:34:1: warning: no previous prototype for function 'nvkm_engn_cgrp_get' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/engine/gr/tu102.c:210:1: warning: no previous prototype for 'tu102_gr_load' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/engine/gr/tu102.c:210:1: warning: no previous prototype for function 'tu102_gr_load' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/nvfw/acr.c:49:1: warning: no previous prototype for 'wpr_generic_header_dump' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/nvfw/acr.c:49:1: warning: no previous prototype for function 'wpr_generic_header_dump' [-Wmissing-prototypes]
+drivers/gpu/drm/nouveau/nvkm/subdev/acr/lsfw.c:221:21: warning: variable 'loc' set but not used [-Wunused-but-set-variable]
+drivers/irqchip/irq-loongarch-cpu.c:96:12: warning: no previous prototype for 'loongarch_cpu_irq_of_init' [-Wmissing-prototypes]
+drivers/media/platform/mediatek/jpeg/mtk_jpeg_core.c:1849:38: warning: unused variable 'mt8173_jpeg_drvdata' [-Wunused-const-variable]
+drivers/media/platform/mediatek/jpeg/mtk_jpeg_core.c:1864:38: warning: unused variable 'mtk_jpeg_drvdata' [-Wunused-const-variable]
+drivers/media/platform/mediatek/jpeg/mtk_jpeg_core.c:1890:38: warning: unused variable 'mtk8195_jpegdec_drvdata' [-Wunused-const-variable]
+drivers/regulator/tps65219-regulator.c:310:60: warning: parameter 'dev' set but not used [-Wunused-but-set-parameter]
+drivers/regulator/tps65219-regulator.c:370:26: warning: ordered comparison of pointer with integer zero [-Wextra]
+net/netfilter/nf_conntrack_netlink.c:2674:6: warning: unused variable 'mark' [-Wunused-variable]
+vmlinux.o: warning: objtool: __btrfs_map_block+0x1d77: unreachable instruction
+
+Error/Warning ids grouped by kconfigs:
+
+gcc_recent_errors
+|-- alpha-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-irq-dcn201-irq_service_dcn201.c:warning:no-previous-prototype-for-to_dal_irq_source_dcn201
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-tu102_gr_load
+|   |-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-wpr_generic_header_dump
+|   |-- drivers-gpu-drm-nouveau-nvkm-subdev-acr-lsfw.c:warning:variable-loc-set-but-not-used
+|   |-- drivers-regulator-tps65219-regulator.c:warning:ordered-comparison-of-pointer-with-integer-zero
+|   `-- drivers-regulator-tps65219-regulator.c:warning:parameter-dev-set-but-not-used
+|-- alpha-randconfig-r005-20221128
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-tu102_gr_load
+|   |-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-wpr_generic_header_dump
+|   `-- drivers-gpu-drm-nouveau-nvkm-subdev-acr-lsfw.c:warning:variable-loc-set-but-not-used
+|-- arc-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-irq-dcn201-irq_service_dcn201.c:warning:no-previous-prototype-for-to_dal_irq_source_dcn201
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-tu102_gr_load
+|   |-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-wpr_generic_header_dump
+|   |-- drivers-gpu-drm-nouveau-nvkm-subdev-acr-lsfw.c:warning:variable-loc-set-but-not-used
+|   |-- drivers-regulator-tps65219-regulator.c:warning:ordered-comparison-of-pointer-with-integer-zero
+|   `-- drivers-regulator-tps65219-regulator.c:warning:parameter-dev-set-but-not-used
+|-- arm-allyesconfig
+|   |-- arch-arm-mach-s3c-devs.c:fatal-error:linux-platform_data-dma-s3c24xx.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-irq-dcn201-irq_service_dcn201.c:warning:no-previous-prototype-for-to_dal_irq_source_dcn201
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-tu102_gr_load
+|   |-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-wpr_generic_header_dump
+|   |-- drivers-gpu-drm-nouveau-nvkm-subdev-acr-lsfw.c:warning:variable-loc-set-but-not-used
+|   |-- drivers-regulator-tps65219-regulator.c:warning:ordered-comparison-of-pointer-with-integer-zero
+|   `-- drivers-regulator-tps65219-regulator.c:warning:parameter-dev-set-but-not-used
+|-- arm-defconfig
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-tu102_gr_load
+|   |-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-wpr_generic_header_dump
+|   `-- drivers-gpu-drm-nouveau-nvkm-subdev-acr-lsfw.c:warning:variable-loc-set-but-not-used
+|-- arm64-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-irq-dcn201-irq_service_dcn201.c:warning:no-previous-prototype-for-to_dal_irq_source_dcn201
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-tu102_gr_load
+|   |-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-wpr_generic_header_dump
+|   |-- drivers-gpu-drm-nouveau-nvkm-subdev-acr-lsfw.c:warning:variable-loc-set-but-not-used
+|   |-- drivers-regulator-tps65219-regulator.c:warning:ordered-comparison-of-pointer-with-integer-zero
+|   `-- drivers-regulator-tps65219-regulator.c:warning:parameter-dev-set-but-not-used
+|-- i386-allyesconfig
+clang_recent_errors
+|-- arm64-randconfig-r016-20221128
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-function-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-function-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-function-tu102_gr_load
+|   `-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-function-wpr_generic_header_dump
+|-- hexagon-randconfig-r041-20221128
+|   |-- drivers-media-platform-mediatek-jpeg-mtk_jpeg_core.c:warning:unused-variable-mt8173_jpeg_drvdata
+|   |-- drivers-media-platform-mediatek-jpeg-mtk_jpeg_core.c:warning:unused-variable-mtk8195_jpegdec_drvdata
+|   `-- drivers-media-platform-mediatek-jpeg-mtk_jpeg_core.c:warning:unused-variable-mtk_jpeg_drvdata
+|-- i386-randconfig-a013
+|   `-- net-netfilter-nf_conntrack_netlink.c:warning:unused-variable-mark
+|-- powerpc-randconfig-r024-20221128
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-function-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-function-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-function-tu102_gr_load
+|   `-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-function-wpr_generic_header_dump
+|-- s390-randconfig-r044-20221128
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-gf100.c:warning:no-previous-prototype-for-function-gf100_fifo_nonstall_block
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-fifo-runl.c:warning:no-previous-prototype-for-function-nvkm_engn_cgrp_get
+|   |-- drivers-gpu-drm-nouveau-nvkm-engine-gr-tu102.c:warning:no-previous-prototype-for-function-tu102_gr_load
+|   `-- drivers-gpu-drm-nouveau-nvkm-nvfw-acr.c:warning:no-previous-prototype-for-function-wpr_generic_header_dump
+`-- x86_64-randconfig-a016
+    `-- vmlinux.o:warning:objtool:handle_bug:call-to-kmsan_unpoison_entry_regs()-leaves-.noinstr.text-section
+
+elapsed time: 738m
+
+configs tested: 59
+configs skipped: 2
+
+gcc tested configs:
+powerpc                           allnoconfig
+i386                 randconfig-a002-20221128
+i386                 randconfig-a003-20221128
+i386                 randconfig-a001-20221128
+i386                 randconfig-a004-20221128
+x86_64                              defconfig
+ia64                             allmodconfig
+arc                  randconfig-r043-20221128
+x86_64                           rhel-8.3-syz
+i386                 randconfig-a005-20221128
+um                             i386_defconfig
+x86_64                         rhel-8.3-kunit
+m68k                             allyesconfig
+um                           x86_64_defconfig
+arc                                 defconfig
+m68k                             allmodconfig
+i386                 randconfig-a006-20221128
+s390                             allmodconfig
+x86_64                           rhel-8.3-kvm
+arc                              allyesconfig
+x86_64                        randconfig-a004
+alpha                               defconfig
+i386                                defconfig
+x86_64                        randconfig-a002
+s390                                defconfig
+alpha                            allyesconfig
+x86_64                               rhel-8.3
+arm                                 defconfig
+x86_64                    rhel-8.3-kselftests
+x86_64                           allyesconfig
+x86_64                        randconfig-a006
+s390                             allyesconfig
+x86_64                          rhel-8.3-func
+arm                              allyesconfig
+arm64                            allyesconfig
+x86_64                        randconfig-a013
+x86_64                        randconfig-a011
+x86_64                        randconfig-a015
+i386                          randconfig-a014
+i386                          randconfig-a012
+i386                          randconfig-a016
+sh                               allmodconfig
+mips                             allyesconfig
+powerpc                          allmodconfig
+i386                             allyesconfig
+
+clang tested configs:
+hexagon              randconfig-r045-20221128
+hexagon              randconfig-r041-20221128
+riscv                randconfig-r042-20221128
+s390                 randconfig-r044-20221128
+x86_64                        randconfig-a001
+x86_64                        randconfig-a003
+x86_64                        randconfig-a005
+x86_64                        randconfig-a014
+x86_64                        randconfig-a012
+x86_64                        randconfig-a016
+i386                          randconfig-a013
+i386                          randconfig-a011
+i386                          randconfig-a015
+x86_64                          rhel-8.3-rust
+
 -- 
-2.38.0
-
+0-DAY CI Kernel Test Service
+https://01.org/lkp
