@@ -2,114 +2,98 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C8AC43217
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Dec 2022 16:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81496C43217
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Dec 2022 16:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232251AbiLAQ12 (ORCPT
+        id S232297AbiLAQjw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Dec 2022 11:27:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44390 "EHLO
+        Thu, 1 Dec 2022 11:39:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230480AbiLAQ10 (ORCPT
+        with ESMTP id S231982AbiLAQjm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2022 11:27:26 -0500
-Received: from mail-oa1-x36.google.com (mail-oa1-x36.google.com [IPv6:2001:4860:4864:20::36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91B70B43DA;
-        Thu,  1 Dec 2022 08:27:25 -0800 (PST)
-Received: by mail-oa1-x36.google.com with SMTP id 586e51a60fabf-1441d7d40c6so2708973fac.8;
-        Thu, 01 Dec 2022 08:27:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=8TBW6xbCe5t8nQXUxEetf6lihgyzkGvo5R6W7azKY14=;
-        b=GrE3SOpw0Fz5M0vxofINCokaHe2M/a65FHUvX/TS0+68RzUftOn8E1WOlbOq486v+D
-         VxYUVCeu2I2wsIVM2jqRLgqgg3HE+wb5VLBsLpescwy6MtCLhfY1Jz9pKzjQL79TebvP
-         5KV5zvo7ZOBP0T5bAjSubFmPvtvsk9qIqrE3wOlEC3R8KbPZjuYcWc9tHg24uFj7k42+
-         NQp3vRP6898Lzx6UD1V3KA/U4nnpGyk2YyTk2EmsQCvIpzQA2SSNYonJx3oV2NYCGAQ9
-         YHRPDQJ7KQruLw1JWw5rzARLoF7irwvt7FNdbz4fnGqadMT9JVAUG3PZ38gQ6XWIgF7u
-         8paw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=8TBW6xbCe5t8nQXUxEetf6lihgyzkGvo5R6W7azKY14=;
-        b=OzYnftoZOt1PomBvylIRbjcJz1/8tbfnLSeBo9wZlLM6XRAyFNi5nzW0ej1HeVa5hQ
-         9TexDyZCDdndBThyJxIrdjXK+A9DqCKQvnuUTKKmsYPi4ROmYuC/ORQfvJc/DwN3ZXX0
-         Cit8yJ7qZBBLRjvn048FWS6oetWgx6ljgiu4prfFu0ZdVa9eaRXtItUVZ0NHMElpdzdM
-         bRB26kIWgJ6Ri1CeurJCv/xN5fBfxR8w0edt//S0gQRoBrFf6bloD+eifopCisqI8a9t
-         wjSMj6goJ6xrEIjD5Pj8XmJ1f3G0ENr5+ffFROAXl2rVWgjnf6B22v8qAzaUSDwZ83A9
-         rEzg==
-X-Gm-Message-State: ANoB5plHrHSyaC6P3FzWbWiLhQ7ChWEx2yTfY56Azp7S0ZFLIzgQ6cFf
-        iLna0YdX+05dxMIrUAh9TeKCZEZDaMfu/H1AHDs=
-X-Google-Smtp-Source: AA0mqf7E6JlCU5bKp56CLLCXXIoqOGUT8ukLSY17cTa0VkMink3dCOT1kzff8JYwXCjE99+Ns2ekNhKUDClq+kGnrZs=
-X-Received: by 2002:a05:6871:4494:b0:142:6cb4:8b3a with SMTP id
- ne20-20020a056871449400b001426cb48b3amr27850483oab.190.1669912044564; Thu, 01
- Dec 2022 08:27:24 -0800 (PST)
+        Thu, 1 Dec 2022 11:39:42 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E5B8ABA26
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2022 08:39:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=8MiXdSTh59U3zi4GOCGTAWexm9qF2BA3zPouhoKHGxk=; b=bCBbeRm25IOVOJNhHQBkKW5CV3
+        ANpycBN/Tpj/TMhBORykYYlBYCJaLBy/wUWdPP4fE4+/Jp9Hkeo0bFoyccTJ4jYftWS7Q1gxf9aUu
+        A6Zewg9fp3zSeBlAJ1g4tqDGUiYU1nD7vI4hIAXyhzL+QbxJyh71CdnK0LHsUbdg78naIkznCy49o
+        qYCAP+hPFDpy0ao4F9BjpW3NICWe8mviXckdzD41EDTOgOjJ/7/HakpgFYEksXbREDcqon2prCqpZ
+        YhEhRECWoQQ/TR5PxkaOnWrHxw2d7e4yyCNdiPzxO+My/2JfKQLeJVihH/T6VI305TfibLb/G+1n8
+        sjwpS2sQ==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1p0maq-0002Xf-Pw; Thu, 01 Dec 2022 17:39:24 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [iptables PATCH 7/7] ebtables: Fix MAC address match translation
+Date:   Thu,  1 Dec 2022 17:39:16 +0100
+Message-Id: <20221201163916.30808-8-phil@nwl.cc>
+X-Mailer: git-send-email 2.38.0
+In-Reply-To: <20221201163916.30808-1-phil@nwl.cc>
+References: <20221201163916.30808-1-phil@nwl.cc>
 MIME-Version: 1.0
-References: <cover.1669138256.git.lucien.xin@gmail.com> <bf19487f4dfc8cd91a4395672d9905b10917128d.1669138256.git.lucien.xin@gmail.com>
- <Y35r87foLmKAblMg@t14s.localdomain>
-In-Reply-To: <Y35r87foLmKAblMg@t14s.localdomain>
-From:   Xin Long <lucien.xin@gmail.com>
-Date:   Thu, 1 Dec 2022 11:26:39 -0500
-Message-ID: <CADvbK_cvyW3jO1RSJo3AROa5Di+2mXB_ajCXNjV9C-SwdrsnOw@mail.gmail.com>
-Subject: Re: [PATCHv2 net-next 5/5] net: move the nat function to nf_nat_ovs
- for ovs and tc
-To:     Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Cc:     network dev <netdev@vger.kernel.org>, dev@openvswitch.org,
-        ovs-dev@openvswitch.org, davem@davemloft.net, kuba@kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pravin B Shelar <pshelar@ovn.org>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Davide Caratti <dcaratti@redhat.com>,
-        Oz Shlomo <ozsh@nvidia.com>, Paul Blakey <paulb@nvidia.com>,
-        Ilya Maximets <i.maximets@ovn.org>,
-        Eelco Chaudron <echaudro@redhat.com>,
-        Aaron Conole <aconole@redhat.com>,
-        netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Nov 23, 2022 at 1:52 PM Marcelo Ricardo Leitner
-<marcelo.leitner@gmail.com> wrote:
->
-> On Tue, Nov 22, 2022 at 12:32:21PM -0500, Xin Long wrote:
-> > --- a/net/netfilter/Makefile
-> > +++ b/net/netfilter/Makefile
-> > @@ -52,7 +52,7 @@ obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
-> >  obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
-> >  obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
-> >
-> > -nf_nat-y     := nf_nat_core.o nf_nat_proto.o nf_nat_helper.o
-> > +nf_nat-y     := nf_nat_core.o nf_nat_proto.o nf_nat_helper.o nf_nat_ovs.o
->
-> Considering that the code in nf_nat_ovs is only used if ovs or act_ct
-> are enabled, shouldn't it be using an invisible knob here that gets
-> automatically selected by them? Pablo?
-It's good to not build it if no place is using it.
-Making nf_nat_ovs a module might be too much.
-If it's okay to Netfilter devel, I will change to use "ifdef" in Makefile:
+If a mask was present, ebtables-translate would emit illegal syntax.
 
-+ifdef CONFIG_OPENVSWITCH
-+nf_nat-y += nf_nat_ovs.o
-+else ifdef CONFIG_NET_ACT_CT
-+nf_nat-y += nf_nat_ovs.o
-+endif
-+
+Fixes: 5e2b473a64bc7 ("xtables-compat: extend generic tests for masks and wildcards")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/generic.txlate | 2 +-
+ iptables/nft-bridge.c     | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Thanks.
+diff --git a/extensions/generic.txlate b/extensions/generic.txlate
+index d7ddf6a39762e..c24ed1568884b 100644
+--- a/extensions/generic.txlate
++++ b/extensions/generic.txlate
+@@ -65,7 +65,7 @@ ebtables-translate -A FORWARD ! -i iname --logical-in ilogname -o out+ --logical
+ nft 'add rule bridge filter FORWARD iifname != "iname" meta ibrname "ilogname" oifname "out*" meta obrname "lout*" ether daddr 01:02:03:04:de:af counter'
+ 
+ ebtables-translate -I INPUT -p ip -d 1:2:3:4:5:6/ff:ff:ff:ff:00:00
+-nft 'insert rule bridge filter INPUT ether type 0x800 ether daddr 01:02:03:04:00:00 and ff:ff:ff:ff:00:00 == 01:02:03:04:00:00 counter'
++nft 'insert rule bridge filter INPUT ether type 0x800 ether daddr and ff:ff:ff:ff:00:00 == 01:02:03:04:00:00 counter'
+ 
+ ebtables-translate -I INPUT -p Length
+ nft 'insert rule bridge filter INPUT ether type < 0x0600 counter'
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 15dfc585c14ab..8ab21bb54772b 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -861,17 +861,17 @@ static void nft_bridge_xlate_mac(struct xt_xlate *xl, const char *type, bool inv
+ 
+ 	xt_xlate_add(xl, "ether %s %s", type, invert ? "!= " : "");
+ 
+-	xlate_mac(xl, mac);
+-
+ 	if (memcmp(mask, one_msk, ETH_ALEN)) {
+ 		int i;
+-		xt_xlate_add(xl, " and ");
++		xt_xlate_add(xl, "and");
+ 
+ 		xlate_mac(xl, mask);
+ 
+ 		xt_xlate_add(xl, " == %02x", mac[0] & mask[0]);
+ 		for (i=1; i < ETH_ALEN; i++)
+ 			xt_xlate_add(xl, ":%02x", mac[i] & mask[i]);
++	} else {
++		xlate_mac(xl, mac);
+ 	}
+ }
+ 
+-- 
+2.38.0
 
->
-> I think this is my last comment on this series. The rest LGTM.
->
-> >
-> >  obj-$(CONFIG_NF_LOG_SYSLOG) += nf_log_syslog.o
-> >
