@@ -2,32 +2,58 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 166D2C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Dec 2022 10:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE716C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Dec 2022 10:07:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233128AbiLBKCl (ORCPT
+        id S232550AbiLBKHK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Dec 2022 05:02:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38472 "EHLO
+        Fri, 2 Dec 2022 05:07:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233171AbiLBKCk (ORCPT
+        with ESMTP id S232068AbiLBKHJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Dec 2022 05:02:40 -0500
-Received: from zeeaster.vergenet.net (zeeaster.vergenet.net [206.189.110.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881A310B8;
-        Fri,  2 Dec 2022 02:02:36 -0800 (PST)
-Received: from momiji.horms.nl (86-93-216-223.fixed.kpn.net [86.93.216.223])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by zeeaster.vergenet.net (Postfix) with ESMTPSA id 7F991200A3;
-        Fri,  2 Dec 2022 10:02:04 +0000 (UTC)
-Received: by momiji.horms.nl (Postfix, from userid 7100)
-        id 3436E9401C8; Fri,  2 Dec 2022 11:02:04 +0100 (CET)
-Date:   Fri, 2 Dec 2022 11:02:04 +0100
-From:   Simon Horman <horms@verge.net.au>
-To:     Li Qiong <liqiong@nfschina.com>
-Cc:     Julian Anastasov <ja@ssi.bg>,
+        Fri, 2 Dec 2022 05:07:09 -0500
+Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B2B31DFF;
+        Fri,  2 Dec 2022 02:07:08 -0800 (PST)
+Received: by mail-wm1-x333.google.com with SMTP id h4-20020a1c2104000000b003d0760654d3so4696289wmh.4;
+        Fri, 02 Dec 2022 02:07:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=lAa3hJppo/WCjU0fQNZHE/GMES32D4NEtcCS38fhV6k=;
+        b=M8AhBwVKSD2KcvVRm4IPXCoeG36NL36s7PzGMw96pQhs2Dsz4R4OuRRymRuNv9mzvp
+         KKAUal+dFEej+AQhzflGTMmXHhfp1acwf+6ljGPEkyIop81lycMM/hn8PEkKpUkBVr3u
+         ZfWXtdXfe+DjFY1h5J7V9FX48K7ruRpPqnSijNoXNStM/QTbk63WlbmxgcQa3BqMVN1x
+         q9aLDz2Cecdwb6C8IPEdwcf+xd4BHQgQOfdiol4Ji4SDrAa5nP+DAO3XNWxosU15LPVq
+         gZRC2CCVg9p2icsaJT6cbqwPJDM+Gsy244qsmWN0f7l48cEQjG+ItkHB0Ga02Wu/ix/k
+         KQRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=lAa3hJppo/WCjU0fQNZHE/GMES32D4NEtcCS38fhV6k=;
+        b=IFsTDXI/+4lr4lo/DTBALqaa6OtgiSt+mj4l8joqTbx6dLk5o4nTqfl+5zg8XdEdQn
+         h5jWJr+1qSZSx7ocI6+2Eci9gc9EvKNdHZ0w0BunaaH6si26y+Y6znERWc+KPzL2UuX5
+         qFcHNK36WU0dfefaE/U5w0SnnSfLfT3ZuP36Q6UXRsRGQZy64q61iMMXYOOIXp2zskU9
+         ghqq9w3BgHCVDo9w5TZ/PMgwUYxjlONPl523ei89c0RJnGNHMs2mAY3vJsoYRm1BimGg
+         e8iqM6+xVB9Og+k9x5EyZ1a7q7aZMUfqZ+iqqBG1xxzKUW+X5vivZCG/Squ3LOD5o/Lt
+         xz+w==
+X-Gm-Message-State: ANoB5pmc98eMypKUL/BdaKvKgjLYBbLhLGT8FyJbu7G4niRy35vKpUiM
+        +8AEwf+ZS2342yXk25wowFI=
+X-Google-Smtp-Source: AA0mqf6JN9UcErRqw1RX+MtISkloDSr0XVelCruFc28l+9eoUnnZFaooK84KGNmW3hETtQIOGHa5KA==
+X-Received: by 2002:a05:600c:2213:b0:3cf:a6eb:3290 with SMTP id z19-20020a05600c221300b003cfa6eb3290mr45034149wml.116.1669975626845;
+        Fri, 02 Dec 2022 02:07:06 -0800 (PST)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id bi18-20020a05600c3d9200b003c65c9a36dfsm7815781wmb.48.2022.12.02.02.07.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 02 Dec 2022 02:07:06 -0800 (PST)
+Date:   Fri, 2 Dec 2022 13:07:02 +0300
+From:   Dan Carpenter <error27@gmail.com>
+To:     Li Qiong <liqiong@nfschina.com>, Peilin Ye <yepeilin.cs@gmail.com>
+Cc:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
@@ -39,15 +65,12 @@ Cc:     Julian Anastasov <ja@ssi.bg>,
         netfilter-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
         coreteam@netfilter.org, Yu Zhe <yuzhe@nfschina.com>
 Subject: Re: [PATCH] ipvs: initialize 'ret' variable in do_ip_vs_set_ctl()
-Message-ID: <Y4nNHHfIY7iEvMgr@vergenet.net>
+Message-ID: <Y4nORiViTw0XlU2a@kadam>
 References: <20221202032511.1435-1-liqiong@nfschina.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20221202032511.1435-1-liqiong@nfschina.com>
-Organisation: Horms Solutions BV
-X-Virus-Scanned: clamav-milter 0.103.7 at zeeaster
-X-Virus-Status: Clean
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -59,38 +82,22 @@ On Fri, Dec 02, 2022 at 11:25:11AM +0800, Li Qiong wrote:
 > 
 > Signed-off-by: Li Qiong <liqiong@nfschina.com>
 
-Thanks,
+If this is a real bug, then it needs a fixes tag.  The fixes tag helps
+us know whether to back port or not and it also helps in reviewing the
+patch.  Also get_maintainer.pl will CC the person who introduced the
+bug so they can review it.  They are normally the best person to review
+their own code.
 
-I agree there seems to be a problem here.  But perhaps it's nicer to solve
-it by adding a default case to the switch statement?
+Here it would be:
+Fixes: c5a8a8498eed ("ipvs: Fix uninit-value in do_ip_vs_set_ctl()")
 
-Also, if we update the declaration of ret, perhaps we could also move it to
-the bottom of the declaration of local variables, to move more towards
-reverse xmas tree order.
+Which is strange...  Also it suggest that the correct value is -EINVAL
+and not 0.
 
-But to be honest, I don't feel strongly about either of these issues.
+The thing about uninitialized variable bugs is that Smatch and Clang
+both warn about them so they tend to get reported pretty quick.
+Apparently neither Nathan nor I sent forwarded this static checker
+warning.  :/
 
-So if someone wants to take this patch as-is then feel free to add.
-
-Reviewed-by: Simon Horman <horms@verge.net.au>
-
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 988222fff9f0..4b20db86077c 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2456,7 +2456,7 @@ static int
->  do_ip_vs_set_ctl(struct sock *sk, int cmd, sockptr_t ptr, unsigned int len)
->  {
->  	struct net *net = sock_net(sk);
-> -	int ret;
-> +	int ret = 0;
->  	unsigned char arg[MAX_SET_ARGLEN];
->  	struct ip_vs_service_user *usvc_compat;
->  	struct ip_vs_service_user_kern usvc;
-> -- 
-> 2.11.0
-> 
+regards,
+dan carpenter
