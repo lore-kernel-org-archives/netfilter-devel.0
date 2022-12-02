@@ -2,94 +2,130 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 838E6C4708D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Dec 2022 10:20:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5470AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Dec 2022 10:26:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233313AbiLBKUu (ORCPT
+        id S233221AbiLBK0X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 2 Dec 2022 05:20:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60170 "EHLO
+        Fri, 2 Dec 2022 05:26:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233311AbiLBKUt (ORCPT
+        with ESMTP id S232399AbiLBK0V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Dec 2022 05:20:49 -0500
-Received: from mail-wm1-x334.google.com (mail-wm1-x334.google.com [IPv6:2a00:1450:4864:20::334])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04F94CCFE7;
-        Fri,  2 Dec 2022 02:20:48 -0800 (PST)
-Received: by mail-wm1-x334.google.com with SMTP id o7-20020a05600c510700b003cffc0b3374so3920962wms.0;
-        Fri, 02 Dec 2022 02:20:47 -0800 (PST)
+        Fri, 2 Dec 2022 05:26:21 -0500
+Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76E1926AC0;
+        Fri,  2 Dec 2022 02:26:20 -0800 (PST)
+Received: by mail-wr1-x42d.google.com with SMTP id bs21so7122148wrb.4;
+        Fri, 02 Dec 2022 02:26:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=p6dyIRGKkenZuKAINhAGNO77xEpLnPrYIwb9Q02NvIA=;
-        b=B/nAOmgOONNgs8ZuxTFGjlAAvNS9u/x6HN2unp1OEEjs2XWWtmxqS13rOghKfV9F3m
-         NiVMoAkn6tg0493G19w6tQCYqlkAWKlTXDERT9E1C1fp9x9cJy+g4Ru3e+r48DqYvapR
-         t6tmk5o+zYhhAHwWZUQ5MhXmPfAVpHWYOwfcB5vt2MwjwHSadjJO5j4xRtRVx2jR/f6R
-         Jis9RtSlh0o3dqwlPiBlkf6ZunO3ov1LeKJr1izbF4wR0vm/eGiNgd0vpKMyM7j95V7i
-         2vhcxnUlPBHLhoMkXBQPb4OSUzkRk9vzCig+4ciRzW5CyIHzucBID1pxaEun7GhwdwYH
-         Y/YQ==
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=jNLrMQiEM6rpQlVYEUNGp4QXPdu9DtLm7iUcNPRtKZw=;
+        b=RjH3ddx6KxF5pUy3UjLPOERQnD+F6WxodSR7IxcB2vbYsVBWIF0hgjm6udRXUhASbv
+         4ey8t12fwULfJ0ZMR7Vqs7oATPjSei7v6ZgPJuk9Kv9OS2To+YkgbLMQv4LrxVWRH4VF
+         88tmGpuUvQbsilOQmRL3tjx3ac92rGJVLCfIeXsvIuJz0X4aAVCgv7r7h2LnQxxU/y2+
+         qxkxdCs+pINgyJZ0MLkVe2YQDu3dIN0MY54rRDsM16GLwm5mXmyNZ0N3eZ0SwljbDcDB
+         aMrzBeG3u6Ri0iEsQbiw0sF0xgGoP2SY03Os4t9dEQTsW++hnCVme8xZioDeSQsdiRWl
+         9oNA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=p6dyIRGKkenZuKAINhAGNO77xEpLnPrYIwb9Q02NvIA=;
-        b=Z4MJiXWfGnk2PcMxhBPXf/mJZNiqYJnxdc/fK/ZmStkeXMmO+cWLnwXJMYihTJr0+k
-         UeoesyrKGSVr+1Y08tDXm4csKEwfrNv0+RwYiX6l9RAEhBqphz9R8gQOKYRolFn4tevV
-         OzNI9cb9JHk4SqW8dqQE4uBY+EXTQV3J+RLa3M85Acq3KmdVekm+kpTUhIl1d3pFM9F2
-         x89aOA5JFHuAc3dwdQ+fnSuLphKvsi1AApkqK2bbfjRmX+OQqcS855VYauSRTR0B2bdh
-         8p8YNS4H3cNZXeghTYdASmLxAPQNPRNxtDPNJLQHnidLYeDOVmRHdPcAcgEft96L3UVd
-         CbBw==
-X-Gm-Message-State: ANoB5pmTpyGTcB1/f9ndbSMPy8a1MwI3U40bPrin34qSGdFhQuI5KAL/
-        +PMjN/xfHe9hozqD2m7QwzA=
-X-Google-Smtp-Source: AA0mqf4dmSYvXYaUuRUfAU1cEB8QM7s5FEQkGIg4nzKQn/yalySX+CnYQUePDkL1Q5iLh01p68eLjg==
-X-Received: by 2002:a05:600c:1d24:b0:3cf:6fd0:8168 with SMTP id l36-20020a05600c1d2400b003cf6fd08168mr37678986wms.206.1669976446617;
-        Fri, 02 Dec 2022 02:20:46 -0800 (PST)
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=jNLrMQiEM6rpQlVYEUNGp4QXPdu9DtLm7iUcNPRtKZw=;
+        b=55W3NceivZ5KTW36kC1SfJmOliovdY1/1+Wr5KTd6p8hMuCJ12mO1oAdSkmaSMu6Vv
+         ZXZntripPjx2285b5JXIORTE4Xx6WNrDGcuKtEdF+2crax9/gV/PAbRNNX+M+RBo4NPX
+         4KKqQabip/WBxOnGJbPB+YGJUIugV+P0ieECu2hJUc+0prHNxRrKkLv1xAz5A2ZZ5N3+
+         9zveoLrWrGkDjdvq3UPvAcegeWNPmE4RgXdZOcsD46r6+TUgE7E9UglBGCdaTkjQiReY
+         D2A5h4E6NYTHoHdsLiW3x69lmdkJnCfiP9yTPCuLMwzMGSTttNn8vzhYQFklf0KHdbbb
+         y0Lg==
+X-Gm-Message-State: ANoB5plYMkDGJelfnNBJEIRH4D7mpm8GLlvF5PFiX5+tTUaSJQ2TzbXd
+        s2r+BJUqdPUBuFTrDC1Gbbc=
+X-Google-Smtp-Source: AA0mqf4Er2ZY9L/YcgQphvw5kybsI2mvqT/p/UmoQ5FIfH6LRnk/GiXYKTOGKQh+FMjRT3yt0hUx/g==
+X-Received: by 2002:a5d:438e:0:b0:242:3b4f:96ed with SMTP id i14-20020a5d438e000000b002423b4f96edmr3976231wrq.261.1669976778858;
+        Fri, 02 Dec 2022 02:26:18 -0800 (PST)
 Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id i2-20020adff302000000b002421a8f4fa6sm6516740wro.92.2022.12.02.02.20.43
+        by smtp.gmail.com with ESMTPSA id o12-20020a5d670c000000b002424b695f7esm212568wru.46.2022.12.02.02.26.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 02 Dec 2022 02:20:45 -0800 (PST)
-Date:   Fri, 2 Dec 2022 13:20:35 +0300
+        Fri, 02 Dec 2022 02:26:18 -0800 (PST)
+Date:   Fri, 2 Dec 2022 13:26:03 +0300
 From:   Dan Carpenter <error27@gmail.com>
-To:     Li Qiong <liqiong@nfschina.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+To:     liqiong <liqiong@nfschina.com>
+Cc:     Peilin Ye <yepeilin.cs@gmail.com>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S . Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org, coreteam@netfilter.org,
-        Yu Zhe <yuzhe@nfschina.com>
-Subject: Re: [PATCH] netfilter: nfnetlink: check 'skb->dev' pointer in
- nfulnl_log_packet()
-Message-ID: <Y4nRc3fIxQDzADyV@kadam>
-References: <20221202083304.9005-1-liqiong@nfschina.com>
+        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        coreteam@netfilter.org, Yu Zhe <yuzhe@nfschina.com>
+Subject: Re: [PATCH] ipvs: initialize 'ret' variable in do_ip_vs_set_ctl()
+Message-ID: <Y4nSu7D5T2jDkXGK@kadam>
+References: <20221202032511.1435-1-liqiong@nfschina.com>
+ <Y4nORiViTw0XlU2a@kadam>
+ <9bc0af1a-3cf0-de4e-7073-0f7895b7f6eb@nfschina.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20221202083304.9005-1-liqiong@nfschina.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9bc0af1a-3cf0-de4e-7073-0f7895b7f6eb@nfschina.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Dec 02, 2022 at 04:33:04PM +0800, Li Qiong wrote:
-> The 'skb->dev' may be NULL, it should be better to check it.
+On Fri, Dec 02, 2022 at 06:18:37PM +0800, liqiong wrote:
 > 
-> Signed-off-by: Li Qiong <liqiong@nfschina.com>
-> ---
+> 
+> 在 2022年12月02日 18:07, Dan Carpenter 写道:
+> > On Fri, Dec 02, 2022 at 11:25:11AM +0800, Li Qiong wrote:
+> >> The 'ret' should need to be initialized to 0, in case
+> >> return a uninitialized value because no default process
+> >> for "switch (cmd)".
+> >>
+> >> Signed-off-by: Li Qiong <liqiong@nfschina.com>
+> > If this is a real bug, then it needs a fixes tag.  The fixes tag helps
+> > us know whether to back port or not and it also helps in reviewing the
+> > patch.  Also get_maintainer.pl will CC the person who introduced the
+> > bug so they can review it.  They are normally the best person to review
+> > their own code.
+> >
+> > Here it would be:
+> > Fixes: c5a8a8498eed ("ipvs: Fix uninit-value in do_ip_vs_set_ctl()")
+> >
+> > Which is strange...  Also it suggest that the correct value is -EINVAL
+> > and not 0.
+> >
+> > The thing about uninitialized variable bugs is that Smatch and Clang
+> > both warn about them so they tend to get reported pretty quick.
+> > Apparently neither Nathan nor I sent forwarded this static checker
+> > warning.  :/
+> >
+> > regards,
+> > dan carpenter
+> 
+> It is not a real bug,   I  use tool (eg: smatch, sparse) to audit the
+> code,  got this warning and check it, found may be a real problem.
 
-This needs a Fixes tag as well.
+Yeah.  If it is a false positive just ignore it, do not bother to
+silence wrong static checker warnings.
 
-Here my records show that I looked at this in 2018 but I probably
-ignored it based on that the code was introduced in 2012.  When warnings
-are really ancient sometimes I just assume they must be false positives
-or someone would have hit it in testing.
+The code in question here is:
 
-Also for really ancient bugs, it's hard to contact the original author
-or they have forgotten the details of the code.
+	if (len != set_arglen[CMDID(cmd)]) {
+
+The only time that condition can be true is for the cases in the switch
+statement.  So Peilin's patch is correct.
+
+Smatch is bad at understanding arrays so Smatch cannot parse the if
+statement above as a human reader can.
 
 regards,
 dan carpenter
