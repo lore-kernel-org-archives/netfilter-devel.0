@@ -2,64 +2,54 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95909C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Dec 2022 00:46:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1564DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  2 Dec 2022 00:46:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230337AbiLBAqN (ORCPT
+        id S229890AbiLBAqg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Dec 2022 19:46:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36282 "EHLO
+        Thu, 1 Dec 2022 19:46:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229890AbiLBAqM (ORCPT
+        with ESMTP id S231361AbiLBAqf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2022 19:46:12 -0500
+        Thu, 1 Dec 2022 19:46:35 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4859A1A07
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2022 16:46:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D0ECA1A07
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2022 16:46:35 -0800 (PST)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p0uBs-0007EW-NX; Fri, 02 Dec 2022 01:46:08 +0100
-Date:   Fri, 2 Dec 2022 01:46:08 +0100
+        id 1p0uCH-0007Ew-L9
+        for netfilter-devel@vger.kernel.org; Fri, 02 Dec 2022 01:46:33 +0100
+Date:   Fri, 2 Dec 2022 01:46:33 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH 0/7] tests: xlate: generic.txlate to pass replay
- test
-Message-ID: <Y4lK0Ni7yqwJWzfI@orbyte.nwl.cc>
+Subject: Re: [iptables PATCH 0/9] Fix for shell testsuite '-V' option
+Message-ID: <Y4lK6bZcR8vNQlXk@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20221201163916.30808-1-phil@nwl.cc>
+        netfilter-devel@vger.kernel.org
+References: <20221130191345.14543-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221201163916.30808-1-phil@nwl.cc>
+In-Reply-To: <20221130191345.14543-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 01, 2022 at 05:39:09PM +0100, Phil Sutter wrote:
-> Instead of dumping the ruleset with xtables-save and creating yet
-> another string comparison mess by searching the output, use --check
-> command to leverage iptables' internal rule comparison functionality
-> when checking that the nftables-created rule parses correctly as the
-> source of the translation (patch 2).
+On Wed, Nov 30, 2022 at 08:13:36PM +0100, Phil Sutter wrote:
+> When running the testsuite in "valgrind mode", numerous cases of lost
+> memory and still reachable at program exit are reported. Address them
+> all plus libiptc's access of uninitialized memory.
 > 
-> There was a rub with the above, namely ebtables not supporting --check
-> in the first place. Gladly the implementation is pretty simple (patch
-> 1) with one caveat: '-C' itself is not available so add the long option
-> only.
-> 
-> The remaining patches deal with translation details (mostly around
-> wildcard interface names) until generic.txlate finally passes the replay
-> test.
-> 
-> Phil Sutter (7):
->   ebtables: Implement --check command
->   tests: xlate: Use --check to verify replay
->   nft: Fix for comparing ifname matches against nft-generated ones
->   nft: Fix match generator for '! -i +'
->   nft: Recognize INVAL/D interface name
->   xtables-translate: Fix for interfaces with asterisk mid-string
->   ebtables: Fix MAC address match translation
+> Phil Sutter (9):
+>   tests: shell: Fix valgrind mode for 0008-unprivileged_0
+>   iptables-restore: Free handle with --test also
+>   iptables-xml: Free allocated chain strings
+>   nft: Plug memleak in nft_rule_zero_counters()
+>   iptables: Plug memleaks in print_firewall()
+>   xtables: Introduce xtables_clear_iptables_command_state()
+>   iptables: Properly clear iptables_command_state object
+>   xshared: Free data after printing help
+>   libiptc: Eliminate garbage access
 
 Series applied.
