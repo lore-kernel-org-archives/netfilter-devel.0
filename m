@@ -2,283 +2,81 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58AC2C4321E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Dec 2022 13:18:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4163C4321E
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Dec 2022 14:26:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232169AbiLENSN (ORCPT
+        id S230294AbiLEO0Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Dec 2022 08:18:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42162 "EHLO
+        Mon, 5 Dec 2022 09:26:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232138AbiLENSJ (ORCPT
+        with ESMTP id S230090AbiLEO0X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Dec 2022 08:18:09 -0500
-Received: from smtp-8faf.mail.infomaniak.ch (smtp-8faf.mail.infomaniak.ch [83.166.143.175])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FF7763D1
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2022 05:18:05 -0800 (PST)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4NQkcq373MzMpnxt;
-        Mon,  5 Dec 2022 14:18:03 +0100 (CET)
-Received: from ns3096276.ip-94-23-54.eu (unknown [23.97.221.149])
-        by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4NQkcp32S4zMprqV;
-        Mon,  5 Dec 2022 14:18:01 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1670246283;
-        bh=0ouhhW42hcLs1wyFIb/3ZCREaalKE/we7hNJQykI3OA=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=eZPQ7mHfzAJX4tnsohhYRlDba6aDOqQfsu4JsYGI2wR++lsS6Etw0wN2EPZ3pdgtd
-         EcPkTlIHkTylk3n2/NvOqoEYr+A50NxBmOND+XDM0Jr3Pku92YoeBELR8Zmhyz4vPX
-         UZgoKIL+F7taKpuZkjVkloRjiPOBiHK2wAksLXWs=
-Message-ID: <9a10a7f0-e7ec-a33d-f3ae-978814a1627a@digikod.net>
-Date:   Mon, 5 Dec 2022 14:18:01 +0100
+        Mon, 5 Dec 2022 09:26:23 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BF0761E1;
+        Mon,  5 Dec 2022 06:26:22 -0800 (PST)
+Date:   Mon, 5 Dec 2022 15:26:16 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Li Qiong <liqiong@nfschina.com>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org, coreteam@netfilter.org,
+        Yu Zhe <yuzhe@nfschina.com>
+Subject: Re: [PATCH] netfilter: initialize 'ret' variable
+Message-ID: <Y43/iCzGY7qJckCe@salvia>
+References: <20221202070331.10865-1-liqiong@nfschina.com>
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v8 08/12] landlock: Implement TCP network hooks
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        willemdebruijn.kernel@gmail.com
-Cc:     gnoack3000@gmail.com, linux-security-module@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        artem.kuzin@huawei.com, linux-api@vger.kernel.org,
-        "Alejandro Colomar (man-pages)" <alx.manpages@gmail.com>,
-        Paul Moore <paul@paul-moore.com>
-References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
- <20221021152644.155136-9-konstantin.meskhidze@huawei.com>
- <3452964b-04d3-b297-92a1-1220e087323e@digikod.net>
- <335a5372-e444-5deb-c04d-664cbc7cdc2e@huawei.com>
- <6071d053-a4b4-61f0-06f6-f94e6ce1e6d6@digikod.net>
- <56f9af17-f824-ff5d-7fee-8de0ae520cc2@huawei.com>
- <200bd6ce-de44-7335-63d9-04c17b1b1cf9@digikod.net>
- <e1e81fc5-40af-8373-0def-926870691c0e@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <e1e81fc5-40af-8373-0def-926870691c0e@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20221202070331.10865-1-liqiong@nfschina.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 05/12/2022 03:55, Konstantin Meskhidze (A) wrote:
+On Fri, Dec 02, 2022 at 03:03:31PM +0800, Li Qiong wrote:
+> The 'ret' should need to be initialized to 0, in case
+> return a uninitialized value.
 > 
+> Signed-off-by: Li Qiong <liqiong@nfschina.com>
+> ---
+>  net/netfilter/nf_flow_table_ip.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> 12/2/2022 4:01 PM, Mickaël Salaün пишет:
->>
->> On 02/12/2022 04:13, Konstantin Meskhidze (A) wrote:
->>>
->>>
->>> 11/29/2022 12:00 AM, Mickaël Salaün пишет:
->>>> The previous commit provides an interface to theoretically restrict
->>>> network access (i.e. ruleset handled network accesses), but in fact this
->>>> is not enforced until this commit. I like this split but to avoid any
->>>> inconsistency, please squash this commit into the previous one: "7/12
->>>> landlock: Add network rules support"
->>>> You should keep all the commit messages but maybe tweak them a bit.
->>>>
->>>      Ok. Will be squashed.
->>>>
->>>> On 28/11/2022 09:21, Konstantin Meskhidze (A) wrote:
->>>>>
->>>>>
->>>>> 11/17/2022 9:43 PM, Mickaël Salaün пишет:
->>>>>>
->>>>>> On 21/10/2022 17:26, Konstantin Meskhidze wrote:
->>>>>>> This patch adds support of socket_bind() and socket_connect() hooks.
->>>>>>> It's possible to restrict binding and connecting of TCP sockets to
->>>>>>> particular ports.
->>>>>>
->>>>>> Implement socket_bind() and socket_connect LSM hooks, which enable to
->>>>>> restrict TCP socket binding and connection to specific ports.
->>>>>>
->>>>>       Ok. Thanks.
->>>>>>
->>>>>>>
->>>>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>>>>> ---
->>>>
->>>> [...]
->>>>
->>>>>>> +static int hook_socket_connect(struct socket *sock, struct sockaddr *address,
->>>>>>> +			       int addrlen)
->>>>>>> +{
->>>>>>> +	const struct landlock_ruleset *const dom =
->>>>>>> +		landlock_get_current_domain();
->>>>>>> +
->>>>>>> +	if (!dom)
->>>>>>> +		return 0;
->>>>>>> +
->>>>>>> +	/* Check if it's a TCP socket. */
->>>>>>> +	if (sock->type != SOCK_STREAM)
->>>>>>> +		return 0;
->>>>>>> +
->>>>>>> +	/* Check if the hook is AF_INET* socket's action. */
->>>>>>> +	switch (address->sa_family) {
->>>>>>> +	case AF_INET:
->>>>>>> +#if IS_ENABLED(CONFIG_IPV6)
->>>>>>> +	case AF_INET6:
->>>>>>> +#endif
->>>>>>> +		return check_socket_access(dom, get_port(address),
->>>>>>> +					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
->>>>>>> +	case AF_UNSPEC: {
->>>>>>> +		u16 i;
->>>>>>
->>>>>> You can move "i" after the "dom" declaration to remove the extra braces.
->>>>>>
->>>>>       Ok. Thanks.
->>>>>>
->>>>>>> +
->>>>>>> +		/*
->>>>>>> +		 * If just in a layer a mask supports connect access,
->>>>>>> +		 * the socket_connect() hook with AF_UNSPEC family flag
->>>>>>> +		 * must be banned. This prevents from disconnecting already
->>>>>>> +		 * connected sockets.
->>>>>>> +		 */
->>>>>>> +		for (i = 0; i < dom->num_layers; i++) {
->>>>>>> +			if (landlock_get_net_access_mask(dom, i) &
->>>>>>> +			    LANDLOCK_ACCESS_NET_CONNECT_TCP)
->>>>>>> +				return -EACCES;
->>>>>>
->>>>>> I'm wondering if this is the right error code for this case. EPERM may
->>>>>> be more appropriate.
->>>>>
->>>>>       Ok. Will be refactored.
->>>>>>
->>>>>> Thinking more about this case, I don't understand what is the rationale
->>>>>> to deny such action. What would be the consequence to always allow
->>>>>> connection with AF_UNSPEC (i.e. to disconnect a socket)?
->>>>>>
->>>>>       I thought we have come to a conclusion about connect(...AF_UNSPEC..)
->>>>>      behaviour in the patchset V3:
->>>>> https://lore.kernel.org/linux-security-module/19ad3a01-d76e-0e73-7833-99acd4afd97e@huawei.com/
->>>>
->>>> The conclusion was that AF_UNSPEC disconnects a socket, but I'm asking
->>>> if this is a security issue. I don't think it is more dangerous than a
->>>> new (unconnected) socket. Am I missing something? Which kind of rule
->>>> could be bypassed? What are we protecting against by restricting AF_UNSPEC?
->>>
->>> I just follow Willem de Bruijn concerns about this issue:
->>>
->>> quote: "It is valid to pass an address with AF_UNSPEC to a PF_INET(6)
->>> socket. And there are legitimate reasons to want to deny this. Such as
->>> passing a connection to a unprivileged process and disallow it from
->>> disconnect and opening a different new connection."
->>>
->>> https://lore.kernel.org/linux-security-module/CA+FuTSf4EjgjBCCOiu-PHJcTMia41UkTh8QJ0+qdxL_J8445EA@mail.gmail.com/
->>
->> I agree with the fact that we want to deny this, but in this example the
->> new connection should still be restricted by the Landlock domain. Using
->> AF_UNSPEC on a connected socket should not make this socket allowed to
->> create any connection if the process is restricted with TCP_CONNECT.
->> Being allowed to close a connection should not be an issue, and any new
->> connection must be vetted by Landlock.
->>
-> 
->     You are right. This makes sense. Thanks for the comment.
->>>
->>>
->>> quote: "The intended use-case is for a privileged process to open a
->>> connection (i.e., bound and connected socket) and pass that to a
->>> restricted process. The intent is for that process to only be allowed to
->>> communicate over this pre-established channel.
->>>
->>> In practice, it is able to disconnect (while staying bound) and
->>> elevate its privileges to that of a listening server: ..."
->>>
->>> https://lore.kernel.org/linux-security-module/CA+FuTScaoby-=xRKf_Dz3koSYHqrMN0cauCg4jMmy_nDxwPADA@mail.gmail.com/
->>>
->>> Looks like it's a security issue here.
->>
->> It the provided example, if child_process() is restricted with
->> TCP_CONNECT and TCP_BIND, any call to connect() or bind() will return an
->> access error. listen() and accept() would work if the socket is bound,
->> which is the case here, and then implicitly allowed by the parent
->> process. I don' see any security issue. Am I missing something?
->>
->> In fact, connect with AF_UNSPEC should always be allowed to be
->> consistent with close(2), which is a way to drop privileges.
->>
-> 
->    It should be allowed with checking:
-> "return check_socket_access(dom, get_port(address),
->                                    LANDLOCK_ACCESS_NET_CONNECT_TCP);
->>
->> What Willem said:
->>> It would be good to also
->>> ensure that a now-bound socket cannot call listen.
->>
->> This is not relevant for Landlock because the security model is to check
->> process's requests to get new accesses (e.g. create a new file
->> descriptor), but not to check passed accesses (e.g. inherited from a
->> parent process, or pass through a unix socket) which are delegated to
->> the sender/parent. The goal of a sandbox is to limit the set of new
->> access requested (to the kernel) from within this sandbox. All already
->> opened file descriptors were previously vetted by Landlock (and other
->> access control systems).
-> 
->      I got your point. Thanks.
->>
->>>
->>>>
->>>> We could then reduce the hook codes to just:
->>>> return current_check_access_socket(sock, address, LANDLOCK_ACCESS_NET_*);
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index b350fe9d00b0..225ff865d609 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -351,7 +351,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+>  	struct rtable *rt;
+>  	struct iphdr *iph;
+>  	__be32 nexthop;
+> -	int ret;
+> +	int ret = 0;
+>  
+>  	if (skb->protocol != htons(ETH_P_IP) &&
+>  	    !nf_flow_skb_encap_protocol(skb, htons(ETH_P_IP), &offset))
+> @@ -613,7 +613,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+>  	u32 hdrsize, offset = 0;
+>  	struct ipv6hdr *ip6h;
+>  	struct rt6_info *rt;
+> -	int ret;
+> +	int ret = 0;
+>  
+>  	if (skb->protocol != htons(ETH_P_IPV6) &&
+>  	    !nf_flow_skb_encap_protocol(skb, htons(ETH_P_IPV6), &offset))
 
-This current_check_access_socket() helper should contain all the access 
-control code.
+This can only happen with tuplehash->tuple.xmit_type:
 
->>>> .
->>
->> As for SELinux, the connect hook should first do this check (with an
->> appropriate comment):
->> if (address->sa_family == AF_UNSPEC)
->> 	return 0;
-> 
->     In case of Landlock it looks like a landlocked process could connnect
-> to the ports it's not allowed to connect to.
-> So we need just to return check_socket_access(dom, get_port(address),
-> 				   LANDLOCK_ACCESS_NET_CONNECT_TCP);
-> I'm I correct? Did I miss something?
+- FLOW_OFFLOAD_XMIT_UNSPEC
+- FLOW_OFFLOAD_XMIT_TC
 
-Using AF_UNSPEC with connect(2) doesn't connect the socket to a port, 
-and in fact completely ignore the port. We can move the AF_UNSPEC check 
-to the current_check_access_socket() helper:
+but this should not ever happen in that path.
 
-  	switch (address->sa_family) {
-  	case AF_UNSPEC:
-+		/*
-+		 * Connecting to an address with AF_UNSPEC dissolves the TCP
-+		 * association, which have the same effect as closing the
-+		 * connection while retaining the socket object (i.e., the file
-+		 * descriptor).  As for dropping privileges, closing
-+		 * connections is always allowed.
-+		 */
-+		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
-+			return 0;
-+
-+		/*
-+		 * For compatibility reason, accept AF_UNSPEC for bind
-+		 * accesses (mapped to AF_INET) only if the address is
-+		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
-+		 * required to not wrongfully return -EACCES instead of
-+		 * -EAFNOSUPPORT.
-+		 */
-+		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
-+			const struct sockaddr_in *const sockaddr =
-+				(struct sockaddr_in *)address;
-+
-+			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
-+				return -EAFNOSUPPORT;
-+		}
-+
-+		fallthrough;
-  	case AF_INET:
-  #if IS_ENABLED(CONFIG_IPV6)
-  	case AF_INET6:
-
-
-I also added another check (copied from SELinux) with the appropriate 
-explanation. All this needs dedicated tests to make sure everything is 
-covered.
-
-We also need to add extra checks (and related tests) for addrlen as do 
-other LSMs.
+Instead, I'd suggest to add a 'default' case to the switch, set ret to
+NF_DROP and WARN_ON_ONCE(1).
