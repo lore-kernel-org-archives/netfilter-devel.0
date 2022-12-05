@@ -2,199 +2,230 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE61BC47090
-	for <netfilter-devel@archiver.kernel.org>; Sat,  3 Dec 2022 19:02:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA264C4708D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Dec 2022 02:55:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229795AbiLCTCZ (ORCPT
+        id S231295AbiLECza (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 3 Dec 2022 14:02:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46736 "EHLO
+        Sun, 4 Dec 2022 21:55:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229832AbiLCTCX (ORCPT
+        with ESMTP id S230307AbiLECz3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 3 Dec 2022 14:02:23 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD3CC1C438
-        for <netfilter-devel@vger.kernel.org>; Sat,  3 Dec 2022 11:02:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=6noJsTOyqUezVS6FsV6Zw6qeff7qlt+y6Zg4kKR9ywA=; b=XgpJUbxNWZdv45OI5HNwLlEP7i
-        0uUOdKJtscXU2K9enUEC/QVty5Ogws4TjLkwZluK+Y/rFUTAyyJAL11N9DI/OhkdQS/ZagYa4LHj0
-        sjZ6f/0vco1BthDvxbPtrSwasIEc8fz6pOlflLHcyfnIr/sswsOq2HCaRLkox/3tpEYdm1A/Y9Lv2
-        vFd1eIKMFA7K1MGqD1b0GfyD2DaU+yx4k7ZBa1zSxUQwmWNanuWFIuIDbyJpn1ha92OwB1WQpMPbV
-        8caAEeVDJOSWqv+vSMxToDMCr6crSkwdX7HL3bC4XHkvMzzmxcCGZE0sc1JE/uywViDm4aprUVKo3
-        Kc3C8lQw==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtp (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1p1XmE-000B5v-E1
-        for netfilter-devel@vger.kernel.org; Sat, 03 Dec 2022 19:02:18 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 2/4] filter: fix buffer sizes in filter plug-ins
-Date:   Sat,  3 Dec 2022 19:02:10 +0000
-Message-Id: <20221203190212.346490-3-jeremy@azazel.net>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221203190212.346490-1-jeremy@azazel.net>
-References: <20221203190212.346490-1-jeremy@azazel.net>
+        Sun, 4 Dec 2022 21:55:29 -0500
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4551910578;
+        Sun,  4 Dec 2022 18:55:28 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NQSl62qfgz6883t;
+        Mon,  5 Dec 2022 10:52:34 +0800 (CST)
+Received: from [10.122.132.241] (10.122.132.241) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.34; Mon, 5 Dec 2022 02:55:25 +0000
+Message-ID: <e1e81fc5-40af-8373-0def-926870691c0e@huawei.com>
+Date:   Mon, 5 Dec 2022 05:55:24 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v8 08/12] landlock: Implement TCP network hooks
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>,
+        <willemdebruijn.kernel@gmail.com>
+CC:     <gnoack3000@gmail.com>, <linux-security-module@vger.kernel.org>,
+        <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <artem.kuzin@huawei.com>, <linux-api@vger.kernel.org>,
+        "Alejandro Colomar (man-pages)" <alx.manpages@gmail.com>
+References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
+ <20221021152644.155136-9-konstantin.meskhidze@huawei.com>
+ <3452964b-04d3-b297-92a1-1220e087323e@digikod.net>
+ <335a5372-e444-5deb-c04d-664cbc7cdc2e@huawei.com>
+ <6071d053-a4b4-61f0-06f6-f94e6ce1e6d6@digikod.net>
+ <56f9af17-f824-ff5d-7fee-8de0ae520cc2@huawei.com>
+ <200bd6ce-de44-7335-63d9-04c17b1b1cf9@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <200bd6ce-de44-7335-63d9-04c17b1b1cf9@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Originating-IP: [10.122.132.241]
+X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Three of the filter plug-ins define arrays to hold output key values.
-The arrays are sized based on the values of enums.  For example:
 
-  enum output_keys {
-    KEY_MAC_TYPE,
-    KEY_MAC_PROTOCOL,
-    KEY_MAC_SADDR,
-    START_KEY = KEY_MAC_SADDR,
-    KEY_MAC_DADDR,
-    KEY_MAC_ADDR,
-    MAX_KEY = KEY_MAC_ADDR,
-  };
 
-  static char hwmac_str[MAX_KEY - START_KEY][HWADDR_LENGTH];
+12/2/2022 4:01 PM, Mickaël Salaün пишет:
+> 
+> On 02/12/2022 04:13, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 11/29/2022 12:00 AM, Mickaël Salaün пишет:
+>>> The previous commit provides an interface to theoretically restrict
+>>> network access (i.e. ruleset handled network accesses), but in fact this
+>>> is not enforced until this commit. I like this split but to avoid any
+>>> inconsistency, please squash this commit into the previous one: "7/12
+>>> landlock: Add network rules support"
+>>> You should keep all the commit messages but maybe tweak them a bit.
+>>>
+>>     Ok. Will be squashed.
+>>>
+>>> On 28/11/2022 09:21, Konstantin Meskhidze (A) wrote:
+>>>>
+>>>>
+>>>> 11/17/2022 9:43 PM, Mickaël Salaün пишет:
+>>>>>
+>>>>> On 21/10/2022 17:26, Konstantin Meskhidze wrote:
+>>>>>> This patch adds support of socket_bind() and socket_connect() hooks.
+>>>>>> It's possible to restrict binding and connecting of TCP sockets to
+>>>>>> particular ports.
+>>>>>
+>>>>> Implement socket_bind() and socket_connect LSM hooks, which enable to
+>>>>> restrict TCP socket binding and connection to specific ports.
+>>>>>
+>>>>      Ok. Thanks.
+>>>>>
+>>>>>>
+>>>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>>>>> ---
+>>>
+>>> [...]
+>>>
+>>>>>> +static int hook_socket_connect(struct socket *sock, struct sockaddr *address,
+>>>>>> +			       int addrlen)
+>>>>>> +{
+>>>>>> +	const struct landlock_ruleset *const dom =
+>>>>>> +		landlock_get_current_domain();
+>>>>>> +
+>>>>>> +	if (!dom)
+>>>>>> +		return 0;
+>>>>>> +
+>>>>>> +	/* Check if it's a TCP socket. */
+>>>>>> +	if (sock->type != SOCK_STREAM)
+>>>>>> +		return 0;
+>>>>>> +
+>>>>>> +	/* Check if the hook is AF_INET* socket's action. */
+>>>>>> +	switch (address->sa_family) {
+>>>>>> +	case AF_INET:
+>>>>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>>>>> +	case AF_INET6:
+>>>>>> +#endif
+>>>>>> +		return check_socket_access(dom, get_port(address),
+>>>>>> +					   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+>>>>>> +	case AF_UNSPEC: {
+>>>>>> +		u16 i;
+>>>>>
+>>>>> You can move "i" after the "dom" declaration to remove the extra braces.
+>>>>>
+>>>>      Ok. Thanks.
+>>>>>
+>>>>>> +
+>>>>>> +		/*
+>>>>>> +		 * If just in a layer a mask supports connect access,
+>>>>>> +		 * the socket_connect() hook with AF_UNSPEC family flag
+>>>>>> +		 * must be banned. This prevents from disconnecting already
+>>>>>> +		 * connected sockets.
+>>>>>> +		 */
+>>>>>> +		for (i = 0; i < dom->num_layers; i++) {
+>>>>>> +			if (landlock_get_net_access_mask(dom, i) &
+>>>>>> +			    LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>>>>>> +				return -EACCES;
+>>>>>
+>>>>> I'm wondering if this is the right error code for this case. EPERM may
+>>>>> be more appropriate.
+>>>>
+>>>>      Ok. Will be refactored.
+>>>>>
+>>>>> Thinking more about this case, I don't understand what is the rationale
+>>>>> to deny such action. What would be the consequence to always allow
+>>>>> connection with AF_UNSPEC (i.e. to disconnect a socket)?
+>>>>>
+>>>>      I thought we have come to a conclusion about connect(...AF_UNSPEC..)
+>>>>     behaviour in the patchset V3:
+>>>> https://lore.kernel.org/linux-security-module/19ad3a01-d76e-0e73-7833-99acd4afd97e@huawei.com/
+>>>
+>>> The conclusion was that AF_UNSPEC disconnects a socket, but I'm asking
+>>> if this is a security issue. I don't think it is more dangerous than a
+>>> new (unconnected) socket. Am I missing something? Which kind of rule
+>>> could be bypassed? What are we protecting against by restricting AF_UNSPEC?
+>> 
+>> I just follow Willem de Bruijn concerns about this issue:
+>> 
+>> quote: "It is valid to pass an address with AF_UNSPEC to a PF_INET(6)
+>> socket. And there are legitimate reasons to want to deny this. Such as
+>> passing a connection to a unprivileged process and disallow it from
+>> disconnect and opening a different new connection."
+>> 
+>> https://lore.kernel.org/linux-security-module/CA+FuTSf4EjgjBCCOiu-PHJcTMia41UkTh8QJ0+qdxL_J8445EA@mail.gmail.com/
+> 
+> I agree with the fact that we want to deny this, but in this example the
+> new connection should still be restricted by the Landlock domain. Using
+> AF_UNSPEC on a connected socket should not make this socket allowed to
+> create any connection if the process is restricted with TCP_CONNECT.
+> Being allowed to close a connection should not be an issue, and any new
+> connection must be vetted by Landlock.
+> 
 
-The arrays are indexed by subtracting `START_KEY` from the enum value of
-the key currently being processed: `hwmac_str[okey - START_KEY]`.
-However, this means that the last key (`KEY_MAC_ADDR` in this example)
-will run off the end of the array.  Increase the size of the arrays.
+   You are right. This makes sense. Thanks for the comment.
+>> 
+>> 
+>> quote: "The intended use-case is for a privileged process to open a
+>> connection (i.e., bound and connected socket) and pass that to a
+>> restricted process. The intent is for that process to only be allowed to
+>> communicate over this pre-established channel.
+>> 
+>> In practice, it is able to disconnect (while staying bound) and
+>> elevate its privileges to that of a listening server: ..."
+>> 
+>> https://lore.kernel.org/linux-security-module/CA+FuTScaoby-=xRKf_Dz3koSYHqrMN0cauCg4jMmy_nDxwPADA@mail.gmail.com/
+>> 
+>> Looks like it's a security issue here.
+> 
+> It the provided example, if child_process() is restricted with
+> TCP_CONNECT and TCP_BIND, any call to connect() or bind() will return an
+> access error. listen() and accept() would work if the socket is bound,
+> which is the case here, and then implicitly allowed by the parent
+> process. I don' see any security issue. Am I missing something?
+> 
+> In fact, connect with AF_UNSPEC should always be allowed to be
+> consistent with close(2), which is a way to drop privileges.
+> 
 
-In the case of `IP2BIN` and `IP2HBIN`, there is no overrun, but only
-because they use the wrong upper bound when looping over the keys, and
-thus don't assign a value to the last key.  Correct the bound.
+  It should be allowed with checking:
+"return check_socket_access(dom, get_port(address),
+                                  LANDLOCK_ACCESS_NET_CONNECT_TCP);
+> 
+> What Willem said:
+>> It would be good to also
+>> ensure that a now-bound socket cannot call listen.
+> 
+> This is not relevant for Landlock because the security model is to check
+> process's requests to get new accesses (e.g. create a new file
+> descriptor), but not to check passed accesses (e.g. inherited from a
+> parent process, or pass through a unix socket) which are delegated to
+> the sender/parent. The goal of a sandbox is to limit the set of new
+> access requested (to the kernel) from within this sandbox. All already
+> opened file descriptors were previously vetted by Landlock (and other
+> access control systems).
 
-Also some small white-space tweaks.
+    I got your point. Thanks.
+> 
+>> 
+>>>
+>>> We could then reduce the hook codes to just:
+>>> return current_check_access_socket(sock, address, LANDLOCK_ACCESS_NET_*);
+>>> .
+> 
+> As for SELinux, the connect hook should first do this check (with an
+> appropriate comment):
+> if (address->sa_family == AF_UNSPEC)
+> 	return 0;
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=890
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- filter/ulogd_filter_HWHDR.c   |  4 ++--
- filter/ulogd_filter_IP2BIN.c  | 14 +++++++-------
- filter/ulogd_filter_IP2HBIN.c |  2 +-
- filter/ulogd_filter_IP2STR.c  |  6 +++---
- 4 files changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/filter/ulogd_filter_HWHDR.c b/filter/ulogd_filter_HWHDR.c
-index bbca5e9b92f2..a5ee60dea44b 100644
---- a/filter/ulogd_filter_HWHDR.c
-+++ b/filter/ulogd_filter_HWHDR.c
-@@ -109,7 +109,7 @@ static struct ulogd_key mac2str_keys[] = {
- 	},
- };
- 
--static char hwmac_str[MAX_KEY - START_KEY][HWADDR_LENGTH];
-+static char hwmac_str[MAX_KEY - START_KEY + 1][HWADDR_LENGTH];
- 
- static int parse_mac2str(struct ulogd_key *ret, unsigned char *mac,
- 			 int okey, int len)
-@@ -126,7 +126,7 @@ static int parse_mac2str(struct ulogd_key *ret, unsigned char *mac,
- 	buf_cur = hwmac_str[okey - START_KEY];
- 	for (i = 0; i < len; i++)
- 		buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
--				i == len - 1 ? 0 : ':');
-+				   i == len - 1 ? 0 : ':');
- 
- 	okey_set_ptr(&ret[okey], hwmac_str[okey - START_KEY]);
- 
-diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
-index 2172d93506d5..42bcd7c15f1b 100644
---- a/filter/ulogd_filter_IP2BIN.c
-+++ b/filter/ulogd_filter_IP2BIN.c
-@@ -114,7 +114,7 @@ static struct ulogd_key ip2bin_keys[] = {
- 
- };
- 
--static char ipbin_array[MAX_KEY-START_KEY][IPADDR_LENGTH];
-+static char ipbin_array[MAX_KEY - START_KEY + 1][IPADDR_LENGTH];
- 
- /**
-  * Convert IPv4 address (as 32-bit unsigned integer) to IPv6 address:
-@@ -128,7 +128,7 @@ static inline void uint32_to_ipv6(const uint32_t ipv4, struct in6_addr *ipv6)
- 	ipv6->s6_addr32[3] = ipv4;
- }
- 
--static int ip2bin(struct ulogd_key* inp, int index, int oindex)
-+static int ip2bin(struct ulogd_key *inp, int index, int oindex)
- {
- 	char family = ikey_get_u8(&inp[KEY_OOB_FAMILY]);
- 	char convfamily = family;
-@@ -184,7 +184,7 @@ static int ip2bin(struct ulogd_key* inp, int index, int oindex)
- 	addr8 = &addr->s6_addr[0];
- 	for (i = 0; i < 4; i++) {
- 		written = sprintf(buffer, "%02x%02x%02x%02x",
--				addr8[0], addr8[1], addr8[2], addr8[3]);
-+				  addr8[0], addr8[1], addr8[2], addr8[3]);
- 		if (written != 2 * 4) {
- 			buffer[0] = 0;
- 			return ULOGD_IRET_ERR;
-@@ -205,13 +205,13 @@ static int interp_ip2bin(struct ulogd_pluginstance *pi)
- 	int fret;
- 
- 	/* Iter on all addr fields */
--	for(i = START_KEY; i < MAX_KEY; i++) {
-+	for(i = START_KEY; i <= MAX_KEY; i++) {
- 		if (pp_is_valid(inp, i)) {
--			fret = ip2bin(inp, i, i-START_KEY);
-+			fret = ip2bin(inp, i, i - START_KEY);
- 			if (fret != ULOGD_IRET_OK)
- 				return fret;
--			okey_set_ptr(&ret[i-START_KEY],
--				     ipbin_array[i-START_KEY]);
-+			okey_set_ptr(&ret[i - START_KEY],
-+				     ipbin_array[i - START_KEY]);
- 		}
- 	}
- 
-diff --git a/filter/ulogd_filter_IP2HBIN.c b/filter/ulogd_filter_IP2HBIN.c
-index 087e824ae94b..2711f9c3e12a 100644
---- a/filter/ulogd_filter_IP2HBIN.c
-+++ b/filter/ulogd_filter_IP2HBIN.c
-@@ -153,7 +153,7 @@ static int interp_ip2hbin(struct ulogd_pluginstance *pi)
- 	}
- 
- 	/* Iter on all addr fields */
--	for(i = START_KEY; i < MAX_KEY; i++) {
-+	for(i = START_KEY; i <= MAX_KEY; i++) {
- 		if (pp_is_valid(inp, i)) {
- 			switch (convfamily) {
- 			case AF_INET:
-diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
-index 66324b0b3b22..4d0536817b6c 100644
---- a/filter/ulogd_filter_IP2STR.c
-+++ b/filter/ulogd_filter_IP2STR.c
-@@ -137,7 +137,7 @@ static struct ulogd_key ip2str_keys[] = {
- 	},
- };
- 
--static char ipstr_array[MAX_KEY-START_KEY][IPADDR_LENGTH];
-+static char ipstr_array[MAX_KEY - START_KEY + 1][IPADDR_LENGTH];
- 
- static int ip2str(struct ulogd_key *inp, int index, int oindex)
- {
-@@ -197,10 +197,10 @@ static int interp_ip2str(struct ulogd_pluginstance *pi)
- 	/* Iter on all addr fields */
- 	for (i = START_KEY; i <= MAX_KEY; i++) {
- 		if (pp_is_valid(inp, i)) {
--			fret = ip2str(inp, i, i-START_KEY);
-+			fret = ip2str(inp, i, i - START_KEY);
- 			if (fret != ULOGD_IRET_OK)
- 				return fret;
--			okey_set_ptr(&ret[i-START_KEY],
-+			okey_set_ptr(&ret[i - START_KEY],
- 				     ipstr_array[i-START_KEY]);
- 		}
- 	}
--- 
-2.35.1
-
+   In case of Landlock it looks like a landlocked process could connnect 
+to the ports it's not allowed to connect to.
+So we need just to return check_socket_access(dom, get_port(address),
+				   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+I'm I correct? Did I miss something?
+> .
