@@ -2,88 +2,66 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5138BC352A1
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Dec 2022 07:45:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3021FC352A1
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Dec 2022 14:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231249AbiLFHpa (ORCPT
+        id S235084AbiLFOXm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Dec 2022 02:45:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60442 "EHLO
+        Tue, 6 Dec 2022 09:23:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35396 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbiLFHpa (ORCPT
+        with ESMTP id S235005AbiLFOXe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Dec 2022 02:45:30 -0500
-Received: from mail.nfschina.com (unknown [124.16.136.209])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2BBEA11C14;
-        Mon,  5 Dec 2022 23:45:28 -0800 (PST)
-Received: from localhost (unknown [127.0.0.1])
-        by mail.nfschina.com (Postfix) with ESMTP id 9B1DB1E80D0E;
-        Tue,  6 Dec 2022 15:41:10 +0800 (CST)
-X-Virus-Scanned: amavisd-new at test.com
-Received: from mail.nfschina.com ([127.0.0.1])
-        by localhost (mail.nfschina.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 67sWBfMGm1OG; Tue,  6 Dec 2022 15:41:08 +0800 (CST)
-Received: from localhost.localdomain (unknown [180.167.10.98])
-        (Authenticated sender: liqiong@nfschina.com)
-        by mail.nfschina.com (Postfix) with ESMTPA id 64DCD1E80D57;
-        Tue,  6 Dec 2022 15:41:07 +0800 (CST)
-From:   Li Qiong <liqiong@nfschina.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        coreteam@netfilter.org, Yu Zhe <yuzhe@nfschina.com>,
-        Li Qiong <liqiong@nfschina.com>
-Subject: [PATCH v2] netfilter: add a 'default' case to 'switch (tuplehash->tuple.xmit_type)'
-Date:   Tue,  6 Dec 2022 15:44:14 +0800
-Message-Id: <20221206074414.12208-1-liqiong@nfschina.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20221202070331.10865-1-liqiong@nfschina.com>
-References: <20221202070331.10865-1-liqiong@nfschina.com>
+        Tue, 6 Dec 2022 09:23:34 -0500
+X-Greylist: delayed 1134 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 06 Dec 2022 06:23:29 PST
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC69B65E4
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2022 06:23:29 -0800 (PST)
+Received: from uucp by ganesha.gnumonks.org with local-bsmtp (Exim 4.94.2)
+        (envelope-from <laforge@osmocom.org>)
+        id 1p2YYg-0089U4-IV; Tue, 06 Dec 2022 15:04:30 +0100
+Received: from laforge by localhost.localdomain with local (Exim 4.96)
+        (envelope-from <laforge@osmocom.org>)
+        id 1p2YY0-0055cj-18;
+        Tue, 06 Dec 2022 15:03:48 +0100
+From:   Harald Welte <laforge@osmocom.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Harald Welte <laforge@osmocom.org>,
+        Harald Welte <laforge@gnumonks.org>
+Subject: [PATCH] doc/payload-expression.txt: Mention that 'ih' exists
+Date:   Tue,  6 Dec 2022 15:03:33 +0100
+Message-Id: <20221206140333.1213221-1-laforge@osmocom.org>
+X-Mailer: git-send-email 2.38.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a 'default' case in case return a uninitialized value of ret.
+Back in commit b67abc51ba6f78be79f344dfda9c6d0753d79aea a new
+payload expression 'ih' was added, but the documentation wasn't updated
+accordingly.
 
-Signed-off-by: Li Qiong <liqiong@nfschina.com>
----
-v2: Add 'default' case instead of initializing 'ret'.
----
- net/netfilter/nf_flow_table_ip.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Let's at least mention in the man page that it exists at all.
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index b350fe9d00b0..19efba1e51ef 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -421,6 +421,10 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		if (ret == NF_DROP)
- 			flow_offload_teardown(flow);
- 		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		ret = NF_DROP;
-+		break;
- 	}
+Signed-off-by: Harald Welte <laforge@gnumonks.org>
+---
+ doc/payload-expression.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
+index 113f5bfc..9a761b71 100644
+--- a/doc/payload-expression.txt
++++ b/doc/payload-expression.txt
+@@ -556,6 +556,8 @@ Link layer, for example the Ethernet header
+ Network header, for example IPv4 or IPv6
+ |th|
+ Transport Header, for example TCP
++|ih|
++Inner Header / Payload, i.e. after the L4 transport level header
+ |==============================
  
- 	return ret;
-@@ -682,6 +686,10 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 		if (ret == NF_DROP)
- 			flow_offload_teardown(flow);
- 		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		ret = NF_DROP;
-+		break;
- 	}
- 
- 	return ret;
+ .Matching destination port of both UDP and TCP
 -- 
-2.11.0
+2.38.1
 
