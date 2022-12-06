@@ -2,41 +2,70 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49AB7C4708C
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Dec 2022 16:17:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76BD2C4708C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Dec 2022 17:16:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231838AbiLFQRR (ORCPT
+        id S231600AbiLFRQo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Dec 2022 11:17:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60450 "EHLO
+        Tue, 6 Dec 2022 12:16:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235194AbiLFQQw (ORCPT
+        with ESMTP id S235688AbiLFRQn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Dec 2022 11:16:52 -0500
+        Tue, 6 Dec 2022 12:16:43 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E23691180B
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2022 08:12:25 -0800 (PST)
-Date:   Tue, 6 Dec 2022 17:12:22 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 98641DEA5
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2022 09:16:42 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Harald Welte <laforge@osmocom.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] doc/payload-expression.txt: Mention that 'ih' exists
-Message-ID: <Y49p5vYwM0Mn6xmY@salvia>
-References: <20221206140333.1213221-1-laforge@osmocom.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] doc: statements: fwd supports for sending packets via neighbouring layer
+Date:   Tue,  6 Dec 2022 18:16:37 +0100
+Message-Id: <20221206171637.7286-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20221206140333.1213221-1-laforge@osmocom.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Dec 06, 2022 at 03:03:33PM +0100, Harald Welte wrote:
-> Back in commit b67abc51ba6f78be79f344dfda9c6d0753d79aea a new
-> payload expression 'ih' was added, but the documentation wasn't updated
-> accordingly.
-> 
-> Let's at least mention in the man page that it exists at all.
+Document ability to forward packets through neighbour layer added in
+30d45266bf38 ("expr: extend fwd statement to support address and family").
 
-Applied, thanks
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ doc/statements.txt | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 8076c21cded4..66877eac847b 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -683,7 +683,25 @@ The fwd statement is used to redirect a raw packet to another interface. It is
+ only available in the netdev family ingress and egress hooks. It is similar to
+ the dup statement except that no copy is made.
+ 
++You can also specify the address of the next hop and the device to forward the
++packet to. This updates the source and destination MAC address of the packet by
++transmitting it through the neighboring Layer 2 layer. This also decrements the
++ttl field of the IP packet. This provides a way to effectively bypass the
++classical forwarding path, thus skipping the fib (forwarding information base)
++lookup.
++
++[verse]
+ *fwd to* 'device'
++*fwd* [*ip* | *ip6*] *to* 'address' *device* 'device'
++
++.Using the fwd statement
++------------------------
++# redirect raw packet to device
++netdev ingress fwd to "eth0"
++
++# forward packet to next hop 192.168.200.1 via eth0 device
++netdev ingress ether saddr set fwd ip to 192.168.200.1 device "eth0"
++-----------------------------------
+ 
+ SET STATEMENT
+ ~~~~~~~~~~~~~
+-- 
+2.30.2
+
