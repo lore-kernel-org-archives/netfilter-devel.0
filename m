@@ -2,67 +2,110 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F450C4708D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Dec 2022 20:55:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AA0FC63705
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Dec 2022 21:27:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229635AbiLGUzv (ORCPT
+        id S229753AbiLGV1m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Dec 2022 15:55:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41374 "EHLO
+        Wed, 7 Dec 2022 16:27:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229470AbiLGUzu (ORCPT
+        with ESMTP id S229649AbiLGV1l (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Dec 2022 15:55:50 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FBA7117D
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2022 12:55:49 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p31SE-0002Qu-Pv; Wed, 07 Dec 2022 21:55:46 +0100
-Date:   Wed, 7 Dec 2022 21:55:46 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH 08/11] Makefile: Generate .tar.bz2 archive with
- 'make dist'
-Message-ID: <Y5D90jEMuoGhuiSx@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20221207174430.4335-1-phil@nwl.cc>
- <20221207174430.4335-9-phil@nwl.cc>
- <p1286pq3-rprq-p2pq-3172-22p6s42pq3r1@vanv.qr>
- <Y5DhxWh+2qpixI5O@orbyte.nwl.cc>
- <1845617o-3434-5r8r-o0p8-sp96q83rno51@vanv.qr>
+        Wed, 7 Dec 2022 16:27:41 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A0481B49B
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2022 13:27:39 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     eric@garver.life
+Subject: [PATCH nft 1/2] tests: py: missing json for different byteorder selector with interval concatenation
+Date:   Wed,  7 Dec 2022 22:27:30 +0100
+Message-Id: <20221207212731.179911-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1845617o-3434-5r8r-o0p8-sp96q83rno51@vanv.qr>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Dec 07, 2022 at 08:13:56PM +0100, Jan Engelhardt wrote:
-> 
-> On Wednesday 2022-12-07 19:56, Phil Sutter wrote:
-> >On Wed, Dec 07, 2022 at 07:45:30PM +0100, Jan Engelhardt wrote:
-> >
-> >| 984K	iptables-1.8.8.tar.gz
-> >| 772K	iptables-1.8.8.tar.bz2
-> >| 636K	iptables-1.8.8.tar.xz
-> >
-> >Moving to LZMA is trivial from a Makefile's point of view, but
-> >most packagers will have extra work adjusting for the new file name
-> 
-> How hard could it be? Surely they'll manage to change _three
-> characters_ (or perhaps even ten, to manually run /usr/bin/<thing> if
-> there's no suffix autodetection) in their build recipe, right?
+Add missing json output, otherwise -j reports an error.
 
-Hey, if we're discussing almost negligible size reduction, I want to
-discuss almost negligible extra effort, too! :D
+Fixes: 1017d323cafa ("src: support for selectors with different byteorder with interval concatenations")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/py/inet/meta.t.json | 61 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
 
-Pablo, you're doing the legwork when it comes to releases, what's your
-opinion?
+diff --git a/tests/py/inet/meta.t.json b/tests/py/inet/meta.t.json
+index 723a36f74946..bc268a2ef2ae 100644
+--- a/tests/py/inet/meta.t.json
++++ b/tests/py/inet/meta.t.json
+@@ -289,3 +289,64 @@
+         }
+     }
+ ]
++
++# meta mark . tcp dport { 0x0000000a-0x00000014 . 80-90, 0x00100000-0x00100123 . 100-120 }
++[
++    {
++        "match": {
++            "left": {
++                "concat": [
++                    {
++                        "meta": {
++                            "key": "mark"
++                        }
++                    },
++                    {
++                        "payload": {
++                            "field": "dport",
++                            "protocol": "tcp"
++                        }
++                    }
++                ]
++            },
++            "op": "==",
++            "right": {
++                "set": [
++                    {
++                        "concat": [
++                            {
++                                "range": [
++                                    10,
++                                    20
++                                ]
++                            },
++                            {
++                                "range": [
++                                    80,
++                                    90
++                                ]
++                            }
++                        ]
++                    },
++                    {
++                        "concat": [
++                            {
++                                "range": [
++                                    1048576,
++                                    1048867
++                                ]
++                            },
++                            {
++                                "range": [
++                                    100,
++                                    120
++                                ]
++                            }
++                        ]
++                    }
++                ]
++            }
++        }
++    }
++]
++
+-- 
+2.30.2
 
-Cheers, Phil
