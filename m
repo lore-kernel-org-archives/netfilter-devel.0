@@ -2,144 +2,67 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B8BC4708D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Dec 2022 20:07:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F450C4708D
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Dec 2022 20:55:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbiLGUHC (ORCPT
+        id S229635AbiLGUzv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Dec 2022 15:07:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35356 "EHLO
+        Wed, 7 Dec 2022 15:55:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229449AbiLGUHB (ORCPT
+        with ESMTP id S229470AbiLGUzu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Dec 2022 15:07:01 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9320F6E540
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2022 12:06:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1670443563;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=kRxOq5rMzHgau0UX4AWMzxQIpBJ6mdiuqwtaJBEk8tk=;
-        b=A6/nMZtqKuMznssf50gRhnui1ncha27W9+f6DZ/gknBbu4l1ULb7Q2zFhEfh/n011Sj3F6
-        wdAvUX7TUx7uBEVRcX5jxKrsPwBbkzll/OQ4CcmkPE5WmTIOMyNv69rZSHBPH9mULPfM/K
-        FzJcbkbWZ+KJTgShwAkFqCJUdniqh1A=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-37-MJUjHyPOP1i7-ncau8PsMQ-1; Wed, 07 Dec 2022 15:06:02 -0500
-X-MC-Unique: MJUjHyPOP1i7-ncau8PsMQ-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C2791858F13;
-        Wed,  7 Dec 2022 20:06:01 +0000 (UTC)
-Received: from localhost (wsfd-netdev-vmhost.ntdv.lab.eng.bos.redhat.com [10.19.188.17])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B426C40C2064;
-        Wed,  7 Dec 2022 20:06:01 +0000 (UTC)
-Date:   Wed, 7 Dec 2022 15:06:01 -0500
-From:   Eric Garver <eric@garver.life>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, sbrivio@redhat.com
-Subject: Re: [PATCH nft] src: support for selectors with different byteorder
- with interval concatenations
-Message-ID: <Y5DyKcPZ+vzphv11@wsfd-netdev-vmhost.ntdv.lab.eng.bos.redhat.com>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, sbrivio@redhat.com
-References: <20221124114602.277741-1-pablo@netfilter.org>
+        Wed, 7 Dec 2022 15:55:50 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FBA7117D
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2022 12:55:49 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1p31SE-0002Qu-Pv; Wed, 07 Dec 2022 21:55:46 +0100
+Date:   Wed, 7 Dec 2022 21:55:46 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [iptables PATCH 08/11] Makefile: Generate .tar.bz2 archive with
+ 'make dist'
+Message-ID: <Y5D90jEMuoGhuiSx@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20221207174430.4335-1-phil@nwl.cc>
+ <20221207174430.4335-9-phil@nwl.cc>
+ <p1286pq3-rprq-p2pq-3172-22p6s42pq3r1@vanv.qr>
+ <Y5DhxWh+2qpixI5O@orbyte.nwl.cc>
+ <1845617o-3434-5r8r-o0p8-sp96q83rno51@vanv.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221124114602.277741-1-pablo@netfilter.org>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
+In-Reply-To: <1845617o-3434-5r8r-o0p8-sp96q83rno51@vanv.qr>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 24, 2022 at 12:46:02PM +0100, Pablo Neira Ayuso wrote:
-> Assuming the following interval set with concatenations:
+On Wed, Dec 07, 2022 at 08:13:56PM +0100, Jan Engelhardt wrote:
 > 
->  set test {
-> 	typeof ip saddr . meta mark
-> 	flags interval
->  }
+> On Wednesday 2022-12-07 19:56, Phil Sutter wrote:
+> >On Wed, Dec 07, 2022 at 07:45:30PM +0100, Jan Engelhardt wrote:
+> >
+> >| 984K	iptables-1.8.8.tar.gz
+> >| 772K	iptables-1.8.8.tar.bz2
+> >| 636K	iptables-1.8.8.tar.xz
+> >
+> >Moving to LZMA is trivial from a Makefile's point of view, but
+> >most packagers will have extra work adjusting for the new file name
 > 
-> then, the following rule:
-> 
->  ip saddr . meta mark @test
-> 
-> requires bytecode that swaps the byteorder for the meta mark selector in
-> case the set contains intervals and concatenations.
-> 
->  inet x y
->    [ meta load nfproto => reg 1 ]
->    [ cmp eq reg 1 0x00000002 ]
->    [ payload load 4b @ network header + 12 => reg 1 ]
->    [ meta load mark => reg 9 ]
->    [ byteorder reg 9 = hton(reg 9, 4, 4) ] 	<----- this is required !
->    [ lookup reg 1 set test dreg 0 ]
-> 
-> This patch updates byteorder_conversion() to add the unary expression
-> that introduces the byteorder expression.
-> 
-> Moreover, store the meta mark range component of the element tuple in
-> the set in big endian as it is required for the range comparisons. Undo
-> the byteorder swap in the netlink delinearize path to listing the meta
-> mark values accordingly.
-> 
-> Update tests/py to validate that byteorder expression is emitted in the
-> bytecode. Update tests/shell to validate insertion and listing of a
-> named map declaration.
-> 
-> A similar commit 806ab081dc9a ("netlink: swap byteorder for
-> host-endian concat data") already exists in the tree to handle this for
-> strings with prefix (e.g. eth*).
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
+> How hard could it be? Surely they'll manage to change _three
+> characters_ (or perhaps even ten, to manually run /usr/bin/<thing> if
+> there's no suffix autodetection) in their build recipe, right?
 
-Hi Pablo,
+Hey, if we're discussing almost negligible size reduction, I want to
+discuss almost negligible extra effort, too! :D
 
-This patch reversed the byte order on output.
+Pablo, you're doing the legwork when it comes to releases, what's your
+opinion?
 
-Thanks.
-Eric.
-
-
---->8---
-
-
-# cat /tmp/foo
-table inet foobar {
-        set foobar {
-                type ipv4_addr . mark
-                flags interval
-                elements = { 10.10.10.10 . 0x00000100,
-                             20.20.20.20 . 0x00000200 }
-        }
-}
-
-# ./src/nft -f /tmp/foo
-
-# ./src/nft list table inet foobar
-table inet foobar {
-        set foobar {
-                type ipv4_addr . mark
-                flags interval
-                elements = { 10.10.10.10 . 0x00010000,
-                             20.20.20.20 . 0x00020000 }
-        }
-}
-
-# nft list table inet foobar
-table inet foobar {
-        set foobar {
-                type ipv4_addr . mark
-                flags interval
-                elements = { 10.10.10.10 . 0x00000100,
-                             20.20.20.20 . 0x00000200 }
-        }
-}
-
+Cheers, Phil
