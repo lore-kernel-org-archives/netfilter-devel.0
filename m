@@ -2,50 +2,40 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 258B6C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Dec 2022 21:24:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EEBEC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Dec 2022 21:27:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229646AbiLHVYw (ORCPT
+        id S229738AbiLHV1O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Dec 2022 16:24:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39226 "EHLO
+        Thu, 8 Dec 2022 16:27:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbiLHVYv (ORCPT
+        with ESMTP id S229478AbiLHV1M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Dec 2022 16:24:51 -0500
+        Thu, 8 Dec 2022 16:27:12 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EA690786B4
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Dec 2022 13:24:50 -0800 (PST)
-Date:   Thu, 8 Dec 2022 22:24:48 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DF47D786AD
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Dec 2022 13:27:11 -0800 (PST)
+Date:   Thu, 8 Dec 2022 22:27:08 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] netlink: unfold function to generate concatenations
- for keys and data
-Message-ID: <Y5JWIGTy7hlegf8O@salvia>
-References: <20221208013217.483019-1-pablo@netfilter.org>
- <20221208013217.483019-2-pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH ulogd2] pgsql: correct `ulog2.ip_totlen` type
+Message-ID: <Y5JWrNpThFqFTOon@salvia>
+References: <20221129211127.246934-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20221208013217.483019-2-pablo@netfilter.org>
+In-Reply-To: <20221129211127.246934-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 08, 2022 at 02:32:17AM +0100, Pablo Neira Ayuso wrote:
-> Add a specific function to generate concatenation with and without
-> intervals in maps. This restores the original function added by
-> 8ac2f3b2fca3 ("src: Add support for concatenated set ranges") which is
-> used by 66746e7dedeb ("src: support for nat with interval
-> concatenation") to generate the data concatenations in maps.
-> 
-> Only the set element key requires the byteswap introduced by 1017d323cafa
-> ("src: support for selectors with different byteorder with interval
-> concatenations"). Therefore, better not to reuse the same function for
-> key and data as the future might bring support for more kind of
-> concatenations in data maps.
+On Tue, Nov 29, 2022 at 09:11:27PM +0000, Jeremy Sowden wrote:
+> The types of `ip_totlen` in the `ulog` view and the `INSERT_IP_PACKET_FULL`
+> function are `integer`, but the column in the `ulog2` table is `smallint`.  The
+> "total length" field of an IP packet is an unsigned 16-bit integer, whereas
+> `smallint` in PostgreSQL is a signed 16-bit integer type.  Change the type of
+> `ulog2.ip_totlen` to `integer`.
 
-This patch needs more work, netlink_gen_concat_key() is still called
-for rhs element data in a mapping in this patch.
-
-I'll post a v2.
+Also applied this to ulogd2, thanks.
