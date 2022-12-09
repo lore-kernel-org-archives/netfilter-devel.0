@@ -2,58 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF1BBC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Dec 2022 16:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 273A1C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Dec 2022 16:52:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229634AbiLIQqI (ORCPT
+        id S229784AbiLIQwO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Dec 2022 11:46:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39974 "EHLO
+        Fri, 9 Dec 2022 11:52:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229704AbiLIQpx (ORCPT
+        with ESMTP id S229751AbiLIQwM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Dec 2022 11:45:53 -0500
+        Fri, 9 Dec 2022 11:52:12 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3912E6A1
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2022 08:45:50 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CFB29854C
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2022 08:52:12 -0800 (PST)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p3gVQ-0004jx-Mm; Fri, 09 Dec 2022 17:45:48 +0100
-Date:   Fri, 9 Dec 2022 17:45:48 +0100
+        id 1p3gbL-0004oE-15; Fri, 09 Dec 2022 17:51:55 +0100
+Date:   Fri, 9 Dec 2022 17:51:55 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [nft PATCH 3/4] xt: Rewrite unsupported compat expression dumping
-Message-ID: <Y5NmPEyyWFMe6q8P@orbyte.nwl.cc>
+Subject: Re: [iptables PATCH 1/7] ebtables: Implement --check command
+Message-ID: <Y5Nnq5pwtVPRiu2R@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20221124165641.26921-1-phil@nwl.cc>
- <20221124165641.26921-4-phil@nwl.cc>
- <Y5NdNmKQrlRAKRfm@salvia>
+References: <20221201163916.30808-1-phil@nwl.cc>
+ <20221201163916.30808-2-phil@nwl.cc>
+ <Y5JZxolqr+dzWsgh@salvia>
+ <Y5KENOfZGWxPU8au@orbyte.nwl.cc>
+ <Y5NTBWT+YiM3o3qQ@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Y5NdNmKQrlRAKRfm@salvia>
+In-Reply-To: <Y5NTBWT+YiM3o3qQ@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Dec 09, 2022 at 05:07:18PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Nov 24, 2022 at 05:56:40PM +0100, Phil Sutter wrote:
-> > Choose a format which provides more information and is easily parseable.
-> > Then teach parsers about it and make it explicitly reject the ruleset
-> > giving a meaningful explanation. Also update the man pages with some
-> > more details.
+On Fri, Dec 09, 2022 at 04:23:49PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Dec 09, 2022 at 01:41:24AM +0100, Phil Sutter wrote:
+> > On Thu, Dec 08, 2022 at 10:40:22PM +0100, Pablo Neira Ayuso wrote:
+> > > On Thu, Dec 01, 2022 at 05:39:10PM +0100, Phil Sutter wrote:
+> > > > Sadly, '-C' is in use already for --change-counters (even though
+> > > > ebtables-nft does not implement this), so add a long-option only. It is
+> > > > needed for xlate testsuite in replay mode, which will use '--check'
+> > > > instead of '-C'.
+> > > 
+> > > Hm, yet another of those exotic deviations (from ip{6}tables) in
+> > > ebtables.
+> > > 
+> > > This -C is not supported by ebtables-nft, right? If so,
+> > > according to manpage, ebtables -C takes start_nr[:end_nr].
+> > > 
+> > > Maybe there is a chance to get this aligned with other ip{6}tables
+> > > tools by checking if optarg is available? Otherwise, really check the
+> > > ruleset?
+> > > 
+> > > BTW, I'm re-reading the ebtables manpage, not sure how this feature -C
+> > > was supposed to be used. Do you understand the usecase?
+> > 
+> > Yes, it's odd - so fits perfectly the rest of ebtables syntax. ;)
+> > 
+> > There are two ways to use it:
+> > 
+> > 1) ebtables -C <CHAIN> <RULENO> <PCNT> <BCNT>
+> > 2) ebtables -C <CHAIN> <PCNT> <BCNT> <RULESPEC>
+> > 
+> > So I could check if the two parameters following the chain name are
+> > numbers or not to distinguish between --change-counters and --check, but
+> > it's ugly and with ebtables-nft not supporting one of them makes things
+> > actually worse.
+> > 
+> > We need --check only for internal purposes, let's please just leave it
+> > like this - there are much more important things to work on.
 > 
-> There is a bugzilla ticket related to xt and json support, you can
-> probably add a Closes: tag link.
+> OK, just an idea in case there is a need for getting ebtables more
+> aligned with other xtables userspace.
 
-This should be nfbz#1621, but it's about translating xt to native in
-JSON format. All my patch does is extend the xt JSON format a bit. AIUI,
-we would have to extend libxtables to provide translations into JSON.
-
-So even with perfect two-ways translation available, JSON interface is
-unusable if iptables-nft is in use.
+I'd love to, but the syntax is so far off, it's almost futile. :(
 
 Cheers, Phil
