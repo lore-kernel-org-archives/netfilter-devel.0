@@ -2,65 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B2F9C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Dec 2022 00:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C8F7C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Dec 2022 12:16:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229575AbiLIAsM (ORCPT
+        id S229908AbiLIMQz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Dec 2022 19:48:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39638 "EHLO
+        Fri, 9 Dec 2022 07:16:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229521AbiLIAsL (ORCPT
+        with ESMTP id S229470AbiLIMQu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Dec 2022 19:48:11 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26509A4338
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Dec 2022 16:48:10 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p3RYc-0003Cb-26; Fri, 09 Dec 2022 01:48:06 +0100
-Date:   Fri, 9 Dec 2022 01:48:06 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [libmnl PATCH] Makefile: Create LZMA-compressed dist-files
-Message-ID: <Y5KFxjpByL+lwVtN@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
-References: <20221208001339.21578-1-phil@nwl.cc>
- <Y5JJFyZSW9OhYuUl@salvia>
+        Fri, 9 Dec 2022 07:16:50 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2107543848
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2022 04:16:48 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/3] netlink: statify __netlink_gen_data()
+Date:   Fri,  9 Dec 2022 13:16:43 +0100
+Message-Id: <20221209121645.903831-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y5JJFyZSW9OhYuUl@salvia>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 08, 2022 at 09:29:11PM +0100, Pablo Neira Ayuso wrote:
-> Hi Phil
-> 
-> On Thu, Dec 08, 2022 at 01:13:39AM +0100, Phil Sutter wrote:
-> > Use a more modern alternative to bzip2.
-> 
-> I tested this one for libmnl specifically and it works fine with `make
-> distcheck`. I can quickly update the release script here to refer to
-> tar.xz instead of tar.bz2.
-> 
-> I have seen other projects offering both .tar.bz2 and .tar.xz, the
-> reason for this for me is unknown, I guess using .tar.xz should be
-> fine for everyone?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Maybe cruft from a time when LZMA support in tar was new. Maybe also
-people whining about failing distfile downloads.
+diff --git a/src/netlink.c b/src/netlink.c
+index 2ede25b9ce9d..db92f3506503 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -97,8 +97,8 @@ struct nftnl_expr *alloc_nft_expr(const char *name)
+ 	return nle;
+ }
+ 
+-void __netlink_gen_data(const struct expr *expr,
+-			struct nft_data_linearize *data, bool expand);
++static void __netlink_gen_data(const struct expr *expr,
++			       struct nft_data_linearize *data, bool expand);
+ 
+ struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 					   const struct expr *expr)
+@@ -430,8 +430,8 @@ static void netlink_gen_prefix(const struct expr *expr,
+ 	nld->len = len;
+ }
+ 
+-void __netlink_gen_data(const struct expr *expr,
+-			struct nft_data_linearize *data, bool expand)
++static void __netlink_gen_data(const struct expr *expr,
++			       struct nft_data_linearize *data, bool expand)
+ {
+ 	switch (expr->etype) {
+ 	case EXPR_VALUE:
+-- 
+2.30.2
 
-Just for the record, one may easily configure automake to create
-multiple archives with different compressions from the same 'make dist'
-command.
-
-> Please go ahead push out these patches, thanks.
-
-Will do, thanks!
-
-Cheers, Phil
