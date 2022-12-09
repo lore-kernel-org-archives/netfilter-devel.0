@@ -2,79 +2,75 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A859AC4167B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Dec 2022 00:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0F9AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Dec 2022 00:25:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229643AbiLIAPr (ORCPT
+        id S229521AbiLIAZl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Dec 2022 19:15:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48432 "EHLO
+        Thu, 8 Dec 2022 19:25:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229674AbiLIAPB (ORCPT
+        with ESMTP id S229592AbiLIAZk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Dec 2022 19:15:01 -0500
+        Thu, 8 Dec 2022 19:25:40 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1376892316
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Dec 2022 16:14:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C69957286B
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Dec 2022 16:25:39 -0800 (PST)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p3R2Q-0002qE-Gg; Fri, 09 Dec 2022 01:14:50 +0100
-Date:   Fri, 9 Dec 2022 01:14:50 +0100
+        id 1p3RCs-0002zb-2R; Fri, 09 Dec 2022 01:25:38 +0100
+Date:   Fri, 9 Dec 2022 01:25:38 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [nft PATCH 1/4] xt: Delay libxtables access until translation
-Message-ID: <Y5J9+hCSYPWYTl0N@orbyte.nwl.cc>
+Subject: Re: [iptables PATCH 4/7] nft: Fix match generator for '! -i +'
+Message-ID: <Y5KAgpGecTATJywI@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-References: <20221124165641.26921-1-phil@nwl.cc>
- <20221124165641.26921-2-phil@nwl.cc>
- <Y5JVPqq30gcoYT9X@salvia>
+References: <20221201163916.30808-1-phil@nwl.cc>
+ <20221201163916.30808-5-phil@nwl.cc>
+ <Y5HXXN4c4NpRDI4+@salvia>
+ <Y5HkcrTQwRPTL4L8@orbyte.nwl.cc>
+ <Y5JJvFOVLNO0LE2B@salvia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Y5JVPqq30gcoYT9X@salvia>
+In-Reply-To: <Y5JJvFOVLNO0LE2B@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-
-On Thu, Dec 08, 2022 at 10:21:02PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Nov 24, 2022 at 05:56:38PM +0100, Phil Sutter wrote:
-> > There is no point in spending efforts setting up the xt match/target
-> > when it is not printed afterwards. So just store the statement data from
-> > libnftnl in struct xt_stmt and perform the extension lookup from
-> > xt_stmt_xlate() instead.
+On Thu, Dec 08, 2022 at 09:31:56PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Dec 08, 2022 at 02:19:46PM +0100, Phil Sutter wrote:
+> > On Thu, Dec 08, 2022 at 01:23:56PM +0100, Pablo Neira Ayuso wrote:
+> > > On Thu, Dec 01, 2022 at 05:39:13PM +0100, Phil Sutter wrote:
+> > > > It's actually nonsense since it will never match, but iptables accepts
+> > > > it and the resulting nftables rule must behave identically. Reuse the
+> > > > solution implemented into xtables-translate (by commit e179e87a1179e)
+> > > > and turn the above match into 'iifname INVAL/D'.
+> > > 
+> > > Maybe starting bailing out in iptables-nft when ! -i + is used at
+> > > ruleset load time?
+> > > 
+> > > As you mentioned, this rule is really useless / never matching.
+> > 
+> > Are you fine with doing it in legacy, too?
 > 
-> There is nft -i and nft monitor which keep a ruleset cache. Both are
-> sort of incomplete: nft -i resorts to cleaning up the cache based on
-> the generation number and nft monitor still needs to be updated to
-> keep track of incremental ruleset updates via netlink events. Sooner
-> or later these two will get better support for incremental ruleset
-> updates.
-> 
-> I mean, in those two cases, every call to print the translation will
-> trigger the allocation of the xt structures, fill them and then call
-> .xlate. I agree it is a bit more work, I guess this won't case any
-> noticeable penalty, but it might be work that needs to be done over
-> and over again when ruleset uses xt match / target.
+> Have you seen any autogenerated ruleset using this silly ! -i + that
+> might easily break? Or you are just being conservative while keeping
+> this around?
 
-So you're saying the overhead when printing a rule might be more
-significant than when fetching it. I doubt this simply because the same
-rule is usually printed at most once and there are multiple other
-commands requiring a rule cache.
+The latter: I was fixing for '-i +' which is legal in iptables but
+'iifname "*"' in nftables is not and I also had to find a way to
+translate it correctly if inverted.
 
-IMO we may also just leave the code as-is and wait for someone to
-complain about bad performance with rulesets containing many compat
-expressions. Depending on the actual report, we may also follow a hybrid
-approach and do the match/target lookup only when needed and cache it
-for later use.
+In theory neither '-i +' nor '! -i +' make sense, from my perspective we
+could reject both. Or only the latter since it seems even more bogus
+than the former.
 
-My patch made most sense with an nft in mind which does not need xtables
-support for saving/restoring compat expressions. Users depending on this
-for whatever reason will execute the xlate code path in any case now.
+I was asking about legacy because I really think we should not change
+iptables-nft in a way we wouldn't with legacy. At least rejecting
+rulesets which worked fine with legacy is a no go.
 
 Cheers, Phil
