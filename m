@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC8C7C4167B
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Dec 2022 10:12:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 984C9C2D0CB
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Dec 2022 10:12:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229969AbiLKKMW (ORCPT
+        id S230007AbiLKKMZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Dec 2022 05:12:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39866 "EHLO
+        Sun, 11 Dec 2022 05:12:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229886AbiLKKMQ (ORCPT
+        with ESMTP id S229918AbiLKKMS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Dec 2022 05:12:16 -0500
+        Sun, 11 Dec 2022 05:12:18 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 03971C77F;
-        Sun, 11 Dec 2022 02:12:15 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 51BA9CE3C;
+        Sun, 11 Dec 2022 02:12:17 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 05/12] netfilter: conntrack: set icmpv6 redirects as RELATED
-Date:   Sun, 11 Dec 2022 11:11:57 +0100
-Message-Id: <20221211101204.1751-6-pablo@netfilter.org>
+Subject: [PATCH net-next 08/12] ipvs: use common functions for stats allocation
+Date:   Sun, 11 Dec 2022 11:12:00 +0100
+Message-Id: <20221211101204.1751-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221211101204.1751-1-pablo@netfilter.org>
 References: <20221211101204.1751-1-pablo@netfilter.org>
@@ -32,168 +32,244 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
 
-icmp conntrack will set icmp redirects as RELATED, but icmpv6 will not
-do this.
+Move alloc_percpu/free_percpu logic in new functions
 
-For icmpv6, only icmp errors (code <= 128) are examined for RELATED state.
-ICMPV6 Redirects are part of neighbour discovery mechanism, those are
-handled by marking a selected subset (e.g.  neighbour solicitations) as
-UNTRACKED, but not REDIRECT -- they will thus be flagged as INVALID.
-
-Add minimal support for REDIRECTs.  No parsing of neighbour options is
-added for simplicity, so this will only check that we have the embeeded
-original header (ND_OPT_REDIRECT_HDR), and then attempt to do a flow
-lookup for this tuple.
-
-Also extend the existing test case to cover redirects.
-
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-Reported-by: Eric Garver <eric@garver.life>
-Link: https://github.com/firewalld/firewalld/issues/1046
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Garver <eric@garver.life>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Cc: yunhong-cgl jiang <xintian1976@gmail.com>
+Cc: "dust.li" <dust.li@linux.alibaba.com>
+Reviewed-by: Jiri Wiesner <jwiesner@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_icmpv6.c     | 53 +++++++++++++++++++
- .../netfilter/conntrack_icmp_related.sh       | 36 ++++++++++++-
- 2 files changed, 87 insertions(+), 2 deletions(-)
+ include/net/ip_vs.h            |  5 ++
+ net/netfilter/ipvs/ip_vs_ctl.c | 96 +++++++++++++++++++---------------
+ 2 files changed, 60 insertions(+), 41 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index 61e3b05cf02c..1020d67600a9 100644
---- a/net/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -129,6 +129,56 @@ static void icmpv6_error_log(const struct sk_buff *skb,
- 	nf_l4proto_log_invalid(skb, state, IPPROTO_ICMPV6, "%s", msg);
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index bd8ae137e43b..e5582c01a4a3 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -410,6 +410,11 @@ struct ip_vs_stats_rcu {
+ 	struct rcu_head		rcu_head;
+ };
+ 
++int ip_vs_stats_init_alloc(struct ip_vs_stats *s);
++struct ip_vs_stats *ip_vs_stats_alloc(void);
++void ip_vs_stats_release(struct ip_vs_stats *stats);
++void ip_vs_stats_free(struct ip_vs_stats *stats);
++
+ struct dst_entry;
+ struct iphdr;
+ struct ip_vs_conn;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 9016b641ae52..ec6db864ac36 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -471,7 +471,7 @@ __ip_vs_bind_svc(struct ip_vs_dest *dest, struct ip_vs_service *svc)
+ 
+ static void ip_vs_service_free(struct ip_vs_service *svc)
+ {
+-	free_percpu(svc->stats.cpustats);
++	ip_vs_stats_release(&svc->stats);
+ 	kfree(svc);
  }
  
-+static noinline_for_stack int
-+nf_conntrack_icmpv6_redirect(struct nf_conn *tmpl, struct sk_buff *skb,
-+			     unsigned int dataoff,
-+			     const struct nf_hook_state *state)
+@@ -782,7 +782,7 @@ static void ip_vs_dest_rcu_free(struct rcu_head *head)
+ 	struct ip_vs_dest *dest;
+ 
+ 	dest = container_of(head, struct ip_vs_dest, rcu_head);
+-	free_percpu(dest->stats.cpustats);
++	ip_vs_stats_release(&dest->stats);
+ 	ip_vs_dest_put_and_free(dest);
+ }
+ 
+@@ -822,7 +822,7 @@ static void ip_vs_stats_rcu_free(struct rcu_head *head)
+ 						  struct ip_vs_stats_rcu,
+ 						  rcu_head);
+ 
+-	free_percpu(rs->s.cpustats);
++	ip_vs_stats_release(&rs->s);
+ 	kfree(rs);
+ }
+ 
+@@ -879,6 +879,47 @@ ip_vs_zero_stats(struct ip_vs_stats *stats)
+ 	spin_unlock_bh(&stats->lock);
+ }
+ 
++/* Allocate fields after kzalloc */
++int ip_vs_stats_init_alloc(struct ip_vs_stats *s)
 +{
-+	u8 hl = ipv6_hdr(skb)->hop_limit;
-+	union nf_inet_addr outer_daddr;
-+	union {
-+		struct nd_opt_hdr nd_opt;
-+		struct rd_msg rd_msg;
-+	} tmp;
-+	const struct nd_opt_hdr *nd_opt;
-+	const struct rd_msg *rd_msg;
++	int i;
 +
-+	rd_msg = skb_header_pointer(skb, dataoff, sizeof(*rd_msg), &tmp.rd_msg);
-+	if (!rd_msg) {
-+		icmpv6_error_log(skb, state, "short redirect");
-+		return -NF_ACCEPT;
++	spin_lock_init(&s->lock);
++	s->cpustats = alloc_percpu(struct ip_vs_cpu_stats);
++	if (!s->cpustats)
++		return -ENOMEM;
++
++	for_each_possible_cpu(i) {
++		struct ip_vs_cpu_stats *cs = per_cpu_ptr(s->cpustats, i);
++
++		u64_stats_init(&cs->syncp);
 +	}
-+
-+	if (rd_msg->icmph.icmp6_code != 0)
-+		return NF_ACCEPT;
-+
-+	if (hl != 255 || !(ipv6_addr_type(&ipv6_hdr(skb)->saddr) & IPV6_ADDR_LINKLOCAL)) {
-+		icmpv6_error_log(skb, state, "invalid saddr or hoplimit for redirect");
-+		return -NF_ACCEPT;
-+	}
-+
-+	dataoff += sizeof(*rd_msg);
-+
-+	/* warning: rd_msg no longer usable after this call */
-+	nd_opt = skb_header_pointer(skb, dataoff, sizeof(*nd_opt), &tmp.nd_opt);
-+	if (!nd_opt || nd_opt->nd_opt_len == 0) {
-+		icmpv6_error_log(skb, state, "redirect without options");
-+		return -NF_ACCEPT;
-+	}
-+
-+	/* We could call ndisc_parse_options(), but it would need
-+	 * skb_linearize() and a bit more work.
-+	 */
-+	if (nd_opt->nd_opt_type != ND_OPT_REDIRECT_HDR)
-+		return NF_ACCEPT;
-+
-+	memcpy(&outer_daddr.ip6, &ipv6_hdr(skb)->daddr,
-+	       sizeof(outer_daddr.ip6));
-+	dataoff += 8;
-+	return nf_conntrack_inet_error(tmpl, skb, dataoff, state,
-+				       IPPROTO_ICMPV6, &outer_daddr);
++	return 0;
 +}
 +
- int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
- 			      struct sk_buff *skb,
- 			      unsigned int dataoff,
-@@ -159,6 +209,9 @@ int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
- 		return NF_ACCEPT;
++struct ip_vs_stats *ip_vs_stats_alloc(void)
++{
++	struct ip_vs_stats *s = kzalloc(sizeof(*s), GFP_KERNEL);
++
++	if (s && ip_vs_stats_init_alloc(s) >= 0)
++		return s;
++	kfree(s);
++	return NULL;
++}
++
++void ip_vs_stats_release(struct ip_vs_stats *stats)
++{
++	free_percpu(stats->cpustats);
++}
++
++void ip_vs_stats_free(struct ip_vs_stats *stats)
++{
++	if (stats) {
++		ip_vs_stats_release(stats);
++		kfree(stats);
++	}
++}
++
+ /*
+  *	Update a destination in the given service
+  */
+@@ -978,14 +1019,13 @@ static int
+ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ {
+ 	struct ip_vs_dest *dest;
+-	unsigned int atype, i;
++	unsigned int atype;
++	int ret;
+ 
+ 	EnterFunction(2);
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+ 	if (udest->af == AF_INET6) {
+-		int ret;
+-
+ 		atype = ipv6_addr_type(&udest->addr.in6);
+ 		if ((!(atype & IPV6_ADDR_UNICAST) ||
+ 			atype & IPV6_ADDR_LINKLOCAL) &&
+@@ -1007,16 +1047,10 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 	if (dest == NULL)
+ 		return -ENOMEM;
+ 
+-	dest->stats.cpustats = alloc_percpu(struct ip_vs_cpu_stats);
+-	if (!dest->stats.cpustats)
++	ret = ip_vs_stats_init_alloc(&dest->stats);
++	if (ret < 0)
+ 		goto err_alloc;
+ 
+-	for_each_possible_cpu(i) {
+-		struct ip_vs_cpu_stats *ip_vs_dest_stats;
+-		ip_vs_dest_stats = per_cpu_ptr(dest->stats.cpustats, i);
+-		u64_stats_init(&ip_vs_dest_stats->syncp);
+-	}
+-
+ 	dest->af = udest->af;
+ 	dest->protocol = svc->protocol;
+ 	dest->vaddr = svc->addr;
+@@ -1032,7 +1066,6 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 
+ 	INIT_HLIST_NODE(&dest->d_list);
+ 	spin_lock_init(&dest->dst_lock);
+-	spin_lock_init(&dest->stats.lock);
+ 	__ip_vs_update_dest(svc, dest, udest, 1);
+ 
+ 	LeaveFunction(2);
+@@ -1040,7 +1073,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
+ 
+ err_alloc:
+ 	kfree(dest);
+-	return -ENOMEM;
++	return ret;
+ }
+ 
+ 
+@@ -1299,7 +1332,7 @@ static int
+ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 		  struct ip_vs_service **svc_p)
+ {
+-	int ret = 0, i;
++	int ret = 0;
+ 	struct ip_vs_scheduler *sched = NULL;
+ 	struct ip_vs_pe *pe = NULL;
+ 	struct ip_vs_service *svc = NULL;
+@@ -1359,18 +1392,9 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 		ret = -ENOMEM;
+ 		goto out_err;
  	}
+-	svc->stats.cpustats = alloc_percpu(struct ip_vs_cpu_stats);
+-	if (!svc->stats.cpustats) {
+-		ret = -ENOMEM;
++	ret = ip_vs_stats_init_alloc(&svc->stats);
++	if (ret < 0)
+ 		goto out_err;
+-	}
+-
+-	for_each_possible_cpu(i) {
+-		struct ip_vs_cpu_stats *ip_vs_stats;
+-		ip_vs_stats = per_cpu_ptr(svc->stats.cpustats, i);
+-		u64_stats_init(&ip_vs_stats->syncp);
+-	}
+-
  
-+	if (icmp6h->icmp6_type == NDISC_REDIRECT)
-+		return nf_conntrack_icmpv6_redirect(tmpl, skb, dataoff, state);
-+
- 	/* is not error message ? */
- 	if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
-diff --git a/tools/testing/selftests/netfilter/conntrack_icmp_related.sh b/tools/testing/selftests/netfilter/conntrack_icmp_related.sh
-index b48e1833bc89..76645aaf2b58 100755
---- a/tools/testing/selftests/netfilter/conntrack_icmp_related.sh
-+++ b/tools/testing/selftests/netfilter/conntrack_icmp_related.sh
-@@ -35,6 +35,8 @@ cleanup() {
- 	for i in 1 2;do ip netns del nsrouter$i;done
- }
+ 	/* I'm the first user of the service */
+ 	atomic_set(&svc->refcnt, 0);
+@@ -1387,7 +1411,6 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
  
-+trap cleanup EXIT
-+
- ipv4() {
-     echo -n 192.168.$1.2
- }
-@@ -146,11 +148,17 @@ ip netns exec nsclient1 nft -f - <<EOF
- table inet filter {
- 	counter unknown { }
- 	counter related { }
-+	counter redir4 { }
-+	counter redir6 { }
- 	chain input {
- 		type filter hook input priority 0; policy accept;
--		meta l4proto { icmp, icmpv6 } ct state established,untracked accept
+ 	INIT_LIST_HEAD(&svc->destinations);
+ 	spin_lock_init(&svc->sched_lock);
+-	spin_lock_init(&svc->stats.lock);
  
-+		icmp type "redirect" ct state "related" counter name "redir4" accept
-+		icmpv6 type "nd-redirect" ct state "related" counter name "redir6" accept
-+
-+		meta l4proto { icmp, icmpv6 } ct state established,untracked accept
- 		meta l4proto { icmp, icmpv6 } ct state "related" counter name "related" accept
-+
- 		counter name "unknown" drop
- 	}
- }
-@@ -279,5 +287,29 @@ else
- 	echo "ERROR: icmp error RELATED state test has failed"
- fi
+ 	/* Bind the scheduler */
+ 	if (sched) {
+@@ -4166,7 +4189,7 @@ static struct notifier_block ip_vs_dst_notifier = {
  
--cleanup
-+# add 'bad' route,  expect icmp REDIRECT to be generated
-+ip netns exec nsclient1 ip route add 192.168.1.42 via 192.168.1.1
-+ip netns exec nsclient1 ip route add dead:1::42 via dead:1::1
-+
-+ip netns exec "nsclient1" ping -q -c 2 192.168.1.42 > /dev/null
-+
-+expect="packets 1 bytes 112"
-+check_counter nsclient1 "redir4" "$expect"
-+if [ $? -ne 0 ];then
-+	ret=1
-+fi
-+
-+ip netns exec "nsclient1" ping -c 1 dead:1::42 > /dev/null
-+expect="packets 1 bytes 192"
-+check_counter nsclient1 "redir6" "$expect"
-+if [ $? -ne 0 ];then
-+	ret=1
-+fi
-+
-+if [ $ret -eq 0 ];then
-+	echo "PASS: icmp redirects had RELATED state"
-+else
-+	echo "ERROR: icmp redirect RELATED state test has failed"
-+fi
-+
- exit $ret
+ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ {
+-	int i, idx;
++	int idx;
+ 
+ 	/* Initialize rs_table */
+ 	for (idx = 0; idx < IP_VS_RTAB_SIZE; idx++)
+@@ -4183,18 +4206,9 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ 	ipvs->tot_stats = kzalloc(sizeof(*ipvs->tot_stats), GFP_KERNEL);
+ 	if (!ipvs->tot_stats)
+ 		return -ENOMEM;
+-	ipvs->tot_stats->s.cpustats = alloc_percpu(struct ip_vs_cpu_stats);
+-	if (!ipvs->tot_stats->s.cpustats)
++	if (ip_vs_stats_init_alloc(&ipvs->tot_stats->s) < 0)
+ 		goto err_tot_stats;
+ 
+-	for_each_possible_cpu(i) {
+-		struct ip_vs_cpu_stats *ipvs_tot_stats;
+-		ipvs_tot_stats = per_cpu_ptr(ipvs->tot_stats->s.cpustats, i);
+-		u64_stats_init(&ipvs_tot_stats->syncp);
+-	}
+-
+-	spin_lock_init(&ipvs->tot_stats->s.lock);
+-
+ #ifdef CONFIG_PROC_FS
+ 	if (!proc_create_net("ip_vs", 0, ipvs->net->proc_net,
+ 			     &ip_vs_info_seq_ops, sizeof(struct ip_vs_iter)))
+@@ -4225,7 +4239,7 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ 
+ err_vs:
+ #endif
+-	free_percpu(ipvs->tot_stats->s.cpustats);
++	ip_vs_stats_release(&ipvs->tot_stats->s);
+ 
+ err_tot_stats:
+ 	kfree(ipvs->tot_stats);
 -- 
 2.30.2
 
