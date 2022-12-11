@@ -2,214 +2,300 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D47C4167B
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Dec 2022 10:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C85FCC10F1D
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Dec 2022 10:12:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229845AbiLKKMQ (ORCPT
+        id S229909AbiLKKMS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Dec 2022 05:12:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39848 "EHLO
+        Sun, 11 Dec 2022 05:12:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbiLKKMN (ORCPT
+        with ESMTP id S229656AbiLKKMO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Dec 2022 05:12:13 -0500
+        Sun, 11 Dec 2022 05:12:14 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 49208C77F;
-        Sun, 11 Dec 2022 02:12:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9061DCE3C;
+        Sun, 11 Dec 2022 02:12:11 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 00/12] Netfilter/IPVS updates for net-next
-Date:   Sun, 11 Dec 2022 11:11:52 +0100
-Message-Id: <20221211101204.1751-1-pablo@netfilter.org>
+Subject: [PATCH net-next 03/12] netfilter: conntrack: merge ipv4+ipv6 confirm functions
+Date:   Sun, 11 Dec 2022 11:11:55 +0100
+Message-Id: <20221211101204.1751-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221211101204.1751-1-pablo@netfilter.org>
+References: <20221211101204.1751-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter/IPVS updates for net-next:
+No need to have distinct functions.  After merge, ipv6 can avoid
+protooff computation if the connection neither needs sequence adjustment
+nor helper invocation -- this is the normal case.
 
-1) Incorrect error check in nft_expr_inner_parse(), from Dan Carpenter.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_conntrack_core.h  |   3 +-
+ net/bridge/netfilter/nf_conntrack_bridge.c |  32 +-----
+ net/netfilter/nf_conntrack_proto.c         | 124 +++++++++------------
+ 3 files changed, 57 insertions(+), 102 deletions(-)
 
-2) Add DATA_SENT state to SCTP connection tracking helper, from
-   Sriram Yagnaraman.
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index b2b9de70d9f4..71d1269fe4d4 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -71,8 +71,7 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 	return ret;
+ }
+ 
+-unsigned int nf_confirm(struct sk_buff *skb, unsigned int protoff,
+-			struct nf_conn *ct, enum ip_conntrack_info ctinfo);
++unsigned int nf_confirm(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
+ 
+ void print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_conntrack_l4proto *proto);
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index 73242962be5d..5c5dd437f1c2 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -366,42 +366,12 @@ static int nf_ct_bridge_refrag_post(struct net *net, struct sock *sk,
+ 	return br_dev_queue_push_xmit(net, sk, skb);
+ }
+ 
+-static unsigned int nf_ct_bridge_confirm(struct sk_buff *skb)
+-{
+-	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct;
+-	int protoff;
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
+-		return nf_conntrack_confirm(skb);
+-
+-	switch (skb->protocol) {
+-	case htons(ETH_P_IP):
+-		protoff = skb_network_offset(skb) + ip_hdrlen(skb);
+-		break;
+-	case htons(ETH_P_IPV6): {
+-		unsigned char pnum = ipv6_hdr(skb)->nexthdr;
+-		__be16 frag_off;
+-
+-		protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum,
+-					   &frag_off);
+-		if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
+-			return nf_conntrack_confirm(skb);
+-		}
+-		break;
+-	default:
+-		return NF_ACCEPT;
+-	}
+-	return nf_confirm(skb, protoff, ct, ctinfo);
+-}
+-
+ static unsigned int nf_ct_bridge_post(void *priv, struct sk_buff *skb,
+ 				      const struct nf_hook_state *state)
+ {
+ 	int ret;
+ 
+-	ret = nf_ct_bridge_confirm(skb);
++	ret = nf_confirm(priv, skb, state);
+ 	if (ret != NF_ACCEPT)
+ 		return ret;
+ 
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 895b09cbd7cf..99323fb12d0f 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -121,17 +121,61 @@ const struct nf_conntrack_l4proto *nf_ct_l4proto_find(u8 l4proto)
+ };
+ EXPORT_SYMBOL_GPL(nf_ct_l4proto_find);
+ 
+-unsigned int nf_confirm(struct sk_buff *skb, unsigned int protoff,
+-			struct nf_conn *ct, enum ip_conntrack_info ctinfo)
++static bool in_vrf_postrouting(const struct nf_hook_state *state)
++{
++#if IS_ENABLED(CONFIG_NET_L3_MASTER_DEV)
++	if (state->hook == NF_INET_POST_ROUTING &&
++	    netif_is_l3_master(state->out))
++		return true;
++#endif
++	return false;
++}
++
++unsigned int nf_confirm(void *priv,
++			struct sk_buff *skb,
++			const struct nf_hook_state *state)
+ {
+ 	const struct nf_conn_help *help;
++	enum ip_conntrack_info ctinfo;
++	unsigned int protoff;
++	struct nf_conn *ct;
++	bool seqadj_needed;
++	__be16 frag_off;
++	u8 pnum;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct || in_vrf_postrouting(state))
++		return NF_ACCEPT;
+ 
+ 	help = nfct_help(ct);
++
++	seqadj_needed = test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) && !nf_is_loopback_packet(skb);
++	if (!help && !seqadj_needed)
++		return nf_conntrack_confirm(skb);
++
++	/* helper->help() do not expect ICMP packets */
++	if (ctinfo == IP_CT_RELATED_REPLY)
++		return nf_conntrack_confirm(skb);
++
++	switch (nf_ct_l3num(ct)) {
++	case NFPROTO_IPV4:
++		protoff = skb_network_offset(skb) + ip_hdrlen(skb);
++		break;
++	case NFPROTO_IPV6:
++		pnum = ipv6_hdr(skb)->nexthdr;
++		protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum, &frag_off);
++		if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
++			return nf_conntrack_confirm(skb);
++		break;
++	default:
++		return nf_conntrack_confirm(skb);
++	}
++
+ 	if (help) {
+ 		const struct nf_conntrack_helper *helper;
+ 		int ret;
+ 
+-		/* rcu_read_lock()ed by nf_hook_thresh */
++		/* rcu_read_lock()ed by nf_hook */
+ 		helper = rcu_dereference(help->helper);
+ 		if (helper) {
+ 			ret = helper->help(skb,
+@@ -142,12 +186,10 @@ unsigned int nf_confirm(struct sk_buff *skb, unsigned int protoff,
+ 		}
+ 	}
+ 
+-	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
+-	    !nf_is_loopback_packet(skb)) {
+-		if (!nf_ct_seq_adjust(skb, ct, ctinfo, protoff)) {
+-			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
+-			return NF_DROP;
+-		}
++	if (seqadj_needed &&
++	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff)) {
++		NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
++		return NF_DROP;
+ 	}
+ 
+ 	/* We've seen it coming out the other side: confirm it */
+@@ -155,35 +197,6 @@ unsigned int nf_confirm(struct sk_buff *skb, unsigned int protoff,
+ }
+ EXPORT_SYMBOL_GPL(nf_confirm);
+ 
+-static bool in_vrf_postrouting(const struct nf_hook_state *state)
+-{
+-#if IS_ENABLED(CONFIG_NET_L3_MASTER_DEV)
+-	if (state->hook == NF_INET_POST_ROUTING &&
+-	    netif_is_l3_master(state->out))
+-		return true;
+-#endif
+-	return false;
+-}
+-
+-static unsigned int ipv4_confirm(void *priv,
+-				 struct sk_buff *skb,
+-				 const struct nf_hook_state *state)
+-{
+-	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct;
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
+-		return nf_conntrack_confirm(skb);
+-
+-	if (in_vrf_postrouting(state))
+-		return NF_ACCEPT;
+-
+-	return nf_confirm(skb,
+-			  skb_network_offset(skb) + ip_hdrlen(skb),
+-			  ct, ctinfo);
+-}
+-
+ static unsigned int ipv4_conntrack_in(void *priv,
+ 				      struct sk_buff *skb,
+ 				      const struct nf_hook_state *state)
+@@ -230,13 +243,13 @@ static const struct nf_hook_ops ipv4_conntrack_ops[] = {
+ 		.priority	= NF_IP_PRI_CONNTRACK,
+ 	},
+ 	{
+-		.hook		= ipv4_confirm,
++		.hook		= nf_confirm,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+ 		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
+ 	},
+ 	{
+-		.hook		= ipv4_confirm,
++		.hook		= nf_confirm,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
+@@ -373,33 +386,6 @@ static struct nf_sockopt_ops so_getorigdst6 = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-static unsigned int ipv6_confirm(void *priv,
+-				 struct sk_buff *skb,
+-				 const struct nf_hook_state *state)
+-{
+-	struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
+-	unsigned char pnum = ipv6_hdr(skb)->nexthdr;
+-	__be16 frag_off;
+-	int protoff;
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-	if (!ct || ctinfo == IP_CT_RELATED_REPLY)
+-		return nf_conntrack_confirm(skb);
+-
+-	if (in_vrf_postrouting(state))
+-		return NF_ACCEPT;
+-
+-	protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum,
+-				   &frag_off);
+-	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
+-		pr_debug("proto header not found\n");
+-		return nf_conntrack_confirm(skb);
+-	}
+-
+-	return nf_confirm(skb, protoff, ct, ctinfo);
+-}
+-
+ static unsigned int ipv6_conntrack_in(void *priv,
+ 				      struct sk_buff *skb,
+ 				      const struct nf_hook_state *state)
+@@ -428,13 +414,13 @@ static const struct nf_hook_ops ipv6_conntrack_ops[] = {
+ 		.priority	= NF_IP6_PRI_CONNTRACK,
+ 	},
+ 	{
+-		.hook		= ipv6_confirm,
++		.hook		= nf_confirm,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+ 		.priority	= NF_IP6_PRI_LAST,
+ 	},
+ 	{
+-		.hook		= ipv6_confirm,
++		.hook		= nf_confirm,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_LAST - 1,
+-- 
+2.30.2
 
-3) Consolidate nf_confirm for ipv4 and ipv6, from Florian Westphal.
-
-4) Add bitmask support for ipset, from Vishwanath Pai.
-
-5) Handle icmpv6 redirects as RELATED, from Florian Westphal.
-
-6) Add WARN_ON_ONCE() to impossible case in flowtable datapath,
-   from Li Qiong.
-
-7) A large batch of IPVS updates to replace timer-based estimators by
-   kthreads to scale up wrt. CPUs and workload (millions of estimators).
-
-Julian Anastasov says:
-
-	This patchset implements stats estimation in kthread context.
-It replaces the code that runs on single CPU in timer context every 2
-seconds and causing latency splats as shown in reports [1], [2], [3].
-The solution targets setups with thousands of IPVS services,
-destinations and multi-CPU boxes.
-
-	Spread the estimation on multiple (configured) CPUs and multiple
-time slots (timer ticks) by using multiple chains organized under RCU
-rules.  When stats are not needed, it is recommended to use
-run_estimation=0 as already implemented before this change.
-
-RCU Locking:
-
-- As stats are now RCU-locked, tot_stats, svc and dest which
-hold estimator structures are now always freed from RCU
-callback. This ensures RCU grace period after the
-ip_vs_stop_estimator() call.
-
-Kthread data:
-
-- every kthread works over its own data structure and all
-such structures are attached to array. For now we limit
-kthreads depending on the number of CPUs.
-
-- even while there can be a kthread structure, its task
-may not be running, eg. before first service is added or
-while the sysctl var is set to an empty cpulist or
-when run_estimation is set to 0 to disable the estimation.
-
-- the allocated kthread context may grow from 1 to 50
-allocated structures for timer ticks which saves memory for
-setups with small number of estimators
-
-- a task and its structure may be released if all
-estimators are unlinked from its chains, leaving the
-slot in the array empty
-
-- every kthread data structure allows limited number
-of estimators. Kthread 0 is also used to initially
-calculate the max number of estimators to allow in every
-chain considering a sub-100 microsecond cond_resched
-rate. This number can be from 1 to hundreds.
-
-- kthread 0 has an additional job of optimizing the
-adding of estimators: they are first added in
-temp list (est_temp_list) and later kthread 0
-distributes them to other kthreads. The optimization
-is based on the fact that newly added estimator
-should be estimated after 2 seconds, so we have the
-time to offload the adding to chain from controlling
-process to kthread 0.
-
-- to add new estimators we use the last added kthread
-context (est_add_ktid). The new estimators are linked to
-the chains just before the estimated one, based on add_row.
-This ensures their estimation will start after 2 seconds.
-If estimators are added in bursts, common case if all
-services and dests are initially configured, we may
-spread the estimators to more chains and as result,
-reducing the initial delay below 2 seconds.
-
-Many thanks to Jiri Wiesner for his valuable comments
-and for spending a lot of time reviewing and testing
-the changes on different platforms with 48-256 CPUs and
-1-8 NUMA nodes under different cpufreq governors.
-
-The new IPVS estimators do not use workqueue infrastructure
-because:
-
-- The estimation can take long time when using multiple IPVS rules (eg.
-  millions estimator structures) and especially when box has multiple
-  CPUs due to the for_each_possible_cpu usage that expects packets from
-  any CPU. With est_nice sysctl we have more control how to prioritize the
-  estimation kthreads compared to other processes/kthreads that have
-  latency requirements (such as servers). As a benefit, we can see these
-  kthreads in top and decide if we will need some further control to limit
-  their CPU usage (max number of structure to estimate per kthread).
-
-- with kthreads we run code that is read-mostly, no write/lock
-  operations to process the estimators in 2-second intervals.
-
-- work items are one-shot: as estimators are processed every
-  2 seconds, they need to be re-added every time. This again
-  loads the timers (add_timer) if we use delayed works, as there are
-  no kthreads to do the timings.
-
-[1] Report from Yunhong Jiang:
-    https://lore.kernel.org/netdev/D25792C1-1B89-45DE-9F10-EC350DC04ADC@gmail.com/
-[2] https://marc.info/?l=linux-virtual-server&m=159679809118027&w=2
-[3] Report from Dust:
-    https://archive.linuxvirtualserver.org/html/lvs-devel/2020-12/msg00000.html
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 339e79dfb087075cbc27d3a902457574c4dac182:
-
-  Merge branch 'cleanup-ocelot_stats-exposure' (2022-11-22 15:36:46 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git HEAD
-
-for you to fetch changes up to 144361c1949f227df9244302da02c258a363b674:
-
-  ipvs: run_estimation should control the kthread tasks (2022-12-10 22:44:43 +0100)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      netfilter: nft_inner: fix IS_ERR() vs NULL check
-
-Florian Westphal (2):
-      netfilter: conntrack: merge ipv4+ipv6 confirm functions
-      netfilter: conntrack: set icmpv6 redirects as RELATED
-
-Julian Anastasov (6):
-      ipvs: add rcu protection to stats
-      ipvs: use common functions for stats allocation
-      ipvs: use u64_stats_t for the per-cpu counters
-      ipvs: use kthreads for stats estimation
-      ipvs: add est_cpulist and est_nice sysctl vars
-      ipvs: run_estimation should control the kthread tasks
-
-Li Qiong (1):
-      netfilter: flowtable: add a 'default' case to flowtable datapath
-
-Sriram Yagnaraman (1):
-      netfilter: conntrack: add sctp DATA_SENT state
-
-Vishwanath Pai (1):
-      netfilter: ipset: Add support for new bitmask parameter
-
- Documentation/networking/ipvs-sysctl.rst           |  24 +-
- include/linux/netfilter/ipset/ip_set.h             |  10 +
- include/net/ip_vs.h                                | 171 +++-
- include/net/netfilter/nf_conntrack_core.h          |   3 +-
- include/uapi/linux/netfilter/ipset/ip_set.h        |   2 +
- include/uapi/linux/netfilter/nf_conntrack_sctp.h   |   1 +
- include/uapi/linux/netfilter/nfnetlink_cttimeout.h |   1 +
- net/bridge/netfilter/nf_conntrack_bridge.c         |  32 +-
- net/netfilter/ipset/ip_set_hash_gen.h              |  71 +-
- net/netfilter/ipset/ip_set_hash_ip.c               |  19 +-
- net/netfilter/ipset/ip_set_hash_ipport.c           |  24 +-
- net/netfilter/ipset/ip_set_hash_netnet.c           |  26 +-
- net/netfilter/ipvs/ip_vs_core.c                    |  40 +-
- net/netfilter/ipvs/ip_vs_ctl.c                     | 448 +++++++++--
- net/netfilter/ipvs/ip_vs_est.c                     | 882 +++++++++++++++++++--
- net/netfilter/nf_conntrack_proto.c                 | 124 ++-
- net/netfilter/nf_conntrack_proto_icmpv6.c          |  53 ++
- net/netfilter/nf_conntrack_proto_sctp.c            | 104 ++-
- net/netfilter/nf_conntrack_standalone.c            |   8 +
- net/netfilter/nf_flow_table_ip.c                   |   8 +
- net/netfilter/nf_tables_api.c                      |   4 +-
- .../selftests/netfilter/conntrack_icmp_related.sh  |  36 +-
- 22 files changed, 1731 insertions(+), 360 deletions(-)
