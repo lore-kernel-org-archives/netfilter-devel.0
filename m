@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47D12C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 312C7C4332F
 	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Dec 2022 10:12:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229942AbiLKKMU (ORCPT
+        id S229929AbiLKKMT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Dec 2022 05:12:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39864 "EHLO
+        Sun, 11 Dec 2022 05:12:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229879AbiLKKMQ (ORCPT
+        with ESMTP id S229696AbiLKKMO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Dec 2022 05:12:16 -0500
+        Sun, 11 Dec 2022 05:12:14 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E5657D13D;
-        Sun, 11 Dec 2022 02:12:13 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9C314CE26;
+        Sun, 11 Dec 2022 02:12:10 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 04/12] netfilter: ipset: Add support for new bitmask parameter
-Date:   Sun, 11 Dec 2022 11:11:56 +0100
-Message-Id: <20221211101204.1751-5-pablo@netfilter.org>
+Subject: [PATCH net-next 02/12] netfilter: conntrack: add sctp DATA_SENT state
+Date:   Sun, 11 Dec 2022 11:11:54 +0100
+Message-Id: <20221211101204.1751-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20221211101204.1751-1-pablo@netfilter.org>
 References: <20221211101204.1751-1-pablo@netfilter.org>
@@ -32,458 +32,288 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Vishwanath Pai <vpai@akamai.com>
+From: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
 
-Add a new parameter to complement the existing 'netmask' option. The
-main difference between netmask and bitmask is that bitmask takes any
-arbitrary ip address as input, it does not have to be a valid netmask.
+SCTP conntrack currently assumes that the SCTP endpoints will
+probe secondary paths using HEARTBEAT before sending traffic.
 
-The name of the new parameter is 'bitmask'. This lets us mask out
-arbitrary bits in the ip address, for example:
-ipset create set1 hash:ip bitmask 255.128.255.0
-ipset create set2 hash:ip,port family inet6 bitmask ffff::ff80
+But, according to RFC 9260, SCTP endpoints can send any traffic
+on any of the confirmed paths after SCTP association is up.
+SCTP endpoints that sends INIT will confirm all peer addresses
+that upper layer configures, and the SCTP endpoint that receives
+COOKIE_ECHO will only confirm the address it sent the INIT_ACK to.
 
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
-Signed-off-by: Joshua Hunt <johunt@akamai.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+So, we can have a situation where the INIT sender can start to
+use secondary paths without the need to send HEARTBEAT. This patch
+allows DATA/SACK packets to create new connection tracking entry.
+
+A new state has been added to indicate that a DATA/SACK chunk has
+been seen in the original direction - SCTP_CONNTRACK_DATA_SENT.
+State transitions mostly follows the HEARTBEAT_SENT, except on
+receiving HEARTBEAT/HEARTBEAT_ACK/DATA/SACK in the reply direction.
+
+State transitions in original direction:
+- DATA_SENT behaves similar to HEARTBEAT_SENT for all chunks,
+   except that it remains in DATA_SENT on receving HEARTBEAT,
+   HEARTBEAT_ACK/DATA/SACK chunks
+State transitions in reply direction:
+- DATA_SENT behaves similar to HEARTBEAT_SENT for all chunks,
+   except that it moves to HEARTBEAT_ACKED on receiving
+   HEARTBEAT/HEARTBEAT_ACK/DATA/SACK chunks
+
+Note: This patch still doesn't solve the problem when the SCTP
+endpoint decides to use primary paths for association establishment
+but uses a secondary path for association shutdown. We still have
+to depend on timeout for connections to expire in such a case.
+
+Signed-off-by: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set.h      | 10 +++
- include/uapi/linux/netfilter/ipset/ip_set.h |  2 +
- net/netfilter/ipset/ip_set_hash_gen.h       | 71 ++++++++++++++++++---
- net/netfilter/ipset/ip_set_hash_ip.c        | 19 +++---
- net/netfilter/ipset/ip_set_hash_ipport.c    | 24 ++++++-
- net/netfilter/ipset/ip_set_hash_netnet.c    | 26 ++++++--
- 6 files changed, 126 insertions(+), 26 deletions(-)
+ .../uapi/linux/netfilter/nf_conntrack_sctp.h  |   1 +
+ .../linux/netfilter/nfnetlink_cttimeout.h     |   1 +
+ net/netfilter/nf_conntrack_proto_sctp.c       | 104 ++++++++++--------
+ net/netfilter/nf_conntrack_standalone.c       |   8 ++
+ 4 files changed, 71 insertions(+), 43 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index ada1296c87d5..ab934ad951a8 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -515,6 +515,16 @@ ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
- 	*skbinfo = ext->skbinfo;
- }
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_sctp.h b/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+index edc6ddab0de6..c742469afe21 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_sctp.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+@@ -16,6 +16,7 @@ enum sctp_conntrack {
+ 	SCTP_CONNTRACK_SHUTDOWN_ACK_SENT,
+ 	SCTP_CONNTRACK_HEARTBEAT_SENT,
+ 	SCTP_CONNTRACK_HEARTBEAT_ACKED,
++	SCTP_CONNTRACK_DATA_SENT,
+ 	SCTP_CONNTRACK_MAX
+ };
  
-+static inline void
-+nf_inet_addr_mask_inplace(union nf_inet_addr *a1,
-+			  const union nf_inet_addr *mask)
-+{
-+	a1->all[0] &= mask->all[0];
-+	a1->all[1] &= mask->all[1];
-+	a1->all[2] &= mask->all[2];
-+	a1->all[3] &= mask->all[3];
-+}
-+
- #define IP_SET_INIT_KEXT(skb, opt, set)			\
- 	{ .bytes = (skb)->len, .packets = 1, .target = true,\
- 	  .timeout = ip_set_adt_opt_timeout(opt, set) }
-diff --git a/include/uapi/linux/netfilter/ipset/ip_set.h b/include/uapi/linux/netfilter/ipset/ip_set.h
-index 79e5d68b87af..333807efd32b 100644
---- a/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -85,6 +85,7 @@ enum {
- 	IPSET_ATTR_CADT_LINENO = IPSET_ATTR_LINENO,	/* 9 */
- 	IPSET_ATTR_MARK,	/* 10 */
- 	IPSET_ATTR_MARKMASK,	/* 11 */
-+	IPSET_ATTR_BITMASK,	/* 12 */
- 	/* Reserve empty slots */
- 	IPSET_ATTR_CADT_MAX = 16,
- 	/* Create-only specific attributes */
-@@ -153,6 +154,7 @@ enum ipset_errno {
- 	IPSET_ERR_COMMENT,
- 	IPSET_ERR_INVALID_MARKMASK,
- 	IPSET_ERR_SKBINFO,
-+	IPSET_ERR_BITMASK_NETMASK_EXCL,
+diff --git a/include/uapi/linux/netfilter/nfnetlink_cttimeout.h b/include/uapi/linux/netfilter/nfnetlink_cttimeout.h
+index 6b20fb22717b..94e74034706d 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_cttimeout.h
++++ b/include/uapi/linux/netfilter/nfnetlink_cttimeout.h
+@@ -95,6 +95,7 @@ enum ctattr_timeout_sctp {
+ 	CTA_TIMEOUT_SCTP_SHUTDOWN_ACK_SENT,
+ 	CTA_TIMEOUT_SCTP_HEARTBEAT_SENT,
+ 	CTA_TIMEOUT_SCTP_HEARTBEAT_ACKED,
++	CTA_TIMEOUT_SCTP_DATA_SENT,
+ 	__CTA_TIMEOUT_SCTP_MAX
+ };
+ #define CTA_TIMEOUT_SCTP_MAX (__CTA_TIMEOUT_SCTP_MAX - 1)
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 5a936334b517..d88b92a8ffca 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -60,6 +60,7 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
+ 	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	= 3 SECS,
+ 	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= 30 SECS,
+ 	[SCTP_CONNTRACK_HEARTBEAT_ACKED]	= 210 SECS,
++	[SCTP_CONNTRACK_DATA_SENT]		= 30 SECS,
+ };
  
- 	/* Type specific error codes */
- 	IPSET_ERR_TYPE_SPECIFIC = 4352,
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 3adc291d9ce1..fdb5225a3e5c 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -159,6 +159,17 @@ htable_size(u8 hbits)
- 	(SET_WITH_TIMEOUT(set) &&	\
- 	 ip_set_timeout_expired(ext_timeout(d, set)))
+ #define	SCTP_FLAG_HEARTBEAT_VTAG_FAILED	1
+@@ -74,6 +75,7 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
+ #define	sSA SCTP_CONNTRACK_SHUTDOWN_ACK_SENT
+ #define	sHS SCTP_CONNTRACK_HEARTBEAT_SENT
+ #define	sHA SCTP_CONNTRACK_HEARTBEAT_ACKED
++#define	sDS SCTP_CONNTRACK_DATA_SENT
+ #define	sIV SCTP_CONNTRACK_MAX
  
-+#if defined(IP_SET_HASH_WITH_NETMASK) || defined(IP_SET_HASH_WITH_BITMASK)
-+static const union nf_inet_addr onesmask = {
-+	.all[0] = 0xffffffff,
-+	.all[1] = 0xffffffff,
-+	.all[2] = 0xffffffff,
-+	.all[3] = 0xffffffff
-+};
-+
-+static const union nf_inet_addr zeromask = {};
-+#endif
-+
- #endif /* _IP_SET_HASH_GEN_H */
+ /*
+@@ -90,15 +92,16 @@ COOKIE WAIT       - We have seen an INIT chunk in the original direction, or als
+ COOKIE ECHOED     - We have seen a COOKIE_ECHO chunk in the original direction.
+ ESTABLISHED       - We have seen a COOKIE_ACK in the reply direction.
+ SHUTDOWN_SENT     - We have seen a SHUTDOWN chunk in the original direction.
+-SHUTDOWN_RECD     - We have seen a SHUTDOWN chunk in the reply directoin.
++SHUTDOWN_RECD     - We have seen a SHUTDOWN chunk in the reply direction.
+ SHUTDOWN_ACK_SENT - We have seen a SHUTDOWN_ACK chunk in the direction opposite
+ 		    to that of the SHUTDOWN chunk.
+ CLOSED            - We have seen a SHUTDOWN_COMPLETE chunk in the direction of
+ 		    the SHUTDOWN chunk. Connection is closed.
+ HEARTBEAT_SENT    - We have seen a HEARTBEAT in a new flow.
+-HEARTBEAT_ACKED   - We have seen a HEARTBEAT-ACK in the direction opposite to
+-		    that of the HEARTBEAT chunk. Secondary connection is
+-		    established.
++HEARTBEAT_ACKED   - We have seen a HEARTBEAT-ACK/DATA/SACK in the direction
++		    opposite to that of the HEARTBEAT/DATA chunk. Secondary connection
++		    is established.
++DATA_SENT         - We have seen a DATA/SACK in a new flow.
+ */
  
- #ifndef MTYPE
-@@ -283,8 +294,9 @@ struct htype {
- 	u32 markmask;		/* markmask value for mark mask to store */
- #endif
- 	u8 bucketsize;		/* max elements in an array block */
--#ifdef IP_SET_HASH_WITH_NETMASK
-+#if defined(IP_SET_HASH_WITH_NETMASK) || defined(IP_SET_HASH_WITH_BITMASK)
- 	u8 netmask;		/* netmask value for subnets to store */
-+	union nf_inet_addr bitmask;	/* stores bitmask */
- #endif
- 	struct list_head ad;	/* Resize add|del backlist */
- 	struct mtype_elem next; /* temporary storage for uadd */
-@@ -459,8 +471,8 @@ mtype_same_set(const struct ip_set *a, const struct ip_set *b)
- 	/* Resizing changes htable_bits, so we ignore it */
- 	return x->maxelem == y->maxelem &&
- 	       a->timeout == b->timeout &&
--#ifdef IP_SET_HASH_WITH_NETMASK
--	       x->netmask == y->netmask &&
-+#if defined(IP_SET_HASH_WITH_NETMASK) || defined(IP_SET_HASH_WITH_BITMASK)
-+	       nf_inet_addr_cmp(&x->bitmask, &y->bitmask) &&
- #endif
- #ifdef IP_SET_HASH_WITH_MARKMASK
- 	       x->markmask == y->markmask &&
-@@ -1264,9 +1276,21 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
- 			  htonl(jhash_size(htable_bits))) ||
- 	    nla_put_net32(skb, IPSET_ATTR_MAXELEM, htonl(h->maxelem)))
- 		goto nla_put_failure;
-+#ifdef IP_SET_HASH_WITH_BITMASK
-+	/* if netmask is set to anything other than HOST_MASK we know that the user supplied netmask
-+	 * and not bitmask. These two are mutually exclusive. */
-+	if (h->netmask == HOST_MASK && !nf_inet_addr_cmp(&onesmask, &h->bitmask)) {
-+		if (set->family == NFPROTO_IPV4) {
-+			if (nla_put_ipaddr4(skb, IPSET_ATTR_BITMASK, h->bitmask.ip))
-+				goto nla_put_failure;
-+		} else if (set->family == NFPROTO_IPV6) {
-+			if (nla_put_ipaddr6(skb, IPSET_ATTR_BITMASK, &h->bitmask.in6))
-+				goto nla_put_failure;
-+		}
-+	}
-+#endif
- #ifdef IP_SET_HASH_WITH_NETMASK
--	if (h->netmask != HOST_MASK &&
--	    nla_put_u8(skb, IPSET_ATTR_NETMASK, h->netmask))
-+	if (h->netmask != HOST_MASK && nla_put_u8(skb, IPSET_ATTR_NETMASK, h->netmask))
- 		goto nla_put_failure;
- #endif
- #ifdef IP_SET_HASH_WITH_MARKMASK
-@@ -1429,8 +1453,10 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	u32 markmask;
- #endif
- 	u8 hbits;
--#ifdef IP_SET_HASH_WITH_NETMASK
--	u8 netmask;
-+#if defined(IP_SET_HASH_WITH_NETMASK) || defined(IP_SET_HASH_WITH_BITMASK)
-+	int ret __attribute__((unused)) = 0;
-+	u8 netmask = set->family == NFPROTO_IPV4 ? 32 : 128;
-+	union nf_inet_addr bitmask = onesmask;
- #endif
- 	size_t hsize;
- 	struct htype *h;
-@@ -1468,7 +1494,6 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- #endif
+ /* TODO
+@@ -112,36 +115,38 @@ cookie echoed to closed.
+ */
  
- #ifdef IP_SET_HASH_WITH_NETMASK
--	netmask = set->family == NFPROTO_IPV4 ? 32 : 128;
- 	if (tb[IPSET_ATTR_NETMASK]) {
- 		netmask = nla_get_u8(tb[IPSET_ATTR_NETMASK]);
- 
-@@ -1476,6 +1501,33 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 		    (set->family == NFPROTO_IPV6 && netmask > 128) ||
- 		    netmask == 0)
- 			return -IPSET_ERR_INVALID_NETMASK;
-+
-+		/* we convert netmask to bitmask and store it */
-+		if (set->family == NFPROTO_IPV4)
-+			bitmask.ip = ip_set_netmask(netmask);
-+		else
-+			ip6_netmask(&bitmask, netmask);
-+	}
-+#endif
-+
-+#ifdef IP_SET_HASH_WITH_BITMASK
-+	if (tb[IPSET_ATTR_BITMASK]) {
-+		/* bitmask and netmask do the same thing, allow only one of these options */
-+		if (tb[IPSET_ATTR_NETMASK])
-+			return -IPSET_ERR_BITMASK_NETMASK_EXCL;
-+
-+		if (set->family == NFPROTO_IPV4) {
-+			ret = ip_set_get_ipaddr4(tb[IPSET_ATTR_BITMASK], &bitmask.ip);
-+			if (ret || !bitmask.ip)
-+				return -IPSET_ERR_INVALID_NETMASK;
-+		} else if (set->family == NFPROTO_IPV6) {
-+			ret = ip_set_get_ipaddr6(tb[IPSET_ATTR_BITMASK], &bitmask);
-+			if (ret || ipv6_addr_any(&bitmask.in6))
-+				return -IPSET_ERR_INVALID_NETMASK;
-+		}
-+
-+		if (nf_inet_addr_cmp(&bitmask, &zeromask))
-+			return -IPSET_ERR_INVALID_NETMASK;
+ /* SCTP conntrack state transitions */
+-static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
++static const u8 sctp_conntracks[2][12][SCTP_CONNTRACK_MAX] = {
+ 	{
+ /*	ORIGINAL	*/
+-/*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA */
+-/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW, sHA},
+-/* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA},
+-/* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
+-/* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL, sSS},
+-/* shutdown_ack */ {sSA, sCL, sCW, sCE, sES, sSA, sSA, sSA, sSA, sHA},
+-/* error        */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA},/* Can't have Stale cookie*/
+-/* cookie_echo  */ {sCL, sCL, sCE, sCE, sES, sSS, sSR, sSA, sCL, sHA},/* 5.2.4 - Big TODO */
+-/* cookie_ack   */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA},/* Can't come in orig dir */
+-/* shutdown_comp*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sCL, sCL, sHA},
+-/* heartbeat    */ {sHS, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA},
+-/* heartbeat_ack*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA}
++/*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA, sDS */
++/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW, sHA, sCW},
++/* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA, sCL},
++/* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
++/* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL, sSS, sCL},
++/* shutdown_ack */ {sSA, sCL, sCW, sCE, sES, sSA, sSA, sSA, sSA, sHA, sSA},
++/* error        */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA, sCL},/* Can't have Stale cookie*/
++/* cookie_echo  */ {sCL, sCL, sCE, sCE, sES, sSS, sSR, sSA, sCL, sHA, sCL},/* 5.2.4 - Big TODO */
++/* cookie_ack   */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL, sHA, sCL},/* Can't come in orig dir */
++/* shutdown_comp*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sCL, sCL, sHA, sCL},
++/* heartbeat    */ {sHS, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA, sDS},
++/* heartbeat_ack*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA, sDS},
++/* data/sack    */ {sDS, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA, sDS}
+ 	},
+ 	{
+ /*	REPLY	*/
+-/*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA */
+-/* init         */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},/* INIT in sCL Big TODO */
+-/* init_ack     */ {sIV, sCW, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},
+-/* abort        */ {sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sIV, sCL},
+-/* shutdown     */ {sIV, sCL, sCW, sCE, sSR, sSS, sSR, sSA, sIV, sSR},
+-/* shutdown_ack */ {sIV, sCL, sCW, sCE, sES, sSA, sSA, sSA, sIV, sHA},
+-/* error        */ {sIV, sCL, sCW, sCL, sES, sSS, sSR, sSA, sIV, sHA},
+-/* cookie_echo  */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA},/* Can't come in reply dir */
+-/* cookie_ack   */ {sIV, sCL, sCW, sES, sES, sSS, sSR, sSA, sIV, sHA},
+-/* shutdown_comp*/ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sCL, sIV, sHA},
+-/* heartbeat    */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA},
+-/* heartbeat_ack*/ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHA, sHA}
++/*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA, sDS */
++/* init         */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA, sIV},/* INIT in sCL Big TODO */
++/* init_ack     */ {sIV, sCW, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA, sIV},
++/* abort        */ {sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sIV, sCL, sIV},
++/* shutdown     */ {sIV, sCL, sCW, sCE, sSR, sSS, sSR, sSA, sIV, sSR, sIV},
++/* shutdown_ack */ {sIV, sCL, sCW, sCE, sES, sSA, sSA, sSA, sIV, sHA, sIV},
++/* error        */ {sIV, sCL, sCW, sCL, sES, sSS, sSR, sSA, sIV, sHA, sIV},
++/* cookie_echo  */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV, sHA, sIV},/* Can't come in reply dir */
++/* cookie_ack   */ {sIV, sCL, sCW, sES, sES, sSS, sSR, sSA, sIV, sHA, sIV},
++/* shutdown_comp*/ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sCL, sIV, sHA, sIV},
++/* heartbeat    */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS, sHA, sHA},
++/* heartbeat_ack*/ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHA, sHA, sHA},
++/* data/sack    */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHA, sHA, sHA},
  	}
- #endif
+ };
  
-@@ -1518,7 +1570,8 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	for (i = 0; i < ahash_numof_locks(hbits); i++)
- 		spin_lock_init(&t->hregion[i].lock);
- 	h->maxelem = maxelem;
--#ifdef IP_SET_HASH_WITH_NETMASK
-+#if defined(IP_SET_HASH_WITH_NETMASK) || defined(IP_SET_HASH_WITH_BITMASK)
-+	h->bitmask = bitmask;
- 	h->netmask = netmask;
- #endif
- #ifdef IP_SET_HASH_WITH_MARKMASK
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index dd30c03d5a23..556f74268a28 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -24,7 +24,8 @@
- /*				2	   Comments support */
- /*				3	   Forceadd support */
- /*				4	   skbinfo support */
--#define IPSET_TYPE_REV_MAX	5	/* bucketsize, initval support  */
-+/*				5	   bucketsize, initval support  */
-+#define IPSET_TYPE_REV_MAX	6	/* bitmask support  */
+@@ -253,6 +258,11 @@ static int sctp_new_state(enum ip_conntrack_dir dir,
+ 		pr_debug("SCTP_CID_HEARTBEAT_ACK");
+ 		i = 10;
+ 		break;
++	case SCTP_CID_DATA:
++	case SCTP_CID_SACK:
++		pr_debug("SCTP_CID_DATA/SACK");
++		i = 11;
++		break;
+ 	default:
+ 		/* Other chunks like DATA or SACK do not change the state */
+ 		pr_debug("Unknown chunk type, Will stay in %s\n",
+@@ -306,7 +316,9 @@ sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 				 ih->init_tag);
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -34,6 +35,7 @@ MODULE_ALIAS("ip_set_hash:ip");
- /* Type specific function prefix */
- #define HTYPE		hash_ip
- #define IP_SET_HASH_WITH_NETMASK
-+#define IP_SET_HASH_WITH_BITMASK
+ 			ct->proto.sctp.vtag[IP_CT_DIR_REPLY] = ih->init_tag;
+-		} else if (sch->type == SCTP_CID_HEARTBEAT) {
++		} else if (sch->type == SCTP_CID_HEARTBEAT ||
++			   sch->type == SCTP_CID_DATA ||
++			   sch->type == SCTP_CID_SACK) {
+ 			pr_debug("Setting vtag %x for secondary conntrack\n",
+ 				 sh->vtag);
+ 			ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] = sh->vtag;
+@@ -392,19 +404,19 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
  
- /* IPv4 variant */
- 
-@@ -86,7 +88,7 @@ hash_ip4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	__be32 ip;
- 
- 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &ip);
--	ip &= ip_set_netmask(h->netmask);
-+	ip &= h->bitmask.ip;
- 	if (ip == 0)
- 		return -EINVAL;
- 
-@@ -119,7 +121,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
- 
--	ip &= ip_set_hostmask(h->netmask);
-+	ip &= ntohl(h->bitmask.ip);
- 	e.ip = htonl(ip);
- 	if (e.ip == 0)
- 		return -IPSET_ERR_HASH_ELEM;
-@@ -187,12 +189,6 @@ hash_ip6_data_equal(const struct hash_ip6_elem *ip1,
- 	return ipv6_addr_equal(&ip1->ip.in6, &ip2->ip.in6);
- }
- 
--static void
--hash_ip6_netmask(union nf_inet_addr *ip, u8 prefix)
--{
--	ip6_netmask(ip, prefix);
--}
+ 		if (!sctp_new(ct, skb, sh, dataoff))
+ 			return -NF_ACCEPT;
+-	}
 -
- static bool
- hash_ip6_data_list(struct sk_buff *skb, const struct hash_ip6_elem *e)
- {
-@@ -229,7 +225,7 @@ hash_ip6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+-	/* Check the verification tag (Sec 8.5) */
+-	if (!test_bit(SCTP_CID_INIT, map) &&
+-	    !test_bit(SCTP_CID_SHUTDOWN_COMPLETE, map) &&
+-	    !test_bit(SCTP_CID_COOKIE_ECHO, map) &&
+-	    !test_bit(SCTP_CID_ABORT, map) &&
+-	    !test_bit(SCTP_CID_SHUTDOWN_ACK, map) &&
+-	    !test_bit(SCTP_CID_HEARTBEAT, map) &&
+-	    !test_bit(SCTP_CID_HEARTBEAT_ACK, map) &&
+-	    sh->vtag != ct->proto.sctp.vtag[dir]) {
+-		pr_debug("Verification tag check failed\n");
+-		goto out;
++	} else {
++		/* Check the verification tag (Sec 8.5) */
++		if (!test_bit(SCTP_CID_INIT, map) &&
++		    !test_bit(SCTP_CID_SHUTDOWN_COMPLETE, map) &&
++		    !test_bit(SCTP_CID_COOKIE_ECHO, map) &&
++		    !test_bit(SCTP_CID_ABORT, map) &&
++		    !test_bit(SCTP_CID_SHUTDOWN_ACK, map) &&
++		    !test_bit(SCTP_CID_HEARTBEAT, map) &&
++		    !test_bit(SCTP_CID_HEARTBEAT_ACK, map) &&
++		    sh->vtag != ct->proto.sctp.vtag[dir]) {
++			pr_debug("Verification tag check failed\n");
++			goto out;
++		}
+ 	}
  
- 	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
--	hash_ip6_netmask(&e.ip, h->netmask);
-+	nf_inet_addr_mask_inplace(&e.ip, &h->bitmask);
- 	if (ipv6_addr_any(&e.ip.in6))
- 		return -EINVAL;
+ 	old_state = new_state = SCTP_CONNTRACK_NONE;
+@@ -464,6 +476,11 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
+ 			} else if (ct->proto.sctp.flags & SCTP_FLAG_HEARTBEAT_VTAG_FAILED) {
+ 				ct->proto.sctp.flags &= ~SCTP_FLAG_HEARTBEAT_VTAG_FAILED;
+ 			}
++		} else if (sch->type == SCTP_CID_DATA || sch->type == SCTP_CID_SACK) {
++			if (ct->proto.sctp.vtag[dir] == 0) {
++				pr_debug("Setting vtag %x for dir %d\n", sh->vtag, dir);
++				ct->proto.sctp.vtag[dir] = sh->vtag;
++			}
+ 		}
  
-@@ -268,7 +264,7 @@ hash_ip6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
+ 		old_state = ct->proto.sctp.state;
+@@ -684,6 +701,7 @@ sctp_timeout_nla_policy[CTA_TIMEOUT_SCTP_MAX+1] = {
+ 	[CTA_TIMEOUT_SCTP_SHUTDOWN_ACK_SENT]	= { .type = NLA_U32 },
+ 	[CTA_TIMEOUT_SCTP_HEARTBEAT_SENT]	= { .type = NLA_U32 },
+ 	[CTA_TIMEOUT_SCTP_HEARTBEAT_ACKED]	= { .type = NLA_U32 },
++	[CTA_TIMEOUT_SCTP_DATA_SENT]		= { .type = NLA_U32 },
+ };
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
  
--	hash_ip6_netmask(&e.ip, h->netmask);
-+	nf_inet_addr_mask_inplace(&e.ip, &h->bitmask);
- 	if (ipv6_addr_any(&e.ip.in6))
- 		return -IPSET_ERR_HASH_ELEM;
- 
-@@ -295,6 +291,7 @@ static struct ip_set_type hash_ip_type __read_mostly = {
- 		[IPSET_ATTR_RESIZE]	= { .type = NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
- 		[IPSET_ATTR_NETMASK]	= { .type = NLA_U8  },
-+		[IPSET_ATTR_BITMASK]	= { .type = NLA_NESTED },
- 		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 4ffe84c5a82c..a884c06abf09 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -602,6 +602,7 @@ enum nf_ct_sysctl_index {
+ 	NF_SYSCTL_CT_PROTO_TIMEOUT_SCTP_SHUTDOWN_ACK_SENT,
+ 	NF_SYSCTL_CT_PROTO_TIMEOUT_SCTP_HEARTBEAT_SENT,
+ 	NF_SYSCTL_CT_PROTO_TIMEOUT_SCTP_HEARTBEAT_ACKED,
++	NF_SYSCTL_CT_PROTO_TIMEOUT_SCTP_DATA_SENT,
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ 	NF_SYSCTL_CT_PROTO_TIMEOUT_DCCP_REQUEST,
+@@ -892,6 +893,12 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.mode           = 0644,
+ 		.proc_handler   = proc_dointvec_jiffies,
  	},
- 	.adt_policy	= {
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 7303138e46be..2ffbd0b78a8c 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -26,7 +26,8 @@
- /*				3    Comments support added */
- /*				4    Forceadd support added */
- /*				5    skbinfo support added */
--#define IPSET_TYPE_REV_MAX	6 /* bucketsize, initval support added */
-+/*				6    bucketsize, initval support added */
-+#define IPSET_TYPE_REV_MAX	7 /* bitmask support added */
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@netfilter.org>");
-@@ -35,6 +36,8 @@ MODULE_ALIAS("ip_set_hash:ip,port");
- 
- /* Type specific function prefix */
- #define HTYPE		hash_ipport
-+#define IP_SET_HASH_WITH_NETMASK
-+#define IP_SET_HASH_WITH_BITMASK
- 
- /* IPv4 variant */
- 
-@@ -92,12 +95,16 @@ hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipport4_elem e = { .ip = 0 };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+	const struct MTYPE *h = set->data;
- 
- 	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &e.port, &e.proto))
- 		return -EINVAL;
- 
- 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-+	e.ip &= h->bitmask.ip;
-+	if (e.ip == 0)
-+		return -EINVAL;
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
++	[NF_SYSCTL_CT_PROTO_TIMEOUT_SCTP_DATA_SENT] = {
++		.procname       = "nf_conntrack_sctp_timeout_data_sent",
++		.maxlen         = sizeof(unsigned int),
++		.mode           = 0644,
++		.proc_handler   = proc_dointvec_jiffies,
++	},
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+ 	[NF_SYSCTL_CT_PROTO_TIMEOUT_DCCP_REQUEST] = {
+@@ -1036,6 +1043,7 @@ static void nf_conntrack_standalone_init_sctp_sysctl(struct net *net,
+ 	XASSIGN(SHUTDOWN_ACK_SENT, sn);
+ 	XASSIGN(HEARTBEAT_SENT, sn);
+ 	XASSIGN(HEARTBEAT_ACKED, sn);
++	XASSIGN(DATA_SENT, sn);
+ #undef XASSIGN
+ #endif
  }
- 
-@@ -129,6 +136,10 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
- 
-+	e.ip &= h->bitmask.ip;
-+	if (e.ip == 0)
-+		return -EINVAL;
-+
- 	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
- 
- 	if (tb[IPSET_ATTR_PROTO]) {
-@@ -253,12 +264,17 @@ hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipport6_elem e = { .ip = { .all = { 0 } } };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+	const struct MTYPE *h = set->data;
- 
- 	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &e.port, &e.proto))
- 		return -EINVAL;
- 
- 	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-+	nf_inet_addr_mask_inplace(&e.ip, &h->bitmask);
-+	if (ipv6_addr_any(&e.ip.in6))
-+		return -EINVAL;
-+
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
- }
- 
-@@ -298,6 +314,10 @@ hash_ipport6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
- 
-+	nf_inet_addr_mask_inplace(&e.ip, &h->bitmask);
-+	if (ipv6_addr_any(&e.ip.in6))
-+		return -EINVAL;
-+
- 	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
- 
- 	if (tb[IPSET_ATTR_PROTO]) {
-@@ -356,6 +376,8 @@ static struct ip_set_type hash_ipport_type __read_mostly = {
- 		[IPSET_ATTR_PROTO]	= { .type = NLA_U8 },
- 		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
- 		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_NETMASK]	= { .type = NLA_U8 },
-+		[IPSET_ATTR_BITMASK]	= { .type = NLA_NESTED },
- 	},
- 	.adt_policy	= {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index 3d09eefe998a..cdfb78c6e0d3 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -23,7 +23,8 @@
- #define IPSET_TYPE_REV_MIN	0
- /*				1	   Forceadd support added */
- /*				2	   skbinfo support added */
--#define IPSET_TYPE_REV_MAX	3	/* bucketsize, initval support added */
-+/*				3	   bucketsize, initval support added */
-+#define IPSET_TYPE_REV_MAX	4	/* bitmask support added */
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>");
-@@ -33,6 +34,8 @@ MODULE_ALIAS("ip_set_hash:net,net");
- /* Type specific function prefix */
- #define HTYPE		hash_netnet
- #define IP_SET_HASH_WITH_NETS
-+#define IP_SET_HASH_WITH_NETMASK
-+#define IP_SET_HASH_WITH_BITMASK
- #define IPSET_NET_COUNT 2
- 
- /* IPv4 variants */
-@@ -153,8 +156,8 @@ hash_netnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 
- 	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip[0]);
- 	ip4addrptr(skb, opt->flags & IPSET_DIM_TWO_SRC, &e.ip[1]);
--	e.ip[0] &= ip_set_netmask(e.cidr[0]);
--	e.ip[1] &= ip_set_netmask(e.cidr[1]);
-+	e.ip[0] &= (ip_set_netmask(e.cidr[0]) & h->bitmask.ip);
-+	e.ip[1] &= (ip_set_netmask(e.cidr[1]) & h->bitmask.ip);
- 
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
- }
-@@ -213,8 +216,8 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (adt == IPSET_TEST || !(tb[IPSET_ATTR_IP_TO] ||
- 				   tb[IPSET_ATTR_IP2_TO])) {
--		e.ip[0] = htonl(ip & ip_set_hostmask(e.cidr[0]));
--		e.ip[1] = htonl(ip2_from & ip_set_hostmask(e.cidr[1]));
-+		e.ip[0] = htonl(ip & ntohl(h->bitmask.ip) & ip_set_hostmask(e.cidr[0]));
-+		e.ip[1] = htonl(ip2_from & ntohl(h->bitmask.ip) & ip_set_hostmask(e.cidr[1]));
- 		ret = adtfn(set, &e, &ext, &ext, flags);
- 		return ip_set_enomatch(ret, flags, adt, set) ? -ret :
- 		       ip_set_eexist(ret, flags) ? 0 : ret;
-@@ -404,6 +407,11 @@ hash_netnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ip6_netmask(&e.ip[0], e.cidr[0]);
- 	ip6_netmask(&e.ip[1], e.cidr[1]);
- 
-+	nf_inet_addr_mask_inplace(&e.ip[0], &h->bitmask);
-+	nf_inet_addr_mask_inplace(&e.ip[1], &h->bitmask);
-+	if (e.cidr[0] == HOST_MASK && ipv6_addr_any(&e.ip[0].in6))
-+		return -EINVAL;
-+
- 	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
- }
- 
-@@ -414,6 +422,7 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netnet6_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
-+	const struct hash_netnet6 *h = set->data;
- 	int ret;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -453,6 +462,11 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ip6_netmask(&e.ip[0], e.cidr[0]);
- 	ip6_netmask(&e.ip[1], e.cidr[1]);
- 
-+	nf_inet_addr_mask_inplace(&e.ip[0], &h->bitmask);
-+	nf_inet_addr_mask_inplace(&e.ip[1], &h->bitmask);
-+	if (e.cidr[0] == HOST_MASK && ipv6_addr_any(&e.ip[0].in6))
-+		return -IPSET_ERR_HASH_ELEM;
-+
- 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
- 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
- 
-@@ -484,6 +498,8 @@ static struct ip_set_type hash_netnet_type __read_mostly = {
- 		[IPSET_ATTR_RESIZE]	= { .type = NLA_U8  },
- 		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
- 		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_NETMASK]    = { .type = NLA_U8 },
-+		[IPSET_ATTR_BITMASK]	= { .type = NLA_NESTED },
- 	},
- 	.adt_policy	= {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
 -- 
 2.30.2
 
