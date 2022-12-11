@@ -2,87 +2,63 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4A83C4332F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Dec 2022 22:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CD49C4332F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Dec 2022 10:12:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229628AbiLJW76 (ORCPT
+        id S229710AbiLKKMP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 10 Dec 2022 17:59:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55482 "EHLO
+        Sun, 11 Dec 2022 05:12:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229548AbiLJW76 (ORCPT
+        with ESMTP id S229568AbiLKKMN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Dec 2022 17:59:58 -0500
+        Sun, 11 Dec 2022 05:12:13 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E772F101FF
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2022 14:59:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A4EE5CE08;
+        Sun, 11 Dec 2022 02:12:09 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] scanner: match full comment line in case of tie
-Date:   Sat, 10 Dec 2022 23:59:51 +0100
-Message-Id: <20221210225951.1311917-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net-next 01/12] netfilter: nft_inner: fix IS_ERR() vs NULL check
+Date:   Sun, 11 Dec 2022 11:11:53 +0100
+Message-Id: <20221211101204.1751-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221211101204.1751-1-pablo@netfilter.org>
+References: <20221211101204.1751-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-  add element ip filter public_services {
-          # comment 1
-          tcp . 80  : jump log_accept,
-  # comment 2
-          tcp . 443 : jump log_accept,
-  }
+From: Dan Carpenter <error27@gmail.com>
 
-still fails with the error message:
+The __nft_expr_type_get() function returns NULL on error.  It never
+returns error pointers.
 
-  # nft -f filter_sets.ip
-  In file included from filter_sets.ip:63:1-42:
-  filter_sets.ip:4:12-12: Error: syntax error,
-  unexpected newline, expecting comma or '}'
-  # comment 2
-             ^
-
-flex honors the first rule found in case of tie, place comment_line
-before comment rule.
-
-Fixes: 931737a17198 ("scanner: munch full comment lines")
-Reported-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/scanner.l                             | 2 +-
- tests/shell/testcases/comments/comments_0 | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/scanner.l b/src/scanner.l
-index e72a427aab48..7e8748f51c27 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -858,10 +858,10 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2fa52b8d5ce1..833850a4780f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2873,8 +2873,8 @@ int nft_expr_inner_parse(const struct nft_ctx *ctx, const struct nlattr *nla,
+ 		return -EINVAL;
  
- {tab}+
- {space}+
--{comment}
- {comment_line}		{
- 				reset_pos(yyget_extra(yyscanner), yylloc);
- 			}
-+{comment}
+ 	type = __nft_expr_type_get(ctx->family, tb[NFTA_EXPR_NAME]);
+-	if (IS_ERR(type))
+-		return PTR_ERR(type);
++	if (!type)
++		return -ENOENT;
  
- <<EOF>> 		{
- 				update_pos(yyget_extra(yyscanner), yylloc, 1);
-diff --git a/tests/shell/testcases/comments/comments_0 b/tests/shell/testcases/comments/comments_0
-index b272ad675763..9975f546a6a7 100755
---- a/tests/shell/testcases/comments/comments_0
-+++ b/tests/shell/testcases/comments/comments_0
-@@ -10,6 +10,7 @@ RULESET="table inet x {		# comment
-                         2.2.2.2, # comment
-                         # more comments
-                         3.3.3.3,	# comment
-+# comment
-                 }
- 		# comment
-         }
+ 	if (!type->inner_ops)
+ 		return -EOPNOTSUPP;
 -- 
 2.30.2
 
