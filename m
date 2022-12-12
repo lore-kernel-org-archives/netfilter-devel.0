@@ -2,97 +2,104 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 997F9C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Dec 2022 19:59:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6716C4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Dec 2022 23:00:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233368AbiLLT7f (ORCPT
+        id S233912AbiLLXAd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Dec 2022 14:59:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43662 "EHLO
+        Mon, 12 Dec 2022 18:00:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233180AbiLLT71 (ORCPT
+        with ESMTP id S233160AbiLLXAZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Dec 2022 14:59:27 -0500
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 37E7D17431;
-        Mon, 12 Dec 2022 11:59:25 -0800 (PST)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id 9A0444448B;
-        Mon, 12 Dec 2022 21:59:23 +0200 (EET)
-Received: from ink.ssi.bg (unknown [193.238.174.40])
-        by mg.ssi.bg (Proxmox) with ESMTP id C64CC44486;
-        Mon, 12 Dec 2022 21:59:21 +0200 (EET)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 68A2B3C07CA;
-        Mon, 12 Dec 2022 21:59:21 +0200 (EET)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 2BCJxLoK101928;
-        Mon, 12 Dec 2022 21:59:21 +0200
-Received: (from root@localhost)
-        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 2BCJxHDp101919;
-        Mon, 12 Dec 2022 21:59:17 +0200
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Jiri Wiesner <jwiesner@suse.de>
-Subject: [PATCH] ipvs: use u64 to silence do_div warnings
-Date:   Mon, 12 Dec 2022 21:58:45 +0200
-Message-Id: <20221212195845.101844-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.38.1
+        Mon, 12 Dec 2022 18:00:25 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1470FD15;
+        Mon, 12 Dec 2022 15:00:23 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5DC11B80E9D;
+        Mon, 12 Dec 2022 23:00:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 0D840C433EF;
+        Mon, 12 Dec 2022 23:00:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1670886021;
+        bh=bbN07mpAf6h2Fh6KexGYZJ2412NthMdOvJqbO9hQDeY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Gxs3es5rpQrdhN1saI7tiRMz8hP/fDJ2u4k/AOuQfAKCPMxQeU1uPQalvQ0xQrYxf
+         Cw/QRFvC/k0Pf97RSwlr9dQ8yUamFRiUxX/dNUueLoQ/9+qdKxuGahfx8JyMZDxvM6
+         WhC/J3C8pKVWkxbWFjOP38ze+PfaDCH7/b7KwZD2/pDNs5KTkcJu5rzU3FvlneAFmy
+         iNbsxEoW94fZ18zcApJeUbxG1jsShEUf7+kqib1rvw8xq8OTogUEP1k6qqLM8CLK8l
+         J5tbkuXlgd+eyLkRuoUgXgmu92za8ecPNaQ2jfKNwNXbzUSTNwzKBmR7LzNvZ/A0wF
+         R2zL97WYoatYw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EE3C4C00445;
+        Mon, 12 Dec 2022 23:00:20 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/12] netfilter: nft_inner: fix IS_ERR() vs NULL
+ check
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167088602097.14719.3291558869117710249.git-patchwork-notify@kernel.org>
+Date:   Mon, 12 Dec 2022 23:00:20 +0000
+References: <20221211101204.1751-2-pablo@netfilter.org>
+In-Reply-To: <20221211101204.1751-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Fix the following warning from kernel test robot:
+Hello:
 
-All warnings (new ones prefixed by >>):
+This series was applied to netdev/net-next.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-   In file included from ./arch/arc/include/generated/asm/div64.h:1,
-                    from include/linux/math.h:6,
-                    from include/linux/kernel.h:25,
-                    from net/netfilter/ipvs/ip_vs_est.c:18:
-   net/netfilter/ipvs/ip_vs_est.c: In function 'ip_vs_est_calc_limits':
->> include/asm-generic/div64.h:222:35: warning: comparison of distinct pointer types lacks a cast
-     222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
-         |                                   ^~
-   net/netfilter/ipvs/ip_vs_est.c:688:17: note: in expansion of macro 'do_div'
-     688 |                 do_div(val, loops);
-         |                 ^~~~~~
->> include/asm-generic/div64.h:222:35: warning: comparison of distinct pointer types lacks a cast
-     222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
-         |                                   ^~
-   net/netfilter/ipvs/ip_vs_est.c:694:33: note: in expansion of macro 'do_div'
-     694 |                                 do_div(val, min_est);
-         |                                 ^~~~~~
+On Sun, 11 Dec 2022 11:11:53 +0100 you wrote:
+> From: Dan Carpenter <error27@gmail.com>
+> 
+> The __nft_expr_type_get() function returns NULL on error.  It never
+> returns error pointers.
+> 
+> Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
- net/netfilter/ipvs/ip_vs_est.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Here is the summary with links:
+  - [net-next,01/12] netfilter: nft_inner: fix IS_ERR() vs NULL check
+    https://git.kernel.org/netdev/net-next/c/98cbc40e4f7d
+  - [net-next,02/12] netfilter: conntrack: add sctp DATA_SENT state
+    https://git.kernel.org/netdev/net-next/c/bff3d0534804
+  - [net-next,03/12] netfilter: conntrack: merge ipv4+ipv6 confirm functions
+    https://git.kernel.org/netdev/net-next/c/a70e483460d5
+  - [net-next,04/12] netfilter: ipset: Add support for new bitmask parameter
+    https://git.kernel.org/netdev/net-next/c/e93745249505
+  - [net-next,05/12] netfilter: conntrack: set icmpv6 redirects as RELATED
+    https://git.kernel.org/netdev/net-next/c/7d7cfb48d813
+  - [net-next,06/12] netfilter: flowtable: add a 'default' case to flowtable datapath
+    https://git.kernel.org/netdev/net-next/c/895fa59647cd
+  - [net-next,07/12] ipvs: add rcu protection to stats
+    https://git.kernel.org/netdev/net-next/c/5df7d714d8cb
+  - [net-next,08/12] ipvs: use common functions for stats allocation
+    https://git.kernel.org/netdev/net-next/c/de39afb3d811
+  - [net-next,09/12] ipvs: use u64_stats_t for the per-cpu counters
+    https://git.kernel.org/netdev/net-next/c/1dbd8d9a82e3
+  - [net-next,10/12] ipvs: use kthreads for stats estimation
+    https://git.kernel.org/netdev/net-next/c/705dd3444081
+  - [net-next,11/12] ipvs: add est_cpulist and est_nice sysctl vars
+    https://git.kernel.org/netdev/net-next/c/f0be83d54217
+  - [net-next,12/12] ipvs: run_estimation should control the kthread tasks
+    https://git.kernel.org/netdev/net-next/c/144361c1949f
 
-diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-index df56073bb282..5473328f367f 100644
---- a/net/netfilter/ipvs/ip_vs_est.c
-+++ b/net/netfilter/ipvs/ip_vs_est.c
-@@ -638,11 +638,12 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
- 	struct ip_vs_stats *s;
- 	int cache_factor = 4;
- 	int i, loops, ntest;
--	s32 min_est = 0;
-+	u32 min_est = 0;
- 	ktime_t t1, t2;
--	s64 diff, val;
- 	int max = 8;
- 	int ret = 1;
-+	s64 diff;
-+	u64 val;
- 
- 	INIT_HLIST_HEAD(&chain);
- 	mutex_lock(&__ip_vs_mutex);
+You are awesome, thank you!
 -- 
-2.38.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
 
