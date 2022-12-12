@@ -2,100 +2,61 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD78C4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Dec 2022 14:21:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1339BC4332F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Dec 2022 16:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232019AbiLLOU7 (ORCPT
+        id S232844AbiLLQpM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Dec 2022 09:20:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43880 "EHLO
+        Mon, 12 Dec 2022 11:45:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231725AbiLLOU6 (ORCPT
+        with ESMTP id S232533AbiLLQoi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Dec 2022 09:20:58 -0500
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C199BEE15;
-        Mon, 12 Dec 2022 06:20:56 -0800 (PST)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.ssi.bg (Proxmox) with ESMTP id 631B542DDD;
-        Mon, 12 Dec 2022 16:20:54 +0200 (EET)
-Received: from ink.ssi.bg (unknown [193.238.174.40])
-        by mg.ssi.bg (Proxmox) with ESMTP id 2B1EC42E56;
-        Mon, 12 Dec 2022 16:20:53 +0200 (EET)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 536733C07CB;
-        Mon, 12 Dec 2022 16:20:46 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 2BCEKf1E041625;
-        Mon, 12 Dec 2022 16:20:44 +0200
-Date:   Mon, 12 Dec 2022 16:20:41 +0200 (EET)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Li Qiong <liqiong@nfschina.com>
-cc:     Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org, coreteam@netfilter.org,
-        Yu Zhe <yuzhe@nfschina.com>
-Subject: Re: [PATCH v2] ipvs: add a 'default' case in do_ip_vs_set_ctl()
-In-Reply-To: <20221212074351.26440-1-liqiong@nfschina.com>
-Message-ID: <c3ca27a-f923-6eb6-bbe4-5e99b65c5940@ssi.bg>
-References: <272315c8-5e3b-e8ca-3c7f-68eccd0f2430@nfschina.com> <20221212074351.26440-1-liqiong@nfschina.com>
+        Mon, 12 Dec 2022 11:44:38 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA75114D15
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Dec 2022 08:42:26 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1p4lsn-0002xS-1s; Mon, 12 Dec 2022 17:42:25 +0100
+Date:   Mon, 12 Dec 2022 17:42:25 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 0/3] fix map update with concatenation and timeouts
+Message-ID: <20221212164225.GB3457@breakpoint.cc>
+References: <20221212100436.84116-1-fw@strlen.de>
+ <Y5cuyyDLt6SD0QXk@salvia>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y5cuyyDLt6SD0QXk@salvia>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-	Hello,
-
-On Mon, 12 Dec 2022, Li Qiong wrote:
-
-> It is better to return the default switch case with
-> '-EINVAL', in case new commands are added. otherwise,
-> return a uninitialized value of ret.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Dec 12, 2022 at 11:04:33AM +0100, Florian Westphal wrote:
+> > When "update" is used with a map, nft will ignore a given timeout.
+> > Futhermore, listing is broken, only the first data expression
+> > gets decoded:
+> > 
+> > in:
+> >  meta l4proto tcp update @pinned { ip saddr . ct original proto-src : ip daddr . ct original proto-dst timeout 90s }
+> > out:
+> >  meta l4proto tcp update @pinned { ip saddr . ct original proto-src : ip daddr }
+> > 
+> > Missing timeout is input bug (never passed to kernel), mussing
+> > "proto-dst" is output bug.
+> > 
+> > Also add a test case.
 > 
-> Signed-off-by: Li Qiong <liqiong@nfschina.com>
-> Reviewed-by: Simon Horman <horms@verge.net.au>
-
-	Change looks correct to me for -next, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-	Still, the comment can explain that this code
-is currently unreachable and that some parsers need
-the default case to avoid report for uninitialized 'ret'.
-
-> ---
-> v2: Add 'default' case instead of initializing 'ret'.
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 5 +++++
->  1 file changed, 5 insertions(+)
+> Series LGTM, thanks.
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 988222fff9f0..97f6a1c8933a 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2590,6 +2590,11 @@ do_ip_vs_set_ctl(struct sock *sk, int cmd, sockptr_t ptr, unsigned int len)
->  		break;
->  	case IP_VS_SO_SET_DELDEST:
->  		ret = ip_vs_del_dest(svc, &udest);
-> +		break;
-> +	default:
-> +		WARN_ON_ONCE(1);
-> +		ret = -EINVAL;
-> +		break;
->  	}
->  
->    out_unlock:
-> -- 
-> 2.11.0
+> I might follow up to restrict the timeout to the key side unless you
+> would like to look into this.
 
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+I've pushed this series out; I fixed the typo in patch 1 and I
+mangled patch 2 to reject data-element timeouts from the eval phase.
