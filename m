@@ -2,107 +2,65 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 899FBC4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Dec 2022 03:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BF0EC4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Dec 2022 11:10:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233722AbiLMDUo (ORCPT
+        id S235361AbiLMLKt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Dec 2022 22:20:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37390 "EHLO
+        Tue, 13 Dec 2022 06:10:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229441AbiLMDUn (ORCPT
+        with ESMTP id S235333AbiLMLKD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Dec 2022 22:20:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 764311B7B3;
-        Mon, 12 Dec 2022 19:20:42 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E55F1612CB;
-        Tue, 13 Dec 2022 03:20:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5C5C433EF;
-        Tue, 13 Dec 2022 03:20:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1670901641;
-        bh=fNJ0HmIL0o/ygNc/5g8Y2/L+rcNUzRLfm5SoXCV5ny4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=nn8AJtTWF6VS/D+U24ClC9evCfOXHIzOwm3bhhm3vjTtFxOcdR8lzQccO3Bc+kktm
-         CluQQZPXo+ud0mBk+YsLzFmUI6RrJu3CEcTkYJsnALoVqfxgb7vpxA5QgkfJidRn6S
-         1U06sipvsois9LY/GLZIEWZdeZE0I0JJesEMsaZri2foyOA7ljhs6gFBKDhzwtSvNV
-         xhYNGq30C0FF2xeKapXLRceBnA4WkGhfJYTFFlK/Jq1bSdZG9RalU+vJEcFNztfClc
-         hxChvPuS7N5MPefEZnWzWlzOOgw2DlypEXMftdMo5YKxk2rv6V2nzSjVjgI0ioEhEf
-         6S0RdlBo9h7Gg==
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     davem@davemloft.net
-Cc:     netdev@vger.kernel.org, edumazet@google.com, pabeni@redhat.com,
-        Jakub Kicinski <kuba@kernel.org>, horms@verge.net.au,
-        ja@ssi.bg, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        jwiesner@suse.de, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH net-next] ipvs: fix type warning in do_div() on 32 bit
-Date:   Mon, 12 Dec 2022 19:20:37 -0800
-Message-Id: <20221213032037.844517-1-kuba@kernel.org>
-X-Mailer: git-send-email 2.38.1
+        Tue, 13 Dec 2022 06:10:03 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 04058193D8;
+        Tue, 13 Dec 2022 03:09:31 -0800 (PST)
+Date:   Tue, 13 Dec 2022 12:09:28 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
+        pabeni@redhat.com, horms@verge.net.au, ja@ssi.bg,
+        kadlec@netfilter.org, fw@strlen.de, jwiesner@suse.de,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH net-next] ipvs: fix type warning in do_div() on 32 bit
+Message-ID: <Y5hdaLpctttoNTLx@salvia>
+References: <20221213032037.844517-1-kuba@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20221213032037.844517-1-kuba@kernel.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-32 bit platforms without 64bit div generate the following warning:
+Hi Jakub,
 
-net/netfilter/ipvs/ip_vs_est.c: In function 'ip_vs_est_calc_limits':
-include/asm-generic/div64.h:222:35: warning: comparison of distinct pointer types lacks a cast
-  222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
-      |                                   ^~
-net/netfilter/ipvs/ip_vs_est.c:694:17: note: in expansion of macro 'do_div'
-  694 |                 do_div(val, loops);
-      |                 ^~~~~~
-include/asm-generic/div64.h:222:35: warning: comparison of distinct pointer types lacks a cast
-  222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
-      |                                   ^~
-net/netfilter/ipvs/ip_vs_est.c:700:33: note: in expansion of macro 'do_div'
-  700 |                                 do_div(val, min_est);
-      |                                 ^~~~~~
+On Mon, Dec 12, 2022 at 07:20:37PM -0800, Jakub Kicinski wrote:
+> 32 bit platforms without 64bit div generate the following warning:
+> 
+> net/netfilter/ipvs/ip_vs_est.c: In function 'ip_vs_est_calc_limits':
+> include/asm-generic/div64.h:222:35: warning: comparison of distinct pointer types lacks a cast
+>   222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
+>       |                                   ^~
+> net/netfilter/ipvs/ip_vs_est.c:694:17: note: in expansion of macro 'do_div'
+>   694 |                 do_div(val, loops);
+>       |                 ^~~~~~
+> include/asm-generic/div64.h:222:35: warning: comparison of distinct pointer types lacks a cast
+>   222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
+>       |                                   ^~
+> net/netfilter/ipvs/ip_vs_est.c:700:33: note: in expansion of macro 'do_div'
+>   700 |                                 do_div(val, min_est);
+>       |                                 ^~~~~~
+> 
+> first argument of do_div() should be unsigned. We can't just cast
+> as do_div() updates it as well, so we need an lval.
+> Make val unsigned in the first place, all paths check that the value
+> they assign to this variables are non-negative already.
 
-first argument of do_div() should be unsigned. We can't just cast
-as do_div() updates it as well, so we need an lval.
-Make val unsigned in the first place, all paths check that the value
-they assign to this variables are non-negative already.
+Your patch is very similar to what Julian posted:
 
-Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
----
-CC: horms@verge.net.au
-CC: ja@ssi.bg
-CC: pablo@netfilter.org
-CC: kadlec@netfilter.org
-CC: fw@strlen.de
-CC: jwiesner@suse.de
-CC: lvs-devel@vger.kernel.org
-CC: netfilter-devel@vger.kernel.org
-CC: coreteam@netfilter.org
----
- net/netfilter/ipvs/ip_vs_est.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20221212195845.101844-1-ja@ssi.bg/
 
-diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-index df56073bb282..ce2a1549b304 100644
---- a/net/netfilter/ipvs/ip_vs_est.c
-+++ b/net/netfilter/ipvs/ip_vs_est.c
-@@ -640,9 +640,10 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
- 	int i, loops, ntest;
- 	s32 min_est = 0;
- 	ktime_t t1, t2;
--	s64 diff, val;
- 	int max = 8;
- 	int ret = 1;
-+	s64 diff;
-+	u64 val;
- 
- 	INIT_HLIST_HEAD(&chain);
- 	mutex_lock(&__ip_vs_mutex);
--- 
-2.38.1
-
+Thanks.
