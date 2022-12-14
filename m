@@ -2,85 +2,71 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E68C001B2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Dec 2022 04:00:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FE6BC4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Dec 2022 14:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237323AbiLNEAX (ORCPT
+        id S238690AbiLNOss (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Dec 2022 23:00:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46322 "EHLO
+        Wed, 14 Dec 2022 09:48:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237300AbiLNEAU (ORCPT
+        with ESMTP id S238363AbiLNOsp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Dec 2022 23:00:20 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2BE017886;
-        Tue, 13 Dec 2022 20:00:19 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 55865617DB;
-        Wed, 14 Dec 2022 04:00:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 93EC6C433D2;
-        Wed, 14 Dec 2022 04:00:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1670990418;
-        bh=xYxuiqcBJV0kcYIpJnRIXcwSQNFqwMkVyxdxTBaeTKY=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=KsKSs0T6+/YI3AphEbAQdQVp/VBhlPZL6lwczlX11i3wH3hcyA8CdRCNPXtouC73N
-         jTAiuv3LRMoC2KZ1g3eq3zKxrcr7zYeNbZqIRfrZUeIXQNLdhRAfSpaj2JrkWov0ny
-         H8AZWUMKArxIy176sH7yf/IItpkGHDue3ottqMMuK9L47rTQG50VQLqPaxg6i+xX93
-         DR6hxzVVjlbOdGrRKwP1Wq/G6sIB/Hn/a/jOQG7+0n+jR90lBLzlf0Tr+jgylOYynb
-         2Mr7G1RDmgfPgMVuTXEu6wDcoTk6wKexheQWqyYSTWQVrwZT1fyaHtoO61SdRZafYJ
-         TskzzLMlfFlhA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 66B7AC41612;
-        Wed, 14 Dec 2022 04:00:18 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Wed, 14 Dec 2022 09:48:45 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AD4C27904
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2022 06:48:42 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1p5T3n-0003xd-Gm; Wed, 14 Dec 2022 15:48:39 +0100
+Date:   Wed, 14 Dec 2022 15:48:39 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [iptables PATCH v2 00/11] Support 'make dist' and 'make check'
+Message-ID: <Y5niR2GubRx14BpX@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
+References: <20221208154616.14622-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: flowtable: really fix NAT IPv6 offload
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <167099041841.9337.6614576753638501976.git-patchwork-notify@kernel.org>
-Date:   Wed, 14 Dec 2022 04:00:18 +0000
-References: <20221213140923.154594-2-pablo@netfilter.org>
-In-Reply-To: <20221213140923.154594-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221208154616.14622-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Tue, 13 Dec 2022 15:09:21 +0100 you wrote:
-> From: Qingfang DENG <dqfext@gmail.com>
+On Thu, Dec 08, 2022 at 04:46:05PM +0100, Phil Sutter wrote:
+> The goal of this series is to replace the custom 'tarball' Makefile
+> target by automake's standard 'dist' target. Due to the special
+> non-automake extensions/GNUMakefile.in and some other minor details,
+> this hasn't been functional.
 > 
-> The for-loop was broken from the start. It translates to:
+> Patches 1-6 are preparation work and cleanup of left-overs noticed when
+> comparing final tarball contents.
 > 
-> 	for (i = 0; i < 4; i += 4)
+> Patches 7 and 8 then enable 'dist' and 'distcheck' targets.
 > 
-> which means the loop statement is run only once, so only the highest
-> 32-bit of the IPv6 address gets mangled.
+> Finally, patches 9 and 10 integrate testsuite scripts for use with 'make
+> check'. The 'distcheck' target triggers them, too. But since one doesn't
+> do that as uid 0, only xlate-test.py actually executes and the others
+> are skipped.
 > 
-> [...]
+> Changes since v1:
+> - Replace bashism in patch 3.
+> - Generate .tar.xz instead of .tar.bz2 in patch 8.
+> 
+> Phil Sutter (11):
+>   Drop INCOMPATIBILITIES file
+>   Drop libiptc/linux_stddef.h
+>   Makefile: Generate ip6tables man pages on the fly
+>   extensions: Makefile: Merge initext targets
+>   iptables/Makefile: Reorg variable assignments
+>   iptables/Makefile: Split nft-variant man page list
+>   Makefile: Fix for 'make distcheck'
+>   Makefile: Generate .tar.xz archive with 'make dist'
+>   include/Makefile: xtables-version.h is generated
+>   tests: Adjust testsuite return codes to automake guidelines
+>   Makefile.am: Integrate testsuites
 
-Here is the summary with links:
-  - [net,1/3] netfilter: flowtable: really fix NAT IPv6 offload
-    https://git.kernel.org/netdev/net/c/5fb45f95eec6
-  - [net,2/3] ipvs: add a 'default' case in do_ip_vs_set_ctl()
-    https://git.kernel.org/netdev/net/c/ba57ee0944ff
-  - [net,3/3] netfilter: conntrack: document sctp timeouts
-    https://git.kernel.org/netdev/net/c/f9645abe4255
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Series applied.
