@@ -2,91 +2,85 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C03C4167B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Dec 2022 14:10:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E68C001B2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Dec 2022 04:00:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235921AbiLMOK1 (ORCPT
+        id S237323AbiLNEAX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Dec 2022 09:10:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36446 "EHLO
+        Tue, 13 Dec 2022 23:00:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235869AbiLMOJ6 (ORCPT
+        with ESMTP id S237300AbiLNEAU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Dec 2022 09:09:58 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D79972126B;
-        Tue, 13 Dec 2022 06:09:31 -0800 (PST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 3/3] netfilter: conntrack: document sctp timeouts
-Date:   Tue, 13 Dec 2022 15:09:23 +0100
-Message-Id: <20221213140923.154594-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20221213140923.154594-1-pablo@netfilter.org>
-References: <20221213140923.154594-1-pablo@netfilter.org>
+        Tue, 13 Dec 2022 23:00:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2BE017886;
+        Tue, 13 Dec 2022 20:00:19 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55865617DB;
+        Wed, 14 Dec 2022 04:00:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 93EC6C433D2;
+        Wed, 14 Dec 2022 04:00:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1670990418;
+        bh=xYxuiqcBJV0kcYIpJnRIXcwSQNFqwMkVyxdxTBaeTKY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=KsKSs0T6+/YI3AphEbAQdQVp/VBhlPZL6lwczlX11i3wH3hcyA8CdRCNPXtouC73N
+         jTAiuv3LRMoC2KZ1g3eq3zKxrcr7zYeNbZqIRfrZUeIXQNLdhRAfSpaj2JrkWov0ny
+         H8AZWUMKArxIy176sH7yf/IItpkGHDue3ottqMMuK9L47rTQG50VQLqPaxg6i+xX93
+         DR6hxzVVjlbOdGrRKwP1Wq/G6sIB/Hn/a/jOQG7+0n+jR90lBLzlf0Tr+jgylOYynb
+         2Mr7G1RDmgfPgMVuTXEu6wDcoTk6wKexheQWqyYSTWQVrwZT1fyaHtoO61SdRZafYJ
+         TskzzLMlfFlhA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 66B7AC41612;
+        Wed, 14 Dec 2022 04:00:18 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: flowtable: really fix NAT IPv6 offload
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167099041841.9337.6614576753638501976.git-patchwork-notify@kernel.org>
+Date:   Wed, 14 Dec 2022 04:00:18 +0000
+References: <20221213140923.154594-2-pablo@netfilter.org>
+In-Reply-To: <20221213140923.154594-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+Hello:
 
-Exposed through sysctl, update documentation to describe sctp states and
-their default timeouts.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Signed-off-by: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../networking/nf_conntrack-sysctl.rst        | 33 +++++++++++++++++++
- 1 file changed, 33 insertions(+)
+On Tue, 13 Dec 2022 15:09:21 +0100 you wrote:
+> From: Qingfang DENG <dqfext@gmail.com>
+> 
+> The for-loop was broken from the start. It translates to:
+> 
+> 	for (i = 0; i < 4; i += 4)
+> 
+> which means the loop statement is run only once, so only the highest
+> 32-bit of the IPv6 address gets mangled.
+> 
+> [...]
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index 1120d71f28d7..49db1d11d7c4 100644
---- a/Documentation/networking/nf_conntrack-sysctl.rst
-+++ b/Documentation/networking/nf_conntrack-sysctl.rst
-@@ -163,6 +163,39 @@ nf_conntrack_timestamp - BOOLEAN
- 
- 	Enable connection tracking flow timestamping.
- 
-+nf_conntrack_sctp_timeout_closed - INTEGER (seconds)
-+	default 10
-+
-+nf_conntrack_sctp_timeout_cookie_wait - INTEGER (seconds)
-+	default 3
-+
-+nf_conntrack_sctp_timeout_cookie_echoed - INTEGER (seconds)
-+	default 3
-+
-+nf_conntrack_sctp_timeout_established - INTEGER (seconds)
-+	default 432000 (5 days)
-+
-+nf_conntrack_sctp_timeout_shutdown_sent - INTEGER (seconds)
-+	default 0.3
-+
-+nf_conntrack_sctp_timeout_shutdown_recd - INTEGER (seconds)
-+	default 0.3
-+
-+nf_conntrack_sctp_timeout_shutdown_ack_sent - INTEGER (seconds)
-+	default 3
-+
-+nf_conntrack_sctp_timeout_heartbeat_sent - INTEGER (seconds)
-+	default 30
-+
-+	This timeout is used to setup conntrack entry on secondary paths.
-+	Default is set to hb_interval.
-+
-+nf_conntrack_sctp_timeout_heartbeat_acked - INTEGER (seconds)
-+	default 210
-+
-+	This timeout is used to setup conntrack entry on secondary paths.
-+	Default is set to (hb_interval * path_max_retrans + rto_max)
-+
- nf_conntrack_udp_timeout - INTEGER (seconds)
- 	default 30
- 
+Here is the summary with links:
+  - [net,1/3] netfilter: flowtable: really fix NAT IPv6 offload
+    https://git.kernel.org/netdev/net/c/5fb45f95eec6
+  - [net,2/3] ipvs: add a 'default' case in do_ip_vs_set_ctl()
+    https://git.kernel.org/netdev/net/c/ba57ee0944ff
+  - [net,3/3] netfilter: conntrack: document sctp timeouts
+    https://git.kernel.org/netdev/net/c/f9645abe4255
+
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
