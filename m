@@ -2,82 +2,103 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF4BC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Dec 2022 16:18:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6433AC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Dec 2022 17:06:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229770AbiLOQSb (ORCPT
+        id S230523AbiLORGb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Dec 2022 11:18:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47288 "EHLO
+        Thu, 15 Dec 2022 12:06:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229596AbiLOQS2 (ORCPT
+        with ESMTP id S230527AbiLORGE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Dec 2022 11:18:28 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02B2A2EF05
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Dec 2022 08:18:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=cFefFVj1DDd+cMdsnYIdLZrg5f1lXXqFtCnZhnUGqA8=; b=IPeU/mkhHgT0JcnxzkMajTE6nc
-        TF7MQl79ACBihmnXpCoER4Sc58Rn+GrnF35QMGaoauyhIf0HG2y1nD7hcHSpJrZA5PNVWXKsn8l6W
-        nLlOojkCQC/8DYigi2Dwyr8VA45FaXzkqR+G56EWhJKSfn3baZJV68SVcpXMPpP8npCvmHYfQC4R9
-        4Wb7IqN5YDa0DnbPKiH32dsXkjyYzJ0KBmKKCYOClWxkH2ZSjpew3TBhnzcDFDnQIoqJQ7Gip5Mj8
-        48GogiMisa+PzCN0SZ+ckWjuIiDAeIMfoCmoPOGdrH2pf3AwCfc5mb7d5BRXc6W82aG1XkPiTSVQ2
-        AuUz5pXg==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1p5qwE-0001vE-1J; Thu, 15 Dec 2022 17:18:26 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [iptables PATCH 4/4] nft: Make rule parsing errors fatal
-Date:   Thu, 15 Dec 2022 17:17:56 +0100
-Message-Id: <20221215161756.3463-5-phil@nwl.cc>
-X-Mailer: git-send-email 2.38.0
-In-Reply-To: <20221215161756.3463-1-phil@nwl.cc>
-References: <20221215161756.3463-1-phil@nwl.cc>
+        Thu, 15 Dec 2022 12:06:04 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BEE94A582;
+        Thu, 15 Dec 2022 09:04:04 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 28C1661AE9;
+        Thu, 15 Dec 2022 17:03:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43445C433EF;
+        Thu, 15 Dec 2022 17:03:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1671123811;
+        bh=u0KSgYTkV2U77f0/Zntx9WBbO1DjEIog/utLYU5Ak/4=;
+        h=From:To:Cc:Subject:Date:From;
+        b=uPCpdBejXEKb1/niS//KWNiuPjmrUe1FJe5QumUGvx4HgWxbjb7Zsn6cxqre9O5BD
+         6QqoBj/k4yW83WGU7u6CZ5BxEq0VXuoyIWs/8+IMwGL5KVl+XMf8eMOnHfm5SiUz+j
+         84XwJuSlhvWlk48/K+mPBp9onxWU7Wc2IZOZ5iuRjpW3m8RZgcb1/N3y0P+9Z8por8
+         htWMh4HOZKV9fKrnOGuPJ2jsWvOuZNnnYngISc0ia1gb6RMgR0OeFqyh5MZ2nM8t98
+         CTh+f1yJN20qOIsUdbOMb5HpWhpquzbbYvbE3tlJ8jBSgu0wpoGvGqhttGSlv7g+vU
+         66ovFs7tXj6xg==
+From:   Arnd Bergmann <arnd@kernel.org>
+To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jiri Wiesner <jwiesner@suse.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] ipvs: use div_s64 for signed division
+Date:   Thu, 15 Dec 2022 18:03:15 +0100
+Message-Id: <20221215170324.2579685-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Finish parsing the rule, thereby printing all potential problems and
-abort the program.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+do_div() is only well-behaved for positive numbers, and now warns
+when the first argument is a an s64:
+
+net/netfilter/ipvs/ip_vs_est.c: In function 'ip_vs_est_calc_limits':
+include/asm-generic/div64.h:222:35: error: comparison of distinct pointer types lacks a cast [-Werror]
+  222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
+      |                                   ^~
+net/netfilter/ipvs/ip_vs_est.c:694:17: note: in expansion of macro 'do_div'
+  694 |                 do_div(val, loops);
+
+Convert to using the more appropriate div_s64(), which also
+simplifies the code a bit.
+
+Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- iptables/nft-shared.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/ipvs/ip_vs_est.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index c13fc307e7a89..4a7b5406892c4 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -1362,7 +1362,7 @@ bool nft_rule_to_iptables_command_state(struct nft_handle *h,
- 			nft_parse_range(&ctx, expr);
- 
- 		if (ctx.errmsg) {
--			fprintf(stderr, "%s", ctx.errmsg);
-+			fprintf(stderr, "Error: %s\n", ctx.errmsg);
- 			ctx.errmsg = NULL;
- 			ret = false;
+diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+index ce2a1549b304..dbc32f8cf1f9 100644
+--- a/net/netfilter/ipvs/ip_vs_est.c
++++ b/net/netfilter/ipvs/ip_vs_est.c
+@@ -691,15 +691,13 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
  		}
-@@ -1404,6 +1404,8 @@ bool nft_rule_to_iptables_command_state(struct nft_handle *h,
- 	if (!cs->jumpto)
- 		cs->jumpto = "";
- 
-+	if (!ret)
-+		xtables_error(VERSION_PROBLEM, "Parsing nftables rule failed");
- 	return ret;
- }
- 
+ 		if (diff >= NSEC_PER_SEC)
+ 			continue;
+-		val = diff;
+-		do_div(val, loops);
++		val = div_s64(diff, loops);
+ 		if (!min_est || val < min_est) {
+ 			min_est = val;
+ 			/* goal: 95usec per chain */
+ 			val = 95 * NSEC_PER_USEC;
+ 			if (val >= min_est) {
+-				do_div(val, min_est);
+-				max = (int)val;
++				max = div_s64(val, min_est);
+ 			} else {
+ 				max = 1;
+ 			}
 -- 
-2.38.0
+2.35.1
 
