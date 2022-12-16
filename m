@@ -2,122 +2,200 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EAB4C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Dec 2022 11:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1538C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Dec 2022 12:36:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230509AbiLPLYl (ORCPT
+        id S229561AbiLPMgN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Dec 2022 06:24:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60972 "EHLO
+        Fri, 16 Dec 2022 07:36:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230515AbiLPLYj (ORCPT
+        with ESMTP id S229453AbiLPMgM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Dec 2022 06:24:39 -0500
-Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E560C116F;
-        Fri, 16 Dec 2022 03:24:38 -0800 (PST)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.west.internal (Postfix) with ESMTP id A162832005D8;
-        Fri, 16 Dec 2022 06:24:37 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Fri, 16 Dec 2022 06:24:38 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm1; t=1671189877; x=1671276277; bh=64TMHd9mCM
-        xlohGzvyOHHYDGzPMMW5ePInqTBtIjYdk=; b=VsF9DdcyJT9XCBQ/qNusAupwue
-        44Rl2EOQGWItRfsBUCTBoaHn4g8Ra1HFz88POOmJTsD7A/9wjDwYq4Y4aU+ptnCc
-        XXmUUQC9sAXHCbiVE7/NX+YlxjSxnR3CMf1yWd/3iHQHCDUA+97d822o4WHYRScF
-        HxIRNc8JN4rbRymDbV7uJeEauYXXMm79JNB692DPPC46jWi2iCyg0EgmfG8Pxno/
-        CYj7SH0CLMmOegEKnaECCtgc2NS4sy15JGqF5gtbM/RGMUBKsURT5nY7xpLvZ7Oq
-        joxe8Rvdb5gyVdQkNJnNEoe0J2ptnN9Vy34eGuvgrPMzdobfAvKK19oYn0Rw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm2; t=1671189877; x=1671276277; bh=64TMHd9mCMxlohGzvyOHHYDGzPMM
-        W5ePInqTBtIjYdk=; b=K70/qCvoSdbAWKVRz2ukFfBC92/UqdnvlOLb3gMasrh+
-        METHyE9dna6KBwcNfF55fEHALvWHR9sejwulAGXfm1r+wwKRs20DstEf8wXVEhPa
-        IB5e6FBOiSue95W2sCNBCUJna5g2kp+ON+Q1N1NlFPgEyCWw6Y3HUPZpehKzB5ft
-        aJhmNJmFvKoLJkY2rmRdljp7SxNFkfIBWWPVwCAXNlzBwHmtkcLPocRmjA5gZ+rM
-        olF1Uu7vm2dSZOoUSqTO2uTMKywN4K9KWJHohNpV6eajO0NcSOtiDwqi2eAe5dY1
-        W3eSfP5myBzrQ2zL2KASNEUNzPH14UvlsGvVjgnEHQ==
-X-ME-Sender: <xms:c1WcY6KEwMVEF3zUUQCf-FaVuuiwzXRKhl7jfMG161usujl_oEWD3Q>
-    <xme:c1WcYyIhcDOiDpQuqPWK6r-9upBqd-OCKvLAII0yYwt-gZC6QJZVRxsFzRxi4pCwY
-    0BdvZK-xQHk545nfrA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfeejgddvjecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdetrhhn
-    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
-    gvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedtkeet
-    ffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrh
-    hnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:c1WcY6v_OqPTHlL7pP07WFByXlkUbKI8i1eoVBwm_Fk70om8xdaoyA>
-    <xmx:c1WcY_bpWcKVOdxpqeUwaZbWabwKgR5-NEJG9cqJ2mUUUfyCIHWSRg>
-    <xmx:c1WcYxZmh8cVSFyqfpOZGzUcFQhwFzXRhXR9eCMeFkoe2Hm5O23HWg>
-    <xmx:dVWcYzl0NW3tLmuqJabNnWj2vwmN8w5d3V68oPAd-iXzPNOZ0KupRA>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 8B6D8B60086; Fri, 16 Dec 2022 06:24:35 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.7.0-alpha0-1185-g841157300a-fm-20221208.002-g84115730
-Mime-Version: 1.0
-Message-Id: <e17c7340-8973-417a-a334-01e96e5bbe73@app.fastmail.com>
-In-Reply-To: <Y5xEITNJkry8uy/h@salvia>
-References: <20221215170324.2579685-1-arnd@kernel.org>
- <e1fea67-7425-f13d-e5bd-3d80d9a8afb8@ssi.bg> <Y5xEITNJkry8uy/h@salvia>
-Date:   Fri, 16 Dec 2022 12:24:15 +0100
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
-        "Julian Anastasov" <ja@ssi.bg>
-Cc:     "Arnd Bergmann" <arnd@kernel.org>,
-        "Simon Horman" <horms@verge.net.au>,
-        "Jakub Kicinski" <kuba@kernel.org>,
-        "Paolo Abeni" <pabeni@redhat.com>,
-        "Jiri Wiesner" <jwiesner@suse.de>, Netdev <netdev@vger.kernel.org>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] ipvs: use div_s64 for signed division
-Content-Type: text/plain
+        Fri, 16 Dec 2022 07:36:12 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3B7D13CEC
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Dec 2022 04:36:10 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1p69we-0005iN-GM; Fri, 16 Dec 2022 13:36:08 +0100
+Date:   Fri, 16 Dec 2022 13:36:08 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: Introduce
+ NFTA_RULE_ALT_EXPRESSIONS
+Message-ID: <Y5xmOPFp8mYZqzIW@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20221215204302.8378-1-phil@nwl.cc>
+ <20221216011641.GA574@breakpoint.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221216011641.GA574@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Dec 16, 2022, at 11:10, Pablo Neira Ayuso wrote:
-> Hi Julian,
->
-> On Thu, Dec 15, 2022 at 09:01:59PM +0200, Julian Anastasov wrote:
->> 
->> 	Hello,
->> 
->> On Thu, 15 Dec 2022, Arnd Bergmann wrote:
->> 
->> > From: Arnd Bergmann <arnd@arndb.de>
->> > 
->> > do_div() is only well-behaved for positive numbers, and now warns
->> > when the first argument is a an s64:
->> > 
->> > net/netfilter/ipvs/ip_vs_est.c: In function 'ip_vs_est_calc_limits':
->> > include/asm-generic/div64.h:222:35: error: comparison of distinct pointer types lacks a cast [-Werror]
->> >   222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
->> >       |                                   ^~
->> > net/netfilter/ipvs/ip_vs_est.c:694:17: note: in expansion of macro 'do_div'
->> >   694 |                 do_div(val, loops);
->> 
->> 	net-next already contains fix for this warning
->> and changes val to u64.
->
-> Arnd's patch applies fine on top of net-next, maybe he is addressing
-> something else?
+Hi,
 
-No, it's the same bug. I had prepared my patch before the other fix
-went in, and only one of the two is needed.
+On Fri, Dec 16, 2022 at 02:16:41AM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > With identical content as NFTA_RULE_EXPRESSIONS, data in this attribute
+> > is dumped in place of the live expressions, which in turn are dumped as
+> > NFTA_RULE_ALT_EXPRESSIONS.
+> 
+> This name isn't very descriptive.
+> 
+> Or at least mention that this is for iptables-nft/NFT_COMPAT sake?
 
-FWIW, I find my version slightly more readable, but Jakub's fix
-is probably more efficient, because the unsigned 64-bit division
-is better optimized on 32-bit, while div_s64() goes through an
-extern function.
+I could move it into NFTA_RULE_COMPAT.
 
-     Arnd
+> Perhaps its better to use two distinct attributes?
+> 
+> NFTA_RULE_EXPRESSIONS_COMPAT  (input)
+> NFTA_RULE_EXPRESSIONS_ACTUAL  (output)?
+
+With NFTA_RULE_EXPRESSIONS_ACTUAL replacing NFTA_RULE_EXPRESSIONS?
+
+> The switcheroo of ALT (old crap on input, actual live ruleset on output)
+> is very unintuitive.
+
+Well, providing something that replaces the content of
+NFTA_RULE_EXPRESSIONS is the basic concept of this approach. Restricting
+it to output only is not possible since old user space uses it for
+input. I guess one could make new user space use the *_COMPAT/*_ACTUAL
+attributes above but kernel still has to fall back to plain
+*_EXPRESSIONS.
+
+Adding the two attributes above and using *_COMPAT for input only and
+*_ACTUAL for output only is probably a trivial change though.
+
+[...]
+> > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > index cfa844da1ce61..2dff92f527429 100644
+> > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > @@ -247,6 +247,8 @@ enum nft_chain_attributes {
+> >   * @NFTA_RULE_USERDATA: user data (NLA_BINARY, NFT_USERDATA_MAXLEN)
+> >   * @NFTA_RULE_ID: uniquely identifies a rule in a transaction (NLA_U32)
+> >   * @NFTA_RULE_POSITION_ID: transaction unique identifier of the previous rule (NLA_U32)
+> > + * @NFTA_RULE_CHAIN_ID: add the rule to chain by ID, alternative to @NFTA_RULE_CHAIN (NLA_U32)
+> > + * @NFTA_RULE_ALT_EXPRESSIONS: expressions to swap with @NFTA_RULE_EXPRESSIONS for dumps (NLA_NESTED: nft_expr_attributes)
+> >   */
+> >  enum nft_rule_attributes {
+> >  	NFTA_RULE_UNSPEC,
+> > @@ -261,6 +263,7 @@ enum nft_rule_attributes {
+> >  	NFTA_RULE_ID,
+> >  	NFTA_RULE_POSITION_ID,
+> >  	NFTA_RULE_CHAIN_ID,
+> > +	NFTA_RULE_ALT_EXPRESSIONS,
+> 
+> You need to update the nla_policy too.
+
+ACK, thanks!
+
+> > +		if (nla_put(skb, NFTA_RULE_EXPRESSIONS,
+> > +			    rule->alt_expr->dlen, rule->alt_expr->data) < 0)
+> > +			goto nla_put_failure;
+> > +	} else {
+> > +		list = nla_nest_start_noflag(skb, NFTA_RULE_EXPRESSIONS);
+> > +		if (!list)
+> >  			goto nla_put_failure;
+> > +
+> > +		nft_rule_for_each_expr(expr, next, rule) {
+> > +			if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr, reset) < 0)
+> > +				goto nla_put_failure;
+> > +		}
+> > +		nla_nest_end(skb, list);
+> > +	}
+> > +
+> > +	if (rule->alt_expr) {
+> > +		list = nla_nest_start_noflag(skb, NFTA_RULE_ALT_EXPRESSIONS);
+> > +		if (!list)
+> > +			goto nla_put_failure;
+> > +
+> > +		nft_rule_for_each_expr(expr, next, rule) {
+> > +			if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr, reset) < 0)
+> > +				goto nla_put_failure;
+> > +		}
+> > +		nla_nest_end(skb, list);
+> 
+> How does userspace know if NFTA_RULE_EXPRESSIONS is the backward annotated
+> kludge or the live/real ruleset?  Check for presence of ALT attribute?
+
+Yes, by presence check. iptables-nft may default to ALT_EXPRESSIONS or
+parse both into iptables_command_state objects for comparison.
+
+> > -	nla_nest_end(skb, list);
+> >  
+> >  	if (rule->udata) {
+> >  		struct nft_userdata *udata = nft_userdata(rule);
+> > @@ -3366,6 +3385,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+> >  		nf_tables_expr_destroy(ctx, expr);
+> >  		expr = next;
+> >  	}
+> > +	kfree(rule->alt_expr);
+> >  	kfree(rule);
+> >  }
+> >  
+> > @@ -3443,6 +3463,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+> >  	struct nft_rule *rule, *old_rule = NULL;
+> >  	struct nft_expr_info *expr_info = NULL;
+> >  	u8 family = info->nfmsg->nfgen_family;
+> > +	struct nft_alt_expr *alt_expr = NULL;
+> >  	struct nft_flow_rule *flow = NULL;
+> >  	struct net *net = info->net;
+> >  	struct nft_userdata *udata;
+> > @@ -3556,6 +3577,19 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+> >  	if (size >= 1 << 12)
+> >  		goto err_release_expr;
+> >  
+> > +	if (nla[NFTA_RULE_ALT_EXPRESSIONS]) {
+> > +		int dlen = nla_len(nla[NFTA_RULE_ALT_EXPRESSIONS]);
+> > +		alt_expr = kvmalloc(sizeof(*alt_expr) + dlen, GFP_KERNEL);
+> 
+> Once nla_policy provides a maxlen this is fine.
+
+Hmm. I could define this max length as
+| NFT_RULE_MAXEXPRS * max(nft_expr_ops::size)
+given the currently existing nft_expr_ops instances in kernel. This
+isn't pretty accurate though. Or I do a "fake" parsing of the nested
+expression list only checking the number of elements? IIUC, this is the
+only restriction applied to NFTA_RULE_EXPRESSIONS - at least I don't see
+the size of each NFTA_LIST_ELEM being checked against its
+nft_expr_ops::size. Or am I missing something?
+
+> > +		nla_memcpy(alt_expr->data,
+> > +			   nla[NFTA_RULE_ALT_EXPRESSIONS], dlen);
+> 
+> Hmm, I wonder if this isn't a problem.
+> The kernel will now dump arbitrary data to userspace, whereas without
+> this patch the nla data is generated by kernel, i.e. never malformed.
+> 
+> I wonder if the alt blob needs to go through some type of validation
+> too?
+
+Given that the kernel doesn't use the ALT data, I liked the fact that it
+may contain expressions it doesn't even support anymore. Upholding this
+allows to disable nft_compat in kernel once iptables-nft produces native
+expressions for everything.
+
+I get your point about dumping tainted data. Does a shallow syntactic
+check suffice, is it required to verify each expression's syntax or even
+its semantics?
+
+> Also I think that this attribute should always be ignored for
+> NFT_COMPAT=n builds, we should document this kludge is only for
+> iptables-nft sake (or rather, incorrect a**umptions by 3rd
+> party wrappers of iptables userspace...).
+
+Fine with me. For now, iptables-nft is not usable without NFT_COMPAT
+anyway. If so, we could still relax this into ALT_EXPRESSIONS but no
+compat interface itself.
+
+Thanks, Phil
