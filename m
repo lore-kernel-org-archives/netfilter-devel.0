@@ -2,111 +2,74 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3099EC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Dec 2022 10:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E14C3C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Dec 2022 11:16:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229949AbiLPKKs (ORCPT
+        id S230465AbiLPLQs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 16 Dec 2022 05:10:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49316 "EHLO
+        Fri, 16 Dec 2022 06:16:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229625AbiLPKKr (ORCPT
+        with ESMTP id S230444AbiLPLQc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Dec 2022 05:10:47 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9086B6175;
-        Fri, 16 Dec 2022 02:10:45 -0800 (PST)
-Date:   Fri, 16 Dec 2022 11:10:41 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Arnd Bergmann <arnd@kernel.org>, Simon Horman <horms@verge.net.au>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jiri Wiesner <jwiesner@suse.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] ipvs: use div_s64 for signed division
-Message-ID: <Y5xEITNJkry8uy/h@salvia>
-References: <20221215170324.2579685-1-arnd@kernel.org>
- <e1fea67-7425-f13d-e5bd-3d80d9a8afb8@ssi.bg>
+        Fri, 16 Dec 2022 06:16:32 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99D12F58F
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Dec 2022 03:16:31 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1p68hY-0002Nc-Md; Fri, 16 Dec 2022 12:16:28 +0100
+Date:   Fri, 16 Dec 2022 12:16:28 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     ffmancera@riseup.net
+Subject: repeated nft set add ignores changed parameters
+Message-ID: <20221216111628.GA8767@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <e1fea67-7425-f13d-e5bd-3d80d9a8afb8@ssi.bg>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Julian,
+When re-adding an existing set no error is returned
+and any changed parameters are ignored.
 
-On Thu, Dec 15, 2022 at 09:01:59PM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Thu, 15 Dec 2022, Arnd Bergmann wrote:
-> 
-> > From: Arnd Bergmann <arnd@arndb.de>
-> > 
-> > do_div() is only well-behaved for positive numbers, and now warns
-> > when the first argument is a an s64:
-> > 
-> > net/netfilter/ipvs/ip_vs_est.c: In function 'ip_vs_est_calc_limits':
-> > include/asm-generic/div64.h:222:35: error: comparison of distinct pointer types lacks a cast [-Werror]
-> >   222 |         (void)(((typeof((n)) *)0) == ((uint64_t *)0));  \
-> >       |                                   ^~
-> > net/netfilter/ipvs/ip_vs_est.c:694:17: note: in expansion of macro 'do_div'
-> >   694 |                 do_div(val, loops);
-> 
-> 	net-next already contains fix for this warning
-> and changes val to u64.
+$ nft list ruleset | tee A
+table ip nat {
+     map m {
+	typeof meta mark : ip saddr
+	flags dynamic,timeout timeout 1h
+   }
+  }
+}
+$ $EDITOR $A  # change timeout
+grep timeout\   A
+timeout 1m
+$ nft -f A
+$ nft list ruleset|grep timeout\ 
+timeout 1h
 
-Arnd's patch applies fine on top of net-next, maybe he is addressing
-something else?
 
-> > Convert to using the more appropriate div_s64(), which also
-> > simplifies the code a bit.
-> > 
-> > Fixes: 705dd3444081 ("ipvs: use kthreads for stats estimation")
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> >  net/netfilter/ipvs/ip_vs_est.c | 6 ++----
-> >  1 file changed, 2 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-> > index ce2a1549b304..dbc32f8cf1f9 100644
-> > --- a/net/netfilter/ipvs/ip_vs_est.c
-> > +++ b/net/netfilter/ipvs/ip_vs_est.c
-> > @@ -691,15 +691,13 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
-> >  		}
-> >  		if (diff >= NSEC_PER_SEC)
-> >  			continue;
-> > -		val = diff;
-> > -		do_div(val, loops);
-> > +		val = div_s64(diff, loops);
-> 
-> 	On CONFIG_X86_32 both versions execute single divl
-> for our case but div_s64 is not inlined. I'm not expert in
-> this area but if you think div_u64 is more appropriate then
-> post another patch. Note that now val is u64 and
-> min_est is still s32 (can be u32).
-> 
-> >  		if (!min_est || val < min_est) {
-> >  			min_est = val;
-> >  			/* goal: 95usec per chain */
-> >  			val = 95 * NSEC_PER_USEC;
-> >  			if (val >= min_est) {
-> > -				do_div(val, min_est);
-> > -				max = (int)val;
-> > +				max = div_s64(val, min_est);
-> >  			} else {
-> >  				max = 1;
-> >  			}
-> > -- 
-> > 2.35.1
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+Is this a bug?  Is there really no alternative than to completely
+zap the entire set/map?
+
+Similar issue:
+adding set bla, followed by map bla passes without error but 'map bla'
+gets ignored.
+
+On a related note, what happened to 'netfilter: nf_tables: add support
+to destroy operation':
+
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20221028100531.58666-1-ffmancera@riseup.net/
+
+?
+
+Some people are (rightfully) complaining that they need to do stupid
+'add','delete' (or even add/delete/add!) games.
+
+I don't really mind if we go with new commands (Fernandos patch), if we
+change behaviour to ignore -ENOENT errors (in which case does it
+makes sense to return an error...?) or if we add a nlmsg flag (kinda
+inverse to NLMSG_F_EXCL), but current state is not nice at all.
