@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F7E7C4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Dec 2022 15:39:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEA73C4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Dec 2022 15:39:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229575AbiLTPjR (ORCPT
+        id S229771AbiLTPjV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Dec 2022 10:39:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37380 "EHLO
+        Tue, 20 Dec 2022 10:39:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229942AbiLTPjO (ORCPT
+        with ESMTP id S229749AbiLTPjU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Dec 2022 10:39:14 -0500
+        Tue, 20 Dec 2022 10:39:20 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 858DF1658A
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2022 07:39:13 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76015E0
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2022 07:39:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=jJ0128fXhap1n3HtwclhcfQf7BAiYShz1axigI4BPTQ=; b=l8CI9Rx+slQtvt3Vo0iFnC/lEt
-        jsQXw24OS5VRHxFVlbYpf/dbDWIWlHP+EYxyyADyyXNzYNOk3xipwb+95sABr/V7HHKM64paEQuX+
-        k/ZHuS1n53dG/GpQUavY0Y5prLLOnHPvWperb11fNRiuftq/BBvVyTQ0gPOIk2nW86DrHN41fbkKO
-        mxXQZv6sv9hO7L2e78hd1JiBkUjYi32ENHudQ2X2ZIA4kMjhl3sQOVMQb3K0IRT5TsKDkUZCbAHUO
-        HJtiNt8pxZk5y20cqhE9Y+/YXl1w+JEXzheuMpQ+d+DfHNFhAkhoPXwv/MXOaCXF0T0tK0KlddsZB
-        U4I6MDdA==;
+        bh=X4naVIVqK7eTpUSEybE3n/RTgudBwOsPaGOW58kLOJI=; b=gWGi+vTawIFBxdRbH9GbNlnO6L
+        OkZfZUnkLSS9oL8skIUx+cc0drGUqfPFRxMmgXrG5QEAt2qWCttHXXa7pLJ47X4I3U0fIHW4v0h3a
+        F+igK4skbi2nOGkvXmYKYGy/iz0dTOkG9Fn6vF5PyHmhWkgT0s25Z18J+5JvI3O7qS+wTeI0GIkkB
+        C3BQbswrTDoVZa3ESBBMJn6gI1FSP1YXvjghv9LXiyJvJaNrLchfZGImEbKZcicYVNCAUFk0S3pep
+        pvorhVM2xNYa+ePUZk6AwdEHTMiJa9BCZtmekwTMuIp4MDlg9g6C1pP8+T6VIo0wkoceixJDuWlwM
+        bBD2PaBw==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1p7ehz-0000GA-VN; Tue, 20 Dec 2022 16:39:12 +0100
+        id 1p7ei5-0000GS-8Y; Tue, 20 Dec 2022 16:39:17 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [conntrack-tools PATCH 2/4] conntrack: Fix for unused assignment in do_command_ct()
-Date:   Tue, 20 Dec 2022 16:38:45 +0100
-Message-Id: <20221220153847.24152-3-phil@nwl.cc>
+Subject: [conntrack-tools PATCH 4/4] conntrack: Sanitize free_tmpl_objects()
+Date:   Tue, 20 Dec 2022 16:38:47 +0100
+Message-Id: <20221220153847.24152-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.38.0
 In-Reply-To: <20221220153847.24152-1-phil@nwl.cc>
 References: <20221220153847.24152-1-phil@nwl.cc>
@@ -47,31 +47,31 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The variable is overwritten immediately in the next iteration and the
-loop can't exit before doing that.
+The function unconditionally dereferenced its parameter, yet it is
+possible for the passed 'cur_tmpl' pointer when called from exit_error()
+to be still NULL: It is assigned to by alloc_tmpl_objects() at start of
+do_parse(), though callers of that function might call exit_error() in
+beforehand.
 
-Instead of dropping the assignment, one could add a return code check -
-but since event_cb() never fails, that check is pointless as well.
-
-Fixes: e0dac21ed02e3 ("conntrack: use libmnl for conntrack events")
+Fixes: 258b4540f4512 ("conntrack: add struct ct_tmpl")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/conntrack.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/conntrack.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index aa6323dfbd1b1..07fae3dc2ff07 100644
+index 2bd71e17e6be6..23eaf274a78a1 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -3479,7 +3479,7 @@ static int do_command_ct(const char *progname, struct ct_cmd *cmd,
- 					   strerror(errno));
- 				break;
- 			}
--			res = mnl_cb_run(buf, res, 0, 0, event_cb, cmd);
-+			mnl_cb_run(buf, res, 0, 0, event_cb, cmd);
- 		}
- 		mnl_socket_close(event_sock->mnl);
- 		break;
+@@ -139,6 +139,8 @@ static int alloc_tmpl_objects(struct ct_tmpl *tmpl)
+ 
+ static void free_tmpl_objects(struct ct_tmpl *tmpl)
+ {
++	if (!tmpl)
++		return;
+ 	if (tmpl->ct)
+ 		nfct_destroy(tmpl->ct);
+ 	if (tmpl->exptuple)
 -- 
 2.38.0
 
