@@ -2,99 +2,78 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FDA9C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 11:21:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84BAEC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 11:23:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235429AbiLVLVs (ORCPT
+        id S235460AbiLVLXe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Dec 2022 06:21:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34534 "EHLO
+        Thu, 22 Dec 2022 06:23:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235463AbiLVLVb (ORCPT
+        with ESMTP id S235473AbiLVLXc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Dec 2022 06:21:31 -0500
+        Thu, 22 Dec 2022 06:23:32 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 20DF429353
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 03:21:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ABE801FFA0
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 03:23:31 -0800 (PST)
+Date:   Thu, 22 Dec 2022 12:23:28 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nft] evaluate: fix shift exponent underflow in concatenation evaluation
-Date:   Thu, 22 Dec 2022 12:21:07 +0100
-Message-Id: <20221222112107.44566-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft] scanner: treat invalid octal strings as strings
+Message-ID: <Y6Q+MJsfUe5oxkTF@salvia>
+References: <20221216202714.1413699-1-jeremy@azazel.net>
+ <Y6Qzq48e+ihIf4La@salvia>
+ <Y6Q3AUkBrNbB2JBO@salvia>
+ <Y6Q5PIB5ZIXFpJ40@celephais.dreamlands>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <Y6Q5PIB5ZIXFpJ40@celephais.dreamlands>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There is an underflow of the index that iterates over the concatenation:
+On Thu, Dec 22, 2022 at 11:02:20AM +0000, Jeremy Sowden wrote:
+> On 2022-12-22, at 11:52:49 +0100, Pablo Neira Ayuso wrote:
+> > On Thu, Dec 22, 2022 at 11:38:39AM +0100, Pablo Neira Ayuso wrote:
+> > > On Fri, Dec 16, 2022 at 08:27:14PM +0000, Jeremy Sowden wrote:
+> > [...]
+> > > > We get:
+> > > > 
+> > > >   $ sudo ./src/nft -f - <<<'
+> > > >   > table x {
+> > > >   >   chain y {
+> > > >   >     ip saddr 0308 continue comment "error"
+> > > >   >   }
+> > > >   > }
+> > > >   > '
+> > > >   /dev/stdin:4:14-17: Error: Could not resolve hostname: Name or service not known
+> > > >       ip saddr 0308 continue comment "error"
+> > > >                ^^^^
+> > > > 
+> > > > Add a test-case.
+> > > 
+> > > Applied, thanks.
+> > > 
+> > > I am sorry I missed this patch before the release.
+> > 
+> > Hm. I thought this patch just fixes the parsing of octals.
+> >
+> > iptables and iproute seem to support for octals?
+> 
+> So does nft.  However, 0308 is not valid octal, and nft was silently
+> truncating it to 030.
+> 
+> For hex and decimal, we know that the entire number string is valid in
+> the base and only have to worry whether it is too long and may result in
+> a out-of-range error.  For octal, there is also the possibility that the
+> string may contain 8 or 9.  This patch adds a check for this and if the
+> check fails the failure is handled as an error in the same way it would
+> be if strtoull had reported `ERANGE`.
+> 
+> I did consider adding an `{octalstring}` match to handle octal
+> separately from decimal, but in the end the solution in this patch
+> seemed simpler.
 
-../include/datatype.h:292:15: runtime error: shift exponent 4294967290 is too large for 32-bit type 'unsigned int'
-
-set the datatype to invalid, which is fine when evaluating the
-concatenation
-
-Update b8e1940aa190 ("tests: add a test case for map update from packet
-path with concat") so it does not need a workaround to work.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Prepending meta l4proto tcp still fails, I'm still looking into this:
-
-     meta l4proto tcp update @pinned { ip saddr . ct original proto-dst timeout 1m30s : ip daddr . tcp dport }
-
- src/evaluate.c                                                | 2 +-
- .../testcases/maps/dumps/typeof_maps_concat_update_0.nft      | 2 +-
- tests/shell/testcases/maps/typeof_maps_concat_update_0        | 4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index c04cb91d3919..70adb847d475 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1357,7 +1357,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 			dsize = key->len;
- 			bo = key->byteorder;
- 			off--;
--		} else if (dtype == NULL) {
-+		} else if (dtype == NULL || off == 0) {
- 			tmp = datatype_lookup(TYPE_INVALID);
- 		} else {
- 			tmp = concat_subtype_lookup(type, --off);
-diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft b/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft
-index d91b795fa000..a2c3c139936b 100644
---- a/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft
-+++ b/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft
-@@ -1,6 +1,6 @@
- table ip foo {
- 	map pinned {
--		typeof ip daddr . tcp dport : ip daddr . tcp dport
-+		typeof ip saddr . ct original proto-dst : ip daddr . tcp dport
- 		size 65535
- 		flags dynamic,timeout
- 		timeout 6m
-diff --git a/tests/shell/testcases/maps/typeof_maps_concat_update_0 b/tests/shell/testcases/maps/typeof_maps_concat_update_0
-index 645ae142a5af..e996f14e1830 100755
---- a/tests/shell/testcases/maps/typeof_maps_concat_update_0
-+++ b/tests/shell/testcases/maps/typeof_maps_concat_update_0
-@@ -4,13 +4,13 @@
- 
- EXPECTED="table ip foo {
-  map pinned {
--	typeof ip daddr . tcp dport : ip daddr . tcp dport
-+	typeof ip saddr . ct original proto-dst : ip daddr . tcp dport
- 	size 65535
- 	flags dynamic,timeout
-         timeout 6m
-   }
-   chain pr {
--     meta l4proto tcp update @pinned { ip saddr . ct original proto-dst timeout 1m30s : ip daddr . tcp dport }
-+     update @pinned { ip saddr . ct original proto-dst timeout 1m30s : ip daddr . tcp dport }
-   }
- }"
- 
--- 
-2.30.2
-
+Oh well, thanks for explaining, patch is applied.
