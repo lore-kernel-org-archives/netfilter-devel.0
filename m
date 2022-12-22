@@ -2,42 +2,51 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC938C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 17:42:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE348C4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 22:46:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229740AbiLVRmx (ORCPT
+        id S229785AbiLVWqE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Dec 2022 12:42:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39752 "EHLO
+        Thu, 22 Dec 2022 17:46:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229840AbiLVRmx (ORCPT
+        with ESMTP id S229525AbiLVWqD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Dec 2022 12:42:53 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEAC227B19
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 09:42:51 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1p8Pai-00087P-HH
-        for netfilter-devel@vger.kernel.org; Thu, 22 Dec 2022 18:42:48 +0100
-Date:   Thu, 22 Dec 2022 18:42:48 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 1/3] gitignore: Ignore utils/nfsynproxy
-Message-ID: <Y6SXGFufJ4AtmwMI@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Thu, 22 Dec 2022 17:46:03 -0500
+X-Greylist: delayed 1201 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 22 Dec 2022 14:46:00 PST
+Received: from peace.netnation.com (peace.netnation.com [204.174.223.2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0C8415805;
+        Thu, 22 Dec 2022 14:46:00 -0800 (PST)
+Received: from sim by peace.netnation.com with local (Exim 4.92)
+        (envelope-from <sim@hostway.ca>)
+        id 1p8Tkr-0001sH-Sp; Thu, 22 Dec 2022 14:09:33 -0800
+Date:   Thu, 22 Dec 2022 14:09:33 -0800
+From:   Simon Kirby <sim@hostway.ca>
+To:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org
-References: <20221222162541.30207-1-phil@nwl.cc>
+Subject: "nft list hooks" in older kernels?
+Message-ID: <20221222220933.GA18964@hostway.ca>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221222162541.30207-1-phil@nwl.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 22, 2022 at 05:25:39PM +0100, Phil Sutter wrote:
-> Fixes: 9e6928f037823 ("utils: add nfsynproxy tool")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Hello!
 
-Series applied.
+I'm once again running into some fun with IPVS and nftables NAT, and I
+was curious if there's any way in earlier kernel to get a list similar to
+"nft list hooks" provided by e2cf17d3774c323ef6dab6e9f7c0cfc5e742afd9
+(in >= 5.14), as I'm attempting to compare with 4.14 (LTS) which we're
+still stuck on in some instances (see "Inability to IPVS DR with nft dnat
+since 9971a514ed26").
+
+I attempted to backport this commit to v4.14, but it relies on quite a
+lot of changes since then.
+
+Also, where do the priorities for "type nat" chains actually end up being
+stored? Are they printable?
+
+Simon-
