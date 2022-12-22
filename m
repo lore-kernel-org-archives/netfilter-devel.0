@@ -2,250 +2,229 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3728C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Dec 2022 23:31:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E41C4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 09:40:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234662AbiLUXa7 (ORCPT
+        id S230451AbiLVJkh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Dec 2022 18:30:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37344 "EHLO
+        Thu, 22 Dec 2022 04:40:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231417AbiLUXa6 (ORCPT
+        with ESMTP id S232013AbiLVJkg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Dec 2022 18:30:58 -0500
+        Thu, 22 Dec 2022 04:40:36 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D4A1E253;
-        Wed, 21 Dec 2022 15:30:55 -0800 (PST)
-Date:   Thu, 22 Dec 2022 00:30:52 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 90AE727922
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 01:40:35 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] nftables 1.0.6 release
-Message-ID: <Y6OXLMinA/lCWNsB@salvia>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 4/4,v6] netfilter: nf_tables: honor set timeout and garbage collection updates
+Date:   Thu, 22 Dec 2022 10:40:29 +0100
+Message-Id: <20221222094029.162341-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="+r3PbvtDuakQOpYM"
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Set timeout and garbage collection interval updates are ignored on
+updates. Add transaction to update global set element timeout and
+garbage collection interval.
 
---+r3PbvtDuakQOpYM
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Fixes: 96518518cc41 ("netfilter: add nftables")
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v6: missing check for set updates in abort path, simply discard the transaction.
 
-Hi!
+ include/net/netfilter/nf_tables.h | 13 ++++++-
+ net/netfilter/nf_tables_api.c     | 63 ++++++++++++++++++++++---------
+ 2 files changed, 57 insertions(+), 19 deletions(-)
 
-The Netfilter project proudly presents:
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 4957b4775757..9430128aae99 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -597,7 +597,9 @@ void *nft_set_catchall_gc(const struct nft_set *set);
+ 
+ static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
+ {
+-	return set->gc_int ? msecs_to_jiffies(set->gc_int) : HZ;
++	u32 gc_int = READ_ONCE(set->gc_int);
++
++	return gc_int ? msecs_to_jiffies(gc_int) : HZ;
+ }
+ 
+ /**
+@@ -1570,6 +1572,9 @@ struct nft_trans_rule {
+ struct nft_trans_set {
+ 	struct nft_set			*set;
+ 	u32				set_id;
++	u32				gc_int;
++	u64				timeout;
++	bool				update;
+ 	bool				bound;
+ };
+ 
+@@ -1579,6 +1584,12 @@ struct nft_trans_set {
+ 	(((struct nft_trans_set *)trans->data)->set_id)
+ #define nft_trans_set_bound(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->bound)
++#define nft_trans_set_update(trans)	\
++	(((struct nft_trans_set *)trans->data)->update)
++#define nft_trans_set_timeout(trans)	\
++	(((struct nft_trans_set *)trans->data)->timeout)
++#define nft_trans_set_gc_int(trans)	\
++	(((struct nft_trans_set *)trans->data)->gc_int)
+ 
+ struct nft_trans_chain {
+ 	bool				update;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 319887f4d3ef..8c09e4d12ac1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -465,8 +465,9 @@ static int nft_delrule_by_chain(struct nft_ctx *ctx)
+ 	return 0;
+ }
+ 
+-static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
+-			     struct nft_set *set)
++static int __nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
++			       struct nft_set *set,
++			       const struct nft_set_desc *desc)
+ {
+ 	struct nft_trans *trans;
+ 
+@@ -474,17 +475,28 @@ static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
+ 	if (trans == NULL)
+ 		return -ENOMEM;
+ 
+-	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] != NULL) {
++	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] && !desc) {
+ 		nft_trans_set_id(trans) =
+ 			ntohl(nla_get_be32(ctx->nla[NFTA_SET_ID]));
+ 		nft_activate_next(ctx->net, set);
+ 	}
+ 	nft_trans_set(trans) = set;
++	if (desc) {
++		nft_trans_set_update(trans) = true;
++		nft_trans_set_gc_int(trans) = desc->gc_int;
++		nft_trans_set_timeout(trans) = desc->timeout;
++	}
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+ 
+ 	return 0;
+ }
+ 
++static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
++			     struct nft_set *set)
++{
++	return __nft_trans_set_add(ctx, msg_type, set, NULL);
++}
++
+ static int nft_delset(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+ 	int err;
+@@ -4044,8 +4056,10 @@ static int nf_tables_fill_set_concat(struct sk_buff *skb,
+ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			      const struct nft_set *set, u16 event, u16 flags)
+ {
+-	struct nlmsghdr *nlh;
++	u64 timeout = READ_ONCE(set->timeout);
++	u32 gc_int = READ_ONCE(set->gc_int);
+ 	u32 portid = ctx->portid;
++	struct nlmsghdr *nlh;
+ 	struct nlattr *nest;
+ 	u32 seq = ctx->seq;
+ 	int i;
+@@ -4081,13 +4095,13 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 	    nla_put_be32(skb, NFTA_SET_OBJ_TYPE, htonl(set->objtype)))
+ 		goto nla_put_failure;
+ 
+-	if (set->timeout &&
++	if (timeout &&
+ 	    nla_put_be64(skb, NFTA_SET_TIMEOUT,
+-			 nf_jiffies64_to_msecs(set->timeout),
++			 nf_jiffies64_to_msecs(timeout),
+ 			 NFTA_SET_PAD))
+ 		goto nla_put_failure;
+-	if (set->gc_int &&
+-	    nla_put_be32(skb, NFTA_SET_GC_INTERVAL, htonl(set->gc_int)))
++	if (gc_int &&
++	    nla_put_be32(skb, NFTA_SET_GC_INTERVAL, htonl(gc_int)))
+ 		goto nla_put_failure;
+ 
+ 	if (set->policy != NFT_SET_POL_PERFORMANCE) {
+@@ -4632,7 +4646,10 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 		for (i = 0; i < num_exprs; i++)
+ 			nft_expr_destroy(&ctx, exprs[i]);
+ 
+-		return err;
++		if (err < 0)
++			return err;
++
++		return __nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set, &desc);
+ 	}
+ 
+ 	if (!(info->nlh->nlmsg_flags & NLM_F_CREATE))
+@@ -6070,7 +6087,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			return err;
+ 	} else if (set->flags & NFT_SET_TIMEOUT &&
+ 		   !(flags & NFT_SET_ELEM_INTERVAL_END)) {
+-		timeout = set->timeout;
++		timeout = READ_ONCE(set->timeout);
+ 	}
+ 
+ 	expiration = 0;
+@@ -6171,7 +6188,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		if (err < 0)
+ 			goto err_parse_key_end;
+ 
+-		if (timeout != set->timeout) {
++		if (timeout != READ_ONCE(set->timeout)) {
+ 			err = nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
+ 			if (err < 0)
+ 				goto err_parse_key_end;
+@@ -9093,14 +9110,20 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
+ 			break;
+ 		case NFT_MSG_NEWSET:
+-			nft_clear(net, nft_trans_set(trans));
+-			/* This avoids hitting -EBUSY when deleting the table
+-			 * from the transaction.
+-			 */
+-			if (nft_set_is_anonymous(nft_trans_set(trans)) &&
+-			    !list_empty(&nft_trans_set(trans)->bindings))
+-				trans->ctx.table->use--;
++			if (nft_trans_set_update(trans)) {
++				struct nft_set *set = nft_trans_set(trans);
+ 
++				WRITE_ONCE(set->timeout, nft_trans_set_timeout(trans));
++				WRITE_ONCE(set->gc_int, nft_trans_set_gc_int(trans));
++			} else {
++				nft_clear(net, nft_trans_set(trans));
++				/* This avoids hitting -EBUSY when deleting the table
++				 * from the transaction.
++				 */
++				if (nft_set_is_anonymous(nft_trans_set(trans)) &&
++				    !list_empty(&nft_trans_set(trans)->bindings))
++					trans->ctx.table->use--;
++			}
+ 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
+ 					     NFT_MSG_NEWSET, GFP_KERNEL);
+ 			nft_trans_destroy(trans);
+@@ -9322,6 +9345,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSET:
++			if (nft_trans_set_update(trans)) {
++				nft_trans_destroy(trans);
++				break;
++			}
+ 			trans->ctx.table->use--;
+ 			if (nft_trans_set_bound(trans)) {
+ 				nft_trans_destroy(trans);
+-- 
+2.30.2
 
-        nftables 1.0.6
-
-This release contains enhancements and fixes:
-
-- Fixes for the -o/--optimize, run this --optimize option to automagically
-  compact your ruleset using sets, maps and concatenations.
-
-eg.
-
-     # cat ruleset.nft
-     table ip x {
-            chain y {
-                   type filter hook input priority filter; policy drop;
-                   meta iifname eth1 ip saddr 1.1.1.1 ip daddr 2.2.2.3 accept
-                   meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.2.4 accept
-                   meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.3.0/24 accept
-                   meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.4.0-2.2.4.10 accept
-                   meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.5 accept
-            }
-     }
-     # nft -o -c -f ruleset.nft
-     Merging:
-     ruleset.nft:4:17-74:                 meta iifname eth1 ip saddr 1.1.1.1 ip daddr 2.2.2.3 accept
-     ruleset.nft:5:17-74:                 meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.2.4 accept
-     ruleset.nft:6:17-77:                 meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.3.0/24 accept
-     ruleset.nft:7:17-83:                 meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.4.0-2.2.4.10 accept
-     ruleset.nft:8:17-74:                 meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.5 accept
-     into:
-             iifname . ip saddr . ip daddr { eth1 . 1.1.1.1 . 2.2.2.3, eth1 . 1.1.1.2 . 2.2.2.4, eth1 . 1.1.1.2 . 2.2.3.0/24, eth1 . 1.1.1.2 . 2.2.4.0-2.2.4.10, eth2 . 1.1.1.3 . 2.2.2.5 } accept
-
-+ The optimizer also compacts ruleset representations that already use simple
-  sets, to turn them into set with concatenations, eg.
-
-     # cat ruleset.nft
-     table ip filter {
-            chain input {
-                   type filter hook input priority filter; policy drop;
-                   iifname "lo" accept
-                   ct state established,related accept comment "In traffic we originate, we trust"
-                   iifname "enp0s31f6" ip saddr { 209.115.181.102, 216.197.228.230 } ip daddr 10.0.0.149 udp sport 123 udp dport 32768-65535 accept
-                   iifname "enp0s31f6" ip saddr { 64.59.144.17, 64.59.150.133 } ip daddr 10.0.0.149 udp sport 53 udp dport 32768-65535 accept
-           }
-     }
-     # nft -o -c -f ruleset.nft
-     Merging:
-     ruleset.nft:6:22-149:                      iifname "enp0s31f6" ip saddr { 209.115.181.102, 216.197.228.230 } ip daddr 10.0.0.149 udp sport 123 udp dport 32768-65535 accept
-     ruleset.nft:7:22-143:                      iifname "enp0s31f6" ip saddr { 64.59.144.17, 64.59.150.133 } ip daddr 10.0.0.149 udp sport 53 udp dport 32768-65535 accept
-     into:
-                iifname . ip saddr . ip daddr . udp sport . udp dport { enp0s31f6 . 209.115.181.102 . 10.0.0.149 . 123 . 32768-65535, enp0s31f6 . 216.197.228.230 . 10.0.0.149 . 123 . 32768-65535, enp0s31f6 . 64.59.144.17 . 10.0.0.149 . 53 . 32768-65535, enp0s31f6 . 64.59.150.133 . 10.0.0.149 . 53 . 32768-65535 } accept
-
-- Fix bytecode generation for concatenation of intervals where selectors use
-  different byteorder datatypes, eg. IPv4 (network byte order) and meta mark
-  (host byte order).
-
-    table ip x {
-           map w {
-                 typeof ip saddr . meta mark : verdict
-                 flags interval
-                 counter
-                 elements = {
-                         127.0.0.1-127.0.0.4 . 0x123434-0xb00122 : accept,
-                         192.168.0.10-192.168.1.20 . 0x0000aa00-0x0000aaff : accept,
-                 }
-          }
-          chain k {
-                 type filter hook input priority filter; policy drop;
-                 ip saddr . meta mark vmap @w
-          }
-    }
-
-- fix match of uncommon protocol matches with raw expressions, eg.
-
-     meta l4proto 91 @th,400,16 0x0 accept
-
-- unbreak insertion of rules with intervals:
-
-     insert rule x y tcp sport { 3478-3497, 16384-16387 } counter accept
-
-- enhancements for the JSON API, including support for statements in sets and
-  maps, and asorted fixes.
-- extensions for the python nftables library to allow to load ruleset and
-  perform dry run, support for external definition of variables, among others.
-- allow to intercalate comments in set elements.
-- allow for zero burst in byte ratelimits.
-- fix element collapse routine when same set name and different family is used.
-- ... and manpage updates.
-
-See changelog for more details (attached to this email).
-
-You can download this new release from:
-
-https://www.netfilter.org/projects/nftables/downloads.html
-https://www.netfilter.org/pub/nftables/
-
-[ NOTE: We have switched to .tar.xz files for releases. ]
-
-To build the code, libnftnl >= 1.2.4 and libmnl >= 1.0.4 are required:
-
-* https://netfilter.org/projects/libnftnl/index.html
-* https://netfilter.org/projects/libmnl/index.html
-
-Visit our wikipage for user documentation at:
-
-* https://wiki.nftables.org
-
-For the manpage reference, check man(8) nft.
-
-In case of bugs and feature requests, file them via:
-
-* https://bugzilla.netfilter.org
-
-Happy firewalling.
-
---+r3PbvtDuakQOpYM
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename="changes-nftables-1.0.6.txt"
-
-Alex Forster (1):
-      json: fix 'add flowtable' command
-
-Derek Hageman (1):
-      rule: check address family in set collapse
-
-Fernando Fernandez Mancera (8):
-      json: add set statement list support
-      json: add table map statement support
-      json: fix json schema version verification
-      json: fix empty statement list output in sets and maps
-      json: add secmark object reference support
-      json: add stateful object comment support
-      py: support variables management and fix formatting
-      doc: add nft_ctx_add_var() and nft_ctx_clear_vars() docs
-
-Florian Westphal (11):
-      tests: shell: check for a tainted kernel
-      expr: update EXPR_MAX and add missing comments
-      evaluate: un-break rule insert with intervals
-      evaluate: allow implicit ether -> vlan dep
-      doc: mention vlan matching in ip/ip6/inet families
-      evaluate: add ethernet header size offset for implicit vlan dependency
-      tests: py: add vlan test case for ip/inet family
-      netlink_delinearize: fix decoding of concat data element
-      netlink_linearize: fix timeout with map updates
-      tests: add a test case for map update from packet path with concat
-      doc: add/update can be used with maps too
-
-Harald Welte (1):
-      doc: payload-expression.txt: Mention that 'ih' exists
-
-Jeremy Sowden (3):
-      segtree: refactor decomposition of closed intervals
-      segtree: fix decomposition of unclosed intervals containing address prefixes
-      doc, src: make some spelling and grammatical improvements
-
-Michael Braun (1):
-      concat with dynamically sized fields like vlan id
-
-Pablo Neira Ayuso (31):
-      optimize: merging concatenation is unsupported
-      optimize: check for mergeable rules
-      optimize: expand implicit set element when merging into concatenation
-      src: allow burst 0 for byte ratelimit and use it as default
-      tests/py: missing userdata in netlink payload
-      include: resync nf_tables.h cache copy
-      evaluate: bogus datatype assertion in binary operation evaluation
-      evaluate: datatype memleak after binop transfer
-      parser_bison: display too many levels of nesting error
-      rule: do not display handle for implicit chain
-      netlink_delinearize: do not transfer binary operation to non-anonymous sets
-      tests: shell: deletion from interval concatenation
-      netlink_delinearize: complete payload expression in payload statement
-      payload: do not kill dependency for proto_unknown
-      optimize: handle prefix and range when merging into set + concatenation
-      doc: document a few reset commands supported by the parser
-      doc: no reset support for limit
-      monitor: missing cache and set handle initialization
-      src: support for selectors with different byteorder with interval concatenations
-      doc: statements: fwd supports for sending packets via neighbouring layer
-      scanner: munch full comment lines
-      tests: py: missing json for different byteorder selector with interval concatenation
-      netlink: swap byteorder of value component in concatenation of intervals
-      evaluate: do not crash on runaway number of concatenation components
-      netlink: statify __netlink_gen_data()
-      netlink: add function to generate set element key data
-      netlink: unfold function to generate concatenations for keys and data
-      scanner: match full comment line in case of tie
-      evaluate: fix compilation warning
-      owner: Fix potential array out of bounds access
-      build: Bump version to 1.0.6
-
-Peter Collinson (1):
-      py: extend python API to support libnftables API
-
-Phil Sutter (9):
-      doc: nft.8: Add missing '-T' in synopsis
-      erec: Dump locations' expressions only if set
-      monitor: Sanitize startup race condition
-      Warn for tables with compat expressions in rules
-      Makefile: Create LZMA-compressed dist-files
-      xt: Delay libxtables access until translation
-      xt: Purify enum nft_xt_type
-      xt: Rewrite unsupported compat expression dumping
-      xt: Fall back to generic printing from translation
-
-Xiao Liang (1):
-      src: Don't parse string as verdict in map
-
-
---+r3PbvtDuakQOpYM--
