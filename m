@@ -2,229 +2,183 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E41C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 09:40:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E5BC41535
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 10:03:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230451AbiLVJkh (ORCPT
+        id S235290AbiLVKDu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Dec 2022 04:40:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49442 "EHLO
+        Thu, 22 Dec 2022 05:03:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232013AbiLVJkg (ORCPT
+        with ESMTP id S235149AbiLVKDs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Dec 2022 04:40:36 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 90AE727922
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 01:40:35 -0800 (PST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 4/4,v6] netfilter: nf_tables: honor set timeout and garbage collection updates
-Date:   Thu, 22 Dec 2022 10:40:29 +0100
-Message-Id: <20221222094029.162341-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Thu, 22 Dec 2022 05:03:48 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B68526A84
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 02:02:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1671703334;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=o6jO/LCV2IF2UxvEuH5GPFWr6SJ3JZsJjPnFQmLY128=;
+        b=VPSAzvZsd0VOW0Pl30eVauKyaeyjrHeZyCKLjc73aCE0sDFNugWd332Tf8Gnf2vM6ktSsq
+        o4AXqF1IvloyT4WAPqILWIDn4nvNCDVbbf9ElBuTPa5ti0AU/YRO/UojBqvS08s5Y6pfM8
+        3mkvIzE4KULEPGaldccqosp5ef/3JS4=
+Received: from mail-qv1-f72.google.com (mail-qv1-f72.google.com
+ [209.85.219.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-221-p0Wq9eg4ObynwC37BLqraw-1; Thu, 22 Dec 2022 05:02:11 -0500
+X-MC-Unique: p0Wq9eg4ObynwC37BLqraw-1
+Received: by mail-qv1-f72.google.com with SMTP id ng1-20020a0562143bc100b004bb706b3a27so721799qvb.20
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 02:02:11 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:user-agent:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=o6jO/LCV2IF2UxvEuH5GPFWr6SJ3JZsJjPnFQmLY128=;
+        b=nMsjdjY4p07liBJzOBpInvZZ7Cjjdxd9J+Z4hWhRFqj2CUTJP/m00TEfMFeb4aP97Q
+         D+7PXpOB38dh950ep56er3CSfCham8wP3fAMyoH7GTOU1EkaF9moAZ+1bdZdYuicSyL9
+         7O3hox4dgAvP2wVXAzeWwJZREdg9mS7Melq2AzTcWV8psBUC/vaVjA9OCNKXrji1A8tT
+         jr8Q7W9IrPXP3a55V4wHv3/03y+5oDkQaOMwzJCSqKKUTgoVB0J9xG7cX6nWTBYo7i6D
+         6yDPjBhXipj3YiwWc+qOwYN8a9T4kFPQU27UwQXCNB9meNYTy1tyCBzRy+yVQo++2iXy
+         ySHQ==
+X-Gm-Message-State: AFqh2kqyieDNx64aPVct28otkaTFZMmeXNbmmU/sxSoyGh5F/DF+Fr0i
+        /1ZLDmU5Y8P+ApQ38rSkUR+o97M5bzMg6UCMbt4qFY//V+hwRtnrdDbptK4CvI87jd9PMqf9XVb
+        k8Z6FB42CcJ6zaC4jRyGXlmMYZNHL
+X-Received: by 2002:a0c:c508:0:b0:4e5:a127:382f with SMTP id x8-20020a0cc508000000b004e5a127382fmr6466216qvi.48.1671703331041;
+        Thu, 22 Dec 2022 02:02:11 -0800 (PST)
+X-Google-Smtp-Source: AMrXdXtZnBvcAi4VqZ0nAfseRa5ZZncJObkgh59kN1yODkWBS5WICo+kLsdO+KK5pqcbrrZqdW1DHQ==
+X-Received: by 2002:a0c:c508:0:b0:4e5:a127:382f with SMTP id x8-20020a0cc508000000b004e5a127382fmr6466171qvi.48.1671703330733;
+        Thu, 22 Dec 2022 02:02:10 -0800 (PST)
+Received: from gerbillo.redhat.com (146-241-101-173.dyn.eolo.it. [146.241.101.173])
+        by smtp.gmail.com with ESMTPSA id f1-20020a05620a408100b006cfc9846594sm4269qko.93.2022.12.22.02.02.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Dec 2022 02:02:10 -0800 (PST)
+Message-ID: <8d91ab13f56e88af0f6133130808f9623b3adb2e.camel@redhat.com>
+Subject: Re: [PATCH] treewide: Convert del_timer*() to timer_shutdown*()
+From:   Paolo Abeni <pabeni@redhat.com>
+To:     Steven Rostedt <rostedt@goodmis.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Thomas Gleixner <tglx@linutronix.de>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Anna-Maria Gleixner <anna-maria@linutronix.de>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Julia Lawall <Julia.Lawall@inria.fr>, linux-sh@vger.kernel.org,
+        cgroups@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-acpi@vger.kernel.org,
+        linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
+        drbd-dev@lists.linbit.com, linux-bluetooth@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-input@vger.kernel.org, linux-leds@vger.kernel.org,
+        linux-media@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
+        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+        brcm80211-dev-list.pdl@broadcom.com,
+        SHA-cyfmac-dev-list@infineon.com, linux-scsi@vger.kernel.org,
+        linux-staging@lists.linux.dev, linux-ext4@vger.kernel.org,
+        linux-nilfs@vger.kernel.org, bridge@lists.linux-foundation.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        lvs-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
+        tipc-discussion@lists.sourceforge.net, alsa-devel@alsa-project.org
+Date:   Thu, 22 Dec 2022 11:02:01 +0100
+In-Reply-To: <20221220134519.3dd1318b@gandalf.local.home>
+References: <20221220134519.3dd1318b@gandalf.local.home>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.42.4 (3.42.4-2.fc35) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set timeout and garbage collection interval updates are ignored on
-updates. Add transaction to update global set element timeout and
-garbage collection interval.
+On Tue, 2022-12-20 at 13:45 -0500, Steven Rostedt wrote:
+> [
+>   Linus,
+> 
+>     I ran the script against your latest master branch:
+>     commit b6bb9676f2165d518b35ba3bea5f1fcfc0d969bf
+> 
+>     As the timer_shutdown*() code is now in your tree, I figured
+>     we can start doing the conversions. At least add the trivial ones
+>     now as Thomas suggested that this gets applied at the end of the
+>     merge window, to avoid conflicts with linux-next during the
+>     development cycle. I can wait to Friday to run it again, and
+>     resubmit.
+> 
+>     What is the best way to handle this?
+> ]
+> 
+> From: "Steven Rostedt (Google)" <rostedt@goodmis.org>
+> 
+> Due to several bugs caused by timers being re-armed after they are
+> shutdown and just before they are freed, a new state of timers was added
+> called "shutdown". After a timer is set to this state, then it can no
+> longer be re-armed.
+> 
+> The following script was run to find all the trivial locations where
+> del_timer() or del_timer_sync() is called in the same function that the
+> object holding the timer is freed. It also ignores any locations where the
+> timer->function is modified between the del_timer*() and the free(), as
+> that is not considered a "trivial" case.
+> 
+> This was created by using a coccinelle script and the following commands:
+> 
+>  $ cat timer.cocci
+> @@
+> expression ptr, slab;
+> identifier timer, rfield;
+> @@
+> (
+> -       del_timer(&ptr->timer);
+> +       timer_shutdown(&ptr->timer);
+> > 
+> -       del_timer_sync(&ptr->timer);
+> +       timer_shutdown_sync(&ptr->timer);
+> )
+>   ... when strict
+>       when != ptr->timer
+> (
+>         kfree_rcu(ptr, rfield);
+> > 
+>         kmem_cache_free(slab, ptr);
+> > 
+>         kfree(ptr);
+> )
+> 
+>  $ spatch timer.cocci . > /tmp/t.patch
+>  $ patch -p1 < /tmp/t.patch
+> 
+> Link: https://lore.kernel.org/lkml/20221123201306.823305113@linutronix.de/
+> 
+> Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v6: missing check for set updates in abort path, simply discard the transaction.
+For the networking bits:
 
- include/net/netfilter/nf_tables.h | 13 ++++++-
- net/netfilter/nf_tables_api.c     | 63 ++++++++++++++++++++++---------
- 2 files changed, 57 insertions(+), 19 deletions(-)
+>  drivers/net/ethernet/intel/i40e/i40e_main.c      |  6 +++---
+>  drivers/net/ethernet/marvell/sky2.c              |  2 +-
+>  drivers/net/ethernet/sun/sunvnet.c               |  2 +-
+>  drivers/net/usb/sierra_net.c                     |  2 +-
+>  net/802/garp.c                                   |  2 +-
+>  net/802/mrp.c                                    |  4 ++--
+>  net/bridge/br_multicast.c                        |  8 ++++----
+>  net/bridge/br_multicast_eht.c                    |  4 ++--
+>  net/core/gen_estimator.c                         |  2 +-
+>  net/ipv4/ipmr.c                                  |  2 +-
+>  net/ipv6/ip6mr.c                                 |  2 +-
+>  net/mac80211/mesh_pathtbl.c                      |  2 +-
+>  net/netfilter/ipset/ip_set_list_set.c            |  2 +-
+>  net/netfilter/ipvs/ip_vs_lblc.c                  |  2 +-
+>  net/netfilter/ipvs/ip_vs_lblcr.c                 |  2 +-
+>  net/netfilter/xt_IDLETIMER.c                     |  4 ++--
+>  net/netfilter/xt_LED.c                           |  2 +-
+>  net/sched/cls_flow.c                             |  2 +-
+>  net/sunrpc/svc.c                                 |  2 +-
+>  net/tipc/discover.c                              |  2 +-
+>  net/tipc/monitor.c                               |  2 +-
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 4957b4775757..9430128aae99 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -597,7 +597,9 @@ void *nft_set_catchall_gc(const struct nft_set *set);
- 
- static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
- {
--	return set->gc_int ? msecs_to_jiffies(set->gc_int) : HZ;
-+	u32 gc_int = READ_ONCE(set->gc_int);
-+
-+	return gc_int ? msecs_to_jiffies(gc_int) : HZ;
- }
- 
- /**
-@@ -1570,6 +1572,9 @@ struct nft_trans_rule {
- struct nft_trans_set {
- 	struct nft_set			*set;
- 	u32				set_id;
-+	u32				gc_int;
-+	u64				timeout;
-+	bool				update;
- 	bool				bound;
- };
- 
-@@ -1579,6 +1584,12 @@ struct nft_trans_set {
- 	(((struct nft_trans_set *)trans->data)->set_id)
- #define nft_trans_set_bound(trans)	\
- 	(((struct nft_trans_set *)trans->data)->bound)
-+#define nft_trans_set_update(trans)	\
-+	(((struct nft_trans_set *)trans->data)->update)
-+#define nft_trans_set_timeout(trans)	\
-+	(((struct nft_trans_set *)trans->data)->timeout)
-+#define nft_trans_set_gc_int(trans)	\
-+	(((struct nft_trans_set *)trans->data)->gc_int)
- 
- struct nft_trans_chain {
- 	bool				update;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 319887f4d3ef..8c09e4d12ac1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -465,8 +465,9 @@ static int nft_delrule_by_chain(struct nft_ctx *ctx)
- 	return 0;
- }
- 
--static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
--			     struct nft_set *set)
-+static int __nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
-+			       struct nft_set *set,
-+			       const struct nft_set_desc *desc)
- {
- 	struct nft_trans *trans;
- 
-@@ -474,17 +475,28 @@ static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
- 	if (trans == NULL)
- 		return -ENOMEM;
- 
--	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] != NULL) {
-+	if (msg_type == NFT_MSG_NEWSET && ctx->nla[NFTA_SET_ID] && !desc) {
- 		nft_trans_set_id(trans) =
- 			ntohl(nla_get_be32(ctx->nla[NFTA_SET_ID]));
- 		nft_activate_next(ctx->net, set);
- 	}
- 	nft_trans_set(trans) = set;
-+	if (desc) {
-+		nft_trans_set_update(trans) = true;
-+		nft_trans_set_gc_int(trans) = desc->gc_int;
-+		nft_trans_set_timeout(trans) = desc->timeout;
-+	}
- 	nft_trans_commit_list_add_tail(ctx->net, trans);
- 
- 	return 0;
- }
- 
-+static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
-+			     struct nft_set *set)
-+{
-+	return __nft_trans_set_add(ctx, msg_type, set, NULL);
-+}
-+
- static int nft_delset(const struct nft_ctx *ctx, struct nft_set *set)
- {
- 	int err;
-@@ -4044,8 +4056,10 @@ static int nf_tables_fill_set_concat(struct sk_buff *skb,
- static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 			      const struct nft_set *set, u16 event, u16 flags)
- {
--	struct nlmsghdr *nlh;
-+	u64 timeout = READ_ONCE(set->timeout);
-+	u32 gc_int = READ_ONCE(set->gc_int);
- 	u32 portid = ctx->portid;
-+	struct nlmsghdr *nlh;
- 	struct nlattr *nest;
- 	u32 seq = ctx->seq;
- 	int i;
-@@ -4081,13 +4095,13 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	    nla_put_be32(skb, NFTA_SET_OBJ_TYPE, htonl(set->objtype)))
- 		goto nla_put_failure;
- 
--	if (set->timeout &&
-+	if (timeout &&
- 	    nla_put_be64(skb, NFTA_SET_TIMEOUT,
--			 nf_jiffies64_to_msecs(set->timeout),
-+			 nf_jiffies64_to_msecs(timeout),
- 			 NFTA_SET_PAD))
- 		goto nla_put_failure;
--	if (set->gc_int &&
--	    nla_put_be32(skb, NFTA_SET_GC_INTERVAL, htonl(set->gc_int)))
-+	if (gc_int &&
-+	    nla_put_be32(skb, NFTA_SET_GC_INTERVAL, htonl(gc_int)))
- 		goto nla_put_failure;
- 
- 	if (set->policy != NFT_SET_POL_PERFORMANCE) {
-@@ -4632,7 +4646,10 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 		for (i = 0; i < num_exprs; i++)
- 			nft_expr_destroy(&ctx, exprs[i]);
- 
--		return err;
-+		if (err < 0)
-+			return err;
-+
-+		return __nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set, &desc);
- 	}
- 
- 	if (!(info->nlh->nlmsg_flags & NLM_F_CREATE))
-@@ -6070,7 +6087,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			return err;
- 	} else if (set->flags & NFT_SET_TIMEOUT &&
- 		   !(flags & NFT_SET_ELEM_INTERVAL_END)) {
--		timeout = set->timeout;
-+		timeout = READ_ONCE(set->timeout);
- 	}
- 
- 	expiration = 0;
-@@ -6171,7 +6188,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		if (err < 0)
- 			goto err_parse_key_end;
- 
--		if (timeout != set->timeout) {
-+		if (timeout != READ_ONCE(set->timeout)) {
- 			err = nft_set_ext_add(&tmpl, NFT_SET_EXT_TIMEOUT);
- 			if (err < 0)
- 				goto err_parse_key_end;
-@@ -9093,14 +9110,20 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
- 			break;
- 		case NFT_MSG_NEWSET:
--			nft_clear(net, nft_trans_set(trans));
--			/* This avoids hitting -EBUSY when deleting the table
--			 * from the transaction.
--			 */
--			if (nft_set_is_anonymous(nft_trans_set(trans)) &&
--			    !list_empty(&nft_trans_set(trans)->bindings))
--				trans->ctx.table->use--;
-+			if (nft_trans_set_update(trans)) {
-+				struct nft_set *set = nft_trans_set(trans);
- 
-+				WRITE_ONCE(set->timeout, nft_trans_set_timeout(trans));
-+				WRITE_ONCE(set->gc_int, nft_trans_set_gc_int(trans));
-+			} else {
-+				nft_clear(net, nft_trans_set(trans));
-+				/* This avoids hitting -EBUSY when deleting the table
-+				 * from the transaction.
-+				 */
-+				if (nft_set_is_anonymous(nft_trans_set(trans)) &&
-+				    !list_empty(&nft_trans_set(trans)->bindings))
-+					trans->ctx.table->use--;
-+			}
- 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
- 					     NFT_MSG_NEWSET, GFP_KERNEL);
- 			nft_trans_destroy(trans);
-@@ -9322,6 +9345,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSET:
-+			if (nft_trans_set_update(trans)) {
-+				nft_trans_destroy(trans);
-+				break;
-+			}
- 			trans->ctx.table->use--;
- 			if (nft_trans_set_bound(trans)) {
- 				nft_trans_destroy(trans);
--- 
-2.30.2
+Acked-by: Paolo Abeni <pabeni@redhat.com>
 
