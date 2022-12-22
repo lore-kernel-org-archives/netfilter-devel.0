@@ -2,56 +2,99 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1A4C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 11:16:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FDA9C4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 11:21:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235213AbiLVLQ6 (ORCPT
+        id S235429AbiLVLVs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Dec 2022 06:16:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60816 "EHLO
+        Thu, 22 Dec 2022 06:21:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231892AbiLVLQ5 (ORCPT
+        with ESMTP id S235463AbiLVLVb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Dec 2022 06:16:57 -0500
+        Thu, 22 Dec 2022 06:21:31 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 534991FCE0
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 03:16:57 -0800 (PST)
-Date:   Thu, 22 Dec 2022 12:16:54 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 20DF429353
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Dec 2022 03:21:14 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Arturo Borrero Gonzalez <arturo@netfilter.org>
-Cc:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [ANNOUNCE] nftables 1.0.6 release
-Message-ID: <Y6Q8plbLc8eDR9Ou@salvia>
-References: <Y6OXLMinA/lCWNsB@salvia>
- <22fd9796-023f-1aac-e054-5227bc64be3d@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nft] evaluate: fix shift exponent underflow in concatenation evaluation
+Date:   Thu, 22 Dec 2022 12:21:07 +0100
+Message-Id: <20221222112107.44566-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <22fd9796-023f-1aac-e054-5227bc64be3d@netfilter.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Dec 22, 2022 at 12:14:20PM +0100, Arturo Borrero Gonzalez wrote:
-> On 12/22/22 00:30, Pablo Neira Ayuso wrote:
-> > 
-> > To build the code, libnftnl >= 1.2.4 and libmnl >= 1.0.4 are required:
-> > 
-> 
-> Hi,
-> 
-> when building nftables 1.0.6 for debian, the build system says that it
-> should be fine to use libnftnl 1.2.2, which apparently is the latest release
-> that added a new public symbol.
-> 
-> This can be a problem with the debian toolchain, or it can be for real that
-> there are no new symbols since 1.2.2 and therefore the build-time dependency
-> is on >= 1.2.2
-> 
-> No big deal, but it would be nice to clarify this.
+There is an underflow of the index that iterates over the concatenation:
 
-No new symbols in libnftnl 1.2.4, the pktconfig dependency was bumped
-because of minor fixes included in libnftnl.
+../include/datatype.h:292:15: runtime error: shift exponent 4294967290 is too large for 32-bit type 'unsigned int'
 
-We can stop bumping the dependency for minor fixes in the future if
-you prefer it this way.
+set the datatype to invalid, which is fine when evaluating the
+concatenation
+
+Update b8e1940aa190 ("tests: add a test case for map update from packet
+path with concat") so it does not need a workaround to work.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Prepending meta l4proto tcp still fails, I'm still looking into this:
+
+     meta l4proto tcp update @pinned { ip saddr . ct original proto-dst timeout 1m30s : ip daddr . tcp dport }
+
+ src/evaluate.c                                                | 2 +-
+ .../testcases/maps/dumps/typeof_maps_concat_update_0.nft      | 2 +-
+ tests/shell/testcases/maps/typeof_maps_concat_update_0        | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index c04cb91d3919..70adb847d475 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1357,7 +1357,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+ 			dsize = key->len;
+ 			bo = key->byteorder;
+ 			off--;
+-		} else if (dtype == NULL) {
++		} else if (dtype == NULL || off == 0) {
+ 			tmp = datatype_lookup(TYPE_INVALID);
+ 		} else {
+ 			tmp = concat_subtype_lookup(type, --off);
+diff --git a/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft b/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft
+index d91b795fa000..a2c3c139936b 100644
+--- a/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft
++++ b/tests/shell/testcases/maps/dumps/typeof_maps_concat_update_0.nft
+@@ -1,6 +1,6 @@
+ table ip foo {
+ 	map pinned {
+-		typeof ip daddr . tcp dport : ip daddr . tcp dport
++		typeof ip saddr . ct original proto-dst : ip daddr . tcp dport
+ 		size 65535
+ 		flags dynamic,timeout
+ 		timeout 6m
+diff --git a/tests/shell/testcases/maps/typeof_maps_concat_update_0 b/tests/shell/testcases/maps/typeof_maps_concat_update_0
+index 645ae142a5af..e996f14e1830 100755
+--- a/tests/shell/testcases/maps/typeof_maps_concat_update_0
++++ b/tests/shell/testcases/maps/typeof_maps_concat_update_0
+@@ -4,13 +4,13 @@
+ 
+ EXPECTED="table ip foo {
+  map pinned {
+-	typeof ip daddr . tcp dport : ip daddr . tcp dport
++	typeof ip saddr . ct original proto-dst : ip daddr . tcp dport
+ 	size 65535
+ 	flags dynamic,timeout
+         timeout 6m
+   }
+   chain pr {
+-     meta l4proto tcp update @pinned { ip saddr . ct original proto-dst timeout 1m30s : ip daddr . tcp dport }
++     update @pinned { ip saddr . ct original proto-dst timeout 1m30s : ip daddr . tcp dport }
+   }
+ }"
+ 
+-- 
+2.30.2
+
