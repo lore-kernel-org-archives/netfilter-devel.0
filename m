@@ -2,73 +2,91 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF97BC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Dec 2022 23:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4239FC4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Dec 2022 12:38:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229754AbiLVXXG (ORCPT
+        id S230237AbiLWMi2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Dec 2022 18:23:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56534 "EHLO
+        Fri, 23 Dec 2022 07:38:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229627AbiLVXXF (ORCPT
+        with ESMTP id S230022AbiLWMi0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Dec 2022 18:23:05 -0500
-Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2568A6275;
-        Thu, 22 Dec 2022 15:23:05 -0800 (PST)
-Received: by mail-ed1-x534.google.com with SMTP id d14so4955649edj.11;
-        Thu, 22 Dec 2022 15:23:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=s+xWxUTgn6w8vQ0J6vyX2GHOWyGLyVKHrPrQZJaoicc=;
-        b=eV5qB+px6/W3VKj+9+e8NKpP8cF1/d+EEyYA9+rOJCAG8Id968JjnBBL9ogBW0U5pF
-         UGHpblel2zDcvnesOkFd5yIx4saoWFm1d/L1xIDPeCCMxo0bohl1FSt4UsQGY28SPIJl
-         uPuTF+zMfolSJcHprsTF97AMrTeVyu7jMldwiE3krMK2IN8LKNMzsP66BQ3U7cgpM3/h
-         CEtvxaNtSwCb1XuZsUqyBIv4Rs3lmuTnlRbwkDFC/ZXpG8fqSP721WziXnqMYGecFdb0
-         rW5QgZDgZ9hS6tV3GLhgrcLy+UDs8bpV+dqxiDR0wfgmPg893J0PemRmrfuRDq1i7CA0
-         LNAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=s+xWxUTgn6w8vQ0J6vyX2GHOWyGLyVKHrPrQZJaoicc=;
-        b=2FrJKVQtv7AgVoJSPgtdpLKDsQyCIN3t67gFlRKkxtoCS757apO/gosCl9NTMI8FQS
-         LiYIfNA0+95TsCmzVLdd6x9T/DhLDftFNfAXgSaiaPSrldNiEbW2aLnm5XBw3FYVRK4Y
-         JWqh7QMuYeDMZ0NJEI7JjZo+5RR6VDqvQSb3iYoAt8oB5kOaufwoYyMdOEe4jg+/6T9i
-         Z1kJG5oJv7L5yZh0mjYo+MjOdSKAvekTSXcK5qfYDdiLXmC2qGYy0PqrcfkkSlAl7Zfl
-         1kBxUmSW25tZ9PDm2651MMMpO+Guc3UafqQ/cIenlimiG8zk8vb5z8e589t7BqkfFxJS
-         6Few==
-X-Gm-Message-State: AFqh2krlZFpJCyJTg8l8Gq5Vbv6hdmd5TtfHR3L6Uj7j8lDqT2tzTUY8
-        pTPXOqVOdiiGIpeJvhpZQTROYDvChBQuc+S3Mp8DBN2QLkM=
-X-Google-Smtp-Source: AMrXdXsfA6Om9waNFz8l6mUiM18gNQnHcSRID/1qNIuAFfyOFCQPlA9plakrjwrqr0Q+fjPSBvu03gesw5KUJS/pDGs=
-X-Received: by 2002:aa7:dd41:0:b0:46f:a73d:6bd7 with SMTP id
- o1-20020aa7dd41000000b0046fa73d6bd7mr750542edw.93.1671751383488; Thu, 22 Dec
- 2022 15:23:03 -0800 (PST)
+        Fri, 23 Dec 2022 07:38:26 -0500
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 650F817E23
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Dec 2022 04:38:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=FnLX1/NeijDBI+lcJUs8uhMCL8NdQ0P8Lu11UYb/EiA=; b=PbhDc+JA4wgOz8OPvczNrq8FuH
+        doZWuBgh6sbHjIvo5V+Z3VFPduhDvzZX5RFFT6Hc2LrjGoL/D74996WUotj6U7WrT1u5DNjm8n4D3
+        deJfO8gpfsKrMg/w55P78UB0CkrI0ybwhMiKq+ACTUOOtBtFP0+MiJ8erOQACroaefVk+wNxYKV5E
+        faTcD1teGv96P6lbapiV0PhosLiaO3a+OBd2w/qLBkrox0xns2QhFHLLWxJN9w3T44vKoaLNzvE4X
+        zHFk0e1jWnkWcN6rml0lM0AobVAkKOpAN4mmyx3Nvba1p6vy/7RkUmnmqtr2+qikSX0QiKVv5xCiY
+        uxCyDuDQ==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1p8hJe-005VgK-TF
+        for netfilter-devel@vger.kernel.org; Fri, 23 Dec 2022 12:38:22 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [libnetfilter_conntrack PATCH] conntrack: increase the length of `l4proto_map`
+Date:   Fri, 23 Dec 2022 12:38:06 +0000
+Message-Id: <20221223123806.2685611-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-From:   =?UTF-8?B?0JzQsNGA0Log0JrQvtGA0LXQvdCx0LXRgNCz?= 
-        <socketpair@gmail.com>
-Date:   Fri, 23 Dec 2022 02:22:52 +0300
-Message-ID: <CAEmTpZFTQVDYw4w2LgTmABZ8ygJtwtLj+Kj9CsZmNARpuB2oHQ@mail.gmail.com>
-Subject: ipset bug (kernel hang)
-To:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        kadlecsik.jozsef@wigner.hu, kadlec@sunserv.kfki.hu
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ipset create acl_cdc_cert hash:net,port,net
-ipset add acl_cdc_cert 0.0.0.0/0,tcp:1-2,192.168.230.128/25
+With addition of MPTCP `IPPROTO_MAX` is greater than 256, so extend the
+array to account for the new upper bound.
 
-and kernel 6.0.12 hangs (!)
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ include/internal/object.h | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Seems the problem happens only if both 0.0.0.0/0 and port range
-specified at the same time.
-
-Please tell me where to report.
-
+diff --git a/include/internal/object.h b/include/internal/object.h
+index 75ffdbe97229..b919f5784df3 100644
+--- a/include/internal/object.h
++++ b/include/internal/object.h
+@@ -6,6 +6,7 @@
+ #ifndef _NFCT_OBJECT_H_
+ #define _NFCT_OBJECT_H_
+ 
++#include <internal/bitops.h>
+ #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+ 
+ /*
+@@ -223,12 +224,13 @@ struct nfct_filter {
+ 	enum nfct_filter_logic 	logic[NFCT_FILTER_MAX];
+ 
+ 	/*
+-	 * This the layer 4 protocol map for filtering. Not more than 
+-	 * 255 protocols (maximum is IPPROTO_MAX which is 256). Actually,
+-	 * I doubt that anyone can reach such a limit.
++	 * This the layer 4 protocol map for filtering. Not more than 255
++	 * protocols.  Although IPPROTO_MAX is currently 263, there are many
++	 * fewer protocols defined in netinet/in.h, so no one should reach this
++	 * limit.
+ 	 */
+ #define __FILTER_L4PROTO_MAX	255
+-	uint32_t 		l4proto_map[IPPROTO_MAX/32];
++	uint32_t 		l4proto_map[DIV_ROUND_UP(IPPROTO_MAX, 32)];
+ 	uint32_t		l4proto_len;
+ 
+ 	struct {
 -- 
-Segmentation fault
+2.35.1
+
