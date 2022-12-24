@@ -2,83 +2,46 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 815BDC10F1B
-	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Dec 2022 03:11:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D83F2C4332F
+	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Dec 2022 17:17:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231451AbiLXDLC (ORCPT
+        id S230294AbiLXRRF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 23 Dec 2022 22:11:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43982 "EHLO
+        Sat, 24 Dec 2022 12:17:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229871AbiLXDLB (ORCPT
+        with ESMTP id S229570AbiLXRRD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Dec 2022 22:11:01 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36CEBF0;
-        Fri, 23 Dec 2022 19:11:00 -0800 (PST)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Nf89l2j4mz67vrS;
-        Sat, 24 Dec 2022 11:07:39 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Sat, 24 Dec 2022 03:10:57 +0000
-Message-ID: <dc0de995-00dc-9dd7-a783-f57b2c274cb2@huawei.com>
-Date:   Sat, 24 Dec 2022 06:10:56 +0300
+        Sat, 24 Dec 2022 12:17:03 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 242C99FDB
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Dec 2022 09:16:59 -0800 (PST)
+Date:   Sat, 24 Dec 2022 18:16:55 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libmnl] doc: fix some non-native English usages
+Message-ID: <Y6c0B55Iw3mqO2k/@salvia>
+References: <20221223215621.2940577-1-jeremy@azazel.net>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH] landlock: Allow filesystem layout changes for domains
- without such rule type
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <artem.kuzin@huawei.com>, <gnoack3000@gmail.com>,
-        <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>
-References: <5c6c99f7-4218-1f79-477e-5d943c9809fd@digikod.net>
- <20221117185509.702361-1-mic@digikod.net>
- <fb9a288a-aa86-9192-e6d7-d6678d740297@digikod.net>
- <4b23de18-2ae9-e7e3-52a3-53151e8802f9@huawei.com>
- <fd4c0396-af56-732b-808b-887c150e5e6b@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <fd4c0396-af56-732b-808b-887c150e5e6b@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20221223215621.2940577-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Fri, Dec 23, 2022 at 09:56:21PM +0000, Jeremy Sowden wrote:
+> "allows to" -> "allows ${pronoun} to".  We use "you" if that appears in context,
+> "one" otherwise.
 
-
-11/28/2022 11:23 PM, Mickaël Salaün пишет:
-> 
-> On 28/11/2022 04:04, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 11/18/2022 12:16 PM, Mickaël Salaün пишет:
->>> Konstantin, this patch should apply cleanly just after "01/12 landlock:
->>> Make ruleset's access masks more generic". You can easily get this patch
->>> with https://git.kernel.org/pub/scm/utils/b4/b4.git/
->>> Some adjustments are needed for the following patches. Feel free to
->>> review this patch.
->       Do you have this patch online? Can I fetch it from your repo?
-> 
-> You can cherry-pick from here: https://git.kernel.org/mic/c/439ea2d31e662
-
-Hi Mickaёl.
-
-Sorry for the delay. I was a bit busy with another task. Now I'm 
-preparing a new patch.
-
-I tried to apply your one but I got an error opening this the link : Bad 
-object id: 439ea2d31e662.
-
-Could please check it?
-
-Best regards.
-> .
+$ patch -p1 < libmnl-doc-fix-some-non-native-English-usages.patch
+patching file src/attr.c
+Hunk #1 FAILED at 115.
+Hunk #2 FAILED at 222.
+Hunk #3 succeeded at 262 (offset 18 lines).
+Hunk #4 succeeded at 289 (offset 18 lines).
+2 out of 4 hunks FAILED -- saving rejects to file src/attr.c.rej
+patching file src/nlmsg.c
+Hunk #1 succeeded at 518 (offset 30 lines).
+patching file src/socket.c
