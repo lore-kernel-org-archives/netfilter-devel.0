@@ -2,140 +2,89 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D588C4332F
-	for <netfilter-devel@archiver.kernel.org>; Sat, 24 Dec 2022 17:35:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE020C4167B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Dec 2022 21:24:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230247AbiLXRfu (ORCPT
+        id S232314AbiLZVYw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 24 Dec 2022 12:35:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58640 "EHLO
+        Mon, 26 Dec 2022 16:24:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60560 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229570AbiLXRfs (ORCPT
+        with ESMTP id S232278AbiLZVYv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 24 Dec 2022 12:35:48 -0500
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50485100A
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Dec 2022 09:35:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=W5dFjwezf+1e0xwOos1cdb1TgX3Kfwp+s56mboCFY0M=; b=iFf0sB7/Ks+NYoHlOqsMw+Nl32
-        VUO6y/oPI1Qdq+TIQklYVDAlDOLPdgekxFo1kOjrkLUUkRLvVHG9VwH8zWf+Q40N6rDjCXJKJyrrx
-        YkAT9DCtrm/Eb8rsQWCayL3xHPFs7xfHoEa71fQe2rhHNkOJI63GFMOhUrl4kKcI+V2wtgdNqyjaM
-        s+KWiPRiQU85qQOpFoo+7642d72Y3HZXrDhkk5NJdcSAENZiQakrsooS6JbCDn4i/hr4guSp9YlCU
-        ElKEB3kmf4vfLKOpq+uYq5wBXICgNjtTT5ojHZYdAsRgewSPF6gj7ZXl+bqtrtJmvCuMItUkaDERf
-        JZB4OfKA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1p98Qz-006tyy-2B
-        for netfilter-devel@vger.kernel.org; Sat, 24 Dec 2022 17:35:45 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH libmnl v2] doc: fix some non-native English usages
-Date:   Sat, 24 Dec 2022 17:35:40 +0000
-Message-Id: <20221224173540.3035470-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.35.1
+        Mon, 26 Dec 2022 16:24:51 -0500
+Received: from smtp-42af.mail.infomaniak.ch (smtp-42af.mail.infomaniak.ch [IPv6:2001:1600:3:17::42af])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D4F31141
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Dec 2022 13:24:48 -0800 (PST)
+Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4NgrQj4ZknzMqNY5;
+        Mon, 26 Dec 2022 22:24:45 +0100 (CET)
+Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4NgrQh6DhwzMppL7;
+        Mon, 26 Dec 2022 22:24:44 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1672089885;
+        bh=CQRg1XvyqHQkoGMl7AC7PUYFJxNFyGTAtH2hnB5ZPU4=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=n62tLGjZkMXhYCThuFRidZvkEhv9kyYTj6iXt5mBqDCjHYGzXxsQRdLPfHzhH0vnp
+         e1Nre+wNnlZe9JDnC9csOoFCJoTPW2kpZIM/sx471tSRmtpoXOQ8tdDKxgcg3tut+D
+         fmw6YEmgUklMWm80bOpsNnUHeCfrdJGYRBDyVP1s=
+Message-ID: <6a1c9471-6fb3-792d-1e9b-d78884162ef5@digikod.net>
+Date:   Mon, 26 Dec 2022 22:24:43 +0100
 MIME-Version: 1.0
+User-Agent: 
+Subject: Re: [PATCH] landlock: Allow filesystem layout changes for domains
+ without such rule type
+Content-Language: en-US
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+Cc:     artem.kuzin@huawei.com, gnoack3000@gmail.com,
+        willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+References: <5c6c99f7-4218-1f79-477e-5d943c9809fd@digikod.net>
+ <20221117185509.702361-1-mic@digikod.net>
+ <fb9a288a-aa86-9192-e6d7-d6678d740297@digikod.net>
+ <4b23de18-2ae9-e7e3-52a3-53151e8802f9@huawei.com>
+ <fd4c0396-af56-732b-808b-887c150e5e6b@digikod.net>
+ <dc0de995-00dc-9dd7-a783-f57b2c274cb2@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <dc0de995-00dc-9dd7-a783-f57b2c274cb2@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-"allows to" -> "allows ${pronoun} to".  We use "you" if that appears in context,
-"one" otherwise.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
-Changes since v1:
-  * rebased on to b923795047e7 ("Makefile: Create LZMA-compressed dist-files")
 
-src/attr.c   | 12 ++++++------
- src/nlmsg.c  |  6 +++---
- src/socket.c |  2 +-
- 3 files changed, 10 insertions(+), 10 deletions(-)
+On 24/12/2022 04:10, Konstantin Meskhidze (A) wrote:
+> 
+> 
+> 11/28/2022 11:23 PM, Mickaël Salaün пишет:
+>>
+>> On 28/11/2022 04:04, Konstantin Meskhidze (A) wrote:
+>>>
+>>>
+>>> 11/18/2022 12:16 PM, Mickaël Salaün пишет:
+>>>> Konstantin, this patch should apply cleanly just after "01/12 landlock:
+>>>> Make ruleset's access masks more generic". You can easily get this patch
+>>>> with https://git.kernel.org/pub/scm/utils/b4/b4.git/
+>>>> Some adjustments are needed for the following patches. Feel free to
+>>>> review this patch.
+>>        Do you have this patch online? Can I fetch it from your repo?
+>>
+>> You can cherry-pick from here: https://git.kernel.org/mic/c/439ea2d31e662
+> 
+> Hi Mickaёl.
+> 
+> Sorry for the delay. I was a bit busy with another task. Now I'm
+> preparing a new patch.
+> 
+> I tried to apply your one but I got an error opening this the link : Bad
+> object id: 439ea2d31e662.
+> 
+> Could please check it?
 
-diff --git a/src/attr.c b/src/attr.c
-index 20d48a370524..bc39df4199e7 100644
---- a/src/attr.c
-+++ b/src/attr.c
-@@ -122,7 +122,7 @@ EXPORT_SYMBOL struct nlattr *mnl_attr_next(const struct nlattr *attr)
-  * \param attr pointer to attribute to be checked
-  * \param max maximum attribute type
-  *
-- * This function allows to check if the attribute type is higher than the
-+ * This function allows one to check if the attribute type is higher than the
-  * maximum supported type.
-  *
-  * Strict attribute checking in user-space is not a good idea since you may
-@@ -236,7 +236,7 @@ EXPORT_SYMBOL int mnl_attr_validate(const struct nlattr *attr, enum mnl_attr_dat
-  * \param type attribute type (see enum mnl_attr_data_type)
-  * \param exp_len expected attribute data size
-  *
-- * This function allows to perform a more accurate validation for attributes
-+ * This function allows one to perform a more accurate validation for attributes
-  * whose size is variable.
-  *
-  * On an error, errno is explicitly set.
-@@ -262,8 +262,8 @@ EXPORT_SYMBOL int mnl_attr_validate2(const struct nlattr *attr,
-  * \param cb callback function that is called for each attribute
-  * \param data pointer to data that is passed to the callback function
-  *
-- * This function allows to iterate over the sequence of attributes that compose
-- * the Netlink message. You can then put the attribute in an array as it
-+ * This function allows you to iterate over the sequence of attributes that
-+ * compose the Netlink message. You can then put the attribute in an array as it
-  * usually happens at this stage or you can use any other data structure (such
-  * as lists or trees).
-  *
-@@ -289,8 +289,8 @@ EXPORT_SYMBOL int mnl_attr_parse(const struct nlmsghdr *nlh,
-  * \param cb callback function that is called for each attribute in the nest
-  * \param data pointer to data passed to the callback function
-  *
-- * This function allows to iterate over the sequence of attributes that compose
-- * the Netlink message. You can then put the attribute in an array as it
-+ * This function allows you to iterate over the sequence of attributes that
-+ * compose the Netlink message. You can then put the attribute in an array as it
-  * usually happens at this stage or you can use any other data structure (such
-  * as lists or trees).
-  *
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index e7014bdc0b85..c63450174c67 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -518,9 +518,9 @@ EXPORT_SYMBOL bool mnl_nlmsg_batch_next(struct mnl_nlmsg_batch *b)
-  * mnl_nlmsg_batch_reset - reset the batch
-  * \param b pointer to batch
-  *
-- * This function allows to reset a batch, so you can reuse it to create a
-- * new one. This function moves the last message which does not fit the
-- * batch to the head of the buffer, if any.
-+ * This function allows you to reset a batch, so you can reuse it to create a
-+ * new one. This function moves the last message which does not fit the batch to
-+ * the head of the buffer, if any.
-  */
- EXPORT_SYMBOL void mnl_nlmsg_batch_reset(struct mnl_nlmsg_batch *b)
- {
-diff --git a/src/socket.c b/src/socket.c
-index dbfb06c4f895..85b6bcc8048c 100644
---- a/src/socket.c
-+++ b/src/socket.c
-@@ -135,7 +135,7 @@ EXPORT_SYMBOL struct mnl_socket *mnl_socket_open(int bus)
-  * \param bus the netlink socket bus ID (see NETLINK_* constants)
-  * \param flags the netlink socket flags (see SOCK_* constants in socket(2))
-  *
-- * This is similar to mnl_socket_open(), but allows to set flags like
-+ * This is similar to mnl_socket_open(), but allows one to set flags like
-  * SOCK_CLOEXEC at socket creation time (useful for multi-threaded programs
-  * performing exec calls).
-  *
--- 
-2.35.1
-
+Try this link: 
+https://git.kernel.org/mic/c/439ea2d31e662e586db659a9f01b7dd55848c035
+I pushed it to the landlock-net-v8.1 branch.
