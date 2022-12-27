@@ -2,89 +2,95 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE020C4167B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Dec 2022 21:24:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0E34C46467
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Dec 2022 01:47:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232314AbiLZVYw (ORCPT
+        id S232409AbiL0Brm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Dec 2022 16:24:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60560 "EHLO
+        Mon, 26 Dec 2022 20:47:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232278AbiLZVYv (ORCPT
+        with ESMTP id S229578AbiL0Brl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Dec 2022 16:24:51 -0500
-Received: from smtp-42af.mail.infomaniak.ch (smtp-42af.mail.infomaniak.ch [IPv6:2001:1600:3:17::42af])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D4F31141
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Dec 2022 13:24:48 -0800 (PST)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4NgrQj4ZknzMqNY5;
-        Mon, 26 Dec 2022 22:24:45 +0100 (CET)
-Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4NgrQh6DhwzMppL7;
-        Mon, 26 Dec 2022 22:24:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1672089885;
-        bh=CQRg1XvyqHQkoGMl7AC7PUYFJxNFyGTAtH2hnB5ZPU4=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=n62tLGjZkMXhYCThuFRidZvkEhv9kyYTj6iXt5mBqDCjHYGzXxsQRdLPfHzhH0vnp
-         e1Nre+wNnlZe9JDnC9csOoFCJoTPW2kpZIM/sx471tSRmtpoXOQ8tdDKxgcg3tut+D
-         fmw6YEmgUklMWm80bOpsNnUHeCfrdJGYRBDyVP1s=
-Message-ID: <6a1c9471-6fb3-792d-1e9b-d78884162ef5@digikod.net>
-Date:   Mon, 26 Dec 2022 22:24:43 +0100
+        Mon, 26 Dec 2022 20:47:41 -0500
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96E74CE9;
+        Mon, 26 Dec 2022 17:47:38 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NgyCx1wsZz68Bmq;
+        Tue, 27 Dec 2022 09:45:49 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.34; Tue, 27 Dec 2022 01:47:35 +0000
+Message-ID: <8fc20400-800b-4924-c1a4-7ae50fbf18b6@huawei.com>
+Date:   Tue, 27 Dec 2022 04:47:34 +0300
 MIME-Version: 1.0
-User-Agent: 
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
 Subject: Re: [PATCH] landlock: Allow filesystem layout changes for domains
  without such rule type
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-Cc:     artem.kuzin@huawei.com, gnoack3000@gmail.com,
-        willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <artem.kuzin@huawei.com>, <gnoack3000@gmail.com>,
+        <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>
 References: <5c6c99f7-4218-1f79-477e-5d943c9809fd@digikod.net>
  <20221117185509.702361-1-mic@digikod.net>
  <fb9a288a-aa86-9192-e6d7-d6678d740297@digikod.net>
  <4b23de18-2ae9-e7e3-52a3-53151e8802f9@huawei.com>
  <fd4c0396-af56-732b-808b-887c150e5e6b@digikod.net>
  <dc0de995-00dc-9dd7-a783-f57b2c274cb2@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <dc0de995-00dc-9dd7-a783-f57b2c274cb2@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <6a1c9471-6fb3-792d-1e9b-d78884162ef5@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <6a1c9471-6fb3-792d-1e9b-d78884162ef5@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-On 24/12/2022 04:10, Konstantin Meskhidze (A) wrote:
+12/27/2022 12:24 AM, Mickaël Salaün пишет:
 > 
 > 
-> 11/28/2022 11:23 PM, Mickaël Salaün пишет:
->>
->> On 28/11/2022 04:04, Konstantin Meskhidze (A) wrote:
+> On 24/12/2022 04:10, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 11/28/2022 11:23 PM, Mickaël Salaün пишет:
 >>>
+>>> On 28/11/2022 04:04, Konstantin Meskhidze (A) wrote:
+>>>>
+>>>>
+>>>> 11/18/2022 12:16 PM, Mickaël Salaün пишет:
+>>>>> Konstantin, this patch should apply cleanly just after "01/12 landlock:
+>>>>> Make ruleset's access masks more generic". You can easily get this patch
+>>>>> with https://git.kernel.org/pub/scm/utils/b4/b4.git/
+>>>>> Some adjustments are needed for the following patches. Feel free to
+>>>>> review this patch.
+>>>        Do you have this patch online? Can I fetch it from your repo?
 >>>
->>> 11/18/2022 12:16 PM, Mickaël Salaün пишет:
->>>> Konstantin, this patch should apply cleanly just after "01/12 landlock:
->>>> Make ruleset's access masks more generic". You can easily get this patch
->>>> with https://git.kernel.org/pub/scm/utils/b4/b4.git/
->>>> Some adjustments are needed for the following patches. Feel free to
->>>> review this patch.
->>        Do you have this patch online? Can I fetch it from your repo?
->>
->> You can cherry-pick from here: https://git.kernel.org/mic/c/439ea2d31e662
+>>> You can cherry-pick from here: https://git.kernel.org/mic/c/439ea2d31e662
+>> 
+>> Hi Mickaёl.
+>> 
+>> Sorry for the delay. I was a bit busy with another task. Now I'm
+>> preparing a new patch.
+>> 
+>> I tried to apply your one but I got an error opening this the link : Bad
+>> object id: 439ea2d31e662.
+>> 
+>> Could please check it?
 > 
-> Hi Mickaёl.
-> 
-> Sorry for the delay. I was a bit busy with another task. Now I'm
-> preparing a new patch.
-> 
-> I tried to apply your one but I got an error opening this the link : Bad
-> object id: 439ea2d31e662.
-> 
-> Could please check it?
+> Try this link:
+> https://git.kernel.org/mic/c/439ea2d31e662e586db659a9f01b7dd55848c035
+> I pushed it to the landlock-net-v8.1 branch.
 
-Try this link: 
-https://git.kernel.org/mic/c/439ea2d31e662e586db659a9f01b7dd55848c035
-I pushed it to the landlock-net-v8.1 branch.
+   Thank you so much!!
+> .
