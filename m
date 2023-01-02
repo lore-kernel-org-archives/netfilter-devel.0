@@ -2,259 +2,80 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B4BC4708E
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Jan 2023 14:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE441C3DA7A
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Jan 2023 14:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232975AbjABOjV (ORCPT
+        id S232824AbjABOnG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Jan 2023 09:39:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34568 "EHLO
+        Mon, 2 Jan 2023 09:43:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235935AbjABOi5 (ORCPT
+        with ESMTP id S230420AbjABOnF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Jan 2023 09:38:57 -0500
+        Mon, 2 Jan 2023 09:43:05 -0500
 Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54E4D300
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2023 06:38:54 -0800 (PST)
-Received: from fews1.riseup.net (fews1-pn.riseup.net [10.0.1.83])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BFD330F
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2023 06:43:04 -0800 (PST)
+Received: from fews2.riseup.net (fews2-pn.riseup.net [10.0.1.84])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
          client-signature RSA-PSS (2048 bits) client-digest SHA256)
         (Client CN "mail.riseup.net", Issuer "R3" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 4Nlz595xbBzDqhC
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2023 14:38:53 +0000 (UTC)
+        by mx1.riseup.net (Postfix) with ESMTPS id 4Nlz9z5zD6zDrDG;
+        Mon,  2 Jan 2023 14:43:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1672670333; bh=7j/wE+sGeLEs9bBl7Wj+E41QPDYrHOmvlNa5IbAOtN0=;
+        t=1672670583; bh=6mz7l6OfZyFRLMvTF/Xepbj27iL2FlK2wuDcyDOqYEA=;
         h=From:To:Cc:Subject:Date:From;
-        b=SUCmyIQOkz8uCkZpRPVhQUXuuXSxk2c6AnBWHRjVFfofQqlQWImOkW6tQTUhqvVms
-         i8OjqXus0/cR2NXrMiXkzfxCusFCK8J6jqrfaaz0xDpaXQQJKR0QJRlMj6KUY+4KXQ
-         JZjSgQ9WesXjciHxtfQa0+1NSsaAUmLh+8XKTh4A=
-X-Riseup-User-ID: 0C886F2B3D1698D88E6D65F3C67CFD618B0324A1AD27C58BD6DEF92619958CBD
+        b=a0peWcpXRM9iLKchedjxDiaV+Osr1GoKaKLN49plWhm2/Zj9VooHIvY2OamBCvU47
+         +Xl4OE+5zmy1WLCu2JqdMGeTr4XEEeZFI2Z0NWN+aHkoxYmRudRR8CiV4P5heCcC/Q
+         DwkpftnH60lSrhx1Avikyo/IvPcR2xU/F6vFCpjU=
+X-Riseup-User-ID: 99F782E74250DC63BB67FADAAEAF6FCDE33B583474A46DE3AEE213B462C67A51
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by fews1.riseup.net (Postfix) with ESMTPSA id 4Nlz583g4lz5vRk;
-        Mon,  2 Jan 2023 14:38:52 +0000 (UTC)
+         by fews2.riseup.net (Postfix) with ESMTPSA id 4Nlz9y3NkKz21FS;
+        Mon,  2 Jan 2023 14:43:02 +0000 (UTC)
 From:   Fernando Fernandez Mancera <ffmancera@riseup.net>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH nft v6] src: add support to command "destroy"
-Date:   Mon,  2 Jan 2023 15:38:22 +0100
-Message-Id: <20230102143822.632-1-ffmancera@riseup.net>
+Cc:     Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next v5] netfilter: nf_tables: add support to destroy operation
+Date:   Mon,  2 Jan 2023 15:42:34 +0100
+Message-Id: <20230102144234.899-1-ffmancera@riseup.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-"destroy" command performs a deletion as "delete" command but does not fail
-when the object does not exist. As there is no NLM_F_* flag for ignoring such
-error, it needs to be ignored directly on error handling.
+Introduce NFT_MSG_DESTROY* message type. The destroy operation performs a
+delete operation but ignoring the ENOENT errors.
 
-Example of use:
+This is useful for the transaction semantics, where failing to delete an
+object which does not exist results in aborting the transaction.
 
-	# nft list ruleset
-        table ip filter {
-                chain output {
-                }
-        }
-        # nft destroy table ip missingtable
-	# echo $?
-	0
-        # nft list ruleset
-        table ip filter {
-                chain output {
-                }
-        }
+This new command allows the transaction to proceed in case the object
+does not exist.
 
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v1: initial patch
-v2: improve error handling
-v3: update manpage
-v4: use NFT_MSG_DESTROY* from kernel patch
-v5: add variable to handle msg_type
-v6: rebase to master branch 
+v2: fix bug on rule destroy without handle
+v3: adjust some lines length
+v4: apply Pablo's changes and update the _notify() to report the destroy events to userspace
+v5: rebase to master
 ---
- doc/nft.txt                                   | 33 +++++---
- include/linux/netfilter/nf_tables.h           | 16 ++++
- include/rule.h                                |  2 +
- src/cache.c                                   |  1 +
- src/evaluate.c                                |  3 +
- src/libnftables.c                             |  1 +
- src/mnl.c                                     | 46 +++++++++---
- src/parser_bison.y                            | 75 ++++++++++++++++++-
- src/parser_json.c                             | 16 ++--
- src/rule.c                                    |  1 +
- src/scanner.l                                 |  1 +
- .../testcases/rule_management/0011destroy_0   |  8 ++
- .../testcases/rule_management/0012destroy_0   |  7 ++
- .../rule_management/dumps/0011destroy_0.nft   |  4 +
- .../rule_management/dumps/0012destroy_0.nft   |  4 +
- 15 files changed, 189 insertions(+), 29 deletions(-)
- create mode 100755 tests/shell/testcases/rule_management/0011destroy_0
- create mode 100755 tests/shell/testcases/rule_management/0012destroy_0
- create mode 100644 tests/shell/testcases/rule_management/dumps/0011destroy_0.nft
- create mode 100644 tests/shell/testcases/rule_management/dumps/0012destroy_0.nft
+ include/uapi/linux/netfilter/nf_tables.h |  14 +++
+ net/netfilter/nf_tables_api.c            | 111 +++++++++++++++++++++--
+ 2 files changed, 117 insertions(+), 8 deletions(-)
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index eb8df1d9..2f01130e 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -322,9 +322,10 @@ TABLES
- ------
- [verse]
- {*add* | *create*} *table* ['family'] 'table' [ {*comment* 'comment' *;*'} *{ flags* 'flags' *; }*]
--{*delete* | *list* | *flush*} *table* ['family'] 'table'
-+{*delete* | *destroy* | *list* | *flush*} *table* ['family'] 'table'
- *list tables* ['family']
- *delete table* ['family'] *handle* 'handle'
-+*destroy table* ['family'] *handle* 'handle'
- 
- Tables are containers for chains, sets and stateful objects. They are identified
- by their address family and their name. The address family must be one of *ip*,
-@@ -368,6 +369,7 @@ add table inet mytable
- [horizontal]
- *add*:: Add a new table for the given family with the given name.
- *delete*:: Delete the specified table.
-+*destroy*:: Delete the specified table, won't fail if it doesn't exist.
- *list*:: List all chains and rules of the specified table.
- *flush*:: Flush all chains and rules of the specified table.
- 
-@@ -375,9 +377,10 @@ CHAINS
- ------
- [verse]
- {*add* | *create*} *chain* ['family'] 'table' 'chain' [*{ type* 'type' *hook* 'hook' [*device* 'device'] *priority* 'priority' *;* [*policy* 'policy' *;*] [*comment* 'comment' *;*'] *}*]
--{*delete* | *list* | *flush*} *chain* ['family'] 'table' 'chain'
-+{*delete* | *destroy* | *list* | *flush*} *chain* ['family'] 'table' 'chain'
- *list chains* ['family']
- *delete chain* ['family'] 'table' *handle* 'handle'
-+*destroy chain* ['family'] 'table' *handle* 'handle'
- *rename chain* ['family'] 'table' 'chain' 'newname'
- 
- Chains are containers for rules. They exist in two kinds, base chains and
-@@ -390,6 +393,7 @@ organization.
- are specified, the chain is created as a base chain and hooked up to the networking stack.
- *create*:: Similar to the *add* command, but returns an error if the chain already exists.
- *delete*:: Delete the specified chain. The chain must not contain any rules or be used as jump target.
-+*destroy*:: Delete the specified chain, won't fail if it doesn't exist. The chain must not contain any rules or be used as jump target.
- *rename*:: Rename the specified chain.
- *list*:: List all rules of the specified chain.
- *flush*:: Flush all rules of the specified chain.
-@@ -482,6 +486,7 @@ RULES
- {*add* | *insert*} *rule* ['family'] 'table' 'chain' [*handle* 'handle' | *index* 'index'] 'statement' ... [*comment* 'comment']
- *replace rule* ['family'] 'table' 'chain' *handle* 'handle' 'statement' ... [*comment* 'comment']
- *delete rule* ['family'] 'table' 'chain' *handle* 'handle'
-+*destroy rule* ['family'] 'table' 'chain' *handle* 'handle'
- 
- Rules are added to chains in the given table. If the family is not specified, the
- ip family is used. Rules are constructed from two kinds of components according
-@@ -509,6 +514,7 @@ case the rule is inserted after the specified rule.
- beginning of the chain or before the specified rule.
- *replace*:: Similar to *add*, but the rule replaces the specified rule.
- *delete*:: Delete the specified rule.
-+*destroy*:: Delete the specified rule, won't fail if it doesn't exist.
- 
- .*add a rule to ip table output chain*
- -------------
-@@ -559,10 +565,10 @@ section describes nft set syntax in more detail.
- 
- [verse]
- *add set* ['family'] 'table' 'set' *{ type* 'type' | *typeof* 'expression' *;* [*flags* 'flags' *;*] [*timeout* 'timeout' *;*] [*gc-interval* 'gc-interval' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*comment* 'comment' *;*'] [*policy* 'policy' *;*] [*auto-merge ;*] *}*
--{*delete* | *list* | *flush*} *set* ['family'] 'table' 'set'
-+{*delete* | *destroy* | *list* | *flush*} *set* ['family'] 'table' 'set'
- *list sets* ['family']
- *delete set* ['family'] 'table' *handle* 'handle'
--{*add* | *delete*} *element* ['family'] 'table' 'set' *{* 'element'[*,* ...] *}*
-+{*add* | *delete* | *destroy* } *element* ['family'] 'table' 'set' *{* 'element'[*,* ...] *}*
- 
- Sets are element containers of a user-defined data type, they are uniquely
- identified by a user-defined name and attached to tables. Their behaviour can
-@@ -571,6 +577,7 @@ be tuned with the flags that can be specified at set creation time.
- [horizontal]
- *add*:: Add a new set in the specified table. See the Set specification table below for more information about how to specify properties of a set.
- *delete*:: Delete the specified set.
-+*destroy*:: Delete the specified set, won't fail if it doesn't exist.
- *list*:: Display the elements in the specified set.
- *flush*:: Remove all elements from the specified set.
- 
-@@ -612,7 +619,7 @@ MAPS
- -----
- [verse]
- *add map* ['family'] 'table' 'map' *{ type* 'type' | *typeof* 'expression' [*flags* 'flags' *;*] [*elements = {* 'element'[*,* ...] *} ;*] [*size* 'size' *;*] [*comment* 'comment' *;*'] [*policy* 'policy' *;*] *}*
--{*delete* | *list* | *flush*} *map* ['family'] 'table' 'map'
-+{*delete* | *destroy* | *list* | *flush*} *map* ['family'] 'table' 'map'
- *list maps* ['family']
- 
- Maps store data based on some specific key used as input. They are uniquely identified by a user-defined name and attached to tables.
-@@ -620,6 +627,7 @@ Maps store data based on some specific key used as input. They are uniquely iden
- [horizontal]
- *add*:: Add a new map in the specified table.
- *delete*:: Delete the specified map.
-+*destroy*:: Delete the specified map, won't fail if it doesn't exist.
- *list*:: Display the elements in the specified map.
- *flush*:: Remove all elements from the specified map.
- *add element*:: Comma-separated list of elements to add into the specified map.
-@@ -654,7 +662,7 @@ ELEMENTS
- --------
- [verse]
- ____
--{*add* | *create* | *delete* | *get* } *element* ['family'] 'table' 'set' *{* 'ELEMENT'[*,* ...] *}*
-+{*add* | *create* | *delete* | *destroy* | *get* } *element* ['family'] 'table' 'set' *{* 'ELEMENT'[*,* ...] *}*
- 
- 'ELEMENT' := 'key_expression' 'OPTIONS' [*:* 'value_expression']
- 'OPTIONS' := [*timeout* 'TIMESPEC'] [*expires* 'TIMESPEC'] [*comment* 'string']
-@@ -692,7 +700,7 @@ FLOWTABLES
- [verse]
- {*add* | *create*} *flowtable* ['family'] 'table' 'flowtable' *{ hook* 'hook' *priority* 'priority' *; devices = {* 'device'[*,* ...] *} ; }*
- *list flowtables* ['family']
--{*delete* | *list*} *flowtable* ['family'] 'table' 'flowtable'
-+{*delete* | *destroy* | *list*} *flowtable* ['family'] 'table' 'flowtable'
- *delete* *flowtable* ['family'] 'table' *handle* 'handle'
- 
- Flowtables allow you to accelerate packet forwarding in software. Flowtables
-@@ -716,6 +724,7 @@ and subtraction can be used to set relative priority, e.g. filter + 5 equals to
- [horizontal]
- *add*:: Add a new flowtable for the given family with the given name.
- *delete*:: Delete the specified flowtable.
-+*destroy*:: Delete the specified flowtable, won't fail if it doesn't exist.
- *list*:: List all flowtables.
- 
- LISTING
-@@ -732,12 +741,15 @@ kernel modules, such as nf_conntrack.
- STATEFUL OBJECTS
- ----------------
- [verse]
--{*add* | *delete* | *list* | *reset*} *counter* ['family'] 'table' 'object'
--{*add* | *delete* | *list* | *reset*} *quota* ['family'] 'table' 'object'
--{*add* | *delete* | *list*} *limit* ['family'] 'table' 'object'
-+{*add* | *delete* | *destroy* | *list* | *reset*} *counter* ['family'] 'table' 'object'
-+{*add* | *delete* | *destroy* | *list* | *reset*} *quota* ['family'] 'table' 'object'
-+{*add* | *delete* | *destroy* | *list*} *limit* ['family'] 'table' 'object'
- *delete* 'counter' ['family'] 'table' *handle* 'handle'
- *delete* 'quota' ['family'] 'table' *handle* 'handle'
- *delete* 'limit' ['family'] 'table' *handle* 'handle'
-+*destroy* 'counter' ['family'] 'table' *handle* 'handle'
-+*destroy* 'quota' ['family'] 'table' *handle* 'handle'
-+*destroy* 'limit' ['family'] 'table' *handle* 'handle'
- *list counters* ['family']
- *list quotas* ['family']
- *list limits* ['family']
-@@ -753,6 +765,7 @@ keywords "type name" are used e.g. "counter name".
- [horizontal]
- *add*:: Add a new stateful object in the specified table.
- *delete*:: Delete the specified object.
-+*destroy*:: Delete the specified object, won't fail if it doesn't exist.
- *list*:: Display stateful information the object holds.
- *reset*:: List-and-reset stateful object.
- 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 466fd3f4..560e908a 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -97,6 +97,14 @@ enum nft_verdicts {
-  * @NFT_MSG_NEWFLOWTABLE: add new flow table (enum nft_flowtable_attributes)
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index cfa844da1ce6..ff677f3a6cad 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -98,6 +98,13 @@ enum nft_verdicts {
   * @NFT_MSG_GETFLOWTABLE: get flow table (enum nft_flowtable_attributes)
   * @NFT_MSG_DELFLOWTABLE: delete flow table (enum nft_flowtable_attributes)
-+ * @NFT_MSG_GETRULE_RESET: get rules and reset stateful expressions (enum nft_obj_attributes)
+  * @NFT_MSG_GETRULE_RESET: get rules and reset stateful expressions (enum nft_obj_attributes)
 + * @NFT_MSG_DESTROYTABLE: destroy a table (enum nft_table_attributes)
 + * @NFT_MSG_DESTROYCHAIN: destroy a chain (enum nft_chain_attributes)
 + * @NFT_MSG_DESTROYRULE: destroy a rule (enum nft_rule_attributes)
@@ -265,11 +86,10 @@ index 466fd3f4..560e908a 100644
   */
  enum nf_tables_msg_types {
  	NFT_MSG_NEWTABLE,
-@@ -124,6 +132,14 @@ enum nf_tables_msg_types {
- 	NFT_MSG_NEWFLOWTABLE,
+@@ -126,6 +133,13 @@ enum nf_tables_msg_types {
  	NFT_MSG_GETFLOWTABLE,
  	NFT_MSG_DELFLOWTABLE,
-+	NFT_MSG_GETRULE_RESET,
+ 	NFT_MSG_GETRULE_RESET,
 +	NFT_MSG_DESTROYTABLE,
 +	NFT_MSG_DESTROYCHAIN,
 +	NFT_MSG_DESTROYRULE,
@@ -280,492 +100,379 @@ index 466fd3f4..560e908a 100644
  	NFT_MSG_MAX,
  };
  
-diff --git a/include/rule.h b/include/rule.h
-index 00a1bac5..9ceb8b2e 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -563,6 +563,7 @@ void flowtable_print(const struct flowtable *n, struct output_ctx *octx);
-  * @CMD_EXPORT:		export the ruleset in a given format
-  * @CMD_MONITOR:	event listener
-  * @CMD_DESCRIBE:	describe an expression
-+ * @CMD_DESTROY:	destroy object
-  */
- enum cmd_ops {
- 	CMD_INVALID,
-@@ -580,6 +581,7 @@ enum cmd_ops {
- 	CMD_EXPORT,
- 	CMD_MONITOR,
- 	CMD_DESCRIBE,
-+	CMD_DESTROY,
- };
- 
- /**
-diff --git a/src/cache.c b/src/cache.c
-index 85de970f..a570fd6c 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -391,6 +391,7 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
- 			flags = NFT_CACHE_FULL;
- 			break;
- 		case CMD_DELETE:
-+		case CMD_DESTROY:
- 			flags |= NFT_CACHE_TABLE |
- 				 NFT_CACHE_CHAIN |
- 				 NFT_CACHE_SET |
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 70adb847..46e5a3e6 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1580,6 +1580,7 @@ static int interval_set_eval(struct eval_ctx *ctx, struct set *set,
- 		}
- 		break;
- 	case CMD_DELETE:
-+	case CMD_DESTROY:
- 		ret = set_delete(ctx->msgs, ctx->cmd, set, init,
- 				 ctx->nft->debug_mask);
- 		break;
-@@ -5404,6 +5405,7 @@ static const char * const cmd_op_name[] = {
- 	[CMD_EXPORT]	= "export",
- 	[CMD_MONITOR]	= "monitor",
- 	[CMD_DESCRIBE]	= "describe",
-+	[CMD_DESTROY]   = "destroy",
- };
- 
- static const char *cmd_op_to_name(enum cmd_ops op)
-@@ -5436,6 +5438,7 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_INSERT:
- 		return cmd_evaluate_add(ctx, cmd);
- 	case CMD_DELETE:
-+	case CMD_DESTROY:
- 		return cmd_evaluate_delete(ctx, cmd);
- 	case CMD_GET:
- 		return cmd_evaluate_get(ctx, cmd);
-diff --git a/src/libnftables.c b/src/libnftables.c
-index a376825d..28488b0d 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -89,6 +89,7 @@ static int nft_netlink(struct nft_ctx *nft,
- 			last_seqnum = UINT32_MAX;
- 		}
- 	}
-+
- 	/* nfnetlink uses the first netlink message header in the batch whose
- 	 * sequence number is zero to report for EOPNOTSUPP and EPERM errors in
- 	 * some scenarios. Now it is safe to release pending errors here.
-diff --git a/src/mnl.c b/src/mnl.c
-index e87b0338..7010dc51 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -592,6 +592,7 @@ int mnl_nft_rule_replace(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELRULE;
- 	struct handle *h = &cmd->handle;
- 	struct nftnl_rule *nlr;
- 	struct nlmsghdr *nlh;
-@@ -602,8 +603,11 @@ int mnl_nft_rule_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	nftnl_rule_set_u32(nlr, NFTNL_RULE_FAMILY, h->family);
- 
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYRULE;
-+
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
--				    NFT_MSG_DELRULE,
-+				    msg_type,
- 				    nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY),
- 				    0, ctx->seqnum);
- 
-@@ -847,6 +851,7 @@ int mnl_nft_chain_rename(struct netlink_ctx *ctx, const struct cmd *cmd,
- 
- int mnl_nft_chain_del(struct netlink_ctx *ctx, struct cmd *cmd)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELCHAIN;
- 	struct nftnl_chain *nlc;
- 	struct nlmsghdr *nlh;
- 
-@@ -856,8 +861,11 @@ int mnl_nft_chain_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FAMILY, cmd->handle.family);
- 
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYCHAIN;
-+
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
--				    NFT_MSG_DELCHAIN,
-+				    msg_type,
- 				    cmd->handle.family,
- 				    0, ctx->seqnum);
- 
-@@ -992,6 +1000,7 @@ int mnl_nft_table_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- int mnl_nft_table_del(struct netlink_ctx *ctx, struct cmd *cmd)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELTABLE;
- 	struct nftnl_table *nlt;
- 	struct nlmsghdr *nlh;
- 
-@@ -1001,10 +1010,11 @@ int mnl_nft_table_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	nftnl_table_set_u32(nlt, NFTNL_TABLE_FAMILY, cmd->handle.family);
- 
--	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
--				    NFT_MSG_DELTABLE,
--				    cmd->handle.family,
--				    0, ctx->seqnum);
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYTABLE;
-+
-+	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch), msg_type,
-+			            cmd->handle.family, 0, ctx->seqnum);
- 
- 	if (cmd->handle.table.name) {
- 		cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-@@ -1238,6 +1248,7 @@ int mnl_nft_set_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- int mnl_nft_set_del(struct netlink_ctx *ctx, struct cmd *cmd)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELSET;
- 	const struct handle *h = &cmd->handle;
- 	struct nftnl_set *nls;
- 	struct nlmsghdr *nlh;
-@@ -1248,8 +1259,11 @@ int mnl_nft_set_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	nftnl_set_set_u32(nls, NFTNL_SET_FAMILY, h->family);
- 
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYSET;
-+
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
--				    NFT_MSG_DELSET,
-+				    msg_type,
- 				    h->family,
- 				    0, ctx->seqnum);
- 
-@@ -1453,6 +1467,7 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- int mnl_nft_obj_del(struct netlink_ctx *ctx, struct cmd *cmd, int type)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELOBJ;
- 	struct nftnl_obj *nlo;
- 	struct nlmsghdr *nlh;
- 
-@@ -1463,8 +1478,11 @@ int mnl_nft_obj_del(struct netlink_ctx *ctx, struct cmd *cmd, int type)
- 	nftnl_obj_set_u32(nlo, NFTNL_OBJ_FAMILY, cmd->handle.family);
- 	nftnl_obj_set_u32(nlo, NFTNL_OBJ_TYPE, type);
- 
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYOBJ;
-+
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
--				    NFT_MSG_DELOBJ, cmd->handle.family,
-+				    msg_type, cmd->handle.family,
- 				    0, ctx->seqnum);
- 
- 	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-@@ -1737,6 +1755,7 @@ int mnl_nft_setelem_flush(struct netlink_ctx *ctx, const struct cmd *cmd)
- int mnl_nft_setelem_del(struct netlink_ctx *ctx, struct cmd *cmd,
- 			const struct handle *h, const struct expr *init)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELSETELEM;
- 	struct nftnl_set *nls;
- 	int err;
- 
-@@ -1753,7 +1772,10 @@ int mnl_nft_setelem_del(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- 	netlink_dump_set(nls, ctx);
- 
--	err = mnl_nft_setelem_batch(nls, cmd, ctx->batch, NFT_MSG_DELSETELEM, 0,
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYSETELEM;
-+
-+	err = mnl_nft_setelem_batch(nls, cmd, ctx->batch, msg_type, 0,
- 				    ctx->seqnum, init, ctx);
- 	nftnl_set_free(nls);
- 
-@@ -1960,6 +1982,7 @@ int mnl_nft_flowtable_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- int mnl_nft_flowtable_del(struct netlink_ctx *ctx, struct cmd *cmd)
- {
-+	enum nf_tables_msg_types msg_type = NFT_MSG_DELFLOWTABLE;
- 	struct nftnl_flowtable *flo;
- 	const char **dev_array;
- 	struct nlmsghdr *nlh;
-@@ -1981,8 +2004,11 @@ int mnl_nft_flowtable_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 		nft_flowtable_dev_array_free(dev_array);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 832b881f7c17..2b954329f51e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1389,6 +1389,10 @@ static int nf_tables_deltable(struct sk_buff *skb, const struct nfnl_info *info,
  	}
  
-+	if (cmd->op == CMD_DESTROY)
-+		msg_type = NFT_MSG_DESTROYFLOWTABLE;
+ 	if (IS_ERR(table)) {
++		if (PTR_ERR(table) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYTABLE)
++			return 0;
 +
- 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
--				    NFT_MSG_DELFLOWTABLE, cmd->handle.family,
-+				    msg_type, cmd->handle.family,
- 				    0, ctx->seqnum);
- 
- 	cmd_add_loc(cmd, nlh->nlmsg_len, &cmd->handle.table.location);
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index d7cf8bc5..608ed563 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -291,6 +291,8 @@ int nft_lex(void *, void *, void *);
- %token DESCRIBE			"describe"
- %token IMPORT			"import"
- %token EXPORT			"export"
-+%token DESTROY			"destroy"
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(table);
+ 	}
+@@ -2627,6 +2631,10 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 		chain = nft_chain_lookup(net, table, attr, genmask);
+ 	}
+ 	if (IS_ERR(chain)) {
++		if (PTR_ERR(chain) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYCHAIN)
++			return 0;
 +
- %token MONITOR			"monitor"
- 
- %token ALL			"all"
-@@ -642,8 +644,8 @@ int nft_lex(void *, void *, void *);
- %type <cmd>			line
- %destructor { cmd_free($$); }	line
- 
--%type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd get_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd import_cmd
--%destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd get_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd import_cmd
-+%type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd get_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd import_cmd destroy_cmd
-+%destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd get_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd import_cmd destroy_cmd
- 
- %type <handle>			table_spec tableid_spec table_or_id_spec
- %destructor { handle_free(&$$); } table_spec tableid_spec table_or_id_spec
-@@ -1086,6 +1088,7 @@ base_cmd		:	/* empty */	add_cmd		{ $$ = $1; }
- 			|	EXPORT		export_cmd	close_scope_export	{ $$ = $2; }
- 			|	MONITOR		monitor_cmd	close_scope_monitor	{ $$ = $2; }
- 			|	DESCRIBE	describe_cmd	{ $$ = $2; }
-+			|	DESTROY		destroy_cmd	{ $$ = $2; }
- 			;
- 
- add_cmd			:	TABLE		table_spec
-@@ -1393,6 +1396,74 @@ delete_cmd		:	TABLE		table_or_id_spec
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(chain);
+ 	}
+@@ -3704,6 +3712,10 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 		chain = nft_chain_lookup(net, table, nla[NFTA_RULE_CHAIN],
+ 					 genmask);
+ 		if (IS_ERR(chain)) {
++			if (PTR_ERR(rule) == -ENOENT &&
++			    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYRULE)
++				return 0;
++
+ 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN]);
+ 			return PTR_ERR(chain);
+ 		}
+@@ -3717,6 +3729,10 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 		if (nla[NFTA_RULE_HANDLE]) {
+ 			rule = nft_rule_lookup(chain, nla[NFTA_RULE_HANDLE]);
+ 			if (IS_ERR(rule)) {
++				if (PTR_ERR(rule) == -ENOENT &&
++				    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYRULE)
++					return 0;
++
+ 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_HANDLE]);
+ 				return PTR_ERR(rule);
  			}
- 			;
+@@ -4729,6 +4745,10 @@ static int nf_tables_delset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
  
-+destroy_cmd		:	TABLE		table_or_id_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_TABLE, &$2, &@$, NULL);
-+			}
-+			|	CHAIN		chain_or_id_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_CHAIN, &$2, &@$, NULL);
-+			}
-+			|	RULE		ruleid_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_RULE, &$2, &@$, NULL);
-+			}
-+			|	SET		set_or_id_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_SET, &$2, &@$, NULL);
-+			}
-+			|	MAP		set_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_SET, &$2, &@$, NULL);
-+			}
-+			|	ELEMENT		set_spec	set_block_expr
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_ELEMENTS, &$2, &@$, $3);
-+			}
-+			|	FLOWTABLE	flowtable_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_FLOWTABLE, &$2, &@$, NULL);
-+			}
-+			|	FLOWTABLE	flowtableid_spec
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_FLOWTABLE, &$2, &@$, NULL);
-+			}
-+			|	FLOWTABLE	flowtable_spec	flowtable_block_alloc
-+						'{'	flowtable_block	'}'
-+			{
-+				$5->location = @5;
-+				handle_merge(&$3->handle, &$2);
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_FLOWTABLE, &$2, &@$, $5);
-+			}
-+			|	COUNTER		obj_or_id_spec	close_scope_counter
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_COUNTER, &$2, &@$, NULL);
-+			}
-+			|	QUOTA		obj_or_id_spec	close_scope_quota
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_QUOTA, &$2, &@$, NULL);
-+			}
-+			|	CT	ct_obj_type	obj_spec	ct_obj_alloc	close_scope_ct
-+			{
-+				$$ = cmd_alloc_obj_ct(CMD_DESTROY, $2, &$3, &@$, $4);
-+				if ($2 == NFT_OBJECT_CT_TIMEOUT)
-+					init_list_head(&$4->ct_timeout.timeout_list);
-+			}
-+			|	LIMIT		obj_or_id_spec	close_scope_limit
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_LIMIT, &$2, &@$, NULL);
-+			}
-+			|	SECMARK		obj_or_id_spec	close_scope_secmark
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_SECMARK, &$2, &@$, NULL);
-+			}
-+			|	SYNPROXY	obj_or_id_spec	close_scope_synproxy
-+			{
-+				$$ = cmd_alloc(CMD_DESTROY, CMD_OBJ_SYNPROXY, &$2, &@$, NULL);
-+			}
-+			;
+ 	if (IS_ERR(set)) {
++		if (PTR_ERR(set) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYSET)
++			return 0;
 +
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(set);
+ 	}
+@@ -6611,6 +6631,10 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
+ 
+ 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
+ 		err = nft_del_setelem(&ctx, set, attr);
++		if (err == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYSETELEM)
++			continue;
 +
- get_cmd			:	ELEMENT		set_spec	set_block_expr
- 			{
- 				$$ = cmd_alloc(CMD_GET, CMD_OBJ_ELEMENTS, &$2, &@$, $3);
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 762e779d..d801c11d 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2928,7 +2928,7 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
- 	if (op != CMD_DELETE &&
- 	    json_unpack_err(ctx, root, "{s:o}", "expr", &tmp))
- 		return NULL;
--	else if (op == CMD_DELETE &&
-+	else if ((op == CMD_DELETE || op == CMD_DESTROY) &&
- 		 json_unpack_err(ctx, root, "{s:I}", "handle", &h.handle.id))
- 		return NULL;
+ 		if (err < 0) {
+ 			NL_SET_BAD_ATTR(extack, attr);
+ 			break;
+@@ -7255,6 +7279,10 @@ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
  
-@@ -2939,7 +2939,7 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
- 	h.table.name = xstrdup(h.table.name);
- 	h.chain.name = xstrdup(h.chain.name);
- 
--	if (op == CMD_DELETE)
-+	if (op == CMD_DELETE || op == CMD_DESTROY)
- 		return cmd_alloc(op, obj, &h, int_loc, NULL);
- 
- 	if (!json_is_array(tmp)) {
-@@ -3035,7 +3035,7 @@ static struct cmd *json_parse_cmd_add_set(struct json_ctx *ctx, json_t *root,
- 	if (op != CMD_DELETE &&
- 	    json_unpack_err(ctx, root, "{s:s}", "name", &h.set.name)) {
- 		return NULL;
--	} else if (op == CMD_DELETE &&
-+	} else if ((op == CMD_DELETE || op == CMD_DESTROY) &&
- 		   json_unpack(root, "{s:s}", "name", &h.set.name) &&
- 		   json_unpack(root, "{s:I}", "handle", &h.handle.id)) {
- 		json_error(ctx, "Either name or handle required to delete a set.");
-@@ -3052,6 +3052,7 @@ static struct cmd *json_parse_cmd_add_set(struct json_ctx *ctx, json_t *root,
- 
- 	switch (op) {
- 	case CMD_DELETE:
-+	case CMD_DESTROY:
- 	case CMD_LIST:
- 	case CMD_FLUSH:
- 		return cmd_alloc(op, obj, &h, int_loc, NULL);
-@@ -3233,7 +3234,7 @@ static struct cmd *json_parse_cmd_add_flowtable(struct json_ctx *ctx,
- 	if (op != CMD_DELETE &&
- 	    json_unpack_err(ctx, root, "{s:s}", "name", &h.flowtable.name)) {
- 		return NULL;
--	} else if (op == CMD_DELETE &&
-+	} else if ((op == CMD_DELETE || op == CMD_DESTROY) &&
- 		   json_unpack(root, "{s:s}", "name", &h.flowtable.name) &&
- 		   json_unpack(root, "{s:I}", "handle", &h.handle.id)) {
- 		json_error(ctx, "Either name or handle required to delete a flowtable.");
-@@ -3248,7 +3249,7 @@ static struct cmd *json_parse_cmd_add_flowtable(struct json_ctx *ctx,
- 	if (h.flowtable.name)
- 		h.flowtable.name = xstrdup(h.flowtable.name);
- 
--	if (op == CMD_DELETE || op == CMD_LIST)
-+	if (op == CMD_DELETE || op == CMD_LIST || op == CMD_DESTROY)
- 		return cmd_alloc(op, cmd_obj, &h, int_loc, NULL);
- 
- 	if (json_unpack_err(ctx, root, "{s:s, s:I}",
-@@ -3337,7 +3338,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- 	     cmd_obj == NFT_OBJECT_CT_HELPER) &&
- 	    json_unpack_err(ctx, root, "{s:s}", "name", &h.obj.name)) {
- 		return NULL;
--	} else if (op == CMD_DELETE &&
-+	} else if ((op == CMD_DELETE || op == CMD_DESTROY) &&
- 		   cmd_obj != NFT_OBJECT_CT_HELPER &&
- 		   json_unpack(root, "{s:s}", "name", &h.obj.name) &&
- 		   json_unpack(root, "{s:I}", "handle", &h.handle.id)) {
-@@ -3353,7 +3354,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- 	if (h.obj.name)
- 		h.obj.name = xstrdup(h.obj.name);
- 
--	if (op == CMD_DELETE || op == CMD_LIST) {
-+	if (op == CMD_DELETE || op == CMD_LIST || op == CMD_DESTROY) {
- 		if (cmd_obj == NFT_OBJECT_CT_HELPER)
- 			return cmd_alloc_obj_ct(op, NFT_OBJECT_CT_HELPER,
- 						&h, int_loc, obj_alloc(int_loc));
-@@ -3866,6 +3867,7 @@ static struct cmd *json_parse_cmd(struct json_ctx *ctx, json_t *root)
- 		{ "reset", CMD_RESET, json_parse_cmd_reset },
- 		{ "flush", CMD_FLUSH, json_parse_cmd_flush },
- 		{ "rename", CMD_RENAME, json_parse_cmd_rename },
-+		{ "destroy", CMD_DESTROY, json_parse_cmd_add },
- 		//{ "export", CMD_EXPORT, json_parse_cmd_export },
- 		//{ "monitor", CMD_MONITOR, json_parse_cmd_monitor },
- 		//{ "describe", CMD_DESCRIBE, json_parse_cmd_describe }
-diff --git a/src/rule.c b/src/rule.c
-index 1402210a..317a7431 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -2728,6 +2728,7 @@ int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_REPLACE:
- 		return do_command_replace(ctx, cmd);
- 	case CMD_DELETE:
-+	case CMD_DESTROY:
- 		return do_command_delete(ctx, cmd);
- 	case CMD_GET:
- 		return do_command_get(ctx, cmd);
-diff --git a/src/scanner.l b/src/scanner.l
-index b4315b8f..b40db8ef 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -358,6 +358,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "import"                { scanner_push_start_cond(yyscanner, SCANSTATE_CMD_IMPORT); return IMPORT; }
- "export"		{ scanner_push_start_cond(yyscanner, SCANSTATE_CMD_EXPORT); return EXPORT; }
- "monitor"		{ scanner_push_start_cond(yyscanner, SCANSTATE_CMD_MONITOR); return MONITOR; }
-+"destroy"		{ return DESTROY; }
- 
- "position"		{ return POSITION; }
- "index"			{ return INDEX; }
-diff --git a/tests/shell/testcases/rule_management/0011destroy_0 b/tests/shell/testcases/rule_management/0011destroy_0
-new file mode 100755
-index 00000000..895c24a4
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0011destroy_0
-@@ -0,0 +1,8 @@
-+#!/bin/bash
+ 	if (IS_ERR(obj)) {
++		if (PTR_ERR(obj) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYOBJ)
++			return 0;
 +
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT insert rule t c accept # should have handle 2
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(obj);
+ 	}
+@@ -7885,6 +7913,10 @@ static int nf_tables_delflowtable(struct sk_buff *skb,
+ 	}
+ 
+ 	if (IS_ERR(flowtable)) {
++		if (PTR_ERR(flowtable) == -ENOENT &&
++		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYFLOWTABLE)
++			return 0;
 +
-+$NFT destroy rule t c handle 2
-diff --git a/tests/shell/testcases/rule_management/0012destroy_0 b/tests/shell/testcases/rule_management/0012destroy_0
-new file mode 100755
-index 00000000..1b61155e
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0012destroy_0
-@@ -0,0 +1,7 @@
-+#!/bin/bash
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+
-+$NFT destroy rule t c handle 3333
-diff --git a/tests/shell/testcases/rule_management/dumps/0011destroy_0.nft b/tests/shell/testcases/rule_management/dumps/0011destroy_0.nft
-new file mode 100644
-index 00000000..1e0d1d60
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/dumps/0011destroy_0.nft
-@@ -0,0 +1,4 @@
-+table ip t {
-+	chain c {
-+	}
-+}
-diff --git a/tests/shell/testcases/rule_management/dumps/0012destroy_0.nft b/tests/shell/testcases/rule_management/dumps/0012destroy_0.nft
-new file mode 100644
-index 00000000..1e0d1d60
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/dumps/0012destroy_0.nft
-@@ -0,0 +1,4 @@
-+table ip t {
-+	chain c {
-+	}
-+}
+ 		NL_SET_BAD_ATTR(extack, attr);
+ 		return PTR_ERR(flowtable);
+ 	}
+@@ -8294,6 +8326,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_TABLE_MAX,
+ 		.policy		= nft_table_policy,
+ 	},
++	[NFT_MSG_DESTROYTABLE] = {
++		.call		= nf_tables_deltable,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_TABLE_MAX,
++		.policy		= nft_table_policy,
++	},
+ 	[NFT_MSG_NEWCHAIN] = {
+ 		.call		= nf_tables_newchain,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8312,6 +8350,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_CHAIN_MAX,
+ 		.policy		= nft_chain_policy,
+ 	},
++	[NFT_MSG_DESTROYCHAIN] = {
++		.call		= nf_tables_delchain,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_CHAIN_MAX,
++		.policy		= nft_chain_policy,
++	},
+ 	[NFT_MSG_NEWRULE] = {
+ 		.call		= nf_tables_newrule,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8336,6 +8380,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_RULE_MAX,
+ 		.policy		= nft_rule_policy,
+ 	},
++	[NFT_MSG_DESTROYRULE] = {
++		.call		= nf_tables_delrule,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_RULE_MAX,
++		.policy		= nft_rule_policy,
++	},
+ 	[NFT_MSG_NEWSET] = {
+ 		.call		= nf_tables_newset,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8354,6 +8404,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_SET_MAX,
+ 		.policy		= nft_set_policy,
+ 	},
++	[NFT_MSG_DESTROYSET] = {
++		.call		= nf_tables_delset,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_SET_MAX,
++		.policy		= nft_set_policy,
++	},
+ 	[NFT_MSG_NEWSETELEM] = {
+ 		.call		= nf_tables_newsetelem,
+ 		.type		= NFNL_CB_BATCH,
+@@ -8372,6 +8428,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
+ 		.policy		= nft_set_elem_list_policy,
+ 	},
++	[NFT_MSG_DESTROYSETELEM] = {
++		.call		= nf_tables_delsetelem,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_SET_ELEM_LIST_MAX,
++		.policy		= nft_set_elem_list_policy,
++	},
+ 	[NFT_MSG_GETGEN] = {
+ 		.call		= nf_tables_getgen,
+ 		.type		= NFNL_CB_RCU,
+@@ -8394,6 +8456,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_OBJ_MAX,
+ 		.policy		= nft_obj_policy,
+ 	},
++	[NFT_MSG_DESTROYOBJ] = {
++		.call		= nf_tables_delobj,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_OBJ_MAX,
++		.policy		= nft_obj_policy,
++	},
+ 	[NFT_MSG_GETOBJ_RESET] = {
+ 		.call		= nf_tables_getobj,
+ 		.type		= NFNL_CB_RCU,
+@@ -8418,6 +8486,12 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+ 		.attr_count	= NFTA_FLOWTABLE_MAX,
+ 		.policy		= nft_flowtable_policy,
+ 	},
++	[NFT_MSG_DESTROYFLOWTABLE] = {
++		.call		= nf_tables_delflowtable,
++		.type		= NFNL_CB_BATCH,
++		.attr_count	= NFTA_FLOWTABLE_MAX,
++		.policy		= nft_flowtable_policy,
++	},
+ };
+ 
+ static int nf_tables_validate(struct net *net)
+@@ -8511,6 +8585,7 @@ static void nft_commit_release(struct nft_trans *trans)
+ {
+ 	switch (trans->msg_type) {
+ 	case NFT_MSG_DELTABLE:
++	case NFT_MSG_DESTROYTABLE:
+ 		nf_tables_table_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_NEWCHAIN:
+@@ -8518,23 +8593,29 @@ static void nft_commit_release(struct nft_trans *trans)
+ 		kfree(nft_trans_chain_name(trans));
+ 		break;
+ 	case NFT_MSG_DELCHAIN:
++	case NFT_MSG_DESTROYCHAIN:
+ 		nf_tables_chain_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_DELRULE:
++	case NFT_MSG_DESTROYRULE:
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+ 		break;
+ 	case NFT_MSG_DELSET:
++	case NFT_MSG_DESTROYSET:
+ 		nft_set_destroy(&trans->ctx, nft_trans_set(trans));
+ 		break;
+ 	case NFT_MSG_DELSETELEM:
++	case NFT_MSG_DESTROYSETELEM:
+ 		nf_tables_set_elem_destroy(&trans->ctx,
+ 					   nft_trans_elem_set(trans),
+ 					   nft_trans_elem(trans).priv);
+ 		break;
+ 	case NFT_MSG_DELOBJ:
++	case NFT_MSG_DESTROYOBJ:
+ 		nft_obj_destroy(&trans->ctx, nft_trans_obj(trans));
+ 		break;
+ 	case NFT_MSG_DELFLOWTABLE:
++	case NFT_MSG_DESTROYFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+ 			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
+ 		else
+@@ -8986,8 +9067,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELTABLE:
++		case NFT_MSG_DESTROYTABLE:
+ 			list_del_rcu(&trans->ctx.table->list);
+-			nf_tables_table_notify(&trans->ctx, NFT_MSG_DELTABLE);
++			nf_tables_table_notify(&trans->ctx, trans->msg_type);
+ 			break;
+ 		case NFT_MSG_NEWCHAIN:
+ 			if (nft_trans_chain_update(trans)) {
+@@ -9002,8 +9084,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
++		case NFT_MSG_DESTROYCHAIN:
+ 			nft_chain_del(trans->ctx.chain);
+-			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
++			nf_tables_chain_notify(&trans->ctx, trans->msg_type);
+ 			nf_tables_unregister_hook(trans->ctx.net,
+ 						  trans->ctx.table,
+ 						  trans->ctx.chain);
+@@ -9019,10 +9102,11 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELRULE:
++		case NFT_MSG_DESTROYRULE:
+ 			list_del_rcu(&nft_trans_rule(trans)->list);
+ 			nf_tables_rule_notify(&trans->ctx,
+ 					      nft_trans_rule(trans),
+-					      NFT_MSG_DELRULE);
++					      trans->msg_type);
+ 			nft_rule_expr_deactivate(&trans->ctx,
+ 						 nft_trans_rule(trans),
+ 						 NFT_TRANS_COMMIT);
+@@ -9044,9 +9128,10 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSET:
++		case NFT_MSG_DESTROYSET:
+ 			list_del_rcu(&nft_trans_set(trans)->list);
+ 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
+-					     NFT_MSG_DELSET, GFP_KERNEL);
++					     trans->msg_type, GFP_KERNEL);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
+@@ -9058,11 +9143,12 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
++		case NFT_MSG_DESTROYSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
+ 
+ 			nf_tables_setelem_notify(&trans->ctx, te->set,
+ 						 &te->elem,
+-						 NFT_MSG_DELSETELEM);
++						 trans->msg_type);
+ 			nft_setelem_remove(net, te->set, &te->elem);
+ 			if (!nft_setelem_is_catchall(te->set, &te->elem)) {
+ 				atomic_dec(&te->set->nelems);
+@@ -9084,9 +9170,10 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELOBJ:
++		case NFT_MSG_DESTROYOBJ:
+ 			nft_obj_del(nft_trans_obj(trans));
+ 			nf_tables_obj_notify(&trans->ctx, nft_trans_obj(trans),
+-					     NFT_MSG_DELOBJ);
++					     trans->msg_type);
+ 			break;
+ 		case NFT_MSG_NEWFLOWTABLE:
+ 			if (nft_trans_flowtable_update(trans)) {
+@@ -9108,11 +9195,12 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELFLOWTABLE:
++		case NFT_MSG_DESTROYFLOWTABLE:
+ 			if (nft_trans_flowtable_update(trans)) {
+ 				nf_tables_flowtable_notify(&trans->ctx,
+ 							   nft_trans_flowtable(trans),
+ 							   &nft_trans_flowtable_hooks(trans),
+-							   NFT_MSG_DELFLOWTABLE);
++							   trans->msg_type);
+ 				nft_unregister_flowtable_net_hooks(net,
+ 								   &nft_trans_flowtable_hooks(trans));
+ 			} else {
+@@ -9120,7 +9208,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 				nf_tables_flowtable_notify(&trans->ctx,
+ 							   nft_trans_flowtable(trans),
+ 							   &nft_trans_flowtable(trans)->hook_list,
+-							   NFT_MSG_DELFLOWTABLE);
++							   trans->msg_type);
+ 				nft_unregister_flowtable_net_hooks(net,
+ 						&nft_trans_flowtable(trans)->hook_list);
+ 			}
+@@ -9216,6 +9304,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELTABLE:
++		case NFT_MSG_DESTROYTABLE:
+ 			nft_clear(trans->ctx.net, trans->ctx.table);
+ 			nft_trans_destroy(trans);
+ 			break;
+@@ -9237,6 +9326,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
++		case NFT_MSG_DESTROYCHAIN:
+ 			trans->ctx.table->use++;
+ 			nft_clear(trans->ctx.net, trans->ctx.chain);
+ 			nft_trans_destroy(trans);
+@@ -9251,6 +9341,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 				nft_flow_rule_destroy(nft_trans_flow_rule(trans));
+ 			break;
+ 		case NFT_MSG_DELRULE:
++		case NFT_MSG_DESTROYRULE:
+ 			trans->ctx.chain->use++;
+ 			nft_clear(trans->ctx.net, nft_trans_rule(trans));
+ 			nft_rule_expr_activate(&trans->ctx, nft_trans_rule(trans));
+@@ -9268,6 +9359,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			list_del_rcu(&nft_trans_set(trans)->list);
+ 			break;
+ 		case NFT_MSG_DELSET:
++		case NFT_MSG_DESTROYSET:
+ 			trans->ctx.table->use++;
+ 			nft_clear(trans->ctx.net, nft_trans_set(trans));
+ 			nft_trans_destroy(trans);
+@@ -9283,6 +9375,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 				atomic_dec(&te->set->nelems);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
++		case NFT_MSG_DESTROYSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
+ 
+ 			nft_setelem_data_activate(net, te->set, &te->elem);
+@@ -9302,6 +9395,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELOBJ:
++		case NFT_MSG_DESTROYOBJ:
+ 			trans->ctx.table->use++;
+ 			nft_clear(trans->ctx.net, nft_trans_obj(trans));
+ 			nft_trans_destroy(trans);
+@@ -9318,6 +9412,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			}
+ 			break;
+ 		case NFT_MSG_DELFLOWTABLE:
++		case NFT_MSG_DESTROYFLOWTABLE:
+ 			if (nft_trans_flowtable_update(trans)) {
+ 				list_splice(&nft_trans_flowtable_hooks(trans),
+ 					    &nft_trans_flowtable(trans)->hook_list);
 -- 
 2.30.2
 
