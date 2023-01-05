@@ -2,345 +2,344 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E075C54EBC
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Jan 2023 03:49:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8CBEC3DA7A
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Jan 2023 08:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231149AbjAEDtM (ORCPT
+        id S231587AbjAEI4c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Jan 2023 22:49:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44808 "EHLO
+        Thu, 5 Jan 2023 03:56:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231667AbjAEDs4 (ORCPT
+        with ESMTP id S231579AbjAEI4b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Jan 2023 22:48:56 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 699AA574D2;
-        Wed,  4 Jan 2023 19:46:28 -0800 (PST)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NnXQL4Rf0z6J6cN;
-        Thu,  5 Jan 2023 11:44:10 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Thu, 5 Jan 2023 03:46:25 +0000
-Message-ID: <94a8ef89-b59e-d218-77a1-bf2f9d4096c7@huawei.com>
-Date:   Thu, 5 Jan 2023 06:46:24 +0300
+        Thu, 5 Jan 2023 03:56:31 -0500
+Received: from domac.alu.hr (domac.alu.unizg.hr [161.53.235.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 748E6101CF
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2023 00:56:29 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+        by domac.alu.hr (Postfix) with ESMTP id 31D3B604F1;
+        Thu,  5 Jan 2023 09:56:27 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
+        t=1672908987; bh=a7N595rbgmZx5GOv6f0QRkflqUby1dT+jlsG91P5DSQ=;
+        h=Date:Subject:To:References:From:In-Reply-To:From;
+        b=H3xPK5Cj5Tfbw+I0E6p/hSoRHSX8vbGL+zuwDDYO6rqUvTPMGNLmCpxp0rLtui/IN
+         r2y4NydcDZDZjpLp0OViiN9PPECJIjYyWrv2Ni6FoHdEf10QvMxhdqEh75DxAwnI04
+         q4yjM9Cjm4g9/s3y4nDGIzOUnj40uqb9w2kWTE4wExVWpQJlY4ffG0xcovc+atGYMX
+         8z7PUSMKu73X5kWNAocSlNRriqRiVQdToHM6RKupunQ3En/JCCf4fVS5DWXlBKNSew
+         u9Z3DJNvmLWdz1PDtEMHfRXWoLJrKlBttFJcH2VPY+V09CXIsmVHxrPxlTRdwgXTDh
+         aTtQNu2jSutsQ==
+X-Virus-Scanned: Debian amavisd-new at domac.alu.hr
+Received: from domac.alu.hr ([127.0.0.1])
+        by localhost (domac.alu.hr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id buEZ64gepKCy; Thu,  5 Jan 2023 09:56:24 +0100 (CET)
+Received: from [192.168.0.12] (unknown [188.252.196.35])
+        by domac.alu.hr (Postfix) with ESMTPSA id 3E20A604F0;
+        Thu,  5 Jan 2023 09:56:24 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=alu.unizg.hr; s=mail;
+        t=1672908984; bh=a7N595rbgmZx5GOv6f0QRkflqUby1dT+jlsG91P5DSQ=;
+        h=Date:Subject:To:References:From:In-Reply-To:From;
+        b=lSE4V7OmXget9nfwFZuAwzjjvXB+MWYFXnMcdLzJvwbrSUSrcpodMYBYFFVV1rmfe
+         NxCCu29bE7I407QTB7ZEiTHf8uHo4AaTGJdBvuzeQ7U9kPKh8aKZ29qkYzUp/aphta
+         L2SAmpREeOHn0k6bHFOYFI+x5GaCKONCUIryUakGgM1EqvfVPtmwH04d8QvfdBstoI
+         qW4BEVOCl3MLtaYS2wQTY0fHu4mA5Jw7c3Ku2V4q9lgbKBGRlpTRz9iwgZ5YEr21s3
+         XoIUNVBycbqfaW8B/t06vC24DDofjHPPghrxUKfTjAPSya7beLstipGjdqQHBRwWvd
+         mkKejUrrvxwMQ==
+Message-ID: <f528205d-d8ad-c34b-774e-c5405f099b09@alu.unizg.hr>
+Date:   Thu, 5 Jan 2023 09:56:23 +0100
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v8 11/12] samples/landlock: Add network demo
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <artem.kuzin@huawei.com>
-References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
- <20221021152644.155136-12-konstantin.meskhidze@huawei.com>
- <2ff97355-18ef-e539-b4c1-720cd83daf1d@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <2ff97355-18ef-e539-b4c1-720cd83daf1d@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.2
+Subject: Re: [PATCH nf] selftests: netfilter: fix transaction test script
+ timeout handling
+Content-Language: en-US
+To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20230104115442.2427-1-fw@strlen.de>
+From:   Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+In-Reply-To: <20230104115442.2427-1-fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On 04. 01. 2023. 12:54, Florian Westphal wrote:
+> The kselftest framework uses a default timeout of 45 seconds for
+> all test scripts.
+> 
+> Increase the timeout to two minutes for the netfilter tests, this
+> should hopefully be enough,
+> 
+> Make sure that, should the script be canceled, the net namespace and
+> the spawned ping instances are removed.
+> 
+> Reported-by: Mirsad Goran Todorovac <mirsad.todorovac@alu.unizg.hr>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>   .../selftests/netfilter/nft_trans_stress.sh      | 16 +++++++++-------
+>   tools/testing/selftests/netfilter/settings       |  1 +
+>   2 files changed, 10 insertions(+), 7 deletions(-)
+>   create mode 100644 tools/testing/selftests/netfilter/settings
+> 
+> diff --git a/tools/testing/selftests/netfilter/nft_trans_stress.sh b/tools/testing/selftests/netfilter/nft_trans_stress.sh
+> index a7f62ad4f661..2ffba45a78bf 100755
+> --- a/tools/testing/selftests/netfilter/nft_trans_stress.sh
+> +++ b/tools/testing/selftests/netfilter/nft_trans_stress.sh
+> @@ -10,12 +10,20 @@
+>   ksft_skip=4
+>   
+>   testns=testns-$(mktemp -u "XXXXXXXX")
+> +tmp=""
+>   
+>   tables="foo bar baz quux"
+>   global_ret=0
+>   eret=0
+>   lret=0
+>   
+> +cleanup() {
+> +	ip netns pids "$testns" | xargs kill 2>/dev/null
+> +	ip netns del "$testns"
+> +
+> +	rm -f "$tmp"
+> +}
+> +
+>   check_result()
+>   {
+>   	local r=$1
+> @@ -43,6 +51,7 @@ if [ $? -ne 0 ];then
+>   	exit $ksft_skip
+>   fi
+>   
+> +trap cleanup EXIT
+>   tmp=$(mktemp)
+>   
+>   for table in $tables; do
+> @@ -139,11 +148,4 @@ done
+>   
+>   check_result $lret "add/delete with nftrace enabled"
+>   
+> -pkill -9 ping
+> -
+> -wait
+> -
+> -rm -f "$tmp"
+> -ip netns del "$testns"
+> -
+>   exit $global_ret
+> diff --git a/tools/testing/selftests/netfilter/settings b/tools/testing/selftests/netfilter/settings
+> new file mode 100644
+> index 000000000000..6091b45d226b
+> --- /dev/null
+> +++ b/tools/testing/selftests/netfilter/settings
+> @@ -0,0 +1 @@
+> +timeout=120
 
+Hi,
 
-11/16/2022 5:25 PM, Mickaël Salaün пишет:
-> 
-> On 21/10/2022 17:26, Konstantin Meskhidze wrote:
->> This commit adds network demo. It's possible to allow a sandboxer to
->> bind/connect to a list of particular ports restricting network
->> actions to the rest of ports.
->> 
->> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->> 
->> Changes since v7:
->> * Removes network support if ABI < 4.
->> * Removes network support if not set by a user.
->> 
->> Changes since v6:
->> * Removes network support if ABI < 3.
->> 
->> Changes since v5:
->> * Makes network ports sandboxing optional.
->> * Fixes some logic errors.
->> * Formats code with clang-format-14.
->> 
->> Changes since v4:
->> * Adds ENV_TCP_BIND_NAME "LL_TCP_BIND" and
->> ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT" variables
->> to insert TCP ports.
->> * Renames populate_ruleset() to populate_ruleset_fs().
->> * Adds populate_ruleset_net() and parse_port_num() helpers.
->> * Refactors main() to support network sandboxing.
->> 
->> ---
->>   samples/landlock/sandboxer.c | 129 +++++++++++++++++++++++++++++++----
->>   1 file changed, 116 insertions(+), 13 deletions(-)
->> 
->> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
->> index fd4237c64fb2..68582b0d7c85 100644
->> --- a/samples/landlock/sandboxer.c
->> +++ b/samples/landlock/sandboxer.c
->> @@ -51,6 +51,8 @@ static inline int landlock_restrict_self(const int ruleset_fd,
->> 
->>   #define ENV_FS_RO_NAME "LL_FS_RO"
->>   #define ENV_FS_RW_NAME "LL_FS_RW"
->> +#define ENV_TCP_BIND_NAME "LL_TCP_BIND"
->> +#define ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT"
->>   #define ENV_PATH_TOKEN ":"
->> 
->>   static int parse_path(char *env_path, const char ***const path_list)
->> @@ -71,6 +73,20 @@ static int parse_path(char *env_path, const char ***const path_list)
->>   	return num_paths;
->>   }
->> 
->> +static int parse_port_num(char *env_port)
->> +{
->> +	int i, num_ports = 0;
->> +
->> +	if (env_port) {
->> +		num_ports++;
->> +		for (i = 0; env_port[i]; i++) {
->> +			if (env_port[i] == ENV_PATH_TOKEN[0])
->> +				num_ports++;
->> +		}
->> +	}
->> +	return num_ports;
->> +}
->> +
->>   /* clang-format off */
->> 
->>   #define ACCESS_FILE ( \
->> @@ -81,8 +97,8 @@ static int parse_path(char *env_path, const char ***const path_list)
->> 
->>   /* clang-format on */
->> 
->> -static int populate_ruleset(const char *const env_var, const int ruleset_fd,
->> -			    const __u64 allowed_access)
->> +static int populate_ruleset_fs(const char *const env_var, const int ruleset_fd,
->> +			       const __u64 allowed_access)
->>   {
->>   	int num_paths, i, ret = 1;
->>   	char *env_path_name;
->> @@ -143,6 +159,48 @@ static int populate_ruleset(const char *const env_var, const int ruleset_fd,
->>   	return ret;
->>   }
->> 
->> +static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
->> +				const __u64 allowed_access)
->> +{
->> +	int num_ports, i, ret = 1;
->> +	char *env_port_name;
->> +	struct landlock_net_service_attr net_service = {
->> +		.allowed_access = 0,
->> +		.port = 0,
->> +	};
->> +
->> +	env_port_name = getenv(env_var);
->> +	if (!env_port_name) {
->> +		ret = 0;
->> +		goto out_free_name;
-> 
-> This is a bug because env_port_name is not allocated. This should simply
-> return 0.
-> 
-> 
->> +	}
->> +	env_port_name = strdup(env_port_name);
->> +	unsetenv(env_var);
->> +	num_ports = parse_port_num(env_port_name);
->> +
->> +	if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == NULL)) {
->> +		ret = 0;
->> +		goto out_free_name;
->> +	}
->> +
->> +	for (i = 0; i < num_ports; i++) {
->> +		net_service.allowed_access = allowed_access;
->> +		net_service.port = atoi(strsep(&env_port_name, ENV_PATH_TOKEN));
->> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->> +				      &net_service, 0)) {
->> +			fprintf(stderr,
->> +				"Failed to update the ruleset with port \"%d\": %s\n",
->> +				net_service.port, strerror(errno));
->> +			goto out_free_name;
->> +		}
->> +	}
->> +	ret = 0;
->> +
->> +out_free_name:
->> +	free(env_port_name);
->> +	return ret;
->> +}
->> +
->>   /* clang-format off */
->> 
->>   #define ACCESS_FS_ROUGHLY_READ ( \
->> @@ -164,41 +222,63 @@ static int populate_ruleset(const char *const env_var, const int ruleset_fd,
->>   	LANDLOCK_ACCESS_FS_REFER | \
->>   	LANDLOCK_ACCESS_FS_TRUNCATE)
->> 
->> +#define ACCESS_NET_BIND_CONNECT ( \
->> +	LANDLOCK_ACCESS_NET_BIND_TCP | \
->> +	LANDLOCK_ACCESS_NET_CONNECT_TCP)
-> 
-> You can remove ACCESS_NET_BIND_CONNECT and make the underlying access
-> rights explicit.
-> 
-> 
->> +
->>   /* clang-format on */
->> 
->> -#define LANDLOCK_ABI_LAST 3
->> +#define LANDLOCK_ABI_LAST 4
->> 
->>   int main(const int argc, char *const argv[], char *const *const envp)
->>   {
->>   	const char *cmd_path;
->>   	char *const *cmd_argv;
->>   	int ruleset_fd, abi;
->> +	char *env_port_name;
->>   	__u64 access_fs_ro = ACCESS_FS_ROUGHLY_READ,
->> -	      access_fs_rw = ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE;
->> +	      access_fs_rw = ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE,
->> +	      access_net_tcp = ACCESS_NET_BIND_CONNECT;
->>   	struct landlock_ruleset_attr ruleset_attr = {
->>   		.handled_access_fs = access_fs_rw,
->> +		.handled_access_net = access_net_tcp,
->>   	};
->> 
->>   	if (argc < 2) {
->>   		fprintf(stderr,
->> -			"usage: %s=\"...\" %s=\"...\" %s <cmd> [args]...\n\n",
->> -			ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
->> +			"usage: %s=\"...\" %s=\"...\" %s=\"...\" %s=\"...\"%s "
->> +			"<cmd> [args]...\n\n",
->> +			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
->> +			ENV_TCP_CONNECT_NAME, argv[0]);
->>   		fprintf(stderr,
->>   			"Launch a command in a restricted environment.\n\n");
->> -		fprintf(stderr, "Environment variables containing paths, "
->> -				"each separated by a colon:\n");
->> +		fprintf(stderr,
->> +			"Environment variables containing paths and ports "
->> +			"each separated by a colon:\n");
->>   		fprintf(stderr,
->>   			"* %s: list of paths allowed to be used in a read-only way.\n",
->>   			ENV_FS_RO_NAME);
->>   		fprintf(stderr,
->> -			"* %s: list of paths allowed to be used in a read-write way.\n",
->> +			"* %s: list of paths allowed to be used in a read-write way.\n\n",
->>   			ENV_FS_RW_NAME);
->> +		fprintf(stderr,
->> +			"Environment variables containing ports are optional "
->> +			"and could be skipped.\n");
->> +		fprintf(stderr,
->> +			"* %s: list of ports allowed to bind (server).\n",
->> +			ENV_TCP_BIND_NAME);
->> +		fprintf(stderr,
->> +			"* %s: list of ports allowed to connect (client).\n",
->> +			ENV_TCP_CONNECT_NAME);
->>   		fprintf(stderr,
->>   			"\nexample:\n"
->>   			"%s=\"/bin:/lib:/usr:/proc:/etc:/dev/urandom\" "
->>   			"%s=\"/dev/null:/dev/full:/dev/zero:/dev/pts:/tmp\" "
->> +			"%s=\"9418\" "
->> +			"%s=\"80:443\" "
->>   			"%s bash -i\n\n",
->> -			ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
->> +			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
->> +			ENV_TCP_CONNECT_NAME, argv[0]);
->>   		fprintf(stderr,
->>   			"This sandboxer can use Landlock features "
->>   			"up to ABI version %d.\n",
->> @@ -240,7 +320,10 @@ int main(const int argc, char *const argv[], char *const *const envp)
->>   	case 2:
->>   		/* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
->>   		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
->> -
->> +		__attribute__((fallthrough));
->> +	case 3:
->> +		/* Removes network support for ABI < 4 */
->> +		ruleset_attr.handled_access_net &= ~ACCESS_NET_BIND_CONNECT;
-> 
-> You can check the TCP environment variables here and error out if one is
-> set.
-> 
-> Please keep the newline here.
-> 
-> 
->>   		fprintf(stderr,
->>   			"Hint: You should update the running kernel "
->>   			"to leverage Landlock features "
->> @@ -259,16 +342,36 @@ int main(const int argc, char *const argv[], char *const *const envp)
->>   	access_fs_ro &= ruleset_attr.handled_access_fs;
->>   	access_fs_rw &= ruleset_attr.handled_access_fs;
->> 
->> +	/* Removes bind access attribute if not supported by a user. */
->> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
->> +	if (!env_port_name) {
-> 
-> You can move this logic at the populate_ruleset_net() call site and
-> update this helper to not call getenv() twice for the same variable.
+I've tested the patch last night and the problem appears absent.
 
-   But here I exclude ruleset attributes, not rule itself. It will break
-   the logic: creating a ruleset then applying rules.
-   I suggest to leave here as its.
-> 
-> 
->> +		access_net_tcp &= ~LANDLOCK_ACCESS_NET_BIND_TCP;
->> +	}
->> +	/* Removes connect access attribute if not supported by a user. */
->> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
->> +	if (!env_port_name) {
->> +		access_net_tcp &= ~LANDLOCK_ACCESS_NET_CONNECT_TCP;
->> +	}
->> +	ruleset_attr.handled_access_net &= access_net_tcp;
-> 
-> There is no need for access_net_tcp.
-> 
->> +
->>   	ruleset_fd =
->>   		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
->>   	if (ruleset_fd < 0) {
->>   		perror("Failed to create a ruleset");
->>   		return 1;
->>   	}
-> 
-> newline
-> 
->> -	if (populate_ruleset(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
->> +	if (populate_ruleset_fs(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
->> +		goto err_close_ruleset;
->> +	}
->> +	if (populate_ruleset_fs(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
->> +		goto err_close_ruleset;
->> +	}
-> 
-> newline
-> 
->> +	if (populate_ruleset_net(ENV_TCP_BIND_NAME, ruleset_fd,
->> +				 LANDLOCK_ACCESS_NET_BIND_TCP)) {
->>   		goto err_close_ruleset;
->>   	}
->> -	if (populate_ruleset(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
->> +	if (populate_ruleset_net(ENV_TCP_CONNECT_NAME, ruleset_fd,
->> +				 LANDLOCK_ACCESS_NET_CONNECT_TCP)) {
->>   		goto err_close_ruleset;
->>   	}
-> 
-> newline
-> 
->>   	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
->> --
->> 2.25.1
->> 
-> .
+Here is the excerpt with the subsystem selftest:
+
+make[2]: Entering directory '/home/marvin/linux/kernel/linux_torvalds/tools/testing/selftests/netfilter'
+TAP version 13
+1..17
+# selftests: netfilter: nft_trans_stress.sh
+# PASS: nft add/delete test returned 0
+# PASS: nft reload test returned 0
+# PASS: nft add/delete with nftrace enabled test returned 0
+# PASS: nft add/delete with nftrace enabled test returned 0
+ok 1 selftests: netfilter: nft_trans_stress.sh
+# selftests: netfilter: nft_fib.sh
+# PASS: fib expression did not cause unwanted packet drops
+# PASS: fib expression did drop packets for 1.1.1.1
+# PASS: fib expression did drop packets for 1c3::c01d
+# PASS: fib expression forward check with policy based routing
+ok 2 selftests: netfilter: nft_fib.sh
+# selftests: netfilter: nft_nat.sh
+# PASS: netns routing/connectivity: ns0-p9jnhWY0 can reach ns1-p9jnhWY0 and ns2-p9jnhWY0
+# PASS: ping to ns1-p9jnhWY0 was ip NATted to ns2-p9jnhWY0
+# PASS: ping to ns1-p9jnhWY0 OK after ip nat output chain flush
+# PASS: ipv6 ping to ns1-p9jnhWY0 was ip6 NATted to ns2-p9jnhWY0
+# timeout: failed to run command ‘socat’: No such file or directory
+# timeout: failed to run command ‘socat’: No such file or directory
+# ERROR: inet port rewrite
+# PASS: ping to ns1-p9jnhWY0 was inet NATted to ns2-p9jnhWY0
+# PASS: ping to ns1-p9jnhWY0 OK after inet nat output chain flush
+# PASS: ipv6 ping to ns1-p9jnhWY0 was inet NATted to ns2-p9jnhWY0
+# PASS: ip IP masquerade  for ns2-p9jnhWY0
+# PASS: ip6 IPv6 masquerade  for ns2-p9jnhWY0
+# PASS: inet IP masquerade  for ns2-p9jnhWY0
+# PASS: inet IPv6 masquerade  for ns2-p9jnhWY0
+# PASS: ip IP masquerade fully-random for ns2-p9jnhWY0
+# PASS: ip6 IPv6 masquerade fully-random for ns2-p9jnhWY0
+# PASS: inet IP masquerade fully-random for ns2-p9jnhWY0
+# PASS: inet IPv6 masquerade fully-random for ns2-p9jnhWY0
+# PASS: ip IP redirection for ns2-p9jnhWY0
+# PASS: ip6 IPv6 redirection for ns2-p9jnhWY0
+# PASS: inet IP redirection for ns2-p9jnhWY0
+# PASS: inet IPv6 redirection for ns2-p9jnhWY0
+# SKIP: Could not run nat port shadowing test without conntrack tool
+# SKIP: Could not run stateless nat frag test without socat tool
+# FAIL: nftables v1.0.5 (Lester Gooch #4)
+not ok 3 selftests: netfilter: nft_nat.sh # exit=1
+# selftests: netfilter: bridge_brouter.sh
+# PASS: netns connectivity: ns1 and ns2 can reach each other
+# ebtables: No chain/target/match by that name
+# SKIP: Could not add ebtables broute redirect rule
+ok 4 selftests: netfilter: bridge_brouter.sh # SKIP
+# selftests: netfilter: conntrack_icmp_related.sh
+# PASS: icmp mtu error had RELATED state
+# PASS: icmp redirects had RELATED state
+ok 5 selftests: netfilter: conntrack_icmp_related.sh
+# selftests: netfilter: nft_flowtable.sh
+# PASS: netns routing/connectivity: ns1-rSpoqhm9 can reach ns2-rSpoqhm9
+# PASS: flow offloaded for ns1/ns2
+# PASS: flow offload for ns1/ns2 with masquerade
+# PASS: flow offload for ns1/ns2 with dnat ns1 <- ns2
+# PASS: flow offload for ns1/ns2 with masquerade and pmtu discovery
+# PASS: flow offload for ns1/ns2 with dnat and pmtu discovery ns1 <- ns2
+# PASS: flow offload for ns1/ns2 with masquerade and pmtu discovery on bridge
+# PASS: flow offload for ns1/ns2 with dnat and pmtu discovery ns1 <- ns2
+# PASS: flow offload for ns1/ns2 with masquerade and pmtu discovery bridge and VLAN
+# PASS: flow offload for ns1/ns2 with dnat and pmtu discovery ns1 <- ns2
+# PASS: ipsec tunnel mode for ns1/ns2
+ok 6 selftests: netfilter: nft_flowtable.sh
+# selftests: netfilter: ipvs.sh
+# SKIP: Could not run test without ipvsadm
+ok 7 selftests: netfilter: ipvs.sh # SKIP
+# selftests: netfilter: nft_concat_range.sh
+# TEST: reported issues
+#   Add two elements, flush, re-add                               [ OK ]
+#   net,mac with reload                                           [FAIL]
+# udp packet to:
+#   10.0.0.6
+# from:
+#   00:01:00:00:07:d1
+# should have matched ruleset:
+# table inet filter { # handle 2
+#       counter test { # handle 2
+#               packets 0 bytes 0
+#       }
+#
+#       set test { # handle 3
+#               type ipv4_addr . ether_addr
+#               flags interval,timeout
+#               elements = { 10.0.0.6/31 . 00:01:00:00:07:d1-00:01:00:00:07:d2,
+#                            10.0.0.9-10.0.0.11 . 00:01:00:00:07:d4-00:01:00:00:07:d6 }
+#       }
+#
+#       chain input { # handle 1
+#               type filter hook prerouting priority filter; policy accept;
+#               ip daddr . ether saddr @test counter name "test" # handle 4
+#       }
+# }
+# table netdev perf { # handle 3
+#       counter test { # handle 2
+#               packets 0 bytes 0
+#       }
+#
+#       counter match { # handle 3
+#               packets 0 bytes 0
+#       }
+#
+#       set test { # handle 4
+#               type ipv4_addr . ether_addr
+#               flags interval
+#       }
+#
+#       set norange { # handle 5
+#               type ipv4_addr . ether_addr
+#       }
+#
+#       set noconcat { # handle 6
+#               type ipv4_addr
+#               flags interval
+#       }
+#
+#       chain test { # handle 1
+#               type filter hook ingress device "veth_a" priority filter; policy accept;
+#       }
+# }
+not ok 8 selftests: netfilter: nft_concat_range.sh # exit=1
+# selftests: netfilter: nft_conntrack_helper.sh
+# SKIP: Could not run test without conntrack tool
+ok 9 selftests: netfilter: nft_conntrack_helper.sh # SKIP
+# selftests: netfilter: nft_queue.sh
+# PASS: ns1-6q0Kh3hs can reach ns2-6q0Kh3hs
+# PASS: ip: statement with no listener results in packet drop
+# PASS: ip6: statement with no listener results in packet drop
+# PASS: Expected and received 10 packets total
+# PASS: Expected and received 20 packets total
+# PASS: tcp and nfqueue in forward chain
+# PASS: tcp via loopback
+# PASS: tcp via loopback with connect/close
+# PASS: tcp via loopback and re-queueing
+# PASS: icmp+nfqueue via vrf
+ok 10 selftests: netfilter: nft_queue.sh
+# selftests: netfilter: nft_meta.sh
+# OK: nftables meta iif/oif counters at expected values
+# OK: nftables meta cpu counter at expected values
+ok 11 selftests: netfilter: nft_meta.sh
+# selftests: netfilter: nf_nat_edemux.sh
+# SKIP: Could not run test without iperf3
+ok 12 selftests: netfilter: nf_nat_edemux.sh # SKIP
+# selftests: netfilter: ipip-conntrack-mtu.sh
+# SKIP: Could not run test without socat
+ok 13 selftests: netfilter: ipip-conntrack-mtu.sh # SKIP
+# selftests: netfilter: conntrack_tcp_unreplied.sh
+# INFO: connect ns1-oDzqGeK9 -> ns2-oDzqGeK9 to the virtual ip
+# ERROR: ns2-oDzqGeK9 did not pick up tcp connection from peer
+not ok 14 selftests: netfilter: conntrack_tcp_unreplied.sh # exit=1
+# selftests: netfilter: conntrack_vrf.sh
+# FAIL: entry not found in conntrack zone 1
+# FAIL: entry not in zone 1 or 2, dumping table
+# exec of "conntrack" failed: No such file or directory
+# table ip testct {
+#       chain rawpre {
+#               type filter hook prerouting priority raw; policy accept;
+#               iif { "veth0", "tvrf" } counter packets 2 bytes 168 meta nftrace set 1
+#               iif "veth0" counter packets 1 bytes 84 ct zone set 1 counter packets 1 bytes 84 return
+#               iif "tvrf" counter packets 1 bytes 84 ct zone set 2 counter packets 1 bytes 84 return
+#               ip protocol icmp counter packets 0 bytes 0
+#               notrack counter packets 0 bytes 0
+#       }
+#
+#       chain rawout {
+#               type filter hook output priority raw; policy accept;
+#               oif "veth0" counter packets 1 bytes 84 ct zone set 1 counter packets 1 bytes 84 return
+#               oif "tvrf" counter packets 1 bytes 84 ct zone set 2 counter packets 1 bytes 84 return
+#               notrack counter packets 0 bytes 0
+#       }
+# }
+# exec of "iperf3" failed: No such file or directory
+# FAIL: iperf3 connect failure with masquerade + sport rewrite on vrf device
+# exec of "iperf3" failed: No such file or directory
+# FAIL: iperf3 connect failure with masquerade + sport rewrite on vrf device
+# exec of "iperf3" failed: No such file or directory
+# FAIL: iperf3 connect failure with masquerade + sport rewrite on veth device
+not ok 15 selftests: netfilter: conntrack_vrf.sh # exit=1
+# selftests: netfilter: nft_synproxy.sh
+# SKIP: Could not run test without iperf3
+ok 16 selftests: netfilter: nft_synproxy.sh # SKIP
+# selftests: netfilter: rpath.sh
+# PASS: netfilter reverse path match works as intended
+ok 17 selftests: netfilter: rpath.sh
+make[2]: Leaving directory '/home/marvin/linux/kernel/linux_torvalds/tools/testing/selftests/netfilter'
+
+Thank you for addressing this problem with your patch at such a short notice.
+
+Have a nice day, and a Happy New Year :)
+
+Kind regards,
+Mirsad
+
+--
+Mirsad Goran Todorovac
+Sistem inženjer
+Grafički fakultet | Akademija likovnih umjetnosti
+Sveučilište u Zagrebu
+-- 
+System engineer
+Faculty of Graphic Arts | Academy of Fine Arts
+University of Zagreb, Republic of Croatia
+The European Union
+
