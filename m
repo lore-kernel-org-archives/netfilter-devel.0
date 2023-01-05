@@ -2,183 +2,1074 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C77E3C3DA7D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Jan 2023 12:11:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31E8FC5479D
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Jan 2023 19:27:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232949AbjAEMLu (ORCPT
+        id S235657AbjAET1e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Jan 2023 07:11:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48750 "EHLO
+        Thu, 5 Jan 2023 14:27:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232901AbjAEMLs (ORCPT
+        with ESMTP id S235625AbjAET1I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Jan 2023 07:11:48 -0500
-Received: from EUR02-DB5-obe.outbound.protection.outlook.com (mail-db5eur02on2108.outbound.protection.outlook.com [40.107.249.108])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0418958D0B
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2023 04:11:46 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=CMe/ncTVJLNZyzektF7+msOAzs0MNjvzpmwb/LLVuC7ys+wOlk3JDG2VLC0vm6oCQnz5L462sMwedXV4fZVNSd/KQQAwKgDK0Jm2GJBr3EYnjNDfTpwx7BWC0ajmCYEhi+khB6o83EQ2sqxbeBA4oV4z6PaJpI0/OwRj04Kzgs24Sy2iaE/Df5vzxropcS+WBzSs0sBW2RVc+sGC40PERyvuXA9jnDimogRNqSIoHDDXvfndMiVoSljcKh8720lMhVrJq/z5Jr3/bgzrNe4mlbGgWvzJ2O7UglM2b0tC2asuvCMd2n9EDS539iG+oF/B8e/0PgVAb+74KjPx/d+Egg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Frx2TdjOIDFiNW8gKjLfL9D7J/mjFsa6vIwOq5aMj8A=;
- b=WW7U05xMXiH3BftvU5q77+BrI36Y691f1q7w4VP3TFKSlalQTJKVES9oZtLivqgVofD5jbJW00AkFHBGOAukFehIx5I8paG1rte6CJLnmWmj15b+7WrO084BOCfnELaxXSDUFl3CDfYA8Sq4tUAMQjymXxTKhW2DsDgjrEG9zm3rdZ32Mduqp/aZzIkBeRxkQn6lLs8mm7+KspT+faCgn9A727u2FDATJrQ5eVNFiOoi5346JAsCkgcIHh/mCkwTeeKoitwQolcYdrcj8KZEeCOEuL8jkFpvH8OX1adpNMH8DZBEQCpiuzIwQO+q3FJeBa1YF4wLU8/FqUdi4IoU+g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=est.tech; dmarc=pass action=none header.from=est.tech;
- dkim=pass header.d=est.tech; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=estab.onmicrosoft.com;
- s=selector2-estab-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Frx2TdjOIDFiNW8gKjLfL9D7J/mjFsa6vIwOq5aMj8A=;
- b=cL6htheJpe8IRDcKYLOa0ZijmkNYiuaVlZMll8yHOsmEEdzrZ+LQE9amcr3h7qCNhMqZ9E+ItmuOpO4y403A7ZzqTltxFOs0AnlWmUhoCKqCJ17UXKZjPzfOZ/dNoiCOVfq9d/wMvWL/bIjKaZWUfdkp7drBFujxv0rLU2P/+nI=
-Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:1e7::15)
- by AS4P189MB1919.EURP189.PROD.OUTLOOK.COM (2603:10a6:20b:4b7::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.7; Thu, 5 Jan
- 2023 12:11:44 +0000
-Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
- ([fe80::8f70:435b:ab64:9420]) by DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
- ([fe80::8f70:435b:ab64:9420%3]) with mapi id 15.20.5986.009; Thu, 5 Jan 2023
- 12:11:44 +0000
-From:   Sriram Yagnaraman <sriram.yagnaraman@est.tech>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        Marcelo Ricardo Leitner <mleitner@redhat.com>,
-        Long Xin <lxin@redhat.com>,
-        Claudio Porfiri <claudio.porfiri@ericsson.com>
-Subject: RE: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
-Thread-Topic: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
-Thread-Index: AQHZIDEXupmbZt3GPUa7TaBi/McYSK6OWrgAgAFXCcCAAAamAIAAAT6w
-Date:   Thu, 5 Jan 2023 12:11:44 +0000
-Message-ID: <DBBP189MB14337144265DA856B8321D1695FA9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
-References: <20230104113143.21769-1-sriram.yagnaraman@est.tech>
- <Y7WVAEky9Iy3Ri3T@salvia>
- <DBBP189MB1433F79520D32E1CB0F8A62A95FA9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
- <Y7a6VqqMmW191RIG@salvia>
-In-Reply-To: <Y7a6VqqMmW191RIG@salvia>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=est.tech;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DBBP189MB1433:EE_|AS4P189MB1919:EE_
-x-ms-office365-filtering-correlation-id: e61ca123-19e0-494b-5887-08daef160310
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: J6HZM2rR+XU2bKyBnAiHAhB5UfXBIGvTTkwUeVQ8o80TyZAuZASpO6cnSIeWHbw/UA9FWqnBG9SjLKQ0tV8j2ScFZjGpjHz5QirL2khM59uUFF0krC0qOjwhgcMZR10qoByXQkSFrXByrxBCPsUEglvjMuPLV7jKG2VdcbQd8lDkYDBTTMnaz1ENsFGtBFHM6iPBXu/oKcGwKvfWz03Lcj71FTXg17Q15w7lqjqQOzSo/WOqHbDCfdZxC+tBd+yZAXdaGWrR9g3tjsQwW+bpm3pdEo3GPT9zgJrWG+ieFousZgv1oYF5Ds2/W2ugF28yfCriOv717Cik3MjMO1hJQh1CWSn0Qlh1ARm6NGCMkiGKkeKw61L7s5yM89sWYShWZlYYJc2b+d/rcOedVgH//NVeeBQ2JWYZQkbcp26HzyjBkP3sNWsXgJHZcq3j9xzpkEfbgqAjRbxZHjfc4bHgG0I0fBm4D3imCZaGd3lv6gtSxMLLl0L29hst9/SnZ17xCdCGSLR7a/wEnjW5G1BqEEc8mrm1vue7+dP4oO/mWbKJSgqGb7fYzw+mRLBeDu+w04v6Bse9H+rNORVNbsaVsd1OtowWJQEgf/kPQgjp2b8dxMgIkPmBWpbwSuQal68qqmJbAWZJwPsopF87q3XxjQ7v7kPRXpSSd+F2iE2XNvhdOR5YYJ0kp/4lUeBvMTe4h5R+jRZu8rbCxZGl3E6k7w==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBP189MB1433.EURP189.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230022)(39840400004)(376002)(136003)(366004)(396003)(346002)(451199015)(122000001)(86362001)(38100700002)(33656002)(83380400001)(44832011)(4326008)(5660300002)(52536014)(38070700005)(2906002)(8936002)(8676002)(64756008)(76116006)(66446008)(66556008)(66946007)(66476007)(7696005)(66574015)(41300700001)(55016003)(478600001)(26005)(6506007)(186003)(9686003)(53546011)(6916009)(54906003)(316002)(71200400001);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?Szc5L0ZlZ2ltaFhGVmtuMFh5NmhvQmc4ZHNDbGhoT0Z4allpVG5YZVdYZnZo?=
- =?utf-8?B?VncvQmZQN2Z5N1VoQ2sxalkyY2cvdmlrQ0RsYXd3Q0RDWk1TZnNVUTZIdGM1?=
- =?utf-8?B?TnZFMmJOeVZrMWdhZjVCdnY3VmFTL3NNaGE2TXowRHNVbkJZRXU0RGFmLytM?=
- =?utf-8?B?UWlQTllQV1dJYlc1dlpCaitJZDhzMVNZVzFPK3hIcmcra1NNZEo4RmNOa0Jv?=
- =?utf-8?B?S0F2NEtWL2VPQkZLQ055SEs5UFlIRkptcDlMdXJiT3ZNNDRFZFhEVjVWVVNP?=
- =?utf-8?B?Y0Vhb1RzcXpXWWFWdU1QcDlPZE9UeFhUY0I0VVdPVWZsYkNmZmM0K2x1TVQ2?=
- =?utf-8?B?K1JYVCtSVkp6TFNHRkc5ZE5ncXg1RVNxdmcxTm9LcmJTYWIwd0lXSmg4bHFL?=
- =?utf-8?B?RW5NSUJoZ2M3S3F2Zks1M2g4V3YvMWx4eDRhWm1EdW4waEtBS1NlbTZxeXlH?=
- =?utf-8?B?dnM3VklFK242Rnc2NGoyL0ZudUR1bExjWlc5YWVoQkUyZVMrM2xPWGxhNUZu?=
- =?utf-8?B?UzdsZThLQ0xPb2Vmc0dBc0p6eUl3dXgzd2hpMERXVFIwWlVuMFpxd0RHTHVJ?=
- =?utf-8?B?cEh5aUZxMG1xUzBpN1pobjZSVlZnLzRxZ0M0a2wvbzh2N3JJeTdkWTVHM3I3?=
- =?utf-8?B?OGxWazcreEZFaXlmU1pWKzRCN3FveisvaEdwd1h2RFNwLzRNcVFHR1lqVGF2?=
- =?utf-8?B?TGNMcThCbmdBakZLRHdtMEdQZHBwTXhNNlRLcm5qQkFZNHZNRDRrRUZRWjIr?=
- =?utf-8?B?cUFMTHg5SjkwL3BmK25jTjZvT3BIM1I2RnpxQWN5U3F6YjQxaFlIallXeHBQ?=
- =?utf-8?B?Y3NIVUp6aXJDeTBvMk50T1JlQUo3TGw4ck12ZFBSeHZwS2t0UlBSeUV3YmlF?=
- =?utf-8?B?WDhrREltQ1RqSGVsbWw5UkdkRHUzSUN5T0RIeGJvbklFcjhIOTk1L1NuMW91?=
- =?utf-8?B?NGt1YWZjZUVhUjVQL3N2UDB0MmZVb0loU0pmeGwxMDJMNEVMSzZuc2RYdVNa?=
- =?utf-8?B?R1liQlk2a1BkYzRTaHBoVDZRcmtBcnVZVGlKVGpEbjk4eFVvSCtjd1JhUSt0?=
- =?utf-8?B?cCtuU041TnJuQUs1SDJXN2hvSzR4ck5yYXB0WTZ5YmlFVlJWdENJS1paYlkw?=
- =?utf-8?B?YkRhMlgzUnFVSWJsR0VtWmcxU3RPMDBQWkZ1dCtPQk1lSlR0VDFzdk5zVVlF?=
- =?utf-8?B?NDFYSTFoRU9OTmtMWUdxQktEUEpPVnRjeWd3ekhSblNEQXR1MUdxaEFXcnFI?=
- =?utf-8?B?SWx4WGlEV0hPNHpKY1p1ZVJQWURpSnpldUNndEljNyt4SWNhSFFpdlpqN1Av?=
- =?utf-8?B?dStYd3JjazRzdnRCMlRpRWlXVExwbUcwQnBGbFRjdTVSeWkvVk1YYkMya0Rj?=
- =?utf-8?B?dTdSRGpsb2FQalZjU2JIVmpYd1g1ZjdTRWp5YUlhU0pyVy9NWFhWdzFpemsw?=
- =?utf-8?B?dTFPOTBaVTZsYkUyclhmTVVmSzh6dm1NMDRxUUptZGNRTTRhcUU5aXBkaFlm?=
- =?utf-8?B?aStmN2IyOWlDR3N4TTI0R1BjT05WMmRxaTROdWJCSFJ1WkhINVdyMVVwWUsr?=
- =?utf-8?B?T0k1YW9tZGk4RjR1YnBjdisvTm45ajdhVmNIWkQzaDk2VEJSLzlvWFpQT3Jr?=
- =?utf-8?B?MEFJU0VQNlJKc1Zxd3BmMjYvcGkva3FGZ0RoOVBRdXpNajFYbUJuTCtSMWNw?=
- =?utf-8?B?ZkpGT1B0WDBqTDJXMjFVdkNzZmx4K0IzZnpCRXM4cGRFRGJ2b2l5cFVkR0dw?=
- =?utf-8?B?K25OeDVCSzY4TGF6N1pIazRNTkdLNncwZ3hJZGQyUmsrQUN5VDBIRm5HajB2?=
- =?utf-8?B?ZHBsUXRRUDh4aDJOS3ZBdkxCV0VDdVAwdFJ4a2poVzZqT1AvTGsrdFJ0a1M3?=
- =?utf-8?B?WEl6Tzh4eEJXTGRxelUrKzlnOTV1SiswV25DbDR6WE13Qk5KY29oZytBVS9R?=
- =?utf-8?B?N29xc29ncHRrcHo3S1dScXVmKysvK3UrWS9PcFVZZWJVRDhzbGlROTB1MCtk?=
- =?utf-8?B?UlhGc0NnSERlbzVxN3FKTmxMY2hQN1I2UkkzczhoM0JVMDBlMzFHc3p0NXBN?=
- =?utf-8?B?Ykx3UEJBbHhDT1hVWkREb2tkOXRvWnVGN1VVcmw1dVhBZ043Vnk2SmhDeHkz?=
- =?utf-8?Q?zFaqmInpMZ62mUTgYFqyPA9jq?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        Thu, 5 Jan 2023 14:27:08 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 607791A071
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2023 11:22:22 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1pDVoX-0003DJ-0f; Thu, 05 Jan 2023 20:22:09 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: remove clusterip target
+Date:   Thu,  5 Jan 2023 20:22:02 +0100
+Message-Id: <20230105192202.25997-1-fw@strlen.de>
+X-Mailer: git-send-email 2.38.2
 MIME-Version: 1.0
-X-OriginatorOrg: est.tech
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: e61ca123-19e0-494b-5887-08daef160310
-X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Jan 2023 12:11:44.5431
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: d2585e63-66b9-44b6-a76e-4f4b217d97fd
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: haRJ9baBG2NM38V4CBB4xwnH8LC104m2sVsgy0iEUHbfAOLS0z6Pmyy6uxqJvl2doEEjIrwRz2xm14l0VBRgWl29JzQ9I3kgs3qQ3YTLWZU=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS4P189MB1919
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQYWJsbyBOZWlyYSBBeXVzbyA8
-cGFibG9AbmV0ZmlsdGVyLm9yZz4NCj4gU2VudDogVGh1cnNkYXksIDUgSmFudWFyeSAyMDIzIDEy
-OjU0DQo+IFRvOiBTcmlyYW0gWWFnbmFyYW1hbiA8c3JpcmFtLnlhZ25hcmFtYW5AZXN0LnRlY2g+
-DQo+IENjOiBuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnOyBGbG9yaWFuIFdlc3RwaGFs
-IDxmd0BzdHJsZW4uZGU+Ow0KPiBNYXJjZWxvIFJpY2FyZG8gTGVpdG5lciA8bWxlaXRuZXJAcmVk
-aGF0LmNvbT47IExvbmcgWGluDQo+IDxseGluQHJlZGhhdC5jb20+OyBDbGF1ZGlvIFBvcmZpcmkg
-PGNsYXVkaW8ucG9yZmlyaUBlcmljc3Nvbi5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENI
-XSBuZXRmaWx0ZXI6IGNvbm50cmFjazogc2ltcGxpZnkgc2N0cCBzdGF0ZSBtYWNoaW5lDQo+IA0K
-PiBPbiBUaHUsIEphbiAwNSwgMjAyMyBhdCAxMTo0MToxM0FNICswMDAwLCBTcmlyYW0gWWFnbmFy
-YW1hbiB3cm90ZToNCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9t
-OiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVyLm9yZz4NCj4gPiA+IFNlbnQ6IFdl
-ZG5lc2RheSwgNCBKYW51YXJ5IDIwMjMgMTY6MDINCj4gPiA+IFRvOiBTcmlyYW0gWWFnbmFyYW1h
-biA8c3JpcmFtLnlhZ25hcmFtYW5AZXN0LnRlY2g+DQo+ID4gPiBDYzogbmV0ZmlsdGVyLWRldmVs
-QHZnZXIua2VybmVsLm9yZzsgRmxvcmlhbiBXZXN0cGhhbA0KPiA+ID4gPGZ3QHN0cmxlbi5kZT47
-IE1hcmNlbG8gUmljYXJkbyBMZWl0bmVyIDxtbGVpdG5lckByZWRoYXQuY29tPjsgTG9uZw0KPiA+
-ID4gWGluIDxseGluQHJlZGhhdC5jb20+DQo+ID4gPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSF0g
-bmV0ZmlsdGVyOiBjb25udHJhY2s6IHNpbXBsaWZ5IHNjdHAgc3RhdGUNCj4gPiA+IG1hY2hpbmUN
-Cj4gPiA+DQo+ID4gPiBPbiBXZWQsIEphbiAwNCwgMjAyMyBhdCAxMjozMTo0M1BNICswMTAwLCBT
-cmlyYW0gWWFnbmFyYW1hbiB3cm90ZToNCj4gPiA+ID4gQWxsIHRoZSBwYXRocyBpbiBhbiBTQ1RQ
-IGNvbm5lY3Rpb24gYXJlIGtlcHQgYWxpdmUgZWl0aGVyIGJ5DQo+ID4gPiA+IGFjdHVhbCBEQVRB
-L1NBQ0sgcnVubmluZyB0aHJvdWdoIHRoZSBjb25uZWN0aW9uIG9yIGJ5IEhFQVJUQkVBVC4NCj4g
-PiA+ID4gVGhpcyBwYXRjaCBwcm9wb3NlcyBhIHNpbXBsZSBzdGF0ZSBtYWNoaW5lIHdpdGggb25s
-eSB0d28gc3RhdGVzDQo+ID4gPiA+IE9QRU5fV0FJVCBhbmQgRVNUQUJMSVNIRUQgKHNpbWlsYXIg
-dG8gVURQKS4gVGhlIHJlYXNvbiBmb3IgdGhpcw0KPiA+ID4gPiBjaGFuZ2UgaXMgYSBmdWxsIHN0
-YXRlZnVsIGFwcHJvYWNoIHRvIFNDVFAgaXMgZGlmZmljdWx0IHdoZW4gdGhlDQo+ID4gPiA+IGFz
-c29jaWF0aW9uIGlzIG11bHRpaG9tZWQgc2luY2UgdGhlIGVuZHBvaW50cyBjb3VsZCB1c2UgZGlm
-ZmVyZW50DQo+ID4gPiA+IHBhdGhzIGluIHRoZSBuZXR3b3JrIGR1cmluZyB0aGUgbGlmZXRpbWUg
-b2YgYW4gYXNzb2NpYXRpb24uDQo+ID4gPg0KPiA+ID4gRG8geW91IG1lYW4gdGhlIHJvdXRlci9m
-aXJld2FsbCBtaWdodCBub3Qgc2VlIGFsbCBwYWNrZXRzIGZvcg0KPiA+ID4gYXNzb2NpYXRpb24g
-aXMgbXVsdGlob21lZD8NCj4gPiA+DQo+ID4gPiBDb3VsZCB5b3UgcGxlYXNlIHByb3ZpZGUgYW4g
-ZXhhbXBsZT8NCj4gPg0KPiA+IExldCdzIHNheSB0aGUgcHJpbWFyeSBhbmQgYWx0ZXJuYXRlL3Nl
-Y29uZGFyeSBwYXRocyBiZXR3ZWVuIHRoZSBTQ1RQDQo+ID4gZW5kcG9pbnRzIHRyYXZlcnNlIGRp
-ZmZlcmVudCBtaWRkbGUgYm94ZXMuIElmIGFuIFNDVFAgZW5kcG9pbnQgZGV0ZWN0cw0KPiA+IG5l
-dHdvcmsgZmFpbHVyZSBvbiB0aGUgcHJpbWFyeSBwYXRoLCBpdCB3aWxsIHN3aXRjaCB0byB1c2lu
-ZyB0aGUNCj4gPiBzZWNvbmRhcnkgcGF0aCBhbmQgYWxsIHN1YnNlcXVlbnQgcGFja2V0cyB3aWxs
-IG5vdCBiZSBzZWVuIGJ5IHRoZQ0KPiA+IG1pZGRsZWJveCBvbiB0aGUgcHJpbWFyeSBwYXRoLCBp
-bmNsdWRpbmcgU0hVVERPV04gc2VxdWVuY2VzIGlmIHRoZXkNCj4gPiBoYXBwZW4gYXQgdGhhdCB0
-aW1lLg0KPiANCj4gT0ssIHRoZW4gb24gdGhlIHByaW1hcnkgbWlkZGxlIGJveCB0aGUgU0NUUCBm
-bG93IHdpbGwganVzdCB0aW1lb3V0Pw0KPiAoYmVjYXVzZSBubyBtb3JlIHBhY2tldHMgYXJlIHNl
-ZW4pLg0KDQpZZXMsIHRoZXkgd2lsbCB0aW1lb3V0IHVubGVzcyB0aGUgcHJpbWFyeSBwYXRoIGNv
-bWVzIHVwIGJlZm9yZSB0aGUgU0hVVERPV04gc2VxdWVuY2UuIEFuZCB0aGUgZGVmYXVsdCB0aW1l
-b3V0IGZvciBhbiBFU1RBQkxJU0hFRCBTQ1RQIGNvbm5lY3Rpb24gaXMgNSBkYXlzLCB3aGljaCBp
-cyBhICJsb25nIiB0aW1lIHRvIGNsZWFuLXVwIHRoaXMgZW50cnkuDQoNCj4gDQo+IE9yIHRoZSBz
-Y2VuYXJpbyB5b3UgZGVzY3JpYmUgaXMgdGhpcz8gQXNzdW1pbmcgYSBtaWRkbGUgYm94IHRoYXQg
-aXMgYW4NCj4gYWx0ZXJuYXRlL3NlY29uZGFyeSBwYXRoLCB0aGVuIHN1Y2ggbWlkZGxlIGJveCAo
-d2hpY2ggZGlkIG5vdCBzZWUgYW55IG90aGVyDQo+IHBhY2tldHMgYmVmb3JlIGZvciB0aGlzIGNv
-bm5lY3Rpb24pIHN0YXJ0cyBzZWVpbmcgcGFja2V0cyBmb3IgdGhpcyBmbG93LCBzbw0KPiBwYWNr
-ZXRzIGFyZSBkcm9wcGVkIGJ5IHRoZSBzZWNvbmRhcnkgbWlkZGxlIGJveCAod2hpY2ggbm93IGJl
-Y2FtZSB0aGUNCj4gcHJpbWFyeSBwYXRoIGFmdGVyIHRoZSBuZXR3b3JrIGZhaWx1cmUpPw0KDQpX
-aXRoIGQ3ZWUzNTE5MDQyNyAoIm5ldGZpbHRlcjogbmZfY3Rfc2N0cDogbWluaW1hbCBtdWx0aWhv
-bWluZyBzdXBwb3J0IikgYW5kIGJmZjNkMDUzNDgwNCAoIm5ldGZpbHRlcjogY29ubnRyYWNrOiBh
-ZGQgc2N0cCBEQVRBX1NFTlQgc3RhdGUgIikgdGhlcmUgaXMgc29tZSBtdWx0aWhvbWluZyBzdXBw
-b3J0LCBzbyBzZWNvbmRhcnkgbWlkZGxlYm94ZXMgc2hvdWxkIGhhdmUgYW4gZW50cnkgYWxyZWFk
-eS4gU0NUUCBlbmRwb2ludHMgY2FuIHNlbmQgcGFja2V0cyB0byBzZWNvbmRhcnkgdHJhbnNwb3J0
-IGFkZHJlc3NlcyBhY2NvcmRpbmcgdG8gdGhlIFJGQywgYW5kIHRoZXkgZG8gcGF0aCBtb25pdG9y
-aW5nIG9mIHNlY29uZGFyeSBwYXRocyB1c2luZyBIRUFSVEJFQVQgd2hlbiBuZWVkZWQuDQo=
+Marked as 'to be removed soon' since kernel 4.1 (2015).
+Functionality was superseded by the 'cluster' match, added in kernel
+2.6.30 (2009).
+
+clusterip_tg_check still has races that can give
+
+ proc_dir_entry 'ipt_CLUSTERIP/10.1.1.2' already registered
+
+followed by a WARN splat.
+
+Remove it instead of trying to fix this up again,
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h |  38 -
+ net/ipv4/netfilter/Kconfig                    |  14 -
+ net/ipv4/netfilter/Makefile                   |   1 -
+ net/ipv4/netfilter/ipt_CLUSTERIP.c            | 929 ------------------
+ 4 files changed, 982 deletions(-)
+ delete mode 100644 include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+ delete mode 100644 net/ipv4/netfilter/ipt_CLUSTERIP.c
+
+diff --git a/include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h b/include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+deleted file mode 100644
+index ff6599494fe6..000000000000
+--- a/include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _IPT_CLUSTERIP_H_target
+-#define _IPT_CLUSTERIP_H_target
+-
+-#include <linux/types.h>
+-#include <linux/if_ether.h>
+-
+-enum clusterip_hashmode {
+-    CLUSTERIP_HASHMODE_SIP = 0,
+-    CLUSTERIP_HASHMODE_SIP_SPT,
+-    CLUSTERIP_HASHMODE_SIP_SPT_DPT,
+-};
+-
+-#define CLUSTERIP_HASHMODE_MAX CLUSTERIP_HASHMODE_SIP_SPT_DPT
+-
+-#define CLUSTERIP_MAX_NODES 16
+-
+-#define CLUSTERIP_FLAG_NEW 0x00000001
+-
+-struct clusterip_config;
+-
+-struct ipt_clusterip_tgt_info {
+-
+-	__u32 flags;
+-
+-	/* only relevant for new ones */
+-	__u8 clustermac[ETH_ALEN];
+-	__u16 num_total_nodes;
+-	__u16 num_local_nodes;
+-	__u16 local_nodes[CLUSTERIP_MAX_NODES];
+-	__u32 hash_mode;
+-	__u32 hash_initval;
+-
+-	/* Used internally by the kernel */
+-	struct clusterip_config *config;
+-};
+-
+-#endif /*_IPT_CLUSTERIP_H_target*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index aab384126f61..f71a7e9a7de6 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -259,20 +259,6 @@ config IP_NF_MANGLE
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_TARGET_CLUSTERIP
+-	tristate "CLUSTERIP target support"
+-	depends on IP_NF_MANGLE
+-	depends on NF_CONNTRACK
+-	depends on NETFILTER_ADVANCED
+-	select NF_CONNTRACK_MARK
+-	select NETFILTER_FAMILY_ARP
+-	help
+-	  The CLUSTERIP target allows you to build load-balancing clusters of
+-	  network servers without having a dedicated load-balancing
+-	  router/server/switch.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_TARGET_ECN
+ 	tristate "ECN target support"
+ 	depends on IP_NF_MANGLE
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 93bad1184251..5a26f9de1ab9 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -39,7 +39,6 @@ obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_RPFILTER) += ipt_rpfilter.o
+ 
+ # targets
+-obj-$(CONFIG_IP_NF_TARGET_CLUSTERIP) += ipt_CLUSTERIP.o
+ obj-$(CONFIG_IP_NF_TARGET_ECN) += ipt_ECN.o
+ obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
+ obj-$(CONFIG_IP_NF_TARGET_SYNPROXY) += ipt_SYNPROXY.o
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+deleted file mode 100644
+index b3cc416ed292..000000000000
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ /dev/null
+@@ -1,929 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/* Cluster IP hashmark target
+- * (C) 2003-2004 by Harald Welte <laforge@netfilter.org>
+- * based on ideas of Fabio Olive Leite <olive@unixforge.org>
+- *
+- * Development of this code funded by SuSE Linux AG, https://www.suse.com/
+- */
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-#include <linux/module.h>
+-#include <linux/proc_fs.h>
+-#include <linux/jhash.h>
+-#include <linux/bitops.h>
+-#include <linux/skbuff.h>
+-#include <linux/slab.h>
+-#include <linux/ip.h>
+-#include <linux/tcp.h>
+-#include <linux/udp.h>
+-#include <linux/icmp.h>
+-#include <linux/if_arp.h>
+-#include <linux/seq_file.h>
+-#include <linux/refcount.h>
+-#include <linux/netfilter_arp.h>
+-#include <linux/netfilter/x_tables.h>
+-#include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ipt_CLUSTERIP.h>
+-#include <net/netfilter/nf_conntrack.h>
+-#include <net/net_namespace.h>
+-#include <net/netns/generic.h>
+-#include <net/checksum.h>
+-#include <net/ip.h>
+-
+-#define CLUSTERIP_VERSION "0.8"
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_DESCRIPTION("Xtables: CLUSTERIP target");
+-
+-struct clusterip_config {
+-	struct list_head list;			/* list of all configs */
+-	refcount_t refcount;			/* reference count */
+-	refcount_t entries;			/* number of entries/rules
+-						 * referencing us */
+-
+-	__be32 clusterip;			/* the IP address */
+-	u_int8_t clustermac[ETH_ALEN];		/* the MAC address */
+-	int ifindex;				/* device ifindex */
+-	u_int16_t num_total_nodes;		/* total number of nodes */
+-	unsigned long local_nodes;		/* node number array */
+-
+-#ifdef CONFIG_PROC_FS
+-	struct proc_dir_entry *pde;		/* proc dir entry */
+-#endif
+-	enum clusterip_hashmode hash_mode;	/* which hashing mode */
+-	u_int32_t hash_initval;			/* hash initialization */
+-	struct rcu_head rcu;			/* for call_rcu */
+-	struct net *net;			/* netns for pernet list */
+-	char ifname[IFNAMSIZ];			/* device ifname */
+-};
+-
+-#ifdef CONFIG_PROC_FS
+-static const struct proc_ops clusterip_proc_ops;
+-#endif
+-
+-struct clusterip_net {
+-	struct list_head configs;
+-	/* lock protects the configs list */
+-	spinlock_t lock;
+-
+-	bool clusterip_deprecated_warning;
+-#ifdef CONFIG_PROC_FS
+-	struct proc_dir_entry *procdir;
+-	/* mutex protects the config->pde*/
+-	struct mutex mutex;
+-#endif
+-	unsigned int hook_users;
+-};
+-
+-static unsigned int clusterip_arp_mangle(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
+-
+-static const struct nf_hook_ops cip_arp_ops = {
+-	.hook = clusterip_arp_mangle,
+-	.pf = NFPROTO_ARP,
+-	.hooknum = NF_ARP_OUT,
+-	.priority = -1
+-};
+-
+-static unsigned int clusterip_net_id __read_mostly;
+-static inline struct clusterip_net *clusterip_pernet(struct net *net)
+-{
+-	return net_generic(net, clusterip_net_id);
+-}
+-
+-static inline void
+-clusterip_config_get(struct clusterip_config *c)
+-{
+-	refcount_inc(&c->refcount);
+-}
+-
+-static void clusterip_config_rcu_free(struct rcu_head *head)
+-{
+-	struct clusterip_config *config;
+-	struct net_device *dev;
+-
+-	config = container_of(head, struct clusterip_config, rcu);
+-	dev = dev_get_by_name(config->net, config->ifname);
+-	if (dev) {
+-		dev_mc_del(dev, config->clustermac);
+-		dev_put(dev);
+-	}
+-	kfree(config);
+-}
+-
+-static inline void
+-clusterip_config_put(struct clusterip_config *c)
+-{
+-	if (refcount_dec_and_test(&c->refcount))
+-		call_rcu(&c->rcu, clusterip_config_rcu_free);
+-}
+-
+-/* decrease the count of entries using/referencing this config.  If last
+- * entry(rule) is removed, remove the config from lists, but don't free it
+- * yet, since proc-files could still be holding references */
+-static inline void
+-clusterip_config_entry_put(struct clusterip_config *c)
+-{
+-	struct clusterip_net *cn = clusterip_pernet(c->net);
+-
+-	local_bh_disable();
+-	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
+-		list_del_rcu(&c->list);
+-		spin_unlock(&cn->lock);
+-		local_bh_enable();
+-		/* In case anyone still accesses the file, the open/close
+-		 * functions are also incrementing the refcount on their own,
+-		 * so it's safe to remove the entry even if it's in use. */
+-#ifdef CONFIG_PROC_FS
+-		mutex_lock(&cn->mutex);
+-		if (cn->procdir)
+-			proc_remove(c->pde);
+-		mutex_unlock(&cn->mutex);
+-#endif
+-		return;
+-	}
+-	local_bh_enable();
+-}
+-
+-static struct clusterip_config *
+-__clusterip_config_find(struct net *net, __be32 clusterip)
+-{
+-	struct clusterip_config *c;
+-	struct clusterip_net *cn = clusterip_pernet(net);
+-
+-	list_for_each_entry_rcu(c, &cn->configs, list) {
+-		if (c->clusterip == clusterip)
+-			return c;
+-	}
+-
+-	return NULL;
+-}
+-
+-static inline struct clusterip_config *
+-clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
+-{
+-	struct clusterip_config *c;
+-
+-	rcu_read_lock_bh();
+-	c = __clusterip_config_find(net, clusterip);
+-	if (c) {
+-#ifdef CONFIG_PROC_FS
+-		if (!c->pde)
+-			c = NULL;
+-		else
+-#endif
+-		if (unlikely(!refcount_inc_not_zero(&c->refcount)))
+-			c = NULL;
+-		else if (entry) {
+-			if (unlikely(!refcount_inc_not_zero(&c->entries))) {
+-				clusterip_config_put(c);
+-				c = NULL;
+-			}
+-		}
+-	}
+-	rcu_read_unlock_bh();
+-
+-	return c;
+-}
+-
+-static void
+-clusterip_config_init_nodelist(struct clusterip_config *c,
+-			       const struct ipt_clusterip_tgt_info *i)
+-{
+-	int n;
+-
+-	for (n = 0; n < i->num_local_nodes; n++)
+-		set_bit(i->local_nodes[n] - 1, &c->local_nodes);
+-}
+-
+-static int
+-clusterip_netdev_event(struct notifier_block *this, unsigned long event,
+-		       void *ptr)
+-{
+-	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+-	struct net *net = dev_net(dev);
+-	struct clusterip_net *cn = clusterip_pernet(net);
+-	struct clusterip_config *c;
+-
+-	spin_lock_bh(&cn->lock);
+-	list_for_each_entry_rcu(c, &cn->configs, list) {
+-		switch (event) {
+-		case NETDEV_REGISTER:
+-			if (!strcmp(dev->name, c->ifname)) {
+-				c->ifindex = dev->ifindex;
+-				dev_mc_add(dev, c->clustermac);
+-			}
+-			break;
+-		case NETDEV_UNREGISTER:
+-			if (dev->ifindex == c->ifindex) {
+-				dev_mc_del(dev, c->clustermac);
+-				c->ifindex = -1;
+-			}
+-			break;
+-		case NETDEV_CHANGENAME:
+-			if (!strcmp(dev->name, c->ifname)) {
+-				c->ifindex = dev->ifindex;
+-				dev_mc_add(dev, c->clustermac);
+-			} else if (dev->ifindex == c->ifindex) {
+-				dev_mc_del(dev, c->clustermac);
+-				c->ifindex = -1;
+-			}
+-			break;
+-		}
+-	}
+-	spin_unlock_bh(&cn->lock);
+-
+-	return NOTIFY_DONE;
+-}
+-
+-static struct clusterip_config *
+-clusterip_config_init(struct net *net, const struct ipt_clusterip_tgt_info *i,
+-		      __be32 ip, const char *iniface)
+-{
+-	struct clusterip_net *cn = clusterip_pernet(net);
+-	struct clusterip_config *c;
+-	struct net_device *dev;
+-	int err;
+-
+-	if (iniface[0] == '\0') {
+-		pr_info("Please specify an interface name\n");
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	c = kzalloc(sizeof(*c), GFP_ATOMIC);
+-	if (!c)
+-		return ERR_PTR(-ENOMEM);
+-
+-	dev = dev_get_by_name(net, iniface);
+-	if (!dev) {
+-		pr_info("no such interface %s\n", iniface);
+-		kfree(c);
+-		return ERR_PTR(-ENOENT);
+-	}
+-	c->ifindex = dev->ifindex;
+-	strcpy(c->ifname, dev->name);
+-	memcpy(&c->clustermac, &i->clustermac, ETH_ALEN);
+-	dev_mc_add(dev, c->clustermac);
+-	dev_put(dev);
+-
+-	c->clusterip = ip;
+-	c->num_total_nodes = i->num_total_nodes;
+-	clusterip_config_init_nodelist(c, i);
+-	c->hash_mode = i->hash_mode;
+-	c->hash_initval = i->hash_initval;
+-	c->net = net;
+-	refcount_set(&c->refcount, 1);
+-
+-	spin_lock_bh(&cn->lock);
+-	if (__clusterip_config_find(net, ip)) {
+-		err = -EBUSY;
+-		goto out_config_put;
+-	}
+-
+-	list_add_rcu(&c->list, &cn->configs);
+-	spin_unlock_bh(&cn->lock);
+-
+-#ifdef CONFIG_PROC_FS
+-	{
+-		char buffer[16];
+-
+-		/* create proc dir entry */
+-		sprintf(buffer, "%pI4", &ip);
+-		mutex_lock(&cn->mutex);
+-		c->pde = proc_create_data(buffer, 0600,
+-					  cn->procdir,
+-					  &clusterip_proc_ops, c);
+-		mutex_unlock(&cn->mutex);
+-		if (!c->pde) {
+-			err = -ENOMEM;
+-			goto err;
+-		}
+-	}
+-#endif
+-
+-	refcount_set(&c->entries, 1);
+-	return c;
+-
+-#ifdef CONFIG_PROC_FS
+-err:
+-#endif
+-	spin_lock_bh(&cn->lock);
+-	list_del_rcu(&c->list);
+-out_config_put:
+-	spin_unlock_bh(&cn->lock);
+-	clusterip_config_put(c);
+-	return ERR_PTR(err);
+-}
+-
+-#ifdef CONFIG_PROC_FS
+-static int
+-clusterip_add_node(struct clusterip_config *c, u_int16_t nodenum)
+-{
+-
+-	if (nodenum == 0 ||
+-	    nodenum > c->num_total_nodes)
+-		return 1;
+-
+-	/* check if we already have this number in our bitfield */
+-	if (test_and_set_bit(nodenum - 1, &c->local_nodes))
+-		return 1;
+-
+-	return 0;
+-}
+-
+-static bool
+-clusterip_del_node(struct clusterip_config *c, u_int16_t nodenum)
+-{
+-	if (nodenum == 0 ||
+-	    nodenum > c->num_total_nodes)
+-		return true;
+-
+-	if (test_and_clear_bit(nodenum - 1, &c->local_nodes))
+-		return false;
+-
+-	return true;
+-}
+-#endif
+-
+-static inline u_int32_t
+-clusterip_hashfn(const struct sk_buff *skb,
+-		 const struct clusterip_config *config)
+-{
+-	const struct iphdr *iph = ip_hdr(skb);
+-	unsigned long hashval;
+-	u_int16_t sport = 0, dport = 0;
+-	int poff;
+-
+-	poff = proto_ports_offset(iph->protocol);
+-	if (poff >= 0) {
+-		const u_int16_t *ports;
+-		u16 _ports[2];
+-
+-		ports = skb_header_pointer(skb, iph->ihl * 4 + poff, 4, _ports);
+-		if (ports) {
+-			sport = ports[0];
+-			dport = ports[1];
+-		}
+-	} else {
+-		net_info_ratelimited("unknown protocol %u\n", iph->protocol);
+-	}
+-
+-	switch (config->hash_mode) {
+-	case CLUSTERIP_HASHMODE_SIP:
+-		hashval = jhash_1word(ntohl(iph->saddr),
+-				      config->hash_initval);
+-		break;
+-	case CLUSTERIP_HASHMODE_SIP_SPT:
+-		hashval = jhash_2words(ntohl(iph->saddr), sport,
+-				       config->hash_initval);
+-		break;
+-	case CLUSTERIP_HASHMODE_SIP_SPT_DPT:
+-		hashval = jhash_3words(ntohl(iph->saddr), sport, dport,
+-				       config->hash_initval);
+-		break;
+-	default:
+-		/* to make gcc happy */
+-		hashval = 0;
+-		/* This cannot happen, unless the check function wasn't called
+-		 * at rule load time */
+-		pr_info("unknown mode %u\n", config->hash_mode);
+-		BUG();
+-		break;
+-	}
+-
+-	/* node numbers are 1..n, not 0..n */
+-	return reciprocal_scale(hashval, config->num_total_nodes) + 1;
+-}
+-
+-static inline int
+-clusterip_responsible(const struct clusterip_config *config, u_int32_t hash)
+-{
+-	return test_bit(hash - 1, &config->local_nodes);
+-}
+-
+-/***********************************************************************
+- * IPTABLES TARGET
+- ***********************************************************************/
+-
+-static unsigned int
+-clusterip_tg(struct sk_buff *skb, const struct xt_action_param *par)
+-{
+-	const struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
+-	struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
+-	u_int32_t hash;
+-
+-	/* don't need to clusterip_config_get() here, since refcount
+-	 * is only decremented by destroy() - and ip_tables guarantees
+-	 * that the ->target() function isn't called after ->destroy() */
+-
+-	ct = nf_ct_get(skb, &ctinfo);
+-	if (ct == NULL)
+-		return NF_DROP;
+-
+-	/* special case: ICMP error handling. conntrack distinguishes between
+-	 * error messages (RELATED) and information requests (see below) */
+-	if (ip_hdr(skb)->protocol == IPPROTO_ICMP &&
+-	    (ctinfo == IP_CT_RELATED ||
+-	     ctinfo == IP_CT_RELATED_REPLY))
+-		return XT_CONTINUE;
+-
+-	/* nf_conntrack_proto_icmp guarantees us that we only have ICMP_ECHO,
+-	 * TIMESTAMP, INFO_REQUEST or ICMP_ADDRESS type icmp packets from here
+-	 * on, which all have an ID field [relevant for hashing]. */
+-
+-	hash = clusterip_hashfn(skb, cipinfo->config);
+-
+-	switch (ctinfo) {
+-	case IP_CT_NEW:
+-		WRITE_ONCE(ct->mark, hash);
+-		break;
+-	case IP_CT_RELATED:
+-	case IP_CT_RELATED_REPLY:
+-		/* FIXME: we don't handle expectations at the moment.
+-		 * They can arrive on a different node than
+-		 * the master connection (e.g. FTP passive mode) */
+-	case IP_CT_ESTABLISHED:
+-	case IP_CT_ESTABLISHED_REPLY:
+-		break;
+-	default:			/* Prevent gcc warnings */
+-		break;
+-	}
+-
+-#ifdef DEBUG
+-	nf_ct_dump_tuple_ip(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+-#endif
+-	pr_debug("hash=%u ct_hash=%u ", hash, READ_ONCE(ct->mark));
+-	if (!clusterip_responsible(cipinfo->config, hash)) {
+-		pr_debug("not responsible\n");
+-		return NF_DROP;
+-	}
+-	pr_debug("responsible\n");
+-
+-	/* despite being received via linklayer multicast, this is
+-	 * actually a unicast IP packet. TCP doesn't like PACKET_MULTICAST */
+-	skb->pkt_type = PACKET_HOST;
+-
+-	return XT_CONTINUE;
+-}
+-
+-static int clusterip_tg_check(const struct xt_tgchk_param *par)
+-{
+-	struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
+-	struct clusterip_net *cn = clusterip_pernet(par->net);
+-	const struct ipt_entry *e = par->entryinfo;
+-	struct clusterip_config *config;
+-	int ret, i;
+-
+-	if (par->nft_compat) {
+-		pr_err("cannot use CLUSTERIP target from nftables compat\n");
+-		return -EOPNOTSUPP;
+-	}
+-
+-	if (cn->hook_users == UINT_MAX)
+-		return -EOVERFLOW;
+-
+-	if (cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP &&
+-	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT &&
+-	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT_DPT) {
+-		pr_info("unknown mode %u\n", cipinfo->hash_mode);
+-		return -EINVAL;
+-
+-	}
+-	if (e->ip.dmsk.s_addr != htonl(0xffffffff) ||
+-	    e->ip.dst.s_addr == 0) {
+-		pr_info("Please specify destination IP\n");
+-		return -EINVAL;
+-	}
+-	if (cipinfo->num_local_nodes > ARRAY_SIZE(cipinfo->local_nodes)) {
+-		pr_info("bad num_local_nodes %u\n", cipinfo->num_local_nodes);
+-		return -EINVAL;
+-	}
+-	for (i = 0; i < cipinfo->num_local_nodes; i++) {
+-		if (cipinfo->local_nodes[i] - 1 >=
+-		    sizeof(config->local_nodes) * 8) {
+-			pr_info("bad local_nodes[%d] %u\n",
+-				i, cipinfo->local_nodes[i]);
+-			return -EINVAL;
+-		}
+-	}
+-
+-	config = clusterip_config_find_get(par->net, e->ip.dst.s_addr, 1);
+-	if (!config) {
+-		if (!(cipinfo->flags & CLUSTERIP_FLAG_NEW)) {
+-			pr_info("no config found for %pI4, need 'new'\n",
+-				&e->ip.dst.s_addr);
+-			return -EINVAL;
+-		} else {
+-			config = clusterip_config_init(par->net, cipinfo,
+-						       e->ip.dst.s_addr,
+-						       e->ip.iniface);
+-			if (IS_ERR(config))
+-				return PTR_ERR(config);
+-		}
+-	} else if (memcmp(&config->clustermac, &cipinfo->clustermac, ETH_ALEN)) {
+-		clusterip_config_entry_put(config);
+-		clusterip_config_put(config);
+-		return -EINVAL;
+-	}
+-
+-	ret = nf_ct_netns_get(par->net, par->family);
+-	if (ret < 0) {
+-		pr_info("cannot load conntrack support for proto=%u\n",
+-			par->family);
+-		clusterip_config_entry_put(config);
+-		clusterip_config_put(config);
+-		return ret;
+-	}
+-
+-	if (cn->hook_users == 0) {
+-		ret = nf_register_net_hook(par->net, &cip_arp_ops);
+-
+-		if (ret < 0) {
+-			clusterip_config_entry_put(config);
+-			clusterip_config_put(config);
+-			nf_ct_netns_put(par->net, par->family);
+-			return ret;
+-		}
+-	}
+-
+-	cn->hook_users++;
+-
+-	if (!cn->clusterip_deprecated_warning) {
+-		pr_info("ipt_CLUSTERIP is deprecated and it will removed soon, "
+-			"use xt_cluster instead\n");
+-		cn->clusterip_deprecated_warning = true;
+-	}
+-
+-	cipinfo->config = config;
+-	return ret;
+-}
+-
+-/* drop reference count of cluster config when rule is deleted */
+-static void clusterip_tg_destroy(const struct xt_tgdtor_param *par)
+-{
+-	const struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
+-	struct clusterip_net *cn = clusterip_pernet(par->net);
+-
+-	/* if no more entries are referencing the config, remove it
+-	 * from the list and destroy the proc entry */
+-	clusterip_config_entry_put(cipinfo->config);
+-
+-	clusterip_config_put(cipinfo->config);
+-
+-	nf_ct_netns_put(par->net, par->family);
+-	cn->hook_users--;
+-
+-	if (cn->hook_users == 0)
+-		nf_unregister_net_hook(par->net, &cip_arp_ops);
+-}
+-
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-struct compat_ipt_clusterip_tgt_info
+-{
+-	u_int32_t	flags;
+-	u_int8_t	clustermac[6];
+-	u_int16_t	num_total_nodes;
+-	u_int16_t	num_local_nodes;
+-	u_int16_t	local_nodes[CLUSTERIP_MAX_NODES];
+-	u_int32_t	hash_mode;
+-	u_int32_t	hash_initval;
+-	compat_uptr_t	config;
+-};
+-#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+-
+-static struct xt_target clusterip_tg_reg __read_mostly = {
+-	.name		= "CLUSTERIP",
+-	.family		= NFPROTO_IPV4,
+-	.target		= clusterip_tg,
+-	.checkentry	= clusterip_tg_check,
+-	.destroy	= clusterip_tg_destroy,
+-	.targetsize	= sizeof(struct ipt_clusterip_tgt_info),
+-	.usersize	= offsetof(struct ipt_clusterip_tgt_info, config),
+-#ifdef CONFIG_NETFILTER_XTABLES_COMPAT
+-	.compatsize	= sizeof(struct compat_ipt_clusterip_tgt_info),
+-#endif /* CONFIG_NETFILTER_XTABLES_COMPAT */
+-	.me		= THIS_MODULE
+-};
+-
+-
+-/***********************************************************************
+- * ARP MANGLING CODE
+- ***********************************************************************/
+-
+-/* hardcoded for 48bit ethernet and 32bit ipv4 addresses */
+-struct arp_payload {
+-	u_int8_t src_hw[ETH_ALEN];
+-	__be32 src_ip;
+-	u_int8_t dst_hw[ETH_ALEN];
+-	__be32 dst_ip;
+-} __packed;
+-
+-#ifdef DEBUG
+-static void arp_print(struct arp_payload *payload)
+-{
+-#define HBUFFERLEN 30
+-	char hbuffer[HBUFFERLEN];
+-	int j, k;
+-
+-	for (k = 0, j = 0; k < HBUFFERLEN - 3 && j < ETH_ALEN; j++) {
+-		hbuffer[k++] = hex_asc_hi(payload->src_hw[j]);
+-		hbuffer[k++] = hex_asc_lo(payload->src_hw[j]);
+-		hbuffer[k++] = ':';
+-	}
+-	hbuffer[--k] = '\0';
+-
+-	pr_debug("src %pI4@%s, dst %pI4\n",
+-		 &payload->src_ip, hbuffer, &payload->dst_ip);
+-}
+-#endif
+-
+-static unsigned int
+-clusterip_arp_mangle(void *priv, struct sk_buff *skb,
+-		     const struct nf_hook_state *state)
+-{
+-	struct arphdr *arp = arp_hdr(skb);
+-	struct arp_payload *payload;
+-	struct clusterip_config *c;
+-	struct net *net = state->net;
+-
+-	/* we don't care about non-ethernet and non-ipv4 ARP */
+-	if (arp->ar_hrd != htons(ARPHRD_ETHER) ||
+-	    arp->ar_pro != htons(ETH_P_IP) ||
+-	    arp->ar_pln != 4 || arp->ar_hln != ETH_ALEN)
+-		return NF_ACCEPT;
+-
+-	/* we only want to mangle arp requests and replies */
+-	if (arp->ar_op != htons(ARPOP_REPLY) &&
+-	    arp->ar_op != htons(ARPOP_REQUEST))
+-		return NF_ACCEPT;
+-
+-	payload = (void *)(arp+1);
+-
+-	/* if there is no clusterip configuration for the arp reply's
+-	 * source ip, we don't want to mangle it */
+-	c = clusterip_config_find_get(net, payload->src_ip, 0);
+-	if (!c)
+-		return NF_ACCEPT;
+-
+-	/* normally the linux kernel always replies to arp queries of
+-	 * addresses on different interfacs.  However, in the CLUSTERIP case
+-	 * this wouldn't work, since we didn't subscribe the mcast group on
+-	 * other interfaces */
+-	if (c->ifindex != state->out->ifindex) {
+-		pr_debug("not mangling arp reply on different interface: cip'%d'-skb'%d'\n",
+-			 c->ifindex, state->out->ifindex);
+-		clusterip_config_put(c);
+-		return NF_ACCEPT;
+-	}
+-
+-	/* mangle reply hardware address */
+-	memcpy(payload->src_hw, c->clustermac, arp->ar_hln);
+-
+-#ifdef DEBUG
+-	pr_debug("mangled arp reply: ");
+-	arp_print(payload);
+-#endif
+-
+-	clusterip_config_put(c);
+-
+-	return NF_ACCEPT;
+-}
+-
+-/***********************************************************************
+- * PROC DIR HANDLING
+- ***********************************************************************/
+-
+-#ifdef CONFIG_PROC_FS
+-
+-struct clusterip_seq_position {
+-	unsigned int pos;	/* position */
+-	unsigned int weight;	/* number of bits set == size */
+-	unsigned int bit;	/* current bit */
+-	unsigned long val;	/* current value */
+-};
+-
+-static void *clusterip_seq_start(struct seq_file *s, loff_t *pos)
+-{
+-	struct clusterip_config *c = s->private;
+-	unsigned int weight;
+-	u_int32_t local_nodes;
+-	struct clusterip_seq_position *idx;
+-
+-	/* FIXME: possible race */
+-	local_nodes = c->local_nodes;
+-	weight = hweight32(local_nodes);
+-	if (*pos >= weight)
+-		return NULL;
+-
+-	idx = kmalloc(sizeof(struct clusterip_seq_position), GFP_KERNEL);
+-	if (!idx)
+-		return ERR_PTR(-ENOMEM);
+-
+-	idx->pos = *pos;
+-	idx->weight = weight;
+-	idx->bit = ffs(local_nodes);
+-	idx->val = local_nodes;
+-	clear_bit(idx->bit - 1, &idx->val);
+-
+-	return idx;
+-}
+-
+-static void *clusterip_seq_next(struct seq_file *s, void *v, loff_t *pos)
+-{
+-	struct clusterip_seq_position *idx = v;
+-
+-	*pos = ++idx->pos;
+-	if (*pos >= idx->weight) {
+-		kfree(v);
+-		return NULL;
+-	}
+-	idx->bit = ffs(idx->val);
+-	clear_bit(idx->bit - 1, &idx->val);
+-	return idx;
+-}
+-
+-static void clusterip_seq_stop(struct seq_file *s, void *v)
+-{
+-	if (!IS_ERR(v))
+-		kfree(v);
+-}
+-
+-static int clusterip_seq_show(struct seq_file *s, void *v)
+-{
+-	struct clusterip_seq_position *idx = v;
+-
+-	if (idx->pos != 0)
+-		seq_putc(s, ',');
+-
+-	seq_printf(s, "%u", idx->bit);
+-
+-	if (idx->pos == idx->weight - 1)
+-		seq_putc(s, '\n');
+-
+-	return 0;
+-}
+-
+-static const struct seq_operations clusterip_seq_ops = {
+-	.start	= clusterip_seq_start,
+-	.next	= clusterip_seq_next,
+-	.stop	= clusterip_seq_stop,
+-	.show	= clusterip_seq_show,
+-};
+-
+-static int clusterip_proc_open(struct inode *inode, struct file *file)
+-{
+-	int ret = seq_open(file, &clusterip_seq_ops);
+-
+-	if (!ret) {
+-		struct seq_file *sf = file->private_data;
+-		struct clusterip_config *c = pde_data(inode);
+-
+-		sf->private = c;
+-
+-		clusterip_config_get(c);
+-	}
+-
+-	return ret;
+-}
+-
+-static int clusterip_proc_release(struct inode *inode, struct file *file)
+-{
+-	struct clusterip_config *c = pde_data(inode);
+-	int ret;
+-
+-	ret = seq_release(inode, file);
+-
+-	if (!ret)
+-		clusterip_config_put(c);
+-
+-	return ret;
+-}
+-
+-static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+-				size_t size, loff_t *ofs)
+-{
+-	struct clusterip_config *c = pde_data(file_inode(file));
+-#define PROC_WRITELEN	10
+-	char buffer[PROC_WRITELEN+1];
+-	unsigned long nodenum;
+-	int rc;
+-
+-	if (size > PROC_WRITELEN)
+-		return -EIO;
+-	if (copy_from_user(buffer, input, size))
+-		return -EFAULT;
+-	buffer[size] = 0;
+-
+-	if (*buffer == '+') {
+-		rc = kstrtoul(buffer+1, 10, &nodenum);
+-		if (rc)
+-			return rc;
+-		if (clusterip_add_node(c, nodenum))
+-			return -ENOMEM;
+-	} else if (*buffer == '-') {
+-		rc = kstrtoul(buffer+1, 10, &nodenum);
+-		if (rc)
+-			return rc;
+-		if (clusterip_del_node(c, nodenum))
+-			return -ENOENT;
+-	} else
+-		return -EIO;
+-
+-	return size;
+-}
+-
+-static const struct proc_ops clusterip_proc_ops = {
+-	.proc_open	= clusterip_proc_open,
+-	.proc_read	= seq_read,
+-	.proc_write	= clusterip_proc_write,
+-	.proc_lseek	= seq_lseek,
+-	.proc_release	= clusterip_proc_release,
+-};
+-
+-#endif /* CONFIG_PROC_FS */
+-
+-static int clusterip_net_init(struct net *net)
+-{
+-	struct clusterip_net *cn = clusterip_pernet(net);
+-
+-	INIT_LIST_HEAD(&cn->configs);
+-
+-	spin_lock_init(&cn->lock);
+-
+-#ifdef CONFIG_PROC_FS
+-	cn->procdir = proc_mkdir("ipt_CLUSTERIP", net->proc_net);
+-	if (!cn->procdir) {
+-		pr_err("Unable to proc dir entry\n");
+-		return -ENOMEM;
+-	}
+-	mutex_init(&cn->mutex);
+-#endif /* CONFIG_PROC_FS */
+-
+-	return 0;
+-}
+-
+-static void clusterip_net_exit(struct net *net)
+-{
+-#ifdef CONFIG_PROC_FS
+-	struct clusterip_net *cn = clusterip_pernet(net);
+-
+-	mutex_lock(&cn->mutex);
+-	proc_remove(cn->procdir);
+-	cn->procdir = NULL;
+-	mutex_unlock(&cn->mutex);
+-#endif
+-}
+-
+-static struct pernet_operations clusterip_net_ops = {
+-	.init = clusterip_net_init,
+-	.exit = clusterip_net_exit,
+-	.id   = &clusterip_net_id,
+-	.size = sizeof(struct clusterip_net),
+-};
+-
+-static struct notifier_block cip_netdev_notifier = {
+-	.notifier_call = clusterip_netdev_event
+-};
+-
+-static int __init clusterip_tg_init(void)
+-{
+-	int ret;
+-
+-	ret = register_pernet_subsys(&clusterip_net_ops);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = xt_register_target(&clusterip_tg_reg);
+-	if (ret < 0)
+-		goto cleanup_subsys;
+-
+-	ret = register_netdevice_notifier(&cip_netdev_notifier);
+-	if (ret < 0)
+-		goto unregister_target;
+-
+-	pr_info("ClusterIP Version %s loaded successfully\n",
+-		CLUSTERIP_VERSION);
+-
+-	return 0;
+-
+-unregister_target:
+-	xt_unregister_target(&clusterip_tg_reg);
+-cleanup_subsys:
+-	unregister_pernet_subsys(&clusterip_net_ops);
+-	return ret;
+-}
+-
+-static void __exit clusterip_tg_exit(void)
+-{
+-	pr_info("ClusterIP Version %s unloading\n", CLUSTERIP_VERSION);
+-
+-	unregister_netdevice_notifier(&cip_netdev_notifier);
+-	xt_unregister_target(&clusterip_tg_reg);
+-	unregister_pernet_subsys(&clusterip_net_ops);
+-
+-	/* Wait for completion of call_rcu()'s (clusterip_config_rcu_free) */
+-	rcu_barrier();
+-}
+-
+-module_init(clusterip_tg_init);
+-module_exit(clusterip_tg_exit);
+-- 
+2.38.2
+
