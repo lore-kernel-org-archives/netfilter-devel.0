@@ -2,110 +2,156 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDE9BC54EBD
-	for <netfilter-devel@archiver.kernel.org>; Fri,  6 Jan 2023 19:39:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2219DC67871
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 07:04:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235605AbjAFTjn (ORCPT
+        id S230415AbjAIHEv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 6 Jan 2023 14:39:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35754 "EHLO
+        Mon, 9 Jan 2023 02:04:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231335AbjAFTjm (ORCPT
+        with ESMTP id S233735AbjAIHE3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Jan 2023 14:39:42 -0500
-X-Greylist: delayed 855 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 06 Jan 2023 11:39:41 PST
-Received: from galois.cryonox.net (galois.cryonox.net [173.255.233.171])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6427A78A46
-        for <netfilter-devel@vger.kernel.org>; Fri,  6 Jan 2023 11:39:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=cryonox.net
-        ; s=x; h=Subject:Content-Type:MIME-Version:Message-ID:To:From:Date:Sender:
-        Reply-To:Cc:Content-Transfer-Encoding:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=0BQltuNE4P+dCQakvegSIo573JQB7+XzIsg9vxBmNDA=; b=vnQOmS/eEHnzOVtnLRcxzbxPua
-        7c0zKh5a6e7a3fNIGl+Gb+PdiwmNvqNJ+pD+t65lP8lpQcNs3UCPxNFWAK7agvkzqjIBiwBHInABo
-        0RS6zWFINmNd5HTmEd3vzVOZZKatJ9cAXegEoVQl7N6Wjg0/XBMpnpXh/ghUhxXJyPr50eqbtV0ea
-        Wp3PGp+t1Kj8Sj6e4eDEsGJ60Aodx2+u9ADX17RQXk6jQ2J1Qh9EPtDSG745JK90zbqswReRu9Qt2
-        kuRHvZRJ2CboUZ1yBcFX60C/wTpB1/8g+qWrHy96gT14oXbHcupTd+75xg/5sbWPHMDbqH0JEXrBz
-        xD+6/Tcg==;
-Received: from authenticated_user by galois.cryonox.net with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-        id 1pDsLD-005SEa-DC; Fri, 06 Jan 2023 14:25:25 -0500
-Date:   Fri, 6 Jan 2023 14:25:23 -0500
-From:   William Blough <devel@blough.us>
-To:     netfilter-devel@vger.kernel.org
-Message-ID: <Y7h1o0H+dvAz1vtZ@prometheus>
+        Mon, 9 Jan 2023 02:04:29 -0500
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AD881209F;
+        Sun,  8 Jan 2023 23:04:28 -0800 (PST)
+Received: by mail-wr1-f42.google.com with SMTP id d17so7172691wrs.2;
+        Sun, 08 Jan 2023 23:04:28 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=wYsLuw/5810Zy5eTIZ7iJqDyeo47uMIQ6w06dFLUs+Q=;
+        b=sAewqlyPfF/tYbLsIM2FVlgzIG7BjDCLgtQ9ugaEgH8k8gwvTWBRfaj201PWt7yPVN
+         hwuwAtdkTF7yzoPn2QJKGw145ncqj3htgtDy8NZ9GKoknprlncA+wgLbqJP0uJ2OA0TM
+         AWudzCprDqvdOPjR+fMsAXZgF1Oii4RlHuayRmXlsvtFs1JFjBPRTKP+xZppdNOuEjdV
+         QNX4wlOn7L71+9maTMik1nvGyYi5IoUs1yyMn2yiiwOvMUuCBFRkHoPiQUs+QMUIS5rU
+         ZreC0PyS8TKWfb5UqSXGWTX1DRv8aG1m7/aQbTVRoUWFzc0WZ3m8f2GwVK/VmpGt2Wet
+         MJiA==
+X-Gm-Message-State: AFqh2kpj5Noxj8G4JUyVZHARTpp/jngq9tZ/h5M8X4j33DQOCNRUmqls
+        53uuDuWFJVC9PXMBOmOszmw=
+X-Google-Smtp-Source: AMrXdXsEyHJGnZLB96JH3rcVegZBjOFlVPnyGgXG2g9g13hBlhCt3SpTnjtaAmK/XwGxmzdpSoCmAQ==
+X-Received: by 2002:a05:6000:38d:b0:2b5:90e:cfa5 with SMTP id u13-20020a056000038d00b002b5090ecfa5mr10255103wrf.29.1673247866783;
+        Sun, 08 Jan 2023 23:04:26 -0800 (PST)
+Received: from [192.168.1.49] (185-219-167-24-static.vivo.cz. [185.219.167.24])
+        by smtp.gmail.com with ESMTPSA id f3-20020adfdb43000000b00236883f2f5csm7846356wrj.94.2023.01.08.23.04.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 08 Jan 2023 23:04:26 -0800 (PST)
+Message-ID: <07786498-2209-3af0-8d68-c34427049947@kernel.org>
+Date:   Mon, 9 Jan 2023 08:04:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-SA-Exim-Connect-IP: 209.170.225.186
-X-SA-Exim-Mail-From: devel@blough.us
-Subject: [PATCH libnetfilter_conntrack 1/1] conntrack: Allow setting of
- netlink buffer size
-X-SA-Exim-Version: 4.2.1 (built Sat, 13 Feb 2021 17:57:42 +0000)
-X-SA-Exim-Scanned: Yes (on galois.cryonox.net)
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH net-next] Remove DECnet support from kernel
+Content-Language: en-US
+To:     Stephen Hemminger <stephen@networkplumber.org>,
+        netdev@vger.kernel.org
+Cc:     David Ahern <dsahern@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Borislav Petkov <bp@suse.de>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Neeraj Upadhyay <quic_neeraju@quicinc.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Akhmat Karakotov <hmukos@yandex-team.ru>,
+        Antoine Tenart <atenart@kernel.org>,
+        Xin Long <lucien.xin@gmail.com>,
+        Juergen Gross <jgross@suse.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Nathan Fontenot <nathan.fontenot@amd.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Suma Hegde <suma.hegde@amd.com>, Chen Yu <yu.c.chen@intel.com>,
+        William Breathitt Gray <vilhelm.gray@gmail.com>,
+        Xie Yongji <xieyongji@bytedance.com>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Ghiti <alexandre.ghiti@canonical.com>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Jeff Layton <jlayton@kernel.org>,
+        Paul Gortmaker <paul.gortmaker@windriver.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Menglong Dong <imagedong@tencent.com>,
+        Petr Machata <petrm@nvidia.com>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Yuwei Wang <wangyuweihx@gmail.com>,
+        Shakeel Butt <shakeelb@google.com>,
+        Kuniyuki Iwashima <kuniyu@amazon.com>,
+        Kees Cook <keescook@chromium.org>,
+        Stefano Garzarella <sgarzare@redhat.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Wang Qing <wangqing@vivo.com>, Yu Zhe <yuzhe@nfschina.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:MIPS" <linux-mips@vger.kernel.org>,
+        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
+        <linuxppc-dev@lists.ozlabs.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>
+References: <20220818004357.375695-1-stephen@networkplumber.org>
+From:   Jiri Slaby <jirislaby@kernel.org>
+In-Reply-To: <20220818004357.375695-1-stephen@networkplumber.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-ENOBUFS is returned in the case that the nfnetlink socket buffer is
-exhausted.  The function nfnl_rcvbufsize is provided by libnfnetlink
-to set the buffer size in order to handle this error, however
-libnetfilter_conntrack does not expose this function for the underlying
-netlink socket.
+On 18. 08. 22, 2:43, Stephen Hemminger wrote:
+> DECnet is an obsolete network protocol that receives more attention
+> from kernel janitors than users. It belongs in computer protocol
+> history museum not in Linux kernel.
+> 
+> It has been "Orphaned" in kernel since 2010. The iproute2 support
+> for DECnet was dropped in 5.0 release. The documentation link on
+> Sourceforge says it is abandoned there as well.
+> 
+> Leave the UAPI alone to keep userspace programs compiling.
+> This means that there is still an empty neighbour table
+> for AF_DECNET.
+> 
+> The table of /proc/sys/net entries was updated to match
+> current directories and reformatted to be alphabetical.
+> 
+> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+> Acked-by: David Ahern <dsahern@kernel.org>
 
-Add nfct_rcvbufsiz function to allow setting of buffer size for netlink
-socket.
+...
+>   include/uapi/linux/dn.h                       |  149 -
+>   include/uapi/linux/netfilter_decnet.h         |   72 -
 
-Signed-off-by: William Blough <devel@blough.us>
----
- .../libnetfilter_conntrack.h                   |  3 +++
- src/conntrack/api.c                            | 18 ++++++++++++++++++
- 2 files changed, 21 insertions(+)
+Hi,
 
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index e229472..d496307 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -591,6 +591,9 @@ extern int nfct_nlmsg_build_filter(struct nlmsghdr *nlh, const struct nfct_filte
- extern int nfct_nlmsg_parse(const struct nlmsghdr *nlh, struct nf_conntrack *ct);
- extern int nfct_payload_parse(const void *payload, size_t payload_len, uint16_t l3num, struct nf_conntrack *ct);
- 
-+/* set size of netlink socket buffer */
-+unsigned int nfct_rcvbufsize(struct nfct_handle *h, unsigned int size);
-+
- /*
-  * NEW expectation API
-  */
-diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-index 7f72d07..699f560 100644
---- a/src/conntrack/api.c
-+++ b/src/conntrack/api.c
-@@ -350,6 +350,24 @@ void nfct_callback_unregister2(struct nfct_handle *h)
- 	h->nfnl_cb_ct.attr_count = 0;
- }
- 
-+/**
-+ * nfct_rcvbufsiz - set size of netlink socket buffer
-+ * \param h library handler
-+ * \param size size of the buffer we want to set
-+ *
-+ * This function sets the new size of the the netlink socket buffer.  Use this
-+ * setting to increase the socket buffer size if your system is reporting
-+ * ENOBUFS errors.
-+ *
-+ * This function returns the new size of the netlink socket buffer.
-+ */
-+unsigned int nfct_rcvbufsiz(struct nfct_handle *h, unsigned int size)
-+{
-+	assert(h != NULL);
-+
-+	return nfnl_rcvbufsiz(h->nfnlh, size);
-+}
-+
- /**
-  * @}
-  */
+this breaks userspace. Some projects include linux/dn.h:
+
+   https://codesearch.debian.net/search?q=include.*linux%2Fdn.h&literal=0
+
+
+I found Trinity fails to build:
+  net/proto-decnet.c:5:10: fatal error: linux/dn.h: No such file or 
+directory
+      5 | #include <linux/dn.h>
+
+
+
+Should we provide the above as empty files?
+
+thanks,
 -- 
-2.30.2
+js
+suse labs
 
