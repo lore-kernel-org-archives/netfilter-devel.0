@@ -2,157 +2,87 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 456B0C678D6
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 08:53:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34761C5479D
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 09:06:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234309AbjAIIxI (ORCPT
+        id S229557AbjAIJGr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Jan 2023 03:53:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59156 "EHLO
+        Mon, 9 Jan 2023 04:06:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236827AbjAIIwf (ORCPT
+        with ESMTP id S231219AbjAIJGW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Jan 2023 03:52:35 -0500
-Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF56F13F4B;
-        Mon,  9 Jan 2023 00:45:10 -0800 (PST)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.nyi.internal (Postfix) with ESMTP id C26E05C0105;
-        Mon,  9 Jan 2023 03:44:59 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Mon, 09 Jan 2023 03:44:59 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm2; t=1673253899; x=1673340299; bh=L1F91mJJga
-        KEg4dA8VxYJyoEo2s3t1TaV8Gb51DrVJU=; b=c+yD51YQT1KcIPDSyG+sEiRosP
-        SOi1ni3XbV0xomqi04Ch8TVCuQJ3B/QItBmlGAOAQwu5KzimWGwhc2srPMKvACX6
-        N7ax/LAtlIhf+znFdLRoiR6StDyX54QVHS6p9hH+MMk33PEmgZQIUNx5xfbIPu6H
-        /uLR6lHuxn2KTV4tz01v++x8nZm0mReVXtw1eM1dRXVQjZibM9vK7zuhzewdG9nT
-        VleYvpbxIxt3zZxc1SEd6pYjuV/JamyD0glpFtwB2F9Z+SrWW5HNitBaoCIOYUaZ
-        g3BUYm7Dlc0OPVjHXbIyjvNLY5htnPQSQqIVPJZSufXEzPkByLv+JtvMcaeg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm3; t=1673253899; x=1673340299; bh=L1F91mJJgaKEg4dA8VxYJyoEo2s3
-        t1TaV8Gb51DrVJU=; b=ZiKrV3MFCykUfVE8xmG3AHGV8oJHU/cBsh2dQ40lItqJ
-        AidADxCuYx0p5qzZEyIodeCHoN6lc713IUjk3jnLTGuzH1Hlm1gVsUbuMxqr/N9J
-        thttf859jCtUzYZdzmCt957Ya5B/oJbkdQ5u9QjNWEpWLpHqLwZvT4PZ+dD0YuXc
-        hfMoz8AmVz1enhCbxcbBuB4S2NbhTrblbrSp5tzDRMCanVxO0PY5fTsPC5kHc+39
-        6g1K1nhu8+Ulzx1TPPUmLaiIX+rUqTC+jLmTbsIAVsgkgR1ucXhQM+oettAmpCiG
-        rJ/ifu3rwbSR6gRf3x1FC5FuZhQg2FIFnCJLX/nobA==
-X-ME-Sender: <xms:CtS7YxoHtx6hBDXGY9xaHF_cIlwngqsvDWAsLZJJWrft_oFWFH6oyw>
-    <xme:CtS7Yzp-PeQ6HfG3PFv6SEZ73GXpK74SOS-VjsY_J9RFz59kV6XFtDFuQHlgm9QCg
-    MT35paLjK3qxb5yGdc>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrkeehgdduvdejucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:C9S7Y-Mybw79_IvAt8yeEtEICRMgaJCiN4CxUNL0SxccioUi9oWXZg>
-    <xmx:C9S7Y84IOBXkKL72V9YA6SAa7SSyk5TXTUeeVAtk9kFnasWxkwAgGg>
-    <xmx:C9S7Yw6Y8F7TwRXetSPyFlfjwvI57X9X7WZfhuhBfTlyKN1GvfPN9A>
-    <xmx:C9S7Y_YKS1MRRAkDIclVe8aoNSkHStLU1FA1zSPRCNJJ9zXhOux08Q>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id E992AB60086; Mon,  9 Jan 2023 03:44:58 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.7.0-alpha0-1185-g841157300a-fm-20221208.002-g84115730
-Mime-Version: 1.0
-Message-Id: <c44bd7e8-68ff-44f8-b50b-4d27b4fe29dc@app.fastmail.com>
-In-Reply-To: <ad6efc07-1706-a8e2-1478-45124838a043@kernel.org>
-References: <20220818004357.375695-1-stephen@networkplumber.org>
- <07786498-2209-3af0-8d68-c34427049947@kernel.org>
- <po9s7-9snp-9so3-n6r5-qs217ss1633o@vanv.qr>
- <ad6efc07-1706-a8e2-1478-45124838a043@kernel.org>
-Date:   Mon, 09 Jan 2023 09:44:38 +0100
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Jiri Slaby" <jirislaby@kernel.org>,
-        "Jan Engelhardt" <jengelh@inai.de>
-Cc:     "Stephen Hemminger" <stephen@networkplumber.org>,
-        Netdev <netdev@vger.kernel.org>,
-        "David Ahern" <dsahern@kernel.org>,
-        "Jonathan Corbet" <corbet@lwn.net>,
-        "David S . Miller" <davem@davemloft.net>,
-        "Eric Dumazet" <edumazet@google.com>,
-        "Jakub Kicinski" <kuba@kernel.org>,
-        "Paolo Abeni" <pabeni@redhat.com>,
-        "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
-        "Michael Ellerman" <mpe@ellerman.id.au>,
-        "Nicholas Piggin" <npiggin@gmail.com>,
-        "Christophe Leroy" <christophe.leroy@csgroup.eu>,
-        "Pablo Neira Ayuso" <pablo@netfilter.org>,
-        "Jozsef Kadlecsik" <kadlec@netfilter.org>,
-        "Florian Westphal" <fw@strlen.de>, "Borislav Petkov" <bp@suse.de>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        "Andrew Morton" <akpm@linux-foundation.org>,
-        "Neeraj Upadhyay" <quic_neeraju@quicinc.com>,
-        "Randy Dunlap" <rdunlap@infradead.org>,
-        "Damien Le Moal" <damien.lemoal@opensource.wdc.com>,
-        "Muchun Song" <songmuchun@bytedance.com>,
-        "Akhmat Karakotov" <hmukos@yandex-team.ru>,
-        "Antoine Tenart" <atenart@kernel.org>,
-        "Xin Long" <lucien.xin@gmail.com>,
-        "Juergen Gross" <jgross@suse.com>,
-        "Hans de Goede" <hdegoede@redhat.com>,
-        "Nathan Fontenot" <nathan.fontenot@amd.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        "Suma Hegde" <suma.hegde@amd.com>, "Chen Yu" <yu.c.chen@intel.com>,
-        "William Breathitt Gray" <vilhelm.gray@gmail.com>,
-        "Xie Yongji" <xieyongji@bytedance.com>,
-        =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>,
-        "Alexandre Ghiti" <alexandre.ghiti@canonical.com>,
-        "Chuck Lever" <chuck.lever@oracle.com>,
-        "Jeff Layton" <jlayton@kernel.org>,
-        "Paul Gortmaker" <paul.gortmaker@windriver.com>,
-        "Nikolay Aleksandrov" <razor@blackwall.org>,
-        "Sebastian Andrzej Siewior" <bigeasy@linutronix.de>,
-        "Menglong Dong" <imagedong@tencent.com>,
-        "Petr Machata" <petrm@nvidia.com>,
-        "Daniel Borkmann" <daniel@iogearbox.net>,
-        "Roopa Prabhu" <roopa@nvidia.com>,
-        "Yuwei Wang" <wangyuweihx@gmail.com>,
-        "Shakeel Butt" <shakeelb@google.com>,
-        "Kuniyuki Iwashima" <kuniyu@amazon.com>,
-        "Kees Cook" <keescook@chromium.org>,
-        "Stefano Garzarella" <sgarzare@redhat.com>,
-        "Florian Fainelli" <f.fainelli@gmail.com>,
-        "Wang Qing" <wangqing@vivo.com>, "Yu Zhe" <yuzhe@nfschina.com>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        "open list" <linux-kernel@vger.kernel.org>,
-        "open list:MIPS" <linux-mips@vger.kernel.org>,
-        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
-        <linuxppc-dev@lists.ozlabs.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>
-Subject: Re: [PATCH net-next] Remove DECnet support from kernel
-Content-Type: text/plain
+        Mon, 9 Jan 2023 04:06:22 -0500
+Received: from mail-wm1-x32c.google.com (mail-wm1-x32c.google.com [IPv6:2a00:1450:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3821B1403C;
+        Mon,  9 Jan 2023 00:58:53 -0800 (PST)
+Received: by mail-wm1-x32c.google.com with SMTP id ay40so5735726wmb.2;
+        Mon, 09 Jan 2023 00:58:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=X8k43ejWCwSThPb14PyffH1MScgx/Rj8NmhWD2SvdR8=;
+        b=qYdZpujy0uVAYU5aoX/jiSqNOwL8KUnFkssUr33i8+mTMUEldErpeyp3EA4eZmQpwH
+         J6+l5f+4aetzGce3oT8RXX2QvORNZXnLMrI0GKsy6oJ1LIhn5s2/H4WETzHb+9i3hJW3
+         qWoaMUSBspPV91UI6GfJd23WNSF12pd28RlJ/2sOYd4TFDkSbPxpXMpxXVjm/zZHb0LA
+         34Nqxkm0Stl8zXFcMHyNExwKxhyaEhL30yncVL0uzBlXd1F5qdVUwd6447TjAuSaDPeU
+         Ito66XcGc5q0Filrno99M/0XZcZVfqBYVZ0+qYgM9D8inhjN9xaeB0F+P6soCrI79WAN
+         B3yw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=X8k43ejWCwSThPb14PyffH1MScgx/Rj8NmhWD2SvdR8=;
+        b=rCOWaSs73lizjAIWjpqN6sIxXl6C8noBqGndysz6lFMZO4be3nMzMrXr9ZHkR7mda7
+         iILdcJ0ioWWn2f6yv98rO8MY4MJPuHjZkuo1aGtyEpqQFRdiaa37qD7bFkyzKyuXC+2U
+         DYnOv6+/zr9/gcWT68/9gKWD2iAlo9ME2IjSrNAVGSSsElaJhCtbB0GiQOSHw0TD8Liq
+         q5S3ezhU0N+tT5BTFFZ0Itrw3YDqV1QxF3IcxxuM1G9QThb4HTLtR0vWJ4mpS5U3TSMg
+         MV3U6tLStK0gdP2nCaLThAsNpcE+kslHc3QHC9xPXLkfazt4n3IISZ0n93SJ6WV25Rew
+         Y2TQ==
+X-Gm-Message-State: AFqh2kq6rjbEb0I6Y6JnYq45D/JN/RE+MVRLCUptPxDVg7SzSZ5xDx9e
+        e4pLUrbUXct92rKw/JWAxgI=
+X-Google-Smtp-Source: AMrXdXvJ/4X9WqA/3/op5IY4we4OL8jRADxlfOD2HPLUY30gMVw3fnauVEfNMHdhnNUKytb34Ch7PQ==
+X-Received: by 2002:a05:600c:35cc:b0:3d3:3c93:af34 with SMTP id r12-20020a05600c35cc00b003d33c93af34mr55836411wmq.2.1673254731784;
+        Mon, 09 Jan 2023 00:58:51 -0800 (PST)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id e10-20020adfe38a000000b002bc7fcf08ddsm611698wrm.103.2023.01.09.00.58.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Jan 2023 00:58:51 -0800 (PST)
+Date:   Mon, 9 Jan 2023 11:58:48 +0300
+From:   Dan Carpenter <error27@gmail.com>
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        linux-sparse@vger.kernel.org, willemdebruijn.kernel@gmail.com,
+        gnoack3000@gmail.com, linux-security-module@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        artem.kuzin@huawei.com, Linux API <linux-api@vger.kernel.org>,
+        "Alejandro Colomar (man-pages)" <alx.manpages@gmail.com>
+Subject: Re: [PATCH v8 07/12] landlock: Add network rules support
+Message-ID: <Y7vXSAGHf08p2Zbm@kadam>
+References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
+ <20221021152644.155136-8-konstantin.meskhidze@huawei.com>
+ <49391484-7401-e7c7-d909-3bd6bd024731@digikod.net>
+ <9a6ea6ac-525d-e058-5867-0794a99b19a3@huawei.com>
+ <47fedda8-a13c-b62f-251f-b62508964bb0@digikod.net>
+ <4aa29433-e7f9-f225-5bdf-c80638c936e8@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4aa29433-e7f9-f225-5bdf-c80638c936e8@huawei.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jan 9, 2023, at 09:34, Jiri Slaby wrote:
-> On 09. 01. 23, 9:14, Jan Engelhardt wrote:
->> On Monday 2023-01-09 08:04, Jiri Slaby wrote:
->
-> Right, we used to keep providing also defines and structs in uapi 
-> headers of removed functionality. So that the above socket would 
-> compile, but fail during runtime.
->
-> I am not biased to any solution. In fact, I found out trinity was fixed 
-> already. So either path networking takes, it's fine by me. I'm not sure 
-> about the chromium users, though (and I don't care).
+These warnings seem like something I have seen before.  Maybe it was an
+issue with _Generic() support?
 
-Chromium and some of the others look like automatically generated
-lists of files and the rest seem to have compile-time checks.
+Are you really sure you're running the latest git version of Sparse?
 
-From a brief look at all the packages in the debian codesearch
-link you provided, I don't see any that are likely to cause
-problems aside from trinity.
+I tested this patch with the latest version of Sparse on my system and
+it worked fine.
 
-    Arnd
+regards,
+dan carpenter
+
