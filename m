@@ -2,247 +2,129 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C304C61DB3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 08:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64F8AC677F1
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 08:14:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233804AbjAIIHz (ORCPT
+        id S233849AbjAIIOs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Jan 2023 03:07:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60750 "EHLO
+        Mon, 9 Jan 2023 03:14:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236440AbjAIIHY (ORCPT
+        with ESMTP id S233106AbjAIIOl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Jan 2023 03:07:24 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 776D76359;
-        Mon,  9 Jan 2023 00:07:15 -0800 (PST)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Nr5y95jnWz6HJVg;
-        Mon,  9 Jan 2023 16:02:09 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Mon, 9 Jan 2023 08:07:05 +0000
-Message-ID: <38f4e2ac-0cd4-e205-bff1-a859e0855731@huawei.com>
-Date:   Mon, 9 Jan 2023 11:07:04 +0300
+        Mon, 9 Jan 2023 03:14:41 -0500
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FB676457;
+        Mon,  9 Jan 2023 00:14:37 -0800 (PST)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 1BED758957AAE; Mon,  9 Jan 2023 09:14:34 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 5306160BC6B00;
+        Mon,  9 Jan 2023 09:14:34 +0100 (CET)
+Date:   Mon, 9 Jan 2023 09:14:34 +0100 (CET)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Jiri Slaby <jirislaby@kernel.org>
+cc:     Stephen Hemminger <stephen@networkplumber.org>,
+        netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, Borislav Petkov <bp@suse.de>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Neeraj Upadhyay <quic_neeraju@quicinc.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Akhmat Karakotov <hmukos@yandex-team.ru>,
+        Antoine Tenart <atenart@kernel.org>,
+        Xin Long <lucien.xin@gmail.com>,
+        Juergen Gross <jgross@suse.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Nathan Fontenot <nathan.fontenot@amd.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Suma Hegde <suma.hegde@amd.com>, Chen Yu <yu.c.chen@intel.com>,
+        William Breathitt Gray <vilhelm.gray@gmail.com>,
+        Xie Yongji <xieyongji@bytedance.com>,
+        =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexandre Ghiti <alexandre.ghiti@canonical.com>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Jeff Layton <jlayton@kernel.org>,
+        Paul Gortmaker <paul.gortmaker@windriver.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Menglong Dong <imagedong@tencent.com>,
+        Petr Machata <petrm@nvidia.com>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Yuwei Wang <wangyuweihx@gmail.com>,
+        Shakeel Butt <shakeelb@google.com>,
+        Kuniyuki Iwashima <kuniyu@amazon.com>,
+        Kees Cook <keescook@chromium.org>,
+        Stefano Garzarella <sgarzare@redhat.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Wang Qing <wangqing@vivo.com>, Yu Zhe <yuzhe@nfschina.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        "open list:MIPS" <linux-mips@vger.kernel.org>,
+        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
+        <linuxppc-dev@lists.ozlabs.org>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>
+Subject: Re: [PATCH net-next] Remove DECnet support from kernel
+In-Reply-To: <07786498-2209-3af0-8d68-c34427049947@kernel.org>
+Message-ID: <po9s7-9snp-9so3-n6r5-qs217ss1633o@vanv.qr>
+References: <20220818004357.375695-1-stephen@networkplumber.org> <07786498-2209-3af0-8d68-c34427049947@kernel.org>
+User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v8 08/12] landlock: Implement TCP network hooks
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>,
-        <netdev@vger.kernel.org>, <linux-api@vger.kernel.org>,
-        "Alejandro Colomar (man-pages)" <alx.manpages@gmail.com>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <artem.kuzin@huawei.com>
-References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
- <20221021152644.155136-9-konstantin.meskhidze@huawei.com>
- <3452964b-04d3-b297-92a1-1220e087323e@digikod.net>
- <258ba4aa-6b12-abda-75b9-ffa196fba683@huawei.com>
- <ec54eb66-ed9f-035c-1301-644f93873e5f@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <ec54eb66-ed9f-035c-1301-644f93873e5f@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
+On Monday 2023-01-09 08:04, Jiri Slaby wrote:
+> On 18. 08. 22, 2:43, Stephen Hemminger wrote:
+>> DECnet is an obsolete network protocol
+>
+> this breaks userspace. Some projects include linux/dn.h:
+>
+>  https://codesearch.debian.net/search?q=include.*linux%2Fdn.h&literal=0
+>
+> I found Trinity fails to build:
+> net/proto-decnet.c:5:10: fatal error: linux/dn.h: No such file or directory
+>     5 | #include <linux/dn.h>
+>
+> Should we provide the above as empty files?
 
-1/6/2023 10:30 PM, Mickaël Salaün пишет:
-> 
-> On 05/01/2023 09:57, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 11/17/2022 9:43 PM, Mickaël Salaün пишет:
->>>
->>> On 21/10/2022 17:26, Konstantin Meskhidze wrote:
->>>> This patch adds support of socket_bind() and socket_connect() hooks.
->>>> It's possible to restrict binding and connecting of TCP sockets to
->>>> particular ports.
->>>
->>> Implement socket_bind() and socket_connect LSM hooks, which enable to
->>> restrict TCP socket binding and connection to specific ports.
->>>
->>>
->>>>
->>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>> ---
->>>>
->>>> Changes since v7:
->>>> * Minor fixes.
->>>> * Refactors commit message.
->>>>
->>>> Changes since v6:
->>>> * Updates copyright.
->>>> * Refactors landlock_append_net_rule() and check_socket_access()
->>>>     functions with landlock_id type.
->>>>
->>>> Changes since v5:
->>>> * Fixes some logic errors.
->>>> * Formats code with clang-format-14.
->>>>
->>>> Changes since v4:
->>>> * Factors out CONFIG_INET into make file.
->>>> * Refactors check_socket_access().
->>>> * Adds helper get_port().
->>>> * Adds CONFIG_IPV6 in get_port(), hook_socket_bind/connect
->>>> functions to support AF_INET6 family.
->>>> * Adds AF_UNSPEC family support in hook_socket_bind/connect
->>>> functions.
->>>> * Refactors add_rule_net_service() and landlock_add_rule
->>>> syscall to support network rule inserting.
->>>> * Refactors init_layer_masks() to support network rules.
->>>>
->>>> Changes since v3:
->>>> * Splits commit.
->>>> * Adds SECURITY_NETWORK in config.
->>>> * Adds IS_ENABLED(CONFIG_INET) if a kernel has no INET configuration.
->>>> * Adds hook_socket_bind and hook_socket_connect hooks.
->>>>
->>>> ---
->>>>    security/landlock/Kconfig    |   1 +
->>>>    security/landlock/Makefile   |   2 +
->>>>    security/landlock/net.c      | 164 +++++++++++++++++++++++++++++++++++
->>>>    security/landlock/net.h      |  26 ++++++
->>>>    security/landlock/setup.c    |   2 +
->>>>    security/landlock/syscalls.c |  59 ++++++++++++-
->>>>    6 files changed, 251 insertions(+), 3 deletions(-)
->>>>    create mode 100644 security/landlock/net.c
->>>>    create mode 100644 security/landlock/net.h
->>>>
->>>> diff --git a/security/landlock/Kconfig b/security/landlock/Kconfig
->>>> index 8e33c4e8ffb8..10c099097533 100644
->>>> --- a/security/landlock/Kconfig
->>>> +++ b/security/landlock/Kconfig
->>>> @@ -3,6 +3,7 @@
->>>>    config SECURITY_LANDLOCK
->>>>    	bool "Landlock support"
->>>>    	depends on SECURITY && !ARCH_EPHEMERAL_INODES
->>>> +	select SECURITY_NETWORK
->>>>    	select SECURITY_PATH
->>>>    	help
->>>>    	  Landlock is a sandboxing mechanism that enables processes to restrict
->>>> diff --git a/security/landlock/Makefile b/security/landlock/Makefile
->>>> index 7bbd2f413b3e..53d3c92ae22e 100644
->>>> --- a/security/landlock/Makefile
->>>> +++ b/security/landlock/Makefile
->>>> @@ -2,3 +2,5 @@ obj-$(CONFIG_SECURITY_LANDLOCK) := landlock.o
->>>>
->>>>    landlock-y := setup.o syscalls.o object.o ruleset.o \
->>>>    	cred.o ptrace.o fs.o
->>>> +
->>>> +landlock-$(CONFIG_INET) += net.o
->>>> \ No newline at end of file
->>>> diff --git a/security/landlock/net.c b/security/landlock/net.c
->>>> new file mode 100644
->>>> index 000000000000..39e8a156a1f4
->>>> --- /dev/null
->>>> +++ b/security/landlock/net.c
->>>> @@ -0,0 +1,164 @@
->>>> +// SPDX-License-Identifier: GPL-2.0-only
->>>> +/*
->>>> + * Landlock LSM - Network management and hooks
->>>> + *
->>>> + * Copyright © 2022 Huawei Tech. Co., Ltd.
->>>> + * Copyright © 2022 Microsoft Corporation
->>>> + */
->>>> +
->>>> +#include <linux/in.h>
->>>> +#include <linux/net.h>
->>>> +#include <linux/socket.h>
->>>> +#include <net/ipv6.h>
->>>> +
->>>> +#include "common.h"
->>>> +#include "cred.h"
->>>> +#include "limits.h"
->>>> +#include "net.h"
->>>> +#include "ruleset.h"
->>>> +
->>>> +int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
->>>> +			     const u16 port, access_mask_t access_rights)
->>>> +{
->>>> +	int err;
->>>> +	const struct landlock_id id = {
->>>> +		.key.data = port,
->>>> +		.type = LANDLOCK_KEY_NET_PORT,
->>>> +	};
->>>> +	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
->>>> +
->>>> +	/* Transforms relative access rights to absolute ones. */
->>>> +	access_rights |= LANDLOCK_MASK_ACCESS_NET &
->>>> +			 ~landlock_get_net_access_mask(ruleset, 0);
->>>> +
->>>> +	mutex_lock(&ruleset->lock);
->>>> +	err = landlock_insert_rule(ruleset, id, access_rights);
->>>> +	mutex_unlock(&ruleset->lock);
->>>> +
->>>> +	return err;
->>>> +}
->>>> +
->>>> +static int check_socket_access(const struct landlock_ruleset *const domain,
->>>> +			       u16 port, access_mask_t access_request)
->>>> +{
->>>> +	bool allowed = false;
->>>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
->>>> +	const struct landlock_rule *rule;
->>>> +	access_mask_t handled_access;
->>>> +	const struct landlock_id id = {
->>>> +		.key.data = port,
->>>> +		.type = LANDLOCK_KEY_NET_PORT,
->>>> +	};
->>>> +
->>>> +	if (WARN_ON_ONCE(!domain))
->>>> +		return 0;
->>>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
->>>> +		return -EACCES;
->>>> +
->>>> +	rule = landlock_find_rule(domain, id);
->>>> +	handled_access = init_layer_masks(domain, access_request, &layer_masks,
->>>> +					  LANDLOCK_KEY_NET_PORT);
->>>> +	allowed = unmask_layers(rule, handled_access, &layer_masks,
->>>> +				ARRAY_SIZE(layer_masks));
->>>> +
->>>> +	return allowed ? 0 : -EACCES;
->>>> +}
->>>> +
->>>> +static u16 get_port(const struct sockaddr *const address)
->>>
->>> get_port() should return a __be16 type. This enables to avoid converting
->>> port when checking a rule.
->> 
->>     In this case a user must do a coverting port into __be16:
->> 
->>     struct landlock_net_service_attr net_service = {
->>                   .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->> 
->>                   .port = htons(sock_port),
->>           };
->>    I think that a user should not think about this conversion cause it
->> makes UAPI more complex to use. Lets do this under kernel's hood and let
->> it as it is now -> u16 port.
->> 
->> What do you think?
-> 
-> BE and LE conversions may be error prone without strong typing, but the
-> current Linux network UAPI uses this convention (see related syscalls),
-> so developers already use htons() in their applications. I think it is
-> less hazardous to use the same convention. It would be nice to have the
-> point of view of network and API folks though.
+Not a good idea. There may be configure tests / code that merely checks for
+dn.h existence without checking for specific contents/defines. If you provide
+empty files, this would fail to build:
 
-   Ok. Thanks. Let ports be in BE format like in network packets.
+#include "config.h"
+#ifdef HAVE_LINUX_DN_H
+#	include <linux/dn.h>
+#endif
+int main() {
+#ifdef HAVE_LINUX_DN_H
+	socket(AF_DECNET, 0, DNPROTO_NSP); // or whatever
+#else
+	...
+#endif
+}
 
-   What should a selftest with port conversion be like?
-
-   1. Set a port with a Landlock rule with no conversion. get an error 
-wit bind/connect actions.
-   2. Convert a port with htons(sock_port). get no error.
-
-   What do you think?
-> .
+So, with my distro hat on, outright removing header files feels like the
+slightly lesser of two evils. Given the task to port $arbitrary software
+between operating systems, absent header files is something more or less
+"regularly" encountered, so one could argue we are "trained" to deal with it.
+But missing individual defines is a much deeper dive into the APIs and
+software to patch it out.
