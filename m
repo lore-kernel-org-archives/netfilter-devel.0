@@ -2,156 +2,98 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2219DC67871
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 07:04:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ED99C677F1
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Jan 2023 07:57:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230415AbjAIHEv (ORCPT
+        id S236380AbjAIH5o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 9 Jan 2023 02:04:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59032 "EHLO
+        Mon, 9 Jan 2023 02:57:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233735AbjAIHE3 (ORCPT
+        with ESMTP id S236526AbjAIH5R (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Jan 2023 02:04:29 -0500
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AD881209F;
-        Sun,  8 Jan 2023 23:04:28 -0800 (PST)
-Received: by mail-wr1-f42.google.com with SMTP id d17so7172691wrs.2;
-        Sun, 08 Jan 2023 23:04:28 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=wYsLuw/5810Zy5eTIZ7iJqDyeo47uMIQ6w06dFLUs+Q=;
-        b=sAewqlyPfF/tYbLsIM2FVlgzIG7BjDCLgtQ9ugaEgH8k8gwvTWBRfaj201PWt7yPVN
-         hwuwAtdkTF7yzoPn2QJKGw145ncqj3htgtDy8NZ9GKoknprlncA+wgLbqJP0uJ2OA0TM
-         AWudzCprDqvdOPjR+fMsAXZgF1Oii4RlHuayRmXlsvtFs1JFjBPRTKP+xZppdNOuEjdV
-         QNX4wlOn7L71+9maTMik1nvGyYi5IoUs1yyMn2yiiwOvMUuCBFRkHoPiQUs+QMUIS5rU
-         ZreC0PyS8TKWfb5UqSXGWTX1DRv8aG1m7/aQbTVRoUWFzc0WZ3m8f2GwVK/VmpGt2Wet
-         MJiA==
-X-Gm-Message-State: AFqh2kpj5Noxj8G4JUyVZHARTpp/jngq9tZ/h5M8X4j33DQOCNRUmqls
-        53uuDuWFJVC9PXMBOmOszmw=
-X-Google-Smtp-Source: AMrXdXsEyHJGnZLB96JH3rcVegZBjOFlVPnyGgXG2g9g13hBlhCt3SpTnjtaAmK/XwGxmzdpSoCmAQ==
-X-Received: by 2002:a05:6000:38d:b0:2b5:90e:cfa5 with SMTP id u13-20020a056000038d00b002b5090ecfa5mr10255103wrf.29.1673247866783;
-        Sun, 08 Jan 2023 23:04:26 -0800 (PST)
-Received: from [192.168.1.49] (185-219-167-24-static.vivo.cz. [185.219.167.24])
-        by smtp.gmail.com with ESMTPSA id f3-20020adfdb43000000b00236883f2f5csm7846356wrj.94.2023.01.08.23.04.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 08 Jan 2023 23:04:26 -0800 (PST)
-Message-ID: <07786498-2209-3af0-8d68-c34427049947@kernel.org>
-Date:   Mon, 9 Jan 2023 08:04:23 +0100
+        Mon, 9 Jan 2023 02:57:17 -0500
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB80913DDF;
+        Sun,  8 Jan 2023 23:57:10 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Nr5nW543bz67bpd;
+        Mon,  9 Jan 2023 15:54:39 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.34; Mon, 9 Jan 2023 07:57:07 +0000
+Message-ID: <885a23b1-78d2-1e62-8d07-91ff33863cbf@huawei.com>
+Date:   Mon, 9 Jan 2023 10:57:06 +0300
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.1
-Subject: Re: [PATCH net-next] Remove DECnet support from kernel
-Content-Language: en-US
-To:     Stephen Hemminger <stephen@networkplumber.org>,
-        netdev@vger.kernel.org
-Cc:     David Ahern <dsahern@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Borislav Petkov <bp@suse.de>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Neeraj Upadhyay <quic_neeraju@quicinc.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Damien Le Moal <damien.lemoal@opensource.wdc.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Akhmat Karakotov <hmukos@yandex-team.ru>,
-        Antoine Tenart <atenart@kernel.org>,
-        Xin Long <lucien.xin@gmail.com>,
-        Juergen Gross <jgross@suse.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Nathan Fontenot <nathan.fontenot@amd.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Suma Hegde <suma.hegde@amd.com>, Chen Yu <yu.c.chen@intel.com>,
-        William Breathitt Gray <vilhelm.gray@gmail.com>,
-        Xie Yongji <xieyongji@bytedance.com>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexandre Ghiti <alexandre.ghiti@canonical.com>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Jeff Layton <jlayton@kernel.org>,
-        Paul Gortmaker <paul.gortmaker@windriver.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Menglong Dong <imagedong@tencent.com>,
-        Petr Machata <petrm@nvidia.com>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Yuwei Wang <wangyuweihx@gmail.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Kuniyuki Iwashima <kuniyu@amazon.com>,
-        Kees Cook <keescook@chromium.org>,
-        Stefano Garzarella <sgarzare@redhat.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Wang Qing <wangqing@vivo.com>, Yu Zhe <yuzhe@nfschina.com>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        open list <linux-kernel@vger.kernel.org>,
-        "open list:MIPS" <linux-mips@vger.kernel.org>,
-        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
-        <linuxppc-dev@lists.ozlabs.org>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>
-References: <20220818004357.375695-1-stephen@networkplumber.org>
-From:   Jiri Slaby <jirislaby@kernel.org>
-In-Reply-To: <20220818004357.375695-1-stephen@networkplumber.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v8 11/12] samples/landlock: Add network demo
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <artem.kuzin@huawei.com>
+References: <20221021152644.155136-1-konstantin.meskhidze@huawei.com>
+ <20221021152644.155136-12-konstantin.meskhidze@huawei.com>
+ <2ff97355-18ef-e539-b4c1-720cd83daf1d@digikod.net>
+ <94a8ef89-b59e-d218-77a1-bf2f9d4096c7@huawei.com>
+ <5c941be9-ac6a-d259-997e-13fdff09aeb4@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <5c941be9-ac6a-d259-997e-13fdff09aeb4@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 18. 08. 22, 2:43, Stephen Hemminger wrote:
-> DECnet is an obsolete network protocol that receives more attention
-> from kernel janitors than users. It belongs in computer protocol
-> history museum not in Linux kernel.
+
+
+1/6/2023 10:34 PM, Mickaël Salaün пишет:
 > 
-> It has been "Orphaned" in kernel since 2010. The iproute2 support
-> for DECnet was dropped in 5.0 release. The documentation link on
-> Sourceforge says it is abandoned there as well.
+> On 05/01/2023 04:46, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 11/16/2022 5:25 PM, Mickaël Salaün пишет:
 > 
-> Leave the UAPI alone to keep userspace programs compiling.
-> This means that there is still an empty neighbour table
-> for AF_DECNET.
+> [...]
 > 
-> The table of /proc/sys/net entries was updated to match
-> current directories and reformatted to be alphabetical.
+>>>
+>>>>    		fprintf(stderr,
+>>>>    			"Hint: You should update the running kernel "
+>>>>    			"to leverage Landlock features "
+>>>> @@ -259,16 +342,36 @@ int main(const int argc, char *const argv[], char *const *const envp)
+>>>>    	access_fs_ro &= ruleset_attr.handled_access_fs;
+>>>>    	access_fs_rw &= ruleset_attr.handled_access_fs;
+>>>>
+>>>> +	/* Removes bind access attribute if not supported by a user. */
+>>>> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
+>>>> +	if (!env_port_name) {
+>>>
+>>> You can move this logic at the populate_ruleset_net() call site and
+>>> update this helper to not call getenv() twice for the same variable.
+>> 
+>>     But here I exclude ruleset attributes, not rule itself. It will break
+>>     the logic: creating a ruleset then applying rules.
+>>     I suggest to leave here as its.
 > 
-> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
-> Acked-by: David Ahern <dsahern@kernel.org>
+> Right, but you can still avoid the duplicate getenv() calls.
 
-...
->   include/uapi/linux/dn.h                       |  149 -
->   include/uapi/linux/netfilter_decnet.h         |   72 -
-
-Hi,
-
-this breaks userspace. Some projects include linux/dn.h:
-
-   https://codesearch.debian.net/search?q=include.*linux%2Fdn.h&literal=0
-
-
-I found Trinity fails to build:
-  net/proto-decnet.c:5:10: fatal error: linux/dn.h: No such file or 
-directory
-      5 | #include <linux/dn.h>
-
-
-
-Should we provide the above as empty files?
-
-thanks,
--- 
-js
-suse labs
-
+   OK. Will fix it.
+> 
+> 
+>>>
+>>>
+>>>> +		access_net_tcp &= ~LANDLOCK_ACCESS_NET_BIND_TCP;
+>>>> +	}
+>>>> +	/* Removes connect access attribute if not supported by a user. */
+>>>> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
+>>>> +	if (!env_port_name) {
+>>>> +		access_net_tcp &= ~LANDLOCK_ACCESS_NET_CONNECT_TCP;
+>>>> +	}
+>>>> +	ruleset_attr.handled_access_net &= access_net_tcp;
+> .
