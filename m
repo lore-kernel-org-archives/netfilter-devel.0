@@ -2,66 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BEDCC5479D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Jan 2023 18:20:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F1BEC5479D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Jan 2023 18:21:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232967AbjAKSUj (ORCPT
+        id S238692AbjAKSV4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Jan 2023 13:20:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60042 "EHLO
+        Wed, 11 Jan 2023 13:21:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235046AbjAKSUR (ORCPT
+        with ESMTP id S231972AbjAKSVT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Jan 2023 13:20:17 -0500
-Received: from galois.cryonox.net (galois.cryonox.net [173.255.233.171])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 829681EEC2
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jan 2023 10:20:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=cryonox.net
-        ; s=x; h=Subject:In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=Dw7bskEcj45hJ9WtJsOZM8jdWZUl5nz7wXtzwslnjxs=; b=fapZmNz7D/bngCKYZXpzFV2VCQ
-        yJfeLsml5sy3cl9/fOT2NQCAKitfEG+EgGOhN+39bD+ZogFQ/CF3uxSi8ZIlvlm4bPwXgcUQydoot
-        EPLtDwdu2nct50BrnWlKsqQr+5DGRQNKlz4CXp+LDuDz76a8FNcwiZn/17rgs7fE0q7T6qb1lbxGP
-        9ci9TeJTfXBpVTkOcRF1q4sBm3GDpXcaPYDjHpYVs9cNBnxQdqJi3rcq6yeIzafP43q2K4DnZmyup
-        TbHgxmIkMq9ANzEhdjLpdQjEiYwI8laH2kthwDSKx/LIZP1GNLGNJpbiF9xWSzNCngVldDINDtG/a
-        39Ti+01A==;
-Received: from authenticated_user by galois.cryonox.net with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-        id 1pFfhs-006J7I-V8; Wed, 11 Jan 2023 13:20:15 -0500
-Date:   Wed, 11 Jan 2023 13:20:12 -0500
-From:   Bill Blough <devel@blough.us>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Message-ID: <Y7793EL+N+au0oZM@cndt942648>
-References: <Y7h1o0H+dvAz1vtZ@prometheus>
- <Y77xebdD+v9ZjEyb@salvia>
+        Wed, 11 Jan 2023 13:21:19 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6F7C0638D
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jan 2023 10:21:13 -0800 (PST)
+Date:   Wed, 11 Jan 2023 19:21:09 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [libnetfilter_conntrack PATCH] conntrack: increase the length of
+ `l4proto_map`
+Message-ID: <Y77+FQ06j+gRFURI@salvia>
+References: <20221223123806.2685611-1-jeremy@azazel.net>
+ <Y7758rNEafF9XurG@salvia>
+ <20230111180818.GD27644@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Y77xebdD+v9ZjEyb@salvia>
-X-SA-Exim-Connect-IP: 209.170.225.186
-X-SA-Exim-Mail-From: devel@blough.us
-Subject: Re: [PATCH libnetfilter_conntrack 1/1] conntrack: Allow setting of
- netlink buffer size
-X-SA-Exim-Version: 4.2.1 (built Sat, 13 Feb 2021 17:57:42 +0000)
-X-SA-Exim-Scanned: Yes (on galois.cryonox.net)
+In-Reply-To: <20230111180818.GD27644@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jan 11, 2023 at 06:27:21PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Jan 06, 2023 at 02:25:23PM -0500, William Blough wrote:
-> > Add nfct_rcvbufsiz function to allow setting of buffer size for netlink
-> > socket.
+On Wed, Jan 11, 2023 at 07:08:18PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Fri, Dec 23, 2022 at 12:38:06PM +0000, Jeremy Sowden wrote:
+> > > With addition of MPTCP `IPPROTO_MAX` is greater than 256, so extend the
+> > > array to account for the new upper bound.
+> > 
+> > Applied, thanks.
+> > 
+> > I don't expect we will ever see IPPROTO_MPTCP in this path though.
+> > To my understanding, this definition is targeted at the
+> > setsockopt/getsockopt() use-case. IP headers and the ctnetlink
+> > interface also assumes 8-bits protocol numbers.
 > 
-> Thanks for your patch.
+> Yes, this is an uapi thing:
 > 
-> There is already nfct_fd() and you can use setsockopt() on it.
+> socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); vs.
+> socket(AF_INET, SOCK_STREAM, IPPROTO_MPTCP);
+> 
+> Only second version results in a multipath-tcp aware socket.
+> 
+> If mptcp is active (both peers need to support it), tcp frames will
+> have an 'mptcp' option, but its still tcp (6) on wire.
 
-Ah, apparently I overlooked that.  Thanks.
+Thanks for confirming.
 
-Best regards,
-Bill
-
+Probably I'll post a patch to add an internal __IPPROTO_MAX definition
+that sticks to 255, so libnetfilter_conntrack maps don't start
+increasing if more IPPROTO_* definitions show up in the future for the
+setsockopt/getsockopt interface.
