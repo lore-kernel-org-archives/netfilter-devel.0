@@ -2,86 +2,48 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1B5CC54EBC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 12:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F14D2C54EBC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 12:11:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231433AbjALMI2 (ORCPT
+        id S233427AbjALMLj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Jan 2023 07:08:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43106 "EHLO
+        Thu, 12 Jan 2023 07:11:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230460AbjALMHi (ORCPT
+        with ESMTP id S233215AbjALMLL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2023 07:07:38 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E54ED2EF
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 04:03:02 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pFwIN-0005Ey-BL; Thu, 12 Jan 2023 13:03:00 +0100
-Date:   Thu, 12 Jan 2023 13:02:59 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
- NFTA_RULE_ACTUAL_EXPR
-Message-ID: <Y7/2843ObHqTDIFQ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20221221142221.27211-1-phil@nwl.cc>
- <Y7/drsGvc8MkQiTY@orbyte.nwl.cc>
- <Y7/pzxvu2v4t4PgZ@salvia>
+        Thu, 12 Jan 2023 07:11:11 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7C27AE63;
+        Thu, 12 Jan 2023 04:06:19 -0800 (PST)
+Date:   Thu, 12 Jan 2023 13:06:13 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Martin Zaharinov <micron10@gmail.com>
+Cc:     20230106010251.27038-1-pablo@netfilter.org,
+        netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nft] src: allow for updating devices on existing netdev chain -
+ Test result
+Message-ID: <Y7/3tau2t+5fe2GK@salvia>
+References: <DD658C3B-2FB9-451E-893C-EE37ABDC678A@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Y7/pzxvu2v4t4PgZ@salvia>
+In-Reply-To: <DD658C3B-2FB9-451E-893C-EE37ABDC678A@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jan 12, 2023 at 12:06:55PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Jan 12, 2023 at 11:15:10AM +0100, Phil Sutter wrote:
-> > Bump?
-> > 
-> > On Wed, Dec 21, 2022 at 03:22:21PM +0100, Phil Sutter wrote:
-> > > Allow for user space to provide an improved variant of the rule for
-> > > actual use. The variant in NFTA_RULE_EXPRESSIONS may provide maximum
-> > > compatibility for old user space tools (e.g. in outdated containers).
-> > > 
-> > > The new attribute is also dumped back to user space, e.g. for comparison
-> > > against the compatible variant.
-> > > 
-> > > While being at it, improve nft_rule_policy for NFTA_RULE_EXPRESSIONS.
+On Fri, Jan 06, 2023 at 05:17:51PM +0200, Martin Zaharinov wrote:
+> Hi Pablo
 > 
-> Could you split this in two patches?
+> Patch look good and work but in my test after try to add ppp0 on
+> over chain 1024 receive : Error: Could not process rule: Argument
+> list too long
 
-Separate the nft_rule_policy_change? Sure!
+You are hitting the maximum number of hooks per device (1024). I think you
+perhaps would like to do something like:
 
-> I still don't see how this is improving the situation for the scenario
-> you describe, if you could extend a bit on how you plan to use this
-> I'd appreciate.
+for i in `seq 2 9999`; do echo "add chain netdev qos int { devices = { ppp$i } ; }" >> /tmp/ruleset.nft; done
 
-I can send you my WiP libnftnl and iptables patches if that helps.
-
-The approach this patch follows is pretty simple, though: The kernel
-will accept NFTA_RULE_ACTUAL_EXPR to override NFTA_RULE_EXPRESSIONS for
-use in the live ruleset.  When fetching the ruleset, old user space will
-ignore NFTA_RULE_ACTUAL_EXPR, so new user space may submit a compatible
-variant of the rule in NFTA_RULE_EXPRESSIONS and a modern variant in
-NFTA_RULE_ACTUAL_EXPR.
-
-In iptables, when converting a rule from iptables_command_state into
-nftnl expressions, I insert all expressions into both
-NFTA_RULE_EXPRESSIONS and NFTA_RULE_ACTUAL_EXPR unless an extension does
-fancy stuff (e.g. was converted into native expressions).
-
-My test piece is limit match which had to be converted once (see commit
-5de8dcf75941c for details): I add the native expressions to
-NFTA_RULE_ACTUAL_EXPR and create a compat "match" expression for
-NFTA_RULE_EXPRESSIONS only.
-
-The kernel will use the native expressions in the ruleset, dumps will
-contain the compat "match" expression instead.
-
-Cheers, Phil
+instead?
