@@ -2,65 +2,87 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC866C61DB3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 22:55:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98326C61DB3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 23:04:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240437AbjALWzg (ORCPT
+        id S232439AbjALXEH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Jan 2023 17:55:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32810 "EHLO
+        Thu, 12 Jan 2023 18:04:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240344AbjALWzf (ORCPT
+        with ESMTP id S232007AbjALXEF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2023 17:55:35 -0500
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46910F73
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 14:55:31 -0800 (PST)
-Received: by a3.inai.de (Postfix, from userid 65534)
-        id AE22C587AFE95; Thu, 12 Jan 2023 23:55:28 +0100 (CET)
-Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:10b:45d8::f8])
-        by a3.inai.de (Postfix) with ESMTP id 12134587AFE94;
-        Thu, 12 Jan 2023 23:55:21 +0100 (CET)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     phil@nwl.cc
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH] build: put xtables.conf in EXTRA_DIST
-Date:   Thu, 12 Jan 2023 23:55:17 +0100
-Message-Id: <20230112225517.31560-1-jengelh@inai.de>
-X-Mailer: git-send-email 2.39.0
+        Thu, 12 Jan 2023 18:04:05 -0500
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C27D60CF;
+        Thu, 12 Jan 2023 15:04:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:Content-Type:MIME-Version:
+        Message-ID:Subject:To:From:Date:Reply-To:Cc:Content-Transfer-Encoding:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=oxhT9ylaxQ16NsVLSuIMHVv4tpp/+AVtIOvb7Y1IYVk=; b=1/RWb++s2auqBMHCuVdDM4OXHp
+        Jr7llaNQDsVyX+S4HCztiHtw3izfBlFZsH+6JlgH6NanyYiYBKOHoKLZk5QgnTRRC7qRYqMnQbF80
+        0RURUg9iorvb1xgRg2A7uD2mh8JcCLlIto/YDtxewsoT5eOQ+VaEMIUa0Ot+158hxq+TyNm0+EQQ+
+        qON3JrZEf4Tt1bUu8MsVJg66/rQ3c0Gd/c5V0kBei01TOmn/GFV/TaZLJMDk5/pVuHj9kIKOFcl3F
+        sh6Qjdkl9hx1plRooR7ZjEiZ8vx6Nfaek15783LwFxlF3/k2Q3tiCagf1wqRQqjco8By4h+1n2DF2
+        YkvuyW1g==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:36072)
+        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1pG6c1-00076F-PE; Thu, 12 Jan 2023 23:03:57 +0000
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1pG6c0-0002ZX-Nh; Thu, 12 Jan 2023 23:03:56 +0000
+Date:   Thu, 12 Jan 2023 23:03:56 +0000
+From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
+To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: 6.1: possible bug with netfilter conntrack?
+Message-ID: <Y8CR3CvOIAa6QIZ4@shell.armlinux.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-To make distcheck succeed, disting it is enough; it does not need
-to be installed.
+Hi,
 
-Fixes: v1.8.8-150-g3822a992
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- Makefile.am | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I've noticed that my network at home is rather struggling, and having
+done some investigation, I find that the router VM is dropping packets
+due to lots of:
 
-diff --git a/Makefile.am b/Makefile.am
-index 451c3cb2..10198753 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -16,11 +16,11 @@ SUBDIRS         += extensions
- # Depends on extensions/libext.a:
- SUBDIRS         += iptables
- 
--EXTRA_DIST	= autogen.sh iptables-test.py xlate-test.py
-+EXTRA_DIST	= autogen.sh iptables-test.py xlate-test.py etc/xtables.conf
- 
- if ENABLE_NFTABLES
- confdir		= $(sysconfdir)
--dist_conf_DATA	= etc/ethertypes etc/xtables.conf
-+dist_conf_DATA	= etc/ethertypes
- endif
- 
- .PHONY: tarball
+nf_conntrack: nf_conntrack: table full, dropping packet
+
+I find that there are about 2380 established and assured connections
+with a destination of my incoming mail server with destination port 25,
+and 2 packets. In the reverse direction, apparently only one packet was
+sent according to conntrack. E.g.:
+
+tcp      6 340593 ESTABLISHED src=180.173.2.183 dst=78.32.30.218
+sport=49694 dport=25 packets=2 bytes=92 src=78.32.30.218
+dst=180.173.2.183 sport=25 dport=49694 packets=1 bytes=44 [ASSURED]
+use=1
+
+However, if I look at the incoming mail server, its kernel believes
+there are no incoming port 25 connetions, which matches exim.
+
+I hadn't noticed any issues prior to upgrading from 5.16 to 6.1 on the
+router VM, and the firewall rules have been the same for much of
+2021/2022.
+
+Is this is known issue? Something changed between 5.16 and 6.1 in the
+way conntrack works?
+
+I'm going to be manually clearing the conntrack table so stuff works
+again without lots of packet loss on my home network...
+
+Thanks.
+
 -- 
-2.39.0
-
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
