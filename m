@@ -2,55 +2,30 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D081AC54EBC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 11:49:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F459C54EBD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 11:57:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235427AbjALLtf (ORCPT
+        id S234723AbjALL5v (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Jan 2023 06:49:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57356 "EHLO
+        Thu, 12 Jan 2023 06:57:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236842AbjALLsc (ORCPT
+        with ESMTP id S235097AbjALL5N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2023 06:48:32 -0500
-Received: from EUR01-VE1-obe.outbound.protection.outlook.com (mail-ve1eur01on2101.outbound.protection.outlook.com [40.107.14.101])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF02F5DE5C
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 03:38:10 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=cHNAicuNGfOqFGUbKD9qNDsZK6VfxGF9QdpTcAoQTig2gr2nR0oTtG2+91yiAS9PkJGmFNiBvFxcnVGAeaC7H79ZK8gQiM/wADHAyqvkmdWKzmskoIdK8uDUQ0OWYvOLnwifu9JBtNII2SdKE8gkoAktGJYjtZ1KeU/wKomnRHmKHYbRMDY+1/9ugG7ZxuvbiHSVkJ3U25+kNrgefmE8kYu2EwiKEVIldflbr3+CTJZpM+wGnj8alZxvOIHJKhWuB33dJylue8b3/rYaLwEgrJADbriB3yT8XzafP6lgfmzIle6aQppz0PJ+13vJlloTQQjrexAsSyb5z8tZFbsxbg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=C2KKmF6qtTG25ymakI1VS/0mg+oXkG0ATV+7gZL3olE=;
- b=N/RN6KwOt3+vXxXnHuzcg/ln95XqvW9/Yuf6ibGXrOdzPZKOyJ5sPbuR0ZDcUTlAz+GzRsW6H1xxljtFA6LfGpvjFHWSU7WwdyNh57XasNXcAHx1PiO8J7swBCESfWVliG7uxJeWvjvCWBDOc4GXaC8wA/N0SiXuWsYXD1hucNAfk5NAH7rAQ6QKixhNA8hf4+xoTeK2t06IClv6jde2uRUhfkm5VTpj+TbYzOQVoWfsc1haQBhqg32LbmllUdkWcmkdI1x4lw6JRTKbaKyTj5skMJDsUbVPyFGtYCBrVRMEoxYxCd27PkzX1yu3Nnh1+k63rXo35rZWVQYgdeMPtg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=est.tech; dmarc=pass action=none header.from=est.tech;
- dkim=pass header.d=est.tech; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=estab.onmicrosoft.com;
- s=selector2-estab-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=C2KKmF6qtTG25ymakI1VS/0mg+oXkG0ATV+7gZL3olE=;
- b=b1OVbpLSOpw7sLwxw4ABkNKjqNt65vmu1O/WBBwrmo2kKAGXQZX1WcPIOoF0AzZKckcA0RVvQPsq+XBS630nNIxdTYJPMwvsGOM7TvwTCu7XplQ2+sDH8ZvwR5aeomw/nqwANt8JmvkEHAeI0SuyJY+mnftX/GWPsCiFCmDrnic=
-Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:1e7::15)
- by DB8P189MB1016.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:16a::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.18; Thu, 12 Jan
- 2023 11:38:08 +0000
-Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
- ([fe80::8f70:435b:ab64:9420]) by DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
- ([fe80::8f70:435b:ab64:9420%4]) with mapi id 15.20.5986.018; Thu, 12 Jan 2023
- 11:38:07 +0000
-From:   Sriram Yagnaraman <sriram.yagnaraman@est.tech>
-To:     Marcelo Ricardo Leitner <mleitner@redhat.com>
-CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>, Long Xin <lxin@redhat.com>,
+        Thu, 12 Jan 2023 06:57:13 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BCF8813F29
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 03:50:13 -0800 (PST)
+Date:   Thu, 12 Jan 2023 12:50:10 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <mleitner@redhat.com>,
+        Long Xin <lxin@redhat.com>,
         Claudio Porfiri <claudio.porfiri@ericsson.com>
-Subject: RE: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
-Thread-Topic: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
-Thread-Index: AQHZIDEXupmbZt3GPUa7TaBi/McYSK6OWrgAgAFXCcCAAAamAIAAAT6wgADXrYCABaeoMIADDtqAgAFC4uA=
-Date:   Thu, 12 Jan 2023 11:38:07 +0000
-Message-ID: <DBBP189MB1433247516AF2F26D1729CBD95FD9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+Subject: Re: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
+Message-ID: <Y7/z8iZqvfDIuac9@salvia>
 References: <20230104113143.21769-1-sriram.yagnaraman@est.tech>
  <Y7WVAEky9Iy3Ri3T@salvia>
  <DBBP189MB1433F79520D32E1CB0F8A62A95FA9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
@@ -58,281 +33,153 @@ References: <20230104113143.21769-1-sriram.yagnaraman@est.tech>
  <DBBP189MB14337144265DA856B8321D1695FA9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
  <Y7dwTU9Ky6RN1u7L@salvia>
  <DBBP189MB1433F9BBBF659878DDEB6B1495FC9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
- <CALnP8ZY5CR9nZz6gmh9MsvyU512iJOypWRaBx_xMBHbxe9Cuvg@mail.gmail.com>
-In-Reply-To: <CALnP8ZY5CR9nZz6gmh9MsvyU512iJOypWRaBx_xMBHbxe9Cuvg@mail.gmail.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=est.tech;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DBBP189MB1433:EE_|DB8P189MB1016:EE_
-x-ms-office365-filtering-correlation-id: 5ad678db-54e8-406c-33e4-08daf49179eb
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: qH4r1u8hC4UYzmJt8w0v7+ODuNhVVkJTk3aQb4ktoD+FPkv5jgTzkUcFjWZtVD7cSqm23twxX3tm2x4RR74DhAL+Jh3xx/HYgoVQvGO7kplDWsr5+H/xt/yaDg0kHLB3w0jVPBi4Ep20XseZ7lm10oNjx0bjDP2m/9s6Gut4G8EIFacZqgQxf3UNw0u4CCIjrjodIrT99e1Me+IXvKgnM+E/3gZJB+WgCtZUggIbFTAXFYlqEiEzXtnNuB4NxBARi3tt5A+67eKaz4n2ds9v39bZGgmq09JxWQ7zOjgOwyVJQCYiBuqemjTubsuBrXRFVBY55Gux0yzVYnhviRqsiWKBZj+z7L3++FoD2TfPtt4DUiU457/M7HuvHoGDtCKdXKOSPgwETWLKY1qpE0fQeDb91Sh8g2TRBZNgS6xUyBOerEBM0yA2Hz+6IxNaDbrPrL0p1hCnQV1IVxkVU4uTrFxEg5xloh/e+MMPypldgl/u1hkatK7vuozW77LpFEVLiTGKpJxvBlPcso/UF1HL5Im2tG2YSNhfv/ux3zBzey8BmVu8g11yqJRHeuzILO7nj24zBWZePo0OsS7YutWe4LCt5ap1vum3SkKSeYI+qsMlPiSVFSkH3YlB5AGitIB4lGzoE9ZjUnTbgzoNG4uhl5SVHtBdKLCLo1O/yahvccZw1iexmP7yIKyohKgxw+UKL940EjYivfqdGsK5P3A1LODPQoJKlmDdRt0ptc8SV/g=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBP189MB1433.EURP189.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230022)(136003)(346002)(376002)(366004)(39830400003)(396003)(451199015)(5660300002)(30864003)(44832011)(52536014)(66899015)(8936002)(41300700001)(64756008)(2906002)(55016003)(66946007)(54906003)(83380400001)(8676002)(6916009)(66476007)(38070700005)(4326008)(76116006)(66556008)(66446008)(316002)(71200400001)(33656002)(7696005)(186003)(6506007)(9686003)(86362001)(53546011)(966005)(26005)(478600001)(122000001)(38100700002)(66574015);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?RWY5YXRmVzBoK0ZOcTB3SEFpUGVGREJDejZDVjM2QzkyMDQ1eXJUWFFIQS8r?=
- =?utf-8?B?U0hBNlNDVTJ3aHhrbDRTa1hUSHZDd0FGRlJoRmR2a25LdmRRK3hGeGw3dk5S?=
- =?utf-8?B?bmJDMHVNQTBXUjZ2cnFZcURxT2VwMkJZTlNyVXVaTjVRZEZ5dVE2ZUYyM0ZG?=
- =?utf-8?B?TUlsR2M3ZzcrN3hIYVZjYkRnNDBCNzR4cjZFQkZQM2hUMDZmYkxDUm51OU5C?=
- =?utf-8?B?L3ljbE5GMlgwem5zdzQvaVFBOStDblluQVJUcU11WG1CdG1WOXZWb3l1Skl5?=
- =?utf-8?B?ZVJIZkMyMlM1UHlkeitUK04vVXYzTVVGYmlLS1BvOGlvOEUrZzdOaStxcEZs?=
- =?utf-8?B?VE95ZlRaa2VVQXoxbnRTWEU4dHlldXF4cG1VemlLZ3FYSzFOOVpHZDFVV211?=
- =?utf-8?B?L01VR3hvTURWclZzQ2pyNDJ6RkY2V0JXc2VML2FCaXAzSm82SnQ5VFhQSmha?=
- =?utf-8?B?NEdxV0piYlNIY0VlTWFRSm9BelQvU05oYXZFNUNTU3czRkpIeXNqblpGdXdE?=
- =?utf-8?B?enBlNHBzakJSOXJ2SGdnODc3TVJWRTFaUEp6SGRST3BkcHNMbzRZR2NRZTRn?=
- =?utf-8?B?ZHdvUjhGVEdhYjF3dlhGbTBDc1RqSlk0Z0xJZklPcUt0ajJyZWxHSVNTV3RB?=
- =?utf-8?B?RUZJWXdWTm1qM3JFZklzcmdQTlBub2piWTVSSGIrVG8vUHRFUHJvWDFDUzg1?=
- =?utf-8?B?QjBIRWpnanZKZzFocVdMbk84dlVIaVhVMTJLeDlsejk1VElxOUJJWUhlSWNs?=
- =?utf-8?B?dTQvOGU4Vmh4eHFjU0VQOGM4Z0x3dzBBVzZOT0FVOTBkRnJBWFBRK1cwN2J2?=
- =?utf-8?B?OHpnc3AwZlcxNXVNQ0FOZXY5T0lmd0Y4Q2JFaTNiVXM1UlZXY1VINkkxcTVI?=
- =?utf-8?B?bXlIcG1XZ0E4K1lOajUxM2xIaXBTUTNzekcxSTViYm1HZzVvU2dyLys5MXVl?=
- =?utf-8?B?akY2eDZTMWplY2VOdThSUzVKS0RpKzRBRSs3aDFHeU9NZU1XZkxIbG9VclNj?=
- =?utf-8?B?RHpaV3NpWmpGZlFORExCRXdUV3BCMFJVemU1RDlTcVN6RUpWcExmbzRjQzgz?=
- =?utf-8?B?VE5MdFIxbHZhcm5LMlBrZjd1MVBvRDBqZlUraFVWbHl1Qy9CK2gxRVlJU3RV?=
- =?utf-8?B?dldLWCsyeCs5RkhnSndnaUdmRWlXWkZSMFBLZWJVakx4R21rWVNlNFZ3TWlr?=
- =?utf-8?B?VjAzdzhwZWFKNUcyWlJIb2lJSTRzbVRQQUh1ODEzbGxaTlQ3OEdZTFdNcTZI?=
- =?utf-8?B?QkpEb000Wmc0WGlVVnJPQmtpVkM2c0VzS2R2TUE3UzVHYzRLWTJxaC94cXVD?=
- =?utf-8?B?eXQzdjVTdnppVmROeVd4Vlp1VERxY0VsRlprSERsQmZSN3kyLzNucVhmajRP?=
- =?utf-8?B?UG42dXJuUHN2aHhPeTdTNlVRdzRtVmhJN2ZpbEtqZ0hHVkxPSzZOTzdsZTA4?=
- =?utf-8?B?cVA2VlhBNGpLQ0VVbWQ3MzVnRVFhcEFJTmI0ckxESmc3b0NqQVBMZUlibUZt?=
- =?utf-8?B?R0tqdEpENThuRTFZWHJJV0Z4REwrOEhGeWlQODkzbnkxdlp2M0k1d09kd3JB?=
- =?utf-8?B?Q2taU2xUY0VJMzJQaHN0NkF0QkMwQUtlaGtVcFZ5RGxmbUEyMWFtR0U1d1k4?=
- =?utf-8?B?Z0RhQ2hZVVdJc0dIRXhDMVVCSVg2V1lMMC9TcFJkcXM1YXJ3THUyS3pQazVu?=
- =?utf-8?B?QTlmVlk0YUVkbkFsMlhmQTdPSGp2RXppUWNpV2VZR2FhM1JFMVA0bE81bjJE?=
- =?utf-8?B?SG9QclplOXVUTEVYcHFsSXBoSVpZRUllTW1YdzVNZTRodFh0TTZjdnFnUXh4?=
- =?utf-8?B?dHhaYUp2UExRYlZIaUdBWGxvUFpQNnFHdTJqTUh2eEVlNEhRMXBCb0FMdzI4?=
- =?utf-8?B?RDN3YTY5UXU4VmJEOHlIL0pVbzJuVHBmbVlqUDhmL1gvN2hIaEEyU2xGYmtB?=
- =?utf-8?B?dGlJMUtNNncrVG1UTFpxa1BqTWVuS2V5Q1V6T3JBOHdkUE10dFhHT3pvQkVV?=
- =?utf-8?B?WXJwVG5adGE1UkFQQmRvdC90Z205NTJPbFEvUWVmeS8yK1FzbUJhLyt3dFJT?=
- =?utf-8?B?TTJ2aHcvaGtDN3hqU1hCTUdaQ3BlcUxFV3RnTmRTWUxudXRPNWlrbFFFSU9v?=
- =?utf-8?Q?I0V6BQX4m20UBn0mkIE0v3vLN?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-X-OriginatorOrg: est.tech
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5ad678db-54e8-406c-33e4-08daf49179eb
-X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Jan 2023 11:38:07.8770
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: d2585e63-66b9-44b6-a76e-4f4b217d97fd
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: rVtZuPsmoIZSGotf+X8ANXp9Tf3XVFvXgijNrnX4lgTzdyqKqS/F+VpzTwxQYoj9GsD87PxRahqTM4aJ4rF1hN7Tcm4Zvkn96TOSEIPpTz0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8P189MB1016
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <DBBP189MB1433F9BBBF659878DDEB6B1495FC9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWFyY2VsbyBSaWNhcmRv
-IExlaXRuZXIgPG1sZWl0bmVyQHJlZGhhdC5jb20+DQo+IFNlbnQ6IFdlZG5lc2RheSwgMTEgSmFu
-dWFyeSAyMDIzIDE0OjU0DQo+IFRvOiBTcmlyYW0gWWFnbmFyYW1hbiA8c3JpcmFtLnlhZ25hcmFt
-YW5AZXN0LnRlY2g+DQo+IENjOiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVyLm9y
-Zz47IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IEZsb3JpYW4gV2VzdHBoYWwg
-PGZ3QHN0cmxlbi5kZT47IExvbmcgWGluIDxseGluQHJlZGhhdC5jb20+OyBDbGF1ZGlvDQo+IFBv
-cmZpcmkgPGNsYXVkaW8ucG9yZmlyaUBlcmljc3Nvbi5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUkZD
-IFBBVENIXSBuZXRmaWx0ZXI6IGNvbm50cmFjazogc2ltcGxpZnkgc2N0cCBzdGF0ZSBtYWNoaW5l
-DQo+IA0KPiBPbiBXZWQsIEphbiAxMSwgMjAyMyBhdCAwOTozNjozOEFNICswMDAwLCBTcmlyYW0g
-WWFnbmFyYW1hbiB3cm90ZToNCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4g
-PiBGcm9tOiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVyLm9yZz4NCj4gPiA+IFNl
-bnQ6IEZyaWRheSwgNiBKYW51YXJ5IDIwMjMgMDE6NTANCj4gPiA+IFRvOiBTcmlyYW0gWWFnbmFy
-YW1hbiA8c3JpcmFtLnlhZ25hcmFtYW5AZXN0LnRlY2g+DQo+ID4gPiBDYzogbmV0ZmlsdGVyLWRl
-dmVsQHZnZXIua2VybmVsLm9yZzsgRmxvcmlhbiBXZXN0cGhhbA0KPiA+ID4gPGZ3QHN0cmxlbi5k
-ZT47IE1hcmNlbG8gUmljYXJkbyBMZWl0bmVyIDxtbGVpdG5lckByZWRoYXQuY29tPjsgTG9uZw0K
-PiA+ID4gWGluIDxseGluQHJlZGhhdC5jb20+OyBDbGF1ZGlvIFBvcmZpcmkNCj4gPiA+IDxjbGF1
-ZGlvLnBvcmZpcmlAZXJpY3Nzb24uY29tPg0KPiA+ID4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0hd
-IG5ldGZpbHRlcjogY29ubnRyYWNrOiBzaW1wbGlmeSBzY3RwIHN0YXRlDQo+ID4gPiBtYWNoaW5l
-DQo+ID4gPg0KPiA+ID4gT24gVGh1LCBKYW4gMDUsIDIwMjMgYXQgMTI6MTE6NDRQTSArMDAwMCwg
-U3JpcmFtIFlhZ25hcmFtYW4gd3JvdGU6DQo+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCj4gPiA+ID4gPiBGcm9tOiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVy
-Lm9yZz4NCj4gPiA+ID4gPiBTZW50OiBUaHVyc2RheSwgNSBKYW51YXJ5IDIwMjMgMTI6NTQNCj4g
-PiA+ID4gPiBUbzogU3JpcmFtIFlhZ25hcmFtYW4gPHNyaXJhbS55YWduYXJhbWFuQGVzdC50ZWNo
-Pg0KPiA+ID4gPiA+IENjOiBuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnOyBGbG9yaWFu
-IFdlc3RwaGFsDQo+ID4gPiA+ID4gPGZ3QHN0cmxlbi5kZT47IE1hcmNlbG8gUmljYXJkbyBMZWl0
-bmVyIDxtbGVpdG5lckByZWRoYXQuY29tPjsNCj4gPiA+ID4gPiBMb25nIFhpbiA8bHhpbkByZWRo
-YXQuY29tPjsgQ2xhdWRpbyBQb3JmaXJpDQo+ID4gPiA+ID4gPGNsYXVkaW8ucG9yZmlyaUBlcmlj
-c3Nvbi5jb20+DQo+ID4gPiA+ID4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0hdIG5ldGZpbHRlcjog
-Y29ubnRyYWNrOiBzaW1wbGlmeSBzY3RwDQo+ID4gPiA+ID4gc3RhdGUgbWFjaGluZQ0KPiA+ID4g
-PiA+DQo+ID4gPiA+ID4gT24gVGh1LCBKYW4gMDUsIDIwMjMgYXQgMTE6NDE6MTNBTSArMDAwMCwg
-U3JpcmFtIFlhZ25hcmFtYW4gd3JvdGU6DQo+ID4gPiA+ID4gPiA+IC0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQo+ID4gPiA+ID4gPiA+IEZyb206IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0Bu
-ZXRmaWx0ZXIub3JnPg0KPiA+ID4gPiA+ID4gPiBTZW50OiBXZWRuZXNkYXksIDQgSmFudWFyeSAy
-MDIzIDE2OjAyDQo+ID4gPiA+ID4gPiA+IFRvOiBTcmlyYW0gWWFnbmFyYW1hbiA8c3JpcmFtLnlh
-Z25hcmFtYW5AZXN0LnRlY2g+DQo+ID4gPiA+ID4gPiA+IENjOiBuZXRmaWx0ZXItZGV2ZWxAdmdl
-ci5rZXJuZWwub3JnOyBGbG9yaWFuIFdlc3RwaGFsDQo+ID4gPiA+ID4gPiA+IDxmd0BzdHJsZW4u
-ZGU+OyBNYXJjZWxvIFJpY2FyZG8gTGVpdG5lcg0KPiA+ID4gPiA+ID4gPiA8bWxlaXRuZXJAcmVk
-aGF0LmNvbT47IExvbmcgWGluIDxseGluQHJlZGhhdC5jb20+DQo+ID4gPiA+ID4gPiA+IFN1Ympl
-Y3Q6IFJlOiBbUkZDIFBBVENIXSBuZXRmaWx0ZXI6IGNvbm50cmFjazogc2ltcGxpZnkgc2N0cA0K
-PiA+ID4gPiA+ID4gPiBzdGF0ZSBtYWNoaW5lDQo+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+
-IE9uIFdlZCwgSmFuIDA0LCAyMDIzIGF0IDEyOjMxOjQzUE0gKzAxMDAsIFNyaXJhbSBZYWduYXJh
-bWFuDQo+ID4gPiB3cm90ZToNCj4gPiA+ID4gPiA+ID4gPiBBbGwgdGhlIHBhdGhzIGluIGFuIFND
-VFAgY29ubmVjdGlvbiBhcmUga2VwdCBhbGl2ZSBlaXRoZXINCj4gPiA+ID4gPiA+ID4gPiBieSBh
-Y3R1YWwgREFUQS9TQUNLIHJ1bm5pbmcgdGhyb3VnaCB0aGUgY29ubmVjdGlvbiBvciBieQ0KPiBI
-RUFSVEJFQVQuDQo+ID4gPiA+ID4gPiA+ID4gVGhpcyBwYXRjaCBwcm9wb3NlcyBhIHNpbXBsZSBz
-dGF0ZSBtYWNoaW5lIHdpdGggb25seSB0d28NCj4gPiA+ID4gPiA+ID4gPiBzdGF0ZXMgT1BFTl9X
-QUlUIGFuZCBFU1RBQkxJU0hFRCAoc2ltaWxhciB0byBVRFApLiBUaGUNCj4gPiA+ID4gPiA+ID4g
-PiByZWFzb24gZm9yIHRoaXMgY2hhbmdlIGlzIGEgZnVsbCBzdGF0ZWZ1bCBhcHByb2FjaCB0byBT
-Q1RQDQo+ID4gPiA+ID4gPiA+ID4gaXMgZGlmZmljdWx0IHdoZW4gdGhlIGFzc29jaWF0aW9uIGlz
-IG11bHRpaG9tZWQgc2luY2UgdGhlDQo+ID4gPiA+ID4gPiA+ID4gZW5kcG9pbnRzIGNvdWxkIHVz
-ZSBkaWZmZXJlbnQgcGF0aHMgaW4gdGhlIG5ldHdvcmsgZHVyaW5nDQo+ID4gPiA+ID4gPiA+ID4g
-dGhlIGxpZmV0aW1lDQo+ID4gPiBvZiBhbiBhc3NvY2lhdGlvbi4NCj4gPiA+ID4gPiA+ID4NCj4g
-PiA+ID4gPiA+ID4gRG8geW91IG1lYW4gdGhlIHJvdXRlci9maXJld2FsbCBtaWdodCBub3Qgc2Vl
-IGFsbCBwYWNrZXRzDQo+ID4gPiA+ID4gPiA+IGZvciBhc3NvY2lhdGlvbiBpcyBtdWx0aWhvbWVk
-Pw0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiBDb3VsZCB5b3UgcGxlYXNlIHByb3ZpZGUg
-YW4gZXhhbXBsZT8NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBMZXQncyBzYXkgdGhlIHByaW1h
-cnkgYW5kIGFsdGVybmF0ZS9zZWNvbmRhcnkgcGF0aHMgYmV0d2Vlbg0KPiA+ID4gPiA+ID4gdGhl
-IFNDVFAgZW5kcG9pbnRzIHRyYXZlcnNlIGRpZmZlcmVudCBtaWRkbGUgYm94ZXMuIElmIGFuIFND
-VFANCj4gPiA+ID4gPiA+IGVuZHBvaW50IGRldGVjdHMgbmV0d29yayBmYWlsdXJlIG9uIHRoZSBw
-cmltYXJ5IHBhdGgsIGl0IHdpbGwNCj4gPiA+ID4gPiA+IHN3aXRjaCB0byB1c2luZyB0aGUgc2Vj
-b25kYXJ5IHBhdGggYW5kIGFsbCBzdWJzZXF1ZW50IHBhY2tldHMNCj4gPiA+ID4gPiA+IHdpbGwg
-bm90IGJlIHNlZW4gYnkgdGhlIG1pZGRsZWJveCBvbiB0aGUgcHJpbWFyeSBwYXRoLA0KPiA+ID4g
-PiA+ID4gaW5jbHVkaW5nIFNIVVRET1dOIHNlcXVlbmNlcyBpZiB0aGV5IGhhcHBlbiBhdCB0aGF0
-IHRpbWUuDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBPSywgdGhlbiBvbiB0aGUgcHJpbWFyeSBtaWRk
-bGUgYm94IHRoZSBTQ1RQIGZsb3cgd2lsbCBqdXN0IHRpbWVvdXQ/DQo+ID4gPiA+ID4gKGJlY2F1
-c2Ugbm8gbW9yZSBwYWNrZXRzIGFyZSBzZWVuKS4NCj4gPiA+ID4NCj4gPiA+ID4gWWVzLCB0aGV5
-IHdpbGwgdGltZW91dCB1bmxlc3MgdGhlIHByaW1hcnkgcGF0aCBjb21lcyB1cCBiZWZvcmUgdGhl
-DQo+ID4gPiA+IFNIVVRET1dOIHNlcXVlbmNlLiBBbmQgdGhlIGRlZmF1bHQgdGltZW91dCBmb3Ig
-YW4gRVNUQUJMSVNIRUQNCj4gU0NUUA0KPiA+ID4gPiBjb25uZWN0aW9uIGlzIDUgZGF5cywgd2hp
-Y2ggaXMgYSAibG9uZyIgdGltZSB0byBjbGVhbi11cCB0aGlzIGVudHJ5Lg0KPiA+ID4NCj4gPiA+
-IERvZXMgdGhlIG1pZGRsZSBib3ggaGF2ZSBhIGNoYW5jZSB0byBzZWUgYW55IHBhY2tldCB0aGF0
-IHByb3ZpZGVzIGENCj4gPiA+IGhpbnQgdG8gc2hvcnRlbiB0aGlzIHRpbWVvdXQ/IG5vIEhFQVJU
-QkVBVCBwYWNrZXRzIGFyZSBzZWVuIGluIHRoaXMNCj4gPiA+IGNhc2Ugb24gdGhlIGZvcm1lciBw
-cmltYXJ5IHBhdGg/DQo+ID4NCj4gPiBUaGVyZSB3aWxsIGJlIEhFQVJUQkVBVCBhcyBzb29uIGFz
-IGEgcGF0aCBiZWNvbWVzIHVucmVhY2hhYmxlIGZyb20gdGhlDQo+IFNDVFAgZW5kcG9pbnRzLiBC
-dXQgZGVwZW5kaW5nIG9uIHRoZSBsb2NhdGlvbiBvZiB0aGUgbmV0d29yayBmYWlsdXJlLCB0aGUN
-Cj4gbWlkZGxlYm94IG1heSBvciBtYXkgbm90IHNlZSB0aGUgSEVBUlRCRUFULiBBbHNvLCBIRUFS
-VEJFQVQgaXMgc2VudA0KPiB3aGVuIHRoZXJlIGFyZSBubyBkYXRhIHRvIGJlIHRyYW5zbWl0dGVk
-IG9yIGlmIHRoZSBwYXRoIGlzDQo+IHVucmVhY2hhYmxlL3VuY29uZmlybWVkLCBzbyBJIHRoaW5r
-IHRoZXJlIGlzIG5vIGRldGVybWluaXN0aWMgd2F5IG9mIGZpbmRpbmcNCj4gb3V0IHdoZW4gdG8g
-c2hvcnRlbiB0aGUgdGltZW91dC4gT2YgY291cnNlLCBhIHVzZXIgaGFzIHRoZSBvcHRpb24gb2Yg
-c2V0dGluZw0KPiB0aGUgRVNUQUJMSVNIRUQgc3RhdGUgdGltZW91dCB0byBhIG1vcmUgcmVhc29u
-YWJsZSB2YWx1ZSwgZm9yIGUuZy4sIHNhbWUgYXMNCj4gdGhlIEhFQVJUQkVBVF9BQ0tFRCBzdGF0
-ZSB0aW1lb3V0ICgyMTAgc2VjKSwgT1Igd2UgY291bGQgcmVkdWNlIHRoZQ0KPiBkZWZhdWx0IHRp
-bWVvdXQgb2YgRVNUQUJMSVNIRUQgdG8gMjEwIHNlYy4NCj4gPg0KPiA+ID4NCj4gPiA+IFdoYXQg
-SSBhbSBtaXNzaW5nIGFyZSBhIG1vcmUgZGV0YWlsZWQgbGlzdCBvZiBpc3N1ZXMgd2l0aCB0aGUN
-Cj4gPiA+IGV4aXN0aW5nIGFwcHJvYWNoLiBZb3VyIHBhdGNoIGRlc2NyaXB0aW9uIHNheXMgIlND
-VFAgdHJhY2tpbmcgd2l0aA0KPiA+ID4gbXVsdGlob21pbmcgaXMgZGlmZmljdWx0IiwgcHJvYmFi
-bHkgYSBsaXN0IG9mIHNjZW5hcmlvcyB3b3VsZCBoZWxwDQo+ID4gPiB0byB1bmRlcnN0YW5kIHRo
-ZSBtb3RpdmF0aW9uIHRvIHNpbXBsaWZ5IHRoZSBzdGF0ZSBtYWNoaW5lLg0KPiA+DQo+ID4gVGhh
-bmsgeW91IGZvciByZXZpZXdpbmcgYW5kIGFza2luZyB0aGVzZSBxdWVzdGlvbnMsIGl0IG1hZGUg
-bWUgc3RlcA0KPiA+IGJhY2sgYW5kIHRoaW5rLiBJIGxpc3QgYmVsb3cgc29tZSBiYWNrZ3JvdW5k
-DQo+ID4gLSBJIHdhbnQgdG8gc2ltcGxpZnkgdGhlIHN0YXRlIG1hY2hpbmUsIGJlY2F1c2UgaXQg
-aXMgcG9zc2libGUgdG8NCj4gPiB0cmFjayBhbiBTQ1RQIGNvbm5lY3Rpb24gd2l0aCBmZXdlciBz
-dGF0ZXMsIGZvciBlLmcuLCBTQ1RQIHdpdGggVURQDQo+ID4gZW5jYXBzdWxhdGlvbiB1c2VzIFVE
-UCBjb25udHJhY2sgd2l0aCBqdXN0IFVOUkVQTElFRC9SRVBMSUVEIHN0YXRlcw0KPiA+IGFuZCBp
-dCB3b3JrcyBwZXJmZWN0bHkgZmluZQ0KPiANCj4gWypdIChtb3JlIGJlbG93KQ0KPiANCj4gPiAt
-IE15IHN0YWtlaG9sZGVycywgYXQgdGhlIGJlaGVzdCBvZiB3aG9tIEkgYW0gcHJvcG9zaW5nIHRo
-ZXNlIGNoYW5nZXMNCj4gPiBoaXQgc29tZSBwcm9ibGVtcyBydW5uaW5nIFNDVFAgY2xpZW50IGVu
-ZHBvaW50cyBiZWhpbmQgTkFUIChpbnNpZGUNCj4gPiBLdWJlcm5ldGVzIHBvZHMpIHRvd2FyZHMg
-bXVsdGlob21lZCBTQ1RQIHNlcnZlciBlbmRwb2ludHMgKDFhLWcpIGFuZA0KPiA+ICgyYS1jKSBi
-ZWxvdw0KPiA+IC0gU29tZSB1cGNvbWluZyBTQ1RQIHByb3RvY29sIGNoYW5nZXMgaW4gSUVURiAo
-aWYNCj4gPiBhcHByb3ZlZC9pbXBsZW1lbnRlZCkgd2lsbCBtYWtlIGl0IGhhcmQgdG8gcmVhZCBi
-ZXlvbmQgdGhlIFNDVFAgY29tbW9uDQo+ID4gaGVhZGVyLCBmb3IgZS5nLiwgRFRMUyBvdmVyIFND
-VFANCj4gPiBodHRwczovL2RhdGF0cmFja2VyLmlldGYub3JnL2RvYy9kcmFmdC1pZXRmLXRzdndn
-LWR0bHMtb3Zlci1zY3RwLWJpcy8sDQo+ID4gcHJvcG9zZXMgdG8gZW5jcnlwdCBhbGwgU0NUUCBj
-aHVua3MsIGNvbm50cmFjayB3aWxsIG9ubHkgYmUgYWJsZSB0bw0KPiA+IHNlZSBTQ1RQIGNvbW1v
-biBoZWFkZXIsIHRoZXNlIGNoYW5nZXMgaG9wZWZ1bGx5IHdpbGwgbWFrZSBpdCBlYXNpZXIgdG8N
-Cj4gPiBhZGFwdCB0byBzdWNoIGNoYW5nZXMgaW4gU0NUUCBwcm90b2NvbA0KPiANCj4gSWYgdGhp
-cyBpcyByZWFsbHkgdGhlIGNhc2UsIHRoZW4gSSdtIGNvbmZ1c2VkIGJ5IHRoaXMgbmV3IFJGQyAo
-YmUgd2FybmVkIEkgZG9uJ3QNCj4ga25vdyB0aGUgZ29yeSBkZXRhaWxzIG9mIERUTFMpLiBJIGRv
-bid0IHNlZSBpdCBzcGVjaWZ5aW5nIHRoYXQgb3RoZXIgY2h1bmsNCj4gaGVhZGVycyB3aWxsIGJl
-IGVuY3J5cHRlZCwgYnV0IGluc3RlYWQgSSBzZWUgdGV4dHMgbGlrZToNCj4gDQo+IDMuNy4gIE1l
-c3NhZ2UgU2l6ZXMNCj4gDQo+ICAgIC4uLg0KPiAgICBUaGUgc2VxdWVuY2Ugb2YgRFRMUyByZWNv
-cmRzIGlzIHRoZW4gZnJhZ21lbnRlZCBpbnRvIERBVEEgb3IgSS1EQVRBDQo+ICAgIENodW5rcyB0
-byBmaXQgdGhlIHBhdGggTVRVIGJ5IFNDVFAuICBUaGVzZSBjaGFuZ2VzIGVuc3VyZSB0aGF0IERU
-TFMvDQo+ICAgIFNDVFAgaGFzIHRoZSBzYW1lIGNhcGFiaWxpdHkgYXMgU0NUUCB0byBzdXBwb3J0
-IHVzZXIgbWVzc2FnZXMgb2YgYW55DQo+ICAgIHNpemUuIC4uLg0KPiANCj4gdGhpcyBpcyBqdXN0
-IHBhY2tpbmcgZW5jcnlwdGVkIHBheWxvYWQuDQo+IA0KPiBTZWN0aW9ucyA0LjEgYW5kIDQuNSBh
-bHNvIGxlYWQgdG8gdGhhdCwgYW5kOg0KPiANCj4gNi4gIERUTFMgb3ZlciBTQ1RQIFNlcnZpY2UN
-Cj4gDQo+ICAgIFRoZSBhZG9wdGlvbiBvZiBEVExTIG92ZXIgU0NUUCBhY2NvcmRpbmcgdG8gdGhl
-IGN1cnJlbnQgc3BlY2lmaWNhdGlvbg0KPiAgICBpcyBtZWFudCB0byBhZGQgdG8gU0NUUCB0aGUg
-b3B0aW9uIGZvciB0cmFuc2ZlcnJpbmcgZW5jcnlwdGVkIGRhdGEuDQo+ICAgIFdoZW4gRFRMUyBv
-dmVyIFNDVFAgaXMgdXNlZCwgYWxsIGRhdGEgYmVpbmcgdHJhbnNmZXJyZWQgTVVTVCBiZQ0KPiAg
-ICBwcm90ZWN0ZWQgYnkgY2h1bmsgYXV0aGVudGljYXRpb24gYW5kIERUTFMgZW5jcnlwdGVkLg0K
-PiANCj4gYW5kIGZpbmFsbHk6DQo+IA0KPiA5LjYuICBQcml2YWN5IENvbnNpZGVyYXRpb25zDQo+
-IA0KPiAgICBGb3IgZWFjaCBTQ1RQIHVzZXIgbWVzc2FnZSwgdGhlIHVzZXIgYWxzbyBwcm92aWRl
-cyBhIHN0cmVhbQ0KPiAgICBpZGVudGlmaWVyLCBhIGZsYWcgdG8gaW5kaWNhdGUgd2hldGhlciB0
-aGUgbWVzc2FnZSBpcyBzZW50IG9yZGVyZWQgb3INCj4gICAgdW5vcmRlcmVkLCBhbmQgYSBwYXls
-b2FkIHByb3RvY29sIGlkZW50aWZpZXIuICBBbHRob3VnaCBEVExTL1NDVFANCj4gICAgcHJvdmlk
-ZXMgcHJpdmFjeSBmb3IgdGhlIGFjdHVhbCB1c2VyIG1lc3NhZ2UsIHRoZSBvdGhlciB0aHJlZQ0K
-PiAgICBpbmZvcm1hdGlvbiBmaWVsZHMgYXJlIG5vdCBjb25maWRlbnRpYWxpdHkgcHJvdGVjdGVk
-LiAgVGhleSBhcmUgc2VudA0KPiAgICBhcyBjbGVhciB0ZXh0IGJlY2F1c2UgdGhleSBhcmUgcGFy
-dCBvZiB0aGUgU0NUUCBEQVRBIGNodW5rIGhlYWRlci4NCj4gDQo+IA0KPiBTbyBBRkFJQ1UgdGhl
-IGNsYWltIGhlcmUgaXMgdGhhdCBhIG1pZGRsZSBib3ggd291bGRuJ3QgYmUgYWJsZSB0byBpbnNw
-ZWN0DQo+IFNDVFAgcGF5bG9hZCwgYnV0IHRoZSBwcm90b2NvbCBpdHNlbGYgaXMgc3RpbGwgcG9z
-c2libGUuDQo+IERpZCBJIG1pc3Mgc29tZXRoaW5nIG1heWJlPw0KDQpPa2F5LCBteSBiYWQgZm9y
-IHVzaW5nIHNvbWVib2R5IGVsc2UncyB3b3JkcyBpbnN0ZWFkIG9mIHJlYWRpbmcgdGhlIGRyYWZ0
-IG15c2VsZi4gWW91IGFyZSByaWdodCwgdGhlIHByb3Bvc2FsIGlzIG9ubHkgdG8gYXBwbHkgU0NU
-UC1BVVRIIHRvIGFsbCB0aGUgY2h1bmtzLCBpdCBkb2VzbuKAmXQgcHJvcG9zZSBlbmNyeXB0aW9u
-L2NvbmZpZGVudGlhbGl0eS4gDQpBbnlob3cgdGhhdCB3YXMganVzdCBhbiBleGFtcGxlIG9mIHdo
-eSBtYWtpbmcgYSBzaW1wbGlmaWVkIHN0YXRlIG1hY2hpbmUgd2lsbCBhdm9pZCBjaGFuZ2luZyBj
-b25udHJhY2sgd2hlbiB0aGUgcHJvdG9jb2wgY2hhbmdlcyBhcmUgbWFkZSwgZXNwZWNpYWxseSB3
-aXRoIHRoZSBwcm90b2NvbCBzdGlsbCBiZWluZyBhY3RpdmVseSBpbXByb3ZlZC4NCg0KPiANCj4g
-PiAtIFdoaWxlIGF0IGl0LCBJIGFsc28gbWFkZSBzb21lIG90aGVyICJpbXByb3ZlbWVudHMiDQo+
-ID4gCWEpIEF2b2lkIG11bHRpcGxlIHdhbGstdGhyb3VnaHMgb2YgU0NUUCBjaHVua3MgaW4gc2N0
-cF9uZXcoKSwNCj4gc2N0cF9iYXNpY19jaGVja3MoKSBhbmQgbmZfY29ubnRyYWNrX3NjdHBfcGFj
-a2V0KCksIGFuZCBwYXJzZSBpdCBvbmx5IG9uY2UNCj4gPiAJYikgU0NUUCBjb25udHJhY2sgaGFz
-IHRoZSBzYW1lIHN0YXRlIHJlZ2FyZGxlc3Mgb2YgaXQgaXMgYSBwcmltYXJ5IG9yDQo+ID4gYSBz
-ZWNvbmRhcnkgcGF0aA0KPiANCj4gVGhpcyBhIGdvb2QgY2hhbmdlIGFuZCBtYXksIGFjdHVhbGx5
-LCBiZSB0aGUgY29yZSByZWFzb25pbmcgYmVoaW5kIHRoZQ0KPiBjaGFuZ2UgaGVyZS4gJ1ByaW1h
-cnknIGlzIG1vcmUgaW4gdGhlIHNlbnNlIG9mICdhY3RpdmUnIHRoYW4gYW55dGhpbmcgZWxzZSAo
-YW5kDQo+IGl0IGdldHMgbW9yZSBjb25mdXNpbmcgd2l0aCBDTVQtU0NUUCBoZWgpLiBJdCdzIG5v
-dCBiZWNhdXNlIGEgcGF0aCBzYXcgdGhlDQo+IElOSVQgaGFuZHNoYWtlIHRoYXQgaXQgaXMgbW9y
-ZSByZWxpYWJsZSBhbmQgc28gZnJvbSBjb25udHJhY2sgc2lkZS4NCj4gDQo+IFdpdGggdGhhdCwg
-Y29ubnRyYWNrIGhhbmRsaW5nIGFsbCBwYXRocyBzaW1pbGFybHkgbWFrZXMgaXQgbW9yZSBjb25z
-aXN0ZW50IGFuZA0KPiBjbG9zZXIgd2l0aCB3aGF0IHRoZSBhY3R1YWwgU0NUUCBzb2NrZXRzIGFy
-ZSBzZWVpbmcgZm9yIHN1Y2ggcGF0aHMuDQo+IA0KDQpZZXMsIEkgYWdyZWUuIA0KIA0KPiBPbmUg
-ZWFzeSBleGFtcGxlIGhlcmUgb2YgYSBiYWQgc2l0dWF0aW9uIGR1ZSB0byB0aGUgY3VycmVudCBk
-aWZmZXJlbmNlDQo+IGJldHdlZW4gcGF0aHMgaXMgdGhhdCBhbiBhcHBsaWNhdGlvbiBjYW4gc3Rh
-cnQgYW4gYXNzb2NpYXRpb24gdGhyb3VnaCBhIHBhdGgNCj4gYW5kIHRlYXIgaXQgZG93biBvdmVy
-IGFub3RoZXIgb25lLiBUaGVyZSdzIG5vIHNodXRkb3duIHNlZW4gYnkgdGhlIGZpcnN0DQo+IHBh
-dGgsIGFuZCB0aGUgY29ubnRyYWNrIGVudHJ5IHdpbGwgYmUgbGVmdCB0aGVyZSBhZiBpdCBpcyB3
-YXMgaW4gRXN0YWJsaXNoZWQgc3RhdGUNCj4gZm9yIDUgZGF5cy4gKHRoaXMgaXMgYWxzbyBpbGx1
-c3RyYXRlZCBpbiBTcmlyYW0ncyBleGFtcGxlIGJlbG93LCBqdXN0IGVhc2llciB0bw0KPiByZWFk
-KQ0KPiANCj4gSXRlbSBJIG1hcmtlZCB3aXRoIFsqXSBhYm92ZSBpcyB2YWd1ZS4gWW91IG5lZWQg
-dG8gY29uc2lkZXIgd2hhdCBpdCB3b3VsZCBiZQ0KPiBsb29zaW5nIGJ5IHN1Y2ggc2ltcGxpZmlj
-YXRpb24gYW5kIGFyZ3VtZW50IHRoYXQgaXQgaXMgb2theS4NCj4gV2UgY2FuJ3QganVzdCBjdXQg
-dGhlIGZhdCBvdXQgYW5kIHByYXkgZm9yIHRoZSBiZXN0IGxhdGVyIG9uLCByaWdodD8NCj4gQnV0
-IHdpdGggdGhpcyBkZXNjcmlwdGlvbiBoZXJlLCBpdCBub3Qgb25seSBwcm92aWRlcyBhIHNvbGlk
-IGp1c3RpZmljYXRpb24gb24gd2h5DQo+IGl0IChzcGVjaWZpY2x5IHRoZSBuZXcgc29sdXRpb24p
-IGlzIG5lZWRlZCBidXQgYWxzbyB3aHkgaXQgaXMgY3VycmVudGx5IGFscmVhZHkNCj4gYnJva2Vu
-L25vdCByZWxpYWJsZSBpbiBtdWx0aS1ob21pbmcgc2V0dXBzLiBZYXkhIDotKQ0KDQpBZ3JlZWQs
-IEkgd2lsbCB1cGRhdGUgdGhlIGNoYW5nZSBsb2cgd2l0aCB0aGlzIGRlc2NyaXB0aW9uLg0KDQo+
-IA0KPiBUaGVuLCBuZXh0IHF1ZXN0aW9uIGlzOiB3b3VsZCBpdCBtYWtlIHNlbnNlIHRvIGtlZXAg
-dGhlIGN1cnJlbnQgcHJvY2Vzc2luZyBmb3INCj4gc2luZ2xlIHBhdGggYXNzb2NpYXRpb25zPyBU
-aGF0J3MgYSBsb3Qgb2YgY29kZS9tYWludGVuYW5jZSBhbmQgSSBmYWlsIHRvIHNlZSBhDQo+IHJl
-YXNvbmluZyB0aGF0IGp1c3RpZmllcyBpdC4NCg0KSSB0cmllZCB0byBzaW1wbGlmeSBhcyBtdWNo
-IGFzIHBvc3NpYmxlLCBidXQgb2YgY291cnNlLCB3ZSBjYW4ga2VlcCBzb21lIHN0YXRlcy4NCkZv
-ciBlLmcuLCBrZWVwaW5nIFNIVVRET1dOXyogc3RhdGVzIGNhbiByZWR1Y2UgdGhlIHRpbWVvdXQg
-b2YgYW4gRVNUQUJMSVNIRUQgY29ubmVjdGlvbiBldmVuIGZ1cnRoZXIuIE9mIGNvdXJzZSwgd2Ug
-d2lsbCBzZWUgdGhhdCBvbmx5IG9uIG9uZSBvZiB0aGUgcGF0aHMuDQoNCj4gDQo+ID4NCj4gPiBM
-ZXQncyBzYXkgdGhlcmUgYXJlIHR3byBTQ1RQIGVuZHBvaW50cyBBIGFuZCBCIHdpdGggYWRkcmVz
-c2VzIEEnIGFuZCBCLCBCJycNCj4gY29ycmVzcG9uZGluZ2x5Lg0KPiA+IFByaW1hcnkgcGF0aCBp
-cyBBJyA8LS0tLT4gQicgdGhhdCB0cmF2ZXJzZXMgbWlkZGxlYm94IEMsIGFuZCBzZWNvbmRhcnkg
-cGF0aCBpcw0KPiBBJyA8LS0tLT4gQicnIHRoYXQgdHJhdmVyc2VzIG1pZGRsZWJveCBELg0KPiA+
-IDEpIFNIVVRET1dOIHNlbnQgb24gc2Vjb25kYXJ5IHBhdGgNCj4gPiAxYSkgU0NUUCBlbmRwb2lu
-dCBBIHNldHMgdXAgYW4gYXNzb2NpYXRpb24gdG93YXJkcyBTQ1RQIGVuZHBvaW50IEINCj4gPiAx
-YikgTWlkZGxlYm94IEMgc2VlcyBJTklUIHNlcXVlbmNlIGFuZCBjcmVhdGVzICJwcmltYXJ5IiBj
-b25udHJhY2sNCj4gPiBlbnRyeSAoNSBkYXlzKQ0KPiA+IDFjKSBNaWRkbGVib3ggRCBzZWVzIEhF
-QVJUQkVBVCBzZXF1ZW5jZSBhbmQgY3JlYXRlcyAic2Vjb25kYXJ5Ig0KPiA+IGNvbm50cmFjayBl
-bnRyeSAoMjEwIHNlY29uZHMpDQo+ID4gMWQpIFBhdGggZmFpbHVyZSBiZXR3ZWVuIEEgYW5kIEMs
-IGFuZCBTQ1RQIGVuZHBvaW50IEEgc3dpdGNoZXMgdG8NCj4gPiBzZWNvbmRhcnkgcGF0aCBhbmQg
-Y29udGludWVzIHNlbmRpbmcgZGF0YSBvbiB0aGUgYXNzb2NpYXRpb24NCj4gPiAxZSkgU0NUUCBl
-bmRwb2ludCBBIGRlY2lkZXMgdG8gU0hVVERPV04gdGhlIGNvbm5lY3Rpb24NCj4gPiAxZikgTWlk
-ZGxlYm94IEMgaXMgaW4gRVNUQUJMSVNIRUQgc3RhdGUsIGRvZXNuJ3Qgc2VlIGFueSBTSFVURE9X
-Tg0KPiA+IHNlcXVlbmNlIG9yIEhFQVJUQkVBVCwgd2FpdHMgZm9yIHRpbWVvdXQgKDUgZGF5cykN
-Cj4gPiAxZykgTWlkZGxlYm94IEQgaXMgaW4gSEVBUlRCRUFUX0FDS0VEIHN0YXRlLCBkb2Vzbid0
-IGNhcmUgYWJvdXQNCj4gPiBTSFVURE9XTiBzZXF1ZW5jZSwgd2FpdHMgZm9yIHRpbWVvdXQgKDIx
-MCBzZWNvbmRzKQ0KPiA+DQo+ID4gMikgUmVjZW50bHkgZml4ZWQgYnkgYmZmM2QwNTM0ODA0ICgi
-bmV0ZmlsdGVyOiBjb25udHJhY2s6IGFkZCBzY3RwDQo+ID4gREFUQV9TRU5UIHN0YXRlICIpDQo+
-ID4gMmEpIFNDVFAgZW5kcG9pbnQgQSBzZXRzIHVwIGFuIGFzc29jaWF0aW9uIHRvd2FyZHMgU0NU
-UCBlbmRwb2ludCBCDQo+ID4gMmIpIE1pZGRsZWJveCBDIHNlZXMgSU5JVCBzZXF1ZW5jZSBhbmQg
-Y3JlYXRlcyAicHJpbWFyeSIgY29ubnRyYWNrDQo+ID4gZW50cnkgKDUgZGF5cykNCj4gPiAyYykg
-TWlkZGxlYm94IEQgc2VlcyBEQVRBL1NBQ0ssIGFuZCBEUk9QUyBwYWNrZXRzIHVudGlsIEhFQVJU
-QkVBVCBpcw0KPiA+IHNlZW4gdG8gc2V0dXAgInNlY29uZGFyeSIgY29ubnRyYWNrIGVudHJ5ICgy
-MTAgc2Vjb25kcykNCj4gPg0KPiA+ID4NCj4gPiA+IFRoYW5rcy4NCg0K
+On Wed, Jan 11, 2023 at 09:36:38AM +0000, Sriram Yagnaraman wrote:
+> > -----Original Message-----
+> > From: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Sent: Friday, 6 January 2023 01:50
+> > To: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+> > Cc: netfilter-devel@vger.kernel.org; Florian Westphal <fw@strlen.de>;
+> > Marcelo Ricardo Leitner <mleitner@redhat.com>; Long Xin
+> > <lxin@redhat.com>; Claudio Porfiri <claudio.porfiri@ericsson.com>
+> > Subject: Re: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
+> > 
+> > On Thu, Jan 05, 2023 at 12:11:44PM +0000, Sriram Yagnaraman wrote:
+> > > > -----Original Message-----
+> > > > From: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > > Sent: Thursday, 5 January 2023 12:54
+> > > > To: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+> > > > Cc: netfilter-devel@vger.kernel.org; Florian Westphal
+> > > > <fw@strlen.de>; Marcelo Ricardo Leitner <mleitner@redhat.com>; Long
+> > > > Xin <lxin@redhat.com>; Claudio Porfiri
+> > > > <claudio.porfiri@ericsson.com>
+> > > > Subject: Re: [RFC PATCH] netfilter: conntrack: simplify sctp state
+> > > > machine
+> > > >
+> > > > On Thu, Jan 05, 2023 at 11:41:13AM +0000, Sriram Yagnaraman wrote:
+> > > > > > -----Original Message-----
+> > > > > > From: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > > > > Sent: Wednesday, 4 January 2023 16:02
+> > > > > > To: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+> > > > > > Cc: netfilter-devel@vger.kernel.org; Florian Westphal
+> > > > > > <fw@strlen.de>; Marcelo Ricardo Leitner <mleitner@redhat.com>;
+> > > > > > Long Xin <lxin@redhat.com>
+> > > > > > Subject: Re: [RFC PATCH] netfilter: conntrack: simplify sctp
+> > > > > > state machine
+> > > > > >
+> > > > > > On Wed, Jan 04, 2023 at 12:31:43PM +0100, Sriram Yagnaraman
+> > wrote:
+> > > > > > > All the paths in an SCTP connection are kept alive either by
+> > > > > > > actual DATA/SACK running through the connection or by HEARTBEAT.
+> > > > > > > This patch proposes a simple state machine with only two
+> > > > > > > states OPEN_WAIT and ESTABLISHED (similar to UDP). The reason
+> > > > > > > for this change is a full stateful approach to SCTP is
+> > > > > > > difficult when the association is multihomed since the
+> > > > > > > endpoints could use different paths in the network during the lifetime
+> > of an association.
+> > > > > >
+> > > > > > Do you mean the router/firewall might not see all packets for
+> > > > > > association is multihomed?
+> > > > > >
+> > > > > > Could you please provide an example?
+> > > > >
+> > > > > Let's say the primary and alternate/secondary paths between the
+> > > > > SCTP endpoints traverse different middle boxes. If an SCTP
+> > > > > endpoint detects network failure on the primary path, it will
+> > > > > switch to using the secondary path and all subsequent packets will
+> > > > > not be seen by the middlebox on the primary path, including
+> > > > > SHUTDOWN sequences if they happen at that time.
+> > > >
+> > > > OK, then on the primary middle box the SCTP flow will just timeout?
+> > > > (because no more packets are seen).
+> > >
+> > > Yes, they will timeout unless the primary path comes up before the
+> > > SHUTDOWN sequence. And the default timeout for an ESTABLISHED SCTP
+> > > connection is 5 days, which is a "long" time to clean-up this entry.
+> > 
+> > Does the middle box have a chance to see any packet that provides a hint to
+> > shorten this timeout? no HEARTBEAT packets are seen in this case on the
+> > former primary path?
+> 
+> There will be HEARTBEAT as soon as a path becomes unreachable from
+> the SCTP endpoints. But depending on the location of the network
+> failure, the middlebox may or may not see the HEARTBEAT.
+
+Conntrack assumes you have see all traffic that belongs the flow for
+other protocols too.
+
+> Also, HEARTBEAT is sent when there are no data to be transmitted or
+> if the path is unreachable/unconfirmed, so I think there is no
+> deterministic way of finding out when to shorten the timeout. Of
+> course, a user has the option of setting the ESTABLISHED state
+> timeout to a more reasonable value, for e.g., same as the
+> HEARTBEAT_ACKED state timeout (210 sec), OR we could reduce the
+> default timeout of ESTABLISHED to 210 sec.
+
+Then just set up a short ESTABLISHED when multihoming is in place
+since the beginning.
+
+> > What I am missing are a more detailed list of issues with the existing
+> > approach. Your patch description says "SCTP tracking with multihoming is
+> > difficult", probably a list of scenarios would help to understand the motivation
+> > to simplify the state machine.
+> 
+> Thank you for reviewing and asking these questions, it made me step back and think. I list below some background
+> - I want to simplify the state machine, because it is possible to
+> track an SCTP connection with fewer states, for e.g., SCTP with UDP
+> encapsulation uses UDP conntrack with just UNREPLIED/REPLIED states
+> and it works perfectly fine
+
+I think it would preferrable to add some configuration via ruleset to
+track SCTP over UDP, rather than deranking SCTP to become almost
+stateless.
+
+> - My stakeholders, at the behest of whom I am proposing these
+> changes hit some problems running SCTP client endpoints behind NAT
+> (inside Kubernetes pods) towards multihomed SCTP server endpoints
+> (1a-g) and (2a-c) below
+> - Some upcoming SCTP protocol changes in IETF (if
+> approved/implemented) will make it hard to read beyond the SCTP
+> common header, for e.g., DTLS over SCTP
+> https://datatracker.ietf.org/doc/draft-ietf-tsvwg-dtls-over-sctp-bis/,
+> proposes to encrypt all SCTP chunks, conntrack will only be able to
+> see SCTP common header, these changes hopefully will make it easier
+> to adapt to such changes in SCTP protocol - While at it, I also made
+> some other "improvements"
+
+For this DTLS case it should be possible to fall back to the SCTP
+"stateless" approach.
+
+> 	a) Avoid multiple walk-throughs of SCTP chunks in sctp_new(), sctp_basic_checks() and nf_conntrack_sctp_packet(), and parse it only once
+> 	b) SCTP conntrack has the same state regardless of it is a primary or a secondary path
+> 
+> Let's say there are two SCTP endpoints A and B with addresses A' and B, B'' correspondingly.
+> Primary path is A' <----> B' that traverses middlebox C, and secondary path is A' <----> B'' that traverses middlebox D.
+> 1) SHUTDOWN sent on secondary path
+> 1a) SCTP endpoint A sets up an association towards SCTP endpoint B
+> 1b) Middlebox C sees INIT sequence and creates "primary" conntrack entry (5 days)
+> 1c) Middlebox D sees HEARTBEAT sequence and creates "secondary" conntrack entry (210 seconds)
+> 1d) Path failure between A and C, and SCTP endpoint A switches to secondary path and continues sending data on the association
+> 1e) SCTP endpoint A decides to SHUTDOWN the connection
+> 1f) Middlebox C is in ESTABLISHED state, doesn't see any SHUTDOWN sequence or HEARTBEAT, waits for timeout (5 days)
+> 1g) Middlebox D is in HEARTBEAT_ACKED state, doesn't care about SHUTDOWN sequence, waits for timeout (210 seconds)
+
+I guess similar problem will occur with MP-TCP, and I am not sure
+taking TCP to be more stateless is the way to address this.
+
+> 2) Recently fixed by bff3d0534804 ("netfilter: conntrack: add sctp DATA_SENT state ")
+> 2a) SCTP endpoint A sets up an association towards SCTP endpoint B
+> 2b) Middlebox C sees INIT sequence and creates "primary" conntrack entry (5 days)
+> 2c) Middlebox D sees DATA/SACK, and DROPS packets until HEARTBEAT is seen to setup "secondary" conntrack entry (210 seconds)
+
+I assume this is already fixed.
+
+Another possibility would be to introduce this alternative
+state-machine and use it for multihoming?
