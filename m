@@ -2,77 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE24FC61DB3
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 21:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC866C61DB3
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 22:55:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240770AbjALVqQ (ORCPT
+        id S240437AbjALWzg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Jan 2023 16:46:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39288 "EHLO
+        Thu, 12 Jan 2023 17:55:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240785AbjALVpg (ORCPT
+        with ESMTP id S240344AbjALWzf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2023 16:45:36 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 948215B163
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 13:37:57 -0800 (PST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] intervals: restrict check missing elements fix to sets with no auto-merge
-Date:   Thu, 12 Jan 2023 22:37:53 +0100
-Message-Id: <20230112213753.212261-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Thu, 12 Jan 2023 17:55:35 -0500
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46910F73
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 14:55:31 -0800 (PST)
+Received: by a3.inai.de (Postfix, from userid 65534)
+        id AE22C587AFE95; Thu, 12 Jan 2023 23:55:28 +0100 (CET)
+Received: from a4.inai.de (a4.inai.de [IPv6:2a01:4f8:10b:45d8::f8])
+        by a3.inai.de (Postfix) with ESMTP id 12134587AFE94;
+        Thu, 12 Jan 2023 23:55:21 +0100 (CET)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     phil@nwl.cc
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH] build: put xtables.conf in EXTRA_DIST
+Date:   Thu, 12 Jan 2023 23:55:17 +0100
+Message-Id: <20230112225517.31560-1-jengelh@inai.de>
+X-Mailer: git-send-email 2.39.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If auto-merge is enabled, skip check for element mismatch introduced by
-6d1ee9267e7e ("intervals: check for EXPR_F_REMOVE in case of element
-mismatch"), which is only relevant to sets with no auto-merge.
+To make distcheck succeed, disting it is enough; it does not need
+to be installed.
 
-The interval adjustment routine for auto-merge already checks for
-unexisting intervals in that case.
-
-Uncovered via ASAN:
-
-0x60d00000014c is located 60 bytes inside of 144-byte region [0x60d000000110,0x60d0000001a0)
-freed by thread T0 here:
-    #0 0x7fbdb7eae507 in __interceptor_free ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:127
-    #1 0x7fbdb741a01e in xfree /home/pablo/devel/scm/git-netfilter/nftables/src/utils.c:29
-    #2 0x7fbdb7304473 in expr_free /home/pablo/devel/scm/git-netfilter/nftables/src/expression.c:98
-    #3 0x7fbdb7391fdd in adjust_elem_left /home/pablo/devel/scm/git-netfilter/nftables/src/intervals.c:304
-    #4 0x7fbdb73939e1 in setelem_adjust /home/pablo/devel/scm/git-netfilter/nftables/src/intervals.c:359
-
-Fixes: 6d1ee9267e7e ("intervals: check for EXPR_F_REMOVE in case of element mismatch")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: v1.8.8-150-g3822a992
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- src/intervals.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ Makefile.am | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/intervals.c b/src/intervals.c
-index 13009ca1b888..95e25cf09662 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -416,11 +416,12 @@ static int setelem_delete(struct list_head *msgs, struct set *set,
- 				list_del(&i->list);
- 				expr_free(i);
- 			}
--		} else if (set->automerge &&
--			   setelem_adjust(set, purge, &prev_range, &range, prev, i) < 0) {
--			expr_error(msgs, i, "element does not exist");
--			err = -1;
--			goto err;
-+		} else if (set->automerge) {
-+			if (setelem_adjust(set, purge, &prev_range, &range, prev, i) < 0) {
-+				expr_error(msgs, i, "element does not exist");
-+				err = -1;
-+				goto err;
-+			}
- 		} else if (i->flags & EXPR_F_REMOVE) {
- 			expr_error(msgs, i, "element does not exist");
- 			err = -1;
+diff --git a/Makefile.am b/Makefile.am
+index 451c3cb2..10198753 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -16,11 +16,11 @@ SUBDIRS         += extensions
+ # Depends on extensions/libext.a:
+ SUBDIRS         += iptables
+ 
+-EXTRA_DIST	= autogen.sh iptables-test.py xlate-test.py
++EXTRA_DIST	= autogen.sh iptables-test.py xlate-test.py etc/xtables.conf
+ 
+ if ENABLE_NFTABLES
+ confdir		= $(sysconfdir)
+-dist_conf_DATA	= etc/ethertypes etc/xtables.conf
++dist_conf_DATA	= etc/ethertypes
+ endif
+ 
+ .PHONY: tarball
 -- 
-2.30.2
+2.39.0
 
