@@ -2,290 +2,337 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BD73C54EBD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 11:30:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D081AC54EBC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 11:49:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232070AbjALLaB (ORCPT
+        id S235427AbjALLtf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Jan 2023 06:30:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44536 "EHLO
+        Thu, 12 Jan 2023 06:49:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231898AbjALL17 (ORCPT
+        with ESMTP id S236842AbjALLsc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2023 06:27:59 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DBC825E6;
-        Thu, 12 Jan 2023 03:20:21 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pFvd5-0004qc-G6; Thu, 12 Jan 2023 12:20:19 +0100
-Date:   Thu, 12 Jan 2023 12:20:19 +0100
-From:   Phil Sutter <phil@netfilter.org>
-To:     netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] iptables 1.8.9 release
-Message-ID: <Y7/s83d8D0z1QYt1@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
-        netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
+        Thu, 12 Jan 2023 06:48:32 -0500
+Received: from EUR01-VE1-obe.outbound.protection.outlook.com (mail-ve1eur01on2101.outbound.protection.outlook.com [40.107.14.101])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF02F5DE5C
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 03:38:10 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=cHNAicuNGfOqFGUbKD9qNDsZK6VfxGF9QdpTcAoQTig2gr2nR0oTtG2+91yiAS9PkJGmFNiBvFxcnVGAeaC7H79ZK8gQiM/wADHAyqvkmdWKzmskoIdK8uDUQ0OWYvOLnwifu9JBtNII2SdKE8gkoAktGJYjtZ1KeU/wKomnRHmKHYbRMDY+1/9ugG7ZxuvbiHSVkJ3U25+kNrgefmE8kYu2EwiKEVIldflbr3+CTJZpM+wGnj8alZxvOIHJKhWuB33dJylue8b3/rYaLwEgrJADbriB3yT8XzafP6lgfmzIle6aQppz0PJ+13vJlloTQQjrexAsSyb5z8tZFbsxbg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=C2KKmF6qtTG25ymakI1VS/0mg+oXkG0ATV+7gZL3olE=;
+ b=N/RN6KwOt3+vXxXnHuzcg/ln95XqvW9/Yuf6ibGXrOdzPZKOyJ5sPbuR0ZDcUTlAz+GzRsW6H1xxljtFA6LfGpvjFHWSU7WwdyNh57XasNXcAHx1PiO8J7swBCESfWVliG7uxJeWvjvCWBDOc4GXaC8wA/N0SiXuWsYXD1hucNAfk5NAH7rAQ6QKixhNA8hf4+xoTeK2t06IClv6jde2uRUhfkm5VTpj+TbYzOQVoWfsc1haQBhqg32LbmllUdkWcmkdI1x4lw6JRTKbaKyTj5skMJDsUbVPyFGtYCBrVRMEoxYxCd27PkzX1yu3Nnh1+k63rXo35rZWVQYgdeMPtg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=est.tech; dmarc=pass action=none header.from=est.tech;
+ dkim=pass header.d=est.tech; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=estab.onmicrosoft.com;
+ s=selector2-estab-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=C2KKmF6qtTG25ymakI1VS/0mg+oXkG0ATV+7gZL3olE=;
+ b=b1OVbpLSOpw7sLwxw4ABkNKjqNt65vmu1O/WBBwrmo2kKAGXQZX1WcPIOoF0AzZKckcA0RVvQPsq+XBS630nNIxdTYJPMwvsGOM7TvwTCu7XplQ2+sDH8ZvwR5aeomw/nqwANt8JmvkEHAeI0SuyJY+mnftX/GWPsCiFCmDrnic=
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:1e7::15)
+ by DB8P189MB1016.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:16a::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.18; Thu, 12 Jan
+ 2023 11:38:08 +0000
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::8f70:435b:ab64:9420]) by DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::8f70:435b:ab64:9420%4]) with mapi id 15.20.5986.018; Thu, 12 Jan 2023
+ 11:38:07 +0000
+From:   Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+To:     Marcelo Ricardo Leitner <mleitner@redhat.com>
+CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>, Long Xin <lxin@redhat.com>,
+        Claudio Porfiri <claudio.porfiri@ericsson.com>
+Subject: RE: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
+Thread-Topic: [RFC PATCH] netfilter: conntrack: simplify sctp state machine
+Thread-Index: AQHZIDEXupmbZt3GPUa7TaBi/McYSK6OWrgAgAFXCcCAAAamAIAAAT6wgADXrYCABaeoMIADDtqAgAFC4uA=
+Date:   Thu, 12 Jan 2023 11:38:07 +0000
+Message-ID: <DBBP189MB1433247516AF2F26D1729CBD95FD9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+References: <20230104113143.21769-1-sriram.yagnaraman@est.tech>
+ <Y7WVAEky9Iy3Ri3T@salvia>
+ <DBBP189MB1433F79520D32E1CB0F8A62A95FA9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+ <Y7a6VqqMmW191RIG@salvia>
+ <DBBP189MB14337144265DA856B8321D1695FA9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+ <Y7dwTU9Ky6RN1u7L@salvia>
+ <DBBP189MB1433F9BBBF659878DDEB6B1495FC9@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+ <CALnP8ZY5CR9nZz6gmh9MsvyU512iJOypWRaBx_xMBHbxe9Cuvg@mail.gmail.com>
+In-Reply-To: <CALnP8ZY5CR9nZz6gmh9MsvyU512iJOypWRaBx_xMBHbxe9Cuvg@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=est.tech;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: DBBP189MB1433:EE_|DB8P189MB1016:EE_
+x-ms-office365-filtering-correlation-id: 5ad678db-54e8-406c-33e4-08daf49179eb
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: qH4r1u8hC4UYzmJt8w0v7+ODuNhVVkJTk3aQb4ktoD+FPkv5jgTzkUcFjWZtVD7cSqm23twxX3tm2x4RR74DhAL+Jh3xx/HYgoVQvGO7kplDWsr5+H/xt/yaDg0kHLB3w0jVPBi4Ep20XseZ7lm10oNjx0bjDP2m/9s6Gut4G8EIFacZqgQxf3UNw0u4CCIjrjodIrT99e1Me+IXvKgnM+E/3gZJB+WgCtZUggIbFTAXFYlqEiEzXtnNuB4NxBARi3tt5A+67eKaz4n2ds9v39bZGgmq09JxWQ7zOjgOwyVJQCYiBuqemjTubsuBrXRFVBY55Gux0yzVYnhviRqsiWKBZj+z7L3++FoD2TfPtt4DUiU457/M7HuvHoGDtCKdXKOSPgwETWLKY1qpE0fQeDb91Sh8g2TRBZNgS6xUyBOerEBM0yA2Hz+6IxNaDbrPrL0p1hCnQV1IVxkVU4uTrFxEg5xloh/e+MMPypldgl/u1hkatK7vuozW77LpFEVLiTGKpJxvBlPcso/UF1HL5Im2tG2YSNhfv/ux3zBzey8BmVu8g11yqJRHeuzILO7nj24zBWZePo0OsS7YutWe4LCt5ap1vum3SkKSeYI+qsMlPiSVFSkH3YlB5AGitIB4lGzoE9ZjUnTbgzoNG4uhl5SVHtBdKLCLo1O/yahvccZw1iexmP7yIKyohKgxw+UKL940EjYivfqdGsK5P3A1LODPQoJKlmDdRt0ptc8SV/g=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBP189MB1433.EURP189.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230022)(136003)(346002)(376002)(366004)(39830400003)(396003)(451199015)(5660300002)(30864003)(44832011)(52536014)(66899015)(8936002)(41300700001)(64756008)(2906002)(55016003)(66946007)(54906003)(83380400001)(8676002)(6916009)(66476007)(38070700005)(4326008)(76116006)(66556008)(66446008)(316002)(71200400001)(33656002)(7696005)(186003)(6506007)(9686003)(86362001)(53546011)(966005)(26005)(478600001)(122000001)(38100700002)(66574015);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?RWY5YXRmVzBoK0ZOcTB3SEFpUGVGREJDejZDVjM2QzkyMDQ1eXJUWFFIQS8r?=
+ =?utf-8?B?U0hBNlNDVTJ3aHhrbDRTa1hUSHZDd0FGRlJoRmR2a25LdmRRK3hGeGw3dk5S?=
+ =?utf-8?B?bmJDMHVNQTBXUjZ2cnFZcURxT2VwMkJZTlNyVXVaTjVRZEZ5dVE2ZUYyM0ZG?=
+ =?utf-8?B?TUlsR2M3ZzcrN3hIYVZjYkRnNDBCNzR4cjZFQkZQM2hUMDZmYkxDUm51OU5C?=
+ =?utf-8?B?L3ljbE5GMlgwem5zdzQvaVFBOStDblluQVJUcU11WG1CdG1WOXZWb3l1Skl5?=
+ =?utf-8?B?ZVJIZkMyMlM1UHlkeitUK04vVXYzTVVGYmlLS1BvOGlvOEUrZzdOaStxcEZs?=
+ =?utf-8?B?VE95ZlRaa2VVQXoxbnRTWEU4dHlldXF4cG1VemlLZ3FYSzFOOVpHZDFVV211?=
+ =?utf-8?B?L01VR3hvTURWclZzQ2pyNDJ6RkY2V0JXc2VML2FCaXAzSm82SnQ5VFhQSmha?=
+ =?utf-8?B?NEdxV0piYlNIY0VlTWFRSm9BelQvU05oYXZFNUNTU3czRkpIeXNqblpGdXdE?=
+ =?utf-8?B?enBlNHBzakJSOXJ2SGdnODc3TVJWRTFaUEp6SGRST3BkcHNMbzRZR2NRZTRn?=
+ =?utf-8?B?ZHdvUjhGVEdhYjF3dlhGbTBDc1RqSlk0Z0xJZklPcUt0ajJyZWxHSVNTV3RB?=
+ =?utf-8?B?RUZJWXdWTm1qM3JFZklzcmdQTlBub2piWTVSSGIrVG8vUHRFUHJvWDFDUzg1?=
+ =?utf-8?B?QjBIRWpnanZKZzFocVdMbk84dlVIaVhVMTJLeDlsejk1VElxOUJJWUhlSWNs?=
+ =?utf-8?B?dTQvOGU4Vmh4eHFjU0VQOGM4Z0x3dzBBVzZOT0FVOTBkRnJBWFBRK1cwN2J2?=
+ =?utf-8?B?OHpnc3AwZlcxNXVNQ0FOZXY5T0lmd0Y4Q2JFaTNiVXM1UlZXY1VINkkxcTVI?=
+ =?utf-8?B?bXlIcG1XZ0E4K1lOajUxM2xIaXBTUTNzekcxSTViYm1HZzVvU2dyLys5MXVl?=
+ =?utf-8?B?akY2eDZTMWplY2VOdThSUzVKS0RpKzRBRSs3aDFHeU9NZU1XZkxIbG9VclNj?=
+ =?utf-8?B?RHpaV3NpWmpGZlFORExCRXdUV3BCMFJVemU1RDlTcVN6RUpWcExmbzRjQzgz?=
+ =?utf-8?B?VE5MdFIxbHZhcm5LMlBrZjd1MVBvRDBqZlUraFVWbHl1Qy9CK2gxRVlJU3RV?=
+ =?utf-8?B?dldLWCsyeCs5RkhnSndnaUdmRWlXWkZSMFBLZWJVakx4R21rWVNlNFZ3TWlr?=
+ =?utf-8?B?VjAzdzhwZWFKNUcyWlJIb2lJSTRzbVRQQUh1ODEzbGxaTlQ3OEdZTFdNcTZI?=
+ =?utf-8?B?QkpEb000Wmc0WGlVVnJPQmtpVkM2c0VzS2R2TUE3UzVHYzRLWTJxaC94cXVD?=
+ =?utf-8?B?eXQzdjVTdnppVmROeVd4Vlp1VERxY0VsRlprSERsQmZSN3kyLzNucVhmajRP?=
+ =?utf-8?B?UG42dXJuUHN2aHhPeTdTNlVRdzRtVmhJN2ZpbEtqZ0hHVkxPSzZOTzdsZTA4?=
+ =?utf-8?B?cVA2VlhBNGpLQ0VVbWQ3MzVnRVFhcEFJTmI0ckxESmc3b0NqQVBMZUlibUZt?=
+ =?utf-8?B?R0tqdEpENThuRTFZWHJJV0Z4REwrOEhGeWlQODkzbnkxdlp2M0k1d09kd3JB?=
+ =?utf-8?B?Q2taU2xUY0VJMzJQaHN0NkF0QkMwQUtlaGtVcFZ5RGxmbUEyMWFtR0U1d1k4?=
+ =?utf-8?B?Z0RhQ2hZVVdJc0dIRXhDMVVCSVg2V1lMMC9TcFJkcXM1YXJ3THUyS3pQazVu?=
+ =?utf-8?B?QTlmVlk0YUVkbkFsMlhmQTdPSGp2RXppUWNpV2VZR2FhM1JFMVA0bE81bjJE?=
+ =?utf-8?B?SG9QclplOXVUTEVYcHFsSXBoSVpZRUllTW1YdzVNZTRodFh0TTZjdnFnUXh4?=
+ =?utf-8?B?dHhaYUp2UExRYlZIaUdBWGxvUFpQNnFHdTJqTUh2eEVlNEhRMXBCb0FMdzI4?=
+ =?utf-8?B?RDN3YTY5UXU4VmJEOHlIL0pVbzJuVHBmbVlqUDhmL1gvN2hIaEEyU2xGYmtB?=
+ =?utf-8?B?dGlJMUtNNncrVG1UTFpxa1BqTWVuS2V5Q1V6T3JBOHdkUE10dFhHT3pvQkVV?=
+ =?utf-8?B?WXJwVG5adGE1UkFQQmRvdC90Z205NTJPbFEvUWVmeS8yK1FzbUJhLyt3dFJT?=
+ =?utf-8?B?TTJ2aHcvaGtDN3hqU1hCTUdaQ3BlcUxFV3RnTmRTWUxudXRPNWlrbFFFSU9v?=
+ =?utf-8?Q?I0V6BQX4m20UBn0mkIE0v3vLN?=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="s0pKw1af8TI9v0z2"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: est.tech
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5ad678db-54e8-406c-33e4-08daf49179eb
+X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Jan 2023 11:38:07.8770
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: d2585e63-66b9-44b6-a76e-4f4b217d97fd
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: rVtZuPsmoIZSGotf+X8ANXp9Tf3XVFvXgijNrnX4lgTzdyqKqS/F+VpzTwxQYoj9GsD87PxRahqTM4aJ4rF1hN7Tcm4Zvkn96TOSEIPpTz0=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB8P189MB1016
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
---s0pKw1af8TI9v0z2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi!
-
-The Netfilter project proudly presents:
-
-        iptables 1.8.9
-
-This release contains new features:
-
-* arptables-nft: Support --exact flag
-* Add --enable-profiling configure option, preparing for gcov/gprof
-* Support more chunk types in sctp extension
-* Print '--' in ip6tables' 'opt' column for consistency with iptables
-* More verbose error messages if iptables-nft-restore fails
-* Support '-p Length' with ebtables-nft, needed for 802_3 extension
-* Merge all NAT extensions into a single DSO
-* Install ebtables-translate tool
-
-... and fixes:
-
-* Misc compiler warnings
-* Duplicate ETH_ALEN definition when building against musl libc
-* Failing out-of-tree build
-* Avoid symbol pollution by limiting scope of some in xtables.h
-* Increase testsuites' code-coverage
-* Using --init-table would crash ebtables-restore, reject it properly
-* Fix potential read from garbage in string extension
-* Add missing nf_log.h kernel header to dist
-* Fix listing format with overly long 'prot' column entries
-* Print numeric protocol values with --numeric
-* Broken ebtables' among match with MAC+IP address entries
-* Occasional wrong line number reported by failing iptables-nft-restore
-* Multiple rules using among match broke ebtables-restore
-* Renaming a chain in legacy iptables could crash the program
-* A second bitwise expression in a rule would mangle the first one
-* More strictly reject rules with unexpected content
-* Many xtables-translate fixes
-* Misc memory leaks and garbage access, satisfy valgrind's leak checker
-
-... and documentation updates:
-
-* Iptables exits when setuid, mention this in man page
-* Improve NFQUEUE queue-balance documentation
-
-You can download the new release from:
-
-https://netfilter.org/projects/iptables/downloads.html#iptables-1.8.9
-
-In case of bugs, file them via:
-
-* https://bugzilla.netfilter.org
-
-Happy firewalling!
-
---s0pKw1af8TI9v0z2
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename="changes-iptables-1.8.9.txt"
-Content-Transfer-Encoding: 8bit
-
-Anton Luka Šijanec (1):
-      xtables-monitor: add missing spaces in printed str
-
-Ben Brown (1):
-      build: Fix error during out of tree build
-
-Erik Skultety (1):
-      iptables: xshared: Ouptut '--' in the opt field in ipv6's fake mode
-
-Florian Westphal (19):
-      iptables.8: mention that iptables exits when setuid
-      extensions: libxt_conntrack: remove always-false conditionals
-      nft: fix ebtables among match when mac+ip addresses are used
-      nft: support dissection of meta pkktype mode
-      nft: prefer native 'meta pkttype' instead of xt match
-      extensions: libxt_pkttype: support otherhost
-      nft: support ttl/hoplimit dissection
-      nft: prefer payload to ttl/hl module
-      nft: un-break among match with concatenation
-      Revert "nft: prefer payload to ttl/hl module"/'meta pkttype' match.
-      nft: track each register individually
-      tests: extend native delinearize script
-      nft: check for unknown meta keys
-      iptables-nft: exit nonzero when iptables-save cannot decode all expressions
-      xlate: get rid of escape_quotes
-      extensions: change expected output for new format
-      xlate-test: avoid shell entanglements
-      nft-bridge: work around recent "among" decode breakage
-      extensions: add xt_statistics random mode translation
-
-Markus Mayer (1):
-      netfilter: add nf_log.h
-
-Nick Hainke (1):
-      treewide: use uint* instead of u_int*
-
-Pablo Neira Ayuso (2):
-      nft: replace nftnl_.*_nlmsg_build_hdr() by nftnl_nlmsg_build_hdr()
-      nft-shared: replace nftnl_expr_get_data() by nftnl_expr_get()
-
-Phil Sutter (136):
-      xshared: Fix build for -Werror=format-security
-      Revert "fix build for missing ETH_ALEN definition"
-      tests: shell: Check overhead in iptables-save and -restore
-      libxtables: Unexport init_extensions*() declarations
-      arptables: Support -x/--exact flag
-      iptables-legacy: Drop redundant include of xtables-multi.h
-      xshared: Make some functions static
-      Makefile: Add --enable-profiling configure option
-      tests: shell: Add some more rules to 0002-verbose-output_0
-      tests: shell: Extend iptables-xml test a bit
-      tests: shell: Extend zero counters test a bit further
-      extensions: libebt_standard.t: Test logical-{in,out} as well
-      ebtables-restore: Deny --init-table
-      extensions: string: Do not print default --to value
-      extensions: string: Review parse_string() function
-      extensions: string: Fix and enable tests
-      nft: Exit if nftnl_alloc_expr fails
-      libxtables: Move struct xtables_afinfo into xtables.h
-      libxtables: Define XT_OPTION_OFFSET_SCALE in xtables.h
-      libxtables: Fix unsupported extension warning corner case
-      tests: shell: Fix testcases for changed ip6tables opts output
-      xshared: Fix for missing space after 'prot' column
-      xshared: Print protocol numbers if --numeric was given
-      xtables-restore: Extend failure error message
-      nft: Expand extended error reporting to nft_cmd, too
-      tests: shell: Test delinearization of native nftables expressions
-      ebtables: Drop unused OPT_* defines
-      ebtables: Eliminate OPT_TABLE
-      ebtables: Merge OPT_* flags with xshared ones
-      nft-shared: Introduce __get_cmp_data()
-      ebtables: Support '-p Length'
-      ebtables: Fix among match
-      nft: Fix meta statement parsing
-      nft-bridge: Drop 'sreg_count' variable
-      tests: iptables-test: Simplify '-N' option a bit
-      tests: iptables-test: Simplify execute_cmd() calling
-      tests: iptables-test: Pass netns to execute_cmd()
-      tests: iptables-test: Test both variants by default
-      extensions: among: Remove pointless fall through
-      extensions: among: Fix for use with ebtables-restore
-      extensions: libebt_stp: Eliminate duplicate space in output
-      extensions: libip6t_dst: Fix output for empty options
-      extensions: TCPOPTSTRIP: Do not print empty options
-      extensions: libebt_log: Avoid empty log-prefix in output
-      tests: IDLETIMER.t: Fix syntax, support for restore input
-      tests: libebt_stp.t: Drop duplicate whitespace
-      tests: shell: Fix expected output for ip6tables dst match
-      tests: shell: Fix expected ebtables log target output
-      libiptc: Fix for segfault when renaming a chain
-      nft: Fix compile with -DDEBUG
-      extensions: NFQUEUE: Document queue-balance limitation
-      tests: iptables-test: Implement fast test mode
-      tests: iptables-test: Cover for obligatory -j CONTINUE in ebtables
-      tests: *.t: Fix expected output for simple calls
-      tests: *.t: Fix for hexadecimal output
-      tests: libebt_redirect.t: Plain redirect prints with trailing whitespace
-      tests: libxt_length.t: Fix odd use-case output
-      tests: libxt_recent.t: Add missing default values
-      tests: libxt_tos.t, libxt_TOS.t: Add missing masks in output
-      tests: libebt_vlan.t: Drop trailing whitespace from rules
-      tests: libxt_connlimit.t: Add missing default values
-      tests: *.t: Add missing all-one's netmasks to expected output
-      extensions: DNAT: Fix bad IP address error reporting
-      extensions: *NAT: Drop NF_NAT_RANGE_PROTO_RANDOM* flag checks
-      extensions: DNAT: Use __DNAT_xlate for REDIRECT, too
-      extensions: DNAT: Generate print, save and xlate callbacks
-      extensions: DNAT: Rename some symbols
-      extensions: Merge SNAT, DNAT, REDIRECT and MASQUERADE
-      tests: xlate-test: Cleanup file reading loop
-      tests: xlate-test.py: Introduce run_proc()
-      tests: xlate-test: Replay results for reverse direction testing
-      xshared: Share make_delete_mask() between ip{,6}tables
-      nft-shared: Introduce port_match_single_to_range()
-      extensions: libip*t_LOG: Merge extensions
-      extensions: libebt_ip: Include kernel header
-      extensions: libebt_arp, libebt_ip: Use xtables_ipparse_any()
-      extensions: Collate ICMP types/codes in libxt_icmp.h
-      extensions: Unify ICMP parser into libxt_icmp.h
-      Drop extra newline from xtables_error() calls
-      extensions: mark: Test double bitwise in a rule
-      extensions: libebt_mark: Fix mark target xlate
-      extensions: libebt_mark: Fix xlate test case
-      extensions: libebt_redirect: Fix xlate return code
-      extensions: libipt_ttl: Sanitize xlate callback
-      extensions: CONNMARK: Fix xlate callback
-      extensions: MARK: Sanitize MARK_xlate()
-      extensions: TCPMSS: Use xlate callback for IPv6, too
-      extensions: TOS: Fix v1 xlate callback
-      extensions: ecn: Sanitize xlate callback
-      extensions: tcp: Translate TCP option match
-      extensions: libebt_log: Add comment to clarify xlate callback
-      extensions: frag: Add comment to clarify xlate callback
-      extensions: ipcomp: Add comment to clarify xlate callback
-      libxtables: xt_xlate_add() to take care of spacing
-      extensions: Leverage xlate auto-spacing
-      extensions: libxt_conntrack: Drop extra whitespace in xlate
-      extensions: xlate: Format sets consistently
-      tests: shell: Test selective ebtables flushing
-      tests: shell: Fix valgrind mode for 0008-unprivileged_0
-      iptables-restore: Free handle with --test also
-      iptables-xml: Free allocated chain strings
-      nft: Plug memleak in nft_rule_zero_counters()
-      iptables: Plug memleaks in print_firewall()
-      xtables: Introduce xtables_clear_iptables_command_state()
-      iptables: Properly clear iptables_command_state object
-      xshared: Free data after printing help
-      libiptc: Eliminate garbage access
-      ebtables: Implement --check command
-      tests: xlate: Use --check to verify replay
-      nft: Fix for comparing ifname matches against nft-generated ones
-      nft: Fix match generator for '! -i +'
-      nft: Recognize INVAL/D interface name
-      xtables-translate: Fix for interfaces with asterisk mid-string
-      ebtables: Fix MAC address match translation
-      Makefile: Create LZMA-compressed dist-files
-      Drop INCOMPATIBILITIES file
-      Drop libiptc/linux_stddef.h
-      Makefile: Generate ip6tables man pages on the fly
-      extensions: Makefile: Merge initext targets
-      iptables/Makefile: Reorg variable assignments
-      iptables/Makefile: Split nft-variant man page list
-      Makefile: Fix for 'make distcheck'
-      Makefile: Generate .tar.xz archive with 'make dist'
-      include/Makefile: xtables-version.h is generated
-      tests: Adjust testsuite return codes to automake guidelines
-      Makefile.am: Integrate testsuites
-      nft: Parse icmp header matches
-      arptables: Check the mandatory ar_pln match
-      nft: Increase rule parser strictness
-      nft: Make rule parsing errors fatal
-      nft: Reject tcp/udp extension without proper protocol match
-      gitignore: Ignore utils/nfsynproxy
-      gitignore: Ignore generated ip6tables man pages
-      ebtables-translate: Install symlink
-      Makefile: Replace brace expansion
-      configure: Bump version for 1.8.9 release
-
-Yi Chen (1):
-      tests: add ebtables among testcase
-
-Yuxuan Luo (1):
-      xt_sctp: support a couple of new chunk types
-
-
---s0pKw1af8TI9v0z2--
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWFyY2VsbyBSaWNhcmRv
+IExlaXRuZXIgPG1sZWl0bmVyQHJlZGhhdC5jb20+DQo+IFNlbnQ6IFdlZG5lc2RheSwgMTEgSmFu
+dWFyeSAyMDIzIDE0OjU0DQo+IFRvOiBTcmlyYW0gWWFnbmFyYW1hbiA8c3JpcmFtLnlhZ25hcmFt
+YW5AZXN0LnRlY2g+DQo+IENjOiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVyLm9y
+Zz47IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IEZsb3JpYW4gV2VzdHBoYWwg
+PGZ3QHN0cmxlbi5kZT47IExvbmcgWGluIDxseGluQHJlZGhhdC5jb20+OyBDbGF1ZGlvDQo+IFBv
+cmZpcmkgPGNsYXVkaW8ucG9yZmlyaUBlcmljc3Nvbi5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUkZD
+IFBBVENIXSBuZXRmaWx0ZXI6IGNvbm50cmFjazogc2ltcGxpZnkgc2N0cCBzdGF0ZSBtYWNoaW5l
+DQo+IA0KPiBPbiBXZWQsIEphbiAxMSwgMjAyMyBhdCAwOTozNjozOEFNICswMDAwLCBTcmlyYW0g
+WWFnbmFyYW1hbiB3cm90ZToNCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4g
+PiBGcm9tOiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVyLm9yZz4NCj4gPiA+IFNl
+bnQ6IEZyaWRheSwgNiBKYW51YXJ5IDIwMjMgMDE6NTANCj4gPiA+IFRvOiBTcmlyYW0gWWFnbmFy
+YW1hbiA8c3JpcmFtLnlhZ25hcmFtYW5AZXN0LnRlY2g+DQo+ID4gPiBDYzogbmV0ZmlsdGVyLWRl
+dmVsQHZnZXIua2VybmVsLm9yZzsgRmxvcmlhbiBXZXN0cGhhbA0KPiA+ID4gPGZ3QHN0cmxlbi5k
+ZT47IE1hcmNlbG8gUmljYXJkbyBMZWl0bmVyIDxtbGVpdG5lckByZWRoYXQuY29tPjsgTG9uZw0K
+PiA+ID4gWGluIDxseGluQHJlZGhhdC5jb20+OyBDbGF1ZGlvIFBvcmZpcmkNCj4gPiA+IDxjbGF1
+ZGlvLnBvcmZpcmlAZXJpY3Nzb24uY29tPg0KPiA+ID4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0hd
+IG5ldGZpbHRlcjogY29ubnRyYWNrOiBzaW1wbGlmeSBzY3RwIHN0YXRlDQo+ID4gPiBtYWNoaW5l
+DQo+ID4gPg0KPiA+ID4gT24gVGh1LCBKYW4gMDUsIDIwMjMgYXQgMTI6MTE6NDRQTSArMDAwMCwg
+U3JpcmFtIFlhZ25hcmFtYW4gd3JvdGU6DQo+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
+LS0tLS0NCj4gPiA+ID4gPiBGcm9tOiBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVy
+Lm9yZz4NCj4gPiA+ID4gPiBTZW50OiBUaHVyc2RheSwgNSBKYW51YXJ5IDIwMjMgMTI6NTQNCj4g
+PiA+ID4gPiBUbzogU3JpcmFtIFlhZ25hcmFtYW4gPHNyaXJhbS55YWduYXJhbWFuQGVzdC50ZWNo
+Pg0KPiA+ID4gPiA+IENjOiBuZXRmaWx0ZXItZGV2ZWxAdmdlci5rZXJuZWwub3JnOyBGbG9yaWFu
+IFdlc3RwaGFsDQo+ID4gPiA+ID4gPGZ3QHN0cmxlbi5kZT47IE1hcmNlbG8gUmljYXJkbyBMZWl0
+bmVyIDxtbGVpdG5lckByZWRoYXQuY29tPjsNCj4gPiA+ID4gPiBMb25nIFhpbiA8bHhpbkByZWRo
+YXQuY29tPjsgQ2xhdWRpbyBQb3JmaXJpDQo+ID4gPiA+ID4gPGNsYXVkaW8ucG9yZmlyaUBlcmlj
+c3Nvbi5jb20+DQo+ID4gPiA+ID4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0hdIG5ldGZpbHRlcjog
+Y29ubnRyYWNrOiBzaW1wbGlmeSBzY3RwDQo+ID4gPiA+ID4gc3RhdGUgbWFjaGluZQ0KPiA+ID4g
+PiA+DQo+ID4gPiA+ID4gT24gVGh1LCBKYW4gMDUsIDIwMjMgYXQgMTE6NDE6MTNBTSArMDAwMCwg
+U3JpcmFtIFlhZ25hcmFtYW4gd3JvdGU6DQo+ID4gPiA+ID4gPiA+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+ID4gPiA+ID4gPiA+IEZyb206IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0Bu
+ZXRmaWx0ZXIub3JnPg0KPiA+ID4gPiA+ID4gPiBTZW50OiBXZWRuZXNkYXksIDQgSmFudWFyeSAy
+MDIzIDE2OjAyDQo+ID4gPiA+ID4gPiA+IFRvOiBTcmlyYW0gWWFnbmFyYW1hbiA8c3JpcmFtLnlh
+Z25hcmFtYW5AZXN0LnRlY2g+DQo+ID4gPiA+ID4gPiA+IENjOiBuZXRmaWx0ZXItZGV2ZWxAdmdl
+ci5rZXJuZWwub3JnOyBGbG9yaWFuIFdlc3RwaGFsDQo+ID4gPiA+ID4gPiA+IDxmd0BzdHJsZW4u
+ZGU+OyBNYXJjZWxvIFJpY2FyZG8gTGVpdG5lcg0KPiA+ID4gPiA+ID4gPiA8bWxlaXRuZXJAcmVk
+aGF0LmNvbT47IExvbmcgWGluIDxseGluQHJlZGhhdC5jb20+DQo+ID4gPiA+ID4gPiA+IFN1Ympl
+Y3Q6IFJlOiBbUkZDIFBBVENIXSBuZXRmaWx0ZXI6IGNvbm50cmFjazogc2ltcGxpZnkgc2N0cA0K
+PiA+ID4gPiA+ID4gPiBzdGF0ZSBtYWNoaW5lDQo+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+
+IE9uIFdlZCwgSmFuIDA0LCAyMDIzIGF0IDEyOjMxOjQzUE0gKzAxMDAsIFNyaXJhbSBZYWduYXJh
+bWFuDQo+ID4gPiB3cm90ZToNCj4gPiA+ID4gPiA+ID4gPiBBbGwgdGhlIHBhdGhzIGluIGFuIFND
+VFAgY29ubmVjdGlvbiBhcmUga2VwdCBhbGl2ZSBlaXRoZXINCj4gPiA+ID4gPiA+ID4gPiBieSBh
+Y3R1YWwgREFUQS9TQUNLIHJ1bm5pbmcgdGhyb3VnaCB0aGUgY29ubmVjdGlvbiBvciBieQ0KPiBI
+RUFSVEJFQVQuDQo+ID4gPiA+ID4gPiA+ID4gVGhpcyBwYXRjaCBwcm9wb3NlcyBhIHNpbXBsZSBz
+dGF0ZSBtYWNoaW5lIHdpdGggb25seSB0d28NCj4gPiA+ID4gPiA+ID4gPiBzdGF0ZXMgT1BFTl9X
+QUlUIGFuZCBFU1RBQkxJU0hFRCAoc2ltaWxhciB0byBVRFApLiBUaGUNCj4gPiA+ID4gPiA+ID4g
+PiByZWFzb24gZm9yIHRoaXMgY2hhbmdlIGlzIGEgZnVsbCBzdGF0ZWZ1bCBhcHByb2FjaCB0byBT
+Q1RQDQo+ID4gPiA+ID4gPiA+ID4gaXMgZGlmZmljdWx0IHdoZW4gdGhlIGFzc29jaWF0aW9uIGlz
+IG11bHRpaG9tZWQgc2luY2UgdGhlDQo+ID4gPiA+ID4gPiA+ID4gZW5kcG9pbnRzIGNvdWxkIHVz
+ZSBkaWZmZXJlbnQgcGF0aHMgaW4gdGhlIG5ldHdvcmsgZHVyaW5nDQo+ID4gPiA+ID4gPiA+ID4g
+dGhlIGxpZmV0aW1lDQo+ID4gPiBvZiBhbiBhc3NvY2lhdGlvbi4NCj4gPiA+ID4gPiA+ID4NCj4g
+PiA+ID4gPiA+ID4gRG8geW91IG1lYW4gdGhlIHJvdXRlci9maXJld2FsbCBtaWdodCBub3Qgc2Vl
+IGFsbCBwYWNrZXRzDQo+ID4gPiA+ID4gPiA+IGZvciBhc3NvY2lhdGlvbiBpcyBtdWx0aWhvbWVk
+Pw0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiBDb3VsZCB5b3UgcGxlYXNlIHByb3ZpZGUg
+YW4gZXhhbXBsZT8NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBMZXQncyBzYXkgdGhlIHByaW1h
+cnkgYW5kIGFsdGVybmF0ZS9zZWNvbmRhcnkgcGF0aHMgYmV0d2Vlbg0KPiA+ID4gPiA+ID4gdGhl
+IFNDVFAgZW5kcG9pbnRzIHRyYXZlcnNlIGRpZmZlcmVudCBtaWRkbGUgYm94ZXMuIElmIGFuIFND
+VFANCj4gPiA+ID4gPiA+IGVuZHBvaW50IGRldGVjdHMgbmV0d29yayBmYWlsdXJlIG9uIHRoZSBw
+cmltYXJ5IHBhdGgsIGl0IHdpbGwNCj4gPiA+ID4gPiA+IHN3aXRjaCB0byB1c2luZyB0aGUgc2Vj
+b25kYXJ5IHBhdGggYW5kIGFsbCBzdWJzZXF1ZW50IHBhY2tldHMNCj4gPiA+ID4gPiA+IHdpbGwg
+bm90IGJlIHNlZW4gYnkgdGhlIG1pZGRsZWJveCBvbiB0aGUgcHJpbWFyeSBwYXRoLA0KPiA+ID4g
+PiA+ID4gaW5jbHVkaW5nIFNIVVRET1dOIHNlcXVlbmNlcyBpZiB0aGV5IGhhcHBlbiBhdCB0aGF0
+IHRpbWUuDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBPSywgdGhlbiBvbiB0aGUgcHJpbWFyeSBtaWRk
+bGUgYm94IHRoZSBTQ1RQIGZsb3cgd2lsbCBqdXN0IHRpbWVvdXQ/DQo+ID4gPiA+ID4gKGJlY2F1
+c2Ugbm8gbW9yZSBwYWNrZXRzIGFyZSBzZWVuKS4NCj4gPiA+ID4NCj4gPiA+ID4gWWVzLCB0aGV5
+IHdpbGwgdGltZW91dCB1bmxlc3MgdGhlIHByaW1hcnkgcGF0aCBjb21lcyB1cCBiZWZvcmUgdGhl
+DQo+ID4gPiA+IFNIVVRET1dOIHNlcXVlbmNlLiBBbmQgdGhlIGRlZmF1bHQgdGltZW91dCBmb3Ig
+YW4gRVNUQUJMSVNIRUQNCj4gU0NUUA0KPiA+ID4gPiBjb25uZWN0aW9uIGlzIDUgZGF5cywgd2hp
+Y2ggaXMgYSAibG9uZyIgdGltZSB0byBjbGVhbi11cCB0aGlzIGVudHJ5Lg0KPiA+ID4NCj4gPiA+
+IERvZXMgdGhlIG1pZGRsZSBib3ggaGF2ZSBhIGNoYW5jZSB0byBzZWUgYW55IHBhY2tldCB0aGF0
+IHByb3ZpZGVzIGENCj4gPiA+IGhpbnQgdG8gc2hvcnRlbiB0aGlzIHRpbWVvdXQ/IG5vIEhFQVJU
+QkVBVCBwYWNrZXRzIGFyZSBzZWVuIGluIHRoaXMNCj4gPiA+IGNhc2Ugb24gdGhlIGZvcm1lciBw
+cmltYXJ5IHBhdGg/DQo+ID4NCj4gPiBUaGVyZSB3aWxsIGJlIEhFQVJUQkVBVCBhcyBzb29uIGFz
+IGEgcGF0aCBiZWNvbWVzIHVucmVhY2hhYmxlIGZyb20gdGhlDQo+IFNDVFAgZW5kcG9pbnRzLiBC
+dXQgZGVwZW5kaW5nIG9uIHRoZSBsb2NhdGlvbiBvZiB0aGUgbmV0d29yayBmYWlsdXJlLCB0aGUN
+Cj4gbWlkZGxlYm94IG1heSBvciBtYXkgbm90IHNlZSB0aGUgSEVBUlRCRUFULiBBbHNvLCBIRUFS
+VEJFQVQgaXMgc2VudA0KPiB3aGVuIHRoZXJlIGFyZSBubyBkYXRhIHRvIGJlIHRyYW5zbWl0dGVk
+IG9yIGlmIHRoZSBwYXRoIGlzDQo+IHVucmVhY2hhYmxlL3VuY29uZmlybWVkLCBzbyBJIHRoaW5r
+IHRoZXJlIGlzIG5vIGRldGVybWluaXN0aWMgd2F5IG9mIGZpbmRpbmcNCj4gb3V0IHdoZW4gdG8g
+c2hvcnRlbiB0aGUgdGltZW91dC4gT2YgY291cnNlLCBhIHVzZXIgaGFzIHRoZSBvcHRpb24gb2Yg
+c2V0dGluZw0KPiB0aGUgRVNUQUJMSVNIRUQgc3RhdGUgdGltZW91dCB0byBhIG1vcmUgcmVhc29u
+YWJsZSB2YWx1ZSwgZm9yIGUuZy4sIHNhbWUgYXMNCj4gdGhlIEhFQVJUQkVBVF9BQ0tFRCBzdGF0
+ZSB0aW1lb3V0ICgyMTAgc2VjKSwgT1Igd2UgY291bGQgcmVkdWNlIHRoZQ0KPiBkZWZhdWx0IHRp
+bWVvdXQgb2YgRVNUQUJMSVNIRUQgdG8gMjEwIHNlYy4NCj4gPg0KPiA+ID4NCj4gPiA+IFdoYXQg
+SSBhbSBtaXNzaW5nIGFyZSBhIG1vcmUgZGV0YWlsZWQgbGlzdCBvZiBpc3N1ZXMgd2l0aCB0aGUN
+Cj4gPiA+IGV4aXN0aW5nIGFwcHJvYWNoLiBZb3VyIHBhdGNoIGRlc2NyaXB0aW9uIHNheXMgIlND
+VFAgdHJhY2tpbmcgd2l0aA0KPiA+ID4gbXVsdGlob21pbmcgaXMgZGlmZmljdWx0IiwgcHJvYmFi
+bHkgYSBsaXN0IG9mIHNjZW5hcmlvcyB3b3VsZCBoZWxwDQo+ID4gPiB0byB1bmRlcnN0YW5kIHRo
+ZSBtb3RpdmF0aW9uIHRvIHNpbXBsaWZ5IHRoZSBzdGF0ZSBtYWNoaW5lLg0KPiA+DQo+ID4gVGhh
+bmsgeW91IGZvciByZXZpZXdpbmcgYW5kIGFza2luZyB0aGVzZSBxdWVzdGlvbnMsIGl0IG1hZGUg
+bWUgc3RlcA0KPiA+IGJhY2sgYW5kIHRoaW5rLiBJIGxpc3QgYmVsb3cgc29tZSBiYWNrZ3JvdW5k
+DQo+ID4gLSBJIHdhbnQgdG8gc2ltcGxpZnkgdGhlIHN0YXRlIG1hY2hpbmUsIGJlY2F1c2UgaXQg
+aXMgcG9zc2libGUgdG8NCj4gPiB0cmFjayBhbiBTQ1RQIGNvbm5lY3Rpb24gd2l0aCBmZXdlciBz
+dGF0ZXMsIGZvciBlLmcuLCBTQ1RQIHdpdGggVURQDQo+ID4gZW5jYXBzdWxhdGlvbiB1c2VzIFVE
+UCBjb25udHJhY2sgd2l0aCBqdXN0IFVOUkVQTElFRC9SRVBMSUVEIHN0YXRlcw0KPiA+IGFuZCBp
+dCB3b3JrcyBwZXJmZWN0bHkgZmluZQ0KPiANCj4gWypdIChtb3JlIGJlbG93KQ0KPiANCj4gPiAt
+IE15IHN0YWtlaG9sZGVycywgYXQgdGhlIGJlaGVzdCBvZiB3aG9tIEkgYW0gcHJvcG9zaW5nIHRo
+ZXNlIGNoYW5nZXMNCj4gPiBoaXQgc29tZSBwcm9ibGVtcyBydW5uaW5nIFNDVFAgY2xpZW50IGVu
+ZHBvaW50cyBiZWhpbmQgTkFUIChpbnNpZGUNCj4gPiBLdWJlcm5ldGVzIHBvZHMpIHRvd2FyZHMg
+bXVsdGlob21lZCBTQ1RQIHNlcnZlciBlbmRwb2ludHMgKDFhLWcpIGFuZA0KPiA+ICgyYS1jKSBi
+ZWxvdw0KPiA+IC0gU29tZSB1cGNvbWluZyBTQ1RQIHByb3RvY29sIGNoYW5nZXMgaW4gSUVURiAo
+aWYNCj4gPiBhcHByb3ZlZC9pbXBsZW1lbnRlZCkgd2lsbCBtYWtlIGl0IGhhcmQgdG8gcmVhZCBi
+ZXlvbmQgdGhlIFNDVFAgY29tbW9uDQo+ID4gaGVhZGVyLCBmb3IgZS5nLiwgRFRMUyBvdmVyIFND
+VFANCj4gPiBodHRwczovL2RhdGF0cmFja2VyLmlldGYub3JnL2RvYy9kcmFmdC1pZXRmLXRzdndn
+LWR0bHMtb3Zlci1zY3RwLWJpcy8sDQo+ID4gcHJvcG9zZXMgdG8gZW5jcnlwdCBhbGwgU0NUUCBj
+aHVua3MsIGNvbm50cmFjayB3aWxsIG9ubHkgYmUgYWJsZSB0bw0KPiA+IHNlZSBTQ1RQIGNvbW1v
+biBoZWFkZXIsIHRoZXNlIGNoYW5nZXMgaG9wZWZ1bGx5IHdpbGwgbWFrZSBpdCBlYXNpZXIgdG8N
+Cj4gPiBhZGFwdCB0byBzdWNoIGNoYW5nZXMgaW4gU0NUUCBwcm90b2NvbA0KPiANCj4gSWYgdGhp
+cyBpcyByZWFsbHkgdGhlIGNhc2UsIHRoZW4gSSdtIGNvbmZ1c2VkIGJ5IHRoaXMgbmV3IFJGQyAo
+YmUgd2FybmVkIEkgZG9uJ3QNCj4ga25vdyB0aGUgZ29yeSBkZXRhaWxzIG9mIERUTFMpLiBJIGRv
+bid0IHNlZSBpdCBzcGVjaWZ5aW5nIHRoYXQgb3RoZXIgY2h1bmsNCj4gaGVhZGVycyB3aWxsIGJl
+IGVuY3J5cHRlZCwgYnV0IGluc3RlYWQgSSBzZWUgdGV4dHMgbGlrZToNCj4gDQo+IDMuNy4gIE1l
+c3NhZ2UgU2l6ZXMNCj4gDQo+ICAgIC4uLg0KPiAgICBUaGUgc2VxdWVuY2Ugb2YgRFRMUyByZWNv
+cmRzIGlzIHRoZW4gZnJhZ21lbnRlZCBpbnRvIERBVEEgb3IgSS1EQVRBDQo+ICAgIENodW5rcyB0
+byBmaXQgdGhlIHBhdGggTVRVIGJ5IFNDVFAuICBUaGVzZSBjaGFuZ2VzIGVuc3VyZSB0aGF0IERU
+TFMvDQo+ICAgIFNDVFAgaGFzIHRoZSBzYW1lIGNhcGFiaWxpdHkgYXMgU0NUUCB0byBzdXBwb3J0
+IHVzZXIgbWVzc2FnZXMgb2YgYW55DQo+ICAgIHNpemUuIC4uLg0KPiANCj4gdGhpcyBpcyBqdXN0
+IHBhY2tpbmcgZW5jcnlwdGVkIHBheWxvYWQuDQo+IA0KPiBTZWN0aW9ucyA0LjEgYW5kIDQuNSBh
+bHNvIGxlYWQgdG8gdGhhdCwgYW5kOg0KPiANCj4gNi4gIERUTFMgb3ZlciBTQ1RQIFNlcnZpY2UN
+Cj4gDQo+ICAgIFRoZSBhZG9wdGlvbiBvZiBEVExTIG92ZXIgU0NUUCBhY2NvcmRpbmcgdG8gdGhl
+IGN1cnJlbnQgc3BlY2lmaWNhdGlvbg0KPiAgICBpcyBtZWFudCB0byBhZGQgdG8gU0NUUCB0aGUg
+b3B0aW9uIGZvciB0cmFuc2ZlcnJpbmcgZW5jcnlwdGVkIGRhdGEuDQo+ICAgIFdoZW4gRFRMUyBv
+dmVyIFNDVFAgaXMgdXNlZCwgYWxsIGRhdGEgYmVpbmcgdHJhbnNmZXJyZWQgTVVTVCBiZQ0KPiAg
+ICBwcm90ZWN0ZWQgYnkgY2h1bmsgYXV0aGVudGljYXRpb24gYW5kIERUTFMgZW5jcnlwdGVkLg0K
+PiANCj4gYW5kIGZpbmFsbHk6DQo+IA0KPiA5LjYuICBQcml2YWN5IENvbnNpZGVyYXRpb25zDQo+
+IA0KPiAgICBGb3IgZWFjaCBTQ1RQIHVzZXIgbWVzc2FnZSwgdGhlIHVzZXIgYWxzbyBwcm92aWRl
+cyBhIHN0cmVhbQ0KPiAgICBpZGVudGlmaWVyLCBhIGZsYWcgdG8gaW5kaWNhdGUgd2hldGhlciB0
+aGUgbWVzc2FnZSBpcyBzZW50IG9yZGVyZWQgb3INCj4gICAgdW5vcmRlcmVkLCBhbmQgYSBwYXls
+b2FkIHByb3RvY29sIGlkZW50aWZpZXIuICBBbHRob3VnaCBEVExTL1NDVFANCj4gICAgcHJvdmlk
+ZXMgcHJpdmFjeSBmb3IgdGhlIGFjdHVhbCB1c2VyIG1lc3NhZ2UsIHRoZSBvdGhlciB0aHJlZQ0K
+PiAgICBpbmZvcm1hdGlvbiBmaWVsZHMgYXJlIG5vdCBjb25maWRlbnRpYWxpdHkgcHJvdGVjdGVk
+LiAgVGhleSBhcmUgc2VudA0KPiAgICBhcyBjbGVhciB0ZXh0IGJlY2F1c2UgdGhleSBhcmUgcGFy
+dCBvZiB0aGUgU0NUUCBEQVRBIGNodW5rIGhlYWRlci4NCj4gDQo+IA0KPiBTbyBBRkFJQ1UgdGhl
+IGNsYWltIGhlcmUgaXMgdGhhdCBhIG1pZGRsZSBib3ggd291bGRuJ3QgYmUgYWJsZSB0byBpbnNw
+ZWN0DQo+IFNDVFAgcGF5bG9hZCwgYnV0IHRoZSBwcm90b2NvbCBpdHNlbGYgaXMgc3RpbGwgcG9z
+c2libGUuDQo+IERpZCBJIG1pc3Mgc29tZXRoaW5nIG1heWJlPw0KDQpPa2F5LCBteSBiYWQgZm9y
+IHVzaW5nIHNvbWVib2R5IGVsc2UncyB3b3JkcyBpbnN0ZWFkIG9mIHJlYWRpbmcgdGhlIGRyYWZ0
+IG15c2VsZi4gWW91IGFyZSByaWdodCwgdGhlIHByb3Bvc2FsIGlzIG9ubHkgdG8gYXBwbHkgU0NU
+UC1BVVRIIHRvIGFsbCB0aGUgY2h1bmtzLCBpdCBkb2VzbuKAmXQgcHJvcG9zZSBlbmNyeXB0aW9u
+L2NvbmZpZGVudGlhbGl0eS4gDQpBbnlob3cgdGhhdCB3YXMganVzdCBhbiBleGFtcGxlIG9mIHdo
+eSBtYWtpbmcgYSBzaW1wbGlmaWVkIHN0YXRlIG1hY2hpbmUgd2lsbCBhdm9pZCBjaGFuZ2luZyBj
+b25udHJhY2sgd2hlbiB0aGUgcHJvdG9jb2wgY2hhbmdlcyBhcmUgbWFkZSwgZXNwZWNpYWxseSB3
+aXRoIHRoZSBwcm90b2NvbCBzdGlsbCBiZWluZyBhY3RpdmVseSBpbXByb3ZlZC4NCg0KPiANCj4g
+PiAtIFdoaWxlIGF0IGl0LCBJIGFsc28gbWFkZSBzb21lIG90aGVyICJpbXByb3ZlbWVudHMiDQo+
+ID4gCWEpIEF2b2lkIG11bHRpcGxlIHdhbGstdGhyb3VnaHMgb2YgU0NUUCBjaHVua3MgaW4gc2N0
+cF9uZXcoKSwNCj4gc2N0cF9iYXNpY19jaGVja3MoKSBhbmQgbmZfY29ubnRyYWNrX3NjdHBfcGFj
+a2V0KCksIGFuZCBwYXJzZSBpdCBvbmx5IG9uY2UNCj4gPiAJYikgU0NUUCBjb25udHJhY2sgaGFz
+IHRoZSBzYW1lIHN0YXRlIHJlZ2FyZGxlc3Mgb2YgaXQgaXMgYSBwcmltYXJ5IG9yDQo+ID4gYSBz
+ZWNvbmRhcnkgcGF0aA0KPiANCj4gVGhpcyBhIGdvb2QgY2hhbmdlIGFuZCBtYXksIGFjdHVhbGx5
+LCBiZSB0aGUgY29yZSByZWFzb25pbmcgYmVoaW5kIHRoZQ0KPiBjaGFuZ2UgaGVyZS4gJ1ByaW1h
+cnknIGlzIG1vcmUgaW4gdGhlIHNlbnNlIG9mICdhY3RpdmUnIHRoYW4gYW55dGhpbmcgZWxzZSAo
+YW5kDQo+IGl0IGdldHMgbW9yZSBjb25mdXNpbmcgd2l0aCBDTVQtU0NUUCBoZWgpLiBJdCdzIG5v
+dCBiZWNhdXNlIGEgcGF0aCBzYXcgdGhlDQo+IElOSVQgaGFuZHNoYWtlIHRoYXQgaXQgaXMgbW9y
+ZSByZWxpYWJsZSBhbmQgc28gZnJvbSBjb25udHJhY2sgc2lkZS4NCj4gDQo+IFdpdGggdGhhdCwg
+Y29ubnRyYWNrIGhhbmRsaW5nIGFsbCBwYXRocyBzaW1pbGFybHkgbWFrZXMgaXQgbW9yZSBjb25z
+aXN0ZW50IGFuZA0KPiBjbG9zZXIgd2l0aCB3aGF0IHRoZSBhY3R1YWwgU0NUUCBzb2NrZXRzIGFy
+ZSBzZWVpbmcgZm9yIHN1Y2ggcGF0aHMuDQo+IA0KDQpZZXMsIEkgYWdyZWUuIA0KIA0KPiBPbmUg
+ZWFzeSBleGFtcGxlIGhlcmUgb2YgYSBiYWQgc2l0dWF0aW9uIGR1ZSB0byB0aGUgY3VycmVudCBk
+aWZmZXJlbmNlDQo+IGJldHdlZW4gcGF0aHMgaXMgdGhhdCBhbiBhcHBsaWNhdGlvbiBjYW4gc3Rh
+cnQgYW4gYXNzb2NpYXRpb24gdGhyb3VnaCBhIHBhdGgNCj4gYW5kIHRlYXIgaXQgZG93biBvdmVy
+IGFub3RoZXIgb25lLiBUaGVyZSdzIG5vIHNodXRkb3duIHNlZW4gYnkgdGhlIGZpcnN0DQo+IHBh
+dGgsIGFuZCB0aGUgY29ubnRyYWNrIGVudHJ5IHdpbGwgYmUgbGVmdCB0aGVyZSBhZiBpdCBpcyB3
+YXMgaW4gRXN0YWJsaXNoZWQgc3RhdGUNCj4gZm9yIDUgZGF5cy4gKHRoaXMgaXMgYWxzbyBpbGx1
+c3RyYXRlZCBpbiBTcmlyYW0ncyBleGFtcGxlIGJlbG93LCBqdXN0IGVhc2llciB0bw0KPiByZWFk
+KQ0KPiANCj4gSXRlbSBJIG1hcmtlZCB3aXRoIFsqXSBhYm92ZSBpcyB2YWd1ZS4gWW91IG5lZWQg
+dG8gY29uc2lkZXIgd2hhdCBpdCB3b3VsZCBiZQ0KPiBsb29zaW5nIGJ5IHN1Y2ggc2ltcGxpZmlj
+YXRpb24gYW5kIGFyZ3VtZW50IHRoYXQgaXQgaXMgb2theS4NCj4gV2UgY2FuJ3QganVzdCBjdXQg
+dGhlIGZhdCBvdXQgYW5kIHByYXkgZm9yIHRoZSBiZXN0IGxhdGVyIG9uLCByaWdodD8NCj4gQnV0
+IHdpdGggdGhpcyBkZXNjcmlwdGlvbiBoZXJlLCBpdCBub3Qgb25seSBwcm92aWRlcyBhIHNvbGlk
+IGp1c3RpZmljYXRpb24gb24gd2h5DQo+IGl0IChzcGVjaWZpY2x5IHRoZSBuZXcgc29sdXRpb24p
+IGlzIG5lZWRlZCBidXQgYWxzbyB3aHkgaXQgaXMgY3VycmVudGx5IGFscmVhZHkNCj4gYnJva2Vu
+L25vdCByZWxpYWJsZSBpbiBtdWx0aS1ob21pbmcgc2V0dXBzLiBZYXkhIDotKQ0KDQpBZ3JlZWQs
+IEkgd2lsbCB1cGRhdGUgdGhlIGNoYW5nZSBsb2cgd2l0aCB0aGlzIGRlc2NyaXB0aW9uLg0KDQo+
+IA0KPiBUaGVuLCBuZXh0IHF1ZXN0aW9uIGlzOiB3b3VsZCBpdCBtYWtlIHNlbnNlIHRvIGtlZXAg
+dGhlIGN1cnJlbnQgcHJvY2Vzc2luZyBmb3INCj4gc2luZ2xlIHBhdGggYXNzb2NpYXRpb25zPyBU
+aGF0J3MgYSBsb3Qgb2YgY29kZS9tYWludGVuYW5jZSBhbmQgSSBmYWlsIHRvIHNlZSBhDQo+IHJl
+YXNvbmluZyB0aGF0IGp1c3RpZmllcyBpdC4NCg0KSSB0cmllZCB0byBzaW1wbGlmeSBhcyBtdWNo
+IGFzIHBvc3NpYmxlLCBidXQgb2YgY291cnNlLCB3ZSBjYW4ga2VlcCBzb21lIHN0YXRlcy4NCkZv
+ciBlLmcuLCBrZWVwaW5nIFNIVVRET1dOXyogc3RhdGVzIGNhbiByZWR1Y2UgdGhlIHRpbWVvdXQg
+b2YgYW4gRVNUQUJMSVNIRUQgY29ubmVjdGlvbiBldmVuIGZ1cnRoZXIuIE9mIGNvdXJzZSwgd2Ug
+d2lsbCBzZWUgdGhhdCBvbmx5IG9uIG9uZSBvZiB0aGUgcGF0aHMuDQoNCj4gDQo+ID4NCj4gPiBM
+ZXQncyBzYXkgdGhlcmUgYXJlIHR3byBTQ1RQIGVuZHBvaW50cyBBIGFuZCBCIHdpdGggYWRkcmVz
+c2VzIEEnIGFuZCBCLCBCJycNCj4gY29ycmVzcG9uZGluZ2x5Lg0KPiA+IFByaW1hcnkgcGF0aCBp
+cyBBJyA8LS0tLT4gQicgdGhhdCB0cmF2ZXJzZXMgbWlkZGxlYm94IEMsIGFuZCBzZWNvbmRhcnkg
+cGF0aCBpcw0KPiBBJyA8LS0tLT4gQicnIHRoYXQgdHJhdmVyc2VzIG1pZGRsZWJveCBELg0KPiA+
+IDEpIFNIVVRET1dOIHNlbnQgb24gc2Vjb25kYXJ5IHBhdGgNCj4gPiAxYSkgU0NUUCBlbmRwb2lu
+dCBBIHNldHMgdXAgYW4gYXNzb2NpYXRpb24gdG93YXJkcyBTQ1RQIGVuZHBvaW50IEINCj4gPiAx
+YikgTWlkZGxlYm94IEMgc2VlcyBJTklUIHNlcXVlbmNlIGFuZCBjcmVhdGVzICJwcmltYXJ5IiBj
+b25udHJhY2sNCj4gPiBlbnRyeSAoNSBkYXlzKQ0KPiA+IDFjKSBNaWRkbGVib3ggRCBzZWVzIEhF
+QVJUQkVBVCBzZXF1ZW5jZSBhbmQgY3JlYXRlcyAic2Vjb25kYXJ5Ig0KPiA+IGNvbm50cmFjayBl
+bnRyeSAoMjEwIHNlY29uZHMpDQo+ID4gMWQpIFBhdGggZmFpbHVyZSBiZXR3ZWVuIEEgYW5kIEMs
+IGFuZCBTQ1RQIGVuZHBvaW50IEEgc3dpdGNoZXMgdG8NCj4gPiBzZWNvbmRhcnkgcGF0aCBhbmQg
+Y29udGludWVzIHNlbmRpbmcgZGF0YSBvbiB0aGUgYXNzb2NpYXRpb24NCj4gPiAxZSkgU0NUUCBl
+bmRwb2ludCBBIGRlY2lkZXMgdG8gU0hVVERPV04gdGhlIGNvbm5lY3Rpb24NCj4gPiAxZikgTWlk
+ZGxlYm94IEMgaXMgaW4gRVNUQUJMSVNIRUQgc3RhdGUsIGRvZXNuJ3Qgc2VlIGFueSBTSFVURE9X
+Tg0KPiA+IHNlcXVlbmNlIG9yIEhFQVJUQkVBVCwgd2FpdHMgZm9yIHRpbWVvdXQgKDUgZGF5cykN
+Cj4gPiAxZykgTWlkZGxlYm94IEQgaXMgaW4gSEVBUlRCRUFUX0FDS0VEIHN0YXRlLCBkb2Vzbid0
+IGNhcmUgYWJvdXQNCj4gPiBTSFVURE9XTiBzZXF1ZW5jZSwgd2FpdHMgZm9yIHRpbWVvdXQgKDIx
+MCBzZWNvbmRzKQ0KPiA+DQo+ID4gMikgUmVjZW50bHkgZml4ZWQgYnkgYmZmM2QwNTM0ODA0ICgi
+bmV0ZmlsdGVyOiBjb25udHJhY2s6IGFkZCBzY3RwDQo+ID4gREFUQV9TRU5UIHN0YXRlICIpDQo+
+ID4gMmEpIFNDVFAgZW5kcG9pbnQgQSBzZXRzIHVwIGFuIGFzc29jaWF0aW9uIHRvd2FyZHMgU0NU
+UCBlbmRwb2ludCBCDQo+ID4gMmIpIE1pZGRsZWJveCBDIHNlZXMgSU5JVCBzZXF1ZW5jZSBhbmQg
+Y3JlYXRlcyAicHJpbWFyeSIgY29ubnRyYWNrDQo+ID4gZW50cnkgKDUgZGF5cykNCj4gPiAyYykg
+TWlkZGxlYm94IEQgc2VlcyBEQVRBL1NBQ0ssIGFuZCBEUk9QUyBwYWNrZXRzIHVudGlsIEhFQVJU
+QkVBVCBpcw0KPiA+IHNlZW4gdG8gc2V0dXAgInNlY29uZGFyeSIgY29ubnRyYWNrIGVudHJ5ICgy
+MTAgc2Vjb25kcykNCj4gPg0KPiA+ID4NCj4gPiA+IFRoYW5rcy4NCg0K
