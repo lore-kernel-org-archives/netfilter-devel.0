@@ -2,64 +2,54 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 407FDC54EBD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 11:02:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99989C54EBD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 12 Jan 2023 11:15:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231659AbjALLCa (ORCPT
+        id S229939AbjALLPY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 12 Jan 2023 06:02:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58494 "EHLO
+        Thu, 12 Jan 2023 06:15:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233656AbjALLBd (ORCPT
+        with ESMTP id S232440AbjALLOa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2023 06:01:33 -0500
+        Thu, 12 Jan 2023 06:14:30 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 468EC50F48;
-        Thu, 12 Jan 2023 02:54:25 -0800 (PST)
-Date:   Thu, 12 Jan 2023 11:54:21 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B3BBD1177
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2023 03:06:58 -0800 (PST)
+Date:   Thu, 12 Jan 2023 12:06:55 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: Re: [PATCH net] uapi: linux: restore IPPROTO_MAX to 256
-Message-ID: <Y7/m3SCtogiLmqjn@salvia>
-References: <20230111214719.194027-1-pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
+ NFTA_RULE_ACTUAL_EXPR
+Message-ID: <Y7/pzxvu2v4t4PgZ@salvia>
+References: <20221221142221.27211-1-phil@nwl.cc>
+ <Y7/drsGvc8MkQiTY@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230111214719.194027-1-pablo@netfilter.org>
+In-Reply-To: <Y7/drsGvc8MkQiTY@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jan 11, 2023 at 10:47:19PM +0100, Pablo Neira Ayuso wrote:
-> IPPROTO_MAX used to be 256, but with the introduction of IPPROTO_MPTCP
-> definition, IPPROTO_MAX was bumped to 263.
+On Thu, Jan 12, 2023 at 11:15:10AM +0100, Phil Sutter wrote:
+> Bump?
 > 
-> IPPROTO_MPTCP definition is used for the socket interface from
-> userspace. It is never used in the layer 4 protocol field of
-> IP headers.
-> 
-> IPPROTO_* definitions are used anywhere in the kernel as well as in
-> userspace to set the layer 4 protocol field in IP headers.
-> 
-> At least in Netfilter, there is code in userspace that relies on
-> IPPROTO_MAX (not inclusive) to check for the maximum layer 4 protocol.
-> 
-> This patch restores IPPROTO_MAX to 256.
-> 
-> Fixes: faf391c3826c ("tcp: Define IPPROTO_MPTCP")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> Alternatively, I can also define an internal __IPPROTO_MAX to 256 in
-> userspace.  I understand an update on uapi at this stage might be
-> complicated. Another possibility is to add a new definition
-> IPPROTO_FIELD_MAX to uapi and set it to 256 that userspace could start
-> using.
+> On Wed, Dec 21, 2022 at 03:22:21PM +0100, Phil Sutter wrote:
+> > Allow for user space to provide an improved variant of the rule for
+> > actual use. The variant in NFTA_RULE_EXPRESSIONS may provide maximum
+> > compatibility for old user space tools (e.g. in outdated containers).
+> > 
+> > The new attribute is also dumped back to user space, e.g. for comparison
+> > against the compatible variant.
+> > 
+> > While being at it, improve nft_rule_policy for NFTA_RULE_EXPRESSIONS.
 
-Scratch this.
+Could you split this in two patches?
 
-This breaks inet_create() and inet6_create() which is going to break
-MP-TCP with socket().
+I still don't see how this is improving the situation for the scenario
+you describe, if you could extend a bit on how you plan to use this
+I'd appreciate.
 
-I'll post a v2 adding a new IPPROTO_FIELD_MAX definition 256.
+Thanks.
