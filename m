@@ -2,140 +2,89 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFA2C61DB3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Jan 2023 11:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00080C678D8
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Jan 2023 11:52:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232730AbjAMLS5 (ORCPT
+        id S240555AbjAMLw1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Jan 2023 06:18:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44788 "EHLO
+        Fri, 13 Jan 2023 06:52:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241363AbjAMLSM (ORCPT
+        with ESMTP id S239906AbjAMLva (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Jan 2023 06:18:12 -0500
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 000C817412;
-        Fri, 13 Jan 2023 03:13:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=rk/Db5xfRP5hEJ7KyR6IvT3Xu96m6dQD5p6pRluPUec=; b=S3HO6t44KzH7KanCgiQZxN5hax
-        SJlP/FmY/Z1lePMohijreZnM4fCqpDTeZNq25HGp5KehbDUt06w7RtpVt3CkSbjFj6ZJSXJS86jyq
-        siax/B0xB1FKaVxlYUJV0Ek3Iuhk6/tQPBWSPJSxOrjSrrfK19D0+x7TM/2nhMn+Hw/S4nlCwE+xz
-        7k789nQ2JSG3llxVzQdnvh9Pu76MYXx3x+XDUAAjG7c6vG+GWR77enR6IN16wH4RvCHE6p3nynwBn
-        hcbULbhkXPO30Na1ztXf8DsDgBMB/eyDps19H/+CJsLLIOZVMZC5fdG7YuQkkpUrqlGfULbXs/vV+
-        yeczVvVg==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:36086)
-        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <linux@armlinux.org.uk>)
-        id 1pGHzX-0007jE-CA; Fri, 13 Jan 2023 11:12:59 +0000
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
-        (envelope-from <linux@shell.armlinux.org.uk>)
-        id 1pGHzW-000375-1d; Fri, 13 Jan 2023 11:12:58 +0000
-Date:   Fri, 13 Jan 2023 11:12:57 +0000
-From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: 6.1: possible bug with netfilter conntrack?
-Message-ID: <Y8E8uX9gLBBywmf5@shell.armlinux.org.uk>
-References: <Y8CR3CvOIAa6QIZ4@shell.armlinux.org.uk>
- <Y8CaaCoOAx6XzWq/@shell.armlinux.org.uk>
- <20230112234503.GB19463@breakpoint.cc>
+        Fri, 13 Jan 2023 06:51:30 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5B06306
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jan 2023 03:47:34 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1pGIWw-0003eE-TG; Fri, 13 Jan 2023 12:47:30 +0100
+Date:   Fri, 13 Jan 2023 12:47:30 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: Re: [PATCH] build: put xtables.conf in EXTRA_DIST
+Message-ID: <Y8FE0vEvtZhY6LCv@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
+References: <20230112225517.31560-1-jengelh@inai.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230112234503.GB19463@breakpoint.cc>
-Sender: Russell King (Oracle) <linux@armlinux.org.uk>
+In-Reply-To: <20230112225517.31560-1-jengelh@inai.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jan 13, 2023 at 12:45:03AM +0100, Florian Westphal wrote:
-> Russell King (Oracle) <linux@armlinux.org.uk> wrote:
-> > Given the packet counts as per my example above, it looks like
-> > conntrack only saw:
-> > 
-> > src=180.173.2.183 dst=78.32.30.218	SYN
-> > src=78.32.30.218 dst=180.173.2.183	SYN+ACK
-> > src=180.173.2.183 dst=78.32.30.218	ACK
-> > 
-> > and I suspect at that point, the connection went silent - until
-> > Exim timed out and closed the connection, as does seem to be the
-> > case:
-> > 
-> > 2023-01-11 21:32:04 no host name found for IP address 180.173.2.183
-> > 2023-01-11 21:33:05 SMTP command timeout on connection from [180.173.2.183]:64332 I=[78.32.30.218]:25
-> > 
-> > but if Exim closed the connection, why didn't conntrack pick it up?
+Hi Jan,
+
+On Thu, Jan 12, 2023 at 11:55:17PM +0100, Jan Engelhardt wrote:
+> To make distcheck succeed, disting it is enough; it does not need
+> to be installed.
+
+Instead of preventing it from being installed, how about dropping it
+altogether?
+
+The last code using it was dropped by me three years ago, apparently
+after decision at NFWS[1]. Pablo removed the standalone 'xtables-config'
+utility back in 2015[2], yet I see a remaining xtables_config_main
+prototype in xtables-multi.h which seems to have been missed back then.
+
 > 
-> Yes, thats the question.  Exim closing the connection should have
-> conntrack at least pick up a fin packet from the mail server (which
-> should move the entry to the 2 minute fin timeout).
+> Fixes: v1.8.8-150-g3822a992
+> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> ---
+>  Makefile.am | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Makefile.am b/Makefile.am
+> index 451c3cb2..10198753 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -16,11 +16,11 @@ SUBDIRS         += extensions
+>  # Depends on extensions/libext.a:
+>  SUBDIRS         += iptables
+>  
+> -EXTRA_DIST	= autogen.sh iptables-test.py xlate-test.py
+> +EXTRA_DIST	= autogen.sh iptables-test.py xlate-test.py etc/xtables.conf
+>  
+>  if ENABLE_NFTABLES
+>  confdir		= $(sysconfdir)
+> -dist_conf_DATA	= etc/ethertypes etc/xtables.conf
+> +dist_conf_DATA	= etc/ethertypes
+>  endif
 
-Okay, update this morning. I left tcpdump running overnight having
-cleared conntrack of all port 25 and 587 connections. This morning,
-there's a whole bunch of new entries on conntrack.
+While being at it, I wonder about ethertypes: At least on the distros I
+run locally, the file is provided by other packages than iptables. Do we
+still need it? (It was added by Arturo for parity with legacy ebtables
+in [3].)
 
-Digging through the tcpdump and logs, it seems what is going on is:
+Thanks, Phil
 
-public interface			dmz interface
-origin -> mailserver SYN		origin -> mailserver SYN
-mailserver -> origin SYNACK		mailserver -> origin SYNACK
-origin -> mailserver ACK
-mailserver -> origin RST
-mailserver -> origin SYNACK		mailserver -> origin SYNACK
-mailserver -> origin SYNACK		mailserver -> origin SYNACK
-mailserver -> origin SYNACK		mailserver -> origin SYNACK
-mailserver -> origin SYNACK		mailserver -> origin SYNACK
-...
-
-Here is an example from the public interface:
-
-09:52:36.599398 IP 103.14.225.112.63461 > 78.32.30.218.587: Flags [SEW], seq 3387227814, win 8192, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
-09:52:36.599893 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1452,nop,nop,sackOK,nop,wscale 7], length 0
-09:52:36.820464 IP 103.14.225.112.63461 > 78.32.30.218.587: Flags [.], ack 1, win 260, length 0
-09:52:36.820549 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [R], seq 816385330, win 0, length 0
-09:52:37.637548 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1452,nop,nop,sackOK,nop,wscale 7], length 0
-
-and the corresponding trace on the mailserver:
-09:52:36.599729 IP 103.14.225.112.63461 > 78.32.30.218.587: Flags [SEW], seq 3387227814, win 8192, options [mss 1452,nop,wscale 8,nop,nop,sackOK], length 0
-09:52:36.599772 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
-09:52:37.637421 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
-
-So, my first observation is that conntrack is reacting to the ACK
-packet on the public interface, and marking the connection established,
-but a firewall rule is rejecting the connection when that ACK packet is
-received by sending a TCP reset. It looks like conntrack does not see 
-this packet, and also conntrack does not see the SYNACK retransmissions
-(which is odd, because it saw the first one.)
-
-As to why we're responding with a TCP reset to the ACK packet, it's
-because iptables is hitting a reject rule as the IP address has been
-temporarily banned due to preceding known spammer signatures a few
-seconds before.
-
-I probably ought to pick up on the initial SYN rather than the 3rd
-packet of the connection... but even so, I don't think conntrack
-should be missing the TCP reset from the reject rule.
-
-The rule path that leads to the reject rule is currently:
-  -A TCP -p tcp -m multiport --dports 25,587 -m conntrack --ctstate ESTABLISHED -j TCP-smtp-in
-  -A TCP-smtp-in -p tcp -m set --match-set ip4-banned-smtp src -j TCP-smtp-s
-  -A TCP-smtp-s -j SET --add-set ip4-banned-smtp src --exist --timeout N
-  -A TCP-smtp-s -p tcp -j REJECT --reject-with tcp-reset
-
-(I've omitted the timeout.)
-
-There definitely seems to be a change in behaviour - looking back to
-the logs prior to upgrading to 6.1, there were never any conntrack
-table overflows, and that older kernel had been running for hundreds
-of days.
-
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
+[1] 06fd5e46d46f7 ("xtables: Drop support for /etc/xtables.conf")
+[2] 7462e4aa757dc ("iptables-compat: Keep xtables-config and xtables-events out from tree")
+[3] 3397fb3be98ff ("ebtables-compat: include /etc/ethertypes in tarball")
