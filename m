@@ -2,42 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9C2C54EBD
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Jan 2023 16:32:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22899C678D4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Jan 2023 16:43:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230358AbjAMQcu (ORCPT
+        id S229581AbjAMQnI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Jan 2023 11:32:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50396 "EHLO
+        Fri, 13 Jan 2023 11:43:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230292AbjAMQcb (ORCPT
+        with ESMTP id S229684AbjAMQme (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Jan 2023 11:32:31 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E86028D3B3
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jan 2023 08:26:28 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pGMss-0006Bp-Ur; Fri, 13 Jan 2023 17:26:26 +0100
-Date:   Fri, 13 Jan 2023 17:26:26 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/5] Fix some covscan findings
-Message-ID: <Y8GGMkIZE2G+JjKZ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230112172823.7298-1-phil@nwl.cc>
+        Fri, 13 Jan 2023 11:42:34 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F282182B88;
+        Fri, 13 Jan 2023 08:41:11 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date:   Fri, 13 Jan 2023 17:41:03 +0100
+Message-Id: <20230113164106.311491-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230112172823.7298-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jan 12, 2023 at 06:28:18PM +0100, Phil Sutter wrote:
-> All these are rather minor issues, no big deal.
+[ Resend Cc'ing netdev, previous PR did not CC netdev accidentally. ]
 
-Series applied after fixing up my email address in one of them.
+Hi,
+
+The following patchset contains Netfilter fixes for net:
+
+1) Increase timeout to 120 seconds for netfilter selftests to fix
+   nftables transaction tests, from Florian Westphal.
+
+2) Fix overflow in bitmap_ip_create() due to integer arithmetics
+   in a 64-bit bitmask, from Gavrilov Ilia.
+
+3) Fix incorrect arithmetics in nft_payload with double-tagged
+   vlan matching.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 8fed75653a670a4d3be0ab9949aed5e2968a03ef:
+
+  Merge tag 'mlx5-fixes-2023-01-09' of git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux (2023-01-11 12:55:09 +0000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 696e1a48b1a1b01edad542a1ef293665864a4dd0:
+
+  netfilter: nft_payload: incorrect arithmetics when fetching VLAN header bits (2023-01-11 19:18:04 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      selftests: netfilter: fix transaction test script timeout handling
+
+Gavrilov Ilia (1):
+      netfilter: ipset: Fix overflow before widen in the bitmap_ip_create() function.
+
+Pablo Neira Ayuso (1):
+      netfilter: nft_payload: incorrect arithmetics when fetching VLAN header bits
+
+ net/netfilter/ipset/ip_set_bitmap_ip.c                |  4 ++--
+ net/netfilter/nft_payload.c                           |  2 +-
+ tools/testing/selftests/netfilter/nft_trans_stress.sh | 16 +++++++++-------
+ tools/testing/selftests/netfilter/settings            |  1 +
+ 4 files changed, 13 insertions(+), 10 deletions(-)
+ create mode 100644 tools/testing/selftests/netfilter/settings
