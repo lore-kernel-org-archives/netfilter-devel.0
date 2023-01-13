@@ -2,174 +2,140 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E691C61DB3
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Jan 2023 09:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AFA2C61DB3
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Jan 2023 11:19:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238783AbjAMJRZ (ORCPT
+        id S232730AbjAMLS5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Jan 2023 04:17:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50852 "EHLO
+        Fri, 13 Jan 2023 06:18:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239903AbjAMJQk (ORCPT
+        with ESMTP id S241363AbjAMLSM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Jan 2023 04:16:40 -0500
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2133.outbound.protection.outlook.com [40.107.94.133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFB0A65AD9;
-        Fri, 13 Jan 2023 01:12:48 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=dRQj0ELyc+5Tw4kL60wolXVFwjJPpdpBcPicJeOuaR05oA4FulMrB75mzfXE1AfC34Ozmt614TpRd1FEM9W9UmYlTLpx26NxHriXml4jSIw99ux3RbRh443gjM7IptVktyA4cr7FIZMmIdNZlTfRi7Q5fCqTOzrLmo8beQAt/3b91GaSfgi0MaMDdDwh+BoXxWR6w8nCJVK5QESlFE0U/GBTD6bEJeSkUFHQZnJz+0Ci7NnArrzu7fl1k7cXZGVGM4TENONvKV2hbBeuLGfEcrYpo2Y49jakE7WmmW+TNe/vAwZuGdLfgfWyXztjhXgEYwjzVfHCBRc7I4mPaTG0IQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=N70ea3OtjW7dIQjLKKRH56INMLN48DFiC19PSEnyblA=;
- b=TaiGk9dSlAbFUsh9Sk6aCFkWGUidyFphEitTeyH7429cFZpoTjZcngMRfRIPjn8qOYBxwvgSZ/ZxAiKF9hDxlY4YF2K33sf5DQ/8dpHwlQYCC5HJCFfIS916dpQc39MA3SIpkBWc7KtIQJBDa+vGBupnAffeFvyiqlcwIyODkTxz4XBk8MiTF0dTuWUVodg5RLs3uyeyaNSuDfdwSvXRN2HKQ3Rhfur/LH0a8GjEnFtZI1F1ZFabZ/XRxDqiSS+sIA4LvSPEnbpNFRrShfsrl0UuorfdTJyOkfwnzHWmR0YwOIW4CSptemXR1+VKchL8u9bJ/0hMUglR0NUOBm/34A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
- dkim=pass header.d=corigine.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=N70ea3OtjW7dIQjLKKRH56INMLN48DFiC19PSEnyblA=;
- b=ce0b2TusWbg3g9Hm0XQNB0Rev37zDPXNG+2UpVnmEJUqeze2/ZsHhNhZxFuMls4Y6IPitnozPH1K/Bm0EW3fQrgQ8/GxbdIfkZW0xf+78bf+FLqROjq9N9q9c/8KtliWsniu7Wkm2iBxq+uQF/NAQ250cCsSkS92aQkplxbnVl0=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=corigine.com;
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
- by SA1PR13MB4830.namprd13.prod.outlook.com (2603:10b6:806:1a9::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.13; Fri, 13 Jan
- 2023 09:12:45 +0000
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::eb5c:910f:3730:fd65]) by PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::eb5c:910f:3730:fd65%5]) with mapi id 15.20.5986.019; Fri, 13 Jan 2023
- 09:12:45 +0000
-Date:   Fri, 13 Jan 2023 10:12:38 +0100
-From:   Simon Horman <simon.horman@corigine.com>
-To:     Vlad Buslov <vladbu@nvidia.com>
-Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
-        pablo@netfilter.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, jiri@resnulli.us, ozsh@nvidia.com,
-        marcelo.leitner@gmail.com,
-        Baowen Zheng <baowen.zheng@corigine.com>,
-        oss-drivers@corigine.com
-Subject: Re: [PATCH net-next v1 1/7] net: flow_offload: provision conntrack
- info in ct_metadata
-Message-ID: <Y8EghrLt1rtcYSv/@corigine.com>
-References: <20230110133023.2366381-1-vladbu@nvidia.com>
- <20230110133023.2366381-2-vladbu@nvidia.com>
+        Fri, 13 Jan 2023 06:18:12 -0500
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 000C817412;
+        Fri, 13 Jan 2023 03:13:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=rk/Db5xfRP5hEJ7KyR6IvT3Xu96m6dQD5p6pRluPUec=; b=S3HO6t44KzH7KanCgiQZxN5hax
+        SJlP/FmY/Z1lePMohijreZnM4fCqpDTeZNq25HGp5KehbDUt06w7RtpVt3CkSbjFj6ZJSXJS86jyq
+        siax/B0xB1FKaVxlYUJV0Ek3Iuhk6/tQPBWSPJSxOrjSrrfK19D0+x7TM/2nhMn+Hw/S4nlCwE+xz
+        7k789nQ2JSG3llxVzQdnvh9Pu76MYXx3x+XDUAAjG7c6vG+GWR77enR6IN16wH4RvCHE6p3nynwBn
+        hcbULbhkXPO30Na1ztXf8DsDgBMB/eyDps19H/+CJsLLIOZVMZC5fdG7YuQkkpUrqlGfULbXs/vV+
+        yeczVvVg==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:36086)
+        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1pGHzX-0007jE-CA; Fri, 13 Jan 2023 11:12:59 +0000
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1pGHzW-000375-1d; Fri, 13 Jan 2023 11:12:58 +0000
+Date:   Fri, 13 Jan 2023 11:12:57 +0000
+From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: 6.1: possible bug with netfilter conntrack?
+Message-ID: <Y8E8uX9gLBBywmf5@shell.armlinux.org.uk>
+References: <Y8CR3CvOIAa6QIZ4@shell.armlinux.org.uk>
+ <Y8CaaCoOAx6XzWq/@shell.armlinux.org.uk>
+ <20230112234503.GB19463@breakpoint.cc>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230110133023.2366381-2-vladbu@nvidia.com>
-X-ClientProxiedBy: AM0PR04CA0099.eurprd04.prod.outlook.com
- (2603:10a6:208:be::40) To PH0PR13MB4842.namprd13.prod.outlook.com
- (2603:10b6:510:78::6)
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|SA1PR13MB4830:EE_
-X-MS-Office365-Filtering-Correlation-Id: 54e8320f-f5ca-457a-be55-08daf5465545
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: xoazLA34nWcbbxV2Alb6RgmhEYUw0qLr9Mpu3c4rlBB7JGEiuxAs/IhkC/ruBUahs54ZNFTjqliJRMLjHgZP7afKaFv6kYlmyPSp9QfZwtWMoOc3ATObaG8zjQ0/9VAnvMCKe4Cf0f/hbm7A7iJu0UbFJFXWb5QfMYq++Xf2nj4gMZmBveC0DCv5Bw9dI+4yCevPYIl0qKB0I0MmCN6iz+HDcK+lqwpjutIxSKXIy7zy+uMsM8V4doOTJHuu/CRdaSUvS3k7DNFiAou0nTj0wVZFxC9/CjE7dE/WpUM6mn8xn1YduLHi3ny/vEpSx+o6VA16iyOZ5lxG7gPfkxcGggK+l4tQ8lOkf8+Q7Hgp4r4Zm3LlVDStmh9Lf5cJ1dXzyP9sWPBxS88TbGWKRdNNYwySWK3HwsUqVsvSvwBVaP16Gk3ZhUrnN4j7OyIWGKrgpYDOSAOdUaZoRoFFEzT4+Hm3dZ/wbofLTwIUVs7Q9Go8UnjSWt6abaHZYhvs2IkEAeCxCIc7N6x641Fc14LebbZHccpBFJuYZfackHXTXs5Xd7pp1YVLX4gzko/ZTT+Xa4re/Eamy3X4uBw6z6adp6WdGflqzazKI8itBL7412dZFnUjKShFGq37dM9MPb4bKAzgYB9wO/tJkFAa7OHyfl1bXLx65rAQF/5Yey2IoBqxbTcUqprBrh+/Q8p0qC8t
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(39830400003)(346002)(366004)(376002)(136003)(396003)(451199015)(107886003)(6666004)(186003)(66476007)(66556008)(8676002)(6506007)(6486002)(478600001)(6512007)(66946007)(83380400001)(6916009)(41300700001)(4326008)(5660300002)(8936002)(44832011)(7416002)(2906002)(38100700002)(36756003)(2616005)(316002)(86362001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?fFtd2XnWv8/Z1rC3fi8XGT0Ut59QdBl/ZWQYONIYWnQDneEAaXkxRlVOnxUx?=
- =?us-ascii?Q?gsnBByTfIgOz7kzY2+YO0XbLPJ9qYKFY/sgeiP+/8hpqEtmftL6KrXIHxns6?=
- =?us-ascii?Q?SITwP5XC1yK63AzktkVK3FjcjpT7TkdoRHWiNX5lepEIa63417KxEDnPTl8Q?=
- =?us-ascii?Q?aXmt4ac4WLKp2G7Km3FSD2C8wEOcBT/l+7Jy03bICsZY33fykZdfjDr+2Gvp?=
- =?us-ascii?Q?eM3UFvWPm3gfHExVMPu/zNP2CnwxVj0QUS9PJKcZGnr/qxvsajKk+86SUpZk?=
- =?us-ascii?Q?M1gNbZwMuHNxBIyquSUBQVeV7tfaSQc4sUSRE+JpqUet+jwZmoWL2mrntBFg?=
- =?us-ascii?Q?jstjPe26InxxBUiXu0PvkRAfJcYss2w1Vbv+tXIVtD62lSe4viF9tTIMddP/?=
- =?us-ascii?Q?fmFTomor9y7M2hPlUibU7iUOQHOcKQrFXqzSIlo916lejGRkVKer6f6+OcUE?=
- =?us-ascii?Q?dYuCKG93DgpzSgxNi3VNMSVFekUys1+MsL00fTKZd9wm4GqoAV8KPM6H+riq?=
- =?us-ascii?Q?jvhnaiyracJNRE5uvBJltnyf5sYWy38yIQ5nG3taIWtc5iRHlF/ys4jLumIo?=
- =?us-ascii?Q?0MY1ptR8Wm/UmfyFt4hPp0x47BXupgOd6OQ3MtVJgp6VCDXOtiDBIML/qj4i?=
- =?us-ascii?Q?8LGQISyBG1v75XdwX9iU9HoI3NgAM3FF+8Q3hoEXWw6SBSr5YzIzgAnWDnHA?=
- =?us-ascii?Q?sDZBPG3lWK6w9mHhBCcg9qB/dl/hriM6DjRR9Iu8KWxciaqFnEpOrqjKpGeq?=
- =?us-ascii?Q?KQ4xWqGhTGRVfuSRTngHyzS3hTpHzjtfYZYINfY1IoNy3gfxcpm44nkaZ92U?=
- =?us-ascii?Q?ddLb5t56Lvb1hSiEFMr0bxJbL86V8Qldau++sorG0wiDYS8dk1qNPf/TD9LO?=
- =?us-ascii?Q?w3Try6thsqq6cZgxI5V1zePvojpZucNSgtCREm58KFv6J5LuTZjVi26oP5KU?=
- =?us-ascii?Q?GEHFB61feUPQUygduIhyGHmHp/4SlsPEbvvMKR+OLK7xrV50QfvDF1k/ivhG?=
- =?us-ascii?Q?fMh4lAYX2fe3Uzr7GbTcn042WLT9AISdx/loEnyBW5vlJ43Ov5gQPYcezx/g?=
- =?us-ascii?Q?0gOH4V6g1lB3ts+Ff3in+oG8ZBLuo0HBY5iA0JmkqF1cO9O47yrKu/PE0Hxk?=
- =?us-ascii?Q?lqrMv+4CdRiuv1B9n7H/q4E22QwBtucFw5nS3LsQv0+z2/8qaDn3FIGziCwF?=
- =?us-ascii?Q?g1XrHihfEQtG+bZzyoy1rdJs+lkODQu9eYrFgcBsOkpKFP68+Y+h2TRovfXC?=
- =?us-ascii?Q?sKC5V1VHm2UokpkrcEFTuwtI8A6gjf6u/FKSjvMUogJ+sNqcCPgroyCaTYtb?=
- =?us-ascii?Q?J+1Dmgq1su9NBAb4s0S3mL44ork8ygZJO7IOGmcEbAs+k/ivWAXUwO3Lo/Hd?=
- =?us-ascii?Q?HOkvmaBztiGLfNCPtpoEapCJpF4IufIAcjbYUv5FmW1dzK9QLeCN67lIID/H?=
- =?us-ascii?Q?mdzWtygWd32kSKtXpVaFn7SyAV6UO7LWFx/26SPkyvOfCFK73L8OPsO1+H+s?=
- =?us-ascii?Q?Zz/mhwQFupq6IedYgEFjGR7CVv8sPE+rLDBzG0QG8ujgcM1/ufnRPe7Xs46E?=
- =?us-ascii?Q?LW6xWLPX+bfquMEG6AjAL/lvBRjY2h+eHLMop0F5whNN4j+nXuo3eUH3EqBj?=
- =?us-ascii?Q?32iPR52EUUwDZSqEiRbDtWxNr16aZoL9ZSrpKCEbFJ5NgBMDRiuP4ZAxYsmf?=
- =?us-ascii?Q?LPEkLw=3D=3D?=
-X-OriginatorOrg: corigine.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 54e8320f-f5ca-457a-be55-08daf5465545
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jan 2023 09:12:45.6152
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: mhcdl/lBwApxOQfofmND2KSEehhdRklzVROPWOfMV7QD788KTY6KeBXq8OoIhLtmgzLRciCHj2Q0ZM5vTDbh5ILA7eHpdHJ7J1mOk0ivo3s=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR13MB4830
+In-Reply-To: <20230112234503.GB19463@breakpoint.cc>
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-+ Baowen Zheng, oss-drivers@corigine.com
-
-On Tue, Jan 10, 2023 at 02:30:17PM +0100, Vlad Buslov wrote:
-> In order to offload connections in other states besides "established" the
-> driver offload callbacks need to have access to connection conntrack info.
-> Extend flow offload intermediate representation data structure
-> flow_action_entry->ct_metadata with new enum ip_conntrack_info field and
-> fill it in tcf_ct_flow_table_add_action_meta() callback.
+On Fri, Jan 13, 2023 at 12:45:03AM +0100, Florian Westphal wrote:
+> Russell King (Oracle) <linux@armlinux.org.uk> wrote:
+> > Given the packet counts as per my example above, it looks like
+> > conntrack only saw:
+> > 
+> > src=180.173.2.183 dst=78.32.30.218	SYN
+> > src=78.32.30.218 dst=180.173.2.183	SYN+ACK
+> > src=180.173.2.183 dst=78.32.30.218	ACK
+> > 
+> > and I suspect at that point, the connection went silent - until
+> > Exim timed out and closed the connection, as does seem to be the
+> > case:
+> > 
+> > 2023-01-11 21:32:04 no host name found for IP address 180.173.2.183
+> > 2023-01-11 21:33:05 SMTP command timeout on connection from [180.173.2.183]:64332 I=[78.32.30.218]:25
+> > 
+> > but if Exim closed the connection, why didn't conntrack pick it up?
 > 
-> Reject offloading IP_CT_NEW connections for now by returning an error in
-> relevant driver callbacks based on value of ctinfo. Support for offloading
-> such connections will need to be added to the drivers afterwards.
-> 
-> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
-> ---
+> Yes, thats the question.  Exim closing the connection should have
+> conntrack at least pick up a fin packet from the mail server (which
+> should move the entry to the 2 minute fin timeout).
 
+Okay, update this morning. I left tcpdump running overnight having
+cleared conntrack of all port 25 and 587 connections. This morning,
+there's a whole bunch of new entries on conntrack.
+
+Digging through the tcpdump and logs, it seems what is going on is:
+
+public interface			dmz interface
+origin -> mailserver SYN		origin -> mailserver SYN
+mailserver -> origin SYNACK		mailserver -> origin SYNACK
+origin -> mailserver ACK
+mailserver -> origin RST
+mailserver -> origin SYNACK		mailserver -> origin SYNACK
+mailserver -> origin SYNACK		mailserver -> origin SYNACK
+mailserver -> origin SYNACK		mailserver -> origin SYNACK
+mailserver -> origin SYNACK		mailserver -> origin SYNACK
 ...
 
-> diff --git a/drivers/net/ethernet/netronome/nfp/flower/conntrack.c b/drivers/net/ethernet/netronome/nfp/flower/conntrack.c
-> index f693119541d5..2c550a1792b7 100644
-> --- a/drivers/net/ethernet/netronome/nfp/flower/conntrack.c
-> +++ b/drivers/net/ethernet/netronome/nfp/flower/conntrack.c
-> @@ -1964,6 +1964,23 @@ int nfp_fl_ct_stats(struct flow_cls_offload *flow,
->  	return 0;
->  }
->  
-> +static bool
-> +nfp_fl_ct_offload_supported(struct flow_cls_offload *flow)
-> +{
-> +	struct flow_rule *flow_rule = flow->rule;
-> +	struct flow_action *flow_action =
-> +		&flow_rule->action;
-> +	struct flow_action_entry *act;
-> +	int i;
-> +
-> +	flow_action_for_each(i, act, flow_action) {
-> +		if (act->id == FLOW_ACTION_CT_METADATA)
-> +			return act->ct_metadata.ctinfo != IP_CT_NEW;
-> +	}
-> +
-> +	return false;
-> +}
-> +
+Here is an example from the public interface:
 
-Hi Vlad,
+09:52:36.599398 IP 103.14.225.112.63461 > 78.32.30.218.587: Flags [SEW], seq 3387227814, win 8192, options [mss 1460,nop,wscale 8,nop,nop,sackOK], length 0
+09:52:36.599893 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1452,nop,nop,sackOK,nop,wscale 7], length 0
+09:52:36.820464 IP 103.14.225.112.63461 > 78.32.30.218.587: Flags [.], ack 1, win 260, length 0
+09:52:36.820549 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [R], seq 816385330, win 0, length 0
+09:52:37.637548 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1452,nop,nop,sackOK,nop,wscale 7], length 0
 
-Some feedback from Baowen Zheng, who asked me to pass it on here:
+and the corresponding trace on the mailserver:
+09:52:36.599729 IP 103.14.225.112.63461 > 78.32.30.218.587: Flags [SEW], seq 3387227814, win 8192, options [mss 1452,nop,wscale 8,nop,nop,sackOK], length 0
+09:52:36.599772 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
+09:52:37.637421 IP 78.32.30.218.587 > 103.14.225.112.63461: Flags [S.], seq 816385329, ack 3387227815, win 64240, options [mss 1460,nop,nop,sackOK,nop,wscale 7], length 0
 
-  It is confusing that after FLOW_ACTION_CT_METADATA check, this functoin
-  will return false, that is -EOPNOTSUPP.
+So, my first observation is that conntrack is reacting to the ACK
+packet on the public interface, and marking the connection established,
+but a firewall rule is rejecting the connection when that ACK packet is
+received by sending a TCP reset. It looks like conntrack does not see 
+this packet, and also conntrack does not see the SYNACK retransmissions
+(which is odd, because it saw the first one.)
 
-  Since this function is only used to check nft table, It seems better to
-  change its name to nfp_fl_ct_offload_nft_supported(). This would make things
-  clearer and may avoid it being used in the wrong way.
+As to why we're responding with a TCP reset to the ACK packet, it's
+because iptables is hitting a reject rule as the IP address has been
+temporarily banned due to preceding known spammer signatures a few
+seconds before.
 
-...
+I probably ought to pick up on the initial SYN rather than the 3rd
+packet of the connection... but even so, I don't think conntrack
+should be missing the TCP reset from the reject rule.
+
+The rule path that leads to the reject rule is currently:
+  -A TCP -p tcp -m multiport --dports 25,587 -m conntrack --ctstate ESTABLISHED -j TCP-smtp-in
+  -A TCP-smtp-in -p tcp -m set --match-set ip4-banned-smtp src -j TCP-smtp-s
+  -A TCP-smtp-s -j SET --add-set ip4-banned-smtp src --exist --timeout N
+  -A TCP-smtp-s -p tcp -j REJECT --reject-with tcp-reset
+
+(I've omitted the timeout.)
+
+There definitely seems to be a change in behaviour - looking back to
+the logs prior to upgrading to 6.1, there were never any conntrack
+table overflows, and that older kernel had been running for hundreds
+of days.
+
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
