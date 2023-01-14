@@ -2,84 +2,76 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56278C3DA78
-	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Jan 2023 03:20:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 766EEC3DA78
+	for <netfilter-devel@archiver.kernel.org>; Sat, 14 Jan 2023 20:59:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229510AbjANDUa (ORCPT
+        id S230325AbjANU76 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Jan 2023 22:20:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59910 "EHLO
+        Sat, 14 Jan 2023 15:59:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229830AbjANDU2 (ORCPT
+        with ESMTP id S230473AbjANU7v (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Jan 2023 22:20:28 -0500
-Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 455B588DEA
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jan 2023 19:20:26 -0800 (PST)
-Received: by mail-pg1-x534.google.com with SMTP id s67so16195785pgs.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jan 2023 19:20:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=Iaq/aDT4Hq5B9c/FVD5MC0/6oJUqIYA9ppmw1YiQsKg=;
-        b=DkiAfyKaN0b2S+wxquR11XpnbLuFCdF6g4cb0/CAkgbW2nQFOI1o3xW3dT4lcbNLID
-         VI4wFUXuiVvMDsT7ev7pMiP8RCReaMqZ57RBlH5mY3lUIZhhJNN7JjxHiC4lKQZpHCmI
-         R3jo7xS9KwFE67/yu9WawvLg/rcT3N3eI11MQQXLaiWzdiXm5P6vF9ADnvR5zERrSEt3
-         pmXflYW19mAX0U13/ONcKXoiSIou8kwObfluzKqwGOPbz2OF4VM8OQ2arSjlNDjQy29w
-         4hRX6mAOmEgBdGGJqz0Bazbg+tDfxpvMK+6i14G/qMs84tmOClttDM8L5c+e3NHaKnsG
-         0fyA==
+        Sat, 14 Jan 2023 15:59:51 -0500
+Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com [209.85.128.49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB6499847
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Jan 2023 12:59:49 -0800 (PST)
+Received: by mail-wm1-f49.google.com with SMTP id q8so5615349wmo.5
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Jan 2023 12:59:49 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+        h=content-transfer-encoding:mime-version:user-agent:message-id:date
+         :to:from:subject:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Iaq/aDT4Hq5B9c/FVD5MC0/6oJUqIYA9ppmw1YiQsKg=;
-        b=6XDzBFdbPwm8tJRTW3F16kNCwmj5yItV/vPW3k8SdeaO94bNWcVeSlCDNkwKfMjA1d
-         M6Za90MQZG5KJoGxSlWowqaJSnQtkMWPNe84QG1RaSgGHKiDw4qRJZet3ctaDBDHfrZp
-         97mV90H1VT8IkKUwzhdTgUlnWmd+trvMM6THqhNbWwlWND961RoVzbP5IlRf0FIlSNDl
-         JbhgYIx8bLv1JygwkbUgoiWU/Ssy/5WtctPoWrwKSoebOm/dVo7LUSzp+XFEzfm17CUh
-         tO1GhoIcRY+UIRdHm2A7xRC8gWYqbt3JNvZCOtMaISBrrVW6LZXF+h6bYL7f6suw7Jg1
-         YHDw==
-X-Gm-Message-State: AFqh2kr/8PyiQVo23m//GOEwYpxyE5XdcUWe9WMwKW7wTWkZBezP549R
-        8GI+s3nCvD8R6wU6fk7hPq+P87CAguI=
-X-Google-Smtp-Source: AMrXdXtFFI8eD+Tgd8B5wo34Kfd7mMuGnLPBUJzkS6eI2HI+b0NZDdF8sG50GHuzQRnoRuV13Uf6Rg==
-X-Received: by 2002:aa7:850e:0:b0:583:39ca:82f3 with SMTP id v14-20020aa7850e000000b0058339ca82f3mr30550254pfn.18.1673666425677;
-        Fri, 13 Jan 2023 19:20:25 -0800 (PST)
-Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
-        by smtp.gmail.com with ESMTPSA id z67-20020a626546000000b005833f0e58b7sm14297270pfb.130.2023.01.13.19.20.24
+        bh=Lj2ZNj66zjzzJpYKqa3ZUs3MYaS51cNAbtCYzDkPhcc=;
+        b=MLptS7ZYFXOCLHoT/dowiEoX0gy29DQ6vswx98BUpeKbUkd7QRod+PENsmuBqZEXWK
+         52qC4yECBAUYKlDSl0Wg4YAuld48KB2dq2wDuZkSPYKM4+orCImIBcVXNJsXf3gGyXEy
+         dqlqiYrQDJ05L3hyhkoziGDV3yQjPRWPkF8hwiJE3KaHVXsfxnPL2TV5zaKbvcOyYIJC
+         sJuR8HXOtZpehQo6xsbrbyt0cTeGDFJwC32zmggLSnx42TZD5KbEzNGJk7Z7IExsgMhs
+         eclWz2BcJ4dcWMNzlf+SEZfvq9//fNVGF5HoudAovbiJMnAv+AT3yUQUmXcfuwmgCPxY
+         xT8Q==
+X-Gm-Message-State: AFqh2krTGd6nwFEF3xD+xhPKIXl+X79GRtk+75BIRsYcfZfs1mluY+XH
+        5KRE02P7V9Tn0ONrruE0ixPV2113l9o=
+X-Google-Smtp-Source: AMrXdXscBubZn997CAKuCKnKyBBtX7muYJItd3yzSjxcU2AjWKp9+53nahKqMBVu1U2K1mE5kdlgcQ==
+X-Received: by 2002:a05:600c:540d:b0:3da:f678:1d47 with SMTP id he13-20020a05600c540d00b003daf6781d47mr194315wmb.14.1673729988257;
+        Sat, 14 Jan 2023 12:59:48 -0800 (PST)
+Received: from localhost ([2a0c:5a85:a202:ef00:af78:1e88:4132:af3])
+        by smtp.gmail.com with ESMTPSA id bh13-20020a05600c3d0d00b003d358beab9dsm28708948wmb.47.2023.01.14.12.59.47
+        for <netfilter-devel@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Jan 2023 19:20:25 -0800 (PST)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [PATCH libnetfilter_queue] build: doc: Fix doxygen obsolete option warning
-Date:   Sat, 14 Jan 2023 14:20:21 +1100
-Message-Id: <20230114032021.16582-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.3
+        Sat, 14 Jan 2023 12:59:47 -0800 (PST)
+Subject: [iptables PATCH] iptables-test.py: make explicit use of python3
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Date:   Sat, 14 Jan 2023 21:59:47 +0100
+Message-ID: <167372998704.237931.14378651440204180182.stgit@nostromo>
+User-Agent: StGit/0.19
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-doxygen 1.9.5 complains about DOT_TRANSPARENT, removed.
+In most distros 'python' means python2, which is not available anywhere.
+This is a problem when, for example, building the Debian package. This
+script is called as part of the build but 'python' is not available.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+Mention python3 explictly. The script runs just fine in python3.
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 ---
- doxygen/doxygen.cfg.in | 1 -
- 1 file changed, 1 deletion(-)
+ iptables-test.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/doxygen/doxygen.cfg.in b/doxygen/doxygen.cfg.in
-index 8f05a1d..7d7ed0a 100644
---- a/doxygen/doxygen.cfg.in
-+++ b/doxygen/doxygen.cfg.in
-@@ -26,4 +26,3 @@ GENERATE_MAN           = @GEN_MAN@
- GENERATE_HTML          = @GEN_HTML@
- MAN_LINKS              = YES
- HAVE_DOT               = @HAVE_DOT@
--DOT_TRANSPARENT        = YES
--- 
-2.35.1
+diff --git a/iptables-test.py b/iptables-test.py
+index de1e1e95..ef0a35d3 100755
+--- a/iptables-test.py
++++ b/iptables-test.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ #
+ # (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+ #
 
