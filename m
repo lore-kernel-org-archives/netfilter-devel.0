@@ -2,78 +2,113 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF657C46467
-	for <netfilter-devel@archiver.kernel.org>; Sun, 15 Jan 2023 22:07:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F804C678D6
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Jan 2023 09:00:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231514AbjAOWHw (ORCPT
+        id S232384AbjAPJAC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 15 Jan 2023 17:07:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50264 "EHLO
+        Mon, 16 Jan 2023 04:00:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231243AbjAOWHv (ORCPT
+        with ESMTP id S232476AbjAPI7i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Jan 2023 17:07:51 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E0571B548
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jan 2023 14:07:46 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pHBAG-00047R-4u; Sun, 15 Jan 2023 23:07:44 +0100
-Date:   Sun, 15 Jan 2023 23:07:44 +0100
-From:   Phil Sutter <phil@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [ANNOUNCE] iptables 1.8.9 release
-Message-ID: <Y8R5MGQTFOn2DxTb@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <Y7/s83d8D0z1QYt1@orbyte.nwl.cc>
- <e0357e53-8eda-9d9d-d1d6-4f8669759181@netfilter.org>
- <Y8Onpi8LqsWIX06f@salvia>
+        Mon, 16 Jan 2023 03:59:38 -0500
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC6C21631E;
+        Mon, 16 Jan 2023 00:58:25 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NwQpX6rpvz67wqY;
+        Mon, 16 Jan 2023 16:55:32 +0800 (CST)
+Received: from mscphis00759.huawei.com (10.123.66.134) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.34; Mon, 16 Jan 2023 08:58:22 +0000
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+To:     <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+Subject: [PATCH v9 00/12] Network support for Landlock
+Date:   Mon, 16 Jan 2023 16:58:06 +0800
+Message-ID: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y8Onpi8LqsWIX06f@salvia>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.66.134]
+X-ClientProxiedBy: mscpeml100002.china.huawei.com (7.188.26.75) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi!
+Hi,
+This is a new V9 patch related to Landlock LSM network confinement.
+It is based on the landlock's -next branch on top of v6.2-rc3 kernel version:
+https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
 
-On Sun, Jan 15, 2023 at 08:13:42AM +0100, Pablo Neira Ayuso wrote:
-> On Sat, Jan 14, 2023 at 10:18:56PM +0100, Arturo Borrero Gonzalez wrote:
-> > On 1/12/23 12:20, Phil Sutter wrote:
-> > > Hi!
-> > > 
-> > > The Netfilter project proudly presents:
-> > > 
-> > >          iptables 1.8.9
-> > > 
-> > 
-> > Hi Phil,
-> > 
-> > thanks for the release!
-> > 
-> > I see the tarball includes now a etc/xtables.conf file [0]. Could you please clarify the expected usage of this file?
-> > 
-> > Do we intend users to have this in their systems? If so, what for.
-> > It appears to be in nftables native format, so who or what mechanisms would be responsible for reading it in a system that
-> > has no nftables installed?
-> > 
-> > Perhaps the file is only useful for development purposes?
-> 
-> I think this file just slipped through while enabling `make distcheck'
-> in a recent update, but let's wait for Phil to confirm this.
+It brings refactoring of previous patch version V8.
+Mostly there are fixes of logic and typos, adding new tests.
 
-Oh, I wasn't aware this file wasn't installed prior to my patches
-enabling 'make dist'. This explains why Jan came up with a patch to
-prevent installation. %)
+All test were run in QEMU evironment and compiled with
+ -static flag.
+ 1. network_test: 32/32 tests passed.
+ 2. base_test: 7/7 tests passed.
+ 3. fs_test: 78/78 tests passed.
+ 4. ptrace_test: 8/8 tests passed.
 
-So yes, this config is a leftover from an early approach of supporting a
-configurable iptables-nft chain layout which never gained traction. One
-should just ignore it, sorry for the mess this causes.
+Previous versions:
+v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
+v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
+v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
+v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
+v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
+v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
+v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
+v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
 
-Cheers, Phil
+Konstantin Meskhidze (11):
+  landlock: Make ruleset's access masks more generic
+  landlock: Refactor landlock_find_rule/insert_rule
+  landlock: Refactor merge/inherit_ruleset functions
+  landlock: Move and rename umask_layers() and init_layer_masks()
+  landlock: Refactor _unmask_layers() and _init_layer_masks()
+  landlock: Refactor landlock_add_rule() syscall
+  landlock: Add network rules and TCP hooks support
+  selftests/landlock: Share enforce_ruleset()
+  selftests/landlock: Add 10 new test suites dedicated to network
+  samples/landlock: Add network demo
+  landlock: Document Landlock's network support
+
+Mickaël Salaün (1):
+  landlock: Allow filesystem layout changes for domains without such
+    rule type
+
+ Documentation/userspace-api/landlock.rst     |   72 +-
+ include/uapi/linux/landlock.h                |   49 +
+ samples/landlock/sandboxer.c                 |  131 +-
+ security/landlock/Kconfig                    |    1 +
+ security/landlock/Makefile                   |    2 +
+ security/landlock/fs.c                       |  255 ++--
+ security/landlock/limits.h                   |    7 +-
+ security/landlock/net.c                      |  200 +++
+ security/landlock/net.h                      |   26 +
+ security/landlock/ruleset.c                  |  409 +++++--
+ security/landlock/ruleset.h                  |  185 ++-
+ security/landlock/setup.c                    |    2 +
+ security/landlock/syscalls.c                 |  165 ++-
+ tools/testing/selftests/landlock/base_test.c |    2 +-
+ tools/testing/selftests/landlock/common.h    |   10 +
+ tools/testing/selftests/landlock/config      |    4 +
+ tools/testing/selftests/landlock/fs_test.c   |   75 +-
+ tools/testing/selftests/landlock/net_test.c  | 1157 ++++++++++++++++++
+ 18 files changed, 2398 insertions(+), 354 deletions(-)
+ create mode 100644 security/landlock/net.c
+ create mode 100644 security/landlock/net.h
+ create mode 100644 tools/testing/selftests/landlock/net_test.c
+
+-- 
+2.25.1
+
