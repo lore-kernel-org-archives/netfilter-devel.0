@@ -2,1368 +2,174 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 447F5C46467
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Jan 2023 09:00:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D116BC54EBE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Jan 2023 09:36:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232490AbjAPJA2 (ORCPT
+        id S232269AbjAPJgM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Jan 2023 04:00:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33748 "EHLO
+        Mon, 16 Jan 2023 04:36:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232434AbjAPI7p (ORCPT
+        with ESMTP id S232229AbjAPJgI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Jan 2023 03:59:45 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F14B166D3;
-        Mon, 16 Jan 2023 00:58:47 -0800 (PST)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NwQpz31RDz67KPY;
-        Mon, 16 Jan 2023 16:55:55 +0800 (CST)
-Received: from mscphis00759.huawei.com (10.123.66.134) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Mon, 16 Jan 2023 08:58:45 +0000
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-To:     <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-Subject: [PATCH v9 10/12] selftests/landlock: Add 10 new test suites dedicated to network
-Date:   Mon, 16 Jan 2023 16:58:16 +0800
-Message-ID: <20230116085818.165539-11-konstantin.meskhidze@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
-References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+        Mon, 16 Jan 2023 04:36:08 -0500
+Received: from EUR05-VI1-obe.outbound.protection.outlook.com (mail-vi1eur05on2114.outbound.protection.outlook.com [40.107.21.114])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 333B717154
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2023 01:36:03 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=E38m9TVdgDbyG+TZRYBYv20WGTHIEALLhxiowRhH9LCUQUJ1W51hgfi7s7WRssxToMcBpKUVZF3BypcktTVGwVSOgBJu7HKpi8hDwfNvR0+K/3+FlozVDQr7G2F/KWTnDFbm84rpO9UhQvOH2jX1mnoPAuna/Nlq5K/u9xb8dksBu6JhP+4bcM99sULhNjQHgVr5S3XVJhGoU2dsdUxuWvk+w3h9APnwI3FzBD9aEYjPjTS4w5fJdUR+PlQqINvHGFl5WePjRh38zdsKVCncjicbIZbdJd2+iQeZ3xKUYBVCQ3aWw6Dh+FwwcZb+5x5pbIGKlH4tIArTNjlLgfLVig==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/sSzc5Qc99g+ogw7Yt1MRxksQamVuVFDlbk5JDyukLQ=;
+ b=hyyOVSglQjeCHZXmU6PLNp8zIU85J1SdA3/hgbriXmeeT8UXTe0kPttQD8G6NTex9R5rK7Gw36G3iMOfKmyRS89+26Afbelv9Nw9y7Gj/fwY0jAoJFoCVEWVY+JTo78vOjNYkXRXiP8CRzDSP0EYfGhBB0n6bgyizXnv1G6V5YQwpvGRYzaOTLDjemOnwvjbPdG9qskwIjJ+glgBKQjMiOOU15WQk9GkWaZGGbdUXCPUXd5HF+y4KIopOplOKvG91ZWbatKaXSsU1SvBkKi34XsjxYS3glZEe1jePXhrA9iMOXEN8tmriHEbHIFHK9bDp1QFg/uesGAVgVeCn1gi3w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=est.tech; dmarc=pass action=none header.from=est.tech;
+ dkim=pass header.d=est.tech; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=estab.onmicrosoft.com;
+ s=selector2-estab-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/sSzc5Qc99g+ogw7Yt1MRxksQamVuVFDlbk5JDyukLQ=;
+ b=a5YnMhyBjDKfzHwQgvpUQ+ckP/OpLUWtmx/MXI+5wfzQqAYb93dImwW8imnpJSuLdWqwbAIbrRdE4O68RglDjprc4PQ7B8obaCRaD+7Bkt0uGBh30SwrjkvnK4rqsKYDeIeKUyxsSQWmeAOuwDLkOAHSWOb1ol7+vWuE4goeJ5Q=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=est.tech;
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:1e7::15)
+ by AM7P189MB1012.EURP189.PROD.OUTLOOK.COM (2603:10a6:20b:14c::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.12; Mon, 16 Jan
+ 2023 09:36:00 +0000
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::8f70:435b:ab64:9420]) by DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::8f70:435b:ab64:9420%8]) with mapi id 15.20.5986.023; Mon, 16 Jan 2023
+ 09:36:00 +0000
+From:   Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Marcelo Ricardo Leitner <mleitner@redhat.com>,
+        Long Xin <lxin@redhat.com>,
+        Claudio Porfiri <claudio.porfiri@ericsson.com>,
+        Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+Subject: [PATCH 1/3] netfilter: conntrack: fix vtag checks for ABORT/SHUTDOWN_COMPLETE
+Date:   Mon, 16 Jan 2023 10:35:54 +0100
+Message-Id: <20230116093556.9437-2-sriram.yagnaraman@est.tech>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230116093556.9437-1-sriram.yagnaraman@est.tech>
+References: <20230116093556.9437-1-sriram.yagnaraman@est.tech>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: GVYP280CA0027.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:f9::26) To DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ (2603:10a6:10:1e7::15)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.123.66.134]
-X-ClientProxiedBy: mscpeml100002.china.huawei.com (7.188.26.75) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DBBP189MB1433:EE_|AM7P189MB1012:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1597f3cd-ae8e-4f93-897e-08daf7a51412
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ngfzWeJE5WcQoCD7YvHpkp0diPRun8/+tq8fZ7o9cZZ1Z39dbof5QVCn6b4GVj1kmjJJx2zMFmeS/VkY6vs9TaTrwkUBsZ8ugL4JLTYvcGFRaorfQN9XjPgITESztqg+oNopU6EA6p+k1Kpp3YnBZlULfLaECE3gJjZDncVLzlFn46iHAAnkEoj82xrJLwzKiD2oMsWinR0MXT6SXLu5d9H/DZBFAO3+gd3jdpfaxK1r2wIgd60cUbZiK8SRbCBQXISqSBry5iYqr7CA8rCuX8mZI+5yzQLFHKaxTaOxivgNSfrz7QFkniY2qTU07KnxyIkotgAdmBgKER8hi+A3xLiV297DXstln0LjPCukMYqCPAY96OyUcgxee2LoE8OdkyikgMHcjyPA09TV2Bbbd6dGPWkZetBQK1/ARUHNWA9KOzjGl90GliYjSodLhUPIKl7zfA9wZWIlMSma+GWTXU+lleEatT48Sneqk3FLVZTlyblOwPT5q0OmjgDYyqzJT+FsmKGi3byqgtlUEXLMoQJt7PC2bZ7M/xsDAgpidT+Xh4ueH+0DOmt8DtbzNbGcvo1mnJTNAqwzXqfYlBX1B+CqtsB7FiYOy5YNmPQX1PQ8pbWQTKJVuo6rmsFUuNudtk9hfWVdt7kyjB9OTJevbWXhJ52+S1dzL1GSWmdpd7F5HDy1TW5EBKzf6M+FlB/jnR2dOZzNVMIwUDYRwAIq5g==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBP189MB1433.EURP189.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230022)(376002)(396003)(346002)(39830400003)(136003)(451199015)(6486002)(2906002)(83380400001)(478600001)(86362001)(26005)(186003)(5660300002)(54906003)(6512007)(8936002)(36756003)(44832011)(38100700002)(1076003)(2616005)(6666004)(41300700001)(6506007)(4326008)(66946007)(70586007)(6916009)(66476007)(8676002)(66556008)(316002)(37730700002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?RrPow/GMvfhQ+fErM+JkgrJV+ADj4/ypcAInmWQ5OToVaTMJUhZH9xG6H3HD?=
+ =?us-ascii?Q?w7RxDL8aQ+YvM8xPNZUexUKqbcxEi2uzqx2/GR2VAKUOCodGaItv78SYIA6S?=
+ =?us-ascii?Q?VmMQoda1lo9vNmiyQce0zNS9kfF03BHg3YRuFs2/nHSfb+5GycI+c1GnUQGl?=
+ =?us-ascii?Q?afFjX0Np1/bsSc+x+SK3flDJxaGkplXLXEUwuC/OSLCkZn9MOidxrvQ+c0eN?=
+ =?us-ascii?Q?53Jy2WeUg0brs1M5AC+8kAHh5Qpc+VwMlcG3HYizbgvRZoQlQio3V4+7dR3U?=
+ =?us-ascii?Q?deoV9jF5sLkYLpqDoSKdKWyQjhVC6A5VYeiuVdb0Lqw1B2nEvpFWbnz+k5c3?=
+ =?us-ascii?Q?9CvatqBs+zExdkVadSApzeEebKr+uHxSZj6Mpm32rZ0HFOgtBn1Bo4O3n0sy?=
+ =?us-ascii?Q?XanHw+ILy5Eh6vmdVkMq6gyi4IouMnqt9n/4+ABOYZ/T5/BiSmpW3D1IQ+vt?=
+ =?us-ascii?Q?YXL98dpBaXf6ZEakgPtAvyqotIKvB/RoAjnkTZ3v5dB8++P+Q12OK06IMYv6?=
+ =?us-ascii?Q?CGP/D8mzIP2EzZ+HBFnRPQigl/xmJGGx1xl1qo4AK/07ExX3sm1+6StW/nKY?=
+ =?us-ascii?Q?4PmZEPCPqcp7p5zDgdj5xtn32aGbi3ScbN1b3QDye5uTiH6Ib3wl1p0ZAnIE?=
+ =?us-ascii?Q?eEOoTv4dg3daTwuTde7PiqmZvSyboYbNeTM5F/p1SpvHZ7ZRaM219paCIuRo?=
+ =?us-ascii?Q?WQ3pBp3eBC05nVLZrDkZVbZGMkatQ4ObCYEsyMxBL7IBBojWxlSYDZbKJ8Hy?=
+ =?us-ascii?Q?vcB/hOokamwdfg9AdcUa379hP19LKWzBaUDUMj2GXWnlDlZl64JiO/Df9Ns4?=
+ =?us-ascii?Q?D/+HY5veZm8jXAKtypKyIwV5aPSZ1TfgjNfXOD427HY3H1xUvEgw+wmZzfz6?=
+ =?us-ascii?Q?6o2XQlIB5gVUgXiSRtgVDQuewa+Dkf/3LZW5ypNXKd2byy2g+sWsPTRbBnzq?=
+ =?us-ascii?Q?DznRCcGkduGgmWCLBqJlx9/Bj15nWTXI3wZAaDBfLTsxX3JH+YDS77zpGWs9?=
+ =?us-ascii?Q?CV2e4W3CDRHzn3zzb3l84ffPh3cEelhiex/nSE/xaQ4NdnQa7YT+nHGxAKF5?=
+ =?us-ascii?Q?xO1LxdvAQfFOg76w58ObYV0wcUxokjnXNVP3Qp782ib/JtbewQCgkpSYTBKh?=
+ =?us-ascii?Q?U91mVxF/vHbq86r2Beab/yU+FGVhnSQw6vYUSWX+fPUaT9uOsmeU/dXoRDNX?=
+ =?us-ascii?Q?KFTugYK7/dUr51n3TTf2xw/dsdnixTQZXXZCFIOxNclViqWeN95VzGzHPvrA?=
+ =?us-ascii?Q?IfT6wkB7T1bB/3X1adKG/EpBXqgn1aDw04eDDm0HohlQ9uM3VOECL+tSVuu/?=
+ =?us-ascii?Q?0vFWPeJa9oDH3/M6mbG2AkfjBF7xIHiLHxZzRBKRnnANK9AFK/oJbE5xmELO?=
+ =?us-ascii?Q?JVCOxlVJU/bQTiyssrugA7AOv5AhA+WuhszBOBWS8g+/6y34VAH/54mZKZ/V?=
+ =?us-ascii?Q?6u7pie0Dasy/l8LtqfPt8DMMO17Bz0b0XvZwK+td59jHv4WZQgWorR/il/X3?=
+ =?us-ascii?Q?JYBCRExfL+c5p6HzUNYl3LhmVRfKRq2eSL7CoiUfJ7qyHMvwh7xpr8qg63//?=
+ =?us-ascii?Q?5GbtsKhGZvZfjmcFwv83E00L9xv6V5h/Z99k/qNaV/8pjKyyvZuam6MaY8sp?=
+ =?us-ascii?Q?cQ=3D=3D?=
+X-OriginatorOrg: est.tech
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1597f3cd-ae8e-4f93-897e-08daf7a51412
+X-MS-Exchange-CrossTenant-AuthSource: DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jan 2023 09:36:00.6658
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: d2585e63-66b9-44b6-a76e-4f4b217d97fd
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: q1HVp+GoP+S5gPFuzvBkJjg7dakD6pB8eJKqFXmSIgdF/662ZkJfoGDMxk+TwjLEltSalDNvA+ytY5LN5qcKQA35k+rucv0Pom6Wrdh4euM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7P189MB1012
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-These test suites try to check edge cases for TCP sockets
-bind() and connect() actions.
+RFC 9260, Sec 8.5.1 states that for ABORT/SHUTDOWN_COMPLETE, the chunk
+MUST be accepted if the vtag of the packet matches its own tag and the
+T bit is not set OR if it is set to its peer's vtag and the T bit is set
+in chunk flags. Otherwise the packet MUST be silently dropped.
 
-socket:
-* bind: Tests with non-landlocked/landlocked ipv4 and ipv6 sockets.
-* connect: Tests with non-landlocked/landlocked ipv4 and ipv6 sockets.
-* bind_afunspec: Tests with non-landlocked/landlocked restrictions
-for bind action with AF_UNSPEC socket family.
-* connect_afunspec: Tests with non-landlocked/landlocked restrictions
-for connect action with AF_UNSPEC socket family.
-* ruleset_overlap: Tests with overlapping rules for one port.
-* ruleset_expanding: Tests with expanding rulesets in which rules are
-gradually added one by one, restricting sockets' connections.
-* inval: Tests with invalid user space supplied data:
-    - out of range ruleset attribute;
-    - unhandled allowed access;
-    - zero port value;
-    - zero access value;
-    - legitimate access values;
-* bind_connect_inval_addrlen: Tests with invalid address length
-for ipv4/ipv6 sockets.
-* inval_port_format: Tests with wrong port format for ipv4/ipv6 sockets.
+Update vtag verification for ABORT/SHUTDOWN_COMPLETE based on the above
+description.
 
-layout1:
-* with_net: Tests with network bind() socket action within
-filesystem directory access test.
-
-Test coverage for security/landlock is 94.1% of 946 lines according
-to gcc/gcov-11.
-
-Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Signed-off-by: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
 ---
+ net/netfilter/nf_conntrack_proto_sctp.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-Changes since v8:
-* Adds is_sandboxed const for FIXTURE_VARIANT(socket).
-* Refactors AF_UNSPEC tests.
-* Adds address length checking tests.
-* Convert ports in all tests to __be16.
-* Adds invalid port values tests.
-* Minor fixes.
-
-Changes since v7:
-* Squashes all selftest commits.
-* Adds fs test with network bind() socket action.
-* Minor fixes.
-
----
- tools/testing/selftests/landlock/config     |    4 +
- tools/testing/selftests/landlock/fs_test.c  |   65 ++
- tools/testing/selftests/landlock/net_test.c | 1157 +++++++++++++++++++
- 3 files changed, 1226 insertions(+)
- create mode 100644 tools/testing/selftests/landlock/net_test.c
-
-diff --git a/tools/testing/selftests/landlock/config b/tools/testing/selftests/landlock/config
-index 0f0a65287bac..71f7e9a8a64c 100644
---- a/tools/testing/selftests/landlock/config
-+++ b/tools/testing/selftests/landlock/config
-@@ -1,3 +1,7 @@
-+CONFIG_INET=y
-+CONFIG_IPV6=y
-+CONFIG_NET=y
-+CONFIG_NET_NS=y
- CONFIG_OVERLAY_FS=y
- CONFIG_SECURITY_LANDLOCK=y
- CONFIG_SECURITY_PATH=y
-diff --git a/tools/testing/selftests/landlock/fs_test.c b/tools/testing/selftests/landlock/fs_test.c
-index b762b5419a89..5de4559c7fbb 100644
---- a/tools/testing/selftests/landlock/fs_test.c
-+++ b/tools/testing/selftests/landlock/fs_test.c
-@@ -8,8 +8,10 @@
-  */
- 
- #define _GNU_SOURCE
-+#include <arpa/inet.h>
- #include <fcntl.h>
- #include <linux/landlock.h>
-+#include <netinet/in.h>
- #include <sched.h>
- #include <stdio.h>
- #include <string.h>
-@@ -17,6 +19,7 @@
- #include <sys/mount.h>
- #include <sys/prctl.h>
- #include <sys/sendfile.h>
-+#include <sys/socket.h>
- #include <sys/stat.h>
- #include <sys/sysmacros.h>
- #include <unistd.h>
-@@ -4413,4 +4416,66 @@ TEST_F_FORK(layout2_overlay, same_content_different_file)
- 	}
- }
- 
-+#define IP_ADDRESS "127.0.0.1"
-+
-+TEST_F_FORK(layout1, with_net)
-+{
-+	int sockfd;
-+	int sock_port = 15000;
-+	struct sockaddr_in addr4;
-+
-+	addr4.sin_family = AF_INET;
-+	addr4.sin_port = htons(sock_port);
-+	addr4.sin_addr.s_addr = inet_addr(IP_ADDRESS);
-+	memset(&addr4.sin_zero, '\0', 8);
-+
-+	const struct rule rules[] = {
-+		{
-+			.path = dir_s1d2,
-+			.access = ACCESS_RO,
-+		},
-+		{},
-+	};
-+
-+	struct landlock_ruleset_attr ruleset_attr_net = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+	struct landlock_net_service_attr net_service = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(sock_port),
-+	};
-+
-+	/* Creates ruleset for network access. */
-+	const int ruleset_fd_net = landlock_create_ruleset(
-+		&ruleset_attr_net, sizeof(ruleset_attr_net), 0);
-+	ASSERT_LE(0, ruleset_fd_net);
-+
-+	/* Adds a network rule. */
-+	ASSERT_EQ(0,
-+		  landlock_add_rule(ruleset_fd_net, LANDLOCK_RULE_NET_SERVICE,
-+				    &net_service, 0));
-+
-+	enforce_ruleset(_metadata, ruleset_fd_net);
-+	ASSERT_EQ(0, close(ruleset_fd_net));
-+
-+	const int ruleset_fd = create_ruleset(_metadata, ACCESS_RW, rules);
-+	ASSERT_LE(0, ruleset_fd);
-+	enforce_ruleset(_metadata, ruleset_fd);
-+	ASSERT_EQ(0, close(ruleset_fd));
-+
-+	/* Tests on a directory with the network rule loaded. */
-+	ASSERT_EQ(0, test_open(dir_s1d2, O_RDONLY));
-+	ASSERT_EQ(0, test_open(file1_s1d2, O_RDONLY));
-+
-+	sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-+	ASSERT_LE(0, sockfd);
-+	/* Binds a socket to port 15000. */
-+	ASSERT_EQ(0, bind(sockfd, &addr4, sizeof(addr4)));
-+
-+	/* Closes bounded socket. */
-+	ASSERT_EQ(0, close(sockfd));
-+}
-+
- TEST_HARNESS_MAIN
-diff --git a/tools/testing/selftests/landlock/net_test.c b/tools/testing/selftests/landlock/net_test.c
-new file mode 100644
-index 000000000000..b9543089a4d3
---- /dev/null
-+++ b/tools/testing/selftests/landlock/net_test.c
-@@ -0,0 +1,1157 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Landlock tests - Network
-+ *
-+ * Copyright (C) 2022 Huawei Tech. Co., Ltd.
-+ */
-+
-+#define _GNU_SOURCE
-+#include <arpa/inet.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <linux/landlock.h>
-+#include <linux/in.h>
-+#include <sched.h>
-+#include <string.h>
-+#include <sys/prctl.h>
-+#include <sys/socket.h>
-+#include <sys/types.h>
-+
-+#include "common.h"
-+
-+#define MAX_SOCKET_NUM 10
-+
-+#define SOCK_PORT_START 3470
-+#define SOCK_PORT_ADD 10
-+
-+#define IP_ADDRESS_IPv4 "127.0.0.1"
-+#define IP_ADDRESS_IPv6 "::1"
-+#define SOCK_PORT 15000
-+
-+/* Number pending connections queue to be hold. */
-+#define BACKLOG 10
-+
-+const struct sockaddr addr_unspec = { .sa_family = AF_UNSPEC };
-+
-+/* Invalid attribute, out of landlock network access range. */
-+#define LANDLOCK_INVAL_ATTR 7
-+
-+FIXTURE(socket)
-+{
-+	uint port[MAX_SOCKET_NUM];
-+	struct sockaddr_in addr4[MAX_SOCKET_NUM];
-+	struct sockaddr_in6 addr6[MAX_SOCKET_NUM];
-+};
-+
-+/* struct _fixture_variant_socket */
-+FIXTURE_VARIANT(socket)
-+{
-+	const bool is_ipv4;
-+	const bool is_sandboxed;
-+};
-+
-+/* clang-format off */
-+FIXTURE_VARIANT_ADD(socket, ipv4) {
-+	/* clang-format on */
-+	.is_ipv4 = true,
-+	.is_sandboxed = false,
-+};
-+
-+/* clang-format off */
-+FIXTURE_VARIANT_ADD(socket, ipv4_sandboxed) {
-+	/* clang-format on */
-+	.is_ipv4 = true,
-+	.is_sandboxed = true,
-+};
-+
-+/* clang-format off */
-+FIXTURE_VARIANT_ADD(socket, ipv6) {
-+	/* clang-format on */
-+	.is_ipv4 = false,
-+	.is_sandboxed = false,
-+};
-+
-+/* clang-format off */
-+FIXTURE_VARIANT_ADD(socket, ipv6_sandboxed) {
-+	/* clang-format on */
-+	.is_ipv4 = false,
-+	.is_sandboxed = true,
-+};
-+
-+static int
-+create_socket_variant(const struct _fixture_variant_socket *const variant,
-+		      const int type)
-+{
-+	if (variant->is_ipv4)
-+		return socket(AF_INET, type | SOCK_CLOEXEC, 0);
-+	else
-+		return socket(AF_INET6, type | SOCK_CLOEXEC, 0);
-+}
-+
-+static int bind_variant(const struct _fixture_variant_socket *const variant,
-+			const int sockfd,
-+			const struct _test_data_socket *const self,
-+			const size_t index, const bool zero_size)
-+
-+{
-+	if (variant->is_ipv4)
-+		return bind(sockfd, &self->addr4[index],
-+			    (zero_size ? 0 : sizeof(self->addr4[index])));
-+	else
-+		return bind(sockfd, &self->addr6[index],
-+			    (zero_size ? 0 : sizeof(self->addr6[index])));
-+}
-+
-+static int connect_variant(const struct _fixture_variant_socket *const variant,
-+			   const int sockfd,
-+			   const struct _test_data_socket *const self,
-+			   const size_t index, const bool zero_size)
-+{
-+	if (variant->is_ipv4)
-+		return connect(sockfd, &self->addr4[index],
-+			       (zero_size ? 0 : sizeof(self->addr4[index])));
-+	else
-+		return connect(sockfd, &self->addr6[index],
-+			       (zero_size ? 0 : sizeof(self->addr6[index])));
-+}
-+
-+FIXTURE_SETUP(socket)
-+{
-+	int i;
-+
-+	/* Creates IPv4 socket addresses. */
-+	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-+		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD * i;
-+		self->addr4[i].sin_family = AF_INET;
-+		self->addr4[i].sin_port = htons(self->port[i]);
-+		self->addr4[i].sin_addr.s_addr = inet_addr(IP_ADDRESS_IPv4);
-+		memset(&(self->addr4[i].sin_zero), '\0', 8);
-+	}
-+
-+	/* Creates IPv6 socket addresses. */
-+	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-+		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD * i;
-+		self->addr6[i].sin6_family = AF_INET6;
-+		self->addr6[i].sin6_port = htons(self->port[i]);
-+		inet_pton(AF_INET6, IP_ADDRESS_IPv6,
-+			  &(self->addr6[i].sin6_addr));
-+	}
-+
-+	set_cap(_metadata, CAP_SYS_ADMIN);
-+	ASSERT_EQ(0, unshare(CLONE_NEWNET));
-+	ASSERT_EQ(0, system("ip link set dev lo up"));
-+	clear_cap(_metadata, CAP_SYS_ADMIN);
-+};
-+
-+FIXTURE_TEARDOWN(socket){};
-+
-+FIXTURE(socket_standalone)
-+{
-+	uint port[MAX_SOCKET_NUM];
-+	struct sockaddr_in addr4[MAX_SOCKET_NUM];
-+	struct sockaddr_in6 addr6[MAX_SOCKET_NUM];
-+};
-+
-+/* struct _fixture_variant_socket */
-+FIXTURE_VARIANT(socket_standalone)
-+{
-+	const bool is_sandboxed;
-+};
-+
-+/* clang-format off */
-+FIXTURE_VARIANT_ADD(socket_standalone, none_sandboxed) {
-+	/* clang-format on */
-+	.is_sandboxed = false,
-+};
-+
-+/* clang-format off */
-+FIXTURE_VARIANT_ADD(socket_standalone, sandboxed) {
-+	/* clang-format on */
-+	.is_sandboxed = true,
-+};
-+
-+FIXTURE_SETUP(socket_standalone)
-+{
-+	int i;
-+
-+	/* Creates IPv4 socket addresses. */
-+	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-+		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD * i;
-+		self->addr4[i].sin_family = AF_INET;
-+		self->addr4[i].sin_port = htons(self->port[i]);
-+		self->addr4[i].sin_addr.s_addr = inet_addr(IP_ADDRESS_IPv4);
-+		memset(&(self->addr4[i].sin_zero), '\0', 8);
-+	}
-+
-+	/* Creates IPv6 socket addresses. */
-+	for (i = 0; i < MAX_SOCKET_NUM; i++) {
-+		self->port[i] = SOCK_PORT_START + SOCK_PORT_ADD * i;
-+		self->addr6[i].sin6_family = AF_INET6;
-+		self->addr6[i].sin6_port = htons(self->port[i]);
-+		inet_pton(AF_INET6, IP_ADDRESS_IPv6,
-+			  &(self->addr6[i].sin6_addr));
-+	}
-+
-+	set_cap(_metadata, CAP_SYS_ADMIN);
-+	ASSERT_EQ(0, unshare(CLONE_NEWNET));
-+	ASSERT_EQ(0, system("ip link set dev lo up"));
-+	clear_cap(_metadata, CAP_SYS_ADMIN);
-+};
-+
-+FIXTURE_TEARDOWN(socket_standalone){};
-+
-+TEST_F_FORK(socket, bind)
-+{
-+	int sockfd;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+		.port = htons(self->port[0]),
-+	};
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+		.port = htons(self->port[1]),
-+	};
-+	struct landlock_net_service_attr net_service_3 = {
-+		.allowed_access = 0,
-+		.port = htons(self->port[2]),
-+	};
-+	int ruleset_fd, ret;
-+
-+	if (variant->is_sandboxed) {
-+		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-+						     sizeof(ruleset_attr), 0);
-+		ASSERT_LE(0, ruleset_fd);
-+
-+		/*
-+		 * Allows connect and bind operations to the port[0]
-+		 * socket.
-+		 */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_1, 0));
-+		/*
-+		 * Allows connect and deny bind operations to the port[1]
-+		 * socket.
-+		 */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_2, 0));
-+		/*
-+		 * Empty allowed_access (i.e. deny rules) are ignored in
-+		 * network actions for port[2] socket.
-+		 */
-+		ASSERT_EQ(-1, landlock_add_rule(ruleset_fd,
-+						LANDLOCK_RULE_NET_SERVICE,
-+						&net_service_3, 0));
-+		ASSERT_EQ(ENOMSG, errno);
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd);
-+	}
-+
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Binds a socket to port[0]. */
-+	ret = bind_variant(variant, sockfd, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Closes bounded socket. */
-+	ASSERT_EQ(0, close(sockfd));
-+
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Binds a socket to port[1]. */
-+	ret = bind_variant(variant, sockfd, self, 1, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EACCES, errno);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Binds a socket to port[2]. */
-+	ret = bind_variant(variant, sockfd, self, 2, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EACCES, errno);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+}
-+
-+TEST_F_FORK(socket, connect)
-+{
-+	int new_fd;
-+	int sockfd_1, sockfd_2;
-+	pid_t child_1, child_2;
-+	int status;
-+	int ruleset_fd, ret;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+		.port = htons(self->port[0]),
-+	};
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = htons(self->port[1]),
-+	};
-+
-+	if (variant->is_sandboxed) {
-+		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-+						     sizeof(ruleset_attr), 0);
-+		ASSERT_LE(0, ruleset_fd);
-+
-+		/*
-+		 * Allows connect and bind operations to the port[0]
-+		 * socket.
-+		 */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_1, 0));
-+		/*
-+		 * Allows connect and deny bind operations to the port[1]
-+		 * socket.
-+		 */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_2, 0));
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd);
-+	}
-+
-+	/* Creates a server socket 1. */
-+	sockfd_1 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_1);
-+
-+	/* Binds the socket 1 to address with port[0]. */
-+	ret = bind_variant(variant, sockfd_1, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Makes listening socket 1. */
-+	ret = listen(sockfd_1, BACKLOG);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	child_1 = fork();
-+	ASSERT_LE(0, child_1);
-+	if (child_1 == 0) {
-+		int child_sockfd, ret;
-+
-+		/* Closes listening socket for the child. */
-+		ASSERT_EQ(0, close(sockfd_1));
-+		/* Creates a stream client socket. */
-+		child_sockfd = create_socket_variant(variant, SOCK_STREAM);
-+		ASSERT_LE(0, child_sockfd);
-+
-+		/* Makes connection to the listening socket with port[0]. */
-+		ret = connect_variant(variant, child_sockfd, self, 0, false);
-+		if (variant->is_sandboxed) {
-+			ASSERT_EQ(0, ret);
-+		} else {
-+			ASSERT_EQ(0, ret);
-+		}
-+		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-+		return;
-+	}
-+	/* Accepts connection from the child 1. */
-+	new_fd = accept(sockfd_1, NULL, 0);
-+	ASSERT_LE(0, new_fd);
-+
-+	/* Closes connection. */
-+	ASSERT_EQ(0, close(new_fd));
-+
-+	/* Closes listening socket 1 for the parent. */
-+	ASSERT_EQ(0, close(sockfd_1));
-+
-+	ASSERT_EQ(child_1, waitpid(child_1, &status, 0));
-+	ASSERT_EQ(1, WIFEXITED(status));
-+	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
-+
-+	/* Creates a server socket 2. */
-+	sockfd_2 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_2);
-+
-+	/* Binds the socket 2 to address with port[1]. */
-+	ret = bind_variant(variant, sockfd_2, self, 1, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Makes listening socket 2. */
-+	ret = listen(sockfd_2, BACKLOG);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	child_2 = fork();
-+	ASSERT_LE(0, child_2);
-+	if (child_2 == 0) {
-+		int child_sockfd, ret;
-+
-+		/* Closes listening socket for the child. */
-+		ASSERT_EQ(0, close(sockfd_2));
-+		/* Creates a stream client socket. */
-+		child_sockfd = create_socket_variant(variant, SOCK_STREAM);
-+		ASSERT_LE(0, child_sockfd);
-+
-+		/* Makes connection to the listening socket with port[1]. */
-+		ret = connect_variant(variant, child_sockfd, self, 1, false);
-+		if (variant->is_sandboxed) {
-+			ASSERT_EQ(-1, ret);
-+			ASSERT_EQ(EACCES, errno);
-+		} else {
-+			ASSERT_EQ(0, ret);
-+		}
-+		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-+		return;
-+	}
-+
-+	if (!variant->is_sandboxed) {
-+		/* Accepts connection from the child 2. */
-+		new_fd = accept(sockfd_1, NULL, 0);
-+		ASSERT_LE(0, new_fd);
-+
-+		/* Closes connection. */
-+		ASSERT_EQ(0, close(new_fd));
-+	}
-+
-+	/* Closes listening socket 2 for the parent. */
-+	ASSERT_EQ(0, close(sockfd_2));
-+
-+	ASSERT_EQ(child_2, waitpid(child_2, &status, 0));
-+	ASSERT_EQ(1, WIFEXITED(status));
-+	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
-+}
-+
-+TEST_F_FORK(socket_standalone, bind_afunspec)
-+{
-+	int sockfd_unspec;
-+	struct sockaddr_in addr4_unspec;
-+	int ruleset_fd_net, ret;
-+
-+	addr4_unspec.sin_family = AF_UNSPEC;
-+	addr4_unspec.sin_port = htons(SOCK_PORT);
-+	addr4_unspec.sin_addr.s_addr = htonl(INADDR_ANY);
-+	memset(&addr4_unspec.sin_zero, '\0', 8);
-+
-+	struct landlock_ruleset_attr ruleset_attr_net = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+	struct landlock_net_service_attr net_service = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(SOCK_PORT),
-+	};
-+
-+	if (variant->is_sandboxed) {
-+		/* Creates ruleset for network access. */
-+		ruleset_fd_net = landlock_create_ruleset(
-+			&ruleset_attr_net, sizeof(ruleset_attr_net), 0);
-+		ASSERT_LE(0, ruleset_fd_net);
-+
-+		/* Adds a network rule. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd_net,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service, 0));
-+
-+		enforce_ruleset(_metadata, ruleset_fd_net);
-+		ASSERT_EQ(0, close(ruleset_fd_net));
-+	}
-+
-+	sockfd_unspec = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-+	ASSERT_LE(0, sockfd_unspec);
-+
-+	/* Binds a socket to port SOCK_PORT with INADDR_ANY address. */
-+	ret = bind(sockfd_unspec, &addr4_unspec, sizeof(addr4_unspec));
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Closes bounded socket. */
-+	ASSERT_EQ(0, close(sockfd_unspec));
-+
-+	/* Changes to a specific address. */
-+	addr4_unspec.sin_addr.s_addr = inet_addr(IP_ADDRESS_IPv4);
-+
-+	sockfd_unspec = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-+	ASSERT_LE(0, sockfd_unspec);
-+
-+	/* Binds a socket to port SOCK_PORT with the specific address. */
-+	ret = bind(sockfd_unspec, &addr4_unspec, sizeof(addr4_unspec));
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EAFNOSUPPORT, errno);
-+	} else {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EAFNOSUPPORT, errno);
-+	}
-+
-+	/* Closes bounded socket. */
-+	ASSERT_EQ(0, close(sockfd_unspec));
-+}
-+
-+TEST_F_FORK(socket, connect_afunspec)
-+{
-+	int sockfd;
-+	pid_t child;
-+	int status;
-+	int ruleset_fd_1, ruleset_fd_2;
-+	int ret;
-+
-+	struct landlock_ruleset_attr ruleset_attr_1 = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	struct landlock_ruleset_attr ruleset_attr_2 = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	if (variant->is_sandboxed) {
-+		ruleset_fd_1 = landlock_create_ruleset(
-+			&ruleset_attr_1, sizeof(ruleset_attr_1), 0);
-+		ASSERT_LE(0, ruleset_fd_1);
-+
-+		/* Allows bind operations to the port[0] socket. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd_1,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_1, 0));
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd_1);
-+	}
-+
-+	/* Creates a server socket 1. */
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+
-+	/* Binds the socket 1 to address with port[0]. */
-+	ret = bind_variant(variant, sockfd, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Makes connection to socket with port[0]. */
-+	ret = connect_variant(variant, sockfd, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	if (variant->is_sandboxed) {
-+		ruleset_fd_2 = landlock_create_ruleset(
-+			&ruleset_attr_2, sizeof(ruleset_attr_2), 0);
-+		ASSERT_LE(0, ruleset_fd_2);
-+
-+		/* Allows connect and bind operations to the port[0] socket. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd_2,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_2, 0));
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd_2);
-+	}
-+
-+	child = fork();
-+	ASSERT_LE(0, child);
-+	if (child == 0) {
-+		int ret;
-+
-+		/* Child tries to disconnect already connected socket. */
-+		ret = connect(sockfd, (struct sockaddr *)&addr_unspec,
-+			      sizeof(addr_unspec));
-+		if (variant->is_sandboxed) {
-+			ASSERT_EQ(0, ret);
-+		} else {
-+			ASSERT_EQ(0, ret);
-+		}
-+		_exit(_metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
-+		return;
-+	}
-+	/* Closes listening socket 1 for the parent. */
-+	ASSERT_EQ(0, close(sockfd));
-+
-+	ASSERT_EQ(child, waitpid(child, &status, 0));
-+	ASSERT_EQ(1, WIFEXITED(status));
-+	ASSERT_EQ(EXIT_SUCCESS, WEXITSTATUS(status));
-+}
-+
-+TEST_F_FORK(socket, ruleset_overlap)
-+{
-+	int sockfd;
-+	int one = 1;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	int ruleset_fd =
-+		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-+	ASSERT_LE(0, ruleset_fd);
-+
-+	/* Allows bind operations to the port[0] socket. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_1, 0));
-+	/* Allows connect and bind operations to the port[0] socket. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_2, 0));
-+
-+	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd);
-+
-+	/* Creates a server socket. */
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket to address with port[0]. */
-+	ASSERT_EQ(0, bind_variant(variant, sockfd, self, 0, false));
-+
-+	/* Makes connection to socket with port[0]. */
-+	ASSERT_EQ(0, connect_variant(variant, sockfd, self, 0, false));
-+
-+	/* Closes socket. */
-+	ASSERT_EQ(0, close(sockfd));
-+
-+	/* Creates another ruleset layer. */
-+	ruleset_fd =
-+		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
-+	ASSERT_LE(0, ruleset_fd);
-+
-+	/*
-+	 * Allows bind operations to the port[0] socket in
-+	 * the new ruleset layer.
-+	 */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_1, 0));
-+
-+	/* Enforces the new ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd);
-+
-+	/* Creates a server socket. */
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket to address with port[0]. */
-+	ASSERT_EQ(0, bind_variant(variant, sockfd, self, 0, false));
-+
-+	/*
-+	 * Forbids to connect the socket to address with port[0],
-+	 * as just one ruleset layer has connect() access rule.
-+	 */
-+	ASSERT_EQ(-1, connect_variant(variant, sockfd, self, 0, false));
-+	ASSERT_EQ(EACCES, errno);
-+
-+	/* Closes socket. */
-+	ASSERT_EQ(0, close(sockfd));
-+}
-+
-+TEST_F_FORK(socket, ruleset_expanding)
-+{
-+	int sockfd_1, sockfd_2;
-+	int one = 1;
-+
-+	struct landlock_ruleset_attr ruleset_attr_1 = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP,
-+	};
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	const int ruleset_fd_1 = landlock_create_ruleset(
-+		&ruleset_attr_1, sizeof(ruleset_attr_1), 0);
-+	ASSERT_LE(0, ruleset_fd_1);
-+
-+	/* Adds rule to port[0] socket. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_1, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_1, 0));
-+
-+	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd_1);
-+	ASSERT_EQ(0, close(ruleset_fd_1));
-+
-+	/* Creates a socket 1. */
-+	sockfd_1 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_1);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd_1, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket 1 to address with port[0]. */
-+	ASSERT_EQ(0, bind_variant(variant, sockfd_1, self, 0, false));
-+
-+	/* Makes connection to socket 1 with port[0]. */
-+	ASSERT_EQ(0, connect_variant(variant, sockfd_1, self, 0, false));
-+
-+	/* Closes socket 1. */
-+	ASSERT_EQ(0, close(sockfd_1));
-+
-+	/* Creates a socket 2. */
-+	sockfd_2 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_2);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd_2, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/*
-+	 * Forbids to bind the socket 2 to address with port[1],
-+	 * since there is no rule with bind() access for port[1].
-+	 */
-+	ASSERT_EQ(-1, bind_variant(variant, sockfd_2, self, 1, false));
-+	ASSERT_EQ(EACCES, errno);
-+
-+	/* Expands network mask. */
-+	struct landlock_ruleset_attr ruleset_attr_2 = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+
-+	/* Adds connect() access to port[0]. */
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+	/* Adds bind() access to port[1]. */
-+	struct landlock_net_service_attr net_service_3 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(self->port[1]),
-+	};
-+
-+	const int ruleset_fd_2 = landlock_create_ruleset(
-+		&ruleset_attr_2, sizeof(ruleset_attr_2), 0);
-+	ASSERT_LE(0, ruleset_fd_2);
-+
-+	/* Adds rule to port[0] socket. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_2, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_2, 0));
-+	/* Adds rule to port[1] socket. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_2, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_3, 0));
-+
-+	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd_2);
-+	ASSERT_EQ(0, close(ruleset_fd_2));
-+
-+	/* Creates a socket 1. */
-+	sockfd_1 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_1);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd_1, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket 1 to address with port[0]. */
-+	ASSERT_EQ(0, bind_variant(variant, sockfd_1, self, 0, false));
-+
-+	/* Makes connection to socket 1 with port[0]. */
-+	ASSERT_EQ(0, connect_variant(variant, sockfd_1, self, 0, false));
-+
-+	/* Closes socket 1. */
-+	ASSERT_EQ(0, close(sockfd_1));
-+
-+	/* Creates a socket 2. */
-+	sockfd_2 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_2);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd_2, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/*
-+	 * Forbids to bind the socket 2 to address with port[1],
-+	 * because just one layer has bind() access rule.
-+	 */
-+	ASSERT_EQ(-1, bind_variant(variant, sockfd_1, self, 1, false));
-+	ASSERT_EQ(EACCES, errno);
-+
-+	/* Expands network mask. */
-+	struct landlock_ruleset_attr ruleset_attr_3 = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+
-+	/* Restricts connect() access to port[0]. */
-+	struct landlock_net_service_attr net_service_4 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	const int ruleset_fd_3 = landlock_create_ruleset(
-+		&ruleset_attr_3, sizeof(ruleset_attr_3), 0);
-+	ASSERT_LE(0, ruleset_fd_3);
-+
-+	/* Adds rule to port[0] socket. */
-+	ASSERT_EQ(0, landlock_add_rule(ruleset_fd_3, LANDLOCK_RULE_NET_SERVICE,
-+				       &net_service_4, 0));
-+
-+	/* Enforces the ruleset. */
-+	enforce_ruleset(_metadata, ruleset_fd_3);
-+	ASSERT_EQ(0, close(ruleset_fd_3));
-+
-+	/* Creates a socket 1. */
-+	sockfd_1 = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd_1);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd_1, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket 1 to address with port[0]. */
-+	ASSERT_EQ(0, bind_variant(variant, sockfd_1, self, 0, false));
-+
-+	/*
-+	 * Forbids to connect the socket 1 to address with port[0],
-+	 * as just one layer has connect() access rule.
-+	 */
-+	ASSERT_EQ(-1, connect_variant(variant, sockfd_1, self, 0, false));
-+	ASSERT_EQ(EACCES, errno);
-+
-+	/* Closes socket 1. */
-+	ASSERT_EQ(0, close(sockfd_1));
-+}
-+
-+/* clang-format off */
-+
-+#define ACCESS_LAST LANDLOCK_ACCESS_NET_CONNECT_TCP
-+
-+#define ACCESS_ALL ( \
-+	LANDLOCK_ACCESS_NET_BIND_TCP | \
-+	LANDLOCK_ACCESS_NET_CONNECT_TCP)
-+
-+/* clang-format on */
-+
-+TEST_F_FORK(socket_standalone, inval)
-+{
-+	__u64 access;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP
-+	};
-+	struct landlock_ruleset_attr ruleset_attr_inval = {
-+		.handled_access_net = LANDLOCK_INVAL_ATTR
-+	};
-+	struct landlock_ruleset_attr ruleset_attr_all = { .handled_access_net =
-+								  ACCESS_ALL };
-+
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+		.port = htons(self->port[0]),
-+	};
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = 0,
-+	};
-+	struct landlock_net_service_attr net_service_3 = {
-+		.allowed_access = 0,
-+		.port = htons(self->port[1]),
-+	};
-+	struct landlock_net_service_attr net_service_4 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		.port = htons(self->port[2]),
-+	};
-+
-+	struct landlock_net_service_attr net_service_5 = {};
-+
-+	if (variant->is_sandboxed) {
-+		/* Checks invalid ruleset attribute. */
-+		const int ruleset_fd_inv = landlock_create_ruleset(
-+			&ruleset_attr_inval, sizeof(ruleset_attr_inval), 0);
-+		ASSERT_EQ(-1, ruleset_fd_inv);
-+		ASSERT_EQ(EINVAL, errno);
-+
-+		/* Gets ruleset. */
-+		const int ruleset_fd = landlock_create_ruleset(
-+			&ruleset_attr, sizeof(ruleset_attr), 0);
-+		ASSERT_LE(0, ruleset_fd);
-+
-+		/* Checks unhandled allowed_access. */
-+		ASSERT_EQ(-1, landlock_add_rule(ruleset_fd,
-+						LANDLOCK_RULE_NET_SERVICE,
-+						&net_service_1, 0));
-+		ASSERT_EQ(EINVAL, errno);
-+
-+		/* Checks zero port value. */
-+		ASSERT_EQ(-1, landlock_add_rule(ruleset_fd,
-+						LANDLOCK_RULE_NET_SERVICE,
-+						&net_service_2, 0));
-+		ASSERT_EQ(EINVAL, errno);
-+
-+		/* Checks zero access value. */
-+		ASSERT_EQ(-1, landlock_add_rule(ruleset_fd,
-+						LANDLOCK_RULE_NET_SERVICE,
-+						&net_service_3, 0));
-+		ASSERT_EQ(ENOMSG, errno);
-+
-+		/* Adds with legitimate values. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_4, 0));
-+
-+		const int ruleset_fd_all = landlock_create_ruleset(
-+			&ruleset_attr_all, sizeof(ruleset_attr_all), 0);
-+
-+		ASSERT_LE(0, ruleset_fd_all);
-+
-+		/* Tests access rights for all network rules */
-+		for (access = 1; access <= ACCESS_LAST; access <<= 1) {
-+			net_service_5.allowed_access = access;
-+			net_service_5.port = htons(self->port[3]);
-+
-+			ASSERT_EQ(0,
-+				  landlock_add_rule(ruleset_fd_all,
-+						    LANDLOCK_RULE_NET_SERVICE,
-+						    &net_service_5, 0));
-+		}
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd);
-+		ASSERT_EQ(0, close(ruleset_fd));
-+
-+		enforce_ruleset(_metadata, ruleset_fd_all);
-+		ASSERT_EQ(0, close(ruleset_fd_all));
-+	}
-+}
-+
-+TEST_F_FORK(socket, bind_connect_inval_addrlen)
-+{
-+	int sockfd;
-+	int ruleset_fd, ret;
-+	int one = 1;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+
-+	struct landlock_net_service_attr net_service = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+
-+		.port = htons(self->port[0]),
-+	};
-+
-+	if (variant->is_sandboxed) {
-+		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-+						     sizeof(ruleset_attr), 0);
-+		ASSERT_LE(0, ruleset_fd);
-+
-+		/* Allows bind/connect actions for socket with SOCK_PORT. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service, 0));
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd);
-+	}
-+
-+	/* Creates a socket 1. */
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket to port[0] with zero addrlen. */
-+	ret = bind_variant(variant, sockfd, self, 0, true);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EINVAL, errno);
-+	} else {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EINVAL, errno);
-+	}
-+
-+	/* Connects the socket to the listening port with zero addrlen. */
-+	ret = connect_variant(variant, sockfd, self, 0, true);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EINVAL, errno);
-+	} else {
-+		ASSERT_EQ(-1, ret);
-+		ASSERT_EQ(EINVAL, errno);
-+	}
-+
-+	/* Binds the socket to port[0] with correct addrlen. */
-+	ret = bind_variant(variant, sockfd, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Connects the socket to the listening port with correct addrlen. */
-+	ret = connect_variant(variant, sockfd, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		ASSERT_EQ(0, ret);
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Closes the connection*/
-+	ASSERT_EQ(0, close(sockfd));
-+}
-+
-+TEST_F_FORK(socket, inval_port_format)
-+{
-+	int sockfd;
-+	int ruleset_fd, ret;
-+	int one = 1;
-+	bool little_endian = false;
-+	unsigned int i = 1;
-+
-+	struct landlock_ruleset_attr ruleset_attr = {
-+		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
-+				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+	};
-+
-+	struct landlock_net_service_attr net_service_1 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		/* Wrong port format. */
-+		.port = self->port[0],
-+	};
-+
-+	struct landlock_net_service_attr net_service_2 = {
-+		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-+		/* Correct port format. */
-+		.port = htons(self->port[1]),
-+	};
-+
-+	if (variant->is_sandboxed) {
-+		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
-+						     sizeof(ruleset_attr), 0);
-+		ASSERT_LE(0, ruleset_fd);
-+
-+		/* Allows bind/connect actions for socket with wrong port. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_1, 0));
-+
-+		/* Allows bind/connect actions for socket with correct port. */
-+		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
-+					       LANDLOCK_RULE_NET_SERVICE,
-+					       &net_service_2, 0));
-+
-+		/* Enforces the ruleset. */
-+		enforce_ruleset(_metadata, ruleset_fd);
-+	}
-+
-+	/* Checks endianness. */
-+	char *c = (char *)&i;
-+	if (*c)
-+		little_endian = true;
-+
-+	/* Creates a socket 1. */
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket to port[0] with wrong format . */
-+	ret = bind_variant(variant, sockfd, self, 0, false);
-+	if (variant->is_sandboxed) {
-+		if (little_endian) {
-+			ASSERT_EQ(-1, ret);
-+			ASSERT_EQ(EACCES, errno);
-+		} else {
-+			/* No error for big-endinan cpu by default. */
-+			ASSERT_EQ(0, ret);
-+		}
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Closes the connection*/
-+	ASSERT_EQ(0, close(sockfd));
-+
-+	sockfd = create_socket_variant(variant, SOCK_STREAM);
-+	ASSERT_LE(0, sockfd);
-+	/* Allows to reuse of local address. */
-+	ASSERT_EQ(0, setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &one,
-+				sizeof(one)));
-+
-+	/* Binds the socket to port[1] with correct format. */
-+	ret = bind_variant(variant, sockfd, self, 1, false);
-+	if (variant->is_sandboxed) {
-+		if (little_endian) {
-+			ASSERT_EQ(0, ret);
-+		} else {
-+			/* No error for big-endinan cpu by default. */
-+			ASSERT_EQ(0, ret);
-+		}
-+	} else {
-+		ASSERT_EQ(0, ret);
-+	}
-+
-+	/* Closes the connection*/
-+	ASSERT_EQ(0, close(sockfd));
-+}
-+TEST_HARNESS_MAIN
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index d88b92a8ffca..2b2c549ba678 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -424,22 +424,29 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
+ 	for_each_sctp_chunk (skb, sch, _sch, offset, dataoff, count) {
+ 		/* Special cases of Verification tag check (Sec 8.5.1) */
+ 		if (sch->type == SCTP_CID_INIT) {
+-			/* Sec 8.5.1 (A) */
++			/* (A) vtag MUST be zero */
+ 			if (sh->vtag != 0)
+ 				goto out_unlock;
+ 		} else if (sch->type == SCTP_CID_ABORT) {
+-			/* Sec 8.5.1 (B) */
+-			if (sh->vtag != ct->proto.sctp.vtag[dir] &&
+-			    sh->vtag != ct->proto.sctp.vtag[!dir])
++			/* (B) vtag MUST match own vtag if T flag is unset OR
++			 * MUST match peer's vtag if T flag is set
++			 */
++			if ((!(sch->flags & SCTP_CHUNK_FLAG_T) &&
++			     sh->vtag != ct->proto.sctp.vtag[dir]) ||
++			    ((sch->flags & SCTP_CHUNK_FLAG_T) &&
++			     sh->vtag != ct->proto.sctp.vtag[!dir]))
+ 				goto out_unlock;
+ 		} else if (sch->type == SCTP_CID_SHUTDOWN_COMPLETE) {
+-			/* Sec 8.5.1 (C) */
+-			if (sh->vtag != ct->proto.sctp.vtag[dir] &&
+-			    sh->vtag != ct->proto.sctp.vtag[!dir] &&
+-			    sch->flags & SCTP_CHUNK_FLAG_T)
++			/* (C) vtag MUST match own vtag if T flag is unset OR
++			 * MUST match peer's vtag if T flag is set
++			 */
++			if ((!(sch->flags & SCTP_CHUNK_FLAG_T) &&
++			     sh->vtag != ct->proto.sctp.vtag[dir]) ||
++			    ((sch->flags & SCTP_CHUNK_FLAG_T) &&
++			     sh->vtag != ct->proto.sctp.vtag[!dir]))
+ 				goto out_unlock;
+ 		} else if (sch->type == SCTP_CID_COOKIE_ECHO) {
+-			/* Sec 8.5.1 (D) */
++			/* (D) vtag must be same as init_vtag as found in INIT_ACK */
+ 			if (sh->vtag != ct->proto.sctp.vtag[dir])
+ 				goto out_unlock;
+ 		} else if (sch->type == SCTP_CID_HEARTBEAT) {
 -- 
-2.25.1
+2.34.1
 
