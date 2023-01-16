@@ -2,36 +2,36 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E64FC678DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Jan 2023 09:00:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CF4C678DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Jan 2023 09:00:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232586AbjAPJAS (ORCPT
+        id S232589AbjAPJAT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Jan 2023 04:00:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59778 "EHLO
+        Mon, 16 Jan 2023 04:00:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232498AbjAPI7m (ORCPT
+        with ESMTP id S232440AbjAPI7p (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Jan 2023 03:59:42 -0500
+        Mon, 16 Jan 2023 03:59:45 -0500
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1F88166D4;
-        Mon, 16 Jan 2023 00:58:35 -0800 (PST)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NwQnY47WNz6H73s;
-        Mon, 16 Jan 2023 16:54:41 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB6D3166D6;
+        Mon, 16 Jan 2023 00:58:49 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NwQsy3rDHz6J9Kp;
+        Mon, 16 Jan 2023 16:58:30 +0800 (CST)
 Received: from mscphis00759.huawei.com (10.123.66.134) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Mon, 16 Jan 2023 08:58:33 +0000
+ 15.1.2375.34; Mon, 16 Jan 2023 08:58:47 +0000
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>
-Subject: [PATCH v9 04/12] landlock: Refactor merge/inherit_ruleset functions
-Date:   Mon, 16 Jan 2023 16:58:10 +0800
-Message-ID: <20230116085818.165539-5-konstantin.meskhidze@huawei.com>
+Subject: [PATCH v9 11/12] samples/landlock: Add network demo
+Date:   Mon, 16 Jan 2023 16:58:17 +0800
+Message-ID: <20230116085818.165539-12-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
 References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
@@ -46,214 +46,268 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Refactor merge_ruleset() and inherit_ruleset() functions to support
-new rule types. This patch adds merge_tree() and inherit_tree()
-helpers. They use a specific ruleset's red-black tree according to
-a key type argument.
+This commit adds network demo. It's possible to allow a sandboxer to
+bind/connect to a list of particular ports restricting network
+actions to the rest of ports.
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v8:
-* Refactors commit message.
+* Converts ports to __be16.
 * Minor fixes.
 
 Changes since v7:
-* Adds missed lockdep_assert_held it inherit_tree() and merge_tree().
-* Fixes comment.
+* Removes network support if ABI < 4.
+* Removes network support if not set by a user.
 
 Changes since v6:
-* Refactors merge_ruleset() and inherit_ruleset() functions to support
-  new rule types.
-* Renames tree_merge() to merge_tree() (and reorder arguments), and
-  tree_copy() to inherit_tree().
+* Removes network support if ABI < 3.
 
 Changes since v5:
-* Refactors some logic errors.
+* Makes network ports sandboxing optional.
+* Fixes some logic errors.
 * Formats code with clang-format-14.
 
 Changes since v4:
-* None
+* Adds ENV_TCP_BIND_NAME "LL_TCP_BIND" and
+ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT" variables
+to insert TCP ports.
+* Renames populate_ruleset() to populate_ruleset_fs().
+* Adds populate_ruleset_net() and parse_port_num() helpers.
+* Refactors main() to support network sandboxing.
 
 ---
- security/landlock/ruleset.c | 108 ++++++++++++++++++++++++------------
- 1 file changed, 73 insertions(+), 35 deletions(-)
+ samples/landlock/sandboxer.c | 131 +++++++++++++++++++++++++++++++----
+ 1 file changed, 119 insertions(+), 12 deletions(-)
 
-diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
-index c5c88a100f74..3e1cffda128e 100644
---- a/security/landlock/ruleset.c
-+++ b/security/landlock/ruleset.c
-@@ -302,36 +302,22 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
- 	}
+diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
+index e2056c8b902c..e52aeb844f9e 100644
+--- a/samples/landlock/sandboxer.c
++++ b/samples/landlock/sandboxer.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #define _GNU_SOURCE
++#include <arpa/inet.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <linux/landlock.h>
+@@ -51,6 +52,8 @@ static inline int landlock_restrict_self(const int ruleset_fd,
+ 
+ #define ENV_FS_RO_NAME "LL_FS_RO"
+ #define ENV_FS_RW_NAME "LL_FS_RW"
++#define ENV_TCP_BIND_NAME "LL_TCP_BIND"
++#define ENV_TCP_CONNECT_NAME "LL_TCP_CONNECT"
+ #define ENV_PATH_TOKEN ":"
+ 
+ static int parse_path(char *env_path, const char ***const path_list)
+@@ -71,6 +74,20 @@ static int parse_path(char *env_path, const char ***const path_list)
+ 	return num_paths;
  }
  
--static int merge_ruleset(struct landlock_ruleset *const dst,
--			 struct landlock_ruleset *const src)
-+static int merge_tree(struct landlock_ruleset *const dst,
-+		      struct landlock_ruleset *const src,
-+		      const enum landlock_key_type key_type)
- {
- 	struct landlock_rule *walker_rule, *next_rule;
- 	struct rb_root *src_root;
- 	int err = 0;
- 
- 	might_sleep();
--	/* Should already be checked by landlock_merge_ruleset() */
--	if (WARN_ON_ONCE(!src))
--		return 0;
--	/* Only merge into a domain. */
--	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
--		return -EINVAL;
-+	lockdep_assert_held(&dst->lock);
-+	lockdep_assert_held(&src->lock);
- 
--	src_root = get_root(src, LANDLOCK_KEY_INODE);
-+	src_root = get_root(src, key_type);
- 	if (IS_ERR(src_root))
- 		return PTR_ERR(src_root);
- 
--	/* Locks @dst first because we are its only owner. */
--	mutex_lock(&dst->lock);
--	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
--
--	/* Stacks the new layer. */
--	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
--		err = -EINVAL;
--		goto out_unlock;
--	}
--	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
--
- 	/* Merges the @src tree. */
- 	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
- 					     node) {
-@@ -340,7 +326,7 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
- 		} };
- 		const struct landlock_id id = {
- 			.key = walker_rule->key,
--			.type = LANDLOCK_KEY_INODE,
-+			.type = key_type,
- 		};
- 
- 		if (WARN_ON_ONCE(walker_rule->num_layers != 1))
-@@ -351,8 +337,39 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
- 
- 		err = insert_rule(dst, id, &layers, ARRAY_SIZE(layers));
- 		if (err)
--			goto out_unlock;
-+			return err;
++static int parse_port_num(char *env_port)
++{
++	int i, num_ports = 0;
++
++	if (env_port) {
++		num_ports++;
++		for (i = 0; env_port[i]; i++) {
++			if (env_port[i] == ENV_PATH_TOKEN[0])
++				num_ports++;
++		}
 +	}
-+	return err;
++	return num_ports;
 +}
 +
-+static int merge_ruleset(struct landlock_ruleset *const dst,
-+			 struct landlock_ruleset *const src)
-+{
-+	int err = 0;
-+
-+	might_sleep();
-+	/* Should already be checked by landlock_merge_ruleset() */
-+	if (WARN_ON_ONCE(!src))
-+		return 0;
-+	/* Only merge into a domain. */
-+	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
-+		return -EINVAL;
-+
-+	/* Locks @dst first because we are its only owner. */
-+	mutex_lock(&dst->lock);
-+	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
-+
-+	/* Stacks the new layer. */
-+	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
-+		err = -EINVAL;
-+		goto out_unlock;
- 	}
-+	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
-+
-+	/* Merges the @src inode tree. */
-+	err = merge_tree(dst, src, LANDLOCK_KEY_INODE);
-+	if (err)
-+		goto out_unlock;
+ /* clang-format off */
  
- out_unlock:
- 	mutex_unlock(&src->lock);
-@@ -360,43 +377,64 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
- 	return err;
+ #define ACCESS_FILE ( \
+@@ -81,8 +98,8 @@ static int parse_path(char *env_path, const char ***const path_list)
+ 
+ /* clang-format on */
+ 
+-static int populate_ruleset(const char *const env_var, const int ruleset_fd,
+-			    const __u64 allowed_access)
++static int populate_ruleset_fs(const char *const env_var, const int ruleset_fd,
++			       const __u64 allowed_access)
+ {
+ 	int num_paths, i, ret = 1;
+ 	char *env_path_name;
+@@ -143,6 +160,48 @@ static int populate_ruleset(const char *const env_var, const int ruleset_fd,
+ 	return ret;
  }
  
--static int inherit_ruleset(struct landlock_ruleset *const parent,
--			   struct landlock_ruleset *const child)
-+static int inherit_tree(struct landlock_ruleset *const parent,
-+			struct landlock_ruleset *const child,
-+			const enum landlock_key_type key_type)
- {
- 	struct landlock_rule *walker_rule, *next_rule;
- 	struct rb_root *parent_root;
- 	int err = 0;
- 
- 	might_sleep();
--	if (!parent)
--		return 0;
-+	lockdep_assert_held(&parent->lock);
-+	lockdep_assert_held(&child->lock);
- 
--	parent_root = get_root(parent, LANDLOCK_KEY_INODE);
-+	parent_root = get_root(parent, key_type);
- 	if (IS_ERR(parent_root))
- 		return PTR_ERR(parent_root);
- 
--	/* Locks @child first because we are its only owner. */
--	mutex_lock(&child->lock);
--	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
--
--	/* Copies the @parent tree. */
-+	/* Copies the @parent inode or network tree. */
- 	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
- 					     parent_root, node) {
- 		const struct landlock_id id = {
- 			.key = walker_rule->key,
--			.type = LANDLOCK_KEY_INODE,
-+			.type = key_type,
- 		};
++static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
++				const __u64 allowed_access)
++{
++	int num_ports, i, ret = 1;
++	char *env_port_name;
++	struct landlock_net_service_attr net_service = {
++		.allowed_access = 0,
++		.port = 0,
++	};
 +
- 		err = insert_rule(child, id, &walker_rule->layers,
- 				  walker_rule->num_layers);
- 		if (err)
--			goto out_unlock;
-+			return err;
- 	}
-+	return err;
++	env_port_name = getenv(env_var);
++	if (!env_port_name) {
++		return 0;
++	}
++	env_port_name = strdup(env_port_name);
++	unsetenv(env_var);
++	num_ports = parse_port_num(env_port_name);
++
++	if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == NULL)) {
++		ret = 0;
++		goto out_free_name;
++	}
++
++	for (i = 0; i < num_ports; i++) {
++		net_service.allowed_access = allowed_access;
++		net_service.port =
++			htons(atoi(strsep(&env_port_name, ENV_PATH_TOKEN)));
++		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
++				      &net_service, 0)) {
++			fprintf(stderr,
++				"Failed to update the ruleset with port \"%d\": %s\n",
++				net_service.port, strerror(errno));
++			goto out_free_name;
++		}
++	}
++	ret = 0;
++
++out_free_name:
++	free(env_port_name);
++	return ret;
 +}
 +
-+static int inherit_ruleset(struct landlock_ruleset *const parent,
-+			   struct landlock_ruleset *const child)
-+{
-+	int err = 0;
-+
-+	might_sleep();
-+	if (!parent)
-+		return 0;
-+
-+	/* Locks @child first because we are its only owner. */
-+	mutex_lock(&child->lock);
-+	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
-+
-+	/* Copies the @parent inode tree. */
-+	err = inherit_tree(parent, child, LANDLOCK_KEY_INODE);
-+	if (err)
-+		goto out_unlock;
+ /* clang-format off */
  
- 	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
- 		err = -EINVAL;
- 		goto out_unlock;
+ #define ACCESS_FS_ROUGHLY_READ ( \
+@@ -166,39 +225,58 @@ static int populate_ruleset(const char *const env_var, const int ruleset_fd,
+ 
+ /* clang-format on */
+ 
+-#define LANDLOCK_ABI_LAST 3
++#define LANDLOCK_ABI_LAST 4
+ 
+ int main(const int argc, char *const argv[], char *const *const envp)
+ {
+ 	const char *cmd_path;
+ 	char *const *cmd_argv;
+ 	int ruleset_fd, abi;
++	char *env_port_name;
+ 	__u64 access_fs_ro = ACCESS_FS_ROUGHLY_READ,
+ 	      access_fs_rw = ACCESS_FS_ROUGHLY_READ | ACCESS_FS_ROUGHLY_WRITE;
++
+ 	struct landlock_ruleset_attr ruleset_attr = {
+ 		.handled_access_fs = access_fs_rw,
++		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
++				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+ 	};
+ 
+ 	if (argc < 2) {
+ 		fprintf(stderr,
+-			"usage: %s=\"...\" %s=\"...\" %s <cmd> [args]...\n\n",
+-			ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
++			"usage: %s=\"...\" %s=\"...\" %s=\"...\" %s=\"...\"%s "
++			"<cmd> [args]...\n\n",
++			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
++			ENV_TCP_CONNECT_NAME, argv[0]);
+ 		fprintf(stderr,
+ 			"Launch a command in a restricted environment.\n\n");
+-		fprintf(stderr, "Environment variables containing paths, "
+-				"each separated by a colon:\n");
++		fprintf(stderr,
++			"Environment variables containing paths and ports "
++			"each separated by a colon:\n");
+ 		fprintf(stderr,
+ 			"* %s: list of paths allowed to be used in a read-only way.\n",
+ 			ENV_FS_RO_NAME);
+ 		fprintf(stderr,
+-			"* %s: list of paths allowed to be used in a read-write way.\n",
++			"* %s: list of paths allowed to be used in a read-write way.\n\n",
+ 			ENV_FS_RW_NAME);
++		fprintf(stderr,
++			"Environment variables containing ports are optional "
++			"and could be skipped.\n");
++		fprintf(stderr,
++			"* %s: list of ports allowed to bind (server).\n",
++			ENV_TCP_BIND_NAME);
++		fprintf(stderr,
++			"* %s: list of ports allowed to connect (client).\n",
++			ENV_TCP_CONNECT_NAME);
+ 		fprintf(stderr,
+ 			"\nexample:\n"
+ 			"%s=\"/bin:/lib:/usr:/proc:/etc:/dev/urandom\" "
+ 			"%s=\"/dev/null:/dev/full:/dev/zero:/dev/pts:/tmp\" "
++			"%s=\"9418\" "
++			"%s=\"80:443\" "
+ 			"%s bash -i\n\n",
+-			ENV_FS_RO_NAME, ENV_FS_RW_NAME, argv[0]);
++			ENV_FS_RO_NAME, ENV_FS_RW_NAME, ENV_TCP_BIND_NAME,
++			ENV_TCP_CONNECT_NAME, argv[0]);
+ 		fprintf(stderr,
+ 			"This sandboxer can use Landlock features "
+ 			"up to ABI version %d.\n",
+@@ -255,7 +333,12 @@ int main(const int argc, char *const argv[], char *const *const envp)
+ 	case 2:
+ 		/* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
+ 		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
+-
++		__attribute__((fallthrough));
++	case 3:
++		/* Removes network support for ABI < 4 */
++		ruleset_attr.handled_access_net &=
++			~(LANDLOCK_ACCESS_NET_BIND_TCP |
++			  LANDLOCK_ACCESS_NET_CONNECT_TCP);
+ 		fprintf(stderr,
+ 			"Hint: You should update the running kernel "
+ 			"to leverage Landlock features "
+@@ -274,18 +357,42 @@ int main(const int argc, char *const argv[], char *const *const envp)
+ 	access_fs_ro &= ruleset_attr.handled_access_fs;
+ 	access_fs_rw &= ruleset_attr.handled_access_fs;
+ 
++	/* Removes bind access attribute if not supported by a user. */
++	env_port_name = getenv(ENV_TCP_BIND_NAME);
++	if (!env_port_name) {
++		ruleset_attr.handled_access_net &=
++			~LANDLOCK_ACCESS_NET_BIND_TCP;
++	}
++	/* Removes connect access attribute if not supported by a user. */
++	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
++	if (!env_port_name) {
++		ruleset_attr.handled_access_net &=
++			~LANDLOCK_ACCESS_NET_CONNECT_TCP;
++	}
++
+ 	ruleset_fd =
+ 		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+ 	if (ruleset_fd < 0) {
+ 		perror("Failed to create a ruleset");
+ 		return 1;
  	}
--	/* Copies the parent layer stack and leaves a space for the new layer. */
-+	/*
-+	 * Copies the parent layer stack and leaves a space
-+	 * for the new layer.
-+	 */
- 	memcpy(child->access_masks, parent->access_masks,
- 	       flex_array_size(parent, access_masks, parent->num_layers));
- 
+-	if (populate_ruleset(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
++
++	if (populate_ruleset_fs(ENV_FS_RO_NAME, ruleset_fd, access_fs_ro)) {
++		goto err_close_ruleset;
++	}
++	if (populate_ruleset_fs(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
+ 		goto err_close_ruleset;
+ 	}
+-	if (populate_ruleset(ENV_FS_RW_NAME, ruleset_fd, access_fs_rw)) {
++
++	if (populate_ruleset_net(ENV_TCP_BIND_NAME, ruleset_fd,
++				 LANDLOCK_ACCESS_NET_BIND_TCP)) {
+ 		goto err_close_ruleset;
+ 	}
++	if (populate_ruleset_net(ENV_TCP_CONNECT_NAME, ruleset_fd,
++				 LANDLOCK_ACCESS_NET_CONNECT_TCP)) {
++		goto err_close_ruleset;
++	}
++
+ 	if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+ 		perror("Failed to restrict privileges");
+ 		goto err_close_ruleset;
 -- 
 2.25.1
 
