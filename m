@@ -2,50 +2,84 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 834F5C3DA78
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 11:48:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D409C677F1
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 11:55:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235593AbjAQLsN (ORCPT
+        id S236918AbjAQLy6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 06:48:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60078 "EHLO
+        Tue, 17 Jan 2023 06:54:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236788AbjAQLsM (ORCPT
+        with ESMTP id S236941AbjAQLyo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 06:48:12 -0500
+        Tue, 17 Jan 2023 06:54:44 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B321F32E5A
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 03:48:11 -0800 (PST)
-Date:   Tue, 17 Jan 2023 12:48:08 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D8FC8367F5
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 03:54:43 -0800 (PST)
+Date:   Tue, 17 Jan 2023 12:54:40 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Sriram Yagnaraman <sriram.yagnaraman@est.tech>
 Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
         Marcelo Ricardo Leitner <mleitner@redhat.com>,
         Long Xin <lxin@redhat.com>,
         Claudio Porfiri <claudio.porfiri@ericsson.com>
-Subject: Re: [PATCH 2/3] netfilter: conntrack: fix bug in for_each_sctp_chunk
-Message-ID: <Y8aK+OmsbeaYRhO9@salvia>
+Subject: Re: [PATCH 3/3] netfilter: conntrack: unify established states for
+ SCTP paths
+Message-ID: <Y8aMgOo0XImPyS54@salvia>
 References: <20230116093556.9437-1-sriram.yagnaraman@est.tech>
- <20230116093556.9437-3-sriram.yagnaraman@est.tech>
+ <20230116093556.9437-4-sriram.yagnaraman@est.tech>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230116093556.9437-3-sriram.yagnaraman@est.tech>
+In-Reply-To: <20230116093556.9437-4-sriram.yagnaraman@est.tech>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jan 16, 2023 at 10:35:55AM +0100, Sriram Yagnaraman wrote:
-> skb_header_pointer() will return NULL if offset + sizeof(_sch) exceeds
-> skb->len, so this offset < skb->len test is redundant.
+On Mon, Jan 16, 2023 at 10:35:56AM +0100, Sriram Yagnaraman wrote:
+> An SCTP endpoint can start an association through a path and tear it
+> down over another one. That means the initial path will not see the
+> shutdown sequence, and the conntrack entry will remain in ESTABLISHED
+> state for 5 days.
 > 
-> if sch->length == 0, this will end up in an infinite loop, add a check
-> for sch->length > 0
+> By merging the HEARTBEAT_ACKED and ESTABLISHED states into one
+> ESTABLISHED state, there remains no difference between a primary or
+> secondary path. The timeout for the merged ESTABLISHED state is set to
+> 210 seconds (hb_interval * max_path_retrans + rto_max). So, even if a
+> path doesn't see the shutdown sequence, it will expire in a reasonable
+> amount of time.
+> 
+> Signed-off-by: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+> ---
+>  .../uapi/linux/netfilter/nf_conntrack_sctp.h  |  4 +-
+>  .../linux/netfilter/nfnetlink_cttimeout.h     |  4 +-
+>  net/netfilter/nf_conntrack_proto_sctp.c       | 90 ++++++++-----------
+>  net/netfilter/nf_conntrack_standalone.c       | 16 ----
+>  4 files changed, 42 insertions(+), 72 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_conntrack_sctp.h b/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+> index c742469afe21..150fc3c056ea 100644
+> --- a/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+> @@ -15,8 +15,8 @@ enum sctp_conntrack {
+>  	SCTP_CONNTRACK_SHUTDOWN_RECD,
+>  	SCTP_CONNTRACK_SHUTDOWN_ACK_SENT,
+>  	SCTP_CONNTRACK_HEARTBEAT_SENT,
+> -	SCTP_CONNTRACK_HEARTBEAT_ACKED,
+> -	SCTP_CONNTRACK_DATA_SENT,
+> +	SCTP_CONNTRACK_HEARTBEAT_ACKED,	/* no longer used */
+> +	SCTP_CONNTRACK_DATA_SENT,	/* no longer used */
 
-If this is broken since the beginning, then:
+_DATA_SENT was added in the previous development cycle, to my
+knowledged it has been present in 6.1-rc only. Then I think you can
+post a patch to revert this explaining why there is no need for
+_DATA_SENT anymore. You can revert it before this patch (with my
+suggestion, your series will contain with 4 patches).
 
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+One question of mine: Did you extract the new established timeout from
+RFC, where this formula came from?
 
-is sufficiently old for -stable kernels to pick up this.
+210 seconds = hb_interval * max_path_retrans + rto_max
 
-Let me know if this looks good to you, thanks
+And thanks, if this works for you, I prefer this incremental approach
+by improving the existing SCTP tracker.
