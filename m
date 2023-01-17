@@ -2,69 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D417AC63797
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 08:30:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A3EAC3DA78
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 10:42:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232712AbjAQIaq (ORCPT
+        id S236177AbjAQKm0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 03:30:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42082 "EHLO
+        Tue, 17 Jan 2023 05:42:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232611AbjAQIap (ORCPT
+        with ESMTP id S236116AbjAQKmK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 03:30:45 -0500
-Received: from mail.dufert24.com (mail.dufert24.com [38.242.205.183])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87D481350C
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 00:30:41 -0800 (PST)
-Received: by mail.dufert24.com (Postfix, from userid 1001)
-        id 08E73414ED; Tue, 17 Jan 2023 09:30:37 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=dufert24.com; s=mail;
-        t=1673944238; bh=oIICWKo9u1D1jW6PXE1Xkws2aZgemRr9S/HRdzov8s4=;
-        h=Date:From:To:Subject:From;
-        b=MKJB1kXBcPBA63tsy3ZNImNZdvLslZddf/7aN0fe8k/cEM2HCDHDHcQTk4qTa5aPf
-         7o/Xko2YcZ89S4snWKv76j2MLiwAHpj8sXV4PDzTT2F9XSEf3nvaYIlnFocn3HMtkl
-         kHx36ECxKB7RuHj73reK7OJjc2hsMH4JIoV7K6t/Mas54hc3RQJHNcVVpDbLM8Ckha
-         /LZWpFjVZZ5RPJ+wL5oddMsL8HUBpmrIq+xLYKD5/YWFd2OFV/jW41YczwZuRYvqpr
-         7pkuTfQgtB+A1gJB5T1hibUp0cLFNbkYGEJD3zd1gs2WF1qdd1rW8qmmtgDu1B7b6D
-         JgEk5BD2azwGQ==
-Received: by mail.dufert24.com for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 08:30:37 GMT
-Message-ID: <20230117084500-0.1.1f.4v75.0.huj1zff524@dufert24.com>
-Date:   Tue, 17 Jan 2023 08:30:37 GMT
-From:   "Nikolaus Mazal" <nikolaus.mazal@dufert24.com>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: =?UTF-8?Q?Dropshipping_-_spolupr=C3=A1ce?=
-X-Mailer: mail.dufert24.com
+        Tue, 17 Jan 2023 05:42:10 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24B8F9026
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 02:41:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1673952085;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=eLsm4I1RN3rXt9KqXrX9BEa28739TyjlzSWMCMGrCoY=;
+        b=Wsk0Y6BiJARkB1p+WnrGVOSQf1e4xVIPApw2a6UwBrtsw6nQCvUqOwo5KZ1nQsxq3VggTh
+        viThc8Hw6sE2XSoIC3iCKJ681dtB/BIyajyZ9nzysUN/gDAjDaCHziXAE5HxBnYbU0MhAD
+        TU27nIXqdV+z/TXfn+aYSlEBemSjp1M=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-590-KX7zlMp0PMqtm5yycmr8rg-1; Tue, 17 Jan 2023 05:41:22 -0500
+X-MC-Unique: KX7zlMp0PMqtm5yycmr8rg-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D5D8F1869B6F;
+        Tue, 17 Jan 2023 10:41:21 +0000 (UTC)
+Received: from maya.cloud.tilaa.com (ovpn-208-4.brq.redhat.com [10.40.208.4])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9CF941121315;
+        Tue, 17 Jan 2023 10:41:21 +0000 (UTC)
+Date:   Tue, 17 Jan 2023 11:41:10 +0100
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH nf 2/2] netfilter: nft_set_rbtree: skip elements in
+ transaction from garbage collection
+Message-ID: <20230117114110.550b388e@elisabeth>
+In-Reply-To: <20230114231047.948785-3-pablo@netfilter.org>
+References: <20230114231047.948785-1-pablo@netfilter.org>
+        <20230114231047.948785-3-pablo@netfilter.org>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dobr=C3=A9 r=C3=A1no,
+On Sun, 15 Jan 2023 00:10:47 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Prost=C5=99ednictv=C3=ADm syst=C3=A9mu dropshippingov=C3=A9ho prodeje pod=
-porujeme podnikatele ji=C5=BE 20 let.
+> Skip interference with an ongoing transaction, do not perform garbage
+> collection on inactive elements. Reset annotated previous end interval
+> if the expired element is marked as busy (control plane removed the
+> element right before expiration).
+> 
+> Fixes: 8d8540c4f5e0 ("netfilter: nft_set_rbtree: add timeout support")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Hled=C3=A1me partnery pro spolupr=C3=A1ci zam=C4=9B=C5=99enou na konkr=C3=
-=A9tn=C3=AD zisky z prodeje modern=C3=ADch produkt=C5=AF na platform=C4=9B=
- Amazon nebo jin=C3=A9m tr=C5=BEi=C5=A1ti =E2=80=93 bez nutnosti m=C3=ADt=
- sklad, nakupovat zbo=C5=BE=C3=AD na sklad a p=C5=99ipravovat z=C3=A1silk=
-y pro z=C3=A1kazn=C3=ADky.
-=20
-Vyr=C3=A1b=C3=ADme na zak=C3=A1zku rolety, obrazy, tapety a dal=C5=A1=C3=AD=
- ti=C5=A1t=C4=9Bn=C3=A9 dekora=C4=8Dn=C3=AD prvky, kter=C3=A9 jsou mezi o=
-bdarovan=C3=BDmi velmi obl=C3=ADben=C3=A9. Za pouh=C3=BD m=C4=9Bs=C3=ADc =
-=C4=8Dinil prodej rolet na n=C4=9Bmeck=C3=A9m trhu Amazon 12 500 000 EUR.
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 
-Poskytujeme produkty nejvy=C5=A1=C5=A1=C3=AD kvality, neomezen=C3=A9 skla=
-dov=C3=A9 z=C3=A1soby, spr=C3=A1vn=C4=9B organizovanou logistiku po cel=C3=
-=A9 Evrop=C4=9B, prodejn=C3=AD materi=C3=A1ly a podporu supervizora p=C5=99=
-i spolupr=C3=A1ci.
+-- 
+Stefano
 
-M=C3=A1te z=C3=A1jem diskutovat o mo=C5=BEnosti nav=C3=A1z=C3=A1n=C3=AD s=
-polupr=C3=A1ce?
-
-
-Pozdravy
-Nikolaus Mazal
