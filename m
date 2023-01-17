@@ -2,57 +2,57 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC084C3DA78
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 18:00:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4BFCC54E76
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 18:21:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229863AbjAQSAW (ORCPT
+        id S232287AbjAQSUr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 13:00:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40328 "EHLO
+        Tue, 17 Jan 2023 13:20:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232233AbjAQR47 (ORCPT
+        with ESMTP id S232083AbjAQSQg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 12:56:59 -0500
-Received: from mail-oa1-x32.google.com (mail-oa1-x32.google.com [IPv6:2001:4860:4864:20::32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 622FD521CF;
-        Tue, 17 Jan 2023 09:47:57 -0800 (PST)
-Received: by mail-oa1-x32.google.com with SMTP id 586e51a60fabf-15eec491b40so11820455fac.12;
-        Tue, 17 Jan 2023 09:47:57 -0800 (PST)
+        Tue, 17 Jan 2023 13:16:36 -0500
+Received: from mail-oa1-x2b.google.com (mail-oa1-x2b.google.com [IPv6:2001:4860:4864:20::2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C88013D7B;
+        Tue, 17 Jan 2023 09:56:03 -0800 (PST)
+Received: by mail-oa1-x2b.google.com with SMTP id 586e51a60fabf-15ed38a9b04so14139503fac.8;
+        Tue, 17 Jan 2023 09:56:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ni99ePUt0vzhCDQEc2vcK8aOMav7LfPyZHSW24Ez63s=;
-        b=L4CERME+NHxYyqNwqbFe6tRfSn/ojOSZ7sa0VZF0em849hDV4zqBO1vj0a+VOrMuCZ
-         G2bRnm1Kgi30nSHZL+LcuoB7/ViLbTxIOKHjKGa1BnbmDRALV2PUgNoXcbRLyfpNzWPW
-         tTi99Qe+LTNu/wnnke0MdAcxVhGQ2ZDTtzvUqKXWgV9FhPeif92xnP8OrJffjGaoqwXC
-         vli3OvFF79pmqP6eIj/YbHgoWUaNrMI98J6mjidTP/PAkaaJLv39OO7A34z/n8BDFWHf
-         eM6NWAJSktQKvV26CbGQkm6H24Dab15Ne7FYG9OQcTnsUFkhWk1klP9KGnSKlGWPbZGh
-         rm6w==
+        bh=9IlUKtg67WFHhkdxrMspMIs9DEEubADNV/QnJwEw5iM=;
+        b=BH1H8e0iFd3U3lGNKZ65Wthjuj/KzQEC78iWPew2JknalpEOniWZPecgkSmTctf+0U
+         YFUKzdiycyrUYcVvJFg1l/jXwTPcanaXxiIgQPovXBGgJXV6w9FhTRFgb4ajeNHT3PaC
+         dhzIBeLXCxt8idgPtSv93pF6qRfduYGGyRLWpgsPLdjJn/Egl7zOQJXjKXEXhtze9zl8
+         S+tEuTFgtNOdoOGf0CHKFXXKqTqPzLcAImYjgfY4KAyXoRs+9GfYiIblmxRDhrIvVJm+
+         3QSn8Ff3fRwob+/IMc8TPIqIwEGBafGVt+uYeycWDF2dQKVPSfrLoH4j0aL359fliTBu
+         au+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ni99ePUt0vzhCDQEc2vcK8aOMav7LfPyZHSW24Ez63s=;
-        b=V3/gWJTzGpqADqfPnQSbZGZO8CnUujViyqdpisx97FGjGe+TNJn2DTJPKMo0gyGeFs
-         ow/QAxCQ9fQg0tKZs+CXH/KBqdffLsZwapojVTI1m4VJQ6s95MGu/HdNjj//13t+7F/r
-         jtHfIwx2U0vGYEO3wIRSeem2sj+QNKyN+ov/htAK98e451gPM1O3oAVdzHUO0A+xA9s8
-         BkC2N2XiNvmlomkA2WtRf3AiCJBcb+PxakneEJaiZDHyw8+7yDitTlqI2jcEDNk/5xqw
-         dyl7+8GAtpgkDbr7KgvAHVoFUqUD1K8n2aH528O4/OpjR1blmSnF90UwqqCA6Tvss7YE
-         6wwQ==
-X-Gm-Message-State: AFqh2krpj95c2MryA4q9Wz5ucUInMWC/E+UoCy79CsY4wmO9to99ojfE
-        IDxoopGWHgAsayaEv8nmQno=
-X-Google-Smtp-Source: AMrXdXszJzyenKu3zOnAH9lqAnrj7r4bO5158pguBWScVUuv89j/yR+4vdbMb1crOtGqUUFNluO8OQ==
-X-Received: by 2002:a05:6870:8c2c:b0:15f:385c:a94e with SMTP id ec44-20020a0568708c2c00b0015f385ca94emr1868748oab.43.1673977676529;
-        Tue, 17 Jan 2023 09:47:56 -0800 (PST)
+        bh=9IlUKtg67WFHhkdxrMspMIs9DEEubADNV/QnJwEw5iM=;
+        b=2SJX2HuEVLJWU7vjCWP/MwZ/gdtJMJF0phVW5uGX+QxEwaMYRch9Hd54ySIv1nnSOc
+         SZuTPjKEFxJdMzTt1ckSGxmzn670chxr96sx+Jcn0w1P2aGmQr8jZWTY7fn4ccpfx6OI
+         C1GOAcpuMiywk6+8u3V9nJbyzbtMfsv9QAXi4M8SHp3ic8KxUVjrbM/BQbeWT9nSfCJH
+         FbpBtnKzPiPKDMNAzJf12RZEddg0L9iAWAFf0cv/gIdthIZ0ohN+iCD1cSvV3Tw7hxvT
+         M6rhIhj3jo1RGrfcO6G1MpXVy6B7TCw8zim47nMeCqBJ5BtR0Z82yVdwVmZ5NbV/y/eS
+         O4dQ==
+X-Gm-Message-State: AFqh2kp9SVSGOJoT0RY7efoh8HxUkYPZOQKkQC4zuel7WPC5FkrFwBsN
+        xx7AujD9iDVJQWwnQFY6I7M=
+X-Google-Smtp-Source: AMrXdXshPEuudK8JIYcvtVdyDSVORV3+AIYWbvq0bK5Na6Isk7jUsaLdczkrngYtOtKrlfLsDUb9EA==
+X-Received: by 2002:a05:6870:970f:b0:150:c89a:cc23 with SMTP id n15-20020a056870970f00b00150c89acc23mr14579259oaq.59.1673978162505;
+        Tue, 17 Jan 2023 09:56:02 -0800 (PST)
 Received: from t14s.localdomain ([177.220.174.155])
-        by smtp.gmail.com with ESMTPSA id q187-20020a4a4bc4000000b004a3c359fdaesm15282820ooa.30.2023.01.17.09.47.55
+        by smtp.gmail.com with ESMTPSA id fp18-20020a056870659200b0010d7242b623sm13114771oab.21.2023.01.17.09.56.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Jan 2023 09:47:56 -0800 (PST)
+        Tue, 17 Jan 2023 09:56:02 -0800 (PST)
 Received: by t14s.localdomain (Postfix, from userid 1000)
-        id 2C4734AD246; Tue, 17 Jan 2023 14:47:54 -0300 (-03)
-Date:   Tue, 17 Jan 2023 14:47:54 -0300
+        id 610C44AD24E; Tue, 17 Jan 2023 14:56:00 -0300 (-03)
+Date:   Tue, 17 Jan 2023 14:56:00 -0300
 From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 To:     Vlad Buslov <vladbu@nvidia.com>
 Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
@@ -60,180 +60,186 @@ Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, jhs@mojatatu.com,
         xiyou.wangcong@gmail.com, jiri@resnulli.us, ozsh@nvidia.com,
         simon.horman@corigine.com
-Subject: Re: [PATCH net-next v2 4/7] netfilter: flowtable: allow updating
- offloaded rules asynchronously
-Message-ID: <Y8bfSksS/29SgkPJ@t14s.localdomain>
+Subject: Re: [PATCH net-next v2 6/7] net/sched: act_ct: offload UDP NEW
+ connections
+Message-ID: <Y8bhMMvqylw+TbZv@t14s.localdomain>
 References: <20230113165548.2692720-1-vladbu@nvidia.com>
- <20230113165548.2692720-5-vladbu@nvidia.com>
- <Y8a+qBjcr7KuPf+e@t14s.localdomain>
- <875yd5cbcl.fsf@nvidia.com>
+ <20230113165548.2692720-7-vladbu@nvidia.com>
+ <Y8bBs4668C9r5oTT@t14s.localdomain>
+ <871qntcb14.fsf@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <875yd5cbcl.fsf@nvidia.com>
+In-Reply-To: <871qntcb14.fsf@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 17, 2023 at 07:33:31PM +0200, Vlad Buslov wrote:
+On Tue, Jan 17, 2023 at 07:36:42PM +0200, Vlad Buslov wrote:
 > 
-> On Tue 17 Jan 2023 at 12:28, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
-> > On Fri, Jan 13, 2023 at 05:55:45PM +0100, Vlad Buslov wrote:
-> >> Following patches in series need to update flowtable rule several times
-> >> during its lifetime in order to synchronize hardware offload with actual ct
-> >> status. However, reusing existing 'refresh' logic in act_ct would cause
-> >> data path to potentially schedule significant amount of spurious tasks in
-> >> 'add' workqueue since it is executed per-packet. Instead, introduce a new
-> >> flow 'update' flag and use it to schedule async flow refresh in flowtable
-> >> gc which will only be executed once per gc iteration.
+> On Tue 17 Jan 2023 at 12:41, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
+> > On Fri, Jan 13, 2023 at 05:55:47PM +0100, Vlad Buslov wrote:
+> >> When processing connections allow offloading of UDP connections that don't
+> >> have IPS_ASSURED_BIT set as unidirectional. When performing table lookup
+> >
+> > Hmm. Considering that this is now offloading one direction only
+> > already, what about skipping this grace period:
+> >
+> > In nf_conntrack_udp_packet(), it does:
+> >
+> >         /* If we've seen traffic both ways, this is some kind of UDP
+> >          * stream. Set Assured.
+> >          */
+> >         if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+> > 		...
+> >                 /* Still active after two seconds? Extend timeout. */
+> >                 if (time_after(jiffies, ct->proto.udp.stream_ts)) {
+> >                         extra = timeouts[UDP_CT_REPLIED];
+> >                         stream = true;
+> >                 }
+> > 		...
+> >                 /* Also, more likely to be important, and not a probe */
+> >                 if (stream && !test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+> >                         nf_conntrack_event_cache(IPCT_ASSURED, ct);
+> >
+> > Maybe the patch should be relying on IPS_SEEN_REPLY_BIT instead of
+> > ASSURED for UDP? Just a thought here, but I'm not seeing why not.
+> 
+> The issue with this is that if we offload both directions early, then
+> conntrack state machine will not receive any more packets and,
+> consecutively, will never change the flow state to assured. I guess that
+
+I'm missing how it would offload each direction independently.
+Wouldn't CT state machine see the 1st reply, because it is not
+offloaded yet, and match it to the original direction?
+
+> could be mitigated somehow by periodically checking the hw stats and
+> transitioning the flow to assured based on them, but as I said in
+> previous email we don't want to over-complicate this series even more.
+> Also, offloading to hardware isn't free and costs both memory and CPU,
+> so it is not like offloading as early as possible is strictly beneficial
+> for all cases...
+
+Yup.
+
+> 
+> >
+> >> for reply packets check the current connection status: If UDP
+> >> unidirectional connection became assured also promote the corresponding
+> >> flow table entry to bidirectional and set the 'update' bit, else just set
+> >> the 'update' bit since reply directional traffic will most likely cause
+> >> connection status to become 'established' which requires updating the
+> >> offload state.
 > >> 
 > >> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
 > >> ---
-> >>  include/net/netfilter/nf_flow_table.h |  3 ++-
-> >>  net/netfilter/nf_flow_table_core.c    | 20 +++++++++++++++-----
-> >>  net/netfilter/nf_flow_table_offload.c |  5 +++--
-> >>  3 files changed, 20 insertions(+), 8 deletions(-)
+> >>  net/sched/act_ct.c | 48 ++++++++++++++++++++++++++++++++++------------
+> >>  1 file changed, 36 insertions(+), 12 deletions(-)
 > >> 
-> >> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-> >> index 88ab98ab41d9..e396424e2e68 100644
-> >> --- a/include/net/netfilter/nf_flow_table.h
-> >> +++ b/include/net/netfilter/nf_flow_table.h
-> >> @@ -165,6 +165,7 @@ enum nf_flow_flags {
-> >>  	NF_FLOW_HW_DEAD,
-> >>  	NF_FLOW_HW_PENDING,
-> >>  	NF_FLOW_HW_BIDIRECTIONAL,
-> >> +	NF_FLOW_HW_UPDATE,
-> >>  };
+> >> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+> >> index bfddb462d2bc..563cbdd8341c 100644
+> >> --- a/net/sched/act_ct.c
+> >> +++ b/net/sched/act_ct.c
+> >> @@ -369,7 +369,7 @@ static void tcf_ct_flow_tc_ifidx(struct flow_offload *entry,
 > >>  
-> >>  enum flow_offload_type {
-> >> @@ -300,7 +301,7 @@ unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
-> >>  #define MODULE_ALIAS_NF_FLOWTABLE(family)	\
-> >>  	MODULE_ALIAS("nf-flowtable-" __stringify(family))
-> >>  
-> >> -void nf_flow_offload_add(struct nf_flowtable *flowtable,
-> >> +bool nf_flow_offload_add(struct nf_flowtable *flowtable,
-> >>  			 struct flow_offload *flow);
-> >>  void nf_flow_offload_del(struct nf_flowtable *flowtable,
-> >>  			 struct flow_offload *flow);
-> >> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> >> index 04bd0ed4d2ae..5b495e768655 100644
-> >> --- a/net/netfilter/nf_flow_table_core.c
-> >> +++ b/net/netfilter/nf_flow_table_core.c
-> >> @@ -316,21 +316,28 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(flow_offload_add);
-> >>  
-> >> +static bool __flow_offload_refresh(struct nf_flowtable *flow_table,
-> >> +				   struct flow_offload *flow)
-> >> +{
-> >> +	if (likely(!nf_flowtable_hw_offload(flow_table)))
-> >> +		return true;
-> >> +
-> >> +	return nf_flow_offload_add(flow_table, flow);
-> >> +}
-> >> +
-> >>  void flow_offload_refresh(struct nf_flowtable *flow_table,
-> >>  			  struct flow_offload *flow)
+> >>  static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
+> >>  				  struct nf_conn *ct,
+> >> -				  bool tcp)
+> >> +				  bool tcp, bool bidirectional)
 > >>  {
-> >>  	u32 timeout;
+> >>  	struct nf_conn_act_ct_ext *act_ct_ext;
+> >>  	struct flow_offload *entry;
+> >> @@ -388,6 +388,8 @@ static void tcf_ct_flow_table_add(struct tcf_ct_flow_table *ct_ft,
+> >>  		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+> >>  		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_BE_LIBERAL;
+> >>  	}
+> >> +	if (bidirectional)
+> >> +		__set_bit(NF_FLOW_HW_BIDIRECTIONAL, &entry->flags);
 > >>  
-> >>  	timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
-> >> -	if (timeout - READ_ONCE(flow->timeout) > HZ)
-> >> +	if (timeout - READ_ONCE(flow->timeout) > HZ &&
-> >> +	    !test_bit(NF_FLOW_HW_UPDATE, &flow->flags))
-> >>  		WRITE_ONCE(flow->timeout, timeout);
-> >>  	else
+> >>  	act_ct_ext = nf_conn_act_ct_ext_find(ct);
+> >>  	if (act_ct_ext) {
+> >> @@ -411,26 +413,34 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
+> >>  					   struct nf_conn *ct,
+> >>  					   enum ip_conntrack_info ctinfo)
+> >>  {
+> >> -	bool tcp = false;
+> >> -
+> >> -	if ((ctinfo != IP_CT_ESTABLISHED && ctinfo != IP_CT_ESTABLISHED_REPLY) ||
+> >> -	    !test_bit(IPS_ASSURED_BIT, &ct->status))
+> >> -		return;
+> >> +	bool tcp = false, bidirectional = true;
+> >>  
+> >>  	switch (nf_ct_protonum(ct)) {
+> >>  	case IPPROTO_TCP:
+> >> -		tcp = true;
+> >> -		if (ct->proto.tcp.state != TCP_CONNTRACK_ESTABLISHED)
+> >> +		if ((ctinfo != IP_CT_ESTABLISHED &&
+> >> +		     ctinfo != IP_CT_ESTABLISHED_REPLY) ||
+> >> +		    !test_bit(IPS_ASSURED_BIT, &ct->status) ||
+> >> +		    ct->proto.tcp.state != TCP_CONNTRACK_ESTABLISHED)
+> >>  			return;
+> >> +
+> >> +		tcp = true;
+> >>  		break;
+> >>  	case IPPROTO_UDP:
+> >> +		if (!nf_ct_is_confirmed(ct))
+> >> +			return;
+> >> +		if (!test_bit(IPS_ASSURED_BIT, &ct->status))
+> >> +			bidirectional = false;
+> >>  		break;
+> >>  #ifdef CONFIG_NF_CT_PROTO_GRE
+> >>  	case IPPROTO_GRE: {
+> >>  		struct nf_conntrack_tuple *tuple;
+> >>  
+> >> -		if (ct->status & IPS_NAT_MASK)
+> >> +		if ((ctinfo != IP_CT_ESTABLISHED &&
+> >> +		     ctinfo != IP_CT_ESTABLISHED_REPLY) ||
+> >> +		    !test_bit(IPS_ASSURED_BIT, &ct->status) ||
+> >> +		    ct->status & IPS_NAT_MASK)
+> >>  			return;
+> >> +
+> >>  		tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+> >>  		/* No support for GRE v1 */
+> >>  		if (tuple->src.u.gre.key || tuple->dst.u.gre.key)
+> >> @@ -446,7 +456,7 @@ static void tcf_ct_flow_table_process_conn(struct tcf_ct_flow_table *ct_ft,
+> >>  	    ct->status & IPS_SEQ_ADJUST)
 > >>  		return;
 > >>  
-> >> -	if (likely(!nf_flowtable_hw_offload(flow_table)))
-> >> -		return;
-> >> -
-> >> -	nf_flow_offload_add(flow_table, flow);
-> >> +	__flow_offload_refresh(flow_table, flow);
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(flow_offload_refresh);
-> >>  
-> >> @@ -435,6 +442,9 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
-> >>  		} else {
-> >>  			flow_offload_del(flow_table, flow);
-> >>  		}
-> >> +	} else if (test_and_clear_bit(NF_FLOW_HW_UPDATE, &flow->flags)) {
-> >> +		if (!__flow_offload_refresh(flow_table, flow))
-> >> +			set_bit(NF_FLOW_HW_UPDATE, &flow->flags);
-> >>  	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
-> >>  		nf_flow_offload_stats(flow_table, flow);
-> >
-> > AFAICT even after this patchset it is possible to have both flags set
-> > at the same time.
-> > With that, this would cause the stats to skip a beat.
-> > This would be better:
-> >
-> > - 	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
-> > - 		nf_flow_offload_stats(flow_table, flow);
-> > +	} else {
-> > +		if (test_and_clear_bit(NF_FLOW_HW_UPDATE, &flow->flags))
-> > +			if (!__flow_offload_refresh(flow_table, flow))
-> > +				set_bit(NF_FLOW_HW_UPDATE, &flow->flags);
-> > +	 	if (test_bit(NF_FLOW_HW, &flow->flags))
-> > + 			nf_flow_offload_stats(flow_table, flow);
-> >  	}
-> >
-> > But a flow cannot have 2 pending actions at a time.
-> 
-> Yes. And timeouts are quite generous so there is IMO no problem in
-> skipping one iteration. It is not like this wq is high priority and we
-> can guarantee any exact update interval here anyway.
-
-I cannot disagree, lets say :-)
-
-Perhaps I'm just over worried because of recent issues with ovs and
-datapath flows, that it was evicting them because it saw no traffic in
-5s and so.
-
-For example,
-Subject: [ovs-dev] [PATCH v3] ofproto-dpif-upcall: Wait for valid hw flow stats before applying min-revalidate-pps
-
-And we're still chasing a stall in ovs revalidator that leads to
-hicups in datapath stats periodicity.
-
-Yet, I'm not aware of such checks on top of CT entries.
-
-> 
-> > Then maybe an update to nf_flow_offload_tuple() to make it handle the
-> > stats implicitly?
-> 
-> I considered this, but didn't want to over-complicate this series which
-> is tricky enough as it is.
-
-Makes sense.
-
-> 
-> >
-> >>  	}
-> >> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> >> index 8b852f10fab4..103b2ca8d123 100644
-> >> --- a/net/netfilter/nf_flow_table_offload.c
-> >> +++ b/net/netfilter/nf_flow_table_offload.c
-> >> @@ -1036,16 +1036,17 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+> >> -	tcf_ct_flow_table_add(ct_ft, ct, tcp);
+> >> +	tcf_ct_flow_table_add(ct_ft, ct, tcp, bidirectional);
 > >>  }
 > >>  
+> >>  static bool
+> >> @@ -625,13 +635,27 @@ static bool tcf_ct_flow_table_lookup(struct tcf_ct_params *p,
+> >>  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> >>  	ct = flow->ct;
 > >>  
-> >> -void nf_flow_offload_add(struct nf_flowtable *flowtable,
-> >> +bool nf_flow_offload_add(struct nf_flowtable *flowtable,
-> >>  			 struct flow_offload *flow)
-> >>  {
-> >>  	struct flow_offload_work *offload;
-> >>  
-> >>  	offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_REPLACE);
-> >>  	if (!offload)
-> >> -		return;
+> >> +	if (dir == FLOW_OFFLOAD_DIR_REPLY &&
+> >> +	    !test_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags)) {
+> >> +		/* Only offload reply direction after connection became
+> >> +		 * assured.
+> >> +		 */
+> >> +		if (test_bit(IPS_ASSURED_BIT, &ct->status))
+> >> +			set_bit(NF_FLOW_HW_BIDIRECTIONAL, &flow->flags);
+> >> +		set_bit(NF_FLOW_HW_UPDATE, &flow->flags);
 > >> +		return false;
+> >> +	}
+> >> +
+> >>  	if (tcph && (unlikely(tcph->fin || tcph->rst))) {
+> >>  		flow_offload_teardown(flow);
+> >>  		return false;
+> >>  	}
 > >>  
-> >>  	flow_offload_queue_work(offload);
-> >> +	return true;
-> >>  }
+> >> -	ctinfo = dir == FLOW_OFFLOAD_DIR_ORIGINAL ? IP_CT_ESTABLISHED :
+> >> -						    IP_CT_ESTABLISHED_REPLY;
+> >> +	if (dir == FLOW_OFFLOAD_DIR_ORIGINAL)
+> >> +		ctinfo = test_bit(IPS_SEEN_REPLY_BIT, &ct->status) ?
+> >> +			IP_CT_ESTABLISHED : IP_CT_NEW;
+> >> +	else
+> >> +		ctinfo = IP_CT_ESTABLISHED_REPLY;
 > >>  
-> >>  void nf_flow_offload_del(struct nf_flowtable *flowtable,
+> >>  	flow_offload_refresh(nf_ft, flow);
+> >>  	nf_conntrack_get(&ct->ct_general);
 > >> -- 
 > >> 2.38.1
 > >> 
