@@ -2,120 +2,150 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69985C6379F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 17:04:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDBF6C6379F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 17:33:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231447AbjAQREf (ORCPT
+        id S230035AbjAQRdX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 12:04:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38106 "EHLO
+        Tue, 17 Jan 2023 12:33:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229935AbjAQREe (ORCPT
+        with ESMTP id S235566AbjAQRaS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 12:04:34 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9299A4393B
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 09:04:32 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pHpNu-00041E-FL; Tue, 17 Jan 2023 18:04:30 +0100
-Date:   Tue, 17 Jan 2023 18:04:30 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2] Implement 'reset rule' and 'reset rules' commands
-Message-ID: <Y8bVHmeO1zzJyxqC@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230112162342.2986-1-phil@nwl.cc>
- <Y8VDcq8UXg+5GD+F@salvia>
- <Y8a3fB86ccXiv3A9@orbyte.nwl.cc>
- <Y8bD5EJCWPSsNcTp@salvia>
+        Tue, 17 Jan 2023 12:30:18 -0500
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2075.outbound.protection.outlook.com [40.107.94.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 852554C6DE;
+        Tue, 17 Jan 2023 09:27:53 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=IHmLzc/n1taKkOltt6K4WAfjMpKIHdJgpeXBTa8eU6V4eG3Yclqnzf/tZYhZDaG47GbdGjRxabYFvdkpUXfIeE30n2DQM9DTQjM+e6uh/t0wGZtbjJw+Ws+bI70XvR8OF+H+8elcGSWhhscjkfWylVI/DKjjLy4mXaWnAAszxtnx5lDMuBU3Rbw+e3KM4Nm0axNYV1op0VxITTu8X5x1dz+/ogaqQsA5Tl2n4TKfI7NyRxcakfJ0ODNqy8agULCsN1AwnHByFdU/7adA/PB6y6PiR1LrPOjuYVNWD8qEMylap5dU1x6Ohh4sjHHgILlNUuGoy16/RieXuFUWdsNQeQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=4x6M4+dekKbcm3sCP84hC06EXeH0mFsqZheJoR+HO+4=;
+ b=kTSsLy/Y24KRVVfB6k0gakvsfMc0E1t76PYnV+dpJ6XCjbDz8HuIvNm14lOl2VMNHK8jcVS2SjhsnSIarULaPNpcX7dEuhl/k3hl8NhpIFpF5+HRzsIpRpIAxiIaPa+AYO9sI4JuGtCA/QOZewB4qWLLyHMP//g9CNc/mMxwNu+pC23gYneqahF5CvqK3gyD1g2DfB2+w1F007067i9T+lZQU9r7G2Rpll6NEHtmjN+u0CF3wJM4w9yZFosVXRJQb/G3hPXThTmd897Lnivgre7AEAJ7K8lcfeNkNKk+08qNQ+64xz206wk72L5Jax3alBvZoQ5za+j26P42l+CvLg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=corigine.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=4x6M4+dekKbcm3sCP84hC06EXeH0mFsqZheJoR+HO+4=;
+ b=FrcmMDQWNibYz1YPOlnJMcrPzLB4bqG6NbkSiuDWoWvlcYPAvBseEV6lr/mH58Z1ltZsmsEY5vmYN3ckFy/uCipbnBmIdiNU+PkG2acI/Nr8tdQP/+lQzSxNTm98K63so9hJWiQp1jhVvVaWxLhcyP4844MYzcWnr3St4oKzk9zqNpW2C4J5+QFI8jr72WOYy8dceL31RJdXKjFgMPqIj/9EA45dDgQFibco7G4GL714NuZ6yknA0stVw9CjoSkcKoQiHobDAAO3i6eY0bLuQvoN8pbyU+wNvRrtE8TLBTQj3wB09VsaDOiqUydmePyvp7h/18OvuPC/2bXKB4GZqA==
+Received: from MW4PR03CA0141.namprd03.prod.outlook.com (2603:10b6:303:8c::26)
+ by PH8PR12MB6699.namprd12.prod.outlook.com (2603:10b6:510:1ce::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.22; Tue, 17 Jan
+ 2023 17:27:51 +0000
+Received: from CO1NAM11FT084.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:8c:cafe::99) by MW4PR03CA0141.outlook.office365.com
+ (2603:10b6:303:8c::26) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.19 via Frontend
+ Transport; Tue, 17 Jan 2023 17:27:51 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CO1NAM11FT084.mail.protection.outlook.com (10.13.174.194) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6002.13 via Frontend Transport; Tue, 17 Jan 2023 17:27:50 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 17 Jan
+ 2023 09:27:39 -0800
+Received: from fedora.nvidia.com (10.126.231.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 17 Jan
+ 2023 09:27:36 -0800
+References: <20230113165548.2692720-1-vladbu@nvidia.com>
+ <20230113165548.2692720-2-vladbu@nvidia.com>
+ <Y8a5AOxlm5XsrYtT@t14s.localdomain>
+User-agent: mu4e 1.6.6; emacs 28.1
+From:   Vlad Buslov <vladbu@nvidia.com>
+To:     Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+CC:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
+        <pablo@netfilter.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <jhs@mojatatu.com>,
+        <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>, <ozsh@nvidia.com>,
+        <simon.horman@corigine.com>
+Subject: Re: [PATCH net-next v2 1/7] net: flow_offload: provision conntrack
+ info in ct_metadata
+Date:   Tue, 17 Jan 2023 19:25:35 +0200
+In-Reply-To: <Y8a5AOxlm5XsrYtT@t14s.localdomain>
+Message-ID: <87ilh5cbqx.fsf@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y8bD5EJCWPSsNcTp@salvia>
+Content-Type: text/plain
+X-Originating-IP: [10.126.231.37]
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1NAM11FT084:EE_|PH8PR12MB6699:EE_
+X-MS-Office365-Filtering-Correlation-Id: 364e4af2-2296-41d2-a1d0-08daf8b028da
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Tqrt2+hXHkR4AsjtVmfDaRb5J4jhERuJopWR8MDC8bAj7lIb+vIsVaProsVvMG+v9Ti1eGJ0XalnS20nu+ZNhigtFTJcRgSgLq/4ZIqXgY03CM84wvxbdLhggi3xsNBFpflAzjJi1cWk1uDFxwiYWTya+KZfCxNhwLxXKEBn8woVGsP5B06cbWokquoiphKnSHbkMzWRvS1S/r8vzoIlqxysALBMd6Ly3x0s9/kH3VgRCSjdaudLKRNqFY77px8QiqQoBUoZwZcZx748Rtbi4EXza032vkYwPNGWmmeu51WHYo3JvygKuYsjf8eE9c+FOQ9J9hC3onk5oH5oyml6dB7+5ZA6nfey1XkegS/dNWRX9dvemEZt2KK6dQ+kcehDK1//kpfvPxtbfsFqT9XU6plDrxoEBQ1rejQyUFG7dnsKdNiojwJ6GdiKbiBx/MP2rCf40p97Q1Gs+iqD/T81TeLbaUisju07QjdXjwVqvkyyEaPljTv4GrOg6h1WvR1XbCrVVxkOU8xeuB7Yp75rI0BJKEzrXi0YCr+Gt8+jpJ7XBYA92m+RzOM//EiXKUYyYnhusv3Q3GgsYOIrOWMPeWIXOue3EWIcoKb8comgeA1WSrVGzX5nTRt8bhUnteNb6ttbXBgR0nCIY8V1tYTEvWID/rYHU3ke/Hw0fvXYO9xVOMKWjR4+7saAlnYXuk6DnU+y31sE+GMaf3cNCXCJNw==
+X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(376002)(396003)(39860400002)(346002)(136003)(451199015)(40470700004)(46966006)(36840700001)(2906002)(70586007)(4326008)(26005)(6916009)(40460700003)(8676002)(70206006)(36756003)(82310400005)(41300700001)(316002)(186003)(356005)(36860700001)(16526019)(83380400001)(2616005)(47076005)(336012)(426003)(86362001)(54906003)(40480700001)(7636003)(7696005)(82740400003)(478600001)(5660300002)(8936002)(7416002);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jan 2023 17:27:50.8758
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 364e4af2-2296-41d2-a1d0-08daf8b028da
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT084.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6699
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 17, 2023 at 04:51:00PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Jan 17, 2023 at 03:58:04PM +0100, Phil Sutter wrote:
-> > On Mon, Jan 16, 2023 at 01:30:42PM +0100, Pablo Neira Ayuso wrote:
-> > > On Thu, Jan 12, 2023 at 05:23:42PM +0100, Phil Sutter wrote:
-> > > > Reset rule counters and quotas in kernel, i.e. without having to reload
-> > > > them. Requires respective kernel patch to support NFT_MSG_GETRULE_RESET
-> > > > message type.
-> > > 
-> > > Only thing to mention: This adds a new rule_cache_dump() call, this
-> > > was consolidated on top of the cache infrastructure, to have a single
-> > > spot in the code to fetch kernel objects via netlink. This triggers to
-> > > netlink dumps, one to populate the cache and another for the reset,
-> > > right?
-> > 
-> > Well, rule_cache_dump() becomes dual-use, because the rule reset call is
-> > so similar to the regular rule dump one.
-> > 
-> > I also changed it to allow turning the actual dump off (by sending
-> > NLM_F_ACK instead of NLM_F_DUMP to kernel). This is used for resetting a
-> > single rule (identified by rule-handle). Same functionality as with
-> > resetting (a single) quota instead of "quotas".
-> 
-> Makes sense.
-> 
-> > If dump is active, the kernel returns the rules that have been reset to
-> > user space, so users see the last state data. To correctly print this,
-> > nft needs a table and chain cache. My v2 has this wrong, it needlessly
-> > requests a rule cache also. Thanks for making me validate this aspect of
-> > the implementation! :)
-> 
-> Ok.
-> 
-> > The only caveat I just noticed with reduced cache is that "whole ruleset
-> > reset" does not print the rules because list_rule_cb() expects h->family
-> > to be set. Making it accept NFPROTO_UNSPEC is trivial, though.
-> 
-> I guess you refer to this chunk.
-> 
-> @@ -591,8 +615,8 @@  static int list_rule_cb(struct nftnl_rule *nlr, void *data)
->  	table  = nftnl_rule_get_str(nlr, NFTNL_RULE_TABLE);
->  	chain  = nftnl_rule_get_str(nlr, NFTNL_RULE_CHAIN);
->  
-> -	if (h->family != family ||
-> -	    strcmp(table, h->table.name) != 0 ||
-> +	if ((h->family != NFPROTO_UNSPEC && h->family != family) ||
-> +	    (h->table.name && strcmp(table, h->table.name) != 0) ||
->  	    (h->chain.name && strcmp(chain, h->chain.name) != 0))
->  		return 0;
-> 
-> There is one more thing that will need a re-visit sooner or later.
-> 
-> NLM_F_DUMP might hit EINTR, meaning that while dumping-and-reset,
-> there was a ruleset update from the transaction path.
-> 
-> In this case, the listing would not be consistent. This would require
-> to trigger a bit more complicated path, that is: 1) keep previous list
-> of rules, 2) re-start dump with empty list, 3) look up via handle to
-> check if the rule in the previous list, to fetch the counter into the
-> new rule.
-> 
-> I think this problem already exists for the counter/quota/... reset.
+Hi Marcelo,
 
-Yes, I more or less copied from 'reset <obj>' command so they likely
-share their bugs. :)
+Thanks for reviewing!
 
-> I still have to extend the cache infrastructure to support for rules.
-> It is on my TODO list for monitor infrastructure. Then probably this
-> reset command can be reworked on top of the cache.
-> 
-> Anyway, your patch is a good starter. Better cache integration and
-> this corner case can possibly wait.
+On Tue 17 Jan 2023 at 12:04, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
+> On Fri, Jan 13, 2023 at 05:55:42PM +0100, Vlad Buslov wrote:
+> ...
+>>  struct flow_match {
+>> @@ -288,6 +289,7 @@ struct flow_action_entry {
+>>  		} ct;
+>>  		struct {
+>>  			unsigned long cookie;
+>> +			enum ip_conntrack_info ctinfo;
+>>  			u32 mark;
+>>  			u32 labels[4];
+>>  			bool orig_dir;
+>> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+>> index 0ca2bb8ed026..515577f913a3 100644
+>> --- a/net/sched/act_ct.c
+>> +++ b/net/sched/act_ct.c
+>> @@ -187,6 +187,7 @@ static void tcf_ct_flow_table_add_action_meta(struct nf_conn *ct,
+>>  	/* aligns with the CT reference on the SKB nf_ct_set */
+>>  	entry->ct_metadata.cookie = (unsigned long)ct | ctinfo;
+>                                                    ^^^^^^^^^^^
+>
+>>  	entry->ct_metadata.orig_dir = dir == IP_CT_DIR_ORIGINAL;
+>> +	entry->ct_metadata.ctinfo = ctinfo;
+>
+> tcf_ct_flow_table_restore_skb() is doing:
+>         enum ip_conntrack_info ctinfo = cookie & NFCT_INFOMASK;
+>
+> Not sure if it really needs this duplication then.
 
-OK. There's yet another bug: Listing is broken if reset rules contain a
-set reference. So it needs a cache that contains about everything *but*
-rules. I'll also skip on set elements, they're strictly not needed. But
-this in turn leads to a suggestion from Eric about a 'reset set'
-command - follow-up material, obviously.
+Indeed! I wanted to preserve the cookie as opaque integer (similar to TC
+filter cookie), but since drivers are already aware about its contents
+we can just reuse it for my case and prevent duplication.
 
-Cheers, Phil
+>
+>>  
+>>  	act_ct_labels = entry->ct_metadata.labels;
+>>  	ct_labels = nf_ct_labels_find(ct);
+>> -- 
+>> 2.38.1
+>> 
+
