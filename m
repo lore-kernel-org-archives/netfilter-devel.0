@@ -2,57 +2,57 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB5F5C677F1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 15:09:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C98C63797
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 15:15:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232729AbjAQPJm (ORCPT
+        id S230448AbjAQPPR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 10:09:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47422 "EHLO
+        Tue, 17 Jan 2023 10:15:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232813AbjAQPJb (ORCPT
+        with ESMTP id S231348AbjAQPPQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 10:09:31 -0500
-Received: from mail-ot1-x331.google.com (mail-ot1-x331.google.com [IPv6:2607:f8b0:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AC14402EF;
-        Tue, 17 Jan 2023 07:09:27 -0800 (PST)
-Received: by mail-ot1-x331.google.com with SMTP id j16-20020a056830271000b0067202045ee9so17976750otu.7;
-        Tue, 17 Jan 2023 07:09:27 -0800 (PST)
+        Tue, 17 Jan 2023 10:15:16 -0500
+Received: from mail-oa1-x2b.google.com (mail-oa1-x2b.google.com [IPv6:2001:4860:4864:20::2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C41207ABC;
+        Tue, 17 Jan 2023 07:15:14 -0800 (PST)
+Received: by mail-oa1-x2b.google.com with SMTP id 586e51a60fabf-15b9c93848dso23988064fac.1;
+        Tue, 17 Jan 2023 07:15:14 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=TfAfhanzXfBs5e60B4ddov63nTWwre3PQSRW15sW7nY=;
-        b=ZRq3t6zo8CAt2Y4hvrlw1zFMAH9Fu/VOMpgwS5AXMO2TEbrSGx+e2dXR1qo7vRV8ch
-         kr7uVrnzb0rt+pJyylTgoD0ZiK6WNceqPhiSO6P4JnzbJvBgTg5443TRxo7HftfON5CI
-         +n4PQ4ssGqhFQ27tLqLBWH65/4fteSSly4Xk2Fdc+7m76sZ3lBVX4ETqs0vpWOK62uUz
-         Sut2Q1zSuVOM3hwxonfa3IBZMoRouD2jyYZGWIibGqoa6tpMYbjW7GkENP8UOAfqNUk0
-         04bQbV9LLldjpMKzUEmYkcbLBBFtrU6+UUT8qbW2ljFCywycUwaQi+DqcfLYLSiTjeqf
-         LlTQ==
+        bh=4ylWKwIJLJTbQVAo/fbc37J5qO2EJKxw6CVNTOjxtKk=;
+        b=YNIhcWjK8ToP8HY9NsSJbmnDHddNpXTr3TgateiuRdZIZO0YVDqrAnbCKKEY7uFacC
+         sdlXCHmtQryjfd8+8/irtUHDm5WlxPYLnX9jW+M4VNf+lJitmaqKqlDp+EZ+iSbtxuGg
+         GXc3YBgY6eoY2X+InZcXIcjfKc3g9bDTQkiFBSaXUyNmGjMJEk/IkWWx4BjjPzasfVn8
+         FeA+FeG/LB3H5/FyZqnTSe4whsMS18iAoMAtmwAW17s0t9ZHL12agONpA7GBEtu8M5/Q
+         L/nTX00VJOCf8oVqX6hllN5S8X8Xrv4WkM9rhcO68NK8ugjWpSwy35GU5Y2MSX9jcvba
+         X0dw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=TfAfhanzXfBs5e60B4ddov63nTWwre3PQSRW15sW7nY=;
-        b=32VbwSm2LbOURSzvRhLxtT+Q+K9x/+OLG78jvmVO8HzdHSLAkwADJz6cMGhabBLM9h
-         dUx50pOuJg3AnFaFcwEeHMLc0cblJZiPnYv0E7HMREmcaj6gNmUVRZ2lmTFNg9uMxFZJ
-         P7Zd+4DHjQui74mw8Gd9OSrf9IRTCB2oksgV8RtB6Dpodc596LJOOBvVBSd+HlCRH1dC
-         o6Ur6B/ystrkx+KBuWherK4+PZzR0Yd1PwzlAM70pOdncx+2gjeSolx1+lWDBzu9ZGbo
-         INfL6RFJrY19ldpVwKVKW6KSZE97p3Tjdf28wNzkDybpevIj7DsuCF2xTXNyi8uROpma
-         DnNw==
-X-Gm-Message-State: AFqh2kq201kcHoj1yIMmbu5MnGZx+ZZRhBy8AbliiXpMCG6dkZWs5QIU
-        5aGFU48GB6fIBIwtNtK3t9mkYLzmxLo=
-X-Google-Smtp-Source: AMrXdXsCthi1G21x0vT9XXepYmRa1J747J7sZxYCroLg3HSfnl+aLJJEPM0OoDwP14OTmotU32wB0w==
-X-Received: by 2002:a9d:4e81:0:b0:66d:68ab:2882 with SMTP id v1-20020a9d4e81000000b0066d68ab2882mr1645048otk.11.1673968167117;
-        Tue, 17 Jan 2023 07:09:27 -0800 (PST)
-Received: from t14s.localdomain ([177.220.174.155])
-        by smtp.gmail.com with ESMTPSA id bt25-20020a05683039d900b0066e80774203sm16890577otb.43.2023.01.17.07.09.26
+        bh=4ylWKwIJLJTbQVAo/fbc37J5qO2EJKxw6CVNTOjxtKk=;
+        b=kfL2PamfKywpX9pGz2D0J7P01tUF9E6sz0c3ZRlKDO9Hmx9raC0QjJ+0objRLS62/M
+         B0ijsI7KlPOfi7hxhu7Je8tqm4d6nsKxjpI9RvxDBalb5lNqnA1GSXiY1IdDZu8XgwO9
+         NuSIkEX4mH1lIC0LgqZvuu6QKpv3TrWkM1kz2+8uqaEc7SKsPQw06RRbmRjPX4kMsPaD
+         cEtRE7rO4Er+GvbesclnQJZQIMK8v8RwfuKKnoYh4tExrMIedQ1jQ0OcT2SiKsPk7dRO
+         3KUYfFUPJNlRGMP3yB6MO965XpWs7Ao2b/FzIAZvt6gXHVjOcUk8Wss0rWTOEJ6dAeDF
+         dbhQ==
+X-Gm-Message-State: AFqh2krwddbOUiP0NCoZdlFTX9/1f0EggnhiUetsBwpUWiT+u466JyJy
+        3O5jgODA71d+sZxzo+StbOA=
+X-Google-Smtp-Source: AMrXdXuG0IstA5kVlORkCqPzZtmvVlY0713eUbhfIZCyholb8mSv5OpNyrKrK77ocd6wxXR019QNsg==
+X-Received: by 2002:a05:6871:4693:b0:15f:4552:877d with SMTP id ni19-20020a056871469300b0015f4552877dmr1888303oab.48.1673968513862;
+        Tue, 17 Jan 2023 07:15:13 -0800 (PST)
+Received: from t14s.localdomain ([2001:1284:f013:7189:754f:dfa5:a770:f05f])
+        by smtp.gmail.com with ESMTPSA id p22-20020a056870831600b0014813cc4a51sm16460672oae.29.2023.01.17.07.15.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Jan 2023 07:09:26 -0800 (PST)
+        Tue, 17 Jan 2023 07:15:13 -0800 (PST)
 Received: by t14s.localdomain (Postfix, from userid 1000)
-        id 057DB4AD1F9; Tue, 17 Jan 2023 12:09:25 -0300 (-03)
-Date:   Tue, 17 Jan 2023 12:09:24 -0300
+        id DC0E64AD200; Tue, 17 Jan 2023 12:15:11 -0300 (-03)
+Date:   Tue, 17 Jan 2023 12:15:11 -0300
 From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 To:     Vlad Buslov <vladbu@nvidia.com>
 Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
@@ -60,57 +60,29 @@ Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, jhs@mojatatu.com,
         xiyou.wangcong@gmail.com, jiri@resnulli.us, ozsh@nvidia.com,
         simon.horman@corigine.com
-Subject: Re: [PATCH net-next v2 1/7] net: flow_offload: provision conntrack
- info in ct_metadata
-Message-ID: <Y8a6JCG6iUFTr1Q1@t14s.localdomain>
+Subject: Re: [PATCH net-next v2 3/7] netfilter: flowtable: allow
+ unidirectional rules
+Message-ID: <Y8a7f2AXVMx8WWPc@t14s.localdomain>
 References: <20230113165548.2692720-1-vladbu@nvidia.com>
- <20230113165548.2692720-2-vladbu@nvidia.com>
- <Y8a5AOxlm5XsrYtT@t14s.localdomain>
+ <20230113165548.2692720-4-vladbu@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Y8a5AOxlm5XsrYtT@t14s.localdomain>
+In-Reply-To: <20230113165548.2692720-4-vladbu@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 17, 2023 at 12:04:32PM -0300, Marcelo Ricardo Leitner wrote:
-> On Fri, Jan 13, 2023 at 05:55:42PM +0100, Vlad Buslov wrote:
-> ...
-> >  struct flow_match {
-> > @@ -288,6 +289,7 @@ struct flow_action_entry {
-> >  		} ct;
-> >  		struct {
-> >  			unsigned long cookie;
-> > +			enum ip_conntrack_info ctinfo;
-> >  			u32 mark;
-> >  			u32 labels[4];
-> >  			bool orig_dir;
-> > diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-> > index 0ca2bb8ed026..515577f913a3 100644
-> > --- a/net/sched/act_ct.c
-> > +++ b/net/sched/act_ct.c
-> > @@ -187,6 +187,7 @@ static void tcf_ct_flow_table_add_action_meta(struct nf_conn *ct,
-> >  	/* aligns with the CT reference on the SKB nf_ct_set */
-> >  	entry->ct_metadata.cookie = (unsigned long)ct | ctinfo;
->                                                    ^^^^^^^^^^^
+On Fri, Jan 13, 2023 at 05:55:44PM +0100, Vlad Buslov wrote:
+> Modify flow table offload to support unidirectional connections by
+> extending enum nf_flow_flags with new "NF_FLOW_HW_BIDIRECTIONAL" flag. Only
+> offload reply direction when the flag is not set. This infrastructure
+                                           ^^^ s///, I believe? :-)
 
-Hmm. Thought that just came up and still need to dig into, but wanted
-to share/ask already. Would it be a problem to update the cookie later
-on then, to reflect the new ctinfo?
-
-> 
-> >  	entry->ct_metadata.orig_dir = dir == IP_CT_DIR_ORIGINAL;
-> > +	entry->ct_metadata.ctinfo = ctinfo;
-> 
-> tcf_ct_flow_table_restore_skb() is doing:
->         enum ip_conntrack_info ctinfo = cookie & NFCT_INFOMASK;
-> 
-> Not sure if it really needs this duplication then.
-> 
-> >  
-> >  	act_ct_labels = entry->ct_metadata.labels;
-> >  	ct_labels = nf_ct_labels_find(ct);
-> > -- 
-> > 2.38.1
-> > 
+...
+> -	ok_count += flow_offload_tuple_add(offload, flow_rule[1],
+> -					   FLOW_OFFLOAD_DIR_REPLY);
+> +	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
+> +		ok_count += flow_offload_tuple_add(offload, flow_rule[1],
+> +						   FLOW_OFFLOAD_DIR_REPLY);
+>  	if (ok_count == 0)
