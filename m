@@ -2,230 +2,239 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2849EC677F1
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 17:56:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC084C3DA78
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 18:00:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231784AbjAQR4l (ORCPT
+        id S229863AbjAQSAW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 12:56:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37622 "EHLO
+        Tue, 17 Jan 2023 13:00:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232179AbjAQRyT (ORCPT
+        with ESMTP id S232233AbjAQR47 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 12:54:19 -0500
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2044.outbound.protection.outlook.com [40.107.93.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C8782ED49;
-        Tue, 17 Jan 2023 09:45:15 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=PNSpsRWW9IcCxbnSaXpA0DWUvQjPhn+DSgwHu0ixDotHJUJtQwVmKhrbiQXD31B+hfOF2exgQzjP8mQIlBkGmVeyzidQTu6T5zK9jKMQNSxV8qPmozlggTavgxq4VhOK6/7JQ9l4wcj21t36CQSXGqyYfroOh42DYzcP10DNq2Eq8iQgKlqlYSoho3LGTf8awr7X4u0w79hEXy2CD2iDIpGg68RH+xUc1kcyNd+tDWQ/pfL/DmrQaq/fBusLk8fMQu0HNbSCDwAY9dK9gV2Zruios6VIcLwd2CTdNGhDHe3lxUEqX5wAXef8GsIozqMDkG30YJA32u8z8PGZ3W8N0g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=z4sdRWZ2mS5H8QnVJBMSTDtLYzeLNB8Vwmqcc7KJnP8=;
- b=HF7BF/PT6DU/j8s7Bye2ZVcscgClhViYkYF2jIRJoiRvWepG7StPTniIib2nVx0Cs2XVUv8jyWVOb7Bm4/689zTwerqIEY8dZmE9bUp56QhD96WeU/w+vPolH125Cmwo+tdljBt0Qzc/cqOzokcdrI3yzbkLygv4MQWEM8qymMl7115D/MtQih+1Vo+Z2QV0WDu8vCCfvdsoEzDdr4cNaRKjVMxaeekjooUUAMHOpFSt0IgEMBm6jLcyyqQ2TSHDNzwPTfTXKeL6C+2tGVdcBuAaRTKIltDcQF8f80LLEojgDH2eCSwO0KGCzSBXcNBZuBkGlhqXf9HgW5LeISs/hw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=corigine.com smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=z4sdRWZ2mS5H8QnVJBMSTDtLYzeLNB8Vwmqcc7KJnP8=;
- b=ruaB9HEavynNB+CTYw2LB0o4TZF1pftprROaTjLNh4va6f8cWFNHosV3n6te2OaIDEsqwWfZHzFLImfiSSBSfEiJfK1By6eulbrn2sL+jp6l89PreVyzSUnMfVL41n8tua+SxRbmEpviZvZyWrIy5NcwAqUKMSw4YAc1JzJtbvjToM05sjW72jnc8q7JeahqFfJ1ahJJO98liEuiQft40pLtLj7NbaVAHI4Ti8o8wwbyYUxF5zUHDwCvcQjXPxKTrB1oltWHCGMphDSURR7kAU9k1qPzz4D8SnYlwqzFc8sm4mFVUdCAFhIoGL4XuoNV47ji0QQNmAOeq1zHrJWtZg==
-Received: from DS7PR06CA0023.namprd06.prod.outlook.com (2603:10b6:8:2a::14) by
- BL3PR12MB6428.namprd12.prod.outlook.com (2603:10b6:208:3b7::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.13; Tue, 17 Jan
- 2023 17:45:13 +0000
-Received: from DM6NAM11FT068.eop-nam11.prod.protection.outlook.com
- (2603:10b6:8:2a:cafe::4d) by DS7PR06CA0023.outlook.office365.com
- (2603:10b6:8:2a::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.19 via Frontend
- Transport; Tue, 17 Jan 2023 17:45:13 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- DM6NAM11FT068.mail.protection.outlook.com (10.13.173.67) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6002.13 via Frontend Transport; Tue, 17 Jan 2023 17:45:13 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 17 Jan
- 2023 09:45:02 -0800
-Received: from fedora.nvidia.com (10.126.231.37) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 17 Jan
- 2023 09:44:59 -0800
+        Tue, 17 Jan 2023 12:56:59 -0500
+Received: from mail-oa1-x32.google.com (mail-oa1-x32.google.com [IPv6:2001:4860:4864:20::32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 622FD521CF;
+        Tue, 17 Jan 2023 09:47:57 -0800 (PST)
+Received: by mail-oa1-x32.google.com with SMTP id 586e51a60fabf-15eec491b40so11820455fac.12;
+        Tue, 17 Jan 2023 09:47:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=ni99ePUt0vzhCDQEc2vcK8aOMav7LfPyZHSW24Ez63s=;
+        b=L4CERME+NHxYyqNwqbFe6tRfSn/ojOSZ7sa0VZF0em849hDV4zqBO1vj0a+VOrMuCZ
+         G2bRnm1Kgi30nSHZL+LcuoB7/ViLbTxIOKHjKGa1BnbmDRALV2PUgNoXcbRLyfpNzWPW
+         tTi99Qe+LTNu/wnnke0MdAcxVhGQ2ZDTtzvUqKXWgV9FhPeif92xnP8OrJffjGaoqwXC
+         vli3OvFF79pmqP6eIj/YbHgoWUaNrMI98J6mjidTP/PAkaaJLv39OO7A34z/n8BDFWHf
+         eM6NWAJSktQKvV26CbGQkm6H24Dab15Ne7FYG9OQcTnsUFkhWk1klP9KGnSKlGWPbZGh
+         rm6w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ni99ePUt0vzhCDQEc2vcK8aOMav7LfPyZHSW24Ez63s=;
+        b=V3/gWJTzGpqADqfPnQSbZGZO8CnUujViyqdpisx97FGjGe+TNJn2DTJPKMo0gyGeFs
+         ow/QAxCQ9fQg0tKZs+CXH/KBqdffLsZwapojVTI1m4VJQ6s95MGu/HdNjj//13t+7F/r
+         jtHfIwx2U0vGYEO3wIRSeem2sj+QNKyN+ov/htAK98e451gPM1O3oAVdzHUO0A+xA9s8
+         BkC2N2XiNvmlomkA2WtRf3AiCJBcb+PxakneEJaiZDHyw8+7yDitTlqI2jcEDNk/5xqw
+         dyl7+8GAtpgkDbr7KgvAHVoFUqUD1K8n2aH528O4/OpjR1blmSnF90UwqqCA6Tvss7YE
+         6wwQ==
+X-Gm-Message-State: AFqh2krpj95c2MryA4q9Wz5ucUInMWC/E+UoCy79CsY4wmO9to99ojfE
+        IDxoopGWHgAsayaEv8nmQno=
+X-Google-Smtp-Source: AMrXdXszJzyenKu3zOnAH9lqAnrj7r4bO5158pguBWScVUuv89j/yR+4vdbMb1crOtGqUUFNluO8OQ==
+X-Received: by 2002:a05:6870:8c2c:b0:15f:385c:a94e with SMTP id ec44-20020a0568708c2c00b0015f385ca94emr1868748oab.43.1673977676529;
+        Tue, 17 Jan 2023 09:47:56 -0800 (PST)
+Received: from t14s.localdomain ([177.220.174.155])
+        by smtp.gmail.com with ESMTPSA id q187-20020a4a4bc4000000b004a3c359fdaesm15282820ooa.30.2023.01.17.09.47.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Jan 2023 09:47:56 -0800 (PST)
+Received: by t14s.localdomain (Postfix, from userid 1000)
+        id 2C4734AD246; Tue, 17 Jan 2023 14:47:54 -0300 (-03)
+Date:   Tue, 17 Jan 2023 14:47:54 -0300
+From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To:     Vlad Buslov <vladbu@nvidia.com>
+Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+        pablo@netfilter.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, jiri@resnulli.us, ozsh@nvidia.com,
+        simon.horman@corigine.com
+Subject: Re: [PATCH net-next v2 4/7] netfilter: flowtable: allow updating
+ offloaded rules asynchronously
+Message-ID: <Y8bfSksS/29SgkPJ@t14s.localdomain>
 References: <20230113165548.2692720-1-vladbu@nvidia.com>
- <20230113165548.2692720-2-vladbu@nvidia.com> <Y8az5ecHLgE611hJ@salvia>
-User-agent: mu4e 1.6.6; emacs 28.1
-From:   Vlad Buslov <vladbu@nvidia.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
-        <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <jhs@mojatatu.com>, <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>,
-        <ozsh@nvidia.com>, <marcelo.leitner@gmail.com>,
-        <simon.horman@corigine.com>
-Subject: Re: [PATCH net-next v2 1/7] net: flow_offload: provision conntrack
- info in ct_metadata
-Date:   Tue, 17 Jan 2023 19:43:35 +0200
-In-Reply-To: <Y8az5ecHLgE611hJ@salvia>
-Message-ID: <87wn5lawdi.fsf@nvidia.com>
+ <20230113165548.2692720-5-vladbu@nvidia.com>
+ <Y8a+qBjcr7KuPf+e@t14s.localdomain>
+ <875yd5cbcl.fsf@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.126.231.37]
-X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6NAM11FT068:EE_|BL3PR12MB6428:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1e387cf6-6ef9-432a-7320-08daf8b2964c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: KcvGJzAAw1+lOLxgP/3nAfuUy6jRGmzz4pytm1sf7wDnITQzhoSFC/HxfM9rTMM/LyX9okD7Ewt8cMrScylfTtGDNZGAxFt/6P8NtWhlqvpiMYGUajoUAcpe5wr3N007UvyiK4k4tOYfh3dYtO1FloeuxLb2uHVDe2spVEG04ZdyOIGUVYlboc1pBaDM6VrEA87Wq1uyHoJX4/DEQ36TT1pVO1n72iegktCAXGDZHn3fLUa9PsCk7v46QIYdswbkxSRvebJYxoLH+1Wt9yY1f2x5QdtORYg4K+W9z2PLBSPPC0sNqhxo+Aec08WR5bhD0a0uIwGNuBw2MspGn94vXgYxZ0I3drBafWJGOpu7n/Mit7LhkOmRoS4ypWF97dLqALzjRFB4vNEsb4r5aZnoL469qR13+ksGXEl3vQOuYYtkebvo4YB088lVCuN5kqWKDKsicuYmwh/mubxEHEGjR5MoPPGHvNEgNOpjGDV/zlHVPv+WEULTH6uRVTz511bLN5j+4tCAV7fuiTbimUxzR6wsturIwnDmk2B5dbPkwXIdDeyDqs0Q2Gdi4fidh3xD6fGlaVHDqhrsClQLUoCf6wGbZgrhnIRq72j38aUZ1DhQFYsZTFS/JUpxLhWWjX/PioMpJSyqOCI53w/X2mFd/dURygdrgVsxP464Q63lGxRil56c5IqmsZNC7d5vHRGDq7uVNBOEuwGnrBMpPjYiNg==
-X-Forefront-Antispam-Report: CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(376002)(396003)(39860400002)(346002)(136003)(451199015)(46966006)(36840700001)(40470700004)(36756003)(86362001)(356005)(8676002)(70206006)(2906002)(4326008)(70586007)(5660300002)(6916009)(7416002)(8936002)(36860700001)(82740400003)(83380400001)(7636003)(7696005)(478600001)(54906003)(316002)(6666004)(40460700003)(40480700001)(82310400005)(41300700001)(2616005)(47076005)(26005)(16526019)(186003)(336012)(426003);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jan 2023 17:45:13.4243
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1e387cf6-6ef9-432a-7320-08daf8b2964c
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT068.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR12MB6428
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <875yd5cbcl.fsf@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Tue, Jan 17, 2023 at 07:33:31PM +0200, Vlad Buslov wrote:
+> 
+> On Tue 17 Jan 2023 at 12:28, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
+> > On Fri, Jan 13, 2023 at 05:55:45PM +0100, Vlad Buslov wrote:
+> >> Following patches in series need to update flowtable rule several times
+> >> during its lifetime in order to synchronize hardware offload with actual ct
+> >> status. However, reusing existing 'refresh' logic in act_ct would cause
+> >> data path to potentially schedule significant amount of spurious tasks in
+> >> 'add' workqueue since it is executed per-packet. Instead, introduce a new
+> >> flow 'update' flag and use it to schedule async flow refresh in flowtable
+> >> gc which will only be executed once per gc iteration.
+> >> 
+> >> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
+> >> ---
+> >>  include/net/netfilter/nf_flow_table.h |  3 ++-
+> >>  net/netfilter/nf_flow_table_core.c    | 20 +++++++++++++++-----
+> >>  net/netfilter/nf_flow_table_offload.c |  5 +++--
+> >>  3 files changed, 20 insertions(+), 8 deletions(-)
+> >> 
+> >> diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+> >> index 88ab98ab41d9..e396424e2e68 100644
+> >> --- a/include/net/netfilter/nf_flow_table.h
+> >> +++ b/include/net/netfilter/nf_flow_table.h
+> >> @@ -165,6 +165,7 @@ enum nf_flow_flags {
+> >>  	NF_FLOW_HW_DEAD,
+> >>  	NF_FLOW_HW_PENDING,
+> >>  	NF_FLOW_HW_BIDIRECTIONAL,
+> >> +	NF_FLOW_HW_UPDATE,
+> >>  };
+> >>  
+> >>  enum flow_offload_type {
+> >> @@ -300,7 +301,7 @@ unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+> >>  #define MODULE_ALIAS_NF_FLOWTABLE(family)	\
+> >>  	MODULE_ALIAS("nf-flowtable-" __stringify(family))
+> >>  
+> >> -void nf_flow_offload_add(struct nf_flowtable *flowtable,
+> >> +bool nf_flow_offload_add(struct nf_flowtable *flowtable,
+> >>  			 struct flow_offload *flow);
+> >>  void nf_flow_offload_del(struct nf_flowtable *flowtable,
+> >>  			 struct flow_offload *flow);
+> >> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> >> index 04bd0ed4d2ae..5b495e768655 100644
+> >> --- a/net/netfilter/nf_flow_table_core.c
+> >> +++ b/net/netfilter/nf_flow_table_core.c
+> >> @@ -316,21 +316,28 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(flow_offload_add);
+> >>  
+> >> +static bool __flow_offload_refresh(struct nf_flowtable *flow_table,
+> >> +				   struct flow_offload *flow)
+> >> +{
+> >> +	if (likely(!nf_flowtable_hw_offload(flow_table)))
+> >> +		return true;
+> >> +
+> >> +	return nf_flow_offload_add(flow_table, flow);
+> >> +}
+> >> +
+> >>  void flow_offload_refresh(struct nf_flowtable *flow_table,
+> >>  			  struct flow_offload *flow)
+> >>  {
+> >>  	u32 timeout;
+> >>  
+> >>  	timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
+> >> -	if (timeout - READ_ONCE(flow->timeout) > HZ)
+> >> +	if (timeout - READ_ONCE(flow->timeout) > HZ &&
+> >> +	    !test_bit(NF_FLOW_HW_UPDATE, &flow->flags))
+> >>  		WRITE_ONCE(flow->timeout, timeout);
+> >>  	else
+> >>  		return;
+> >>  
+> >> -	if (likely(!nf_flowtable_hw_offload(flow_table)))
+> >> -		return;
+> >> -
+> >> -	nf_flow_offload_add(flow_table, flow);
+> >> +	__flow_offload_refresh(flow_table, flow);
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(flow_offload_refresh);
+> >>  
+> >> @@ -435,6 +442,9 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+> >>  		} else {
+> >>  			flow_offload_del(flow_table, flow);
+> >>  		}
+> >> +	} else if (test_and_clear_bit(NF_FLOW_HW_UPDATE, &flow->flags)) {
+> >> +		if (!__flow_offload_refresh(flow_table, flow))
+> >> +			set_bit(NF_FLOW_HW_UPDATE, &flow->flags);
+> >>  	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
+> >>  		nf_flow_offload_stats(flow_table, flow);
+> >
+> > AFAICT even after this patchset it is possible to have both flags set
+> > at the same time.
+> > With that, this would cause the stats to skip a beat.
+> > This would be better:
+> >
+> > - 	} else if (test_bit(NF_FLOW_HW, &flow->flags)) {
+> > - 		nf_flow_offload_stats(flow_table, flow);
+> > +	} else {
+> > +		if (test_and_clear_bit(NF_FLOW_HW_UPDATE, &flow->flags))
+> > +			if (!__flow_offload_refresh(flow_table, flow))
+> > +				set_bit(NF_FLOW_HW_UPDATE, &flow->flags);
+> > +	 	if (test_bit(NF_FLOW_HW, &flow->flags))
+> > + 			nf_flow_offload_stats(flow_table, flow);
+> >  	}
+> >
+> > But a flow cannot have 2 pending actions at a time.
+> 
+> Yes. And timeouts are quite generous so there is IMO no problem in
+> skipping one iteration. It is not like this wq is high priority and we
+> can guarantee any exact update interval here anyway.
 
-On Tue 17 Jan 2023 at 15:42, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Vlad,
->
-> On Fri, Jan 13, 2023 at 05:55:42PM +0100, Vlad Buslov wrote:
->> In order to offload connections in other states besides "established" the
->> driver offload callbacks need to have access to connection conntrack info.
->> Extend flow offload intermediate representation data structure
->> flow_action_entry->ct_metadata with new enum ip_conntrack_info field and
->> fill it in tcf_ct_flow_table_add_action_meta() callback.
->> 
->> Reject offloading IP_CT_NEW connections for now by returning an error in
->> relevant driver callbacks based on value of ctinfo. Support for offloading
->> such connections will need to be added to the drivers afterwards.
->> 
->> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
->> ---
->> 
->> Notes:
->>     Changes V1 -> V2:
->>     
->>     - Add missing include that caused compilation errors on certain configs.
->>     
->>     - Change naming in nfp driver as suggested by Simon and Baowen.
->> 
->>  .../ethernet/mellanox/mlx5/core/en/tc_ct.c    |  2 +-
->>  .../ethernet/netronome/nfp/flower/conntrack.c | 20 +++++++++++++++++++
->>  include/net/flow_offload.h                    |  2 ++
->>  net/sched/act_ct.c                            |  1 +
->>  4 files changed, 24 insertions(+), 1 deletion(-)
->> 
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
->> index 313df8232db7..8cad5cf3305d 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c
->> @@ -1077,7 +1077,7 @@ mlx5_tc_ct_block_flow_offload_add(struct mlx5_ct_ft *ft,
->>  	int err;
->>  
->>  	meta_action = mlx5_tc_ct_get_ct_metadata_action(flow_rule);
->> -	if (!meta_action)
->> +	if (!meta_action || meta_action->ct_metadata.ctinfo == IP_CT_NEW)
->>  		return -EOPNOTSUPP;
->>  
->>  	spin_lock_bh(&ct_priv->ht_lock);
->> diff --git a/drivers/net/ethernet/netronome/nfp/flower/conntrack.c b/drivers/net/ethernet/netronome/nfp/flower/conntrack.c
->> index f693119541d5..f7569584b9d8 100644
->> --- a/drivers/net/ethernet/netronome/nfp/flower/conntrack.c
->> +++ b/drivers/net/ethernet/netronome/nfp/flower/conntrack.c
->> @@ -1964,6 +1964,23 @@ int nfp_fl_ct_stats(struct flow_cls_offload *flow,
->>  	return 0;
->>  }
->>  
->> +static bool
->> +nfp_fl_ct_offload_nft_supported(struct flow_cls_offload *flow)
->> +{
->> +	struct flow_rule *flow_rule = flow->rule;
->> +	struct flow_action *flow_action =
->> +		&flow_rule->action;
->> +	struct flow_action_entry *act;
->> +	int i;
->> +
->> +	flow_action_for_each(i, act, flow_action) {
->> +		if (act->id == FLOW_ACTION_CT_METADATA)
->> +			return act->ct_metadata.ctinfo != IP_CT_NEW;
->> +	}
->> +
->> +	return false;
->> +}
->> +
->>  static int
->>  nfp_fl_ct_offload_nft_flow(struct nfp_fl_ct_zone_entry *zt, struct flow_cls_offload *flow)
->>  {
->> @@ -1976,6 +1993,9 @@ nfp_fl_ct_offload_nft_flow(struct nfp_fl_ct_zone_entry *zt, struct flow_cls_offl
->>  	extack = flow->common.extack;
->>  	switch (flow->command) {
->>  	case FLOW_CLS_REPLACE:
->> +		if (!nfp_fl_ct_offload_nft_supported(flow))
->> +			return -EOPNOTSUPP;
->> +
->>  		/* Netfilter can request offload multiple times for the same
->>  		 * flow - protect against adding duplicates.
->>  		 */
->> diff --git a/include/net/flow_offload.h b/include/net/flow_offload.h
->> index 0400a0ac8a29..a6adaffb68fb 100644
->> --- a/include/net/flow_offload.h
->> +++ b/include/net/flow_offload.h
->> @@ -4,6 +4,7 @@
->>  #include <linux/kernel.h>
->>  #include <linux/list.h>
->>  #include <linux/netlink.h>
->> +#include <linux/netfilter/nf_conntrack_common.h>
->>  #include <net/flow_dissector.h>
->>  
->>  struct flow_match {
->> @@ -288,6 +289,7 @@ struct flow_action_entry {
->>  		} ct;
->>  		struct {
->>  			unsigned long cookie;
->> +			enum ip_conntrack_info ctinfo;
->
-> Maybe you can use a bool here, only possible states that make sense
-> are new and established.
+I cannot disagree, lets say :-)
 
-As Marcelo suggested we can just obtain same info from the cookie, so
-there is no need for adding either ctinfo or a boolean here.
+Perhaps I'm just over worried because of recent issues with ovs and
+datapath flows, that it was evicting them because it saw no traffic in
+5s and so.
 
->
->>  			u32 mark;
->>  			u32 labels[4];
->>  			bool orig_dir;
->> diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
->> index 0ca2bb8ed026..515577f913a3 100644
->> --- a/net/sched/act_ct.c
->> +++ b/net/sched/act_ct.c
->> @@ -187,6 +187,7 @@ static void tcf_ct_flow_table_add_action_meta(struct nf_conn *ct,
->>  	/* aligns with the CT reference on the SKB nf_ct_set */
->>  	entry->ct_metadata.cookie = (unsigned long)ct | ctinfo;
->>  	entry->ct_metadata.orig_dir = dir == IP_CT_DIR_ORIGINAL;
->> +	entry->ct_metadata.ctinfo = ctinfo;
->>  
->>  	act_ct_labels = entry->ct_metadata.labels;
->>  	ct_labels = nf_ct_labels_find(ct);
->> -- 
->> 2.38.1
->> 
+For example,
+Subject: [ovs-dev] [PATCH v3] ofproto-dpif-upcall: Wait for valid hw flow stats before applying min-revalidate-pps
 
+And we're still chasing a stall in ovs revalidator that leads to
+hicups in datapath stats periodicity.
+
+Yet, I'm not aware of such checks on top of CT entries.
+
+> 
+> > Then maybe an update to nf_flow_offload_tuple() to make it handle the
+> > stats implicitly?
+> 
+> I considered this, but didn't want to over-complicate this series which
+> is tricky enough as it is.
+
+Makes sense.
+
+> 
+> >
+> >>  	}
+> >> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> >> index 8b852f10fab4..103b2ca8d123 100644
+> >> --- a/net/netfilter/nf_flow_table_offload.c
+> >> +++ b/net/netfilter/nf_flow_table_offload.c
+> >> @@ -1036,16 +1036,17 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+> >>  }
+> >>  
+> >>  
+> >> -void nf_flow_offload_add(struct nf_flowtable *flowtable,
+> >> +bool nf_flow_offload_add(struct nf_flowtable *flowtable,
+> >>  			 struct flow_offload *flow)
+> >>  {
+> >>  	struct flow_offload_work *offload;
+> >>  
+> >>  	offload = nf_flow_offload_work_alloc(flowtable, flow, FLOW_CLS_REPLACE);
+> >>  	if (!offload)
+> >> -		return;
+> >> +		return false;
+> >>  
+> >>  	flow_offload_queue_work(offload);
+> >> +	return true;
+> >>  }
+> >>  
+> >>  void nf_flow_offload_del(struct nf_flowtable *flowtable,
+> >> -- 
+> >> 2.38.1
+> >> 
+> 
