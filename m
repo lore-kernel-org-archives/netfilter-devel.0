@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC8A0C32793
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 13:09:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 936CDC38159
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 13:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230273AbjARNJO (ORCPT
+        id S231364AbjARNJP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Jan 2023 08:09:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38712 "EHLO
+        Wed, 18 Jan 2023 08:09:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230355AbjARNI6 (ORCPT
+        with ESMTP id S230402AbjARNI6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 18 Jan 2023 08:08:58 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 899E75AB53;
-        Wed, 18 Jan 2023 04:32:48 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1598D3A842;
+        Wed, 18 Jan 2023 04:32:39 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pI7cQ-00074w-LD; Wed, 18 Jan 2023 13:32:42 +0100
+        id 1pI7cA-00073r-5f; Wed, 18 Jan 2023 13:32:26 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Jakub Kicinski <kuba@kernel.org>,
@@ -26,82 +26,87 @@ Cc:     Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH net-next 4/9] netfilter: conntrack: move rcu read lock to nf_conntrack_find_get
-Date:   Wed, 18 Jan 2023 13:32:03 +0100
-Message-Id: <20230118123208.17167-5-fw@strlen.de>
+Subject: [PATCH net-next 0/9] Netfilter updates for net-next
+Date:   Wed, 18 Jan 2023 13:31:59 +0100
+Message-Id: <20230118123208.17167-1-fw@strlen.de>
 X-Mailer: git-send-email 2.38.2
-In-Reply-To: <20230118123208.17167-1-fw@strlen.de>
-References: <20230118123208.17167-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move rcu_read_lock/unlock to nf_conntrack_find_get(), this avoids
-nested rcu_read_lock call from resolve_normal_ct().
+Hello,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_core.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+following patch set includes netfilter updates for your *net-next* tree.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9e12cade4e0f..c00858344f02 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -783,8 +783,6 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct;
- 
--	rcu_read_lock();
--
- 	h = ____nf_conntrack_find(net, zone, tuple, hash);
- 	if (h) {
- 		/* We have a candidate that matches the tuple we're interested
-@@ -796,7 +794,7 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 			smp_acquire__after_ctrl_dep();
- 
- 			if (likely(nf_ct_key_equal(h, tuple, zone, net)))
--				goto found;
-+				return h;
- 
- 			/* TYPESAFE_BY_RCU recycled the candidate */
- 			nf_ct_put(ct);
-@@ -804,8 +802,6 @@ __nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 
- 		h = NULL;
- 	}
--found:
--	rcu_read_unlock();
- 
- 	return h;
- }
-@@ -817,16 +813,21 @@ nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
- 	unsigned int rid, zone_id = nf_ct_zone_id(zone, IP_CT_DIR_ORIGINAL);
- 	struct nf_conntrack_tuple_hash *thash;
- 
-+	rcu_read_lock();
-+
- 	thash = __nf_conntrack_find_get(net, zone, tuple,
- 					hash_conntrack_raw(tuple, zone_id, net));
- 
- 	if (thash)
--		return thash;
-+		goto out_unlock;
- 
- 	rid = nf_ct_zone_id(zone, IP_CT_DIR_REPLY);
- 	if (rid != zone_id)
--		return __nf_conntrack_find_get(net, zone, tuple,
--					       hash_conntrack_raw(tuple, rid, net));
-+		thash = __nf_conntrack_find_get(net, zone, tuple,
-+						hash_conntrack_raw(tuple, rid, net));
-+
-+out_unlock:
-+	rcu_read_unlock();
- 	return thash;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
+1. Replace pr_debug use with nf_log infra for debugging in sctp
+   conntrack.
+2. Remove pr_debug calls, they are either useless or we have better
+   options in place.
+3. Avoid repeated load of ct->status in some spots.
+   Some bit-flags cannot change during the lifeetime of
+   a connection, so no need to re-fetch those.
+4. Avoid uneeded nesting of rcu_read_lock during tuple lookup.
+5. Remove the CLUSTERIP target.  Marked as obsolete for years,
+   and we still have WARN splats wrt. races of the out-of-band
+   /proc interface installed by this target.
+6. Add static key to nf_tables to avoid the retpoline mitigation
+   if/else if cascade provided the cpu doesn't need the retpoline thunk.
+7. add nf_tables objref calls to the retpoline mitigation workaround.
+8. Split parts of nft_ct.c that do not need symbols exported by
+   the conntrack modules and place them in nf_tables directly.
+   This allows to avoid indirect call for 'ct status' checks.
+9. Add 'destroy' commands to nf_tables.  They are identical
+   to the existing 'delete' commands, but do not indicate
+   an error if the referenced object (set, chain, rule...)
+   did not exist, from Fernando.
+
+The following changes since commit c4791b3196bf46367bcf6cc56a09b32e037c4f49:
+
+  Merge branch 'net-mdio-continue-separating-c22-and-c45' (2023-01-17 19:34:10 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
+
+for you to fetch changes up to f80a612dd77c4585171e44a06b490466bdeec1ae:
+
+  netfilter: nf_tables: add support to destroy operation (2023-01-18 13:09:00 +0100)
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (1):
+      netfilter: nf_tables: add support to destroy operation
+
+Florian Westphal (8):
+      netfilter: conntrack: sctp: use nf log infrastructure for invalid packets
+      netfilter: conntrack: remove pr_debug calls
+      netfilter: conntrack: avoid reload of ct->status
+      netfilter: conntrack: move rcu read lock to nf_conntrack_find_get
+      netfilter: ip_tables: remove clusterip target
+      netfilter: nf_tables: add static key to skip retpoline workarounds
+      netfilter: nf_tables: avoid retpoline overhead for objref calls
+      netfilter: nf_tables: avoid retpoline overhead for some ct expression calls
+
+ include/net/netfilter/nf_tables_core.h   |  16 +
+ include/uapi/linux/netfilter/nf_tables.h |  14 +
+ net/ipv4/netfilter/Kconfig               |  14 -
+ net/ipv4/netfilter/Makefile              |   1 -
+ net/ipv4/netfilter/ipt_CLUSTERIP.c       | 929 -------------------------------
+ net/netfilter/Makefile                   |   6 +
+ net/netfilter/nf_conntrack_core.c        |  46 +-
+ net/netfilter/nf_conntrack_proto.c       |  20 +-
+ net/netfilter/nf_conntrack_proto_sctp.c  |  46 +-
+ net/netfilter/nf_conntrack_proto_tcp.c   |   9 -
+ net/netfilter/nf_conntrack_proto_udp.c   |  10 +-
+ net/netfilter/nf_tables_api.c            | 111 +++-
+ net/netfilter/nf_tables_core.c           |  35 +-
+ net/netfilter/nft_ct.c                   |  39 +-
+ net/netfilter/nft_ct_fast.c              |  56 ++
+ net/netfilter/nft_objref.c               |  12 +-
+ 16 files changed, 302 insertions(+), 1062 deletions(-)
+ delete mode 100644 net/ipv4/netfilter/ipt_CLUSTERIP.c
+ create mode 100644 net/netfilter/nft_ct_fast.c
 -- 
 2.38.2
 
