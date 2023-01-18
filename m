@@ -2,82 +2,46 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF2E1C32793
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 14:10:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B1B7C32793
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 14:19:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229704AbjAROKT (ORCPT
+        id S231221AbjAROTL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Jan 2023 09:10:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37858 "EHLO
+        Wed, 18 Jan 2023 09:19:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231243AbjAROJF (ORCPT
+        with ESMTP id S231288AbjAROS4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Jan 2023 09:09:05 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C231B65F0A;
-        Wed, 18 Jan 2023 05:50:19 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 963466181D;
-        Wed, 18 Jan 2023 13:50:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 028D5C433D2;
-        Wed, 18 Jan 2023 13:50:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1674049818;
-        bh=6jpMkKav0Mj1r8lN5adcTzY130KzSUqNv+IUkbhnCFk=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=JaiIcpC7KqpISp/Ubq8Rz2bGaIPVBsCDcBvQp/TB3VtHigURhGmNGAR9J0aYfjb5A
-         DjNgAeb4pLCtrLHriNvXJn7GXZ6Y7g6OOhTPxU36sXNPicELedbT1558ZQwCt26KI1
-         AlGzHXxNLBlhlfj9RP8fg07toUSJjDAsYYSwboRH19gKFNkYb4c71WkV3dxQ33hPzh
-         iAZfYXjNBb0dPkGeJCfWrk57Z++X9CBmj13ehIMHhEzpj/YJgzLH43xIfBDjLBwlqS
-         tmzrELMop8HQaw1Wc9WcceWUrvmzTleRHxGhwXITzmJuM1rIt6VsM2A1XcZVBbtJk0
-         QGylT+aIaPLkQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E175BC3959E;
-        Wed, 18 Jan 2023 13:50:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] netfilter: conntrack: handle tcp challenge acks
- during connection reuse
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <167404981791.26997.17286007950287915154.git-patchwork-notify@kernel.org>
-Date:   Wed, 18 Jan 2023 13:50:17 +0000
-References: <20230118095424.885014-2-pablo@netfilter.org>
-In-Reply-To: <20230118095424.885014-2-pablo@netfilter.org>
+        Wed, 18 Jan 2023 09:18:56 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D917060488
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2023 05:59:42 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1pI8yb-0000I3-Ab; Wed, 18 Jan 2023 14:59:41 +0100
+Date:   Wed, 18 Jan 2023 14:59:41 +0100
+From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v4] Implement 'reset rule' and 'reset rules' commands
+Message-ID: <Y8f7TdYJSePYNCA4@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20230117173310.18757-1-phil@nwl.cc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230117173310.18757-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This patch was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Wed, 18 Jan 2023 10:54:24 +0100 you wrote:
-> From: Florian Westphal <fw@strlen.de>
+On Tue, Jan 17, 2023 at 06:33:10PM +0100, Phil Sutter wrote:
+> Reset rule counters and quotas in kernel, i.e. without having to reload
+> them. Requires respective kernel patch to support NFT_MSG_GETRULE_RESET
+> message type.
 > 
-> When a connection is re-used, following can happen:
-> [ connection starts to close, fin sent in either direction ]
->  > syn   # initator quickly reuses connection
->  < ack   # peer sends a challenge ack
->  > rst   # rst, sequence number == ack_seq of previous challenge ack
->  > syn   # this syn is expected to pass
-> 
-> [...]
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Here is the summary with links:
-  - [net,1/1] netfilter: conntrack: handle tcp challenge acks during connection reuse
-    https://git.kernel.org/netdev/net/c/c410cb974f2b
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Patch applied.
