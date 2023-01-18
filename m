@@ -2,99 +2,61 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3149C00A5A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Jan 2023 22:30:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FBA0C00A5A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 03:03:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229479AbjAQWaA (ORCPT
+        id S229568AbjARDDr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Jan 2023 17:30:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34230 "EHLO
+        Tue, 17 Jan 2023 22:03:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbjAQW3Y (ORCPT
+        with ESMTP id S229453AbjARDDq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2023 17:29:24 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 17A28C41DA
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2023 14:07:09 -0800 (PST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH net 1/1] netfilter: conntrack: handle tcp challenge acks during connection reuse
-Date:   Tue, 17 Jan 2023 23:06:53 +0100
-Message-Id: <20230117220653.739229-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230117220653.739229-1-pablo@netfilter.org>
-References: <20230117220653.739229-1-pablo@netfilter.org>
+        Tue, 17 Jan 2023 22:03:46 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86ADB4FC34;
+        Tue, 17 Jan 2023 19:03:45 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 82BE2615DC;
+        Wed, 18 Jan 2023 03:03:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 940B0C433D2;
+        Wed, 18 Jan 2023 03:03:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1674011023;
+        bh=ckXeTXYwVZTD0YMYSSo4hAVgSFGF1If9RNo4+yM2iEE=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=qgOPzdfcnv8yA+ep3tqaUpS0oJ2U41BoWNXD80MR7Yt3w0LiCuUXu6eit97G9KX5S
+         3JjqAQ8A9eQx3Usk6U+afCBGOLM7/5aXbAPqJ5Av6jYgMqFbqPtmTBg3fBYm7hW0Gr
+         wv2HtWXdKcdalPJcjJKMCCgU04Yjf3Vx1OlpZQM+1wWwBaHADnzfT2XKM3eyaG6ana
+         Mi7wXoZ9dchywtQGYNqG0m2ei7YktYwrFykLqxp4KQ47DKqWddlujCmy1DK5K30MKn
+         KKPYXiriT8CsSb0CjYWJZLyPXTHhLLdAswl7cXss+xgDXXxdmxFnmfJfesfPXN5GLa
+         DZZQkmbYpKNrA==
+Date:   Tue, 17 Jan 2023 19:03:42 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com
+Subject: Re: [PATCH net 0/3] Netfilter fixes for net
+Message-ID: <20230117190342.0ec253ad@kernel.org>
+In-Reply-To: <20230113164106.311491-1-pablo@netfilter.org>
+References: <20230113164106.311491-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Fri, 13 Jan 2023 17:41:03 +0100 Pablo Neira Ayuso wrote:
+> 1) Increase timeout to 120 seconds for netfilter selftests to fix
+>    nftables transaction tests, from Florian Westphal.
+> 
+> 2) Fix overflow in bitmap_ip_create() due to integer arithmetics
+>    in a 64-bit bitmask, from Gavrilov Ilia.
+> 
+> 3) Fix incorrect arithmetics in nft_payload with double-tagged
+>    vlan matching.
 
-When a connection is re-used, following can happen:
-[ connection starts to close, fin sent in either direction ]
- > syn   # initator quickly reuses connection
- < ack   # peer sends a challenge ack
- > rst   # rst, sequence number == ack_seq of previous challenge ack
- > syn   # this syn is expected to pass
-
-Problem is that the rst will fail window validation, so it gets
-tagged as invalid.
-
-If ruleset drops such packets, we get repeated syn-retransmits until
-initator gives up or peer starts responding with syn/ack.
-
-Before the commit indicated in the "Fixes" tag below this used to work:
-
-The challenge-ack made conntrack re-init state based on the challenge
-ack itself, so the following rst would pass window validation.
-
-Add challenge-ack support: If we get ack for syn, record the ack_seq,
-and then check if the rst sequence number matches the last ack number
-seen in reverse direction.
-
-Fixes: c7aab4f17021 ("netfilter: nf_conntrack_tcp: re-init for syn packets only")
-Reported-by: Michal Tesar <mtesar@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_proto_tcp.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 656631083177..3ac1af6f59fc 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1068,6 +1068,13 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 				ct->proto.tcp.last_flags |=
- 					IP_CT_EXP_CHALLENGE_ACK;
- 		}
-+
-+		/* possible challenge ack reply to syn */
-+		if (old_state == TCP_CONNTRACK_SYN_SENT &&
-+		    index == TCP_ACK_SET &&
-+		    dir == IP_CT_DIR_REPLY)
-+			ct->proto.tcp.last_ack = ntohl(th->ack_seq);
-+
- 		spin_unlock_bh(&ct->lock);
- 		nf_ct_l4proto_log_invalid(skb, ct, state,
- 					  "packet (index %d) in dir %d ignored, state %s",
-@@ -1193,6 +1200,14 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 			 * segments we ignored. */
- 			goto in_window;
- 		}
-+
-+		/* Reset in response to a challenge-ack we let through earlier */
-+		if (old_state == TCP_CONNTRACK_SYN_SENT &&
-+		    ct->proto.tcp.last_index == TCP_ACK_SET &&
-+		    ct->proto.tcp.last_dir == IP_CT_DIR_REPLY &&
-+		    ntohl(th->seq) == ct->proto.tcp.last_ack)
-+			goto in_window;
-+
- 		break;
- 	default:
- 		/* Keep compilers happy. */
--- 
-2.30.2
-
+FWIW pulled yesterday, thanks!
