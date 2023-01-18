@@ -2,164 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14086C38147
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 14:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF2E1C32793
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Jan 2023 14:10:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231144AbjAROJG (ORCPT
+        id S229704AbjAROKT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Jan 2023 09:09:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37342 "EHLO
+        Wed, 18 Jan 2023 09:10:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230355AbjAROIn (ORCPT
+        with ESMTP id S231243AbjAROJF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Jan 2023 09:08:43 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BF9059576
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2023 05:48:23 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pI8nc-0000Ct-Ln; Wed, 18 Jan 2023 14:48:20 +0100
-Date:   Wed, 18 Jan 2023 14:48:20 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
- NFTA_RULE_ACTUAL_EXPR
-Message-ID: <Y8f4pNIcb2zH9QqZ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20221221142221.27211-1-phil@nwl.cc>
- <Y7/drsGvc8MkQiTY@orbyte.nwl.cc>
- <Y7/pzxvu2v4t4PgZ@salvia>
- <Y7/2843ObHqTDIFQ@orbyte.nwl.cc>
- <Y8fe9+XHbxYyD4LY@salvia>
+        Wed, 18 Jan 2023 09:09:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C231B65F0A;
+        Wed, 18 Jan 2023 05:50:19 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 963466181D;
+        Wed, 18 Jan 2023 13:50:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 028D5C433D2;
+        Wed, 18 Jan 2023 13:50:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1674049818;
+        bh=6jpMkKav0Mj1r8lN5adcTzY130KzSUqNv+IUkbhnCFk=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=JaiIcpC7KqpISp/Ubq8Rz2bGaIPVBsCDcBvQp/TB3VtHigURhGmNGAR9J0aYfjb5A
+         DjNgAeb4pLCtrLHriNvXJn7GXZ6Y7g6OOhTPxU36sXNPicELedbT1558ZQwCt26KI1
+         AlGzHXxNLBlhlfj9RP8fg07toUSJjDAsYYSwboRH19gKFNkYb4c71WkV3dxQ33hPzh
+         iAZfYXjNBb0dPkGeJCfWrk57Z++X9CBmj13ehIMHhEzpj/YJgzLH43xIfBDjLBwlqS
+         tmzrELMop8HQaw1Wc9WcceWUrvmzTleRHxGhwXITzmJuM1rIt6VsM2A1XcZVBbtJk0
+         QGylT+aIaPLkQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E175BC3959E;
+        Wed, 18 Jan 2023 13:50:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y8fe9+XHbxYyD4LY@salvia>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/1] netfilter: conntrack: handle tcp challenge acks
+ during connection reuse
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167404981791.26997.17286007950287915154.git-patchwork-notify@kernel.org>
+Date:   Wed, 18 Jan 2023 13:50:17 +0000
+References: <20230118095424.885014-2-pablo@netfilter.org>
+In-Reply-To: <20230118095424.885014-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jan 18, 2023 at 12:58:47PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Jan 12, 2023 at 01:02:59PM +0100, Phil Sutter wrote:
-> > On Thu, Jan 12, 2023 at 12:06:55PM +0100, Pablo Neira Ayuso wrote:
-> > > On Thu, Jan 12, 2023 at 11:15:10AM +0100, Phil Sutter wrote:
-> > > > Bump?
-> > > > 
-> > > > On Wed, Dec 21, 2022 at 03:22:21PM +0100, Phil Sutter wrote:
-> > > > > Allow for user space to provide an improved variant of the rule for
-> > > > > actual use. The variant in NFTA_RULE_EXPRESSIONS may provide maximum
-> > > > > compatibility for old user space tools (e.g. in outdated containers).
-> > > > > 
-> > > > > The new attribute is also dumped back to user space, e.g. for comparison
-> > > > > against the compatible variant.
-> > > > > 
-> > > > > While being at it, improve nft_rule_policy for NFTA_RULE_EXPRESSIONS.
-> > > 
-> > > Could you split this in two patches?
-> > 
-> > Separate the nft_rule_policy_change? Sure!
+Hello:
+
+This patch was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Wed, 18 Jan 2023 10:54:24 +0100 you wrote:
+> From: Florian Westphal <fw@strlen.de>
 > 
-> Thanks.
+> When a connection is re-used, following can happen:
+> [ connection starts to close, fin sent in either direction ]
+>  > syn   # initator quickly reuses connection
+>  < ack   # peer sends a challenge ack
+>  > rst   # rst, sequence number == ack_seq of previous challenge ack
+>  > syn   # this syn is expected to pass
 > 
-> > > I still don't see how this is improving the situation for the scenario
-> > > you describe, if you could extend a bit on how you plan to use this
-> > > I'd appreciate.
-> > 
-> > I can send you my WiP libnftnl and iptables patches if that helps.
-> > 
-> > The approach this patch follows is pretty simple, though: The kernel
-> > will accept NFTA_RULE_ACTUAL_EXPR to override NFTA_RULE_EXPRESSIONS for
-> > use in the live ruleset.  When fetching the ruleset, old user space will
-> > ignore NFTA_RULE_ACTUAL_EXPR, so new user space may submit a compatible
-> > variant of the rule in NFTA_RULE_EXPRESSIONS and a modern variant in
-> > NFTA_RULE_ACTUAL_EXPR.
-> 
-> so _ACTUAL_EXPR is the modern representation, and _RULE_EXPRESSIONS
-> the old one?
-> 
-> Maybe the opposite is better? I mean, no changes in the
-> NFTA_RULE_EXPRESSIONS semantics, these are always the expressions that
-> run in the datapath, and the alternative expression representation is
-> just for backward compatibility?
-> 
-> Maybe all this can be handled from _USERDATA? I mean, to add the
-> netlink representation there?
+> [...]
 
-The crucial aspect of this implementation is to provide a compatible
-rule representation for old software which is not aware of it. This is
-only possible by dumping the compat representation in the well-known
-NFTA_RULE_EXPRESSIONS attribute.
+Here is the summary with links:
+  - [net,1/1] netfilter: conntrack: handle tcp challenge acks during connection reuse
+    https://git.kernel.org/netdev/net/c/c410cb974f2b
 
-This means what is contained in NFTA_RULE_EXPRESSIONS may not be what
-the kernel actually executes. To make this less scary, the kernel should
-dump the actual rule in a second attribute for the sake of verification
-in user space.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-While rule dumps are pretty much fixed given the above, there is
-flexibility when it comes to loading the rule:
 
-A) Submit the compat representation as additional attribute
-
-This was my initial approach, but Florian objected because the changing
-content of NFTA_RULE_EXPRESSIONS attribute may be confusing:
-
-On input, NFTA_RULE_EXPRESSIONS contains the new rule representation, on
-output it contains the compat one. The extra attribute I introduced
-behaves identical, i.e. on input it holds the compat representation
-while on output it holds the new one.
-
-B) Submit the new representation as additional attribute
-
-This is the current approach: If the additional attribute is present,
-the kernel will use it to build the rule and leave NFTA_RULE_EXPRESSIONS
-alone (actually: store it for dumps). Otherwise it will "fall back" to
-using NFTA_RULE_EXPRESSIONS just as usual.
-
-When dumping, if a stored NFTA_RULE_EXPRESSIONS content is present, it
-will dump that as-is and serialize the active rule into an additional
-attribute. Otherwise the active rule will go into NFTA_RULE_EXPRESSIONS
-just as usual.
-
-> > In iptables, when converting a rule from iptables_command_state into
-> > nftnl expressions, I insert all expressions into both
-> > NFTA_RULE_EXPRESSIONS and NFTA_RULE_ACTUAL_EXPR unless an extension does
-> > fancy stuff (e.g. was converted into native expressions).
-> 
-> So NFTA_RULE_EXPRESSIONS contains xt compat expression or is it
-> ACTUAL_EXPR?
-> 
-> Probably you can just add NFTA_RULE_COMPAT_EXPRS? This new attribute
-> provides a pure xt compat representation? _ACTUAL concept gets me
-> confused.
-
-See above. I hope it clarifies things.
-
-> > My test piece is limit match which had to be converted once (see commit
-> > 5de8dcf75941c for details): I add the native expressions to
-> > NFTA_RULE_ACTUAL_EXPR and create a compat "match" expression for
-> > NFTA_RULE_EXPRESSIONS only.
-> 
-> What gets me confused is what the kernel actually uses from the
-> datapath.
-> 
-> > The kernel will use the native expressions in the ruleset, dumps will
-> > contain the compat "match" expression instead.
-> 
-> Both representations should be dumped, right? In my mind, userspace
-> just falls back to my proposed NFTA_RULE_COMPAT_EXPRS in case it
-> cannot decode NFTA_RULE_EXPRESSIONS.
-
-I am swapping things around in libnftnl - it uses NFTA_RULE_ACTUAL_EXPRS
-if present and puts NFTA_RULE_EXPRESSIONS into a second list for
-verification only. In iptables, I parse both lists separately into
-iptables_command_state objects and compare them. If not identical,
-there's a bug.
-
-> Sorry for taking a while to come back here.
-
-No problem.
-
-Cheers, Phil
