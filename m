@@ -2,196 +2,164 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F41E1C00A5A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Jan 2023 07:35:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE56C004D4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Jan 2023 08:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229883AbjASHfO (ORCPT
+        id S229862AbjASI2K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Jan 2023 02:35:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44828 "EHLO
+        Thu, 19 Jan 2023 03:28:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230034AbjASHer (ORCPT
+        with ESMTP id S230231AbjASI1e (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Jan 2023 02:34:47 -0500
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on20603.outbound.protection.outlook.com [IPv6:2a01:111:f400:fe5b::603])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 614A863E24;
-        Wed, 18 Jan 2023 23:34:45 -0800 (PST)
+        Thu, 19 Jan 2023 03:27:34 -0500
+Received: from EUR01-VE1-obe.outbound.protection.outlook.com (mail-ve1eur01on2108.outbound.protection.outlook.com [40.107.14.108])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB5CA66F9E
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jan 2023 00:27:30 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hk9lt0fwZW1arj9X20aavrYcd9ERWa1m81Qg6nX1qKNp1XvPjToSEohnxehNslDwOunxjNzBbxthtyQCePEChblRS6zoM7aoWVDqljfm2sKXlYpK1hTO4W/ehliSOpsH8T/LWKxyahcUgFkLo4Fm4kXp1CTPS9Lqr+KDhrwJk4yqe4kmXIntkGJXhxKDe15wNtfv0lZBG0XSjqBFpdtwpOU9eNV0VWt/bg21bvRf7E9fb/K/lrwzWNsJTWp+RDp/g5FwGZEbvfQ3ogF1u5wrLirR6KncrsvZbEECvuKD3mzsMYdMjnDGAeL8yEQoA/Z6HTJJGZRbBugWbwJ7JIvVKQ==
+ b=FodLebKMz9MiFhjKTp19HT2YKZMDHPKebG5bTPDToTgDLXaxofKMrDTuVeq5kBDWzHEbUb3ScWw02z/euuJOvuR5PZjfwPTACy1He/N7cxmpti0XE+kDHULXTlqgUg73XGUGu4GB8I34HTdt0HtFGvDyRIhJe4WsdZ76EhILt9rciMhR4+C/ECq7cheLbexGhw1iYPl59OVYMR/S5tDMTO37NDCgHiGOcEqM+8dWrYJtOlL/Cqb78SKECqGJw9BYy2PwPXduV9LFxkb5x9r8RIqlwRSLpZBGB9L01g1R2vm5pmIFJM5j729ncgoxhdkoFRHlwtz+rqMhX9XgKDczNQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=pNR4lyNsNHC1jtWrmpPKZRp8BwTA/en7TBzuEJIRyHQ=;
- b=CQcgmQia5sQuFmH0pnL+BoXdTPCmirrPAJvFaDOFPg0kcbOISen5WXt8McAUkCSY8a1ntnTARaNaKozVrko01qz/mUj5ApOXe5KWFIRSd9PwIfxBaUBz4rSpBdlF/2zmREVrHCKnW3a269tuQoTgh6yW/WC+5ODRKioD+qE+GeNiHA62k6DtP6ONwXHaEfn73XdlYfMkt+OqvBgrJKfrsWDgPsJN1DmM4+Ws8k0kKikTwPTYJV0pC38oHLsrXmj95yeqChyVrzRgnGEaIZQDvz/9gIyLU8O8hzIPxneJe45xTDSiMr0usSDcrfAhY6JQehChbeR/jkoBo6NY43A7sw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=netfilter.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ bh=uj9l8ArHJ0AO/OmDTIJ++X0efF9bZgrEg79+JVgkEsQ=;
+ b=UMLLs/u/UeCgFJ/WYCf5FpF+cpEeLcSRfzvEkoubEsJLTLRJovVFt5dj3BxaoydlLrM3U/A8Yk+11Slb2LFEJCsWK8b5eebCjtpgfi2XbQEnKgsrypqGodgOZUgLyxiBhYpHOQQDe9yIk5M4oM6xXOT9vwmIMP3SCdqidblQn9F7sd6X7gVe2VVkUKR569i81weEXli2nFilMwSKLfVUFKCs7cNcF5TwWPvqjeEjY66beDoTrKww+H6CWvBPmfMTjCQnIc+kbL4ydoD2E07oX1PprkvAVyCMToZOf1CT5qwNlxsb4mIl5Iso/E4gbZjooY5MuhxbtDHmpzFyUynM7w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=est.tech; dmarc=pass action=none header.from=est.tech;
+ dkim=pass header.d=est.tech; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=estab.onmicrosoft.com;
+ s=selector2-estab-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=pNR4lyNsNHC1jtWrmpPKZRp8BwTA/en7TBzuEJIRyHQ=;
- b=MoIoOLWHBgZR9sNAAS3JGw5PInBMkqUGakTXvYNw2jd9wGg7EAYHzreEYiaEcBH16fZEl7acVCFV+HQzNLOUOfysYyD84XOaxEaEjEOQKLdjooFkH3aI7v4K+unqMixZmXMrgxAlq8MGfXB0+hwWRoKC/LFHijnFG9sun+LGSMhUTOrq4kjPrJfrDwvMHlrA26u0yJCqlZNA8p7RfwuHSu7Dy31jY/OGKAte2O1DOuvHuELd/li/em/c/Y6RiYFGTdXg35ONzo2fqYpaALbpDG9cSevn3+VnbSux6VnNZLKpD3qev2O/KrIYPpK2Mv+wldji3afgXdQ1Dfp7HVJ25w==
-Received: from DS7P222CA0026.NAMP222.PROD.OUTLOOK.COM (2603:10b6:8:2e::32) by
- MN0PR12MB6002.namprd12.prod.outlook.com (2603:10b6:208:37e::10) with
+ bh=uj9l8ArHJ0AO/OmDTIJ++X0efF9bZgrEg79+JVgkEsQ=;
+ b=CAZcJg20whe/c2PS6hG1Y+AIv8kPJLyIVti+SPROUHlCEBMO2n7LdcDOF9L38MS4LERvVUc2eMTq6nDLPHmBk/uidhduPv3C+LiY7BGfNQDTruhpsG+C42cObrS3VyjIX7ERpGO6wVWHIdt741mdHiSyA9m+Tm2Yz0MAAxerqk4=
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:1e7::15)
+ by AS2P189MB2537.EURP189.PROD.OUTLOOK.COM (2603:10a6:20b:646::7) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.23; Thu, 19 Jan
- 2023 07:34:41 +0000
-Received: from DM6NAM11FT093.eop-nam11.prod.protection.outlook.com
- (2603:10b6:8:2e:cafe::da) by DS7P222CA0026.outlook.office365.com
- (2603:10b6:8:2e::32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.26 via Frontend
- Transport; Thu, 19 Jan 2023 07:34:41 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- DM6NAM11FT093.mail.protection.outlook.com (10.13.172.235) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6023.16 via Frontend Transport; Thu, 19 Jan 2023 07:34:40 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Wed, 18 Jan
- 2023 23:34:34 -0800
-Received: from fedora.nvidia.com (10.126.231.37) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Wed, 18 Jan
- 2023 23:34:31 -0800
-References: <20230118123208.17167-1-fw@strlen.de>
- <20230118123208.17167-10-fw@strlen.de>
-User-agent: mu4e 1.6.6; emacs 28.1
-From:   Vlad Buslov <vladbu@nvidia.com>
-To:     Florian Westphal <fw@strlen.de>,
-        Fernando Fernandez Mancera <ffmancera@riseup.net>
-CC:     <netdev@vger.kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Maor Dickman <maord@nvidia.com>
-Subject: Re: [PATCH net-next 9/9] netfilter: nf_tables: add support to
- destroy operation
-Date:   Thu, 19 Jan 2023 09:29:50 +0200
-In-Reply-To: <20230118123208.17167-10-fw@strlen.de>
-Message-ID: <87o7qvasfv.fsf@nvidia.com>
+ 2023 08:27:27 +0000
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::8f70:435b:ab64:9420]) by DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::8f70:435b:ab64:9420%8]) with mapi id 15.20.6002.024; Thu, 19 Jan 2023
+ 08:27:27 +0000
+From:   Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <mleitner@redhat.com>,
+        Long Xin <lxin@redhat.com>,
+        Claudio Porfiri <claudio.porfiri@ericsson.com>
+Subject: RE: [PATCH v3 4/4] netfilter: conntrack: unify established states for
+ SCTP paths
+Thread-Topic: [PATCH v3 4/4] netfilter: conntrack: unify established states
+ for SCTP paths
+Thread-Index: AQHZKzHgogZwHVavok2VJqcBm3Ppeq6kTKiAgAEbySA=
+Date:   Thu, 19 Jan 2023 08:27:27 +0000
+Message-ID: <DBBP189MB14337339D62954EE69D352C695C49@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+References: <20230118113853.8067-1-sriram.yagnaraman@est.tech>
+ <20230118113853.8067-5-sriram.yagnaraman@est.tech> <Y8gQIUaGTnbS5mEN@salvia>
+In-Reply-To: <Y8gQIUaGTnbS5mEN@salvia>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=est.tech;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: DBBP189MB1433:EE_|AS2P189MB2537:EE_
+x-ms-office365-filtering-correlation-id: 8382431e-9990-4e42-7f98-08daf9f6ffee
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: hDHqdYU6ymeaz45zkrMLy5E+a8Lba8AoHnDxSD2TqgvV485ZaOHkuCE3BS3G2/Q+6ONmeHFPYxRFXbQ9iSLG3PH7hASmxP9R8l/aCNWNbUthcRgRe/AGXSKT/xma5LXxxRF8/tOQDT9shGRiBYI+FlppEh5jsC3JUOjyQ+ITVSYY6bqPyF2DQUTwR+hlgU1koXP0HT8OUuwwZhXd1afoGvhliLrh8tg4SJwBALXf6WRP+xsEaCKznJ/FjjuO2qLr/ktkK4WvW0zZcfgl7vq/04UpvP3mkbXodhpLRlREt2i+7jaxoR7ZFVmG/djqvY4RTSLxIzzWxvyMEEPGKw11tw460IiU4GQNg1Q7XzB9kRwTc26vxI8WrZHyIhzwc9QCEY1sMD8jyR7KAgBVmBOCvfxwrTJDituIoRvVmfrx4+YR6+ysFQkVVXYaJoPpcHWkaSydnP24sn5UL/TTrUr1TcsLxZFm+ECTgJS+Hy2QDXIHMaILCe6ZQRSWBDe9HzIIj1/EMVOYRbpq2t0Unxr55+Zt+T+f7DfcjV5pd4d4B9C8zXS7PZ9uCYtwRUc5baFbPQTa0pGF3ICWlCUPpM0QM26NBi8SdMpypKsi1f3py8WcxGWI8Fh2XFuxVog9JO1yWhvKySTbuVdvKGVDCr/rP3RXxyXYw24iunqy5/DjUBBx4QImL0+DCaK8GwMSLCogzdtSKW1kHz92QDHHGH0A9w==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBP189MB1433.EURP189.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230022)(396003)(346002)(39840400004)(376002)(136003)(366004)(451199015)(71200400001)(7696005)(53546011)(6506007)(316002)(478600001)(9686003)(26005)(186003)(6916009)(38100700002)(54906003)(4326008)(44832011)(64756008)(66476007)(66556008)(76116006)(41300700001)(66446008)(52536014)(83380400001)(2906002)(8936002)(5660300002)(122000001)(38070700005)(8676002)(66946007)(55016003)(86362001)(33656002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?dmNxQTZ0TTlrd2FYQlNpdEJxMHR0azVxSXZwc2FvVDkvOUtlWWFNSzk3VjVu?=
+ =?utf-8?B?ZXNVdHZVOXNlZXU5cjl1cS9JTEJuejRib1RNVDhtWTNQMHV1YXZjUVVtajdr?=
+ =?utf-8?B?UWl2MjJXcXFCazd3Y1k5czJrNm9yVFVwWTNZR01zQlNDcVdjcGdEdGRubUR4?=
+ =?utf-8?B?ajlsUzZoNjBrREt0b2NReVN3aGJ3VFhVQmhuM1BBbWJwWDY5akZzUm1qMUcw?=
+ =?utf-8?B?T0g0cHBzM0tWeDNWYTdhZThKYVhOenlGTnFDb2RRTnBGVXFydHZvNndMRmpV?=
+ =?utf-8?B?U0pPa0tETTRVSkZxQ01WZmErSVdIdWhPTlpqb1diSG53bjhYZzVoVW1wVjNV?=
+ =?utf-8?B?Ri9FM2MyTUZkeVhka2U4OWJ0NXF3N1VENDVzckV3ZjU5TEx2ZHZBZzZiSEsx?=
+ =?utf-8?B?QVNWMmxyN0JvdHBjTEZyaWVDeUV3THk0c01KclZjUzFTajVIVEJyd0lzV2Jm?=
+ =?utf-8?B?cU03RURNem5CQU5mdStpVEFrTU1Lc282dSs5SjB1N0hNaHBsaUkwQ2Y0ZVUy?=
+ =?utf-8?B?M3NmeWRtZjZYSHNEdm9qV25ZdXlid0taZ1hmYlE0eUhlb0JCbkdwZHQ4dTky?=
+ =?utf-8?B?bGpTZzNXTzVlSjh5ekhWZVd3RkovUG5Ncm54a2JpN3ZkNFp0cHR6c3EySXJ1?=
+ =?utf-8?B?NExSc2FkM3VzODR3aDdqOHZaUThJQTBBTGo2VjNWSlJqQjNEWUNDVXNwS0Nn?=
+ =?utf-8?B?YkR1U0ZCWng4dlh4YnU0eXRFRmlxNEJUODY3YXpPaVJyQ0owVjRVdElLOCtq?=
+ =?utf-8?B?SGVuWFdHQlNRbFFhajg3djd0ODVDalE4UWNrR0dZSDR3ZkFneE9Cell6YzRC?=
+ =?utf-8?B?dGhnRFc3QXdCNFNjbHA3K1VpOXNMSDZXdlJDRUFyTWtESVhWL01pUUxIaFJR?=
+ =?utf-8?B?dkhYRmdJd3VBNzFzREl2WUtDa21oR2R0bFFBSGlpYUNMclptS01sNkJRMlBx?=
+ =?utf-8?B?Q0kyYmZqQVdJVDU0Wlcyb29jWGJCVUtMNDRPSEdsRTRxOUlaZVlQQndISVpm?=
+ =?utf-8?B?SFZ0cVJYVzJOcVFCRHFjUXVMV2dGZElHU1doeWJwSll5OEUzUm9LS0VxRHoz?=
+ =?utf-8?B?YWlnTC9WS2JvTjNoSGRHVTAwR0hXZFFTSGlzU3hnSHptLzJweUFwTzdSZmVI?=
+ =?utf-8?B?d2tSa1pxcGRZNHVKSGFlQS8zYmNINGl4bFN3WDJNa204UDZDZnpiV2ZzOEdO?=
+ =?utf-8?B?amV5U3VtcDBpcXdJdUJRa2RLY1Z0Ukl6SStyV2hMVE0xby91bVg2emd0YytD?=
+ =?utf-8?B?aEJpeXBoL1NGSytQNHNQaUpYaGpDcGZhdGY2bDBwbG14Rkp5c1FBNUM2ZUJH?=
+ =?utf-8?B?NzdOZmwrRmVOS0NqSUpDdmE5SXEwTldlZWI1T2pVbUpacVB6VVBrWFpRY3NF?=
+ =?utf-8?B?MklPN3dVSlVGZ2RHMDFJU0VqakF2UGljWWZVK3FiMXJvNDZMeFhwL0JNaWNP?=
+ =?utf-8?B?dlZvTHd5NE5Mems3SGs5aGpHOE1FWmxjUUZEWEFMOGdDeGVtcnovZDdyaXlY?=
+ =?utf-8?B?UkZhbGJydVB1NjBhM0w5Qmk4RU4rZE9ha1FjRGEwcStkdmtYYkhNZ1FyZDdM?=
+ =?utf-8?B?WjdWZEp1WWJFY2tFVnMzbjNKeVBTMXdIUXBqQXFhRm11bzBBZG5mVWtnS2dl?=
+ =?utf-8?B?MHU3czJkcEFIVlg0c1J3R3lXR09wYVlzT1c1RUJsYXYzaXBraitwWXFRNWlK?=
+ =?utf-8?B?aHQwOWo4bHNjWkJJMzBVQlQ4Z20zem13aysxY1JlVGVYYTBxWUtGM0NFK0FD?=
+ =?utf-8?B?NGFabk9nYWRlbDBuZXJWWTEyVGlyRHpmbjJqL0pWWFhFdEFPbHdaVnlMczhi?=
+ =?utf-8?B?aEdJdTN1UGZEaWNrWStUZ3VpQktlSUxEVFM0MTVZYTZUbW1xREpHMUdPVjdZ?=
+ =?utf-8?B?QzZlcHdQT1lOVVdsRFpUWjdDVEl2SUZUWEUxa1RqTjI0U1BYVjRWT3Vadk5F?=
+ =?utf-8?B?a2JkZml0N2FGYTZ1S1VJMDluSmUwbGFHRVRwTXlIMHVLMXkxdHNRL2tYc3RY?=
+ =?utf-8?B?cisyTk5BTG10WmkwMnBWZmUvMG8rZ20yL0tlU2hDYVRBcTM3STJyYzIyN2s1?=
+ =?utf-8?B?TXJUUHVNQnNCNUFuNmNmZmtGbkV0Q1YvUFAyTkY5ZE80dFB2aCtuSXFRcHdm?=
+ =?utf-8?Q?/kqAJEq0sCBUBTqndC+HP1MXp?=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.126.231.37]
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6NAM11FT093:EE_|MN0PR12MB6002:EE_
-X-MS-Office365-Filtering-Correlation-Id: 72c2137f-608e-4ffd-0a09-08daf9efa05e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: SYwz6Bk7RX+oi8qLRwt728hrRbll0NNIaqxeGxKOkBEWlRT5PRnQVL1wutCHjIpHhYnaOmgH0wwBtum59L/JDMxo6GnQCsZdYgVz/sW6Nqrxzinmh2zYtDz9vdLCfXBstcnn1NzFGxx3Mo63UIbALIsQjXOtspTD0a9PavbkSKgvQcwILx0zenXxsNtRtWYlLvIuSNCrgfmPBo8BTFfMIvqf064FN/Pt6OvpI/VJCJki545mmHQ3CrFjdLUqivxxflTXoL6gHnyhJNeKAi23dCwPdUM/xxpa3GWgNBODOEzLt1LtXblKM6aMasG1zNy+3yE9PwcdSh1HeoM6VWGt1RIkzfL9yjK4GOJAMn4wrBrwuvjzJR98kY2eCMZGPoxeSDQxmC7Yw9UUGNxJG1G3s0WcBO0qZCDb+h56meYZrAQbfwtsxQhzqg2z1OQwMp0d4ybYbJQxZc8I62QzzTZY4HUgif5+7W4mIg+LZsmZiciuwQ52/lZcHY83JzXXzFA8Q1Is8zoAfv44zX9OWc9nGXKqSkx3TzFgL9ZiZtNZhesmM7ysgCP9jCNEg4sV6P+fjd0IvwOJS3alThfBBMINBwqflpkH9o5wrOBpfsoIBlZwSKXn6qCPMoSin1cuBTf4+2pRDllp8Qy/nQ0jXJsJMFXFiAA18oHdD6ZZxo1hdoLVx6XxXBJfKVW9f5jDm0psm+UnGD5CicC4gPl7JPyY7g==
-X-Forefront-Antispam-Report: CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(396003)(39860400002)(136003)(376002)(346002)(451199015)(46966006)(36840700001)(40470700004)(8936002)(8676002)(36756003)(16526019)(82310400005)(186003)(426003)(4326008)(70586007)(47076005)(41300700001)(70206006)(26005)(2616005)(86362001)(5660300002)(36860700001)(7696005)(336012)(478600001)(40480700001)(54906003)(82740400003)(107886003)(7636003)(316002)(83380400001)(356005)(110136005)(6666004)(40460700003)(2906002);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Jan 2023 07:34:40.7801
+X-OriginatorOrg: est.tech
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8382431e-9990-4e42-7f98-08daf9f6ffee
+X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Jan 2023 08:27:27.7125
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 72c2137f-608e-4ffd-0a09-08daf9efa05e
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT093.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB6002
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: d2585e63-66b9-44b6-a76e-4f4b217d97fd
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: sV57HtzeX5lXYBVaP4K0hmQK92cswdgR6rLp11ytBtowrfEZzL/2Ty9dAGT/XsjxgnUkcwlAfo7UwYRPUSJsYD+CMG+3lHkpEQwDiDchFMQ=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS2P189MB2537
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed 18 Jan 2023 at 13:32, Florian Westphal <fw@strlen.de> wrote:
-> From: Fernando Fernandez Mancera <ffmancera@riseup.net>
->
-> Introduce NFT_MSG_DESTROY* message type. The destroy operation performs a
-> delete operation but ignoring the ENOENT errors.
->
-> This is useful for the transaction semantics, where failing to delete an
-> object which does not exist results in aborting the transaction.
->
-> This new command allows the transaction to proceed in case the object
-> does not exist.
->
-> Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  include/uapi/linux/netfilter/nf_tables.h |  14 +++
->  net/netfilter/nf_tables_api.c            | 111 +++++++++++++++++++++--
->  2 files changed, 117 insertions(+), 8 deletions(-)
->
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index cfa844da1ce6..ff677f3a6cad 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -98,6 +98,13 @@ enum nft_verdicts {
->   * @NFT_MSG_GETFLOWTABLE: get flow table (enum nft_flowtable_attributes)
->   * @NFT_MSG_DELFLOWTABLE: delete flow table (enum nft_flowtable_attributes)
->   * @NFT_MSG_GETRULE_RESET: get rules and reset stateful expressions (enum nft_obj_attributes)
-> + * @NFT_MSG_DESTROYTABLE: destroy a table (enum nft_table_attributes)
-> + * @NFT_MSG_DESTROYCHAIN: destroy a chain (enum nft_chain_attributes)
-> + * @NFT_MSG_DESTROYRULE: destroy a rule (enum nft_rule_attributes)
-> + * @NFT_MSG_DESTROYSET: destroy a set (enum nft_set_attributes)
-> + * @NFT_MSG_DESTROYSETELEM: destroy a set element (enum nft_set_elem_attributes)
-> + * @NFT_MSG_DESTROYOBJ: destroy a stateful object (enum nft_object_attributes)
-> + * @NFT_MSG_DESTROYFLOWTABLE: destroy flow table (enum nft_flowtable_attributes)
->   */
->  enum nf_tables_msg_types {
->  	NFT_MSG_NEWTABLE,
-> @@ -126,6 +133,13 @@ enum nf_tables_msg_types {
->  	NFT_MSG_GETFLOWTABLE,
->  	NFT_MSG_DELFLOWTABLE,
->  	NFT_MSG_GETRULE_RESET,
-> +	NFT_MSG_DESTROYTABLE,
-> +	NFT_MSG_DESTROYCHAIN,
-> +	NFT_MSG_DESTROYRULE,
-> +	NFT_MSG_DESTROYSET,
-> +	NFT_MSG_DESTROYSETELEM,
-> +	NFT_MSG_DESTROYOBJ,
-> +	NFT_MSG_DESTROYFLOWTABLE,
->  	NFT_MSG_MAX,
->  };
->  
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 8c09e4d12ac1..974b95dece1d 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -1401,6 +1401,10 @@ static int nf_tables_deltable(struct sk_buff *skb, const struct nfnl_info *info,
->  	}
->  
->  	if (IS_ERR(table)) {
-> +		if (PTR_ERR(table) == -ENOENT &&
-> +		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYTABLE)
-> +			return 0;
-> +
->  		NL_SET_BAD_ATTR(extack, attr);
->  		return PTR_ERR(table);
->  	}
-> @@ -2639,6 +2643,10 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
->  		chain = nft_chain_lookup(net, table, attr, genmask);
->  	}
->  	if (IS_ERR(chain)) {
-> +		if (PTR_ERR(chain) == -ENOENT &&
-> +		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYCHAIN)
-> +			return 0;
-> +
->  		NL_SET_BAD_ATTR(extack, attr);
->  		return PTR_ERR(chain);
->  	}
-> @@ -3716,6 +3724,10 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
->  		chain = nft_chain_lookup(net, table, nla[NFTA_RULE_CHAIN],
->  					 genmask);
->  		if (IS_ERR(chain)) {
-> +			if (PTR_ERR(rule) == -ENOENT &&
-
-Coverity complains that at this point rule is not initialized yet, which
-looks like to be the case to me.
-
-[...]
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQYWJsbyBOZWlyYSBBeXVzbyA8
+cGFibG9AbmV0ZmlsdGVyLm9yZz4NCj4gU2VudDogV2VkbmVzZGF5LCAxOCBKYW51YXJ5IDIwMjMg
+MTY6MjkNCj4gVG86IFNyaXJhbSBZYWduYXJhbWFuIDxzcmlyYW0ueWFnbmFyYW1hbkBlc3QudGVj
+aD4NCj4gQ2M6IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmc7IEZsb3JpYW4gV2VzdHBo
+YWwgPGZ3QHN0cmxlbi5kZT47DQo+IE1hcmNlbG8gUmljYXJkbyBMZWl0bmVyIDxtbGVpdG5lckBy
+ZWRoYXQuY29tPjsgTG9uZyBYaW4NCj4gPGx4aW5AcmVkaGF0LmNvbT47IENsYXVkaW8gUG9yZmly
+aSA8Y2xhdWRpby5wb3JmaXJpQGVyaWNzc29uLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2
+MyA0LzRdIG5ldGZpbHRlcjogY29ubnRyYWNrOiB1bmlmeSBlc3RhYmxpc2hlZCBzdGF0ZXMgZm9y
+DQo+IFNDVFAgcGF0aHMNCj4gDQo+IE9uIFdlZCwgSmFuIDE4LCAyMDIzIGF0IDEyOjM4OjUzUE0g
+KzAxMDAsIFNyaXJhbSBZYWduYXJhbWFuIHdyb3RlOg0KPiA+IEFuIFNDVFAgZW5kcG9pbnQgY2Fu
+IHN0YXJ0IGFuIGFzc29jaWF0aW9uIHRocm91Z2ggYSBwYXRoIGFuZCB0ZWFyIGl0DQo+ID4gZG93
+biBvdmVyIGFub3RoZXIgb25lLiBUaGF0IG1lYW5zIHRoZSBpbml0aWFsIHBhdGggd2lsbCBub3Qg
+c2VlIHRoZQ0KPiA+IHNodXRkb3duIHNlcXVlbmNlLCBhbmQgdGhlIGNvbm50cmFjayBlbnRyeSB3
+aWxsIHJlbWFpbiBpbiBFU1RBQkxJU0hFRA0KPiA+IHN0YXRlIGZvciA1IGRheXMuDQo+ID4NCj4g
+PiBCeSBtZXJnaW5nIHRoZSBIRUFSVEJFQVRfQUNLRUQgYW5kIEVTVEFCTElTSEVEIHN0YXRlcyBp
+bnRvIG9uZQ0KPiA+IEVTVEFCTElTSEVEIHN0YXRlLCB0aGVyZSByZW1haW5zIG5vIGRpZmZlcmVu
+Y2UgYmV0d2VlbiBhIHByaW1hcnkgb3INCj4gPiBzZWNvbmRhcnkgcGF0aC4gVGhlIHRpbWVvdXQg
+Zm9yIHRoZSBtZXJnZWQgRVNUQUJMSVNIRUQgc3RhdGUgaXMgc2V0IHRvDQo+ID4gMjEwIHNlY29u
+ZHMgKGhiX2ludGVydmFsICogbWF4X3BhdGhfcmV0cmFucyArIHJ0b19tYXgpLiBTbywgZXZlbiBp
+ZiBhDQo+ID4gcGF0aCBkb2Vzbid0IHNlZSB0aGUgc2h1dGRvd24gc2VxdWVuY2UsIGl0IHdpbGwg
+ZXhwaXJlIGluIGEgcmVhc29uYWJsZQ0KPiA+IGFtb3VudCBvZiB0aW1lLg0KPiANCj4gVGhhbmtz
+IGZvciBuZXcgcGF0Y2hzZXQgdmVyc2lvbi4gT25lIHF1ZXN0aW9uIGJlbG93Lg0KPiANCj4gPiBA
+QCAtNTIzLDggKzUxMiw3IEBAIGludCBuZl9jb25udHJhY2tfc2N0cF9wYWNrZXQoc3RydWN0IG5m
+X2Nvbm4gKmN0LA0KPiA+DQo+ID4gIAluZl9jdF9yZWZyZXNoX2FjY3QoY3QsIGN0aW5mbywgc2ti
+LCB0aW1lb3V0c1tuZXdfc3RhdGVdKTsNCj4gPg0KPiA+IC0JaWYgKG9sZF9zdGF0ZSA9PSBTQ1RQ
+X0NPTk5UUkFDS19DT09LSUVfRUNIT0VEICYmDQo+ID4gLQkgICAgZGlyID09IElQX0NUX0RJUl9S
+RVBMWSAmJg0KPiA+ICsJaWYgKGRpciA9PSBJUF9DVF9ESVJfUkVQTFkgJiYNCj4gPiAgCSAgICBu
+ZXdfc3RhdGUgPT0gU0NUUF9DT05OVFJBQ0tfRVNUQUJMSVNIRUQpIHsNCj4gPiAgCQlwcl9kZWJ1
+ZygiU2V0dGluZyBhc3N1cmVkIGJpdFxuIik7DQo+ID4gIAkJc2V0X2JpdChJUFNfQVNTVVJFRF9C
+SVQsICZjdC0+c3RhdHVzKTsNCj4gDQo+IFdoeSBvbGRfc3RhdGUgPT0gU0NUUF9DT05OVFJBQ0tf
+Q09PS0lFX0VDSE9FRCB3YXMgcmVtb3ZlZCB0byBzZXQNCj4gb24gdGhlIGFzc3VyZWQgYml0Pw0K
+PiANCg0KVGhlcmUgaXMgbW9yZSB0aGFuIG9uZSBzdGF0ZSBmcm9tIHdoaWNoIHdlIGNhbiB0cmFu
+c2l0aW9uIHRvIEVTVEFCTElTSEVEIG5vdywgQ09PS0lFX0VDSE9FRCBhbmQgSEVBUlRCRUFUX1NF
+TlQuIEkgd2lsbCBhZGQgYSAib2xkX3N0YXRlICE9IG5ld19zdGF0ZSIgY2hlY2sgaW5zdGVhZCwg
+c28gd2UgZG9uJ3Qgc2V0IEFTU1VSRUQgZXZlcnkgdGltZSB0aGVyZSBpcyBhIHBhY2tldCBpbiB0
+aGUgUkVQTFkgZGlyZWN0aW9uLiBJIHdpbGwgd2FpdCBmb3Igb3RoZXIgcmV2aWV3IGNvbW1lbnRz
+LCBiZWZvcmUgcHVzaGluZyBhbm90aGVyIHBhdGNoc2V0IHZlcnNpb24uDQoNCj4gVGhhbmtzLg0K
