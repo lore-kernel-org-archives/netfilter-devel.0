@@ -2,77 +2,129 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1347C05027
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Jan 2023 10:37:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23188C05027
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Jan 2023 11:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbjATKhf (ORCPT
+        id S229587AbjATLan (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Jan 2023 05:37:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48630 "EHLO
+        Fri, 20 Jan 2023 06:30:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229591AbjATKhb (ORCPT
+        with ESMTP id S229561AbjATLan (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Jan 2023 05:37:31 -0500
-Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08C83AD11
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2023 02:37:31 -0800 (PST)
-Received: by mail-ej1-x636.google.com with SMTP id qx13so12740819ejb.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2023 02:37:30 -0800 (PST)
+        Fri, 20 Jan 2023 06:30:43 -0500
+Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com [IPv6:2607:f8b0:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 367DEE1;
+        Fri, 20 Jan 2023 03:30:42 -0800 (PST)
+Received: by mail-oi1-x230.google.com with SMTP id s124so4173736oif.1;
+        Fri, 20 Jan 2023 03:30:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=QJYeM6PLddYmq1plDtOg0WH4VVExuwloJYSBZft/JyU=;
-        b=CCcsVrC75vpb3ehhh7HuVYTfRtVfjyOBLezx2u0jXTGDNrlIH8sgodoPv19BW41ldH
-         HMce0L4HJ1clqH/WiPJZhmeico8a2SEKNiAK0tt0YFyM/UNQBDvhAvlyMPWht3xg6uYe
-         /unSc367Nhj3ZchSc13SeNk7KFkRplUuRFZolg1cv+WonDF9NOYBtNsXM9uKMLaCM1Fp
-         7mE33qj0XkQOcLREpHNUOuDSsXwzHz1iX++TfHbtRZicoSr/EsWvnrFXXxgGxts+fueS
-         B2iPzN3QBgUBHJo0c1NCmBED1IE5kQIaWiY02warGJUh4YL2M/grkpPcsUi1BrVv0cwf
-         u4eA==
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=eYVnKhOD8g9iG32ASFP7LNl/DoJNo6pqrK1SwH3IDBM=;
+        b=IZ0uvt/pVdZMIlBJafgLN+aJRWaaPo4rF+159uCQGDL+a+ApsPSXmNf/tvt0tc18gg
+         rpipvcgZGfLLgd3trSLAIYv/rPY1nOAtYNCHNunSflVvce2L518dhaxaT+kb4NKWkiTK
+         9LQDpUXl5GXA8La+c3W0T+Ji6+ZUzmoR5sKbQlq5xl4zZROVg5en+5ek2HvJBV6I9L/J
+         bZVy3hxgSzQZB2wHJgUrUJOJD3LYUoVJ7RjrJBLTRnZ7j1D6td1eujgi44K409pSNR31
+         4afzQd9+r+dwoZvMonlFEovbob5X+Q5sjQx2Mqf094ur2AFbLMl+LU3ZJxt4pYCg1MsA
+         QQ0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=QJYeM6PLddYmq1plDtOg0WH4VVExuwloJYSBZft/JyU=;
-        b=bjx9bu1x4JglmW01wynAWsla40ZBqN1H3tJReJ+RKeta+SuvELL/VdLf5iK5SH9+LS
-         /QGYslnRZElEWfKX3vN6H13c2TdY2xjGxYrwGK2pSKQyH83/CodoQmqz/+UTfjJYYxzh
-         WUvpEIEvL1bSKSlq5+3+FWhd9u6YQlUcmvv7Jr1iU7+/woBIbzL+NdI8HDtADKaQIqjc
-         IQ+ZSMdTrLAUlinTiA2HoJwpZMPdlm2hlSv2tMxO16Yki9gYO5e3TQ+zvQndUZSv0A7c
-         kBivIeqb6VTsYPz0tRpxLkyCfaRdgTBlaT4Edd6T7ZWQghg9g7YcwgTJhAByqY5Rp8tQ
-         SzTA==
-X-Gm-Message-State: AFqh2ko0jNmsQxLfzNkw07sYssde8QDDL2CQCPAxOJ9Aibbn/4mzfDMN
-        VI2nYq2GWQAq88zm9Q1YkJ4IMb0ifjtGMnQPnGeQZbViCSQaew==
-X-Google-Smtp-Source: AMrXdXuodbvmUhguXx0OwXsgIkO+WX0LyLw9LcrmHJk+vOvTWPFy/Iulru6OGmrdEwTKmvin9iR/XzoUbs3s//k1HiU=
-X-Received: by 2002:a17:906:14c1:b0:7c0:b3a8:a5f9 with SMTP id
- y1-20020a17090614c100b007c0b3a8a5f9mr972437ejc.154.1674211049285; Fri, 20 Jan
- 2023 02:37:29 -0800 (PST)
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=eYVnKhOD8g9iG32ASFP7LNl/DoJNo6pqrK1SwH3IDBM=;
+        b=kv5qlt4dp47wRcA2kLuTcVZkiSYLVJJIlgkAftZ+jzBH4dvXM2P+LoSsVTT8b1m6E1
+         cxkPdFtMqTVOIuVk1Uc3ztmEA0hGqm8jmXG/cCkNto/X2fTTXc7/SmBS3wzKcmViumJ3
+         l8UOyw+GmqtpxJCj+6E0g3N9MtvrrIXcewYDim0Xl7BBmI+3Awcye9YJKK9EGBSAvHAv
+         4BpWs4zkD4DFc6SJyjYRp/fcjiV91F68uJcg39uGLTVKnBFim3JIgk2tYpz5j5PX0eUf
+         M2oYRYJj8xdu4BPhZCT1G9MA0co56RSlcBQBhLAZwPzlnwG8RWDjDEqF/0byL85H+i3u
+         k9uw==
+X-Gm-Message-State: AFqh2krmm41EHDwMaEbl67Z0HEQADy+6oLY53zcWoi7poOcDTL+JZuqd
+        FnT6fS4Qk08LWtZzk37ziBXyx9IPcQi8yA==
+X-Google-Smtp-Source: AMrXdXt4ZjK3bRGPQTgndqPAK0rblVjzgALC0VwITPkgza+a+oo52q3bocvYkRkQz4viZUJ6+Wf+Gg==
+X-Received: by 2002:aca:230b:0:b0:35e:d234:712a with SMTP id e11-20020aca230b000000b0035ed234712amr6163938oie.40.1674214241410;
+        Fri, 20 Jan 2023 03:30:41 -0800 (PST)
+Received: from t14s.localdomain ([2001:1284:f016:3243:26ee:68de:6577:af10])
+        by smtp.gmail.com with ESMTPSA id bx6-20020a0568081b0600b003436fa2c23bsm1046134oib.7.2023.01.20.03.30.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Jan 2023 03:30:40 -0800 (PST)
+Received: by t14s.localdomain (Postfix, from userid 1000)
+        id DB4824AE701; Fri, 20 Jan 2023 08:30:38 -0300 (-03)
+Date:   Fri, 20 Jan 2023 08:30:38 -0300
+From:   Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To:     Vlad Buslov <vladbu@nvidia.com>
+Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+        pablo@netfilter.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, jiri@resnulli.us, ozsh@nvidia.com,
+        simon.horman@corigine.com
+Subject: Re: [PATCH net-next v3 0/7] Allow offloading of UDP NEW connections
+ via act_ct
+Message-ID: <Y8p7XsUFaHRFGIBJ@t14s.localdomain>
+References: <20230119195104.3371966-1-vladbu@nvidia.com>
+ <Y8m4A7GchYdx21/h@t14s.localdomain>
+ <87k01hbtbs.fsf@nvidia.com>
+ <87fsc5bsh9.fsf@nvidia.com>
 MIME-Version: 1.0
-From:   Armen Hovhannisyan <harmen.crd@gmail.com>
-Date:   Fri, 20 Jan 2023 14:37:18 +0400
-Message-ID: <CAJvn+xT2NS_a2KmQixfQ07An+UAyioSqF_yk9TO0f6K6Cuiz=A@mail.gmail.com>
-Subject: Stateless load-balancer
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87fsc5bsh9.fsf@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dear nftables team,
+On Fri, Jan 20, 2023 at 08:57:16AM +0200, Vlad Buslov wrote:
+> On Fri 20 Jan 2023 at 08:38, Vlad Buslov <vladbu@nvidia.com> wrote:
+> > On Thu 19 Jan 2023 at 18:37, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
+> >> On Thu, Jan 19, 2023 at 08:50:57PM +0100, Vlad Buslov wrote:
+> >>> Currently only bidirectional established connections can be offloaded
+> >>> via act_ct. Such approach allows to hardcode a lot of assumptions into
+> >>> act_ct, flow_table and flow_offload intermediate layer codes. In order
+> >>> to enabled offloading of unidirectional UDP NEW connections start with
+> >>> incrementally changing the following assumptions:
+> >>> 
+> >>> - Drivers assume that only established connections are offloaded and
+> >>>   don't support updating existing connections. Extract ctinfo from meta
+> >>>   action cookie and refuse offloading of new connections in the drivers.
+> >>
+> >> Hi Vlad,
+> >>
+> >> Regarding ct_seq_show(). When dumping the CT entries today, it will do
+> >> things like:
+> >>
+> >>         if (!test_bit(IPS_OFFLOAD_BIT, &ct->status))
+> >>                 seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
+> >>
+> >> omit the timeout, which is okay with this new patchset, but then:
+> >>
+> >>         if (test_bit(IPS_HW_OFFLOAD_BIT, &ct->status))
+> >>                 seq_puts(s, "[HW_OFFLOAD] ");
+> >>         else if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
+> >>                 seq_puts(s, "[OFFLOAD] ");
+> >>         else if (test_bit(IPS_ASSURED_BIT, &ct->status))
+> >>                 seq_puts(s, "[ASSURED] ");
+> >>
+> >> Previously, in order to be offloaded, it had to be Assured. But not
+> >> anymore after this patchset. Thoughts?
+> >
+> > Hi Marcelo,
+> >
+> > I know that for some reason offloaded entries no longer display
+> > 'assured' flag in the dump. This could be changed, but I don't have a
+> > preference either way and this patch set doesn't modify the behavior.
+> > Up to you and maintainers I guess.
+> 
+> BTW after checking the log I don't think the assumption that all
+> offloaded connections are always assured is true. As far as I understand
+> act_ct originally offloaded established connections and change to
+> offload assured was made relatively recently in 43332cf97425
+> ("net/sched: act_ct: Offload only ASSURED connections") without
+> modifying the prints you mentioned.
 
-I am trying to configure a stateless load-balancer but having problems
-with defining different destination ports for different backends, I
-would be grateful if you could help me with the configuration.
-Nftables documentation states the following command for stateless
-load-balancing:
+Oh. Somehow this behavior glued to my mind as it was always there. Not
+sure which glue was used, please don't ask :D
+Thanks!
 
-nft add rule t c tcp dport 80 ip daddr set numgen inc mod 2 map { 0 :
-192.168.1.100, 1 : 192.168.1.101 }
-
-However this will forward to both backends on port 80, what I want to
-achieve is to receive on port 80, but to forward to port 8081 for one
-backend and 8082 for other backend and can't get the correct
-configuration for stateless forwarding.
-
-Many thanks in advance for your time.
-
-Kind Regards` Armen
+Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
