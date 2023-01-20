@@ -2,65 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91791C46467
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Jan 2023 06:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 809BFC05027
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Jan 2023 07:00:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229883AbjATGmb (ORCPT
+        id S229513AbjATHA4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Jan 2023 01:42:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40552 "EHLO
+        Fri, 20 Jan 2023 02:00:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbjATGma (ORCPT
+        with ESMTP id S229437AbjATHAz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Jan 2023 01:42:30 -0500
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2081.outbound.protection.outlook.com [40.107.102.81])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E30A45221;
-        Thu, 19 Jan 2023 22:42:29 -0800 (PST)
+        Fri, 20 Jan 2023 02:00:55 -0500
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2071.outbound.protection.outlook.com [40.107.94.71])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F32338A68;
+        Thu, 19 Jan 2023 23:00:54 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ekJ7TtYjY1KkaknWF6D4J6rVuRCZXp+bzrWMYEJpRHb0HFmMGkQIH8DR6aAsvME5Ul1Qx1SnR0jQosVbpGxUUcGdp8CVj2EzWN3fDjfDMfk23NNkpUGG3gOZm7mx2RVeGaIPSIrHAaOpJ02QmIq1IYZnCXsIsvVyV/4u8MmY6sAn3FVbKgeiN7tjYEzKBNQVatuVCtgVXvB528Rj50mfb2kl6NzbC8Y8usnWLggZz4zSqspGOxQGvordCZBtjhSdAa72+kyKOuRQZZoottMi0UOTRH+GTeajI+DCXphvJJBRQjcQa6ndN6jxpD+HVA/wDyoIX5XeDlTUaQyjn9cAKQ==
+ b=hKGy0d6JJjcN65CtG0xFdKdheOBiA00RyArUneMI8ry50RUWMyB68YEj52cGC+T9QvL1GW4G7ZuX8xGQbIq8xfjUpc7QPt7vv0+GFam0dNuNHkYqlbPTdman8ER56HoB+ciZZpWbVonMIUH8MrWf/e440940aw5m7I2b3upHsHu+QTPS9bCc1qM1R7AjeP4oGU4/oTJeeClGU1FxxlxHfPWjn/OICCD7qRkmJ9n1VYEwO9K3H/u9e6BHetL3ERm60n7+HcTJ20tArt6og9tRLgA66f4ZpowVVBd8o5/FLE7Gm3/y1EgBxaGa+YznBVCrqb8/p4Be/PkhX60rLMoDqA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jU+D7f/u3U9i3nM5Rgb9INaeWjZ7vlgcBg+2HV20evg=;
- b=RZ6LJqa9K38xrMj3EfGFktsojcEYonejeYEzPNafQBzKwC9KOeWWBJlHYiFfYO1wJ/Z9EklLkqzQKVHweLB7qwridFhjo0jOMUEo+Dw2/P3hxjamK7Jn9H2zJNxmBCVSOrftSI9tUkMrNK0t9e6SjycwsAWTDRyIFz9oc1L/b/Qd8xLnzwiAleUry4HRlstqn/sbXkjjyWU2aB+KWBOUdj6rH1IYJE0j/xevywRlmZFtPfR4eI6DERUbBIXwNe8m6fuuowCKaKFP8vgRrsrWE9zbneNV/htlzG9X3dng5M//hhHW/NbZr4sXO7eYXEWJeRzW/Hl7vsLCmb7lDa1j6w==
+ bh=Jmhg1jBwKuf2eA+0wGd6xWayE2KaUuFtXAOGh/R4hI8=;
+ b=aqXNCRBSEqmEawFblUAXP7DW5t1pw/0rUlm7oELDJRryK3CQbMpsaOnO7l+baw4gMoGlz4HLFM740ldWdm4T7fOj9Pwm9n8EIL7b73PT8j/+HeoFhkf3qrkvl2WNYiwn9tqr+LjkZQg4km8YgIDp3A8fkAYAvZKAADYhyOFkZkVePHFoKgJcMUiP+ZzGwzKQyzoz4Vuxr9KcgeFifwAI+QKNNgV9PnlpENf+qIWy4HElah7xuzXtB8rZPfGGYKzeg0phd+ij8eXW4UTzXhUTudXPTu4H+gwPUlKAT/iQ5TRXhS57XTieWoAJb06dH8FLURtXEjRHH1OBT03m92Cp9A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=corigine.com smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=corigine.com smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=jU+D7f/u3U9i3nM5Rgb9INaeWjZ7vlgcBg+2HV20evg=;
- b=MlakMKAohz7gz0mIKoW1eBoTZ000lFOTZ18VZTgjwNb22d5Qbr4vrhgpFHEixp5MPocdRGDMqkD7Smeiagkf4T4vU52QYGD5HU57OzgPgaQixapdidUA6jsZzwaNFJyVL1YhMhtFFt31IfRzSzv9usiJyYXFx9V1FLNeCxs7EN5DUQ+EpeUvjLovxc1rDr767tsCughZrjk/OcPq5U64ZXFX9ccHwi8hDdf0/Cu4j7JfBnG2HR1gK0+TkPXjz8J04PZawkCWx6JxBeDFy0BYOvTQjx/v9Bo/z1YajkvIlXIwBpabEuinOOdjSKoxrv1T1kj5WB//9wWxHeuqI04BMw==
-Received: from DM5PR07CA0079.namprd07.prod.outlook.com (2603:10b6:4:ad::44) by
- DM4PR12MB7621.namprd12.prod.outlook.com (2603:10b6:8:10a::19) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5986.23; Fri, 20 Jan 2023 06:42:27 +0000
-Received: from DM6NAM11FT098.eop-nam11.prod.protection.outlook.com
- (2603:10b6:4:ad:cafe::b) by DM5PR07CA0079.outlook.office365.com
- (2603:10b6:4:ad::44) with Microsoft SMTP Server (version=TLS1_2,
+ bh=Jmhg1jBwKuf2eA+0wGd6xWayE2KaUuFtXAOGh/R4hI8=;
+ b=jGTEm1sXb/kbv4iVSkMybhScPRAy2ymKZqplYFhbH/hNdQJnxjhXc4Zuivwh8MOMKMr3xZTcOyMLxLQT2YJgO8klgydXxCMU5S71Xmz7MzRgkj4Fmc3RcH/3LRw3bYkB8j4TVL33/YFlrS+3HaZYAYORdorNJvLbjatedCREGdQQV637Pdu/b9UG8WnAT+2d79YZvX0csbC9KF4wmE9EI2D4R/iiEZToGuDSuq2Wraj8FQH9u8aV9kmWUe0NvxBs0iDY2jryDkTdKYKi+/cMlrvAJXoS1SE1YclmAGjs/fWE9apgW5zhT5SlOnxKROc0UZ3XCR9xb3rOwlxnvx7Izw==
+Received: from DM5PR07CA0114.namprd07.prod.outlook.com (2603:10b6:4:ae::43) by
+ BY5PR12MB4211.namprd12.prod.outlook.com (2603:10b6:a03:20f::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.24; Fri, 20 Jan
+ 2023 07:00:53 +0000
+Received: from DM6NAM11FT014.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:4:ae:cafe::5) by DM5PR07CA0114.outlook.office365.com
+ (2603:10b6:4:ae::43) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.26 via Frontend
- Transport; Fri, 20 Jan 2023 06:42:27 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ Transport; Fri, 20 Jan 2023 07:00:52 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- DM6NAM11FT098.mail.protection.outlook.com (10.13.173.61) with Microsoft SMTP
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ DM6NAM11FT014.mail.protection.outlook.com (10.13.173.132) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6002.13 via Frontend Transport; Fri, 20 Jan 2023 06:42:26 +0000
+ 15.20.6023.16 via Frontend Transport; Fri, 20 Jan 2023 07:00:52 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Thu, 19 Jan
- 2023 22:42:21 -0800
+ 2023 23:00:40 -0800
 Received: from fedora.nvidia.com (10.126.230.37) by rnnvmail201.nvidia.com
  (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Thu, 19 Jan
- 2023 22:42:18 -0800
+ 2023 23:00:36 -0800
 References: <20230119195104.3371966-1-vladbu@nvidia.com>
- <Y8m4A7GchYdx21/h@t14s.localdomain>
+ <Y8m4A7GchYdx21/h@t14s.localdomain> <87k01hbtbs.fsf@nvidia.com>
 User-agent: mu4e 1.6.6; emacs 28.1
 From:   Vlad Buslov <vladbu@nvidia.com>
 To:     Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
@@ -71,74 +72,81 @@ CC:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
         <simon.horman@corigine.com>
 Subject: Re: [PATCH net-next v3 0/7] Allow offloading of UDP NEW connections
  via act_ct
-Date:   Fri, 20 Jan 2023 08:38:30 +0200
-In-Reply-To: <Y8m4A7GchYdx21/h@t14s.localdomain>
-Message-ID: <87k01hbtbs.fsf@nvidia.com>
+Date:   Fri, 20 Jan 2023 08:57:16 +0200
+In-Reply-To: <87k01hbtbs.fsf@nvidia.com>
+Message-ID: <87fsc5bsh9.fsf@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.126.230.37]
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6NAM11FT098:EE_|DM4PR12MB7621:EE_
-X-MS-Office365-Filtering-Correlation-Id: 71729296-da99-42e3-4979-08dafab17edd
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT014:EE_|BY5PR12MB4211:EE_
+X-MS-Office365-Filtering-Correlation-Id: 06ababcd-f922-4318-efe2-08dafab411eb
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: yZw4+hBPBno21G56PkjIydWlgmVQcizoPpZQ8Iq0wBS8wOFc/SAtb+8ZuPT0+jR5mO2n99kIjysDfdDlVE8IVbR8zzCI3g1tGKAY5+SlEDDimyMOSOqVe8HRSZP46N8+AO2J5xP+nSm+Jpz0XojMlsdqCB0ZZDj1JA/k2LpOEBEatgSYL04v0Qlk9eKHuozY4tEuR3LQEufCrHAw26xzj5Iza+ki+nlw2M1f0b4rScj0rqB/fUxUmlUIdprnDJJlxo/hrny+vT1iEtwiEC01Yq1Az0WccWBtuAkkgiqfzNnDzzHSbZ6GjgflNqbr454Vp4nUqbi9ffPi0BbY32/Mqc8wRRUEKGxpKqIY3A+XNyaeFRIDLXxqhHXPpimAjKMnL0n60yxS9SR8opxQ5qQJKQoKBmq0LZB74Wt+AhiSTFS5GKe4TL3chz2Z2WJH0SXUXm7GjNYhZYarENb4E1L6VQHSDIhTTb0+k1hmmUWQSNbNarphhb+I46BD9U1DtTWPlG6RWfBonspHUKkNh1DD7Z5tGJEPptMuxQdbcBVKq9hGWnzpBULXKJn1r70HrH/XUt758dXKEJAqnNATpHcdJjnvjFI6wJP1OFbtd9NpaaKQQrhdW6l5rzqeTD4JdEgL7tWPrMOJNNkEcstS6wOOk8Z6nt3fekyMHK4HNmRBnxF94SZ0mR3iXyvRExlJApYrsUdJPTGthbXHCFohMiwtwQ==
-X-Forefront-Antispam-Report: CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(376002)(346002)(136003)(39860400002)(396003)(451199015)(46966006)(36840700001)(40470700004)(36756003)(356005)(8676002)(86362001)(70206006)(6916009)(316002)(70586007)(4326008)(2906002)(8936002)(5660300002)(7416002)(36860700001)(82740400003)(7636003)(83380400001)(478600001)(7696005)(54906003)(6666004)(40460700003)(47076005)(82310400005)(2616005)(41300700001)(426003)(186003)(336012)(26005)(16526019)(40480700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: BHl+PW8G+qS4zxNieF8EbZq6A7phrp2vmnQ8kAwhWJ9zm4fr/+8WrMnBImDwJ2PryPgw+zlfPihlbcqM6uqnv4n6SbOLL3TxhsoctdyD02cXebhbJjO9FkXpjhpYURUJSkSrGRosnquEz+hast4H0f6+DUkhVY08uOVAb5nPubBCt4b1DI67lNGYbSTUHVXvUUsOq2ruT6mnWdFI6fu+j0KeyO8GeszDcs4pU2Tcg1lCyChRIinN9wocCj8cp9W7w6ExtECUw2jx3WFN3RY3ZNTeRQTridv+GTh3sn6uFbQrELmEYbNCjTRGE6N9PwBpalAdxDzceUTeXPRLhn8eSIauJP4hEetW8G5zQohEa1sB6OKY/jZzI8KKQaaq71HM+SRCNKUokeUl24jiajdeD1cDNRZmhM3/ZuXxEw5HiLMCvjRmQIIjrJRROxV+z0wKwgw2n5eHWW1dsSYCOde7yWVvEDk/K8aprc579Z2eMdwdWyMWNn62lzy0//RGBqFUv2XcmjQOTEXMKk1F2p7PNFghNkw2XMjJl4SVgA5G4RGhIB9a54FAaVtYkJ4FYqYCk3ncgxYSIsjioZl31r9soTpCh9VAHjYf00ki1wGXIvFfI/qlIsJOQddRXn9QxoyXahoLqFF3pEHjZUVMO//BmM8VnD/iEjO5Gcgg8jvT54Y=
+X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(396003)(136003)(376002)(39860400002)(346002)(451199015)(36840700001)(46966006)(26005)(478600001)(2616005)(16526019)(186003)(6666004)(4326008)(336012)(83380400001)(54906003)(70206006)(8676002)(70586007)(6916009)(426003)(47076005)(316002)(7416002)(8936002)(5660300002)(41300700001)(2906002)(36860700001)(356005)(40480700001)(7696005)(82740400003)(86362001)(36756003)(82310400005)(7636003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jan 2023 06:42:26.9370
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jan 2023 07:00:52.6516
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 71729296-da99-42e3-4979-08dafab17edd
+X-MS-Exchange-CrossTenant-Network-Message-Id: 06ababcd-f922-4318-efe2-08dafab411eb
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT098.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT014.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB7621
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB4211
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Fri 20 Jan 2023 at 08:38, Vlad Buslov <vladbu@nvidia.com> wrote:
+> On Thu 19 Jan 2023 at 18:37, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
+>> On Thu, Jan 19, 2023 at 08:50:57PM +0100, Vlad Buslov wrote:
+>>> Currently only bidirectional established connections can be offloaded
+>>> via act_ct. Such approach allows to hardcode a lot of assumptions into
+>>> act_ct, flow_table and flow_offload intermediate layer codes. In order
+>>> to enabled offloading of unidirectional UDP NEW connections start with
+>>> incrementally changing the following assumptions:
+>>> 
+>>> - Drivers assume that only established connections are offloaded and
+>>>   don't support updating existing connections. Extract ctinfo from meta
+>>>   action cookie and refuse offloading of new connections in the drivers.
+>>
+>> Hi Vlad,
+>>
+>> Regarding ct_seq_show(). When dumping the CT entries today, it will do
+>> things like:
+>>
+>>         if (!test_bit(IPS_OFFLOAD_BIT, &ct->status))
+>>                 seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
+>>
+>> omit the timeout, which is okay with this new patchset, but then:
+>>
+>>         if (test_bit(IPS_HW_OFFLOAD_BIT, &ct->status))
+>>                 seq_puts(s, "[HW_OFFLOAD] ");
+>>         else if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
+>>                 seq_puts(s, "[OFFLOAD] ");
+>>         else if (test_bit(IPS_ASSURED_BIT, &ct->status))
+>>                 seq_puts(s, "[ASSURED] ");
+>>
+>> Previously, in order to be offloaded, it had to be Assured. But not
+>> anymore after this patchset. Thoughts?
+>
+> Hi Marcelo,
+>
+> I know that for some reason offloaded entries no longer display
+> 'assured' flag in the dump. This could be changed, but I don't have a
+> preference either way and this patch set doesn't modify the behavior.
+> Up to you and maintainers I guess.
 
-On Thu 19 Jan 2023 at 18:37, Marcelo Ricardo Leitner <marcelo.leitner@gmail.com> wrote:
-> On Thu, Jan 19, 2023 at 08:50:57PM +0100, Vlad Buslov wrote:
->> Currently only bidirectional established connections can be offloaded
->> via act_ct. Such approach allows to hardcode a lot of assumptions into
->> act_ct, flow_table and flow_offload intermediate layer codes. In order
->> to enabled offloading of unidirectional UDP NEW connections start with
->> incrementally changing the following assumptions:
->> 
->> - Drivers assume that only established connections are offloaded and
->>   don't support updating existing connections. Extract ctinfo from meta
->>   action cookie and refuse offloading of new connections in the drivers.
->
-> Hi Vlad,
->
-> Regarding ct_seq_show(). When dumping the CT entries today, it will do
-> things like:
->
->         if (!test_bit(IPS_OFFLOAD_BIT, &ct->status))
->                 seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
->
-> omit the timeout, which is okay with this new patchset, but then:
->
->         if (test_bit(IPS_HW_OFFLOAD_BIT, &ct->status))
->                 seq_puts(s, "[HW_OFFLOAD] ");
->         else if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
->                 seq_puts(s, "[OFFLOAD] ");
->         else if (test_bit(IPS_ASSURED_BIT, &ct->status))
->                 seq_puts(s, "[ASSURED] ");
->
-> Previously, in order to be offloaded, it had to be Assured. But not
-> anymore after this patchset. Thoughts?
-
-Hi Marcelo,
-
-I know that for some reason offloaded entries no longer display
-'assured' flag in the dump. This could be changed, but I don't have a
-preference either way and this patch set doesn't modify the behavior.
-Up to you and maintainers I guess.
+BTW after checking the log I don't think the assumption that all
+offloaded connections are always assured is true. As far as I understand
+act_ct originally offloaded established connections and change to
+offload assured was made relatively recently in 43332cf97425
+("net/sched: act_ct: Offload only ASSURED connections") without
+modifying the prints you mentioned.
 
