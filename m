@@ -2,58 +2,116 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 693ABC38142
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Jan 2023 12:04:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A66A3C05027
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Jan 2023 13:28:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231567AbjAWMEs (ORCPT
+        id S231977AbjAWN2z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Jan 2023 07:04:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50206 "EHLO
+        Mon, 23 Jan 2023 08:28:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231623AbjAWMEq (ORCPT
+        with ESMTP id S229989AbjAWN2y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2023 07:04:46 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDDA823851
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jan 2023 04:04:44 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pJvZ3-0006xu-C5; Mon, 23 Jan 2023 13:04:41 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Roi Dayan <roid@nvidia.com>
-Subject: [PATCH nf-next] netfilter: conntrack: udp: fix seen-reply test
-Date:   Mon, 23 Jan 2023 13:04:33 +0100
-Message-Id: <20230123120433.98002-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.1
+        Mon, 23 Jan 2023 08:28:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B633B1BAD8;
+        Mon, 23 Jan 2023 05:28:53 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7855EB80DA1;
+        Mon, 23 Jan 2023 13:28:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C60C433D2;
+        Mon, 23 Jan 2023 13:28:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1674480531;
+        bh=PjQuKVkt8sNW6/8m5TYyVHX44lfq9Wq/dMIGWb7XXys=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=jutvxuDZb3rKOTqEiSsnZctYwyQfVrr1fX1KfkPBczrWaI3YCc0QOqc6GXu1Rwu6f
+         p54yz3f8grJtbhtXeWofDZrDWGs0KAyHeJv7UzQX7rW9kEkQs7ddBeszq8Msbp0tZt
+         i42Fvoba4J38d9NNgePAUuMfOliu52GtpSYGOTqujLZ/7j6Xs6GyAAVQcMXfT4Q7iv
+         2PzknCDgl/tP6lAnSCSoJySC6QgCeZrnZdqS66YG+r5BbfLFFen6O6uTgpuvj442Fd
+         5wkzRPUBlphKX1g0jJj92rHwxdGKWSCSsScEceTOj58OjkdR7O9GlTfpwAO9Xjzwan
+         CUtMaYCOc6Qfg==
+Date:   Mon, 23 Jan 2023 15:28:46 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Joe Perches <joe@perches.com>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "lvc-project@linuxtesting.org" <lvc-project@linuxtesting.org>
+Subject: Re: [PATCH] netfilter: conntrack: remote a return value of the
+ 'seq_print_acct' function.
+Message-ID: <Y86Lji5prQEAxKLi@unreal>
+References: <20230123081957.1380790-1-Ilia.Gavrilov@infotecs.ru>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230123081957.1380790-1-Ilia.Gavrilov@infotecs.ru>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-IPS_SEEN_REPLY_BIT is only useful for test_bit() api.
+On Mon, Jan 23, 2023 at 08:19:50AM +0000, Gavrilov Ilia wrote:
+> The static 'seq_print_acct' function always returns 0.
+> 
+> Change the return value to 'void' and remove unnecessary checks.
+> 
+> Found by InfoTeCS on behalf of Linux Verification Center
+> (linuxtesting.org) with SVACE.
+> 
+> Fixes: 1ca9e41770cb ("netfilter: Remove uses of seq_<foo> return values")
+> Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
+> ---
+>  net/netfilter/nf_conntrack_standalone.c | 26 ++++++++++---------------
+>  1 file changed, 10 insertions(+), 16 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index 0250725e38a4..bee99d4bcf36 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -275,22 +275,18 @@ static const char* l4proto_name(u16 proto)
+>  	return "unknown";
+>  }
+>  
+> -static unsigned int
+> +static void
+>  seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir)
+>  {
+> -	struct nf_conn_acct *acct;
+> -	struct nf_conn_counter *counter;
+> +	struct nf_conn_acct *acct = nf_conn_acct_find(ct);
+>  
+> -	acct = nf_conn_acct_find(ct);
+> -	if (!acct)
+> -		return 0;
+> -
+> -	counter = acct->counter;
+> -	seq_printf(s, "packets=%llu bytes=%llu ",
+> -		   (unsigned long long)atomic64_read(&counter[dir].packets),
+> -		   (unsigned long long)atomic64_read(&counter[dir].bytes));
+> +	if (acct) {
+> +		struct nf_conn_counter *counter = acct->counter;
+>  
+> -	return 0;
+> +		seq_printf(s, "packets=%llu bytes=%llu ",
+> +			   (unsigned long long)atomic64_read(&counter[dir].packets),
+> +			   (unsigned long long)atomic64_read(&counter[dir].bytes));
+> +	}
 
-Fixes: 4883ec512c17 ("netfilter: conntrack: avoid reload of ct->status")
-Reported-by: Roi Dayan <roid@nvidia.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_proto_udp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The preferred linux kernel style is to perform if (check_error) return;
+In this case, this pattern should stay.
 
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 6b9206635b24..0030fbe8885c 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -104,7 +104,7 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
- 	/* If we've seen traffic both ways, this is some kind of UDP
- 	 * stream. Set Assured.
- 	 */
--	if (status & IPS_SEEN_REPLY_BIT) {
-+	if (status & IPS_SEEN_REPLY) {
- 		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
- 		bool stream = false;
- 
--- 
-2.39.1
+acct = nf_conn_acct_find(ct);
+if (!acct)
+   return;
 
+Thanks
