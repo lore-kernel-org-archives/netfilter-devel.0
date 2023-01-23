@@ -2,298 +2,219 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25500C25B50
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Jan 2023 09:38:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F00C54EB4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Jan 2023 11:38:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231847AbjAWJiX (ORCPT
+        id S231511AbjAWLif (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Jan 2023 04:38:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39046 "EHLO
+        Mon, 23 Jan 2023 06:38:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231147AbjAWJiW (ORCPT
+        with ESMTP id S229436AbjAWLif (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2023 04:38:22 -0500
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18C3D16306;
-        Mon, 23 Jan 2023 01:38:19 -0800 (PST)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4P0lKz18Lmz6J7DH;
-        Mon, 23 Jan 2023 17:34:15 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.34; Mon, 23 Jan 2023 09:38:16 +0000
-Message-ID: <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
-Date:   Mon, 23 Jan 2023 12:38:16 +0300
+        Mon, 23 Jan 2023 06:38:35 -0500
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2068.outbound.protection.outlook.com [40.107.92.68])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BF311E2A1;
+        Mon, 23 Jan 2023 03:38:12 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KVUTCOajdoh/QShdEkW3nS9n2CfY+DeFCEqKdO6LqXk57WhikH1MECwWjjtgezxmh9nCA99vmZ8UKAxkwZVpXFlw93x80utAC24HfQc5GAkQiS2rWR/kAJBspCgWNvPdx0JAy7mI7FXvhbxu7vgIEJ38HaBAxN8i7Xhmi9/ITvtxWel6m6CTDSz7RRfo1RAKi4m/DrW2koyEuuN8ryxZzAxpGplk005I44KYAQfcWnNqF7PhCcs8YCEfig4wt2l/hv94w2fdRRn5qJDESt3l0EHPhD4Nlg65Uh+14neamF9Az4dYRHH8eNdzYXXVa5XfU2njTZIlztHxEnO/NCAS5g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rH5078LoOVqwqBcFYYhjAup82eaNnaZd2JAYg2M7ZPo=;
+ b=m23UGBcGcoA3uPYVN++F4fDOqQElzsfjZ9ArarQECH9rNhhXSgNx8GQkRgAkgqBrOXrvQERFUzBCENwmBnA8IZCk73SeNAYmOhCFjh9TycBVHrSSTupO/bS3avBF3oIjKDgT3T6OVSYw5gB0/yA62DOluxSwttnq9vVN7dtuskSGH6VwH/z0pzcOZUGO+YnnHIglBkN5xrbAK8+1YI6imiXfSDmrWwjk4v5wfqjKT1nCvvc9iz0b378+22dTI5vKS3XEO8Vt7x+zoZ1NtJpndurDt0RWf2LivQJO+UeOgm1tzp8RcMMLwpQtSrMy0Sbub5A97bk6Bnb5iC8XdJC7pg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rH5078LoOVqwqBcFYYhjAup82eaNnaZd2JAYg2M7ZPo=;
+ b=L8p7dCzsQlwCluMpVcgctHza7lnfda6WyI8cecNpal/fdtQjx7mgTYziTkxgsX6JK5YYe/SytjHu+awfcEyOINAg1PBjpsHNDVn6jehCQs2to/Ec3lNQbqXRTirFq4km7QL/yscWn9JL2km4Ihs1fIcL4gUZeTzJNWD8z70Xm7N4pC+AiLe02t4Oy8QlK1teuOFI9Ob33HOkWTOL0FCBDcq69aWtStH6kyr8CggyJ6LP8T+60LQSJSEShUbybUAmDWVhxCtQ3MRymrZeWq4/AkchuxYUwZyg/JbAJ0pLuk+KEWeX+7VIDYDK7yKo5yXUWKdl/tjFuAFdIJt9dpZxXg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH0PR12MB5330.namprd12.prod.outlook.com (2603:10b6:610:d5::7)
+ by DM4PR12MB6471.namprd12.prod.outlook.com (2603:10b6:8:ba::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.25; Mon, 23 Jan
+ 2023 11:38:10 +0000
+Received: from CH0PR12MB5330.namprd12.prod.outlook.com
+ ([fe80::db1d:e068:3fd6:ed08]) by CH0PR12MB5330.namprd12.prod.outlook.com
+ ([fe80::db1d:e068:3fd6:ed08%8]) with mapi id 15.20.6002.033; Mon, 23 Jan 2023
+ 11:38:10 +0000
+Message-ID: <b352f87d-fe0d-a5ff-451c-57376f6f3bc3@nvidia.com>
+Date:   Mon, 23 Jan 2023 13:38:03 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101
+ Thunderbird/109.0
+Subject: Re: [PATCH net-next 3/9] netfilter: conntrack: avoid reload of
+ ct->status
+To:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, Maor Dickman <maord@nvidia.com>
+References: <20230118123208.17167-1-fw@strlen.de>
+ <20230118123208.17167-4-fw@strlen.de>
+Content-Language: en-US
+From:   Roi Dayan <roid@nvidia.com>
+In-Reply-To: <20230118123208.17167-4-fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: LO2P265CA0437.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:e::17) To CH0PR12MB5330.namprd12.prod.outlook.com
+ (2603:10b6:610:d5::7)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
-Content-Language: ru
-To:     =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
-CC:     <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
- <Y8xwLvDbhKPG8JqY@galopp>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <Y8xwLvDbhKPG8JqY@galopp>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH0PR12MB5330:EE_|DM4PR12MB6471:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1ad28ece-1736-4b3d-2086-08dafd364db1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: EbS/tcJbcJFIXI/OcTQB14GxMKd0nzuhC0WL+LlZBZrZ3r/79zwkRmPjqzP/GMxDYe5AFpwLPBpLqX8Bwx1HIn42swK/Q54UaQzt7aS6oDhnTbcvOsakPrXHO2b6MSzJbCqGwoeMcXZ1WPyWHoJuHJJiMzJJrQ1vXBYVJAhaU7mOJ5fi4DMGDMteN02fcMbvvrukz7FDMzOsqZF4yiDmKgRZ+hfZztX4ibsEYc/TilsMtIf2YZB2aL0ucmAMxrDxqTU2ibmi8q8lrbxLzcCM6byDEtWKFyYwTp2tIdasViAwzBWBOMKPz6hr2Icnii0E1x86NB2yqslF88x8rYAuKPiap3F+WDgcHFV+dkJaEwr1Jze/k7us5g/1eL7D0rp4q7pXGQzKB8yLrGRWkMcNghsyqBfvO2gf4SzzCnN+ikLesgY8UVXeCUMkFbENQrbhAZuklKBmDXQsKUpCuIp6SpVeMOSRdHP9UlxsNh2soO2wwRK4F8oQLVPATC63O1ecJuryOjdh25R89EQ/NzGS8MHk5tX1jk72mif33FVMQd9eso1gCJJLjCINAvw03nh+FGBKASJShvigt7Zxite6KnXQ0ZhafndDPhyENdsSnGh2v5RMxZQWnnmZFOUy2qhz27IraDdb4JnU9sL6j4xWSd+T3BGRdb6d5J+On9MSjTnp3AtNUObmVr01mYAr4hwjmBGN2LJpI19kHxRTyTtkSihVtIpBtyCasFJ575KHNhU=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH0PR12MB5330.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(376002)(366004)(136003)(346002)(39860400002)(396003)(451199015)(26005)(31686004)(5660300002)(316002)(8936002)(36756003)(478600001)(54906003)(6506007)(86362001)(107886003)(6486002)(6666004)(31696002)(53546011)(2906002)(66556008)(83380400001)(186003)(2616005)(4326008)(38100700002)(8676002)(66476007)(66946007)(6512007)(41300700001)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?M3RFTU04RVB5U3VucVRnelNKVncraEIxN3FRQktJQnpaN1BtOVp1NHBJVEJh?=
+ =?utf-8?B?Y1g0aURsQzlvdWZlUmoxL3d3ZlRwZzB1TXJSd3NkdjFEQzY3VkswWGhvMFJi?=
+ =?utf-8?B?d0x5ZzJxUUU0dDRWa3l1NjJRWkdxNk9za1NaNzFpallKSld0aXVoR1FGR0Jr?=
+ =?utf-8?B?UmxaU21pbURHdkVaNjkreS9PMURUWjFWTkNjL293YVZuTWlVcXlzK241NWpw?=
+ =?utf-8?B?RUJDT2FHY3FadWlScWdPSUNqMVMrQ3RacUdKUWVZTS9oVW5vUWY4UXFsbVdx?=
+ =?utf-8?B?M3o2WmxkQU9JZ1hkUGFPSnNhOWs0bktKRzNsclpibDBhVnptWXpMemFlTkN5?=
+ =?utf-8?B?d3dTSDY1N29hYStIVWY0bUg0aThpSnNEVUR6UEp1cCswRXV6UVU3enNIdXE2?=
+ =?utf-8?B?b3JJcFFveTVONkNYR1lsK0JrdjFESXJ3bUFOMHN0a2UrL1RqWktKazlyYzNG?=
+ =?utf-8?B?dElhQkJZZ0NhdytXUXFpQmZVTWpmbytIZ1AzYjVYVEwwVDRYQ3hqM0lCVkZH?=
+ =?utf-8?B?N3ZEU09jd0ROOTlkNHFPcFNicXluNTVudWFveDF2K0c2bXo0SmI4T1pWRGFs?=
+ =?utf-8?B?MXZPVGxJdzNIdHdKWTZGaC8zMnUvTkZ4UnRGVnltd0htYk02VnZrS1ozVnJh?=
+ =?utf-8?B?YUlBaWtnem53NnZ4TXArTnJIT0VEbTBwYVdsa2lNdHNUcTIvSkpwaS9rZDVi?=
+ =?utf-8?B?T2Zzcmo5aWFzMGhqUlZXL083QWZub0hOOXZIZE82QXZ4M0Ftd2RDTUZDN2Qy?=
+ =?utf-8?B?Wi9vdmlHTWpLaDZmYk5INjVYMDMwcUJFNnhIVEh4NG5DcENGeE8vTGFqRUtn?=
+ =?utf-8?B?b0pmdFJHYU0xOEQ2dDloWmg0MDZndmV6d0tLY2dNWU5DMTQ2bmhqQWg2Nmxk?=
+ =?utf-8?B?bVRxaW9BS0RORDdlaW8wTThEVjVPWTY0V28vRE1RS1dFZFNxbEZmUTE2TUZz?=
+ =?utf-8?B?STdhM1BtY1VGVmtLQ08ySHNScmdFbW9uVFd6d1JYSHZURmdtdm1Ob1pWNGdD?=
+ =?utf-8?B?cnhFTUllRFB3LzBXc0NETmFQKzhrbHpXVzE3K1BrL1JoRmRKOVRJaDN2YTFn?=
+ =?utf-8?B?N0lKTzU1aFNZN0krQXNwZW5GeG0zWXBnajBPKzEyeDZWOFlaS21zdHV0UzVR?=
+ =?utf-8?B?b241K2VHaXVBNCtFdlBIUUtGdEExUjV6aHBjUEQ2a2FLaWU3YzU2TkEvUWdE?=
+ =?utf-8?B?YkNIbVl6TUtETm45b2oyM1VpcVJ3RW9OSUpXYnVyY2RVRmdUSjAxVUlHc3RX?=
+ =?utf-8?B?cGI4c1QyOStGaE1uVEdTcE0xTmlWMTB3YjBVcjN1ekpuZ3lNbnVzUFRxai9w?=
+ =?utf-8?B?NWVvNEI1VEJrNVU4bkdKQmc4NE81Q0JGRlB5ZCtwSVppMjE4OHFIaHR0YUtQ?=
+ =?utf-8?B?RkRHL3kwbitTV2ZDTHlZOW9pSGl3UTdyV3lCRFd0WXM0a1Urc083dXdEOTZi?=
+ =?utf-8?B?RElkUUpWSG5QQ0hGMmNXR2xQWU93MWgyekhVQWF5UlNXZ1VIV2daRnc4c0dV?=
+ =?utf-8?B?NjFxOHlEb213WWQreHRJMlpWMG9WL3FYanVJUGl1TStkVThITy8xN1Myamp6?=
+ =?utf-8?B?bDBmTmdnb1pldUlFeTFoYUxYU0JpTzFlRmdza1NmS2V4dnoxcENDUGJVTWdY?=
+ =?utf-8?B?TktqSTVYcmRDdkNtRUxRVjJiRlJDdlkxUlluSGNKS1ljdXd0dGxib0UyUThl?=
+ =?utf-8?B?eS9VOE9ZMjdGTHNjRGFHdmFaMnoybVBkbVE4RlRsZGxMMG1vUWs3bVMwTktC?=
+ =?utf-8?B?ZGllcG9uenBDS2ZuOEpNRjE1VEJudjErSTl6a2ZYdmFlS0ZMQmdWR2NwTzds?=
+ =?utf-8?B?WHFMNHpra2tTbkdIRktSNFRqMTZXVjVxbjkrM00xWldMZnFPYTlEUW5WSmhw?=
+ =?utf-8?B?WlBMcWZodmI5UDJmV0dGU1gyOStGNG00WVl2KzdJNXFsUDMvMzZzcUxCVzAx?=
+ =?utf-8?B?L091WGhOdFR0dW1Nd3RFNHlZUitBdmFkcDFUMFBiQmM2WGtDNWJ0QXhibWt2?=
+ =?utf-8?B?R1VYelY1T3JpY0tNZzNVQk5kOE5SRm01NEIvZVlraGpmdHh0bVhKSDNDZDR5?=
+ =?utf-8?B?OXl1bUdKNFErYkIzc1lwQmJaMEJyQWlnVU9WVCtTckQ0ZFUrZGEwU1p6dEJm?=
+ =?utf-8?Q?hFkHIZLiEKRgDNkXRQIkmLrZi?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1ad28ece-1736-4b3d-2086-08dafd364db1
+X-MS-Exchange-CrossTenant-AuthSource: CH0PR12MB5330.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jan 2023 11:38:10.2517
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: WVSagpTS7Cx+B5auE2WiUQ7l1cgoBH3QwaSq/eP8hyFqJfeb4dLDPie/6rqIPMFp
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6471
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-1/22/2023 2:07 AM, Günther Noack пишет:
-> Hello!
+On 18/01/2023 14:32, Florian Westphal wrote:
+> Compiler can't merge the two test_bit() calls, so load ct->status
+> once and use non-atomic accesses.
 > 
-> Thank you for sending these patches! I'll start poking a bit at the
-> Go-Landlock library to see how we can support it there when this lands.
+> This is fine because IPS_EXPECTED or NAT_CLASH are either set at ct
+> creation time or not at all, but compiler can't know that.
 > 
-> On Mon, Jan 16, 2023 at 04:58:18PM +0800, Konstantin Meskhidze wrote:
->> Describe network access rules for TCP sockets. Add network access
->> example in the tutorial. Add kernel configuration support for network.
->> 
->> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->> 
->> Changes since v8:
->> * Minor refactoring.
->> 
->> Changes since v7:
->> * Fixes documentaion logic errors and typos as Mickaёl suggested:
->> https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@digikod.net/
->> 
->> Changes since v6:
->> * Adds network support documentaion.
->> 
->> ---
->>  Documentation/userspace-api/landlock.rst | 72 ++++++++++++++++++------
->>  1 file changed, 56 insertions(+), 16 deletions(-)
->> 
->> diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
->> index d8cd8cd9ce25..980558b879d6 100644
->> --- a/Documentation/userspace-api/landlock.rst
->> +++ b/Documentation/userspace-api/landlock.rst
->> @@ -11,10 +11,10 @@ Landlock: unprivileged access control
->>  :Date: October 2022
->>  
->>  The goal of Landlock is to enable to restrict ambient rights (e.g. global
->> -filesystem access) for a set of processes.  Because Landlock is a stackable
->> -LSM, it makes possible to create safe security sandboxes as new security layers
->> -in addition to the existing system-wide access-controls. This kind of sandbox
->> -is expected to help mitigate the security impact of bugs or
->> +filesystem or network access) for a set of processes.  Because Landlock
->> +is a stackable LSM, it makes possible to create safe security sandboxes as new
->> +security layers in addition to the existing system-wide access-controls. This
->> +kind of sandbox is expected to help mitigate the security impact of bugs or
->>  unexpected/malicious behaviors in user space applications.  Landlock empowers
->>  any process, including unprivileged ones, to securely restrict themselves.
->>  
->> @@ -30,18 +30,20 @@ Landlock rules
->>  
->>  A Landlock rule describes an action on an object.  An object is currently a
->>  file hierarchy, and the related filesystem actions are defined with `access
->> -rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
->> -the thread enforcing it, and its future children.
->> +rights`_.  Since ABI version 4 a port data appears with related network actions
->> +for TCP socket families.  A set of rules is aggregated in a ruleset, which
->> +can then restrict the thread enforcing it, and its future children.
->>  
->>  Defining and enforcing a security policy
->>  ----------------------------------------
->>  
->>  We first need to define the ruleset that will contain our rules.  For this
->>  example, the ruleset will contain rules that only allow read actions, but write
->> -actions will be denied.  The ruleset then needs to handle both of these kind of
->> +actions will be denied. The ruleset then needs to handle both of these kind of
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/netfilter/nf_conntrack_core.c      |  9 +++++----
+>  net/netfilter/nf_conntrack_proto_udp.c | 10 ++++++----
+>  2 files changed, 11 insertions(+), 8 deletions(-)
 > 
-> (This one looks like an unintentional whitespace change; the
-> double-space ending is used in this file, so we should probably stay
-> consistent.)
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 81ece117033a..9e12cade4e0f 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1854,14 +1854,15 @@ resolve_normal_ct(struct nf_conn *tmpl,
+>  	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY) {
+>  		ctinfo = IP_CT_ESTABLISHED_REPLY;
+>  	} else {
+> +		unsigned long status = READ_ONCE(ct->status);
+> +
+>  		/* Once we've had two way comms, always ESTABLISHED. */
+> -		if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+> +		if (likely(status & IPS_SEEN_REPLY))
+>  			ctinfo = IP_CT_ESTABLISHED;
+> -		} else if (test_bit(IPS_EXPECTED_BIT, &ct->status)) {
+> +		else if (status & IPS_EXPECTED)
+>  			ctinfo = IP_CT_RELATED;
+> -		} else {
+> +		else
+>  			ctinfo = IP_CT_NEW;
+> -		}
+>  	}
+>  	nf_ct_set(skb, ct, ctinfo);
+>  	return 0;
+> diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+> index 3b516cffc779..6b9206635b24 100644
+> --- a/net/netfilter/nf_conntrack_proto_udp.c
+> +++ b/net/netfilter/nf_conntrack_proto_udp.c
+> @@ -88,6 +88,7 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+>  			    const struct nf_hook_state *state)
+>  {
+>  	unsigned int *timeouts;
+> +	unsigned long status;
+>  
+>  	if (udp_error(skb, dataoff, state))
+>  		return -NF_ACCEPT;
+> @@ -96,26 +97,27 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+>  	if (!timeouts)
+>  		timeouts = udp_get_timeouts(nf_ct_net(ct));
+>  
+> -	if (!nf_ct_is_confirmed(ct))
+> +	status = READ_ONCE(ct->status);
+> +	if ((status & IPS_CONFIRMED) == 0)
+>  		ct->proto.udp.stream_ts = 2 * HZ + jiffies;
+>  
+>  	/* If we've seen traffic both ways, this is some kind of UDP
+>  	 * stream. Set Assured.
+>  	 */
+> -	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+> +	if (status & IPS_SEEN_REPLY_BIT) {
 
-   Got it. Thanks.
-> 
->>  actions.  This is required for backward and forward compatibility (i.e. the
->>  kernel and user space may not know each other's supported restrictions), hence
->> -the need to be explicit about the denied-by-default access rights.
->> +the need to be explicit about the denied-by-default access rights.  Also ruleset
-> 
-> Wording nit: "Also, the ruleset"...?
+Hi,
 
-   Right. Thanks for the nit.
-> 
->> +will have network rules for specific ports, so it should handle network actions.
->>  
->>  .. code-block:: c
->>  
->> @@ -62,6 +64,9 @@ the need to be explicit about the denied-by-default access rights.
->>              LANDLOCK_ACCESS_FS_MAKE_SYM |
->>              LANDLOCK_ACCESS_FS_REFER |
->>              LANDLOCK_ACCESS_FS_TRUNCATE,
->> +        .handled_access_net =
->> +            LANDLOCK_ACCESS_NET_BIND_TCP |
->> +            LANDLOCK_ACCESS_NET_CONNECT_TCP,
->>      };
->>  
->>  Because we may not know on which kernel version an application will be
->> @@ -70,14 +75,18 @@ should try to protect users as much as possible whatever the kernel they are
->>  using.  To avoid binary enforcement (i.e. either all security features or
->>  none), we can leverage a dedicated Landlock command to get the current version
->>  of the Landlock ABI and adapt the handled accesses.  Let's check if we should
->> -remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE``
->> -access rights, which are only supported starting with the second and third
->> -version of the ABI.
->> +remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE`` or
->> +network access rights, which are only supported starting with the second,
->> +third and fourth version of the ABI.
->>  
->>  .. code-block:: c
->>  
->>      int abi;
->>  
->> +    #define ACCESS_NET_BIND_CONNECT ( \
->> +        LANDLOCK_ACCESS_NET_BIND_TCP | \
->> +        LANDLOCK_ACCESS_NET_CONNECT_TCP)
->> +
->>      abi = landlock_create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION);
->>      if (abi < 0) {
->>          /* Degrades gracefully if Landlock is not handled. */
->> @@ -92,6 +101,11 @@ version of the ABI.
->>      case 2:
->>          /* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
->>          ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
->> +    case 3:
->> +        /* Removes network support for ABI < 4 */
->> +		ruleset_attr.handled_access_net &=
->             ^^^^^
->             Nit: Indentation differs from "case 2"
+This change has a bug not matching reply status anymore.
+Since you don't use test_bit() you should use IPS_SEEN_REPLY
+instead of IPS_SEEN_REPLY_BIT.
 
-   Got it. Will be fixed. Thanks.
->             
->> +			~(LANDLOCK_ACCESS_NET_BIND_TCP |
->> +			  LANDLOCK_ACCESS_NET_CONNECT_TCP);
->>      }
->>  
->>  This enables to create an inclusive ruleset that will contain our rules.
->> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
->>  ABI version.  In this example, this is not required because all of the requested
->>  ``allowed_access`` rights are already available in ABI 1.
->>  
->> -We now have a ruleset with one rule allowing read access to ``/usr`` while
->> -denying all other handled accesses for the filesystem.  The next step is to
->> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
->> -binary).
->> +For network access-control, we can add a set of rules that allow to use a port
->> +number for a specific action. All ports values must be defined in network byte
->> +order.
-> 
-> What is the point of asking user space to convert this to network byte
-> order? It seems to me that the kernel would be able to convert it to
-> network byte order very easily internally and in a single place -- why
-> ask all of the users to deal with that complexity? Am I overlooking
-> something?
+Thanks,
+Roi
 
-  I had a discussion about this issue with Mickaёl.
-  Please check these threads:
-  1. 
-https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
-  2. 
-https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
-> 
->> +
->> +.. code-block:: c
->> +
->> +    struct landlock_net_service_attr net_service = {
->> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->> +        .port = htons(8080),
->> +    };
-> 
-> This is a more high-level comment:
-> 
-> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
-> how do you envision this struct to evolve if other protocols need to
-> be supported in the future?
-
-   When TCP restrictions land into Linux, we need to think about UDP 
-support. Then other protocols will be on the road. Anyway you are right 
-this struct will be evolving in long term, but I don't have a particular 
-envision now. Thanks for the question - we need to think about it.
-> 
-> Should this struct and the associated constants have "TCP" in its
-> name, and other protocols use a separate struct in the future?
-> 
->> +
->> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->> +                            &net_service, 0);
->> +
->> +The next step is to restrict the current thread from gaining more privileges
->> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
->           ^^^^^^
->           "through" a SUID binary? "thanks to" sounds like it's desired
->           to do that, while we're actually trying to prevent it here?
-
-   This is Mickaёl's part. Let's ask his opinion here.
-
-   Mickaёl, any thoughts?
-
-> 
->> +read access to ``/usr`` while denying all other handled accesses for the filesystem,
->> +and a second rule allowing TCP binding on port 8080.
->>  
->>  .. code-block:: c
->>  
->> @@ -355,7 +383,7 @@ Access rights
->>  -------------
->>  
->>  .. kernel-doc:: include/uapi/linux/landlock.h
->> -    :identifiers: fs_access
->> +    :identifiers: fs_access net_access
->>  
->>  Creating a new ruleset
->>  ----------------------
->> @@ -374,6 +402,7 @@ Extending a ruleset
->>  
->>  .. kernel-doc:: include/uapi/linux/landlock.h
->>      :identifiers: landlock_rule_type landlock_path_beneath_attr
->> +                  landlock_net_service_attr
->>  
->>  Enforcing a ruleset
->>  -------------------
->> @@ -451,6 +480,12 @@ always allowed when using a kernel that only supports the first or second ABI.
->>  Starting with the Landlock ABI version 3, it is now possible to securely control
->>  truncation thanks to the new ``LANDLOCK_ACCESS_FS_TRUNCATE`` access right.
->>  
->> +Network support (ABI < 4)
->> +-------------------------
->> +
->> +Starting with the Landlock ABI version 4, it is now possible to restrict TCP
->> +bind and connect actions to only a set of allowed ports.
->> +
->>  .. _kernel_support:
->>  
->>  Kernel support
->> @@ -469,6 +504,11 @@ still enable it by adding ``lsm=landlock,[...]`` to
->>  Documentation/admin-guide/kernel-parameters.rst thanks to the bootloader
->>  configuration.
->>  
->> +To be able to explicitly allow TCP operations (e.g., adding a network rule with
->> +``LANDLOCK_ACCESS_NET_TCP_BIND``), the kernel must support TCP (``CONFIG_INET=y``).
->> +Otherwise, sys_landlock_add_rule() returns an ``EAFNOSUPPORT`` error, which can
->> +safely be ignored because this kind of TCP operation is already not possible.
->> +
->>  Questions and answers
->>  =====================
->>  
->> -- 
->> 2.25.1
->> 
-> .
+>  		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
+>  		bool stream = false;
+>  
+>  		/* Still active after two seconds? Extend timeout. */
+>  		if (time_after(jiffies, ct->proto.udp.stream_ts)) {
+>  			extra = timeouts[UDP_CT_REPLIED];
+> -			stream = true;
+> +			stream = (status & IPS_ASSURED) == 0;
+>  		}
+>  
+>  		nf_ct_refresh_acct(ct, ctinfo, skb, extra);
+>  
+>  		/* never set ASSURED for IPS_NAT_CLASH, they time out soon */
+> -		if (unlikely((ct->status & IPS_NAT_CLASH)))
+> +		if (unlikely((status & IPS_NAT_CLASH)))
+>  			return NF_ACCEPT;
+>  
+>  		/* Also, more likely to be important, and not a probe */
