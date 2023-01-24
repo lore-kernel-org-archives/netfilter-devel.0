@@ -2,203 +2,374 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA62C25B4E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 14:01:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DF32C61DA0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 14:03:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234413AbjAXOBh (ORCPT
+        id S234486AbjAXODs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Jan 2023 09:01:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37258 "EHLO
+        Tue, 24 Jan 2023 09:03:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234468AbjAXOBd (ORCPT
+        with ESMTP id S234524AbjAXODr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2023 09:01:33 -0500
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2051.outbound.protection.outlook.com [40.107.244.51])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DA8147EC8;
-        Tue, 24 Jan 2023 06:01:12 -0800 (PST)
+        Tue, 24 Jan 2023 09:03:47 -0500
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2054.outbound.protection.outlook.com [40.107.243.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3E6229E01;
+        Tue, 24 Jan 2023 06:03:23 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=YQprz+TiAEH4pdhSmdF77ocNYOy30ag05TXD+mxssOV1kMc6eSDa//Lbf4yglcnk1HEh0WcIRGmkTFA1FvTnpT5ctMpoJjUex0A7HzK7La8S9J62vzUnGgMPV5KVHtC63pp8r9o1nkREqT4tYYKo5O4la/CuA0EuBguaTrcG+oQJ2Bu5zMUUYzntxabK8QpYZ/RkQc9PzSYQy2t9wr9BfoDW5AtW/jND5nSljSgM/vty7jE9mkwknJHxl9+FS9Zits5+GlwHurtp05tb5uFYrbOaz1eEueXoqgZsbMNQaey8oh3FYKixlUclFtKSL8Rbsk0/u1HARDsG4r221TBOtQ==
+ b=Ew8+q1CS0Q2u8JUndXT4fzmexVcvnruj/xrnxU/SkxPxECU9+Do17efnYV/2XAqw9pS3IV2v2RGFAQfvJT55Lkgrsv68pDrGslQ/3GLd7V44YPf0StH5yyepNrDG81ucPNgThuSVqpbiAZip0hBojie9EEyY6qVwsMmTFuIGotAHGxUYo4idCXDyCfPzlO5flrQN/Qk7L8O00EC/FHBDg4dXMDHbAaeJ5mwvNl3KyJYi+dgcO+kjDksgq8lZ0/OMvRwWFNaX0Fk6o/bxDY/DgxSnsyJRiswr/8AdxP/+Vd1fikZaKbNFZ9Fw0eVagZ9QvHzRtDYxPPsgOziE401W4g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SM18aQLSNxN6UBjaagc6U3PhaHLHlrf+yJzro0vZb5U=;
- b=byYEkl05V8k5s6zAoNEM6FbxseSVU5DXCSa28bVxftv0hfd8nvzbc9SvJcqYyfrlNBssyum5hi1Z5SCgCN9unonqbxfJA/sP20CZjMxU+lO6COEhU+rnT369b/SGAptIktCCXd5OqqTGU6f+shX4Z4y7btQQjldINeMdaHSvBlvYNfP2ps+XJYF3MTDBHmJZqhmz1lQVhk0YJ0pZ7TdHApDP3Eecl4oX/gxFYUctCss8dvEcR9paKRSWt9/nbptH+OnxYc58ik+FFZcV2okJKjjil6MPFCuM5NM44gPrWJvf9QVk3j1FI/m7WrK7zMp85Ez/gmay8otSWsS5wfuayw==
+ bh=6hRCCIrcOIvrOs9yZYI2nP2cP9hmUlhGTKjvzGb2BZs=;
+ b=SL9zSMFdmPAbqGF+6M+/1fDo2p3CYWGT96URPS0P0fqdaJodQL7TCoQim6P4r9/vVmDVIf9VM+btyvncU8VlbqurGve1ObXUpMsYDvkZssVkN2R3EcJoqUXpRvhRfXHyJPIHVTcQe80XJRt+tnbi1fzTeyUmOY1Dfp9HP8Zvw+3P5Fzb/3pE0PeKj+iOYZYRTh4rv4xIPyQVNHhv7EK5A4cdnHtT9gxg1K1bs7P7xRogjWxpkqopQ6yEcCNu3Sk8fL3JJJyj+qtDN0dKIXTngIHjJMM4RbJonhS9ezshalzf5Ny6t6EvOp3f0czxCuViWysBNWAarxqXMhgJhTBlaA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=corigine.com smtp.mailfrom=nvidia.com;
+ 216.228.117.160) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SM18aQLSNxN6UBjaagc6U3PhaHLHlrf+yJzro0vZb5U=;
- b=MVxOjov1P0eqDjXIxo0ujHJfhz/DtpAS+1hNTEfWk7gNcXi+vQ1jKcFWc4oWHY0XytAOrBbK1vATzBHFWnjBDuSdZEeTKt57raPqedbQ9xQoQ4xZrEe/x2EOIZ9f2VBEP/4hOx+spDTj+q0SHdBKfbrnuh/HtgEdwd1SQt0YUXUX4S5DWSYPZw0+FWCmohFXSOfUoqxbSQT+WKCh7TK7wdjfvb8SD7cbUQDb4IWE1Fmd+mhk0FL3wGe9ldda7l0GlFFBwNrXP2FPIN3+v/Q+30vOB+lioGZYmZsMc4NW6wr5qSDh/gmDXmS3oNNJelagzLuLdg+cFKBJfx3L+p4YCw==
-Received: from MW4PR04CA0141.namprd04.prod.outlook.com (2603:10b6:303:84::26)
- by PH0PR12MB7838.namprd12.prod.outlook.com (2603:10b6:510:287::10) with
+ bh=6hRCCIrcOIvrOs9yZYI2nP2cP9hmUlhGTKjvzGb2BZs=;
+ b=KS355yK4YJqi8aH3mTVWbJPMsZ01u7UZyyBp20fFKgU9YOJ2bkJgQxv6jiZtl3CKMzFOP91yc6Hk7G153ZHppLwKQOP/wIi8Nv71AYTJx8bcQSJMBIUUlZoTasQw5WfJFLtMSdyea8v/DU3kGae0oWGI1fJ2TyKV+BYXPGbDbNx/72GIEqb5L9LwIoO82I3H1zRL1wFAQYA70KKj+bOKCf3cokjil7RwhffUmH8MZ8vwo0/PT07vD74Xf9EXWc5huRdp50eArkse/3amYBPiXpS1fBoUab7ojJAUOmNXCSMiIp9RRmstcwtOBelfIYhfPMhWVh5BxJRgSIlJ2q9fxA==
+Received: from BN9PR03CA0250.namprd03.prod.outlook.com (2603:10b6:408:ff::15)
+ by PH7PR12MB6610.namprd12.prod.outlook.com (2603:10b6:510:212::22) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.33; Tue, 24 Jan
- 2023 14:00:38 +0000
-Received: from CO1NAM11FT094.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:84:cafe::e0) by MW4PR04CA0141.outlook.office365.com
- (2603:10b6:303:84::26) with Microsoft SMTP Server (version=TLS1_2,
+ 2023 14:03:20 +0000
+Received: from BN8NAM11FT065.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:ff:cafe::28) by BN9PR03CA0250.outlook.office365.com
+ (2603:10b6:408:ff::15) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.33 via Frontend
- Transport; Tue, 24 Jan 2023 14:00:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ Transport; Tue, 24 Jan 2023 14:03:20 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- CO1NAM11FT094.mail.protection.outlook.com (10.13.174.161) with Microsoft SMTP
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ BN8NAM11FT065.mail.protection.outlook.com (10.13.177.63) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6043.17 via Frontend Transport; Tue, 24 Jan 2023 14:00:37 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.6023.16 via Frontend Transport; Tue, 24 Jan 2023 14:03:19 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 24 Jan
- 2023 06:00:21 -0800
-Received: from fedora.nvidia.com (10.126.230.37) by drhqmail201.nvidia.com
- (10.126.190.180) with Microsoft SMTP Server (version=TLS1_2,
+ 2023 06:02:57 -0800
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 24 Jan
- 2023 06:00:18 -0800
-References: <20230119195104.3371966-1-vladbu@nvidia.com>
- <20230119195104.3371966-5-vladbu@nvidia.com> <Y8p96knLDtxnRtjz@salvia>
- <871qnke7ga.fsf@nvidia.com> <Y8+Zny8S9BQm7asq@salvia>
- <87sfg0cmnw.fsf@nvidia.com>
-User-agent: mu4e 1.6.6; emacs 28.1
+ 2023 06:02:56 -0800
+Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com (10.129.68.10)
+ with Microsoft SMTP Server id 15.2.986.36 via Frontend Transport; Tue, 24 Jan
+ 2023 06:02:52 -0800
 From:   Vlad Buslov <vladbu@nvidia.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-CC:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
-        <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+To:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
+        <pablo@netfilter.org>
+CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
         <jhs@mojatatu.com>, <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>,
         <ozsh@nvidia.com>, <marcelo.leitner@gmail.com>,
-        <simon.horman@corigine.com>
-Subject: Re: [PATCH net-next v3 4/7] netfilter: flowtable: allow updating
- offloaded rules asynchronously
-Date:   Tue, 24 Jan 2023 15:57:17 +0200
-In-Reply-To: <87sfg0cmnw.fsf@nvidia.com>
-Message-ID: <87o7qoc9sg.fsf@nvidia.com>
+        <simon.horman@corigine.com>, Vlad Buslov <vladbu@nvidia.com>
+Subject: [PATCH net-next v4 2/7] netfilter: flowtable: fixup UDP timeout depending on ct state
+Date:   Tue, 24 Jan 2023 15:02:02 +0100
+Message-ID: <20230124140207.3975283-3-vladbu@nvidia.com>
+X-Mailer: git-send-email 2.38.1
+In-Reply-To: <20230124140207.3975283-1-vladbu@nvidia.com>
+References: <20230124140207.3975283-1-vladbu@nvidia.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Originating-IP: [10.126.230.37]
-X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
- drhqmail201.nvidia.com (10.126.190.180)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1NAM11FT094:EE_|PH0PR12MB7838:EE_
-X-MS-Office365-Filtering-Correlation-Id: 99425598-4d2f-41d4-a228-08dafe135efd
+X-MS-TrafficTypeDiagnostic: BN8NAM11FT065:EE_|PH7PR12MB6610:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2b226c6e-d570-4101-a038-08dafe13bf53
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: kjZyQwQN1u1qINRcFGMfklvhwoMmv5Pj19/B3OMGLqWvorIigGSHwIoptEKBGpNvL61ZCTBh+ggpq1/N5a8fRwNl0UkV35G47CF0KFpkYWgVA0exxKUqvsSd5VfD9+qQM/qG/L0/TpEqjZ0QrolG4n2G9lom/S2WqWLNL3T8OaYNiUzVAPd5Yv2Hr07alfmwALpdWoehebjTWEzR6MBwRmqkGWSBD45Bqvgj8TY+CQKIsfiTMk6dR1e2zOdkX4RsLO81ApyPt4trM3TF6iTd+wMzYN860fuoNIGVTXb4R86TDUUMMtZvBybAmeL8uZcKnz3Ntzd5tRTmQT0E9zDA55ZxZjbdUGkPda8pnYLhWjUoLpU4MRGXFNXVm5SHYPGg5WJHA2i3mxHV8nGY+qaZL5y9+SSWA/6UEzyKjtEq+bI0Az1/yMEvImjsurf5xJ5etNjuLrLc7SNDf5ywqsgLnXhwlUhkBcPAxqgIO1MfPJvjhEXjOsM4iPJQD1G0HgzhW1ZsjoxEmpRS96nORIKzaPl7X1TVSaBnQAceP5TxNYQE/kNDFM8y3ICYcf4m64hl8c2feSTmHeWpIBoN+Ly/Bf3ULxxEdZWqBb2TH6J66bF76dbWk1CrapOjGksl+Onelf6OPPDsjyfmdQ3ZqkcMh7AQTTps7BV5TJF2/FBlTmT1Oe8A28mxggFFWR/8c4jNLsTLW0rVe+x1TLXiWc40hw==
-X-Forefront-Antispam-Report: CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(136003)(346002)(39860400002)(396003)(376002)(451199015)(36840700001)(40470700004)(46966006)(7636003)(82740400003)(40460700003)(36756003)(40480700001)(356005)(82310400005)(86362001)(478600001)(316002)(336012)(6916009)(2616005)(16526019)(8676002)(70586007)(426003)(47076005)(4326008)(70206006)(7696005)(54906003)(2906002)(36860700001)(83380400001)(26005)(41300700001)(5660300002)(7416002)(186003)(8936002);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: WsvNsVU9MusEpVT5sYToTADQfsm4PpE40lYPpJZnxH66PIeBZ1G+srCxszVlnf3D1KirCg7ZoZtVS/IHFCwFXFk5Sfrzl1kLRgYkMOG7Me8jU+KsCDLxLnOPIrsf5k1MycIb8IhuITqMT/BQF8hW98M/si8fqlwRjJVSNkZdCQw4IIdKyQGsy8YYEJKRctxns2spXoHiX2Gn9meBgjZI0APBDyYSzInCuBc1CcjsHQoSmORxv/UXz8LjBEYPCoPGX/nWa1W4ZWyaAS9z4AusQB6487/IEdUieoZOlgaEeEAY52cKT1JjUXnbyjxTrmd2CnaG4DftFqzWODiP+Q+Are2XcrLXzymNvHPlyR0UcoZ+sT3UE0f5p+ub6j0Gw1aUNvpgzR5WSIq3sdktl+goRg/xVBpX9axiX8WmTSrmNfKWXveMu9gRHHbwRDRbu2CgN9VLM6MrpiPB3mGvlxKL867irCiCfoVw4wcr8IMNadSefYLJ1KvGoX0zhUCTr3wioLjNL1sCzDKqCjmTJ2EcM6ZLL3FOD1I8xgetmNHhphQPui2pZJW0S9w3QQi8ppsccpxSmHqtTMGBX3X169LLUTHQx9aGKTjj/UDNKaeZ8CHUolbRrYOZEaKhbjlOlrLWU3KtaTNkHmCmzOS/GzkhS6QdGtutoj7AmA5tdtEakmw0PyNbeOOdEUiCx2rQbHomCTn91I3s2zhZl1gZEqTtS8qKxPPjVXZDcXXWpBY4148=
+X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(396003)(376002)(136003)(346002)(451199015)(46966006)(40470700004)(36840700001)(36860700001)(83380400001)(82740400003)(7416002)(41300700001)(86362001)(356005)(7636003)(2906002)(82310400005)(8936002)(5660300002)(4326008)(40460700003)(316002)(40480700001)(26005)(186003)(8676002)(6666004)(107886003)(47076005)(426003)(336012)(70586007)(70206006)(54906003)(2616005)(1076003)(110136005)(478600001)(7696005)(36756003)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jan 2023 14:00:37.6766
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jan 2023 14:03:19.2077
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 99425598-4d2f-41d4-a228-08dafe135efd
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2b226c6e-d570-4101-a038-08dafe13bf53
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT094.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT065.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7838
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6610
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue 24 Jan 2023 at 11:19, Vlad Buslov <vladbu@nvidia.com> wrote:
-> On Tue 24 Jan 2023 at 09:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> Hi Vlad,
->>
->> On Tue, Jan 24, 2023 at 09:06:13AM +0200, Vlad Buslov wrote:
->>> 
->>> On Fri 20 Jan 2023 at 12:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>> > Hi Vlad,
->>> >
->>> > On Thu, Jan 19, 2023 at 08:51:01PM +0100, Vlad Buslov wrote:
->>> >> Following patches in series need to update flowtable rule several times
->>> >> during its lifetime in order to synchronize hardware offload with actual ct
->>> >> status. However, reusing existing 'refresh' logic in act_ct would cause
->>> >> data path to potentially schedule significant amount of spurious tasks in
->>> >> 'add' workqueue since it is executed per-packet. Instead, introduce a new
->>> >> flow 'update' flag and use it to schedule async flow refresh in flowtable
->>> >> gc which will only be executed once per gc iteration.
->>> >
->>> > So the idea is to use a NF_FLOW_HW_UPDATE which triggers the update
->>> > from the garbage collector. I understand the motivation here is to
->>> > avoid adding more work to the workqueue, by simply letting the gc
->>> > thread pick up for the update.
->>> >
->>> > I already proposed in the last year alternative approaches to improve
->>> > the workqueue logic, including cancelation of useless work. For
->>> > example, cancel a flying "add" work if "delete" just arrive and the
->>> > work is still sitting in the queue. Same approach could be use for
->>> > this update logic, ie. cancel an add UDP unidirectional or upgrade it
->>> > to bidirectional if, by the time we see traffic in both directions,
->>> > then work is still sitting in the queue.
->>> 
->>> Thanks for the suggestion. I'll try to make this work over regular
->>> workqueues without further extending the flow flags and/or putting more
->>> stuff into gc.
->>
->> Let me make a second pass to sort out thoughts on this.
->>
->> Either we use regular workqueues (without new flags) or we explore
->> fully consolidating this hardware offload workqueue infrastructure
->> around flags, ie. use flags not only for update events, but also for
->> new and delete.
->>
->> This would go more in the direction of your _UPDATE flag idea:
->>
->> - Update the hardware offload workqueue to iterate over the
->>   flowtable. The hardware offload workqueue would be "scanning" for
->>   entries in the flowtable that require some sort of update in the
->>   hardware. The flags would tell what kind of action is needed.
->>
->> - Add these flags:
->>
->> NF_FLOW_HW_NEW
->> NF_FLOW_HW_UPDATE
->> NF_FLOW_HW_DELETE
->>
->> and remove the work object (flow_offload_work) and the existing list.
->> If the workqueue finds an entry with:
->>
->> NEW|DELETE, this means this is short lived flow, not worth to waste
->> cycles to offload it.
->> NEW|UPDATE, this means this is an UDP flow that is bidirectional.
->>
->> Then, there will be no more work allocation + "flying" work objects to
->> the hardware offload workqueue. Instead, the hardware offload
->> workqueue will be iterating.
->>
->> This approach would need _DONE flags to annotate if the offload
->> updates have been applied to hardware already (similar to the
->> conntrack _DONE flags).
->>
->> (Oh well, this proposal is adding even more flags. But I think flags
->> are not the issue, but the mixture of the existing flow_offload_work
->> approach with this new _UPDATE flag and the gc changes).
->>
->> If flow_offload_work is removed, we would also need to add a:
->>
->>  struct nf_flowtable *flowtable;
->>
->> field to the flow_offload entry, which is an entry field that is
->> passed via flow_offload_work. So it is one extra field for the each
->> flow_offload entry.
->>
->> The other alternative is to use the existing nf_flow_offload_add_wq
->> with UPDATE command, which might result in more flying objects in
->> turn. I think this is what you are trying to avoid with the _UPDATE
->> flag approach.
->
-> This looks interesting, but is very ambitious and will probably be a
-> bigger change than this whole series. I have an idea how we can leverage
-> existing 'refresh' mechanism for updating flow state that doesn't
-> involve large-scale refactoring of existing offload infrastructure,
-> which I would prefer to try first. WDYT?
+Currently flow_offload_fixup_ct() function assumes that only replied UDP
+connections can be offloaded and hardcodes UDP_CT_REPLIED timeout value.
+Allow users to modify timeout calculation by implementing new flowtable
+type callback 'timeout' and use the existing algorithm otherwise.
 
-Update: to illustrate this point I prepared V4 that uses regular refresh
-to update the flow and also tries to prevent excessive wq spam or
-updating flow offload to a state that is already outdated.
+To enable UDP NEW connection offload in following patches implement
+'timeout' callback in flowtable_ct of act_ct which extracts the actual
+connections state from ct->status and set the timeout according to it.
+
+Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
+---
+
+Notes:
+    Changes V3 -> V4:
+    
+    - Rework the patch to decouple netfilter and act_ct timeout fixup
+    algorithms.
+
+ include/net/netfilter/nf_flow_table.h |  6 +++-
+ net/netfilter/nf_flow_table_core.c    | 40 +++++++++++++++++++--------
+ net/netfilter/nf_flow_table_ip.c      | 17 ++++++------
+ net/sched/act_ct.c                    | 35 ++++++++++++++++++++++-
+ 4 files changed, 76 insertions(+), 22 deletions(-)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index cd982f4a0f50..a3e4b5127ad0 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -61,6 +61,9 @@ struct nf_flowtable_type {
+ 						  enum flow_offload_tuple_dir dir,
+ 						  struct nf_flow_rule *flow_rule);
+ 	void				(*free)(struct nf_flowtable *ft);
++	bool				(*timeout)(struct nf_flowtable *ft,
++						   struct flow_offload *flow,
++						   s32 *val);
+ 	nf_hookfn			*hook;
+ 	struct module			*owner;
+ };
+@@ -278,7 +281,8 @@ void nf_flow_table_cleanup(struct net_device *dev);
+ int nf_flow_table_init(struct nf_flowtable *flow_table);
+ void nf_flow_table_free(struct nf_flowtable *flow_table);
+ 
+-void flow_offload_teardown(struct flow_offload *flow);
++void flow_offload_teardown(struct nf_flowtable *flow_table,
++			   struct flow_offload *flow);
+ 
+ void nf_flow_snat_port(const struct flow_offload *flow,
+ 		       struct sk_buff *skb, unsigned int thoff,
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 81c26a96c30b..e3eeea349c8d 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -178,28 +178,43 @@ static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
+ 	tcp->seen[1].td_maxwin = 0;
+ }
+ 
+-static void flow_offload_fixup_ct(struct nf_conn *ct)
++static bool flow_offload_timeout_default(struct nf_conn *ct, s32 *timeout)
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	int l4num = nf_ct_protonum(ct);
+-	s32 timeout;
+ 
+ 	if (l4num == IPPROTO_TCP) {
+ 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 
+ 		flow_offload_fixup_tcp(&ct->proto.tcp);
+ 
+-		timeout = tn->timeouts[ct->proto.tcp.state];
+-		timeout -= tn->offload_timeout;
++		*timeout = tn->timeouts[ct->proto.tcp.state];
++		*timeout -= tn->offload_timeout;
+ 	} else if (l4num == IPPROTO_UDP) {
+ 		struct nf_udp_net *tn = nf_udp_pernet(net);
+ 
+-		timeout = tn->timeouts[UDP_CT_REPLIED];
+-		timeout -= tn->offload_timeout;
++		*timeout = tn->timeouts[UDP_CT_REPLIED];
++		*timeout -= tn->offload_timeout;
+ 	} else {
+-		return;
++		return false;
+ 	}
+ 
++	return true;
++}
++
++static void flow_offload_fixup_ct(struct nf_flowtable *flow_table,
++				  struct flow_offload *flow)
++{
++	struct nf_conn *ct = flow->ct;
++	bool needs_fixup;
++	s32 timeout;
++
++	needs_fixup = flow_table->type->timeout ?
++		flow_table->type->timeout(flow_table, flow, &timeout) :
++		flow_offload_timeout_default(ct, &timeout);
++	if (!needs_fixup)
++		return;
++
+ 	if (timeout < 0)
+ 		timeout = 0;
+ 
+@@ -348,11 +363,12 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
+ 	flow_offload_free(flow);
+ }
+ 
+-void flow_offload_teardown(struct flow_offload *flow)
++void flow_offload_teardown(struct nf_flowtable *flow_table,
++			   struct flow_offload *flow)
+ {
+ 	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
+ 	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
+-	flow_offload_fixup_ct(flow->ct);
++	flow_offload_fixup_ct(flow_table, flow);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_teardown);
+ 
+@@ -421,7 +437,7 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ {
+ 	if (nf_flow_has_expired(flow) ||
+ 	    nf_ct_is_dying(flow->ct))
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(flow_table, flow);
+ 
+ 	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
+ 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+@@ -569,14 +585,14 @@ static void nf_flow_table_do_cleanup(struct nf_flowtable *flow_table,
+ 	struct net_device *dev = data;
+ 
+ 	if (!dev) {
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(flow_table, flow);
+ 		return;
+ 	}
+ 
+ 	if (net_eq(nf_ct_net(flow->ct), dev_net(dev)) &&
+ 	    (flow->tuplehash[0].tuple.iifidx == dev->ifindex ||
+ 	     flow->tuplehash[1].tuple.iifidx == dev->ifindex))
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(flow_table, flow);
+ }
+ 
+ void nf_flow_table_gc_cleanup(struct nf_flowtable *flowtable,
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 19efba1e51ef..9c97b9994a96 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -18,7 +18,8 @@
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
+ 
+-static int nf_flow_state_check(struct flow_offload *flow, int proto,
++static int nf_flow_state_check(struct nf_flowtable *flow_table,
++			       struct flow_offload *flow, int proto,
+ 			       struct sk_buff *skb, unsigned int thoff)
+ {
+ 	struct tcphdr *tcph;
+@@ -28,7 +29,7 @@ static int nf_flow_state_check(struct flow_offload *flow, int proto,
+ 
+ 	tcph = (void *)(skb_network_header(skb) + thoff);
+ 	if (unlikely(tcph->fin || tcph->rst)) {
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(flow_table, flow);
+ 		return -1;
+ 	}
+ 
+@@ -373,11 +374,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 
+ 	iph = (struct iphdr *)(skb_network_header(skb) + offset);
+ 	thoff = (iph->ihl * 4) + offset;
+-	if (nf_flow_state_check(flow, iph->protocol, skb, thoff))
++	if (nf_flow_state_check(flow_table, flow, iph->protocol, skb, thoff))
+ 		return NF_ACCEPT;
+ 
+ 	if (!nf_flow_dst_check(&tuplehash->tuple)) {
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(flow_table, flow);
+ 		return NF_ACCEPT;
+ 	}
+ 
+@@ -419,7 +420,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	case FLOW_OFFLOAD_XMIT_DIRECT:
+ 		ret = nf_flow_queue_xmit(state->net, skb, tuplehash, ETH_P_IP);
+ 		if (ret == NF_DROP)
+-			flow_offload_teardown(flow);
++			flow_offload_teardown(flow_table, flow);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -639,11 +640,11 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 
+ 	ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
+ 	thoff = sizeof(*ip6h) + offset;
+-	if (nf_flow_state_check(flow, ip6h->nexthdr, skb, thoff))
++	if (nf_flow_state_check(flow_table, flow, ip6h->nexthdr, skb, thoff))
+ 		return NF_ACCEPT;
+ 
+ 	if (!nf_flow_dst_check(&tuplehash->tuple)) {
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(flow_table, flow);
+ 		return NF_ACCEPT;
+ 	}
+ 
+@@ -684,7 +685,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	case FLOW_OFFLOAD_XMIT_DIRECT:
+ 		ret = nf_flow_queue_xmit(state->net, skb, tuplehash, ETH_P_IPV6);
+ 		if (ret == NF_DROP)
+-			flow_offload_teardown(flow);
++			flow_offload_teardown(flow_table, flow);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 0ca2bb8ed026..861305c9c079 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -274,8 +274,41 @@ static int tcf_ct_flow_table_fill_actions(struct net *net,
+ 	return err;
+ }
+ 
++static bool tcf_ct_flow_table_get_timeout(struct nf_flowtable *ft,
++					  struct flow_offload *flow,
++					  s32 *val)
++{
++	struct nf_conn *ct = flow->ct;
++	int l4num =
++		nf_ct_protonum(ct);
++	struct net *net =
++		nf_ct_net(ct);
++
++	if (l4num == IPPROTO_TCP) {
++		struct nf_tcp_net *tn = nf_tcp_pernet(net);
++
++		ct->proto.tcp.seen[0].td_maxwin = 0;
++		ct->proto.tcp.seen[1].td_maxwin = 0;
++		*val = tn->timeouts[ct->proto.tcp.state];
++		*val -= tn->offload_timeout;
++	} else if (l4num == IPPROTO_UDP) {
++		struct nf_udp_net *tn = nf_udp_pernet(net);
++		enum udp_conntrack state =
++			test_bit(IPS_SEEN_REPLY_BIT, &ct->status) ?
++			UDP_CT_REPLIED : UDP_CT_UNREPLIED;
++
++		*val = tn->timeouts[state];
++		*val -= tn->offload_timeout;
++	} else {
++		return false;
++	}
++
++	return true;
++}
++
+ static struct nf_flowtable_type flowtable_ct = {
+ 	.action		= tcf_ct_flow_table_fill_actions,
++	.timeout	= tcf_ct_flow_table_get_timeout,
+ 	.owner		= THIS_MODULE,
+ };
+ 
+@@ -622,7 +655,7 @@ static bool tcf_ct_flow_table_lookup(struct tcf_ct_params *p,
+ 	ct = flow->ct;
+ 
+ 	if (tcph && (unlikely(tcph->fin || tcph->rst))) {
+-		flow_offload_teardown(flow);
++		flow_offload_teardown(nf_ft, flow);
+ 		return false;
+ 	}
+ 
+-- 
+2.38.1
 
