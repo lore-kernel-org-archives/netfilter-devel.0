@@ -2,82 +2,126 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE4D1C25B4E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 07:38:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 763B2C25B4E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 08:41:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231287AbjAXHiF (ORCPT
+        id S229889AbjAXIlM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Jan 2023 02:38:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57648 "EHLO
+        Tue, 24 Jan 2023 03:41:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229666AbjAXHiE (ORCPT
+        with ESMTP id S229502AbjAXIlK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2023 02:38:04 -0500
-Received: from wout3-smtp.messagingengine.com (wout3-smtp.messagingengine.com [64.147.123.19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEF185FC4;
-        Mon, 23 Jan 2023 23:38:03 -0800 (PST)
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailout.west.internal (Postfix) with ESMTP id 54200320094B;
-        Tue, 24 Jan 2023 02:37:59 -0500 (EST)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Tue, 24 Jan 2023 02:38:00 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm3; t=1674545878; x=1674632278; bh=FGL4rvaE9HrAhK3uR60Bja3Q3YqT
-        7eV6rbw/0OzNS1s=; b=JCL9nF/J049eFQ2+y9NYHILehtNZU1JF+BewOJp4nHFq
-        WqRrRF1eBB2Bb1PAGjD2SILTgWBl/pnupk41zM3tiSt+7IF64ChM36Wr1GrFFuW1
-        g7FEjW/rkBUvgmgPfjrUyB76n9VHknz3f6r2ZWQJLUktTElGm+P7DTTdOjV3tqac
-        NNMVP6vEgblnNQSm8D92vvQyONNIHVFxWqJo5lMaahYzUwvGRoC773DRtVTPXANH
-        4iVJg8Fjl1nyLl6+FkSXDYl4ZqkekOGRvS0q/vQTAO/fBABk4ftRTP/2RcicTPBI
-        Q6FpNWzaNF3ozNljR81mHlX78RRQoyGKXWcmwWW0Zw==
-X-ME-Sender: <xms:1orPY8_qLClK_j0UiPIF49KyaZl_C72C1WWkKKFwQxPt81i3LE-Q6g>
-    <xme:1orPY0sQ4CMR2zU6AMCkdxdfNk2Ae919w426cqqDLgeD3-qwllvuQGqR7JmLqJwNt
-    dqRHoBUPFo1lfk>
-X-ME-Received: <xmr:1orPYyCqjpvfs-BSalAcpih-5Gj51OQwBqva_rFSGp2xakSgDNnK2R_GUAaCj00npshuLiywpJgq3Gv-52735jazuMA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrudduledgudduudcutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecunecujfgurhepfffhvfevuffkfhggtggujgesth
-    dtredttddtvdenucfhrhhomhepkfguohcuufgthhhimhhmvghluceoihguohhstghhsehi
-    ughoshgthhdrohhrgheqnecuggftrfgrthhtvghrnhepvddufeevkeehueegfedtvdevfe
-    fgudeifeduieefgfelkeehgeelgeejjeeggefhnecuvehluhhsthgvrhfuihiivgeptden
-    ucfrrghrrghmpehmrghilhhfrhhomhepihguohhstghhsehiughoshgthhdrohhrgh
-X-ME-Proxy: <xmx:1orPY8eb-kJCkXuHzSSy8xOoHLTMFqg7NWDrKk8ePOXUaWgrfrbLxg>
-    <xmx:1orPYxPiYBZyldXxvFiDI31NEAuATKLNKl0tvXxalHm6xV8bGXtX6g>
-    <xmx:1orPY2nwx_b_x1A7RfaHbRZaE0498XE8IjQF5oyBT_2eKuVp4c3S1Q>
-    <xmx:1orPYyEfYJEci8ItuZhJ42VVrtdY7zr95kIEhxoCgD7We2nsKdYhLQ>
-Feedback-ID: i494840e7:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 24 Jan 2023 02:37:57 -0500 (EST)
-Date:   Tue, 24 Jan 2023 09:37:53 +0200
-From:   Ido Schimmel <idosch@idosch.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
-        pabeni@redhat.com, jiri@nvidia.com, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, johannes@sipsolutions.net,
-        ecree.xilinx@gmail.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH net-next] netlink: fix spelling mistake in dump size
- assert
-Message-ID: <Y8+K0Rvc1ojVoaUM@shredder>
-References: <20230123222224.732338-1-kuba@kernel.org>
+        Tue, 24 Jan 2023 03:41:10 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6E22A3A840;
+        Tue, 24 Jan 2023 00:41:07 -0800 (PST)
+Date:   Tue, 24 Jan 2023 09:41:03 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Vlad Buslov <vladbu@nvidia.com>
+Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        jhs@mojatatu.com, xiyou.wangcong@gmail.com, jiri@resnulli.us,
+        ozsh@nvidia.com, marcelo.leitner@gmail.com,
+        simon.horman@corigine.com
+Subject: Re: [PATCH net-next v3 4/7] netfilter: flowtable: allow updating
+ offloaded rules asynchronously
+Message-ID: <Y8+Zny8S9BQm7asq@salvia>
+References: <20230119195104.3371966-1-vladbu@nvidia.com>
+ <20230119195104.3371966-5-vladbu@nvidia.com>
+ <Y8p96knLDtxnRtjz@salvia>
+ <871qnke7ga.fsf@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230123222224.732338-1-kuba@kernel.org>
+In-Reply-To: <871qnke7ga.fsf@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jan 23, 2023 at 02:22:24PM -0800, Jakub Kicinski wrote:
-> Commit 2c7bc10d0f7b ("netlink: add macro for checking dump ctx size")
-> misspelled the name of the assert as asset, missing an R.
+Hi Vlad,
+
+On Tue, Jan 24, 2023 at 09:06:13AM +0200, Vlad Buslov wrote:
 > 
-> Reported-by: Ido Schimmel <idosch@idosch.org>
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+> On Fri 20 Jan 2023 at 12:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Hi Vlad,
+> >
+> > On Thu, Jan 19, 2023 at 08:51:01PM +0100, Vlad Buslov wrote:
+> >> Following patches in series need to update flowtable rule several times
+> >> during its lifetime in order to synchronize hardware offload with actual ct
+> >> status. However, reusing existing 'refresh' logic in act_ct would cause
+> >> data path to potentially schedule significant amount of spurious tasks in
+> >> 'add' workqueue since it is executed per-packet. Instead, introduce a new
+> >> flow 'update' flag and use it to schedule async flow refresh in flowtable
+> >> gc which will only be executed once per gc iteration.
+> >
+> > So the idea is to use a NF_FLOW_HW_UPDATE which triggers the update
+> > from the garbage collector. I understand the motivation here is to
+> > avoid adding more work to the workqueue, by simply letting the gc
+> > thread pick up for the update.
+> >
+> > I already proposed in the last year alternative approaches to improve
+> > the workqueue logic, including cancelation of useless work. For
+> > example, cancel a flying "add" work if "delete" just arrive and the
+> > work is still sitting in the queue. Same approach could be use for
+> > this update logic, ie. cancel an add UDP unidirectional or upgrade it
+> > to bidirectional if, by the time we see traffic in both directions,
+> > then work is still sitting in the queue.
+> 
+> Thanks for the suggestion. I'll try to make this work over regular
+> workqueues without further extending the flow flags and/or putting more
+> stuff into gc.
 
-Reviewed-by: Ido Schimmel <idosch@nvidia.com>
+Let me make a second pass to sort out thoughts on this.
 
-Thanks!
+Either we use regular workqueues (without new flags) or we explore
+fully consolidating this hardware offload workqueue infrastructure
+around flags, ie. use flags not only for update events, but also for
+new and delete.
+
+This would go more in the direction of your _UPDATE flag idea:
+
+- Update the hardware offload workqueue to iterate over the
+  flowtable. The hardware offload workqueue would be "scanning" for
+  entries in the flowtable that require some sort of update in the
+  hardware. The flags would tell what kind of action is needed.
+
+- Add these flags:
+
+NF_FLOW_HW_NEW
+NF_FLOW_HW_UPDATE
+NF_FLOW_HW_DELETE
+
+and remove the work object (flow_offload_work) and the existing list.
+If the workqueue finds an entry with:
+
+NEW|DELETE, this means this is short lived flow, not worth to waste
+cycles to offload it.
+NEW|UPDATE, this means this is an UDP flow that is bidirectional.
+
+Then, there will be no more work allocation + "flying" work objects to
+the hardware offload workqueue. Instead, the hardware offload
+workqueue will be iterating.
+
+This approach would need _DONE flags to annotate if the offload
+updates have been applied to hardware already (similar to the
+conntrack _DONE flags).
+
+(Oh well, this proposal is adding even more flags. But I think flags
+are not the issue, but the mixture of the existing flow_offload_work
+approach with this new _UPDATE flag and the gc changes).
+
+If flow_offload_work is removed, we would also need to add a:
+
+ struct nf_flowtable *flowtable;
+
+field to the flow_offload entry, which is an entry field that is
+passed via flow_offload_work. So it is one extra field for the each
+flow_offload entry.
+
+The other alternative is to use the existing nf_flow_offload_add_wq
+with UPDATE command, which might result in more flying objects in
+turn. I think this is what you are trying to avoid with the _UPDATE
+flag approach.
+
+Thanks.
