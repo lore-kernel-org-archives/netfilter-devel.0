@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 484FAC38142
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 14:04:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4940AC38142
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 14:04:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234712AbjAXOE3 (ORCPT
+        id S233118AbjAXOEo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Jan 2023 09:04:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41706 "EHLO
+        Tue, 24 Jan 2023 09:04:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234793AbjAXOEQ (ORCPT
+        with ESMTP id S234576AbjAXOEX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2023 09:04:16 -0500
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2040.outbound.protection.outlook.com [40.107.236.40])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73449166F4;
-        Tue, 24 Jan 2023 06:03:49 -0800 (PST)
+        Tue, 24 Jan 2023 09:04:23 -0500
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2064.outbound.protection.outlook.com [40.107.94.64])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A81F6442F4;
+        Tue, 24 Jan 2023 06:04:03 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=bOKHN7G9BTK1GskV3FNEzd/oDZ0dbISqg+wP29pMwzeK0/BqsK1pgznb1mjOLuP1IjGlcb/wcbbCH1hpbLlrmtoALcC7XTtQ0+o1GkBldNakG2oN/JantovAIWq1ds5GqzDsy8OfZ6kao4wfT+gTXHH6D9gfR+aOiJ55Viv6e1XIv7EUuUR3tGX/9xZmRAWGxuugCVpasCUi49Qs2yij4jsdE95hKZCMahC/Eh0Usvb0bByOUzsJts2o+71RgMzScg5+TzAhWqFPxH3MhO/QR5xlUfNPsAZjk1pr4I9Fm1K+3BIYE/Uka3vKZPXt2YCZsbEtvL1TSRdAbQqvltmY7Q==
+ b=IeRg/9lvEj9wEl+m7I4H7MAr8MgxC+CKcVnEo5c4r3Xd0m4R/PVb0lZTg3iZzsHMflISrnb068b7IPIaWHbhrRnTgQ1Ijvdm8UTh6VdOmT+wPgdzzvpILXL4E7MT7xOtNR1NH4Awn/sxlEhzCZH/nB59SCrL1EMmzYyHqatgbehX5Vl9UUZ3zrp3LjvJ64QPL2NKc082dtFGhE/KdJwfjnwPj2Rva5KcB52cq78NmpRrrJFuFgCPIl2tE88dbVz9+ecHghX7O067ZNGVSXk+nHogwUBF3XU8QSOGrqCOluWAzm061NBlaeNsKwetsbl8SYu1wkaFOGv66JZPLUKmzw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=JLcQDuTm7f0BQbsr+DZXqTDP8Fsw23ph80Ixl7U15/8=;
- b=V3Ib0n8cimV+9C88QEcc+spydU5xnjmmMVtsXA3M34KiawgCIaeqGnhModghoffVSgjMmybAu6NZdrw75xj4EPVyWnfa/RIWvVddaHMKTXR7E6dorUlJyrRO3pgnDK8cMYyN2Zp1Frm9jqzUwne7ESaZsfY+Mv0H0ZEZuRoTdi2YJbrUEY7ls2XDD2o+ekQdTf6aEPKZwgfikINjzvJj53+bJRUbeYK1ML7C9fG65XFps3PJFpbZRHA4sDPaN3x+5P/0uAKv4JJt4rL7ohW6A6gvQlEXgYS/gm1LuwVL6v5qniMQLFGvo0jUB3bTswC6rsP3DoLTdKRk7OSfpNq7MA==
+ bh=rz+HTIgLF4cv3numWmCcln5WQzwNgbogiST4HyBCOC0=;
+ b=VLlDHHDo5DRVkiR81lvAyh7flQs91FIqP65c2XJc7TGy1a0roqoTJWmItC4m08bS0jUwZ/6hbbxMLcpMUoGSP1lw7VnH20eKUETUwLy7Gm2tYA2MAMfprCIZqEzFoufvoHqWnWdMcWP0L1LwPWZjMDxi4KJCJ/HUrjd4/1+KkXPOB/wi2kyWFyCuaHFGUk16QQp6G+GR5IOryIeBFoCUovuLrZWdsGOelFzn7aPd/i4JR7dZlgXxJU8rx28xnKcDQQHwGrser6iTKEFTOn/UJ7HCeWRnbTy8CrHgg4mRTFVKKx4rktHyKaMzp+EAPbdyseHVP+fVh18I5tjmlvpLTA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=JLcQDuTm7f0BQbsr+DZXqTDP8Fsw23ph80Ixl7U15/8=;
- b=oz06saRn7xf1dRi+BZWsOFAWD2WjzqzgYE4IvmYQ+kPYR4bVLXOHZwmdvwLbLiavGiBgFNA3CbnIjevencL9UT975lEe8aRPSBE+Sy2WeW3YKVnYmQd5t0WBlhQWQRVrOSKKO63Q6P+eg2yBhF4TKADQlbSOQ+H7tdNPJ7QpHc0sJU/fJ91eu6d5nL9ZHskloQTc4LdOjimD3uABh2tg/YDQ1On/m9go8Geoc4abewkgfZiDSDFq7sYJpO37NVzuL7o4FvQy/m6t+1tyuFVs13YOoz2gdy6i1ErYC+V8sgioY4GuIbi44bmL7fa83hvJiM4B9jpEpQO02Rg6HDte+A==
-Received: from BN9PR03CA0254.namprd03.prod.outlook.com (2603:10b6:408:ff::19)
- by SJ0PR12MB5456.namprd12.prod.outlook.com (2603:10b6:a03:3ae::12) with
+ bh=rz+HTIgLF4cv3numWmCcln5WQzwNgbogiST4HyBCOC0=;
+ b=Y+/3KwU/NMX5yWIcx0RWFDBAd5enq3ALG6C5NbaEgiWFD1GAzs8KKpG6YhC7mLR5TLA13E+mtj5GDjyMyRKYszhyNzPkz8p6pr+rxi8XDu43iWPNOh9juVIExEfLgF42nDwV8A1j+fxzM0bvpgYvaX5MpQTUb0MgS3RbgLgai5cLzic5ytNqfdiy2Q5pTIEuJyd2KjxzPAhjuqM2zcGkXhAeLU2waKhcPldVM/tpZCy5XGbI6WpcyRUjIa4WY63PDz80TksO1H0Sc9nXfuf0L0KP+6OcxDHrWI39GwsouTtCIpdDc5SsgCt8wSLEPQQW0BqtVZe8zFJCrq1mh3Okuw==
+Received: from BN6PR17CA0060.namprd17.prod.outlook.com (2603:10b6:405:75::49)
+ by PH0PR12MB5498.namprd12.prod.outlook.com (2603:10b6:510:d6::11) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.33; Tue, 24 Jan
- 2023 14:03:37 +0000
-Received: from BN8NAM11FT065.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:ff:cafe::23) by BN9PR03CA0254.outlook.office365.com
- (2603:10b6:408:ff::19) with Microsoft SMTP Server (version=TLS1_2,
+ 2023 14:03:10 +0000
+Received: from BN8NAM11FT079.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:405:75:cafe::3c) by BN6PR17CA0060.outlook.office365.com
+ (2603:10b6:405:75::49) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.33 via Frontend
- Transport; Tue, 24 Jan 2023 14:03:36 +0000
+ Transport; Tue, 24 Jan 2023 14:03:07 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.160 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.160) by
- BN8NAM11FT065.mail.protection.outlook.com (10.13.177.63) with Microsoft SMTP
+ BN8NAM11FT079.mail.protection.outlook.com (10.13.177.61) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6023.16 via Frontend Transport; Tue, 24 Jan 2023 14:03:36 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ 15.20.6023.16 via Frontend Transport; Tue, 24 Jan 2023 14:03:06 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 24 Jan
- 2023 06:03:16 -0800
-Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ 2023 06:02:47 -0800
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Tue, 24 Jan
- 2023 06:03:15 -0800
+ 2023 06:02:47 -0800
 Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com (10.129.68.10)
  with Microsoft SMTP Server id 15.2.986.36 via Frontend Transport; Tue, 24 Jan
- 2023 06:03:12 -0800
+ 2023 06:02:43 -0800
 From:   Vlad Buslov <vladbu@nvidia.com>
 To:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
         <pablo@netfilter.org>
@@ -70,93 +70,93 @@ CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
         <jhs@mojatatu.com>, <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>,
         <ozsh@nvidia.com>, <marcelo.leitner@gmail.com>,
         <simon.horman@corigine.com>, Vlad Buslov <vladbu@nvidia.com>
-Subject: [PATCH net-next v4 7/7] netfilter: nf_conntrack: allow early drop of offloaded UDP conns
-Date:   Tue, 24 Jan 2023 15:02:07 +0100
-Message-ID: <20230124140207.3975283-8-vladbu@nvidia.com>
+Subject: [PATCH net-next v4 0/7] Allow offloading of UDP NEW connections via act_ct
+Date:   Tue, 24 Jan 2023 15:02:00 +0100
+Message-ID: <20230124140207.3975283-1-vladbu@nvidia.com>
 X-Mailer: git-send-email 2.38.1
-In-Reply-To: <20230124140207.3975283-1-vladbu@nvidia.com>
-References: <20230124140207.3975283-1-vladbu@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN8NAM11FT065:EE_|SJ0PR12MB5456:EE_
-X-MS-Office365-Filtering-Correlation-Id: 48a9ff5e-590e-48d1-ba67-08dafe13c98f
+X-MS-TrafficTypeDiagnostic: BN8NAM11FT079:EE_|PH0PR12MB5498:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4e4a29a7-a24f-4832-becf-08dafe13b7ef
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: YDn0/USuMWwHYIPJZLAhPhu0Aa9zDFhSx1H+TvAu2OU0zwpTEmMobZuOgpqlVUcerL4kPR0BYz1UT9gjWJzJLSXzsZ/F91n+Izn0t7rBX1OCyTXOzVBBqzJBY3jsdFXKh4KDI3/EWmgwBuhokB6j+5VCwuNjzCNz8QuzrfJJtN7itC7NaMFPgyaa75XQVOx9wjI8qjt6EsvtKWL/ep2HS/MmYfL8mdP+tJ/1Td6DmJgkMoN7x5XzLHItjLT5xffgWTeSbY9Sxs1durwPryU+oaCBEjeUyGsODAJYYvKgDu/XUPaE+OuRRi0XkjqfdCitlcBCeXc8WWTZOtO9hJqm61gI0UtyM70LKA/pPsjf4+gfo23wkj3GZMPQv3LMb1yBCh9CCPq2kUGkZ76MX3HKS94G1059Z2KLxNxqpxNy/72zbTpSqhlmTEfstaJcrJmnt/CmEE1trGM1ENLiEdYo1niB0ZGzAUa7ZPxgfMnY3vrZAkXoX+aQA4guQr6a9oTKaM/iXrC8EEnO6fQDmBIxLy4vxxH8FY4HHLJIR5gOHXOOR/gFnKQ4thisHSUK1dfomM8VQALP/92vFNojyt/1E1rzpBRqGhg9cMf26OHgSGmYCrpgpYsdEDTM/su4nSWrnk9Bsb9A0UEuGld07a8DSZ3YquPCec5uYE6saveWEoT3341RNit8euclfjkoew3mXXxV3w6TU/MJowA3uavb2Mbugyb7G0LSxgPKPR10Y9Y=
-X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(396003)(136003)(346002)(376002)(39860400002)(451199015)(36840700001)(46966006)(40470700004)(36860700001)(4326008)(83380400001)(41300700001)(5660300002)(8936002)(7636003)(86362001)(356005)(2906002)(82740400003)(7416002)(82310400005)(40480700001)(40460700003)(316002)(8676002)(26005)(6666004)(47076005)(426003)(107886003)(336012)(1076003)(70206006)(70586007)(54906003)(2616005)(7696005)(186003)(110136005)(478600001)(36756003)(2101003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: thyUMkjToffMkN6JXvhtXvcUkFgBFz3h/eIn6eRI1Ca8effnSMF7V4JMHD57IqrBdEjXjl6WgFWC9kCOqbl5+WFbBiMdGsUwkVpIj54veV3Bpj8vhZ/dJzOBuV/cy5fAb+00O+MjQvY2eMB5BkHp+p3//mG8HBOdAlEPrP8GwRItbUNQ85QpL0NjLC/6PRFz4HSVVt2EfTsO0pVi3J/jHHC/L7Kq5pLNKa/SUKW9jCcle4GUIpeEAth1XN99OCs69ySE3B0/9Y2/vaMCixHkbca31CX4CcDLff+bPr5lEptmYgkPsaveaQ3YUmjZf3EePlgPxsYT4WTEK5QB6dQeyqtDYqVMT8sXqCj/iMpE6ZBZ4D2nqN0TQ9pJBWkcRnSVWNWKw/r+AcbSb+7m5qTQF1tqhiWdjWdpfJuzvfQlhGeXWCgQr06xx4Jo+yPrJW9GfLnhwZiFF4ZkzZkCp3+RgdntfvP4+pDZCzGqDxDDFNmkBV9PfGbRu9JfypS3Dagt41Ek45KLigxXT6dsZGNdS62MzEzOM2FEkTGNB9zMoPX5ewcvSU4xE53Jz2qPqYigBap9ay8pDa+bReEibqu4m9ELI6avbo2NlF1cPKFlx6+tSMx3q4NXTrQdWTN7KHSKs46ODr4iSx3svO/y0mfMveeV08konuI61ww0oHVvPVkM+oSSQCYpxNxiLDM02ClV
+X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(451199015)(46966006)(40470700004)(36840700001)(7636003)(40460700003)(36756003)(356005)(82310400005)(498600001)(86362001)(336012)(110136005)(8676002)(70206006)(70586007)(4326008)(2616005)(426003)(47076005)(7696005)(54906003)(2906002)(1076003)(36860700001)(83380400001)(6666004)(5660300002)(26005)(186003)(107886003)(7416002)(8936002)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jan 2023 14:03:36.3788
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jan 2023 14:03:06.8091
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 48a9ff5e-590e-48d1-ba67-08dafe13c98f
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4e4a29a7-a24f-4832-becf-08dafe13b7ef
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT065.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT079.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB5456
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB5498
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Both synchronous early drop algorithm and asynchronous gc worker completely
-ignore connections with IPS_OFFLOAD_BIT status bit set. With new
-functionality that enabled UDP NEW connection offload in action CT
-malicious user can flood the conntrack table with offloaded UDP connections
-by just sending a single packet per 5tuple because such connections can no
-longer be deleted by early drop algorithm.
+Currently only bidirectional established connections can be offloaded
+via act_ct. Such approach allows to hardcode a lot of assumptions into
+act_ct, flow_table and flow_offload intermediate layer codes. In order
+to enabled offloading of unidirectional UDP NEW connections start with
+incrementally changing the following assumptions:
 
-To mitigate the issue allow both early drop and gc to consider offloaded
-UDP connections for deletion.
+- Drivers assume that only established connections are offloaded and
+  don't support updating existing connections. Extract ctinfo from meta
+  action cookie and refuse offloading of new connections in the drivers.
 
-Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
----
- net/netfilter/nf_conntrack_core.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+- Fix flow_table offload fixup algorithm to calculate flow timeout
+  according to current connection state instead of hardcoded
+  "established" value.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 496c4920505b..52b824a60176 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1374,9 +1374,6 @@ static unsigned int early_drop_list(struct net *net,
- 	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
- 		tmp = nf_ct_tuplehash_to_ctrack(h);
- 
--		if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
--			continue;
--
- 		if (nf_ct_is_expired(tmp)) {
- 			nf_ct_gc_expired(tmp);
- 			continue;
-@@ -1446,11 +1443,14 @@ static bool gc_worker_skip_ct(const struct nf_conn *ct)
- static bool gc_worker_can_early_drop(const struct nf_conn *ct)
- {
- 	const struct nf_conntrack_l4proto *l4proto;
-+	u8 protonum = nf_ct_protonum(ct);
- 
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status) && protonum != IPPROTO_UDP)
-+		return false;
- 	if (!test_bit(IPS_ASSURED_BIT, &ct->status))
- 		return true;
- 
--	l4proto = nf_ct_l4proto_find(nf_ct_protonum(ct));
-+	l4proto = nf_ct_l4proto_find(protonum);
- 	if (l4proto->can_early_drop && l4proto->can_early_drop(ct))
- 		return true;
- 
-@@ -1507,7 +1507,8 @@ static void gc_worker(struct work_struct *work)
- 
- 			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
- 				nf_ct_offload_timeout(tmp);
--				continue;
-+				if (!nf_conntrack_max95)
-+					continue;
- 			}
- 
- 			if (expired_count > GC_SCAN_EXPIRED_MAX) {
+- Add new flow_table flow flag that designates bidirectional connections
+  instead of assuming it and hardcoding hardware offload of every flow
+  in both directions.
+
+- Add new flow_table flow "ext_data" field and use it in act_ct to track
+  the ctinfo of offloaded flows instead of assuming that it is always
+  "established".
+
+With all the necessary infrastructure in place modify act_ct to offload
+UDP NEW as unidirectional connection. Pass reply direction traffic to CT
+and promote connection to bidirectional when UDP connection state
+changes to "assured". Rely on refresh mechanism to propagate connection
+state change to supporting drivers.
+
+Note that early drop algorithm that is designed to free up some space in
+connection tracking table when it becomes full (by randomly deleting up
+to 5% of non-established connections) currently ignores connections
+marked as "offloaded". Now, with UDP NEW connections becoming
+"offloaded" it could allow malicious user to perform DoS attack by
+filling the table with non-droppable UDP NEW connections by sending just
+one packet in single direction. To prevent such scenario change early
+drop algorithm to also consider "offloaded" connections for deletion.
+
+Vlad Buslov (7):
+  net: flow_offload: provision conntrack info in ct_metadata
+  netfilter: flowtable: fixup UDP timeout depending on ct state
+  netfilter: flowtable: allow unidirectional rules
+  netfilter: flowtable: save ctinfo in flow_offload
+  net/sched: act_ct: set ctinfo in meta action depending on ct state
+  net/sched: act_ct: offload UDP NEW connections
+  netfilter: nf_conntrack: allow early drop of offloaded UDP conns
+
+ .../ethernet/mellanox/mlx5/core/en/tc_ct.c    |   4 +
+ .../ethernet/netronome/nfp/flower/conntrack.c |  24 +++++
+ include/net/netfilter/nf_flow_table.h         |  14 ++-
+ net/netfilter/nf_conntrack_core.c             |  11 +-
+ net/netfilter/nf_flow_table_core.c            |  40 ++++---
+ net/netfilter/nf_flow_table_inet.c            |   2 +-
+ net/netfilter/nf_flow_table_ip.c              |  17 +--
+ net/netfilter/nf_flow_table_offload.c         |  18 ++--
+ net/sched/act_ct.c                            | 100 ++++++++++++++----
+ 9 files changed, 175 insertions(+), 55 deletions(-)
+
 -- 
 2.38.1
 
