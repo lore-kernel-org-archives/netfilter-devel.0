@@ -2,35 +2,35 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10CB7C25B4E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 18:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9A49C25B4E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Jan 2023 18:17:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233326AbjAXSRT (ORCPT
+        id S230048AbjAXSRf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Jan 2023 13:17:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33658 "EHLO
+        Tue, 24 Jan 2023 13:17:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229486AbjAXSRT (ORCPT
+        with ESMTP id S229956AbjAXSRe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2023 13:17:19 -0500
+        Tue, 24 Jan 2023 13:17:34 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CB7E4B18E;
-        Tue, 24 Jan 2023 10:17:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 122244C6E6;
+        Tue, 24 Jan 2023 10:17:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
         MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
         Content-ID:Content-Description:In-Reply-To:References;
-        bh=sGkPrI9T/JW6jnSg9wDuqsLtaD2yspPjDXYdbyVMsxI=; b=I9HSSIsvH0lz8CbRWWYXLvc/kK
-        Y9c21GvyfnZX+L3AoyuNSUaXneCHLKb2LK72ouvB9RQ+OgyyqPnlKefdVvXWVijwGJzYDf6yaU3aW
-        Bkt6JYHyQZPtWM/D+aSTusl8/nq+XPSUmuc98fPzCJ0DgTX16YkO2Wsu8hktXNp0NLVfY4zV1HDRa
-        aQhyaX+5fU1dSl1mvftGLZCCT7skwfro5k/wxOGgDtXWuze3w0mnfb9RFXoKhHOYtNTe/dAtaAjxi
-        NcdTn+3qQ6svUjemrIOHbdD9K5VCt0eI4XZS7hR5smQS9JeDiwD76Za3vDBTrxxvJkaADJAS+Fpp+
-        AQDormgg==;
+        bh=sGkPrI9T/JW6jnSg9wDuqsLtaD2yspPjDXYdbyVMsxI=; b=4ygpDxXafniLv9bX62broNnGvL
+        5wvEnJ1kr5M2yB91imIHIzMLAncnNPOXpt9+ASgeV2ctyFcArNn9+6TmG1v4i8ZRiYyZHWGPe7eWo
+        oqkf8K8EMsIiYGvgh9SiVh+R8TdUSaszLQ6olS17PTcMDg03jJNy4+i+2qMne8vvhOsvUkVmmTG4H
+        AGEdYNlxdFiBckGnfb5HKvvnvKCRUwwOvGw47uzq3/STOozfro18L5y1HaZ3BOUNTCjWZBxIu2SP6
+        Fcxr+VGw/6NFkKPU0JtTKtSoIvxrWvm8rCHC9VZljXG2SXi+RXVbkJkstvGN/HmeBkGnZtC4IydaZ
+        xmzR6szQ==;
 Received: from [2601:1c2:d80:3110::9307] (helo=bombadil.infradead.org)
         by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pKNr1-004vgD-81; Tue, 24 Jan 2023 18:17:07 +0000
+        id 1pKNrJ-004vl4-BA; Tue, 24 Jan 2023 18:17:25 +0000
 From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
+To:     netdev@vger.kernel.org
 Cc:     Randy Dunlap <rdunlap@infradead.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -40,8 +40,8 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         Cong Wang <xiyou.wangcong@gmail.com>,
         Jiri Pirko <jiri@resnulli.us>
 Subject: [PATCH net-next] net: Kconfig: fix spellos
-Date:   Tue, 24 Jan 2023 10:17:06 -0800
-Message-Id: <20230124181706.16825-1-rdunlap@infradead.org>
+Date:   Tue, 24 Jan 2023 10:17:24 -0800
+Message-Id: <20230124181724.18166-1-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
