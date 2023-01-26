@@ -2,70 +2,86 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FE43C54E94
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Jan 2023 01:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB94C54EED
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Jan 2023 07:20:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229554AbjAZBfm (ORCPT
+        id S229915AbjAZHUV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Jan 2023 20:35:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46022 "EHLO
+        Thu, 26 Jan 2023 02:20:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236496AbjAZBfh (ORCPT
+        with ESMTP id S229674AbjAZHUV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Jan 2023 20:35:37 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F0334ED19
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Jan 2023 17:35:29 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pKrAk-0002oj-Bo; Thu, 26 Jan 2023 02:35:26 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk"
-Date:   Thu, 26 Jan 2023 02:35:21 +0100
-Message-Id: <20230126013521.21836-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.1
+        Thu, 26 Jan 2023 02:20:21 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D4515E52D;
+        Wed, 25 Jan 2023 23:20:20 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E4180B81CFA;
+        Thu, 26 Jan 2023 07:20:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 84373C4339B;
+        Thu, 26 Jan 2023 07:20:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1674717617;
+        bh=XtWLPD0DoO/ijK5giuEfVejG/nmFUlEaMGVL/auQKdI=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=PN4fXHmoZX8HytAr+eP5u1oaTHi+PPaWX6p9+kSTeJGsiZAcL95lmjA0aGHprjHiU
+         f1u/TdP4V22vm0o/7M1C5mFHa368z8uDIrM7TGhzHzzTsfrBHLmrkGWqgkjokJude1
+         rxsJIQaf5IspQOWf9GHh8altTPPSxFB1QrB6UcCZ0+Q3QTtlmMiohPX7RziouZi+rU
+         afV0DEJnkyKkf8NvrApPzBASYi+fh/ennxyZz2sIxUG6ltmb+rB9pqV2iorJd85OrA
+         LtQODbTXw/Pcb+02dFriZuk8M6OSUHNJ3CcpWpyxNqjmkJH5oLi0erbAjwOuW4HLXq
+         L7HFx3iAwGvHg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 67764E52508;
+        Thu, 26 Jan 2023 07:20:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next] net: Kconfig: fix spellos
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167471761741.28103.11342669095502810718.git-patchwork-notify@kernel.org>
+Date:   Thu, 26 Jan 2023 07:20:17 +0000
+References: <20230124181724.18166-1-rdunlap@infradead.org>
+In-Reply-To: <20230124181724.18166-1-rdunlap@infradead.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     netdev@vger.kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
+        jiri@resnulli.us
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There is no bug.  If sch->length == 0, this would result in an infinite
-loop, but first caller, do_basic_checks(), errors out in this case.
+Hello:
 
-After this change, packets with bogus zero-length chunks are no longer
-detected as invalid, so revert & add comment wrt. 0 length check.
+This patch was applied to netdev/net-next.git (master)
+by Jakub Kicinski <kuba@kernel.org>:
 
-Fixes: 98ee00774525 ("netfilter: conntrack: fix bug in for_each_sctp_chunk")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- It might be a good idea to merge do_basic_checks and sctp_error
- to avoid future patches adding for_each_sctp_chunk() earlier in the
- pipeline.
+On Tue, 24 Jan 2023 10:17:24 -0800 you wrote:
+> Fix spelling in net/ Kconfig files.
+> (reported by codespell)
+> 
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+> Cc: Florian Westphal <fw@strlen.de>
+> Cc: netfilter-devel@vger.kernel.org
+> Cc: coreteam@netfilter.org
+> Cc: Jamal Hadi Salim <jhs@mojatatu.com>
+> Cc: Cong Wang <xiyou.wangcong@gmail.com>
+> Cc: Jiri Pirko <jiri@resnulli.us>
+> 
+> [...]
 
- net/netfilter/nf_conntrack_proto_sctp.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Here is the summary with links:
+  - [net-next] net: Kconfig: fix spellos
+    https://git.kernel.org/netdev/net-next/c/6a7a2c18a9de
 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 945dd40e7077..2f4459478750 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -142,10 +142,11 @@ static void sctp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
- }
- #endif
- 
-+/* do_basic_checks ensures sch->length > 0, do not use before */
- #define for_each_sctp_chunk(skb, sch, _sch, offset, dataoff, count)	\
- for ((offset) = (dataoff) + sizeof(struct sctphdr), (count) = 0;	\
--	((sch) = skb_header_pointer((skb), (offset), sizeof(_sch), &(_sch))) &&	\
--	(sch)->length;	\
-+	(offset) < (skb)->len &&					\
-+	((sch) = skb_header_pointer((skb), (offset), sizeof(_sch), &(_sch)));	\
- 	(offset) += (ntohs((sch)->length) + 3) & ~3, (count)++)
- 
- /* Some validity checks to make sure the chunks are fine */
+You are awesome, thank you!
 -- 
-2.39.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
