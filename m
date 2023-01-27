@@ -2,148 +2,161 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D43D5C61D97
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Jan 2023 18:22:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1589DC38142
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Jan 2023 18:39:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235011AbjA0SWH (ORCPT
+        id S234226AbjA0SjX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Jan 2023 13:22:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56622 "EHLO
+        Fri, 27 Jan 2023 13:39:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234480AbjA0SWG (ORCPT
+        with ESMTP id S235051AbjA0SjW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Jan 2023 13:22:06 -0500
-Received: from smtp-42ae.mail.infomaniak.ch (smtp-42ae.mail.infomaniak.ch [84.16.66.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7B769767
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Jan 2023 10:22:04 -0800 (PST)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4P3Qs70cMgzMrKjv;
-        Fri, 27 Jan 2023 19:22:03 +0100 (CET)
-Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4P3Qs62JxwzMqRTG;
-        Fri, 27 Jan 2023 19:22:02 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1674843722;
-        bh=mbU1ZCTAJKgGA0HVCsd8RhnkbptpgGkUzNoNdAFWErk=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=S5quP2KXbpiMOFnxYVBjWYQ3y7WKU49VNSVtVbJ2idyrXmNYGlPRwIZ051yNDaf2B
-         Kg/5ULPbNpe5sQS3lfLlqs9e6Wov5ahf54vauMXw3EmuuCVdfPiunob9RTfuPgw7ls
-         tOqs1WluKkBXXz8wk5A66twKt4NZVKiHaLSmNXoM=
-Message-ID: <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
-Date:   Fri, 27 Jan 2023 19:22:01 +0100
+        Fri, 27 Jan 2023 13:39:22 -0500
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2047.outbound.protection.outlook.com [40.107.237.47])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14F101448F;
+        Fri, 27 Jan 2023 10:39:12 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=CVZtmerk0HP7SgTYTtzVVldr2ugOHXKkO8xW7kXz478xNzHPJmK//tLZGsui4bQnNKqCJALJcHLrP+LMeBGiYQtPrTlyXWne9W0qSPwh8EKlKQdZgOss/LyurD8zolSvOzfceg/3kpgJ0Z8Zn9ANDgzPpuODGQefYQy48b/CqMLv71uPNYmJm0MEgMNRSzCLUVJmEZ9WWkXGsduOpa8OIGQn0gCLo9u21flfKhyhIbyT1DdwU0Bekqf5QLrqKwgI63OYtNdSxcztJWV2TdBdTYtRga2E9Mx9QS16mj6gHk3chhRSxNU5w1ii9Hn7J9pl3NYhiSYO/bA/3at43DelrA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=I+2WBzns9J30VcVXoKQxCv+O25C4UexQOgEBymUbmx8=;
+ b=KxhSRZ7ComSdEOJxYVI9Az5MItklImcHDibIYh40qzhtL1wFf6eeIc3gPxf8o/j6OIxa7wZtp+g2HDSje6iGxHyMboC4w9q0MJVTbgghjMN/Tv9MCIAuL5HxMK/D4WQKil0mlPmiTsdaLibRsHez+ANKn6ZIQavEBfntjwQlAmTJVjCiyO8R9NZiLldhyVHXPxxsEoieAAvuI6Zy2Wbu0HG5Gy8RozjtscrrQ0spcCzUCkysoFD5zhyJJSXUdUZUcUJmhjWQizmt5XLSzjxuzkR9V2iDxypM1NHgTYLqePjM17z52cbec3ai/41NTf2KBxFeWkYvtBD874EJ3grOCw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=I+2WBzns9J30VcVXoKQxCv+O25C4UexQOgEBymUbmx8=;
+ b=aVjiLFbL7jWBvzUMpL8pSHOMnlfiHW/rcAuFmi1OJG/S1RuFrOjL3B8OUnQErSPbGk9103xVkPblgg1+R2QxBuAmp27Cm3nvKJZ3vhzbXJWsoQbo20PXKZeIMBQIBfRTvS2kQ/4raDQpjiNx72ZI6FMrsCpPJDPf31QW7kQOVB4ROtqhZhgwr+5QZIwV10PNNkP9S1AQLIvCYySwOZXFINef3CTR5HktGD64YsoiizOuOdJCVBon2LF6Mf3CzJTliJL5jJx+49tpDzis5rzM8uep0btnBxLNY6fJ1h/mGpej6OkvFdKTf7te8txkXdPNx2wps4dBTfZEDS3U7NgwuA==
+Received: from BN0PR02CA0042.namprd02.prod.outlook.com (2603:10b6:408:e5::17)
+ by SJ0PR12MB5485.namprd12.prod.outlook.com (2603:10b6:a03:305::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6043.22; Fri, 27 Jan
+ 2023 18:39:10 +0000
+Received: from BN8NAM11FT044.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:e5:cafe::9e) by BN0PR02CA0042.outlook.office365.com
+ (2603:10b6:408:e5::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6043.25 via Frontend
+ Transport; Fri, 27 Jan 2023 18:39:09 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BN8NAM11FT044.mail.protection.outlook.com (10.13.177.219) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6043.25 via Frontend Transport; Fri, 27 Jan 2023 18:39:09 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Fri, 27 Jan
+ 2023 10:38:58 -0800
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Fri, 27 Jan
+ 2023 10:38:58 -0800
+Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com (10.129.68.7)
+ with Microsoft SMTP Server id 15.2.986.36 via Frontend Transport; Fri, 27 Jan
+ 2023 10:38:55 -0800
+From:   Vlad Buslov <vladbu@nvidia.com>
+To:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
+        <pablo@netfilter.org>
+CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <jhs@mojatatu.com>, <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>,
+        <ozsh@nvidia.com>, <marcelo.leitner@gmail.com>,
+        <simon.horman@corigine.com>, Vlad Buslov <vladbu@nvidia.com>
+Subject: [PATCH net-next v5 0/7] Allow offloading of UDP NEW connections via act_ct
+Date:   Fri, 27 Jan 2023 19:38:38 +0100
+Message-ID: <20230127183845.597861-1-vladbu@nvidia.com>
+X-Mailer: git-send-email 2.38.1
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
- <Y8xwLvDbhKPG8JqY@galopp> <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN8NAM11FT044:EE_|SJ0PR12MB5485:EE_
+X-MS-Office365-Filtering-Correlation-Id: d91037d1-a76f-4515-f02f-08db0095c720
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Yo/xj0UucvMRA+iQqQaOIcCMW6p9AFRtd+Rh9MQ3BX5/ioDYzx3eAvPvqAhpGlJ+oHMHVB6dP70rKI1uY/yYGFyK49Z1zqWB/CfwipARuzD/VRZCWSlT+HPxmULkk+ixpaP3C8rudsgzXAa0AZy0LpzrOoNnnE5QLV3Zi9Wn7w9hhYNI7maHWZ+cIdm4ykBqj/xz6jlTBk1bGgqtoVXhvucPURof7EC+sTkzEsicyljo5LORZUgKxlQDNI1yaVeexr8h2SugW2R2vurannKsEUOmpjTf8CKiZrfM0qvR+w28/XLwnSiRjb3XUP/WY3YG0CfY0ePo/VCkIVcB7aFLiRLaZmlVRMDFK5SMsuJXphG1klZGFiG+4a8M8U7eH0BxOXez09A66eZhXh/v5+zqZLasvE1ih5QBNcThcq7EMt7VOicRtyF++Oy4U7CYllp3pKeRJ4YRdhiQ+fRXjX/zIhBvnJsZfGQknQDkF5HMU49npJ+6Epf3T+/OqDjMM254VpSquD11n/eF57svh3u/D+w+7VyMU0Igy5aVo/fhF/dCQ2L+TY1OxbjCsZ/urpopjLd/eCluuLnUTTrpDkIsmbh0ukxfqPjlsI2Ev5tu7MdDfjZh1F8lP8nLFCSI/YEKq49mzZ4q7fOzi5vvqcv9GDqxiLQ34r/1glMJ42JxRhwZ2OnTnf7ALg5/Hgh4QBaBGhosbxtaISq3ZXEWS4mShg==
+X-Forefront-Antispam-Report: CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230025)(4636009)(376002)(39860400002)(136003)(396003)(346002)(451199018)(36840700001)(46966006)(40470700004)(356005)(70206006)(40460700003)(40480700001)(83380400001)(6666004)(107886003)(2616005)(26005)(336012)(186003)(316002)(478600001)(70586007)(8676002)(36860700001)(7696005)(7636003)(4326008)(54906003)(82740400003)(86362001)(1076003)(110136005)(47076005)(426003)(82310400005)(2906002)(5660300002)(7416002)(36756003)(41300700001)(8936002)(2101003);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Jan 2023 18:39:09.2134
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: d91037d1-a76f-4515-f02f-08db0095c720
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT044.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB5485
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Currently only bidirectional established connections can be offloaded
+via act_ct. Such approach allows to hardcode a lot of assumptions into
+act_ct, flow_table and flow_offload intermediate layer codes. In order
+to enabled offloading of unidirectional UDP NEW connections start with
+incrementally changing the following assumptions:
 
-On 23/01/2023 10:38, Konstantin Meskhidze (A) wrote:
-> 
-> 
-> 1/22/2023 2:07 AM, Günther Noack пишет:
+- Drivers assume that only established connections are offloaded and
+  don't support updating existing connections. Extract ctinfo from meta
+  action cookie and refuse offloading of new connections in the drivers.
 
-[...]
+- Fix flow_table offload fixup algorithm to calculate flow timeout
+  according to current connection state instead of hardcoded
+  "established" value.
 
->>> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
->>>   ABI version.  In this example, this is not required because all of the requested
->>>   ``allowed_access`` rights are already available in ABI 1.
->>>   
->>> -We now have a ruleset with one rule allowing read access to ``/usr`` while
->>> -denying all other handled accesses for the filesystem.  The next step is to
->>> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
->>> -binary).
->>> +For network access-control, we can add a set of rules that allow to use a port
->>> +number for a specific action. All ports values must be defined in network byte
->>> +order.
->>
->> What is the point of asking user space to convert this to network byte
->> order? It seems to me that the kernel would be able to convert it to
->> network byte order very easily internally and in a single place -- why
->> ask all of the users to deal with that complexity? Am I overlooking
->> something?
-> 
->    I had a discussion about this issue with Mickaёl.
->    Please check these threads:
->    1.
-> https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
->    2.
-> https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
+- Add new flow_table flow flag that designates bidirectional connections
+  instead of assuming it and hardcoding hardware offload of every flow
+  in both directions.
 
-I'm definitely not sure if this is the right solution, or if there is 
-one. The rationale is to make it close to the current (POSIX) API. We 
-didn't get many opinion about that but I'd really like to have a 
-discussion about port endianness for this Landlock API.
+- Add new flow_table flow "ext_data" field and use it in act_ct to track
+  the ctinfo of offloaded flows instead of assuming that it is always
+  "established".
 
-I looked at some code (e.g. see [1]) and it seems that using htons() 
-might make application patching more complex after all. What do you 
-think? Is there some network (syscall) API that don't use this convention?
+With all the necessary infrastructure in place modify act_ct to offload
+UDP NEW as unidirectional connection. Pass reply direction traffic to CT
+and promote connection to bidirectional when UDP connection state
+changes to "assured". Rely on refresh mechanism to propagate connection
+state change to supporting drivers.
 
-[1] https://github.com/landlock-lsm/tuto-lighttpd
+Note that early drop algorithm that is designed to free up some space in
+connection tracking table when it becomes full (by randomly deleting up
+to 5% of non-established connections) currently ignores connections
+marked as "offloaded". Now, with UDP NEW connections becoming
+"offloaded" it could allow malicious user to perform DoS attack by
+filling the table with non-droppable UDP NEW connections by sending just
+one packet in single direction. To prevent such scenario change early
+drop algorithm to also consider "offloaded" connections for deletion.
 
->>
->>> +
->>> +.. code-block:: c
->>> +
->>> +    struct landlock_net_service_attr net_service = {
->>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->>> +        .port = htons(8080),
->>> +    };
->>
->> This is a more high-level comment:
->>
->> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
->> how do you envision this struct to evolve if other protocols need to
->> be supported in the future?
-> 
->     When TCP restrictions land into Linux, we need to think about UDP
-> support. Then other protocols will be on the road. Anyway you are right
-> this struct will be evolving in long term, but I don't have a particular
-> envision now. Thanks for the question - we need to think about it.
->>
->> Should this struct and the associated constants have "TCP" in its
->> name, and other protocols use a separate struct in the future?
+Vlad Buslov (7):
+  net: flow_offload: provision conntrack info in ct_metadata
+  netfilter: flowtable: fixup UDP timeout depending on ct state
+  netfilter: flowtable: allow unidirectional rules
+  netfilter: flowtable: save ctinfo in flow_offload
+  net/sched: act_ct: set ctinfo in meta action depending on ct state
+  net/sched: act_ct: offload UDP NEW connections
+  netfilter: nf_conntrack: allow early drop of offloaded UDP conns
 
-Other protocols such as AF_VSOCK uses a 32-bit port. We could use a 
-32-bits port field or ever a 64-bit one. The later could make more sense 
-because each field would eventually be aligned on 64-bit. Picking a 
-16-bit value was to help developers (and compilers/linters) with the 
-"correct" type (for TCP).
+ .../ethernet/mellanox/mlx5/core/en/tc_ct.c    |  4 +
+ .../ethernet/netronome/nfp/flower/conntrack.c | 24 +++++
+ include/net/netfilter/nf_flow_table.h         | 14 ++-
+ net/netfilter/nf_conntrack_core.c             | 11 ++-
+ net/netfilter/nf_flow_table_core.c            | 40 +++++---
+ net/netfilter/nf_flow_table_inet.c            |  2 +-
+ net/netfilter/nf_flow_table_ip.c              | 17 ++--
+ net/netfilter/nf_flow_table_offload.c         | 18 ++--
+ net/sched/act_ct.c                            | 99 +++++++++++++++----
+ 9 files changed, 174 insertions(+), 55 deletions(-)
 
-If we think about protocols other than TCP and UDP (e.g. AF_VSOCK), it 
-could make sense to have a dedicated attr struct specifying other 
-properties (e.g. CID). Anyway, the API is flexible but it would be nice 
-to not mess with it too much. What do you think?
+-- 
+2.38.1
 
-
->>
->>> +
->>> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->>> +                            &net_service, 0);
->>> +
->>> +The next step is to restrict the current thread from gaining more privileges
->>> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
->>            ^^^^^^
->>            "through" a SUID binary? "thanks to" sounds like it's desired
->>            to do that, while we're actually trying to prevent it here?
-> 
->     This is Mickaёl's part. Let's ask his opinion here.
-> 
->     Mickaёl, any thoughts?
-
-Yep, "through" looks better.
