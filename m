@@ -2,21 +2,21 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD954C27C76
-	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Jan 2023 15:28:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7892C27C76
+	for <netfilter-devel@archiver.kernel.org>; Sat, 28 Jan 2023 15:51:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231376AbjA1P2D (ORCPT
+        id S229867AbjA1PvY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 28 Jan 2023 10:28:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52294 "EHLO
+        Sat, 28 Jan 2023 10:51:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230407AbjA1P2D (ORCPT
+        with ESMTP id S229737AbjA1PvX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Jan 2023 10:28:03 -0500
+        Sat, 28 Jan 2023 10:51:23 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B4FF613DF4;
-        Sat, 28 Jan 2023 07:28:01 -0800 (PST)
-Date:   Sat, 28 Jan 2023 16:27:55 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C163C26862;
+        Sat, 28 Jan 2023 07:51:22 -0800 (PST)
+Date:   Sat, 28 Jan 2023 16:51:17 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Vlad Buslov <vladbu@nvidia.com>
 Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
@@ -24,34 +24,60 @@ Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
         jhs@mojatatu.com, xiyou.wangcong@gmail.com, jiri@resnulli.us,
         ozsh@nvidia.com, marcelo.leitner@gmail.com,
         simon.horman@corigine.com
-Subject: Re: [PATCH net-next v5 2/7] netfilter: flowtable: fixup UDP timeout
- depending on ct state
-Message-ID: <Y9U++4pospqBZugS@salvia>
+Subject: Re: [PATCH net-next v5 0/7] Allow offloading of UDP NEW connections
+ via act_ct
+Message-ID: <Y9VEdYnSLH8YKTZA@salvia>
 References: <20230127183845.597861-1-vladbu@nvidia.com>
- <20230127183845.597861-3-vladbu@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230127183845.597861-3-vladbu@nvidia.com>
+In-Reply-To: <20230127183845.597861-1-vladbu@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
-
-On Fri, Jan 27, 2023 at 07:38:40PM +0100, Vlad Buslov wrote:
-> Currently flow_offload_fixup_ct() function assumes that only replied UDP
-> connections can be offloaded and hardcodes UDP_CT_REPLIED timeout value.
-> Allow users to modify timeout calculation by implementing new flowtable
-> type callback 'timeout' and use the existing algorithm otherwise.
+On Fri, Jan 27, 2023 at 07:38:38PM +0100, Vlad Buslov wrote:
+> Currently only bidirectional established connections can be offloaded
+> via act_ct. Such approach allows to hardcode a lot of assumptions into
+> act_ct, flow_table and flow_offload intermediate layer codes. In order
+> to enabled offloading of unidirectional UDP NEW connections start with
+> incrementally changing the following assumptions:
 > 
-> To enable UDP NEW connection offload in following patches implement
-> 'timeout' callback in flowtable_ct of act_ct which extracts the actual
-> connections state from ct->status and set the timeout according to it.
+> - Drivers assume that only established connections are offloaded and
+>   don't support updating existing connections. Extract ctinfo from meta
+>   action cookie and refuse offloading of new connections in the drivers.
+> 
+> - Fix flow_table offload fixup algorithm to calculate flow timeout
+>   according to current connection state instead of hardcoded
+>   "established" value.
+> 
+> - Add new flow_table flow flag that designates bidirectional connections
+>   instead of assuming it and hardcoding hardware offload of every flow
+>   in both directions.
+> 
+> - Add new flow_table flow "ext_data" field and use it in act_ct to track
+>   the ctinfo of offloaded flows instead of assuming that it is always
+>   "established".
+> 
+> With all the necessary infrastructure in place modify act_ct to offload
+> UDP NEW as unidirectional connection. Pass reply direction traffic to CT
+> and promote connection to bidirectional when UDP connection state
+> changes to "assured". Rely on refresh mechanism to propagate connection
+> state change to supporting drivers.
+> 
+> Note that early drop algorithm that is designed to free up some space in
+> connection tracking table when it becomes full (by randomly deleting up
+> to 5% of non-established connections) currently ignores connections
+> marked as "offloaded". Now, with UDP NEW connections becoming
+> "offloaded" it could allow malicious user to perform DoS attack by
+> filling the table with non-droppable UDP NEW connections by sending just
+> one packet in single direction. To prevent such scenario change early
+> drop algorithm to also consider "offloaded" connections for deletion.
 
-I found a way to fix the netfilter flowtable after your original v3
-update.
+If the two changes I propose are doable, then I am OK with this.
 
-Could you use your original patch in v3 for this fixup?
-
-Thanks.
+I would really like to explore my proposal to turn the workqueue into
+a "scanner" that iterates over the entries searching for flows that
+need to be offloaded (or updated to bidirectional, like in this new
+case). I think it is not too far from what there is in the flowtable
+codebase.
