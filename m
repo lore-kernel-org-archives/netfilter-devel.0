@@ -2,134 +2,121 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72ECBC61D97
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Jan 2023 17:39:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC8FC54EAA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Jan 2023 18:01:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235800AbjA3Rj1 (ORCPT
+        id S230464AbjA3SBW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Jan 2023 12:39:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55666 "EHLO
+        Mon, 30 Jan 2023 13:01:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234742AbjA3Rj0 (ORCPT
+        with ESMTP id S237237AbjA3SBV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Jan 2023 12:39:26 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2756559F;
-        Mon, 30 Jan 2023 09:38:46 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7FD36611D5;
-        Mon, 30 Jan 2023 17:38:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0834C433EF;
-        Mon, 30 Jan 2023 17:38:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675100287;
-        bh=17+FeIvbkAM3fJGeEcNMlt9H04ynimiJKF2gLfk/wlM=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=VvSUgdgwvmVuEH3dqC7eSDLALusmZWaq75CkoqnbxWEGxw74Mmr81HJE4HyxCTjXf
-         foXDk7EUbOoxuo2TTlk2SRt9nNPJAdt+o4EZBLNnShQrfQ1/fJZRSx8HqC6eGwrJY9
-         U3y6P3m/L7gWkNVggMwT/5paPKJdrETFJhwfzC8Pibb3VrBjCsuacJCbSxKamNCY2+
-         3/jyJjEuBbB9GOdCxlZtJcIedzjtV7FiMagnbiJsxuSMEIOVQ8f4Mw4pWVO2olweh8
-         18DqhFRFXr8nvXPtO3De4yCiSHGhF9EghqEzqkyTqT9lzI3BS4cvAJjn++uB8iMEBN
-         T79bjbA9bhw+A==
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id B2F329726F8; Mon, 30 Jan 2023 18:38:03 +0100 (CET)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
-To:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+        Mon, 30 Jan 2023 13:01:21 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DC051EFF3;
+        Mon, 30 Jan 2023 10:01:17 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pMYSx-0004qr-TH; Mon, 30 Jan 2023 19:01:15 +0100
+Date:   Mon, 30 Jan 2023 19:01:15 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
 Subject: Re: [RFC] bpf: add bpf_link support for BPF_NETFILTER programs
-In-Reply-To: <20230130150432.24924-1-fw@strlen.de>
+Message-ID: <20230130180115.GB12902@breakpoint.cc>
 References: <20230130150432.24924-1-fw@strlen.de>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Mon, 30 Jan 2023 18:38:03 +0100
-Message-ID: <87zg9zx6ro.fsf@toke.dk>
+ <87zg9zx6ro.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <87zg9zx6ro.fsf@toke.dk>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> writes:
+Toke Høiland-Jørgensen <toke@kernel.org> wrote:
+> > Is BPF_LINK the right place?  Hook gets removed automatically if the calling program
+> > exits, afaict this is intended.
+> 
+> Yes, this is indeed intended for bpf_link. This plays well with
+> applications that use the API and stick around (because things get
+> cleaned up after them automatically even if they crash, say), but it
+> doesn't work so well for programs that don't (which, notably, includes
+> command line utilities like 'nft').
 
-> Doesn't apply, doesn't work -- there is no BPF_NETFILTER program type.
->
-> Sketches the uapi.  Example usage:
->
-> 	union bpf_attr attr = { };
->
-> 	attr.link_create.prog_fd = progfd;
-> 	attr.link_create.attach_type = BPF_NETFILTER;
-> 	attr.link_create.netfilter.pf = PF_INET;
-> 	attr.link_create.netfilter.hooknum = NF_INET_LOCAL_IN;
-> 	attr.link_create.netfilter.priority = -128;
->
-> 	err = bpf(BPF_LINK_CREATE, &attr, sizeof(attr));
->
-> ... this would attach progfd to ipv4:input hook.
->
-> Is BPF_LINK the right place?  Hook gets removed automatically if the calling program
-> exits, afaict this is intended.
+Right, but I did not want to create a dependency on nfnetlink or
+nftables netlink right from the start.
 
-Yes, this is indeed intended for bpf_link. This plays well with
-applications that use the API and stick around (because things get
-cleaned up after them automatically even if they crash, say), but it
-doesn't work so well for programs that don't (which, notably, includes
-command line utilities like 'nft').
+> For XDP and TC users can choose between bpf_link and netlink for
+> attachment and get one of the two semantics (goes away on close or stays
+> put). Not sure if it would make sense to do the same for nftables?
 
-This is why I personally never really liked those semantics for
-networking hooks: If I run a utility that attaches an XDP program I
-generally expect that to stick around until the netdev disappears unless
-something else explicitly removes it. (Yes you can pin a bpf_link, but
-then you have the opposite problem: if the netdev disappears some entity
-has to remove the pinned link, or you'll have a zombie program present
-in the kernel until the next reboot).
+For nftables I suspect that, if nft can emit bpf, it would make sense to
+pass the bpf descriptor together with nftables netlink, i.e. along with
+the normal netlink data.
 
-For XDP and TC users can choose between bpf_link and netlink for
-attachment and get one of the two semantics (goes away on close or stays
-put). Not sure if it would make sense to do the same for nftables?
+nftables kernel side would then know to use the bpf prog for the
+datapath instead of the interpreter and could even fallback to
+interpreter.
 
-> Should a program running in init_netns be allowed to attach hooks in other netns too?
->
-> I could do what BPF_LINK_TYPE_NETNS is doing and fetch net via
-> get_net_ns_by_fd(attr->link_create.target_fd);
+But for the raw hook use case that Alexei and Daniel preferred (cf.
+initial proposal to call bpf progs from nf_tables interpreter) I think
+that there should be no nftables dependency.
 
-We don't allow that for any other type of BPF program; the expectation
-is that the entity doing the attachment will move to the right ns first.
-Is there any particular use case for doing something different for
-nftables?
+I could add a new nfnetlink subtype for nf-bpf if bpf_link is not
+appropriate as an alternative.
 
-> For the actual BPF_NETFILTER program type I plan to follow what the bpf
-> flow dissector is doing, i.e. pretend prototype is
->
-> func(struct __sk_buff *skb)
->
-> but pass a custom program specific context struct on kernel side.
-> Verifier will rewrite accesses as needed.
+> > Should a program running in init_netns be allowed to attach hooks in other netns too?
+> >
+> > I could do what BPF_LINK_TYPE_NETNS is doing and fetch net via
+> > get_net_ns_by_fd(attr->link_create.target_fd);
+> 
+> We don't allow that for any other type of BPF program; the expectation
+> is that the entity doing the attachment will move to the right ns first.
+> Is there any particular use case for doing something different for
+> nftables?
 
-This sounds reasonable, and also promotes code reuse between program
-types (say, you can write some BPF code to parse a packet and reuse it
-between the flow dissector, TC and netfilter).
+Nope, not at all.  I was just curious.  So no special handling for
+init_netns needed, good.
 
-> Things like nf_hook_state->in (net_device) could then be exposed via
-> kfuncs.
+> > For the actual BPF_NETFILTER program type I plan to follow what the bpf
+> > flow dissector is doing, i.e. pretend prototype is
+> >
+> > func(struct __sk_buff *skb)
+> >
+> > but pass a custom program specific context struct on kernel side.
+> > Verifier will rewrite accesses as needed.
+> 
+> This sounds reasonable, and also promotes code reuse between program
+> types (say, you can write some BPF code to parse a packet and reuse it
+> between the flow dissector, TC and netfilter).
 
-Right, so like:
+Ok, thanks.
 
-state = bpf_nf_get_hook_state(ctx); ?
+> > Things like nf_hook_state->in (net_device) could then be exposed via
+> > kfuncs.
+> 
+> Right, so like:
+> 
+> state = bpf_nf_get_hook_state(ctx); ?
+> 
+> Sounds OK to me.
 
-Sounds OK to me.
+Yes, something like that.  Downside is that the nf_hook_state struct
+is no longer bound by any abi contract, but as I understood it thats
+fine.
 
-> nf_hook_run_bpf() (c-function that creates the program context and
-> calls the real bpf prog) would be "updated" to use the bpf dispatcher to
-> avoid the indirect call overhead.
+> > nf_hook_run_bpf() (c-function that creates the program context and
+> > calls the real bpf prog) would be "updated" to use the bpf dispatcher to
+> > avoid the indirect call overhead.
+> 
+> What 'bpf dispatcher' are you referring to here? We have way too many
+> things with that name :P
 
-What 'bpf dispatcher' are you referring to here? We have way too many
-things with that name :P
+I meant 'DEFINE_BPF_DISPATCHER(nf_user_progs);'
 
-> Does that seem ok to you?  I'd ignore the bpf dispatcher for now and
-> would work on the needed verifier changes first.
-
-Getting something that works first seems reasonable, sure! :)
-
--Toke
+Thanks.
