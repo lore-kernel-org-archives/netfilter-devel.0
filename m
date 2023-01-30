@@ -2,101 +2,157 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FEB3C54EED
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Jan 2023 11:58:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE25CC61DA4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Jan 2023 12:26:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236563AbjA3L6E (ORCPT
+        id S235983AbjA3M0Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Jan 2023 06:58:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54754 "EHLO
+        Mon, 30 Jan 2023 07:26:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236441AbjA3L6A (ORCPT
+        with ESMTP id S232776AbjA3M0Z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Jan 2023 06:58:00 -0500
-Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5A132D142;
-        Mon, 30 Jan 2023 03:57:29 -0800 (PST)
-Received: by mail-ej1-x632.google.com with SMTP id hx15so11436090ejc.11;
-        Mon, 30 Jan 2023 03:57:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=to:cc:date:message-id:subject:mime-version
-         :content-transfer-encoding:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=0N5sOtPH7xyPyyPi0ciu98Glo9H4n1MGA966NUG3zlw=;
-        b=YvSYvPnI1W1n5/7U85hGsMVA8NNgh42R9jjPGBZ+NplITgmmAvl09iUZdqCw1dVhnO
-         LGCacDVWtWzy0FSA/9urNGCmKkSozuLF42/I6nNOam71vguAPaxNJW4iapC4wCSCJzum
-         55krael8U+MpePFFryw8LW8bU75tbNNFACyZcOOrEn/h5Xw+rOGtWnurFMPu2F09IsAx
-         jkD33uGVJZqOm+reGGYmOik9U8XrKyM3fAUKabsO1ej/ZAafzGWftCvBvZqh/NaCxOoD
-         xDXd6SCqc3Et/3R7nBh5E+zbpwZMZKOFpTRvfOM5Fcc5tJ0zcPTMb3mN9DV+dZwdZrvL
-         8JkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:cc:date:message-id:subject:mime-version
-         :content-transfer-encoding:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0N5sOtPH7xyPyyPi0ciu98Glo9H4n1MGA966NUG3zlw=;
-        b=Rj4WsePbHwQIrCbQN7gWSnz4BCfujI+bHk7zbFgMkJYittlaF8IdUmNoyz8NEHeWA9
-         X8IVovJkJM0eftn0T8ohtFBsuoK7TXA87HsFr+yKa6J8dr9mLLzte8zal60lBXmIqdCP
-         j2DvfWqkEgnDoRmI226dhic1AGr2vxt+T0Ml0o04V6kh4mpn/vGpoB1ItSJzJ/3REFd1
-         Xvp0gfi6IJSgomw/QbRIe5sdb4PxE3XIT+A9Qs6GmUN93q+Gk/NcNbvknmzdGUyoGnwR
-         3Mcz80nk7q1RJrUyYRcX9u3l4RF9cjZoinXjynNtyix4gASp0NbLNtN+c8ZVErlIeKtV
-         BK3g==
-X-Gm-Message-State: AO0yUKUVF6yWkED7HYlEX2PhXgmxcbN6aVfcS558yruF3BeebYR1dOaf
-        JRcHYUoEvd7P7RKsKrOUo9WUCR9g4gk=
-X-Google-Smtp-Source: AK7set9sCp7yJJ+9ZnkT9U7hNePHtbSycg8mbaAKXUMr53hLmxa64raD48JYc4c0hDg/O0MZPmEutg==
-X-Received: by 2002:a17:907:1c9c:b0:880:5ab7:cb76 with SMTP id nb28-20020a1709071c9c00b008805ab7cb76mr11375103ejc.33.1675079848389;
-        Mon, 30 Jan 2023 03:57:28 -0800 (PST)
-Received: from smtpclient.apple ([178.254.237.20])
-        by smtp.gmail.com with ESMTPSA id o5-20020a17090637c500b007bff9fb211fsm6845879ejc.57.2023.01.30.03.57.27
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 30 Jan 2023 03:57:27 -0800 (PST)
-From:   Martin Zaharinov <micron10@gmail.com>
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Mac OS X Mail 14.0 \(3654.120.0.1.13\))
-Subject: allow user to offload tc action to net device : Question
-Message-Id: <3F8BCB2E-D60B-49FF-8826-BD4B34E90898@gmail.com>
-Date:   Mon, 30 Jan 2023 13:57:26 +0200
-Cc:     Jakub Kicinski <kuba@kernel.org>, netdev <netdev@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, pablo@netfilter.org,
-        netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-To:     simon.horman@corigine.com
-X-Mailer: Apple Mail (2.3654.120.0.1.13)
+        Mon, 30 Jan 2023 07:26:25 -0500
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B11081E2A0;
+        Mon, 30 Jan 2023 04:26:23 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4P56pC2xqsz6J9bs;
+        Mon, 30 Jan 2023 20:25:23 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.34; Mon, 30 Jan 2023 12:26:19 +0000
+Message-ID: <e450c86d-ac54-ce33-aecf-95ba4329b0a2@huawei.com>
+Date:   Mon, 30 Jan 2023 15:26:18 +0300
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>,
+        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+ <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
+ <Y8xwLvDbhKPG8JqY@galopp> <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
+ <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Simon , Pablo
-I write here and need help
-found : https://lwn.net/Articles/879034/
-
-and try to start use offload traffic to ethernet card with nftables ans tc .
-
-but not work 
-
-try with Intel xl710 and Mellanox 5  but every time i receive error : 
-
-RTNETLINK answers: Operation not supported
-We have an error talking to the kernel
 
 
-Try with kernel 6.1.8 with latest iproute2 and all other software.
+1/27/2023 9:22 PM, Mickaël Salaün пишет:
+> 
+> On 23/01/2023 10:38, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 1/22/2023 2:07 AM, Günther Noack пишет:
+> 
+> [...]
+> 
+>>>> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
+>>>>   ABI version.  In this example, this is not required because all of the requested
+>>>>   ``allowed_access`` rights are already available in ABI 1.
+>>>>   
+>>>> -We now have a ruleset with one rule allowing read access to ``/usr`` while
+>>>> -denying all other handled accesses for the filesystem.  The next step is to
+>>>> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
+>>>> -binary).
+>>>> +For network access-control, we can add a set of rules that allow to use a port
+>>>> +number for a specific action. All ports values must be defined in network byte
+>>>> +order.
+>>>
+>>> What is the point of asking user space to convert this to network byte
+>>> order? It seems to me that the kernel would be able to convert it to
+>>> network byte order very easily internally and in a single place -- why
+>>> ask all of the users to deal with that complexity? Am I overlooking
+>>> something?
+>> 
+>>    I had a discussion about this issue with Mickaёl.
+>>    Please check these threads:
+>>    1.
+>> https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
+>>    2.
+>> https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
+> 
+> I'm definitely not sure if this is the right solution, or if there is
+> one. The rationale is to make it close to the current (POSIX) API. We
+> didn't get many opinion about that but I'd really like to have a
+> discussion about port endianness for this Landlock API.
+> 
+> I looked at some code (e.g. see [1]) and it seems that using htons()
+> might make application patching more complex after all. What do you
+> think? Is there some network (syscall) API that don't use this convention?
+> 
+> [1] https://github.com/landlock-lsm/tuto-lighttpd
+> 
+>>>
+>>>> +
+>>>> +.. code-block:: c
+>>>> +
+>>>> +    struct landlock_net_service_attr net_service = {
+>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>>>> +        .port = htons(8080),
+>>>> +    };
+>>>
+>>> This is a more high-level comment:
+>>>
+>>> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
+>>> how do you envision this struct to evolve if other protocols need to
+>>> be supported in the future?
+>> 
+>>     When TCP restrictions land into Linux, we need to think about UDP
+>> support. Then other protocols will be on the road. Anyway you are right
+>> this struct will be evolving in long term, but I don't have a particular
+>> envision now. Thanks for the question - we need to think about it.
+>>>
+>>> Should this struct and the associated constants have "TCP" in its
+>>> name, and other protocols use a separate struct in the future?
+> 
+> Other protocols such as AF_VSOCK uses a 32-bit port. We could use a
+> 32-bits port field or ever a 64-bit one. The later could make more sense
+> because each field would eventually be aligned on 64-bit. Picking a
+> 16-bit value was to help developers (and compilers/linters) with the
+> "correct" type (for TCP).
+> 
+> If we think about protocols other than TCP and UDP (e.g. AF_VSOCK), it
+> could make sense to have a dedicated attr struct specifying other
+> properties (e.g. CID). Anyway, the API is flexible but it would be nice
+> to not mess with it too much. What do you think?
+> 
+  I think it would not be hard to add new protocols in future. You are 
+right - the current API is more or less flexible.
+The main question is what other protocols are worth for landlocking.
 
 
-is there any that need to load in kernel 
-ethtool set hw-tc-offload on on card.
-
-
-in nftables : 
-
-Error: Could not process rule: Operation not supported
-
-
-idea is to offload tc and netfilter nat to card and reduce cpu load.
-
-
-Best regards,
-Martin
+> 
+>>>
+>>>> +
+>>>> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>>>> +                            &net_service, 0);
+>>>> +
+>>>> +The next step is to restrict the current thread from gaining more privileges
+>>>> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
+>>>            ^^^^^^
+>>>            "through" a SUID binary? "thanks to" sounds like it's desired
+>>>            to do that, while we're actually trying to prevent it here?
+>> 
+>>     This is Mickaёl's part. Let's ask his opinion here.
+>> 
+>>     Mickaёl, any thoughts?
+> 
+> Yep, "through" looks better.
+> .
