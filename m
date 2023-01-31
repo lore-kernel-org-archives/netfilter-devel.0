@@ -2,72 +2,69 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C23AEC636CC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 13:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B877C636D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 13:32:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231751AbjAaNcD (ORCPT
+        id S231915AbjAaNcG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Jan 2023 08:32:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43642 "EHLO
+        Tue, 31 Jan 2023 08:32:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230149AbjAaNcD (ORCPT
+        with ESMTP id S230149AbjAaNcE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Jan 2023 08:32:03 -0500
+        Tue, 31 Jan 2023 08:32:04 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 719B34DBF3;
-        Tue, 31 Jan 2023 05:32:02 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3EF614AA76;
+        Tue, 31 Jan 2023 05:32:04 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 0/2] Netfilter fixes for net
-Date:   Tue, 31 Jan 2023 14:31:56 +0100
-Message-Id: <20230131133158.4052-1-pablo@netfilter.org>
+Subject: [PATCH net 2/2] Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk"
+Date:   Tue, 31 Jan 2023 14:31:58 +0100
+Message-Id: <20230131133158.4052-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230131133158.4052-1-pablo@netfilter.org>
+References: <20230131133158.4052-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains two Netfilter fixes for net:
+There is no bug.  If sch->length == 0, this would result in an infinite
+loop, but first caller, do_basic_checks(), errors out in this case.
 
-1) Release bridge info once packet escapes the br_netfilter path,
-   from Florian Westphal.
+After this change, packets with bogus zero-length chunks are no longer
+detected as invalid, so revert & add comment wrt. 0 length check.
 
-2) Revert incorrect fix for the SCTP connection tracking chunk
-   iterator, also from Florian.
-
-First path fixes a long standing issue, the second path addresses
-a mistake in the previous pull request for net.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 9b3fc325c2a7e9e17e22b008357cb0ceb810d9b2:
-
-  Merge tag 'ieee802154-for-net-2023-01-30' of git://git.kernel.org/pub/scm/linux/kernel/git/sschmidt/wpan (2023-01-30 21:11:11 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
-
-for you to fetch changes up to bd0e06f0def75ba26572a94e5350324474a55562:
-
-  Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk" (2023-01-31 14:02:48 +0100)
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: br_netfilter: disable sabotage_in hook after first suppression
-      Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk"
-
- net/bridge/br_netfilter_hooks.c         | 1 +
+Fixes: 98ee00774525 ("netfilter: conntrack: fix bug in for_each_sctp_chunk")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  net/netfilter/nf_conntrack_proto_sctp.c | 5 +++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 945dd40e7077..011d414038ea 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -142,10 +142,11 @@ static void sctp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ }
+ #endif
+ 
++/* do_basic_checks ensures sch->length > 0, do not use before */
+ #define for_each_sctp_chunk(skb, sch, _sch, offset, dataoff, count)	\
+ for ((offset) = (dataoff) + sizeof(struct sctphdr), (count) = 0;	\
+-	((sch) = skb_header_pointer((skb), (offset), sizeof(_sch), &(_sch))) &&	\
+-	(sch)->length;	\
++	(offset) < (skb)->len &&					\
++	((sch) = skb_header_pointer((skb), (offset), sizeof(_sch), &(_sch)));	\
+ 	(offset) += (ntohs((sch)->length) + 3) & ~3, (count)++)
+ 
+ /* Some validity checks to make sure the chunks are fine */
+-- 
+2.30.2
+
