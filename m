@@ -2,74 +2,72 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A94C64EC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 12:58:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C23AEC636CC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 13:32:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230513AbjAaM6w (ORCPT
+        id S231751AbjAaNcD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Jan 2023 07:58:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34204 "EHLO
+        Tue, 31 Jan 2023 08:32:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231138AbjAaM6u (ORCPT
+        with ESMTP id S230149AbjAaNcD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Jan 2023 07:58:50 -0500
+        Tue, 31 Jan 2023 08:32:03 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7F38B4940C
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Jan 2023 04:58:49 -0800 (PST)
-Date:   Tue, 31 Jan 2023 13:58:46 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 719B34DBF3;
+        Tue, 31 Jan 2023 05:32:02 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Roi Dayan <roid@nvidia.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: udp: fix seen-reply test
-Message-ID: <Y9kQhlJ8FtosZ8LG@salvia>
-References: <20230123120433.98002-1-fw@strlen.de>
- <a6323260-da2e-1403-4764-423219b604a4@nvidia.com>
- <2a1a5bb8-a656-bce9-7a17-e7c949cab135@nvidia.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/2] Netfilter fixes for net
+Date:   Tue, 31 Jan 2023 14:31:56 +0100
+Message-Id: <20230131133158.4052-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <2a1a5bb8-a656-bce9-7a17-e7c949cab135@nvidia.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jan 31, 2023 at 02:37:21PM +0200, Roi Dayan wrote:
-> 
-> 
-> On 23/01/2023 18:16, Roi Dayan wrote:
-> > 
-> > 
-> > On 23/01/2023 14:04, Florian Westphal wrote:
-> >> IPS_SEEN_REPLY_BIT is only useful for test_bit() api.
-> >>
-> >> Fixes: 4883ec512c17 ("netfilter: conntrack: avoid reload of ct->status")
-> >> Reported-by: Roi Dayan <roid@nvidia.com>
-> >> Signed-off-by: Florian Westphal <fw@strlen.de>
-> >> ---
-> >>  net/netfilter/nf_conntrack_proto_udp.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-> >> index 6b9206635b24..0030fbe8885c 100644
-> >> --- a/net/netfilter/nf_conntrack_proto_udp.c
-> >> +++ b/net/netfilter/nf_conntrack_proto_udp.c
-> >> @@ -104,7 +104,7 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
-> >>  	/* If we've seen traffic both ways, this is some kind of UDP
-> >>  	 * stream. Set Assured.
-> >>  	 */
-> >> -	if (status & IPS_SEEN_REPLY_BIT) {
-> >> +	if (status & IPS_SEEN_REPLY) {
-> >>  		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
-> >>  		bool stream = false;
-> >>  
-> > 
-> > Reviewed-by: Roi Dayan <roid@nvidia.com>
-> > 
-> > thanks
-> 
-> hi, just pinging. when is this fix going to be merged?
+Hi,
 
-I'll take care of this.
+The following patchset contains two Netfilter fixes for net:
+
+1) Release bridge info once packet escapes the br_netfilter path,
+   from Florian Westphal.
+
+2) Revert incorrect fix for the SCTP connection tracking chunk
+   iterator, also from Florian.
+
+First path fixes a long standing issue, the second path addresses
+a mistake in the previous pull request for net.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
 
 Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 9b3fc325c2a7e9e17e22b008357cb0ceb810d9b2:
+
+  Merge tag 'ieee802154-for-net-2023-01-30' of git://git.kernel.org/pub/scm/linux/kernel/git/sschmidt/wpan (2023-01-30 21:11:11 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to bd0e06f0def75ba26572a94e5350324474a55562:
+
+  Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk" (2023-01-31 14:02:48 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: br_netfilter: disable sabotage_in hook after first suppression
+      Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk"
+
+ net/bridge/br_netfilter_hooks.c         | 1 +
+ net/netfilter/nf_conntrack_proto_sctp.c | 5 +++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
