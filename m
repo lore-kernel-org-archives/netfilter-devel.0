@@ -2,94 +2,73 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 474BEC636D3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 14:18:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1752AC38142
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 15:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229851AbjAaOS3 (ORCPT
+        id S232261AbjAaPaq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Jan 2023 09:18:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51654 "EHLO
+        Tue, 31 Jan 2023 10:30:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232207AbjAaOST (ORCPT
+        with ESMTP id S231775AbjAaPao (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Jan 2023 09:18:19 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ED414AA66;
-        Tue, 31 Jan 2023 06:18:18 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pMrSh-00040e-4Q; Tue, 31 Jan 2023 15:18:15 +0100
-Date:   Tue, 31 Jan 2023 15:18:15 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>,
-        bpf@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [RFC] bpf: add bpf_link support for BPF_NETFILTER programs
-Message-ID: <20230131141815.GA6999@breakpoint.cc>
-References: <20230130150432.24924-1-fw@strlen.de>
- <87zg9zx6ro.fsf@toke.dk>
- <20230130180115.GB12902@breakpoint.cc>
- <20230130214442.robf7ljttx5krjth@macbook-pro-6.dhcp.thefacebook.com>
+        Tue, 31 Jan 2023 10:30:44 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49FE2EC4B
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Jan 2023 07:30:43 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1pMsan-0006gk-3g
+        for netfilter-devel@vger.kernel.org; Tue, 31 Jan 2023 16:30:41 +0100
+Date:   Tue, 31 Jan 2023 16:30:41 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 0/7] Small ebtables-translate review + extras
+Message-ID: <Y9k0IaovCRoYIGl1@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        netfilter-devel@vger.kernel.org
+References: <20230126122406.23288-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230130214442.robf7ljttx5krjth@macbook-pro-6.dhcp.thefacebook.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230126122406.23288-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> Yes. bpf_link is the right model.
-> I'd also allow more than one BPF_NETFILTER prog at the hook.
-> When Daniel respins his tc bpf_link set there will be a way to do that
-> for tc and hopefully soon for xdp.
-> For netfilter hook we can use the same approach.
-
-For nf it should already support several programs, the
-builtin limit in the nf core is currently 1024 hooks per
-family/hook location.
-
-> > I could add a new nfnetlink subtype for nf-bpf if bpf_link is not
-> > appropriate as an alternative.
+On Thu, Jan 26, 2023 at 01:23:59PM +0100, Phil Sutter wrote:
+> The initial goal was to fix the apparent problem of ebtables-translate
+> printing 'counter' statement in wrong position, namely after the
+> verdict. Turns out this happened when targets were used "implicitly",
+> i.e. without requesting them via '-j'. Since ebtables-nft loaded all
+> extensions (including targets) upfront, a syntax like:
 > 
-> Let's start with bpf_link and figure out netlink path when appropriate.
+> | # ebtables-nft -A FORWARD --mark-set 1
+> 
+> was accepted and valid. The 'mark' target in this case was added to
+> iptables_command_state's 'match_list' as if it was a watcher.
+> 
+> Legacy ebtables does not allow this syntax, also it becomes hard for
+> users to realize why two targets can't be used in the same rule. So
+> reject this (in patch 2) and implicitly fix the case of 'counter'
+> statement in wrong position.
+> 
+> Fixing the above caused some fallout: Patch 1 fixes error reporting of
+> unknown arguments (or missing mandatory parameters) in all tools, patch
+> 7 extends xlate-test.py to conveniently run for all libebt_*.txlate
+> files (for instance).
+> 
+> The remaining patches 3 to 6 contain cleanups of xtables-eb-translate.c
+> in comparison to xtables-eb.c, also kind of preparing for a merge of the
+> two largely identical parsers (at least).
+> 
+> Phil Sutter (7):
+>   Proper fix for "unknown argument" error message
+>   ebtables: Refuse unselected targets' options
+>   ebtables-translate: Drop exec_style
+>   ebtables-translate: Use OPT_* from xshared.h
+>   ebtables-translate: Ignore '-j CONTINUE'
+>   ebtables-translate: Print flush command after parsing is finished
+>   tests: xlate: Support testing multiple individual files
 
-Good, that works for me.
-
-> I'd steer clear from new abi-s.
-> Don't look at uapi __sk_buff model. It's not a great example to follow.
-> Just pass kernel nf_hook_state into bpf prog and let program deal
-> with changes to it via CORE.
-
-The current prototype for nf hooks is
-
-fun(void *private, struct sk_buff *skb, struct nf_hook_state *s)
-
-Originally I had intended to place sk_buff in nf_hook_state, but its
-quite some code churn for everyone else.
-
-So I'm leaning towards something like
-	struct nf_bpf_ctx {
-		struct nf_hook_state *state;
-		struct sk_buff *skb;
-	};
-
-that gets passed as argument.
-
-> The prog will get a defition of 'struct nf_hook_state' from vmlinux.h
-> or via private 'struct nf_hook_state___flavor' with few fields defined
-> that prog wants to use. CORE will deal with offset adjustments.
-> That's a lot less kernel code. No need for asm style ctx rewrites.
-> Just see how much kernel code we already burned on *convert_ctx_access().
-> We cannot remove this tech debt due to uapi.
-> When you pass struct nf_hook_state directly none of it is needed.
-
-Ok, thanks for pointing that out.  I did not realize
-convert_ctx_access() conversions were frowned upon.
-
-I will pass a known/exposed struct then.
-
-I thought __sk_buff was required for direct packet access, I will look
-at this again.
+Series applied.
