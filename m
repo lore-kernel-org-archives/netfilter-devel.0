@@ -2,73 +2,84 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1752AC38142
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 15:30:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A562C636CC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 16:20:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232261AbjAaPaq (ORCPT
+        id S232675AbjAaQUE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Jan 2023 10:30:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42202 "EHLO
+        Tue, 31 Jan 2023 11:20:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231775AbjAaPao (ORCPT
+        with ESMTP id S233510AbjAaQTu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Jan 2023 10:30:44 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49FE2EC4B
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 Jan 2023 07:30:43 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pMsan-0006gk-3g
-        for netfilter-devel@vger.kernel.org; Tue, 31 Jan 2023 16:30:41 +0100
-Date:   Tue, 31 Jan 2023 16:30:41 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 0/7] Small ebtables-translate review + extras
-Message-ID: <Y9k0IaovCRoYIGl1@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org
-References: <20230126122406.23288-1-phil@nwl.cc>
+        Tue, 31 Jan 2023 11:19:50 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEC5438B7E;
+        Tue, 31 Jan 2023 08:19:14 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 25BDC614B3;
+        Tue, 31 Jan 2023 16:19:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F7CC4339B;
+        Tue, 31 Jan 2023 16:19:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1675181952;
+        bh=tDDUfSybB4HvCdA8+PCCDDKv98ZHl5nNaEpRIf5LNog=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=eohZimoqe5c87o2FNSERpD9Wcz0Eb6dmE6L8aD4q853DhPZ543yQUyamLsNbGOIVJ
+         loqjlzRVV9T1zDryAZRLcUt0vcBWLNZaHKAzKFSuz71XnPekEdLPh5/p8UlXVNIdYf
+         Ps+l4su6iFWYIvxwj0piAJklFl1t5zVN4/KHp9YDJ1aIoHzZac+fbwXwRk4MIumetq
+         llx+RFXbt+uRaIQ52CJVTiRtG2p3mWZ60cykcCR0yIHz+uncCVtaCajK2jWo1oDI4E
+         z7woI84ABbDfjLY2u594PnsUAKo/pS+TF6qn9+rrjg2GktCXRLjeggfocTVScYZM/K
+         tgkzqblKLCXgA==
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 26B1C97281D; Tue, 31 Jan 2023 17:19:09 +0100 (CET)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
+To:     Florian Westphal <fw@strlen.de>,
+        Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     bpf@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Subject: Re: [RFC] bpf: add bpf_link support for BPF_NETFILTER programs
+In-Reply-To: <20230131141815.GA6999@breakpoint.cc>
+References: <20230130150432.24924-1-fw@strlen.de> <87zg9zx6ro.fsf@toke.dk>
+ <20230130180115.GB12902@breakpoint.cc>
+ <20230130214442.robf7ljttx5krjth@macbook-pro-6.dhcp.thefacebook.com>
+ <20230131141815.GA6999@breakpoint.cc>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Tue, 31 Jan 2023 17:19:09 +0100
+Message-ID: <878rhivfr6.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230126122406.23288-1-phil@nwl.cc>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jan 26, 2023 at 01:23:59PM +0100, Phil Sutter wrote:
-> The initial goal was to fix the apparent problem of ebtables-translate
-> printing 'counter' statement in wrong position, namely after the
-> verdict. Turns out this happened when targets were used "implicitly",
-> i.e. without requesting them via '-j'. Since ebtables-nft loaded all
-> extensions (including targets) upfront, a syntax like:
-> 
-> | # ebtables-nft -A FORWARD --mark-set 1
-> 
-> was accepted and valid. The 'mark' target in this case was added to
-> iptables_command_state's 'match_list' as if it was a watcher.
-> 
-> Legacy ebtables does not allow this syntax, also it becomes hard for
-> users to realize why two targets can't be used in the same rule. So
-> reject this (in patch 2) and implicitly fix the case of 'counter'
-> statement in wrong position.
-> 
-> Fixing the above caused some fallout: Patch 1 fixes error reporting of
-> unknown arguments (or missing mandatory parameters) in all tools, patch
-> 7 extends xlate-test.py to conveniently run for all libebt_*.txlate
-> files (for instance).
-> 
-> The remaining patches 3 to 6 contain cleanups of xtables-eb-translate.c
-> in comparison to xtables-eb.c, also kind of preparing for a merge of the
-> two largely identical parsers (at least).
-> 
-> Phil Sutter (7):
->   Proper fix for "unknown argument" error message
->   ebtables: Refuse unselected targets' options
->   ebtables-translate: Drop exec_style
->   ebtables-translate: Use OPT_* from xshared.h
->   ebtables-translate: Ignore '-j CONTINUE'
->   ebtables-translate: Print flush command after parsing is finished
->   tests: xlate: Support testing multiple individual files
+Florian Westphal <fw@strlen.de> writes:
 
-Series applied.
+>> The prog will get a defition of 'struct nf_hook_state' from vmlinux.h
+>> or via private 'struct nf_hook_state___flavor' with few fields defined
+>> that prog wants to use. CORE will deal with offset adjustments.
+>> That's a lot less kernel code. No need for asm style ctx rewrites.
+>> Just see how much kernel code we already burned on *convert_ctx_access().
+>> We cannot remove this tech debt due to uapi.
+>> When you pass struct nf_hook_state directly none of it is needed.
+>
+> Ok, thanks for pointing that out.  I did not realize
+> convert_ctx_access() conversions were frowned upon.
+>
+> I will pass a known/exposed struct then.
+>
+> I thought __sk_buff was required for direct packet access, I will look
+> at this again.
+
+Kartikeya implemented direct packet access for struct xdp_md passed as a
+BTF ID for use in the XDP queueing RFC. You could have a look at that as
+a reference for how to do this for an sk_buff as well:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/toke/linux.git/commit/?h=xdp-queueing-07&id=3b4f3caaf59f3b2a7b6b37dfad96b5e42347786a
+
+It does involve a convert_ctx_access() function, though, but for the BTF
+ID. Not sure if there's an easier way...
+
+-Toke
