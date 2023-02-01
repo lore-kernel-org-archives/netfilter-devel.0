@@ -2,84 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A562C636CC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Jan 2023 16:20:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1455AC05027
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Feb 2023 05:30:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232675AbjAaQUE (ORCPT
+        id S229891AbjBAFaW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 31 Jan 2023 11:20:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59314 "EHLO
+        Wed, 1 Feb 2023 00:30:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233510AbjAaQTu (ORCPT
+        with ESMTP id S229767AbjBAFaW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 31 Jan 2023 11:19:50 -0500
+        Wed, 1 Feb 2023 00:30:22 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEC5438B7E;
-        Tue, 31 Jan 2023 08:19:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2969F2DE64;
+        Tue, 31 Jan 2023 21:30:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 25BDC614B3;
-        Tue, 31 Jan 2023 16:19:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F7CC4339B;
-        Tue, 31 Jan 2023 16:19:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7861E610E8;
+        Wed,  1 Feb 2023 05:30:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C8354C4339B;
+        Wed,  1 Feb 2023 05:30:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675181952;
-        bh=tDDUfSybB4HvCdA8+PCCDDKv98ZHl5nNaEpRIf5LNog=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=eohZimoqe5c87o2FNSERpD9Wcz0Eb6dmE6L8aD4q853DhPZ543yQUyamLsNbGOIVJ
-         loqjlzRVV9T1zDryAZRLcUt0vcBWLNZaHKAzKFSuz71XnPekEdLPh5/p8UlXVNIdYf
-         Ps+l4su6iFWYIvxwj0piAJklFl1t5zVN4/KHp9YDJ1aIoHzZac+fbwXwRk4MIumetq
-         llx+RFXbt+uRaIQ52CJVTiRtG2p3mWZ60cykcCR0yIHz+uncCVtaCajK2jWo1oDI4E
-         z7woI84ABbDfjLY2u594PnsUAKo/pS+TF6qn9+rrjg2GktCXRLjeggfocTVScYZM/K
-         tgkzqblKLCXgA==
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 26B1C97281D; Tue, 31 Jan 2023 17:19:09 +0100 (CET)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
-To:     Florian Westphal <fw@strlen.de>,
-        Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     bpf@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Subject: Re: [RFC] bpf: add bpf_link support for BPF_NETFILTER programs
-In-Reply-To: <20230131141815.GA6999@breakpoint.cc>
-References: <20230130150432.24924-1-fw@strlen.de> <87zg9zx6ro.fsf@toke.dk>
- <20230130180115.GB12902@breakpoint.cc>
- <20230130214442.robf7ljttx5krjth@macbook-pro-6.dhcp.thefacebook.com>
- <20230131141815.GA6999@breakpoint.cc>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Tue, 31 Jan 2023 17:19:09 +0100
-Message-ID: <878rhivfr6.fsf@toke.dk>
+        s=k20201202; t=1675229419;
+        bh=tdL9mzUJ8Bz1xnGM9murtqJVhZLpKpHYDB6K5/aBfOY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Vy2EEwpUsqXIShfkJ21K+JHmeizBZX/PUBgg7i9BsQhP2PhzHmVF+LsFA0d7jmVz9
+         Rs/5XR2kK+zHjHcLzaeF4e4U0UK9Fn4MRFc1mx2MnzberYdhFRWkk/0axqUjoRfz38
+         CeUR7ttlrIbRqtStpAHe2K1pOKfeWuki25KhAd/XRyHeBz6Nt3M9FYCbnUFyFSenKs
+         iU2+qe9GPYfuIqWLUFjRKtYYifQdKeKKK5XEjDBh3mXz0SbVYRBwFtna/ysIg/D5OK
+         D27SzbIvhZC06xcTsiLciiTLpp416WQK9aDrAWo6BRraGsLnV5kTAd5c0JrgANkOLD
+         VrocVcqhmOy+Q==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id AB237E21EEC;
+        Wed,  1 Feb 2023 05:30:19 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/2] netfilter: br_netfilter: disable sabotage_in hook
+ after first suppression
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167522941969.3755.300708187812071635.git-patchwork-notify@kernel.org>
+Date:   Wed, 01 Feb 2023 05:30:19 +0000
+References: <20230131133158.4052-2-pablo@netfilter.org>
+In-Reply-To: <20230131133158.4052-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> writes:
+Hello:
 
->> The prog will get a defition of 'struct nf_hook_state' from vmlinux.h
->> or via private 'struct nf_hook_state___flavor' with few fields defined
->> that prog wants to use. CORE will deal with offset adjustments.
->> That's a lot less kernel code. No need for asm style ctx rewrites.
->> Just see how much kernel code we already burned on *convert_ctx_access().
->> We cannot remove this tech debt due to uapi.
->> When you pass struct nf_hook_state directly none of it is needed.
->
-> Ok, thanks for pointing that out.  I did not realize
-> convert_ctx_access() conversions were frowned upon.
->
-> I will pass a known/exposed struct then.
->
-> I thought __sk_buff was required for direct packet access, I will look
-> at this again.
+This series was applied to netdev/net.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Kartikeya implemented direct packet access for struct xdp_md passed as a
-BTF ID for use in the XDP queueing RFC. You could have a look at that as
-a reference for how to do this for an sk_buff as well:
+On Tue, 31 Jan 2023 14:31:57 +0100 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> When using a xfrm interface in a bridged setup (the outgoing device is
+> bridged), the incoming packets in the xfrm interface are only tracked
+> in the outgoing direction.
+> 
+> $ brctl show
+> bridge name     interfaces
+> br_eth1         eth1
+> 
+> [...]
 
-https://git.kernel.org/pub/scm/linux/kernel/git/toke/linux.git/commit/?h=xdp-queueing-07&id=3b4f3caaf59f3b2a7b6b37dfad96b5e42347786a
+Here is the summary with links:
+  - [net,1/2] netfilter: br_netfilter: disable sabotage_in hook after first suppression
+    https://git.kernel.org/netdev/net/c/2b272bb558f1
+  - [net,2/2] Revert "netfilter: conntrack: fix bug in for_each_sctp_chunk"
+    https://git.kernel.org/netdev/net/c/bd0e06f0def7
 
-It does involve a convert_ctx_access() function, though, but for the BTF
-ID. Not sure if there's an easier way...
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
--Toke
+
