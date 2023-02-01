@@ -2,251 +2,161 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B045C636CD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Feb 2023 13:45:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D49C05027
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Feb 2023 16:31:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231651AbjBANpf (ORCPT
+        id S230390AbjBAQbc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Feb 2023 08:45:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37304 "EHLO
+        Wed, 1 Feb 2023 11:31:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231144AbjBANpd (ORCPT
+        with ESMTP id S229849AbjBAQbb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Feb 2023 08:45:33 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DCCA4F36F
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Feb 2023 05:45:32 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pNDQX-0004UC-I3; Wed, 01 Feb 2023 14:45:29 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Russel King <linux@armlinux.org.uk>
-Subject: [PATCH nf-next] netfilter: let reset rules clean out conntrack entries
-Date:   Wed,  1 Feb 2023 14:45:22 +0100
-Message-Id: <20230201134522.13188-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.1
+        Wed, 1 Feb 2023 11:31:31 -0500
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2041.outbound.protection.outlook.com [40.107.236.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 589F740E3;
+        Wed,  1 Feb 2023 08:31:30 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=abg3P+95c6azXU5JCfdBuMEgY1WzGYaWxbQbYQZWfThJ9LDY5V7S8xB250Y3H3jqV0P3bI++qQO2vKObzhgcggXxV62/pVk4+b916Ym6CjIvkNe4tig92+gSChyAoY2HCTWBMZngMFLPO7HL0j4ujWHkSsobzbLlhxX32HCoVa6ZgGaPoAzbHdzJbVbWliGZgatDWQjJvuxOEWe01H1e8QKTP1ILw3Xoiz2STZQ5e7tTucA5vOExQjNXj1TRqbiYnTdRzx4GvKaLpCYBxQvGtj4xkxSpKGjyUoXy/fLwVfpA2Dbjif2vXlFU/waUbKAyZtmLsiAlMs0C2WWmofVvYw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rhl1C3mZz++9nE4Or48E5nwmkq+J8N6y+OnmxZOz2Ig=;
+ b=WAMd05Edg4ulI7l53lrI6c3d/NT2LXUc53cOLo/ZmyUlyKC5LtQazrqJIWriwBwsqO2LE6yzJjUybZQRKj7ESS7UGremQArd2eiaMyp+WmicGFgujgWDmVlYzfHR5Qyv2Zwhh/92IWIirwPxsrrA83Gj2a0YNbkK+6wu2AEvp16RNI85E/+ixgFhdmcxb/+DUUf2cjLXQDmge+t643YCb93yU5rABEsgJ2CbssxPzPpPw3ygwrqa6q3XfvDWZK36WULWI9+DhhPZXNu1P9xc1jm4HuLCEIWAmaYf7xHPPVqxrWVCI2WPEEaVpcCBU5BSo69GVnNkRQBTsYqnx6Qunw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.232) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rhl1C3mZz++9nE4Or48E5nwmkq+J8N6y+OnmxZOz2Ig=;
+ b=GK+y05+BaQHEcxcyi0QZuFl7uzeKnwfIxy5bELpKemgNJVsjgHU3SU2d08A/b69MdHi8x937SlPPCmHxvIY9KwUMXt+OAANon+oPL3oKrXauPzNANjbyzoY8BB4B2jJZ9nZR/GDe2mL0lWgQHoj1hc1T7zBnD/e9Its8/JNTkx7wZRxz6g5J4rk/ateb+A9SSR5ooEnelPcDG9kEYReB7jzWgJDc+YxgHLB45siy44GpRJwl3QBxANHxAWxIIZJIAlKVkIMEBJTeguOIGXWKtqYaozLNZxCVsSxyuAVx3TATP35dkTmlxMLYPxINP5+qZvZ8RB3TmVq4kfGFrhYp2A==
+Received: from MW4PR04CA0206.namprd04.prod.outlook.com (2603:10b6:303:86::31)
+ by BN9PR12MB5242.namprd12.prod.outlook.com (2603:10b6:408:11f::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6064.24; Wed, 1 Feb
+ 2023 16:31:28 +0000
+Received: from CO1NAM11FT058.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:86:cafe::5) by MW4PR04CA0206.outlook.office365.com
+ (2603:10b6:303:86::31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6043.38 via Frontend
+ Transport; Wed, 1 Feb 2023 16:31:28 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ CO1NAM11FT058.mail.protection.outlook.com (10.13.174.164) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6043.22 via Frontend Transport; Wed, 1 Feb 2023 16:31:27 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Wed, 1 Feb 2023
+ 08:31:18 -0800
+Received: from drhqmail202.nvidia.com (10.126.190.181) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.986.36; Wed, 1 Feb 2023 08:31:18 -0800
+Received: from vdi.nvidia.com (10.127.8.14) by mail.nvidia.com
+ (10.126.190.181) with Microsoft SMTP Server id 15.2.986.36 via Frontend
+ Transport; Wed, 1 Feb 2023 08:31:15 -0800
+From:   Vlad Buslov <vladbu@nvidia.com>
+To:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
+        <pablo@netfilter.org>
+CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <jhs@mojatatu.com>, <xiyou.wangcong@gmail.com>, <jiri@resnulli.us>,
+        <ozsh@nvidia.com>, <marcelo.leitner@gmail.com>,
+        <simon.horman@corigine.com>, Vlad Buslov <vladbu@nvidia.com>
+Subject: [PATCH net-next v6 0/7] Allow offloading of UDP NEW connections via act_ct
+Date:   Wed, 1 Feb 2023 17:30:53 +0100
+Message-ID: <20230201163100.1001180-1-vladbu@nvidia.com>
+X-Mailer: git-send-email 2.38.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1NAM11FT058:EE_|BN9PR12MB5242:EE_
+X-MS-Office365-Filtering-Correlation-Id: 364a8c66-cb6f-43fc-9c1c-08db0471c4a4
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: TaRfciR5iP1z+vlhzzNXaJym6CEIZ8YVj7RA9iuQ0ih+kDfF5R/LBXuB4rZAKs8OiD+1LL3Ng+kMmjdhMa3FCW8891qkl+X2xvdVKgkcrpp5345WMyzwZZRCFyrel5fx/lOx6fWAd7VfkkDM6JNXunJXSdUzOx/xzpUuJ/9iFC2NFobQe2mxx8fpaoJRNTmb5WTlQrrETXWFoJKhhQEkSuZkzXUWtWJ668sXIWmpui+8TaBumEp8SPQ0oUjJmdQwD9hF75OcBMnzh2n4ifoa8kRAdpHj1HV5RlT6JiGEl0zHxGFb5+9UkUUVNHysS4wn0nkWq3WzAefjqMkGVLyz/4EyfrUwuVmWbAj7wuEE+Bf/2iHKJ9KsqQ4hj3514JgiFqOFoOGuVIwSzBA9uhD2dQYn15vOE4ilA5gxWAAI0hmIroZeTYWK9CjF9BIRWhYtTRpeUkQWyTKcZCyz2lcA2w/1knZsUjpDL8EkN/DuEQe12MCBiWGKkosuwPtWZX9BaGHi5TyUYNkKUND9GpoJmHxXuHvEDi+mH/+uPPwKYkNuSRXhVK4ATuO+/Q1/9ZFP24PaNsJQs94UnzhtyFTecCzBtkGICailXNWCLWOLP30C3tK+z5nrJXka94lZYE6kVg9CKfD33CtpD2t24S/lrgACCDmu7XclIWXB2h/3Qa+EoQE+eSKAlCrwA/DoF8Tu7KCBXBjfO++HO3uMmxMVBg==
+X-Forefront-Antispam-Report: CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230025)(4636009)(39860400002)(376002)(136003)(346002)(396003)(451199018)(40470700004)(36840700001)(46966006)(70206006)(478600001)(7696005)(86362001)(4326008)(36860700001)(41300700001)(47076005)(8676002)(8936002)(70586007)(83380400001)(426003)(336012)(2906002)(26005)(186003)(356005)(107886003)(6666004)(82740400003)(40460700003)(5660300002)(7416002)(36756003)(1076003)(7636003)(40480700001)(2616005)(54906003)(110136005)(316002)(82310400005)(2101003);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Feb 2023 16:31:27.9057
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 364a8c66-cb6f-43fc-9c1c-08db0471c4a4
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT058.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN9PR12MB5242
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-iptables/nftables support responding to tcp packets with tcp resets.
+Currently only bidirectional established connections can be offloaded
+via act_ct. Such approach allows to hardcode a lot of assumptions into
+act_ct, flow_table and flow_offload intermediate layer codes. In order
+to enabled offloading of unidirectional UDP NEW connections start with
+incrementally changing the following assumptions:
 
-The generated tcp reset packet passes through both output and postrouting
-netfilter hooks, but conntrack will never see them because the generated
-skb has its ->nfct pointer copied over from the packet that triggered the
-reset rule.
+- Drivers assume that only established connections are offloaded and
+  don't support updating existing connections. Extract ctinfo from meta
+  action cookie and refuse offloading of new connections in the drivers.
 
-If the reset rule is used for established connections, this
-may result in the conntrack entry to be around for a very long
-time (default timeout is 5 days).
+- Fix flow_table offload fixup algorithm to calculate flow timeout
+  according to current connection state instead of hardcoded
+  "established" value.
 
-One way to avoid this would be to not copy the nf_conn pointer
-so that the rest packet passes through conntrack too.
+- Add new flow_table flow flag that designates bidirectional connections
+  instead of assuming it and hardcoding hardware offload of every flow
+  in both directions.
 
-Problem is that output rules might not have the same conntrack
-zone setup as the prerouting ones, so its possible that the
-reset skb won't find the correct entry.  Generating a template
-entry for the skb seems error prone as well.
+- Add new flow_table flow flag that designates connections that are
+  offloaded to hardware as "established" instead of assuming it. This
+  allows some optimizations in act_ct and prevents spamming the
+  flow_table workqueue with redundant tasks.
 
-Add an explicit "closing" function that switches a confirmed
-conntrack entry to closed state and wire this up for tcp.
+With all the necessary infrastructure in place modify act_ct to offload
+UDP NEW as unidirectional connection. Pass reply direction traffic to CT
+and promote connection to bidirectional when UDP connection state
+changes to "assured". Rely on refresh mechanism to propagate connection
+state change to supporting drivers.
 
-If the entry isn't confirmed, no action is needed because
-the conntrack entry will never be committed to the table.
+Note that early drop algorithm that is designed to free up some space in
+connection tracking table when it becomes full (by randomly deleting up
+to 5% of non-established connections) currently ignores connections
+marked as "offloaded". Now, with UDP NEW connections becoming
+"offloaded" it could allow malicious user to perform DoS attack by
+filling the table with non-droppable UDP NEW connections by sending just
+one packet in single direction. To prevent such scenario change early
+drop algorithm to also consider "offloaded" connections for deletion.
 
-Reported-by: Russel King <linux@armlinux.org.uk>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter.h              |  3 +++
- include/net/netfilter/nf_conntrack.h   |  8 ++++++
- net/ipv4/netfilter/nf_reject_ipv4.c    |  1 +
- net/ipv6/netfilter/nf_reject_ipv6.c    |  1 +
- net/netfilter/core.c                   | 16 ++++++++++++
- net/netfilter/nf_conntrack_core.c      | 12 +++++++++
- net/netfilter/nf_conntrack_proto_tcp.c | 35 ++++++++++++++++++++++++++
- 7 files changed, 76 insertions(+)
+Vlad Buslov (7):
+  net: flow_offload: provision conntrack info in ct_metadata
+  netfilter: flowtable: fixup UDP timeout depending on ct state
+  netfilter: flowtable: allow unidirectional rules
+  netfilter: flowtable: cache info of last offload
+  net/sched: act_ct: set ctinfo in meta action depending on ct state
+  net/sched: act_ct: offload UDP NEW connections
+  netfilter: nf_conntrack: allow early drop of offloaded UDP conns
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index d8817d381c14..b9ae8427d351 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -437,11 +437,13 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
- #include <linux/netfilter/nf_conntrack_zones_common.h>
- 
- void nf_ct_attach(struct sk_buff *, const struct sk_buff *);
-+void nf_ct_set_closing(struct nf_conntrack *nfct);
- struct nf_conntrack_tuple;
- bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
- 			 const struct sk_buff *skb);
- #else
- static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
-+static inline void nf_ct_set_closing(struct nf_conntrack *nfct) {}
- struct nf_conntrack_tuple;
- static inline bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
- 				       const struct sk_buff *skb)
-@@ -459,6 +461,7 @@ struct nf_ct_hook {
- 	bool (*get_tuple_skb)(struct nf_conntrack_tuple *,
- 			      const struct sk_buff *);
- 	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
-+	void (*set_closing)(struct nf_conntrack *nfct);
- };
- extern const struct nf_ct_hook __rcu *nf_ct_hook;
- 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 6a2019aaa464..3dbf947285be 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -125,6 +125,12 @@ struct nf_conn {
- 	union nf_conntrack_proto proto;
- };
- 
-+static inline struct nf_conn *
-+nf_ct_to_nf_conn(const struct nf_conntrack *nfct)
-+{
-+	return container_of(nfct, struct nf_conn, ct_general);
-+}
-+
- static inline struct nf_conn *
- nf_ct_tuplehash_to_ctrack(const struct nf_conntrack_tuple_hash *hash)
- {
-@@ -175,6 +181,8 @@ nf_ct_get(const struct sk_buff *skb, enum ip_conntrack_info *ctinfo)
- 
- void nf_ct_destroy(struct nf_conntrack *nfct);
- 
-+void nf_conntrack_tcp_set_closing(struct nf_conn *ct);
-+
- /* decrement reference count on a conntrack */
- static inline void nf_ct_put(struct nf_conn *ct)
- {
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index d640adcaf1b1..f33aeab9424f 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -280,6 +280,7 @@ void nf_send_reset(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 		goto free_nskb;
- 
- 	nf_ct_attach(nskb, oldskb);
-+	nf_ct_set_closing(skb_nfct(oldskb));
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	/* If we use ip_local_out for bridged traffic, the MAC source on
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index f61d4f18e1cf..58ccdb08c0fd 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -345,6 +345,7 @@ void nf_send_reset6(struct net *net, struct sock *sk, struct sk_buff *oldskb,
- 	nf_reject_ip6_tcphdr_put(nskb, oldskb, otcph, otcplen);
- 
- 	nf_ct_attach(nskb, oldskb);
-+	nf_ct_set_closing(skb_nfct(oldskb));
- 
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- 	/* If we use ip6_local_out for bridged traffic, the MAC source on
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 5a6705a0e4ec..b2fdbbed2b4b 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -702,6 +702,22 @@ void nf_conntrack_destroy(struct nf_conntrack *nfct)
- }
- EXPORT_SYMBOL(nf_conntrack_destroy);
- 
-+void nf_ct_set_closing(struct nf_conntrack *nfct)
-+{
-+	const struct nf_ct_hook *ct_hook;
-+
-+	if (!nfct)
-+		return;
-+
-+	rcu_read_lock();
-+	ct_hook = rcu_dereference(nf_ct_hook);
-+	if (ct_hook)
-+		ct_hook->set_closing(nfct);
-+
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_set_closing);
-+
- bool nf_ct_get_tuple_skb(struct nf_conntrack_tuple *dst_tuple,
- 			 const struct sk_buff *skb)
- {
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c00858344f02..430bb52b6454 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -2747,11 +2747,23 @@ int nf_conntrack_init_start(void)
- 	return ret;
- }
- 
-+static void nf_conntrack_set_closing(struct nf_conntrack *nfct)
-+{
-+	struct nf_conn *ct = nf_ct_to_nf_conn(nfct);
-+
-+	switch (nf_ct_protonum(ct)) {
-+	case IPPROTO_TCP:
-+		nf_conntrack_tcp_set_closing(ct);
-+		break;
-+	}
-+}
-+
- static const struct nf_ct_hook nf_conntrack_hook = {
- 	.update		= nf_conntrack_update,
- 	.destroy	= nf_ct_destroy,
- 	.get_tuple_skb  = nf_conntrack_get_tuple_skb,
- 	.attach		= nf_conntrack_attach,
-+	.set_closing	= nf_conntrack_set_closing,
- };
- 
- void nf_conntrack_init_end(void)
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 16ee5ebe1ce1..e765f4cb7d3d 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -911,6 +911,41 @@ static bool tcp_can_early_drop(const struct nf_conn *ct)
- 	return false;
- }
- 
-+void nf_conntrack_tcp_set_closing(struct nf_conn *ct)
-+{
-+	enum tcp_conntrack old_state;
-+	const unsigned int *timeouts;
-+	u32 timeout;
-+
-+	if (!nf_ct_is_confirmed(ct))
-+		return;
-+
-+	spin_lock_bh(&ct->lock);
-+	old_state = ct->proto.tcp.state;
-+	ct->proto.tcp.state = TCP_CONNTRACK_CLOSE;
-+
-+	if (old_state == TCP_CONNTRACK_CLOSE ||
-+	    test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
-+		spin_unlock_bh(&ct->lock);
-+		return;
-+	}
-+
-+	timeouts = nf_ct_timeout_lookup(ct);
-+	if (!timeouts) {
-+		const struct nf_tcp_net *tn;
-+
-+		tn = nf_tcp_pernet(nf_ct_net(ct));
-+		timeouts = tn->timeouts;
-+	}
-+
-+	timeout = timeouts[TCP_CONNTRACK_CLOSE];
-+	WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
-+
-+	spin_unlock_bh(&ct->lock);
-+
-+	nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
-+}
-+
- static void nf_ct_tcp_state_reset(struct ip_ct_tcp_state *state)
- {
- 	state->td_end		= 0;
+ .../ethernet/mellanox/mlx5/core/en/tc_ct.c    |  4 ++
+ .../ethernet/netronome/nfp/flower/conntrack.c | 24 +++++++
+ include/net/netfilter/nf_flow_table.h         |  8 ++-
+ net/netfilter/nf_conntrack_core.c             | 11 ++--
+ net/netfilter/nf_flow_table_core.c            |  5 +-
+ net/netfilter/nf_flow_table_inet.c            |  2 +-
+ net/netfilter/nf_flow_table_offload.c         | 18 +++--
+ net/sched/act_ct.c                            | 65 ++++++++++++++-----
+ 8 files changed, 103 insertions(+), 34 deletions(-)
+
 -- 
-2.39.1
+2.38.1
 
