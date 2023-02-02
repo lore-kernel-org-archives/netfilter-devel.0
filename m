@@ -2,140 +2,103 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4103AC05027
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Feb 2023 21:04:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88ABDC61DA4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Feb 2023 21:32:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232782AbjBBVEj (ORCPT
+        id S229972AbjBBVcE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Feb 2023 16:04:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56010 "EHLO
+        Thu, 2 Feb 2023 16:32:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232640AbjBBVEi (ORCPT
+        with ESMTP id S229667AbjBBVcD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Feb 2023 16:04:38 -0500
+        Thu, 2 Feb 2023 16:32:03 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5D4643D90A
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2023 13:04:37 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9E86C2712
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2023 13:32:02 -0800 (PST)
+Date:   Thu, 2 Feb 2023 22:31:58 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] optimize: fix incorrect expansion into concatenation with verdict map
-Date:   Thu,  2 Feb 2023 22:04:32 +0100
-Message-Id: <20230202210432.106465-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230202210432.106465-1-pablo@netfilter.org>
-References: <20230202210432.106465-1-pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
+ NFTA_RULE_ACTUAL_EXPR
+Message-ID: <Y9wrzkablavNnUXl@salvia>
+References: <20221221142221.27211-1-phil@nwl.cc>
+ <Y7/drsGvc8MkQiTY@orbyte.nwl.cc>
+ <Y7/pzxvu2v4t4PgZ@salvia>
+ <Y7/2843ObHqTDIFQ@orbyte.nwl.cc>
+ <Y8fe9+XHbxYyD4LY@salvia>
+ <Y8f4pNIcb2zH9QqZ@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <Y8f4pNIcb2zH9QqZ@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- # nft -c -o -f ruleset.nft
- Merging:
- ruleset.nft:3:3-53:          meta pkttype broadcast udp dport { 67, 547 } accept
- ruleset.nft:4:17-58:         meta pkttype multicast udp dport 1900 drop
- into:
-        meta pkttype . udp dport vmap { broadcast . { 67, 547 } : accept, multicast . 1900 : drop }
- ruleset.nft:3:38-39: Error: invalid data type, expected concatenation of (packet type, internet network service)
-                meta pkttype broadcast udp dport { 67, 547 } accept
-                                                   ^^
+Hi Phil,
 
-Similar to 187c6d01d357 ("optimize: expand implicit set element when
-merging into concatenation") but for verdict maps.
+On Wed, Jan 18, 2023 at 02:48:20PM +0100, Phil Sutter wrote:
+[...]
+> The crucial aspect of this implementation is to provide a compatible
+> rule representation for old software which is not aware of it. This is
+> only possible by dumping the compat representation in the well-known
+> NFTA_RULE_EXPRESSIONS attribute.
 
-Reported-by: Simon G. Trajkovski <neur0armitage@proton.me>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/optimize.c                                | 33 ++++++++++++-------
- .../dumps/merge_stmts_concat_vmap.nft         |  4 +++
- .../optimizations/merge_stmts_concat_vmap     |  4 +++
- 3 files changed, 30 insertions(+), 11 deletions(-)
+OK, so NFTA_RULE_EXPRESSIONS contains the xt expressions.
 
-diff --git a/src/optimize.c b/src/optimize.c
-index 8cec04c02c4f..5f6e3a64fdd3 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -738,14 +738,32 @@ static void merge_stmts_vmap(const struct optimize_ctx *ctx,
- 	stmt_free(verdict_a);
- }
- 
-+static void __merge_concat_stmts_vmap(const struct optimize_ctx *ctx,
-+				      uint32_t i, const struct merge *merge,
-+				      struct expr *set, struct stmt *verdict)
-+{
-+	struct expr *concat, *next, *elem, *mapping;
-+	LIST_HEAD(concat_list);
-+
-+	__merge_concat(ctx, i, merge, &concat_list);
-+
-+	list_for_each_entry_safe(concat, next, &concat_list, list) {
-+		list_del(&concat->list);
-+		elem = set_elem_expr_alloc(&internal_location, concat);
-+		mapping = mapping_expr_alloc(&internal_location, elem,
-+					     expr_get(verdict->expr));
-+		compound_expr_add(set, mapping);
-+	}
-+}
-+
- static void merge_concat_stmts_vmap(const struct optimize_ctx *ctx,
- 				    uint32_t from, uint32_t to,
- 				    const struct merge *merge)
- {
- 	struct stmt *orig_stmt = ctx->stmt_matrix[from][merge->stmt[0]];
--	struct expr *concat_a, *concat_b, *expr, *set;
--	struct stmt *stmt, *stmt_a, *stmt_b, *verdict;
--	uint32_t i, j;
-+	struct stmt *stmt, *stmt_a, *verdict;
-+	struct expr *concat_a, *expr, *set;
-+	uint32_t i;
- 	int k;
- 
- 	k = stmt_verdict_find(ctx);
-@@ -763,15 +781,8 @@ static void merge_concat_stmts_vmap(const struct optimize_ctx *ctx,
- 	set->set_flags |= NFT_SET_ANONYMOUS;
- 
- 	for (i = from; i <= to; i++) {
--		concat_b = concat_expr_alloc(&internal_location);
--		for (j = 0; j < merge->num_stmts; j++) {
--			stmt_b = ctx->stmt_matrix[i][merge->stmt[j]];
--			expr = stmt_b->expr->right;
--			compound_expr_add(concat_b, expr_get(expr));
--		}
- 		verdict = ctx->stmt_matrix[i][k];
--		build_verdict_map(concat_b, verdict, set);
--		expr_free(concat_b);
-+		__merge_concat_stmts_vmap(ctx, i, merge, set, verdict);
- 	}
- 
- 	expr = map_expr_alloc(&internal_location, concat_a, set);
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft
-index c0f9ce0ccb6c..780aa09adbe6 100644
---- a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft
-+++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat_vmap.nft
-@@ -1,4 +1,8 @@
- table ip x {
-+	chain x {
-+		meta pkttype . udp dport vmap { broadcast . 547 : accept, broadcast . 67 : accept, multicast . 1900 : drop }
-+	}
-+
- 	chain y {
- 		ip saddr . ip daddr vmap { 1.1.1.1 . 2.2.2.2 : accept, 2.2.2.2 . 3.3.3.3 : drop, 4.4.4.4 . 5.5.5.5 : accept }
- 	}
-diff --git a/tests/shell/testcases/optimizations/merge_stmts_concat_vmap b/tests/shell/testcases/optimizations/merge_stmts_concat_vmap
-index 5c0ae60caafa..657d0aea2272 100755
---- a/tests/shell/testcases/optimizations/merge_stmts_concat_vmap
-+++ b/tests/shell/testcases/optimizations/merge_stmts_concat_vmap
-@@ -3,6 +3,10 @@
- set -e
- 
- RULESET="table ip x {
-+	chain x {
-+		meta pkttype broadcast udp dport { 67, 547 } accept
-+		meta pkttype multicast udp dport 1900 drop
-+	}
- 	chain y {
- 		ip saddr 1.1.1.1 ip daddr 2.2.2.2 accept
- 		ip saddr 4.4.4.4 ip daddr 5.5.5.5 accept
--- 
-2.30.2
+Then, _ACTUAL_EXPR is taken if kernel supports it and these are
+expressions that run from datapath, if present.
 
+> This means what is contained in NFTA_RULE_EXPRESSIONS may not be what
+> the kernel actually executes. To make this less scary, the kernel should
+> dump the actual rule in a second attribute for the sake of verification
+> in user space.
+>
+> While rule dumps are pretty much fixed given the above, there is
+> flexibility when it comes to loading the rule:
+> 
+> A) Submit the compat representation as additional attribute
+> 
+> This was my initial approach, but Florian objected because the changing
+> content of NFTA_RULE_EXPRESSIONS attribute may be confusing:
+
+It is indeed.
+
+> On input, NFTA_RULE_EXPRESSIONS contains the new rule representation, on
+> output it contains the compat one. The extra attribute I introduced
+> behaves identical, i.e. on input it holds the compat representation
+> while on output it holds the new one.
+> 
+> B) Submit the new representation as additional attribute
+> 
+> This is the current approach: If the additional attribute is present,
+> the kernel will use it to build the rule and leave NFTA_RULE_EXPRESSIONS
+> alone (actually: store it for dumps). Otherwise it will "fall back" to
+> using NFTA_RULE_EXPRESSIONS just as usual.
+>
+> When dumping, if a stored NFTA_RULE_EXPRESSIONS content is present, it
+> will dump that as-is and serialize the active rule into an additional
+> attribute. Otherwise the active rule will go into NFTA_RULE_EXPRESSIONS
+> just as usual.
+
+So this is not swapping things, right? Probably I am still getting
+confused but the initial approach described in A.
+
+When, dumping back to userspace, NFTA_RULE_EXPRESSIONS still stores
+the xt compat representation and NFTA_RULE_ACTUAL_EXPRS the one that
+runs from kernel datapath (if the kernel supports this attribute).
+
+[...]
+> I am swapping things around in libnftnl - it uses NFTA_RULE_ACTUAL_EXPRS
+> if present and puts NFTA_RULE_EXPRESSIONS into a second list for
+> verification only. In iptables, I parse both lists separately into
+> iptables_command_state objects and compare them. If not identical,
+> there's a bug.
+
+Old kernels would simply discard the ACTUAL_ attribute. Maybe _ALT_
+standing by alternative is a better name?
+
+Sorry, this is a bit confusing but I understand something like this is
+required as you explained during the NFWS.
