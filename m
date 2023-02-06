@@ -2,155 +2,141 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 479BDC05027
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Feb 2023 14:17:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EB77C61DA4
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Feb 2023 14:28:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbjBFORj (ORCPT
+        id S231197AbjBFO26 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Feb 2023 09:17:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36644 "EHLO
+        Mon, 6 Feb 2023 09:28:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230390AbjBFORh (ORCPT
+        with ESMTP id S231367AbjBFO2t (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2023 09:17:37 -0500
+        Mon, 6 Feb 2023 09:28:49 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E0C5183E1
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2023 06:17:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 18647244AB
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2023 06:28:46 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] optimize: select merge criteria based on candidates rules
-Date:   Mon,  6 Feb 2023 15:17:27 +0100
-Message-Id: <20230206141727.594073-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/2] rule: expand standalone chain that contains rules
+Date:   Mon,  6 Feb 2023 15:28:41 +0100
+Message-Id: <20230206142841.594538-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230206142841.594538-1-pablo@netfilter.org>
+References: <20230206142841.594538-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Select the merge criteria based on the statements that are used
-in the candidate rules, instead of using the list of statements
-in the given chain.
+Otherwise rules that this chain contains are ignored when expressed
+using the following syntax:
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1657
-Fixes: 0a6dbfce6dc3 ("optimize: merge nat rules with same selectors into map")
+chain inet filter input2 {
+       type filter hook input priority filter; policy accept;
+       ip saddr 1.2.3.4 tcp dport { 22, 443, 123 } drop
+}
+
+and importing chain definitions like these from another file.
+
+When expanding the chain, remove the rule so the new CMD_OBJ_CHAIN
+case does not expand it again.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1655
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/optimize.c                                | 22 +++++++++----------
- .../optimizations/dumps/merge_nat.nft         |  4 ++++
- tests/shell/testcases/optimizations/merge_nat |  4 ++++
- 3 files changed, 19 insertions(+), 11 deletions(-)
+ src/rule.c                                    | 15 +++++++++---
+ .../testcases/include/0020include_chain_0     | 23 +++++++++++++++++++
+ .../include/dumps/0020include_chain_0.nft     |  6 +++++
+ 3 files changed, 41 insertions(+), 3 deletions(-)
+ create mode 100755 tests/shell/testcases/include/0020include_chain_0
+ create mode 100644 tests/shell/testcases/include/dumps/0020include_chain_0.nft
 
-diff --git a/src/optimize.c b/src/optimize.c
-index 5f6e3a64fdd3..ff4f26278a6d 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -985,21 +985,21 @@ static void rule_optimize_print(struct output_ctx *octx,
- 	fprintf(octx->error_fp, "%s\n", line);
- }
+diff --git a/src/rule.c b/src/rule.c
+index 3f239cf8c46a..c162059bfd9e 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1312,11 +1312,12 @@ void cmd_add_loc(struct cmd *cmd, uint16_t offset, const struct location *loc)
  
--static enum stmt_types merge_stmt_type(const struct optimize_ctx *ctx)
-+static enum stmt_types merge_stmt_type(const struct optimize_ctx *ctx,
-+				       uint32_t from, uint32_t to)
+ static void nft_cmd_expand_chain(struct chain *chain, struct list_head *new_cmds)
  {
--	uint32_t i;
-+	uint32_t i, j;
+-	struct rule *rule;
++	struct rule *rule, *next;
+ 	struct handle h;
+ 	struct cmd *new;
  
--	for (i = 0; i < ctx->num_stmts; i++) {
--		switch (ctx->stmt[i]->ops->type) {
--		case STMT_VERDICT:
--		case STMT_NAT:
--			return ctx->stmt[i]->ops->type;
--		default:
--			continue;
-+	for (i = from; i <= to; i++) {
-+		for (j = 0; j < ctx->num_stmts; j++) {
-+			if (!ctx->stmt_matrix[i][j])
-+				continue;
-+			if (ctx->stmt_matrix[i][j]->ops->type == STMT_NAT)
-+				return STMT_NAT;
+-	list_for_each_entry(rule, &chain->rules, list) {
++	list_for_each_entry_safe(rule, next, &chain->rules, list) {
++		list_del(&rule->list);
+ 		memset(&h, 0, sizeof(h));
+ 		handle_merge(&h, &rule->handle);
+ 		if (chain->flags & CHAIN_F_BINDING) {
+@@ -1324,7 +1325,7 @@ static void nft_cmd_expand_chain(struct chain *chain, struct list_head *new_cmds
+ 			rule->handle.chain.location = chain->location;
  		}
- 	}
- 
--	/* actually no verdict, this assumes rules have the same verdict. */
-+	/* merge by verdict, even if no verdict is specified. */
- 	return STMT_VERDICT;
- }
- 
-@@ -1012,7 +1012,7 @@ static void merge_rules(const struct optimize_ctx *ctx,
- 	bool same_verdict;
- 	uint32_t i;
- 
--	stmt_type = merge_stmt_type(ctx);
-+	stmt_type = merge_stmt_type(ctx, from, to);
- 
- 	switch (stmt_type) {
- 	case STMT_VERDICT:
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_nat.nft b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
-index 7a6ecb76a934..32423b220ed1 100644
---- a/tests/shell/testcases/optimizations/dumps/merge_nat.nft
-+++ b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
-@@ -1,20 +1,24 @@
- table ip test1 {
- 	chain y {
-+		oif "lo" accept
- 		dnat to ip saddr map { 4.4.4.4 : 1.1.1.1, 5.5.5.5 : 2.2.2.2 }
+ 		new = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &h,
+-				&rule->location, rule_get(rule));
++				&rule->location, rule);
+ 		list_add_tail(&new->list, new_cmds);
  	}
  }
- table ip test2 {
- 	chain y {
-+		oif "lo" accept
- 		dnat ip to tcp dport map { 80 : 1.1.1.1 . 8001, 81 : 2.2.2.2 . 9001 }
- 	}
- }
- table ip test3 {
- 	chain y {
-+		oif "lo" accept
- 		snat to ip saddr . tcp sport map { 1.1.1.1 . 1024-65535 : 3.3.3.3, 2.2.2.2 . 1024-65535 : 4.4.4.4 }
- 	}
- }
- table ip test4 {
- 	chain y {
-+		oif "lo" accept
- 		dnat ip to ip daddr . tcp dport map { 1.1.1.1 . 80 : 4.4.4.4 . 8000, 2.2.2.2 . 81 : 3.3.3.3 . 9000 }
- 	}
- }
-diff --git a/tests/shell/testcases/optimizations/merge_nat b/tests/shell/testcases/optimizations/merge_nat
-index 290cfcfebe2e..ec9b239c6f48 100755
---- a/tests/shell/testcases/optimizations/merge_nat
-+++ b/tests/shell/testcases/optimizations/merge_nat
-@@ -4,6 +4,7 @@ set -e
+@@ -1385,6 +1386,14 @@ void nft_cmd_expand(struct cmd *cmd)
  
- RULESET="table ip test1 {
-         chain y {
-+                oif lo accept
-                 ip saddr 4.4.4.4 dnat to 1.1.1.1
-                 ip saddr 5.5.5.5 dnat to 2.2.2.2
-         }
-@@ -13,6 +14,7 @@ $NFT -o -f - <<< $RULESET
- 
- RULESET="table ip test2 {
-         chain y {
-+                oif lo accept
-                 tcp dport 80 dnat to 1.1.1.1:8001
-                 tcp dport 81 dnat to 2.2.2.2:9001
-         }
-@@ -22,6 +24,7 @@ $NFT -o -f - <<< $RULESET
- 
- RULESET="table ip test3 {
-         chain y {
-+                oif lo accept
-                 ip saddr 1.1.1.1 tcp sport 1024-65535 snat to 3.3.3.3
-                 ip saddr 2.2.2.2 tcp sport 1024-65535 snat to 4.4.4.4
-         }
-@@ -31,6 +34,7 @@ $NFT -o -f - <<< $RULESET
- 
- RULESET="table ip test4 {
-         chain y {
-+                oif lo accept
-                 ip daddr 1.1.1.1 tcp dport 80 dnat to 4.4.4.4:8000
-                 ip daddr 2.2.2.2 tcp dport 81 dnat to 3.3.3.3:9000
-         }
+ 		list_splice(&new_cmds, &cmd->list);
+ 		break;
++	case CMD_OBJ_CHAIN:
++		chain = cmd->chain;
++		if (!chain || list_empty(&chain->rules))
++			break;
++
++		nft_cmd_expand_chain(chain, &new_cmds);
++		list_splice(&new_cmds, &cmd->list);
++		break;
+ 	case CMD_OBJ_SET:
+ 	case CMD_OBJ_MAP:
+ 		set = cmd->set;
+diff --git a/tests/shell/testcases/include/0020include_chain_0 b/tests/shell/testcases/include/0020include_chain_0
+new file mode 100755
+index 000000000000..8f78e8c606ec
+--- /dev/null
++++ b/tests/shell/testcases/include/0020include_chain_0
+@@ -0,0 +1,23 @@
++#!/bin/bash
++
++set -e
++
++tmpfile1=$(mktemp -p .)
++if [ ! -w $tmpfile1 ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile1" EXIT # cleanup if aborted
++
++RULESET="table inet filter { }
++include \"$tmpfile1\""
++
++RULESET2="chain inet filter input2 {
++	type filter hook input priority filter; policy accept;
++	ip saddr 1.2.3.4 tcp dport { 22, 443, 123 } drop
++}"
++
++echo "$RULESET2" > $tmpfile1
++
++$NFT -o -f - <<< $RULESET
+diff --git a/tests/shell/testcases/include/dumps/0020include_chain_0.nft b/tests/shell/testcases/include/dumps/0020include_chain_0.nft
+new file mode 100644
+index 000000000000..3ad6db14d2f5
+--- /dev/null
++++ b/tests/shell/testcases/include/dumps/0020include_chain_0.nft
+@@ -0,0 +1,6 @@
++table inet filter {
++	chain input2 {
++		type filter hook input priority filter; policy accept;
++		ip saddr 1.2.3.4 tcp dport { 22, 123, 443 } drop
++	}
++}
 -- 
 2.30.2
 
