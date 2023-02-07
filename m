@@ -2,98 +2,93 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25BD0C636D3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Feb 2023 17:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09E45C636CC
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Feb 2023 10:00:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229548AbjBFRDd (ORCPT
+        id S231140AbjBGKAP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Feb 2023 12:03:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40332 "EHLO
+        Tue, 7 Feb 2023 05:00:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229536AbjBFRDd (ORCPT
+        with ESMTP id S231840AbjBGJ7m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2023 12:03:33 -0500
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D617F1B557
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2023 09:03:31 -0800 (PST)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 83909606E1;
-        Mon,  6 Feb 2023 17:03:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1675703010; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=vqflvKKU5z+Hnugd3McuTk5/fCdSazq3jJ3fvDDzkTY=;
-        b=DhpG6LpdIbceI1bTAVsqofOmMWB3bE2TMV0g/gnIRFJNFMgVfbEcggVP2eUZ4qWAOykl3f
-        +9GTgV/weqeKgjW0913YHV4qIgaOwYOFh03kPproeqTyFZyc+HbrUpLFxLetsLaScS6Fxc
-        QPXbZQkPeI1UUN8dF+Sdb/b12pSIMD4=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1675703010;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-        bh=vqflvKKU5z+Hnugd3McuTk5/fCdSazq3jJ3fvDDzkTY=;
-        b=XMKIPAV59iBP+SEGlBpfMWpoCn33nvtF4OnZ08RB8vGrA5J08ROhWcFqRb/EFMdGzsl6tj
-        VjKiw4DOii45hcBw==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 36B23138E8;
-        Mon,  6 Feb 2023 17:03:30 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id G9qRCuIy4WP2IgAAMHmgww
-        (envelope-from <pvorel@suse.cz>); Mon, 06 Feb 2023 17:03:30 +0000
-From:   Petr Vorel <pvorel@suse.cz>
-To:     ltp@lists.linux.it
-Cc:     Petr Vorel <pvorel@suse.cz>, netfilter-devel@vger.kernel.org
-Subject: [PATCH 1/1] iptables_lib.sh: Fix for iptables-translate >= v1.8.9
-Date:   Mon,  6 Feb 2023 18:03:25 +0100
-Message-Id: <20230206170325.19813-1-pvorel@suse.cz>
-X-Mailer: git-send-email 2.39.1
+        Tue, 7 Feb 2023 04:59:42 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AF50E366A2
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2023 01:58:48 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] optimize: ignore existing nat mapping
+Date:   Tue,  7 Feb 2023 10:58:32 +0100
+Message-Id: <20230207095832.606021-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-iptables-translate <= v1.8.8 didn't use quotes:
-$ iptables-translate -A INPUT -s 127.0.0.1 -p icmp -j DROP
-nft add rule ip filter INPUT ip protocol icmp ip saddr 127.0.0.1 counter drop
+User might be already using a nat mapping in their ruleset, use the
+unsupported statement when collecting statements in this case.
 
-iptables-translate since v1.8.9 started to add quotes:
-$ iptables-translate -A INPUT -s 127.0.0.1 -p icmp -j DROP
-nft 'add rule ip filter INPUT ip protocol icmp ip saddr 127.0.0.1 counter drop'
+ # nft -c -o -f ruleset.nft
+ nft: optimize.c:443: rule_build_stmt_matrix_stmts: Assertion `k >= 0' failed.
+ Aborted
 
-That broke nft01.sh test:
+The -o/--optimize feature only cares about linear rulesets at this
+stage, but do not hit assert() in this case.
 
-Error: syntax error, unexpected junk
-'add rule ip filter INPUT ip protocol icmp ip saddr 127.0.0.1 counter drop'
-^
-nft01 1 TFAIL: nft command failed to append new rule
-
-Therefore filter out also quotes (to existing backslash).
-
-Signed-off-by: Petr Vorel <pvorel@suse.cz>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1656
+Fixes: 0a6dbfce6dc3 ("optimize: merge nat rules with same selectors into map")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- testcases/network/iptables/iptables_lib.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/optimize.c                                          | 7 +++++++
+ tests/shell/testcases/optimizations/dumps/merge_nat.nft | 1 +
+ tests/shell/testcases/optimizations/merge_nat           | 1 +
+ 3 files changed, 9 insertions(+)
 
-diff --git a/testcases/network/iptables/iptables_lib.sh b/testcases/network/iptables/iptables_lib.sh
-index ab76cbd416..7e138ea33b 100755
---- a/testcases/network/iptables/iptables_lib.sh
-+++ b/testcases/network/iptables/iptables_lib.sh
-@@ -22,7 +22,7 @@ NFRUN()
- 	if [ "$use_iptables" = 1 ]; then
- 		ip${TST_IPV6}tables $@
- 	else
--		$(ip${TST_IPV6}tables-translate $@ | sed 's,\\,,g')
-+		$(ip${TST_IPV6}tables-translate $@ | sed "s/[\']//g")
- 	fi
+diff --git a/src/optimize.c b/src/optimize.c
+index ff4f26278a6d..d60aa8f22c07 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -370,6 +370,13 @@ static int rule_collect_stmts(struct optimize_ctx *ctx, struct rule *rule)
+ 				clone->log.prefix = expr_get(stmt->log.prefix);
+ 			break;
+ 		case STMT_NAT:
++			if ((stmt->nat.addr &&
++			     stmt->nat.addr->etype == EXPR_MAP) ||
++			    (stmt->nat.proto &&
++			     stmt->nat.proto->etype == EXPR_MAP)) {
++				clone->ops = &unsupported_stmt_ops;
++				break;
++			}
+ 			clone->nat.type = stmt->nat.type;
+ 			clone->nat.family = stmt->nat.family;
+ 			if (stmt->nat.addr)
+diff --git a/tests/shell/testcases/optimizations/dumps/merge_nat.nft b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
+index 32423b220ed1..96e38ccd798a 100644
+--- a/tests/shell/testcases/optimizations/dumps/merge_nat.nft
++++ b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
+@@ -14,6 +14,7 @@ table ip test3 {
+ 	chain y {
+ 		oif "lo" accept
+ 		snat to ip saddr . tcp sport map { 1.1.1.1 . 1024-65535 : 3.3.3.3, 2.2.2.2 . 1024-65535 : 4.4.4.4 }
++		oifname "enp2s0" snat ip to ip saddr map { 10.1.1.0/24 : 72.2.3.66-72.2.3.78 }
+ 	}
  }
+ table ip test4 {
+diff --git a/tests/shell/testcases/optimizations/merge_nat b/tests/shell/testcases/optimizations/merge_nat
+index ec9b239c6f48..1484b7d39d48 100755
+--- a/tests/shell/testcases/optimizations/merge_nat
++++ b/tests/shell/testcases/optimizations/merge_nat
+@@ -27,6 +27,7 @@ RULESET="table ip test3 {
+                 oif lo accept
+                 ip saddr 1.1.1.1 tcp sport 1024-65535 snat to 3.3.3.3
+                 ip saddr 2.2.2.2 tcp sport 1024-65535 snat to 4.4.4.4
++                oifname enp2s0 snat ip to ip saddr map { 10.1.1.0/24 : 72.2.3.66-72.2.3.78 }
+         }
+ }"
  
 -- 
-2.39.1
+2.30.2
 
