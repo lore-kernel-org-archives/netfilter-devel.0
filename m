@@ -2,78 +2,52 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2FC4C05027
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Feb 2023 13:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B3A9C636D6
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Feb 2023 15:07:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230009AbjBINRO (ORCPT
+        id S229740AbjBIPHm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Feb 2023 08:17:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47362 "EHLO
+        Thu, 9 Feb 2023 10:07:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbjBINRO (ORCPT
+        with ESMTP id S229707AbjBIPHl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Feb 2023 08:17:14 -0500
-X-Greylist: delayed 607 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 09 Feb 2023 05:16:45 PST
-Received: from tretyak2.mcst.ru (tretyak2.mcst.ru [212.5.119.215])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA37126A1;
-        Thu,  9 Feb 2023 05:16:45 -0800 (PST)
-Received: from tretyak2.mcst.ru (localhost [127.0.0.1])
-        by tretyak2.mcst.ru (Postfix) with ESMTP id BE1B5102394;
-        Thu,  9 Feb 2023 16:00:23 +0300 (MSK)
-Received: from frog.lab.sun.mcst.ru (frog.lab.sun.mcst.ru [172.16.4.50])
-        by tretyak2.mcst.ru (Postfix) with ESMTP id B94F4102391;
-        Thu,  9 Feb 2023 15:59:43 +0300 (MSK)
-Received: from artemiev-i.lab.sun.mcst.ru (avior-1 [192.168.53.223])
-        by frog.lab.sun.mcst.ru (8.13.4/8.12.11) with ESMTP id 319CxRk4001195;
-        Thu, 9 Feb 2023 15:59:36 +0300
-From:   Igor Artemiev <Igor.A.Artemiev@mcst.ru>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Igor Artemiev <Igor.A.Artemiev@mcst.ru>,
+        Thu, 9 Feb 2023 10:07:41 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0087235A7;
+        Thu,  9 Feb 2023 07:07:37 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pQ8WL-0006NP-O0; Thu, 09 Feb 2023 16:07:33 +0100
+Date:   Thu, 9 Feb 2023 16:07:33 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Igor Artemiev <Igor.A.Artemiev@mcst.ru>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         lvc-project@linuxtesting.org
-Subject: [lvc-project] [PATCH] netfilter: xt_recent: Fix attempt to update removed entry
-Date:   Thu,  9 Feb 2023 15:58:31 +0300
-Message-Id: <20230209125831.2674811-1-Igor.A.Artemiev@mcst.ru>
-X-Mailer: git-send-email 2.39.0.152.ga5737674b6
+Subject: Re: [lvc-project] [PATCH] netfilter: xt_recent: Fix attempt to
+ update removed entry
+Message-ID: <20230209150733.GA17303@breakpoint.cc>
+References: <20230209125831.2674811-1-Igor.A.Artemiev@mcst.ru>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Anti-Virus: Kaspersky Anti-Virus for Linux Mail Server 5.6.39/RELEASE,
-         bases: 20111107 #2745587, check: 20230209 notchecked
-X-AV-Checked: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230209125831.2674811-1-Igor.A.Artemiev@mcst.ru>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When both --remove and --update flag are specified, there's a code
-path at which the entry to be updated is removed beforehand,
-that leads to kernel crash. Update entry, if --remove flag
-don't specified.
+Igor Artemiev <Igor.A.Artemiev@mcst.ru> wrote:
+> When both --remove and --update flag are specified, there's a code
+> path at which the entry to be updated is removed beforehand,
+> that leads to kernel crash. Update entry, if --remove flag
+> don't specified.
+> 
+> Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
-Found by Linux Verification Center (linuxtesting.org) with SVACE.
-
-Signed-off-by: Igor Artemiev <Igor.A.Artemiev@mcst.ru>
-Fixes: 404bdbfd242c ("[NETFILTER]: recent match: replace by rewritten version")
----
- net/netfilter/xt_recent.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 7ddb9a78e3fc..189a413aa9d8 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -315,7 +315,8 @@ recent_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	}
- 
- 	if (info->check_set & XT_RECENT_SET ||
--	    (info->check_set & XT_RECENT_UPDATE && ret)) {
-+	    (info->check_set & XT_RECENT_UPDATE && ret &&
-+	     !(info->check_set & XT_RECENT_REMOVE))) {
- 		recent_entry_update(t, e);
- 		e->ttl = ttl;
- 	}
--- 
-2.30.2
-
+How did you manage to do this?  --update and --remove are supposed
+to be mutually exclusive.
