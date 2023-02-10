@@ -2,37 +2,38 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05524C636D4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Feb 2023 17:38:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68F7DC05027
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Feb 2023 17:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232163AbjBJRis (ORCPT
+        id S233077AbjBJRkD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Feb 2023 12:38:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45102 "EHLO
+        Fri, 10 Feb 2023 12:40:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232344AbjBJRir (ORCPT
+        with ESMTP id S232918AbjBJRkB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Feb 2023 12:38:47 -0500
-Received: from smtp-42af.mail.infomaniak.ch (smtp-42af.mail.infomaniak.ch [84.16.66.175])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B2246BAAB
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Feb 2023 09:38:45 -0800 (PST)
+        Fri, 10 Feb 2023 12:40:01 -0500
+Received: from smtp-bc0d.mail.infomaniak.ch (smtp-bc0d.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc0d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2DDD79B06
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Feb 2023 09:39:38 -0800 (PST)
 Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PD1Dh46zMzMr4SQ;
-        Fri, 10 Feb 2023 18:38:44 +0100 (CET)
-Received: from unknown by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4PD1Dg6QntzMrVgY;
-        Fri, 10 Feb 2023 18:38:43 +0100 (CET)
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PD1Fj0BpHzMqFxj;
+        Fri, 10 Feb 2023 18:39:37 +0100 (CET)
+Received: from unknown by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4PD1Fh2Q0dzMrSlm;
+        Fri, 10 Feb 2023 18:39:36 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1676050724;
-        bh=YMXN/Ou/QFoSuFOOuqtOyOieN0mWJ/XfHSqmYy6DxBE=;
+        s=20191114; t=1676050776;
+        bh=b+OrqShjRbwmcLjB2X0bdHz51OO6Z5luGmCeegifpCg=;
         h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=AjmyX4+dMfvJ5SQB74r9t+XuVv9O0hgPm9pZ/ZVIGsmekkugRAXElyRoqmILu8T4t
-         v/6l1QdiJUB+wsNCpLgCXD1SqjaUq6QMTB/VXbQ5SCvhih8ytHLgyBLbt0JD/Q6mo3
-         cQ6hPQLCJOkuKDVTu2ADG0QigsjBKezqHrOwrbP8=
-Message-ID: <633f6f0e-4380-4a2b-3e1a-ea4691092c08@digikod.net>
-Date:   Fri, 10 Feb 2023 18:38:43 +0100
+        b=J1stQklVC4k83zoyBbLCh7pdNpuAPLtcj0AsHYMXBqUrynLDfK9VOA4XEyZ5+loKL
+         UBZ+wPfg3J7xYy+p3aPTdjPAk1aJ2zuD+RLq/EhU6JM+xPIpealCAUI37TZvUKiDOm
+         nb0PzXRtJbsQrK69hevx3f/Ful7WE0atM8aUouTA=
+Message-ID: <5198f456-91f5-5c65-76c2-45b82ccb05eb@digikod.net>
+Date:   Fri, 10 Feb 2023 18:39:35 +0100
 MIME-Version: 1.0
 User-Agent: 
-Subject: Re: [PATCH v9 07/12] landlock: Refactor landlock_add_rule() syscall
+Subject: Re: [PATCH v9 08/12] landlock: Add network rules and TCP hooks
+ support
 Content-Language: en-US
 To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
@@ -40,9 +41,9 @@ Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         artem.kuzin@huawei.com
 References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <20230116085818.165539-8-konstantin.meskhidze@huawei.com>
+ <20230116085818.165539-9-konstantin.meskhidze@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <20230116085818.165539-8-konstantin.meskhidze@huawei.com>
+In-Reply-To: <20230116085818.165539-9-konstantin.meskhidze@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 X-Infomaniak-Routing: alpha
@@ -52,104 +53,178 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 On 16/01/2023 09:58, Konstantin Meskhidze wrote:
-> Change the landlock_add_rule() syscall to support new rule types
-> in future Landlock versions. Add the add_rule_path_beneath() helper
-> to support current filesystem rules.
+> This commit adds network rules support in the ruleset management
+> helpers and the landlock_create_ruleset syscall.
+> Refactor user space API to support network actions. Add new network
+> access flags, network rule and network attributes. Increment Landlock
+> ABI version. Expand access_masks_t to u32 to be sure network access
+> rights can be stored. Implement socket_bind() and socket_connect()
+> LSM hooks, which enable to restrict TCP socket binding and connection
+> to specific ports.
 > 
 > Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 > ---
 > 
 > Changes since v8:
+> * Squashes commits.
 > * Refactors commit message.
+> * Changes UAPI port field to __be16.
+> * Changes logic of bind/connect hooks with AF_UNSPEC families.
+> * Adds address length checking.
 > * Minor fixes.
 > 
 > Changes since v7:
-> * None
+> * Squashes commits.
+> * Increments ABI version to 4.
+> * Refactors commit message.
+> * Minor fixes.
 > 
 > Changes since v6:
-> * None
+> * Renames landlock_set_net_access_mask() to landlock_add_net_access_mask()
+>    because it OR values.
+> * Makes landlock_add_net_access_mask() more resilient incorrect values.
+> * Refactors landlock_get_net_access_mask().
+> * Renames LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
+>    LANDLOCK_NUM_ACCESS_FS as value.
+> * Updates access_masks_t to u32 to support network access actions.
+> * Refactors landlock internal functions to support network actions with
+>    landlock_key/key_type/id types.
 > 
 > Changes since v5:
-> * Refactors syscall landlock_add_rule() and add_rule_path_beneath() helper
-> to make argument check ordering consistent and get rid of partial revertings
-> in following patches.
-> * Rolls back refactoring base_test.c seltest.
+> * Gets rid of partial revert from landlock_add_rule
+> syscall.
 > * Formats code with clang-format-14.
 > 
 > Changes since v4:
-> * Refactors add_rule_path_beneath() and landlock_add_rule() functions
-> to optimize code usage.
-> * Refactors base_test.c seltest: adds LANDLOCK_RULE_PATH_BENEATH
-> rule type in landlock_add_rule() call.
+> * Refactors landlock_create_ruleset() - splits ruleset and
+> masks checks.
+> * Refactors landlock_create_ruleset() and landlock mask
+> setters/getters to support two rule types.
+> * Refactors landlock_add_rule syscall add_rule_path_beneath
+> function by factoring out get_ruleset_from_fd() and
+> landlock_put_ruleset().
 > 
 > Changes since v3:
-> * Split commit.
-> * Refactors landlock_add_rule syscall.
-> 
-> ---
->   security/landlock/syscalls.c | 94 +++++++++++++++++++-----------------
->   1 file changed, 50 insertions(+), 44 deletions(-)
-> 
-> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
-> index d35cd5d304db..73c80cd2cdbe 100644
-> --- a/security/landlock/syscalls.c
-> +++ b/security/landlock/syscalls.c
-> @@ -274,6 +274,49 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
->   	return err;
->   }
->   
-> +static int add_rule_path_beneath(struct landlock_ruleset *const ruleset,
-> +				 const void __user *const rule_attr)
+> * Splits commit.
+> * Adds network rule support for internal landlock functions.
+> * Adds set_mask and get_mask for network.
+> * Adds rb_root root_net_port.
+
+[...]
+
+> +static int check_socket_access(const struct landlock_ruleset *const domain,
+> +			       struct sockaddr *address, __be16 port,
+> +			       access_mask_t access_request)
 > +{
-> +	struct landlock_path_beneath_attr path_beneath_attr;
-> +	struct path path;
-> +	int res, err;
-> +	access_mask_t mask;
+> +	bool allowed = false;
+> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+> +	const struct landlock_rule *rule;
+> +	access_mask_t handled_access;
+> +	const struct landlock_id id = {
+> +		.key.data = port,
+> +		.type = LANDLOCK_KEY_NET_PORT,
+> +	};
 > +
-> +	/* Copies raw user space buffer, only one type for now. */
-> +	res = copy_from_user(&path_beneath_attr, rule_attr,
-> +			     sizeof(path_beneath_attr));
-> +	if (res)
-> +		return -EFAULT;
+> +	if (WARN_ON_ONCE(!domain))
+> +		return 0;
+> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+> +		return -EACCES;
 > +
-> +	/*
-> +	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
-> +	 * are ignored in path walks.
-> +	 */
-> +	if (!path_beneath_attr.allowed_access) {
-> +		return -ENOMSG;
+> +	switch (address->sa_family) {
+> +	case AF_UNSPEC:
+> +		/*
+> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
+> +		 * association, which have the same effect as closing the
+> +		 * connection while retaining the socket object (i.e., the file
+> +		 * descriptor).  As for dropping privileges, closing
+> +		 * connections is always allowed.
+> +		 */
+> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
+> +			return 0;
+> +
+> +		/*
+> +		 * For compatibility reason, accept AF_UNSPEC for bind
+> +		 * accesses (mapped to AF_INET) only if the address is
+> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
+> +		 * required to not wrongfully return -EACCES instead of
+> +		 * -EAFNOSUPPORT.
+> +		 */
+> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
+> +			const struct sockaddr_in *const sockaddr =
+> +				(struct sockaddr_in *)address;
+> +
+> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
+> +				return -EAFNOSUPPORT;
+> +		}
+> +
+> +		fallthrough;
+> +	case AF_INET:
+> +#if IS_ENABLED(CONFIG_IPV6)
+> +	case AF_INET6:
+> +#endif
+> +		rule = landlock_find_rule(domain, id);
+> +		handled_access = landlock_init_layer_masks(
+> +			domain, access_request, &layer_masks,
+> +			LANDLOCK_KEY_NET_PORT);
+> +		allowed = landlock_unmask_layers(rule, handled_access,
+> +						 &layer_masks,
+> +						 ARRAY_SIZE(layer_masks));
+> +
+> +		fallthrough;
+
+You can remove this fallthrough.
+
+
 > +	}
-
-Please follows the ./scripts/checkpatch.pl conventions (i.e. no curly 
-braces). You should add an empty line after this return though.
-
-
-
-> +	/*
-> +	 * Checks that allowed_access matches the @ruleset constraints
-> +	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
-> +	 */
-> +	mask = landlock_get_raw_fs_access_mask(ruleset, 0);
-> +	if ((path_beneath_attr.allowed_access | mask) != mask) {
-> +		return -EINVAL;
-> +	}
-
-Same here.
-
-> +
-> +	/* Gets and checks the new rule. */
-> +	err = get_path_from_fd(path_beneath_attr.parent_fd, &path);
-> +	if (err)
-> +		return err;
-> +
-> +	/* Imports the new rule. */
-> +	err = landlock_append_fs_rule(ruleset, &path,
-> +				      path_beneath_attr.allowed_access);
-> +	path_put(&path);
-> +
-
-No need for this empty line.
-
-> +	return err;
+> +	return allowed ? 0 : -EACCES;
 > +}
 > +
+> +static u16 get_port(const struct sockaddr *const address)
+> +{
+> +	/* Gets port value in host byte order. */
+> +	switch (address->sa_family) {
+> +	case AF_UNSPEC:
+> +	case AF_INET: {
+> +		const struct sockaddr_in *const sockaddr =
+> +			(struct sockaddr_in *)address;
+> +		return sockaddr->sin_port;
+> +	}
+> +#if IS_ENABLED(CONFIG_IPV6)
+> +	case AF_INET6: {
+> +		const struct sockaddr_in6 *const sockaddr_ip6 =
+> +			(struct sockaddr_in6 *)address;
+> +		return sockaddr_ip6->sin6_port;
+> +	}
+> +#endif
+> +	}
+> +	WARN_ON_ONCE(1);
+> +	return 0;
+> +}
+> +
+> +static int hook_socket_bind(struct socket *sock, struct sockaddr *address,
+> +			    int addrlen)
+> +{
+> +	int ret;
+> +	const struct landlock_ruleset *const dom =
+> +		landlock_get_current_domain();
+
+landlock_get_current_domain() should only be called by a 
+get_current_net_domain() wrapper that checks if the current domain 
+handles network accesses. See get_current_fs_domain() in patch 2/12.
+
+
+> +
+> +	if (!dom)
+> +		return 0;
+> +
+> +	/* Check if it's a TCP socket. */
+> +	if (sock->type != SOCK_STREAM)
+> +		return 0;
+> +
+> +	ret = check_addrlen(address, addrlen);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return check_socket_access(dom, address, get_port(address),
+> +				   LANDLOCK_ACCESS_NET_BIND_TCP);
+> +}
