@@ -2,102 +2,71 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32A76C05027
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Feb 2023 07:17:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B14BAC636CD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Feb 2023 10:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231345AbjBJHRm (ORCPT
+        id S232042AbjBJKdE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Feb 2023 02:17:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50282 "EHLO
+        Fri, 10 Feb 2023 05:33:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230161AbjBJHRl (ORCPT
+        with ESMTP id S232009AbjBJKdE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Feb 2023 02:17:41 -0500
-Received: from mail-pj1-x1043.google.com (mail-pj1-x1043.google.com [IPv6:2607:f8b0:4864:20::1043])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC07A38EAE;
-        Thu,  9 Feb 2023 23:17:40 -0800 (PST)
-Received: by mail-pj1-x1043.google.com with SMTP id gj9-20020a17090b108900b0023114156d36so8455241pjb.4;
-        Thu, 09 Feb 2023 23:17:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1676013460;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=x8ziFCwcKLLgygAWKbNwFQ9zSNQ7NfVya7SSGjz6xHM=;
-        b=CgOtCZRKUEnzDVbt0Of8QdPPYuFKQssFheSCwwZq2BzvI1j7rRsYMlWSPnxfzAQmSL
-         GxrTXzyJh+T1t8hwnBNePHbNWAvyEIEJVGscNhCd7ox+Txl4YS5ASAd2Q2rlBqiYVzl4
-         HOwkmNqiCn4+OypTBo+LwX2uj9GnuTeD31yESW6Eau75mcYBKhYUp/Rd47Brm+ieb7Hz
-         amlVmJZdMKwGAHgOURiR5pzmLJeTpZhqAWm7WDLhyemNEHeiU7JLIzOZNevCxAhYT6c4
-         Q0q3v61qBvKMp0Tsv+7mZNAeFO6FZpFKn94PtJgUAb38N/MR/OZrBUdeeZRB9WajbQUs
-         XMbg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1676013460;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=x8ziFCwcKLLgygAWKbNwFQ9zSNQ7NfVya7SSGjz6xHM=;
-        b=euP3b9SPAFJfvGQ5FwcQwzMPCsN5uB/R+wv5/pgi/9cUSZ2Ek9MUDOizIk981zvJc+
-         61Q37BQBjOVdFjYzCRwZEp2kOrsNcDwIwjBPV8aOYhKtRqEyY1aqlVfVEc/pXruKRobo
-         M6PesY0UnY0uhvsyJiHY/HUPKnXHRepRoQS6aIJ8p9Itveji8oH0dKyWJ1xGxrT6e82P
-         5MElCVQsA4OpK2DhYIws4dSi1Hr1luZqNd/ETvd+GcrpvoKCa1wuYMEEa66f2i6kuhf8
-         66i7s5KGms8UVoyhTsMJBdvciTu0mbS1W6aptuOTqny1Nu5RHwpN8XMPnbJMZsusYtKz
-         f7HA==
-X-Gm-Message-State: AO0yUKX6RW2vAMP/ahhG2Qo5e/iOZtZ3k4uL9A6uzDiuNgEC1gcUZSib
-        gDEfUt0wyyIF9QrapnxGQEY=
-X-Google-Smtp-Source: AK7set+Lr4c23g9gc6mlIlsPVaWfA+xOrN2cWnX14DjlF5n4rzO57Qrv9VmpsdHa7QUghzE9eypo5Q==
-X-Received: by 2002:a17:902:f685:b0:199:190c:3c0c with SMTP id l5-20020a170902f68500b00199190c3c0cmr15736665plg.2.1676013460458;
-        Thu, 09 Feb 2023 23:17:40 -0800 (PST)
-Received: from hbh25y.. ([129.227.150.140])
-        by smtp.gmail.com with ESMTPSA id d2-20020a170902728200b00194ab9a4febsm2703645pll.74.2023.02.09.23.17.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Feb 2023 23:17:39 -0800 (PST)
-From:   Hangyu Hua <hbh25y@gmail.com>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        Fri, 10 Feb 2023 05:33:04 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F3F86D609;
+        Fri, 10 Feb 2023 02:33:00 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pQQi2-0005P7-M8; Fri, 10 Feb 2023 11:32:50 +0100
+Date:   Fri, 10 Feb 2023 11:32:50 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Hangyu Hua <hbh25y@gmail.com>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
         davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hangyu Hua <hbh25y@gmail.com>
-Subject: [PATCH] net: netfilter: fix possible refcount leak in ctnetlink_create_conntrack()
-Date:   Fri, 10 Feb 2023 15:17:30 +0800
-Message-Id: <20230210071730.21525-1-hbh25y@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] net: netfilter: fix possible refcount leak in
+ ctnetlink_create_conntrack()
+Message-ID: <20230210103250.GC17303@breakpoint.cc>
+References: <20230210071730.21525-1-hbh25y@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230210071730.21525-1-hbh25y@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_ct_put() needs to be called to put the refcount got by
-nf_conntrack_find_get() to avoid refcount leak when
-nf_conntrack_hash_check_insert() fails.
+Hangyu Hua <hbh25y@gmail.com> wrote:
+> nf_ct_put() needs to be called to put the refcount got by
+> nf_conntrack_find_get() to avoid refcount leak when
+> nf_conntrack_hash_check_insert() fails.
+> 
+> Fixes: 7d367e06688d ("netfilter: ctnetlink: fix soft lockup when netlink adds new entries (v2)")
+> Signed-off-by: Hangyu Hua <hbh25y@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_netlink.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index 1286ae7d4609..ca4d5bb1ea52 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -2375,12 +2375,15 @@ ctnetlink_create_conntrack(struct net *net,
+>  
+>  	err = nf_conntrack_hash_check_insert(ct);
+>  	if (err < 0)
+> -		goto err2;
+> +		goto err3;
 
-Fixes: 7d367e06688d ("netfilter: ctnetlink: fix soft lockup when netlink adds new entries (v2)")
-Signed-off-by: Hangyu Hua <hbh25y@gmail.com>
----
- net/netfilter/nf_conntrack_netlink.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Ouch, looks like this is broken in more than one way?
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1286ae7d4609..ca4d5bb1ea52 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2375,12 +2375,15 @@ ctnetlink_create_conntrack(struct net *net,
- 
- 	err = nf_conntrack_hash_check_insert(ct);
- 	if (err < 0)
--		goto err2;
-+		goto err3;
- 
- 	rcu_read_unlock();
- 
- 	return ct;
- 
-+err3:
-+	if (ct->master)
-+		nf_ct_put(ct->master);
- err2:
- 	rcu_read_unlock();
- err1:
--- 
-2.34.1
+nf_conntrack_hash_check_insert() can call nf_ct_kill()
+and return an error, in that case ct->master reference
+is already dropped for us.
 
+One way would be to return 0 in that case (in
+nf_conntrack_hash_check_insert()).  What do you think?
