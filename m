@@ -2,88 +2,105 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D6F1C05027
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Feb 2023 16:07:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ECABC05027
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Feb 2023 17:35:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232500AbjBJQHd (ORCPT
+        id S232601AbjBJRfG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Feb 2023 11:07:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60364 "EHLO
+        Fri, 10 Feb 2023 12:35:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232083AbjBJQHc (ORCPT
+        with ESMTP id S232248AbjBJRfF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Feb 2023 11:07:32 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 51A8C72DD4;
-        Fri, 10 Feb 2023 08:07:29 -0800 (PST)
-Date:   Fri, 10 Feb 2023 17:07:24 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Hangyu Hua <hbh25y@gmail.com>, kadlec@netfilter.org,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] net: netfilter: fix possible refcount leak in
- ctnetlink_create_conntrack()
-Message-ID: <Y+ZrvJZ2lJPhYFtq@salvia>
-References: <20230210071730.21525-1-hbh25y@gmail.com>
- <20230210103250.GC17303@breakpoint.cc>
+        Fri, 10 Feb 2023 12:35:05 -0500
+Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [185.125.25.10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51B8775376
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Feb 2023 09:35:03 -0800 (PST)
+Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PD18N0KhrzMqHj0;
+        Fri, 10 Feb 2023 18:35:00 +0100 (CET)
+Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4PD18M2XF2zlgQ;
+        Fri, 10 Feb 2023 18:34:59 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1676050499;
+        bh=qq9/iBzdW2JJ7LVb5FrkmL3nT8Cyk8jQS1aBdesp2Ow=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=bE223pPu7T9gAGiAJsTtK6XLms+0odBCnUoBzhwBQrVindPNB5yE0QKyy+BxaEidy
+         K+AwcJHzSKfPCHFVZ0QZWNufG2cGNQbiOtRWdbccqVPj9ZDJFUtPu6m2/NLc2umAL6
+         t23GJ2z0PesQM6V3oEmcHP22Md/C533XceBElnyY=
+Message-ID: <97ff3f0f-1704-3003-fe60-d7444579e0d7@digikod.net>
+Date:   Fri, 10 Feb 2023 18:34:57 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230210103250.GC17303@breakpoint.cc>
+User-Agent: 
+Subject: Re: [PATCH v9 02/12] landlock: Allow filesystem layout changes for
+ domains without such rule type
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com
+References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+ <20230116085818.165539-3-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <20230116085818.165539-3-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Hi Konstantin,
 
-On Fri, Feb 10, 2023 at 11:32:50AM +0100, Florian Westphal wrote:
-> Hangyu Hua <hbh25y@gmail.com> wrote:
-> > nf_ct_put() needs to be called to put the refcount got by
-> > nf_conntrack_find_get() to avoid refcount leak when
-> > nf_conntrack_hash_check_insert() fails.
-> > 
-> > Fixes: 7d367e06688d ("netfilter: ctnetlink: fix soft lockup when netlink adds new entries (v2)")
-> > Signed-off-by: Hangyu Hua <hbh25y@gmail.com>
-> > ---
-> >  net/netfilter/nf_conntrack_netlink.c | 5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> > index 1286ae7d4609..ca4d5bb1ea52 100644
-> > --- a/net/netfilter/nf_conntrack_netlink.c
-> > +++ b/net/netfilter/nf_conntrack_netlink.c
-> > @@ -2375,12 +2375,15 @@ ctnetlink_create_conntrack(struct net *net,
-> >  
-> >  	err = nf_conntrack_hash_check_insert(ct);
-> >  	if (err < 0)
-> > -		goto err2;
-> > +		goto err3;
+I think this patch series is almost ready. Here is a first batch of 
+review, I'll send more next week.
+
+
+I forgot to update the documentation. Can you please squash the 
+following patch into this one?
+
+
+diff --git a/Documentation/userspace-api/landlock.rst 
+b/Documentation/userspace-api/landlock.rst
+index 980558b879d6..fc2be89b423f 100644
+--- a/Documentation/userspace-api/landlock.rst
++++ b/Documentation/userspace-api/landlock.rst
+@@ -416,9 +416,9 @@ Current limitations
+  Filesystem topology modification
+  --------------------------------
+
+-As for file renaming and linking, a sandboxed thread cannot modify its
+-filesystem topology, whether via :manpage:`mount(2)` or
+-:manpage:`pivot_root(2)`.  However, :manpage:`chroot(2)` calls are not 
+denied.
++Threads sandboxed with filesystem restrictions cannot modify filesystem
++topology, whether via :manpage:`mount(2)` or :manpage:`pivot_root(2)`.
++However, :manpage:`chroot(2)` calls are not denied.
+
+  Special filesystems
+  -------------------
+
+
+On 16/01/2023 09:58, Konstantin Meskhidze wrote:
+> From: Mickaël Salaün <mic@digikod.net>
 > 
-> Ouch, looks like this is broken in more than one way?
+> Allow mount point and root directory changes when there is no filesystem
+> rule tied to the current Landlock domain.  This doesn't change anything
+> for now because a domain must have at least a (filesystem) rule, but
+> this will change when other rule types will come.  For instance, a
+> domain only restricting the network should have no impact on filesystem
+> restrictions.
 > 
-> nf_conntrack_hash_check_insert() can call nf_ct_kill()
-> and return an error, in that case ct->master reference
-> is already dropped for us.
+> Add a new get_current_fs_domain() helper to quickly check filesystem
+> rule existence for all filesystem LSM hooks.
 > 
-> One way would be to return 0 in that case (in
-> nf_conntrack_hash_check_insert()).  What do you think?
-
-This is misleading to the user that adds an entry via ctnetlink?
-
-ETIMEDOUT also looks a bit confusing to report to userspace.
-Rewinding: if the intention is to deal with stale conntrack extension,
-for example, helper module has been removed while this entry was
-added. Then, probably call EAGAIN so nfnetlink has a chance to retry
-transparently?
-
-BTW, I think we should remove:
-
-NF_CT_STAT_INC_ATOMIC(net, drop);
-
-that is under nf_ct_ext_valid_post(), no packet is dropped in this
-path.
-
-Thanks.
+> Remove unnecessary inlining.
+> 
+> Signed-off-by: Mickaël Salaün <mic@digikod.net>
+> ---
+> 
+> Changes since v8:
+> * Refactors get_handled_fs_accesses().
+> * Adds landlock_get_raw_fs_access_mask() helper.
+> 
