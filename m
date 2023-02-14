@@ -2,152 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C43FC05027
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Feb 2023 16:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B50C61DA4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Feb 2023 23:08:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbjBNQYq (ORCPT
+        id S232766AbjBNXIQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Feb 2023 11:24:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39308 "EHLO
+        Tue, 14 Feb 2023 18:08:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbjBNQY2 (ORCPT
+        with ESMTP id S232785AbjBNXIQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Feb 2023 11:24:28 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 380CF2CFE6
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Feb 2023 08:24:06 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pRy68-0005zt-L4; Tue, 14 Feb 2023 17:24:04 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf v2] netfilter: conntrack: fix rmmod double-free race
-Date:   Tue, 14 Feb 2023 17:23:59 +0100
-Message-Id: <20230214162359.5035-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.1
+        Tue, 14 Feb 2023 18:08:16 -0500
+Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80E7B10D1
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Feb 2023 15:08:11 -0800 (PST)
+Received: by mail-oi1-x231.google.com with SMTP id t5so14354591oiw.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Feb 2023 15:08:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=datadoghq.com; s=google;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=0KbffaCSPfPMo0JlQMj/ELtGYfjLmastzbChrDc2eLQ=;
+        b=CRRuPAnuiFzOyvUo3GSYSbUuIBPGlXdvqyeqohxNruPkEw1K+Fb4e1p3kq3QhMcWoX
+         Sz/0RzWbNzoZL3Fp5QHWN16wCDozaBfNKaWd9dP/37l4gEZ1XmzSbTgom0vZP4I/z+N2
+         mo4aygypx8NmEg0gVpZprz90wbtv+ebnIbhug=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=0KbffaCSPfPMo0JlQMj/ELtGYfjLmastzbChrDc2eLQ=;
+        b=U9dpMUffyQRI35XlBmxmEt93/1JLeN+E+QERnNqXm3KDQHykthv+02pg+J3epg4vOy
+         4f/pXPSnzOsFScco/bF0iQ9FA1oAM/OQFZWVHmWM2471FuydDBaDrh+hcnzFCIiYE0d4
+         ZQZRShc7GSRx36wqBvn5Gl1oG5WMeTEpfyDA9yAFu6bcaRMzBjywKvpffCMYF6BCpuJT
+         edUh8g8FE9vl6S+nzkjp7g6UETvezcfgZ2fgb77U/rLxj5PRsUiFrlrTx1yrq8gZ6Hi3
+         NLTsAWaLHwRGsQaN41YXPDBxdufRtltz+j/iei9haEbmVj6L16LXEslR2PWCorXNpH5a
+         cvYw==
+X-Gm-Message-State: AO0yUKWh3uraVXccnLkUM/XIuaysHOHZuxEkZYq6r6VFjs7yIOxNM1iL
+        PofKFKb2A/u2s3Zoy74ipmMwDFhKgAsjOcsvOdEtIX3hhkNs+AZYLUA=
+X-Google-Smtp-Source: AK7set+ffB7N7CHMERwmIM97msXqWih3/wTqxBjXk6Y9mInFnM44+J76Ssy1HE96LBOodNRmx1Sy2Sxdb3TTwPQ8SwU=
+X-Received: by 2002:aca:c145:0:b0:37b:70a8:ccc7 with SMTP id
+ r66-20020acac145000000b0037b70a8ccc7mr115437oif.40.1676416090737; Tue, 14 Feb
+ 2023 15:08:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From:   Bryce Kahle <bryce.kahle@datadoghq.com>
+Date:   Tue, 14 Feb 2023 15:08:00 -0800
+Message-ID: <CALvGib_xHOVD2+6tKm2Sf0wVkQwut2_z2gksZPcGw30tOvOAAA@mail.gmail.com>
+Subject: PROBLEM: nf_conntrack_events autodetect mode invalidates
+ NETLINK_LISTEN_ALL_NSID netlink socket option
+To:     fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_conntrack_hash_check_insert() callers free the ct entry directly, via
-nf_conntrack_free.
+nf_conntrack_events auto mode invalidates NETLINK_LISTEN_ALL_NSID
+netlink socket option
 
-This isn't safe anymore because
-nf_conntrack_hash_check_insert() might place the entry into the conntrack
-table and then delteted the entry again because it found that a conntrack
-extension has been removed at the same time.
+commit 90d1daa45849f272b701f29d6ca88b24743c7553 introduced a
+nf_conntrack_events=2 mode sysctl intended to avoid an allocation "as
+long as no event listener is active in
+the namespace".
 
-In this case, the just-added entry is removed again and an error is
-returned to the caller.
+The netlink socket option NETLINK_LISTEN_ALL_NSID allows a socket to
+listen to events "from all network namespaces that have an nsid
+assigned into the network namespace where the socket has been opened".
 
-Problem is that another cpu might have picked up this entry and
-incremented its reference count.
+The effect of the above commit is that sockets in other network
+namespaces (including the root network namespace) with
+NETLINK_LISTEN_ALL_NSID, no longer receive events from any other
+network namespace. Once you create a netlink socket in the same
+network namespace as the event, then events from that network
+namespace flow to all netlink sockets in all namespaces.
 
-This results in a use-after-free/double-free, once by the other cpu and
-once by the caller of nf_conntrack_hash_check_insert().
+I attempted a workaround by setting nf_conntrack_events=1, but that
+only applies in the current namespace. I believe this workaround has
+no effect, because the default has been changed to 2 for all new
+namespaces.
 
-Fix this by making nf_conntrack_hash_check_insert() not fail anymore
-after the insertion, just like before the 'Fixes' commit.
+This affects kernels 5.19+. I have git bisected the kernel with a
+reproducer to identify the commit above. I can publish the reproducer
+on request.
 
-This is safe because a racing nf_ct_iterate() has to wait for us
-to release the conntrack hash spinlocks.
-
-While at it, make the function return -EAGAIN in the rmmod (genid
-changed) case, this makes nfnetlink replay the command (suggested
-by Pablo Neira).
-
-Fixes: c56716c69ce1 ("netfilter: extensions: introduce extension genid count")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: restore original 'no failure after insertion' by
-     moving _post check before the list insertion.
-
- This is on top of
- "net: netfilter: fix possible refcount leak in ctnetlink_create_conntrack()"
- net/netfilter/nf_conntrack_bpf.c     |  1 -
- net/netfilter/nf_conntrack_core.c    | 25 +++++++++++++++----------
- net/netfilter/nf_conntrack_netlink.c |  3 ---
- 3 files changed, 15 insertions(+), 14 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 24002bc61e07..e1af14e3b63c 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -381,7 +381,6 @@ struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct_i)
- 	struct nf_conn *nfct = (struct nf_conn *)nfct_i;
- 	int err;
- 
--	nfct->status |= IPS_CONFIRMED;
- 	err = nf_conntrack_hash_check_insert(nfct);
- 	if (err < 0) {
- 		nf_conntrack_free(nfct);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 496c4920505b..4d661b7f12e9 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -886,10 +886,8 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 
- 	zone = nf_ct_zone(ct);
- 
--	if (!nf_ct_ext_valid_pre(ct->ext)) {
--		NF_CT_STAT_INC_ATOMIC(net, insert_failed);
--		return -ETIMEDOUT;
--	}
-+	if (!nf_ct_ext_valid_pre(ct->ext))
-+		return -EAGAIN;
- 
- 	local_bh_disable();
- 	do {
-@@ -924,6 +922,19 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 			goto chaintoolong;
- 	}
- 
-+	/* If genid has changed, we can't insert anymore because ct
-+	 * extensions could have stale pointers and nf_ct_iterate_destroy
-+	 * might have completed its table scan already.
-+	 *
-+	 * Increment of the ext genid right after this check is fine:
-+	 * nf_ct_iterate_destroy blocks until locks are released.
-+	 */
-+	if (!nf_ct_ext_valid_post(ct->ext)) {
-+		err = -EAGAIN;
-+		goto out;
-+	}
-+
-+	ct->status |= IPS_CONFIRMED;
- 	smp_wmb();
- 	/* The caller holds a reference to this object */
- 	refcount_set(&ct->ct_general.use, 2);
-@@ -932,12 +943,6 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	NF_CT_STAT_INC(net, insert);
- 	local_bh_enable();
- 
--	if (!nf_ct_ext_valid_post(ct->ext)) {
--		nf_ct_kill(ct);
--		NF_CT_STAT_INC_ATOMIC(net, drop);
--		return -ETIMEDOUT;
--	}
--
- 	return 0;
- chaintoolong:
- 	NF_CT_STAT_INC(net, chaintoolong);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ca4d5bb1ea52..733bb56950c1 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2316,9 +2316,6 @@ ctnetlink_create_conntrack(struct net *net,
- 	nfct_seqadj_ext_add(ct);
- 	nfct_synproxy_ext_add(ct);
- 
--	/* we must add conntrack extensions before confirmation. */
--	ct->status |= IPS_CONFIRMED;
--
- 	if (cda[CTA_STATUS]) {
- 		err = ctnetlink_change_status(ct, cda);
- 		if (err < 0)
--- 
-2.39.1
-
+Thanks,
+Bryce Kahle
+Datadog
