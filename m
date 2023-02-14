@@ -2,163 +2,101 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF1E3C636D4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Feb 2023 17:57:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53EC8C05027
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Feb 2023 08:19:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229655AbjBMR5q (ORCPT
+        id S231907AbjBNITP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Feb 2023 12:57:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40350 "EHLO
+        Tue, 14 Feb 2023 03:19:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbjBMR5p (ORCPT
+        with ESMTP id S230044AbjBNITO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Feb 2023 12:57:45 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A9B01AD
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Feb 2023 09:57:44 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pRd5C-0006lb-9U; Mon, 13 Feb 2023 18:57:42 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: conntrack: fix rmmod double-free race
-Date:   Mon, 13 Feb 2023 18:57:37 +0100
-Message-Id: <20230213175737.26685-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.1
+        Tue, 14 Feb 2023 03:19:14 -0500
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68FE3768C;
+        Tue, 14 Feb 2023 00:19:13 -0800 (PST)
+Received: from kwepemm600001.china.huawei.com (unknown [172.30.72.57])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4PGDZW23MDznWBd;
+        Tue, 14 Feb 2023 16:16:51 +0800 (CST)
+Received: from [10.174.176.245] (10.174.176.245) by
+ kwepemm600001.china.huawei.com (7.193.23.3) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.17; Tue, 14 Feb 2023 16:19:10 +0800
+Message-ID: <6d812cac-f603-9aa9-6f06-41535ad7cfcd@huawei.com>
+Date:   Tue, 14 Feb 2023 16:19:07 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH net-next 05/12] netfilter: conntrack: set icmpv6 redirects
+ as RELATED
+To:     <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        <netfilter-devel@vger.kernel.org>
+CC:     <davem@davemloft.net>, <netdev@vger.kernel.org>, <kuba@kernel.org>,
+        <pabeni@redhat.com>, <edumazet@google.com>
+References: <20221211101204.1751-1-pablo@netfilter.org>
+ <20221211101204.1751-6-pablo@netfilter.org>
+From:   Wang Hai <wanghai38@huawei.com>
+In-Reply-To: <20221211101204.1751-6-pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.174.176.245]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ kwepemm600001.china.huawei.com (7.193.23.3)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nf_conntrack_hash_check_insert() callers free the ct entry directly, via
-nf_conntrack_free.
 
-This isn't allowed anymore in all cases: Its possible that
-nf_conntrack_hash_check_insert() placed the entry into the conntrack
-table and then found that a conntrack extension has been removed at the
-same time.
+在 2022/12/11 18:11, Pablo Neira Ayuso 写道:
+> From: Florian Westphal <fw@strlen.de>
+>
+> icmp conntrack will set icmp redirects as RELATED, but icmpv6 will not
+> do this.
+>
+> For icmpv6, only icmp errors (code <= 128) are examined for RELATED state.
+> ICMPV6 Redirects are part of neighbour discovery mechanism, those are
+> handled by marking a selected subset (e.g.  neighbour solicitations) as
+> UNTRACKED, but not REDIRECT -- they will thus be flagged as INVALID.
+>
+> Add minimal support for REDIRECTs.  No parsing of neighbour options is
+> added for simplicity, so this will only check that we have the embeeded
+> original header (ND_OPT_REDIRECT_HDR), and then attempt to do a flow
+> lookup for this tuple.
+>
+> Also extend the existing test case to cover redirects.
+>
+> Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+> Reported-by: Eric Garver <eric@garver.life>
+> Link: https://github.com/firewalld/firewalld/issues/1046
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Acked-by: Eric Garver <eric@garver.life>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>   net/netfilter/nf_conntrack_proto_icmpv6.c     | 53 +++++++++++++++++++
+>   .../netfilter/conntrack_icmp_related.sh       | 36 ++++++++++++-
+>   2 files changed, 87 insertions(+), 2 deletions(-)
+Hi, Florian.
 
-In this case, the just-added entry is removed again and an error is
-returned to the caller.
+The new ipv4 redirects test case doesn't seem to work, is there a 
+problem with my testing steps?
 
-Problem is that another cpu might have picked up this entry and
-incremented its reference count.
+# sh tools/testing/selftests/netfilter/conntrack_icmp_related.sh
+PASS: icmp mtu error had RELATED state
+ERROR: counter redir4 in nsclient1 has unexpected value (expected 
+packets 1 bytes 112)
+table inet filter {
+         counter redir4 {
+                 packets 0 bytes 0
+         }
+}
+ERROR: icmp redirect RELATED state test has failed.
 
-This results in a use-after-free/double-free, once by the other cpu and
-once by the caller of nf_conntrack_hash_check_insert().
+The test is based on commit f6feea56f66d ("Merge tag 
+'mm-hotfixes-stable-2023-02-13-13-50' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm")
 
-Fix this by making nf_conntrack_hash_check_insert() always set a
-refcount.
-
-Refcount is set to 2 right before insertion, so we only need to make
-sure we set it to 1 in all error branches that can occur before
-inserting the enry into the hash.
-
-Callers can then just call nf_ct_put(), which will also take care of
-ct->master reference.
-
-While at it, make the function return -EAGAIN in the rmmod (genid
-changed) case, this makes nfnetlink replay the command (suggested
-by Pablo Neira).
-
-Fixes: c56716c69ce1 ("netfilter: extensions: introduce extension genid count")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- This is on top of
- "net: netfilter: fix possible refcount leak in ctnetlink_create_conntrack()"
-
- net/netfilter/nf_conntrack_bpf.c     |  3 +--
- net/netfilter/nf_conntrack_core.c    | 11 +++++++----
- net/netfilter/nf_conntrack_netlink.c |  8 +++-----
- 3 files changed, 11 insertions(+), 11 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 24002bc61e07..9de5a32088d2 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -381,10 +381,9 @@ struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct_i)
- 	struct nf_conn *nfct = (struct nf_conn *)nfct_i;
- 	int err;
- 
--	nfct->status |= IPS_CONFIRMED;
- 	err = nf_conntrack_hash_check_insert(nfct);
- 	if (err < 0) {
--		nf_conntrack_free(nfct);
-+		nf_ct_put(nfct);
- 		return NULL;
- 	}
- 	return nfct;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 496c4920505b..2eeb2e2b8e46 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -887,8 +887,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	zone = nf_ct_zone(ct);
- 
- 	if (!nf_ct_ext_valid_pre(ct->ext)) {
--		NF_CT_STAT_INC_ATOMIC(net, insert_failed);
--		return -ETIMEDOUT;
-+		/* so caller can use nf_ct_put() */
-+		refcount_set(&ct->ct_general.use, 1);
-+		return -EAGAIN;
- 	}
- 
- 	local_bh_disable();
-@@ -924,6 +925,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 			goto chaintoolong;
- 	}
- 
-+	ct->status |= IPS_CONFIRMED;
- 	smp_wmb();
- 	/* The caller holds a reference to this object */
- 	refcount_set(&ct->ct_general.use, 2);
-@@ -934,8 +936,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 
- 	if (!nf_ct_ext_valid_post(ct->ext)) {
- 		nf_ct_kill(ct);
--		NF_CT_STAT_INC_ATOMIC(net, drop);
--		return -ETIMEDOUT;
-+		return -EAGAIN;
- 	}
- 
- 	return 0;
-@@ -943,6 +944,8 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 	NF_CT_STAT_INC(net, chaintoolong);
- 	err = -ENOSPC;
- out:
-+	/* so caller can use nf_ct_put() */
-+	refcount_set(&ct->ct_general.use, 1);
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	local_bh_enable();
- 	return err;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ca4d5bb1ea52..dc448c5bc3f1 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2316,9 +2316,6 @@ ctnetlink_create_conntrack(struct net *net,
- 	nfct_seqadj_ext_add(ct);
- 	nfct_synproxy_ext_add(ct);
- 
--	/* we must add conntrack extensions before confirmation. */
--	ct->status |= IPS_CONFIRMED;
--
- 	if (cda[CTA_STATUS]) {
- 		err = ctnetlink_change_status(ct, cda);
- 		if (err < 0)
-@@ -2382,8 +2379,9 @@ ctnetlink_create_conntrack(struct net *net,
- 	return ct;
- 
- err3:
--	if (ct->master)
--		nf_ct_put(ct->master);
-+	rcu_read_unlock();
-+	nf_ct_put(ct);
-+	return ERR_PTR(err);
- err2:
- 	rcu_read_unlock();
- err1:
 -- 
-2.39.1
+Wang Hai
 
