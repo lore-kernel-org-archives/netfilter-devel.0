@@ -2,157 +2,152 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB3B1C636CC
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Feb 2023 16:06:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DCE9C61DA4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Feb 2023 20:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229487AbjBPQGD (ORCPT
+        id S229506AbjBPU1J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Feb 2023 11:06:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36754 "EHLO
+        Thu, 16 Feb 2023 15:27:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229688AbjBPQGB (ORCPT
+        with ESMTP id S229580AbjBPU1I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Feb 2023 11:06:01 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03F64C64D
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2023 08:05:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=0dqiQcCc7pzfDB1jH8b6t1cGt+jSHaAA5wCPBOCCV+I=; b=gorxk7rPKB96Zh24tv91hItviU
-        HcMkaj3favdveBn82vWTrfSw/Lt4qJF5Q2waUGYp82/goyY2D0bqqrl4wu/gS1LdZPY7+yn+cwLQK
-        J/qazOuKKu309dY8YAaTkP8HFepToMG2MprLECs7UagvXnKGbGl9bVVMrXvsT4ZnsD/I+u3aLN55n
-        LxXqPpLnCbEF+ustaHavBqt0B1G99IppxfO/QjaPUEinF+KTp71uy1vFOjeZkJxJlnLYOfclijrjY
-        dNEsjk2m67W/QIKimCEUTNm6q/qTciqYkTH+DkGHjyd+fodXePRxhVP/Q1qOh+JBVZerRe+4v/HRb
-        d2KIn8Bg==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1pSglV-0005Ve-59; Thu, 16 Feb 2023 17:05:45 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, David Ahern <dsahern@kernel.org>,
-        Guillaume Nault <gnault@redhat.com>
-Subject: [nf PATCH] netfilter: Fix regression in ip6t_rpfilter with VRF interfaces
-Date:   Thu, 16 Feb 2023 17:05:36 +0100
-Message-Id: <20230216160536.18506-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.38.0
+        Thu, 16 Feb 2023 15:27:08 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 41F60505EE
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2023 12:27:01 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/3] evaluate: infer family from mapping
+Date:   Thu, 16 Feb 2023 21:26:54 +0100
+Message-Id: <20230216202656.448027-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When calling ip6_route_lookup() for the packet arriving on the VRF
-interface, the result is always the real (slave) interface. Expect this
-when validating the result.
+If the key in the nat mapping is either ip or ip6, then set the nat
+family accordingly, no need for explicit family in the nat statement.
 
-Fixes: acc641ab95b66 ("netfilter: rpfilter/fib: Populate flowic_l3mdev field")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Print error message in case family cannot be inferred, before this
+patch, $? shows 1 after nft execution but no error message was printed.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_rpfilter.c         |  4 ++-
- tools/testing/selftests/netfilter/rpath.sh | 32 ++++++++++++++++++----
- 2 files changed, 29 insertions(+), 7 deletions(-)
+ src/evaluate.c                       | 47 +++++++++++++++++++++++++---
+ tests/shell/testcases/sets/0047nat_0 | 14 +++++++++
+ 2 files changed, 56 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index a01d9b842bd07..67c87a88cde4f 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -72,7 +72,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		goto out;
- 	}
- 
--	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
-+	if (rt->rt6i_idev->dev == dev ||
-+	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
-+	    (flags & XT_RPFILTER_LOOSE))
- 		ret = true;
-  out:
- 	ip6_rt_put(rt);
-diff --git a/tools/testing/selftests/netfilter/rpath.sh b/tools/testing/selftests/netfilter/rpath.sh
-index f7311e66d2193..5289c8447a419 100755
---- a/tools/testing/selftests/netfilter/rpath.sh
-+++ b/tools/testing/selftests/netfilter/rpath.sh
-@@ -62,10 +62,16 @@ ip -net "$ns1" a a fec0:42::2/64 dev v0 nodad
- ip -net "$ns2" a a fec0:42::1/64 dev d0 nodad
- 
- # firewall matches to test
--[ -n "$iptables" ] && ip netns exec "$ns2" \
--	"$iptables" -t raw -A PREROUTING -s 192.168.0.0/16 -m rpfilter
--[ -n "$ip6tables" ] && ip netns exec "$ns2" \
--	"$ip6tables" -t raw -A PREROUTING -s fec0::/16 -m rpfilter
-+[ -n "$iptables" ] && {
-+	common='-t raw -A PREROUTING -s 192.168.0.0/16'
-+	ip netns exec "$ns2" "$iptables" $common -m rpfilter
-+	ip netns exec "$ns2" "$iptables" $common -m rpfilter --invert
-+}
-+[ -n "$ip6tables" ] && {
-+	common='-t raw -A PREROUTING -s fec0::/16'
-+	ip netns exec "$ns2" "$ip6tables" $common -m rpfilter
-+	ip netns exec "$ns2" "$ip6tables" $common -m rpfilter --invert
-+}
- [ -n "$nft" ] && ip netns exec "$ns2" $nft -f - <<EOF
- table inet t {
- 	chain c {
-@@ -89,6 +95,11 @@ ipt_zero_rule() { # (command)
- 	[ -n "$1" ] || return 0
- 	ip netns exec "$ns2" "$1" -t raw -vS | grep -q -- "-m rpfilter -c 0 0"
- }
-+ipt_zero_reverse_rule() { # (command)
-+	[ -n "$1" ] || return 0
-+	ip netns exec "$ns2" "$1" -t raw -vS | \
-+		grep -q -- "-m rpfilter --invert -c 0 0"
-+}
- nft_zero_rule() { # (family)
- 	[ -n "$nft" ] || return 0
- 	ip netns exec "$ns2" "$nft" list chain inet t c | \
-@@ -101,8 +112,7 @@ netns_ping() { # (netns, args...)
- 	ip netns exec "$netns" ping -q -c 1 -W 1 "$@" >/dev/null
+diff --git a/src/evaluate.c b/src/evaluate.c
+index f92b160ce3a4..da8131d706d6 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3502,16 +3502,50 @@ static int stmt_evaluate_l3proto(struct eval_ctx *ctx,
+ 	return 0;
  }
  
--testrun() {
--	# clear counters first
-+clear_counters() {
- 	[ -n "$iptables" ] && ip netns exec "$ns2" "$iptables" -t raw -Z
- 	[ -n "$ip6tables" ] && ip netns exec "$ns2" "$ip6tables" -t raw -Z
- 	if [ -n "$nft" ]; then
-@@ -111,6 +121,10 @@ testrun() {
- 			ip netns exec "$ns2" $nft -s list table inet t;
- 		) | ip netns exec "$ns2" $nft -f -
- 	fi
++static int expr_family_infer(struct proto_ctx *pctx, const struct expr *expr)
++{
++	int family = pctx->family;
++	struct expr *i;
++
++	if (expr->etype == EXPR_MAP) {
++		switch (expr->map->etype) {
++		case EXPR_CONCAT:
++			list_for_each_entry(i, &expr->map->expressions, list) {
++				if (i->etype == EXPR_PAYLOAD) {
++					if (i->payload.desc == &proto_ip)
++						family = NFPROTO_IPV4;
++					else if (i->payload.desc == &proto_ip6)
++						family = NFPROTO_IPV6;
++				}
++			}
++			break;
++		case EXPR_PAYLOAD:
++			if (expr->map->payload.desc == &proto_ip)
++				family = NFPROTO_IPV4;
++			else if (expr->map->payload.desc == &proto_ip6)
++				family = NFPROTO_IPV6;
++			break;
++		default:
++			break;
++		}
++	}
++
++	return family;
 +}
 +
-+testrun() {
-+	clear_counters
+ static int stmt_evaluate_addr(struct eval_ctx *ctx, struct stmt *stmt,
+-			      uint8_t family,
+-			      struct expr **addr)
++			      uint8_t *family, struct expr **addr)
+ {
+ 	struct proto_ctx *pctx = eval_proto_ctx(ctx);
+ 	const struct datatype *dtype;
+ 	int err;
  
- 	# test 1: martian traffic should fail rpfilter matches
- 	netns_ping "$ns1" -I v0 192.168.42.1 && \
-@@ -120,9 +134,13 @@ testrun() {
- 
- 	ipt_zero_rule "$iptables" || die "iptables matched martian"
- 	ipt_zero_rule "$ip6tables" || die "ip6tables matched martian"
-+	ipt_zero_reverse_rule "$iptables" && die "iptables not matched martian"
-+	ipt_zero_reverse_rule "$ip6tables" && die "ip6tables not matched martian"
- 	nft_zero_rule ip || die "nft IPv4 matched martian"
- 	nft_zero_rule ip6 || die "nft IPv6 matched martian"
- 
-+	clear_counters
+ 	if (pctx->family == NFPROTO_INET) {
+-		dtype = get_addr_dtype(family);
++		if (*family == NFPROTO_INET ||
++		    *family == NFPROTO_UNSPEC)
++			*family = expr_family_infer(pctx, *addr);
 +
- 	# test 2: rpfilter match should pass for regular traffic
- 	netns_ping "$ns1" 192.168.23.1 || \
- 		die "regular ping 192.168.23.1 failed"
-@@ -131,6 +149,8 @@ testrun() {
++		dtype = get_addr_dtype(*family);
+ 		if (dtype->size == 0)
+ 			return stmt_error(ctx, stmt,
+ 					  "ip or ip6 must be specified with address for inet tables.");
+@@ -3532,6 +3566,9 @@ static int stmt_evaluate_nat_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 	const struct datatype *dtype;
+ 	int addr_type, err;
  
- 	ipt_zero_rule "$iptables" && die "iptables match not effective"
- 	ipt_zero_rule "$ip6tables" && die "ip6tables match not effective"
-+	ipt_zero_reverse_rule "$iptables" || die "iptables match over-effective"
-+	ipt_zero_reverse_rule "$ip6tables" || die "ip6tables match over-effective"
- 	nft_zero_rule ip && die "nft IPv4 match not effective"
- 	nft_zero_rule ip6 && die "nft IPv6 match not effective"
++	if (stmt->nat.family == NFPROTO_INET)
++		stmt->nat.family = expr_family_infer(pctx, stmt->nat.addr);
++
+ 	switch (stmt->nat.family) {
+ 	case NFPROTO_IPV4:
+ 		addr_type = TYPE_IPADDR;
+@@ -3658,7 +3695,7 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ 			return 0;
+ 		}
  
+-		err = stmt_evaluate_addr(ctx, stmt, stmt->nat.family,
++		err = stmt_evaluate_addr(ctx, stmt, &stmt->nat.family,
+ 					 &stmt->nat.addr);
+ 		if (err < 0)
+ 			return err;
+@@ -3709,7 +3746,7 @@ static int stmt_evaluate_tproxy(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (stmt->tproxy.addr->etype == EXPR_RANGE)
+ 			return stmt_error(ctx, stmt, "Address ranges are not supported for tproxy.");
+ 
+-		err = stmt_evaluate_addr(ctx, stmt, stmt->tproxy.family,
++		err = stmt_evaluate_addr(ctx, stmt, &stmt->tproxy.family,
+ 					 &stmt->tproxy.addr);
+ 
+ 		if (err < 0)
+diff --git a/tests/shell/testcases/sets/0047nat_0 b/tests/shell/testcases/sets/0047nat_0
+index cb1d4d68d2d2..d19f5b69fd33 100755
+--- a/tests/shell/testcases/sets/0047nat_0
++++ b/tests/shell/testcases/sets/0047nat_0
+@@ -18,3 +18,17 @@ EXPECTED="table ip x {
+ set -e
+ $NFT -f - <<< $EXPECTED
+ $NFT add element x y { 10.141.12.0/24 : 192.168.5.10-192.168.5.20 }
++
++EXPECTED="table inet x {
++            chain x {
++                    type nat hook prerouting priority dstnat; policy accept;
++                    dnat to ip daddr . tcp dport map { 10.141.10.1 . 22 : 192.168.2.2, 10.141.11.2 . 2222 : 192.168.4.2 }
++            }
++
++            chain y {
++                    type nat hook postrouting priority srcnat; policy accept;
++                    snat to ip saddr map { 10.141.10.0/24 : 192.168.2.2-192.168.2.4, 10.141.11.0/24 : 192.168.4.2-192.168.4.3 }
++            }
++}"
++
++$NFT -f - <<< $EXPECTED
 -- 
-2.38.0
+2.30.2
 
