@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF1A4C636D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Feb 2023 20:27:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A52C6379F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Feb 2023 20:27:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229538AbjBPU1J (ORCPT
+        id S229620AbjBPU1K (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Feb 2023 15:27:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45592 "EHLO
+        Thu, 16 Feb 2023 15:27:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229620AbjBPU1I (ORCPT
+        with ESMTP id S229628AbjBPU1J (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Feb 2023 15:27:08 -0500
+        Thu, 16 Feb 2023 15:27:09 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D5085505ED
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 53C653B866
         for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2023 12:27:01 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] src: use start condition with new destroy command
-Date:   Thu, 16 Feb 2023 21:26:56 +0100
-Message-Id: <20230216202656.448027-3-pablo@netfilter.org>
+Subject: [PATCH nft 2/3] optimize: infer family for nat mapping
+Date:   Thu, 16 Feb 2023 21:26:55 +0100
+Message-Id: <20230216202656.448027-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230216202656.448027-1-pablo@netfilter.org>
 References: <20230216202656.448027-1-pablo@netfilter.org>
@@ -30,76 +30,161 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-tests/py reports the following problem:
+Infer family from key in nat mapping, otherwise nat mapping via merge
+breaks since family is not specified.
 
-any/ct.t: ERROR: line 116: add rule ip test-ip4 output ct event set new | related | destroy | label: This rule should not have failed.
-any/ct.t: ERROR: line 117: add rule ip test-ip4 output ct event set new,related,destroy,label: This rule should not have failed.
-any/ct.t: ERROR: line 118: add rule ip test-ip4 output ct event set new,destroy: This rule should not have failed.
+Merging:
+fw-test-bug2.nft:4:9-78:         iifname enp2s0 ip daddr 72.2.3.66 tcp dport 53122 dnat to 10.1.1.10:22
+fw-test-bug2.nft:5:9-77:         iifname enp2s0 ip daddr 72.2.3.66 tcp dport 443 dnat to 10.1.1.52:443
+fw-test-bug2.nft:6:9-75:         iifname enp2s0 ip daddr 72.2.3.70 tcp dport 80 dnat to 10.1.1.52:80
+into:
+        dnat ip to iifname . ip daddr . tcp dport map { enp2s0 . 72.2.3.66 . 53122 : 10.1.1.10 . 22, enp2s0 . 72.2.3.66 . 443 : 10.1.1.52 . 443, enp2s0 . 72.2.3.70 . 80 : 10.1.1.52 . 80 }
 
-Use start condition and update parser to handle 'destroy' keyword.
-
-Fixes: e1dfd5cc4c46 ("src: add support to command "destroy")
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1657
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/parser.h   | 1 +
- src/parser_bison.y | 2 ++
- src/scanner.l      | 4 +++-
- 3 files changed, 6 insertions(+), 1 deletion(-)
+ src/optimize.c                                | 23 +++++++++++++++++--
+ .../optimizations/dumps/merge_nat.nft         | 11 +++++++++
+ tests/shell/testcases/optimizations/merge_nat | 16 +++++++++++++
+ .../shell/testcases/sets/dumps/0047nat_0.nft  | 11 +++++++++
+ 4 files changed, 59 insertions(+), 2 deletions(-)
 
-diff --git a/include/parser.h b/include/parser.h
-index 1bd490f085d2..71df43093204 100644
---- a/include/parser.h
-+++ b/include/parser.h
-@@ -52,6 +52,7 @@ enum startcond_type {
- 	PARSER_SC_TYPE,
- 	PARSER_SC_VLAN,
- 	PARSER_SC_XT,
-+	PARSER_SC_CMD_DESTROY,
- 	PARSER_SC_CMD_EXPORT,
- 	PARSER_SC_CMD_IMPORT,
- 	PARSER_SC_CMD_LIST,
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index b229de7a5cf7..043909d082ca 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -969,6 +969,7 @@ close_scope_comp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_COMP);
- close_scope_ct		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CT); };
- close_scope_counter	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_COUNTER); };
- close_scope_dccp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_DCCP); };
-+close_scope_destroy	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_DESTROY); };
- close_scope_dst		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_DST); };
- close_scope_dup		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_STMT_DUP); };
- close_scope_esp		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_ESP); };
-@@ -4912,6 +4913,7 @@ keyword_expr		:	ETHER   close_scope_eth { $$ = symbol_value(&@$, "ether"); }
- 			|	SNAT	close_scope_nat	{ $$ = symbol_value(&@$, "snat"); }
- 			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
- 			|	RESET	close_scope_reset	{ $$ = symbol_value(&@$, "reset"); }
-+			|	DESTROY	close_scope_destroy	{ $$ = symbol_value(&@$, "destroy"); }
- 			|	ORIGINAL		{ $$ = symbol_value(&@$, "original"); }
- 			|	REPLY			{ $$ = symbol_value(&@$, "reply"); }
- 			|	LABEL			{ $$ = symbol_value(&@$, "label"); }
-diff --git a/src/scanner.l b/src/scanner.l
-index c0c49b97ade7..bc5b5b62b9ce 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -216,6 +216,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- %s SCANSTATE_TYPE
- %s SCANSTATE_VLAN
- %s SCANSTATE_XT
-+%s SCANSTATE_CMD_DESTROY
- %s SCANSTATE_CMD_EXPORT
- %s SCANSTATE_CMD_IMPORT
- %s SCANSTATE_CMD_LIST
-@@ -359,7 +360,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "import"                { scanner_push_start_cond(yyscanner, SCANSTATE_CMD_IMPORT); return IMPORT; }
- "export"		{ scanner_push_start_cond(yyscanner, SCANSTATE_CMD_EXPORT); return EXPORT; }
- "monitor"		{ scanner_push_start_cond(yyscanner, SCANSTATE_CMD_MONITOR); return MONITOR; }
--"destroy"		{ return DESTROY; }
-+"destroy"		{ scanner_push_start_cond(yyscanner, SCANSTATE_CMD_DESTROY); return DESTROY; }
-+
+diff --git a/src/optimize.c b/src/optimize.c
+index d60aa8f22c07..3548719031e6 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -21,6 +21,7 @@
+ #include <statement.h>
+ #include <utils.h>
+ #include <erec.h>
++#include <linux/netfilter.h>
  
- "position"		{ return POSITION; }
- "index"			{ return INDEX; }
+ #define MAX_STMTS	32
+ 
+@@ -872,9 +873,9 @@ static void merge_nat(const struct optimize_ctx *ctx,
+ 		      const struct merge *merge)
+ {
+ 	struct expr *expr, *set, *elem, *nat_expr, *mapping, *left;
++	int k, family = NFPROTO_UNSPEC;
+ 	struct stmt *stmt, *nat_stmt;
+ 	uint32_t i;
+-	int k;
+ 
+ 	k = stmt_nat_find(ctx);
+ 	assert(k >= 0);
+@@ -896,9 +897,18 @@ static void merge_nat(const struct optimize_ctx *ctx,
+ 
+ 	stmt = ctx->stmt_matrix[from][merge->stmt[0]];
+ 	left = expr_get(stmt->expr->left);
++	if (left->etype == EXPR_PAYLOAD) {
++		if (left->payload.desc == &proto_ip)
++			family = NFPROTO_IPV4;
++		else if (left->payload.desc == &proto_ip6)
++			family = NFPROTO_IPV6;
++	}
+ 	expr = map_expr_alloc(&internal_location, left, set);
+ 
+ 	nat_stmt = ctx->stmt_matrix[from][k];
++	if (nat_stmt->nat.family == NFPROTO_UNSPEC)
++		nat_stmt->nat.family = family;
++
+ 	expr_free(nat_stmt->nat.addr);
+ 	nat_stmt->nat.addr = expr;
+ 
+@@ -912,9 +922,9 @@ static void merge_concat_nat(const struct optimize_ctx *ctx,
+ 			     const struct merge *merge)
+ {
+ 	struct expr *expr, *set, *elem, *nat_expr, *mapping, *left, *concat;
++	int k, family = NFPROTO_UNSPEC;
+ 	struct stmt *stmt, *nat_stmt;
+ 	uint32_t i, j;
+-	int k;
+ 
+ 	k = stmt_nat_find(ctx);
+ 	assert(k >= 0);
+@@ -943,11 +953,20 @@ static void merge_concat_nat(const struct optimize_ctx *ctx,
+ 	for (j = 0; j < merge->num_stmts; j++) {
+ 		stmt = ctx->stmt_matrix[from][merge->stmt[j]];
+ 		left = stmt->expr->left;
++		if (left->etype == EXPR_PAYLOAD) {
++			if (left->payload.desc == &proto_ip)
++				family = NFPROTO_IPV4;
++			else if (left->payload.desc == &proto_ip6)
++				family = NFPROTO_IPV6;
++		}
+ 		compound_expr_add(concat, expr_get(left));
+ 	}
+ 	expr = map_expr_alloc(&internal_location, concat, set);
+ 
+ 	nat_stmt = ctx->stmt_matrix[from][k];
++	if (nat_stmt->nat.family == NFPROTO_UNSPEC)
++		nat_stmt->nat.family = family;
++
+ 	expr_free(nat_stmt->nat.addr);
+ 	nat_stmt->nat.addr = expr;
+ 
+diff --git a/tests/shell/testcases/optimizations/dumps/merge_nat.nft b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
+index 96e38ccd798a..dd17905dbfeb 100644
+--- a/tests/shell/testcases/optimizations/dumps/merge_nat.nft
++++ b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
+@@ -23,3 +23,14 @@ table ip test4 {
+ 		dnat ip to ip daddr . tcp dport map { 1.1.1.1 . 80 : 4.4.4.4 . 8000, 2.2.2.2 . 81 : 3.3.3.3 . 9000 }
+ 	}
+ }
++table inet nat {
++	chain prerouting {
++		oif "lo" accept
++		dnat ip to iifname . ip daddr . tcp dport map { "enp2s0" . 72.2.3.70 . 80 : 10.1.1.52 . 80, "enp2s0" . 72.2.3.66 . 53122 : 10.1.1.10 . 22, "enp2s0" . 72.2.3.66 . 443 : 10.1.1.52 . 443 }
++	}
++
++	chain postrouting {
++		oif "lo" accept
++		snat ip to ip daddr map { 72.2.3.66 : 10.2.2.2, 72.2.3.67 : 10.2.3.3 }
++	}
++}
+diff --git a/tests/shell/testcases/optimizations/merge_nat b/tests/shell/testcases/optimizations/merge_nat
+index 1484b7d39d48..edf7f4c438b9 100755
+--- a/tests/shell/testcases/optimizations/merge_nat
++++ b/tests/shell/testcases/optimizations/merge_nat
+@@ -42,3 +42,19 @@ RULESET="table ip test4 {
+ }"
+ 
+ $NFT -o -f - <<< $RULESET
++
++RULESET="table inet nat {
++	chain prerouting {
++		oif lo accept
++		iifname enp2s0 ip daddr 72.2.3.66 tcp dport 53122 dnat to 10.1.1.10:22
++		iifname enp2s0 ip daddr 72.2.3.66 tcp dport 443 dnat to 10.1.1.52:443
++		iifname enp2s0 ip daddr 72.2.3.70 tcp dport 80 dnat to 10.1.1.52:80
++	}
++	chain postrouting {
++		oif lo accept
++		ip daddr 72.2.3.66 snat to 10.2.2.2
++		ip daddr 72.2.3.67 snat to 10.2.3.3
++	}
++}"
++
++$NFT -o -f - <<< $RULESET
+diff --git a/tests/shell/testcases/sets/dumps/0047nat_0.nft b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+index e796805471a3..97c04a1637a2 100644
+--- a/tests/shell/testcases/sets/dumps/0047nat_0.nft
++++ b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+@@ -11,3 +11,14 @@ table ip x {
+ 		snat ip to ip saddr map @y
+ 	}
+ }
++table inet x {
++	chain x {
++		type nat hook prerouting priority dstnat; policy accept;
++		dnat ip to ip daddr . tcp dport map { 10.141.10.1 . 22 : 192.168.2.2, 10.141.11.2 . 2222 : 192.168.4.2 }
++	}
++
++	chain y {
++		type nat hook postrouting priority srcnat; policy accept;
++		snat ip to ip saddr map { 10.141.10.0/24 : 192.168.2.2-192.168.2.4, 10.141.11.0/24 : 192.168.4.2/31 }
++	}
++}
 -- 
 2.30.2
 
