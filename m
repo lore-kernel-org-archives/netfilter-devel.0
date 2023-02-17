@@ -2,47 +2,128 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 206ABC636D6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Feb 2023 18:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 604A3C636D6
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Feb 2023 22:20:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229574AbjBQStZ (ORCPT
+        id S229765AbjBQWUS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Feb 2023 13:49:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50676 "EHLO
+        Fri, 17 Feb 2023 17:20:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229561AbjBQStZ (ORCPT
+        with ESMTP id S229763AbjBQWUR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Feb 2023 13:49:25 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3FEA15553
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Feb 2023 10:49:24 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pT5nP-0005eR-48
-        for netfilter-devel@vger.kernel.org; Fri, 17 Feb 2023 19:49:23 +0100
-Date:   Fri, 17 Feb 2023 19:49:23 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 1/6] extensions: libebt_redirect: Fix target
- translation
-Message-ID: <Y+/MMwi8ACC1yTRa@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org
-References: <20230217161715.26120-1-phil@nwl.cc>
+        Fri, 17 Feb 2023 17:20:17 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E90463BD5
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Feb 2023 14:20:16 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1pT95R-0008TH-DR; Fri, 17 Feb 2023 23:20:13 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>,
+        syzbot+f61594de72d6705aea03@syzkaller.appspotmail.com
+Subject: [PATCH nf] ebtables: fix table blob use-after-free
+Date:   Fri, 17 Feb 2023 23:20:06 +0100
+Message-Id: <20230217222006.169428-1-fw@strlen.de>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230217161715.26120-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Feb 17, 2023 at 05:17:10PM +0100, Phil Sutter wrote:
-> While EBT_ACCEPT is the default verdict for ebtables targets, omitting
-> it from translation implicitly converts it into 'continue'. Omit the
-> non-default EBT_CONTINUE instead.
-> 
-> Fixes: 24ce7465056ae ("ebtables-compat: add redirect match extension")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+We are not allowed to return an error at this point.
+Looking at the code it looks like ret is always 0 at this
+point, but its not.
 
-And this series also applied. ;)
+t = find_table_lock(net, repl->name, &ret, &ebt_mutex);
+
+... this can return a valid table, with ret != 0.
+
+This bug causes update of table->private with the new
+blob, but then frees the blob right away in the caller.
+
+Syzbot report:
+
+BUG: KASAN: vmalloc-out-of-bounds in __ebt_unregister_table+0xc00/0xcd0 net/bridge/netfilter/ebtables.c:1168
+Read of size 4 at addr ffffc90005425000 by task kworker/u4:4/74
+Workqueue: netns cleanup_net
+Call Trace:
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:517
+ __ebt_unregister_table+0xc00/0xcd0 net/bridge/netfilter/ebtables.c:1168
+ ebt_unregister_table+0x35/0x40 net/bridge/netfilter/ebtables.c:1372
+ ops_exit_list+0xb0/0x170 net/core/net_namespace.c:169
+ cleanup_net+0x4ee/0xb10 net/core/net_namespace.c:613
+...
+
+ip(6)tables appears to be ok (ret should be 0 at this point) but make
+this more obvious.
+
+Fixes: c58dd2dd443c ("netfilter: Can't fail and free after table replacement")
+Reported-by: syzbot+f61594de72d6705aea03@syzkaller.appspotmail.com
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/netfilter/ebtables.c | 2 +-
+ net/ipv4/netfilter/ip_tables.c  | 3 +--
+ net/ipv6/netfilter/ip6_tables.c | 3 +--
+ 3 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index ce5dfa3babd2..757ec46fc45a 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1090,7 +1090,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 
+ 	audit_log_nfcfg(repl->name, AF_BRIDGE, repl->nentries,
+ 			AUDIT_XT_OP_REPLACE, GFP_KERNEL);
+-	return ret;
++	return 0;
+ 
+ free_unlock:
+ 	mutex_unlock(&ebt_mutex);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 2ed7c58b471a..aae5fd51dfd7 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1045,7 +1045,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct xt_counters *counters;
+ 	struct ipt_entry *iter;
+ 
+-	ret = 0;
+ 	counters = xt_counters_alloc(num_counters);
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+@@ -1091,7 +1090,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		net_warn_ratelimited("iptables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	return ret;
++	return 0;
+ 
+  put_module:
+ 	module_put(t->me);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 2d816277f2c5..ac902f7bca47 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1062,7 +1062,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct xt_counters *counters;
+ 	struct ip6t_entry *iter;
+ 
+-	ret = 0;
+ 	counters = xt_counters_alloc(num_counters);
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+@@ -1108,7 +1107,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		net_warn_ratelimited("ip6tables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	return ret;
++	return 0;
+ 
+  put_module:
+ 	module_put(t->me);
+-- 
+2.39.2
+
