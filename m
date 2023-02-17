@@ -2,189 +2,115 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC77AC636D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Feb 2023 20:32:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F7A0C636CC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Feb 2023 01:07:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229683AbjBPUcE (ORCPT
+        id S229794AbjBQBHa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Feb 2023 15:32:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47880 "EHLO
+        Thu, 16 Feb 2023 20:07:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229489AbjBPUcD (ORCPT
+        with ESMTP id S229460AbjBQBH3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Feb 2023 15:32:03 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 81F1B196A9
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2023 12:32:02 -0800 (PST)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] optimize: infer family for nat mapping
-Date:   Thu, 16 Feb 2023 21:31:57 +0100
-Message-Id: <20230216203157.448390-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230216203157.448390-1-pablo@netfilter.org>
-References: <20230216203157.448390-1-pablo@netfilter.org>
+        Thu, 16 Feb 2023 20:07:29 -0500
+Received: from mail-oa1-x2c.google.com (mail-oa1-x2c.google.com [IPv6:2001:4860:4864:20::2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7E3254D2C
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2023 17:07:28 -0800 (PST)
+Received: by mail-oa1-x2c.google.com with SMTP id 586e51a60fabf-16dcb07b805so4840945fac.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2023 17:07:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=datadoghq.com; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=x/fPBMlx5DtVPheRVp81IECJwxXx2Mnz0JsPoFom1VI=;
+        b=TngCKolj4pdn4uLnHhupO4cuYCKv5pOmA87mnqIf1OzR9f1bmBtxrc8IUg/u905npT
+         MT6Aq0c2mT3uFz0gDWVg0hpNv+S+w0KIznWXP5LXYGI+ZAFY+VduTl0vzxu6LTsLMpUj
+         syujKgNHrHx/MIMDZ8FTvA8Jzlj2UbMtUanBM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=x/fPBMlx5DtVPheRVp81IECJwxXx2Mnz0JsPoFom1VI=;
+        b=q2bqCD9hSbfeOI3KE3XJBU3fDpX6LdO1Qn2hDuYI4AC3I4JDTHW/tUGVWzNKGkmH5s
+         sZ56NpGP43RTgeCu9ZrbV7lNkYA6aD4MNDz6LrRSIc1ubNRWTHdGAv4dcZpPngiSC5VZ
+         KIhPHH/T0kDkbHe7XB0fWvgUULf6gTaOcSBxkfCZhw8UQgOaF5Wks7WKmQvocRC1RXvX
+         ZGEjqq4hbPGXXCGznGBFS1mnynwP/mAkQ+KSlzcoCsgeIHbrFBD7dZEI+GYzDmF5fAMc
+         TWAYb5On9u8vSVWqa1Ytl3wwzldONlUD9CUGR0cp3dEQjARdIztJtwUp174Rrph8v2JL
+         4KOw==
+X-Gm-Message-State: AO0yUKV1iq/hS28221oQejjDMxneqZdaMJkCFUsp8rHNq+YtSwW+D+iI
+        oPjvfFhKc+fN8YkwpbNZvCSfWxP/OuhteMqsTskpwig5ebJ3fv3G
+X-Google-Smtp-Source: AK7set9Uq29xwrxxkU9Usq5vwKFNS8GS8CVModKLQKnAePeIEllpJPtwsT2Kha54lhp6aGBLjTDbtBx7dYoHYwCj/d4=
+X-Received: by 2002:a05:6870:828c:b0:16e:39d2:4c8a with SMTP id
+ q12-20020a056870828c00b0016e39d24c8amr313212oae.59.1676596047235; Thu, 16 Feb
+ 2023 17:07:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CALvGib_xHOVD2+6tKm2Sf0wVkQwut2_z2gksZPcGw30tOvOAAA@mail.gmail.com>
+ <20230215100236.GC9908@breakpoint.cc> <CALvGib8TSNk47Spapt2dMe+R_ohzZZz9yC5Ou3qqRxJqtYfBmg@mail.gmail.com>
+ <20230216151822.GB14032@breakpoint.cc>
+In-Reply-To: <20230216151822.GB14032@breakpoint.cc>
+From:   Bryce Kahle <bryce.kahle@datadoghq.com>
+Date:   Thu, 16 Feb 2023 17:07:16 -0800
+Message-ID: <CALvGib_Ua9bboMeDesvVqH_yiqVKxMTxFKZeg14DvONaTiOZRA@mail.gmail.com>
+Subject: Re: PROBLEM: nf_conntrack_events autodetect mode invalidates
+ NETLINK_LISTEN_ALL_NSID netlink socket option
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Infer family from key in nat mapping, otherwise nat mapping via merge
-breaks since family is not specified.
+I'd prefer whichever option doesn't require changes on our end. I'm
+not familiar with the ins/outs of a kernel module param, but we are
+running on customer hosts so we often start far later than when the
+kernel module was loaded.
 
-Merging:
-fw-test-bug2.nft:4:9-78:         iifname enp2s0 ip daddr 72.2.3.66 tcp dport 53122 dnat to 10.1.1.10:22
-fw-test-bug2.nft:5:9-77:         iifname enp2s0 ip daddr 72.2.3.66 tcp dport 443 dnat to 10.1.1.52:443
-fw-test-bug2.nft:6:9-75:         iifname enp2s0 ip daddr 72.2.3.70 tcp dport 80 dnat to 10.1.1.52:80
-into:
-        dnat ip to iifname . ip daddr . tcp dport map { enp2s0 . 72.2.3.66 . 53122 : 10.1.1.10 . 22, enp2s0 . 72.2.3.66 . 443 : 10.1.1.52 . 443, enp2s0 . 72.2.3.70 . 80 : 10.1.1.52 . 80 }
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1657
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/optimize.c                                | 23 +++++++++++++++++--
- .../optimizations/dumps/merge_nat.nft         | 11 +++++++++
- tests/shell/testcases/optimizations/merge_nat | 16 +++++++++++++
- .../shell/testcases/sets/dumps/0047nat_0.nft  | 11 +++++++++
- 4 files changed, 59 insertions(+), 2 deletions(-)
-
-diff --git a/src/optimize.c b/src/optimize.c
-index d60aa8f22c07..3548719031e6 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -21,6 +21,7 @@
- #include <statement.h>
- #include <utils.h>
- #include <erec.h>
-+#include <linux/netfilter.h>
- 
- #define MAX_STMTS	32
- 
-@@ -872,9 +873,9 @@ static void merge_nat(const struct optimize_ctx *ctx,
- 		      const struct merge *merge)
- {
- 	struct expr *expr, *set, *elem, *nat_expr, *mapping, *left;
-+	int k, family = NFPROTO_UNSPEC;
- 	struct stmt *stmt, *nat_stmt;
- 	uint32_t i;
--	int k;
- 
- 	k = stmt_nat_find(ctx);
- 	assert(k >= 0);
-@@ -896,9 +897,18 @@ static void merge_nat(const struct optimize_ctx *ctx,
- 
- 	stmt = ctx->stmt_matrix[from][merge->stmt[0]];
- 	left = expr_get(stmt->expr->left);
-+	if (left->etype == EXPR_PAYLOAD) {
-+		if (left->payload.desc == &proto_ip)
-+			family = NFPROTO_IPV4;
-+		else if (left->payload.desc == &proto_ip6)
-+			family = NFPROTO_IPV6;
-+	}
- 	expr = map_expr_alloc(&internal_location, left, set);
- 
- 	nat_stmt = ctx->stmt_matrix[from][k];
-+	if (nat_stmt->nat.family == NFPROTO_UNSPEC)
-+		nat_stmt->nat.family = family;
-+
- 	expr_free(nat_stmt->nat.addr);
- 	nat_stmt->nat.addr = expr;
- 
-@@ -912,9 +922,9 @@ static void merge_concat_nat(const struct optimize_ctx *ctx,
- 			     const struct merge *merge)
- {
- 	struct expr *expr, *set, *elem, *nat_expr, *mapping, *left, *concat;
-+	int k, family = NFPROTO_UNSPEC;
- 	struct stmt *stmt, *nat_stmt;
- 	uint32_t i, j;
--	int k;
- 
- 	k = stmt_nat_find(ctx);
- 	assert(k >= 0);
-@@ -943,11 +953,20 @@ static void merge_concat_nat(const struct optimize_ctx *ctx,
- 	for (j = 0; j < merge->num_stmts; j++) {
- 		stmt = ctx->stmt_matrix[from][merge->stmt[j]];
- 		left = stmt->expr->left;
-+		if (left->etype == EXPR_PAYLOAD) {
-+			if (left->payload.desc == &proto_ip)
-+				family = NFPROTO_IPV4;
-+			else if (left->payload.desc == &proto_ip6)
-+				family = NFPROTO_IPV6;
-+		}
- 		compound_expr_add(concat, expr_get(left));
- 	}
- 	expr = map_expr_alloc(&internal_location, concat, set);
- 
- 	nat_stmt = ctx->stmt_matrix[from][k];
-+	if (nat_stmt->nat.family == NFPROTO_UNSPEC)
-+		nat_stmt->nat.family = family;
-+
- 	expr_free(nat_stmt->nat.addr);
- 	nat_stmt->nat.addr = expr;
- 
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_nat.nft b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
-index 96e38ccd798a..dd17905dbfeb 100644
---- a/tests/shell/testcases/optimizations/dumps/merge_nat.nft
-+++ b/tests/shell/testcases/optimizations/dumps/merge_nat.nft
-@@ -23,3 +23,14 @@ table ip test4 {
- 		dnat ip to ip daddr . tcp dport map { 1.1.1.1 . 80 : 4.4.4.4 . 8000, 2.2.2.2 . 81 : 3.3.3.3 . 9000 }
- 	}
- }
-+table inet nat {
-+	chain prerouting {
-+		oif "lo" accept
-+		dnat ip to iifname . ip daddr . tcp dport map { "enp2s0" . 72.2.3.70 . 80 : 10.1.1.52 . 80, "enp2s0" . 72.2.3.66 . 53122 : 10.1.1.10 . 22, "enp2s0" . 72.2.3.66 . 443 : 10.1.1.52 . 443 }
-+	}
-+
-+	chain postrouting {
-+		oif "lo" accept
-+		snat ip to ip daddr map { 72.2.3.66 : 10.2.2.2, 72.2.3.67 : 10.2.3.3 }
-+	}
-+}
-diff --git a/tests/shell/testcases/optimizations/merge_nat b/tests/shell/testcases/optimizations/merge_nat
-index 1484b7d39d48..edf7f4c438b9 100755
---- a/tests/shell/testcases/optimizations/merge_nat
-+++ b/tests/shell/testcases/optimizations/merge_nat
-@@ -42,3 +42,19 @@ RULESET="table ip test4 {
- }"
- 
- $NFT -o -f - <<< $RULESET
-+
-+RULESET="table inet nat {
-+	chain prerouting {
-+		oif lo accept
-+		iifname enp2s0 ip daddr 72.2.3.66 tcp dport 53122 dnat to 10.1.1.10:22
-+		iifname enp2s0 ip daddr 72.2.3.66 tcp dport 443 dnat to 10.1.1.52:443
-+		iifname enp2s0 ip daddr 72.2.3.70 tcp dport 80 dnat to 10.1.1.52:80
-+	}
-+	chain postrouting {
-+		oif lo accept
-+		ip daddr 72.2.3.66 snat to 10.2.2.2
-+		ip daddr 72.2.3.67 snat to 10.2.3.3
-+	}
-+}"
-+
-+$NFT -o -f - <<< $RULESET
-diff --git a/tests/shell/testcases/sets/dumps/0047nat_0.nft b/tests/shell/testcases/sets/dumps/0047nat_0.nft
-index e796805471a3..97c04a1637a2 100644
---- a/tests/shell/testcases/sets/dumps/0047nat_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0047nat_0.nft
-@@ -11,3 +11,14 @@ table ip x {
- 		snat ip to ip saddr map @y
- 	}
- }
-+table inet x {
-+	chain x {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		dnat ip to ip daddr . tcp dport map { 10.141.10.1 . 22 : 192.168.2.2, 10.141.11.2 . 2222 : 192.168.4.2 }
-+	}
-+
-+	chain y {
-+		type nat hook postrouting priority srcnat; policy accept;
-+		snat ip to ip saddr map { 10.141.10.0/24 : 192.168.2.2-192.168.2.4, 10.141.11.0/24 : 192.168.4.2/31 }
-+	}
-+}
--- 
-2.30.2
-
+On Thu, Feb 16, 2023 at 7:18 AM Florian Westphal <fw@strlen.de> wrote:
+>
+> Bryce Kahle <bryce.kahle@datadoghq.com> wrote:
+> > I have posted the reproducer at
+> > https://github.com/brycekahle/netfilter-reproducer
+>
+> Thanks.  Resolving this in a backwards compatible way is
+> intrusive because at the time the ctnetlink subscription happens
+> nsid isn't set yet.
+>
+> We'd need a new callback in netlink_kernel_cfg so that ctnetlink
+> can be informed about activation of 'allnet' option on an existing
+> socket.
+>
+> We'd also need a new flag in netfilter/core.c for that and not in
+> ctnetlink because else we'd create an unwanted module dependency in
+> nf_conntrack.
+>
+> I can think of 3 alternative solutions:
+> 1. revert back to 'default 1'.
+>    I don't want to do that because for almost all conntrack use
+>    cases the extension allocation is unecessary.
+>
+> 2. Switch netns creation behaviour to enable the extensions if
+>    init_net has nf_conntrack_events=1.
+>    This would require user intervention, but probably fine.
+>    Downside is that this will be different from all the other
+>    settings.
+>
+> 3. Add a module param to conntrack to override the default
+>    setting.  We already have such params for accounting and timestamps.
+>
+> I'd go with 3).  Bryce, would that work for you?
+>
+> Pablo, whats your take on this?
+> If you prefer I can work on the new netlink_kernel_cfg callback
+> to see how intrusive it really is.
+>
+> Breakage scenario is:
+>
+> 1. Parent netns opens ctnetlink event sk
+> 2. Parent netns sets ALL_NSID flag
+> 3. No events from child netns, because no ctnetlink
+>    event sockets were created in this netns and thus
+>    conntrack objects get no event extension.
+>
+> Extending the existing bind callback doesn't work because
+> ALL_NSID flag is set after event subscription.
