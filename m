@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76BADC64ED9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Feb 2023 12:30:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82C52C677F1
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Feb 2023 12:30:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230060AbjBQMa0 (ORCPT
+        id S230089AbjBQMa1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Feb 2023 07:30:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35938 "EHLO
+        Fri, 17 Feb 2023 07:30:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230132AbjBQMaL (ORCPT
+        with ESMTP id S230134AbjBQMaL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 17 Feb 2023 07:30:11 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 71B8467833;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 71E8C67835;
         Fri, 17 Feb 2023 04:30:05 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 2/6] netfilter: nf_tables: fix wrong pointer passed to PTR_ERR()
-Date:   Fri, 17 Feb 2023 13:29:53 +0100
-Message-Id: <20230217122957.799277-3-pablo@netfilter.org>
+Subject: [PATCH net-next 4/6] netfilter: conntrack: remote a return value of the 'seq_print_acct' function.
+Date:   Fri, 17 Feb 2023 13:29:55 +0100
+Message-Id: <20230217122957.799277-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230217122957.799277-1-pablo@netfilter.org>
 References: <20230217122957.799277-1-pablo@netfilter.org>
@@ -32,33 +32,72 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Yang Yingliang <yangyingliang@huawei.com>
+From: Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
 
-It should be 'chain' passed to PTR_ERR() in the error path
-after calling nft_chain_lookup() in nf_tables_delrule().
+The static 'seq_print_acct' function always returns 0.
 
-Fixes: f80a612dd77c ("netfilter: nf_tables: add support to destroy operation")
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Reviewed-by: Simon Horman <simon.horman@corigine.com>
-Acked-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+Change the return value to 'void' and remove unnecessary checks.
+
+Found by InfoTeCS on behalf of Linux Verification Center
+(linuxtesting.org) with SVACE.
+
+Fixes: 1ca9e41770cb ("netfilter: Remove uses of seq_<foo> return values")
+Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_standalone.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2abf473c8f67..d73edbd4eec4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3724,7 +3724,7 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
- 		chain = nft_chain_lookup(net, table, nla[NFTA_RULE_CHAIN],
- 					 genmask);
- 		if (IS_ERR(chain)) {
--			if (PTR_ERR(rule) == -ENOENT &&
-+			if (PTR_ERR(chain) == -ENOENT &&
- 			    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYRULE)
- 				return 0;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 460294bd4b60..57f6724c99a7 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -275,7 +275,7 @@ static const char* l4proto_name(u16 proto)
+ 	return "unknown";
+ }
  
+-static unsigned int
++static void
+ seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir)
+ {
+ 	struct nf_conn_acct *acct;
+@@ -283,14 +283,12 @@ seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir)
+ 
+ 	acct = nf_conn_acct_find(ct);
+ 	if (!acct)
+-		return 0;
++		return;
+ 
+ 	counter = acct->counter;
+ 	seq_printf(s, "packets=%llu bytes=%llu ",
+ 		   (unsigned long long)atomic64_read(&counter[dir].packets),
+ 		   (unsigned long long)atomic64_read(&counter[dir].bytes));
+-
+-	return 0;
+ }
+ 
+ /* return 0 on success, 1 in case of error */
+@@ -342,8 +340,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (seq_has_overflowed(s))
+ 		goto release;
+ 
+-	if (seq_print_acct(s, ct, IP_CT_DIR_ORIGINAL))
+-		goto release;
++	seq_print_acct(s, ct, IP_CT_DIR_ORIGINAL);
+ 
+ 	if (!(test_bit(IPS_SEEN_REPLY_BIT, &ct->status)))
+ 		seq_puts(s, "[UNREPLIED] ");
+@@ -352,8 +349,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 
+ 	ct_show_zone(s, ct, NF_CT_ZONE_DIR_REPL);
+ 
+-	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
+-		goto release;
++	seq_print_acct(s, ct, IP_CT_DIR_REPLY);
+ 
+ 	if (test_bit(IPS_HW_OFFLOAD_BIT, &ct->status))
+ 		seq_puts(s, "[HW_OFFLOAD] ");
 -- 
 2.30.2
 
