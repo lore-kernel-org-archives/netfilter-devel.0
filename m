@@ -2,109 +2,92 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED0FEC636D6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Feb 2023 23:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1025EC6379F
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Feb 2023 11:00:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229968AbjBQXXF (ORCPT
+        id S230329AbjBTLAX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Feb 2023 18:23:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43016 "EHLO
+        Mon, 20 Feb 2023 06:00:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230034AbjBQXXC (ORCPT
+        with ESMTP id S229810AbjBTLAW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Feb 2023 18:23:02 -0500
-Received: from mail-qt1-x829.google.com (mail-qt1-x829.google.com [IPv6:2607:f8b0:4864:20::829])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 116E818B24;
-        Fri, 17 Feb 2023 15:23:00 -0800 (PST)
-Received: by mail-qt1-x829.google.com with SMTP id m11so2184799qtp.7;
-        Fri, 17 Feb 2023 15:23:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=fvUHsndISEQnet/qxZllyajUv6FP+N5eaDWiXpbgdqg=;
-        b=U3iZt0wMKKG7mFw6t99jthbzHC0WZne3iysViRiFZpyd/WF8zzXyAy68MvmzyAccqi
-         L8+xaWLqgai6C3nIEs0fRxOl9YVv532EYPUfjblQA9WMpiAXiy8rWAvuLqESCU1ptu9n
-         8mhdAj3Pd7GVcVpnohXf+BMe2xkoWw729AYYXgEYdKhpjIctBVPL70S37nGdRE2Quy96
-         8FFs85fGIH6vTrXxQShiYASbbFmNmjC5cASR+KTHADuoRVBUUwUUgpC4GHiQNtEkJ/uu
-         21utwgVtEJWAGXrF7oCVopKJtfnoAiAUtFq4iz17HPe8y8IcBf4sRestjNBLqBvws/hY
-         WivQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=fvUHsndISEQnet/qxZllyajUv6FP+N5eaDWiXpbgdqg=;
-        b=3dHb34min0hQhrineASIjLsma9GGpEp+zL9kMTSgJ2/3u9LgS4Y81+UWoEnp8yFm4m
-         ihRfUIYdEpxFUeAEfgXLVkLOGQ0bpfRNWJoAcxrGn1mMdBakpNEC16/Q3SdVXOZJw+3b
-         mwj1DIqsxgR3V3U4Od2aNlEsgdEH2P2qDlXVA9b/WyNjI5dCocHowO0B2R0L48srNKLi
-         Gjvs3br5HY6Ca7Q8GtTT1e+GzfMJtZlE1aiQImo7veK66qi747GAurso1Ej24QGwvghx
-         DbEZUBdIWOFLYJeDblNFENehJGQYNDlgLFcmKRQvcSScuNSTGUiNnF4ug/pidM0TWPrG
-         oD0g==
-X-Gm-Message-State: AO0yUKWPSXtu/n5Stm/w0DMWe2Gn0NPDSiuVQbyt76NVEIcPZ7q+kC8n
-        ZwyzhpKFgwPMIx52Xj/xcI9qoJLMlRHbmg==
-X-Google-Smtp-Source: AK7set8kzLO3u15x41jDyC9VnMj2ffuKezPy5pB48RGfvPx0QuF39vDAtphFzwyvWyn6VbvJQ57YPA==
-X-Received: by 2002:a05:622a:b:b0:3bc:fa90:e8bb with SMTP id x11-20020a05622a000b00b003bcfa90e8bbmr4720151qtw.30.1676676178943;
-        Fri, 17 Feb 2023 15:22:58 -0800 (PST)
-Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
-        by smtp.gmail.com with ESMTPSA id g1-20020ac80701000000b003b6325dfc4esm4075617qth.67.2023.02.17.15.22.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Feb 2023 15:22:58 -0800 (PST)
-From:   Xin Long <lucien.xin@gmail.com>
-To:     netfilter-devel@vger.kernel.org,
-        network dev <netdev@vger.kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
-        kuba@kernel.org, Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH nf] netfilter: use skb len to match in length_mt6
-Date:   Fri, 17 Feb 2023 18:22:57 -0500
-Message-Id: <361acd69270a8c2746da5774644dda9147b407a1.1676676177.git.lucien.xin@gmail.com>
-X-Mailer: git-send-email 2.39.1
+        Mon, 20 Feb 2023 06:00:22 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FE2813DCE;
+        Mon, 20 Feb 2023 03:00:21 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7D9C7B80C75;
+        Mon, 20 Feb 2023 11:00:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1B923C433EF;
+        Mon, 20 Feb 2023 11:00:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1676890818;
+        bh=MP3Q3ATHzGxMJjJ1srWwkTI6vMVKWvjxmqO9F2ostjA=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=ic2kw+5U9MblNccGoDWTn77vkgtxcmq/1snaEYjHhyVtpxvlLbD1GExM0kbKxIYTQ
+         qkHPg4CE2Pd8JSweQrSJERJIEE4gR5cExLbzF7Urh8vZv9WCg4v1JsjzZvnec6ZWiK
+         0+dVdjig9VPYeCLTlMk9G1lYFi6s6IqENmeBGtuPD09rNv1565hhvUrwDbVGU9QTit
+         SQzNxfZyCMeoN29RVZ31V5o0FADEtXYoo7B5/7bfOd0XcuOI8WkJxh9xVMNkyo8/94
+         5pBR+ECCFHZGtwIUz/kiDvJdnJ09uLsEAgnulOEA0BOMQHAeByfLS4LG0QWfXUxryE
+         xUQ3yzuIVX87A==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id F0CEDE68D20;
+        Mon, 20 Feb 2023 11:00:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/6] netfilter: nf_tables: NULL pointer dereference
+ in nf_tables_updobj()
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167689081798.18600.7449667914076688550.git-patchwork-notify@kernel.org>
+Date:   Mon, 20 Feb 2023 11:00:17 +0000
+References: <20230217122957.799277-2-pablo@netfilter.org>
+In-Reply-To: <20230217122957.799277-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-For IPv6 Jumbo packets, the ipv6_hdr(skb)->payload_len is always 0,
-and its real payload_len ( > 65535) is saved in hbh exthdr. With 0
-length for the jumbo packets, it may mismatch.
+Hello:
 
-To fix this, we can just use skb->len instead of parsing exthdrs, as
-the hbh exthdr parsing has been done before coming to length_mt6 in
-ip6_rcv_core() and br_validate_ipv6() and also the packet has been
-trimmed according to the correct IPv6 (ext)hdr length there, and skb
-len is trustable in length_mt6().
+This series was applied to netdev/net-next.git (master)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Note that this patch is especially needed after the IPv6 BIG TCP was
-supported in kernel, which is using IPv6 Jumbo packets. Besides, to
-match the packets greater than 65535 more properly, a v1 revision of
-xt_length may be needed to extend "min, max" to u32 in the future,
-and for now the IPv6 Jumbo packets can be matched by:
+On Fri, 17 Feb 2023 13:29:52 +0100 you wrote:
+> From: Alok Tiwari <alok.a.tiwari@oracle.com>
+> 
+> static analyzer detect null pointer dereference case for 'type'
+> function __nft_obj_type_get() can return NULL value which require to handle
+> if type is NULL pointer return -ENOENT.
+> 
+> This is a theoretical issue, since an existing object has a type, but
+> better add this failsafe check.
+> 
+> [...]
 
-  # ip6tables -m length ! --length 0:65535
+Here is the summary with links:
+  - [net-next,1/6] netfilter: nf_tables: NULL pointer dereference in nf_tables_updobj()
+    https://git.kernel.org/netdev/net-next/c/dac7f50a4521
+  - [net-next,2/6] netfilter: nf_tables: fix wrong pointer passed to PTR_ERR()
+    https://git.kernel.org/netdev/net-next/c/1fb7696ac6c3
+  - [net-next,3/6] netfilter: conntrack: udp: fix seen-reply test
+    https://git.kernel.org/netdev/net-next/c/28af0f009dde
+  - [net-next,4/6] netfilter: conntrack: remote a return value of the 'seq_print_acct' function.
+    https://git.kernel.org/netdev/net-next/c/f6477ec62fda
+  - [net-next,5/6] ipvs: avoid kfree_rcu without 2nd arg
+    https://git.kernel.org/netdev/net-next/c/e4d0fe71f59d
+  - [net-next,6/6] netfilter: let reset rules clean out conntrack entries
+    https://git.kernel.org/netdev/net-next/c/2954fe60e33d
 
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
----
- net/netfilter/xt_length.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
-index 1873da3a945a..9fbfad13176f 100644
---- a/net/netfilter/xt_length.c
-+++ b/net/netfilter/xt_length.c
-@@ -30,8 +30,7 @@ static bool
- length_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_length_info *info = par->matchinfo;
--	const u_int16_t pktlen = ntohs(ipv6_hdr(skb)->payload_len) +
--				 sizeof(struct ipv6hdr);
-+	u32 pktlen = skb->len;
- 
- 	return (pktlen >= info->min && pktlen <= info->max) ^ info->invert;
- }
+You are awesome, thank you!
 -- 
-2.39.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
