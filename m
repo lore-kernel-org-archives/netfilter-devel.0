@@ -2,192 +2,95 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5C86C636D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Feb 2023 16:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14D75C636D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Feb 2023 17:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233278AbjBUQQN (ORCPT
+        id S234411AbjBURTx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Feb 2023 11:16:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40262 "EHLO
+        Tue, 21 Feb 2023 12:19:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233775AbjBUQQN (ORCPT
+        with ESMTP id S234928AbjBURTq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Feb 2023 11:16:13 -0500
-Received: from smtp-1908.mail.infomaniak.ch (smtp-1908.mail.infomaniak.ch [185.125.25.8])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 079FF2BEC3
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2023 08:16:09 -0800 (PST)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PLktH65WSzMrN9b;
-        Tue, 21 Feb 2023 17:16:07 +0100 (CET)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4PLktH1FrhzMsYJy;
-        Tue, 21 Feb 2023 17:16:07 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1676996167;
-        bh=MP2Iae2qufmo2MaYLH9WMQWBeFZRcbBTutsxp2tsFR4=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=Qg5jrwEKFB6jvwTwWv59ENt4yOvkg1lGg411952a0CIK220mYhviUzCHjQfsXPsRr
-         bJ4Cn+QA+btjIGX0gKE7LojDV5dV1IzTv9CI9GhaitP7WGd5gGk9efH7JxqSgKKW1S
-         zR2mzDxt0jZgmgLlCkgmSIHTrvKWTkSnx+nh+nkc=
-Message-ID: <278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net>
-Date:   Tue, 21 Feb 2023 17:16:06 +0100
+        Tue, 21 Feb 2023 12:19:46 -0500
+Received: from mail-qt1-x82f.google.com (mail-qt1-x82f.google.com [IPv6:2607:f8b0:4864:20::82f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D590265A6
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2023 09:19:45 -0800 (PST)
+Received: by mail-qt1-x82f.google.com with SMTP id d7so5038649qtr.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2023 09:19:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=59sQ4IQ/6RpMzL0t46+GlUGXNHnLnzIjaaSJWU0/3To=;
+        b=LQ2nUrdqGRWtfX/2/YkpWvALBgOQjZ4rxVsvInAn+pKuFoHK/25uS8gQkrdoTAKxnZ
+         bPD739Fc5GsmzAnIv8mWqr/KsrJG2jL0g71Q+vJwXJxh24OW7sY5i3rFJ0RzN2/9vkuo
+         IvXkPN89lJ/3DFWhaz38fSuAx267S7kEOkxxW7A2Nt+wEL0RO1tmI7yY94QoZmOZqPJI
+         rXZn31YXV9A2y4PT71pbAFJm8NYGqGEfz7JAOuc50F/w4ShfLEKcwFCLFR7e5snzqScD
+         uNjgpdliFzzGaZ0eGXlHD2YOrriaG6YArVEObXilOsU33zYpyNvNXa6PGLNsc7+4lYMX
+         Ggmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=59sQ4IQ/6RpMzL0t46+GlUGXNHnLnzIjaaSJWU0/3To=;
+        b=BE4ORcqBWSNXNr1ihoWrAxEaOb9jCiXE1emCslloSJmL+FwgWwne0Mxw6TPiX14iT/
+         peTMpN28QoAzLRSs6vQTK5Oku3Udh3gQzIiggJb51cUcKnI4Uig4eBeDr0cSH+CBckj2
+         aRHM/8WIegHUbAnAAqsrvDuBjMfiIhHerzJpUAdi7/IAM4AthLdC8XdRjBP/OCWuff7x
+         sfA0+cWcIgVcSUVQNGgo3aCtIbOJ+mGEw+8s2zxznB/I1nMBjgbjP+cNu3sNabnJnAJN
+         fzAJ9nUPs/tEv7Bs4QyXOncQSu03CmjxmgUXr/jXzVC0OVJVh7rgQ/BHoQVh7mEVM2TF
+         z/Kw==
+X-Gm-Message-State: AO0yUKVg7vuryGoBxMBNaFIL8/Ub098wDm5RzxuUPILZNlHkk+TNo6oW
+        urHSoWD9jmPVX+4QR/sxQ4kIuIjG5CtAww==
+X-Google-Smtp-Source: AK7set/LEc3Tld37rL0UncaokvG5eAXyM0Z/efR3Rlwjeg8hksT+x5k6azz3qRrgQX3FtV8+MW4VXA==
+X-Received: by 2002:ac8:5c82:0:b0:3b8:67c4:b11d with SMTP id r2-20020ac85c82000000b003b867c4b11dmr23289158qta.49.1676999984059;
+        Tue, 21 Feb 2023 09:19:44 -0800 (PST)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id c8-20020ac80548000000b003ba19e53e43sm1142818qth.25.2023.02.21.09.19.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Feb 2023 09:19:43 -0800 (PST)
+From:   Xin Long <lucien.xin@gmail.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        Yuxuan Luo <luoyuxuan.carl@gmail.com>
+Subject: [PATCH iptables] xt_sctp: add the missing chunk types in sctp_help
+Date:   Tue, 21 Feb 2023 12:19:42 -0500
+Message-Id: <dc19760b55dfa9a91171bfecc316ba1592959f27.1676999982.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
- <Y8xwLvDbhKPG8JqY@galopp> <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
- <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
- <526a70a2-b0bc-f29a-6558-022ca12a6430@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <526a70a2-b0bc-f29a-6558-022ca12a6430@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Add the missing chunk types in sctp_help(), so that the help cmd can
+display these chunk types as below:
 
-On 30/01/2023 11:03, Konstantin Meskhidze (A) wrote:
-> 
-> 
-> 1/27/2023 9:22 PM, Mickaël Salaün пишет:
->>
->> On 23/01/2023 10:38, Konstantin Meskhidze (A) wrote:
->>>
->>>
->>> 1/22/2023 2:07 AM, Günther Noack пишет:
->>
->> [...]
->>
->>>>> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
->>>>>    ABI version.  In this example, this is not required because all of the requested
->>>>>    ``allowed_access`` rights are already available in ABI 1.
->>>>>    
->>>>> -We now have a ruleset with one rule allowing read access to ``/usr`` while
->>>>> -denying all other handled accesses for the filesystem.  The next step is to
->>>>> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
->>>>> -binary).
->>>>> +For network access-control, we can add a set of rules that allow to use a port
->>>>> +number for a specific action. All ports values must be defined in network byte
->>>>> +order.
->>>>
->>>> What is the point of asking user space to convert this to network byte
->>>> order? It seems to me that the kernel would be able to convert it to
->>>> network byte order very easily internally and in a single place -- why
->>>> ask all of the users to deal with that complexity? Am I overlooking
->>>> something?
->>>
->>>     I had a discussion about this issue with Mickaёl.
->>>     Please check these threads:
->>>     1.
->>> https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
->>>     2.
->>> https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
->>
->> I'm definitely not sure if this is the right solution, or if there is
->> one. The rationale is to make it close to the current (POSIX) API. We
->> didn't get many opinion about that but I'd really like to have a
->> discussion about port endianness for this Landlock API.
-> 
->     As for me, the kernel should take care about port converting. This
-> work should be done under the hood.
-> 
->     Any thoughts?
-> 
->>
->> I looked at some code (e.g. see [1]) and it seems that using htons()
->> might make application patching more complex after all. What do you
->> think? Is there some network (syscall) API that don't use this convention?
->>
->> [1] https://github.com/landlock-lsm/tuto-lighttpd
->>
->>>>
->>>>> +
->>>>> +.. code-block:: c
->>>>> +
->>>>> +    struct landlock_net_service_attr net_service = {
->>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
->>>>> +        .port = htons(8080),
->>>>> +    };
->>>>
->>>> This is a more high-level comment:
->>>>
->>>> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
->>>> how do you envision this struct to evolve if other protocols need to
->>>> be supported in the future?
->>>
->>>      When TCP restrictions land into Linux, we need to think about UDP
->>> support. Then other protocols will be on the road. Anyway you are right
->>> this struct will be evolving in long term, but I don't have a particular
->>> envision now. Thanks for the question - we need to think about it.
->>>>
->>>> Should this struct and the associated constants have "TCP" in its
->>>> name, and other protocols use a separate struct in the future?
->>
->> Other protocols such as AF_VSOCK uses a 32-bit port. We could use a
->> 32-bits port field or ever a 64-bit one. The later could make more sense
->> because each field would eventually be aligned on 64-bit. Picking a
->> 16-bit value was to help developers (and compilers/linters) with the
->> "correct" type (for TCP).
+  # iptables -p sctp --help
 
-Thinking more about this, let's use a __u64 port (and remove the 
-explicit packing). The landlock_append_net_rule() function should use a 
-__u16 port argument, but the add_rule_net_service() function should 
-check that there is no overflow with the port attribute (not higher than 
-U16_MAX) before passing it to landlock_append_net_rule(). We should 
-prioritize flexibility for the kernel UAPI over stricter types. User 
-space libraries can improve this kind of types with a more complex API.
+  chunktypes - ... I_DATA RE_CONFIG PAD ... I_FORWARD_TSN ALL NONE
 
-Big endian can make sense for a pure network API because the port value 
-(and the IP address) is passed to other machines through the network, 
-as-is. However, with Landlock, the port value is only used by the 
-kernel. Moreover, in practice, port values are mostly converted when 
-filling the sockaddr*_in structs. It would then make it more risky to 
-ask developers another explicit htons() conversion for Landlock 
-syscalls. Let's stick to the host endianess and let the kernel do the 
-conversion.
+Fixes: 6b04d9c34e25 ("xt_sctp: support a couple of new chunk types")
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+---
+ extensions/libxt_sctp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Please include these rationales in code comments. We also need to update 
-the tests for endianess, but still check big and little endian 
-consistency as it is currently done in these tests. A new test should be 
-added to check port boundaries with:
-- port = 0
-- port = U16_MAX
-- port = U16_MAX + 1 (which should get an EINVAL)
-- port = U16_MAX + 2 (to check u16 casting != 0)
-- port = U32_MAX + 1
-- port = U32_MAX + 2
+diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
+index fe5f5621..6e2b2745 100644
+--- a/extensions/libxt_sctp.c
++++ b/extensions/libxt_sctp.c
+@@ -50,7 +50,7 @@ static void sctp_help(void)
+ " --dport ...\n" 
+ "[!] --chunk-types (all|any|none) (chunktype[:flags])+	match if all, any or none of\n"
+ "						        chunktypes are present\n"
+-"chunktypes - DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUTDOWN_ACK ERROR COOKIE_ECHO COOKIE_ACK ECN_ECNE ECN_CWR SHUTDOWN_COMPLETE ASCONF ASCONF_ACK FORWARD_TSN ALL NONE\n");
++"chunktypes - DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUTDOWN_ACK ERROR COOKIE_ECHO COOKIE_ACK ECN_ECNE ECN_CWR SHUTDOWN_COMPLETE I_DATA RE_CONFIG PAD ASCONF ASCONF_ACK FORWARD_TSN I_FORWARD_TSN ALL NONE\n");
+ }
+ 
+ static const struct option sctp_opts[] = {
+-- 
+2.39.1
 
-
->>
->> If we think about protocols other than TCP and UDP (e.g. AF_VSOCK), it
->> could make sense to have a dedicated attr struct specifying other
->> properties (e.g. CID). Anyway, the API is flexible but it would be nice
->> to not mess with it too much. What do you think?
->>
->>
->>>>
->>>>> +
->>>>> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->>>>> +                            &net_service, 0);
->>>>> +
->>>>> +The next step is to restrict the current thread from gaining more privileges
->>>>> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
->>>>             ^^^^^^
->>>>             "through" a SUID binary? "thanks to" sounds like it's desired
->>>>             to do that, while we're actually trying to prevent it here?
->>>
->>>      This is Mickaёl's part. Let's ask his opinion here.
->>>
->>>      Mickaёl, any thoughts?
->>
->> Yep, "through" looks better.
->> .
