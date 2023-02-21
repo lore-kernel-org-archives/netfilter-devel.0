@@ -2,47 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 989F5C636D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Feb 2023 18:48:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8C08C61DA3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Feb 2023 23:20:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229558AbjBUSs6 (ORCPT
+        id S230013AbjBUXUj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Feb 2023 13:48:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46444 "EHLO
+        Tue, 21 Feb 2023 18:20:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229535AbjBUSs6 (ORCPT
+        with ESMTP id S229567AbjBUXUi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Feb 2023 13:48:58 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1821E233FA
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2023 10:48:56 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pUXh7-0007GY-R3; Tue, 21 Feb 2023 19:48:53 +0100
-Date:   Tue, 21 Feb 2023 19:48:53 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] netlink_delinearize: Sanitize concat data element
- decoding
-Message-ID: <Y/USFZ6LEo3zaB/n@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20230221182133.11746-1-phil@nwl.cc>
+        Tue, 21 Feb 2023 18:20:38 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 88B66298CA;
+        Tue, 21 Feb 2023 15:20:37 -0800 (PST)
+Date:   Wed, 22 Feb 2023 00:20:32 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Hangyu Hua <hbh25y@gmail.com>
+Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] net: netfilter: fix possible refcount leak in
+ ctnetlink_create_conntrack()
+Message-ID: <Y/VRwLYyEkdxQR/B@salvia>
+References: <20230210071730.21525-1-hbh25y@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230221182133.11746-1-phil@nwl.cc>
+In-Reply-To: <20230210071730.21525-1-hbh25y@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 21, 2023 at 07:21:33PM +0100, Phil Sutter wrote:
-> The call to netlink_get_register() might return NULL, catch this before
-> dereferencing the pointer.
-> 
-> Fixes: db59a5c1204c9 ("netlink_delinearize: fix decoding of concat data element")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+On Fri, Feb 10, 2023 at 03:17:30PM +0800, Hangyu Hua wrote:
+> nf_ct_put() needs to be called to put the refcount got by
+> nf_conntrack_find_get() to avoid refcount leak when
+> nf_conntrack_hash_check_insert() fails.
 
-Patch applied.
+Applied to nf, thanks
