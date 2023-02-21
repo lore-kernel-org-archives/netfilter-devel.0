@@ -2,166 +2,192 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4932C05027
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Feb 2023 16:24:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5C86C636D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Feb 2023 16:16:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbjBTQYP (ORCPT
+        id S233278AbjBUQQN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Feb 2023 11:24:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38042 "EHLO
+        Tue, 21 Feb 2023 11:16:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229885AbjBTQYP (ORCPT
+        with ESMTP id S233775AbjBUQQN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Feb 2023 11:24:15 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881051D90A
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Feb 2023 08:24:13 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pU8xX-0001Nl-Av; Mon, 20 Feb 2023 17:24:11 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Bryce Kahle <bryce.kahle@datadoghq.com>
-Subject: [PATCH nf] netfilter: ctnetlink: make event listener tracking global
-Date:   Mon, 20 Feb 2023 17:24:00 +0100
-Message-Id: <20230220162400.7234-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
+        Tue, 21 Feb 2023 11:16:13 -0500
+Received: from smtp-1908.mail.infomaniak.ch (smtp-1908.mail.infomaniak.ch [185.125.25.8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 079FF2BEC3
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2023 08:16:09 -0800 (PST)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PLktH65WSzMrN9b;
+        Tue, 21 Feb 2023 17:16:07 +0100 (CET)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4PLktH1FrhzMsYJy;
+        Tue, 21 Feb 2023 17:16:07 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1676996167;
+        bh=MP2Iae2qufmo2MaYLH9WMQWBeFZRcbBTutsxp2tsFR4=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=Qg5jrwEKFB6jvwTwWv59ENt4yOvkg1lGg411952a0CIK220mYhviUzCHjQfsXPsRr
+         bJ4Cn+QA+btjIGX0gKE7LojDV5dV1IzTv9CI9GhaitP7WGd5gGk9efH7JxqSgKKW1S
+         zR2mzDxt0jZgmgLlCkgmSIHTrvKWTkSnx+nh+nkc=
+Message-ID: <278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net>
+Date:   Tue, 21 Feb 2023 17:16:06 +0100
 MIME-Version: 1.0
+User-Agent: 
+Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
+Content-Language: en-US
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
+        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
+Cc:     willemdebruijn.kernel@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com
+References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+ <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
+ <Y8xwLvDbhKPG8JqY@galopp> <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
+ <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
+ <526a70a2-b0bc-f29a-6558-022ca12a6430@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <526a70a2-b0bc-f29a-6558-022ca12a6430@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-pernet tracking doesn't work correctly because other netns might have
-set NETLINK_LISTEN_ALL_NSID on its event socket.
 
-In this case its expected that events originating in other net
-namespaces are also received.
+On 30/01/2023 11:03, Konstantin Meskhidze (A) wrote:
+> 
+> 
+> 1/27/2023 9:22 PM, Mickaël Salaün пишет:
+>>
+>> On 23/01/2023 10:38, Konstantin Meskhidze (A) wrote:
+>>>
+>>>
+>>> 1/22/2023 2:07 AM, Günther Noack пишет:
+>>
+>> [...]
+>>
+>>>>> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
+>>>>>    ABI version.  In this example, this is not required because all of the requested
+>>>>>    ``allowed_access`` rights are already available in ABI 1.
+>>>>>    
+>>>>> -We now have a ruleset with one rule allowing read access to ``/usr`` while
+>>>>> -denying all other handled accesses for the filesystem.  The next step is to
+>>>>> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
+>>>>> -binary).
+>>>>> +For network access-control, we can add a set of rules that allow to use a port
+>>>>> +number for a specific action. All ports values must be defined in network byte
+>>>>> +order.
+>>>>
+>>>> What is the point of asking user space to convert this to network byte
+>>>> order? It seems to me that the kernel would be able to convert it to
+>>>> network byte order very easily internally and in a single place -- why
+>>>> ask all of the users to deal with that complexity? Am I overlooking
+>>>> something?
+>>>
+>>>     I had a discussion about this issue with Mickaёl.
+>>>     Please check these threads:
+>>>     1.
+>>> https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
+>>>     2.
+>>> https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
+>>
+>> I'm definitely not sure if this is the right solution, or if there is
+>> one. The rationale is to make it close to the current (POSIX) API. We
+>> didn't get many opinion about that but I'd really like to have a
+>> discussion about port endianness for this Landlock API.
+> 
+>     As for me, the kernel should take care about port converting. This
+> work should be done under the hood.
+> 
+>     Any thoughts?
+> 
+>>
+>> I looked at some code (e.g. see [1]) and it seems that using htons()
+>> might make application patching more complex after all. What do you
+>> think? Is there some network (syscall) API that don't use this convention?
+>>
+>> [1] https://github.com/landlock-lsm/tuto-lighttpd
+>>
+>>>>
+>>>>> +
+>>>>> +.. code-block:: c
+>>>>> +
+>>>>> +    struct landlock_net_service_attr net_service = {
+>>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>>>>> +        .port = htons(8080),
+>>>>> +    };
+>>>>
+>>>> This is a more high-level comment:
+>>>>
+>>>> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
+>>>> how do you envision this struct to evolve if other protocols need to
+>>>> be supported in the future?
+>>>
+>>>      When TCP restrictions land into Linux, we need to think about UDP
+>>> support. Then other protocols will be on the road. Anyway you are right
+>>> this struct will be evolving in long term, but I don't have a particular
+>>> envision now. Thanks for the question - we need to think about it.
+>>>>
+>>>> Should this struct and the associated constants have "TCP" in its
+>>>> name, and other protocols use a separate struct in the future?
+>>
+>> Other protocols such as AF_VSOCK uses a 32-bit port. We could use a
+>> 32-bits port field or ever a 64-bit one. The later could make more sense
+>> because each field would eventually be aligned on 64-bit. Picking a
+>> 16-bit value was to help developers (and compilers/linters) with the
+>> "correct" type (for TCP).
 
-Making pernet-tracking work while also honoring NETLINK_LISTEN_ALL_NSID
-requires much more intrusive changes both in netlink and nfnetlink,
-f.e. adding a 'setsockopt' callback that lets nfnetlink know that the
-event socket entered (or left) ALL_NSID mode.
+Thinking more about this, let's use a __u64 port (and remove the 
+explicit packing). The landlock_append_net_rule() function should use a 
+__u16 port argument, but the add_rule_net_service() function should 
+check that there is no overflow with the port attribute (not higher than 
+U16_MAX) before passing it to landlock_append_net_rule(). We should 
+prioritize flexibility for the kernel UAPI over stricter types. User 
+space libraries can improve this kind of types with a more complex API.
 
-Move to global tracking instead: if there is an event socket anywhere
-on the system, all net namespaces which have conntrack enabled and
-use autobind mode will allocate the ecache extension.
+Big endian can make sense for a pure network API because the port value 
+(and the IP address) is passed to other machines through the network, 
+as-is. However, with Landlock, the port value is only used by the 
+kernel. Moreover, in practice, port values are mostly converted when 
+filling the sockaddr*_in structs. It would then make it more risky to 
+ask developers another explicit htons() conversion for Landlock 
+syscalls. Let's stick to the host endianess and let the kernel do the 
+conversion.
 
-netlink_has_listeners() returns false only if the given group has no
-subscribers in any net namespace, the 'net' argument passed to
-nfnetlink_has_listeners is only used to derive the protocol (nfnetlink),
-it has no other effect.
+Please include these rationales in code comments. We also need to update 
+the tests for endianess, but still check big and little endian 
+consistency as it is currently done in these tests. A new test should be 
+added to check port boundaries with:
+- port = 0
+- port = U16_MAX
+- port = U16_MAX + 1 (which should get an EINVAL)
+- port = U16_MAX + 2 (to check u16 casting != 0)
+- port = U32_MAX + 1
+- port = U32_MAX + 2
 
-For proper NETLINK_LISTEN_ALL_NSID-aware pernet tracking of event
-listeners a new netlink_has_net_listeners() is also needed.
 
-Fixes: 90d1daa45849 ("netfilter: conntrack: add nf_conntrack_events autodetect mode")
-Reported-by: Bryce Kahle <bryce.kahle@datadoghq.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter.h           | 5 +++++
- include/net/netns/conntrack.h       | 1 -
- net/netfilter/core.c                | 3 +++
- net/netfilter/nf_conntrack_ecache.c | 2 +-
- net/netfilter/nfnetlink.c           | 9 +++++----
- 5 files changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index d8817d381c14..bef8db9d6c08 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -488,4 +488,9 @@ extern const struct nfnl_ct_hook __rcu *nfnl_ct_hook;
-  */
- DECLARE_PER_CPU(bool, nf_skb_duplicated);
- 
-+/**
-+ * Contains bitmask of ctnetlink event subscribers, if any.
-+ * Can't be pernet due to NETLINK_LISTEN_ALL_NSID setsockopt flag.
-+ */
-+extern u8 nf_ctnetlink_has_listener;
- #endif /*__LINUX_NETFILTER_H*/
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index e1290c159184..1f463b3957c7 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -95,7 +95,6 @@ struct nf_ip_net {
- 
- struct netns_ct {
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--	u8 ctnetlink_has_listener;
- 	bool ecache_dwork_pending;
- #endif
- 	u8			sysctl_log_invalid; /* Log invalid packets */
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 5a6705a0e4ec..6e80f0f6149e 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -669,6 +669,9 @@ const struct nf_ct_hook __rcu *nf_ct_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_hook);
- 
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+u8 nf_ctnetlink_has_listener;
-+EXPORT_SYMBOL_GPL(nf_ctnetlink_has_listener);
-+
- const struct nf_nat_hook __rcu *nf_nat_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nf_nat_hook);
- 
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 8698b3424646..69948e1d6974 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -309,7 +309,7 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
- 			break;
- 		return true;
- 	case 2: /* autodetect: no event listener, don't allocate extension. */
--		if (!READ_ONCE(net->ct.ctnetlink_has_listener))
-+		if (!READ_ONCE(nf_ctnetlink_has_listener))
- 			return true;
- 		fallthrough;
- 	case 1:
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 6d18fb346868..81c7737c803a 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -29,6 +29,7 @@
- 
- #include <net/netlink.h>
- #include <net/netns/generic.h>
-+#include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
- 
- MODULE_LICENSE("GPL");
-@@ -685,12 +686,12 @@ static void nfnetlink_bind_event(struct net *net, unsigned int group)
- 	group_bit = (1 << group);
- 
- 	spin_lock(&nfnl_grp_active_lock);
--	v = READ_ONCE(net->ct.ctnetlink_has_listener);
-+	v = READ_ONCE(nf_ctnetlink_has_listener);
- 	if ((v & group_bit) == 0) {
- 		v |= group_bit;
- 
- 		/* read concurrently without nfnl_grp_active_lock held. */
--		WRITE_ONCE(net->ct.ctnetlink_has_listener, v);
-+		WRITE_ONCE(nf_ctnetlink_has_listener, v);
- 	}
- 
- 	spin_unlock(&nfnl_grp_active_lock);
-@@ -744,12 +745,12 @@ static void nfnetlink_unbind(struct net *net, int group)
- 
- 	spin_lock(&nfnl_grp_active_lock);
- 	if (!nfnetlink_has_listeners(net, group)) {
--		u8 v = READ_ONCE(net->ct.ctnetlink_has_listener);
-+		u8 v = READ_ONCE(nf_ctnetlink_has_listener);
- 
- 		v &= ~group_bit;
- 
- 		/* read concurrently without nfnl_grp_active_lock held. */
--		WRITE_ONCE(net->ct.ctnetlink_has_listener, v);
-+		WRITE_ONCE(nf_ctnetlink_has_listener, v);
- 	}
- 	spin_unlock(&nfnl_grp_active_lock);
- #endif
--- 
-2.39.2
-
+>>
+>> If we think about protocols other than TCP and UDP (e.g. AF_VSOCK), it
+>> could make sense to have a dedicated attr struct specifying other
+>> properties (e.g. CID). Anyway, the API is flexible but it would be nice
+>> to not mess with it too much. What do you think?
+>>
+>>
+>>>>
+>>>>> +
+>>>>> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>>>>> +                            &net_service, 0);
+>>>>> +
+>>>>> +The next step is to restrict the current thread from gaining more privileges
+>>>>> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
+>>>>             ^^^^^^
+>>>>             "through" a SUID binary? "thanks to" sounds like it's desired
+>>>>             to do that, while we're actually trying to prevent it here?
+>>>
+>>>      This is Mickaёl's part. Let's ask his opinion here.
+>>>
+>>>      Mickaёl, any thoughts?
+>>
+>> Yep, "through" looks better.
+>> .
