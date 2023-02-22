@@ -2,86 +2,59 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40EC1C61DA4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 09:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22A17C64EC4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 09:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231310AbjBVJCN (ORCPT
+        id S231680AbjBVJVt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Feb 2023 04:02:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49032 "EHLO
+        Wed, 22 Feb 2023 04:21:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229975AbjBVJCM (ORCPT
+        with ESMTP id S231686AbjBVJVq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Feb 2023 04:02:12 -0500
+        Wed, 22 Feb 2023 04:21:46 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1FBBC36697;
-        Wed, 22 Feb 2023 01:02:11 -0800 (PST)
-Date:   Wed, 22 Feb 2023 10:02:07 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 83F0B36FCA;
+        Wed, 22 Feb 2023 01:21:43 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel@openvz.org
-Subject: Re: [PATCH] netfilter: fix percpu counter block leak on error path
- when creating new netns
-Message-ID: <Y/XaD3Dt0tiO2yuT@salvia>
-References: <20230213042505.334898-1-ptikhomirov@virtuozzo.com>
- <Y/VS7okXF1c6rN/I@salvia>
- <4c6e6b8e-1d0c-2893-f4b9-ea40170cacd6@virtuozzo.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 1/8] netfilter: nf_tables: allow to fetch set elements when table has an owner
+Date:   Wed, 22 Feb 2023 10:21:30 +0100
+Message-Id: <20230222092137.88637-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230222092137.88637-1-pablo@netfilter.org>
+References: <20230222092137.88637-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <4c6e6b8e-1d0c-2893-f4b9-ea40170cacd6@virtuozzo.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Feb 22, 2023 at 10:11:03AM +0800, Pavel Tikhomirov wrote:
-> On 22.02.2023 07:25, Pablo Neira Ayuso wrote:
-> > Hi,
-> > 
-> > On Mon, Feb 13, 2023 at 12:25:05PM +0800, Pavel Tikhomirov wrote:
-> > > Here is the stack where we allocate percpu counter block:
-> > > 
-> > >    +-< __alloc_percpu
-> > >      +-< xt_percpu_counter_alloc
-> > >        +-< find_check_entry # {arp,ip,ip6}_tables.c
-> > >          +-< translate_table
-> > > 
-> > > And it can be leaked on this code path:
-> > > 
-> > >    +-> ip6t_register_table
-> > >      +-> translate_table # allocates percpu counter block
-> > >      +-> xt_register_table # fails
-> > > 
-> > > there is no freeing of the counter block on xt_register_table fail.
-> > > Note: xt_percpu_counter_free should be called to free it like we do in
-> > > do_replace through cleanup_entry helper (or in __ip6t_unregister_table).
-> > > 
-> > > Probability of hitting this error path is low AFAICS (xt_register_table
-> > > can only return ENOMEM here, as it is not replacing anything, as we are
-> > > creating new netns, and it is hard to imagine that all previous
-> > > allocations succeeded and after that one in xt_register_table failed).
-> > > But it's worth fixing even the rare leak.
-> > 
-> > Any suggestion as Fixes: tag here? This issue seems to be rather old?
-> 
-> 
-> If I'm correct:
-> 
-> 1) we have this exact percpu leak since commit 71ae0dff02d7
-> ("netfilter: xtables: use percpu rule counters") which introduced
-> the percpu allocation.
-> 
-> 2) but we don't call cleanup_entry on this path at least since
-> commit 1da177e4c3f4 ("Linux-2.6.12-rc2") which is really old.
-> 
-> 3) I also see the same thing here https://github.com/mpe/linux-fullhistory/blame/1ab7e5ccf454483fb78998854dddd0bab398c3de/net/ipv4/netfilter/arp_tables.c#L1169
-> which is probably the initiall commit which introduced
-> net/ipv4/netfilter/arp_tables.c file.
-> 
-> So I'm not sure about Fixes: tag, probably one of those three commits.
+NFT_MSG_GETSETELEM returns -EPERM when fetching set elements that belong
+to table that has an owner. This results in empty set/map listing from
+userspace.
 
-Thanks, I will pick #1 as Fixes: tag.
+Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8c09e4d12ac1..820c602d655e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5487,7 +5487,7 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
+ 	int rem, err = 0;
+ 
+ 	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
+-				 genmask, NETLINK_CB(skb).portid);
++				 genmask, 0);
+ 	if (IS_ERR(table)) {
+ 		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_TABLE]);
+ 		return PTR_ERR(table);
+-- 
+2.30.2
+
