@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92C98C64EC4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 09:21:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD46C678D5
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 09:21:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231684AbjBVJVx (ORCPT
+        id S231710AbjBVJVy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Feb 2023 04:21:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38636 "EHLO
+        Wed, 22 Feb 2023 04:21:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231690AbjBVJVs (ORCPT
+        with ESMTP id S231679AbjBVJVs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 22 Feb 2023 04:21:48 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7F19227D48;
-        Wed, 22 Feb 2023 01:21:45 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 115E437F17;
+        Wed, 22 Feb 2023 01:21:48 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 4/8] netfilter: ip6t_rpfilter: Fix regression with VRF interfaces
-Date:   Wed, 22 Feb 2023 10:21:33 +0100
-Message-Id: <20230222092137.88637-5-pablo@netfilter.org>
+Subject: [PATCH net 8/8] netfilter: x_tables: fix percpu counter block leak on error path when creating new netns
+Date:   Wed, 22 Feb 2023 10:21:37 +0100
+Message-Id: <20230222092137.88637-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230222092137.88637-1-pablo@netfilter.org>
 References: <20230222092137.88637-1-pablo@netfilter.org>
@@ -32,116 +32,85 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
 
-When calling ip6_route_lookup() for the packet arriving on the VRF
-interface, the result is always the real (slave) interface. Expect this
-when validating the result.
+Here is the stack where we allocate percpu counter block:
 
-Fixes: acc641ab95b66 ("netfilter: rpfilter/fib: Populate flowic_l3mdev field")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+  +-< __alloc_percpu
+    +-< xt_percpu_counter_alloc
+      +-< find_check_entry # {arp,ip,ip6}_tables.c
+        +-< translate_table
+
+And it can be leaked on this code path:
+
+  +-> ip6t_register_table
+    +-> translate_table # allocates percpu counter block
+    +-> xt_register_table # fails
+
+there is no freeing of the counter block on xt_register_table fail.
+Note: xt_percpu_counter_free should be called to free it like we do in
+do_replace through cleanup_entry helper (or in __ip6t_unregister_table).
+
+Probability of hitting this error path is low AFAICS (xt_register_table
+can only return ENOMEM here, as it is not replacing anything, as we are
+creating new netns, and it is hard to imagine that all previous
+allocations succeeded and after that one in xt_register_table failed).
+But it's worth fixing even the rare leak.
+
+Fixes: 71ae0dff02d7 ("netfilter: xtables: use percpu rule counters")
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_rpfilter.c         |  4 ++-
- tools/testing/selftests/netfilter/rpath.sh | 32 ++++++++++++++++++----
- 2 files changed, 29 insertions(+), 7 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 4 ++++
+ net/ipv4/netfilter/ip_tables.c  | 4 ++++
+ net/ipv6/netfilter/ip6_tables.c | 4 ++++
+ 3 files changed, 12 insertions(+)
 
-diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
-index a01d9b842bd0..67c87a88cde4 100644
---- a/net/ipv6/netfilter/ip6t_rpfilter.c
-+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
-@@ -72,7 +72,9 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
- 		goto out;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index ffc0cab7cf18..2407066b0fec 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1525,6 +1525,10 @@ int arpt_register_table(struct net *net,
+ 
+ 	new_table = xt_register_table(net, table, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
++		struct arpt_entry *iter;
++
++		xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
++			cleanup_entry(iter, net);
+ 		xt_free_table_info(newinfo);
+ 		return PTR_ERR(new_table);
  	}
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index aae5fd51dfd7..da5998011ab9 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1741,6 +1741,10 @@ int ipt_register_table(struct net *net, const struct xt_table *table,
  
--	if (rt->rt6i_idev->dev == dev || (flags & XT_RPFILTER_LOOSE))
-+	if (rt->rt6i_idev->dev == dev ||
-+	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == dev->ifindex ||
-+	    (flags & XT_RPFILTER_LOOSE))
- 		ret = true;
-  out:
- 	ip6_rt_put(rt);
-diff --git a/tools/testing/selftests/netfilter/rpath.sh b/tools/testing/selftests/netfilter/rpath.sh
-index f7311e66d219..5289c8447a41 100755
---- a/tools/testing/selftests/netfilter/rpath.sh
-+++ b/tools/testing/selftests/netfilter/rpath.sh
-@@ -62,10 +62,16 @@ ip -net "$ns1" a a fec0:42::2/64 dev v0 nodad
- ip -net "$ns2" a a fec0:42::1/64 dev d0 nodad
- 
- # firewall matches to test
--[ -n "$iptables" ] && ip netns exec "$ns2" \
--	"$iptables" -t raw -A PREROUTING -s 192.168.0.0/16 -m rpfilter
--[ -n "$ip6tables" ] && ip netns exec "$ns2" \
--	"$ip6tables" -t raw -A PREROUTING -s fec0::/16 -m rpfilter
-+[ -n "$iptables" ] && {
-+	common='-t raw -A PREROUTING -s 192.168.0.0/16'
-+	ip netns exec "$ns2" "$iptables" $common -m rpfilter
-+	ip netns exec "$ns2" "$iptables" $common -m rpfilter --invert
-+}
-+[ -n "$ip6tables" ] && {
-+	common='-t raw -A PREROUTING -s fec0::/16'
-+	ip netns exec "$ns2" "$ip6tables" $common -m rpfilter
-+	ip netns exec "$ns2" "$ip6tables" $common -m rpfilter --invert
-+}
- [ -n "$nft" ] && ip netns exec "$ns2" $nft -f - <<EOF
- table inet t {
- 	chain c {
-@@ -89,6 +95,11 @@ ipt_zero_rule() { # (command)
- 	[ -n "$1" ] || return 0
- 	ip netns exec "$ns2" "$1" -t raw -vS | grep -q -- "-m rpfilter -c 0 0"
- }
-+ipt_zero_reverse_rule() { # (command)
-+	[ -n "$1" ] || return 0
-+	ip netns exec "$ns2" "$1" -t raw -vS | \
-+		grep -q -- "-m rpfilter --invert -c 0 0"
-+}
- nft_zero_rule() { # (family)
- 	[ -n "$nft" ] || return 0
- 	ip netns exec "$ns2" "$nft" list chain inet t c | \
-@@ -101,8 +112,7 @@ netns_ping() { # (netns, args...)
- 	ip netns exec "$netns" ping -q -c 1 -W 1 "$@" >/dev/null
- }
- 
--testrun() {
--	# clear counters first
-+clear_counters() {
- 	[ -n "$iptables" ] && ip netns exec "$ns2" "$iptables" -t raw -Z
- 	[ -n "$ip6tables" ] && ip netns exec "$ns2" "$ip6tables" -t raw -Z
- 	if [ -n "$nft" ]; then
-@@ -111,6 +121,10 @@ testrun() {
- 			ip netns exec "$ns2" $nft -s list table inet t;
- 		) | ip netns exec "$ns2" $nft -f -
- 	fi
-+}
+ 	new_table = xt_register_table(net, table, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
++		struct ipt_entry *iter;
 +
-+testrun() {
-+	clear_counters
++		xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
++			cleanup_entry(iter, net);
+ 		xt_free_table_info(newinfo);
+ 		return PTR_ERR(new_table);
+ 	}
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index ac902f7bca47..0ce0ed17c758 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1750,6 +1750,10 @@ int ip6t_register_table(struct net *net, const struct xt_table *table,
  
- 	# test 1: martian traffic should fail rpfilter matches
- 	netns_ping "$ns1" -I v0 192.168.42.1 && \
-@@ -120,9 +134,13 @@ testrun() {
- 
- 	ipt_zero_rule "$iptables" || die "iptables matched martian"
- 	ipt_zero_rule "$ip6tables" || die "ip6tables matched martian"
-+	ipt_zero_reverse_rule "$iptables" && die "iptables not matched martian"
-+	ipt_zero_reverse_rule "$ip6tables" && die "ip6tables not matched martian"
- 	nft_zero_rule ip || die "nft IPv4 matched martian"
- 	nft_zero_rule ip6 || die "nft IPv6 matched martian"
- 
-+	clear_counters
+ 	new_table = xt_register_table(net, table, &bootstrap, newinfo);
+ 	if (IS_ERR(new_table)) {
++		struct ip6t_entry *iter;
 +
- 	# test 2: rpfilter match should pass for regular traffic
- 	netns_ping "$ns1" 192.168.23.1 || \
- 		die "regular ping 192.168.23.1 failed"
-@@ -131,6 +149,8 @@ testrun() {
- 
- 	ipt_zero_rule "$iptables" && die "iptables match not effective"
- 	ipt_zero_rule "$ip6tables" && die "ip6tables match not effective"
-+	ipt_zero_reverse_rule "$iptables" || die "iptables match over-effective"
-+	ipt_zero_reverse_rule "$ip6tables" || die "ip6tables match over-effective"
- 	nft_zero_rule ip && die "nft IPv4 match not effective"
- 	nft_zero_rule ip6 && die "nft IPv6 match not effective"
- 
++		xt_entry_foreach(iter, loc_cpu_entry, newinfo->size)
++			cleanup_entry(iter, net);
+ 		xt_free_table_info(newinfo);
+ 		return PTR_ERR(new_table);
+ 	}
 -- 
 2.30.2
 
