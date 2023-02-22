@@ -2,57 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC8AAC64EC4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 16:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DA94C636D6
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 17:02:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230267AbjBVQi7 (ORCPT
+        id S232318AbjBVRC6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Feb 2023 11:38:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56716 "EHLO
+        Wed, 22 Feb 2023 12:02:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231622AbjBVQi6 (ORCPT
+        with ESMTP id S232410AbjBVRCx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Feb 2023 11:38:58 -0500
+        Wed, 22 Feb 2023 12:02:53 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B9721167D
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2023 08:38:46 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pUs8h-00059C-EN; Wed, 22 Feb 2023 17:38:43 +0100
-Date:   Wed, 22 Feb 2023 17:38:43 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C3974217
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2023 09:02:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=u0Fq0CuabpnS1Ml60dMeqbKfr0SdoEPKyFS9xdsYkSA=; b=CoKt//dXGC62XQpMYhMxpXEE5I
+        o8dHajv8rsVtlrvmjPYsXdduzrsOV+XP80y/QwkG7t51ql/XhazGDextDnn2PIihUgv/VFF9B1UCb
+        F5oqGOVtiWwpJjAP5pZh1dQ5ywVPdiz5k2pbJQSgu4RatEYZShZvBAkDmInAdHcNWZUB16JdONKPX
+        XfgZUlDte0tON7OVMHFltCBYPKfaTmofOXj5J2b0SpH28LmsAxjQhoVedSA0uQAIaOOP31z6o7oyN
+        9rmtyXV94bI+zHnXT934CDwlLCYYFzqAt7cDhjWQkC4Fhi5GSsXH6TIKveq0/Ng9ccZDH654OeQji
+        Z6BmwUZA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1pUsW1-0005Yk-Qp; Wed, 22 Feb 2023 18:02:49 +0100
 From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Devoogdt <thomas@devoogdt.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] [iptables] extensions: libxt_LOG.c: fix
- linux/netfilter/xt_LOG.h include on Linux < 3.4
-Message-ID: <Y/ZFE5ybIYKTJrIA@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Devoogdt <thomas@devoogdt.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230222072349.509917-1-thomas.devoogdt@barco.com>
- <Y/XouZlrtw/SN/C2@salvia>
- <Y/YFcwp/gyZY5Pmw@orbyte.nwl.cc>
- <Y/YZC1Feu9gOCdWF@salvia>
- <Y/Y1efOjGyBo0MAj@orbyte.nwl.cc>
- <Y/Y62lQorHG1PK2g@orbyte.nwl.cc>
- <CACXRmJgs2XkwO5ODjNwe9MExaVbNxCr7JqfuN-wSAC4iDFy0-Q@mail.gmail.com>
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [ipset PATCH 2/2] xlate: Drop dead code
+Date:   Wed, 22 Feb 2023 18:02:41 +0100
+Message-Id: <20230222170241.26208-3-phil@nwl.cc>
+X-Mailer: git-send-email 2.38.0
+In-Reply-To: <20230222170241.26208-1-phil@nwl.cc>
+References: <20230222170241.26208-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CACXRmJgs2XkwO5ODjNwe9MExaVbNxCr7JqfuN-wSAC4iDFy0-Q@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Feb 22, 2023 at 05:21:58PM +0100, Thomas Devoogdt wrote:
-> I saw your new commit:
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230222155601.31645-1-phil@nwl.cc/,
-> 
-> Thx in advance.
-> No further action from my side is required I guess.
+Set type is not needed when manipulating elements, the assigned
+variable was unused in that case.
 
-Thanks for confirming. I'll push the patch.
+Fixes: 325af556cd3a6 ("add ipset to nftables translation infrastructure")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ lib/ipset.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Cheers, Phil
+diff --git a/lib/ipset.c b/lib/ipset.c
+index 2e098e435d954..8e63af56d2a51 100644
+--- a/lib/ipset.c
++++ b/lib/ipset.c
+@@ -1876,9 +1876,6 @@ static int ipset_xlate(struct ipset *ipset, enum ipset_cmd cmd,
+ 				cmd == IPSET_CMD_DEL ? "delete" : "get",
+ 		       ipset_xlate_family(family), table, set);
+ 
+-		typename = ipset_data_get(data, IPSET_OPT_TYPENAME);
+-		type = ipset_xlate_set_type(typename);
+-
+ 		xlate_set = (struct ipset_xlate_set *)
+ 				ipset_xlate_set_get(ipset, set);
+ 		if (xlate_set && xlate_set->interval)
+-- 
+2.38.0
+
