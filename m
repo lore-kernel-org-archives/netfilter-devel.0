@@ -2,78 +2,117 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D87D6C61DA4
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 10:21:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FC5DC61DA4
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 10:51:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231481AbjBVKVa (ORCPT
+        id S231451AbjBVKvy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Feb 2023 05:21:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57334 "EHLO
+        Wed, 22 Feb 2023 05:51:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbjBVKV3 (ORCPT
+        with ESMTP id S229834AbjBVKvw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Feb 2023 05:21:29 -0500
-Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B718C34F7C
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2023 02:21:22 -0800 (PST)
-Received: from fews2.riseup.net (fews2-pn.riseup.net [10.0.1.84])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
-         client-signature RSA-PSS (2048 bits) client-digest SHA256)
-        (Client CN "mail.riseup.net", Issuer "R3" (not verified))
-        by mx1.riseup.net (Postfix) with ESMTPS id 4PMByV0twGzDqFV
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2023 10:21:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-        t=1677061282; bh=tzkxQQqjE9QTThziZepYtodPkyuICqQk7OD4Q6voKMU=;
-        h=From:To:Cc:Subject:Date:From;
-        b=bV5oTaIQ323y9VNNuZ29WXgDWaojFbnJVUcB/7RHooK4NeEMjknLnHoHU68cNiZKe
-         RTmTzFUUgv1ZDPQdvLMUcgABa/Ci8dD7zt0mJoSb0H+swqYjZncrhZSx5scaO7/GPI
-         dEWVXOYIWbbb0Wsx+d2MPaDZcTmdml+DbQn14VUs=
-X-Riseup-User-ID: 3EDDC884C590D90C9F7066EB852F3200DD75742B8E97CCF2A711C8E652F5BCE9
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-         by fews2.riseup.net (Postfix) with ESMTPSA id 4PMByT2b87z1y8Z;
-        Wed, 22 Feb 2023 10:21:21 +0000 (UTC)
-From:   "Jose M. Guisado Gomez" <guigom@riseup.net>
+        Wed, 22 Feb 2023 05:51:52 -0500
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 419E338654
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2023 02:51:51 -0800 (PST)
+Received: by mail-wr1-x42f.google.com with SMTP id 6so6869625wrb.11
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2023 02:51:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:reply-to:message-id:date
+         :subject:cc:to:from:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=/aFMtzLHSjwxug/UT3knUgkl1m9Xd7n5GNpJHWzyBRU=;
+        b=O33vCs/v8g1N6Tch81zs+xqtBR/IdfRwZz4HRN7fPMKtRSYassqGqQMePzXhfcCF0r
+         kFw5QykVYyOSOpy/dZgnjLcSXJV5kqRvJ0Kj13WKwg7PtoXXW1aQctURVtzApvke1kua
+         YfL+kjXvcaTh3VtStC5JwTrIWS2MQuAoHi/w0cFO0Kf9fZHtIit/lsZ8IbTWpmwq7dSy
+         WCKjobpmz43CxpD/KH0sc4dn6ejwNzPgaW8nanBzE6TMxGm6tjDqFjpEw1BV4jYBeqG9
+         ICQD07oar0mG0SJUnn9MxtlxSJPCIC/7bFqJXjHLvfZF2IWRUfV/+mTpzv9SYa47lM8T
+         Rjlg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:reply-to:message-id:date
+         :subject:cc:to:from:sender:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=/aFMtzLHSjwxug/UT3knUgkl1m9Xd7n5GNpJHWzyBRU=;
+        b=Ny38RYfUxswpczk4QV/LimL82b9ycMVIRNlv4+FwB65sv5DF2BSdR6IkSoqrhBdAvB
+         FsKC3sufhKZC+9pVRj3bJj9wAmiDJtmC0xT92J/JN6iQ/nQTQuMzvb+p+AKLV8A6CoOk
+         YiOA9ynVAAAFZDeQSbu6zKgVbiNTaPcOg+js/GlAzoDGb/lTa79ZlWbgFe7nyncVeqt8
+         0o8XQB9y1n1ycx2zJerN6k//eaMutK86MDfGMPQAlAs9APuwj6ravWO24XI3BrYLbt63
+         FN1am4ZHV8y9EU5dFnuhmOTxgq5WD4g0JamILx15jYeGq3nTJHgkFOU191KNoaNymxHV
+         2Frg==
+X-Gm-Message-State: AO0yUKU0Ee10ozSolcRBAt37m2Z54jgyugjAARMFpSAi7/mk99fgZW5z
+        qoObk2hB9O637Vx8mCKOxJuMc10AzlvX133t
+X-Google-Smtp-Source: AK7set/Jszzy0bROmM/gL3mzio/TsdYw6Os69bJ8AGYif3qR5RTRrxoqm/SopboM4fGRecLa3B4vjA==
+X-Received: by 2002:adf:fcd0:0:b0:2c5:4a20:cad8 with SMTP id f16-20020adffcd0000000b002c54a20cad8mr7585573wrs.60.1677063109325;
+        Wed, 22 Feb 2023 02:51:49 -0800 (PST)
+Received: from thomas-OptiPlex-7090.nmg.localnet (d528f5fc4.static.telenet.be. [82.143.95.196])
+        by smtp.gmail.com with ESMTPSA id e16-20020adfe390000000b002c54c8e70b1sm7237679wrm.9.2023.02.22.02.51.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Feb 2023 02:51:48 -0800 (PST)
+Sender: Thomas Devoogdt <thomas.devoogdt@gmail.com>
+From:   Thomas Devoogdt <thomas@devoogdt.com>
+X-Google-Original-From: Thomas Devoogdt <thomas.devoogdt@barco.com>
 To:     netfilter-devel@vger.kernel.org
-Cc:     ffmancera@riseup.net
-Subject: [PATCH nft] py: replace distutils with setuptools
-Date:   Wed, 22 Feb 2023 11:20:55 +0100
-Message-Id: <20230222102055.20099-1-guigom@riseup.net>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Thomas Devoogdt <thomas.devoogdt@barco.com>
+Subject: [PATCH v2] [iptables] include: netfilter: add xt_LOG.h to fix an include error on Linux < 3.4
+Date:   Wed, 22 Feb 2023 11:51:36 +0100
+Message-Id: <20230222105136.2234231-1-thomas.devoogdt@barco.com>
+X-Mailer: git-send-email 2.39.2
+Reply-To: <20230222072349.509917-1-thomas.devoogdt@barco.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Removes a deprecation warning when using distutils and python >=3.10.
+libxt_LOG.c:6:10: fatal error: linux/netfilter/xt_LOG.h: No such file or directory
+. #include <linux/netfilter/xt_LOG.h>
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Python distutils module is formally marked as deprecated since python
-3.10 and will be removed from the standard library from Python 3.12.
-(https://peps.python.org/pep-0632/)
+Linux < 3.4 defines are in include/linux/netfilter_ipv{4,6}/ipt_LOG.h,
+but the naming is slightly different, so just define it here as the values are the same.
 
-From https://setuptools.pypa.io/en/latest/setuptools.html
+https://github.com/torvalds/linux/commit/6939c33a757bd006c5e0b8b5fd429fc587a4d0f4
 
-"""
-Packages built and distributed using setuptools look to the user like
-ordinary Python packages based on the distutils.
-"""
+Took the source from Linux v6.2.
 
-Signed-off-by: Jose M. Guisado Gomez <guigom@riseup.net>
+Signed-off-by: Thomas Devoogdt <thomas.devoogdt@barco.com>
 ---
- py/setup.py | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+v2: added the xt_LOG.h header rather than fixing /extensions/libxt_LOG.c
+---
+ include/linux/netfilter/xt_LOG.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+ create mode 100644 include/linux/netfilter/xt_LOG.h
 
-diff --git a/py/setup.py b/py/setup.py
-index 72fc8fd9..8ad73e7b 100755
---- a/py/setup.py
-+++ b/py/setup.py
-@@ -1,5 +1,5 @@
- #!/usr/bin/env python
--from distutils.core import setup
-+from setuptools import setup
- from nftables import NFTABLES_VERSION
- 
- setup(name='nftables',
+diff --git a/include/linux/netfilter/xt_LOG.h b/include/linux/netfilter/xt_LOG.h
+new file mode 100644
+index 00000000..167d4ddd
+--- /dev/null
++++ b/include/linux/netfilter/xt_LOG.h
+@@ -0,0 +1,20 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _XT_LOG_H
++#define _XT_LOG_H
++
++/* make sure not to change this without changing nf_log.h:NF_LOG_* (!) */
++#define XT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
++#define XT_LOG_TCPOPT		0x02	/* Log TCP options */
++#define XT_LOG_IPOPT		0x04	/* Log IP options */
++#define XT_LOG_UID		0x08	/* Log UID owning local socket */
++#define XT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
++#define XT_LOG_MACDECODE	0x20	/* Decode MAC header */
++#define XT_LOG_MASK		0x2f
++
++struct xt_log_info {
++	unsigned char level;
++	unsigned char logflags;
++	char prefix[30];
++};
++
++#endif /* _XT_LOG_H */
 -- 
 2.39.2
 
