@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21F8DC61DA4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81B6FC64ED6
 	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Feb 2023 09:21:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231707AbjBVJVw (ORCPT
+        id S230435AbjBVJVw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 22 Feb 2023 04:21:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38752 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231691AbjBVJVs (ORCPT
+        with ESMTP id S231689AbjBVJVs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 22 Feb 2023 04:21:48 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2EC9A28866;
-        Wed, 22 Feb 2023 01:21:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D732937F16;
+        Wed, 22 Feb 2023 01:21:44 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 6/8] netfilter: xt_length: use skb len to match in length_mt6
-Date:   Wed, 22 Feb 2023 10:21:35 +0100
-Message-Id: <20230222092137.88637-7-pablo@netfilter.org>
+Subject: [PATCH net 3/8] netfilter: conntrack: fix rmmod double-free race
+Date:   Wed, 22 Feb 2023 10:21:32 +0100
+Message-Id: <20230222092137.88637-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230222092137.88637-1-pablo@netfilter.org>
 References: <20230222092137.88637-1-pablo@netfilter.org>
@@ -32,48 +32,120 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Xin Long <lucien.xin@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-For IPv6 Jumbo packets, the ipv6_hdr(skb)->payload_len is always 0,
-and its real payload_len ( > 65535) is saved in hbh exthdr. With 0
-length for the jumbo packets, it may mismatch.
+nf_conntrack_hash_check_insert() callers free the ct entry directly, via
+nf_conntrack_free.
 
-To fix this, we can just use skb->len instead of parsing exthdrs, as
-the hbh exthdr parsing has been done before coming to length_mt6 in
-ip6_rcv_core() and br_validate_ipv6() and also the packet has been
-trimmed according to the correct IPv6 (ext)hdr length there, and skb
-len is trustable in length_mt6().
+This isn't safe anymore because
+nf_conntrack_hash_check_insert() might place the entry into the conntrack
+table and then delteted the entry again because it found that a conntrack
+extension has been removed at the same time.
 
-Note that this patch is especially needed after the IPv6 BIG TCP was
-supported in kernel, which is using IPv6 Jumbo packets. Besides, to
-match the packets greater than 65535 more properly, a v1 revision of
-xt_length may be needed to extend "min, max" to u32 in the future,
-and for now the IPv6 Jumbo packets can be matched by:
+In this case, the just-added entry is removed again and an error is
+returned to the caller.
 
-  # ip6tables -m length ! --length 0:65535
+Problem is that another cpu might have picked up this entry and
+incremented its reference count.
 
-Fixes: 7c4e983c4f3c ("net: allow gso_max_size to exceed 65536")
-Fixes: 0fe79f28bfaf ("net: allow gro_max_size to exceed 65536")
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
+This results in a use-after-free/double-free, once by the other cpu and
+once by the caller of nf_conntrack_hash_check_insert().
+
+Fix this by making nf_conntrack_hash_check_insert() not fail anymore
+after the insertion, just like before the 'Fixes' commit.
+
+This is safe because a racing nf_ct_iterate() has to wait for us
+to release the conntrack hash spinlocks.
+
+While at it, make the function return -EAGAIN in the rmmod (genid
+changed) case, this makes nfnetlink replay the command (suggested
+by Pablo Neira).
+
+Fixes: c56716c69ce1 ("netfilter: extensions: introduce extension genid count")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_length.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_bpf.c     |  1 -
+ net/netfilter/nf_conntrack_core.c    | 25 +++++++++++++++----------
+ net/netfilter/nf_conntrack_netlink.c |  3 ---
+ 3 files changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
-index 1873da3a945a..9fbfad13176f 100644
---- a/net/netfilter/xt_length.c
-+++ b/net/netfilter/xt_length.c
-@@ -30,8 +30,7 @@ static bool
- length_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_length_info *info = par->matchinfo;
--	const u_int16_t pktlen = ntohs(ipv6_hdr(skb)->payload_len) +
--				 sizeof(struct ipv6hdr);
-+	u32 pktlen = skb->len;
+diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+index 24002bc61e07..e1af14e3b63c 100644
+--- a/net/netfilter/nf_conntrack_bpf.c
++++ b/net/netfilter/nf_conntrack_bpf.c
+@@ -381,7 +381,6 @@ struct nf_conn *bpf_ct_insert_entry(struct nf_conn___init *nfct_i)
+ 	struct nf_conn *nfct = (struct nf_conn *)nfct_i;
+ 	int err;
  
- 	return (pktlen >= info->min && pktlen <= info->max) ^ info->invert;
- }
+-	nfct->status |= IPS_CONFIRMED;
+ 	err = nf_conntrack_hash_check_insert(nfct);
+ 	if (err < 0) {
+ 		nf_conntrack_free(nfct);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 496c4920505b..ead11a9c261f 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -886,10 +886,8 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ 
+ 	zone = nf_ct_zone(ct);
+ 
+-	if (!nf_ct_ext_valid_pre(ct->ext)) {
+-		NF_CT_STAT_INC_ATOMIC(net, insert_failed);
+-		return -ETIMEDOUT;
+-	}
++	if (!nf_ct_ext_valid_pre(ct->ext))
++		return -EAGAIN;
+ 
+ 	local_bh_disable();
+ 	do {
+@@ -924,6 +922,19 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ 			goto chaintoolong;
+ 	}
+ 
++	/* If genid has changed, we can't insert anymore because ct
++	 * extensions could have stale pointers and nf_ct_iterate_destroy
++	 * might have completed its table scan already.
++	 *
++	 * Increment of the ext genid right after this check is fine:
++	 * nf_ct_iterate_destroy blocks until locks are released.
++	 */
++	if (!nf_ct_ext_valid_post(ct->ext)) {
++		err = -EAGAIN;
++		goto out;
++	}
++
++	ct->status |= IPS_CONFIRMED;
+ 	smp_wmb();
+ 	/* The caller holds a reference to this object */
+ 	refcount_set(&ct->ct_general.use, 2);
+@@ -932,12 +943,6 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ 	NF_CT_STAT_INC(net, insert);
+ 	local_bh_enable();
+ 
+-	if (!nf_ct_ext_valid_post(ct->ext)) {
+-		nf_ct_kill(ct);
+-		NF_CT_STAT_INC_ATOMIC(net, drop);
+-		return -ETIMEDOUT;
+-	}
+-
+ 	return 0;
+ chaintoolong:
+ 	NF_CT_STAT_INC(net, chaintoolong);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index ca4d5bb1ea52..733bb56950c1 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2316,9 +2316,6 @@ ctnetlink_create_conntrack(struct net *net,
+ 	nfct_seqadj_ext_add(ct);
+ 	nfct_synproxy_ext_add(ct);
+ 
+-	/* we must add conntrack extensions before confirmation. */
+-	ct->status |= IPS_CONFIRMED;
+-
+ 	if (cda[CTA_STATUS]) {
+ 		err = ctnetlink_change_status(ct, cda);
+ 		if (err < 0)
 -- 
 2.30.2
 
