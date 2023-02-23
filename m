@@ -2,94 +2,52 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32B2CC636D7
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Feb 2023 05:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CAF6C61DA4
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Feb 2023 09:06:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230048AbjBWFkW (ORCPT
+        id S232954AbjBWJG3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Feb 2023 00:40:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53716 "EHLO
+        Thu, 23 Feb 2023 04:06:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbjBWFkW (ORCPT
+        with ESMTP id S229745AbjBWJG2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Feb 2023 00:40:22 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F40925946;
-        Wed, 22 Feb 2023 21:40:21 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0B69AB818F2;
-        Thu, 23 Feb 2023 05:40:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id B57B0C4339B;
-        Thu, 23 Feb 2023 05:40:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677130818;
-        bh=XbhHPgXv/0qCSAofz6j37Q1zqlXNQJ/228qdd6aKSzo=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=gDO0p/BYkdCAKLGYLWKPmyNUYf045i06fFQMBQfunEsAjT3G6rgQXHMRvrKPcflKi
-         EYWQdW2ungSZOxP6kEoyDv9V3uPt1P9pv4uOR5OFPWrCDh5BEmAPEWXhmR6BpRCWLv
-         ClJ/wHVlNXLbUJ9u7C/C+D4mBgZ/uk96i0N6y5nrkQt+yePTlRu8FRqHyPeQhWHweB
-         FhtXESVuyXxqBTITDVM0Lr+Z5zhNxbCvpqAgeXcr2j1Jnb9K5EmVr9uW02f/hVgseE
-         WGxs6Dl8ZL4s8k9u9ZN5VQ9P+z3igiar9XrGrveEbpqpAIXH5k7IEnbffl3DhhUp6+
-         Keev3PSEklMFg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 93C82E270CF;
-        Thu, 23 Feb 2023 05:40:18 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 23 Feb 2023 04:06:28 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1FE041EFF2
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Feb 2023 01:06:28 -0800 (PST)
+Date:   Thu, 23 Feb 2023 10:06:25 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Sriram Yagnaraman <sriram.yagnaraman@est.tech>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [RFC nf-next PATCH] netfilter: nft: introduce broute chain type
+Message-ID: <Y/cskVbQI6GQ5XEq@salvia>
+References: <20230222110337.15951-1-sriram.yagnaraman@est.tech>
+ <20230222113731.GE12484@breakpoint.cc>
+ <20230222114901.GF12484@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/8] netfilter: nf_tables: allow to fetch set elements
- when table has an owner
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <167713081859.3934.13685548895471250126.git-patchwork-notify@kernel.org>
-Date:   Thu, 23 Feb 2023 05:40:18 +0000
-References: <20230222092137.88637-2-pablo@netfilter.org>
-In-Reply-To: <20230222092137.88637-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230222114901.GF12484@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net.git (master)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Wed, 22 Feb 2023 10:21:30 +0100 you wrote:
-> NFT_MSG_GETSETELEM returns -EPERM when fetching set elements that belong
-> to table that has an owner. This results in empty set/map listing from
-> userspace.
+On Wed, Feb 22, 2023 at 12:49:01PM +0100, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > The br_netfilter_broute flag is required, but I don't like a new chain
+> > type for this, nor keeping the drop/accept override.
+> > 
+> > I'd add a new "broute" expression that sets the flag in the skb cb
+> > and sets NF_ACCEPT, useable in bridge family -- I think that this would
+> > be much more readable.
 > 
-> Fixes: 6001a930ce03 ("netfilter: nftables: introduce table ownership")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Or, even simpler, extend nft_meta_bridge.c and extend nft userspace to
+> support:
 > 
-> [...]
+>   nft ... meta broute set 1 accept
+> 
+> We also support nftrace this way, so there is precedence for it.
 
-Here is the summary with links:
-  - [net,1/8] netfilter: nf_tables: allow to fetch set elements when table has an owner
-    https://git.kernel.org/netdev/net/c/92f3e96d642f
-  - [net,2/8] netfilter: ctnetlink: fix possible refcount leak in ctnetlink_create_conntrack()
-    https://git.kernel.org/netdev/net/c/ac4893980bbe
-  - [net,3/8] netfilter: conntrack: fix rmmod double-free race
-    https://git.kernel.org/netdev/net/c/e6d57e9ff0ae
-  - [net,4/8] netfilter: ip6t_rpfilter: Fix regression with VRF interfaces
-    https://git.kernel.org/netdev/net/c/efb056e5f1f0
-  - [net,5/8] netfilter: ebtables: fix table blob use-after-free
-    https://git.kernel.org/netdev/net/c/e58a171d35e3
-  - [net,6/8] netfilter: xt_length: use skb len to match in length_mt6
-    https://git.kernel.org/netdev/net/c/05c07c0c6cc8
-  - [net,7/8] netfilter: ctnetlink: make event listener tracking global
-    https://git.kernel.org/netdev/net/c/fdf6491193e4
-  - [net,8/8] netfilter: x_tables: fix percpu counter block leak on error path when creating new netns
-    https://git.kernel.org/netdev/net/c/0af8c09c8968
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Sriram, this would be better than the new chain. I prefer Florian's proposal.
