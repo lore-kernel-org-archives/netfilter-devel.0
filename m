@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 724B8C7EE39
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Feb 2023 14:56:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A6DC7EE30
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Feb 2023 15:58:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231286AbjBZO4I (ORCPT
+        id S229846AbjBZP6k (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Feb 2023 09:56:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55632 "EHLO
+        Sun, 26 Feb 2023 10:58:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231173AbjBZOzD (ORCPT
+        with ESMTP id S229783AbjBZP6k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Feb 2023 09:55:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 823F11B333;
-        Sun, 26 Feb 2023 06:50:43 -0800 (PST)
+        Sun, 26 Feb 2023 10:58:40 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D1F793EB;
+        Sun, 26 Feb 2023 07:58:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BFB660C4F;
-        Sun, 26 Feb 2023 14:47:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90FB7C433EF;
-        Sun, 26 Feb 2023 14:47:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0F309B80BD9;
+        Sun, 26 Feb 2023 14:49:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B285C433EF;
+        Sun, 26 Feb 2023 14:49:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677422875;
-        bh=7nlw+z4ihYtQPm2r4XX/GLLJtAiJkGwxBfDCnSTO3EY=;
+        s=k20201202; t=1677422981;
+        bh=Y5YVjflQY8WSDinE6i39djcQTi3tvGmYWHHf8MpcLj8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ij+y52OavgvjdHLTm7aenl5fOdcpPbs+1xY1iOJqmBWaPbEFTtSqDVDaDPjIaslkj
-         XbOgvKLJrEoZNMTeCevTYXhWgHzurCYpPaNFnhBWYM3yRhMfgcWaUUl3errSz7fpJx
-         qZ5sfUQMkOpjLuljFEyv+BiDFCkLnyZE461yhU9urMLI3DkE8Cxc8ZCIwU0r4Zv5qd
-         QDorPO7BAl9Wb+jaijpwG1xJQWjBS+39CuQi51OpxOLychzeUIyNXYXa4KHz+f1MXr
-         pp/91jNR3hT97G34xQZlo0B1yl16dJ50D8fwcXMR/kzmHxe2d62Wnzhpemy/LcYNg8
-         aRykweVjIM0zA==
+        b=VLRLHlMdaq27FXfugMl+j5dab7MBcx58rW0IegpFyjo3/WnxVgIWRILpS+ZJ2ulz5
+         lHHnomSN1L1RzUyxAgMg8tN+uDaiW4Lumi0aJ1SL4bvKGKxzMVVafeMMRVLQ3qTRpM
+         mVlcND3367HRDJS3V4/1WgDKdF10BborfqYwNc9/4ZM9uQmADLirCO65h5ffnS9XLS
+         CnFqiRpiZcyOpj0lezK61RncoA5nTvUC5H4xpQPjveGQv5ZiYKg1GOBrrLUGTkpHCe
+         WBGRl2eOJ9rEwZnRY9QTdW2p5/CZTRfyvHMQYI//05FuuH86VVX41ZQXkfce7Jl4Ur
+         KZL2BK0Mcr17g==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Alok Tiwari <alok.a.tiwari@oracle.com>,
@@ -42,12 +42,12 @@ Cc:     Alok Tiwari <alok.a.tiwari@oracle.com>,
         kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 28/49] netfilter: nf_tables: NULL pointer dereference in nf_tables_updobj()
-Date:   Sun, 26 Feb 2023 09:46:28 -0500
-Message-Id: <20230226144650.826470-28-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 22/36] netfilter: nf_tables: NULL pointer dereference in nf_tables_updobj()
+Date:   Sun, 26 Feb 2023 09:48:30 -0500
+Message-Id: <20230226144845.827893-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20230226144650.826470-1-sashal@kernel.org>
-References: <20230226144650.826470-1-sashal@kernel.org>
+In-Reply-To: <20230226144845.827893-1-sashal@kernel.org>
+References: <20230226144845.827893-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -75,10 +75,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 3 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3ba8c291fcaa7..dca5352bdf3d7 100644
+index 81bd13b3d8fd4..a02a25b7eae6d 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6951,6 +6951,9 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
+@@ -6794,6 +6794,9 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
  			return -EOPNOTSUPP;
  
  		type = __nft_obj_type_get(objtype);
