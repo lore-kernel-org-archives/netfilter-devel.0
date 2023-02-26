@@ -2,255 +2,250 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42937C6FA8E
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Feb 2023 09:41:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C7BEC64ED6
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Feb 2023 10:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229445AbjBZJk7 (ORCPT
+        id S229530AbjBZKQQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Feb 2023 04:40:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55300 "EHLO
+        Sun, 26 Feb 2023 05:16:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229524AbjBZJk6 (ORCPT
+        with ESMTP id S229445AbjBZKQP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Feb 2023 04:40:58 -0500
-Received: from EUR05-VI1-obe.outbound.protection.outlook.com (mail-vi1eur05on2131.outbound.protection.outlook.com [40.107.21.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D44812F23
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2023 01:40:56 -0800 (PST)
+        Sun, 26 Feb 2023 05:16:15 -0500
+Received: from EUR02-DB5-obe.outbound.protection.outlook.com (mail-db5eur02on2127.outbound.protection.outlook.com [40.107.249.127])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B1C45FC4
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2023 02:16:14 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=oVXfss5vvRNt2IAj0r1vLV0zol0Uhb1kPGQV0ZuJjBRGAb/62DTnQDvmD+CEjyvRZd7fkRI0W2FcNamhPgDVajohDRr8QofOat8/mE7oOyEkpD2YdAqO15m7eYBrdmXCNWLvREpPf+CzL9YhTBf90l24XbF6ipJVJfnSM4kR1JKKy1qpPVDzcKyGAMKbRd67bmwWK/wpA/zvgO85RMEJisi/I3rzhxY4cHbR5atN1hufJxgld6m5K5nenbCu8xTkglV6S7kbvDraS7yamF+44THNU0jIviotJBLzB7SSDG4xFtZ/tsgmJgKvf32wxxQOLmSmIB2D+Tex/UUtdcuXig==
+ b=S1KwEU9sCpg0oRtNKxNrEgTX2d40nZ31s7jR8RM24EcAQzon6qS/ZzOf4ovnTCPQLMoBhMkEbtfKgbV/qNgoBlsorN6GXdLLYk3W1EgA7Ci+KB42Rhh46k34PKO9RSKGVheA5+pYSHvfCL3BfU+3FD2iMlnLmeq2CpZfWm1bugzadKln4+cnNEt4ZM03hLX+DsowDU42uWb1u414AqoCPGY9Godtz5l9ii7F8XzrGaHYg2ZSHXFEf8cI0vU2fehy/QHUrPNdpx9Ow3B1Mr3fx12uFaS3hEJUVBsM8kBELwY2DofXGNOKV8PwKB+753skxRu8E0WQBO8ARpobWGF7FA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=QAcGyqO+tXIHomvHrjufBB5d9haTY/LlWYKFzyxqMwo=;
- b=ZisoZhwURcAFnrARb9hggyBB/RR/mLzC63HFiPCXhxoYeF3trCa3N8a9CpnPNbdXIC0PsXfvCrTEoBK2M/n/pIdGmxZ2v7PVHvnt/hv+yW/P3gEU6U1iEeII8oc2zLnxOAt76pguVKOUTDit5nluRk5jOq4gjbcGOXtmx1HQPXj+4wO+n4vJ7owoQ9pX6IlRzn78d2mSVydT3XwXioXA49WlR7LhTBCVn0fZ+oyZ4U403WPUSC7mwqqgV6mRX+n33ZK8ZZrtz28JDxwyM5edr1K5F+kI7sA/o/ImhXNcFevNjJt9bPsbx4tlSv8CZabNv3W5BPFcT90kJSh7fnROhw==
+ bh=lhsp3czFZsml3S+RFiFJGgT14imUnw3yRMHo7OXdf4c=;
+ b=ncGr3StyVyUtwbousIpf9uPJEWX7nMTKSxhPyJcALcol4tFLEeJl4H7sndkG0CsRZFNq7VwALMUgvTEQCd56Rw0SuKs/N/2jUxxiJ4Zl9GpeI56TZxFLjq/ZbrFTqgD4JhcorXhcXKKl49mHDk5Gvba5gK/elh35EVJ7o1XfcPbKtcznWCW2OhHTIx49jtg5kJJz3VWfq+S7sKN3wR0rp5KnifIV/yOmL+OpgemuoaSn5VN66wUi4qUBH2DffxgeatIwGtxoTZl/USYJD4yuORy8zs3XdEgbxp12dGnB0pIUTas9ykOh/f8NvAux2z3edgqyZsgVk4lzZZfdI9yJDw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
+ smtp.mailfrom=est.tech; dmarc=pass action=none header.from=est.tech;
+ dkim=pass header.d=est.tech; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=estab.onmicrosoft.com;
+ s=selector2-estab-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QAcGyqO+tXIHomvHrjufBB5d9haTY/LlWYKFzyxqMwo=;
- b=V1RXt+os6gZIHFs3xqsKA01oPukTZa61blmebBj6t+ptJOw+uO5+EGiI8YJGI7UU3GfBTU8LwSIGyg4sb8Me5OK+LJKepLpMTRwqFxQH4DHdWuMOLTAwFMom37G9hUE34RyYR6BPz0EGhUxmtTmK4da5log9iwhLfA3ZLxTurc0=
+ bh=lhsp3czFZsml3S+RFiFJGgT14imUnw3yRMHo7OXdf4c=;
+ b=VtgMxtaQVoW/Zl5Nbwc7ZJQwivAImdiel/bbvehmAxohYvlrD6mowjQFcbelnZ/8wzseD8VSfBJVOCyRK7V8EjQjg8y9IBwX/vuoANGLSRda4jXXUPsPPxf6gO/nZU/VXPqg6PtbWD8VmHWRff3ej54eNsb+ojAwq5xF74Ndbx0=
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=voleatech.de;
-Received: from AM9PR05MB8857.eurprd05.prod.outlook.com (2603:10a6:20b:438::20)
- by PAXPR05MB8954.eurprd05.prod.outlook.com (2603:10a6:102:2b8::5) with
+ header.d=none;dmarc=none action=none header.from=est.tech;
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM (2603:10a6:10:1e7::15)
+ by AM7P189MB0791.EURP189.PROD.OUTLOOK.COM (2603:10a6:20b:11d::14) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6134.26; Sun, 26 Feb
- 2023 09:40:52 +0000
-Received: from AM9PR05MB8857.eurprd05.prod.outlook.com
- ([fe80::dc87:8462:5ffe:ebd6]) by AM9PR05MB8857.eurprd05.prod.outlook.com
- ([fe80::dc87:8462:5ffe:ebd6%8]) with mapi id 15.20.6134.027; Sun, 26 Feb 2023
- 09:40:52 +0000
-Date:   Sun, 26 Feb 2023 10:40:48 +0100
-From:   Sven Auhagen <sven.auhagen@voleatech.de>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        abdelrahmanhesham94@gmail.com
-Subject: Re: [PATCH] netfilter: nf_flow_table: count offloaded flows
-Message-ID: <20230226094048.zpxmsb4ljrjlfdwo@Svens-MacBookPro.local>
-References: <20230226064436.hr4obihsi5o4hiqk@Svens-MacBookPro.local>
- <afee3af4-c85d-4daf-1f91-2017eaeaae5@ssi.bg>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <afee3af4-c85d-4daf-1f91-2017eaeaae5@ssi.bg>
-X-ClientProxiedBy: FR2P281CA0014.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:a::24) To AM9PR05MB8857.eurprd05.prod.outlook.com
- (2603:10a6:20b:438::20)
+ 2023 10:16:11 +0000
+Received: from DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::13ad:a312:15c6:91dc]) by DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ ([fe80::13ad:a312:15c6:91dc%9]) with mapi id 15.20.6134.026; Sun, 26 Feb 2023
+ 10:16:11 +0000
+From:   Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+Subject: [PATCH nft v3] meta: introduce broute expression
+Date:   Sun, 26 Feb 2023 10:52:04 +0100
+Message-Id: <20230226095204.12211-1-sriram.yagnaraman@est.tech>
+X-Mailer: git-send-email 2.34.1
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: GV3P280CA0025.SWEP280.PROD.OUTLOOK.COM
+ (2603:10a6:150:b::21) To DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+ (2603:10a6:10:1e7::15)
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: AM9PR05MB8857:EE_|PAXPR05MB8954:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1bf9ce7c-cf3f-469f-62ab-08db17dd8cc4
+X-MS-TrafficTypeDiagnostic: DBBP189MB1433:EE_|AM7P189MB0791:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0f2d5d06-f74f-4f27-cbb6-08db17e27c1a
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: UAnaemPvk0oUaHiIpMo6f2yLjiySsEp6ruLA1icxQ14hkRVR4Fway8hqJOQfNMr909d23m3UrlD/q5LneJII6rR/7cSsa3DRRiemaD79q8XngIRjNPrj4Ys/oYDhBorEZwmVoK3/R3eWO/QSuXFjKlQ8oR1m5elRvO6xBT8tEYb5WLSVwgR47Al5oZV71E8BML5evSFceOfyrIQUMnIl+VuifnJFsoraXY1r1Yiuk8S1s52yyBf6bqHf2gql6MXpe0jDvlxxKkIPgaKjB7toqLBviQnA7vxJKJojsPv9Q0Z/TQnJg6qtGu7AALa/Iu1ocS06zYix+hr8at3Onf/QdbaqtX7rc4pgn02eu88DydnJT3+pJMM/IzTZLi69HE3CG9sQaNxR60d8l0bXs8/YGnYNvL7X34R5rpQjopfGVHpz7bs6pDIpvSSTLs85svPdHEP8flZ8PuVudr185oR+2mNWnvj76Fq1+YV9zZnSXd5wU+jhEOuSTxh+keYmmkVNNSt9cGhKYzpKi7QZrRfBng3SDkFACK96wQqQ6X2GuNuNXJZWA24F736RSJ3cC5J9lU5E47j+jRah7DMyScTaK1VuRZVFa71mbx73eF8fSe7pypPeILDHH+IqHW2aQ8V+nCpVv6iF1XQTst2ot30y+Q==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM9PR05MB8857.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(346002)(39830400003)(136003)(366004)(396003)(376002)(451199018)(6486002)(316002)(83380400001)(86362001)(9686003)(2906002)(44832011)(5660300002)(66556008)(66946007)(66476007)(8936002)(6916009)(41300700001)(8676002)(6512007)(1076003)(6506007)(478600001)(6666004)(186003)(26005)(4326008)(38100700002);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: rJCPS/AzGfh/NsKQoUKj9ydAbu51DFDTyotJIF7ygnffv1Kq7fmdRJ/fNjfArrCVCwVIhBm+t2ZyJaXXGVfk9RVxAnATsH56hanK0KV4kXw/Ae0qxYbRNVsbitHbCEXOQ8T9jjvCj1Twak8nSAcXMqd+ddwUtVIaSsPqjVWMfYip3ze4RSDZFHk8GwU/ef2NldujKNjoedtP2+TzTKB9f7lELcgAQDGydBiqibCbbjPAkozBe6bbrWOxku3XlQ7VwYYf3Y9mpp7/6cO6cMQqs5YqmgvRau5ZAwvwOCWyxeJNC98G4kTziyAhZ5mNmu7dRAU9/Anjfp5gJN8NhFzI0KBnQxNeQLPbQB7G9Ua5WSVxg3REqzWfK2exyjEKMaIeWLg0Ur7klWSsgs8qCGNiUOcjYEGB3EHuefXxZvZlJhc58tRAbTXeHHp7XcgCBGtOiJBjquJtiOENJWDtPFS2lUS2h9shQXYH4gHsq8dkHHJ8cr+DUDOD4EKZK/yIhcc8Bc5uuMt5M82Zj6QDiia1OJGAbIKhbSP1Rs4kqROdQC/mhumqqgSgKJbKlGj9URrrIAwyllauwH4uJLB24WMm3oZgzNShSFZRMWEStCMAD99ekjcYJ7R8bUJ9LYfjONP1/vvQ+1fKrfTetPqqewvco4dVOWfXXJEmvXhxYdiZlSDhq/yFBPrU1d1J+csSswVW
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DBBP189MB1433.EURP189.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230025)(346002)(39830400003)(136003)(396003)(376002)(451199018)(6486002)(966005)(316002)(83380400001)(36756003)(86362001)(54906003)(2906002)(44832011)(5660300002)(66946007)(66556008)(66476007)(4326008)(8936002)(6916009)(8676002)(70586007)(41300700001)(6512007)(1076003)(6506007)(478600001)(2616005)(6666004)(186003)(26005)(38100700002)(37730700002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?zTbI/ZBKkv81NrCRUCDQLeMv/shRq2CmOHKyR3tEc7YEeX+ZlG0UfJPVQMnM?=
- =?us-ascii?Q?rB+jNW+TDwYbRXOM4Y9yfBXZJGofe04pAuAZhPTZr5uSGG+TcF/C68gQgFYl?=
- =?us-ascii?Q?oxFSF3Ufdpr8B4uFppKV0OQTKUe51kP2wChLOGZu4vKrYj6MMybTQfD/Gz2W?=
- =?us-ascii?Q?6SsOV/kgzCkW0ZxEO/sF3+nXZ+oNBUoqjPVczs5+t1UEEmPWGVNNb9uZz6MG?=
- =?us-ascii?Q?dduSrDVNgDQoT6v421rEXyIOM4hGnogxQ7zeLNlSxZKBAdP8aNIhXwpvS4Uk?=
- =?us-ascii?Q?Ppe4lB3kgn9w2LqH00m0nN3sY+/aLc9rXduObHticeX9fPU1qmXvtC+rO07a?=
- =?us-ascii?Q?a4uk787DDE9TbLWZDunbl6O4GIGBgLXUVto6UTyMy1S3teUVLrR3J4xN7j+i?=
- =?us-ascii?Q?kIKKleVfLrvwZsr3e3q1Dq4q5NX0eNbjOUv5LvPtJ2hhVkXdKow9MDMejCdf?=
- =?us-ascii?Q?boS6pb25kzEkJ3skhIUByU48GwFByzRaUmwvBfxICZBhy3XfsTpzVtrkgxRk?=
- =?us-ascii?Q?ANawdtaiiqhBPr6jEVuW+pbcyYXL5R2+lT2tlwh9Buc6elMI5W61dgLgujCd?=
- =?us-ascii?Q?GVgBg0F8UQSgYcnm49N9o7BrnP+xqrUqrCgtV3kP3gQAE4DkPiiD2LzhNI8B?=
- =?us-ascii?Q?K2pBPActPvAUOmMM+MNmUKIGfk4ms2gsnJ8IvEKW+ku9AAS8Rw9JWkPyjeRL?=
- =?us-ascii?Q?UBLx1NZzz71ScIG1XH24PdY2FV+x0nXNW48kvvPyjhfKpxKXtKtqjDT6W5Hc?=
- =?us-ascii?Q?BKjSEoRczHxnQWmyyRUQvX5qWdguwAIROjoMp/0iTXrQIe1/E0CIN6q/0OHT?=
- =?us-ascii?Q?LYKSIkSf9gWFiGPpYN6zNepIbJDBLBQbiECd4rNtBTeHdIEXquB7uEug3PxJ?=
- =?us-ascii?Q?PflEka9BV8HGkAzRsdvrbwyzuG8A8aarG6jR8A8HeZNd0CsE5V6nUKEXRpla?=
- =?us-ascii?Q?aOkA0+xnjyA/+xCwXyYYK1/C951QVfWfcTcGYtG6SkQt7J0Ag8tIZD1cw4+Q?=
- =?us-ascii?Q?sVja4CPHNqto5g+xBbQ/lFtH/EC/eu7LTw1ljvJc2kkeO/e/xardV2Q9oxB4?=
- =?us-ascii?Q?9/Gf7JsuZ8XApb7ktQDYrO41AD5PieugZZjzypZxYk8IHPKyic9OZxqsdveB?=
- =?us-ascii?Q?WUfHpXgDluaABf57Bsr8rHEg+Do1qZ7eOMdiSofM+X/tYDm6gnm0lNITkkMk?=
- =?us-ascii?Q?WxQ+iO+8kpUXyn6A/7pOmFqdydXBO2cnE/otuLaI2J0Ag/S7ukl3Rmx/Bv5y?=
- =?us-ascii?Q?hYt1YCM4kv0fiyRWWDFDr28s8idxnFbI/bXZlxh285mc0nSRNplPnbv2aDSr?=
- =?us-ascii?Q?mq13+JGHmogt7rKwaNF7hQDxyWErcV+PXCYeBCxKHzQYVrRrTVjnzrT3Kfg8?=
- =?us-ascii?Q?1lwPFm6EowHKzlAT54FmriNtizvD/zbx92iofR8H0vVvsYH1sVAqVVrBm60v?=
- =?us-ascii?Q?U9LmB3JwkQo6vchs2Khn0wpqq4EFMtLV2lwAytz6d+eUWYPU0uAMir7y1CJL?=
- =?us-ascii?Q?Zqzr4TQTCavCa1eT5k7WpRXgTb3h1LtDSZ5HPSvSKo+3MUPCKsNiCNSC3/i5?=
- =?us-ascii?Q?eo0567dqHOowN2d19j8JAt29sigohKINJ9U4Ta0+Vc63WVJOTlMr2pQ+SLre?=
- =?us-ascii?Q?mg=3D=3D?=
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1bf9ce7c-cf3f-469f-62ab-08db17dd8cc4
-X-MS-Exchange-CrossTenant-AuthSource: AM9PR05MB8857.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Feb 2023 09:40:52.1667
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?gnvgDCSWOnu5jfe9Zik9zhMw4f1gXAMkqy99fQbAyNaA1tYdDlHP7HlaH/b0?=
+ =?us-ascii?Q?Oq3eCe6rt1KtHFbHqKq9HLGWvkk8BgcPzDz20Mo7AZkz5u3Y6KmQFIDj7Ney?=
+ =?us-ascii?Q?V9OBhnLer88qtP0tfXHbC53ZGIM3yOvVGJQmvAPzKXAjF+cJ5ihG38ro2GG0?=
+ =?us-ascii?Q?Wsq2RRfmf5SA9atBWdjHdbbYKfQpW9ggg2Bu6eYBhYRh61BmPltn4k5igtdY?=
+ =?us-ascii?Q?cMzrtZs1GPlAnU2pRgekzrArSHUeOg09aoS2nGE1+3mzKPTZVdS1H5FJT0q+?=
+ =?us-ascii?Q?f4VVUaNKOuIV58Qs8M4wsoZqpwPy7WxNddGyMiAuLBPMbxu0K/7CNkmnGQJk?=
+ =?us-ascii?Q?0/Ks0L7pYsEEz42mkYGkmi08RjDKOULH0lxJEFDGb5HzldrMdRPJYiRD/JrT?=
+ =?us-ascii?Q?U0fuKW8tWO1XypvTSuk3B7p8SQIzrkdANOqVkARhmX9dVjQShVObbFF3ffWL?=
+ =?us-ascii?Q?UqCclj3EliygY/J2/h70ldU7L6c3FShIeX5brikQs8wbRAjSIdUT2mNk9vwL?=
+ =?us-ascii?Q?KfMlt5sVuX7RT+gaYi/JBMRAAoGw42GpoZid05yieMl/F9W7jqqgzd5D3Hzu?=
+ =?us-ascii?Q?LLnECCWTiim7fScRNLeuDB2Bv/eC7HHOdacoSL9WQxhdnkN+ivWZKuPNjqo1?=
+ =?us-ascii?Q?Cs3rpMfo3rzsptpcFOnuQK9hYd5Q/2bTvfeBT57uJXg0mHJzfeWzvlrfI1Vn?=
+ =?us-ascii?Q?6n8wo3ci8vWFjr2eyy5woRia/zHieJzIt52EPQWDgoS6TgRwf6U2h8u4lftF?=
+ =?us-ascii?Q?LMVhP/Gf66+BwpkPSQN8JIRbdciDkP8SrWe3iSNMqbwVNMwEFvkbFth8b4QC?=
+ =?us-ascii?Q?Lzeej7GPwtydLzYm25Ys+y+Fx9siBWzPw0NnYvxBCc1FGrcP5iVybzSZgO4i?=
+ =?us-ascii?Q?WcUJS4nsSvGHtbpoFzJDDFJjzhk22llec84NIzDK9REbFmskyJ/e6ow1zDSh?=
+ =?us-ascii?Q?DVKKl2x6eAH8I4xN/xlWNrvvjwgr6AipPpwIurkjRdb1EK8bcCFrZQfGjBLq?=
+ =?us-ascii?Q?sHwT3qXdnP3oqoT9E98X1NysZXWi9ZV151xRddswkF0NYFKEL+sRp+5oqT6V?=
+ =?us-ascii?Q?/2xxJnE3s4VslS/hHrPRcbot38XzUthudUIRefghT9l9HRJtHGSrdX63Zi7/?=
+ =?us-ascii?Q?6/zKKwTCAMdWF8fGbO/vHEaZds0jkQJD+ebnLhEo3Kfor7k6UJJV+Nm9sWU+?=
+ =?us-ascii?Q?qzNAay7m8XxrGqIZmzq6m2QPPtT+hxTcLuQ+kGZoiB5n2XI1227MrlEv3ZLo?=
+ =?us-ascii?Q?k6HqE68LO2JzcuNYe9JByifE+QOPkNSyc6Uo/HU7wYIH8ANRIgpp8RFfZaj2?=
+ =?us-ascii?Q?uN97B3uk5iekPc7QzlQAOIbd8Iz6ITR7gzEZ3v7lfcEmJbbmJ6G8rFMnVsoG?=
+ =?us-ascii?Q?MhWGRnuM8SjASPLrbe24E+plZhYx2lb6c89Eql69wsufZcYELTMt2v98JDoZ?=
+ =?us-ascii?Q?iH0VZvfBU5EwgNI0B8l0ocSMJ67UJSXHjbHi1UP9rH/Yh2IqoSqH/hT8SGuk?=
+ =?us-ascii?Q?VxSiF+leCttIIeoJVeX/IxrBxysQQjBf/wCcKlj7YunwsmVJc8WxvAuw7guJ?=
+ =?us-ascii?Q?4s3M5Wk3FVT9S4f+EPLMhHxB2md2069Lo3f76jSd1xyxr/Ym1ZJPICRwZX6l?=
+ =?us-ascii?Q?AQ=3D=3D?=
+X-OriginatorOrg: est.tech
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0f2d5d06-f74f-4f27-cbb6-08db17e27c1a
+X-MS-Exchange-CrossTenant-AuthSource: DBBP189MB1433.EURP189.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Feb 2023 10:16:11.6329
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
+X-MS-Exchange-CrossTenant-Id: d2585e63-66b9-44b6-a76e-4f4b217d97fd
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: OjY6uOUGG3kSrGAxIJPpZ+PHOlK5NRCovUyt/D8ArCRX/jJMja6fNQvipELLTkhnLHlzOACF7rijIQrGEkkdwS0DrvqwtM4V6g2bGYnCcEE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PAXPR05MB8954
+X-MS-Exchange-CrossTenant-UserPrincipalName: j2rC3Q9TT3rNBI7sXAhg1jVjtRdMllMCbebtNwwnDm/Z0koiXs0y4Y/TX7E62X5JmxurSrn5iaFGQymFBGpeIAe4U+Oo0ZcbV6+YAJPB5BA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7P189MB0791
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Feb 26, 2023 at 10:53:58AM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
+nftables userspace tool support for broute meta statement introduced in [1].
 
-Hello,
+[1]: https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230224095251.11249-1-sriram.yagnaraman@est.tech/
 
-thank you for your feedback.
+Signed-off-by: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+---
+ doc/statements.txt                  |  5 ++++-
+ include/linux/netfilter/nf_tables.h |  2 ++
+ src/meta.c                          |  2 ++
+ tests/py/bridge/meta.t              |  2 ++
+ tests/py/bridge/meta.t.payload      |  5 +++++
+ tests/py/bridge/redirect.t          |  5 +++++
+ tests/py/bridge/redirect.t.json     | 12 ++++++++++++
+ tests/py/bridge/redirect.t.payload  |  4 ++++
+ 8 files changed, 36 insertions(+), 1 deletion(-)
+ create mode 100644 tests/py/bridge/redirect.t
+ create mode 100644 tests/py/bridge/redirect.t.json
+ create mode 100644 tests/py/bridge/redirect.t.payload
 
-> 
-> On Sun, 26 Feb 2023, Sven Auhagen wrote:
-> 
-> > Add a counter per namespace so we know the total offloaded
-> > flows.
-> > 
-> > Signed-off-by: Abdelrahman Morsy <abdelrahman.morsy@voleatech.de>
-> > Signed-off-by: Sven Auhagen <sven.auhagen@voleatech.de>
-> > 
-> > diff --git a/include/net/netns/flow_table.h b/include/net/netns/flow_table.h
-> > index 1c5fc657e267..235847a9b480 100644
-> > --- a/include/net/netns/flow_table.h
-> > +++ b/include/net/netns/flow_table.h
-> > @@ -10,5 +10,6 @@ struct nf_flow_table_stat {
-> >  
-> >  struct netns_ft {
-> >  	struct nf_flow_table_stat __percpu *stat;
-> > +	atomic64_t count_flowoffload;
-> >  };
-> >  #endif
-> > diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> > index 81c26a96c30b..907307a44177 100644
-> > --- a/net/netfilter/nf_flow_table_core.c
-> > +++ b/net/netfilter/nf_flow_table_core.c
-> > @@ -282,6 +282,7 @@ unsigned long flow_offload_get_timeout(struct flow_offload *flow)
-> >  
-> >  int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
-> >  {
-> > +	struct net *net;
-> >  	int err;
-> >  
-> >  	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
-> > @@ -304,6 +305,9 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
-> >  
-> >  	nf_ct_offload_timeout(flow->ct);
-> >  
-> > +	net = read_pnet(&flow_table->net);
-> > +	atomic64_inc(&net->ft.count_flowoffload);
-> > +
-> >  	if (nf_flowtable_hw_offload(flow_table)) {
-> >  		__set_bit(NF_FLOW_HW, &flow->flags);
-> >  		nf_flow_offload_add(flow_table, flow);
-> > @@ -339,6 +343,8 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
-> >  static void flow_offload_del(struct nf_flowtable *flow_table,
-> >  			     struct flow_offload *flow)
-> >  {
-> > +	struct net *net = read_pnet(&flow_table->net);
-> > +
-> >  	rhashtable_remove_fast(&flow_table->rhashtable,
-> >  			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
-> >  			       nf_flow_offload_rhash_params);
-> > @@ -346,6 +352,8 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
-> >  			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
-> >  			       nf_flow_offload_rhash_params);
-> >  	flow_offload_free(flow);
-> > +
-> > +	atomic64_dec(&net->ft.count_flowoffload);
-> >  }
-> >  
-> >  void flow_offload_teardown(struct flow_offload *flow)
-> > @@ -617,6 +625,7 @@ EXPORT_SYMBOL_GPL(nf_flow_table_free);
-> >  static int nf_flow_table_init_net(struct net *net)
-> >  {
-> >  	net->ft.stat = alloc_percpu(struct nf_flow_table_stat);
-> > +	atomic64_set(&net->ft.count_flowoffload, 0);
-> >  	return net->ft.stat ? 0 : -ENOMEM;
-> >  }
-> >  
-> > diff --git a/net/netfilter/nf_flow_table_procfs.c b/net/netfilter/nf_flow_table_procfs.c
-> > index 159b033a43e6..cff9ad58c7c9 100644
-> > --- a/net/netfilter/nf_flow_table_procfs.c
-> > +++ b/net/netfilter/nf_flow_table_procfs.c
-> > @@ -64,6 +64,16 @@ static const struct seq_operations nf_flow_table_cpu_seq_ops = {
-> >  	.show	= nf_flow_table_cpu_seq_show,
-> >  };
-> >  
-> > +static int nf_flow_table_counter_show(struct seq_file *seq, void *v)
-> > +{
-> > +	struct net *net = seq_file_net(seq);
-> > +
-> > +	seq_printf(seq, "%lld\n",
-> > +		   atomic64_read(&net->ft.count_flowoffload)
-> > +		);
-> > +	return 0;
-> > +}
-> > +
-> >  int nf_flow_table_init_proc(struct net *net)
-> >  {
-> >  	struct proc_dir_entry *pde;
-> > @@ -71,6 +81,9 @@ int nf_flow_table_init_proc(struct net *net)
-> >  	pde = proc_create_net("nf_flowtable", 0444, net->proc_net_stat,
-> >  			      &nf_flow_table_cpu_seq_ops,
-> >  			      sizeof(struct seq_net_private));
-> 
-> 	Result should be checked, pde is not needed:
-> 
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 0532b2b1..4e7e2654 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -296,7 +296,7 @@ A meta statement sets the value of a meta expression. The existing meta fields
+ are: priority, mark, pkttype, nftrace. +
+ 
+ [verse]
+-*meta* {*mark* | *priority* | *pkttype* | *nftrace*} *set* 'value'
++*meta* {*mark* | *priority* | *pkttype* | *nftrace* | *broute*} *set* 'value'
+ 
+ A meta statement sets meta data associated with a packet. +
+ 
+@@ -316,6 +316,9 @@ pkt_type
+ |nftrace |
+ ruleset packet tracing on/off. Use *monitor trace* command to watch traces|
+ 0, 1
++|broute |
++broute on/off. packets are routed instead of being bridged|
++0, 1
+ |==========================
+ 
+ LIMIT STATEMENT
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index ff677f3a..9c6f02c2 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -931,6 +931,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_TIME_HOUR: hour of day (in seconds)
+  * @NFT_META_SDIF: slave device interface index
+  * @NFT_META_SDIFNAME: slave device interface name
++ * @NFT_META_BRI_BROUTE: packet br_netfilter_broute bit
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -969,6 +970,7 @@ enum nft_meta_keys {
+ 	NFT_META_TIME_HOUR,
+ 	NFT_META_SDIF,
+ 	NFT_META_SDIFNAME,
++	NFT_META_BRI_BROUTE,
+ 	__NFT_META_IIFTYPE,
+ };
+ 
+diff --git a/src/meta.c b/src/meta.c
+index 013e8cba..6f9ed06b 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -698,6 +698,8 @@ const struct meta_template meta_templates[] = {
+ 	[NFT_META_SDIFNAME]	= META_TEMPLATE("sdifname", &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
++	[NFT_META_BRI_BROUTE]	= META_TEMPLATE("broute",   &integer_type,
++						1    , BYTEORDER_HOST_ENDIAN),
+ };
+ 
+ static bool meta_key_is_unqualified(enum nft_meta_keys key)
+diff --git a/tests/py/bridge/meta.t b/tests/py/bridge/meta.t
+index d77ebd89..171aa610 100644
+--- a/tests/py/bridge/meta.t
++++ b/tests/py/bridge/meta.t
+@@ -9,3 +9,5 @@ meta ibrpvid 100;ok
+ 
+ meta protocol ip udp dport 67;ok
+ meta protocol ip6 udp dport 67;ok
++
++meta broute set 1;fail
+diff --git a/tests/py/bridge/meta.t.payload b/tests/py/bridge/meta.t.payload
+index 0a39842a..72588e3d 100644
+--- a/tests/py/bridge/meta.t.payload
++++ b/tests/py/bridge/meta.t.payload
+@@ -35,3 +35,8 @@ bridge test-bridge input
+   [ cmp eq reg 1 0x00000011 ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ cmp eq reg 1 0x00004300 ]
++
++# meta broute set 1
++bridge test-bridge input
++  [ immediate reg 1 0x00000001 ]
++  [ meta set broute with reg 1 ]
+diff --git a/tests/py/bridge/redirect.t b/tests/py/bridge/redirect.t
+new file mode 100644
+index 00000000..5181e799
+--- /dev/null
++++ b/tests/py/bridge/redirect.t
+@@ -0,0 +1,5 @@
++:prerouting;type filter hook prerouting priority 0
++
++*bridge;test-bridge;prerouting
++
++meta broute set 1;ok
+diff --git a/tests/py/bridge/redirect.t.json b/tests/py/bridge/redirect.t.json
+new file mode 100644
+index 00000000..7e32b329
+--- /dev/null
++++ b/tests/py/bridge/redirect.t.json
+@@ -0,0 +1,12 @@
++# meta broute set 1
++[
++    {
++        "mangle": {
++            "key": {
++                "meta": { "key": "broute" }
++            },
++            "value": 1
++        }
++    }
++]
++
+diff --git a/tests/py/bridge/redirect.t.payload b/tests/py/bridge/redirect.t.payload
+new file mode 100644
+index 00000000..1fcfa5f1
+--- /dev/null
++++ b/tests/py/bridge/redirect.t.payload
+@@ -0,0 +1,4 @@
++# meta broute set 1
++bridge test-bridge prerouting
++  [ immediate reg 1 0x00000001 ]
++  [ meta set broute with reg 1 ]
+-- 
+2.34.1
 
-pde is needed to free the per cpu stat structure in nf_flow_table_fini_net
-in the error case. This was implemented before this patch though.
-I understand that some kind of error check would be good.
-Since there is no consequence when this does not work I did not implement one
-and let the old error checking go along.
-
-Do you have any ideas how to solve the problem more?
-
-Best
-Sven
-
-> 	if (!proc_create_net())
-> 		goto err;
-> 
-> > +	proc_create_net_single("nf_flowtable_counter", 0444,
-> > +			net->proc_net, nf_flow_table_counter_show, NULL);
-> 
-> 	if (!proc_create_net_single())
-> 		goto err_net;
-> 	return 0;
-> 
-> err_net:
-> 	remove_proc_entry("nf_flowtable", net->proc_net_stat);
-> 
-> err:
-> 	return -ENOMEM;
-> 
-> > +
-> >  	return pde ? 0 : -ENOMEM;
-> >  }
-> >  
-> > -- 
-> > 2.33.1
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
