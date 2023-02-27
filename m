@@ -2,113 +2,239 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3960C64ED6
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Feb 2023 09:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A2C6C64ED8
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Feb 2023 11:58:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230026AbjB0JhF (ORCPT
+        id S229568AbjB0L6Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Feb 2023 04:37:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49652 "EHLO
+        Mon, 27 Feb 2023 06:58:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229998AbjB0JhE (ORCPT
+        with ESMTP id S229686AbjB0L6P (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Feb 2023 04:37:04 -0500
-Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0735CC1E;
-        Mon, 27 Feb 2023 01:37:00 -0800 (PST)
-Received: by mail-pj1-x1036.google.com with SMTP id y15-20020a17090aa40f00b00237ad8ee3a0so5594942pjp.2;
-        Mon, 27 Feb 2023 01:37:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=vIV5ogbFsguZWx+MjZtbNr7+DuxH9TxT45H3zXtXUWo=;
-        b=f6rw5IKGM5R/BzPNQAUbRbpgP6D9kDYrvIrMFHH+mHYONIeebAt/rYmVDB4HklhcN8
-         NpjQRwC8AEanKylP/foRjOVGGBV5FbMcdq5JR1AOStEd8UFxQ1wL1/4lLlVSsM1PbQwc
-         z35wRZfKmH5L3HOcU8vZB8FFjGq5O3OCjo8gYVYVgM9utyYYx+vQjfg66sugRoHR9Riq
-         kbu0AcnW0RJiPR10CqmSLgchpkp474NZyLcev4Cj5OTQsk/0XKcoGyYNgaSj+2ZbM8PI
-         XAYLxCp91p7Wwqlu4T2t+kT50a80gO+KqXudZDxeXzPqgvN5QbYKoX/z1JEMJWo5P0di
-         14mA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vIV5ogbFsguZWx+MjZtbNr7+DuxH9TxT45H3zXtXUWo=;
-        b=R7cO54wmJf8TOg2FWOqfHLojRPRLjRJjSwQcFlxkegS5J1K/UT3WqoAoggR75+MO7J
-         H+Hkqr6qhHLm7CrGkzigHk/wu18TybKEJrdohNf7tEn22Rg/h2gAzRS7zqD+tC4QMbNS
-         m6NgpfIgBRQmVT5JBEcSlE6rBBt5pzJyLAgrVd/bG6K/hs1MWu2b+HuBIVlFWUwP2NpA
-         z8IpHjnqCT0+VeJIrh5bOYMRZCDIgYIRDI80pdUOD6oaMmb0JUmjBMxeYJyIzYxe55VG
-         DsT5SDmrwzMmGwEbsTnD6n631NeDQIxsFfMquhPjpjasp6vykxxjNoFQCmJftZyRshC8
-         ybsQ==
-X-Gm-Message-State: AO0yUKUUbPq4Vb3xH+a8UcGIf05g+E40sgjnqNAdyCMckbAn/TdIOIgk
-        q6BP2CoHQ0eBbBtitsJajuX6amn2GO5uKsZj
-X-Google-Smtp-Source: AK7set+8UqJw9QjcHlTLvZ9nato159x3dZfX5U6lHb3LhGUdoLDcSpErHeTgkpywe6DgJYS8Hek9ig==
-X-Received: by 2002:a17:90b:4f87:b0:234:91a2:e07c with SMTP id qe7-20020a17090b4f8700b0023491a2e07cmr25692399pjb.31.1677490619632;
-        Mon, 27 Feb 2023 01:36:59 -0800 (PST)
-Received: from Laptop-X1.redhat.com ([209.132.188.80])
-        by smtp.gmail.com with ESMTPSA id l190-20020a6388c7000000b00502f4c62fd3sm3690873pgd.33.2023.02.27.01.36.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 27 Feb 2023 01:36:59 -0800 (PST)
-From:   Hangbin Liu <liuhangbin@gmail.com>
+        Mon, 27 Feb 2023 06:58:15 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4727D19AB
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2023 03:58:13 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Yi Chen <yiche@redhat.com>, Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        Hangbin Liu <liuhangbin@gmail.com>
-Subject: [PATCH nf] selftests: nft_nat: ensuring the listening side is up before starting the client
-Date:   Mon, 27 Feb 2023 17:36:46 +0800
-Message-Id: <20230227093646.1066666-1-liuhangbin@gmail.com>
-X-Mailer: git-send-email 2.38.1
+Subject: [PATCH nft,v2] evaluate: expand value to range when nat mapping contains intervals
+Date:   Mon, 27 Feb 2023 12:58:08 +0100
+Message-Id: <20230227115808.179403-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The test_local_dnat_portonly() function initiates the client-side as
-soon as it sets the listening side to the background. This could lead to
-a race condition where the server may not be ready to listen. To ensure
-that the server-side is up and running before initiating the
-client-side, a delay is introduced to the test_local_dnat_portonly()
-function.
+If the data in the mapping contains a range, then upgrade value to range.
 
-Before the fix:
-  # ./nft_nat.sh
-  PASS: netns routing/connectivity: ns0-rthlYrBU can reach ns1-rthlYrBU and ns2-rthlYrBU
-  PASS: ping to ns1-rthlYrBU was ip NATted to ns2-rthlYrBU
-  PASS: ping to ns1-rthlYrBU OK after ip nat output chain flush
-  PASS: ipv6 ping to ns1-rthlYrBU was ip6 NATted to ns2-rthlYrBU
-  2023/02/27 04:11:03 socat[6055] E connect(5, AF=2 10.0.1.99:2000, 16): Connection refused
-  ERROR: inet port rewrite
+/dev/stdin:11:57-75: Error: Could not process rule: Invalid argument
+dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
+                                    ^^^^^^^^^^^^^^^^^^^
 
-After the fix:
-  # ./nft_nat.sh
-  PASS: netns routing/connectivity: ns0-9sPJV6JJ can reach ns1-9sPJV6JJ and ns2-9sPJV6JJ
-  PASS: ping to ns1-9sPJV6JJ was ip NATted to ns2-9sPJV6JJ
-  PASS: ping to ns1-9sPJV6JJ OK after ip nat output chain flush
-  PASS: ipv6 ping to ns1-9sPJV6JJ was ip6 NATted to ns2-9sPJV6JJ
-  PASS: inet port rewrite without l3 address
+The upgrade also done when concatenations are used in the rhs of the
+mapping.
 
-Fixes: 282e5f8fe907 ("netfilter: nat: really support inet nat without l3 address")
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+For anonymous sets, expansion cannot be done from expr_evaluate_mapping()
+because the EXPR_F_INTERVAL flag is inferred from the elements. For
+explicit sets, the user already specifies the interval flag in the rhs
+of the map definition.
+
+For anonymous sets, mapping_expr_expand() is called to expand the elements
+because
+
+Fixes: 9599d9d25a6b ("src: NAT support for intervals in maps")
+Fixes: 66746e7dedeb ("src: support for nat with interval concatenation")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/nft_nat.sh | 2 ++
- 1 file changed, 2 insertions(+)
+v2: fix concatenation with ranges and explicit sets too.
 
-diff --git a/tools/testing/selftests/netfilter/nft_nat.sh b/tools/testing/selftests/netfilter/nft_nat.sh
-index 924ecb3f1f73..dd40d9f6f259 100755
---- a/tools/testing/selftests/netfilter/nft_nat.sh
-+++ b/tools/testing/selftests/netfilter/nft_nat.sh
-@@ -404,6 +404,8 @@ EOF
- 	echo SERVER-$family | ip netns exec "$ns1" timeout 5 socat -u STDIN TCP-LISTEN:2000 &
- 	sc_s=$!
+ src/evaluate.c                                | 47 ++++++++++++++++++-
+ tests/shell/testcases/sets/0047nat_0          |  6 +++
+ .../testcases/sets/0067nat_concat_interval_0  | 27 +++++++++++
+ .../shell/testcases/sets/dumps/0047nat_0.nft  |  6 +++
+ .../sets/dumps/0067nat_concat_interval_0.nft  | 16 +++++++
+ 5 files changed, 100 insertions(+), 2 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 506c2414b9e8..19faf621bf65 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1805,10 +1805,45 @@ static void map_set_concat_info(struct expr *map)
+ 	}
+ }
  
-+	sleep 1
++static void __mapping_expr_expand(struct expr *i)
++{
++	struct expr *j, *range, *next;
 +
- 	result=$(ip netns exec "$ns0" timeout 1 socat TCP:$daddr:2000 STDOUT)
++	assert(i->etype == EXPR_MAPPING);
++	switch (i->right->etype) {
++	case EXPR_VALUE:
++		range = range_expr_alloc(&i->location, expr_get(i->right), expr_get(i->right));
++		expr_free(i->right);
++		i->right = range;
++		break;
++	case EXPR_CONCAT:
++		list_for_each_entry_safe(j, next, &i->right->expressions, list) {
++			if (j->etype != EXPR_VALUE)
++				continue;
++
++			range = range_expr_alloc(&j->location, expr_get(j), expr_get(j));
++			list_replace(&j->list, &range->list);
++			expr_free(j);
++		}
++		i->right->flags &= ~EXPR_F_SINGLETON;
++		break;
++	default:
++		break;
++	}
++}
++
++static void mapping_expr_expand(struct expr *init)
++{
++	struct expr *i;
++
++	list_for_each_entry(i, &init->expressions, list)
++		__mapping_expr_expand(i);
++}
++
+ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ {
+-	struct expr_ctx ectx = ctx->ectx;
+ 	struct expr *map = *expr, *mappings;
++	struct expr_ctx ectx = ctx->ectx;
+ 	const struct datatype *dtype;
+ 	struct expr *key, *data;
  
- 	if [ "$result" = "SERVER-inet" ];then
+@@ -1879,9 +1914,13 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 		if (binop_transfer(ctx, expr) < 0)
+ 			return -1;
+ 
+-		if (ctx->set->data->flags & EXPR_F_INTERVAL)
++		if (ctx->set->data->flags & EXPR_F_INTERVAL) {
+ 			ctx->set->data->len *= 2;
+ 
++			if (set_is_anonymous(ctx->set->flags))
++				mapping_expr_expand(ctx->set->init);
++		}
++
+ 		ctx->set->key->len = ctx->ectx.len;
+ 		ctx->set = NULL;
+ 		map = *expr;
+@@ -1984,6 +2023,10 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
+ 	    data_mapping_has_interval(mapping->right))
+ 		set->data->flags |= EXPR_F_INTERVAL;
+ 
++	if (!set_is_anonymous(set->flags) &&
++	    set->data->flags & EXPR_F_INTERVAL)
++		__mapping_expr_expand(mapping);
++
+ 	if (!(set->data->flags & EXPR_F_INTERVAL) &&
+ 	    !expr_is_singleton(mapping->right))
+ 		return expr_error(ctx->msgs, mapping->right,
+diff --git a/tests/shell/testcases/sets/0047nat_0 b/tests/shell/testcases/sets/0047nat_0
+index d19f5b69fd33..4e53b7b8e8c8 100755
+--- a/tests/shell/testcases/sets/0047nat_0
++++ b/tests/shell/testcases/sets/0047nat_0
+@@ -8,6 +8,12 @@ EXPECTED="table ip x {
+ 				 10.141.11.0/24 : 192.168.4.2-192.168.4.3 }
+             }
+ 
++            chain x {
++                    type nat hook prerouting priority dstnat; policy accept;
++                    meta l4proto tcp dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69 . 22, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++                    dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++            }
++
+             chain y {
+                     type nat hook postrouting priority srcnat; policy accept;
+                     snat to ip saddr map @y
+diff --git a/tests/shell/testcases/sets/0067nat_concat_interval_0 b/tests/shell/testcases/sets/0067nat_concat_interval_0
+index 530771b0016c..b74c0b762334 100755
+--- a/tests/shell/testcases/sets/0067nat_concat_interval_0
++++ b/tests/shell/testcases/sets/0067nat_concat_interval_0
+@@ -42,3 +42,30 @@ EXPECTED="table ip nat {
+ 
+ $NFT -f - <<< $EXPECTED
+ $NFT add rule ip nat prerouting meta l4proto { tcp, udp } dnat to ip daddr . th dport map @fwdtoip_th
++
++EXPECTED="table ip nat {
++        map ipportmap4 {
++		typeof iifname . ip saddr : interval ip daddr
++		flags interval
++		elements = { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++	}
++	chain prerouting {
++                type nat hook prerouting priority dstnat; policy accept;
++		dnat to iifname . ip saddr map @ipportmap4
++	}
++}"
++
++$NFT -f - <<< $EXPECTED
++EXPECTED="table ip nat {
++        map ipportmap5 {
++		typeof iifname . ip saddr : interval ip daddr . tcp dport
++		flags interval
++		elements = { enp2s0 . 10.1.1.136 : 1.1.2.69 . 22, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++	}
++	chain prerouting {
++                type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to iifname . ip saddr map @ipportmap5
++	}
++}"
++
++$NFT -f - <<< $EXPECTED
+diff --git a/tests/shell/testcases/sets/dumps/0047nat_0.nft b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+index 97c04a1637a2..9fa9fc7456c5 100644
+--- a/tests/shell/testcases/sets/dumps/0047nat_0.nft
++++ b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+@@ -6,6 +6,12 @@ table ip x {
+ 			     10.141.12.0/24 : 192.168.5.10-192.168.5.20 }
+ 	}
+ 
++	chain x {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++		dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++	}
++
+ 	chain y {
+ 		type nat hook postrouting priority srcnat; policy accept;
+ 		snat ip to ip saddr map @y
+diff --git a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
+index 3226da157272..6af47c6682ce 100644
+--- a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
++++ b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
+@@ -17,10 +17,26 @@ table ip nat {
+ 		elements = { 1.2.3.4 . 10000-20000 : 192.168.3.4 . 30000-40000 }
+ 	}
+ 
++	map ipportmap4 {
++		type ifname . ipv4_addr : interval ipv4_addr
++		flags interval
++		elements = { "enp2s0" . 10.1.1.136 : 1.1.2.69/32,
++			     "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++	}
++
++	map ipportmap5 {
++		type ifname . ipv4_addr : interval ipv4_addr . inet_service
++		flags interval
++		elements = { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22,
++			     "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++	}
++
+ 	chain prerouting {
+ 		type nat hook prerouting priority dstnat; policy accept;
+ 		ip protocol tcp dnat ip to ip saddr map @ipportmap
+ 		ip protocol tcp dnat ip to ip saddr . ip daddr map @ipportmap2
+ 		meta l4proto { tcp, udp } dnat ip to ip daddr . th dport map @fwdtoip_th
++		dnat ip to iifname . ip saddr map @ipportmap4
++		meta l4proto tcp dnat ip to iifname . ip saddr map @ipportmap5
+ 	}
+ }
 -- 
-2.38.1
+2.30.2
 
