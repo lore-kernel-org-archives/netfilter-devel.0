@@ -2,231 +2,438 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8C62C64ED6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Feb 2023 10:14:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C822C64ED6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Feb 2023 14:56:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229977AbjB1KOo (ORCPT
+        id S229745AbjB1O4T (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Feb 2023 05:14:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58692 "EHLO
+        Tue, 28 Feb 2023 09:56:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231250AbjB1KOa (ORCPT
+        with ESMTP id S229805AbjB1O4S (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Feb 2023 05:14:30 -0500
-Received: from EUR02-VI1-obe.outbound.protection.outlook.com (mail-vi1eur02on2128.outbound.protection.outlook.com [40.107.241.128])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34BEC2D17C
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2023 02:14:20 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=NNIYiYFiBd+rJ3rjh+CmLPZmY/qQ0wSSNgjpL8xOHyfOWHlmvSKiyDZGYt+i3TueI3Wt0f4hKb2eJ/g2SKGlyZ+YiAL6jeK3nVzAQ3a8Up2BRKEJDqtDs9ywOo5jZIobGhwsCAhArTCBn10CGSuMzoOVTOTKoOm+ePQZxXj6Motq9ofLl/UuSLzY5N38S0wAYSpRZseZz5Sqs246KFf8FMoDoDg6KJx2GHQZthZciBvMBUdxWKNZBefs84Fmxg87Qzediyfckfbr9K/LkGXHOTCqOp/BgLWEvFlvO2BJfkGtGANCU79cXndlq0s2kUDwknaQRZyEnatuFP4JjALQDg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Pnh/9WkoBLLaFaal14WcDAYDUkSWKbeZqiZWoScNoCo=;
- b=KYZwT/aum2A8Ef3jsKSou+gD9nQSYaLr7eubm19LjbA1Tanoar4EYMRLF6d93saOQdR9w9iuzLbFqRj9XQmrsWLkORPbUfjDnq0JVamaLaoJgiiBxqlUXCZSSpl4gttJ9P3TpaHUZ7c40R/Kq2y8tCYTbybFvSQhjksNrRCeUJBhbEvWRVDYH4Ot6jmtApDt07sEmlHseBrdYAuYETdFxAqnyfo65F/Fxb4l6ksNwphoWN2QVesBZjfQ2b/Q+4h5VqX3qeBg0Y2zEwDJI9efLn/Rssec5nqLpEv3PWhYCF8vsHp2elpLLTst4FZVKWsXv+dLueLEUbn9ZVWCM26wSg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=voleatech.de; dmarc=pass action=none header.from=voleatech.de;
- dkim=pass header.d=voleatech.de; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=voleatech.de;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Pnh/9WkoBLLaFaal14WcDAYDUkSWKbeZqiZWoScNoCo=;
- b=J+HTCwmYQ/ewnniB/0J5Xcphs6xZ7dtqzadB6qUpeybhemw/W1zckL7F86gbjQzGeYqok+qs5MS48K38zNNgxdcy8HfnjnJOQZJMLjcfeLWB8iD/tUf0s87Qsvh1Lt3NVM1sXne7sIjK3rPBa0GFziNbSd5tV3AddCDNJe7TBKo=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=voleatech.de;
-Received: from AM9PR05MB8857.eurprd05.prod.outlook.com (2603:10a6:20b:438::20)
- by AM0PR05MB6643.eurprd05.prod.outlook.com (2603:10a6:20b:156::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6134.30; Tue, 28 Feb
- 2023 10:14:17 +0000
-Received: from AM9PR05MB8857.eurprd05.prod.outlook.com
- ([fe80::dc87:8462:5ffe:ebd6]) by AM9PR05MB8857.eurprd05.prod.outlook.com
- ([fe80::dc87:8462:5ffe:ebd6%8]) with mapi id 15.20.6134.030; Tue, 28 Feb 2023
- 10:14:17 +0000
-Date:   Tue, 28 Feb 2023 11:14:13 +0100
-From:   Sven Auhagen <Sven.Auhagen@voleatech.de>
+        Tue, 28 Feb 2023 09:56:18 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E1BDD23DB0
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2023 06:55:54 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     pablo@netfilter.org, abdelrahmanhesham94@gmail.com, ja@ssi.bg
-Subject: [PATCH v4] netfilter: nf_flow_table: count offloaded flows
-Message-ID: <20230228101413.tcmse45valxojb2u@SvensMacbookPro.hq.voleatech.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-ClientProxiedBy: FR2P281CA0146.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:98::7) To AM9PR05MB8857.eurprd05.prod.outlook.com
- (2603:10a6:20b:438::20)
+Subject: [PATCH nft,v3] evaluate: expand value to range when nat mapping contains intervals
+Date:   Tue, 28 Feb 2023 15:55:48 +0100
+Message-Id: <20230228145548.200579-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: AM9PR05MB8857:EE_|AM0PR05MB6643:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8fef9916-9425-4af3-dc14-08db19748c9a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 2tse3QvOtjRbw3O2cGQNulPRZ2Ll04Z414nx24nN0DVR/X6MOTDQswN0kw25c8cfgajpU365omVzKsFoucDc/aVkkEfP5qwqwVAKCK2CxP+aX6l9kqYrf9d5flU6KB1HbEBnkeecSRyJsCM2eP/VI+97D44MDpWAz6fRegGTRwVW8jXXxr6+t9LBeRpbT+nFtYIEoJQ34RmrmQMlsgsfpjGFdMzY1de+JeKvmZ9uWptHCEDen4/CEh5awIlUbn1mvCmMG+hS7Grf194Zqeihn0RacsEmKhI3/fk957HxHxQb15TSxQImVWbWMKl+RD7YysKlQPnRJRMPCOu/8X/ii8FrCI+BYNFjoNaRrxZ1UVQ/3Ejp1/SYlcs+Vas+ECPfwCwWBX7NYVNgRY2wyA0AH7D8oC1IBsGPsUsz91fMdEHDQKKIMXhNJSG1MxpO2S/49MCf9vBHSEuMPDTDRHw6Pt/eZ3gDHdmEw7uVLDo2CuDLra/liN2/YEZylsRrK3n6MZtmVMJaDc4C8d59qTIFO/YvOI3ghx80IiLRtL9S78ePFnarVr9GpzlxeooSH/XwwUVax68ytIg5CfPPFIbvHbfeAv553noxQObqcc9r/bRLZEMj5BtqwJvLKcChL0jm5plnafRVRQ6DIRt7cDhoNg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM9PR05MB8857.eurprd05.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(366004)(39840400004)(396003)(136003)(376002)(346002)(451199018)(38100700002)(86362001)(2906002)(66946007)(41300700001)(5660300002)(4326008)(8676002)(66476007)(66556008)(8936002)(6916009)(6506007)(1076003)(9686003)(6512007)(186003)(26005)(83380400001)(478600001)(316002)(6666004)(6486002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?olcDjY28mQZnYlqYxFq+ipGAVbaheQ4gwjlpjy6LoR16QfqPGQ7HdYiT1eyS?=
- =?us-ascii?Q?jZODyocPIODKfpqo4BhUG8aB8siU5YV1u1upC69WBt/tKQ+zO9eT5GzhtkGu?=
- =?us-ascii?Q?Ppt7yu0N489h71OTYg7LHKj/PBkTF4YoU5iILdoZL2XG0YpzrqSmsJY+W4Ew?=
- =?us-ascii?Q?Xxef1SU46/HnIt7dSugGlxoEghFb+OJKmOblnY7SH3lcJNwXIU45BkkiNwDi?=
- =?us-ascii?Q?3h/hRmwzJL09McWKofmUra6JyFWOhmEnb315Y9UFezrL0dHw8IX57Uu38Alc?=
- =?us-ascii?Q?22hJCbBtp1J8re6vg6TOBSrou0dfL6RqYZQ7vyKtfHMKYkPwaSgFsgqnfAbX?=
- =?us-ascii?Q?UJTa/v6kWA/U91U7XkVLf1LVnpF1YMfGyNsX5alS+4JwBhLNUQbB0pzz4zjI?=
- =?us-ascii?Q?E8l4RYbU3458cxu57nbWDnmcDkSY9CmYE/kdyfY2w/7rOQkffD6aRrAGRXHL?=
- =?us-ascii?Q?SqCyv9BeK0Ozwhh4T6hoQTKg7oMFtFhM0DDQWfbErEs1yym+xTRYoQfuS29w?=
- =?us-ascii?Q?7Zy2nn7Nx9mP/w3eFWHEkRwnA5tSQU+CLpAOZd43jl8aOE/kwsJ5TAr8wb1h?=
- =?us-ascii?Q?r1sk0kvbsWUPZBZhclFZFKe/Fd7ckAOTz09W1ZtNtgXztsre6uxZtrz07L4J?=
- =?us-ascii?Q?ra+/NkEHdRa2MGxuFU1/YLGSJgnQMinioEhkj/gTB59Mhkg2QNmmlyZib02d?=
- =?us-ascii?Q?nwqyVdRAUo5MdsO8XiUvrw0Kvkb7GxReXKgwxou3ogW7DZ8HKKP+cwvhWqlU?=
- =?us-ascii?Q?gbKsZWZRjsATcfVekQITvLMzadJajCcia0sAFyjt63inRbA2m1GoK86P4cA1?=
- =?us-ascii?Q?fE8Zq4ybHaj3MYl36Dbp2tXcIoq1AfeiW74rZhSRZtVAsbxp2J067lmHbSbx?=
- =?us-ascii?Q?IYcnK6XwTnubyPizoV3DN5t8apeI1iQUQ5FrYEqtrLoeh+8Mukwl0ZgBoQwE?=
- =?us-ascii?Q?2uBSSbyDlljnIduKluIM+m5pPRpYuthTJck0Ry4fz4vZsJzmFf/zy3BcT1l7?=
- =?us-ascii?Q?iTVF0Md5QiPxE7nnsJEbQuG42+AX22UqSR6SftWcrIz2CnBLSzQUU5UcrU2D?=
- =?us-ascii?Q?PuTdMKcnB+K3Ige66vlDiPqqz4LYdX8p+sBWo7SbB7fXujkv067wGn6KC0h9?=
- =?us-ascii?Q?5vE0vxB6TG7Wv+tuBxolZVbW5fBbrwoIQz1Dw52Znqr47pDLBdtAqUWJnKIU?=
- =?us-ascii?Q?PwmXFiFXtrOoErK4OP9s+0tqxyqxrHi8BQ+IzrZvvCTJfQR2NP+oPTobV8VX?=
- =?us-ascii?Q?eKwp2d7eb3V4RuHia+FcWMNPLqq/TNDpLm4luOeBYkaecHr9Od+M+IlTAQmc?=
- =?us-ascii?Q?Yp3rsBHwTh3BM4r/W1GZ/rf+6SpZq/PpcI9Zjxo+cyQPxaynfqSLpOwctnAY?=
- =?us-ascii?Q?ygPxyI9LoLLGCKhB3FQz41H10IDBatkuwm89nyVE+3gr8VfVBZRmD+mgDvQv?=
- =?us-ascii?Q?SCLcOHBLXi6GD9Q5TYxsc830mugFvekL5fsx+y7scSd325HSwGLI+VkRwlqf?=
- =?us-ascii?Q?WLUJ4IW0fI1tHplbAG2yICj5kODLYpzNf646HoIKWZ20yWH9jVnY/m21OuCb?=
- =?us-ascii?Q?7fPlu10uXrnRk7WEBPjSPjzBme/tbWIB/jQ4r+c/M/M9dgfVIex67ZqyfUEN?=
- =?us-ascii?Q?BA=3D=3D?=
-X-OriginatorOrg: voleatech.de
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8fef9916-9425-4af3-dc14-08db19748c9a
-X-MS-Exchange-CrossTenant-AuthSource: AM9PR05MB8857.eurprd05.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Feb 2023 10:14:17.4241
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: b82a99f6-7981-4a72-9534-4d35298f847b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: exH2T00yb3gZHqJNed5X26hdkmZFjBs7W86F7dTCMLPYF+QcjLCdnCwtO6YW+cFaP7hZmzeI62trfbTpS+669Qo5pPD1Zxa8/S3eDa5UYns=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR05MB6643
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a counter per namespace so we know the total offloaded
-flows.
+If the data in the mapping contains a range, then upgrade value to range.
+Otherwise, the following error is displayed:
 
-Change from v3:
-	* seq_file_net has to be seq_file_single_net
+/dev/stdin:11:57-75: Error: Could not process rule: Invalid argument
+dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
+                                    ^^^^^^^^^^^^^^^^^^^
 
-Change from v2:
-	* Add remove proc entry on nf_flow_table_fini_proc
-	* Syntax fixes
+The kernel rejects this command because userspace sends a single value
+while the kernel expects the range that represents the min and the max
+IP address to be used for NAT. The upgrade is also done when concatenation
+with intervals is used in the rhs of the mapping.
 
-Change from v1:
-	* Cleanup proc entries in case of an error
+For anonymous sets, expansion cannot be done from expr_evaluate_mapping()
+because the EXPR_F_INTERVAL flag is inferred from the elements. For
+explicit sets, this can be done from expr_evaluate_mapping() because the
+user already specifies the interval flag in the rhs of the map definition.
 
-Signed-off-by: Abdelrahman Morsy <abdelrahman.morsy@voleatech.de>
-Signed-off-by: Sven Auhagen <sven.auhagen@voleatech.de>
+Update tests/shell and tests/py to improve testing coverage in this case.
 
-diff --git a/include/net/netns/flow_table.h b/include/net/netns/flow_table.h
-index 1c5fc657e267..235847a9b480 100644
---- a/include/net/netns/flow_table.h
-+++ b/include/net/netns/flow_table.h
-@@ -10,5 +10,6 @@ struct nf_flow_table_stat {
- 
- struct netns_ft {
- 	struct nf_flow_table_stat __percpu *stat;
-+	atomic64_t count_flowoffload;
- };
- #endif
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 81c26a96c30b..267f5bd192a2 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -282,6 +282,7 @@ unsigned long flow_offload_get_timeout(struct flow_offload *flow)
- 
- int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- {
-+	struct net *net;
- 	int err;
- 
- 	flow->timeout = nf_flowtable_time_stamp + flow_offload_get_timeout(flow);
-@@ -304,6 +305,9 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
- 
- 	nf_ct_offload_timeout(flow->ct);
- 
-+	net = read_pnet(&flow_table->net);
-+	atomic64_inc(&net->ft.count_flowoffload);
-+
- 	if (nf_flowtable_hw_offload(flow_table)) {
- 		__set_bit(NF_FLOW_HW, &flow->flags);
- 		nf_flow_offload_add(flow_table, flow);
-@@ -339,6 +343,8 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
- static void flow_offload_del(struct nf_flowtable *flow_table,
- 			     struct flow_offload *flow)
- {
-+	struct net *net = read_pnet(&flow_table->net);
-+
- 	rhashtable_remove_fast(&flow_table->rhashtable,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
- 			       nf_flow_offload_rhash_params);
-@@ -346,6 +352,8 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 			       nf_flow_offload_rhash_params);
- 	flow_offload_free(flow);
-+
-+	atomic64_dec(&net->ft.count_flowoffload);
+Fixes: 9599d9d25a6b ("src: NAT support for intervals in maps")
+Fixes: 66746e7dedeb ("src: support for nat with interval concatenation")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: extend tests/py.
+
+ src/evaluate.c                                |  47 +++++-
+ tests/py/ip/dnat.t                            |   2 +
+ tests/py/ip/dnat.t.json                       | 146 ++++++++++++++++++
+ tests/py/ip/dnat.t.payload.ip                 |  22 +++
+ tests/shell/testcases/sets/0047nat_0          |   6 +
+ .../testcases/sets/0067nat_concat_interval_0  |  27 ++++
+ .../shell/testcases/sets/dumps/0047nat_0.nft  |   6 +
+ .../sets/dumps/0067nat_concat_interval_0.nft  |  16 ++
+ 8 files changed, 270 insertions(+), 2 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 506c2414b9e8..19faf621bf65 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1805,10 +1805,45 @@ static void map_set_concat_info(struct expr *map)
+ 	}
  }
  
- void flow_offload_teardown(struct flow_offload *flow)
-@@ -616,6 +624,7 @@ EXPORT_SYMBOL_GPL(nf_flow_table_free);
- 
- static int nf_flow_table_init_net(struct net *net)
- {
-+	atomic64_set(&net->ft.count_flowoffload, 0);
- 	net->ft.stat = alloc_percpu(struct nf_flow_table_stat);
- 	return net->ft.stat ? 0 : -ENOMEM;
- }
-diff --git a/net/netfilter/nf_flow_table_procfs.c b/net/netfilter/nf_flow_table_procfs.c
-index 159b033a43e6..45b054b435ec 100644
---- a/net/netfilter/nf_flow_table_procfs.c
-+++ b/net/netfilter/nf_flow_table_procfs.c
-@@ -64,17 +64,36 @@ static const struct seq_operations nf_flow_table_cpu_seq_ops = {
- 	.show	= nf_flow_table_cpu_seq_show,
- };
- 
-+static int nf_flow_table_counter_show(struct seq_file *seq, void *v)
++static void __mapping_expr_expand(struct expr *i)
 +{
-+	struct net *net = seq_file_single_net(seq);
++	struct expr *j, *range, *next;
 +
-+	seq_printf(seq, "%lld\n",
-+		   atomic64_read(&net->ft.count_flowoffload)
-+		);
-+	return 0;
++	assert(i->etype == EXPR_MAPPING);
++	switch (i->right->etype) {
++	case EXPR_VALUE:
++		range = range_expr_alloc(&i->location, expr_get(i->right), expr_get(i->right));
++		expr_free(i->right);
++		i->right = range;
++		break;
++	case EXPR_CONCAT:
++		list_for_each_entry_safe(j, next, &i->right->expressions, list) {
++			if (j->etype != EXPR_VALUE)
++				continue;
++
++			range = range_expr_alloc(&j->location, expr_get(j), expr_get(j));
++			list_replace(&j->list, &range->list);
++			expr_free(j);
++		}
++		i->right->flags &= ~EXPR_F_SINGLETON;
++		break;
++	default:
++		break;
++	}
 +}
 +
- int nf_flow_table_init_proc(struct net *net)
- {
--	struct proc_dir_entry *pde;
-+	if (!proc_create_net("nf_flowtable", 0444, net->proc_net_stat,
-+			     &nf_flow_table_cpu_seq_ops, sizeof(struct seq_net_private)))
-+		goto err;
++static void mapping_expr_expand(struct expr *init)
++{
++	struct expr *i;
 +
-+	if (!proc_create_net_single("nf_flowtable_counter", 0444,
-+				    net->proc_net, nf_flow_table_counter_show, NULL))
-+		goto err_net;
- 
--	pde = proc_create_net("nf_flowtable", 0444, net->proc_net_stat,
--			      &nf_flow_table_cpu_seq_ops,
--			      sizeof(struct seq_net_private));
--	return pde ? 0 : -ENOMEM;
-+	return 0;
++	list_for_each_entry(i, &init->expressions, list)
++		__mapping_expr_expand(i);
++}
 +
-+err_net:
-+	remove_proc_entry("nf_flowtable", net->proc_net_stat);
-+err:
-+	return -ENOMEM;
- }
- 
- void nf_flow_table_fini_proc(struct net *net)
+ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
  {
- 	remove_proc_entry("nf_flowtable", net->proc_net_stat);
-+	remove_proc_entry("nf_flowtable_counter", net->proc_net);
+-	struct expr_ctx ectx = ctx->ectx;
+ 	struct expr *map = *expr, *mappings;
++	struct expr_ctx ectx = ctx->ectx;
+ 	const struct datatype *dtype;
+ 	struct expr *key, *data;
+ 
+@@ -1879,9 +1914,13 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 		if (binop_transfer(ctx, expr) < 0)
+ 			return -1;
+ 
+-		if (ctx->set->data->flags & EXPR_F_INTERVAL)
++		if (ctx->set->data->flags & EXPR_F_INTERVAL) {
+ 			ctx->set->data->len *= 2;
+ 
++			if (set_is_anonymous(ctx->set->flags))
++				mapping_expr_expand(ctx->set->init);
++		}
++
+ 		ctx->set->key->len = ctx->ectx.len;
+ 		ctx->set = NULL;
+ 		map = *expr;
+@@ -1984,6 +2023,10 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
+ 	    data_mapping_has_interval(mapping->right))
+ 		set->data->flags |= EXPR_F_INTERVAL;
+ 
++	if (!set_is_anonymous(set->flags) &&
++	    set->data->flags & EXPR_F_INTERVAL)
++		__mapping_expr_expand(mapping);
++
+ 	if (!(set->data->flags & EXPR_F_INTERVAL) &&
+ 	    !expr_is_singleton(mapping->right))
+ 		return expr_error(ctx->msgs, mapping->right,
+diff --git a/tests/py/ip/dnat.t b/tests/py/ip/dnat.t
+index 889f0fd7bf6c..881571db2f83 100644
+--- a/tests/py/ip/dnat.t
++++ b/tests/py/ip/dnat.t
+@@ -19,3 +19,5 @@ dnat ip to ip saddr . tcp dport map { 192.168.1.2 . 80 : 10.141.10.0/24  . 8888
+ dnat ip to ip saddr . tcp dport map { 192.168.1.2 . 80 : 10.141.10.0/24  . 80 };ok
+ dnat ip to ip saddr . tcp dport map { 192.168.1.2 . 80 : 10.141.10.2 . 8888 - 8999 };ok
+ ip daddr 192.168.0.1 dnat ip to tcp dport map { 443 : 10.141.10.4 . 8443, 80 : 10.141.10.4 . 8080 };ok
++meta l4proto 6 dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 };ok
++dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 };ok
+diff --git a/tests/py/ip/dnat.t.json b/tests/py/ip/dnat.t.json
+index ede4d04bdb10..fe15d0726302 100644
+--- a/tests/py/ip/dnat.t.json
++++ b/tests/py/ip/dnat.t.json
+@@ -595,3 +595,149 @@
+     }
+ ]
+ 
++# meta l4proto 6 dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "l4proto"
++                }
++            },
++            "op": "==",
++            "right": 6
++        }
++    },
++    {
++        "dnat": {
++            "addr": {
++                "map": {
++                    "data": {
++                        "set": [
++                            [
++                                {
++                                    "concat": [
++                                        "enp2s0",
++                                        "10.1.1.136"
++                                    ]
++                                },
++                                {
++                                    "concat": [
++                                        "1.1.2.69",
++                                        22
++                                    ]
++                                }
++                            ],
++                            [
++                                {
++                                    "concat": [
++                                        "enp2s0",
++                                        {
++                                            "range": [
++                                                "10.1.1.1",
++                                                "10.1.1.135"
++                                            ]
++                                        }
++                                    ]
++                                },
++                                {
++                                    "concat": [
++                                        {
++                                            "range": [
++                                                "1.1.2.66",
++                                                "1.84.236.78"
++                                            ]
++                                        },
++                                        22
++                                    ]
++                                }
++                            ]
++                        ]
++                    },
++                    "key": {
++                        "concat": [
++                            {
++                                "meta": {
++                                    "key": "iifname"
++                                }
++                            },
++                            {
++                                "payload": {
++                                    "field": "saddr",
++                                    "protocol": "ip"
++                                }
++                            }
++                        ]
++                    }
++                }
++            },
++            "family": "ip"
++        }
++    }
++]
++
++# dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++[
++    {
++        "dnat": {
++            "addr": {
++                "map": {
++                    "data": {
++                        "set": [
++                            [
++                                {
++                                    "concat": [
++                                        "enp2s0",
++                                        "10.1.1.136"
++                                    ]
++                                },
++                                {
++                                    "prefix": {
++                                        "addr": "1.1.2.69",
++                                        "len": 32
++                                    }
++                                }
++                            ],
++                            [
++                                {
++                                    "concat": [
++                                        "enp2s0",
++                                        {
++                                            "range": [
++                                                "10.1.1.1",
++                                                "10.1.1.135"
++                                            ]
++                                        }
++                                    ]
++                                },
++                                {
++                                    "range": [
++                                        "1.1.2.66",
++                                        "1.84.236.78"
++                                    ]
++                                }
++                            ]
++                        ]
++                    },
++                    "key": {
++                        "concat": [
++                            {
++                                "meta": {
++                                    "key": "iifname"
++                                }
++                            },
++                            {
++                                "payload": {
++                                    "field": "saddr",
++                                    "protocol": "ip"
++                                }
++                            }
++                        ]
++                    }
++                }
++            },
++            "family": "ip"
++        }
++    }
++]
++
+diff --git a/tests/py/ip/dnat.t.payload.ip b/tests/py/ip/dnat.t.payload.ip
+index e53838a32262..439c6abef03f 100644
+--- a/tests/py/ip/dnat.t.payload.ip
++++ b/tests/py/ip/dnat.t.payload.ip
+@@ -180,3 +180,25 @@ ip
+   [ lookup reg 1 set __map%d dreg 1 ]
+   [ nat dnat ip addr_min reg 1 proto_min reg 9 ]
+ 
++# meta l4proto 6 dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++__map%d test-ip4 8f size 2
++__map%d test-ip4 0
++        element 32706e65 00003073 00000000 00000000 8801010a  - 32706e65 00003073 00000000 00000000 8801010a  : 45020101 00001600 45020101 00001600 0 [end]     element 32706e65 00003073 00000000 00000000 0101010a  - 32706e65 00003073 00000000 00000000 8701010a  : 42020101 00001600 4eec5401 00001600 0 [end]
++ip test-ip4 prerouting
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ meta load iifname => reg 1 ]
++  [ payload load 4b @ network header + 12 => reg 2 ]
++  [ lookup reg 1 set __map%d dreg 1 ]
++  [ nat dnat ip addr_min reg 1 addr_max reg 10 proto_min reg 9 proto_max reg 11 ]
++
++# dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++__map%d test-ip4 8f size 2
++__map%d test-ip4 0
++        element 32706e65 00003073 00000000 00000000 8801010a  - 32706e65 00003073 00000000 00000000 8801010a  : 45020101 45020101 0 [end]       element 32706e65 00003073 00000000 00000000 0101010a  - 32706e65 00003073 00000000 00000000 8701010a  : 42020101 4eec5401 0 [end]
++ip test-ip4 prerouting
++  [ meta load iifname => reg 1 ]
++  [ payload load 4b @ network header + 12 => reg 2 ]
++  [ lookup reg 1 set __map%d dreg 1 ]
++  [ nat dnat ip addr_min reg 1 addr_max reg 9 ]
++
+diff --git a/tests/shell/testcases/sets/0047nat_0 b/tests/shell/testcases/sets/0047nat_0
+index d19f5b69fd33..4e53b7b8e8c8 100755
+--- a/tests/shell/testcases/sets/0047nat_0
++++ b/tests/shell/testcases/sets/0047nat_0
+@@ -8,6 +8,12 @@ EXPECTED="table ip x {
+ 				 10.141.11.0/24 : 192.168.4.2-192.168.4.3 }
+             }
+ 
++            chain x {
++                    type nat hook prerouting priority dstnat; policy accept;
++                    meta l4proto tcp dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69 . 22, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++                    dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++            }
++
+             chain y {
+                     type nat hook postrouting priority srcnat; policy accept;
+                     snat to ip saddr map @y
+diff --git a/tests/shell/testcases/sets/0067nat_concat_interval_0 b/tests/shell/testcases/sets/0067nat_concat_interval_0
+index 530771b0016c..55cc0d4b43df 100755
+--- a/tests/shell/testcases/sets/0067nat_concat_interval_0
++++ b/tests/shell/testcases/sets/0067nat_concat_interval_0
+@@ -42,3 +42,30 @@ EXPECTED="table ip nat {
+ 
+ $NFT -f - <<< $EXPECTED
+ $NFT add rule ip nat prerouting meta l4proto { tcp, udp } dnat to ip daddr . th dport map @fwdtoip_th
++
++EXPECTED="table ip nat {
++        map ipportmap4 {
++		typeof iifname . ip saddr : interval ip daddr
++		flags interval
++		elements = { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++	}
++	chain prerouting {
++		type nat hook prerouting priority dstnat; policy accept;
++		dnat to iifname . ip saddr map @ipportmap4
++	}
++}"
++
++$NFT -f - <<< $EXPECTED
++EXPECTED="table ip nat {
++        map ipportmap5 {
++		typeof iifname . ip saddr : interval ip daddr . tcp dport
++		flags interval
++		elements = { enp2s0 . 10.1.1.136 : 1.1.2.69 . 22, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++	}
++	chain prerouting {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to iifname . ip saddr map @ipportmap5
++	}
++}"
++
++$NFT -f - <<< $EXPECTED
+diff --git a/tests/shell/testcases/sets/dumps/0047nat_0.nft b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+index 97c04a1637a2..9fa9fc7456c5 100644
+--- a/tests/shell/testcases/sets/dumps/0047nat_0.nft
++++ b/tests/shell/testcases/sets/dumps/0047nat_0.nft
+@@ -6,6 +6,12 @@ table ip x {
+ 			     10.141.12.0/24 : 192.168.5.10-192.168.5.20 }
+ 	}
+ 
++	chain x {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++		dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++	}
++
+ 	chain y {
+ 		type nat hook postrouting priority srcnat; policy accept;
+ 		snat ip to ip saddr map @y
+diff --git a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
+index 3226da157272..6af47c6682ce 100644
+--- a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
++++ b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
+@@ -17,10 +17,26 @@ table ip nat {
+ 		elements = { 1.2.3.4 . 10000-20000 : 192.168.3.4 . 30000-40000 }
+ 	}
+ 
++	map ipportmap4 {
++		type ifname . ipv4_addr : interval ipv4_addr
++		flags interval
++		elements = { "enp2s0" . 10.1.1.136 : 1.1.2.69/32,
++			     "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
++	}
++
++	map ipportmap5 {
++		type ifname . ipv4_addr : interval ipv4_addr . inet_service
++		flags interval
++		elements = { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22,
++			     "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
++	}
++
+ 	chain prerouting {
+ 		type nat hook prerouting priority dstnat; policy accept;
+ 		ip protocol tcp dnat ip to ip saddr map @ipportmap
+ 		ip protocol tcp dnat ip to ip saddr . ip daddr map @ipportmap2
+ 		meta l4proto { tcp, udp } dnat ip to ip daddr . th dport map @fwdtoip_th
++		dnat ip to iifname . ip saddr map @ipportmap4
++		meta l4proto tcp dnat ip to iifname . ip saddr map @ipportmap5
+ 	}
  }
 -- 
-2.33.1
+2.30.2
 
