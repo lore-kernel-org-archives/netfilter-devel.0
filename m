@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C822C64ED6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Feb 2023 14:56:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3A14C64ED6
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Feb 2023 15:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229745AbjB1O4T (ORCPT
+        id S229868AbjB1Pf4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 28 Feb 2023 09:56:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43608 "EHLO
+        Tue, 28 Feb 2023 10:35:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229805AbjB1O4S (ORCPT
+        with ESMTP id S229962AbjB1Pf4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Feb 2023 09:56:18 -0500
+        Tue, 28 Feb 2023 10:35:56 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E1BDD23DB0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2023 06:55:54 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 73BF31730
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2023 07:35:54 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v3] evaluate: expand value to range when nat mapping contains intervals
-Date:   Tue, 28 Feb 2023 15:55:48 +0100
-Message-Id: <20230228145548.200579-1-pablo@netfilter.org>
+Subject: [PATCH nft,v2] src: add last statement
+Date:   Tue, 28 Feb 2023 16:35:51 +0100
+Message-Id: <20230228153551.273448-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,412 +28,369 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the data in the mapping contains a range, then upgrade value to range.
-Otherwise, the following error is displayed:
+This new statement allows you to know how long ago there was a matching
+packet.
 
-/dev/stdin:11:57-75: Error: Could not process rule: Invalid argument
-dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-                                    ^^^^^^^^^^^^^^^^^^^
+ # nft list ruleset
+ table ip x {
+        chain y {
+		[...]
+                ip protocol icmp last used 49m54s884ms counter packets 1 bytes 64
+	}
+ }
 
-The kernel rejects this command because userspace sends a single value
-while the kernel expects the range that represents the min and the max
-IP address to be used for NAT. The upgrade is also done when concatenation
-with intervals is used in the rhs of the mapping.
+if the statement never sees a packet, then the listing says:
 
-For anonymous sets, expansion cannot be done from expr_evaluate_mapping()
-because the EXPR_F_INTERVAL flag is inferred from the elements. For
-explicit sets, this can be done from expr_evaluate_mapping() because the
-user already specifies the interval flag in the rhs of the map definition.
+                ip protocol icmp last used never counter packets 0 bytes 0
 
-Update tests/shell and tests/py to improve testing coverage in this case.
+Add tests/py in this patch too.
 
-Fixes: 9599d9d25a6b ("src: NAT support for intervals in maps")
-Fixes: 66746e7dedeb ("src: support for nat with interval concatenation")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: extend tests/py.
+v2: never merged upstream for some reason, rebasing.
 
- src/evaluate.c                                |  47 +++++-
- tests/py/ip/dnat.t                            |   2 +
- tests/py/ip/dnat.t.json                       | 146 ++++++++++++++++++
- tests/py/ip/dnat.t.payload.ip                 |  22 +++
- tests/shell/testcases/sets/0047nat_0          |   6 +
- .../testcases/sets/0067nat_concat_interval_0  |  27 ++++
- .../shell/testcases/sets/dumps/0047nat_0.nft  |   6 +
- .../sets/dumps/0067nat_concat_interval_0.nft  |  16 ++
- 8 files changed, 270 insertions(+), 2 deletions(-)
+ include/parser.h            |  1 +
+ include/statement.h         | 10 ++++++++++
+ src/evaluate.c              |  1 +
+ src/netlink_delinearize.c   | 14 ++++++++++++++
+ src/netlink_linearize.c     | 14 ++++++++++++++
+ src/parser_bison.y          | 27 +++++++++++++++++++++++++--
+ src/scanner.l               |  9 ++++++++-
+ src/statement.c             | 30 ++++++++++++++++++++++++++++++
+ tests/py/any/last.t         | 13 +++++++++++++
+ tests/py/any/last.t.payload |  8 ++++++++
+ 10 files changed, 124 insertions(+), 3 deletions(-)
+ create mode 100644 tests/py/any/last.t
+ create mode 100644 tests/py/any/last.t.payload
 
+diff --git a/include/parser.h b/include/parser.h
+index 71df43093204..f79a22f306af 100644
+--- a/include/parser.h
++++ b/include/parser.h
+@@ -42,6 +42,7 @@ enum startcond_type {
+ 	PARSER_SC_IGMP,
+ 	PARSER_SC_IP,
+ 	PARSER_SC_IP6,
++	PARSER_SC_LAST,
+ 	PARSER_SC_LIMIT,
+ 	PARSER_SC_META,
+ 	PARSER_SC_POLICY,
+diff --git a/include/statement.h b/include/statement.h
+index e648fb137b74..720a6ac2c754 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -47,6 +47,13 @@ struct counter_stmt {
+ 
+ extern struct stmt *counter_stmt_alloc(const struct location *loc);
+ 
++struct last_stmt {
++	uint64_t		used;
++	uint32_t		set;
++};
++
++extern struct stmt *last_stmt_alloc(const struct location *loc);
++
+ struct exthdr_stmt {
+ 	struct expr			*expr;
+ 	struct expr			*val;
+@@ -303,6 +310,7 @@ extern struct stmt *xt_stmt_alloc(const struct location *loc);
+  * @STMT_SYNPROXY:	synproxy statement
+  * @STMT_CHAIN:		chain statement
+  * @STMT_OPTSTRIP:	optstrip statement
++ * @STMT_LAST:		last statement
+  */
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -333,6 +341,7 @@ enum stmt_types {
+ 	STMT_SYNPROXY,
+ 	STMT_CHAIN,
+ 	STMT_OPTSTRIP,
++	STMT_LAST,
+ };
+ 
+ /**
+@@ -382,6 +391,7 @@ struct stmt {
+ 		struct counter_stmt	counter;
+ 		struct payload_stmt	payload;
+ 		struct meta_stmt	meta;
++		struct last_stmt	last;
+ 		struct log_stmt		log;
+ 		struct limit_stmt	limit;
+ 		struct reject_stmt	reject;
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 506c2414b9e8..19faf621bf65 100644
+index 19faf621bf65..47caf3b0d716 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -1805,10 +1805,45 @@ static void map_set_concat_info(struct expr *map)
- 	}
+@@ -4280,6 +4280,7 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 	switch (stmt->ops->type) {
+ 	case STMT_CONNLIMIT:
+ 	case STMT_COUNTER:
++	case STMT_LAST:
+ 	case STMT_LIMIT:
+ 	case STMT_QUOTA:
+ 	case STMT_NOTRACK:
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 00221505f289..60350cd6cd96 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1067,6 +1067,19 @@ static void netlink_parse_counter(struct netlink_parse_ctx *ctx,
+ 	ctx->stmt = stmt;
  }
  
-+static void __mapping_expr_expand(struct expr *i)
++static void netlink_parse_last(struct netlink_parse_ctx *ctx,
++			       const struct location *loc,
++			       const struct nftnl_expr *nle)
 +{
-+	struct expr *j, *range, *next;
++	struct stmt *stmt;
 +
-+	assert(i->etype == EXPR_MAPPING);
-+	switch (i->right->etype) {
-+	case EXPR_VALUE:
-+		range = range_expr_alloc(&i->location, expr_get(i->right), expr_get(i->right));
-+		expr_free(i->right);
-+		i->right = range;
-+		break;
-+	case EXPR_CONCAT:
-+		list_for_each_entry_safe(j, next, &i->right->expressions, list) {
-+			if (j->etype != EXPR_VALUE)
-+				continue;
++	stmt = last_stmt_alloc(loc);
++	stmt->last.used = nftnl_expr_get_u64(nle, NFTNL_EXPR_LAST_MSECS);
++	stmt->last.set = nftnl_expr_get_u32(nle, NFTNL_EXPR_LAST_SET);
 +
-+			range = range_expr_alloc(&j->location, expr_get(j), expr_get(j));
-+			list_replace(&j->list, &range->list);
-+			expr_free(j);
-+		}
-+		i->right->flags &= ~EXPR_F_SINGLETON;
-+		break;
-+	default:
-+		break;
-+	}
++	ctx->stmt = stmt;
 +}
 +
-+static void mapping_expr_expand(struct expr *init)
+ static void netlink_parse_log(struct netlink_parse_ctx *ctx,
+ 			      const struct location *loc,
+ 			      const struct nftnl_expr *nle)
+@@ -1877,6 +1890,7 @@ static const struct expr_handler netlink_parsers[] = {
+ 	{ .name = "ct",		.parse = netlink_parse_ct },
+ 	{ .name = "connlimit",	.parse = netlink_parse_connlimit },
+ 	{ .name = "counter",	.parse = netlink_parse_counter },
++	{ .name = "last",	.parse = netlink_parse_last },
+ 	{ .name = "log",	.parse = netlink_parse_log },
+ 	{ .name = "limit",	.parse = netlink_parse_limit },
+ 	{ .name = "range",	.parse = netlink_parse_range },
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 3da72f50d5a6..11cf48a3f9d0 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -1001,6 +1001,17 @@ static struct nftnl_expr *netlink_gen_quota_stmt(const struct stmt *stmt)
+ 	return nle;
+ }
+ 
++static struct nftnl_expr *netlink_gen_last_stmt(const struct stmt *stmt)
 +{
-+	struct expr *i;
++	struct nftnl_expr *nle;
 +
-+	list_for_each_entry(i, &init->expressions, list)
-+		__mapping_expr_expand(i);
++	nle = alloc_nft_expr("last");
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_LAST_SET, stmt->last.set);
++	nftnl_expr_set_u64(nle, NFTNL_EXPR_LAST_MSECS, stmt->last.used);
++
++	return nle;
 +}
 +
- static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ struct nftnl_expr *netlink_gen_stmt_stateful(const struct stmt *stmt)
  {
--	struct expr_ctx ectx = ctx->ectx;
- 	struct expr *map = *expr, *mappings;
-+	struct expr_ctx ectx = ctx->ectx;
- 	const struct datatype *dtype;
- 	struct expr *key, *data;
- 
-@@ -1879,9 +1914,13 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 		if (binop_transfer(ctx, expr) < 0)
- 			return -1;
- 
--		if (ctx->set->data->flags & EXPR_F_INTERVAL)
-+		if (ctx->set->data->flags & EXPR_F_INTERVAL) {
- 			ctx->set->data->len *= 2;
- 
-+			if (set_is_anonymous(ctx->set->flags))
-+				mapping_expr_expand(ctx->set->init);
-+		}
-+
- 		ctx->set->key->len = ctx->ectx.len;
- 		ctx->set = NULL;
- 		map = *expr;
-@@ -1984,6 +2023,10 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
- 	    data_mapping_has_interval(mapping->right))
- 		set->data->flags |= EXPR_F_INTERVAL;
- 
-+	if (!set_is_anonymous(set->flags) &&
-+	    set->data->flags & EXPR_F_INTERVAL)
-+		__mapping_expr_expand(mapping);
-+
- 	if (!(set->data->flags & EXPR_F_INTERVAL) &&
- 	    !expr_is_singleton(mapping->right))
- 		return expr_error(ctx->msgs, mapping->right,
-diff --git a/tests/py/ip/dnat.t b/tests/py/ip/dnat.t
-index 889f0fd7bf6c..881571db2f83 100644
---- a/tests/py/ip/dnat.t
-+++ b/tests/py/ip/dnat.t
-@@ -19,3 +19,5 @@ dnat ip to ip saddr . tcp dport map { 192.168.1.2 . 80 : 10.141.10.0/24  . 8888
- dnat ip to ip saddr . tcp dport map { 192.168.1.2 . 80 : 10.141.10.0/24  . 80 };ok
- dnat ip to ip saddr . tcp dport map { 192.168.1.2 . 80 : 10.141.10.2 . 8888 - 8999 };ok
- ip daddr 192.168.0.1 dnat ip to tcp dport map { 443 : 10.141.10.4 . 8443, 80 : 10.141.10.4 . 8080 };ok
-+meta l4proto 6 dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 };ok
-+dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 };ok
-diff --git a/tests/py/ip/dnat.t.json b/tests/py/ip/dnat.t.json
-index ede4d04bdb10..fe15d0726302 100644
---- a/tests/py/ip/dnat.t.json
-+++ b/tests/py/ip/dnat.t.json
-@@ -595,3 +595,149 @@
-     }
- ]
- 
-+# meta l4proto 6 dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "meta": {
-+                    "key": "l4proto"
-+                }
-+            },
-+            "op": "==",
-+            "right": 6
-+        }
-+    },
-+    {
-+        "dnat": {
-+            "addr": {
-+                "map": {
-+                    "data": {
-+                        "set": [
-+                            [
-+                                {
-+                                    "concat": [
-+                                        "enp2s0",
-+                                        "10.1.1.136"
-+                                    ]
-+                                },
-+                                {
-+                                    "concat": [
-+                                        "1.1.2.69",
-+                                        22
-+                                    ]
-+                                }
-+                            ],
-+                            [
-+                                {
-+                                    "concat": [
-+                                        "enp2s0",
-+                                        {
-+                                            "range": [
-+                                                "10.1.1.1",
-+                                                "10.1.1.135"
-+                                            ]
-+                                        }
-+                                    ]
-+                                },
-+                                {
-+                                    "concat": [
-+                                        {
-+                                            "range": [
-+                                                "1.1.2.66",
-+                                                "1.84.236.78"
-+                                            ]
-+                                        },
-+                                        22
-+                                    ]
-+                                }
-+                            ]
-+                        ]
-+                    },
-+                    "key": {
-+                        "concat": [
-+                            {
-+                                "meta": {
-+                                    "key": "iifname"
-+                                }
-+                            },
-+                            {
-+                                "payload": {
-+                                    "field": "saddr",
-+                                    "protocol": "ip"
-+                                }
-+                            }
-+                        ]
-+                    }
-+                }
-+            },
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-+# dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-+[
-+    {
-+        "dnat": {
-+            "addr": {
-+                "map": {
-+                    "data": {
-+                        "set": [
-+                            [
-+                                {
-+                                    "concat": [
-+                                        "enp2s0",
-+                                        "10.1.1.136"
-+                                    ]
-+                                },
-+                                {
-+                                    "prefix": {
-+                                        "addr": "1.1.2.69",
-+                                        "len": 32
-+                                    }
-+                                }
-+                            ],
-+                            [
-+                                {
-+                                    "concat": [
-+                                        "enp2s0",
-+                                        {
-+                                            "range": [
-+                                                "10.1.1.1",
-+                                                "10.1.1.135"
-+                                            ]
-+                                        }
-+                                    ]
-+                                },
-+                                {
-+                                    "range": [
-+                                        "1.1.2.66",
-+                                        "1.84.236.78"
-+                                    ]
-+                                }
-+                            ]
-+                        ]
-+                    },
-+                    "key": {
-+                        "concat": [
-+                            {
-+                                "meta": {
-+                                    "key": "iifname"
-+                                }
-+                            },
-+                            {
-+                                "payload": {
-+                                    "field": "saddr",
-+                                    "protocol": "ip"
-+                                }
-+                            }
-+                        ]
-+                    }
-+                }
-+            },
-+            "family": "ip"
-+        }
-+    }
-+]
-+
-diff --git a/tests/py/ip/dnat.t.payload.ip b/tests/py/ip/dnat.t.payload.ip
-index e53838a32262..439c6abef03f 100644
---- a/tests/py/ip/dnat.t.payload.ip
-+++ b/tests/py/ip/dnat.t.payload.ip
-@@ -180,3 +180,25 @@ ip
-   [ lookup reg 1 set __map%d dreg 1 ]
-   [ nat dnat ip addr_min reg 1 proto_min reg 9 ]
- 
-+# meta l4proto 6 dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
-+__map%d test-ip4 8f size 2
-+__map%d test-ip4 0
-+        element 32706e65 00003073 00000000 00000000 8801010a  - 32706e65 00003073 00000000 00000000 8801010a  : 45020101 00001600 45020101 00001600 0 [end]     element 32706e65 00003073 00000000 00000000 0101010a  - 32706e65 00003073 00000000 00000000 8701010a  : 42020101 00001600 4eec5401 00001600 0 [end]
-+ip test-ip4 prerouting
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ meta load iifname => reg 1 ]
-+  [ payload load 4b @ network header + 12 => reg 2 ]
-+  [ lookup reg 1 set __map%d dreg 1 ]
-+  [ nat dnat ip addr_min reg 1 addr_max reg 10 proto_min reg 9 proto_max reg 11 ]
-+
-+# dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-+__map%d test-ip4 8f size 2
-+__map%d test-ip4 0
-+        element 32706e65 00003073 00000000 00000000 8801010a  - 32706e65 00003073 00000000 00000000 8801010a  : 45020101 45020101 0 [end]       element 32706e65 00003073 00000000 00000000 0101010a  - 32706e65 00003073 00000000 00000000 8701010a  : 42020101 4eec5401 0 [end]
-+ip test-ip4 prerouting
-+  [ meta load iifname => reg 1 ]
-+  [ payload load 4b @ network header + 12 => reg 2 ]
-+  [ lookup reg 1 set __map%d dreg 1 ]
-+  [ nat dnat ip addr_min reg 1 addr_max reg 9 ]
-+
-diff --git a/tests/shell/testcases/sets/0047nat_0 b/tests/shell/testcases/sets/0047nat_0
-index d19f5b69fd33..4e53b7b8e8c8 100755
---- a/tests/shell/testcases/sets/0047nat_0
-+++ b/tests/shell/testcases/sets/0047nat_0
-@@ -8,6 +8,12 @@ EXPECTED="table ip x {
- 				 10.141.11.0/24 : 192.168.4.2-192.168.4.3 }
-             }
- 
-+            chain x {
-+                    type nat hook prerouting priority dstnat; policy accept;
-+                    meta l4proto tcp dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69 . 22, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
-+                    dnat ip to iifname . ip saddr map { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-+            }
-+
-             chain y {
-                     type nat hook postrouting priority srcnat; policy accept;
-                     snat to ip saddr map @y
-diff --git a/tests/shell/testcases/sets/0067nat_concat_interval_0 b/tests/shell/testcases/sets/0067nat_concat_interval_0
-index 530771b0016c..55cc0d4b43df 100755
---- a/tests/shell/testcases/sets/0067nat_concat_interval_0
-+++ b/tests/shell/testcases/sets/0067nat_concat_interval_0
-@@ -42,3 +42,30 @@ EXPECTED="table ip nat {
- 
- $NFT -f - <<< $EXPECTED
- $NFT add rule ip nat prerouting meta l4proto { tcp, udp } dnat to ip daddr . th dport map @fwdtoip_th
-+
-+EXPECTED="table ip nat {
-+        map ipportmap4 {
-+		typeof iifname . ip saddr : interval ip daddr
-+		flags interval
-+		elements = { enp2s0 . 10.1.1.136 : 1.1.2.69, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-+	}
-+	chain prerouting {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		dnat to iifname . ip saddr map @ipportmap4
-+	}
-+}"
-+
-+$NFT -f - <<< $EXPECTED
-+EXPECTED="table ip nat {
-+        map ipportmap5 {
-+		typeof iifname . ip saddr : interval ip daddr . tcp dport
-+		flags interval
-+		elements = { enp2s0 . 10.1.1.136 : 1.1.2.69 . 22, enp2s0 . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
-+	}
-+	chain prerouting {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		meta l4proto tcp dnat ip to iifname . ip saddr map @ipportmap5
-+	}
-+}"
-+
-+$NFT -f - <<< $EXPECTED
-diff --git a/tests/shell/testcases/sets/dumps/0047nat_0.nft b/tests/shell/testcases/sets/dumps/0047nat_0.nft
-index 97c04a1637a2..9fa9fc7456c5 100644
---- a/tests/shell/testcases/sets/dumps/0047nat_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0047nat_0.nft
-@@ -6,6 +6,12 @@ table ip x {
- 			     10.141.12.0/24 : 192.168.5.10-192.168.5.20 }
+ 	switch (stmt->ops->type) {
+@@ -1012,6 +1023,8 @@ struct nftnl_expr *netlink_gen_stmt_stateful(const struct stmt *stmt)
+ 		return netlink_gen_limit_stmt(stmt);
+ 	case STMT_QUOTA:
+ 		return netlink_gen_quota_stmt(stmt);
++	case STMT_LAST:
++		return netlink_gen_last_stmt(stmt);
+ 	default:
+ 		BUG("unknown stateful statement type %s\n", stmt->ops->name);
  	}
+@@ -1687,6 +1700,7 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 	case STMT_COUNTER:
+ 	case STMT_LIMIT:
+ 	case STMT_QUOTA:
++	case STMT_LAST:
+ 		nle = netlink_gen_stmt_stateful(stmt);
+ 		nft_rule_add_expr(ctx, nle, &stmt->location);
+ 		break;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 824e5db8ad90..5ad191404339 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -554,6 +554,9 @@ int nft_lex(void *, void *, void *);
+ %token BYTES			"bytes"
+ %token AVGPKT			"avgpkt"
  
-+	chain x {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		meta l4proto tcp dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
-+		dnat ip to iifname . ip saddr map { "enp2s0" . 10.1.1.136 : 1.1.2.69/32, "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-+	}
++%token LAST			"last"
++%token NEVER			"never"
 +
- 	chain y {
- 		type nat hook postrouting priority srcnat; policy accept;
- 		snat ip to ip saddr map @y
-diff --git a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
-index 3226da157272..6af47c6682ce 100644
---- a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
-@@ -17,10 +17,26 @@ table ip nat {
- 		elements = { 1.2.3.4 . 10000-20000 : 192.168.3.4 . 30000-40000 }
- 	}
+ %token COUNTERS			"counters"
+ %token QUOTAS			"quotas"
+ %token LIMITS			"limits"
+@@ -710,8 +713,8 @@ int nft_lex(void *, void *, void *);
+ %destructor { stmt_list_free($$); xfree($$); } stmt_list stateful_stmt_list set_elem_stmt_list
+ %type <stmt>			stmt match_stmt verdict_stmt set_elem_stmt
+ %destructor { stmt_free($$); }	stmt match_stmt verdict_stmt set_elem_stmt
+-%type <stmt>			counter_stmt counter_stmt_alloc stateful_stmt
+-%destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc stateful_stmt
++%type <stmt>			counter_stmt counter_stmt_alloc stateful_stmt last_stmt
++%destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc stateful_stmt last_stmt
+ %type <stmt>			payload_stmt
+ %destructor { stmt_free($$); }	payload_stmt
+ %type <stmt>			ct_stmt
+@@ -968,6 +971,7 @@ close_scope_at		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_AT); };
+ close_scope_comp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_COMP); };
+ close_scope_ct		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CT); };
+ close_scope_counter	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_COUNTER); };
++close_scope_last	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_LAST); };
+ close_scope_dccp	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_DCCP); };
+ close_scope_destroy	: { scanner_pop_start_cond(nft->scanner, PARSER_SC_CMD_DESTROY); };
+ close_scope_dst		: { scanner_pop_start_cond(nft->scanner, PARSER_SC_EXPR_DST); };
+@@ -2686,6 +2690,7 @@ chain_policy		:	ACCEPT		{ $$ = NF_ACCEPT; }
+ 			;
  
-+	map ipportmap4 {
-+		type ifname . ipv4_addr : interval ipv4_addr
-+		flags interval
-+		elements = { "enp2s0" . 10.1.1.136 : 1.1.2.69/32,
-+			     "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 }
-+	}
+ identifier		:	STRING
++			|	LAST		{ $$ = xstrdup("last"); }
+ 			;
+ 
+ string			:	STRING
+@@ -2966,6 +2971,7 @@ stateful_stmt		:	counter_stmt	close_scope_counter
+ 			|	limit_stmt
+ 			|	quota_stmt
+ 			|	connlimit_stmt
++			|	last_stmt	close_scope_last
+ 			;
+ 
+ stmt			:	verdict_stmt
+@@ -3104,6 +3110,22 @@ counter_arg		:	PACKETS			NUM
+ 			}
+ 			;
+ 
++last_stmt		:	LAST
++			{
++				$$ = last_stmt_alloc(&@$);
++			}
++			|	LAST USED	NEVER
++			{
++				$$ = last_stmt_alloc(&@$);
++			}
++			|	LAST USED	time_spec
++			{
++				$$ = last_stmt_alloc(&@$);
++				$$->last.used = $3;
++				$$->last.set = true;
++			}
++			;
 +
-+	map ipportmap5 {
-+		type ifname . ipv4_addr : interval ipv4_addr . inet_service
-+		flags interval
-+		elements = { "enp2s0" . 10.1.1.136 : 1.1.2.69 . 22,
-+			     "enp2s0" . 10.1.1.1-10.1.1.135 : 1.1.2.66-1.84.236.78 . 22 }
-+	}
+ log_stmt		:	log_stmt_alloc
+ 			|	log_stmt_alloc		log_args
+ 			;
+@@ -4917,6 +4939,7 @@ keyword_expr		:	ETHER   close_scope_eth { $$ = symbol_value(&@$, "ether"); }
+ 			|	ORIGINAL		{ $$ = symbol_value(&@$, "original"); }
+ 			|	REPLY			{ $$ = symbol_value(&@$, "reply"); }
+ 			|	LABEL			{ $$ = symbol_value(&@$, "label"); }
++			|	LAST	close_scope_last	{ $$ = symbol_value(&@$, "last"); }
+ 			;
+ 
+ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+diff --git a/src/scanner.l b/src/scanner.l
+index bc5b5b62b9ce..15ca3d461d70 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -206,6 +206,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ %s SCANSTATE_IGMP
+ %s SCANSTATE_IP
+ %s SCANSTATE_IP6
++%s SCANSTATE_LAST
+ %s SCANSTATE_LIMIT
+ %s SCANSTATE_META
+ %s SCANSTATE_POLICY
+@@ -402,6 +403,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ <SCANSTATE_COUNTER,SCANSTATE_CT,SCANSTATE_LIMIT>"packets"		{ return PACKETS; }
+ <SCANSTATE_COUNTER,SCANSTATE_CT,SCANSTATE_LIMIT,SCANSTATE_QUOTA>"bytes"	{ return BYTES; }
+ 
++"last"				{ scanner_push_start_cond(yyscanner, SCANSTATE_LAST); return LAST; }
++<SCANSTATE_LAST>{
++	"never"			{ return NEVER; }
++}
 +
- 	chain prerouting {
- 		type nat hook prerouting priority dstnat; policy accept;
- 		ip protocol tcp dnat ip to ip saddr map @ipportmap
- 		ip protocol tcp dnat ip to ip saddr . ip daddr map @ipportmap2
- 		meta l4proto { tcp, udp } dnat ip to ip daddr . th dport map @fwdtoip_th
-+		dnat ip to iifname . ip saddr map @ipportmap4
-+		meta l4proto tcp dnat ip to iifname . ip saddr map @ipportmap5
- 	}
+ <SCANSTATE_CMD_LIST,SCANSTATE_CMD_RESET>{
+ 	"counters"		{ return COUNTERS; }
+ 	"quotas"		{ return QUOTAS; }
+@@ -437,10 +443,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "quota"			{ scanner_push_start_cond(yyscanner, SCANSTATE_QUOTA); return QUOTA; }
+ <SCANSTATE_QUOTA>{
+-	"used"		{ return USED; }
+ 	"until"		{ return UNTIL; }
  }
+ 
++<SCANSTATE_QUOTA,SCANSTATE_LAST>"used"		{ return USED; }
++
+ "hour"			{ return HOUR; }
+ "day"			{ return DAY; }
+ 
+diff --git a/src/statement.c b/src/statement.c
+index eafc51c484de..72455522c2c9 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -249,6 +249,36 @@ struct stmt *counter_stmt_alloc(const struct location *loc)
+ 	return stmt;
+ }
+ 
++static void last_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
++{
++	nft_print(octx, "last");
++
++	if (nft_output_stateless(octx))
++		return;
++
++	nft_print(octx, " used ");
++
++	if (stmt->last.set)
++		time_print(stmt->last.used, octx);
++	else
++		nft_print(octx, "never");
++}
++
++static const struct stmt_ops last_stmt_ops = {
++	.type		= STMT_LAST,
++	.name		= "last",
++	.print		= last_stmt_print,
++};
++
++struct stmt *last_stmt_alloc(const struct location *loc)
++{
++	struct stmt *stmt;
++
++	stmt = stmt_alloc(loc, &last_stmt_ops);
++	stmt->flags |= STMT_F_STATEFUL;
++	return stmt;
++}
++
+ static const char *objref_type[NFT_OBJECT_MAX + 1] = {
+ 	[NFT_OBJECT_COUNTER]	= "counter",
+ 	[NFT_OBJECT_QUOTA]	= "quota",
+diff --git a/tests/py/any/last.t b/tests/py/any/last.t
+new file mode 100644
+index 000000000000..5c530461479f
+--- /dev/null
++++ b/tests/py/any/last.t
+@@ -0,0 +1,13 @@
++:input;type filter hook input priority 0
++:ingress;type filter hook ingress device lo priority 0
++
++*ip;test-ip4;input
++*ip6;test-ip6;input
++*inet;test-inet;input
++*arp;test-arp;input
++*bridge;test-bridge;input
++*netdev;test-netdev;ingress
++
++last;ok
++last used 300s;ok;last
++last used foo;fail
+diff --git a/tests/py/any/last.t.payload b/tests/py/any/last.t.payload
+new file mode 100644
+index 000000000000..ed47d0f355eb
+--- /dev/null
++++ b/tests/py/any/last.t.payload
+@@ -0,0 +1,8 @@
++# last
++ip
++  [ last never ]
++
++# last used 300s
++ip
++  [ last 300000 ]
++
 -- 
 2.30.2
 
