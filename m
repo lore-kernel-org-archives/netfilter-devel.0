@@ -2,69 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7945C7EE33
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D286C7EE23
 	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Mar 2023 22:20:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229774AbjCAWUe (ORCPT
+        id S229773AbjCAWUd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Mar 2023 17:20:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39220 "EHLO
+        Wed, 1 Mar 2023 17:20:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229732AbjCAWUc (ORCPT
+        with ESMTP id S229553AbjCAWUc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 1 Mar 2023 17:20:32 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 66AC7521ED;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 66F1D521EF;
         Wed,  1 Mar 2023 14:20:29 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 3/3] netfilter: nft_quota: copy content when cloning expression
-Date:   Wed,  1 Mar 2023 23:20:21 +0100
-Message-Id: <20230301222021.154670-4-pablo@netfilter.org>
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date:   Wed,  1 Mar 2023 23:20:18 +0100
+Message-Id: <20230301222021.154670-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230301222021.154670-1-pablo@netfilter.org>
-References: <20230301222021.154670-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If the ruleset contains consumed quota, restore them accordingly.
-Otherwise, listing after restoration shows never used items.
+Hi,
 
-Restore the user-defined quota and flags too.
+The following patchset contains Netfilter fixes for net:
 
-Fixes: ed0a0c60f0e5 ("netfilter: nft_quota: move stateful fields out of expression data")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_quota.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+1) Fix bogus error report in selftests/netfilter/nft_nat.sh,
+   from Hangbin Liu.
 
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index 123578e28917..3ba12a7471b0 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -236,12 +236,16 @@ static void nft_quota_destroy(const struct nft_ctx *ctx,
- static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
- {
- 	struct nft_quota *priv_dst = nft_expr_priv(dst);
-+	struct nft_quota *priv_src = nft_expr_priv(src);
-+
-+	priv_dst->quota = priv_src->quota;
-+	priv_dst->flags = priv_src->flags;
- 
- 	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
- 	if (!priv_dst->consumed)
- 		return -ENOMEM;
- 
--	atomic64_set(priv_dst->consumed, 0);
-+	*priv_dst->consumed = *priv_src->consumed;
- 
- 	return 0;
- }
--- 
-2.30.2
+2) Initialize last and quota expressions from template when
+   expr_ops::clone is called, otherwise, states are not restored
+   accordingly when loading a dynamic set with elements using
+   these two expressions.
 
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 8f9850dd8d23c1290cb642ce9548a440da5771ec:
+
+  net: phy: unlock on error in phy_probe() (2023-02-28 12:40:12 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to aabef97a35160461e9c576848ded737558d89055:
+
+  netfilter: nft_quota: copy content when cloning expression (2023-03-01 17:23:23 +0100)
+
+----------------------------------------------------------------
+Hangbin Liu (1):
+      selftests: nft_nat: ensuring the listening side is up before starting the client
+
+Pablo Neira Ayuso (2):
+      netfilter: nft_last: copy content when cloning expression
+      netfilter: nft_quota: copy content when cloning expression
+
+ net/netfilter/nft_last.c                     | 4 ++++
+ net/netfilter/nft_quota.c                    | 6 +++++-
+ tools/testing/selftests/netfilter/nft_nat.sh | 2 ++
+ 3 files changed, 11 insertions(+), 1 deletion(-)
