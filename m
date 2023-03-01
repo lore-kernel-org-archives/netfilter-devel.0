@@ -2,55 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1840C6FA9D
-	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Mar 2023 19:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE9AC678D4
+	for <netfilter-devel@archiver.kernel.org>; Wed,  1 Mar 2023 22:20:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229523AbjCATQY (ORCPT
+        id S229751AbjCAWUd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 1 Mar 2023 14:16:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54886 "EHLO
+        Wed, 1 Mar 2023 17:20:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjCATQX (ORCPT
+        with ESMTP id S229537AbjCAWUc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Mar 2023 14:16:23 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E5EC4DBC8
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2023 11:16:22 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pXRw3-0001kn-PM; Wed, 01 Mar 2023 20:16:19 +0100
-Date:   Wed, 1 Mar 2023 20:16:19 +0100
-From:   Phil Sutter <phil@nwl.cc>
+        Wed, 1 Mar 2023 17:20:32 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 66D6F521EE;
+        Wed,  1 Mar 2023 14:20:29 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Eric Garver <eric@garver.life>
-Subject: Re: [iptables PATCH] nft-restore: Fix for deletion of new,
- referenced rule
-Message-ID: <Y/+kgw1Crwh+3TqB@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org, Eric Garver <eric@garver.life>
-References: <20230228171549.28483-1-phil@nwl.cc>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 2/3] netfilter: nft_last: copy content when cloning expression
+Date:   Wed,  1 Mar 2023 23:20:20 +0100
+Message-Id: <20230301222021.154670-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230301222021.154670-1-pablo@netfilter.org>
+References: <20230301222021.154670-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230228171549.28483-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Feb 28, 2023 at 06:15:49PM +0100, Phil Sutter wrote:
-> Combining multiple corner-cases here:
-> 
-> * Insert a rule before another new one which is not the first. Triggers
->   NFTNL_RULE_ID assignment of the latter.
-> 
-> * Delete the referenced new rule in the same batch again. Causes
->   overwriting of the previously assigned RULE_ID.
-> 
-> Consequently, iptables-nft-restore fails during *insert*, because the
-> reference is dangling.
-> 
-> Reported-by: Eric Garver <eric@garver.life>
-> Fixes: 760b35b46e4cc ("nft: Fix for add and delete of same rule in single batch")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+If the ruleset contains last timestamps, restore them accordingly.
+Otherwise, listing after restoration shows never used items.
 
-Patch applied.
+Fixes: 33a24de37e81 ("netfilter: nft_last: move stateful fields out of expression data")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_last.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
+index 7f2bda6641bd..8e6d7eaf9dc8 100644
+--- a/net/netfilter/nft_last.c
++++ b/net/netfilter/nft_last.c
+@@ -105,11 +105,15 @@ static void nft_last_destroy(const struct nft_ctx *ctx,
+ static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
+ {
+ 	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
++	struct nft_last_priv *priv_src = nft_expr_priv(src);
+ 
+ 	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
+ 	if (!priv_dst->last)
+ 		return -ENOMEM;
+ 
++	priv_dst->last->set = priv_src->last->set;
++	priv_dst->last->jiffies = priv_src->last->jiffies;
++
+ 	return 0;
+ }
+ 
+-- 
+2.30.2
+
