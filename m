@@ -2,221 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA949C6FA8E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 17:28:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EFE1C678D4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 19:40:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230064AbjCBR21 (ORCPT
+        id S229613AbjCBTke (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Mar 2023 12:28:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38558 "EHLO
+        Thu, 2 Mar 2023 14:40:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230099AbjCBR2Z (ORCPT
+        with ESMTP id S229518AbjCBTkd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2023 12:28:25 -0500
+        Thu, 2 Mar 2023 14:40:33 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4A602D179;
-        Thu,  2 Mar 2023 09:28:23 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC23C58496;
+        Thu,  2 Mar 2023 11:40:13 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pXmj8-0002cI-6Z; Thu, 02 Mar 2023 18:28:22 +0100
+        (envelope-from <fw@strlen.de>)
+        id 1pXomb-0003N5-2e; Thu, 02 Mar 2023 20:40:05 +0100
+Date:   Thu, 2 Mar 2023 20:40:05 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     bpf@vger.kernel.org
-Cc:     <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH RFC v2 bpf-next 3/3] bpf: minimal support for programs hooked into netfilter framework
-Date:   Thu,  2 Mar 2023 18:27:57 +0100
-Message-Id: <20230302172757.9548-4-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230302172757.9548-1-fw@strlen.de>
-References: <20230302172757.9548-1-fw@strlen.de>
+To:     Martin Zaharinov <micron10@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: Bug report DNAT destination not work
+Message-ID: <20230302194005.GA9239@breakpoint.cc>
+References: <CALidq=VJF36a6DWf8=PNahwHLJd5FKspXVJfmzK3NFCxb6zKbg@mail.gmail.com>
+ <20230302104337.GA23204@breakpoint.cc>
+ <ABA514EB-3C64-4A16-8D07-1318FB9AB63F@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ABA514EB-3C64-4A16-8D07-1318FB9AB63F@gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This adds minimal support for BPF_PROG_TYPE_NETFILTER bpf programs
-that will be invoked via the NF_HOOK() points in the ip stack.
+Martin Zaharinov <micron10@gmail.com> wrote:
+> Hi Florian
+> 
+> 
+> i recheck and libxt_DNAT.so is symlink to libxt_NAT.so
+> 
+> and i try : 
+> 
+> iptables v1.8.9 (nf_tables)
 
-Invocation incurs an indirect call.  This is not a necessity: Its
-possible to add 'DEFINE_BPF_DISPATCHER(nf_progs)' and handle the
-program invocation with the same method already done for xdp progs.
+What did you try?
 
-This isn't done here to keep the size of this chunk down.
+>   --modprobe=<command>		try to insert modules using this command
+>   --set-counters -c PKTS BYTES	set the counter during insert/append
+> [!] --version	-V		print package version.
+> 
+> 
+> and show help .
 
-Verifier restricts verdicts to either DROP or ACCEPT.
+No idea what you did or what you are trying to show.
+IFF you ran "iptables -j DNAT --help", then libxt_DNAT is not
+found resp. iptables is looking at the wrong place.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/bpf_types.h           |  4 ++
- include/net/netfilter/nf_hook_bpf.h |  6 +++
- kernel/bpf/btf.c                    |  5 ++
- kernel/bpf/verifier.c               |  3 ++
- net/netfilter/nf_bpf_link.c         | 78 ++++++++++++++++++++++++++++-
- 5 files changed, 95 insertions(+), 1 deletion(-)
+$ iptables-legacy -V
+iptables v1.8.9 (legacy)
+$ iptables -j DNAT --help
+[..]
+DNAT target options:
+ --to-destination [<ipaddr>[-<ipaddr>]][:port[-port[/port]]]
+                  Address to map destination to.
+[--random] [--persistent]
+$
 
-diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
-index d4ee3ccd3753..39a999abb0ce 100644
---- a/include/linux/bpf_types.h
-+++ b/include/linux/bpf_types.h
-@@ -79,6 +79,10 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_LSM, lsm,
- #endif
- BPF_PROG_TYPE(BPF_PROG_TYPE_SYSCALL, bpf_syscall,
- 	      void *, void *)
-+#ifdef CONFIG_NETFILTER
-+BPF_PROG_TYPE(BPF_PROG_TYPE_NETFILTER, netfilter,
-+	      struct bpf_nf_ctx, struct bpf_nf_ctx)
-+#endif
- 
- BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
- BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
-diff --git a/include/net/netfilter/nf_hook_bpf.h b/include/net/netfilter/nf_hook_bpf.h
-index 9d1b338e89d7..863cbbcc66f9 100644
---- a/include/net/netfilter/nf_hook_bpf.h
-+++ b/include/net/netfilter/nf_hook_bpf.h
-@@ -1,2 +1,8 @@
- /* SPDX-License-Identifier: GPL-2.0 */
-+
-+struct bpf_nf_ctx {
-+	const struct nf_hook_state *state;
-+	struct sk_buff *skb;
-+};
-+
- int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog);
-diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-index ef2d8969ed1f..ec6eb78b9aec 100644
---- a/kernel/bpf/btf.c
-+++ b/kernel/bpf/btf.c
-@@ -25,6 +25,9 @@
- #include <linux/bsearch.h>
- #include <linux/kobject.h>
- #include <linux/sysfs.h>
-+
-+#include <net/netfilter/nf_hook_bpf.h>
-+
- #include <net/sock.h>
- #include "../tools/lib/bpf/relo_core.h"
- 
-@@ -7726,6 +7729,8 @@ static int bpf_prog_type_to_kfunc_hook(enum bpf_prog_type prog_type)
- 	case BPF_PROG_TYPE_LWT_XMIT:
- 	case BPF_PROG_TYPE_LWT_SEG6LOCAL:
- 		return BTF_KFUNC_HOOK_LWT;
-+	case BPF_PROG_TYPE_NETFILTER:
-+		return BTF_KFUNC_HOOK_SOCKET_FILTER;
- 	default:
- 		return BTF_KFUNC_HOOK_MAX;
- 	}
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index 8dcddcc00bd0..733af5a28421 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -13142,6 +13142,9 @@ static int check_return_code(struct bpf_verifier_env *env)
- 		}
- 		break;
- 
-+	case BPF_PROG_TYPE_NETFILTER:
-+		range = tnum_range(NF_DROP, NF_ACCEPT);
-+		break;
- 	case BPF_PROG_TYPE_EXT:
- 		/* freplace program can return anything as its return value
- 		 * depends on the to-be-replaced kernel func or bpf program.
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index fa4fae5cc669..b28b7bbdc3a9 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -1,12 +1,19 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
-+#include <linux/filter.h>
- #include <linux/netfilter.h>
- 
- #include <net/netfilter/nf_hook_bpf.h>
- 
- static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb, const struct nf_hook_state *s)
- {
--	return NF_ACCEPT;
-+	const struct bpf_prog *prog = bpf_prog;
-+	struct bpf_nf_ctx ctx = {
-+		.state = s,
-+		.skb = skb,
-+	};
-+
-+	return bpf_prog_run(prog, &ctx);
- }
- 
- struct bpf_nf_link {
-@@ -114,3 +121,72 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
- 	kfree(link);
- 	return err;
- }
-+
-+static int bpf_prog_test_run_nf(struct bpf_prog *prog,
-+				const union bpf_attr *kattr,
-+				union bpf_attr __user *uattr)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+const struct bpf_prog_ops netfilter_prog_ops = {
-+	.test_run		= bpf_prog_test_run_nf,
-+};
-+
-+static bool nf_ptr_to_btf_id(struct bpf_insn_access_aux *info, const char *name)
-+{
-+	struct btf *btf;
-+	s32 type_id;
-+
-+	btf = bpf_get_btf_vmlinux();
-+	if (IS_ERR_OR_NULL(btf))
-+		return false;
-+
-+	type_id = btf_find_by_name_kind(btf, name, BTF_KIND_STRUCT);
-+	if (WARN_ON_ONCE(type_id < 0))
-+		return false;
-+
-+	info->btf = btf;
-+	info->btf_id = type_id;
-+	info->reg_type = PTR_TO_BTF_ID | PTR_TRUSTED;
-+	return true;
-+}
-+
-+static bool nf_is_valid_access(int off, int size, enum bpf_access_type type,
-+			       const struct bpf_prog *prog,
-+			       struct bpf_insn_access_aux *info)
-+{
-+	if (off < 0 || off >= sizeof(struct bpf_nf_ctx))
-+		return false;
-+
-+	if (type == BPF_WRITE)
-+		return false;
-+
-+	switch (off) {
-+	case bpf_ctx_range(struct bpf_nf_ctx, skb):
-+		if (size != sizeof_field(struct bpf_nf_ctx, skb))
-+			return false;
-+
-+		return nf_ptr_to_btf_id(info, "sk_buff");
-+	case bpf_ctx_range(struct bpf_nf_ctx, state):
-+		if (size != sizeof_field(struct bpf_nf_ctx, state))
-+			return false;
-+
-+		return nf_ptr_to_btf_id(info, "nf_hook_state");
-+	default:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
-+static const struct bpf_func_proto *
-+bpf_nf_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
-+{
-+	return bpf_base_func_proto(func_id);
-+}
-+
-+const struct bpf_verifier_ops netfilter_verifier_ops = {
-+	.is_valid_access	= nf_is_valid_access,
-+	.get_func_proto		= bpf_nf_func_proto,
-+};
--- 
-2.39.2
+I can only guess what the problem might be.
 
+Maybe 'strace -f -e file iptables -j DNAT --help' will give a clue,
+there should be lines like this:
+
+newfstatat(AT_FDCWD, "/usr/lib64/xtables/libipt_DNAT.so", 0x7ffe94e3f180, 0) = -1 ENOENT
+newfstatat(AT_FDCWD, "/usr/lib64/xtables/libxt_DNAT.so", {st_mode=S ... = 0
+openat(AT_FDCWD, "/usr/lib64/xtables/libxt_DNAT.so", O_RDONLY|O_CLOEXEC) = 4
