@@ -2,86 +2,59 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07837C678D4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 10:40:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68AD6C6FA8E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 10:43:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229518AbjCBKkW (ORCPT
+        id S229540AbjCBKnn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Mar 2023 05:40:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55738 "EHLO
+        Thu, 2 Mar 2023 05:43:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbjCBKkV (ORCPT
+        with ESMTP id S229455AbjCBKnm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2023 05:40:21 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73E202057C;
-        Thu,  2 Mar 2023 02:40:20 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B28AB811E7;
-        Thu,  2 Mar 2023 10:40:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id BA72AC4339B;
-        Thu,  2 Mar 2023 10:40:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677753617;
-        bh=y+j9NIBFSW9cAD8aY8TdK/tWkUz3bqsEilbJXss1Bsc=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=a3ThesuQtpEOWaWL4NdO0AYZKjTvdivwOU61cEnUwqkUtzVZ1KKjHW1bXD676idg0
-         tfkZ3qpJXkLIw4ttkJv+oswumw7MZE4cwvy+JjvBgtc6++kbqWEs1IQZ+dQeTBRmac
-         XY+ulW/WklqjLrTl0DUeYk2kXM0ujg2BKRdyoz9NyZ4qNVQjiJyMA1WM59kJUhWGjd
-         cf0CqA0OWUQinxKFJmmscuYZk155SBDtijgnuv2QDrimnGSEcVRkSz2NOXIIoy5HZN
-         ci7XhJo5BkirchN9epTCAuMDkn9AipCpLUVdkV3Tqd3x1BufD2RMvUfqz6euy7Oooh
-         nCcKj0iGyiSsA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 9752EC43161;
-        Thu,  2 Mar 2023 10:40:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 2 Mar 2023 05:43:42 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7150317CCF;
+        Thu,  2 Mar 2023 02:43:41 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pXgPR-0000T8-Pa; Thu, 02 Mar 2023 11:43:37 +0100
+Date:   Thu, 2 Mar 2023 11:43:37 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Martin Zaharinov <micron10@gmail.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: Bug report DNAT destination not work
+Message-ID: <20230302104337.GA23204@breakpoint.cc>
+References: <CALidq=VJF36a6DWf8=PNahwHLJd5FKspXVJfmzK3NFCxb6zKbg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] selftests: nft_nat: ensuring the listening side is up
- before starting the client
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <167775361761.18640.429545418792345434.git-patchwork-notify@kernel.org>
-Date:   Thu, 02 Mar 2023 10:40:17 +0000
-References: <20230301222021.154670-2-pablo@netfilter.org>
-In-Reply-To: <20230301222021.154670-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALidq=VJF36a6DWf8=PNahwHLJd5FKspXVJfmzK3NFCxb6zKbg@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Martin Zaharinov <micron10@gmail.com> wrote:
+> iptables -t nat -A PREROUTING -d 100.91.1.238/32 -i bond0 -p tcp --dport
+> 7878 -j DNAT --to-destination 10.240.241.99:7878
+> iptables v1.8.9 (legacy): unknown option "--to-destination"
+> Try `iptables -h' or 'iptables --help' for more information.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Looks like a problem with your iptables installation which can't find
+libxt_DNAT.so?  In v1.8.9 this should be a symlink to libxt_NAT.so.
 
-On Wed,  1 Mar 2023 23:20:19 +0100 you wrote:
-> From: Hangbin Liu <liuhangbin@gmail.com>
-> 
-> The test_local_dnat_portonly() function initiates the client-side as
-> soon as it sets the listening side to the background. This could lead to
-> a race condition where the server may not be ready to listen. To ensure
-> that the server-side is up and running before initiating the
-> client-side, a delay is introduced to the test_local_dnat_portonly()
-> function.
-> 
-> [...]
+If you run 'iptables -j DNAT --help' and it doesn't say
 
-Here is the summary with links:
-  - [net,1/3] selftests: nft_nat: ensuring the listening side is up before starting the client
-    https://git.kernel.org/netdev/net/c/2067e7a00aa6
-  - [net,2/3] netfilter: nft_last: copy content when cloning expression
-    https://git.kernel.org/netdev/net/c/860e874290fb
-  - [net,3/3] netfilter: nft_quota: copy content when cloning expression
-    https://git.kernel.org/netdev/net/c/aabef97a3516
+"DNAT target options:" at the end then it very much looks like a
+problem with your iptables installation and not the kernel.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+> try with kernel 6.1.11 6.1.12 6.1.13
 
+Tested iptables-nft and iptables-legacy on 1.8.9 with kernel 6.1.14, no problems.
 
+There were no significant kernel changes in this area that I know of in
+6.1 either.
