@@ -2,82 +2,129 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EFE1C678D4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 19:40:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70DB5C7EE2F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 20:01:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229613AbjCBTke (ORCPT
+        id S229476AbjCBUBt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Mar 2023 14:40:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37988 "EHLO
+        Thu, 2 Mar 2023 15:01:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbjCBTkd (ORCPT
+        with ESMTP id S229541AbjCBUBr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2023 14:40:33 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC23C58496;
-        Thu,  2 Mar 2023 11:40:13 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pXomb-0003N5-2e; Thu, 02 Mar 2023 20:40:05 +0100
-Date:   Thu, 2 Mar 2023 20:40:05 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Martin Zaharinov <micron10@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Bug report DNAT destination not work
-Message-ID: <20230302194005.GA9239@breakpoint.cc>
-References: <CALidq=VJF36a6DWf8=PNahwHLJd5FKspXVJfmzK3NFCxb6zKbg@mail.gmail.com>
- <20230302104337.GA23204@breakpoint.cc>
- <ABA514EB-3C64-4A16-8D07-1318FB9AB63F@gmail.com>
+        Thu, 2 Mar 2023 15:01:47 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF3CF4AFC1;
+        Thu,  2 Mar 2023 12:01:09 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D1AE615FE;
+        Thu,  2 Mar 2023 19:59:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE9CBC433EF;
+        Thu,  2 Mar 2023 19:59:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1677787171;
+        bh=NXLN0yCp+u/4afS6d7RtO524UIGXkLZf8f9v/XiFsrM=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=SKM64j5BTkAjauEKaSAmg7GpOBiwfx79sqdmL7fmI9glR2mYB730MiL9V8+A0TmpY
+         ONZ7lX5PkBA+7zoGblzfoxTKkx1W6lPoHArrZw6qP440MPqCb/VY773u1qLSD+kNqq
+         iIrcwVRYYPUO9DrmCzt7ohQL4rnuHYA7a3rRYUnPqa/NG0P5yFuCdpP6ztNY6v8FO4
+         OkyXPY0dlhfz9a4EM6RLMd3LlJfRN+PbmqQ7c2GgPhb5HBMubBlJ5s9OhGy7zNv6TR
+         UwUgwJBMvyEwbJu7zvLG0vtfokgW8tsXP/tKP6/L5er5zJdeGyfboa8eurL1oiCygP
+         xk3YV2sRDfm6g==
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+        id 89C91976265; Thu,  2 Mar 2023 20:59:28 +0100 (CET)
+From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
+To:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH RFC v2 bpf-next 3/3] bpf: minimal support for programs
+ hooked into netfilter framework
+In-Reply-To: <20230302172757.9548-4-fw@strlen.de>
+References: <20230302172757.9548-1-fw@strlen.de>
+ <20230302172757.9548-4-fw@strlen.de>
+X-Clacks-Overhead: GNU Terry Pratchett
+Date:   Thu, 02 Mar 2023 20:59:28 +0100
+Message-ID: <87sfemexgf.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ABA514EB-3C64-4A16-8D07-1318FB9AB63F@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Martin Zaharinov <micron10@gmail.com> wrote:
-> Hi Florian
-> 
-> 
-> i recheck and libxt_DNAT.so is symlink to libxt_NAT.so
-> 
-> and i try : 
-> 
-> iptables v1.8.9 (nf_tables)
+Florian Westphal <fw@strlen.de> writes:
 
-What did you try?
+> This adds minimal support for BPF_PROG_TYPE_NETFILTER bpf programs
+> that will be invoked via the NF_HOOK() points in the ip stack.
+>
+> Invocation incurs an indirect call.  This is not a necessity: Its
+> possible to add 'DEFINE_BPF_DISPATCHER(nf_progs)' and handle the
+> program invocation with the same method already done for xdp progs.
+>
+> This isn't done here to keep the size of this chunk down.
+>
+> Verifier restricts verdicts to either DROP or ACCEPT.
+>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/linux/bpf_types.h           |  4 ++
+>  include/net/netfilter/nf_hook_bpf.h |  6 +++
+>  kernel/bpf/btf.c                    |  5 ++
+>  kernel/bpf/verifier.c               |  3 ++
+>  net/netfilter/nf_bpf_link.c         | 78 ++++++++++++++++++++++++++++-
+>  5 files changed, 95 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
+> index d4ee3ccd3753..39a999abb0ce 100644
+> --- a/include/linux/bpf_types.h
+> +++ b/include/linux/bpf_types.h
+> @@ -79,6 +79,10 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_LSM, lsm,
+>  #endif
+>  BPF_PROG_TYPE(BPF_PROG_TYPE_SYSCALL, bpf_syscall,
+>  	      void *, void *)
+> +#ifdef CONFIG_NETFILTER
+> +BPF_PROG_TYPE(BPF_PROG_TYPE_NETFILTER, netfilter,
+> +	      struct bpf_nf_ctx, struct bpf_nf_ctx)
+> +#endif
+>  
+>  BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
+>  BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
+> diff --git a/include/net/netfilter/nf_hook_bpf.h b/include/net/netfilter/nf_hook_bpf.h
+> index 9d1b338e89d7..863cbbcc66f9 100644
+> --- a/include/net/netfilter/nf_hook_bpf.h
+> +++ b/include/net/netfilter/nf_hook_bpf.h
+> @@ -1,2 +1,8 @@
+>  /* SPDX-License-Identifier: GPL-2.0 */
+> +
+> +struct bpf_nf_ctx {
+> +	const struct nf_hook_state *state;
+> +	struct sk_buff *skb;
+> +};
+> +
+>  int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog);
+> diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
+> index ef2d8969ed1f..ec6eb78b9aec 100644
+> --- a/kernel/bpf/btf.c
+> +++ b/kernel/bpf/btf.c
+> @@ -25,6 +25,9 @@
+>  #include <linux/bsearch.h>
+>  #include <linux/kobject.h>
+>  #include <linux/sysfs.h>
+> +
+> +#include <net/netfilter/nf_hook_bpf.h>
+> +
+>  #include <net/sock.h>
+>  #include "../tools/lib/bpf/relo_core.h"
+>  
+> @@ -7726,6 +7729,8 @@ static int bpf_prog_type_to_kfunc_hook(enum bpf_prog_type prog_type)
+>  	case BPF_PROG_TYPE_LWT_XMIT:
+>  	case BPF_PROG_TYPE_LWT_SEG6LOCAL:
+>  		return BTF_KFUNC_HOOK_LWT;
+> +	case BPF_PROG_TYPE_NETFILTER:
+> +		return BTF_KFUNC_HOOK_SOCKET_FILTER;
 
->   --modprobe=<command>		try to insert modules using this command
->   --set-counters -c PKTS BYTES	set the counter during insert/append
-> [!] --version	-V		print package version.
-> 
-> 
-> and show help .
+The dynptr patch reuses the actual set between the different IDs, so
+this should probably define a new BTF_KFUNC_HOOK_NETFILTER, with an
+associated register_btf_kfunc_id_set() call?
 
-No idea what you did or what you are trying to show.
-IFF you ran "iptables -j DNAT --help", then libxt_DNAT is not
-found resp. iptables is looking at the wrong place.
-
-$ iptables-legacy -V
-iptables v1.8.9 (legacy)
-$ iptables -j DNAT --help
-[..]
-DNAT target options:
- --to-destination [<ipaddr>[-<ipaddr>]][:port[-port[/port]]]
-                  Address to map destination to.
-[--random] [--persistent]
-$
-
-I can only guess what the problem might be.
-
-Maybe 'strace -f -e file iptables -j DNAT --help' will give a clue,
-there should be lines like this:
-
-newfstatat(AT_FDCWD, "/usr/lib64/xtables/libipt_DNAT.so", 0x7ffe94e3f180, 0) = -1 ENOENT
-newfstatat(AT_FDCWD, "/usr/lib64/xtables/libxt_DNAT.so", {st_mode=S ... = 0
-openat(AT_FDCWD, "/usr/lib64/xtables/libxt_DNAT.so", O_RDONLY|O_CLOEXEC) = 4
+-Toke
