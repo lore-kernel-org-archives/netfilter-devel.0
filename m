@@ -2,56 +2,112 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E3CAC678D4
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 16:06:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C65BC678D4
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Mar 2023 17:28:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbjCBQG2 (ORCPT
+        id S230053AbjCBR2Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Mar 2023 11:06:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36674 "EHLO
+        Thu, 2 Mar 2023 12:28:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbjCBQG1 (ORCPT
+        with ESMTP id S230047AbjCBR2O (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2023 11:06:27 -0500
-Received: from mail.balasys.hu (mail.balasys.hu [185.199.30.237])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50E55515DA
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Mar 2023 08:06:23 -0800 (PST)
-Received: from [10.90.6.8] (dmajor.balasys [10.90.6.8])
-        by mail.balasys.hu (Postfix) with ESMTPSA id AD09C2B4937;
-        Thu,  2 Mar 2023 17:06:20 +0100 (CET)
-Message-ID: <f8d03b81-8980-b54e-a2a3-57f8e54044be@balasys.hu>
-Date:   Thu, 2 Mar 2023 17:06:20 +0100
+        Thu, 2 Mar 2023 12:28:14 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DD25231F6;
+        Thu,  2 Mar 2023 09:28:11 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1pXmiv-0002bd-PC; Thu, 02 Mar 2023 18:28:09 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     bpf@vger.kernel.org
+Cc:     <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
+Subject: [PATCH RFC v2 bpf-next 0/3] bpf: add netfilter program type
+Date:   Thu,  2 Mar 2023 18:27:54 +0100
+Message-Id: <20230302172757.9548-1-fw@strlen.de>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <401bd6ed-314a-a196-1cdc-e13c720cc8f2@balasys.hu>
- <20230302142946.GB309@breakpoint.cc>
-Content-Language: en-US
-From:   =?UTF-8?Q?Major_D=c3=a1vid?= <major.david@balasys.hu>
-Subject: Re: CPU soft lockup in a spin lock using tproxy and nfqueue
-In-Reply-To: <20230302142946.GB309@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 3/2/23 15:29, Florian Westphal wrote:
-> Thanks, this is a bug in nft_tproxy.c.
-> 
-> Can you test following fix?
-> 
-> Thanks!
+Add minimal support to hook bpf programs to netfilter hooks,
+e.g. PREROUTING or FORWARD.
 
-Thanks,
+For this the most relevant parts for registering a netfilter
+hook via the in-kernel api are exposed to userspace via bpf_link.
 
-I builded and tested in my Jammy environment, and I could not reproduce
-any soft lockups with this patch anymore.
+The new program type is 'tracing style' and assumes skb dynptrs are used
+rather than 'direct packet access'.
 
-But I am also wondering that the inet_twsk_deschedule_put is really
-needed in this particular case in tproxy? As I understand it, there
-is an other independent mechanism which destroys tw sockets, so no
-need do it here?
+With this its possible to build a small test program such as:
 
+#include "vmlinux.h"
+
+extern int bpf_dynptr_from_skb(struct __sk_buff *skb, __u64 flags,
+                               struct bpf_dynptr *ptr__uninit) __ksym;
+extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
+                                   void *buffer, uint32_t buffer__sz) __ksym;
+
+SEC("netfilter")
+int nf_test(struct bpf_nf_ctx *ctx)
+{
+	struct nf_hook_state *state = ctx->state;
+	struct sk_buff *skb = ctx->skb;
+	const struct iphdr *iph, _iph;
+	const struct tcphdr *th, _th;
+	struct bpf_dynptr ptr;
+
+	if (bpf_dynptr_from_skb(skb, 0, &ptr))
+		return NF_DROP;
+
+	iph = bpf_dynptr_slice(&ptr, 0, &_iph, sizeof(_iph));
+	if (!iph)
+		return NF_DROP;
+
+	th = bpf_dynptr_slice(&ptr, iph->ihl << 2, &_th, sizeof(_th));
+	if (!th)
+		return NF_DROP;
+
+	bpf_printk("accept %x:%d->%x:%d, hook %d ifin %d\n", iph->saddr, bpf_ntohs(th->source), iph->daddr, bpf_ntohs(th->dest), state->hook, state->in->ifindex);
+        return NF_ACCEPT;
+}
+
+(output can be observed via /sys/kernel/tracing/trace_pipe).
+
+At this point I think its fairly complete.  Known problems are:
+- no test cases, I will look into this.  Might take some time
+  though because I might have to extend libbpf first.
+- nfnetlink_hook needs minor work so that it can dump the bpf
+  program id. As-is, userspace could see that a bpf program
+  is attached to e.g. forward and output, but it cannot tell
+  which program.  This is fairly simple and doesn't need changes
+  on bpf side.
+
+I will work on these address those two next unless anyone spots
+a fundamental issue with this rfc set.
+
+Florian Westphal (3):
+  bpf: add bpf_link support for BPF_NETFILTER programs
+  libbpf: sync header file, add nf prog section name
+  bpf: minimal support for programs hooked into netfilter framework
+
+ include/linux/bpf_types.h           |   4 +
+ include/linux/netfilter.h           |   1 +
+ include/net/netfilter/nf_hook_bpf.h |   8 ++
+ include/uapi/linux/bpf.h            |  12 ++
+ kernel/bpf/btf.c                    |   5 +
+ kernel/bpf/syscall.c                |   6 +
+ kernel/bpf/verifier.c               |   3 +
+ net/netfilter/Kconfig               |   3 +
+ net/netfilter/Makefile              |   1 +
+ net/netfilter/nf_bpf_link.c         | 192 ++++++++++++++++++++++++++++
+ tools/include/uapi/linux/bpf.h      |  12 ++
+ tools/lib/bpf/libbpf.c              |   1 +
+ 12 files changed, 248 insertions(+)
+ create mode 100644 include/net/netfilter/nf_hook_bpf.h
+ create mode 100644 net/netfilter/nf_bpf_link.c
+-- 
+2.39.2
 
