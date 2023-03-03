@@ -2,62 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 469E5C6FA8E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Mar 2023 00:09:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C0F7C6FA8E
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Mar 2023 00:27:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbjCCAJ3 (ORCPT
+        id S229541AbjCCA14 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Mar 2023 19:09:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55192 "EHLO
+        Thu, 2 Mar 2023 19:27:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229487AbjCCAJ3 (ORCPT
+        with ESMTP id S229484AbjCCA1z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2023 19:09:29 -0500
+        Thu, 2 Mar 2023 19:27:55 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6803636687
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Mar 2023 16:09:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6158635BC;
+        Thu,  2 Mar 2023 16:27:54 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1pXszG-0005EU-Np; Fri, 03 Mar 2023 01:09:26 +0100
-Date:   Fri, 3 Mar 2023 01:09:26 +0100
+        id 1pXtH6-0005M3-Sg; Fri, 03 Mar 2023 01:27:52 +0100
+Date:   Fri, 3 Mar 2023 01:27:52 +0100
 From:   Florian Westphal <fw@strlen.de>
-To:     Major =?iso-8859-15?Q?D=E1vid?= <major.david@balasys.hu>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: CPU soft lockup in a spin lock using tproxy and nfqueue
-Message-ID: <20230303000926.GC9239@breakpoint.cc>
-References: <401bd6ed-314a-a196-1cdc-e13c720cc8f2@balasys.hu>
- <20230302142946.GB309@breakpoint.cc>
- <f8d03b81-8980-b54e-a2a3-57f8e54044be@balasys.hu>
+To:     Stanislav Fomichev <sdf@google.com>
+Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH RFC v2 bpf-next 1/3] bpf: add bpf_link support for
+ BPF_NETFILTER programs
+Message-ID: <20230303002752.GA4300@breakpoint.cc>
+References: <20230302172757.9548-1-fw@strlen.de>
+ <20230302172757.9548-2-fw@strlen.de>
+ <ZAEG1gtoXl125GlW@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f8d03b81-8980-b54e-a2a3-57f8e54044be@balasys.hu>
+In-Reply-To: <ZAEG1gtoXl125GlW@google.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Major Dávid <major.david@balasys.hu> wrote:
-> Thanks,
+Stanislav Fomichev <sdf@google.com> wrote:
+> On 03/02, Florian Westphal wrote:
+> > +			struct {
+> > +				__u32		pf;
+> > +				__u32		hooknum;
+> > +				__s32		prio;
+> > +			} netfilter;
 > 
-> I builded and tested in my Jammy environment, and I could not reproduce
-> any soft lockups with this patch anymore.
+> For recent tc BPF program extensions, we've discussed that it might be
+> better
+> to have an option to attach program before/after another one in the chain.
+> So the API essentially would receive a before/after flag + fd/id of the
+>
+> Should we do something similar here? See [0] for the original
+> discussion.
+> 
+> 0: https://lore.kernel.org/bpf/YzzWDqAmN5DRTupQ@google.com/
 
-Thanks.
+Thanks for the pointer, I will have a look.
 
-> But I am also wondering that the inet_twsk_deschedule_put is really
-> needed in this particular case in tproxy? As I understand it, there
-> is an other independent mechanism which destroys tw sockets, so no
-> need do it here?
+The above exposes the "prio" of netfilter hooks, so someone
+that needs their hook to run early on, say, before netfilters
+nat engine, could just use INT_MIN.
 
-Which one?  As far as I can see TCP stack would end up adding a
-duplicate quadruple to the hash if we only drop the reference and
-keep the listen sk around.
+We could -- for nf bpf -- make the bpf_link fail if a hook
+with the same priority already exists to avoid the "undefined
+behaviour" here (same prio means register order decides what
+hook function runs first ...).
 
-And if we assign the tw socket to the skb TCP stack might not be able
-to find the correct listener if the service is on a different port
-than what is in the TCP header.
+This could be relevant if you have e.g. one bpf program collecting
+statistics vs. one doing drops.
 
-Did I miss anything?
+I'll dig though the thread and would try to mimic the tc link
+mechanism as close as possible.
