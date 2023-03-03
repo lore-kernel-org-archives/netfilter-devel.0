@@ -2,77 +2,62 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B33AC678D4
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Mar 2023 00:06:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 469E5C6FA8E
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Mar 2023 00:09:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229674AbjCCAGp (ORCPT
+        id S229552AbjCCAJ3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Mar 2023 19:06:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53272 "EHLO
+        Thu, 2 Mar 2023 19:09:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbjCCAGo (ORCPT
+        with ESMTP id S229487AbjCCAJ3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2023 19:06:44 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DB3D55060;
-        Thu,  2 Mar 2023 16:06:43 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45EA6B815E2;
-        Fri,  3 Mar 2023 00:06:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1108C433D2;
-        Fri,  3 Mar 2023 00:06:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677802001;
-        bh=luoh8JtU3TdK2wxLXMiLv2scl3LcFiMaExI0RINvQ4M=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=RKFC4U/Tj394kdr5VsbeHxVPh2F1tkpv8mrHr21p4XHY+ekpSwXrNmKTKdA9dk9xb
-         PUucwtQ/gOBbN5ml58rVkswEuBShBRgw7vQ+6QiI2l+pIf+aQN4aJ1DbcWZdNJWJ0h
-         yCxbiI3GTS88FUlIp2ZxCYPrHq3KLOtn+Y2sc7ggyRNA6gtBL9RR6slGGj/uIPgBQ+
-         FjR3KJcT985i94CoDvIKuFsuZ5EFKvQqvVt3P8cGgsmhdRo7npy+2xLu4dk18OSs7A
-         J0mAhVV+UlXS17B+pdtfbGc0l8uS9ie7YBCgE+KYOGvF31H83Vd9XG9zBuTjWpcdwT
-         D0cIg/LskcTew==
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 8BF009762BD; Fri,  3 Mar 2023 01:06:36 +0100 (CET)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@kernel.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH RFC v2 bpf-next 3/3] bpf: minimal support for programs
- hooked into netfilter framework
-In-Reply-To: <20230302235300.GB9239@breakpoint.cc>
-References: <20230302172757.9548-1-fw@strlen.de>
- <20230302172757.9548-4-fw@strlen.de> <87sfemexgf.fsf@toke.dk>
- <20230302235300.GB9239@breakpoint.cc>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Fri, 03 Mar 2023 01:06:36 +0100
-Message-ID: <87ilfiem0j.fsf@toke.dk>
+        Thu, 2 Mar 2023 19:09:29 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6803636687
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Mar 2023 16:09:28 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pXszG-0005EU-Np; Fri, 03 Mar 2023 01:09:26 +0100
+Date:   Fri, 3 Mar 2023 01:09:26 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Major =?iso-8859-15?Q?D=E1vid?= <major.david@balasys.hu>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: CPU soft lockup in a spin lock using tproxy and nfqueue
+Message-ID: <20230303000926.GC9239@breakpoint.cc>
+References: <401bd6ed-314a-a196-1cdc-e13c720cc8f2@balasys.hu>
+ <20230302142946.GB309@breakpoint.cc>
+ <f8d03b81-8980-b54e-a2a3-57f8e54044be@balasys.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f8d03b81-8980-b54e-a2a3-57f8e54044be@balasys.hu>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> writes:
+Major Dávid <major.david@balasys.hu> wrote:
+> Thanks,
+> 
+> I builded and tested in my Jammy environment, and I could not reproduce
+> any soft lockups with this patch anymore.
 
-> Toke H=C3=B8iland-J=C3=B8rgensen <toke@kernel.org> wrote:
->> Florian Westphal <fw@strlen.de> writes:
->> > +	case BPF_PROG_TYPE_NETFILTER:
->> > +		return BTF_KFUNC_HOOK_SOCKET_FILTER;
->>=20
->> The dynptr patch reuses the actual set between the different IDs, so
->> this should probably define a new BTF_KFUNC_HOOK_NETFILTER, with an
->> associated register_btf_kfunc_id_set() call?
->
-> Good point, the above was a kludge that I forgot about.
->
-> I will wait for dynptr patchset to land and will add new
-> BTF_KFUNC_HOOK_NETFILTER for next revision.
+Thanks.
 
-Sounds good! The dynptr series did land:
-https://lore.kernel.org/r/167769421944.16358.12443693977215512909.git-patch=
-work-notify@kernel.org
+> But I am also wondering that the inet_twsk_deschedule_put is really
+> needed in this particular case in tproxy? As I understand it, there
+> is an other independent mechanism which destroys tw sockets, so no
+> need do it here?
 
--Toke
+Which one?  As far as I can see TCP stack would end up adding a
+duplicate quadruple to the hash if we only drop the reference and
+keep the listen sk around.
+
+And if we assign the tw socket to the skb TCP stack might not be able
+to find the correct listener if the service is on a different port
+than what is in the TCP header.
+
+Did I miss anything?
