@@ -2,294 +2,105 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3C1C678D5
-	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Mar 2023 00:13:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E094C64EC4
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Mar 2023 12:40:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229826AbjCDANA (ORCPT
+        id S229590AbjCDMkq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Mar 2023 19:13:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46370 "EHLO
+        Sat, 4 Mar 2023 07:40:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229696AbjCDAM5 (ORCPT
+        with ESMTP id S229478AbjCDMkp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Mar 2023 19:12:57 -0500
-Received: from mail-qt1-x82f.google.com (mail-qt1-x82f.google.com [IPv6:2607:f8b0:4864:20::82f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4729268E;
-        Fri,  3 Mar 2023 16:12:51 -0800 (PST)
-Received: by mail-qt1-x82f.google.com with SMTP id r5so4857087qtp.4;
-        Fri, 03 Mar 2023 16:12:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1677888770;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=i4u4zN80f7tcAvVyt7THDAii+UFiTWyh0CLCh3yTArU=;
-        b=qMmhH316fm2+9EjhIhUEhayKGHDU4ZwLtGO4FH17fr3y+y9d5wiCOgCjv/xd8VDHBk
-         YMkw+dFX308it5+CRIkZwlkZi45xN94H6Uv2YNVgG5KceCvVKAl6SDKAASEAVV4Uuur/
-         jUFTsTnHhYsPw8v7AbZ80gqBelDrPLtZyDuwRY+kklPiQxpvh/3sG8J269NhTAkOCSYo
-         M6o2gSnOTr/wYJ9fMa9bK+Wpg9BFV+eYYMxPtTwf8teRuOO1lSpGebQU4Yg9gNWmZF7W
-         1mP9d5wCmh6yZ8cKgDuzGhcBHNbJfDztJWGkZuhSJVy65zt3Bqa0CGjJ08NtIVZiZqol
-         mtWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1677888770;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=i4u4zN80f7tcAvVyt7THDAii+UFiTWyh0CLCh3yTArU=;
-        b=X/aQ6OTYPDTgIKqyXUthtMA77iFIF06ww4LifzYIopqtyv5JG2injRQdzPVMatJfZf
-         UAw/ScijE6+oF0AQkOXMWmmY5C2CtZAQJgoYoO1ITX880CuIF/bVtzqPCW+reNIFjsOj
-         AWdLJEO+o/6qvuxQMaPiM7H4Gs3cc5DuQyCjRF8BG9YAqWUJS/vss34OaQYY4WEIzsA7
-         wg+5x16P7CeTUZY2Sj/Moay/DEz3oUwe8sIIrsm1be56HlVRAaSwcKfUe4A/fy+kO36W
-         Et0INmX1yIVmO+TEeswzA1KouxevhrLwkK4Fv02nikxa/d4A1/J4MXTdN52zxHfFOX23
-         zO2Q==
-X-Gm-Message-State: AO0yUKUThinEHk1GGHQBLR90djQO8gSGq4jHu+IkiHhRBnsKibv9/iml
-        40/0vKYZWntdTDnL0MeJd7DOeVTwNxLfww==
-X-Google-Smtp-Source: AK7set+vkfXgY5drvynmvbq6Q4KSNK3cXR3fV6Q/++aEF54U1b6ACiedKIJM+Vq8qBeoWl45BSVPOQ==
-X-Received: by 2002:ac8:5fd0:0:b0:3bf:d51e:b14 with SMTP id k16-20020ac85fd0000000b003bfd51e0b14mr5443837qta.46.1677888770137;
-        Fri, 03 Mar 2023 16:12:50 -0800 (PST)
-Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
-        by smtp.gmail.com with ESMTPSA id d79-20020ae9ef52000000b007296805f607sm2749242qkg.17.2023.03.03.16.12.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 03 Mar 2023 16:12:49 -0800 (PST)
-From:   Xin Long <lucien.xin@gmail.com>
-To:     netfilter-devel@vger.kernel.org,
-        network dev <netdev@vger.kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
-        kuba@kernel.org, Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Pravin B Shelar <pshelar@ovn.org>,
-        Aaron Conole <aconole@redhat.com>
-Subject: [PATCH nf-next 6/6] selftests: add a selftest for big tcp
-Date:   Fri,  3 Mar 2023 19:12:42 -0500
-Message-Id: <05ccf9eec0b79e62d52ae65a096126546d84bea6.1677888566.git.lucien.xin@gmail.com>
-X-Mailer: git-send-email 2.39.1
-In-Reply-To: <cover.1677888566.git.lucien.xin@gmail.com>
-References: <cover.1677888566.git.lucien.xin@gmail.com>
+        Sat, 4 Mar 2023 07:40:45 -0500
+X-Greylist: delayed 2405 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 04 Mar 2023 04:40:43 PST
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 900F4F77C
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Mar 2023 04:40:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=REavg1rntZTp/m31SQfivFAzX4d4gWKpU6IscZ6SgI8=; b=HTG/4X+/4/Kny3XMtYaEKzJ/99
+        nYs4RmhgumEY6ZLiH/bKwd4z4yFd+GPEi0Eq6/L6BlUUpp5gNTkoGfF0HQ96gK0ywhQI+xDx0XLPk
+        1T72SI7S2K8Skr6rE5ZSBViJcltGomEDrc3Gtn5VpE/H+waqw4sZ595jpVJDEwQtgUCK57NAToaHP
+        BEprhLNaBsh7YtdD9bUarNKV1TVm+ZQCdFxefgaHw6uyo9KUDhtV6422UWc/civcF6ZSV1SB8bdJP
+        bvwYn0ERZ1GzYrGoBT6wyh1iAMYY4Wsc8brQoGTZcrIMUSqwf+V4dr1S/mUbULFxe7R8wglRoYV+I
+        bNKETmKA==;
+Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1pYQZ0-00Cie2-G5; Sat, 04 Mar 2023 12:00:35 +0000
+Date:   Sat, 4 Mar 2023 12:00:33 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
+Subject: Re: [nft PATCH v4 13/32] evaluate: support shifts larger than the
+ width of the left operand
+Message-ID: <ZAMy4dowt9bDaPAS@celephais.dreamlands>
+References: <20220404121410.188509-1-jeremy@azazel.net>
+ <20220404121410.188509-14-jeremy@azazel.net>
+ <YovHkOThO0KYRGda@salvia>
+ <Y+I+khlMuL+kFoq9@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="FYnJG0FwakhA4wIz"
+Content-Disposition: inline
+In-Reply-To: <Y+I+khlMuL+kFoq9@salvia>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This test runs on the client-router-server topo, and monitors the traffic
-on the RX devices of router and server while sending BIG TCP packets with
-netperf from client to server. Meanwhile, it changes 'tso' on the TX devs
-and 'gro' on the RX devs. Then it checks if any BIG TCP packets appears
-on the RX devs with 'ip/ip6tables -m length ! --length 0:65535' for each
-case.
 
-Note that we also add tc action ct in link1 ingress to cover the ipv6
-jumbo packets process in nf_ct_skb_network_trim() of nf_conntrack_ovs.
+--FYnJG0FwakhA4wIz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
----
- tools/testing/selftests/net/Makefile   |   1 +
- tools/testing/selftests/net/big_tcp.sh | 180 +++++++++++++++++++++++++
- 2 files changed, 181 insertions(+)
- create mode 100755 tools/testing/selftests/net/big_tcp.sh
+On 2023-02-07, at 13:05:38 +0100, Pablo Neira Ayuso wrote:
+> Long time, no news.
+>=20
+> On Mon, May 23, 2022 at 07:42:43PM +0200, Pablo Neira Ayuso wrote:
+> > Hi,
+> >=20
+> > I just tested patches 9 and 14 alone, and meta mark set ip dscp ...
+> > now works fine.
+>=20
+> I have applied 9 and 14, including one testcase for tests/py, so
+>=20
+>         meta mark set ip dscp
+>=20
+> works, so there is at least some progress on this, sorry about this :(
 
-diff --git a/tools/testing/selftests/net/Makefile b/tools/testing/selftests/net/Makefile
-index 6cd8993454d7..099741290184 100644
---- a/tools/testing/selftests/net/Makefile
-+++ b/tools/testing/selftests/net/Makefile
-@@ -48,6 +48,7 @@ TEST_PROGS += l2_tos_ttl_inherit.sh
- TEST_PROGS += bind_bhash.sh
- TEST_PROGS += ip_local_port_range.sh
- TEST_PROGS += rps_default_mask.sh
-+TEST_PROGS += big_tcp.sh
- TEST_PROGS_EXTENDED := in_netns.sh setup_loopback.sh setup_veth.sh
- TEST_PROGS_EXTENDED += toeplitz_client.sh toeplitz.sh
- TEST_GEN_FILES =  socket nettest
-diff --git a/tools/testing/selftests/net/big_tcp.sh b/tools/testing/selftests/net/big_tcp.sh
-new file mode 100755
-index 000000000000..cde9a91c4797
---- /dev/null
-+++ b/tools/testing/selftests/net/big_tcp.sh
-@@ -0,0 +1,180 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Testing For IPv4 and IPv6 BIG TCP.
-+# TOPO: CLIENT_NS (link0)<--->(link1) ROUTER_NS (link2)<--->(link3) SERVER_NS
-+
-+CLIENT_NS=$(mktemp -u client-XXXXXXXX)
-+CLIENT_IP4="198.51.100.1"
-+CLIENT_IP6="2001:db8:1::1"
-+
-+SERVER_NS=$(mktemp -u server-XXXXXXXX)
-+SERVER_IP4="203.0.113.1"
-+SERVER_IP6="2001:db8:2::1"
-+
-+ROUTER_NS=$(mktemp -u router-XXXXXXXX)
-+SERVER_GW4="203.0.113.2"
-+CLIENT_GW4="198.51.100.2"
-+SERVER_GW6="2001:db8:2::2"
-+CLIENT_GW6="2001:db8:1::2"
-+
-+MAX_SIZE=128000
-+CHK_SIZE=65535
-+
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+
-+setup() {
-+	ip netns add $CLIENT_NS
-+	ip netns add $SERVER_NS
-+	ip netns add $ROUTER_NS
-+	ip -net $ROUTER_NS link add link1 type veth peer name link0 netns $CLIENT_NS
-+	ip -net $ROUTER_NS link add link2 type veth peer name link3 netns $SERVER_NS
-+
-+	ip -net $CLIENT_NS link set link0 up
-+	ip -net $CLIENT_NS link set link0 mtu 1442
-+	ip -net $CLIENT_NS addr add $CLIENT_IP4/24 dev link0
-+	ip -net $CLIENT_NS addr add $CLIENT_IP6/64 dev link0 nodad
-+	ip -net $CLIENT_NS route add $SERVER_IP4 dev link0 via $CLIENT_GW4
-+	ip -net $CLIENT_NS route add $SERVER_IP6 dev link0 via $CLIENT_GW6
-+	ip -net $CLIENT_NS link set dev link0 \
-+		gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-+	ip -net $CLIENT_NS link set dev link0 \
-+		gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-+	ip net exec $CLIENT_NS sysctl -wq net.ipv4.tcp_window_scaling=10
-+
-+	ip -net $ROUTER_NS link set link1 up
-+	ip -net $ROUTER_NS link set link2 up
-+	ip -net $ROUTER_NS addr add $CLIENT_GW4/24 dev link1
-+	ip -net $ROUTER_NS addr add $CLIENT_GW6/64 dev link1 nodad
-+	ip -net $ROUTER_NS addr add $SERVER_GW4/24 dev link2
-+	ip -net $ROUTER_NS addr add $SERVER_GW6/64 dev link2 nodad
-+	ip -net $ROUTER_NS link set dev link1 \
-+		gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-+	ip -net $ROUTER_NS link set dev link2 \
-+		gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-+	ip -net $ROUTER_NS link set dev link1 \
-+		gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-+	ip -net $ROUTER_NS link set dev link2 \
-+		gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-+	# test for nf_ct_skb_network_trim in nf_conntrack_ovs used by TC ct action.
-+	ip net exec $ROUTER_NS tc qdisc add dev link1 ingress
-+	ip net exec $ROUTER_NS tc filter add dev link1 ingress \
-+		proto ip flower ip_proto tcp action ct
-+	ip net exec $ROUTER_NS tc filter add dev link1 ingress \
-+		proto ipv6 flower ip_proto tcp action ct
-+	ip net exec $ROUTER_NS sysctl -wq net.ipv4.ip_forward=1
-+	ip net exec $ROUTER_NS sysctl -wq net.ipv6.conf.all.forwarding=1
-+
-+	ip -net $SERVER_NS link set link3 up
-+	ip -net $SERVER_NS addr add $SERVER_IP4/24 dev link3
-+	ip -net $SERVER_NS addr add $SERVER_IP6/64 dev link3 nodad
-+	ip -net $SERVER_NS route add $CLIENT_IP4 dev link3 via $SERVER_GW4
-+	ip -net $SERVER_NS route add $CLIENT_IP6 dev link3 via $SERVER_GW6
-+	ip -net $SERVER_NS link set dev link3 \
-+		gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-+	ip -net $SERVER_NS link set dev link3 \
-+		gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-+	ip net exec $SERVER_NS sysctl -wq net.ipv4.tcp_window_scaling=10
-+	ip net exec $SERVER_NS netserver 2>&1 >/dev/null
-+}
-+
-+cleanup() {
-+	ip net exec $SERVER_NS pkill netserver
-+	ip -net $ROUTER_NS link del link1
-+	ip -net $ROUTER_NS link del link2
-+	ip netns del "$CLIENT_NS"
-+	ip netns del "$SERVER_NS"
-+	ip netns del "$ROUTER_NS"
-+}
-+
-+start_counter() {
-+	local ipt="iptables"
-+	local iface=$1
-+	local netns=$2
-+
-+	[ "$NF" = "6" ] && ipt="ip6tables"
-+	ip net exec $netns $ipt -t raw -A PREROUTING -i $iface \
-+		-m length ! --length 0:$CHK_SIZE -j ACCEPT
-+}
-+
-+check_counter() {
-+	local ipt="iptables"
-+	local iface=$1
-+	local netns=$2
-+
-+	[ "$NF" = "6" ] && ipt="ip6tables"
-+	test `ip net exec $netns $ipt -t raw -L -v |grep $iface | awk '{print $1}'` != "0"
-+}
-+
-+stop_counter() {
-+	local ipt="iptables"
-+	local iface=$1
-+	local netns=$2
-+
-+	[ "$NF" = "6" ] && ipt="ip6tables"
-+	ip net exec $netns $ipt -t raw -D PREROUTING -i $iface \
-+		-m length ! --length 0:$CHK_SIZE -j ACCEPT
-+}
-+
-+do_netperf() {
-+	local serip=$SERVER_IP4
-+	local netns=$1
-+
-+	[ "$NF" = "6" ] && serip=$SERVER_IP6
-+	ip net exec $netns netperf -$NF -t TCP_STREAM -H $serip 2>&1 >/dev/null
-+}
-+
-+do_test() {
-+	local cli_tso=$1
-+	local gw_gro=$2
-+	local gw_tso=$3
-+	local ser_gro=$4
-+	local ret="PASS"
-+
-+	ip net exec $CLIENT_NS ethtool -K link0 tso $cli_tso
-+	ip net exec $ROUTER_NS ethtool -K link1 gro $gw_gro
-+	ip net exec $ROUTER_NS ethtool -K link2 tso $gw_tso
-+	ip net exec $SERVER_NS ethtool -K link3 gro $ser_gro
-+
-+	start_counter link1 $ROUTER_NS
-+	start_counter link3 $SERVER_NS
-+	do_netperf $CLIENT_NS
-+
-+	if check_counter link1 $ROUTER_NS; then
-+		check_counter link3 $SERVER_NS || ret="FAIL_on_link3"
-+	else
-+		ret="FAIL_on_link1"
-+	fi
-+
-+	stop_counter link1 $ROUTER_NS
-+	stop_counter link3 $SERVER_NS
-+	printf "%-9s %-8s %-8s %-8s: [%s]\n" \
-+		$cli_tso $gw_gro $gw_tso $ser_gro $ret
-+	test $ret = "PASS"
-+}
-+
-+testup() {
-+	echo "CLI GSO | GW GRO | GW GSO | SER GRO" && \
-+	do_test "on"  "on"  "on"  "on"  && \
-+	do_test "on"  "off" "on"  "off" && \
-+	do_test "off" "on"  "on"  "on"  && \
-+	do_test "on"  "on"  "off" "on"  && \
-+	do_test "off" "on"  "off" "on"
-+}
-+
-+if ! netperf -V &> /dev/null; then
-+	echo "SKIP: Could not run test without netperf tool"
-+	exit $ksft_skip
-+fi
-+
-+if ! ip link help 2>&1 | grep gso_ipv4_max_size &> /dev/null; then
-+	echo "SKIP: Could not run test without gso/gro_ipv4_max_size supported in ip-link"
-+	exit $ksft_skip
-+fi
-+
-+trap cleanup EXIT
-+setup && echo "Testing for BIG TCP:" && \
-+NF=4 testup && echo "***v4 Tests Done***" && \
-+NF=6 testup && echo "***v6 Tests Done***"
-+exit $?
--- 
-2.39.1
+A step in the right direction. :) Thanks, Pablo.
 
+J.
+
+--FYnJG0FwakhA4wIz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQDMtEACgkQKYasCr3x
+BA3QohAAih7bCOMgr4L1Iz79H4BKFdSCaf2Dga6MR1kZKW3UzrGm2ZUp4NJTHKr/
+afdKm4lvIRz+NzUR4HOXGcHYKt7MHjT02VueSVlSLoHff2LbkXi14s6sT7fA132W
+MsWYUGcZ366u2zrh32340F7V+0odhGT719j+I9Tuf2RI9wcgHwKt+C5AgvgMt/qy
+lI/3pgAZ133CBb5mZPl9l7GmHv1er3A5fcyKbBQ35lvBPN8buABJ9zFp8jEylEs5
+5UvEwyafxGky1gWCzqCDuf3GjEftcDfQQ1CqWgYzFSXyuEw22WACTQM+7Xf2Cd9W
+0ASXvIaGrhv+T4bpp4cTU8RYJaHyxL2yy1IjU98iTesOp8NYxHcIhYNZTDdwgQEp
+RAbq3rWh/QhzzJPD+/jWYqzkMZnhZz2vbez6FBKrguLtCGmVH4UkYT/2IyHcFolI
+i+A8pACgcC5por+XUvWZcjw1wQneA6G/24f3UOZbEBbH7Vruq6JPokKCeauo6Geu
+hkhdXRTS7Y6QEv+KsF8gUp0yV9tjGJ6O6jqj2WQ0hvV86jGcGMn+/+SG1LwKTRVk
+fI0coZYSxbNEQEN767BM1JuqKUbUk1UO/T3GUsH5vYRqNbjoe0Gfjfy1O3OiPV5f
+efm2uDrvpb7SC8CV4Zv+zfAh/o50MLF8TLUpPsUsJe5GPHXYF6s=
+=i+Xw
+-----END PGP SIGNATURE-----
+
+--FYnJG0FwakhA4wIz--
