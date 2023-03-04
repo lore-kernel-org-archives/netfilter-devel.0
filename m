@@ -2,104 +2,110 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC2D8C678D4
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Mar 2023 09:59:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD889C61DA4
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Mar 2023 00:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229966AbjCCJ7W (ORCPT
+        id S229484AbjCDAMr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Mar 2023 04:59:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42146 "EHLO
+        Fri, 3 Mar 2023 19:12:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229840AbjCCJ7R (ORCPT
+        with ESMTP id S229818AbjCDAMq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Mar 2023 04:59:17 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5A863B64E
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Mar 2023 01:59:08 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pY2Bv-0000Bx-30; Fri, 03 Mar 2023 10:59:07 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        =?UTF-8?q?Major=20D=C3=A1vid?= <major.david@balasys.hu>
-Subject: [PATCH nf] netfilter: tproxy: fix deadlock due to missing BH disable
-Date:   Fri,  3 Mar 2023 10:58:56 +0100
-Message-Id: <20230303095856.30402-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
+        Fri, 3 Mar 2023 19:12:46 -0500
+Received: from mail-qv1-xf2d.google.com (mail-qv1-xf2d.google.com [IPv6:2607:f8b0:4864:20::f2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B363721283;
+        Fri,  3 Mar 2023 16:12:45 -0800 (PST)
+Received: by mail-qv1-xf2d.google.com with SMTP id nf5so2909546qvb.5;
+        Fri, 03 Mar 2023 16:12:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1677888764;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=WzK6eFE5ziYvB/Q6lz47iCEBLCPVXXXPkxWxsawXNwI=;
+        b=gSlWyJFdJDlzo1pekas36Gg5Jaa7dlc0ipgNITWftRP4z6wefBW28x8d2h78Cc01+5
+         Dwb2DvKwkg02Bp9ucip1nRXD5IhKbLLZqVVwvV5W4nNO6MXa9RPUc9spxG+wlW2jCTFO
+         sOfPaY6SFkBoHC9KgWjXMI2OFEtY2MOjdPF7wwX2rmgN2LB5vHrmLlW9dFxS2RA1N2jq
+         KpMFKv7J9VMr0e6dVh4Jp7CMmppwdfOSSiRSqJxJoGkoxz4NqLEWHou5Vcx3Hm+OZHDf
+         yxX/HzzrWw5fNynC+He+iGmymTq118gUtDGWbxs9retf90Xel2SeUz48A1veUdm2KTBQ
+         3OWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1677888764;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=WzK6eFE5ziYvB/Q6lz47iCEBLCPVXXXPkxWxsawXNwI=;
+        b=ca/N2Tc+cAGHg7I744OjNm7brgJstP2CuVhcEiMzFLzCZhj9e9z35I2fR2dFOzy/8y
+         m/Pyvkthhts9oE533vFHmEXrs67uWeZ1KC9T/35MtdjHqQELzir/pB4vFT7Goo8CgKN/
+         QAz3xAZn8Pak9uJ8gRIz+6Ref+bb404gTQyJQqG8IETQ38QdUcMOEZDr+PwAwIT/SSAr
+         eRdkl+kWlMi4gR8A0V3TQwujiJ6u9PKTflwbkuQUWPPXBHJ7KdXrAZng8OA+STEXU9zu
+         TbXvIS080c3UZR+z4YW2tZGMtegpCZ10/4lMonzevtH4cxEXQmdc+FRdptwuWEfdGWLL
+         5yEA==
+X-Gm-Message-State: AO0yUKV7Qtq4cPqrcr2ZzMTIxvZKw0gx02/QQnxZLxFa4GW1N/PbFcNc
+        w99ZhicxU5DZeesKvEcNHF5DNB5hUtCTww==
+X-Google-Smtp-Source: AK7set9m+Imlshp78aSkn5FbZqt1tCvAEZHdBaULkCFznPaFABFvxuNOJRl8bvTyG5Novm0sF9xcgw==
+X-Received: by 2002:a05:6214:2021:b0:53b:aa54:4eea with SMTP id 1-20020a056214202100b0053baa544eeamr6814427qvf.20.1677888764623;
+        Fri, 03 Mar 2023 16:12:44 -0800 (PST)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id d79-20020ae9ef52000000b007296805f607sm2749242qkg.17.2023.03.03.16.12.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 03 Mar 2023 16:12:44 -0800 (PST)
+From:   Xin Long <lucien.xin@gmail.com>
+To:     netfilter-devel@vger.kernel.org,
+        network dev <netdev@vger.kernel.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+        kuba@kernel.org, Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Pravin B Shelar <pshelar@ovn.org>,
+        Aaron Conole <aconole@redhat.com>
+Subject: [PATCH nf-next 0/6] netfilter: handle ipv6 jumbo packets properly for bridge ovs and tc
+Date:   Fri,  3 Mar 2023 19:12:36 -0500
+Message-Id: <cover.1677888566.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The xtables packet traverser performs an unconditional local_bh_disable(),
-but the nf_tables evaluation loop does not.
+Currently pskb_trim_rcsum() is always done on the RX path. However, IPv6
+jumbo packets hide the real packet len in the Hop-by-hop option header,
+which should be parsed before doing the trim.
 
-Functions that are called from either xtables or nftables must assume
-that they can be called in process context.
+In ip6_rcv_core() it calls ipv6_parse_hopopts() to handle the Hop-by-hop
+option header then do pskb_trim_rcsum(). The similar process should also
+be done properly before pskb_trim_rcsum() on the RX path of bridge and
+openvswitch and tc.
 
-inet_twsk_deschedule_put() assumes that no softirq interrupt can occur.
-If tproxy is used from nf_tables its possible that we'll deadlock
-trying to aquire a lock already held in process context.
+This patchset improves the function handling the Hop-by-hop option header
+in bridge, and moves this function into netfilter utils, and then uses it
+in nf_conntrack_ovs for openvswitch and tc conntrack.
 
-Add a small helper that takes care of this and use it.
+Note that this patch is especially needed after the IPv6 BIG TCP was
+supported in kernel, which is using IPv6 Jumbo packets, and the last
+patch adds a big tcp selftest, which also covers it.
 
-Link: https://lore.kernel.org/netfilter-devel/401bd6ed-314a-a196-1cdc-e13c720cc8f2@balasys.hu/
-Fixes: 4ed8eb6570a4 ("netfilter: nf_tables: Add native tproxy support")
-Reported-and-tested-by: Major Dávid <major.david@balasys.hu>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_tproxy.h   | 7 +++++++
- net/ipv4/netfilter/nf_tproxy_ipv4.c | 2 +-
- net/ipv6/netfilter/nf_tproxy_ipv6.c | 2 +-
- 3 files changed, 9 insertions(+), 2 deletions(-)
+Xin Long (6):
+  netfilter: bridge: call pskb_may_pull in br_nf_check_hbh_len
+  netfilter: bridge: check len before accessing more nh data
+  netfilter: bridge: move pskb_trim_rcsum out of br_nf_check_hbh_len
+  netfilter: move br_nf_check_hbh_len to utils
+  netfilter: use nf_ip6_check_hbh_len in nf_ct_skb_network_trim
+  selftests: add a selftest for big tcp
 
-diff --git a/include/net/netfilter/nf_tproxy.h b/include/net/netfilter/nf_tproxy.h
-index 82d0e41b76f2..faa108b1ba67 100644
---- a/include/net/netfilter/nf_tproxy.h
-+++ b/include/net/netfilter/nf_tproxy.h
-@@ -17,6 +17,13 @@ static inline bool nf_tproxy_sk_is_transparent(struct sock *sk)
- 	return false;
- }
- 
-+static inline void nf_tproxy_twsk_deschedule_put(struct inet_timewait_sock *tw)
-+{
-+	local_bh_disable();
-+	inet_twsk_deschedule_put(tw);
-+	local_bh_enable();
-+}
-+
- /* assign a socket to the skb -- consumes sk */
- static inline void nf_tproxy_assign_sock(struct sk_buff *skb, struct sock *sk)
- {
-diff --git a/net/ipv4/netfilter/nf_tproxy_ipv4.c b/net/ipv4/netfilter/nf_tproxy_ipv4.c
-index b22b2c745c76..69e331799604 100644
---- a/net/ipv4/netfilter/nf_tproxy_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tproxy_ipv4.c
-@@ -38,7 +38,7 @@ nf_tproxy_handle_time_wait4(struct net *net, struct sk_buff *skb,
- 					    hp->source, lport ? lport : hp->dest,
- 					    skb->dev, NF_TPROXY_LOOKUP_LISTENER);
- 		if (sk2) {
--			inet_twsk_deschedule_put(inet_twsk(sk));
-+			nf_tproxy_twsk_deschedule_put(inet_twsk(sk));
- 			sk = sk2;
- 		}
- 	}
-diff --git a/net/ipv6/netfilter/nf_tproxy_ipv6.c b/net/ipv6/netfilter/nf_tproxy_ipv6.c
-index 929502e51203..52f828bb5a83 100644
---- a/net/ipv6/netfilter/nf_tproxy_ipv6.c
-+++ b/net/ipv6/netfilter/nf_tproxy_ipv6.c
-@@ -63,7 +63,7 @@ nf_tproxy_handle_time_wait6(struct sk_buff *skb, int tproto, int thoff,
- 					    lport ? lport : hp->dest,
- 					    skb->dev, NF_TPROXY_LOOKUP_LISTENER);
- 		if (sk2) {
--			inet_twsk_deschedule_put(inet_twsk(sk));
-+			nf_tproxy_twsk_deschedule_put(inet_twsk(sk));
- 			sk = sk2;
- 		}
- 	}
+ include/linux/netfilter_ipv6.h         |   2 +
+ net/bridge/br_netfilter_ipv6.c         |  79 ++---------
+ net/netfilter/nf_conntrack_ovs.c       |  11 +-
+ net/netfilter/utils.c                  |  54 ++++++++
+ tools/testing/selftests/net/Makefile   |   1 +
+ tools/testing/selftests/net/big_tcp.sh | 180 +++++++++++++++++++++++++
+ 6 files changed, 256 insertions(+), 71 deletions(-)
+ create mode 100755 tools/testing/selftests/net/big_tcp.sh
+
 -- 
-2.39.2
+2.39.1
 
