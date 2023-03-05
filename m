@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 056D5C6FD19
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Mar 2023 10:30:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C61C6FA99
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Mar 2023 10:30:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229656AbjCEKaJ (ORCPT
+        id S229519AbjCEKaJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Sun, 5 Mar 2023 05:30:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38752 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229692AbjCEKaG (ORCPT
+        with ESMTP id S229681AbjCEKaG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 5 Mar 2023 05:30:06 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAE43D516
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E079D309
         for <netfilter-devel@vger.kernel.org>; Sun,  5 Mar 2023 02:30:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,23 +22,23 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=I2y2kXH9wqfiEMhgsOeDtlMf0mhKkBWcNIvCWpO4gRI=; b=n2RPMNfNWjoWNdJlvIPRz4F26h
-        WUY+qceu20EuJeN9MTSjVbCOnsl/D1TV1hetTRixOPh6bX5u3gzFOjQRAipH23mDYJH2Ef5V0ut66
-        udTSeO9SnB6ySpTpGoL7sMLuUzTCPFlSbqrv4qAcssqfZsRD+IWPTaQkoTeMjAG3PXqCST0WRX9wr
-        NkgyOKXMuQOrolRns1cEIv+w4I58UpclxKxOFIdIyY3RT1www+qnMklrb9cn2XaLkL6jw3u0jeFBC
-        alvRuN4DSXLlg4+OJOXiDIs+iS2XOqDCN2l3A3dTy4duBkPHqu2PtPDJ0m+3qajKIikZ43g5TtyO2
-        UkpYjnbw==;
+        bh=TSFK+H6vNxQfhys/126VdD+ibHJXI+PbOLdW2X5yghs=; b=lrvVdGUIhkuCiQ513StmgbAZNH
+        avnSHoGpWd0F6+IHrhmWIjaxEY9s+a884LEC88msRwgoYzkie+QdHrALUnWvIjdDMFn2MvFfZrUgi
+        pgfWn7UHUhw47J/I28qJuBV4ZA73JzJNbELri6hIX3m6T0Ywzbw9cf1d2ZOB+jph0uTSk4rUitd1K
+        jOKqFsRpO6pUTT99kPuLvoHWBMAewfBnfrj7E/3E9OLhMSdOducAm5jft08qASJ33fazZFscEvtP7
+        3nwKQrKUS20u7cBn9vZs1vpu/kEVTWOlJm0sQDfL5Qi6bqZbafqQrTvXpo+yBylRxYfUB/vYMz0lc
+        TY1DbZEQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1pYlcv-00DzC0-Sw
-        for netfilter-devel@vger.kernel.org; Sun, 05 Mar 2023 10:30:02 +0000
+        id 1pYlcu-00DzC0-Oj
+        for netfilter-devel@vger.kernel.org; Sun, 05 Mar 2023 10:30:00 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nftables 7/8] doc: add shifted port-ranges to nat statements
-Date:   Sun,  5 Mar 2023 10:14:17 +0000
-Message-Id: <20230305101418.2233910-8-jeremy@azazel.net>
+Subject: [PATCH nftables 2/8] masq: add support for shifted port-ranges
+Date:   Sun,  5 Mar 2023 10:14:12 +0000
+Message-Id: <20230305101418.2233910-3-jeremy@azazel.net>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230305101418.2233910-1-jeremy@azazel.net>
 References: <20230305101418.2233910-1-jeremy@azazel.net>
@@ -51,50 +51,93 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Extend the description of ports to cover ranges and shifted ranges, and
-add an example of the latter.
+Support for shifted port-ranges was recently added for nat statements.
+Extend this to masq statements.
 
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- doc/statements.txt | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ src/netlink_delinearize.c | 16 +++++++++++++++-
+ src/netlink_linearize.c   |  5 +++--
+ src/parser_bison.y        | 11 +++++++++++
+ 3 files changed, 29 insertions(+), 3 deletions(-)
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index b2794bcd6821..3dd3b98b6cb1 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -362,7 +362,7 @@ ____
- *redirect* [*to :*'PORT_SPEC'] ['FLAGS']
- 
- 'ADDR_SPEC' := 'address' | 'address' *-* 'address'
--'PORT_SPEC' := 'port' | 'port' *-* 'port'
-+'PORT_SPEC' := 'port' | 'port' *-* 'port' | 'port' *-* 'port' */* 'port'
- 
- 'FLAGS'  := 'FLAG' [*,* 'FLAGS']
- 'FLAG'  := *persistent* | *random* | *fully-random*
-@@ -405,7 +405,10 @@ You may specify a mapping to relate a list of tuples composed of arbitrary
- expression key with address value. |
- ipv4_addr, ipv6_addr, e.g. abcd::1234, or you can use a mapping, e.g. meta mark map { 10 : 192.168.1.2, 20 : 192.168.1.3 }
- |port|
--Specifies that the source/destination port of the packet should be modified. |
-+Specifies that the source/destination port of the packet should be modified.  If
-+a range is given, the new port will be chosen from within that range.  If a base
-+offset is also given, the offset of the new port in the range will match the
-+offset of the old port from the specified base.|
- port number (16 bit)
- |===============================
- 
-@@ -437,6 +440,10 @@ add rule nat postrouting oif eth0 snat to 1.2.3.4
- # redirect all traffic entering via eth0 to destination address 192.168.1.120
- add rule nat prerouting iif eth0 dnat to 192.168.1.120
- 
-+# redirect all traffic for address 10.0.0.1 and ports 2000-3000 to destination
-+# address 10.10.0.1 and the port at the matching offset in 12000-13000
-+add rule nat prerouting ip daddr 10.0.0.1 tcp dport 2000-3000 dnat to 10.10.0.1:12000-13000/2000
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index bdfd37870b50..867ca914cf96 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1442,7 +1442,7 @@ static void netlink_parse_masq(struct netlink_parse_ctx *ctx,
+ 			       const struct location *loc,
+ 			       const struct nftnl_expr *nle)
+ {
+-	enum nft_registers reg1, reg2;
++	enum nft_registers reg1, reg2, reg3;
+ 	struct expr *proto;
+ 	struct stmt *stmt;
+ 	uint32_t flags = 0;
+@@ -1477,6 +1477,20 @@ static void netlink_parse_masq(struct netlink_parse_ctx *ctx,
+ 		if (stmt->nat.proto != NULL)
+ 			proto = range_expr_alloc(loc, stmt->nat.proto, proto);
+ 		stmt->nat.proto = proto;
 +
- # translate source addresses of all packets leaving via eth0 to whatever
- # locally generated packets would use as source to reach the same destination
- add rule nat postrouting oif eth0 masquerade
++		reg3 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_BASE);
++		if (reg3) {
++			proto = netlink_get_register(ctx, loc, reg3);
++			if (proto == NULL) {
++				netlink_error(ctx, loc,
++					      "MASQUERADE statement has no base proto expression");
++				goto out_err;
++			}
++
++			expr_set_type(proto, &inet_service_type,
++				      BYTEORDER_BIG_ENDIAN);
++			stmt->nat.proto_base = proto;
++		}
+ 	}
+ 
+ 	ctx->stmt = stmt;
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 72a38341e39e..a018290a7f56 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -1219,8 +1219,9 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
+ 		nle = alloc_nft_expr("masq");
+ 
+ 		nftnl_flag_attr = NFTNL_EXPR_MASQ_FLAGS;
+-		nftnl_reg_pmin = NFTNL_EXPR_MASQ_REG_PROTO_MIN;
+-		nftnl_reg_pmax = NFTNL_EXPR_MASQ_REG_PROTO_MAX;
++		nftnl_reg_pmin  = NFTNL_EXPR_MASQ_REG_PROTO_MIN;
++		nftnl_reg_pmax  = NFTNL_EXPR_MASQ_REG_PROTO_MAX;
++		nftnl_reg_pbase = NFTNL_EXPR_MASQ_REG_PROTO_BASE;
+ 		break;
+ 	case NFT_NAT_REDIR:
+ 		nle = alloc_nft_expr("redir");
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index c4e274544355..8a7c5f066daa 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -3928,11 +3928,22 @@ masq_stmt_args		:	TO 	COLON	stmt_expr
+ 			{
+ 				$<stmt>0->nat.proto = $3;
+ 			}
++			|	TO	COLON	range_stmt_expr	SLASH	primary_stmt_expr
++			{
++				$<stmt>0->nat.proto = $3;
++				$<stmt>0->nat.proto_base = $5;
++			}
+ 			|	TO 	COLON	stmt_expr	nf_nat_flags
+ 			{
+ 				$<stmt>0->nat.proto = $3;
+ 				$<stmt>0->nat.flags = $4;
+ 			}
++			|	TO	COLON	range_stmt_expr	SLASH	primary_stmt_expr	nf_nat_flags
++			{
++				$<stmt>0->nat.proto = $3;
++				$<stmt>0->nat.proto_base = $5;
++				$<stmt>0->nat.flags = $6;
++			}
+ 			|	nf_nat_flags
+ 			{
+ 				$<stmt>0->nat.flags = $1;
 -- 
 2.39.2
 
