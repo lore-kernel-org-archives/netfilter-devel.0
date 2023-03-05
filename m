@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B183C6FA8E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACB96C6FD1B
 	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Mar 2023 12:34:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229642AbjCEMeS (ORCPT
+        id S229628AbjCEMeT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Mar 2023 07:34:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42866 "EHLO
+        Sun, 5 Mar 2023 07:34:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbjCEMeQ (ORCPT
+        with ESMTP id S229625AbjCEMeQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 5 Mar 2023 07:34:16 -0500
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96247EC55
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7988EEC41
         for <netfilter-devel@vger.kernel.org>; Sun,  5 Mar 2023 04:34:14 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,23 +22,23 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=4J4XZ6sStYUVlf1GlQIUc9Im3N/yhzaIMeHurArerB8=; b=gUMF1xHaMNh7SuR6z/ukvdo2tv
-        m3g1GabKIMFee/tmjRRkRIM3vfzCv32zA1885z1nPuzXLHQho8uJOas4QB7hZJkpl405RqmcvS7lg
-        YmhUbvkp7pT6E1MLg0rTZ10+HNeJkpu8ckA74JtvFKSf1ZIEQ50u6EO/S3jVeX25l8MWJOuGULa3Q
-        4OkYI7gJL3IDALJDbXll7ExFP6FLp/Y7tVnlZXcjCzK+huBrMqd7H06mepPUFCeEmXe39nuG79P3+
-        kL+f7oHCHhWV8WxcplZp1dn9MEmbfLPQjfkH7rmIO6N2JfHAXVXysxvdVndaR4KxewNuFje5a68E2
-        PGCTVhPw==;
+        bh=XQd7qp0NHcVqEwIpOGdJmUtcxh3JSMsHzophDG1vQIE=; b=XGCXP0ihGx2YspLr1gGqtoviwu
+        PBm5vL86U7bQu3KVoVN8hQ9iazmfGIhqvCqy+oOghOXD3GLdcga+0uKU6b933Kz3ijEu3eJstlElT
+        obfNxFe1quXjValwhpTFs7SPNW1RUvJ0NhnHyn+XBUOr//+wYDl1xOV8i0wFC3+hLeHcS/VDHA7rO
+        6iP8cG3qxXfJAyajBTMx1RULZQWx+cgwcU4pI2JSv9ixu7hzpD5Nbm4/1t3kdctCJ2ThknDBk1m6x
+        HI32LHKu4x/lELF4pTHD8pGBYHnLDv/8XLIf7XINwUViUDaRxTSQnq8WFJUqZ3yiSGNLV0jdoTqPY
+        jp71tIgA==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
         by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1pYnZ6-00E3og-Ne
+        id 1pYnZ6-00E3og-LD
         for netfilter-devel@vger.kernel.org; Sun, 05 Mar 2023 12:34:12 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next 04/13] netfilter: nft_nat: correct length for loading protocol registers
-Date:   Sun,  5 Mar 2023 12:18:08 +0000
-Message-Id: <20230305121817.2234734-5-jeremy@azazel.net>
+Subject: [PATCH nf-next 03/13] netfilter: nat: extend core support for shifted port-ranges
+Date:   Sun,  5 Mar 2023 12:18:07 +0000
+Message-Id: <20230305121817.2234734-4-jeremy@azazel.net>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230305121817.2234734-1-jeremy@azazel.net>
 References: <20230305121817.2234734-1-jeremy@azazel.net>
@@ -51,30 +51,30 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The values in the protocol registers are two bytes wide.  However, when
-parsing the register loads, the code currently uses the larger 16-byte
-size of a `union nf_inet_addr`.  Change it to use the (correct) size of
-a `union nf_conntrack_man_proto` instead.
+Commit 2eb0f624b709 ("netfilter: add NAT support for shifted portmap
+ranges") makes changes in the NAT core to add support for shifted
+port-ranges to iptables DNAT.  Before adding support for these to the
+nft NAT modules extend the core changes to support SNAT as well.
 
-Fixes: d07db9884a5f ("netfilter: nf_tables: introduce nft_validate_register_load()")
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/netfilter/nft_nat.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_nat_core.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index 047999150390..5c29915ab028 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -226,7 +226,7 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		priv->flags |= NF_NAT_RANGE_MAP_IPS;
- 	}
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ce829d434f13..9e3a9472df2f 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -255,6 +255,9 @@ static int in_range(const struct nf_conntrack_tuple *tuple,
+ 	if (!(range->flags & NF_NAT_RANGE_PROTO_SPECIFIED))
+ 		return 1;
  
--	plen = sizeof_field(struct nf_nat_range, min_addr.all);
-+	plen = sizeof_field(struct nf_nat_range, min_proto.all);
- 	if (tb[NFTA_NAT_REG_PROTO_MIN]) {
- 		err = nft_parse_register_load(tb[NFTA_NAT_REG_PROTO_MIN],
- 					      &priv->sreg_proto_min, plen);
++	if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
++		return 0;
++
+ 	return l4proto_in_range(tuple, NF_NAT_MANIP_SRC,
+ 				&range->min_proto, &range->max_proto);
+ }
 -- 
 2.39.2
 
