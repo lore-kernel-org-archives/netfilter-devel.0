@@ -2,50 +2,53 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC272C6FA99
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Mar 2023 16:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C1BC61DA4
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Mar 2023 16:15:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230156AbjCFQBM (ORCPT
+        id S229820AbjCFQPA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Mar 2023 11:01:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42050 "EHLO
+        Mon, 6 Mar 2023 11:15:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231363AbjCFQAy (ORCPT
+        with ESMTP id S230301AbjCFQOk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2023 11:00:54 -0500
-Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [185.125.25.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A671232E53
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2023 08:00:50 -0800 (PST)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PVjwZ5BNWzMq0bV;
-        Mon,  6 Mar 2023 17:00:46 +0100 (CET)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4PVjwY6ttHzMtDdV;
-        Mon,  6 Mar 2023 17:00:45 +0100 (CET)
+        Mon, 6 Mar 2023 11:14:40 -0500
+Received: from smtp-8fab.mail.infomaniak.ch (smtp-8fab.mail.infomaniak.ch [IPv6:2001:1600:3:17::8fab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBC194B810
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2023 08:11:06 -0800 (PST)
+Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PVk6n0ydDzMqFhm;
+        Mon,  6 Mar 2023 17:09:37 +0100 (CET)
+Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4PVk6m2GZzzMs97C;
+        Mon,  6 Mar 2023 17:09:35 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1678118446;
-        bh=W9bxayx1B7vEQkL2vJ0A4EzTLbTTWSnAAKU6B5OE5bg=;
+        s=20191114; t=1678118977;
+        bh=4ihYqjRB0GwxSKQIQyW2AaDLli+JWwa70EQF7JSXzrs=;
         h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=IddPPHRGl7MDwiat8dL4ZmRxRLyXBRJA0Vj2QQU+7JZI7awA3IZwK+ZLkJBcvLksI
-         WKVCnSRyAjyKOvOs1cQifWsoL9HYg+QBFKY2cb0zLx4Zc01xehgQXHI+fRqeJp7wHW
-         IL8RVjooFQ7xGguaZFveggTh5rXckKzezHBUApgQ=
-Message-ID: <0efdc745-2365-a8c2-43cb-ef3608586481@digikod.net>
-Date:   Mon, 6 Mar 2023 17:00:45 +0100
+        b=kyCrErUHhfqkF3dxojq4RbhmrHW/4IM5zaTKPqZb/IJ0GZv3Bn0F2yVqWO7h/gOWD
+         ptPE8l2aHwaTpcBLPsRlPaLpRoE5Lr2TRFp6+2A98JAheJxH938oErCHomgipSDVuA
+         YItj3eDRmTQ47qjr9gWji9v6greGB1VSvsBOfn4A=
+Message-ID: <950d64ee-5b17-af81-8b85-dd2b392c7487@digikod.net>
+Date:   Mon, 6 Mar 2023 17:09:35 +0100
 MIME-Version: 1.0
 User-Agent: 
-Subject: Re: [PATCH v9 10/12] selftests/landlock: Add 10 new test suites
- dedicated to network
+Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
 Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
+        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
+Cc:     willemdebruijn.kernel@gmail.com,
         linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, yusongping@huawei.com,
         artem.kuzin@huawei.com
 References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <20230116085818.165539-11-konstantin.meskhidze@huawei.com>
- <fa306757-2040-415b-99a7-ba40c100638a@digikod.net>
- <b324a6bc-0b0f-c299-72b9-903eede187e8@huawei.com>
+ <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
+ <Y8xwLvDbhKPG8JqY@galopp> <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
+ <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
+ <526a70a2-b0bc-f29a-6558-022ca12a6430@huawei.com>
+ <278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net>
+ <85b31cb8-1aeb-d6f0-6c7d-91cea6b563d4@huawei.com>
 From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <b324a6bc-0b0f-c299-72b9-903eede187e8@huawei.com>
+In-Reply-To: <85b31cb8-1aeb-d6f0-6c7d-91cea6b563d4@huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Infomaniak-Routing: alpha
@@ -54,119 +57,173 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 06/03/2023 13:03, Konstantin Meskhidze (A) wrote:
+On 06/03/2023 14:43, Konstantin Meskhidze (A) wrote:
 > 
 > 
-> 2/21/2023 9:05 PM, Mickaël Salaün пишет:
+> 2/21/2023 7:16 PM, Mickaël Salaün пишет:
 >>
->> On 16/01/2023 09:58, Konstantin Meskhidze wrote:
->>> These test suites try to check edge cases for TCP sockets
->>> bind() and connect() actions.
+>> On 30/01/2023 11:03, Konstantin Meskhidze (A) wrote:
 >>>
->>> socket:
->>> * bind: Tests with non-landlocked/landlocked ipv4 and ipv6 sockets.
->>> * connect: Tests with non-landlocked/landlocked ipv4 and ipv6 sockets.
->>> * bind_afunspec: Tests with non-landlocked/landlocked restrictions
->>> for bind action with AF_UNSPEC socket family.
->>> * connect_afunspec: Tests with non-landlocked/landlocked restrictions
->>> for connect action with AF_UNSPEC socket family.
->>> * ruleset_overlap: Tests with overlapping rules for one port.
->>> * ruleset_expanding: Tests with expanding rulesets in which rules are
->>> gradually added one by one, restricting sockets' connections.
->>> * inval: Tests with invalid user space supplied data:
->>>       - out of range ruleset attribute;
->>>       - unhandled allowed access;
->>>       - zero port value;
->>>       - zero access value;
->>>       - legitimate access values;
->>> * bind_connect_inval_addrlen: Tests with invalid address length
->>> for ipv4/ipv6 sockets.
->>> * inval_port_format: Tests with wrong port format for ipv4/ipv6 sockets.
 >>>
->>> layout1:
->>> * with_net: Tests with network bind() socket action within
->>> filesystem directory access test.
+>>> 1/27/2023 9:22 PM, Mickaël Salaün пишет:
+>>>>
+>>>> On 23/01/2023 10:38, Konstantin Meskhidze (A) wrote:
+>>>>>
+>>>>>
+>>>>> 1/22/2023 2:07 AM, Günther Noack пишет:
+>>>>
+>>>> [...]
+>>>>
+>>>>>>> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
+>>>>>>>     ABI version.  In this example, this is not required because all of the requested
+>>>>>>>     ``allowed_access`` rights are already available in ABI 1.
+>>>>>>>     
+>>>>>>> -We now have a ruleset with one rule allowing read access to ``/usr`` while
+>>>>>>> -denying all other handled accesses for the filesystem.  The next step is to
+>>>>>>> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
+>>>>>>> -binary).
+>>>>>>> +For network access-control, we can add a set of rules that allow to use a port
+>>>>>>> +number for a specific action. All ports values must be defined in network byte
+>>>>>>> +order.
+>>>>>>
+>>>>>> What is the point of asking user space to convert this to network byte
+>>>>>> order? It seems to me that the kernel would be able to convert it to
+>>>>>> network byte order very easily internally and in a single place -- why
+>>>>>> ask all of the users to deal with that complexity? Am I overlooking
+>>>>>> something?
+>>>>>
+>>>>>      I had a discussion about this issue with Mickaёl.
+>>>>>      Please check these threads:
+>>>>>      1.
+>>>>> https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
+>>>>>      2.
+>>>>> https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
+>>>>
+>>>> I'm definitely not sure if this is the right solution, or if there is
+>>>> one. The rationale is to make it close to the current (POSIX) API. We
+>>>> didn't get many opinion about that but I'd really like to have a
+>>>> discussion about port endianness for this Landlock API.
 >>>
->>> Test coverage for security/landlock is 94.1% of 946 lines according
->>> to gcc/gcov-11.
+>>>      As for me, the kernel should take care about port converting. This
+>>> work should be done under the hood.
 >>>
->>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>> ---
+>>>      Any thoughts?
 >>>
->>> Changes since v8:
->>> * Adds is_sandboxed const for FIXTURE_VARIANT(socket).
->>> * Refactors AF_UNSPEC tests.
->>> * Adds address length checking tests.
->>> * Convert ports in all tests to __be16.
->>> * Adds invalid port values tests.
->>> * Minor fixes.
->>>
->>> Changes since v7:
->>> * Squashes all selftest commits.
->>> * Adds fs test with network bind() socket action.
->>> * Minor fixes.
->>>
->>> ---
->>>    tools/testing/selftests/landlock/config     |    4 +
->>>    tools/testing/selftests/landlock/fs_test.c  |   65 ++
->>>    tools/testing/selftests/landlock/net_test.c | 1157 +++++++++++++++++++
->>>    3 files changed, 1226 insertions(+)
->>>    create mode 100644 tools/testing/selftests/landlock/net_test.c
->>>
->>> diff --git a/tools/testing/selftests/landlock/config b/tools/testing/selftests/landlock/config
->>> index 0f0a65287bac..71f7e9a8a64c 100644
->>> --- a/tools/testing/selftests/landlock/config
->>> +++ b/tools/testing/selftests/landlock/config
-
-[...]
-
->>> +static int bind_variant(const struct _fixture_variant_socket *const variant,
->>> +			const int sockfd,
->>> +			const struct _test_data_socket *const self,
->>> +			const size_t index, const bool zero_size)
->>> +
+>>>>
+>>>> I looked at some code (e.g. see [1]) and it seems that using htons()
+>>>> might make application patching more complex after all. What do you
+>>>> think? Is there some network (syscall) API that don't use this convention?
+>>>>
+>>>> [1] https://github.com/landlock-lsm/tuto-lighttpd
+>>>>
+>>>>>>
+>>>>>>> +
+>>>>>>> +.. code-block:: c
+>>>>>>> +
+>>>>>>> +    struct landlock_net_service_attr net_service = {
+>>>>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>>>>>>> +        .port = htons(8080),
+>>>>>>> +    };
+>>>>>>
+>>>>>> This is a more high-level comment:
+>>>>>>
+>>>>>> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
+>>>>>> how do you envision this struct to evolve if other protocols need to
+>>>>>> be supported in the future?
+>>>>>
+>>>>>       When TCP restrictions land into Linux, we need to think about UDP
+>>>>> support. Then other protocols will be on the road. Anyway you are right
+>>>>> this struct will be evolving in long term, but I don't have a particular
+>>>>> envision now. Thanks for the question - we need to think about it.
+>>>>>>
+>>>>>> Should this struct and the associated constants have "TCP" in its
+>>>>>> name, and other protocols use a separate struct in the future?
+>>>>
+>>>> Other protocols such as AF_VSOCK uses a 32-bit port. We could use a
+>>>> 32-bits port field or ever a 64-bit one. The later could make more sense
+>>>> because each field would eventually be aligned on 64-bit. Picking a
+>>>> 16-bit value was to help developers (and compilers/linters) with the
+>>>> "correct" type (for TCP).
 >>
->> Extra new line.
+>> Thinking more about this, let's use a __u64 port (and remove the
+>> explicit packing). The landlock_append_net_rule() function should use a
+>> __u16 port argument, but the add_rule_net_service() function should
+>> check that there is no overflow with the port attribute (not higher than
+>> U16_MAX) before passing it to landlock_append_net_rule(). We should
+>> prioritize flexibility for the kernel UAPI over stricter types. User
+>> space libraries can improve this kind of types with a more complex API.
+>>
+>> Big endian can make sense for a pure network API because the port value
+>> (and the IP address) is passed to other machines through the network,
+>> as-is. However, with Landlock, the port value is only used by the
+>> kernel. Moreover, in practice, port values are mostly converted when
+>> filling the sockaddr*_in structs. It would then make it more risky to
+>> ask developers another explicit htons() conversion for Landlock
+>> syscalls. Let's stick to the host endianess and let the kernel do the
+>> conversion.
+>>
+>> Please include these rationales in code comments. We also need to update
+>> the tests for endianess, but still check big and little endian
+>> consistency as it is currently done in these tests. A new test should be
+>> added to check port boundaries with:
+>> - port = 0
+>> - port = U16_MAX
+>       port = U16_MAX value passes.
+
+correct
+
 > 
->    Will be deleted. Thanks. >>
->>> +{
->>> +	if (variant->is_ipv4)
->>> +		return bind(sockfd, &self->addr4[index],
->>> +			    (zero_size ? 0 : sizeof(self->addr4[index])));
->>
->> Is the zero_size really useful? Do calling bind and connect with this
->> argument reaches the Landlock code (check_addrlen) or is it caught by
->> the network code beforehand?
+>> - port = U16_MAX + 1 (which should get an EINVAL)
+>       port = U16_MAX + 1 after casting is 0, EINVAL is returned.
+
+In the tests, we want the casting to be be done by the kernel. The test 
+should then pass 0x10000 to the struct and the kernel should return 
+EINVAL because it is greater than U16_MAX, not because it is zero.
+
 > 
->     In __sys_bind() syscall security_socket_bind() function goes before
->     sock->ops->bind() method. Selinux and Smacks provide such checks in
->     bind()/connect() hooks, so I think Landlock should do the same.
->     What do you think?
+>> - port = U16_MAX + 2 (to check u16 casting != 0)
+>       port = U16_MAX + 2 after casting is 1, is it passes?
 
-Yes, we should keep these checks. However, we should have a 
-bind_variant() without the zero_size argument because it is only set to 
-true once (in bind_connect_inval_addrlen). You can explicitly call 
-bind() with a zero size in bind_connect_inval_addrlen().
+In this case, 0x10001 should be rejected by the kernel (and return 
+EINVAL) because it is greater than U16_MAX.
 
-Same for connect_variant().
+> 
+>> - port = U32_MAX + 1
+>> - port = U32_MAX + 2
+> 
+>       Don't you think that all port values >= U16_MAX + 1, EINVAL should
+>       be returned?
 
+All port values > U16_MAX should indeed return EINVAL, and tests should 
+check kernel casting (i.e. the kernel must check the 64-bit value before 
+casting it to a 16-bit value and only check the casted zero). I didn't 
+mean that these cases should pass, only that they should be tested, but 
+I think you got it. ;)
 
 >>
 >>
->>> +	else
->>> +		return bind(sockfd, &self->addr6[index],
->>> +			    (zero_size ? 0 : sizeof(self->addr6[index])));
->>> +}
->>> +
->>> +static int connect_variant(const struct _fixture_variant_socket *const variant,
->>> +			   const int sockfd,
->>> +			   const struct _test_data_socket *const self,
->>> +			   const size_t index, const bool zero_size)
->>> +{
->>> +	if (variant->is_ipv4)
->>> +		return connect(sockfd, &self->addr4[index],
->>> +			       (zero_size ? 0 : sizeof(self->addr4[index])));
->>> +	else
->>> +		return connect(sockfd, &self->addr6[index],
->>> +			       (zero_size ? 0 : sizeof(self->addr6[index])));
->>> +}
+>>>>
+>>>> If we think about protocols other than TCP and UDP (e.g. AF_VSOCK), it
+>>>> could make sense to have a dedicated attr struct specifying other
+>>>> properties (e.g. CID). Anyway, the API is flexible but it would be nice
+>>>> to not mess with it too much. What do you think?
+>>>>
+>>>>
+>>>>>>
+>>>>>>> +
+>>>>>>> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>>>>>>> +                            &net_service, 0);
+>>>>>>> +
+>>>>>>> +The next step is to restrict the current thread from gaining more privileges
+>>>>>>> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
+>>>>>>              ^^^^^^
+>>>>>>              "through" a SUID binary? "thanks to" sounds like it's desired
+>>>>>>              to do that, while we're actually trying to prevent it here?
+>>>>>
+>>>>>       This is Mickaёl's part. Let's ask his opinion here.
+>>>>>
+>>>>>       Mickaёl, any thoughts?
+>>>>
+>>>> Yep, "through" looks better.
+>>>> .
+>> .
