@@ -2,174 +2,234 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F87C61DA4
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Mar 2023 16:44:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4060DC61DA4
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Mar 2023 17:57:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230041AbjCFQoL (ORCPT
+        id S230500AbjCFR55 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Mar 2023 11:44:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60474 "EHLO
+        Mon, 6 Mar 2023 12:57:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230333AbjCFQn5 (ORCPT
+        with ESMTP id S230504AbjCFR5i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2023 11:43:57 -0500
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2070d.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e88::70d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAB2239295;
-        Mon,  6 Mar 2023 08:43:34 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Ezhie/dpzdHt5Ox3DFvVMc2e8oNt5b4/915+GIHxvPR7EmdIUR0gsm00/GDqxRzl3pglPPahKGi4GXg4lf0RwGYCi0+eucDP31C3IQ+p2MnjD+1hpWXatF1xm0QhdKkCpp4U5YE4ShnUav9BjVhKvGuAz0BvmqjLB1eOq+/yYlzvo9AJ1SOyL4HaHSFIy7U76HN7X2CMZpUerAM6dRxrY+lKfdo+8mAxiZBqd2jEZsqlHVYYcp7ZhxttozwDAuuQXxk6GyL3+hKdEN+jlUqgp9D+PBFSkeoOHixApA63IFPYulFCbgQrn/1fG9FF5Y5t7XYQJ2MUYs3iwmvb+IO8wg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=tJ2OKtaQd27XTInakus2DCN2mSnDcLYdKThUmA7rQSU=;
- b=JTNeEju6MIhix5frj2pSB1uKS2eJbPCglIRiBOPW1K2V5Vx6g2QN5/NxU2XCW8dFsshALGti9a9kKajHDp1vt1ebDVWrhGRNR6W9FtHYHV0fy9ODBnB+nnbYooPUpQC5mHQg7bfSIu2iGP5uPmyZnvvsLLiG60J1pt5KyDrIL7OJ5hdUMGQHjDuYhPhIJc/JTjB6lv2jhKkAiR1F4VDT5BdInFcFrDVEMzDkLzmE+tNGVz3VQrlN2UKZaaK6fGud2RzxsrwjBIkBMPYOAaLuI3DwcV9H6pGUPjCCKze2DZcL9Atr0q0IuNzFv2ro8WzcxU8AxhKRS9OMaZAhxcHbrg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
- dkim=pass header.d=corigine.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=tJ2OKtaQd27XTInakus2DCN2mSnDcLYdKThUmA7rQSU=;
- b=nRQCZd+Rij1fXRG8/Q4OnXyE8fveJX4uXCgRSQbg3gJNbtz6dY/HybWzopjCcRe6tsjcM/w+VKu5xwdhJZUyHM2GefxZrtCReIHlsAUF+2+H6XrqLMee6RnlZTSZ0CtyEYKo5glQJd4xQIezh/b9c7imKYSlsGx2DbOVhN0fIl0=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=corigine.com;
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
- by PH0PR13MB4972.namprd13.prod.outlook.com (2603:10b6:510:7a::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6156.28; Mon, 6 Mar
- 2023 16:35:19 +0000
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::85f5:bdb:fb9e:294c]) by PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::85f5:bdb:fb9e:294c%3]) with mapi id 15.20.6156.028; Mon, 6 Mar 2023
- 16:35:19 +0000
-Date:   Mon, 6 Mar 2023 17:35:11 +0100
-From:   Simon Horman <simon.horman@corigine.com>
-To:     Xin Long <lucien.xin@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        network dev <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
-        kuba@kernel.org, Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Pravin B Shelar <pshelar@ovn.org>,
-        Aaron Conole <aconole@redhat.com>
-Subject: Re: [PATCH nf-next 5/6] netfilter: use nf_ip6_check_hbh_len in
- nf_ct_skb_network_trim
-Message-ID: <ZAYWP1FbItjLN48Y@corigine.com>
-References: <cover.1677888566.git.lucien.xin@gmail.com>
- <5411027934a79f0430edb905ad4b434ec6b8396e.1677888566.git.lucien.xin@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5411027934a79f0430edb905ad4b434ec6b8396e.1677888566.git.lucien.xin@gmail.com>
-X-ClientProxiedBy: AM0PR06CA0144.eurprd06.prod.outlook.com
- (2603:10a6:208:ab::49) To PH0PR13MB4842.namprd13.prod.outlook.com
- (2603:10b6:510:78::6)
+        Mon, 6 Mar 2023 12:57:38 -0500
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D72C5D8B2;
+        Mon,  6 Mar 2023 09:56:52 -0800 (PST)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.201])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4PVmQK0NvLz6JB3Z;
+        Tue,  7 Mar 2023 01:53:13 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.21; Mon, 6 Mar 2023 17:55:49 +0000
+Message-ID: <a009dff3-5550-a0e3-aaf3-12001b71b7da@huawei.com>
+Date:   Mon, 6 Mar 2023 20:55:48 +0300
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|PH0PR13MB4972:EE_
-X-MS-Office365-Filtering-Correlation-Id: eef9b2b5-2e79-42af-6b72-08db1e60c5d5
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: NhpGcXs7MNcK6Iba1u6Zlba8tnyfMK1epSgguakLYi5f/b0fJUUhunTkOgBVqoPcTcQrELnrZN4rYk/xTaDCkpDfTgrA5ZXIY4OyqEjhLz1AL8dDYQWZlAnUtflkebsu4TVQS6AeeFrbavUexWxzksEtK+nqFLxiXOo6FprxWGwo3aWBcucjY7IOQktmh9YZflAfviGZ4bs5WB2ztixDbxr1uKQQ+fKdqFR6k+DZRhFbYEvzgQfR3hkXhyqh2Hp112M2tZTif9qnOML/Zs55uGgGM/HdMFm/DuvREFyss8OTlTNHMPk7R5MLczOI0coWmgmYxq9U/ULbFICn3oooZDK0zk6ZXwch4NmQ64xZGLtkVprdzVc5k4xIyegLeu1XKk/BmXS+v/TYLVPUgr7rwruYUBuqBeN1uTMWt9jPXL9k6xJbgaDRa2U07/RW3Zj8Sxfho9sBgIkqC4/L5KcVL/je5/sV1KV3N+5Mg+DuGy5M7mKdI22py1BHewjBzLK8G1cx/ycBmp8hD7qrHqHCn7iPPt9IBnvBXpifkz8L99O3YlId/6uXvdFukRXwBLB/YRPZf04H6jjThQE/kvUxN+zR5GGys8FhEJFb/u2eslLiWWBdVAFTrJxzlEB1Aa0Jnwe2LwiahJe5vBj+T2B2FQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(396003)(346002)(39840400004)(136003)(366004)(376002)(451199018)(8936002)(5660300002)(7416002)(44832011)(66946007)(66556008)(2906002)(66476007)(8676002)(6916009)(4326008)(54906003)(316002)(478600001)(6666004)(36756003)(6512007)(6506007)(6486002)(2616005)(41300700001)(86362001)(83380400001)(186003)(38100700002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?OGQVI9wYanQtxDvqIudCJYIg35OLamG3akQq+vIonUhXqJGvf7EEV5yQcx6n?=
- =?us-ascii?Q?X6w2TG/bTfRpA3kxQ77B3X/B3SJU5SG2mT89tfaNUWopcBSp16kcmBUTklNm?=
- =?us-ascii?Q?9PRgFRdFKmkxe+d26ONnxNtbV+RM9dVHyMDwOCENIgs0HTsH1Mm7HXT6pe/b?=
- =?us-ascii?Q?zxMT7J4bgXD/RDYEeTQNBuqclI2Sg3KpRwmcpu9v7bMC6kiGcSYR+Xs5oUzN?=
- =?us-ascii?Q?IfxnbK94HjrqwD2zpO3hTcC3pFgNOfrdQXx0tj3SzErtpxHSXSZme8OLWmkw?=
- =?us-ascii?Q?yyWbug/USalbJWeEyeVp+POa4Fwc8TP+0OpQjqGutuNK+NXoSx6s+64gRfpr?=
- =?us-ascii?Q?5flj9lZdpA4vN+4mwIdnvOwiEc/JnSYlJUyZ5c9QwqKigh5bQaG/uccNtgiu?=
- =?us-ascii?Q?siKTVgIzaFUFYvyh4YhmKyUGuVAfVsR268N6RO5Lprt9Vvb1pShN0jcThhz5?=
- =?us-ascii?Q?VMbHlc48e5QSbRN8YCCH7WMkqBbiyv7R3BUi1ZGc4EL+cyUJNlTGgUcmu10p?=
- =?us-ascii?Q?1OI+frE6fMTYmpdcs09IT9whSmP5A5tLoX8S6H0Y9ZioU7prKCj1PDdT41SL?=
- =?us-ascii?Q?f+g69AtS2TMqAntPf1Ipx3tuDGedKonngr7It/yaVtb/Wp/1Gk7MeL5G54AD?=
- =?us-ascii?Q?fvDk6UCSJGpJKvNzZ7u0sFWAt1x87BcXxuprxetKW3es61C+m2i/PCG+H1Q1?=
- =?us-ascii?Q?y5DwPCsuSVFE4XYxnYLW3HQDYKRqai1gJtYWlOeT8MuwDs2Tdm/hWmgKlqSZ?=
- =?us-ascii?Q?lQWVPVmyW99s2JN0IVuyqk03aDkep9xUNtjkFnFiOEeTjMmzxHwHLx/IQdo0?=
- =?us-ascii?Q?9lYMRA5KN8gZiOouecpqakABrlOlDNUFtuWMLkDjGbGV30yfZTiEBLkr94HV?=
- =?us-ascii?Q?MdVaPyO7AYcL41Q2m0ElOxbiUK+te0KZMzRZ/AGlMYR0uklZjy6uLVrEF6dj?=
- =?us-ascii?Q?BxeOhKYiZow1urXwYUk0v7RwnljbqJw/XPMPWGq6NXzUsC+ATDFcVhKoHi0H?=
- =?us-ascii?Q?BgmoWGvcZJY9hhfeM+EmVyCv2Ehz/mUI78ev/H6GaFt73xOrT367GeuZhvD2?=
- =?us-ascii?Q?ff4kMDsBi7uP6AfCR76UDd0nXMWkY2Bogi3OkRaINRa1qu6akpKWKjA0nzhd?=
- =?us-ascii?Q?MGIVYw6Eq+D/qCXCoRZ+rS10eCWi9u35ghciXvaWJHkeseMicBuBduZsGlAB?=
- =?us-ascii?Q?5xoskdlgg9c55qX14Ssy8fSb5dvUc72rblnIeU7NIEcpEVfs68T1XPTbCcqK?=
- =?us-ascii?Q?goTwXdVs5Vj2TKWNWdgC3xyREPahTya20aU0fMB9GZA/9RenOw000jI7s8cP?=
- =?us-ascii?Q?OCUHae3qCem+gSk8pDfTvmTc2qFombssO4S4ZN2W77vlTLgWHySp0sLwWi9g?=
- =?us-ascii?Q?TwewBmj8e3Q4005rx7vh/RhqbZ4Qtjl9R5o4TgBZHfT1vtqslGSN9LXiUjCE?=
- =?us-ascii?Q?ELXoVl5KelGrpK0BiBxNcrS5ik2wxk3Il8rbPgQcaPPBIX4RSAJJ0Z7FAC0x?=
- =?us-ascii?Q?p6CXfMW+JJp9vzJaAKaHJ8Jap17KC0z2ibprYsmYI03FmjJfiZoKm9NFLPcM?=
- =?us-ascii?Q?U80VjNQrtFmxlH4aFC0kCTgT0Lf2LglSHWIqSVt5hqQqy8TTFW5TqseOZcJO?=
- =?us-ascii?Q?lrr4uUxW0gqQjVFAYsgp8ocnU2dUNXmUjpBUbJUE2sPt1IKl2qBW5U55YSR7?=
- =?us-ascii?Q?MbSH6g=3D=3D?=
-X-OriginatorOrg: corigine.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: eef9b2b5-2e79-42af-6b72-08db1e60c5d5
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Mar 2023 16:35:18.9723
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: U0e+nEALYSNKmBbhUPtw0v3vwh5AsCqR9jK6BykFTf99Zi1p7W+H8u3+q3cOTs1D4nb3d0q4zY1wfjxZqtvLC0JoccKRAiE0BDNgSI+8SEs=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR13MB4972
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v9 12/12] landlock: Document Landlock's network support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>,
+        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
+CC:     <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+ <20230116085818.165539-13-konstantin.meskhidze@huawei.com>
+ <Y8xwLvDbhKPG8JqY@galopp> <eb33371b-551e-ae6c-d7e3-a3101644b7ec@huawei.com>
+ <68f26cf2-f382-4d31-c80f-22392a85376f@digikod.net>
+ <526a70a2-b0bc-f29a-6558-022ca12a6430@huawei.com>
+ <278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net>
+ <85b31cb8-1aeb-d6f0-6c7d-91cea6b563d4@huawei.com>
+ <950d64ee-5b17-af81-8b85-dd2b392c7487@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <950d64ee-5b17-af81-8b85-dd2b392c7487@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 03, 2023 at 07:12:41PM -0500, Xin Long wrote:
-> For IPv6 Jumbo packets, the ipv6_hdr(skb)->payload_len is always 0,
-> and its real payload_len ( > 65535) is saved in hbh exthdr. With 0
-> length for the jumbo packets, all data and exthdr will be trimmed
-> in nf_ct_skb_network_trim().
+
+
+3/6/2023 7:09 PM, Mickaël Salaün пишет:
 > 
-> This patch is to call nf_ip6_check_hbh_len() to get real pkt_len
-> of the IPv6 packet, similar to br_validate_ipv6().
+> On 06/03/2023 14:43, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 2/21/2023 7:16 PM, Mickaël Salaün пишет:
+>>>
+>>> On 30/01/2023 11:03, Konstantin Meskhidze (A) wrote:
+>>>>
+>>>>
+>>>> 1/27/2023 9:22 PM, Mickaël Salaün пишет:
+>>>>>
+>>>>> On 23/01/2023 10:38, Konstantin Meskhidze (A) wrote:
+>>>>>>
+>>>>>>
+>>>>>> 1/22/2023 2:07 AM, Günther Noack пишет:
+>>>>>
+>>>>> [...]
+>>>>>
+>>>>>>>> @@ -143,10 +157,24 @@ for the ruleset creation, by filtering access rights according to the Landlock
+>>>>>>>>     ABI version.  In this example, this is not required because all of the requested
+>>>>>>>>     ``allowed_access`` rights are already available in ABI 1.
+>>>>>>>>     
+>>>>>>>> -We now have a ruleset with one rule allowing read access to ``/usr`` while
+>>>>>>>> -denying all other handled accesses for the filesystem.  The next step is to
+>>>>>>>> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
+>>>>>>>> -binary).
+>>>>>>>> +For network access-control, we can add a set of rules that allow to use a port
+>>>>>>>> +number for a specific action. All ports values must be defined in network byte
+>>>>>>>> +order.
+>>>>>>>
+>>>>>>> What is the point of asking user space to convert this to network byte
+>>>>>>> order? It seems to me that the kernel would be able to convert it to
+>>>>>>> network byte order very easily internally and in a single place -- why
+>>>>>>> ask all of the users to deal with that complexity? Am I overlooking
+>>>>>>> something?
+>>>>>>
+>>>>>>      I had a discussion about this issue with Mickaёl.
+>>>>>>      Please check these threads:
+>>>>>>      1.
+>>>>>> https://lore.kernel.org/netdev/49391484-7401-e7c7-d909-3bd6bd024731@digikod.net/
+>>>>>>      2.
+>>>>>> https://lore.kernel.org/netdev/1ed20e34-c252-b849-ab92-78c82901c979@huawei.com/
+>>>>>
+>>>>> I'm definitely not sure if this is the right solution, or if there is
+>>>>> one. The rationale is to make it close to the current (POSIX) API. We
+>>>>> didn't get many opinion about that but I'd really like to have a
+>>>>> discussion about port endianness for this Landlock API.
+>>>>
+>>>>      As for me, the kernel should take care about port converting. This
+>>>> work should be done under the hood.
+>>>>
+>>>>      Any thoughts?
+>>>>
+>>>>>
+>>>>> I looked at some code (e.g. see [1]) and it seems that using htons()
+>>>>> might make application patching more complex after all. What do you
+>>>>> think? Is there some network (syscall) API that don't use this convention?
+>>>>>
+>>>>> [1] https://github.com/landlock-lsm/tuto-lighttpd
+>>>>>
+>>>>>>>
+>>>>>>>> +
+>>>>>>>> +.. code-block:: c
+>>>>>>>> +
+>>>>>>>> +    struct landlock_net_service_attr net_service = {
+>>>>>>>> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>>>>>>>> +        .port = htons(8080),
+>>>>>>>> +    };
+>>>>>>>
+>>>>>>> This is a more high-level comment:
+>>>>>>>
+>>>>>>> The notion of a 16-bit "port" seems to be specific to TCP and UDP --
+>>>>>>> how do you envision this struct to evolve if other protocols need to
+>>>>>>> be supported in the future?
+>>>>>>
+>>>>>>       When TCP restrictions land into Linux, we need to think about UDP
+>>>>>> support. Then other protocols will be on the road. Anyway you are right
+>>>>>> this struct will be evolving in long term, but I don't have a particular
+>>>>>> envision now. Thanks for the question - we need to think about it.
+>>>>>>>
+>>>>>>> Should this struct and the associated constants have "TCP" in its
+>>>>>>> name, and other protocols use a separate struct in the future?
+>>>>>
+>>>>> Other protocols such as AF_VSOCK uses a 32-bit port. We could use a
+>>>>> 32-bits port field or ever a 64-bit one. The later could make more sense
+>>>>> because each field would eventually be aligned on 64-bit. Picking a
+>>>>> 16-bit value was to help developers (and compilers/linters) with the
+>>>>> "correct" type (for TCP).
+>>>
+>>> Thinking more about this, let's use a __u64 port (and remove the
+>>> explicit packing). The landlock_append_net_rule() function should use a
+>>> __u16 port argument, but the add_rule_net_service() function should
+>>> check that there is no overflow with the port attribute (not higher than
+>>> U16_MAX) before passing it to landlock_append_net_rule(). We should
+>>> prioritize flexibility for the kernel UAPI over stricter types. User
+>>> space libraries can improve this kind of types with a more complex API.
+>>>
+>>> Big endian can make sense for a pure network API because the port value
+>>> (and the IP address) is passed to other machines through the network,
+>>> as-is. However, with Landlock, the port value is only used by the
+>>> kernel. Moreover, in practice, port values are mostly converted when
+>>> filling the sockaddr*_in structs. It would then make it more risky to
+>>> ask developers another explicit htons() conversion for Landlock
+>>> syscalls. Let's stick to the host endianess and let the kernel do the
+>>> conversion.
+>>>
+>>> Please include these rationales in code comments. We also need to update
+>>> the tests for endianess, but still check big and little endian
+>>> consistency as it is currently done in these tests. A new test should be
+>>> added to check port boundaries with:
+>>> - port = 0
+>>> - port = U16_MAX
+>>       port = U16_MAX value passes.
 > 
-> Signed-off-by: Xin Long <lucien.xin@gmail.com>
-
-Reviewed-by: Simon Horman <simon.horman@corigine.com>
-
-...
-
-> diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-> index 52b776bdf526..2016a3b05f86 100644
-> --- a/net/netfilter/nf_conntrack_ovs.c
-> +++ b/net/netfilter/nf_conntrack_ovs.c
-
-...
-
-> @@ -114,14 +115,20 @@ EXPORT_SYMBOL_GPL(nf_ct_add_helper);
->  int nf_ct_skb_network_trim(struct sk_buff *skb, int family)
->  {
->  	unsigned int len;
-> +	int err;
->  
->  	switch (family) {
->  	case NFPROTO_IPV4:
->  		len = skb_ip_totlen(skb);
->  		break;
->  	case NFPROTO_IPV6:
-> -		len = sizeof(struct ipv6hdr)
-> -			+ ntohs(ipv6_hdr(skb)->payload_len);
-> +		len = ntohs(ipv6_hdr(skb)->payload_len);
-> +		if (ipv6_hdr(skb)->nexthdr == NEXTHDR_HOP) {
-
-nit: if you spin a v2,
-     you may consider reducing the scope of err to this block.
-
-> +			err = nf_ip6_check_hbh_len(skb, &len);
-> +			if (err)
-> +				return err;
-> +		}
-> +		len += sizeof(struct ipv6hdr);
->  		break;
->  	default:
->  		len = skb->len;
-> -- 
-> 2.39.1
+> correct
 > 
+>> 
+>>> - port = U16_MAX + 1 (which should get an EINVAL)
+>>       port = U16_MAX + 1 after casting is 0, EINVAL is returned.
+> 
+> In the tests, we want the casting to be be done by the kernel. The test
+> should then pass 0x10000 to the struct and the kernel should return
+> EINVAL because it is greater than U16_MAX, not because it is zero.
+> 
+>> 
+>>> - port = U16_MAX + 2 (to check u16 casting != 0)
+>>       port = U16_MAX + 2 after casting is 1, is it passes?
+> 
+> In this case, 0x10001 should be rejected by the kernel (and return
+> EINVAL) because it is greater than U16_MAX.
+> 
+>> 
+>>> - port = U32_MAX + 1
+>>> - port = U32_MAX + 2
+>> 
+>>       Don't you think that all port values >= U16_MAX + 1, EINVAL should
+>>       be returned?
+> 
+> All port values > U16_MAX should indeed return EINVAL, and tests should
+> check kernel casting (i.e. the kernel must check the 64-bit value before
+> casting it to a 16-bit value and only check the casted zero). I didn't
+> mean that these cases should pass, only that they should be tested, but
+> I think you got it. ;)
+
+   Yep. I got the point. Thanks.
+> 
+>>>
+>>>
+>>>>>
+>>>>> If we think about protocols other than TCP and UDP (e.g. AF_VSOCK), it
+>>>>> could make sense to have a dedicated attr struct specifying other
+>>>>> properties (e.g. CID). Anyway, the API is flexible but it would be nice
+>>>>> to not mess with it too much. What do you think?
+>>>>>
+>>>>>
+>>>>>>>
+>>>>>>>> +
+>>>>>>>> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>>>>>>>> +                            &net_service, 0);
+>>>>>>>> +
+>>>>>>>> +The next step is to restrict the current thread from gaining more privileges
+>>>>>>>> +(e.g. thanks to a SUID binary). We now have a ruleset with the first rule allowing
+>>>>>>>              ^^^^^^
+>>>>>>>              "through" a SUID binary? "thanks to" sounds like it's desired
+>>>>>>>              to do that, while we're actually trying to prevent it here?
+>>>>>>
+>>>>>>       This is Mickaёl's part. Let's ask his opinion here.
+>>>>>>
+>>>>>>       Mickaёl, any thoughts?
+>>>>>
+>>>>> Yep, "through" looks better.
+>>>>> .
+>>> .
+> .
