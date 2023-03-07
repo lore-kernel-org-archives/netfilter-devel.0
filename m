@@ -2,61 +2,61 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24AB6C6FA99
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 20:06:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A243C6FD1E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 20:59:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231526AbjCGUGm (ORCPT
+        id S229614AbjCGU7V (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Mar 2023 15:06:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45820 "EHLO
+        Tue, 7 Mar 2023 15:59:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231382AbjCGUGi (ORCPT
+        with ESMTP id S229497AbjCGU7U (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2023 15:06:38 -0500
-Received: from mail-yb1-xb30.google.com (mail-yb1-xb30.google.com [IPv6:2607:f8b0:4864:20::b30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C66069BA71;
-        Tue,  7 Mar 2023 12:06:29 -0800 (PST)
-Received: by mail-yb1-xb30.google.com with SMTP id k23so12587261ybk.13;
-        Tue, 07 Mar 2023 12:06:29 -0800 (PST)
+        Tue, 7 Mar 2023 15:59:20 -0500
+Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40D5899650;
+        Tue,  7 Mar 2023 12:59:19 -0800 (PST)
+Received: by mail-yb1-xb2b.google.com with SMTP id i6so12731070ybu.8;
+        Tue, 07 Mar 2023 12:59:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1678219588;
+        d=gmail.com; s=20210112; t=1678222758;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=1tK3adzZPIgIOu1xXFVuowxCf96H93Fxanpmf/N0OlY=;
-        b=ex0aiHq/zvxSpt5C0MCcMi6OneD7hubjR+OqbWhJj+qFhGmnwPBUKt3uY2gdxfJvlq
-         k82bYUoFvJLAGcCsE+fLVlANwYUlIJNF/oCEw8o0E8W93ex/NBMJAhEMekhcUkS2l+rr
-         oIjqfSvdjbKGLgPJgwsSrRqk8cCfMtbfKKhx+SCIoKa3S4gh+F72UlI9vgXFkYN9TLXF
-         8W+CZEoetXxgK8HL/EsK14No/IxHEiU2Ij2FnGAeakkKi6fSbIOBAI3mYXsfyGhXjJCQ
-         j6rLU32f57cmDIf/3s9iYQLHJUo11nnxq+gfw6CT1qQSo4NZqe4iwvu9F4m49YnPe79G
-         oP4A==
+        bh=tHJXrIjsNIHO7LWs4CXCAWVbyd5QEtRy0CMDfKJJ6po=;
+        b=Nwvd5g85FsgOa+I//hm0swX2q+YvWc4e75buSzlEXP2bpqPY8ISmDnagYKE1Mhbgxc
+         obDz4+7l3GJFg07cb4JDX+0r3RkXYI5MtMLLQiM5d+nN8XxKfsdCMFuDLHTyUXwexDaZ
+         yWdqgPc2YOJPMnEktFbYHPUXu06PnTQqwd6LUL0MgQAHLzUK5ePNan3uzkIn1Vrd6KBk
+         UpX43enLYKuoFtPUdgRbKminwE708AZQBnglSNJOGyp9MTPkGgEASN3GjESS0rBgsvTF
+         KPwD06FWdQeU+iwCsMlozp/0oWgU+nLWlWz/ukOVRojsjJTVVNuex1YF/OWzZFH3wrau
+         323w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678219588;
+        d=1e100.net; s=20210112; t=1678222758;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=1tK3adzZPIgIOu1xXFVuowxCf96H93Fxanpmf/N0OlY=;
-        b=NpnZU6Y3p2io3IaxuFriO4S8YJjGLxOeei6Oh51ZjnQL9E30iZEkP/Bh9EFgNFBP/d
-         ko+3trq4usuyF2I9onWdtHL1lVLfWS0aG3Z9L3ZzH4Ae3xoBzP1uWSPauX9lCKm4ffOh
-         eKqtk/t7pJUMpIxOV6+Mp4Xwo/wCOy4j8Z7ES9bMoR8BQlHTxGZKdV8RM8q74kAbSgCb
-         j6/tMGeC1qCWOQ+AolEnexCj+c190wrmYeZGDfnUq4I22mwVtGRuBvJiFLtcPsaAfj26
-         bawsmtWtii9h6ZfrZghkL4PkS1da+BGdZq8eZXSfyI+wL0WDHse2blMbnRhdMVHLPBNX
-         iHnw==
-X-Gm-Message-State: AO0yUKVISX7T5DPyCrv7jtAvt5gjVjGy/RHPex5p97/4Hids0KuOEH9V
-        qxtZ02UUktixJvseBJlzyvHiR6c6nz0pqVGjwBY=
-X-Google-Smtp-Source: AK7set8iPklzjJzh+n/dJGGDYzQeGR022koKzplhYc1QNvJjjjnq8Z8zTqTTtIoxVRZ1fY0BeKU80X24Ba4FNtWhIes=
-X-Received: by 2002:a5b:b84:0:b0:ab8:1ed9:cfd2 with SMTP id
- l4-20020a5b0b84000000b00ab81ed9cfd2mr9432063ybq.5.1678219588594; Tue, 07 Mar
- 2023 12:06:28 -0800 (PST)
+        bh=tHJXrIjsNIHO7LWs4CXCAWVbyd5QEtRy0CMDfKJJ6po=;
+        b=RiKTypZIyrZsVs3n6EYSAtHwxQCX8pAW35e+pVWUJXCAMUeT0FI5olkI1XjyVpcs2+
+         r9rfD0vqMeOH6VHwwlC2MKMroS6MsQt3yK12ZwmZhCAF86EXfmZgP5Ntuy6zULsKMvaC
+         zuL+yRpreQ3U8qRci3Y7i7s/dEBdxn9ccKzs7jtljFUTcEmhPBqzDylTWKpJumT5aD+R
+         zRUDRxx/2WgNq7222/bqYSxhCQjtcbKyqHH2xIKZzpYBVjhfZREy90vreaR4ZkSQeD5m
+         MjZS1h4wdhAyqlgdrzFI5KIgK4QOAiPmIipeochBV2BcKQuM3v0itt66QlhR80ZpL6Hk
+         /luA==
+X-Gm-Message-State: AO0yUKUiDwjFkzng2/wkSQKDE1RB7uszdyNH2pjWBiqCiMMCeeDLRt59
+        UpADgJ17Ze0+/AyrMFMnXb4AMBEB5FT5CyZfbh8=
+X-Google-Smtp-Source: AK7set8SGIM++YKZWAw23kBW+DHamqpKNeLHk+g0lWX48d425TylxbEtTYlohseB2xiH/zxl1/LZtyo2Gwt6R13VBxU=
+X-Received: by 2002:a25:8b8f:0:b0:906:307b:1449 with SMTP id
+ j15-20020a258b8f000000b00906307b1449mr9461031ybl.5.1678222758360; Tue, 07 Mar
+ 2023 12:59:18 -0800 (PST)
 MIME-Version: 1.0
-References: <cover.1677888566.git.lucien.xin@gmail.com> <05ccf9eec0b79e62d52ae65a096126546d84bea6.1677888566.git.lucien.xin@gmail.com>
- <f7tbkl45s7l.fsf@redhat.com>
-In-Reply-To: <f7tbkl45s7l.fsf@redhat.com>
+References: <cover.1677888566.git.lucien.xin@gmail.com> <5411027934a79f0430edb905ad4b434ec6b8396e.1677888566.git.lucien.xin@gmail.com>
+ <ZAYWP1FbItjLN48Y@corigine.com>
+In-Reply-To: <ZAYWP1FbItjLN48Y@corigine.com>
 From:   Xin Long <lucien.xin@gmail.com>
-Date:   Tue, 7 Mar 2023 15:06:01 -0500
-Message-ID: <CADvbK_crwJn2Sy1Xz+iiJ=yYPhDMkZh5zJkjrfCgkmzaeX-7=Q@mail.gmail.com>
-Subject: Re: [PATCH nf-next 6/6] selftests: add a selftest for big tcp
-To:     Aaron Conole <aconole@redhat.com>
+Date:   Tue, 7 Mar 2023 15:58:51 -0500
+Message-ID: <CADvbK_c7gSYkvLy53sQU+_co_o7xLF52KeWTKH0xpMDD02pW5A@mail.gmail.com>
+Subject: Re: [PATCH nf-next 5/6] netfilter: use nf_ip6_check_hbh_len in nf_ct_skb_network_trim
+To:     Simon Horman <simon.horman@corigine.com>
 Cc:     netfilter-devel@vger.kernel.org,
         network dev <netdev@vger.kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -66,271 +66,74 @@ Cc:     netfilter-devel@vger.kernel.org,
         Paolo Abeni <pabeni@redhat.com>,
         Roopa Prabhu <roopa@nvidia.com>,
         Nikolay Aleksandrov <razor@blackwall.org>,
-        Pravin B Shelar <pshelar@ovn.org>
+        Pravin B Shelar <pshelar@ovn.org>,
+        Aaron Conole <aconole@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Mar 7, 2023 at 1:31=E2=80=AFPM Aaron Conole <aconole@redhat.com> wr=
-ote:
+On Mon, Mar 6, 2023 at 11:35=E2=80=AFAM Simon Horman <simon.horman@corigine=
+.com> wrote:
 >
-> Xin Long <lucien.xin@gmail.com> writes:
->
-> > This test runs on the client-router-server topo, and monitors the traff=
-ic
-> > on the RX devices of router and server while sending BIG TCP packets wi=
-th
-> > netperf from client to server. Meanwhile, it changes 'tso' on the TX de=
-vs
-> > and 'gro' on the RX devs. Then it checks if any BIG TCP packets appears
-> > on the RX devs with 'ip/ip6tables -m length ! --length 0:65535' for eac=
-h
-> > case.
+> On Fri, Mar 03, 2023 at 07:12:41PM -0500, Xin Long wrote:
+> > For IPv6 Jumbo packets, the ipv6_hdr(skb)->payload_len is always 0,
+> > and its real payload_len ( > 65535) is saved in hbh exthdr. With 0
+> > length for the jumbo packets, all data and exthdr will be trimmed
+> > in nf_ct_skb_network_trim().
 > >
-> > Note that we also add tc action ct in link1 ingress to cover the ipv6
-> > jumbo packets process in nf_ct_skb_network_trim() of nf_conntrack_ovs.
+> > This patch is to call nf_ip6_check_hbh_len() to get real pkt_len
+> > of the IPv6 packet, similar to br_validate_ipv6().
 > >
 > > Signed-off-by: Xin Long <lucien.xin@gmail.com>
-> > ---
 >
-> LGTM - just one question
+> Reviewed-by: Simon Horman <simon.horman@corigine.com>
 >
-> Reviewed-by: Aaron Conole <aconole@redhat.com>
+> ...
 >
-> >  tools/testing/selftests/net/Makefile   |   1 +
-> >  tools/testing/selftests/net/big_tcp.sh | 180 +++++++++++++++++++++++++
-> >  2 files changed, 181 insertions(+)
-> >  create mode 100755 tools/testing/selftests/net/big_tcp.sh
+> > diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntr=
+ack_ovs.c
+> > index 52b776bdf526..2016a3b05f86 100644
+> > --- a/net/netfilter/nf_conntrack_ovs.c
+> > +++ b/net/netfilter/nf_conntrack_ovs.c
+>
+> ...
+>
+> > @@ -114,14 +115,20 @@ EXPORT_SYMBOL_GPL(nf_ct_add_helper);
+> >  int nf_ct_skb_network_trim(struct sk_buff *skb, int family)
+> >  {
+> >       unsigned int len;
+> > +     int err;
 > >
-> > diff --git a/tools/testing/selftests/net/Makefile b/tools/testing/selft=
-ests/net/Makefile
-> > index 6cd8993454d7..099741290184 100644
-> > --- a/tools/testing/selftests/net/Makefile
-> > +++ b/tools/testing/selftests/net/Makefile
-> > @@ -48,6 +48,7 @@ TEST_PROGS +=3D l2_tos_ttl_inherit.sh
-> >  TEST_PROGS +=3D bind_bhash.sh
-> >  TEST_PROGS +=3D ip_local_port_range.sh
-> >  TEST_PROGS +=3D rps_default_mask.sh
-> > +TEST_PROGS +=3D big_tcp.sh
-> >  TEST_PROGS_EXTENDED :=3D in_netns.sh setup_loopback.sh setup_veth.sh
-> >  TEST_PROGS_EXTENDED +=3D toeplitz_client.sh toeplitz.sh
-> >  TEST_GEN_FILES =3D  socket nettest
-> > diff --git a/tools/testing/selftests/net/big_tcp.sh b/tools/testing/sel=
-ftests/net/big_tcp.sh
-> > new file mode 100755
-> > index 000000000000..cde9a91c4797
-> > --- /dev/null
-> > +++ b/tools/testing/selftests/net/big_tcp.sh
-> > @@ -0,0 +1,180 @@
-> > +#!/bin/bash
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +#
-> > +# Testing For IPv4 and IPv6 BIG TCP.
-> > +# TOPO: CLIENT_NS (link0)<--->(link1) ROUTER_NS (link2)<--->(link3) SE=
-RVER_NS
-> > +
-> > +CLIENT_NS=3D$(mktemp -u client-XXXXXXXX)
-> > +CLIENT_IP4=3D"198.51.100.1"
-> > +CLIENT_IP6=3D"2001:db8:1::1"
-> > +
-> > +SERVER_NS=3D$(mktemp -u server-XXXXXXXX)
-> > +SERVER_IP4=3D"203.0.113.1"
-> > +SERVER_IP6=3D"2001:db8:2::1"
-> > +
-> > +ROUTER_NS=3D$(mktemp -u router-XXXXXXXX)
-> > +SERVER_GW4=3D"203.0.113.2"
-> > +CLIENT_GW4=3D"198.51.100.2"
-> > +SERVER_GW6=3D"2001:db8:2::2"
-> > +CLIENT_GW6=3D"2001:db8:1::2"
-> > +
-> > +MAX_SIZE=3D128000
-> > +CHK_SIZE=3D65535
-> > +
-> > +# Kselftest framework requirement - SKIP code is 4.
-> > +ksft_skip=3D4
-> > +
-> > +setup() {
-> > +     ip netns add $CLIENT_NS
-> > +     ip netns add $SERVER_NS
-> > +     ip netns add $ROUTER_NS
-> > +     ip -net $ROUTER_NS link add link1 type veth peer name link0 netns=
- $CLIENT_NS
-> > +     ip -net $ROUTER_NS link add link2 type veth peer name link3 netns=
- $SERVER_NS
-> > +
-> > +     ip -net $CLIENT_NS link set link0 up
-> > +     ip -net $CLIENT_NS link set link0 mtu 1442
-> > +     ip -net $CLIENT_NS addr add $CLIENT_IP4/24 dev link0
-> > +     ip -net $CLIENT_NS addr add $CLIENT_IP6/64 dev link0 nodad
-> > +     ip -net $CLIENT_NS route add $SERVER_IP4 dev link0 via $CLIENT_GW=
-4
-> > +     ip -net $CLIENT_NS route add $SERVER_IP6 dev link0 via $CLIENT_GW=
-6
-> > +     ip -net $CLIENT_NS link set dev link0 \
-> > +             gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-> > +     ip -net $CLIENT_NS link set dev link0 \
-> > +             gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-> > +     ip net exec $CLIENT_NS sysctl -wq net.ipv4.tcp_window_scaling=3D1=
-0
-> > +
-> > +     ip -net $ROUTER_NS link set link1 up
-> > +     ip -net $ROUTER_NS link set link2 up
-> > +     ip -net $ROUTER_NS addr add $CLIENT_GW4/24 dev link1
-> > +     ip -net $ROUTER_NS addr add $CLIENT_GW6/64 dev link1 nodad
-> > +     ip -net $ROUTER_NS addr add $SERVER_GW4/24 dev link2
-> > +     ip -net $ROUTER_NS addr add $SERVER_GW6/64 dev link2 nodad
-> > +     ip -net $ROUTER_NS link set dev link1 \
-> > +             gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-> > +     ip -net $ROUTER_NS link set dev link2 \
-> > +             gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-> > +     ip -net $ROUTER_NS link set dev link1 \
-> > +             gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-> > +     ip -net $ROUTER_NS link set dev link2 \
-> > +             gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-> > +     # test for nf_ct_skb_network_trim in nf_conntrack_ovs used by TC =
-ct action.
-> > +     ip net exec $ROUTER_NS tc qdisc add dev link1 ingress
-> > +     ip net exec $ROUTER_NS tc filter add dev link1 ingress \
-> > +             proto ip flower ip_proto tcp action ct
-> > +     ip net exec $ROUTER_NS tc filter add dev link1 ingress \
-> > +             proto ipv6 flower ip_proto tcp action ct
-> > +     ip net exec $ROUTER_NS sysctl -wq net.ipv4.ip_forward=3D1
-> > +     ip net exec $ROUTER_NS sysctl -wq net.ipv6.conf.all.forwarding=3D=
-1
-> > +
-> > +     ip -net $SERVER_NS link set link3 up
-> > +     ip -net $SERVER_NS addr add $SERVER_IP4/24 dev link3
-> > +     ip -net $SERVER_NS addr add $SERVER_IP6/64 dev link3 nodad
-> > +     ip -net $SERVER_NS route add $CLIENT_IP4 dev link3 via $SERVER_GW=
-4
-> > +     ip -net $SERVER_NS route add $CLIENT_IP6 dev link3 via $SERVER_GW=
-6
-> > +     ip -net $SERVER_NS link set dev link3 \
-> > +             gro_ipv4_max_size $MAX_SIZE gso_ipv4_max_size $MAX_SIZE
-> > +     ip -net $SERVER_NS link set dev link3 \
-> > +             gro_max_size $MAX_SIZE gso_max_size $MAX_SIZE
-> > +     ip net exec $SERVER_NS sysctl -wq net.ipv4.tcp_window_scaling=3D1=
-0
-> > +     ip net exec $SERVER_NS netserver 2>&1 >/dev/null
-> > +}
-> > +
-> > +cleanup() {
-> > +     ip net exec $SERVER_NS pkill netserver
-> > +     ip -net $ROUTER_NS link del link1
-> > +     ip -net $ROUTER_NS link del link2
-> > +     ip netns del "$CLIENT_NS"
-> > +     ip netns del "$SERVER_NS"
-> > +     ip netns del "$ROUTER_NS"
-> > +}
-> > +
-> > +start_counter() {
-> > +     local ipt=3D"iptables"
-> > +     local iface=3D$1
-> > +     local netns=3D$2
-> > +
-> > +     [ "$NF" =3D "6" ] && ipt=3D"ip6tables"
-> > +     ip net exec $netns $ipt -t raw -A PREROUTING -i $iface \
-> > +             -m length ! --length 0:$CHK_SIZE -j ACCEPT
-> > +}
-> > +
-> > +check_counter() {
-> > +     local ipt=3D"iptables"
-> > +     local iface=3D$1
-> > +     local netns=3D$2
-> > +
-> > +     [ "$NF" =3D "6" ] && ipt=3D"ip6tables"
-> > +     test `ip net exec $netns $ipt -t raw -L -v |grep $iface | awk '{p=
-rint $1}'` !=3D "0"
-> > +}
-> > +
-> > +stop_counter() {
-> > +     local ipt=3D"iptables"
-> > +     local iface=3D$1
-> > +     local netns=3D$2
-> > +
-> > +     [ "$NF" =3D "6" ] && ipt=3D"ip6tables"
-> > +     ip net exec $netns $ipt -t raw -D PREROUTING -i $iface \
-> > +             -m length ! --length 0:$CHK_SIZE -j ACCEPT
-> > +}
-> > +
-> > +do_netperf() {
-> > +     local serip=3D$SERVER_IP4
-> > +     local netns=3D$1
-> > +
-> > +     [ "$NF" =3D "6" ] && serip=3D$SERVER_IP6
-> > +     ip net exec $netns netperf -$NF -t TCP_STREAM -H $serip 2>&1 >/de=
-v/null
-> > +}
-> > +
-> > +do_test() {
-> > +     local cli_tso=3D$1
-> > +     local gw_gro=3D$2
-> > +     local gw_tso=3D$3
-> > +     local ser_gro=3D$4
-> > +     local ret=3D"PASS"
-> > +
-> > +     ip net exec $CLIENT_NS ethtool -K link0 tso $cli_tso
-> > +     ip net exec $ROUTER_NS ethtool -K link1 gro $gw_gro
-> > +     ip net exec $ROUTER_NS ethtool -K link2 tso $gw_tso
-> > +     ip net exec $SERVER_NS ethtool -K link3 gro $ser_gro
-> > +
-> > +     start_counter link1 $ROUTER_NS
-> > +     start_counter link3 $SERVER_NS
-> > +     do_netperf $CLIENT_NS
-> > +
-> > +     if check_counter link1 $ROUTER_NS; then
-> > +             check_counter link3 $SERVER_NS || ret=3D"FAIL_on_link3"
-> > +     else
-> > +             ret=3D"FAIL_on_link1"
-> > +     fi
-> > +
-> > +     stop_counter link1 $ROUTER_NS
-> > +     stop_counter link3 $SERVER_NS
-> > +     printf "%-9s %-8s %-8s %-8s: [%s]\n" \
-> > +             $cli_tso $gw_gro $gw_tso $ser_gro $ret
-> > +     test $ret =3D "PASS"
-> > +}
-> > +
-> > +testup() {
-> > +     echo "CLI GSO | GW GRO | GW GSO | SER GRO" && \
-> > +     do_test "on"  "on"  "on"  "on"  && \
-> > +     do_test "on"  "off" "on"  "off" && \
-> > +     do_test "off" "on"  "on"  "on"  && \
-> > +     do_test "on"  "on"  "off" "on"  && \
-> > +     do_test "off" "on"  "off" "on"
-> > +}
-> > +
-> > +if ! netperf -V &> /dev/null; then
+> >       switch (family) {
+> >       case NFPROTO_IPV4:
+> >               len =3D skb_ip_totlen(skb);
+> >               break;
+> >       case NFPROTO_IPV6:
+> > -             len =3D sizeof(struct ipv6hdr)
+> > -                     + ntohs(ipv6_hdr(skb)->payload_len);
+> > +             len =3D ntohs(ipv6_hdr(skb)->payload_len);
+> > +             if (ipv6_hdr(skb)->nexthdr =3D=3D NEXTHDR_HOP) {
 >
-> Is it ever possible that we get netperf without netserver?
-Hi, Aaron,
-
-"bin_PROGRAMS =3D netperf netserver" in src/Makefile.am
-of netperf source code will ensure both will be compiled and
-installed, unless someone deletes "netserver" from the
-source code.
-
-Other kselftest like netfilter/nft_concat_range.sh also assumes
-netserver exists if netperf command is installed.
-
-Thanks for the review.
-
+> nit: if you spin a v2,
+>      you may consider reducing the scope of err to this block.
 >
-> > +     echo "SKIP: Could not run test without netperf tool"
-> > +     exit $ksft_skip
-> > +fi
-> > +
-> > +if ! ip link help 2>&1 | grep gso_ipv4_max_size &> /dev/null; then
-> > +     echo "SKIP: Could not run test without gso/gro_ipv4_max_size supp=
-orted in ip-link"
-> > +     exit $ksft_skip
-> > +fi
-> > +
-> > +trap cleanup EXIT
-> > +setup && echo "Testing for BIG TCP:" && \
-> > +NF=3D4 testup && echo "***v4 Tests Done***" && \
-> > +NF=3D6 testup && echo "***v6 Tests Done***"
-> > +exit $?
->
+Hi, Simon,
+
+I will post v2 with your suggestions including those in another 3 patches. =
+:)
+
+Thanks.
+
+> > +                     err =3D nf_ip6_check_hbh_len(skb, &len);
+> > +                     if (err)
+> > +                             return err;
+> > +             }
+> > +             len +=3D sizeof(struct ipv6hdr);
+> >               break;
+> >       default:
+> >               len =3D skb->len;
+> > --
+> > 2.39.1
+> >
