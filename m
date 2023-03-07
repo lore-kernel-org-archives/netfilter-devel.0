@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BACC678D5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 18:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D7BC678D4
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 18:45:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233159AbjCGSno (ORCPT
+        id S233214AbjCGSpj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Mar 2023 13:43:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51784 "EHLO
+        Tue, 7 Mar 2023 13:45:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233108AbjCGSnH (ORCPT
+        with ESMTP id S231560AbjCGSpN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2023 13:43:07 -0500
+        Tue, 7 Mar 2023 13:45:13 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 361229CBD6
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2023 10:32:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D37EDB7D80
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2023 10:34:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1678213901;
+        s=mimecast20190719; t=1678213992;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=UA6GVI9HVyF8oMQ333Rczj5g5DIVDiblZ9QPtMRHDjI=;
-        b=N+OBHzuWcq8v69jrFxuSMfl3EdWzLHw3hfmK7Q5nPMuAtio+MyE8vwci9hylOiujBMtwYt
-        JmXG+8ro/fg+/jzexvkZGOsCB/wOwOaJLci/fzzmMX+mWr/C4bqWujGMG9b+FsO7U8vN1V
-        rYzQC0uOMNU1sVNljVQv7jT8IneAgn0=
+        bh=2ky9dYKwxEvaHQ/+rcftd+ezGjDIRTSsKEhlT3yu3PY=;
+        b=GZmTHyfuukil9YyIcX7RVbAmI2OJj3qnRvvkxfRp9WfgbZtn7uEhSpnlKNSwoBLAp7KfnG
+        fw8j2UkvUZuFYADrAGcLIcOdWRrKoP0BHVglZaHJnayeA5VJGETu52hPsZyWv1ASZv3bjZ
+        ofsjuLxEeo21Led97ijwZv4hguQaq0o=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-601-gOW5cVuOOe2nvKJymIiDRw-1; Tue, 07 Mar 2023 13:31:38 -0500
-X-MC-Unique: gOW5cVuOOe2nvKJymIiDRw-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+ us-mta-315-tldqTq31Psu876WkwGHu2Q-1; Tue, 07 Mar 2023 13:33:02 -0500
+X-MC-Unique: tldqTq31Psu876WkwGHu2Q-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 8E296858F0E;
-        Tue,  7 Mar 2023 18:31:37 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 48997185A794;
+        Tue,  7 Mar 2023 18:33:01 +0000 (UTC)
 Received: from RHTPC1VM0NT (unknown [10.22.32.201])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0AC9F492C18;
-        Tue,  7 Mar 2023 18:31:37 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id B57762026D68;
+        Tue,  7 Mar 2023 18:33:00 +0000 (UTC)
 From:   Aaron Conole <aconole@redhat.com>
 To:     Xin Long <lucien.xin@gmail.com>
 Cc:     netfilter-devel@vger.kernel.org,
@@ -50,73 +50,116 @@ Cc:     netfilter-devel@vger.kernel.org,
         Roopa Prabhu <roopa@nvidia.com>,
         Nikolay Aleksandrov <razor@blackwall.org>,
         Pravin B Shelar <pshelar@ovn.org>
-Subject: Re: [PATCH nf-next 5/6] netfilter: use nf_ip6_check_hbh_len in
- nf_ct_skb_network_trim
+Subject: Re: [PATCH nf-next 2/6] netfilter: bridge: check len before
+ accessing more nh data
 References: <cover.1677888566.git.lucien.xin@gmail.com>
-        <5411027934a79f0430edb905ad4b434ec6b8396e.1677888566.git.lucien.xin@gmail.com>
-Date:   Tue, 07 Mar 2023 13:31:31 -0500
-In-Reply-To: <5411027934a79f0430edb905ad4b434ec6b8396e.1677888566.git.lucien.xin@gmail.com>
-        (Xin Long's message of "Fri, 3 Mar 2023 19:12:41 -0500")
-Message-ID: <f7t7cvs5s70.fsf@redhat.com>
+        <e5ea0147b3314ad9db5140c7b307472efbd114bd.1677888566.git.lucien.xin@gmail.com>
+Date:   Tue, 07 Mar 2023 13:32:59 -0500
+In-Reply-To: <e5ea0147b3314ad9db5140c7b307472efbd114bd.1677888566.git.lucien.xin@gmail.com>
+        (Xin Long's message of "Fri, 3 Mar 2023 19:12:38 -0500")
+Message-ID: <f7tttyw4dk4.fsf@redhat.com>
 User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
 MIME-Version: 1.0
 Content-Type: text/plain
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Xin Long <lucien.xin@gmail.com> writes:
 
-> For IPv6 Jumbo packets, the ipv6_hdr(skb)->payload_len is always 0,
-> and its real payload_len ( > 65535) is saved in hbh exthdr. With 0
-> length for the jumbo packets, all data and exthdr will be trimmed
-> in nf_ct_skb_network_trim().
->
-> This patch is to call nf_ip6_check_hbh_len() to get real pkt_len
-> of the IPv6 packet, similar to br_validate_ipv6().
+> In the while loop of br_nf_check_hbh_len(), similar to ip6_parse_tlv(),
+> before accessing 'nh[off + 1]', it should add a check 'len < 2'; and
+> before parsing IPV6_TLV_JUMBO, it should add a check 'optlen > len',
+> in case of overflows.
 >
 > Signed-off-by: Xin Long <lucien.xin@gmail.com>
 > ---
 
 Reviewed-by: Aaron Conole <aconole@redhat.com>
 
->  net/netfilter/nf_conntrack_ovs.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
+>  net/bridge/br_netfilter_ipv6.c | 47 ++++++++++++++++------------------
+>  1 file changed, 22 insertions(+), 25 deletions(-)
 >
-> diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-> index 52b776bdf526..2016a3b05f86 100644
-> --- a/net/netfilter/nf_conntrack_ovs.c
-> +++ b/net/netfilter/nf_conntrack_ovs.c
-> @@ -6,6 +6,7 @@
->  #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
->  #include <net/ipv6_frag.h>
->  #include <net/ip.h>
-> +#include <linux/netfilter_ipv6.h>
+> diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+> index 5cd3e4c35123..50f564c33551 100644
+> --- a/net/bridge/br_netfilter_ipv6.c
+> +++ b/net/bridge/br_netfilter_ipv6.c
+> @@ -50,54 +50,51 @@ static int br_nf_check_hbh_len(struct sk_buff *skb)
+>  	u32 pkt_len;
 >  
->  /* 'skb' should already be pulled to nh_ofs. */
->  int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
-> @@ -114,14 +115,20 @@ EXPORT_SYMBOL_GPL(nf_ct_add_helper);
->  int nf_ct_skb_network_trim(struct sk_buff *skb, int family)
->  {
->  	unsigned int len;
-> +	int err;
+>  	if (!pskb_may_pull(skb, off + 8))
+> -		goto bad;
+> +		return -1;
+>  	nh = (u8 *)(ipv6_hdr(skb) + 1);
+>  	len = (nh[1] + 1) << 3;
 >  
->  	switch (family) {
->  	case NFPROTO_IPV4:
->  		len = skb_ip_totlen(skb);
->  		break;
->  	case NFPROTO_IPV6:
-> -		len = sizeof(struct ipv6hdr)
-> -			+ ntohs(ipv6_hdr(skb)->payload_len);
-> +		len = ntohs(ipv6_hdr(skb)->payload_len);
-> +		if (ipv6_hdr(skb)->nexthdr == NEXTHDR_HOP) {
-> +			err = nf_ip6_check_hbh_len(skb, &len);
-> +			if (err)
-> +				return err;
+>  	if (!pskb_may_pull(skb, off + len))
+> -		goto bad;
+> +		return -1;
+>  	nh = skb_network_header(skb);
+>  
+>  	off += 2;
+>  	len -= 2;
+> -
+>  	while (len > 0) {
+> -		int optlen = nh[off + 1] + 2;
+> -
+> -		switch (nh[off]) {
+> -		case IPV6_TLV_PAD1:
+> -			optlen = 1;
+> -			break;
+> +		int optlen;
+>  
+> -		case IPV6_TLV_PADN:
+> -			break;
+> +		if (nh[off] == IPV6_TLV_PAD1) {
+> +			off++;
+> +			len--;
+> +			continue;
 > +		}
-> +		len += sizeof(struct ipv6hdr);
->  		break;
->  	default:
->  		len = skb->len;
+> +		if (len < 2)
+> +			return -1;
+> +		optlen = nh[off + 1] + 2;
+> +		if (optlen > len)
+> +			return -1;
+>  
+> -		case IPV6_TLV_JUMBO:
+> +		if (nh[off] == IPV6_TLV_JUMBO) {
+>  			if (nh[off + 1] != 4 || (off & 3) != 2)
+> -				goto bad;
+> +				return -1;
+>  			pkt_len = ntohl(*(__be32 *)(nh + off + 2));
+>  			if (pkt_len <= IPV6_MAXPLEN ||
+>  			    ipv6_hdr(skb)->payload_len)
+> -				goto bad;
+> +				return -1;
+>  			if (pkt_len > skb->len - sizeof(struct ipv6hdr))
+> -				goto bad;
+> +				return -1;
+>  			if (pskb_trim_rcsum(skb,
+>  					    pkt_len + sizeof(struct ipv6hdr)))
+> -				goto bad;
+> +				return -1;
+>  			nh = skb_network_header(skb);
+> -			break;
+> -		default:
+> -			if (optlen > len)
+> -				goto bad;
+> -			break;
+>  		}
+>  		off += optlen;
+>  		len -= optlen;
+>  	}
+> -	if (len == 0)
+> -		return 0;
+> -bad:
+> -	return -1;
+> +	if (len)
+> +		return -1;
+> +
+> +	return 0;
+>  }
+>  
+>  int br_validate_ipv6(struct net *net, struct sk_buff *skb)
 
