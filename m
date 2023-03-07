@@ -2,62 +2,62 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBC5DC6FD1B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 09:20:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2FD7C678D5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 09:21:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230305AbjCGJUL (ORCPT
+        id S230180AbjCGJVl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Mar 2023 04:20:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35732 "EHLO
+        Tue, 7 Mar 2023 04:21:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229819AbjCGJUK (ORCPT
+        with ESMTP id S229967AbjCGJVi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2023 04:20:10 -0500
-Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4B4D86DE7
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2023 01:20:06 -0800 (PST)
-Received: by mail-ed1-x533.google.com with SMTP id s11so49550032edy.8
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Mar 2023 01:20:06 -0800 (PST)
+        Tue, 7 Mar 2023 04:21:38 -0500
+Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECC67574E2
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2023 01:21:09 -0800 (PST)
+Received: by mail-ed1-x52d.google.com with SMTP id da10so49651274edb.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Mar 2023 01:21:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=blackwall-org.20210112.gappssmtp.com; s=20210112; t=1678180805;
+        d=blackwall-org.20210112.gappssmtp.com; s=20210112; t=1678180868;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=zu/hjvWXlUQhawKgHr39aKzFHFibVYuD00ads5+zLRQ=;
-        b=bjzwJQ9uC4VEnNp28JY112LiyASziAeFsi32aKqEOWXqmCVe/3gPesr7t/pV4I/YPZ
-         N457FtXlvI7xpy35IzsWxORDdm9GEPt0N+lo95LkfKh+6pHyntaLVExi3Uyr0D/9B01i
-         l7d4yP7WK840gSbICf/o7YXHjnm955hxXJSa5tgUGsNwS5OgWhy5y6nYbvJnw0i2+9gD
-         QMPreLlnDhnRSB98IuYM/X7ajry1j+7ow6ifM25oARzQEiju6bOYMXik6QvHxnh+gJz8
-         BMBKSy+3Rsvdshd7gJgt5OVP5X4kHNRcqYLoCcgrsmnnPMpaKc/F8bUiSMAN61M3X0bK
-         l36A==
+        bh=pmejKJhY8kS8le1iYDvgZAW/SVHpIgE1uUSZj/e2Qqs=;
+        b=VfVM3Pdd3WVogZb/T7XK3ltSunZbHpkSP0HsLlvVw8jpAsJHXrhVsyKFd32Kv3XsI5
+         uaKEW90fwJ6sSoE512CsoCtwYqnTvrWEFus3+ripLUGwXDNf+AxTX9qy6Phv9thwgP8q
+         oyGoKTNP0adagIy5m2CoonApzy1z0utC23mk02nO0LIZHVnI1nV2BwrPB4QE/RkEzDaM
+         0iFFOxUaKD/4gac+QK7cnlJcsYeGRD+pA/6A6m8fKY+AijnWBf6w30jmiQwPqsCSMZ72
+         517mb3aghPDiGlq9/5VML06mOoMFrLBPBNst5CUaifKKcsvXq4+j4NMRsoxG3zIeAtFl
+         vedA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678180805;
+        d=1e100.net; s=20210112; t=1678180868;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=zu/hjvWXlUQhawKgHr39aKzFHFibVYuD00ads5+zLRQ=;
-        b=tHQ9TW6iOgN/YGfVAMBb9tZMCq2puUkAacI3cS4SI0Zqazt+3vSbvPzqhj+VWvbLDf
-         ZTskbql0pAJA7JmCI8DtrUvMdXA/gCg9jEES/E1Mkr015k+zL1GwDeJwH+zdTBL2Keq8
-         kX5lHt67D9jfKw9pnkhTJEf9aq6H+rNRySyL6zea5VwlM7Uuq/TanMKWPx2dVDqRDKen
-         AB9EWNQScWuB/DOieXC2T/yVWwvJcXnS+JmIXbd6NfOlDmEiXmFg7hMJqZd3I858i96b
-         LYByjypgq6SOww5NiFO4Zweal8N2bYz0Tr/255hzmw5s1c+PPtCnxr2bZvS0C8+Saozg
-         RlKA==
-X-Gm-Message-State: AO0yUKV1tJrCjGRPkHPD7fLSPwHgihXnv5puhNwCGQt4hMtzmoFPdjGP
-        94cC6Z3H5o3KzWGoIAY7J9BkpA==
-X-Google-Smtp-Source: AK7set+mFVAMIXdWzLWwuXV1apjF3mwxvpxsM8dKiUjZ4IFlSGeJznDezn05zLQCg/m97aIqs7WDKg==
-X-Received: by 2002:a50:ee02:0:b0:4c3:6ac8:2aac with SMTP id g2-20020a50ee02000000b004c36ac82aacmr12044793eds.35.1678180805304;
-        Tue, 07 Mar 2023 01:20:05 -0800 (PST)
+        bh=pmejKJhY8kS8le1iYDvgZAW/SVHpIgE1uUSZj/e2Qqs=;
+        b=NBiG8TqX0G7WUGI5n+KuFZ6aioH5xPt1Jv8TCY4HIvkkQNHahzMY0VqcB4NUmaUYdT
+         TBKEW6SyICAuTFDXGxgoNfvEq718AyFkAPI74YM7wTeg08xYvjykrIYRHFYfXSpaA2Ns
+         Ca/elsaFJV8H5fP8AYYzML4+v9CYg2DlaHu2ZILHJIDegEtopIomW/zcCaio7lfQwhEO
+         UPFDg+vFxFQQ7s90sBLxJ5EqbDurQxZyUB04RbtPTfdDPKo/C/S/g6oANkqkDgpFyj7A
+         H4GbNhc3pqveO6me7J1WKS+ttRLueWym2RH5rP5alZQ5TcJePyReAnc/QNvfCZBn8lEI
+         7vAA==
+X-Gm-Message-State: AO0yUKWc0Us6HgZxOPpOcwd0XaTMk73XeIMePr4qYPmNYo72+FPUP6xI
+        A0dJ2JxIixUoq3KVKUxZinm+aw==
+X-Google-Smtp-Source: AK7set/GwyBiG98g/czRfMSUeCRSbkX/YyJjfGn1sHqj/fRULINCeYQDcSN7SGeWkYjFEaVBwM7lng==
+X-Received: by 2002:a05:6402:5154:b0:4ad:7c30:2599 with SMTP id n20-20020a056402515400b004ad7c302599mr12942744edd.13.1678180868391;
+        Tue, 07 Mar 2023 01:21:08 -0800 (PST)
 Received: from [192.168.0.161] (62-73-72-43.ip.btc-net.bg. [62.73.72.43])
-        by smtp.gmail.com with ESMTPSA id m26-20020a50999a000000b004af73333d6esm6439765edb.53.2023.03.07.01.20.04
+        by smtp.gmail.com with ESMTPSA id o26-20020a50c29a000000b004ac54d4da22sm6406095edf.71.2023.03.07.01.21.07
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 07 Mar 2023 01:20:05 -0800 (PST)
-Message-ID: <583cc2c7-7883-57fe-6b48-25e5e43c3ec0@blackwall.org>
-Date:   Tue, 7 Mar 2023 11:20:03 +0200
+        Tue, 07 Mar 2023 01:21:08 -0800 (PST)
+Message-ID: <b4da4a94-4aa7-9653-0f51-a047a39bf4f2@blackwall.org>
+Date:   Tue, 7 Mar 2023 11:21:06 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.8.0
-Subject: Re: [PATCH nf-next 2/6] netfilter: bridge: check len before accessing
- more nh data
+Subject: Re: [PATCH nf-next 3/6] netfilter: bridge: move pskb_trim_rcsum out
+ of br_nf_check_hbh_len
 Content-Language: en-US
 To:     Xin Long <lucien.xin@gmail.com>, netfilter-devel@vger.kernel.org,
         network dev <netdev@vger.kernel.org>
@@ -70,9 +70,9 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Pravin B Shelar <pshelar@ovn.org>,
         Aaron Conole <aconole@redhat.com>
 References: <cover.1677888566.git.lucien.xin@gmail.com>
- <e5ea0147b3314ad9db5140c7b307472efbd114bd.1677888566.git.lucien.xin@gmail.com>
+ <688b6037c640efeb6141d4646cc9dc1b657796e7.1677888566.git.lucien.xin@gmail.com>
 From:   Nikolay Aleksandrov <razor@blackwall.org>
-In-Reply-To: <e5ea0147b3314ad9db5140c7b307472efbd114bd.1677888566.git.lucien.xin@gmail.com>
+In-Reply-To: <688b6037c640efeb6141d4646cc9dc1b657796e7.1677888566.git.lucien.xin@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -80,16 +80,16 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On 04/03/2023 02:12, Xin Long wrote:
-> In the while loop of br_nf_check_hbh_len(), similar to ip6_parse_tlv(),
-> before accessing 'nh[off + 1]', it should add a check 'len < 2'; and
-> before parsing IPV6_TLV_JUMBO, it should add a check 'optlen > len',
-> in case of overflows.
+> br_nf_check_hbh_len() is a function to check the Hop-by-hop option
+> header, and shouldn't do pskb_trim_rcsum() there. This patch is to
+> pass pkt_len out to br_validate_ipv6() and do pskb_trim_rcsum()
+> after calling br_validate_ipv6() instead.
 > 
 > Signed-off-by: Xin Long <lucien.xin@gmail.com>
 > ---
->  net/bridge/br_netfilter_ipv6.c | 47 ++++++++++++++++------------------
->  1 file changed, 22 insertions(+), 25 deletions(-)
-
+>  net/bridge/br_netfilter_ipv6.c | 33 ++++++++++++++-------------------
+>  1 file changed, 14 insertions(+), 19 deletions(-)
+> 
 
 Acked-by: Nikolay Aleksandrov <razor@blackwall.org>
 
