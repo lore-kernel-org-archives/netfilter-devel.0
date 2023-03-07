@@ -2,87 +2,71 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96501C678D5
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 14:35:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E48ABC6FD1A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 17:31:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229812AbjCGOfU (ORCPT
+        id S231660AbjCGRbD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Mar 2023 09:35:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39564 "EHLO
+        Tue, 7 Mar 2023 12:31:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231366AbjCGOe0 (ORCPT
+        with ESMTP id S230076AbjCGRas (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2023 09:34:26 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F3C285A59;
-        Tue,  7 Mar 2023 06:30:19 -0800 (PST)
+        Tue, 7 Mar 2023 12:30:48 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9B99A6751;
+        Tue,  7 Mar 2023 09:26:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D3DF60DBB;
-        Tue,  7 Mar 2023 14:30:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 98807C433D2;
-        Tue,  7 Mar 2023 14:30:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 52336611A1;
+        Tue,  7 Mar 2023 17:26:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730DDC433D2;
+        Tue,  7 Mar 2023 17:26:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1678199418;
-        bh=gXPkTWbahz3ORbfpJZiBGYEwqJ/rCSLFbAFkrFKsIlo=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=c+AUUZrfajAt1OLLGXhkxoECKDnahh2grC0BEunkmlG3xRq63e0SClRfjfq7Za4Hc
-         1PZVXfIwfVZGrL9RoRFE+gWF61sMPuIohgiRV/WQtOs/UzLOEKQYsynkOL0P8itVS8
-         ABlPvSm0oRCxEAlpPoBy0Y9sv18pI85t0UVr1vRcnrAIOjkvnzjGkMh47Zt07PFkXH
-         msfrYqWBH08G2rpHMzxOpqeac/FGQfuXAKt9deA5n/e/gYJABzulBxH4JB8FaUaof4
-         qeMyPgnY5nylM5xoDReJTymLIN+9n6XJhTWI0B5XIJ58OVL97e7W/BLxa7Nh1Lz1SQ
-         aRcp+HNjU+e7g==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 73419E61B65;
-        Tue,  7 Mar 2023 14:30:18 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: ctnetlink: revert to dumping mark
- regardless of event type
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <167819941844.11375.13263488021043524057.git-patchwork-notify@kernel.org>
-Date:   Tue, 07 Mar 2023 14:30:18 +0000
-References: <20230307100424.2037-2-pablo@netfilter.org>
-In-Reply-To: <20230307100424.2037-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        s=k20201202; t=1678209965;
+        bh=m9jc81Pj1PKOfL+JKl/PmdayHEWkLYIw+XAAuz4V37E=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=fxbBWOPGJDUFXUNTXoikMRzwUcIicWL3tqu/LKPHLq2XzynpmrRFmnW/AIYx5JbsT
+         z/8akKaoPQW/6CSZFd74pOrh0LeamoneqLi22xWKmk9PEZ3me3mq5lH/VfJT2KMpSX
+         fzESIhq4bIKxklJK9dwzIasw+Nm9tADh0mnEMJL+woBrptsmn5x7vZbEFd4Wvsei5A
+         J96v6c/BDwb1skaHzkWYcd62oacmHxH2mw+CSudFX4cdcWo2AzXLREWACP7Uyo8XOk
+         hHFkhR2JwFBlDqtneRYw2mJwI+QEiKumfB7RBTCcQB6BzFXmZcY1SAFujNn2CHBD64
+         JFKHY6H3kUw4g==
+Date:   Tue, 7 Mar 2023 09:26:04 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+        netdev@vger.kernel.org, edumazet@google.com
+Subject: Re: [PATCH net 0/3] Netfilter fixes for net
+Message-ID: <20230307092604.52a3ce34@kernel.org>
+In-Reply-To: <66e565ba357feb2b4411828c65624986eaefb393.camel@redhat.com>
+References: <20230307100424.2037-1-pablo@netfilter.org>
+        <66e565ba357feb2b4411828c65624986eaefb393.camel@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Tue,  7 Mar 2023 11:04:22 +0100 you wrote:
-> From: Ivan Delalande <colona@arista.com>
+On Tue, 07 Mar 2023 13:57:07 +0100 Paolo Abeni wrote:
+> On Tue, 2023-03-07 at 11:04 +0100, Pablo Neira Ayuso wrote:
+> > The following changes since commit 528125268588a18a2f257002af051b62b14bb282:
+> > 
+> >   Merge branch 'nfp-ipsec-csum' (2023-03-03 08:28:44 +0000)
+> > 
+> > are available in the Git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD  
 > 
-> It seems that change was unintentional, we have userspace code that
-> needs the mark while listening for events like REPLY, DESTROY, etc.
-> Also include 0-marks in requested dumps, as they were before that fix.
-> 
-> Fixes: 1feeae071507 ("netfilter: ctnetlink: fix compilation warning after data race fixes in ct mark")
-> Signed-off-by: Ivan Delalande <colona@arista.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> [...]
+> It's not clear to me the root cause, but pulling from the above ref.
+> yields nothing. I have to replace 'HEAD' with main to get the expected
+> patches.
 
-Here is the summary with links:
-  - [net,1/3] netfilter: ctnetlink: revert to dumping mark regardless of event type
-    https://git.kernel.org/netdev/net/c/9f7dd42f0db1
-  - [net,2/3] netfilter: tproxy: fix deadlock due to missing BH disable
-    https://git.kernel.org/netdev/net/c/4a02426787bf
-  - [net,3/3] netfilter: conntrack: adopt safer max chain length
-    https://git.kernel.org/netdev/net/c/c77737b736ce
+Possibly netfilter folks did not update HEAD to point to main?
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+ssh git@gitolite.kernel.org symbolic-ref \
+    pub/scm/linux/kernel/git/netfilter/nf \
+    HEAD refs/heads/main
