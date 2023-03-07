@@ -2,64 +2,58 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A243C6FD1E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 20:59:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3CA3C678D5
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 21:31:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbjCGU7V (ORCPT
+        id S229940AbjCGVbg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Mar 2023 15:59:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56882 "EHLO
+        Tue, 7 Mar 2023 16:31:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229497AbjCGU7U (ORCPT
+        with ESMTP id S229548AbjCGVbg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2023 15:59:20 -0500
-Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40D5899650;
-        Tue,  7 Mar 2023 12:59:19 -0800 (PST)
-Received: by mail-yb1-xb2b.google.com with SMTP id i6so12731070ybu.8;
-        Tue, 07 Mar 2023 12:59:19 -0800 (PST)
+        Tue, 7 Mar 2023 16:31:36 -0500
+Received: from mail-qv1-xf31.google.com (mail-qv1-xf31.google.com [IPv6:2607:f8b0:4864:20::f31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23119193FA;
+        Tue,  7 Mar 2023 13:31:35 -0800 (PST)
+Received: by mail-qv1-xf31.google.com with SMTP id bo10so9855150qvb.12;
+        Tue, 07 Mar 2023 13:31:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1678222758;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=tHJXrIjsNIHO7LWs4CXCAWVbyd5QEtRy0CMDfKJJ6po=;
-        b=Nwvd5g85FsgOa+I//hm0swX2q+YvWc4e75buSzlEXP2bpqPY8ISmDnagYKE1Mhbgxc
-         obDz4+7l3GJFg07cb4JDX+0r3RkXYI5MtMLLQiM5d+nN8XxKfsdCMFuDLHTyUXwexDaZ
-         yWdqgPc2YOJPMnEktFbYHPUXu06PnTQqwd6LUL0MgQAHLzUK5ePNan3uzkIn1Vrd6KBk
-         UpX43enLYKuoFtPUdgRbKminwE708AZQBnglSNJOGyp9MTPkGgEASN3GjESS0rBgsvTF
-         KPwD06FWdQeU+iwCsMlozp/0oWgU+nLWlWz/ukOVRojsjJTVVNuex1YF/OWzZFH3wrau
-         323w==
+        d=gmail.com; s=20210112; t=1678224694;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=yff8KdMSGC1/YkFySy35NRQTKZ1OPFf9I0TG1c87sSE=;
+        b=HU3FaK2P7bRH7wZ7OywsU/y5xZJSV2dYN6+VOAN3B20pi1Tsk5p8QiI/26+0g5ve1V
+         0Gr95u5b4rUPw5iksmbAdUO6VbVEJCCfEO18I2RKMRGteFTN6cBwVJnbumb6qOdZIhQ7
+         QO38xUNh0v0hShg02qzNx3+W1281g9jI3lI4jR9OUJ/s2dbBqpNsqJ3IACIaRxbzivH9
+         szkQnsib1RnK1UmUgxo97kozt42kkyB1aUVu2uRGNyCxWNw7GRGVWAHCIiHsan+FEmQh
+         fqkqwp96FCLAcNCW+bDqiLGcmXBRy84pXSs0uWjF8wH7vahQFm3t5wJsOBpWXSP0HHT1
+         bomQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678222758;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=tHJXrIjsNIHO7LWs4CXCAWVbyd5QEtRy0CMDfKJJ6po=;
-        b=RiKTypZIyrZsVs3n6EYSAtHwxQCX8pAW35e+pVWUJXCAMUeT0FI5olkI1XjyVpcs2+
-         r9rfD0vqMeOH6VHwwlC2MKMroS6MsQt3yK12ZwmZhCAF86EXfmZgP5Ntuy6zULsKMvaC
-         zuL+yRpreQ3U8qRci3Y7i7s/dEBdxn9ccKzs7jtljFUTcEmhPBqzDylTWKpJumT5aD+R
-         zRUDRxx/2WgNq7222/bqYSxhCQjtcbKyqHH2xIKZzpYBVjhfZREy90vreaR4ZkSQeD5m
-         MjZS1h4wdhAyqlgdrzFI5KIgK4QOAiPmIipeochBV2BcKQuM3v0itt66QlhR80ZpL6Hk
-         /luA==
-X-Gm-Message-State: AO0yUKUiDwjFkzng2/wkSQKDE1RB7uszdyNH2pjWBiqCiMMCeeDLRt59
-        UpADgJ17Ze0+/AyrMFMnXb4AMBEB5FT5CyZfbh8=
-X-Google-Smtp-Source: AK7set8SGIM++YKZWAw23kBW+DHamqpKNeLHk+g0lWX48d425TylxbEtTYlohseB2xiH/zxl1/LZtyo2Gwt6R13VBxU=
-X-Received: by 2002:a25:8b8f:0:b0:906:307b:1449 with SMTP id
- j15-20020a258b8f000000b00906307b1449mr9461031ybl.5.1678222758360; Tue, 07 Mar
- 2023 12:59:18 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.1677888566.git.lucien.xin@gmail.com> <5411027934a79f0430edb905ad4b434ec6b8396e.1677888566.git.lucien.xin@gmail.com>
- <ZAYWP1FbItjLN48Y@corigine.com>
-In-Reply-To: <ZAYWP1FbItjLN48Y@corigine.com>
+        d=1e100.net; s=20210112; t=1678224694;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yff8KdMSGC1/YkFySy35NRQTKZ1OPFf9I0TG1c87sSE=;
+        b=fcjzmBAFAfv4FU5zasA24SjwONR5OX5g2V489BBN7CGgOAV3z1XEeMSX9OWcGmdKeO
+         rgJ7re8J8M8SvKpvmUaQ1zKJIZoHGZKCma5fRjILc4RRJtdXn0ClpWTLbsTtW4E9u67C
+         a4KmKiPlu8pIk6i3oPKDJlq+H60o5UVSx7fiU552zialHmSWWzwpw/zYs3qmbVmjCAyn
+         Crpgn9+/5ij/K0VsIELK7GoNCGnLRaDVe+Wzh+YlJr0YhH7AHMSLEI+Pt98kZ4RbjqjY
+         KPYe1eeokCSZ2T/Ge10FVwmzoEqAFuIYE2cHJmvMHTYE7VIVRMRTLAxdxIK0yZdrP9eZ
+         2GZQ==
+X-Gm-Message-State: AO0yUKWs9W0ejyhnwLADUhyOApQpGonZFlnLjwksSBZO4E5xaNq6p3eu
+        bD/b2seY/5jufGrZFts4fBaA37EIZtxiqw==
+X-Google-Smtp-Source: AK7set+TK8LOQqN9O1w7gkWBGBBNWkYcM9GXfigbB9bjt6IOky/gWL/XtAIGowQqrEHFhSYTcYQzcQ==
+X-Received: by 2002:a05:6214:1c4c:b0:56b:ec30:67eb with SMTP id if12-20020a0562141c4c00b0056bec3067ebmr28980617qvb.39.1678224694019;
+        Tue, 07 Mar 2023 13:31:34 -0800 (PST)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id r125-20020a374483000000b006fcb77f3bd6sm10269329qka.98.2023.03.07.13.31.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Mar 2023 13:31:33 -0800 (PST)
 From:   Xin Long <lucien.xin@gmail.com>
-Date:   Tue, 7 Mar 2023 15:58:51 -0500
-Message-ID: <CADvbK_c7gSYkvLy53sQU+_co_o7xLF52KeWTKH0xpMDD02pW5A@mail.gmail.com>
-Subject: Re: [PATCH nf-next 5/6] netfilter: use nf_ip6_check_hbh_len in nf_ct_skb_network_trim
-To:     Simon Horman <simon.horman@corigine.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        network dev <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+To:     netfilter-devel@vger.kernel.org,
+        network dev <netdev@vger.kernel.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>, davem@davemloft.net,
         kuba@kernel.org, Eric Dumazet <edumazet@google.com>,
@@ -67,73 +61,60 @@ Cc:     netfilter-devel@vger.kernel.org,
         Roopa Prabhu <roopa@nvidia.com>,
         Nikolay Aleksandrov <razor@blackwall.org>,
         Pravin B Shelar <pshelar@ovn.org>,
-        Aaron Conole <aconole@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Aaron Conole <aconole@redhat.com>,
+        Simon Horman <simon.horman@corigine.com>
+Subject: [PATCHv2 nf-next 0/6] netfilter: handle ipv6 jumbo packets properly for bridge ovs and tc
+Date:   Tue,  7 Mar 2023 16:31:26 -0500
+Message-Id: <cover.1678224658.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.39.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Mar 6, 2023 at 11:35=E2=80=AFAM Simon Horman <simon.horman@corigine=
-.com> wrote:
->
-> On Fri, Mar 03, 2023 at 07:12:41PM -0500, Xin Long wrote:
-> > For IPv6 Jumbo packets, the ipv6_hdr(skb)->payload_len is always 0,
-> > and its real payload_len ( > 65535) is saved in hbh exthdr. With 0
-> > length for the jumbo packets, all data and exthdr will be trimmed
-> > in nf_ct_skb_network_trim().
-> >
-> > This patch is to call nf_ip6_check_hbh_len() to get real pkt_len
-> > of the IPv6 packet, similar to br_validate_ipv6().
-> >
-> > Signed-off-by: Xin Long <lucien.xin@gmail.com>
->
-> Reviewed-by: Simon Horman <simon.horman@corigine.com>
->
-> ...
->
-> > diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntr=
-ack_ovs.c
-> > index 52b776bdf526..2016a3b05f86 100644
-> > --- a/net/netfilter/nf_conntrack_ovs.c
-> > +++ b/net/netfilter/nf_conntrack_ovs.c
->
-> ...
->
-> > @@ -114,14 +115,20 @@ EXPORT_SYMBOL_GPL(nf_ct_add_helper);
-> >  int nf_ct_skb_network_trim(struct sk_buff *skb, int family)
-> >  {
-> >       unsigned int len;
-> > +     int err;
-> >
-> >       switch (family) {
-> >       case NFPROTO_IPV4:
-> >               len =3D skb_ip_totlen(skb);
-> >               break;
-> >       case NFPROTO_IPV6:
-> > -             len =3D sizeof(struct ipv6hdr)
-> > -                     + ntohs(ipv6_hdr(skb)->payload_len);
-> > +             len =3D ntohs(ipv6_hdr(skb)->payload_len);
-> > +             if (ipv6_hdr(skb)->nexthdr =3D=3D NEXTHDR_HOP) {
->
-> nit: if you spin a v2,
->      you may consider reducing the scope of err to this block.
->
-Hi, Simon,
+Currently pskb_trim_rcsum() is always done on the RX path. However, IPv6
+jumbo packets hide the real packet len in the Hop-by-hop option header,
+which should be parsed before doing the trim.
 
-I will post v2 with your suggestions including those in another 3 patches. =
-:)
+In ip6_rcv_core() it calls ipv6_parse_hopopts() to handle the Hop-by-hop
+option header then do pskb_trim_rcsum(). The similar process should also
+be done properly before pskb_trim_rcsum() on the RX path of bridge and
+openvswitch and tc.
 
-Thanks.
+This patchset improves the function handling the Hop-by-hop option header
+in bridge, and moves this function into netfilter utils, and then uses it
+in nf_conntrack_ovs for openvswitch and and tc.
 
-> > +                     err =3D nf_ip6_check_hbh_len(skb, &len);
-> > +                     if (err)
-> > +                             return err;
-> > +             }
-> > +             len +=3D sizeof(struct ipv6hdr);
-> >               break;
-> >       default:
-> >               len =3D skb->len;
-> > --
-> > 2.39.1
-> >
+Note that this patch is especially needed after the IPv6 BIG TCP was
+supported in kernel, which is using IPv6 Jumbo packets, and the last
+patch adds a big tcp selftest, which also covers it.
+
+v1->v2:
+  - use the proper cast type in Patch 1, as Simon suggested.
+  - simplify the return path in Patch 2, as Simon suggested.
+  - move pkt_len definition into a smaller scope in Patch 3,
+    as Simon suggested.
+  - move err definition into a smaller scope in Patch 5, as
+    Simon suggested.
+
+Xin Long (6):
+  netfilter: bridge: call pskb_may_pull in br_nf_check_hbh_len
+  netfilter: bridge: check len before accessing more nh data
+  netfilter: bridge: move pskb_trim_rcsum out of br_nf_check_hbh_len
+  netfilter: move br_nf_check_hbh_len to utils
+  netfilter: use nf_ip6_check_hbh_len in nf_ct_skb_network_trim
+  selftests: add a selftest for big tcp
+
+ include/linux/netfilter_ipv6.h         |   2 +
+ net/bridge/br_netfilter_ipv6.c         |  79 ++---------
+ net/netfilter/nf_conntrack_ovs.c       |  11 +-
+ net/netfilter/utils.c                  |  52 +++++++
+ tools/testing/selftests/net/Makefile   |   1 +
+ tools/testing/selftests/net/big_tcp.sh | 180 +++++++++++++++++++++++++
+ 6 files changed, 254 insertions(+), 71 deletions(-)
+ create mode 100755 tools/testing/selftests/net/big_tcp.sh
+
+-- 
+2.39.1
+
