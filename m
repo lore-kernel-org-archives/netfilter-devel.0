@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F066C6FD1B
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 10:04:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27C6CC6FD1F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Mar 2023 10:04:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230514AbjCGKEf (ORCPT
+        id S231148AbjCGKEi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Mar 2023 05:04:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40368 "EHLO
+        Tue, 7 Mar 2023 05:04:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230444AbjCGKEe (ORCPT
+        with ESMTP id S231128AbjCGKEf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2023 05:04:34 -0500
+        Tue, 7 Mar 2023 05:04:35 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F038A3CE2F;
-        Tue,  7 Mar 2023 02:04:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 29073392B2;
+        Tue,  7 Mar 2023 02:04:33 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 1/3] netfilter: ctnetlink: revert to dumping mark regardless of event type
-Date:   Tue,  7 Mar 2023 11:04:22 +0100
-Message-Id: <20230307100424.2037-2-pablo@netfilter.org>
+Subject: [PATCH net 3/3] netfilter: conntrack: adopt safer max chain length
+Date:   Tue,  7 Mar 2023 11:04:24 +0100
+Message-Id: <20230307100424.2037-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230307100424.2037-1-pablo@netfilter.org>
 References: <20230307100424.2037-1-pablo@netfilter.org>
@@ -32,75 +32,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Ivan Delalande <colona@arista.com>
+From: Eric Dumazet <edumazet@google.com>
 
-It seems that change was unintentional, we have userspace code that
-needs the mark while listening for events like REPLY, DESTROY, etc.
-Also include 0-marks in requested dumps, as they were before that fix.
+Customers using GKE 1.25 and 1.26 are facing conntrack issues
+root caused to commit c9c3b6811f74 ("netfilter: conntrack: make
+max chain length random").
 
-Fixes: 1feeae071507 ("netfilter: ctnetlink: fix compilation warning after data race fixes in ct mark")
-Signed-off-by: Ivan Delalande <colona@arista.com>
+Even if we assume Uniform Hashing, a bucket often reachs 8 chained
+items while the load factor of the hash table is smaller than 0.5
+
+With a limit of 16, we reach load factors of 3.
+With a limit of 32, we reach load factors of 11.
+With a limit of 40, we reach load factors of 15.
+With a limit of 50, we reach load factors of 24.
+
+This patch changes MIN_CHAINLEN to 50, to minimize risks.
+
+Ideally, we could in the future add a cushion based on expected
+load factor (2 * nf_conntrack_max / nf_conntrack_buckets),
+because some setups might expect unusual values.
+
+Fixes: c9c3b6811f74 ("netfilter: conntrack: make max chain length random")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index c11dff91d52d..bfc3aaa2c872 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -328,11 +328,12 @@ ctnetlink_dump_timestamp(struct sk_buff *skb, const struct nf_conn *ct)
- }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7250082e7de5..c6a6a6099b4e 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -96,8 +96,8 @@ static DEFINE_MUTEX(nf_conntrack_mutex);
+ #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
+ #define GC_SCAN_EXPIRED_MAX	(64000u / HZ)
  
- #ifdef CONFIG_NF_CONNTRACK_MARK
--static int ctnetlink_dump_mark(struct sk_buff *skb, const struct nf_conn *ct)
-+static int ctnetlink_dump_mark(struct sk_buff *skb, const struct nf_conn *ct,
-+			       bool dump)
- {
- 	u32 mark = READ_ONCE(ct->mark);
+-#define MIN_CHAINLEN	8u
+-#define MAX_CHAINLEN	(32u - MIN_CHAINLEN)
++#define MIN_CHAINLEN	50u
++#define MAX_CHAINLEN	(80u - MIN_CHAINLEN)
  
--	if (!mark)
-+	if (!mark && !dump)
- 		return 0;
+ static struct conntrack_gc_work conntrack_gc_work;
  
- 	if (nla_put_be32(skb, CTA_MARK, htonl(mark)))
-@@ -343,7 +344,7 @@ static int ctnetlink_dump_mark(struct sk_buff *skb, const struct nf_conn *ct)
- 	return -1;
- }
- #else
--#define ctnetlink_dump_mark(a, b) (0)
-+#define ctnetlink_dump_mark(a, b, c) (0)
- #endif
- 
- #ifdef CONFIG_NF_CONNTRACK_SECMARK
-@@ -548,7 +549,7 @@ static int ctnetlink_dump_extinfo(struct sk_buff *skb,
- static int ctnetlink_dump_info(struct sk_buff *skb, struct nf_conn *ct)
- {
- 	if (ctnetlink_dump_status(skb, ct) < 0 ||
--	    ctnetlink_dump_mark(skb, ct) < 0 ||
-+	    ctnetlink_dump_mark(skb, ct, true) < 0 ||
- 	    ctnetlink_dump_secctx(skb, ct) < 0 ||
- 	    ctnetlink_dump_id(skb, ct) < 0 ||
- 	    ctnetlink_dump_use(skb, ct) < 0 ||
-@@ -831,8 +832,7 @@ ctnetlink_conntrack_event(unsigned int events, const struct nf_ct_event *item)
- 	}
- 
- #ifdef CONFIG_NF_CONNTRACK_MARK
--	if (events & (1 << IPCT_MARK) &&
--	    ctnetlink_dump_mark(skb, ct) < 0)
-+	if (ctnetlink_dump_mark(skb, ct, events & (1 << IPCT_MARK)))
- 		goto nla_put_failure;
- #endif
- 	nlmsg_end(skb, nlh);
-@@ -2735,7 +2735,7 @@ static int __ctnetlink_glue_build(struct sk_buff *skb, struct nf_conn *ct)
- 		goto nla_put_failure;
- 
- #ifdef CONFIG_NF_CONNTRACK_MARK
--	if (ctnetlink_dump_mark(skb, ct) < 0)
-+	if (ctnetlink_dump_mark(skb, ct, true) < 0)
- 		goto nla_put_failure;
- #endif
- 	if (ctnetlink_dump_labels(skb, ct) < 0)
 -- 
 2.30.2
 
