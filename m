@@ -2,96 +2,58 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED0E6C64EC4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Mar 2023 07:41:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41D95C6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Mar 2023 08:32:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230365AbjCJHle (ORCPT
+        id S230309AbjCJIcQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 10 Mar 2023 02:41:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35878 "EHLO
+        Fri, 10 Mar 2023 03:32:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230134AbjCJHks (ORCPT
+        with ESMTP id S230182AbjCJIcM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Mar 2023 02:40:48 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 324771086AE;
-        Thu,  9 Mar 2023 23:40:22 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 917D960EE2;
-        Fri, 10 Mar 2023 07:40:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id E651EC433D2;
-        Fri, 10 Mar 2023 07:40:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1678434021;
-        bh=ZdzysiwyCIYfh29jghqFM8f/yP9OfVdUcVhxhaPw43U=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=J2ENKcf+wYVBibVz+sEh9Quaz8a+hTfhiZueLqw97LM+0ys6hqv29Vit8BdlZ7FoJ
-         amUbRHxs1M6LLJ1nkVS5/lK0UswUnb0mPk86wLi7XFVX5JjAyDEqF6Frwwj6OTsP6+
-         x6qTav/wiDEyIuZ07m36HZeq/7bsD1ZEIhpcHNcPN2Byxl+1NJa2l8W4A7p2Z+IO9S
-         o0SkfijbadaeCse/Rz8GXgrT4oNDC+XP2k9lYUNJmYe+ntcdaBxUL/KgWkoQlkoyv1
-         wnM9b2JPUVR+PCR2jjlPEr6VLdfbCWVRQh2EbUej7EDYjhVBd/cncFEZHiaaBXwNKL
-         Re8DXBjMkUzQw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C2732C59A4C;
-        Fri, 10 Mar 2023 07:40:20 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Fri, 10 Mar 2023 03:32:12 -0500
+Received: from mail.craftsplex.pl (mail.craftsplex.pl [162.19.155.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 493FAA54D8
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Mar 2023 00:32:05 -0800 (PST)
+Received: by mail.craftsplex.pl (Postfix, from userid 1002)
+        id 82D6D23EBC; Fri, 10 Mar 2023 08:31:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=craftsplex.pl;
+        s=mail; t=1678437122;
+        bh=PcMncQpBfIZCnTOfZJY5G1G+gaLn4c9QPfFvoXrE4rA=;
+        h=Date:From:To:Subject:From;
+        b=OoTT44MP2eSqAPVyzoOlgXACUtINFsLp5CGe5ajIZ/ZMVSBnUeReg13KKuquPbChH
+         1yw6pUdGh7dpQ02Z9eYEBBfi6p7kNmhJ2aoERhWMnD3oW80qkt+TM0fegRdJkUM4jh
+         rwVmD4pRdIiQ2q3evgVmRCd/eUA8l0lsJ04HXMp+3bPAtlcAdq23AIcFBnFDZz2NE+
+         kBVius0Q23ZK1R6wCbD6bLq9RHKKiBHKzhy6TELltOiplSknUK8fF+KS0PEH1DWMAr
+         DDavYaZu1UHqiMRDcsQXhlDrmCuL7RFbK3gHsOfLh9W/NV0CS7f7AOZk4CVx7TSNjL
+         oM7gV52vCNB9g==
+Received: by mail.craftsplex.pl for <netfilter-devel@vger.kernel.org>; Fri, 10 Mar 2023 08:30:51 GMT
+Message-ID: <20230310074500-0.1.4u.gtt5.0.rgq28ci6pm@craftsplex.pl>
+Date:   Fri, 10 Mar 2023 08:30:51 GMT
+From:   "Kamil Tralewski" <kamil.tralewski@craftsplex.pl>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: =?UTF-8?Q?S=C5=82owa_kluczowe_do_wypozycjonowania?=
+X-Mailer: mail.craftsplex.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/9] netfilter: bridge: introduce broute meta
- statement
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <167843402079.26917.17447421405790618845.git-patchwork-notify@kernel.org>
-Date:   Fri, 10 Mar 2023 07:40:20 +0000
-References: <20230308193033.13965-2-fw@strlen.de>
-In-Reply-To: <20230308193033.13965-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, sriram.yagnaraman@est.tech
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Dzie=C5=84 dobry,
 
-This series was applied to netdev/net-next.git (main)
-by Florian Westphal <fw@strlen.de>:
+zapozna=C5=82em si=C4=99 z Pa=C5=84stwa ofert=C4=85 i z przyjemno=C5=9Bci=
+=C4=85 przyznaj=C4=99, =C5=BCe przyci=C4=85ga uwag=C4=99 i zach=C4=99ca d=
+o dalszych rozm=C3=B3w.=20
 
-On Wed,  8 Mar 2023 20:30:25 +0100 you wrote:
-> From: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
-> 
-> nftables equivalent for ebtables -t broute.
-> 
-> Implement broute meta statement to set br_netfilter_broute flag
-> in skb to force a packet to be routed instead of being bridged.
-> 
-> [...]
+Pomy=C5=9Bla=C5=82em, =C5=BCe mo=C5=BCe m=C3=B3g=C5=82bym mie=C4=87 sw=C3=
+=B3j wk=C5=82ad w Pa=C5=84stwa rozw=C3=B3j i pom=C3=B3c dotrze=C4=87 z t=C4=
+=85 ofert=C4=85 do wi=C4=99kszego grona odbiorc=C3=B3w. Pozycjonuj=C4=99 =
+strony www, dzi=C4=99ki czemu generuj=C4=85 =C5=9Bwietny ruch w sieci.
 
-Here is the summary with links:
-  - [net-next,1/9] netfilter: bridge: introduce broute meta statement
-    https://git.kernel.org/netdev/net-next/c/4386b9218577
-  - [net-next,2/9] netfilter: bridge: call pskb_may_pull in br_nf_check_hbh_len
-    https://git.kernel.org/netdev/net-next/c/9ccff83b1322
-  - [net-next,3/9] netfilter: bridge: check len before accessing more nh data
-    https://git.kernel.org/netdev/net-next/c/a7f1a2f43e68
-  - [net-next,4/9] netfilter: bridge: move pskb_trim_rcsum out of br_nf_check_hbh_len
-    https://git.kernel.org/netdev/net-next/c/0b24bd71a6c0
-  - [net-next,5/9] netfilter: move br_nf_check_hbh_len to utils
-    https://git.kernel.org/netdev/net-next/c/28e144cf5f72
-  - [net-next,6/9] netfilter: use nf_ip6_check_hbh_len in nf_ct_skb_network_trim
-    https://git.kernel.org/netdev/net-next/c/eaafdaa3e922
-  - [net-next,7/9] selftests: add a selftest for big tcp
-    https://git.kernel.org/netdev/net-next/c/6bb382bcf742
-  - [net-next,8/9] netfilter: conntrack: fix typo
-    https://git.kernel.org/netdev/net-next/c/e5d015a114da
-  - [net-next,9/9] netfilter: nat: fix indentation of function arguments
-    https://git.kernel.org/netdev/net-next/c/b0ca200077b3
+Mo=C5=BCemy porozmawia=C4=87 w najbli=C5=BCszym czasie?
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Pozdrawiam
+Kamil Tralewski
