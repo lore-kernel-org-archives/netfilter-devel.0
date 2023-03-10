@@ -2,86 +2,96 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAD02C61DA4
-	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Mar 2023 00:13:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED0E6C64EC4
+	for <netfilter-devel@archiver.kernel.org>; Fri, 10 Mar 2023 07:41:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229827AbjCJAN2 (ORCPT
+        id S230365AbjCJHle (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Mar 2023 19:13:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58252 "EHLO
+        Fri, 10 Mar 2023 02:41:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229876AbjCJAN0 (ORCPT
+        with ESMTP id S230134AbjCJHks (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Mar 2023 19:13:26 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0522164212
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Mar 2023 16:13:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=OWIVI9DiPJoE7zAKpUDVjl15RlM03+oGoqrsWfAZBRA=; b=aiLC1cfvfYQzjuP5amaKOdupP9
-        WANeU5PvJVrpPM/ujXnoTIGx1SjE0nUgZc+WOm0VQ+NrVIYnfxkAjJnUR3BW7cB8n5eI3algcT5XK
-        Gl1q/m/YfoMLPLWxPi+WC3sRYDTv+m8UTjc6JDpKG/qgHaJ+vJAKoGZ5up+ffE/RCzX+rZx7+sHZl
-        HtkC1f6i9xaQ6zrvlTsV1/ea0X0E+1mgUhRL1JRxR/EkpKGztSG3zBOviIfwAzA4bS0K4bdwAcsZb
-        V5LRYif2xMMFDkgkX6FBMw82h3B3V+aA6spbHQ7AoUL1b/uGWshdi5mooU7R8HXSIVsx+0/2yJCmJ
-        oauEB03A==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1paQNv-0003YI-0T; Fri, 10 Mar 2023 01:13:23 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] Reject invalid chain priority values in user space
-Date:   Fri, 10 Mar 2023 01:13:14 +0100
-Message-Id: <20230310001314.16957-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.38.0
+        Fri, 10 Mar 2023 02:40:48 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 324771086AE;
+        Thu,  9 Mar 2023 23:40:22 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 917D960EE2;
+        Fri, 10 Mar 2023 07:40:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id E651EC433D2;
+        Fri, 10 Mar 2023 07:40:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1678434021;
+        bh=ZdzysiwyCIYfh29jghqFM8f/yP9OfVdUcVhxhaPw43U=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=J2ENKcf+wYVBibVz+sEh9Quaz8a+hTfhiZueLqw97LM+0ys6hqv29Vit8BdlZ7FoJ
+         amUbRHxs1M6LLJ1nkVS5/lK0UswUnb0mPk86wLi7XFVX5JjAyDEqF6Frwwj6OTsP6+
+         x6qTav/wiDEyIuZ07m36HZeq/7bsD1ZEIhpcHNcPN2Byxl+1NJa2l8W4A7p2Z+IO9S
+         o0SkfijbadaeCse/Rz8GXgrT4oNDC+XP2k9lYUNJmYe+ntcdaBxUL/KgWkoQlkoyv1
+         wnM9b2JPUVR+PCR2jjlPEr6VLdfbCWVRQh2EbUej7EDYjhVBd/cncFEZHiaaBXwNKL
+         Re8DXBjMkUzQw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C2732C59A4C;
+        Fri, 10 Mar 2023 07:40:20 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/9] netfilter: bridge: introduce broute meta
+ statement
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167843402079.26917.17447421405790618845.git-patchwork-notify@kernel.org>
+Date:   Fri, 10 Mar 2023 07:40:20 +0000
+References: <20230308193033.13965-2-fw@strlen.de>
+In-Reply-To: <20230308193033.13965-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, sriram.yagnaraman@est.tech
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The kernel doesn't accept nat type chains with a priority of -200 or
-below. Catch this and provide a better error message than the kernel's
-EOPNOTSUPP.
+Hello:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/evaluate.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index d24f8b66b0de8..af4844c1ef6cc 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -4842,6 +4842,8 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 	}
- 
- 	if (chain->flags & CHAIN_F_BASECHAIN) {
-+		int priority;
-+
- 		chain->hook.num = str2hooknum(chain->handle.family,
- 					      chain->hook.name);
- 		if (chain->hook.num == NF_INET_NUMHOOKS)
-@@ -4854,6 +4856,14 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 			return __stmt_binary_error(ctx, &chain->priority.loc, NULL,
- 						   "invalid priority expression %s in this context.",
- 						   expr_name(chain->priority.expr));
-+
-+		if (!strcmp(chain->type.str, "nat") &&
-+		    (mpz_export_data(&priority, chain->priority.expr->value,
-+				    BYTEORDER_HOST_ENDIAN, sizeof(int))) &&
-+		    priority <= -200)
-+			return __stmt_binary_error(ctx, &chain->priority.loc, NULL,
-+						   "Nat type chains must have a priority value above -200.");
-+
- 		if (chain->policy) {
- 			expr_set_context(&ctx->ectx, &policy_type,
- 					 NFT_NAME_MAXLEN * BITS_PER_BYTE);
+On Wed,  8 Mar 2023 20:30:25 +0100 you wrote:
+> From: Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+> 
+> nftables equivalent for ebtables -t broute.
+> 
+> Implement broute meta statement to set br_netfilter_broute flag
+> in skb to force a packet to be routed instead of being bridged.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,1/9] netfilter: bridge: introduce broute meta statement
+    https://git.kernel.org/netdev/net-next/c/4386b9218577
+  - [net-next,2/9] netfilter: bridge: call pskb_may_pull in br_nf_check_hbh_len
+    https://git.kernel.org/netdev/net-next/c/9ccff83b1322
+  - [net-next,3/9] netfilter: bridge: check len before accessing more nh data
+    https://git.kernel.org/netdev/net-next/c/a7f1a2f43e68
+  - [net-next,4/9] netfilter: bridge: move pskb_trim_rcsum out of br_nf_check_hbh_len
+    https://git.kernel.org/netdev/net-next/c/0b24bd71a6c0
+  - [net-next,5/9] netfilter: move br_nf_check_hbh_len to utils
+    https://git.kernel.org/netdev/net-next/c/28e144cf5f72
+  - [net-next,6/9] netfilter: use nf_ip6_check_hbh_len in nf_ct_skb_network_trim
+    https://git.kernel.org/netdev/net-next/c/eaafdaa3e922
+  - [net-next,7/9] selftests: add a selftest for big tcp
+    https://git.kernel.org/netdev/net-next/c/6bb382bcf742
+  - [net-next,8/9] netfilter: conntrack: fix typo
+    https://git.kernel.org/netdev/net-next/c/e5d015a114da
+  - [net-next,9/9] netfilter: nat: fix indentation of function arguments
+    https://git.kernel.org/netdev/net-next/c/b0ca200077b3
+
+You are awesome, thank you!
 -- 
-2.38.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
