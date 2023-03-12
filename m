@@ -2,95 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 082F1C6FD19
-	for <netfilter-devel@archiver.kernel.org>; Sun, 12 Mar 2023 20:19:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DF39C6FA99
+	for <netfilter-devel@archiver.kernel.org>; Sun, 12 Mar 2023 20:27:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230233AbjCLUTp (ORCPT
+        id S229946AbjCLU1c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 12 Mar 2023 16:19:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53168 "EHLO
+        Sun, 12 Mar 2023 16:27:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229829AbjCLUTo (ORCPT
+        with ESMTP id S231279AbjCLU13 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 12 Mar 2023 16:19:44 -0400
+        Sun, 12 Mar 2023 16:27:29 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3819F2F781
-        for <netfilter-devel@vger.kernel.org>; Sun, 12 Mar 2023 13:19:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D39833448
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Mar 2023 13:27:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=RUISPNjGRL7kw5SpKdBDiC1xV4Wjddi2iB7D6/FRKsM=; b=XxEXHZSx+qPfIAulfxH0aVKFRo
-        m4xBaxPKdJ26yS8bxyHBS4zycYrrZKdpV7brAYMbG752X7w8TX3JXu9LtAnz1QfVOpjuKXwCMAIpc
-        YdWUMrSrve8zozNzmoXia3y9DObV3e0V24dxmhOSEsytsMiBlKVTrpgDRwZP6v9BukOQy3SjF7HFE
-        B46Vy1fsRaSBMjyANNnHRnfc5RufskXaT8UgvtuQFiEIt1xRiq10xWKGWMolQCFiBfzFRX5MTCfHr
-        SsT7OcuVQdklJPPOBVAD9xRAlo20zB9MhUNaT2j1aNbXmDzmUVJgWfvhaPfksJHAoYBXIwAGRRRcV
-        pD/a/ung==;
-Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        bh=sTetd3eajDv8qKZwRUPHI86syTYlr1jnFvvWSqdZdF4=; b=V8EGl6uO27ZP67hxPe8ubaM9ta
+        al6LqB38pnpnaUbA6FAEpyDWTkJBMeEWn7lk/PcqX6nv1+jhw2tVZMnQSTb2VrmIBh5Luq+HSfNBp
+        z182qnfHnJmHb2A10oLYOgp2TJSDKc+gVshEazvLZQdYqf4FhaQcGGaXX0GlKxhw614S/ILPmJa0u
+        39rFiSHpMJrPTGxKZlMsPOrtG+YzgwkUWgaBODeMirzd40t2/3CV2bSprGvZy7XJe94lKL/LCEimj
+        NmrvI1l9+V2h04pFeJTH7GbP0C76AghJehiCn0cXEmHBc4XLj5jyqVil/1jpQVgoaJoXHZAAjODHV
+        rGPaGmDg==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1pbSAP-005lcF-Ht; Sun, 12 Mar 2023 20:19:41 +0000
-Date:   Sun, 12 Mar 2023 20:19:40 +0000
+        id 1pbSHm-005ll2-ON
+        for netfilter-devel@vger.kernel.org; Sun, 12 Mar 2023 20:27:18 +0000
 From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables] exthdr: add boolean DCCP option matching
-Message-ID: <20230312201940.GI226246@celephais.dreamlands>
-References: <20230312143707.158928-1-jeremy@azazel.net>
- <20230312200003.GB26312@breakpoint.cc>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nftables] src: fix a couple of typo's in comments
+Date:   Sun, 12 Mar 2023 20:27:10 +0000
+Message-Id: <20230312202710.173344-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="fECf9Kjl8wjwW/OE"
-Content-Disposition: inline
-In-Reply-To: <20230312200003.GB26312@breakpoint.cc>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ include/datatype.h | 2 +-
+ src/parser_bison.y | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---fECf9Kjl8wjwW/OE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+diff --git a/include/datatype.h b/include/datatype.h
+index 73f38f66c4ce..391d6ac8b4bd 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -23,7 +23,7 @@
+  * @TYPE_INET_SERVICE:	internet service (integer subtype)
+  * @TYPE_ICMP_TYPE:	ICMP type codes (integer subtype)
+  * @TYPE_TCP_FLAG:	TCP flag (bitmask subtype)
+- * @TCPE_DCCP_PKTTYPE:	DCCP packet type (integer subtype)
++ * @TYPE_DCCP_PKTTYPE:	DCCP packet type (integer subtype)
+  * @TYPE_MH_TYPE:	Mobility Header type (integer subtype)
+  * @TYPE_TIME:		relative time
+  * @TYPE_MARK:		packet mark (integer subtype)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 3c06ff48c95c..ccedfafe1bfa 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -6180,7 +6180,7 @@ exthdr_exists_expr	:	EXTHDR	exthdr_key
+ 				desc = exthdr_find_proto($2);
+ 
+ 				/* Assume that NEXTHDR template is always
+-				 * the fist one in list of templates.
++				 * the first one in list of templates.
+ 				 */
+ 				$$ = exthdr_expr_alloc(&@$, desc, 1);
+ 				$$->exthdr.flags = NFT_EXTHDR_F_PRESENT;
+-- 
+2.39.2
 
-On 2023-03-12, at 21:00:03 +0100, Florian Westphal wrote:
-> Jeremy Sowden <jeremy@azazel.net> wrote:
-> > - * @TCPE_DCCP_PKTTYPE:	DCCP packet type (integer subtype)
-> > + * @TYPE_DCCP_PKTTYPE:	DCCP packet type (integer subtype)
->=20
-> Can you isolate this as a spelling fix?
->=20
-> I'm reluctant to add dccp support because there have been discussions
-> wrt. removing dccp from kernel altogether.
-
-No problem.
-
-J.
-
---fECf9Kjl8wjwW/OE
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQOM9wACgkQKYasCr3x
-BA22cBAAiSpxbyaWJctjEm+fkCZMoiXhJPEA1wfa62xw+0u4hy1EbhvTEAJxgRkT
-Bk2iLngBNT1LZc4FhbiqEEYUD8X6jMlFerqtM4xDwHQH7OYbdpa4pylSxHLLkMBo
-7DmyGNmDPHMWh9ORGfh/bgQfHbo7/IEy7eZuCYgRdhtRPa6P8BvkoOGZMdqjJstM
-V99B+DS9ZaGJ+h+zk4+J4720wUV1V11oaFePhAyyQJSy9PMzMx49qh4G1FJpFlId
-L5ZLN8IPceVeFvhtytyffvJS7yqThR0C9df+XjItfF81h0Pi9khSPDJl9b+OkIzp
-mq5T+fO51NEHhdaQZlc8mpzA3nP/n/FZG0DrFMAOrlMs1P0GztSYY3Hgbhwy96/o
-63hE/YPqOEXbFmZX+dTSkMSmvu8+OQUb5E7J1IBaQHmY4FdBGZ7p+iZy7sziwc4N
-CLcOm0QpFgEBA4S1VS7SidvHXi+o9mXP7ibx5LcF85TVkUywzvFqktsIiVbGsRUU
-735knfElkEKRG6jeOKCyuUmFn0BnNTGKoSuvIOHbWEDl7boMZKJu8inzS18SEzFb
-/6yAUx4FMdfZtIVzCVQHmu1XnVhRfazMqoYl/xSbSf3GJbEQ6vXYeI08GNeA03+6
-DHoHwz8vZ0U9KfF2+vAmB7MROxsdUsogGPR2vRRG7c453BjzBgw=
-=+cpi
------END PGP SIGNATURE-----
-
---fECf9Kjl8wjwW/OE--
