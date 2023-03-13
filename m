@@ -2,255 +2,219 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A2F7C61DA4
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Mar 2023 13:47:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CC58C74A4B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Mar 2023 17:18:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229811AbjCMNrF (ORCPT
+        id S231679AbjCMRS4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Mar 2023 09:47:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47632 "EHLO
+        Mon, 13 Mar 2023 13:18:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230104AbjCMNrD (ORCPT
+        with ESMTP id S231598AbjCMRSI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Mar 2023 09:47:03 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91D916E6BD
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2023 06:46:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=bV0eHoX2QAE3zqK6gdGU8SbcBCCr7B0xeH/1WczSo80=; b=ZLoa89DZBHKqQ/CPQSifXTcy/1
-        dOL3wvnBwS0nteFlbzKRwMrin/HNpBCtrLffkDCx28Y981LghltugsnFbA9iUXA2vg0PTos12MH/H
-        GRgubH2OmV8cdIlB81acAtHDO3jOG+8KsggVDi9KdwD/y1iQ28JWbrshNFPHegFDC8jrFass9QWfP
-        DwwJpzdnNxdym5T5cEvq6vSa3Cvtkevq/ov6lCWZSok71TvFgZEVzYnxcrheUWefFJviDCHnpEW3i
-        cT5RzBUIQUv8T8PaFIAAH6Ogg6RHS02RkCvr1Mw/iL+zpTMJmtMNNv+efE4LMvKR1X4SXr/48J4+L
-        2zhDIcmQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1pbiVo-006qSf-CJ; Mon, 13 Mar 2023 13:46:52 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/3] netfilter: nf_nat_redirect: use `struct nf_nat_range2` in ipv4 API
-Date:   Mon, 13 Mar 2023 13:46:47 +0000
-Message-Id: <20230313134649.186812-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230313134649.186812-1-jeremy@azazel.net>
-References: <20230313134649.186812-1-jeremy@azazel.net>
+        Mon, 13 Mar 2023 13:18:08 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 920E6C662;
+        Mon, 13 Mar 2023 10:17:39 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Pb3Gj4JKvz6J7lN;
+        Tue, 14 Mar 2023 01:16:29 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.21; Mon, 13 Mar 2023 17:16:43 +0000
+Message-ID: <c20fc9eb-518e-84b4-0dd5-7b97c0825259@huawei.com>
+Date:   Mon, 13 Mar 2023 20:16:42 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v9 00/12] Network support for Landlock
+Content-Language: ru
+To:     =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
+CC:     <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
+ <Y/fl5iEbkL5Pj5cJ@galopp>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <Y/fl5iEbkL5Pj5cJ@galopp>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-`nf_nat_redirect_ipv4` takes a `struct nf_nat_ipv4_multi_range_compat`,
-but converts it internally to a `struct nf_nat_range2`.  Change the
-function to take the latter, factor out the code now shared with
-`nf_nat_redirect_ipv6`, move the conversion to the xt_REDIRECT module,
-and update the ipv4 range initialization in the nft_redir module.
 
-Replace a bare hex constant for 127.0.0.1 with a macro.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-Reviewed-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_nat_redirect.h |  3 +-
- net/netfilter/nf_nat_redirect.c         | 58 ++++++++++++-------------
- net/netfilter/nft_redir.c               | 15 ++++---
- net/netfilter/xt_REDIRECT.c             | 10 ++++-
- 4 files changed, 44 insertions(+), 42 deletions(-)
+2/24/2023 1:17 AM, Günther Noack пишет:
+> Hello Konstantin!
+> 
+> Sorry for asking such fundamental questions again so late in the review.
+> 
+> After playing with patch V9 with the Go-Landlock library, I'm still
+> having trouble understanding these questions -- they probably have
+> good answers, but I also did not see them explained in the
+> documentation. Maybe it would help to clarify it there?
+> 
+> * What is the use case for permitting processes to connect to a given
+>    TCP port, but leaving unspecified what the IP address is?
+> 
+>    Example: If a Landlock ruleset permits connecting to TCP port 53,
+>    that makes it possible to talk to any IP address on the internet (at
+>    least if the process runs on a normal Linux desktop machine), and we
+>    can't really control whether that is the system's proper (TCP-)DNS
+>    server or whether that is an attacker-controlled service for
+>    accepting leaked secrets from the process...?
+> 
+>    Is the plan that IP address support should be added in a follow-up
+>    patch?  Will it become part of the landlock_net_service_attr struct?
 
-diff --git a/include/net/netfilter/nf_nat_redirect.h b/include/net/netfilter/nf_nat_redirect.h
-index 2418653a66db..279380de904c 100644
---- a/include/net/netfilter/nf_nat_redirect.h
-+++ b/include/net/netfilter/nf_nat_redirect.h
-@@ -6,8 +6,7 @@
- #include <uapi/linux/netfilter/nf_nat.h>
- 
- unsigned int
--nf_nat_redirect_ipv4(struct sk_buff *skb,
--		     const struct nf_nat_ipv4_multi_range_compat *mr,
-+nf_nat_redirect_ipv4(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		     unsigned int hooknum);
- unsigned int
- nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index f91579c821e9..54ce8e6113ed 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -10,6 +10,7 @@
- 
- #include <linux/if.h>
- #include <linux/inetdevice.h>
-+#include <linux/in.h>
- #include <linux/ip.h>
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
-@@ -24,25 +25,38 @@
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_redirect.h>
- 
-+static unsigned int
-+nf_nat_redirect(struct sk_buff *skb, const struct nf_nat_range2 *range,
-+		const union nf_inet_addr *newdst)
-+{
-+	struct nf_nat_range2 newrange;
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	WARN_ON(!(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED)));
-+
-+	newrange.flags		= range->flags | NF_NAT_RANGE_MAP_IPS;
-+	newrange.min_addr	= *newdst;
-+	newrange.max_addr	= *newdst;
-+	newrange.min_proto	= range->min_proto;
-+	newrange.max_proto	= range->max_proto;
-+
-+	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
-+}
-+
- unsigned int
--nf_nat_redirect_ipv4(struct sk_buff *skb,
--		     const struct nf_nat_ipv4_multi_range_compat *mr,
-+nf_nat_redirect_ipv4(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		     unsigned int hooknum)
- {
--	struct nf_conn *ct;
--	enum ip_conntrack_info ctinfo;
- 	__be32 newdst;
--	struct nf_nat_range2 newrange;
- 
- 	WARN_ON(hooknum != NF_INET_PRE_ROUTING &&
- 		hooknum != NF_INET_LOCAL_OUT);
- 
--	ct = nf_ct_get(skb, &ctinfo);
--	WARN_ON(!(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED)));
--
- 	/* Local packets: make them go to loopback */
- 	if (hooknum == NF_INET_LOCAL_OUT) {
--		newdst = htonl(0x7F000001);
-+		newdst = htonl(INADDR_LOOPBACK);
- 	} else {
- 		const struct in_device *indev;
- 
-@@ -61,17 +75,8 @@ nf_nat_redirect_ipv4(struct sk_buff *skb,
- 			return NF_DROP;
- 	}
- 
--	/* Transfer from original range. */
--	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
--	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
--	newrange.flags	     = mr->range[0].flags | NF_NAT_RANGE_MAP_IPS;
--	newrange.min_addr.ip = newdst;
--	newrange.max_addr.ip = newdst;
--	newrange.min_proto   = mr->range[0].min;
--	newrange.max_proto   = mr->range[0].max;
--
--	/* Hand modified range to generic setup. */
--	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
-+	return nf_nat_redirect(skb, range,
-+			       &(union nf_inet_addr) { .ip = newdst });
- }
- EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv4);
- 
-@@ -81,12 +86,8 @@ unsigned int
- nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		     unsigned int hooknum)
- {
--	struct nf_nat_range2 newrange;
- 	struct in6_addr newdst;
--	enum ip_conntrack_info ctinfo;
--	struct nf_conn *ct;
- 
--	ct = nf_ct_get(skb, &ctinfo);
- 	if (hooknum == NF_INET_LOCAL_OUT) {
- 		newdst = loopback_addr;
- 	} else {
-@@ -109,12 +110,7 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 			return NF_DROP;
- 	}
- 
--	newrange.flags		= range->flags | NF_NAT_RANGE_MAP_IPS;
--	newrange.min_addr.in6	= newdst;
--	newrange.max_addr.in6	= newdst;
--	newrange.min_proto	= range->min_proto;
--	newrange.max_proto	= range->max_proto;
--
--	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
-+	return nf_nat_redirect(skb, range,
-+			       &(union nf_inet_addr) { .in6 = newdst });
- }
- EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv6);
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index 5f7739987559..77a459470cb7 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -104,20 +104,21 @@ static void nft_redir_ipv4_eval(const struct nft_expr *expr,
- 				const struct nft_pktinfo *pkt)
- {
- 	struct nft_redir *priv = nft_expr_priv(expr);
--	struct nf_nat_ipv4_multi_range_compat mr;
-+	struct nf_nat_range2 range;
- 
--	memset(&mr, 0, sizeof(mr));
-+	memset(&range, 0, sizeof(range));
- 	if (priv->sreg_proto_min) {
--		mr.range[0].min.all = (__force __be16)nft_reg_load16(
-+		range.min_proto.all = (__force __be16)nft_reg_load16(
- 			&regs->data[priv->sreg_proto_min]);
--		mr.range[0].max.all = (__force __be16)nft_reg_load16(
-+		range.max_proto.all = (__force __be16)nft_reg_load16(
- 			&regs->data[priv->sreg_proto_max]);
--		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
-+		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 	}
- 
--	mr.range[0].flags |= priv->flags;
-+	range.flags |= priv->flags;
- 
--	regs->verdict.code = nf_nat_redirect_ipv4(pkt->skb, &mr, nft_hook(pkt));
-+	regs->verdict.code =
-+		nf_nat_redirect_ipv4(pkt->skb, &range, nft_hook(pkt));
- }
- 
- static void
-diff --git a/net/netfilter/xt_REDIRECT.c b/net/netfilter/xt_REDIRECT.c
-index 353ca7801251..ff66b56a3f97 100644
---- a/net/netfilter/xt_REDIRECT.c
-+++ b/net/netfilter/xt_REDIRECT.c
-@@ -46,7 +46,6 @@ static void redirect_tg_destroy(const struct xt_tgdtor_param *par)
- 	nf_ct_netns_put(par->net, par->family);
- }
- 
--/* FIXME: Take multiple ranges --RR */
- static int redirect_tg4_check(const struct xt_tgchk_param *par)
- {
- 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
-@@ -65,7 +64,14 @@ static int redirect_tg4_check(const struct xt_tgchk_param *par)
- static unsigned int
- redirect_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- {
--	return nf_nat_redirect_ipv4(skb, par->targinfo, xt_hooknum(par));
-+	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
-+	struct nf_nat_range2 range = {
-+		.flags       = mr->range[0].flags,
-+		.min_proto   = mr->range[0].min,
-+		.max_proto   = mr->range[0].max,
-+	};
-+
-+	return nf_nat_redirect_ipv4(skb, &range, xt_hooknum(par));
- }
- 
- static struct xt_target redirect_tg_reg[] __read_mostly = {
--- 
-2.39.2
+      In the beginning I introduced the idea with IP address to
+Mickaël but he suggested to use port-based granularity. So with ports 
+it's worth using Landlock in containerized applications working within 
+one IP address. Anyway it's possible to use netfilter to control 
+incoming traffic. It's a good question - we should discuss it carefuly.
+> 
+> * Given the list of obscure network protocols listed in the socket(2)
+>    man page, I find it slightly weird to have rules for the use of TCP,
+>    but to leave less prominent protocols unrestricted.
+> 
+>    For example, a process with an enabled Landlock network ruleset may
+>    connect only to certain TCP ports, but at the same time it can
+>    happily use Bluetooth/CAN bus/DECnet/IPX or other protocols?
 
+      We also have started a discussion about UDP protocol, but it's 
+more complicated since UDP sockets does not establish connections 
+between each other. There is a performance problem on the first place here.
+
+I'm not familiar with Bluetooth/CAN bus/DECnet/IPX but let's discuss it.
+Any ideas here?
+
+> 
+>    I'm mentioning these more obscure protocols, because I doubt that
+>    Landlock will grow more sophisticated support for them anytime soon,
+>    so maybe the best option would be to just make it possible to
+>    disable these?  Is that also part of the plan?
+> 
+>    (I think there would be a lot of value in restricting network
+>    access, even when it's done very broadly.  There are many programs
+>    that don't need network at all, and among those that do need
+>    network, most only require IP networking.
+> 
+>    Btw, the argument for more broad disabling of network access was
+>    already made at https://cr.yp.to/unix/disablenetwork.html in the
+>    past.)
+      Thanks for the link. I will read it.
+> 
+> * This one is more of an implementation question: I don't understand
+>    why we are storing the networking rules in the same RB tree as the
+>    file system rules. - It looks a bit like "YAGNI" to me...?
+
+      Actually network rules are stored in a different RB tree.
+      You can check it in struct landlock_ruleset (ruleset.h):
+      - struct rb_root root_inodeis for fs rules
+
+      - struct rb_root root_net_port is for network rules;
+> 
+>    Would it be more efficient to keep the file system rules in the
+>    existing RB tree, and store the networking rules *separately* next
+>    to it in a different RB tree, or even in a more optimized data
+>    structure? In pseudocode:
+> 
+>      struct fast_lookup_int_set bind_tcp_ports;
+>      struct fast_lookup_int_set connect_tcp_ports;
+>      struct landlock_rb_tree fs_rules;
+> 
+>    It seems that there should be a data structure that supports this
+>    well and which uses the fact that we only need to store small
+>    integers?
+
+      Thnaks for the question. From my point of view it depends on a 
+real scenario - how many ports we want to allow by Landlock for a 
+proccess - thousands, hundreds or less. If it's just 10 ports - do we 
+really need some optimized data structure? Do we get some performance 
+gain here?
+What do you think?
+> 
+> Thanks,
+> –Günther
+> 
+> P.S.: Apologies if some of it was discussed previously. I did my best
+> to catch up on previous threads, but it's long, and it's possible that
+> I missed parts of the discussion.
+> 
+> On Mon, Jan 16, 2023 at 04:58:06PM +0800, Konstantin Meskhidze wrote:
+>> Hi,
+>> This is a new V9 patch related to Landlock LSM network confinement.
+>> It is based on the landlock's -next branch on top of v6.2-rc3 kernel version:
+>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
+>> 
+>> It brings refactoring of previous patch version V8.
+>> Mostly there are fixes of logic and typos, adding new tests.
+>> 
+>> All test were run in QEMU evironment and compiled with
+>>  -static flag.
+>>  1. network_test: 32/32 tests passed.
+>>  2. base_test: 7/7 tests passed.
+>>  3. fs_test: 78/78 tests passed.
+>>  4. ptrace_test: 8/8 tests passed.
+>> 
+>> Previous versions:
+>> v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
+>> v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
+>> v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
+>> v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
+>> v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
+>> v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
+>> v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
+>> v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
+>> 
+>> Konstantin Meskhidze (11):
+>>   landlock: Make ruleset's access masks more generic
+>>   landlock: Refactor landlock_find_rule/insert_rule
+>>   landlock: Refactor merge/inherit_ruleset functions
+>>   landlock: Move and rename umask_layers() and init_layer_masks()
+>>   landlock: Refactor _unmask_layers() and _init_layer_masks()
+>>   landlock: Refactor landlock_add_rule() syscall
+>>   landlock: Add network rules and TCP hooks support
+>>   selftests/landlock: Share enforce_ruleset()
+>>   selftests/landlock: Add 10 new test suites dedicated to network
+>>   samples/landlock: Add network demo
+>>   landlock: Document Landlock's network support
+>> 
+>> Mickaël Salaün (1):
+>>   landlock: Allow filesystem layout changes for domains without such
+>>     rule type
+>> 
+>>  Documentation/userspace-api/landlock.rst     |   72 +-
+>>  include/uapi/linux/landlock.h                |   49 +
+>>  samples/landlock/sandboxer.c                 |  131 +-
+>>  security/landlock/Kconfig                    |    1 +
+>>  security/landlock/Makefile                   |    2 +
+>>  security/landlock/fs.c                       |  255 ++--
+>>  security/landlock/limits.h                   |    7 +-
+>>  security/landlock/net.c                      |  200 +++
+>>  security/landlock/net.h                      |   26 +
+>>  security/landlock/ruleset.c                  |  409 +++++--
+>>  security/landlock/ruleset.h                  |  185 ++-
+>>  security/landlock/setup.c                    |    2 +
+>>  security/landlock/syscalls.c                 |  165 ++-
+>>  tools/testing/selftests/landlock/base_test.c |    2 +-
+>>  tools/testing/selftests/landlock/common.h    |   10 +
+>>  tools/testing/selftests/landlock/config      |    4 +
+>>  tools/testing/selftests/landlock/fs_test.c   |   75 +-
+>>  tools/testing/selftests/landlock/net_test.c  | 1157 ++++++++++++++++++
+>>  18 files changed, 2398 insertions(+), 354 deletions(-)
+>>  create mode 100644 security/landlock/net.c
+>>  create mode 100644 security/landlock/net.h
+>>  create mode 100644 tools/testing/selftests/landlock/net_test.c
+>> 
+>> -- 
+>> 2.25.1
+>> 
+> .
