@@ -2,219 +2,357 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CC58C74A4B
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Mar 2023 17:18:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D13BC61DA4
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Mar 2023 19:22:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231679AbjCMRS4 (ORCPT
+        id S230325AbjCMTW3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Mar 2023 13:18:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42372 "EHLO
+        Mon, 13 Mar 2023 15:22:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231598AbjCMRSI (ORCPT
+        with ESMTP id S230051AbjCMTW2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Mar 2023 13:18:08 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 920E6C662;
-        Mon, 13 Mar 2023 10:17:39 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Pb3Gj4JKvz6J7lN;
-        Tue, 14 Mar 2023 01:16:29 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.21; Mon, 13 Mar 2023 17:16:43 +0000
-Message-ID: <c20fc9eb-518e-84b4-0dd5-7b97c0825259@huawei.com>
-Date:   Mon, 13 Mar 2023 20:16:42 +0300
+        Mon, 13 Mar 2023 15:22:28 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C20BC1EFF1;
+        Mon, 13 Mar 2023 12:22:01 -0700 (PDT)
+Date:   Mon, 13 Mar 2023 20:21:58 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter <netfilter@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+Subject: [ANNOUNCE] nftables 1.0.7 release
+Message-ID: <ZA931rfLiLHx1KjD@salvia>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v9 00/12] Network support for Landlock
-Content-Language: ru
-To:     =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
-CC:     <mic@digikod.net>, <willemdebruijn.kernel@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <Y/fl5iEbkL5Pj5cJ@galopp>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <Y/fl5iEbkL5Pj5cJ@galopp>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: multipart/mixed; boundary="HdaEK2XXNW/pfm7h"
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
+--HdaEK2XXNW/pfm7h
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-2/24/2023 1:17 AM, Günther Noack пишет:
-> Hello Konstantin!
-> 
-> Sorry for asking such fundamental questions again so late in the review.
-> 
-> After playing with patch V9 with the Go-Landlock library, I'm still
-> having trouble understanding these questions -- they probably have
-> good answers, but I also did not see them explained in the
-> documentation. Maybe it would help to clarify it there?
-> 
-> * What is the use case for permitting processes to connect to a given
->    TCP port, but leaving unspecified what the IP address is?
-> 
->    Example: If a Landlock ruleset permits connecting to TCP port 53,
->    that makes it possible to talk to any IP address on the internet (at
->    least if the process runs on a normal Linux desktop machine), and we
->    can't really control whether that is the system's proper (TCP-)DNS
->    server or whether that is an attacker-controlled service for
->    accepting leaked secrets from the process...?
-> 
->    Is the plan that IP address support should be added in a follow-up
->    patch?  Will it become part of the landlock_net_service_attr struct?
+Hi!
 
-      In the beginning I introduced the idea with IP address to
-Mickaël but he suggested to use port-based granularity. So with ports 
-it's worth using Landlock in containerized applications working within 
-one IP address. Anyway it's possible to use netfilter to control 
-incoming traffic. It's a good question - we should discuss it carefuly.
-> 
-> * Given the list of obscure network protocols listed in the socket(2)
->    man page, I find it slightly weird to have rules for the use of TCP,
->    but to leave less prominent protocols unrestricted.
-> 
->    For example, a process with an enabled Landlock network ruleset may
->    connect only to certain TCP ports, but at the same time it can
->    happily use Bluetooth/CAN bus/DECnet/IPX or other protocols?
+The Netfilter project proudly presents:
 
-      We also have started a discussion about UDP protocol, but it's 
-more complicated since UDP sockets does not establish connections 
-between each other. There is a performance problem on the first place here.
+        nftables 1.0.7
 
-I'm not familiar with Bluetooth/CAN bus/DECnet/IPX but let's discuss it.
-Any ideas here?
+This release contains enhancements and fixes such as:
 
-> 
->    I'm mentioning these more obscure protocols, because I doubt that
->    Landlock will grow more sophisticated support for them anytime soon,
->    so maybe the best option would be to just make it possible to
->    disable these?  Is that also part of the plan?
-> 
->    (I think there would be a lot of value in restricting network
->    access, even when it's done very broadly.  There are many programs
->    that don't need network at all, and among those that do need
->    network, most only require IP networking.
-> 
->    Btw, the argument for more broad disabling of network access was
->    already made at https://cr.yp.to/unix/disablenetwork.html in the
->    past.)
-      Thanks for the link. I will read it.
-> 
-> * This one is more of an implementation question: I don't understand
->    why we are storing the networking rules in the same RB tree as the
->    file system rules. - It looks a bit like "YAGNI" to me...?
+- Support for vxlan/geneve/gre/gretap matching. This allows for simple
+  matching expressions on inner headers such matching on the VxLAN
+  encapsulated IPv4 header fields as well as:
 
-      Actually network rules are stored in a different RB tree.
-      You can check it in struct landlock_ruleset (ruleset.h):
-      - struct rb_root root_inodeis for fs rules
+      ... udp dport 4789 vxlan ip protocol udp
+      ... udp dport 4789 vxlan ip saddr 1.2.3.0/24
 
-      - struct rb_root root_net_port is for network rules;
-> 
->    Would it be more efficient to keep the file system rules in the
->    existing RB tree, and store the networking rules *separately* next
->    to it in a different RB tree, or even in a more optimized data
->    structure? In pseudocode:
-> 
->      struct fast_lookup_int_set bind_tcp_ports;
->      struct fast_lookup_int_set connect_tcp_ports;
->      struct landlock_rb_tree fs_rules;
-> 
->    It seems that there should be a data structure that supports this
->    well and which uses the fact that we only need to store small
->    integers?
+  This also works with sets and it can also be combined with
+  concatenations, such as:
 
-      Thnaks for the question. From my point of view it depends on a 
-real scenario - how many ports we want to allow by Landlock for a 
-proccess - thousands, hundreds or less. If it's just 10 ports - do we 
-really need some optimized data structure? Do we get some performance 
-gain here?
-What do you think?
-> 
-> Thanks,
-> –Günther
-> 
-> P.S.: Apologies if some of it was discussed previously. I did my best
-> to catch up on previous threads, but it's long, and it's possible that
-> I missed parts of the discussion.
-> 
-> On Mon, Jan 16, 2023 at 04:58:06PM +0800, Konstantin Meskhidze wrote:
->> Hi,
->> This is a new V9 patch related to Landlock LSM network confinement.
->> It is based on the landlock's -next branch on top of v6.2-rc3 kernel version:
->> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
->> 
->> It brings refactoring of previous patch version V8.
->> Mostly there are fixes of logic and typos, adding new tests.
->> 
->> All test were run in QEMU evironment and compiled with
->>  -static flag.
->>  1. network_test: 32/32 tests passed.
->>  2. base_test: 7/7 tests passed.
->>  3. fs_test: 78/78 tests passed.
->>  4. ptrace_test: 8/8 tests passed.
->> 
->> Previous versions:
->> v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
->> v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
->> v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
->> v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
->> v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
->> v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
->> v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
->> v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
->> 
->> Konstantin Meskhidze (11):
->>   landlock: Make ruleset's access masks more generic
->>   landlock: Refactor landlock_find_rule/insert_rule
->>   landlock: Refactor merge/inherit_ruleset functions
->>   landlock: Move and rename umask_layers() and init_layer_masks()
->>   landlock: Refactor _unmask_layers() and _init_layer_masks()
->>   landlock: Refactor landlock_add_rule() syscall
->>   landlock: Add network rules and TCP hooks support
->>   selftests/landlock: Share enforce_ruleset()
->>   selftests/landlock: Add 10 new test suites dedicated to network
->>   samples/landlock: Add network demo
->>   landlock: Document Landlock's network support
->> 
->> Mickaël Salaün (1):
->>   landlock: Allow filesystem layout changes for domains without such
->>     rule type
->> 
->>  Documentation/userspace-api/landlock.rst     |   72 +-
->>  include/uapi/linux/landlock.h                |   49 +
->>  samples/landlock/sandboxer.c                 |  131 +-
->>  security/landlock/Kconfig                    |    1 +
->>  security/landlock/Makefile                   |    2 +
->>  security/landlock/fs.c                       |  255 ++--
->>  security/landlock/limits.h                   |    7 +-
->>  security/landlock/net.c                      |  200 +++
->>  security/landlock/net.h                      |   26 +
->>  security/landlock/ruleset.c                  |  409 +++++--
->>  security/landlock/ruleset.h                  |  185 ++-
->>  security/landlock/setup.c                    |    2 +
->>  security/landlock/syscalls.c                 |  165 ++-
->>  tools/testing/selftests/landlock/base_test.c |    2 +-
->>  tools/testing/selftests/landlock/common.h    |   10 +
->>  tools/testing/selftests/landlock/config      |    4 +
->>  tools/testing/selftests/landlock/fs_test.c   |   75 +-
->>  tools/testing/selftests/landlock/net_test.c  | 1157 ++++++++++++++++++
->>  18 files changed, 2398 insertions(+), 354 deletions(-)
->>  create mode 100644 security/landlock/net.c
->>  create mode 100644 security/landlock/net.h
->>  create mode 100644 tools/testing/selftests/landlock/net_test.c
->> 
->> -- 
->> 2.25.1
->> 
-> .
+      ... udp dport 4789 vxlan ip saddr . vxlan ip daddr { 1.2.3.4 . 4.3.2.1 }
+
+  This allows you to define a stateless filtering policy on the ingress hook
+  without requiring the classic data path round trip to first decapsulate
+  the VxLAN header and then filter from the vxlan0 netdevice.
+
+  This new feature requires Linux kernel >= 6.2.
+
+- auto-merge support for partial set element deletion. This allows you
+  to partially delete an element or a subrange in an existing range.
+
+      # nft list ruleset
+      table ip x {
+          set y {
+              typeof tcp dport
+              flags interval
+              auto-merge
+              elements = { 24-30, 40-50 }
+          }
+      }
+
+  Then, delete element 25 which is contained in the 24-30 range:
+
+      # nft delete element ip x y { 25 }
+      # nft list ruleset
+      table ip x {
+          set y {
+              typeof tcp dport
+              flags interval
+              auto-merge
+              elements = { 24, 26-30, 40-50 }
+          }
+      }
+
+  This requires the following two kernel fixes:
+
+   5d235d6ce75c ("netfilter: nft_set_rbtree: skip elements in transaction from garbage collection")
+   c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
+
+  which are already scheduled for -stable kernel releases >= 5.10.
+
+- Allow for NAT mapping with concatenation and ranges. This release
+  fixes mixed use of singleton concatenation and concatenation with
+  ranges, eg.
+
+  table ip nat {
+      chain prerouting {
+          type nat hook prerouting priority dstnat; policy accept;
+          dnat to ip daddr . tcp dport map { 10.1.1.136 . 80 : 1.1.2.69 . 1024, 10.1.1.10-10.1.1.20 . 8888-8889 : 1.1.2.69 . 2048-2049 } persistent
+     }
+  }
+
+  The example above shows how to define a destination nat mapping using the IPv4
+  destination address and the TCP destination port as key for the map lookup.
+  The 'persistent' flag tells the nat core to select the destination IPv4 address
+  specified as an IPv4 range through hashing the IPv4 source and destination
+  (to evenly distribute the load). If no IPv4 range is specified, then nat core
+  selects the singleton IPv4 destination address.
+
+- Support for the lastuse statement. This allows you to know the last time a
+  rule or set element has be used:
+
+  table ip x {
+      set y {
+          typeof ip daddr . tcp dport
+          size 65535
+          flags dynamic,timeout
+          last
+          timeout 1h
+      }
+
+      chain z {
+          type filter hook output priority filter; policy accept;
+          update @y { ip daddr . tcp dport }
+      }
+  }
+  # nft list set ip x y
+  table ip x {
+      set y {
+          typeof ip daddr . tcp dport
+          size 65535
+          flags dynamic,timeout
+          last
+          timeout 1h
+          elements = { 172.217.17.14 . 443 last used 1s591ms timeout 1h expires 59m58s409ms,
+                       172.67.69.19 . 443 last used 4s636ms timeout 1h expires 59m55s364ms,
+                       142.250.201.72 . 443 last used 4s748ms timeout 1h expires 59m55s252ms,
+                       172.67.70.134 . 443 last used 4s688ms timeout 1h expires 59m55s312ms,
+                       35.241.9.150 . 443 last used 5s204ms timeout 1h expires 59m54s796ms,
+                       138.201.122.174 . 443 last used 4s537ms timeout 1h expires 59m55s463ms,
+                       34.160.144.191 . 443 last used 5s205ms timeout 1h expires 59m54s795ms,
+                       130.211.23.194 . 443 last used 4s436ms timeout 1h expires 59m55s564ms }
+         }
+  }
+
+  This feature is available since Linux kernel >= 5.14. This requires the
+  following kernel fix:
+
+  860e874290fb ("netfilter: nft_last: copy content when cloning expression")
+
+  which is already scheduled for -stable Linux kernel release.
+
+- Support for quota in sets. The following example shows how to define an
+  (optional) quota per IPv4 destination address:
+
+  table netdev x {
+      set y {
+          typeof ip daddr
+          size 65535
+          quota over 10000 mbytes
+      }
+
+      chain y {
+          type filter hook egress device "eth0" priority filter; policy accept;
+          ip daddr @y drop
+      }
+  }
+
+  Then, add a quota for 8.8.8.8.
+
+  # nft add element inet x y { 8.8.8.8 }
+  # ping -c 2 8.8.8.8
+  PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+  64 bytes from 8.8.8.8: icmp_seq=1 ttl=58 time=8.14 ms
+  64 bytes from 8.8.8.8: icmp_seq=2 ttl=58 time=7.82 ms
+
+  --- 8.8.8.8 ping statistics ---
+  2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+  rtt min/avg/max/mdev = 7.824/7.980/8.136/0.156 ms
+  # nft list ruleset
+  table netdev x {
+      set y {
+          type ipv4_addr
+          size 65535
+          quota over 10000 mbytes
+          elements = { 8.8.8.8 quota over 10000 mbytes used 196 bytes }
+      }
+
+      chain y {
+          type filter hook egress device "eth0" priority filter; policy accept;
+          ip daddr @y drop
+      }
+  }
+
+  you also can override the default set-defined quota per element:
+
+  # nft add element inet x y { 1.2.3.5 quota 5000 mbytes }
+
+- Allow to use constant in set statement. The following example shows how to
+  add a set element from datapath as a concatenation of the Ethernet
+  destination address and a (constant) VLAN id (see VLAN id 123 is used below).
+
+      table netdev t {
+          set s {
+              typeof ether saddr . vlan id
+              size 2048
+              flags dynamic,timeout
+              timeout 1m
+          }
+
+          chain c {
+              type filter hook ingress device eth0 priority 0; policy accept;
+              ether type != 8021q update @s { ether daddr . 123 } counter
+          }
+      }
+
+
+- New destroy command (it requires Linux kernel >= 6.3-rc), which allows to
+  inconditionally remove objects, because the delete command hits ENOENT if
+  the object does not exists.
+
+      destroy table ip filter
+
+- fix ct proto-src and proto-dst when used from set/map statements. These are
+  the equivalent representation to th sport and th dport to access conntrack
+  tuple. The following example shows how to populate a map from the datapath:
+
+      table ip foo {
+          map pinned {
+              typeof ip saddr . ct original proto-dst : ip daddr . tcp dport
+              size 65535
+              flags dynamic,timeout
+              timeout 6m
+          }
+
+          chain pre {
+              type filter hook prerouting priority 0; policy accept;
+              meta l4proto tcp update @pinned { ip saddr . ct original proto-dst : ip daddr . tcp dport }
+          }
+      }
+
+- fixes for the new -o/--optimize which allows you to optimize your ruleset.
+- fix set elements deletion triggering a crash in previous releases.
+- fix parsing of invalid invalid octal strings.
+- ... and manpage updates.
+
+See changelog for more details (attached to this email).
+
+You can download this new release from:
+
+https://www.netfilter.org/projects/nftables/downloads.html
+https://www.netfilter.org/pub/nftables/
+
+[ NOTE: We have switched to .tar.xz files for releases. ]
+
+To build the code, libnftnl >= 1.2.5 and libmnl >= 1.0.4 are required:
+
+* https://netfilter.org/projects/libnftnl/index.html
+* https://netfilter.org/projects/libmnl/index.html
+
+Visit our wikipage for user documentation at:
+
+* https://wiki.nftables.org
+
+For the manpage reference, check man(8) nft.
+
+In case of bugs and feature requests, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling.
+
+--HdaEK2XXNW/pfm7h
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="changes-nftables-1.0.7.txt"
+Content-Transfer-Encoding: 8bit
+
+Fernando F. Mancera (1):
+      src: add support to command "destroy"
+
+Florian Westphal (1):
+      evaluate: set eval ctx for add/update statements with integer constants
+
+Jeremy Sowden (4):
+      scanner: treat invalid octal strings as strings
+      netlink_delinearize: add postprocessing for payload binops
+      evaluate: relax type-checking for integer arguments in mark statements
+      src: fix a couple of typo's in comments
+
+Máté Eckl (1):
+      src: Update copyright header to GPLv2+ in socket.c
+
+Pablo Neira Ayuso (43):
+      evaluate: fix shift exponent underflow in concatenation evaluation
+      ct: use inet_service_type for proto-src and proto-dst
+      src: Add GPLv2+ header to .c files of recent creation
+      src: add eval_proto_ctx()
+      src: add dl_proto_ctx()
+      src: add vxlan matching support
+      tests: py: add vxlan tests
+      tests: shell: add vxlan set tests
+      doc: add vxlan matching expression
+      src: display (inner) tag in --debug=proto-ctx
+      src: add gre support
+      tests: py: add gre tests
+      doc: add gre matching expression
+      src: add geneve matching support
+      tests: py: add geneve tests
+      doc: add geneve matching expression
+      src: add gretap support
+      tests: py: add gretap tests
+      doc: add gretap matching expression
+      optimize: payload expression requires inner_desc comparison
+      intervals: restrict check missing elements fix to sets with no auto-merge
+      tests: shell: extend runtime set element automerge to cover partial deletions
+      optimize: wrap code to build concatenation in helper function
+      optimize: fix incorrect expansion into concatenation with verdict map
+      optimize: select merge criteria based on candidates rules
+      rule: add helper function to expand chain rules into commands
+      rule: expand standalone chain that contains rules
+      optimize: ignore existing nat mapping
+      evaluate: print error on missing family in nat statement
+      evaluate: infer family from mapping
+      optimize: infer family for nat mapping
+      src: use start condition with new destroy command
+      parser_bison: missing close scope in destroy start condition
+      tests: shell: cover rule insertion by index
+      src: expand table command before evaluation
+      evaluate: expand value to range when nat mapping contains intervals
+      src: add last statement
+      parser_bison: allow to use quota in sets
+      cache: fetch more objects when resetting rule
+      tests: shell: use bash in 0011reset_0
+      src: improve error reporting for unsupported chain type
+      cmd: move command functions to src/cmd.c
+      build: Bump version to 1.0.7
+
+Phil Sutter (10):
+      optimize: Clarify chain_optimize() array allocations
+      optimize: Do not return garbage from stack
+      netlink: Fix for potential NULL-pointer deref
+      meta: parse_iso_date() returns boolean
+      mnl: dump_nf_hooks() leaks memory in error path
+      Implement 'reset rule' and 'reset rules' commands
+      netlink_delinearize: Sanitize concat data element decoding
+      doc: nft.8: Document lower priority limit for nat type chains
+      xt: Fix fallback printing for extensions matching keywords
+      Reject invalid chain priority values in user space
+
+
+--HdaEK2XXNW/pfm7h--
