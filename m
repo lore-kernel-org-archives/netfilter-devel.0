@@ -2,287 +2,249 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8449C6FD1D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Mar 2023 13:32:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2B64C6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Mar 2023 14:38:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230348AbjCNNcL (ORCPT
+        id S231375AbjCNOik (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Mar 2023 09:32:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53116 "EHLO
+        Tue, 14 Mar 2023 10:38:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231145AbjCNNbo (ORCPT
+        with ESMTP id S230224AbjCNOij (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Mar 2023 09:31:44 -0400
-X-Greylist: delayed 4482 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 14 Mar 2023 06:28:20 PDT
-Received: from smtp-bc0c.mail.infomaniak.ch (smtp-bc0c.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc0c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDB595BA0
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2023 06:28:20 -0700 (PDT)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PbZ8y4gnKzMqPGB;
-        Tue, 14 Mar 2023 14:28:18 +0100 (CET)
-Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4PbZ8x6dHGzMshZT;
-        Tue, 14 Mar 2023 14:28:17 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1678800498;
-        bh=kMnRX6G29tPfDpk+qyvZppMEcfd3tSVe79+PIqcL0xI=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=yXd5obTSfcGn8kT7e+yNxMc50vGs6GlODFVt6pcv2AaVAxjPZYy3h/pRzeMDjcxud
-         y8xf/oE4H2hQ43focpP0bbmRqhi+ECyqnDi/0DQHDYIvWwQiyDBZRo1YXtxz23ryZB
-         7eVQ3c4E8rgsQ4sB+7DAWOYcP51SHVqYPy8HL2Cg=
-Message-ID: <3e113e1c-4c7b-af91-14c2-11b6ffb4d3ef@digikod.net>
-Date:   Tue, 14 Mar 2023 14:28:17 +0100
+        Tue, 14 Mar 2023 10:38:39 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63F1174320;
+        Tue, 14 Mar 2023 07:38:37 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Pbbj4140gz6J7Nf;
+        Tue, 14 Mar 2023 22:37:44 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.21; Tue, 14 Mar 2023 14:38:34 +0000
+Message-ID: <07c1c55a-e449-6884-8bbf-3a6aab8f0f72@huawei.com>
+Date:   Tue, 14 Mar 2023 17:38:33 +0300
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v9 00/12] Network support for Landlock
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>
-Cc:     willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v9 08/12] landlock: Add network rules and TCP hooks
+ support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
 References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <Y/fl5iEbkL5Pj5cJ@galopp> <c20fc9eb-518e-84b4-0dd5-7b97c0825259@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <c20fc9eb-518e-84b4-0dd5-7b97c0825259@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <20230116085818.165539-9-konstantin.meskhidze@huawei.com>
+ <5198f456-91f5-5c65-76c2-45b82ccb05eb@digikod.net>
+ <7598f777-8458-0984-b058-2026d8163d3a@huawei.com>
+ <59356a12-75cf-32d3-ea76-daafd0788af6@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <59356a12-75cf-32d3-ea76-daafd0788af6@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 13/03/2023 18:16, Konstantin Meskhidze (A) wrote:
+
+3/14/2023 3:13 PM, Mickaël Salaün пишет:
 > 
-> 
-> 2/24/2023 1:17 AM, Günther Noack пишет:
->> Hello Konstantin!
->>
->> Sorry for asking such fundamental questions again so late in the review.
->>
->> After playing with patch V9 with the Go-Landlock library, I'm still
->> having trouble understanding these questions -- they probably have
->> good answers, but I also did not see them explained in the
->> documentation. Maybe it would help to clarify it there?
->>
->> * What is the use case for permitting processes to connect to a given
->>     TCP port, but leaving unspecified what the IP address is?
->>
->>     Example: If a Landlock ruleset permits connecting to TCP port 53,
->>     that makes it possible to talk to any IP address on the internet (at
->>     least if the process runs on a normal Linux desktop machine), and we
->>     can't really control whether that is the system's proper (TCP-)DNS
->>     server or whether that is an attacker-controlled service for
->>     accepting leaked secrets from the process...?
->>
->>     Is the plan that IP address support should be added in a follow-up
->>     patch?  Will it become part of the landlock_net_service_attr struct?
-> 
->        In the beginning I introduced the idea with IP address to
-> Mickaël but he suggested to use port-based granularity. So with ports
-> it's worth using Landlock in containerized applications working within
-> one IP address. Anyway it's possible to use netfilter to control
-> incoming traffic. It's a good question - we should discuss it carefuly.
-
-Limiting access rule definition to TCP ports is because of two reasons:
-- practical one: start with something small and improve it. All new 
-features should be covered by tests, and it takes time to write and 
-review them, especially to cover IPv4, IPv6 and any other type of 
-address to identify a server. Being able to control TCP connect and bind 
-is useful and brings the scaffolding for other non-kernel-object 
-restrictions.
-- semantic one: ports are tied to well-known (or configured) services, 
-whatever the network where a process is (e.g. Internet, LAN, container's 
-network namespace, VM). However, IP addresses are not well-known but 
-(most of the time) tied to names/DNS, which is not handled by the kernel 
-but user space. Moreover, I think it makes sense for app/service 
-developers to think about reachable services, but much less about 
-servers, which depend on the local network and a system-wide configuration.
-
-For some use cases, there is definitely a need to restrict access to a 
-set of servers though. I think a new dedicated attr struct would be 
-easier to handle and it would make more sense to compose them (ANDing 
-all network rule types to make a final decision). This new struct could 
-define different kind of subnets (IPv4, IPv6, ethernet, bluetooth…). One 
-of this type could be the local link, and especially if the server is 
-local to the system or not (i.e. loopback interface), and if the server 
-is in a specified network namespace (e.g. specific container/pod).
-
-Anyway, this should indeed be documented.
-
-
->>
->> * Given the list of obscure network protocols listed in the socket(2)
->>     man page, I find it slightly weird to have rules for the use of TCP,
->>     but to leave less prominent protocols unrestricted.
->>
->>     For example, a process with an enabled Landlock network ruleset may
->>     connect only to certain TCP ports, but at the same time it can
->>     happily use Bluetooth/CAN bus/DECnet/IPX or other protocols?
-> 
->        We also have started a discussion about UDP protocol, but it's
-> more complicated since UDP sockets does not establish connections
-> between each other. There is a performance problem on the first place here.
-> 
-> I'm not familiar with Bluetooth/CAN bus/DECnet/IPX but let's discuss it.
-> Any ideas here?
-
-All these protocols should be handled one way or another someday. ;)
-
-
-> 
->>
->>     I'm mentioning these more obscure protocols, because I doubt that
->>     Landlock will grow more sophisticated support for them anytime soon,
->>     so maybe the best option would be to just make it possible to
->>     disable these?  Is that also part of the plan?
->>
->>     (I think there would be a lot of value in restricting network
->>     access, even when it's done very broadly.  There are many programs
->>     that don't need network at all, and among those that do need
->>     network, most only require IP networking.
-
-Indeed, protocols that nobody care to make Landlock supports them will 
-probably not have fine-grained control. We could extend the ruleset 
-attributes to disable the use (i.e. not only the creation of new related 
-sockets/resources) of network protocol families, in a way that would 
-make sandboxes simulate a kernel without such protocol support. In this 
-case, this should be an allowed list of protocols, and everything not in 
-that list should be denied. This approach could be used for other kernel 
-features (unrelated to network).
-
-
->>
->>     Btw, the argument for more broad disabling of network access was
->>     already made at https://cr.yp.to/unix/disablenetwork.html in the
->>     past.)
-
-This is interesting but scoped to a single use case. As specified at the 
-beginning of this linked page, there must be exceptions, not only with 
-AF_UNIX but also for (the newer) AF_VSOCK, and probably future ones. 
-This is why I don't think a binary approach is a good one for Linux. 
-Users should be able to specify what they need, and block the rest.
-
-
->        Thanks for the link. I will read it.
->>
->> * This one is more of an implementation question: I don't understand
->>     why we are storing the networking rules in the same RB tree as the
->>     file system rules. - It looks a bit like "YAGNI" to me...?
-> 
->        Actually network rules are stored in a different RB tree.
->        You can check it in struct landlock_ruleset (ruleset.h):
->        - struct rb_root root_inodeis for fs rules
-> 
->        - struct rb_root root_net_port is for network rules;
->>
->>     Would it be more efficient to keep the file system rules in the
->>     existing RB tree, and store the networking rules *separately* next
->>     to it in a different RB tree, or even in a more optimized data
->>     structure? In pseudocode:
->>
->>       struct fast_lookup_int_set bind_tcp_ports;
->>       struct fast_lookup_int_set connect_tcp_ports;
->>       struct landlock_rb_tree fs_rules;
->>
->>     It seems that there should be a data structure that supports this
->>     well and which uses the fact that we only need to store small
->>     integers?
-> 
->        Thnaks for the question. From my point of view it depends on a
-> real scenario - how many ports we want to allow by Landlock for a
-> proccess - thousands, hundreds or less. If it's just 10 ports - do we
-> really need some optimized data structure? Do we get some performance
-> gain here?
-> What do you think?
-
-As Konstantin explained, there are two different red-black trees. This 
-data structure may not be optimal but it is much easier to start with that.
-
-Using one tree per right would increase the size, especially for each 
-new access right, but it is worth thinking about a new data structure 
-dealing with sets (and ranges) of numbers.
-
-Talking about performance optimization, the first step would be to use a 
-hash table for domain's inode identification.
-
-
->>
->> Thanks,
->> –Günther
->>
->> P.S.: Apologies if some of it was discussed previously. I did my best
->> to catch up on previous threads, but it's long, and it's possible that
->> I missed parts of the discussion.
->>
->> On Mon, Jan 16, 2023 at 04:58:06PM +0800, Konstantin Meskhidze wrote:
->>> Hi,
->>> This is a new V9 patch related to Landlock LSM network confinement.
->>> It is based on the landlock's -next branch on top of v6.2-rc3 kernel version:
->>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
+> On 13/03/2023 10:33, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 2/10/2023 8:39 PM, Mickaël Salaün пишет:
 >>>
->>> It brings refactoring of previous patch version V8.
->>> Mostly there are fixes of logic and typos, adding new tests.
+>>> On 16/01/2023 09:58, Konstantin Meskhidze wrote:
+>>>> This commit adds network rules support in the ruleset management
+>>>> helpers and the landlock_create_ruleset syscall.
+>>>> Refactor user space API to support network actions. Add new network
+>>>> access flags, network rule and network attributes. Increment Landlock
+>>>> ABI version. Expand access_masks_t to u32 to be sure network access
+>>>> rights can be stored. Implement socket_bind() and socket_connect()
+>>>> LSM hooks, which enable to restrict TCP socket binding and connection
+>>>> to specific ports.
+>>>>
+>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>>> ---
+>>>>
+>>>> Changes since v8:
+>>>> * Squashes commits.
+>>>> * Refactors commit message.
+>>>> * Changes UAPI port field to __be16.
+>>>> * Changes logic of bind/connect hooks with AF_UNSPEC families.
+>>>> * Adds address length checking.
+>>>> * Minor fixes.
+>>>>
+>>>> Changes since v7:
+>>>> * Squashes commits.
+>>>> * Increments ABI version to 4.
+>>>> * Refactors commit message.
+>>>> * Minor fixes.
+>>>>
+>>>> Changes since v6:
+>>>> * Renames landlock_set_net_access_mask() to landlock_add_net_access_mask()
+>>>>     because it OR values.
+>>>> * Makes landlock_add_net_access_mask() more resilient incorrect values.
+>>>> * Refactors landlock_get_net_access_mask().
+>>>> * Renames LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
+>>>>     LANDLOCK_NUM_ACCESS_FS as value.
+>>>> * Updates access_masks_t to u32 to support network access actions.
+>>>> * Refactors landlock internal functions to support network actions with
+>>>>     landlock_key/key_type/id types.
+>>>>
+>>>> Changes since v5:
+>>>> * Gets rid of partial revert from landlock_add_rule
+>>>> syscall.
+>>>> * Formats code with clang-format-14.
+>>>>
+>>>> Changes since v4:
+>>>> * Refactors landlock_create_ruleset() - splits ruleset and
+>>>> masks checks.
+>>>> * Refactors landlock_create_ruleset() and landlock mask
+>>>> setters/getters to support two rule types.
+>>>> * Refactors landlock_add_rule syscall add_rule_path_beneath
+>>>> function by factoring out get_ruleset_from_fd() and
+>>>> landlock_put_ruleset().
+>>>>
+>>>> Changes since v3:
+>>>> * Splits commit.
+>>>> * Adds network rule support for internal landlock functions.
+>>>> * Adds set_mask and get_mask for network.
+>>>> * Adds rb_root root_net_port.
 >>>
->>> All test were run in QEMU evironment and compiled with
->>>   -static flag.
->>>   1. network_test: 32/32 tests passed.
->>>   2. base_test: 7/7 tests passed.
->>>   3. fs_test: 78/78 tests passed.
->>>   4. ptrace_test: 8/8 tests passed.
+>>> [...]
 >>>
->>> Previous versions:
->>> v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
->>> v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
->>> v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
->>> v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
->>> v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
->>> v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
->>> v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
->>> v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
+>>>> +static int check_socket_access(const struct landlock_ruleset *const domain,
+>>>> +			       struct sockaddr *address, __be16 port,
+>>>> +			       access_mask_t access_request)
+>>>> +{
+>>>> +	bool allowed = false;
+>>>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+>>>> +	const struct landlock_rule *rule;
+>>>> +	access_mask_t handled_access;
+>>>> +	const struct landlock_id id = {
+>>>> +		.key.data = port,
+>>>> +		.type = LANDLOCK_KEY_NET_PORT,
+>>>> +	};
+>>>> +
+>>>> +	if (WARN_ON_ONCE(!domain))
+>>>> +		return 0;
+>>>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+>>>> +		return -EACCES;
+>>>> +
+>>>> +	switch (address->sa_family) {
+>>>> +	case AF_UNSPEC:
+>>>> +		/*
+>>>> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
+>>>> +		 * association, which have the same effect as closing the
+>>>> +		 * connection while retaining the socket object (i.e., the file
+>>>> +		 * descriptor).  As for dropping privileges, closing
+>>>> +		 * connections is always allowed.
+>>>> +		 */
+>>>> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>>>> +			return 0;
+>>>> +
+>>>> +		/*
+>>>> +		 * For compatibility reason, accept AF_UNSPEC for bind
+>>>> +		 * accesses (mapped to AF_INET) only if the address is
+>>>> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
+>>>> +		 * required to not wrongfully return -EACCES instead of
+>>>> +		 * -EAFNOSUPPORT.
+>>>> +		 */
+>>>> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
+>>>> +			const struct sockaddr_in *const sockaddr =
+>>>> +				(struct sockaddr_in *)address;
+>>>> +
+>>>> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
+>>>> +				return -EAFNOSUPPORT;
+>>>> +		}
+>>>> +
+>>>> +		fallthrough;
+>>>> +	case AF_INET:
+>>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>>> +	case AF_INET6:
+>>>> +#endif
+>>>> +		rule = landlock_find_rule(domain, id);
+>>>> +		handled_access = landlock_init_layer_masks(
+>>>> +			domain, access_request, &layer_masks,
+>>>> +			LANDLOCK_KEY_NET_PORT);
+>>>> +		allowed = landlock_unmask_layers(rule, handled_access,
+>>>> +						 &layer_masks,
+>>>> +						 ARRAY_SIZE(layer_masks));
+>>>> +
+>>>> +		fallthrough;
 >>>
->>> Konstantin Meskhidze (11):
->>>    landlock: Make ruleset's access masks more generic
->>>    landlock: Refactor landlock_find_rule/insert_rule
->>>    landlock: Refactor merge/inherit_ruleset functions
->>>    landlock: Move and rename umask_layers() and init_layer_masks()
->>>    landlock: Refactor _unmask_layers() and _init_layer_masks()
->>>    landlock: Refactor landlock_add_rule() syscall
->>>    landlock: Add network rules and TCP hooks support
->>>    selftests/landlock: Share enforce_ruleset()
->>>    selftests/landlock: Add 10 new test suites dedicated to network
->>>    samples/landlock: Add network demo
->>>    landlock: Document Landlock's network support
+>>> You can remove this fallthrough.
 >>>
->>> Mickaël Salaün (1):
->>>    landlock: Allow filesystem layout changes for domains without such
->>>      rule type
 >>>
->>>   Documentation/userspace-api/landlock.rst     |   72 +-
->>>   include/uapi/linux/landlock.h                |   49 +
->>>   samples/landlock/sandboxer.c                 |  131 +-
->>>   security/landlock/Kconfig                    |    1 +
->>>   security/landlock/Makefile                   |    2 +
->>>   security/landlock/fs.c                       |  255 ++--
->>>   security/landlock/limits.h                   |    7 +-
->>>   security/landlock/net.c                      |  200 +++
->>>   security/landlock/net.h                      |   26 +
->>>   security/landlock/ruleset.c                  |  409 +++++--
->>>   security/landlock/ruleset.h                  |  185 ++-
->>>   security/landlock/setup.c                    |    2 +
->>>   security/landlock/syscalls.c                 |  165 ++-
->>>   tools/testing/selftests/landlock/base_test.c |    2 +-
->>>   tools/testing/selftests/landlock/common.h    |   10 +
->>>   tools/testing/selftests/landlock/config      |    4 +
->>>   tools/testing/selftests/landlock/fs_test.c   |   75 +-
->>>   tools/testing/selftests/landlock/net_test.c  | 1157 ++++++++++++++++++
->>>   18 files changed, 2398 insertions(+), 354 deletions(-)
->>>   create mode 100644 security/landlock/net.c
->>>   create mode 100644 security/landlock/net.h
->>>   create mode 100644 tools/testing/selftests/landlock/net_test.c
+>>>> +	}
+>>>> +	return allowed ? 0 : -EACCES;
+>>>> +}
+>>>> +
+>>>> +static u16 get_port(const struct sockaddr *const address)
+>>>> +{
+>>>> +	/* Gets port value in host byte order. */
+>>>> +	switch (address->sa_family) {
+>>>> +	case AF_UNSPEC:
+>>>> +	case AF_INET: {
+>>>> +		const struct sockaddr_in *const sockaddr =
+>>>> +			(struct sockaddr_in *)address;
+>>>> +		return sockaddr->sin_port;
+>>>> +	}
+>>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>>> +	case AF_INET6: {
+>>>> +		const struct sockaddr_in6 *const sockaddr_ip6 =
+>>>> +			(struct sockaddr_in6 *)address;
+>>>> +		return sockaddr_ip6->sin6_port;
+>>>> +	}
+>>>> +#endif
+>>>> +	}
+>>>> +	WARN_ON_ONCE(1);
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static int hook_socket_bind(struct socket *sock, struct sockaddr *address,
+>>>> +			    int addrlen)
+>>>> +{
+>>>> +	int ret;
+>>>> +	const struct landlock_ruleset *const dom =
+>>>> +		landlock_get_current_domain();
 >>>
->>> -- 
->>> 2.25.1
->>>
->> .
+>>> landlock_get_current_domain() should only be called by a
+>>> get_current_net_domain() wrapper that checks if the current domain
+>>> handles network accesses. See get_current_fs_domain() in patch 2/12.
+>> 
+>>     Hi Mickaël.
+>>     I have question:
+>> 
+>>     static access_mask_t
+>> get_raw_handled_fs_accesses(const struct landlock_ruleset *const domain)
+>> {
+>> 	access_mask_t access_dom = 0;
+>> 	size_t layer_level;
+>> 
+>> 	for (layer_level = 0; layer_level < domain->num_layers; layer_level++)
+>> 		access_dom |=
+>> 			landlock_get_raw_fs_access_mask(domain, layer_level);
+>> 	return access_dom & LANDLOCK_MASK_ACCESS_FS;
+>> }
+>> 
+>> landlock_get_raw_fs_access_mask() function is already mask by
+>> LANDLOCK_MASK_ACCESS_FS. We could get rid of access_dom masking.
+>> What do you think?
+> 
+> Right, you can remove this extra mask.
+> 
+> While reading the code again I found that it would be better to rename
+> ACCESS_FS_INITIALLY_DENIED to LANDLOCK_ACCESS_FS_INITIALLY_DENIED.
+
+   Ok. Will be renamed..
+> .
