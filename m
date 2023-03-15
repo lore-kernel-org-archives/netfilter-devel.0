@@ -2,143 +2,415 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B64C5C6FD1D
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Mar 2023 22:22:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 525A9C6FD1D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Mar 2023 10:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230263AbjCNWWX (ORCPT
+        id S231917AbjCOKZL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Mar 2023 18:22:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35656 "EHLO
+        Wed, 15 Mar 2023 06:25:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230045AbjCNWWW (ORCPT
+        with ESMTP id S232289AbjCOKZK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Mar 2023 18:22:22 -0400
+        Wed, 15 Mar 2023 06:25:10 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4144D187
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2023 15:21:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4F0133ABE
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2023 03:25:06 -0700 (PDT)
+Date:   Wed, 15 Mar 2023 11:25:02 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH nft,v3] parser_bison: simplify reset syntax
-Date:   Tue, 14 Mar 2023 23:20:33 +0100
-Message-Id: <20230314222033.828809-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf-next 0/3] NF NAT deduplication refactoring
+Message-ID: <ZBGc/uvjDp61RHay@salvia>
+References: <20230313134649.186812-1-jeremy@azazel.net>
+ <ZBBR/gcg6/Oiyq07@salvia>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="0XIycf4XZJQBUO80"
+Content-Disposition: inline
+In-Reply-To: <ZBBR/gcg6/Oiyq07@salvia>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Simplify:
 
-*reset rules* *chain* ['family'] 'table' ['chain]'
-to
-*reset rules* ['family'] 'table' 'chain'
+--0XIycf4XZJQBUO80
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-*reset rules* *table* ['family'] 'table'
-to
-*reset rules* ['family'] 'table'
+On Tue, Mar 14, 2023 at 11:52:49AM +0100, Pablo Neira Ayuso wrote:
+> May you submit v2 with these two changes?
 
-*reset counters* ['family'] *table* 'table'
-to
-*reset counters* ['family'] 'table'
+Something like this attached. It is doing all at once, but the patch
+looks relatively easier to follow.
 
-*reset quotas* ['family'] *table* 'table'
-to
-*reset quotas* ['family'] 'table'
+I can also document the removal of WARN_ON() and the use of
+union nf_inet_addr newdst = {};
 
-Previous syntax remains in place for backward compatibility.
+I am adding the memset() on range, but that is defensive. Probably all
+memset() can just go away from the nftables nat code, but I need to
+double check.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Thanks.
+
+--0XIycf4XZJQBUO80
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-netfilter-nft_redir-deduplicate-eval-call-backs.patch"
+
+From b4e6d901cdf7f6adf43a66ec35829f6d90196326 Mon Sep 17 00:00:00 2001
+From: Jeremy Sowden <jeremy@azazel.net>
+Date: Mon, 13 Mar 2023 13:46:47 +0000
+Subject: [PATCH nf-next 1/2] netfilter: nft_redir: deduplicate eval call-backs
+
+`nf_nat_redirect_ipv4` takes a `struct nf_nat_ipv4_multi_range_compat`,
+but converts it internally to a `struct nf_nat_range2`.  Change the
+function to take the latter, factor out the code now shared with
+`nf_nat_redirect_ipv6`, move the conversion to the xt_REDIRECT module,
+and update the ipv4 range initialization in the nft_redir module.
+
+Replace a bare hex constant for 127.0.0.1 with a macro.
+
+nft_redir has separate ipv4 and ipv6 call-backs which share much of
+their code, and an inet one switch containing a switch that calls one of
+the others based on the family of the packet.  Merge the ipv4 and ipv6
+ones into the inet one in order to get rid of the duplicate code.
+
+Const-qualify the `priv` pointer since we don't need to write through
+it.
+
+Assign `priv->flags` to the range instead of OR-ing it in.
+
+Set the `NF_NAT_RANGE_PROTO_SPECIFIED` flag once during init, rather
+than on every eval.
+
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Reviewed-by: Florian Westphal <fw@strlen.de>
 ---
-v3: use *reset rules* ['family'] ['table' ['chain']] per Phil.
+ include/net/netfilter/nf_nat_redirect.h |  3 +-
+ net/netfilter/nf_nat_redirect.c         | 70 +++++++++------------
+ net/netfilter/nft_redir.c               | 84 +++++++++----------------
+ net/netfilter/xt_REDIRECT.c             | 10 ++-
+ 4 files changed, 71 insertions(+), 96 deletions(-)
 
- doc/nft.txt        |  8 +++-----
- src/parser_bison.y | 20 ++++++++++++++++++++
- 2 files changed, 23 insertions(+), 5 deletions(-)
-
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 0d60c7520d31..83f0f8bb155a 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -490,9 +490,7 @@ RULES
- *replace rule* ['family'] 'table' 'chain' *handle* 'handle' 'statement' ... [*comment* 'comment']
- {*delete* | *reset*} *rule* ['family'] 'table' 'chain' *handle* 'handle'
- *destroy rule* ['family'] 'table' 'chain' *handle* 'handle'
--*reset rules* ['family']
--*reset rules* *table* ['family'] 'table'
--*reset rules* *chain* ['family'] 'table' ['chain']
-+*reset rules* ['family'] ['table' ['chain']]
+diff --git a/include/net/netfilter/nf_nat_redirect.h b/include/net/netfilter/nf_nat_redirect.h
+index 2418653a66db..279380de904c 100644
+--- a/include/net/netfilter/nf_nat_redirect.h
++++ b/include/net/netfilter/nf_nat_redirect.h
+@@ -6,8 +6,7 @@
+ #include <uapi/linux/netfilter/nf_nat.h>
  
- Rules are added to chains in the given table. If the family is not specified, the
- ip family is used. Rules are constructed from two kinds of components according
-@@ -762,8 +760,8 @@ STATEFUL OBJECTS
- *list limits* ['family']
- *reset counters* ['family']
- *reset quotas* ['family']
--*reset counters* ['family'] *table* 'table'
--*reset quotas* ['family'] *table* 'table'
-+*reset counters* ['family'] 'table'
-+*reset quotas* ['family'] 'table'
+ unsigned int
+-nf_nat_redirect_ipv4(struct sk_buff *skb,
+-		     const struct nf_nat_ipv4_multi_range_compat *mr,
++nf_nat_redirect_ipv4(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 		     unsigned int hooknum);
+ unsigned int
+ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
+diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
+index f91579c821e9..083e534bded0 100644
+--- a/net/netfilter/nf_nat_redirect.c
++++ b/net/netfilter/nf_nat_redirect.c
+@@ -10,6 +10,7 @@
  
- Stateful objects are attached to tables and are identified by a unique name.
- They group stateful information from rules, to reference them in rules the
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index ccedfafe1bfa..e4f21ca1a722 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1650,11 +1650,16 @@ basehook_spec		:	ruleset_spec
- 			;
+ #include <linux/if.h>
+ #include <linux/inetdevice.h>
++#include <linux/in.h>
+ #include <linux/ip.h>
+ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+@@ -24,54 +25,55 @@
+ #include <net/netfilter/nf_nat.h>
+ #include <net/netfilter/nf_nat_redirect.h>
  
- reset_cmd		:	COUNTERS	ruleset_spec
-+			{
-+				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_COUNTERS, &$2, &@$, NULL);
-+			}
-+			|	COUNTERS	table_spec
- 			{
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_COUNTERS, &$2, &@$, NULL);
++static unsigned int
++nf_nat_redirect(struct sk_buff *skb, const struct nf_nat_range2 *range,
++		const union nf_inet_addr *newdst)
++{
++	struct nf_nat_range2 newrange;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(skb, &ctinfo);
++
++	memset(&newrange, 0, sizeof(newrange));
++	newrange.flags		= range->flags | NF_NAT_RANGE_MAP_IPS;
++	newrange.min_addr	= *newdst;
++	newrange.max_addr	= *newdst;
++	newrange.min_proto	= range->min_proto;
++	newrange.max_proto	= range->max_proto;
++
++	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
++}
++
+ unsigned int
+-nf_nat_redirect_ipv4(struct sk_buff *skb,
+-		     const struct nf_nat_ipv4_multi_range_compat *mr,
++nf_nat_redirect_ipv4(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 		     unsigned int hooknum)
+ {
+-	struct nf_conn *ct;
+-	enum ip_conntrack_info ctinfo;
+-	__be32 newdst;
+-	struct nf_nat_range2 newrange;
++	union nf_inet_addr newdst = {};
+ 
+ 	WARN_ON(hooknum != NF_INET_PRE_ROUTING &&
+ 		hooknum != NF_INET_LOCAL_OUT);
+ 
+-	ct = nf_ct_get(skb, &ctinfo);
+-	WARN_ON(!(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED)));
+-
+ 	/* Local packets: make them go to loopback */
+ 	if (hooknum == NF_INET_LOCAL_OUT) {
+-		newdst = htonl(0x7F000001);
++		newdst.ip = htonl(INADDR_LOOPBACK);
+ 	} else {
+ 		const struct in_device *indev;
+ 
+-		newdst = 0;
+-
+ 		indev = __in_dev_get_rcu(skb->dev);
+ 		if (indev) {
+ 			const struct in_ifaddr *ifa;
+ 
+ 			ifa = rcu_dereference(indev->ifa_list);
+ 			if (ifa)
+-				newdst = ifa->ifa_local;
++				newdst.ip = ifa->ifa_local;
+ 		}
+ 
+-		if (!newdst)
++		if (!newdst.ip)
+ 			return NF_DROP;
+ 	}
+ 
+-	/* Transfer from original range. */
+-	memset(&newrange.min_addr, 0, sizeof(newrange.min_addr));
+-	memset(&newrange.max_addr, 0, sizeof(newrange.max_addr));
+-	newrange.flags	     = mr->range[0].flags | NF_NAT_RANGE_MAP_IPS;
+-	newrange.min_addr.ip = newdst;
+-	newrange.max_addr.ip = newdst;
+-	newrange.min_proto   = mr->range[0].min;
+-	newrange.max_proto   = mr->range[0].max;
+-
+-	/* Hand modified range to generic setup. */
+-	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
++	return nf_nat_redirect(skb, range, &newdst);
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv4);
+ 
+@@ -81,14 +83,10 @@ unsigned int
+ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 		     unsigned int hooknum)
+ {
+-	struct nf_nat_range2 newrange;
+-	struct in6_addr newdst;
+-	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct;
++	union nf_inet_addr newdst = {};
+ 
+-	ct = nf_ct_get(skb, &ctinfo);
+ 	if (hooknum == NF_INET_LOCAL_OUT) {
+-		newdst = loopback_addr;
++		newdst.in6 = loopback_addr;
+ 	} else {
+ 		struct inet6_dev *idev;
+ 		struct inet6_ifaddr *ifa;
+@@ -98,7 +96,7 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 		if (idev != NULL) {
+ 			read_lock_bh(&idev->lock);
+ 			list_for_each_entry(ifa, &idev->addr_list, if_list) {
+-				newdst = ifa->addr;
++				newdst.in6 = ifa->addr;
+ 				addr = true;
+ 				break;
  			}
- 			|	COUNTERS	TABLE	table_spec
- 			{
-+				/* alias of previous rule. */
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_COUNTERS, &$3, &@$, NULL);
- 			}
- 			|       COUNTER         obj_spec	close_scope_counter
-@@ -1669,6 +1674,11 @@ reset_cmd		:	COUNTERS	ruleset_spec
- 			{
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_QUOTAS, &$3, &@$, NULL);
- 			}
-+			|	QUOTAS		table_spec
-+			{
-+				/* alias of previous rule. */
-+				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_QUOTAS, &$2, &@$, NULL);
-+			}
- 			|       QUOTA           obj_spec	close_scope_quota
- 			{
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_QUOTA, &$2, &@$, NULL);
-@@ -1677,12 +1687,22 @@ reset_cmd		:	COUNTERS	ruleset_spec
- 			{
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_RULES, &$2, &@$, NULL);
- 			}
-+			|	RULES		table_spec
-+			{
-+				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_RULES, &$2, &@$, NULL);
-+			}
- 			|	RULES		TABLE	table_spec
- 			{
-+				/* alias of previous rule. */
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_RULES, &$3, &@$, NULL);
- 			}
-+			|	RULES		chain_spec
-+			{
-+				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_RULES, &$2, &@$, NULL);
-+			}
- 			|	RULES		CHAIN	chain_spec
- 			{
-+				/* alias of previous rule. */
- 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_RULES, &$3, &@$, NULL);
- 			}
- 			|	RULE		ruleid_spec
+@@ -109,12 +107,6 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 			return NF_DROP;
+ 	}
+ 
+-	newrange.flags		= range->flags | NF_NAT_RANGE_MAP_IPS;
+-	newrange.min_addr.in6	= newdst;
+-	newrange.max_addr.in6	= newdst;
+-	newrange.min_proto	= range->min_proto;
+-	newrange.max_proto	= range->max_proto;
+-
+-	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
++	return nf_nat_redirect(skb, range, &newdst);
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv6);
+diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
+index 5f7739987559..1d52a05a8b03 100644
+--- a/net/netfilter/nft_redir.c
++++ b/net/netfilter/nft_redir.c
+@@ -64,6 +64,8 @@ static int nft_redir_init(const struct nft_ctx *ctx,
+ 		} else {
+ 			priv->sreg_proto_max = priv->sreg_proto_min;
+ 		}
++
++		priv->flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 	}
+ 
+ 	if (tb[NFTA_REDIR_FLAGS]) {
+@@ -99,25 +101,37 @@ static int nft_redir_dump(struct sk_buff *skb,
+ 	return -1;
+ }
+ 
+-static void nft_redir_ipv4_eval(const struct nft_expr *expr,
+-				struct nft_regs *regs,
+-				const struct nft_pktinfo *pkt)
++static void nft_redir_eval(const struct nft_expr *expr,
++			   struct nft_regs *regs,
++			   const struct nft_pktinfo *pkt)
+ {
+-	struct nft_redir *priv = nft_expr_priv(expr);
+-	struct nf_nat_ipv4_multi_range_compat mr;
++	const struct nft_redir *priv = nft_expr_priv(expr);
++	struct nf_nat_range2 range;
+ 
+-	memset(&mr, 0, sizeof(mr));
++	memset(&range, 0, sizeof(range));
++	range.flags = priv->flags;
+ 	if (priv->sreg_proto_min) {
+-		mr.range[0].min.all = (__force __be16)nft_reg_load16(
+-			&regs->data[priv->sreg_proto_min]);
+-		mr.range[0].max.all = (__force __be16)nft_reg_load16(
+-			&regs->data[priv->sreg_proto_max]);
+-		mr.range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
++		range.min_proto.all = (__force __be16)
++			nft_reg_load16(&regs->data[priv->sreg_proto_min]);
++		range.max_proto.all = (__force __be16)
++			nft_reg_load16(&regs->data[priv->sreg_proto_max]);
+ 	}
+ 
+-	mr.range[0].flags |= priv->flags;
+-
+-	regs->verdict.code = nf_nat_redirect_ipv4(pkt->skb, &mr, nft_hook(pkt));
++	switch (nft_pf(pkt)) {
++	case NFPROTO_IPV4:
++		regs->verdict.code = nf_nat_redirect_ipv4(pkt->skb, &range,
++							  nft_hook(pkt));
++		break;
++#ifdef CONFIG_NF_TABLES_IPV6
++	case NFPROTO_IPV6:
++		regs->verdict.code = nf_nat_redirect_ipv6(pkt->skb, &range,
++							  nft_hook(pkt));
++		break;
++#endif
++	default:
++		WARN_ON_ONCE(1);
++		break;
++	}
+ }
+ 
+ static void
+@@ -130,7 +144,7 @@ static struct nft_expr_type nft_redir_ipv4_type;
+ static const struct nft_expr_ops nft_redir_ipv4_ops = {
+ 	.type		= &nft_redir_ipv4_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
+-	.eval		= nft_redir_ipv4_eval,
++	.eval		= nft_redir_eval,
+ 	.init		= nft_redir_init,
+ 	.destroy	= nft_redir_ipv4_destroy,
+ 	.dump		= nft_redir_dump,
+@@ -148,28 +162,6 @@ static struct nft_expr_type nft_redir_ipv4_type __read_mostly = {
+ };
+ 
+ #ifdef CONFIG_NF_TABLES_IPV6
+-static void nft_redir_ipv6_eval(const struct nft_expr *expr,
+-				struct nft_regs *regs,
+-				const struct nft_pktinfo *pkt)
+-{
+-	struct nft_redir *priv = nft_expr_priv(expr);
+-	struct nf_nat_range2 range;
+-
+-	memset(&range, 0, sizeof(range));
+-	if (priv->sreg_proto_min) {
+-		range.min_proto.all = (__force __be16)nft_reg_load16(
+-			&regs->data[priv->sreg_proto_min]);
+-		range.max_proto.all = (__force __be16)nft_reg_load16(
+-			&regs->data[priv->sreg_proto_max]);
+-		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+-	}
+-
+-	range.flags |= priv->flags;
+-
+-	regs->verdict.code =
+-		nf_nat_redirect_ipv6(pkt->skb, &range, nft_hook(pkt));
+-}
+-
+ static void
+ nft_redir_ipv6_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ {
+@@ -180,7 +172,7 @@ static struct nft_expr_type nft_redir_ipv6_type;
+ static const struct nft_expr_ops nft_redir_ipv6_ops = {
+ 	.type		= &nft_redir_ipv6_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
+-	.eval		= nft_redir_ipv6_eval,
++	.eval		= nft_redir_eval,
+ 	.init		= nft_redir_init,
+ 	.destroy	= nft_redir_ipv6_destroy,
+ 	.dump		= nft_redir_dump,
+@@ -199,20 +191,6 @@ static struct nft_expr_type nft_redir_ipv6_type __read_mostly = {
+ #endif
+ 
+ #ifdef CONFIG_NF_TABLES_INET
+-static void nft_redir_inet_eval(const struct nft_expr *expr,
+-				struct nft_regs *regs,
+-				const struct nft_pktinfo *pkt)
+-{
+-	switch (nft_pf(pkt)) {
+-	case NFPROTO_IPV4:
+-		return nft_redir_ipv4_eval(expr, regs, pkt);
+-	case NFPROTO_IPV6:
+-		return nft_redir_ipv6_eval(expr, regs, pkt);
+-	}
+-
+-	WARN_ON_ONCE(1);
+-}
+-
+ static void
+ nft_redir_inet_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ {
+@@ -223,7 +201,7 @@ static struct nft_expr_type nft_redir_inet_type;
+ static const struct nft_expr_ops nft_redir_inet_ops = {
+ 	.type		= &nft_redir_inet_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
+-	.eval		= nft_redir_inet_eval,
++	.eval		= nft_redir_eval,
+ 	.init		= nft_redir_init,
+ 	.destroy	= nft_redir_inet_destroy,
+ 	.dump		= nft_redir_dump,
+diff --git a/net/netfilter/xt_REDIRECT.c b/net/netfilter/xt_REDIRECT.c
+index 353ca7801251..ff66b56a3f97 100644
+--- a/net/netfilter/xt_REDIRECT.c
++++ b/net/netfilter/xt_REDIRECT.c
+@@ -46,7 +46,6 @@ static void redirect_tg_destroy(const struct xt_tgdtor_param *par)
+ 	nf_ct_netns_put(par->net, par->family);
+ }
+ 
+-/* FIXME: Take multiple ranges --RR */
+ static int redirect_tg4_check(const struct xt_tgchk_param *par)
+ {
+ 	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
+@@ -65,7 +64,14 @@ static int redirect_tg4_check(const struct xt_tgchk_param *par)
+ static unsigned int
+ redirect_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	return nf_nat_redirect_ipv4(skb, par->targinfo, xt_hooknum(par));
++	const struct nf_nat_ipv4_multi_range_compat *mr = par->targinfo;
++	struct nf_nat_range2 range = {
++		.flags       = mr->range[0].flags,
++		.min_proto   = mr->range[0].min,
++		.max_proto   = mr->range[0].max,
++	};
++
++	return nf_nat_redirect_ipv4(skb, &range, xt_hooknum(par));
+ }
+ 
+ static struct xt_target redirect_tg_reg[] __read_mostly = {
 -- 
 2.30.2
 
+
+--0XIycf4XZJQBUO80--
