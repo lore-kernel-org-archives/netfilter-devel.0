@@ -2,438 +2,208 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 893DDC6FD19
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Mar 2023 14:44:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B34C6FD1F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Mar 2023 18:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230135AbjCPOoV (ORCPT
+        id S229602AbjCPS40 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Mar 2023 10:44:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51904 "EHLO
+        Thu, 16 Mar 2023 14:56:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229659AbjCPOoT (ORCPT
+        with ESMTP id S230045AbjCPS4X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Mar 2023 10:44:19 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3680F8093B
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2023 07:44:17 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pcopy-0007gu-O7; Thu, 16 Mar 2023 15:44:14 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] xtables: move icmp/icmpv6 logic to xt_tcpudp
-Date:   Thu, 16 Mar 2023 15:44:08 +0100
-Message-Id: <20230316144408.25386-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
+        Thu, 16 Mar 2023 14:56:23 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34E90DCA44
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2023 11:56:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=cnfO244BfONDo+D3ryZGIPFuwU8254jP8kwgk11Ozyc=; b=lz2RuBmXgH4A2kdt2rOAiTqJux
+        9vtLtczaBr3Ihoxp9/bwcMndpgCZdOTa6XFEUduOeRmniUDQ0gWEib2B68IjwsczQ58fUZflINR1d
+        90B2+yziY0xzb5OWXyqHvPkMCjYL8osidQZ2DoQrAvzvxJr7jr3PCHn6cNm4rGUGVR4j9UK1ljHKi
+        l0Jv0BQSDmcV7a7kS+b7EFsY0qGdw3dzos4aio1JMzeFyMvdhUlphF/4eaGVIIZne84wag9ZGCtuh
+        o+H2x6g0Fn5cxr2UkwmE2fxjULF6VXeOyIm3lR8d4meP8IhNf3KB4UnDJerEIYdSsRPvvKsM7i43c
+        LRKnYRfg==;
+Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1pcslo-00B9Bb-St; Thu, 16 Mar 2023 18:56:13 +0000
+Date:   Thu, 16 Mar 2023 18:56:11 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf-next] netfilter: nft_exthdr: add boolean DCCP option
+ matching
+Message-ID: <20230316185611.GD4331@celephais.dreamlands>
+References: <20230312143714.158943-1-jeremy@azazel.net>
+ <20230316092334.GE4072@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="fPjLnzwIo69qAueD"
+Content-Disposition: inline
+In-Reply-To: <20230316092334.GE4072@breakpoint.cc>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-icmp/icmp6 matches are baked into ip(6)_tables.ko.
 
-This means that even if iptables-nft is used, a rule like
-"-p icmp --icmp-type 1" will load the ip(6)tables modules.
+--fPjLnzwIo69qAueD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Move them to xt_tcpdudp.ko instead to avoid this.
+On 2023-03-16, at 10:23:34 +0100, Florian Westphal wrote:
+> Jeremy Sowden <jeremy@azazel.net> wrote:
+> > The xt_dccp iptables module supports the matching of DCCP packets based
+> > on the presence or absence of DCCP options.  Extend nft_exthdr to add
+> > this functionality to nftables.
+> >=20
+> > Link: https://bugzilla.netfilter.org/show_bug.cgi?id=3D930
+> > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> > ---
+> >  include/uapi/linux/netfilter/nf_tables.h |   2 +
+> >  net/netfilter/nft_exthdr.c               | 105 +++++++++++++++++++++++
+> > +struct nft_exthdr_dccp {
+> > +	struct nft_exthdr exthdr;
+> > +	/* A buffer into which to copy the DCCP packet options for parsing.  =
+The
+> > +	 * options are located between the packet header and its data.  The
+> > +	 * offset of the data from the start of the header is stored in an 8-=
+bit
+> > +	 * field as the number of 32-bit words, so the options will definitely
+> > +	 * be shorter than `4 * U8_MAX` bytes.
+> > +	 */
+> > +	u8 optbuf[4 * U8_MAX];
+> > +};
+> > +
+> >  static unsigned int optlen(const u8 *opt, unsigned int offset)
+> >  {
+> >  	/* Beware zero-length options: make finite progress */
+> > @@ -406,6 +418,70 @@ static void nft_exthdr_sctp_eval(const struct nft_=
+expr *expr,
+> >  		regs->verdict.code =3D NFT_BREAK;
+> >  }
+> > =20
+> > +static void nft_exthdr_dccp_eval(const struct nft_expr *expr,
+> > +				 struct nft_regs *regs,
+> > +				 const struct nft_pktinfo *pkt)
+> > +{
+> > +	struct nft_exthdr_dccp *priv_dccp =3D nft_expr_priv(expr);
+> > +	struct nft_exthdr *priv =3D &priv_dccp->exthdr;
+> > +	u32 *dest =3D &regs->data[priv->dreg];
+> > +	unsigned int optoff, optlen, i;
+> > +	const struct dccp_hdr *dh;
+> > +	struct dccp_hdr _dh;
+> > +	const u8 *options;
+> > +
+> > +	if (pkt->tprot !=3D IPPROTO_DCCP || pkt->fragoff)
+> > +		goto err;
+> > +
+> > +	dh =3D skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_dh), &_dh=
+);
+> > +	if (!dh)
+> > +		goto err;
+> > +
+> > +	if (dh->dccph_doff * 4 < __dccp_hdr_len(dh))
+> > +		goto err;
+> > +
+> > +	optoff =3D __dccp_hdr_len(dh);
+> > +	optlen =3D dh->dccph_doff * 4 - optoff;
+>=20
+> Perhaps reorder this slightly:
+>=20
+>      optoff =3D __dccp_hdr_len(dh);
+>      if (dh->dccph_doff * 4 <=3D optoff)
+> 	     goto err;
+>=20
+>      optlen =3D dh->dccph_doff * 4 - optoff;
+>=20
+>      options =3D skb_header_pointer(pkt->skb, nft_thoff(pkt) + optoff, op=
+tlen,
+> 				     priv_dccp->optbuf);
+>=20
+> This isn't safe.  priv_dccp->optbuf is neither percpu nor is there
+> something that prevents a softinterrupt from firing.
+>=20
+> I suggest you have a look at 'pipapo' set type which uses percpu scratch
+> maps.
+>=20
+> Yet another alternative is to provide a small onstack scratch buffer,
+> say 256 byte, and fall back to kmalloc for larger spaces.
+>=20
+> Or, always use a on-stack buffer that gets re-used for each of the
+> parsed options.
 
-This will also allow to eventually add kconfig knobs to build kernels
-that support iptables-nft but not iptables-legacy (old set/getsockopt
-interface).
+I was trying to avoid an on-stack buffer, 'cause it would be quite big,
+while improving concurrency over xt_dccp.c, which has a single file-
+scope buffer protected by a spin-lock.  I'll take a look at pipapo.
+Thanks for the tips.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/ip_tables.c  |  68 +-------------------
- net/ipv6/netfilter/ip6_tables.c |  68 +-------------------
- net/netfilter/xt_tcpudp.c       | 110 ++++++++++++++++++++++++++++++++
- 3 files changed, 112 insertions(+), 134 deletions(-)
+> > +	for (i =3D 0; i < optlen; ) {
+> > +		/* Options 0 - 31 are 1B in the length.  Options 32 et seq. are
+> > +		 * at least 2B long.  In all cases, the first byte contains the
+> > +		 * option type.  In multi-byte options, the second byte contains
+> > +		 * the option length, which must be at least two; if it is
+> > +		 * greater than two, there are `len - 2` following bytes of
+> > +		 * option data.
+> > +		 */
+> > +		unsigned int len;
+> > +
+> > +		if (options[i] > 31 && (optlen - i < 2 || options[i + 1] < 2))
+> > +			goto err;
+> > +
+> > +		len =3D options[i] > 31 ? options[i + 1] : 1;
+> > +
+> > +		if (optlen - i < len)
+> > +			goto err;
+> > +
+> > +		if (options[i] !=3D priv->type) {
+> > +			i +=3D len;
+>=20
+> I think this needs to guard against len =3D=3D 0?
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index da5998011ab9..7da1df4997d0 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -14,7 +14,6 @@
- #include <linux/vmalloc.h>
- #include <linux/netdevice.h>
- #include <linux/module.h>
--#include <linux/icmp.h>
- #include <net/ip.h>
- #include <net/compat.h>
- #include <linux/uaccess.h>
-@@ -31,7 +30,6 @@
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("IPv4 packet filter");
--MODULE_ALIAS("ipt_icmp");
- 
- void *ipt_alloc_initial_table(const struct xt_table *info)
- {
-@@ -1799,52 +1797,6 @@ void ipt_unregister_table_exit(struct net *net, const char *name)
- 		__ipt_unregister_table(net, table);
- }
- 
--/* Returns 1 if the type and code is matched by the range, 0 otherwise */
--static inline bool
--icmp_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
--		     u_int8_t type, u_int8_t code,
--		     bool invert)
--{
--	return ((test_type == 0xFF) ||
--		(type == test_type && code >= min_code && code <= max_code))
--		^ invert;
--}
--
--static bool
--icmp_match(const struct sk_buff *skb, struct xt_action_param *par)
--{
--	const struct icmphdr *ic;
--	struct icmphdr _icmph;
--	const struct ipt_icmp *icmpinfo = par->matchinfo;
--
--	/* Must not be a fragment. */
--	if (par->fragoff != 0)
--		return false;
--
--	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
--	if (ic == NULL) {
--		/* We've been asked to examine this packet, and we
--		 * can't.  Hence, no choice but to drop.
--		 */
--		par->hotdrop = true;
--		return false;
--	}
--
--	return icmp_type_code_match(icmpinfo->type,
--				    icmpinfo->code[0],
--				    icmpinfo->code[1],
--				    ic->type, ic->code,
--				    !!(icmpinfo->invflags&IPT_ICMP_INV));
--}
--
--static int icmp_checkentry(const struct xt_mtchk_param *par)
--{
--	const struct ipt_icmp *icmpinfo = par->matchinfo;
--
--	/* Must specify no unknown invflags */
--	return (icmpinfo->invflags & ~IPT_ICMP_INV) ? -EINVAL : 0;
--}
--
- static struct xt_target ipt_builtin_tg[] __read_mostly = {
- 	{
- 		.name             = XT_STANDARD_TARGET,
-@@ -1875,18 +1827,6 @@ static struct nf_sockopt_ops ipt_sockopts = {
- 	.owner		= THIS_MODULE,
- };
- 
--static struct xt_match ipt_builtin_mt[] __read_mostly = {
--	{
--		.name       = "icmp",
--		.match      = icmp_match,
--		.matchsize  = sizeof(struct ipt_icmp),
--		.checkentry = icmp_checkentry,
--		.proto      = IPPROTO_ICMP,
--		.family     = NFPROTO_IPV4,
--		.me	    = THIS_MODULE,
--	},
--};
--
- static int __net_init ip_tables_net_init(struct net *net)
- {
- 	return xt_proto_init(net, NFPROTO_IPV4);
-@@ -1914,19 +1854,14 @@ static int __init ip_tables_init(void)
- 	ret = xt_register_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
- 	if (ret < 0)
- 		goto err2;
--	ret = xt_register_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
--	if (ret < 0)
--		goto err4;
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&ipt_sockopts);
- 	if (ret < 0)
--		goto err5;
-+		goto err4;
- 
- 	return 0;
- 
--err5:
--	xt_unregister_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
- err4:
- 	xt_unregister_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
- err2:
-@@ -1939,7 +1874,6 @@ static void __exit ip_tables_fini(void)
- {
- 	nf_unregister_sockopt(&ipt_sockopts);
- 
--	xt_unregister_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
- 	xt_unregister_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
- 	unregister_pernet_subsys(&ip_tables_net_ops);
- }
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 0ce0ed17c758..fd9f049d6d41 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -18,7 +18,6 @@
- #include <linux/netdevice.h>
- #include <linux/module.h>
- #include <linux/poison.h>
--#include <linux/icmpv6.h>
- #include <net/ipv6.h>
- #include <net/compat.h>
- #include <linux/uaccess.h>
-@@ -35,7 +34,6 @@
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("IPv6 packet filter");
--MODULE_ALIAS("ip6t_icmp6");
- 
- void *ip6t_alloc_initial_table(const struct xt_table *info)
- {
-@@ -1805,52 +1803,6 @@ void ip6t_unregister_table_exit(struct net *net, const char *name)
- 		__ip6t_unregister_table(net, table);
- }
- 
--/* Returns 1 if the type and code is matched by the range, 0 otherwise */
--static inline bool
--icmp6_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
--		     u_int8_t type, u_int8_t code,
--		     bool invert)
--{
--	return (type == test_type && code >= min_code && code <= max_code)
--		^ invert;
--}
--
--static bool
--icmp6_match(const struct sk_buff *skb, struct xt_action_param *par)
--{
--	const struct icmp6hdr *ic;
--	struct icmp6hdr _icmph;
--	const struct ip6t_icmp *icmpinfo = par->matchinfo;
--
--	/* Must not be a fragment. */
--	if (par->fragoff != 0)
--		return false;
--
--	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
--	if (ic == NULL) {
--		/* We've been asked to examine this packet, and we
--		 * can't.  Hence, no choice but to drop.
--		 */
--		par->hotdrop = true;
--		return false;
--	}
--
--	return icmp6_type_code_match(icmpinfo->type,
--				     icmpinfo->code[0],
--				     icmpinfo->code[1],
--				     ic->icmp6_type, ic->icmp6_code,
--				     !!(icmpinfo->invflags&IP6T_ICMP_INV));
--}
--
--/* Called when user tries to insert an entry of this type. */
--static int icmp6_checkentry(const struct xt_mtchk_param *par)
--{
--	const struct ip6t_icmp *icmpinfo = par->matchinfo;
--
--	/* Must specify no unknown invflags */
--	return (icmpinfo->invflags & ~IP6T_ICMP_INV) ? -EINVAL : 0;
--}
--
- /* The built-in targets: standard (NULL) and error. */
- static struct xt_target ip6t_builtin_tg[] __read_mostly = {
- 	{
-@@ -1882,18 +1834,6 @@ static struct nf_sockopt_ops ip6t_sockopts = {
- 	.owner		= THIS_MODULE,
- };
- 
--static struct xt_match ip6t_builtin_mt[] __read_mostly = {
--	{
--		.name       = "icmp6",
--		.match      = icmp6_match,
--		.matchsize  = sizeof(struct ip6t_icmp),
--		.checkentry = icmp6_checkentry,
--		.proto      = IPPROTO_ICMPV6,
--		.family     = NFPROTO_IPV6,
--		.me	    = THIS_MODULE,
--	},
--};
--
- static int __net_init ip6_tables_net_init(struct net *net)
- {
- 	return xt_proto_init(net, NFPROTO_IPV6);
-@@ -1921,19 +1861,14 @@ static int __init ip6_tables_init(void)
- 	ret = xt_register_targets(ip6t_builtin_tg, ARRAY_SIZE(ip6t_builtin_tg));
- 	if (ret < 0)
- 		goto err2;
--	ret = xt_register_matches(ip6t_builtin_mt, ARRAY_SIZE(ip6t_builtin_mt));
--	if (ret < 0)
--		goto err4;
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&ip6t_sockopts);
- 	if (ret < 0)
--		goto err5;
-+		goto err4;
- 
- 	return 0;
- 
--err5:
--	xt_unregister_matches(ip6t_builtin_mt, ARRAY_SIZE(ip6t_builtin_mt));
- err4:
- 	xt_unregister_targets(ip6t_builtin_tg, ARRAY_SIZE(ip6t_builtin_tg));
- err2:
-@@ -1946,7 +1881,6 @@ static void __exit ip6_tables_fini(void)
- {
- 	nf_unregister_sockopt(&ip6t_sockopts);
- 
--	xt_unregister_matches(ip6t_builtin_mt, ARRAY_SIZE(ip6t_builtin_mt));
- 	xt_unregister_targets(ip6t_builtin_tg, ARRAY_SIZE(ip6t_builtin_tg));
- 	unregister_pernet_subsys(&ip6_tables_net_ops);
- }
-diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
-index 11ec2abf0c72..5dfa998413ee 100644
---- a/net/netfilter/xt_tcpudp.c
-+++ b/net/netfilter/xt_tcpudp.c
-@@ -4,6 +4,7 @@
- #include <linux/module.h>
- #include <net/ip.h>
- #include <linux/ipv6.h>
-+#include <linux/icmp.h>
- #include <net/ipv6.h>
- #include <net/tcp.h>
- #include <net/udp.h>
-@@ -20,6 +21,8 @@ MODULE_ALIAS("ipt_udp");
- MODULE_ALIAS("ipt_tcp");
- MODULE_ALIAS("ip6t_udp");
- MODULE_ALIAS("ip6t_tcp");
-+MODULE_ALIAS("ipt_icmp");
-+MODULE_ALIAS("ip6t_icmp6");
- 
- /* Returns 1 if the port is matched by the range, 0 otherwise */
- static inline bool
-@@ -161,6 +164,95 @@ static int udp_mt_check(const struct xt_mtchk_param *par)
- 	return (udpinfo->invflags & ~XT_UDP_INV_MASK) ? -EINVAL : 0;
- }
- 
-+/* Returns 1 if the type and code is matched by the range, 0 otherwise */
-+static bool type_code_in_range(u8 test_type, u8 min_code, u8 max_code,
-+			       u8 type, u8 code)
-+{
-+	return type == test_type && code >= min_code && code <= max_code;
-+}
-+
-+static bool icmp_type_code_match(u8 test_type, u8 min_code, u8 max_code,
-+				 u8 type, u8 code, bool invert)
-+{
-+	return (test_type == 0xFF ||
-+		type_code_in_range(test_type, min_code, max_code, type, code))
-+		^ invert;
-+}
-+
-+static bool icmp6_type_code_match(u8 test_type, u8 min_code, u8 max_code,
-+				  u8 type, u8 code, bool invert)
-+{
-+	return type_code_in_range(test_type, min_code, max_code, type, code) ^ invert;
-+}
-+
-+static bool
-+icmp_match(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct icmphdr *ic;
-+	struct icmphdr _icmph;
-+	const struct ipt_icmp *icmpinfo = par->matchinfo;
-+
-+	/* Must not be a fragment. */
-+	if (par->fragoff != 0)
-+		return false;
-+
-+	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
-+	if (!ic) {
-+		/* We've been asked to examine this packet, and we
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		par->hotdrop = true;
-+		return false;
-+	}
-+
-+	return icmp_type_code_match(icmpinfo->type,
-+				    icmpinfo->code[0],
-+				    icmpinfo->code[1],
-+				    ic->type, ic->code,
-+				    !!(icmpinfo->invflags & IPT_ICMP_INV));
-+}
-+
-+static bool
-+icmp6_match(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct icmp6hdr *ic;
-+	struct icmp6hdr _icmph;
-+	const struct ip6t_icmp *icmpinfo = par->matchinfo;
-+
-+	/* Must not be a fragment. */
-+	if (par->fragoff != 0)
-+		return false;
-+
-+	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
-+	if (!ic) {
-+		/* We've been asked to examine this packet, and we
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		par->hotdrop = true;
-+		return false;
-+	}
-+
-+	return icmp6_type_code_match(icmpinfo->type,
-+				     icmpinfo->code[0],
-+				     icmpinfo->code[1],
-+				     ic->icmp6_type, ic->icmp6_code,
-+				     !!(icmpinfo->invflags & IP6T_ICMP_INV));
-+}
-+
-+static int icmp_checkentry(const struct xt_mtchk_param *par)
-+{
-+	const struct ipt_icmp *icmpinfo = par->matchinfo;
-+
-+	return (icmpinfo->invflags & ~IPT_ICMP_INV) ? -EINVAL : 0;
-+}
-+
-+static int icmp6_checkentry(const struct xt_mtchk_param *par)
-+{
-+	const struct ip6t_icmp *icmpinfo = par->matchinfo;
-+
-+	return (icmpinfo->invflags & ~IP6T_ICMP_INV) ? -EINVAL : 0;
-+}
-+
- static struct xt_match tcpudp_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "tcp",
-@@ -216,6 +308,24 @@ static struct xt_match tcpudp_mt_reg[] __read_mostly = {
- 		.proto		= IPPROTO_UDPLITE,
- 		.me		= THIS_MODULE,
- 	},
-+	{
-+		.name       = "icmp",
-+		.match      = icmp_match,
-+		.matchsize  = sizeof(struct ipt_icmp),
-+		.checkentry = icmp_checkentry,
-+		.proto      = IPPROTO_ICMP,
-+		.family     = NFPROTO_IPV4,
-+		.me         = THIS_MODULE,
-+	},
-+	{
-+		.name       = "icmp6",
-+		.match      = icmp6_match,
-+		.matchsize  = sizeof(struct ip6t_icmp),
-+		.checkentry = icmp6_checkentry,
-+		.proto      = IPPROTO_ICMPV6,
-+		.family     = NFPROTO_IPV6,
-+		.me	    = THIS_MODULE,
-+	},
- };
- 
- static int __init tcpudp_mt_init(void)
--- 
-2.39.2
+`len` should be at least 1:
 
+> > +		if (options[i] > 31 && (optlen - i < 2 || options[i + 1] < 2))
+> > +			goto err;
+> > +
+
+If options[i] > 31, we verify that we can get the length from
+options[i + 1] and that it is at least 2.
+
+> > +		len =3D options[i] > 31 ? options[i + 1] : 1;
+
+If options[i] > 31, we assign options[i + 1], which we know is at
+least two, to len; otheriwse, we assign 1.
+
+J.
+
+--fPjLnzwIo69qAueD
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQTZkQACgkQKYasCr3x
+BA2B1BAAjkahaLsYqNZhNA3hbXbroM5ku7PttOmC8AMnSQzH0QY26PihraaMKQPt
+lYhtMczBaHAs4cQJFVA6dYjvUAxXt5TaS5ntgemkgNO5jwcgV6B3cF5XZY1maQeU
+UKfVtLr+2POVQUeHsXGBpxQJ+AAg+cBluA/sj2HOI6Kq5EbBJPZOkV9XB1ODfq+0
+BASMMg58cCPYnD53olju3NUAhDXa/i7lJ/DuZB/BEjRhn22XuFDcxTOeFBfi0zVI
+hysP+x11fPcqGKeUAC3qJFGpk3bTR3PsAEgSnYxW/Ny4HOP6SlSIFFz6thz/m+A3
+5vsRNjXEeE5sYeLG2378jzp6OZVJeHQ1qYzOG4j2m5aEPhpipt3yEWgO+NUYabMq
+HTA5c09ztMvNPYf8J9S/ufV1GKY7fwXwmAadrtM7gVj6REVhLjzVwgkh7869WV2u
+VsdVlAe3r0k+LEuAT2Xm5ZJuY9lWue3TZF1W8CIVvCIlPVz99DmBFfIjckqgvySZ
+gkqHClnkcWUlKawv6hCyUJpEtYJF7naGOGjSyYKDQIfvnV8WeZls27WIgFSvWkvA
++1I+kOaBD2yTRLc+Pjb9fYg36qYR+XRTLnbu1jvd8ybx7I6GO6HmZxlg114XB3Iv
+WvIHQNy+rOAbD/SUqbhFovPU+XBzZ7H/vTkREkz6WM5hWylTuZA=
+=lzka
+-----END PGP SIGNATURE-----
+
+--fPjLnzwIo69qAueD--
