@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61ED3C76196
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Mar 2023 09:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4AB2C74A5B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Mar 2023 09:58:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230094AbjCQJ6n (ORCPT
+        id S229716AbjCQJ6o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Mar 2023 05:58:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55264 "EHLO
+        Fri, 17 Mar 2023 05:58:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229923AbjCQJ6m (ORCPT
+        with ESMTP id S229974AbjCQJ6m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 17 Mar 2023 05:58:42 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BB86F19C
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2023 02:58:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6078DCA34
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2023 02:58:41 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/9] netlink_delinearize: correct type and byte-order of shifts
-Date:   Fri, 17 Mar 2023 10:58:26 +0100
-Message-Id: <20230317095833.1225401-3-pablo@netfilter.org>
+Subject: [PATCH nft 5/9] evaluate: get length from statement instead of lhs expression
+Date:   Fri, 17 Mar 2023 10:58:29 +0100
+Message-Id: <20230317095833.1225401-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230317095833.1225401-1-pablo@netfilter.org>
 References: <20230317095833.1225401-1-pablo@netfilter.org>
@@ -30,59 +30,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+Get length from statement, instead infering it from the expression that
+is used to set the value. In the particular case of {ct|meta} mark, this
+is 32 bits.
 
-Downgrade to base type integer instead of the specific type from the
-expression that is used in the shift operation.
+Otherwise, bytecode generation is not correct:
 
-Without this, listing a rule like:
+ # nft -c --debug=netlink 'add rule ip6 x y ct mark set ip6 dscp << 2 | 0x10'
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
+  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+  [ byteorder reg 1 = ntoh(reg 1, 2, 1) ]
+  [ bitwise reg 1 = ( reg 1 << 0x00000002 ) ]
+  [ bitwise reg 1 = ( reg 1 & 0x00000fef ) ^ 0x00000010 ]    <--- incorrect!
+  [ ct set mark with reg 1 ]
 
-  ct mark set ip dscp lshift 2 or 0x10
+the previous bitwise shift already upgraded to 32-bits (not visible from
+the netlink debug output above).
 
-will return:
+After this patch, the last | 0x10 uses 32-bits:
 
-  ct mark set ip dscp << 2 | cs2
+ [ bitwise reg 1 = ( reg 1 & 0xffffffef ) ^ 0x00000010 ]
 
-because the type of the OR's right operand will be transitively derived
-from `ip dscp`.  However, this is not valid syntax:
+note that mask 0xffffffef is used instead of 0x00000fef.
 
-  # nft add rule t c ct mark set ip dscp '<<' 2 '|' cs2
-  Error: Could not parse integer
-  add rule t c ct mark set ip dscp << 2 | cs2
-                                          ^^^
-
-Use xinteger_type to print the output in hexadecimal.
-
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_delinearize.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ src/evaluate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 60350cd6cd96..c1b4c1148d33 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2810,8 +2810,17 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 		}
- 		expr_postprocess(ctx, &expr->right);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 6d61cdb25f3d..2a679c90a3ac 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1324,7 +1324,7 @@ static int expr_evaluate_bitwise(struct eval_ctx *ctx, struct expr **expr)
  
--		expr_set_type(expr, expr->left->dtype,
--			      expr->left->byteorder);
-+		switch (expr->op) {
-+		case OP_LSHIFT:
-+		case OP_RSHIFT:
-+			expr_set_type(expr, &xinteger_type,
-+				      BYTEORDER_HOST_ENDIAN);
-+			break;
-+		default:
-+			expr_set_type(expr, expr->left->dtype,
-+				      expr->left->byteorder);
-+		}
-+
- 		break;
- 	case EXPR_RELATIONAL:
- 		switch (expr->left->etype) {
+ 	op->dtype     = left->dtype;
+ 	op->byteorder = left->byteorder;
+-	op->len	      = left->len;
++	op->len	      = ctx->ectx.len;
+ 
+ 	if (expr_is_constant(left))
+ 		return constant_binop_simplify(ctx, expr);
 -- 
 2.30.2
 
