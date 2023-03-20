@@ -2,55 +2,91 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C848C7618A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Mar 2023 09:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB87EC6FD1D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Mar 2023 13:47:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230341AbjCTJRU (ORCPT
+        id S229458AbjCTNrN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Mar 2023 05:17:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50582 "EHLO
+        Mon, 20 Mar 2023 09:47:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231129AbjCTJRN (ORCPT
+        with ESMTP id S229696AbjCTNrM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Mar 2023 05:17:13 -0400
-Received: from mail.paretdee.com (mail.paretdee.com [141.95.17.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99A8B72A1
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2023 02:17:12 -0700 (PDT)
-Received: by mail.paretdee.com (Postfix, from userid 1002)
-        id 9D1A6A3382; Mon, 20 Mar 2023 09:15:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=paretdee.com; s=mail;
-        t=1679303749; bh=FLMIyM7qOCOVEMp1o/ltkgnLeuU0ZBlT9xWiZMBZ7Ag=;
-        h=Date:From:To:Subject:From;
-        b=pwzMDopGHvX68+Sy3K/FbGKsGDBm92DRznzplX2CZ5HRZWWo95NIVwFRRpHVZaSV+
-         NBkdJb9NBUT/pxsC+n9rT2iAVokQjQkiy1+67Un5eAJ+DZlzFLhMJeiOHARLwnuGAM
-         ECMzPUFiZ4RP/3UsruIzN6jilIq5rdtlww0g/uA30Q0gYlyJgvJGXuB5tZYdynnz0D
-         hcjvSX+UD3FH7+WUWgcOBXr6YhPC3lO+FOI18sgdXTLjCbLLcnEzyQBCShVvQFrwqu
-         PiYI/tgmUPX7mehPrMR2QmYwbA9j+7A2fcPO6VIWtTCGO6Erujxh05XGiHV8yJuuaW
-         puvferUl7q/GQ==
-Received: by mail.paretdee.com for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2023 09:15:37 GMT
-Message-ID: <20230320074500-0.1.5j.d8f7.0.qjdbwfm7ld@paretdee.com>
-Date:   Mon, 20 Mar 2023 09:15:37 GMT
-From:   "Zbynek Spacek" <zbynek.spacek@paretdee.com>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: Rubber Molded
-X-Mailer: mail.paretdee.com
+        Mon, 20 Mar 2023 09:47:12 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA8A1B9
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2023 06:47:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=VaBS80Gx/T1yWBnQxR12AgKW/cPmr2h1dkZZjaAVr2o=; b=D/btImrJnX/dqVqs6uwJ06KtpS
+        iahg3rHzRiBJVwmtl/nOUxT6dq5uYT5IzQwF3cc7N5PWM46ynveMar2hZzRJJJKYmNjd6kw6O4eAd
+        fz85yoJfZObpJZF5q9cjlpzPKR8rrHFlXFhN/+DqgUymXkh0+zNOR+21Of1iAQljSF+618H9Dx0NB
+        WolUlVr7wH2ZhDPO5bwREM2nI3pHKN3W4RGTnyyr9Da3B3Gu2g8lLUhbVU2dgVGm0eWKdHA/D6cvS
+        l3XNi91nO8abVw0UxZ3U5kMxhs3CjXoVTdUUpCvWnNFOdIXJdKawRmUdsjA64NrUgB7ULNTQbQHj9
+        deciodRA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1peFqt-0006zV-W2; Mon, 20 Mar 2023 14:47:08 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 2/2] Avoid a memleak with 'reset rules' command
+Date:   Mon, 20 Mar 2023 14:46:59 +0100
+Message-Id: <20230320134659.13731-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.38.0
+In-Reply-To: <20230320134659.13731-1-phil@nwl.cc>
+References: <20230320134659.13731-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Good morning,
+Like other 'reset' commands, 'reset rules' also lists the (part of the)
+ruleset which was affected to give users a chance to store the zeroed
+values. Therefore do_command_reset() calls do_command_list(). This in
+turn calls do_list_ruleset() for CMD_OBJ_RULES which wasn't prepared for
+values stored in cmd->handle other than a possible family value and thus
+freely reused the pointers as scratch area for the do_list_table() call
+whiich in the past fetched each table's data directly from kernel.
 
-we can offer unbeatable conditions for the supply of various silicone com=
-pounds and rubbers, liquid silicone rubber (LSR).
+Meanwhile ruleset listing code has been integrated into the common
+caching logic, the 'cmd' pointer became unused by do_list_table(). The
+temporary cmd->handle manipulation is not needed anymore, dropping it
+prevents a memleak caused by overwriting of allocated table name
+pointer.
 
-In our assortment you will also find cross-linking agents, stabilizers, d=
-yes and individual silicone mixtures that we will develop for your needs.
+Fixes: 1694df2de79f3 ("Implement 'reset rule' and 'reset rules' commands")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/rule.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Do you want to know what we can offer you?
+diff --git a/src/rule.c b/src/rule.c
+index fadd7670d97a2..06042239c8437 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -2184,15 +2184,10 @@ static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		    table->handle.family != family)
+ 			continue;
+ 
+-		cmd->handle.family = table->handle.family;
+-		cmd->handle.table.name = table->handle.table.name;
+-
+ 		if (do_list_table(ctx, table) < 0)
+ 			return -1;
+ 	}
+ 
+-	cmd->handle.table.name = NULL;
+-
+ 	return 0;
+ }
+ 
+-- 
+2.38.0
 
-
-Best regards
-Zbynek Spacek
