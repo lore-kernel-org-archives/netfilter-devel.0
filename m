@@ -2,298 +2,362 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C96EC6FD1D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Mar 2023 20:42:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5017C6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 20 Mar 2023 21:44:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230431AbjCTUme (ORCPT
+        id S229833AbjCTVoM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 20 Mar 2023 16:42:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44198 "EHLO
+        Mon, 20 Mar 2023 17:44:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230367AbjCTUm0 (ORCPT
+        with ESMTP id S229835AbjCTVoL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Mar 2023 16:42:26 -0400
-Received: from gate2.alliedtelesis.co.nz (gate2.alliedtelesis.co.nz [IPv6:2001:df5:b000:5::4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 495FF392BE
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2023 13:41:54 -0700 (PDT)
-Received: from svr-chch-seg1.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id AF4BA2C0617
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2023 09:41:47 +1300 (NZDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alliedtelesis.co.nz;
-        s=mail181024; t=1679344907;
-        bh=iazogD9yM45zsNcZIEaoITrRhwg81lONSmnp0XL0yT4=;
-        h=From:To:CC:Subject:Date:References:In-Reply-To:From;
-        b=qPrUHs0F49313MLzLaoOJ8ciCGwwww9CBDax04NRR9SfkLIE7fqNGhe9B6Sul8H5D
-         PuVH86prcDFmx28xYxQe8UteAQYKoTfG62cjw+JJeMJe8ZLLeFqZd5+8Xi4Qb2Ja2n
-         iKd6q7B5tmAToXEjK4wTDYOuFyyJOp1b/rja8l+DTOPRtsUL1X17BV+DHhHL1Xvt5j
-         A9c7UeOw/I87NRs5J4tbChD6wk7FHIrjP0u+yRnvJqbYt5TbczGEfKp1YcLCn4rrBM
-         GjMBZnmFbENVQ14JAxa7aYIHFjV1jrKuQL19rNwzuk57bvyqa38+gi/Rseii6Sogcc
-         C3zd/C9g821cg==
-Received: from svr-chch-ex1.atlnz.lc (Not Verified[2001:df5:b000:bc8::77]) by svr-chch-seg1.atlnz.lc with Trustwave SEG (v8,2,6,11305)
-        id <B6418c50b0001>; Tue, 21 Mar 2023 09:41:47 +1300
-Received: from svr-chch-ex1.atlnz.lc (2001:df5:b000:bc8:409d:36f5:8899:92e8)
- by svr-chch-ex1.atlnz.lc (2001:df5:b000:bc8:409d:36f5:8899:92e8) with
- Microsoft SMTP Server (TLS) id 15.0.1497.48; Tue, 21 Mar 2023 09:41:47 +1300
-Received: from svr-chch-ex1.atlnz.lc ([fe80::409d:36f5:8899:92e8]) by
- svr-chch-ex1.atlnz.lc ([fe80::409d:36f5:8899:92e8%12]) with mapi id
- 15.00.1497.048; Tue, 21 Mar 2023 09:41:47 +1300
-From:   Kyuwon Shim <Kyuwon.Shim@alliedtelesis.co.nz>
-To:     "fw@strlen.de" <fw@strlen.de>
-CC:     "pablo@netfilter.org" <pablo@netfilter.org>,
+        Mon, 20 Mar 2023 17:44:11 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 671AA4695
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2023 14:43:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=TZKqKACmv8AONyHaQNTYU9c4zwhE0hZmuwOIIcwBxlw=; b=qeBcrr/Zs9OHg2xLGK5hb47pGn
+        HEylMVROvThSBbpvHpKyujeLUIMobVeUMtQHvCraMBi1O7nATONF8XXejh+xCkGd5PPtagqbQRV7W
+        Y32yh0M+ymUhs6/wFX3ivwi7lPl86c+yETaRXTz0ZkPbCHEz6gaI87PirGrYO8cgWvBDOsFeTHwmf
+        NmdGfhvCa5xQhNLptTqVfqAltQOTxXJH19ARRzDkeQjZJWUx8hz7JLQ+3SXdKm15g7ULEk9U7lbj4
+        WqgvJO5c99PoFFdAvjTKwotAvNj6K0yyyf/IlAPXpFRSgFPXydYvfxWBhqAyGDn/p3rBXtk9h+Gbb
+        ynZ31U1A==;
+Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1peNHf-00GbN4-13; Mon, 20 Mar 2023 21:43:15 +0000
+Date:   Mon, 20 Mar 2023 21:43:13 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Kyuwon Shim <Kyuwon.Shim@alliedtelesis.co.nz>
+Cc:     "fw@strlen.de" <fw@strlen.de>,
+        "pablo@netfilter.org" <pablo@netfilter.org>,
         "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Subject: Re: [PATCH v2] ulogd2: Avoid use after free in unregister on global
  ulogd_fds linked list
-Thread-Topic: [PATCH v2] ulogd2: Avoid use after free in unregister on global
- ulogd_fds linked list
-Thread-Index: AQHZUideLQbRgBEB7UC4KTxWHYeCqa78dosAgAbj/gA=
-Date:   Mon, 20 Mar 2023 20:41:46 +0000
-Message-ID: <7ee33839d49fe210dfb7347ea25724e9f43046e0.camel@alliedtelesis.co.nz>
+Message-ID: <20230320214313.GB80565@celephais.dreamlands>
 References: <1678233154187.35009@alliedtelesis.co.nz>
-         <20230309012447.201582-1-kyuwon.shim@alliedtelesis.co.nz>
-         <ZBL9TEfTBqwoEZH5@strlen.de>
-In-Reply-To: <ZBL9TEfTBqwoEZH5@strlen.de>
-Accept-Language: en-NZ, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.32.1.11]
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <31B7A8BE649FAB449FEF62570DAB6A49@atlnz.lc>
-Content-Transfer-Encoding: base64
+ <20230309012447.201582-1-kyuwon.shim@alliedtelesis.co.nz>
+ <ZBL9TEfTBqwoEZH5@strlen.de>
+ <7ee33839d49fe210dfb7347ea25724e9f43046e0.camel@alliedtelesis.co.nz>
 MIME-Version: 1.0
-X-SEG-SpamProfiler-Analysis: v=2.3 cv=F6spiZpN c=1 sm=1 tr=0 a=Xf/6aR1Nyvzi7BryhOrcLQ==:117 a=xqWC_Br6kY4A:10 a=oKJsc7D3gJEA:10 a=IkcTkHD0fZMA:10 a=k__wU0fu6RkA:10 a=KSmUL1t-6H-boYcvQnsA:9 a=QEXdDO2ut3YA:10
-X-SEG-SpamProfiler-Score: 0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="dXVGGtqxIm724HJ7"
+Content-Disposition: inline
+In-Reply-To: <7ee33839d49fe210dfb7347ea25724e9f43046e0.camel@alliedtelesis.co.nz>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-SGksIEZsb3JpYW4NClRoaXMgaXMgdmFsZ3JpbmQgbG9ncy4NCg0KPT00Nzk3PT0gTWVtY2hlY2ss
-IGEgbWVtb3J5IGVycm9yIGRldGVjdG9yDQo9PTQ3OTc9PSBDb3B5cmlnaHQgKEMpIDIwMDItMjAy
-MiwgYW5kIEdOVSBHUEwnZCwgYnkgSnVsaWFuIFNld2FyZCBldA0KYWwuDQo9PTQ3OTc9PSBVc2lu
-ZyBWYWxncmluZC0zLjE5LjAgYW5kIExpYlZFWDsgcmVydW4gd2l0aCAtaCBmb3IgY29weXJpZ2h0
-DQppbmZvDQo9PTQ3OTc9PSBDb21tYW5kOiB1bG9nZCAtdiAtYyAvZXRjL3Vsb2dkLmNvbmYNCj09
-NDc5Nz09IEludmFsaWQgcmVhZCBvZiBzaXplIDQNCj09NDc5Nz09ICAgIGF0IDB4NDA1RjYwOiB1
-bG9nZF91bnJlZ2lzdGVyX2ZkIChzZWxlY3QuYzo3NCkNCj09NDc5Nz09ICAgIGJ5IDB4NEU0RTNE
-RjogPz8/IChpbiAvdXNyL2xpYi91bG9nZC91bG9nZF9pbnBwa3RfTkZMT0cuc28pDQo9PTQ3OTc9
-PSAgICBieSAweDQwNTAwMzogc3RvcF9wbHVnaW5zdGFuY2VzICh1bG9nZC5jOjEzMzUpDQo9PTQ3
-OTc9PSAgICBieSAweDQwNTAwMzogc2lndGVybV9oYW5kbGVyX3Rhc2sgKHVsb2dkLmM6MTM4MykN
-Cj09NDc5Nz09ICAgIGJ5IDB4NDA1MTUzOiBjYWxsX3NpZ25hbF9oYW5kbGVyX3Rhc2tzICh1bG9n
-ZC5jOjQyNCkNCj09NDc5Nz09ICAgIGJ5IDB4NDA1MTUzOiBzaWduYWxfY2hhbm5lbF9jYWxsYmFj
-ayAodWxvZ2QuYzo0NDMpDQo9PTQ3OTc9PSAgICBieSAweDQwNjE2MzogdWxvZ2Rfc2VsZWN0X21h
-aW4gKHNlbGVjdC5jOjEwNSkNCj09NDc5Nz09ICAgIGJ5IDB4NDAzQ0YzOiB1bG9nZF9tYWluX2xv
-b3AgKHVsb2dkLmM6MTA3MCkNCj09NDc5Nz09ICAgIGJ5IDB4NDAzQ0YzOiBtYWluICh1bG9nZC5j
-OjE2NDkpDQo9PTQ3OTc9PSAgQWRkcmVzcyAweDRhODRmNDAgaXMgMTYwIGJ5dGVzIGluc2lkZSBh
-IGJsb2NrIG9mIHNpemUgNCw4NDgNCmZyZWUnZA0KPT00Nzk3PT0gICAgYXQgMHg0ODQ3NTUxOiBm
-cmVlIChpbg0KL3Vzci9saWJleGVjL3ZhbGdyaW5kL3ZncHJlbG9hZF9tZW1jaGVjay1hbWQ2NC1s
-aW51eC5zbykNCj09NDc5Nz09ICAgIGJ5IDB4NDA1MDBFOiBzdG9wX3BsdWdpbnN0YW5jZXMgKHVs
-b2dkLmM6MTMzOCkNCj09NDc5Nz09ICAgIGJ5IDB4NDA1MDBFOiBzaWd0ZXJtX2hhbmRsZXJfdGFz
-ayAodWxvZ2QuYzoxMzgzKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUxNTM6IGNhbGxfc2lnbmFsX2hh
-bmRsZXJfdGFza3MgKHVsb2dkLmM6NDI0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUxNTM6IHNpZ25h
-bF9jaGFubmVsX2NhbGxiYWNrICh1bG9nZC5jOjQ0MykNCj09NDc5Nz09ICAgIGJ5IDB4NDA2MTYz
-OiB1bG9nZF9zZWxlY3RfbWFpbiAoc2VsZWN0LmM6MTA1KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDND
-RjM6IHVsb2dkX21haW5fbG9vcCAodWxvZ2QuYzoxMDcwKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDND
-RjM6IG1haW4gKHVsb2dkLmM6MTY0OSkNCj09NDc5Nz09ICBCbG9jayB3YXMgYWxsb2MnZCBhdA0K
-PT00Nzk3PT0gICAgYXQgMHg0ODQ5RDgyOiBjYWxsb2MgKGluDQovdXNyL2xpYmV4ZWMvdmFsZ3Jp
-bmQvdmdwcmVsb2FkX21lbWNoZWNrLWFtZDY0LWxpbnV4LnNvKQ0KPT00Nzk3PT0gICAgYnkgMHg0
-MDU1MDQ6IHBsdWdpbnN0YW5jZV9hbGxvY19pbml0ICh1bG9nZC5jOjY2NCkNCj09NDc5Nz09ICAg
-IGJ5IDB4NDA1NTA0OiBjcmVhdGVfc3RhY2sgKHVsb2dkLmM6MTAxNCkNCj09NDc5Nz09ICAgIGJ5
-IDB4NDA2RkNFOiBjb25maWdfcGFyc2VfZmlsZSAoY29uZmZpbGUuYzoyMjUpDQo9PTQ3OTc9PSAg
-ICBieSAweDQwMzk0OTogcGFyc2VfY29uZmZpbGUgKHVsb2dkLmM6MTEwNykNCj09NDc5Nz09ICAg
-IGJ5IDB4NDAzOTQ5OiBtYWluICh1bG9nZC5jOjE1ODkpDQo9PTQ3OTc9PSANCj09NDc5Nz09IElu
-dmFsaWQgcmVhZCBvZiBzaXplIDgNCj09NDc5Nz09ICAgIGF0IDB4NDA1RjZFOiB1bG9nZF91bnJl
-Z2lzdGVyX2ZkIChzZWxlY3QuYzo3MykNCj09NDc5Nz09ICAgIGJ5IDB4NEU0RTNERjogPz8/IChp
-biAvdXNyL2xpYi91bG9nZC91bG9nZF9pbnBwa3RfTkZMT0cuc28pDQo9PTQ3OTc9PSAgICBieSAw
-eDQwNTAwMzogc3RvcF9wbHVnaW5zdGFuY2VzICh1bG9nZC5jOjEzMzUpDQo9PTQ3OTc9PSAgICBi
-eSAweDQwNTAwMzogc2lndGVybV9oYW5kbGVyX3Rhc2sgKHVsb2dkLmM6MTM4MykNCj09NDc5Nz09
-ICAgIGJ5IDB4NDA1MTUzOiBjYWxsX3NpZ25hbF9oYW5kbGVyX3Rhc2tzICh1bG9nZC5jOjQyNCkN
-Cj09NDc5Nz09ICAgIGJ5IDB4NDA1MTUzOiBzaWduYWxfY2hhbm5lbF9jYWxsYmFjayAodWxvZ2Qu
-Yzo0NDMpDQo9PTQ3OTc9PSAgICBieSAweDQwNjE2MzogdWxvZ2Rfc2VsZWN0X21haW4gKHNlbGVj
-dC5jOjEwNSkNCj09NDc5Nz09ICAgIGJ5IDB4NDAzQ0YzOiB1bG9nZF9tYWluX2xvb3AgKHVsb2dk
-LmM6MTA3MCkNCj09NDc5Nz09ICAgIGJ5IDB4NDAzQ0YzOiBtYWluICh1bG9nZC5jOjE2NDkpDQo9
-PTQ3OTc9PSAgQWRkcmVzcyAweDRhODRmMzAgaXMgMTQ0IGJ5dGVzIGluc2lkZSBhIGJsb2NrIG9m
-IHNpemUgNCw4NDgNCmZyZWUnZA0KPT00Nzk3PT0gICAgYXQgMHg0ODQ3NTUxOiBmcmVlIChpbg0K
-L3Vzci9saWJleGVjL3ZhbGdyaW5kL3ZncHJlbG9hZF9tZW1jaGVjay1hbWQ2NC1saW51eC5zbykN
-Cj09NDc5Nz09ICAgIGJ5IDB4NDA1MDBFOiBzdG9wX3BsdWdpbnN0YW5jZXMgKHVsb2dkLmM6MTMz
-OCkNCj09NDc5Nz09ICAgIGJ5IDB4NDA1MDBFOiBzaWd0ZXJtX2hhbmRsZXJfdGFzayAodWxvZ2Qu
-YzoxMzgzKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUxNTM6IGNhbGxfc2lnbmFsX2hhbmRsZXJfdGFz
-a3MgKHVsb2dkLmM6NDI0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUxNTM6IHNpZ25hbF9jaGFubmVs
-X2NhbGxiYWNrICh1bG9nZC5jOjQ0MykNCj09NDc5Nz09ICAgIGJ5IDB4NDA2MTYzOiB1bG9nZF9z
-ZWxlY3RfbWFpbiAoc2VsZWN0LmM6MTA1KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IHVsb2dk
-X21haW5fbG9vcCAodWxvZ2QuYzoxMDcwKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IG1haW4g
-KHVsb2dkLmM6MTY0OSkNCj09NDc5Nz09ICBCbG9jayB3YXMgYWxsb2MnZCBhdA0KPT00Nzk3PT0g
-ICAgYXQgMHg0ODQ5RDgyOiBjYWxsb2MgKGluDQovdXNyL2xpYmV4ZWMvdmFsZ3JpbmQvdmdwcmVs
-b2FkX21lbWNoZWNrLWFtZDY0LWxpbnV4LnNvKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDU1MDQ6IHBs
-dWdpbnN0YW5jZV9hbGxvY19pbml0ICh1bG9nZC5jOjY2NCkNCj09NDc5Nz09ICAgIGJ5IDB4NDA1
-NTA0OiBjcmVhdGVfc3RhY2sgKHVsb2dkLmM6MTAxNCkNCj09NDc5Nz09ICAgIGJ5IDB4NDA2RkNF
-OiBjb25maWdfcGFyc2VfZmlsZSAoY29uZmZpbGUuYzoyMjUpDQo9PTQ3OTc9PSAgICBieSAweDQw
-Mzk0OTogcGFyc2VfY29uZmZpbGUgKHVsb2dkLmM6MTEwNykNCj09NDc5Nz09ICAgIGJ5IDB4NDAz
-OTQ5OiBtYWluICh1bG9nZC5jOjE1ODkpDQo9PTQ3OTc9PSANClR1ZSBNYXIgMTQgMTE6MTg6MjAg
-MjAyMyA8MT4gdWxvZ2QuYzoxMzMzIGNhbGxpbmcgc3RvcCBmb3IgSUZJTkRFWA0KPT00Nzk3PT0g
-SW52YWxpZCB3cml0ZSBvZiBzaXplIDgNCj09NDc5Nz09ICAgIGF0IDB4NDA1RjMxOiBfX2xsaXN0
-X2RlbCAobGludXhsaXN0Lmg6MTA3KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDVGMzE6IGxsaXN0X2Rl
-bCAobGludXhsaXN0Lmg6MTE5KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDVGMzE6IHVsb2dkX3VucmVn
-aXN0ZXJfZmQgKHNlbGVjdC5jOjY5KQ0KPT00Nzk3PT0gICAgYnkgMHg0RTY0MjdGOiA/Pz8gKGlu
-DQovdXNyL2xpYi91bG9nZC91bG9nZF9maWx0ZXJfSUZJTkRFWC5zbykNCj09NDc5Nz09ICAgIGJ5
-IDB4NDA1MDAzOiBzdG9wX3BsdWdpbnN0YW5jZXMgKHVsb2dkLmM6MTMzNSkNCj09NDc5Nz09ICAg
-IGJ5IDB4NDA1MDAzOiBzaWd0ZXJtX2hhbmRsZXJfdGFzayAodWxvZ2QuYzoxMzgzKQ0KPT00Nzk3
-PT0gICAgYnkgMHg0MDUxNTM6IGNhbGxfc2lnbmFsX2hhbmRsZXJfdGFza3MgKHVsb2dkLmM6NDI0
-KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUxNTM6IHNpZ25hbF9jaGFubmVsX2NhbGxiYWNrICh1bG9n
-ZC5jOjQ0MykNCj09NDc5Nz09ICAgIGJ5IDB4NDA2MTYzOiB1bG9nZF9zZWxlY3RfbWFpbiAoc2Vs
-ZWN0LmM6MTA1KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IHVsb2dkX21haW5fbG9vcCAodWxv
-Z2QuYzoxMDcwKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IG1haW4gKHVsb2dkLmM6MTY0OSkN
-Cj09NDc5Nz09ICBBZGRyZXNzIDB4NGE4NGYzOCBpcyAxNTIgYnl0ZXMgaW5zaWRlIGEgYmxvY2sg
-b2Ygc2l6ZSA0LDg0OA0KZnJlZSdkDQo9PTQ3OTc9PSAgICBhdCAweDQ4NDc1NTE6IGZyZWUgKGlu
-DQovdXNyL2xpYmV4ZWMvdmFsZ3JpbmQvdmdwcmVsb2FkX21lbWNoZWNrLWFtZDY0LWxpbnV4LnNv
-KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUwMEU6IHN0b3BfcGx1Z2luc3RhbmNlcyAodWxvZ2QuYzox
-MzM4KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDUwMEU6IHNpZ3Rlcm1faGFuZGxlcl90YXNrICh1bG9n
-ZC5jOjEzODMpDQo9PTQ3OTc9PSAgICBieSAweDQwNTE1MzogY2FsbF9zaWduYWxfaGFuZGxlcl90
-YXNrcyAodWxvZ2QuYzo0MjQpDQo9PTQ3OTc9PSAgICBieSAweDQwNTE1Mzogc2lnbmFsX2NoYW5u
-ZWxfY2FsbGJhY2sgKHVsb2dkLmM6NDQzKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDYxNjM6IHVsb2dk
-X3NlbGVjdF9tYWluIChzZWxlY3QuYzoxMDUpDQo9PTQ3OTc9PSAgICBieSAweDQwM0NGMzogdWxv
-Z2RfbWFpbl9sb29wICh1bG9nZC5jOjEwNzApDQo9PTQ3OTc9PSAgICBieSAweDQwM0NGMzogbWFp
-biAodWxvZ2QuYzoxNjQ5KQ0KPT00Nzk3PT0gIEJsb2NrIHdhcyBhbGxvYydkIGF0DQo9PTQ3OTc9
-PSAgICBhdCAweDQ4NDlEODI6IGNhbGxvYyAoaW4NCi91c3IvbGliZXhlYy92YWxncmluZC92Z3By
-ZWxvYWRfbWVtY2hlY2stYW1kNjQtbGludXguc28pDQo9PTQ3OTc9PSAgICBieSAweDQwNTUwNDog
-cGx1Z2luc3RhbmNlX2FsbG9jX2luaXQgKHVsb2dkLmM6NjY0KQ0KPT00Nzk3PT0gICAgYnkgMHg0
-MDU1MDQ6IGNyZWF0ZV9zdGFjayAodWxvZ2QuYzoxMDE0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDZG
-Q0U6IGNvbmZpZ19wYXJzZV9maWxlIChjb25mZmlsZS5jOjIyNSkNCj09NDc5Nz09ICAgIGJ5IDB4
-NDAzOTQ5OiBwYXJzZV9jb25mZmlsZSAodWxvZ2QuYzoxMTA3KQ0KPT00Nzk3PT0gICAgYnkgMHg0
-MDM5NDk6IG1haW4gKHVsb2dkLmM6MTU4OSkNCj09NDc5Nz09IA0KPT00Nzk3PT0gSW52YWxpZCBy
-ZWFkIG9mIHNpemUgNA0KPT00Nzk3PT0gICAgYXQgMHg0MDVGNjA6IHVsb2dkX3VucmVnaXN0ZXJf
-ZmQgKHNlbGVjdC5jOjc0KQ0KPT00Nzk3PT0gICAgYnkgMHg0RTY0MjdGOiA/Pz8gKGluDQovdXNy
-L2xpYi91bG9nZC91bG9nZF9maWx0ZXJfSUZJTkRFWC5zbykNCj09NDc5Nz09ICAgIGJ5IDB4NDA1
-MDAzOiBzdG9wX3BsdWdpbnN0YW5jZXMgKHVsb2dkLmM6MTMzNSkNCj09NDc5Nz09ICAgIGJ5IDB4
-NDA1MDAzOiBzaWd0ZXJtX2hhbmRsZXJfdGFzayAodWxvZ2QuYzoxMzgzKQ0KPT00Nzk3PT0gICAg
-YnkgMHg0MDUxNTM6IGNhbGxfc2lnbmFsX2hhbmRsZXJfdGFza3MgKHVsb2dkLmM6NDI0KQ0KPT00
-Nzk3PT0gICAgYnkgMHg0MDUxNTM6IHNpZ25hbF9jaGFubmVsX2NhbGxiYWNrICh1bG9nZC5jOjQ0
-MykNCj09NDc5Nz09ICAgIGJ5IDB4NDA2MTYzOiB1bG9nZF9zZWxlY3RfbWFpbiAoc2VsZWN0LmM6
-MTA1KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IHVsb2dkX21haW5fbG9vcCAodWxvZ2QuYzox
-MDcwKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IG1haW4gKHVsb2dkLmM6MTY0OSkNCj09NDc5
-Nz09ICBBZGRyZXNzIDB4NGE4NGY0MCBpcyAxNjAgYnl0ZXMgaW5zaWRlIGEgYmxvY2sgb2Ygc2l6
-ZSA0LDg0OA0KZnJlZSdkDQo9PTQ3OTc9PSAgICBhdCAweDQ4NDc1NTE6IGZyZWUgKGluDQovdXNy
-L2xpYmV4ZWMvdmFsZ3JpbmQvdmdwcmVsb2FkX21lbWNoZWNrLWFtZDY0LWxpbnV4LnNvKQ0KPT00
-Nzk3PT0gICAgYnkgMHg0MDUwMEU6IHN0b3BfcGx1Z2luc3RhbmNlcyAodWxvZ2QuYzoxMzM4KQ0K
-PT00Nzk3PT0gICAgYnkgMHg0MDUwMEU6IHNpZ3Rlcm1faGFuZGxlcl90YXNrICh1bG9nZC5jOjEz
-ODMpDQo9PTQ3OTc9PSAgICBieSAweDQwNTE1MzogY2FsbF9zaWduYWxfaGFuZGxlcl90YXNrcyAo
-dWxvZ2QuYzo0MjQpDQo9PTQ3OTc9PSAgICBieSAweDQwNTE1Mzogc2lnbmFsX2NoYW5uZWxfY2Fs
-bGJhY2sgKHVsb2dkLmM6NDQzKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDYxNjM6IHVsb2dkX3NlbGVj
-dF9tYWluIChzZWxlY3QuYzoxMDUpDQo9PTQ3OTc9PSAgICBieSAweDQwM0NGMzogdWxvZ2RfbWFp
-bl9sb29wICh1bG9nZC5jOjEwNzApDQo9PTQ3OTc9PSAgICBieSAweDQwM0NGMzogbWFpbiAodWxv
-Z2QuYzoxNjQ5KQ0KPT00Nzk3PT0gIEJsb2NrIHdhcyBhbGxvYydkIGF0DQo9PTQ3OTc9PSAgICBh
-dCAweDQ4NDlEODI6IGNhbGxvYyAoaW4NCi91c3IvbGliZXhlYy92YWxncmluZC92Z3ByZWxvYWRf
-bWVtY2hlY2stYW1kNjQtbGludXguc28pDQo9PTQ3OTc9PSAgICBieSAweDQwNTUwNDogcGx1Z2lu
-c3RhbmNlX2FsbG9jX2luaXQgKHVsb2dkLmM6NjY0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDU1MDQ6
-IGNyZWF0ZV9zdGFjayAodWxvZ2QuYzoxMDE0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDZGQ0U6IGNv
-bmZpZ19wYXJzZV9maWxlIChjb25mZmlsZS5jOjIyNSkNCj09NDc5Nz09ICAgIGJ5IDB4NDAzOTQ5
-OiBwYXJzZV9jb25mZmlsZSAodWxvZ2QuYzoxMTA3KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDM5NDk6
-IG1haW4gKHVsb2dkLmM6MTU4OSkNCj09NDc5Nz09IA0KPT00Nzk3PT0gSW52YWxpZCByZWFkIG9m
-IHNpemUgOA0KPT00Nzk3PT0gICAgYXQgMHg0MDVGNkU6IHVsb2dkX3VucmVnaXN0ZXJfZmQgKHNl
-bGVjdC5jOjczKQ0KPT00Nzk3PT0gICAgYnkgMHg0RTY0MjdGOiA/Pz8gKGluDQovdXNyL2xpYi91
-bG9nZC91bG9nZF9maWx0ZXJfSUZJTkRFWC5zbykNCj09NDc5Nz09ICAgIGJ5IDB4NDA1MDAzOiBz
-dG9wX3BsdWdpbnN0YW5jZXMgKHVsb2dkLmM6MTMzNSkNCj09NDc5Nz09ICAgIGJ5IDB4NDA1MDAz
-OiBzaWd0ZXJtX2hhbmRsZXJfdGFzayAodWxvZ2QuYzoxMzgzKQ0KPT00Nzk3PT0gICAgYnkgMHg0
-MDUxNTM6IGNhbGxfc2lnbmFsX2hhbmRsZXJfdGFza3MgKHVsb2dkLmM6NDI0KQ0KPT00Nzk3PT0g
-ICAgYnkgMHg0MDUxNTM6IHNpZ25hbF9jaGFubmVsX2NhbGxiYWNrICh1bG9nZC5jOjQ0MykNCj09
-NDc5Nz09ICAgIGJ5IDB4NDA2MTYzOiB1bG9nZF9zZWxlY3RfbWFpbiAoc2VsZWN0LmM6MTA1KQ0K
-PT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IHVsb2dkX21haW5fbG9vcCAodWxvZ2QuYzoxMDcwKQ0K
-PT00Nzk3PT0gICAgYnkgMHg0MDNDRjM6IG1haW4gKHVsb2dkLmM6MTY0OSkNCj09NDc5Nz09ICBB
-ZGRyZXNzIDB4NGE4NGYzMCBpcyAxNDQgYnl0ZXMgaW5zaWRlIGEgYmxvY2sgb2Ygc2l6ZSA0LDg0
-OA0KZnJlZSdkDQo9PTQ3OTc9PSAgICBhdCAweDQ4NDc1NTE6IGZyZWUgKGluDQovdXNyL2xpYmV4
-ZWMvdmFsZ3JpbmQvdmdwcmVsb2FkX21lbWNoZWNrLWFtZDY0LWxpbnV4LnNvKQ0KPT00Nzk3PT0g
-ICAgYnkgMHg0MDUwMEU6IHN0b3BfcGx1Z2luc3RhbmNlcyAodWxvZ2QuYzoxMzM4KQ0KPT00Nzk3
-PT0gICAgYnkgMHg0MDUwMEU6IHNpZ3Rlcm1faGFuZGxlcl90YXNrICh1bG9nZC5jOjEzODMpDQo9
-PTQ3OTc9PSAgICBieSAweDQwNTE1MzogY2FsbF9zaWduYWxfaGFuZGxlcl90YXNrcyAodWxvZ2Qu
-Yzo0MjQpDQo9PTQ3OTc9PSAgICBieSAweDQwNTE1Mzogc2lnbmFsX2NoYW5uZWxfY2FsbGJhY2sg
-KHVsb2dkLmM6NDQzKQ0KPT00Nzk3PT0gICAgYnkgMHg0MDYxNjM6IHVsb2dkX3NlbGVjdF9tYWlu
-IChzZWxlY3QuYzoxMDUpDQo9PTQ3OTc9PSAgICBieSAweDQwM0NGMzogdWxvZ2RfbWFpbl9sb29w
-ICh1bG9nZC5jOjEwNzApDQo9PTQ3OTc9PSAgICBieSAweDQwM0NGMzogbWFpbiAodWxvZ2QuYzox
-NjQ5KQ0KPT00Nzk3PT0gIEJsb2NrIHdhcyBhbGxvYydkIGF0DQo9PTQ3OTc9PSAgICBhdCAweDQ4
-NDlEODI6IGNhbGxvYyAoaW4NCi91c3IvbGliZXhlYy92YWxncmluZC92Z3ByZWxvYWRfbWVtY2hl
-Y2stYW1kNjQtbGludXguc28pDQo9PTQ3OTc9PSAgICBieSAweDQwNTUwNDogcGx1Z2luc3RhbmNl
-X2FsbG9jX2luaXQgKHVsb2dkLmM6NjY0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDU1MDQ6IGNyZWF0
-ZV9zdGFjayAodWxvZ2QuYzoxMDE0KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDZGQ0U6IGNvbmZpZ19w
-YXJzZV9maWxlIChjb25mZmlsZS5jOjIyNSkNCj09NDc5Nz09ICAgIGJ5IDB4NDAzOTQ5OiBwYXJz
-ZV9jb25mZmlsZSAodWxvZ2QuYzoxMTA3KQ0KPT00Nzk3PT0gICAgYnkgMHg0MDM5NDk6IG1haW4g
-KHVsb2dkLmM6MTU4OSkNCj09NDc5Nz09IA0KVHVlIE1hciAxNCAxMToxODoyMCAyMDIzIDwxPiB1
-bG9nZC5jOjEzMzMgY2FsbGluZyBzdG9wIGZvciBTWVNMT0cNCj09NDc5Nz09IA0KPT00Nzk3PT0g
-SEVBUCBTVU1NQVJZOg0KPT00Nzk3PT0gICAgIGluIHVzZSBhdCBleGl0OiAzMDEsMTUyIGJ5dGVz
-IGluIDEwIGJsb2Nrcw0KPT00Nzk3PT0gICB0b3RhbCBoZWFwIHVzYWdlOiAxLDEzMyBhbGxvY3Ms
-IDEsMTIzIGZyZWVzLCAxLDg1MiwzNzggYnl0ZXMNCmFsbG9jYXRlZA0KPT00Nzk3PT0gDQo9PTQ3
-OTc9PSBMRUFLIFNVTU1BUlk6DQo9PTQ3OTc9PSAgICBkZWZpbml0ZWx5IGxvc3Q6IDMwMCw5Mjgg
-Ynl0ZXMgaW4gNCBibG9ja3MNCj09NDc5Nz09ICAgIGluZGlyZWN0bHkgbG9zdDogMjI0IGJ5dGVz
-IGluIDYgYmxvY2tzDQo9PTQ3OTc9PSAgICAgIHBvc3NpYmx5IGxvc3Q6IDAgYnl0ZXMgaW4gMCBi
-bG9ja3MNCj09NDc5Nz09ICAgIHN0aWxsIHJlYWNoYWJsZTogMCBieXRlcyBpbiAwIGJsb2Nrcw0K
-PT00Nzk3PT0gICAgICAgICBzdXBwcmVzc2VkOiAwIGJ5dGVzIGluIDAgYmxvY2tzDQo9PTQ3OTc9
-PSBSZXJ1biB3aXRoIC0tbGVhay1jaGVjaz1mdWxsIHRvIHNlZSBkZXRhaWxzIG9mIGxlYWtlZCBt
-ZW1vcnkNCj09NDc5Nz09IA0KPT00Nzk3PT0gVXNlIC0tdHJhY2stb3JpZ2lucz15ZXMgdG8gc2Vl
-IHdoZXJlIHVuaW5pdGlhbGlzZWQgdmFsdWVzIGNvbWUNCmZyb20NCj09NDc5Nz09IEZvciBsaXN0
-cyBvZiBkZXRlY3RlZCBhbmQgc3VwcHJlc3NlZCBlcnJvcnMsIHJlcnVuIHdpdGg6IC1zDQo9PTQ3
-OTc9PSBFUlJPUiBTVU1NQVJZOiAxMiBlcnJvcnMgZnJvbSA2IGNvbnRleHRzIChzdXBwcmVzc2Vk
-OiAwIGZyb20NCjApDQoNClRoaXMgaXMgY29yZWR1bXAgYmFja3RyYWNlLg0KDQotLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0NCi0tLS0tLS0tLS0tDQpUaHJlYWQgSW5mb3JtYXRpb246DQogIElkICAgVGFyZ2V0IElkICAg
-ICAgICAgRnJhbWUgDQoqIDEgICAgTFdQIDE3MCAgICAgICAgICAgMHgwMDAwN2ZhOTg1MjI1ZDQw
-IGluIG1haW5fYXJlbmEgKCkNCiAgIGZyb20gL3RtcC90bXAxZmJ4aDZiai92ZndfeDg2XzY0L291
-dHB1dC9hd3BsdXMtDQp2ZndfeDg2XzY0L2ltYWdlL3Jvb3Rmcy9zdGFnaW5nL2xpYjY0L2xpYmMu
-c28uNg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tDQotLS0tLS0tLS0tLQ0KQ3VycmVudCBUaHJlYWQgTG9jYWwgVmFy
-aWFibGVzOg0KTm8gc3ltYm9sIHRhYmxlIGluZm8gYXZhaWxhYmxlLg0KLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQot
-LS0tLS0tLS0tLQ0KVGhyZWFkIEJhY2t0cmFjZXM6DQpUaHJlYWQgMSAoTFdQIDE3MCk6DQojMCAg
-MHgwMDAwN2ZhOTg1MjI1ZDQwIGluIG1haW5fYXJlbmEgKCkgZnJvbQ0KL3RtcC90bXAxZmJ4aDZi
-ai92ZndfeDg2XzY0L291dHB1dC9hd3BsdXMtDQp2ZndfeDg2XzY0L2ltYWdlL3Jvb3Rmcy9zdGFn
-aW5nL2xpYjY0L2xpYmMuc28uNg0KIzEgIDB4MDAwMDAwMDAwMDQwNWNhNyBpbiB1bG9nZF9wcm9w
-YWdhdGVfcmVzdWx0cyAocGk9cGlAZW50cnk9MHg4ZWJjNTANCikgYXQgdWxvZ2QuYzo2MTcNCiMy
-ICAweDAwMDA3ZmE5ODUwMzc2YjkgaW4gaW50ZXJwX3BhY2tldCAodXBpPXVwaUBlbnRyeT0weDhl
-YmM1MCwNCnBmX2ZhbWlseT08b3B0aW1pemVkIG91dD4sIGxkYXRhPWxkYXRhQGVudHJ5PTB4N2Zm
-ZTgwNWMyNjQ4KSBhdA0KdWxvZ2RfaW5wcGt0X05GTE9HLmM6NDAwDQojMyAgMHgwMDAwN2ZhOTg1
-MDM3YzU1IGluIG1zZ19jYiAoZ2g9PG9wdGltaXplZCBvdXQ+LA0KbmZtc2c9MHg3ZmZlODA1YzI3
-NzAsIG5mYT0weDdmZmU4MDVjMjY0OCwgZGF0YT0weDhlMmQ5MCkgYXQNCnVsb2dkX2lucHBrdF9O
-RkxPRy5jOjQ3OQ0KIzQgIDB4MDAwMDdmYTk4NTAzMDIzZSBpbiBfX25mbG9nX3Jjdl9wa3QgKG5s
-aD08b3B0aW1pemVkIG91dD4sDQpuZmE9PG9wdGltaXplZCBvdXQ+LCBkYXRhPTxvcHRpbWl6ZWQg
-b3V0PikgYXQgbGlibmV0ZmlsdGVyX2xvZy5jOjE2Mg0KIzUgIDB4MDAwMDdmYTk4NTAyODhmYyBp
-biBuZm5sX3N0ZXAgKGg9aEBlbnRyeT0weDhlNmY4MCwgbmxoPW5saEBlbnRyeT0NCjB4N2ZmZTgw
-NWMyNzYwKSBhdCBsaWJuZm5ldGxpbmsuYzoxMzY1DQojNiAgMHgwMDAwN2ZhOTg1MDI4ZmY4IGlu
-IG5mbmxfcHJvY2VzcyAoaD1oQGVudHJ5PTB4OGU2ZjgwLCANCmJ1Zj1idWZAZW50cnk9MHg3ZmZl
-ODA1YzI3NjAgIlwyMTQiLCBsZW49bGVuQGVudHJ5PTE0MCkgYXQNCmxpYm5mbmV0bGluay5jOjE0
-MTANCiM3ICAweDAwMDA3ZmE5ODUwMjkzNDQgaW4gbmZubF9jYXRjaCAoaD08b3B0aW1pemVkIG91
-dD4pIGF0DQpsaWJuZm5ldGxpbmsuYzoxNTY0DQojOCAgbmZubF9jYXRjaCAoaD0weDhlNmY4MCkg
-YXQgbGlibmZuZXRsaW5rLmM6MTU0Ng0KIzkgIDB4MDAwMDdmYTk4NTAzMDYxMiBpbiBfX2J1aWxk
-X3NlbmRfY2ZnX21zZyAocGY9MCAnXDAwMCcsDQpncm91cG51bT08b3B0aW1pemVkIG91dD4sIGNv
-bW1hbmQ9MiAnXDAwMicsIGg9MHg4ZGZiYzApIGF0DQpsaWJuZXRmaWx0ZXJfbG9nLmM6MTQzDQoj
-MTAgbmZsb2dfdW5iaW5kX2dyb3VwIChnaD0weDhlNzFhMCkgYXQgbGlibmV0ZmlsdGVyX2xvZy5j
-OjQzOQ0KIzExIDB4MDAwMDdmYTk4NTAzNzNlYyBpbiBzdG9wIChwaT0weDhlMmQ5MCkgYXQNCnVs
-b2dkX2lucHBrdF9ORkxPRy5jOjYzOA0KIzEyIDB4MDAwMDAwMDAwMDQwNTAwNCBpbiBzdG9wX3Bs
-dWdpbnN0YW5jZXMgKCkgYXQgdWxvZ2QuYzoxMzM1DQojMTMgc2lndGVybV9oYW5kbGVyX3Rhc2sg
-KHNpZ25hbD1zaWduYWxAZW50cnk9MTUpIGF0IHVsb2dkLmM6MTM4Mw0KIzE0IDB4MDAwMDAwMDAw
-MDQwNTE1NCBpbiBjYWxsX3NpZ25hbF9oYW5kbGVyX3Rhc2tzIChzaWc9MTUpIGF0DQp1bG9nZC5j
-OjQyMw0KIzE1IHNpZ25hbF9jaGFubmVsX2NhbGxiYWNrIChmZD00LCB3aGF0PTxvcHRpbWl6ZWQg
-b3V0PiwNCmRhdGE9PG9wdGltaXplZCBvdXQ+KSBhdCB1bG9nZC5jOjQ0Mg0KIzE2IDB4MDAwMDAw
-MDAwMDQwNjE4NCBpbiB1bG9nZF9zZWxlY3RfbWFpbiAodHY9dHZAZW50cnk9MHgwKSBhdA0Kc2Vs
-ZWN0LmM6MTA1DQojMTcgMHgwMDAwMDAwMDAwNDAzY2Y0IGluIHVsb2dkX21haW5fbG9vcCAoKSBh
-dCB1bG9nZC5jOjEwNzANCiMxOCBtYWluIChhcmdjPTxvcHRpbWl6ZWQgb3V0PiwgYXJndj08b3B0
-aW1pemVkIG91dD4pIGF0IHVsb2dkLmM6MTY0OQ0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQotLS0tLS0tLS0tLQ0K
-T24gVGh1LCAyMDIzLTAzLTE2IGF0IDEyOjI4ICswMTAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
-Og0KPiBLeXV3b24gU2hpbSA8a3l1d29uLnNoaW1AYWxsaWVkdGVsZXNpcy5jby5uej4gd3JvdGU6
-DQo+ID4gVGhlIGlzc3VlICJjb3JlIGR1bXBlZCIgb2NjdXJyZWQgIGZyb20NCj4gPiB1bG9nZF91
-bnJlZ2lzdGVyX2ZkKCkuIE9uZSBvZiB0aGUgcHJvY2Vzc2VzIGlzIHVubGluaw0KPiA+IGZyb20g
-bGlzdCBhbmQgcmVtb3ZlLCBidXQgc29tZSBzdHJ1Y3QgJ3BpJyB2YWx1ZXMNCj4gPiBmcmVlZCB3
-aXRob3V0IHVsb2dkX3VucmVnaXN0ZXJfZmQoKS4NCj4gPiBVbmxpbmsgcHJvY2VzcyBuZWVkcyB0
-byBhY2Nlc3MgdGhlIHByZXZpb3VzIHBvaW50ZXINCj4gPiB2YWx1ZSBvZiBzdHJ1Y3QgJ3BpJywg
-YnV0IGl0IHdhcyBhbHJlYWR5IGZyZWVkLg0KPiA+IA0KPiA+IFRoZXJlZm9yZSwgdGhlIGZyZWUo
-KSBwcm9jZXNzIG1vdmVkIGxvY2F0aW9uDQo+ID4gYWZ0ZXIgZmluaXNoaW5nIGFsbCB1bG9nZF91
-bnJlZ2lzdGVyX2ZkKCkuDQo+IA0KPiBJIGRvbid0IHVuZGVyc3RhbmQgdGhpcyBwYXRjaC4NCj4g
-DQo+IGxsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoKSBkb2Vzbid0IGRlcmVmZXJlbmNlICdwaScg
-YWZ0ZXIgaXRzDQo+IGZyZWUnZC4NCj4gDQo+IFdoZXJlIGRvZXMgdGhpcyBkZXJlZiBoYXBwZW4/
-ICBDYW4geW91IHNoYXJlIGEgYmFja3RyYWNlPw0KPiANCj4gPiArCQl9DQo+ID4gKwl9DQo+ID4g
-Kw0KPiA+ICsJbGxpc3RfZm9yX2VhY2hfZW50cnkoc3RhY2ssICZ1bG9nZF9waV9zdGFja3MsIHN0
-YWNrX2xpc3QpIHsNCj4gPiArCQlsbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKHBpLCBucGksICZz
-dGFjay0+bGlzdCwgbGlzdCkNCj4gPiB7DQo+ID4gIAkJCWZyZWUocGkpOw0KPiANCj4gUGVyaGFw
-cyB0aGVyZSBzaG91bGQgYmUgYSAnbGxpc3RfZGVsJyBiZWZvcmUgcGkgZ2V0cyBmcmVlJ2QgaW5z
-dGVhZD8NCg==
+
+--dXVGGtqxIm724HJ7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On 2023-03-20, at 20:41:46 +0000, Kyuwon Shim wrote:
+> On Thu, 2023-03-16 at 12:28 +0100, Florian Westphal wrote:
+> > Kyuwon Shim <kyuwon.shim@alliedtelesis.co.nz> wrote:
+> > > The issue "core dumped" occurred from ulogd_unregister_fd(). One
+> > > of the processes is unlink from list and remove, but some struct
+> > > 'pi' values freed without ulogd_unregister_fd().  Unlink process
+> > > needs to access the previous pointer value of struct 'pi', but it
+> > > was already freed.
+> > >=20
+> > > Therefore, the free() process moved location after finishing all
+> > > ulogd_unregister_fd().
+> >=20
+> > I don't understand this patch.
+> >=20
+> > llist_for_each_entry_safe() doesn't dereference 'pi' after its
+> > free'd.
+> >=20
+> > Where does this deref happen?  Can you share a backtrace?
+> >=20
+> > > +		}
+> > > +	}
+> > > +
+> > > +	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
+> > > +		llist_for_each_entry_safe(pi, npi, &stack->list, list)
+> > > {
+> > >  			free(pi);
+> >=20
+> > Perhaps there should be a 'llist_del' before pi gets free'd instead?
+>
+> This is valgrind logs.
+>=20
+> =3D=3D4797=3D=3D Memcheck, a memory error detector
+> =3D=3D4797=3D=3D Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward=
+ et al.
+> =3D=3D4797=3D=3D Using Valgrind-3.19.0 and LibVEX; rerun with -h for copy=
+right info
+> =3D=3D4797=3D=3D Command: ulogd -v -c /etc/ulogd.conf
+> =3D=3D4797=3D=3D Invalid read of size 4
+> =3D=3D4797=3D=3D    at 0x405F60: ulogd_unregister_fd (select.c:74)
+> =3D=3D4797=3D=3D    by 0x4E4E3DF: ??? (in /usr/lib/ulogd/ulogd_inppkt_NFL=
+OG.so)
+> =3D=3D4797=3D=3D    by 0x405003: stop_pluginstances (ulogd.c:1335)
+> =3D=3D4797=3D=3D    by 0x405003: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Address 0x4a84f40 is 160 bytes inside a block of size 4=
+,848 free'd
+> =3D=3D4797=3D=3D    at 0x4847551: free (in /usr/libexec/valgrind/vgpreloa=
+d_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x40500E: stop_pluginstances (ulogd.c:1338)
+> =3D=3D4797=3D=3D    by 0x40500E: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Block was alloc'd /usr/libexec/valgrind/vgpreload_memch=
+eck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x405504: pluginstance_alloc_init (ulogd.c:664)
+> =3D=3D4797=3D=3D    by 0x405504: create_stack (ulogd.c:1014)
+> =3D=3D4797=3D=3D    by 0x406FCE: config_parse_file (conffile.c:225)
+> =3D=3D4797=3D=3D    by 0x403949: parse_conffile (ulogd.c:1107)
+> =3D=3D4797=3D=3D    by 0x403949: main (ulogd.c:1589)
+> =3D=3D4797=3D=3D=20
+> =3D=3D4797=3D=3D Invalid read of size 8
+> =3D=3D4797=3D=3D    at 0x405F6E: ulogd_unregister_fd (select.c:73)
+> =3D=3D4797=3D=3D    by 0x4E4E3DF: ??? (in /usr/lib/ulogd/ulogd_inppkt_NFL=
+OG.so)
+> =3D=3D4797=3D=3D    by 0x405003: stop_pluginstances (ulogd.c:1335)
+> =3D=3D4797=3D=3D    by 0x405003: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Address 0x4a84f30 is 144 bytes inside a block of size 4=
+,848 free'd
+> =3D=3D4797=3D=3D    at 0x4847551: free (in /usr/libexec/valgrind/vgpreloa=
+d_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x40500E: stop_pluginstances (ulogd.c:1338)
+> =3D=3D4797=3D=3D    by 0x40500E: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Block was alloc'd at
+> =3D=3D4797=3D=3D    at 0x4849D82: calloc (in /usr/libexec/valgrind/vgprel=
+oad_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x405504: pluginstance_alloc_init (ulogd.c:664)
+> =3D=3D4797=3D=3D    by 0x405504: create_stack (ulogd.c:1014)
+> =3D=3D4797=3D=3D    by 0x406FCE: config_parse_file (conffile.c:225)
+> =3D=3D4797=3D=3D    by 0x403949: parse_conffile (ulogd.c:1107)
+> =3D=3D4797=3D=3D    by 0x403949: main (ulogd.c:1589)
+> =3D=3D4797=3D=3D
+> Tue Mar 14 11:18:20 2023 <1> ulogd.c:1333 calling stop for IFINDEX
+> =3D=3D4797=3D=3D Invalid write of size 8
+> =3D=3D4797=3D=3D    at 0x405F31: __llist_del (linuxlist.h:107)
+> =3D=3D4797=3D=3D    by 0x405F31: llist_del (linuxlist.h:119)
+> =3D=3D4797=3D=3D    by 0x405F31: ulogd_unregister_fd (select.c:69)
+> =3D=3D4797=3D=3D    by 0x4E6427F: ??? (in /usr/lib/ulogd/ulogd_filter_IFI=
+NDEX.so)
+> =3D=3D4797=3D=3D    by 0x405003: stop_pluginstances (ulogd.c:1335)
+> =3D=3D4797=3D=3D    by 0x405003: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Address 0x4a84f38 is 152 bytes inside a block of size 4=
+,848 free'd
+> =3D=3D4797=3D=3D    at 0x4847551: free (in /usr/libexec/valgrind/vgpreloa=
+d_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x40500E: stop_pluginstances (ulogd.c:1338)
+> =3D=3D4797=3D=3D    by 0x40500E: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Block was alloc'd at
+> =3D=3D4797=3D=3D    at 0x4849D82: calloc (in /usr/libexec/valgrind/vgprel=
+oad_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x405504: pluginstance_alloc_init (ulogd.c:664)
+> =3D=3D4797=3D=3D    by 0x405504: create_stack (ulogd.c:1014)
+> =3D=3D4797=3D=3D    by 0x406FCE: config_parse_file (conffile.c:225)
+> =3D=3D4797=3D=3D    by 0x403949: parse_conffile (ulogd.c:1107)
+> =3D=3D4797=3D=3D    by 0x403949: main (ulogd.c:1589)
+> =3D=3D4797=3D=3D=20
+> =3D=3D4797=3D=3D Invalid read of size 4
+> =3D=3D4797=3D=3D    at 0x405F60: ulogd_unregister_fd (select.c:74)
+> =3D=3D4797=3D=3D    by 0x4E6427F: ??? (in /usr/lib/ulogd/ulogd_filter_IFI=
+NDEX.so)
+> =3D=3D4797=3D=3D    by 0x405003: stop_pluginstances (ulogd.c:1335)
+> =3D=3D4797=3D=3D    by 0x405003: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Address 0x4a84f40 is 160 bytes inside a block of size 4=
+,848 free'd
+> =3D=3D4797=3D=3D    at 0x4847551: free (in /usr/libexec/valgrind/vgpreloa=
+d_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x40500E: stop_pluginstances (ulogd.c:1338)
+> =3D=3D4797=3D=3D    by 0x40500E: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Block was alloc'd at
+> =3D=3D4797=3D=3D    at 0x4849D82: calloc (in /usr/libexec/valgrind/vgprel=
+oad_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x405504: pluginstance_alloc_init (ulogd.c:664)
+> =3D=3D4797=3D=3D    by 0x405504: create_stack (ulogd.c:1014)
+> =3D=3D4797=3D=3D    by 0x406FCE: config_parse_file (conffile.c:225)
+> =3D=3D4797=3D=3D    by 0x403949: parse_conffile (ulogd.c:1107)
+> =3D=3D4797=3D=3D    by 0x403949: main (ulogd.c:1589)
+> =3D=3D4797=3D=3D=20
+> =3D=3D4797=3D=3D Invalid read of size 8
+> =3D=3D4797=3D=3D    at 0x405F6E: ulogd_unregister_fd (select.c:73)
+> =3D=3D4797=3D=3D    by 0x4E6427F: ??? (in /usr/lib/ulogd/ulogd_filter_IFI=
+NDEX.so)
+> =3D=3D4797=3D=3D    by 0x405003: stop_pluginstances (ulogd.c:1335)
+> =3D=3D4797=3D=3D    by 0x405003: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Address 0x4a84f30 is 144 bytes inside a block of size 4=
+,848 free'd
+> =3D=3D4797=3D=3D    at 0x4847551: free (in /usr/libexec/valgrind/vgpreloa=
+d_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x40500E: stop_pluginstances (ulogd.c:1338)
+> =3D=3D4797=3D=3D    by 0x40500E: sigterm_handler_task (ulogd.c:1383)
+> =3D=3D4797=3D=3D    by 0x405153: call_signal_handler_tasks (ulogd.c:424)
+> =3D=3D4797=3D=3D    by 0x405153: signal_channel_callback (ulogd.c:443)
+> =3D=3D4797=3D=3D    by 0x406163: ulogd_select_main (select.c:105)
+> =3D=3D4797=3D=3D    by 0x403CF3: ulogd_main_loop (ulogd.c:1070)
+> =3D=3D4797=3D=3D    by 0x403CF3: main (ulogd.c:1649)
+> =3D=3D4797=3D=3D  Block was alloc'd at
+> =3D=3D4797=3D=3D    at 0x4849D82: calloc (in /usr/libexec/valgrind/vgprel=
+oad_memcheck-amd64-linux.so)
+> =3D=3D4797=3D=3D    by 0x405504: pluginstance_alloc_init (ulogd.c:664)
+> =3D=3D4797=3D=3D    by 0x405504: create_stack (ulogd.c:1014)
+> =3D=3D4797=3D=3D    by 0x406FCE: config_parse_file (conffile.c:225)
+> =3D=3D4797=3D=3D    by 0x403949: parse_conffile (ulogd.c:1107)
+> =3D=3D4797=3D=3D    by 0x403949: main (ulogd.c:1589)
+> =3D=3D4797=3D=3D=20
+> Tue Mar 14 11:18:20 2023 <1> ulogd.c:1333 calling stop for SYSLOG
+> =3D=3D4797=3D=3D=20
+> =3D=3D4797=3D=3D HEAP SUMMARY:
+> =3D=3D4797=3D=3D     in use at exit: 301,152 bytes in 10 blocks
+> =3D=3D4797=3D=3D   total heap usage: 1,133 allocs, 1,123 frees, 1,852,378=
+ bytes allocated
+> =3D=3D4797=3D=3D=20
+> =3D=3D4797=3D=3D LEAK SUMMARY:
+> =3D=3D4797=3D=3D    definitely lost: 300,928 bytes in 4 blocks
+> =3D=3D4797=3D=3D    indirectly lost: 224 bytes in 6 blocks
+> =3D=3D4797=3D=3D      possibly lost: 0 bytes in 0 blocks
+> =3D=3D4797=3D=3D    still reachable: 0 bytes in 0 blocks
+> =3D=3D4797=3D=3D         suppressed: 0 bytes in 0 blocks
+> =3D=3D4797=3D=3D Rerun with --leak-check=3Dfull to see details of leaked =
+memory
+> =3D=3D4797=3D=3D=20
+> =3D=3D4797=3D=3D Use --track-origins=3Dyes to see where uninitialised val=
+ues come from
+> =3D=3D4797=3D=3D For lists of detected and suppressed errors, rerun with:=
+ -s
+> =3D=3D4797=3D=3D ERROR SUMMARY: 12 errors from 6 contexts (suppressed: 0 =
+=66rom 0)
+
+I've seen these traces myself.  Never got round to diagnosing and fixing
+them.
+
+J.
+
+> This is coredump backtrace.
+>=20
+> -------------------------------------------------------------------------=
+-------
+> Thread Information:
+>   Id   Target Id         Frame=20
+> * 1    LWP 170           0x00007fa985225d40 in main_arena ()
+>    from /tmp/tmp1fbxh6bj/vfw_x86_64/output/awplus-
+> vfw_x86_64/image/rootfs/staging/lib64/libc.so.6
+> -------------------------------------------------------------------------=
+-------
+> Current Thread Local Variables:
+> No symbol table info available.
+> -------------------------------------------------------------------------=
+-------
+> Thread Backtraces:
+> Thread 1 (LWP 170):
+> #0  0x00007fa985225d40 in main_arena () from /tmp/tmp1fbxh6bj/vfw_x86_64/=
+output/awplus-vfw_x86_64/image/rootfs/staging/lib64/libc.so.6
+> #1  0x0000000000405ca7 in ulogd_propagate_results (pi=3Dpi@entry=3D0x8ebc=
+50) at ulogd.c:617
+> #2  0x00007fa9850376b9 in interp_packet (upi=3Dupi@entry=3D0x8ebc50, pf_f=
+amily=3D<optimized out>, ldata=3Dldata@entry=3D0x7ffe805c2648) at ulogd_inp=
+pkt_NFLOG.c:400
+> #3  0x00007fa985037c55 in msg_cb (gh=3D<optimized out>, nfmsg=3D0x7ffe805=
+c2770, nfa=3D0x7ffe805c2648, data=3D0x8e2d90) at ulogd_inppkt_NFLOG.c:479
+> #4  0x00007fa98503023e in __nflog_rcv_pkt (nlh=3D<optimized out>, nfa=3D<=
+optimized out>, data=3D<optimized out>) at libnetfilter_log.c:162
+> #5  0x00007fa9850288fc in nfnl_step (h=3Dh@entry=3D0x8e6f80, nlh=3Dnlh@en=
+try=3D0x7ffe805c2760) at libnfnetlink.c:1365
+> #6  0x00007fa985028ff8 in nfnl_process (h=3Dh@entry=3D0x8e6f80,  buf=3Dbu=
+f@entry=3D0x7ffe805c2760 "\214", len=3Dlen@entry=3D140) at libnfnetlink.c:1=
+410
+> #7  0x00007fa985029344 in nfnl_catch (h=3D<optimized out>) at libnfnetlin=
+k.c:1564
+> #8  nfnl_catch (h=3D0x8e6f80) at libnfnetlink.c:1546
+> #9  0x00007fa985030612 in __build_send_cfg_msg (pf=3D0 '\000', groupnum=
+=3D<optimized out>, command=3D2 '\002', h=3D0x8dfbc0) at libnetfilter_log.c=
+:143
+> #10 nflog_unbind_group (gh=3D0x8e71a0) at libnetfilter_log.c:439
+> #11 0x00007fa9850373ec in stop (pi=3D0x8e2d90) at ulogd_inppkt_NFLOG.c:638
+> #12 0x0000000000405004 in stop_pluginstances () at ulogd.c:1335
+> #13 sigterm_handler_task (signal=3Dsignal@entry=3D15) at ulogd.c:1383
+> #14 0x0000000000405154 in call_signal_handler_tasks (sig=3D15) at ulogd.c=
+:423
+> #15 signal_channel_callback (fd=3D4, what=3D<optimized out>, data=3D<opti=
+mized out>) at ulogd.c:442
+> #16 0x0000000000406184 in ulogd_select_main (tv=3Dtv@entry=3D0x0) at sele=
+ct.c:105
+> #17 0x0000000000403cf4 in ulogd_main_loop () at ulogd.c:1070
+> #18 main (argc=3D<optimized out>, argv=3D<optimized out>) at ulogd.c:1649
+> -------------------------------------------------------------------------=
+-------
+
+--dXVGGtqxIm724HJ7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQY02QACgkQKYasCr3x
+BA3OwA/9FhHaQ89vdww9uNbbhRhNPeKJAwD1OIhVdcScku3pXbYeo0L3AN1P7MuI
+RDWijf3Os36M100nF8+SzbF7SRb0wb1/OH+AGEUTkNln+eEDd4fCETA+qT1UaSBL
+u2RWtp/rnOKOS3efb4e7d7rdtqZAFaoXoEsmkAPRRGKfu1CdRNsvudqiHuEePmgm
+IS6E1hkfgppwIWXtxuoqtb8cmBW0ndTb7qfuVgMezBKzxDU5YTlq1P0YXSlFdH+A
+6ERAkTYNtxeLkJiRd1dBH6fa9aMbxslrnHdHOEbP8Bu/t0SucCXpHhweliE93Goh
+p05bJjeYm0Pb1yvHZsd3WtUdyNQdboiMVX5iRTW6q7bYZ10ruxvvSAcx+2FAhyGR
+7tr74OJfF6BdvyjI3dBP4uZ44jWf5YARRFAYXL3pCKBmIxu9XPKAfpMnZlCPI5Uc
++PneAMVijqsaLijYAwtkZGK0IAZ6VNDCzR/+mnnk1bwTXwEg9jW8XIRrEtCR5nXx
+TdFfI6200ouPQzD2Xae8yUTjReGJ/q2xC+/Y0JsV4Gmomlf9YpX3dsusohCQgoza
+IPkBEDhAIFw2RmIgzJvW7wvH/4iaSe0mbDMsO5MkG1hBYSQBz38RKY/Rmiey0Gmt
+mwfE5gzJiEKoEst1yX7vmLwO6di2h2xOnIavUltb8z0yf7B/IJY=
+=sX97
+-----END PGP SIGNATURE-----
+
+--dXVGGtqxIm724HJ7--
