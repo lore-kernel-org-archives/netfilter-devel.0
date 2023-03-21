@@ -2,155 +2,223 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C18CDC74A5B
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Mar 2023 13:50:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88180C6FD1D
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Mar 2023 15:59:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229513AbjCUNuk (ORCPT
+        id S231383AbjCUP7W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Mar 2023 09:50:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47836 "EHLO
+        Tue, 21 Mar 2023 11:59:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229819AbjCUNuj (ORCPT
+        with ESMTP id S231386AbjCUP7T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2023 09:50:39 -0400
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2081.outbound.protection.outlook.com [40.107.244.81])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD68A37577;
-        Tue, 21 Mar 2023 06:50:32 -0700 (PDT)
+        Tue, 21 Mar 2023 11:59:19 -0400
+Received: from EUR02-AM0-obe.outbound.protection.outlook.com (mail-am0eur02on2084.outbound.protection.outlook.com [40.107.247.84])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DBBE521FD;
+        Tue, 21 Mar 2023 08:59:03 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VtCi26BuqyPJrE1CXCK+csn9x2kqW1v80ItdMtuV0AHEzUsEqreIFwTAR3VDRDp5BXLpULoqngYUOZ8pygFU35Uk8eQxHFC9j4jVEO3TnPaSu4wQaVNB1+Ay1nwGPcH+iax0dZd6GlN7Dp0c0+OSmMl6xGy65prwmHxfriM9FMDA7GXUH7nAG3E1eCaIJbAW7uZrfD56N72iH/gf1qlP6GJe/L5gu6O62ZsLh+9aI6AH9y2LOTznfZZhzH9Mr2H+qYUOvBlOy/noJifksE1vi0rbowFCRgtlPtBLhB4gqR/qkdLbCkob898Lq0b3DPQ+7A7GYZc/GCt57LS2kSRuLw==
+ b=P6VK+wEuST+nfCSTeoOjG02G2ndWzZI4TGTgFfPTiyaE6DE2qW3MHoht+ctyt/XCf8Fm1btnvTELQi9iNtCzJEyGcpAME0/Prb220uBKG0xrVlURklce88/cBVIZ4wBVNTKbdJj7+AgelWfX7g1/huB/7IwB2GYd+tA6hU5rr01lvh1FH8M1bMs7AZqFU0iBx47vlRbWqSo1l6an+oBGXYyz6vl0IkVpQzDNQGVdbsvhf7xJycjTygz/P620+x7fGOFcLLRXQcwvO1OLFti1QoykDrNc8mRL+f2llQxiSW74WT8oPNRTl1SAGG8bKZ5ErXeHy7Pic69oW+0eUnGd1g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=F2snrFClXrxEYMywJIQ4YJxrvd/RLdw+MmG5M5Iz+1M=;
- b=dWDzMj51xzOFGW2w1h6im1R0KgdSTAL7vlMqDhXz6TcN+AWR8O3hou86K1H2oEUbD1vO81C7rKhdATxcHQYJ3xzUGnni4c/lhePNSUbSrqLR9gtXAlbWdiqDV2JrmCoN88J+qYqR2+v1FHAqsyv9RTfT48rJJjJvOgADOUn7BRDc0+siqZD6eZ5okkk/jYooKHya26MBGAUq1rOySgel0efAEMMhEIxmxr4ZLUXz15iKH+RT6ZvhVLhF8bDtNx7yBr2YQbyRwmmBYpT7aQHBQjKgdLA3RZBEXJNk8fe7KAixBqqs10Ok+nZ0r5QJFSNuvd2Ypn7OuY3mkXjSzBLl9g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ bh=qw0vIxf1nCFao5Ygn3La51BBTNBP7RDLqOdJg0VK+YQ=;
+ b=KkC9QSwtK0Hjchm4MG+sReNED/448TweErL5ltM1T/vcCOfXwBFo5Qtu4QHxQnSewb2qdpT3v+edkbbP9a8eWD3g00BdDB5ww0IqKDq2E/0snNAVBDSRK6Aar8lbDP2ke7Ug6IMdszOJ2nK1WJnAiPsBEUcZlIBaRguHLEQwAi783FtT6y5HEeUBs1Lnu/UIbslX7PQmyIH5ucAQaQTa+h5j7xi6txBu1n+ZWKCmILKOqdldE2Vm7U7BcniwpH17xTuvs1jiM+99mNWGf6sBNlr+tXhvx1IH0NP5/e2vlfKs0AcFIRv29ZhzqAzFAkVMTGN1pZOofCez32+4mh6Dmw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nxp.com; dmarc=pass action=none header.from=nxp.com; dkim=pass
+ header.d=nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nxp.com; s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=F2snrFClXrxEYMywJIQ4YJxrvd/RLdw+MmG5M5Iz+1M=;
- b=nzPcB5dlTwdKXkxkJXoJIstsJuWkexZOGksvEaXojiU5l2C/wzwD+MqDgYtxWVM3NKsIIpz2H8ZOH5BveJuv/H479UPs8yjJ+i/SMuGikGD21Gbl1tk30Imp/f9JYKOtVP3DO0pA8I7AeyoE8znfLGah7b2DVjyGn7S3wyiNFzvPQUgN0vwbLhRlrIZau+KxT/jG6qyk/IZ/xXLQJA0IGqN8Cu8vzWFhI21CbKdxgtKIVBOi3Ilaf9TPy+ccd70waGUjWLESfQsevwiwGtJ/b5DLLpDhvdOhlNhw3M5Hra2HEvGB/2hl/GNRuQHs7jNeiaY2hJfTY5qZkRVFb3s1yA==
-Received: from DM6PR07CA0082.namprd07.prod.outlook.com (2603:10b6:5:337::15)
- by SA1PR12MB7271.namprd12.prod.outlook.com (2603:10b6:806:2b8::16) with
+ bh=qw0vIxf1nCFao5Ygn3La51BBTNBP7RDLqOdJg0VK+YQ=;
+ b=nlIvRLCE8b22SF9ZasOfyxj6dhSUr7/p/JB9u9IG3iGQjG7GhhIvTe47V9nAr63iIOnskqrRNLWzpij7Z4i+SoiYgXf2Cq5C54ZlnOwv8NNL0t3vB1x5TKiT1Pp1jFsjeOmxlMxWjX5e5Kv0FGdqgTAHEQplXux9bEj9FQxDYRM=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nxp.com;
+Received: from DB9PR04MB9648.eurprd04.prod.outlook.com (2603:10a6:10:30c::10)
+ by DB9PR04MB9989.eurprd04.prod.outlook.com (2603:10a6:10:4ec::22) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.37; Tue, 21 Mar
- 2023 13:50:30 +0000
-Received: from DS1PEPF0000E639.namprd02.prod.outlook.com
- (2603:10b6:5:337:cafe::86) by DM6PR07CA0082.outlook.office365.com
- (2603:10b6:5:337::15) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.37 via Frontend
- Transport; Tue, 21 Mar 2023 13:50:30 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- DS1PEPF0000E639.mail.protection.outlook.com (10.167.17.71) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6178.30 via Frontend Transport; Tue, 21 Mar 2023 13:50:30 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.5; Tue, 21 Mar 2023
- 06:50:20 -0700
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.37; Tue, 21 Mar
- 2023 06:50:19 -0700
-Received: from c-237-173-140-141.mtl.labs.mlnx (10.127.8.12) by
- mail.nvidia.com (10.129.68.9) with Microsoft SMTP Server id 15.2.986.5 via
- Frontend Transport; Tue, 21 Mar 2023 06:50:15 -0700
-From:   Paul Blakey <paulb@nvidia.com>
-To:     Paul Blakey <paulb@nvidia.com>, <netdev@vger.kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        "Jozsef Kadlecsik" <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        "Jakub Kicinski" <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     Oz Shlomo <ozsh@nvidia.com>, Roi Dayan <roid@nvidia.com>,
-        Vlad Buslov <vladbu@nvidia.com>
-Subject: [PATCH net-next 1/1] netfilter: ctnetlink: Support offloaded conntrack entry deletion
-Date:   Tue, 21 Mar 2023 15:50:04 +0200
-Message-ID: <1679406604-133128-1-git-send-email-paulb@nvidia.com>
-X-Mailer: git-send-email 1.8.4.3
-MIME-Version: 1.0
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.29; Tue, 21 Mar
+ 2023 15:59:00 +0000
+Received: from DB9PR04MB9648.eurprd04.prod.outlook.com
+ ([fe80::c1c1:4646:4635:547d]) by DB9PR04MB9648.eurprd04.prod.outlook.com
+ ([fe80::c1c1:4646:4635:547d%9]) with mapi id 15.20.6178.037; Tue, 21 Mar 2023
+ 15:59:00 +0000
+From:   Madhu Koriginja <madhu.koriginja@nxp.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     netdev@vger.kernel.org, vani.namala@nxp.com,
+        Madhu Koriginja <madhu.koriginja@nxp.com>
+Subject: [PATCH] net : netfilter: Keep conntrack reference until IPsecv6 policy checks are done
+Date:   Tue, 21 Mar 2023 21:28:44 +0530
+Message-Id: <20230321155844.3904344-1-madhu.koriginja@nxp.com>
+X-Mailer: git-send-email 2.25.1
+Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-EOPAttributedMessage: 0
+X-ClientProxiedBy: SG2PR06CA0230.apcprd06.prod.outlook.com
+ (2603:1096:4:ac::14) To DB9PR04MB9648.eurprd04.prod.outlook.com
+ (2603:10a6:10:30c::10)
+MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS1PEPF0000E639:EE_|SA1PR12MB7271:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6d33b647-e18e-4246-c037-08db2a133c0c
+X-MS-TrafficTypeDiagnostic: DB9PR04MB9648:EE_|DB9PR04MB9989:EE_
+X-MS-Office365-Filtering-Correlation-Id: c293e06e-8ab0-43d3-7539-08db2a252f5b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 2zUNAqkhFiEIWxtRZYcT3RZTa+2DnxSMWoZuvORQbFqxNLp5IQJi4J0n0kteFQ0kwdBe1pknBtzDI46TtWKgtj89LTZdlAMoNbmmXVAkUMpYXkmWl2bPtBSPfpdJw1ObGIw9FGTPBqAu3CXDzL7MxyFgQarVlCUKMGkwrwokrXL2Kvu7Y98n3orFIxaCtZo/N/aVnROW3uRMkjYQ7lcXEngiyYqfV/hI10R1w6ZkjM6UcS2Iq9DaT1Drms4GmM1QsXLz5T/cjnWwHI7UkLVsidaDmpdClw2/O+v2bytMIZz3Hwuznkok5LXqwvIeoYZjLiSZCaBwiaDODgwBh173f+Q688n/Zxv2zJmMqLDFjQwPApVrTnXghLcWkhg9YvuqpJ0kQFXYfoXolm4ysC+ycvIXfN+OqZjNNand6oAFxwM0FB5G9xzAIF4C5cGOiV8cspUz1KQdz6FW4sJhLlY3g3Qslp9BD30ssg4ERLb2TwQ+WX11vwMuxFdDs05zokyc5rE9+1xMQk8y3PkJ4Tj1kkwahIz8YkBraQVYAN6ub6SrbbyaDEb7CO43Y56M+Y+8MzTiX0cJJEYHX2KSTl0IqAzZuvDthknPRph4gVaoAIkirx4tPHvxKIOG+fPRCmMhNXX3GPJ+FWTGtfudPkcewwnE43bgk2K30cEK95b+UMbs/pysNXHbRLZcX1QIN0y9ckCaajVBYi5/3jMSazto4oSh4bgzowUkGD/EOtR0K1VoIkzizjWF/KmX/YhyxKUhaE5EtJzIfdCHDpF3D1q6Pg==
-X-Forefront-Antispam-Report: CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230025)(4636009)(376002)(396003)(39860400002)(136003)(346002)(451199018)(40470700004)(36840700001)(46966006)(86362001)(82310400005)(40460700003)(36756003)(40480700001)(70206006)(83380400001)(316002)(4326008)(478600001)(70586007)(8676002)(186003)(54906003)(26005)(336012)(110136005)(2616005)(107886003)(6666004)(426003)(47076005)(921005)(356005)(8936002)(5660300002)(7416002)(36860700001)(41300700001)(2906002)(82740400003)(7636003);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Mar 2023 13:50:30.1864
+X-Microsoft-Antispam-Message-Info: 0XcRryL/WIc2G1YrtF/J49Dagz5YnR511YN416gUgM1qU69sKt66RtrhyxJiMku1rnDk/bVp5lLxm+TVCG1cfbloht0njbLjl16TJ6Tv+ObERd4URD6O7nIWF3Kl2wOmdldFx7+UvEvHgUCbDxaPcPdWRyPQLZ5h5JoVr/57IfdKEY7tBtI34RbhQkVTFd7qTgp0/2kwa2Lz1cfZys9Wxo0arQdNXk1hEFCpZmYRYEiv98A7HJfWUQrkDs+97rA2rVC6zOHM61UIGR0PyOKntaCS9FT/8lsaMmGwIf5kjfto3bY4vxoYLAilzmY02BTP9U2SGRWXjM9jkE2UIglx/9KUZWR2HVGCGOp0+Vjg2ZOUh8MT1SDiHFygPod52PcaAYgks5vgQVek8HYQQPF0uQPOer4tHBTZss7z5rcJeMGvHn8GxJH+InEg8ELB/3j5KsqiPO2fjzW4NChF1TZaYRPn08Romb5l+Ik7q8HSh7FNjO/6LQ0KKgoIaSKSw3LK/XOyC8qxEGr7yqERqVFhcNt6mWHtZfUqXS/j9ttNagnBuzDe13YmI6haOGv9dG4lTCk4hl66cVg8up+dwO0/uOhIF7B7bWbDYfQWa4RVUyaD8QBHw7zoNE86ceB+V/xxTWPoFVC825cdmOXBrrozHD1KMzP9c3Mjk9xsqsYD6mL6ukuGgQcB+duhnpWf+1nBW8+QXu4eE2ikdHQoHyeZ5A==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB9PR04MB9648.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(366004)(346002)(39860400002)(396003)(376002)(136003)(451199018)(66556008)(38350700002)(36756003)(66476007)(66946007)(4326008)(38100700002)(8936002)(86362001)(316002)(6916009)(41300700001)(450100002)(8676002)(83380400001)(2616005)(478600001)(5660300002)(44832011)(6512007)(1076003)(2906002)(6506007)(26005)(6666004)(52116002)(186003)(6486002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?ZhBFb6Fa/BglZWoLJ1gHsOmyOIZfuUaYg4JGl1p6Qpsw6Lhn6dQlV2AaAgMw?=
+ =?us-ascii?Q?Q/ky8jvqIHl6kbNhJrGjHwOwuAImxaOg6L5j6xqGfjNdfpJHw3QhN0LBOb6A?=
+ =?us-ascii?Q?F+cDfHUENO6WP88N56bC+k36oETz+GQ5/0sa0uD4T1aRHKUI2DitMBBusxGW?=
+ =?us-ascii?Q?9ZhsH8y2NjbWp5bxeB0yqGZAWuuG2ULZA+AtkAuvHaIpnM740/ePTUX1JSl7?=
+ =?us-ascii?Q?y0Nu6gNiGtOfs73xMCMqOLBPV8g/h592ZzedteSlG7rPgNcFp9eRgN3e1+wg?=
+ =?us-ascii?Q?O46Z6xYj9RE774txOYoBiiHZi33xTZxGMeIRXtB42J2J28xNMaJDEFkqMd2Q?=
+ =?us-ascii?Q?HuQJw6cjBz+kP6Tul1JMfmRcI6JbPG3gUD/z0ZgT32LxFJPd24vpRCkivTQK?=
+ =?us-ascii?Q?XpLl5h9JfYN14xNIS0jPMJvq3GVp+ZuaHRgf5mKr8nzaqzeMCJQiIJzu05Wz?=
+ =?us-ascii?Q?1HCcnlgfEdIDvwsf+8pu/IUF1Kcm+lV994WhlfDCSRCULCYKYLAkrWlTwD+0?=
+ =?us-ascii?Q?JLQwd4YBt2FiZOb3Pg5nLDwn0GRsfwJqFCe7NOsj31Xp40c5FA2mSIsNujMB?=
+ =?us-ascii?Q?4KeGNE97geMzRIGlMFq5kL3jMksSiYj37E1Z5H13VnbLKiyYqubBYCGCaJ61?=
+ =?us-ascii?Q?k2XxnghCpOqGuMXQ48pkLOi/izTaChr/mqrvkk1yOeTqZVevJ5mqzXBixFhX?=
+ =?us-ascii?Q?fquePyhP2FKgGqpQlnZNrFDDfxD9HIuZhXePl2KFMDhEQhp+2euZ4j7f6p5y?=
+ =?us-ascii?Q?yExuqIqlv97P2fSAfd++JsaF7YA7cgl331gPXPhM0r0NJB01HTuYcwWG9tay?=
+ =?us-ascii?Q?JYqYszB/Srn8QNaJ7M+7WWQUUhksz356K8jzCyZjmn03QOdUoZZf1Wqiihfq?=
+ =?us-ascii?Q?Ejicod3L1VJGiruimoTH2uUUYudCGof90nnw7Au9okK3D+THZuZp/BPp0eIB?=
+ =?us-ascii?Q?hq4vaxIUoJ2TgcYEDlVV3dvooeKCNwvUDXPhlxIdBJi+vGYMcnqz3BZHjMUe?=
+ =?us-ascii?Q?umH1V9G0luZOv+cWpoqScc0T+RNNR/kXtPT2kYI8pYPcvrHJdZzypXo9d8is?=
+ =?us-ascii?Q?8T01psy9JEV2IMI0H/sIxX/gDPlziv+NTZV6wqVht0f0LBBIepPgH7N0cqXg?=
+ =?us-ascii?Q?9+XgGdblcQ+/AIKsalcj0hX4cke7t4jnaiH13g/5P6wBqzO47n0PCcSeUC4l?=
+ =?us-ascii?Q?m2y7mj2jF+GBMBO6mDIoAYPz1tBPcm4yPxzz/VgRTGed4/g8saI8/ZyXue+I?=
+ =?us-ascii?Q?akWBYGzZLtvPQybM3Ntw/J7CBDQT7UpnllMB/34CEBVi55+cw9OVL6E8pS6e?=
+ =?us-ascii?Q?Gn1A7AckU3qhAwVsqsVA5Hh5oUNzaUobkFLh5nz+Vyg3hQYfPA08Heo0tFoc?=
+ =?us-ascii?Q?11RgOQqLXGzD/XYT6OLBSuyaHhSaWEJonnIfIu9K2LwidnzjS5YszQR/W33P?=
+ =?us-ascii?Q?Y4bki8Xix3hnTBq2PUlryBxd08k7oqi3gBlt7L2QOR8iFwK3RTAZe/nY9Q4P?=
+ =?us-ascii?Q?5kAon4V0onuhGBirgjEHjzF3ZmpFU5gJuHcd7GAdkOdoRJiMb5beDSG38KTu?=
+ =?us-ascii?Q?vsX/CfQYjJIQXVxL48n3YOnESAzI4BaRWTF7QgDNpPsDW2NvXJAFT6Qgst9y?=
+ =?us-ascii?Q?Ag=3D=3D?=
+X-OriginatorOrg: nxp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c293e06e-8ab0-43d3-7539-08db2a252f5b
+X-MS-Exchange-CrossTenant-AuthSource: DB9PR04MB9648.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Mar 2023 15:59:00.1298
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6d33b647-e18e-4246-c037-08db2a133c0c
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: DS1PEPF0000E639.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB7271
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: WVRHf9n19djt+7qqxETSjlhqOLvmzQpxDzmeSpviXpBO1dKnqxfi8dKqk/ub7O9ZS5agXIinKw3g9R86U+9UpA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB9PR04MB9989
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Currently, offloaded conntrack entries (flows) can only be deleted
-after they are removed from offload, which is either by timeout,
-tcp state change or tc ct rule deletion. This can cause issues for
-users wishing to manually delete or flush existing entries.
+Keep the conntrack reference until policy checks have been performed for
+IPsec V6 NAT support. The reference needs to be dropped before a packet is
+queued to avoid having the conntrack module unloadable.
 
-Support deletion of offloaded conntrack entries.
-
-Example usage:
- # Delete all offloaded (and non offloaded) conntrack entries
- # whose source address is 1.2.3.4
- $ conntrack -D -s 1.2.3.4
- # Delete all entries
- $ conntrack -F
-
-Signed-off-by: Paul Blakey <paulb@nvidia.com>
+Signed-off-by: Madhu Koriginja <madhu.koriginja@nxp.com>
 ---
- net/netfilter/nf_conntrack_netlink.c | 8 --------
- 1 file changed, 8 deletions(-)
+ net/dccp/ipv6.c      |  1 +
+ net/ipv6/ip6_input.c | 15 ++++++---------
+ net/ipv6/raw.c       |  2 +-
+ net/ipv6/tcp_ipv6.c  |  2 ++
+ net/ipv6/udp.c       |  2 ++
+ 5 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index bfc3aaa2c872..fbc47e4b7bc3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1554,9 +1554,6 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+diff --git a/net/dccp/ipv6.c b/net/dccp/ipv6.c
+index b9d7c3dd1cb3..c0fd8f5f3b94 100644
+--- a/net/dccp/ipv6.c
++++ b/net/dccp/ipv6.c
+@@ -783,6 +783,7 @@ static int dccp_v6_rcv(struct sk_buff *skb)
  
- static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
- {
--	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
--		return 0;
+ 	if (!xfrm6_policy_check(sk, XFRM_POLICY_IN, skb))
+ 		goto discard_and_relse;
++	nf_reset_ct(skb);
+ 
+ 	return __sk_receive_skb(sk, skb, 1, dh->dccph_doff * 4,
+ 				refcounted) ? -1 : 0;
+diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
+index e1ebf5e42ebe..25249cd3b639 100644
+--- a/net/ipv6/ip6_input.c
++++ b/net/ipv6/ip6_input.c
+@@ -404,10 +404,6 @@ void ip6_protocol_deliver_rcu(struct net *net, struct sk_buff *skb, int nexthdr,
+ 			/* Only do this once for first final protocol */
+ 			have_final = true;
+ 
+-			/* Free reference early: we don't need it any more,
+-			   and it may hold ip_conntrack module loaded
+-			   indefinitely. */
+-			nf_reset_ct(skb);
+ 
+ 			skb_postpull_rcsum(skb, skb_network_header(skb),
+ 					   skb_network_header_len(skb));
+@@ -430,12 +426,13 @@ void ip6_protocol_deliver_rcu(struct net *net, struct sk_buff *skb, int nexthdr,
+ 				goto discard;
+ 			}
+ 		}
+-		if (!(ipprot->flags & INET6_PROTO_NOPOLICY) &&
+-		    !xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb)) {
+-			SKB_DR_SET(reason, XFRM_POLICY);
+-			goto discard;
++		if (!(ipprot->flags & INET6_PROTO_NOPOLICY)) {
++			if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb)) {
++				SKB_DR_SET(reason, XFRM_POLICY);
++				goto discard;
++			}
++			nf_reset_ct(skb);
+ 		}
 -
- 	return ctnetlink_filter_match(ct, data);
- }
+ 		ret = INDIRECT_CALL_2(ipprot->handler, tcp_v6_rcv, udpv6_rcv,
+ 				      skb);
+ 		if (ret > 0) {
+diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
+index bac9ba747bde..b035e049fb65 100644
+--- a/net/ipv6/raw.c
++++ b/net/ipv6/raw.c
+@@ -195,7 +195,6 @@ static bool ipv6_raw_deliver(struct sk_buff *skb, int nexthdr)
  
-@@ -1626,11 +1623,6 @@ static int ctnetlink_del_conntrack(struct sk_buff *skb,
+ 			/* Not releasing hash table! */
+ 			if (clone) {
+-				nf_reset_ct(clone);
+ 				rawv6_rcv(sk, clone);
+ 			}
+ 		}
+@@ -391,6 +390,7 @@ int rawv6_rcv(struct sock *sk, struct sk_buff *skb)
+ 		kfree_skb_reason(skb, SKB_DROP_REASON_XFRM_POLICY);
+ 		return NET_RX_DROP;
+ 	}
++	nf_reset_ct(skb);
  
- 	ct = nf_ct_tuplehash_to_ctrack(h);
+ 	if (!rp->checksum)
+ 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
+index 1bf93b61aa06..1e747241c771 100644
+--- a/net/ipv6/tcp_ipv6.c
++++ b/net/ipv6/tcp_ipv6.c
+@@ -1722,6 +1722,8 @@ INDIRECT_CALLABLE_SCOPE int tcp_v6_rcv(struct sk_buff *skb)
+ 	if (drop_reason)
+ 		goto discard_and_relse;
  
--	if (test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
--		nf_ct_put(ct);
--		return -EBUSY;
--	}
--
- 	if (cda[CTA_ID]) {
- 		__be32 id = nla_get_be32(cda[CTA_ID]);
++	nf_reset_ct(skb);
++
+ 	if (tcp_filter(sk, skb)) {
+ 		drop_reason = SKB_DROP_REASON_SOCKET_FILTER;
+ 		goto discard_and_relse;
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 9fb2f33ee3a7..75900564f42a 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -704,6 +704,7 @@ static int udpv6_queue_rcv_one_skb(struct sock *sk, struct sk_buff *skb)
+ 		drop_reason = SKB_DROP_REASON_XFRM_POLICY;
+ 		goto drop;
+ 	}
++	nf_reset_ct(skb);
  
+ 	if (static_branch_unlikely(&udpv6_encap_needed_key) && up->encap_type) {
+ 		int (*encap_rcv)(struct sock *sk, struct sk_buff *skb);
+@@ -1027,6 +1028,7 @@ int __udp6_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
+ 
+ 	if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb))
+ 		goto discard;
++	nf_reset_ct(skb);
+ 
+ 	if (udp_lib_checksum_complete(skb))
+ 		goto csum_error;
 -- 
-2.26.3
+2.25.1
 
