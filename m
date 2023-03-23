@@ -2,127 +2,98 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1C31C6FD1C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 00:00:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FD5C6FD1F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 00:36:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229801AbjCWAA0 (ORCPT
+        id S229703AbjCWAgp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Mar 2023 20:00:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60656 "EHLO
+        Wed, 22 Mar 2023 20:36:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229691AbjCWAA0 (ORCPT
+        with ESMTP id S229682AbjCWAgo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2023 20:00:26 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9970393F3
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2023 17:00:23 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pf8NR-0004s5-AX; Thu, 23 Mar 2023 01:00:21 +0100
-Date:   Thu, 23 Mar 2023 01:00:21 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     eric_sage@apple.com
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
-        kadlec@netfilter.org, pablo@netfilter.org
-Subject: Re: [PATCH] netfilter: nfnetlink_queue: enable classid socket info
- retrieval
-Message-ID: <20230323000021.GG4453@breakpoint.cc>
-References: <20230322223329.48949-1-eric_sage@apple.com>
+        Wed, 22 Mar 2023 20:36:44 -0400
+Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 293614ED5;
+        Wed, 22 Mar 2023 17:36:44 -0700 (PDT)
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+        by mailout.nyi.internal (Postfix) with ESMTP id DFAD95C00E8;
+        Wed, 22 Mar 2023 20:36:40 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute2.internal (MEProxy); Wed, 22 Mar 2023 20:36:40 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm1; t=1679531800; x=1679618200; bh=gY
+        anmg+GyDfmuYC/39sIJDGvil7BWagM2sVSvKzisvo=; b=YJoxgO8czSrPumioP7
+        LhJUmNnwrtvN7lx96fIEddYfP50p7Ovwo277Kdeq0uxcXamXWET4FHtE+UTh4rXW
+        QVOLY3Hy81X8PgEkW9hkxuKs7r/kEjd7s3xWEIWq7DHccWV8CjiY1GNWzC77339z
+        Rpj6j5AuuowHptvaLCwTfOkBplacbAxAOy+gs5PQogEWXtj0/Dtf8+XRXxiaETqb
+        lRDZP3WoikCSXY8Ho7ZNf0zgdx19R7QevIWFglLcuj/75dtKUy92BRW00aTCsk+5
+        gWpUev0a0Ht6tRdgQU4+dzKsyBFgiFmMrap2hkG2C4qgayTkf9noSLa1mYTZvBUs
+        0Y+A==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; t=1679531800; x=1679618200; bh=gYanmg+GyDfmu
+        YC/39sIJDGvil7BWagM2sVSvKzisvo=; b=YR4taRLroYeDVlm1Lcfcn0GUqHHi9
+        b8KrIYE9Jy0kaRa2EOGnLnDpn/aqPFzkBxbNhGm5mRqo9+62QF0ZPzLKY+c/DdL1
+        NJJO0WAdOvLKrRUbTcrexS26YH8agUhfgdJ/MVsag1ppcVq3KnbKkWl7k8u0FftP
+        BDpXeA9BXRx4SZnwK7+yWTMTk+mCCKELbII1I6YFHM2MFBGyFYSuPXwOf9ZHaWRn
+        pqB6ff/AuXkR9kysySMJJ1R1PKe0ZjKfbpj3UA+hYurxDhX91oyym+RymUYH2ove
+        oqaIpJ5lIkP2A9lEQhflhtwgb7XvEl9hCH9VFrQfYksul39MIvB/+pSeA==
+X-ME-Sender: <xms:GJ8bZNglTuDwDmutak1sDx_3_RAipkbyKLpWgh2v0Bd97ZgCoFFnVg>
+    <xme:GJ8bZCBJXDIFkUbiNM-rvJfgzXgsK0mMdpCwfANFUCX-XXl_CEA5uZFNY-XDWoQWO
+    5sDBRBE9Hfs5NLNLA>
+X-ME-Received: <xmr:GJ8bZNE63ntfLQu3IsAGevhxhrffifyGnceC6K-Ga1eRjIrfyK_DeQZJFGU5ypgCepmTaSv5yBAiSoTNs0yqOhAAWhJtq2-Q-cXG_aY>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvdegfedgvdefucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    gfrhhlucfvnfffucdljedtmdenucfjughrpeffhffvvefukfhfgggtuggjsehttdertddt
+    tddvnecuhfhrohhmpeffrghnihgvlhcuighuuceougiguhesugiguhhuuhdrgiihiieqne
+    cuggftrfgrthhtvghrnhepveduudegiefhtdffhefggfdugeeggeehtefgvefhkeekieel
+    ueeijeelkeeivdfgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
+    hfrhhomhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:GJ8bZCQ9BiLQPgCC-iLdpYf0t8a_IM68GjOGz--q2GFeLtJ1H80bRA>
+    <xmx:GJ8bZKwkCukFAb1D5-hDFZQ3NDg7xqepBElOm2kyBFQ2F-_Q-SxCZg>
+    <xmx:GJ8bZI7Bus23kmj1Ip_9jcEAamJzjCi4H2HJ4V6G173rckGyIVKi6g>
+    <xmx:GJ8bZPpIUpBavhq0ASNUUF02aov76OTAJxkFKq9dRIyoF7UgrvBjzQ>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 22 Mar 2023 20:36:40 -0400 (EDT)
+Date:   Wed, 22 Mar 2023 18:36:38 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     bpf@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH RFC v2 bpf-next 0/3] bpf: add netfilter program type
+Message-ID: <20230323003638.pbzm6jino5qxjfvc@kashmir.localdomain>
+References: <20230302172757.9548-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230322223329.48949-1-eric_sage@apple.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230302172757.9548-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-eric_sage@apple.com <eric_sage@apple.com> wrote:
-> From: Eric Sage <eric_sage@apple.com>
+Hi Florian,
+
+On Thu, Mar 02, 2023 at 06:27:54PM +0100, Florian Westphal wrote:
+> Add minimal support to hook bpf programs to netfilter hooks,
+> e.g. PREROUTING or FORWARD.
 > 
-> This enables associating a socket with a v1 net_cls cgroup. Useful for
-> applying a per-cgroup policy when processing packets in userspace.
+> For this the most relevant parts for registering a netfilter
+> hook via the in-kernel api are exposed to userspace via bpf_link.
 > 
-> Signed-off-by: Eric Sage <eric_sage@apple.com>
-> ---
->  .../uapi/linux/netfilter/nfnetlink_queue.h    |  4 ++-
->  net/netfilter/nfnetlink_queue.c               | 27 +++++++++++++++++++
->  2 files changed, 30 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> index ef7c97f21a15..9fbc8c49bd6d 100644
-> --- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-> +++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> @@ -62,6 +62,7 @@ enum nfqnl_attr_type {
->  	NFQA_VLAN,			/* nested attribute: packet vlan info */
->  	NFQA_L2HDR,			/* full L2 header */
->  	NFQA_PRIORITY,			/* skb->priority */
-> +	NFQA_CLASSID,			/* __u32 cgroup classid */
->  
->  	__NFQA_MAX
->  };
-> @@ -116,7 +117,8 @@ enum nfqnl_attr_config {
->  #define NFQA_CFG_F_GSO				(1 << 2)
->  #define NFQA_CFG_F_UID_GID			(1 << 3)
->  #define NFQA_CFG_F_SECCTX			(1 << 4)
-> -#define NFQA_CFG_F_MAX				(1 << 5)
-> +#define NFQA_CFG_F_CLASSID			(1 << 5)
-> +#define NFQA_CFG_F_MAX				(1 << 6)
->  
->  /* flags for NFQA_SKB_INFO */
->  /* packet appears to have wrong checksums, but they are ok */
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index 87a9009d5234..8c513a2e0e30 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -301,6 +301,25 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
->  	return -1;
->  }
->  
-> +static int nfqnl_put_sk_classid(struct sk_buff *skb, struct sock *sk)
-> +{
-> +	u32 classid;
-> +
-> +	if (!sk_fullsock(sk))
-> +		return 0;
-> +
-> +	read_lock_bh(sk->sk_callback_lock);
+> The new program type is 'tracing style' and assumes skb dynptrs are used
+> rather than 'direct packet access'.
 
-I don't think there is a need for this lock here.
+[...]
 
-> +	if (nla_put_be32(skb, NFQA_CLASSID, htonl(classid)))
-> +		goto nla_put_failure;
-> +	read_unlock_bh(sk->sk_callback_lock);
+Hope all is well. Do you have any updates on this series? I'm keen to
+start building on top of this work.
 
-I think this can be something like:
-
-static int nfqnl_put_sk_classid(struct sk_buff *skb, const struct sock *sk)
-{
-#if CONFIG_CGROUP_NET_CLASSID
-	if (sk && sk_fullsock(sk)) {
-		u32 classid = htonl(sock_cgroup_classid(&sk->sk_cgrp_data);
-
-		if (classid && nla_put_be32(skb, NFQA_CLASSID, htonl(classid)))
-			return -1;
-	}
-#endif
-	return 0;
-}
-
-> +	if (queue->flags & NFQA_CFG_F_CLASSID) {
-> +		size += nla_total_size(sizeof(u_int32_t));	/* classid */
-> +	}
-
-Not sure its worth adding a new queue flag for this.  Uid and gid is a
-bit of extra work but I'd guess that the sk deref isn't that noticeable compared
-to the nfnetlink cost.
-
-So probably just include the size unconditionally in the initial
-calculation and then just:
-
-	if (nfqnl_put_sk_classid(skb, entskb->sk) < 0)
-		goto nla_put_failure;
-
-What do you think?
-
-Other than that this seems fine.
+Thanks,
+Daniel
