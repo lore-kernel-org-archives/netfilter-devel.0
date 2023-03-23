@@ -2,133 +2,115 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77664C6FD1D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 04:32:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB01CC6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 08:52:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbjCWEcO (ORCPT
+        id S230316AbjCWIwg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Mar 2023 00:32:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37886 "EHLO
+        Thu, 23 Mar 2023 04:52:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbjCWEcN (ORCPT
+        with ESMTP id S229991AbjCWIwe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Mar 2023 00:32:13 -0400
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F70119B1
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2023 21:32:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679545932; x=1711081932;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=U8U3GK4R9Q3qgYMxyxvTCgVa/ZyTh3hAM8Jyj6bjRGI=;
-  b=GeFgLpY5HwWPNjLtwDhHLH8KNmT7Tr/H9slDe/mjGhSHuJ/0NwhfXDde
-   q4xU1K70tUwv5yWjhqQSGPEKqb+BXNzVdRLmmWII3XBP3GMZs5naeXk5y
-   S5TaS+EJH11DPIPWhpzeOPRaMPZlbtlTTTRyE/otYZNYwUtup3H39vD1Q
-   Ng/b6uuSCSUGQe9G5yhrr4jm4pzzyDXut730vdPu2aSpMnZlA1rdKr+sD
-   Xfz8XdJ1eQ68W9QoAC/Ol6EjoxmUXicq8zAg/XZ/q/9a0J8YoaaEhA1wq
-   rmzFQGrLEH+wUFROpcYVGrAYP22Z/PpWb0Y8RChqc4xvoV/E9p/Phf3dU
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10657"; a="425676490"
-X-IronPort-AV: E=Sophos;i="5.98,283,1673942400"; 
-   d="scan'208";a="425676490"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2023 21:32:11 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10657"; a="675555097"
-X-IronPort-AV: E=Sophos;i="5.98,283,1673942400"; 
-   d="scan'208";a="675555097"
-Received: from lkp-server01.sh.intel.com (HELO b613635ddfff) ([10.239.97.150])
-  by orsmga007.jf.intel.com with ESMTP; 22 Mar 2023 21:32:09 -0700
-Received: from kbuild by b613635ddfff with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pfCcS-000Dxg-1g;
-        Thu, 23 Mar 2023 04:32:08 +0000
-Date:   Thu, 23 Mar 2023 12:31:12 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     eric_sage@apple.com, netfilter-devel@vger.kernel.org
-Cc:     oe-kbuild-all@lists.linux.dev, fw@strlen.de, kadlec@netfilter.org,
-        pablo@netfilter.org, Eric Sage <eric_sage@apple.com>
-Subject: Re: [PATCH] netfilter: nfnetlink_queue: enable classid socket info
- retrieval
-Message-ID: <202303231242.QaYElp9P-lkp@intel.com>
-References: <20230322223329.48949-1-eric_sage@apple.com>
+        Thu, 23 Mar 2023 04:52:34 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E643110278;
+        Thu, 23 Mar 2023 01:52:32 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Phzc20hjpz6J6L2;
+        Thu, 23 Mar 2023 16:52:02 +0800 (CST)
+Received: from mscphis00759.huawei.com (10.123.66.134) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.21; Thu, 23 Mar 2023 08:52:29 +0000
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+To:     <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+Subject: [PATCH v10 00/13] Network support for Landlock
+Date:   Thu, 23 Mar 2023 16:52:13 +0800
+Message-ID: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230322223329.48949-1-eric_sage@apple.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.66.134]
+X-ClientProxiedBy: mscpeml500001.china.huawei.com (7.188.26.142) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi,
+This is a new V10 patch related to Landlock LSM network confinement.
+It is based on the landlock's -next branch on top of v6.2-rc3+ kernel version:
+https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
 
-Thank you for the patch! Yet something to improve:
+It brings refactoring of previous patch version V9.
+Mostly there are fixes of logic and typos, adding new tests.
 
-[auto build test ERROR on horms-ipvs/master]
-[also build test ERROR on linus/master v6.3-rc3 next-20230322]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+All test were run in QEMU evironment and compiled with
+ -static flag.
+ 1. network_test: 30/30 tests passed.
+ 2. base_test: 7/7 tests passed.
+ 3. fs_test: 78/78 tests passed.
+ 4. ptrace_test: 8/8 tests passed.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/eric_sage-apple-com/netfilter-nfnetlink_queue-enable-classid-socket-info-retrieval/20230323-073405
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git master
-patch link:    https://lore.kernel.org/r/20230322223329.48949-1-eric_sage%40apple.com
-patch subject: [PATCH] netfilter: nfnetlink_queue: enable classid socket info retrieval
-config: m68k-defconfig (https://download.01.org/0day-ci/archive/20230323/202303231242.QaYElp9P-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/c28410a18b276a059551ce4ffad5d3721ea8cbf5
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review eric_sage-apple-com/netfilter-nfnetlink_queue-enable-classid-socket-info-retrieval/20230323-073405
-        git checkout c28410a18b276a059551ce4ffad5d3721ea8cbf5
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=m68k olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=m68k SHELL=/bin/bash net/netfilter/
+Previous versions:
+v9: https://lore.kernel.org/linux-security-module/20230116085818.165539-1-konstantin.meskhidze@huawei.com/
+v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
+v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
+v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
+v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
+v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
+v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
+v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
+v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
 
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202303231242.QaYElp9P-lkp@intel.com/
+Konstantin Meskhidze (12):
+  landlock: Make ruleset's access masks more generic
+  landlock: Remove unnecessary inlining
+  landlock: Refactor landlock_find_rule/insert_rule
+  landlock: Refactor merge/inherit_ruleset functions
+  landlock: Move and rename layer helpers
+  landlock: Refactor layer helpers
+  landlock: Refactor landlock_add_rule() syscall
+  landlock: Add network rules and TCP hooks support
+  selftests/landlock: Share enforce_ruleset()
+  selftests/landlock: Add 10 new test suites dedicated to network
+  samples/landlock: Add network demo
+  landlock: Document Landlock's network support
 
-All errors (new ones prefixed by >>):
+Mickaël Salaün (1):
+  landlock: Allow filesystem layout changes for domains without such
+    rule type
 
-   net/netfilter/nfnetlink_queue.c: In function 'nfqnl_put_sk_classid':
->> net/netfilter/nfnetlink_queue.c:312:9: error: implicit declaration of function 'sock_cgroup_classid' [-Werror=implicit-function-declaration]
-     312 |         sock_cgroup_classid(&entskb->sk->sk_cgrp_data);
-         |         ^~~~~~~~~~~~~~~~~~~
-   net/netfilter/nfnetlink_queue.c:312:30: error: 'entskb' undeclared (first use in this function)
-     312 |         sock_cgroup_classid(&entskb->sk->sk_cgrp_data);
-         |                              ^~~~~~
-   net/netfilter/nfnetlink_queue.c:312:30: note: each undeclared identifier is reported only once for each function it appears in
-   cc1: some warnings being treated as errors
+ Documentation/userspace-api/landlock.rst     |   75 +-
+ include/uapi/linux/landlock.h                |   49 +
+ samples/landlock/sandboxer.c                 |  130 +-
+ security/landlock/Kconfig                    |    1 +
+ security/landlock/Makefile                   |    2 +
+ security/landlock/fs.c                       |  258 ++--
+ security/landlock/limits.h                   |    7 +-
+ security/landlock/net.c                      |  198 +++
+ security/landlock/net.h                      |   26 +
+ security/landlock/ruleset.c                  |  407 ++++--
+ security/landlock/ruleset.h                  |  185 ++-
+ security/landlock/setup.c                    |    2 +
+ security/landlock/syscalls.c                 |  163 ++-
+ tools/testing/selftests/landlock/base_test.c |    2 +-
+ tools/testing/selftests/landlock/common.h    |   10 +
+ tools/testing/selftests/landlock/config      |    4 +
+ tools/testing/selftests/landlock/fs_test.c   |   74 +-
+ tools/testing/selftests/landlock/net_test.c  | 1176 ++++++++++++++++++
+ 18 files changed, 2412 insertions(+), 357 deletions(-)
+ create mode 100644 security/landlock/net.c
+ create mode 100644 security/landlock/net.h
+ create mode 100644 tools/testing/selftests/landlock/net_test.c
 
+--
+2.25.1
 
-vim +/sock_cgroup_classid +312 net/netfilter/nfnetlink_queue.c
-
-   303	
-   304	static int nfqnl_put_sk_classid(struct sk_buff *skb, struct sock *sk)
-   305	{
-   306		u32 classid;
-   307	
-   308		if (!sk_fullsock(sk))
-   309			return 0;
-   310	
-   311		read_lock_bh(sk->sk_callback_lock);
- > 312		sock_cgroup_classid(&entskb->sk->sk_cgrp_data);
-   313		if (nla_put_be32(skb, NFQA_CLASSID, htonl(classid)))
-   314			goto nla_put_failure;
-   315		read_unlock_bh(sk->sk_callback_lock);
-   316		return 0;
-   317	
-   318	nla_put_failure:
-   319		read_unlock_bh(sk->sk_callback_lock);
-   320		return -1;
-   321	}
-   322	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
