@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D641C6FD1C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 16:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A99C77B62
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 16:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231950AbjCWQ7M (ORCPT
+        id S231582AbjCWQ7M (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 23 Mar 2023 12:59:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54672 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232084AbjCWQ7K (ORCPT
+        with ESMTP id S231950AbjCWQ7K (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 23 Mar 2023 12:59:10 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 721137AB9
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Mar 2023 09:59:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D0AF061AE
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Mar 2023 09:59:08 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     jeremy@azazel.net, fw@strlen.de
-Subject: [PATCH nft,v3 10/12] tests: shell: rename and move bitwise test-cases
-Date:   Thu, 23 Mar 2023 17:58:53 +0100
-Message-Id: <20230323165855.559837-11-pablo@netfilter.org>
+Subject: [PATCH nft,v3 08/12] netlink_delinerize: incorrect byteorder in mark statement listing
+Date:   Thu, 23 Mar 2023 17:58:51 +0100
+Message-Id: <20230323165855.559837-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230323165855.559837-1-pablo@netfilter.org>
 References: <20230323165855.559837-1-pablo@netfilter.org>
@@ -31,90 +31,87 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+When using ip dscp in combination with bitwise operation:
 
-The `0040mark_shift_?` tests are testing not just shifts, but binops
-more generally, so name them accordingly.
+ # nft --debug=netlink add rule ip x y 'ct mark set ip dscp | 0x4'
+ ip x y
+   [ payload load 1b @ network header + 1 => reg 1 ]
+   [ bitwise reg 1 = ( reg 1 & 0x000000fc ) ^ 0x00000000 ]
+   [ bitwise reg 1 = ( reg 1 >> 0x00000002 ) ]
+   [ bitwise reg 1 = ( reg 1 & 0xfffffffb ) ^ 0x00000004 ]
+   [ ct set mark with reg 1 ]
 
-Move them to a new folder specifically for bitwise operations.
+the listing is showing in the incorrect byteorder:
 
-Change the priorities of the chains to match the type.
+ # nft list ruleset
+ table ip x {
+        chain y {
+		ct mark set ip dscp | 0x4000000
+	}
+ }
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+handle and and or operations in host byteorder.
+
+The following command:
+
+ # nft --debug=netlink add rule ip6 x y 'ct mark set ip6 dscp | 0x4'
+ ip6 x y
+   [ payload load 2b @ network header + 0 => reg 1 ]
+   [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
+   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+   [ byteorder reg 1 = ntoh(reg 1, 2, 1) ]
+   [ bitwise reg 1 = ( reg 1 & 0xfffffffb ) ^ 0x00000004 ]
+   [ ct set mark with reg 1 ]
+
+works fine (without requiring this patch) because there is an explicit
+byteorder expression.
+
+However, ip dscp takes only 1-byte, so it does not require the byteorder
+expression. Use host byteorder if the rhs of bitwise AND OR is larger
+than lhs payload expression and such expression is equal or less than
+1-byte.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../{chains/0040mark_shift_0 => bitwise/0040mark_binop_0}       | 2 +-
- .../{chains/0040mark_shift_1 => bitwise/0040mark_binop_1}       | 2 +-
- .../0040mark_shift_0.nft => bitwise/dumps/0040mark_binop_0.nft} | 2 +-
- .../0040mark_shift_1.nft => bitwise/dumps/0040mark_binop_1.nft} | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
- rename tests/shell/testcases/{chains/0040mark_shift_0 => bitwise/0040mark_binop_0} (68%)
- rename tests/shell/testcases/{chains/0040mark_shift_1 => bitwise/0040mark_binop_1} (70%)
- rename tests/shell/testcases/{chains/dumps/0040mark_shift_0.nft => bitwise/dumps/0040mark_binop_0.nft} (58%)
- rename tests/shell/testcases/{chains/dumps/0040mark_shift_1.nft => bitwise/dumps/0040mark_binop_1.nft} (64%)
+ src/netlink_delinearize.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/tests/shell/testcases/chains/0040mark_shift_0 b/tests/shell/testcases/bitwise/0040mark_binop_0
-similarity index 68%
-rename from tests/shell/testcases/chains/0040mark_shift_0
-rename to tests/shell/testcases/bitwise/0040mark_binop_0
-index ef3dccfa049a..4280e33ac45a 100755
---- a/tests/shell/testcases/chains/0040mark_shift_0
-+++ b/tests/shell/testcases/bitwise/0040mark_binop_0
-@@ -4,7 +4,7 @@ set -e
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 4dc28ed8e651..7da8e68726cd 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2784,8 +2784,13 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ 				      BYTEORDER_HOST_ENDIAN);
+ 			break;
+ 		case OP_AND:
+-			expr_set_type(expr->right, expr->left->dtype,
+-				      expr->left->byteorder);
++			if (expr->right->len > expr->left->len) {
++				expr_set_type(expr->right, expr->left->dtype,
++					      BYTEORDER_HOST_ENDIAN);
++			} else {
++				expr_set_type(expr->right, expr->left->dtype,
++					      expr->left->byteorder);
++			}
  
- RULESET="
-   add table t
--  add chain t c { type filter hook output priority mangle; }
-+  add chain t c { type filter hook output priority filter; }
-   add rule t c oif lo ct mark set (meta mark | 0x10) << 8
- "
+ 			/* Do not process OP_AND in ordinary rule context.
+ 			 *
+@@ -2805,8 +2810,13 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ 			}
+ 			break;
+ 		default:
+-			expr_set_type(expr->right, expr->left->dtype,
+-				      expr->left->byteorder);
++			if (expr->right->len > expr->left->len) {
++				expr_set_type(expr->right, expr->left->dtype,
++					      BYTEORDER_HOST_ENDIAN);
++			} else {
++				expr_set_type(expr->right, expr->left->dtype,
++					      expr->left->byteorder);
++			}
+ 		}
+ 		expr_postprocess(ctx, &expr->right);
  
-diff --git a/tests/shell/testcases/chains/0040mark_shift_1 b/tests/shell/testcases/bitwise/0040mark_binop_1
-similarity index 70%
-rename from tests/shell/testcases/chains/0040mark_shift_1
-rename to tests/shell/testcases/bitwise/0040mark_binop_1
-index b609f5ef10ad..7e71f3eb43a8 100755
---- a/tests/shell/testcases/chains/0040mark_shift_1
-+++ b/tests/shell/testcases/bitwise/0040mark_binop_1
-@@ -4,7 +4,7 @@ set -e
- 
- RULESET="
-   add table t
--  add chain t c { type filter hook input priority mangle; }
-+  add chain t c { type filter hook input priority filter; }
-   add rule t c iif lo ct mark & 0xff 0x10 meta mark set ct mark >> 8
- "
- 
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_0.nft
-similarity index 58%
-rename from tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
-rename to tests/shell/testcases/bitwise/dumps/0040mark_binop_0.nft
-index 52d59d2c6da4..fc0a600a4dbe 100644
---- a/tests/shell/testcases/chains/dumps/0040mark_shift_0.nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_0.nft
-@@ -1,6 +1,6 @@
- table ip t {
- 	chain c {
--		type filter hook output priority mangle; policy accept;
-+		type filter hook output priority filter; policy accept;
- 		oif "lo" ct mark set (meta mark | 0x00000010) << 8
- 	}
- }
-diff --git a/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft b/tests/shell/testcases/bitwise/dumps/0040mark_binop_1.nft
-similarity index 64%
-rename from tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
-rename to tests/shell/testcases/bitwise/dumps/0040mark_binop_1.nft
-index 56ec8dc766ca..dbaacefb93c7 100644
---- a/tests/shell/testcases/chains/dumps/0040mark_shift_1.nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_1.nft
-@@ -1,6 +1,6 @@
- table ip t {
- 	chain c {
--		type filter hook input priority mangle; policy accept;
-+		type filter hook input priority filter; policy accept;
- 		iif "lo" ct mark & 0x000000ff == 0x00000010 meta mark set ct mark >> 8
- 	}
- }
 -- 
 2.30.2
 
