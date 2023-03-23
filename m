@@ -2,129 +2,116 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B20F2C74A5B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 17:54:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80B2AC6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 18:10:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229529AbjCWRyx (ORCPT
+        id S229691AbjCWSKC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Mar 2023 13:54:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34572 "EHLO
+        Thu, 23 Mar 2023 14:10:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229734AbjCWRyx (ORCPT
+        with ESMTP id S230421AbjCWSKB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Mar 2023 13:54:53 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 18352AF07
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Mar 2023 10:54:52 -0700 (PDT)
-Date:   Thu, 23 Mar 2023 18:54:49 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Eric Sage <eric_sage@apple.com>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de, kadlec@netfilter.org
-Subject: Re: [PATCH v2] netfilter: nfnetlink_queue: enable classid socket
- info retrieval
-Message-ID: <ZBySaeEHInfDbdlt@salvia>
-References: <20230323172321.33955-1-eric_sage@apple.com>
+        Thu, 23 Mar 2023 14:10:01 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A598A270
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Mar 2023 11:10:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=DtUme4fJgYhI985ZkYvWe8YPC1SV5Ly5A1doMMXDKzk=; b=RWmGzakOQdK5KRmsKqrHKrdAsP
+        uOreLMxbiVua7+hoOpb+8YMKNblsVcmSksciZjtFdtFg3fL+BTfyh9Be/WjXWXzZ5zdiCZhnYDk3f
+        RjIhgNU6htBz1WjyS+2uaIaf9mkYonvfCxeeSIO8lpJmJyv5waF598g7C+6y8CjlEvL+7wUVKC/L9
+        GTfLwJf1xU6ubqsoMDdCB5yzMOeHTGRB9g3cR8t9lDuSMAhPeh33uq4LzQrTeEk4HVH+s4XjqQdm3
+        J0jmIOSM8VzuznHry/gPHmu6TuDYUYOOYl0N1LC+MKn6w2iWmnyYc1JHJT6fpQolS9Wjn1Zb0yemX
+        sQnyeYag==;
+Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1pfPNu-002nHw-6a; Thu, 23 Mar 2023 18:09:58 +0000
+Date:   Thu, 23 Mar 2023 18:09:57 +0000
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] payload: set byteorder when completing expression
+Message-ID: <20230323180957.GE80565@celephais.dreamlands>
+References: <20230323174733.635835-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="tMPLFXjbWykFME/9"
 Content-Disposition: inline
-In-Reply-To: <20230323172321.33955-1-eric_sage@apple.com>
+In-Reply-To: <20230323174733.635835-1-pablo@netfilter.org>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Mar 23, 2023 at 01:23:22PM -0400, Eric Sage wrote:
-> This enables associating a socket with a v1 net_cls cgroup. Useful for
-> applying a per-cgroup policy when processing packets in userspace.
-> 
-> Signed-off-by: Eric Sage <eric_sage@apple.com>
+
+--tMPLFXjbWykFME/9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On 2023-03-23, at 18:47:33 +0100, Pablo Neira Ayuso wrote:
+> Otherwise payload expression remains in invalid byteorder which is
+> handled as network byteorder for historical reason.
+>=20
+> No functional change is intended.
+>=20
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
-> v2
-> - Remove classid flag, always include with NET_CLASSID.
-> - Include cgroup-defs header.
-> - Remove lock.
-> 
->  .../uapi/linux/netfilter/nfnetlink_queue.h    |  1 +
->  net/netfilter/nfnetlink_queue.c               | 20 +++++++++++++++++++
->  2 files changed, 21 insertions(+)
-> 
-> diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> index ef7c97f21a15..12f4eda93758 100644
-> --- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-> +++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> @@ -62,6 +62,7 @@ enum nfqnl_attr_type {
->  	NFQA_VLAN,			/* nested attribute: packet vlan info */
->  	NFQA_L2HDR,			/* full L2 header */
->  	NFQA_PRIORITY,			/* skb->priority */
-> +	NFQA_CLASSID,			/* __u32 cgroup classid */
-        NFAQ_CGROUP_CLASSID,
+> IIRC, Jeremy posted a similar patch.
 
-Nitpick, probably NFQA_CGROUP_CLASSID or too long?
+Indeed:
 
-there is classid in tc (actually contained in skb->priority), it might
-be confusing.
+  https://lore.kernel.org/netfilter-devel/20220404121410.188509-13-jeremy@a=
+zazel.net/
 
->  	__NFQA_MAX
->  };
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index 87a9009d5234..b0c12aa3e9b0 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -29,6 +29,7 @@
->  #include <linux/netfilter/nfnetlink_queue.h>
->  #include <linux/netfilter/nf_conntrack_common.h>
->  #include <linux/list.h>
-> +#include <linux/cgroup-defs.h>
->  #include <net/sock.h>
->  #include <net/tcp_states.h>
->  #include <net/netfilter/nf_queue.h>
-> @@ -301,6 +302,19 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
->  	return -1;
->  }
->  
-> +static int nfqnl_put_sk_classid(struct sk_buff *skb, struct sock *sk)
-> +{
-> +#if IS_BUILTIN(CONFIG_CGROUP_NET_CLASSID)
+>  src/payload.c | 1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/src/payload.c b/src/payload.c
+> index ed76623c9393..f67b54078792 100644
+> --- a/src/payload.c
+> +++ b/src/payload.c
+> @@ -991,6 +991,7 @@ void payload_expr_complete(struct expr *expr, const s=
+truct proto_ctx *ctx)
+> =20
+>  		expr->dtype	   =3D tmpl->dtype;
+>  		expr->payload.desc =3D desc;
+> +		expr->byteorder =3D tmpl->byteorder;
+>  		expr->payload.tmpl =3D tmpl;
+>  		return;
+>  	}
+> --=20
+> 2.30.2
+>=20
+>=20
 
-#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
+--tMPLFXjbWykFME/9
+Content-Type: application/pgp-signature; name="signature.asc"
 
-it seems CONFIG_CGROUP_NET_CLASSID is tristate.
+-----BEGIN PGP SIGNATURE-----
 
-> +	if (sk && sk_fullsock(sk)) {
-> +		u32 classid = sock_cgroup_classid(&sk->sk_cgrp_data);
-> +
-> +		if (classid && nla_put_be32(skb, NFQA_CLASSID, htonl(classid)))
-> +			return -1;
-> +	}
-> +#endif
-> +	return 0;
-> +}
-> +
->  static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
->  {
->  	u32 seclen = 0;
-> @@ -407,6 +421,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
->  		+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
->  		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
-> +#if IS_BUILTIN(CONFIG_CGROUP_NET_CLASSID)
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQclfUACgkQKYasCr3x
+BA0VtRAAzdgOX4ArKtTbSbLblm1KkTzJ7uO54ObjyGDiJ05ZBGGIRmP4xiK8/Iuy
+BFkfw1PQjmN/bAfoiIn4Y33I9/tsGFEOXeoFr4UjfS4nTi5VUyN5Kq4zU8Y31VYf
+Fj6IBLrsUdGBwqLTiPj7Y4OAdBeycdEU5ZiCuqWtbTKecVzaKOquOZ8WPUmMCcs9
+R7co96lahVX4k29Av8+81XTvPMp+HfhVId+6VKHelZjir5eZpAWzdyCVzP63SlQt
++2HeLVDl2tlPGHw2I6MaaWBXtxP3mFqXpiZLCwasdTR9t4LU2ufhdJCxYdDPdjEA
+Q/SHWKUEELyz/cUU0omN2gtXtTxBI/IyomMeFgkWkwWSWhsFH+wYacU3CkQpmbvE
+myEX3eStFFDbXmiixPONv8SuDr0NpEyFPyhBMojK9WsivO/6M3CECWcT8ROqpKd2
+1+gHqhCcSI6Q1sc5HfwB3R/r8qasqI+hll3UIBjTIJJlZ/PNccMOYAbLJPmc0f6v
+dNmH+twi6cLppwWpqyKfiz13DLAzrXjBGCfal84wFLftPgaLkGoAJ38tlrpCKlkb
+Xye6YcmLk2P2Lms47SKAwwK91gFq5U22T0NiKH818X3JJMayYW+2oYvfqqKN9SG2
+Lo2GrUOK50M2ZQNBUEhUgV7XTBpXKdFTvn7Q6eLYd9R9aWh9hDA=
+=XH20
+-----END PGP SIGNATURE-----
 
-Same here.
-
-> +		+ nla_total_size(sizeof(u_int32_t));	/* classid */
-> +#endif
->  
->  	tstamp = skb_tstamp_cond(entskb, false);
->  	if (tstamp)
-> @@ -599,6 +616,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
->  	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
->  		goto nla_put_failure;
->  
-> +	if (nfqnl_put_sk_classid(skb, entskb->sk) < 0)
-> +		goto nla_put_failure;
-> +
->  	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
->  		goto nla_put_failure;
->  
-> -- 
-> 2.37.1
-> 
+--tMPLFXjbWykFME/9--
