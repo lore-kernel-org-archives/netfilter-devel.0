@@ -2,171 +2,89 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DF52C6FD1C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 23 Mar 2023 19:44:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22AD3C6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Mar 2023 05:00:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229682AbjCWTop (ORCPT
+        id S231127AbjCXFAc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 23 Mar 2023 15:44:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49766 "EHLO
+        Fri, 24 Mar 2023 01:00:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229489AbjCWToo (ORCPT
+        with ESMTP id S229752AbjCXFAa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Mar 2023 15:44:44 -0400
-X-Greylist: delayed 3600 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Mar 2023 12:44:43 PDT
-Received: from rn-mailsvcp-mx-lapp01.apple.com (rn-mailsvcp-mx-lapp01.apple.com [17.179.253.22])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64F994C0D
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Mar 2023 12:44:43 -0700 (PDT)
-Received: from ma-mailsvcp-mta-lapp03.corp.apple.com
- (ma-mailsvcp-mta-lapp03.corp.apple.com [10.226.18.135])
- by rn-mailsvcp-mx-lapp01.rno.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023)) with ESMTPS id <0RRZ00SJLLEIOC20@rn-mailsvcp-mx-lapp01.rno.apple.com>
- for netfilter-devel@vger.kernel.org; Thu, 23 Mar 2023 11:44:43 -0700 (PDT)
-X-Proofpoint-ORIG-GUID: FHXvV0SXFvqsJnqRM1bJtyhqVFzPAV1P
-X-Proofpoint-GUID: FHXvV0SXFvqsJnqRM1bJtyhqVFzPAV1P
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.573,18.0.942
- definitions=2023-03-23_02:2023-03-23,2023-03-22 signatures=0
-X-Proofpoint-Spam-Details: rule=interactive_user_notspam
- policy=interactive_user score=0 malwarescore=0 suspectscore=0 adultscore=0
- spamscore=0 mlxlogscore=999 phishscore=0 mlxscore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2303150002
- definitions=main-2303230136
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=apple.com; h=from : to
- : cc : subject : date : message-id : mime-version : content-transfer-encoding;
- s=20180706; bh=+AndQ8MYsQRol2o5PlCKgTa1dx2t5ZmdaG2COuit10E=;
- b=FSqk03QDaA5buh0msTKSniz2QTNet3TImcW6sCX7mifiuYdnmpKOvfidWz06X7XMAW+u
- 81yzPQ/KulP46v1Gty/izjapD1KmMTUmRnmn/4/SXlN+XnfC5xG0Cw8P66qUuNAD8Yhk
- knEB+XMO04cOYX2mXs4BPb4vjlAyLhx8b0kedjCGoWeVGarQvTGsaUC4noUF1aLMoXki
- uQmlQMLhBEmn8w1HU6u9aB5k3R44SHh7qETduFsYsAAb9PZZRyRAX52LTeloCWnuH6x6
- XPCQzWYkkpGFf8XRPPCoHsVG8sqZSb6q0pwpX3BIOW7Mk7elrRFJdYL1dJnm0YTZU1VJ 0Q==
-Received: from ma-mailsvcp-mmp-lapp02.apple.com
- (ma-mailsvcp-mmp-lapp02.apple.com [17.32.222.15])
- by ma-mailsvcp-mta-lapp03.corp.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023))
- with ESMTPS id <0RRZ008G6LEIU740@ma-mailsvcp-mta-lapp03.corp.apple.com>; Thu,
- 23 Mar 2023 11:44:42 -0700 (PDT)
-Received: from process_milters-daemon.ma-mailsvcp-mmp-lapp02.apple.com by
- ma-mailsvcp-mmp-lapp02.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023)) id <0RRZ00J00L974400@ma-mailsvcp-mmp-lapp02.apple.com>; Thu,
- 23 Mar 2023 11:44:42 -0700 (PDT)
-X-Va-A: 
-X-Va-T-CD: ee775fe296fae01696e403bd65ae1163
-X-Va-E-CD: af28a15ebe77da117276f0d01d89457e
-X-Va-R-CD: c83db1447db106106efa14a4ecf7bb8d
-X-Va-ID: bd75baae-49a7-4ab0-85d3-f94314a7c0cf
-X-Va-CD: 0
-X-V-A:  
-X-V-T-CD: ee775fe296fae01696e403bd65ae1163
-X-V-E-CD: af28a15ebe77da117276f0d01d89457e
-X-V-R-CD: c83db1447db106106efa14a4ecf7bb8d
-X-V-ID: f07ee16a-a1f1-4e4c-b073-33eba200ba36
-X-V-CD: 0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.573,18.0.942
- definitions=2023-03-23_02:2023-03-23,2023-03-22 signatures=0
-Received: from st57p01nt-relayp01.apple.com (unknown [17.233.46.8])
- by ma-mailsvcp-mmp-lapp02.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023)) with ESMTPSA id <0RRZ00A7WLEG5000@ma-mailsvcp-mmp-lapp02.apple.com>;
- Thu, 23 Mar 2023 11:44:41 -0700 (PDT)
-From:   Eric Sage <eric_sage@apple.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, kadlec@netfilter.org, pablo@netfilter.org,
-        Eric Sage <eric_sage@apple.com>
-Subject: [PATCH v3] netfilter: nfnetlink_queue: enable classid socket info
- retrieval
-Date:   Thu, 23 Mar 2023 14:44:38 -0400
-Message-id: <20230323184438.42218-1-eric_sage@apple.com>
-X-Mailer: git-send-email 2.37.1 (Apple Git-137.1)
-MIME-version: 1.0
-Content-transfer-encoding: 8bit
+        Fri, 24 Mar 2023 01:00:30 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75B6328D3D;
+        Thu, 23 Mar 2023 22:00:29 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 32159B822E4;
+        Fri, 24 Mar 2023 05:00:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id CA1D7C4339B;
+        Fri, 24 Mar 2023 05:00:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1679634026;
+        bh=HNqp4bMHg8MzK6ZJ8RLplZhhmKEjCMR4SmjHp/nwIzY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=FyZNDn3rNqM5d/BIf/gwdNr6572+nfQdWZBXs4D7Kdb966etz3bPPGdrrIBVIQMfd
+         CK5rOqIrS6SCZ+tpnuquS3/IEs3pekeW6hgm3NYPlxTKiHHsSwmjZ1Y7NtAl8BxVP8
+         6uQ7vbJH1LGXsCo3L5GK7OmBXRr661JODjqWJY1ku62Lcn0K0O8tj+dyygaDPBVmb8
+         tJN4rd5fsYHC9veXSE+IIOGg1NJdYxYaYeZO//le83o1oN86KPkQOq7sW5UTjEshLY
+         JHgr15AO2xnMpfg336n5DAlUV4Euby2lfRT1hhdHToqWwoSgWPW2LQxXQMSeItIMgQ
+         pH5/WMYOXPAJQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A9A59E21ED4;
+        Fri, 24 Mar 2023 05:00:26 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/5] netfilter: nft_redir: use `struct nf_nat_range2`
+ throughout and deduplicate eval call-backs
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <167963402668.21241.2159344796106558842.git-patchwork-notify@kernel.org>
+Date:   Fri, 24 Mar 2023 05:00:26 +0000
+References: <20230322210802.6743-2-fw@strlen.de>
+In-Reply-To: <20230322210802.6743-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, jeremy@azazel.net
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This enables associating a socket with a v1 net_cls cgroup. Useful for
-applying a per-cgroup policy when processing packets in userspace.
+Hello:
 
-Signed-off-by: Eric Sage <eric_sage@apple.com>
----
-v3
-- Renamed NFQA_CLASSID to NFQA_CGROUP_CLASSID.
-- Changed guard from builtin to builtin/module (IS_ENABLED).
-v2
-- Remove classid flag, always include with NET_CLASSID.
-- Include cgroup-defs header.
-- Remove lock.
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
 
- .../uapi/linux/netfilter/nfnetlink_queue.h    |  1 +
- net/netfilter/nfnetlink_queue.c               | 20 +++++++++++++++++++
- 2 files changed, 21 insertions(+)
+On Wed, 22 Mar 2023 22:07:58 +0100 you wrote:
+> From: Jeremy Sowden <jeremy@azazel.net>
+> 
+> `nf_nat_redirect_ipv4` takes a `struct nf_nat_ipv4_multi_range_compat`,
+> but converts it internally to a `struct nf_nat_range2`.  Change the
+> function to take the latter, factor out the code now shared with
+> `nf_nat_redirect_ipv6`, move the conversion to the xt_REDIRECT module,
+> and update the ipv4 range initialization in the nft_redir module.
+> 
+> [...]
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-index ef7c97f21a15..efcb7c044a74 100644
---- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-@@ -62,6 +62,7 @@ enum nfqnl_attr_type {
- 	NFQA_VLAN,			/* nested attribute: packet vlan info */
- 	NFQA_L2HDR,			/* full L2 header */
- 	NFQA_PRIORITY,			/* skb->priority */
-+	NFQA_CGROUP_CLASSID,		/* __u32 cgroup classid */
- 
- 	__NFQA_MAX
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 87a9009d5234..689e291e38eb 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -29,6 +29,7 @@
- #include <linux/netfilter/nfnetlink_queue.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/list.h>
-+#include <linux/cgroup-defs.h>
- #include <net/sock.h>
- #include <net/tcp_states.h>
- #include <net/netfilter/nf_queue.h>
-@@ -301,6 +302,19 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
- }
- 
-+static int nfqnl_put_sk_classid(struct sk_buff *skb, struct sock *sk)
-+{
-+#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
-+	if (sk && sk_fullsock(sk)) {
-+		u32 classid = sock_cgroup_classid(&sk->sk_cgrp_data);
-+
-+		if (classid && nla_put_be32(skb, NFQA_CGROUP_CLASSID, htonl(classid)))
-+			return -1;
-+	}
-+#endif
-+	return 0;
-+}
-+
- static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- {
- 	u32 seclen = 0;
-@@ -407,6 +421,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
- 		+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
- 		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
-+#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
-+		+ nla_total_size(sizeof(u_int32_t));	/* classid */
-+#endif
- 
- 	tstamp = skb_tstamp_cond(entskb, false);
- 	if (tstamp)
-@@ -599,6 +616,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
-+	if (nfqnl_put_sk_classid(skb, entskb->sk) < 0)
-+		goto nla_put_failure;
-+
- 	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
- 		goto nla_put_failure;
- 
+Here is the summary with links:
+  - [net-next,1/5] netfilter: nft_redir: use `struct nf_nat_range2` throughout and deduplicate eval call-backs
+    https://git.kernel.org/netdev/net-next/c/6f56ad1b9232
+  - [net-next,2/5] netfilter: nft_masq: deduplicate eval call-backs
+    https://git.kernel.org/netdev/net-next/c/f6ca5d5ed7ec
+  - [net-next,3/5] netfilter: xtables: disable 32bit compat interface by default
+    https://git.kernel.org/netdev/net-next/c/bde7170a04d6
+  - [net-next,4/5] xtables: move icmp/icmpv6 logic to xt_tcpudp
+    https://git.kernel.org/netdev/net-next/c/36ce9982ef2f
+  - [net-next,5/5] netfilter: keep conntrack reference until IPsecv6 policy checks are done
+    https://git.kernel.org/netdev/net-next/c/b0e214d21203
+
+You are awesome, thank you!
 -- 
-2.37.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
