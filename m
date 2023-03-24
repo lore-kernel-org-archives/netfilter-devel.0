@@ -2,165 +2,92 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A61C6FD1C
-	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Mar 2023 19:05:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ED7BC6FD20
+	for <netfilter-devel@archiver.kernel.org>; Fri, 24 Mar 2023 19:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230131AbjCXTFe (ORCPT
+        id S230043AbjCXTXV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 24 Mar 2023 15:05:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51440 "EHLO
+        Fri, 24 Mar 2023 15:23:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230133AbjCXTFd (ORCPT
+        with ESMTP id S230373AbjCXTXU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2023 15:05:33 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E858C212A2
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2023 12:04:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=9XdpJpBldu31+KJUZG3UFL5eS9kFnEWlEE3ATT7sxFY=; b=K4L3d0xXMEORY7JN677EA0noNK
-        FaUM102SK9aOmfQ8S0Ei8Z99+39TOzasMLZKTgeoKuscTVjegKQYRPDbHAyamrDq1av3M+ho16Nlb
-        HIyQW97o+UE+a/aZxVKOLfyVhrPyTdIE00GxPX2ob/wfXVKkRZnUzUwDPqWNE4/mmY0TsP9hPQ9MB
-        kvd3bopuyvQYg3/bEbmCS9G5kfGbhxCk1TgzKOUUeL45vPka8bqlZspmSELQmtQ/myu0Dt8OGCaES
-        Jy1yUOn6WxDUNBc8fDVkwvRD3XJbc7EGy6wsCmu7MRBBmkcBoXPycorvD5RF6aEQin9NbqV0sfFZb
-        eNBwUTQA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1pfmiF-0044uC-UZ
-        for netfilter-devel@vger.kernel.org; Fri, 24 Mar 2023 19:04:31 +0000
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v3 4/4] netfilter: nft_redir: add support for shifted port-ranges
-Date:   Fri, 24 Mar 2023 19:04:19 +0000
-Message-Id: <20230324190419.543888-5-jeremy@azazel.net>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230324190419.543888-1-jeremy@azazel.net>
-References: <20230324190419.543888-1-jeremy@azazel.net>
+        Fri, 24 Mar 2023 15:23:20 -0400
+Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FF20212A2
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2023 12:22:33 -0700 (PDT)
+Received: by mail-pj1-x102c.google.com with SMTP id om3-20020a17090b3a8300b0023efab0e3bfso6027944pjb.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2023 12:22:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112; t=1679685751;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VqxBHFb8x/8JNWgeaFZniBeMJ12zPyls6Kd42EZTElk=;
+        b=KzjEr/4Kl8bJBJ34jl+I6X0JpHeOQeyXcQmp1YkRvkVFjii47COUim497MZOezPFEZ
+         N1gkG7t1V2UApGL6PtMWpd8tRN09Yer/ZFvB0wgBpZrOsRllMbPg+req9iv6r0wwSeIO
+         mv3XzFWnOGpIif2Ae3q/Ru9bOnv0JLUd+F1kSG86+GHN6VnEv3MSjZI30zWz4L0V4NXl
+         q0x787XoHUDF7VUlm+RMUPaP2VJXwvP1FUEO3v+QZLIWyyedQOXWVHundBQ705io8RYJ
+         XYxMfEcfZ2jI9ta6sLP5JVzBK3zgZL7S1fFWlkuQEiG3ztMUHJmMuJmrJConNtGiGqYE
+         oUSg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1679685751;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=VqxBHFb8x/8JNWgeaFZniBeMJ12zPyls6Kd42EZTElk=;
+        b=xO1zFEtp+V03i1NmZeJ5WH7dYdFjUTXiDup5DEsMSB0Pdb8DHMaUmh2piBun28guis
+         LCpByITRLPmHW5aQ6bqEPzv+BfQXevb4CrVhcWCIpoeCNOqStbT0oJuK9cywc+oS8NZd
+         npjTGgPnskbmZ2oYej4i6wBZh6B0Q1fbFRrMjVTwy6uJMdsv3jHu+B0FcrCg8NUn/zmi
+         ObmXR7OkORAIPJchG5Bnx0yIAJbskfREHTnaDeZeTEJEVagbjc45PzgUMqtyoo2XxL1+
+         z5bz3Q1oMLbP8Zz00p9n53T7W/3Afkbv8PjvCRB9B42ki7u3ikCz2y1nsEVUL9NRErf3
+         5r2w==
+X-Gm-Message-State: AAQBX9fdHmzM8RnNvx81XG2iTz/tDaVJqaGQ4rrBeSW9MDE4VBbOuwaU
+        aQtE4YTEdAlj536aXS5loSKQYq2Wo2WW86BnAgnmVA==
+X-Google-Smtp-Source: AKy350YCYtZ/ouwU/kWynPR+Rl0rMZ9us/VOaWvC3GDv91wk/nstknCZAQn/3dRPOWD3ad0/6Ph2Fjoyc4x+Yjg65fo=
+X-Received: by 2002:a17:902:da8e:b0:19f:28f4:1db with SMTP id
+ j14-20020a170902da8e00b0019f28f401dbmr1319044plx.8.1679685750996; Fri, 24 Mar
+ 2023 12:22:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+References: <20230302172757.9548-1-fw@strlen.de> <20230302172757.9548-2-fw@strlen.de>
+ <ZAEG1gtoXl125GlW@google.com> <20230303002752.GA4300@breakpoint.cc>
+ <20230323004123.lkdsxqqto55fs462@kashmir.localdomain> <CAKH8qBvw58QyazkSh2U80iVPmbMEOGY0T8dLKX5PWg4b+bxqMw@mail.gmail.com>
+ <20230324173332.vt6wpjm4wqwcrdfs@kashmir.localdomain> <CAKH8qBtUD_Y=xwnwEmQ16rJBn7h+NQHL04YUyLAc5CGk1x1oNg@mail.gmail.com>
+ <20230324182225.GC1871@breakpoint.cc>
+In-Reply-To: <20230324182225.GC1871@breakpoint.cc>
+From:   Stanislav Fomichev <sdf@google.com>
+Date:   Fri, 24 Mar 2023 12:22:19 -0700
+Message-ID: <CAKH8qBt-CoXcf-z_eO3dhPapLHE8Vd9sSQ2jfrCnktZ1q_2_2g@mail.gmail.com>
+Subject: Re: [PATCH RFC v2 bpf-next 1/3] bpf: add bpf_link support for
+ BPF_NETFILTER programs
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Daniel Xu <dxu@dxuuu.xyz>, bpf@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Support was recently added to nft_nat to allow shifting port-ranges
-during NAT.  Extend this support to allow them to used in redirecting
-as well.
+On Fri, Mar 24, 2023 at 11:22=E2=80=AFAM Florian Westphal <fw@strlen.de> wr=
+ote:
+>
+> Stanislav Fomichev <sdf@google.com> wrote:
+> > > I'm not sure what you mean by "whole story" but netfilter kernel modu=
+les
+> > > register via a priority value as well. As well as the modules the ker=
+nel
+> > > ships. So there's that to consider.
+> >
+> > Sorry for not being clear. What I meant here is that we'd have to
+> > export those existing priorities in the UAPI headers and keep those
+> > numbers stable. Otherwise it seems impossible to have a proper interop
+> > between those fixed existing priorities and new bpf modules?
+> > (idk if that's a real problem or I'm overthinking)
+>
+> They are already in uapi and exported.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_nat_redirect.c          |  1 +
- net/netfilter/nft_redir.c                | 23 ++++++++++++++++++++++-
- 3 files changed, 25 insertions(+), 1 deletion(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 08780ed008c7..c737e8583274 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1490,12 +1490,14 @@ enum nft_masq_attributes {
-  * @NFTA_REDIR_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
-  * @NFTA_REDIR_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
-  * @NFTA_REDIR_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
-+ * @NFTA_REDIR_REG_PROTO_BASE: source register of proto range base offset (NLA_U32: nft_registers)
-  */
- enum nft_redir_attributes {
- 	NFTA_REDIR_UNSPEC,
- 	NFTA_REDIR_REG_PROTO_MIN,
- 	NFTA_REDIR_REG_PROTO_MAX,
- 	NFTA_REDIR_FLAGS,
-+	NFTA_REDIR_REG_PROTO_BASE,
- 	__NFTA_REDIR_MAX
- };
- #define NFTA_REDIR_MAX		(__NFTA_REDIR_MAX - 1)
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index 6616ba5d0b04..ff58b563ef99 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -42,6 +42,7 @@ nf_nat_redirect(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 	newrange.max_addr	= *newdst;
- 	newrange.min_proto	= range->min_proto;
- 	newrange.max_proto	= range->max_proto;
-+	newrange.base_proto	= range->base_proto;
- 
- 	return nf_nat_setup_info(ct, &newrange, NF_NAT_MANIP_DST);
- }
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index a70196ffcb1e..bd9b802c1d64 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -16,12 +16,14 @@
- struct nft_redir {
- 	u8			sreg_proto_min;
- 	u8			sreg_proto_max;
-+	u8			sreg_proto_base;
- 	u16			flags;
- };
- 
- static const struct nla_policy nft_redir_policy[NFTA_REDIR_MAX + 1] = {
- 	[NFTA_REDIR_REG_PROTO_MIN]	= { .type = NLA_U32 },
- 	[NFTA_REDIR_REG_PROTO_MAX]	= { .type = NLA_U32 },
-+	[NFTA_REDIR_REG_PROTO_BASE]	= { .type = NLA_U32 },
- 	[NFTA_REDIR_FLAGS]		= { .type = NLA_U32 },
- };
- 
-@@ -48,7 +50,7 @@ static int nft_redir_init(const struct nft_ctx *ctx,
- 	unsigned int plen;
- 	int err;
- 
--	plen = sizeof_field(struct nf_nat_range, min_proto.all);
-+	plen = sizeof_field(struct nf_nat_range2, min_proto.all);
- 	if (tb[NFTA_REDIR_REG_PROTO_MIN]) {
- 		err = nft_parse_register_load(tb[NFTA_REDIR_REG_PROTO_MIN],
- 					      &priv->sreg_proto_min, plen);
-@@ -61,6 +63,16 @@ static int nft_redir_init(const struct nft_ctx *ctx,
- 						      plen);
- 			if (err < 0)
- 				return err;
-+
-+			if (tb[NFTA_REDIR_REG_PROTO_BASE]) {
-+				err = nft_parse_register_load
-+					(tb[NFTA_REDIR_REG_PROTO_BASE],
-+					 &priv->sreg_proto_base, plen);
-+				if (err < 0)
-+					return err;
-+
-+				priv->flags |= NF_NAT_RANGE_PROTO_OFFSET;
-+			}
- 		} else {
- 			priv->sreg_proto_max = priv->sreg_proto_min;
- 		}
-@@ -89,6 +101,11 @@ static int nft_redir_dump(struct sk_buff *skb,
- 		if (nft_dump_register(skb, NFTA_REDIR_REG_PROTO_MAX,
- 				      priv->sreg_proto_max))
- 			goto nla_put_failure;
-+
-+		if (priv->sreg_proto_base)
-+			if (nft_dump_register(skb, NFTA_REDIR_REG_PROTO_BASE,
-+					      priv->sreg_proto_base))
-+				goto nla_put_failure;
- 	}
- 
- 	if (priv->flags != 0 &&
-@@ -115,6 +132,10 @@ static void nft_redir_eval(const struct nft_expr *expr,
- 			nft_reg_load16(&regs->data[priv->sreg_proto_min]);
- 		range.max_proto.all = (__force __be16)
- 			nft_reg_load16(&regs->data[priv->sreg_proto_max]);
-+
-+		if (priv->sreg_proto_base)
-+			range.base_proto.all = (__force __be16)
-+				nft_reg_load16(&regs->data[priv->sreg_proto_base]);
- 	}
- 
- 	switch (nft_pf(pkt)) {
--- 
-2.39.2
-
+Oh, nice, then probably keeping those prios is the way to go. Up to
+you on whether to explore the alternative (before/after) or not. Agree
+with Daniel that it probably requires reworking netfilter internals
+and it's not really justified here.
