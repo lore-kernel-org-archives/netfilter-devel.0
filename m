@@ -2,75 +2,155 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC49FC74A5B
-	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Mar 2023 20:41:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F22BC74A5B
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Mar 2023 21:01:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbjCZUlO (ORCPT
+        id S229606AbjCZVBW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 26 Mar 2023 16:41:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59976 "EHLO
+        Sun, 26 Mar 2023 17:01:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbjCZUlO (ORCPT
+        with ESMTP id S229473AbjCZVBW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Mar 2023 16:41:14 -0400
+        Sun, 26 Mar 2023 17:01:22 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4F82C5FD4
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Mar 2023 13:41:13 -0700 (PDT)
-Date:   Sun, 26 Mar 2023 22:41:10 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0E7D03C12
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Mar 2023 14:01:21 -0700 (PDT)
+Date:   Sun, 26 Mar 2023 23:01:18 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+Cc:     Florian Westphal <fw@strlen.de>,
         Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
- port-ranges
-Message-ID: <ZCCt5q1TZPJRHVyq@salvia>
-References: <20230305101418.2233910-1-jeremy@azazel.net>
- <20230305101418.2233910-9-jeremy@azazel.net>
- <20230324225904.GB17250@breakpoint.cc>
- <ZB7Og6wos1oyDiug@orbyte.nwl.cc>
- <20230325111017.GG80565@celephais.dreamlands>
+Subject: Re: [PATCH nf-next] netfilter: nft_exthdr: add boolean DCCP option
+ matching
+Message-ID: <ZCCynoBkBfy+SXu3@salvia>
+References: <20230312143714.158943-1-jeremy@azazel.net>
+ <20230316092334.GE4072@breakpoint.cc>
+ <20230317223143.GA80565@celephais.dreamlands>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230325111017.GG80565@celephais.dreamlands>
+In-Reply-To: <20230317223143.GA80565@celephais.dreamlands>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Mar 25, 2023 at 11:10:17AM +0000, Jeremy Sowden wrote:
-> On 2023-03-25, at 11:35:47 +0100, Phil Sutter wrote:
-> > On Fri, Mar 24, 2023 at 11:59:04PM +0100, Florian Westphal wrote:
-> > > Jeremy Sowden <jeremy@azazel.net> wrote:
-> > > > +ip daddr 10.0.0.1 tcp dport 55900-55910 dnat ip to 192.168.127.1:5900-5910/55900;ok
-> > > > +ip6 daddr 10::1 tcp dport 55900-55910 dnat ip6 to [::c0:a8:7f:1]:5900-5910/55900;ok
-> > >
-> > > This syntax is horrible (yes, I know, xtables fault).
-> > >
-> > > Do you think this series could be changed to grab the offset register from the
-> > > left edge of the range rather than requiring the user to specify it a
-> > > second time?  Something like:
-> > >
-> > > ip daddr 10.0.0.1 tcp dport 55900-55910 dnat ip to 192.168.127.1:5900-5910
-> > >
-> > > I'm open to other suggestions of course.
-> >
-> > Initially, a map came to mind. Something like:
-> >
-> > | dnat to : tcp dport map { 1000-2000 : 5000-6000 }
-> >
-> > To my surprise, nft accepts the syntax (listing is broken, though). But
-> > IIUC, it means "return 5000-6000 for any port in [1000;2000]" and dnat
-> > does round-robin?
+On Fri, Mar 17, 2023 at 10:31:43PM +0000, Jeremy Sowden wrote:
+> On 2023-03-16, at 10:23:34 +0100, Florian Westphal wrote:
+> > Jeremy Sowden <jeremy@azazel.net> wrote:
+> > > The xt_dccp iptables module supports the matching of DCCP packets based
+> > > on the presence or absence of DCCP options.  Extend nft_exthdr to add
+> > > this functionality to nftables.
+> > > 
+> > > Link: https://bugzilla.netfilter.org/show_bug.cgi?id=930
+> > > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> > > ---
+> > >  include/uapi/linux/netfilter/nf_tables.h |   2 +
+> > >  net/netfilter/nft_exthdr.c               | 105 +++++++++++++++++++++++
+> > > +struct nft_exthdr_dccp {
+> > > +	struct nft_exthdr exthdr;
+> > > +	/* A buffer into which to copy the DCCP packet options for parsing.  The
+> > > +	 * options are located between the packet header and its data.  The
+> > > +	 * offset of the data from the start of the header is stored in an 8-bit
+> > > +	 * field as the number of 32-bit words, so the options will definitely
+> > > +	 * be shorter than `4 * U8_MAX` bytes.
+> > > +	 */
+> > > +	u8 optbuf[4 * U8_MAX];
+> > > +};
+> > > +
+> > >  static unsigned int optlen(const u8 *opt, unsigned int offset)
+> > >  {
+> > >  	/* Beware zero-length options: make finite progress */
+> > > @@ -406,6 +418,70 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
+> > >  		regs->verdict.code = NFT_BREAK;
+> > >  }
+> > >  
+> > > +static void nft_exthdr_dccp_eval(const struct nft_expr *expr,
+> > > +				 struct nft_regs *regs,
+> > > +				 const struct nft_pktinfo *pkt)
+> > > +{
+> > > +	struct nft_exthdr_dccp *priv_dccp = nft_expr_priv(expr);
+> > > +	struct nft_exthdr *priv = &priv_dccp->exthdr;
+> > > +	u32 *dest = &regs->data[priv->dreg];
+> > > +	unsigned int optoff, optlen, i;
+> > > +	const struct dccp_hdr *dh;
+> > > +	struct dccp_hdr _dh;
+> > > +	const u8 *options;
+> > > +
+> > > +	if (pkt->tprot != IPPROTO_DCCP || pkt->fragoff)
+> > > +		goto err;
+> > > +
+> > > +	dh = skb_header_pointer(pkt->skb, nft_thoff(pkt), sizeof(_dh), &_dh);
+> > > +	if (!dh)
+> > > +		goto err;
+> > > +
+> > > +	if (dh->dccph_doff * 4 < __dccp_hdr_len(dh))
+> > > +		goto err;
+> > > +
+> > > +	optoff = __dccp_hdr_len(dh);
+> > > +	optlen = dh->dccph_doff * 4 - optoff;
+> > 
+> > Perhaps reorder this slightly:
+> > 
+> >      optoff = __dccp_hdr_len(dh);
+> >      if (dh->dccph_doff * 4 <= optoff)
+> > 	     goto err;
+> > 
+> >      optlen = dh->dccph_doff * 4 - optoff;
+> > 
+> >      options = skb_header_pointer(pkt->skb, nft_thoff(pkt) + optoff, optlen,
+> > 				     priv_dccp->optbuf);
+> > 
+> > This isn't safe.  priv_dccp->optbuf is neither percpu nor is there
+> > something that prevents a softinterrupt from firing.
+> > 
+> > I suggest you have a look at 'pipapo' set type which uses percpu scratch
+> > maps.
+> > 
+> > Yet another alternative is to provide a small onstack scratch buffer,
+> > say 256 byte, and fall back to kmalloc for larger spaces.
+> > 
+> > Or, always use a on-stack buffer that gets re-used for each of the
+> > parsed options.
 > 
-> That does ring a bell.  IIRC, when I initially looked into this, I did
-> have a look at maps to see if they might already offer analogous func-
-> tionality.
+> On giving it some more thought, it occurred to me that there would be no
+> need to read the option data, only the type and length, so one could do
+> something like this:
 > 
-> > At least it's not what one would expect. Maybe one could control the
-> > lookup behaviour somehow via a flag?
+> 	optoff = __dccp_hdr_len(dh);
+> 	if (dh->dccph_doff * 4 <= optoff)
+> 		goto err;
 > 
-> Thanks for the suggestion.
+> 	optlen = dh->dccph_doff * 4 - optoff;
+> 
+> 	for (i = 0; i < optlen; ) {
+> 		u8 buf[2], *ptr, type, len;
+> 
+> 		ptr = skb_header_pointer(pkt->skb, thoff + optoff + i,
+> 					 optlen - i > 1 ? 2 : 1, &buf);
+> 		if (!ptr)
+> 			goto err;
+> 
+> 		type = ptr[0];
+> 
+> 		if (type <= 31)
+> 			len = 1;
+> 		else {
+> 			if (optlen - i < 2)
+> 				goto err;
+> 
+> 			len = ptr[1];
+> 
+> 			if (len < 2)
+> 				goto err;
+> 		}
+> 
+> 		if (type == priv->type) {
+> 			*dest = 1;
+> 			return;
+> 		}
+> 
+> 		i += len;
+> 	}
 
-Yes, one possibility would be to explore a new flag in the NAT engine.
-
-As said in previous email, this really has to work with NAT maps in nftables.
+I believe this should be fine.
