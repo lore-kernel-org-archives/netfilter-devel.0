@@ -2,188 +2,174 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BC0FC761AF
-	for <netfilter-devel@archiver.kernel.org>; Sat, 25 Mar 2023 14:24:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9610EC6FD1C
+	for <netfilter-devel@archiver.kernel.org>; Sun, 26 Mar 2023 02:24:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230350AbjCYOYK (ORCPT
+        id S229643AbjCZCY5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 25 Mar 2023 10:24:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43768 "EHLO
+        Sat, 25 Mar 2023 22:24:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229568AbjCYOYJ (ORCPT
+        with ESMTP id S229446AbjCZCY5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Mar 2023 10:24:09 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F928132E0
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Mar 2023 07:24:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1679754248; x=1711290248;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=fWnwKgiACzUjmHZD/VpEGrkRZoO32ZcvirvyD887QJ4=;
-  b=eiDly+mnyUXbaa95wAXbwqWCSYJzNKjFeAm/i+dSuWNDdrv+KeRO2pae
-   GpseaoV3Yqqs2QJcVnvvZJyqfJ3GOiPXsal9o2zAioACv5L2Xzqv61ojg
-   wCXCEMPwW6cBwzZAUHoh6ZwGemFgxuYfalYm7tSaaTHxj/+DHsz73zSrG
-   TOfgMlK29jNvUsfR7ePClZsZggxfZ/mwvHKMZMhMgGJNjFBn1/CKnC10A
-   c2a0E6EPZueEJoh3N4suHCmq8BLE77eRtlAkmf7DGu7h/I8J5dD3JFdgZ
-   VTg3obOeuxgOzbQZr/H5UKKLBZekbKsUy+xVC3da08PTNi2loV4uQIbjd
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10660"; a="342372213"
-X-IronPort-AV: E=Sophos;i="5.98,290,1673942400"; 
-   d="scan'208";a="342372213"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2023 07:24:06 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10660"; a="793780441"
-X-IronPort-AV: E=Sophos;i="5.98,290,1673942400"; 
-   d="scan'208";a="793780441"
-Received: from lkp-server01.sh.intel.com (HELO b613635ddfff) ([10.239.97.150])
-  by fmsmga002.fm.intel.com with ESMTP; 25 Mar 2023 07:24:03 -0700
-Received: from kbuild by b613635ddfff with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pg4oN-000GJb-16;
-        Sat, 25 Mar 2023 14:24:03 +0000
-Date:   Sat, 25 Mar 2023 22:23:28 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Eric Sage <eric_sage@apple.com>, netfilter-devel@vger.kernel.org
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, fw@strlen.de,
-        kadlec@netfilter.org, pablo@netfilter.org,
+        Sat, 25 Mar 2023 22:24:57 -0400
+Received: from ma-mailsvcp-mx-lapp02.apple.com (ma-mailsvcp-mx-lapp02.apple.com [17.32.222.23])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B525359D
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Mar 2023 19:24:55 -0700 (PDT)
+Received: from ma-mailsvcp-mta-lapp04.corp.apple.com
+ (ma-mailsvcp-mta-lapp04.corp.apple.com [10.226.18.136])
+ by ma-mailsvcp-mx-lapp02.apple.com
+ (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
+ 2023)) with ESMTPS id <0RS300X0MW1H1S10@ma-mailsvcp-mx-lapp02.apple.com> for
+ netfilter-devel@vger.kernel.org; Sat, 25 Mar 2023 19:24:54 -0700 (PDT)
+X-Proofpoint-GUID: z6cCh9avy3OhngCvbyCksKNNMiyJ9hQ6
+X-Proofpoint-ORIG-GUID: z6cCh9avy3OhngCvbyCksKNNMiyJ9hQ6
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.573,18.0.942
+ definitions=2023-03-24_11:2023-03-23,2023-03-20 signatures=0
+X-Proofpoint-Spam-Details: rule=interactive_user_notspam
+ policy=interactive_user score=0 phishscore=0 mlxlogscore=999 mlxscore=0
+ bulkscore=0 suspectscore=0 malwarescore=0 spamscore=0 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2303200000
+ definitions=main-2303260015
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=apple.com; h=from : to
+ : cc : subject : date : message-id : mime-version : content-transfer-encoding;
+ s=20180706; bh=blliniZxsCKmpdiOLCrOEeVWhVaDbIpogdiViZZrCSA=;
+ b=gcUNqBYln8kUSlLPYZugArBoTdQ3pvuhtNap2oI70vr/+dn/EmD5LUyosk8p8OzqyeZh
+ CVa57C99FHfqUWtijckbfENJFPz8MNGGbuvgukyFd8z3at2f53qXU4s4JdMq3MV0Qo8k
+ kYX6BbByQI7yyjt1C0sbBsshApFX90qkigvSCTutb7Q8pR2vfvBRZsn8qcRkGJroVQ+W
+ j8EWSvsrFpU1gR2+kIHbplwvl095kyeqYV/0cTfWsB+FWUUfdIsxqoX07Dz2Y54GA13d
+ m1zEJl/p9n6eg5GzLbVWoYavKy65KJtnv3ghnVToMpHEcWVRerRG42v4iOhPg4OYosKW nQ==
+Received: from ma-mailsvcp-mmp-lapp02.apple.com
+ (ma-mailsvcp-mmp-lapp02.apple.com [17.32.222.15])
+ by ma-mailsvcp-mta-lapp04.corp.apple.com
+ (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
+ 2023))
+ with ESMTPS id <0RS300WCAW1H4U00@ma-mailsvcp-mta-lapp04.corp.apple.com>; Sat,
+ 25 Mar 2023 19:24:53 -0700 (PDT)
+Received: from process_milters-daemon.ma-mailsvcp-mmp-lapp02.apple.com by
+ ma-mailsvcp-mmp-lapp02.apple.com
+ (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
+ 2023)) id <0RS300X00VX1GA00@ma-mailsvcp-mmp-lapp02.apple.com>; Sat,
+ 25 Mar 2023 19:24:53 -0700 (PDT)
+X-Va-A: 
+X-Va-T-CD: ee775fe296fae01696e403bd65ae1163
+X-Va-E-CD: 95f3290d03d6b90feeaaa3d41a3a1906
+X-Va-R-CD: 317e03692b2bae07536854479c8d59ac
+X-Va-ID: 2c374593-c59a-42e2-a917-31eb23aa0679
+X-Va-CD: 0
+X-V-A:  
+X-V-T-CD: ee775fe296fae01696e403bd65ae1163
+X-V-E-CD: 95f3290d03d6b90feeaaa3d41a3a1906
+X-V-R-CD: 317e03692b2bae07536854479c8d59ac
+X-V-ID: d5215916-ab51-478f-863b-23c0b330faa7
+X-V-CD: 0
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.573,18.0.942
+ definitions=2023-03-24_11:2023-03-23,2023-03-20 signatures=0
+Received: from st57p01nt-relayp01.apple.com (unknown [17.233.53.191])
+ by ma-mailsvcp-mmp-lapp02.apple.com
+ (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
+ 2023)) with ESMTPSA id <0RS30000CW1GCR00@ma-mailsvcp-mmp-lapp02.apple.com>;
+ Sat, 25 Mar 2023 19:24:53 -0700 (PDT)
+From:   Eric Sage <eric_sage@apple.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de, kadlec@netfilter.org, pablo@netfilter.org,
         Eric Sage <eric_sage@apple.com>
-Subject: Re: [PATCH v3] netfilter: nfnetlink_queue: enable classid socket
- info retrieval
-Message-ID: <202303252207.P9ydXMRy-lkp@intel.com>
-References: <20230323184438.42218-1-eric_sage@apple.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230323184438.42218-1-eric_sage@apple.com>
+Subject: [PATCH v4] netfilter: nfnetlink_queue: enable classid socket info
+ retrieval
+Date:   Sat, 25 Mar 2023 22:24:49 -0400
+Message-id: <20230326022449.92668-1-eric_sage@apple.com>
+X-Mailer: git-send-email 2.37.1 (Apple Git-137.1)
+MIME-version: 1.0
+Content-transfer-encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Eric,
+This enables associating a socket with a v1 net_cls cgroup. Useful for
+applying a per-cgroup policy when processing packets in userspace.
 
-Thank you for the patch! Perhaps something to improve:
+Signed-off-by: Eric Sage <eric_sage@apple.com>
+---
+v4
+- Fixed unused expression bug.
+v3
+- Renamed NFQA_CLASSID to NFQA_CGROUP_CLASSID.
+- Changed guard from builtin to builtin/module (IS_ENABLED).
+v2
+- Remove classid flag, always include with NET_CLASSID.
+- Include cgroup-defs header.
+- Remove lock.
 
-[auto build test WARNING on horms-ipvs/master]
-[also build test WARNING on linus/master v6.3-rc3 next-20230324]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+ .../uapi/linux/netfilter/nfnetlink_queue.h    |  1 +
+ net/netfilter/nfnetlink_queue.c               | 22 ++++++++++++++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Eric-Sage/netfilter-nfnetlink_queue-enable-classid-socket-info-retrieval/20230324-034613
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git master
-patch link:    https://lore.kernel.org/r/20230323184438.42218-1-eric_sage%40apple.com
-patch subject: [PATCH v3] netfilter: nfnetlink_queue: enable classid socket info retrieval
-config: i386-allyesconfig (https://download.01.org/0day-ci/archive/20230325/202303252207.P9ydXMRy-lkp@intel.com/config)
-compiler: clang version 14.0.6 (https://github.com/llvm/llvm-project f28c006a5895fc0e329fe15fead81e37457cb1d1)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/5337cbc118f664da3b9316c76695fdd28eaeeb65
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Eric-Sage/netfilter-nfnetlink_queue-enable-classid-socket-info-retrieval/20230324-034613
-        git checkout 5337cbc118f664da3b9316c76695fdd28eaeeb65
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 SHELL=/bin/bash net/netfilter/
-
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202303252207.P9ydXMRy-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
->> net/netfilter/nfnetlink_queue.c:425:3: warning: expression result unused [-Wunused-value]
-                   + nla_total_size(sizeof(u_int32_t));    /* classid */
-                   ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   1 warning generated.
-
-
-vim +425 net/netfilter/nfnetlink_queue.c
-
-   387	
-   388	static struct sk_buff *
-   389	nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
-   390				   struct nf_queue_entry *entry,
-   391				   __be32 **packet_id_ptr)
-   392	{
-   393		size_t size;
-   394		size_t data_len = 0, cap_len = 0;
-   395		unsigned int hlen = 0;
-   396		struct sk_buff *skb;
-   397		struct nlattr *nla;
-   398		struct nfqnl_msg_packet_hdr *pmsg;
-   399		struct nlmsghdr *nlh;
-   400		struct sk_buff *entskb = entry->skb;
-   401		struct net_device *indev;
-   402		struct net_device *outdev;
-   403		struct nf_conn *ct = NULL;
-   404		enum ip_conntrack_info ctinfo = 0;
-   405		const struct nfnl_ct_hook *nfnl_ct;
-   406		bool csum_verify;
-   407		char *secdata = NULL;
-   408		u32 seclen = 0;
-   409		ktime_t tstamp;
-   410	
-   411		size = nlmsg_total_size(sizeof(struct nfgenmsg))
-   412			+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
-   413			+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-   414			+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-   415	#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-   416			+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-   417			+ nla_total_size(sizeof(u_int32_t))	/* ifindex */
-   418	#endif
-   419			+ nla_total_size(sizeof(u_int32_t))	/* mark */
-   420			+ nla_total_size(sizeof(u_int32_t))	/* priority */
-   421			+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
-   422			+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
-   423			+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
-   424	#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
- > 425			+ nla_total_size(sizeof(u_int32_t));	/* classid */
-   426	#endif
-   427	
-   428		tstamp = skb_tstamp_cond(entskb, false);
-   429		if (tstamp)
-   430			size += nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
-   431	
-   432		size += nfqnl_get_bridge_size(entry);
-   433	
-   434		if (entry->state.hook <= NF_INET_FORWARD ||
-   435		   (entry->state.hook == NF_INET_POST_ROUTING && entskb->sk == NULL))
-   436			csum_verify = !skb_csum_unnecessary(entskb);
-   437		else
-   438			csum_verify = false;
-   439	
-   440		outdev = entry->state.out;
-   441	
-   442		switch ((enum nfqnl_config_mode)READ_ONCE(queue->copy_mode)) {
-   443		case NFQNL_COPY_META:
-   444		case NFQNL_COPY_NONE:
-   445			break;
-   446	
-   447		case NFQNL_COPY_PACKET:
-   448			if (!(queue->flags & NFQA_CFG_F_GSO) &&
-   449			    entskb->ip_summed == CHECKSUM_PARTIAL &&
-   450			    skb_checksum_help(entskb))
-   451				return NULL;
-   452	
-   453			data_len = READ_ONCE(queue->copy_range);
-   454			if (data_len > entskb->len)
-   455				data_len = entskb->len;
-   456	
-   457			hlen = skb_zerocopy_headlen(entskb);
-   458			hlen = min_t(unsigned int, hlen, data_len);
-   459			size += sizeof(struct nlattr) + hlen;
-   460			cap_len = entskb->len;
-   461			break;
-   462		}
-   463	
-   464		nfnl_ct = rcu_dereference(nfnl_ct_hook);
-   465	
-
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index ef7c97f21a15..efcb7c044a74 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
+@@ -62,6 +62,7 @@ enum nfqnl_attr_type {
+ 	NFQA_VLAN,			/* nested attribute: packet vlan info */
+ 	NFQA_L2HDR,			/* full L2 header */
+ 	NFQA_PRIORITY,			/* skb->priority */
++	NFQA_CGROUP_CLASSID,		/* __u32 cgroup classid */
+ 
+ 	__NFQA_MAX
+ };
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 87a9009d5234..5e7aa31d233a 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -29,6 +29,7 @@
+ #include <linux/netfilter/nfnetlink_queue.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/list.h>
++#include <linux/cgroup-defs.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+ #include <net/netfilter/nf_queue.h>
+@@ -301,6 +302,19 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
+ 	return -1;
+ }
+ 
++static int nfqnl_put_sk_classid(struct sk_buff *skb, struct sock *sk)
++{
++#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
++	if (sk && sk_fullsock(sk)) {
++		u32 classid = sock_cgroup_classid(&sk->sk_cgrp_data);
++
++		if (classid && nla_put_be32(skb, NFQA_CGROUP_CLASSID, htonl(classid)))
++			return -1;
++	}
++#endif
++	return 0;
++}
++
+ static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
+ {
+ 	u32 seclen = 0;
+@@ -406,7 +420,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 		+ nla_total_size(sizeof(u_int32_t))	/* priority */
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
+ 		+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
+-		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
++		+ nla_total_size(sizeof(u_int32_t))	/* cap_len */
++#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
++		+ nla_total_size(sizeof(u_int32_t));	/* classid */
++#endif
+ 
+ 	tstamp = skb_tstamp_cond(entskb, false);
+ 	if (tstamp)
+@@ -599,6 +616,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
+ 		goto nla_put_failure;
+ 
++	if (nfqnl_put_sk_classid(skb, entskb->sk) < 0)
++		goto nla_put_failure;
++
+ 	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
+ 		goto nla_put_failure;
+ 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+2.31.1
+
