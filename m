@@ -2,50 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E34CC7619A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Mar 2023 11:23:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67DC4C6FD1D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Mar 2023 14:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232341AbjC0LXE (ORCPT
+        id S232976AbjC0Ou6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Mar 2023 07:23:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37368 "EHLO
+        Mon, 27 Mar 2023 10:50:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229640AbjC0LXE (ORCPT
+        with ESMTP id S232902AbjC0Ou4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2023 07:23:04 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAB1544AD
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2023 04:23:02 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pgkwG-00047F-BD; Mon, 27 Mar 2023 13:23:00 +0200
-Date:   Mon, 27 Mar 2023 13:23:00 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables] exthdr: add boolean DCCP option matching
-Message-ID: <20230327112300.GB8780@breakpoint.cc>
-References: <20230312143707.158928-1-jeremy@azazel.net>
- <20230312200003.GB26312@breakpoint.cc>
+        Mon, 27 Mar 2023 10:50:56 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 36728FE
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2023 07:50:50 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] intervals: use expression location when translating to intervals
+Date:   Mon, 27 Mar 2023 16:50:45 +0200
+Message-Id: <20230327145045.33797-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230312200003.GB26312@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Jeremy Sowden <jeremy@azazel.net> wrote:
-> > - * @TCPE_DCCP_PKTTYPE:	DCCP packet type (integer subtype)
-> > + * @TYPE_DCCP_PKTTYPE:	DCCP packet type (integer subtype)
-> 
-> Can you isolate this as a spelling fix?
-> 
-> I'm reluctant to add dccp support because there have been discussions
-> wrt. removing dccp from kernel altogether.
+Otherwise, internal location reports:
 
-Scratch the last sentence, I have no objections wrt. this anymore. I'll
-review this patchset later this week.
+ # nft -f ruleset.nft
+ internal:0:0-0: Error: Could not process rule: File exists
+
+after this patch:
+
+ # nft -f ruleset.nft
+ ruleset.nft:402:1-16: Error: Could not process rule: File exists
+ 1.2.3.0/30,
+ ^^^^^^^^^^^
+
+Fixes: 81e36530fcac ("src: replace interval segment tree overlap and automerge")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/intervals.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/intervals.c b/src/intervals.c
+index 95e25cf09662..d79c52c58710 100644
+--- a/src/intervals.c
++++ b/src/intervals.c
+@@ -709,9 +709,9 @@ int set_to_intervals(const struct set *set, struct expr *init, bool add)
+ 			if (set->key->byteorder == BYTEORDER_HOST_ENDIAN)
+ 				mpz_switch_byteorder(expr->value, set->key->len / BITS_PER_BYTE);
+ 
+-			newelem = set_elem_expr_alloc(&internal_location, expr);
++			newelem = set_elem_expr_alloc(&expr->location, expr);
+ 			if (i->etype == EXPR_MAPPING) {
+-				newelem = mapping_expr_alloc(&internal_location,
++				newelem = mapping_expr_alloc(&expr->location,
+ 							     newelem,
+ 							     expr_get(i->right));
+ 			}
+-- 
+2.30.2
+
