@@ -2,66 +2,98 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67DC4C6FD1D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Mar 2023 14:50:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76F31C76195
+	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Mar 2023 15:06:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232976AbjC0Ou6 (ORCPT
+        id S232686AbjC0PGU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Mar 2023 10:50:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58080 "EHLO
+        Mon, 27 Mar 2023 11:06:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232902AbjC0Ou4 (ORCPT
+        with ESMTP id S232702AbjC0PGP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2023 10:50:56 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 36728FE
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2023 07:50:50 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] intervals: use expression location when translating to intervals
-Date:   Mon, 27 Mar 2023 16:50:45 +0200
-Message-Id: <20230327145045.33797-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 27 Mar 2023 11:06:15 -0400
+Received: from tretyak2.mcst.ru (tretyak2.mcst.ru [212.5.119.215])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE23D49E0;
+        Mon, 27 Mar 2023 08:05:54 -0700 (PDT)
+Received: from tretyak2.mcst.ru (localhost [127.0.0.1])
+        by tretyak2.mcst.ru (Postfix) with ESMTP id ADE3110238E;
+        Mon, 27 Mar 2023 18:05:52 +0300 (MSK)
+Received: from frog.lab.sun.mcst.ru (frog.lab.sun.mcst.ru [172.16.4.50])
+        by tretyak2.mcst.ru (Postfix) with ESMTP id A748D102376;
+        Mon, 27 Mar 2023 18:04:52 +0300 (MSK)
+Received: from [172.16.7.18] (gang [172.16.7.18])
+        by frog.lab.sun.mcst.ru (8.13.4/8.12.11) with ESMTP id 32RF4pED030907;
+        Mon, 27 Mar 2023 18:04:52 +0300
+Message-ID: <a5b24f66-4169-4204-034d-872340b4c141@mcst.ru>
+Date:   Mon, 27 Mar 2023 18:09:50 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+Subject: Re: [lvc-project] [PATCH] netfilter: nfnetlink: NULL-check skb->dev
+ in __build_packet_message()
+Content-Language: en-US
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        lvc-project@linuxtesting.org
+References: <20230327094116.1763201-1-Igor.A.Artemiev@mcst.ru>
+ <ZCFuaDrSdsyzRdgJ@salvia>
+From:   "Igor A. Artemiev" <Igor.A.Artemiev@mcst.ru>
+In-Reply-To: <ZCFuaDrSdsyzRdgJ@salvia>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Anti-Virus: Kaspersky Anti-Virus for Linux Mail Server 5.6.39/RELEASE,
+         bases: 20111107 #2745587, check: 20230327 notchecked
+X-AV-Checked: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Otherwise, internal location reports:
 
- # nft -f ruleset.nft
- internal:0:0-0: Error: Could not process rule: File exists
+On 3/27/23 13:22, Pablo Neira Ayuso wrote:
+> On Mon, Mar 27, 2023 at 12:41:16PM +0300, Igor Artemiev wrote:
+>> After having been compared to NULL value at nfnetlink_log.c:560,
+>> pointer 'skb->dev' is dereferenced at nfnetlink_log.c:576.
+>>
+>> Found by Linux Verification Center (linuxtesting.org) with SVACE.
+>>
+>> Signed-off-by: Igor Artemiev <Igor.A.Artemiev@mcst.ru>
+>> ---
+>>   net/netfilter/nfnetlink_log.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+>> index d97eb280cb2e..2711509eb9a5 100644
+>> --- a/net/netfilter/nfnetlink_log.c
+>> +++ b/net/netfilter/nfnetlink_log.c
+>> @@ -572,7 +572,7 @@ __build_packet_message(struct nfnl_log_net *log,
+>>   		}
+>>   	}
+>>   
+>> -	if (indev && skb_mac_header_was_set(skb)) {
+>> +	if (indev && skb->dev && skb_mac_header_was_set(skb)) {
+> This cannot ever happen, we assume skb->dev is always set on.
+>
+>>   		if (nla_put_be16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
+>>   		    nla_put_be16(inst->skb, NFULA_HWLEN,
+>>   				 htons(skb->dev->hard_header_len)))
+>> -- 
+>> 2.30.2
+>>
 
-after this patch:
+If skb->dev is always set on, should the check at nfnetlink_log.c:560 be removed?
+|
 
- # nft -f ruleset.nft
- ruleset.nft:402:1-16: Error: Could not process rule: File exists
- 1.2.3.0/30,
- ^^^^^^^^^^^
+if  (indev  &&  skb->dev  &&
+	skb_mac_header_was_set(skb)  &&
+	    	skb_mac_header_len(skb)  !=  0)  { |
 
-Fixes: 81e36530fcac ("src: replace interval segment tree overlap and automerge")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/intervals.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/src/intervals.c b/src/intervals.c
-index 95e25cf09662..d79c52c58710 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -709,9 +709,9 @@ int set_to_intervals(const struct set *set, struct expr *init, bool add)
- 			if (set->key->byteorder == BYTEORDER_HOST_ENDIAN)
- 				mpz_switch_byteorder(expr->value, set->key->len / BITS_PER_BYTE);
- 
--			newelem = set_elem_expr_alloc(&internal_location, expr);
-+			newelem = set_elem_expr_alloc(&expr->location, expr);
- 			if (i->etype == EXPR_MAPPING) {
--				newelem = mapping_expr_alloc(&internal_location,
-+				newelem = mapping_expr_alloc(&expr->location,
- 							     newelem,
- 							     expr_get(i->right));
- 			}
--- 
-2.30.2
+||Thanks, Igor
 
