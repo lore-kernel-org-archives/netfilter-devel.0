@@ -2,173 +2,213 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 174B9C76195
-	for <netfilter-devel@archiver.kernel.org>; Mon, 27 Mar 2023 17:45:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9965CC76195
+	for <netfilter-devel@archiver.kernel.org>; Tue, 28 Mar 2023 07:28:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229611AbjC0RpY (ORCPT
+        id S229879AbjC1H2z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 27 Mar 2023 13:45:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49824 "EHLO
+        Tue, 28 Mar 2023 03:28:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbjC0RpX (ORCPT
+        with ESMTP id S229497AbjC1H2y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2023 13:45:23 -0400
-Received: from ma-mailsvcp-mx-lapp03.apple.com (ma-mailsvcp-mx-lapp03.apple.com [17.32.222.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AB901BE8
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2023 10:45:01 -0700 (PDT)
-Received: from ma-mailsvcp-mta-lapp03.corp.apple.com
- (ma-mailsvcp-mta-lapp03.corp.apple.com [10.226.18.135])
- by ma-mailsvcp-mx-lapp03.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023)) with ESMTPS id <0RS600A5RXAVUN30@ma-mailsvcp-mx-lapp03.apple.com> for
- netfilter-devel@vger.kernel.org; Mon, 27 Mar 2023 10:45:00 -0700 (PDT)
-X-Proofpoint-GUID: gp--CYl4FwariaOvA-ITiuNdK5jHaQ19
-X-Proofpoint-ORIG-GUID: gp--CYl4FwariaOvA-ITiuNdK5jHaQ19
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.573,18.0.942
- definitions=2023-03-21_11:2023-03-21,2023-03-21 signatures=0
-X-Proofpoint-Spam-Details: rule=interactive_user_notspam
- policy=interactive_user score=0 spamscore=0 suspectscore=0 mlxscore=0
- adultscore=0 phishscore=0 mlxlogscore=999 malwarescore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2303150002
- definitions=main-2303210127
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=apple.com; h=from : to
- : cc : subject : date : message-id : mime-version : content-transfer-encoding;
- s=20180706; bh=VCfhwtp9mfty6qVScHW51MmNBRNTqLjYRKuEMe0x5Kg=;
- b=afTgZiC4XHfxnV6d2ce65se9TSG0QvJy0Ynj4aLZXi1PWQUIbjjb4t0lu7KC6O/6UTto
- XwnV2wyb+Na0Tfp4ReP1TxxUzzflJwb0hkNOb/1I0GrViyFmtqzDr64y+d2sD410cZ/O
- o1O2LCwXcb6etNYFT42xCMTRu49ULxUXL+UNaJKp+tWLVFoOAVoWBG7U8Q6COo2PsfVJ
- eYHadlSPWdiqXKWjhyRZaOQpmyPco9HDA6fvqlcJNbLvG1n0esup0tNjEyjU24ABgcRi
- 4MA7WWuaAJm9S43OLhxwGznUOm2MQkEiPK5s2Z72/M4Q4JkYDtP4d6CwMtjw+nJ8gGLU PQ==
-Received: from ma-mailsvcp-mmp-lapp01.apple.com
- (ma-mailsvcp-mmp-lapp01.apple.com [17.32.222.14])
- by ma-mailsvcp-mta-lapp03.corp.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023))
- with ESMTPS id <0RS600A55XAVTT40@ma-mailsvcp-mta-lapp03.corp.apple.com>; Mon,
- 27 Mar 2023 10:44:55 -0700 (PDT)
-Received: from process_milters-daemon.ma-mailsvcp-mmp-lapp01.apple.com by
- ma-mailsvcp-mmp-lapp01.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023)) id <0RS600H00X0YDO00@ma-mailsvcp-mmp-lapp01.apple.com>; Mon,
- 27 Mar 2023 10:44:55 -0700 (PDT)
-X-Va-A: 
-X-Va-T-CD: ee775fe296fae01696e403bd65ae1163
-X-Va-E-CD: 022846d2e0a7218f29e37446f5d78849
-X-Va-R-CD: 500d9952cc856a99303c4fc64caa8f2a
-X-Va-ID: 57e8f1db-ae5b-4dcc-8071-58060fd0db1f
-X-Va-CD: 0
-X-V-A:  
-X-V-T-CD: ee775fe296fae01696e403bd65ae1163
-X-V-E-CD: 022846d2e0a7218f29e37446f5d78849
-X-V-R-CD: 500d9952cc856a99303c4fc64caa8f2a
-X-V-ID: 10040ad9-b9ee-417d-bdef-7a854901999e
-X-V-CD: 0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.573,18.0.942
- definitions=2023-03-27_02:2023-03-27,2023-03-20 signatures=0
-Received: from st57p01nt-relayp02.apple.com (unknown [17.233.54.32])
- by ma-mailsvcp-mmp-lapp01.apple.com
- (Oracle Communications Messaging Server 8.1.0.22.20230228 64bit (built Feb 28
- 2023)) with ESMTPSA id <0RS6002FUXAR7K00@ma-mailsvcp-mmp-lapp01.apple.com>;
- Mon, 27 Mar 2023 10:44:52 -0700 (PDT)
-From:   Eric Sage <eric_sage@apple.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, kadlec@netfilter.org, pablo@netfilter.org,
-        Eric Sage <eric_sage@apple.com>
-Subject: [PATCH v5] netfilter: nfnetlink_queue: enable classid socket info
- retrieval
-Date:   Mon, 27 Mar 2023 13:44:49 -0400
-Message-id: <20230327174449.37015-1-eric_sage@apple.com>
-X-Mailer: git-send-email 2.37.1 (Apple Git-137.1)
-MIME-version: 1.0
-Content-transfer-encoding: 8bit
+        Tue, 28 Mar 2023 03:28:54 -0400
+Received: from EUR02-AM0-obe.outbound.protection.outlook.com (mail-am0eur02on2102.outbound.protection.outlook.com [40.107.247.102])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FB2BB4
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Mar 2023 00:28:53 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=K2QcSPe8Tba9HvNQd2rB5PPyiHa65y410NM9FkqYDdtfdSml1SRD2w3aBPPXfOsT4xYI2w31xIDIMrfNYSP028xTFLINvr5uQqsDVJZAWtyogFfY2VTjOy7ugW+qjc0hIPrEJtvTBpBM2jrzUnvgeKFOgUnlOiMHjxrqTLJ7wXxaAR6n3HWmWbGyaiQW37quZ+PBXCu7ZhxMXyydZo0KpNbuMahOifzjmzHLCF0YMZEcfkCpInQ7Nxdy2tYVdtVx38u8FvHufj/9IQokWQUBWysaiXqSlNhvDshDXCHkpdSHzcIeBK81PD1pLxRiqE+qkZLtGAWU0K9Pb7ymzf78Hg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=fFO4XxNW8ACQ/jq+Bd0M9dH0IB9i3UKt/trA4mkQg34=;
+ b=jjFzc4RjFiNaQhnX2mLBy+CEO1qefUwO4acyi9hYIqbZItnNfaXgjD6Mwjgya6OGzEVno76WCSbHwN68ZMi8hQ87WVF9wkdn7mMVCot3cvLmZTAjFgO4NhD3zY6IfxTo1OnC3GF1WHkdI2nX2F4b8NbadHXPoyu27r6GwwG+B+j57JCKgKX6UNSiTVmIEzhZKsZIhpHTOhwb+VGpME9Usq4AvAqMmd13rkpuKSY3h1A+YpemSnYWU81BFthrmD+v1g4ti48G/fA/JM+gVgBWdvCAm1QXJIH+ib1XqtAjNut+uSiHbe3OJUVTrXmHyg9N0psNL5RdexlH3m+9U3RJ/w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=prodrive-technologies.com; dmarc=pass action=none
+ header.from=prodrive-technologies.com; dkim=pass
+ header.d=prodrive-technologies.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=prodrive-technologies.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fFO4XxNW8ACQ/jq+Bd0M9dH0IB9i3UKt/trA4mkQg34=;
+ b=mO6OQEsqIcI7cRgl+hel94YuPE32JwP9RopYLexAZ+5j5pttujOCXUkf9QN0bxAbTH+gTQOb/79tqGm85B+tk6/OXza83OH5wutAscLqor+2ZY+SlIi/W0i4ZbuBIn4IwLLoT/GiUZpD8/ueF5Ok1ASJ1UHOAQQYs9B5egjLOGY=
+Received: from AM9PR02MB7660.eurprd02.prod.outlook.com (2603:10a6:20b:43f::24)
+ by PR3PR02MB6442.eurprd02.prod.outlook.com (2603:10a6:102:7a::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6222.33; Tue, 28 Mar
+ 2023 07:28:51 +0000
+Received: from AM9PR02MB7660.eurprd02.prod.outlook.com
+ ([fe80::8203:5198:960f:908b]) by AM9PR02MB7660.eurprd02.prod.outlook.com
+ ([fe80::8203:5198:960f:908b%8]) with mapi id 15.20.6222.033; Tue, 28 Mar 2023
+ 07:28:50 +0000
+From:   Kevin Peeters <kevin.peeters@prodrive-technologies.com>
+To:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: RE: iptables patch
+Thread-Topic: iptables patch
+Thread-Index: AdlhRd8vxRo6EOAnSHqnLy8oibYvxwAADfyQAAAMYkAAAAsqkA==
+Date:   Tue, 28 Mar 2023 07:28:50 +0000
+Message-ID: <AM9PR02MB766039341028D34A400D381CA8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
+References: <AM9PR02MB76606476D4EED1FF1938F8A8A8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
+ <AM9PR02MB766074FF89D28CE6655CA0B6A8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
+ <AM9PR02MB7660795D89727FA09BD370DFA8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
+In-Reply-To: <AM9PR02MB7660795D89727FA09BD370DFA8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=prodrive-technologies.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: AM9PR02MB7660:EE_|PR3PR02MB6442:EE_
+x-ms-office365-filtering-correlation-id: adf5aaa9-17ac-453e-4067-08db2f5e13d2
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: wyP2r0PURqoB9zAWZpS7KLFqaUYP8R1BEPH3eCce27PfieY041y+3suOQasOfSzENeMuc2pQQF7hN32iDX1wJrC7STxCvufIFV4u4/gIOn5twGkmobakkSHUrx/ctSrXqIOBMwu1Pfg2aU/YeXMfbh3wZvta3HRD3DlDYIgtUZsY0Pbl7fYlHaY+bjrIIchVHcUpZ3qGQrVdcRyqJTZevUODNmyxOk8yxsEvlHHnfQYOPhJIxCcdvpQtkEzHOVpWglaEGNFQMKWQFVzeArsBM4vU0zx6yvIgZ4yZXCUIKB/p1+JSd2qObgIs2Ndp1wyJ0ZCcbruVtTdzzRSLrG+a5KI2Rd6kuHVGBF+H7RTIrUEzqvc+KvzAg3Dpx0OZLPxTEJxpQAT/2wYxawROHNMjglPiylCZsmwUKmClGYruzoYYVke2pWdlUeU/P6gJPOrynu6q1nPPiVdo+DS5KXR++zESEAAgkqQsT1aKDTk9vRk9jr550ZaBzYMPJkVnvO7j9zylPWamNMTre6isubD9/Jn8UYYYZA46Ut4Xw4kjKBc8oQoVOM+eta9kObtU3nJjXPHuZiyD9BLb2Zn/gvWNjmiuz7DGbNHyahtbWSvrl5HRW3Anldrm9s3AyqRCqfSI
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM9PR02MB7660.eurprd02.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(39850400004)(376002)(346002)(136003)(396003)(366004)(451199021)(38070700005)(122000001)(38100700002)(55016003)(86362001)(2940100002)(66476007)(64756008)(66946007)(33656002)(8676002)(76116006)(66556008)(66446008)(6916009)(186003)(5660300002)(7116003)(83380400001)(8936002)(41300700001)(52536014)(478600001)(7696005)(71200400001)(6506007)(9686003)(26005)(316002)(3480700007)(2906002)(44832011);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?sD8KLMY6I04FkKzhyjajq0JRy7Q86bmb3edV7FJsFk51zZqlIiXzRWiAuNv+?=
+ =?us-ascii?Q?lmKa3qVcy2dB6CTdOWRutSSq281ymJtjo3oQeQOxlYQvnk8LNaaB04dkJ1vF?=
+ =?us-ascii?Q?Atn/9TVGXYLCCmxJ83AbtZ0Mo5rA82iJ9m04raXc2grWUSdpOamFWkX6+znB?=
+ =?us-ascii?Q?wga6fCyLzFsbXn+LI+h3UZW5sjg/S9OT5SPLEem0zGxvGGShUyeUiecufpWb?=
+ =?us-ascii?Q?FywXLEgVHwpxVlEJGNAEaS495TNXcwB5/yxDafkwEg3JsOgp+FiA+NigDgPE?=
+ =?us-ascii?Q?zhoTmae38ybNYtA3//IBMiQsljRvn7GyZZI4WY+eATZv0iWh0CthdTYGWcQf?=
+ =?us-ascii?Q?G6Ekok1Vg4Mxc95wWgl05i7Sfeob7EwaXN7OUcJGOIj7dKJeybaQYQQ7BF/3?=
+ =?us-ascii?Q?2HAxW7lFYiVkGH8+0v3jZva9FJfHETMzlX37eZTm25QaVBTwEZQddCV6lSwe?=
+ =?us-ascii?Q?Hp2dNScYfQngf2jFn6DFoQ1li+LYfNf+bz+1WYLbNAgBjYDjNoE4IJMbqh1o?=
+ =?us-ascii?Q?kufS1odzWwXK02+at7rtBm6Wlld4VYut0ZWgMHNjO/aJrgpDz6DKDeiPAHky?=
+ =?us-ascii?Q?ybUmZGv6GZl216U+Cxqa1gkLMpjP1CB6Kjb0Un+ajj9FauDMvilY+UyJDmAL?=
+ =?us-ascii?Q?Pt8kiHt8+55PiRKRsgOnfosiTFVr6BpfbAkVpKTA/m6YGTrw/PlAp3+hFtel?=
+ =?us-ascii?Q?zNt7wdPTVGJ3EbeJOx6m6s2BmSLOVKmW8ps5PhYz7T+fWVwWhF9hThTRXLvt?=
+ =?us-ascii?Q?xwmXfGjoauIcg/g9Ct+SKzvxSMQlRqLSW96Lh+cZM18J5vgvdjnb3XSuYbJB?=
+ =?us-ascii?Q?iN4WamGUdeivmCt9uYMhPdgbDbbSSJ+Tjg+gdx/ZtvVce/HiyHK421Zw4IIn?=
+ =?us-ascii?Q?gIu4aoQ9GjL8MBcmkfWncQDwTcUWE5HuBPIsMEH6X7MqGtUN7OhsKbYkWBfR?=
+ =?us-ascii?Q?s6flcmz55jH2T+0kqjsA450B3G4HqxAo8oFsaKwoZq5AMoZiIyotYBIdm683?=
+ =?us-ascii?Q?Q+lG+hTvsVOaKKZ2EnAZnJ6p1HJ3jPEdLSovGKs5BOwdq0fIOXHOS8BhIqGj?=
+ =?us-ascii?Q?rrgLMlMKxdaQobkq160kVfx1eC3thX1UBcHu6aqmrrpOAodx4kDehqf+Qg97?=
+ =?us-ascii?Q?0o/n8CcD3UCYwGM4I/4H7IrIJKwJ+B5GuXesE0F7AOr128GQjLKtZUHTEK6k?=
+ =?us-ascii?Q?sHUBEnPQPkZRpmY61FNiyQMi2gWWK0f/rO7uAayTN7IRomjDfEuJupuCU1xH?=
+ =?us-ascii?Q?0UtDFjPFw/WWmQWXOe2YKspmBza4CscRmtdU9rUuZSgyyTX81JF3sCiMhhyu?=
+ =?us-ascii?Q?W+1bHJlxObGurCHpCRm59V+dpKCNFTvebnX9KGxwcyx0EgN/ezSHtBWoK8qx?=
+ =?us-ascii?Q?ZYtDFEK8LrI8JrYjVjJN27q33bjuq4AzYbdAOIeRgHVLXgzdg6pyhPwSxYCD?=
+ =?us-ascii?Q?E+T9gbq6H/QsvUwXGn5dk4Sy2wQM0dCKpyihMrexhOjAJO++6OJ73aiKnqGR?=
+ =?us-ascii?Q?b3qx4kEzTR4Qtdixdh+NwfpdAFA4wkglMmjL8/vX/xrTRLNCn7EAtV99K2Om?=
+ =?us-ascii?Q?E7LbxnMRjE0sH5WpzwX1YcEv8V9DtdfdPgQzbugAZ1Hv5lM3KIEp3FZzVRHT?=
+ =?us-ascii?Q?Cw8UQ0sUN4wLn28Lo38oe7M=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: prodrive-technologies.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: AM9PR02MB7660.eurprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: adf5aaa9-17ac-453e-4067-08db2f5e13d2
+X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Mar 2023 07:28:50.9021
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 612607c9-5af7-4e7f-8976-faf1ae77be60
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: F0x/g8ptVpTP2z1vpl3myGkwWos186CkhIYSelXTAbUrA2LZDtV6A73yZP26Lrex8ox3bJ4+hbZVJF2jeJ3cyyxfpxDeg3pFlJISIS2SZlBytGfvMZIHky5BiaZ6tnrL
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PR3PR02MB6442
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This enables associating a socket with a v1 net_cls cgroup. Useful for
-applying a per-cgroup policy when processing packets in userspace.
+Hello,
 
-Signed-off-by: Eric Sage <eric_sage@apple.com>
----
-v5
-- Moved size adjust so that it compiles cleanly with/without flag.
-v4
-- Fixed unused expression bug.
-v3
-- Renamed NFQA_CLASSID to NFQA_CGROUP_CLASSID.
-- Changed guard from builtin to builtin/module (IS_ENABLED).
-v2
-- Remove classid flag, always include with NET_CLASSID.
-- Include cgroup-defs header.
-- Remove lock.
- .../uapi/linux/netfilter/nfnetlink_queue.h    |  1 +
- net/netfilter/nfnetlink_queue.c               | 20 +++++++++++++++++++
- 2 files changed, 21 insertions(+)
+I am using the 'iptables' source code in one of my software projects. More =
+in detail, I am calling libiptc and libxtables from my own software API to =
+add/delete/... iptables firewall rules.
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-index ef7c97f21a15..efcb7c044a74 100644
---- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-@@ -62,6 +62,7 @@ enum nfqnl_attr_type {
- 	NFQA_VLAN,			/* nested attribute: packet vlan info */
- 	NFQA_L2HDR,			/* full L2 header */
- 	NFQA_PRIORITY,			/* skb->priority */
-+	NFQA_CGROUP_CLASSID,		/* __u32 cgroup classid */
- 
- 	__NFQA_MAX
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 87a9009d5234..e311462f6d98 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -29,6 +29,7 @@
- #include <linux/netfilter/nfnetlink_queue.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/list.h>
-+#include <linux/cgroup-defs.h>
- #include <net/sock.h>
- #include <net/tcp_states.h>
- #include <net/netfilter/nf_queue.h>
-@@ -301,6 +302,19 @@ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
- 	return -1;
+While developing, I bumped into one issue while using libxtables and made a=
+ patch for it which we now use on our checkout of the 'iptables' repository=
+. We do however use multiple checkouts of this repository in different plac=
+es and don't want to add the patch to each of those checkouts.
+Would it be possible for you to add this patch to the mainline of your repo=
+sitory so we can stop patching it locally?
+
+The details about the patch:
+In libxtables/xtables.c:
+
+The libxtables code uses a xtables_pending_matches, xtables_pending_targets=
+, xtables_matches and xtables_targets pointer list to track all (pending) m=
+atches and targets registered to the current iptables command. In my code, =
+I add/delete firewall rules multiple times from one main process (without k=
+illing the main process in between) by calling xtables_init_all, xtables_re=
+gister_target and xtables_register_match every time. When a rule is added, =
+I call xtables_fini to clean up.
+
+I do notice when adding a rule in my code twice that on the second time, th=
+e (pending) targets/matches lists are not empty and when I try to register =
+the same target (the one I registered in the previous rule) again, it links=
+ to itself and creates an infinite loop.
+
+I managed to fix it by setting the pointers to NULL in xtables_fini.
+
+The patch:
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index 96fd783a..ac9300c7 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -327,6 +327,48 @@ void xtables_announce_chain(const char *name)
+ 		notargets_hlist_insert(name);
  }
- 
-+static int nfqnl_put_sk_classid(struct sk_buff *skb, struct sock *sk)
+=20
++static void xtables_release_matches(void)
 +{
-+#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
-+	if (sk && sk_fullsock(sk)) {
-+		u32 classid = sock_cgroup_classid(&sk->sk_cgrp_data);
++	struct xtables_match **dptr, **ptr;
 +
-+		if (classid && nla_put_be32(skb, NFQA_CGROUP_CLASSID, htonl(classid)))
-+			return -1;
++	for (dptr =3D &xtables_pending_matches; *dptr; ) {
++		ptr =3D &((*dptr)->next);
++		*dptr =3D NULL;
++		dptr =3D ptr;
++
 +	}
-+#endif
-+	return 0;
++	xtables_pending_matches =3D NULL;
++
++	for (dptr =3D &xtables_matches; *dptr; ) {
++		ptr =3D &((*dptr)->next);
++		*dptr =3D NULL;
++		dptr =3D ptr;
++
++	}
++	xtables_matches =3D NULL;
 +}
 +
- static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
- {
- 	u32 seclen = 0;
-@@ -406,6 +420,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 		+ nla_total_size(sizeof(u_int32_t))	/* priority */
- 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
- 		+ nla_total_size(sizeof(u_int32_t))	/* skbinfo */
-+#if IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)
-+		+ nla_total_size(sizeof(u_int32_t))	/* classid */
-+#endif
- 		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
- 
- 	tstamp = skb_tstamp_cond(entskb, false);
-@@ -599,6 +616,9 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
- 		goto nla_put_failure;
- 
-+	if (nfqnl_put_sk_classid(skb, entskb->sk) < 0)
-+		goto nla_put_failure;
++static void xtables_release_targets(void)
++{
++	struct xtables_target **dptr, **ptr;
 +
- 	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
- 		goto nla_put_failure;
- 
--- 
-2.31.1
++	for (dptr =3D &xtables_pending_targets; *dptr; ) {
++		ptr =3D &((*dptr)->next);
++		*dptr =3D NULL;
++		dptr =3D ptr;
++
++	}
++	xtables_pending_targets =3D NULL;
++
++	for (dptr =3D &xtables_targets; *dptr; ) {
++		ptr =3D &((*dptr)->next);
++		*dptr =3D NULL;
++		dptr =3D ptr;
++
++	}
++	xtables_targets =3D NULL;
++}
++
+ void xtables_init(void)
+ {
+ 	/* xtables cannot be used with setuid in a safe way. */
+@@ -366,6 +408,8 @@ void xtables_fini(void)
+ 	dlreg_free();
+ #endif
+ 	notargets_hlist_free();
++	xtables_release_matches();
++	xtables_release_targets();
+ }
+=20
+ void xtables_set_nfproto(uint8_t nfproto)
 
+Thanks in advance!
+
+Kind regards,
+Kevin Peeters
