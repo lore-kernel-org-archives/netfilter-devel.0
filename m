@@ -2,86 +2,97 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B43AC74A5B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Mar 2023 10:43:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBAA1C6FD18
+	for <netfilter-devel@archiver.kernel.org>; Wed, 29 Mar 2023 12:52:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230053AbjC2KnV (ORCPT
+        id S229543AbjC2Mwy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 29 Mar 2023 06:43:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49244 "EHLO
+        Wed, 29 Mar 2023 08:52:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229674AbjC2KnU (ORCPT
+        with ESMTP id S229586AbjC2Mwy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Mar 2023 06:43:20 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81F481FDA
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2023 03:43:18 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1phTGu-0006AK-I0; Wed, 29 Mar 2023 12:43:16 +0200
-Date:   Wed, 29 Mar 2023 12:43:16 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Kevin Peeters <kevin.peeters@prodrive-technologies.com>
-Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: iptables patch
-Message-ID: <ZCQWRF8aPQeu6Biv@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Kevin Peeters <kevin.peeters@prodrive-technologies.com>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-References: <AM9PR02MB76606476D4EED1FF1938F8A8A8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
- <AM9PR02MB766074FF89D28CE6655CA0B6A8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
- <AM9PR02MB7660795D89727FA09BD370DFA8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
- <AM9PR02MB766039341028D34A400D381CA8889@AM9PR02MB7660.eurprd02.prod.outlook.com>
- <ZCMN+lPI1YxWTyiQ@orbyte.nwl.cc>
- <AM9PR02MB766031C4F54E853C3D3AC1A6A8899@AM9PR02MB7660.eurprd02.prod.outlook.com>
+        Wed, 29 Mar 2023 08:52:54 -0400
+Received: from mail-4018.proton.ch (mail-4018.proton.ch [185.70.40.18])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEAA04C08
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2023 05:52:34 -0700 (PDT)
+Date:   Wed, 29 Mar 2023 12:52:18 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.ch;
+        s=flkpr2wsuffxhjcooektuxfa3a.protonmail; t=1680094351; x=1680353551;
+        bh=c1QD15LzZaTAIRFRf6LjfIix72zH56bDtMulJ+lrjKI=;
+        h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+         Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+        b=IxA6L2ctuSpHq9gYNTTKesQIcsCVMBx9uHyczfQeykzykuFVUf+fDew31vKy/dFs9
+         hKjacTMTq7jyx5tRTLPuMNAexC7AdqPa3189dgpRmh6VEr85XiTL2P3nQj2IgI+1fb
+         g79hk/8uipCH6NC1VG3SLwoRENDHo47MOWVF6cT6Yf+RJ4tdTS3ptFePGXwKmkuXdY
+         EzfdHV+RjUcF82uFnk6WaDoTAgUlPiMaiLF/YzFqn9F9QQ6pYL8kUKoQACXyGrUJ9F
+         oterhmjbU/3ckrhF5nh7f/+6qNbrpE76Uw+2EQt1yKDjTPKK5G8aoR5bWwgx0PU+bl
+         OEEdUyUcefxAA==
+To:     netfilter-devel@vger.kernel.org
+From:   Matthieu De Beule <matthieu.debeule@proton.ch>
+Cc:     Matthieu De Beule <matthieu.debeule@proton.ch>
+Subject: [PATCH nf-next] netfilter: Correct documentation errors in nf_tables.h
+Message-ID: <20230329124918.380799-1-matthieu.debeule@proton.ch>
+Feedback-ID: 66814732:user:proton
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AM9PR02MB766031C4F54E853C3D3AC1A6A8899@AM9PR02MB7660.eurprd02.prod.outlook.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Kevin,
+For NFTA_RANGE_OP incorrectly said it was a nft_cmp_ops instead of nft_rang=
+e_ops
+NFTA_LOG_GROUP and NFTA_LOG_QTHRESHOLD were documented as NLA_U32 instead o=
+f NLA_U16
+NFTA_EXTHDR_SREG wasn't documented as a register
 
-On Wed, Mar 29, 2023 at 07:29:06AM +0000, Kevin Peeters wrote:
-> >> I am using the 'iptables' source code in one of my software projects. More in detail, I am calling libiptc and libxtables from my own software API to add/delete/... iptables firewall rules.
-> >> 
-> >> While developing, I bumped into one issue while using libxtables and made a patch for it which we now use on our checkout of the 'iptables' repository. We do however use multiple checkouts of this repository in different places and don't want to add the patch to each of those checkouts.
-> >> Would it be possible for you to add this patch to the mainline of your repository so we can stop patching it locally?
-> >> 
-> >> The details about the patch:
-> >> In libxtables/xtables.c:
-> >> 
-> >> The libxtables code uses a xtables_pending_matches, xtables_pending_targets, xtables_matches and xtables_targets pointer list to track all (pending) matches and targets registered to the current iptables command. In my code, I add/delete firewall rules multiple times from one main process (without killing the main process in between) by calling xtables_init_all, xtables_register_target and xtables_register_match every time. When a rule is added, I call xtables_fini to clean up.
-> 
-> > I don't think you should call xtables_register_{target,match} over and over again. Why don't you follow what iptables does and call xtables_find_{target,match} to lookup an extension? It tries loading the DSO which calls xtables_register_*. After adding the rule, you should free the rule, not deinit the library.
-> 
-> If I understand correctly, xtables_find_* will only look for the desired match/target in the list of pending matches/targets. If the match/target is never registered up front, the list of pending matches/targets will be empty and xtables_find_* will fail. This is also done in the iptables flow, e.g. in extensions/libxt_tcp.c.
+Signed-off-by: Matthieu De Beule <matthieu.debeule@proton.ch>
+---
+ include/uapi/linux/netfilter/nf_tables.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-The functions search for the extension in xtables_pending_* list, but if
-not found they will call load_extension() unless NO_SHARED_LIBS is
-defined. In the latter case, extension code is built-in and extensions'
-_init() functions are called from init_extensions*() functions which in
-turn are called by iptables at program start.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/=
+netfilter/nf_tables.h
+index 466fd3f4447c..3b4cd85c6476 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -669,7 +669,7 @@ enum nft_range_ops {
+  * enum nft_range_attributes - nf_tables range expression netlink attribut=
+es
+  *
+  * @NFTA_RANGE_SREG: source register of data to compare (NLA_U32: nft_regi=
+sters)
+- * @NFTA_RANGE_OP: cmp operation (NLA_U32: nft_cmp_ops)
++ * @NFTA_RANGE_OP: cmp operation (NLA_U32: nft_range_ops)
+  * @NFTA_RANGE_FROM_DATA: data range from (NLA_NESTED: nft_data_attributes=
+)
+  * @NFTA_RANGE_TO_DATA: data range to (NLA_NESTED: nft_data_attributes)
+  */
+@@ -835,7 +835,7 @@ enum nft_exthdr_op {
+  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
+  * @NFTA_EXTHDR_FLAGS: extension header flags (NLA_U32)
+  * @NFTA_EXTHDR_OP: option match type (NLA_U32)
+- * @NFTA_EXTHDR_SREG: option match type (NLA_U32)
++ * @NFTA_EXTHDR_SREG: source register (NLA_U32: nft_registers)
+  */
+ enum nft_exthdr_attributes {
+ =09NFTA_EXTHDR_UNSPEC,
+@@ -1217,10 +1217,10 @@ enum nft_last_attributes {
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+- * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U32)
++ * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U16)
+  * @NFTA_LOG_PREFIX: prefix to prepend to log messages (NLA_STRING)
+  * @NFTA_LOG_SNAPLEN: length of payload to include in netlink message (NLA=
+_U32)
+- * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U32)
++ * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U16)
+  * @NFTA_LOG_LEVEL: log level (NLA_U32)
+  * @NFTA_LOG_FLAGS: logging flags (NLA_U32)
+  */
+--
+2.38.4
 
-> I do free the rule after adding it, and it felt reasonable to deinit the library as well, as this is also done for iptables.
 
-The various iptables binaries deinit the library at program exit and
-don't reuse it. 
-
-I don't know what you used as blueprint for your implementation, but you
-might want to have a look at iptables_restore_main() in
-iptables/iptables-restore.c. It basically does:
-
-| xtables_init()
-| xtables_set_nfproto()
-| 
-| init_extensions()
-| 
-| /* do all the work, repeatedly, unlimited if reading from stdin */
-| 
-| xtables_fini()
-| exit()
-
-Cheers, Phil
