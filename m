@@ -2,137 +2,142 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F249C761A6
-	for <netfilter-devel@archiver.kernel.org>; Fri, 31 Mar 2023 22:36:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D404EC761A6
+	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Apr 2023 02:31:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229909AbjCaWgM (ORCPT
+        id S233272AbjDACbC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 31 Mar 2023 18:36:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55486 "EHLO
+        Fri, 31 Mar 2023 22:31:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229850AbjCaWgL (ORCPT
+        with ESMTP id S233194AbjDACbB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Mar 2023 18:36:11 -0400
-Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627DE2032E
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2023 15:36:08 -0700 (PDT)
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
-        by mailout.west.internal (Postfix) with ESMTP id 1122F32007BE
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2023 18:36:04 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute2.internal (MEProxy); Fri, 31 Mar 2023 18:36:05 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alyssa.is; h=cc
-        :cc:content-transfer-encoding:content-type:date:date:from:from
-        :in-reply-to:message-id:mime-version:reply-to:sender:subject
-        :subject:to:to; s=fm1; t=1680302164; x=1680388564; bh=1Sb7gLz35S
-        xydsOkDbTh7S088c6astAo5R3/8pz2+Gw=; b=ZXNaST5kxP4SUqVEzpK5vRCZLd
-        cMS9QpcodqbP3dE9PuVszxROwLLDinhks81eJjLzYYZQMdkE0fO+0KS8aYbGGpom
-        SrgIRcPXeIGcTeKLtaxUyr2KdVGOMQCiqDPUUK/8dVtirByKRI2AejKFBXTckZsk
-        D6wufIlgn0omjOUOhmuvhdRrbYSp1O/1lA5l+ejOgol4zndk9TUN19MxX33RB5ig
-        KBa0OX12e41ZoDlBC/CQIE87wJXd6Gkrs4QJSvFQSdmezTXMZ8lxwIi61X543DuN
-        NuQy999Qh+MUPLKlNJvP5HMC4OhvEWlE8DSCRjLt8sH/NRivvOwdiDrKHsFA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:date:date:feedback-id:feedback-id:from:from
-        :in-reply-to:message-id:mime-version:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1680302164; x=1680388564; bh=1Sb7gLz35Sxyd
-        sOkDbTh7S088c6astAo5R3/8pz2+Gw=; b=mI1ewSex7V9b/IAhlTGZupezk9iES
-        rB/kNcDUk5G/MOE1BVNtbYgvHli7tWsiDqyWwHWujyEl4YDG5dynnQiiJ5gHKPh4
-        Wb0b0VNksRIHI1uKmwQiWhf/B5OtaP0+FQ67MYYwWVkVRh0HGPuGyAzz+zpiTdtP
-        wVXyj4pnVaYnv1ZIUACTa8I2uoX3GgX/Rm57mrsyOWLED8saYsG2JWVG+0df9GM/
-        z8n5XmesT2YuFki9mjnqnbQZdi+KyzpE5MROwg0PflWeOGWMX3DddEiRAHGJOQ8c
-        3VhgzoUHWNpOOEWm4ZM5/uSlhk+GoTXdVq31ikOqD01cD3INB/7Yxht0w==
-X-ME-Sender: <xms:VGAnZIWAvStlUG5Ce42eRGTAI8xJez6yRcZsdt76LxZ_aJgPdrFiZw>
-    <xme:VGAnZMlSufmRGua91kC9GoO5wODBMZ6o7HGBqJ3IXZLcuDNMaQvDXZijXjPSM9bOS
-    u5p2IdUj8aLK1Dc_g>
-X-ME-Received: <xmr:VGAnZMYt9WqDXoo61dIyyyn84FmOX6OVTHBg3hYtwsBkAD6oeiAfGX92utw9bo_Fp0NCNnSntR1S1ZUiWVZMx88o1vjXakiKzQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvdeivddgudefucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucenucfjughrpefhvfevufffkffoggfgsedtkeertd
-    ertddtnecuhfhrohhmpeetlhihshhsrgcutfhoshhsuceohhhisegrlhihshhsrgdrihhs
-    qeenucggtffrrghtthgvrhhnpeehkefgtdevtedtkeduudeguefgudejheeugfelgeettd
-    fhffduhfehudfhudeuhfenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgr
-    ihhlfhhrohhmpehhihesrghlhihsshgrrdhish
-X-ME-Proxy: <xmx:VGAnZHXN7_z7IJSTyIJn10pGr27JA8b7Wqm0liqkSIin6ie4G_U0Nw>
-    <xmx:VGAnZCld0T5ejrAAwDQb0P3SB5EFpnK47vSnJsJ-Og3DkLI1Wh8ifw>
-    <xmx:VGAnZMccisnvE_Fc8Xbaq6O_8KNLU8hl8vDQYdD4D85yzKVgrCJu2g>
-    <xmx:VGAnZMS1H4nQltQRD5fSpGpZFZCzHqs98qtivIkG4wouLAwRzsfv1Q>
-Feedback-ID: i12284293:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA for
- <netfilter-devel@vger.kernel.org>; Fri,
- 31 Mar 2023 18:36:04 -0400 (EDT)
-Received: by x220.qyliss.net (Postfix, from userid 1000)
-        id 3EF4825FE; Fri, 31 Mar 2023 22:36:02 +0000 (UTC)
-From:   Alyssa Ross <hi@alyssa.is>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Alyssa Ross <hi@alyssa.is>
-Subject: [PATCH iptables] build: use pkg-config for libpcap
-Date:   Fri, 31 Mar 2023 22:36:01 +0000
-Message-Id: <20230331223601.315215-1-hi@alyssa.is>
-X-Mailer: git-send-email 2.37.1
+        Fri, 31 Mar 2023 22:31:01 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29D3BDBC6
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2023 19:31:01 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id gp15-20020a17090adf0f00b0023d1bbd9f9eso27449573pjb.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2023 19:31:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1680316260;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ljxRC8l1Ts0AchrC/O9Mqcf8QOja4nreH3VdPE+ia3o=;
+        b=QCsi/pozo2IJ7UM1v1OV51LjzzHGlNukMyJJq9Y3VaB3sqF/Gn1fz0u8J2/CVAJXGE
+         bNiMuVV4N8aET+DwOOAJSneVF7z8yQi3Wt2pa8EFhCXz81a99S4kNnapkmY06H8YwB8E
+         Wsh7koAfO/WEF/GwFREZozjByJ15gg4fqs39I9VBL4HFQ7KMX6uSvvuRzNqHD+Wywk6q
+         OrbvExejtlbVs+udcLVSbauCWOd6288YBPTgBb5oEynRsVEiK3Q7pGkEu4D3PSc8pz0p
+         1j/uYJGO3J6qik5VwVTzrhaj3kDrCEd1PjNwmdrwIITh3G6n0m4klhiismHJl9vS+3IB
+         OJmA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680316260;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ljxRC8l1Ts0AchrC/O9Mqcf8QOja4nreH3VdPE+ia3o=;
+        b=KLPAALAwJeyKqWgsfIHb88Y/D5pjHFp8BZf0oJ6Xx6Nx4MZ24GnlNufSxRpABB1at2
+         8XrXxfJJWUmX+t5v3QkMx75dZ0+Xz/KZtoUPxlLpFn5bYejx5ib9If/YRUKGG/AfHN6j
+         b2qdW1UQZ8iOSLY+2zVLZNptryaNodQiC52qQmlgQT3YmTWIgJDNtovX70EPYK5hZeuh
+         wJY4yw1vWSWTmedLbpLwqI6K0L9DJJ5cewy0bJWo+SfSrh8uysaqhQ2ThPU6TMldJAm1
+         sWr17wBecc7qz8AfvrPdqR2ols1WuFy761bLwftuUBdWVCS4WymTRE82zE7aTC2Ql0uN
+         buLA==
+X-Gm-Message-State: AAQBX9fCsp5iD01TJxnf9dbgjqhm8YShcEEOasutZOPlonIytE0OPqLU
+        8kY4J4U9x1yD8mTK8zMV03BnZMqvs8LutL8FGsM=
+X-Google-Smtp-Source: AKy350YzanvnjXESu27/7MPm6zgzBtF4TLP7Q18jO2DBALX3+N6ZTy4b7Vk5aT6bzt03Wj8kzfSMLA==
+X-Received: by 2002:a17:902:e5cd:b0:1a1:a146:f6d7 with SMTP id u13-20020a170902e5cd00b001a1a146f6d7mr36416741plf.4.1680316260592;
+        Fri, 31 Mar 2023 19:31:00 -0700 (PDT)
+Received: from n157-068-149.byted.org ([240e:b1:e401:3::68])
+        by smtp.gmail.com with ESMTPSA id u5-20020a656705000000b00502e6bfedc0sm2326644pgf.0.2023.03.31.19.30.58
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 31 Mar 2023 19:31:00 -0700 (PDT)
+From:   Fei Cheng <chenwei.0515@bytedance.com>
+X-Google-Original-From: Fei Cheng <chenwei.0515@bytedance>
+To:     willemdebruijn.kernel@gmail.com, dsahern@kernel.org,
+        davem@davemloft.net, netfilter-devel@vger.kernel.org
+Cc:     chenwei.0515@bytedance.com
+Subject: [PATCH]     udp:nat:vxlan tx after nat should recsum if vxlan tx offload on
+Date:   Sat,  1 Apr 2023 10:30:29 +0800
+Message-Id: <20230401023029.967357-1-chenwei.0515@bytedance.com>
+X-Mailer: git-send-email 2.11.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If building statically, with libpcap built with libnl support, linking
-will fail, as the compiler won't be able to find the libnl symbols
-since static libraries don't contain dependency information.  To fix
-this, use pkg-config to find the flags for linking libpcap, since the
-pkg-config files contain the neccesary dependency information.
+From: "chenwei.0515" <chenwei.0515@bytedance.com>
 
-Signed-off-by: Alyssa Ross <hi@alyssa.is>
+    If vxlan-dev enable tx csum offload, there are two case of CHECKSUM_PARTIAL,
+    but udp->check donot have the both meanings.
+
+    1. vxlan-dev disable tx csum offload, udp->check is just pseudo hdr.
+    2. vxlan-dev enable tx csum offload, udp->check is pseudo hdr and
+       csum from outter l4 to innner l4.
+
+    Unfortunately if there is a nat process after vxlan tx，udp_manip_pkt just use
+    CSUM_PARTIAL to re csum PKT, which is just right on vxlan tx csum disable offload.
+
+    This patch use skb->csum_local flag to identify two case, which will csum lco_csum if valid.
+
+Signed-off-by: chenwei.0515 <chenwei.0515@bytedance.com>
 ---
- configure.ac      | 3 ++-
- utils/Makefile.am | 6 +++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ include/linux/skbuff.h       | 1 +
+ net/ipv4/udp.c               | 1 +
+ net/netfilter/nf_nat_proto.c | 9 +++++++++
+ 3 files changed, 11 insertions(+)
 
-diff --git a/configure.ac b/configure.ac
-index bc2ed47b..e0bb26aa 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -114,7 +114,8 @@ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
- AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index ff7ad331fb82..62996d8d0b4d 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -990,6 +990,7 @@ struct sk_buff {
+ 	__u8			slow_gro:1;
+ 	__u8			csum_not_inet:1;
+ 	__u8			scm_io_uring:1;
++	__u8			csum_local:1;
  
- if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
--	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
-+	PKG_CHECK_MODULES([libpcap], [libpcap], [], [
-+		AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool)])
- fi
+ #ifdef CONFIG_NET_SCHED
+ 	__u16			tc_index;	/* traffic control index */
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index c605d171eb2d..86bad0bbb76e 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -889,6 +889,7 @@ void udp_set_csum(bool nocheck, struct sk_buff *skb,
+ 		uh->check = udp_v4_check(len, saddr, daddr, lco_csum(skb));
+ 		if (uh->check == 0)
+ 			uh->check = CSUM_MANGLED_0;
++		skb->csum_local = 1;
+ 	} else {
+ 		skb->ip_summed = CHECKSUM_PARTIAL;
+ 		skb->csum_start = skb_transport_header(skb) - skb->head;
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index 48cc60084d28..a0261fe2d932 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -25,6 +25,7 @@
+ #include <net/ip6_route.h>
+ #include <net/xfrm.h>
+ #include <net/ipv6.h>
++#include <net/udp.h>
  
- PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index e9eec48f..34056514 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -2,7 +2,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack.h>
+@@ -75,6 +76,14 @@ static bool udp_manip_pkt(struct sk_buff *skb,
+ 	hdr = (struct udphdr *)(skb->data + hdroff);
+ 	__udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, !!hdr->check);
  
- AM_CFLAGS = ${regular_CFLAGS}
- AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_builddir}/include \
--              -I${top_srcdir}/include ${libnfnetlink_CFLAGS}
-+              -I${top_srcdir}/include ${libnfnetlink_CFLAGS} ${libpcap_CFLAGS}
- AM_LDFLAGS = ${regular_LDFLAGS}
++	if (skb->csum_local) {
++		hdr->check = 0;
++		hdr->check = udp_v4_check(htons(hdr->len), tuple->src.u3.ip, tuple->dst.u3.ip,
++					  lco_csum(skb));
++		if (hdr->check == 0)
++			hdr->check = CSUM_MANGLED_0;
++	}
++
+ 	return true;
+ }
  
- sbin_PROGRAMS =
-@@ -25,12 +25,12 @@ endif
- if ENABLE_BPFC
- man_MANS += nfbpf_compile.8
- sbin_PROGRAMS += nfbpf_compile
--nfbpf_compile_LDADD = -lpcap
-+nfbpf_compile_LDADD = ${libpcap_LIBS}
- endif
- 
- if ENABLE_SYNCONF
- sbin_PROGRAMS += nfsynproxy
--nfsynproxy_LDADD = -lpcap
-+nfsynproxy_LDADD = ${libpcap_LIBS}
- endif
- 
- CLEANFILES = nfnl_osf.8 nfbpf_compile.8
-
-base-commit: 09f0bfe2032454d21e3650e7ac75c4dc53f3c881
 -- 
-2.37.1
+2.11.0
 
