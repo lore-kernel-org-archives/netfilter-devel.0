@@ -2,51 +2,52 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71211C7619A
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Apr 2023 18:24:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D329C7619A
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Apr 2023 18:30:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230289AbjDBSYD (ORCPT
+        id S230383AbjDBSah (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 2 Apr 2023 14:24:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46170 "EHLO
+        Sun, 2 Apr 2023 14:30:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229681AbjDBSYC (ORCPT
+        with ESMTP id S229448AbjDBSah (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Apr 2023 14:24:02 -0400
+        Sun, 2 Apr 2023 14:30:37 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DC3C527F
-        for <netfilter-devel@vger.kernel.org>; Sun,  2 Apr 2023 11:24:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3152B45E
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Apr 2023 11:30:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
         Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=MKo/Chimmi9h3F4YC5EJcnjvwgWo1XG+fgjBS+04bGA=; b=UGgzg4fMfNiZWrz+VOzyItOGH1
-        SucfMsPa4ewZW6CxELoZsMUNp1nqzJk+3+UaYzndTLC8bK5a4HisfqH/+2uFZG9Eol5rKCQPRbdi+
-        r24ZQ72+yuiZuxd9gR9+X9wcuFlJjBiiiyKhEUqPOpZElIkFMVvYTpWCapo7ttnYHVcU2rwu3Jdor
-        q3Usm1z+Oe7C9/8l+bdsX5EfEPJKilj7EXtAvUl5JRbjByKnKR2dGskQPFbCYNUPd5cDNDlEEaPst
-        VvEzOrhoScrIjBgGSYgWPFoDXA7yiUSVZShCiBanAgpohNCLYhERx1VkBlHbHahuILRVvJBiB+KBE
-        ZIJW/qIg==;
+        bh=yL0JvS0ThkL0FGdCHwXVx0R534sNd8KA9MlaTXbWHGM=; b=WcWafyDY34woFLzo5lRzlcu1cJ
+        CKnlMMOWzgUNRejbi73WBCfcdg0ft0C/X3yHnUHyadIaw1E0O6YF1qy37jTO+iB1WJ5D3nC9CnufB
+        NOddU4onnz4+siSe9wkmNu9DIcEWI+1YkyklJiNhu4+qHOgwXDxcVxmsehM3P9U4eITNZUcg/UDiJ
+        AALJuVvuarq1z4rtLaqTktSN31P5f2LFR86rEfWzk/LiIIQGuNzTW6wzsLqrlTueLqNTrRJLi8mPl
+        C4IK5pn9mOyib5i3sEgVwRd4r6k5bUmskQ7LaooxKnUC8odFJpEgR0Z8pAb5JHGDGptpphIw8nP/5
+        iBxufHoA==;
 Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
         by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1pj2Mv-00Fftr-J4; Sun, 02 Apr 2023 19:23:57 +0100
-Date:   Sun, 2 Apr 2023 19:23:56 +0100
+        id 1pj2TK-00Fg5g-7G; Sun, 02 Apr 2023 19:30:34 +0100
+Date:   Sun, 2 Apr 2023 19:30:33 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Alyssa Ross <hi@alyssa.is>
 Cc:     netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH iptables] build: use pkg-config for libpcap
-Message-ID: <20230402182356.GE730228@celephais.dreamlands>
+Message-ID: <20230402183033.GF730228@celephais.dreamlands>
 References: <20230331223601.315215-1-hi@alyssa.is>
  <20230401114304.GB730228@celephais.dreamlands>
- <20230401192545.7bbscvjfvak3zc74@x220>
+ <20230401123018.GC730228@celephais.dreamlands>
+ <20230401195412.gjradx2lisntbk7z@x220>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="5RM55OQoS5p5b+4z"
+        protocol="application/pgp-signature"; boundary="b2o5uZ9ptPCvvm1F"
 Content-Disposition: inline
-In-Reply-To: <20230401192545.7bbscvjfvak3zc74@x220>
+In-Reply-To: <20230401195412.gjradx2lisntbk7z@x220>
 X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
@@ -55,58 +56,88 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---5RM55OQoS5p5b+4z
+--b2o5uZ9ptPCvvm1F
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2023-04-01, at 19:25:45 +0000, Alyssa Ross wrote:
-> On Sat, Apr 01, 2023 at 12:43:04PM +0100, Jeremy Sowden wrote:
-> > On 2023-03-31, at 22:36:01 +0000, Alyssa Ross wrote:
-> > > If building statically, with libpcap built with libnl support, linking
-> > > will fail, as the compiler won't be able to find the libnl symbols
-> > > since static libraries don't contain dependency information.  To fix
-> > > this, use pkg-config to find the flags for linking libpcap, since the
-> > > pkg-config files contain the neccesary dependency information.
-> >                                ^^^^^^^^^
-> > "necessary"
+On 2023-04-01, at 19:54:12 +0000, Alyssa Ross wrote:
+> On Sat, Apr 01, 2023 at 01:30:18PM +0100, Jeremy Sowden wrote:
+> > > > diff --git a/configure.ac b/configure.ac
+> > > > index bc2ed47b..e0bb26aa 100644
+> > > > --- a/configure.ac
+> > > > +++ b/configure.ac
+> > > > @@ -114,7 +114,8 @@ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enabl=
+e_nftables" =3D "yes"])
+> > > >  AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" =3D "=
+yes"])
+> > > >
+> > > >  if test "x$enable_bpfc" =3D "xyes" || test "x$enable_nfsynproxy" =
+=3D "xyes"; then
+> > > > -	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap li=
+brary required by bpf compiler or nfsynproxy tool))
+> > > > +	PKG_CHECK_MODULES([libpcap], [libpcap], [], [
+> > > > +		AC_MSG_ERROR(missing libpcap library required by bpf compiler or=
+ nfsynproxy tool)])
+> > > >  fi
 > >
-> > > Signed-off-by: Alyssa Ross <hi@alyssa.is>
+> > When autoconf first encounters `PKG_CHECK_MODULES`, if `$PKG_CONFIG` is
+> > not already defined it will execute `PKG_PROG_PKG_CONFIG` to find it.
+> > However, because you are calling `PKG_CHECK_MODULES` in a conditional,
+> > if `$enable_bpfc` and `$enable_nfsynproxy` are not `yes`, the expansion
+> > of `PKG_PROG_PKG_CONFIG` will not be executed and so the following
+> > pkg-config checks will fail:
 > >
-> > LGTM.  The only thing I would say is that pkg-config support was added
-> > to libpcap comparatively recently (2018).  When I made similar changes
-> > to ulogd2 last year, I added a fall-back to pcap-config:
+> >   checking for libnfnetlink >=3D 1.0... no
+> >   checking for libmnl >=3D 1.0... no
+> >   *** Error: No suitable libmnl found. ***
+> >       Please install the 'libmnl' package
+> >       Or consider --disable-nftables to skip
+> >       iptables-compat over nftables support.
 > >
-> >   https://git.netfilter.org/ulogd2/commit/?id=3Dbe4df8f66eb843dc19c7d1f=
-ed7c33fd7a40c2e21
+> > Something like this will fix it:
+> >
+> >   @@ -14,6 +14,7 @@ AC_PROG_CC
+> >    AM_PROG_CC_C_O
+> >    m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+> >    LT_INIT([disable-static])
+> >   +PKG_PROG_PKG_CONFIG
+> >
+> >    AC_ARG_WITH([kernel],
+> >           AS_HELP_STRING([--with-kernel=3DPATH],
+> >
+> > > >  PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >=3D 1.0],
 >=20
-> That's quite a lot of extra code.  Is it likely that people will want
-> to build a version of iptables that is five years newer than their
-> libpcap?
+> Another option would be to just move the libpcap change after this
+> unconditional one, avoiding the manual initialization.  Do you have a
+> preference?
 
-Not sure I'd call it a lot of code, but I agree that there probably
-aren't very many users who would benefit.
+Not really.  Atm, I am marginally inclined to think that the explicit
+initialization is more robust, but I don't remember ever having done it
+myself in the past, so if you prefer to move the conditional that's fine
+by me.
 
 J.
 
---5RM55OQoS5p5b+4z
+
+--b2o5uZ9ptPCvvm1F
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQpyCgACgkQKYasCr3x
-BA2E9hAAtGPjKo9QUHHKra/7+BV5BYA6pPCBS1EuEqfJ+zlNQPF6KNCldzGEw4+g
-XOGiHOTO258tH4eCIOIFXQFcWLvVh3YOSTGycOmxCiZb52fY5MNc2OeTKIpJh+Mi
-dkyyoAF9yd3aD7fRexfDvS7K1c2Z55MZU6RujSz3nYy7D5yrFjWooI0Z7XKDQn07
-ZFfQ3Srn4mBy+kDS/YPuaDDKawx8T82XlCfcD94QQHLppVkoJCTamXZL2bw0WUOK
-fw87xkOdHDdFmmI2S94Cd+urNV8pFd14yPyjVasBKyZELvCEgfgGXGC2LOjOyux/
-elk5/DIf32Xuvcs80B1ejQ9Cg39qo1Sxpn53jYZTPqhX5kxWGt7CMWdI7KDn8Z6d
-f83ZUvybkdzM/lJ5XUFZ0dSKoTQKbIiuDgMRrsWan2p+hQ0NP3W6KVE+vbT9ARUG
-mAGCW8KMVTZF/jPny7o7qMMZULuM5gkog2XSz9shZ2xqTrf8X0Mxh71oDpCJ8z6j
-3YoZx+yaHsPFRWvW6bzhMdfGPcAT3ZjPhSREMhftu1KGfLsEw5ExHS32SrE1GMBz
-aptJubTZAouDd66T0yEQetSiecJ6ko9mrgY2slN9077sLLcCL4BzpWxBWePz8gza
-3ioF0MlPLZIJ5UdwSgj6h6lS9NNM9PkAxgtsXypJVUiDVkmUHUo=
-=BvqV
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQpyckACgkQKYasCr3x
+BA2lzxAAoE95FVp+PRU2dX2tMTngWTprwezGSpmcg3b6ArGB33Of5gfgMjjU4kO9
+QpgDZwAXSlo5DzsqUzoxPkqjBSvD0DpFHseRAxByt1xBGbAsy33K8a2jpqHS8req
+XOVu2EqvVVZrROqkOf/wH/IRxfpPtnUWdctTSthlPtVMZjwvNJmOeZpEIe38pHY5
+koaoZi1SWT+oIenhN2f23KZTA3NN2M68mVOhp9jefX/aJMpoaZnpzSWWgk5ts2tN
+XoRrScBAVvt31k20Y9rYbpJieDkChCJNA6nltP8XnSMJ53bxCSWBHghxyfrf7XBp
+ceTkXGcmLOnR7OOjqbA0piUoG5qacT3yxT41itcerRrAvpuw/hpwv/YdGf56ul9y
+JnkkVJg4pj14o6mlCR0f7dz5GV+8GCnJAjwg25apkRBcjmVlBYBmqF/QqHQT68AK
+EC3S78ss9lCKTF+siuwdfvVnLY6rBV5ltk6Qv1mAnSFOenoaV9pdCr6EP1Vg0k9B
+RPIvjzA/AQnjUaeuSIcHLxijw9wIaT3haW0UZL6in/qqs+t+L3LsLHuE5lZcf/or
+eKuTXyvOvIKSOk61WEj25PkMhH+M0e6ZFOPiKdX4nFoZlsKJk7eiMFa5heKpne6Z
+C0u7ZiIWFGw5JzOm1aFjEy8oG1DBN2ymUlFHDGi6T3ywrPRky+4=
+=dK4y
 -----END PGP SIGNATURE-----
 
---5RM55OQoS5p5b+4z--
+--b2o5uZ9ptPCvvm1F--
