@@ -2,155 +2,151 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FF12C76196
-	for <netfilter-devel@archiver.kernel.org>; Sat,  1 Apr 2023 19:54:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF1A1C77B6C
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Apr 2023 06:05:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229603AbjDATyU (ORCPT
+        id S229445AbjDBGDg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 1 Apr 2023 15:54:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60572 "EHLO
+        Sun, 2 Apr 2023 02:03:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229379AbjDATyU (ORCPT
+        with ESMTP id S230234AbjDBGDf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Apr 2023 15:54:20 -0400
-Received: from wout4-smtp.messagingengine.com (wout4-smtp.messagingengine.com [64.147.123.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D90E41A963
-        for <netfilter-devel@vger.kernel.org>; Sat,  1 Apr 2023 12:54:18 -0700 (PDT)
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailout.west.internal (Postfix) with ESMTP id B12B9320095B;
-        Sat,  1 Apr 2023 15:54:15 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Sat, 01 Apr 2023 15:54:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alyssa.is; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm1; t=1680378855; x=1680465255; bh=+J
-        5pKaXmV/2XU2WhwiyCUW8b3FFE2hIa9Xhvd9OuBd4=; b=GluYLXQOevdf1YZCni
-        al7ZmL+9UKXW1n5PMDEcoL3BTHvWy8Hl2d5jXRygIWb89qDEUjr7ARwpb/YCsveQ
-        fLKpt3x9xLuIodOcishc9butnmop+t3IltN9+naau/qYTNKgY6W1p/grQobzrzfk
-        qpS7vfXMvdntZES65Aqkra8j6D/6Xe0O9nVq/GOdQKh2WpW4oBM2cGrBaieEHRU8
-        gy5/F3BrChFb4S+Tq7Q3ZNXNEWw+Ex1C8NY6HGwz6SiPcNlevKYHv5u7c0qQjXQO
-        8fV/HkZ0CnIpZ6IXCWEIc2Y0j/StL/Civa76Fm+LlnIfv4SpFMUnohIhUPDLrFT0
-        +HKw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm2; t=1680378855; x=1680465255; bh=+J5pKaXmV/2XU
-        2WhwiyCUW8b3FFE2hIa9Xhvd9OuBd4=; b=FkLXZf95SOnd486k2RB0xKElKCZig
-        5iicmPePvCqSfpGUaWbaCLsgVbeI8akgajE9CXulkGLYcp/IDi7nvPogBmri4ORM
-        9QlYBmDxF58usEsab4XJYqkDbBwBxj2o7EosoiHhGleXpVFXIB/2XGW2lADJbwZq
-        GGGvzwSbyV3bKHxuZEV3pjRZrHAnsKr3XZzaV62MIgzRkg30cAatc1VJ/taRSzQ+
-        QgqUo1AmXxtPcfq/sgguQR471BJ+ePf67ov+TPGZeW/X7E4j354XcPIprUj/iFZs
-        9DP7y9YzsG4xVx1EiXDdIe9Nb9ea+qlkYYkdowhYB/zY24hat0gZc91dA==
-X-ME-Sender: <xms:54soZHwhUsszubLY9CMn5kDEk3NCkAo8a9UB6JtQPC2cEU-88fdnvA>
-    <xme:54soZPTFUwrdG_ovy7pV-Sac9vLRjFxakwYRJloLilIKE0bKK7Pt4qARc-gcCLm0J
-    voCmL5QVOhE-eOhsg>
-X-ME-Received: <xmr:54soZBXZ1LWEu_F5nPahw7aKBGdVOzKfpQEZWUQ797Lyuq2vRDZNv_rpAxwvW6u_9qxgg6a7-Cp6wE3eEUnzrQmCnRmDqrG4fQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvdeifedgudegfecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enucfjughrpeffhffvvefukfhfgggtuggjsehgtderredttddvnecuhfhrohhmpeetlhih
-    shhsrgcutfhoshhsuceohhhisegrlhihshhsrgdrihhsqeenucggtffrrghtthgvrhhnpe
-    dvgeeifeffkeejhfdvhfdtffelteehjeelueehhfdvudeiueeugeeujefgtdetvdenucev
-    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehhihesrghlhi
-    hsshgrrdhish
-X-ME-Proxy: <xmx:54soZBi46EBYmLLWHcyy5w6wN5v939TPCnQDGhowgnriPwFSj8jI1A>
-    <xmx:54soZJC233pbDlZWzouvujmFhk4PwR5tDvoGtVYfmpQQD_9aDNnBeA>
-    <xmx:54soZKK37PyYTpGf5c6ZBReuItnRT0yN1Lk-50RpxhAF9U4uXuENiA>
-    <xmx:54soZMojmjZoGLAI4ZXsWUHHrBlwD3UTr5-NAAV1r_PwbrcziPjvJQ>
-Feedback-ID: i12284293:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sat,
- 1 Apr 2023 15:54:14 -0400 (EDT)
-Received: by x220.qyliss.net (Postfix, from userid 1000)
-        id 8A57E2615; Sat,  1 Apr 2023 19:54:12 +0000 (UTC)
-Date:   Sat, 1 Apr 2023 19:54:12 +0000
-From:   Alyssa Ross <hi@alyssa.is>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables] build: use pkg-config for libpcap
-Message-ID: <20230401195412.gjradx2lisntbk7z@x220>
-References: <20230331223601.315215-1-hi@alyssa.is>
- <20230401114304.GB730228@celephais.dreamlands>
- <20230401123018.GC730228@celephais.dreamlands>
+        Sun, 2 Apr 2023 02:03:35 -0400
+Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 350D621AAD
+        for <netfilter-devel@vger.kernel.org>; Sat,  1 Apr 2023 23:03:33 -0700 (PDT)
+Received: by mail-lj1-x229.google.com with SMTP id x20so27117440ljq.9
+        for <netfilter-devel@vger.kernel.org>; Sat, 01 Apr 2023 23:03:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112; t=1680415411;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=BqYyW7EZa3aXT88mEfZolIz7f7/7ZPGYTCIRNY9RI9M=;
+        b=fOJ7wDTwlrYOS/GNDSUHHsjAeYSg/GayPBpWqc7kP1CMcsDu5hkiXs97zj42/mMANK
+         r6vI3PKt5XTxkdg4nCtE86MvsbKwSZ8rb8ZMWwOR8kFDdRnV5YbPcrryQD3MjxLilQzE
+         9M0pzZTi5blpa27VqhOTwydOjx5KOOLB7b0YY3jRUpXe4An7TSeV44GqzgIwA6gN3KLC
+         0tQK7NpnDuKVvTXeNreN3AaizueRCDzCk8mJ7jknYebfdzytPwT+pkVX1logRPv2p8KH
+         kt/CAGqmMuvGoN5dxGBCfrvmFsunkcLLjZA+iJTAt/h8c73S0on8zjhToVO7Od38NC7P
+         BUPg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680415411;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=BqYyW7EZa3aXT88mEfZolIz7f7/7ZPGYTCIRNY9RI9M=;
+        b=6QHygI+Brxna6LfH8mLIk1HUK2L9C9M0/1NOw2RCr3MYCuHDTBwawMCCIvncCtVM4h
+         kCGpZlMDBcjR5bxIbkaZs4UWyGc7m2xozwAslCjuFhdigFVXQl2C8qzrlr+IviFMUVv6
+         npHOxfbvnIZKt++D0RRIiTL/KENSNnX9hq4zuSn1pBDmcY8ctZ205nB4mBFK3oVWxGNx
+         Snc4IpnXFC5rlJw5gyIaeby5wRWRvt6dUz9uub6X8buq9ccVwrpmBIgvuweabdY5UD2f
+         yMtH72sZ3wG1TWLjBoeh6rNu6pROCnNYSV1v2KKcFJavpyDLfG2FQP2LAIpIE+hGFThw
+         oTmg==
+X-Gm-Message-State: AAQBX9cIUqjABBlwBYO+LaKNl1TMO/yZlJkhRYvjKTgqYdN40GBzMiF7
+        FanOkTAOuZSFdOurv5SfNQVrBHm/PmdhWYXrn2E0BQ==
+X-Google-Smtp-Source: AKy350YerB16ilv8TX3k75szf4T1Q9DIFKnnm0bV4ZFURKhZGAo86Bao2uKywHc9CvQMcAwZEUnhYzIq725L1Z/r/lc=
+X-Received: by 2002:a2e:9949:0:b0:2a0:f395:cc44 with SMTP id
+ r9-20020a2e9949000000b002a0f395cc44mr9591129ljj.8.1680415411058; Sat, 01 Apr
+ 2023 23:03:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="f25ib5zpfuthakkt"
-Content-Disposition: inline
-In-Reply-To: <20230401123018.GC730228@celephais.dreamlands>
+References: <0000000000000cda0605c8bf219e@google.com> <00000000000073d78505cee3f389@google.com>
+In-Reply-To: <00000000000073d78505cee3f389@google.com>
+From:   Dmitry Vyukov <dvyukov@google.com>
+Date:   Sun, 2 Apr 2023 08:03:18 +0200
+Message-ID: <CACT4Y+Z_9WOw7x+xLzDqdjFUJ7Xy+PN9m9eBpFkYW22_=FjPHg@mail.gmail.com>
+Subject: Re: [syzbot] WARNING: proc registration bug in clusterip_tg_check (3)
+To:     syzbot <syzbot+08e6343a8cbd89b0c9d8@syzkaller.appspotmail.com>
+Cc:     ap420073@gmail.com, coreteam@netfilter.org, davem@davemloft.net,
+        dsahern@kernel.org, fw@strlen.de, kadlec@blackhole.kfki.hu,
+        kadlec@netfilter.org, kuba@kernel.org, kuznet@ms2.inr.ac.ru,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
---f25ib5zpfuthakkt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sat, Apr 01, 2023 at 01:30:18PM +0100, Jeremy Sowden wrote:
-> > > diff --git a/configure.ac b/configure.ac
-> > > index bc2ed47b..e0bb26aa 100644
-> > > --- a/configure.ac
-> > > +++ b/configure.ac
-> > > @@ -114,7 +114,8 @@ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
-> > >  AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
-> > >
-> > >  if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
-> > > -	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
-> > > +	PKG_CHECK_MODULES([libpcap], [libpcap], [], [
-> > > +		AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool)])
-> > >  fi
+On Thu, 21 Oct 2021 at 23:55, syzbot
+<syzbot+08e6343a8cbd89b0c9d8@syzkaller.appspotmail.com> wrote:
 >
-> When autoconf first encounters `PKG_CHECK_MODULES`, if `$PKG_CONFIG` is
-> not already defined it will execute `PKG_PROG_PKG_CONFIG` to find it.
-> However, because you are calling `PKG_CHECK_MODULES` in a conditional,
-> if `$enable_bpfc` and `$enable_nfsynproxy` are not `yes`, the expansion
-> of `PKG_PROG_PKG_CONFIG` will not be executed and so the following
-> pkg-config checks will fail:
+> syzbot has found a reproducer for the following issue on:
 >
->   checking for libnfnetlink >= 1.0... no
->   checking for libmnl >= 1.0... no
->   *** Error: No suitable libmnl found. ***
->       Please install the 'libmnl' package
->       Or consider --disable-nftables to skip
->       iptables-compat over nftables support.
+> HEAD commit:    2f111a6fd5b5 Merge tag 'ceph-for-5.15-rc7' of git://github..
+> git tree:       upstream
+> console output: https://syzkaller.appspot.com/x/log.txt?x=13e33db4b00000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=1f7f46d98a0da80e
+> dashboard link: https://syzkaller.appspot.com/bug?extid=08e6343a8cbd89b0c9d8
+> compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10f70630b00000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1033ffecb00000
 >
-> Something like this will fix it:
+> The issue was bisected to:
 >
->   @@ -14,6 +14,7 @@ AC_PROG_CC
->    AM_PROG_CC_C_O
->    m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
->    LT_INIT([disable-static])
->   +PKG_PROG_PKG_CONFIG
+> commit 2a61d8b883bbad26b06d2e6cc3777a697e78830d
+> Author: Taehee Yoo <ap420073@gmail.com>
+> Date:   Mon Nov 5 09:23:13 2018 +0000
 >
->    AC_ARG_WITH([kernel],
->           AS_HELP_STRING([--with-kernel=PATH],
+>     netfilter: ipt_CLUSTERIP: fix sleep-in-atomic bug in clusterip_config_entry_put()
 >
-> > >  PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=16ce2121300000
+> final oops:     https://syzkaller.appspot.com/x/report.txt?x=15ce2121300000
+> console output: https://syzkaller.appspot.com/x/log.txt?x=11ce2121300000
+>
+> IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> Reported-by: syzbot+08e6343a8cbd89b0c9d8@syzkaller.appspotmail.com
+> Fixes: 2a61d8b883bb ("netfilter: ipt_CLUSTERIP: fix sleep-in-atomic bug in clusterip_config_entry_put()")
 
-Another option would be to just move the libpcap change after this
-unconditional one, avoiding the manual initialization.  Do you have a
-preference?
+#syz fix: netfilter: ip_tables: remove clusterip target
 
---f25ib5zpfuthakkt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEH9wgcxqlHM/ARR3h+dvtSFmyccAFAmQoi+IACgkQ+dvtSFmy
-ccDzUw/7BGZIoyS4per+5rwMECjs5e08YwuEbP2mTf9Eqf7HlgQ+1VAP6kSdFqNB
-bN13Vf4mTy/ev/tAUnLJNPxBkSzRnO4XwP4EO20emN+/0R1COhpu3KGIqAFeZOZ1
-oYneqR5X7M9557gJv4IlD1rGzUf9BhQXZHmBYATwoYS6iktmx1zxjcT9e0xoO22S
-uppQXkOzzYMb3rFKX+42pa3R7FU7L3xoEJHGhhzgBXuz3qfgjkNtvrkfqgEqEesT
-8jNUj/NTaGC1mafblttwyZukXX5M5rDoKDdx2dbaYKoSgHlLd8YamA6/QJlIzphG
-H9CG2HN4cv7nbAlSkI4zit8aPpcnQWU5BODk7W2l4V6V2Xp3ECkIYORi7/B+3aCc
-HKxfvwhq2ZTqKZQwr4TMvDKmH7PO5ZVfqPT29Eiz9f9wwC+w5iek9MwURKSzYbNf
-bn0u24UyWs6jiHXW0js+xqNtB3uWAf0KL2uRdsF1ACDhWblbUHAB18CPHlFoIWEB
-hkBASsmT8ir/gV3v8BwkFLytYq5mELnGRKWx3HxlQzc496APY37EhXdq7NsozbzN
-QmVjRy/fw+ZpIwGR2kLPaMkgLsdRrws5pWw+H/qKKhiYRTf+TlBWHBFH/FuyiAyt
-lvGJKGC+bHwDL+u5LAgRVtHIh+U9P6U0t4YQ2oiU/PGxNmoJwto=
-=B1Tf
------END PGP SIGNATURE-----
-
---f25ib5zpfuthakkt--
+> ------------[ cut here ]------------
+> proc_dir_entry 'ipt_CLUSTERIP/224.0.0.1' already registered
+> WARNING: CPU: 1 PID: 24819 at fs/proc/generic.c:376 proc_register+0x34c/0x700 fs/proc/generic.c:376
+> Modules linked in:
+> CPU: 1 PID: 24819 Comm: syz-executor269 Not tainted 5.15.0-rc6-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> RIP: 0010:proc_register+0x34c/0x700 fs/proc/generic.c:376
+> Code: df 48 89 f9 48 c1 e9 03 80 3c 01 00 0f 85 5d 03 00 00 48 8b 44 24 28 48 c7 c7 e0 b1 9c 89 48 8b b0 d8 00 00 00 e8 a0 2c 01 07 <0f> 0b 48 c7 c7 40 ac b4 8b e8 26 c0 46 07 48 8b 4c 24 38 48 b8 00
+> RSP: 0018:ffffc900041df268 EFLAGS: 00010286
+> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+> RDX: ffff88806ca35580 RSI: ffffffff815e88a8 RDI: fffff5200083be3f
+> RBP: ffff88801af3c838 R08: 0000000000000000 R09: 0000000000000000
+> R10: ffffffff815e264e R11: 0000000000000000 R12: ffff88801ee5b498
+> R13: ffff88801ee5bd40 R14: dffffc0000000000 R15: 0000000000000009
+> FS:  00007f976a6aa700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00007f976a6aa718 CR3: 00000000697b9000 CR4: 00000000003506e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+>  proc_create_data+0x130/0x190 fs/proc/generic.c:575
+>  clusterip_config_init net/ipv4/netfilter/ipt_CLUSTERIP.c:292 [inline]
+>  clusterip_tg_check+0x1b83/0x2300 net/ipv4/netfilter/ipt_CLUSTERIP.c:517
+>  xt_check_target+0x26c/0x9e0 net/netfilter/x_tables.c:1038
+>  check_target net/ipv4/netfilter/ip_tables.c:511 [inline]
+>  find_check_entry.constprop.0+0x7a9/0x9a0 net/ipv4/netfilter/ip_tables.c:553
+>  translate_table+0xc26/0x16a0 net/ipv4/netfilter/ip_tables.c:717
+>  do_replace net/ipv4/netfilter/ip_tables.c:1135 [inline]
+>  do_ipt_set_ctl+0x56e/0xb80 net/ipv4/netfilter/ip_tables.c:1629
+>  nf_setsockopt+0x83/0xe0 net/netfilter/nf_sockopt.c:101
+>  ip_setsockopt+0x3c3/0x3a60 net/ipv4/ip_sockglue.c:1435
+>  tcp_setsockopt+0x136/0x2530 net/ipv4/tcp.c:3658
+>  __sys_setsockopt+0x2db/0x610 net/socket.c:2176
+>  __do_sys_setsockopt net/socket.c:2187 [inline]
+>  __se_sys_setsockopt net/socket.c:2184 [inline]
+>  __x64_sys_setsockopt+0xba/0x150 net/socket.c:2184
+>  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+>  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+>  entry_SYSCALL_64_after_hwframe+0x44/0xae
+> RIP: 0033:0x7f976af2bd19
+> Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 31 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+> RSP: 002b:00007f976a6aa208 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+> RAX: ffffffffffffffda RBX: 00007f976afb4278 RCX: 00007f976af2bd19
+> RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000004
+> RBP: 00007f976afb4270 R08: 0000000000000298 R09: 0000000000000000
+> R10: 00000000200002c0 R11: 0000000000000246 R12: 00007f976afb427c
+> R13: 00007fff7aa240bf R14: 00007f976a6aa300 R15: 0000000000022000
+>
+> --
+> You received this message because you are subscribed to the Google Groups "syzkaller-bugs" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller-bugs+unsubscribe@googlegroups.com.
+> To view this discussion on the web visit https://groups.google.com/d/msgid/syzkaller-bugs/00000000000073d78505cee3f389%40google.com.
