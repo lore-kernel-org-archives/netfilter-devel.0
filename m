@@ -2,184 +2,111 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16F4DC76196
-	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Apr 2023 18:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71211C7619A
+	for <netfilter-devel@archiver.kernel.org>; Sun,  2 Apr 2023 18:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231389AbjDBSS6 (ORCPT
+        id S230289AbjDBSYD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 2 Apr 2023 14:18:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40524 "EHLO
+        Sun, 2 Apr 2023 14:24:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231381AbjDBSS4 (ORCPT
+        with ESMTP id S229681AbjDBSYC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Apr 2023 14:18:56 -0400
-Received: from mail-ua1-x931.google.com (mail-ua1-x931.google.com [IPv6:2607:f8b0:4864:20::931])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB7D78A71;
-        Sun,  2 Apr 2023 11:18:53 -0700 (PDT)
-Received: by mail-ua1-x931.google.com with SMTP id t20so1870862uaw.5;
-        Sun, 02 Apr 2023 11:18:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680459533; x=1683051533;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hHSRAhIwBYA9x/eeP7HTExW01z5DAG+ze+JXsU/sf3o=;
-        b=Fd8WMdVX3qUrlVSt0Bm0gpeDNx124XJ/QwsdFOdRzK24LjPSsodpI3AYqmCH7HhsFl
-         SGvknosiCpfpqY6dQRVTe5MYDMiCMvwIZ9wkRMN4pr8Y0lZEiTJZYm4q3ejtMQchLKdf
-         JMxvcCIBWfJIPCXulFkXqAKxAgTsnww9WTCQ02cw5Qb2fNng5T2GGQHLa5KsNpe1Jwvl
-         xYNgAWi2Zpx7c2wWV+P9AQ4e7F4hd3bFk+fA34f5FzBzSOGfr2+32soGy4PgbeSj0QLB
-         KANeQIEYE9NVeEn8DPqqcymEl4AMrS3uh3i1xgtl+apQuLah776UO/CqspFG72kj3tea
-         OcKA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680459533; x=1683051533;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=hHSRAhIwBYA9x/eeP7HTExW01z5DAG+ze+JXsU/sf3o=;
-        b=O+FIQ3yoq4SDjOadkpUOjJj0CTo19AGPJY/Sb9XwfQedXTlmoA46Hbi7UEmYIlZg/j
-         9OSzTQTwCmqH/fnXAisk6p8017nb7h3dUe8KSO++e9awrTFvSV5RyJAckfuwJbNkBn4x
-         SESvK+w38D/nA2beEWu/eUa38c6QxXzoeo4MDEtNFeQAFjMgb0amxqLnE9x/zgoH06F2
-         WhiaIc3y8Tr7dFad/dJ2y2+v3ofxCm7sMHtYbzuLSgNp7Yw2MbuFq6xTKOZ4vbXOYB8Z
-         22fSUJ8bjRGZLtzPc+kS1BrKotWa6+wxOcHjmgD2oLmpVV3HsxzRZ3Vyj3ClhryRpyCX
-         lANQ==
-X-Gm-Message-State: AAQBX9eEfOYv3YPntJhjswHYn1RQ6GbyQwm1wm2iWTD+pAiEdm+c7WgO
-        vJ7hNhXJNUY6eL44ZCPnD1ZWZYq5voyCjEa/SyI=
-X-Google-Smtp-Source: AKy350bsLS1Rz0GxrZdcTynmXyvYn78tcJlTBkyLQ0XQuC470sH5lh4N3lIlNO+yd2MZBgXQachaUEc9jYcRllveAWA=
-X-Received: by 2002:a1f:abd2:0:b0:43c:3dd6:5535 with SMTP id
- u201-20020a1fabd2000000b0043c3dd65535mr3959076vke.0.1680459532872; Sun, 02
- Apr 2023 11:18:52 -0700 (PDT)
+        Sun, 2 Apr 2023 14:24:02 -0400
+Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DC3C527F
+        for <netfilter-devel@vger.kernel.org>; Sun,  2 Apr 2023 11:24:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=MKo/Chimmi9h3F4YC5EJcnjvwgWo1XG+fgjBS+04bGA=; b=UGgzg4fMfNiZWrz+VOzyItOGH1
+        SucfMsPa4ewZW6CxELoZsMUNp1nqzJk+3+UaYzndTLC8bK5a4HisfqH/+2uFZG9Eol5rKCQPRbdi+
+        r24ZQ72+yuiZuxd9gR9+X9wcuFlJjBiiiyKhEUqPOpZElIkFMVvYTpWCapo7ttnYHVcU2rwu3Jdor
+        q3Usm1z+Oe7C9/8l+bdsX5EfEPJKilj7EXtAvUl5JRbjByKnKR2dGskQPFbCYNUPd5cDNDlEEaPst
+        VvEzOrhoScrIjBgGSYgWPFoDXA7yiUSVZShCiBanAgpohNCLYhERx1VkBlHbHahuILRVvJBiB+KBE
+        ZIJW/qIg==;
+Received: from [2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] (helo=celephais.dreamlands)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1pj2Mv-00Fftr-J4; Sun, 02 Apr 2023 19:23:57 +0100
+Date:   Sun, 2 Apr 2023 19:23:56 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Alyssa Ross <hi@alyssa.is>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables] build: use pkg-config for libpcap
+Message-ID: <20230402182356.GE730228@celephais.dreamlands>
+References: <20230331223601.315215-1-hi@alyssa.is>
+ <20230401114304.GB730228@celephais.dreamlands>
+ <20230401192545.7bbscvjfvak3zc74@x220>
 MIME-Version: 1.0
-References: <20230401023029.967357-1-chenwei.0515@bytedance.com>
-In-Reply-To: <20230401023029.967357-1-chenwei.0515@bytedance.com>
-From:   Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Date:   Sun, 2 Apr 2023 14:18:11 -0400
-Message-ID: <CAF=yD-Lg_XSnE9frH9UFpJCZLx-gg2KHzVu7KmnigidujCvepQ@mail.gmail.com>
-Subject: Re: [PATCH] udp:nat:vxlan tx after nat should recsum if vxlan tx
- offload on
-To:     Fei Cheng <chenwei.0515@bytedance.com>
-Cc:     dsahern@kernel.org, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org,
-        Edward Cree <ecree@solarflare.com>,
-        Network Development <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="5RM55OQoS5p5b+4z"
+Content-Disposition: inline
+In-Reply-To: <20230401192545.7bbscvjfvak3zc74@x220>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Mar 31, 2023 at 10:31=E2=80=AFPM Fei Cheng <chenwei.0515@bytedance.=
-com> wrote:
->
-> From: "chenwei.0515" <chenwei.0515@bytedance.com>
->
->     If vxlan-dev enable tx csum offload, there are two case of CHECKSUM_P=
-ARTIAL,
->     but udp->check donot have the both meanings.
->
->     1. vxlan-dev disable tx csum offload, udp->check is just pseudo hdr.
->     2. vxlan-dev enable tx csum offload, udp->check is pseudo hdr and
->        csum from outter l4 to innner l4.
->
->     Unfortunately if there is a nat process after vxlan tx=EF=BC=8Cudp_ma=
-nip_pkt just use
->     CSUM_PARTIAL to re csum PKT, which is just right on vxlan tx csum dis=
-able offload.
 
-The issue is that for encapsulated traffic with local checksum offload,
-netfilter incorrectly recomputes the outer UDP checksum as if it is an
-unencapsulated CHECKSUM_PARTIAL packet, correct?
+--5RM55OQoS5p5b+4z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So the underlying issue is that the two types of packets are
-indistinguishable after udp_set_csum:
+On 2023-04-01, at 19:25:45 +0000, Alyssa Ross wrote:
+> On Sat, Apr 01, 2023 at 12:43:04PM +0100, Jeremy Sowden wrote:
+> > On 2023-03-31, at 22:36:01 +0000, Alyssa Ross wrote:
+> > > If building statically, with libpcap built with libnl support, linking
+> > > will fail, as the compiler won't be able to find the libnl symbols
+> > > since static libraries don't contain dependency information.  To fix
+> > > this, use pkg-config to find the flags for linking libpcap, since the
+> > > pkg-config files contain the neccesary dependency information.
+> >                                ^^^^^^^^^
+> > "necessary"
+> >
+> > > Signed-off-by: Alyssa Ross <hi@alyssa.is>
+> >
+> > LGTM.  The only thing I would say is that pkg-config support was added
+> > to libpcap comparatively recently (2018).  When I made similar changes
+> > to ulogd2 last year, I added a fall-back to pcap-config:
+> >
+> >   https://git.netfilter.org/ulogd2/commit/?id=3Dbe4df8f66eb843dc19c7d1f=
+ed7c33fd7a40c2e21
+>=20
+> That's quite a lot of extra code.  Is it likely that people will want
+> to build a version of iptables that is five years newer than their
+> libpcap?
 
-        } else if (skb->ip_summed =3D=3D CHECKSUM_PARTIAL) {
-                uh->check =3D 0;
-                uh->check =3D udp_v4_check(len, saddr, daddr, lco_csum(skb)=
-);
-                if (uh->check =3D=3D 0)
-                        uh->check =3D CSUM_MANGLED_0;
-        } else {
-                skb->ip_summed =3D CHECKSUM_PARTIAL;
-                skb->csum_start =3D skb_transport_header(skb) - skb->head;
-                skb->csum_offset =3D offsetof(struct udphdr, check);
-                uh->check =3D ~udp_v4_check(len, saddr, daddr, 0);
-        }
+Not sure I'd call it a lot of code, but I agree that there probably
+aren't very many users who would benefit.
 
-Clearly their ip_summed will be the same.
+J.
 
->
->     This patch use skb->csum_local flag to identify two case, which will =
-csum lco_csum if valid.
->
-> Signed-off-by: chenwei.0515 <chenwei.0515@bytedance.com>
-> ---
->  include/linux/skbuff.h       | 1 +
->  net/ipv4/udp.c               | 1 +
->  net/netfilter/nf_nat_proto.c | 9 +++++++++
->  3 files changed, 11 insertions(+)
->
-> diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-> index ff7ad331fb82..62996d8d0b4d 100644
-> --- a/include/linux/skbuff.h
-> +++ b/include/linux/skbuff.h
-> @@ -990,6 +990,7 @@ struct sk_buff {
->         __u8                    slow_gro:1;
->         __u8                    csum_not_inet:1;
->         __u8                    scm_io_uring:1;
-> +       __u8                    csum_local:1;
+--5RM55OQoS5p5b+4z
+Content-Type: application/pgp-signature; name="signature.asc"
 
-sk_buff are in space constrained.
+-----BEGIN PGP SIGNATURE-----
 
-I hope we can disambiguate the packets somehow without having
-to resort to a new flag.
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQpyCgACgkQKYasCr3x
+BA2E9hAAtGPjKo9QUHHKra/7+BV5BYA6pPCBS1EuEqfJ+zlNQPF6KNCldzGEw4+g
+XOGiHOTO258tH4eCIOIFXQFcWLvVh3YOSTGycOmxCiZb52fY5MNc2OeTKIpJh+Mi
+dkyyoAF9yd3aD7fRexfDvS7K1c2Z55MZU6RujSz3nYy7D5yrFjWooI0Z7XKDQn07
+ZFfQ3Srn4mBy+kDS/YPuaDDKawx8T82XlCfcD94QQHLppVkoJCTamXZL2bw0WUOK
+fw87xkOdHDdFmmI2S94Cd+urNV8pFd14yPyjVasBKyZELvCEgfgGXGC2LOjOyux/
+elk5/DIf32Xuvcs80B1ejQ9Cg39qo1Sxpn53jYZTPqhX5kxWGt7CMWdI7KDn8Z6d
+f83ZUvybkdzM/lJ5XUFZ0dSKoTQKbIiuDgMRrsWan2p+hQ0NP3W6KVE+vbT9ARUG
+mAGCW8KMVTZF/jPny7o7qMMZULuM5gkog2XSz9shZ2xqTrf8X0Mxh71oDpCJ8z6j
+3YoZx+yaHsPFRWvW6bzhMdfGPcAT3ZjPhSREMhftu1KGfLsEw5ExHS32SrE1GMBz
+aptJubTZAouDd66T0yEQetSiecJ6ko9mrgY2slN9077sLLcCL4BzpWxBWePz8gza
+3ioF0MlPLZIJ5UdwSgj6h6lS9NNM9PkAxgtsXypJVUiDVkmUHUo=
+=BvqV
+-----END PGP SIGNATURE-----
 
->
->  #ifdef CONFIG_NET_SCHED
->         __u16                   tc_index;       /* traffic control index =
-*/
-> diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
-> index c605d171eb2d..86bad0bbb76e 100644
-> --- a/net/ipv4/udp.c
-> +++ b/net/ipv4/udp.c
-> @@ -889,6 +889,7 @@ void udp_set_csum(bool nocheck, struct sk_buff *skb,
->                 uh->check =3D udp_v4_check(len, saddr, daddr, lco_csum(sk=
-b));
->                 if (uh->check =3D=3D 0)
->                         uh->check =3D CSUM_MANGLED_0;
-> +               skb->csum_local =3D 1;
->         } else {
->                 skb->ip_summed =3D CHECKSUM_PARTIAL;
->                 skb->csum_start =3D skb_transport_header(skb) - skb->head=
-;
-> diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-> index 48cc60084d28..a0261fe2d932 100644
-> --- a/net/netfilter/nf_nat_proto.c
-> +++ b/net/netfilter/nf_nat_proto.c
-> @@ -25,6 +25,7 @@
->  #include <net/ip6_route.h>
->  #include <net/xfrm.h>
->  #include <net/ipv6.h>
-> +#include <net/udp.h>
->
->  #include <net/netfilter/nf_conntrack_core.h>
->  #include <net/netfilter/nf_conntrack.h>
-> @@ -75,6 +76,14 @@ static bool udp_manip_pkt(struct sk_buff *skb,
->         hdr =3D (struct udphdr *)(skb->data + hdroff);
->         __udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, !!hdr->chec=
-k);
->
-> +       if (skb->csum_local) {
-> +               hdr->check =3D 0;
-> +               hdr->check =3D udp_v4_check(htons(hdr->len), tuple->src.u=
-3.ip, tuple->dst.u3.ip,
-> +                                         lco_csum(skb));
-> +               if (hdr->check =3D=3D 0)
-> +                       hdr->check =3D CSUM_MANGLED_0;
-> +       }
-> +
->         return true;
->  }
->
-> --
-> 2.11.0
->
+--5RM55OQoS5p5b+4z--
