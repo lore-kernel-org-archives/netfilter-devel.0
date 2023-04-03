@@ -2,134 +2,107 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C2DAC77B60
-	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Apr 2023 09:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59655C761A6
+	for <netfilter-devel@archiver.kernel.org>; Mon,  3 Apr 2023 10:56:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231571AbjDCJOC (ORCPT
+        id S230175AbjDCK41 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Apr 2023 05:14:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32950 "EHLO
+        Mon, 3 Apr 2023 06:56:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231285AbjDCJOB (ORCPT
+        with ESMTP id S231245AbjDCK40 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Apr 2023 05:14:01 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB5424ED5
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Apr 2023 02:13:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1680513239; x=1712049239;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=6+SAyrxuNamj1Gz85be/Ibt2hM7RxeSogWrKgGtCiUQ=;
-  b=e8h3jwNXpok2JAIRIuvVQqk04OQtnNIPW5+EfUrZed/HpLDidoP0Amoi
-   eMx6f9MllgN0Mn6op1aHLPEeWwkCiM7FWa2EBW7le2+gvauoCdgkx8NZt
-   qalB6emf2sIbAYQ2lr/m23oo2qkF/XvNqqqcC4eS7kCxO26a5mfj3+H1y
-   MTFhjnqq7b2y2dmQMGqD+nPqhVPEIJVoCk+scQRsf/Ch+KllEQzzLaU7s
-   VYaRzfkSzHRnUJSraOallL9XWzeVyVe6+ThqgSGV81yTJ5eXvlSms0z08
-   YUsKNcUZ5AINZ/H3oukyGZOrNmYA0yhQ2kq+r+eX3PCV6UDVKPWrU4Fw5
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10668"; a="344401042"
-X-IronPort-AV: E=Sophos;i="5.98,314,1673942400"; 
-   d="scan'208";a="344401042"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Apr 2023 02:13:59 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10668"; a="663136721"
-X-IronPort-AV: E=Sophos;i="5.98,314,1673942400"; 
-   d="scan'208";a="663136721"
-Received: from lkp-server01.sh.intel.com (HELO b613635ddfff) ([10.239.97.150])
-  by orsmga006.jf.intel.com with ESMTP; 03 Apr 2023 02:13:57 -0700
-Received: from kbuild by b613635ddfff with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pjGGD-000O95-04;
-        Mon, 03 Apr 2023 09:13:57 +0000
-Date:   Mon, 3 Apr 2023 17:12:57 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Fei Cheng <chenwei.0515@bytedance.com>,
-        willemdebruijn.kernel@gmail.com, dsahern@kernel.org,
-        davem@davemloft.net, netfilter-devel@vger.kernel.org
-Cc:     oe-kbuild-all@lists.linux.dev, chenwei.0515@bytedance.com
-Subject: Re: [PATCH]     udp:nat:vxlan tx after nat should recsum if vxlan tx
+        Mon, 3 Apr 2023 06:56:26 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B1CF5FE1;
+        Mon,  3 Apr 2023 03:56:25 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id j1-20020a05600c1c0100b003f04da00d07so1369656wms.1;
+        Mon, 03 Apr 2023 03:56:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1680519384;
+        h=content-transfer-encoding:content-language:in-reply-to:mime-version
+         :user-agent:date:message-id:from:references:cc:to:subject:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=l1i/QXNc6lXMKJ7pXgmtLMgzIk+6jhfEKBjAn/Et1rw=;
+        b=SY9DrhXh9MbQhpfR51VHj3wfR3mG1imKJmXJ88H0VIVh1pqtBNYJsO6s/J4ob+FDW9
+         +5rqli8TusTk4LlO0sXY1pnnigkzxRsaqVyCP9nyS/1MgPCl/I008mQ3aW5M77Pa2v0R
+         FajYlaQoqOR4Mna5k8c/585e67FVp7is2pXcDcecX/bZmN5GExoeor4zx6uh4nAtfG0G
+         vZsDsGR8VSCY7MSlM+h/4mDtl6lC35IkRBB+MWaeauR6/sFCWBpq98gptNKKdkcxcVJs
+         dKrQBX5zDDrbWMa+s/Majo/f+uoopvU7MuPVGsKPwWeIerw7XuwTQP/dS4LjmCIMTB8y
+         XRqA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680519384;
+        h=content-transfer-encoding:content-language:in-reply-to:mime-version
+         :user-agent:date:message-id:from:references:cc:to:subject
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=l1i/QXNc6lXMKJ7pXgmtLMgzIk+6jhfEKBjAn/Et1rw=;
+        b=SMlspt9Br/d5euh+bWTLLVDMGxzdtZuF5w2ptAAPW6iECI70HHymJqZ66N+LGti8Tk
+         khBl8sLZq4+lJ3YL2yfKkQgcRpDaIvT5OL9C8xyTzCkmPNP4aORPAwPjbL4ppZJiFfeH
+         p+vOKN4ohjf0Esgy7fedjmLE1GMIF6kPhhW4P+Z54FUSR+KEYLzUV1TdSSIgiOCVXee8
+         dSokHQdEmzc9Ka6+AAucN8YJShBWAzTp0WPVFupM+LX+fbQsbG2Mx0HOwWbQCLgUJf9F
+         JHEtPWy1Z4lSZJ8Hkad+cZjp/WoRLSw69sGzKf1XUOycwTuk6OhDz+5kPdMRYqnWEiOg
+         wSDw==
+X-Gm-Message-State: AO0yUKU3dY/52HNZqFWOmmbg+dRIlkD6rn1GflPteC3eFUIckCG2hbl1
+        /lZjJ9qo6eBz+8q9PzqD3C0=
+X-Google-Smtp-Source: AK7set/4v/PIYKJUgECZ5BNmXFGzamGX8uKaz9ksiy+uqC3NIjHxHdJw4WF1RjeH/wKnDKNl1cf3xQ==
+X-Received: by 2002:a1c:7207:0:b0:3ed:2606:d236 with SMTP id n7-20020a1c7207000000b003ed2606d236mr25782065wmc.38.1680519383527;
+        Mon, 03 Apr 2023 03:56:23 -0700 (PDT)
+Received: from [192.168.1.122] (cpc159313-cmbg20-2-0-cust161.5-4.cable.virginm.net. [82.0.78.162])
+        by smtp.gmail.com with ESMTPSA id k22-20020a7bc316000000b003ee20b4b2dasm11675100wmj.46.2023.04.03.03.56.22
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 03 Apr 2023 03:56:23 -0700 (PDT)
+Subject: Re: [PATCH] udp:nat:vxlan tx after nat should recsum if vxlan tx
  offload on
-Message-ID: <202304031611.3W21vgtb-lkp@intel.com>
+To:     Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+        Fei Cheng <chenwei.0515@bytedance.com>
+Cc:     dsahern@kernel.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org,
+        Network Development <netdev@vger.kernel.org>, ecree@amd.com
 References: <20230401023029.967357-1-chenwei.0515@bytedance.com>
+ <CAF=yD-Lg_XSnE9frH9UFpJCZLx-gg2KHzVu7KmnigidujCvepQ@mail.gmail.com>
+From:   Edward Cree <ecree.xilinx@gmail.com>
+Message-ID: <fae01ad9-4270-2153-9ba4-cf116c8ed975@gmail.com>
+Date:   Mon, 3 Apr 2023 11:56:22 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230401023029.967357-1-chenwei.0515@bytedance.com>
+In-Reply-To: <CAF=yD-Lg_XSnE9frH9UFpJCZLx-gg2KHzVu7KmnigidujCvepQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Fei,
+On 02/04/2023 19:18, Willem de Bruijn wrote:
+> On Fri, Mar 31, 2023 at 10:31 PM Fei Cheng <chenwei.0515@bytedance.com> wrote:
+>>
+>> From: "chenwei.0515" <chenwei.0515@bytedance.com>
+>>
+>>     If vxlan-dev enable tx csum offload, there are two case of CHECKSUM_PARTIAL,
+>>     but udp->check donot have the both meanings.
+>>
+>>     1. vxlan-dev disable tx csum offload, udp->check is just pseudo hdr.
+>>     2. vxlan-dev enable tx csum offload, udp->check is pseudo hdr and
+>>        csum from outter l4 to innner l4.
+>>
+>>     Unfortunately if there is a nat process after vxlan tx，udp_manip_pkt just use
+>>     CSUM_PARTIAL to re csum PKT, which is just right on vxlan tx csum disable offload.
 
-Thank you for the patch! Perhaps something to improve:
+In case 1 csum_start should point to the (outer) UDP header, whereas in
+ case 2 csum_start should point to the inner L4 header (because in the
+ normal TX path w/o NAT, nothing else will ever need to touch the outer
+ csum after this point).
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on v6.3-rc5]
-[cannot apply to next-20230331]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+> The issue is that for encapsulated traffic with local checksum offload,
+> netfilter incorrectly recomputes the outer UDP checksum as if it is an
+> unencapsulated CHECKSUM_PARTIAL packet, correct?
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Fei-Cheng/udp-nat-vxlan-tx-after-nat-should-recsum-if-vxlan-tx-offload-on/20230401-103127
-patch link:    https://lore.kernel.org/r/20230401023029.967357-1-chenwei.0515%40bytedance.com
-patch subject: [PATCH]     udp:nat:vxlan tx after nat should recsum if vxlan tx offload on
-config: microblaze-randconfig-s052-20230402 (https://download.01.org/0day-ci/archive/20230403/202304031611.3W21vgtb-lkp@intel.com/config)
-compiler: microblaze-linux-gcc (GCC) 12.1.0
-reproduce:
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # apt-get install sparse
-        # sparse version: v0.6.4-39-gce1a6720-dirty
-        # https://github.com/intel-lab-lkp/linux/commit/58c404cd43734d67706e3dc48c04a3e11e9dd8e8
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Fei-Cheng/udp-nat-vxlan-tx-after-nat-should-recsum-if-vxlan-tx-offload-on/20230401-103127
-        git checkout 58c404cd43734d67706e3dc48c04a3e11e9dd8e8
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=microblaze olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=microblaze SHELL=/bin/bash net/netfilter/
+So if netfilter sees a packet with CHECKSUM_PARTIAL whose csum_start
+ doesn't point to the header nf NAT is editing, that's exactly the case
+ where it needs to use lco_csum to calculate the new outer sum.  No?
 
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202304031611.3W21vgtb-lkp@intel.com/
+-ed
 
-sparse warnings: (new ones prefixed by >>)
->> net/netfilter/nf_nat_proto.c:81:43: sparse: sparse: cast from restricted __be16
->> net/netfilter/nf_nat_proto.c:81:43: sparse: sparse: incorrect type in argument 1 (different base types) @@     expected int len @@     got restricted __be16 [usertype] @@
-   net/netfilter/nf_nat_proto.c:81:43: sparse:     expected int len
-   net/netfilter/nf_nat_proto.c:81:43: sparse:     got restricted __be16 [usertype]
-
-vim +81 net/netfilter/nf_nat_proto.c
-
-    65	
-    66	static bool udp_manip_pkt(struct sk_buff *skb,
-    67				  unsigned int iphdroff, unsigned int hdroff,
-    68				  const struct nf_conntrack_tuple *tuple,
-    69				  enum nf_nat_manip_type maniptype)
-    70	{
-    71		struct udphdr *hdr;
-    72	
-    73		if (skb_ensure_writable(skb, hdroff + sizeof(*hdr)))
-    74			return false;
-    75	
-    76		hdr = (struct udphdr *)(skb->data + hdroff);
-    77		__udp_manip_pkt(skb, iphdroff, hdr, tuple, maniptype, !!hdr->check);
-    78	
-    79		if (skb->csum_local) {
-    80			hdr->check = 0;
-  > 81			hdr->check = udp_v4_check(htons(hdr->len), tuple->src.u3.ip, tuple->dst.u3.ip,
-    82						  lco_csum(skb));
-    83			if (hdr->check == 0)
-    84				hdr->check = CSUM_MANGLED_0;
-    85		}
-    86	
-    87		return true;
-    88	}
-    89	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+PS. Fei, your emails aren't reaching the netdev mailing list, probably
+ because you're sending as HTML.  Please switch to plain text.
