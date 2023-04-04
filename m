@@ -2,183 +2,110 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E77ACC6FD1D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 09:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA905C6FD1D
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 10:26:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234186AbjDDJqQ (ORCPT
+        id S234058AbjDDK0p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Apr 2023 05:46:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46896 "EHLO
+        Tue, 4 Apr 2023 06:26:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234198AbjDDJqN (ORCPT
+        with ESMTP id S234193AbjDDK0g (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Apr 2023 05:46:13 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BCA12D73
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2023 02:45:51 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pjdEb-0004jq-Ow; Tue, 04 Apr 2023 11:45:49 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables 1/2] include: update nf_tables uapi header
-Date:   Tue,  4 Apr 2023 11:45:43 +0200
-Message-Id: <20230404094544.2892-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
+        Tue, 4 Apr 2023 06:26:36 -0400
+Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4423130F7;
+        Tue,  4 Apr 2023 03:26:13 -0700 (PDT)
+Received: by mail-wr1-x432.google.com with SMTP id m2so32238793wrh.6;
+        Tue, 04 Apr 2023 03:26:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1680603971;
+        h=content-transfer-encoding:content-language:in-reply-to:mime-version
+         :user-agent:date:message-id:from:references:cc:to:subject:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=2cV2Dka8GlFwpI8wHuKuZQguPKqTBu//QF7+SDUmI+o=;
+        b=HWxgSnsmYYJ4kXFewV1I5RgQcJ2fWaBRKrZg8CuBKlej6ph+S0CAadS1jGgQZIzBcx
+         CLagu6drb50CcyrWGlBXIpO9Jxqq56p0bylaHkOmXJb8UJsR9MvEHAcA3ArI76uyDYM+
+         S3ktm6SMT5avSTt7GdXeLZiUt18y1Z2ogTwyQj9kHqbHFNCWrLK0d8xgW2J80MtdPCUO
+         Ccwpvvt8kcf9XnZU//DQqnqZPFhspaXNEwQVIu5hQz6h46nPtKnvacybkbuqYDl0reEV
+         +SbPGwHbQKlH3M0OqVt9CO1zSfAzeJPaBJoAJ1nk9K33dqh64Akiv/cDKQq7PxOx3FTY
+         w7Rg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680603971;
+        h=content-transfer-encoding:content-language:in-reply-to:mime-version
+         :user-agent:date:message-id:from:references:cc:to:subject
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=2cV2Dka8GlFwpI8wHuKuZQguPKqTBu//QF7+SDUmI+o=;
+        b=2MZUH7v91othfIK3+Um4oXB4Z1Y/rY0JR5MGDThU5TFr8didxcTkPeMCjsUpFIajja
+         6QwdLxMvrzxBbZli4afU6Z/do//7lJ4Hu3SzhiXizERlorYbE9FX2qSmu8/+ByhwQs+0
+         /msPsSsWjAyCtxVVQ6CmRqJGyXVb0pElPQ7anNmVPGVC/BZTbmcDItH0LR1gg/mw7eMq
+         3zqMNl+ezpofrZ87EeceFAXXrUSxvdE5m/BD66rTm6zU1LhxixPnUhXk2y1NU7gUTMbD
+         cJ5C5SvQXQZsJpv6syiariqZjH0rrfto4BCr+IWsLhPZhd4tiQaxibjMYhYKh9/PgdvD
+         nugQ==
+X-Gm-Message-State: AAQBX9fjrPmMUfqPNyYN8Ix0oLPscyEX8rF2eytCzS0VV9eaGhHfPsmK
+        cYPuFqOGIxsxneyCXX06yuoUp+Ydq8c=
+X-Google-Smtp-Source: AKy350YHoQMowhZLIwsN6WZl0ucoFEqan10GsGRaC52zNTSzA7OjX29QnGQEKicDgSfzLDC2n0n4MA==
+X-Received: by 2002:a5d:6102:0:b0:2d2:74d6:6f79 with SMTP id v2-20020a5d6102000000b002d274d66f79mr1035974wrt.59.1680603971554;
+        Tue, 04 Apr 2023 03:26:11 -0700 (PDT)
+Received: from [192.168.1.122] (cpc159313-cmbg20-2-0-cust161.5-4.cable.virginm.net. [82.0.78.162])
+        by smtp.gmail.com with ESMTPSA id w6-20020a5d6086000000b002cf8220cc75sm11968665wrt.24.2023.04.04.03.26.07
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 04 Apr 2023 03:26:08 -0700 (PDT)
+Subject: Re: [External] Re: [PATCH] udp:nat:vxlan tx after nat should recsum
+ if vxlan tx offload on
+To:     Fei Cheng <chenwei.0515@bytedance.com>,
+        Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc:     dsahern@kernel.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org,
+        Network Development <netdev@vger.kernel.org>, ecree@amd.com
+References: <20230401023029.967357-1-chenwei.0515@bytedance.com>
+ <CAF=yD-Lg_XSnE9frH9UFpJCZLx-gg2KHzVu7KmnigidujCvepQ@mail.gmail.com>
+ <fae01ad9-4270-2153-9ba4-cf116c8ed975@gmail.com>
+ <25fe50f2-9f1d-ec48-52af-780eb9ba6e09@bytedance.com>
+From:   Edward Cree <ecree.xilinx@gmail.com>
+Message-ID: <aa903bc8-a1d1-3fce-99fa-b0896f149ec1@gmail.com>
+Date:   Tue, 4 Apr 2023 11:26:07 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 MIME-Version: 1.0
+In-Reply-To: <25fe50f2-9f1d-ec48-52af-780eb9ba6e09@bytedance.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Taken from nf-next.
+On 04/04/2023 02:48, Fei Cheng wrote:
+> Thank you for remind plain text.
+> Use csum_start to seperate these two cases, maybe a good idea.
+> 1.Disable tx csum
+> skb->ip_summed ==  CHECKSUM_PARTIAL && skb_transport_header == udp
+> 2.Enable tx csum
+> skb->ip_summed ==  CHECKSUM_PARTIAL && skb_transport_header != udp
+> 
+> Correct?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter/nf_tables.h | 59 ++++++++++++++++++++++++++---
- 1 file changed, 54 insertions(+), 5 deletions(-)
+What do you mean by "skb_transport_header == udp"?  That it is a UDP
+ header?  Or that it is at the offset of the UDP header?  The inner
+ L4 packet could be UDP as well.
+And why are you even looking at skb_transport_header when it's
+ csum_start that determines what the hardware will do?
+AFAICT nothing in nf_nat_proto.c looks at skb_transport_header anyway;
+ indeed in nf_nat_icmp_reply_translation() we can call into this code
+ with hdroff ending up pointing way deeper in the packet.
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index e94d1fa554cb..c4d4d8e42dc8 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -97,6 +97,14 @@ enum nft_verdicts {
-  * @NFT_MSG_NEWFLOWTABLE: add new flow table (enum nft_flowtable_attributes)
-  * @NFT_MSG_GETFLOWTABLE: get flow table (enum nft_flowtable_attributes)
-  * @NFT_MSG_DELFLOWTABLE: delete flow table (enum nft_flowtable_attributes)
-+ * @NFT_MSG_GETRULE_RESET: get rules and reset stateful expressions (enum nft_obj_attributes)
-+ * @NFT_MSG_DESTROYTABLE: destroy a table (enum nft_table_attributes)
-+ * @NFT_MSG_DESTROYCHAIN: destroy a chain (enum nft_chain_attributes)
-+ * @NFT_MSG_DESTROYRULE: destroy a rule (enum nft_rule_attributes)
-+ * @NFT_MSG_DESTROYSET: destroy a set (enum nft_set_attributes)
-+ * @NFT_MSG_DESTROYSETELEM: destroy a set element (enum nft_set_elem_attributes)
-+ * @NFT_MSG_DESTROYOBJ: destroy a stateful object (enum nft_object_attributes)
-+ * @NFT_MSG_DESTROYFLOWTABLE: destroy flow table (enum nft_flowtable_attributes)
-  */
- enum nf_tables_msg_types {
- 	NFT_MSG_NEWTABLE,
-@@ -124,6 +132,14 @@ enum nf_tables_msg_types {
- 	NFT_MSG_NEWFLOWTABLE,
- 	NFT_MSG_GETFLOWTABLE,
- 	NFT_MSG_DELFLOWTABLE,
-+	NFT_MSG_GETRULE_RESET,
-+	NFT_MSG_DESTROYTABLE,
-+	NFT_MSG_DESTROYCHAIN,
-+	NFT_MSG_DESTROYRULE,
-+	NFT_MSG_DESTROYSET,
-+	NFT_MSG_DESTROYSETELEM,
-+	NFT_MSG_DESTROYOBJ,
-+	NFT_MSG_DESTROYFLOWTABLE,
- 	NFT_MSG_MAX,
- };
- 
-@@ -669,7 +685,7 @@ enum nft_range_ops {
-  * enum nft_range_attributes - nf_tables range expression netlink attributes
-  *
-  * @NFTA_RANGE_SREG: source register of data to compare (NLA_U32: nft_registers)
-- * @NFTA_RANGE_OP: cmp operation (NLA_U32: nft_cmp_ops)
-+ * @NFTA_RANGE_OP: cmp operation (NLA_U32: nft_range_ops)
-  * @NFTA_RANGE_FROM_DATA: data range from (NLA_NESTED: nft_data_attributes)
-  * @NFTA_RANGE_TO_DATA: data range to (NLA_NESTED: nft_data_attributes)
-  */
-@@ -753,11 +769,14 @@ enum nft_dynset_attributes {
-  * @NFT_PAYLOAD_LL_HEADER: link layer header
-  * @NFT_PAYLOAD_NETWORK_HEADER: network header
-  * @NFT_PAYLOAD_TRANSPORT_HEADER: transport header
-+ * @NFT_PAYLOAD_INNER_HEADER: inner header / payload
-  */
- enum nft_payload_bases {
- 	NFT_PAYLOAD_LL_HEADER,
- 	NFT_PAYLOAD_NETWORK_HEADER,
- 	NFT_PAYLOAD_TRANSPORT_HEADER,
-+	NFT_PAYLOAD_INNER_HEADER,
-+	NFT_PAYLOAD_TUN_HEADER,
- };
- 
- /**
-@@ -777,6 +796,32 @@ enum nft_payload_csum_flags {
- 	NFT_PAYLOAD_L4CSUM_PSEUDOHDR = (1 << 0),
- };
- 
-+enum nft_inner_type {
-+	NFT_INNER_UNSPEC	= 0,
-+	NFT_INNER_VXLAN,
-+	NFT_INNER_GENEVE,
-+};
-+
-+enum nft_inner_flags {
-+	NFT_INNER_HDRSIZE	= (1 << 0),
-+	NFT_INNER_LL		= (1 << 1),
-+	NFT_INNER_NH		= (1 << 2),
-+	NFT_INNER_TH		= (1 << 3),
-+};
-+#define NFT_INNER_MASK		(NFT_INNER_HDRSIZE | NFT_INNER_LL | \
-+				 NFT_INNER_NH | NFT_INNER_TH)
-+
-+enum nft_inner_attributes {
-+	NFTA_INNER_UNSPEC,
-+	NFTA_INNER_NUM,
-+	NFTA_INNER_TYPE,
-+	NFTA_INNER_FLAGS,
-+	NFTA_INNER_HDRSIZE,
-+	NFTA_INNER_EXPR,
-+	__NFTA_INNER_MAX
-+};
-+#define NFTA_INNER_MAX	(__NFTA_INNER_MAX - 1)
-+
- /**
-  * enum nft_payload_attributes - nf_tables payload expression netlink attributes
-  *
-@@ -833,7 +878,7 @@ enum nft_exthdr_op {
-  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
-  * @NFTA_EXTHDR_FLAGS: extension header flags (NLA_U32)
-  * @NFTA_EXTHDR_OP: option match type (NLA_U32)
-- * @NFTA_EXTHDR_SREG: option match type (NLA_U32)
-+ * @NFTA_EXTHDR_SREG: source register (NLA_U32: nft_registers)
-  */
- enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_UNSPEC,
-@@ -886,6 +931,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_TIME_HOUR: hour of day (in seconds)
-  * @NFT_META_SDIF: slave device interface index
-  * @NFT_META_SDIFNAME: slave device interface name
-+ * @NFT_META_BRI_BROUTE: packet br_netfilter_broute bit
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -896,7 +942,8 @@ enum nft_meta_keys {
- 	NFT_META_OIF,
- 	NFT_META_IIFNAME,
- 	NFT_META_OIFNAME,
--	NFT_META_IIFTYPE,
-+	NFT_META_IFTYPE,
-+#define NFT_META_IIFTYPE	NFT_META_IFTYPE
- 	NFT_META_OIFTYPE,
- 	NFT_META_SKUID,
- 	NFT_META_SKGID,
-@@ -923,6 +970,8 @@ enum nft_meta_keys {
- 	NFT_META_TIME_HOUR,
- 	NFT_META_SDIF,
- 	NFT_META_SDIFNAME,
-+	NFT_META_BRI_BROUTE,
-+	__NFT_META_IIFTYPE,
- };
- 
- /**
-@@ -1213,10 +1262,10 @@ enum nft_last_attributes {
- /**
-  * enum nft_log_attributes - nf_tables log expression netlink attributes
-  *
-- * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U32)
-+ * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U16)
-  * @NFTA_LOG_PREFIX: prefix to prepend to log messages (NLA_STRING)
-  * @NFTA_LOG_SNAPLEN: length of payload to include in netlink message (NLA_U32)
-- * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U32)
-+ * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U16)
-  * @NFTA_LOG_LEVEL: log level (NLA_U32)
-  * @NFTA_LOG_FLAGS: logging flags (NLA_U32)
-  */
--- 
-2.39.2
+In any case, after digging deeper into the netfilter code, it looks to
+ me like there's no issue in the first place: netfilter doesn't
+ 'recompute' the UDP checksum, it just accumulates delta into it to
+ account for the changes it made to the packet, on the assumption that
+ the existing checksum is correct.
+Which AIUI will do the right thing whether the checksum is
+* a correct checksum for an unencapsulated packet
+* a pseudohdr sum for a CHECKSUM_PARTIAL (unencapsulated) packet
+* a correct (LCO) checksum for an encapsulated packet, whose inner L4
+  checksum may or may not be CHECKSUM_PARTIAL offloaded.
 
+Do you have a test case that breaks with the current code?
+
+-ed
