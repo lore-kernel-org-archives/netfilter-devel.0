@@ -2,45 +2,52 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A7E1C761A6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 18:50:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43FADC761A6
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 19:41:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233075AbjDDSu1 (ORCPT
+        id S232313AbjDDTlG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Apr 2023 14:50:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52946 "EHLO
+        Tue, 4 Apr 2023 15:41:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235825AbjDDSu1 (ORCPT
+        with ESMTP id S234726AbjDDTlE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Apr 2023 14:50:27 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 160AE3AAA
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2023 11:50:25 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pjlja-00080l-Ue; Tue, 04 Apr 2023 20:50:22 +0200
-Date:   Tue, 4 Apr 2023 20:50:22 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Sriram Yagnaraman <sriram.yagnaraman@est.tech>
-Cc:     Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables 2/2] ebtables-nft: add broute table emulation
-Message-ID: <20230404185022.GB21940@breakpoint.cc>
-References: <20230404094544.2892-1-fw@strlen.de>
- <20230404094544.2892-2-fw@strlen.de>
- <DBBP189MB14338B5099BDFC457EC2490495939@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
+        Tue, 4 Apr 2023 15:41:04 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D83344AA
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2023 12:41:02 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1pjmWZ-0006eQ-EZ; Tue, 04 Apr 2023 21:40:59 +0200
+Date:   Tue, 4 Apr 2023 21:40:59 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Alyssa Ross <hi@alyssa.is>
+Cc:     netfilter-devel@vger.kernel.org, Jeremy Sowden <jeremy@azazel.net>
+Subject: Re: [PATCH iptables v2] build: use pkg-config for libpcap
+Message-ID: <ZCx9S2UfYFrwYigO@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Alyssa Ross <hi@alyssa.is>,
+        netfilter-devel@vger.kernel.org, Jeremy Sowden <jeremy@azazel.net>
+References: <20230402232939.1060151-1-hi@alyssa.is>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <DBBP189MB14338B5099BDFC457EC2490495939@DBBP189MB1433.EURP189.PROD.OUTLOOK.COM>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230402232939.1060151-1-hi@alyssa.is>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Sriram Yagnaraman <sriram.yagnaraman@est.tech> wrote:
-> Thank you so much for fixing this, I attempted to update ebtables-nft for broute support but couldn’t understand all the details.
-> Does this close https://bugzilla.netfilter.org/show_bug.cgi?id=1316?
+On Sun, Apr 02, 2023 at 11:29:40PM +0000, Alyssa Ross wrote:
+> If building statically, with libpcap built with libnl support, linking
+> will fail, as the compiler won't be able to find the libnl symbols
+> since static libraries don't contain dependency information.  To fix
+> this, use pkg-config to find the flags for linking libpcap, since the
+> pkg-config files contain the neccesary dependency information.
+> 
+> autoconf will add code to the configure script for initializing
+> pkg-config the first time it seems PKG_CHECK_MODULES, so make the
+> libnfnetlink check the first one in the script, so the initialization
+> code is run unconditionally.
+> 
+> Signed-off-by: Alyssa Ross <hi@alyssa.is>
 
-Yes, simple -t broute -DROP will work with this patch.
+Patch applied, thanks!
