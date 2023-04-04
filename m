@@ -2,117 +2,288 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49FE8C76196
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 01:48:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E78BC761AF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 09:31:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232157AbjDDBsX (ORCPT
+        id S234275AbjDDJbT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 3 Apr 2023 21:48:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39894 "EHLO
+        Tue, 4 Apr 2023 05:31:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232319AbjDDBsW (ORCPT
+        with ESMTP id S234233AbjDDJbP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Apr 2023 21:48:22 -0400
-Received: from mail-pl1-x62e.google.com (mail-pl1-x62e.google.com [IPv6:2607:f8b0:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D29CB4
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Apr 2023 18:48:21 -0700 (PDT)
-Received: by mail-pl1-x62e.google.com with SMTP id o2so29890330plg.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Apr 2023 18:48:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1680572901;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
-         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=y1q2BofHrGCo+RPWMNzGCdFLZaQiXJqXIgKAKTLgK1M=;
-        b=eX7Zw/4KQMIOU7qTsaR5KxYRBMUv78LFFicGZ+e5Qr4Re22xUxe2uqV2/vc7n6v42G
-         PhB1KC+uvU8zmg4ZgmCqhjeXCwHOVVm5grK379/koAOuR7rA1fDMOgH13e/ZJ8KTO3Vq
-         uo0D8KhYAPdzf3nXYmo4rs46Jn61YBUGXHLR03DWKF1SXHRaKxmqsfSta878J/hSyxqB
-         jfst60O6I5OzhVSweEpFmw19k/A0tfRdn5XPez80mtJ9eJvECaEql9gaUVjNhn4bGWl2
-         +XMXmk34nMkK4JxlUg35H5IA0iBHaqbTYFbCMTh1XAprgiRWDFJ/GVcMZdwqoQhA+Lul
-         ZFnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680572901;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
-         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=y1q2BofHrGCo+RPWMNzGCdFLZaQiXJqXIgKAKTLgK1M=;
-        b=Q+deJLB9SpFPVBBT6k8WXfqNoRJ7mKVKe+GdnIFQA2RrtF4/iVPAH4bXQvoLdLNKsq
-         UbkJOMuSr5oBfN4OUnO7WWRHX64sBd0Qmmkdb3YdOBpB/aVFD2yVNlMgLgAL97Oy3nQg
-         32UB3LKON8ylcZJ8xVGpIALoGO+BCD8RFLC247zyUUI10qD31G/PAZVNMV0CNeUnCCbp
-         l6QqeEL0WNnB0nCPf3BUQ1OZeZKdoHsfFcgzwVqXYFY4kkncbb08Jvga0kfZhZYOYOwI
-         yG0/x9u4kuF/jCrsAFvSlcxQjJpITw0kz/hno/t3Fu30BeQStth9j1LZ9eyE9972JXBP
-         xUFg==
-X-Gm-Message-State: AAQBX9eE9aKCaR/ZAXL9HrErpSN8/DfilkcL18MSPMovR8Oo9s0RHKYg
-        rJDgQenC6SYuX66s09NtZe5Cpw==
-X-Google-Smtp-Source: AKy350bYq3OfEPlMyUgoPFuZ9DV3j/aZXtdLiolN6L6HCuU/DiQgBOSL/vmegA5sw9OTI82u5oQA7Q==
-X-Received: by 2002:a05:6a20:7b2a:b0:db:1d43:18fe with SMTP id s42-20020a056a207b2a00b000db1d4318femr732782pzh.8.1680572900805;
-        Mon, 03 Apr 2023 18:48:20 -0700 (PDT)
-Received: from [10.93.232.230] ([139.177.225.242])
-        by smtp.gmail.com with ESMTPSA id s2-20020aa78d42000000b006243e706195sm7499195pfe.196.2023.04.03.18.48.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 03 Apr 2023 18:48:20 -0700 (PDT)
-Message-ID: <25fe50f2-9f1d-ec48-52af-780eb9ba6e09@bytedance.com>
-Date:   Tue, 4 Apr 2023 09:48:15 +0800
+        Tue, 4 Apr 2023 05:31:15 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96E5E1FD8;
+        Tue,  4 Apr 2023 02:31:12 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4PrMsP4wKXz6J7Kk;
+        Tue,  4 Apr 2023 17:29:13 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Tue, 4 Apr 2023 10:31:09 +0100
+Message-ID: <1f84d88f-9977-13a9-245a-c75cd3444b29@huawei.com>
+Date:   Tue, 4 Apr 2023 12:31:08 +0300
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.9.1
-Subject: Re: [External] Re: [PATCH] udp:nat:vxlan tx after nat should recsum
- if vxlan tx offload on
-To:     Edward Cree <ecree.xilinx@gmail.com>,
-        Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Cc:     dsahern@kernel.org, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org,
-        Network Development <netdev@vger.kernel.org>, ecree@amd.com
-References: <20230401023029.967357-1-chenwei.0515@bytedance.com>
- <CAF=yD-Lg_XSnE9frH9UFpJCZLx-gg2KHzVu7KmnigidujCvepQ@mail.gmail.com>
- <fae01ad9-4270-2153-9ba4-cf116c8ed975@gmail.com>
-From:   Fei Cheng <chenwei.0515@bytedance.com>
-In-Reply-To: <fae01ad9-4270-2153-9ba4-cf116c8ed975@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v10 09/13] landlock: Add network rules and TCP hooks
+ support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
+ <20230323085226.1432550-10-konstantin.meskhidze@huawei.com>
+ <468fbb05-6d72-3570-3453-b1f8bfdd5bc2@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <468fbb05-6d72-3570-3453-b1f8bfdd5bc2@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thank you for remind plain text.
-Use csum_start to seperate these two cases, maybe a good idea.
-1.Disable tx csum
-skb->ip_summed ==  CHECKSUM_PARTIAL && skb_transport_header == udp
-2.Enable tx csum
-skb->ip_summed ==  CHECKSUM_PARTIAL && skb_transport_header != udp
 
-Correct?
 
-在 2023/4/3 下午6:56, Edward Cree 写道:
-> On 02/04/2023 19:18, Willem de Bruijn wrote:
->> On Fri, Mar 31, 2023 at 10:31 PM Fei Cheng <chenwei.0515@bytedance.com> wrote:
->>>
->>> From: "chenwei.0515" <chenwei.0515@bytedance.com>
->>>
->>>      If vxlan-dev enable tx csum offload, there are two case of CHECKSUM_PARTIAL,
->>>      but udp->check donot have the both meanings.
->>>
->>>      1. vxlan-dev disable tx csum offload, udp->check is just pseudo hdr.
->>>      2. vxlan-dev enable tx csum offload, udp->check is pseudo hdr and
->>>         csum from outter l4 to innner l4.
->>>
->>>      Unfortunately if there is a nat process after vxlan tx，udp_manip_pkt just use
->>>      CSUM_PARTIAL to re csum PKT, which is just right on vxlan tx csum disable offload.
+3/31/2023 8:24 PM, Mickaël Salaün пишет:
 > 
-> In case 1 csum_start should point to the (outer) UDP header, whereas in
->   case 2 csum_start should point to the inner L4 header (because in the
->   normal TX path w/o NAT, nothing else will ever need to touch the outer
->   csum after this point).
+> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
+>> This commit adds network rules support in the ruleset management
+>> helpers and the landlock_create_ruleset syscall.
+>> Refactor user space API to support network actions. Add new network
+>> access flags, network rule and network attributes. Increment Landlock
+>> ABI version. Expand access_masks_t to u32 to be sure network access
+>> rights can be stored. Implement socket_bind() and socket_connect()
+>> LSM hooks, which enable to restrict TCP socket binding and connection
+>> to specific ports.
+>> 
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
+>> 
+>> Changes since v9:
+>> * Changes UAPI port field to __u64.
+>> * Moves shared code into check_socket_access().
+>> * Adds get_raw_handled_net_accesses() and
+>> get_current_net_domain() helpers.
+>> * Minor fixes.
+>> 
+>> Changes since v8:
+>> * Squashes commits.
+>> * Refactors commit message.
+>> * Changes UAPI port field to __be16.
+>> * Changes logic of bind/connect hooks with AF_UNSPEC families.
+>> * Adds address length checking.
+>> * Minor fixes.
+>> 
+>> Changes since v7:
+>> * Squashes commits.
+>> * Increments ABI version to 4.
+>> * Refactors commit message.
+>> * Minor fixes.
+>> 
+>> Changes since v6:
+>> * Renames landlock_set_net_access_mask() to landlock_add_net_access_mask()
+>>    because it OR values.
+>> * Makes landlock_add_net_access_mask() more resilient incorrect values.
+>> * Refactors landlock_get_net_access_mask().
+>> * Renames LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
+>>    LANDLOCK_NUM_ACCESS_FS as value.
+>> * Updates access_masks_t to u32 to support network access actions.
+>> * Refactors landlock internal functions to support network actions with
+>>    landlock_key/key_type/id types.
+>> 
+>> Changes since v5:
+>> * Gets rid of partial revert from landlock_add_rule
+>> syscall.
+>> * Formats code with clang-format-14.
+>> 
+>> Changes since v4:
+>> * Refactors landlock_create_ruleset() - splits ruleset and
+>> masks checks.
+>> * Refactors landlock_create_ruleset() and landlock mask
+>> setters/getters to support two rule types.
+>> * Refactors landlock_add_rule syscall add_rule_path_beneath
+>> function by factoring out get_ruleset_from_fd() and
+>> landlock_put_ruleset().
+>> 
+>> Changes since v3:
+>> * Splits commit.
+>> * Adds network rule support for internal landlock functions.
+>> * Adds set_mask and get_mask for network.
+>> * Adds rb_root root_net_port.
+>> 
+>> ---
+>>   include/uapi/linux/landlock.h                |  49 +++++
+>>   security/landlock/Kconfig                    |   1 +
+>>   security/landlock/Makefile                   |   2 +
+>>   security/landlock/limits.h                   |   6 +-
+>>   security/landlock/net.c                      | 198 +++++++++++++++++++
+>>   security/landlock/net.h                      |  26 +++
+>>   security/landlock/ruleset.c                  |  52 ++++-
+>>   security/landlock/ruleset.h                  |  63 +++++-
+>>   security/landlock/setup.c                    |   2 +
+>>   security/landlock/syscalls.c                 |  72 ++++++-
+>>   tools/testing/selftests/landlock/base_test.c |   2 +-
+>>   11 files changed, 450 insertions(+), 23 deletions(-)
+>>   create mode 100644 security/landlock/net.c
+>>   create mode 100644 security/landlock/net.h
 > 
->> The issue is that for encapsulated traffic with local checksum offload,
->> netfilter incorrectly recomputes the outer UDP checksum as if it is an
->> unencapsulated CHECKSUM_PARTIAL packet, correct?
+> [...]
 > 
-> So if netfilter sees a packet with CHECKSUM_PARTIAL whose csum_start
->   doesn't point to the header nf NAT is editing, that's exactly the case
->   where it needs to use lco_csum to calculate the new outer sum.  No?
+>> diff --git a/security/landlock/net.c b/security/landlock/net.c
 > 
-> -ed
+> [...]
 > 
-> PS. Fei, your emails aren't reaching the netdev mailing list, probably
->   because you're sending as HTML.  Please switch to plain text.
+>> +static int check_addrlen(const struct sockaddr *const address, int addrlen)
+> 
+> const int addrlen
+
+   Got it.
+> 
+>> +{
+>> +	if (addrlen < offsetofend(struct sockaddr, sa_family))
+>> +		return -EINVAL;
+>> +	switch (address->sa_family) {
+>> +	case AF_UNSPEC:
+>> +	case AF_INET:
+>> +		if (addrlen < sizeof(struct sockaddr_in))
+>> +			return -EINVAL;
+>> +		return 0;
+>> +#if IS_ENABLED(CONFIG_IPV6)
+>> +	case AF_INET6:
+>> +		if (addrlen < SIN6_LEN_RFC2133)
+>> +			return -EINVAL;
+>> +		return 0;
+>> +#endif
+>> +	}
+>> +	WARN_ON_ONCE(1);
+>> +	return 0;
+>> +}
+>> +
+>> +static u16 get_port(const struct sockaddr *const address)
+>> +{
+>> +	/* Gets port value in host byte order. */
+>> +	switch (address->sa_family) {
+>> +	case AF_UNSPEC:
+>> +	case AF_INET: {
+>> +		const struct sockaddr_in *const sockaddr =
+>> +			(struct sockaddr_in *)address;
+>> +		return ntohs(sockaddr->sin_port);
+> 
+> Storing ports in big endian (in rulesets) would avoid converting them
+> every time the kernel checks a socket port. The above comment should
+> then be updated too.
+
+   I thought we came to a conclusion to stick to host endianess and
+let kernel do the checks under the hood:
+https://lore.kernel.org/linux-security-module/278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net/
+
+Did I misunderstand something?
+> 
+> 
+>> +	}
+>> +#if IS_ENABLED(CONFIG_IPV6)
+>> +	case AF_INET6: {
+>> +		const struct sockaddr_in6 *const sockaddr_ip6 =
+>> +			(struct sockaddr_in6 *)address;
+>> +		return ntohs(sockaddr_ip6->sin6_port);
+>> +	}
+>> +#endif
+>> +	}
+>> +	WARN_ON_ONCE(1);
+>> +	return 0;
+>> +}
+>> +
+>> +static int check_socket_access(struct socket *sock, struct sockaddr *address, int addrlen, u16 port,
+>> +			       access_mask_t access_request)
+>> +{
+>> +	int ret;
+>> +	bool allowed = false;
+>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+>> +	const struct landlock_rule *rule;
+>> +	access_mask_t handled_access;
+>> +	const struct landlock_id id = {
+>> +		.key.data = port,
+>> +		.type = LANDLOCK_KEY_NET_PORT,
+>> +	};
+>> +	const struct landlock_ruleset *const domain = get_current_net_domain();
+>> +
+>> +	if (WARN_ON_ONCE(!domain))
+>> +		return 0;
+>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+>> +		return -EACCES;
+>> +	/* Check if it's a TCP socket. */
+>> +	if (sock->type != SOCK_STREAM)
+>> +		return 0;
+>> +
+>> +	ret = check_addrlen(address, addrlen);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	switch (address->sa_family) {
+>> +	case AF_UNSPEC:
+>> +		/*
+>> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
+>> +		 * association, which have the same effect as closing the
+>> +		 * connection while retaining the socket object (i.e., the file
+>> +		 * descriptor).  As for dropping privileges, closing
+>> +		 * connections is always allowed.
+>> +		 */
+>> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>> +			return 0;
+>> +
+>> +		/*
+>> +		 * For compatibility reason, accept AF_UNSPEC for bind
+>> +		 * accesses (mapped to AF_INET) only if the address is
+>> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
+>> +		 * required to not wrongfully return -EACCES instead of
+>> +		 * -EAFNOSUPPORT.
+>> +		 */
+>> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
+>> +			const struct sockaddr_in *const sockaddr =
+>> +				(struct sockaddr_in *)address;
+>> +
+>> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
+>> +				return -EAFNOSUPPORT;
+>> +		}
+>> +
+>> +		fallthrough;
+>> +	case AF_INET:
+>> +#if IS_ENABLED(CONFIG_IPV6)
+>> +	case AF_INET6:
+>> +#endif
+>> +		rule = landlock_find_rule(domain, id);
+>> +		handled_access = landlock_init_layer_masks(
+>> +			domain, access_request, &layer_masks,
+>> +			LANDLOCK_KEY_NET_PORT);
+>> +		allowed = landlock_unmask_layers(rule, handled_access,
+>> +						 &layer_masks,
+>> +						 ARRAY_SIZE(layer_masks));
+>> +	}
+>> +	return allowed ? 0 : -EACCES;
+>> +}
+>> +
+>> +static int hook_socket_bind(struct socket *sock, struct sockaddr *address,
+>> +			    int addrlen)
+>> +{
+>> +	return check_socket_access(sock, address, addrlen, get_port(address),
+>> +				   LANDLOCK_ACCESS_NET_BIND_TCP);
+>> +}
+>> +
+>> +static int hook_socket_connect(struct socket *sock, struct sockaddr *address,
+>> +			       int addrlen)
+>> +{
+>> +	return check_socket_access(sock, address, addrlen, get_port(address),
+>> +				   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+>> +}
+> 
+> [...]
+> .
