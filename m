@@ -2,48 +2,58 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 923DEC761A6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 11:27:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1F63C77B60
+	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 14:34:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234399AbjDDL1y (ORCPT
+        id S231234AbjDDOeu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Apr 2023 07:27:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57870 "EHLO
+        Tue, 4 Apr 2023 10:34:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229551AbjDDL1x (ORCPT
+        with ESMTP id S235062AbjDDOeq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Apr 2023 07:27:53 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 085521980
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2023 04:27:51 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pjepJ-00024w-Cw; Tue, 04 Apr 2023 13:27:49 +0200
-Date:   Tue, 4 Apr 2023 13:27:49 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Markus Boehme <markubo@amazon.com>
-Cc:     netfilter-devel@vger.kernel.org,
-        Jonathan Caicedo <jonathan@jcaicedo.com>
-Subject: Re: [PATCH iptables] ip6tables: Fix checking existence of rule
-Message-ID: <ZCwJtYiZRlUBXh1M@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Markus Boehme <markubo@amazon.com>, netfilter-devel@vger.kernel.org,
-        Jonathan Caicedo <jonathan@jcaicedo.com>
-References: <20230403211347.501448-1-markubo@amazon.com>
+        Tue, 4 Apr 2023 10:34:46 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4149810EA
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2023 07:34:44 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 0/4] revisit NAT redirect support
+Date:   Tue,  4 Apr 2023 16:34:33 +0200
+Message-Id: <20230404143437.133493-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230403211347.501448-1-markubo@amazon.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Apr 03, 2023 at 11:13:47PM +0200, Markus Boehme wrote:
-> Pass the proper entry size when creating a match mask for checking the
-> existence of a rule. Failing to do so causes wrong results.
-> 
-> Reported-by: Jonathan Caicedo <jonathan@jcaicedo.com>
-> Fixes: eb2546a846776 ("xshared: Share make_delete_mask() between ip{,6}tables")
-> Signed-off-by: Markus Boehme <markubo@amazon.com>
+Hi,
 
-Patch applied, thanks!
+This is a batch to revisit NAT redirect support:
+
+Patch #1 add a few assert() to src/optimize.c related to NAT support.
+
+Patch #2 relax check for explicit transport protocol match if NAT
+	 expression implicitly refers to transport protocol match.
+
+Patch #3 remove workaround required before patch #2
+
+Patch #4 add -o/--optimize support for NAT redirect (and masquerade).
+
+Pablo Neira Ayuso (4):
+  optimize: assert nat type on nat statement helper
+  evaluate: bogus missing transport protocol
+  netlink_delinearize: do not reset protocol context for nat protocol expression
+  optimize: support for redirect and masquerade
+
+ src/evaluate.c                                |  11 +-
+ src/netlink_delinearize.c                     |   4 +-
+ src/optimize.c                                | 140 +++++++++++++-----
+ .../optimizations/dumps/merge_nat.nft         |   4 +
+ tests/shell/testcases/optimizations/merge_nat |   7 +
+ 5 files changed, 127 insertions(+), 39 deletions(-)
+
+-- 
+2.30.2
+
