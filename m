@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02D09C77B71
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Apr 2023 16:12:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFBEBC7619A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Apr 2023 16:12:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233647AbjDEQL6 (ORCPT
+        id S231655AbjDEQMC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Apr 2023 12:11:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37568 "EHLO
+        Wed, 5 Apr 2023 12:12:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232011AbjDEQLw (ORCPT
+        with ESMTP id S233451AbjDEQL4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Apr 2023 12:11:52 -0400
+        Wed, 5 Apr 2023 12:11:56 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED6C1FE0;
-        Wed,  5 Apr 2023 09:11:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6241965BC;
+        Wed,  5 Apr 2023 09:11:50 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pk5jU-0007lT-KY; Wed, 05 Apr 2023 18:11:36 +0200
+        id 1pk5jg-0007mE-Vj; Wed, 05 Apr 2023 18:11:49 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
         dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf-next 2/6] bpf: minimal support for programs hooked into netfilter framework
-Date:   Wed,  5 Apr 2023 18:11:12 +0200
-Message-Id: <20230405161116.13565-3-fw@strlen.de>
+Subject: [PATCH bpf-next 5/6] tools: bpftool: print netfilter link info
+Date:   Wed,  5 Apr 2023 18:11:15 +0200
+Message-Id: <20230405161116.13565-6-fw@strlen.de>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230405161116.13565-1-fw@strlen.de>
 References: <20230405161116.13565-1-fw@strlen.de>
@@ -35,202 +35,126 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This adds minimal support for BPF_PROG_TYPE_NETFILTER bpf programs
-that will be invoked via the NF_HOOK() points in the ip stack.
-
-Invocation incurs an indirect call.  This is not a necessity: Its
-possible to add 'DEFINE_BPF_DISPATCHER(nf_progs)' and handle the
-program invocation with the same method already done for xdp progs.
-
-This isn't done here to keep the size of this chunk down.
-
-Verifier restricts verdicts to either DROP or ACCEPT.
+Dump protocol family, hook and priority value:
+$ bpftool link
+2: type 10  prog 20
+        pf: 2, hook 1, prio -128
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/bpf_types.h           |  4 ++
- include/net/netfilter/nf_bpf_link.h |  6 +++
- kernel/bpf/btf.c                    |  6 +++
- kernel/bpf/verifier.c               |  3 ++
- net/core/filter.c                   |  1 +
- net/netfilter/nf_bpf_link.c         | 70 ++++++++++++++++++++++++++++-
- 6 files changed, 89 insertions(+), 1 deletion(-)
+ tools/bpf/bpftool/link.c       | 24 ++++++++++++++++++++++++
+ tools/include/uapi/linux/bpf.h | 15 +++++++++++++++
+ tools/lib/bpf/libbpf.c         |  1 +
+ 3 files changed, 40 insertions(+)
 
-diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
-index d4ee3ccd3753..39a999abb0ce 100644
---- a/include/linux/bpf_types.h
-+++ b/include/linux/bpf_types.h
-@@ -79,6 +79,10 @@ BPF_PROG_TYPE(BPF_PROG_TYPE_LSM, lsm,
- #endif
- BPF_PROG_TYPE(BPF_PROG_TYPE_SYSCALL, bpf_syscall,
- 	      void *, void *)
-+#ifdef CONFIG_NETFILTER
-+BPF_PROG_TYPE(BPF_PROG_TYPE_NETFILTER, netfilter,
-+	      struct bpf_nf_ctx, struct bpf_nf_ctx)
-+#endif
+diff --git a/tools/bpf/bpftool/link.c b/tools/bpf/bpftool/link.c
+index f985b79cca27..a2ea85d1ebbf 100644
+--- a/tools/bpf/bpftool/link.c
++++ b/tools/bpf/bpftool/link.c
+@@ -135,6 +135,18 @@ static void show_iter_json(struct bpf_link_info *info, json_writer_t *wtr)
+ 	}
+ }
  
- BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
- BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
-diff --git a/include/net/netfilter/nf_bpf_link.h b/include/net/netfilter/nf_bpf_link.h
-index 9d1b338e89d7..863cbbcc66f9 100644
---- a/include/net/netfilter/nf_bpf_link.h
-+++ b/include/net/netfilter/nf_bpf_link.h
-@@ -1,2 +1,8 @@
- /* SPDX-License-Identifier: GPL-2.0 */
++static void show_netfilter_json(const struct bpf_link_info *info, json_writer_t *wtr)
++{
++	jsonw_uint_field(json_wtr, "pf",
++			 info->netfilter.pf);
++	jsonw_uint_field(json_wtr, "hook",
++			 info->netfilter.hooknum);
++	jsonw_int_field(json_wtr, "prio",
++			 info->netfilter.priority);
++	jsonw_uint_field(json_wtr, "flags",
++			 info->netfilter.flags);
++}
 +
-+struct bpf_nf_ctx {
-+	const struct nf_hook_state *state;
-+	struct sk_buff *skb;
-+};
+ static int get_prog_info(int prog_id, struct bpf_prog_info *info)
+ {
+ 	__u32 len = sizeof(*info);
+@@ -195,6 +207,10 @@ static int show_link_close_json(int fd, struct bpf_link_info *info)
+ 				 info->netns.netns_ino);
+ 		show_link_attach_type_json(info->netns.attach_type, json_wtr);
+ 		break;
++	case BPF_LINK_TYPE_NETFILTER:
++		show_netfilter_json(info, json_wtr);
++		break;
 +
- int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog);
-diff --git a/kernel/bpf/btf.c b/kernel/bpf/btf.c
-index b7e5a5510b91..03abc1643567 100644
---- a/kernel/bpf/btf.c
-+++ b/kernel/bpf/btf.c
-@@ -25,6 +25,9 @@
- #include <linux/bsearch.h>
- #include <linux/kobject.h>
- #include <linux/sysfs.h>
-+
-+#include <net/netfilter/nf_bpf_link.h>
-+
- #include <net/sock.h>
- #include "../tools/lib/bpf/relo_core.h"
- 
-@@ -212,6 +215,7 @@ enum btf_kfunc_hook {
- 	BTF_KFUNC_HOOK_SK_SKB,
- 	BTF_KFUNC_HOOK_SOCKET_FILTER,
- 	BTF_KFUNC_HOOK_LWT,
-+	BTF_KFUNC_HOOK_NETFILTER,
- 	BTF_KFUNC_HOOK_MAX,
+ 	default:
+ 		break;
+ 	}
+@@ -301,6 +317,14 @@ static int show_link_close_plain(int fd, struct bpf_link_info *info)
+ 		printf("\n\tnetns_ino %u  ", info->netns.netns_ino);
+ 		show_link_attach_type_plain(info->netns.attach_type);
+ 		break;
++	case BPF_LINK_TYPE_NETFILTER:
++		printf("\n\tpf: %d, hook %u, prio %d",
++		       info->netfilter.pf,
++		       info->netfilter.hooknum,
++		       info->netfilter.priority);
++		if (info->netfilter.flags)
++			printf(" flags 0x%x", info->netfilter.flags);
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
+index d6c5a022ae28..dcd2d5ec4918 100644
+--- a/tools/include/uapi/linux/bpf.h
++++ b/tools/include/uapi/linux/bpf.h
+@@ -986,6 +986,7 @@ enum bpf_prog_type {
+ 	BPF_PROG_TYPE_LSM,
+ 	BPF_PROG_TYPE_SK_LOOKUP,
+ 	BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
++	BPF_PROG_TYPE_NETFILTER,
  };
  
-@@ -7849,6 +7853,8 @@ static int bpf_prog_type_to_kfunc_hook(enum bpf_prog_type prog_type)
- 	case BPF_PROG_TYPE_LWT_XMIT:
- 	case BPF_PROG_TYPE_LWT_SEG6LOCAL:
- 		return BTF_KFUNC_HOOK_LWT;
-+	case BPF_PROG_TYPE_NETFILTER:
-+		return BTF_KFUNC_HOOK_NETFILTER;
- 	default:
- 		return BTF_KFUNC_HOOK_MAX;
- 	}
-diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
-index eaf9c5291cf0..0dfaca75f8a9 100644
---- a/kernel/bpf/verifier.c
-+++ b/kernel/bpf/verifier.c
-@@ -13803,6 +13803,9 @@ static int check_return_code(struct bpf_verifier_env *env)
- 		}
- 		break;
+ enum bpf_attach_type {
+@@ -1050,6 +1051,7 @@ enum bpf_link_type {
+ 	BPF_LINK_TYPE_PERF_EVENT = 7,
+ 	BPF_LINK_TYPE_KPROBE_MULTI = 8,
+ 	BPF_LINK_TYPE_STRUCT_OPS = 9,
++	BPF_LINK_TYPE_NETFILTER = 10,
  
-+	case BPF_PROG_TYPE_NETFILTER:
-+		range = tnum_range(NF_DROP, NF_ACCEPT);
-+		break;
- 	case BPF_PROG_TYPE_EXT:
- 		/* freplace program can return anything as its return value
- 		 * depends on the to-be-replaced kernel func or bpf program.
-diff --git a/net/core/filter.c b/net/core/filter.c
-index 3370efad1dda..24a5c62e5979 100644
---- a/net/core/filter.c
-+++ b/net/core/filter.c
-@@ -11721,6 +11721,7 @@ static int __init bpf_kfunc_init(void)
- 	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_LWT_IN, &bpf_kfunc_set_skb);
- 	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_LWT_XMIT, &bpf_kfunc_set_skb);
- 	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_LWT_SEG6LOCAL, &bpf_kfunc_set_skb);
-+	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_NETFILTER, &bpf_kfunc_set_skb);
- 	return ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_XDP, &bpf_kfunc_set_xdp);
- }
- late_initcall(bpf_kfunc_init);
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index c68b2cb70fd4..4b22a31d6df5 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -1,12 +1,19 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/bpf.h>
-+#include <linux/filter.h>
- #include <linux/netfilter.h>
+ 	MAX_BPF_LINK_TYPE,
+ };
+@@ -1550,6 +1552,13 @@ union bpf_attr {
+ 				 */
+ 				__u64		cookie;
+ 			} tracing;
++			struct {
++				__u32		pf;
++				__u32		hooknum;
++				__s32		prio;
++				__u32		flags;
++				__u64		reserved[2];
++			} netfilter;
+ 		};
+ 	} link_create;
  
- #include <net/netfilter/nf_bpf_link.h>
+@@ -6400,6 +6409,12 @@ struct bpf_link_info {
+ 		struct {
+ 			__u32 map_id;
+ 		} struct_ops;
++		struct {
++			__u32 pf;
++			__u32 hooknum;
++			__s32 priority;
++			__u32 flags;
++		} netfilter;
+ 	};
+ } __attribute__((aligned(8)));
  
- static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb, const struct nf_hook_state *s)
- {
--	return NF_ACCEPT;
-+	const struct bpf_prog *prog = bpf_prog;
-+	struct bpf_nf_ctx ctx = {
-+		.state = s,
-+		.skb = skb,
-+	};
-+
-+	return bpf_prog_run(prog, &ctx);
- }
+diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
+index 49cd304ae3bc..ae27451002ae 100644
+--- a/tools/lib/bpf/libbpf.c
++++ b/tools/lib/bpf/libbpf.c
+@@ -8641,6 +8641,7 @@ static const struct bpf_sec_def section_defs[] = {
+ 	SEC_DEF("struct_ops+",		STRUCT_OPS, 0, SEC_NONE),
+ 	SEC_DEF("struct_ops.s+",	STRUCT_OPS, 0, SEC_SLEEPABLE),
+ 	SEC_DEF("sk_lookup",		SK_LOOKUP, BPF_SK_LOOKUP, SEC_ATTACHABLE),
++	SEC_DEF("netfilter",		NETFILTER, 0, SEC_NONE),
+ };
  
- struct bpf_nf_link {
-@@ -119,3 +126,64 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
- 
- 	return bpf_link_settle(&link_primer);
- }
-+
-+const struct bpf_prog_ops netfilter_prog_ops = {
-+};
-+
-+static bool nf_ptr_to_btf_id(struct bpf_insn_access_aux *info, const char *name)
-+{
-+	struct btf *btf;
-+	s32 type_id;
-+
-+	btf = bpf_get_btf_vmlinux();
-+	if (IS_ERR_OR_NULL(btf))
-+		return false;
-+
-+	type_id = btf_find_by_name_kind(btf, name, BTF_KIND_STRUCT);
-+	if (WARN_ON_ONCE(type_id < 0))
-+		return false;
-+
-+	info->btf = btf;
-+	info->btf_id = type_id;
-+	info->reg_type = PTR_TO_BTF_ID | PTR_TRUSTED;
-+	return true;
-+}
-+
-+static bool nf_is_valid_access(int off, int size, enum bpf_access_type type,
-+			       const struct bpf_prog *prog,
-+			       struct bpf_insn_access_aux *info)
-+{
-+	if (off < 0 || off >= sizeof(struct bpf_nf_ctx))
-+		return false;
-+
-+	if (type == BPF_WRITE)
-+		return false;
-+
-+	switch (off) {
-+	case bpf_ctx_range(struct bpf_nf_ctx, skb):
-+		if (size != sizeof_field(struct bpf_nf_ctx, skb))
-+			return false;
-+
-+		return nf_ptr_to_btf_id(info, "sk_buff");
-+	case bpf_ctx_range(struct bpf_nf_ctx, state):
-+		if (size != sizeof_field(struct bpf_nf_ctx, state))
-+			return false;
-+
-+		return nf_ptr_to_btf_id(info, "nf_hook_state");
-+	default:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
-+static const struct bpf_func_proto *
-+bpf_nf_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
-+{
-+	return bpf_base_func_proto(func_id);
-+}
-+
-+const struct bpf_verifier_ops netfilter_verifier_ops = {
-+	.is_valid_access	= nf_is_valid_access,
-+	.get_func_proto		= bpf_nf_func_proto,
-+};
+ static size_t custom_sec_def_cnt;
 -- 
 2.39.2
 
