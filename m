@@ -2,275 +2,333 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BD94C761AF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Apr 2023 16:12:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 440B4C77B6C
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Apr 2023 17:42:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233927AbjDEQMW (ORCPT
+        id S233162AbjDERmm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Apr 2023 12:12:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37918 "EHLO
+        Wed, 5 Apr 2023 13:42:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233855AbjDEQMA (ORCPT
+        with ESMTP id S233417AbjDERmj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Apr 2023 12:12:00 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E0A26E90;
-        Wed,  5 Apr 2023 09:11:54 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pk5jl-0007mc-31; Wed, 05 Apr 2023 18:11:53 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
-        dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf-next 6/6] bpf: add test_run support for netfilter program type
-Date:   Wed,  5 Apr 2023 18:11:16 +0200
-Message-Id: <20230405161116.13565-7-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230405161116.13565-1-fw@strlen.de>
-References: <20230405161116.13565-1-fw@strlen.de>
+        Wed, 5 Apr 2023 13:42:39 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 129CB6A52;
+        Wed,  5 Apr 2023 10:42:33 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4PsBjp51Zzz6J71r;
+        Thu,  6 Apr 2023 01:40:30 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Wed, 5 Apr 2023 18:42:30 +0100
+Message-ID: <39980493-6107-0117-1d32-2af03fa23fa9@huawei.com>
+Date:   Wed, 5 Apr 2023 20:42:29 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v10 09/13] landlock: Add network rules and TCP hooks
+ support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
+ <20230323085226.1432550-10-konstantin.meskhidze@huawei.com>
+ <468fbb05-6d72-3570-3453-b1f8bfdd5bc2@digikod.net>
+ <1f84d88f-9977-13a9-245a-c75cd3444b29@huawei.com>
+ <ac4d6244-641b-e1d4-5c34-d9a9bcd10498@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <ac4d6244-641b-e1d4-5c34-d9a9bcd10498@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-also add two simple retval tests: as-is, a return value other
-than accept or drop will cause issues.
 
-NF_QUEUE could be implemented later IFF we can guarantee that
-attachment of such programs can be rejected if they get attached
-to a pf/hook that doesn't support async reinjection.
 
-NF_STOLEN could be implemented via trusted helpers that will eventually
-free the skb, else this would leak the skb reference.
+4/4/2023 7:42 PM, Mickaël Salaün пишет:
+> 
+> On 04/04/2023 11:31, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 3/31/2023 8:24 PM, Mickaël Salaün пишет:
+>>>
+>>> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
+>>>> This commit adds network rules support in the ruleset management
+>>>> helpers and the landlock_create_ruleset syscall.
+>>>> Refactor user space API to support network actions. Add new network
+>>>> access flags, network rule and network attributes. Increment Landlock
+>>>> ABI version. Expand access_masks_t to u32 to be sure network access
+>>>> rights can be stored. Implement socket_bind() and socket_connect()
+>>>> LSM hooks, which enable to restrict TCP socket binding and connection
+>>>> to specific ports.
+>>>>
+>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>>> ---
+>>>>
+>>>> Changes since v9:
+>>>> * Changes UAPI port field to __u64.
+>>>> * Moves shared code into check_socket_access().
+>>>> * Adds get_raw_handled_net_accesses() and
+>>>> get_current_net_domain() helpers.
+>>>> * Minor fixes.
+>>>>
+>>>> Changes since v8:
+>>>> * Squashes commits.
+>>>> * Refactors commit message.
+>>>> * Changes UAPI port field to __be16.
+>>>> * Changes logic of bind/connect hooks with AF_UNSPEC families.
+>>>> * Adds address length checking.
+>>>> * Minor fixes.
+>>>>
+>>>> Changes since v7:
+>>>> * Squashes commits.
+>>>> * Increments ABI version to 4.
+>>>> * Refactors commit message.
+>>>> * Minor fixes.
+>>>>
+>>>> Changes since v6:
+>>>> * Renames landlock_set_net_access_mask() to landlock_add_net_access_mask()
+>>>>     because it OR values.
+>>>> * Makes landlock_add_net_access_mask() more resilient incorrect values.
+>>>> * Refactors landlock_get_net_access_mask().
+>>>> * Renames LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
+>>>>     LANDLOCK_NUM_ACCESS_FS as value.
+>>>> * Updates access_masks_t to u32 to support network access actions.
+>>>> * Refactors landlock internal functions to support network actions with
+>>>>     landlock_key/key_type/id types.
+>>>>
+>>>> Changes since v5:
+>>>> * Gets rid of partial revert from landlock_add_rule
+>>>> syscall.
+>>>> * Formats code with clang-format-14.
+>>>>
+>>>> Changes since v4:
+>>>> * Refactors landlock_create_ruleset() - splits ruleset and
+>>>> masks checks.
+>>>> * Refactors landlock_create_ruleset() and landlock mask
+>>>> setters/getters to support two rule types.
+>>>> * Refactors landlock_add_rule syscall add_rule_path_beneath
+>>>> function by factoring out get_ruleset_from_fd() and
+>>>> landlock_put_ruleset().
+>>>>
+>>>> Changes since v3:
+>>>> * Splits commit.
+>>>> * Adds network rule support for internal landlock functions.
+>>>> * Adds set_mask and get_mask for network.
+>>>> * Adds rb_root root_net_port.
+>>>>
+>>>> ---
+>>>>    include/uapi/linux/landlock.h                |  49 +++++
+>>>>    security/landlock/Kconfig                    |   1 +
+>>>>    security/landlock/Makefile                   |   2 +
+>>>>    security/landlock/limits.h                   |   6 +-
+>>>>    security/landlock/net.c                      | 198 +++++++++++++++++++
+>>>>    security/landlock/net.h                      |  26 +++
+>>>>    security/landlock/ruleset.c                  |  52 ++++-
+>>>>    security/landlock/ruleset.h                  |  63 +++++-
+>>>>    security/landlock/setup.c                    |   2 +
+>>>>    security/landlock/syscalls.c                 |  72 ++++++-
+>>>>    tools/testing/selftests/landlock/base_test.c |   2 +-
+>>>>    11 files changed, 450 insertions(+), 23 deletions(-)
+>>>>    create mode 100644 security/landlock/net.c
+>>>>    create mode 100644 security/landlock/net.h
+>>>
+>>> [...]
+>>>
+>>>> diff --git a/security/landlock/net.c b/security/landlock/net.c
+>>>
+>>> [...]
+>>>
+>>>> +static int check_addrlen(const struct sockaddr *const address, int addrlen)
+>>>
+>>> const int addrlen
+>> 
+>>     Got it.
+>>>
+>>>> +{
+>>>> +	if (addrlen < offsetofend(struct sockaddr, sa_family))
+>>>> +		return -EINVAL;
+>>>> +	switch (address->sa_family) {
+>>>> +	case AF_UNSPEC:
+>>>> +	case AF_INET:
+>>>> +		if (addrlen < sizeof(struct sockaddr_in))
+>>>> +			return -EINVAL;
+>>>> +		return 0;
+>>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>>> +	case AF_INET6:
+>>>> +		if (addrlen < SIN6_LEN_RFC2133)
+>>>> +			return -EINVAL;
+>>>> +		return 0;
+>>>> +#endif
+>>>> +	}
+>>>> +	WARN_ON_ONCE(1);
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static u16 get_port(const struct sockaddr *const address)
+>>>> +{
+>>>> +	/* Gets port value in host byte order. */
+>>>> +	switch (address->sa_family) {
+>>>> +	case AF_UNSPEC:
+>>>> +	case AF_INET: {
+>>>> +		const struct sockaddr_in *const sockaddr =
+>>>> +			(struct sockaddr_in *)address;
+>>>> +		return ntohs(sockaddr->sin_port);
+>>>
+>>> Storing ports in big endian (in rulesets) would avoid converting them
+>>> every time the kernel checks a socket port. The above comment should
+>>> then be updated too.
+>> 
+>>     I thought we came to a conclusion to stick to host endianess and
+>> let kernel do the checks under the hood:
+>> https://lore.kernel.org/linux-security-module/278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net/
+>> 
+>> Did I misunderstand something?
+> 
+> We indeed stick to the host endianess for the UAPI/syscalls, but
+> internally the kernel has to do the conversion with as it is currently
+> done by calling ntohs(). To avoid calling ntohs() every time get_port()
+> is called, we can instead only call htons() when creating rules (i.e.
+> one-time htons call instead of multiple ntohs calls).
+> 
+  Do you mean we need to covert port in  landlock_append_net_rule():
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/bpf.h                           |   3 +
- net/bpf/test_run.c                            | 143 ++++++++++++++++++
- net/netfilter/nf_bpf_link.c                   |   1 +
- .../selftests/bpf/verifier/netfilter.c        |  23 +++
- 4 files changed, 170 insertions(+)
- create mode 100644 tools/testing/selftests/bpf/verifier/netfilter.c
+  ...
 
-diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 2d8f3f639e68..453cee1efdd3 100644
---- a/include/linux/bpf.h
-+++ b/include/linux/bpf.h
-@@ -2235,6 +2235,9 @@ int bpf_prog_test_run_raw_tp(struct bpf_prog *prog,
- int bpf_prog_test_run_sk_lookup(struct bpf_prog *prog,
- 				const union bpf_attr *kattr,
- 				union bpf_attr __user *uattr);
-+int bpf_prog_test_run_nf(struct bpf_prog *prog,
-+			 const union bpf_attr *kattr,
-+			 union bpf_attr __user *uattr);
- bool btf_ctx_access(int off, int size, enum bpf_access_type type,
- 		    const struct bpf_prog *prog,
- 		    struct bpf_insn_access_aux *info);
-diff --git a/net/bpf/test_run.c b/net/bpf/test_run.c
-index f1652f5fbd2e..c14f577fd987 100644
---- a/net/bpf/test_run.c
-+++ b/net/bpf/test_run.c
-@@ -19,7 +19,9 @@
- #include <linux/error-injection.h>
- #include <linux/smp.h>
- #include <linux/sock_diag.h>
-+#include <linux/netfilter.h>
- #include <net/xdp.h>
-+#include <net/netfilter/nf_bpf_link.h>
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/bpf_test_run.h>
-@@ -1690,6 +1692,147 @@ int bpf_prog_test_run_syscall(struct bpf_prog *prog,
- 	return err;
- }
- 
-+static int verify_and_copy_hook_state(struct nf_hook_state *state,
-+				      const struct nf_hook_state *user,
-+				      struct net_device *dev)
-+{
-+	if (user->in || user->out)
-+		return -EINVAL;
-+
-+	if (user->net || user->sk || user->okfn)
-+		return -EINVAL;
-+
-+	switch (user->pf) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+		switch (state->hook) {
-+		case NF_INET_PRE_ROUTING:
-+			state->in = dev;
-+			break;
-+		case NF_INET_LOCAL_IN:
-+			state->in = dev;
-+			break;
-+		case NF_INET_FORWARD:
-+			state->in = dev;
-+			state->out = dev;
-+			break;
-+		case NF_INET_LOCAL_OUT:
-+			state->out = dev;
-+			break;
-+		case NF_INET_POST_ROUTING:
-+			state->out = dev;
-+			break;
-+		}
-+
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	state->pf = user->pf;
-+	state->hook = user->hook;
-+
-+	return 0;
-+}
-+
-+int bpf_prog_test_run_nf(struct bpf_prog *prog,
-+			 const union bpf_attr *kattr,
-+			 union bpf_attr __user *uattr)
-+{
-+	struct net *net = current->nsproxy->net_ns;
-+	struct net_device *dev = net->loopback_dev;
-+	struct nf_hook_state *user_ctx, hook_state = {
-+		.pf = NFPROTO_IPV4,
-+		.hook = NF_INET_PRE_ROUTING,
-+	};
-+	u32 size = kattr->test.data_size_in;
-+	u32 repeat = kattr->test.repeat;
-+	const struct ethhdr *eth;
-+	struct bpf_nf_ctx ctx = {
-+		.state = &hook_state,
-+	};
-+	struct sk_buff *skb = NULL;
-+	u32 retval, duration;
-+	void *data;
-+	int ret;
-+
-+	if (kattr->test.flags || kattr->test.cpu || kattr->test.batch_size)
-+		return -EINVAL;
-+
-+	if (size < ETH_HLEN + sizeof(struct iphdr))
-+		return -EINVAL;
-+
-+	data = bpf_test_init(kattr, kattr->test.data_size_in, size,
-+			     NET_SKB_PAD + NET_IP_ALIGN,
-+			     SKB_DATA_ALIGN(sizeof(struct skb_shared_info)));
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	eth = (struct ethhdr *)data;
-+
-+	if (!repeat)
-+		repeat = 1;
-+
-+	user_ctx = bpf_ctx_init(kattr, sizeof(struct nf_hook_state));
-+	if (IS_ERR(user_ctx)) {
-+		kfree(data);
-+		return PTR_ERR(user_ctx);
-+	}
-+
-+	if (user_ctx) {
-+		ret = verify_and_copy_hook_state(&hook_state, user_ctx, dev);
-+		if (ret)
-+			goto out;
-+	}
-+
-+	skb = slab_build_skb(data);
-+	if (!skb) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	data = NULL; /* data released via kfree_skb */
-+
-+	skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
-+	__skb_put(skb, size);
-+
-+	skb->protocol = eth_type_trans(skb, dev);
-+
-+	skb_reset_network_header(skb);
-+
-+	ret = -EINVAL;
-+
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		if (hook_state.pf == NFPROTO_IPV4)
-+			break;
-+		goto out;
-+	case htons(ETH_P_IPV6):
-+		if (size < ETH_HLEN + sizeof(struct ipv6hdr))
-+			goto out;
-+		if (hook_state.pf == NFPROTO_IPV6)
-+			break;
-+		goto out;
-+	default:
-+		ret = -EPROTO;
-+		goto out;
-+	}
-+
-+	ctx.skb = skb;
-+
-+	ret = bpf_test_run(prog, &ctx, repeat, &retval, &duration, false);
-+	if (ret)
-+		goto out;
-+
-+	ret = bpf_test_finish(kattr, uattr, NULL, NULL, 0, retval, duration);
-+
-+out:
-+	kfree(user_ctx);
-+	kfree_skb(skb);
-+	kfree(data);
-+	return ret;
-+}
-+
- static const struct btf_kfunc_id_set bpf_prog_test_kfunc_set = {
- 	.owner = THIS_MODULE,
- 	.set   = &test_sk_check_kfunc_ids,
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index 4b22a31d6df5..c27fd569adf1 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -128,6 +128,7 @@ int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog)
- }
- 
- const struct bpf_prog_ops netfilter_prog_ops = {
-+	.test_run = bpf_prog_test_run_nf,
- };
- 
- static bool nf_ptr_to_btf_id(struct bpf_insn_access_aux *info, const char *name)
-diff --git a/tools/testing/selftests/bpf/verifier/netfilter.c b/tools/testing/selftests/bpf/verifier/netfilter.c
-new file mode 100644
-index 000000000000..deeb87afdf50
---- /dev/null
-+++ b/tools/testing/selftests/bpf/verifier/netfilter.c
-@@ -0,0 +1,23 @@
-+{
-+	"netfilter, accept all",
-+	.insns = {
-+	BPF_MOV64_IMM(BPF_REG_0, 1),
-+	BPF_EXIT_INSN(),
-+	},
-+	.result = ACCEPT,
-+	.prog_type = BPF_PROG_TYPE_NETFILTER,
-+	.retval = 1,
-+	.data = {
-+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x08, 0x00,
-+	},
-+},
-+{
-+	"netfilter, stolen verdict",
-+	.insns = {
-+	BPF_MOV64_IMM(BPF_REG_0, 2),
-+	BPF_EXIT_INSN(),
-+	},
-+	.result = REJECT,
-+	.errstr = "At program exit the register R0 has value (0x2; 0x0) should have been in (0x0; 0x1)",
-+	.prog_type = BPF_PROG_TYPE_NETFILTER,
-+},
--- 
-2.39.2
+         int err;
+	const struct landlock_id id = {
+		.key.data = ntohs(port),
+		.type = LANDLOCK_KEY_NET_PORT,
+	};
+	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+...
+????
+> 
+>>    Do you mean we need to do port converting __be16 -> u16 in 
+>> check_socket_access()???
+> 
+> Removing the ntohs() call from get_port() enables to return __be16
+> instead of u16, and check_socket_access() will then need to use the same
+> type.
 
+   Ok. I got it. Thanks.
+> 
+> 
+>>>
+>>>
+>>>> +	}
+>>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>>> +	case AF_INET6: {
+>>>> +		const struct sockaddr_in6 *const sockaddr_ip6 =
+>>>> +			(struct sockaddr_in6 *)address;
+>>>> +		return ntohs(sockaddr_ip6->sin6_port);
+>>>> +	}
+>>>> +#endif
+>>>> +	}
+>>>> +	WARN_ON_ONCE(1);
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static int check_socket_access(struct socket *sock, struct sockaddr *address, int addrlen, u16 port,
+>>>> +			       access_mask_t access_request)
+>>>> +{
+>>>> +	int ret;
+>>>> +	bool allowed = false;
+>>>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+>>>> +	const struct landlock_rule *rule;
+>>>> +	access_mask_t handled_access;
+>>>> +	const struct landlock_id id = {
+>>>> +		.key.data = port,
+>>>> +		.type = LANDLOCK_KEY_NET_PORT,
+>>>> +	};
+>>>> +	const struct landlock_ruleset *const domain = get_current_net_domain();
+>>>> +
+>>>> +	if (WARN_ON_ONCE(!domain))
+>>>> +		return 0;
+>>>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+>>>> +		return -EACCES;
+>>>> +	/* Check if it's a TCP socket. */
+>>>> +	if (sock->type != SOCK_STREAM)
+>>>> +		return 0;
+>>>> +
+>>>> +	ret = check_addrlen(address, addrlen);
+>>>> +	if (ret)
+>>>> +		return ret;
+>>>> +
+>>>> +	switch (address->sa_family) {
+>>>> +	case AF_UNSPEC:
+>>>> +		/*
+>>>> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
+>>>> +		 * association, which have the same effect as closing the
+>>>> +		 * connection while retaining the socket object (i.e., the file
+>>>> +		 * descriptor).  As for dropping privileges, closing
+>>>> +		 * connections is always allowed.
+>>>> +		 */
+>>>> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>>>> +			return 0;
+>>>> +
+>>>> +		/*
+>>>> +		 * For compatibility reason, accept AF_UNSPEC for bind
+>>>> +		 * accesses (mapped to AF_INET) only if the address is
+>>>> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
+>>>> +		 * required to not wrongfully return -EACCES instead of
+>>>> +		 * -EAFNOSUPPORT.
+>>>> +		 */
+>>>> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
+>>>> +			const struct sockaddr_in *const sockaddr =
+>>>> +				(struct sockaddr_in *)address;
+>>>> +
+>>>> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
+>>>> +				return -EAFNOSUPPORT;
+>>>> +		}
+>>>> +
+>>>> +		fallthrough;
+>>>> +	case AF_INET:
+>>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>>> +	case AF_INET6:
+>>>> +#endif
+>>>> +		rule = landlock_find_rule(domain, id);
+>>>> +		handled_access = landlock_init_layer_masks(
+>>>> +			domain, access_request, &layer_masks,
+>>>> +			LANDLOCK_KEY_NET_PORT);
+>>>> +		allowed = landlock_unmask_layers(rule, handled_access,
+>>>> +						 &layer_masks,
+>>>> +						 ARRAY_SIZE(layer_masks));
+>>>> +	}
+>>>> +	return allowed ? 0 : -EACCES;
+>>>> +}
+>>>> +
+>>>> +static int hook_socket_bind(struct socket *sock, struct sockaddr *address,
+>>>> +			    int addrlen)
+>>>> +{ >>> +	return check_socket_access(sock, address, addrlen, get_port(address),
+>>>> +				   LANDLOCK_ACCESS_NET_BIND_TCP);
+> 
+> get_port() is called before check_addrlen(), which is an issue.
+> 
+> You'll find attached a patch for these fixes, please squash it in this
+> one for the next version.
+> 
+> I'll send other reviews by the end of the week.
+> 
+> 
+>>>> +}
+>>>> +
+>>>> +static int hook_socket_connect(struct socket *sock, struct sockaddr *address,
+>>>> +			       int addrlen)
+>>>> +{
+>>>> +	return check_socket_access(sock, address, addrlen, get_port(address),
+>>>> +				   LANDLOCK_ACCESS_NET_CONNECT_TCP);
+>>>> +}
+>>>
+>>> [...]
+>>> .
