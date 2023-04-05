@@ -2,72 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EC42C761A6
-	for <netfilter-devel@archiver.kernel.org>; Tue,  4 Apr 2023 19:45:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A3BC76188
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Apr 2023 11:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236225AbjDDTpD (ORCPT
+        id S237491AbjDELVe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 4 Apr 2023 15:45:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41264 "EHLO
+        Wed, 5 Apr 2023 07:21:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236184AbjDDTo6 (ORCPT
+        with ESMTP id S237022AbjDELVd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Apr 2023 15:44:58 -0400
+        Wed, 5 Apr 2023 07:21:33 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 408054C1E
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2023 12:44:57 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pjmaN-0006fm-DQ; Tue, 04 Apr 2023 21:44:55 +0200
-Date:   Tue, 4 Apr 2023 21:44:55 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82D772D4B
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Apr 2023 04:21:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=CTlZyikx5uyEY73+cpDY4EKVvNLJ2jCTHhLe4uQmhGA=; b=cU7X2qr7AWvmntlWk03MFQ19F+
+        oL09hB1/epghaavvZIo7EVi+574AyP0rCT/zCSroM6GZe2xDAo/gkG5AXtcbMXxfBXqP5TfUrhMHb
+        jXyH25Lt9SD84euYGCLdeQ2OqVzAGtWfDAHt/6Xiq5hfRFzs6o2D3Ejq8EVAZR3kxIStEiZlmqm++
+        YCPO5tqvliWWdQWuFzXGBwhrILvBD6CGHcl/XBa1Zltwx8/RXv5GaX6jIam/P7VrAqk9QZ97Yy5pQ
+        3I0ijOQbTsfzbyKUtpJ2FDPDPgq0j55OahLD6xSfEi0rgDFro6UJWfUGe859rME3L4YqhIfIBGjWk
+        B+ALxNAQ==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1pk1Ci-0005in-V4
+        for netfilter-devel@vger.kernel.org; Wed, 05 Apr 2023 13:21:28 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables 2/2] ebtables-nft: add broute table emulation
-Message-ID: <ZCx+N9XeZgyx3KZu@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20230404094544.2892-1-fw@strlen.de>
- <20230404094544.2892-2-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests: shell: Test for false-positive rule check
+Date:   Wed,  5 Apr 2023 13:21:20 +0200
+Message-Id: <20230405112120.9065-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.38.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230404094544.2892-2-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 04, 2023 at 11:45:44AM +0200, Florian Westphal wrote:
-[...]
-> --- a/iptables/ebtables-nft.8
-> +++ b/iptables/ebtables-nft.8
-[...]
-> @@ -93,17 +96,13 @@ For the extension targets please refer to the
->  .B "TARGET EXTENSIONS"
->  section of this man page.
->  .SS TABLES
-> -As stated earlier, there are two ebtables tables in the Linux
-> -kernel.  The table names are
-> -.BR filter " and " nat .
-> -Of these two tables,
-> +As stated earlier, the table names are
-> +.BR filter ", " nat " and " broute .
-> +Of these tables,
->  the filter table is the default table that the command operates on.
-> -If you are working with the filter table, then you can drop the '-t filter'
-> -argument to the ebtables command.  However, you will need to provide
-> -the -t argument for
-> -.B nat
-> -table.  Moreover, the -t argument must be the
-> -first argument on the ebtables command line, if used. 
-> +If you are working with the a table other than filter, you will need to provide
+Rule comparison in legacy ip6tables was broken by commit eb2546a846776
+("xshared: Share make_delete_mask() between ip{,6}tables"): A part of
+the rules' data was masked out for comparison by accident.
 
-Typo here ("the a" -> "a").
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../shell/testcases/ip6tables/0005-rule-check_0 | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/ip6tables/0005-rule-check_0
 
-Also this patch broke
-iptables/tests/shell/testcases/ebtables/0001-ebtables-basic_0
-("broute" table name did not fail anymore, so nothing serious).
+diff --git a/iptables/tests/shell/testcases/ip6tables/0005-rule-check_0 b/iptables/tests/shell/testcases/ip6tables/0005-rule-check_0
+new file mode 100755
+index 0000000000000..cc8215bf43495
+--- /dev/null
++++ b/iptables/tests/shell/testcases/ip6tables/0005-rule-check_0
+@@ -0,0 +1,17 @@
++#!/bin/bash
++#
++# Test the fix in commit 78850e7dba64a ("ip6tables: Fix checking existence of
++# rule"). Happens with legacy ip6tables only, but testing ip6tables-nft doesn't
++# hurt.
++#
++# Code taken from https://bugzilla.netfilter.org/show_bug.cgi?id=1667
++# Thanks to Jonathan Caicedo <jonathan@jcaicedo.com> for providing it.
++
++RULE='-p tcp --dport 81 -j DNAT --to-destination [::1]:81'
++
++$XT_MULTI ip6tables -t nat -N testchain || exit 1
++$XT_MULTI ip6tables -t nat -A testchain $RULE || exit 1
++$XT_MULTI ip6tables -t nat -C testchain $RULE || exit 1
++
++$XT_MULTI ip6tables -t nat -C testchain ${RULE//81/82} 2>/dev/null && exit 1
++exit 0
+-- 
+2.38.0
 
-Folded both fixes into this commit, then applied the series.
-
-Thanks for working on it!
