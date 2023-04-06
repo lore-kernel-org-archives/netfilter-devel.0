@@ -2,251 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F3F8C76188
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Apr 2023 19:19:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F8ABC7618D
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Apr 2023 04:03:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233000AbjDETTR (ORCPT
+        id S235180AbjDFEDO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Apr 2023 15:19:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42086 "EHLO
+        Thu, 6 Apr 2023 00:03:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233050AbjDETTQ (ORCPT
+        with ESMTP id S234262AbjDFEDN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Apr 2023 15:19:16 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65FC84C12;
-        Wed,  5 Apr 2023 12:19:12 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4PsDpz3dsMz67j6m;
-        Thu,  6 Apr 2023 03:15:07 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Wed, 5 Apr 2023 20:19:06 +0100
-Message-ID: <816ac968-daff-20ec-92d3-3f80b53205f5@huawei.com>
-Date:   Wed, 5 Apr 2023 22:19:05 +0300
+        Thu, 6 Apr 2023 00:03:13 -0400
+Received: from m12.mail.163.com (m12.mail.163.com [220.181.12.216])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A06EF8A66;
+        Wed,  5 Apr 2023 21:03:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=zqUsr
+        WEJN0EiZ0bTUfv4/qeAkVy9cBKYCLeIfX7cEo8=; b=J7ZByYFYppM8MUiCvP0jc
+        ulA6W6BWRLqFwwZOuKXbqOQQ891n1880EbUgGcKkjcTqAZ2FX54JRxn9GKyhUSlt
+        Ryr7TfM/KHeo/PjhjxRlsgNMC2XM6B8p+qui7tXkUJw2K9PCTo9C7qv8rjpMOohb
+        rlld0/z32qXAFHpAJKu6p4=
+Received: from localhost.localdomain (unknown [119.3.119.19])
+        by zwqz-smtp-mta-g4-0 (Coremail) with SMTP id _____wC3s2FARC5klsq6Ag--.47216S2;
+        Thu, 06 Apr 2023 12:02:09 +0800 (CST)
+From:   Chen Aotian <chenaotian2@163.com>
+To:     pablo@netfilter.org
+Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Chen Aotian <chenaotian2@163.com>
+Subject: [PATCH] netfilter: nf_tables: Modify nla_memdup's flag to GFP_KERNEL_ACCOUNT
+Date:   Thu,  6 Apr 2023 12:01:51 +0800
+Message-Id: <20230406040151.1676-1-chenaotian2@163.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v10 09/13] landlock: Add network rules and TCP hooks
- support
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
- <20230323085226.1432550-10-konstantin.meskhidze@huawei.com>
- <468fbb05-6d72-3570-3453-b1f8bfdd5bc2@digikod.net>
- <1f84d88f-9977-13a9-245a-c75cd3444b29@huawei.com>
- <ac4d6244-641b-e1d4-5c34-d9a9bcd10498@digikod.net>
- <f126c31b-f0cf-0746-e517-9f3f19c1915f@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <f126c31b-f0cf-0746-e517-9f3f19c1915f@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
+X-CM-TRANSID: _____wC3s2FARC5klsq6Ag--.47216S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZrykKFy3GF18ZFy8tF1fJFb_yoW3ZwcEkr
+        yvqF40krWrJrZFgr1rJayqyrWSga18Z3WS9a4fZFZ0yayrGw48uFZ7XF1rZan8Ww4UA3W5
+        ZwnFqF1DJw1jkjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUbc4S5UUUUU==
+X-Originating-IP: [119.3.119.19]
+X-CM-SenderInfo: xfkh0tprwlt0qs6rljoofrz/1tbiHQJJwGI69pVlIgAAsq
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+For memory alloc that store user data from nla[NFTA_OBJ_USERDATA], 
+use GFP_KERNEL_ACCOUNT is more suitable.
 
+Signed-off-by: Chen Aotian <chenaotian2@163.com>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-4/4/2023 8:02 PM, Mickaël Salaün пишет:
-> 
-> On 04/04/2023 18:42, Mickaël Salaün wrote:
->> 
->> On 04/04/2023 11:31, Konstantin Meskhidze (A) wrote:
->>>
->>>
->>> 3/31/2023 8:24 PM, Mickaël Salaün пишет:
->>>>
->>>> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
->>>>> This commit adds network rules support in the ruleset management
->>>>> helpers and the landlock_create_ruleset syscall.
->>>>> Refactor user space API to support network actions. Add new network
->>>>> access flags, network rule and network attributes. Increment Landlock
->>>>> ABI version. Expand access_masks_t to u32 to be sure network access
->>>>> rights can be stored. Implement socket_bind() and socket_connect()
->>>>> LSM hooks, which enable to restrict TCP socket binding and connection
->>>>> to specific ports.
->>>>>
->>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>>> ---
->>>>>
->>>>> Changes since v9:
->>>>> * Changes UAPI port field to __u64.
->>>>> * Moves shared code into check_socket_access().
->>>>> * Adds get_raw_handled_net_accesses() and
->>>>> get_current_net_domain() helpers.
->>>>> * Minor fixes.
->>>>>
->>>>> Changes since v8:
->>>>> * Squashes commits.
->>>>> * Refactors commit message.
->>>>> * Changes UAPI port field to __be16.
->>>>> * Changes logic of bind/connect hooks with AF_UNSPEC families.
->>>>> * Adds address length checking.
->>>>> * Minor fixes.
->>>>>
->>>>> Changes since v7:
->>>>> * Squashes commits.
->>>>> * Increments ABI version to 4.
->>>>> * Refactors commit message.
->>>>> * Minor fixes.
->>>>>
->>>>> Changes since v6:
->>>>> * Renames landlock_set_net_access_mask() to landlock_add_net_access_mask()
->>>>>      because it OR values.
->>>>> * Makes landlock_add_net_access_mask() more resilient incorrect values.
->>>>> * Refactors landlock_get_net_access_mask().
->>>>> * Renames LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
->>>>>      LANDLOCK_NUM_ACCESS_FS as value.
->>>>> * Updates access_masks_t to u32 to support network access actions.
->>>>> * Refactors landlock internal functions to support network actions with
->>>>>      landlock_key/key_type/id types.
->>>>>
->>>>> Changes since v5:
->>>>> * Gets rid of partial revert from landlock_add_rule
->>>>> syscall.
->>>>> * Formats code with clang-format-14.
->>>>>
->>>>> Changes since v4:
->>>>> * Refactors landlock_create_ruleset() - splits ruleset and
->>>>> masks checks.
->>>>> * Refactors landlock_create_ruleset() and landlock mask
->>>>> setters/getters to support two rule types.
->>>>> * Refactors landlock_add_rule syscall add_rule_path_beneath
->>>>> function by factoring out get_ruleset_from_fd() and
->>>>> landlock_put_ruleset().
->>>>>
->>>>> Changes since v3:
->>>>> * Splits commit.
->>>>> * Adds network rule support for internal landlock functions.
->>>>> * Adds set_mask and get_mask for network.
->>>>> * Adds rb_root root_net_port.
->>>>>
->>>>> ---
->>>>>     include/uapi/linux/landlock.h                |  49 +++++
->>>>>     security/landlock/Kconfig                    |   1 +
->>>>>     security/landlock/Makefile                   |   2 +
->>>>>     security/landlock/limits.h                   |   6 +-
->>>>>     security/landlock/net.c                      | 198 +++++++++++++++++++
->>>>>     security/landlock/net.h                      |  26 +++
->>>>>     security/landlock/ruleset.c                  |  52 ++++-
->>>>>     security/landlock/ruleset.h                  |  63 +++++-
->>>>>     security/landlock/setup.c                    |   2 +
->>>>>     security/landlock/syscalls.c                 |  72 ++++++-
->>>>>     tools/testing/selftests/landlock/base_test.c |   2 +-
->>>>>     11 files changed, 450 insertions(+), 23 deletions(-)
->>>>>     create mode 100644 security/landlock/net.c
->>>>>     create mode 100644 security/landlock/net.h
->>>>
->>>> [...]
->>>>
->>>>> diff --git a/security/landlock/net.c b/security/landlock/net.c
->>>>
->>>> [...]
-> 
-> 
->>>>> +static int check_socket_access(struct socket *sock, struct sockaddr *address, int addrlen, u16 port,
->>>>> +			       access_mask_t access_request)
->>>>> +{
->>>>> +	int ret;
->>>>> +	bool allowed = false;
->>>>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
->>>>> +	const struct landlock_rule *rule;
->>>>> +	access_mask_t handled_access;
->>>>> +	const struct landlock_id id = {
->>>>> +		.key.data = port,
->>>>> +		.type = LANDLOCK_KEY_NET_PORT,
->>>>> +	};
->>>>> +	const struct landlock_ruleset *const domain = get_current_net_domain();
->>>>> +
->>>>> +	if (WARN_ON_ONCE(!domain))
->>>>> +		return 0;
->>>>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
->>>>> +		return -EACCES;
->>>>> +	/* Check if it's a TCP socket. */
->>>>> +	if (sock->type != SOCK_STREAM)
->>>>> +		return 0;
->>>>> +
->>>>> +	ret = check_addrlen(address, addrlen);
->>>>> +	if (ret)
->>>>> +		return ret;
->>>>> +
->>>>> +	switch (address->sa_family) {
->>>>> +	case AF_UNSPEC:
->>>>> +		/*
->>>>> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
->>>>> +		 * association, which have the same effect as closing the
->>>>> +		 * connection while retaining the socket object (i.e., the file
->>>>> +		 * descriptor).  As for dropping privileges, closing
->>>>> +		 * connections is always allowed.
->>>>> +		 */
->>>>> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
->>>>> +			return 0;
->>>>> +
->>>>> +		/*
->>>>> +		 * For compatibility reason, accept AF_UNSPEC for bind
->>>>> +		 * accesses (mapped to AF_INET) only if the address is
->>>>> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
->>>>> +		 * required to not wrongfully return -EACCES instead of
->>>>> +		 * -EAFNOSUPPORT.
->>>>> +		 */
->>>>> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
->>>>> +			const struct sockaddr_in *const sockaddr =
->>>>> +				(struct sockaddr_in *)address;
->>>>> +
->>>>> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
->>>>> +				return -EAFNOSUPPORT;
->>>>> +		}
->>>>> +
->>>>> +		fallthrough;
->>>>> +	case AF_INET:
->>>>> +#if IS_ENABLED(CONFIG_IPV6)
->>>>> +	case AF_INET6:
->>>>> +#endif
-> 
-> Some more fixes:
-> 
-> You can move the port/id.key.data block from my patch here, where it is
-> actually used.
-> 
-   Ok. Thank you. I will apply it.
-> 
->>>>> +		rule = landlock_find_rule(domain, id);
->>>>> +		handled_access = landlock_init_layer_masks(
->>>>> +			domain, access_request, &layer_masks,
->>>>> +			LANDLOCK_KEY_NET_PORT);
->>>>> +		allowed = landlock_unmask_layers(rule, handled_access,
->>>>> +						 &layer_masks,
->>>>> +						 ARRAY_SIZE(layer_masks));
-> 
-> The `return allowed ? 0 : -EACCES;` should be here.
-> 
->>>>> +	}
->>>>> +	return allowed ? 0 : -EACCES;
-> 
-> We should have `return 0;` here.
-> 
-   Got it. Thanks
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 6004d4b24..cd52109e6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7052,7 +7052,7 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
+ 
+ 	if (nla[NFTA_OBJ_USERDATA]) {
+-		obj->udata = nla_memdup(nla[NFTA_OBJ_USERDATA], GFP_KERNEL);
++		obj->udata = nla_memdup(nla[NFTA_OBJ_USERDATA], GFP_KERNEL_ACCOUNT);
+ 		if (obj->udata == NULL)
+ 			goto err_userdata;
+ 
+-- 
+2.25.1
 
-> We need a test for an sa_family different than AF_UNSPEC, AF_INET, and
-> AF_INET6 to make sure everything else is allowed (e.g. AF_UNIX with
-> SOCK_STREAM and another test with SOCK_DGRAM). Please make sure this new
-> test will not pass with SOCK_STREAM and the current patch series, but of
-> course it should pass with the next one.
-
-   Do you mean AF_UNIX with SOCK_STREAM will not be passed as well as
-   AF_UNIX with SOCK_DGRAM?
-> 
-
-> 
->>>>> +}
->>>>> +
-> .
