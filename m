@@ -2,101 +2,80 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE55BC77B71
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Apr 2023 07:11:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B095FC7619A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Apr 2023 08:29:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230146AbjDKHLL (ORCPT
+        id S230431AbjDKI3H (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Apr 2023 03:11:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59566 "EHLO
+        Tue, 11 Apr 2023 04:29:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229794AbjDKHLH (ORCPT
+        with ESMTP id S230238AbjDKI2z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Apr 2023 03:11:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B9473A87;
-        Tue, 11 Apr 2023 00:11:00 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C8BAF62244;
-        Tue, 11 Apr 2023 07:10:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE8AFC4339E;
-        Tue, 11 Apr 2023 07:10:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681197059;
-        bh=GyhEHiJkt5kFXmysrQx6eDNO7cufe6HICtq92px6MeM=;
-        h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-        b=Tupdy+JxQySyI8Lm8YHNBoLU3bnxQhHlkrjBxnOfiwfpdtt82dgsb9m00iLSdIff+
-         vGqFY1WoGRWvwC9xwhEKTq42fYB5rv3CTFPMuH6vD9ABRvn/kC82ObR8NOE5itmaFK
-         o/eCF4Haq3RlLHtn5IT9a3RuNzClv4xTIL3L56MzslCPPnLk1w5dOiNaoKx6Bf2qZb
-         cn6reH+xNI8Ww555d/OoKOQ5QKVi9i1F3u8eyyPm4Q/sk45uLngU0R9kDDDLnWaOEj
-         8RKc5uTHlX+WUrysQAuZUMkxjxGAdbbd7Jchku9tLkHPfTjyQ0o8mMd8Aovd5Dsf8V
-         P0G/ymHq7pjfQ==
-From:   Simon Horman <horms@kernel.org>
-Date:   Tue, 11 Apr 2023 09:10:42 +0200
-Subject: [PATCH nf-next v2 4/4] ipvs: Correct spelling in comments
+        Tue, 11 Apr 2023 04:28:55 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4B7AE4210
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Apr 2023 01:28:29 -0700 (PDT)
+Date:   Tue, 11 Apr 2023 10:28:17 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
+ port-ranges
+Message-ID: <ZDUaIa0N2R1Ay7o/@calendula>
+References: <20230305101418.2233910-1-jeremy@azazel.net>
+ <20230305101418.2233910-9-jeremy@azazel.net>
+ <20230324225904.GB17250@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230409-ipvs-cleanup-v2-4-204cd17da708@kernel.org>
-References: <20230409-ipvs-cleanup-v2-0-204cd17da708@kernel.org>
-In-Reply-To: <20230409-ipvs-cleanup-v2-0-204cd17da708@kernel.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, lvs-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-X-Mailer: b4 0.12.2
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230324225904.GB17250@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Correct some spelling errors flagged by codespell and found by inspection.
+Hi,
 
-Signed-off-by: Simon Horman <horms@kernel.org>
----
- include/net/ip_vs.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Fri, Mar 24, 2023 at 11:59:04PM +0100, Florian Westphal wrote:
+> Jeremy Sowden <jeremy@azazel.net> wrote:
+> > +ip daddr 10.0.0.1 tcp dport 55900-55910 dnat ip to 192.168.127.1:5900-5910/55900;ok
+> > +ip6 daddr 10::1 tcp dport 55900-55910 dnat ip6 to [::c0:a8:7f:1]:5900-5910/55900;ok
+> 
+> This syntax is horrible (yes, I know, xtables fault).
+> 
+> Do you think this series could be changed to grab the offset register from the
+> left edge of the range rather than requiring the user to specify it a
+> second time?  Something like:
+> 
+> ip daddr 10.0.0.1 tcp dport 55900-55910 dnat ip to 192.168.127.1:5900-5910
+> 
+> I'm open to other suggestions of course.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index a3adc246ee31..ff406ef4fd4a 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -584,7 +584,7 @@ struct ip_vs_conn {
- 	spinlock_t              lock;           /* lock for state transition */
- 	volatile __u16          state;          /* state info */
- 	volatile __u16          old_state;      /* old state, to be used for
--						 * state transition triggerd
-+						 * state transition triggered
- 						 * synchronization
- 						 */
- 	__u32			fwmark;		/* Fire wall mark from skb */
-@@ -635,7 +635,7 @@ struct ip_vs_service_user_kern {
- 	u16			protocol;
- 	union nf_inet_addr	addr;		/* virtual ip address */
- 	__be16			port;
--	u32			fwmark;		/* firwall mark of service */
-+	u32			fwmark;		/* firewall mark of service */
- 
- 	/* virtual service options */
- 	char			*sched_name;
-@@ -1036,7 +1036,7 @@ struct netns_ipvs {
- 	struct ipvs_sync_daemon_cfg	bcfg;	/* Backup Configuration */
- 	/* net name space ptr */
- 	struct net		*net;            /* Needed by timer routines */
--	/* Number of heterogeneous destinations, needed becaus heterogeneous
-+	/* Number of heterogeneous destinations, needed because heterogeneous
- 	 * are not supported when synchronization is enabled.
- 	 */
- 	unsigned int		mixed_address_family_dests;
+To allow to mix this with maps, I think the best approach is to add a
+new flag (port-shift) and then allow the user to specify the
+port-shift 'delta'.
 
--- 
-2.30.2
+ip daddr 10.0.0.1 tcp dport 55900-55910 dnat ip to ip saddr map { \
+        192.168.127.0-129.168.127.128 : 1.2.3.4 . -55000 } port-shift
 
+where -55000 means, subtract -55000 to the tcp dport in the packet, it
+is an incremental update.
+
+This requires a kernel patch to add the new port-shift flag.
+
+It should be possible to add a new netlink attribute
+
+NFTA_NAT_REG_PROTO_SHIFT
+
+which allows for -2^16 .. +2^16 to express the (positive/negative)
+delta offset.
+
+Parser would need to be taught to deal with negative and positive
+offset, we probably need a new special type for named maps too
+(port-shift).
+
+Florian, this is based on your idea to support 'add' command, which is
+still needed for other usecases. I think nat is special in the sense
+that the goal is to feed the registers that instruct the NAT engine
+what kind of mangling is needed.
