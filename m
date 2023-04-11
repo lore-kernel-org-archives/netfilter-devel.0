@@ -2,99 +2,123 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7364AC77B6F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Apr 2023 12:21:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D55A2C77B6F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Apr 2023 12:28:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbjDKMVr (ORCPT
+        id S229816AbjDKM2G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Apr 2023 08:21:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40352 "EHLO
+        Tue, 11 Apr 2023 08:28:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229477AbjDKMVq (ORCPT
+        with ESMTP id S229939AbjDKM2F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Apr 2023 08:21:46 -0400
-Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 283CD1717
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Apr 2023 05:21:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=A95OOuO+RYMSDv5PfthlJ1l/OKE+gq3yuuWkL5Z10U0=; b=nAy3jTx0+L18adR3kgBXzdYfff
-        /o0ix7GlkaAUt8BrTxNVTdKW2EQyIeqIk5Si/cmUByOa6Fg9oeRcgRvE0Y0wAX5DQBClh/Vbw04+C
-        ZLhAX1HxcaTlCAtEpRXDjthxBL9RzB3B2AZXbp+DjsWqJ/rnrjDD2wiAq1a6OfX41l09SzGanUFHy
-        hkbhU5Gu8iXqz97w0vJfgEzDn3lbZrRcIrGR5dGai1dnScPrC6ISmNBnbDezzkOdv3JHcz2kiLNrA
-        6I9Jg3rL5uQthSZ/1+5xIZhBVcKoPhjnxsse34+VeOh1/kYfcbTojgIS1xCYSYKcLEP1jhXheui9l
-        jjGQgVHw==;
-Received: from host86-133-13-230.range86-133.btcentralplus.com ([86.133.13.230] helo=celephais.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <jeremy@azazel.net>)
-        id 1pmD0I-009Mrl-4T; Tue, 11 Apr 2023 13:21:42 +0100
-Date:   Tue, 11 Apr 2023 13:21:40 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
+        Tue, 11 Apr 2023 08:28:05 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DF0010DE
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Apr 2023 05:28:04 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pmD6P-0001aM-Qg; Tue, 11 Apr 2023 14:28:01 +0200
+Date:   Tue, 11 Apr 2023 14:28:01 +0200
+From:   Florian Westphal <fw@strlen.de>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Florian Westphal <fw@strlen.de>, Jeremy Sowden <jeremy@azazel.net>,
         Netfilter Devel <netfilter-devel@vger.kernel.org>
 Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
  port-ranges
-Message-ID: <20230411122140.GA1279805@celephais.dreamlands>
+Message-ID: <20230411122801.GE21051@breakpoint.cc>
 References: <20230305101418.2233910-1-jeremy@azazel.net>
  <20230305101418.2233910-9-jeremy@azazel.net>
  <20230324225904.GB17250@breakpoint.cc>
- <ZCCtjm1rgpa5Z+Sr@salvia>
+ <ZDUaIa0N2R1Ay7o/@calendula>
+ <20230411102532.GC21051@breakpoint.cc>
+ <ZDU8GcaowpCbIeDJ@calendula>
+ <20230411112001.GD21051@breakpoint.cc>
+ <ZDVH+puTElQrkblc@calendula>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="3SohApoRAIdr4HJw"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZCCtjm1rgpa5Z+Sr@salvia>
-X-SA-Exim-Connect-IP: 86.133.13.230
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
+In-Reply-To: <ZDVH+puTElQrkblc@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > so assuming a map that has
+> > 
+> >   typeof ip saddr . ip daddr : ip daddr . tcp dport
+> 
+> I am not sure we can use . tcp dport here, we might need a specific
+> datatype for offset.
 
---3SohApoRAIdr4HJw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Right.  integer will work fine.  We will need a pseudotype
+for 'typeof', tcp dport won't work as-is because nftables won't
+know it needs to do the offset thing under the hood (math op or
+flag or whatever).
 
-On 2023-03-26, at 22:39:42 +0200, Pablo Neira Ayuso wrote:
-> Jeremy, may I suggest you pick up on the bitwise _SREG2 support?  I
-> will post a v4 with small updates for ("mark statement support for
-> non-constant expression") tomorrow. Probably you don't need the new
-> AND and OR operations for this? Only the a new _SREG2 to specify that
-> input comes from non-constant?
+> > ... but the map content stores the delta to use, e.g.
+> > 
+> >   { 192.168.7.1 . 10.2.2.2 : 10.2.2.1 . 10000 }
+> >
+> > ... where 10000 isn't the new dport but a delta that has to be added.
+> > 
+> >   [ payload load 4b @ network header + 12 => reg 1 ] # saddr
+> >   [ payload load 4b @ network header + 16 => reg 9 ] # daddr
+> >   [ lookup reg 1 set m dreg 1 0x0 ]	# now we have reg1: dnat addr, reg 9: delta to add
+> >   [ payload load 2b @ transport header + 2 => reg 10 ]
+> >   [ math add reg 9 + reg 10 => reg 9 ]		# real port value from packet added with delta
+> >   [ nat dnat ip addr_min reg 1 addr_max reg 1 proto_min reg 9 proto_max reg 9 flags 0x3 ]
+> 
+> It is very similar to my proposal, but using an explicit: payload +
+> math.
 
-Just to clarify, do you want just the `_SREG2` infrastructure from the
-last patch series but without the new bitwise ops?  That is to say it
-would be possible to send two operands to the kernel in registers, but
-no use would be made of it (yet).  Or are you proposing to update the
-existing mask-and-xor ops to send right hand operands via registers?
+Yes.
 
-J.
+> How are you going to express this in syntax? Maybe this:
+> 
+>    { 192.168.7.1 . 10.2.2.2 : 10.2.2.1 . +10000 }
+> 
+> or
+> 
+>    { 192.168.7.1 . 10.2.2.2 : 10.2.2.1 . -10000 }
+> 
+> so + or - tells this is an offset. Parser will need this notation, so
+> the evaluation step infers the map datatype from the element.
+> 
+> For explicit maps, we need the datatype to interpret that this is an
+> offset accordingly.
 
---3SohApoRAIdr4HJw
-Content-Type: application/pgp-signature; name="signature.asc"
+Yes.  This will also mean you can't mix real port value with offsets.
+(which i don't think is a problem).
 
------BEGIN PGP SIGNATURE-----
+> > add operation should probably also take a modulus (fixed immediate value)
+> > so we can make a defined result for things like:
+> > 
+> >   65532 + 10000
+> > 
+> > ... without a need to wrap implicitly back to "0 + remainder".
+> 
+> not sure I follow this modulus idea.
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmQ1UMwACgkQKYasCr3x
-BA2zqBAAl5DywZQvFB9p+fAtYerDCuNfPF2tlsJbWNYdfIUi+xnFcPHXIKN+wbxU
-N6iMp21a70jRt6rPfqEuMKvnm5pMkcTItZEE4CQ4zkbgjfUVZkuHWHtaseDPssc8
-uFOpNQx56UkqBUOpLLVgNReQZh/ZHLV50Ab/RfVCS2xyMHe7zHV+IG/HbEgyz8Vy
-LUrbxxbXHOop0d117CPAF3GISHbkp7imgvg0123QXG8sB6p1MMvPminCfN4S37p+
-RY0FBMvR5CT3YdCc3xXoCmWnC8W3IKvBJnDZfipwbf0xFGBoGR9tD9d+bBGFw4uF
-vHyGZMCbXRKx3PLw9N29vVCywFztlfo+4mJcSl73gFX3ULmyfqnNk9u3g575CMrG
-vGgqT4VJGaT42x7UNBEryFkfI84+1vXRfmYzBgmIc5/gVFeQJufI/7YvI6ZiEoqp
-7/fRNzBCg/4TzycqYPvWsBjS3vxAWdBKiP7R9j3s2kMo/eSwULenBllnMEWsG5iG
-R3Q+4yLuQsdTVMnRVGzd/bxa2uzVLmfVkEtj8VpSuiL6C+lT8dUayqjzTgrwqLQC
-PLNE2PpH1aVDPPg1OWljQuHtLoOaFlnvQkeNwcNClq794ciLvRTGy+ZnokBHh2+C
-+u/GyX8cxXvmWbUS6UMjKVe8eUltDge8CcacO9Cry3jkFDxh7n4=
-=PBfE
------END PGP SIGNATURE-----
+What should happen if you add, say, 20k, but the packet dport is larger
+than (0xffff - 20k) ?
 
---3SohApoRAIdr4HJw--
+If I undertand correctly, with current iptables this will be placed
+in the desired offset range, rather than wrap back to 0.
+
+> > But maybe i'm missing something that the nat engone is already offering
+> > that this approach can't handle, or some other limitation.
+> 
+> Your proposal is not a deal breaker to me, I think it will be more
+> work to explore than my proposal, but this delta datatype might be
+> useful in the future for generic delta add/sub in other payload / meta
+> fields.
+
+Ok, right, I don't think there is anything bad with your proposal
+either.
+
+Even Jeremys rebased kernel patchset looks fine to me, I just dislike
+the proposed syntax (since it follows the iptables one which I don't
+like either :-) )
+
