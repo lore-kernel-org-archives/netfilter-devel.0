@@ -2,158 +2,119 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75674C77B6F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Apr 2023 11:39:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C4EC76196
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Apr 2023 11:45:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229774AbjDKLja (ORCPT
+        id S230081AbjDKLpR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 11 Apr 2023 07:39:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47172 "EHLO
+        Tue, 11 Apr 2023 07:45:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229761AbjDKLj3 (ORCPT
+        with ESMTP id S230103AbjDKLpL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Apr 2023 07:39:29 -0400
-Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08A343A90;
-        Tue, 11 Apr 2023 04:39:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
-  t=1681213168; x=1712749168;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=r0qqKJ4nkKA5foVlIR6UdPxdVJCmJH48u1jn3damEbI=;
-  b=uZYuTWCIEWnEC0sOGBQ8RZ+N0eFdgVENhtdxUWxpsmPWXmahzx0MAJWL
-   qLXyQTGU0+mvw42N8MzE9/W1Z2qgcAxriiyXGeyoSicDLoTBszKgKHjw/
-   JVo6R1ZuHSxVxENp599IhuLKmOTEK7E4slh0JSpA/pZWWcoKG2l7FkMOe
-   Qa+gemf4x/f9eZPGk8nYlrymSKFM6ILHKMgdE8p+ozAf71n7QLn9/Dgws
-   1Wz8oX9UfLj9XMcyyjRfanPo7m8UAUbQ1c/FStW5jOpUX8WLBPgpybjx8
-   BN5myXbvd5OTfmyDHh8jvfuQjwjKcjYr8OzTy0OYzZJLlGpvuzlvJA5UI
-   A==;
-X-IronPort-AV: E=Sophos;i="5.98,336,1673938800"; 
-   d="scan'208";a="205927076"
-Received: from unknown (HELO email.microchip.com) ([170.129.1.10])
-  by esa4.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 11 Apr 2023 04:39:28 -0700
-Received: from chn-vm-ex01.mchp-main.com (10.10.85.143) by
- chn-vm-ex02.mchp-main.com (10.10.85.144) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.21; Tue, 11 Apr 2023 04:39:25 -0700
-Received: from localhost (10.10.115.15) by chn-vm-ex01.mchp-main.com
- (10.10.85.143) with Microsoft SMTP Server id 15.1.2507.21 via Frontend
- Transport; Tue, 11 Apr 2023 04:39:25 -0700
-Date:   Tue, 11 Apr 2023 13:39:24 +0200
-From:   Horatiu Vultur <horatiu.vultur@microchip.com>
-To:     Simon Horman <horms@kernel.org>
-CC:     Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, <netdev@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, <lvs-devel@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-        <coreteam@netfilter.org>
-Subject: Re: [PATCH nf-next v2 1/4] ipvs: Update width of source for
- ip_vs_sync_conn_options
-Message-ID: <20230411113924.6vhibpekifbyjksg@soft-dev3-1>
-References: <20230409-ipvs-cleanup-v2-0-204cd17da708@kernel.org>
- <20230409-ipvs-cleanup-v2-1-204cd17da708@kernel.org>
+        Tue, 11 Apr 2023 07:45:11 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9D2044491
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Apr 2023 04:44:48 -0700 (PDT)
+Date:   Tue, 11 Apr 2023 13:43:54 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
+ port-ranges
+Message-ID: <ZDVH+puTElQrkblc@calendula>
+References: <20230305101418.2233910-1-jeremy@azazel.net>
+ <20230305101418.2233910-9-jeremy@azazel.net>
+ <20230324225904.GB17250@breakpoint.cc>
+ <ZDUaIa0N2R1Ay7o/@calendula>
+ <20230411102532.GC21051@breakpoint.cc>
+ <ZDU8GcaowpCbIeDJ@calendula>
+ <20230411112001.GD21051@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230409-ipvs-cleanup-v2-1-204cd17da708@kernel.org>
+In-Reply-To: <20230411112001.GD21051@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The 04/11/2023 09:10, Simon Horman wrote:
+On Tue, Apr 11, 2023 at 01:20:01PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > Sorry, I don't see the usecase for different deltas.
+> > 
+> > Then, users will more than one single rule for different port-shift
+> > mappings?
 > 
-> In ip_vs_sync_conn_v0() copy is made to struct ip_vs_sync_conn_options.
-> That structure looks like this:
+> Hmm, why?  Can't the variable offset be stored in the map itself
+> (instead of the new dport value)?
 > 
-> struct ip_vs_sync_conn_options {
->         struct ip_vs_seq        in_seq;
->         struct ip_vs_seq        out_seq;
-> };
+> so assuming a map that has
 > 
-> The source of the copy is the in_seq field of struct ip_vs_conn.  Whose
-> type is struct ip_vs_seq. Thus we can see that the source - is not as
-> wide as the amount of data copied, which is the width of struct
-> ip_vs_sync_conn_option.
-> 
-> The copy is safe because the next field in is another struct ip_vs_seq.
-> Make use of struct_group() to annotate this.
-> 
-> Flagged by gcc-13 as:
-> 
->  In file included from ./include/linux/string.h:254,
->                   from ./include/linux/bitmap.h:11,
->                   from ./include/linux/cpumask.h:12,
->                   from ./arch/x86/include/asm/paravirt.h:17,
->                   from ./arch/x86/include/asm/cpuid.h:62,
->                   from ./arch/x86/include/asm/processor.h:19,
->                   from ./arch/x86/include/asm/timex.h:5,
->                   from ./include/linux/timex.h:67,
->                   from ./include/linux/time32.h:13,
->                   from ./include/linux/time.h:60,
->                   from ./include/linux/stat.h:19,
->                   from ./include/linux/module.h:13,
->                   from net/netfilter/ipvs/ip_vs_sync.c:38:
->  In function 'fortify_memcpy_chk',
->      inlined from 'ip_vs_sync_conn_v0' at net/netfilter/ipvs/ip_vs_sync.c:606:3:
->  ./include/linux/fortify-string.h:529:25: error: call to '__read_overflow2_field' declared with attribute warning: detected read beyond size of field (2nd parameter); maybe use struct_group()? [-Werror=attribute-warning]
->    529 |                         __read_overflow2_field(q_size_field, size);
->        |
-> 
-> Compile tested only.
+>   typeof ip saddr . ip daddr : ip daddr . tcp dport
 
-Reviewed-by: Horatiu Vultur <horatiu.vultur@microchip.com>
+I am not sure we can use . tcp dport here, we might need a specific
+datatype for offset.
 
+> ... but the map content stores the delta to use, e.g.
 > 
-> Signed-off-by: Simon Horman <horms@kernel.org>
-> ---
-> v2
-> * Correct spelling of 'conn' in subject
-> ---
->  include/net/ip_vs.h             | 6 ++++--
->  net/netfilter/ipvs/ip_vs_sync.c | 2 +-
->  2 files changed, 5 insertions(+), 3 deletions(-)
+>   { 192.168.7.1 . 10.2.2.2 : 10.2.2.1 . 10000 }
+>
+> ... where 10000 isn't the new dport but a delta that has to be added.
 > 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 6d71a5ff52df..e20f1f92066d 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -630,8 +630,10 @@ struct ip_vs_conn {
->          */
->         struct ip_vs_app        *app;           /* bound ip_vs_app object */
->         void                    *app_data;      /* Application private data */
-> -       struct ip_vs_seq        in_seq;         /* incoming seq. struct */
-> -       struct ip_vs_seq        out_seq;        /* outgoing seq. struct */
-> +       struct_group(sync_conn_opt,
-> +               struct ip_vs_seq  in_seq;       /* incoming seq. struct */
-> +               struct ip_vs_seq  out_seq;      /* outgoing seq. struct */
-> +       );
-> 
->         const struct ip_vs_pe   *pe;
->         char                    *pe_data;
-> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> index 4963fec815da..d4fe7bb4f853 100644
-> --- a/net/netfilter/ipvs/ip_vs_sync.c
-> +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> @@ -603,7 +603,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
->         if (cp->flags & IP_VS_CONN_F_SEQ_MASK) {
->                 struct ip_vs_sync_conn_options *opt =
->                         (struct ip_vs_sync_conn_options *)&s[1];
-> -               memcpy(opt, &cp->in_seq, sizeof(*opt));
-> +               memcpy(opt, &cp->sync_conn_opt, sizeof(*opt));
->         }
-> 
->         m->nr_conns++;
-> 
-> --
-> 2.30.2
-> 
+>   [ payload load 4b @ network header + 12 => reg 1 ] # saddr
+>   [ payload load 4b @ network header + 16 => reg 9 ] # daddr
+>   [ lookup reg 1 set m dreg 1 0x0 ]	# now we have reg1: dnat addr, reg 9: delta to add
+>   [ payload load 2b @ transport header + 2 => reg 10 ]
+>   [ math add reg 9 + reg 10 => reg 9 ]		# real port value from packet added with delta
+>   [ nat dnat ip addr_min reg 1 addr_max reg 1 proto_min reg 9 proto_max reg 9 flags 0x3 ]
 
--- 
-/Horatiu
+It is very similar to my proposal, but using an explicit: payload +
+math.
+
+How are you going to express this in syntax? Maybe this:
+
+   { 192.168.7.1 . 10.2.2.2 : 10.2.2.1 . +10000 }
+
+or
+
+   { 192.168.7.1 . 10.2.2.2 : 10.2.2.1 . -10000 }
+
+so + or - tells this is an offset. Parser will need this notation, so
+the evaluation step infers the map datatype from the element.
+
+For explicit maps, we need the datatype to interpret that this is an
+offset accordingly.
+
+> add operation should probably also take a modulus (fixed immediate value)
+> so we can make a defined result for things like:
+> 
+>   65532 + 10000
+> 
+> ... without a need to wrap implicitly back to "0 + remainder".
+
+not sure I follow this modulus idea.
+
+> > In my proposal, kernel would take the delta from register, the flag
+> > tells the nat core how to interpret this.
+> 
+> Yep, understood.  This is mapping the existing iptables approach,
+> but using register instead of immediate to pass data.
+> 
+> > > So we need an 'add' operation in kernel to compute
+> > 
+> > This is an 'add' operation built-in into the NAT engine.
+> > 
+> > How would a generic 'add' operation in the kernel will work with
+> > concatenations?
+> 
+> Its not needed for concatentation case, the port value (in packet)
+> is always a fixed value, so it can be (re)loaded at runtime.
+> 
+> But maybe i'm missing something that the nat engone is already offering
+> that this approach can't handle, or some other limitation.
+
+Your proposal is not a deal breaker to me, I think it will be more
+work to explore than my proposal, but this delta datatype might be
+useful in the future for generic delta add/sub in other payload / meta
+fields.
