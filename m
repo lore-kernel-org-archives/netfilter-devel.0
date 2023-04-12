@@ -2,155 +2,135 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A5D0C7619A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 14:45:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72538C7619A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 15:23:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230183AbjDLOpD (ORCPT
+        id S230281AbjDLPXJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 10:45:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46280 "EHLO
+        Wed, 12 Apr 2023 11:23:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229762AbjDLOpB (ORCPT
+        with ESMTP id S231536AbjDLPXG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 10:45:01 -0400
-X-Greylist: delayed 16822 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 12 Apr 2023 07:44:59 PDT
-Received: from 3.mo545.mail-out.ovh.net (3.mo545.mail-out.ovh.net [46.105.34.112])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34AB610B
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 07:44:59 -0700 (PDT)
-Received: from ex4.mail.ovh.net (unknown [10.108.16.154])
-        by mo545.mail-out.ovh.net (Postfix) with ESMTPS id 1DD8624FA9;
-        Wed, 12 Apr 2023 08:20:10 +0000 (UTC)
-Received: from [192.168.1.125] (93.21.160.242) by DAG10EX1.indiv4.local
- (172.16.2.91) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.23; Wed, 12 Apr
- 2023 10:20:10 +0200
-Message-ID: <7d97222a-36c1-ee77-4ad6-d8d2c6056d4c@naccy.de>
-Date:   Wed, 12 Apr 2023 10:20:09 +0200
+        Wed, 12 Apr 2023 11:23:06 -0400
+Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB91A93D2
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 08:22:41 -0700 (PDT)
+Received: by mail-wr1-x431.google.com with SMTP id j11so14939147wrd.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 08:22:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tessares.net; s=google; t=1681312958;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Ssyy5ye3KgUlVexJG4pO7NIkqaEMEWr4ggHaOrUyEtY=;
+        b=hdH8DHrc2I8icKu3rHxgEnj3AbBEqdpX6AnOBc1+dqGqoiywpAgOIT38bZVZsMldYU
+         eea18iC3+Fo6WFLhbCEjiSTHY/GW5zoTLMPEEZpG0pxOL9OWyw97WFS2Mz+pLwpN8V65
+         M8pPI/5K8nv7EnI3KLTPVU7ypP5CQRnRuEKaiFDtNrg2an8HITejEBgY46E3c/nn5WZS
+         xt6mF7U8ncRCD2sw3nZx+QoxS5sQpM/+VuOIB36J97sEXQK6VssbdKRXVlzbJgr8mf5I
+         Natsw7OQe2UotepwTA/3OvjlZjl98W/+fWX4O9jAr6I4Llb1rf5f9LtPlrxQKybg+56l
+         f/kA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681312958;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ssyy5ye3KgUlVexJG4pO7NIkqaEMEWr4ggHaOrUyEtY=;
+        b=NJVzMEmuG+0kNacwMJ6Tk5DkJq9bLHaZIRuN1E3TseZoU3UVjjGyyrSKA43WfZ+r2R
+         d6af3a1ceC2GJpgCWWNZ0nfj+fcOdyGOfkYztFVFMAXwM+d3+ZnUBIhYZal7VAfBUlLe
+         2r5StVOZ0/QDZmyZ695k+5TwHf4njRJH6HGnlG58zXjLJ/3iAXyeBGy+fJdfHFKjUJjF
+         efDgR4fmUl3VSCONck+g9b07OtbC8ntYCQOnsvAEhvIWHQktPWWJPOj0IU6lFGLzI0Ux
+         LxNx0GiU9msWJ6VtPEqT6BFp9BqFfWY03uv0zedYolUMLnjGJ15W6v1GE7pwIhHraeUF
+         DNIw==
+X-Gm-Message-State: AAQBX9ek0ToK2rafoXY4GlDwRbR+cCg1g17OgSwyfdrHRCMAwnkhtROB
+        LRuyCc5k4BhLHANsjUyBhCImkQ==
+X-Google-Smtp-Source: AKy350bM7n5TLTMn54FLWkt3p4ihKamEuJ8GvIbFBjsLMzX56SfAGnriSh3KNir9JtYsMq/Oy0IY/Q==
+X-Received: by 2002:adf:e441:0:b0:2f1:d17f:cf95 with SMTP id t1-20020adfe441000000b002f1d17fcf95mr7800994wrm.12.1681312958078;
+        Wed, 12 Apr 2023 08:22:38 -0700 (PDT)
+Received: from ?IPV6:2a02:578:8593:1200:4382:4a00:b3c9:ac57? ([2a02:578:8593:1200:4382:4a00:b3c9:ac57])
+        by smtp.gmail.com with ESMTPSA id d7-20020adfef87000000b002daeb108304sm17474744wro.33.2023.04.12.08.22.37
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 12 Apr 2023 08:22:37 -0700 (PDT)
+Message-ID: <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
+Date:   Wed, 12 Apr 2023 17:22:36 +0200
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH bpf-next 0/6] bpf: add netfilter program type
-To:     Florian Westphal <fw@strlen.de>, <netdev@vger.kernel.org>
-CC:     <netfilter-devel@vger.kernel.org>, <bpf@vger.kernel.org>,
-        <dxu@dxuuu.xyz>
-References: <20230405161116.13565-1-fw@strlen.de>
-Content-Language: en-US
-From:   Quentin Deslandes <qde@naccy.de>
-In-Reply-To: <20230405161116.13565-1-fw@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.10.0
+Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
+ IPPROTO_UAPI_MAX
+Content-Language: en-GB
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+        mathew.j.martineau@linux.intel.com, mptcp@lists.linux.dev
+References: <20230406092558.459491-1-pablo@netfilter.org>
+ <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net>
+ <20230412072104.61910016@kernel.org>
+From:   Matthieu Baerts <matthieu.baerts@tessares.net>
+In-Reply-To: <20230412072104.61910016@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [93.21.160.242]
-X-ClientProxiedBy: CAS9.indiv4.local (172.16.1.9) To DAG10EX1.indiv4.local
- (172.16.2.91)
-X-Ovh-Tracer-Id: 7618683196916231790
-X-VR-SPAMSTATE: OK
-X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdekiedgtdefucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepkfffgggfuffvvehfhfgjtgfgihesthejredttddvjeenucfhrhhomhepsfhuvghnthhinhcuffgvshhlrghnuggvshcuoehquggvsehnrggttgihrdguvgeqnecuggftrfgrthhtvghrnheptdfgveetgfetkeejvefhudeiueeufeeffeeitdffjeevudehveejveegffdvkeefnecukfhppeduvdejrddtrddtrddupdelfedrvddurdduiedtrddvgedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpeeoqhguvgesnhgrtggthidruggvqedpnhgspghrtghpthhtohepuddprhgtphhtthhopehffiesshhtrhhlvghnrdguvgdpnhgvthguvghvsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhnvghtfhhilhhtvghrqdguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdgsphhfsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdgugihusegugihuuhhurdighiiipdfovfetjfhoshhtpehmohehgeehpdhmohguvgepshhmthhpohhuth
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 05/04/2023 18:11, Florian Westphal wrote:
-> Add minimal support to hook bpf programs to netfilter hooks, e.g.
-> PREROUTING or FORWARD.
-> 
-> For this the most relevant parts for registering a netfilter
-> hook via the in-kernel api are exposed to userspace via bpf_link.
-> 
-> The new program type is 'tracing style', i.e. there is no context
-> access rewrite done by verifier, the function argument (struct bpf_nf_ctx)
-> isn't stable.
-> There is no support for direct packet access, dynptr api should be used
-> instead.
+Hi Jakub,
 
-Does this mean the verifier will reject any program accessing ctx->skb
-(e.g. ctx->skb + X)?
+On 12/04/2023 16:21, Jakub Kicinski wrote:
+> On Thu, 6 Apr 2023 12:45:25 +0200 Matthieu Baerts wrote:
+>> The modification in the kernel looks good to me. But I don't know how to
+>> make sure this will not have any impact on MPTCP on the userspace side,
+>> e.g. somewhere before calling the socket syscall, a check could be done
+>> to restrict the protocol number to IPPROTO_MAX and then breaking MPTCP
+>> support.
+> 
+> Then again any code which stores the ipproto in an unsigned char will 
+> be broken. A perfect solution is unlikely to exist.
 
-> With this its possible to build a small test program such as:
-> 
->  #include "vmlinux.h"
-> extern int bpf_dynptr_from_skb(struct __sk_buff *skb, __u64 flags,
->                                struct bpf_dynptr *ptr__uninit) __ksym;
-> extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
->                                    void *buffer, uint32_t buffer__sz) __ksym;
-> SEC("netfilter")
-> int nf_test(struct bpf_nf_ctx *ctx)
-> {
-> 	struct nf_hook_state *state = ctx->state;
-> 	struct sk_buff *skb = ctx->skb;
-> 	const struct iphdr *iph, _iph;
-> 	const struct tcphdr *th, _th;
-> 	struct bpf_dynptr ptr;
-> 
-> 	if (bpf_dynptr_from_skb(skb, 0, &ptr))
-> 		return NF_DROP;
-> 
-> 	iph = bpf_dynptr_slice(&ptr, 0, &_iph, sizeof(_iph));
-> 	if (!iph)
-> 		return NF_DROP;
-> 
-> 	th = bpf_dynptr_slice(&ptr, iph->ihl << 2, &_th, sizeof(_th));
-> 	if (!th)
-> 		return NF_DROP;
-> 
-> 	bpf_printk("accept %x:%d->%x:%d, hook %d ifin %d\n", iph->saddr, bpf_ntohs(th->source), iph->daddr, bpf_ntohs(th->dest), state->hook, state->in->ifindex);
->         return NF_ACCEPT;
-> }
-> 
-> Then, tail /sys/kernel/tracing/trace_pipe.
-> 
-> Changes since last RFC version:
-> 1. extend 'bpftool link show' to print prio/hooknum etc
-> 2. extend 'nft list hooks' so it can print the bpf program id
-> 3. Add an extra patch to artificially restrict bpf progs with
->    same priority.  Its fine from a technical pov but it will
->    cause ordering issues (most recent one comes first).
->    Can be removed later.
-> 4. Add test_run support for netfilter prog type and a small
->    extension to verifier tests to make sure we can't return
->    verdicts like NF_STOLEN.
-> 5. Alter the netfilter part of the bpf_link uapi struct:
->    - add flags/reserved members.
->   Not used here except returning errors when they are nonzero.
->   Plan is to allow the bpf_link users to enable netfilter
->   defrag or conntrack engine by setting feature flags at
->   link create time in the future.
-> 
-> Let me know if there is anything missing that has to be addressed
-> before this can be merged.
-> 
-> Thanks!
-> 
-> Florian Westphal (6):
->   bpf: add bpf_link support for BPF_NETFILTER programs
->   bpf: minimal support for programs hooked into netfilter framework
->   netfilter: nfnetlink hook: dump bpf prog id
->   netfilter: disallow bpf hook attachment at same priority
->   tools: bpftool: print netfilter link info
->   bpf: add test_run support for netfilter program type
-> 
->  include/linux/bpf.h                           |   3 +
->  include/linux/bpf_types.h                     |   4 +
->  include/linux/netfilter.h                     |   1 +
->  include/net/netfilter/nf_bpf_link.h           |   8 +
->  include/uapi/linux/bpf.h                      |  15 ++
->  include/uapi/linux/netfilter/nfnetlink_hook.h |  20 +-
->  kernel/bpf/btf.c                              |   6 +
->  kernel/bpf/syscall.c                          |   6 +
->  kernel/bpf/verifier.c                         |   3 +
->  net/bpf/test_run.c                            | 143 +++++++++++++
->  net/core/filter.c                             |   1 +
->  net/netfilter/Kconfig                         |   3 +
->  net/netfilter/Makefile                        |   1 +
->  net/netfilter/core.c                          |  12 ++
->  net/netfilter/nf_bpf_link.c                   | 190 ++++++++++++++++++
->  net/netfilter/nfnetlink_hook.c                |  81 ++++++--
->  tools/bpf/bpftool/link.c                      |  24 +++
->  tools/include/uapi/linux/bpf.h                |  15 ++
->  tools/lib/bpf/libbpf.c                        |   1 +
->  .../selftests/bpf/verifier/netfilter.c        |  23 +++
->  20 files changed, 546 insertions(+), 14 deletions(-)
->  create mode 100644 include/net/netfilter/nf_bpf_link.h
->  create mode 100644 net/netfilter/nf_bpf_link.c
->  create mode 100644 tools/testing/selftests/bpf/verifier/netfilter.c
-> 
+I wonder if the root cause is not the fact we mix the usage of the
+protocol parameter from the socket syscall (int/s32) and the protocol
+field from the IP header (u8).
 
+To me, the enum is linked to the socket syscall, not the IP header. In
+this case, it would make sense to have a dedicated "MAX" macro for the
+IP header, no?
+
+>> Is it not safer to expose something new to userspace, something
+>> dedicated to what can be visible on the wire?
+>>
+>> Or recommend userspace programs to limit to lower than IPPROTO_RAW
+>> because this number is marked as "reserved" by the IANA anyway [1]?
+>>
+>> Or define something new linked to UINT8_MAX because the layer 4 protocol
+>> field in IP headers is limited to 8 bits?
+>> This limit is not supposed to be directly linked to the one of the enum
+>> you modified. I think we could even say it works "by accident" because
+>> "IPPROTO_RAW" is 255. But OK "IPPROTO_RAW" is there from the "beginning"
+>> [2] :)
+> 
+> I'm not an expert but Pablo's patch seems reasonable to me TBH.
+> Maybe I'm missing some extra MPTCP specific context?
+
+I was imagining userspace programs doing something like:
+
+    if (protocol < 0 || protocol >= IPPROTO_MAX)
+        die();
+
+    syscall(...);
+
+With Pablo's modification and such userspace code, this will break MPTCP
+support.
+
+I'm maybe/probably worry for nothing, I don't know any specific lib
+doing that and to be honest, I don't know what is usually done in libc
+and libs implemented on top of that. On the other hand, it is hard to
+guess how it is used everywhere.
+
+So yes, maybe it is fine?
+
+Cheers,
+Matt
+-- 
+Tessares | Belgium | Hybrid Access Solutions
+www.tessares.net
