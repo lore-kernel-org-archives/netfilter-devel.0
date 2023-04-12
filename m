@@ -2,88 +2,146 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D580C77B6E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 19:37:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6BE1C7619A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 20:49:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229541AbjDLThW (ORCPT
+        id S229960AbjDLUtO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 15:37:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58250 "EHLO
+        Wed, 12 Apr 2023 16:49:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229520AbjDLThV (ORCPT
+        with ESMTP id S229630AbjDLUtO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 15:37:21 -0400
+        Wed, 12 Apr 2023 16:49:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA8E62136;
-        Wed, 12 Apr 2023 12:37:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4022261A1;
+        Wed, 12 Apr 2023 13:49:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 61EFB62C91;
-        Wed, 12 Apr 2023 19:37:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74BF7C433EF;
-        Wed, 12 Apr 2023 19:37:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CF79662ED0;
+        Wed, 12 Apr 2023 20:49:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 2ACF9C433EF;
+        Wed, 12 Apr 2023 20:49:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681328239;
-        bh=YdA6xgVDMTsi6jbxImRni18coXjbrnh0VRM9FC3CJx4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=Pi1onOod7InvwJqqgwwAKKZgJBiNDRm4johlj/xBBOXnxKqrXyYFdGP7ejq1cA+h7
-         hUkrZCn/PtOcwDGFNbcWKLAxGJf24d3BH63jPUIG9EDWLn9J4piTeZEXbe5V2EoI4a
-         vv4qDBVOR1GhvqA5rA0SI6Ooh4Gd0K8lgckdi39g5xKZWL7cDkrGfqTj6IwtxA/mYx
-         e7w/YamddrbpJzOpECn2e8nUVKBHYspjWKZDdZw1RMTTUDZQQ1D5UtL8l5d1d2gZuM
-         QnStOpq4LHuK8GPPeXkwaiWeTfq9ErdzEHMXBUuX00vZNW5rsmpNGzNd6qSU0f3eZE
-         Do1F8dNutgSiw==
-Date:   Wed, 12 Apr 2023 12:37:18 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Matthieu Baerts <matthieu.baerts@tessares.net>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-        mathew.j.martineau@linux.intel.com, mptcp@lists.linux.dev
-Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
- IPPROTO_UAPI_MAX
-Message-ID: <20230412123718.7e6c0b55@kernel.org>
-In-Reply-To: <7405c14e-1fbe-c820-c470-36b0a50b4cae@tessares.net>
-References: <20230406092558.459491-1-pablo@netfilter.org>
-        <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net>
-        <20230412072104.61910016@kernel.org>
-        <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
-        <ZDbWi4dgysRbf+vb@calendula>
-        <7405c14e-1fbe-c820-c470-36b0a50b4cae@tessares.net>
+        s=k20201202; t=1681332552;
+        bh=N6CxG92Ed4Yn5LSSbnRciB027afcs82cjOQu+THWcO0=;
+        h=From:Date:Subject:To:Cc:Reply-To:From;
+        b=UF5C/YyP9SfpWtDmeWKN+982ajzjj6BoiCHMDIS0cSGCSgo/a56pKaRsfYDIfhhw6
+         Yw3Mnhgqz36vi98izKUlyqQCBc4qL92l7qlowAQdig4hk/oWaHJeZP88Ir+hPQRsTg
+         f52ijdMe+DrRO51YXq75Ukj07uE92UYBefjbEwOREVEzljhcSJSXqvoS8CdLDTZRnZ
+         1gZktu2W99imJqt56DTncCPLs3Wx81qwzIHuySKKQGoHxjmmbsa6Mz3x/ErLnpybl4
+         V8NJJW/ByX4xrXa4YUEu5I8XtppiOyhqjYEK4Yp5LIfLYg7/vMu+6W3NyP+Bo78N0e
+         C0PJh5/yR8q3A==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by smtp.lore.kernel.org (Postfix) with ESMTP id 0E6CAC77B6C;
+        Wed, 12 Apr 2023 20:49:12 +0000 (UTC)
+From:   Abhijeet Rastogi via B4 Relay 
+        <devnull+abhijeet.1989.gmail.com@kernel.org>
+Date:   Wed, 12 Apr 2023 13:49:08 -0700
+Subject: [PATCH] ipvs: change ip_vs_conn_tab_bits range to [8,31]
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAEMZN2QC/x2N0QqDMAxFf0XyvEIbZbD9yhglrdnMw6IkIgPx3
+ 1f3eDiXc3dwNmGHe7eD8SYuszZIlw7qRPrmIGNjwIh9HBIG0WpMzlmWzXOdVfNKJRdZPQw9Yr3
+ FkTBdoRVK24VipHU6Gx/yle0Ui/FLvv/bx/M4ftkrbyCGAAAA
+To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org,
+        Abhijeet Rastogi <abhijeet.1989@gmail.com>
+X-Mailer: b4 0.12.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1681332551; l=2681;
+ i=abhijeet.1989@gmail.com; s=20230412; h=from:subject:message-id;
+ bh=diB2UNBoozij8cEFsyQbJS4LF1vmwJ3a6Chw+mzNh7I=;
+ b=P+q2BDiUkpHSIUlanv0uhX+uIFT2uT4OzEwmTdXXla/nmmIrpI/IXDTzgS0FBPJ5E2k2s7yp6
+ BTzbnfMaj1vAOe9Em5PMNAMEQLfL4s9XOHYeLIGoyhXO/lySLPcoEuQ
+X-Developer-Key: i=abhijeet.1989@gmail.com; a=ed25519;
+ pk=VinODWUuJys1VAWZP2Uv9slcHekoZvxAp4RY1p5+OfU=
+X-Endpoint-Received: by B4 Relay for abhijeet.1989@gmail.com/20230412 with auth_id=40
+X-Original-From: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+Reply-To: <abhijeet.1989@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 12 Apr 2023 18:35:40 +0200 Matthieu Baerts wrote:
-> > Is this theoretical, or you think any library might be doing this
-> > already? I lack of sufficient knowledge of the MPTCP ecosystem to
-> > evaluate myself.  
-> 
-> This is theoretical.
-> 
-> But using it with socket's protocol parameter is the only good usage of
-> IPPROTO_MAX for me :-D
+From: Abhijeet Rastogi <abhijeet.1989@gmail.com>
 
-Perhaps. No strong preference from me. That said I think I can come up
-with a good name for the SO use: SO_IPPROTO_MAX (which IMHO it's better
-than IPPROTO_UAPI_MAX if Pablo doesn't mind sed'ing?)
+Current range [8, 20] is set purely due to historical reasons
+because at the time, ~1M (2^20) was considered sufficient.
 
-The name for a max in proto sense... I'm not sure what that would be.
-IPPROTO_MAX_IPPROTO ? IP_IPROTO_MAX ? IP_PROTO_MAX ? Dunno..
+Previous change regarding this limit is here.
 
-> More seriously, I don't see such things when looking at:
-> 
-> 
-> https://codesearch.debian.net/search?q=%5CbIPPROTO_MAX%5Cb&literal=0&perpkg=1
-> 
-> IPPROTO_MAX is (re)defined in different libs but not used in many
-> programs, mainly in Netfilter related programs in fact.
-> 
-> 
-> Even if it is linked to MPTCP, I cannot judge if it can be an issue or
-> not because it depends on how the different libC or other libs/apps are
-> interpreting this IPPROTO_MAX and if they are using it before creating a
-> socket.
+Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
+
+Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+---
+The conversation for this started at: 
+
+https://www.spinics.net/lists/netfilter/msg60995.html
+
+The upper limit for algo is any bit size less than 32, so this
+change will allow us to set bit size > 20. Today, it is common to have
+RAM available to handle greater than 2^20 connections per-host.
+
+Distros like RHEL already have higher limits set.
+---
+ net/netfilter/ipvs/Kconfig      | 4 ++--
+ net/netfilter/ipvs/ip_vs_conn.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index 271da8447b29..3e3371f8c0f9 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -44,7 +44,7 @@ config	IP_VS_DEBUG
+ 
+ config	IP_VS_TAB_BITS
+ 	int "IPVS connection table size (the Nth power of 2)"
+-	range 8 20
++	range 8 31
+ 	default 12
+ 	help
+ 	  The IPVS connection hash table uses the chaining scheme to handle
+@@ -54,7 +54,7 @@ config	IP_VS_TAB_BITS
+ 
+ 	  Note the table size must be power of 2. The table size will be the
+ 	  value of 2 to the your input number power. The number to choose is
+-	  from 8 to 20, the default number is 12, which means the table size
++	  from 8 to 31, the default number is 12, which means the table size
+ 	  is 4096. Don't input the number too small, otherwise you will lose
+ 	  performance on it. You can adapt the table size yourself, according
+ 	  to your virtual server application. It is good to set the table size
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 13534e02346c..bc0fe1a698d4 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1484,8 +1484,8 @@ int __init ip_vs_conn_init(void)
+ 	int idx;
+ 
+ 	/* Compute size and mask */
+-	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
+-		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
++	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 31) {
++		pr_info("conn_tab_bits not in [8, 31]. Using default value\n");
+ 		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+ 	}
+ 	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+
+---
+base-commit: 09a9639e56c01c7a00d6c0ca63f4c7c41abe075d
+change-id: 20230412-increase_ipvs_conn_tab_bits-4322c90da216
+
+Best regards,
+-- 
+Abhijeet Rastogi <abhijeet.1989@gmail.com>
+
