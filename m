@@ -2,64 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B230FC77B6E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 18:25:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D580C77B6E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 19:37:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229624AbjDLSZF (ORCPT
+        id S229541AbjDLThW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 14:25:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40214 "EHLO
+        Wed, 12 Apr 2023 15:37:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229736AbjDLSZE (ORCPT
+        with ESMTP id S229520AbjDLThV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 14:25:04 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 691ED40D7;
-        Wed, 12 Apr 2023 11:25:02 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 010ED587752ED; Wed, 12 Apr 2023 20:24:59 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id F34D560C0978F;
-        Wed, 12 Apr 2023 20:24:59 +0200 (CEST)
-Date:   Wed, 12 Apr 2023 20:24:59 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
+        Wed, 12 Apr 2023 15:37:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA8E62136;
+        Wed, 12 Apr 2023 12:37:20 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 61EFB62C91;
+        Wed, 12 Apr 2023 19:37:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74BF7C433EF;
+        Wed, 12 Apr 2023 19:37:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1681328239;
+        bh=YdA6xgVDMTsi6jbxImRni18coXjbrnh0VRM9FC3CJx4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Pi1onOod7InvwJqqgwwAKKZgJBiNDRm4johlj/xBBOXnxKqrXyYFdGP7ejq1cA+h7
+         hUkrZCn/PtOcwDGFNbcWKLAxGJf24d3BH63jPUIG9EDWLn9J4piTeZEXbe5V2EoI4a
+         vv4qDBVOR1GhvqA5rA0SI6Ooh4Gd0K8lgckdi39g5xKZWL7cDkrGfqTj6IwtxA/mYx
+         e7w/YamddrbpJzOpECn2e8nUVKBHYspjWKZDdZw1RMTTUDZQQ1D5UtL8l5d1d2gZuM
+         QnStOpq4LHuK8GPPeXkwaiWeTfq9ErdzEHMXBUuX00vZNW5rsmpNGzNd6qSU0f3eZE
+         Do1F8dNutgSiw==
+Date:   Wed, 12 Apr 2023 12:37:18 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
 To:     Matthieu Baerts <matthieu.baerts@tessares.net>
-cc:     Jakub Kicinski <kuba@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
         mathew.j.martineau@linux.intel.com, mptcp@lists.linux.dev
 Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
  IPPROTO_UAPI_MAX
-In-Reply-To: <4fa60957-2718-cac2-4b01-12aaf48b76b4@tessares.net>
-Message-ID: <4r3sqop-o651-6o1q-578-o4p519668073@vanv.qr>
-References: <20230406092558.459491-1-pablo@netfilter.org> <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net> <20230412072104.61910016@kernel.org> <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net> <689os02o-r5o8-so9-rq11-p62223p87ns3@vanv.qr>
- <4fa60957-2718-cac2-4b01-12aaf48b76b4@tessares.net>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+Message-ID: <20230412123718.7e6c0b55@kernel.org>
+In-Reply-To: <7405c14e-1fbe-c820-c470-36b0a50b4cae@tessares.net>
+References: <20230406092558.459491-1-pablo@netfilter.org>
+        <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net>
+        <20230412072104.61910016@kernel.org>
+        <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
+        <ZDbWi4dgysRbf+vb@calendula>
+        <7405c14e-1fbe-c820-c470-36b0a50b4cae@tessares.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Wed, 12 Apr 2023 18:35:40 +0200 Matthieu Baerts wrote:
+> > Is this theoretical, or you think any library might be doing this
+> > already? I lack of sufficient knowledge of the MPTCP ecosystem to
+> > evaluate myself.  
+> 
+> This is theoretical.
+> 
+> But using it with socket's protocol parameter is the only good usage of
+> IPPROTO_MAX for me :-D
 
-On Wednesday 2023-04-12 18:44, Matthieu Baerts wrote:
->
->> Makes me wonder why MPTCP got 262 instead of just 257.
->
->Just in case a uint8 is used somewhere, we fallback to TCP (6):
->
->  IPPROTO_MPTCP & 0xff = IPPROTO_TCP
->
->Instead of IPPROTO_ICMP (1).
->
->We did that to be on the safe side, not knowing all the different
->userspace implementations :)
+Perhaps. No strong preference from me. That said I think I can come up
+with a good name for the SO use: SO_IPPROTO_MAX (which IMHO it's better
+than IPPROTO_UAPI_MAX if Pablo doesn't mind sed'ing?)
 
-Silent failure? That's terrible.
+The name for a max in proto sense... I'm not sure what that would be.
+IPPROTO_MAX_IPPROTO ? IP_IPROTO_MAX ? IP_PROTO_MAX ? Dunno..
 
-	int IPPROTO_MPTCP = 257;
-	socket(AF_INET, SOCK_STREAM, (uint8_t)IPPROTO_MPTCP);
-
-on the other hand would immediately fail with EPROTONOSUPP
-and make hidden uint8 truncation readily visible.
+> More seriously, I don't see such things when looking at:
+> 
+> 
+> https://codesearch.debian.net/search?q=%5CbIPPROTO_MAX%5Cb&literal=0&perpkg=1
+> 
+> IPPROTO_MAX is (re)defined in different libs but not used in many
+> programs, mainly in Netfilter related programs in fact.
+> 
+> 
+> Even if it is linked to MPTCP, I cannot judge if it can be an issue or
+> not because it depends on how the different libC or other libs/apps are
+> interpreting this IPPROTO_MAX and if they are using it before creating a
+> socket.
