@@ -2,68 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09366C77B6E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 13:01:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1480CC7619A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 14:18:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230267AbjDLNBZ (ORCPT
+        id S231499AbjDLOSU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 09:01:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53944 "EHLO
+        Wed, 12 Apr 2023 10:18:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230354AbjDLNBY (ORCPT
+        with ESMTP id S231495AbjDLOST (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 09:01:24 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BF14697
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 06:01:23 -0700 (PDT)
-Date:   Wed, 12 Apr 2023 14:54:15 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Jeremy Sowden <jeremy@azazel.net>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
- port-ranges
-Message-ID: <ZDap93NxS3SQIu9E@calendula>
-References: <20230305101418.2233910-1-jeremy@azazel.net>
- <20230305101418.2233910-9-jeremy@azazel.net>
- <20230324225904.GB17250@breakpoint.cc>
- <ZDUaIa0N2R1Ay7o/@calendula>
- <20230411123604.GF21051@breakpoint.cc>
- <ZDaUi172jznQL5l9@calendula>
- <20230412114351.GA2135@breakpoint.cc>
+        Wed, 12 Apr 2023 10:18:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A6C946A3;
+        Wed, 12 Apr 2023 07:18:19 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B9EB2611BE;
+        Wed, 12 Apr 2023 14:18:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02C0C433D2;
+        Wed, 12 Apr 2023 14:18:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1681309098;
+        bh=6Z0pbvNmrmVKo0gV14o7boQwibOZ6zoml5KjVPBYbrI=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=jWcAfFDi1yErfUL9gWWMQQrSZKXusEk4CciyMQvlEKFuY/pEfPQOIR3tcArnXYwae
+         xmcKpSS9vSVAoSoGvqaQjoPc0zMyhHK4SBD1Oc36usYNsdCtDSRLKJOGsGCH+3ElNw
+         N4OuMv/ZyG1QHQ20ppy6ABY2bDkLCCUZfvkTkwitrX1x25WVkcwsBOpCGOQE9qgMtT
+         W8JCIxJpZ+daZwEX9AsCxtUqzsj/SdktRpQoodN/KoAvl7KHYOryxl8wErE2z74DoD
+         DpAMrzAgq4rd4CvdpXTM5TXXjhXdp9Tsz+snM9UNZqHW84qiJxyElIwW6rkjaTW8Xu
+         7OZdWdk3Y8dGw==
+Date:   Wed, 12 Apr 2023 07:18:16 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+        mathew.j.martineau@linux.intel.com, matthieu.baerts@tessares.net,
+        mptcp@lists.linux.dev
+Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
+ IPPROTO_UAPI_MAX
+Message-ID: <20230412071816.0c0898ee@kernel.org>
+In-Reply-To: <20230406092558.459491-1-pablo@netfilter.org>
+References: <20230406092558.459491-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230412114351.GA2135@breakpoint.cc>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 12, 2023 at 01:43:51PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > I think my proposal provides a simple way to support this, it just a
-> > new flag in the NAT engine, few lines to handle it and new userspace
-> > code to handle -/+offset in a map.
-> 
-> Yes, thanks for clarifying this. I'm fine with your proposal.
-> 
-> I think it might even be possible to rework the iptables target
-> (the only user of the current shift/offset infra) to work with
-> the 'new' delta approach, to avoid cluttering the NAT engine with
-> both appraoaches.
+On Thu,  6 Apr 2023 11:25:58 +0200 Pablo Neira Ayuso wrote:
+>    IPPROTO_RAW = 255,		/* Raw IP packets			*/
+> +  IPPROTO_MAX,
+>  #define IPPROTO_RAW	
 
-Agreed.
-
-> > Your idea of doing it via payload + math is also good, but it would
-> > just require more work to support this NAT port-shift feature in
-> > userspace.
-> 
-> Indeed, its a lot more work.
->
-> > Does this help clarify? I am talking about a completely different
-> > design for this feature, not so iptablish.
-> 
-> Yes, it does.  Agree its better solution compared to the existing
-> one.
-
-OK, let's move on then :)
+nit: any reason the IPPROTO_MAX is in between the enum entry 
+and its associated define?
