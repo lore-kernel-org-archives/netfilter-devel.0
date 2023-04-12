@@ -2,135 +2,119 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72538C7619A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 15:23:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1419EC7619A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 16:04:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230281AbjDLPXJ (ORCPT
+        id S229602AbjDLQEd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 11:23:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52784 "EHLO
+        Wed, 12 Apr 2023 12:04:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231536AbjDLPXG (ORCPT
+        with ESMTP id S229458AbjDLQEc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 11:23:06 -0400
-Received: from mail-wr1-x431.google.com (mail-wr1-x431.google.com [IPv6:2a00:1450:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB91A93D2
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 08:22:41 -0700 (PDT)
-Received: by mail-wr1-x431.google.com with SMTP id j11so14939147wrd.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 08:22:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tessares.net; s=google; t=1681312958;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Ssyy5ye3KgUlVexJG4pO7NIkqaEMEWr4ggHaOrUyEtY=;
-        b=hdH8DHrc2I8icKu3rHxgEnj3AbBEqdpX6AnOBc1+dqGqoiywpAgOIT38bZVZsMldYU
-         eea18iC3+Fo6WFLhbCEjiSTHY/GW5zoTLMPEEZpG0pxOL9OWyw97WFS2Mz+pLwpN8V65
-         M8pPI/5K8nv7EnI3KLTPVU7ypP5CQRnRuEKaiFDtNrg2an8HITejEBgY46E3c/nn5WZS
-         xt6mF7U8ncRCD2sw3nZx+QoxS5sQpM/+VuOIB36J97sEXQK6VssbdKRXVlzbJgr8mf5I
-         Natsw7OQe2UotepwTA/3OvjlZjl98W/+fWX4O9jAr6I4Llb1rf5f9LtPlrxQKybg+56l
-         f/kA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681312958;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Ssyy5ye3KgUlVexJG4pO7NIkqaEMEWr4ggHaOrUyEtY=;
-        b=NJVzMEmuG+0kNacwMJ6Tk5DkJq9bLHaZIRuN1E3TseZoU3UVjjGyyrSKA43WfZ+r2R
-         d6af3a1ceC2GJpgCWWNZ0nfj+fcOdyGOfkYztFVFMAXwM+d3+ZnUBIhYZal7VAfBUlLe
-         2r5StVOZ0/QDZmyZ695k+5TwHf4njRJH6HGnlG58zXjLJ/3iAXyeBGy+fJdfHFKjUJjF
-         efDgR4fmUl3VSCONck+g9b07OtbC8ntYCQOnsvAEhvIWHQktPWWJPOj0IU6lFGLzI0Ux
-         LxNx0GiU9msWJ6VtPEqT6BFp9BqFfWY03uv0zedYolUMLnjGJ15W6v1GE7pwIhHraeUF
-         DNIw==
-X-Gm-Message-State: AAQBX9ek0ToK2rafoXY4GlDwRbR+cCg1g17OgSwyfdrHRCMAwnkhtROB
-        LRuyCc5k4BhLHANsjUyBhCImkQ==
-X-Google-Smtp-Source: AKy350bM7n5TLTMn54FLWkt3p4ihKamEuJ8GvIbFBjsLMzX56SfAGnriSh3KNir9JtYsMq/Oy0IY/Q==
-X-Received: by 2002:adf:e441:0:b0:2f1:d17f:cf95 with SMTP id t1-20020adfe441000000b002f1d17fcf95mr7800994wrm.12.1681312958078;
-        Wed, 12 Apr 2023 08:22:38 -0700 (PDT)
-Received: from ?IPV6:2a02:578:8593:1200:4382:4a00:b3c9:ac57? ([2a02:578:8593:1200:4382:4a00:b3c9:ac57])
-        by smtp.gmail.com with ESMTPSA id d7-20020adfef87000000b002daeb108304sm17474744wro.33.2023.04.12.08.22.37
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 12 Apr 2023 08:22:37 -0700 (PDT)
-Message-ID: <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
-Date:   Wed, 12 Apr 2023 17:22:36 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.0
+        Wed, 12 Apr 2023 12:04:32 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1ACECCF;
+        Wed, 12 Apr 2023 09:04:31 -0700 (PDT)
+Date:   Wed, 12 Apr 2023 18:04:27 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Matthieu Baerts <matthieu.baerts@tessares.net>
+Cc:     Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
+        edumazet@google.com, mathew.j.martineau@linux.intel.com,
+        mptcp@lists.linux.dev
 Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
  IPPROTO_UAPI_MAX
-Content-Language: en-GB
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-        mathew.j.martineau@linux.intel.com, mptcp@lists.linux.dev
+Message-ID: <ZDbWi4dgysRbf+vb@calendula>
 References: <20230406092558.459491-1-pablo@netfilter.org>
  <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net>
  <20230412072104.61910016@kernel.org>
-From:   Matthieu Baerts <matthieu.baerts@tessares.net>
-In-Reply-To: <20230412072104.61910016@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+ <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jakub,
-
-On 12/04/2023 16:21, Jakub Kicinski wrote:
-> On Thu, 6 Apr 2023 12:45:25 +0200 Matthieu Baerts wrote:
->> The modification in the kernel looks good to me. But I don't know how to
->> make sure this will not have any impact on MPTCP on the userspace side,
->> e.g. somewhere before calling the socket syscall, a check could be done
->> to restrict the protocol number to IPPROTO_MAX and then breaking MPTCP
->> support.
+On Wed, Apr 12, 2023 at 05:22:36PM +0200, Matthieu Baerts wrote:
+> Hi Jakub,
 > 
-> Then again any code which stores the ipproto in an unsigned char will 
-> be broken. A perfect solution is unlikely to exist.
+> On 12/04/2023 16:21, Jakub Kicinski wrote:
+> > On Thu, 6 Apr 2023 12:45:25 +0200 Matthieu Baerts wrote:
+> >> The modification in the kernel looks good to me. But I don't know how to
+> >> make sure this will not have any impact on MPTCP on the userspace side,
+> >> e.g. somewhere before calling the socket syscall, a check could be done
+> >> to restrict the protocol number to IPPROTO_MAX and then breaking MPTCP
+> >> support.
+> > 
+> > Then again any code which stores the ipproto in an unsigned char will 
+> > be broken. A perfect solution is unlikely to exist.
 
-I wonder if the root cause is not the fact we mix the usage of the
-protocol parameter from the socket syscall (int/s32) and the protocol
-field from the IP header (u8).
+Yes, this is tricky.
 
-To me, the enum is linked to the socket syscall, not the IP header. In
-this case, it would make sense to have a dedicated "MAX" macro for the
-IP header, no?
-
->> Is it not safer to expose something new to userspace, something
->> dedicated to what can be visible on the wire?
->>
->> Or recommend userspace programs to limit to lower than IPPROTO_RAW
->> because this number is marked as "reserved" by the IANA anyway [1]?
->>
->> Or define something new linked to UINT8_MAX because the layer 4 protocol
->> field in IP headers is limited to 8 bits?
->> This limit is not supposed to be directly linked to the one of the enum
->> you modified. I think we could even say it works "by accident" because
->> "IPPROTO_RAW" is 255. But OK "IPPROTO_RAW" is there from the "beginning"
->> [2] :)
+> I wonder if the root cause is not the fact we mix the usage of the
+> protocol parameter from the socket syscall (int/s32) and the protocol
+> field from the IP header (u8).
 > 
-> I'm not an expert but Pablo's patch seems reasonable to me TBH.
-> Maybe I'm missing some extra MPTCP specific context?
+> To me, the enum is linked to the socket syscall, not the IP header. In
+> this case, it would make sense to have a dedicated "MAX" macro for the
+> IP header, no?
+> 
+> >> Is it not safer to expose something new to userspace, something
+> >> dedicated to what can be visible on the wire?
+> >>
+> >> Or recommend userspace programs to limit to lower than IPPROTO_RAW
+> >> because this number is marked as "reserved" by the IANA anyway [1]?
+> >>
+> >> Or define something new linked to UINT8_MAX because the layer 4 protocol
+> >> field in IP headers is limited to 8 bits?
+> >> This limit is not supposed to be directly linked to the one of the enum
+> >> you modified. I think we could even say it works "by accident" because
+> >> "IPPROTO_RAW" is 255. But OK "IPPROTO_RAW" is there from the "beginning"
+> >> [2] :)
+> > 
+> > I'm not an expert but Pablo's patch seems reasonable to me TBH.
+> > Maybe I'm missing some extra MPTCP specific context?
+> 
+> I was imagining userspace programs doing something like:
+> 
+>     if (protocol < 0 || protocol >= IPPROTO_MAX)
+>         die();
+> 
+>     syscall(...);
 
-I was imagining userspace programs doing something like:
+Is this theoretical, or you think any library might be doing this
+already? I lack of sufficient knowledge of the MPTCP ecosystem to
+evaluate myself.
 
-    if (protocol < 0 || protocol >= IPPROTO_MAX)
-        die();
+> With Pablo's modification and such userspace code, this will break MPTCP
+> support.
+> 
+> I'm maybe/probably worry for nothing, I don't know any specific lib
+> doing that and to be honest, I don't know what is usually done in libc
+> and libs implemented on top of that. On the other hand, it is hard to
+> guess how it is used everywhere.
+> 
+> So yes, maybe it is fine?
 
-    syscall(...);
+It has been 3 years since the update, I think this is the existing
+scenario looks like this:
 
-With Pablo's modification and such userspace code, this will break MPTCP
-support.
+1) Some userspace programs that rely on IPPROTO_MAX broke in some way
+   and people fixed it by using IPPROTO_RAW (as you mentioned Matthieu)
 
-I'm maybe/probably worry for nothing, I don't know any specific lib
-doing that and to be honest, I don't know what is usually done in libc
-and libs implemented on top of that. On the other hand, it is hard to
-guess how it is used everywhere.
+2) Some userspace programs rely on the IPPROTO_MAX value in some way and
+   they are broken (yet they need to be fixed).
 
-So yes, maybe it is fine?
+If IPPROTO_MAX is restore, both two type of software described in the
+scenarios above will be fine.
 
-Cheers,
-Matt
--- 
-Tessares | Belgium | Hybrid Access Solutions
-www.tessares.net
+If Matthieu consider that likeliness that MPTCP breaks is low, then I
+would go for applying the patch.
+
+Yet another reason: Probably it is also good to restore it to
+IPPROTO_MAX so Linux gets aligned again with other unix-like systems
+which provide this definition? Some folks might care of portability in
+userspace.
