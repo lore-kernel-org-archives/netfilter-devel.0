@@ -2,182 +2,127 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24A22C77B6F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 16:35:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8DFDC77B6E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 16:46:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229486AbjDLQfr (ORCPT
+        id S231329AbjDLQqQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 12:35:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35282 "EHLO
+        Wed, 12 Apr 2023 12:46:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229634AbjDLQfq (ORCPT
+        with ESMTP id S231400AbjDLQpz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 12:35:46 -0400
-Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 017BF2136
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 09:35:43 -0700 (PDT)
-Received: by mail-wm1-x32f.google.com with SMTP id n9-20020a05600c4f8900b003f05f617f3cso13272694wmq.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 09:35:43 -0700 (PDT)
+        Wed, 12 Apr 2023 12:45:55 -0400
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C29609028
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 09:44:59 -0700 (PDT)
+Received: by mail-wm1-x335.google.com with SMTP id o6-20020a05600c4fc600b003ef6e6754c5so4649676wmq.5
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 09:44:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tessares.net; s=google; t=1681317342;
+        d=tessares.net; s=google; t=1681317890;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=H1UERlLb0IEE7WBn0kYzdjfH5tmfRGpcO4CVjo1qns8=;
-        b=srJyMIcA9wYhLFxrOJumnj/lWyLknS7vptC3tXSODOgkF+NH2HXLV2E3NLus/Fz/QC
-         3NZ6NR2wlzxpneu0qsj13dQRxy3lWv10K7lzKP3+QcRHnn00H3mbQVn4RzImQUcJoGEw
-         2TiJmwkVHKiYOJ4BmYhwHNOT/fpdaNmqdKbrhANg0M2+EGmUGcCnlCVXQ4WgnTF/ExVv
-         qlnav663mlJM4X5MPzPLYw7bTtVWsiOHKZZc9YlH4ToN0Byr9M4NwflNtwW3121RtXt0
-         uLA2C8XWMlu8RNKcEJRKmuabudSCQAfe0gBBEYOVz0SZ+gJfEjIzQ0tiJ/8kPXM5wM62
-         sBcg==
+        bh=2ghpv9cscfIZxtu8/JyVek7mJ4kodarz9aBKt11yTkA=;
+        b=rkWOzgzlRzcBtFQdwYtzPYpQDtQE10Jr/1rlDIGOCLwb3vzdN3C5XJuL/pk/dUifHw
+         f5b6PgSs2mDaAnCoNTC6SAgu86Oh+VotB98r2I6A0z3RMF3mvrO05E5RQmOfoTpg1ito
+         OLe8XozyoPI3DSJGCPTqXtfoR92QSaXtMFoXSsmoAPeE2WVQn/laIAtE4WpVV+w3oWPt
+         zCD1s1MoRIkHwDP6gbTmTcJ914BqB9i80ywZy8o1vGC8+1p4XJAeJdx12NMIv3jTJdMh
+         N/h+0ELrRSyvgrUqvjC5f22OQ1b7uWZQosPZ8JW9wLI/PZ/eUP1xm/8Rv1Qmx30ehN5c
+         KthQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681317342;
+        d=1e100.net; s=20221208; t=1681317890;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=H1UERlLb0IEE7WBn0kYzdjfH5tmfRGpcO4CVjo1qns8=;
-        b=HQmmao0jeZ8o7Y0MCpEGdfnVklI2lw/+3sQrPPNhU567DX6MRfK2cmsXtStqXA4UkX
-         YkJMfsiEao5jeonfyS87KnJAmdlgGIbR5PSA7Z4UTRQijl5hnsH0jJtsFbJ5+7DVD6qO
-         RstiIAnkCY/wZPVJ7y0swRgS4e5NBTZ/M87/e5kxD2ZMKs9RyRwKyCbmk0r5U1w1TniC
-         fUFeffw3koarUrJKhcRTRS1irABjLoMYZ0W9TSHMn+vqpuW4VhT7fVbJ5cypBpk4Pq8r
-         qbzm+wHSixEGzvV2Yhds4ZpWUeronTGe7V5xjyzV48fHNuE8IYRqort39aG1vaLjPdQw
-         5n4A==
-X-Gm-Message-State: AAQBX9ddCrMH19d9c8TcrVWjBIIMcUIOki3Ng/+kB00YCeAQoy8cvjrt
-        JPT0FgCUs49Ev/bjJq2nka74kw==
-X-Google-Smtp-Source: AKy350a3cFwPBXW4EEIcV5d3YNiKWX3quvpKi2I4dTOhbKHelQVHInOX1SqWs7kCp6euXqjgbzhYPw==
-X-Received: by 2002:a05:600c:da:b0:3ee:1acd:b039 with SMTP id u26-20020a05600c00da00b003ee1acdb039mr2460893wmm.34.1681317342401;
-        Wed, 12 Apr 2023 09:35:42 -0700 (PDT)
-Received: from ?IPV6:2a02:578:8593:1200:4382:4a00:b3c9:ac57? ([2a02:578:8593:1200:4382:4a00:b3c9:ac57])
-        by smtp.gmail.com with ESMTPSA id t15-20020a05600c198f00b003f0a007b802sm1936412wmq.12.2023.04.12.09.35.41
+        bh=2ghpv9cscfIZxtu8/JyVek7mJ4kodarz9aBKt11yTkA=;
+        b=GuD+rbYSDQtpG/SSbD4F7vhQ7BsnahuCL0/N8XBr2sBwDgLhdhOuAFsBI4LXMd7rqj
+         b737Lh8zQ1HCdfWUqm0F3j+dfzxObhgVnnmx++hV7PrOpYPCz1pIokVzQA77LUGSCCBL
+         ThZ/RbXSfSaS9cKpFnLxVuuJM7uq67XSfKONLQiR422p5mAJyNKnT9F5BpJJTyFIF3bS
+         PmJq08v8u4E9M/M7ZOKPSojcB88nL/Uqks3lodmct9V/+7s8h3QmhaAkHKmjGap6Y6Ii
+         IGO0Hxw82Jzj3GUwfxSM7ub44K2Ki7MEBEHhOuhBA1K1tr40XvgdWTJN2xuSZoLmGBtD
+         QWoA==
+X-Gm-Message-State: AAQBX9epke1DyDYDrv6oKn1XOB0yWkx4SreBzSWX2dI8Hv7DADrXs6UG
+        FUPCsogvP7dqLnl3V2qwwZNn8nb1MF5n4V0uwAAtusjG
+X-Google-Smtp-Source: AKy350bj1c74teNRrwL9U7AkFVBl73+q96DqvSrSG+LKE4nnbsPdnkvczbdMn6JcUnx8j8M0Kmya5Q==
+X-Received: by 2002:a7b:ca43:0:b0:3ed:b094:3c93 with SMTP id m3-20020a7bca43000000b003edb0943c93mr4800921wml.23.1681317890019;
+        Wed, 12 Apr 2023 09:44:50 -0700 (PDT)
+Received: from ?IPV6:2a02:578:8593:1200:9946:50ca:7635:b749? ([2a02:578:8593:1200:9946:50ca:7635:b749])
+        by smtp.gmail.com with ESMTPSA id u10-20020a05600c19ca00b003f09d1a88c9sm3035672wmq.42.2023.04.12.09.44.49
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 12 Apr 2023 09:35:41 -0700 (PDT)
-Message-ID: <7405c14e-1fbe-c820-c470-36b0a50b4cae@tessares.net>
-Date:   Wed, 12 Apr 2023 18:35:40 +0200
+        Wed, 12 Apr 2023 09:44:49 -0700 (PDT)
+Message-ID: <4fa60957-2718-cac2-4b01-12aaf48b76b4@tessares.net>
+Date:   Wed, 12 Apr 2023 18:44:48 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.10.0
 Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
  IPPROTO_UAPI_MAX
 Content-Language: en-GB
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
-        davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
-        edumazet@google.com, mathew.j.martineau@linux.intel.com,
-        mptcp@lists.linux.dev
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+        mathew.j.martineau@linux.intel.com, mptcp@lists.linux.dev
 References: <20230406092558.459491-1-pablo@netfilter.org>
  <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net>
  <20230412072104.61910016@kernel.org>
  <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
- <ZDbWi4dgysRbf+vb@calendula>
+ <689os02o-r5o8-so9-rq11-p62223p87ns3@vanv.qr>
 From:   Matthieu Baerts <matthieu.baerts@tessares.net>
-In-Reply-To: <ZDbWi4dgysRbf+vb@calendula>
+In-Reply-To: <689os02o-r5o8-so9-rq11-p62223p87ns3@vanv.qr>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
-
-On 12/04/2023 18:04, Pablo Neira Ayuso wrote:
-> On Wed, Apr 12, 2023 at 05:22:36PM +0200, Matthieu Baerts wrote:
->> On 12/04/2023 16:21, Jakub Kicinski wrote:
->>> On Thu, 6 Apr 2023 12:45:25 +0200 Matthieu Baerts wrote:
-
-(...)
-
->>>> Is it not safer to expose something new to userspace, something
->>>> dedicated to what can be visible on the wire?
->>>>
->>>> Or recommend userspace programs to limit to lower than IPPROTO_RAW
->>>> because this number is marked as "reserved" by the IANA anyway [1]?
->>>>
->>>> Or define something new linked to UINT8_MAX because the layer 4 protocol
->>>> field in IP headers is limited to 8 bits?
->>>> This limit is not supposed to be directly linked to the one of the enum
->>>> you modified. I think we could even say it works "by accident" because
->>>> "IPPROTO_RAW" is 255. But OK "IPPROTO_RAW" is there from the "beginning"
->>>> [2] :)
+On 12/04/2023 18:14, Jan Engelhardt wrote:
+> 
+> On Wednesday 2023-04-12 17:22, Matthieu Baerts wrote:
+>>>> But I don't know how to
+>>>> make sure this will not have any impact on MPTCP on the userspace side,
+>>>> e.g. somewhere before calling the socket syscall, a check could be done
+>>>> to restrict the protocol number to IPPROTO_MAX and then breaking MPTCP
+>>>> support.
 >>>
->>> I'm not an expert but Pablo's patch seems reasonable to me TBH.
->>> Maybe I'm missing some extra MPTCP specific context?
+>>> Then again any code which stores the ipproto in an unsigned char will 
+>>> be broken. A perfect solution is unlikely to exist.
+> 
+> IPPROTO_MPTCP (262) is new, anything using MPTCP is practically new code
+> for the purposes of discussion, and when MPTCP support is added to some
+> application, you simply *have to* update any potential uint8 check.
+
+I hope such check doesn't exist :)
+
+IPPROTO_MPTCP is only used when creating the socket, with the "protocol"
+parameter which accepts an integer.
+
+>> I wonder if the root cause is not the fact we mix the usage of the
+>> protocol parameter from the socket syscall (int/s32) and the protocol
+>> field from the IP header (u8).
 >>
->> I was imagining userspace programs doing something like:
->>
->>     if (protocol < 0 || protocol >= IPPROTO_MAX)
->>         die();
->>
->>     syscall(...);
+>> To me, the enum is linked to the socket syscall, not the IP header. In
+>> this case, it would make sense to have a dedicated "MAX" macro for the
+>> IP header, no?
 > 
-> Is this theoretical, or you think any library might be doing this
-> already? I lack of sufficient knowledge of the MPTCP ecosystem to
-> evaluate myself.
-
-This is theoretical.
-
-But using it with socket's protocol parameter is the only good usage of
-IPPROTO_MAX for me :-D
-
-More seriously, I don't see such things when looking at:
-
-
-https://codesearch.debian.net/search?q=%5CbIPPROTO_MAX%5Cb&literal=0&perpkg=1
-
-IPPROTO_MAX is (re)defined in different libs but not used in many
-programs, mainly in Netfilter related programs in fact.
-
-
-Even if it is linked to MPTCP, I cannot judge if it can be an issue or
-not because it depends on how the different libC or other libs/apps are
-interpreting this IPPROTO_MAX and if they are using it before creating a
-socket.
-
-
->> With Pablo's modification and such userspace code, this will break MPTCP
->> support.
->>
->> I'm maybe/probably worry for nothing, I don't know any specific lib
->> doing that and to be honest, I don't know what is usually done in libc
->> and libs implemented on top of that. On the other hand, it is hard to
->> guess how it is used everywhere.
->>
->> So yes, maybe it is fine?
+> IPPROTO_MAX (256) was the sensible maximum value [array size]
+> for both the IP header *and* the socket interface.
 > 
-> It has been 3 years since the update, I think this is the existing
-> scenario looks like this:
-> 
-> 1) Some userspace programs that rely on IPPROTO_MAX broke in some way
->    and people fixed it by using IPPROTO_RAW (as you mentioned Matthieu)
-> 
-> 2) Some userspace programs rely on the IPPROTO_MAX value in some way and
->    they are broken (yet they need to be fixed).
-> 
-> If IPPROTO_MAX is restore, both two type of software described in the
-> scenarios above will be fine.
-> 
-> If Matthieu consider that likeliness that MPTCP breaks is low, then I
-> would go for applying the patch.
+> Then the socket interface was extended, so IPPROTO_MAX, at the very
+> least, keeps the meanings it can keep, which is for the one for the
+> IP header.
+> Makes me wonder why MPTCP got 262 instead of just 257.
 
-Even if I continue to think that IPPROTO_MAX should not be used when
-looking at protocol field visible on the wire, I guess it doesn't make
-sense for a lib to restrict the socket syscall to < IPPROTO_MAX as well
-just in case this soft limit is modified later like we did 3 years ago.
-We didn't have any bug reports saying that it was not possible to create
-an MPTCP socket because of a lib restricting the protocol field to max 256.
+Just in case a uint8 is used somewhere, we fallback to TCP (6):
 
-In other words, indeed, it looks like the likeliness that MPTCP breaks
-is low.
+  IPPROTO_MPTCP & 0xff = IPPROTO_TCP
 
-> Yet another reason: Probably it is also good to restore it to
-> IPPROTO_MAX so Linux gets aligned again with other unix-like systems
-> which provide this definition? Some folks might care of portability in
-> userspace.
+Instead of IPPROTO_ICMP (1).
 
-Good point, I guess we should not have modified IPPROTO_MAX 3 years ago.
-It looks then OK to apply such patch (with the small fix asked by Jakub).
-
-It is just a shame we only see this issue now. Maybe because IPPROTO_MAX
-is used in such context mainly by Netfilter? :-)
+We did that to be on the safe side, not knowing all the different
+userspace implementations :)
 
 Cheers,
 Matt
