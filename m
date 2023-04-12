@@ -2,61 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D55FC7619A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 22:22:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78EEDC7619A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Apr 2023 22:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229529AbjDLWWc (ORCPT
+        id S229526AbjDLW4G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Apr 2023 18:22:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34800 "EHLO
+        Wed, 12 Apr 2023 18:56:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229499AbjDLWWc (ORCPT
+        with ESMTP id S229508AbjDLW4F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2023 18:22:32 -0400
+        Wed, 12 Apr 2023 18:56:05 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DD4447EEF;
-        Wed, 12 Apr 2023 15:22:18 -0700 (PDT)
-Date:   Thu, 13 Apr 2023 00:22:12 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5A22FE4B
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Apr 2023 15:56:04 -0700 (PDT)
+Date:   Thu, 13 Apr 2023 00:56:01 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Matthieu Baerts <matthieu.baerts@tessares.net>,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
-        mathew.j.martineau@linux.intel.com, mptcp@lists.linux.dev
-Subject: Re: [PATCH net,v2] uapi: linux: restore IPPROTO_MAX to 256 and add
- IPPROTO_UAPI_MAX
-Message-ID: <ZDcvFKLZJwdz0Qse@calendula>
-References: <20230406092558.459491-1-pablo@netfilter.org>
- <ca12e402-96f1-b1d2-70ad-30e532f9026c@tessares.net>
- <20230412072104.61910016@kernel.org>
- <405a8fa2-4a71-71c8-7715-10d3d2301dac@tessares.net>
- <ZDbWi4dgysRbf+vb@calendula>
- <7405c14e-1fbe-c820-c470-36b0a50b4cae@tessares.net>
- <20230412123718.7e6c0b55@kernel.org>
+To:     Tzung-Bi Shih <tzungbi@kernel.org>
+Cc:     kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        jiejiang@chromium.org, jasongustaman@chromium.org,
+        garrick@chromium.org
+Subject: Re: [PATCH] netfilter: conntrack: fix wrong ct->timeout value
+Message-ID: <ZDc3AUBoKMUzPfKi@calendula>
+References: <20230410060935.253503-1-tzungbi@kernel.org>
+ <ZDPJ2rHi5fOqu4ga@calendula>
+ <ZDPXad/8beRw78yX@calendula>
+ <ZDPeGu4eznqw34VJ@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230412123718.7e6c0b55@kernel.org>
+In-Reply-To: <ZDPeGu4eznqw34VJ@google.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 12, 2023 at 12:37:18PM -0700, Jakub Kicinski wrote:
-> On Wed, 12 Apr 2023 18:35:40 +0200 Matthieu Baerts wrote:
-> > > Is this theoretical, or you think any library might be doing this
-> > > already? I lack of sufficient knowledge of the MPTCP ecosystem to
-> > > evaluate myself.  
+On Mon, Apr 10, 2023 at 05:59:54PM +0800, Tzung-Bi Shih wrote:
+> On Mon, Apr 10, 2023 at 11:31:21AM +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Apr 10, 2023 at 10:33:32AM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Apr 10, 2023 at 02:09:35PM +0800, Tzung-Bi Shih wrote:
+> > > > (struct nf_conn)->timeout is an interval before the conntrack
+> > > > confirmed.  After confirmed, it becomes a timestamp[1].
+> > > > 
+> > > > It is observed that timeout of an unconfirmed conntrack have been
+> > > > altered by calling ctnetlink_change_timeout().  As a result,
+> > > > `nfct_time_stamp` was wrongly added to `ct->timeout` twice[2].
+> > > > 
+> > > > Differentiate the 2 cases in all `ct->timeout` accesses.
+> > > 
+> > > You can just skip refreshing the timeout for unconfirmed conntrack
+> > > entries in ctnetlink_change_timeout().
 > > 
-> > This is theoretical.
-> > 
-> > But using it with socket's protocol parameter is the only good usage of
-> > IPPROTO_MAX for me :-D
+> > Something like this patch probably?
 > 
-> Perhaps. No strong preference from me. That said I think I can come up
-> with a good name for the SO use: SO_IPPROTO_MAX (which IMHO it's better
-> than IPPROTO_UAPI_MAX if Pablo doesn't mind sed'ing?)
+> Pardon me, I sent a v2[3] before seeing the message.
+> 
+> [3]: https://lore.kernel.org/netfilter-devel/20230410093454.853575-1-tzungbi@kernel.org/T/#u
+> 
+> > diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> > index bfc3aaa2c872..6556f5f30844 100644
+> > --- a/net/netfilter/nf_conntrack_netlink.c
+> > +++ b/net/netfilter/nf_conntrack_netlink.c
+> > @@ -2466,7 +2466,8 @@ static int ctnetlink_new_conntrack(struct sk_buff *skb,
+> >  
+> >  	err = -EEXIST;
+> >  	ct = nf_ct_tuplehash_to_ctrack(h);
+> > -	if (!(info->nlh->nlmsg_flags & NLM_F_EXCL)) {
+> > +	if (!(info->nlh->nlmsg_flags & NLM_F_EXCL) &&
+> > +	    nf_ct_is_confirmed(ct)) {
+> >  		err = ctnetlink_change_conntrack(ct, cda);
+> >  		if (err == 0) {
+> >  			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
+> 
+> The patch can't fix the issue we observed.
+> 
+> Here is the calling stack:
+>   ctnetlink_glue_parse
+>   [...]
+>   __sys_sendto
+>   __x64_sys_sendto
+>   [...]
 
-SO_ is usually reserved for socket options.
+I see. So this is from nfqueue path, now I understand better, thanks.
 
-> The name for a max in proto sense... I'm not sure what that would be.
-> IPPROTO_MAX_IPPROTO ? IP_IPROTO_MAX ? IP_PROTO_MAX ? Dunno..
+Maybe just do this special handling:
+
++       if (nf_ct_is_confirmed(ct))
++               WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
++       else
++               WRITE_ONCE(ct->timeout, timeout);
+
+for ctnetlink_change_timeout().
+
+Just replace __nf_ct_set_timeout(), by this code above in
+nf_conntrack_netlink.c? I think the __nf_ct_set_timeout() helper is
+not very useful.
+
+Better not to cripple features, even if this was broken :-).
+
+Thanks.
