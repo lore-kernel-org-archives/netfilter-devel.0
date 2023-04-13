@@ -2,142 +2,216 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AA3AC77B77
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 13:35:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC30C7EE21
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 13:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231536AbjDMNfJ (ORCPT
+        id S231465AbjDMNfH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Apr 2023 09:35:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58846 "EHLO
+        Thu, 13 Apr 2023 09:35:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231597AbjDMNeB (ORCPT
+        with ESMTP id S231583AbjDMNeq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2023 09:34:01 -0400
+        Thu, 13 Apr 2023 09:34:46 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34A6BB477;
-        Thu, 13 Apr 2023 06:32:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 330C1A243;
+        Thu, 13 Apr 2023 06:32:51 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pmx40-00016f-R8; Thu, 13 Apr 2023 15:32:36 +0200
+        id 1pmx4D-00017F-8L; Thu, 13 Apr 2023 15:32:49 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
         dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf-next v2 0/6] bpf: add netfilter program type
-Date:   Thu, 13 Apr 2023 15:32:22 +0200
-Message-Id: <20230413133228.20790-1-fw@strlen.de>
+Subject: [PATCH bpf-next v2 3/6] netfilter: nfnetlink hook: dump bpf prog id
+Date:   Thu, 13 Apr 2023 15:32:25 +0200
+Message-Id: <20230413133228.20790-4-fw@strlen.de>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230413133228.20790-1-fw@strlen.de>
+References: <20230413133228.20790-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add minimal support to hook bpf programs to netfilter hooks, e.g.
-PREROUTING or FORWARD.
+This allows userspace ("nft list hooks") to show which bpf program
+is attached to which hook.
 
-For this the most relevant parts for registering a netfilter
-hook via the in-kernel api are exposed to userspace via bpf_link.
+Without this, user only knows bpf prog is attached at prio
+x, y, z at INPUT and FORWARD, but can't tell which program is where.
 
-The new program type is 'tracing style', i.e. there is no context
-access rewrite done by verifier, the function argument (struct bpf_nf_ctx)
-isn't stable.
-There is no support for direct packet access, dynptr api should be used
-instead.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/uapi/linux/netfilter/nfnetlink_hook.h | 20 ++++-
+ net/netfilter/nfnetlink_hook.c                | 81 ++++++++++++++++---
+ 2 files changed, 87 insertions(+), 14 deletions(-)
 
-With this its possible to build a small test program such as:
-
- #include "vmlinux.h"
-extern int bpf_dynptr_from_skb(struct __sk_buff *skb, __u64 flags,
-                               struct bpf_dynptr *ptr__uninit) __ksym;
-extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
-                                   void *buffer, uint32_t buffer__sz) __ksym;
-SEC("netfilter")
-int nf_test(struct bpf_nf_ctx *ctx)
-{
-	struct nf_hook_state *state = ctx->state;
-	struct sk_buff *skb = ctx->skb;
-	const struct iphdr *iph, _iph;
-	const struct tcphdr *th, _th;
-	struct bpf_dynptr ptr;
-
-	if (bpf_dynptr_from_skb(skb, 0, &ptr))
-		return NF_DROP;
-
-	iph = bpf_dynptr_slice(&ptr, 0, &_iph, sizeof(_iph));
-	if (!iph)
-		return NF_DROP;
-
-	th = bpf_dynptr_slice(&ptr, iph->ihl << 2, &_th, sizeof(_th));
-	if (!th)
-		return NF_DROP;
-
-	bpf_printk("accept %x:%d->%x:%d, hook %d ifin %d\n", iph->saddr, bpf_ntohs(th->source), iph->daddr, bpf_ntohs(th->dest), state->hook, state->in->ifindex);
-        return NF_ACCEPT;
-}
-
-Then, tail /sys/kernel/tracing/trace_pipe.
-
-Changes since v1:
-1. Don't fail to link when CONFIG_NETFILTER=n (build bot)
-2. Use test_progs instead of test_verifier (Alexei)
-
-Changes since last RFC version:
-1. extend 'bpftool link show' to print prio/hooknum etc
-2. extend 'nft list hooks' so it can print the bpf program id
-3. Add an extra patch to artificially restrict bpf progs with
-   same priority.  Its fine from a technical pov but it will
-   cause ordering issues (most recent one comes first).
-   Can be removed later.
-4. Add test_run support for netfilter prog type and a small
-   extension to verifier tests to make sure we can't return
-   verdicts like NF_STOLEN.
-5. Alter the netfilter part of the bpf_link uapi struct:
-   - add flags/reserved members.
-  Not used here except returning errors when they are nonzero.
-  Plan is to allow the bpf_link users to enable netfilter
-  defrag or conntrack engine by setting feature flags at
-  link create time in the future.
-
-Let me know if there is anything missing that has to be addressed
-before this can be merged.
-
-Thanks!
-
-Florian Westphal (6):
-  bpf: add bpf_link support for BPF_NETFILTER programs
-  bpf: minimal support for programs hooked into netfilter framework
-  netfilter: nfnetlink hook: dump bpf prog id
-  netfilter: disallow bpf hook attachment at same priority
-  tools: bpftool: print netfilter link info
-  bpf: add test_run support for netfilter program type
-
- include/linux/bpf.h                           |   3 +
- include/linux/bpf_types.h                     |   4 +
- include/linux/netfilter.h                     |   1 +
- include/net/netfilter/nf_bpf_link.h           |  15 ++
- include/uapi/linux/bpf.h                      |  15 ++
- include/uapi/linux/netfilter/nfnetlink_hook.h |  20 +-
- kernel/bpf/btf.c                              |   6 +
- kernel/bpf/syscall.c                          |   6 +
- kernel/bpf/verifier.c                         |   3 +
- net/bpf/test_run.c                            | 140 +++++++++++++
- net/core/filter.c                             |   1 +
- net/netfilter/Kconfig                         |   3 +
- net/netfilter/Makefile                        |   1 +
- net/netfilter/core.c                          |  12 ++
- net/netfilter/nf_bpf_link.c                   | 190 ++++++++++++++++++
- net/netfilter/nfnetlink_hook.c                |  81 ++++++--
- tools/bpf/bpftool/link.c                      |  24 +++
- tools/include/uapi/linux/bpf.h                |  15 ++
- tools/lib/bpf/libbpf.c                        |   1 +
- .../selftests/bpf/prog_tests/verifier.c       |   2 +
- .../bpf/progs/verifier_netfilter_retcode.c    |  49 +++++
- 21 files changed, 578 insertions(+), 14 deletions(-)
- create mode 100644 include/net/netfilter/nf_bpf_link.h
- create mode 100644 net/netfilter/nf_bpf_link.c
- create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
-
+diff --git a/include/uapi/linux/netfilter/nfnetlink_hook.h b/include/uapi/linux/netfilter/nfnetlink_hook.h
+index bbcd285b22e1..63b7dbddf0b1 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_hook.h
++++ b/include/uapi/linux/netfilter/nfnetlink_hook.h
+@@ -32,8 +32,12 @@ enum nfnl_hook_attributes {
+ /**
+  * enum nfnl_hook_chain_info_attributes - chain description
+  *
+- * NFNLA_HOOK_INFO_DESC: nft chain and table name (enum nft_table_attributes) (NLA_NESTED)
++ * NFNLA_HOOK_INFO_DESC: nft chain and table name (NLA_NESTED)
+  * NFNLA_HOOK_INFO_TYPE: chain type (enum nfnl_hook_chaintype) (NLA_U32)
++ *
++ * NFNLA_HOOK_INFO_DESC depends on NFNLA_HOOK_INFO_TYPE value:
++ *   NFNL_HOOK_TYPE_NFTABLES: enum nft_table_attributes
++ *   NFNL_HOOK_TYPE_BPF: enum nfnl_hook_bpf_info_attributes
+  */
+ enum nfnl_hook_chain_info_attributes {
+ 	NFNLA_HOOK_INFO_UNSPEC,
+@@ -56,9 +60,23 @@ enum nfnl_hook_chain_desc_attributes {
+  * enum nfnl_hook_chaintype - chain type
+  *
+  * @NFNL_HOOK_TYPE_NFTABLES nf_tables base chain
++ * @NFNL_HOOK_TYPE_BPF bpf program
+  */
+ enum nfnl_hook_chaintype {
+ 	NFNL_HOOK_TYPE_NFTABLES = 0x1,
++	NFNL_HOOK_TYPE_BPF,
++};
++
++/**
++ * enum nfnl_hook_bpf_info_attributes - bpf prog description
++ *
++ * NFNLA_BPF_INFO_ID: bpf program id (NLA_U32)
++ */
++enum nfnl_hook_bpf_attributes {
++	NFNLA_HOOK_BPF_UNSPEC,
++	NFNLA_HOOK_BPF_ID,
++	__NFNLA_HOOK_BPF_MAX,
+ };
++#define NFNLA_HOOK_BPF_MAX (__NFNLA_HOOK_BPF_MAX - 1)
+ 
+ #endif /* _NFNL_HOOK_H */
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 8120aadf6a0f..ade8ee1988b1 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -5,6 +5,7 @@
+  * Author: Florian Westphal <fw@strlen.de>
+  */
+ 
++#include <linux/bpf.h>
+ #include <linux/module.h>
+ #include <linux/kallsyms.h>
+ #include <linux/kernel.h>
+@@ -57,35 +58,76 @@ struct nfnl_dump_hook_data {
+ 	u8 hook;
+ };
+ 
++static struct nlattr *nfnl_start_info_type(struct sk_buff *nlskb, enum nfnl_hook_chaintype t)
++{
++	struct nlattr *nest = nla_nest_start(nlskb, NFNLA_HOOK_CHAIN_INFO);
++	int ret;
++
++	if (!nest)
++		return NULL;
++
++	ret = nla_put_be32(nlskb, NFNLA_HOOK_INFO_TYPE, htonl(t));
++	if (ret == 0)
++		return nest;
++
++	nla_nest_cancel(nlskb, nest);
++	return NULL;
++}
++
++static int nfnl_hook_put_bpf_prog_info(struct sk_buff *nlskb,
++				       const struct nfnl_dump_hook_data *ctx,
++				       unsigned int seq,
++				       const struct bpf_prog *prog)
++{
++	struct nlattr *nest, *nest2;
++	int ret;
++
++	if (!IS_ENABLED(CONFIG_NETFILTER_BPF_LINK))
++		return 0;
++
++	if (WARN_ON_ONCE(!prog))
++		return 0;
++
++	nest = nfnl_start_info_type(nlskb, NFNL_HOOK_TYPE_BPF);
++	if (!nest)
++		return -EMSGSIZE;
++
++	nest2 = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
++	if (!nest2)
++		goto cancel_nest;
++
++	ret = nla_put_be32(nlskb, NFNLA_HOOK_BPF_ID, htonl(prog->aux->id));
++	if (ret)
++		goto cancel_nest;
++
++	nla_nest_end(nlskb, nest2);
++	nla_nest_end(nlskb, nest);
++	return 0;
++
++cancel_nest:
++	nla_nest_cancel(nlskb, nest);
++	return -EMSGSIZE;
++}
++
+ static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
+ 					const struct nfnl_dump_hook_data *ctx,
+ 					unsigned int seq,
+-					const struct nf_hook_ops *ops)
++					struct nft_chain *chain)
+ {
+ 	struct net *net = sock_net(nlskb->sk);
+ 	struct nlattr *nest, *nest2;
+-	struct nft_chain *chain;
+ 	int ret = 0;
+ 
+-	if (ops->hook_ops_type != NF_HOOK_OP_NF_TABLES)
+-		return 0;
+-
+-	chain = ops->priv;
+ 	if (WARN_ON_ONCE(!chain))
+ 		return 0;
+ 
+ 	if (!nft_is_active(net, chain))
+ 		return 0;
+ 
+-	nest = nla_nest_start(nlskb, NFNLA_HOOK_CHAIN_INFO);
++	nest = nfnl_start_info_type(nlskb, NFNL_HOOK_TYPE_NFTABLES);
+ 	if (!nest)
+ 		return -EMSGSIZE;
+ 
+-	ret = nla_put_be32(nlskb, NFNLA_HOOK_INFO_TYPE,
+-			   htonl(NFNL_HOOK_TYPE_NFTABLES));
+-	if (ret)
+-		goto cancel_nest;
+-
+ 	nest2 = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
+ 	if (!nest2)
+ 		goto cancel_nest;
+@@ -171,7 +213,20 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
+ 	if (ret)
+ 		goto nla_put_failure;
+ 
+-	ret = nfnl_hook_put_nft_chain_info(nlskb, ctx, seq, ops);
++	switch (ops->hook_ops_type) {
++	case NF_HOOK_OP_NF_TABLES:
++		ret = nfnl_hook_put_nft_chain_info(nlskb, ctx, seq, ops->priv);
++		break;
++	case NF_HOOK_OP_BPF:
++		ret = nfnl_hook_put_bpf_prog_info(nlskb, ctx, seq, ops->priv);
++		break;
++	case NF_HOOK_OP_UNDEFINED:
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		break;
++	}
++
+ 	if (ret)
+ 		goto nla_put_failure;
+ 
 -- 
 2.39.2
 
