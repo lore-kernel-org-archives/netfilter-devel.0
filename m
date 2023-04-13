@@ -2,103 +2,133 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71A8DC77B6C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 08:10:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF75C77B6C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 09:05:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230286AbjDMIKH (ORCPT
+        id S230241AbjDMJFM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Apr 2023 04:10:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50850 "EHLO
+        Thu, 13 Apr 2023 05:05:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229766AbjDMIKG (ORCPT
+        with ESMTP id S230117AbjDMJEo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2023 04:10:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 365421BE1;
-        Thu, 13 Apr 2023 01:10:04 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C66B8614D6;
-        Thu, 13 Apr 2023 08:10:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2230C433D2;
-        Thu, 13 Apr 2023 08:09:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681373403;
-        bh=lMClDkMrgqgkJYaMUUXc7/mL4pKlD3f/q5HMOfhzsoY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=NrVGILoJGNuSkcJ8ebmZ3OaXsNtuRgD3ADdYmEXq1EBGMsJ8MgbgrrQT+xre30wWb
-         sLxhmaVhLtSwCK34+4lPwOqkS+Q24SHaab5F75XpgDWl+B59vSlwa10JebA+mY3Znm
-         61p+mQ0wc9P+xmyBuJKVqPbWOJxxRNHL2mJ3avIG5TQApSy7ldImysGlgb7BJNgApn
-         Czikowyvobhpnxr0ep/w8fyH8Mvyg7d6uN51pTRchBawYK/slaTNkAzgYC62bS8vX2
-         aG4s6z1K+YkNrZdtVay8HqRzIps2JMGrYCzeTxICQp5KdczeOAWt2r7TdKAFN84DsC
-         KoxLFMjhj9M2w==
-Date:   Thu, 13 Apr 2023 10:09:56 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     Abhijeet Rastogi <abhijeet.1989@gmail.com>
-Cc:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ipvs: change ip_vs_conn_tab_bits range to [8,31]
-Message-ID: <ZDe41Nc8BjkXVcrf@kernel.org>
-References: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com>
+        Thu, 13 Apr 2023 05:04:44 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A35CA93FE
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2023 02:04:30 -0700 (PDT)
+Date:   Thu, 13 Apr 2023 11:04:24 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Tzung-Bi Shih <tzungbi@kernel.org>
+Cc:     kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        jiejiang@chromium.org, jasongustaman@chromium.org,
+        garrick@chromium.org
+Subject: Re: [PATCH] netfilter: conntrack: fix wrong ct->timeout value
+Message-ID: <ZDfFmMfS406teiUj@calendula>
+References: <20230410060935.253503-1-tzungbi@kernel.org>
+ <ZDPJ2rHi5fOqu4ga@calendula>
+ <ZDPXad/8beRw78yX@calendula>
+ <ZDPeGu4eznqw34VJ@google.com>
+ <ZDc3AUBoKMUzPfKi@calendula>
+ <ZDd1n1IHEu9+HVSS@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com>
+In-Reply-To: <ZDd1n1IHEu9+HVSS@google.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 12, 2023 at 01:49:08PM -0700, Abhijeet Rastogi via B4 Relay wrote:
-> From: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+On Thu, Apr 13, 2023 at 11:23:11AM +0800, Tzung-Bi Shih wrote:
+> On Thu, Apr 13, 2023 at 12:56:01AM +0200, Pablo Neira Ayuso wrote:
+> > Maybe just do this special handling:
+> > 
+> > +       if (nf_ct_is_confirmed(ct))
+> > +               WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
+> > +       else
+> > +               WRITE_ONCE(ct->timeout, timeout);
+> > 
+> > for ctnetlink_change_timeout().
+> > 
+> > Just replace __nf_ct_set_timeout(), by this code above in
+> > nf_conntrack_netlink.c? I think the __nf_ct_set_timeout() helper is
+> > not very useful.
 > 
-> Current range [8, 20] is set purely due to historical reasons
-> because at the time, ~1M (2^20) was considered sufficient.
+> I don't quite understand the message above.
 > 
-> Previous change regarding this limit is here.
+> Calling path in v6.3-rc6:
+> ctnetlink_change_timeout() in net/netfilter/nf_conntrack_netlink.c
+> -> __nf_ct_change_timeout() in net/netfilter/nf_conntrack_core.c
+> -> __nf_ct_set_timeout() in include/net/netfilter/nf_conntrack_core.h
 > 
-> Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
+> To clarify, which one did you mean:
 > 
-> Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
-> ---
-
-Hi Abhijeet,
-
-> The conversation for this started at: 
+> Option 1: replace the __nf_ct_change_timeout() invocation to the special
+>           handling in net/netfilter/nf_conntrack_netlink.c
+> Option 2: replace the __nf_ct_set_timeout() invocation to the special
+>           handling in net/netfilter/nf_conntrack_core.c
+> Option 3: put the special handling in __nf_ct_set_timeout() in
+>           include/net/netfilter/nf_conntrack_core.h
 > 
-> https://www.spinics.net/lists/netfilter/msg60995.html
+> In either case, the fix would be a subset of v1.
 
-  'The 20 bit (1m entries) ceiling exists since the original merge of ipvs
-   in 2003, so likely this was just considered "big enough" back then.'
+Yes, I think this is Option 3:
 
-Yes, that matches my recollection.
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 71d1269fe4d4..9c2cd69bbdc6 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -89,7 +89,11 @@ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
+ {
+        if (timeout > INT_MAX)
+                timeout = INT_MAX;
+-       WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
++
++       if (nf_ct_is_confirmed(ct))
++               WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout;
++       else
++               ct->timeout = (u32)timeout;
+ }
+ 
+ int __nf_ct_change_timeout(struct nf_conn *ct, u64 cta_timeout);
 
-There were probably also concerns about the viability of making
-larger allocations at the time on the kinds of systems where
-IPVS would be deployed.
+Note:
 
-On the allocation theme, I do note that 2^31 does lead to a substantial
-vmalloc allocation regardless of actual usage. Probably it would be best
-to move IPVS to use rhashtable(). But that is obviously a much more
-invasive change.
+                WRITE_ONCE(ct->timeout, (u32)timeout);
 
-In any case, I think this patch is an improvement on the current situation.
+is not required, because unconfirmed conntrack object is owned by the
+packet (not yet in the hashes).
 
-Acked-by: Simon Horman <horms@kernel.org>
 
-> 
-> The upper limit for algo is any bit size less than 32, so this
-> change will allow us to set bit size > 20. Today, it is common to have
-> RAM available to handle greater than 2^20 connections per-host.
-> 
-> Distros like RHEL already have higher limits set.
+BTW, not related to this patch, but I would like to understand why
+this __nf_ct_set_timeout() function is inline, but that is a different
+issue.
 
-...
+> I'm not sure other use cases.  In our environment, we observed an
+> inconsistent state by a partial fix of v1. 
+
+Thanks for explaining, extending patch description would be good.
+
+> nf_ct_expires() got called by userspace program.  And the return
+> value (which means the remaining timeout) will be the parameter for
+> the next ctnetlink_change_timeout().
+
+Unconfirmed conntrack is owned by the packet that refers to it, it is
+not yet in the hashes. I don't see how concurrent access to the
+timeout might occur.
+
+Or are you referring to a different scenario that triggers the partial
+state?
+
+> As you can see in [4], if this happens on an unconfirmed conntrack, the
+> `nfct_time_stamp` would be wrongly invoved in the calculation again.
+> That's why we take care of all `ct->timeout` accesses in v1.
+
+If you are observing a partial state, that is a different issue and I
+think it deserves a separated patch with a description? Probably
+including KCSAN splat if this is what you used to catch the partial
+state.
+
+Thanks!
+
+> [4]: https://elixir.bootlin.com/linux/v6.3-rc6/source/include/net/netfilter/nf_conntrack.h#L296
