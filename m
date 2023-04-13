@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC30C7EE21
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 13:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB800C77B61
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 13:35:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231465AbjDMNfH (ORCPT
+        id S231585AbjDMNff (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Apr 2023 09:35:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58866 "EHLO
+        Thu, 13 Apr 2023 09:35:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231583AbjDMNeq (ORCPT
+        with ESMTP id S231671AbjDMNey (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2023 09:34:46 -0400
+        Thu, 13 Apr 2023 09:34:54 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 330C1A243;
-        Thu, 13 Apr 2023 06:32:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 482E7B765;
+        Thu, 13 Apr 2023 06:33:03 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pmx4D-00017F-8L; Thu, 13 Apr 2023 15:32:49 +0200
+        id 1pmx4L-00017m-Ft; Thu, 13 Apr 2023 15:32:57 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
         dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf-next v2 3/6] netfilter: nfnetlink hook: dump bpf prog id
-Date:   Thu, 13 Apr 2023 15:32:25 +0200
-Message-Id: <20230413133228.20790-4-fw@strlen.de>
+Subject: [PATCH bpf-next v2 5/6] tools: bpftool: print netfilter link info
+Date:   Thu, 13 Apr 2023 15:32:27 +0200
+Message-Id: <20230413133228.20790-6-fw@strlen.de>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230413133228.20790-1-fw@strlen.de>
 References: <20230413133228.20790-1-fw@strlen.de>
@@ -35,183 +35,126 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This allows userspace ("nft list hooks") to show which bpf program
-is attached to which hook.
-
-Without this, user only knows bpf prog is attached at prio
-x, y, z at INPUT and FORWARD, but can't tell which program is where.
+Dump protocol family, hook and priority value:
+$ bpftool link
+2: type 10  prog 20
+        pf: 2, hook 1, prio -128
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nfnetlink_hook.h | 20 ++++-
- net/netfilter/nfnetlink_hook.c                | 81 ++++++++++++++++---
- 2 files changed, 87 insertions(+), 14 deletions(-)
+ tools/bpf/bpftool/link.c       | 24 ++++++++++++++++++++++++
+ tools/include/uapi/linux/bpf.h | 15 +++++++++++++++
+ tools/lib/bpf/libbpf.c         |  1 +
+ 3 files changed, 40 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_hook.h b/include/uapi/linux/netfilter/nfnetlink_hook.h
-index bbcd285b22e1..63b7dbddf0b1 100644
---- a/include/uapi/linux/netfilter/nfnetlink_hook.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_hook.h
-@@ -32,8 +32,12 @@ enum nfnl_hook_attributes {
- /**
-  * enum nfnl_hook_chain_info_attributes - chain description
-  *
-- * NFNLA_HOOK_INFO_DESC: nft chain and table name (enum nft_table_attributes) (NLA_NESTED)
-+ * NFNLA_HOOK_INFO_DESC: nft chain and table name (NLA_NESTED)
-  * NFNLA_HOOK_INFO_TYPE: chain type (enum nfnl_hook_chaintype) (NLA_U32)
-+ *
-+ * NFNLA_HOOK_INFO_DESC depends on NFNLA_HOOK_INFO_TYPE value:
-+ *   NFNL_HOOK_TYPE_NFTABLES: enum nft_table_attributes
-+ *   NFNL_HOOK_TYPE_BPF: enum nfnl_hook_bpf_info_attributes
-  */
- enum nfnl_hook_chain_info_attributes {
- 	NFNLA_HOOK_INFO_UNSPEC,
-@@ -56,9 +60,23 @@ enum nfnl_hook_chain_desc_attributes {
-  * enum nfnl_hook_chaintype - chain type
-  *
-  * @NFNL_HOOK_TYPE_NFTABLES nf_tables base chain
-+ * @NFNL_HOOK_TYPE_BPF bpf program
-  */
- enum nfnl_hook_chaintype {
- 	NFNL_HOOK_TYPE_NFTABLES = 0x1,
-+	NFNL_HOOK_TYPE_BPF,
-+};
-+
-+/**
-+ * enum nfnl_hook_bpf_info_attributes - bpf prog description
-+ *
-+ * NFNLA_BPF_INFO_ID: bpf program id (NLA_U32)
-+ */
-+enum nfnl_hook_bpf_attributes {
-+	NFNLA_HOOK_BPF_UNSPEC,
-+	NFNLA_HOOK_BPF_ID,
-+	__NFNLA_HOOK_BPF_MAX,
- };
-+#define NFNLA_HOOK_BPF_MAX (__NFNLA_HOOK_BPF_MAX - 1)
+diff --git a/tools/bpf/bpftool/link.c b/tools/bpf/bpftool/link.c
+index f985b79cca27..a2ea85d1ebbf 100644
+--- a/tools/bpf/bpftool/link.c
++++ b/tools/bpf/bpftool/link.c
+@@ -135,6 +135,18 @@ static void show_iter_json(struct bpf_link_info *info, json_writer_t *wtr)
+ 	}
+ }
  
- #endif /* _NFNL_HOOK_H */
-diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
-index 8120aadf6a0f..ade8ee1988b1 100644
---- a/net/netfilter/nfnetlink_hook.c
-+++ b/net/netfilter/nfnetlink_hook.c
-@@ -5,6 +5,7 @@
-  * Author: Florian Westphal <fw@strlen.de>
-  */
- 
-+#include <linux/bpf.h>
- #include <linux/module.h>
- #include <linux/kallsyms.h>
- #include <linux/kernel.h>
-@@ -57,35 +58,76 @@ struct nfnl_dump_hook_data {
- 	u8 hook;
- };
- 
-+static struct nlattr *nfnl_start_info_type(struct sk_buff *nlskb, enum nfnl_hook_chaintype t)
++static void show_netfilter_json(const struct bpf_link_info *info, json_writer_t *wtr)
 +{
-+	struct nlattr *nest = nla_nest_start(nlskb, NFNLA_HOOK_CHAIN_INFO);
-+	int ret;
-+
-+	if (!nest)
-+		return NULL;
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_INFO_TYPE, htonl(t));
-+	if (ret == 0)
-+		return nest;
-+
-+	nla_nest_cancel(nlskb, nest);
-+	return NULL;
++	jsonw_uint_field(json_wtr, "pf",
++			 info->netfilter.pf);
++	jsonw_uint_field(json_wtr, "hook",
++			 info->netfilter.hooknum);
++	jsonw_int_field(json_wtr, "prio",
++			 info->netfilter.priority);
++	jsonw_uint_field(json_wtr, "flags",
++			 info->netfilter.flags);
 +}
 +
-+static int nfnl_hook_put_bpf_prog_info(struct sk_buff *nlskb,
-+				       const struct nfnl_dump_hook_data *ctx,
-+				       unsigned int seq,
-+				       const struct bpf_prog *prog)
-+{
-+	struct nlattr *nest, *nest2;
-+	int ret;
-+
-+	if (!IS_ENABLED(CONFIG_NETFILTER_BPF_LINK))
-+		return 0;
-+
-+	if (WARN_ON_ONCE(!prog))
-+		return 0;
-+
-+	nest = nfnl_start_info_type(nlskb, NFNL_HOOK_TYPE_BPF);
-+	if (!nest)
-+		return -EMSGSIZE;
-+
-+	nest2 = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
-+	if (!nest2)
-+		goto cancel_nest;
-+
-+	ret = nla_put_be32(nlskb, NFNLA_HOOK_BPF_ID, htonl(prog->aux->id));
-+	if (ret)
-+		goto cancel_nest;
-+
-+	nla_nest_end(nlskb, nest2);
-+	nla_nest_end(nlskb, nest);
-+	return 0;
-+
-+cancel_nest:
-+	nla_nest_cancel(nlskb, nest);
-+	return -EMSGSIZE;
-+}
-+
- static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
- 					const struct nfnl_dump_hook_data *ctx,
- 					unsigned int seq,
--					const struct nf_hook_ops *ops)
-+					struct nft_chain *chain)
+ static int get_prog_info(int prog_id, struct bpf_prog_info *info)
  {
- 	struct net *net = sock_net(nlskb->sk);
- 	struct nlattr *nest, *nest2;
--	struct nft_chain *chain;
- 	int ret = 0;
- 
--	if (ops->hook_ops_type != NF_HOOK_OP_NF_TABLES)
--		return 0;
--
--	chain = ops->priv;
- 	if (WARN_ON_ONCE(!chain))
- 		return 0;
- 
- 	if (!nft_is_active(net, chain))
- 		return 0;
- 
--	nest = nla_nest_start(nlskb, NFNLA_HOOK_CHAIN_INFO);
-+	nest = nfnl_start_info_type(nlskb, NFNL_HOOK_TYPE_NFTABLES);
- 	if (!nest)
- 		return -EMSGSIZE;
- 
--	ret = nla_put_be32(nlskb, NFNLA_HOOK_INFO_TYPE,
--			   htonl(NFNL_HOOK_TYPE_NFTABLES));
--	if (ret)
--		goto cancel_nest;
--
- 	nest2 = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
- 	if (!nest2)
- 		goto cancel_nest;
-@@ -171,7 +213,20 @@ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
- 	if (ret)
- 		goto nla_put_failure;
- 
--	ret = nfnl_hook_put_nft_chain_info(nlskb, ctx, seq, ops);
-+	switch (ops->hook_ops_type) {
-+	case NF_HOOK_OP_NF_TABLES:
-+		ret = nfnl_hook_put_nft_chain_info(nlskb, ctx, seq, ops->priv);
+ 	__u32 len = sizeof(*info);
+@@ -195,6 +207,10 @@ static int show_link_close_json(int fd, struct bpf_link_info *info)
+ 				 info->netns.netns_ino);
+ 		show_link_attach_type_json(info->netns.attach_type, json_wtr);
+ 		break;
++	case BPF_LINK_TYPE_NETFILTER:
++		show_netfilter_json(info, json_wtr);
 +		break;
-+	case NF_HOOK_OP_BPF:
-+		ret = nfnl_hook_put_bpf_prog_info(nlskb, ctx, seq, ops->priv);
-+		break;
-+	case NF_HOOK_OP_UNDEFINED:
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
 +
- 	if (ret)
- 		goto nla_put_failure;
+ 	default:
+ 		break;
+ 	}
+@@ -301,6 +317,14 @@ static int show_link_close_plain(int fd, struct bpf_link_info *info)
+ 		printf("\n\tnetns_ino %u  ", info->netns.netns_ino);
+ 		show_link_attach_type_plain(info->netns.attach_type);
+ 		break;
++	case BPF_LINK_TYPE_NETFILTER:
++		printf("\n\tpf: %d, hook %u, prio %d",
++		       info->netfilter.pf,
++		       info->netfilter.hooknum,
++		       info->netfilter.priority);
++		if (info->netfilter.flags)
++			printf(" flags 0x%x", info->netfilter.flags);
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
+index 3823100b7934..c93febc4c75f 100644
+--- a/tools/include/uapi/linux/bpf.h
++++ b/tools/include/uapi/linux/bpf.h
+@@ -986,6 +986,7 @@ enum bpf_prog_type {
+ 	BPF_PROG_TYPE_LSM,
+ 	BPF_PROG_TYPE_SK_LOOKUP,
+ 	BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
++	BPF_PROG_TYPE_NETFILTER,
+ };
  
+ enum bpf_attach_type {
+@@ -1050,6 +1051,7 @@ enum bpf_link_type {
+ 	BPF_LINK_TYPE_PERF_EVENT = 7,
+ 	BPF_LINK_TYPE_KPROBE_MULTI = 8,
+ 	BPF_LINK_TYPE_STRUCT_OPS = 9,
++	BPF_LINK_TYPE_NETFILTER = 10,
+ 
+ 	MAX_BPF_LINK_TYPE,
+ };
+@@ -1560,6 +1562,13 @@ union bpf_attr {
+ 				 */
+ 				__u64		cookie;
+ 			} tracing;
++			struct {
++				__u32		pf;
++				__u32		hooknum;
++				__s32		prio;
++				__u32		flags;
++				__u64		reserved[2];
++			} netfilter;
+ 		};
+ 	} link_create;
+ 
+@@ -6410,6 +6419,12 @@ struct bpf_link_info {
+ 		struct {
+ 			__u32 map_id;
+ 		} struct_ops;
++		struct {
++			__u32 pf;
++			__u32 hooknum;
++			__s32 priority;
++			__u32 flags;
++		} netfilter;
+ 	};
+ } __attribute__((aligned(8)));
+ 
+diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
+index 49cd304ae3bc..ae27451002ae 100644
+--- a/tools/lib/bpf/libbpf.c
++++ b/tools/lib/bpf/libbpf.c
+@@ -8641,6 +8641,7 @@ static const struct bpf_sec_def section_defs[] = {
+ 	SEC_DEF("struct_ops+",		STRUCT_OPS, 0, SEC_NONE),
+ 	SEC_DEF("struct_ops.s+",	STRUCT_OPS, 0, SEC_SLEEPABLE),
+ 	SEC_DEF("sk_lookup",		SK_LOOKUP, BPF_SK_LOOKUP, SEC_ATTACHABLE),
++	SEC_DEF("netfilter",		NETFILTER, 0, SEC_NONE),
+ };
+ 
+ static size_t custom_sec_def_cnt;
 -- 
 2.39.2
 
