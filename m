@@ -2,133 +2,108 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF75C77B6C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 09:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17D51C77B6C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 09:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230241AbjDMJFM (ORCPT
+        id S230236AbjDMJ0N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Apr 2023 05:05:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57652 "EHLO
+        Thu, 13 Apr 2023 05:26:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230117AbjDMJEo (ORCPT
+        with ESMTP id S229637AbjDMJ0L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2023 05:04:44 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A35CA93FE
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2023 02:04:30 -0700 (PDT)
-Date:   Thu, 13 Apr 2023 11:04:24 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Tzung-Bi Shih <tzungbi@kernel.org>
-Cc:     kadlec@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        jiejiang@chromium.org, jasongustaman@chromium.org,
-        garrick@chromium.org
-Subject: Re: [PATCH] netfilter: conntrack: fix wrong ct->timeout value
-Message-ID: <ZDfFmMfS406teiUj@calendula>
-References: <20230410060935.253503-1-tzungbi@kernel.org>
- <ZDPJ2rHi5fOqu4ga@calendula>
- <ZDPXad/8beRw78yX@calendula>
- <ZDPeGu4eznqw34VJ@google.com>
- <ZDc3AUBoKMUzPfKi@calendula>
- <ZDd1n1IHEu9+HVSS@google.com>
+        Thu, 13 Apr 2023 05:26:11 -0400
+X-Greylist: delayed 75664 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 13 Apr 2023 02:26:08 PDT
+Received: from 8.mo511.mail-out.ovh.net (8.mo511.mail-out.ovh.net [46.105.79.208])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 328DC2708
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2023 02:26:08 -0700 (PDT)
+Received: from ex4.mail.ovh.net (unknown [10.109.146.56])
+        by mo511.mail-out.ovh.net (Postfix) with ESMTPS id EE39B268EC;
+        Thu, 13 Apr 2023 09:26:03 +0000 (UTC)
+Received: from [192.168.1.125] (93.21.160.242) by DAG10EX1.indiv4.local
+ (172.16.2.91) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.23; Thu, 13 Apr
+ 2023 11:26:00 +0200
+Message-ID: <53f85025-2516-d50a-c233-95ed273f46fd@naccy.de>
+Date:   Thu, 13 Apr 2023 11:26:00 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZDd1n1IHEu9+HVSS@google.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH bpf-next 0/6] bpf: add netfilter program type
+Content-Language: en-US
+To:     Florian Westphal <fw@strlen.de>
+CC:     <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+        <bpf@vger.kernel.org>, <dxu@dxuuu.xyz>
+References: <20230405161116.13565-1-fw@strlen.de>
+ <7d97222a-36c1-ee77-4ad6-d8d2c6056d4c@naccy.de>
+ <20230412094554.GD6670@breakpoint.cc>
+From:   Quentin Deslandes <qde@naccy.de>
+In-Reply-To: <20230412094554.GD6670@breakpoint.cc>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [93.21.160.242]
+X-ClientProxiedBy: CAS9.indiv4.local (172.16.1.9) To DAG10EX1.indiv4.local
+ (172.16.2.91)
+X-Ovh-Tracer-Id: 14604329170700922478
+X-VR-SPAMSTATE: OK
+X-VR-SPAMSCORE: -100
+X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvhedrvdekkedgudeiucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepkfffgggfuffvvehfhfgjtgfgihesthejredttddvjeenucfhrhhomhepsfhuvghnthhinhcuffgvshhlrghnuggvshcuoehquggvsehnrggttgihrdguvgeqnecuggftrfgrthhtvghrnheptdfgveetgfetkeejvefhudeiueeufeeffeeitdffjeevudehveejveegffdvkeefnecukfhppeduvdejrddtrddtrddupdelfedrvddurdduiedtrddvgedvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehinhgvthepuddvjedrtddrtddruddpmhgrihhlfhhrohhmpeeoqhguvgesnhgrtggthidruggvqedpnhgspghrtghpthhtohepuddprhgtphhtthhopehffiesshhtrhhlvghnrdguvgdpnhgvthguvghvsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhnvghtfhhilhhtvghrqdguvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdgsphhfsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdgugihusegugihuuhhurdighiiipdfovfetjfhoshhtpehmohehuddupdhmohguvgepshhmthhpohhuth
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 13, 2023 at 11:23:11AM +0800, Tzung-Bi Shih wrote:
-> On Thu, Apr 13, 2023 at 12:56:01AM +0200, Pablo Neira Ayuso wrote:
-> > Maybe just do this special handling:
-> > 
-> > +       if (nf_ct_is_confirmed(ct))
-> > +               WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
-> > +       else
-> > +               WRITE_ONCE(ct->timeout, timeout);
-> > 
-> > for ctnetlink_change_timeout().
-> > 
-> > Just replace __nf_ct_set_timeout(), by this code above in
-> > nf_conntrack_netlink.c? I think the __nf_ct_set_timeout() helper is
-> > not very useful.
+On 12/04/2023 11:45, Florian Westphal wrote:
+> Quentin Deslandes <qde@naccy.de> wrote:
+>> On 05/04/2023 18:11, Florian Westphal wrote:
+>>> Add minimal support to hook bpf programs to netfilter hooks, e.g.
+>>> PREROUTING or FORWARD.
+>>>
+>>> For this the most relevant parts for registering a netfilter
+>>> hook via the in-kernel api are exposed to userspace via bpf_link.
+>>>
+>>> The new program type is 'tracing style', i.e. there is no context
+>>> access rewrite done by verifier, the function argument (struct bpf_nf_ctx)
+>>> isn't stable.
+>>> There is no support for direct packet access, dynptr api should be used
+>>> instead.
+>>
+>> Does this mean the verifier will reject any program accessing ctx->skb
+>> (e.g. ctx->skb + X)?
 > 
-> I don't quite understand the message above.
+> Do you mean access to ctx->skb->data + X?  If so, yes, that won't work.
 > 
-> Calling path in v6.3-rc6:
-> ctnetlink_change_timeout() in net/netfilter/nf_conntrack_netlink.c
-> -> __nf_ct_change_timeout() in net/netfilter/nf_conntrack_core.c
-> -> __nf_ct_set_timeout() in include/net/netfilter/nf_conntrack_core.h
+> Otherwise, then no, it just means that programs might have to be recompiled
+> if they lack needed relocation information, but only if bpf_nf_ctx structure is
+> changed.
 > 
-> To clarify, which one did you mean:
+> Initial version used "__sk_buff *skb", like e.g. clsact.  I was told
+> to not do that and expose the real kernel-side structure instead and to
+> not bother with direct packet access (skb->data access) support.
 > 
-> Option 1: replace the __nf_ct_change_timeout() invocation to the special
->           handling in net/netfilter/nf_conntrack_netlink.c
-> Option 2: replace the __nf_ct_set_timeout() invocation to the special
->           handling in net/netfilter/nf_conntrack_core.c
-> Option 3: put the special handling in __nf_ct_set_timeout() in
->           include/net/netfilter/nf_conntrack_core.h
+
+That's exactly what I meant, thanks.
+
+>>>  #include "vmlinux.h"
+>>> extern int bpf_dynptr_from_skb(struct __sk_buff *skb, __u64 flags,
+>>>                                struct bpf_dynptr *ptr__uninit) __ksym;
+>>> extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
+>>>                                    void *buffer, uint32_t buffer__sz) __ksym;
+>>> SEC("netfilter")
+>>> int nf_test(struct bpf_nf_ctx *ctx)
+>>> {
+>>> 	struct nf_hook_state *state = ctx->state;
+>>> 	struct sk_buff *skb = ctx->skb;
 > 
-> In either case, the fix would be a subset of v1.
+> ctx->skb is dereferenced...
+> 
+>>> 	if (bpf_dynptr_from_skb(skb, 0, &ptr))
+>>> 		return NF_DROP;
+> 
+> ... dynptr is created ...
+> 
+>>> 	iph = bpf_dynptr_slice(&ptr, 0, &_iph, sizeof(_iph));
+>>> 	if (!iph)
+>>> 		return NF_DROP;
+>>> 	th = bpf_dynptr_slice(&ptr, iph->ihl << 2, &_th, sizeof(_th));
+> 
+> ip header access.
 
-Yes, I think this is Option 3:
-
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 71d1269fe4d4..9c2cd69bbdc6 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -89,7 +89,11 @@ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
- {
-        if (timeout > INT_MAX)
-                timeout = INT_MAX;
--       WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
-+
-+       if (nf_ct_is_confirmed(ct))
-+               WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout;
-+       else
-+               ct->timeout = (u32)timeout;
- }
- 
- int __nf_ct_change_timeout(struct nf_conn *ct, u64 cta_timeout);
-
-Note:
-
-                WRITE_ONCE(ct->timeout, (u32)timeout);
-
-is not required, because unconfirmed conntrack object is owned by the
-packet (not yet in the hashes).
-
-
-BTW, not related to this patch, but I would like to understand why
-this __nf_ct_set_timeout() function is inline, but that is a different
-issue.
-
-> I'm not sure other use cases.  In our environment, we observed an
-> inconsistent state by a partial fix of v1. 
-
-Thanks for explaining, extending patch description would be good.
-
-> nf_ct_expires() got called by userspace program.  And the return
-> value (which means the remaining timeout) will be the parameter for
-> the next ctnetlink_change_timeout().
-
-Unconfirmed conntrack is owned by the packet that refers to it, it is
-not yet in the hashes. I don't see how concurrent access to the
-timeout might occur.
-
-Or are you referring to a different scenario that triggers the partial
-state?
-
-> As you can see in [4], if this happens on an unconfirmed conntrack, the
-> `nfct_time_stamp` would be wrongly invoved in the calculation again.
-> That's why we take care of all `ct->timeout` accesses in v1.
-
-If you are observing a partial state, that is a different issue and I
-think it deserves a separated patch with a description? Probably
-including KCSAN splat if this is what you used to catch the partial
-state.
-
-Thanks!
-
-> [4]: https://elixir.bootlin.com/linux/v6.3-rc6/source/include/net/netfilter/nf_conntrack.h#L296
