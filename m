@@ -2,125 +2,107 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29B3BC77B61
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 01:58:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA7CDC77B6E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 03:53:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229721AbjDNB6r (ORCPT
+        id S229567AbjDNDwi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Apr 2023 21:58:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35320 "EHLO
+        Thu, 13 Apr 2023 23:52:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229593AbjDNB6q (ORCPT
+        with ESMTP id S229540AbjDNDwI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2023 21:58:46 -0400
-Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96E6E3C15;
-        Thu, 13 Apr 2023 18:58:44 -0700 (PDT)
-Received: by mail-vs1-xe33.google.com with SMTP id bs12so4110372vsb.1;
-        Thu, 13 Apr 2023 18:58:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1681437523; x=1684029523;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Dl2518gfS/Q1UTQTLUFTF13BLaNUhIq99/jZxFoVTE8=;
-        b=dbFOmnvXWendtqHNWAnIIVQIAq5jJpuLDcEXgMFqI9KaQWq7P5E/IYMfFyG4lMrryj
-         GWiDAIG7yiXx2GbkQLiJcfm4WP7f+TG/jGVIdYV4/kv7atqDhOZwQiQEEhLBFxEJyNNJ
-         Uf0nPRy0nNqI7zzcmYYtMATxZgrJhhcrCAWm0USCkRQvkzupQVv5xNqjv00vGBGzSE2Q
-         zU2QSSe4VhBo9fed9Z8lkZpM4K/6vsxBRt2jyGtFITzTK1Z3nvQ0gj/IY2wt7L4ugiog
-         xaGZQ+lkOAvAYeCxylJ7eET8v7HZVcFKyXIbKBsD9gkpBaDNBRcLaAtdYGlp12okckka
-         JRkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681437523; x=1684029523;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Dl2518gfS/Q1UTQTLUFTF13BLaNUhIq99/jZxFoVTE8=;
-        b=M9/Aqie5qRcpA8PFnzrnOe7NxNCodM+qwdu8qK5gYyVq2Hq/FJwjc6Ps5w7uh5cLbZ
-         Y/OFx1e2bkuRIeLD05/V8SZNakFx5yLWy2Mt6pfyau1mjSwfiaHz3zIk/yMQtxO9xRNO
-         Rfxk9bQXg9HkAh124kW7NMjqdBmjRArnBDowF4gqBbj9CKBrgiWxTW/jm1Nwkqgaei3l
-         60P8TnSHFVXg6Qz0Zwf+JxizaNGeTdQInM/VR/Y+ykmKL/cSD2KE9JutOeg39Lf3YcBV
-         KoD3UOTD38CXS1scCYJ+DU47J6e+w1/9bHImYGqHUaHLOTZKNJi1BT9ryXuaest/9Qtk
-         xMtA==
-X-Gm-Message-State: AAQBX9dWqLf9nlajDB5Of7HzDSKu5zd74PnkwptHgaNlKiIHruI9m6qP
-        4jAiEPt7fnDED6wBKZ0sTaihH5UcRpA4PJDIV0M=
-X-Google-Smtp-Source: AKy350aH2AiuehJLLHPE1eL6DWbiGgRPxKkogH1PjK+GLiQpdjGXhs2/nf2wZfpm5URgPMnp+kW/pzZBtynhNAxrCSM=
-X-Received: by 2002:a67:d496:0:b0:42e:3c2e:10bd with SMTP id
- g22-20020a67d496000000b0042e3c2e10bdmr590487vsj.1.1681437523577; Thu, 13 Apr
- 2023 18:58:43 -0700 (PDT)
+        Thu, 13 Apr 2023 23:52:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72C6B4EE3
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2023 20:52:07 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CF86B6438E
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2023 03:52:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8CA0C433D2;
+        Fri, 14 Apr 2023 03:52:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1681444326;
+        bh=VtvrMuRBKYaqK2LwN3GBGyCGO1rHHdIaHcjM0AL3ktg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=i3nTo5/63na/hKaI3H7ycPK8PFHXfRgjyg66ae9ePtNG3UE3jx1kHf7uKnByJYoAi
+         Bs9pv8LqxsXclmKBppCjBWVNYZL7QCiychnnGNEKMP3Ea1gwcDHsrOjDB8vfbEC6Dq
+         w6DIyaDLZ8bMidIm7G+GF50+mB/Yk1AcPYJ5ej0K5qy8u/4MxQD1UkQUhhKr/xCIXd
+         9XY4lFgwh7mSqOnlbNBDFDl056Uxv1AIgJqFupghYZfcEdK9kdOhCEy8tYU8F4OOXp
+         7PAKQH3AVyVoVpFlheV+DWZv6jPghq76fN0DuGPuhW1a3wtGjO/onx8gkKkA6p7Xp1
+         VawTpk07q4wiA==
+Date:   Fri, 14 Apr 2023 11:52:02 +0800
+From:   Tzung-Bi Shih <tzungbi@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        jiejiang@chromium.org, jasongustaman@chromium.org,
+        garrick@chromium.org
+Subject: Re: [PATCH] netfilter: conntrack: fix wrong ct->timeout value
+Message-ID: <ZDjN4gyv0x1aewgm@google.com>
+References: <20230410060935.253503-1-tzungbi@kernel.org>
+ <ZDPJ2rHi5fOqu4ga@calendula>
+ <ZDPXad/8beRw78yX@calendula>
+ <ZDPeGu4eznqw34VJ@google.com>
+ <ZDc3AUBoKMUzPfKi@calendula>
+ <ZDd1n1IHEu9+HVSS@google.com>
+ <ZDfFmMfS406teiUj@calendula>
 MIME-Version: 1.0
-References: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com> <d2519ce3-e49b-a544-b79d-42905f4a2a9a@ssi.bg>
-In-Reply-To: <d2519ce3-e49b-a544-b79d-42905f4a2a9a@ssi.bg>
-From:   Abhijeet Rastogi <abhijeet.1989@gmail.com>
-Date:   Thu, 13 Apr 2023 18:58:06 -0700
-Message-ID: <CACXxYfxLU0jWmq0W7YxX=44XFCGvgMX2HwTFUUHCUMjO28g5BA@mail.gmail.com>
-Subject: Re: [PATCH] ipvs: change ip_vs_conn_tab_bits range to [8,31]
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZDfFmMfS406teiUj@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Simon, Andrea and Julian,
+On Thu, Apr 13, 2023 at 11:04:24AM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Apr 13, 2023 at 11:23:11AM +0800, Tzung-Bi Shih wrote:
+> > nf_ct_expires() got called by userspace program.  And the return
+> > value (which means the remaining timeout) will be the parameter for
+> > the next ctnetlink_change_timeout().
+> 
+> Unconfirmed conntrack is owned by the packet that refers to it, it is
+> not yet in the hashes. I don't see how concurrent access to the
+> timeout might occur.
+> 
+> Or are you referring to a different scenario that triggers the partial
+> state?
 
-I really appreciate you taking the time to respond to my patch. Some follow up
-questions that I'll appreciate a response for.
+I think it isn't a concurrent access.  We observed that userspace program
+reads the remaining timeout and sets it back for unconfirmed conntrack.
 
-@Simon Horman
->In any case, I think this patch is an improvement on the current situation.
+Conceptually, it looks like:
+timeout = nf_ct_expires(...);  (1)
+ctnetlink_change_timeout(...timeout);
 
-+1 to this. I wanted to add that, we're not changing the defaults
-here, the default still stays at 2^12. If a kernel user changes the
-default, they probably already know what the limitations are, so I
-personally don't think it is a big concern.
+At (1), `nfct_time_stamp` is wrongly involved in the calculation[4] because
+the conntrack is unconfirmed.  The `ct->timeout` is an internal but not a
+timestamp.
 
-@Andrea Claudi
->for the record, RHEL ships with CONFIG_IP_VS_TAB_BITS set to 12 as
-default.
+As a result, ctnetlink_change_timeout() sets the wrong value to `ct->timeout`.
 
-Sorry, I should have been clearer. RHEL ships with the same default,
-yes, but it doesn't have the range check, at least, on the version I'm
-using right now (3.10.0-1160.62.1.el7.x86_64).
+[4]: https://elixir.bootlin.com/linux/v6.3-rc6/source/include/net/netfilter/nf_conntrack.h#L296
 
-On this version, I'm able to load with bit size 30, 31 gives me error
-regarding allocating memory (64GB host) and anything beyond 31 is
-mysteriously switched to a lower number. The following dmesg on my
-host confirms that the bitsize 30 worked, which is not possible
-without a patch on the current kernel version.
+> > As you can see in [4], if this happens on an unconfirmed conntrack, the
+> > `nfct_time_stamp` would be wrongly invoved in the calculation again.
+> > That's why we take care of all `ct->timeout` accesses in v1.
 
-"[Fri Apr 14 01:14:51 2023] IPVS: Connection hash table configured (size=1073741
-824, memory=16777216Kbytes)"
+Again, that's why v1 separates all `ct->timeout` accesses.
 
-@Julian Anastasov,
->This is not a limit of number of connections. I prefer
-not to allow value above 24 without adding checks for the
-available memory,
+If the conntrack is confirmed:
+- `ct->timeout` is a timestamp.
+- `nfct_time_stamp` should be involved when getting/setting `ct->timeout`.
 
-Interesting that you brought up that number 24, that is exactly what
-we use in production today. One IPVS node is able to handle spikes of
-10M active connections without issues. This patch idea originated as
-my company is migrating from the ancient RHEL version to a somewhat
-newer CentOS (5.* kernel) and noticed that we were unable to load the
-ip_vs kernel module with anything greater than 20 bits. Another
-motivation for kernel upgrade is utilizing maglev to reduce table size
-but that's out of context in this discussion.
+If the conntrack is unconfirmed:
+- `ct->timeout` is an interval.
+- `nfct_time_stamp` shouldn't be involved.
 
-My request is, can we increase the range from 20 to something larger?
-If 31 seems a bit excessive, maybe, we can settle for something like
-[8,30] or even lower. With conn_tab_bits=30, it allocates 16GB at
-initialization time, it is not entirely absurd by today's standards.
+Only separate `ct->timeout` access in __nf_ct_set_timeout() is obviously
+insufficient.  I would suggest either take care of all `ct->timeout`
+accesses as v1 or at least change both __nf_ct_set_timeout() and
+nf_ct_expires().
 
-I can revise my patch to a lower range as you guys see fit.
-
---
-Cheers,
-Abhijeet (https://abhi.host)
+In the latter case, it looks fine in our environment.  However, I'm not
+sure if any hidden cases we haven't seen.
