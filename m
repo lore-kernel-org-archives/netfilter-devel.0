@@ -2,192 +2,160 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79572C77B76
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 14:00:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0E7EC77B6E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 14:50:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229636AbjDNN77 (ORCPT
+        id S229848AbjDNOuT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Apr 2023 09:59:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48808 "EHLO
+        Fri, 14 Apr 2023 10:50:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbjDNN76 (ORCPT
+        with ESMTP id S229947AbjDNOuR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Apr 2023 09:59:58 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AF48DF;
-        Fri, 14 Apr 2023 06:59:56 -0700 (PDT)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 97B6F13867;
-        Fri, 14 Apr 2023 16:59:53 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 7FDEE13863;
-        Fri, 14 Apr 2023 16:59:53 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id F11643C0323;
-        Fri, 14 Apr 2023 16:59:47 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 33EDxgWB047230;
-        Fri, 14 Apr 2023 16:59:44 +0300
-Date:   Fri, 14 Apr 2023 16:59:42 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Abhijeet Rastogi <abhijeet.1989@gmail.com>
-cc:     Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ipvs: change ip_vs_conn_tab_bits range to [8,31]
-In-Reply-To: <CACXxYfxLU0jWmq0W7YxX=44XFCGvgMX2HwTFUUHCUMjO28g5BA@mail.gmail.com>
-Message-ID: <2bc64d6d-6aa7-1477-0cd-8a41e68fcc5@ssi.bg>
-References: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com> <d2519ce3-e49b-a544-b79d-42905f4a2a9a@ssi.bg> <CACXxYfxLU0jWmq0W7YxX=44XFCGvgMX2HwTFUUHCUMjO28g5BA@mail.gmail.com>
+        Fri, 14 Apr 2023 10:50:17 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46F91CC1A;
+        Fri, 14 Apr 2023 07:49:39 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pnKjv-0002Vs-P4; Fri, 14 Apr 2023 16:49:27 +0200
+Date:   Fri, 14 Apr 2023 16:49:27 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Quentin Monnet <quentin@isovalent.com>
+Cc:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
+        dxu@dxuuu.xyz, qde@naccy.de
+Subject: Re: [PATCH bpf-next v2 5/6] tools: bpftool: print netfilter link info
+Message-ID: <20230414144927.GA5927@breakpoint.cc>
+References: <20230413133228.20790-1-fw@strlen.de>
+ <20230413133228.20790-6-fw@strlen.de>
+ <CACdoK4LRjNsDY6m2fvUGY_C9gMvUdX9QpEetr9RtGuR8xb8pmg@mail.gmail.com>
+ <20230414104121.GB5889@breakpoint.cc>
+ <eeeaac99-9053-90c2-aa33-cc1ecb1ae9ca@isovalent.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <eeeaac99-9053-90c2-aa33-cc1ecb1ae9ca@isovalent.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-	Hello,
-
-On Thu, 13 Apr 2023, Abhijeet Rastogi wrote:
-
-> Hi Simon, Andrea and Julian,
+Quentin Monnet <quentin@isovalent.com> wrote:
+> 2023-04-14 12:41 UTC+0200 ~ Florian Westphal <fw@strlen.de>
+> > Quentin Monnet <quentin@isovalent.com> wrote:
+> >> On Thu, 13 Apr 2023 at 14:36, Florian Westphal <fw@strlen.de> wrote:
+> >>>
+> >>> Dump protocol family, hook and priority value:
+> >>> $ bpftool link
+> >>> 2: type 10  prog 20
+> >>
+> >> Could you please update link_type_name in libbpf (libbpf.c) so that we
+> >> display "netfilter" here instead of "type 10"?
+> > 
+> > Done.
 > 
-> I really appreciate you taking the time to respond to my patch. Some follow up
-> questions that I'll appreciate a response for.
+> Thanks!
 > 
-> @Simon Horman
-> >In any case, I think this patch is an improvement on the current situation.
+> I'm just thinking we could also maybe print something nicer for the pf
+> and the hook, "NF_INET_LOCAL_IN" would be more user-friendly than "hook 1"?
+
+Done.  I've also made the first patch more restrictive wrt. allowed
+attachment points and priorities.
+
+Better safe than sorry, we can be more liberal later if there are
+use-cases.
+
+v3 will be coming next week.
+
+> > I don't know how to make it work to actually attach it, because
+> > the hook is unregistered when the link fd is closed.
+> > 
+> > So either bpftool would have to fork and auto-daemon (maybe
+> > unexpected...) or wait/block until CTRL-C.
+> > 
+> > This also needs new libbpf api AFAICS because existing bpf_link
+> > are specific to the program type, so I'd have to add something like:
+> > 
+> > struct bpf_link *
+> > bpf_program__attach_netfilter(const struct bpf_program *prog,
+> > 			      const struct bpf_netfilter_opts *opts)
+> > 
+> > Advice welcome.
 > 
-> +1 to this. I wanted to add that, we're not changing the defaults
-> here, the default still stays at 2^12. If a kernel user changes the
-> default, they probably already know what the limitations are, so I
-> personally don't think it is a big concern.
+> OK, yes we'd need something like this if we wanted to load and attach
+> from bpftool. If you already have the tooling elsewhere, it's maybe not
+> necessary to add it here. Depends if you want users to be able to attach
+> netfilter programs with bpftool or even libbpf.
+
+[..]
+
+> I'd say let's keep this out of the current patchset anyway. If we have a
+> use case for attaching via libbpf/bpftool we can do this as a follow-up.
+
+Sounds good to me.
+
+Quentin Deslandes or Daniel Xu might want/need libbpf support for their
+projects.
+
+> The way I see it, "bpftool net" should provide a more structured
+> overview of the different programs affecting networking, in particular
+> for JSON. The idea would be to display all BPF programs that can affect
+> packet processing. See what we have for XDP for example:
 > 
-> @Andrea Claudi
-> >for the record, RHEL ships with CONFIG_IP_VS_TAB_BITS set to 12 as
-> default.
 > 
-> Sorry, I should have been clearer. RHEL ships with the same default,
-> yes, but it doesn't have the range check, at least, on the version I'm
-> using right now (3.10.0-1160.62.1.el7.x86_64).
+>     # bpftool net -p
+>     [{
+>             "xdp": [{
+>                     "devname": "eni88np1",
+>                     "ifindex": 12,
+>                     "multi_attachments": [{
+>                             "mode": "driver",
+>                             "id": 1238
+>                         },{
+>                             "mode": "offload",
+>                             "id": 1239
+>                         }
+>                     ]
+>                 }
+>             ],
+>             "tc": [{
+>                     "devname": "eni88np1",
+>                     "ifindex": 12,
+>                     "kind": "clsact/ingress",
+>                     "name": "sample_ret0.o:[.text]",
+>                     "id": 1241
+>                 },{
+>                     "devname": "eni88np1",
+>                     "ifindex": 12,
+>                     "kind": "clsact/ingress",
+>                     "name": "sample_ret0.o:[.text]",
+>                     "id": 1240
+>                 }
+>             ],
+>             "flow_dissector": [
+>                 "id": 1434
+>             ]
+>         }
+>     ]
 > 
-> On this version, I'm able to load with bit size 30, 31 gives me error
-> regarding allocating memory (64GB host) and anything beyond 31 is
-> mysteriously switched to a lower number. The following dmesg on my
-> host confirms that the bitsize 30 worked, which is not possible
-> without a patch on the current kernel version.
-> 
-> "[Fri Apr 14 01:14:51 2023] IPVS: Connection hash table configured (size=1073741
-> 824, memory=16777216Kbytes)"
-> 
-> @Julian Anastasov,
-> >This is not a limit of number of connections. I prefer
-> not to allow value above 24 without adding checks for the
-> available memory,
-> 
-> Interesting that you brought up that number 24, that is exactly what
-> we use in production today. One IPVS node is able to handle spikes of
-> 10M active connections without issues. This patch idea originated as
-> my company is migrating from the ancient RHEL version to a somewhat
-> newer CentOS (5.* kernel) and noticed that we were unable to load the
-> ip_vs kernel module with anything greater than 20 bits. Another
-> motivation for kernel upgrade is utilizing maglev to reduce table size
-> but that's out of context in this discussion.
-> 
-> My request is, can we increase the range from 20 to something larger?
-> If 31 seems a bit excessive, maybe, we can settle for something like
-> [8,30] or even lower. With conn_tab_bits=30, it allocates 16GB at
-> initialization time, it is not entirely absurd by today's standards.
-> 
-> I can revise my patch to a lower range as you guys see fit.
+> This gives us all the info about XDP programs at once, grouped by device
+> when relevant. By contrast, listing them in "bpftool link" would likely
+> only show one at a time, in an uncorrelated manner. Similarly, we could
+> have netfilter sorted by pf then hook in "bpftool net". If there's more
+> relevant info that we get from program info and not from the netfilter
+> link, this would also be a good place to have it (but not sure there's
+> any info we're missing from "bpftool link"?).
 
-	Some 32-bit platforms have a 120MB limit for
-vmalloc. 24-bit table on 32-bit box will allocate 64MB.
+Currently 'bpftool link' shows everything wrt. netfilter bpf programs.
 
-	One way to solve the problem is to use in Kconfig:
+> But given that the info will be close, or identical, if not for the JSON
+> structure, I don't mean to impose this to you - it's also OK to just
+> skip "bpftool net" for now if you prefer.
 
-range 8 20 if !64BIT
-range 8 27 if 64BIT
+I'll probably make 'bpftool net' and 'bpftool link' print identical
+netfilter output, I'll check this on Monday (to make sure the formatting
+doesn't seem out of place).
 
-	Why 30 and above do not work? Because we store the
-size, mask in 'int' which is 32 bits. But also some places do not
-allow allocations above INT_MAX, for example, kvmalloc_node().
-So, even 28 may not work for 8-byte array items on 64-bit.
-
-	It would be good to check if the provided
-value does not exceed some real limits. Here is an example
-that assumes IPVS will allocate up to 1/8 of the memory,
-8 conns average in a hash row. Such checks should not
-exceed the small vmalloc area for 32-bit boxes and also
-kvmalloc allows vmalloc with huge pages. This idea is
-entirely untested/compiled. These checks apply some
-sane thresholds. If you need something above, you are
-probably allocating more than needed.
-
-/* This will match the Kconfig range: */
-int min = 8;
-#if __BITS_PER_LONG > 32
-int max = 27;
-#else
-int max = 20;
-#endif
-
-	We can safely use 27 in Kconfig even for 32-bit
-due to the below checks, they will clamp it to lower value.
-
-	/* Order of the available memory */
-	int max_avail = order_base_2(totalram_pages()) + PAGE_SHIFT;
-
-	We can remove this 'if' check:
-	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
-		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
-		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
-	}
-
-	max_avail -= 3;				/* ~8 in hash row */
-	max_avail -= 3;				/* IPVS up to 1/8 of mem */
-	/* The hash table links allocated memory for IPVS conns */
-	max_avail -= order_base_2(sizeof(struct ip_vs_conn));
-	/* Range should not exceed the available memory */
-	max = clamp(max, min, max_avail);
-	/* Clamp configured value silently */
-	ip_vs_conn_tab_bits = clamp_val(ip_vs_conn_tab_bits, min, max);
-	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
-	ip_vs_conn_tab_mask = ip_vs_conn_tab_size - 1;
-
-	/* Switch to kvmalloc */
-	ip_vs_conn_tab = kvmalloc_array(ip_vs_conn_tab_size,
-					sizeof(*ip_vs_conn_tab), GFP_KERNEL);
-
-	and use everywhere kvfree(ip_vs_conn_tab);
-
-	For 64GB box the calcs should be:
-
-max_avail = 36 - 3 - 3 - 9 => ip_vs_conn_tab_bits = 21
-Allocated hash table: (2^21)*8=16MB
-Allocated for IPVS conns (8 cols per row): (2^21)*8*(400..512)=6..8GB
-which is ~1/8 of 64GB. All memory will be allocated with
-~64 conns per row. May be the above calcs can be changed
-to ~4 cols and 1/2 mem to use 128MB (24 bits instead of 21)
-for our example: 36 - 2 - 1 - 9 => 24.
-
-	Possible problems if using large table that is
-not loaded with enough conns:
-
-- walking the table will cost more cycles, for example,
-ip_vs_random_dropentry() wants to walk part of the table
-every second. Even normal netns cleanup has to walk it.
-
-- cat /proc/net/ip_vs_conn will be slower
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+Its kinda silly to not have anything netfilter related in 'bpftool
+net', this thing isn't named 'linkfilter' after all 8-)
