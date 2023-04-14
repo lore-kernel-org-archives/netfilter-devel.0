@@ -2,136 +2,99 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C73C77B70
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 08:12:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1027AC77B6F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 10:41:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229543AbjDNIMY (ORCPT
+        id S229793AbjDNKlb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Apr 2023 04:12:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51616 "EHLO
+        Fri, 14 Apr 2023 06:41:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229879AbjDNIMW (ORCPT
+        with ESMTP id S230219AbjDNKla (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Apr 2023 04:12:22 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3FFAF2100
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2023 01:12:18 -0700 (PDT)
-Date:   Fri, 14 Apr 2023 10:12:14 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Tzung-Bi Shih <tzungbi@kernel.org>
-Cc:     kadlec@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        jiejiang@chromium.org, jasongustaman@chromium.org,
-        garrick@chromium.org
-Subject: Re: [PATCH] netfilter: conntrack: fix wrong ct->timeout value
-Message-ID: <ZDkK3ktVcBaykTVT@calendula>
-References: <20230410060935.253503-1-tzungbi@kernel.org>
- <ZDPJ2rHi5fOqu4ga@calendula>
- <ZDPXad/8beRw78yX@calendula>
- <ZDPeGu4eznqw34VJ@google.com>
- <ZDc3AUBoKMUzPfKi@calendula>
- <ZDd1n1IHEu9+HVSS@google.com>
- <ZDfFmMfS406teiUj@calendula>
- <ZDjN4gyv0x1aewgm@google.com>
+        Fri, 14 Apr 2023 06:41:30 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8143E1FE0;
+        Fri, 14 Apr 2023 03:41:23 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pnGrp-0000ve-Em; Fri, 14 Apr 2023 12:41:21 +0200
+Date:   Fri, 14 Apr 2023 12:41:21 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Quentin Monnet <quentin@isovalent.com>
+Cc:     Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, bpf@vger.kernel.org,
+        dxu@dxuuu.xyz, qde@naccy.de
+Subject: Re: [PATCH bpf-next v2 5/6] tools: bpftool: print netfilter link info
+Message-ID: <20230414104121.GB5889@breakpoint.cc>
+References: <20230413133228.20790-1-fw@strlen.de>
+ <20230413133228.20790-6-fw@strlen.de>
+ <CACdoK4LRjNsDY6m2fvUGY_C9gMvUdX9QpEetr9RtGuR8xb8pmg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZDjN4gyv0x1aewgm@google.com>
+In-Reply-To: <CACdoK4LRjNsDY6m2fvUGY_C9gMvUdX9QpEetr9RtGuR8xb8pmg@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Apr 14, 2023 at 11:52:02AM +0800, Tzung-Bi Shih wrote:
-> On Thu, Apr 13, 2023 at 11:04:24AM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Apr 13, 2023 at 11:23:11AM +0800, Tzung-Bi Shih wrote:
-> > > nf_ct_expires() got called by userspace program.  And the return
-> > > value (which means the remaining timeout) will be the parameter for
-> > > the next ctnetlink_change_timeout().
-> > 
-> > Unconfirmed conntrack is owned by the packet that refers to it, it is
-> > not yet in the hashes. I don't see how concurrent access to the
-> > timeout might occur.
-> > 
-> > Or are you referring to a different scenario that triggers the partial
-> > state?
+Quentin Monnet <quentin@isovalent.com> wrote:
+> On Thu, 13 Apr 2023 at 14:36, Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Dump protocol family, hook and priority value:
+> > $ bpftool link
+> > 2: type 10  prog 20
 > 
-> I think it isn't a concurrent access.  We observed that userspace program
-> reads the remaining timeout and sets it back for unconfirmed conntrack.
+> Could you please update link_type_name in libbpf (libbpf.c) so that we
+> display "netfilter" here instead of "type 10"?
+
+Done.
+
+> > diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
+> > index 3823100b7934..c93febc4c75f 100644
+> > --- a/tools/include/uapi/linux/bpf.h
+> > +++ b/tools/include/uapi/linux/bpf.h
+> > @@ -986,6 +986,7 @@ enum bpf_prog_type {
+> >         BPF_PROG_TYPE_LSM,
+> >         BPF_PROG_TYPE_SK_LOOKUP,
+> >         BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
+> > +       BPF_PROG_TYPE_NETFILTER,
 > 
-> Conceptually, it looks like:
-> timeout = nf_ct_expires(...);  (1)
-> ctnetlink_change_timeout(...timeout);
+> If netfilter programs could be loaded with bpftool, we'd need to
+> update bpftool's docs. But I don't think this is the case, right?
 
-How could this possibly happen?
+bpftool prog load nftest.o /sys/fs/bpf/nftest
 
-nf_ct_expires() is called from:
+will work, but the program isn't attached anywhere.
 
-- ctnetlink_dump_timeout(), this is netlink dump path, since:
+> don't currently have a way to pass the pf, hooknum, priority and flags
+> necessary to load the program with "bpftool prog load" so it would
+> fail?
 
-commit 1397af5bfd7d32b0cf2adb70a78c9a9e8f11d912
-Author: Florian Westphal <fw@strlen.de>
-Date:   Mon Apr 11 13:01:18 2022 +0200
+I don't know how to make it work to actually attach it, because
+the hook is unregistered when the link fd is closed.
 
-    netfilter: conntrack: remove the percpu dying list
+So either bpftool would have to fork and auto-daemon (maybe
+unexpected...) or wait/block until CTRL-C.
 
-it is not possible to do any listing of unconfirmed, and that is fine.
+This also needs new libbpf api AFAICS because existing bpf_link
+are specific to the program type, so I'd have to add something like:
 
-As I said, nfnetlink_queue operates with an unconfirmed conntrack with
-owns exclusively, which is not in the hashes.
+struct bpf_link *
+bpf_program__attach_netfilter(const struct bpf_program *prog,
+			      const struct bpf_netfilter_opts *opts)
 
-- nf_ct_expires() calls from xt and nft matches are irrelevant:
+Advice welcome.
 
-net/netfilter/nft_ct.c:         *dest = jiffies_to_msecs(nf_ct_expires(ct));
-net/netfilter/xt_conntrack.c:           unsigned long expires = nf_ct_expires(ct) / HZ;
+> Have you considered listing netfilter programs in the output of
+> "bpftool net" as well? Given that they're related to networking, it
+> would maybe make sense to have them listed alongside XDP, TC, and flow
+> dissector programs?
 
-- there is the garbage collector, but that only works with conntrack
-  entries in the hashes:
+I could print the same output that 'bpf link' already shows.
 
-net/netfilter/nf_conntrack_core.c:                      expires = clamp(nf_ct_expires(tmp), GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_CLAMP);
+Not sure on the real distinction between those two here.
 
-- there is also /proc interface, but that only works with conntrack
-  entries in the hashes:
-
-net/netfilter/nf_conntrack_standalone.c:                seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
-
-> At (1), `nfct_time_stamp` is wrongly involved in the calculation[4] because
-> the conntrack is unconfirmed.  The `ct->timeout` is an internal but not a
-> timestamp.
-
-I can see there are two possible states for ct->timeout, thanks for
-explaining this again.
-
-> As a result, ctnetlink_change_timeout() sets the wrong value to `ct->timeout`.
-> 
-> [4]: https://elixir.bootlin.com/linux/v6.3-rc6/source/include/net/netfilter/nf_conntrack.h#L296
-> 
-> > > As you can see in [4], if this happens on an unconfirmed conntrack, the
-> > > `nfct_time_stamp` would be wrongly invoved in the calculation again.
-> > > That's why we take care of all `ct->timeout` accesses in v1.
-> 
-> Again, that's why v1 separates all `ct->timeout` accesses.
-> 
-> If the conntrack is confirmed:
-> - `ct->timeout` is a timestamp.
-> - `nfct_time_stamp` should be involved when getting/setting `ct->timeout`.
-> 
-> If the conntrack is unconfirmed:
-> - `ct->timeout` is an interval.
-> - `nfct_time_stamp` shouldn't be involved.
-> 
-> Only separate `ct->timeout` access in __nf_ct_set_timeout() is obviously
-> insufficient.  I would suggest either take care of all `ct->timeout`
-> accesses as v1 or at least change both __nf_ct_set_timeout() and
-> nf_ct_expires().
-
-it does not even make sense to use WRITE_ONCE from
-__nf_conntrack_confirm(), see:
-
-https://elixir.bootlin.com/linux/latest/source/net/netfilter/nf_conntrack_core.c#L1260
-
-because the unconfirmed conntrack object is owned exclusively by the packet.
-
-> In the latter case, it looks fine in our environment.  However, I'm not
-> sure if any hidden cases we haven't seen.
-
-Maybe you have an old kernel?
+When should I use 'bpftool link' and when 'bpftool net', and what info
+and features should either of these provide for netfilter programs?
