@@ -2,210 +2,225 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72CE8C77B72
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 13:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1854C77B6E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 13:20:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229778AbjDNNCC (ORCPT
+        id S229810AbjDNNUQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Apr 2023 09:02:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46204 "EHLO
+        Fri, 14 Apr 2023 09:20:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230036AbjDNNB6 (ORCPT
+        with ESMTP id S229647AbjDNNUP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Apr 2023 09:01:58 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B30A54ED5
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2023 06:01:56 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pnJ3r-0001rM-9A; Fri, 14 Apr 2023 15:01:55 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/4] netfilter: nf_tables: do not store rule in traceinfo structure
-Date:   Fri, 14 Apr 2023 15:01:34 +0200
-Message-Id: <20230414130134.29040-5-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230414130134.29040-1-fw@strlen.de>
-References: <20230414130134.29040-1-fw@strlen.de>
+        Fri, 14 Apr 2023 09:20:15 -0400
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 061F1134
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2023 06:20:14 -0700 (PDT)
+Received: by mail-wr1-x42e.google.com with SMTP id j12so1226661wrd.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2023 06:20:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isovalent.com; s=google; t=1681478412; x=1684070412;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=3+G2cusxN2eA1L5GyGm+EeLwoLT0jo+QBIq2uCh+LWo=;
+        b=Oo7lBJAMIOy5sntvD6OkYaMHjTDcnyjLcFmtP6W+DKf3yCOD9tkqKDzou/PGArNoBl
+         xhdw1pcMVjJ3YlI2Ew1a7uJzhhHFoFBnGHxHjD3NVuwlgg4O76L76C9lB142sVkew+Af
+         wHVstWg7DDZbz4NvdztoGaH1d0KA8x2n511BXx0R62BGUMs1xXNemG5ZDvk9KhUp8cCl
+         PK5eQZt0dnY+LfkETvCsmVofRFX8CKph9L336F2OpJNGBBwn2TggxJvo8nVeobUP4ZYZ
+         TeLW9Lc9BLxOPEMf8gSYDD5YbHKdXDB+Totak4ndHU3X2U0zzfl5Ek73VvpT2XBVtzJM
+         IEjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681478412; x=1684070412;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=3+G2cusxN2eA1L5GyGm+EeLwoLT0jo+QBIq2uCh+LWo=;
+        b=St4z4z0v1wVvANuZepWAVeRiJd4nTVSCvKw+FiF3zlvLIQBeCgGIASdyI9EjBetDQA
+         7Sf9KmJDFfPhBV99yMSgGJvtPZUpW5nX4hC/zCW3NNg9zi576y7K7sFIIWMGqf5rzufT
+         tlB9AsbAgD12EzaHL3ZEVOR2NuXXnuegSny7LLaGc2ZTWgPE1qrC5Z6CwS2uU/7XRGTE
+         UWIx0kABd7skjUfGO/3fseCL3ClagMZyyuTGcF2LiA/dPyyaAde/zwICs0OdC+xikzTX
+         wXV2Jeoht9AjPstBhU9aQnqjqmYxH2tHBJTGOWp8Cc1JWNh8QFfOQM6McX98XSUF/DAA
+         ixRQ==
+X-Gm-Message-State: AAQBX9dll5UWFURSimgpD8ZxzdSFFfhFy8UzjSb3mptpF8oJJcMFCHg0
+        Bi08JUtJayYgX9J0upTyCTax0ebo3JO1M2SkkiyCIQ==
+X-Google-Smtp-Source: AKy350ZUG90NcwZrvpOu4trc+Cibc2I2kMAmY8KSsn8vmA3TiXY0RPX6ycLOjf/XKUatGgidQjy+Iw==
+X-Received: by 2002:a5d:6b0b:0:b0:2f4:a040:cda7 with SMTP id v11-20020a5d6b0b000000b002f4a040cda7mr3868571wrw.50.1681478412454;
+        Fri, 14 Apr 2023 06:20:12 -0700 (PDT)
+Received: from ?IPV6:2a02:8011:e80c:0:d040:969c:6e8e:e95d? ([2a02:8011:e80c:0:d040:969c:6e8e:e95d])
+        by smtp.gmail.com with ESMTPSA id bl18-20020adfe252000000b002d7a75a2c20sm3540134wrb.80.2023.04.14.06.20.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 14 Apr 2023 06:20:12 -0700 (PDT)
+Message-ID: <eeeaac99-9053-90c2-aa33-cc1ecb1ae9ca@isovalent.com>
+Date:   Fri, 14 Apr 2023 14:20:11 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.9.1
+Subject: Re: [PATCH bpf-next v2 5/6] tools: bpftool: print netfilter link info
+Content-Language: en-GB
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        bpf@vger.kernel.org, dxu@dxuuu.xyz, qde@naccy.de
+References: <20230413133228.20790-1-fw@strlen.de>
+ <20230413133228.20790-6-fw@strlen.de>
+ <CACdoK4LRjNsDY6m2fvUGY_C9gMvUdX9QpEetr9RtGuR8xb8pmg@mail.gmail.com>
+ <20230414104121.GB5889@breakpoint.cc>
+From:   Quentin Monnet <quentin@isovalent.com>
+In-Reply-To: <20230414104121.GB5889@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-pass it as argument instead.  This reduces size of traceinfo to
-16 bytes.  Total stack usage:
+2023-04-14 12:41 UTC+0200 ~ Florian Westphal <fw@strlen.de>
+> Quentin Monnet <quentin@isovalent.com> wrote:
+>> On Thu, 13 Apr 2023 at 14:36, Florian Westphal <fw@strlen.de> wrote:
+>>>
+>>> Dump protocol family, hook and priority value:
+>>> $ bpftool link
+>>> 2: type 10  prog 20
+>>
+>> Could you please update link_type_name in libbpf (libbpf.c) so that we
+>> display "netfilter" here instead of "type 10"?
+> 
+> Done.
 
- nf_tables_core.c:252 nft_do_chain    304     static
+Thanks!
 
-While its possible to also pass basechain as argument, doing so
-increases nft_do_chaininfo function size.
+I'm just thinking we could also maybe print something nicer for the pf
+and the hook, "NF_INET_LOCAL_IN" would be more user-friendly than "hook 1"?
 
-Unlike pktinfo/verdict/rule the basechain info isn't used in
-the expression evaluation path. gcc places it on the stack, which
-results in extra push/pop when it gets passed to the trace helpers
-as argument rather than as part of the traceinfo structure.
+> 
+>>> diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
+>>> index 3823100b7934..c93febc4c75f 100644
+>>> --- a/tools/include/uapi/linux/bpf.h
+>>> +++ b/tools/include/uapi/linux/bpf.h
+>>> @@ -986,6 +986,7 @@ enum bpf_prog_type {
+>>>         BPF_PROG_TYPE_LSM,
+>>>         BPF_PROG_TYPE_SK_LOOKUP,
+>>>         BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
+>>> +       BPF_PROG_TYPE_NETFILTER,
+>>
+>> If netfilter programs could be loaded with bpftool, we'd need to
+>> update bpftool's docs. But I don't think this is the case, right?
+> 
+> bpftool prog load nftest.o /sys/fs/bpf/nftest
+> 
+> will work, but the program isn't attached anywhere.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_tables.h |  3 +--
- net/netfilter/nf_tables_core.c    | 15 +++++++--------
- net/netfilter/nf_tables_trace.c   | 14 ++++++++------
- 3 files changed, 16 insertions(+), 16 deletions(-)
+Let's maybe not document it, then. It may still be useful to check
+whether a program load, but users would definitely expect the program to
+remain loaded after bpftool invocation has completed. Or alternatively,
+we could document, but print a warning.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index a11fde72c87e..36df00f854e0 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1403,7 +1403,6 @@ void nft_unregister_flowtable_type(struct nf_flowtable_type *type);
-  *	@skbid: hash of skb to be used as trace id
-  *	@packet_dumped: packet headers sent in a previous traceinfo message
-  *	@basechain: base chain currently processed
-- *	@rule:  rule that was evaluated
-  */
- struct nft_traceinfo {
- 	bool				trace;
-@@ -1412,7 +1411,6 @@ struct nft_traceinfo {
- 	enum nft_trace_types		type:8;
- 	u32				skbid;
- 	const struct nft_base_chain	*basechain;
--	const struct nft_rule_dp	*rule;
- };
- 
- void nft_trace_init(struct nft_traceinfo *info, const struct nft_pktinfo *pkt,
-@@ -1420,6 +1418,7 @@ void nft_trace_init(struct nft_traceinfo *info, const struct nft_pktinfo *pkt,
- 
- void nft_trace_notify(const struct nft_pktinfo *pkt,
- 		      const struct nft_verdict *verdict,
-+		      const struct nft_rule_dp *rule,
- 		      struct nft_traceinfo *info);
- 
- #define MODULE_ALIAS_NFT_CHAIN(family, name) \
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 6debe8b2623f..4d0ce12221f6 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -43,6 +43,7 @@ static inline void nf_skip_indirect_calls_enable(void) { }
- 
- static noinline void __nft_trace_packet(const struct nft_pktinfo *pkt,
- 					const struct nft_verdict *verdict,
-+					const struct nft_rule_dp *rule,
- 					struct nft_traceinfo *info,
- 					enum nft_trace_types type)
- {
-@@ -51,7 +52,7 @@ static noinline void __nft_trace_packet(const struct nft_pktinfo *pkt,
- 
- 	info->type = type;
- 
--	nft_trace_notify(pkt, verdict, info);
-+	nft_trace_notify(pkt, verdict, rule, info);
- }
- 
- static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
-@@ -62,8 +63,7 @@ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
- {
- 	if (static_branch_unlikely(&nft_trace_enabled)) {
- 		info->nf_trace = pkt->skb->nf_trace;
--		info->rule = rule;
--		__nft_trace_packet(pkt, verdict, info, type);
-+		__nft_trace_packet(pkt, verdict, rule, info, type);
- 	}
- }
- 
-@@ -110,6 +110,7 @@ static void nft_cmp16_fast_eval(const struct nft_expr *expr,
- 
- static noinline void __nft_trace_verdict(const struct nft_pktinfo *pkt,
- 					 struct nft_traceinfo *info,
-+					 const struct nft_rule_dp *rule,
- 					 const struct nft_regs *regs)
- {
- 	enum nft_trace_types type;
-@@ -131,7 +132,7 @@ static noinline void __nft_trace_verdict(const struct nft_pktinfo *pkt,
- 		break;
- 	}
- 
--	__nft_trace_packet(pkt, &regs->verdict, info, type);
-+	__nft_trace_packet(pkt, &regs->verdict, rule, info, type);
- }
- 
- static inline void nft_trace_verdict(const struct nft_pktinfo *pkt,
-@@ -139,10 +140,8 @@ static inline void nft_trace_verdict(const struct nft_pktinfo *pkt,
- 				     const struct nft_rule_dp *rule,
- 				     const struct nft_regs *regs)
- {
--	if (static_branch_unlikely(&nft_trace_enabled)) {
--		info->rule = rule;
--		__nft_trace_verdict(pkt, info, regs);
--	}
-+	if (static_branch_unlikely(&nft_trace_enabled))
-+		__nft_trace_verdict(pkt, info, rule, regs);
- }
- 
- static bool nft_payload_fast_eval(const struct nft_expr *expr,
-diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
-index e635104a42be..6d41c0bd3d78 100644
---- a/net/netfilter/nf_tables_trace.c
-+++ b/net/netfilter/nf_tables_trace.c
-@@ -125,9 +125,10 @@ static int nf_trace_fill_pkt_info(struct sk_buff *nlskb,
- 
- static int nf_trace_fill_rule_info(struct sk_buff *nlskb,
- 				   const struct nft_verdict *verdict,
-+				   const struct nft_rule_dp *rule,
- 				   const struct nft_traceinfo *info)
- {
--	if (!info->rule || info->rule->is_last)
-+	if (!rule || rule->is_last)
- 		return 0;
- 
- 	/* a continue verdict with ->type == RETURN means that this is
-@@ -140,7 +141,7 @@ static int nf_trace_fill_rule_info(struct sk_buff *nlskb,
- 		return 0;
- 
- 	return nla_put_be64(nlskb, NFTA_TRACE_RULE_HANDLE,
--			    cpu_to_be64(info->rule->handle),
-+			    cpu_to_be64(rule->handle),
- 			    NFTA_TRACE_PAD);
- }
- 
-@@ -166,9 +167,9 @@ static bool nft_trace_have_verdict_chain(const struct nft_verdict *verdict,
- 	return true;
- }
- 
--static const struct nft_chain *nft_trace_get_chain(const struct nft_traceinfo *info)
-+static const struct nft_chain *nft_trace_get_chain(const struct nft_rule_dp *rule,
-+						   const struct nft_traceinfo *info)
- {
--	const struct nft_rule_dp *rule = info->rule;
- 	const struct nft_rule_dp_last *last;
- 
- 	if (!rule)
-@@ -187,6 +188,7 @@ static const struct nft_chain *nft_trace_get_chain(const struct nft_traceinfo *i
- 
- void nft_trace_notify(const struct nft_pktinfo *pkt,
- 		      const struct nft_verdict *verdict,
-+		      const struct nft_rule_dp *rule,
- 		      struct nft_traceinfo *info)
- {
- 	const struct nft_chain *chain;
-@@ -199,7 +201,7 @@ void nft_trace_notify(const struct nft_pktinfo *pkt,
- 	if (!nfnetlink_has_listeners(nft_net(pkt), NFNLGRP_NFTRACE))
- 		return;
- 
--	chain = nft_trace_get_chain(info);
-+	chain = nft_trace_get_chain(rule, info);
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg)) +
- 		nla_total_size(strlen(chain->table->name)) +
-@@ -248,7 +250,7 @@ void nft_trace_notify(const struct nft_pktinfo *pkt,
- 	if (nla_put_string(skb, NFTA_TRACE_TABLE, chain->table->name))
- 		goto nla_put_failure;
- 
--	if (nf_trace_fill_rule_info(skb, verdict, info))
-+	if (nf_trace_fill_rule_info(skb, verdict, rule, info))
- 		goto nla_put_failure;
- 
- 	switch (info->type) {
--- 
-2.39.2
+> 
+>> don't currently have a way to pass the pf, hooknum, priority and flags
+>> necessary to load the program with "bpftool prog load" so it would
+>> fail?
+> 
+> I don't know how to make it work to actually attach it, because
+> the hook is unregistered when the link fd is closed.
+> 
+> So either bpftool would have to fork and auto-daemon (maybe
+> unexpected...) or wait/block until CTRL-C.
+> 
+> This also needs new libbpf api AFAICS because existing bpf_link
+> are specific to the program type, so I'd have to add something like:
+> 
+> struct bpf_link *
+> bpf_program__attach_netfilter(const struct bpf_program *prog,
+> 			      const struct bpf_netfilter_opts *opts)
+> 
+> Advice welcome.
 
+OK, yes we'd need something like this if we wanted to load and attach
+from bpftool. If you already have the tooling elsewhere, it's maybe not
+necessary to add it here. Depends if you want users to be able to attach
+netfilter programs with bpftool or even libbpf.
+
+There are other program types that are not supported for
+loading/attaching with bpftool (the bpftool-prog man page is not always
+correct in that regard, I think).
+
+I'd say let's keep this out of the current patchset anyway. If we have a
+use case for attaching via libbpf/bpftool we can do this as a follow-up.
+
+> 
+>> Have you considered listing netfilter programs in the output of
+>> "bpftool net" as well? Given that they're related to networking, it
+>> would maybe make sense to have them listed alongside XDP, TC, and flow
+>> dissector programs?
+> 
+> I could print the same output that 'bpf link' already shows.
+> 
+> Not sure on the real distinction between those two here.
+
+There would probably be some overlap (to say the least), yes.
+
+> 
+> When should I use 'bpftool link' and when 'bpftool net', and what info
+> and features should either of these provide for netfilter programs?
+
+That's a good question. I thought I'd check how we handle it for XDP for
+"bpftool net" vs. "bpftool link", but I realised this link type (and
+some others) were never added to the switch/case you update in
+bpftool/link.c, and we're not printing any particular information about
+them beyond type and associated program id. Conversely, I'd have to
+check whether we print XDP programs using links in "bpftool net". Maybe
+some things to improve here. Anyway.
+
+The way I see it, "bpftool net" should provide a more structured
+overview of the different programs affecting networking, in particular
+for JSON. The idea would be to display all BPF programs that can affect
+packet processing. See what we have for XDP for example:
+
+
+    # bpftool net -p
+    [{
+            "xdp": [{
+                    "devname": "eni88np1",
+                    "ifindex": 12,
+                    "multi_attachments": [{
+                            "mode": "driver",
+                            "id": 1238
+                        },{
+                            "mode": "offload",
+                            "id": 1239
+                        }
+                    ]
+                }
+            ],
+            "tc": [{
+                    "devname": "eni88np1",
+                    "ifindex": 12,
+                    "kind": "clsact/ingress",
+                    "name": "sample_ret0.o:[.text]",
+                    "id": 1241
+                },{
+                    "devname": "eni88np1",
+                    "ifindex": 12,
+                    "kind": "clsact/ingress",
+                    "name": "sample_ret0.o:[.text]",
+                    "id": 1240
+                }
+            ],
+            "flow_dissector": [
+                "id": 1434
+            ]
+        }
+    ]
+
+This gives us all the info about XDP programs at once, grouped by device
+when relevant. By contrast, listing them in "bpftool link" would likely
+only show one at a time, in an uncorrelated manner. Similarly, we could
+have netfilter sorted by pf then hook in "bpftool net". If there's more
+relevant info that we get from program info and not from the netfilter
+link, this would also be a good place to have it (but not sure there's
+any info we're missing from "bpftool link"?).
+
+But given that the info will be close, or identical, if not for the JSON
+structure, I don't mean to impose this to you - it's also OK to just
+skip "bpftool net" for now if you prefer.
+
+Quentin
