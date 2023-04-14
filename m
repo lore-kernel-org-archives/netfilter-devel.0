@@ -2,157 +2,125 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24565C77B61
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Apr 2023 21:14:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29B3BC77B61
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Apr 2023 01:58:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229998AbjDMVOS (ORCPT
+        id S229721AbjDNB6r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Apr 2023 17:14:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48402 "EHLO
+        Thu, 13 Apr 2023 21:58:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229630AbjDMVOR (ORCPT
+        with ESMTP id S229593AbjDNB6q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2023 17:14:17 -0400
-Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B876E172C
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2023 14:14:15 -0700 (PDT)
-Received: by mail-ej1-x634.google.com with SMTP id a640c23a62f3a-94eb6ad1aecso48488366b.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2023 14:14:15 -0700 (PDT)
+        Thu, 13 Apr 2023 21:58:46 -0400
+Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96E6E3C15;
+        Thu, 13 Apr 2023 18:58:44 -0700 (PDT)
+Received: by mail-vs1-xe33.google.com with SMTP id bs12so4110372vsb.1;
+        Thu, 13 Apr 2023 18:58:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isovalent.com; s=google; t=1681420454; x=1684012454;
+        d=gmail.com; s=20221208; t=1681437523; x=1684029523;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Iw9rlpg8ozshQQ9GL1xtg2Yqf9pvDF0Kqb2ww8Y5MjU=;
-        b=LSdIrSmUvrxApHW7CEhBgi/WqK60CVNyh/D3Ay9cG51sVnKkbeOxvrJr55iF8aqmWX
-         WFVB7g9UU0Osim/aWPNBhegknN0BeFRhs0BRhnSk9Pt02Lx6i+KmLsi3lAttzws1LNhB
-         DXQqiY/n2KqcN15qqxGYtddnD5M94VO68CNGt3EdJ8cFt7wm9JmySTXLx5pAnN4w2NHc
-         hDSkzHkVuf1EC3gFMv0iFG8tqNCmcwLUH7QTwCcYtjxcn7kstrPO+wdFkxo2OTKfjcrC
-         LMBf/zznusZES28EaQj0gNcopi5bjwg7Xj7AxULrbpbBZ4nS9oVOU/lsZRkJn3Mqc1Dr
-         5//A==
+        bh=Dl2518gfS/Q1UTQTLUFTF13BLaNUhIq99/jZxFoVTE8=;
+        b=dbFOmnvXWendtqHNWAnIIVQIAq5jJpuLDcEXgMFqI9KaQWq7P5E/IYMfFyG4lMrryj
+         GWiDAIG7yiXx2GbkQLiJcfm4WP7f+TG/jGVIdYV4/kv7atqDhOZwQiQEEhLBFxEJyNNJ
+         Uf0nPRy0nNqI7zzcmYYtMATxZgrJhhcrCAWm0USCkRQvkzupQVv5xNqjv00vGBGzSE2Q
+         zU2QSSe4VhBo9fed9Z8lkZpM4K/6vsxBRt2jyGtFITzTK1Z3nvQ0gj/IY2wt7L4ugiog
+         xaGZQ+lkOAvAYeCxylJ7eET8v7HZVcFKyXIbKBsD9gkpBaDNBRcLaAtdYGlp12okckka
+         JRkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681420454; x=1684012454;
+        d=1e100.net; s=20221208; t=1681437523; x=1684029523;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Iw9rlpg8ozshQQ9GL1xtg2Yqf9pvDF0Kqb2ww8Y5MjU=;
-        b=OIFkvYP6RvdkkHpnndlHr+9CdiIaOUDCZMcFTz1Py0FIMkEk5R5XB6JAUlmYPvjH9G
-         9Ibiu8ncGuKpAv7QaUCs6cr/C7I/PBgyYmVtURHpcdfPWnPSlpvko8PsMNAw1GcVDBc9
-         1rs9rIC/A5BgfVNRV0H80ib6ekI15RPoPnSl8N0Qe/np0XzjYK0SjrL5OjJdA5Mig+b0
-         wnl6QfUJzB7Nvk9w7D9Ce++40oG+7aV4Zv0djwxDJBed+QH9pUOCe6dYdY4dITxQqlB5
-         Y8q8FVYWv9elxPZE3TAKCGOO19OdQbWnzJjPHb/S+/uzbV3DU6iS706LXaykZHi/F7AO
-         goCQ==
-X-Gm-Message-State: AAQBX9e/YkrcI5BoixWSvYvawjNWuwKXQbkU9lA+Sp191SJ4Hvr0fdqt
-        XDqHfGcE2IEprxOgj5i/Zk/fa8mqsNJIokanvEdfzQ==
-X-Google-Smtp-Source: AKy350b8WcrGf580mAFJ58BQiyNxUgjDL0y9ljpqarouqS6LOdRNth0G4IdY3nFrcWw6LS/UlDmayM6ZpL1sAifoCHU=
-X-Received: by 2002:a50:9ee9:0:b0:504:ed04:5d3d with SMTP id
- a96-20020a509ee9000000b00504ed045d3dmr1957703edf.7.1681420454183; Thu, 13 Apr
- 2023 14:14:14 -0700 (PDT)
+        bh=Dl2518gfS/Q1UTQTLUFTF13BLaNUhIq99/jZxFoVTE8=;
+        b=M9/Aqie5qRcpA8PFnzrnOe7NxNCodM+qwdu8qK5gYyVq2Hq/FJwjc6Ps5w7uh5cLbZ
+         Y/OFx1e2bkuRIeLD05/V8SZNakFx5yLWy2Mt6pfyau1mjSwfiaHz3zIk/yMQtxO9xRNO
+         Rfxk9bQXg9HkAh124kW7NMjqdBmjRArnBDowF4gqBbj9CKBrgiWxTW/jm1Nwkqgaei3l
+         60P8TnSHFVXg6Qz0Zwf+JxizaNGeTdQInM/VR/Y+ykmKL/cSD2KE9JutOeg39Lf3YcBV
+         KoD3UOTD38CXS1scCYJ+DU47J6e+w1/9bHImYGqHUaHLOTZKNJi1BT9ryXuaest/9Qtk
+         xMtA==
+X-Gm-Message-State: AAQBX9dWqLf9nlajDB5Of7HzDSKu5zd74PnkwptHgaNlKiIHruI9m6qP
+        4jAiEPt7fnDED6wBKZ0sTaihH5UcRpA4PJDIV0M=
+X-Google-Smtp-Source: AKy350aH2AiuehJLLHPE1eL6DWbiGgRPxKkogH1PjK+GLiQpdjGXhs2/nf2wZfpm5URgPMnp+kW/pzZBtynhNAxrCSM=
+X-Received: by 2002:a67:d496:0:b0:42e:3c2e:10bd with SMTP id
+ g22-20020a67d496000000b0042e3c2e10bdmr590487vsj.1.1681437523577; Thu, 13 Apr
+ 2023 18:58:43 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230413133228.20790-1-fw@strlen.de> <20230413133228.20790-6-fw@strlen.de>
-In-Reply-To: <20230413133228.20790-6-fw@strlen.de>
-From:   Quentin Monnet <quentin@isovalent.com>
-Date:   Thu, 13 Apr 2023 22:14:03 +0100
-Message-ID: <CACdoK4LRjNsDY6m2fvUGY_C9gMvUdX9QpEetr9RtGuR8xb8pmg@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v2 5/6] tools: bpftool: print netfilter link info
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        bpf@vger.kernel.org, dxu@dxuuu.xyz, qde@naccy.de
+References: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com> <d2519ce3-e49b-a544-b79d-42905f4a2a9a@ssi.bg>
+In-Reply-To: <d2519ce3-e49b-a544-b79d-42905f4a2a9a@ssi.bg>
+From:   Abhijeet Rastogi <abhijeet.1989@gmail.com>
+Date:   Thu, 13 Apr 2023 18:58:06 -0700
+Message-ID: <CACXxYfxLU0jWmq0W7YxX=44XFCGvgMX2HwTFUUHCUMjO28g5BA@mail.gmail.com>
+Subject: Re: [PATCH] ipvs: change ip_vs_conn_tab_bits range to [8,31]
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Hi Simon, Andrea and Julian,
 
-On Thu, 13 Apr 2023 at 14:36, Florian Westphal <fw@strlen.de> wrote:
->
-> Dump protocol family, hook and priority value:
-> $ bpftool link
-> 2: type 10  prog 20
+I really appreciate you taking the time to respond to my patch. Some follow up
+questions that I'll appreciate a response for.
 
-Could you please update link_type_name in libbpf (libbpf.c) so that we
-display "netfilter" here instead of "type 10"?
+@Simon Horman
+>In any case, I think this patch is an improvement on the current situation.
 
->         pf: 2, hook 1, prio -128
->
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  tools/bpf/bpftool/link.c       | 24 ++++++++++++++++++++++++
->  tools/include/uapi/linux/bpf.h | 15 +++++++++++++++
->  tools/lib/bpf/libbpf.c         |  1 +
->  3 files changed, 40 insertions(+)
->
-> diff --git a/tools/bpf/bpftool/link.c b/tools/bpf/bpftool/link.c
-> index f985b79cca27..a2ea85d1ebbf 100644
-> --- a/tools/bpf/bpftool/link.c
-> +++ b/tools/bpf/bpftool/link.c
-> @@ -135,6 +135,18 @@ static void show_iter_json(struct bpf_link_info *info, json_writer_t *wtr)
->         }
->  }
->
-> +static void show_netfilter_json(const struct bpf_link_info *info, json_writer_t *wtr)
-> +{
-> +       jsonw_uint_field(json_wtr, "pf",
-> +                        info->netfilter.pf);
-> +       jsonw_uint_field(json_wtr, "hook",
-> +                        info->netfilter.hooknum);
-> +       jsonw_int_field(json_wtr, "prio",
-> +                        info->netfilter.priority);
-> +       jsonw_uint_field(json_wtr, "flags",
-> +                        info->netfilter.flags);
-> +}
-> +
->  static int get_prog_info(int prog_id, struct bpf_prog_info *info)
->  {
->         __u32 len = sizeof(*info);
-> @@ -195,6 +207,10 @@ static int show_link_close_json(int fd, struct bpf_link_info *info)
->                                  info->netns.netns_ino);
->                 show_link_attach_type_json(info->netns.attach_type, json_wtr);
->                 break;
-> +       case BPF_LINK_TYPE_NETFILTER:
-> +               show_netfilter_json(info, json_wtr);
-> +               break;
-> +
->         default:
->                 break;
->         }
-> @@ -301,6 +317,14 @@ static int show_link_close_plain(int fd, struct bpf_link_info *info)
->                 printf("\n\tnetns_ino %u  ", info->netns.netns_ino);
->                 show_link_attach_type_plain(info->netns.attach_type);
->                 break;
-> +       case BPF_LINK_TYPE_NETFILTER:
-> +               printf("\n\tpf: %d, hook %u, prio %d",
-> +                      info->netfilter.pf,
-> +                      info->netfilter.hooknum,
-> +                      info->netfilter.priority);
-> +               if (info->netfilter.flags)
-> +                       printf(" flags 0x%x", info->netfilter.flags);
-> +               break;
->         default:
->                 break;
->         }
-> diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
-> index 3823100b7934..c93febc4c75f 100644
-> --- a/tools/include/uapi/linux/bpf.h
-> +++ b/tools/include/uapi/linux/bpf.h
-> @@ -986,6 +986,7 @@ enum bpf_prog_type {
->         BPF_PROG_TYPE_LSM,
->         BPF_PROG_TYPE_SK_LOOKUP,
->         BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
-> +       BPF_PROG_TYPE_NETFILTER,
++1 to this. I wanted to add that, we're not changing the defaults
+here, the default still stays at 2^12. If a kernel user changes the
+default, they probably already know what the limitations are, so I
+personally don't think it is a big concern.
 
-If netfilter programs could be loaded with bpftool, we'd need to
-update bpftool's docs. But I don't think this is the case, right? We
-don't currently have a way to pass the pf, hooknum, priority and flags
-necessary to load the program with "bpftool prog load" so it would
-fail?
+@Andrea Claudi
+>for the record, RHEL ships with CONFIG_IP_VS_TAB_BITS set to 12 as
+default.
 
-Have you considered listing netfilter programs in the output of
-"bpftool net" as well? Given that they're related to networking, it
-would maybe make sense to have them listed alongside XDP, TC, and flow
-dissector programs?
+Sorry, I should have been clearer. RHEL ships with the same default,
+yes, but it doesn't have the range check, at least, on the version I'm
+using right now (3.10.0-1160.62.1.el7.x86_64).
 
-The patch looks good to me otherwise.
+On this version, I'm able to load with bit size 30, 31 gives me error
+regarding allocating memory (64GB host) and anything beyond 31 is
+mysteriously switched to a lower number. The following dmesg on my
+host confirms that the bitsize 30 worked, which is not possible
+without a patch on the current kernel version.
 
-Thanks,
-Quentin
+"[Fri Apr 14 01:14:51 2023] IPVS: Connection hash table configured (size=1073741
+824, memory=16777216Kbytes)"
+
+@Julian Anastasov,
+>This is not a limit of number of connections. I prefer
+not to allow value above 24 without adding checks for the
+available memory,
+
+Interesting that you brought up that number 24, that is exactly what
+we use in production today. One IPVS node is able to handle spikes of
+10M active connections without issues. This patch idea originated as
+my company is migrating from the ancient RHEL version to a somewhat
+newer CentOS (5.* kernel) and noticed that we were unable to load the
+ip_vs kernel module with anything greater than 20 bits. Another
+motivation for kernel upgrade is utilizing maglev to reduce table size
+but that's out of context in this discussion.
+
+My request is, can we increase the range from 20 to something larger?
+If 31 seems a bit excessive, maybe, we can settle for something like
+[8,30] or even lower. With conn_tab_bits=30, it allocates 16GB at
+initialization time, it is not entirely absurd by today's standards.
+
+I can revise my patch to a lower range as you guys see fit.
+
+--
+Cheers,
+Abhijeet (https://abhi.host)
