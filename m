@@ -2,270 +2,166 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B52BFC77B61
-	for <netfilter-devel@archiver.kernel.org>; Sun, 16 Apr 2023 16:13:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56A1FC77B61
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Apr 2023 03:41:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230312AbjDPQNg (ORCPT
+        id S229804AbjDQDls (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 16 Apr 2023 12:13:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55234 "EHLO
+        Sun, 16 Apr 2023 23:41:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230332AbjDPQNd (ORCPT
+        with ESMTP id S229619AbjDQDlr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 16 Apr 2023 12:13:33 -0400
-Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [IPv6:2001:1600:4:17::190a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51D243A99
-        for <netfilter-devel@vger.kernel.org>; Sun, 16 Apr 2023 09:13:30 -0700 (PDT)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4PzwGJ41rmzMqCyp;
-        Sun, 16 Apr 2023 18:13:28 +0200 (CEST)
-Received: from unknown by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4PzwGH32D6zMppDR;
-        Sun, 16 Apr 2023 18:13:27 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1681661608;
-        bh=wvZktsS2wovttTPKhuIKuxoQ9kE6pVtEyePlXYSAocU=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=snAwV5HoppK8rU92IrbLQPI5kLV4FAtdWXM9erbn4J9qeDk+8dQ+TJHb00MyqtEh/
-         WWFcQr5dQ/atS6nigS2oSoWuaoe6EpEskhGukpXD6ZHzsEkN51aXdqj+5XJyyHYxiV
-         ZY0HpqHtIscLGKWaBGYEraSZDp4v85AdMvL5l4Wk=
-Message-ID: <ec23be77-566e-c8fd-179e-f50e025ac2cf@digikod.net>
-Date:   Sun, 16 Apr 2023 18:13:32 +0200
+        Sun, 16 Apr 2023 23:41:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99A69B0
+        for <netfilter-devel@vger.kernel.org>; Sun, 16 Apr 2023 20:41:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 37A1061CDB
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Apr 2023 03:41:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 503F1C433EF;
+        Mon, 17 Apr 2023 03:41:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1681702904;
+        bh=sfLnjzF59Ra7XqoASPU7HFUjKoZJzydJloeFrd23+kA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=so+EsRBJVrpji7Sp0XuhuhCLw5z0FjiWrJpWmX6WQvSQI7Pyk2WFAIiCXJuJyAmXu
+         1F/HKdG5ISKKw9dnOPCM/oerFPKnqvxy0Boj6LzwRuUQdIDC8bn6bWXcVZzg2N4g5S
+         LMGTfwiGmShX+pzmKf6tu6AEBbc2akTtCBUyxemAFpb9j5o/XQjeu+QPFUSUfYoHPh
+         x+JpmJ/AJA+MBDgKv8RLJNOTKuqpWbyJX26vEBB7ZNKqvX/euTiyUGAfzFWEn3JKEQ
+         46QYU5RWsgN+tt4tahWtNONiDdi8zR7ilX2hbW456MG/CK3jNxg5iLHBQKPwxMs0dq
+         dHpW9DfuYUhOw==
+Date:   Mon, 17 Apr 2023 11:41:41 +0800
+From:   Tzung-Bi Shih <tzungbi@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        jiejiang@chromium.org, jasongustaman@chromium.org,
+        garrick@chromium.org
+Subject: Re: [PATCH] netfilter: conntrack: fix wrong ct->timeout value
+Message-ID: <ZDy/9WEIQRyIPSNo@google.com>
+References: <20230410060935.253503-1-tzungbi@kernel.org>
+ <ZDPJ2rHi5fOqu4ga@calendula>
+ <ZDPXad/8beRw78yX@calendula>
+ <ZDPeGu4eznqw34VJ@google.com>
+ <ZDc3AUBoKMUzPfKi@calendula>
+ <ZDd1n1IHEu9+HVSS@google.com>
+ <ZDfFmMfS406teiUj@calendula>
+ <ZDjN4gyv0x1aewgm@google.com>
+ <ZDkK3ktVcBaykTVT@calendula>
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v10 13/13] landlock: Document Landlock's network support
-Content-Language: en-US
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
- <20230323085226.1432550-14-konstantin.meskhidze@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <20230323085226.1432550-14-konstantin.meskhidze@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZDkK3ktVcBaykTVT@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Fri, Apr 14, 2023 at 10:12:14AM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Apr 14, 2023 at 11:52:02AM +0800, Tzung-Bi Shih wrote:
+> > On Thu, Apr 13, 2023 at 11:04:24AM +0200, Pablo Neira Ayuso wrote:
+> > > On Thu, Apr 13, 2023 at 11:23:11AM +0800, Tzung-Bi Shih wrote:
+> > > > nf_ct_expires() got called by userspace program.  And the return
+> > > > value (which means the remaining timeout) will be the parameter for
+> > > > the next ctnetlink_change_timeout().
+> > > 
+> > > Unconfirmed conntrack is owned by the packet that refers to it, it is
+> > > not yet in the hashes. I don't see how concurrent access to the
+> > > timeout might occur.
+> > > 
+> > > Or are you referring to a different scenario that triggers the partial
+> > > state?
+> > 
+> > I think it isn't a concurrent access.  We observed that userspace program
+> > reads the remaining timeout and sets it back for unconfirmed conntrack.
+> > 
+> > Conceptually, it looks like:
+> > timeout = nf_ct_expires(...);  (1)
+> > ctnetlink_change_timeout(...timeout);
+> 
+> How could this possibly happen?
+> 
+> nf_ct_expires() is called from:
+> 
+> - ctnetlink_dump_timeout(), this is netlink dump path, since:
+> 
+> commit 1397af5bfd7d32b0cf2adb70a78c9a9e8f11d912
+> Author: Florian Westphal <fw@strlen.de>
+> Date:   Mon Apr 11 13:01:18 2022 +0200
+> 
+>     netfilter: conntrack: remove the percpu dying list
+> 
+> it is not possible to do any listing of unconfirmed, and that is fine.
+> 
+> As I said, nfnetlink_queue operates with an unconfirmed conntrack with
+> owns exclusively, which is not in the hashes.
 
-On 23/03/2023 09:52, Konstantin Meskhidze wrote:
-> Describe network access rules for TCP sockets. Add network access
-> example in the tutorial. Add kernel configuration support for network.
-> 
-> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> ---
-> 
-> Changes since v9:
-> * Minor refactoring.
-> 
-> Changes since v8:
-> * Minor refactoring.
-> 
-> Changes since v7:
-> * Fixes documentaion logic errors and typos as Mickaёl suggested:
-> https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@digikod.net/
-> 
-> Changes since v6:
-> * Adds network support documentaion.
-> 
-> ---
->   Documentation/userspace-api/landlock.rst | 69 ++++++++++++++++++------
->   1 file changed, 54 insertions(+), 15 deletions(-)
-> 
-> diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
-> index f6a7da21708a..0d640bfa3126 100644
-> --- a/Documentation/userspace-api/landlock.rst
-> +++ b/Documentation/userspace-api/landlock.rst
-> @@ -11,10 +11,10 @@ Landlock: unprivileged access control
->   :Date: October 2022
-> 
->   The goal of Landlock is to enable to restrict ambient rights (e.g. global
-> -filesystem access) for a set of processes.  Because Landlock is a stackable
-> -LSM, it makes possible to create safe security sandboxes as new security layers
-> -in addition to the existing system-wide access-controls. This kind of sandbox
-> -is expected to help mitigate the security impact of bugs or
-> +filesystem or network access) for a set of processes.  Because Landlock
-> +is a stackable LSM, it makes possible to create safe security sandboxes as new
-> +security layers in addition to the existing system-wide access-controls. This
-> +kind of sandbox is expected to help mitigate the security impact of bugs or
->   unexpected/malicious behaviors in user space applications.  Landlock empowers
->   any process, including unprivileged ones, to securely restrict themselves.
-> 
-> @@ -30,8 +30,9 @@ Landlock rules
-> 
->   A Landlock rule describes an action on an object.  An object is currently a
+I applied the following patches on top of v6.3-rc5[5].
 
-A Landlock rule describes an action on a kernel object.  Filesystem 
-objects can be defined with a file hierarchy.  Since the fourth ABI 
-version, TCP ports enable to identify inbound or outbound connections. 
-Actions on these kernel objects are defined according to `access 
-rights`_.  A set of rules…
+As you suggested:
 
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 71d1269fe4d4..3384859a8921 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -89,7 +89,11 @@ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
+ {
+        if (timeout > INT_MAX)
+                timeout = INT_MAX;
+-       WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
++
++       if (nf_ct_is_confirmed(ct))
++               WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
++       else
++               ct->timeout = (u32)timeout;
+ }
+ 
+And this patch for dumping the debug information:
 
->   file hierarchy, and the related filesystem actions are defined with `access
-> -rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
-> -the thread enforcing it, and its future children.
-> +rights`_.  Since ABI version 4 a port data appears with related network actions
-> +for TCP socket families.  A set of rules is aggregated in a ruleset, which
-> +can then restrict the thread enforcing it, and its future children.
-> 
->   Defining and enforcing a security policy
->   ----------------------------------------
-> @@ -41,7 +42,8 @@ example, the ruleset will contain rules that only allow read actions, but write
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index bfc3aaa2c872..b4c016ff07e9 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -178,6 +178,11 @@ static int ctnetlink_dump_timeout(struct sk_buff *skb, const struct nf_conn *ct,
+ {
+        long timeout = nf_ct_expires(ct) / HZ;
+ 
++       if (!nf_ct_is_confirmed(ct)) {
++               dump_stack();
++               printk(KERN_ERR "===ct->timeout=%u===timeout=%ld\n", ct->timeout, timeout);
++       }
++
+        if (skip_zero && timeout == 0)
+                return 0;
 
-"the ruleset will contain rules that only allow filesystem read actions 
-and establish a specific TCP connection, but filesystem write actions 
-and other TCP actions will be denied."
+And here is the trimmed dmesg:
 
+===ct->timeout=30000===timeout=0
+[...] 6.3.0-rc5-00675-ged0c7cbf5b2c [...]
+Call Trace:
+ <TASK>
+ dump_stack_lvl
+ ctnetlink_dump_timeout
+ __ctnetlink_glue_build
+ ctnetlink_glue_build
+ __nfqnl_enqueue_packet
+ nf_queue
+ nf_hook_slow
+ ip_mc_output
+ ? __pfx_ip_finish_output
+ ip_send_skb
+ ? __pfx_dst_output
+ udp_send_skb
+ udp_sendmsg
+ ? __pfx_ip_generic_getfrag
+ sock_sendmsg
 
->   actions will be denied.  The ruleset then needs to handle both of these kind of
->   actions.  This is required for backward and forward compatibility (i.e. the
->   kernel and user space may not know each other's supported restrictions), hence
-> -the need to be explicit about the denied-by-default access rights.
-> +the need to be explicit about the denied-by-default access rights.  Also, ruleset > +will have network rules for specific ports, so it should handle 
-network actions.
+As the dmesg showed, the unconfirmed conntrack did call into
+ctnetlink_dump_timeout().  As a result, the value returned from
+nf_ct_expires() is always 0 in the case (because the `ct->timeout` got
+subtracted by current timestamp `nfct_time_stamp`[4]).
 
-This hunk can then be removed.
-
-
-> 
->   .. code-block:: c
-> 
-> @@ -62,6 +64,9 @@ the need to be explicit about the denied-by-default access rights.
->               LANDLOCK_ACCESS_FS_MAKE_SYM |
->               LANDLOCK_ACCESS_FS_REFER |
->               LANDLOCK_ACCESS_FS_TRUNCATE,
-> +        .handled_access_net =
-> +            LANDLOCK_ACCESS_NET_BIND_TCP |
-> +            LANDLOCK_ACCESS_NET_CONNECT_TCP,
->       };
-> 
->   Because we may not know on which kernel version an application will be
-> @@ -70,14 +75,18 @@ should try to protect users as much as possible whatever the kernel they are
->   using.  To avoid binary enforcement (i.e. either all security features or
->   none), we can leverage a dedicated Landlock command to get the current version
->   of the Landlock ABI and adapt the handled accesses.  Let's check if we should
-> -remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE``
-> -access rights, which are only supported starting with the second and third
-> -version of the ABI.
-> +remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE`` or
-> +network access rights, which are only supported starting with the second,
-> +third and fourth version of the ABI.
-> 
->   .. code-block:: c
-> 
->       int abi;
-> 
-> +    #define ACCESS_NET_BIND_CONNECT ( \
-> +        LANDLOCK_ACCESS_NET_BIND_TCP | \
-> +        LANDLOCK_ACCESS_NET_CONNECT_TCP)
-> +
->       abi = landlock_create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION);
->       if (abi < 0) {
->           /* Degrades gracefully if Landlock is not handled. */
-> @@ -92,6 +101,11 @@ version of the ABI.
->       case 2:
->           /* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
->           ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
-> +    case 3:
-> +        /* Removes network support for ABI < 4 */
-> +        ruleset_attr.handled_access_net &=
-> +            ~(LANDLOCK_ACCESS_NET_BIND_TCP |
-> +              LANDLOCK_ACCESS_NET_CONNECT_TCP);
->       }
-> 
->   This enables to create an inclusive ruleset that will contain our rules.
-> @@ -143,10 +157,23 @@ for the ruleset creation, by filtering access rights according to the Landlock
->   ABI version.  In this example, this is not required because all of the requested
->   ``allowed_access`` rights are already available in ABI 1.
-> 
-> -We now have a ruleset with one rule allowing read access to ``/usr`` while
-> -denying all other handled accesses for the filesystem.  The next step is to
-> -restrict the current thread from gaining more privileges (e.g. thanks to a SUID
-> -binary).
-> +For network access-control, we can add a set of rules that allow to use a port
-> +number for a specific action.
-
-It would be more useful to change this example with a TCP connection to 
-port 443 and explain that it will only allow to connect to HTTPS services.
-
-"…for a specific action: HTTPS connections."
-
-
-> +
-> +.. code-block:: c
-> +
-> +    struct landlock_net_service_attr net_service = {
-> +        .allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
-
-NET_CONNECT_TCP
-
-> +        .port = 8080,
-
-443
-
-
-> +    };
-> +
-> +    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> +                            &net_service, 0);
-> +
-> +The next step is to restrict the current thread from gaining more privileges
-> +(e.g. through a SUID binary). We now have a ruleset with the first rule allowing
-> +read access to ``/usr`` while denying all other handled accesses for the filesystem,
-> +and a second rule allowing TCP binding on port 8080.
-
-"allowing HTTPS connections."
-
-
-> 
->   .. code-block:: c
-> 
-> @@ -355,7 +382,7 @@ Access rights
->   -------------
-> 
->   .. kernel-doc:: include/uapi/linux/landlock.h
-> -    :identifiers: fs_access
-> +    :identifiers: fs_access net_access
-> 
->   Creating a new ruleset
->   ----------------------
-> @@ -374,6 +401,7 @@ Extending a ruleset
-> 
->   .. kernel-doc:: include/uapi/linux/landlock.h
->       :identifiers: landlock_rule_type landlock_path_beneath_attr
-> +                  landlock_net_service_attr
-> 
->   Enforcing a ruleset
->   -------------------
-> @@ -451,6 +479,12 @@ always allowed when using a kernel that only supports the first or second ABI.
->   Starting with the Landlock ABI version 3, it is now possible to securely control
->   truncation thanks to the new ``LANDLOCK_ACCESS_FS_TRUNCATE`` access right.
-> 
-> +Network support (ABI < 4)
-> +-------------------------
-> +
-> +Starting with the Landlock ABI version 4, it is now possible to restrict TCP
-> +bind and connect actions to only a set of allowed ports.
-> +
->   .. _kernel_support:
-> 
->   Kernel support
-> @@ -469,6 +503,11 @@ still enable it by adding ``lsm=landlock,[...]`` to
->   Documentation/admin-guide/kernel-parameters.rst thanks to the bootloader
->   configuration.
-> 
-> +To be able to explicitly allow TCP operations (e.g., adding a network rule with
-> +``LANDLOCK_ACCESS_NET_TCP_BIND``), the kernel must support TCP (``CONFIG_INET=y``).
-> +Otherwise, sys_landlock_add_rule() returns an ``EAFNOSUPPORT`` error, which can
-> +safely be ignored because this kind of TCP operation is already not possible.
-> +
->   Questions and answers
->   =====================
-> 
-> --
-> 2.25.1
-> 
+[4]: https://elixir.bootlin.com/linux/v6.3-rc6/source/include/net/netfilter/nf_conntrack.h#L296
+[5]: https://chromium.googlesource.com/chromiumos/third_party/kernel/+/refs/heads/merge/continuous/chromeos-kernelupstream-6.3-rc5
