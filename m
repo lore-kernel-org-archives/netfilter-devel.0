@@ -2,48 +2,36 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBA89C77B7E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Apr 2023 15:12:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C45EEC77B7A
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Apr 2023 16:59:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231346AbjDQPMH (ORCPT
+        id S229614AbjDQQ7r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Apr 2023 11:12:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34862 "EHLO
+        Mon, 17 Apr 2023 12:59:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229648AbjDQPLh (ORCPT
+        with ESMTP id S229485AbjDQQ7q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Apr 2023 11:11:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCD167EEB;
-        Mon, 17 Apr 2023 08:11:32 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A0AB626BF;
-        Mon, 17 Apr 2023 15:11:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48DF7C4339E;
-        Mon, 17 Apr 2023 15:11:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681744291;
-        bh=OrjAc+wbX0jpj9qzIPJ1s02xVVZRRz0IOup4npCXGEU=;
-        h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-        b=qVcQSXwfN2IOEPk6rPNi5wRCCpX/qu6w/oFUi+fyRZ+MGYdVUofHnNyfhknWASswD
-         1gEvYIKgzjuUj9biC5QuzS93vTh0u90AT+5pJ0J0M5JJwWYXfxeN+vmWo9rFfTNlHa
-         2UHwubuenTQkVklL+9c+GZNXtWrZu6/EzeSw5ee9/5U61n9DrWDH3EkMBEuBYyyrQ1
-         FZWCbtxL/Iv3CcRtBaz6N6Qoq5RHtAkXv3or6QqQH4ngJgjXXbHEbwz5Lw9j/B8OYp
-         m1uZy1zaxMUuHjIWatIH8hXR2qEDH4GE23y3Rr+HAzDLcSHRpGujgy+f83wz1fZGEx
-         1FkTAPvhongVg==
-From:   Simon Horman <horms@kernel.org>
-Date:   Mon, 17 Apr 2023 17:10:48 +0200
-Subject: [PATCH nf-next v3 4/4] ipvs: Correct spelling in comments
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230409-ipvs-cleanup-v3-4-5149ea34b0b9@kernel.org>
-References: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
-In-Reply-To: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Mon, 17 Apr 2023 12:59:46 -0400
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D2AEB4;
+        Mon, 17 Apr 2023 09:59:45 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id CEC681B28D;
+        Mon, 17 Apr 2023 19:59:41 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id B557B1B257;
+        Mon, 17 Apr 2023 19:59:41 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id A51913C043A;
+        Mon, 17 Apr 2023 19:59:36 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 33HGxZgk120021;
+        Mon, 17 Apr 2023 19:59:35 +0300
+Date:   Mon, 17 Apr 2023 19:59:35 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Simon Horman <horms@kernel.org>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
         "David S. Miller" <davem@davemloft.net>,
@@ -54,56 +42,74 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org,
         Horatiu Vultur <horatiu.vultur@microchip.com>
-X-Mailer: b4 0.12.2
+Subject: Re: [PATCH nf-next v3 0/4] ipvs: Cleanups for v6.4
+In-Reply-To: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
+Message-ID: <a873ffc-bcdf-934f-127a-80188e8b33e6@ssi.bg>
+References: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Correct some spelling errors flagged by codespell and found by inspection.
 
-Signed-off-by: Simon Horman <horms@kernel.org>
-Reviewed-by: Horatiu Vultur <horatiu.vultur@microchip.com>
----
-v3
-- Add Horatiu's Reviewed-by tag
-v2
-- No change
----
- include/net/ip_vs.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+	Hello,
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index a3adc246ee31..ff406ef4fd4a 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -584,7 +584,7 @@ struct ip_vs_conn {
- 	spinlock_t              lock;           /* lock for state transition */
- 	volatile __u16          state;          /* state info */
- 	volatile __u16          old_state;      /* old state, to be used for
--						 * state transition triggerd
-+						 * state transition triggered
- 						 * synchronization
- 						 */
- 	__u32			fwmark;		/* Fire wall mark from skb */
-@@ -635,7 +635,7 @@ struct ip_vs_service_user_kern {
- 	u16			protocol;
- 	union nf_inet_addr	addr;		/* virtual ip address */
- 	__be16			port;
--	u32			fwmark;		/* firwall mark of service */
-+	u32			fwmark;		/* firewall mark of service */
- 
- 	/* virtual service options */
- 	char			*sched_name;
-@@ -1036,7 +1036,7 @@ struct netns_ipvs {
- 	struct ipvs_sync_daemon_cfg	bcfg;	/* Backup Configuration */
- 	/* net name space ptr */
- 	struct net		*net;            /* Needed by timer routines */
--	/* Number of heterogeneous destinations, needed becaus heterogeneous
-+	/* Number of heterogeneous destinations, needed because heterogeneous
- 	 * are not supported when synchronization is enabled.
- 	 */
- 	unsigned int		mixed_address_family_dests;
+On Mon, 17 Apr 2023, Simon Horman wrote:
 
--- 
-2.30.2
+> Hi Julian,
+> 
+> this series aims to clean up IPVS in several ways without
+> implementing any functional changes, aside from removing
+> some debugging output.
+> 
+> Patch 1/4: Update width of source for ip_vs_sync_conn_options
+>            The operation is safe, use an annotation to describe it properly.
+> 
+> Patch 2/4: Consistently use array_size() in ip_vs_conn_init()
+>            It seems better to use helpers consistently.
+> 
+> Patch 3/4: Remove {Enter,Leave}Function
+>            These seem to be well past their use-by date.
+> 
+> Patch 4/4: Correct spelling in comments
+> 	   I can't spell. But codespell helps me these days.
+> 
+> All changes: compile tested only!
+> 
+> ---
+> Changes in v3:
+> - Patch 2/4: Correct division by 1024.
+>              It was applied to the wrong variable in v2.
+> - Add Horatiu's Reviewed-by tag.
+> 
+> Changes in v2:
+> - Patch 1/4: Correct spelling of 'conn' in subject.
+> - Patch 2/4: Restore division by 1024. It was lost on v1.
+> 
+> ---
+> Simon Horman (4):
+>       ipvs: Update width of source for ip_vs_sync_conn_options
+>       ipvs: Consistently use array_size() in ip_vs_conn_init()
+>       ipvs: Remove {Enter,Leave}Function
+>       ipvs: Correct spelling in comments
+
+	The patchset looks good to me, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+>  include/net/ip_vs.h             | 32 +++++----------------
+>  net/netfilter/ipvs/ip_vs_conn.c | 12 ++++----
+>  net/netfilter/ipvs/ip_vs_core.c |  8 ------
+>  net/netfilter/ipvs/ip_vs_ctl.c  | 26 +----------------
+>  net/netfilter/ipvs/ip_vs_sync.c |  7 +----
+>  net/netfilter/ipvs/ip_vs_xmit.c | 62 ++++++-----------------------------------
+>  6 files changed, 23 insertions(+), 124 deletions(-)
+> 
+> base-commit: 99676a5766412f3936c55b9d18565d248e5463ee
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
