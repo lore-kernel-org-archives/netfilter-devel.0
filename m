@@ -2,48 +2,47 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9A4C77B77
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Apr 2023 15:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33186C77B70
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Apr 2023 15:12:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230527AbjDQPLg (ORCPT
+        id S231153AbjDQPLh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Apr 2023 11:11:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34770 "EHLO
+        Mon, 17 Apr 2023 11:11:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231288AbjDQPL1 (ORCPT
+        with ESMTP id S231305AbjDQPLc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Apr 2023 11:11:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADBA57ED8;
-        Mon, 17 Apr 2023 08:11:20 -0700 (PDT)
+        Mon, 17 Apr 2023 11:11:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E04CFAF02;
+        Mon, 17 Apr 2023 08:11:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 37958621FB;
-        Mon, 17 Apr 2023 15:11:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2375C433EF;
-        Mon, 17 Apr 2023 15:11:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 473A3626A5;
+        Mon, 17 Apr 2023 15:11:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13DD4C4339E;
+        Mon, 17 Apr 2023 15:11:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681744279;
-        bh=P/QoeHAKZ55pby10GX/9bO6MW7hatN7F+qitfvgXnRE=;
-        h=From:Subject:Date:To:Cc:From;
-        b=FJPp7X4zdL6Va3+6pJ4YZPL7NSqwB631FyG24irKLeOIieUVWibRtdAGxhf4A+pF0
-         IRTNFSXMp0qeEroftwH601Z7yOYJoqIutvYYZNi+Ou1wEEC+pQwC9jBGDj6r3meO1x
-         JfqudXjZtQ5DKLmTnu6reDsGf2w3H1YpRniLFV6b+GE3kJzoNos1qbABVISUFYskNy
-         XZTuysiPKUV5GfBC0Z448JmJe5xswnctbPLFenRMxJeGTgqvq74uO2gWEo+JHEOIA8
-         ulq9i1clgvzfl+FEUfEPxP5AlO4F8Wo3NHWimpP+hBz30YZHz2LeBK4wf1d+But4UA
-         gLhQzFWnHFUSA==
+        s=k20201202; t=1681744285;
+        bh=jO4SH5SYNICEVsSAgMcpOLdT5eYDNjxqRtRYykVAw9k=;
+        h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+        b=Xa8XIpFrXoflrJBQKG7si4QG+0+RGUdY/4Ko5Z41kDhHwhPE2skB8OCOMXsC3R0st
+         hrN9wcf2uokQC/+eaP5Xt3j9/zzCO9Om6XZm1Bbe1YEm74QvOfm0V0qRFGDTGoZhvn
+         mImIMqsCoaKKlae40Rjexr+/KI+j+9MESb4pbiCSknd6svf2itMNfN//eAh7bWjjo2
+         NRObpOgXCqgCPaMYn8G8XTkGfs3NPHHe4RXmYqCUcBX1HIL3MeX4gFNr+lQ35MjTm/
+         ebZamN4OEoyFT6f/srItZ66jOLcqaGwoUTfR4M87xWypmCR/PZwibDL+3W+J6jYjC6
+         2h4A6BCartadQ==
 From:   Simon Horman <horms@kernel.org>
-Subject: [PATCH nf-next v3 0/4] ipvs: Cleanups for v6.4
-Date:   Mon, 17 Apr 2023 17:10:44 +0200
-Message-Id: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
+Date:   Mon, 17 Apr 2023 17:10:46 +0200
+Subject: [PATCH nf-next v3 2/4] ipvs: Consistently use array_size() in
+ ip_vs_conn_init()
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAHRhPWQC/32Nyw6CMBREf4V0bU25oIAr/8O46OMCjc2FtNBgC
- P9u052JcTkzOXN2FtBbDOxW7MxjtMFOlEJ1KpgeJQ3IrUmZgYBK1KLjdo6Ba4eS1pkr3ckLSGg
- quLKEKBmQKy9Jjwmi1blUzh57u2XHg1HPCbeFPdMw2rBM/p3dsczzb00sueBdq42GGnpU4v5CT
- +jOkx/yU4R/NCQaRK1N2RjZiPaLPo7jAywovkcFAQAA
+Message-Id: <20230409-ipvs-cleanup-v3-2-5149ea34b0b9@kernel.org>
+References: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
+In-Reply-To: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
 To:     Julian Anastasov <ja@ssi.bg>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -61,50 +60,65 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Julian,
+Consistently use array_size() to calculate the size of ip_vs_conn_tab
+in bytes.
 
-this series aims to clean up IPVS in several ways without
-implementing any functional changes, aside from removing
-some debugging output.
+Flagged by Coccinelle:
+ WARNING: array_size is already used (line 1498) to compute the same size
 
-Patch 1/4: Update width of source for ip_vs_sync_conn_options
-           The operation is safe, use an annotation to describe it properly.
+No functional change intended.
+Compile tested only.
 
-Patch 2/4: Consistently use array_size() in ip_vs_conn_init()
-           It seems better to use helpers consistently.
-
-Patch 3/4: Remove {Enter,Leave}Function
-           These seem to be well past their use-by date.
-
-Patch 4/4: Correct spelling in comments
-	   I can't spell. But codespell helps me these days.
-
-All changes: compile tested only!
-
+Signed-off-by: Simon Horman <horms@kernel.org>
+Reviewed-by: Horatiu Vultur <horatiu.vultur@microchip.com>
 ---
-Changes in v3:
-- Patch 2/4: Correct division by 1024.
-             It was applied to the wrong variable in v2.
-- Add Horatiu's Reviewed-by tag.
-
-Changes in v2:
-- Patch 1/4: Correct spelling of 'conn' in subject.
-- Patch 2/4: Restore division by 1024. It was lost on v1.
-
+v3
+- Correct division by 1024. It was applied to the wrong variable in v2.
+- Add Horatiu's Reviewed-by tag
+v2
+- Retain division by 1024, which was lost in v1
 ---
-Simon Horman (4):
-      ipvs: Update width of source for ip_vs_sync_conn_options
-      ipvs: Consistently use array_size() in ip_vs_conn_init()
-      ipvs: Remove {Enter,Leave}Function
-      ipvs: Correct spelling in comments
+ net/netfilter/ipvs/ip_vs_conn.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
- include/net/ip_vs.h             | 32 +++++----------------
- net/netfilter/ipvs/ip_vs_conn.c | 12 ++++----
- net/netfilter/ipvs/ip_vs_core.c |  8 ------
- net/netfilter/ipvs/ip_vs_ctl.c  | 26 +----------------
- net/netfilter/ipvs/ip_vs_sync.c |  7 +----
- net/netfilter/ipvs/ip_vs_xmit.c | 62 ++++++-----------------------------------
- 6 files changed, 23 insertions(+), 124 deletions(-)
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 13534e02346c..928e64653837 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1481,6 +1481,7 @@ void __net_exit ip_vs_conn_net_cleanup(struct netns_ipvs *ipvs)
+ 
+ int __init ip_vs_conn_init(void)
+ {
++	size_t tab_array_size;
+ 	int idx;
+ 
+ 	/* Compute size and mask */
+@@ -1494,8 +1495,9 @@ int __init ip_vs_conn_init(void)
+ 	/*
+ 	 * Allocate the connection hash table and initialize its list heads
+ 	 */
+-	ip_vs_conn_tab = vmalloc(array_size(ip_vs_conn_tab_size,
+-					    sizeof(*ip_vs_conn_tab)));
++	tab_array_size = array_size(ip_vs_conn_tab_size,
++				    sizeof(*ip_vs_conn_tab));
++	ip_vs_conn_tab = vmalloc(tab_array_size);
+ 	if (!ip_vs_conn_tab)
+ 		return -ENOMEM;
+ 
+@@ -1508,10 +1510,8 @@ int __init ip_vs_conn_init(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	pr_info("Connection hash table configured "
+-		"(size=%d, memory=%ldKbytes)\n",
+-		ip_vs_conn_tab_size,
+-		(long)(ip_vs_conn_tab_size*sizeof(*ip_vs_conn_tab))/1024);
++	pr_info("Connection hash table configured (size=%d, memory=%zdKbytes)\n",
++		ip_vs_conn_tab_size, tab_array_size / 1024);
+ 	IP_VS_DBG(0, "Each connection entry needs %zd bytes at least\n",
+ 		  sizeof(struct ip_vs_conn));
+ 
 
-base-commit: 99676a5766412f3936c55b9d18565d248e5463ee
+-- 
+2.30.2
 
