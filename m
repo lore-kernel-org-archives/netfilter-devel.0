@@ -2,179 +2,61 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E91A0C77B75
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Apr 2023 14:20:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C084C77B75
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Apr 2023 14:50:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232000AbjDROUb (ORCPT
+        id S230036AbjDROu4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Apr 2023 10:20:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57268 "EHLO
+        Tue, 18 Apr 2023 10:50:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231346AbjDROUa (ORCPT
+        with ESMTP id S229627AbjDROuz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Apr 2023 10:20:30 -0400
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A885A11A
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2023 07:20:28 -0700 (PDT)
-Received: by mail-wr1-x42c.google.com with SMTP id ffacd0b85a97d-2f40b891420so2497133f8f.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2023 07:20:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isovalent.com; s=google; t=1681827627; x=1684419627;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=VuHEI4+TYN1anXAPqDxS2fPdoIRrluy7efqigF6G4jY=;
-        b=a8202y0Mn0FDttxfKjZ9b8TD+yOdIlKKCP8hDkqORxrhiZngiNAJj2Xbl3DoN0mo5V
-         zYFVBjwBUpqGV36n/0s8LbHGfArMMsAsypyM9eS75r7/E+sSE65UveKarl2qo87rQqTW
-         iPyENYsaplAnU+zluM/1hKtDM80LMLHbkxsQFX2liOXWHCwmIrmoe7MT29RaGUhqG/+L
-         7L0DTSwQwJNC9IVcDZhtQru4tiUF9CU23qWUC+QuGfAFMXHZG+6AVNuL7dEaPEe7S7Ba
-         53gDbtti28TORF5eK5htEQisrry8sQnsmDIMoIvKJDIUnsnL5m26IO+X8kqtmE7QxGsQ
-         9TTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681827627; x=1684419627;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=VuHEI4+TYN1anXAPqDxS2fPdoIRrluy7efqigF6G4jY=;
-        b=MxbPLIIbsVz2rCqHhHaIIA7sh8LWSd2jF1xOOb++vmw+n0ixh8xSxbQpOkjjqa/l4N
-         0EToeix3Lx/EYEnGIAyypBoZPOjM9mtBe4IqAvFWcqmWDSjsi0CcqnnD2XBb/6mKUuBE
-         oEtgesuR9YGViy14VKjzJzHf5Ui/3xT8vPiYnzQja310kj2mOzeG9F3/TfjlVm1tts33
-         y6SS8Pq6RxCb+nG0jTCbFBdV1ukPvgMHF7gOxVieFX4HeNi2aeZvWUk7neIoxDq5BSki
-         gfH6/8N4ZOEoJa0VERmXNeitiOsZ8K+wKCHIzM0HTvwYp31fMTyqjPqBHh8XGgbsf2Bx
-         t8Ew==
-X-Gm-Message-State: AAQBX9dYEL4G6YdvywZSXUWhaIb6Rj7FOEEvMG9JKKDP0o1Q06YFJwU/
-        UphjhDvdIoUkUUWMBTXpFFkiFQ==
-X-Google-Smtp-Source: AKy350ZaYPJIf97UUNHFeyU40oc8eUloLnyRkw5TUjopZLdr4iuSDHdhZ+U9UIHOux+HY+D67/iAmA==
-X-Received: by 2002:a5d:404e:0:b0:2f7:725d:e7b4 with SMTP id w14-20020a5d404e000000b002f7725de7b4mr2408994wrp.18.1681827627055;
-        Tue, 18 Apr 2023 07:20:27 -0700 (PDT)
-Received: from ?IPV6:2a02:8011:e80c:0:192d:7ca1:96c2:5c9b? ([2a02:8011:e80c:0:192d:7ca1:96c2:5c9b])
-        by smtp.gmail.com with ESMTPSA id v11-20020a5d678b000000b002fa834e1c69sm5205346wru.52.2023.04.18.07.20.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 18 Apr 2023 07:20:26 -0700 (PDT)
-Message-ID: <b325e432-7652-96d3-055a-0107a88ea1fa@isovalent.com>
-Date:   Tue, 18 Apr 2023 15:20:26 +0100
+        Tue, 18 Apr 2023 10:50:55 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 288D83C02;
+        Tue, 18 Apr 2023 07:50:54 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 2/5] netfilter: nf_tables: Modify nla_memdup's flag to GFP_KERNEL_ACCOUNT
+Date:   Tue, 18 Apr 2023 16:50:45 +0200
+Message-Id: <20230418145048.67270-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230418145048.67270-1-pablo@netfilter.org>
+References: <20230418145048.67270-1-pablo@netfilter.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.0
-Subject: Re: [PATCH bpf-next v3 5/6] tools: bpftool: print netfilter link info
-Content-Language: en-GB
-To:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        dxu@dxuuu.xyz, qde@naccy.de
-References: <20230418131038.18054-1-fw@strlen.de>
- <20230418131038.18054-6-fw@strlen.de>
-From:   Quentin Monnet <quentin@isovalent.com>
-In-Reply-To: <20230418131038.18054-6-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-2023-04-18 15:10 UTC+0200 ~ Florian Westphal <fw@strlen.de>
-> Dump protocol family, hook and priority value:
-> $ bpftool link
-> 2: netfilter  prog 14
->         ip input prio -128
->         pids install(3264)
-> 5: netfilter  prog 14
->         ip6 forward prio 21
->         pids a.out(3387)
-> 9: netfilter  prog 14
->         ip prerouting prio 123
->         pids a.out(5700)
-> 10: netfilter  prog 14
->         ip input prio 21
->         pids test2(5701)
-> 
-> v2: Quentin Monnet suggested to also add 'bpftool net' support:
-> 
-> $ bpftool net
-> xdp:
-> 
-> tc:
-> 
-> flow_dissector:
-> 
-> netfilter:
-> 
->         ip prerouting prio 21 prog_id 14
->         ip input prio -128 prog_id 14
->         ip input prio 21 prog_id 14
->         ip forward prio 21 prog_id 14
->         ip output prio 21 prog_id 14
->         ip postrouting prio 21 prog_id 14
-> 
-> 'bpftool net' only dumps netfilter link type.  netfilter links are sorted by
-> protocol family, hook and priority.
-> 
-> Suggested-by: Quentin Monnet <quentin@isovalent.com>
-> Link: https://lore.kernel.org/bpf/eeeaac99-9053-90c2-aa33-cc1ecb1ae9ca@isovalent.com/
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  tools/bpf/bpftool/link.c       |  83 ++++++++++++++++++++++++++
->  tools/bpf/bpftool/main.h       |   3 +
->  tools/bpf/bpftool/net.c        | 105 +++++++++++++++++++++++++++++++++
->  tools/include/uapi/linux/bpf.h |  15 +++++
->  tools/lib/bpf/libbpf.c         |   2 +
->  5 files changed, 208 insertions(+)
-> 
+From: Chen Aotian <chenaotian2@163.com>
 
-> diff --git a/tools/bpf/bpftool/net.c b/tools/bpf/bpftool/net.c
-> index c40e44c938ae..61710cc63ef7 100644
-> --- a/tools/bpf/bpftool/net.c
-> +++ b/tools/bpf/bpftool/net.c
-> @@ -647,6 +647,107 @@ static int do_detach(int argc, char **argv)
+For memory alloc that store user data from nla[NFTA_OBJ_USERDATA],
+use GFP_KERNEL_ACCOUNT is more suitable.
 
-> +static void show_link_netfilter(void)
-> +{
-> +	unsigned int nf_link_len = 0, nf_link_count = 0;
-> +	struct bpf_link_info *nf_link_info = NULL;
-> +	__u32 id = 0;
-> +
-> +	while (true) {
-> +		struct bpf_link_info info;
-> +		int fd, err;
-> +		__u32 len;
-> +
-> +		err = bpf_link_get_next_id(id, &id);
-> +		if (err) {
-> +			if (errno == ENOENT)
-> +				break;
-> +			p_err("can't get next link: %s (id %d)", strerror(errno), id);
-> +			break;
-> +		}
-> +
-> +		fd = bpf_link_get_fd_by_id(id);
-> +		if (fd < 0) {
-> +			p_err("can't get link by id (%u): %s", id, strerror(errno));
-> +			continue;
-> +		}
-> +
-> +		memset(&info, 0, sizeof(info));
-> +		len = sizeof(info);
-> +
-> +		err = bpf_link_get_info_by_fd(fd, &info, &len);
-> +
-> +		close(fd);
-> +
-> +		if (err) {
-> +			p_err("can't get link info for fd %d: %s", fd, strerror(errno));
-> +			continue;
-> +		}
-> +
-> +		if (info.type != BPF_LINK_TYPE_NETFILTER)
-> +			continue;
-> +
-> +		if (nf_link_count >= nf_link_len) {
-> +			struct bpf_link_info *expand;
-> +
-> +			if (nf_link_count > (INT_MAX / sizeof(info))) {
-> +				fprintf(stderr, "link count %d\n", nf_link_count);
+Fixes: 33758c891479 ("memcg: enable accounting for nft objects")
+Signed-off-by: Chen Aotian <chenaotian2@163.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The only nit I have is that we could use p_err() here, and have a more
-descriptive message (letting user know that we've reached a limit).
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 6004d4b24451..cd52109e674a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7052,7 +7052,7 @@ static int nf_tables_newobj(struct sk_buff *skb, const struct nfnl_info *info,
+ 	}
+ 
+ 	if (nla[NFTA_OBJ_USERDATA]) {
+-		obj->udata = nla_memdup(nla[NFTA_OBJ_USERDATA], GFP_KERNEL);
++		obj->udata = nla_memdup(nla[NFTA_OBJ_USERDATA], GFP_KERNEL_ACCOUNT);
+ 		if (obj->udata == NULL)
+ 			goto err_userdata;
+ 
+-- 
+2.30.2
 
-Looks all good otherwise. Thanks!
-
-Reviewed-by: Quentin Monnet <quentin@isovalent.com>
