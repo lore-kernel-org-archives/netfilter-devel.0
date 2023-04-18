@@ -2,114 +2,198 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C45EEC77B7A
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Apr 2023 16:59:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90856C77B75
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Apr 2023 07:19:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbjDQQ7r (ORCPT
+        id S231232AbjDRHTu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Apr 2023 12:59:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36186 "EHLO
+        Tue, 18 Apr 2023 03:19:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229485AbjDQQ7q (ORCPT
+        with ESMTP id S231299AbjDRHTr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Apr 2023 12:59:46 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D2AEB4;
-        Mon, 17 Apr 2023 09:59:45 -0700 (PDT)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id CEC681B28D;
-        Mon, 17 Apr 2023 19:59:41 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id B557B1B257;
-        Mon, 17 Apr 2023 19:59:41 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id A51913C043A;
-        Mon, 17 Apr 2023 19:59:36 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 33HGxZgk120021;
-        Mon, 17 Apr 2023 19:59:35 +0300
-Date:   Mon, 17 Apr 2023 19:59:35 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Simon Horman <horms@kernel.org>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, lvs-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org,
-        Horatiu Vultur <horatiu.vultur@microchip.com>
-Subject: Re: [PATCH nf-next v3 0/4] ipvs: Cleanups for v6.4
-In-Reply-To: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
-Message-ID: <a873ffc-bcdf-934f-127a-80188e8b33e6@ssi.bg>
-References: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org>
+        Tue, 18 Apr 2023 03:19:47 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 47DA91700
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2023 00:19:44 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v2] netfilter: nf_tables: validate catch-all set elements
+Date:   Tue, 18 Apr 2023 09:19:40 +0200
+Message-Id: <20230418071940.29987-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+catch-all set element might jump/goto to chain that uses expressions
+that require validation.
 
-	Hello,
+Fixes: aaa31047a6d2 ("netfilter: nftables: add catch-all set element support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: pass nft_set_elem object to nft_setelem_validate()
 
-On Mon, 17 Apr 2023, Simon Horman wrote:
+ include/net/netfilter/nf_tables.h |  4 ++
+ net/netfilter/nf_tables_api.c     | 64 ++++++++++++++++++++++++++++---
+ net/netfilter/nft_lookup.c        | 36 ++---------------
+ 3 files changed, 66 insertions(+), 38 deletions(-)
 
-> Hi Julian,
-> 
-> this series aims to clean up IPVS in several ways without
-> implementing any functional changes, aside from removing
-> some debugging output.
-> 
-> Patch 1/4: Update width of source for ip_vs_sync_conn_options
->            The operation is safe, use an annotation to describe it properly.
-> 
-> Patch 2/4: Consistently use array_size() in ip_vs_conn_init()
->            It seems better to use helpers consistently.
-> 
-> Patch 3/4: Remove {Enter,Leave}Function
->            These seem to be well past their use-by date.
-> 
-> Patch 4/4: Correct spelling in comments
-> 	   I can't spell. But codespell helps me these days.
-> 
-> All changes: compile tested only!
-> 
-> ---
-> Changes in v3:
-> - Patch 2/4: Correct division by 1024.
->              It was applied to the wrong variable in v2.
-> - Add Horatiu's Reviewed-by tag.
-> 
-> Changes in v2:
-> - Patch 1/4: Correct spelling of 'conn' in subject.
-> - Patch 2/4: Restore division by 1024. It was lost on v1.
-> 
-> ---
-> Simon Horman (4):
->       ipvs: Update width of source for ip_vs_sync_conn_options
->       ipvs: Consistently use array_size() in ip_vs_conn_init()
->       ipvs: Remove {Enter,Leave}Function
->       ipvs: Correct spelling in comments
-
-	The patchset looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
->  include/net/ip_vs.h             | 32 +++++----------------
->  net/netfilter/ipvs/ip_vs_conn.c | 12 ++++----
->  net/netfilter/ipvs/ip_vs_core.c |  8 ------
->  net/netfilter/ipvs/ip_vs_ctl.c  | 26 +----------------
->  net/netfilter/ipvs/ip_vs_sync.c |  7 +----
->  net/netfilter/ipvs/ip_vs_xmit.c | 62 ++++++-----------------------------------
->  6 files changed, 23 insertions(+), 124 deletions(-)
-> 
-> base-commit: 99676a5766412f3936c55b9d18565d248e5463ee
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9430128aae99..1b8e305bb54a 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1085,6 +1085,10 @@ struct nft_chain {
+ };
+ 
+ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain);
++int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
++			 const struct nft_set_iter *iter,
++			 struct nft_set_elem *elem);
++int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set);
+ 
+ enum nft_chain_types {
+ 	NFT_CHAIN_T_DEFAULT = 0,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index cd52109e674a..98043e83af71 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3447,6 +3447,64 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 	return 0;
+ }
+ 
++int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
++			 const struct nft_set_iter *iter,
++			 struct nft_set_elem *elem)
++{
++	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
++	struct nft_ctx *pctx = (struct nft_ctx *)ctx;
++	const struct nft_data *data;
++	int err;
++
++	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
++	    *nft_set_ext_flags(ext) & NFT_SET_ELEM_INTERVAL_END)
++		return 0;
++
++	data = nft_set_ext_data(ext);
++	switch (data->verdict.code) {
++	case NFT_JUMP:
++	case NFT_GOTO:
++		pctx->level++;
++		err = nft_chain_validate(ctx, data->verdict.chain);
++		if (err < 0)
++			return err;
++		pctx->level--;
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++struct nft_set_elem_catchall {
++	struct list_head	list;
++	struct rcu_head		rcu;
++	void			*elem;
++};
++
++int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set)
++{
++	u8 genmask = nft_genmask_next(ctx->net);
++	struct nft_set_elem_catchall *catchall;
++	struct nft_set_elem elem;
++	struct nft_set_ext *ext;
++	int ret = 0;
++
++	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
++		ext = nft_set_elem_ext(set, catchall->elem);
++		if (!nft_set_elem_active(ext, genmask))
++			continue;
++
++		elem.priv = catchall->elem;
++		ret = nft_setelem_validate(ctx, set, NULL, &elem);
++		if (ret < 0)
++			return ret;
++	}
++
++	return ret;
++}
++
+ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
+ 					     const struct nft_chain *chain,
+ 					     const struct nlattr *nla);
+@@ -4759,12 +4817,6 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
+ 	return err;
+ }
+ 
+-struct nft_set_elem_catchall {
+-	struct list_head	list;
+-	struct rcu_head		rcu;
+-	void			*elem;
+-};
+-
+ static void nft_set_catchall_destroy(const struct nft_ctx *ctx,
+ 				     struct nft_set *set)
+ {
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index cae5a6724163..cecf8ab90e58 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -199,37 +199,6 @@ static int nft_lookup_dump(struct sk_buff *skb,
+ 	return -1;
+ }
+ 
+-static int nft_lookup_validate_setelem(const struct nft_ctx *ctx,
+-				       struct nft_set *set,
+-				       const struct nft_set_iter *iter,
+-				       struct nft_set_elem *elem)
+-{
+-	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+-	struct nft_ctx *pctx = (struct nft_ctx *)ctx;
+-	const struct nft_data *data;
+-	int err;
+-
+-	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
+-	    *nft_set_ext_flags(ext) & NFT_SET_ELEM_INTERVAL_END)
+-		return 0;
+-
+-	data = nft_set_ext_data(ext);
+-	switch (data->verdict.code) {
+-	case NFT_JUMP:
+-	case NFT_GOTO:
+-		pctx->level++;
+-		err = nft_chain_validate(ctx, data->verdict.chain);
+-		if (err < 0)
+-			return err;
+-		pctx->level--;
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	return 0;
+-}
+-
+ static int nft_lookup_validate(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr,
+ 			       const struct nft_data **d)
+@@ -245,9 +214,12 @@ static int nft_lookup_validate(const struct nft_ctx *ctx,
+ 	iter.skip	= 0;
+ 	iter.count	= 0;
+ 	iter.err	= 0;
+-	iter.fn		= nft_lookup_validate_setelem;
++	iter.fn		= nft_setelem_validate;
+ 
+ 	priv->set->ops->walk(ctx, priv->set, &iter);
++	if (!iter.err)
++		iter.err = nft_set_catchall_validate(ctx, priv->set);
++
+ 	if (iter.err < 0)
+ 		return iter.err;
+ 
+-- 
+2.30.2
 
