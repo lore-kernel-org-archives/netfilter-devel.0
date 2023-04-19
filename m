@@ -2,101 +2,73 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D21BC77B73
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 05:57:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95E2FC77B7A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 06:17:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231238AbjDSF5v (ORCPT
+        id S231787AbjDSGRa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Apr 2023 01:57:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51568 "EHLO
+        Wed, 19 Apr 2023 02:17:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230153AbjDSF5u (ORCPT
+        with ESMTP id S231687AbjDSGR2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2023 01:57:50 -0400
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F1AF358A;
-        Tue, 18 Apr 2023 22:57:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1681883869; x=1713419869;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=wW4NhzeAjoIIRZByQbApPxvAShLZ2TJXmk9n+CDaUQQ=;
-  b=jHhfJUDIkEdoQj3s4n6cUEC7m/gE0zWD9ixFfFlItbJVG8mLccyepMo2
-   nn4iln3GMEZOM2Vd0LC+ndlZTqGdSiZBkKKWCOGaaRLPkWsSLJY7Klnkq
-   dNif3Xxxx89ZV+dekCpx5ywCfdFpDsSqUKUiDRORrbJF8NDeDv6US0rAZ
-   YC+WcN8MYPeEiu/ZN7JdlJ4/WO9A9fSg6uEvv93EGTKtEmLC63a3OMDTL
-   4DNiyOQcDVikU2gaQ4/qauJJBufKsFuy0sH/yS1bq6vOlogShKfKBM69z
-   e45sNYLoUK1pUjFonVlHqCtx4N9r4HjdejXHAJFLVyvsQwiZSRiJKdyjJ
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10684"; a="408268070"
-X-IronPort-AV: E=Sophos;i="5.99,208,1677571200"; 
-   d="scan'208";a="408268070"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Apr 2023 22:57:35 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10684"; a="760618042"
-X-IronPort-AV: E=Sophos;i="5.99,208,1677571200"; 
-   d="scan'208";a="760618042"
-Received: from lkp-server01.sh.intel.com (HELO b613635ddfff) ([10.239.97.150])
-  by fmsmga004.fm.intel.com with ESMTP; 18 Apr 2023 22:57:32 -0700
-Received: from kbuild by b613635ddfff with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pp0ov-000ead-06;
-        Wed, 19 Apr 2023 05:57:33 +0000
-Date:   Wed, 19 Apr 2023 13:57:09 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org
-Cc:     oe-kbuild-all@lists.linux.dev, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, dxu@dxuuu.xyz, qde@naccy.de,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH bpf-next v3 1/6] bpf: add bpf_link support for
- BPF_NETFILTER programs
-Message-ID: <202304191332.9uIkDScp-lkp@intel.com>
-References: <20230418131038.18054-2-fw@strlen.de>
+        Wed, 19 Apr 2023 02:17:28 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 714204200
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2023 23:17:26 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pp187-0000u3-Bu; Wed, 19 Apr 2023 08:17:23 +0200
+Date:   Wed, 19 Apr 2023 08:17:23 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
+        stgraber@stgraber.org
+Subject: Re: [PATCH nf] netfilter: conntrack: restore IPS_CONFIRMED out of
+ nf_conntrack_hash_check_insert()
+Message-ID: <20230419061723.GF21058@breakpoint.cc>
+References: <20230418214024.14653-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-In-Reply-To: <20230418131038.18054-2-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230418214024.14653-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
+> consolidates IPS_CONFIRMED bit set in nf_conntrack_hash_check_insert().
+> However, this breaks ctnetlink:
+> 
+>  # conntrack -I -p tcp --timeout 123 --src 1.2.3.4 --dst 5.6.7.8 --state ESTABLISHED --sport 1 --dport 4 -u SEEN_REPLY
+>  conntrack v1.4.6 (conntrack-tools): Operation failed: Device or resource busy
+> 
+> This is a partial revert of the aforementioned commit.
+> 
+> Fixes: e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
+> Reported-by: Stéphane Graber <stgraber@stgraber.org>
+> Tested-by: Stéphane Graber <stgraber@stgraber.org>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nf_conntrack_bpf.c     | 1 +
+>  net/netfilter/nf_conntrack_core.c    | 1 -
+>  net/netfilter/nf_conntrack_netlink.c | 3 +++
+>  3 files changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index bfc3aaa2c872..d3ee18854698 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -2316,6 +2316,9 @@ ctnetlink_create_conntrack(struct net *net,
+>  	nfct_seqadj_ext_add(ct);
+>  	nfct_synproxy_ext_add(ct);
+>  
+> +	/* we must add conntrack extensions before confirmation. */
+> +	ct->status |= IPS_CONFIRMED;
+> +
 
-kernel test robot noticed the following build errors:
-
-[auto build test ERROR on bpf-next/master]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/bpf-add-bpf_link-support-for-BPF_NETFILTER-programs/20230418-211350
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git master
-patch link:    https://lore.kernel.org/r/20230418131038.18054-2-fw%40strlen.de
-patch subject: [PATCH bpf-next v3 1/6] bpf: add bpf_link support for BPF_NETFILTER programs
-config: arm-allmodconfig (https://download.01.org/0day-ci/archive/20230419/202304191332.9uIkDScp-lkp@intel.com/config)
-compiler: arm-linux-gnueabi-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/13cdccc8c376b453ae0ca2280ec22baa6210b450
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Florian-Westphal/bpf-add-bpf_link-support-for-BPF_NETFILTER-programs/20230418-211350
-        git checkout 13cdccc8c376b453ae0ca2280ec22baa6210b450
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm SHELL=/bin/bash
-
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202304191332.9uIkDScp-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   arm-linux-gnueabi-ld: net/netfilter/nf_bpf_link.o: in function `bpf_nf_link_release':
->> nf_bpf_link.c:(.text+0x174): undefined reference to `__bad_cmpxchg'
-   arm-linux-gnueabi-ld: net/netfilter/nf_bpf_link.o: in function `bpf_nf_link_detach':
-   nf_bpf_link.c:(.text+0x200): undefined reference to `__bad_cmpxchg'
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+I'd guess that these 2 lines are the only part that is needed, but up
+to you.
