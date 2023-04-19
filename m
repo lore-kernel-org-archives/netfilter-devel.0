@@ -2,90 +2,117 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E37B5C77B73
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 04:00:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27527C77B73
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 05:15:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231215AbjDSEAX (ORCPT
+        id S231208AbjDSFPk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Apr 2023 00:00:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43808 "EHLO
+        Wed, 19 Apr 2023 01:15:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229470AbjDSEAW (ORCPT
+        with ESMTP id S231204AbjDSFPi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2023 00:00:22 -0400
+        Wed, 19 Apr 2023 01:15:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 656CCBD;
-        Tue, 18 Apr 2023 21:00:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A178730DC
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2023 22:15:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0039063AD8;
-        Wed, 19 Apr 2023 04:00:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 5552FC433D2;
-        Wed, 19 Apr 2023 04:00:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A3946305A
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2023 05:15:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2195FC433EF;
+        Wed, 19 Apr 2023 05:15:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681876820;
-        bh=vgEhT3DN6ynf6R4F3xtCOzrOmgEJfNf7Nr38ap2Fl+o=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=d4L49imguao0Ki9hRpAYBLGK4wkWkJSjSQeVVkziJXv1fuohiotzl5fRZ1tejHlpA
-         8IzA9Ua+zrZ7OcZepQJMs4f8BG1Z/oQm/kcJt2ABsldYrZTsLtE4xrBTbgRzwTVhlK
-         cluPIc9jcS/T6Aii6ke02wEy0lIE1pFESdqUSf+MeKjtgNCHbT1up3gwV6RRMONkb/
-         vK7P2nO33D/ZhHrs7JbtrDuxkx2oILOu26tvU7I7y0UU4c25kWa1BTpijGLutKePDj
-         tU+hhJIc4Odq4FWifpCVTv34q/ZhgQBZGc8A90WzxjpoTi96eblgybyeWPVLcOSRQQ
-         q4vAmvTEqggxA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 3800AE270E4;
-        Wed, 19 Apr 2023 04:00:20 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        s=k20201202; t=1681881336;
+        bh=sjko2/KPncsLa0CgnXSbu+s/uXxgzMKeweEBTNhyiUU=;
+        h=From:To:Cc:Subject:Date:From;
+        b=aSaVAlbjJRJdC9SnVwQ53mfL2LZx5s+k6kEPW/7QcI4elkDok73CPBZOO/tlk9b5d
+         nyVfMBIhyoSTVsRW9WUvckhGLnBAPqfSXYzZC3qf6R74wAV4CojJxl5b9CYXz86y9r
+         PZLVxnGhjillgPIsnZ6bGPD6zUINFPKk0Rx6Y+b0n5ubXSkXx8SPtepsC/FN7Q4F8O
+         WvztBpwRaLoKsl92hIxZ79rSsYTjf9eZ4cXlJWmrCWoEoQmZYiRRKg4+ipRa2RySdL
+         P5rV8Kt6U4SqX+hcm13AjZYP3D2ZdVhvoRUrm1cTLAzO9Su8iPGLF09VoDrLILGqcy
+         5fKeYRVHErmHw==
+From:   Tzung-Bi Shih <tzungbi@kernel.org>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        tzungbi@kernel.org, jiejiang@chromium.org,
+        jasongustaman@chromium.org, garrick@chromium.org
+Subject: [PATCH v3] netfilter: conntrack: fix wrong ct->timeout value
+Date:   Wed, 19 Apr 2023 13:15:26 +0800
+Message-ID: <20230419051526.3170053-1-tzungbi@kernel.org>
+X-Mailer: git-send-email 2.40.0.396.gfff15efe05-goog
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: br_netfilter: fix recent physdev match
- breakage
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <168187682022.7147.4357332163358366183.git-patchwork-notify@kernel.org>
-Date:   Wed, 19 Apr 2023 04:00:20 +0000
-References: <20230418145048.67270-2-pablo@netfilter.org>
-In-Reply-To: <20230418145048.67270-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+(struct nf_conn)->timeout is an interval before the conntrack
+confirmed.  After confirmed, it becomes a timestamp[1].
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+It is observed that timeout of an unconfirmed conntrack:
+- Set by calling ctnetlink_change_timeout().  As a result,
+  `nfct_time_stamp` was wrongly added to `ct->timeout` twice[2].
+- Get by calling ctnetlink_dump_timeout().  As a result,
+  `nfct_time_stamp` was wrongly subtracted[3].
 
-On Tue, 18 Apr 2023 16:50:44 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> Recent attempt to ensure PREROUTING hook is executed again when a
-> decrypted ipsec packet received on a bridge passes through the network
-> stack a second time broke the physdev match in INPUT hook.
-> 
-> We can't discard the nf_bridge info strct from sabotage_in hook, as
-> this is needed by the physdev match.
-> 
-> [...]
+Separate the 2 cases in:
+- Setting `ct->timeout` in __nf_ct_set_timeout().
+- Getting `ct->timeout` in ctnetlink_dump_timeout().
 
-Here is the summary with links:
-  - [net,1/5] netfilter: br_netfilter: fix recent physdev match breakage
-    https://git.kernel.org/netdev/net/c/94623f579ce3
-  - [net,2/5] netfilter: nf_tables: Modify nla_memdup's flag to GFP_KERNEL_ACCOUNT
-    https://git.kernel.org/netdev/net/c/af0acf22aea3
-  - [net,3/5] netfilter: nf_tables: fix ifdef to also consider nf_tables=m
-    https://git.kernel.org/netdev/net/c/c55c0e91c813
-  - [net,4/5] netfilter: nf_tables: validate catch-all set elements
-    https://git.kernel.org/netdev/net/c/d46fc894147c
-  - [net,5/5] netfilter: nf_tables: tighten netlink attribute requirements for catch-all elements
-    https://git.kernel.org/netdev/net/c/d4eb7e39929a
+[1]: https://elixir.bootlin.com/linux/v6.3-rc5/source/net/netfilter/nf_conntrack_core.c#L1257
+[2]: https://elixir.bootlin.com/linux/v6.3-rc5/source/include/net/netfilter/nf_conntrack_core.h#L92
+[3]: https://elixir.bootlin.com/linux/v6.3-rc5/source/include/net/netfilter/nf_conntrack.h#L296
 
-You are awesome, thank you!
+Signed-off-by: Tzung-Bi Shih <tzungbi@kernel.org>
+---
+Changes from v2 (https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230410093454.853575-1-tzungbi@kernel.org/):
+- Revert to v1 and apply partial changes per discussion thread in v1.
+- Don't use WRITE_ONCE() and READ_ONCE() on unconfirmed conntrack.
+
+Changes from v1 (https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230410060935.253503-1-tzungbi@kernel.org/):
+- Just skip updating if the conntrack is unconfirmed per review comment.
+
+ include/net/netfilter/nf_conntrack_core.h | 6 +++++-
+ net/netfilter/nf_conntrack_netlink.c      | 7 ++++++-
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 71d1269fe4d4..3384859a8921 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -89,7 +89,11 @@ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
+ {
+ 	if (timeout > INT_MAX)
+ 		timeout = INT_MAX;
+-	WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
++
++	if (nf_ct_is_confirmed(ct))
++		WRITE_ONCE(ct->timeout, nfct_time_stamp + (u32)timeout);
++	else
++		ct->timeout = (u32)timeout;
+ }
+ 
+ int __nf_ct_change_timeout(struct nf_conn *ct, u64 cta_timeout);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index fbc47e4b7bc3..9e0fd72dc166 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -176,7 +176,12 @@ static int ctnetlink_dump_status(struct sk_buff *skb, const struct nf_conn *ct)
+ static int ctnetlink_dump_timeout(struct sk_buff *skb, const struct nf_conn *ct,
+ 				  bool skip_zero)
+ {
+-	long timeout = nf_ct_expires(ct) / HZ;
++	long timeout;
++
++	if (nf_ct_is_confirmed(ct))
++		timeout = nf_ct_expires(ct) / HZ;
++	else
++		timeout = ct->timeout / HZ;
+ 
+ 	if (skip_zero && timeout == 0)
+ 		return 0;
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.40.0.396.gfff15efe05-goog
 
