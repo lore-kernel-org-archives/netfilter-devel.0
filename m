@@ -2,73 +2,50 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95E2FC77B7A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 06:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47586C6FD18
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 07:41:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231787AbjDSGRa (ORCPT
+        id S232430AbjDSHlw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Apr 2023 02:17:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60350 "EHLO
+        Wed, 19 Apr 2023 03:41:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231687AbjDSGR2 (ORCPT
+        with ESMTP id S232431AbjDSHlL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2023 02:17:28 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 714204200
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2023 23:17:26 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pp187-0000u3-Bu; Wed, 19 Apr 2023 08:17:23 +0200
-Date:   Wed, 19 Apr 2023 08:17:23 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
-        stgraber@stgraber.org
-Subject: Re: [PATCH nf] netfilter: conntrack: restore IPS_CONFIRMED out of
- nf_conntrack_hash_check_insert()
-Message-ID: <20230419061723.GF21058@breakpoint.cc>
-References: <20230418214024.14653-1-pablo@netfilter.org>
+        Wed, 19 Apr 2023 03:41:11 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0E95B9010
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2023 00:40:44 -0700 (PDT)
+Date:   Wed, 19 Apr 2023 09:40:41 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Tzung-Bi Shih <tzungbi@kernel.org>
+Cc:     kadlec@netfilter.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        jiejiang@chromium.org, jasongustaman@chromium.org,
+        garrick@chromium.org
+Subject: Re: [PATCH v3] netfilter: conntrack: fix wrong ct->timeout value
+Message-ID: <ZD+a+R6+OgXm4QFZ@calendula>
+References: <20230419051526.3170053-1-tzungbi@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230418214024.14653-1-pablo@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230419051526.3170053-1-tzungbi@kernel.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
-> consolidates IPS_CONFIRMED bit set in nf_conntrack_hash_check_insert().
-> However, this breaks ctnetlink:
+On Wed, Apr 19, 2023 at 01:15:26PM +0800, Tzung-Bi Shih wrote:
+> (struct nf_conn)->timeout is an interval before the conntrack
+> confirmed.  After confirmed, it becomes a timestamp[1].
 > 
->  # conntrack -I -p tcp --timeout 123 --src 1.2.3.4 --dst 5.6.7.8 --state ESTABLISHED --sport 1 --dport 4 -u SEEN_REPLY
->  conntrack v1.4.6 (conntrack-tools): Operation failed: Device or resource busy
+> It is observed that timeout of an unconfirmed conntrack:
+> - Set by calling ctnetlink_change_timeout().  As a result,
+>   `nfct_time_stamp` was wrongly added to `ct->timeout` twice[2].
+> - Get by calling ctnetlink_dump_timeout().  As a result,
+>   `nfct_time_stamp` was wrongly subtracted[3].
 > 
-> This is a partial revert of the aforementioned commit.
-> 
-> Fixes: e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
-> Reported-by: Stéphane Graber <stgraber@stgraber.org>
-> Tested-by: Stéphane Graber <stgraber@stgraber.org>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_conntrack_bpf.c     | 1 +
->  net/netfilter/nf_conntrack_core.c    | 1 -
->  net/netfilter/nf_conntrack_netlink.c | 3 +++
->  3 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index bfc3aaa2c872..d3ee18854698 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -2316,6 +2316,9 @@ ctnetlink_create_conntrack(struct net *net,
->  	nfct_seqadj_ext_add(ct);
->  	nfct_synproxy_ext_add(ct);
->  
-> +	/* we must add conntrack extensions before confirmation. */
-> +	ct->status |= IPS_CONFIRMED;
-> +
+> Separate the 2 cases in:
+> - Setting `ct->timeout` in __nf_ct_set_timeout().
+> - Getting `ct->timeout` in ctnetlink_dump_timeout().
 
-I'd guess that these 2 lines are the only part that is needed, but up
-to you.
+Applied, thanks
