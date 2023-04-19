@@ -2,72 +2,84 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A3A1C6FD18
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 07:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FC2EC77B73
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Apr 2023 09:20:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232508AbjDSHmX (ORCPT
+        id S232455AbjDSJUg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Apr 2023 03:42:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59474 "EHLO
+        Wed, 19 Apr 2023 05:20:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232511AbjDSHlg (ORCPT
+        with ESMTP id S232284AbjDSJUg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2023 03:41:36 -0400
+        Wed, 19 Apr 2023 05:20:36 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8F3D46A56
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2023 00:41:22 -0700 (PDT)
-Date:   Wed, 19 Apr 2023 09:41:18 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 44662192
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2023 02:20:35 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org, stgraber@stgraber.org
-Subject: Re: [PATCH nf] netfilter: conntrack: restore IPS_CONFIRMED out of
- nf_conntrack_hash_check_insert()
-Message-ID: <ZD+bHjZ67rs5+CyY@calendula>
-References: <20230418214024.14653-1-pablo@netfilter.org>
- <20230419061723.GF21058@breakpoint.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v3 2/5] netfilter: nf_tables: rename function to destroy hook list
+Date:   Wed, 19 Apr 2023 11:20:26 +0200
+Message-Id: <20230419092029.68913-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230419092029.68913-1-pablo@netfilter.org>
+References: <20230419092029.68913-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230419061723.GF21058@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Apr 19, 2023 at 08:17:23AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
-> > consolidates IPS_CONFIRMED bit set in nf_conntrack_hash_check_insert().
-> > However, this breaks ctnetlink:
-> > 
-> >  # conntrack -I -p tcp --timeout 123 --src 1.2.3.4 --dst 5.6.7.8 --state ESTABLISHED --sport 1 --dport 4 -u SEEN_REPLY
-> >  conntrack v1.4.6 (conntrack-tools): Operation failed: Device or resource busy
-> > 
-> > This is a partial revert of the aforementioned commit.
-> > 
-> > Fixes: e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
-> > Reported-by: Stéphane Graber <stgraber@stgraber.org>
-> > Tested-by: Stéphane Graber <stgraber@stgraber.org>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  net/netfilter/nf_conntrack_bpf.c     | 1 +
-> >  net/netfilter/nf_conntrack_core.c    | 1 -
-> >  net/netfilter/nf_conntrack_netlink.c | 3 +++
-> >  3 files changed, 4 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> > index bfc3aaa2c872..d3ee18854698 100644
-> > --- a/net/netfilter/nf_conntrack_netlink.c
-> > +++ b/net/netfilter/nf_conntrack_netlink.c
-> > @@ -2316,6 +2316,9 @@ ctnetlink_create_conntrack(struct net *net,
-> >  	nfct_seqadj_ext_add(ct);
-> >  	nfct_synproxy_ext_add(ct);
-> >  
-> > +	/* we must add conntrack extensions before confirmation. */
-> > +	ct->status |= IPS_CONFIRMED;
-> > +
-> 
-> I'd guess that these 2 lines are the only part that is needed, but up
-> to you.
+Rename nft_flowtable_hooks_destroy() by nft_hooks_destroy() to prepare
+for netdev chain device updates.
 
-OK, I have drropped the bfp chunk.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: rebase on top of nf-next
+
+ net/netfilter/nf_tables_api.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 31fef1058454..16adeac0da44 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7771,7 +7771,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 	return err;
+ }
+ 
+-static void nft_flowtable_hooks_destroy(struct list_head *hook_list)
++static void nft_hooks_destroy(struct list_head *hook_list)
+ {
+ 	struct nft_hook *hook, *next;
+ 
+@@ -7951,7 +7951,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
+ 					       &flowtable->hook_list,
+ 					       flowtable);
+ 	if (err < 0) {
+-		nft_flowtable_hooks_destroy(&flowtable->hook_list);
++		nft_hooks_destroy(&flowtable->hook_list);
+ 		goto err4;
+ 	}
+ 
+@@ -8784,7 +8784,7 @@ static void nft_commit_release(struct nft_trans *trans)
+ 	case NFT_MSG_DELFLOWTABLE:
+ 	case NFT_MSG_DESTROYFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+-			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
++			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
+ 		else
+ 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
+ 		break;
+@@ -9437,7 +9437,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		break;
+ 	case NFT_MSG_NEWFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+-			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
++			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
+ 		else
+ 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
+ 		break;
+-- 
+2.30.2
+
