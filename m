@@ -2,87 +2,122 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC0AC77B72
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 15:47:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E248C77B73
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 16:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231997AbjDTPr2 (ORCPT
+        id S234487AbjDTQFu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 11:47:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45274 "EHLO
+        Thu, 20 Apr 2023 12:05:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232447AbjDTPr0 (ORCPT
+        with ESMTP id S234321AbjDTQFt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 11:47:26 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76B5AC2
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 08:47:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=enIJQcepjHsodURuBxhQofAY/blIJ0RXh3LU76v2aMI=; b=omoFwq0XJvFKLKvZUtSroGQ6OU
-        nCRB3E68Nf8ACo5g1G8w9FqQd1NEQBwvR8imdLw0x8U/6N8c22LyiqjAvFp+i4RJyiZa8ru0LnQgG
-        4WRaFVm2/bR+XeoMGleFHX1h0qnyV3D734bWM1cEPSDRLPYLK7mSP8QSZTFY2T2iWoyXiCF1Yl7H2
-        0Z9m9LVqdwBQXJsnH7jb1M+OI4JKAAPURbmFejThCniOMb7gwZzV3KLa0oIt67qpiS09SWj2Kqv0F
-        2m104qsVlCfaJHwtJVptQqzX5lcAtFqKYB1fznhT5Jp7d2ExJCulLHsB5Gbc8v0LedgeHZyk3sgfA
-        4ruXMuAg==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1ppWVC-0001Z9-IB; Thu, 20 Apr 2023 17:47:18 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        Stefano Brivio <sbrivio@redhat.com>
-Subject: [nft PATCH] tests: shell: Fix for unstable sets/0043concatenated_ranges_0
-Date:   Thu, 20 Apr 2023 17:47:23 +0200
-Message-Id: <20230420154723.27089-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.40.0
+        Thu, 20 Apr 2023 12:05:49 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 083975B83;
+        Thu, 20 Apr 2023 09:05:39 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Q2Mr82ljTz6J749;
+        Fri, 21 Apr 2023 00:02:48 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Thu, 20 Apr 2023 17:05:36 +0100
+Message-ID: <c9a0d79b-868d-bdc2-c656-d171a2440074@huawei.com>
+Date:   Thu, 20 Apr 2023 19:05:35 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v10 07/13] landlock: Refactor layer helpers
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
+ <20230323085226.1432550-8-konstantin.meskhidze@huawei.com>
+ <25d2a813-4954-5e35-b13b-c48a8ce08c1a@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <25d2a813-4954-5e35-b13b-c48a8ce08c1a@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On my (slow?) testing VM, The test tends to fail when doing a full run
-(i.e., calling run-test.sh without arguments) and tends to pass when run
-individually.
 
-The problem seems to be the 1s element timeout which in some cases may
-pass before element deletion occurs. Simply fix this by doubling the
-timeout. It has to pass just once, so shouldn't hurt too much.
 
-Fixes: 618393c6b3f25 ("tests: Introduce test for set with concatenated ranges")
-Cc: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/shell/testcases/sets/0043concatenated_ranges_0 | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+4/16/2023 7:11 PM, Mickaël Salaün пишет:
+> 
+> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
+>> Add new key_type argument to the landlock_init_layer_masks() helper.
+>> Add a masks_array_size argument to the landlock_unmask_layers() helper.
+>> These modifications support implementing new rule types in the next
+>> Landlock versions.
+>> 
+>> Signed-off-by: Mickaël Salaün <mic@digikod.net>
+>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> ---
+>> 
+>> Changes since v9:
+>> * Refactors commit message.
+>> 
+>> Changes since v8:
+>> * None.
+>> 
+>> Changes since v7:
+>> * Refactors commit message, adds a co-developer.
+>> * Minor fixes.
+>> 
+>> Changes since v6:
+>> * Removes masks_size attribute from init_layer_masks().
+>> * Refactors init_layer_masks() with new landlock_key_type.
+>> 
+>> Changes since v5:
+>> * Splits commit.
+>> * Formats code with clang-format-14.
+>> 
+>> Changes since v4:
+>> * Refactors init_layer_masks(), get_handled_accesses()
+>> and unmask_layers() functions to support multiple rule types.
+>> * Refactors landlock_get_fs_access_mask() function with
+>> LANDLOCK_MASK_ACCESS_FS mask.
+>> 
+>> Changes since v3:
+>> * Splits commit.
+>> * Refactors landlock_unmask_layers functions.
+>> 
+>> ---
+>>   security/landlock/fs.c      | 43 +++++++++++++++++--------------
+>>   security/landlock/ruleset.c | 50 +++++++++++++++++++++++++------------
+>>   security/landlock/ruleset.h | 17 +++++++------
+>>   3 files changed, 67 insertions(+), 43 deletions(-)
+>> 
+> 
+> [...]
+> 
+>> @@ -629,7 +629,11 @@ bool landlock_unmask_layers(
+>>   	return false;
+>>   }
+>> 
+>> -/**
+>> +typedef access_mask_t
+>> +get_access_mask_t(const struct landlock_ruleset *const ruleset,
+>> +		  const u16 layer_level);
+>> +
+>> +/*
+> 
+> Please keep the "/**"
 
-diff --git a/tests/shell/testcases/sets/0043concatenated_ranges_0 b/tests/shell/testcases/sets/0043concatenated_ranges_0
-index 11767373bcd22..6e8f4000aa4ef 100755
---- a/tests/shell/testcases/sets/0043concatenated_ranges_0
-+++ b/tests/shell/testcases/sets/0043concatenated_ranges_0
-@@ -147,7 +147,7 @@ for ta in ${TYPES}; do
- 			eval add_b=\$ADD_${tb}
- 			eval add_c=\$ADD_${tc}
- 			${NFT} add element inet filter test \
--				"{ ${add_a} . ${add_b} . ${add_c} timeout 1s${mapv}}"
-+				"{ ${add_a} . ${add_b} . ${add_c} timeout 2s${mapv}}"
- 			[ $(${NFT} list ${setmap} inet filter test |	\
- 			   grep -c "${add_a} . ${add_b} . ${add_c}") -eq 1 ]
- 
-@@ -180,7 +180,7 @@ for ta in ${TYPES}; do
- 				continue
- 			fi
- 
--			sleep 1
-+			sleep 2
- 			[ $(${NFT} list ${setmap} inet filter test |		\
- 			   grep -c "${add_a} . ${add_b} . ${add_c} ${mapv}") -eq 0 ]
- 			timeout_tested=1
--- 
-2.40.0
-
+   Got it. Thanks.
+> 
+> 
+>>    * landlock_init_layer_masks - Initialize layer masks from an access request
+>>    *
+>>    * Populates @layer_masks such that for each access right in @access_request,
+> .
