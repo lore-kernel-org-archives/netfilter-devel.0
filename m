@@ -2,290 +2,161 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F31AC77B73
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 11:46:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00691C77B72
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 12:45:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234275AbjDTLqo (ORCPT
+        id S231786AbjDTMpJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 07:46:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46016 "EHLO
+        Thu, 20 Apr 2023 08:45:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233808AbjDTLqn (ORCPT
+        with ESMTP id S231922AbjDTMpI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 07:46:43 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA75C1FF0;
-        Thu, 20 Apr 2023 04:46:41 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Q2G5M1JTQz6J773;
-        Thu, 20 Apr 2023 19:43:51 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Thu, 20 Apr 2023 12:46:38 +0100
-Message-ID: <13792f4e-3df7-9cc0-734a-285f95dbe7ca@huawei.com>
-Date:   Thu, 20 Apr 2023 14:46:38 +0300
+        Thu, 20 Apr 2023 08:45:08 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06390E67;
+        Thu, 20 Apr 2023 05:45:06 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1ppTeq-0002Yn-EN; Thu, 20 Apr 2023 14:45:04 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <bpf@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
+Subject: [PATCH bpf-next v4 0/7] bpf: add netfilter program type
+Date:   Thu, 20 Apr 2023 14:44:48 +0200
+Message-Id: <20230420124455.31099-1-fw@strlen.de>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v10 05/13] landlock: Refactor merge/inherit_ruleset
- functions
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
- <20230323085226.1432550-6-konstantin.meskhidze@huawei.com>
- <8b2f2e0f-0a95-ef87-7eb2-286e75a62e2c@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <8b2f2e0f-0a95-ef87-7eb2-286e75a62e2c@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Changes since last version:
+- uapi: remove 'reserved' struct member, s/prio/priority (Alexei)
+- add ctx access test cases (Alexei, see last patch)
+- some arm32 can only handle cmpxchg on u32 (build bot)
+- Fix kdoc annotations (Simon Horman)
+- bpftool: prefer p_err, not fprintf (Quentin)
+- add test cases in separate patch
 
+This still uses runtime btf walk rather than extending
+the btf trace array as Alexei suggested, I would do this later (or someone else can).
 
-4/16/2023 7:09 PM, Mickaël Salaün пишет:
-> 
-> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
->> Refactor merge_ruleset() and inherit_ruleset() functions to support
->> new rule types. This patch adds merge_tree() and inherit_tree()
->> helpers. They use a specific ruleset's red-black tree according to
->> a key type argument.
->> 
->> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->> ---
->> 
->> Changes since v9:
->> * None
->> 
->> Changes since v8:
->> * Refactors commit message.
->> * Minor fixes.
->> 
->> Changes since v7:
->> * Adds missed lockdep_assert_held it inherit_tree() and merge_tree().
->> * Fixes comment.
->> 
->> Changes since v6:
->> * Refactors merge_ruleset() and inherit_ruleset() functions to support
->>    new rule types.
->> * Renames tree_merge() to merge_tree() (and reorder arguments), and
->>    tree_copy() to inherit_tree().
->> 
->> Changes since v5:
->> * Refactors some logic errors.
->> * Formats code with clang-format-14.
->> 
->> Changes since v4:
->> * None
->> 
->> ---
->>   security/landlock/ruleset.c | 110 ++++++++++++++++++++++++------------
->>   1 file changed, 73 insertions(+), 37 deletions(-)
->> 
->> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
->> index d3859d5e7306..2579c9bbedbc 100644
->> --- a/security/landlock/ruleset.c
->> +++ b/security/landlock/ruleset.c
->> @@ -302,36 +302,22 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
->>   	}
->>   }
->> 
->> -static int merge_ruleset(struct landlock_ruleset *const dst,
->> -			 struct landlock_ruleset *const src)
->> +static int merge_tree(struct landlock_ruleset *const dst,
->> +		      struct landlock_ruleset *const src,
->> +		      const enum landlock_key_type key_type)
->>   {
->>   	struct landlock_rule *walker_rule, *next_rule;
->>   	struct rb_root *src_root;
->>   	int err = 0;
->> 
->>   	might_sleep();
->> -	/* Should already be checked by landlock_merge_ruleset() */
->> -	if (WARN_ON_ONCE(!src))
->> -		return 0;
->> -	/* Only merge into a domain. */
->> -	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
->> -		return -EINVAL;
->> +	lockdep_assert_held(&dst->lock);
->> +	lockdep_assert_held(&src->lock);
->> 
->> -	src_root = get_root(src, LANDLOCK_KEY_INODE);
->> +	src_root = get_root(src, key_type);
->>   	if (IS_ERR(src_root))
->>   		return PTR_ERR(src_root);
->> 
->> -	/* Locks @dst first because we are its only owner. */
->> -	mutex_lock(&dst->lock);
->> -	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
->> -
->> -	/* Stacks the new layer. */
->> -	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
->> -		err = -EINVAL;
->> -		goto out_unlock;
->> -	}
->> -	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
->> -
->>   	/* Merges the @src tree. */
->>   	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
->>   					     node) {
->> @@ -340,23 +326,52 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->>   		} };
->>   		const struct landlock_id id = {
->>   			.key = walker_rule->key,
->> -			.type = LANDLOCK_KEY_INODE,
->> +			.type = key_type,
->>   		};
->> 
->>   		if (WARN_ON_ONCE(walker_rule->num_layers != 1)) {
->>   			err = -EINVAL;
->> -			goto out_unlock;
-> 
-> This should be replaced with `return -EINVAL;` and the `{` `}` after the
-> if condition are not needed anymore.
-> 
-   Ok. Will be changed.
-> 
->>   		}
->>   		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0)) {
->>   			err = -EINVAL;
->> -			goto out_unlock;
-> 
-> ditto
+v1 cover letter:
 
-   Got it.
-> 
->>   		}
->>   		layers[0].access = walker_rule->layers[0].access;
->> 
->>   		err = insert_rule(dst, id, &layers, ARRAY_SIZE(layers));
->>   		if (err)
->> -			goto out_unlock;
->> +			return err;
->> +	}
->> +	return err;
->> +}
->> +
->> +static int merge_ruleset(struct landlock_ruleset *const dst,
->> +			 struct landlock_ruleset *const src)
->> +{
->> +	int err = 0;
->> +
->> +	might_sleep();
->> +	/* Should already be checked by landlock_merge_ruleset() */
->> +	if (WARN_ON_ONCE(!src))
->> +		return 0;
->> +	/* Only merge into a domain. */
->> +	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
->> +		return -EINVAL;
->> +
->> +	/* Locks @dst first because we are its only owner. */
->> +	mutex_lock(&dst->lock);
->> +	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
->> +
->> +	/* Stacks the new layer. */
->> +	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
->> +		err = -EINVAL;
->> +		goto out_unlock;
->>   	}
->> +	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
->> +
->> +	/* Merges the @src inode tree. */
->> +	err = merge_tree(dst, src, LANDLOCK_KEY_INODE);
->> +	if (err)
->> +		goto out_unlock;
->> 
->>   out_unlock:
->>   	mutex_unlock(&src->lock);
->> @@ -364,43 +379,64 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->>   	return err;
->>   }
->> 
->> -static int inherit_ruleset(struct landlock_ruleset *const parent,
->> -			   struct landlock_ruleset *const child)
->> +static int inherit_tree(struct landlock_ruleset *const parent,
->> +			struct landlock_ruleset *const child,
->> +			const enum landlock_key_type key_type)
->>   {
->>   	struct landlock_rule *walker_rule, *next_rule;
->>   	struct rb_root *parent_root;
->>   	int err = 0;
->> 
->>   	might_sleep();
->> -	if (!parent)
->> -		return 0;
->> +	lockdep_assert_held(&parent->lock);
->> +	lockdep_assert_held(&child->lock);
->> 
->> -	parent_root = get_root(parent, LANDLOCK_KEY_INODE);
->> +	parent_root = get_root(parent, key_type);
->>   	if (IS_ERR(parent_root))
->>   		return PTR_ERR(parent_root);
->> 
->> -	/* Locks @child first because we are its only owner. */
->> -	mutex_lock(&child->lock);
->> -	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
->> -
->> -	/* Copies the @parent tree. */
->> +	/* Copies the @parent inode or network tree. */
->>   	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
->>   					     parent_root, node) {
->>   		const struct landlock_id id = {
->>   			.key = walker_rule->key,
->> -			.type = LANDLOCK_KEY_INODE,
->> +			.type = key_type,
->>   		};
->> +
->>   		err = insert_rule(child, id, &walker_rule->layers,
->>   				  walker_rule->num_layers);
->>   		if (err)
->> -			goto out_unlock;
->> +			return err;
->>   	}
->> +	return err;
->> +}
->> +
->> +static int inherit_ruleset(struct landlock_ruleset *const parent,
->> +			   struct landlock_ruleset *const child)
->> +{
->> +	int err = 0;
->> +
->> +	might_sleep();
->> +	if (!parent)
->> +		return 0;
->> +
->> +	/* Locks @child first because we are its only owner. */
->> +	mutex_lock(&child->lock);
->> +	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
->> +
->> +	/* Copies the @parent inode tree. */
->> +	err = inherit_tree(parent, child, LANDLOCK_KEY_INODE);
->> +	if (err)
->> +		goto out_unlock;
->> 
->>   	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
->>   		err = -EINVAL;
->>   		goto out_unlock;
->>   	}
->> -	/* Copies the parent layer stack and leaves a space for the new layer. */
->> +	/*
->> +	 * Copies the parent layer stack and leaves a space
->> +	 * for the new layer.
->> +	 */
->>   	memcpy(child->access_masks, parent->access_masks,
->>   	       flex_array_size(parent, access_masks, parent->num_layers));
->> 
->> --
->> 2.25.1
->> 
-> .
+Add minimal support to hook bpf programs to netfilter hooks, e.g.
+PREROUTING or FORWARD.
+
+For this the most relevant parts for registering a netfilter
+hook via the in-kernel api are exposed to userspace via bpf_link.
+
+The new program type is 'tracing style', i.e. there is no context
+access rewrite done by verifier, the function argument (struct bpf_nf_ctx)
+isn't stable.
+There is no support for direct packet access, dynptr api should be used
+instead.
+
+With this its possible to build a small test program such as:
+
+ #include "vmlinux.h"
+extern int bpf_dynptr_from_skb(struct __sk_buff *skb, __u64 flags,
+                               struct bpf_dynptr *ptr__uninit) __ksym;
+extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
+                                   void *buffer, uint32_t buffer__sz) __ksym;
+SEC("netfilter")
+int nf_test(struct bpf_nf_ctx *ctx)
+{
+	struct nf_hook_state *state = ctx->state;
+	struct sk_buff *skb = ctx->skb;
+	const struct iphdr *iph, _iph;
+	const struct tcphdr *th, _th;
+	struct bpf_dynptr ptr;
+
+	if (bpf_dynptr_from_skb(skb, 0, &ptr))
+		return NF_DROP;
+
+	iph = bpf_dynptr_slice(&ptr, 0, &_iph, sizeof(_iph));
+	if (!iph)
+		return NF_DROP;
+
+	th = bpf_dynptr_slice(&ptr, iph->ihl << 2, &_th, sizeof(_th));
+	if (!th)
+		return NF_DROP;
+
+	bpf_printk("accept %x:%d->%x:%d, hook %d ifin %d\n", iph->saddr, bpf_ntohs(th->source), iph->daddr, bpf_ntohs(th->dest), state->hook, state->in->ifindex);
+        return NF_ACCEPT;
+}
+
+Then, tail /sys/kernel/tracing/trace_pipe.
+
+Changes since v2:
+1. don't WARN when user calls 'bpftool loink detach' twice
+   restrict attachment to ip+ip6 families, lets relax this
+   later in case arp/bridge/netdev are needed too.
+2. show netfilter links in 'bpftool net' output as well.
+
+Changes since v1:
+1. Don't fail to link when CONFIG_NETFILTER=n (build bot)
+2. Use test_progs instead of test_verifier (Alexei)
+
+Changes since last RFC version:
+1. extend 'bpftool link show' to print prio/hooknum etc
+2. extend 'nft list hooks' so it can print the bpf program id
+3. Add an extra patch to artificially restrict bpf progs with
+   same priority.  Its fine from a technical pov but it will
+   cause ordering issues (most recent one comes first).
+   Can be removed later.
+4. Add test_run support for netfilter prog type and a small
+   extension to verifier tests to make sure we can't return
+   verdicts like NF_STOLEN.
+5. Alter the netfilter part of the bpf_link uapi struct:
+   - add flags/reserved members.
+  Not used here except returning errors when they are nonzero.
+  Plan is to allow the bpf_link users to enable netfilter
+  defrag or conntrack engine by setting feature flags at
+  link create time in the future.
+
+Florian Westphal (7):
+  bpf: add bpf_link support for BPF_NETFILTER programs
+  bpf: minimal support for programs hooked into netfilter framework
+  netfilter: nfnetlink hook: dump bpf prog id
+  netfilter: disallow bpf hook attachment at same priority
+  tools: bpftool: print netfilter link info
+  bpf: add test_run support for netfilter program type
+  selftests/bpf: add missing netfilter return value and ctx access tests
+
+ include/linux/bpf.h                           |   3 +
+ include/linux/bpf_types.h                     |   4 +
+ include/linux/netfilter.h                     |   1 +
+ include/net/netfilter/nf_bpf_link.h           |  15 ++
+ include/uapi/linux/bpf.h                      |  14 ++
+ include/uapi/linux/netfilter/nfnetlink_hook.h |  24 +-
+ kernel/bpf/btf.c                              |   6 +
+ kernel/bpf/syscall.c                          |   6 +
+ kernel/bpf/verifier.c                         |   3 +
+ net/bpf/test_run.c                            | 158 ++++++++++++
+ net/core/filter.c                             |   1 +
+ net/netfilter/Kconfig                         |   3 +
+ net/netfilter/Makefile                        |   1 +
+ net/netfilter/core.c                          |  12 +
+ net/netfilter/nf_bpf_link.c                   | 228 ++++++++++++++++++
+ net/netfilter/nfnetlink_hook.c                |  81 ++++++-
+ tools/bpf/bpftool/link.c                      |  83 +++++++
+ tools/bpf/bpftool/main.h                      |   3 +
+ tools/bpf/bpftool/net.c                       | 106 ++++++++
+ tools/include/uapi/linux/bpf.h                |  14 ++
+ tools/lib/bpf/libbpf.c                        |   2 +
+ .../selftests/bpf/prog_tests/verifier.c       |   4 +
+ .../bpf/progs/verifier_netfilter_ctx.c        |  82 +++++++
+ .../bpf/progs/verifier_netfilter_retcode.c    |  49 ++++
+ 24 files changed, 887 insertions(+), 16 deletions(-)
+ create mode 100644 include/net/netfilter/nf_bpf_link.h
+ create mode 100644 net/netfilter/nf_bpf_link.c
+ create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
+ create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
+
+-- 
+2.39.2
+
