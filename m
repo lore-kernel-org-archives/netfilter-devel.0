@@ -2,77 +2,84 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8BA1C77B7E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 17:00:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E68C5C77B72
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 17:06:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229507AbjDTRA3 (ORCPT
+        id S230445AbjDTRGb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 13:00:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40278 "EHLO
+        Thu, 20 Apr 2023 13:06:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230414AbjDTRA0 (ORCPT
+        with ESMTP id S230256AbjDTRGa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 13:00:26 -0400
+        Thu, 20 Apr 2023 13:06:30 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C282455AB
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 10:00:00 -0700 (PDT)
-Date:   Thu, 20 Apr 2023 18:59:55 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E687940FE
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 10:06:29 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org,
-        Stefano Brivio <sbrivio@redhat.com>
-Subject: Re: [nft PATCH] tests: shell: Fix for unstable
- sets/0043concatenated_ranges_0
-Message-ID: <ZEFvi9PIl846K0LD@calendula>
-References: <20230420154723.27089-1-phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v5 3/7] netfilter: nf_tables: rename function to destroy hook list
+Date:   Thu, 20 Apr 2023 18:55:59 +0200
+Message-Id: <20230420165603.43876-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230420165603.43876-1-pablo@netfilter.org>
+References: <20230420165603.43876-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230420154723.27089-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 20, 2023 at 05:47:23PM +0200, Phil Sutter wrote:
-> On my (slow?) testing VM, The test tends to fail when doing a full run
-> (i.e., calling run-test.sh without arguments) and tends to pass when run
-> individually.
-> 
-> The problem seems to be the 1s element timeout which in some cases may
-> pass before element deletion occurs. Simply fix this by doubling the
-> timeout. It has to pass just once, so shouldn't hurt too much.
+Rename nft_flowtable_hooks_destroy() by nft_hooks_destroy() to prepare
+for netdev chain device updates.
 
-I have seen this with CONFIG_KASAN too, thanks Phil.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v5: no changes.
 
-> Fixes: 618393c6b3f25 ("tests: Introduce test for set with concatenated ranges")
-> Cc: Stefano Brivio <sbrivio@redhat.com>
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  tests/shell/testcases/sets/0043concatenated_ranges_0 | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/tests/shell/testcases/sets/0043concatenated_ranges_0 b/tests/shell/testcases/sets/0043concatenated_ranges_0
-> index 11767373bcd22..6e8f4000aa4ef 100755
-> --- a/tests/shell/testcases/sets/0043concatenated_ranges_0
-> +++ b/tests/shell/testcases/sets/0043concatenated_ranges_0
-> @@ -147,7 +147,7 @@ for ta in ${TYPES}; do
->  			eval add_b=\$ADD_${tb}
->  			eval add_c=\$ADD_${tc}
->  			${NFT} add element inet filter test \
-> -				"{ ${add_a} . ${add_b} . ${add_c} timeout 1s${mapv}}"
-> +				"{ ${add_a} . ${add_b} . ${add_c} timeout 2s${mapv}}"
->  			[ $(${NFT} list ${setmap} inet filter test |	\
->  			   grep -c "${add_a} . ${add_b} . ${add_c}") -eq 1 ]
->  
-> @@ -180,7 +180,7 @@ for ta in ${TYPES}; do
->  				continue
->  			fi
->  
-> -			sleep 1
-> +			sleep 2
->  			[ $(${NFT} list ${setmap} inet filter test |		\
->  			   grep -c "${add_a} . ${add_b} . ${add_c} ${mapv}") -eq 0 ]
->  			timeout_tested=1
-> -- 
-> 2.40.0
-> 
+ net/netfilter/nf_tables_api.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a47f94e377ac..e2bf9c0b03d1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7779,7 +7779,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 	return err;
+ }
+ 
+-static void nft_flowtable_hooks_destroy(struct list_head *hook_list)
++static void nft_hooks_destroy(struct list_head *hook_list)
+ {
+ 	struct nft_hook *hook, *next;
+ 
+@@ -7960,7 +7960,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
+ 					       &flowtable->hook_list,
+ 					       flowtable);
+ 	if (err < 0) {
+-		nft_flowtable_hooks_destroy(&flowtable->hook_list);
++		nft_hooks_destroy(&flowtable->hook_list);
+ 		goto err4;
+ 	}
+ 
+@@ -8794,7 +8794,7 @@ static void nft_commit_release(struct nft_trans *trans)
+ 	case NFT_MSG_DELFLOWTABLE:
+ 	case NFT_MSG_DESTROYFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+-			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
++			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
+ 		else
+ 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
+ 		break;
+@@ -9447,7 +9447,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		break;
+ 	case NFT_MSG_NEWFLOWTABLE:
+ 		if (nft_trans_flowtable_update(trans))
+-			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
++			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
+ 		else
+ 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
+ 		break;
+-- 
+2.30.2
+
