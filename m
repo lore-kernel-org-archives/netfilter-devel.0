@@ -2,251 +2,87 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB1CC77B7C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 12:45:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC0AC77B72
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 15:47:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234098AbjDTMpv (ORCPT
+        id S231997AbjDTPr2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 08:45:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38226 "EHLO
+        Thu, 20 Apr 2023 11:47:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234825AbjDTMps (ORCPT
+        with ESMTP id S232447AbjDTPr0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 08:45:48 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB6BD7A97;
-        Thu, 20 Apr 2023 05:45:34 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ppTfJ-0002b1-8Y; Thu, 20 Apr 2023 14:45:33 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <bpf@vger.kernel.org>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf-next v4 7/7] selftests/bpf: add missing netfilter return value and ctx access tests
-Date:   Thu, 20 Apr 2023 14:44:55 +0200
-Message-Id: <20230420124455.31099-8-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230420124455.31099-1-fw@strlen.de>
-References: <20230420124455.31099-1-fw@strlen.de>
+        Thu, 20 Apr 2023 11:47:26 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76B5AC2
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 08:47:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=enIJQcepjHsodURuBxhQofAY/blIJ0RXh3LU76v2aMI=; b=omoFwq0XJvFKLKvZUtSroGQ6OU
+        nCRB3E68Nf8ACo5g1G8w9FqQd1NEQBwvR8imdLw0x8U/6N8c22LyiqjAvFp+i4RJyiZa8ru0LnQgG
+        4WRaFVm2/bR+XeoMGleFHX1h0qnyV3D734bWM1cEPSDRLPYLK7mSP8QSZTFY2T2iWoyXiCF1Yl7H2
+        0Z9m9LVqdwBQXJsnH7jb1M+OI4JKAAPURbmFejThCniOMb7gwZzV3KLa0oIt67qpiS09SWj2Kqv0F
+        2m104qsVlCfaJHwtJVptQqzX5lcAtFqKYB1fznhT5Jp7d2ExJCulLHsB5Gbc8v0LedgeHZyk3sgfA
+        4ruXMuAg==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1ppWVC-0001Z9-IB; Thu, 20 Apr 2023 17:47:18 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org,
+        Stefano Brivio <sbrivio@redhat.com>
+Subject: [nft PATCH] tests: shell: Fix for unstable sets/0043concatenated_ranges_0
+Date:   Thu, 20 Apr 2023 17:47:23 +0200
+Message-Id: <20230420154723.27089-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Extend prog_tests with two test cases:
+On my (slow?) testing VM, The test tends to fail when doing a full run
+(i.e., calling run-test.sh without arguments) and tends to pass when run
+individually.
 
- # ./test_progs --allow=verifier_netfilter_retcode
- #278/1   verifier_netfilter_retcode/bpf_exit with invalid return code. test1:OK
- #278/2   verifier_netfilter_retcode/bpf_exit with valid return code. test2:OK
- #278/3   verifier_netfilter_retcode/bpf_exit with valid return code. test3:OK
- #278/4   verifier_netfilter_retcode/bpf_exit with invalid return code. test4:OK
- #278     verifier_netfilter_retcode:OK
+The problem seems to be the 1s element timeout which in some cases may
+pass before element deletion occurs. Simply fix this by doubling the
+timeout. It has to pass just once, so shouldn't hurt too much.
 
-This checks that only accept and drop (0,1) are permitted.
-
-NF_QUEUE could be implemented later if we can guarantee that attachment
-of such programs can be rejected if they get attached to a pf/hook that
-doesn't support async reinjection.
-
-NF_STOLEN could be implemented via trusted helpers that can guarantee
-that the skb will eventually be free'd.
-
-v4: test case for bpf_nf_ctx access checks, requested by Alexei Starovoitov.
-
- # ./test_progs --allow=verifier_netfilter_ctx
- #280/1   verifier_netfilter_ctx/netfilter invalid context access, size too short:OK
- #280/2   verifier_netfilter_ctx/netfilter invalid context access, size too short:OK
- #280/3   verifier_netfilter_ctx/netfilter invalid context access, past end of ctx:OK
- #280/4   verifier_netfilter_ctx/netfilter invalid context, write:OK
- #280/5   verifier_netfilter_ctx/netfilter valid context access:OK
- #280/6   verifier_netfilter_ctx/netfilter valid context access @unpriv:OK
- #280     verifier_netfilter_ctx:OK
-Summary: 1/6 PASSED, 0 SKIPPED, 0 FAILED
-
-This checks:
-1/2: partial reads of ctx->{skb,state} are rejected
-3. read access past sizeof(ctx) is rejected
-4. write to ctx content, e.g. 'ctx->skb = NULL;' is rejected
-5. ctx->skb and ctx->state can be read (valid case), but ...
-6. ... same program fails for unpriv (CAP_NET_ADMIN needed).
-
-Link: https://lore.kernel.org/bpf/20230419021152.sjq4gttphzzy6b5f@dhcp-172-26-102-232.dhcp.thefacebook.com/
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 618393c6b3f25 ("tests: Introduce test for set with concatenated ranges")
+Cc: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .../selftests/bpf/prog_tests/verifier.c       |  4 +
- .../bpf/progs/verifier_netfilter_ctx.c        | 82 +++++++++++++++++++
- .../bpf/progs/verifier_netfilter_retcode.c    | 49 +++++++++++
- 3 files changed, 135 insertions(+)
- create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
- create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
+ tests/shell/testcases/sets/0043concatenated_ranges_0 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/verifier.c b/tools/testing/selftests/bpf/prog_tests/verifier.c
-index 25bc8958dbfe..2b4ded63ce9f 100644
---- a/tools/testing/selftests/bpf/prog_tests/verifier.c
-+++ b/tools/testing/selftests/bpf/prog_tests/verifier.c
-@@ -29,6 +29,8 @@
- #include "verifier_map_ret_val.skel.h"
- #include "verifier_masking.skel.h"
- #include "verifier_meta_access.skel.h"
-+#include "verifier_netfilter_ctx.skel.h"
-+#include "verifier_netfilter_retcode.skel.h"
- #include "verifier_raw_stack.skel.h"
- #include "verifier_raw_tp_writable.skel.h"
- #include "verifier_reg_equal.skel.h"
-@@ -94,6 +96,8 @@ void test_verifier_map_ptr(void)              { RUN(verifier_map_ptr); }
- void test_verifier_map_ret_val(void)          { RUN(verifier_map_ret_val); }
- void test_verifier_masking(void)              { RUN(verifier_masking); }
- void test_verifier_meta_access(void)          { RUN(verifier_meta_access); }
-+void test_verifier_netfilter_ctx(void)        { RUN(verifier_netfilter_ctx); }
-+void test_verifier_netfilter_retcode(void)    { RUN(verifier_netfilter_retcode); }
- void test_verifier_raw_stack(void)            { RUN(verifier_raw_stack); }
- void test_verifier_raw_tp_writable(void)      { RUN(verifier_raw_tp_writable); }
- void test_verifier_reg_equal(void)            { RUN(verifier_reg_equal); }
-diff --git a/tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c b/tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
-new file mode 100644
-index 000000000000..861b2266179f
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
-@@ -0,0 +1,82 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include "vmlinux.h"
-+
-+#include "bpf_misc.h"
-+
-+#include <bpf/bpf_tracing.h>
-+#include <bpf/bpf_helpers.h>
-+
-+SEC("netfilter")
-+__description("netfilter invalid context access, size too short")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test1(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u8*)(r1 + %[__bpf_nf_ctx_state]);	\
-+	r0 = 0;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_state, offsetof(struct bpf_nf_ctx, state))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter invalid context access, size too short")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test2(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u16*)(r1 + %[__bpf_nf_ctx_skb]);	\
-+	r0 = 0;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter invalid context access, past end of ctx")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test3(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u64*)(r1 + %[__bpf_nf_ctx_size]);	\
-+	r0 = 0;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_size, sizeof(struct bpf_nf_ctx))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter invalid context, write")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test4(void)
-+{
-+	asm volatile ("					\
-+	r2 = r1;					\
-+	*(u64*)(r2 + 0) = r1;				\
-+	r0 = 1;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter valid context access")
-+__success __failure_unpriv
-+__retval(1)
-+__naked void with_invalid_ctx_access_test5(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u64*)(r1 + %[__bpf_nf_ctx_state]);	\
-+	r1 = *(u64*)(r1 + %[__bpf_nf_ctx_skb]);		\
-+	r0 = 1;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_state, offsetof(struct bpf_nf_ctx, state)),
-+	  __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-+	: __clobber_all);
-+}
-diff --git a/tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c b/tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
-new file mode 100644
-index 000000000000..353ae6da00e1
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
-@@ -0,0 +1,49 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/bpf.h>
-+#include <bpf/bpf_helpers.h>
-+#include "bpf_misc.h"
-+
-+SEC("netfilter")
-+__description("bpf_exit with invalid return code. test1")
-+__failure __msg("R0 is not a known value")
-+__naked void with_invalid_return_code_test1(void)
-+{
-+	asm volatile ("					\
-+	r0 = *(u64*)(r1 + 0);				\
-+	exit;						\
-+"	::: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("bpf_exit with valid return code. test2")
-+__success
-+__naked void with_valid_return_code_test2(void)
-+{
-+	asm volatile ("					\
-+	r0 = 0;						\
-+	exit;						\
-+"	::: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("bpf_exit with valid return code. test3")
-+__success
-+__naked void with_valid_return_code_test3(void)
-+{
-+	asm volatile ("					\
-+	r0 = 1;						\
-+	exit;						\
-+"	::: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("bpf_exit with invalid return code. test4")
-+__failure __msg("R0 has value (0x2; 0x0)")
-+__naked void with_invalid_return_code_test4(void)
-+{
-+	asm volatile ("					\
-+	r0 = 2;						\
-+	exit;						\
-+"	::: __clobber_all);
-+}
+diff --git a/tests/shell/testcases/sets/0043concatenated_ranges_0 b/tests/shell/testcases/sets/0043concatenated_ranges_0
+index 11767373bcd22..6e8f4000aa4ef 100755
+--- a/tests/shell/testcases/sets/0043concatenated_ranges_0
++++ b/tests/shell/testcases/sets/0043concatenated_ranges_0
+@@ -147,7 +147,7 @@ for ta in ${TYPES}; do
+ 			eval add_b=\$ADD_${tb}
+ 			eval add_c=\$ADD_${tc}
+ 			${NFT} add element inet filter test \
+-				"{ ${add_a} . ${add_b} . ${add_c} timeout 1s${mapv}}"
++				"{ ${add_a} . ${add_b} . ${add_c} timeout 2s${mapv}}"
+ 			[ $(${NFT} list ${setmap} inet filter test |	\
+ 			   grep -c "${add_a} . ${add_b} . ${add_c}") -eq 1 ]
+ 
+@@ -180,7 +180,7 @@ for ta in ${TYPES}; do
+ 				continue
+ 			fi
+ 
+-			sleep 1
++			sleep 2
+ 			[ $(${NFT} list ${setmap} inet filter test |		\
+ 			   grep -c "${add_a} . ${add_b} . ${add_c} ${mapv}") -eq 0 ]
+ 			timeout_tested=1
 -- 
-2.39.2
+2.40.0
 
