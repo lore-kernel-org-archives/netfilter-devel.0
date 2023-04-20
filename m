@@ -2,84 +2,76 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDE05C77B73
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 17:06:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEE60C77B72
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 17:07:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230364AbjDTRGc (ORCPT
+        id S230450AbjDTRHD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 13:06:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46320 "EHLO
+        Thu, 20 Apr 2023 13:07:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230427AbjDTRGb (ORCPT
+        with ESMTP id S231223AbjDTRHC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 13:06:31 -0400
+        Thu, 20 Apr 2023 13:07:02 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E9229449A
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 10:06:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E27A811C;
+        Thu, 20 Apr 2023 10:07:01 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v5 7/7] netfilter: nf_tables: remove artificial cap on maximum number of netdevices
-Date:   Thu, 20 Apr 2023 18:56:03 +0200
-Message-Id: <20230420165603.43876-7-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/2] Netfilter fixes for net
+Date:   Thu, 20 Apr 2023 19:06:55 +0200
+Message-Id: <20230420170657.45373-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230420165603.43876-1-pablo@netfilter.org>
-References: <20230420165603.43876-1-pablo@netfilter.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Remove NFT_NETDEVICE_MAX (256) artificial cap on the maximum number of
-netdevices that are allowed per chain/flowtable.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v5: no changes.
+The following patchset contains late Netfilter fixes for net:
 
- include/net/netfilter/nf_tables.h | 2 --
- net/netfilter/nf_tables_api.c     | 8 +-------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+1) Set on IPS_CONFIRMED before change_status() otherwise EBUSY is
+   bogusly hit. This bug was introduced in the 6.3 release cycle.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 262dc17d2c0b..552e19ba4f43 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1344,8 +1344,6 @@ struct nft_object_ops {
- int nft_register_obj(struct nft_object_type *obj_type);
- void nft_unregister_obj(struct nft_object_type *obj_type);
- 
--#define NFT_NETDEVICE_MAX	256
--
- /**
-  *	struct nft_flowtable - nf_tables flow table
-  *
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e5937c4f9cc2..3db168527db6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1978,7 +1978,7 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
- {
- 	struct nft_hook *hook, *next;
- 	const struct nlattr *tmp;
--	int rem, n = 0, err;
-+	int rem, err;
- 
- 	nla_for_each_nested(tmp, attr, rem) {
- 		if (nla_type(tmp) != NFTA_DEVICE_NAME) {
-@@ -1999,12 +1999,6 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
- 			goto err_hook;
- 		}
- 		list_add_tail(&hook->list, hook_list);
--		n++;
--
--		if (n == NFT_NETDEVICE_MAX) {
--			err = -EFBIG;
--			goto err_hook;
--		}
- 	}
- 
- 	return 0;
--- 
-2.30.2
+2) Fix nfnetlink_queue conntrack support: Set/dump timeout
+   accordingly for unconfirmed conntrack entries. Make sure this
+   is done after IPS_CONFIRMED is set on. This is an old bug, it
+   happens since the introduction of this feature.
 
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 92e8c732d8518588ac34b4cb3feaf37d2cb87555:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf (2023-04-18 20:46:31 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git HEAD
+
+for you to fetch changes up to 73db1b8f2bb6725b7391e85aab41fdf592b3c0c1:
+
+  netfilter: conntrack: fix wrong ct->timeout value (2023-04-19 12:08:38 +0200)
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (1):
+      netfilter: conntrack: restore IPS_CONFIRMED out of nf_conntrack_hash_check_insert()
+
+Tzung-Bi Shih (1):
+      netfilter: conntrack: fix wrong ct->timeout value
+
+ include/net/netfilter/nf_conntrack_core.h |  6 +++++-
+ net/netfilter/nf_conntrack_bpf.c          |  1 +
+ net/netfilter/nf_conntrack_core.c         |  1 -
+ net/netfilter/nf_conntrack_netlink.c      | 16 ++++++++++++----
+ 4 files changed, 18 insertions(+), 6 deletions(-)
