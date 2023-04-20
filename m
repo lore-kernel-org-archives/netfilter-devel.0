@@ -2,83 +2,192 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43AC1C77B72
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 16:37:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0E7FC77B72
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Apr 2023 16:58:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232182AbjDTQhM (ORCPT
+        id S229523AbjDTQ6W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 12:37:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52346 "EHLO
+        Thu, 20 Apr 2023 12:58:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231526AbjDTQhG (ORCPT
+        with ESMTP id S229565AbjDTQ6V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 12:37:06 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E07EA3AA4
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 09:36:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1682008561;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=sldBKJY82MsApTKZ62ld5w6opIim9pqSE/sgrzAPQZM=;
-        b=bAmYxX5LgTdQ8nuFdXt8nIUz/QHTvDU/qlhzRXlQXE8bv5xjgIk5fWPzWIMNYUidXJeqmD
-        YfxgT7m+8jyxS3c1kNp4Q7cn3bzEIdRiHsLF7YWa6WW92PaGVq8vT8+fxz6SCHMNAF/3ah
-        tIkm6/jW8Yx9cavw1Gxsgm5mhsasKEM=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-477-L-9ttOTRNZClXxFHxQwN9Q-1; Thu, 20 Apr 2023 12:35:57 -0400
-X-MC-Unique: L-9ttOTRNZClXxFHxQwN9Q-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 370571C08989;
-        Thu, 20 Apr 2023 16:35:57 +0000 (UTC)
-Received: from maya.cloud.tilaa.com (unknown [10.42.30.11])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id F13DE2026D16;
-        Thu, 20 Apr 2023 16:35:56 +0000 (UTC)
-Date:   Thu, 20 Apr 2023 18:35:54 +0200
-From:   Stefano Brivio <sbrivio@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] tests: shell: Fix for unstable
- sets/0043concatenated_ranges_0
-Message-ID: <20230420183554.4af78bbd@elisabeth>
-In-Reply-To: <20230420154723.27089-1-phil@nwl.cc>
-References: <20230420154723.27089-1-phil@nwl.cc>
-Organization: Red Hat
+        Thu, 20 Apr 2023 12:58:21 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9FAAC46BB
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2023 09:57:29 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next,v5 5/7] netfilter: nf_tables: support for deleting devices in an existing netdev chain
+Date:   Thu, 20 Apr 2023 18:56:01 +0200
+Message-Id: <20230420165603.43876-5-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230420165603.43876-1-pablo@netfilter.org>
+References: <20230420165603.43876-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 20 Apr 2023 17:47:23 +0200
-Phil Sutter <phil@nwl.cc> wrote:
+This patch allows for deleting devices in an existing netdev chain.
 
-> On my (slow?) testing VM, The test tends to fail when doing a full run
-> (i.e., calling run-test.sh without arguments) and tends to pass when run
-> individually.
-> 
-> The problem seems to be the 1s element timeout which in some cases may
-> pass before element deletion occurs.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v5: null changes
 
-Whoops. Yes I think so too.
+ net/netfilter/nf_tables_api.c | 99 +++++++++++++++++++++++++++++++----
+ 1 file changed, 88 insertions(+), 11 deletions(-)
 
-> Simply fix this by doubling the
-> timeout. It has to pass just once, so shouldn't hurt too much.
-> 
-> Fixes: 618393c6b3f25 ("tests: Introduce test for set with concatenated ranges")
-> Cc: Stefano Brivio <sbrivio@redhat.com>
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index fdad5b6a3366..2d225e3261a7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1647,7 +1647,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_CHAIN_PAD))
+ 		goto nla_put_failure;
+ 
+-	if (event == NFT_MSG_DELCHAIN) {
++	if (event == NFT_MSG_DELCHAIN && !hook_list) {
+ 		nlmsg_end(skb, nlh);
+ 		return 0;
+ 	}
+@@ -2667,6 +2667,59 @@ static int nf_tables_newchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 	return nf_tables_addchain(&ctx, family, genmask, policy, flags, extack);
+ }
+ 
++static int nft_delchain_hook(struct nft_ctx *ctx, struct nft_chain *chain,
++			     struct netlink_ext_ack *extack)
++{
++	const struct nlattr * const *nla = ctx->nla;
++	struct nft_chain_hook chain_hook = {};
++	struct nft_base_chain *basechain;
++	struct nft_hook *this, *hook;
++	LIST_HEAD(chain_del_list);
++	struct nft_trans *trans;
++	int err;
++
++	if (!nft_is_base_chain(chain))
++		return -EOPNOTSUPP;
++
++	basechain = nft_base_chain(chain);
++	err = nft_chain_parse_hook(ctx->net, basechain, nla, &chain_hook,
++				   ctx->family, extack);
++	if (err < 0)
++		return err;
++
++	list_for_each_entry(this, &chain_hook.list, list) {
++		hook = nft_hook_list_find(&basechain->hook_list, this);
++		if (!hook) {
++			err = -ENOENT;
++			goto err_chain_del_hook;
++		}
++		list_move(&hook->list, &chain_del_list);
++	}
++
++	trans = nft_trans_alloc(ctx, NFT_MSG_DELCHAIN,
++				sizeof(struct nft_trans_chain));
++	if (!trans) {
++		err = -ENOMEM;
++		goto err_chain_del_hook;
++	}
++
++	nft_trans_basechain(trans) = basechain;
++	nft_trans_chain_update(trans) = true;
++	INIT_LIST_HEAD(&nft_trans_chain_hooks(trans));
++	list_splice(&chain_del_list, &nft_trans_chain_hooks(trans));
++	nft_chain_release_hook(&chain_hook);
++
++	nft_trans_commit_list_add_tail(ctx->net, trans);
++
++	return 0;
++
++err_chain_del_hook:
++	list_splice(&chain_del_list, &basechain->hook_list);
++	nft_chain_release_hook(&chain_hook);
++
++	return err;
++}
++
+ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 			      const struct nlattr * const nla[])
+ {
+@@ -2707,12 +2760,19 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 		return PTR_ERR(chain);
+ 	}
+ 
++	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, chain, nla);
++
++	if (nla[NFTA_CHAIN_HOOK]) {
++		if (chain->flags & NFT_CHAIN_HW_OFFLOAD)
++			return -EOPNOTSUPP;
++
++		return nft_delchain_hook(&ctx, chain, extack);
++	}
++
+ 	if (info->nlh->nlmsg_flags & NLM_F_NONREC &&
+ 	    chain->use > 0)
+ 		return -EBUSY;
+ 
+-	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, chain, nla);
+-
+ 	use = chain->use;
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		if (!nft_is_active_next(net, rule))
+@@ -8810,7 +8870,10 @@ static void nft_commit_release(struct nft_trans *trans)
+ 		break;
+ 	case NFT_MSG_DELCHAIN:
+ 	case NFT_MSG_DESTROYCHAIN:
+-		nf_tables_chain_destroy(&trans->ctx);
++		if (nft_trans_chain_update(trans))
++			nft_hooks_destroy(&nft_trans_chain_hooks(trans));
++		else
++			nf_tables_chain_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_DELRULE:
+ 	case NFT_MSG_DESTROYRULE:
+@@ -9304,11 +9367,20 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 		case NFT_MSG_DESTROYCHAIN:
+-			nft_chain_del(trans->ctx.chain);
+-			nf_tables_chain_notify(&trans->ctx, trans->msg_type, NULL);
+-			nf_tables_unregister_hook(trans->ctx.net,
+-						  trans->ctx.table,
+-						  trans->ctx.chain);
++			if (nft_trans_chain_update(trans)) {
++				nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN,
++						       &nft_trans_chain_hooks(trans));
++				nft_netdev_unregister_hooks(net,
++							    &nft_trans_chain_hooks(trans),
++							    true);
++			} else {
++				nft_chain_del(trans->ctx.chain);
++				nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN,
++						       NULL);
++				nf_tables_unregister_hook(trans->ctx.net,
++							  trans->ctx.table,
++							  trans->ctx.chain);
++			}
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+ 			nft_clear(trans->ctx.net, nft_trans_rule(trans));
+@@ -9558,8 +9630,13 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 		case NFT_MSG_DESTROYCHAIN:
+-			trans->ctx.table->use++;
+-			nft_clear(trans->ctx.net, trans->ctx.chain);
++			if (nft_trans_chain_update(trans)) {
++				list_splice(&nft_trans_chain_hooks(trans),
++					    &nft_trans_basechain(trans)->hook_list);
++			} else {
++				trans->ctx.table->use++;
++				nft_clear(trans->ctx.net, trans->ctx.chain);
++			}
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
 -- 
-Stefano
+2.30.2
 
