@@ -2,155 +2,167 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C3B3C77B61
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 16:09:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A70BCC77B61
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 17:03:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230255AbjDUQJV (ORCPT
+        id S231282AbjDURDd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 12:09:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57846 "EHLO
+        Fri, 21 Apr 2023 13:03:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbjDUQJU (ORCPT
+        with ESMTP id S231890AbjDURDc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 12:09:20 -0400
-Received: from mail-ed1-x52e.google.com (mail-ed1-x52e.google.com [IPv6:2a00:1450:4864:20::52e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7719719B6;
-        Fri, 21 Apr 2023 09:09:19 -0700 (PDT)
-Received: by mail-ed1-x52e.google.com with SMTP id 4fb4d7f45d1cf-504eb1155d3so13575299a12.1;
-        Fri, 21 Apr 2023 09:09:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682093358; x=1684685358;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=L6nFZkGAQHDLDKXsLrnKLoGsBBd86+v29OZnbsaAUD4=;
-        b=qS8C1doa/3nAAHuZjTCqd1z7m0xzFS9xmUFWkSISL6zGj4ub+0hkTzvvWobc4r6jCo
-         77a4KH0OeTPeVuqaZ8hhkjGAQoLZ57jIKBHs2667eQPH7Ue0x7VAIEFlTFyjK5d/3LeX
-         +A/UNPLO+1zdE85D6/lHV7DXgoXikVrM7pgXJXpU22fu5/5dHsxgqk625/CUML6fZA41
-         hlRTJsrfA515dlXAsUJd5zAjFRCRvrdsddUBxEZ2HpLXYD33aHSF3lw+QSL0a5X4kuZT
-         tK23I1TAh4KHt/3lNaMuhtSpal/fi7MxUT+PuFv2hEemck09krJ1dZA7jUQ3B8j6taJV
-         PLPA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682093358; x=1684685358;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=L6nFZkGAQHDLDKXsLrnKLoGsBBd86+v29OZnbsaAUD4=;
-        b=S1HXjRw6o+sz5jyw+Z5564WUDoQRawH6oB7cL/Yx9TzJNszQzqrLYQeZIw8Bsdx1LH
-         f4BpLla53tqGVvaTu2PFnIzEZD9Scyi92/a2vOG5L386anLBpkKqSLylVUThIh1n0PjL
-         8IzQJL1fFeEyqjqht3rr2j4xfM8L7/PWz2Q3PQzDEKNNiS9cNjZyUtpnQkBEgM46d8lr
-         YKzyhydSTh924U2sXO8cm9Lp7nLDMwsIVKyJi4xNU/aAtU7a8H8mVHRKaEcOiJKYICm/
-         tD9J8pogoD7RlEAelv4pBoOW/M7fPIKc71HEgp+MR6Gdggtag8wWrgnt4/t8L6ZqU3uK
-         WMWA==
-X-Gm-Message-State: AAQBX9cbhFo5N9c0Jyw0fkIJsNKXdaoPcplt+dDjCnXP/O54N6P9KWiY
-        PC5J1UPQs/GoR2+ECGTl12n+jvt152q3RjcGNoLSCoIBy0Y=
-X-Google-Smtp-Source: AKy350aBgjE3PSnNXfAEWtlBdeoB+8SnjTBEB6yX1XMnulsiIf2kGx8pV6wpzyw+STDKadG2uRKecbBn67mF52TzeJM=
-X-Received: by 2002:a05:6402:12c2:b0:506:a44c:e213 with SMTP id
- k2-20020a05640212c200b00506a44ce213mr4664284edx.20.1682093357789; Fri, 21 Apr
- 2023 09:09:17 -0700 (PDT)
+        Fri, 21 Apr 2023 13:03:32 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2A89146F9;
+        Fri, 21 Apr 2023 10:03:09 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1ppuA6-0004Ab-NE; Fri, 21 Apr 2023 19:03:06 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <bpf@vger.kernel.org>
+Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
+Subject: [PATCH bpf-next v5 0/7] bpf: add netfilter program type
+Date:   Fri, 21 Apr 2023 19:02:53 +0200
+Message-Id: <20230421170300.24115-1-fw@strlen.de>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-References: <20230420124455.31099-1-fw@strlen.de> <20230420124455.31099-8-fw@strlen.de>
- <20230420201655.77kkgi3dh7fesoll@MacBook-Pro-6.local> <20230421155246.GD12121@breakpoint.cc>
-In-Reply-To: <20230421155246.GD12121@breakpoint.cc>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Fri, 21 Apr 2023 09:09:06 -0700
-Message-ID: <CAADnVQLtKtrH-UhaJdn+5d+qObcuQ8TEuVDbpqx2Az=dN1DwWw@mail.gmail.com>
-Subject: Re: [PATCH bpf-next v4 7/7] selftests/bpf: add missing netfilter
- return value and ctx access tests
-To:     Florian Westphal <fw@strlen.de>
-Cc:     bpf <bpf@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Daniel Xu <dxu@dxuuu.xyz>, Quentin Deslandes <qde@naccy.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Apr 21, 2023 at 8:52=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> > On Thu, Apr 20, 2023 at 02:44:55PM +0200, Florian Westphal wrote:
-> > > +
-> > > +SEC("netfilter")
-> > > +__description("netfilter valid context access")
-> > > +__success __failure_unpriv
-> > > +__retval(1)
-> > > +__naked void with_invalid_ctx_access_test5(void)
-> > > +{
-> > > +   asm volatile ("                                 \
-> > > +   r2 =3D *(u64*)(r1 + %[__bpf_nf_ctx_state]);       \
-> > > +   r1 =3D *(u64*)(r1 + %[__bpf_nf_ctx_skb]);         \
-> > > +   r0 =3D 1;                                         \
-> > > +   exit;                                           \
-> > > +"  :
-> > > +   : __imm_const(__bpf_nf_ctx_state, offsetof(struct bpf_nf_ctx, sta=
-te)),
-> > > +     __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-> > > +   : __clobber_all);
-> >
-> > Could you write this one in C instead?
-> >
-> > Also check that skb and state are dereferenceable after that.
->
-> My bad. Added this and that:
->
-> SEC("netfilter")
-> __description("netfilter valid context read and invalid write")
-> __failure __msg("only read is supported")
-> int with_invalid_ctx_access_test5(struct bpf_nf_ctx *ctx)
-> {
->   struct nf_hook_state *state =3D (void *)ctx->state;
->
->   state->sk =3D NULL;
->   return 1;
-> }
->
-> SEC("netfilter")
-> __description("netfilter test prog with skb and state read access")
-> __success __failure_unpriv
-> __retval(0)
-> int with_valid_ctx_access_test6(struct bpf_nf_ctx *ctx)
-> {
->   const struct nf_hook_state *state =3D ctx->state;
->   struct sk_buff *skb =3D ctx->skb;
->   const struct iphdr *iph;
->   const struct tcphdr *th;
->   u8 buffer_iph[20] =3D {};
->   u8 buffer_th[40] =3D {};
->   struct bpf_dynptr ptr;
->   uint8_t ihl;
->
->   if (skb->len <=3D 20 || bpf_dynptr_from_skb(skb, 0, &ptr))
->         return 1;
+Changes since last version:
+- rework test case in last patch wrt. ctx->skb dereference etc (Alexei)
+- pacify bpf ci tests, netfilter program type missed string translation
+  in libbpf helper.
 
-Use NF_ACCEPT instead of 1 ?
-Sadly it's not an enum yet, so it's not in vmlinux.h
-The prog would need to manually #define it.
+This still uses runtime btf walk rather than extending
+the btf trace array as Alexei suggested, I would do this later (or someone else can).
 
->
->   iph =3D bpf_dynptr_slice(&ptr, 0, buffer_iph, sizeof(buffer_iph));
->   if (!iph)
->     return 1;
->
->    if (state->pf !=3D 2)
->      return 1;
->
->    ihl =3D iph->ihl << 2;
->    th =3D bpf_dynptr_slice(&ptr, ihl, buffer_th, sizeof(buffer_th));
->    if (!th)
->         return 1;
->
->      return th->dest =3D=3D bpf_htons(22) ? 1 : 0;
-> }
+v1 cover letter:
 
-Perfect. That's what I wanted to see.
-Without above example it's hard for people to see how ctx->skb
-can be accessed to parse the packet.
+Add minimal support to hook bpf programs to netfilter hooks, e.g.
+PREROUTING or FORWARD.
 
-> "Worksforme".  Is there anything else thats missing?
-> If not I'll send v5 on Monday.
+For this the most relevant parts for registering a netfilter
+hook via the in-kernel api are exposed to userspace via bpf_link.
 
-ship it any time. Don't delay.
+The new program type is 'tracing style', i.e. there is no context
+access rewrite done by verifier, the function argument (struct bpf_nf_ctx)
+isn't stable.
+There is no support for direct packet access, dynptr api should be used
+instead.
+
+With this its possible to build a small test program such as:
+
+ #include "vmlinux.h"
+extern int bpf_dynptr_from_skb(struct __sk_buff *skb, __u64 flags,
+                               struct bpf_dynptr *ptr__uninit) __ksym;
+extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
+                                   void *buffer, uint32_t buffer__sz) __ksym;
+SEC("netfilter")
+int nf_test(struct bpf_nf_ctx *ctx)
+{
+	struct nf_hook_state *state = ctx->state;
+	struct sk_buff *skb = ctx->skb;
+	const struct iphdr *iph, _iph;
+	const struct tcphdr *th, _th;
+	struct bpf_dynptr ptr;
+
+	if (bpf_dynptr_from_skb(skb, 0, &ptr))
+		return NF_DROP;
+
+	iph = bpf_dynptr_slice(&ptr, 0, &_iph, sizeof(_iph));
+	if (!iph)
+		return NF_DROP;
+
+	th = bpf_dynptr_slice(&ptr, iph->ihl << 2, &_th, sizeof(_th));
+	if (!th)
+		return NF_DROP;
+
+	bpf_printk("accept %x:%d->%x:%d, hook %d ifin %d\n", iph->saddr, bpf_ntohs(th->source), iph->daddr, bpf_ntohs(th->dest), state->hook, state->in->ifindex);
+        return NF_ACCEPT;
+}
+
+Then, tail /sys/kernel/tracing/trace_pipe.
+
+Changes since v3:
+- uapi: remove 'reserved' struct member, s/prio/priority (Alexei)
+- add ctx access test cases (Alexei, see last patch)
+- some arm32 can only handle cmpxchg on u32 (build bot)
+- Fix kdoc annotations (Simon Horman)
+- bpftool: prefer p_err, not fprintf (Quentin)
+- add test cases in separate patch
+
+Changes since v2:
+1. don't WARN when user calls 'bpftool loink detach' twice
+   restrict attachment to ip+ip6 families, lets relax this
+   later in case arp/bridge/netdev are needed too.
+2. show netfilter links in 'bpftool net' output as well.
+
+Changes since v1:
+1. Don't fail to link when CONFIG_NETFILTER=n (build bot)
+2. Use test_progs instead of test_verifier (Alexei)
+
+Changes since last RFC version:
+1. extend 'bpftool link show' to print prio/hooknum etc
+2. extend 'nft list hooks' so it can print the bpf program id
+3. Add an extra patch to artificially restrict bpf progs with
+   same priority.  Its fine from a technical pov but it will
+   cause ordering issues (most recent one comes first).
+   Can be removed later.
+4. Add test_run support for netfilter prog type and a small
+   extension to verifier tests to make sure we can't return
+   verdicts like NF_STOLEN.
+5. Alter the netfilter part of the bpf_link uapi struct:
+   - add flags/reserved members.
+  Not used here except returning errors when they are nonzero.
+  Plan is to allow the bpf_link users to enable netfilter
+  defrag or conntrack engine by setting feature flags at
+  link create time in the future.
+
+Florian Westphal (7):
+  bpf: add bpf_link support for BPF_NETFILTER programs
+  bpf: minimal support for programs hooked into netfilter framework
+  netfilter: nfnetlink hook: dump bpf prog id
+  netfilter: disallow bpf hook attachment at same priority
+  tools: bpftool: print netfilter link info
+  bpf: add test_run support for netfilter program type
+  selftests/bpf: add missing netfilter return value and ctx access tests
+
+ include/linux/bpf.h                           |   3 +
+ include/linux/bpf_types.h                     |   4 +
+ include/linux/netfilter.h                     |   1 +
+ include/net/netfilter/nf_bpf_link.h           |  15 ++
+ include/uapi/linux/bpf.h                      |  14 ++
+ include/uapi/linux/netfilter/nfnetlink_hook.h |  24 +-
+ kernel/bpf/btf.c                              |   6 +
+ kernel/bpf/syscall.c                          |   6 +
+ kernel/bpf/verifier.c                         |   3 +
+ net/bpf/test_run.c                            | 158 ++++++++++++
+ net/core/filter.c                             |   1 +
+ net/netfilter/Kconfig                         |   3 +
+ net/netfilter/Makefile                        |   1 +
+ net/netfilter/core.c                          |  12 +
+ net/netfilter/nf_bpf_link.c                   | 228 ++++++++++++++++++
+ net/netfilter/nfnetlink_hook.c                |  81 ++++++-
+ tools/bpf/bpftool/link.c                      |  83 +++++++
+ tools/bpf/bpftool/main.h                      |   3 +
+ tools/bpf/bpftool/net.c                       | 106 ++++++++
+ tools/include/uapi/linux/bpf.h                |  14 ++
+ tools/lib/bpf/libbpf.c                        |   3 +
+ tools/lib/bpf/libbpf_probes.c                 |   1 +
+ .../selftests/bpf/prog_tests/verifier.c       |   4 +
+ .../bpf/progs/verifier_netfilter_ctx.c        | 121 ++++++++++
+ .../bpf/progs/verifier_netfilter_retcode.c    |  49 ++++
+ 25 files changed, 928 insertions(+), 16 deletions(-)
+ create mode 100644 include/net/netfilter/nf_bpf_link.h
+ create mode 100644 net/netfilter/nf_bpf_link.c
+ create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
+ create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
+
+-- 
+2.39.2
+
