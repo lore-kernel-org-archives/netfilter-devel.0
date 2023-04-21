@@ -2,91 +2,97 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1612C7618E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 18:50:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6399C7618E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 20:26:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229582AbjDUSuZ (ORCPT
+        id S231521AbjDUU0t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 14:50:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54276 "EHLO
+        Fri, 21 Apr 2023 16:26:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233111AbjDUSuY (ORCPT
+        with ESMTP id S229591AbjDUU0t (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 14:50:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21AC9188;
-        Fri, 21 Apr 2023 11:50:23 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A84AA6121F;
-        Fri, 21 Apr 2023 18:50:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0B6AAC4339C;
-        Fri, 21 Apr 2023 18:50:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682103022;
-        bh=wW6FpQBZO+RBv8nOuI4HJtweleHUtWILRUnILBC8S5s=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=juhtV/muRJQhrv+i6LwFjLud8C/mVuBUicXmV1FTBGBww3irxYuCFu5Sb84qbTBWz
-         Mj7+WbfkY69w1W/pHlMaukv6ad3xNG8yAVTCPVidkHy2WZXzxkyJeWxCyYqUhUbgdr
-         ZAmPH4/YH7AjQKLmHdax5NIlKoFIPw1V0GMs4O598pQjv38+ZViZskfSP/A305ztVK
-         43BEYv8T/EMgJjYDWWiU4laltffZNGFI4+VhfRulOX2xiTjkSn9hjF4nBN33zrPJOO
-         nEbV4V8qXelVLqVjQgkpTOAdUoqDPkHZ12FotEm/NsHOs+tINgWDZf7m7uZftoa+aQ
-         1YyGnXdfKDJPA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id DAA18E270DA;
-        Fri, 21 Apr 2023 18:50:21 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Fri, 21 Apr 2023 16:26:49 -0400
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F397271F;
+        Fri, 21 Apr 2023 13:26:47 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.west.internal (Postfix) with ESMTP id 8F23E3200406;
+        Fri, 21 Apr 2023 16:26:44 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute5.internal (MEProxy); Fri, 21 Apr 2023 16:26:45 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm2; t=1682108804; x=1682195204; bh=aC
+        bgC3XdyqzyDdvGIJajq2TuNCnA+koTs/nAqynb1IQ=; b=MhPkIiIzSwJgaybpv7
+        OOpDVuAEiRZg7ZoaCXoGX88xwSMTbfWBOVOV1zKWEYtiHKenE9ecxX7efWNb1WgP
+        4Sv96+IvIVQbTbkTikm7RgxpMlVvaldKIu/jZ1OGp6fNbfzCL3UNY5YoJbD/vq7L
+        TqAzRjVcMrlDwR0m9wrVgO3kHwvnaUzd3/F1nCJLE8Ve8k3tlkXtQ7gYOgHw+F1L
+        Cn0G0bOS47Q/gCM7RBVzYB5BeFNozpnqzkB0W7bBf/opsQRrK/bQHBbaZsF0XugO
+        KsqJqPGTVQNQmnm2QuvZWaTsg57F0vprSQV3Gtp7jV3MYNZOUebfaAhwnglPHQoZ
+        ZDtQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1682108804; x=1682195204; bh=aCbgC3XdyqzyD
+        dvGIJajq2TuNCnA+koTs/nAqynb1IQ=; b=Zh/pFUZWQf26+vLE6u1BmbSN4c6Xk
+        TUnAQNiKUM8Jqk0u7Jn1OtJgGkuoM0YexovnVpKvR157b9AwbHPjZRv5qAWU9tkO
+        Ix0FCNhNti0ZfsAbfjHm+5EJ8Z5K0oP0CbRNTeOTOLVIlWWrfYtow2Y/PzxL6CKe
+        JGznMEP8wIJ0e5+wZI9BQNJOL0oPi4rbkjSC3pFwSABVgC4tdwZBgqXWI+Af040X
+        DC6Jl9AOOufGK5jm/SZXiqyN8cKTxWN5QVL3jIpl8E9z6crx28kMPCkjFRceocox
+        rDG+GrPJhqr6DIzM/mE56trtEMCkbKbN657Qzm5hfz1/APDxnsEYIN3xQ==
+X-ME-Sender: <xms:g_FCZFf0hAsbKqLmgcXgk6iP_TPQ_MBTgmWOoeSm_H6gaVPthP9j2A>
+    <xme:g_FCZDNPTFW5dUWRysVBFpsniS_WQPdhL3NuS8pFtN1TuNJVd-oupPj8Lzxtjw3xr
+    am9mNXJ1cfbUSCBoA>
+X-ME-Received: <xmr:g_FCZOjiCRWkDOVHPMqf1v0_co-yVLN9p-GCWn0C70Fzp-_CiJ_lSDPXpsrneS0ztaWV12OFR69PtYMU8GiggOG--23H0yGpWtAsffQ>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfedtgedgudegkecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enfghrlhcuvffnffculdefhedmnecujfgurhepfffhvfevuffkfhggtggujgesthdtsfdt
+    tddtvdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihusegugihuuhhurdighiiiqe
+    enucggtffrrghtthgvrhhnpedvfeekteduudefieegtdehfeffkeeuudekheduffduffff
+    gfegiedttefgvdfhvdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrih
+    hlfhhrohhmpegugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:g_FCZO941Xkdt2LriAz-YoED4DX2C_y5wiLDiQqxLXn_X934otCfLg>
+    <xmx:g_FCZBv8IqVhPs2e2eG6mh7WTBlYI4thah-EpukzjakIeMGi5InyMw>
+    <xmx:g_FCZNE1MBIqaRoaylZ-bOV_GW5NlHp9l3H7qC2pPEDp5TwZnRMvuQ>
+    <xmx:hPFCZLJdA0oRoMFMNAWc_u-8rhYwzfZRG_W-MCEM13fPMftJbPNE0w>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
+ 21 Apr 2023 16:26:43 -0400 (EDT)
+Date:   Fri, 21 Apr 2023 14:26:41 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     patchwork-bot+netdevbpf@kernel.org
+Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        qde@naccy.de
 Subject: Re: [PATCH bpf-next v5 0/7] bpf: add netfilter program type
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <168210302187.11240.7792947856131351121.git-patchwork-notify@kernel.org>
-Date:   Fri, 21 Apr 2023 18:50:21 +0000
+Message-ID: <bom5rdg6ffwvmwmwpjwd7igpney2t2gimn3xedezviexyy3nbt@oihiwn2uw2rv>
 References: <20230421170300.24115-1-fw@strlen.de>
-In-Reply-To: <20230421170300.24115-1-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, dxu@dxuuu.xyz, qde@naccy.de
+ <168210302187.11240.7792947856131351121.git-patchwork-notify@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <168210302187.11240.7792947856131351121.git-patchwork-notify@kernel.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to bpf/bpf-next.git (master)
-by Alexei Starovoitov <ast@kernel.org>:
-
-On Fri, 21 Apr 2023 19:02:53 +0200 you wrote:
-> Changes since last version:
-> - rework test case in last patch wrt. ctx->skb dereference etc (Alexei)
-> - pacify bpf ci tests, netfilter program type missed string translation
->   in libbpf helper.
+On Fri, Apr 21, 2023 at 06:50:21PM +0000, patchwork-bot+netdevbpf@kernel.org wrote:
+> Hello:
 > 
-> This still uses runtime btf walk rather than extending
-> the btf trace array as Alexei suggested, I would do this later (or someone else can).
-> 
-> [...]
+> This series was applied to bpf/bpf-next.git (master)
+> by Alexei Starovoitov <ast@kernel.org>:
 
-Here is the summary with links:
-  - [bpf-next,v5,1/7] bpf: add bpf_link support for BPF_NETFILTER programs
-    https://git.kernel.org/bpf/bpf-next/c/84601d6ee68a
-  - [bpf-next,v5,2/7] bpf: minimal support for programs hooked into netfilter framework
-    https://git.kernel.org/bpf/bpf-next/c/fd9c663b9ad6
-  - [bpf-next,v5,3/7] netfilter: nfnetlink hook: dump bpf prog id
-    https://git.kernel.org/bpf/bpf-next/c/506a74db7e01
-  - [bpf-next,v5,4/7] netfilter: disallow bpf hook attachment at same priority
-    https://git.kernel.org/bpf/bpf-next/c/0bdc6da88f5b
-  - [bpf-next,v5,5/7] tools: bpftool: print netfilter link info
-    (no matching commit)
-  - [bpf-next,v5,6/7] bpf: add test_run support for netfilter program type
-    https://git.kernel.org/bpf/bpf-next/c/2b99ef22e0d2
-  - [bpf-next,v5,7/7] selftests/bpf: add missing netfilter return value and ctx access tests
-    https://git.kernel.org/bpf/bpf-next/c/006c0e44ed92
+Yay!
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+I'm getting a procedure done on my wrist so I'll be unable to code for a
+week or two. When I recover I'll get on the conntrack stuff + a
+selftest. If anyone has a burning desire to do it before then, feel free
+to go ahead.
 
-
+Thanks,
+Daniel
