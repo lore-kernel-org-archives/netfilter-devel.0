@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BE15C7618E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A17AC77B7F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233860AbjDUXCr (ORCPT
+        id S233520AbjDUXCt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 19:02:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52794 "EHLO
+        Fri, 21 Apr 2023 19:02:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233726AbjDUXCY (ORCPT
+        with ESMTP id S233784AbjDUXCa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 19:02:24 -0400
+        Fri, 21 Apr 2023 19:02:30 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3CAB61FCD;
-        Fri, 21 Apr 2023 16:02:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 091092710;
+        Fri, 21 Apr 2023 16:02:25 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 11/20] ipvs: Update width of source for ip_vs_sync_conn_options
-Date:   Sat, 22 Apr 2023 01:02:02 +0200
-Message-Id: <20230421230211.214635-12-pablo@netfilter.org>
+Subject: [PATCH net-next 14/20] ipvs: Correct spelling in comments
+Date:   Sat, 22 Apr 2023 01:02:05 +0200
+Message-Id: <20230421230211.214635-15-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230421230211.214635-1-pablo@netfilter.org>
 References: <20230421230211.214635-1-pablo@netfilter.org>
@@ -34,83 +34,46 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Simon Horman <horms@kernel.org>
 
-In ip_vs_sync_conn_v0() copy is made to struct ip_vs_sync_conn_options.
-That structure looks like this:
-
-struct ip_vs_sync_conn_options {
-        struct ip_vs_seq        in_seq;
-        struct ip_vs_seq        out_seq;
-};
-
-The source of the copy is the in_seq field of struct ip_vs_conn.  Whose
-type is struct ip_vs_seq. Thus we can see that the source - is not as
-wide as the amount of data copied, which is the width of struct
-ip_vs_sync_conn_option.
-
-The copy is safe because the next field in is another struct ip_vs_seq.
-Make use of struct_group() to annotate this.
-
-Flagged by gcc-13 as:
-
- In file included from ./include/linux/string.h:254,
-                  from ./include/linux/bitmap.h:11,
-                  from ./include/linux/cpumask.h:12,
-                  from ./arch/x86/include/asm/paravirt.h:17,
-                  from ./arch/x86/include/asm/cpuid.h:62,
-                  from ./arch/x86/include/asm/processor.h:19,
-                  from ./arch/x86/include/asm/timex.h:5,
-                  from ./include/linux/timex.h:67,
-                  from ./include/linux/time32.h:13,
-                  from ./include/linux/time.h:60,
-                  from ./include/linux/stat.h:19,
-                  from ./include/linux/module.h:13,
-                  from net/netfilter/ipvs/ip_vs_sync.c:38:
- In function 'fortify_memcpy_chk',
-     inlined from 'ip_vs_sync_conn_v0' at net/netfilter/ipvs/ip_vs_sync.c:606:3:
- ./include/linux/fortify-string.h:529:25: error: call to '__read_overflow2_field' declared with attribute warning: detected read beyond size of field (2nd parameter); maybe use struct_group()? [-Werror=attribute-warning]
-   529 |                         __read_overflow2_field(q_size_field, size);
-       |
-
-Compile tested only.
+Correct some spelling errors flagged by codespell and found by inspection.
 
 Signed-off-by: Simon Horman <horms@kernel.org>
 Reviewed-by: Horatiu Vultur <horatiu.vultur@microchip.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h             | 6 ++++--
- net/netfilter/ipvs/ip_vs_sync.c | 2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ include/net/ip_vs.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 6d71a5ff52df..e20f1f92066d 100644
+index a3adc246ee31..ff406ef4fd4a 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
-@@ -630,8 +630,10 @@ struct ip_vs_conn {
+@@ -584,7 +584,7 @@ struct ip_vs_conn {
+ 	spinlock_t              lock;           /* lock for state transition */
+ 	volatile __u16          state;          /* state info */
+ 	volatile __u16          old_state;      /* old state, to be used for
+-						 * state transition triggerd
++						 * state transition triggered
+ 						 * synchronization
+ 						 */
+ 	__u32			fwmark;		/* Fire wall mark from skb */
+@@ -635,7 +635,7 @@ struct ip_vs_service_user_kern {
+ 	u16			protocol;
+ 	union nf_inet_addr	addr;		/* virtual ip address */
+ 	__be16			port;
+-	u32			fwmark;		/* firwall mark of service */
++	u32			fwmark;		/* firewall mark of service */
+ 
+ 	/* virtual service options */
+ 	char			*sched_name;
+@@ -1036,7 +1036,7 @@ struct netns_ipvs {
+ 	struct ipvs_sync_daemon_cfg	bcfg;	/* Backup Configuration */
+ 	/* net name space ptr */
+ 	struct net		*net;            /* Needed by timer routines */
+-	/* Number of heterogeneous destinations, needed becaus heterogeneous
++	/* Number of heterogeneous destinations, needed because heterogeneous
+ 	 * are not supported when synchronization is enabled.
  	 */
- 	struct ip_vs_app        *app;           /* bound ip_vs_app object */
- 	void                    *app_data;      /* Application private data */
--	struct ip_vs_seq        in_seq;         /* incoming seq. struct */
--	struct ip_vs_seq        out_seq;        /* outgoing seq. struct */
-+	struct_group(sync_conn_opt,
-+		struct ip_vs_seq  in_seq;       /* incoming seq. struct */
-+		struct ip_vs_seq  out_seq;      /* outgoing seq. struct */
-+	);
- 
- 	const struct ip_vs_pe	*pe;
- 	char			*pe_data;
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 4963fec815da..d4fe7bb4f853 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -603,7 +603,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
- 	if (cp->flags & IP_VS_CONN_F_SEQ_MASK) {
- 		struct ip_vs_sync_conn_options *opt =
- 			(struct ip_vs_sync_conn_options *)&s[1];
--		memcpy(opt, &cp->in_seq, sizeof(*opt));
-+		memcpy(opt, &cp->sync_conn_opt, sizeof(*opt));
- 	}
- 
- 	m->nr_conns++;
+ 	unsigned int		mixed_address_family_dests;
 -- 
 2.30.2
 
