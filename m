@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AF8EC7EE20
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00B83C77B78
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233767AbjDUXC0 (ORCPT
+        id S233724AbjDUXCY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 19:02:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52698 "EHLO
+        Fri, 21 Apr 2023 19:02:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233658AbjDUXCV (ORCPT
+        with ESMTP id S233605AbjDUXCV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 21 Apr 2023 19:02:21 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 323031FCF;
-        Fri, 21 Apr 2023 16:02:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 04B9B1984;
+        Fri, 21 Apr 2023 16:02:19 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 07/20] netfilter: nf_tables: remove unneeded conditional
-Date:   Sat, 22 Apr 2023 01:01:58 +0200
-Message-Id: <20230421230211.214635-8-pablo@netfilter.org>
+Subject: [PATCH net-next 05/20] netfilter: nf_tables: don't write table validation state without mutex
+Date:   Sat, 22 Apr 2023 01:01:56 +0200
+Message-Id: <20230421230211.214635-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230421230211.214635-1-pablo@netfilter.org>
 References: <20230421230211.214635-1-pablo@netfilter.org>
@@ -34,51 +34,79 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-This helper is inlined, so keep it as small as possible.
+The ->cleanup callback needs to be removed, this doesn't work anymore as
+the transaction mutex is already released in the ->abort function.
 
-If the static key is true, there is only a very small chance
-that info->trace is false:
+Just do it after a successful validation pass, this either happens
+from commit or abort phases where transaction mutex is held.
 
-1. tracing was enabled at this very moment, the static key was
-   updated to active right after nft_do_table was called.
-
-2. tracing was disabled at this very moment.
-   trace->info is already false, the static key is about to
-   be patched to false soon.
-
-In both cases, no event will be sent because info->trace
-is false (checked in noinline slowpath). info->nf_trace is irrelevant.
-
-The nf_trace update is redunant in this case, but this will only
-happen for short duration, when static key flips.
-
-       text  data   bss   dec   hex filename
-old:   2980   192    32  3204   c84 nf_tables_core.o
-new:   2964   192    32  3188   c74i nf_tables_core.o
-
+Fixes: f102d66b335a ("netfilter: nf_tables: use dedicated mutex to guard transactions")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_core.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/netfilter/nfnetlink.h | 1 -
+ net/netfilter/nf_tables_api.c       | 8 ++------
+ net/netfilter/nfnetlink.c           | 2 --
+ 3 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 89c05b64c2a2..bed855638050 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -67,10 +67,8 @@ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
- static inline void nft_trace_copy_nftrace(const struct nft_pktinfo *pkt,
- 					  struct nft_traceinfo *info)
- {
--	if (static_branch_unlikely(&nft_trace_enabled)) {
--		if (info->trace)
--			info->nf_trace = pkt->skb->nf_trace;
--	}
-+	if (static_branch_unlikely(&nft_trace_enabled))
-+		info->nf_trace = pkt->skb->nf_trace;
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 241e005f290a..e9a9ab34a7cc 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -45,7 +45,6 @@ struct nfnetlink_subsystem {
+ 	int (*commit)(struct net *net, struct sk_buff *skb);
+ 	int (*abort)(struct net *net, struct sk_buff *skb,
+ 		     enum nfnl_abort_action action);
+-	void (*cleanup)(struct net *net);
+ 	bool (*valid_genid)(struct net *net, u32 genid);
+ };
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0e1c86bb51a2..21eb273d2740 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8639,6 +8639,8 @@ static int nf_tables_validate(struct net *net)
+ 			if (nft_table_validate(net, table) < 0)
+ 				return -EAGAIN;
+ 		}
++
++		nft_validate_state_update(net, NFT_VALIDATE_SKIP);
+ 		break;
+ 	}
+ 
+@@ -9578,11 +9580,6 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 	return 0;
  }
  
- static void nft_bitwise_fast_eval(const struct nft_expr *expr,
+-static void nf_tables_cleanup(struct net *net)
+-{
+-	nft_validate_state_update(net, NFT_VALIDATE_SKIP);
+-}
+-
+ static int nf_tables_abort(struct net *net, struct sk_buff *skb,
+ 			   enum nfnl_abort_action action)
+ {
+@@ -9616,7 +9613,6 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
+ 	.cb		= nf_tables_cb,
+ 	.commit		= nf_tables_commit,
+ 	.abort		= nf_tables_abort,
+-	.cleanup	= nf_tables_cleanup,
+ 	.valid_genid	= nf_tables_valid_genid,
+ 	.owner		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 81c7737c803a..ae7146475d17 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -590,8 +590,6 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			goto replay_abort;
+ 		}
+ 	}
+-	if (ss->cleanup)
+-		ss->cleanup(net);
+ 
+ 	nfnl_err_deliver(&err_list, oskb);
+ 	kfree_skb(skb);
 -- 
 2.30.2
 
