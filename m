@@ -2,97 +2,145 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6399C7618E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 20:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C69BAC7618E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231521AbjDUU0t (ORCPT
+        id S233430AbjDUXCS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 16:26:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38794 "EHLO
+        Fri, 21 Apr 2023 19:02:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229591AbjDUU0t (ORCPT
+        with ESMTP id S230110AbjDUXCS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 16:26:49 -0400
-Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F397271F;
-        Fri, 21 Apr 2023 13:26:47 -0700 (PDT)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.west.internal (Postfix) with ESMTP id 8F23E3200406;
-        Fri, 21 Apr 2023 16:26:44 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute5.internal (MEProxy); Fri, 21 Apr 2023 16:26:45 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm2; t=1682108804; x=1682195204; bh=aC
-        bgC3XdyqzyDdvGIJajq2TuNCnA+koTs/nAqynb1IQ=; b=MhPkIiIzSwJgaybpv7
-        OOpDVuAEiRZg7ZoaCXoGX88xwSMTbfWBOVOV1zKWEYtiHKenE9ecxX7efWNb1WgP
-        4Sv96+IvIVQbTbkTikm7RgxpMlVvaldKIu/jZ1OGp6fNbfzCL3UNY5YoJbD/vq7L
-        TqAzRjVcMrlDwR0m9wrVgO3kHwvnaUzd3/F1nCJLE8Ve8k3tlkXtQ7gYOgHw+F1L
-        Cn0G0bOS47Q/gCM7RBVzYB5BeFNozpnqzkB0W7bBf/opsQRrK/bQHBbaZsF0XugO
-        KsqJqPGTVQNQmnm2QuvZWaTsg57F0vprSQV3Gtp7jV3MYNZOUebfaAhwnglPHQoZ
-        ZDtQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1682108804; x=1682195204; bh=aCbgC3XdyqzyD
-        dvGIJajq2TuNCnA+koTs/nAqynb1IQ=; b=Zh/pFUZWQf26+vLE6u1BmbSN4c6Xk
-        TUnAQNiKUM8Jqk0u7Jn1OtJgGkuoM0YexovnVpKvR157b9AwbHPjZRv5qAWU9tkO
-        Ix0FCNhNti0ZfsAbfjHm+5EJ8Z5K0oP0CbRNTeOTOLVIlWWrfYtow2Y/PzxL6CKe
-        JGznMEP8wIJ0e5+wZI9BQNJOL0oPi4rbkjSC3pFwSABVgC4tdwZBgqXWI+Af040X
-        DC6Jl9AOOufGK5jm/SZXiqyN8cKTxWN5QVL3jIpl8E9z6crx28kMPCkjFRceocox
-        rDG+GrPJhqr6DIzM/mE56trtEMCkbKbN657Qzm5hfz1/APDxnsEYIN3xQ==
-X-ME-Sender: <xms:g_FCZFf0hAsbKqLmgcXgk6iP_TPQ_MBTgmWOoeSm_H6gaVPthP9j2A>
-    <xme:g_FCZDNPTFW5dUWRysVBFpsniS_WQPdhL3NuS8pFtN1TuNJVd-oupPj8Lzxtjw3xr
-    am9mNXJ1cfbUSCBoA>
-X-ME-Received: <xmr:g_FCZOjiCRWkDOVHPMqf1v0_co-yVLN9p-GCWn0C70Fzp-_CiJ_lSDPXpsrneS0ztaWV12OFR69PtYMU8GiggOG--23H0yGpWtAsffQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrfedtgedgudegkecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enfghrlhcuvffnffculdefhedmnecujfgurhepfffhvfevuffkfhggtggujgesthdtsfdt
-    tddtvdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihusegugihuuhhurdighiiiqe
-    enucggtffrrghtthgvrhhnpedvfeekteduudefieegtdehfeffkeeuudekheduffduffff
-    gfegiedttefgvdfhvdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrih
-    hlfhhrohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:g_FCZO941Xkdt2LriAz-YoED4DX2C_y5wiLDiQqxLXn_X934otCfLg>
-    <xmx:g_FCZBv8IqVhPs2e2eG6mh7WTBlYI4thah-EpukzjakIeMGi5InyMw>
-    <xmx:g_FCZNE1MBIqaRoaylZ-bOV_GW5NlHp9l3H7qC2pPEDp5TwZnRMvuQ>
-    <xmx:hPFCZLJdA0oRoMFMNAWc_u-8rhYwzfZRG_W-MCEM13fPMftJbPNE0w>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 21 Apr 2023 16:26:43 -0400 (EDT)
-Date:   Fri, 21 Apr 2023 14:26:41 -0600
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     patchwork-bot+netdevbpf@kernel.org
-Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        qde@naccy.de
-Subject: Re: [PATCH bpf-next v5 0/7] bpf: add netfilter program type
-Message-ID: <bom5rdg6ffwvmwmwpjwd7igpney2t2gimn3xedezviexyy3nbt@oihiwn2uw2rv>
-References: <20230421170300.24115-1-fw@strlen.de>
- <168210302187.11240.7792947856131351121.git-patchwork-notify@kernel.org>
+        Fri, 21 Apr 2023 19:02:18 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3846DE57;
+        Fri, 21 Apr 2023 16:02:16 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net-next 00/20] Netfilter/IPVS updates for net-next
+Date:   Sat, 22 Apr 2023 01:01:51 +0200
+Message-Id: <20230421230211.214635-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <168210302187.11240.7792947856131351121.git-patchwork-notify@kernel.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Apr 21, 2023 at 06:50:21PM +0000, patchwork-bot+netdevbpf@kernel.org wrote:
-> Hello:
-> 
-> This series was applied to bpf/bpf-next.git (master)
-> by Alexei Starovoitov <ast@kernel.org>:
+Hi,
 
-Yay!
+The following patchset contains Netfilter updates for net-next:
 
-I'm getting a procedure done on my wrist so I'll be unable to code for a
-week or two. When I recover I'll get on the conntrack stuff + a
-selftest. If anyone has a burning desire to do it before then, feel free
-to go ahead.
+1) DCCP option matching support, from Jeremy Sowden.
 
-Thanks,
-Daniel
+2) Reduce jumpstack footprint: Stash chain in last rule marker in blob for
+   tracing. Remove last rule and chain from jumpstack. From Florian Westphal.
+
+3) nf_tables validates all tables before committing the new rules.
+   Unfortunately, this has two drawbacks:
+
+   - Since addition of the transaction mutex pernet state gets written to
+     outside of the locked section from the cleanup callback, this is
+     wrong so do this cleanup directly after table has passed all checks.
+
+   - Revalidate tables that saw no changes. This can be avoided by
+     keeping the validation state per table, not per netns.
+
+   From Florian Westphal.
+
+4) Get rid of a few redundant pointers in the traceinfo structure.
+   The three removed pointers are used in the expression evaluation loop,
+   so gcc keeps them in registers. Passing them to the (inlined) helpers
+   thus doesn't increase nft_do_chain text size, while stack is reduced
+   by another 24 bytes on 64bit arches. From Florian Westphal.
+
+5) IPVS cleanups in several ways without implementing any functional
+   changes, aside from removing some debugging output:
+
+   - Update width of source for ip_vs_sync_conn_options
+     The operation is safe, use an annotation to describe it properly.
+
+   - Consistently use array_size() in ip_vs_conn_init()
+     It seems better to use helpers consistently.
+
+   - Remove {Enter,Leave}Function. These seem to be well past their
+     use-by date.
+
+   - Correct spelling in comments.
+
+   From Simon Horman.
+
+6) Extended netlink error report for netdevice in flowtables and
+   netdev/chains. Allow for incrementally add/delete devices to netdev
+   basechain. Allow to create netdev chain without device.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit ca288965801572fe41386560d4e6c5cc0e5cc56d:
+
+  Merge tag 'wireless-next-2023-04-21' of git://git.kernel.org/pub/scm/linux/kernel/git/wireless/wireless-next (2023-04-21 07:35:51 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-23-04-22
+
+for you to fetch changes up to c7ce03c47ae836cad7d95fc08dc564452fe9b6e3:
+
+  netfilter: nf_tables: allow to create netdev chain without device (2023-04-22 00:23:35 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 23-04-22
+
+----------------------------------------------------------------
+Florian Westphal (9):
+      netfilter: nf_tables: merge nft_rules_old structure and end of ruleblob marker
+      netfilter: nf_tables: don't store address of last rule on jump
+      netfilter: nf_tables: don't store chain address on jump
+      netfilter: nf_tables: don't write table validation state without mutex
+      netfilter: nf_tables: make validation state per table
+      netfilter: nf_tables: remove unneeded conditional
+      netfilter: nf_tables: do not store pktinfo in traceinfo structure
+      netfilter: nf_tables: do not store verdict in traceinfo structure
+      netfilter: nf_tables: do not store rule in traceinfo structure
+
+Jeremy Sowden (1):
+      netfilter: nft_exthdr: add boolean DCCP option matching
+
+Pablo Neira Ayuso (6):
+      netfilter: nf_tables: extended netlink error reporting for netdevice
+      netfilter: nf_tables: do not send complete notification of deletions
+      netfilter: nf_tables: rename function to destroy hook list
+      netfilter: nf_tables: support for adding new devices to an existing netdev chain
+      netfilter: nf_tables: support for deleting devices in an existing netdev chain
+      netfilter: nf_tables: allow to create netdev chain without device
+
+Simon Horman (4):
+      ipvs: Update width of source for ip_vs_sync_conn_options
+      ipvs: Consistently use array_size() in ip_vs_conn_init()
+      ipvs: Remove {Enter,Leave}Function
+      ipvs: Correct spelling in comments
+
+ include/linux/netfilter/nfnetlink.h      |   1 -
+ include/net/ip_vs.h                      |  32 +-
+ include/net/netfilter/nf_tables.h        |  35 +-
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/ipvs/ip_vs_conn.c          |  12 +-
+ net/netfilter/ipvs/ip_vs_core.c          |   8 -
+ net/netfilter/ipvs/ip_vs_ctl.c           |  26 +-
+ net/netfilter/ipvs/ip_vs_sync.c          |   7 +-
+ net/netfilter/ipvs/ip_vs_xmit.c          |  62 +---
+ net/netfilter/nf_tables_api.c            | 539 ++++++++++++++++++++-----------
+ net/netfilter/nf_tables_core.c           |  59 ++--
+ net/netfilter/nf_tables_trace.c          |  62 ++--
+ net/netfilter/nfnetlink.c                |   2 -
+ net/netfilter/nft_exthdr.c               | 105 ++++++
+ 14 files changed, 570 insertions(+), 382 deletions(-)
