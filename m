@@ -2,296 +2,97 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9CB1C77B76
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 17:04:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 586FEC7618E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 17:40:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232591AbjDURE0 (ORCPT
+        id S232764AbjDURkH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 13:04:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46772 "EHLO
+        Fri, 21 Apr 2023 13:40:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232621AbjDUREU (ORCPT
+        with ESMTP id S233178AbjDURkE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 13:04:20 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5F4416B1B;
-        Fri, 21 Apr 2023 10:03:41 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1ppuAZ-0004C2-Ix; Fri, 21 Apr 2023 19:03:35 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <bpf@vger.kernel.org>
-Cc:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        dxu@dxuuu.xyz, qde@naccy.de, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf-next v5 7/7] selftests/bpf: add missing netfilter return value and ctx access tests
-Date:   Fri, 21 Apr 2023 19:03:00 +0200
-Message-Id: <20230421170300.24115-8-fw@strlen.de>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230421170300.24115-1-fw@strlen.de>
-References: <20230421170300.24115-1-fw@strlen.de>
+        Fri, 21 Apr 2023 13:40:04 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42FEE6EB9
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Apr 2023 10:40:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=I3qA61tKBHvRdGg1K0UElxpYz2OhjFUF18KLiLzKERg=; b=IJMRMRU+Z7zvSUIzy73ZvA87Iv
+        kUQfIpYd2Pnq3PKmSoTqHo3gk1LicbX7ZhI09LWPAkJMI2FtL8jgFf6no870KADkjSQsRutqsnVcx
+        KfPeChRdzcwkQ1zv975SJSBz1z03OfBR/iCIl3rGWh0XcU37z2Dp2s/veYzRjBkqSmE4gcMyy93KH
+        YLKAcVa9hhTzQI849NI9Egi3aSO5WdU7nK9dmxraK+aLa8iWhdd6c9SKOwv2ESvBaDLZ0f8TPj9H7
+        wC6hgwD44AkjFSEcfejvyGUDYSIK7dplk7j/wh1A7O41YExOcDPn5Kezgh1CXZNk+lW/Es5zyzEuY
+        e0cvHq+Q==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1ppujp-00089F-7r; Fri, 21 Apr 2023 19:40:01 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Subject: [iptables PATCH 0/3] Extract nftnl_rule parsing code
+Date:   Fri, 21 Apr 2023 19:40:11 +0200
+Message-Id: <20230421174014.17014-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Extend prog_tests with two test cases:
+nft-shared.c was already oversized, upcoming enhancement of the
+nftnl_rule parser will add to that. So prepare any further work in that
+field by creating a common 'nft-ruleparse.c' source and one for each
+family to hold all the parsing code (basically the stack below
+nft_rule_to_iptables_command_state).
 
- # ./test_progs --allow=verifier_netfilter_retcode
- #278/1   verifier_netfilter_retcode/bpf_exit with invalid return code. test1:OK
- #278/2   verifier_netfilter_retcode/bpf_exit with valid return code. test2:OK
- #278/3   verifier_netfilter_retcode/bpf_exit with valid return code. test3:OK
- #278/4   verifier_netfilter_retcode/bpf_exit with invalid return code. test4:OK
- #278     verifier_netfilter_retcode:OK
+Collect the existing expression parsing callbacks in a new struct
+nft_ruleparse_ops and add a pointer to it into nft_family_ops. This way
+the callbacks may be static and the nft-ruleparse-<family>.c sources
+only export their ops object.
 
-This checks that only accept and drop (0,1) are permitted.
+This series does things somewhat gradually:
 
-NF_QUEUE could be implemented later if we can guarantee that attachment
-of such programs can be rejected if they get attached to a pf/hook that
-doesn't support async reinjection.
+* First pull everything from nft-shared.c into nft-ruleparse.c (likewise
+  with header files)
+* Then perform the *_ops struct changes which should not have a
+  functional implication
+* Finally weed parsers from nft-<family>.c files into
+  nft-ruleparse-<family>.c ones.
 
-NF_STOLEN could be implemented via trusted helpers that can guarantee
-that the skb will eventually be free'd.
+Phil Sutter (3):
+  nft: Introduce nft-ruleparse.{c,h}
+  nft: Extract rule parsing callbacks from nft_family_ops
+  nft: ruleparse: Create family-specific source files
 
-v4: test case for bpf_nf_ctx access checks, requested by Alexei Starovoitov.
-v5: also check ctx->{state,skb} can be dereferenced (Alexei).
+ iptables/Makefile.am            |    3 +
+ iptables/nft-arp.c              |  139 +---
+ iptables/nft-bridge.c           |  390 +---------
+ iptables/nft-cache.h            |    2 +
+ iptables/nft-ipv4.c             |  106 +--
+ iptables/nft-ipv6.c             |   83 +--
+ iptables/nft-ruleparse-arp.c    |  168 +++++
+ iptables/nft-ruleparse-bridge.c |  422 +++++++++++
+ iptables/nft-ruleparse-ipv4.c   |  135 ++++
+ iptables/nft-ruleparse-ipv6.c   |  112 +++
+ iptables/nft-ruleparse.c        | 1208 +++++++++++++++++++++++++++++++
+ iptables/nft-ruleparse.h        |  138 ++++
+ iptables/nft-shared.c           | 1190 ------------------------------
+ iptables/nft-shared.h           |  115 +--
+ 14 files changed, 2194 insertions(+), 2017 deletions(-)
+ create mode 100644 iptables/nft-ruleparse-arp.c
+ create mode 100644 iptables/nft-ruleparse-bridge.c
+ create mode 100644 iptables/nft-ruleparse-ipv4.c
+ create mode 100644 iptables/nft-ruleparse-ipv6.c
+ create mode 100644 iptables/nft-ruleparse.c
+ create mode 100644 iptables/nft-ruleparse.h
 
- # ./test_progs --allow=verifier_netfilter_ctx
- #281/1   verifier_netfilter_ctx/netfilter invalid context access, size too short:OK
- #281/2   verifier_netfilter_ctx/netfilter invalid context access, size too short:OK
- #281/3   verifier_netfilter_ctx/netfilter invalid context access, past end of ctx:OK
- #281/4   verifier_netfilter_ctx/netfilter invalid context, write:OK
- #281/5   verifier_netfilter_ctx/netfilter valid context read and invalid write:OK
- #281/6   verifier_netfilter_ctx/netfilter test prog with skb and state read access:OK
- #281/7   verifier_netfilter_ctx/netfilter test prog with skb and state read access @unpriv:OK
- #281     verifier_netfilter_ctx:OK
-Summary: 1/7 PASSED, 0 SKIPPED, 0 FAILED
-
-This checks:
-1/2: partial reads of ctx->{skb,state} are rejected
-3. read access past sizeof(ctx) is rejected
-4. write to ctx content, e.g. 'ctx->skb = NULL;' is rejected
-5. ctx->state content cannot be altered
-6. ctx->state and ctx->skb can be dereferenced
-7. ... same program fails for unpriv (CAP_NET_ADMIN needed).
-
-Link: https://lore.kernel.org/bpf/20230419021152.sjq4gttphzzy6b5f@dhcp-172-26-102-232.dhcp.thefacebook.com/
-Link: https://lore.kernel.org/bpf/20230420201655.77kkgi3dh7fesoll@MacBook-Pro-6.local/
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Update verifier_netfilter_ctx.c test cases
-
- .../selftests/bpf/prog_tests/verifier.c       |   4 +
- .../bpf/progs/verifier_netfilter_ctx.c        | 121 ++++++++++++++++++
- .../bpf/progs/verifier_netfilter_retcode.c    |  49 +++++++
- 3 files changed, 174 insertions(+)
- create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
- create mode 100644 tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
-
-diff --git a/tools/testing/selftests/bpf/prog_tests/verifier.c b/tools/testing/selftests/bpf/prog_tests/verifier.c
-index 7c68d78da9ea..7534f5499d11 100644
---- a/tools/testing/selftests/bpf/prog_tests/verifier.c
-+++ b/tools/testing/selftests/bpf/prog_tests/verifier.c
-@@ -29,6 +29,8 @@
- #include "verifier_map_ret_val.skel.h"
- #include "verifier_masking.skel.h"
- #include "verifier_meta_access.skel.h"
-+#include "verifier_netfilter_ctx.skel.h"
-+#include "verifier_netfilter_retcode.skel.h"
- #include "verifier_raw_stack.skel.h"
- #include "verifier_raw_tp_writable.skel.h"
- #include "verifier_reg_equal.skel.h"
-@@ -103,6 +105,8 @@ void test_verifier_map_ptr(void)              { RUN(verifier_map_ptr); }
- void test_verifier_map_ret_val(void)          { RUN(verifier_map_ret_val); }
- void test_verifier_masking(void)              { RUN(verifier_masking); }
- void test_verifier_meta_access(void)          { RUN(verifier_meta_access); }
-+void test_verifier_netfilter_ctx(void)        { RUN(verifier_netfilter_ctx); }
-+void test_verifier_netfilter_retcode(void)    { RUN(verifier_netfilter_retcode); }
- void test_verifier_raw_stack(void)            { RUN(verifier_raw_stack); }
- void test_verifier_raw_tp_writable(void)      { RUN(verifier_raw_tp_writable); }
- void test_verifier_reg_equal(void)            { RUN(verifier_reg_equal); }
-diff --git a/tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c b/tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
-new file mode 100644
-index 000000000000..65bba330e7e5
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/verifier_netfilter_ctx.c
-@@ -0,0 +1,121 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include "vmlinux.h"
-+
-+#include "bpf_misc.h"
-+
-+#include <bpf/bpf_endian.h>
-+#include <bpf/bpf_tracing.h>
-+#include <bpf/bpf_helpers.h>
-+
-+SEC("netfilter")
-+__description("netfilter invalid context access, size too short")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test1(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u8*)(r1 + %[__bpf_nf_ctx_state]);	\
-+	r0 = 0;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_state, offsetof(struct bpf_nf_ctx, state))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter invalid context access, size too short")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test2(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u16*)(r1 + %[__bpf_nf_ctx_skb]);	\
-+	r0 = 0;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter invalid context access, past end of ctx")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test3(void)
-+{
-+	asm volatile ("					\
-+	r2 = *(u64*)(r1 + %[__bpf_nf_ctx_size]);	\
-+	r0 = 0;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_size, sizeof(struct bpf_nf_ctx))
-+	: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("netfilter invalid context, write")
-+__failure __msg("invalid bpf_context access")
-+__naked void with_invalid_ctx_access_test4(void)
-+{
-+	asm volatile ("					\
-+	r2 = r1;					\
-+	*(u64*)(r2 + 0) = r1;				\
-+	r0 = 1;						\
-+	exit;						\
-+"	:
-+	: __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-+	: __clobber_all);
-+}
-+
-+#define NF_DROP 0
-+#define NF_ACCEPT 1
-+
-+SEC("netfilter")
-+__description("netfilter valid context read and invalid write")
-+__failure __msg("only read is supported")
-+int with_invalid_ctx_access_test5(struct bpf_nf_ctx *ctx)
-+{
-+	struct nf_hook_state *state = (void *)ctx->state;
-+
-+	state->sk = NULL;
-+	return NF_ACCEPT;
-+}
-+
-+extern int bpf_dynptr_from_skb(struct sk_buff *skb, __u64 flags,
-+                               struct bpf_dynptr *ptr__uninit) __ksym;
-+extern void *bpf_dynptr_slice(const struct bpf_dynptr *ptr, uint32_t offset,
-+                                   void *buffer, uint32_t buffer__sz) __ksym;
-+
-+SEC("netfilter")
-+__description("netfilter test prog with skb and state read access")
-+__success __failure_unpriv
-+__retval(0)
-+int with_valid_ctx_access_test6(struct bpf_nf_ctx *ctx)
-+{
-+	const struct nf_hook_state *state = ctx->state;
-+	struct sk_buff *skb = ctx->skb;
-+	const struct iphdr *iph;
-+	const struct tcphdr *th;
-+	u8 buffer_iph[20] = {};
-+	u8 buffer_th[40] = {};
-+	struct bpf_dynptr ptr;
-+	uint8_t ihl;
-+
-+	if (skb->len <= 20 || bpf_dynptr_from_skb(skb, 0, &ptr))
-+		return NF_ACCEPT;
-+
-+	iph = bpf_dynptr_slice(&ptr, 0, buffer_iph, sizeof(buffer_iph));
-+	if (!iph)
-+		return NF_ACCEPT;
-+
-+	if (state->pf != 2)
-+		return NF_ACCEPT;
-+
-+	ihl = iph->ihl << 2;
-+
-+	th = bpf_dynptr_slice(&ptr, ihl, buffer_th, sizeof(buffer_th));
-+	if (!th)
-+		return NF_ACCEPT;
-+
-+	return th->dest == bpf_htons(22) ? NF_ACCEPT : NF_DROP;
-+}
-+
-+char _license[] SEC("license") = "GPL";
-diff --git a/tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c b/tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
-new file mode 100644
-index 000000000000..353ae6da00e1
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/verifier_netfilter_retcode.c
-@@ -0,0 +1,49 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/bpf.h>
-+#include <bpf/bpf_helpers.h>
-+#include "bpf_misc.h"
-+
-+SEC("netfilter")
-+__description("bpf_exit with invalid return code. test1")
-+__failure __msg("R0 is not a known value")
-+__naked void with_invalid_return_code_test1(void)
-+{
-+	asm volatile ("					\
-+	r0 = *(u64*)(r1 + 0);				\
-+	exit;						\
-+"	::: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("bpf_exit with valid return code. test2")
-+__success
-+__naked void with_valid_return_code_test2(void)
-+{
-+	asm volatile ("					\
-+	r0 = 0;						\
-+	exit;						\
-+"	::: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("bpf_exit with valid return code. test3")
-+__success
-+__naked void with_valid_return_code_test3(void)
-+{
-+	asm volatile ("					\
-+	r0 = 1;						\
-+	exit;						\
-+"	::: __clobber_all);
-+}
-+
-+SEC("netfilter")
-+__description("bpf_exit with invalid return code. test4")
-+__failure __msg("R0 has value (0x2; 0x0)")
-+__naked void with_invalid_return_code_test4(void)
-+{
-+	asm volatile ("					\
-+	r0 = 2;						\
-+	exit;						\
-+"	::: __clobber_all);
-+}
 -- 
-2.39.2
+2.40.0
 
