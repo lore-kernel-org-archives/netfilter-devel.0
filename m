@@ -2,60 +2,156 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D947C77B73
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 03:25:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54FC5C77B7F
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 07:55:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbjDUDZy (ORCPT
+        id S231478AbjDUHy5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Apr 2023 23:25:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38880 "EHLO
+        Fri, 21 Apr 2023 03:54:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230038AbjDUDZx (ORCPT
+        with ESMTP id S231517AbjDUHyi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2023 23:25:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB69F10E3;
-        Thu, 20 Apr 2023 20:25:52 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 44D8860ACF;
-        Fri, 21 Apr 2023 03:25:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A51C4339B;
-        Fri, 21 Apr 2023 03:25:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682047551;
-        bh=YDu3KLe7lykirea3rL8THfo3mJjSppTvOkZadvSlh1k=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=VhySG3GQ7RyWXIa6FWJOGd51C/GQb6U1cMQUTbWrRe5ZWvCxVaCB/dqLNjUVl9HXr
-         EgOZyZTibq/itlMJ6rWU6Z+sofVuC4tx3XMzgK9u9dihH/N9GQ3DQy1vKMZttQqZje
-         nt/YhDjgVZfsxZi6ua1Kag7uJB5rTbZEDoL9bmy2SLYh+P8wZ1SNI6MzySCwJm9esv
-         +NxN6xGRdH4j4ptd4dqNXvDBK0U2CxwnXfN4wF4bhBtCB4lorv0+rsNLDTAZM8ykv5
-         fVax+vNHU/YeazCOZYI0AF7nexbY0/m3If6tIP0EhAk2WRxIloIzncT1xs3QAHkGUG
-         LgF30Z4nnNpAw==
-Date:   Thu, 20 Apr 2023 20:25:50 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, pabeni@redhat.com, edumazet@google.com
-Subject: Re: [PATCH net 0/2] Netfilter fixes for net
-Message-ID: <20230420202550.1b466802@kernel.org>
-In-Reply-To: <20230420170657.45373-1-pablo@netfilter.org>
-References: <20230420170657.45373-1-pablo@netfilter.org>
+        Fri, 21 Apr 2023 03:54:38 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B41119768;
+        Fri, 21 Apr 2023 00:54:26 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Q2mtp6RJqz6J70q;
+        Fri, 21 Apr 2023 15:51:30 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Fri, 21 Apr 2023 08:54:21 +0100
+Message-ID: <7e14e18e-a9dd-b9e6-6d97-124d587599f3@huawei.com>
+Date:   Fri, 21 Apr 2023 10:54:20 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v10 02/13] landlock: Allow filesystem layout changes for
+ domains without such rule type
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
+ <20230323085226.1432550-3-konstantin.meskhidze@huawei.com>
+ <062447d5-bd64-f58e-9476-0d2d2034f333@digikod.net>
+ <3dd0376c-2835-d1c0-60a9-79d1d22a4d3f@huawei.com>
+ <17ddf6a0-79d1-b493-0432-c8e84593b165@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <17ddf6a0-79d1-b493-0432-c8e84593b165@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 20 Apr 2023 19:06:55 +0200 Pablo Neira Ayuso wrote:
-> 1) Set on IPS_CONFIRMED before change_status() otherwise EBUSY is
->    bogusly hit. This bug was introduced in the 6.3 release cycle.
-> 
-> 2) Fix nfnetlink_queue conntrack support: Set/dump timeout
->    accordingly for unconfirmed conntrack entries. Make sure this
->    is done after IPS_CONFIRMED is set on. This is an old bug, it
->    happens since the introduction of this feature.
 
-It missed our PR anyway so please resend with a signed tag.
+
+4/20/2023 8:32 PM, Mickaël Salaün пишет:
+> 
+> On 20/04/2023 13:42, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 4/16/2023 7:09 PM, Mickaël Salaün пишет:
+>>>
+>>> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
+>>>> From: Mickaël Salaün <mic@digikod.net>
+>>>>
+>>>> Allow mount point and root directory changes when there is no filesystem
+>>>> rule tied to the current Landlock domain.  This doesn't change anything
+>>>> for now because a domain must have at least a (filesystem) rule, but
+>>>> this will change when other rule types will come.  For instance, a
+>>>> domain only restricting the network should have no impact on filesystem
+>>>> restrictions.
+>>>>
+>>>> Add a new get_current_fs_domain() helper to quickly check filesystem
+>>>> rule existence for all filesystem LSM hooks.
+>>>>
+>>>> Remove unnecessary inlining.
+>>>>
+>>>> Signed-off-by: Mickaël Salaün <mic@digikod.net>
+>>>> ---
+>>>>
+>>>> Changes since v9:
+>>>> * Refactors documentaion landlock.rst.
+>>>> * Changes ACCESS_FS_INITIALLY_DENIED constant
+>>>> to LANDLOCK_ACCESS_FS_INITIALLY_DENIED.
+>>>> * Gets rid of unnecessary masking of access_dom in
+>>>> get_raw_handled_fs_accesses() function.
+>>>>
+>>>> Changes since v8:
+>>>> * Refactors get_handled_fs_accesses().
+>>>> * Adds landlock_get_raw_fs_access_mask() helper.
+>>>>
+>>>> ---
+>>>>    Documentation/userspace-api/landlock.rst |  6 +-
+>>>>    security/landlock/fs.c                   | 78 ++++++++++++------------
+>>>>    security/landlock/ruleset.h              | 25 +++++++-
+>>>>    security/landlock/syscalls.c             |  6 +-
+>>>>    4 files changed, 68 insertions(+), 47 deletions(-)
+>>>>
+>>>
+>>> [...]
+>>>
+>>>> diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+>>>> index 71aca7f990bc..d35cd5d304db 100644
+>>>> --- a/security/landlock/syscalls.c
+>>>> +++ b/security/landlock/syscalls.c
+>>>> @@ -310,6 +310,7 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+>>>>    	struct path path;
+>>>>    	struct landlock_ruleset *ruleset;
+>>>>    	int res, err;
+>>>> +	access_mask_t mask;
+>>>>
+>>>>    	if (!landlock_initialized)
+>>>>    		return -EOPNOTSUPP;
+>>>> @@ -348,9 +349,8 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+>>>>    	 * Checks that allowed_access matches the @ruleset constraints
+>>>>    	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
+>>>>    	 */
+>>>> -	if ((path_beneath_attr.allowed_access |
+>>>> -	     landlock_get_fs_access_mask(ruleset, 0)) !=
+>>>> -	    landlock_get_fs_access_mask(ruleset, 0)) {
+>>>> +	mask = landlock_get_raw_fs_access_mask(ruleset, 0);
+>>>> +	if ((path_beneath_attr.allowed_access | mask) != mask) {
+>>>
+>>> This hunk can be moved to the previous patch (i.e. mask = …). This patch
+>>> should only contains the new landlock_get_raw_fs_access_mask() call.
+>>>
+>> 
+>>    Sorry. Did not get this tip. Please can you explain what do you mean here?
+> 
+> You can squash this part in the previous patch:
+> 
+> -	if ((path_beneath_attr.allowed_access |
+> -	     landlock_get_fs_access_mask(ruleset, 0)) !=
+> -	    landlock_get_fs_access_mask(ruleset, 0)) {
+> +	mask = landlock_get_fs_access_mask(ruleset, 0);
+> +	if ((path_beneath_attr.allowed_access | mask) != mask) {
+
+   Ok. Thanks.
+> 
+> And this patch will then only include this part:
+> 
+> -	mask = landlock_get_fs_access_mask(ruleset, 0);
+> +	mask = landlock_get_raw_fs_access_mask(ruleset, 0);
+> 
+   Got it.
+> 
+>>>
+>>>>    		err = -EINVAL;
+>>>>    		goto out_put_ruleset;
+>>>>    	}
+>>>> --
+>>>> 2.25.1
+>>>>
+>>> .
+> .
