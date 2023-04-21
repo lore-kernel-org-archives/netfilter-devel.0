@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DA8C77B76
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83131C77B76
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233605AbjDUXCZ (ORCPT
+        id S233796AbjDUXCa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 19:02:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52684 "EHLO
+        Fri, 21 Apr 2023 19:02:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233618AbjDUXCV (ORCPT
+        with ESMTP id S231614AbjDUXCW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 19:02:21 -0400
+        Fri, 21 Apr 2023 19:02:22 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4DD111BCC;
-        Fri, 21 Apr 2023 16:02:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7ECFA2109;
+        Fri, 21 Apr 2023 16:02:21 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 06/20] netfilter: nf_tables: make validation state per table
-Date:   Sat, 22 Apr 2023 01:01:57 +0200
-Message-Id: <20230421230211.214635-7-pablo@netfilter.org>
+Subject: [PATCH net-next 08/20] netfilter: nf_tables: do not store pktinfo in traceinfo structure
+Date:   Sat, 22 Apr 2023 01:01:59 +0200
+Message-Id: <20230421230211.214635-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230421230211.214635-1-pablo@netfilter.org>
 References: <20230421230211.214635-1-pablo@netfilter.org>
@@ -34,164 +34,150 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-We only need to validate tables that saw changes in the current
-transaction.
+pass it as argument.  No change in object size.
 
-The existing code revalidates all tables, but this isn't needed as
-cross-table jumps are not allowed (chains have table scope).
+stack usage decreases by 8 byte:
+ nf_tables_core.c:254  nft_do_chain       320     static
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  3 ++-
- net/netfilter/nf_tables_api.c     | 38 +++++++++++++++----------------
- 2 files changed, 20 insertions(+), 21 deletions(-)
+ include/net/netfilter/nf_tables.h |  5 ++---
+ net/netfilter/nf_tables_core.c    | 21 ++++++++++++---------
+ net/netfilter/nf_tables_trace.c   |  5 ++---
+ 3 files changed, 16 insertions(+), 15 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f476fd030626..ec347d9cff9e 100644
+index ec347d9cff9e..cab351928cd2 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -1209,6 +1209,7 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
-  *	@genmask: generation mask
-  *	@afinfo: address family info
-  *	@name: name of the table
-+ *	@validate_state: internal, set when transaction adds jumps
-  */
- struct nft_table {
- 	struct list_head		list;
-@@ -1227,6 +1228,7 @@ struct nft_table {
- 	char				*name;
- 	u16				udlen;
- 	u8				*udata;
-+	u8				validate_state;
- };
+@@ -1408,7 +1408,6 @@ void nft_unregister_flowtable_type(struct nf_flowtable_type *type);
+  *	@type: event type (enum nft_trace_types)
+  *	@skbid: hash of skb to be used as trace id
+  *	@packet_dumped: packet headers sent in a previous traceinfo message
+- *	@pkt: pktinfo currently processed
+  *	@basechain: base chain currently processed
+  *	@rule:  rule that was evaluated
+  *	@verdict: verdict given by rule
+@@ -1419,7 +1418,6 @@ struct nft_traceinfo {
+ 	bool				packet_dumped;
+ 	enum nft_trace_types		type:8;
+ 	u32				skbid;
+-	const struct nft_pktinfo	*pkt;
+ 	const struct nft_base_chain	*basechain;
+ 	const struct nft_rule_dp	*rule;
+ 	const struct nft_verdict	*verdict;
+@@ -1429,7 +1427,8 @@ void nft_trace_init(struct nft_traceinfo *info, const struct nft_pktinfo *pkt,
+ 		    const struct nft_verdict *verdict,
+ 		    const struct nft_chain *basechain);
  
- static inline bool nft_table_has_owner(const struct nft_table *table)
-@@ -1698,7 +1700,6 @@ struct nftables_pernet {
- 	struct mutex		commit_mutex;
- 	u64			table_handle;
- 	unsigned int		base_seq;
--	u8			validate_state;
- };
+-void nft_trace_notify(struct nft_traceinfo *info);
++void nft_trace_notify(const struct nft_pktinfo *pkt,
++		      struct nft_traceinfo *info);
  
- extern unsigned int nf_tables_net_id;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 21eb273d2740..44ebc5f9598e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -102,11 +102,9 @@ static const u8 nft2audit_op[NFT_MSG_MAX] = { // enum nf_tables_msg_types
- 	[NFT_MSG_DELFLOWTABLE]	= AUDIT_NFT_OP_FLOWTABLE_UNREGISTER,
- };
+ #define MODULE_ALIAS_NFT_CHAIN(family, name) \
+ 	MODULE_ALIAS("nft-chain-" __stringify(family) "-" name)
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index bed855638050..776eb2b9f632 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -41,7 +41,8 @@ static inline bool nf_skip_indirect_calls(void) { return false; }
+ static inline void nf_skip_indirect_calls_enable(void) { }
+ #endif
  
--static void nft_validate_state_update(struct net *net, u8 new_validate_state)
-+static void nft_validate_state_update(struct nft_table *table, u8 new_validate_state)
+-static noinline void __nft_trace_packet(struct nft_traceinfo *info,
++static noinline void __nft_trace_packet(const struct nft_pktinfo *pkt,
++					struct nft_traceinfo *info,
+ 					enum nft_trace_types type)
  {
--	struct nftables_pernet *nft_net = nft_pernet(net);
--
--	switch (nft_net->validate_state) {
-+	switch (table->validate_state) {
- 	case NFT_VALIDATE_SKIP:
- 		WARN_ON_ONCE(new_validate_state == NFT_VALIDATE_DO);
- 		break;
-@@ -117,7 +115,7 @@ static void nft_validate_state_update(struct net *net, u8 new_validate_state)
- 			return;
- 	}
+ 	if (!info->trace || !info->nf_trace)
+@@ -49,7 +50,7 @@ static noinline void __nft_trace_packet(struct nft_traceinfo *info,
  
--	nft_net->validate_state = new_validate_state;
-+	table->validate_state = new_validate_state;
+ 	info->type = type;
+ 
+-	nft_trace_notify(info);
++	nft_trace_notify(pkt, info);
  }
- static void nf_tables_trans_destroy_work(struct work_struct *w);
- static DECLARE_WORK(trans_destroy_work, nf_tables_trans_destroy_work);
-@@ -1224,6 +1222,7 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (table == NULL)
- 		goto err_kzalloc;
  
-+	table->validate_state = NFT_VALIDATE_SKIP;
- 	table->name = nla_strdup(attr, GFP_KERNEL_ACCOUNT);
- 	if (table->name == NULL)
- 		goto err_strdup;
-@@ -3660,7 +3659,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 		}
- 
- 		if (expr_info[i].ops->validate)
--			nft_validate_state_update(net, NFT_VALIDATE_NEED);
-+			nft_validate_state_update(table, NFT_VALIDATE_NEED);
- 
- 		expr_info[i].ops = NULL;
- 		expr = nft_expr_next(expr);
-@@ -3710,7 +3709,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (flow)
- 		nft_trans_flow_rule(trans) = flow;
- 
--	if (nft_net->validate_state == NFT_VALIDATE_DO)
-+	if (table->validate_state == NFT_VALIDATE_DO)
- 		return nft_table_validate(net, table);
- 
- 	return 0;
-@@ -6312,7 +6311,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			if (desc.type == NFT_DATA_VERDICT &&
- 			    (elem.data.val.verdict.code == NFT_GOTO ||
- 			     elem.data.val.verdict.code == NFT_JUMP))
--				nft_validate_state_update(ctx->net,
-+				nft_validate_state_update(ctx->table,
- 							  NFT_VALIDATE_NEED);
- 		}
- 
-@@ -6437,7 +6436,6 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- 				const struct nfnl_info *info,
- 				const struct nlattr * const nla[])
- {
--	struct nftables_pernet *nft_net = nft_pernet(info->net);
- 	struct netlink_ext_ack *extack = info->extack;
- 	u8 genmask = nft_genmask_next(info->net);
- 	u8 family = info->nfmsg->nfgen_family;
-@@ -6476,7 +6474,7 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- 		}
+ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
+@@ -60,7 +61,7 @@ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
+ 	if (static_branch_unlikely(&nft_trace_enabled)) {
+ 		info->nf_trace = pkt->skb->nf_trace;
+ 		info->rule = rule;
+-		__nft_trace_packet(info, type);
++		__nft_trace_packet(pkt, info, type);
  	}
+ }
  
--	if (nft_net->validate_state == NFT_VALIDATE_DO)
-+	if (table->validate_state == NFT_VALIDATE_DO)
- 		return nft_table_validate(net, table);
+@@ -105,7 +106,8 @@ static void nft_cmp16_fast_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = NFT_BREAK;
+ }
  
- 	return 0;
-@@ -8628,19 +8626,20 @@ static int nf_tables_validate(struct net *net)
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct nft_table *table;
+-static noinline void __nft_trace_verdict(struct nft_traceinfo *info,
++static noinline void __nft_trace_verdict(const struct nft_pktinfo *pkt,
++					 struct nft_traceinfo *info,
+ 					 const struct nft_regs *regs)
+ {
+ 	enum nft_trace_types type;
+@@ -123,20 +125,21 @@ static noinline void __nft_trace_verdict(struct nft_traceinfo *info,
+ 		type = NFT_TRACETYPE_RULE;
  
--	switch (nft_net->validate_state) {
--	case NFT_VALIDATE_SKIP:
--		break;
--	case NFT_VALIDATE_NEED:
--		nft_validate_state_update(net, NFT_VALIDATE_DO);
--		fallthrough;
--	case NFT_VALIDATE_DO:
--		list_for_each_entry(table, &nft_net->tables, list) {
-+	list_for_each_entry(table, &nft_net->tables, list) {
-+		switch (table->validate_state) {
-+		case NFT_VALIDATE_SKIP:
-+			continue;
-+		case NFT_VALIDATE_NEED:
-+			nft_validate_state_update(table, NFT_VALIDATE_DO);
-+			fallthrough;
-+		case NFT_VALIDATE_DO:
- 			if (nft_table_validate(net, table) < 0)
- 				return -EAGAIN;
-+
-+			nft_validate_state_update(table, NFT_VALIDATE_SKIP);
- 		}
- 
--		nft_validate_state_update(net, NFT_VALIDATE_SKIP);
+ 		if (info->trace)
+-			info->nf_trace = info->pkt->skb->nf_trace;
++			info->nf_trace = pkt->skb->nf_trace;
  		break;
  	}
  
-@@ -10355,7 +10354,6 @@ static int __net_init nf_tables_init_net(struct net *net)
- 	INIT_LIST_HEAD(&nft_net->notify_list);
- 	mutex_init(&nft_net->commit_mutex);
- 	nft_net->base_seq = 1;
--	nft_net->validate_state = NFT_VALIDATE_SKIP;
- 
- 	return 0;
+-	__nft_trace_packet(info, type);
++	__nft_trace_packet(pkt, info, type);
  }
+ 
+-static inline void nft_trace_verdict(struct nft_traceinfo *info,
++static inline void nft_trace_verdict(const struct nft_pktinfo *pkt,
++				     struct nft_traceinfo *info,
+ 				     const struct nft_rule_dp *rule,
+ 				     const struct nft_regs *regs)
+ {
+ 	if (static_branch_unlikely(&nft_trace_enabled)) {
+ 		info->rule = rule;
+-		__nft_trace_verdict(info, regs);
++		__nft_trace_verdict(pkt, info, regs);
+ 	}
+ }
+ 
+@@ -300,7 +303,7 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 		break;
+ 	}
+ 
+-	nft_trace_verdict(&info, rule, &regs);
++	nft_trace_verdict(pkt, &info, rule, &regs);
+ 
+ 	switch (regs.verdict.code & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
+index 3d9b83d84a84..0a0dcf2587fd 100644
+--- a/net/netfilter/nf_tables_trace.c
++++ b/net/netfilter/nf_tables_trace.c
+@@ -183,9 +183,9 @@ static const struct nft_chain *nft_trace_get_chain(const struct nft_traceinfo *i
+ 	return last->chain;
+ }
+ 
+-void nft_trace_notify(struct nft_traceinfo *info)
++void nft_trace_notify(const struct nft_pktinfo *pkt,
++		      struct nft_traceinfo *info)
+ {
+-	const struct nft_pktinfo *pkt = info->pkt;
+ 	const struct nft_chain *chain;
+ 	struct nlmsghdr *nlh;
+ 	struct sk_buff *skb;
+@@ -305,7 +305,6 @@ void nft_trace_init(struct nft_traceinfo *info, const struct nft_pktinfo *pkt,
+ 	info->trace = true;
+ 	info->nf_trace = pkt->skb->nf_trace;
+ 	info->packet_dumped = false;
+-	info->pkt = pkt;
+ 	info->verdict = verdict;
+ 
+ 	net_get_random_once(&trace_key, sizeof(trace_key));
 -- 
 2.30.2
 
