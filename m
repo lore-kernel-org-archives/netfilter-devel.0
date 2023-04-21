@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13C79C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:50:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5446FC7618E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:50:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233964AbjDUXun (ORCPT
+        id S233971AbjDUXup (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 19:50:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40934 "EHLO
+        Fri, 21 Apr 2023 19:50:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233915AbjDUXug (ORCPT
+        with ESMTP id S233922AbjDUXug (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 21 Apr 2023 19:50:36 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B4F732682;
-        Fri, 21 Apr 2023 16:50:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C368A2D6B;
+        Fri, 21 Apr 2023 16:50:35 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 16/19] netfilter: nf_tables: rename function to destroy hook list
-Date:   Sat, 22 Apr 2023 01:50:18 +0200
-Message-Id: <20230421235021.216950-17-pablo@netfilter.org>
+Subject: [PATCH net-next 19/19] netfilter: nf_tables: allow to create netdev chain without device
+Date:   Sat, 22 Apr 2023 01:50:21 +0200
+Message-Id: <20230421235021.216950-20-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230421235021.216950-1-pablo@netfilter.org>
 References: <20230421235021.216950-1-pablo@netfilter.org>
@@ -32,54 +32,94 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Rename nft_flowtable_hooks_destroy() by nft_hooks_destroy() to prepare
-for netdev chain device updates.
+Relax netdev chain creation to allow for loading the ruleset, then
+adding/deleting devices at a later stage. Hardware offload does not
+support for this feature yet.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3f95fb24a0bc..77975b4b0fdc 100644
+index c55ac3d57c51..09542951656c 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -7771,7 +7771,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 	return err;
- }
+@@ -2023,10 +2023,9 @@ struct nft_chain_hook {
+ 	struct list_head		list;
+ };
  
--static void nft_flowtable_hooks_destroy(struct list_head *hook_list)
-+static void nft_hooks_destroy(struct list_head *hook_list)
+-static int nft_chain_parse_netdev(struct net *net,
+-				  struct nlattr *tb[],
++static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
+ 				  struct list_head *hook_list,
+-				  struct netlink_ext_ack *extack)
++				  struct netlink_ext_ack *extack, u32 flags)
  {
- 	struct nft_hook *hook, *next;
+ 	struct nft_hook *hook;
+ 	int err;
+@@ -2045,12 +2044,12 @@ static int nft_chain_parse_netdev(struct net *net,
+ 		if (err < 0)
+ 			return err;
  
-@@ -7952,7 +7952,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 					       &flowtable->hook_list,
- 					       flowtable);
- 	if (err < 0) {
--		nft_flowtable_hooks_destroy(&flowtable->hook_list);
-+		nft_hooks_destroy(&flowtable->hook_list);
- 		goto err4;
+-		if (list_empty(hook_list))
+-			return -EINVAL;
+-	} else {
+-		return -EINVAL;
  	}
  
-@@ -8789,7 +8789,7 @@ static void nft_commit_release(struct nft_trans *trans)
- 	case NFT_MSG_DELFLOWTABLE:
- 	case NFT_MSG_DESTROYFLOWTABLE:
- 		if (nft_trans_flowtable_update(trans))
--			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
-+			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
- 		else
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
- 		break;
-@@ -9440,7 +9440,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		break;
- 	case NFT_MSG_NEWFLOWTABLE:
- 		if (nft_trans_flowtable_update(trans))
--			nft_flowtable_hooks_destroy(&nft_trans_flowtable_hooks(trans));
-+			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
- 		else
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
- 		break;
++	if (flags & NFT_CHAIN_HW_OFFLOAD &&
++	    list_empty(hook_list))
++		return -EINVAL;
++
+ 	return 0;
+ }
+ 
+@@ -2058,7 +2057,7 @@ static int nft_chain_parse_hook(struct net *net,
+ 				struct nft_base_chain *basechain,
+ 				const struct nlattr * const nla[],
+ 				struct nft_chain_hook *hook, u8 family,
+-				struct netlink_ext_ack *extack)
++				u32 flags, struct netlink_ext_ack *extack)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	struct nlattr *ha[NFTA_HOOK_MAX + 1];
+@@ -2125,7 +2124,7 @@ static int nft_chain_parse_hook(struct net *net,
+ 
+ 	INIT_LIST_HEAD(&hook->list);
+ 	if (nft_base_chain_netdev(family, hook->num)) {
+-		err = nft_chain_parse_netdev(net, ha, &hook->list, extack);
++		err = nft_chain_parse_netdev(net, ha, &hook->list, extack, flags);
+ 		if (err < 0) {
+ 			module_put(type->owner);
+ 			return err;
+@@ -2263,7 +2262,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		if (flags & NFT_CHAIN_BINDING)
+ 			return -EOPNOTSUPP;
+ 
+-		err = nft_chain_parse_hook(net, NULL, nla, &hook, family,
++		err = nft_chain_parse_hook(net, NULL, nla, &hook, family, flags,
+ 					   extack);
+ 		if (err < 0)
+ 			return err;
+@@ -2407,7 +2406,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 
+ 		basechain = nft_base_chain(chain);
+ 		err = nft_chain_parse_hook(ctx->net, basechain, nla, &hook,
+-					   ctx->family, extack);
++					   ctx->family, flags, extack);
+ 		if (err < 0)
+ 			return err;
+ 
+@@ -2683,7 +2682,7 @@ static int nft_delchain_hook(struct nft_ctx *ctx, struct nft_chain *chain,
+ 
+ 	basechain = nft_base_chain(chain);
+ 	err = nft_chain_parse_hook(ctx->net, basechain, nla, &chain_hook,
+-				   ctx->family, extack);
++				   ctx->family, chain->flags, extack);
+ 	if (err < 0)
+ 		return err;
+ 
 -- 
 2.30.2
 
