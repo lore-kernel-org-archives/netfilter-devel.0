@@ -2,82 +2,125 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E5D9C7618E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 15:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B75FC77B71
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 15:52:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232665AbjDUPAX (ORCPT
+        id S231858AbjDUPwv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 11:00:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42774 "EHLO
+        Fri, 21 Apr 2023 11:52:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232417AbjDUPAW (ORCPT
+        with ESMTP id S231128AbjDUPwu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 11:00:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2184F9EED;
-        Fri, 21 Apr 2023 08:00:22 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B4ACB650BC;
-        Fri, 21 Apr 2023 15:00:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 17633C4339B;
-        Fri, 21 Apr 2023 15:00:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682089221;
-        bh=/cWaE1pQxEUcwfGgb6LlmygrqcjlcV26je4aHRc2g5k=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=ISb/gNpv6n8HUy+TC2LqkfDifERoD/sYBPtexS72micOFiDj/2UuCf/KKPdHnlb8c
-         nMFEydCZNLW0jotUtnTtid1lgJpDbI8+qvRjqIZ8LArK2/3WAiP6zVAcTJdPh6mlNb
-         9DSvZU5xP+ZNDQt/5rbKkB3XFRTm7kdXPIfXNZJFbGzhKk2nBUvtssw9sO/3GgeXH8
-         frrOxxU4wv/0rUIbrixx8TPw1HoqU5DNAUMoY+ggpMx2eF3+Sl3Fki/8+0gF/usH/5
-         fgrpLN1sO9B+v81c9i+7ZsMH/jzJqX2V3sijVB7B9uFgjmDI72XohaV6pGQMMLysId
-         VFHBv6zCi+qDQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id F33CFC561EE;
-        Fri, 21 Apr 2023 15:00:20 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Fri, 21 Apr 2023 11:52:50 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F54A93F4;
+        Fri, 21 Apr 2023 08:52:48 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1ppt42-0003hv-Aq; Fri, 21 Apr 2023 17:52:46 +0200
+Date:   Fri, 21 Apr 2023 17:52:46 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        dxu@dxuuu.xyz, qde@naccy.de
+Subject: Re: [PATCH bpf-next v4 7/7] selftests/bpf: add missing netfilter
+ return value and ctx access tests
+Message-ID: <20230421155246.GD12121@breakpoint.cc>
+References: <20230420124455.31099-1-fw@strlen.de>
+ <20230420124455.31099-8-fw@strlen.de>
+ <20230420201655.77kkgi3dh7fesoll@MacBook-Pro-6.local>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: conntrack: restore IPS_CONFIRMED out of
- nf_conntrack_hash_check_insert()
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <168208922099.15667.687754732559934974.git-patchwork-notify@kernel.org>
-Date:   Fri, 21 Apr 2023 15:00:20 +0000
-References: <20230421105700.325438-2-pablo@netfilter.org>
-In-Reply-To: <20230421105700.325438-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230420201655.77kkgi3dh7fesoll@MacBook-Pro-6.local>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Fri, 21 Apr 2023 12:56:59 +0200 you wrote:
-> e6d57e9ff0ae ("netfilter: conntrack: fix rmmod double-free race")
-> consolidates IPS_CONFIRMED bit set in nf_conntrack_hash_check_insert().
-> However, this breaks ctnetlink:
+Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
+> On Thu, Apr 20, 2023 at 02:44:55PM +0200, Florian Westphal wrote:
+> > +
+> > +SEC("netfilter")
+> > +__description("netfilter valid context access")
+> > +__success __failure_unpriv
+> > +__retval(1)
+> > +__naked void with_invalid_ctx_access_test5(void)
+> > +{
+> > +	asm volatile ("					\
+> > +	r2 = *(u64*)(r1 + %[__bpf_nf_ctx_state]);	\
+> > +	r1 = *(u64*)(r1 + %[__bpf_nf_ctx_skb]);		\
+> > +	r0 = 1;						\
+> > +	exit;						\
+> > +"	:
+> > +	: __imm_const(__bpf_nf_ctx_state, offsetof(struct bpf_nf_ctx, state)),
+> > +	  __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
+> > +	: __clobber_all);
 > 
->  # conntrack -I -p tcp --timeout 123 --src 1.2.3.4 --dst 5.6.7.8 --state ESTABLISHED --sport 1 --dport 4 -u SEEN_REPLY
->  conntrack v1.4.6 (conntrack-tools): Operation failed: Device or resource busy
+> Could you write this one in C instead?
+>
+> Also check that skb and state are dereferenceable after that.
+
+My bad. Added this and that:
+
+SEC("netfilter")
+__description("netfilter valid context read and invalid write")
+__failure __msg("only read is supported")
+int with_invalid_ctx_access_test5(struct bpf_nf_ctx *ctx)
+{
+  struct nf_hook_state *state = (void *)ctx->state;
+
+  state->sk = NULL;
+  return 1;
+}
+
+SEC("netfilter")
+__description("netfilter test prog with skb and state read access")
+__success __failure_unpriv
+__retval(0)
+int with_valid_ctx_access_test6(struct bpf_nf_ctx *ctx)
+{
+  const struct nf_hook_state *state = ctx->state;
+  struct sk_buff *skb = ctx->skb;
+  const struct iphdr *iph;
+  const struct tcphdr *th;
+  u8 buffer_iph[20] = {};
+  u8 buffer_th[40] = {};
+  struct bpf_dynptr ptr;
+  uint8_t ihl;
+
+  if (skb->len <= 20 || bpf_dynptr_from_skb(skb, 0, &ptr))
+        return 1;
+
+  iph = bpf_dynptr_slice(&ptr, 0, buffer_iph, sizeof(buffer_iph));
+  if (!iph)
+    return 1;
+
+   if (state->pf != 2)
+     return 1;
+
+   ihl = iph->ihl << 2;
+   th = bpf_dynptr_slice(&ptr, ihl, buffer_th, sizeof(buffer_th));
+   if (!th)
+	return 1;
+
+     return th->dest == bpf_htons(22) ? 1 : 0;
+}
+
+"Worksforme".  Is there anything else thats missing?
+If not I'll send v5 on Monday.
+
+> Since they should be seen as trusted ptr_to_btf_id skb->len and state->sk should work.
+> You cannot craft this test case in asm, since it needs CO-RE.
 > 
-> [...]
+> Also see that BPF CI is not happy:
+> https://github.com/kernel-patches/bpf/actions/runs/4757642030/jobs/8455500277
+> Error: #112 libbpf_probe_prog_types
+> Error: #112/32 libbpf_probe_prog_types/BPF_PROG_TYPE_NETFILTER
+> Error: #113 libbpf_str
+> Error: #113/4 libbpf_str/bpf_prog_type_str
 
-Here is the summary with links:
-  - [net,1/2] netfilter: conntrack: restore IPS_CONFIRMED out of nf_conntrack_hash_check_insert()
-    https://git.kernel.org/netdev/net/c/2cdaa3eefed8
-  - [net,2/2] netfilter: conntrack: fix wrong ct->timeout value
-    https://git.kernel.org/netdev/net/c/73db1b8f2bb6
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+prog_type_name[] lacks "netfilter" entry, and a missing 'case
+PROG_NETFILTER', v5 should pass this now.
