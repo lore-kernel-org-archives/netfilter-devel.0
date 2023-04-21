@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A17AC77B7F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED352C77B78
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 23:02:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233520AbjDUXCt (ORCPT
+        id S233786AbjDUXCs (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 19:02:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53020 "EHLO
+        Fri, 21 Apr 2023 19:02:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233784AbjDUXCa (ORCPT
+        with ESMTP id S233731AbjDUXCZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 19:02:30 -0400
+        Fri, 21 Apr 2023 19:02:25 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 091092710;
-        Fri, 21 Apr 2023 16:02:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D4D6926B2;
+        Fri, 21 Apr 2023 16:02:23 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 14/20] ipvs: Correct spelling in comments
-Date:   Sat, 22 Apr 2023 01:02:05 +0200
-Message-Id: <20230421230211.214635-15-pablo@netfilter.org>
+Subject: [PATCH net-next 12/20] ipvs: Consistently use array_size() in ip_vs_conn_init()
+Date:   Sat, 22 Apr 2023 01:02:03 +0200
+Message-Id: <20230421230211.214635-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230421230211.214635-1-pablo@netfilter.org>
 References: <20230421230211.214635-1-pablo@netfilter.org>
@@ -34,46 +34,59 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Simon Horman <horms@kernel.org>
 
-Correct some spelling errors flagged by codespell and found by inspection.
+Consistently use array_size() to calculate the size of ip_vs_conn_tab
+in bytes.
+
+Flagged by Coccinelle:
+ WARNING: array_size is already used (line 1498) to compute the same size
+
+No functional change intended.
+Compile tested only.
 
 Signed-off-by: Simon Horman <horms@kernel.org>
 Reviewed-by: Horatiu Vultur <horatiu.vultur@microchip.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index a3adc246ee31..ff406ef4fd4a 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -584,7 +584,7 @@ struct ip_vs_conn {
- 	spinlock_t              lock;           /* lock for state transition */
- 	volatile __u16          state;          /* state info */
- 	volatile __u16          old_state;      /* old state, to be used for
--						 * state transition triggerd
-+						 * state transition triggered
- 						 * synchronization
- 						 */
- 	__u32			fwmark;		/* Fire wall mark from skb */
-@@ -635,7 +635,7 @@ struct ip_vs_service_user_kern {
- 	u16			protocol;
- 	union nf_inet_addr	addr;		/* virtual ip address */
- 	__be16			port;
--	u32			fwmark;		/* firwall mark of service */
-+	u32			fwmark;		/* firewall mark of service */
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 13534e02346c..928e64653837 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1481,6 +1481,7 @@ void __net_exit ip_vs_conn_net_cleanup(struct netns_ipvs *ipvs)
  
- 	/* virtual service options */
- 	char			*sched_name;
-@@ -1036,7 +1036,7 @@ struct netns_ipvs {
- 	struct ipvs_sync_daemon_cfg	bcfg;	/* Backup Configuration */
- 	/* net name space ptr */
- 	struct net		*net;            /* Needed by timer routines */
--	/* Number of heterogeneous destinations, needed becaus heterogeneous
-+	/* Number of heterogeneous destinations, needed because heterogeneous
- 	 * are not supported when synchronization is enabled.
+ int __init ip_vs_conn_init(void)
+ {
++	size_t tab_array_size;
+ 	int idx;
+ 
+ 	/* Compute size and mask */
+@@ -1494,8 +1495,9 @@ int __init ip_vs_conn_init(void)
+ 	/*
+ 	 * Allocate the connection hash table and initialize its list heads
  	 */
- 	unsigned int		mixed_address_family_dests;
+-	ip_vs_conn_tab = vmalloc(array_size(ip_vs_conn_tab_size,
+-					    sizeof(*ip_vs_conn_tab)));
++	tab_array_size = array_size(ip_vs_conn_tab_size,
++				    sizeof(*ip_vs_conn_tab));
++	ip_vs_conn_tab = vmalloc(tab_array_size);
+ 	if (!ip_vs_conn_tab)
+ 		return -ENOMEM;
+ 
+@@ -1508,10 +1510,8 @@ int __init ip_vs_conn_init(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	pr_info("Connection hash table configured "
+-		"(size=%d, memory=%ldKbytes)\n",
+-		ip_vs_conn_tab_size,
+-		(long)(ip_vs_conn_tab_size*sizeof(*ip_vs_conn_tab))/1024);
++	pr_info("Connection hash table configured (size=%d, memory=%zdKbytes)\n",
++		ip_vs_conn_tab_size, tab_array_size / 1024);
+ 	IP_VS_DBG(0, "Each connection entry needs %zd bytes at least\n",
+ 		  sizeof(struct ip_vs_conn));
+ 
 -- 
 2.30.2
 
