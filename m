@@ -2,125 +2,71 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B75FC77B71
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 15:52:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40B4EC77B61
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Apr 2023 16:03:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231858AbjDUPwv (ORCPT
+        id S232480AbjDUQDw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Apr 2023 11:52:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45650 "EHLO
+        Fri, 21 Apr 2023 12:03:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231128AbjDUPwu (ORCPT
+        with ESMTP id S232340AbjDUQDv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2023 11:52:50 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F54A93F4;
-        Fri, 21 Apr 2023 08:52:48 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1ppt42-0003hv-Aq; Fri, 21 Apr 2023 17:52:46 +0200
-Date:   Fri, 21 Apr 2023 17:52:46 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        dxu@dxuuu.xyz, qde@naccy.de
-Subject: Re: [PATCH bpf-next v4 7/7] selftests/bpf: add missing netfilter
- return value and ctx access tests
-Message-ID: <20230421155246.GD12121@breakpoint.cc>
-References: <20230420124455.31099-1-fw@strlen.de>
- <20230420124455.31099-8-fw@strlen.de>
- <20230420201655.77kkgi3dh7fesoll@MacBook-Pro-6.local>
+        Fri, 21 Apr 2023 12:03:51 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 393619034
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Apr 2023 09:03:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=RXaZ39hq4p237OZYT9yWGOpsa/erH7WU8DTfCueDy1o=; b=dYbiTUMhMUmib1ZhxNlnWkia88
+        j0lnYRoh0GozvS3HekhDuZ1fNdTHYrt0khoCrIloqQFuFmij2MHBpnaqwXmiXJQv6IgVwu1gcqikk
+        extujEr2dGL8mxGKda8NeSBlEYl8l5EtpWw7Z9TvZmITd1ZhkL8ECXOu1Damv5f4YXrkj3p6l4BdE
+        b+SLwhjkHyZIPGI0H5yGcMMHS/tTBuKkZkY+a0yobAscYfDJyfxmltcgFm9K1tdFdTy33uUXU0fok
+        lfUrFazlC9pN5KDKWBAWqMPpemufCDHxQr3al7iIeGLMGVRZ6sk/Y4rr4p+vjDrB6HyTIFYDVvvPo
+        c3UMmHyA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1pptEi-0007A5-3h
+        for netfilter-devel@vger.kernel.org; Fri, 21 Apr 2023 18:03:48 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 2/2] nft-shared: Drop unused include
+Date:   Fri, 21 Apr 2023 18:04:09 +0200
+Message-Id: <20230421160409.7586-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
+In-Reply-To: <20230421160409.7586-1-phil@nwl.cc>
+References: <20230421160409.7586-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230420201655.77kkgi3dh7fesoll@MacBook-Pro-6.local>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> On Thu, Apr 20, 2023 at 02:44:55PM +0200, Florian Westphal wrote:
-> > +
-> > +SEC("netfilter")
-> > +__description("netfilter valid context access")
-> > +__success __failure_unpriv
-> > +__retval(1)
-> > +__naked void with_invalid_ctx_access_test5(void)
-> > +{
-> > +	asm volatile ("					\
-> > +	r2 = *(u64*)(r1 + %[__bpf_nf_ctx_state]);	\
-> > +	r1 = *(u64*)(r1 + %[__bpf_nf_ctx_skb]);		\
-> > +	r0 = 1;						\
-> > +	exit;						\
-> > +"	:
-> > +	: __imm_const(__bpf_nf_ctx_state, offsetof(struct bpf_nf_ctx, state)),
-> > +	  __imm_const(__bpf_nf_ctx_skb, offsetof(struct bpf_nf_ctx, skb))
-> > +	: __clobber_all);
-> 
-> Could you write this one in C instead?
->
-> Also check that skb and state are dereferenceable after that.
+Code does not refer to struct xt_comment_info anymore.
 
-My bad. Added this and that:
+Fixes: 3bb497c61d743 ("xtables: Fix for deleting rules with comment")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft-shared.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-SEC("netfilter")
-__description("netfilter valid context read and invalid write")
-__failure __msg("only read is supported")
-int with_invalid_ctx_access_test5(struct bpf_nf_ctx *ctx)
-{
-  struct nf_hook_state *state = (void *)ctx->state;
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index c19d78e469722..79f6a7d3fbb85 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -22,7 +22,6 @@
+ #include <xtables.h>
+ 
+ #include <linux/netfilter/nf_log.h>
+-#include <linux/netfilter/xt_comment.h>
+ #include <linux/netfilter/xt_limit.h>
+ #include <linux/netfilter/xt_NFLOG.h>
+ #include <linux/netfilter/xt_mark.h>
+-- 
+2.40.0
 
-  state->sk = NULL;
-  return 1;
-}
-
-SEC("netfilter")
-__description("netfilter test prog with skb and state read access")
-__success __failure_unpriv
-__retval(0)
-int with_valid_ctx_access_test6(struct bpf_nf_ctx *ctx)
-{
-  const struct nf_hook_state *state = ctx->state;
-  struct sk_buff *skb = ctx->skb;
-  const struct iphdr *iph;
-  const struct tcphdr *th;
-  u8 buffer_iph[20] = {};
-  u8 buffer_th[40] = {};
-  struct bpf_dynptr ptr;
-  uint8_t ihl;
-
-  if (skb->len <= 20 || bpf_dynptr_from_skb(skb, 0, &ptr))
-        return 1;
-
-  iph = bpf_dynptr_slice(&ptr, 0, buffer_iph, sizeof(buffer_iph));
-  if (!iph)
-    return 1;
-
-   if (state->pf != 2)
-     return 1;
-
-   ihl = iph->ihl << 2;
-   th = bpf_dynptr_slice(&ptr, ihl, buffer_th, sizeof(buffer_th));
-   if (!th)
-	return 1;
-
-     return th->dest == bpf_htons(22) ? 1 : 0;
-}
-
-"Worksforme".  Is there anything else thats missing?
-If not I'll send v5 on Monday.
-
-> Since they should be seen as trusted ptr_to_btf_id skb->len and state->sk should work.
-> You cannot craft this test case in asm, since it needs CO-RE.
-> 
-> Also see that BPF CI is not happy:
-> https://github.com/kernel-patches/bpf/actions/runs/4757642030/jobs/8455500277
-> Error: #112 libbpf_probe_prog_types
-> Error: #112/32 libbpf_probe_prog_types/BPF_PROG_TYPE_NETFILTER
-> Error: #113 libbpf_str
-> Error: #113/4 libbpf_str/bpf_prog_type_str
-
-prog_type_name[] lacks "netfilter" entry, and a missing 'case
-PROG_NETFILTER', v5 should pass this now.
