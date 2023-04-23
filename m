@@ -2,104 +2,76 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0E47C6FD18
-	for <netfilter-devel@archiver.kernel.org>; Sat, 22 Apr 2023 10:15:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93776C77B76
+	for <netfilter-devel@archiver.kernel.org>; Sun, 23 Apr 2023 02:38:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229916AbjDVKPD (ORCPT
+        id S229970AbjDWCif (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 22 Apr 2023 06:15:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44640 "EHLO
+        Sat, 22 Apr 2023 22:38:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229839AbjDVKOa (ORCPT
+        with ESMTP id S229556AbjDWCie (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 22 Apr 2023 06:14:30 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74709199D;
-        Sat, 22 Apr 2023 03:14:19 -0700 (PDT)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 1539112A5B;
-        Sat, 22 Apr 2023 13:14:18 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id F05E412A5A;
-        Sat, 22 Apr 2023 13:14:17 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id BC1FE3C0435;
-        Sat, 22 Apr 2023 13:14:15 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 33MAEDsP005330;
-        Sat, 22 Apr 2023 13:14:13 +0300
-Date:   Sat, 22 Apr 2023 13:14:13 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-cc:     Simon Horman <horms@kernel.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Horatiu Vultur <horatiu.vultur@microchip.com>
-Subject: Re: [PATCH nf-next v3 0/4] ipvs: Cleanups for v6.4
-In-Reply-To: <ZEMYjOlXKd+6zsgw@calendula>
-Message-ID: <deeef4d5-208b-2d48-4714-5be1b9bc4393@ssi.bg>
-References: <20230409-ipvs-cleanup-v3-0-5149ea34b0b9@kernel.org> <a873ffc-bcdf-934f-127a-80188e8b33e6@ssi.bg> <ZEMYjOlXKd+6zsgw@calendula>
+        Sat, 22 Apr 2023 22:38:34 -0400
+X-Greylist: delayed 438 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 22 Apr 2023 19:38:32 PDT
+Received: from mail-m2849.qiye.163.com (mail-m2849.qiye.163.com [103.74.28.49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5F612109;
+        Sat, 22 Apr 2023 19:38:32 -0700 (PDT)
+Received: from localhost.localdomain (unknown [106.75.220.2])
+        by mail-m2839.qiye.163.com (Hmail) with ESMTPA id 0E826C028F;
+        Sun, 23 Apr 2023 10:31:04 +0800 (CST)
+From:   Faicker Mo <faicker.mo@ucloud.cn>
+To:     faicker.mo@ucloud.cn
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: conntrack: allow insertion clash of gre protocol
+Date:   Sun, 23 Apr 2023 10:29:57 +0800
+Message-Id: <20230423022958.1770634-1-faicker.mo@ucloud.cn>
+X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-HM-Spam-Status: e1kfGhgUHx5ZQUhXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+        tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVkZHh1MVktOQ0MZTUlJQkoeGFUZERMWGhIXJBQOD1
+        lXWRgSC1lBWUpLTVVMTlVJSUtVSVlXWRYaDxIVHRRZQVlPS0hVSkhCQk1KVU9VSk9ZBg++
+X-HM-Tid: 0a87abf357f88421kuqw0e826c028f
+X-HM-MType: 1
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6KzI6Ayo4LjJCPz0RIQJITEwR
+        HTcaCxVVSlVKTUNJSUpMS01OSkNLVTMWGhIXVR0aEhgQHglVFhQ7DhgXFA4fVRgVRVlXWRILWUFZ
+        SktNVUxOVUlJS1VJWVdZCAFZQUlISks3Bg++
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+NVGRE tunnel is used in the VM-to-VM communications. The VM packets
+are encapsulated in NVGRE and sent from the host. For NVGRE
+there are two tuples(outer sip and outer dip) in the host conntrack item.
+Insertion clashes are more likely to happen if the concurrent connections
+are sent from the VM.
 
-	Hello,
+Signed-off-by: Faicker Mo <faicker.mo@ucloud.cn>
+---
+ net/netfilter/nf_conntrack_proto_gre.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Sat, 22 Apr 2023, Pablo Neira Ayuso wrote:
-
-> On Mon, Apr 17, 2023 at 07:59:35PM +0300, Julian Anastasov wrote:
-> > 
-> > On Mon, 17 Apr 2023, Simon Horman wrote:
-> > 
-> > > this series aims to clean up IPVS in several ways without
-> > > implementing any functional changes, aside from removing
-> > > some debugging output.
-> > > 
-> > > Patch 1/4: Update width of source for ip_vs_sync_conn_options
-> > >            The operation is safe, use an annotation to describe it properly.
-> > > 
-> > > Patch 2/4: Consistently use array_size() in ip_vs_conn_init()
-> > >            It seems better to use helpers consistently.
-> > > 
-> > > Patch 3/4: Remove {Enter,Leave}Function
-> > >            These seem to be well past their use-by date.
-> > > 
-> > > Patch 4/4: Correct spelling in comments
-> > > 	   I can't spell. But codespell helps me these days.
-> > > 
-> > > All changes: compile tested only!
-> > > 
-> > > ---
-> > > Changes in v3:
-> > > - Patch 2/4: Correct division by 1024.
-> > >              It was applied to the wrong variable in v2.
-> > > - Add Horatiu's Reviewed-by tag.
-> > > 
-> > > Changes in v2:
-> > > - Patch 1/4: Correct spelling of 'conn' in subject.
-> > > - Patch 2/4: Restore division by 1024. It was lost on v1.
-> > > 
-> > > ---
-> > > Simon Horman (4):
-> > >       ipvs: Update width of source for ip_vs_sync_conn_options
-> > >       ipvs: Consistently use array_size() in ip_vs_conn_init()
-> > >       ipvs: Remove {Enter,Leave}Function
-> > >       ipvs: Correct spelling in comments
-> > 
-> > 	The patchset looks good to me, thanks!
-> > 
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> Applied, sorry Julian, I missed your Acked-by: tag.
-
-	No problem :)
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 728eeb0aea87..ad6f0ca40cd2 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -296,6 +296,7 @@ void nf_conntrack_gre_init_net(struct net *net)
+ /* protocol helper struct */
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_gre = {
+ 	.l4proto	 = IPPROTO_GRE,
++	.allow_clash	 = true,
+ #ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack = gre_print_conntrack,
+ #endif
+-- 
+2.39.1
 
