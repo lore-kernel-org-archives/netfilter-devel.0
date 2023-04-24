@@ -2,90 +2,78 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 812FFC77B76
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Apr 2023 19:23:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85CE5C7618E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Apr 2023 20:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232654AbjDXTXM (ORCPT
+        id S231939AbjDXUXB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Apr 2023 15:23:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37778 "EHLO
+        Mon, 24 Apr 2023 16:23:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232670AbjDXTXE (ORCPT
+        with ESMTP id S229872AbjDXUXA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Apr 2023 15:23:04 -0400
-Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D7CF6EBA;
-        Mon, 24 Apr 2023 12:22:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=iogearbox.net; s=default2302; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:Date:Message-ID:Subject:From:Cc:To:Sender:Reply-To:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:In-Reply-To:References;
-        bh=7yqMz6dS/0GILuAnJ+Bw+7l2gpqpGz2ORupHC3iMp7g=; b=Udci7HXQo5Z06+JGryPD826NnV
-        4KHAviN35/kVbULrsH2ITkkI8qbaxejQXlubCdG2bGjuBJW1k+DU8bkSzpDbaq2KKRl2jNEMMeyCM
-        Z4otWX9AzD26rvexAy+93Cq1NKuKn07+egoTVvBjM1HrqqNae8xTbcRqBda/eCZCZX1gdabFYEyef
-        aJ1PE6Lu0nhYEUoyIhXcOZEuwY30hOMLLh9jDXQuNkv9VZxf+H4AnlLObPAnh2or8/0/uP7syO6IH
-        k1tM8LQo6tk8Vg3JrEzDxeHDNMBgSa/d2ryMmh2Ry+ecYcN6NWzck/IiCkTQU6n7NhmwxPr3l9L6I
-        RWzmSGKQ==;
-Received: from sslproxy02.your-server.de ([78.47.166.47])
-        by www62.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1pr1m3-0005db-97; Mon, 24 Apr 2023 21:22:55 +0200
-Received: from [85.1.206.226] (helo=linux.home)
-        by sslproxy02.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <daniel@iogearbox.net>)
-        id 1pr1m3-0007lP-1F; Mon, 24 Apr 2023 21:22:55 +0200
-To:     netdev@vger.kernel.org, bpf@vger.kernel.org
-Cc:     xdp-newbies@vger.kernel.org, linux-wireless@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-From:   Daniel Borkmann <daniel@iogearbox.net>
-Subject: LPC 2023 Networking and BPF Track CFP
-Message-ID: <1515db2c-f517-76da-8aad-127a67da802f@iogearbox.net>
-Date:   Mon, 24 Apr 2023 21:22:54 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.2
+        Mon, 24 Apr 2023 16:23:00 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3B5315FCD
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Apr 2023 13:22:59 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] meta: skip protocol context update for nfproto with same table family
+Date:   Mon, 24 Apr 2023 22:22:55 +0200
+Message-Id: <20230424202255.13433-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Authenticated-Sender: daniel@iogearbox.net
-X-Virus-Scanned: Clear (ClamAV 0.103.8/26886/Mon Apr 24 09:25:10 2023)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-We are pleased to announce the Call for Proposals (CFP) for the Networking and
-BPF track at the 2023 edition of the Linux Plumbers Conference (LPC) which is
-taking place in Richmond, VA, United States, on November 13th - 15th, 2023.
+Inefficient bytecode crashes ruleset listing:
 
-Note that the conference is planned to be both in person and remote (hybrid).
-CFP submitters should ideally be able to give their presentation in person to
-minimize technical issues, although presenting remotely will also be possible.
+[ meta load nfproto => reg 1 ]
+[ cmp eq reg 1 0x00000002 ] <-- this specifies NFPROTO_IPV4 but table family is IPv4!
+[ payload load 4b @ network header + 12 => reg 1 ]
+[ cmp gte reg 1 0x1000000a ]
+[ cmp lte reg 1 0x1f00000a ]
+[ masq ]
 
-The Networking and BPF track technical committee consists of:
+This IPv4 table obviously only see IPv4 traffic, but bytecode specifies
+a redundant match on NFPROTO_IPV4.
 
-    David S. Miller <davem@davemloft.net>
-    Jakub Kicinski <kuba@kernel.org>
-    Paolo Abeni <pabeni@redhat.com>
-    Eric Dumazet <edumazet@google.com>
-    Alexei Starovoitov <ast@kernel.org>
-    Daniel Borkmann <daniel@iogearbox.net>
-    Andrii Nakryiko <andrii@kernel.org>
-    Martin Lau <martin.lau@linux.dev>
+After this patch, listing works:
 
-We are seeking proposals of 30 minutes in length (including Q&A discussion). Any
-kind of advanced Linux networking and/or BPF related topic will be considered.
+ # nft list ruleset
+ table ip crash {
+        chain crash {
+                type nat hook postrouting priority srcnat; policy accept;
+                ip saddr 10.0.0.16-10.0.0.31 masquerade
+        }
+ }
 
-Please submit your proposals through the official LPC website at:
+Skip protocol context update in case that this information is redundant.
 
-    https://lpc.events/event/17/abstracts/
+Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1562
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/meta.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Make sure to select "eBPF & Networking Track" in the track pull-down menu.
+diff --git a/src/meta.c b/src/meta.c
+index dcf971a5dd62..3be270a4253c 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -773,6 +773,11 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
+ 		break;
+ 	case NFT_META_NFPROTO:
+ 		protonum = mpz_get_uint8(right->value);
++		if (protonum == NFPROTO_IPV4 && h->desc == &proto_ip)
++			break;
++		else if (protonum == NFPROTO_IPV6 && h->desc == &proto_ip6)
++			break;
++
+ 		desc = proto_find_upper(h->desc, protonum);
+ 		if (desc == NULL) {
+ 			desc = &proto_unknown;
+-- 
+2.30.2
 
-Proposals must be submitted by September 27th, and submitters will be notified
-of acceptance by October 2nd. Final slides (as PDF) are due on the first day of
-the conference.
-
-We are very much looking forward to a great conference and seeing you all!
