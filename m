@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9578FC77B61
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 14:50:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BE07C77B61
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 14:54:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234195AbjDYOul (ORCPT
+        id S234408AbjDYOyO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Apr 2023 10:50:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59584 "EHLO
+        Tue, 25 Apr 2023 10:54:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233940AbjDYOuk (ORCPT
+        with ESMTP id S234049AbjDYOyN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2023 10:50:40 -0400
+        Tue, 25 Apr 2023 10:54:13 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2303E189
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 07:50:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7FA0D19A2
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 07:54:11 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: hit ENOENT on unexisting chain/flowtable update with missing attributes
-Date:   Tue, 25 Apr 2023 16:50:32 +0200
-Message-Id: <20230425145032.2229-1-pablo@netfilter.org>
+Subject: [PATCH nft] mnl: handle singleton element in netdevice set
+Date:   Tue, 25 Apr 2023 16:54:07 +0200
+Message-Id: <20230425145407.2802-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,111 +28,118 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If user does not specify hook number and priority, then assume this is
-a chain/flowtable update. Therefore, report ENOENT which provides a
-better hint than EINVAL. Set on extended netlink error report to refer
-to the chain name.
+expr_evaluate_set() turns sets with singleton element into value,
+nft_dev_add() expects a list of expression, so it crashes.
 
-Fixes: 5b6743fb2c2a ("netfilter: nf_tables: skip flowtable hooknum and priority on device updates")
-Fixes: 5efe72698a97 ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1676
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-From userspace, this results in:
+ src/mnl.c                                     | 46 +++++++++++++------
+ .../testcases/chains/0042chain_variable_0     |  4 ++
+ .../chains/dumps/0042chain_variable_0.nft     |  4 ++
+ 3 files changed, 40 insertions(+), 14 deletions(-)
 
-# nft list ruleset
-table netdev x {
-}
-# nft add chain netdev x y { devices = { lo } \; }
-Error: No such file or directory
-add chain netdev x y { devices = { lo } ; }
-                   ^
-
-instead of EINVAL if the chain `y' does not exist.
-
- net/netfilter/nf_tables_api.c | 29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ef8d9f6a7e9c..69886041b994 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2070,8 +2070,10 @@ static int nft_chain_parse_hook(struct net *net,
+diff --git a/src/mnl.c b/src/mnl.c
+index c590c9554e0c..5dcfd9a04c4b 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -720,31 +720,49 @@ err:
+  */
  
- 	if (!basechain) {
- 		if (!ha[NFTA_HOOK_HOOKNUM] ||
--		    !ha[NFTA_HOOK_PRIORITY])
--			return -EINVAL;
-+		    !ha[NFTA_HOOK_PRIORITY]) {
-+			NL_SET_BAD_ATTR(extack, nla[NFTA_CHAIN_NAME]);
-+			return -ENOENT;
-+		}
- 
- 		hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
- 		hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
-@@ -7695,7 +7697,7 @@ static const struct nla_policy nft_flowtable_hook_policy[NFTA_FLOWTABLE_HOOK_MAX
+ struct nft_dev {
+-	const char	*ifname;
+-	struct location	*location;
++	const char		*ifname;
++	const struct location	*location;
  };
  
- static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
--				    const struct nlattr *attr,
-+				    const struct nlattr * const nla[],
- 				    struct nft_flowtable_hook *flowtable_hook,
- 				    struct nft_flowtable *flowtable,
- 				    struct netlink_ext_ack *extack, bool add)
-@@ -7707,15 +7709,18 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
+-static struct nft_dev *nft_dev_array(const struct expr *dev_expr, int *num_devs)
++static void nft_dev_add(struct nft_dev *dev_array, const struct expr *expr, int i)
+ {
+-	struct nft_dev *dev_array;
+ 	unsigned int ifname_len;
+ 	char ifname[IFNAMSIZ];
++
++	ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
++	memset(ifname, 0, sizeof(ifname));
++	mpz_export_data(ifname, expr->value, BYTEORDER_HOST_ENDIAN, ifname_len);
++	dev_array[i].ifname = xstrdup(ifname);
++	dev_array[i].location = &expr->location;
++}
++
++static struct nft_dev *nft_dev_array(const struct expr *dev_expr, int *num_devs)
++{
++	struct nft_dev *dev_array;
+ 	int i = 0, len = 1;
+ 	struct expr *expr;
  
- 	INIT_LIST_HEAD(&flowtable_hook->list);
+-	list_for_each_entry(expr, &dev_expr->expressions, list)
+-		len++;
++	switch (dev_expr->etype) {
++	case EXPR_SET:
++	case EXPR_LIST:
++		list_for_each_entry(expr, &dev_expr->expressions, list)
++			len++;
  
--	err = nla_parse_nested_deprecated(tb, NFTA_FLOWTABLE_HOOK_MAX, attr,
-+	err = nla_parse_nested_deprecated(tb, NFTA_FLOWTABLE_HOOK_MAX,
-+					  nla[NFTA_FLOWTABLE_HOOK],
- 					  nft_flowtable_hook_policy, NULL);
- 	if (err < 0)
- 		return err;
+-	dev_array = xmalloc(sizeof(struct nft_dev) * len);
++		dev_array = xmalloc(sizeof(struct nft_dev) * len);
  
- 	if (add) {
- 		if (!tb[NFTA_FLOWTABLE_HOOK_NUM] ||
--		    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY])
--			return -EINVAL;
-+		    !tb[NFTA_FLOWTABLE_HOOK_PRIORITY]) {
-+			NL_SET_BAD_ATTR(extack, nla[NFTA_FLOWTABLE_NAME]);
-+			return -ENOENT;
+-	list_for_each_entry(expr, &dev_expr->expressions, list) {
+-		ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
+-		memset(ifname, 0, sizeof(ifname));
+-		mpz_export_data(ifname, expr->value, BYTEORDER_HOST_ENDIAN,
+-				ifname_len);
+-		dev_array[i].ifname = xstrdup(ifname);
+-		dev_array[i].location = &expr->location;
++		list_for_each_entry(expr, &dev_expr->expressions, list) {
++			nft_dev_add(dev_array, expr, i);
++			i++;
 +		}
++		break;
++	case EXPR_VALUE:
++		len++;
++		dev_array = xmalloc(sizeof(struct nft_dev) * len);
++		nft_dev_add(dev_array, dev_expr, i);
+ 		i++;
++		break;
++	default:
++		assert(0);
+ 	}
  
- 		hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
- 		if (hooknum != NF_NETDEV_INGRESS)
-@@ -7900,8 +7905,8 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 	u32 flags;
- 	int err;
+ 	dev_array[i].ifname = NULL;
+diff --git a/tests/shell/testcases/chains/0042chain_variable_0 b/tests/shell/testcases/chains/0042chain_variable_0
+index 58535f76cc32..f71b04155e44 100755
+--- a/tests/shell/testcases/chains/0042chain_variable_0
++++ b/tests/shell/testcases/chains/0042chain_variable_0
+@@ -25,11 +25,15 @@ table netdev filter2 {
+ $NFT -f - <<< $EXPECTED
  
--	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
--				       &flowtable_hook, flowtable, extack, false);
-+	err = nft_flowtable_parse_hook(ctx, nla, &flowtable_hook, flowtable,
-+				       extack, false);
- 	if (err < 0)
- 		return err;
+ EXPECTED="define if_main = { lo, dummy0 }
++define lan_interfaces = { lo }
  
-@@ -8046,8 +8051,8 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 	if (err < 0)
- 		goto err3;
+ table netdev filter3 {
+ 	chain Main_Ingress3 {
+ 		type filter hook ingress devices = \$if_main priority -500; policy accept;
+ 	}
++	chain Main_Egress3 {
++		type filter hook egress devices = \$lan_interfaces priority -500; policy accept;
++	}
+ }"
  
--	err = nft_flowtable_parse_hook(&ctx, nla[NFTA_FLOWTABLE_HOOK],
--				       &flowtable_hook, flowtable, extack, true);
-+	err = nft_flowtable_parse_hook(&ctx, nla, &flowtable_hook, flowtable,
-+				       extack, true);
- 	if (err < 0)
- 		goto err4;
- 
-@@ -8109,8 +8114,8 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 	struct nft_trans *trans;
- 	int err;
- 
--	err = nft_flowtable_parse_hook(ctx, nla[NFTA_FLOWTABLE_HOOK],
--				       &flowtable_hook, flowtable, extack, false);
-+	err = nft_flowtable_parse_hook(ctx, nla, &flowtable_hook, flowtable,
-+				       extack, false);
- 	if (err < 0)
- 		return err;
- 
+ $NFT -f - <<< $EXPECTED
+diff --git a/tests/shell/testcases/chains/dumps/0042chain_variable_0.nft b/tests/shell/testcases/chains/dumps/0042chain_variable_0.nft
+index 12931aadb39f..5ec230d0bcfa 100644
+--- a/tests/shell/testcases/chains/dumps/0042chain_variable_0.nft
++++ b/tests/shell/testcases/chains/dumps/0042chain_variable_0.nft
+@@ -12,4 +12,8 @@ table netdev filter3 {
+ 	chain Main_Ingress3 {
+ 		type filter hook ingress devices = { dummy0, lo } priority -500; policy accept;
+ 	}
++
++	chain Main_Egress3 {
++		type filter hook egress device "lo" priority -500; policy accept;
++	}
+ }
 -- 
 2.30.2
 
