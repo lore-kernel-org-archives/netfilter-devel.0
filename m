@@ -2,127 +2,89 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB515C77B61
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 20:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 584D5C77B7C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 21:12:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231978AbjDYUst (ORCPT
+        id S236153AbjDYVMR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Apr 2023 16:48:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49076 "EHLO
+        Tue, 25 Apr 2023 17:12:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231927AbjDYUsr (ORCPT
+        with ESMTP id S236346AbjDYVMO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2023 16:48:47 -0400
+        Tue, 25 Apr 2023 17:12:14 -0400
+X-Greylist: delayed 1403 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 25 Apr 2023 14:12:09 PDT
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBE8313F99
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 13:48:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00CD7C178;
+        Tue, 25 Apr 2023 14:12:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=3mFOt001pph4ZFjh5op6TvkmvLo9FO+BniOXvTOhuBg=; b=JpjDZJn9y+kLTdtECeKpuznBh1
-        78AovN9RPfqnbKTG+sZ2u8uNQWVI1ACtgsGp8IggU8+unWa4njnQEAwb2fxdFNkLIoJz7JlkISvRK
-        p3YYRpHKt+zpmhQxAMEA3TYr7aWBJMsa62M26VGTNePQdn7CkZmg1MykJPJi7dR0oBPvhgBG+nmeh
-        aNda1ILf5alu40LE625gQWuJ96Aw1pSMKHN3m/T6Z88z/kyaUGUjX4DFQs+VjFyzKmW12So734VGa
-        oByyL+quXJeE3qyV54vgjQOT2xR1imopmlVn8mIjnCMfYGs1A+nQZIqqvxJ/4nNOy72AstlwBe+eB
-        y/XKWuUQ==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        bh=AOVG5I1DSvWz8UNhmIDlF3Fpix1rzT7Iys/S5bVmUTc=; b=q7G0FPZMWPn+rXo2GWJh26ma54
+        TJCWTmzgGbfZckMTEf1SJXj0YzNugjq8T9/JCSwRmFO1Cjn2GKIZ6c7ztgGkkX2RUFPfg3tNvZyCc
+        nC6CykoJBQ5+cg06ChiSfs5Dfu56YuJjSuobPJDIzcxH3LQ0rq8C7dzNId6VMec+nIo7AFj62WZFO
+        brZbxfCzhy60JU6lsF4Qw2LKb7XPm3HiyVQuZh8Zr2J+CjKlO0ltyEDO0AT7NQAfvpTf7pGTTuw/0
+        X/27L3x1Ne7dCXMsCrkoSZBrPQD+4J5vHOj3tvl6+HPJ+Z1KQtjWlhcdAWCwe8rjIM4cgo5kUwEmj
+        +zzaaAsw==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1prPab-009aLz-I4; Tue, 25 Apr 2023 21:48:41 +0100
-Date:   Tue, 25 Apr 2023 21:48:40 +0100
+        id 1prPxG-009bfZ-4q; Tue, 25 Apr 2023 22:12:06 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Jan Engelhardt <jengelh@inai.de>,
         Shuah Khan <skhan@linuxfoundation.org>,
         Geliang Tang <geliang.tang@suse.com>,
-        Shuah Khan <shuah@kernel.org>, linux-kselftest@vger.kernel.org,
-        Kai Liu <kai.liu@suse.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2] selftests: netfilter: fix a build error on openSUSE
-Message-ID: <20230425204840.GE5944@celephais.dreamlands>
-References: <5ee95e93a11a239df8e09d059da25a4eaa5725ba.1646198836.git.geliang.tang@suse.com>
- <8cbf1231-0da5-c8a0-d66b-1488633d9895@linuxfoundation.org>
- <Yh+wulh/nIkFeFmz@salvia>
- <sr67066-o9or-1s32-pp7-s764r386n55q@vanv.qr>
- <ZEgArba2jGAGy0/Z@calendula>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qLqTDRbgXsuHCJND"
-Content-Disposition: inline
+        Kai Liu <kai.liu@suse.com>, linux-kselftest@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] selftests: netfilter: fix libmnl pkg-config usage
+Date:   Tue, 25 Apr 2023 22:11:39 +0100
+Message-Id: <20230425211139.518381-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.39.2
 In-Reply-To: <ZEgArba2jGAGy0/Z@calendula>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+References: <ZEgArba2jGAGy0/Z@calendula>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+1. Don't hard-code pkg-config
+2. Remove distro-specific default for CFLAGS
+3. Use pkg-config for LDLIBS
 
---qLqTDRbgXsuHCJND
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Fixes: a50a88f026fb ("selftests: netfilter: fix a build error on openSUSE")
+Suggested-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ tools/testing/selftests/netfilter/Makefile | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-On 2023-04-25, at 18:32:45 +0200, Pablo Neira Ayuso wrote:
-> On Tue, Apr 25, 2023 at 11:14:55AM +0200, Jan Engelhardt wrote:
-> > On Wednesday ** 2022-03-02 19:00 **, Pablo Neira Ayuso wrote:
-> > >On Wed, Mar 02, 2022 at 10:11:11AM -0700, Shuah Khan wrote:
-> > >> On 3/1/22 10:29 PM, Geliang Tang wrote:
-> > >> > This patch fixed the following build error on openSUSE Leap 15.3:
-> > >> >   nf-queue.c:13:10: fatal error: libmnl/libmnl.h: No such file or directory
-> > >> >    #include <libmnl/libmnl.h>
-> > >> > diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-> > >> > index e4f845dd942b..8136c1fab7ab 100644
-> > >> > --- a/tools/testing/selftests/netfilter/Makefile
-> > >> > +++ b/tools/testing/selftests/netfilter/Makefile
-> > >> > @@ -8,6 +8,7 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
-> > >> >   	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
-> > >> >   	conntrack_vrf.sh nft_synproxy.sh
-> > >> > +CFLAGS += $(shell pkg-config --cflags libmnl 2>/dev/null || echo "-I/usr/include/libmnl")
-> > >> >   LDLIBS = -lmnl
-> > >> >   TEST_GEN_FILES =  nf-queue
-> > >>
-> > >> Adding Pablo to the thread.
-> > >> This looks good to me. I can take this through linux-kselftest tree.
-> > >> Or if it is going through netfilter tree:
-> > >> Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-> > >
-> > >If this does not cause any issue when running tests in any other
-> > >distros, then it is fine with me.
-> >
-> > Since a pkgconfig file exists, it ought to be used. That also means
-> > you need the same/similar incantation in LDLIBS, with `pkg-config
-> > --libs libmnl`.
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index 4504ee07be08..3686bfa6c58d 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -8,8 +8,11 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
+ 	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
+ 	conntrack_vrf.sh nft_synproxy.sh rpath.sh
+ 
+-CFLAGS += $(shell pkg-config --cflags libmnl 2>/dev/null || echo "-I/usr/include/libmnl")
+-LDLIBS = -lmnl
++HOSTPKG_CONFIG := pkg-config
++
++CFLAGS += $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
++LDLIBS += $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
++
+ TEST_GEN_FILES =  nf-queue connect_close
+ 
+ include ../lib.mk
+-- 
+2.39.2
 
-I would also avoid hard-coding pkg-config and remove the unnecessary
-SUSE-specific default for CFLAGS.
-
-> Patch?
-
-Following shortly.
-
-J.
-
---qLqTDRbgXsuHCJND
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmRIPKgACgkQKYasCr3x
-BA26gRAAlr17yFl82bk3zD6LVCFcVdp5Zm1jQD6JwO03yTL1J6LR135pOqpqBNNp
-KzOCa8yd0Ziecq74F6i8G+A9Vl+JnO67KqzSxzy2FN8AUC7TncqjCh4TjinBQ1cB
-9XiKnlnqAs2a57/E2WEIAmhH/o10mm43LU6CAUi+o1/4+DyltMyJFRrH9lJvvaS9
-oMTE4C1CvTRhZTuhJID/baDPTx9fCdY7xMolVPhNGK+ZVCTwJbtEEcruPHap1knU
-nLgKYBBYQw6hzXR+MA935WtPZoqkXTCr/gjlllbAo/w9nZclp8GUL4LYn+wQKGKp
-A8Cg+c6Yr6shys+nUTCW74vS5++c4Z5mwrNqSmCNKFZA7oUfgqteIi938aKOG4TV
-h2CPs6oNZ5idyjfwu8dUBipO0b9kTaGv556YMiJYYYxbINz1mFia4iT7BL2IHtf7
-UVF/n+sp7Ro6Dp2B0x28ysmD0g0+kpwVRS+rMYSAPS0bN+Peit0Me4bgDHy065st
-Ah81/qBb5dhsTdKACZQx1eKHImtCztJmhd/pZq5ewUAfqHn7jM8j7A4Z+dyUhmK2
-9NK0eow30Rl+W3j57ODoThQpoKJn/kds6wTUGUp5lU75ASv5/STMtVXHB5mdt/pR
-X7bAfpD07LGCeUb2YY3xkFjUWMmK44JrAl7oKnJ3uEiPMkh9Awk=
-=hQnQ
------END PGP SIGNATURE-----
-
---qLqTDRbgXsuHCJND--
