@@ -2,146 +2,243 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CAE9C77B61
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 19:51:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 612EDC77B61
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 19:56:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235087AbjDYTvx (ORCPT
+        id S235251AbjDYT40 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Apr 2023 15:51:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58148 "EHLO
+        Tue, 25 Apr 2023 15:56:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234754AbjDYTvw (ORCPT
+        with ESMTP id S234754AbjDYT4Z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2023 15:51:52 -0400
+        Tue, 25 Apr 2023 15:56:25 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 759D459E5
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 12:51:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41F467687
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 12:56:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=9hxo1U9Wg7KcuXfGClxwKXxcuwE4yANjzOk9FDhTuLw=; b=foBI4iZAGbxZBy5iXQJdQOhKGw
-        31yHJgh1j6/NzC2eiWLqRDSAVCOlrwwB2fqV4+3NXF8fyCSoPMWTqqq+wcK56AFinfF+sHlYktWd7
-        CiJ1m9WWiUXpLZjbr9f+6n090pZH4D2rjF3qyMvMKjrPAE8tdN3hrWPjEgkA+p5d9uDc6/lgVObHG
-        oQXp2ME9H7C7uUtSfqphl7wEoyIKr9VX2u4mVkpJ3+snZvKvFhUr5kgpiv04HEQttgddKbNeg4deb
-        uh1W/Y0kVZl33kgJIWcq7MOaTDhjp4WXbN3XnqptNKfGrMa2jJHGKyuRpAd4qlphumaUm24LX1b8i
-        E1DJVhtg==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        bh=SgCiM0F+WYTg8hx4DaVIip8cyW+B/Mknnf8388UoYXQ=; b=UkIRkBqEzJPsPdPxJvH92W2JgH
+        xsGypb/3479InYrMkhxVYdS5GEdz1PEW5oyRBvnSjbN38ogTOfDFt/OSVg/j/w58jATCmmkJHtspI
+        D7WaqkCmD9iXBk4HkmtuS4LiGBxxePS3pMLZ+nMU5z55bS/oTU4amEUd3PmchY7v+b0dL1iSsis2c
+        geLaR84M9+Cn5WzUaB3mIahrMD0wzE1comdEyL9/M00JzLshIZqohPWdQoJ7yje56aQelgBcwEFlR
+        gfLSM1QMVQ83sGgH1opLe0EXSdXVI6evuMlMPbAJpfTQ9FnYgYJNBy5UtokFTKYtV7milXSVPdXmO
+        IdSbNmow==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1prOhV-009YNl-0H; Tue, 25 Apr 2023 20:51:45 +0100
-Date:   Tue, 25 Apr 2023 20:51:43 +0100
+        id 1prOly-009YUv-Ho
+        for netfilter-devel@vger.kernel.org; Tue, 25 Apr 2023 20:56:22 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
- port-ranges
-Message-ID: <20230425195143.GC5944@celephais.dreamlands>
-References: <20230305101418.2233910-1-jeremy@azazel.net>
- <20230305101418.2233910-9-jeremy@azazel.net>
- <20230324225904.GB17250@breakpoint.cc>
- <ZCCtjm1rgpa5Z+Sr@salvia>
- <20230411122140.GA1279805@celephais.dreamlands>
- <ZDaQmlLBAnopcqdO@calendula>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nf-next v3] netfilter: nft_exthdr: add boolean DCCP option matching
+Date:   Tue, 25 Apr 2023 20:56:13 +0100
+Message-Id: <20230425195613.512379-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="+8kEGTQyjhCAqWiP"
-Content-Disposition: inline
-In-Reply-To: <ZDaQmlLBAnopcqdO@calendula>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+The xt_dccp iptables module supports the matching of DCCP packets based
+on the presence or absence of DCCP options.  Extend nft_exthdr to add
+this functionality to nftables.
 
---+8kEGTQyjhCAqWiP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Link: https://bugzilla.netfilter.org/show_bug.cgi?id=930
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+Changes since v2
 
-On 2023-04-12, at 13:06:02 +0200, Pablo Neira Ayuso wrote:
-> On Tue, Apr 11, 2023 at 01:21:40PM +0100, Jeremy Sowden wrote:
-> > On 2023-03-26, at 22:39:42 +0200, Pablo Neira Ayuso wrote:
-> > > Jeremy, may I suggest you pick up on the bitwise _SREG2 support?
-> > > I will post a v4 with small updates for ("mark statement support
-> > > for non-constant expression") tomorrow. Probably you don't need
-> > > the new AND and OR operations for this? Only the a new _SREG2 to
-> > > specify that input comes from non-constant?
-> >=20
-> > Just to clarify, do you want just the `_SREG2` infrastructure from
-> > the last patch series but without the new bitwise ops?  That is to
-> > say it would be possible to send two operands to the kernel in
-> > registers, but no use would be made of it (yet).  Or are you
-> > proposing to update the existing mask-and-xor ops to send right hand
-> > operands via registers?
->=20
-> I mean, would it be possible to add a NFT_BITWISE_BOOL variant that
-> takes _SREG2 via select_ops?
+  * Replaced the ternary used to initialize `buflen` at Florian's 
+    request.
 
-In an earlier version, instead of adding new boolean ops, I added
-support for passing the mask and xor arguments in registers:
+Changes since v1
 
-  https://lore.kernel.org/netfilter-devel/20200224124931.512416-1-jeremy@az=
-azel.net/
+ * The order in which `optlen` and `optoff` are assigned and validated
+   has been updated in line with Florian's feedback.
+ * The whole option block is no longer copied into a buffer in `struct
+   nft_exthdr_dccp`.  Access to this was not synchronized, which would
+   have been unsafe.  Since DCCP options are encoded in a TLV format and
+   we don't need to inspect the values, we use an on-stack buffer with
+   enough space to hold the type and length.
+ 
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/nft_exthdr.c               | 106 +++++++++++++++++++++++
+ 2 files changed, 108 insertions(+)
 
-Doing the same thing with one extra register is straightforward for AND
-and XOR:
-       =20
-  AND(x, y) =3D (x & y) ^ 0
-  XOR(x, y) =3D (x & 1) ^ y
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c4d4d8e42dc8..e059dc2644df 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -859,12 +859,14 @@ enum nft_exthdr_flags {
+  * @NFT_EXTHDR_OP_TCP: match against tcp options
+  * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
+  * @NFT_EXTHDR_OP_SCTP: match against sctp chunks
++ * @NFT_EXTHDR_OP_DCCP: match against dccp otions
+  */
+ enum nft_exthdr_op {
+ 	NFT_EXTHDR_OP_IPV6,
+ 	NFT_EXTHDR_OP_TCPOPT,
+ 	NFT_EXTHDR_OP_IPV4,
+ 	NFT_EXTHDR_OP_SCTP,
++	NFT_EXTHDR_OP_DCCP,
+ 	__NFT_EXTHDR_OP_MAX
+ };
+ #define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index a54a7f772cec..cad90bffb8a8 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -10,6 +10,7 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/dccp.h>
+ #include <linux/sctp.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
+@@ -406,6 +407,82 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
+ 		regs->verdict.code = NFT_BREAK;
+ }
+ 
++static void nft_exthdr_dccp_eval(const struct nft_expr *expr,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt)
++{
++	struct nft_exthdr *priv = nft_expr_priv(expr);
++	unsigned int thoff, dataoff, optoff, optlen, i;
++	u32 *dest = &regs->data[priv->dreg];
++	const struct dccp_hdr *dh;
++	struct dccp_hdr _dh;
++
++	if (pkt->tprot != IPPROTO_DCCP || pkt->fragoff)
++		goto err;
++
++	thoff = nft_thoff(pkt);
++
++	dh = skb_header_pointer(pkt->skb, thoff, sizeof(_dh), &_dh);
++	if (!dh)
++		goto err;
++
++	dataoff = dh->dccph_doff * sizeof(u32);
++	optoff = __dccp_hdr_len(dh);
++	if (dataoff <= optoff)
++		goto err;
++
++	optlen = dataoff - optoff;
++
++	for (i = 0; i < optlen; ) {
++		/* Options 0 (DCCPO_PADDING) - 31 (DCCPO_MAX_RESERVED) are 1B in
++		 * the length; the remaining options are at least 2B long.  In
++		 * all cases, the first byte contains the option type.  In
++		 * multi-byte options, the second byte contains the option
++		 * length, which must be at least two: 1 for the type plus 1 for
++		 * the length plus 0-253 for any following option data.  We
++		 * aren't interested in the option data, only the type and the
++		 * length, so we don't need to read more than two bytes at a
++		 * time.
++		 */
++		unsigned int buflen = oplen - i;
++		u8 buf[2], *bufp;
++		u8 type, len;
++
++		if (buflen > sizeof(buf))
++			buflen = sizeof(buf);
++
++		bufp = skb_header_pointer(pkt->skb, thoff + optoff + i, buflen,
++					  &buf);
++		if (!bufp)
++			goto err;
++
++		type = bufp[0];
++
++		if (type == priv->type) {
++			*dest = 1;
++			return;
++		}
++
++		if (type <= DCCPO_MAX_RESERVED) {
++			i++;
++			continue;
++		}
++
++		if (buflen < 2)
++			goto err;
++
++		len = bufp[1];
++
++		if (len < 2)
++			goto err;
++
++		i += len;
++	}
++
++err:
++	*dest = 0;
++}
++
+ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
+ 	[NFTA_EXTHDR_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
+@@ -557,6 +634,22 @@ static int nft_exthdr_ipv4_init(const struct nft_ctx *ctx,
+ 	return 0;
+ }
+ 
++static int nft_exthdr_dccp_init(const struct nft_ctx *ctx,
++				const struct nft_expr *expr,
++				const struct nlattr * const tb[])
++{
++	struct nft_exthdr *priv = nft_expr_priv(expr);
++	int err = nft_exthdr_init(ctx, expr, tb);
++
++	if (err < 0)
++		return err;
++
++	if (!(priv->flags & NFT_EXTHDR_F_PRESENT))
++		return -EOPNOTSUPP;
++
++	return 0;
++}
++
+ static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *priv)
+ {
+ 	if (nla_put_u8(skb, NFTA_EXTHDR_TYPE, priv->type))
+@@ -686,6 +779,15 @@ static const struct nft_expr_ops nft_exthdr_sctp_ops = {
+ 	.reduce		= nft_exthdr_reduce,
+ };
+ 
++static const struct nft_expr_ops nft_exthdr_dccp_ops = {
++	.type		= &nft_exthdr_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
++	.eval		= nft_exthdr_dccp_eval,
++	.init		= nft_exthdr_dccp_init,
++	.dump		= nft_exthdr_dump,
++	.reduce		= nft_exthdr_reduce,
++};
++
+ static const struct nft_expr_ops *
+ nft_exthdr_select_ops(const struct nft_ctx *ctx,
+ 		      const struct nlattr * const tb[])
+@@ -720,6 +822,10 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
+ 		if (tb[NFTA_EXTHDR_DREG])
+ 			return &nft_exthdr_sctp_ops;
+ 		break;
++	case NFT_EXTHDR_OP_DCCP:
++		if (tb[NFTA_EXTHDR_DREG])
++			return &nft_exthdr_dccp_ops;
++		break;
+ 	}
+ 
+ 	return ERR_PTR(-EOPNOTSUPP);
+-- 
+2.39.2
 
-since we can pass y in _SREG2 and 0 in _XOR for AND, and 1 in _MASK and
-y in _SREG2 for XOR.  For OR:
-
-  OR(x, y) =3D (x & ~y) ^ y
-
-it's a bit more complicated.  Instead of getting both the mask and xor
-arguments from user space, we need to do something like passing y in
-_SREG2 alone, and then constructing the bitwise negation in the kernel.
-
-Obviously, this means that the kernel is no longer completely agnostic
-about the sorts of mask-and-xor expressions user space may send.  Since
-that is the case, we could go further and just perform the original ope-
-rations.  Thus if we get an boolean op with an _SREG2 argument:
-
-  * if there is an _XOR of 0, compute:
-
-    _SREG & _SREG2
-
-  * if there is a _MASK of 1, compute:
-
-    _SREG ^ _SREG2
-
-  * if there are no _MASK or _XOR arguments, compute:
-
-    _SREG | _SREG2
-
-J.
-
---+8kEGTQyjhCAqWiP
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmRILz8ACgkQKYasCr3x
-BA1xIw//c7gol/qA5mYq45U5CGs/FZZQ6L86P0azj9rUq4hLmhcY2k01eq4v6cXR
-vpjgzvsNzs7+kfNXBsJKo5iZsjQl4F5hBoodxC9SRVupWGu+lI2w3GOR3Jbxwe2d
-AYWm4z8padn7hhSoeDg0d7cbdpDnugrt9hT5a/BqjUqLjsXQcPHJnXWdc+Sfn5NX
-CaIHeAQk6IzCNExMqfVgzaKiLc8fZSUOrUUcEi7rYiAndW8BpJe/PIHmqumFEaEU
-am07NqIEd00Iy6UgD7iR/GG1bZ+kWYXOiW+rT57D/t8i/eo5yRDEHuLiLpHYvh99
-bq+k02UiKEQOR5Y0vnC8n8jtn7mTFblHGDBREVgSTaUBwTgqrTnxMgQjMUX258H/
-30B+M1vhohOjEbedVTrswxSbuo4pOyFKX63ifIn6V09AbNjYQDMmyOyq0AJLNLjy
-I889LlUJ6DAUg9ih1Ao0RhRSEigDSU2SLMquEC+YOlgXlQVJgSpwUb1GKZ9iZKzH
-c3TVcU6vkBvca5EzSVJZaR3KWG16bn+lfhFKw664aOFBbbMK5MHBQcJNJEmUNf5S
-wPympebGyZFCbjUu7v4UYWDB9OBoXW3FSen5eCRyX/DIQuLa+dP4o8FIH6CXSDTR
-wD28M5PbLG8icBH/3Q/nZMgL68XEsdDYQHVMPUGBgb1NoPlaPZo=
-=FWBN
------END PGP SIGNATURE-----
-
---+8kEGTQyjhCAqWiP--
