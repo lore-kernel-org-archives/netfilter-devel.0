@@ -2,114 +2,118 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2FDDC77B61
-	for <netfilter-devel@archiver.kernel.org>; Mon, 24 Apr 2023 21:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CE37C7618E
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 00:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232661AbjDXVVu (ORCPT
+        id S231687AbjDYAU0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 24 Apr 2023 17:21:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36388 "EHLO
+        Mon, 24 Apr 2023 20:20:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232213AbjDXVVt (ORCPT
+        with ESMTP id S229755AbjDYAUZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Apr 2023 17:21:49 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5C3276E80
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Apr 2023 14:21:48 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] json: allow to specify comment on table
-Date:   Mon, 24 Apr 2023 23:21:45 +0200
-Message-Id: <20230424212145.213584-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Mon, 24 Apr 2023 20:20:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A00E5585;
+        Mon, 24 Apr 2023 17:20:24 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2A70662005;
+        Tue, 25 Apr 2023 00:20:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 8215FC4339B;
+        Tue, 25 Apr 2023 00:20:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1682382023;
+        bh=c8BupQSu+EGB9AJDFgvpVtU7tG+b4PHYDhjVTVKKGFs=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=ZennQLRa+8UWMQ1td49BSe+Ui89L0lhZkEe+YxCrFrPtIAQNYpeZjszoHK3PwNcaM
+         plY8md8rE+X0to8W1TuOc3YvYvq1kxNunF4n2t/LDUIPIsXY/viiyvWBrAV/hsYX1e
+         Op1ztjrH0D8BU8C2nLDn5Z/sVrqnWOvxA9uljNifASXkTtGPBP3ag+5JxoiZSYWDF0
+         v6NPLjsHG0zBW9fFYHkRxXfXgqF4oNpCqBI4qm/9BlCfpe/a2l42cWi8r7HZsR9M1V
+         yOsqCdNmsGUOGSyRjiG/wyS2SzLg6lron/2bwc88ED8ZOExPpMxgR79kjnkNbIYQDG
+         WYp+9ggsfBFIw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 65F90E5FFC9;
+        Tue, 25 Apr 2023 00:20:23 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/19] netfilter: nf_tables: merge nft_rules_old
+ structure and end of ruleblob marker
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168238202341.15505.3012924229620032855.git-patchwork-notify@kernel.org>
+Date:   Tue, 25 Apr 2023 00:20:23 +0000
+References: <20230421235021.216950-2-pablo@netfilter.org>
+In-Reply-To: <20230421235021.216950-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
- # sudo nft add table inet test3 '{comment "this is a comment";}'
- # nft list ruleset
- table inet test3 {
-        comment "this is a comment"
- }
- # nft -j list ruleset
- {"nftables": [{"metainfo": {"version": "1.0.7", "release_name": "Old Doc Yak", "json_schema_version": 1}}, {"table": {"family": "inet", "name": "test3", "handle": 3, "comment": "this is a comment"}}]}
- # nft -j list ruleset > test.json
- # nft flush ruleset
- # nft -j -f test.json
- # nft -j list ruleset
- {"nftables": [{"metainfo": {"version": "1.0.7", "release_name": "Old Doc Yak", "json_schema_version": 1}}, {"table": {"family": "inet", "name": "test3", "handle": 4, "comment": "this is a comment"}}]}
+Hello:
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1670
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/json.c        |  3 +++
- src/parser_json.c | 20 +++++++++++++++-----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+This series was applied to netdev/net-next.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-diff --git a/src/json.c b/src/json.c
-index f15461d33894..ae00055d71f5 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -510,6 +510,9 @@ static json_t *table_print_json(const struct table *table)
- 	if (tmp)
- 		json_object_set_new(root, "flags", tmp);
- 
-+	if (table->comment)
-+		json_object_set_new(root, "comment", json_string(table->comment));
-+
- 	return json_pack("{s:o}", "table", root);
- }
- 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index ec0c02a044e2..95f6bdcd943d 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2789,17 +2789,21 @@ static struct stmt *json_parse_stmt(struct json_ctx *ctx, json_t *root)
- static struct cmd *json_parse_cmd_add_table(struct json_ctx *ctx, json_t *root,
- 					    enum cmd_ops op, enum cmd_obj obj)
- {
-+	const char *family = "", *comment = NULL;
- 	struct handle h = {
- 		.table.location = *int_loc,
- 	};
--	const char *family = "";
-+	struct table *table = NULL;
- 
- 	if (json_unpack_err(ctx, root, "{s:s}",
- 			    "family", &family))
- 		return NULL;
--	if (op != CMD_DELETE &&
--	    json_unpack_err(ctx, root, "{s:s}", "name", &h.table.name)) {
--		return NULL;
-+
-+	if (op != CMD_DELETE) {
-+		if (json_unpack_err(ctx, root, "{s:s}", "name", &h.table.name))
-+			return NULL;
-+
-+		json_unpack(root, "{s:s}", "comment", &comment);
- 	} else if (op == CMD_DELETE &&
- 		   json_unpack(root, "{s:s}", "name", &h.table.name) &&
- 		   json_unpack(root, "{s:I}", "handle", &h.handle.id)) {
-@@ -2813,10 +2817,16 @@ static struct cmd *json_parse_cmd_add_table(struct json_ctx *ctx, json_t *root,
- 	if (h.table.name)
- 		h.table.name = xstrdup(h.table.name);
- 
-+	if (comment) {
-+		table = table_alloc();
-+		handle_merge(&table->handle, &h);
-+		table->comment = xstrdup(comment);
-+	}
-+
- 	if (op == CMD_ADD)
- 		json_object_del(root, "handle");
- 
--	return cmd_alloc(op, obj, &h, int_loc, NULL);
-+	return cmd_alloc(op, obj, &h, int_loc, table);
- }
- 
- static struct expr *parse_policy(const char *policy)
+On Sat, 22 Apr 2023 01:50:03 +0200 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> In order to free the rules in a chain via call_rcu, the rule array used
+> to stash a rcu_head and space for a pointer at the end of the rule array.
+> 
+> When the current nft_rule_dp blob format got added in
+> 2c865a8a28a1 ("netfilter: nf_tables: add rule blob layout"), this results
+> in a double-trailer:
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,01/19] netfilter: nf_tables: merge nft_rules_old structure and end of ruleblob marker
+    https://git.kernel.org/netdev/net-next/c/e38fbfa972eb
+  - [net-next,02/19] netfilter: nf_tables: don't store address of last rule on jump
+    https://git.kernel.org/netdev/net-next/c/d4d89e6546e0
+  - [net-next,03/19] netfilter: nf_tables: don't store chain address on jump
+    https://git.kernel.org/netdev/net-next/c/63e9bbbcca60
+  - [net-next,04/19] netfilter: nf_tables: don't write table validation state without mutex
+    https://git.kernel.org/netdev/net-next/c/9a32e9850686
+  - [net-next,05/19] netfilter: nf_tables: make validation state per table
+    https://git.kernel.org/netdev/net-next/c/00c320f9b755
+  - [net-next,06/19] netfilter: nf_tables: remove unneeded conditional
+    https://git.kernel.org/netdev/net-next/c/2a1d6abd7ebe
+  - [net-next,07/19] netfilter: nf_tables: do not store pktinfo in traceinfo structure
+    https://git.kernel.org/netdev/net-next/c/698bb828a6c2
+  - [net-next,08/19] netfilter: nf_tables: do not store verdict in traceinfo structure
+    https://git.kernel.org/netdev/net-next/c/0a202145d5f9
+  - [net-next,09/19] netfilter: nf_tables: do not store rule in traceinfo structure
+    https://git.kernel.org/netdev/net-next/c/46df417544f4
+  - [net-next,10/19] ipvs: Update width of source for ip_vs_sync_conn_options
+    https://git.kernel.org/netdev/net-next/c/e3478c68f670
+  - [net-next,11/19] ipvs: Consistently use array_size() in ip_vs_conn_init()
+    https://git.kernel.org/netdev/net-next/c/280654932e34
+  - [net-next,12/19] ipvs: Remove {Enter,Leave}Function
+    https://git.kernel.org/netdev/net-next/c/210ffe4a74ca
+  - [net-next,13/19] ipvs: Correct spelling in comments
+    https://git.kernel.org/netdev/net-next/c/c7d15aaa105a
+  - [net-next,14/19] netfilter: nf_tables: extended netlink error reporting for netdevice
+    https://git.kernel.org/netdev/net-next/c/c3c060adc024
+  - [net-next,15/19] netfilter: nf_tables: do not send complete notification of deletions
+    https://git.kernel.org/netdev/net-next/c/28339b21a365
+  - [net-next,16/19] netfilter: nf_tables: rename function to destroy hook list
+    https://git.kernel.org/netdev/net-next/c/cdc325466323
+  - [net-next,17/19] netfilter: nf_tables: support for adding new devices to an existing netdev chain
+    https://git.kernel.org/netdev/net-next/c/b9703ed44ffb
+  - [net-next,18/19] netfilter: nf_tables: support for deleting devices in an existing netdev chain
+    https://git.kernel.org/netdev/net-next/c/7d937b107108
+  - [net-next,19/19] netfilter: nf_tables: allow to create netdev chain without device
+    https://git.kernel.org/netdev/net-next/c/207296f1a03b
+
+You are awesome, thank you!
 -- 
-2.30.2
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
