@@ -2,243 +2,127 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 612EDC77B61
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 19:56:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB515C77B61
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 20:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235251AbjDYT40 (ORCPT
+        id S231978AbjDYUst (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Apr 2023 15:56:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58804 "EHLO
+        Tue, 25 Apr 2023 16:48:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234754AbjDYT4Z (ORCPT
+        with ESMTP id S231927AbjDYUsr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2023 15:56:25 -0400
+        Tue, 25 Apr 2023 16:48:47 -0400
 Received: from kadath.azazel.net (unknown [IPv6:2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41F467687
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 12:56:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBE8313F99
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2023 13:48:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=SgCiM0F+WYTg8hx4DaVIip8cyW+B/Mknnf8388UoYXQ=; b=UkIRkBqEzJPsPdPxJvH92W2JgH
-        xsGypb/3479InYrMkhxVYdS5GEdz1PEW5oyRBvnSjbN38ogTOfDFt/OSVg/j/w58jATCmmkJHtspI
-        D7WaqkCmD9iXBk4HkmtuS4LiGBxxePS3pMLZ+nMU5z55bS/oTU4amEUd3PmchY7v+b0dL1iSsis2c
-        geLaR84M9+Cn5WzUaB3mIahrMD0wzE1comdEyL9/M00JzLshIZqohPWdQoJ7yje56aQelgBcwEFlR
-        gfLSM1QMVQ83sGgH1opLe0EXSdXVI6evuMlMPbAJpfTQ9FnYgYJNBy5UtokFTKYtV7milXSVPdXmO
-        IdSbNmow==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-        by kadath.azazel.net with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        bh=3mFOt001pph4ZFjh5op6TvkmvLo9FO+BniOXvTOhuBg=; b=JpjDZJn9y+kLTdtECeKpuznBh1
+        78AovN9RPfqnbKTG+sZ2u8uNQWVI1ACtgsGp8IggU8+unWa4njnQEAwb2fxdFNkLIoJz7JlkISvRK
+        p3YYRpHKt+zpmhQxAMEA3TYr7aWBJMsa62M26VGTNePQdn7CkZmg1MykJPJi7dR0oBPvhgBG+nmeh
+        aNda1ILf5alu40LE625gQWuJ96Aw1pSMKHN3m/T6Z88z/kyaUGUjX4DFQs+VjFyzKmW12So734VGa
+        oByyL+quXJeE3qyV54vgjQOT2xR1imopmlVn8mIjnCMfYGs1A+nQZIqqvxJ/4nNOy72AstlwBe+eB
+        y/XKWuUQ==;
+Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
+        by kadath.azazel.net with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <jeremy@azazel.net>)
-        id 1prOly-009YUv-Ho
-        for netfilter-devel@vger.kernel.org; Tue, 25 Apr 2023 20:56:22 +0100
+        id 1prPab-009aLz-I4; Tue, 25 Apr 2023 21:48:41 +0100
+Date:   Tue, 25 Apr 2023 21:48:40 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v3] netfilter: nft_exthdr: add boolean DCCP option matching
-Date:   Tue, 25 Apr 2023 20:56:13 +0100
-Message-Id: <20230425195613.512379-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.39.2
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        Shuah Khan <skhan@linuxfoundation.org>,
+        Geliang Tang <geliang.tang@suse.com>,
+        Shuah Khan <shuah@kernel.org>, linux-kselftest@vger.kernel.org,
+        Kai Liu <kai.liu@suse.com>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] selftests: netfilter: fix a build error on openSUSE
+Message-ID: <20230425204840.GE5944@celephais.dreamlands>
+References: <5ee95e93a11a239df8e09d059da25a4eaa5725ba.1646198836.git.geliang.tang@suse.com>
+ <8cbf1231-0da5-c8a0-d66b-1488633d9895@linuxfoundation.org>
+ <Yh+wulh/nIkFeFmz@salvia>
+ <sr67066-o9or-1s32-pp7-s764r386n55q@vanv.qr>
+ <ZEgArba2jGAGy0/Z@calendula>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="qLqTDRbgXsuHCJND"
+Content-Disposition: inline
+In-Reply-To: <ZEgArba2jGAGy0/Z@calendula>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on kadath.azazel.net); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The xt_dccp iptables module supports the matching of DCCP packets based
-on the presence or absence of DCCP options.  Extend nft_exthdr to add
-this functionality to nftables.
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=930
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
-Changes since v2
+--qLqTDRbgXsuHCJND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-  * Replaced the ternary used to initialize `buflen` at Florian's 
-    request.
+On 2023-04-25, at 18:32:45 +0200, Pablo Neira Ayuso wrote:
+> On Tue, Apr 25, 2023 at 11:14:55AM +0200, Jan Engelhardt wrote:
+> > On Wednesday ** 2022-03-02 19:00 **, Pablo Neira Ayuso wrote:
+> > >On Wed, Mar 02, 2022 at 10:11:11AM -0700, Shuah Khan wrote:
+> > >> On 3/1/22 10:29 PM, Geliang Tang wrote:
+> > >> > This patch fixed the following build error on openSUSE Leap 15.3:
+> > >> >   nf-queue.c:13:10: fatal error: libmnl/libmnl.h: No such file or directory
+> > >> >    #include <libmnl/libmnl.h>
+> > >> > diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+> > >> > index e4f845dd942b..8136c1fab7ab 100644
+> > >> > --- a/tools/testing/selftests/netfilter/Makefile
+> > >> > +++ b/tools/testing/selftests/netfilter/Makefile
+> > >> > @@ -8,6 +8,7 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
+> > >> >   	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
+> > >> >   	conntrack_vrf.sh nft_synproxy.sh
+> > >> > +CFLAGS += $(shell pkg-config --cflags libmnl 2>/dev/null || echo "-I/usr/include/libmnl")
+> > >> >   LDLIBS = -lmnl
+> > >> >   TEST_GEN_FILES =  nf-queue
+> > >>
+> > >> Adding Pablo to the thread.
+> > >> This looks good to me. I can take this through linux-kselftest tree.
+> > >> Or if it is going through netfilter tree:
+> > >> Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
+> > >
+> > >If this does not cause any issue when running tests in any other
+> > >distros, then it is fine with me.
+> >
+> > Since a pkgconfig file exists, it ought to be used. That also means
+> > you need the same/similar incantation in LDLIBS, with `pkg-config
+> > --libs libmnl`.
 
-Changes since v1
+I would also avoid hard-coding pkg-config and remove the unnecessary
+SUSE-specific default for CFLAGS.
 
- * The order in which `optlen` and `optoff` are assigned and validated
-   has been updated in line with Florian's feedback.
- * The whole option block is no longer copied into a buffer in `struct
-   nft_exthdr_dccp`.  Access to this was not synchronized, which would
-   have been unsafe.  Since DCCP options are encoded in a TLV format and
-   we don't need to inspect the values, we use an on-stack buffer with
-   enough space to hold the type and length.
- 
- include/uapi/linux/netfilter/nf_tables.h |   2 +
- net/netfilter/nft_exthdr.c               | 106 +++++++++++++++++++++++
- 2 files changed, 108 insertions(+)
+> Patch?
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c4d4d8e42dc8..e059dc2644df 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -859,12 +859,14 @@ enum nft_exthdr_flags {
-  * @NFT_EXTHDR_OP_TCP: match against tcp options
-  * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
-  * @NFT_EXTHDR_OP_SCTP: match against sctp chunks
-+ * @NFT_EXTHDR_OP_DCCP: match against dccp otions
-  */
- enum nft_exthdr_op {
- 	NFT_EXTHDR_OP_IPV6,
- 	NFT_EXTHDR_OP_TCPOPT,
- 	NFT_EXTHDR_OP_IPV4,
- 	NFT_EXTHDR_OP_SCTP,
-+	NFT_EXTHDR_OP_DCCP,
- 	__NFT_EXTHDR_OP_MAX
- };
- #define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index a54a7f772cec..cad90bffb8a8 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -10,6 +10,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/dccp.h>
- #include <linux/sctp.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
-@@ -406,6 +407,82 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
- 		regs->verdict.code = NFT_BREAK;
- }
- 
-+static void nft_exthdr_dccp_eval(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	unsigned int thoff, dataoff, optoff, optlen, i;
-+	u32 *dest = &regs->data[priv->dreg];
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr _dh;
-+
-+	if (pkt->tprot != IPPROTO_DCCP || pkt->fragoff)
-+		goto err;
-+
-+	thoff = nft_thoff(pkt);
-+
-+	dh = skb_header_pointer(pkt->skb, thoff, sizeof(_dh), &_dh);
-+	if (!dh)
-+		goto err;
-+
-+	dataoff = dh->dccph_doff * sizeof(u32);
-+	optoff = __dccp_hdr_len(dh);
-+	if (dataoff <= optoff)
-+		goto err;
-+
-+	optlen = dataoff - optoff;
-+
-+	for (i = 0; i < optlen; ) {
-+		/* Options 0 (DCCPO_PADDING) - 31 (DCCPO_MAX_RESERVED) are 1B in
-+		 * the length; the remaining options are at least 2B long.  In
-+		 * all cases, the first byte contains the option type.  In
-+		 * multi-byte options, the second byte contains the option
-+		 * length, which must be at least two: 1 for the type plus 1 for
-+		 * the length plus 0-253 for any following option data.  We
-+		 * aren't interested in the option data, only the type and the
-+		 * length, so we don't need to read more than two bytes at a
-+		 * time.
-+		 */
-+		unsigned int buflen = oplen - i;
-+		u8 buf[2], *bufp;
-+		u8 type, len;
-+
-+		if (buflen > sizeof(buf))
-+			buflen = sizeof(buf);
-+
-+		bufp = skb_header_pointer(pkt->skb, thoff + optoff + i, buflen,
-+					  &buf);
-+		if (!bufp)
-+			goto err;
-+
-+		type = bufp[0];
-+
-+		if (type == priv->type) {
-+			*dest = 1;
-+			return;
-+		}
-+
-+		if (type <= DCCPO_MAX_RESERVED) {
-+			i++;
-+			continue;
-+		}
-+
-+		if (buflen < 2)
-+			goto err;
-+
-+		len = bufp[1];
-+
-+		if (len < 2)
-+			goto err;
-+
-+		i += len;
-+	}
-+
-+err:
-+	*dest = 0;
-+}
-+
- static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_DREG]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
-@@ -557,6 +634,22 @@ static int nft_exthdr_ipv4_init(const struct nft_ctx *ctx,
- 	return 0;
- }
- 
-+static int nft_exthdr_dccp_init(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr,
-+				const struct nlattr * const tb[])
-+{
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	int err = nft_exthdr_init(ctx, expr, tb);
-+
-+	if (err < 0)
-+		return err;
-+
-+	if (!(priv->flags & NFT_EXTHDR_F_PRESENT))
-+		return -EOPNOTSUPP;
-+
-+	return 0;
-+}
-+
- static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *priv)
- {
- 	if (nla_put_u8(skb, NFTA_EXTHDR_TYPE, priv->type))
-@@ -686,6 +779,15 @@ static const struct nft_expr_ops nft_exthdr_sctp_ops = {
- 	.reduce		= nft_exthdr_reduce,
- };
- 
-+static const struct nft_expr_ops nft_exthdr_dccp_ops = {
-+	.type		= &nft_exthdr_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
-+	.eval		= nft_exthdr_dccp_eval,
-+	.init		= nft_exthdr_dccp_init,
-+	.dump		= nft_exthdr_dump,
-+	.reduce		= nft_exthdr_reduce,
-+};
-+
- static const struct nft_expr_ops *
- nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
-@@ -720,6 +822,10 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 		if (tb[NFTA_EXTHDR_DREG])
- 			return &nft_exthdr_sctp_ops;
- 		break;
-+	case NFT_EXTHDR_OP_DCCP:
-+		if (tb[NFTA_EXTHDR_DREG])
-+			return &nft_exthdr_dccp_ops;
-+		break;
- 	}
- 
- 	return ERR_PTR(-EOPNOTSUPP);
--- 
-2.39.2
+Following shortly.
 
+J.
+
+--qLqTDRbgXsuHCJND
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmRIPKgACgkQKYasCr3x
+BA26gRAAlr17yFl82bk3zD6LVCFcVdp5Zm1jQD6JwO03yTL1J6LR135pOqpqBNNp
+KzOCa8yd0Ziecq74F6i8G+A9Vl+JnO67KqzSxzy2FN8AUC7TncqjCh4TjinBQ1cB
+9XiKnlnqAs2a57/E2WEIAmhH/o10mm43LU6CAUi+o1/4+DyltMyJFRrH9lJvvaS9
+oMTE4C1CvTRhZTuhJID/baDPTx9fCdY7xMolVPhNGK+ZVCTwJbtEEcruPHap1knU
+nLgKYBBYQw6hzXR+MA935WtPZoqkXTCr/gjlllbAo/w9nZclp8GUL4LYn+wQKGKp
+A8Cg+c6Yr6shys+nUTCW74vS5++c4Z5mwrNqSmCNKFZA7oUfgqteIi938aKOG4TV
+h2CPs6oNZ5idyjfwu8dUBipO0b9kTaGv556YMiJYYYxbINz1mFia4iT7BL2IHtf7
+UVF/n+sp7Ro6Dp2B0x28ysmD0g0+kpwVRS+rMYSAPS0bN+Peit0Me4bgDHy065st
+Ah81/qBb5dhsTdKACZQx1eKHImtCztJmhd/pZq5ewUAfqHn7jM8j7A4Z+dyUhmK2
+9NK0eow30Rl+W3j57ODoThQpoKJn/kds6wTUGUp5lU75ASv5/STMtVXHB5mdt/pR
+X7bAfpD07LGCeUb2YY3xkFjUWMmK44JrAl7oKnJ3uEiPMkh9Awk=
+=hQnQ
+-----END PGP SIGNATURE-----
+
+--qLqTDRbgXsuHCJND--
