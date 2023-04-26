@@ -2,266 +2,112 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 758B1C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Apr 2023 14:15:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85D93C77B78
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Apr 2023 15:40:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241091AbjDZOPf (ORCPT
+        id S241369AbjDZPkW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Apr 2023 10:15:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54950 "EHLO
+        Wed, 26 Apr 2023 11:40:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241242AbjDZOPd (ORCPT
+        with ESMTP id S241140AbjDZPkV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Apr 2023 10:15:33 -0400
-Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [IPv6:2001:1600:4:17::190a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63EB36E87;
-        Wed, 26 Apr 2023 07:15:31 -0700 (PDT)
-Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Q619Y5NhJzMq20C;
-        Wed, 26 Apr 2023 16:15:29 +0200 (CEST)
-Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4Q619Y0BqHz1C3;
-        Wed, 26 Apr 2023 16:15:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1682518529;
-        bh=FcZefFzib5MfGlesa1STquGjF77TMrAHm6Rc4XBvbgg=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=asRumu1lxURvTBi1FJdnBXmIBRxcUKrN2uLXAaKuIq9iKmnLbsjL+Hxvx58rBFBbK
-         +5aOAIg0ipTOQj53T+EKQkH9tUqRAKTaCLOIbdjc6+jCkk0R3pRFFBiId95P4TRzxP
-         sX97wtguz6vHJhTwKYrKTAryGHNU9u0MUtZ4ZVfw=
-Message-ID: <8db42d8b-1ed0-6b00-de5b-57f350472160@digikod.net>
-Date:   Wed, 26 Apr 2023 16:15:28 +0200
-MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v10 09/13] landlock: Add network rules and TCP hooks
- support
+        Wed, 26 Apr 2023 11:40:21 -0400
+X-Greylist: delayed 1201 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 26 Apr 2023 08:40:18 PDT
+Received: from mx0.infotecs.ru (mx0.infotecs.ru [91.244.183.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 199EF423C;
+        Wed, 26 Apr 2023 08:40:17 -0700 (PDT)
+Received: from mx0.infotecs-nt (localhost [127.0.0.1])
+        by mx0.infotecs.ru (Postfix) with ESMTP id 7B92A1085789;
+        Wed, 26 Apr 2023 18:04:31 +0300 (MSK)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mx0.infotecs.ru 7B92A1085789
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=infotecs.ru; s=mx;
+        t=1682521472; bh=MedIm+CRBEd4wBFXItt1kJMETQQkrwjcl8xl77kiovM=;
+        h=From:To:CC:Subject:Date:From;
+        b=HPLnLR4ts/3Y8SbFjB0Xawyp50TRlwaIt4fceP1t8BbvQc4lgJQTqtFLVJozsO5Ij
+         VKwm55CT0gqEPbRGtPFD/DevevAQJ4l2OrJI+CZFIC0VIPXp4rEzoSX/Z1tj10yAJ9
+         +cgB2C/GewAMwc9RQ2DAVXqp7dFsFtsLBt6mcWEc=
+Received: from msk-exch-02.infotecs-nt (msk-exch-02.infotecs-nt [10.0.7.192])
+        by mx0.infotecs-nt (Postfix) with ESMTP id 754A4305F450;
+        Wed, 26 Apr 2023 18:04:31 +0300 (MSK)
+From:   Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+CC:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "Patrick McHardy" <kaber@trash.net>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "lvc-project@linuxtesting.org" <lvc-project@linuxtesting.org>
+Subject: [PATCH] netfilter: nf_conntrack_sip: fix the
+ ct_sip_parse_numerical_param() return value.
+Thread-Topic: [PATCH] netfilter: nf_conntrack_sip: fix the
+ ct_sip_parse_numerical_param() return value.
+Thread-Index: AQHZeFBn+k9SKA6Ie0ib54vOLuLARQ==
+Date:   Wed, 26 Apr 2023 15:04:31 +0000
+Message-ID: <20230426150414.2768070-1-Ilia.Gavrilov@infotecs.ru>
+Accept-Language: ru-RU, en-US
 Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
- <20230323085226.1432550-10-konstantin.meskhidze@huawei.com>
- <9147b444-dec4-52c3-c724-f19b3f842738@digikod.net>
- <07629a06-935c-debf-d490-e02e5ee9f9ec@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <07629a06-935c-debf-d490-e02e5ee9f9ec@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.17.0.10]
+x-exclaimer-md-config: 208ac3cd-1ed4-4982-a353-bdefac89ac0a
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-KLMS-Rule-ID: 1
+X-KLMS-Message-Action: clean
+X-KLMS-AntiSpam-Lua-Profiles: 177015 [Apr 26 2023]
+X-KLMS-AntiSpam-Version: 5.9.59.0
+X-KLMS-AntiSpam-Envelope-From: Ilia.Gavrilov@infotecs.ru
+X-KLMS-AntiSpam-Rate: 0
+X-KLMS-AntiSpam-Status: not_detected
+X-KLMS-AntiSpam-Method: none
+X-KLMS-AntiSpam-Auth: dkim=none
+X-KLMS-AntiSpam-Info: LuaCore: 510 510 bc345371020d3ce827abc4c710f5f0ecf15eaf2e, {Tracking_from_domain_doesnt_match_to}, d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2;infotecs.ru:7.1.1
+X-MS-Exchange-Organization-SCL: -1
+X-KLMS-AntiSpam-Interceptor-Info: scan successful
+X-KLMS-AntiPhishing: Clean, bases: 2023/04/26 03:46:00
+X-KLMS-AntiVirus: Kaspersky Security for Linux Mail Server, version 8.0.3.30, bases: 2023/04/26 04:45:00 #21166225
+X-KLMS-AntiVirus-Status: Clean, skipped
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+ct_sip_parse_numerical_param() returns only 0 or 1 now.
+But process_register_request() and process_register_response() imply
+checking for a negative value if parsing of a numerical header parameter
+failed. Let's fix it.
 
-On 21/04/2023 11:39, Konstantin Meskhidze (A) wrote:
-> 
-> 
-> 4/16/2023 7:11 PM, Mickaël Salaün пишет:
->>
->> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
->>> This commit adds network rules support in the ruleset management
->>> helpers and the landlock_create_ruleset syscall.
->>> Refactor user space API to support network actions. Add new network
->>> access flags, network rule and network attributes. Increment Landlock
->>> ABI version. Expand access_masks_t to u32 to be sure network access
->>> rights can be stored. Implement socket_bind() and socket_connect()
->>> LSM hooks, which enable to restrict TCP socket binding and connection
->>
->> "which enables to"
->>
->      Got it.
->>
->>> to specific ports.
->>>
->>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>> ---
+Found by InfoTeCS on behalf of Linux Verification Center
+(linuxtesting.org) with SVACE.
 
-[...]
+Fixes: 0f32a40fc91a ("[NETFILTER]: nf_conntrack_sip: create signalling expe=
+ctations")
+Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
+---
+ net/netfilter/nf_conntrack_sip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->>> +static u16 get_port(const struct sockaddr *const address)
->>> +{
->>> +	/* Gets port value in host byte order. */
->>> +	switch (address->sa_family) {
->>> +	case AF_UNSPEC:
->>> +	case AF_INET: {
->>> +		const struct sockaddr_in *const sockaddr =
->>> +			(struct sockaddr_in *)address;
->>> +		return ntohs(sockaddr->sin_port);
->>> +	}
->>> +#if IS_ENABLED(CONFIG_IPV6)
->>> +	case AF_INET6: {
->>> +		const struct sockaddr_in6 *const sockaddr_ip6 =
->>> +			(struct sockaddr_in6 *)address;
->>> +		return ntohs(sockaddr_ip6->sin6_port);
->>> +	}
->>> +#endif
->>> +	}
->>> +	WARN_ON_ONCE(1);
->>> +	return 0;
->>> +}
->>> +
->>> +static int check_socket_access(struct socket *sock, struct sockaddr *address, int addrlen, u16 port,
->>> +			       access_mask_t access_request)
->>> +{
->>> +	int ret;
->>> +	bool allowed = false;
->>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
->>> +	const struct landlock_rule *rule;
->>> +	access_mask_t handled_access;
->>> +	const struct landlock_id id = {
->>> +		.key.data = port,
->>> +		.type = LANDLOCK_KEY_NET_PORT,
->>> +	};
->>> +	const struct landlock_ruleset *const domain = get_current_net_domain();
->>> +
->>> +	if (WARN_ON_ONCE(!domain))
->>> +		return 0;
->>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
->>> +		return -EACCES;
->>> +	/* Check if it's a TCP socket. */
->>> +	if (sock->type != SOCK_STREAM)
->>> +		return 0;
->>> +
->>> +	ret = check_addrlen(address, addrlen);
->>> +	if (ret)
->>> +		return ret;
->>
->> As explained above, this should be replaced with:
->>
->> if (addrlen < offsetofend(struct sockaddr, sa_family))
->> 	return -EINVAL;
->>
->     Ok.
->>
->>> +
->>> +	switch (address->sa_family) {
->>
->>
->> This below block should be moved after the generic switch statement
->> (i.e. once port is checked).
->>
->     Do you mean checking address family after a port has been checked??
-
-
-These specific AF_UNSPEC checks should be in an `if (address->sa_family 
-== AF_UNSPEC)` block after the generic AF_UNSPEC, AF_INET, and AF_INET6 
-checks in the address->sa_family switch/case, because the checks and 
-errors order must be consistent whatever the sa_family. The AF_UNSPEC 
-checks are really an exception to the AF_INET ones, and should then come 
-after.
-
-This may look like this:
-
-switch (address->sa_family) {
-case AF_UNSPEC:
-case AF_INET:
-	port = ...;
-	break;
-#if IS_ENABLED(CONFIG_IPV6)
-	case AF_INET6:
-	port = ...;
-	break;
-#endif
-default:
-	return 0;
-}
-
-/* Specific AF_UNSPEC handling. */
-if (address->sa_family == AF_UNSPEC) {
-	...
-	if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
-		return 0;
-	...
-}
-
-id.key.data = (__force uintptr_t)port;
-BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
-
-rule = landlock_find_rule(domain, id);
-handled_access = landlock_init_layer_masks(
-	domain, access_request, &layer_masks,
-	LANDLOCK_KEY_NET_PORT);
-if (landlock_unmask_layers(rule, handled_access,
-				 &layer_masks,
-				 ARRAY_SIZE(layer_masks)))
-	return 0;
-
-return -EACCES;
-
-
-
-
-
-> 
->>
->>
->>> +	case AF_UNSPEC:
->>> +		/*
->>> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
->>> +		 * association, which have the same effect as closing the
->>> +		 * connection while retaining the socket object (i.e., the file
->>> +		 * descriptor).  As for dropping privileges, closing
->>> +		 * connections is always allowed.
->>> +		 */
->>> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
->>> +			return 0;
->>> +
->>> +		/*
->>> +		 * For compatibility reason, accept AF_UNSPEC for bind
->>> +		 * accesses (mapped to AF_INET) only if the address is
->>> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
->>> +		 * required to not wrongfully return -EACCES instead of
->>> +		 * -EAFNOSUPPORT.
->>> +		 */
->>> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
->>> +			const struct sockaddr_in *const sockaddr =
->>> +				(struct sockaddr_in *)address;
->>> +
->>> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
->>> +				return -EAFNOSUPPORT;
->>> +		}
->>> +
->>> +		fallthrough;
->>
->>
->>
->> case AF_UNSPEC:
->>
->>> +	case AF_INET:
->>
->> if (addrlen < sizeof(struct sockaddr_in))
->> 	return -EINVAL;
->>
->> port = ((struct sockaddr_in *)address)->sin_port;
->> break;
->>
->>
->>> +#if IS_ENABLED(CONFIG_IPV6)
->>> +	case AF_INET6:
->>
->> if (addrlen < SIN6_LEN_RFC2133)
->> 	return -EINVAL;
->>
->> port = ((struct sockaddr_in6 *)address)->sin6_port;
->> break;
->>
->>
->>> +#endif
->>
->> /* Allows unhandled protocols. */
->> default:
->> 	return 0;
->> }
->>
->> if (address->sa_family == AF_UNSPEC) {
->>
->> // Add here the above AF_UNSPEC checks to be consistent with the
->> EINVAL/EAFNOSUPPORT return ordering.
->>
->> }
->>
->> id.key.data = (__force uintprt_t)port;
->> BUID_BUG_ON(...);
->>
->     Will be refactored. Thanks.
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_=
+sip.c
+index 77f5e82d8e3f..d0eac27f6ba0 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -611,7 +611,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *=
+ct, const char *dptr,
+ 	start +=3D strlen(name);
+ 	*val =3D simple_strtoul(start, &end, 0);
+ 	if (start =3D=3D end)
+-		return 0;
++		return -1;
+ 	if (matchoff && matchlen) {
+ 		*matchoff =3D start - dptr;
+ 		*matchlen =3D end - start;
+--=20
+2.30.2
