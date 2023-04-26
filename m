@@ -2,58 +2,266 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74445C77B7C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Apr 2023 22:21:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 758B1C77B7F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Apr 2023 14:15:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236224AbjDYWVa (ORCPT
+        id S241091AbjDZOPf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Apr 2023 18:21:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50714 "EHLO
+        Wed, 26 Apr 2023 10:15:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231978AbjDYWV3 (ORCPT
+        with ESMTP id S241242AbjDZOPd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2023 18:21:29 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CD1CC148;
-        Tue, 25 Apr 2023 15:21:27 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 6B6455872CC11; Wed, 26 Apr 2023 00:21:26 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 6AD9760C41016;
-        Wed, 26 Apr 2023 00:21:26 +0200 (CEST)
-Date:   Wed, 26 Apr 2023 00:21:26 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Jeremy Sowden <jeremy@azazel.net>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Shuah Khan <skhan@linuxfoundation.org>,
-        Geliang Tang <geliang.tang@suse.com>,
-        Kai Liu <kai.liu@suse.com>, linux-kselftest@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] selftests: netfilter: fix libmnl pkg-config usage
-In-Reply-To: <20230425211139.518381-1-jeremy@azazel.net>
-Message-ID: <6qpp4r21-8p95-8nso-4424-4pr28037qq98@vanv.qr>
-References: <ZEgArba2jGAGy0/Z@calendula> <20230425211139.518381-1-jeremy@azazel.net>
-User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
+        Wed, 26 Apr 2023 10:15:33 -0400
+Received: from smtp-190a.mail.infomaniak.ch (smtp-190a.mail.infomaniak.ch [IPv6:2001:1600:4:17::190a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63EB36E87;
+        Wed, 26 Apr 2023 07:15:31 -0700 (PDT)
+Received: from smtp-3-0000.mail.infomaniak.ch (unknown [10.4.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Q619Y5NhJzMq20C;
+        Wed, 26 Apr 2023 16:15:29 +0200 (CEST)
+Received: from unknown by smtp-3-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4Q619Y0BqHz1C3;
+        Wed, 26 Apr 2023 16:15:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1682518529;
+        bh=FcZefFzib5MfGlesa1STquGjF77TMrAHm6Rc4XBvbgg=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=asRumu1lxURvTBi1FJdnBXmIBRxcUKrN2uLXAaKuIq9iKmnLbsjL+Hxvx58rBFBbK
+         +5aOAIg0ipTOQj53T+EKQkH9tUqRAKTaCLOIbdjc6+jCkk0R3pRFFBiId95P4TRzxP
+         sX97wtguz6vHJhTwKYrKTAryGHNU9u0MUtZ4ZVfw=
+Message-ID: <8db42d8b-1ed0-6b00-de5b-57f350472160@digikod.net>
+Date:   Wed, 26 Apr 2023 16:15:28 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: 
+Subject: Re: [PATCH v10 09/13] landlock: Add network rules and TCP hooks
+ support
+Content-Language: en-US
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com
+References: <20230323085226.1432550-1-konstantin.meskhidze@huawei.com>
+ <20230323085226.1432550-10-konstantin.meskhidze@huawei.com>
+ <9147b444-dec4-52c3-c724-f19b3f842738@digikod.net>
+ <07629a06-935c-debf-d490-e02e5ee9f9ec@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <07629a06-935c-debf-d490-e02e5ee9f9ec@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On Tuesday 2023-04-25 23:11, Jeremy Sowden wrote:
+On 21/04/2023 11:39, Konstantin Meskhidze (A) wrote:
+> 
+> 
+> 4/16/2023 7:11 PM, Mickaël Salaün пишет:
+>>
+>> On 23/03/2023 09:52, Konstantin Meskhidze wrote:
+>>> This commit adds network rules support in the ruleset management
+>>> helpers and the landlock_create_ruleset syscall.
+>>> Refactor user space API to support network actions. Add new network
+>>> access flags, network rule and network attributes. Increment Landlock
+>>> ABI version. Expand access_masks_t to u32 to be sure network access
+>>> rights can be stored. Implement socket_bind() and socket_connect()
+>>> LSM hooks, which enable to restrict TCP socket binding and connection
+>>
+>> "which enables to"
+>>
+>      Got it.
+>>
+>>> to specific ports.
+>>>
+>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>> ---
 
->1. Don't hard-code pkg-config
->2. Remove distro-specific default for CFLAGS
->3. Use pkg-config for LDLIBS
+[...]
+
+>>> +static u16 get_port(const struct sockaddr *const address)
+>>> +{
+>>> +	/* Gets port value in host byte order. */
+>>> +	switch (address->sa_family) {
+>>> +	case AF_UNSPEC:
+>>> +	case AF_INET: {
+>>> +		const struct sockaddr_in *const sockaddr =
+>>> +			(struct sockaddr_in *)address;
+>>> +		return ntohs(sockaddr->sin_port);
+>>> +	}
+>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>> +	case AF_INET6: {
+>>> +		const struct sockaddr_in6 *const sockaddr_ip6 =
+>>> +			(struct sockaddr_in6 *)address;
+>>> +		return ntohs(sockaddr_ip6->sin6_port);
+>>> +	}
+>>> +#endif
+>>> +	}
+>>> +	WARN_ON_ONCE(1);
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static int check_socket_access(struct socket *sock, struct sockaddr *address, int addrlen, u16 port,
+>>> +			       access_mask_t access_request)
+>>> +{
+>>> +	int ret;
+>>> +	bool allowed = false;
+>>> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+>>> +	const struct landlock_rule *rule;
+>>> +	access_mask_t handled_access;
+>>> +	const struct landlock_id id = {
+>>> +		.key.data = port,
+>>> +		.type = LANDLOCK_KEY_NET_PORT,
+>>> +	};
+>>> +	const struct landlock_ruleset *const domain = get_current_net_domain();
+>>> +
+>>> +	if (WARN_ON_ONCE(!domain))
+>>> +		return 0;
+>>> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+>>> +		return -EACCES;
+>>> +	/* Check if it's a TCP socket. */
+>>> +	if (sock->type != SOCK_STREAM)
+>>> +		return 0;
+>>> +
+>>> +	ret = check_addrlen(address, addrlen);
+>>> +	if (ret)
+>>> +		return ret;
+>>
+>> As explained above, this should be replaced with:
+>>
+>> if (addrlen < offsetofend(struct sockaddr, sa_family))
+>> 	return -EINVAL;
+>>
+>     Ok.
+>>
+>>> +
+>>> +	switch (address->sa_family) {
+>>
+>>
+>> This below block should be moved after the generic switch statement
+>> (i.e. once port is checked).
+>>
+>     Do you mean checking address family after a port has been checked??
 
 
->+CFLAGS += $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
->+LDLIBS += $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
+These specific AF_UNSPEC checks should be in an `if (address->sa_family 
+== AF_UNSPEC)` block after the generic AF_UNSPEC, AF_INET, and AF_INET6 
+checks in the address->sa_family switch/case, because the checks and 
+errors order must be consistent whatever the sa_family. The AF_UNSPEC 
+checks are really an exception to the AF_INET ones, and should then come 
+after.
 
-Ah yes, this looks better and looks modeled upon selftests/bpf/Makefile.
-Speaking of which, there's a space missing over there.
+This may look like this:
 
-tools/testing/selftests/bpf/Makefile:HOSTPKG_CONFIG := pkg-config
-tools/testing/selftests/bpf/Makefile:   $(Q)$(CC) $(shell $(HOSTPKG_CONFIG)--cflags libcrypto 2> /dev/null) \
-tools/testing/selftests/bpf/Makefile:             $(shell $(HOSTPKG_CONFIG) --libs libcrypto 2> /dev/null || echo -lcrypto)
+switch (address->sa_family) {
+case AF_UNSPEC:
+case AF_INET:
+	port = ...;
+	break;
+#if IS_ENABLED(CONFIG_IPV6)
+	case AF_INET6:
+	port = ...;
+	break;
+#endif
+default:
+	return 0;
+}
+
+/* Specific AF_UNSPEC handling. */
+if (address->sa_family == AF_UNSPEC) {
+	...
+	if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
+		return 0;
+	...
+}
+
+id.key.data = (__force uintptr_t)port;
+BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+
+rule = landlock_find_rule(domain, id);
+handled_access = landlock_init_layer_masks(
+	domain, access_request, &layer_masks,
+	LANDLOCK_KEY_NET_PORT);
+if (landlock_unmask_layers(rule, handled_access,
+				 &layer_masks,
+				 ARRAY_SIZE(layer_masks)))
+	return 0;
+
+return -EACCES;
+
+
+
+
+
+> 
+>>
+>>
+>>> +	case AF_UNSPEC:
+>>> +		/*
+>>> +		 * Connecting to an address with AF_UNSPEC dissolves the TCP
+>>> +		 * association, which have the same effect as closing the
+>>> +		 * connection while retaining the socket object (i.e., the file
+>>> +		 * descriptor).  As for dropping privileges, closing
+>>> +		 * connections is always allowed.
+>>> +		 */
+>>> +		if (access_request == LANDLOCK_ACCESS_NET_CONNECT_TCP)
+>>> +			return 0;
+>>> +
+>>> +		/*
+>>> +		 * For compatibility reason, accept AF_UNSPEC for bind
+>>> +		 * accesses (mapped to AF_INET) only if the address is
+>>> +		 * INADDR_ANY (cf. __inet_bind).  Checking the address is
+>>> +		 * required to not wrongfully return -EACCES instead of
+>>> +		 * -EAFNOSUPPORT.
+>>> +		 */
+>>> +		if (access_request == LANDLOCK_ACCESS_NET_BIND_TCP) {
+>>> +			const struct sockaddr_in *const sockaddr =
+>>> +				(struct sockaddr_in *)address;
+>>> +
+>>> +			if (sockaddr->sin_addr.s_addr != htonl(INADDR_ANY))
+>>> +				return -EAFNOSUPPORT;
+>>> +		}
+>>> +
+>>> +		fallthrough;
+>>
+>>
+>>
+>> case AF_UNSPEC:
+>>
+>>> +	case AF_INET:
+>>
+>> if (addrlen < sizeof(struct sockaddr_in))
+>> 	return -EINVAL;
+>>
+>> port = ((struct sockaddr_in *)address)->sin_port;
+>> break;
+>>
+>>
+>>> +#if IS_ENABLED(CONFIG_IPV6)
+>>> +	case AF_INET6:
+>>
+>> if (addrlen < SIN6_LEN_RFC2133)
+>> 	return -EINVAL;
+>>
+>> port = ((struct sockaddr_in6 *)address)->sin6_port;
+>> break;
+>>
+>>
+>>> +#endif
+>>
+>> /* Allows unhandled protocols. */
+>> default:
+>> 	return 0;
+>> }
+>>
+>> if (address->sa_family == AF_UNSPEC) {
+>>
+>> // Add here the above AF_UNSPEC checks to be consistent with the
+>> EINVAL/EAFNOSUPPORT return ordering.
+>>
+>> }
+>>
+>> id.key.data = (__force uintprt_t)port;
+>> BUID_BUG_ON(...);
+>>
+>     Will be refactored. Thanks.
