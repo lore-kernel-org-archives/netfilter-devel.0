@@ -2,90 +2,136 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7555C77B61
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Apr 2023 13:07:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAD10C77B7C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Apr 2023 22:21:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243249AbjD0NHj (ORCPT
+        id S229988AbjD0WVX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Apr 2023 09:07:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35120 "EHLO
+        Thu, 27 Apr 2023 18:21:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243343AbjD0NHa (ORCPT
+        with ESMTP id S229815AbjD0WVW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Apr 2023 09:07:30 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 72B5D2D79
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Apr 2023 06:07:29 -0700 (PDT)
-Date:   Thu, 27 Apr 2023 15:07:24 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
- NFTA_RULE_ACTUAL_EXPR
-Message-ID: <ZEpzjLiFZWRAManK@calendula>
-References: <Y+DN2miPlSlBAIaj@salvia>
- <Y+IrUPyJi/GE6Cbk@salvia>
- <Y+Iudd7MODhgjrgz@orbyte.nwl.cc>
- <Y+4LoOjaT1RU6I1r@orbyte.nwl.cc>
- <Y+4Tmv3H24XTiEhK@salvia>
- <Y+4cBvcq7tH2Iw2t@orbyte.nwl.cc>
- <ZEmCdMVboNu6dKiL@calendula>
- <ZEpVGpY3QzUwAMia@orbyte.nwl.cc>
- <ZEpWIxsipUoH489w@calendula>
- <ZEpdebCsg5JVYCU2@orbyte.nwl.cc>
+        Thu, 27 Apr 2023 18:21:22 -0400
+Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 552B430EE;
+        Thu, 27 Apr 2023 15:21:21 -0700 (PDT)
+Received: by mail-ej1-x62b.google.com with SMTP id a640c23a62f3a-94ef8b88a5bso1395946666b.2;
+        Thu, 27 Apr 2023 15:21:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1682634080; x=1685226080;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4uVd64pHIvKt06CCLGHyz+nbo3DgIHYzFJE9URnLnAg=;
+        b=c5MwjQFluhsREU9qGl+dog2sDld2YN766dtbsKwSaoeRtoa6a7fPlZPFEp8miIfKHx
+         M2JUfaBecoPXak/8MB3tdPXDKv0KqZ1odgOei7nrMuStLgrwsJHlNTDyI9tYoQWnwijF
+         UqWHzhSXWZaUbLFnOAgNdrMTBZgzCdmOaZ/Y5eVNnj6iqXZJmCf/YMOyHHWbjtxo8mY3
+         sUUa+6dzwoLYlnZDSE3WEa1E6DQdPhpDGc2ml9wOg2Q0u9Kcch1ibjTUHYHJ1zzAJBkc
+         Ier9VPqPsW8IyMhvQ3RVZZQT7JZLcPXQOE7u2yfhVyLXe3thfwL5psCpvIhU8Fd5Opiy
+         qUvg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682634080; x=1685226080;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=4uVd64pHIvKt06CCLGHyz+nbo3DgIHYzFJE9URnLnAg=;
+        b=LCySQ7abi6mawN9/npuapCorosNoD0UugnGYKNvOyun5MmhVrCVFy6wmFg2kDI1mir
+         m37C/RuX79hkjASs7inb/BI2fepgV3trMST17f2IrzfM1qPnHI/FHrbbJqdDtNRkCMwI
+         SDyFuGEeoTUKOXejgPsPWW2UhzpoVannWsMH1xIf7mXqVmsONG9K5e9SW1b0nxqyKfEY
+         45fU0nHd/ZZ/VsG444bRU1pFUeS3Cpx0Cq/vlbtHqBxYB6CX0MBl4EM0rF6Z1b/OwnnR
+         +Up6PF5051L0+eGhehM787LuNQFbV7jM0LO1XfFi7CyJhJacNWTpreJF9GcfVf9IqyD4
+         QZ+g==
+X-Gm-Message-State: AC+VfDzOQWXOMxAtkE5IxfSPcWVT6ZHEIgrrtVhfrKZAg3F0juYgjeAJ
+        CFzZ0mbvAx0jWOOCilX3J0cy9NMJiZffCeP/Toc=
+X-Google-Smtp-Source: ACHHUZ6S6a50qvy5Ay0nBkPHRGlzKBOgO15eD6QORf9RCklcZFd7cFpbvpdupmn3Jjle9kIG1PW3yJCTko3HvbHJvZw=
+X-Received: by 2002:a17:907:9281:b0:94e:c40a:cca9 with SMTP id
+ bw1-20020a170907928100b0094ec40acca9mr3474592ejc.35.1682634079591; Thu, 27
+ Apr 2023 15:21:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZEpdebCsg5JVYCU2@orbyte.nwl.cc>
+References: <20230421170300.24115-1-fw@strlen.de> <20230421170300.24115-2-fw@strlen.de>
+ <CAEf4Bzby3gwHmvz1cjcNHKFPA1LQdTq85TpCmOg=GB6=bQwjOQ@mail.gmail.com> <20230427091015.GD3155@breakpoint.cc>
+In-Reply-To: <20230427091015.GD3155@breakpoint.cc>
+From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Date:   Thu, 27 Apr 2023 15:21:07 -0700
+Message-ID: <CAEf4BzZrmUv27AJp0dDxBDMY_B8e55-wLs8DUKK69vCWsCG_pQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v5 1/7] bpf: add bpf_link support for
+ BPF_NETFILTER programs
+To:     Florian Westphal <fw@strlen.de>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, dxu@dxuuu.xyz, qde@naccy.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Apr 27, 2023 at 01:33:13PM +0200, Phil Sutter wrote:
-> On Thu, Apr 27, 2023 at 01:01:55PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Apr 27, 2023 at 12:57:30PM +0200, Phil Sutter wrote:
-> > > Hi Pablo,
-> > > 
-> > > On Wed, Apr 26, 2023 at 09:58:44PM +0200, Pablo Neira Ayuso wrote:
-> > > [...]
-> > > > My proposal:
-> > > 
-> > > Thanks for returning to this. Your approach requires to define a minimum
-> > > version from which on forward-compat is guaranteed. I was trying to
-> > > avoid this requirement though so things would work for "unknown user
-> > > space".
-> > 
-> > You also require a kernel that supports your approach.
-> 
-> Sure. But in the described use-case, anything but old user space (i.e.,
-> container content) is under control.
+On Thu, Apr 27, 2023 at 2:10=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
+te:
+>
+> Andrii Nakryiko <andrii.nakryiko@gmail.com> wrote:
+> > > @@ -1560,6 +1562,12 @@ union bpf_attr {
+> > >                                  */
+> > >                                 __u64           cookie;
+> > >                         } tracing;
+> > > +                       struct {
+> > > +                               __u32           pf;
+> > > +                               __u32           hooknum;
+> >
+> > catching up on stuff a bit...
+> >
+> > enum nf_inet_hooks {
+> >         NF_INET_PRE_ROUTING,
+> >         NF_INET_LOCAL_IN,
+> >         NF_INET_FORWARD,
+> >         NF_INET_LOCAL_OUT,
+> >         NF_INET_POST_ROUTING,
+> >         NF_INET_NUMHOOKS,
+> >         NF_INET_INGRESS =3D NF_INET_NUMHOOKS,
+> > };
+> >
+> > So it seems like this "hook number" is more like "hook type", is my
+> > understanding correct?
+>
+> What is 'hook type'?
 
-This is a "forward compatibility" mechanism, we can do nothing about
-the past, but prepare to handle this scenario better in the future.
+I meant that it's not some dynamically generated number that could
+change from the system to system, it's a fixed set of point in which
+this BPF program can be triggered. The distinction I was trying to
+make that it's actually different in nature compared to, say, ifindex,
+as it is fixed by the kernel.
 
-This problem has been always there, and we already discussed that it
-affects other existing utilities and interfaces in the kernel,
-including iptables legacy.
+>
+> > If so, wouldn't it be cleaner and more uniform
+> > with, say, cgroup network hooks to provide hook type as
+> > expected_attach_type? It would also allow to have a nicer interface in
+> > libbpf, by specifying that as part of SEC():
+> >
+> > SEC("netfilter/pre_routing"), SEC("netfilter/local_in"), etc...
+>
+> I don't understand how that would help.
+> Attachment needs a priority and a family (ipv4, arp, etc.).
+>
+> If we allow netdev type we'll also need an ifindex.
+> Daniel Xu work will need to pass extra arguments ("please enable ip
+> defrag").
 
-> > > Currently, the only offending extension is ebt_among since it doesn't
-> > > exist (and never did) in non-native form. If I implement among extension
-> > > parsing (even in non-functional form), my original approach would work.
-> > > This also means having a minimum version for full compat, but it affects
-> > > ebtables (actually, use of ebt_among) only.
-> > 
-> > Yes, but this is fully user data, kernel really does not need to do
-> > anything with this alternative representation, which is what I do not
-> > like from you proposal.
-> 
-> OK.
-> 
-> > I really think userdata is the place to deal with this.
-> 
-> Having to touch old user space is not a good solution for the given
-> use-case. If kernel modification is a no-go, I'd rather introduce a
-> "compat mode" in iptables-nft which causes rule creation in the most
-> compatible form. This might impact run-time performance but is much
-> simpler to implement and maintain.
+Ok, that's fine, if you think it doesn't make sense to pre-declare
+that a given BPF program is supposed to be run only in, say,
+PRE_ROUTING, then it's fine. We do declare this for other programs
+(e.g., cgroup_skb/egress vs cgroup_skb/ingress), so it felt like this
+might be a similar case.
 
-This introduces conditional bytecode generation, how will you enable
-this?
+>
+> > Also, it seems like you actually didn't wire NETFILTER link support in
+> > libbpf completely. See bpf_link_create under tools/lib/bpf/bpf.c, it
+> > has to handle this new type of link as well. Existing tests seem a bit
+> > bare-bones for SEC("netfilter"), would it be possible to add something
+> > that will demonstrate it a bit better and will be actually executed at
+> > runtime and validated?
+>
+> I can have a look.
+
+It probably makes sense to add bpf_program__attach_netfilter() API as
+well which will return `struct bpf_link *`. Right now libbpf support
+for NETFILTER is very incomplete.
