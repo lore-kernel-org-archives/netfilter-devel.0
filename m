@@ -2,89 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2386DC7EE33
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Apr 2023 09:10:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68061C77B61
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Apr 2023 10:57:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243363AbjD0JKh (ORCPT
+        id S243657AbjD0K5h (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Apr 2023 05:10:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37856 "EHLO
+        Thu, 27 Apr 2023 06:57:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243336AbjD0JKS (ORCPT
+        with ESMTP id S243047AbjD0K5g (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Apr 2023 05:10:18 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4DE1E50;
-        Thu, 27 Apr 2023 02:10:17 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1prxdn-0001Ra-5S; Thu, 27 Apr 2023 11:10:15 +0200
-Date:   Thu, 27 Apr 2023 11:10:15 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        dxu@dxuuu.xyz, qde@naccy.de
-Subject: Re: [PATCH bpf-next v5 1/7] bpf: add bpf_link support for
- BPF_NETFILTER programs
-Message-ID: <20230427091015.GD3155@breakpoint.cc>
-References: <20230421170300.24115-1-fw@strlen.de>
- <20230421170300.24115-2-fw@strlen.de>
- <CAEf4Bzby3gwHmvz1cjcNHKFPA1LQdTq85TpCmOg=GB6=bQwjOQ@mail.gmail.com>
+        Thu, 27 Apr 2023 06:57:36 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5359C4698
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Apr 2023 03:57:32 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1przJa-0003ZK-BL; Thu, 27 Apr 2023 12:57:30 +0200
+Date:   Thu, 27 Apr 2023 12:57:30 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
+ NFTA_RULE_ACTUAL_EXPR
+Message-ID: <ZEpVGpY3QzUwAMia@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <Y900iRzf2q8xnXyv@orbyte.nwl.cc>
+ <Y94oUYqArYqhkmOX@salvia>
+ <Y97HaXaEtIlFUQSJ@orbyte.nwl.cc>
+ <Y+DN2miPlSlBAIaj@salvia>
+ <Y+IrUPyJi/GE6Cbk@salvia>
+ <Y+Iudd7MODhgjrgz@orbyte.nwl.cc>
+ <Y+4LoOjaT1RU6I1r@orbyte.nwl.cc>
+ <Y+4Tmv3H24XTiEhK@salvia>
+ <Y+4cBvcq7tH2Iw2t@orbyte.nwl.cc>
+ <ZEmCdMVboNu6dKiL@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAEf4Bzby3gwHmvz1cjcNHKFPA1LQdTq85TpCmOg=GB6=bQwjOQ@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZEmCdMVboNu6dKiL@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Andrii Nakryiko <andrii.nakryiko@gmail.com> wrote:
-> > @@ -1560,6 +1562,12 @@ union bpf_attr {
-> >                                  */
-> >                                 __u64           cookie;
-> >                         } tracing;
-> > +                       struct {
-> > +                               __u32           pf;
-> > +                               __u32           hooknum;
-> 
-> catching up on stuff a bit...
-> 
-> enum nf_inet_hooks {
->         NF_INET_PRE_ROUTING,
->         NF_INET_LOCAL_IN,
->         NF_INET_FORWARD,
->         NF_INET_LOCAL_OUT,
->         NF_INET_POST_ROUTING,
->         NF_INET_NUMHOOKS,
->         NF_INET_INGRESS = NF_INET_NUMHOOKS,
-> };
-> 
-> So it seems like this "hook number" is more like "hook type", is my
-> understanding correct?
+Hi Pablo,
 
-What is 'hook type'?
+On Wed, Apr 26, 2023 at 09:58:44PM +0200, Pablo Neira Ayuso wrote:
+[...]
+> My proposal:
 
-> If so, wouldn't it be cleaner and more uniform
-> with, say, cgroup network hooks to provide hook type as
-> expected_attach_type? It would also allow to have a nicer interface in
-> libbpf, by specifying that as part of SEC():
-> 
-> SEC("netfilter/pre_routing"), SEC("netfilter/local_in"), etc...
+Thanks for returning to this. Your approach requires to define a minimum
+version from which on forward-compat is guaranteed. I was trying to
+avoid this requirement though so things would work for "unknown user
+space".
 
-I don't understand how that would help.
-Attachment needs a priority and a family (ipv4, arp, etc.).
+Currently, the only offending extension is ebt_among since it doesn't
+exist (and never did) in non-native form. If I implement among extension
+parsing (even in non-functional form), my original approach would work.
+This also means having a minimum version for full compat, but it affects
+ebtables (actually, use of ebt_among) only.
 
-If we allow netdev type we'll also need an ifindex.
-Daniel Xu work will need to pass extra arguments ("please enable ip
-defrag").
-
-> Also, it seems like you actually didn't wire NETFILTER link support in
-> libbpf completely. See bpf_link_create under tools/lib/bpf/bpf.c, it
-> has to handle this new type of link as well. Existing tests seem a bit
-> bare-bones for SEC("netfilter"), would it be possible to add something
-> that will demonstrate it a bit better and will be actually executed at
-> runtime and validated?
-
-I can have a look.
+Cheers, Phil
