@@ -2,113 +2,217 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79AA7C77B7E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Apr 2023 19:58:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF9EAC77B73
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Apr 2023 04:51:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231610AbjDZT6v (ORCPT
+        id S229601AbjD0EvR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Apr 2023 15:58:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41828 "EHLO
+        Thu, 27 Apr 2023 00:51:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231331AbjDZT6u (ORCPT
+        with ESMTP id S229455AbjD0EvQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Apr 2023 15:58:50 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E6D98D2
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Apr 2023 12:58:47 -0700 (PDT)
-Date:   Wed, 26 Apr 2023 21:58:44 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH v2] netfilter: nf_tables: Introduce
- NFTA_RULE_ACTUAL_EXPR
-Message-ID: <ZEmCdMVboNu6dKiL@calendula>
-References: <Y90o8eq3egHbtC3Z@salvia>
- <Y900iRzf2q8xnXyv@orbyte.nwl.cc>
- <Y94oUYqArYqhkmOX@salvia>
- <Y97HaXaEtIlFUQSJ@orbyte.nwl.cc>
- <Y+DN2miPlSlBAIaj@salvia>
- <Y+IrUPyJi/GE6Cbk@salvia>
- <Y+Iudd7MODhgjrgz@orbyte.nwl.cc>
- <Y+4LoOjaT1RU6I1r@orbyte.nwl.cc>
- <Y+4Tmv3H24XTiEhK@salvia>
- <Y+4cBvcq7tH2Iw2t@orbyte.nwl.cc>
+        Thu, 27 Apr 2023 00:51:16 -0400
+Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EE523A9A;
+        Wed, 26 Apr 2023 21:51:15 -0700 (PDT)
+Received: by mail-ed1-x534.google.com with SMTP id 4fb4d7f45d1cf-5066ce4f725so11644555a12.1;
+        Wed, 26 Apr 2023 21:51:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1682571073; x=1685163073;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Dv/T/W7pRAkc9VUSDCf9kjnSeM6SfBwY++UqlxaB4tE=;
+        b=TU6qBvsraGr/PDh1DyTkTLg+/Xigjm+y5cJeHoVYUX3EUXez5s0I9jXvel/gT5YU4w
+         eSXd/YJP53KfR7bFYNe9qFGr33zQddJAJpROkDrifvgTOBfnpL2RiDgFptcp8nm1S4i1
+         2Ka/4/CSgkrXbL7yasmi9MiHcV7SXr59aaPq9cL/4OObYn8dI7WqyFyTslNYsM/669Nn
+         1yHRpeNffQjFJ2sjBS/JLd3f1FchaOycy0SSivn5KUjcaadYgk5pXmBP7v/sOd0vpvXS
+         XxOgyauBomaJdnYOZL6bQyB1yTNzwIMK9ABFSnkruCLZUZBpNfB5KB6btGyWy3O6QuTi
+         JMpQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682571073; x=1685163073;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Dv/T/W7pRAkc9VUSDCf9kjnSeM6SfBwY++UqlxaB4tE=;
+        b=Fp6AMLgTxl+K84MDT28rMj03Qbl6GwcM1pruTwWevHyL/AUaG6mfQ+nEHXztCEpKss
+         i6J8GBE70c/a6Chpxn76xXur5EXBKSzNPFNk9tGc6H7eEfoCJhMgT/UdfZIbyvI9vr5d
+         JzdmpgnUSztAx8YJc5vPiv/zh/IuQ0TAXMGChXPTIviqhmfvxQt2xF5okvDmALvD1m/I
+         1s7ASLRQBpgMw7/InyxY0Lz4+jTuKrDaf6z1X+G3KW4Et5J9jea90vc1+S4rbgzYi91M
+         WVgsnCZ7iENQ4OcavHuR/pQbKg1lmMAwDOP3qLvvKnG8dt1zUiXCpEAD0FfSiuUAiVKY
+         5QRQ==
+X-Gm-Message-State: AC+VfDzFOjBJWmFPSM4SwgEPNO6mWtSfPsefQFWFXQ6w/RPiqm81DvHR
+        jnWeLH8SD3fLFa+UAgUkSoqApnFiNRtYo64HXpQ=
+X-Google-Smtp-Source: ACHHUZ7VomFwJpz3T51TO/fNw0h4O+/KuW4wIOZiQEghUGCmhk3QJTs1/yaTtfELL5yTcSgZuPaQGLHkiOUMf2QM838=
+X-Received: by 2002:a50:fe91:0:b0:504:af14:132d with SMTP id
+ d17-20020a50fe91000000b00504af14132dmr580571edt.13.1682571073362; Wed, 26 Apr
+ 2023 21:51:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <Y+4cBvcq7tH2Iw2t@orbyte.nwl.cc>
+References: <20230421170300.24115-1-fw@strlen.de> <20230421170300.24115-2-fw@strlen.de>
+In-Reply-To: <20230421170300.24115-2-fw@strlen.de>
+From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Date:   Wed, 26 Apr 2023 21:51:01 -0700
+Message-ID: <CAEf4Bzby3gwHmvz1cjcNHKFPA1LQdTq85TpCmOg=GB6=bQwjOQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v5 1/7] bpf: add bpf_link support for
+ BPF_NETFILTER programs
+To:     Florian Westphal <fw@strlen.de>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, dxu@dxuuu.xyz, qde@naccy.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+On Fri, Apr 21, 2023 at 10:07=E2=80=AFAM Florian Westphal <fw@strlen.de> wr=
+ote:
+>
+> Add bpf_link support skeleton.  To keep this reviewable, no bpf program
+> can be invoked yet, if a program is attached only a c-stub is called and
+> not the actual bpf program.
+>
+> Defaults to 'y' if both netfilter and bpf syscall are enabled in kconfig.
+>
+> Uapi example usage:
+>         union bpf_attr attr =3D { };
+>
+>         attr.link_create.prog_fd =3D progfd;
+>         attr.link_create.attach_type =3D 0; /* unused */
+>         attr.link_create.netfilter.pf =3D PF_INET;
+>         attr.link_create.netfilter.hooknum =3D NF_INET_LOCAL_IN;
+>         attr.link_create.netfilter.priority =3D -128;
+>
+>         err =3D bpf(BPF_LINK_CREATE, &attr, sizeof(attr));
+>
+> ... this would attach progfd to ipv4:input hook.
+>
+> Such hook gets removed automatically if the calling program exits.
+>
+> BPF_NETFILTER program invocation is added in followup change.
+>
+> NF_HOOK_OP_BPF enum will eventually be read from nfnetlink_hook, it
+> allows to tell userspace which program is attached at the given hook
+> when user runs 'nft hook list' command rather than just the priority
+> and not-very-helpful 'this hook runs a bpf prog but I can't tell which
+> one'.
+>
+> Will also be used to disallow registration of two bpf programs with
+> same priority in a followup patch.
+>
+> v4: arm32 cmpxchg only supports 32bit operand
+>     s/prio/priority/
+> v3: restrict prog attachment to ip/ip6 for now, lets lift restrictions if
+>     more use cases pop up (arptables, ebtables, netdev ingress/egress etc=
+).
+>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  no changes since last version
+>
+>  include/linux/netfilter.h           |   1 +
+>  include/net/netfilter/nf_bpf_link.h |  10 ++
+>  include/uapi/linux/bpf.h            |  14 +++
+>  kernel/bpf/syscall.c                |   6 ++
+>  net/netfilter/Kconfig               |   3 +
+>  net/netfilter/Makefile              |   1 +
+>  net/netfilter/nf_bpf_link.c         | 159 ++++++++++++++++++++++++++++
+>  7 files changed, 194 insertions(+)
+>  create mode 100644 include/net/netfilter/nf_bpf_link.h
+>  create mode 100644 net/netfilter/nf_bpf_link.c
+>
+> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> index c8e03bcaecaa..0762444e3767 100644
+> --- a/include/linux/netfilter.h
+> +++ b/include/linux/netfilter.h
+> @@ -80,6 +80,7 @@ typedef unsigned int nf_hookfn(void *priv,
+>  enum nf_hook_ops_type {
+>         NF_HOOK_OP_UNDEFINED,
+>         NF_HOOK_OP_NF_TABLES,
+> +       NF_HOOK_OP_BPF,
+>  };
+>
+>  struct nf_hook_ops {
+> diff --git a/include/net/netfilter/nf_bpf_link.h b/include/net/netfilter/=
+nf_bpf_link.h
+> new file mode 100644
+> index 000000000000..eeaeaf3d15de
+> --- /dev/null
+> +++ b/include/net/netfilter/nf_bpf_link.h
+> @@ -0,0 +1,10 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +
+> +#if IS_ENABLED(CONFIG_NETFILTER_BPF_LINK)
+> +int bpf_nf_link_attach(const union bpf_attr *attr, struct bpf_prog *prog=
+);
+> +#else
+> +static inline int bpf_nf_link_attach(const union bpf_attr *attr, struct =
+bpf_prog *prog)
+> +{
+> +       return -EOPNOTSUPP;
+> +}
+> +#endif
+> diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
+> index 4b20a7269bee..1bb11a6ee667 100644
+> --- a/include/uapi/linux/bpf.h
+> +++ b/include/uapi/linux/bpf.h
+> @@ -986,6 +986,7 @@ enum bpf_prog_type {
+>         BPF_PROG_TYPE_LSM,
+>         BPF_PROG_TYPE_SK_LOOKUP,
+>         BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
+> +       BPF_PROG_TYPE_NETFILTER,
+>  };
+>
+>  enum bpf_attach_type {
+> @@ -1050,6 +1051,7 @@ enum bpf_link_type {
+>         BPF_LINK_TYPE_PERF_EVENT =3D 7,
+>         BPF_LINK_TYPE_KPROBE_MULTI =3D 8,
+>         BPF_LINK_TYPE_STRUCT_OPS =3D 9,
+> +       BPF_LINK_TYPE_NETFILTER =3D 10,
+>
+>         MAX_BPF_LINK_TYPE,
+>  };
+> @@ -1560,6 +1562,12 @@ union bpf_attr {
+>                                  */
+>                                 __u64           cookie;
+>                         } tracing;
+> +                       struct {
+> +                               __u32           pf;
+> +                               __u32           hooknum;
 
-On Thu, Feb 16, 2023 at 01:05:26PM +0100, Phil Sutter wrote:
-> On Thu, Feb 16, 2023 at 12:29:30PM +0100, Pablo Neira Ayuso wrote:
-> > On Thu, Feb 16, 2023 at 11:55:28AM +0100, Phil Sutter wrote:
-> > > On Tue, Feb 07, 2023 at 11:56:53AM +0100, Phil Sutter wrote:
-> > > [...]
-> > > > Yes, please! I'll finish user space this week. :)
-> > > 
-> > > Famous last words. :(
-> > > 
-> > > I realized anonymous sets are indeed a problem, and I'm not sure how it
-> > > could be solved. I missed the fact that with lookup expressions one has
-> > > to run the init() callback to convert their per-batch set ID into the
-> > > kernel-defined set name. So the simple "copy and return nla" approach is
-> > > not sufficient.
-> > > 
-> > > Initializing all of the dump-only expressions though causes other
-> > > unwanted side-effects, like e.g. duplicated chain use-counters.
-> > > 
-> > > One could ban lookup from being used in dump-only expressions. Right
-> > > now, only ebtables' among match requires it.
-> > > 
-> > > To still allow for ebtables-nft to use the compat interface, among match
-> > > could be rewritten to use the legacy extension in-kernel. This doesn't
-> > > solve the original problem though, because old ebtables-nft versions
-> > > can't parse a match expression containing among extension.
-> > > 
-> > > Another option that might work is to parse the dump-only expressions in
-> > > nf_tables_newrule(), dump them into an skb, drop them again and extract
-> > > the skb's buffer for later.
-> > > 
-> > > Do you have a better idea perhaps? I'm a bit clueless how to proceed
-> > > further right now. :(
-> > 
-> > I'll drop the patch from nf-next and we take more time to think how to
-> > solve this.
-> 
-> ACK!
-> 
-> > This problem is interesting, but it is difficult!
-> 
-> Yes, it is. Maybe a feasible solution is to scan through the dump-only
-> expression nla and update any lookup ones manually. Pretty ugly though,
-> because it breaks the attribute encapsulation in expressions.
+catching up on stuff a bit...
 
-My proposal:
+enum nf_inet_hooks {
+        NF_INET_PRE_ROUTING,
+        NF_INET_LOCAL_IN,
+        NF_INET_FORWARD,
+        NF_INET_LOCAL_OUT,
+        NF_INET_POST_ROUTING,
+        NF_INET_NUMHOOKS,
+        NF_INET_INGRESS =3D NF_INET_NUMHOOKS,
+};
 
-- Add support for cookies, this is an identifier that the user can
-  specify when the object is created, this is allocated by the user.
-  We already discussed this in the past for different purpose. The idea
-  would be to add a _COOKIE attribute to the objects, which is dumped
-  via netlink.
-- Add the alternative compat representation to the userdata, use the
-  cookie identifier to refer to the anonymous set. By the time you
-  create the anonymous set, you can already
+So it seems like this "hook number" is more like "hook type", is my
+understanding correct? If so, wouldn't it be cleaner and more uniform
+with, say, cgroup network hooks to provide hook type as
+expected_attach_type? It would also allow to have a nicer interface in
+libbpf, by specifying that as part of SEC():
 
-With this approach, you add cookie support - which is something that
-has been already discussed in the past - and you can use it from the
-userdata to refer to the anonymous set.
+SEC("netfilter/pre_routing"), SEC("netfilter/local_in"), etc...
 
-If you fall back to the compat representation, then you look at the
-userdata and, if there is a cookie reference, you can fetch the object
-accordingly and put all pieces together to print the rule.
+Also, it seems like you actually didn't wire NETFILTER link support in
+libbpf completely. See bpf_link_create under tools/lib/bpf/bpf.c, it
+has to handle this new type of link as well. Existing tests seem a bit
+bare-bones for SEC("netfilter"), would it be possible to add something
+that will demonstrate it a bit better and will be actually executed at
+runtime and validated?
 
-You could possibly make this without kernel updates? Add an internal
-cookie field in userdata, that is included in the anonymous set. Then,
-from the rule userdata, you refer to the internal cookie that refers
-to the anonymous set. In such case, you can implement all what you
-need from userspace, without kernel updates, to deal with this "forward
-compatibility" requirement for the containers case.
+
+> +                               __s32           priority;
+> +                               __u32           flags;
+> +                       } netfilter;
+>                 };
+>         } link_create;
+>
+
+[...]
