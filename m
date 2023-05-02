@@ -2,36 +2,50 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBC59C77B73
-	for <netfilter-devel@archiver.kernel.org>; Tue,  2 May 2023 11:43:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A0A0C77B7E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  2 May 2023 14:05:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234046AbjEBLnb (ORCPT
+        id S234254AbjEBOFu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 2 May 2023 07:43:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51406 "EHLO
+        Tue, 2 May 2023 10:05:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234044AbjEBLn1 (ORCPT
+        with ESMTP id S233876AbjEBOFt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 May 2023 07:43:27 -0400
-Received: from mx0.infotecs.ru (mx0.infotecs.ru [91.244.183.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B3EF5260;
-        Tue,  2 May 2023 04:43:21 -0700 (PDT)
-Received: from mx0.infotecs-nt (localhost [127.0.0.1])
-        by mx0.infotecs.ru (Postfix) with ESMTP id 9519A10C5D49;
-        Tue,  2 May 2023 14:43:19 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mx0.infotecs.ru 9519A10C5D49
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=infotecs.ru; s=mx;
-        t=1683027800; bh=g9nMPuV2t04Nj1TYYz2m1R/YfuvNWdvcdKhGD9xYWOM=;
-        h=From:To:CC:Subject:Date:References:In-Reply-To:From;
-        b=ARKv7XTC3RgexeweLypba3qRfZAW4UnGviPuORFvYiM+G1rJ0HweWQ+3+5XFW7LiR
-         1W/ycBCa66deEj4h9XVThXDj0vGacJllb+azcC7tsDe/jukcQblVTgo5qXZoOmat7B
-         FU5HQ/RF2RVLq6XtTV+syaZijNec6BoqvbQSUBP4=
-Received: from msk-exch-01.infotecs-nt (msk-exch-01.infotecs-nt [10.0.7.191])
-        by mx0.infotecs-nt (Postfix) with ESMTP id 8E26830C6672;
-        Tue,  2 May 2023 14:43:19 +0300 (MSK)
-From:   Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
-To:     Simon Horman <simon.horman@corigine.com>
-CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Tue, 2 May 2023 10:05:49 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2132.outbound.protection.outlook.com [40.107.93.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2706DA;
+        Tue,  2 May 2023 07:05:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=eZaJ+a0+FfGbbN7b1KJyV0dLEPxMMvRXyh9Gy7u8Xk+0CULotCm3esQDCkIXdjiuIH18DXrCPL+LN6PkNn4p9cb0G7feXo+FujWX6aUuDmLy+xcNu0TPQPmPzBKil6FvzVS0pUWJqGgH9pEtKs+VLRz0LDpN3eMVvcPbalTCguXcuataaI1JKj/+iedhB3V6h6YzdEhTPMSuVUZQV3AD6hGsT/7dz/nrPxvzE2OQ3uWzLJbCvTCudlRvpeMn4VyEqnYbYK3nkiL77BdIzUgJvb664TnAlUW+bwv993S7qGSsm2cpqlF9wW6nym0yDabdWU6VqbxQJvL8TbMcwo1+nQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ak+pmnhtq/JbebBHubddAv+qm2h7eBsaEqL1mB3Flwc=;
+ b=OlHHe0EBezVR8uKrxFSL4qx0kI8sxd11mBA4BC5X8sa5YOSPCzkszoHmob+VOX8bVs6RFSx8mvwDBRa98IGDSzwCPjPEqLDEl6gkk2w5HBOYY3ai/Hg+a7uTZN1VHBZylOZuQras5XcF5LMXqNTfHIbMuarLNKZRYjX73+9Mhe6vyZdumKdjN8djQvSJ0dWHjDaDSI3qr3cyjs435fGE8RL/MRsxL4Ol8351Vjdvk6RhAhXyFTnYkmuZQEJ4d40JB4ROCP/6v68YE9xXf6T5Gy6TuVUifGZ/QnII2LmPsNkJpjOrV2eanyN7ar2tmOD3SM0AJpgQyFHvbft70rrtGQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
+ dkim=pass header.d=corigine.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ak+pmnhtq/JbebBHubddAv+qm2h7eBsaEqL1mB3Flwc=;
+ b=DQlb1fStF64trP1vex2Y4aevs695mVlEBQs7Nc993lRVBuAB5kvOLFaJRcws9eqOUFeM3ZPl5vbZ47aI1+bC6TLdDCu0ar5s7jcSdMeN1dB8bNPl4q1KjNrqXGyyhAI8XI2lCMK+zEvaNhxrTqYceyMS4iz5XNBOUvgs3XyqZgs=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=corigine.com;
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
+ by SN7PR13MB6301.namprd13.prod.outlook.com (2603:10b6:806:2e1::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6340.31; Tue, 2 May
+ 2023 14:05:43 +0000
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::f416:544d:18b7:bb34]) by PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::f416:544d:18b7:bb34%5]) with mapi id 15.20.6340.031; Tue, 2 May 2023
+ 14:05:42 +0000
+Date:   Tue, 2 May 2023 16:05:24 +0200
+From:   Simon Horman <simon.horman@corigine.com>
+To:     Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -46,104 +60,128 @@ CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
         "lvc-project@linuxtesting.org" <lvc-project@linuxtesting.org>
 Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix the
  ct_sip_parse_numerical_param() return value.
-Thread-Topic: [PATCH] netfilter: nf_conntrack_sip: fix the
- ct_sip_parse_numerical_param() return value.
-Thread-Index: AQHZfOtKNP7qiBEqO0uSGzSI9t28iA==
-Date:   Tue, 2 May 2023 11:43:19 +0000
-Message-ID: <d0a92686-acc4-4fd8-0505-60a8394d05d8@infotecs.ru>
+Message-ID: <ZFEYpNsp/hBEJAGU@corigine.com>
 References: <20230426150414.2768070-1-Ilia.Gavrilov@infotecs.ru>
  <ZEwdd7Xj4fQtCXoe@corigine.com>
-In-Reply-To: <ZEwdd7Xj4fQtCXoe@corigine.com>
-Accept-Language: ru-RU, en-US
-Content-Language: ru-RU
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [10.17.0.10]
-x-exclaimer-md-config: 208ac3cd-1ed4-4982-a353-bdefac89ac0a
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <EB2CC5FD9002C444885CAC781D174509@infotecs.ru>
-Content-Transfer-Encoding: base64
+ <d0a92686-acc4-4fd8-0505-60a8394d05d8@infotecs.ru>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d0a92686-acc4-4fd8-0505-60a8394d05d8@infotecs.ru>
+X-ClientProxiedBy: AM0PR03CA0009.eurprd03.prod.outlook.com
+ (2603:10a6:208:14::22) To PH0PR13MB4842.namprd13.prod.outlook.com
+ (2603:10b6:510:78::6)
 MIME-Version: 1.0
-X-KLMS-Rule-ID: 1
-X-KLMS-Message-Action: clean
-X-KLMS-AntiSpam-Lua-Profiles: 177105 [May 02 2023]
-X-KLMS-AntiSpam-Version: 5.9.59.0
-X-KLMS-AntiSpam-Envelope-From: Ilia.Gavrilov@infotecs.ru
-X-KLMS-AntiSpam-Rate: 0
-X-KLMS-AntiSpam-Status: not_detected
-X-KLMS-AntiSpam-Method: none
-X-KLMS-AntiSpam-Auth: dkim=none
-X-KLMS-AntiSpam-Info: LuaCore: 510 510 bc345371020d3ce827abc4c710f5f0ecf15eaf2e, {Tracking_msgid_8}, {Tracking_from_domain_doesnt_match_to}, infotecs.ru:7.1.1;127.0.0.199:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1
-X-MS-Exchange-Organization-SCL: -1
-X-KLMS-AntiSpam-Interceptor-Info: scan successful
-X-KLMS-AntiPhishing: Clean, bases: 2023/05/02 06:48:00
-X-KLMS-AntiVirus: Kaspersky Security for Linux Mail Server, version 8.0.3.30, bases: 2023/05/02 09:07:00 #21205017
-X-KLMS-AntiVirus-Status: Clean, skipped
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|SN7PR13MB6301:EE_
+X-MS-Office365-Filtering-Correlation-Id: ca6ffb8b-7884-4ce2-ad99-08db4b165128
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 5a0tOsHZyPYl2X+KrmeTEcwgW4lGOw6cXSMPzM8TokfGWTHurTzqlZwYwOirdX2DhS+w5dy45eSkIpnh+rJuwlYtNpmJ4OF1HcxUlFnowFsR/SBV1C2voN0Ne99jk+daRGurfzoYQieYIsHxDvX4W+r5PA2LqowDfbighrZdp5KZGCEEGgF8i3vQQF9D5E13YAw/pL0wozleTg/8JPIiMf380V099sJQ5AV4WMYjQzwsstfJT97QiG+daqVsG2lIHI+dW+0FlzfHtVQ/AiUi/urs77UqifVjC0YUFQVb3/vhNEYRh0SJmgQs8jou0tVP6UCLIR8MxNGlmB3g7mIGlhEIBRSP0kfsb3XIgvU/nUcg1WPZLP0IYu1AUk2yeFnb1sMCD1georkLClJwHZr5ymzqKq/oPtXEfoECuThpmSq7myXEZNPd5zDZtBHmSSFAI9fNvNEYKRdQmIiJPb5mMBXiKLxSROa+oR+oXloOh22nhhCRqywk2A0n5FitdnO3AoDukk7PoS+Raqp9AQx8VYASBqb7kdjBXlFjln4VhIE/LWxT780rUFxjLaAcCG9r
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(376002)(366004)(346002)(136003)(39830400003)(396003)(451199021)(4326008)(6916009)(66476007)(66556008)(66946007)(86362001)(6506007)(6512007)(41300700001)(36756003)(8676002)(8936002)(5660300002)(7416002)(6486002)(6666004)(316002)(2906002)(44832011)(478600001)(54906003)(53546011)(38100700002)(186003)(2616005)(83380400001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?R3WxVsYG63VE6Z3YPK/SUFlro6RiLEZRjf9mWcKaA4lC1XcfvMAQESKiAyC/?=
+ =?us-ascii?Q?SSkvzun1t/ooiEwezGpzUmrw9y6HyEJB7pV2aA5wWNsGnLbE7gQXfIN4royL?=
+ =?us-ascii?Q?vIx7w0kkbDU6rvtxcbZ2qNWKl8lNv5dBE9cT0ZEUJ62biZzSHSpwDxzVdsYb?=
+ =?us-ascii?Q?adFnQ1E0RwrCOSVaYrLNPHc69bu7cTnn18c4bWFdTFVgGrSEhJiERvjnS8uQ?=
+ =?us-ascii?Q?kTCRci0HWtUb66sy+7fvDPWoaKyXdbYKX5ruxE0gh6t/Usj0SsJZRUe76PpY?=
+ =?us-ascii?Q?UKS23Nn4AzlMGVlvU7NOQc7eTRa1x0OTjo+iMBKysahhiccxSp8kMMckeN2C?=
+ =?us-ascii?Q?cPIPeIdkEHiC18Z2yIFYoYo5siN4a2+qcpvzpllzdmUcHdFNp9+xYDUpDXAk?=
+ =?us-ascii?Q?qxJBjWG0jnpfBIxwL2brldEtt5y10QXWqcr6CnhD/Lxp3THMgdr3hn3NA/ge?=
+ =?us-ascii?Q?pO0kiu6QhALYCqhbnDS6djCldJaTR4ncaU52h996z0ozH700f+7MpRUGnNIt?=
+ =?us-ascii?Q?K8VIPgC1QZ4jWGi8kEy8k7Es3XIzxC/k4HruHaCwD7DRgMkgtxtqC8Mqnbkh?=
+ =?us-ascii?Q?wBE9CY/6tY9GcWsbAP6RsjHMDTbj5iOP+giLUCg7gR0soZB8Lrxht1Gj2/nT?=
+ =?us-ascii?Q?TL+S7cYvCiXIKnNBL28VKlw+uLoxwkP7nJ24VDuMTkLujB2bcTQD48krybCA?=
+ =?us-ascii?Q?R/x14EurI2EJBAH5ZDiCGVygIDDrf+OG6SdtLYlDtJ+6tuFeA2KUQFgj0qc/?=
+ =?us-ascii?Q?ETJ/fxVz2vfu818yoS2dGlP4d82KJTYSF+h/MTxmMsbOGNlgKnTH0qxllkI2?=
+ =?us-ascii?Q?Uz1GxQ5046lPt+3RqEeTUwEZk0FH4sywcwn73YX4Di6vOwKvXBqaY0f9EjMe?=
+ =?us-ascii?Q?r+sSCTbORusIgnhZS1N/78iBYcZFI9bAZKKYig4RfYdRNyLFEOvk9lNsIVw9?=
+ =?us-ascii?Q?ELxWkcHzXQAihQ1c7XO3H1pi3YpreRnU8fA0bhVfFOKIeY4a4VW53y58WHzp?=
+ =?us-ascii?Q?Hna6+Uv7BLm21rfEa+NSD5lp4rkvnUlt2WSRMSGo8XnIjiqSblrwhr8Zj8J4?=
+ =?us-ascii?Q?rqgpA1a2jHW0i1q0K/dHp5gQofBzy3ZCHCl1/Oujde+5JBMaLJ5e0enTBb+U?=
+ =?us-ascii?Q?28G77s19cu6Lc0oiAS2wKPZNZfdRwhq3yiW3baBl0OjRBXGjQKZnnc0Nvac/?=
+ =?us-ascii?Q?z/Gk49/b5xGCAX21o1MnkTAYb8mjgY6s4T+7pSzoOje4MvpyJ6B6teNGlCZt?=
+ =?us-ascii?Q?/9cjr8Ilh92ywg3dZ6kN6FDrQ20HFT2P9nGOY18r+Qoufn7fSTVoiS6xKn9E?=
+ =?us-ascii?Q?J7PbbgoctiQ1QVOz0XNHeHq7W4qQhEyiNwB/dIit/5zCQ5QB8vxlcmOZPeyi?=
+ =?us-ascii?Q?X8+oaKtUtq9K5E6P43f86uKjD4YJsMOxntq51PwBXTKM/eCDogMXddmqqIDI?=
+ =?us-ascii?Q?nOV1lGPV+ZHQj59QC+/etf8pC8zp/lxTbTm+XMTi/k05sFFiLcpBhtTdkYes?=
+ =?us-ascii?Q?QgzX7ygEYpNL0d2Alj6nhoTQHev40p9Ox962gKslnlMxE7+HXz7MHOOP/zCZ?=
+ =?us-ascii?Q?Bpa4PkkOlb5ruqU3aAA5XmNc83qDj+4O/W/U/Lq+bAp08NMEDjdWHh+wwQzC?=
+ =?us-ascii?Q?NkGWoSye9TSGZvi8unS3bfaHo5iyTgQTfwMHzY9CwXTVB2dd7gFhEUE+JwJX?=
+ =?us-ascii?Q?Ht494g=3D=3D?=
+X-OriginatorOrg: corigine.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ca6ffb8b-7884-4ce2-ad99-08db4b165128
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 May 2023 14:05:42.8191
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 4pwBn2k6qOrRCc0MUG9u6Akbl8MHRXGs93WUe/sBVtzqe136bIWznaGPIwVcWPbi0XXTgeZSFSYlWHOHBzNtB1us71ulndTPiw/VJubEDzs=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR13MB6301
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-T24gNC8yOC8yMyAyMjoyNCwgU2ltb24gSG9ybWFuIHdyb3RlOg0KPiBPbiBXZWQsIEFwciAyNiwg
-MjAyMyBhdCAwMzowNDozMVBNICswMDAwLCBHYXZyaWxvdiBJbGlhIHdyb3RlOg0KPj4gY3Rfc2lw
-X3BhcnNlX251bWVyaWNhbF9wYXJhbSgpIHJldHVybnMgb25seSAwIG9yIDEgbm93Lg0KPj4gQnV0
-IHByb2Nlc3NfcmVnaXN0ZXJfcmVxdWVzdCgpIGFuZCBwcm9jZXNzX3JlZ2lzdGVyX3Jlc3BvbnNl
-KCkgaW1wbHkNCj4+IGNoZWNraW5nIGZvciBhIG5lZ2F0aXZlIHZhbHVlIGlmIHBhcnNpbmcgb2Yg
-YSBudW1lcmljYWwgaGVhZGVyIHBhcmFtZXRlcg0KPj4gZmFpbGVkLiBMZXQncyBmaXggaXQuDQo+
-Pg0KPj4gRm91bmQgYnkgSW5mb1RlQ1Mgb24gYmVoYWxmIG9mIExpbnV4IFZlcmlmaWNhdGlvbiBD
-ZW50ZXINCj4+IChsaW51eHRlc3Rpbmcub3JnKSB3aXRoIFNWQUNFLg0KPj4NCj4+IEZpeGVzOiAw
-ZjMyYTQwZmM5MWEgKCJbTkVURklMVEVSXTogbmZfY29ubnRyYWNrX3NpcDogY3JlYXRlIHNpZ25h
-bGxpbmcgZXhwZWN0YXRpb25zIikNCj4+IFNpZ25lZC1vZmYtYnk6IElsaWEuR2F2cmlsb3YgPEls
-aWEuR2F2cmlsb3ZAaW5mb3RlY3MucnU+DQo+IA0KPiBIaSBHYXZyaWxvdiwNCj4gDQoNCkhpIFNp
-bW9uLCB0aGFuayB5b3UgZm9yIHlvdXIgYW5zd2VyLg0KDQo+IGFsdGhvdWdoIGl0IGlzIGEgc2xp
-Z2h0bHkgdW51c3VhbCBjb252ZW50aW9uIGZvciBrZXJuZWwgY29kZSwNCj4gSSBiZWxpZXZlIHRo
-ZSBpbnRlbnRpb24gaXMgdGhhdCB0aGlzIGZ1bmN0aW9uIHJldHVybnMgMCB3aGVuDQo+IGl0IGZh
-aWxzICh0byBwYXJzZSkgYW5kIDEgb24gc3VjY2Vzcy4gU28gSSB0aGluayB0aGF0IHBhcnQgaXMg
-ZmluZS4NCj4gDQo+IFdoYXQgc2VlbXMgYSBiaXQgYnJva2VuIGlzIHRoZSB3YXkgdGhhdCBjYWxs
-ZXJzIHVzZSB0aGUgcmV0dXJuIHZhbHVlLg0KPiANCj4gMS4gVGhlIGNhbGwgaW4gcHJvY2Vzc19y
-ZWdpc3Rlcl9yZXNwb25zZSgpIGxvb2tzIGxpa2UgdGhpczoNCj4gDQo+IAlyZXQgPSBjdF9zaXBf
-cGFyc2VfbnVtZXJpY2FsX3BhcmFtKC4uLikNCj4gCWlmIChyZXQgPCAwKSB7DQo+IAkJbmZfY3Rf
-aGVscGVyX2xvZyhza2IsIGN0LCAiY2Fubm90IHBhcnNlIGV4cGlyZXMiKTsNCj4gCQlyZXR1cm4g
-TkZfRFJPUDsNCj4gCX0NCj4gDQo+ICAgICAgQnV0IHJldCBjYW4gb25seSBiZSAwIG9yIDEsIHNv
-IHRoZSBlcnJvciBoYW5kbGluZyBpcyBuZXZlciBpbm9rZWQsDQo+ICAgICAgYW5kIGEgZmFpbHVy
-ZSB0byBwYXJzZSBpcyBpZ25vcmVkLiBJIGd1ZXNzIGZhaWx1cmUgZG9lc24ndCBvY2N1ciBpbg0K
-PiAgICAgIHByYWN0aWNlLg0KPiANCj4gICAgICBJIHN1c3BlY3QgdGhpcyBzaG91bGQgYmU6DQo+
-IA0KPiAJcmV0ID0gY3Rfc2lwX3BhcnNlX251bWVyaWNhbF9wYXJhbSguLi4pDQo+IAlpZiAoIXJl
-dCkgew0KPiAJCW5mX2N0X2hlbHBlcl9sb2coc2tiLCBjdCwgImNhbm5vdCBwYXJzZSBleHBpcmVz
-Iik7DQo+IAkJcmV0dXJuIE5GX0RST1A7DQo+IAl9DQo+IA0KDQpjdF9zaXBfcGFyc2VfbnVtZXJp
-Y2FsX3BhcmFtKCkgcmV0dXJucyAwIGluIHRvIGNhc2VzIDEpIHdoZW4gdGhlIA0KcGFyYW1ldGVy
-ICdleHBpcmVzPScgaXNuJ3QgZm91bmQgaW4gdGhlIGhlYWRlciBvciAyKSBpdCdzIGluY29ycmVj
-dGx5IHNldC4NCkluIHRoZSBmaXJzdCBjYXNlLCB0aGUgcmV0dXJuIHZhbHVlIHNob3VsZCBiZSBp
-Z25vcmVkLCBzaW5jZSB0aGlzIGlzIGEgDQpub3JtYWwgc2l0dWF0aW9uDQpJbiB0aGUgc2Vjb25k
-IGNhc2UsIGl0J3MgYmV0dGVyIHRvIHdyaXRlIHRvIHRoZSBsb2cgYW5kIHJldHVybiBORl9EUk9Q
-LCANCm9yIGlnbm9yZSBpdCB0b28sIHRoZW4gY2hlY2tpbmcgdGhlIHJldHVybiB2YWx1ZSBjYW4g
-YmUgcmVtb3ZlZCBhcyANCnVubmVjZXNzYXJ5Lg0KDQoNCj4gMi4gVGhlIGNhbGxwcm9jZXNzX3Jl
-Z2lzdGVyX3JlcXVlc3QoKSBsb29rcyBsaWtlIHRoaXM6DQo+IA0KPiAgICAgICAgICBpZiAoY3Rf
-c2lwX3BhcnNlX251bWVyaWNhbF9wYXJhbSguLi4pKSB7DQo+ICAgICAgICAgICAgICAgICAgbmZf
-Y3RfaGVscGVyX2xvZyhza2IsIGN0LCAiY2Fubm90IHBhcnNlIGV4cGlyZXMiKTsNCj4gICAgICAg
-ICAgICAgICAgICByZXR1cm4gTkZfRFJPUDsNCj4gICAgICAgICAgfQ0KPiANCj4gICAgIEJ1dCB0
-aGlzIHNlZW1zIHRvIHRyZWF0IHN1Y2Nlc3MgYXMgYW4gZXJyb3IgYW5kIHZpY2UgdmVyc2EuDQo+
-IA0KPiAgICAgICAgICBpZiAoIWN0X3NpcF9wYXJzZV9udW1lcmljYWxfcGFyYW0oLi4uKSkgew0K
-PiAgICAgICAgICAgICAgICAgIG5mX2N0X2hlbHBlcl9sb2coc2tiLCBjdCwgImNhbm5vdCBwYXJz
-ZSBleHBpcmVzIik7DQo+ICAgICAgICAgICAgICAgICAgcmV0dXJuIE5GX0RST1A7DQo+ICAgICAg
-ICAgIH0NCj4gDQo+ICAgIE9yLCBiZXR0ZXI6DQo+IA0KPiAgICAgICAgICByZXQgPSBjdF9zaXBf
-cGFyc2VfbnVtZXJpY2FsX3BhcmFtKC4uLik7DQo+IAlpZiAoIXJldCkgew0KPiAJCS4uLg0KPiAJ
-fQ0KPiANCg0KSGVyZSBpcyB0aGUgc2FtZSBhcyBpbiBwcm9jZXNzX3JlZ2lzdGVyX3Jlc3BvbnNl
-KCkNCg0KcmV0ID0gY3Rfc2lwX3BhcnNlX251bWVyaWNhbF9wYXJhbSguLi4pOw0KaWYgKHJldCA8
-IDApIHsNCiAgICAuLi4NCiAgICByZXR1cm4gTkZfRFJPUDsNCn0NCg0KTWF5YmUgaXQncyBiZXR0
-ZXIgdG8gcmVtb3ZlIHRoZSBjaGVjayBhbHRvZ2V0aGVyPw0KDQoNCg0KPiANCj4gMy4gVGhlIGlu
-dm9jYXRpb24gaW4gbmZfbmF0X3NpcCgpIGxvb2tzIGxpa2UgdGhpczoNCj4gDQo+IAlpZiAoY3Rf
-c2lwX3BhcnNlX251bWVyaWNhbF9wYXJhbSguLi4pID4gMCAmJg0KPiAJICAgIC4uLikNCj4gCSAg
-ICAuLi4NCj4gDQo+ICAgICBUaGlzIHNlZW1zIGNvcnJlY3QgdG8gbWUuDQoNCkkgYWdyZWUsIGV2
-ZXJ5dGhpbmcgc2VlbXMgY29ycmVjdCBoZXJlDQoNCj4gDQo+PiAtLS0NCj4+ICAgbmV0L25ldGZp
-bHRlci9uZl9jb25udHJhY2tfc2lwLmMgfCAyICstDQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCAxIGlu
-c2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9uZXQvbmV0Zmls
-dGVyL25mX2Nvbm50cmFja19zaXAuYyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX3NpcC5j
-DQo+PiBpbmRleCA3N2Y1ZTgyZDhlM2YuLmQwZWFjMjdmNmJhMCAxMDA2NDQNCj4+IC0tLSBhL25l
-dC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX3NpcC5jDQo+PiArKysgYi9uZXQvbmV0ZmlsdGVyL25m
-X2Nvbm50cmFja19zaXAuYw0KPj4gQEAgLTYxMSw3ICs2MTEsNyBAQCBpbnQgY3Rfc2lwX3BhcnNl
-X251bWVyaWNhbF9wYXJhbShjb25zdCBzdHJ1Y3QgbmZfY29ubiAqY3QsIGNvbnN0IGNoYXIgKmRw
-dHIsDQo+PiAgIAlzdGFydCArPSBzdHJsZW4obmFtZSk7DQo+PiAgIAkqdmFsID0gc2ltcGxlX3N0
-cnRvdWwoc3RhcnQsICZlbmQsIDApOw0KPj4gICAJaWYgKHN0YXJ0ID09IGVuZCkNCj4+IC0JCXJl
-dHVybiAwOw0KPj4gKwkJcmV0dXJuIC0xOw0KPj4gICAJaWYgKG1hdGNob2ZmICYmIG1hdGNobGVu
-KSB7DQo+PiAgIAkJKm1hdGNob2ZmID0gc3RhcnQgLSBkcHRyOw0KPj4gICAJCSptYXRjaGxlbiA9
-IGVuZCAtIHN0YXJ0Ow0KPj4gLS0gDQo+PiAyLjMwLjINCj4+DQoNCg==
+On Tue, May 02, 2023 at 11:43:19AM +0000, Gavrilov Ilia wrote:
+> On 4/28/23 22:24, Simon Horman wrote:
+> > On Wed, Apr 26, 2023 at 03:04:31PM +0000, Gavrilov Ilia wrote:
+> >> ct_sip_parse_numerical_param() returns only 0 or 1 now.
+> >> But process_register_request() and process_register_response() imply
+> >> checking for a negative value if parsing of a numerical header parameter
+> >> failed. Let's fix it.
+> >>
+> >> Found by InfoTeCS on behalf of Linux Verification Center
+> >> (linuxtesting.org) with SVACE.
+> >>
+> >> Fixes: 0f32a40fc91a ("[NETFILTER]: nf_conntrack_sip: create signalling expectations")
+> >> Signed-off-by: Ilia.Gavrilov <Ilia.Gavrilov@infotecs.ru>
+> > 
+> > Hi Gavrilov,
+> > 
+> 
+> Hi Simon, thank you for your answer.
+> 
+> > although it is a slightly unusual convention for kernel code,
+> > I believe the intention is that this function returns 0 when
+> > it fails (to parse) and 1 on success. So I think that part is fine.
+> > 
+> > What seems a bit broken is the way that callers use the return value.
+> > 
+> > 1. The call in process_register_response() looks like this:
+> > 
+> > 	ret = ct_sip_parse_numerical_param(...)
+> > 	if (ret < 0) {
+> > 		nf_ct_helper_log(skb, ct, "cannot parse expires");
+> > 		return NF_DROP;
+> > 	}
+> > 
+> >      But ret can only be 0 or 1, so the error handling is never inoked,
+> >      and a failure to parse is ignored. I guess failure doesn't occur in
+> >      practice.
+> > 
+> >      I suspect this should be:
+> > 
+> > 	ret = ct_sip_parse_numerical_param(...)
+> > 	if (!ret) {
+> > 		nf_ct_helper_log(skb, ct, "cannot parse expires");
+> > 		return NF_DROP;
+> > 	}
+> > 
+> 
+> ct_sip_parse_numerical_param() returns 0 in to cases 1) when the 
+> parameter 'expires=' isn't found in the header or 2) it's incorrectly set.
+> In the first case, the return value should be ignored, since this is a 
+> normal situation
+> In the second case, it's better to write to the log and return NF_DROP, 
+> or ignore it too, then checking the return value can be removed as 
+> unnecessary.
+
+Sorry, I think I misunderstood the intention of your patch earlier.
+
+Do I (now) understand correctly that you are proposing a tristate?
+
+a) return 1 if value is found; *val is set
+b) return 0 if value is not found; *val is unchanged
+c) return -1 on error; *val is undefined
