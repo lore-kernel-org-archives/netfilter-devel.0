@@ -2,150 +2,112 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51517C77B78
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8178AC77B75
 	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 12:56:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229953AbjECM4f (ORCPT
+        id S229959AbjECM4g (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 May 2023 08:56:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57032 "EHLO
+        Wed, 3 May 2023 08:56:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbjECM4f (ORCPT
+        with ESMTP id S229948AbjECM4f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 3 May 2023 08:56:35 -0400
-Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6433259CF
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:33 -0700 (PDT)
-Received: by mail-wm1-x32a.google.com with SMTP id 5b1f17b1804b1-3f4000ec6ecso4055675e9.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:33 -0700 (PDT)
+Received: from mail-wm1-x32c.google.com (mail-wm1-x32c.google.com [IPv6:2a00:1450:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 726AC5592
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:34 -0700 (PDT)
+Received: by mail-wm1-x32c.google.com with SMTP id 5b1f17b1804b1-3f173af665fso32874315e9.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683118591; x=1685710591;
+        d=broadcom.com; s=google; t=1683118592; x=1685710592;
         h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
          :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=zjwJ5qicvGG/y95JnsyIXEaVldZN1BFTSC+De5AvGK8=;
-        b=CZeBrHnV29ANwsFyIZoskEaY0g32D1KCxxJBrRrrGXdUf9NTvd46u++/tzX2tHvjGI
-         VanDO/hJ/14UIOARJ/sqxej32QoW6fqZs/filJjejp6SCWL5Sg2+rjrK05SogwRGToYa
-         Al5UZgRWaOncCcK9Tg98mlLYnxhy5QJNjzmMg=
+        bh=qIPweZyacKl9Ow62SZMFal8zTN9i58UlD4ks8f0xQ/A=;
+        b=G+0cewOeDEzxj5wB6eL6XAPf7gvjYJq9VsJAX17CTxxg2TRGlEzwiDuD8HdSPR6XCl
+         uCsfvcu0PECLk7uZYU1G1aDHMnllxoigUOi0f2KpaMLY0ea/PfsKmB51+nMyvhWcmZg4
+         yqyX8DeUraYD0qRwk72ZJfuIqlIoGwseCeUfM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683118591; x=1685710591;
+        d=1e100.net; s=20221208; t=1683118592; x=1685710592;
         h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
          :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=zjwJ5qicvGG/y95JnsyIXEaVldZN1BFTSC+De5AvGK8=;
-        b=G3iQuLNdEQ8ERE7LFEJB1SPJp6EeV4IHp1HfXUW/z853vGzljt9ZGHK4htvYude+f6
-         OO724BvaQtOI6j14SuOWLCKZKqTtKy+JhasmNxEi2gR8uhr2UbWuGzXt6fL7wodQuM2m
-         hOm0tRPeBwsfaFyLLDVBRPwYg2SH8ErPDZvxYts9REROlqETMzZrmGIBkn0ozzJncJ5i
-         Q2TBuaavFjXp3CZoKrpk4hClGsUthRbILmsLVmg4MHJ+4uWTNSViO86LwygaKErcdrJ0
-         MQKtORdyZqLHHr0hObcreIWQMpkUWzFlpXPxNGz3FCLZonjuW7RxihJi2TmqqcOMe7uN
-         IEaA==
-X-Gm-Message-State: AC+VfDzzNcQdHDM3YNEIC9YZj/xtZ+uZ3Zej7OC395juXTnjUb0zy7pu
-        keK2moFxitsmckmki/xJnZjUM9sMSlQA2F2C5h3/3fbD2Hz4rq/kEOrT5j0EA/Gk5W2e3qNvjHZ
-        AB0G7l6bWZDFSpc5Bz9wLJYdcvy8wj7NsA2YVhy2haWJwMLqt2LyHDVzO318PWz4b85Q/ZnEDkf
-        nNj81VWNcVUZczLwgLvvSofg==
-X-Google-Smtp-Source: ACHHUZ4Xt2/nurppLiH3PPtF6exOLN+hr8GnlVXwixC62p+MlZMZE2Avn+m3Xe9lSSameTeeH4vQJw==
-X-Received: by 2002:a7b:c8cb:0:b0:3f1:6ec5:bc6e with SMTP id f11-20020a7bc8cb000000b003f16ec5bc6emr16198220wml.3.1683118591556;
-        Wed, 03 May 2023 05:56:31 -0700 (PDT)
+        bh=qIPweZyacKl9Ow62SZMFal8zTN9i58UlD4ks8f0xQ/A=;
+        b=WFxWEPWl1jomZ3XWDlNA6tYVAatimOqblyJQat9d5eKh/dvaJJvO2ckFOTuU5p4szy
+         /x/BFdsqBJDpWebbnp8bIESpeXOmgb0Si7WuCAsBfiBUc4U+X0xTTlrYf25rEnblFEXV
+         hKrDyvpRt+ilOda126OK52oety/P4+Ui46E097LpA+gSP7xVHt4RO/aZS/+mkXYpmmQn
+         7RjOK4w9diYess9ijmLuA3Td9tCgvGIlzr/kr3VROMDUeuTK9oONKG9cgI3YxFre7/c9
+         yg5xFQBVxOQyaqA0VgOON6ohpmbv/cjiZiuyPOpxO+8nLL4vRrq38pcG7Y24T8EQuzWg
+         gBfA==
+X-Gm-Message-State: AC+VfDz3W3d0B8JOTmroW2t/sfgukHqUN1dQ43BQBOmwdWXmsbnuDo0z
+        DKrw9FJnL6H2HIfvdyuoRpP1HEcrcesmce/5JBKZasn9Oid315PCT8cSR++Tl9Kdn/gFQY7RQJ+
+        nziZ7JnfZ2xheiwJh0gKbjh8Om3vj7fmNthUWY2gMsv7msUFZZbbwtByjqNuNVVQrSANZ05Z/4e
+        Sv02jgpZwDnrdhtlNMjiVfUw==
+X-Google-Smtp-Source: ACHHUZ4BXS9V/NfNqTlhDdQyMXunXubIuI0dIWjAG8GWe4DNVkuAWg5+9dHOb/XI2iXxanlORpUJTQ==
+X-Received: by 2002:a05:600c:2198:b0:3ee:4ff0:83d6 with SMTP id e24-20020a05600c219800b003ee4ff083d6mr13785323wme.40.1683118592646;
+        Wed, 03 May 2023 05:56:32 -0700 (PDT)
 Received: from localhost.localdomain ([192.19.250.250])
-        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.30
+        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 May 2023 05:56:31 -0700 (PDT)
+        Wed, 03 May 2023 05:56:32 -0700 (PDT)
 From:   Boris Sukholitko <boris.sukholitko@broadcom.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ilya Lifshits <ilya.lifshits@broadcom.com>,
         Boris Sukholitko <boris.sukholitko@broadcom.com>
-Subject: [PATCH nf-next 13/19] netfilter: conntrack: register nft extension
-Date:   Wed,  3 May 2023 15:55:46 +0300
-Message-Id: <20230503125552.41113-14-boris.sukholitko@broadcom.com>
+Subject: [PATCH nf-next 14/19] netfilter: nft: add payload context into extension
+Date:   Wed,  3 May 2023 15:55:47 +0300
+Message-Id: <20230503125552.41113-15-boris.sukholitko@broadcom.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000c863bf05fac995ee"
+        boundary="000000000000d8601905fac9956f"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---000000000000c863bf05fac995ee
+--000000000000d8601905fac9956f
 Content-Transfer-Encoding: 8bit
 
-Add the new nftables extension in the core and netlink conntrack
-initialization.
+To apply the payload on both directions we need nft_payload_set struct
+along with the source data.
+
+There is also enum nft_ext_entry_type to signal the validity of the
+context.
 
 Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
 ---
- include/net/netfilter/nf_tables.h    | 12 ++++++++++++
- net/netfilter/nf_conntrack_core.c    |  2 ++
- net/netfilter/nf_conntrack_netlink.c |  2 ++
- 3 files changed, 16 insertions(+)
+ include/net/netfilter/nf_tables.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7d433f8db2e7..8f34571fe345 100644
+index 8f34571fe345..ffcbe25d6bd2 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -1737,6 +1737,18 @@ int nft_payload_mangle(const struct nft_payload_set *priv,
+@@ -1735,7 +1735,19 @@ int nft_payload_mangle(const struct nft_payload_set *priv,
+ 		       const u32 *src);
+ 
  #if IS_ENABLED(CONFIG_NFT_CONNTRACK_EXT)
++enum nft_ext_entry_type {
++	NFT_EXT_UNDEFINED
++	, NFT_EXT_PAYLOAD_SET
++};
++
++struct nf_conn_nft_ext_entry {
++	enum nft_ext_entry_type nfte_type;
++	struct nft_payload_set nfte_payload;
++	u32 nfte_data;
++};
++
  struct nf_conn_nft_ext {
++	struct nf_conn_nft_ext_entry nfte_entries[IP_CT_DIR_MAX];
  };
-+
-+static inline void nfct_nft_ext_add(struct nf_conn *ct)
-+{
-+	struct nf_conn_nft_ext *ext = nf_ct_ext_add(ct, NF_CT_EXT_NFT_EXT, GFP_ATOMIC);
-+
-+	if (ext)
-+		memset(ext, 0, sizeof(*ext));
-+}
-+#else
-+static inline void nfct_nft_ext_add(struct nf_conn *ct)
-+{
-+}
- #endif
  
- #endif /* _NET_NF_TABLES_H */
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index db1ea361f2da..1614ea3e58da 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -49,6 +49,7 @@
- #include <net/netfilter/nf_conntrack_synproxy.h>
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_helper.h>
-+#include <net/netfilter/nf_tables.h>
- #include <net/netns/hash.h>
- #include <net/ip.h>
- 
-@@ -1747,6 +1748,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	nf_ct_acct_ext_add(ct, GFP_ATOMIC);
- 	nf_ct_tstamp_ext_add(ct, GFP_ATOMIC);
- 	nf_ct_labels_ext_add(ct);
-+	nfct_nft_ext_add(ct);
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index fbc47e4b7bc3..4bc56a03d0a4 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -50,6 +50,7 @@
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_helper.h>
- #endif
-+#include <net/netfilter/nf_tables.h>
- 
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_conntrack.h>
-@@ -2307,6 +2308,7 @@ ctnetlink_create_conntrack(struct net *net,
- 	nf_ct_labels_ext_add(ct);
- 	nfct_seqadj_ext_add(ct);
- 	nfct_synproxy_ext_add(ct);
-+	nfct_nft_ext_add(ct);
- 
- 	if (cda[CTA_STATUS]) {
- 		err = ctnetlink_change_status(ct, cda);
+ static inline void nfct_nft_ext_add(struct nf_conn *ct)
 -- 
 2.32.0
 
 
---000000000000c863bf05fac995ee
+--000000000000d8601905fac9956f
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -216,14 +178,14 @@ zPffqO2QS6e4oXzmoYuX9sCNfol1TaQgCYgYoC4rexOBLLtYbwdKWi3/ttntZ2PHS1QRaDzrBSuw
 L39zqstTC0LC/YoSKC/cU9igMELugG/Twy9uVlg2XXTY1wUYSWMsYlpydsrVyG18UScp7FlGFbWX
 EWKS7pkxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
 LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwA
-ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEILry0IM1wqBLlBd7
-/YkPMe4qst+6WA9eONsFDk+r/jlGMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
-AQkFMQ8XDTIzMDUwMzEyNTYzMVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
+ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIPYh5Ht3mdxmI58C
+cNALv7cTLpLGxgYudz0U/Evx1611MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
+AQkFMQ8XDTIzMDUwMzEyNTYzMlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
 AWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEH
-MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQChf1TrHOjyR1CvjGzwNOCIWBTQXknhkjr7
-W1ePuAta0P+lb0jqydvuocE8j+Oypra4KxW04zHFA6RVtuwtEALmEf7+RdGERj0b/OGY277k9SPe
-kYCBfIwm23hP4aHqEmeoKNMSHmJ84AqcoccfRe0VxGd+dMlQg7QbYf0AZtOklKbNOnE3NCQczVBi
-VtFikwEASc8orzlDspGypr8BP5EZzwQEy2/masPMxKbspdDo2ukSmey4BZrOCdl+nzD5qDVidmho
-E/DgZYSN+c7vDoI4iDmgIKyK34wM/I6mXlB6dIHG/ff2dWxtMt1Ozg0TE7Oto4k7Ubq0LlP986kY
-QdS7
---000000000000c863bf05fac995ee--
+MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCJixa8fiuLcWR1HC65f8hn4KuAuQgnBAk1
+6/YuXZkwmc5sxVhCNaZtSAxkWxz7qcQW1l1ALec/0qdRN1iFNgBCrjEIUrtvrOe2oVMbLIxeWkhz
+uf1VyT7fgIxQ7ZHNgyNzF2jYWfPo82uzb5FeqzIvO5S4IaaRj9N8EsHdnL/pj36TPg2bSQW6n1LG
+3wZ+9WkBqvcqvAlzZ1aRGRJBDRgpbqe+la1fBTsheltBa9X9Za8q56Xj4KpTmzsvAx6Egnz+zuns
+f/8XRsbEJJkOee3v9xE/PWXmE9wHDAqHd/faX+a2XZH3seO1rhAhXN2tREYlszjkrrFc+NVjdNq+
+gCm1
+--000000000000d8601905fac9956f--
