@@ -2,109 +2,105 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46084C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 20:54:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C1D5C77B75
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 23:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229463AbjECUyR (ORCPT
+        id S229584AbjECXdm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 May 2023 16:54:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59654 "EHLO
+        Wed, 3 May 2023 19:33:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229449AbjECUyQ (ORCPT
+        with ESMTP id S229562AbjECXdl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2023 16:54:16 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6C7BF83D7
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 13:54:15 -0700 (PDT)
-Date:   Wed, 3 May 2023 22:54:11 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nftables 8/8] test: py: add tests for shifted nat
- port-ranges
-Message-ID: <ZFLJ886DVa1d53kc@calendula>
-References: <20230305101418.2233910-1-jeremy@azazel.net>
- <20230305101418.2233910-9-jeremy@azazel.net>
- <20230324225904.GB17250@breakpoint.cc>
- <ZCCtjm1rgpa5Z+Sr@salvia>
- <20230411122140.GA1279805@celephais.dreamlands>
- <ZDaQmlLBAnopcqdO@calendula>
- <20230425195143.GC5944@celephais.dreamlands>
+        Wed, 3 May 2023 19:33:41 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C44868A6C
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 16:33:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1683156819; x=1714692819;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ZhwOzWMOZxUWGCU3MSVEg7AJ325RqONEXeUlpoYvON8=;
+  b=RNWoIJemJTAkoh3tvNQBhcXpycE4VVtOHRqxlPJAa8IKie2h6zPNys83
+   aR2sWM0DEMzDSM4XkXfMBqJfg0KaJcGEfohdVrXXlawBhVHwTo+BtSBXv
+   gzjBqmc6PDu7KaXGY7ifsYuaNOn9Igy1z1TRoN4bXNJO6lwhXlYA44zTs
+   lzSIyGL6eQXTGRNKwy89tkWfQRRb6/r4qoCTZHXNVzgEqMhct8KI294I6
+   v8TutbfT2YszN7fUuopMZtdXe1ESZxqFPPT3tdVSfqR71GqfHppAiT+jh
+   oWjN+2ToXeSYr8k0fdWj9VDv/D1CbWnji9beQNqzequSUj8iU+tykcDqV
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10699"; a="414254004"
+X-IronPort-AV: E=Sophos;i="5.99,248,1677571200"; 
+   d="scan'208";a="414254004"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 May 2023 16:33:39 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10699"; a="729559448"
+X-IronPort-AV: E=Sophos;i="5.99,248,1677571200"; 
+   d="scan'208";a="729559448"
+Received: from lkp-server01.sh.intel.com (HELO e3434d64424d) ([10.239.97.150])
+  by orsmga001.jf.intel.com with ESMTP; 03 May 2023 16:33:38 -0700
+Received: from kbuild by e3434d64424d with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1puLyb-0002MN-1F;
+        Wed, 03 May 2023 23:33:37 +0000
+Date:   Thu, 4 May 2023 07:32:39 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Boris Sukholitko <boris.sukholitko@broadcom.com>,
+        netfilter-devel@vger.kernel.org
+Cc:     oe-kbuild-all@lists.linux.dev,
+        Ilya Lifshits <ilya.lifshits@broadcom.com>,
+        Boris Sukholitko <boris.sukholitko@broadcom.com>
+Subject: Re: [PATCH nf-next 15/19] netfilter: nft: add payload application
+Message-ID: <202305040734.75NgGlSH-lkp@intel.com>
+References: <20230503125552.41113-16-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230425195143.GC5944@celephais.dreamlands>
+In-Reply-To: <20230503125552.41113-16-boris.sukholitko@broadcom.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Apr 25, 2023 at 08:51:43PM +0100, Jeremy Sowden wrote:
-> On 2023-04-12, at 13:06:02 +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Apr 11, 2023 at 01:21:40PM +0100, Jeremy Sowden wrote:
-> > > On 2023-03-26, at 22:39:42 +0200, Pablo Neira Ayuso wrote:
-> > > > Jeremy, may I suggest you pick up on the bitwise _SREG2 support?
-> > > > I will post a v4 with small updates for ("mark statement support
-> > > > for non-constant expression") tomorrow. Probably you don't need
-> > > > the new AND and OR operations for this? Only the a new _SREG2 to
-> > > > specify that input comes from non-constant?
-> > > 
-> > > Just to clarify, do you want just the `_SREG2` infrastructure from
-> > > the last patch series but without the new bitwise ops?  That is to
-> > > say it would be possible to send two operands to the kernel in
-> > > registers, but no use would be made of it (yet).  Or are you
-> > > proposing to update the existing mask-and-xor ops to send right hand
-> > > operands via registers?
-> > 
-> > I mean, would it be possible to add a NFT_BITWISE_BOOL variant that
-> > takes _SREG2 via select_ops?
-> 
-> In an earlier version, instead of adding new boolean ops, I added
-> support for passing the mask and xor arguments in registers:
-> 
->   https://lore.kernel.org/netfilter-devel/20200224124931.512416-1-jeremy@azazel.net/
-> 
-> Doing the same thing with one extra register is straightforward for AND
-> and XOR:
-> 
->   AND(x, y) = (x & y) ^ 0
->   XOR(x, y) = (x & 1) ^ y
-> 
-> since we can pass y in _SREG2 and 0 in _XOR for AND, and 1 in _MASK and
-> y in _SREG2 for XOR.  For OR:
-> 
->   OR(x, y) = (x & ~y) ^ y
-> 
-> it's a bit more complicated.  Instead of getting both the mask and xor
-> arguments from user space, we need to do something like passing y in
-> _SREG2 alone, and then constructing the bitwise negation in the kernel.
->
-> Obviously, this means that the kernel is no longer completely agnostic
-> about the sorts of mask-and-xor expressions user space may send.
->
-> Since that is the case, we could go further and just perform the
-> original ope- rations.  Thus if we get an boolean op with an _SREG2
-> argument:
-> 
->   * if there is an _XOR of 0, compute:
-> 
->     _SREG & _SREG2
-> 
->   * if there is a _MASK of 1, compute:
-> 
->     _SREG ^ _SREG2
-> 
->   * if there are no _MASK or _XOR arguments, compute:
-> 
->     _SREG | _SREG2
+Hi Boris,
 
-OK, if my understanding is correct, these are the two options:
+kernel test robot noticed the following build errors:
 
-1) Infer from arguments the type of operation.
-2) Have explicit NFT_BITWISE_{AND,OR,XOR} operations.
+[auto build test ERROR on shuah-kselftest/next]
+[also build test ERROR on shuah-kselftest/fixes linus/master v6.3 next-20230428]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-If so, I think it is better to stick to your original patch, where
-explicit bitwise operations NFT_BITWISE_{_AND,_OR,_XOR} are added
-(which is what you proposed last time IIRC).
+url:    https://github.com/intel-lab-lkp/linux/commits/Boris-Sukholitko/selftest-netfilter-use-proc-for-pid-checking/20230503-205838
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/shuah/linux-kselftest.git next
+patch link:    https://lore.kernel.org/r/20230503125552.41113-16-boris.sukholitko%40broadcom.com
+patch subject: [PATCH nf-next 15/19] netfilter: nft: add payload application
+config: arm-allmodconfig (https://download.01.org/0day-ci/archive/20230504/202305040734.75NgGlSH-lkp@intel.com/config)
+compiler: arm-linux-gnueabi-gcc (GCC) 12.1.0
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # https://github.com/intel-lab-lkp/linux/commit/2dbe43b4daeda03360373d0a4f8ed72efee89a6a
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Boris-Sukholitko/selftest-netfilter-use-proc-for-pid-checking/20230503-205838
+        git checkout 2dbe43b4daeda03360373d0a4f8ed72efee89a6a
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm olddefconfig
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm SHELL=/bin/bash
 
-Thanks for explaining.
+If you fix the issue, kindly add following tag where applicable
+| Reported-by: kernel test robot <lkp@intel.com>
+| Link: https://lore.kernel.org/oe-kbuild-all/202305040734.75NgGlSH-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   arm-linux-gnueabi-ld: net/netfilter/nft_conntrack_ext.o: in function `nf_flow_offload_apply_payload':
+   nft_conntrack_ext.c:(.text+0xa0): undefined reference to `__nf_ct_ext_find'
+>> arm-linux-gnueabi-ld: nft_conntrack_ext.c:(.text+0x110): undefined reference to `nft_payload_mangle'
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests
