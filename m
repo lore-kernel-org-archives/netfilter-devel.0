@@ -2,66 +2,52 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE16CC77B7F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 18:53:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 712CFC77B7F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 18:54:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229455AbjECSxE (ORCPT
+        id S229712AbjECSyd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 May 2023 14:53:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56190 "EHLO
+        Wed, 3 May 2023 14:54:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229562AbjECSxC (ORCPT
+        with ESMTP id S229688AbjECSya (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2023 14:53:02 -0400
+        Wed, 3 May 2023 14:54:30 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86B783C16
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 11:53:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 808753C16
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 11:54:19 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1puHb2-0000cD-3z; Wed, 03 May 2023 20:53:00 +0200
-Date:   Wed, 3 May 2023 20:53:00 +0200
+        id 1puHcI-0000dE-23; Wed, 03 May 2023 20:54:18 +0200
+Date:   Wed, 3 May 2023 20:54:18 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     Boris Sukholitko <boris.sukholitko@broadcom.com>
 Cc:     netfilter-devel@vger.kernel.org,
         Ilya Lifshits <ilya.lifshits@broadcom.com>
-Subject: Re: [PATCH nf-next 02/19] selftest: netfilter: no need for ps -x
- option
-Message-ID: <20230503185300.GD28036@breakpoint.cc>
+Subject: Re: [PATCH nf-next 04/19] selftest: netfilter: monitor result file
+ sizes
+Message-ID: <20230503185418.GE28036@breakpoint.cc>
 References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
- <20230503125552.41113-3-boris.sukholitko@broadcom.com>
+ <20230503125552.41113-5-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230503125552.41113-3-boris.sukholitko@broadcom.com>
+In-Reply-To: <20230503125552.41113-5-boris.sukholitko@broadcom.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
-> Some ps commands (e.g. busybox derived) have no -x option. For the
-> purposes of hash calculation of the list of processes this option is
-> inessential.
+> When running nft_flowtable.sh in VM on a busy server we've found that
+> the time of the netcat file transfers vary wildly.
 > 
-> Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
-> ---
->  tools/testing/selftests/netfilter/nft_flowtable.sh | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Therefore replace hardcoded 3 second sleep with the loop checking for
+> a change in the file sizes. Once no change in detected we test the results.
 > 
-> diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-> index 4d8bc51b7a7b..3cf20e9bd3a6 100755
-> --- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-> +++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-> @@ -489,8 +489,8 @@ ip -net $nsr1 addr add 10.0.1.1/24 dev veth0
->  ip -net $nsr1 addr add dead:1::1/64 dev veth0
->  ip -net $nsr1 link set up dev veth0
->  
-> -KEY_SHA="0x"$(ps -xaf | sha1sum | cut -d " " -f 1)
-> -KEY_AES="0x"$(ps -xaf | md5sum | cut -d " " -f 1)
-> +KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
+> Nice side effect is that we shave 1 second sleep in the fast case
+> (hard-coded 3 second sleep vs two 1 second sleeps).
 
-Could be
+Much better than the old 'sleep', thanks.
 
-> +KEY_SHA="0x"$(ps xaf | sha1sum | cut -d " " -f 1)
-
-instead.
+Acked-by: Florian Westphal <fw@strlen.de>
