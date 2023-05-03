@@ -2,129 +2,130 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B90C77B78
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DC85C7EE2A
 	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 12:56:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229890AbjECM41 (ORCPT
+        id S229873AbjECM41 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 3 May 2023 08:56:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56846 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229873AbjECM4Z (ORCPT
+        with ESMTP id S229792AbjECM40 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2023 08:56:25 -0400
-Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 322FE40C4
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:24 -0700 (PDT)
-Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-3f19b9d5358so51489545e9.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:24 -0700 (PDT)
+        Wed, 3 May 2023 08:56:26 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5689F5262
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:25 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3f315712406so23292855e9.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683118582; x=1685710582;
+        d=broadcom.com; s=google; t=1683118583; x=1685710583;
         h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
          :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=CLHcgbAFp2NBk94+B4M4R2LeKyTeJcHEdPtsETDQrmo=;
-        b=V8AO7PsE42xC/nECav23iMkgaHqin2HFSpt+6t96/KuteLJyBk1YYrJwP8VsVU+Zok
-         VpDJBDFn50mWS4D1S2vULtHeUpL8NNAaibuHcrrZwAF/+3HIZY/Wbs6c3XYdr3lZZ16C
-         R5NXLHxrAiDQWkgIXMUzQQQQxzil9ybDXWA3g=
+        bh=rzjoUJhi+nnA7NqLX07yjrMCST2tejGie4BUAIUiDk0=;
+        b=LaAGoJUASGcfelzKkwlxd4FAztNyOkAEDQGCt/PyTPGDAB+st1JyGGEyZzrzwyjvGl
+         i20VxPMpJkkzzGZnmvPXg+tN8SYuI0va+ZOUTN29FQd5kKjzTtqm/vM1JAVGeLtCaQcB
+         SXGWSg2UkFc8YQTdqRnF83RvAdtIU4cYHrXHM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683118582; x=1685710582;
+        d=1e100.net; s=20221208; t=1683118583; x=1685710583;
         h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
          :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=CLHcgbAFp2NBk94+B4M4R2LeKyTeJcHEdPtsETDQrmo=;
-        b=XK3LYYYVnxaenDKOaZ5vNofG0NCpaCPPLxbPTjblD6C8lv++943Avc7eif90DRvtJ/
-         4JV/KjSsYOayAt53zLUq1AZF1Yvr7ObGMZJSGSvSC4POeJHRkVrDeJQ1GD+TKifLRCbv
-         ibdAe32qvsl5Z+mZIzdVboeuXyAy07uOeVcX0W9bcnxv2ScFHjMAe2Jy8FkJ5dLsOO+t
-         XURXfyxjTnocNloGYBIrALtmO+X8UgisdrQmJLkHykljH2fH5P1saA5ImW7QRh/Iqdwu
-         FFN0kajHgku6GEuUmV05aWkV1WA8NSqAW3J70q2fK3snnTCjDXRwXDiAKqNUi+03hmTa
-         IpSQ==
-X-Gm-Message-State: AC+VfDzkuOkF9qmd3yjhZv2698+rJru/boOpC+fkzEmqSsj3K9R8dmbZ
-        VugYKOxfGdH48bC83YN1uMmbYy9WuVK2DRmCWquUqq/ZopQ17O6ErNGLRXx+pUp+7/o4U0fVpNw
-        DbWmn43CMSrYT3rboAzLGBzKcllZVD66ZH6X1vz+7kASv8hx6sbrEvS+FJ9oqgqMHy72t4l4pij
-        mt6FPIgnGudL5/Bu/gutbfWw==
-X-Google-Smtp-Source: ACHHUZ52wUt6wZFClr3Vq27GTDscxIw22kW3Mo1r9PtRmdH/VmwJWfLKSctNQg6FzqTXUEdMqBuY0A==
-X-Received: by 2002:a7b:c847:0:b0:3eb:37ce:4c3d with SMTP id c7-20020a7bc847000000b003eb37ce4c3dmr14836615wml.38.1683118582193;
-        Wed, 03 May 2023 05:56:22 -0700 (PDT)
+        bh=rzjoUJhi+nnA7NqLX07yjrMCST2tejGie4BUAIUiDk0=;
+        b=Psn5YEoHG8JKRfZZOoXem0xQShX+AdMKoDn2OsmIyefxpxlnbMzG+C2X7g4RufXm58
+         kmfVSYiJBaroZoGYAYwFGno/kqzPmQGMSROASi3eiFJZ1SlXonH6NQV+3dgjsNLQAaou
+         teC+tiTCiqewwETGTFOA4YkSWYs1PU+8686gyithwSmupfksBEIZB4Id9b5ZbJvISYXC
+         G5PdfaDzFG1V/AgfK6F9VXaCMjXThUC3lkkpuBixRkvBp4gyT3+BYyRbvbBw3Yr/a3c4
+         7H708yF5/jmZ4Pxj7y0salzMWkzfcZG7UsXcF67JcCwE296YASGeN9w+B+giS2juDblz
+         t0rg==
+X-Gm-Message-State: AC+VfDyYG6CW7gthZlZOvs1At/mM72jcTP9QVeshHILUwymcUvkJ0yp2
+        i93Ir6RIP3XwGCF/FcFpY6VoITqKP1i58hMkDsWpp2gE6TMyyf3XusIZmO8eY0ymJBvS532tGPB
+        pwlhscaCWenna2JKiYcxYtZu5bb1lNiRxB8/WxQIHTKD7PdnN5zXSS4j7j3cE765+vjdzypzoTn
+        4bur+Xh0IGqQEQ3mGpX1AL7Q==
+X-Google-Smtp-Source: ACHHUZ4pPrTWYi8w5dQmfIub32aM4q+vzpW5F93PLWu8Ch6uCbQvMzRUbYPBQeGTXkXVHEM0ib+Vmg==
+X-Received: by 2002:a05:600c:3112:b0:3f1:939e:2e3b with SMTP id g18-20020a05600c311200b003f1939e2e3bmr1456590wmo.19.1683118583429;
+        Wed, 03 May 2023 05:56:23 -0700 (PDT)
 Received: from localhost.localdomain ([192.19.250.250])
-        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.21
+        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 May 2023 05:56:21 -0700 (PDT)
+        Wed, 03 May 2023 05:56:23 -0700 (PDT)
 From:   Boris Sukholitko <boris.sukholitko@broadcom.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ilya Lifshits <ilya.lifshits@broadcom.com>,
         Boris Sukholitko <boris.sukholitko@broadcom.com>
-Subject: [PATCH nf-next 05/19] netfilter: nft_payload: refactor mangle operation
-Date:   Wed,  3 May 2023 15:55:38 +0300
-Message-Id: <20230503125552.41113-6-boris.sukholitko@broadcom.com>
+Subject: [PATCH nf-next 06/19] netfilter: nft_payload: publish nft_payload_set
+Date:   Wed,  3 May 2023 15:55:39 +0300
+Message-Id: <20230503125552.41113-7-boris.sukholitko@broadcom.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000003bc56f05fac9955a"
+        boundary="0000000000004d1da305fac9955a"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---0000000000003bc56f05fac9955a
+--0000000000004d1da305fac9955a
 Content-Transfer-Encoding: 8bit
 
-Make nft_payload_mangle helper function applying the payload changes.
-It does not depend on expr context.
+Move struct nft_payload_set into nf_tables.h.
 
-Change nft_payload_set_eval to use nft_payload_mangle helper.
+In conjunction with nft_payload_mangle function we can apply the
+payload changes independent of nft_expr context.
 
 Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
 ---
- net/netfilter/nft_payload.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ include/net/netfilter/nf_tables.h | 10 ++++++++++
+ net/netfilter/nft_payload.c       | 10 ----------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 1b8e305bb54a..b027200caf5b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -863,6 +863,16 @@ static inline void nft_set_gc_batch_add(struct nft_set_gc_batch *gcb,
+ 	gcb->elems[gcb->head.cnt++] = elem;
+ }
+ 
++struct nft_payload_set {
++	enum nft_payload_bases	base:8;
++	u8			offset;
++	u8			len;
++	u8			sreg;
++	u8			csum_type;
++	u8			csum_offset;
++	u8			csum_flags;
++};
++
+ struct nft_expr_ops;
+ /**
+  *	struct nft_expr_type - nf_tables expression type
 diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 3a3c7746e88f..2a41e7e0b3b7 100644
+index 2a41e7e0b3b7..ed4a65ac68d5 100644
 --- a/net/netfilter/nft_payload.c
 +++ b/net/netfilter/nft_payload.c
-@@ -798,13 +798,11 @@ struct nft_payload_set {
- 	u8			csum_flags;
- };
+@@ -788,16 +788,6 @@ static int nft_payload_csum_inet(struct sk_buff *skb, const u32 *src,
+ 	return 0;
+ }
  
--static void nft_payload_set_eval(const struct nft_expr *expr,
--				 struct nft_regs *regs,
--				 const struct nft_pktinfo *pkt)
-+static int nft_payload_mangle(const struct nft_payload_set *priv,
-+			      const struct nft_pktinfo *pkt,
-+			      const u32 *src)
- {
--	const struct nft_payload_set *priv = nft_expr_priv(expr);
- 	struct sk_buff *skb = pkt->skb;
--	const u32 *src = &regs->data[priv->sreg];
- 	int offset, csum_offset;
- 	__wsum fsum, tsum;
- 
-@@ -862,6 +860,20 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
- 		    nft_payload_csum_sctp(skb, nft_thoff(pkt)))
- 			goto err;
- 	}
-+	return 0;
-+err:
-+	return -1;
-+}
-+
-+static void nft_payload_set_eval(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_payload_set *priv = nft_expr_priv(expr);
-+	const u32 *src = &regs->data[priv->sreg];
-+
-+	if (nft_payload_mangle(priv, pkt, src))
-+		goto err;
- 
- 	return;
- err:
+-struct nft_payload_set {
+-	enum nft_payload_bases	base:8;
+-	u8			offset;
+-	u8			len;
+-	u8			sreg;
+-	u8			csum_type;
+-	u8			csum_offset;
+-	u8			csum_flags;
+-};
+-
+ static int nft_payload_mangle(const struct nft_payload_set *priv,
+ 			      const struct nft_pktinfo *pkt,
+ 			      const u32 *src)
 -- 
 2.32.0
 
 
---0000000000003bc56f05fac9955a
+--0000000000004d1da305fac9955a
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -195,14 +196,14 @@ zPffqO2QS6e4oXzmoYuX9sCNfol1TaQgCYgYoC4rexOBLLtYbwdKWi3/ttntZ2PHS1QRaDzrBSuw
 L39zqstTC0LC/YoSKC/cU9igMELugG/Twy9uVlg2XXTY1wUYSWMsYlpydsrVyG18UScp7FlGFbWX
 EWKS7pkxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
 LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwA
-ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIJTT7JkP4oXcHPZ8
-OZavtZ7xRAuiHdYPVAs05U0crBdfMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
-AQkFMQ8XDTIzMDUwMzEyNTYyMlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
+ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIFa3Y6FaByHWXK63
+3yG81OFHPl/TKpBvCiIZZ7KWvMMwMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
+AQkFMQ8XDTIzMDUwMzEyNTYyM1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
 AWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEH
-MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQDEWanaRZqHnUHqhTBs+kVgWdffdwaFUviR
-pqSXuBTVOg5/gDef9qxqd+Sj/3MZ/InZ5zkKMMdikKunlOf6luQYLI4EjeXCvlYRo4HcPOLpwChb
-Hopb0wXr+ovS4N45F9mMy2PzZeQpDMgYIlzGIigg1KNxCVMsgAlZUbZMcVO0U4+tfL9KWX5WWjXH
-zsa0d7MDVXI193up3R3CHj814UbygH8gNCgc9BH8e9WdE0iQ9Mhe7+6TMMWT3KBwp6S02dtBuWF7
-KV2EEd8OiA/y5ihXeGTzX8ivTKKTUqwMxbtgrCAXF5QuNa1EiHSQy7NiShHvQxnBGFFelu3JKGUV
-DMCI
---0000000000003bc56f05fac9955a--
+MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQDFE112RkSWoy9+87yQjWv+ZnN3Niq9wCLv
+CbMhLBoIF3bQaY7dVT3pfCAX970vOspAVZWy0+9ui+7euMeNU6oiOTLyQ9SCjmhKG1twJhaMEuO8
+PWTTsXmgxmGi+81Lf8Z2AKXx5he8K1T+eHB7yUBpZ6mQ5X3n8TvVsr2yuDxuWF3t7I7LdIIBsbhm
+AWih/CQJzKezxPPB6cnzEeZfXs2Db8EectMb+3kpz1/4zoXlCQ4fS9ITgfaFyEf23OdbdrMGwmt3
+nO+/ED5mHZobyyHOu88N9JQlNiTHq3eylerUEbo3NAHOIoyQld/ODcz2OSxq0jacB/cNIh7anij5
+bHzo
+--0000000000004d1da305fac9955a--
