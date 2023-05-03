@@ -2,135 +2,300 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84EFCC7EE29
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 12:56:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14C61C77B78
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 12:57:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229978AbjECM4m (ORCPT
+        id S229793AbjECM5O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 May 2023 08:56:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57170 "EHLO
+        Wed, 3 May 2023 08:57:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229983AbjECM4l (ORCPT
+        with ESMTP id S229675AbjECM5O (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2023 08:56:41 -0400
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C95A5BB9
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:40 -0700 (PDT)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-3f315712406so23302565e9.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:40 -0700 (PDT)
+        Wed, 3 May 2023 08:57:14 -0400
+Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6177140C4
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:57:12 -0700 (PDT)
+Received: by mail-wr1-x433.google.com with SMTP id ffacd0b85a97d-2f86ee42669so4943295f8f.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:57:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683118598; x=1685710598;
-        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=BhUlCqZuFvaVjab8WFgqZfX6X5fmqOq+W7EtRQ6lGVI=;
-        b=hi4Jkf0INBpTWe7aNvyAbfym8BTr1ZiO1/a0L8DNwHGsRr3LUCjZSApcS3EzXqpCQ7
-         wBz8UoeNTTDFOSY5GRnJXXT8nJOM1OKJhyWBY6jvLe+G5bJ8VgO5A5NogcmfvvDyj10Q
-         Ku4sf2ODaZ0DaWoP35tSaCmxefWm8XpcV1jow=
+        d=broadcom.com; s=google; t=1683118630; x=1685710630;
+        h=mime-version:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=0jtA4SKuXa9FWRRn77Z6/kZv7eFwvZMyeb49r5csUgg=;
+        b=G90H7XjO3GguinJnQfccM+N603SHbE96VZhu7C9RbyLy/PGX4ODOoXiFFUkgBFHGa3
+         1+gqb6VUxpIkqMxeZpSTjNKY/uElNL8pPTTWBMDEB3W3ChIvQ9aE5TiZzg+HZoMIMkCI
+         P8iw2LTt19/L73K6lBlHVH1V4Fjzy9LAYTkq0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683118598; x=1685710598;
-        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BhUlCqZuFvaVjab8WFgqZfX6X5fmqOq+W7EtRQ6lGVI=;
-        b=Frwrkb6/MNNZuRb6iA192tbFTb6irfeQIVqb3XfHK+KfMFjG71CQ4zkwtp/uY1HC4i
-         /PpYPWEkSATfwCximsuOA8pQEokvvc2bApvQZh/ASRy8/hzKjZ7GLCnL9dOeYkiIoi57
-         z4g2GSbzJhfcDBdlBNkj9C6WPcke2tKgmfmEcBRmCcwBkGUp6y1pJYdkcX00V5/U4x+a
-         Byor+/t+xfVfAkyRnMvOPaU3DiMYo7wZ/772I7Y9QzWkg4RgtHTwOV0DBjQs0QorrVnf
-         ZBrJ44movufmDL+PKRk72E2uJDG1Ro2VCcYh7Zm54KWNZaZPH8GbIqpj+YClNh0qnI10
-         qScQ==
-X-Gm-Message-State: AC+VfDyj4uqWntX/tqByIre1owJmBaBU5IohVZCfTkf5hnbgTznOYNsN
-        aioe/CYfxP9/zyn2Yjpsc8qo8DDlw5Khg9aXuyH0nAXFF61bKxdvtz27/MWdlzH3Xoe6Y9W9D1r
-        XFtDLGM/V/eoS73vaXCh6XsrDfiAzoCTjKoR2CfwpVLcMr7cHs4Zmzd3Cqa5FrMKeMtMGBv+/mf
-        8hUBhOBT28rpbKYh8H/tK6Pg==
-X-Google-Smtp-Source: ACHHUZ7eVwUwF9wHZqLiNWEUpnPwEH6vM8foD5OKQNMBQ73NZSTNW1zwuN8aro+u0rDhq8Wa8nzuDg==
-X-Received: by 2002:a05:600c:4f89:b0:3f1:7b63:bf0e with SMTP id n9-20020a05600c4f8900b003f17b63bf0emr1433601wmq.18.1683118598372;
-        Wed, 03 May 2023 05:56:38 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1683118630; x=1685710630;
+        h=mime-version:message-id:date:subject:cc:to:from:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=0jtA4SKuXa9FWRRn77Z6/kZv7eFwvZMyeb49r5csUgg=;
+        b=D64l/VC4NCMt9NLMDme4l/9ua8DEK5ElMg/fBRGXMI1lxTJ9elq21HhsbLWRppf5kW
+         IteNS8WqMOnfuVP/L2xTWNAyg3drRNCvyfnEOMpxI8P/AfHNtgjfmtHMXhayykCCOYOr
+         zKL73ZZduSZTiLYzDNnqw8YGq2YCplxlAZnlcwJA33q0xtgaqShtsiRKwlsZxVb7G2dd
+         1SoLviNkZ01lfR/LazslxucTfPR4BrN3Fc+Lw4d2PEzI9RHTQs3MNdvq0WOCG5Psg7NH
+         k6sQoUelBJx0/CNh/70laX52Fxn/NSWWcmFx6ITbV46fbGNVs3pwy+mQLMlJCj0EI+Pp
+         JuSA==
+X-Gm-Message-State: AC+VfDxSl0oiPBIKqkvazuSU9aeW5mD8GyH3zC7DIBMkhyxUdL5hXLqK
+        9+CzYbyl1+3LVI2aWIzjE7XUBjZF8zZRxhx2OwV15yAZI+pdNU+9vXWo6tLH3aNoCOge3o5KMJR
+        hZIOZLcSA7U2k0nIvMsBZ8PCoOI2eEqAXohsTnfa8mr8nbaas3c9i6VGSeXGU0t8mK1XRvDCV1W
+        Go6UmgdEnxvpOa0ipbSyR6xQ==
+X-Google-Smtp-Source: ACHHUZ4cfixRfHjTAJK0HHY3BO+GbnX8XaFiJA/AfNY+KcdMV77ebq9y4nma0ehgPlW9LsILRrSa1Q==
+X-Received: by 2002:a5d:6606:0:b0:306:772:5c2e with SMTP id n6-20020a5d6606000000b0030607725c2emr9062272wru.70.1683118630546;
+        Wed, 03 May 2023 05:57:10 -0700 (PDT)
 Received: from localhost.localdomain ([192.19.250.250])
-        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.37
+        by smtp.gmail.com with ESMTPSA id y11-20020adfe6cb000000b002f81b4227cesm33991436wrm.19.2023.05.03.05.57.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 May 2023 05:56:38 -0700 (PDT)
+        Wed, 03 May 2023 05:57:10 -0700 (PDT)
 From:   Boris Sukholitko <boris.sukholitko@broadcom.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ilya Lifshits <ilya.lifshits@broadcom.com>,
         Boris Sukholitko <boris.sukholitko@broadcom.com>
-Subject: [PATCH nf-next 19/19] selftests: netfilter: dscp offload test
-Date:   Wed,  3 May 2023 15:55:52 +0300
-Message-Id: <20230503125552.41113-20-boris.sukholitko@broadcom.com>
+Subject: [PATCH nft] payload: add offload flag to the statements
+Date:   Wed,  3 May 2023 15:56:54 +0300
+Message-Id: <20230503125654.41126-1-boris.sukholitko@broadcom.com>
 X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
-References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000002f066105fac9964f"
+        boundary="0000000000001ae81805fac9980e"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---0000000000002f066105fac9964f
+--0000000000001ae81805fac9980e
 Content-Transfer-Encoding: 8bit
 
-Ensure that dscp offload modification nftables ruleset works.
+Payload modification statements such as:
+
+ip dscp set cs3
+
+are not being executed by the flowtable fast path code the kernel.
+
+This commit adds ability to mark such statements for offload to fix
+this problem. For example the following configuration becomes correct
+(notice offload in the ip dscp clause):
+
+table inet filter {
+        flowtable f1 {
+                hook ingress priority filter
+                devices = { veth0, veth1 }
+        }
+
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                ip dscp set cs3 offload
+                ip protocol { tcp, udp, gre } flow add @f1
+                ct state established,related accept
+        }
+}
 
 Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
 ---
- .../selftests/netfilter/nft_flowtable.sh      | 40 +++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ include/linux/netfilter/nf_tables.h | 1 +
+ include/statement.h                 | 3 ++-
+ src/json.c                          | 9 ++++++++-
+ src/netlink_delinearize.c           | 5 +++--
+ src/netlink_linearize.c             | 8 ++++++--
+ src/parser_bison.y                  | 9 ++++++---
+ src/parser_json.c                   | 2 +-
+ src/payload.c                       | 5 ++++-
+ 8 files changed, 31 insertions(+), 11 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index 51f986f19fee..dc0980c64cc5 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -370,6 +370,46 @@ else
- 	ret=1
- fi
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index e4b739d5..ee12a884 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -778,6 +778,7 @@ enum nft_payload_csum_types {
  
-+ip netns exec $nsr1 nft flush ruleset
-+ip netns exec $nsr1 nft -f - <<EOF
-+table inet filter {
-+        flowtable f1 {
-+                hook ingress priority filter
-+		devices = { veth0, veth1 }
-+        }
+ enum nft_payload_csum_flags {
+ 	NFT_PAYLOAD_L4CSUM_PSEUDOHDR = (1 << 0),
++	NFT_PAYLOAD_CAN_OFFLOAD = (1 << 1),
+ };
+ 
+ enum nft_inner_type {
+diff --git a/include/statement.h b/include/statement.h
+index e648fb13..fa1a048c 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -58,10 +58,11 @@ extern struct stmt *exthdr_stmt_alloc(const struct location *loc,
+ struct payload_stmt {
+ 	struct expr			*expr;
+ 	struct expr			*val;
++	bool				can_offload;
+ };
+ 
+ extern struct stmt *payload_stmt_alloc(const struct location *loc,
+-				       struct expr *payload, struct expr *expr);
++				       struct expr *payload, struct expr *expr, bool off);
+ 
+ #include <meta.h>
+ struct meta_stmt {
+diff --git a/src/json.c b/src/json.c
+index f57f2f77..df50962c 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -1163,9 +1163,16 @@ json_t *flow_offload_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+ 
+ json_t *payload_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+ {
+-	return json_pack("{s: {s:o, s:o}}", "mangle",
++	json_t *root;
 +
-+        chain forward {
-+                type filter hook forward priority filter; policy accept;
-+                ip dscp set cs3 offload
-+                ip protocol { tcp, udp, gre } flow add @f1
-+                ct state established,related accept
-+        }
-+}
-+EOF
++	root = json_pack("{s: {s:o, s:o}}", "mangle",
+ 			 "key", expr_print_json(stmt->payload.expr, octx),
+ 			 "value", expr_print_json(stmt->payload.val, octx));
 +
-+tf=/tmp/test_routing_dscp.dump
-+rm -f $tf
++	if (stmt->payload.can_offload)
++		json_object_set_new(root, "offload", json_true());
 +
-+ip netns exec $ns1 nohup tcpdump -l -v -ne -i eth0 > $tf &
-+td_pid=$!
++	return root;
+ }
+ 
+ json_t *exthdr_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 4cd6cc3a..48e2a520 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -713,13 +713,14 @@ static void netlink_parse_payload_stmt(struct netlink_parse_ctx *ctx,
+ 				       const struct nftnl_expr *nle)
+ {
+ 	enum nft_registers sreg;
+-	uint32_t base, offset, len;
++	uint32_t base, offset, len, flags;
+ 	struct expr *expr, *val;
+ 	struct stmt *stmt;
+ 
+ 	base   = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_BASE) + 1;
+ 	offset = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_OFFSET) * BITS_PER_BYTE;
+ 	len    = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_LEN) * BITS_PER_BYTE;
++	flags    = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_FLAGS);
+ 
+ 	sreg = netlink_parse_register(nle, NFTNL_EXPR_PAYLOAD_SREG);
+ 	val  = netlink_get_register(ctx, loc, sreg);
+@@ -730,7 +731,7 @@ static void netlink_parse_payload_stmt(struct netlink_parse_ctx *ctx,
+ 	expr = payload_expr_alloc(loc, NULL, 0);
+ 	payload_init_raw(expr, base, offset, len);
+ 
+-	stmt = payload_stmt_alloc(loc, expr, val);
++	stmt = payload_stmt_alloc(loc, expr, val, flags & NFT_PAYLOAD_CAN_OFFLOAD);
+ 	rule_stmt_append(ctx->rule, stmt);
+ }
+ 
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 3da72f50..82c89b8c 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -1070,12 +1070,15 @@ static void netlink_gen_payload_stmt(struct netlink_linearize_ctx *ctx,
+ 	const struct expr *expr;
+ 	enum nft_registers sreg;
+ 	unsigned int csum_off;
++	uint32_t flags = 0;
+ 
+ 	sreg = get_register(ctx, stmt->payload.val);
+ 	netlink_gen_expr(ctx, stmt->payload.val, sreg);
+ 	release_register(ctx, stmt->payload.val);
+ 
+ 	expr = stmt->payload.expr;
++	if (stmt->payload.can_offload)
++		flags |= NFT_PAYLOAD_CAN_OFFLOAD;
+ 
+ 	csum_off = 0;
+ 	desc = expr->payload.desc;
+@@ -1099,9 +1102,10 @@ static void netlink_gen_payload_stmt(struct netlink_linearize_ctx *ctx,
+ 	if ((expr->payload.base == PROTO_BASE_NETWORK_HDR && desc &&
+ 	     payload_needs_l4csum_update_pseudohdr(expr, desc)) ||
+ 	    expr->payload.base == PROTO_BASE_INNER_HDR)
+-		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_FLAGS,
+-				   NFT_PAYLOAD_L4CSUM_PSEUDOHDR);
++		flags |= NFT_PAYLOAD_L4CSUM_PSEUDOHDR;
+ 
++	if (flags)
++		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_FLAGS, flags);
+ 	nft_rule_add_expr(ctx, nle, &expr->location);
+ }
+ 
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index ccf07a30..8954eb4c 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -726,7 +726,7 @@ int nft_lex(void *, void *, void *);
+ %destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
+ %type <stmt>			nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
+ %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
+-%type <val>			nf_nat_flags nf_nat_flag offset_opt
++%type <val>			nf_nat_flags nf_nat_flag offset_opt set_offload
+ %type <stmt>			tproxy_stmt
+ %destructor { stmt_free($$); }	tproxy_stmt
+ %type <stmt>			synproxy_stmt synproxy_stmt_alloc
+@@ -5325,15 +5325,18 @@ ct_stmt			:	CT	ct_key		SET	stmt_expr	close_scope_ct
+ 			}
+ 			;
+ 
+-payload_stmt		:	payload_expr		SET	stmt_expr
++payload_stmt		:	payload_expr		SET	stmt_expr set_offload
+ 			{
+ 				if ($1->etype == EXPR_EXTHDR)
+ 					$$ = exthdr_stmt_alloc(&@$, $1, $3);
+ 				else
+-					$$ = payload_stmt_alloc(&@$, $1, $3);
++					$$ = payload_stmt_alloc(&@$, $1, $3, $4);
+ 			}
+ 			;
+ 
++set_offload		:	OFFLOAD 	{ $$ = true; }
++			|	/* empty */	{ $$ = false; }
 +
-+if test_tcp_forwarding $ns1 $ns2; then
-+	kill $td_pid
-+	wait $td_pid
-+	out="$(grep -B1 '> 10.0.1.99' $tf | grep IP | grep -v 'tos 0x60' | head)"
-+	if test -z "$out"; then
-+		rm -f $tf
-+		echo "PASS: dscp flow offloaded for ns1/ns2 is correct"
-+	else
-+		echo "non dscp packets found in $tf $out";
-+		ret=1
-+	fi
-+else
-+	echo "FAIL: dscp flow offload for ns1/ns2:" 1>&2
-+	ip netns exec $nsr1 nft list ruleset
-+	ret=1
-+fi
-+
- # delete default route, i.e. ns2 won't be able to reach ns1 and
- # will depend on ns1 being masqueraded in nsr1.
- # expect ns1 has nsr1 address.
+ payload_expr		:	payload_raw_expr
+ 			|	eth_hdr_expr
+ 			|	vlan_hdr_expr
+diff --git a/src/parser_json.c b/src/parser_json.c
+index ae683314..270dddeb 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1753,7 +1753,7 @@ static struct stmt *json_parse_mangle_stmt(struct json_ctx *ctx,
+ 	case EXPR_EXTHDR:
+ 		return exthdr_stmt_alloc(int_loc, key, value);
+ 	case EXPR_PAYLOAD:
+-		return payload_stmt_alloc(int_loc, key, value);
++		return payload_stmt_alloc(int_loc, key, value, false);
+ 	case EXPR_META:
+ 		stmt = meta_stmt_alloc(int_loc, key->meta.key, value);
+ 		expr_free(key);
+diff --git a/src/payload.c b/src/payload.c
+index ed76623c..77390e02 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -373,6 +373,8 @@ static void payload_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ 	expr_print(stmt->payload.expr, octx);
+ 	nft_print(octx, " set ");
+ 	expr_print(stmt->payload.val, octx);
++	if (stmt->payload.can_offload)
++		nft_print(octx, " offload");
+ }
+ 
+ static void payload_stmt_destroy(struct stmt *stmt)
+@@ -390,13 +392,14 @@ static const struct stmt_ops payload_stmt_ops = {
+ };
+ 
+ struct stmt *payload_stmt_alloc(const struct location *loc,
+-				struct expr *expr, struct expr *val)
++				struct expr *expr, struct expr *val, bool off)
+ {
+ 	struct stmt *stmt;
+ 
+ 	stmt = stmt_alloc(loc, &payload_stmt_ops);
+ 	stmt->payload.expr = expr;
+ 	stmt->payload.val  = val;
++	stmt->payload.can_offload  = off;
+ 	return stmt;
+ }
+ 
 -- 
 2.32.0
 
 
---0000000000002f066105fac9964f
+--0000000000001ae81805fac9980e
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -201,14 +366,14 @@ zPffqO2QS6e4oXzmoYuX9sCNfol1TaQgCYgYoC4rexOBLLtYbwdKWi3/ttntZ2PHS1QRaDzrBSuw
 L39zqstTC0LC/YoSKC/cU9igMELugG/Twy9uVlg2XXTY1wUYSWMsYlpydsrVyG18UScp7FlGFbWX
 EWKS7pkxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
 LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwA
-ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEILmLrTdAN7wT1Bw/
-Kv+T4/rzESpKLZIl49CExje6TNaDMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
-AQkFMQ8XDTIzMDUwMzEyNTYzOFowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
+ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIPnPCtXjZjVwQTXX
+APOxYl2SRH+Y6qj50+xPzFnZRlEEMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
+AQkFMQ8XDTIzMDUwMzEyNTcxMFowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
 AWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEH
-MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCw5nbwmyh0eMVAicC21u6JqhxtYXxBEdsg
-603HPmHVrXOAUQVFjBZt3Kqo+RZp4UONp/bhs6cdyUOMSK9P125mEmVmGupIUlNUmcBR9RpiQ6mD
-19jiTg6aUmrxSj+P+5v5bKARNSpksZRgGpPk7INoZ3VInZQ9oVPTc9FDeNj2TanG5mOmTj9aroIi
-Xon8nQrGaYx3g3BAuAvm56LqSAMWxdKq/lcCe3vlYy/HZ8NV8gxJgB9MPWE7jxvbfigLkrFa7/NC
-oyRIEwxBT90fZPO9zvSlSdE7sJGURwx3pb0X5pQ9zD992L9tzoSvmR/XmlRzb31fjoLw92m5uGkh
-u+3k
---0000000000002f066105fac9964f--
+MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAi/4XtHkuU0LfKxQFVDLI25VrY+XI8QaeZ
+x3zzF5+bS6PD0mzYam8ezNlxsrNEVW0PuecI3aK0E8gwIPYAy1179XM0VG9s4KHjBqCdyc9Ebq0/
+rRcYED1NYqSfkQCycrknv+fzDOfAFiNtVN/UvU1itlgU7EutIef9hZqu0+NY+f3n1RxIDZt2gC1P
+3Ju0cKptfJpzirZIjOuTmqkI/dChFcDpg6WeezISRhlIJjKGwb7EcWXfmmtb/OSLtS1IyYgihVog
+ZuxwR3IjySS9D3ByRwS6fP4esd/w6Q7+Kkx8foPmwPG6WscuVCORjMUmWphmY7eNf2ZzKNY0pkGu
+vxyK
+--0000000000001ae81805fac9980e--
