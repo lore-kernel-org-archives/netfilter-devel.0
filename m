@@ -2,103 +2,112 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F8E2C7EE23
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F513C7EE29
 	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 12:56:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229754AbjECM40 (ORCPT
+        id S229844AbjECM40 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 3 May 2023 08:56:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56848 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229792AbjECM4W (ORCPT
+        with ESMTP id S229734AbjECM4Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2023 08:56:22 -0400
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E22759DA
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:21 -0700 (PDT)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-3f193ca059bso31733095e9.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:21 -0700 (PDT)
+        Wed, 3 May 2023 08:56:24 -0400
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E1065275
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 05:56:23 -0700 (PDT)
+Received: by mail-wm1-x32e.google.com with SMTP id 5b1f17b1804b1-3f1950f5676so52876985e9.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2023 05:56:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683118579; x=1685710579;
+        d=broadcom.com; s=google; t=1683118581; x=1685710581;
         h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
          :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=fkSu+rRXVkP8NgglDHj9H8zYBxhgDw0pijFO4jYl664=;
-        b=BbGslUXG44xQIeVcD6SDKDLAqa2pbNlDAPyTI0wCSRohDaAe5Zdd4oumSjtrnArK7K
-         YiVw+0yBMa0SNd+YozIbzp7NXs24x7vS+t45MysyHL0G93R141gz0qAkhC8A1BTaNH5F
-         ivw/I0IW1zabtg/vamGCEvfJ5WXYUXhmadYk4=
+        bh=ssRdMfYBgRtV03JET0w6boZ07gKnMBt5Pr3EaV7iXNI=;
+        b=UzYJ4XoNbEk8QdPOZMLutQvA1t9MF//CmtKl32vhcXPJcyTbaPBmLT2o45I+293hkY
+         rcUCf/IVlnw5RHFeVfVhh5vcONXu+LF6hHAdKpsQ7lpfe3RaB4vpdhh0mBsSsYohIVhW
+         mKP9e7l/uILwPXFIBa5FNmYaR/95kvCCeXglw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683118579; x=1685710579;
+        d=1e100.net; s=20221208; t=1683118581; x=1685710581;
         h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
          :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=fkSu+rRXVkP8NgglDHj9H8zYBxhgDw0pijFO4jYl664=;
-        b=F0waYkt7NvqLCwtgASKZr45enufWd5erq5Go1oTHf+pkNLWS2QLqVDe5Sy74/B78qh
-         rbnCb5fs+eCrmIC8PbSn1c0I2Py59rhC2SYYi60o4pzHE0yYlLZ2Y2Xc4YJNdM9vUvG0
-         wKU0x8GMf+GKNYTdckUkJ6ZFRKrINqWzbfthRqH0sV03PaTWZPv5PbHSW+4xRKkKc3pZ
-         phXKqxix9l0OhIL1CwyKXJi79avOUIMmaMFEICbpu3qhCKh0jIzqEwU6cS32u15OOPE3
-         2YF65obTlti43Z4izjmjrlL0VFti8dkuOj0oeE6dq3niA/0rpi104m9nOpAaTF0AQBIL
-         ZgJg==
-X-Gm-Message-State: AC+VfDzHwtoZFlml+hscK+NEzCacATDel7W5npTSwyL0qP+pNUwauEx5
-        Xa2YcKAuymkDIMnY2zJ+QQfps3g6o/hBgERxckbbA/8yQ2GbD46hmuY2zAHtyKouH4RfTBRoKTK
-        prqhpEsNeRBBjzCoWL806fQ1rgFX/aSg2zNyDksJgw7yzQ7nVhV7dWxTfw7uTyd7Ce6flc9Dt5Z
-        4f7tqAhBFfRq29yKn0/nBBsg==
-X-Google-Smtp-Source: ACHHUZ7bpZiDlmFK7CV8G/EvOqZ8SVWNHVd41dUa2cha/7+Y+qvKyGZpLfSV57yh/mAE6UEUclsThQ==
-X-Received: by 2002:a7b:c84b:0:b0:3f1:4971:5cd1 with SMTP id c11-20020a7bc84b000000b003f149715cd1mr14654841wml.21.1683118579689;
-        Wed, 03 May 2023 05:56:19 -0700 (PDT)
+        bh=ssRdMfYBgRtV03JET0w6boZ07gKnMBt5Pr3EaV7iXNI=;
+        b=DHjRvgx2GbDqJNuBleS1FAmXfDcvdmqngrPRRNQYRht2Nc3CtjWDMllvshCXwrguiU
+         9f9PrLV7hvskEm+HWikHIHs8Rm0/MlmTDtnAEP4rhsMMwUQTTYBgeELsKaPLNg0W1gtF
+         vIP/e+Z3gFikixFJkkP3RSDGGGHzVcjmyzj/gByDW3/5j5k2q6o1H0DBjIBg/ns3qW9b
+         csLXmE/znEHwAFlEOqWKR9fE+MO2prN+OWe21koWvOf3pOriUl77d4yWlprUhBaE+LpG
+         MM0hMpR9VC2zE4KhtJyU4DbSUv/hbkeJcpCNNzbhx/T/+j6WfjC4rwC855ptShSH41hZ
+         IxMA==
+X-Gm-Message-State: AC+VfDyM9z6LkTvbI48NZovFry0KgsbWpHlwXpTJ1UEmLhf/05lU2/UF
+        BTSHWhk7ZJWUvBUQzETChB63y2dQllhNnYscPz5EjClb51jsLWesk9kjkTAjM/+sdAeL9CZIeKq
+        JMAze7igHAZ3cXRoU5NfKePPWd90ljh2yQGn9VBBBA7OcTZAYTOzucHG+DxYUOpfBp+dEb3Izw8
+        UFzIGZPSu3repvIBS5rXdK0Q==
+X-Google-Smtp-Source: ACHHUZ5Unk7BZ1w5PFJJB2+CdlGsyyJsaz1xNNyI+As0TdRmAj8PJPjC7G1kPyoY9b9VEfKSTFS33Q==
+X-Received: by 2002:a05:600c:d7:b0:3f1:8af9:55ae with SMTP id u23-20020a05600c00d700b003f18af955aemr14433944wmm.18.1683118580842;
+        Wed, 03 May 2023 05:56:20 -0700 (PDT)
 Received: from localhost.localdomain ([192.19.250.250])
-        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.18
+        by smtp.gmail.com with ESMTPSA id u6-20020a05600c00c600b003ee1b2ab9a0sm1855396wmm.11.2023.05.03.05.56.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 03 May 2023 05:56:19 -0700 (PDT)
+        Wed, 03 May 2023 05:56:20 -0700 (PDT)
 From:   Boris Sukholitko <boris.sukholitko@broadcom.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ilya Lifshits <ilya.lifshits@broadcom.com>,
         Boris Sukholitko <boris.sukholitko@broadcom.com>
-Subject: [PATCH nf-next 03/19] selftest: netfilter: wait for specific nc pids
-Date:   Wed,  3 May 2023 15:55:36 +0300
-Message-Id: <20230503125552.41113-4-boris.sukholitko@broadcom.com>
+Subject: [PATCH nf-next 04/19] selftest: netfilter: monitor result file sizes
+Date:   Wed,  3 May 2023 15:55:37 +0300
+Message-Id: <20230503125552.41113-5-boris.sukholitko@broadcom.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="00000000000013171c05fac995b6"
+        boundary="000000000000256c0405fac995cf"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---00000000000013171c05fac995b6
+--000000000000256c0405fac995cf
 Content-Transfer-Encoding: 8bit
 
-Doing wait with no parameters may interfere with some of the tests
-having their own background processes.
+When running nft_flowtable.sh in VM on a busy server we've found that
+the time of the netcat file transfers vary wildly.
 
-Although no such test is currently present, the cleanup is useful
-to rely on the nft_flowtable.sh for local development (e.g. running
-background tcpdump command during the tests).
+Therefore replace hardcoded 3 second sleep with the loop checking for
+a change in the file sizes. Once no change in detected we test the results.
+
+Nice side effect is that we shave 1 second sleep in the fast case
+(hard-coded 3 second sleep vs two 1 second sleeps).
 
 Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
 ---
- tools/testing/selftests/netfilter/nft_flowtable.sh | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index 3cf20e9bd3a6..92bc308bf168 100755
+index 92bc308bf168..51f986f19fee 100755
 --- a/tools/testing/selftests/netfilter/nft_flowtable.sh
 +++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -296,7 +296,8 @@ test_tcp_forwarding_ip()
- 		kill $cpid
- 	fi
+@@ -286,7 +286,15 @@ test_tcp_forwarding_ip()
+ 	ip netns exec $nsa nc -w 4 "$dstip" "$dstport" < "$nsin" > "$ns1out" &
+ 	cpid=$!
  
--	wait
-+	wait $lpid
-+	wait $cpid
+-	sleep 3
++	sleep 1
++
++	prev="$(ls -l $ns1out $ns2out)"
++	sleep 1
++
++	while [[ "$prev" != "$(ls -l $ns1out $ns2out)" ]]; do
++		sleep 1;
++		prev="$(ls -l $ns1out $ns2out)"
++	done
  
- 	if ! check_transfer "$nsin" "$ns2out" "ns1 -> ns2"; then
- 		lret=1
+ 	if test -d /proc/"$lpid"/; then
+ 		kill $lpid
 -- 
 2.32.0
 
 
---00000000000013171c05fac995b6
+--000000000000256c0405fac995cf
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -169,14 +178,14 @@ zPffqO2QS6e4oXzmoYuX9sCNfol1TaQgCYgYoC4rexOBLLtYbwdKWi3/ttntZ2PHS1QRaDzrBSuw
 L39zqstTC0LC/YoSKC/cU9igMELugG/Twy9uVlg2XXTY1wUYSWMsYlpydsrVyG18UScp7FlGFbWX
 EWKS7pkxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
 LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwA
-ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIJpV+axf9gLQA6PE
-zShRYc0aPKoGoVmG+/x1rtM5kGFGMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
-AQkFMQ8XDTIzMDUwMzEyNTYxOVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
+ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIJWgr/1UFeURYcNY
+qXSpzUnKm+r9ZatU8F/1xT55mOSlMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
+AQkFMQ8XDTIzMDUwMzEyNTYyMVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
 AWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEH
-MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAcziLupG3D7e6/Cf/L/aWndXpAL9DB19H3
-ZqSdEjSeiVJu3lIT/1whCFvVXN6PowR0b/LoHo5kG30FbeE7JVgAEpXIS/1zpJYlAEc10hFnPYH9
-Ra1bXKCtC3m9WfDnr3dSo1CX+YqTcrnLKfT8k/+V9s/C927WKWcD+n0aOf9EmeDPTKNKLiko8SLg
-ITfCnSUUCNJ1vsJTZ6qE1tGcnkUdm7EY9CnyW906iAh0QfLlZUD42y3f2jFcj4eAMpqGXiK+0Y8g
-ojCjtdNTjMPrFT/A6wvPsvRmGHxKhGu81JeKOHdQ4fFzOCJlxGroWw9UB+CTWzPT+ITHzgXF4L5M
-9Uk+
---00000000000013171c05fac995b6--
+MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQBBbGZSFslLEYQzK/pv0Xwcl+/c6EAH/L7n
+M3hphm0QE2ib4kj4b2dPczAtH4Z6ra9pu+5zssCi9XIsc1ptCm+rwOwG9q8Femvia/xiF/XpDJFa
+9WV+NT8k57w/MUOUn/wNeGODYu0/NGunYY1hda7uWbfC6uhMOMeKnYojdLe6KFvED5h81DdUaTWS
+z8kIgqW7YW3NPw0CwURx5ZbQsLxiRKkuGGMR1w0g5GcWrKeQEz5gO3SqPvS7CCdA5gBbxKBZkkW+
+BeHft3G9UhfYy4WaqE79B30Yt2r1hfQ76wGEg7DKIR2kHvQPMCWhbe/kYEdxGWu00JLwwBlA5uiD
+puMP
+--000000000000256c0405fac995cf--
