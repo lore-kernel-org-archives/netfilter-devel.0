@@ -2,63 +2,96 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05C59C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 17:36:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B22EC77B7F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  3 May 2023 18:47:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229822AbjECRgy (ORCPT
+        id S229792AbjECSro (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 3 May 2023 13:36:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34668 "EHLO
+        Wed, 3 May 2023 14:47:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbjECRgx (ORCPT
+        with ESMTP id S230064AbjECSr1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2023 13:36:53 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E621420B
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 10:36:52 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1puGPK-0002nq-7l; Wed, 03 May 2023 19:36:50 +0200
-Date:   Wed, 3 May 2023 19:36:50 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [iptables PATCH 0/3] Extract nftnl_rule parsing code
-Message-ID: <ZFKbskUv6RlJZLjj@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-References: <20230421174014.17014-1-phil@nwl.cc>
+        Wed, 3 May 2023 14:47:27 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E41843C16
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2023 11:46:34 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1puHUk-0000Z4-GG; Wed, 03 May 2023 20:46:30 +0200
+Date:   Wed, 3 May 2023 20:46:30 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Boris Sukholitko <boris.sukholitko@broadcom.com>
+Cc:     netfilter-devel@vger.kernel.org,
+        Ilya Lifshits <ilya.lifshits@broadcom.com>
+Subject: Re: [PATCH nf-next 00/19] netfilter: nftables: dscp modification
+ offload
+Message-ID: <20230503184630.GB28036@breakpoint.cc>
+References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230421174014.17014-1-phil@nwl.cc>
+In-Reply-To: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Apr 21, 2023 at 07:40:11PM +0200, Phil Sutter wrote:
-> nft-shared.c was already oversized, upcoming enhancement of the
-> nftnl_rule parser will add to that. So prepare any further work in that
-> field by creating a common 'nft-ruleparse.c' source and one for each
-> family to hold all the parsing code (basically the stack below
-> nft_rule_to_iptables_command_state).
+Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
+> Consider ruleset such as:
 > 
-> Collect the existing expression parsing callbacks in a new struct
-> nft_ruleparse_ops and add a pointer to it into nft_family_ops. This way
-> the callbacks may be static and the nft-ruleparse-<family>.c sources
-> only export their ops object.
+> table inet filter {
+>         chain forward {
+>                 type filter hook forward priority filter; policy accept;
+>                 ip dscp set cs3
+>                 ct state established,related accept
+>         }
+> }
 > 
-> This series does things somewhat gradually:
+> As expected, all of the packets from 10.0.2.99 to 10.0.1.99 have IPv4 tos field
+> changed to 0x60:
 > 
-> * First pull everything from nft-shared.c into nft-ruleparse.c (likewise
->   with header files)
-> * Then perform the *_ops struct changes which should not have a
->   functional implication
-> * Finally weed parsers from nft-<family>.c files into
->   nft-ruleparse-<family>.c ones.
+> ...
+> 13:36:42.474591 fe:dc:b3:e2:dc:3b > 5a:45:4d:2a:25:65, ethertype IPv4 (0x0800), length 1090: (tos 0x60, ttl 62, id 39855, offset 0, flags [none], proto TCP (6), length 1076)
+>     10.0.2.99.12345 > 10.0.1.99.44084: Flags [P.], cksum 0x1bec (incorrect -> 0x44c3), seq 1:1025, ack 1025, win 1987, options [nop,nop,TS val 2854899766 ecr 3249774499], length 1024
+> ...
+> 
+> Now lets try to add flow offload:
+> 
+> table inet filter {
+>         flowtable f1 {
+>                 hook ingress priority filter
+>                 devices = { veth0, veth1 }
+>         }
+> 
+>         chain forward {
+>                 type filter hook forward priority filter; policy accept;
+>                 ip dscp set cs3
+>                 ip protocol { tcp, udp, gre } flow add 
+>                 ct state established,related accept
+>         }
+> }
+> 
+> Although some of the packets still have their TOS being correct, some are not:
+> 
+> ...
+> 13:41:17.138782 5e:d5:1f:a3:ba:d1 > d2:d2:73:e6:5b:92, ethertype IPv4 (0x0800), length 1090: (tos 0x0, ttl 62, id 20142, offset 0, flags [none], proto TCP (6), length 1076)
+>     10.0.2.99.12345 > 10.0.1.99.34230: Flags [P.], cksum 0x1bec (incorrect -> 0xc090), seq 1:1025, ack 1, win 2009, options [nop,nop,TS val 2855174430 ecr 3250049157], length 1024
+> ...
+> 
+> The root cause for the bug seems to be that nft_payload_set_eval (which sets the
+> dscp tos field) isn't being called on the offload fast path in
+> nf_flow_offload_ip_hook.
 
-Series applied after rebasing it onto current HEAD - the previous
-arptables-related fixes caused a minor conflict.
+I wish you would have reported this before you started to work on
+this, because this is not a bug, this is expected behaviour.
+
+Once you offload, the ruleset is bypassed, this is by design.
+Lets not make the software offload more complex as it already is.
+
+If you want to apply dscp payload modification, do not use flowtable
+offload or hook those parts at netdev:ingress, it will be called before the
+software offload pipeline.
+
+I will reply to some of the changes to the shell tests because this
+general reply above doesn't apply to those patches.
