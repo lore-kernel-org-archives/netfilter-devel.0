@@ -2,103 +2,103 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F55FC77B7C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89E62C7EE22
 	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 08:49:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbjEDItU (ORCPT
+        id S230083AbjEDItU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 4 May 2023 04:49:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53848 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230312AbjEDItL (ORCPT
+        with ESMTP id S230317AbjEDItL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 4 May 2023 04:49:11 -0400
-Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4308740EB
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2023 01:48:54 -0700 (PDT)
-Received: by mail-pl1-x635.google.com with SMTP id d9443c01a7336-1aaf70676b6so1149685ad.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 04 May 2023 01:48:54 -0700 (PDT)
+Received: from mail-pg1-x52b.google.com (mail-pg1-x52b.google.com [IPv6:2607:f8b0:4864:20::52b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 914CA40EE
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2023 01:48:56 -0700 (PDT)
+Received: by mail-pg1-x52b.google.com with SMTP id 41be03b00d2f7-5191796a483so93138a12.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 04 May 2023 01:48:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683190133; x=1685782133;
-        h=mime-version:message-id:date:subject:cc:to:from:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=d7MG5csGudovN2K9j7+IrEpvGLaArE7Ff8eEY8XeQ5Y=;
-        b=NY8f8ZPMa9j/AS3HcEJa5cYNcZDkCVXr8U7YeBYgxG6pKWDUu+UWy5xJogls2zRve5
-         2HjwEV/VmgklbNyqvndOo7Eah3wwbpWiNvqDLIzP9Lq+iuckgXgdDO/XM+w8ps34I/d8
-         G1otjQoCQC8cD/FnYAgWsSj+z1njt3/5f87/M=
+        d=broadcom.com; s=google; t=1683190135; x=1685782135;
+        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=wmbkMEg5OIQXJ5YPK+bFQ8pTR9qqnoCidBozamdO1B8=;
+        b=Ur28KNAsQu5UUo7q8caDMh0UW8b45J0AFE8qNQx3iHg0RhLMRJIIxZiZBXnNC0pK+J
+         pq2AgpgxafDbO6HXDTnMQ8toZwfjZv0L+SEV3egN3xr+WqONmrpszYspgEykTmuoIKrW
+         0Z9BlUJvI+hWjSLensbhhY+eQ/Xq/T7qaf8X0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683190133; x=1685782133;
-        h=mime-version:message-id:date:subject:cc:to:from:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=d7MG5csGudovN2K9j7+IrEpvGLaArE7Ff8eEY8XeQ5Y=;
-        b=ZOuXzI1fm4oqM+AfmcfYI1EtSuxvrFAed9gjhnf7CB+8GV2M7BwhsyGaxmpMDUxALN
-         WLF51mUlvLM2Q3V9qq6Aqw0V+vmtQcWmVLYuQQHMPjydkcfoX5aQ81s8ePD4WsQ6vn/t
-         6xubvDkvCfPhPyeyx62OvHH97qd0XW9m8Fnz5hUTZRPVDJehTA3GK+VMq6IjuW3s5LIR
-         V12RQYCYwBd0U4n1X7W+UoJRceUBxIC0LpocTVNzN+qK7Wgw/gcFsBmLfzIo3wnftS2T
-         lmQiM4GGzEw61gwVPkYbJb7VR64o1G+P+Xtda2GLwwqmcrVTf6NZQit22lLew9do5WfE
-         fC2Q==
-X-Gm-Message-State: AC+VfDwWIkJUmSEo8mfqBcFqJvdvnT/wlwiWibnm9IzIjM9MhDetA54S
-        HEBt6LxQjANvvkcVaXRc236gKQNsTXm4Dl+kpQLVzmNdnvECpKhe49HQvPt6pdxYxDvuLqV1HCn
-        nywDpS3NrulMjlX8n3vzPF/dL523qNX7fwvS+neiCHz6QZnLjgTz/N7oK8W50OC/fPZ70FxFFqG
-        R6TTdq03u/Qd6zwLsAhJTFOA==
-X-Google-Smtp-Source: ACHHUZ6biZeoTqseBeL5yoIYnQFxxlXb+wDcI1KzyXRd8kfJa5JG9MFc6EYgx6bOr2vSX8px+/htqQ==
-X-Received: by 2002:a17:902:f807:b0:1aa:ea22:804e with SMTP id ix7-20020a170902f80700b001aaea22804emr2725695plb.19.1683190133179;
-        Thu, 04 May 2023 01:48:53 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1683190135; x=1685782135;
+        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=wmbkMEg5OIQXJ5YPK+bFQ8pTR9qqnoCidBozamdO1B8=;
+        b=GLHHgCSGGbP+caDJy0mzeXpFYNQx4W9DW7WnMrGT0N+WCX538As06i/sPeSp9+zLpZ
+         AEIdILJSs7QWAYyJFk/nqqbiKQHwh/LwvIuPRwwHz4qdtBLMC/Er6lZWTqsiu+HgIdjx
+         4P1t6V2OjCQuB6yhZAykJeDUA5oQLMG20bDhx8RyedBCxsMtbLkSit5dJ4xgxPXxVaOc
+         fodiTF2v0dSYMJgezpdm3iUS+74EEMg3u3vjHuNqjxFUWmZmtJRZvzZ/vrNlpizNULMK
+         VR4XBXW0wUNMHaxCtMv7lmc727uklNDuf+ldcEvKwHnO+PaQdQHcKY+5VowsGkoWFzWU
+         zszw==
+X-Gm-Message-State: AC+VfDw/KyqC1sPypM5/LLoXH5VKEEbTzLfZNq0j5dOO7m+0iHU97g+V
+        N2McT2O+Sk1vdLf/XypVoEyMCsvP9UumsJ85atYZ0l6y68t06h2ohwC0dm+vITYISeUINoikW4d
+        9/2cGdM3sEyOgMUjtBXNZdXSv+lBn3ujhWuzkMtY0NcLweBWPF7s8eiFslmsBLU2n7yhdybYyCU
+        h3VLJTf2lNdi2V31sG3PxNww==
+X-Google-Smtp-Source: ACHHUZ73lrpmbICf4bznLzN1yeJYwXyMLOnX9IdBHCAyXoeDmZ3rDZosxLmGaQN6zZ6CfqGeYkSTRQ==
+X-Received: by 2002:a17:90b:3ec5:b0:24e:134e:96db with SMTP id rm5-20020a17090b3ec500b0024e134e96dbmr1415844pjb.22.1683190135455;
+        Thu, 04 May 2023 01:48:55 -0700 (PDT)
 Received: from localhost.localdomain ([192.19.250.250])
-        by smtp.gmail.com with ESMTPSA id o3-20020a17090ad24300b00246be20e216sm2638936pjw.34.2023.05.04.01.48.50
+        by smtp.gmail.com with ESMTPSA id o3-20020a17090ad24300b00246be20e216sm2638936pjw.34.2023.05.04.01.48.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 May 2023 01:48:52 -0700 (PDT)
+        Thu, 04 May 2023 01:48:55 -0700 (PDT)
 From:   Boris Sukholitko <boris.sukholitko@broadcom.com>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Ilya Lifshits <ilya.lifshits@broadcom.com>,
         Boris Sukholitko <boris.sukholitko@broadcom.com>
-Subject: [PATCH nf-next v2 0/4] selftest: netfilter: small test tweaks
-Date:   Thu,  4 May 2023 11:48:10 +0300
-Message-Id: <20230504084814.41487-1-boris.sukholitko@broadcom.com>
+Subject: [PATCH nf-next v2 1/4] selftest: netfilter: use /proc for pid checking
+Date:   Thu,  4 May 2023 11:48:11 +0300
+Message-Id: <20230504084814.41487-2-boris.sukholitko@broadcom.com>
 X-Mailer: git-send-email 2.33.1
+In-Reply-To: <20230504084814.41487-1-boris.sukholitko@broadcom.com>
+References: <20230504084814.41487-1-boris.sukholitko@broadcom.com>
 MIME-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000009d1b05fada3e61"
+        boundary="00000000000023abfc05fada3ebc"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---000000000000009d1b05fada3e61
+--00000000000023abfc05fada3ebc
 Content-Transfer-Encoding: 8bit
 
-Hi,
+Some ps commands (e.g. busybox derived) have no -p option. Use /proc for
+pid existence check.
 
-These patches allow nft_flowtable.sh test script to work in busybox environment
-(patches 1-2).
+Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
+---
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-More exact wait for netcat running in the background is in patch 3.
-
-Small adaptive sleep optimization (patch 4) helps with running on busy servers
-and cuts default sleep time a bit.
-
-Thanks,
-Boris.
-
-- v2:
-    - extracted from controversial dscp offload series
-    - added Acked-by: Florian Westphal <fw.de> on patch 4
-
-Boris Sukholitko (4):
-  selftest: netfilter: use /proc for pid checking
-  selftest: netfilter: no need for ps -x option
-  selftest: netfilter: wait for specific nc pids
-  selftest: netfilter: monitor result file sizes
-
- .../selftests/netfilter/nft_flowtable.sh      | 21 +++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
-
-
-base-commit: 19c60fdee5db881a99a9c39fb31942a530d20c63
+diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
+index 7060bae04ec8..4d8bc51b7a7b 100755
+--- a/tools/testing/selftests/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
+@@ -288,11 +288,11 @@ test_tcp_forwarding_ip()
+ 
+ 	sleep 3
+ 
+-	if ps -p $lpid > /dev/null;then
++	if test -d /proc/"$lpid"/; then
+ 		kill $lpid
+ 	fi
+ 
+-	if ps -p $cpid > /dev/null;then
++	if test -d /proc/"$cpid"/; then
+ 		kill $cpid
+ 	fi
+ 
 -- 
 2.32.0
 
 
---000000000000009d1b05fada3e61
+--00000000000023abfc05fada3ebc
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -169,14 +169,14 @@ zPffqO2QS6e4oXzmoYuX9sCNfol1TaQgCYgYoC4rexOBLLtYbwdKWi3/ttntZ2PHS1QRaDzrBSuw
 L39zqstTC0LC/YoSKC/cU9igMELugG/Twy9uVlg2XXTY1wUYSWMsYlpydsrVyG18UScp7FlGFbWX
 EWKS7pkxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
 LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwA
-ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIH9ubtGf9bFMwMJV
-jDYPqhoENq3Z/87zBP8H6tfJxn8TMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
-AQkFMQ8XDTIzMDUwNDA4NDg1M1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
+ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIL5rXS964Vxc4N4O
+V9ZFLQXgXQz9zQR7CL7Tcg3vFiEiMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
+AQkFMQ8XDTIzMDUwNDA4NDg1NVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
 AWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEH
-MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCqt7ms0+sZdqZDFv1vepcbto+SUMSxH6kg
-KjHzL+ldG7pn907IuEP4/o3cKzViqxHgFJ4JIbInnGyYwziyvQpr4RnEZHBswCW/cAvEIN2+gQva
-+an7XECOiXd0Z7xZgXcazs22GS7YOtxvm6vdzqjGAEZBhihj+ByZIkhgF0wwQd6ym2rcrC3QWCFb
-ZDm12va9UoX6Xzsu8EsHQsSir3eNldhc9A0c45N29cX4bSExTOUTEKDfrJm0kJ0i7SQP74PcHKVF
-8kq/UWHKcwaoW7jm4cSbemhKNsyyMdJi/v+/nvSBZ7tEW9S8xydAP/k1vqIyx3RCEcHS785G7VPP
-QLlR
---000000000000009d1b05fada3e61--
+MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQBRnJnqqy2PINpz3vRRRuqWFaCd4JE/WyKW
+KLZZazfQhoKU49beW0zXSXXsAtJOT6FFZZaeNFjDib5zJiGB7hGbF5VsB3WEZEsk4QpVh6gt7y40
+q3ACv9QbINopuKQTtm7GMlfIFSNf3q5Y/4nJJtoD/kSV7kmyeTf65iD78E/VaPBhOJ13mq9FdrW0
+42oIcCkjs9buEC8rK5Btgmb+hIyCNxh88AJlBgyyqo5avZyOkFwEIZ1DcU3iFLleh9EZFphSPMlB
+bcopSEroA2CuTC6HqVWPSlT60RMxfp7njCDt3J7A3ExlNyb4MctFydgekGttZCAdIHbJbIrAlAw1
+5yq9
+--00000000000023abfc05fada3ebc--
