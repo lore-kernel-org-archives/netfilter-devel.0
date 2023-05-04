@@ -2,53 +2,54 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A3FCC77B78
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 20:09:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 631D6C7EE25
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 20:37:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232912AbjEDUJZ (ORCPT
+        id S230319AbjEDUg5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 May 2023 16:09:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34426 "EHLO
+        Thu, 4 May 2023 16:36:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232690AbjEDUIe (ORCPT
+        with ESMTP id S231593AbjEDUgO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2023 16:08:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89CAB14936;
-        Thu,  4 May 2023 12:54:29 -0700 (PDT)
+        Thu, 4 May 2023 16:36:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FBE813286;
+        Thu,  4 May 2023 13:28:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3CA58637D8;
-        Thu,  4 May 2023 19:48:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0BD7C4339C;
-        Thu,  4 May 2023 19:48:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AF7663849;
+        Thu,  4 May 2023 19:50:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F5E1C433A1;
+        Thu,  4 May 2023 19:50:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1683229686;
-        bh=eDAFbRTWheX6wqUdnZQ2u5zCbnmhV7R6tselF0fsGAs=;
+        s=k20201202; t=1683229836;
+        bh=DyWMNvOJp0id+Tv6ElaHdFkRkTOFDlqeM3fbyRlkDRg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=pQizVjYK7nQs6PCpc9dJGslXSbOIdcxVyLDdGdm00v4ivenmc6hMtjCpVW47IhUF2
-         mAteA8zr2Jn7JzEkOAiyfprzSuyZ1Vs9jw7ugEF4hd3T3aCIrhhZ+RQ0JW7iiIR42C
-         r4kAl83ytQPClM6xd1hYvYyqyReC2jfJ6DMxKvpFZMtm712bkJ//OVyj4UuKW6jXEO
-         lgl7XQJqdeCPVhOFNkZ5xi13HeSQxpeqTkkO7q166oITfTBnTdwB8p5SHLckbeE4iy
-         /iXZ6p0y+dKj0K6YNrFLLhIIOT4MFGC/r/YFQN+F6Uz7rr86PWbeWx/kB+j0u3UdHd
-         CYw2AUAE9SQ5g==
+        b=QWX/jr0ZF7pt53oFNX9b3X39GZvUAmc1ATTyGp1HocZQ0St0oL2oGLH47QcP9PP+e
+         0MMVGsEvv3fle5F8Wm0Yl9RyKBc3foid8PPEVTIrhTuBRTf62rg0TZiydCVkN0T9Na
+         lOVaAN56FGhSLvLkUlPpPZRFvjL9DWNUZrAJl6q23llr/Lbe35Mx3AHbMVU5Iaahxm
+         Ax/c0FDPDcCBkJcf6lkPqFZ7gUH1WNuRymB+CYrRChLLSS4kJIbHcif2NU+DvmjwXf
+         +EoU8k8N0eKykJzWHRyO68Eys7xRfc2iMmf+1iTv7jw3SBCkr/bqVFRUpTysJAvi6r
+         faQnzUG5rKhQw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Simon Horman <horms@kernel.org>,
         Horatiu Vultur <horatiu.vultur@microchip.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sasha Levin <sashal@kernel.org>, horms@verge.net.au, ja@ssi.bg,
-        davem@davemloft.net, dsahern@kernel.org, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, kadlec@netfilter.org,
-        fw@strlen.de, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 6.1 39/49] ipvs: Update width of source for ip_vs_sync_conn_options
-Date:   Thu,  4 May 2023 15:46:16 -0400
-Message-Id: <20230504194626.3807438-39-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
+        dsahern@kernel.org, horms@verge.net.au, ja@ssi.bg,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        kadlec@netfilter.org, fw@strlen.de, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: [PATCH AUTOSEL 5.10 22/24] ipvs: Update width of source for ip_vs_sync_conn_options
+Date:   Thu,  4 May 2023 15:49:35 -0400
+Message-Id: <20230504194937.3808414-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230504194626.3807438-1-sashal@kernel.org>
-References: <20230504194626.3807438-1-sashal@kernel.org>
+In-Reply-To: <20230504194937.3808414-1-sashal@kernel.org>
+References: <20230504194937.3808414-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -110,7 +111,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 1fca6a88114ad..abc46f05762e6 100644
+index d609e957a3ec0..c02c3bb0fe091 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
 @@ -549,8 +549,10 @@ struct ip_vs_conn {
@@ -127,7 +128,7 @@ index 1fca6a88114ad..abc46f05762e6 100644
  	const struct ip_vs_pe	*pe;
  	char			*pe_data;
 diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 4963fec815da3..d4fe7bb4f853a 100644
+index daab857c52a80..fc8db03d3efca 100644
 --- a/net/netfilter/ipvs/ip_vs_sync.c
 +++ b/net/netfilter/ipvs/ip_vs_sync.c
 @@ -603,7 +603,7 @@ static void ip_vs_sync_conn_v0(struct netns_ipvs *ipvs, struct ip_vs_conn *cp,
