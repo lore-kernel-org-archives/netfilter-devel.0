@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC732C7EE21
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 19:47:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EAF4C7EE22
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 19:50:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231144AbjEDTrn (ORCPT
+        id S231485AbjEDTut (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 May 2023 15:47:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49328 "EHLO
+        Thu, 4 May 2023 15:50:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231134AbjEDTq6 (ORCPT
+        with ESMTP id S231415AbjEDTt4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2023 15:46:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5085731B0A;
-        Thu,  4 May 2023 12:45:00 -0700 (PDT)
+        Thu, 4 May 2023 15:49:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2980AD20;
+        Thu,  4 May 2023 12:46:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A35563762;
-        Thu,  4 May 2023 19:43:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE9B6C4339B;
-        Thu,  4 May 2023 19:43:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 394F06378A;
+        Thu,  4 May 2023 19:46:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE260C433D2;
+        Thu,  4 May 2023 19:46:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1683229436;
-        bh=zNeqN+hMy+J1p0zzphizoeIvRmJhxaCtWdQH88DtmSg=;
+        s=k20201202; t=1683229569;
+        bh=xrwjYdqolJOIzicyLA3w4BsXeJdbSfFobbOMVk4DBnY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=vMggAvrjQTPRmFii9JKf7Gs+ufFhOGDzw2zAZ1LzlKz5dytncF+JdruyHlYFtjntp
-         CvHy1sI20ldA9oFr1yE1O6Eav1Dl8ZcTpDF4nodhftRu1Mo/u7kdMyFDgNhBRJh0cS
-         5yGj1ZbuOSatuurCX/vDQTly2Rf6+4fk/5ty04KH3JyelGdM+qu4+KwrFa57SvC99q
-         7mEMdDPi+3/npN/FNbgk7FliQpWyrers44gK4UJ+pBQzoicRjXfE+NQi3HRsO9R6DG
-         Wxb1Fp0d7NVuKqgXHLWRzS5PVPIatbb3kn96jOmEsWWh48RXxaXamHiGdsEDrZRDl1
-         /F6bqz1iAihkA==
+        b=pqQXbcL5/gc/1lcNtyBCQUnizJAuO61to2kq6fx+RJVJykd+gTqyyGoqWLtXNsYKD
+         2y18zBgfloJ9Qc9rrfRaEOt7yI4349PMbK+a08CQ9nqsQ97MJ6ToGryNyrKp8wyMt6
+         MdFg1l7tsnEIvcibPQ0ykNaeftjOHuwmsb4ZXImChhMxocTyoVVW/Exxk58/4A6O3z
+         tiJPrcijm0UZsENbnpAg5PjiLS66D38vlsI+7W6D0g2O+d75q+EK92lQQI+z6dMyV7
+         VZlhr7Si5hHe00wRJe+SXeOFBm07TmGZdR8w773RfND5aXw2iKSQWmDM9Eozl7T6Rv
+         niI/Jz6L/qbMw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Simon Horman <horms@kernel.org>,
@@ -43,12 +43,12 @@ Cc:     Simon Horman <horms@kernel.org>,
         kuba@kernel.org, pabeni@redhat.com, kadlec@netfilter.org,
         fw@strlen.de, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 6.3 49/59] ipvs: Update width of source for ip_vs_sync_conn_options
-Date:   Thu,  4 May 2023 15:41:32 -0400
-Message-Id: <20230504194142.3805425-49-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.2 43/53] ipvs: Update width of source for ip_vs_sync_conn_options
+Date:   Thu,  4 May 2023 15:44:03 -0400
+Message-Id: <20230504194413.3806354-43-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230504194142.3805425-1-sashal@kernel.org>
-References: <20230504194142.3805425-1-sashal@kernel.org>
+In-Reply-To: <20230504194413.3806354-1-sashal@kernel.org>
+References: <20230504194413.3806354-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -110,10 +110,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 6d71a5ff52dfd..e20f1f92066d1 100644
+index c6c61100d2445..b0111e50277ef 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
-@@ -630,8 +630,10 @@ struct ip_vs_conn {
+@@ -629,8 +629,10 @@ struct ip_vs_conn {
  	 */
  	struct ip_vs_app        *app;           /* bound ip_vs_app object */
  	void                    *app_data;      /* Application private data */
