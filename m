@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCB06C77B7C
-	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 12:20:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 798B7C77B7C
+	for <netfilter-devel@archiver.kernel.org>; Thu,  4 May 2023 12:55:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229606AbjEDMU5 (ORCPT
+        id S230358AbjEDMzO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 4 May 2023 08:20:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51618 "EHLO
+        Thu, 4 May 2023 08:55:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229746AbjEDMU4 (ORCPT
+        with ESMTP id S230361AbjEDMzN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2023 08:20:56 -0400
+        Thu, 4 May 2023 08:55:13 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EE4365B0
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2023 05:20:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBE7B6A6F
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2023 05:55:08 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1puXwg-00062R-Gt; Thu, 04 May 2023 14:20:26 +0200
+        id 1puYUF-0006Cz-Dh; Thu, 04 May 2023 14:55:07 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: always release netdev hooks from notifier
-Date:   Thu,  4 May 2023 14:20:21 +0200
-Message-Id: <20230504122021.21058-1-fw@strlen.de>
+Subject: [PATCH nf] netfilter: fix possible bug_on with enable_hooks=1
+Date:   Thu,  4 May 2023 14:55:02 +0200
+Message-Id: <20230504125502.22512-1-fw@strlen.de>
 X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -32,68 +32,69 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This reverts "netfilter: nf_tables: skip netdev events generated on netns removal".
+I received a bug report (no reproducer so far) where we trip over
 
-The problem is that when a veth device is released, the veth release
-callback will also queue the peer netns device for removal.
+712         rcu_read_lock();
+713         ct_hook = rcu_dereference(nf_ct_hook);
+714         BUG_ON(ct_hook == NULL);  // here
 
-Its possible that the peer netns is also slated for removal.  In this
-case, the device memory is already released before the pre_exit hook of
-the peer netns runs:
+In nf_conntrack_destroy().
 
-BUG: KASAN: slab-use-after-free in nf_hook_entry_head+0x1b8/0x1d0
-Read of size 8 at addr ffff88812c0124f0 by task kworker/u8:1/45
-Workqueue: netns cleanup_net
-Call Trace:
- nf_hook_entry_head+0x1b8/0x1d0
- __nf_unregister_net_hook+0x76/0x510
- nft_netdev_unregister_hooks+0xa0/0x220
- __nft_release_hook+0x184/0x490
- nf_tables_pre_exit_net+0x12f/0x1b0
- ..
+First turn this BUG_ON into a WARN.  I think it was triggered
+via enable_hooks=1 flag.
 
-Order is:
-1. First netns is released, veth_dellink() queues peer netns device
-   for removal
-2. peer netns is queued for removal
-3. peer netns device is released, unreg event is triggered
-4. unreg event is ignored because netns is going down
-5. pre_exit hook calls nft_netdev_unregister_hooks but device memory
-   might be free'd already.
+When this flag is turned on, the conntrack hooks are registered
+before nf_ct_hook pointer gets assigned.
+This opens a short window where packets enter the conntrack machinery,
+can have skb->_nfct set up and a subsequent kfree_skb might occur
+before nf_ct_hook is set.
 
-Fixes: 68a3765c659f ("netfilter: nf_tables: skip netdev events generated on netns removal")
+Call nf_conntrack_init_end() to set nf_ct_hook before we register the
+pernet ops.
+
+Fixes: ba3fbe663635 ("netfilter: nf_conntrack: provide modparam to always register conntrack hooks")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_chain_filter.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/core.c                    | 6 ++++--
+ net/netfilter/nf_conntrack_standalone.c | 3 ++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index c3563f0be269..680fe557686e 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -344,6 +344,12 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
- 		return;
- 	}
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index f0783e42108b..fdd1dd0c747d 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -711,9 +711,11 @@ void nf_conntrack_destroy(struct nf_conntrack *nfct)
  
-+	/* UNREGISTER events are also happening on netns exit.
-+	 *
-+	 * Although nf_tables core releases all tables/chains, only this event
-+	 * handler provides guarantee that hook->ops.dev is still accessible,
-+	 * so we cannot skip exiting net namespaces.
-+	 */
- 	__nft_release_basechain(ctx);
+ 	rcu_read_lock();
+ 	ct_hook = rcu_dereference(nf_ct_hook);
+-	BUG_ON(ct_hook == NULL);
+-	ct_hook->destroy(nfct);
++	if (ct_hook)
++		ct_hook->destroy(nfct);
+ 	rcu_read_unlock();
++
++	WARN_ON(!ct_hook);
  }
+ EXPORT_SYMBOL(nf_conntrack_destroy);
  
-@@ -362,9 +368,6 @@ static int nf_tables_netdev_event(struct notifier_block *this,
- 	    event != NETDEV_CHANGENAME)
- 		return NOTIFY_DONE;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 57f6724c99a7..169e16fc2bce 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -1218,11 +1218,12 @@ static int __init nf_conntrack_standalone_init(void)
+ 	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
+ #endif
  
--	if (!check_net(ctx.net))
--		return NOTIFY_DONE;
--
- 	nft_net = nft_pernet(ctx.net);
- 	mutex_lock(&nft_net->commit_mutex);
- 	list_for_each_entry(table, &nft_net->tables, list) {
++	nf_conntrack_init_end();
++
+ 	ret = register_pernet_subsys(&nf_conntrack_net_ops);
+ 	if (ret < 0)
+ 		goto out_pernet;
+ 
+-	nf_conntrack_init_end();
+ 	return 0;
+ 
+ out_pernet:
 -- 
 2.39.2
 
