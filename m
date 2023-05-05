@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CBF1C77B7C
-	for <netfilter-devel@archiver.kernel.org>; Fri,  5 May 2023 15:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC051C7EE26
+	for <netfilter-devel@archiver.kernel.org>; Fri,  5 May 2023 15:32:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232924AbjEEPcM (ORCPT
+        id S232951AbjEEPcO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 5 May 2023 11:32:12 -0400
+        Fri, 5 May 2023 11:32:14 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232951AbjEEPcJ (ORCPT
+        with ESMTP id S232943AbjEEPcM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 May 2023 11:32:09 -0400
+        Fri, 5 May 2023 11:32:12 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CC9324C28
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 May 2023 08:31:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D66A9150C5
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 May 2023 08:31:55 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v1 10/12] netfilter: nf_tables: add track infrastructure to prepare for expression prefetch
-Date:   Fri,  5 May 2023 17:31:28 +0200
-Message-Id: <20230505153130.2385-11-pablo@netfilter.org>
+Subject: [PATCH nf-next,v1 11/12] netfilter: nf_tables: add expression prefetch infrastructure
+Date:   Fri,  5 May 2023 17:31:29 +0200
+Message-Id: <20230505153130.2385-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230505153130.2385-1-pablo@netfilter.org>
 References: <20230505153130.2385-1-pablo@netfilter.org>
@@ -30,524 +30,488 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new operation to track register content at ruleset load time.
-This comes in preparation of the new prefetch infrastructure.
+Use the register tracking state information that is provided by the
+chain to decide whether it is worth to prefetch the expression.
 
-A register can be in any of these three states:
+Extend ruleset blob representation to store a prefetch rule which
+inconditionally runs expressions before evaluating the ruleset.
 
-- NFT_TRACK_UNSET: The register has not yet been used.
-- NFT_TRACK_SET: The register has been used and it contains a selector
-  that is candidate to be prefetched before ruleset evaluation.
-- NFT_TRACK_SKIP: The register has been used to store different
-  selectors, this is not a candidate to be prefetched, ie. this
-  register is used a scratchpad area.
-
-Initially, all registers are in NFT_TRACK_UNSET. If a register R1 is
-used n-times to store the same selector, this register remains in
-state NFT_TRACK_SET. If the register R1 is used by different selectors,
-then it enters NFT_TRACK_SKIP from the NFT_TRACK_SET state.
-
-This patch introduces the infrastructure, follow up patch that
-introduces the expression prefetch support uses this.
+Enable expression reduction if register tracking information via
+prefetch is available.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h      | 28 +++++++++++++++++++++++++-
- include/net/netfilter/nft_fib.h        |  1 +
- include/net/netfilter/nft_meta.h       |  3 +++
- net/bridge/netfilter/nft_meta_bridge.c |  1 +
- net/ipv4/netfilter/nft_fib_ipv4.c      |  2 ++
- net/ipv6/netfilter/nft_fib_ipv6.c      |  2 ++
- net/netfilter/nf_tables_api.c          | 21 +++++++++++++++++++
- net/netfilter/nft_ct.c                 |  9 +++++++++
- net/netfilter/nft_exthdr.c             |  9 +++++++++
- net/netfilter/nft_fib.c                | 25 +++++++++++++++++++++++
- net/netfilter/nft_fib_inet.c           |  1 +
- net/netfilter/nft_fib_netdev.c         |  1 +
- net/netfilter/nft_hash.c               |  9 +++++++++
- net/netfilter/nft_meta.c               | 10 +++++++++
- net/netfilter/nft_osf.c                |  9 +++++++++
- net/netfilter/nft_payload.c            | 10 +++++++++
- net/netfilter/nft_socket.c             |  9 +++++++++
- net/netfilter/nft_tunnel.c             |  9 +++++++++
- net/netfilter/nft_xfrm.c               |  9 +++++++++
- 19 files changed, 167 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h        |   5 +
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/nf_tables_api.c            | 192 ++++++++++++++++++++++-
+ net/netfilter/nf_tables_core.c           |  30 +++-
+ 4 files changed, 221 insertions(+), 8 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f7132f136b47..744beb30f105 100644
+index 744beb30f105..ae7242aabda3 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -1057,6 +1057,8 @@ struct nft_expr_ops {
- 	int				(*validate)(const struct nft_ctx *ctx,
- 						    const struct nft_expr *expr,
- 						    const struct nft_data **data);
-+	void				(*track)(struct nft_regs_track *track,
-+						 const struct nft_expr *expr);
- 	bool				(*reduce)(struct nft_regs_track *track,
- 						  const struct nft_expr *expr);
- 	bool				(*gc)(struct net *net,
-@@ -1830,15 +1832,39 @@ static inline bool nft_reduce_is_readonly(const struct nft_expr *expr)
- 	return expr->ops->reduce == NFT_REDUCE_READONLY;
+@@ -1172,6 +1172,7 @@ static inline const struct nft_rule_dp *nft_rule_next(const struct nft_rule_dp *
  }
  
-+void nft_reg_track(struct nft_regs_track *track,
-+		   const struct nft_expr *expr, u8 dreg, u8 len,
-+		   bool (*cmp)(const struct nft_reg_track *reg,
-+			       const struct nft_expr *expr));
- void nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg, u8 len);
- void __nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg);
- 
-+#define __NFT_TRACK_SKIP_PTR	1UL
-+#define NFT_TRACK_SKIP_PTR	(void *)__NFT_TRACK_SKIP_PTR
-+
- static inline bool nft_reg_track_cmp(const struct nft_reg_track *reg,
- 				     const struct nft_expr *expr)
- {
--	return reg->selector &&
-+	return reg->selector && reg->selector != NFT_TRACK_SKIP_PTR &&
- 	       reg->selector->ops == expr->ops &&
- 	       reg->num_reg == 0;
- }
- 
-+enum nft_track_status {
-+	NFT_TRACK_UNSET		= 0,
-+	NFT_TRACK_SKIP,
-+	NFT_TRACK_SET,
-+};
-+
-+static inline enum nft_track_status
-+nft_reg_track_status(const struct nft_reg_track *reg)
-+{
-+	if (reg->selector == NFT_TRACK_SKIP_PTR)
-+		return NFT_TRACK_SKIP;
-+	else if (reg->selector != NULL)
-+		return NFT_TRACK_SET;
-+
-+	return NFT_TRACK_UNSET;
-+}
-+
- #endif /* _NET_NF_TABLES_H */
-diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
-index d365eb765327..4a7b525f0b2a 100644
---- a/include/net/netfilter/nft_fib.h
-+++ b/include/net/netfilter/nft_fib.h
-@@ -38,6 +38,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- void nft_fib_store_result(struct nft_regs *regs, const struct nft_fib *priv,
- 			  const struct net_device *dev);
- 
-+void nft_fib_track(struct nft_regs_track *track, const struct nft_expr *expr);
- bool nft_fib_reduce(struct nft_regs_track *track,
- 		    const struct nft_expr *expr);
- #endif
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index ba1238f12a48..413ad538c1bf 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -44,6 +44,9 @@ int nft_meta_set_validate(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr,
- 			  const struct nft_data **data);
- 
-+void nft_meta_get_track(struct nft_regs_track *track,
-+			const struct nft_expr *expr);
-+
- bool nft_meta_get_reduce(struct nft_regs_track *track,
- 			 const struct nft_expr *expr);
- 
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index 5e592b4df642..9df5294eb973 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -101,6 +101,7 @@ static const struct nft_expr_ops nft_meta_bridge_get_ops = {
- 	.eval		= nft_meta_bridge_get_eval,
- 	.init		= nft_meta_bridge_get_init,
- 	.dump		= nft_meta_get_dump,
-+	.track		= nft_meta_get_track,
- 	.reduce		= nft_meta_get_reduce,
+ struct nft_rule_blob {
++	unsigned long			prefetch_size;
+ 	unsigned long			size;
+ 	unsigned char			data[]
+ 		__attribute__((aligned(__alignof__(struct nft_rule_dp))));
+@@ -1196,6 +1197,7 @@ struct nft_chain {
+ 	struct list_head		list;
+ 	struct rhlist_head		rhlhead;
+ 	struct nft_table		*table;
++	struct nft_rule			*prefetch;
+ 	u64				handle;
+ 	u32				use;
+ 	u8				flags:5,
+@@ -1723,6 +1725,7 @@ struct nft_trans_chain {
+ 	u8				policy;
+ 	u32				chain_id;
+ 	struct nft_base_chain		*basechain;
++	struct nft_rule			*prefetch;
+ 	struct list_head		hook_list;
  };
  
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index cece7cc48104..a9da77bf84e3 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -158,6 +158,7 @@ static const struct nft_expr_ops nft_fib4_type_ops = {
- 	.init		= nft_fib_init,
- 	.dump		= nft_fib_dump,
- 	.validate	= nft_fib_validate,
-+	.track		= nft_fib_track,
- 	.reduce		= nft_fib_reduce,
- };
+@@ -1740,6 +1743,8 @@ struct nft_trans_chain {
+ 	(((struct nft_trans_chain *)trans->data)->basechain)
+ #define nft_trans_chain_hooks(trans)	\
+ 	(((struct nft_trans_chain *)trans->data)->hook_list)
++#define nft_trans_chain_prefetch(trans)	\
++	(((struct nft_trans_chain *)trans->data)->prefetch)
  
-@@ -168,6 +169,7 @@ static const struct nft_expr_ops nft_fib4_ops = {
- 	.init		= nft_fib_init,
- 	.dump		= nft_fib_dump,
- 	.validate	= nft_fib_validate,
-+	.track		= nft_fib_track,
- 	.reduce		= nft_fib_reduce,
+ struct nft_trans_table {
+ 	bool				update;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index c4d4d8e42dc8..e5cc5dd1f7f2 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -230,6 +230,7 @@ enum nft_chain_flags {
+  * @NFTA_CHAIN_FLAGS: chain flags
+  * @NFTA_CHAIN_ID: uniquely identifies a chain in a transaction (NLA_U32)
+  * @NFTA_CHAIN_USERDATA: user data (NLA_BINARY)
++ * @NFTA_CHAIN_EXPRESSIONS: list of expressions to prefetch (NLA_NESTED: nft_expr_attributes)
+  */
+ enum nft_chain_attributes {
+ 	NFTA_CHAIN_UNSPEC,
+@@ -245,6 +246,7 @@ enum nft_chain_attributes {
+ 	NFTA_CHAIN_FLAGS,
+ 	NFTA_CHAIN_ID,
+ 	NFTA_CHAIN_USERDATA,
++	NFTA_CHAIN_EXPRESSIONS,
+ 	__NFTA_CHAIN_MAX
  };
- 
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index e12251175434..b131b1deb61c 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -219,6 +219,7 @@ static const struct nft_expr_ops nft_fib6_type_ops = {
- 	.init		= nft_fib_init,
- 	.dump		= nft_fib_dump,
- 	.validate	= nft_fib_validate,
-+	.track		= nft_fib_track,
- 	.reduce		= nft_fib_reduce,
- };
- 
-@@ -229,6 +230,7 @@ static const struct nft_expr_ops nft_fib6_ops = {
- 	.init		= nft_fib_init,
- 	.dump		= nft_fib_dump,
- 	.validate	= nft_fib_validate,
-+	.track		= nft_fib_track,
- 	.reduce		= nft_fib_reduce,
- };
- 
+ #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a0e3b73c72a3..3e43e5eab4be 100644
+index 3e43e5eab4be..d0c80e11557e 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -679,6 +679,27 @@ void __nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg)
+@@ -1959,6 +1959,9 @@ static void nf_tables_chain_free_chain_rules(struct nft_chain *chain)
+ 	kvfree(chain->blob_next);
  }
- EXPORT_SYMBOL_GPL(__nft_reg_track_cancel);
  
-+void nft_reg_track(struct nft_regs_track *track,
-+		   const struct nft_expr *expr, u8 dreg, u8 len,
-+		   bool (*cmp)(const struct nft_reg_track *reg, const struct nft_expr *expr))
-+{
-+	switch (nft_reg_track_status(&track->regs[dreg])) {
-+	case NFT_TRACK_SKIP:
-+		return;
-+	case NFT_TRACK_UNSET:
-+		nft_reg_track_update(track, expr, dreg, len);
-+		return;
-+	case NFT_TRACK_SET:
-+		if (cmp(&track->regs[dreg], expr))
-+			return;
++static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
++				   struct nft_rule *rule);
 +
-+		nft_reg_track_cancel(track, dreg, len);
-+		track->regs[dreg].selector = NFT_TRACK_SKIP_PTR;
-+		break;
+ void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ {
+ 	struct nft_chain *chain = ctx->chain;
+@@ -1970,6 +1973,9 @@ void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ 	/* no concurrent access possible anymore */
+ 	nf_tables_chain_free_chain_rules(chain);
+ 
++	if (chain->prefetch)
++		nf_tables_rule_destroy(ctx, chain->prefetch);
++
+ 	if (nft_is_base_chain(chain)) {
+ 		struct nft_base_chain *basechain = nft_base_chain(chain);
+ 
+@@ -2247,6 +2253,7 @@ static struct nft_rule_blob *nf_tables_chain_alloc_rules(const struct nft_chain
+ 		return NULL;
+ 
+ 	blob->size = 0;
++	blob->prefetch_size = 0;
+ 	nft_last_rule(chain, blob->data);
+ 
+ 	return blob;
+@@ -2308,6 +2315,62 @@ static int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
+ 	return 0;
+ }
+ 
++static int nf_tables_newexpr(const struct nft_ctx *ctx,
++			     const struct nft_expr_info *expr_info,
++			     struct nft_expr *expr);
++
++static int nft_chain_prefetch(struct nft_ctx *ctx, const struct nlattr *nla,
++			      struct nft_rule **prefetch,
++			      struct netlink_ext_ack *extack)
++{
++	struct nft_expr_info *expr_info;
++	unsigned int size = 0, n = 0;
++	struct nft_expr *expr;
++	struct nft_rule *rule;
++	int i, err;
++
++	expr_info = nft_expr_info_setup(ctx, nla, &size, &n, extack);
++	if (IS_ERR(expr_info))
++		return PTR_ERR(expr_info);
++
++	rule = kzalloc(sizeof(*rule) + size, GFP_KERNEL_ACCOUNT);
++	if (!rule) {
++		err = -ENOMEM;
++		goto err_destroy_prefetch;
 +	}
-+}
-+EXPORT_SYMBOL_GPL(nft_reg_track);
++	rule->dlen = size;
 +
- /*
-  * Tables
-  */
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 746416d894e0..21828fb3100e 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -715,6 +715,14 @@ static bool nft_ct_expr_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_ct_get_track(struct nft_regs_track *track,
-+			      const struct nft_expr *expr)
-+{
-+	const struct nft_ct *priv = nft_expr_priv(expr);
++	expr = nft_expr_first(rule);
++	for (i = 0; i < n; i++) {
++		err = nf_tables_newexpr(ctx, &expr_info[i], expr);
++		if (err < 0) {
++			NL_SET_BAD_ATTR(extack, expr_info[i].attr);
++			goto err_destroy_prefetch_rule;
++		}
++		expr_info[i].ops = NULL;
++		expr = nft_expr_next(expr);
++	}
++	kvfree(expr_info);
 +
-+	nft_reg_track(track, expr, priv->dreg, priv->len, nft_ct_expr_cmp);
-+}
++	*prefetch = rule;
 +
- static bool nft_ct_get_reduce(struct nft_regs_track *track,
- 			      const struct nft_expr *expr)
- {
-@@ -762,6 +770,7 @@ static const struct nft_expr_ops nft_ct_get_ops = {
- 	.init		= nft_ct_get_init,
- 	.destroy	= nft_ct_get_destroy,
- 	.dump		= nft_ct_get_dump,
-+	.track		= nft_ct_get_track,
- 	.reduce		= nft_ct_get_reduce,
- };
- 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 43d53e4342c5..cf5ee748f2c6 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -630,6 +630,14 @@ static bool nft_exthdr_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_exthdr_track(struct nft_regs_track *track,
-+			     const struct nft_expr *expr)
-+{
-+       const struct nft_exthdr *priv = nft_expr_priv(expr);
++	return 0;
 +
-+       nft_reg_track(track, expr, priv->dreg, priv->len, nft_exthdr_cmp);
++err_destroy_prefetch_rule:
++	nf_tables_rule_destroy(ctx, rule);
++err_destroy_prefetch:
++	for (i = 0; i < n; i++) {
++		if (expr_info[i].ops) {
++			module_put(expr_info[i].ops->type->owner);
++			if (expr_info[i].ops->type->release_ops)
++				expr_info[i].ops->type->release_ops(expr_info[i].ops);
++		}
++	}
++	kvfree(expr_info);
++
++	return err;
 +}
 +
- static bool nft_exthdr_reduce(struct nft_regs_track *track,
- 			       const struct nft_expr *expr)
- {
-@@ -649,6 +657,7 @@ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
- 	.eval		= nft_exthdr_ipv6_eval,
- 	.init		= nft_exthdr_init,
- 	.dump		= nft_exthdr_dump,
-+	.track		= nft_exthdr_track,
- 	.reduce		= nft_exthdr_reduce,
- };
+ static u64 chain_id;
  
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-index 8a1aad66ce91..e493e4851d93 100644
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -190,6 +190,31 @@ static bool nft_fib_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
+ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+@@ -2409,6 +2472,13 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		chain->udlen = nla_len(nla[NFTA_CHAIN_USERDATA]);
+ 	}
  
-+void nft_fib_track(struct nft_regs_track *track, const struct nft_expr *expr)
-+{
-+	const struct nft_fib *priv = nft_expr_priv(expr);
-+	unsigned int len = NFT_REG32_SIZE;
-+
-+	switch (priv->result) {
-+	case NFT_FIB_RESULT_OIF:
-+		break;
-+	case NFT_FIB_RESULT_OIFNAME:
-+		if (priv->flags & NFTA_FIB_F_PRESENT)
-+			len = NFT_REG32_SIZE;
-+		else
-+			len = IFNAMSIZ;
-+		break;
-+	case NFT_FIB_RESULT_ADDRTYPE:
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
++	if (nla[NFTA_CHAIN_EXPRESSIONS]) {
++		err = nft_chain_prefetch(ctx, nla[NFTA_CHAIN_EXPRESSIONS],
++					 &chain->prefetch, extack);
++		if (err < 0)
++			goto err_destroy_chain;
 +	}
 +
-+	nft_reg_track(track, expr, priv->dreg, len, nft_fib_cmp);
-+}
-+EXPORT_SYMBOL_GPL(nft_fib_track);
+ 	blob = nf_tables_chain_alloc_rules(chain, 0);
+ 	if (!blob) {
+ 		err = -ENOMEM;
+@@ -2457,6 +2527,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	struct nft_base_chain *basechain = NULL;
+ 	struct nft_table *table = ctx->table;
+ 	struct nft_chain *chain = ctx->chain;
++	struct nft_rule *prefetch = NULL;
+ 	struct nft_chain_hook hook = {};
+ 	struct nft_stats *stats = NULL;
+ 	struct nft_hook *h, *next;
+@@ -2538,6 +2609,13 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 		}
+ 	}
+ 
++	if (nla[NFTA_CHAIN_EXPRESSIONS]) {
++		err = nft_chain_prefetch(ctx, nla[NFTA_CHAIN_EXPRESSIONS],
++					 &prefetch, extack);
++		if (err < 0)
++			goto err_hooks;
++	}
 +
- bool nft_fib_reduce(struct nft_regs_track *track,
- 		    const struct nft_expr *expr)
- {
-diff --git a/net/netfilter/nft_fib_inet.c b/net/netfilter/nft_fib_inet.c
-index 666a3741d20b..4e3c51c99130 100644
---- a/net/netfilter/nft_fib_inet.c
-+++ b/net/netfilter/nft_fib_inet.c
-@@ -49,6 +49,7 @@ static const struct nft_expr_ops nft_fib_inet_ops = {
- 	.init		= nft_fib_init,
- 	.dump		= nft_fib_dump,
- 	.validate	= nft_fib_validate,
-+	.track		= nft_fib_track,
- 	.reduce		= nft_fib_reduce,
- };
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    nft_is_base_chain(chain) &&
+ 	    !list_empty(&hook.list)) {
+@@ -2560,6 +2638,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
  
-diff --git a/net/netfilter/nft_fib_netdev.c b/net/netfilter/nft_fib_netdev.c
-index 9121ec64e918..2f0b1251c281 100644
---- a/net/netfilter/nft_fib_netdev.c
-+++ b/net/netfilter/nft_fib_netdev.c
-@@ -58,6 +58,7 @@ static const struct nft_expr_ops nft_fib_netdev_ops = {
- 	.init		= nft_fib_init,
- 	.dump		= nft_fib_dump,
- 	.validate	= nft_fib_validate,
-+	.track		= nft_fib_track,
- 	.reduce		= nft_fib_reduce,
- };
+ 	nft_trans_chain_stats(trans) = stats;
+ 	nft_trans_chain_update(trans) = true;
++	nft_trans_chain_prefetch(trans) = prefetch;
  
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 8d93d9d4ecd9..db2e1eb50aa2 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -220,6 +220,14 @@ static bool nft_symhash_cmp(const struct nft_reg_track *reg,
- 	return true;
+ 	if (nla[NFTA_CHAIN_POLICY])
+ 		nft_trans_chain_policy(trans) = policy;
+@@ -2605,6 +2684,9 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	free_percpu(stats);
+ 	kfree(trans);
+ err_hooks:
++	if (prefetch)
++		nf_tables_rule_destroy(ctx, prefetch);
++
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+ 		list_for_each_entry_safe(h, next, &hook.list, list) {
+ 			if (unregister)
+@@ -8921,10 +9003,15 @@ static void nft_commit_release(struct nft_trans *trans)
+ 		break;
+ 	case NFT_MSG_DELCHAIN:
+ 	case NFT_MSG_DESTROYCHAIN:
+-		if (nft_trans_chain_update(trans))
++		if (nft_trans_chain_update(trans)) {
++			if (nft_trans_chain_prefetch(trans)) {
++				nf_tables_rule_destroy(&trans->ctx,
++						       nft_trans_chain_prefetch(trans));
++			}
+ 			nft_hooks_destroy(&nft_trans_chain_hooks(trans));
+-		else
++		} else {
+ 			nf_tables_chain_destroy(&trans->ctx);
++		}
+ 		break;
+ 	case NFT_MSG_DELRULE:
+ 	case NFT_MSG_DESTROYRULE:
+@@ -8985,6 +9072,81 @@ void nf_tables_trans_destroy_flush_work(void)
  }
+ EXPORT_SYMBOL_GPL(nf_tables_trans_destroy_flush_work);
  
-+static void nft_symhash_track(struct nft_regs_track *track,
-+			      const struct nft_expr *expr)
++static unsigned int nft_prefetch_prepare(struct nft_regs_track *track,
++					 struct nft_chain *chain)
 +{
-+	const struct nft_symhash *priv = nft_expr_priv(expr);
++	const struct nft_expr *expr, *last;
++	unsigned int data_size = 0;
++	struct nft_rule *rule;
++	int i;
 +
-+	nft_reg_track(track, expr, priv->dreg, sizeof(u32), nft_symhash_cmp);
++	if (!chain->prefetch)
++		return 0;
++
++	rule = chain->prefetch;
++	nft_rule_for_each_expr(expr, last, rule) {
++		if (expr->ops->track)
++			expr->ops->track(track, expr);
++	}
++
++	for (i = 0; i < NFT_REG32_NUM; i++) {
++		if (!track->regs[i].selector)
++			continue;
++		if (track->regs[i].selector == NFT_TRACK_SKIP_PTR) {
++			track->regs[i].selector = NULL;
++			continue;
++		}
++
++		expr = track->regs[i].selector;
++		data_size += expr->ops->size;
++	}
++	if (data_size == 0)
++		return 0;
++
++	data_size += offsetof(struct nft_rule_dp, data);	/* prefetch rule */
++
++	return data_size;
 +}
 +
- static bool nft_symhash_reduce(struct nft_regs_track *track,
- 			       const struct nft_expr *expr)
- {
-@@ -249,6 +257,7 @@ static const struct nft_expr_ops nft_symhash_ops = {
- 	.eval		= nft_symhash_eval,
- 	.init		= nft_symhash_init,
- 	.dump		= nft_symhash_dump,
-+	.track		= nft_symhash_track,
- 	.reduce		= nft_symhash_reduce,
- };
- 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index db13a4771261..7f160e4be1b7 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -790,6 +790,15 @@ static bool nft_meta_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+void nft_meta_get_track(struct nft_regs_track *track,
-+			const struct nft_expr *expr)
++static int nft_prefetch_build(struct nft_regs_track *track,
++			      struct nft_chain *chain, void *data,
++			      void *data_boundary, unsigned int prefetch_size)
 +{
-+	const struct nft_meta *priv = nft_expr_priv(expr);
++	const struct nft_expr *expr;
++	struct nft_rule_dp *prule;
++	unsigned int size = 0;
++	int i;
 +
-+	nft_reg_track(track, expr, priv->dreg, priv->len, nft_meta_cmp);
-+}
-+EXPORT_SYMBOL_GPL(nft_meta_get_track);
++	prule = (struct nft_rule_dp *)data;
++	data += offsetof(struct nft_rule_dp, data);
++	if (WARN_ON_ONCE(data > data_boundary))
++		return -ENOMEM;
 +
- bool nft_meta_get_reduce(struct nft_regs_track *track,
- 			 const struct nft_expr *expr)
- {
-@@ -811,6 +820,7 @@ static const struct nft_expr_ops nft_meta_get_ops = {
- 	.init		= nft_meta_get_init,
- 	.dump		= nft_meta_get_dump,
- 	.reduce		= nft_meta_get_reduce,
-+	.track		= nft_meta_get_track,
- 	.validate	= nft_meta_get_validate,
- 	.offload	= nft_meta_get_offload,
- };
-diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-index ce01e3970579..117a8f8c9efd 100644
---- a/net/netfilter/nft_osf.c
-+++ b/net/netfilter/nft_osf.c
-@@ -151,6 +151,14 @@ static bool nft_osf_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_osf_track(struct nft_regs_track *track,
-+			  const struct nft_expr *expr)
-+{
-+	const struct nft_osf *priv = nft_expr_priv(expr);
++	for (i = 0; i < NFT_REG32_NUM; i++) {
++		if (!track->regs[i].selector)
++			continue;
 +
-+	nft_reg_track(track, expr, priv->dreg, NFT_OSF_MAXGENRELEN, nft_osf_cmp);
++		expr = track->regs[i].selector;
++		if (WARN_ON_ONCE(data + expr->ops->size > data_boundary))
++			return -ENOMEM;
++
++		memcpy(data + size, expr, expr->ops->size);
++		size += expr->ops->size;
++	}
++
++	prule->handle = 0;
++	prule->dlen = size;
++	prule->is_last = 0;
++
++	data += size;
++	size = (unsigned long)(data - (void *)prule);
++
++	if (WARN_ON_ONCE(prefetch_size != size))
++		return -EINVAL;
++
++	return 0;
 +}
 +
- static bool nft_osf_reduce(struct nft_regs_track *track,
- 			   const struct nft_expr *expr)
- {
-@@ -172,6 +180,7 @@ static const struct nft_expr_ops nft_osf_op = {
- 	.dump		= nft_osf_dump,
- 	.type		= &nft_osf_type,
- 	.validate	= nft_osf_validate,
-+	.track		= nft_osf_track,
- 	.reduce		= nft_osf_reduce,
- };
- 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 056a8adf8726..a4b111e1eb96 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -270,6 +270,14 @@ static bool nft_payload_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_payload_track(struct nft_regs_track *track,
-+			       const struct nft_expr *expr)
-+{
-+	const struct nft_payload *priv = nft_expr_priv(expr);
-+
-+	nft_reg_track(track, expr, priv->dreg, priv->len, nft_payload_cmp);
-+}
-+
- static bool nft_payload_reduce(struct nft_regs_track *track,
- 			       const struct nft_expr *expr)
- {
-@@ -586,6 +594,7 @@ static const struct nft_expr_ops nft_payload_ops = {
- 	.eval		= nft_payload_eval,
- 	.init		= nft_payload_init,
- 	.dump		= nft_payload_dump,
-+	.track		= nft_payload_track,
- 	.reduce		= nft_payload_reduce,
- 	.offload	= nft_payload_offload,
- };
-@@ -596,6 +605,7 @@ const struct nft_expr_ops nft_payload_fast_ops = {
- 	.eval		= nft_payload_eval,
- 	.init		= nft_payload_init,
- 	.dump		= nft_payload_dump,
-+	.track		= nft_payload_track,
- 	.reduce		= nft_payload_reduce,
- 	.offload	= nft_payload_offload,
- };
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 8bc1df325ab9..6fde13c939c0 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -235,6 +235,14 @@ static bool nft_socket_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_socket_track(struct nft_regs_track *track,
-+			     const struct nft_expr *expr)
-+{
-+	const struct nft_socket *priv = nft_expr_priv(expr);
-+
-+	nft_reg_track(track, expr, priv->dreg, priv->len, nft_socket_cmp);
-+}
-+
- static bool nft_socket_reduce(struct nft_regs_track *track,
- 			      const struct nft_expr *expr)
- {
-@@ -266,6 +274,7 @@ static const struct nft_expr_ops nft_socket_ops = {
- 	.init		= nft_socket_init,
- 	.dump		= nft_socket_dump,
- 	.validate	= nft_socket_validate,
-+	.track		= nft_socket_track,
- 	.reduce		= nft_socket_reduce,
- };
- 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 2a831a40d7c2..bb4ff36d2047 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -142,6 +142,14 @@ static bool nft_tunnel_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_tunnel_get_track(struct nft_regs_track *track,
-+				 const struct nft_expr *expr)
-+{
-+	const struct nft_tunnel *priv = nft_expr_priv(expr);
-+
-+	nft_reg_track(track, expr, priv->dreg, priv->len, nft_tunnel_cmp);
-+}
-+
- static bool nft_tunnel_get_reduce(struct nft_regs_track *track,
- 				  const struct nft_expr *expr)
- {
-@@ -162,6 +170,7 @@ static const struct nft_expr_ops nft_tunnel_get_ops = {
- 	.eval		= nft_tunnel_get_eval,
- 	.init		= nft_tunnel_get_init,
- 	.dump		= nft_tunnel_get_dump,
-+	.track		= nft_tunnel_get_track,
- 	.reduce		= nft_tunnel_get_reduce,
- };
- 
-diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
-index 7f65f5b3bbbf..f4610b795ede 100644
---- a/net/netfilter/nft_xfrm.c
-+++ b/net/netfilter/nft_xfrm.c
-@@ -276,6 +276,14 @@ static bool nft_xfrm_cmp(const struct nft_reg_track *reg,
- 	return true;
- }
- 
-+static void nft_xfrm_track(struct nft_regs_track *track,
-+			   const struct nft_expr *expr)
-+{
-+	const struct nft_xfrm *priv = nft_expr_priv(expr);
-+
-+	nft_reg_track(track, expr, priv->dreg, priv->len, nft_xfrm_cmp);
-+}
-+
- static bool nft_xfrm_reduce(struct nft_regs_track *track,
+ static bool nft_expr_reduce(struct nft_regs_track *track,
  			    const struct nft_expr *expr)
  {
-@@ -297,6 +305,7 @@ static const struct nft_expr_ops nft_xfrm_get_ops = {
- 	.init		= nft_xfrm_get_init,
- 	.dump		= nft_xfrm_get_dump,
- 	.validate	= nft_xfrm_validate,
-+	.track		= nft_xfrm_track,
- 	.reduce		= nft_xfrm_reduce,
+@@ -8993,12 +9155,13 @@ static bool nft_expr_reduce(struct nft_regs_track *track,
+ 
+ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *chain)
+ {
++	unsigned int size, data_size, prefetch_size;
+ 	const struct nft_expr *expr, *last;
+ 	struct nft_regs_track track = {};
+-	unsigned int size, data_size;
+ 	void *data, *data_boundary;
+ 	struct nft_rule_dp *prule;
+ 	struct nft_rule *rule;
++	int err;
+ 
+ 	/* already handled or inactive chain? */
+ 	if (chain->blob_next || !nft_is_active_next(net, chain))
+@@ -9013,6 +9176,9 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 		}
+ 	}
+ 
++	prefetch_size = nft_prefetch_prepare(&track, chain);
++	data_size += prefetch_size;
++
+ 	chain->blob_next = nf_tables_chain_alloc_rules(chain, data_size);
+ 	if (!chain->blob_next)
+ 		return -ENOMEM;
+@@ -9021,6 +9187,16 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 	data_boundary = data + data_size;
+ 	size = 0;
+ 
++	if (prefetch_size) {
++		err = nft_prefetch_build(&track, chain, data, data_boundary,
++					 prefetch_size);
++		if (err < 0)
++			return err;
++	}
++	chain->blob_next->prefetch_size = prefetch_size;
++
++	data += prefetch_size;
++
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		if (!nft_is_active_next(net, rule))
+ 			continue;
+@@ -9035,7 +9211,7 @@ static int nf_tables_commit_chain_prepare(struct net *net, struct nft_chain *cha
+ 		nft_rule_for_each_expr(expr, last, rule) {
+ 			track.cur = expr;
+ 
+-			if (nft_expr_reduce(&track, expr)) {
++			if (prefetch_size && nft_expr_reduce(&track, expr)) {
+ 				expr = track.cur;
+ 				continue;
+ 			}
+@@ -9095,7 +9271,7 @@ static void nf_tables_commit_chain_free_rules_old(struct nft_rule_blob *blob)
+ 	struct nft_rule_dp_last *last;
+ 
+ 	/* last rule trailer is after end marker */
+-	last = (void *)blob + sizeof(*blob) + blob->size;
++	last = (void *)blob + sizeof(*blob) + blob->prefetch_size + blob->size;
+ 	last->blob = blob;
+ 
+ 	call_rcu(&last->h, __nf_tables_commit_chain_free_rules);
+@@ -9406,6 +9582,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 						       &nft_trans_chain_hooks(trans));
+ 				list_splice(&nft_trans_chain_hooks(trans),
+ 					    &nft_trans_basechain(trans)->hook_list);
++				if (nft_trans_chain_prefetch(trans))
++					swap(chain->prefetch, nft_trans_chain_prefetch(trans));
+ 				/* trans destroyed after rcu grace period */
+ 			} else {
+ 				nft_chain_commit_drop_policy(trans);
+@@ -9662,6 +9840,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 				nft_netdev_unregister_hooks(net,
+ 							    &nft_trans_chain_hooks(trans),
+ 							    true);
++				if (nft_trans_chain_prefetch(trans)) {
++					nf_tables_rule_destroy(&trans->ctx,
++							       nft_trans_chain_prefetch(trans));
++				}
+ 				free_percpu(nft_trans_chain_stats(trans));
+ 				kfree(nft_trans_chain_name(trans));
+ 				nft_trans_destroy(trans);
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 2adfe443898a..37bc07b5b1e1 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -207,6 +207,7 @@ static noinline void nft_update_chain_stats(const struct nft_chain *chain,
+ }
+ 
+ struct nft_jumpstack {
++	const struct nft_rule_blob *blob;
+ 	const struct nft_rule_dp *rule;
  };
+ 
+@@ -256,6 +257,25 @@ static void expr_call_ops_eval(const struct nft_expr *expr,
+              (expr) != (last); \
+              (expr) = nft_rule_expr_next(expr))
+ 
++static void nft_do_prefetch(const struct nft_rule_blob *blob,
++			    struct nft_regs *regs, struct nft_pktinfo *pkt)
++{
++	const struct nft_expr *expr, *last;
++	const struct nft_rule_dp *rule;
++
++	regs->valid = 0;
++
++	if (!blob->prefetch_size)
++		return;
++
++	rule = (struct nft_rule_dp *)blob->data;
++	nft_rule_dp_for_each_expr(expr, last, rule) {
++		if (expr->ops != &nft_payload_fast_ops ||
++		    !nft_payload_fast_eval(expr, regs, pkt))
++			expr_call_ops_eval(expr, regs, pkt);
++	}
++}
++
+ unsigned int
+ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ {
+@@ -266,11 +286,10 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	unsigned int stackptr = 0;
+ 	struct nft_jumpstack jumpstack[NFT_JUMP_STACK_SIZE];
+ 	bool genbit = READ_ONCE(net->nft.gencursor);
+-	struct nft_rule_blob *blob;
++	const struct nft_rule_blob *blob;
+ 	struct nft_traceinfo info;
+ 	struct nft_regs regs;
+ 
+-	regs.valid = 0;
+ 	info.trace = false;
+ 	if (static_branch_unlikely(&nft_trace_enabled))
+ 		nft_trace_init(&info, pkt, basechain);
+@@ -280,7 +299,8 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	else
+ 		blob = rcu_dereference(chain->blob_gen_0);
+ 
+-	rule = (struct nft_rule_dp *)blob->data;
++	nft_do_prefetch(blob, &regs, pkt);
++	rule = (struct nft_rule_dp *)(blob->data + blob->prefetch_size);
+ next_rule:
+ 	regs.verdict.code = NFT_CONTINUE;
+ 	for (; !rule->is_last ; rule = nft_rule_next(rule)) {
+@@ -326,6 +346,8 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	case NFT_JUMP:
+ 		if (WARN_ON_ONCE(stackptr >= NFT_JUMP_STACK_SIZE))
+ 			return NF_DROP;
++
++		jumpstack[stackptr].blob = blob;
+ 		jumpstack[stackptr].rule = nft_rule_next(rule);
+ 		stackptr++;
+ 		fallthrough;
+@@ -341,7 +363,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 
+ 	if (stackptr > 0) {
+ 		stackptr--;
++		blob = jumpstack[stackptr].blob;
+ 		rule = jumpstack[stackptr].rule;
++		nft_do_prefetch(blob, &regs, pkt);
+ 		goto next_rule;
+ 	}
  
 -- 
 2.30.2
