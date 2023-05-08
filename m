@@ -2,126 +2,134 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2969C7EE2A
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 May 2023 20:07:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC1DC7EE22
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 May 2023 20:26:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233773AbjEHUH4 (ORCPT
+        id S229621AbjEHU0J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 May 2023 16:07:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50664 "EHLO
+        Mon, 8 May 2023 16:26:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233434AbjEHUHq (ORCPT
+        with ESMTP id S229520AbjEHUZv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2023 16:07:46 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 111C55597
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2023 13:07:45 -0700 (PDT)
-Date:   Mon, 8 May 2023 22:07:40 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Boris Sukholitko <boris.sukholitko@broadcom.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Ilya Lifshits <ilya.lifshits@broadcom.com>
-Subject: Re: [PATCH nf-next 00/19] netfilter: nftables: dscp modification
- offload
-Message-ID: <ZFlWjETnQgotP6NO@calendula>
-References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
- <20230503184630.GB28036@breakpoint.cc>
- <CADuVC7imr-YL4aUKbrRSQbQ_2QY_A5zCiAfmqgz9o49-n8AkTg@mail.gmail.com>
- <20230507173758.GA25617@breakpoint.cc>
- <ZFj7PomKpCnLsDz2@noodle>
+        Mon, 8 May 2023 16:25:51 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01F7C3C1B
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2023 13:25:49 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1pw7QZ-0007qF-SS; Mon, 08 May 2023 22:25:47 +0200
+Date:   Mon, 8 May 2023 22:25:47 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: nft transaction semantics and flowtable hw offload
+Message-ID: <20230508202547.GA25016@breakpoint.cc>
+References: <20230505123208.GB6126@breakpoint.cc>
+ <ZFlRWJ/kC+F1YNsB@calendula>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZFj7PomKpCnLsDz2@noodle>
+In-Reply-To: <ZFlRWJ/kC+F1YNsB@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, May 08, 2023 at 04:38:06PM +0300, Boris Sukholitko wrote:
-> On Sun, May 07, 2023 at 07:37:58PM +0200, Florian Westphal wrote:
-> > Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
-> > > On Wed, May 3, 2023 at 9:46 PM Florian Westphal <fw@strlen.de> wrote:
-> > > >
-> > > > Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
-> > > [... snip to non working offload ...]
-> > > 
-> > > > > table inet filter {
-> > > > >         flowtable f1 {
-> > > > >                 hook ingress priority filter
-> > > > >                 devices = { veth0, veth1 }
-> > > > >         }
-> > > > >
-> > > > >         chain forward {
-> > > > >                 type filter hook forward priority filter; policy accept;
-> > > > >                 ip dscp set cs3 offload
-> > > > >                 ip protocol { tcp, udp, gre } flow add @f1
-> > > > >                 ct state established,related accept
-> > > > >         }
-> > > > > }
-> > > 
-> > > [...]
-> > > 
-> > > >
-> > > > I wish you would have reported this before you started to work on
-> > > > this, because this is not a bug, this is expected behaviour.
-> > > >
-> > > > Once you offload, the ruleset is bypassed, this is by design.
-> > > 
-> > > From the rules UI perspective it seems possible to accelerate
-> > > forward chain handling with the statements such as dscp modification there.
-> > > 
-> > > Isn't it better to modify the packets according to the bypassed
-> > > ruleset thus making the behaviour more consistent?
-> > 
-> > The behaviour is consistent.  Once flow is offloaded, ruleset is
-> > bypassed.  Its easy to not offload those flows that need the ruleset.
-> > 
-> > > > Lets not make the software offload more complex as it already is.
-> > > 
-> > > Could you please tell which parts of software offload are too complex?
-> > > It's not too bad from what I've seen :)
-> > > 
-> > > This patch series adds 56 lines of code in the new nf_conntrack.ext.c
-> > > file. 20 of them (nf_flow_offload_apply_payload) are used in
-> > > the software fast path. Is it too high of a price?
-> > 
-> > 56 lines of code *now*.
-> > 
-> > Next someone wants to call into sets/maps for named counters that
-> > they need.  Then someone wants limit or quota to work.  Then they want fib
-> > for RPF.  Then xfrm policy matching to augment acccounting.
-> > This will go on until we get to the point where removing "fast" path
-> > turns into a performance optimization.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Florian,
 > 
-> OK. May I assume that you are concerned with the eventual performance impact
-> on the software fast path (i.e. nf_flow_offload_ip_hook)?
+> On Fri, May 05, 2023 at 02:32:08PM +0200, Florian Westphal wrote:
+> > Following dummy ruleset only works on first load:
+> > 
+> > $ cat bug
+> > flush ruleset
+> > table inet filter {
+> >   flowtable f1 {
+> >   hook ingress priority 10
+> >   flags offload
+> >   devices = { dummy0, dummy1 }
+> >  }
+> > }
+> > $ nft -f bug
+> 
+> This follows flowtable addition path.
+> 
+> > $ nft -f bug
+> 
+> This follows nft_flow_update() path.
 
-I think Florian's concern is that there is better infrastructure to
-handle for ruleset offloads, ie. ingress/egress ruleset hardware
-offload infrastructure.
+I don't think so, the "flush ruleset" should make the
+existing flowtable invisible, no?
 
-> Obviously the performance of the fast path is very important to our
-> customers. Otherwise they would not be requiring dscp fast path
-> modification. :)
+> > bug:3:13-14: Error: Could not process rule: Device or resource busy
 > 
-> One of the things we've thought about regarding the fast path
-> performance is rewriting nf_flow_offload_ip_hook to work with
-> nf_flowtable->flow_block instead of flow_offload_tuple.
-> 
-> We hope that iterating over flow_action_entry list similar to what the
-> hardware acceleration does, will be more efficient also in software.
-> 
-> Nice side-effect of such optimization would be that the amount of
-> feature bloat (such as dscp modification!) will not affect your typical
-> connection unless the user actually uses them.
-> 
-> For example, for dscp payload modification we'll generate
-> FLOW_ACTION_MANGLE entry. This entry will appear on flow_block's of
-> the only connections which require it. Others will be uneffected.
->
-> Would you be ok with such direction (with performance tests of
-> course)?
+> I don't see who reports EBUSY at quick glance.
 
-I am still missing the reason why the ingress/egress ruleset hardware
-offload infrastructure is not a good fit for your requirements.
+Its the NIC driver (ndo_setup_tc), but I do not see how its fixable,
+hence this email.
+
+> > This works when 'offload' flag is removed.
+> > 
+> > Transaction will *first* try to register the flowtable hook,
+> > then it unregisters the existing flowtable hook.
+> > 
+> > When 'offload' flag is enabled, hook registration fails because
+> > the device offload capability is already busy.
+> >
+> > Any suggestions on how to fix this?
+> > Or would you say this is as expected/designed?
+> 
+> It should not report EBUSY, we have fixed similar issues like this one
+> in the past.
+
+But driver can't know that the (registered) flow block is going
+to be unregistered later in the same transaction, so it can't
+"suppress" the error.
+
+For SW path (no offload) this works because netfilter core
+will be happy to (temporarily) register the software flow bypass
+hook a second time.
+
+You can replicate a unrelated but similar error if you create 1k base chains,
+then try to "nft -f" the same ruleset; if you prepend a "flush ruleset"
+this will fail because we have "reg, unreg" and not "unreg, reg"
+ordering (and we have to do it this way to not leave a "no hooks at all"
+window) and the temporary 2nd registering brings the core over the
+hardcoded limit.
+
+> > We could swap register/unregister, but this has two major issues:
+> > 
+> > 1. it gives a window where no hook is registered on hw side
+> > 2. after unreg, we cannot assume that (re)registering works, so
+> >    'nft -f' may cause loss of functionality.
+> > 
+> > Adding a 'refcount' scheme doesn't really work either, we'd need
+> > an extra data structure to record the known offload settings, so that
+> > on a 'hook flowtable f1 to dummy0' request we can figure out that this
+> > is expected to be busy and then we could skip the register request.
+> > 
+> > But that has to problem that the batch might not have an unregister
+> > request, i.e. we would accept a bogus ruleset that *should* have failed
+> > with -EBUSY.
+> > 
+> > Any ideas?
+> 
+> If you help me narrow down the issue, because I currently do not see
+> where this EBUSY error originates from.
+
+To be fair, I dont have offload capable HW so I hacked up the dummy driver
+to add a faux ndo_setup_tc for testing.
+
+As far as I can piece this together this is coming from
+flow_block_cb_setup_simple() in mlx5.
+
+Interesting however is that mtk_wed_setup_tc_block() seems to instead
+bump an internal refcount.
+
+Is that the expected driver handling in this situation?
+If so, I'd ping mlx driver maintainers.
+
+Thanks,
+Florian
