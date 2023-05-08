@@ -2,80 +2,86 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1719C77B73
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 995F8C77B75
 	for <netfilter-devel@archiver.kernel.org>; Mon,  8 May 2023 06:07:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232442AbjEHGHc (ORCPT
+        id S232656AbjEHGHc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 8 May 2023 02:07:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36616 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230113AbjEHGHa (ORCPT
+        with ESMTP id S232442AbjEHGHa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 8 May 2023 02:07:30 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 50D1413875
-        for <netfilter-devel@vger.kernel.org>; Sun,  7 May 2023 23:07:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1AEDFA262
+        for <netfilter-devel@vger.kernel.org>; Sun,  7 May 2023 23:07:28 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/3] evaluate: skip optimization if anonymous set uses stateful statement
-Date:   Mon,  8 May 2023 08:07:19 +0200
-Message-Id: <20230508060720.2296-2-pablo@netfilter.org>
+Subject: [PATCH nft 1/3] evaluate: allow stateful statements with anonymous verdict maps
+Date:   Mon,  8 May 2023 08:07:18 +0200
+Message-Id: <20230508060720.2296-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230508060720.2296-1-pablo@netfilter.org>
-References: <20230508060720.2296-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-fee6bda06403 ("evaluate: remove anon sets with exactly one element")
-introduces an optimization to remove use of sets with single element.
-Skip this optimization if set element contains stateful statements.
+Evaluation fails to accept stateful statements in verdict maps, relax
+the following check for anonymous sets:
+
+test.nft:4:29-35: Error: missing statement in map declaration
+                ip saddr vmap { 127.0.0.1 counter : drop, * : accep
+                                          ^^^^^^^
+
+The existing code generates correctly the counter in the anonymous
+verdict map.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c                                                 | 2 +-
- tests/shell/testcases/optimizations/dumps/single_anon_set.nft  | 1 +
- .../testcases/optimizations/dumps/single_anon_set.nft.input    | 3 +++
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ src/evaluate.c                                  | 3 ++-
+ tests/shell/testcases/maps/0009vmap_0           | 2 +-
+ tests/shell/testcases/maps/dumps/0009vmap_0.nft | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index bc8f437ee7ea..08243220f159 100644
+index a1c3895cfb02..bc8f437ee7ea 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -1802,7 +1802,7 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 			set->set_flags |= NFT_SET_CONCAT;
- 	} else if (set->size == 1) {
- 		i = list_first_entry(&set->expressions, struct expr, list);
--		if (i->etype == EXPR_SET_ELEM) {
-+		if (i->etype == EXPR_SET_ELEM && list_empty(&i->stmt_list)) {
- 			switch (i->key->etype) {
- 			case EXPR_PREFIX:
- 			case EXPR_RANGE:
-diff --git a/tests/shell/testcases/optimizations/dumps/single_anon_set.nft b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft
-index 35e3f36e1a54..3f703034d80f 100644
---- a/tests/shell/testcases/optimizations/dumps/single_anon_set.nft
-+++ b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft
-@@ -11,5 +11,6 @@ table ip test {
- 		ip daddr . tcp dport { 192.168.0.1 . 22 } accept
- 		meta mark set ip daddr map { 192.168.0.1 : 0x00000001 }
- 		ct state { established, related } accept
-+		meta mark { 0x0000000a counter packets 0 bytes 0 }
- 	}
- }
-diff --git a/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
-index 35b93832420f..ecc5691ba581 100644
---- a/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
-+++ b/tests/shell/testcases/optimizations/dumps/single_anon_set.nft.input
-@@ -31,5 +31,8 @@ table ip test {
- 		# ct state cannot be both established and related
- 		# at the same time, but this needs extra work.
- 		ct state { established, related } accept
-+
-+		# with stateful statement
-+		meta mark { 0x0000000a counter }
+@@ -1604,7 +1604,8 @@ static int __expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr *elem)
+ 					  "but element has %d", num_set_exprs,
+ 					  num_elem_exprs);
+ 		} else if (num_set_exprs == 0) {
+-			if (!(set->flags & NFT_SET_EVAL)) {
++			if (!(set->flags & NFT_SET_ANONYMOUS) &&
++			    !(set->flags & NFT_SET_EVAL)) {
+ 				elem_stmt = list_first_entry(&elem->stmt_list, struct stmt, list);
+ 				return stmt_error(ctx, elem_stmt,
+ 						  "missing statement in %s declaration",
+diff --git a/tests/shell/testcases/maps/0009vmap_0 b/tests/shell/testcases/maps/0009vmap_0
+index 7627c81d99e0..d31e1608f792 100755
+--- a/tests/shell/testcases/maps/0009vmap_0
++++ b/tests/shell/testcases/maps/0009vmap_0
+@@ -12,7 +12,7 @@ EXPECTED="table inet filter {
+ 
+         chain prerouting {
+                 type filter hook prerouting priority -300; policy accept;
+-                iif vmap { "lo" : jump wan_input }
++                iif vmap { "lo" counter : jump wan_input }
+         }
+ }"
+ 
+diff --git a/tests/shell/testcases/maps/dumps/0009vmap_0.nft b/tests/shell/testcases/maps/dumps/0009vmap_0.nft
+index c556feceb1aa..c37574ad5fad 100644
+--- a/tests/shell/testcases/maps/dumps/0009vmap_0.nft
++++ b/tests/shell/testcases/maps/dumps/0009vmap_0.nft
+@@ -8,6 +8,6 @@ table inet filter {
+ 
+ 	chain prerouting {
+ 		type filter hook prerouting priority raw; policy accept;
+-		iif vmap { "lo" : jump wan_input }
++		iif vmap { "lo" counter packets 0 bytes 0 : jump wan_input }
  	}
  }
 -- 
