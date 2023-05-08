@@ -2,256 +2,359 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8157BC77B73
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 May 2023 13:39:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55289C77B7F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  8 May 2023 14:03:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233973AbjEHNjW (ORCPT
+        id S233475AbjEHODN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 May 2023 09:39:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55266 "EHLO
+        Mon, 8 May 2023 10:03:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233847AbjEHNjU (ORCPT
+        with ESMTP id S234162AbjEHODL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2023 09:39:20 -0400
-Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 960D636119
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2023 06:38:57 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-643990c5319so3007991b3a.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 May 2023 06:38:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683553137; x=1686145137;
-        h=in-reply-to:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=nKfrH62szHd5/TOOp35t+D0iAwbvmgnb//2M6bdIzYQ=;
-        b=ckFs5yWANlysd8yzAMat8mHyFnnSrNTx2tXmZrj0cxtnnEVuaK06M1BaKeicRC/AaU
-         gcmu1DAzxa1V6hCWtoqiaECOJErQQzK44bWvLFmpXRQbphCFM8cDqFSPe+Au+azJfmTk
-         HbLbTLJ53IlIf6gDQUD0NMz0mu1fbL0UYaoSk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683553137; x=1686145137;
-        h=in-reply-to:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=nKfrH62szHd5/TOOp35t+D0iAwbvmgnb//2M6bdIzYQ=;
-        b=lTktLZFSzhIr6urYeLFnmSuAx8iH33BNg9Q1Gc64paEwSQ8jrMmSoQF+aN2zTnyF+C
-         kV8BOb29JQaMvArlknJaFBhn4DKDrM6SrjvsaX9DB0PGpKoR4at+KNfKM+37aSF+asN0
-         j6O05n+msOsul0Zc6x8tg3fr0CgObYsuWeY0B17o24G16kBVszPA8ShnMW5qgbBhVyGe
-         SYSl2D1xhFEoJHUvxt0wp1cne1Cn6WJNq7oFF1WGHDkRaGLTUgz3ryOWjUZ3b3cGJ79e
-         goz6nSew9zMDpflnl202Q+NDFQK6DCSS74MyDOKlU0eXzK0M2ixxAn+M9GFm5u667mKA
-         aVNQ==
-X-Gm-Message-State: AC+VfDzmSM8/Pn45Hb9zM5fDniAj1rnhxZctuMdfDz0oWwYn4d08hIfG
-        rayCknU8szj+ysUIy266axw3SDE9xGuqtRqnti0=
-X-Google-Smtp-Source: ACHHUZ4eKaDnCNhUlF0qr+JXPh2+/NRVwiZStN9RMyzAuEZHlyREjVKzWyW9iw15v3OdfhxmmPeAxA==
-X-Received: by 2002:a05:6a00:240b:b0:639:28de:a91e with SMTP id z11-20020a056a00240b00b0063928dea91emr12711250pfh.17.1683553136651;
-        Mon, 08 May 2023 06:38:56 -0700 (PDT)
-Received: from noodle ([192.19.250.250])
-        by smtp.gmail.com with ESMTPSA id c13-20020aa7880d000000b0063d2bb0d10asm6079249pfo.113.2023.05.08.06.38.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 May 2023 06:38:55 -0700 (PDT)
-Date:   Mon, 8 May 2023 16:38:06 +0300
-From:   Boris Sukholitko <boris.sukholitko@broadcom.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Ilya Lifshits <ilya.lifshits@broadcom.com>
-Subject: Re: [PATCH nf-next 00/19] netfilter: nftables: dscp modification
- offload
-Message-ID: <ZFj7PomKpCnLsDz2@noodle>
-References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
- <20230503184630.GB28036@breakpoint.cc>
- <CADuVC7imr-YL4aUKbrRSQbQ_2QY_A5zCiAfmqgz9o49-n8AkTg@mail.gmail.com>
- <20230507173758.GA25617@breakpoint.cc>
+        Mon, 8 May 2023 10:03:11 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8AD436550
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2023 07:02:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1683554543;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=g89QiS7Yr/Bf0N+baMVDnM3swXZxmvGD0RfxhQxLY4o=;
+        b=ZgimxqMvM2zm1PA03+3LHrlfFSD3N+Z+oicWtvhetQWC3dCML0kZ/s4BQ+XBMcgfVDY1jr
+        eA05ydRF2UUZL8IvZ4vYOr3TG5CNv6lEf6QlRnwsAIq4kOfxSOmxBlrIS9imQ6nR8nm9/K
+        d2ALHRzXKdWf807wT2XdTv5zaH2P4xo=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-632-YPD7AhbZNIqFG-MMRfnFTA-1; Mon, 08 May 2023 10:02:21 -0400
+X-MC-Unique: YPD7AhbZNIqFG-MMRfnFTA-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E28AA8995AE;
+        Mon,  8 May 2023 14:02:20 +0000 (UTC)
+Received: from elisabeth (unknown [10.39.208.7])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4B4C4492B00;
+        Mon,  8 May 2023 14:02:19 +0000 (UTC)
+Date:   Mon, 8 May 2023 16:02:12 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: integrate pipapo into commit
+ protocol
+Message-ID: <20230508160212.0d092d19@elisabeth>
+In-Reply-To: <20230424133320.145860-1-pablo@netfilter.org>
+References: <20230424133320.145860-1-pablo@netfilter.org>
+Organization: Red Hat
 MIME-Version: 1.0
-In-Reply-To: <20230507173758.GA25617@breakpoint.cc>
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000b18b4705fb2ec20e"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---000000000000b18b4705fb2ec20e
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Sorry for the delay.
 
-On Sun, May 07, 2023 at 07:37:58PM +0200, Florian Westphal wrote:
-> Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
-> > On Wed, May 3, 2023 at 9:46 PM Florian Westphal <fw@strlen.de> wrote:
-> > >
-> > > Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
-> > [... snip to non working offload ...]
-> > 
-> > > > table inet filter {
-> > > >         flowtable f1 {
-> > > >                 hook ingress priority filter
-> > > >                 devices = { veth0, veth1 }
-> > > >         }
-> > > >
-> > > >         chain forward {
-> > > >                 type filter hook forward priority filter; policy accept;
-> > > >                 ip dscp set cs3 offload
-> > > >                 ip protocol { tcp, udp, gre } flow add @f1
-> > > >                 ct state established,related accept
-> > > >         }
-> > > > }
-> > 
-> > [...]
-> > 
-> > >
-> > > I wish you would have reported this before you started to work on
-> > > this, because this is not a bug, this is expected behaviour.
-> > >
-> > > Once you offload, the ruleset is bypassed, this is by design.
-> > 
-> > From the rules UI perspective it seems possible to accelerate
-> > forward chain handling with the statements such as dscp modification there.
-> > 
-> > Isn't it better to modify the packets according to the bypassed
-> > ruleset thus making the behaviour more consistent?
+On Mon, 24 Apr 2023 15:33:20 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+
+> The pipapo set backend follows copy-on-update approach, maintaining one
+> clone of the existing datastructure that is being updated. The clone
+> and current datastructures are swapped via rcu from the commit step.
 > 
-> The behaviour is consistent.  Once flow is offloaded, ruleset is
-> bypassed.  Its easy to not offload those flows that need the ruleset.
+> The existing integration with the commit protocol is flawed because
+> there is no operation to clean up the clone if the transaction is
+> aborted. Moreover, the datastructure swap happens on set element
+> activation.
 > 
-> > > Lets not make the software offload more complex as it already is.
-> > 
-> > Could you please tell which parts of software offload are too complex?
-> > It's not too bad from what I've seen :)
-> > 
-> > This patch series adds 56 lines of code in the new nf_conntrack.ext.c
-> > file. 20 of them (nf_flow_offload_apply_payload) are used in
-> > the software fast path. Is it too high of a price?
+> This patch adds two new operations for sets: commit and abort, these new
+> operations are invoked from the commit and abort steps, after the
+> transactions have been digested, and it updates the pipapo set backend
+> to use it.
 > 
-> 56 lines of code *now*.
+> Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> Hi Stefano,
 > 
-> Next someone wants to call into sets/maps for named counters that
-> they need.  Then someone wants limit or quota to work.  Then they want fib
-> for RPF.  Then xfrm policy matching to augment acccounting.
-> This will go on until we get to the point where removing "fast" path
-> turns into a performance optimization.
-
-OK. May I assume that you are concerned with the eventual performance impact
-on the software fast path (i.e. nf_flow_offload_ip_hook)?
-
-Obviously the performance of the fast path is very important to our
-customers. Otherwise they would not be requiring dscp fast path
-modification. :)
-
-One of the things we've thought about regarding the fast path
-performance is rewriting nf_flow_offload_ip_hook to work with
-nf_flowtable->flow_block instead of flow_offload_tuple.
-
-We hope that iterating over flow_action_entry list similar to what the
-hardware acceleration does, will be more efficient also in software.
-
-Nice side-effect of such optimization would be that the amount of
-feature bloat (such as dscp modification!) will not affect your typical
-connection unless the user actually uses them.
-
-For example, for dscp payload modification we'll generate
-FLOW_ACTION_MANGLE entry. This entry will appear on flow_block's of
-the only connections which require it. Others will be uneffected.
-
-Would you be ok with such direction (with performance tests of
-course)? 
-
-Thanks,
-Boris.
-
+> I don't see any path to reset ->dirty in case that the transaction is aborted.
+> This might lead to this sequence:
 > 
-> Existing rule hw offload via netdev:ingress makes it clear
-> what rules are offloaded and to which device and it augments
-> flowtable feature regardless if thats handled by software fastpath,
-> software fallback/slowpath or by hardware offload.
-> 
-> > > If you want to apply dscp payload modification, do not use flowtable
-> > > offload or hook those parts at netdev:ingress, it will be called before the
-> > > software offload pipeline.
-> > >
-> > 
-> > The problem is that our customers need to apply dscp modification in
-> > more complex scenarios, e.g. after NAT.
-> > Therefore I am not sure that ingress chain is enough for them.
-> 
-> I don't understand why this would have to occur after nat, but
-> netdev:egress exists as well.
+> 1) add set element: ->insert adds new entry in the clone (preparation phase)
+> 2) any command that fails (preparation phase)
+> 3) abort phase (->dirty bit is left set on and priv->clone contains an partial update)
 
---000000000000b18b4705fb2ec20e
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+That's because nft_pipapo_activate() can't fail on elements that are
+successfully inserted by nft_pipapo_insert() -- that is, the
+pipapo_get() call from nft_pipapo_activate() should always succeed.
 
-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
-riBJ/K1AFUjRAjFhGV64l++td7dkmnq/X8ET75ti+w1s4FRpFqkD2m7pg5NxdsZphYIXAgMBAAGj
-QjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSP8Et/qC5FJK5N
-UPpjmove4t0bvDANBgkqhkiG9w0BAQsFAAOCAQEAS0DbwFCq/sgM7/eWVEVJu5YACUGssxOGhigH
-M8pr5nS5ugAtrqQK0/Xx8Q+Kv3NnSoPHRHt44K9ubG8DKY4zOUXDjuS5V2yq/BKW7FPGLeQkbLmU
-Y/vcU2hnVj6DuM81IcPJaP7O2sJTqsyQiunwXUaMld16WCgaLx3ezQA3QY/tRG3XUyiXfvNnBB4V
-14qWtNPeTCekTBtzc3b0F5nCH3oO4y0IrQocLP88q1UOD5F+NuvDV0m+4S4tfGCLw0FREyOdzvcy
-a5QBqJnnLDMfOjsl0oZAzjsshnjJYS8Uuu7bVW/fhO4FCU29KNhyztNiUGUe65KXgzHZs7XKR1g/
-XzCCBVgwggRAoAMCAQICDADJ2jIiOyGGK/8iRTANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJC
-RTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTExMC8GA1UEAxMoR2xvYmFsU2lnbiBHQ0MgUjMg
-UGVyc29uYWxTaWduIDIgQ0EgMjAyMDAeFw0yMjA5MTAxMTU2MDBaFw0yNTA5MTAxMTU2MDBaMIGW
-MQswCQYDVQQGEwJJTjESMBAGA1UECBMJS2FybmF0YWthMRIwEAYDVQQHEwlCYW5nYWxvcmUxFjAU
-BgNVBAoTDUJyb2FkY29tIEluYy4xGTAXBgNVBAMTEEJvcmlzIFN1a2hvbGl0a28xLDAqBgkqhkiG
-9w0BCQEWHWJvcmlzLnN1a2hvbGl0a29AYnJvYWRjb20uY29tMIIBIjANBgkqhkiG9w0BAQEFAAOC
-AQ8AMIIBCgKCAQEA1uKd0fo+YWpPYs389dpHW5vbrVQvwiWI4VGPHISUMVVVcCwrVXMcmoEi1AMN
-t+KhIYltFzX7vj+SjHzSWLGrXUX/DW2tDJRYRXdc8+lVAu1wBO4WIhcYCMY8BDPfpxkMoY4w/qIa
-1rC9tzBPzIGAdrBfdEzjjqblnqi+sIG7bakS6h7njOPNf9HuyLSQOs+Qq3kK8A8pX6t6KtAdq4iP
-td/fua/xzT9yf7xQ0v0AVUPd9O3rahX4kX4sHlUcEVb6eXSNRwdyirUgDaJkDPrhIPKFapov5OeK
-9BR0SGqf9JnBbAcQrigtBfEwkeDY+dJprju7HLWVNFkaW9u8vvvbiwIDAQABo4IB3jCCAdowDgYD
-VR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDovL3NlY3Vy
-ZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAuY3J0MEEG
-CCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29uYWxzaWdu
-MmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0cHM6Ly93
-d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBAMD6gPKA6
-hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2EyMDIwLmNy
-bDAoBgNVHREEITAfgR1ib3Jpcy5zdWtob2xpdGtvQGJyb2FkY29tLmNvbTATBgNVHSUEDDAKBggr
-BgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQUB46dIlYd
-tkC0osZXFEatb5Hu+C8wDQYJKoZIhvcNAQELBQADggEBAE/WXEAo/TOHDort0zhfb2Vu7BdK2MHO
-7LVlNc5DtQqFW4S0EA+f5oxpwsTHSzqf5FVY3S3TeMGTGssz2y/nGWwznbP+ti0SmO13EYKODFao
-6fOqaW6dPraTx2lXgvMYXn/VZ+bxpnyKcFwC4qVssadK6ezPvrCVszHmO7MNvpH2vsfE5ulVdzbU
-zPffqO2QS6e4oXzmoYuX9sCNfol1TaQgCYgYoC4rexOBLLtYbwdKWi3/ttntZ2PHS1QRaDzrBSuw
-L39zqstTC0LC/YoSKC/cU9igMELugG/Twy9uVlg2XXTY1wUYSWMsYlpydsrVyG18UScp7FlGFbWX
-EWKS7pkxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
-LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwA
-ydoyIjshhiv/IkUwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIMznzYSqORXGXZfk
-26VGS8u9JAHIRz1m0SX5UeWu/S4yMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcN
-AQkFMQ8XDTIzMDUwODEzMzg1N1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZI
-AWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEH
-MAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAHiIBHO1z+2EyP6k5K7PMmdmb6N5XJ8r8L
-IrSUpjcIBL9G6qZDqbxgInLdEZpTU3kEfWQZ8sYs/Y1WTnLw6dQrubex0Mbey4m70ewgSQE+RS+7
-6fvXsYfMeyfcRmKklravIcJjZEmHNiyX5LM6T2slxQ0ZVRodz89KUFQAFLhgySu47AFe/vmNcH6x
-DTLn/0WixFvh+B9vgKoZLsBpCtnHIQHro6m2XVE+Bn/Vajqq/Vf66G4gX/Eq8/NiIrZQ9+enB5nF
-hx11z2dAkASTb56vU7CMhu3p9Q15swVYdogCxkh0hwCJ41l3P7XD3HvIJB//x/eAY7PSynUkTSvM
-j1cp
---000000000000b18b4705fb2ec20e--
+Now, let's say that one call to nft_pipapo_insert() fails: at that
+point I would expect all the pending insertions to be deleted before
+the abort phase completes. So yes, we have a dirty bit unnecessarily
+set, but the clone shouldn't actually contain a partial update.
+
+Regardless of that, having an actual abort operation is cleaner than
+this and definitely welcome.
+
+> I am trying to figure out if this could be related to:
+> https://bugzilla.netfilter.org/show_bug.cgi?id=1583
+
+For sure this simplifies the matter, but I'm not sure exactly in which
+way it could be related (I'm not saying that there's no way, though).
+
+>  include/net/netfilter/nf_tables.h |  3 +-
+>  net/netfilter/nf_tables_api.c     | 36 +++++++++++++++++++++
+>  net/netfilter/nft_set_pipapo.c    | 53 ++++++++++++++++++++++---------
+>  3 files changed, 76 insertions(+), 16 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index 552e19ba4f43..211921dd0ac6 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -462,7 +462,8 @@ struct nft_set_ops {
+>  					       const struct nft_set *set,
+>  					       const struct nft_set_elem *elem,
+>  					       unsigned int flags);
+> -
+> +	void				(*commit)(const struct nft_set *set);
+> +	void				(*abort)(const struct nft_set *set);
+>  	u64				(*privsize)(const struct nlattr * const nla[],
+>  						    const struct nft_set_desc *desc);
+>  	bool				(*estimate)(const struct nft_set_desc *desc,
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 0e072b2365df..ef8d9f6a7e9c 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -9259,6 +9259,22 @@ static void nf_tables_commit_audit_log(struct list_head *adl, u32 generation)
+>  	}
+>  }
+>  
+> +static void nft_set_commit_update(struct net *net)
+> +{
+> +	struct nftables_pernet *nft_net = nft_pernet(net);
+> +	struct nft_table *table;
+> +	struct nft_set *set;
+> +
+> +	list_for_each_entry(table, &nft_net->tables, list) {
+> +		list_for_each_entry(set, &table->sets, list) {
+> +			if (!set->ops->commit)
+> +				continue;
+> +
+> +			set->ops->commit(set);
+> +		}
+> +	}
+> +}
+> +
+>  static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+>  {
+>  	struct nftables_pernet *nft_net = nft_pernet(net);
+> @@ -9513,6 +9529,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+>  		}
+>  	}
+>  
+> +	nft_set_commit_update(net);
+> +
+>  	nft_commit_notify(net, NETLINK_CB(skb).portid);
+>  	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
+>  	nf_tables_commit_audit_log(&adl, nft_net->base_seq);
+> @@ -9572,6 +9590,22 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+>  	kfree(trans);
+>  }
+>  
+> +static void nft_set_abort_update(struct net *net)
+> +{
+> +	struct nftables_pernet *nft_net = nft_pernet(net);
+> +	struct nft_table *table;
+> +	struct nft_set *set;
+> +
+> +	list_for_each_entry(table, &nft_net->tables, list) {
+> +		list_for_each_entry(set, &table->sets, list) {
+> +			if (!set->ops->abort)
+> +				continue;
+> +
+> +			set->ops->abort(set);
+> +		}
+> +	}
+> +}
+> +
+>  static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+>  {
+>  	struct nftables_pernet *nft_net = nft_pernet(net);
+> @@ -9737,6 +9771,8 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+>  		}
+>  	}
+>  
+> +	nft_set_abort_update(net);
+> +
+>  	synchronize_rcu();
+>  
+>  	list_for_each_entry_safe_reverse(trans, next,
+
+I didn't imagine it would be so simple -- I would have gone with this
+right away. On the other hand, I had no idea where to put those calls :)
+
+Now that we have commit and abort operations, I'm wondering: what if we
+make activate and deactivate callbacks optional? They're not really
+needed by nft_set_pipapo: all the elements could be directly "active"
+on insertion, and remain active until we have a commit operation after
+they are deleted.
+
+I'm not sure if there are drawbacks, and I think that your patch works
+anyway as expected.
+
+> diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+> index 06d46d182634..06b8b26e666a 100644
+> --- a/net/netfilter/nft_set_pipapo.c
+> +++ b/net/netfilter/nft_set_pipapo.c
+> @@ -1600,17 +1600,10 @@ static void pipapo_free_fields(struct nft_pipapo_match *m)
+>  	}
+>  }
+>  
+> -/**
+> - * pipapo_reclaim_match - RCU callback to free fields from old matching data
+> - * @rcu:	RCU head
+> - */
+> -static void pipapo_reclaim_match(struct rcu_head *rcu)
+
+/**
+ * pipapo_free_match() - Free fields from unused matching data
+ * @m:		Matching data
+ */
+
+> +static void pipapo_free_match(struct nft_pipapo_match *m)
+>  {
+> -	struct nft_pipapo_match *m;
+>  	int i;
+>  
+> -	m = container_of(rcu, struct nft_pipapo_match, rcu);
+> -
+>  	for_each_possible_cpu(i)
+>  		kfree(*per_cpu_ptr(m->scratch, i));
+>  
+> @@ -1625,7 +1618,19 @@ static void pipapo_reclaim_match(struct rcu_head *rcu)
+>  }
+>  
+>  /**
+> - * pipapo_commit() - Replace lookup data with current working copy
+> + * pipapo_reclaim_match - RCU callback to free fields from old matching data
+
+ * pipapo_reclaim_match() - RCU callback to free unused matching data
+
+...it's not necessarily "old" anymore.
+
+> + * @rcu:	RCU head
+> + */
+> +static void pipapo_reclaim_match(struct rcu_head *rcu)
+> +{
+> +	struct nft_pipapo_match *m;
+> +
+> +	m = container_of(rcu, struct nft_pipapo_match, rcu);
+> +	pipapo_free_match(m);
+> +}
+> +
+> +/**
+> + * nft_pipapo_commit() - Replace lookup data with current working copy
+>   * @set:	nftables API set representation
+>   *
+>   * While at it, check if we should perform garbage collection on the working
+> @@ -1635,7 +1640,7 @@ static void pipapo_reclaim_match(struct rcu_head *rcu)
+>   * We also need to create a new working copy for subsequent insertions and
+>   * deletions.
+>   */
+> -static void pipapo_commit(const struct nft_set *set)
+> +static void nft_pipapo_commit(const struct nft_set *set)
+>  {
+>  	struct nft_pipapo *priv = nft_set_priv(set);
+>  	struct nft_pipapo_match *new_clone, *old;
+> @@ -1660,6 +1665,24 @@ static void pipapo_commit(const struct nft_set *set)
+>  	priv->clone = new_clone;
+>  }
+>  
+> +static void nft_pipapo_abort(const struct nft_set *set)
+
+/**
+ * nft_pipapo_abort() - Drop uncommitted matching data if any, reset dirty flag
+ * @set:	nftables API set representation
+ */
+
+> +{
+> +	struct nft_pipapo *priv = nft_set_priv(set);
+> +	struct nft_pipapo_match *new_clone;
+> +
+> +	if (!priv->dirty)
+> +		return;
+> +
+> +	new_clone = pipapo_clone(priv->match);
+> +	if (IS_ERR(new_clone))
+> +		return;
+> +
+> +	priv->dirty = false;
+> +
+> +	pipapo_free_match(priv->clone);
+> +	priv->clone = new_clone;
+
+This is essentially a non-RCU version of (the new) nft_pipapo_commit(),
+minus the garbage collection stuff, but I think a tiny bit of
+duplication here as you already implemented it is clearer than trying
+to factor this out into some helper.
+
+> +}
+> +
+>  /**
+>   * nft_pipapo_activate() - Mark element reference as active given key, commit
+>   * @net:	Network namespace
+> @@ -1667,8 +1690,7 @@ static void pipapo_commit(const struct nft_set *set)
+>   * @elem:	nftables API element representation containing key data
+>   *
+>   * On insertion, elements are added to a copy of the matching data currently
+> - * in use for lookups, and not directly inserted into current lookup data, so
+> - * we'll take care of that by calling pipapo_commit() here. Both
+> + * in use for lookups, and not directly inserted into current lookup data. Both
+>   * nft_pipapo_insert() and nft_pipapo_activate() are called once for each
+>   * element, hence we can't purpose either one as a real commit operation.
+>   */
+> @@ -1684,8 +1706,6 @@ static void nft_pipapo_activate(const struct net *net,
+>  
+>  	nft_set_elem_change_active(net, set, &e->ext);
+>  	nft_set_elem_clear_busy(&e->ext);
+> -
+> -	pipapo_commit(set);
+>  }
+>  
+>  /**
+> @@ -1931,7 +1951,6 @@ static void nft_pipapo_remove(const struct net *net, const struct nft_set *set,
+>  		if (i == m->field_count) {
+>  			priv->dirty = true;
+>  			pipapo_drop(m, rulemap);
+> -			pipapo_commit(set);
+>  			return;
+>  		}
+>  
+> @@ -2230,6 +2249,8 @@ const struct nft_set_type nft_set_pipapo_type = {
+>  		.init		= nft_pipapo_init,
+>  		.destroy	= nft_pipapo_destroy,
+>  		.gc_init	= nft_pipapo_gc_init,
+> +		.commit		= nft_pipapo_commit,
+> +		.abort		= nft_pipapo_abort,
+>  		.elemsize	= offsetof(struct nft_pipapo_elem, ext),
+>  	},
+>  };
+> @@ -2252,6 +2273,8 @@ const struct nft_set_type nft_set_pipapo_avx2_type = {
+>  		.init		= nft_pipapo_init,
+>  		.destroy	= nft_pipapo_destroy,
+>  		.gc_init	= nft_pipapo_gc_init,
+> +		.commit		= nft_pipapo_commit,
+> +		.abort		= nft_pipapo_abort,
+>  		.elemsize	= offsetof(struct nft_pipapo_elem, ext),
+>  	},
+>  };
+
+Everything else looks good to me, thanks!
+
+-- 
+Stefano
+
