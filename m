@@ -2,134 +2,253 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC1DC7EE22
-	for <netfilter-devel@archiver.kernel.org>; Mon,  8 May 2023 20:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC8DAC77B7C
+	for <netfilter-devel@archiver.kernel.org>; Tue,  9 May 2023 09:49:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229621AbjEHU0J (ORCPT
+        id S230252AbjEIJsz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 8 May 2023 16:26:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33040 "EHLO
+        Tue, 9 May 2023 05:48:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229520AbjEHUZv (ORCPT
+        with ESMTP id S234418AbjEIJsa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2023 16:25:51 -0400
+        Tue, 9 May 2023 05:48:30 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01F7C3C1B
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2023 13:25:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48471E60
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 May 2023 02:48:29 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1pw7QZ-0007qF-SS; Mon, 08 May 2023 22:25:47 +0200
-Date:   Mon, 8 May 2023 22:25:47 +0200
+        id 1pwJxL-0004Ir-7t; Tue, 09 May 2023 11:48:27 +0200
+Date:   Tue, 9 May 2023 11:48:27 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Boris Sukholitko <boris.sukholitko@broadcom.com>
 Cc:     Florian Westphal <fw@strlen.de>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: nft transaction semantics and flowtable hw offload
-Message-ID: <20230508202547.GA25016@breakpoint.cc>
-References: <20230505123208.GB6126@breakpoint.cc>
- <ZFlRWJ/kC+F1YNsB@calendula>
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org,
+        Ilya Lifshits <ilya.lifshits@broadcom.com>
+Subject: Re: [PATCH nf-next 00/19] netfilter: nftables: dscp modification
+ offload
+Message-ID: <20230509094827.GA14758@breakpoint.cc>
+References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
+ <20230503184630.GB28036@breakpoint.cc>
+ <CADuVC7imr-YL4aUKbrRSQbQ_2QY_A5zCiAfmqgz9o49-n8AkTg@mail.gmail.com>
+ <20230507173758.GA25617@breakpoint.cc>
+ <ZFj7PomKpCnLsDz2@noodle>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZFlRWJ/kC+F1YNsB@calendula>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <ZFj7PomKpCnLsDz2@noodle>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Florian,
-> 
-> On Fri, May 05, 2023 at 02:32:08PM +0200, Florian Westphal wrote:
-> > Following dummy ruleset only works on first load:
+Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
+> On Sun, May 07, 2023 at 07:37:58PM +0200, Florian Westphal wrote:
+> > Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
+> > > On Wed, May 3, 2023 at 9:46 PM Florian Westphal <fw@strlen.de> wrote:
+> > > >
+> > > > Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
+> > > [... snip to non working offload ...]
+> > > 
+> > > > > table inet filter {
+> > > > >         flowtable f1 {
+> > > > >                 hook ingress priority filter
+> > > > >                 devices = { veth0, veth1 }
+> > > > >         }
+> > > > >
+> > > > >         chain forward {
+> > > > >                 type filter hook forward priority filter; policy accept;
+> > > > >                 ip dscp set cs3 offload
+> > > > >                 ip protocol { tcp, udp, gre } flow add @f1
+> > > > >                 ct state established,related accept
+> > > > >         }
+> > > > > }
+> > > 
+> > > [...]
+> > > 
+> > > >
+> > > > I wish you would have reported this before you started to work on
+> > > > this, because this is not a bug, this is expected behaviour.
+> > > >
+> > > > Once you offload, the ruleset is bypassed, this is by design.
+> > > 
+> > > From the rules UI perspective it seems possible to accelerate
+> > > forward chain handling with the statements such as dscp modification there.
+> > > 
+> > > Isn't it better to modify the packets according to the bypassed
+> > > ruleset thus making the behaviour more consistent?
 > > 
-> > $ cat bug
-> > flush ruleset
-> > table inet filter {
-> >   flowtable f1 {
-> >   hook ingress priority 10
-> >   flags offload
-> >   devices = { dummy0, dummy1 }
-> >  }
-> > }
-> > $ nft -f bug
-> 
-> This follows flowtable addition path.
-> 
-> > $ nft -f bug
-> 
-> This follows nft_flow_update() path.
-
-I don't think so, the "flush ruleset" should make the
-existing flowtable invisible, no?
-
-> > bug:3:13-14: Error: Could not process rule: Device or resource busy
-> 
-> I don't see who reports EBUSY at quick glance.
-
-Its the NIC driver (ndo_setup_tc), but I do not see how its fixable,
-hence this email.
-
-> > This works when 'offload' flag is removed.
+> > The behaviour is consistent.  Once flow is offloaded, ruleset is
+> > bypassed.  Its easy to not offload those flows that need the ruleset.
 > > 
-> > Transaction will *first* try to register the flowtable hook,
-> > then it unregisters the existing flowtable hook.
+> > > > Lets not make the software offload more complex as it already is.
+> > > 
+> > > Could you please tell which parts of software offload are too complex?
+> > > It's not too bad from what I've seen :)
+> > > 
+> > > This patch series adds 56 lines of code in the new nf_conntrack.ext.c
+> > > file. 20 of them (nf_flow_offload_apply_payload) are used in
+> > > the software fast path. Is it too high of a price?
 > > 
-> > When 'offload' flag is enabled, hook registration fails because
-> > the device offload capability is already busy.
-> >
-> > Any suggestions on how to fix this?
-> > Or would you say this is as expected/designed?
+> > 56 lines of code *now*.
+> > 
+> > Next someone wants to call into sets/maps for named counters that
+> > they need.  Then someone wants limit or quota to work.  Then they want fib
+> > for RPF.  Then xfrm policy matching to augment acccounting.
+> > This will go on until we get to the point where removing "fast" path
+> > turns into a performance optimization.
 > 
-> It should not report EBUSY, we have fixed similar issues like this one
-> in the past.
+> OK. May I assume that you are concerned with the eventual performance impact
+> on the software fast path (i.e. nf_flow_offload_ip_hook)?
 
-But driver can't know that the (registered) flow block is going
-to be unregistered later in the same transaction, so it can't
-"suppress" the error.
+Yes, but I also dislike the concept, see below.
 
-For SW path (no offload) this works because netfilter core
-will be happy to (temporarily) register the software flow bypass
-hook a second time.
-
-You can replicate a unrelated but similar error if you create 1k base chains,
-then try to "nft -f" the same ruleset; if you prepend a "flush ruleset"
-this will fail because we have "reg, unreg" and not "unreg, reg"
-ordering (and we have to do it this way to not leave a "no hooks at all"
-window) and the temporary 2nd registering brings the core over the
-hardcoded limit.
-
-> > We could swap register/unregister, but this has two major issues:
-> > 
-> > 1. it gives a window where no hook is registered on hw side
-> > 2. after unreg, we cannot assume that (re)registering works, so
-> >    'nft -f' may cause loss of functionality.
-> > 
-> > Adding a 'refcount' scheme doesn't really work either, we'd need
-> > an extra data structure to record the known offload settings, so that
-> > on a 'hook flowtable f1 to dummy0' request we can figure out that this
-> > is expected to be busy and then we could skip the register request.
-> > 
-> > But that has to problem that the batch might not have an unregister
-> > request, i.e. we would accept a bogus ruleset that *should* have failed
-> > with -EBUSY.
-> > 
-> > Any ideas?
+> Obviously the performance of the fast path is very important to our
+> customers. Otherwise they would not be requiring dscp fast path
+> modification. :)
 > 
-> If you help me narrow down the issue, because I currently do not see
-> where this EBUSY error originates from.
+> One of the things we've thought about regarding the fast path
+> performance is rewriting nf_flow_offload_ip_hook to work with
+> nf_flowtable->flow_block instead of flow_offload_tuple.
 
-To be fair, I dont have offload capable HW so I hacked up the dummy driver
-to add a faux ndo_setup_tc for testing.
+Sorry, I should have expanded on my reservations towards this concept.
 
-As far as I can piece this together this is coming from
-flow_block_cb_setup_simple() in mlx5.
+Let me explain.
+Lets consider your original example first:
 
-Interesting however is that mtk_wed_setup_tc_block() seems to instead
-bump an internal refcount.
+----------
+table inet filter {
+        flowtable f1 {
+                hook ingress priority filter
+                devices = { veth0, veth1 }
+        }
 
-Is that the expected driver handling in this situation?
-If so, I'd ping mlx driver maintainers.
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                ip dscp set cs3
+                ip protocol { tcp, udp, gre } flow add
+                ct state established,related accept
+        }
+}
+----------
 
-Thanks,
-Florian
+This has a clearly defined meaning in all possible combinations.
+
+Software:
+1. It defines a bypass for veth0 <-> veth1
+2. the way this specific ruleset is defined, all of tcp/udp/gre will
+   attempt to offload
+3. once offload has happened, entire inet:forward may be bypassed
+4. User ruleset needs to cope with packets being moved back to
+   software: fragmented packets, tcp fin/rst, hw timeouts and so on.
+5. User can control via 'offload' keyword if HW offload should be
+   attempted or not
+
+Hardware:
+even 'nf_flow_offload_ip_hook' may be bypassed.  But nothing changes
+compared to 'no hw offload' case from a conceptual point of view.
+
+Lets now consider existing netdev:ingress/egress in this same picture:
+(Example from Pablo):
+------
+table inet filter {
+        flowtable f1 {
+                hook ingress priority filter
+                devices = { veth0, veth1 }
+        }
+
+        chain ingress {
+                type filter hook ingress device veth0 priority filter; policy accept; flags offload;
+                ip dscp set cs3
+        }
+
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                meta l4proto { tcp, udp, gre } flow add @f1
+                ct state established,related accept
+        }
+}
+
+Again, this has defined meaning in all combinations:
+With HW offload: veth0 will be told to mangle dscp.
+This happens in all cases and for every matching packet,
+regardless if a flowtable exists or not.
+
+Same would happen for 'egress', just that it would happen at xmit time
+rather at receive time.  Again, its not relevant if there is active
+flowtable or not, or if data path is offloaded to hardware, to software,
+handled by fallback or entirely without flowtables being present.
+
+Its also clear that this is tied to 'veth0', other devices will
+not be involved and not do such mangling.
+
+Now lets look at your proposal:
+----------------
+table inet filter {
+        flowtable f1 {
+                hook ingress priority filter
+                devices = { veth0, veth1 }
+        }
+
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                ip dscp set cs3 offload
+                ip protocol { tcp, udp, gre } flow add
+                ct state established,related accept
+        }
+}
+----------------
+
+This means that software flowtable offload
+shall do a 'ip dscp set cs3'.
+
+What if the flowtable is offloaded to hardware
+entirely, without software fallback?
+
+What if the devices listed in the flowtable definition can handle
+flow offload, but no payload mangling?
+
+Does the 'offload' mean that the rule is only active for
+software path?  Only for hardware path? both?
+
+How can I tell if its offloaded to hardware for one device
+but not for the other?  Or will that be disallowed?
+
+What if someone adds another rule after or before 'ip dscp',
+but without the 'offload' keyword?  Now ordering becomes an
+issue.
+
+Users now need to consider different control flows:
+
+  jump exceptions
+  ip dscp set cs3 offload
+
+  chain exceptions {
+    ip daddr 1.2.3.4 accept
+  }
+
+This won't work as expected, because offloaded flows will not
+pass through 'forward' chain but somehow a few selected rules
+will be run anyway.
+
+TL;DR: I think that for HW offload its paramount to make it crystal
+clear as to which device is responsible to handle such rules.
+
+The existing netdev:ingress/egress hooks provide the needed
+chain/rules/expression:device mapping.  User can easily
+tell if HW is responsible or SW by looking for 'offload' flag
+presence.
+
+I don't think mixing software and hardware offload contexts as proposed
+is a good idea, both from user frontend syntax, clarity and error reporting
+(e.g. if hw rejects offload request) point of view.
+
+I also believe that allowing payload mangling from *software* offload
+path sets a precedence for essentially allowing all other expressions
+again which completely negates the flowtable concept.
+
+I still think that dscp mangling should be done via netdev:ingress/egress
+hooks, I don't see why this has to be bolted into flowtable sw offload.
+
