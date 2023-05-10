@@ -2,72 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 481CAC77B7D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 08:06:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D696C77B7D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 08:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236542AbjEJIGk (ORCPT
+        id S236594AbjEJIfN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 May 2023 04:06:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55084 "EHLO
+        Wed, 10 May 2023 04:35:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236335AbjEJIGg (ORCPT
+        with ESMTP id S236754AbjEJIe4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 May 2023 04:06:36 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FE3A1FC7
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 May 2023 01:06:34 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1pweqG-0004sK-8O; Wed, 10 May 2023 10:06:32 +0200
-Date:   Wed, 10 May 2023 10:06:32 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/3] netfilter: nf_tables: reject loads from
- uninitialized registers
-Message-ID: <20230510080632.GB21949@breakpoint.cc>
-References: <20230505111656.32238-1-fw@strlen.de>
- <ZFUTfE/u4q34TTDY@calendula>
- <20230505145113.GD6126@breakpoint.cc>
- <ZFUh6r8BrMefU7G6@calendula>
- <20230507112254.GA18570@breakpoint.cc>
- <ZFtOQEZmKEZ2VHPE@calendula>
+        Wed, 10 May 2023 04:34:56 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CC25E30DA;
+        Wed, 10 May 2023 01:34:20 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/7] Netfilter updates for net
+Date:   Wed, 10 May 2023 10:33:06 +0200
+Message-Id: <20230510083313.152961-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZFtOQEZmKEZ2VHPE@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Hmm, this will get messy.
-> > 
-> > I only see two alternatives:
-> > 
-> > - place the bitmask in the pernet structure.
-> > - add struct nft_expr_ctx as a container structure, which has
-> >   nft_ctx as first member and the bitmask as second member, to
-> >   be used for NEWRULE and NEWSETELEM instead of nft_ctx.
-> 
-> Can the 'level' field be moved to this nft_expr_ctx structure? This
-> field is only used from the preparation phase (not in the commit
-> phase).
-> 
-> Probably we need to rename nft_ctx to nft_trans_ctx, so it contains
-> the fields that are needed from the commit phase. Then, re-add a
-> nft_ctx again which contains nft_trans_ctx at the beginning, then the
-> register bitmap and the level field. Thus, any future fields only
-> required by preparation phase only will go in nft_ctx, and fields that
-> are specifically are set up from preparation phase and consumed from
-> commit step go in nft_trans_ctx.
-> 
-> It is a bit of churn, but it is probably good to tidy up this for
-> future extensions?
+Hi,
 
-Yes, its a lot of churn, I can have a look at how intrusive this will
-be.  Problem is that we have a bunch of helpers that take
-'struct nft_ctx *', which are fed via '&trans->ctx'.
+The following patchset contains Netfilter fixes for net:
 
-I'd like to avoid 'union nf_ctx_any *' tricks...
+1) Fix UAF when releasing netnamespace, from Florian Westphal.
+
+2) Fix possible BUG_ON when nf_conntrack is enabled with enable_hooks,
+   from Florian Westphal.
+
+3) Fixes for nft_flowtable.sh selftest, from Boris Sukholitko.
+
+4) Extend nft_flowtable.sh selftest to cover integration with
+   ingress/egress hooks, from Florian Westphal.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-05-10
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 582dbb2cc1a0a7427840f5b1e3c65608e511b061:
+
+  net: phy: bcm7xx: Correct read from expansion register (2023-05-09 20:25:52 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-05-10
+
+for you to fetch changes up to 3acf8f6c14d0e42b889738d63b6d9cb63348fc94:
+
+  selftests: nft_flowtable.sh: check ingress/egress chain too (2023-05-10 09:31:07 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 23-05-10
+
+----------------------------------------------------------------
+Boris Sukholitko (4):
+      selftests: nft_flowtable.sh: use /proc for pid checking
+      selftests: nft_flowtable.sh: no need for ps -x option
+      selftests: nft_flowtable.sh: wait for specific nc pids
+      selftests: nft_flowtable.sh: monitor result file sizes
+
+Florian Westphal (3):
+      netfilter: nf_tables: always release netdev hooks from notifier
+      netfilter: conntrack: fix possible bug_on with enable_hooks=1
+      selftests: nft_flowtable.sh: check ingress/egress chain too
+
+ net/netfilter/core.c                               |   6 +-
+ net/netfilter/nf_conntrack_standalone.c            |   3 +-
+ net/netfilter/nft_chain_filter.c                   |   9 +-
+ tools/testing/selftests/netfilter/nft_flowtable.sh | 145 ++++++++++++++++++++-
+ 4 files changed, 151 insertions(+), 12 deletions(-)
