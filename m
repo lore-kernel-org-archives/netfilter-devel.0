@@ -2,54 +2,59 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06109C7EE22
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 06:33:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A9CC77B7C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 06:41:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235925AbjEJGdV (ORCPT
+        id S235694AbjEJGlm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 May 2023 02:33:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39522 "EHLO
+        Wed, 10 May 2023 02:41:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229737AbjEJGdT (ORCPT
+        with ESMTP id S235717AbjEJGll (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 May 2023 02:33:19 -0400
+        Wed, 10 May 2023 02:41:41 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 18BB73A93
-        for <netfilter-devel@vger.kernel.org>; Tue,  9 May 2023 23:33:19 -0700 (PDT)
-Date:   Wed, 10 May 2023 08:33:14 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 22C8A5592
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 May 2023 23:41:08 -0700 (PDT)
+Date:   Wed, 10 May 2023 08:40:42 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: fix possible bug_on with enable_hooks=1
-Message-ID: <ZFs6qpQB8rfK0kPd@calendula>
-References: <20230504125502.22512-1-fw@strlen.de>
+Subject: Re: [PATCH nf] testing: selftests: nft_flowtable.sh: check
+ ingress/egress chain too
+Message-ID: <ZFs8TAsFLOb+FQ6H@calendula>
+References: <20230509144724.23992-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230504125502.22512-1-fw@strlen.de>
+In-Reply-To: <20230509144724.23992-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, May 04, 2023 at 02:55:02PM +0200, Florian Westphal wrote:
-> I received a bug report (no reproducer so far) where we trip over
+On Tue, May 09, 2023 at 04:47:24PM +0200, Florian Westphal wrote:
+> Make sure flowtable interacts correctly with ingress and egress
+> chains, i.e. those get handled before and after flow table respectively.
 > 
-> 712         rcu_read_lock();
-> 713         ct_hook = rcu_dereference(nf_ct_hook);
-> 714         BUG_ON(ct_hook == NULL);  // here
+> Adds three more tests:
+> 1. repeat flowtable test, but with 'ip dscp set cs3' done in
+>    inet forward chain.
 > 
-> In nf_conntrack_destroy().
+> Expect that some packets have been mangled (before flowtable offload
+> became effective) while some pass without mangling (after offload
+> succeeds).
 > 
-> First turn this BUG_ON into a WARN.  I think it was triggered
-> via enable_hooks=1 flag.
+> 2. repeat flowtable test, but with 'ip dscp set cs3' done in
+>    veth0:ingress.
 > 
-> When this flag is turned on, the conntrack hooks are registered
-> before nf_ct_hook pointer gets assigned.
-> This opens a short window where packets enter the conntrack machinery,
-> can have skb->_nfct set up and a subsequent kfree_skb might occur
-> before nf_ct_hook is set.
+> Expect that all packets pass with cs3 dscp field.
 > 
-> Call nf_conntrack_init_end() to set nf_ct_hook before we register the
-> pernet ops.
+> 3. same as 2, but use veth1:egress.  Expect the same outcome.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  This is on top of Boris changes to nft_flowtable.sh script.
 
-Applied to nf, thanks
+This applies cleanly to nf.git, are you fine if I place this on that tree?
+
+Thanks.
