@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5B6CC7EE26
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 08:41:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 655BFC77B7C
+	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 08:46:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236144AbjEJIli (ORCPT
+        id S236702AbjEJIqh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 May 2023 04:41:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58638 "EHLO
+        Wed, 10 May 2023 04:46:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236655AbjEJIl3 (ORCPT
+        with ESMTP id S236731AbjEJIqX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 May 2023 04:41:29 -0400
+        Wed, 10 May 2023 04:46:23 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 62EAD10D8;
-        Wed, 10 May 2023 01:41:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 87AF06EA7;
+        Wed, 10 May 2023 01:46:19 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 4/7] selftests: nft_flowtable.sh: no need for ps -x option
-Date:   Wed, 10 May 2023 10:33:10 +0200
-Message-Id: <20230510083313.152961-5-pablo@netfilter.org>
+Subject: [PATCH net 1/7] netfilter: nf_tables: always release netdev hooks from notifier
+Date:   Wed, 10 May 2023 10:33:07 +0200
+Message-Id: <20230510083313.152961-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230510083313.152961-1-pablo@netfilter.org>
 References: <20230510083313.152961-1-pablo@netfilter.org>
@@ -32,33 +32,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Boris Sukholitko <boris.sukholitko@broadcom.com>
+From: Florian Westphal <fw@strlen.de>
 
-Some ps commands (e.g. busybox derived) have no -x option. For the
-purposes of hash calculation of the list of processes this option is
-inessential.
+This reverts "netfilter: nf_tables: skip netdev events generated on netns removal".
 
-Signed-off-by: Boris Sukholitko <boris.sukholitko@broadcom.com>
+The problem is that when a veth device is released, the veth release
+callback will also queue the peer netns device for removal.
+
+Its possible that the peer netns is also slated for removal.  In this
+case, the device memory is already released before the pre_exit hook of
+the peer netns runs:
+
+BUG: KASAN: slab-use-after-free in nf_hook_entry_head+0x1b8/0x1d0
+Read of size 8 at addr ffff88812c0124f0 by task kworker/u8:1/45
+Workqueue: netns cleanup_net
+Call Trace:
+ nf_hook_entry_head+0x1b8/0x1d0
+ __nf_unregister_net_hook+0x76/0x510
+ nft_netdev_unregister_hooks+0xa0/0x220
+ __nft_release_hook+0x184/0x490
+ nf_tables_pre_exit_net+0x12f/0x1b0
+ ..
+
+Order is:
+1. First netns is released, veth_dellink() queues peer netns device
+   for removal
+2. peer netns is queued for removal
+3. peer netns device is released, unreg event is triggered
+4. unreg event is ignored because netns is going down
+5. pre_exit hook calls nft_netdev_unregister_hooks but device memory
+   might be free'd already.
+
+Fixes: 68a3765c659f ("netfilter: nf_tables: skip netdev events generated on netns removal")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/netfilter/nft_flowtable.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_chain_filter.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/nft_flowtable.sh b/tools/testing/selftests/netfilter/nft_flowtable.sh
-index 4d8bc51b7a7b..3cf20e9bd3a6 100755
---- a/tools/testing/selftests/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/netfilter/nft_flowtable.sh
-@@ -489,8 +489,8 @@ ip -net $nsr1 addr add 10.0.1.1/24 dev veth0
- ip -net $nsr1 addr add dead:1::1/64 dev veth0
- ip -net $nsr1 link set up dev veth0
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index c3563f0be269..680fe557686e 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -344,6 +344,12 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 		return;
+ 	}
  
--KEY_SHA="0x"$(ps -xaf | sha1sum | cut -d " " -f 1)
--KEY_AES="0x"$(ps -xaf | md5sum | cut -d " " -f 1)
-+KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
-+KEY_AES="0x"$(ps -af | md5sum | cut -d " " -f 1)
- SPI1=$RANDOM
- SPI2=$RANDOM
++	/* UNREGISTER events are also happening on netns exit.
++	 *
++	 * Although nf_tables core releases all tables/chains, only this event
++	 * handler provides guarantee that hook->ops.dev is still accessible,
++	 * so we cannot skip exiting net namespaces.
++	 */
+ 	__nft_release_basechain(ctx);
+ }
  
+@@ -362,9 +368,6 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 	    event != NETDEV_CHANGENAME)
+ 		return NOTIFY_DONE;
+ 
+-	if (!check_net(ctx.net))
+-		return NOTIFY_DONE;
+-
+ 	nft_net = nft_pernet(ctx.net);
+ 	mutex_lock(&nft_net->commit_mutex);
+ 	list_for_each_entry(table, &nft_net->tables, list) {
 -- 
 2.30.2
 
