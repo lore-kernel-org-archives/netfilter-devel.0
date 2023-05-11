@@ -2,84 +2,92 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD0EC7EE25
-	for <netfilter-devel@archiver.kernel.org>; Wed, 10 May 2023 22:53:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4971CC77B7C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 02:20:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236358AbjEJWxS (ORCPT
+        id S229535AbjEKCU0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 10 May 2023 18:53:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51358 "EHLO
+        Wed, 10 May 2023 22:20:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231486AbjEJWxS (ORCPT
+        with ESMTP id S229461AbjEKCUZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 May 2023 18:53:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3418E3A8E;
-        Wed, 10 May 2023 15:53:17 -0700 (PDT)
+        Wed, 10 May 2023 22:20:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87015180
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 May 2023 19:20:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B9F2361486;
-        Wed, 10 May 2023 22:53:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACEF6C433EF;
-        Wed, 10 May 2023 22:53:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1683759196;
-        bh=0SZCsJwaN3AewUnoK7ahUFPcOXKKisj7UKcNsbIMmPI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=XQc6WYHRDg0MBsZEyfCJ+vnkMjJlaVGOEx3mwuGtVdl5YOeoVKISE+iU91Kis8YeS
-         oiuGG6EB+L8X4l2LTlLW4tSagbRG6Euq8Qsedz3o1mAtfEDf1SBV4tgBd5gSPpMDG5
-         vIrRC4772kxNLYeCzjZ9oQoZU2ydqNJS6DFET+TE=
-Date:   Thu, 11 May 2023 07:53:09 +0900
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Pavel Machek <pavel@ucw.cz>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Lee Jones <lee@kernel.org>, Sebastian Reichel <sre@kernel.org>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        linux-leds@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-usb@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Yauhen Kharuzhy <jekhor@gmail.com>
-Subject: Re: [PATCH RESEND 1/4] leds: Change led_trigger_blink[_oneshot]()
- delay parameters to pass-by-value
-Message-ID: <2023051102-reseller-oat-3566@gregkh>
-References: <20230510162234.291439-1-hdegoede@redhat.com>
- <20230510162234.291439-2-hdegoede@redhat.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F4A263FA1
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 May 2023 02:20:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 7EB72C4339C;
+        Thu, 11 May 2023 02:20:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1683771622;
+        bh=G5w6X4nD4fXq+qzyTqhQ2DlNAeUgqrPKtzSgg6OOteg=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=ojEjz6V64OEMCkyqW8olFACe6n/tbDldxiHakNbn3I17m+8dlWD6Chh8o5OMaSdtx
+         OCc/qGk2T56lHICG4yCLOZlL7rck1ftFfiYXRW6knszpSoLweZa8wf8Vd9hBB5KOPf
+         YmcPxbG8YUx/ipFJ2mZgEsqzDTuORD/x/nqKwa5qx3nWzxvI6SVHUNHXCeb7miytub
+         0AeLJtjpuBIg1pNqZkp7c10St6oEEoBK9+R/wn4q2MeI1dBqABGqaosG4PtLHOmWVa
+         4pU/61br2y150lYqGElUEsorPilLNE3O2mwFtpPHnxVilKcpT+8Uaus+jtlpLJiWIL
+         flA07hYJNw+7w==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 6034FE26D21;
+        Thu, 11 May 2023 02:20:22 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230510162234.291439-2-hdegoede@redhat.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/7] netfilter: nf_tables: always release netdev hooks
+ from notifier
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168377162238.11094.15038235357887196732.git-patchwork-notify@kernel.org>
+Date:   Thu, 11 May 2023 02:20:22 +0000
+References: <20230510083313.152961-2-pablo@netfilter.org>
+In-Reply-To: <20230510083313.152961-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 10, 2023 at 06:22:31PM +0200, Hans de Goede wrote:
-> led_blink_set[_oneshot]()'s delay_on and delay_off function parameters
-> are pass by reference, so that hw-blink implementations can report
-> back the actual achieved delays when the values have been rounded
-> to something the hw supports.
-> 
-> This is really only interesting for the sysfs API / the timer trigger.
-> Other triggers don't really care about this and none of the callers of
-> led_trigger_blink[_oneshot]() do anything with the returned delay values.
-> 
-> Change the led_trigger_blink[_oneshot]() delay parameters to pass-by-value,
-> there are 2 reasons for this:
-> 
-> 1. led_cdev->blink_set() may sleep, while led_trigger_blink() may not.
-> So on hw where led_cdev->blink_set() sleeps the call needs to be deferred
-> to a workqueue, in which case the actual achieved delays are unknown
-> (this is a preparation patch for the deferring).
-> 
-> 2. Since the callers don't care about the actual achieved delays, allowing
-> callers to directly pass a value leads to simpler code for most callers.
-> 
-> Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-> Tested-by: Yauhen Kharuzhy <jekhor@gmail.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Hello:
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Wed, 10 May 2023 10:33:07 +0200 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> This reverts "netfilter: nf_tables: skip netdev events generated on netns removal".
+> 
+> The problem is that when a veth device is released, the veth release
+> callback will also queue the peer netns device for removal.
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/7] netfilter: nf_tables: always release netdev hooks from notifier
+    https://git.kernel.org/netdev/net/c/dc1c9fd4a8bb
+  - [net,2/7] netfilter: conntrack: fix possible bug_on with enable_hooks=1
+    https://git.kernel.org/netdev/net/c/e72eeab542db
+  - [net,3/7] selftests: nft_flowtable.sh: use /proc for pid checking
+    https://git.kernel.org/netdev/net/c/0a11073e8e33
+  - [net,4/7] selftests: nft_flowtable.sh: no need for ps -x option
+    https://git.kernel.org/netdev/net/c/0749d670d758
+  - [net,5/7] selftests: nft_flowtable.sh: wait for specific nc pids
+    https://git.kernel.org/netdev/net/c/1114803c2da9
+  - [net,6/7] selftests: nft_flowtable.sh: monitor result file sizes
+    https://git.kernel.org/netdev/net/c/90ab51226d52
+  - [net,7/7] selftests: nft_flowtable.sh: check ingress/egress chain too
+    https://git.kernel.org/netdev/net/c/3acf8f6c14d0
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
