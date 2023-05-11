@@ -2,162 +2,177 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85062C77B7C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 16:36:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6500C7EE2D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 19:39:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238514AbjEKQg1 (ORCPT
+        id S239244AbjEKTjN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 May 2023 12:36:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51414 "EHLO
+        Thu, 11 May 2023 15:39:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238496AbjEKQg0 (ORCPT
+        with ESMTP id S239174AbjEKTjM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 May 2023 12:36:26 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 695FAD9
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 May 2023 09:36:25 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1px9HD-0002JG-BU; Thu, 11 May 2023 18:36:23 +0200
-Date:   Thu, 11 May 2023 18:36:23 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Boris Sukholitko <boris.sukholitko@broadcom.com>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Ilya Lifshits <ilya.lifshits@broadcom.com>
-Subject: Re: [PATCH nf-next 00/19] netfilter: nftables: dscp modification
- offload
-Message-ID: <20230511163623.GB11411@breakpoint.cc>
-References: <20230503125552.41113-1-boris.sukholitko@broadcom.com>
- <20230503184630.GB28036@breakpoint.cc>
- <CADuVC7imr-YL4aUKbrRSQbQ_2QY_A5zCiAfmqgz9o49-n8AkTg@mail.gmail.com>
- <20230507173758.GA25617@breakpoint.cc>
- <ZFj7PomKpCnLsDz2@noodle>
- <20230509094827.GA14758@breakpoint.cc>
- <ZFtMhcF4wvV3drx8@noodle>
- <20230510125544.GC21949@breakpoint.cc>
- <ZF0Q37gucB2EiCxQ@nixemu>
+        Thu, 11 May 2023 15:39:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 985468A62;
+        Thu, 11 May 2023 12:38:43 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EEF146511B;
+        Thu, 11 May 2023 19:38:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2634CC433A7;
+        Thu, 11 May 2023 19:38:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1683833922;
+        bh=zGVTLVRo0CZLMjFWqPhnYeSJSCf78Y5LT843/5CiXKs=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=cLiXGI4rg1MkuoHYK833gLYFcyzLU9hfho2KqvX5dnU0ObMqtjhhq+wfRtRyMWYp8
+         +jlpI7Pbm5CE4tWnpiBqhO5m+vSAsq9ogO28/cChm3T4RM9TssmCOcZAIuHp9NyUn+
+         H1cjay9scyl0hzQAgoXSRaEYZxYlxuJeUmT5z5BENLX7ycijVGql8iL8YBc3xgbK+o
+         xLj9ujaxUzXM8Fu5OjVxrsZ9am5N/cDl3zJ5y/Am0s2xUIZS+KwdyPLX+QTIr8QXz1
+         3HrIVYdmC64Wkrn9gQ60I7jXx6fnOtIvXuHHGiTAspsHepKQlQNs2/dC5Vl3yb1Ti3
+         QzETW6RWdJWtg==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
+        fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.3 09/11] netfilter: nf_tables: deactivate anonymous set from preparation phase
+Date:   Thu, 11 May 2023 15:37:52 -0400
+Message-Id: <20230511193757.623114-9-sashal@kernel.org>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230511193757.623114-1-sashal@kernel.org>
+References: <20230511193757.623114-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZF0Q37gucB2EiCxQ@nixemu>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Boris Sukholitko <boris.sukholitko@broadcom.com> wrote:
-> On Wed, May 10, 2023 at 02:55:44PM +0200, Florian Westphal wrote:
-> I think I finally understand your reasoning. May I summarise it as the
-> following:
-> 
-> nftables chain forward having a flow add clause becomes a request from
-> the user to skip parts of Linux network stack. The affected flows will
-> become special and unaffected by most of the rules of the "slowpath"
-> chain forward. This is a sharp tool and user gets to keep both pieces
-> if something breaks :)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Yes.
+[ Upstream commit c1592a89942e9678f7d9c8030efa777c0d57edab ]
 
-> > Now, theoretically, you could add this:
-> > 
-> > chain fast_fwd {
-> > 	hook flowtable @f1 prio 0
-> > 	ip dscp set cs3
-> > }
-> > 
-> 
-> Yes, I really like that. Here is what such chain will do:
+Toggle deleted anonymous sets as inactive in the next generation, so
+users cannot perform any update on it. Clear the generation bitmask
+in case the transaction is aborted.
 
-NOOOOOOOOOOOOOOOOOOOOO!
+The following KASAN splat shows a set element deletion for a bound
+anonymous set that has been already removed in the same transaction.
 
-> 1. On the slow path it will behave identical to the forward chain.
+[   64.921510] ==================================================================
+[   64.923123] BUG: KASAN: wild-memory-access in nf_tables_commit+0xa24/0x1490 [nf_tables]
+[   64.924745] Write of size 8 at addr dead000000000122 by task test/890
+[   64.927903] CPU: 3 PID: 890 Comm: test Not tainted 6.3.0+ #253
+[   64.931120] Call Trace:
+[   64.932699]  <TASK>
+[   64.934292]  dump_stack_lvl+0x33/0x50
+[   64.935908]  ? nf_tables_commit+0xa24/0x1490 [nf_tables]
+[   64.937551]  kasan_report+0xda/0x120
+[   64.939186]  ? nf_tables_commit+0xa24/0x1490 [nf_tables]
+[   64.940814]  nf_tables_commit+0xa24/0x1490 [nf_tables]
+[   64.942452]  ? __kasan_slab_alloc+0x2d/0x60
+[   64.944070]  ? nf_tables_setelem_notify+0x190/0x190 [nf_tables]
+[   64.945710]  ? kasan_set_track+0x21/0x30
+[   64.947323]  nfnetlink_rcv_batch+0x709/0xd90 [nfnetlink]
+[   64.948898]  ? nfnetlink_rcv_msg+0x480/0x480 [nfnetlink]
 
-So one extra interpreter trip?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ include/net/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c     | 12 ++++++++++++
+ net/netfilter/nft_dynset.c        |  2 +-
+ net/netfilter/nft_lookup.c        |  2 +-
+ net/netfilter/nft_objref.c        |  2 +-
+ 5 files changed, 16 insertions(+), 3 deletions(-)
 
-> 2. The only processing done on fast_fwd fast path is interpretation
->    of struct flow_offload_entry list (.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 1b8e305bb54ae..9dace9bcba8e5 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -619,6 +619,7 @@ struct nft_set_binding {
+ };
+ 
+ enum nft_trans_phase;
++void nf_tables_activate_set(const struct nft_ctx *ctx, struct nft_set *set);
+ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 			      struct nft_set_binding *binding,
+ 			      enum nft_trans_phase phase);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e48ab8dfb5410..223bd16deb701 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5004,12 +5004,24 @@ static void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 	}
+ }
+ 
++void nf_tables_activate_set(const struct nft_ctx *ctx, struct nft_set *set)
++{
++	if (nft_set_is_anonymous(set))
++		nft_clear(ctx->net, set);
++
++	set->use++;
++}
++EXPORT_SYMBOL_GPL(nf_tables_activate_set);
++
+ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 			      struct nft_set_binding *binding,
+ 			      enum nft_trans_phase phase)
+ {
+ 	switch (phase) {
+ 	case NFT_TRANS_PREPARE:
++		if (nft_set_is_anonymous(set))
++			nft_deactivate_next(ctx->net, set);
++
+ 		set->use--;
+ 		return;
+ 	case NFT_TRANS_ABORT:
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 274579b1696e0..bd19c7aec92ee 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -342,7 +342,7 @@ static void nft_dynset_activate(const struct nft_ctx *ctx,
+ {
+ 	struct nft_dynset *priv = nft_expr_priv(expr);
+ 
+-	priv->set->use++;
++	nf_tables_activate_set(ctx, priv->set);
+ }
+ 
+ static void nft_dynset_destroy(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index cecf8ab90e58f..03ef4fdaa460b 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -167,7 +167,7 @@ static void nft_lookup_activate(const struct nft_ctx *ctx,
+ {
+ 	struct nft_lookup *priv = nft_expr_priv(expr);
+ 
+-	priv->set->use++;
++	nf_tables_activate_set(ctx, priv->set);
+ }
+ 
+ static void nft_lookup_destroy(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index cb37169608bab..a48dd5b5d45b1 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -185,7 +185,7 @@ static void nft_objref_map_activate(const struct nft_ctx *ctx,
+ {
+ 	struct nft_objref_map *priv = nft_expr_priv(expr);
+ 
+-	priv->set->use++;
++	nf_tables_activate_set(ctx, priv->set);
+ }
+ 
+ static void nft_objref_map_destroy(const struct nft_ctx *ctx,
+-- 
+2.39.2
 
-list iteration? What?  But netdev:ingress can't be used because
-its too slow?!
-
-I'm going to stop responding, sorry.
-
-Netfilter already has byzantine technical debt, I don't want
-to maintain any more 8-(
-
-> 3. Such fast path is done between devices defined in flowtable f1
-> 4. Apart from the interpretation of flow offload entries no other
->    processing will be done.
-> 5. (4) means that no Linux IP stack is involved in the forwarding.
-> 6. However (4) allows concatenation of other flow_offload_entry
->    producers (e.g. TC, ingress, egress nft chains).
-
-Ugh.  This is already problematic.  Pipeline/processing ordering matters.
-
-> 7. flow_offload_entry lists may be connection dependent.
-
-Thanks for reminding me.  This is also bad.
-Flowtable offload is tied to conntrack, yes.
-
-But rule offload SHOULD NOT be tied to connection tracking.
-What you are proposing is the ability to attach rules to a conntrack
-entry.
-
-> 8. Similar to chain forward now, flow_offload_entry lists will be passed
->    to devices for hardware acceleration.
-
-Wnich devices?  Error handling?
-
-> 9. IOW, flow_offload_entry lists become connection specific programs.
->    Therefore such lists may be compiled to EBPF and accelerated on XDP.
-
-By whom? How?
-
-> 10. flow_action_entry interpreters should be prepared to deal with IP
->     fragments and other strangeness that ensues on our networks.
-> 
-> > Where this chain is hooked into the flowtable fastpath *ONLY*.
-> 
-> I don't fully understand the ONLY part, but do my points above address
-> this?
-
-Only == not called for slowpath.
-
-I don't understand you, you reject netdev:ingress/egress
-but want a new conntrack extension that iterates flow_offload entries in
-software?
-
-> > However, I don't like it either because its incompatible with
-> > HW offloads and we can be sure that once we allow this people
-> > will want things like sets and maps too 8-(
-> 
-> I think that due to point (8) above the potential for hardware
-> acceleration is higher. The hardware (e.g. switch) is free to pass
-> the packets between flowtable ports and not involve Linux stack at all.
-> It may do such forwarding because of the promise (4) above.
->
-> sets and maps are welcome in chain fast_fwd :) EBPF and XDP already have
-> them. Once (9) becomes reality we'll be able to suport them, somehow :)
-
-No, XDP *DOES NOT* have them.  nftables sets and ebpf sets are
-completely different entities.  'nft add element inet filter bla { 1.2.3,4 }
-
-will not magically alter some ebpf set.
-
-They also have different scoping rules.
-
-> What do you think? Is going chain fast_fwd direction is feasible and
-> desirable?
-
-I think you should use netdev:ingress/egress hook points.
-
-Or use an xdp program and don't use netfilter at all.
-
-If you want to use nftables sets with ebpf, then you might investigate
-adding kfuncs for ebpf so nftables sets can be used from bpf programs,
-that might actually be useful for some people, but I'm not sure how to
-make this work at this time due to nature of set/map scoping in
-nftables.  We have to be mindful to not crash kernel when table/set/map
-is going away on netfilter side.
