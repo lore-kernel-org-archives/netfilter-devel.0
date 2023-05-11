@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EDBAC77B7F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 20:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DF11C7EE25
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 20:46:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238390AbjEKUjk (ORCPT
+        id S239206AbjEKUqL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 May 2023 16:39:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42192 "EHLO
+        Thu, 11 May 2023 16:46:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239016AbjEKUjj (ORCPT
+        with ESMTP id S238452AbjEKUpm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 May 2023 16:39:39 -0400
+        Thu, 11 May 2023 16:45:42 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D10B7213E
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 May 2023 13:39:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB4B1701
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 May 2023 13:45:41 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pxD4Z-0003rW-BD; Thu, 11 May 2023 22:39:35 +0200
+        id 1pxDAS-0003u1-7v; Thu, 11 May 2023 22:45:40 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nft_set_rbtree: fix null deref on element insertion
-Date:   Thu, 11 May 2023 22:39:30 +0200
-Message-Id: <20230511203930.5933-1-fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nf_tables: always increment set element count
+Date:   Thu, 11 May 2023 22:45:35 +0200
+Message-Id: <20230511204535.6278-1-fw@strlen.de>
 X-Mailer: git-send-email 2.39.3
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -32,81 +32,43 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There is no guarantee that rb_prev() will not return NULL in nft_rbtree_gc_elem():
+At this time, set->nelems counter only increments when the set has
+a maximum size.
 
-general protection fault, probably for non-canonical address 0xdffffc0000000003: 0000 [#1] PREEMPT SMP KASAN
-KASAN: null-ptr-deref in range [0x0000000000000018-0x000000000000001f]
- nft_add_set_elem+0x14b0/0x2990
-  nf_tables_newsetelem+0x528/0xb30
+All set elements decrement the counter unconditionally, this is
+confusing.
 
-Furthermore, there is a possible use-after-free while iterating,
-'node' can be free'd so we need to cache the next value to use.
+Increment the counter unconditionally to make this symmetrical.
+This would also allow changing the set maximum size after set creation
+in a later patch.
 
-Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_rbtree.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ net/netfilter/nf_tables_api.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 19ea4d3c3553..2f114aa10f1a 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -221,7 +221,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
--	struct nft_rbtree_elem *rbe_prev;
-+	struct nft_rbtree_elem *rbe_prev = NULL;
- 	struct nft_set_gc_batch *gcb;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index dc5675962de4..0396fd8f4e71 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6539,10 +6539,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err_element_clash;
+ 	}
  
- 	gcb = nft_set_gc_batch_check(set, NULL, GFP_ATOMIC);
-@@ -229,17 +229,21 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 		return -ENOMEM;
- 
- 	/* search for expired end interval coming before this element. */
--	do {
-+	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		if (nft_rbtree_interval_end(rbe_prev))
- 			break;
- 
- 		prev = rb_prev(prev);
--	} while (prev != NULL);
-+	}
+-	if (!(flags & NFT_SET_ELEM_CATCHALL) && set->size &&
+-	    !atomic_add_unless(&set->nelems, 1, set->size + set->ndeact)) {
+-		err = -ENFILE;
+-		goto err_set_full;
++	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
++		unsigned int max = set->size ? set->size + set->ndeact : UINT_MAX;
 +
-+	if (rbe_prev) {
-+		rb_erase(&rbe_prev->node, &priv->root);
-+		atomic_dec(&set->nelems);
-+	}
++		if (!atomic_add_unless(&set->nelems, 1, max)) {
++			err = -ENFILE;
++			goto err_set_full;
++		}
+ 	}
  
--	rb_erase(&rbe_prev->node, &priv->root);
- 	rb_erase(&rbe->node, &priv->root);
--	atomic_sub(2, &set->nelems);
-+	atomic_dec(&set->nelems);
- 
- 	nft_set_gc_batch_add(gcb, rbe);
- 	nft_set_gc_batch_complete(gcb);
-@@ -268,7 +272,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_set_ext **ext)
- {
- 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
--	struct rb_node *node, *parent, **p, *first = NULL;
-+	struct rb_node *node, *next, *parent, **p, *first = NULL;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	int d, err;
-@@ -307,7 +311,9 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	 * Values stored in the tree are in reversed order, starting from
- 	 * highest to lowest value.
- 	 */
--	for (node = first; node != NULL; node = rb_next(node)) {
-+	for (node = first; node != NULL; node = next) {
-+		next = rb_next(node);
-+
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
- 
- 		if (!nft_set_elem_active(&rbe->ext, genmask))
+ 	nft_trans_elem(trans) = elem;
 -- 
 2.39.3
 
