@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35BA6C7EE26
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 15:42:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C88AC77B7C
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 15:42:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238795AbjEKPmF (ORCPT
+        id S238783AbjEKPmI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 May 2023 11:42:05 -0400
+        Thu, 11 May 2023 11:42:08 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238783AbjEKPmD (ORCPT
+        with ESMTP id S238272AbjEKPmF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 May 2023 11:42:03 -0400
+        Thu, 11 May 2023 11:42:05 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1650359F2;
-        Thu, 11 May 2023 08:42:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8C86359C6;
+        Thu, 11 May 2023 08:42:02 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, gregkh@linuxfoundation.org, sashal@kernel.org,
         stable@vger.kernel.org
-Subject: [PATCH -stable,4.14 1/6] netfilter: nf_tables: split set destruction in deactivate and destroy phase
-Date:   Thu, 11 May 2023 17:41:38 +0200
-Message-Id: <20230511154143.52469-2-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 2/6] netfilter: nf_tables: unbind set in rule from commit path
+Date:   Thu, 11 May 2023 17:41:39 +0200
+Message-Id: <20230511154143.52469-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230511154143.52469-1-pablo@netfilter.org>
 References: <20230511154143.52469-1-pablo@netfilter.org>
@@ -32,266 +32,426 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+[ backport for 4.14 of f6ac8585897684374a19863fff21186a05805286 ]
 
-[ backport for 4.14 of cd5125d8f51882279f50506bb9c7e5e89dc9bef3 ]
+Anonymous sets that are bound to rules from the same transaction trigger
+a kernel splat from the abort path due to double set list removal and
+double free.
 
-Splits unbind_set into destroy_set and unbinding operation.
+This patch updates the logic to search for the transaction that is
+responsible for creating the set and disable the set list removal and
+release, given the rule is now responsible for this. Lookup is reverse
+since the transaction that adds the set is likely to be at the tail of
+the list.
 
-Unbinding removes set from lists (so new transaction would not
-find it anymore) but keeps memory allocated (so packet path continues
-to work).
+Moreover, this patch adds the unbind step to deliver the event from the
+commit path.  This should not be done from the worker thread, since we
+have no guarantees of in-order delivery to the listener.
 
-Rebind function is added to allow unrolling in case transaction
-that wants to remove set is aborted.
+This patch removes the assumption that both activate and deactivate
+callbacks need to be provided.
 
-Destroy function is added to free the memory, but this could occur
-outside of transaction in the future.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: cd5125d8f518 ("netfilter: nf_tables: split set destruction in deactivate and destroy phase")
+Reported-by: Mikhail Morfikov <mmorfikov@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  7 +++++-
- net/netfilter/nf_tables_api.c     | 36 +++++++++++++++++++++----------
- net/netfilter/nft_dynset.c        | 21 +++++++++++++++++-
- net/netfilter/nft_lookup.c        | 20 ++++++++++++++++-
- net/netfilter/nft_objref.c        | 20 ++++++++++++++++-
- 5 files changed, 89 insertions(+), 15 deletions(-)
+ include/net/netfilter/nf_tables.h | 17 +++++--
+ net/netfilter/nf_tables_api.c     | 85 +++++++++++++++----------------
+ net/netfilter/nft_dynset.c        | 18 +++----
+ net/netfilter/nft_immediate.c     |  6 ++-
+ net/netfilter/nft_lookup.c        | 18 +++----
+ net/netfilter/nft_objref.c        | 18 +++----
+ 6 files changed, 80 insertions(+), 82 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 3107895115c2..59da90bb840d 100644
+index 59da90bb840d..cc6ba7e593e7 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -463,6 +463,9 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+@@ -462,9 +462,7 @@ struct nft_set_binding {
+ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
  		       struct nft_set_binding *binding);
  void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 			  struct nft_set_binding *binding);
-+void nf_tables_rebind_set(const struct nft_ctx *ctx, struct nft_set *set,
-+			  struct nft_set_binding *binding);
-+void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set);
+-			  struct nft_set_binding *binding);
+-void nf_tables_rebind_set(const struct nft_ctx *ctx, struct nft_set *set,
+-			  struct nft_set_binding *binding);
++			  struct nft_set_binding *binding, bool commit);
+ void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set);
  
  /**
-  *	enum nft_set_extensions - set extension type IDs
-@@ -716,7 +719,9 @@ struct nft_expr_type {
-  *	@eval: Expression evaluation function
-  *	@size: full expression size, including private data size
-  *	@init: initialization function
-- *	@destroy: destruction function
-+ *	@activate: activate expression in the next generation
-+ *	@deactivate: deactivate expression in next generation
-+ *	@destroy: destruction function, called after synchronize_rcu
-  *	@dump: function to dump parameters
-  *	@type: expression type
-  *	@validate: validate expression, called during loop detection
+@@ -713,6 +711,13 @@ struct nft_expr_type {
+ 
+ #define NFT_EXPR_STATEFUL		0x1
+ 
++enum nft_trans_phase {
++	NFT_TRANS_PREPARE,
++	NFT_TRANS_ABORT,
++	NFT_TRANS_COMMIT,
++	NFT_TRANS_RELEASE
++};
++
+ /**
+  *	struct nft_expr_ops - nf_tables expression operations
+  *
+@@ -742,7 +747,8 @@ struct nft_expr_ops {
+ 	void				(*activate)(const struct nft_ctx *ctx,
+ 						    const struct nft_expr *expr);
+ 	void				(*deactivate)(const struct nft_ctx *ctx,
+-						      const struct nft_expr *expr);
++						      const struct nft_expr *expr,
++						      enum nft_trans_phase phase);
+ 	void				(*destroy)(const struct nft_ctx *ctx,
+ 						   const struct nft_expr *expr);
+ 	int				(*dump)(struct sk_buff *skb,
+@@ -1290,12 +1296,15 @@ struct nft_trans_rule {
+ struct nft_trans_set {
+ 	struct nft_set			*set;
+ 	u32				set_id;
++	bool				bound;
+ };
+ 
+ #define nft_trans_set(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set)
+ #define nft_trans_set_id(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set_id)
++#define nft_trans_set_bound(trans)	\
++	(((struct nft_trans_set *)trans->data)->bound)
+ 
+ struct nft_trans_chain {
+ 	bool				update;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b24c83cf64b9..39416c568d18 100644
+index 39416c568d18..5541ba7cc4a0 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -327,7 +327,7 @@ static int nft_delrule_by_chain(struct nft_ctx *ctx)
- 	return 0;
+@@ -140,6 +140,23 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
  }
  
--static int nft_trans_set_add(struct nft_ctx *ctx, int msg_type,
-+static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
- 			     struct nft_set *set)
- {
- 	struct nft_trans *trans;
-@@ -347,7 +347,7 @@ static int nft_trans_set_add(struct nft_ctx *ctx, int msg_type,
- 	return 0;
- }
- 
--static int nft_delset(struct nft_ctx *ctx, struct nft_set *set)
-+static int nft_delset(const struct nft_ctx *ctx, struct nft_set *set)
- {
- 	int err;
- 
-@@ -3311,13 +3311,6 @@ static void nft_set_destroy(struct nft_set *set)
- 	kvfree(set);
- }
- 
--static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
--{
--	list_del_rcu(&set->list);
--	nf_tables_set_notify(ctx, set, NFT_MSG_DELSET, GFP_ATOMIC);
--	nft_set_destroy(set);
--}
--
- static int nf_tables_delset(struct net *net, struct sock *nlsk,
- 			    struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[],
-@@ -3400,17 +3393,38 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- }
- EXPORT_SYMBOL_GPL(nf_tables_bind_set);
- 
--void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
-+void nf_tables_rebind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 			  struct nft_set_binding *binding)
++static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
 +{
-+	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
-+	    nft_is_active(ctx->net, set))
-+		list_add_tail_rcu(&set->list, &ctx->table->sets);
++	struct net *net = ctx->net;
++	struct nft_trans *trans;
 +
-+	list_add_tail_rcu(&binding->list, &set->bindings);
-+}
-+EXPORT_SYMBOL_GPL(nf_tables_rebind_set);
++	if (!(set->flags & NFT_SET_ANONYMOUS))
++		return;
 +
-+void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
-+		          struct nft_set_binding *binding)
- {
- 	list_del_rcu(&binding->list);
- 
- 	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
- 	    nft_is_active(ctx->net, set))
--		nf_tables_set_destroy(ctx, set);
-+		list_del_rcu(&set->list);
- }
- EXPORT_SYMBOL_GPL(nf_tables_unbind_set);
- 
-+void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
-+	    nft_is_active(ctx->net, set)) {
-+		nf_tables_set_notify(ctx, set, NFT_MSG_DELSET, GFP_ATOMIC);
-+		nft_set_destroy(set);
++	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
++		if (trans->msg_type == NFT_MSG_NEWSET &&
++		    nft_trans_set(trans) == set) {
++			nft_trans_set_bound(trans) = true;
++			break;
++		}
 +	}
 +}
-+EXPORT_SYMBOL_GPL(nf_tables_destroy_set);
 +
- const struct nft_set_ext_type nft_set_ext_types[] = {
- 	[NFT_SET_EXT_KEY]		= {
- 		.align	= __alignof__(u32),
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index f8688f9bf46c..800ca627a457 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -223,14 +223,31 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ static int nf_tables_register_hooks(struct net *net,
+ 				    const struct nft_table *table,
+ 				    struct nft_chain *chain,
+@@ -221,18 +238,6 @@ static int nft_delchain(struct nft_ctx *ctx)
  	return err;
  }
  
-+static void nft_dynset_activate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
-+{
-+	struct nft_dynset *priv = nft_expr_priv(expr);
+-/* either expr ops provide both activate/deactivate, or neither */
+-static bool nft_expr_check_ops(const struct nft_expr_ops *ops)
+-{
+-	if (!ops)
+-		return true;
+-
+-	if (WARN_ON_ONCE((!ops->activate ^ !ops->deactivate)))
+-		return false;
+-
+-	return true;
+-}
+-
+ static void nft_rule_expr_activate(const struct nft_ctx *ctx,
+ 				   struct nft_rule *rule)
+ {
+@@ -248,14 +253,15 @@ static void nft_rule_expr_activate(const struct nft_ctx *ctx,
+ }
+ 
+ static void nft_rule_expr_deactivate(const struct nft_ctx *ctx,
+-				     struct nft_rule *rule)
++				     struct nft_rule *rule,
++				     enum nft_trans_phase phase)
+ {
+ 	struct nft_expr *expr;
+ 
+ 	expr = nft_expr_first(rule);
+ 	while (expr != nft_expr_last(rule) && expr->ops) {
+ 		if (expr->ops->deactivate)
+-			expr->ops->deactivate(ctx, expr);
++			expr->ops->deactivate(ctx, expr, phase);
+ 
+ 		expr = nft_expr_next(expr);
+ 	}
+@@ -306,7 +312,7 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
+ 		nft_trans_destroy(trans);
+ 		return err;
+ 	}
+-	nft_rule_expr_deactivate(ctx, rule);
++	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_PREPARE);
+ 
+ 	return 0;
+ }
+@@ -1737,9 +1743,6 @@ static int nf_tables_delchain(struct net *net, struct sock *nlsk,
+  */
+ int nft_register_expr(struct nft_expr_type *type)
+ {
+-	if (!nft_expr_check_ops(type->ops))
+-		return -EINVAL;
+-
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+ 	if (type->family == NFPROTO_UNSPEC)
+ 		list_add_tail_rcu(&type->list, &nf_tables_expressions);
+@@ -1889,10 +1892,6 @@ static int nf_tables_expr_parse(const struct nft_ctx *ctx,
+ 			err = PTR_ERR(ops);
+ 			goto err1;
+ 		}
+-		if (!nft_expr_check_ops(ops)) {
+-			err = -EINVAL;
+-			goto err1;
+-		}
+ 	} else
+ 		ops = type->ops;
+ 
+@@ -2297,7 +2296,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
+ static void nf_tables_rule_release(const struct nft_ctx *ctx,
+ 				   struct nft_rule *rule)
+ {
+-	nft_rule_expr_deactivate(ctx, rule);
++	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_RELEASE);
+ 	nf_tables_rule_destroy(ctx, rule);
+ }
+ 
+@@ -3389,39 +3388,30 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ bind:
+ 	binding->chain = ctx->chain;
+ 	list_add_tail_rcu(&binding->list, &set->bindings);
++	nft_set_trans_bind(ctx, set);
 +
-+	nf_tables_rebind_set(ctx, priv->set, &priv->binding);
-+}
-+
-+static void nft_dynset_deactivate(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr)
-+{
-+	struct nft_dynset *priv = nft_expr_priv(expr);
-+
-+	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
-+}
-+
- static void nft_dynset_destroy(const struct nft_ctx *ctx,
- 			       const struct nft_expr *expr)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_bind_set);
+ 
+-void nf_tables_rebind_set(const struct nft_ctx *ctx, struct nft_set *set,
+-			  struct nft_set_binding *binding)
+-{
+-	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
+-	    nft_is_active(ctx->net, set))
+-		list_add_tail_rcu(&set->list, &ctx->table->sets);
+-
+-	list_add_tail_rcu(&binding->list, &set->bindings);
+-}
+-EXPORT_SYMBOL_GPL(nf_tables_rebind_set);
+-
+ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+-		          struct nft_set_binding *binding)
++			  struct nft_set_binding *binding, bool event)
+ {
+ 	list_del_rcu(&binding->list);
+ 
+-	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
+-	    nft_is_active(ctx->net, set))
++	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS) {
+ 		list_del_rcu(&set->list);
++		if (event)
++			nf_tables_set_notify(ctx, set, NFT_MSG_DELSET,
++					     GFP_KERNEL);
++	}
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_unbind_set);
+ 
+ void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+-	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS &&
+-	    nft_is_active(ctx->net, set)) {
+-		nf_tables_set_notify(ctx, set, NFT_MSG_DELSET, GFP_ATOMIC);
++	if (list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
+ 		nft_set_destroy(set);
+-	}
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_destroy_set);
+ 
+@@ -5197,6 +5187,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nf_tables_rule_notify(&trans->ctx,
+ 					      nft_trans_rule(trans),
+ 					      NFT_MSG_DELRULE);
++			nft_rule_expr_deactivate(&trans->ctx,
++						 nft_trans_rule(trans),
++						 NFT_TRANS_COMMIT);
+ 			break;
+ 		case NFT_MSG_NEWSET:
+ 			nft_clear(net, nft_trans_set(trans));
+@@ -5274,7 +5267,8 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+ 		break;
+ 	case NFT_MSG_NEWSET:
+-		nft_set_destroy(nft_trans_set(trans));
++		if (!nft_trans_set_bound(trans))
++			nft_set_destroy(nft_trans_set(trans));
+ 		break;
+ 	case NFT_MSG_NEWSETELEM:
+ 		nft_set_elem_destroy(nft_trans_elem_set(trans),
+@@ -5334,7 +5328,9 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 		case NFT_MSG_NEWRULE:
+ 			trans->ctx.chain->use--;
+ 			list_del_rcu(&nft_trans_rule(trans)->list);
+-			nft_rule_expr_deactivate(&trans->ctx, nft_trans_rule(trans));
++			nft_rule_expr_deactivate(&trans->ctx,
++						 nft_trans_rule(trans),
++						 NFT_TRANS_ABORT);
+ 			break;
+ 		case NFT_MSG_DELRULE:
+ 			trans->ctx.chain->use++;
+@@ -5344,7 +5340,8 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_NEWSET:
+ 			trans->ctx.table->use--;
+-			list_del_rcu(&nft_trans_set(trans)->list);
++			if (!nft_trans_set_bound(trans))
++				list_del_rcu(&nft_trans_set(trans)->list);
+ 			break;
+ 		case NFT_MSG_DELSET:
+ 			trans->ctx.table->use++;
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 800ca627a457..7e0a20343740 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -223,20 +223,17 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	return err;
+ }
+ 
+-static void nft_dynset_activate(const struct nft_ctx *ctx,
+-				const struct nft_expr *expr)
+-{
+-	struct nft_dynset *priv = nft_expr_priv(expr);
+-
+-	nf_tables_rebind_set(ctx, priv->set, &priv->binding);
+-}
+-
+ static void nft_dynset_deactivate(const struct nft_ctx *ctx,
+-				  const struct nft_expr *expr)
++				  const struct nft_expr *expr,
++				  enum nft_trans_phase phase)
  {
  	struct nft_dynset *priv = nft_expr_priv(expr);
  
 -	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
- 	if (priv->expr != NULL)
- 		nft_expr_destroy(ctx, priv->expr);
++	if (phase == NFT_TRANS_PREPARE)
++		return;
 +
-+	nf_tables_destroy_set(ctx, priv->set);
++	nf_tables_unbind_set(ctx, priv->set, &priv->binding,
++			     phase == NFT_TRANS_COMMIT);
  }
  
- static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
-@@ -267,6 +284,8 @@ static const struct nft_expr_ops nft_dynset_ops = {
+ static void nft_dynset_destroy(const struct nft_ctx *ctx,
+@@ -284,7 +281,6 @@ static const struct nft_expr_ops nft_dynset_ops = {
  	.eval		= nft_dynset_eval,
  	.init		= nft_dynset_init,
  	.destroy	= nft_dynset_destroy,
-+	.activate	= nft_dynset_activate,
-+	.deactivate	= nft_dynset_deactivate,
+-	.activate	= nft_dynset_activate,
+ 	.deactivate	= nft_dynset_deactivate,
  	.dump		= nft_dynset_dump,
  };
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index aa87ff8beae8..86fd35018b4a 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -78,10 +78,14 @@ static void nft_immediate_activate(const struct nft_ctx *ctx,
+ }
+ 
+ static void nft_immediate_deactivate(const struct nft_ctx *ctx,
+-				     const struct nft_expr *expr)
++				     const struct nft_expr *expr,
++				     enum nft_trans_phase phase)
+ {
+ 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
+ 
++	if (phase == NFT_TRANS_COMMIT)
++		return;
++
+ 	return nft_data_release(&priv->data, nft_dreg_to_type(priv->dreg));
+ }
  
 diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 44015a151ad6..c34667f4f48a 100644
+index c34667f4f48a..7dd35245222c 100644
 --- a/net/netfilter/nft_lookup.c
 +++ b/net/netfilter/nft_lookup.c
-@@ -118,12 +118,28 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+@@ -118,20 +118,17 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
  	return 0;
  }
  
-+static void nft_lookup_activate(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
-+{
-+	struct nft_lookup *priv = nft_expr_priv(expr);
-+
-+	nf_tables_rebind_set(ctx, priv->set, &priv->binding);
-+}
-+
-+static void nft_lookup_deactivate(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr)
-+{
-+	struct nft_lookup *priv = nft_expr_priv(expr);
-+
-+	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
-+}
-+
- static void nft_lookup_destroy(const struct nft_ctx *ctx,
- 			       const struct nft_expr *expr)
+-static void nft_lookup_activate(const struct nft_ctx *ctx,
+-				const struct nft_expr *expr)
+-{
+-	struct nft_lookup *priv = nft_expr_priv(expr);
+-
+-	nf_tables_rebind_set(ctx, priv->set, &priv->binding);
+-}
+-
+ static void nft_lookup_deactivate(const struct nft_ctx *ctx,
+-				  const struct nft_expr *expr)
++				  const struct nft_expr *expr,
++				  enum nft_trans_phase phase)
  {
  	struct nft_lookup *priv = nft_expr_priv(expr);
  
 -	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
-+	nf_tables_destroy_set(ctx, priv->set);
++	if (phase == NFT_TRANS_PREPARE)
++		return;
++
++	nf_tables_unbind_set(ctx, priv->set, &priv->binding,
++			     phase == NFT_TRANS_COMMIT);
  }
  
- static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
-@@ -151,6 +167,8 @@ static const struct nft_expr_ops nft_lookup_ops = {
+ static void nft_lookup_destroy(const struct nft_ctx *ctx,
+@@ -167,7 +164,6 @@ static const struct nft_expr_ops nft_lookup_ops = {
  	.size		= NFT_EXPR_SIZE(sizeof(struct nft_lookup)),
  	.eval		= nft_lookup_eval,
  	.init		= nft_lookup_init,
-+	.activate	= nft_lookup_activate,
-+	.deactivate	= nft_lookup_deactivate,
+-	.activate	= nft_lookup_activate,
+ 	.deactivate	= nft_lookup_deactivate,
  	.destroy	= nft_lookup_destroy,
  	.dump		= nft_lookup_dump,
- };
 diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
-index 7bcdc48f3d73..d289fa5e4eb9 100644
+index d289fa5e4eb9..f72aeff93efa 100644
 --- a/net/netfilter/nft_objref.c
 +++ b/net/netfilter/nft_objref.c
-@@ -154,12 +154,28 @@ static int nft_objref_map_dump(struct sk_buff *skb, const struct nft_expr *expr)
+@@ -154,20 +154,17 @@ static int nft_objref_map_dump(struct sk_buff *skb, const struct nft_expr *expr)
  	return -1;
  }
  
-+static void nft_objref_map_activate(const struct nft_ctx *ctx,
-+				    const struct nft_expr *expr)
-+{
-+	struct nft_objref_map *priv = nft_expr_priv(expr);
-+
-+	nf_tables_rebind_set(ctx, priv->set, &priv->binding);
-+}
-+
-+static void nft_objref_map_deactivate(const struct nft_ctx *ctx,
-+				      const struct nft_expr *expr)
-+{
-+	struct nft_objref_map *priv = nft_expr_priv(expr);
-+
-+	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
-+}
-+
- static void nft_objref_map_destroy(const struct nft_ctx *ctx,
- 				   const struct nft_expr *expr)
+-static void nft_objref_map_activate(const struct nft_ctx *ctx,
+-				    const struct nft_expr *expr)
+-{
+-	struct nft_objref_map *priv = nft_expr_priv(expr);
+-
+-	nf_tables_rebind_set(ctx, priv->set, &priv->binding);
+-}
+-
+ static void nft_objref_map_deactivate(const struct nft_ctx *ctx,
+-				      const struct nft_expr *expr)
++				      const struct nft_expr *expr,
++				      enum nft_trans_phase phase)
  {
  	struct nft_objref_map *priv = nft_expr_priv(expr);
  
 -	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
-+	nf_tables_destroy_set(ctx, priv->set);
++	if (phase == NFT_TRANS_PREPARE)
++		return;
++
++	nf_tables_unbind_set(ctx, priv->set, &priv->binding,
++			     phase == NFT_TRANS_COMMIT);
  }
  
- static struct nft_expr_type nft_objref_type;
-@@ -168,6 +184,8 @@ static const struct nft_expr_ops nft_objref_map_ops = {
+ static void nft_objref_map_destroy(const struct nft_ctx *ctx,
+@@ -184,7 +181,6 @@ static const struct nft_expr_ops nft_objref_map_ops = {
  	.size		= NFT_EXPR_SIZE(sizeof(struct nft_objref_map)),
  	.eval		= nft_objref_map_eval,
  	.init		= nft_objref_map_init,
-+	.activate	= nft_objref_map_activate,
-+	.deactivate	= nft_objref_map_deactivate,
+-	.activate	= nft_objref_map_activate,
+ 	.deactivate	= nft_objref_map_deactivate,
  	.destroy	= nft_objref_map_destroy,
  	.dump		= nft_objref_map_dump,
- };
 -- 
 2.30.2
 
