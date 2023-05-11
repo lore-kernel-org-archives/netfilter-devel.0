@@ -2,37 +2,37 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70107C77B7C
-	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 19:41:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E11DAC7EE22
+	for <netfilter-devel@archiver.kernel.org>; Thu, 11 May 2023 19:42:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239440AbjEKTlk (ORCPT
+        id S239493AbjEKTmQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 11 May 2023 15:41:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57244 "EHLO
+        Thu, 11 May 2023 15:42:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239442AbjEKTlQ (ORCPT
+        with ESMTP id S239396AbjEKTl4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 May 2023 15:41:16 -0400
+        Thu, 11 May 2023 15:41:56 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 403D1D2E8;
-        Thu, 11 May 2023 12:40:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7029FD073;
+        Thu, 11 May 2023 12:41:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 84D2E650DB;
-        Thu, 11 May 2023 19:40:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A607FC4339C;
-        Thu, 11 May 2023 19:40:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 51C936511B;
+        Thu, 11 May 2023 19:41:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 829B7C433EF;
+        Thu, 11 May 2023 19:41:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1683834017;
-        bh=2QLWUuv7sWoxq91M2t52vu5y6W5FZRv+CbpLAWryEGk=;
+        s=k20201202; t=1683834075;
+        bh=xFqnQ7dKbJoucFKjbDCN3aUSMWocxOUA89ooGcf/sYQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=TOTv007gMjK5K7HgCerMXY7+dcOfXUX0CPb/El6sFxWYzJZEirx24u5XlZYSHTg4D
-         K9b9tADl7OlZ2UEAyavuTq6x5KLIqxNrpi9gu3lIIn0R4zajBFWTedKVcFJALGH8Hu
-         PkPrVVq3pSfYrqa44z1dUDzzYhN142S46+5Y0B/JqifapjODOznlDNc3Fy7vl5xvCi
-         sCz1p+yu8JoKUy0q+9Jv4IdeP2bWH2ZXZF5gjcSS8acsmF+QlsNg+tiHR2SyKSJbdp
-         74ik5tZTWhuGzVnLtNzKhmJCnyMU+QSOng+D7rfqnsRBXgSBEVvsS9xDMcgLJy9UmO
-         N4WSmsxcnX6oQ==
+        b=I1Bh+/Lla1AcBppgrFzt6nySk+e/MUONn2rtMrK6dzsdKEtCyZyLldrUBg1D87EfE
+         5OcIwjuWxsT35uL1lZs8TO5G0VSxvpgIL1IFUKU+/JskM+1mgpdBHsUo9/r0BLd/uO
+         B6y7sSdCM9Oh1BrhwHXPlgf04mun3e6NyJTe+xOOxARyGZecWpT3USX9t4fia5dmzH
+         64aa1R0NoODegtxW50+L82ptp/X6K37mHaLlT0h15SgxX4ZuLnGq8Hkcoc9VSQcnjh
+         h2oERAObEUN0YBNArT0EnufcHNJNQJqImTdXxV51MfcnHNwi9e87tU1GEfjQ9eDttS
+         FIKhGpCcc6vKA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -41,12 +41,12 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         kuba@kernel.org, pabeni@redhat.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 7/9] netfilter: nf_tables: deactivate anonymous set from preparation phase
-Date:   Thu, 11 May 2023 15:39:40 -0400
-Message-Id: <20230511193945.623476-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 3/3] netfilter: nf_tables: deactivate anonymous set from preparation phase
+Date:   Thu, 11 May 2023 15:40:59 -0400
+Message-Id: <20230511194059.623695-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230511193945.623476-1-sashal@kernel.org>
-References: <20230511193945.623476-1-sashal@kernel.org>
+In-Reply-To: <20230511194059.623695-1-sashal@kernel.org>
+References: <20230511194059.623695-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -94,10 +94,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  5 files changed, 16 insertions(+), 3 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 6bacbf57ac175..a1ccf1276f3ee 100644
+index e66fee99ed3ea..564fbe0c865fd 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -614,6 +614,7 @@ struct nft_set_binding {
+@@ -507,6 +507,7 @@ struct nft_set_binding {
  };
  
  enum nft_trans_phase;
@@ -106,10 +106,10 @@ index 6bacbf57ac175..a1ccf1276f3ee 100644
  			      struct nft_set_binding *binding,
  			      enum nft_trans_phase phase);
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 12d815b9aa131..f82a61d92aa90 100644
+index 2143edafba772..695b7ea55f183 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -4936,12 +4936,24 @@ static void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+@@ -4479,12 +4479,24 @@ static void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
  	}
  }
  
@@ -135,10 +135,10 @@ index 12d815b9aa131..f82a61d92aa90 100644
  		return;
  	case NFT_TRANS_ABORT:
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 6983e6ddeef90..e65a83328b554 100644
+index 8c45e01fecdd8..038588d4d80e1 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
-@@ -342,7 +342,7 @@ static void nft_dynset_activate(const struct nft_ctx *ctx,
+@@ -233,7 +233,7 @@ static void nft_dynset_activate(const struct nft_ctx *ctx,
  {
  	struct nft_dynset *priv = nft_expr_priv(expr);
  
@@ -148,10 +148,10 @@ index 6983e6ddeef90..e65a83328b554 100644
  
  static void nft_dynset_destroy(const struct nft_ctx *ctx,
 diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index d9ad1aa818564..68a5dea805480 100644
+index b0f558b4fea54..8bc008ff00cb7 100644
 --- a/net/netfilter/nft_lookup.c
 +++ b/net/netfilter/nft_lookup.c
-@@ -167,7 +167,7 @@ static void nft_lookup_activate(const struct nft_ctx *ctx,
+@@ -132,7 +132,7 @@ static void nft_lookup_activate(const struct nft_ctx *ctx,
  {
  	struct nft_lookup *priv = nft_expr_priv(expr);
  
@@ -161,10 +161,10 @@ index d9ad1aa818564..68a5dea805480 100644
  
  static void nft_lookup_destroy(const struct nft_ctx *ctx,
 diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
-index 5d8d91b3904db..7f8e480b6be5b 100644
+index bc104d36d3bb2..25157d8cc2504 100644
 --- a/net/netfilter/nft_objref.c
 +++ b/net/netfilter/nft_objref.c
-@@ -184,7 +184,7 @@ static void nft_objref_map_activate(const struct nft_ctx *ctx,
+@@ -180,7 +180,7 @@ static void nft_objref_map_activate(const struct nft_ctx *ctx,
  {
  	struct nft_objref_map *priv = nft_expr_priv(expr);
  
