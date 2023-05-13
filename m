@@ -2,136 +2,104 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA6C3C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Fri, 12 May 2023 12:19:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31E83C77B7C
+	for <netfilter-devel@archiver.kernel.org>; Sat, 13 May 2023 03:25:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240485AbjELMT4 (ORCPT
+        id S229473AbjEMDZk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 12 May 2023 08:19:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49162 "EHLO
+        Fri, 12 May 2023 23:25:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240338AbjELMT4 (ORCPT
+        with ESMTP id S229449AbjEMDZi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 May 2023 08:19:56 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94B708A7F
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 May 2023 05:19:54 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pxRkW-0001Vo-63; Fri, 12 May 2023 14:19:52 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_tables: relax set/map validation checks
-Date:   Fri, 12 May 2023 14:19:47 +0200
-Message-Id: <20230512121947.26996-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.3
+        Fri, 12 May 2023 23:25:38 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D9791FE6;
+        Fri, 12 May 2023 20:25:37 -0700 (PDT)
+Received: from kwepemi500015.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4QJ9tW2dmjzLpQH;
+        Sat, 13 May 2023 11:22:43 +0800 (CST)
+Received: from [10.174.178.171] (10.174.178.171) by
+ kwepemi500015.china.huawei.com (7.221.188.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Sat, 13 May 2023 11:25:34 +0800
+Subject: Re: [PATCH netfilter -stable,4.14 0/6] stable fixes for 4.14
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        <netfilter-devel@vger.kernel.org>
+CC:     <fw@strlen.de>, <gregkh@linuxfoundation.org>, <sashal@kernel.org>,
+        <stable@vger.kernel.org>
+References: <20230511154143.52469-1-pablo@netfilter.org>
+From:   "luwei (O)" <luwei32@huawei.com>
+Message-ID: <0626ced5-75f3-57cf-c797-e84a808e8cd7@huawei.com>
+Date:   Sat, 13 May 2023 11:25:33 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
+In-Reply-To: <20230511154143.52469-1-pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.174.178.171]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ kwepemi500015.china.huawei.com (7.221.188.92)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Its currently not allowed to perform queries on a map, for example:
+Hi, Pablo, I followed up this CVE for several days but I can't figure 
+out which commit caused this CVE, It seems the
 
-table t {
-	map m {
-		typeof ip saddr : meta mark
-		..
+kernel is affected from 4.0 version according: 
+https://www.suse.com/security/cve/CVE-2023-32233.html.
 
-	chain c {
-		ip saddr @m counter
+So is there any fix patches for the lower versions ?
 
-will fail, because kernel requires that userspace provides a destination
-register when the referenced set is a map.
-
-However, internally there is no real distinction between sets and maps,
-maps are just sets where each key is associated with a value.
-
-Relax this so that maps can be used just like sets.
-
-This allows to have rules that query if a given key exists
-without making use of the associated value.
-
-This also permits != checks which don't work for map lookups.
-
-When no destination reg is given for a map, then permit this for named
-maps.
-
-Data and dump paths need to be updated to consider priv->dreg_set
-instead of the 'set-is-a-map' check.
-
-Checks in reduce and validate callbacks are not changed, this
-can be relaxed later if a need arises.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_lookup.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
-
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 03ef4fdaa460..29ac48cdd6db 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -19,6 +19,7 @@ struct nft_lookup {
- 	struct nft_set			*set;
- 	u8				sreg;
- 	u8				dreg;
-+	bool				dreg_set;
- 	bool				invert;
- 	struct nft_set_binding		binding;
- };
-@@ -75,7 +76,7 @@ void nft_lookup_eval(const struct nft_expr *expr,
- 	}
- 
- 	if (ext) {
--		if (set->flags & NFT_SET_MAP)
-+		if (priv->dreg_set)
- 			nft_data_copy(&regs->data[priv->dreg],
- 				      nft_set_ext_data(ext), set->dlen);
- 
-@@ -122,11 +123,8 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 		if (flags & ~NFT_LOOKUP_F_INV)
- 			return -EINVAL;
- 
--		if (flags & NFT_LOOKUP_F_INV) {
--			if (set->flags & NFT_SET_MAP)
--				return -EINVAL;
-+		if (flags & NFT_LOOKUP_F_INV)
- 			priv->invert = true;
--		}
- 	}
- 
- 	if (tb[NFTA_LOOKUP_DREG] != NULL) {
-@@ -140,8 +138,17 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 					       set->dlen);
- 		if (err < 0)
- 			return err;
--	} else if (set->flags & NFT_SET_MAP)
--		return -EINVAL;
-+		priv->dreg_set = true;
-+	} else if (set->flags & NFT_SET_MAP) {
-+		/* Map given, but user asks for lookup only (i.e. to
-+		 * ignore value assoicated with key).
-+		 *
-+		 * This makes no sense for anonymous maps since they are
-+		 * scoped to the rule, but for named sets this can be useful.
-+		 */
-+		if (set->flags & NFT_SET_ANONYMOUS)
-+			return -EINVAL;
-+	}
- 
- 	priv->binding.flags = set->flags & NFT_SET_MAP;
- 
-@@ -188,7 +195,7 @@ static int nft_lookup_dump(struct sk_buff *skb,
- 		goto nla_put_failure;
- 	if (nft_dump_register(skb, NFTA_LOOKUP_SREG, priv->sreg))
- 		goto nla_put_failure;
--	if (priv->set->flags & NFT_SET_MAP)
-+	if (priv->dreg_set)
- 		if (nft_dump_register(skb, NFTA_LOOKUP_DREG, priv->dreg))
- 			goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_LOOKUP_FLAGS, htonl(flags)))
+在 2023/5/11 11:41 PM, Pablo Neira Ayuso 写道:
+> Hi Greg, Sasha,
+>
+> This is a backport of c1592a89942e ("netfilter: nf_tables: deactivate anonymous
+> set from preparation phase") which fixes CVE-2023-32233. This patch requires
+> dependency fixes which are not currently in the 4.14 branch.
+>
+> The following list shows the backported patches, I am using original commit IDs
+> for reference:
+>
+> 1) cd5125d8f518 ("netfilter: nf_tables: split set destruction in deactivate and destroy phase")
+>
+> 2) f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
+>
+> 3) 7f4dae2d7f03 ("netfilter: nft_hash: fix nft_hash_deactivate")
+>
+> 4) 6a0a8d10a366 ("netfilter: nf_tables: use-after-free in failing rule with bound set")
+>
+> 5) 273fe3f1006e ("netfilter: nf_tables: bogus EBUSY when deleting set after flush")
+>
+> 6) c1592a89942e ("netfilter: nf_tables: deactivate anonymous set from preparation phase")
+>
+> Please apply to 4.14-stable.
+>
+> Thanks.
+>
+> Florian Westphal (1):
+>    netfilter: nf_tables: split set destruction in deactivate and destroy phase
+>
+> Pablo Neira Ayuso (5):
+>    netfilter: nf_tables: unbind set in rule from commit path
+>    netfilter: nft_hash: fix nft_hash_deactivate
+>    netfilter: nf_tables: use-after-free in failing rule with bound set
+>    netfilter: nf_tables: bogus EBUSY when deleting set after flush
+>    netfilter: nf_tables: deactivate anonymous set from preparation phase
+>
+>   include/net/netfilter/nf_tables.h |  30 ++++++-
+>   net/netfilter/nf_tables_api.c     | 139 +++++++++++++++++++++---------
+>   net/netfilter/nft_dynset.c        |  22 ++++-
+>   net/netfilter/nft_immediate.c     |   6 +-
+>   net/netfilter/nft_lookup.c        |  21 ++++-
+>   net/netfilter/nft_objref.c        |  21 ++++-
+>   net/netfilter/nft_set_hash.c      |   2 +-
+>   7 files changed, 194 insertions(+), 47 deletions(-)
+>
 -- 
-2.39.3
+Best Regards,
+Lu Wei
 
