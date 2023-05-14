@@ -2,141 +2,182 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F2E2C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 May 2023 15:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81BBDC7EE22
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 May 2023 20:40:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230123AbjENPR7 (ORCPT
+        id S229667AbjENUkh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 May 2023 11:17:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44498 "EHLO
+        Sun, 14 May 2023 16:40:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229585AbjENPR5 (ORCPT
+        with ESMTP id S229635AbjENUkf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 May 2023 11:17:57 -0400
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2134.outbound.protection.outlook.com [40.107.93.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5E581BF0;
-        Sun, 14 May 2023 08:17:56 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=QWOT7e9IcPbQr2F8GYlAAaT1YW6XwGFPW2Wk4W5EnJ2/GXbPR6/bWg9yujyP3/I/+AL0dNCYI+o75vBswy1meySqvERvpksOWDBJuLfRx2KRdaU+4GMDo/8qNmGYljyq4Gxo9B5arPyXkJy6AkT4686Vqf3juLaJUkslqmIBO8fG7D2h+CTrVXrch+TBHD/ru/NOmj3YZY5tyJnnHHTj2e1GV/6NJlZ8q4YGouuwVwNuuepf6q6qlJFl3R+OXSG8wNbIjRfCyUWO/HNHcjV5rHKn5J2Sx1C0LIHhlv7i/MjIkoo2TRbGywCXK9PMhLEWyCsiy7Hl3jy4y24su0uJtw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=o7iBJf7xuLfxkV6gQIvgKYtuuSeFdCod//q22HySaCQ=;
- b=c+Q6jdEFL2eQY4slIpcwhZmpmDfYFqTTz7ZSFwG3hQp7LnTKi/uPA7meT7bH6vC+ja2ZPgQIAj397349n016M5CT2975nTh6+0ws2XNw6brYZSvBhdMzkx6/SVhw7aKqCu++t35VdfnKsBo0ap39uPbnH/TkgwIi53aim0OdiM0nHPucxdBbxBwcJaMOvRvhIohPaJzmInLPNcwvJIOTUj/exLQu4vgTs2JRzhDPutQw4s2i029Ss95KGhRRqixSLOTyBb22JGYI7jOsOiC2UbjiS9wUEho7rqV7Pmb99wYh4tvSuLHmEpyHV8MDKZbLHSM8X3wwe/Vb5W4hnCUPvg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
- dkim=pass header.d=corigine.com; arc=none
+        Sun, 14 May 2023 16:40:35 -0400
+Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 080EEE48;
+        Sun, 14 May 2023 13:40:34 -0700 (PDT)
+Received: by mail-pl1-x633.google.com with SMTP id d9443c01a7336-1aad5245632so84927565ad.3;
+        Sun, 14 May 2023 13:40:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=o7iBJf7xuLfxkV6gQIvgKYtuuSeFdCod//q22HySaCQ=;
- b=Tj4/AEibYudqa7hTukEBLzsHjkwKrsQLLWjojYIQPzZi4i/d1c124oHotsiP15GnxHfKFdeE8A81Q01MzW00UoI/RuX/MvwhxlsugAQXW6wMSP1ymff/09DR/URu6EitDcgm/RCAR6sqNGdimS167/0MNjSG+NbuFMRsiHRm3ic=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=corigine.com;
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
- by DM6PR13MB3907.namprd13.prod.outlook.com (2603:10b6:5:2a8::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6387.30; Sun, 14 May
- 2023 15:17:54 +0000
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::f416:544d:18b7:bb34]) by PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::f416:544d:18b7:bb34%5]) with mapi id 15.20.6387.029; Sun, 14 May 2023
- 15:17:54 +0000
-Date:   Sun, 14 May 2023 17:17:46 +0200
-From:   Simon Horman <simon.horman@corigine.com>
-To:     Tom Rix <trix@redhat.com>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: conntrack: define variables
- exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
-Message-ID: <ZGD7mphdxml6qgCx@corigine.com>
-References: <20230514140010.3399219-1-trix@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230514140010.3399219-1-trix@redhat.com>
-X-ClientProxiedBy: AM9P250CA0026.EURP250.PROD.OUTLOOK.COM
- (2603:10a6:20b:21c::31) To PH0PR13MB4842.namprd13.prod.outlook.com
- (2603:10b6:510:78::6)
+        d=gmail.com; s=20221208; t=1684096833; x=1686688833;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=zwPLcczfHaotQQ5Bh17U80i7Ky8OX0CQkStxEqL6Fgc=;
+        b=arhp3JVNanZ3mDqxFjZiB8gxrZ2yc95p3ehPSMQFIs0pBDN4GbhW15bAYkDArYXWxe
+         PNRazoUGwkZcqLpQTzdbfWNgij0PHRAnzd64cRaFqsHE+iwK1VV3UMB33oKkJFL3vI7V
+         Nj/9qGw2lSCmCIxYcoayNVOK4aQFrp47AfwYIWqXxUNZ0m4Xj5yI1KpQ/5d9Dxf9T6zV
+         hWYgREcS4L5Z9Pkapd8Zr0mdgoz7WOJC6wikeSf4VIRhKz3L+K9QfzxzYQig4MXwTpb1
+         jGf2NXr7bbPLPgYzbHpv2YYvrgWkUCNGbz+QNuu0nutgKO/mDlJHxiY+I1Hl0SoNIGlI
+         wQIQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684096833; x=1686688833;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=zwPLcczfHaotQQ5Bh17U80i7Ky8OX0CQkStxEqL6Fgc=;
+        b=U331c464BuQJiID2OOyHKLU+FkmSu68zEx+m2byUnGVbsnZ9dXQpHA1qCFhFS6b15R
+         dzN1OoQIz1MJ/9JaM0xszdiwsnvcp7ko60s2AJyLmAbGvKOuMbP+3jcVRSJbSe69gUNB
+         xFQkvVgDX/L42LbKcB2RyW/E5vL2Rqd9t9hgHjcOFxyIW99gMJ9Rqgr1IeN3eDI5gZON
+         lYliVK15gBeFSalaFGanZYWwsY2FSbHf+mxMzEePETTuuf6j4+pj0QA4dRrb5XXRQoqU
+         AWBxr+dt570RvclbtMddpz/zdUfFWX7pvjs9RfHls0OGOuL24dRVbbYQJ1dVtmqVvu8m
+         47Ug==
+X-Gm-Message-State: AC+VfDzwBrv907dlOQALp4vZU5Et/oWUUwZppbpy5L99haAVacDGrbey
+        zgKi5Ai+a+QZ0Ry6D4B8pLPpH3I+Kn/J509E
+X-Google-Smtp-Source: ACHHUZ7fHlQcMNMqR0RvcWfFlbZEad1kN5FXzfk/2sm3wmpI7CBb72k4x1lLrqrl/n0GmaU3NXYhOQ==
+X-Received: by 2002:a17:902:cece:b0:1a6:413c:4a3e with SMTP id d14-20020a170902cece00b001a6413c4a3emr41204234plg.5.1684096832828;
+        Sun, 14 May 2023 13:40:32 -0700 (PDT)
+Received: from [127.0.1.1] ([2601:644:8f00:4f:728d:4faf:7256:5a34])
+        by smtp.gmail.com with ESMTPSA id q6-20020a170902b10600b001ab06958770sm11851906plr.161.2023.05.14.13.40.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 14 May 2023 13:40:32 -0700 (PDT)
+From:   Abhijeet Rastogi <abhijeet.1989@gmail.com>
+Date:   Sun, 14 May 2023 13:40:24 -0700
+Subject: [PATCH v2] ipvs: increase ip_vs_conn_tab_bits range for 64BIT
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|DM6PR13MB3907:EE_
-X-MS-Office365-Filtering-Correlation-Id: 62620db4-07ce-4fc0-9147-08db548e63bf
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: qskOST+WUmlzxjnFQ1dL1MqaWfE0TNAV3Zni/vBoh9Dyfi5tZGLAexlqziqc8SdyGzlOenthj5LixS4i8/MkD1w0mujsaEWwFmUBWmrf+qwhrzyrkrQYwLKLyxqkvsvI8WiiYtFFERhLlLFp53kyfBqfPA/80/892A3N1qJLDnhoI/FmGLM+XAiUYCfr7/Dpq1zvSDL5kDfF25VEQxb8nWckX3WIUVuL/l5CGOU8L/tUtazQJLvZTgTycza6Wt4TFCdn+oSpBv1tSCNUpXjE1bhJKlo9YKQhDCtDcXW6Y1h2DWjLcN4Ql8FEmBA7zr/k9hx+fpRvaWkZI3XdL4Xfftx5DK1NIxQGG+/jN4lPOC/cx+5U+7GlWCT5WpuRPzKQpCqQ/IgBJesTZCYABozurLCrtS4U5XZMQ1x+Vr9TB+bAD1svyOenuUOSwWlHkT32SimDnhovhW+19rJ3Q+r1Ya97EGTbmXaJWxpHHdk8mWocv0uw3CSubjwts7xS4XGch85WUxeqYp+qbtze8+A91OoDhvkCSky/2q2GYEAEJF/U2gnmOp7TI8UV20g63+Tx8sGhPX0tuczMI/oUXAKTkkBdHLi5/jrRx7lCnCcO3VI=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(39830400003)(136003)(346002)(396003)(376002)(366004)(451199021)(478600001)(66556008)(66476007)(6916009)(4326008)(66946007)(6666004)(6486002)(316002)(2906002)(8936002)(8676002)(41300700001)(44832011)(5660300002)(7416002)(4744005)(86362001)(36756003)(38100700002)(2616005)(186003)(6512007)(6506007);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?K2hZR2J4NXgzaXduSzlxa2xtSi9SS0FPdEdKaGhQQ2huemtOREdNYUpoK0lZ?=
- =?utf-8?B?OEs1SUtSZ0RJRTVNMEJ2R2UvV3pSNHRLdWZjeWdsYnltWG9BWmRkRTF2MzE0?=
- =?utf-8?B?MVArRUc3Z2hveEVrWCtBRUhUYnEvd1BnT25USkgvTE9rZkxibVg5VWZXSlZy?=
- =?utf-8?B?ZnAxSVdWTU9pYnlVUklxbndLZE5kRkJIenltZzRSSXREME8wTjloOTIyK2dy?=
- =?utf-8?B?M0cxa1RiZ1NmQkpGUDZNSG5LQU9WTlpuNHBoQzlxOHpkSURyNkltWmowNFQ2?=
- =?utf-8?B?cWVCNHVDRVI1MEdZTVU5TmIwdDhKU3ZkZ2drNXQrcHZQWms4KzFmcCtIUmtZ?=
- =?utf-8?B?VTZ0ZU9YaktXNTFWcHJwNXZXd09UN3FMZy9ob3J6bHRLb3ZERXdHVmU0VExa?=
- =?utf-8?B?cXI3dnQyb2ZxSm1jWWZUTldsTW8wRWZveFNhNFNVa0tFMzZabUluK1paemk2?=
- =?utf-8?B?b0ljc0s0TkErdDhsWVVVUjRySTFvcHBnNjE1dmQ5VlkwM0M4UFF6ZFAyMll0?=
- =?utf-8?B?eEVQTjN6WFVYTnExZEUxb1lvOHBDeDRoajJyMkEyWXVMbWVTZ0lVQ1ZIcFdr?=
- =?utf-8?B?SlhPZDZ0akZuK2J6YkhzOFU0eEw2aDhJZEwxaVcyV3craVQ0WWFwcmxIVmVt?=
- =?utf-8?B?NGEySzNnV25PaElnQ2hLME03dlpZWUZpOGZ4L3ZicVc3MnBDMFN4a0VVZzla?=
- =?utf-8?B?cEczWXRyY1dYSm5acElHeCs1bUoydFJwS1BTNWlSa0JGWVIrT1FUdUw4V0li?=
- =?utf-8?B?SVRUYjRJT1ZIZnRtWHdGVkxya29xaFFNMVJ5MjdCZjB0UTlBekpFWHJUL1o2?=
- =?utf-8?B?UEJ6NE5XWVJzeFZSNk1PUUlDMWF2OUk1YlNHcWhjUjAwY3VGZEozQ3hqWmc4?=
- =?utf-8?B?cFZHbFBvZ2NtVDNNc2srRFpRVUIyMTlvR3JKNkFTMm5ONnBseld2TWNJSmky?=
- =?utf-8?B?c0twRlg5eTc5bG1tYzNNWTdwY2hScnpSM012WmxkaE5HQk40UWJFVVA3cUJY?=
- =?utf-8?B?VHdMZ28rcXZsQWJsTWJmVnBtdENodmlrbGxXdGM4c0ZyNG9LQXdZZ2M3WjJi?=
- =?utf-8?B?Q0xERWtyc1hxU1JHWU1IL0JLRkRDSVR0VjZXMzBNLzAyQURLb3I0VDNraDBI?=
- =?utf-8?B?VHlkNktFUlI4UDd6UDJHNEFveUpFaGZneHNBTnkrdG04ZTBzdzI1d0VoeTVJ?=
- =?utf-8?B?M0U1Wmh5ckRrVVEwTy9XRmlEd21iTmk3TXZSNWVpU1h5SXdMVityT2QvY2Q0?=
- =?utf-8?B?d0NMb1dsbzFaUksvMjZBL2orWjJwUm4reDN2dUFORnNSbUJLOW5lR0tlQXNN?=
- =?utf-8?B?NG9nMC9KK2hvZXdySGJMYS9JaVppTEFOb09sS29uZzJOS1hrRTRzT3lKWGp0?=
- =?utf-8?B?M0lqazIxOGJIeHNqTUJzUFAzb3Vjb1lqUS9sQkx5dk9BUHFySHRnS1p6bnMv?=
- =?utf-8?B?c3hVVkVXUlduNmZET2wvMUgrK2s0ZWhVR0VmMUl0b2Fkb1FaUEZlZnF2TjdE?=
- =?utf-8?B?VS9rUEVmTnF3SGQxVVpveFc0dW5maEdyQVoxN24rM3I0QmN3NTlpQkg3cEpZ?=
- =?utf-8?B?TjJ1T2pwSStWbFEyUzRXT1dkSTIzOUt0V0FiVW02STNqR01rTE9Rdm8rNHZQ?=
- =?utf-8?B?RGxYN0xhMmFGcldjcHVWREZwaVFsU3gvck13OWRub3MrT1Nqb29VRXp5SU95?=
- =?utf-8?B?WC9PQWVKMXkxd01hWWIyL0p0cWFTR2dQSjZYREpZY1duYnRsOG1RVVhHK3Rp?=
- =?utf-8?B?S3NXbFB4N3h5OEZKcDE1VVA3c0VzVzhSclVrbnh1ODV2bTFlRTZ2TTlFWDdl?=
- =?utf-8?B?aU84WlJyR3dtWE5MT1ZGenB4Ymszdndjbm5TYytBYi9TTEJyRTNDaldKb05a?=
- =?utf-8?B?dzZLZ0N5ZzdnUS9hY1NXQ04zUEUrL2o1aEx1cm9DeGhxYXJ3cUZwVi9yWGRv?=
- =?utf-8?B?NmtQMlJXVFp0Tm5YQy8xWmZibWNYa2tWM2lvNSs4M0tIekhHWlcwLzNKNkVr?=
- =?utf-8?B?Wmt5Wkc5Y1phVW1kQUFlWWgrTXpwS0xuK0pWTlZtUmRZWGtWSGlOUlcrY3Vh?=
- =?utf-8?B?U2JCZ3FxaWhIQ0VPNEFtYlhqdDRQZWcrY0RVZFk5czJuang1cVJnUENXRTJQ?=
- =?utf-8?B?RW5uTUQrdWZQUTV0aWFXMzB2aWFpNk1tVzEwSytoWXJJWG1OOWZ4UjhvOWV4?=
- =?utf-8?B?akdWMU93V3d1SFl3YjB3TWV3bG9ZNnV6dTI0WURHY212WlNxL2Vnam1LLyto?=
- =?utf-8?B?RG1JcHJsanZKSStydU9udmQ4UmJ3PT0=?=
-X-OriginatorOrg: corigine.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 62620db4-07ce-4fc0-9147-08db548e63bf
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 May 2023 15:17:54.0594
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: bZ0JEAVAOutSgIi8vDBTdprP2op1fxXzBy+elhnTrZQS8hmGQzgE0dHsXA/InNzynOfqL7j8SEjwZY7MQsWiAD9L5naMuS3nUCjSCZAqPHc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR13MB3907
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230412-increase_ipvs_conn_tab_bits-v2-1-994c0df018e6@gmail.com>
+X-B4-Tracking: v=1; b=H4sIADdHYWQC/42OQQrDIBREr1Jc16JGQtNV71GCfI0mHxoT/CItI
+ XevyQm6fDPDzGyMfEJP7HHZWPIFCZdYQV0vzE0QR89xqMyUUI3QUnGMLnkgb3AtZNwSo8lgjcV
+ MXDdKuU4MoGTLaoOtOW4TRDcdHTNQ9ukw1uQDfs7ZV195QspL+p4vijzU/waL5JK3AnTognb3o
+ J7jDPi+uWVm/b7vPyYGOiXfAAAA
+To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org,
+        Abhijeet Rastogi <abhijeet.1989@gmail.com>
+X-Mailer: b4 0.12.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1684096831; l=4400;
+ i=abhijeet.1989@gmail.com; s=20230412; h=from:subject:message-id;
+ bh=QKVsMjlQX/gTjNeKg6CZJYA0FFD+ARtEhFp33qX1UfA=;
+ b=sDfvG6taPYG+iOeJr8xKMiapaAP0Fg4ONAtQiELClNWJMnRmkP3Q2skQOHBpGSL7wsrR+M1YZ
+ WxQ2My9Kk2YArg0ZTXCHQZxUctAsIDaldhamEzKBnYNpDguqE6Era3r
+X-Developer-Key: i=abhijeet.1989@gmail.com; a=ed25519;
+ pk=VinODWUuJys1VAWZP2Uv9slcHekoZvxAp4RY1p5+OfU=
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, May 14, 2023 at 10:00:10AM -0400, Tom Rix wrote:
-> gcc with W=1 and ! CONFIG_NF_NAT
-> net/netfilter/nf_conntrack_netlink.c:3463:32: error:
->   ‘exp_nat_nla_policy’ defined but not used [-Werror=unused-const-variable=]
->  3463 | static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
->       |                                ^~~~~~~~~~~~~~~~~~
-> net/netfilter/nf_conntrack_netlink.c:2979:33: error:
->   ‘any_addr’ defined but not used [-Werror=unused-const-variable=]
->  2979 | static const union nf_inet_addr any_addr;
->       |                                 ^~~~~~~~
-> 
-> These variables use is controlled by CONFIG_NF_NAT, so should their definitions.
-> 
-> Signed-off-by: Tom Rix <trix@redhat.com>
+Current range [8, 20] is set purely due to historical reasons
+because at the time, ~1M (2^20) was considered sufficient.
+With this change, 27 is the upper limit for 64-bit, 20 otherwise.
 
-Reviewed-by: Simon Horman <simon.horman@corigine.com>
+Previous change regarding this limit is here.
+
+Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
+
+Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+---
+The conversation for this started at: 
+
+https://www.spinics.net/lists/netfilter/msg60995.html
+
+The upper limit for algo is any bit size less than 32, so this
+change will allow us to set bit size > 20. Today, it is common to have
+RAM available to handle greater than 2^20 connections per-host.
+
+Distros like RHEL already allow setting limits higher than 20.
+---
+Changes in v2:
+- Lower the ranges, 27 for 64bit, 20 otherwise
+- Link to v1: https://lore.kernel.org/r/20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com
+---
+ net/netfilter/ipvs/Kconfig      | 26 +++++++++++++-------------
+ net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+ 2 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index 271da8447b29..aac5d6bd82e6 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -44,7 +44,8 @@ config	IP_VS_DEBUG
+ 
+ config	IP_VS_TAB_BITS
+ 	int "IPVS connection table size (the Nth power of 2)"
+-	range 8 20
++	range 8 20 if !64BIT
++	range 8 27 if 64BIT
+ 	default 12
+ 	help
+ 	  The IPVS connection hash table uses the chaining scheme to handle
+@@ -52,18 +53,17 @@ config	IP_VS_TAB_BITS
+ 	  reduce conflicts when there are hundreds of thousands of connections
+ 	  in the hash table.
+ 
+-	  Note the table size must be power of 2. The table size will be the
+-	  value of 2 to the your input number power. The number to choose is
+-	  from 8 to 20, the default number is 12, which means the table size
+-	  is 4096. Don't input the number too small, otherwise you will lose
+-	  performance on it. You can adapt the table size yourself, according
+-	  to your virtual server application. It is good to set the table size
+-	  not far less than the number of connections per second multiplying
+-	  average lasting time of connection in the table.  For example, your
+-	  virtual server gets 200 connections per second, the connection lasts
+-	  for 200 seconds in average in the connection table, the table size
+-	  should be not far less than 200x200, it is good to set the table
+-	  size 32768 (2**15).
++	  Note the table size must be power of 2. The table size will be the value
++	  of 2 to the your input number power. The number to choose is from 8 to 27
++	  for 64BIT(20 otherwise), the default number is 12, which means the table
++	  size is 4096. Don't input the number too small, otherwise you will lose
++	  performance on it. You can adapt the table size yourself, according to
++	  your virtual server application. It is good to set the table size not far
++	  less than the number of connections per second multiplying average lasting
++	  time of connection in the table.  For example, your virtual server gets
++	  200 connections per second, the connection lasts for 200 seconds in
++	  average in the connection table, the table size should be not far less
++	  than 200x200, it is good to set the table size 32768 (2**15).
+ 
+ 	  Another note that each connection occupies 128 bytes effectively and
+ 	  each hash entry uses 8 bytes, so you can estimate how much memory is
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 13534e02346c..e1b9b52909a5 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1484,8 +1484,8 @@ int __init ip_vs_conn_init(void)
+ 	int idx;
+ 
+ 	/* Compute size and mask */
+-	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
+-		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
++	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 27) {
++		pr_info("conn_tab_bits not in [8, 27]. Using default value\n");
+ 		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+ 	}
+ 	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+
+---
+base-commit: 09a9639e56c01c7a00d6c0ca63f4c7c41abe075d
+change-id: 20230412-increase_ipvs_conn_tab_bits-4322c90da216
+
+Best regards,
+-- 
+Abhijeet Rastogi <abhijeet.1989@gmail.com>
+
