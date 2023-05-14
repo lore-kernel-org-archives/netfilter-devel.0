@@ -2,122 +2,141 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3664CC7EE22
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 May 2023 14:01:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F2E2C77B7F
+	for <netfilter-devel@archiver.kernel.org>; Sun, 14 May 2023 15:18:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237188AbjENOBL (ORCPT
+        id S230123AbjENPR7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 May 2023 10:01:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54752 "EHLO
+        Sun, 14 May 2023 11:17:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233374AbjENOBI (ORCPT
+        with ESMTP id S229585AbjENPR5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 May 2023 10:01:08 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA07C1BD3
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 May 2023 07:00:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684072820;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=5XPWFCwn0ec1Bk7N8aYQ4DY3w3ZSXgJSesqW7FrFphE=;
-        b=AxBlYgdtYiyRpm5s+M6zPxXXIDETxpw++AauWnQPBz+s+8D9O/0SDHx4m8nfId4tLsN6m/
-        3TEkOeuwi05NfAMp1vluhln14A7uzXobCClJYj9HUL356EhFhHBZOo/dfyHfbp/I+Qv6Nj
-        Gg+PS3vZ8gD0YXzzmPqluz5n7EcdK5Q=
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com
- [209.85.222.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-379-hu_HcrpnNWGWWtic_Qrqgg-1; Sun, 14 May 2023 10:00:18 -0400
-X-MC-Unique: hu_HcrpnNWGWWtic_Qrqgg-1
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-7578369dff3so2719320285a.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 May 2023 07:00:18 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684072818; x=1686664818;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=5XPWFCwn0ec1Bk7N8aYQ4DY3w3ZSXgJSesqW7FrFphE=;
-        b=YkSH82NlH+93VS8IBEnpaUUR6D61Kn1m/aAsGPjIKAU9Rjb51iiIEKdXEaqGq3Ao5x
-         SVPXXouuoi1aqK0AZa1pOgM92zMgEhCkjrDVvuNPZ97/jFHpMWZi7s2vVxsgdShs8csE
-         DLjF8WGg4azkHiEhbGEFVFKqXreB/vj9B8dwHExnSLU1IYzKbCFCAaBOg8Y6/jMtNwMM
-         Ykiia5gGSd5TyEcbsn6kcpVlmjG2jAURDyeZuEz6C7nSg6CJpn7lvlvSONHxC/PPaGU5
-         ndtoUTR/W4CO8eXDZItTc/vhkPbSZJTAtmeeGTbIOtkXLn1OUFQO7Xoz+9Gq84dPRH0U
-         wiUg==
-X-Gm-Message-State: AC+VfDyaWGRaQkrNXYJK1A1mnPmw4IjPjlb3YQhXzcOCu6RDSVZggZnt
-        pa1g05w1mKSdYCtT6vh8J5G6XZ02jlDMvGCcruBlKUUEJZqu6mQ7JHm6K8I8F7fI+dPvokw6++x
-        ERiK96/HOY2TrIiIp/IHQZVvrh4Wc
-X-Received: by 2002:a05:6214:1d26:b0:5ef:d5b0:c33f with SMTP id f6-20020a0562141d2600b005efd5b0c33fmr68583121qvd.2.1684072818270;
-        Sun, 14 May 2023 07:00:18 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ6ZxEJVXSJj22FdfeUHUFCbHqGYuIFy6aJ+7s6HEds/c8wbbuyT8d6HxTccrfjHe12gZcWZvw==
-X-Received: by 2002:a05:6214:1d26:b0:5ef:d5b0:c33f with SMTP id f6-20020a0562141d2600b005efd5b0c33fmr68583067qvd.2.1684072817948;
-        Sun, 14 May 2023 07:00:17 -0700 (PDT)
-Received: from dell-per740-01.7a2m.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
-        by smtp.gmail.com with ESMTPSA id ev11-20020a0562140a8b00b0061668c4b426sm4304678qvb.59.2023.05.14.07.00.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 14 May 2023 07:00:17 -0700 (PDT)
-From:   Tom Rix <trix@redhat.com>
-To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        Sun, 14 May 2023 11:17:57 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2134.outbound.protection.outlook.com [40.107.93.134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5E581BF0;
+        Sun, 14 May 2023 08:17:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=QWOT7e9IcPbQr2F8GYlAAaT1YW6XwGFPW2Wk4W5EnJ2/GXbPR6/bWg9yujyP3/I/+AL0dNCYI+o75vBswy1meySqvERvpksOWDBJuLfRx2KRdaU+4GMDo/8qNmGYljyq4Gxo9B5arPyXkJy6AkT4686Vqf3juLaJUkslqmIBO8fG7D2h+CTrVXrch+TBHD/ru/NOmj3YZY5tyJnnHHTj2e1GV/6NJlZ8q4YGouuwVwNuuepf6q6qlJFl3R+OXSG8wNbIjRfCyUWO/HNHcjV5rHKn5J2Sx1C0LIHhlv7i/MjIkoo2TRbGywCXK9PMhLEWyCsiy7Hl3jy4y24su0uJtw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=o7iBJf7xuLfxkV6gQIvgKYtuuSeFdCod//q22HySaCQ=;
+ b=c+Q6jdEFL2eQY4slIpcwhZmpmDfYFqTTz7ZSFwG3hQp7LnTKi/uPA7meT7bH6vC+ja2ZPgQIAj397349n016M5CT2975nTh6+0ws2XNw6brYZSvBhdMzkx6/SVhw7aKqCu++t35VdfnKsBo0ap39uPbnH/TkgwIi53aim0OdiM0nHPucxdBbxBwcJaMOvRvhIohPaJzmInLPNcwvJIOTUj/exLQu4vgTs2JRzhDPutQw4s2i029Ss95KGhRRqixSLOTyBb22JGYI7jOsOiC2UbjiS9wUEho7rqV7Pmb99wYh4tvSuLHmEpyHV8MDKZbLHSM8X3wwe/Vb5W4hnCUPvg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
+ dkim=pass header.d=corigine.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=o7iBJf7xuLfxkV6gQIvgKYtuuSeFdCod//q22HySaCQ=;
+ b=Tj4/AEibYudqa7hTukEBLzsHjkwKrsQLLWjojYIQPzZi4i/d1c124oHotsiP15GnxHfKFdeE8A81Q01MzW00UoI/RuX/MvwhxlsugAQXW6wMSP1ymff/09DR/URu6EitDcgm/RCAR6sqNGdimS167/0MNjSG+NbuFMRsiHRm3ic=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=corigine.com;
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
+ by DM6PR13MB3907.namprd13.prod.outlook.com (2603:10b6:5:2a8::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6387.30; Sun, 14 May
+ 2023 15:17:54 +0000
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::f416:544d:18b7:bb34]) by PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::f416:544d:18b7:bb34%5]) with mapi id 15.20.6387.029; Sun, 14 May 2023
+ 15:17:54 +0000
+Date:   Sun, 14 May 2023 17:17:46 +0200
+From:   Simon Horman <simon.horman@corigine.com>
+To:     Tom Rix <trix@redhat.com>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
         davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Tom Rix <trix@redhat.com>
-Subject: [PATCH] netfilter: conntrack: define variables exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
-Date:   Sun, 14 May 2023 10:00:10 -0400
-Message-Id: <20230514140010.3399219-1-trix@redhat.com>
-X-Mailer: git-send-email 2.27.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: conntrack: define variables
+ exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
+Message-ID: <ZGD7mphdxml6qgCx@corigine.com>
+References: <20230514140010.3399219-1-trix@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230514140010.3399219-1-trix@redhat.com>
+X-ClientProxiedBy: AM9P250CA0026.EURP250.PROD.OUTLOOK.COM
+ (2603:10a6:20b:21c::31) To PH0PR13MB4842.namprd13.prod.outlook.com
+ (2603:10b6:510:78::6)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|DM6PR13MB3907:EE_
+X-MS-Office365-Filtering-Correlation-Id: 62620db4-07ce-4fc0-9147-08db548e63bf
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: qskOST+WUmlzxjnFQ1dL1MqaWfE0TNAV3Zni/vBoh9Dyfi5tZGLAexlqziqc8SdyGzlOenthj5LixS4i8/MkD1w0mujsaEWwFmUBWmrf+qwhrzyrkrQYwLKLyxqkvsvI8WiiYtFFERhLlLFp53kyfBqfPA/80/892A3N1qJLDnhoI/FmGLM+XAiUYCfr7/Dpq1zvSDL5kDfF25VEQxb8nWckX3WIUVuL/l5CGOU8L/tUtazQJLvZTgTycza6Wt4TFCdn+oSpBv1tSCNUpXjE1bhJKlo9YKQhDCtDcXW6Y1h2DWjLcN4Ql8FEmBA7zr/k9hx+fpRvaWkZI3XdL4Xfftx5DK1NIxQGG+/jN4lPOC/cx+5U+7GlWCT5WpuRPzKQpCqQ/IgBJesTZCYABozurLCrtS4U5XZMQ1x+Vr9TB+bAD1svyOenuUOSwWlHkT32SimDnhovhW+19rJ3Q+r1Ya97EGTbmXaJWxpHHdk8mWocv0uw3CSubjwts7xS4XGch85WUxeqYp+qbtze8+A91OoDhvkCSky/2q2GYEAEJF/U2gnmOp7TI8UV20g63+Tx8sGhPX0tuczMI/oUXAKTkkBdHLi5/jrRx7lCnCcO3VI=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(39830400003)(136003)(346002)(396003)(376002)(366004)(451199021)(478600001)(66556008)(66476007)(6916009)(4326008)(66946007)(6666004)(6486002)(316002)(2906002)(8936002)(8676002)(41300700001)(44832011)(5660300002)(7416002)(4744005)(86362001)(36756003)(38100700002)(2616005)(186003)(6512007)(6506007);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?K2hZR2J4NXgzaXduSzlxa2xtSi9SS0FPdEdKaGhQQ2huemtOREdNYUpoK0lZ?=
+ =?utf-8?B?OEs1SUtSZ0RJRTVNMEJ2R2UvV3pSNHRLdWZjeWdsYnltWG9BWmRkRTF2MzE0?=
+ =?utf-8?B?MVArRUc3Z2hveEVrWCtBRUhUYnEvd1BnT25USkgvTE9rZkxibVg5VWZXSlZy?=
+ =?utf-8?B?ZnAxSVdWTU9pYnlVUklxbndLZE5kRkJIenltZzRSSXREME8wTjloOTIyK2dy?=
+ =?utf-8?B?M0cxa1RiZ1NmQkpGUDZNSG5LQU9WTlpuNHBoQzlxOHpkSURyNkltWmowNFQ2?=
+ =?utf-8?B?cWVCNHVDRVI1MEdZTVU5TmIwdDhKU3ZkZ2drNXQrcHZQWms4KzFmcCtIUmtZ?=
+ =?utf-8?B?VTZ0ZU9YaktXNTFWcHJwNXZXd09UN3FMZy9ob3J6bHRLb3ZERXdHVmU0VExa?=
+ =?utf-8?B?cXI3dnQyb2ZxSm1jWWZUTldsTW8wRWZveFNhNFNVa0tFMzZabUluK1paemk2?=
+ =?utf-8?B?b0ljc0s0TkErdDhsWVVVUjRySTFvcHBnNjE1dmQ5VlkwM0M4UFF6ZFAyMll0?=
+ =?utf-8?B?eEVQTjN6WFVYTnExZEUxb1lvOHBDeDRoajJyMkEyWXVMbWVTZ0lVQ1ZIcFdr?=
+ =?utf-8?B?SlhPZDZ0akZuK2J6YkhzOFU0eEw2aDhJZEwxaVcyV3craVQ0WWFwcmxIVmVt?=
+ =?utf-8?B?NGEySzNnV25PaElnQ2hLME03dlpZWUZpOGZ4L3ZicVc3MnBDMFN4a0VVZzla?=
+ =?utf-8?B?cEczWXRyY1dYSm5acElHeCs1bUoydFJwS1BTNWlSa0JGWVIrT1FUdUw4V0li?=
+ =?utf-8?B?SVRUYjRJT1ZIZnRtWHdGVkxya29xaFFNMVJ5MjdCZjB0UTlBekpFWHJUL1o2?=
+ =?utf-8?B?UEJ6NE5XWVJzeFZSNk1PUUlDMWF2OUk1YlNHcWhjUjAwY3VGZEozQ3hqWmc4?=
+ =?utf-8?B?cFZHbFBvZ2NtVDNNc2srRFpRVUIyMTlvR3JKNkFTMm5ONnBseld2TWNJSmky?=
+ =?utf-8?B?c0twRlg5eTc5bG1tYzNNWTdwY2hScnpSM012WmxkaE5HQk40UWJFVVA3cUJY?=
+ =?utf-8?B?VHdMZ28rcXZsQWJsTWJmVnBtdENodmlrbGxXdGM4c0ZyNG9LQXdZZ2M3WjJi?=
+ =?utf-8?B?Q0xERWtyc1hxU1JHWU1IL0JLRkRDSVR0VjZXMzBNLzAyQURLb3I0VDNraDBI?=
+ =?utf-8?B?VHlkNktFUlI4UDd6UDJHNEFveUpFaGZneHNBTnkrdG04ZTBzdzI1d0VoeTVJ?=
+ =?utf-8?B?M0U1Wmh5ckRrVVEwTy9XRmlEd21iTmk3TXZSNWVpU1h5SXdMVityT2QvY2Q0?=
+ =?utf-8?B?d0NMb1dsbzFaUksvMjZBL2orWjJwUm4reDN2dUFORnNSbUJLOW5lR0tlQXNN?=
+ =?utf-8?B?NG9nMC9KK2hvZXdySGJMYS9JaVppTEFOb09sS29uZzJOS1hrRTRzT3lKWGp0?=
+ =?utf-8?B?M0lqazIxOGJIeHNqTUJzUFAzb3Vjb1lqUS9sQkx5dk9BUHFySHRnS1p6bnMv?=
+ =?utf-8?B?c3hVVkVXUlduNmZET2wvMUgrK2s0ZWhVR0VmMUl0b2Fkb1FaUEZlZnF2TjdE?=
+ =?utf-8?B?VS9rUEVmTnF3SGQxVVpveFc0dW5maEdyQVoxN24rM3I0QmN3NTlpQkg3cEpZ?=
+ =?utf-8?B?TjJ1T2pwSStWbFEyUzRXT1dkSTIzOUt0V0FiVW02STNqR01rTE9Rdm8rNHZQ?=
+ =?utf-8?B?RGxYN0xhMmFGcldjcHVWREZwaVFsU3gvck13OWRub3MrT1Nqb29VRXp5SU95?=
+ =?utf-8?B?WC9PQWVKMXkxd01hWWIyL0p0cWFTR2dQSjZYREpZY1duYnRsOG1RVVhHK3Rp?=
+ =?utf-8?B?S3NXbFB4N3h5OEZKcDE1VVA3c0VzVzhSclVrbnh1ODV2bTFlRTZ2TTlFWDdl?=
+ =?utf-8?B?aU84WlJyR3dtWE5MT1ZGenB4Ymszdndjbm5TYytBYi9TTEJyRTNDaldKb05a?=
+ =?utf-8?B?dzZLZ0N5ZzdnUS9hY1NXQ04zUEUrL2o1aEx1cm9DeGhxYXJ3cUZwVi9yWGRv?=
+ =?utf-8?B?NmtQMlJXVFp0Tm5YQy8xWmZibWNYa2tWM2lvNSs4M0tIekhHWlcwLzNKNkVr?=
+ =?utf-8?B?Wmt5Wkc5Y1phVW1kQUFlWWgrTXpwS0xuK0pWTlZtUmRZWGtWSGlOUlcrY3Vh?=
+ =?utf-8?B?U2JCZ3FxaWhIQ0VPNEFtYlhqdDRQZWcrY0RVZFk5czJuang1cVJnUENXRTJQ?=
+ =?utf-8?B?RW5uTUQrdWZQUTV0aWFXMzB2aWFpNk1tVzEwSytoWXJJWG1OOWZ4UjhvOWV4?=
+ =?utf-8?B?akdWMU93V3d1SFl3YjB3TWV3bG9ZNnV6dTI0WURHY212WlNxL2Vnam1LLyto?=
+ =?utf-8?B?RG1JcHJsanZKSStydU9udmQ4UmJ3PT0=?=
+X-OriginatorOrg: corigine.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 62620db4-07ce-4fc0-9147-08db548e63bf
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 May 2023 15:17:54.0594
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: bZ0JEAVAOutSgIi8vDBTdprP2op1fxXzBy+elhnTrZQS8hmGQzgE0dHsXA/InNzynOfqL7j8SEjwZY7MQsWiAD9L5naMuS3nUCjSCZAqPHc=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR13MB3907
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-gcc with W=1 and ! CONFIG_NF_NAT
-net/netfilter/nf_conntrack_netlink.c:3463:32: error:
-  ‘exp_nat_nla_policy’ defined but not used [-Werror=unused-const-variable=]
- 3463 | static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
-      |                                ^~~~~~~~~~~~~~~~~~
-net/netfilter/nf_conntrack_netlink.c:2979:33: error:
-  ‘any_addr’ defined but not used [-Werror=unused-const-variable=]
- 2979 | static const union nf_inet_addr any_addr;
-      |                                 ^~~~~~~~
+On Sun, May 14, 2023 at 10:00:10AM -0400, Tom Rix wrote:
+> gcc with W=1 and ! CONFIG_NF_NAT
+> net/netfilter/nf_conntrack_netlink.c:3463:32: error:
+>   ‘exp_nat_nla_policy’ defined but not used [-Werror=unused-const-variable=]
+>  3463 | static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
+>       |                                ^~~~~~~~~~~~~~~~~~
+> net/netfilter/nf_conntrack_netlink.c:2979:33: error:
+>   ‘any_addr’ defined but not used [-Werror=unused-const-variable=]
+>  2979 | static const union nf_inet_addr any_addr;
+>       |                                 ^~~~~~~~
+> 
+> These variables use is controlled by CONFIG_NF_NAT, so should their definitions.
+> 
+> Signed-off-by: Tom Rix <trix@redhat.com>
 
-These variables use is controlled by CONFIG_NF_NAT, so should their definitions.
-
-Signed-off-by: Tom Rix <trix@redhat.com>
----
- net/netfilter/nf_conntrack_netlink.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index d40544cd61a6..69c8c8c7e9b8 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2976,7 +2976,9 @@ static int ctnetlink_exp_dump_mask(struct sk_buff *skb,
- 	return -1;
- }
- 
-+#if IS_ENABLED(CONFIG_NF_NAT)
- static const union nf_inet_addr any_addr;
-+#endif
- 
- static __be32 nf_expect_get_id(const struct nf_conntrack_expect *exp)
- {
-@@ -3460,10 +3462,12 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x,
- 	return 0;
- }
- 
-+#if IS_ENABLED(CONFIG_NF_NAT)
- static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
- 	[CTA_EXPECT_NAT_DIR]	= { .type = NLA_U32 },
- 	[CTA_EXPECT_NAT_TUPLE]	= { .type = NLA_NESTED },
- };
-+#endif
- 
- static int
- ctnetlink_parse_expect_nat(const struct nlattr *attr,
--- 
-2.27.0
-
+Reviewed-by: Simon Horman <simon.horman@corigine.com>
