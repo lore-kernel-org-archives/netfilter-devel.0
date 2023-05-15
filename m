@@ -2,154 +2,115 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F723C7EE23
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 May 2023 15:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91527C77B7D
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 May 2023 16:14:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242282AbjEOPS0 (ORCPT
+        id S242566AbjEOQOD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 May 2023 11:18:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33260 "EHLO
+        Mon, 15 May 2023 12:14:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242272AbjEOPSY (ORCPT
+        with ESMTP id S242591AbjEOQOA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2023 11:18:24 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36D4C8E;
-        Mon, 15 May 2023 08:18:22 -0700 (PDT)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id A8C29A9E1;
-        Mon, 15 May 2023 18:18:20 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 91973AB0B;
-        Mon, 15 May 2023 18:18:20 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id 9CB5D3C080D;
-        Mon, 15 May 2023 18:18:16 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 34FFIDnO137144;
-        Mon, 15 May 2023 18:18:14 +0300
-Date:   Mon, 15 May 2023 18:18:13 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Abhijeet Rastogi <abhijeet.1989@gmail.com>
-cc:     Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2] ipvs: increase ip_vs_conn_tab_bits range for 64BIT
-In-Reply-To: <20230412-increase_ipvs_conn_tab_bits-v2-1-994c0df018e6@gmail.com>
-Message-ID: <56b88a99-db88-36e4-9ff1-a5d940578108@ssi.bg>
-References: <20230412-increase_ipvs_conn_tab_bits-v2-1-994c0df018e6@gmail.com>
+        Mon, 15 May 2023 12:14:00 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B93A19BA;
+        Mon, 15 May 2023 09:13:56 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4QKkpf0GFjz6J6wV;
+        Tue, 16 May 2023 00:09:46 +0800 (CST)
+Received: from mscphis00759.huawei.com (10.123.66.134) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Mon, 15 May 2023 17:13:53 +0100
+From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+To:     <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+Subject: [PATCH v11 00/12] Network support for Landlock
+Date:   Tue, 16 May 2023 00:13:27 +0800
+Message-ID: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.66.134]
+X-ClientProxiedBy: mscpeml500002.china.huawei.com (7.188.26.138) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
+This is a new V11 patch related to Landlock LSM network confinement.
+It is based on the landlock's -next branch on top of v6.2-rc3+ kernel version:
+https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
 
-	Hello,
+It brings refactoring of previous patch version V10.
+Mostly there are fixes of logic and typos, refactoring some selftests.
 
-On Sun, 14 May 2023, Abhijeet Rastogi wrote:
+All test were run in QEMU evironment and compiled with
+ -static flag.
+ 1. network_test: 36/36 tests passed.
+ 2. base_test: 7/7 tests passed.
+ 3. fs_test: 78/78 tests passed.
+ 4. ptrace_test: 8/8 tests passed.
 
-> Current range [8, 20] is set purely due to historical reasons
-> because at the time, ~1M (2^20) was considered sufficient.
-> With this change, 27 is the upper limit for 64-bit, 20 otherwise.
-> 
-> Previous change regarding this limit is here.
-> 
-> Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
-> 
-> Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
-> ---
-> The conversation for this started at: 
-> 
-> https://www.spinics.net/lists/netfilter/msg60995.html
-> 
-> The upper limit for algo is any bit size less than 32, so this
-> change will allow us to set bit size > 20. Today, it is common to have
-> RAM available to handle greater than 2^20 connections per-host.
-> 
-> Distros like RHEL already allow setting limits higher than 20.
-> ---
-> Changes in v2:
-> - Lower the ranges, 27 for 64bit, 20 otherwise
-> - Link to v1: https://lore.kernel.org/r/20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com
-> ---
->  net/netfilter/ipvs/Kconfig      | 26 +++++++++++++-------------
->  net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
->  2 files changed, 15 insertions(+), 15 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-> index 271da8447b29..aac5d6bd82e6 100644
-> --- a/net/netfilter/ipvs/Kconfig
-> +++ b/net/netfilter/ipvs/Kconfig
-> @@ -44,7 +44,8 @@ config	IP_VS_DEBUG
->  
->  config	IP_VS_TAB_BITS
->  	int "IPVS connection table size (the Nth power of 2)"
-> -	range 8 20
-> +	range 8 20 if !64BIT
-> +	range 8 27 if 64BIT
->  	default 12
->  	help
->  	  The IPVS connection hash table uses the chaining scheme to handle
-> @@ -52,18 +53,17 @@ config	IP_VS_TAB_BITS
->  	  reduce conflicts when there are hundreds of thousands of connections
->  	  in the hash table.
->  
-> -	  Note the table size must be power of 2. The table size will be the
-> -	  value of 2 to the your input number power. The number to choose is
-> -	  from 8 to 20, the default number is 12, which means the table size
-> -	  is 4096. Don't input the number too small, otherwise you will lose
-> -	  performance on it. You can adapt the table size yourself, according
-> -	  to your virtual server application. It is good to set the table size
-> -	  not far less than the number of connections per second multiplying
-> -	  average lasting time of connection in the table.  For example, your
-> -	  virtual server gets 200 connections per second, the connection lasts
-> -	  for 200 seconds in average in the connection table, the table size
-> -	  should be not far less than 200x200, it is good to set the table
-> -	  size 32768 (2**15).
-> +	  Note the table size must be power of 2. The table size will be the value
-> +	  of 2 to the your input number power. The number to choose is from 8 to 27
-> +	  for 64BIT(20 otherwise), the default number is 12, which means the table
-> +	  size is 4096. Don't input the number too small, otherwise you will lose
-> +	  performance on it. You can adapt the table size yourself, according to
-> +	  your virtual server application. It is good to set the table size not far
-> +	  less than the number of connections per second multiplying average lasting
-> +	  time of connection in the table.  For example, your virtual server gets
-> +	  200 connections per second, the connection lasts for 200 seconds in
-> +	  average in the connection table, the table size should be not far less
-> +	  than 200x200, it is good to set the table size 32768 (2**15).
+Previous versions:
+v10: https://lore.kernel.org/linux-security-module/20230323085226.1432550-1-konstantin.meskhidze@huawei.com/
+v9: https://lore.kernel.org/linux-security-module/20230116085818.165539-1-konstantin.meskhidze@huawei.com/
+v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
+v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
+v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
+v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
+v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
+v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
+v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
+v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
 
-	Can you keep the previous line width of the above help
-because on standard 80-width window the help now gets truncated in
-make menuconfig.
+Konstantin Meskhidze (11):
+  landlock: Make ruleset's access masks more generic
+  landlock: Refactor landlock_find_rule/insert_rule
+  landlock: Refactor merge/inherit_ruleset functions
+  landlock: Move and rename layer helpers
+  landlock: Refactor layer helpers
+  landlock: Refactor landlock_add_rule() syscall
+  landlock: Add network rules and TCP hooks support
+  selftests/landlock: Share enforce_ruleset()
+  selftests/landlock: Add 11 new test suites dedicated to network
+  samples/landlock: Add network demo
+  landlock: Document Landlock's network support
 
-	After that I'll send a patch on top of yours to limit the
-rows depending on the memory.
+Mickaël Salaün (1):
+  landlock: Allow filesystem layout changes for domains without such
+    rule type
 
->  	  Another note that each connection occupies 128 bytes effectively and
->  	  each hash entry uses 8 bytes, so you can estimate how much memory is
-> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> index 13534e02346c..e1b9b52909a5 100644
-> --- a/net/netfilter/ipvs/ip_vs_conn.c
-> +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> @@ -1484,8 +1484,8 @@ int __init ip_vs_conn_init(void)
->  	int idx;
->  
->  	/* Compute size and mask */
-> -	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
-> -		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
-> +	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 27) {
-> +		pr_info("conn_tab_bits not in [8, 27]. Using default value\n");
->  		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
->  	}
->  	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
-> 
-> ---
-
-Regards
+ Documentation/userspace-api/landlock.rst     |   89 +-
+ include/uapi/linux/landlock.h                |   48 +
+ samples/landlock/sandboxer.c                 |  128 +-
+ security/landlock/Kconfig                    |    1 +
+ security/landlock/Makefile                   |    2 +
+ security/landlock/fs.c                       |  232 +--
+ security/landlock/limits.h                   |    7 +-
+ security/landlock/net.c                      |  174 +++
+ security/landlock/net.h                      |   26 +
+ security/landlock/ruleset.c                  |  405 +++++-
+ security/landlock/ruleset.h                  |  185 ++-
+ security/landlock/setup.c                    |    2 +
+ security/landlock/syscalls.c                 |  163 ++-
+ tools/testing/selftests/landlock/base_test.c |    2 +-
+ tools/testing/selftests/landlock/common.h    |   10 +
+ tools/testing/selftests/landlock/config      |    4 +
+ tools/testing/selftests/landlock/fs_test.c   |   74 +-
+ tools/testing/selftests/landlock/net_test.c  | 1317 ++++++++++++++++++
+ 18 files changed, 2520 insertions(+), 349 deletions(-)
+ create mode 100644 security/landlock/net.c
+ create mode 100644 security/landlock/net.h
+ create mode 100644 tools/testing/selftests/landlock/net_test.c
 
 --
-Julian Anastasov <ja@ssi.bg>
+2.25.1
 
