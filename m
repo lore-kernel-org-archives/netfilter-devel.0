@@ -2,87 +2,154 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E210C77B7F
-	for <netfilter-devel@archiver.kernel.org>; Sun, 14 May 2023 20:40:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F723C7EE23
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 May 2023 15:18:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237674AbjENUkt (ORCPT
+        id S242282AbjEOPS0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 14 May 2023 16:40:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34586 "EHLO
+        Mon, 15 May 2023 11:18:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237575AbjENUko (ORCPT
+        with ESMTP id S242272AbjEOPSY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 May 2023 16:40:44 -0400
-Received: from mail-ua1-x934.google.com (mail-ua1-x934.google.com [IPv6:2607:f8b0:4864:20::934])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0B41170C;
-        Sun, 14 May 2023 13:40:43 -0700 (PDT)
-Received: by mail-ua1-x934.google.com with SMTP id a1e0cc1a2514c-77d46c7dd10so55157863241.0;
-        Sun, 14 May 2023 13:40:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1684096843; x=1686688843;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=jTLrV1t79VLaE1SDZkVCg5CZRdC8GYzApnYPaUee360=;
-        b=VeKFNu0SlE8bemNa4W77yFCM58pPpmOyusQXhEtzIrdPMZaaNekjj3ImZnBcpBRfh+
-         D+Vl4urEyIHG7LNrtKn2fSu5HlQrPw+Avxh+f8aK2rI5WnBn+3RF0wOR/DAgntTAJjnd
-         /2GfKh+7823LrzeFvh0AyDlcSngzHjYyOkCUSMrC9XVtcnjuLPJLimPrkDmS1nnRMTJL
-         6V8eGMDH0gkAYxhMSkA/bMODoxeRqgypT3anK9SvaLdJyf0R4fzMJXe0zBMF3r3o+WsL
-         bc8qPx4zXERl93imXnMSTlJTiEorxgocgY1rjcPyoUizkojFojwh57dUzjxUSL0m1Rc5
-         zA0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684096843; x=1686688843;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=jTLrV1t79VLaE1SDZkVCg5CZRdC8GYzApnYPaUee360=;
-        b=QWUrt5CzS0K8GGXUIN1kpN3P2DyQvGtyu+LeQBVgpPgnHZgWHldjHGUNF2zVZMO6L+
-         snGatnW6cCfQsL9NpUNvDaAXwZDTlPvhjWZU4ljgcOHLGsrutaMtnPFdloXo9m/DH6qt
-         64TmkouCSxOrfu8A1IZW3tclTm+bpyqWrYeZCcxMTPwV4yrypn926nX4TXsrBdJRSiFG
-         hv6CxZuJKuO9KL56fovUWOpVUjOpekG8Ys1aKGhfGZh0DppNrgKAcNQfMHaLYEH1UsKC
-         TKRuR2NpNFQyPU18HSyvFiwe6EBumAmug1MzgEvy2RZIEAfI5IcLqTakpboQEfD+yjj5
-         3eqQ==
-X-Gm-Message-State: AC+VfDyL3mPZ/YTNZAm1lofGIvodm5uwgVFjs4cqnDjYIG6cYyN8KmqI
-        57dW01o8hscTvYPfuO2gAv4/kZpQYDhHDoyjvGA=
-X-Google-Smtp-Source: ACHHUZ6y9YZXHaWxdqjouELzQkYkQAWKzaf6k2ZYKEXCzGFnBNKALy+88XVob9KC7ZCLTOsZDQM27nfQZmdgVGhY5GQ=
-X-Received: by 2002:a05:6102:913:b0:434:847e:e57b with SMTP id
- x19-20020a056102091300b00434847ee57bmr8747614vsh.10.1684096842784; Sun, 14
- May 2023 13:40:42 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com>
- <d2519ce3-e49b-a544-b79d-42905f4a2a9a@ssi.bg> <CACXxYfxLU0jWmq0W7YxX=44XFCGvgMX2HwTFUUHCUMjO28g5BA@mail.gmail.com>
- <2bc64d6d-6aa7-1477-0cd-8a41e68fcc5@ssi.bg>
-In-Reply-To: <2bc64d6d-6aa7-1477-0cd-8a41e68fcc5@ssi.bg>
-From:   Abhijeet Rastogi <abhijeet.1989@gmail.com>
-Date:   Sun, 14 May 2023 13:40:05 -0700
-Message-ID: <CACXxYfxfkuo_EOa3TgBC7+iBXFckV3_csvUvLMN3VdfYPCkFQg@mail.gmail.com>
-Subject: Re: [PATCH] ipvs: change ip_vs_conn_tab_bits range to [8,31]
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Simon Horman <horms@verge.net.au>,
+        Mon, 15 May 2023 11:18:24 -0400
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36D4C8E;
+        Mon, 15 May 2023 08:18:22 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id A8C29A9E1;
+        Mon, 15 May 2023 18:18:20 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 91973AB0B;
+        Mon, 15 May 2023 18:18:20 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id 9CB5D3C080D;
+        Mon, 15 May 2023 18:18:16 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 34FFIDnO137144;
+        Mon, 15 May 2023 18:18:14 +0300
+Date:   Mon, 15 May 2023 18:18:13 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Abhijeet Rastogi <abhijeet.1989@gmail.com>
+cc:     Simon Horman <horms@verge.net.au>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2] ipvs: increase ip_vs_conn_tab_bits range for 64BIT
+In-Reply-To: <20230412-increase_ipvs_conn_tab_bits-v2-1-994c0df018e6@gmail.com>
+Message-ID: <56b88a99-db88-36e4-9ff1-a5d940578108@ssi.bg>
+References: <20230412-increase_ipvs_conn_tab_bits-v2-1-994c0df018e6@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
->         One way to solve the problem is to use in Kconfig:
->
-> range 8 20 if !64BIT
-> range 8 27 if 64BIT
 
-Thanks @Julian Anastasov. I appreciate the detailed response around
-why these limits exist. Personally, I won't be able to own the task of
-making these checks more intelligent, but for now, I wonder if it
-would be okay to accept the range increase to 27.
+	Hello,
 
-I am sending a v2 patch to set a higher limit to 27.
+On Sun, 14 May 2023, Abhijeet Rastogi wrote:
 
-Thanks,
-Abhijeet
+> Current range [8, 20] is set purely due to historical reasons
+> because at the time, ~1M (2^20) was considered sufficient.
+> With this change, 27 is the upper limit for 64-bit, 20 otherwise.
+> 
+> Previous change regarding this limit is here.
+> 
+> Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
+> 
+> Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+> ---
+> The conversation for this started at: 
+> 
+> https://www.spinics.net/lists/netfilter/msg60995.html
+> 
+> The upper limit for algo is any bit size less than 32, so this
+> change will allow us to set bit size > 20. Today, it is common to have
+> RAM available to handle greater than 2^20 connections per-host.
+> 
+> Distros like RHEL already allow setting limits higher than 20.
+> ---
+> Changes in v2:
+> - Lower the ranges, 27 for 64bit, 20 otherwise
+> - Link to v1: https://lore.kernel.org/r/20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com
+> ---
+>  net/netfilter/ipvs/Kconfig      | 26 +++++++++++++-------------
+>  net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+>  2 files changed, 15 insertions(+), 15 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+> index 271da8447b29..aac5d6bd82e6 100644
+> --- a/net/netfilter/ipvs/Kconfig
+> +++ b/net/netfilter/ipvs/Kconfig
+> @@ -44,7 +44,8 @@ config	IP_VS_DEBUG
+>  
+>  config	IP_VS_TAB_BITS
+>  	int "IPVS connection table size (the Nth power of 2)"
+> -	range 8 20
+> +	range 8 20 if !64BIT
+> +	range 8 27 if 64BIT
+>  	default 12
+>  	help
+>  	  The IPVS connection hash table uses the chaining scheme to handle
+> @@ -52,18 +53,17 @@ config	IP_VS_TAB_BITS
+>  	  reduce conflicts when there are hundreds of thousands of connections
+>  	  in the hash table.
+>  
+> -	  Note the table size must be power of 2. The table size will be the
+> -	  value of 2 to the your input number power. The number to choose is
+> -	  from 8 to 20, the default number is 12, which means the table size
+> -	  is 4096. Don't input the number too small, otherwise you will lose
+> -	  performance on it. You can adapt the table size yourself, according
+> -	  to your virtual server application. It is good to set the table size
+> -	  not far less than the number of connections per second multiplying
+> -	  average lasting time of connection in the table.  For example, your
+> -	  virtual server gets 200 connections per second, the connection lasts
+> -	  for 200 seconds in average in the connection table, the table size
+> -	  should be not far less than 200x200, it is good to set the table
+> -	  size 32768 (2**15).
+> +	  Note the table size must be power of 2. The table size will be the value
+> +	  of 2 to the your input number power. The number to choose is from 8 to 27
+> +	  for 64BIT(20 otherwise), the default number is 12, which means the table
+> +	  size is 4096. Don't input the number too small, otherwise you will lose
+> +	  performance on it. You can adapt the table size yourself, according to
+> +	  your virtual server application. It is good to set the table size not far
+> +	  less than the number of connections per second multiplying average lasting
+> +	  time of connection in the table.  For example, your virtual server gets
+> +	  200 connections per second, the connection lasts for 200 seconds in
+> +	  average in the connection table, the table size should be not far less
+> +	  than 200x200, it is good to set the table size 32768 (2**15).
+
+	Can you keep the previous line width of the above help
+because on standard 80-width window the help now gets truncated in
+make menuconfig.
+
+	After that I'll send a patch on top of yours to limit the
+rows depending on the memory.
+
+>  	  Another note that each connection occupies 128 bytes effectively and
+>  	  each hash entry uses 8 bytes, so you can estimate how much memory is
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 13534e02346c..e1b9b52909a5 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -1484,8 +1484,8 @@ int __init ip_vs_conn_init(void)
+>  	int idx;
+>  
+>  	/* Compute size and mask */
+> -	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
+> -		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
+> +	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 27) {
+> +		pr_info("conn_tab_bits not in [8, 27]. Using default value\n");
+>  		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+>  	}
+>  	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+> 
+> ---
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
