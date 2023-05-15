@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69A4DC77B7D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 15 May 2023 16:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E72E0C7EE24
+	for <netfilter-devel@archiver.kernel.org>; Mon, 15 May 2023 16:15:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241920AbjEOQPK (ORCPT
+        id S242518AbjEOQPN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 15 May 2023 12:15:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47772 "EHLO
+        Mon, 15 May 2023 12:15:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242688AbjEOQOu (ORCPT
+        with ESMTP id S242626AbjEOQOb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2023 12:14:50 -0400
+        Mon, 15 May 2023 12:14:31 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 573173594;
-        Mon, 15 May 2023 09:14:38 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4QKkqS3F2Gz6J74N;
-        Tue, 16 May 2023 00:10:28 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFB022D7B;
+        Mon, 15 May 2023 09:14:26 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4QKktv6NKQz67n3K;
+        Tue, 16 May 2023 00:13:27 +0800 (CST)
 Received: from mscphis00759.huawei.com (10.123.66.134) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Mon, 15 May 2023 17:14:35 +0100
+ 15.1.2507.23; Mon, 15 May 2023 17:14:18 +0100
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <mic@digikod.net>
 CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
         <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
         <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>
-Subject: [PATCH v11 12/12] landlock: Document Landlock's network support
-Date:   Tue, 16 May 2023 00:13:39 +0800
-Message-ID: <20230515161339.631577-13-konstantin.meskhidze@huawei.com>
+Subject: [PATCH v11 07/12] landlock: Refactor landlock_add_rule() syscall
+Date:   Tue, 16 May 2023 00:13:34 +0800
+Message-ID: <20230515161339.631577-8-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
 References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
 X-Originating-IP: [10.123.66.134]
 X-ClientProxiedBy: mscpeml500002.china.huawei.com (7.188.26.138) To
  lhrpeml500004.china.huawei.com (7.191.163.9)
@@ -46,200 +46,172 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Describe network access rules for TCP sockets. Add network access
-example in the tutorial. Add kernel configuration support for network.
+Change the landlock_add_rule() syscall to support new rule types
+in future Landlock versions. Add the add_rule_path_beneath() helper
+to support current filesystem rules.
 
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
 
 Changes since v10:
-* Fixes documentaion as Mickaёl suggested:
-https://lore.kernel.org/linux-security-module/ec23be77-566e-c8fd-179e-f50e025ac2cf@digikod.net/
+* None.
 
 Changes since v9:
-* Minor refactoring.
+* Minor fixes:
+	- deletes unnecessary curly braces.
+	- deletes unnecessary empty line.
 
 Changes since v8:
-* Minor refactoring.
+* Refactors commit message.
+* Minor fixes.
 
 Changes since v7:
-* Fixes documentaion logic errors and typos as Mickaёl suggested:
-https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@digikod.net/
+* None
 
 Changes since v6:
-* Adds network support documentaion.
+* None
+
+Changes since v5:
+* Refactors syscall landlock_add_rule() and add_rule_path_beneath() helper
+to make argument check ordering consistent and get rid of partial revertings
+in following patches.
+* Rolls back refactoring base_test.c seltest.
+* Formats code with clang-format-14.
+
+Changes since v4:
+* Refactors add_rule_path_beneath() and landlock_add_rule() functions
+to optimize code usage.
+* Refactors base_test.c seltest: adds LANDLOCK_RULE_PATH_BENEATH
+rule type in landlock_add_rule() call.
+
+Changes since v3:
+* Split commit.
+* Refactors landlock_add_rule syscall.
 
 ---
- Documentation/userspace-api/landlock.rst | 83 ++++++++++++++++++------
- 1 file changed, 62 insertions(+), 21 deletions(-)
+ security/landlock/syscalls.c | 92 +++++++++++++++++++-----------------
+ 1 file changed, 48 insertions(+), 44 deletions(-)
 
-diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
-index f6a7da21708a..f185dbaa726a 100644
---- a/Documentation/userspace-api/landlock.rst
-+++ b/Documentation/userspace-api/landlock.rst
-@@ -11,10 +11,10 @@ Landlock: unprivileged access control
- :Date: October 2022
+diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+index d35cd5d304db..8a54e87dbb17 100644
+--- a/security/landlock/syscalls.c
++++ b/security/landlock/syscalls.c
+@@ -274,6 +274,47 @@ static int get_path_from_fd(const s32 fd, struct path *const path)
+ 	return err;
+ }
 
- The goal of Landlock is to enable to restrict ambient rights (e.g. global
--filesystem access) for a set of processes.  Because Landlock is a stackable
--LSM, it makes possible to create safe security sandboxes as new security layers
--in addition to the existing system-wide access-controls. This kind of sandbox
--is expected to help mitigate the security impact of bugs or
-+filesystem or network access) for a set of processes.  Because Landlock
-+is a stackable LSM, it makes possible to create safe security sandboxes as new
-+security layers in addition to the existing system-wide access-controls. This
-+kind of sandbox is expected to help mitigate the security impact of bugs or
- unexpected/malicious behaviors in user space applications.  Landlock empowers
- any process, including unprivileged ones, to securely restrict themselves.
-
-@@ -28,20 +28,24 @@ appropriately <kernel_support>`.
- Landlock rules
- ==============
-
--A Landlock rule describes an action on an object.  An object is currently a
--file hierarchy, and the related filesystem actions are defined with `access
--rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
--the thread enforcing it, and its future children.
-+A Landlock rule describes an action on a kernel object.  Filesystem
-+objects can be defined with a file hierarchy.  Since the fourth ABI
-+version, TCP ports enable to identify inbound or outbound connections.
-+Actions on these kernel objects are defined according to `access
-+rights`_.  A set of rules is aggregated in a ruleset, which
-+can then restrict the thread enforcing it, and its future children.
-
- Defining and enforcing a security policy
- ----------------------------------------
-
- We first need to define the ruleset that will contain our rules.  For this
--example, the ruleset will contain rules that only allow read actions, but write
--actions will be denied.  The ruleset then needs to handle both of these kind of
--actions.  This is required for backward and forward compatibility (i.e. the
--kernel and user space may not know each other's supported restrictions), hence
--the need to be explicit about the denied-by-default access rights.
-+example, the ruleset will contain rules that only allow filesystem read actions
-+and establish a specific TCP connection, but filesystem write actions
-+and other TCP actions will be denied.  The ruleset then needs to handle both of
-+these kind of actions.  This is required for backward and forward compatibility
-+(i.e. the kernel and user space may not know each other's supported
-+restrictions), hence the need to be explicit about the denied-by-default access
-+rights.
-
- .. code-block:: c
-
-@@ -62,6 +66,9 @@ the need to be explicit about the denied-by-default access rights.
-             LANDLOCK_ACCESS_FS_MAKE_SYM |
-             LANDLOCK_ACCESS_FS_REFER |
-             LANDLOCK_ACCESS_FS_TRUNCATE,
-+        .handled_access_net =
-+            LANDLOCK_ACCESS_NET_BIND_TCP |
-+            LANDLOCK_ACCESS_NET_CONNECT_TCP,
-     };
-
- Because we may not know on which kernel version an application will be
-@@ -70,14 +77,18 @@ should try to protect users as much as possible whatever the kernel they are
- using.  To avoid binary enforcement (i.e. either all security features or
- none), we can leverage a dedicated Landlock command to get the current version
- of the Landlock ABI and adapt the handled accesses.  Let's check if we should
--remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE``
--access rights, which are only supported starting with the second and third
--version of the ABI.
-+remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE`` or
-+network access rights, which are only supported starting with the second,
-+third and fourth version of the ABI.
-
- .. code-block:: c
-
-     int abi;
-
-+    #define ACCESS_NET_BIND_CONNECT ( \
-+        LANDLOCK_ACCESS_NET_BIND_TCP | \
-+        LANDLOCK_ACCESS_NET_CONNECT_TCP)
++static int add_rule_path_beneath(struct landlock_ruleset *const ruleset,
++				 const void __user *const rule_attr)
++{
++	struct landlock_path_beneath_attr path_beneath_attr;
++	struct path path;
++	int res, err;
++	access_mask_t mask;
 +
-     abi = landlock_create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_VERSION);
-     if (abi < 0) {
-         /* Degrades gracefully if Landlock is not handled. */
-@@ -92,6 +103,11 @@ version of the ABI.
-     case 2:
-         /* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
-         ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
-+    case 3:
-+        /* Removes network support for ABI < 4 */
-+        ruleset_attr.handled_access_net &=
-+            ~(LANDLOCK_ACCESS_NET_BIND_TCP |
-+              LANDLOCK_ACCESS_NET_CONNECT_TCP);
-     }
-
- This enables to create an inclusive ruleset that will contain our rules.
-@@ -143,10 +159,23 @@ for the ruleset creation, by filtering access rights according to the Landlock
- ABI version.  In this example, this is not required because all of the requested
- ``allowed_access`` rights are already available in ABI 1.
-
--We now have a ruleset with one rule allowing read access to ``/usr`` while
--denying all other handled accesses for the filesystem.  The next step is to
--restrict the current thread from gaining more privileges (e.g. thanks to a SUID
--binary).
-+For network access-control, we can add a set of rules that allow to use a port
-+number for a specific action: HTTPS connections.
++	/* Copies raw user space buffer, only one type for now. */
++	res = copy_from_user(&path_beneath_attr, rule_attr,
++			     sizeof(path_beneath_attr));
++	if (res)
++		return -EFAULT;
 +
-+.. code-block:: c
++	/*
++	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
++	 * are ignored in path walks.
++	 */
++	if (!path_beneath_attr.allowed_access)
++		return -ENOMSG;
 +
-+    struct landlock_net_service_attr net_service = {
-+        .allowed_access = NET_CONNECT_TCP,
-+        .port = 443,
-+    };
++	/*
++	 * Checks that allowed_access matches the @ruleset constraints
++	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
++	 */
++	mask = landlock_get_raw_fs_access_mask(ruleset, 0);
++	if ((path_beneath_attr.allowed_access | mask) != mask)
++		return -EINVAL;
 +
-+    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-+                            &net_service, 0);
++	/* Gets and checks the new rule. */
++	err = get_path_from_fd(path_beneath_attr.parent_fd, &path);
++	if (err)
++		return err;
 +
-+The next step is to restrict the current thread from gaining more privileges
-+(e.g. through a SUID binary). We now have a ruleset with the first rule allowing
-+read access to ``/usr`` while denying all other handled accesses for the filesystem,
-+and a second rule allowing HTTPS connections.
-
- .. code-block:: c
-
-@@ -355,7 +384,7 @@ Access rights
- -------------
-
- .. kernel-doc:: include/uapi/linux/landlock.h
--    :identifiers: fs_access
-+    :identifiers: fs_access net_access
-
- Creating a new ruleset
- ----------------------
-@@ -374,6 +403,7 @@ Extending a ruleset
-
- .. kernel-doc:: include/uapi/linux/landlock.h
-     :identifiers: landlock_rule_type landlock_path_beneath_attr
-+                  landlock_net_service_attr
-
- Enforcing a ruleset
- -------------------
-@@ -451,6 +481,12 @@ always allowed when using a kernel that only supports the first or second ABI.
- Starting with the Landlock ABI version 3, it is now possible to securely control
- truncation thanks to the new ``LANDLOCK_ACCESS_FS_TRUNCATE`` access right.
-
-+Network support (ABI < 4)
-+-------------------------
++	/* Imports the new rule. */
++	err = landlock_append_fs_rule(ruleset, &path,
++				      path_beneath_attr.allowed_access);
++	path_put(&path);
++	return err;
++}
 +
-+Starting with the Landlock ABI version 4, it is now possible to restrict TCP
-+bind and connect actions to only a set of allowed ports.
-+
- .. _kernel_support:
+ /**
+  * sys_landlock_add_rule - Add a new rule to a ruleset
+  *
+@@ -306,11 +347,8 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+ 		const enum landlock_rule_type, rule_type,
+ 		const void __user *const, rule_attr, const __u32, flags)
+ {
+-	struct landlock_path_beneath_attr path_beneath_attr;
+-	struct path path;
+ 	struct landlock_ruleset *ruleset;
+-	int res, err;
+-	access_mask_t mask;
++	int err;
 
- Kernel support
-@@ -469,6 +505,11 @@ still enable it by adding ``lsm=landlock,[...]`` to
- Documentation/admin-guide/kernel-parameters.rst thanks to the bootloader
- configuration.
+ 	if (!landlock_initialized)
+ 		return -EOPNOTSUPP;
+@@ -324,48 +362,14 @@ SYSCALL_DEFINE4(landlock_add_rule, const int, ruleset_fd,
+ 	if (IS_ERR(ruleset))
+ 		return PTR_ERR(ruleset);
 
-+To be able to explicitly allow TCP operations (e.g., adding a network rule with
-+``LANDLOCK_ACCESS_NET_TCP_BIND``), the kernel must support TCP (``CONFIG_INET=y``).
-+Otherwise, sys_landlock_add_rule() returns an ``EAFNOSUPPORT`` error, which can
-+safely be ignored because this kind of TCP operation is already not possible.
-+
- Questions and answers
- =====================
-
+-	if (rule_type != LANDLOCK_RULE_PATH_BENEATH) {
++	switch (rule_type) {
++	case LANDLOCK_RULE_PATH_BENEATH:
++		err = add_rule_path_beneath(ruleset, rule_attr);
++		break;
++	default:
+ 		err = -EINVAL;
+-		goto out_put_ruleset;
+-	}
+-
+-	/* Copies raw user space buffer, only one type for now. */
+-	res = copy_from_user(&path_beneath_attr, rule_attr,
+-			     sizeof(path_beneath_attr));
+-	if (res) {
+-		err = -EFAULT;
+-		goto out_put_ruleset;
++		break;
+ 	}
+-
+-	/*
+-	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
+-	 * are ignored in path walks.
+-	 */
+-	if (!path_beneath_attr.allowed_access) {
+-		err = -ENOMSG;
+-		goto out_put_ruleset;
+-	}
+-	/*
+-	 * Checks that allowed_access matches the @ruleset constraints
+-	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
+-	 */
+-	mask = landlock_get_raw_fs_access_mask(ruleset, 0);
+-	if ((path_beneath_attr.allowed_access | mask) != mask) {
+-		err = -EINVAL;
+-		goto out_put_ruleset;
+-	}
+-
+-	/* Gets and checks the new rule. */
+-	err = get_path_from_fd(path_beneath_attr.parent_fd, &path);
+-	if (err)
+-		goto out_put_ruleset;
+-
+-	/* Imports the new rule. */
+-	err = landlock_append_fs_rule(ruleset, &path,
+-				      path_beneath_attr.allowed_access);
+-	path_put(&path);
+-
+-out_put_ruleset:
+ 	landlock_put_ruleset(ruleset);
+ 	return err;
+ }
 --
 2.25.1
 
