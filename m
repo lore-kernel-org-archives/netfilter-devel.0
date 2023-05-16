@@ -2,79 +2,79 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA69C77B7A
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 15:16:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 928F2C7EE2C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 15:16:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233824AbjEPPQO (ORCPT
+        id S233880AbjEPPQP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 May 2023 11:16:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43824 "EHLO
+        Tue, 16 May 2023 11:16:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233130AbjEPPQN (ORCPT
+        with ESMTP id S232879AbjEPPQN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 16 May 2023 11:16:13 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 79F675B92;
-        Tue, 16 May 2023 08:16:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3E85240ED;
+        Tue, 16 May 2023 08:16:10 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, sashal@kernel.org,
         stable@vger.kernel.org
-Subject: [PATCH -stable,4.14 1/8] netfilter: nftables: statify nft_parse_register()
-Date:   Tue, 16 May 2023 17:15:59 +0200
-Message-Id: <20230516151606.4892-2-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 0/8] more stable fixes for 4.14
+Date:   Tue, 16 May 2023 17:15:58 +0200
+Message-Id: <20230516151606.4892-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230516151606.4892-1-pablo@netfilter.org>
-References: <20230516151606.4892-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 08a01c11a5bb3de9b0a9c9b2685867e50eda9910 ]
+Hi Greg, Sasha,
 
-This function is not used anymore by any extension, statify it.
+This is second round of -stable backport fixes for 4.14. This batch
+includes dependency patches which are not currently in the 4.14 branch.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h | 1 -
- net/netfilter/nf_tables_api.c     | 3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+The following list shows the backported patches, I am using original
+commit IDs for reference:
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index e837bf96c6a3..8397f859ff70 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -195,7 +195,6 @@ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
- }
- 
- int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest);
--unsigned int nft_parse_register(const struct nlattr *attr);
- int nft_dump_register(struct sk_buff *skb, unsigned int attr, unsigned int reg);
- 
- int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3adefb2a625c..95ca28a732c7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5624,7 +5624,7 @@ EXPORT_SYMBOL_GPL(nft_parse_u32_check);
-  *	Registers used to be 128 bit wide, these register numbers will be
-  *	mapped to the corresponding 32 bit register numbers.
-  */
--unsigned int nft_parse_register(const struct nlattr *attr)
-+static unsigned int nft_parse_register(const struct nlattr *attr)
- {
- 	unsigned int reg;
- 
-@@ -5636,7 +5636,6 @@ unsigned int nft_parse_register(const struct nlattr *attr)
- 		return reg + NFT_REG_SIZE / NFT_REG32_SIZE - NFT_REG32_00;
- 	}
- }
--EXPORT_SYMBOL_GPL(nft_parse_register);
- 
- /**
-  *	nft_dump_register - dump a register value to a netlink attribute
+1) 08a01c11a5bb ("netfilter: nftables: statify nft_parse_register()")
+
+2) 6e1acfa387b9 ("netfilter: nf_tables: validate registers coming from userspace.")
+
+3) 20a1452c3542 ("netfilter: nf_tables: add nft_setelem_parse_key()")
+
+4) fdb9c405e35b ("netfilter: nf_tables: allow up to 64 bytes in the set element data area")
+
+5) 7e6bc1f6cabc ("netfilter: nf_tables: stricter validation of element data")
+
+6) 215a31f19ded ("netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL")
+
+7) 36d5b2913219 ("netfilter: nf_tables: do not allow RULE_ID to refer to another chain")
+
+8) 470ee20e069a ("netfilter: nf_tables: do not allow SET_ID to refer to another table")
+
+Patches #1, #3 and #4 are dependencies.
+
+Please, apply.
+Thanks.
+
+Pablo Neira Ayuso (8):
+  netfilter: nftables: statify nft_parse_register()
+  netfilter: nf_tables: validate registers coming from userspace.
+  netfilter: nf_tables: add nft_setelem_parse_key()
+  netfilter: nf_tables: allow up to 64 bytes in the set element data area
+  netfilter: nf_tables: stricter validation of element data
+  netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL
+  netfilter: nf_tables: do not allow RULE_ID to refer to another chain
+  netfilter: nf_tables: do not allow SET_ID to refer to another table
+
+ include/net/netfilter/nf_tables.h        |   7 +-
+ include/uapi/linux/netfilter/nf_tables.h |   2 +-
+ net/netfilter/nf_tables_api.c            | 157 ++++++++++++++---------
+ net/netfilter/nft_dynset.c               |   4 +-
+ 4 files changed, 104 insertions(+), 66 deletions(-)
+
 -- 
 2.30.2
 
