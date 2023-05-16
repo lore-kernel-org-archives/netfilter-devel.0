@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 111B6C7EE43
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 15:16:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64F2AC7EE39
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 15:16:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233910AbjEPPQT (ORCPT
+        id S233969AbjEPPQS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 May 2023 11:16:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43922 "EHLO
+        Tue, 16 May 2023 11:16:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233839AbjEPPQR (ORCPT
+        with ESMTP id S232108AbjEPPQP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 May 2023 11:16:17 -0400
+        Tue, 16 May 2023 11:16:15 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 912B640E4;
-        Tue, 16 May 2023 08:16:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B0671659E;
+        Tue, 16 May 2023 08:16:14 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, sashal@kernel.org,
         stable@vger.kernel.org
-Subject: [PATCH -stable,4.14 8/8] netfilter: nf_tables: do not allow SET_ID to refer to another table
-Date:   Tue, 16 May 2023 17:16:06 +0200
-Message-Id: <20230516151606.4892-9-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 6/8] netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL
+Date:   Tue, 16 May 2023 17:16:04 +0200
+Message-Id: <20230516151606.4892-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230516151606.4892-1-pablo@netfilter.org>
 References: <20230516151606.4892-1-pablo@netfilter.org>
@@ -32,95 +32,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 470ee20e069a6d05ae549f7d0ef2bdbcee6a81b2 ]
+[ 215a31f19dedd4e92a67cf5a9717ee898d012b3a ]
 
-When doing lookups for sets on the same batch by using its ID, a set from a
-different table can be used.
+NFT_SET_EVAL is signalling the kernel that this sets can be updated from
+the evaluation path, even if there are no expressions attached to the
+element. Otherwise, set updates with no expressions fail. Update
+description to describe the right semantics.
 
-Then, when the table is removed, a reference to the set may be kept after
-the set is freed, leading to a potential use-after-free.
-
-When looking for sets by ID, use the table that was used for the lookup by
-name, and only return sets belonging to that same table.
-
-This fixes CVE-2022-2586, also reported as ZDI-CAN-17470.
-
-Reported-by: Team Orca of Sea Security (@seasecresponse)
-Fixes: 958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h | 2 ++
- net/netfilter/nf_tables_api.c     | 7 +++++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ net/netfilter/nft_dynset.c               | 4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 4eb90800fc2e..0d625ff7841a 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -381,6 +381,7 @@ void nft_unregister_set(struct nft_set_type *type);
-  *
-  *	@list: table set list node
-  *	@bindings: list of set bindings
-+ *	@table: table this set belongs to
-  * 	@name: name of the set
-  * 	@ktype: key type (numeric type defined by userspace, not used in the kernel)
-  * 	@dtype: data type (verdict or numeric type defined by userspace)
-@@ -404,6 +405,7 @@ void nft_unregister_set(struct nft_set_type *type);
- struct nft_set {
- 	struct list_head		list;
- 	struct list_head		bindings;
-+	struct nft_table		*table;
- 	char				*name;
- 	u32				ktype;
- 	u32				dtype;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 86913d53eead..345fa29f34b9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2746,6 +2746,7 @@ static struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
- }
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 49b6997c3255..c7bb18ea4962 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -258,7 +258,7 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
+  * @NFT_SET_TIMEOUT: set uses timeouts
+- * @NFT_SET_EVAL: set contains expressions for evaluation
++ * @NFT_SET_EVAL: set can be updated from the evaluation path
+  * @NFT_SET_OBJECT: set contains stateful objects
+  */
+ enum nft_set_flags {
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index f174a66bbc4b..d1dc5c8937a5 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -190,9 +190,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 		priv->expr = nft_expr_init(ctx, tb[NFTA_DYNSET_EXPR]);
+ 		if (IS_ERR(priv->expr))
+ 			return PTR_ERR(priv->expr);
+-
+-	} else if (set->flags & NFT_SET_EVAL)
+-		return -EINVAL;
++	}
  
- static struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
-+						 const struct nft_table *table,
- 						 const struct nlattr *nla,
- 						 u8 genmask)
- {
-@@ -2757,6 +2758,7 @@ static struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
- 			struct nft_set *set = nft_trans_set(trans);
- 
- 			if (id == nft_trans_set_id(trans) &&
-+			    set->table == table &&
- 			    nft_active_genmask(set, genmask))
- 				return set;
- 		}
-@@ -2777,7 +2779,7 @@ struct nft_set *nft_set_lookup(const struct net *net,
- 		if (!nla_set_id)
- 			return set;
- 
--		set = nf_tables_set_lookup_byid(net, nla_set_id, genmask);
-+		set = nf_tables_set_lookup_byid(net, table, nla_set_id, genmask);
- 	}
- 	return set;
- }
-@@ -3272,6 +3274,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	}
- 
- 	INIT_LIST_HEAD(&set->bindings);
-+	set->table = table;
- 	set->ops   = ops;
- 	set->ktype = ktype;
- 	set->klen  = desc.klen;
-@@ -4209,7 +4212,7 @@ static int nf_tables_newsetelem(struct net *net, struct sock *nlsk,
- 				   genmask);
- 	if (IS_ERR(set)) {
- 		if (nla[NFTA_SET_ELEM_LIST_SET_ID]) {
--			set = nf_tables_set_lookup_byid(net,
-+			set = nf_tables_set_lookup_byid(net, ctx.table,
- 					nla[NFTA_SET_ELEM_LIST_SET_ID],
- 					genmask);
- 		}
+ 	nft_set_ext_prepare(&priv->tmpl);
+ 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
 -- 
 2.30.2
 
