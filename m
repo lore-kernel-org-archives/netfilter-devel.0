@@ -2,86 +2,79 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C39CCC7EE31
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 15:06:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA69C77B7A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 15:16:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233848AbjEPPGx (ORCPT
+        id S233824AbjEPPQO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 May 2023 11:06:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38434 "EHLO
+        Tue, 16 May 2023 11:16:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233675AbjEPPGt (ORCPT
+        with ESMTP id S233130AbjEPPQN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 May 2023 11:06:49 -0400
+        Tue, 16 May 2023 11:16:13 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3E19F7690;
-        Tue, 16 May 2023 08:06:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 79F675B92;
+        Tue, 16 May 2023 08:16:11 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, sashal@kernel.org,
         stable@vger.kernel.org
-Subject: [PATCH -stable,4.19 9/9] netfilter: nf_tables: do not allow RULE_ID to refer to another chain
-Date:   Tue, 16 May 2023 17:06:13 +0200
-Message-Id: <20230516150613.4566-10-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 1/8] netfilter: nftables: statify nft_parse_register()
+Date:   Tue, 16 May 2023 17:15:59 +0200
+Message-Id: <20230516151606.4892-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230516150613.4566-1-pablo@netfilter.org>
-References: <20230516150613.4566-1-pablo@netfilter.org>
+In-Reply-To: <20230516151606.4892-1-pablo@netfilter.org>
+References: <20230516151606.4892-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 36d5b2913219ac853908b0f1c664345e04313856 ]
+[ 08a01c11a5bb3de9b0a9c9b2685867e50eda9910 ]
 
-When doing lookups for rules on the same batch by using its ID, a rule from
-a different chain can be used. If a rule is added to a chain but tries to
-be positioned next to a rule from a different chain, it will be linked to
-chain2, but the use counter on chain1 would be the one to be incremented.
+This function is not used anymore by any extension, statify it.
 
-When looking for rules by ID, use the chain that was used for the lookup by
-name. The chain used in the context copied to the transaction needs to
-match that same chain. That way, struct nft_rule does not need to get
-enlarged with another member.
-
-Fixes: 1a94e38d254b ("netfilter: nf_tables: add NFTA_RULE_ID attribute")
-Fixes: 75dd48e2e420 ("netfilter: nf_tables: Support RULE_ID reference in new rule")
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h | 1 -
+ net/netfilter/nf_tables_api.c     | 3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9fe1c2e192e2..766fbf334bfb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2769,6 +2769,7 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index e837bf96c6a3..8397f859ff70 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -195,7 +195,6 @@ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
  }
  
- static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
-+					     const struct nft_chain *chain,
- 					     const struct nlattr *nla)
+ int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest);
+-unsigned int nft_parse_register(const struct nlattr *attr);
+ int nft_dump_register(struct sk_buff *skb, unsigned int attr, unsigned int reg);
+ 
+ int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3adefb2a625c..95ca28a732c7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5624,7 +5624,7 @@ EXPORT_SYMBOL_GPL(nft_parse_u32_check);
+  *	Registers used to be 128 bit wide, these register numbers will be
+  *	mapped to the corresponding 32 bit register numbers.
+  */
+-unsigned int nft_parse_register(const struct nlattr *attr)
++static unsigned int nft_parse_register(const struct nlattr *attr)
  {
- 	u32 id = ntohl(nla_get_be32(nla));
-@@ -2778,6 +2779,7 @@ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
- 		struct nft_rule *rule = nft_trans_rule(trans);
+ 	unsigned int reg;
  
- 		if (trans->msg_type == NFT_MSG_NEWRULE &&
-+		    trans->ctx.chain == chain &&
- 		    id == nft_trans_rule_id(trans))
- 			return rule;
+@@ -5636,7 +5636,6 @@ unsigned int nft_parse_register(const struct nlattr *attr)
+ 		return reg + NFT_REG_SIZE / NFT_REG32_SIZE - NFT_REG32_00;
  	}
-@@ -2824,7 +2826,7 @@ static int nf_tables_delrule(struct net *net, struct sock *nlsk,
+ }
+-EXPORT_SYMBOL_GPL(nft_parse_register);
  
- 			err = nft_delrule(&ctx, rule);
- 		} else if (nla[NFTA_RULE_ID]) {
--			rule = nft_rule_lookup_byid(net, nla[NFTA_RULE_ID]);
-+			rule = nft_rule_lookup_byid(net, chain, nla[NFTA_RULE_ID]);
- 			if (IS_ERR(rule)) {
- 				NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_ID]);
- 				return PTR_ERR(rule);
+ /**
+  *	nft_dump_register - dump a register value to a netlink attribute
 -- 
 2.30.2
 
