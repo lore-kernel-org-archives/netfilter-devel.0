@@ -2,171 +2,193 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 215E4C77B75
-	for <netfilter-devel@archiver.kernel.org>; Tue, 16 May 2023 18:36:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 980C7C7EE24
+	for <netfilter-devel@archiver.kernel.org>; Wed, 17 May 2023 03:09:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229846AbjEPSg2 (ORCPT
+        id S232307AbjEQDJD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 16 May 2023 14:36:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47148 "EHLO
+        Tue, 16 May 2023 23:09:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbjEPSg1 (ORCPT
+        with ESMTP id S231986AbjEQDJB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 May 2023 14:36:27 -0400
-Received: from mail-qv1-xf29.google.com (mail-qv1-xf29.google.com [IPv6:2607:f8b0:4864:20::f29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C93B576BA;
-        Tue, 16 May 2023 11:36:22 -0700 (PDT)
-Received: by mail-qv1-xf29.google.com with SMTP id 6a1803df08f44-61b5de68cd5so64631826d6.1;
-        Tue, 16 May 2023 11:36:22 -0700 (PDT)
+        Tue, 16 May 2023 23:09:01 -0400
+Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CEAD30FA;
+        Tue, 16 May 2023 20:08:52 -0700 (PDT)
+Received: by mail-pg1-x52d.google.com with SMTP id 41be03b00d2f7-51f1b6e8179so112463a12.3;
+        Tue, 16 May 2023 20:08:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1684262182; x=1686854182;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5gA/ZhK6rG1w7UVEKWB315CkZf+v0mhXE8jp3JzXj7E=;
-        b=pd9n7qvS1PL27YiPlclBotRTByA80goGg+6VR3nBEb4ZMDEHGq/g1Y/9jIlIAU74nM
-         FWNdilFyNvTt1MK4cEMkJ2KSkYdwo7TW9JNOWYPGihrcJVVdo/PLtzYd6Smf/7NWiMUE
-         aS961AlI9IKUwZzB31w20+/Jv2Yx+vTn6sbbmZxzFEejffioWNvOs0lBgKjBSgJToR9o
-         vobxP7ei1G+Rl/vAfKZ27vLo4DpDiovdA8J5+7Ge0Klr62V4xf3JZaSRlgJt2OgC5Sv4
-         VbWA4lxfQxp3RmrjCSOiZeo4C5Q4/Oay2QQzsD3GcOcxUWFkusJE3nq0kBbkEH+74q0L
-         f3Ow==
+        d=gmail.com; s=20221208; t=1684292932; x=1686884932;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=DSs+6uB24QK44w9F1naB79VJeaIzF8HJmSESXsE/nfc=;
+        b=sWdhsl9bLRMfFle/Ew2+oyVVYeFep7p6znhcv0XovW2V5zQ/vn018/d/bSQNPrshXd
+         pBGdBAgdP05ixeHfJFWvaY89/AWxXQ10OOVt+NOlRG5OCOjTfABeEj3QPc077x9xeMaE
+         soT6bdiz9StI8vWYWxT3DnqSpx9mYJuZpbz3+n14RBbQI722t5owy5f8mHjnwOQzxfr1
+         gb4ddwo9S8TcyvY1I+YYdXz6S0ga4usnbzZd5u38zk36JqFE6teaEfhzCFvu7fP1tnwH
+         ZXPZTxO+J9bjUkVfdnzMbsTu5rtMb5Kt55N0hQk+nBRjwv5hY4gN51ZD02D87oPTKov0
+         Y+yw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684262182; x=1686854182;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:cc:to:from:date:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=5gA/ZhK6rG1w7UVEKWB315CkZf+v0mhXE8jp3JzXj7E=;
-        b=TztWcIrWs706oEFrYdljk0VsIRgyMKPBav1SBsxS/oFXwDYnlC9ApM/On+4dFCZ7Qi
-         Jh0bmgLfg/aTvQILL5bXCIIU3dlIl6/Ul/1yv2DNUILPevWZ0O3jhgODFcJk3Z8NxzcQ
-         Zd/+ydAb+Qja14ew/2Op0u8E6HL0sRPbSiQHC/RvAii2a/vXOIvDk15jQa6jEjxVKn88
-         o2eJIxewdKFsEhfBeQVXMpm84kUGCX4KWX+7I/nz/6KWgT1Gg/2gyUAxyotgPYk12zTW
-         6paL8lCB9lfwdsagMSb65/zmAr1QWozjbYtYUImY6/mFzhhaK1Dx6/8KYfKSC10mk/bf
-         PcXw==
-X-Gm-Message-State: AC+VfDzkD+7sOHy0mpHxwvKWRM26sGbJZUYzzGQrXOcp+GhUq3QrP1RD
-        rnsTa4JjgHGcPRjpQn0YQHeKCcPhvcn2lQ==
-X-Google-Smtp-Source: ACHHUZ7PNIShBXbZcXVkgF6I0bnARL1tSCvzs4A1Q1sDysCwf6Pc79YgiMjksG5/HcxkT/qKwfp3Ng==
-X-Received: by 2002:a05:6214:262f:b0:623:81f4:dac2 with SMTP id gv15-20020a056214262f00b0062381f4dac2mr2976712qvb.33.1684262181618;
-        Tue, 16 May 2023 11:36:21 -0700 (PDT)
-Received: from playground (c-73-148-50-133.hsd1.va.comcast.net. [73.148.50.133])
-        by smtp.gmail.com with ESMTPSA id w6-20020a05620a148600b0074de8d07052sm55695qkj.47.2023.05.16.11.36.21
+        d=1e100.net; s=20221208; t=1684292932; x=1686884932;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=DSs+6uB24QK44w9F1naB79VJeaIzF8HJmSESXsE/nfc=;
+        b=fBCILz+zmtYRf6qo7MP1N6vRFKKKCAgBvEn/xkxRj8NMl4mIOHQFo0Izrhy9nflftZ
+         h8ys3gcgMpTRWM0AiTCUbiKkXBgC65oTp0RwZ02l14G9NVHZ/FgjVpE5oR8gbGbSxJXi
+         fDWtcVLpsg5p90kPZu8sowzD7n4mRE8kksIZThAi0jU0t/BCcFlIOMIgGLhbjBgjsimm
+         tJN1DeP/456H61PACyr5XxIVgblzbF8MlGFDrwDKGdoqSiXgkQshOIg1ADR8XDhy4E9H
+         FP5HkuwVa+B78lRvPLcC0Se02TOo6C3swA/hIqm4SKanJIdpCwLoeyRcaSgCh6KXHPLJ
+         17kA==
+X-Gm-Message-State: AC+VfDwfs38oygUo0j3tTKVV5eIhD+okLVkvR5Eve6jyrTVtSC7Hypt+
+        259VqX4hvArsffs0G3pf/YQ=
+X-Google-Smtp-Source: ACHHUZ4pkWN+5DNkLu5YPyUwMy0WuUplUNJcEjatyZLRIApkBlZJtjRS1eBlpkCjGrx6dGF/zb1uBg==
+X-Received: by 2002:a17:903:2656:b0:1ab:8f4:af2b with SMTP id je22-20020a170903265600b001ab08f4af2bmr36521130plb.38.1684292931648;
+        Tue, 16 May 2023 20:08:51 -0700 (PDT)
+Received: from [127.0.1.1] ([2601:644:8f00:4f:c44b:3346:9ae9:57c4])
+        by smtp.gmail.com with ESMTPSA id ij30-20020a170902ab5e00b001ac40488620sm16435329plb.92.2023.05.16.20.08.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 16 May 2023 11:36:21 -0700 (PDT)
-Date:   Tue, 16 May 2023 14:36:18 -0400
-From:   <imnozi@gmail.com>
-To:     Joshua Moore <j@jcm.me>
-Cc:     netfilter-devel@vger.kernel.org,
-        Reindl Harald <h.reindl@thelounge.net>,
-        "Kevin P. Fleming" <lists.netfilter@kevin.km6g.us>,
-        netfilter@vger.kernel.org
-Subject: Re: How to configure "full cone" NAT using iptables
-Message-ID: <20230516143618.6ad67810@playground>
-In-Reply-To: <F42FAE74-FDFE-4DC8-896A-2CFBDCCB6D84@jcm.me>
-References: <167f2029-5978-dffa-3cf2-0ede9ade4fdf@thelounge.net>
-        <F42FAE74-FDFE-4DC8-896A-2CFBDCCB6D84@jcm.me>
-X-Mailer: Claws Mail 3.18.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        Tue, 16 May 2023 20:08:50 -0700 (PDT)
+From:   Abhijeet Rastogi <abhijeet.1989@gmail.com>
+Date:   Tue, 16 May 2023 20:08:49 -0700
+Subject: [PATCH v3] ipvs: increase ip_vs_conn_tab_bits range for 64BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230412-increase_ipvs_conn_tab_bits-v3-1-c813278f2d24@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAEBFZGQC/5XOwQrDIAwG4FcZnufQVErdae8xRrE2toFVixbZK
+ H332Z523I5/Er4/K0sYCRO7nlYWMVOi4EuozidmR+MH5NSXzEBAJZQETt5GNAlbmnNqbfC+XUz
+ XdrQkrioAq0VvQNasCF2541003o67MZm0YNwXc0RHr6P2/ih5pLSE+D6+yHKf/laYJZe8FkY57
+ ZRtHNyGydDzYsPEdjfDHxYUS2tlRe+EbLD+trZt+wBI8yDsKwEAAA==
+To:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org,
+        Abhijeet Rastogi <abhijeet.1989@gmail.com>
+X-Mailer: b4 0.12.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1684292930; l=4739;
+ i=abhijeet.1989@gmail.com; s=20230412; h=from:subject:message-id;
+ bh=glVc4Qz3xjraQNFbTXbbfjljYS51KjuZzBy5uGrxquw=;
+ b=0ydd7p9fjVpyjPyqJB/1Y+prQR5Q3s7kl1KJ8IzWkM8A7GRfe8IYTxl8Wvm80NsJw7swqWaby
+ N9zf6a+SFKvBYc902j6Jn5Na0LvsJze1/3yOk4s8M2YmIl9+zncAgtr
+X-Developer-Key: i=abhijeet.1989@gmail.com; a=ed25519;
+ pk=VinODWUuJys1VAWZP2Uv9slcHekoZvxAp4RY1p5+OfU=
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Would an example of full cone NAT be the following?
-  - Site A uses 192.168.100.0/24 internally
-  - Site B uses 192.168.100/0/24 internally
-  - There is a VPN between the two sites
-  - Site A addresses hosts at Site B using 10.168.255.0/24
-  - Site B addresses hosts at Site A using 10.168.1.0/24
-  - Site A SNATs packets sent from 192.168.100.0/24 to 10.168.1.0/24, and S=
-ite B
-    DNATs packets sent to 10.168.255.0/24 to 192.168.100.0/24
-  - Site B SNATs packets sent from 192.168.100.0/24 to 10.168.255.0/24, and=
- Site A
-    DNATs packets sent to 10.168.1.0/24 to 192.168.100.0/24
+Current range [8, 20] is set purely due to historical reasons
+because at the time, ~1M (2^20) was considered sufficient.
+With this change, 27 is the upper limit for 64-bit, 20 otherwise.
 
-The result is that packets at either site have a 192.* and a 10.* address, =
-and packets in transit between the sites have only 10.* addresses. In short=
-, each site uses the same LAN address and cannot ordinarily exchange packet=
-s using normal packet routing. But they *are* able to exchange packets by u=
-sing full-cone NAT to translate their addresses to and from intermediary LA=
-N addresses.
+Previous change regarding this limit is here.
 
-Full cone NAT allows Linux to do the impossible right away.
+Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
 
-N
+Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+---
+The conversation for this started at: 
 
+https://www.spinics.net/lists/netfilter/msg60995.html
 
-On Tue, 16 May 2023 07:59:40 -0700
-Joshua Moore <j@jcm.me> wrote:
+The upper limit for algo is any bit size less than 32, so this
+change will allow us to set bit size > 20. Today, it is common to have
+RAM available to handle greater than 2^20 connections per-host.
 
-> Full cone isn=E2=80=99t about accepting incoming connections on the same =
-public IP:port and then translating to different local IPs. This is a misun=
-derstanding. It=E2=80=99s about accepting connections from different REMOTE=
- IPs and allowing it to the same local IP on the same original source port.
->=20
-> The practical purpose here is for a more transparent connection and allow=
-ing NAT pinholes to poke a hole through the firewall so any destination on =
-the Internet can now communicate on that port to the host.
->=20
-> > On May 16, 2023, at 7:48 AM, Reindl Harald <h.reindl@thelounge.net> wro=
-te:
-> >=20
-> > =EF=BB=BF
-> >  =20
-> >> Am 16.05.23 um 16:32 schrieb Joshua Moore:
-> >> =EF=BB=BF=E2=80=9CFull cone=E2=80=9D NAT simply means that there is no=
- longer a strict connection tracking or enforcement of what IPs can connect=
- back to the ports that are associated with the internal IP.
-> >> Traditional NAT:
-> >> - TCP connection to 1.1.1.1 from 192.168.1.10 over outside translated =
-TCP source port 45619. All packets destined to port 45619 MUST come from 1.=
-1.1.1.
-> >> Full cone NAT:
-> >> - TCP connection to 1.1.1.1 from 192.168.1.10 over outside translated =
-TCP source port 45619. All packets destined to port 45619 are allowed from =
-ANY IP.
-> >> Another word for this behavior is =E2=80=9Cendpoint independent=E2=80=
-=9D NAT/filtering. =20
-> >=20
-> > but it can not work like that which don't make any sense:
-> > iptables -t nat -A PREROUTING -i eth0 -j DNAT --to-destination 10.0.0.1
-> > iptables -t nat -A PREROUTING -i eth0 -j DNAT --to-destination 10.0.0.2
-> >=20
-> > offlist the OP pointed me to https://github.com/Chion82/netfilter-full-=
-cone-nat where i ask myself who needs that nonsense which sounds to be writ=
-ten by someone which hasn't more clues about networking/NAT the the OP
-> >=20
-> > Implementation of RFC3489-compatible full cone SNAT
-> > https://www.rfc-editor.org/rfc/rfc3489 =3D STUN
-> >  =20
-> > >> iptables -t nat -A POSTROUTING -o eth0 -j FULLCONENAT
-> > >> #same as MASQUERADE =20
-> >=20
-> > so who needs that module?
-> >  =20
-> > >> iptables -t nat -A PREROUTING -i eth0 -j FULLCONENAT
-> > >> #automatically restore NAT for inbound packets =20
-> >=20
-> > restore WHAT based on WHAT for new packets?
-> >=20
-> > it's simple: when you only have a single public IP there is no way to a=
-ccept NEW incoming packets to different local machines without explicit por=
-t-forwarding
-> >=20
-> > and ESTABLISHED/RELATED is the job of conntrack
-> >  =20
-> >>>> On May 16, 2023, at 4:46 AM, Kevin P. Fleming <lists.netfilter@kevin=
-.km6g.us> wrote: =20
-> >>>=20
-> >>> =EF=BB=BFOn Tue, May 16, 2023, at 07:07, Shane Wang wrote: =20
-> >>>> Thanks for your reply.
-> >>>> I think the "--to-destination 10.0.0.1" rule will be matched, and the
-> >>>> "--to-destination 10.0.0.2" rule will never be matched.
-> >>>> Does iptables unsupported "full cone" NAT for multiple internal IP a=
-ddresses? =20
-> >>>=20
-> >>> Does *any* platform support such a configuration? Based on my underst=
-anding of what 'full cone' means, every internal address needs a separate e=
-xternal address to be fully mapped to it. Your example shows that you have =
-one external address,  =20
+Distros like RHEL already allow setting limits higher than 20.
+---
+Changes in v3:
+- Fix text width in Kconfig, now text is 70 columns, excluding tab.
+- Link to v2: https://lore.kernel.org/r/20230412-increase_ipvs_conn_tab_bits-v2-1-994c0df018e6@gmail.com
+
+Changes in v2:
+- Lower the ranges, 27 for 64bit, 20 otherwise
+- Link to v1: https://lore.kernel.org/r/20230412-increase_ipvs_conn_tab_bits-v1-1-60a4f9f4c8f2@gmail.com
+---
+ net/netfilter/ipvs/Kconfig      | 27 ++++++++++++++-------------
+ net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+ 2 files changed, 16 insertions(+), 15 deletions(-)
+
+diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+index 271da8447b29..2a3017b9c001 100644
+--- a/net/netfilter/ipvs/Kconfig
++++ b/net/netfilter/ipvs/Kconfig
+@@ -44,7 +44,8 @@ config	IP_VS_DEBUG
+ 
+ config	IP_VS_TAB_BITS
+ 	int "IPVS connection table size (the Nth power of 2)"
+-	range 8 20
++	range 8 20 if !64BIT
++	range 8 27 if 64BIT
+ 	default 12
+ 	help
+ 	  The IPVS connection hash table uses the chaining scheme to handle
+@@ -54,24 +55,24 @@ config	IP_VS_TAB_BITS
+ 
+ 	  Note the table size must be power of 2. The table size will be the
+ 	  value of 2 to the your input number power. The number to choose is
+-	  from 8 to 20, the default number is 12, which means the table size
+-	  is 4096. Don't input the number too small, otherwise you will lose
+-	  performance on it. You can adapt the table size yourself, according
+-	  to your virtual server application. It is good to set the table size
+-	  not far less than the number of connections per second multiplying
+-	  average lasting time of connection in the table.  For example, your
+-	  virtual server gets 200 connections per second, the connection lasts
+-	  for 200 seconds in average in the connection table, the table size
+-	  should be not far less than 200x200, it is good to set the table
+-	  size 32768 (2**15).
++	  from 8 to 27 for 64BIT(20 otherwise), the default number is 12,
++	  which means the table size is 4096. Don't input the number too
++	  small, otherwise you will lose performance on it. You can adapt the
++	  table size yourself, according to your virtual server application.
++	  It is good to set the table size not far less than the number of
++	  connections per second multiplying average lasting time of
++	  connection in the table.  For example, your virtual server gets 200
++	  connections per second, the connection lasts for 200 seconds in
++	  average in the connection table, the table size should be not far
++	  less than 200x200, it is good to set the table size 32768 (2**15).
+ 
+ 	  Another note that each connection occupies 128 bytes effectively and
+ 	  each hash entry uses 8 bytes, so you can estimate how much memory is
+ 	  needed for your box.
+ 
+ 	  You can overwrite this number setting conn_tab_bits module parameter
+-	  or by appending ip_vs.conn_tab_bits=? to the kernel command line
+-	  if IP VS was compiled built-in.
++	  or by appending ip_vs.conn_tab_bits=? to the kernel command line if
++	  IP VS was compiled built-in.
+ 
+ comment "IPVS transport protocol load balancing support"
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 13534e02346c..e1b9b52909a5 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1484,8 +1484,8 @@ int __init ip_vs_conn_init(void)
+ 	int idx;
+ 
+ 	/* Compute size and mask */
+-	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
+-		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
++	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 27) {
++		pr_info("conn_tab_bits not in [8, 27]. Using default value\n");
+ 		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+ 	}
+ 	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+
+---
+base-commit: 09a9639e56c01c7a00d6c0ca63f4c7c41abe075d
+change-id: 20230412-increase_ipvs_conn_tab_bits-4322c90da216
+
+Best regards,
+-- 
+Abhijeet Rastogi <abhijeet.1989@gmail.com>
 
