@@ -2,72 +2,63 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CBA9C7EE23
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 18:52:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68AF6C7EE2A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 21:04:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229933AbjERSwU (ORCPT
+        id S229966AbjERVEy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 14:52:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38240 "EHLO
+        Thu, 18 May 2023 17:04:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229558AbjERSwT (ORCPT
+        with ESMTP id S229487AbjERVEx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 14:52:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF05BC7;
-        Thu, 18 May 2023 11:52:18 -0700 (PDT)
+        Thu, 18 May 2023 17:04:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0368136
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 14:04:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 89A1265119;
-        Thu, 18 May 2023 18:52:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B62FC433D2;
-        Thu, 18 May 2023 18:52:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5BEE06155F
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 21:04:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91402C433EF;
+        Thu, 18 May 2023 21:04:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684435938;
-        bh=ChP7EBU3iErxQg5xg1/sPCMbmF5dwTkOP9EktOEEk9Q=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=VG48LIRP1kSQNTCB/WIxiyyXO6IeBEzYwskdHaF1sK1rBSovOhEhucxMSkGHxHxTo
-         eF7qNsnBl9auArI0zg8VrPZ2EMgV9cLDTmMumZ3MqOx+sUX6em0YChg4xrd9Hdlr51
-         9lq3ajA9cCdQkFLQFpu3C2QiTg0OvPe+GOPiotdIuQ7pHlD5tzdY3mWUe97IFn6+a+
-         ++fXuVC85DNEVb83mZojkg8wtpdqbssZDc9Dw/v157J2CvdbIPYCy5p1aklsNOMR1b
-         q1irjFkAKfeB8oNETCpW+GG86CUzoithx/d2S9C/viCPUoF6KGu/+9N9yIok2vnMz/
-         EIJe4Z2hn9q6A==
-Date:   Thu, 18 May 2023 20:52:12 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     Abhijeet Rastogi <abhijeet.1989@gmail.com>
-Cc:     Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
+        s=k20201202; t=1684443891;
+        bh=WO1/uXc1qhLL3pth/REVtKNVS77zKXLjrxpiV+QO2eI=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=ZXv6DNRu4yO34k4t0F53YYl8jm7CeWBYYR88nKMhOBMc3BdxCrd5frnfuyjljAzAv
+         AlT53Yn+GFRl555U2FfsQ7HmdJEPqivZ90jDQ+SDimP9mtBOq3307saZEloqOc4lS4
+         /MnxN/tJ/NlJB0+FNqcv/Cb8m7Q9wRGOkSu/3KoWmOw21mn2Y08R/TprHobyk61o28
+         wp34jW5PLhh+ui96ZVQib3ZMMrsf+1h58tANIYOwJP7FugRj8sbyPH5a6cWzn1iC34
+         zsvlJpllBXLpRNY0TCcq6k/lycXCohAAcl3DgpQUDgDXLqnSQfC/LPNRfzMWEs3tyg
+         VFy9TMt1rnf/Q==
+Date:   Thu, 18 May 2023 14:04:50 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     <netdev@vger.kernel.org>, Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] ipvs: increase ip_vs_conn_tab_bits range for 64BIT
-Message-ID: <ZGZz3BcmSXm2KXLw@kernel.org>
-References: <20230412-increase_ipvs_conn_tab_bits-v3-1-c813278f2d24@gmail.com>
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Jeremy Sowden <jeremy@azazel.net>
+Subject: Re: [PATCH net-next 3/9] netfilter: nft_exthdr: add boolean DCCP
+ option matching
+Message-ID: <20230518140450.07248e4c@kernel.org>
+In-Reply-To: <20230518100759.84858-4-fw@strlen.de>
+References: <20230518100759.84858-1-fw@strlen.de>
+        <20230518100759.84858-4-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230412-increase_ipvs_conn_tab_bits-v3-1-c813278f2d24@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 16, 2023 at 08:08:49PM -0700, Abhijeet Rastogi wrote:
-> Current range [8, 20] is set purely due to historical reasons
-> because at the time, ~1M (2^20) was considered sufficient.
-> With this change, 27 is the upper limit for 64-bit, 20 otherwise.
+On Thu, 18 May 2023 12:07:53 +0200 Florian Westphal wrote:
+> From: Jeremy Sowden <jeremy@azazel.net>
 > 
-> Previous change regarding this limit is here.
-> 
-> Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
-> 
-> Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+> The xt_dccp iptables module supports the matching of DCCP packets based
+> on the presence or absence of DCCP options.  Extend nft_exthdr to add
+> this functionality to nftables.
 
-Acked-by: Simon Horman <horms@kernel.org>
-
-
+Someone is actually using DCCP ? :o
