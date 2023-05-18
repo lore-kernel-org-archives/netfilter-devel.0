@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E03A5C7EE2D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02415C7EE2F
 	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 09:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbjERJST (ORCPT
+        id S230126AbjERJSU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 05:18:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47314 "EHLO
+        Thu, 18 May 2023 05:18:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230149AbjERJST (ORCPT
+        with ESMTP id S230141AbjERJST (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 18 May 2023 05:18:19 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D5D32102
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:18:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 46009211B
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:18:10 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack 1/2] conntrack: do not ignore errors coming from the kernel
-Date:   Thu, 18 May 2023 11:18:00 +0200
-Message-Id: <20230518091803.90494-2-pablo@netfilter.org>
+Subject: [PATCH conntrackd 2/3] network: Fix -Wstrict-prototypes
+Date:   Thu, 18 May 2023 11:18:02 +0200
+Message-Id: <20230518091803.90494-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230518091803.90494-1-pablo@netfilter.org>
 References: <20230518091803.90494-1-pablo@netfilter.org>
@@ -30,38 +30,30 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Do not ignore error from kernel for command invocation.
+From: Sam James <sam@gentoo.org>
 
-e42ea65e9c93 ("conntrack: introduce new -A command") ignores CT_ADD
-in print_stats, which should not be required.
-
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1637
+Signed-off-by: Sam James <sam@gentoo.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/conntrack.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+posted via https://bugzilla.netfilter.org/show_bug.cgi?id=1637
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 23eaf274a78a..926213a27efc 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -2886,7 +2886,7 @@ static int print_stats(const struct ct_cmd *cmd)
- 		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
- 		fprintf(stderr, exit_msg[cmd->cmd], counter);
- 		if (counter == 0 &&
--		    !(cmd->command & (CT_LIST | EXP_LIST | CT_ADD)))
-+		    !(cmd->command & (CT_LIST | EXP_LIST)))
- 			return -1;
- 	}
+ src/network.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/network.c b/src/network.c
+index 13db37c96bb0..2560d97bab06 100644
+--- a/src/network.c
++++ b/src/network.c
+@@ -113,7 +113,7 @@ void nethdr_track_update_seq(uint32_t seq)
+ 	STATE_SYNC(last_seq_recv) = seq;
+ }
  
-@@ -3835,7 +3835,7 @@ int main(int argc, char *argv[])
- 			exit_error(OTHER_PROBLEM, "OOM");
- 
- 		do_parse(cmd, argc, argv);
--		do_command_ct(argv[0], cmd, sock);
-+		res |= do_command_ct(argv[0], cmd, sock);
- 		res = print_stats(cmd);
- 		free(cmd);
- 	}
+-int nethdr_track_is_seq_set()
++int nethdr_track_is_seq_set(void)
+ {
+ 	return local_seq_set;
+ }
 -- 
 2.30.2
 
