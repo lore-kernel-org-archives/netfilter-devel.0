@@ -2,90 +2,113 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBB7C7EE22
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 09:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A394DC7EE23
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 09:46:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbjERJlP (ORCPT
+        id S230090AbjERJqz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 05:41:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59262 "EHLO
+        Thu, 18 May 2023 05:46:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229905AbjERJlO (ORCPT
+        with ESMTP id S229917AbjERJqz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 05:41:14 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 961691724
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:41:13 -0700 (PDT)
-Date:   Thu, 18 May 2023 11:41:10 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] evaluate: Reject set stmt refs to sets without
- dynamic flag
-Message-ID: <ZGXytiRHHS5O6U2v@calendula>
-References: <20230503105022.5728-1-phil@nwl.cc>
- <ZFt35MXmXZWxcb56@calendula>
- <ZFuEcXxYCG9U9eMQ@orbyte.nwl.cc>
+        Thu, 18 May 2023 05:46:55 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A5B910DC
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:46:53 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1pzaDd-0005b8-Th; Thu, 18 May 2023 11:46:45 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     netdev@breakpoint.cc
+Cc:     Jakub Kicinski <kuba@kernel.org>, eric@breakpoint.cc,
+        Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH net-next 0/9] Netfilter updates for net-next
+Date:   Thu, 18 May 2023 11:46:33 +0200
+Message-Id: <20230518094642.84097-1-fw@strlen.de>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZFuEcXxYCG9U9eMQ@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, May 10, 2023 at 01:48:01PM +0200, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Wed, May 10, 2023 at 12:54:28PM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, May 03, 2023 at 12:50:22PM +0200, Phil Sutter wrote:
-> > > This is a revert of commit 8d443adfcc8c1 ("evaluate: attempt to set_eval
-> > > flag if dynamic updates requested"), implementing the alternative
-> > > mentioned in the comment it added.
-> > > 
-> > > Reason is the inconsistent behaviour when applying the same ruleset
-> > > twice: In the first call, the set lacking 'dynamic' flag does not exist
-> > > and is therefore added to the cache. Consequently, both the 'add set'
-> > > command and the set statement point at the same set object. In the
-> > > second call, a set with same name exists already, so the object created
-> > > for 'add set' command is not added to cache and consequently not updated
-> > > with the missing flag. The kernel thus rejects the NEWSET request as the
-> > > existing set differs from the new one.
-> > 
-> > # cat test.nft
-> > flush ruleset
-> 
-> Just remove this 'flush ruleset' call, then it should trigger.
+Hello,
 
-I cannot reproduce it yet :(
+this PR contains updates for your *net-next* tree.
 
-# cat test.nft
-table ip test {
-        set dlist {
-                type ipv4_addr
-                size 65535
-        }
+nftables updates:
 
-        chain output {
-                type filter hook output priority filter; policy accept;
-                udp dport 1234 update @dlist { ip daddr } counter packets 0 bytes 0
-        }
-}
-# nft -f test.nft
-# nft -f test.nft
-# nft list ruleset
-table ip test {
-        set dlist {
-                type ipv4_addr
-                size 65535
-                flags dynamic
-        }
+1. Allow key existence checks with maps.
+   At the moment the kernel requires userspace to pass a destination
+   register for the associated value, make this optional so userspace
+   can query if the key exists, just like with normal sets.
 
-        chain output {
-                type filter hook output priority filter; policy accept;
-                udp dport 1234 update @dlist { ip daddr } counter packets 0 bytes 0
-                udp dport 1234 update @dlist { ip daddr } counter packets 0 bytes 0
-        }
-}
+2. nftables maintains a counter per set that holds the number of
+   elements.  This counter gets decremented on element removal,
+   but its only incremented if the set has a upper maximum value.
+   Increment unconditionally, this will allow us to update the
+   maximum value later on.
 
-Maybe I need a specific kernel? I am trying with latest.
+3. At DCCP option maching, from Jeremy Sowden.
+
+4. use struct_size macro, from Christophe JAILLET.
+
+Conntrack:
+
+5. Squash holes in struct nf_conntrack_expect, also Christophe JAILLET.
+
+6. Allow clash resolution for GRE Protocol to avoid a packet drop,
+   from Faicker Mo.
+
+Flowtable:
+
+Simplify route logic and split large functions into smaller
+chunks, from Pablo Neira Ayuso.
+
+The following changes since commit b50a8b0d57ab1ef11492171e98a030f48682eac3:
+
+  net: openvswitch: Use struct_size() (2023-05-17 21:25:46 -0700)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-2023-05-18
+
+for you to fetch changes up to e05b5362166b18a224c30502e81416e4d622d3e4:
+
+  netfilter: flowtable: split IPv6 datapath in helper functions (2023-05-18 08:48:55 +0200)
+
+----------------------------------------------------------------
+Christophe JAILLET (2):
+      netfilter: Reorder fields in 'struct nf_conntrack_expect'
+      netfilter: nft_set_pipapo: Use struct_size()
+
+Faicker Mo (1):
+      netfilter: conntrack: allow insertion clash of gre protocol
+
+Florian Westphal (2):
+      netfilter: nf_tables: relax set/map validation checks
+      netfilter: nf_tables: always increment set element count
+
+Jeremy Sowden (1):
+      netfilter: nft_exthdr: add boolean DCCP option matching
+
+Pablo Neira Ayuso (3):
+      netfilter: flowtable: simplify route logic
+      netfilter: flowtable: split IPv4 datapath in helper functions
+      netfilter: flowtable: split IPv6 datapath in helper functions
+
+ include/net/netfilter/nf_conntrack_expect.h |  18 +--
+ include/net/netfilter/nf_flow_table.h       |   4 +-
+ include/uapi/linux/netfilter/nf_tables.h    |   2 +
+ net/netfilter/nf_conntrack_proto_gre.c      |   1 +
+ net/netfilter/nf_flow_table_core.c          |  24 +--
+ net/netfilter/nf_flow_table_ip.c            | 231 ++++++++++++++++++----------
+ net/netfilter/nf_tables_api.c               |  11 +-
+ net/netfilter/nft_exthdr.c                  | 106 +++++++++++++
+ net/netfilter/nft_flow_offload.c            |  12 +-
+ net/netfilter/nft_lookup.c                  |  23 ++-
+ net/netfilter/nft_set_pipapo.c              |   6 +-
+ 11 files changed, 303 insertions(+), 135 deletions(-)
