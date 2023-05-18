@@ -2,88 +2,92 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0015CC7EE23
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 12:14:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18468C7EE24
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 12:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230049AbjERMOf (ORCPT
+        id S230368AbjERM6Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 08:14:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54126 "EHLO
+        Thu, 18 May 2023 08:58:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229954AbjERMOe (ORCPT
+        with ESMTP id S230415AbjERM6P (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 08:14:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D9F10A;
-        Thu, 18 May 2023 05:14:34 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C338B64EDA;
-        Thu, 18 May 2023 12:14:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 136C1C433EF;
-        Thu, 18 May 2023 12:14:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684412073;
-        bh=iq2R9rcAYaIytt+OyDd3kwA4on0rvzXiK7CMKrCwPAY=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=mtN/LR+q1aCzoSoh8MqKoe6JpvHWBsTUKbWwbtZ8rrRqJNZEo1ifR7FxU23Q8HjgM
-         aX2WFqZpRO3Sz5c0Ol3rhL68mq9WdPfWsx8A95WlPg0Yrv6jaXoFe/v4+qpsq1zxmY
-         Je+/Q2kQweYkFBeq7fLgRMiA4spei/HyPBSiR2mtK9kV5SJCM77MoWCdyMHH6v9TyC
-         zTjR6/lLqHYq8QzuXYZ8zO8XAGD7IvtY8kACaDSAfH5QMlgfnQpDL76Q1TIsTJKknq
-         naoeCajuP/xvTEXXS4Lw7JikuIV8HSijqMueUJbJcwLPVaU/7H6nKh8Qv+LQKsdtS5
-         VdAlgWn3LJZBg==
-Date:   Thu, 18 May 2023 13:14:26 +0100
-From:   Lee Jones <lee@kernel.org>
-To:     Hans de Goede <hdegoede@redhat.com>
-Cc:     Pavel Machek <pavel@ucw.cz>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Michael Grzeschik <m.grzeschik@pengutronix.de>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        linux-leds@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-usb@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Yauhen Kharuzhy <jekhor@gmail.com>
-Subject: Re: [PATCH RESEND 4/4] leds: Clear LED_INIT_DEFAULT_TRIGGER when
- clearing current trigger
-Message-ID: <20230518121426.GJ404509@google.com>
-References: <20230510162234.291439-1-hdegoede@redhat.com>
- <20230510162234.291439-5-hdegoede@redhat.com>
+        Thu, 18 May 2023 08:58:15 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D40CA1712
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 05:58:11 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nft] evaluate: set NFT_SET_EVAL flag if dynamic set already exists
+Date:   Thu, 18 May 2023 14:58:06 +0200
+Message-Id: <20230518125806.11100-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230510162234.291439-5-hdegoede@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 10 May 2023, Hans de Goede wrote:
+ # cat test.nft
+ table ip test {
+        set dlist {
+                type ipv4_addr
+                size 65535
+        }
 
-> Not all triggers use LED_INIT_DEFAULT_TRIGGER, which means that it
-> will not get cleared when the default trigger is a trigger which
-> does not use it such as "default-on".
-> 
-> If the default trigger then later gets replaced by a trigger which
-> does check LED_INIT_DEFAULT_TRIGGER, such as "timer" then that trigger
-> will behave as if it is the default trigger which it should not do.
-> 
-> To fix this clear the LED_INIT_DEFAULT_TRIGGER flag when clearing
-> the current trigger, so that it will not be set for any subsequently
-> set (non default) triggers.
-> 
-> Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-> Tested-by: Yauhen Kharuzhy <jekhor@gmail.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/leds/led-triggers.c | 1 +
->  1 file changed, 1 insertion(+)
+        chain output {
+                type filter hook output priority filter; policy accept;
+                udp dport 1234 update @dlist { ip daddr } counter packets 0 bytes 0
+        }
+ }
+ # nft -f test.nft
+ # nft -f test.nft
+ test.nft:2:6-10: Error: Could not process rule: File exists
+         set dlist {
+             ^^^^^
 
-Applied, thanks
+Phil Sutter says:
 
+In the first call, the set lacking 'dynamic' flag does not exist
+and is therefore added to the cache. Consequently, both the 'add set'
+command and the set statement point at the same set object. In the
+second call, a set with same name exists already, so the object created
+for 'add set' command is not added to cache and consequently not updated
+with the missing flag. The kernel thus rejects the NEWSET request as the
+existing set differs from the new one.
+
+Set on the NFT_SET_EVAL flag if the existing set sets it on.
+
+Fixes: 8d443adfcc8c1 ("evaluate: attempt to set_eval flag if dynamic updates requested")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Hi Phil,
+
+Maybe this fix so there is no need for revert?
+
+ src/evaluate.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 63e3e4147a40..09ad4ea19409 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -4516,6 +4516,14 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 		existing_set = set_cache_find(table, set->handle.set.name);
+ 		if (!existing_set)
+ 			set_cache_add(set_get(set), table);
++
++		if (existing_set && existing_set->flags & NFT_SET_EVAL) {
++			uint32_t existing_flags = existing_set->flags & ~NFT_SET_EVAL;
++			uint32_t new_flags = set->flags & ~NFT_SET_EVAL;
++
++			if (existing_flags == new_flags)
++				set->flags |= NFT_SET_EVAL;
++		}
+ 	}
+ 
+ 	if (!(set->flags & NFT_SET_INTERVAL) && set->automerge)
 -- 
-Lee Jones [李琼斯]
+2.30.2
+
