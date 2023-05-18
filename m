@@ -2,90 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB91AC7EE24
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 04:50:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E03A5C7EE2D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 09:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229604AbjEREuZ (ORCPT
+        id S229726AbjERJST (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 00:50:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44392 "EHLO
+        Thu, 18 May 2023 05:18:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229808AbjEREuZ (ORCPT
+        with ESMTP id S230149AbjERJST (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 00:50:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6720E2120
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 May 2023 21:50:24 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0419E64C67
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 04:50:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 53236C433D2;
-        Thu, 18 May 2023 04:50:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684385423;
-        bh=D/Oaem/VVS63r2Tw/fU9ZK5jSJDotUZfhZiA5ZUmFVY=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=NYQBnHf6PR8zR6VEnJEnfS9AMF4HE0eLuOWzo/Am/NSmcExWzHnpj/hCNTQmh/P56
-         IN8gh59RUR871rytDoKzSjuUMz67XeyrEg8t0Eg2ke1b07UQeVnrN+FaTFHRBPWMP4
-         6DJAWPSq7FLz2RGk7DhTJ1dJPBcAaw64JOAOVPe75ti191bEsO6oyPALPw0vxOP2FQ
-         P/W0pnEoHz19947KgcKE0bDaFJprYrPmicaKftNkNtHweEYJZI92jrZmgyJjeH6ucS
-         IYCjYD3p0s7yv072lUhKhqB0Eq15a6C49+gLbza1WYmN8mOgiiWBcuERWgipWKg3Oy
-         r6bJj4wCuSfIg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2F277C32795;
-        Thu, 18 May 2023 04:50:23 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 18 May 2023 05:18:19 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D5D32102
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:18:08 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH conntrack 1/2] conntrack: do not ignore errors coming from the kernel
+Date:   Thu, 18 May 2023 11:18:00 +0200
+Message-Id: <20230518091803.90494-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230518091803.90494-1-pablo@netfilter.org>
+References: <20230518091803.90494-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: conntrack: define variables
- exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <168438542318.13974.5481728025451850960.git-patchwork-notify@kernel.org>
-Date:   Thu, 18 May 2023 04:50:23 +0000
-References: <20230517123756.7353-2-fw@strlen.de>
-In-Reply-To: <20230517123756.7353-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, trix@redhat.com,
-        simon.horman@corigine.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Do not ignore error from kernel for command invocation.
 
-This series was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
+e42ea65e9c93 ("conntrack: introduce new -A command") ignores CT_ADD
+in print_stats, which should not be required.
 
-On Wed, 17 May 2023 14:37:54 +0200 you wrote:
-> From: Tom Rix <trix@redhat.com>
-> 
-> gcc with W=1 and ! CONFIG_NF_NAT
-> net/netfilter/nf_conntrack_netlink.c:3463:32: error:
->   ‘exp_nat_nla_policy’ defined but not used [-Werror=unused-const-variable=]
->  3463 | static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
->       |                                ^~~~~~~~~~~~~~~~~~
-> net/netfilter/nf_conntrack_netlink.c:2979:33: error:
->   ‘any_addr’ defined but not used [-Werror=unused-const-variable=]
->  2979 | static const union nf_inet_addr any_addr;
->       |                                 ^~~~~~~~
-> 
-> [...]
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/conntrack.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Here is the summary with links:
-  - [net,1/3] netfilter: conntrack: define variables exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
-    https://git.kernel.org/netdev/net/c/224a876e3754
-  - [net,2/3] netfilter: nf_tables: fix nft_trans type confusion
-    https://git.kernel.org/netdev/net/c/e3c361b8acd6
-  - [net,3/3] netfilter: nft_set_rbtree: fix null deref on element insertion
-    https://git.kernel.org/netdev/net/c/61ae320a29b0
-
-You are awesome, thank you!
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 23eaf274a78a..926213a27efc 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -2886,7 +2886,7 @@ static int print_stats(const struct ct_cmd *cmd)
+ 		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
+ 		fprintf(stderr, exit_msg[cmd->cmd], counter);
+ 		if (counter == 0 &&
+-		    !(cmd->command & (CT_LIST | EXP_LIST | CT_ADD)))
++		    !(cmd->command & (CT_LIST | EXP_LIST)))
+ 			return -1;
+ 	}
+ 
+@@ -3835,7 +3835,7 @@ int main(int argc, char *argv[])
+ 			exit_error(OTHER_PROBLEM, "OOM");
+ 
+ 		do_parse(cmd, argc, argv);
+-		do_command_ct(argv[0], cmd, sock);
++		res |= do_command_ct(argv[0], cmd, sock);
+ 		res = print_stats(cmd);
+ 		free(cmd);
+ 	}
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.30.2
 
