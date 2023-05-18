@@ -2,117 +2,90 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63C63C77B75
-	for <netfilter-devel@archiver.kernel.org>; Wed, 17 May 2023 12:38:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB91AC7EE24
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 04:50:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231285AbjEQMiY (ORCPT
+        id S229604AbjEREuZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 17 May 2023 08:38:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50596 "EHLO
+        Thu, 18 May 2023 00:50:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229983AbjEQMiX (ORCPT
+        with ESMTP id S229808AbjEREuZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 17 May 2023 08:38:23 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE5D71FC4;
-        Wed, 17 May 2023 05:38:19 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1pzGQ1-0004UA-2m; Wed, 17 May 2023 14:38:13 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>
-Subject: [PATCH net 3/3] netfilter: nft_set_rbtree: fix null deref on element insertion
-Date:   Wed, 17 May 2023 14:37:56 +0200
-Message-Id: <20230517123756.7353-4-fw@strlen.de>
-X-Mailer: git-send-email 2.39.3
-In-Reply-To: <20230517123756.7353-1-fw@strlen.de>
-References: <20230517123756.7353-1-fw@strlen.de>
+        Thu, 18 May 2023 00:50:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6720E2120
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 May 2023 21:50:24 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0419E64C67
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 04:50:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 53236C433D2;
+        Thu, 18 May 2023 04:50:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1684385423;
+        bh=D/Oaem/VVS63r2Tw/fU9ZK5jSJDotUZfhZiA5ZUmFVY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=NYQBnHf6PR8zR6VEnJEnfS9AMF4HE0eLuOWzo/Am/NSmcExWzHnpj/hCNTQmh/P56
+         IN8gh59RUR871rytDoKzSjuUMz67XeyrEg8t0Eg2ke1b07UQeVnrN+FaTFHRBPWMP4
+         6DJAWPSq7FLz2RGk7DhTJ1dJPBcAaw64JOAOVPe75ti191bEsO6oyPALPw0vxOP2FQ
+         P/W0pnEoHz19947KgcKE0bDaFJprYrPmicaKftNkNtHweEYJZI92jrZmgyJjeH6ucS
+         IYCjYD3p0s7yv072lUhKhqB0Eq15a6C49+gLbza1WYmN8mOgiiWBcuERWgipWKg3Oy
+         r6bJj4wCuSfIg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2F277C32795;
+        Thu, 18 May 2023 04:50:23 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: conntrack: define variables
+ exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168438542318.13974.5481728025451850960.git-patchwork-notify@kernel.org>
+Date:   Thu, 18 May 2023 04:50:23 +0000
+References: <20230517123756.7353-2-fw@strlen.de>
+In-Reply-To: <20230517123756.7353-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, trix@redhat.com,
+        simon.horman@corigine.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-There is no guarantee that rb_prev() will not return NULL in nft_rbtree_gc_elem():
+Hello:
 
-general protection fault, probably for non-canonical address 0xdffffc0000000003: 0000 [#1] PREEMPT SMP KASAN
-KASAN: null-ptr-deref in range [0x0000000000000018-0x000000000000001f]
- nft_add_set_elem+0x14b0/0x2990
-  nf_tables_newsetelem+0x528/0xb30
+This series was applied to netdev/net.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-Furthermore, there is a possible use-after-free while iterating,
-'node' can be free'd so we need to cache the next value to use.
+On Wed, 17 May 2023 14:37:54 +0200 you wrote:
+> From: Tom Rix <trix@redhat.com>
+> 
+> gcc with W=1 and ! CONFIG_NF_NAT
+> net/netfilter/nf_conntrack_netlink.c:3463:32: error:
+>   ‘exp_nat_nla_policy’ defined but not used [-Werror=unused-const-variable=]
+>  3463 | static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
+>       |                                ^~~~~~~~~~~~~~~~~~
+> net/netfilter/nf_conntrack_netlink.c:2979:33: error:
+>   ‘any_addr’ defined but not used [-Werror=unused-const-variable=]
+>  2979 | static const union nf_inet_addr any_addr;
+>       |                                 ^~~~~~~~
+> 
+> [...]
 
-Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_rbtree.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+Here is the summary with links:
+  - [net,1/3] netfilter: conntrack: define variables exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
+    https://git.kernel.org/netdev/net/c/224a876e3754
+  - [net,2/3] netfilter: nf_tables: fix nft_trans type confusion
+    https://git.kernel.org/netdev/net/c/e3c361b8acd6
+  - [net,3/3] netfilter: nft_set_rbtree: fix null deref on element insertion
+    https://git.kernel.org/netdev/net/c/61ae320a29b0
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 19ea4d3c3553..2f114aa10f1a 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -221,7 +221,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
--	struct nft_rbtree_elem *rbe_prev;
-+	struct nft_rbtree_elem *rbe_prev = NULL;
- 	struct nft_set_gc_batch *gcb;
- 
- 	gcb = nft_set_gc_batch_check(set, NULL, GFP_ATOMIC);
-@@ -229,17 +229,21 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 		return -ENOMEM;
- 
- 	/* search for expired end interval coming before this element. */
--	do {
-+	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		if (nft_rbtree_interval_end(rbe_prev))
- 			break;
- 
- 		prev = rb_prev(prev);
--	} while (prev != NULL);
-+	}
-+
-+	if (rbe_prev) {
-+		rb_erase(&rbe_prev->node, &priv->root);
-+		atomic_dec(&set->nelems);
-+	}
- 
--	rb_erase(&rbe_prev->node, &priv->root);
- 	rb_erase(&rbe->node, &priv->root);
--	atomic_sub(2, &set->nelems);
-+	atomic_dec(&set->nelems);
- 
- 	nft_set_gc_batch_add(gcb, rbe);
- 	nft_set_gc_batch_complete(gcb);
-@@ -268,7 +272,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_set_ext **ext)
- {
- 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
--	struct rb_node *node, *parent, **p, *first = NULL;
-+	struct rb_node *node, *next, *parent, **p, *first = NULL;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	int d, err;
-@@ -307,7 +311,9 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	 * Values stored in the tree are in reversed order, starting from
- 	 * highest to lowest value.
- 	 */
--	for (node = first; node != NULL; node = rb_next(node)) {
-+	for (node = first; node != NULL; node = next) {
-+		next = rb_next(node);
-+
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
- 
- 		if (!nft_set_elem_active(&rbe->ext, genmask))
+You are awesome, thank you!
 -- 
-2.39.3
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
