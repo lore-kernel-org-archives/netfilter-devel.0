@@ -2,102 +2,105 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5987AC77B7D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 11:26:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF6F3C7EE23
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 12:12:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229816AbjERL0U (ORCPT
+        id S231545AbjERMMm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 07:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52654 "EHLO
+        Thu, 18 May 2023 08:12:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230031AbjERL0Q (ORCPT
+        with ESMTP id S230308AbjERMMl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 07:26:16 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF693172A
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 04:26:14 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1pzblr-0008MN-6k; Thu, 18 May 2023 13:26:11 +0200
-Date:   Thu, 18 May 2023 13:26:11 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] evaluate: Reject set stmt refs to sets without
- dynamic flag
-Message-ID: <ZGYLUx/fNGPXPqN9@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Thu, 18 May 2023 08:12:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38BEDE46;
+        Thu, 18 May 2023 05:12:40 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B003A64EC0;
+        Thu, 18 May 2023 12:12:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17CA4C433EF;
+        Thu, 18 May 2023 12:12:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1684411959;
+        bh=HQbrGsVEWGpBhnO+Kgnh4OFttxZ6LnaXdPUMdYq0FQE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=TUWMgZFdbGzjVGrh45IXRwY5fY9S25C+cCktX+MQhc9z2Gdb82NKa+siLaasFrQAh
+         EAjWyKqZygY3e//EKQxNPP/PANdDrwjP5PpU6V0ZE3VH3RyHFAnkR/OdLyL0twtgoX
+         cvQQ3RMPjPbhd637yWeLZAKwJbjm1tGjobsvkwsAesU7sloVoZDo5AWMP2ri5eHtLD
+         uh/wgXl3GTty6q7wLW5gAR2LINbwHYyOcVuEtqD+1cMonQNZ7z5GLhImoc49lgcPgN
+         6+Va9pcqeldMG43kRT5DPhxxkirg7FN+5NPrmhio0atSP11NgsUIplUieTg3MTSYi9
+         315kjE7Vl/d2Q==
+Date:   Thu, 18 May 2023 13:12:32 +0100
+From:   Lee Jones <lee@kernel.org>
+To:     Hans de Goede <hdegoede@redhat.com>
+Cc:     Pavel Machek <pavel@ucw.cz>,
+        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Michael Grzeschik <m.grzeschik@pengutronix.de>,
+        Johannes Berg <johannes@sipsolutions.net>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20230503105022.5728-1-phil@nwl.cc>
- <ZFt35MXmXZWxcb56@calendula>
- <ZFuEcXxYCG9U9eMQ@orbyte.nwl.cc>
- <ZGXytiRHHS5O6U2v@calendula>
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        linux-leds@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-usb@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Yauhen Kharuzhy <jekhor@gmail.com>
+Subject: Re: [PATCH RESEND 1/4] leds: Change led_trigger_blink[_oneshot]()
+ delay parameters to pass-by-value
+Message-ID: <20230518121232.GG404509@google.com>
+References: <20230510162234.291439-1-hdegoede@redhat.com>
+ <20230510162234.291439-2-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZGXytiRHHS5O6U2v@calendula>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230510162234.291439-2-hdegoede@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+On Wed, 10 May 2023, Hans de Goede wrote:
 
-On Thu, May 18, 2023 at 11:41:10AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, May 10, 2023 at 01:48:01PM +0200, Phil Sutter wrote:
-> > Hi Pablo,
-> > 
-> > On Wed, May 10, 2023 at 12:54:28PM +0200, Pablo Neira Ayuso wrote:
-> > > On Wed, May 03, 2023 at 12:50:22PM +0200, Phil Sutter wrote:
-> > > > This is a revert of commit 8d443adfcc8c1 ("evaluate: attempt to set_eval
-> > > > flag if dynamic updates requested"), implementing the alternative
-> > > > mentioned in the comment it added.
-> > > > 
-> > > > Reason is the inconsistent behaviour when applying the same ruleset
-> > > > twice: In the first call, the set lacking 'dynamic' flag does not exist
-> > > > and is therefore added to the cache. Consequently, both the 'add set'
-> > > > command and the set statement point at the same set object. In the
-> > > > second call, a set with same name exists already, so the object created
-> > > > for 'add set' command is not added to cache and consequently not updated
-> > > > with the missing flag. The kernel thus rejects the NEWSET request as the
-> > > > existing set differs from the new one.
-> > > 
-> > > # cat test.nft
-> > > flush ruleset
-> > 
-> > Just remove this 'flush ruleset' call, then it should trigger.
+> led_blink_set[_oneshot]()'s delay_on and delay_off function parameters
+> are pass by reference, so that hw-blink implementations can report
+> back the actual achieved delays when the values have been rounded
+> to something the hw supports.
 > 
-> I cannot reproduce it yet :(
-
-This is very odd.
-
-> # cat test.nft
-> table ip test {
->         set dlist {
->                 type ipv4_addr
->                 size 65535
->         }
+> This is really only interesting for the sysfs API / the timer trigger.
+> Other triggers don't really care about this and none of the callers of
+> led_trigger_blink[_oneshot]() do anything with the returned delay values.
 > 
->         chain output {
->                 type filter hook output priority filter; policy accept;
->                 udp dport 1234 update @dlist { ip daddr } counter packets 0 bytes 0
->         }
-> }
-> # nft -f test.nft
-> # nft -f test.nft
+> Change the led_trigger_blink[_oneshot]() delay parameters to pass-by-value,
+> there are 2 reasons for this:
+> 
+> 1. led_cdev->blink_set() may sleep, while led_trigger_blink() may not.
+> So on hw where led_cdev->blink_set() sleeps the call needs to be deferred
+> to a workqueue, in which case the actual achieved delays are unknown
+> (this is a preparation patch for the deferring).
+> 
+> 2. Since the callers don't care about the actual achieved delays, allowing
+> callers to directly pass a value leads to simpler code for most callers.
+> 
+> Reviewed-by: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+> Tested-by: Yauhen Kharuzhy <jekhor@gmail.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/leds/led-triggers.c              | 16 ++++++++--------
+>  drivers/leds/trigger/ledtrig-disk.c      |  9 +++------
+>  drivers/leds/trigger/ledtrig-mtd.c       |  8 ++------
+>  drivers/net/arcnet/arcnet.c              |  8 ++------
+>  drivers/power/supply/power_supply_leds.c |  5 +----
+>  drivers/usb/common/led.c                 |  4 +---
+>  include/linux/leds.h                     | 16 ++++++++--------
+>  net/mac80211/led.c                       |  2 +-
+>  net/mac80211/led.h                       |  8 ++------
+>  net/netfilter/xt_LED.c                   |  3 +--
+>  10 files changed, 29 insertions(+), 50 deletions(-)
 
-On my side, this second call emits:
+Applied, thanks
 
-| /tmp/test.nft:2:6-10: Error: Could not process rule: File exists
-|         set dlist {
-|             ^^^^^
-
-> Maybe I need a specific kernel? I am trying with latest.
-
-IIUC, it is not kernel-related. I can reproduce with:
-
-nftables @ d486c9e626405 ("datatype: add hint error handler")
-libnftnl @ libnftnl-1.2.5
-linux @ b50a8b0d57ab1 ("net: openvswitch: Use struct_size()")
-
-Cheers, Phil
+-- 
+Lee Jones [李琼斯]
