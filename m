@@ -2,33 +2,34 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87F08C7EE22
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 09:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 783CAC77B7D
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 09:47:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230133AbjERJrE (ORCPT
+        id S230053AbjERJrF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 05:47:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33376 "EHLO
+        Thu, 18 May 2023 05:47:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229914AbjERJrE (ORCPT
+        with ESMTP id S229914AbjERJrF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 05:47:04 -0400
+        Thu, 18 May 2023 05:47:05 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E20FD10E6
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:47:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3494510E9
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 May 2023 02:47:04 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pzaDo-0005cU-CG; Thu, 18 May 2023 11:46:56 +0200
+        id 1pzaDr-0005d8-R5; Thu, 18 May 2023 11:46:59 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     netdev@breakpoint.cc
 Cc:     Jakub Kicinski <kuba@kernel.org>, eric@breakpoint.cc,
         Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Jeremy Sowden <jeremy@azazel.net>
-Subject: [PATCH net-next 3/9] netfilter: nft_exthdr: add boolean DCCP option matching
-Date:   Thu, 18 May 2023 11:46:36 +0200
-Message-Id: <20230518094642.84097-4-fw@strlen.de>
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Simon Horman <simon.horman@corigine.com>
+Subject: [PATCH net-next 4/9] netfilter: Reorder fields in 'struct nf_conntrack_expect'
+Date:   Thu, 18 May 2023 11:46:37 +0200
+Message-Id: <20230518094642.84097-5-fw@strlen.de>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230518094642.84097-1-fw@strlen.de>
 References: <20230518094642.84097-1-fw@strlen.de>
@@ -38,184 +39,57 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jeremy Sowden <jeremy@azazel.net>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-The xt_dccp iptables module supports the matching of DCCP packets based
-on the presence or absence of DCCP options.  Extend nft_exthdr to add
-this functionality to nftables.
+Group some variables based on their sizes to reduce holes.
+On x86_64, this shrinks the size of 'struct nf_conntrack_expect' from 264
+to 256 bytes.
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=930
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+This structure deserve a dedicated cache, so reducing its size looks nice.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Reviewed-by: Simon Horman <simon.horman@corigine.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nf_tables.h |   2 +
- net/netfilter/nft_exthdr.c               | 106 +++++++++++++++++++++++
- 2 files changed, 108 insertions(+)
+ include/net/netfilter/nf_conntrack_expect.h | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c4d4d8e42dc8..e059dc2644df 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -859,12 +859,14 @@ enum nft_exthdr_flags {
-  * @NFT_EXTHDR_OP_TCP: match against tcp options
-  * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
-  * @NFT_EXTHDR_OP_SCTP: match against sctp chunks
-+ * @NFT_EXTHDR_OP_DCCP: match against dccp otions
-  */
- enum nft_exthdr_op {
- 	NFT_EXTHDR_OP_IPV6,
- 	NFT_EXTHDR_OP_TCPOPT,
- 	NFT_EXTHDR_OP_IPV4,
- 	NFT_EXTHDR_OP_SCTP,
-+	NFT_EXTHDR_OP_DCCP,
- 	__NFT_EXTHDR_OP_MAX
- };
- #define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index a54a7f772cec..671474e59817 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -10,6 +10,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/dccp.h>
- #include <linux/sctp.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
-@@ -406,6 +407,82 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
- 		regs->verdict.code = NFT_BREAK;
- }
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 0855b60fba17..cf0d81be5a96 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -26,6 +26,15 @@ struct nf_conntrack_expect {
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conntrack_tuple_mask mask;
  
-+static void nft_exthdr_dccp_eval(const struct nft_expr *expr,
-+				 struct nft_regs *regs,
-+				 const struct nft_pktinfo *pkt)
-+{
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	unsigned int thoff, dataoff, optoff, optlen, i;
-+	u32 *dest = &regs->data[priv->dreg];
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr _dh;
++	/* Usage count. */
++	refcount_t use;
 +
-+	if (pkt->tprot != IPPROTO_DCCP || pkt->fragoff)
-+		goto err;
++	/* Flags */
++	unsigned int flags;
 +
-+	thoff = nft_thoff(pkt);
++	/* Expectation class */
++	unsigned int class;
 +
-+	dh = skb_header_pointer(pkt->skb, thoff, sizeof(_dh), &_dh);
-+	if (!dh)
-+		goto err;
-+
-+	dataoff = dh->dccph_doff * sizeof(u32);
-+	optoff = __dccp_hdr_len(dh);
-+	if (dataoff <= optoff)
-+		goto err;
-+
-+	optlen = dataoff - optoff;
-+
-+	for (i = 0; i < optlen; ) {
-+		/* Options 0 (DCCPO_PADDING) - 31 (DCCPO_MAX_RESERVED) are 1B in
-+		 * the length; the remaining options are at least 2B long.  In
-+		 * all cases, the first byte contains the option type.  In
-+		 * multi-byte options, the second byte contains the option
-+		 * length, which must be at least two: 1 for the type plus 1 for
-+		 * the length plus 0-253 for any following option data.  We
-+		 * aren't interested in the option data, only the type and the
-+		 * length, so we don't need to read more than two bytes at a
-+		 * time.
-+		 */
-+		unsigned int buflen = optlen - i;
-+		u8 buf[2], *bufp;
-+		u8 type, len;
-+
-+		if (buflen > sizeof(buf))
-+			buflen = sizeof(buf);
-+
-+		bufp = skb_header_pointer(pkt->skb, thoff + optoff + i, buflen,
-+					  &buf);
-+		if (!bufp)
-+			goto err;
-+
-+		type = bufp[0];
-+
-+		if (type == priv->type) {
-+			*dest = 1;
-+			return;
-+		}
-+
-+		if (type <= DCCPO_MAX_RESERVED) {
-+			i++;
-+			continue;
-+		}
-+
-+		if (buflen < 2)
-+			goto err;
-+
-+		len = bufp[1];
-+
-+		if (len < 2)
-+			goto err;
-+
-+		i += len;
-+	}
-+
-+err:
-+	*dest = 0;
-+}
-+
- static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_DREG]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
-@@ -557,6 +634,22 @@ static int nft_exthdr_ipv4_init(const struct nft_ctx *ctx,
- 	return 0;
- }
+ 	/* Function to call after setup and insertion */
+ 	void (*expectfn)(struct nf_conn *new,
+ 			 struct nf_conntrack_expect *this);
+@@ -39,15 +48,6 @@ struct nf_conntrack_expect {
+ 	/* Timer function; deletes the expectation. */
+ 	struct timer_list timeout;
  
-+static int nft_exthdr_dccp_init(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr,
-+				const struct nlattr * const tb[])
-+{
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	int err = nft_exthdr_init(ctx, expr, tb);
-+
-+	if (err < 0)
-+		return err;
-+
-+	if (!(priv->flags & NFT_EXTHDR_F_PRESENT))
-+		return -EOPNOTSUPP;
-+
-+	return 0;
-+}
-+
- static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *priv)
- {
- 	if (nla_put_u8(skb, NFTA_EXTHDR_TYPE, priv->type))
-@@ -686,6 +779,15 @@ static const struct nft_expr_ops nft_exthdr_sctp_ops = {
- 	.reduce		= nft_exthdr_reduce,
- };
- 
-+static const struct nft_expr_ops nft_exthdr_dccp_ops = {
-+	.type		= &nft_exthdr_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
-+	.eval		= nft_exthdr_dccp_eval,
-+	.init		= nft_exthdr_dccp_init,
-+	.dump		= nft_exthdr_dump,
-+	.reduce		= nft_exthdr_reduce,
-+};
-+
- static const struct nft_expr_ops *
- nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
-@@ -720,6 +822,10 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 		if (tb[NFTA_EXTHDR_DREG])
- 			return &nft_exthdr_sctp_ops;
- 		break;
-+	case NFT_EXTHDR_OP_DCCP:
-+		if (tb[NFTA_EXTHDR_DREG])
-+			return &nft_exthdr_dccp_ops;
-+		break;
- 	}
- 
- 	return ERR_PTR(-EOPNOTSUPP);
+-	/* Usage count. */
+-	refcount_t use;
+-
+-	/* Flags */
+-	unsigned int flags;
+-
+-	/* Expectation class */
+-	unsigned int class;
+-
+ #if IS_ENABLED(CONFIG_NF_NAT)
+ 	union nf_inet_addr saved_addr;
+ 	/* This is the original per-proto part, used to map the
 -- 
 2.40.1
 
