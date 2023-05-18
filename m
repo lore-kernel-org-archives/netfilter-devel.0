@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37205C77B7D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 10:08:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D4E8C77B7A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 18 May 2023 10:08:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230185AbjERKIU (ORCPT
+        id S230048AbjERKIY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 18 May 2023 06:08:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41190 "EHLO
+        Thu, 18 May 2023 06:08:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230060AbjERKIT (ORCPT
+        with ESMTP id S230188AbjERKIW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2023 06:08:19 -0400
+        Thu, 18 May 2023 06:08:22 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 670981716;
-        Thu, 18 May 2023 03:08:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D78C91BD5;
+        Thu, 18 May 2023 03:08:20 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1pzaYO-0005oB-61; Thu, 18 May 2023 12:08:12 +0200
+        id 1pzaYQ-0005oc-LM; Thu, 18 May 2023 12:08:14 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Jakub Kicinski <kuba@kernel.org>,
@@ -28,9 +28,9 @@ Cc:     Jakub Kicinski <kuba@kernel.org>,
         netfilter-devel <netfilter-devel@vger.kernel.org>,
         Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
         Simon Horman <simon.horman@corigine.com>
-Subject: [PATCH net-next 4/9] netfilter: Reorder fields in 'struct nf_conntrack_expect'
-Date:   Thu, 18 May 2023 12:07:54 +0200
-Message-Id: <20230518100759.84858-5-fw@strlen.de>
+Subject: [PATCH net-next 5/9] netfilter: nft_set_pipapo: Use struct_size()
+Date:   Thu, 18 May 2023 12:07:55 +0200
+Message-Id: <20230518100759.84858-6-fw@strlen.de>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230518100759.84858-1-fw@strlen.de>
 References: <20230518100759.84858-1-fw@strlen.de>
@@ -42,55 +42,40 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-Group some variables based on their sizes to reduce holes.
-On x86_64, this shrinks the size of 'struct nf_conntrack_expect' from 264
-to 256 bytes.
-
-This structure deserve a dedicated cache, so reducing its size looks nice.
+Use struct_size() instead of hand writing it.
+This is less verbose and more informative.
 
 Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Reviewed-by: Simon Horman <simon.horman@corigine.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_expect.h | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 0855b60fba17..cf0d81be5a96 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -26,6 +26,15 @@ struct nf_conntrack_expect {
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conntrack_tuple_mask mask;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 06d46d182634..34c684e121d3 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1274,8 +1274,7 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 	struct nft_pipapo_match *new;
+ 	int i;
  
-+	/* Usage count. */
-+	refcount_t use;
-+
-+	/* Flags */
-+	unsigned int flags;
-+
-+	/* Expectation class */
-+	unsigned int class;
-+
- 	/* Function to call after setup and insertion */
- 	void (*expectfn)(struct nf_conn *new,
- 			 struct nf_conntrack_expect *this);
-@@ -39,15 +48,6 @@ struct nf_conntrack_expect {
- 	/* Timer function; deletes the expectation. */
- 	struct timer_list timeout;
+-	new = kmalloc(sizeof(*new) + sizeof(*dst) * old->field_count,
+-		      GFP_KERNEL);
++	new = kmalloc(struct_size(new, f, old->field_count), GFP_KERNEL);
+ 	if (!new)
+ 		return ERR_PTR(-ENOMEM);
  
--	/* Usage count. */
--	refcount_t use;
--
--	/* Flags */
--	unsigned int flags;
--
--	/* Expectation class */
--	unsigned int class;
--
- #if IS_ENABLED(CONFIG_NF_NAT)
- 	union nf_inet_addr saved_addr;
- 	/* This is the original per-proto part, used to map the
+@@ -2059,8 +2058,7 @@ static int nft_pipapo_init(const struct nft_set *set,
+ 	if (field_count > NFT_PIPAPO_MAX_FIELDS)
+ 		return -EINVAL;
+ 
+-	m = kmalloc(sizeof(*priv->match) + sizeof(*f) * field_count,
+-		    GFP_KERNEL);
++	m = kmalloc(struct_size(m, f, field_count), GFP_KERNEL);
+ 	if (!m)
+ 		return -ENOMEM;
+ 
 -- 
 2.40.1
 
