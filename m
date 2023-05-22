@@ -2,120 +2,37 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A8D7C77B7C
-	for <netfilter-devel@archiver.kernel.org>; Sat, 20 May 2023 20:35:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C576BC7EE23
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 May 2023 06:22:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229570AbjETUf0 (ORCPT
+        id S229634AbjEVGW6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 20 May 2023 16:35:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47406 "EHLO
+        Mon, 22 May 2023 02:22:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229464AbjETUf0 (ORCPT
+        with ESMTP id S229529AbjEVGW5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 May 2023 16:35:26 -0400
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED749FA
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 May 2023 13:35:24 -0700 (PDT)
-Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-510d967249aso7301416a12.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 May 2023 13:35:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google; t=1684614923; x=1687206923;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=eQfvZLSukixQ1DITuR6tK9/bYcrgDZU3J1HDo8kehxM=;
-        b=feY+49bvZs5WN9ddf+Y3ngw75Ki/nmg/ZoXrJuwkZdFhpftuTPGfFl8NhbSJPq0nSP
-         7Ve2BGUWAVSfw46GFWfqWs/ExGwAdVYmAXI52IuaZrXZTcRYcWr+aOlWj2VySYD3S+Eg
-         7rIzv6XdgMgwJYL4zVj3o4gVCfuXfBqiDiLdc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684614923; x=1687206923;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=eQfvZLSukixQ1DITuR6tK9/bYcrgDZU3J1HDo8kehxM=;
-        b=PMwMfaQUB/ThpHu0cmtiWW8dt9egO5p9YG4VhoQCU5XtCuChdgsIlR37kpKvyK24xM
-         E/pABNL9lV8E0R/BGFzR+Ph0h42yKl7q6rEeYmjumMXdG3qS0pKSsIDerllBt6+6ttIa
-         Wq0mqNormeDMa1vowcfjw9TwJyzH8eohUR4+Tz1anvTbf2CuToUOQeP/HvB50ht9iibw
-         URIIsv3Rq4jqVaBdJlA5VqRMUH7xU146Z+PZNopt2PgpsH9OiFg99cN+nm4P17+bOr2e
-         W5F13LIraxyD/9aoRH9WvP86cd0l5H5zYr3Z+Kiq89NzXSEhtc8l+a/O9Okwa4ZS/uLn
-         uUDQ==
-X-Gm-Message-State: AC+VfDxx86offefm2hQk1bsJLKg8qmKd62QiiLWBHTRvtIj0XN5CzFAI
-        1mfBkjvzrfPci1g1Dwgr83iRGCXq2+RvO28eqs37iA==
-X-Google-Smtp-Source: ACHHUZ5Xf1Mmuusah61sw3BVQ3XjkDmk2mpAPSsQVcUgoyKmiaqLTQsEnljbHCK/5wD+ZdaOFZUeCg==
-X-Received: by 2002:a05:6402:1287:b0:50d:975f:3729 with SMTP id w7-20020a056402128700b0050d975f3729mr4910777edv.11.1684614923085;
-        Sat, 20 May 2023 13:35:23 -0700 (PDT)
-Received: from dario-ThinkPad-T14s-Gen-2i.homenet.telecomitalia.it (host-79-40-97-5.business.telecomitalia.it. [79.40.97.5])
-        by smtp.gmail.com with ESMTPSA id n26-20020a056402061a00b00510d110db58sm1086774edv.80.2023.05.20.13.35.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 20 May 2023 13:35:22 -0700 (PDT)
-From:   Dario Binacchi <dario.binacchi@amarulasolutions.com>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Florian Westphal <fw@strlen.de>, Pablo Neira <pablo@netfilter.org>,
-        dario.binacchi@amarulasolutions.com
-Subject: [libmnl, PATCH 1/1] examples: update .gitignore files
-Date:   Sat, 20 May 2023 22:35:12 +0200
-Message-Id: <20230520203512.3940990-1-dario.binacchi@amarulasolutions.com>
-X-Mailer: git-send-email 2.32.0
+        Mon, 22 May 2023 02:22:57 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 59D7ACF
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 May 2023 23:22:55 -0700 (PDT)
+Date:   Mon, 22 May 2023 08:22:50 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Dario Binacchi <dario.binacchi@amarulasolutions.com>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [libmnl, PATCH 1/1] examples: update .gitignore files
+Message-ID: <ZGsKOnBtQlMsEQpX@calendula>
+References: <20230520203512.3940990-1-dario.binacchi@amarulasolutions.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230520203512.3940990-1-dario.binacchi@amarulasolutions.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The patch adds and modifies the .gitignore files to hide all the
-examples generated by the compilation.
+On Sat, May 20, 2023 at 10:35:12PM +0200, Dario Binacchi wrote:
+> The patch adds and modifies the .gitignore files to hide all the
+> examples generated by the compilation.
 
-Signed-off-by: Dario Binacchi <dario.binacchi@amarulasolutions.com>
----
- examples/genl/.gitignore      | 1 +
- examples/kobject/.gitignore   | 1 +
- examples/netfilter/.gitignore | 3 +++
- examples/rtnl/.gitignore      | 4 ++++
- 4 files changed, 9 insertions(+)
- create mode 100644 examples/kobject/.gitignore
-
-diff --git a/examples/genl/.gitignore b/examples/genl/.gitignore
-index 57f0ca9eacaf..a7d8966a35a9 100644
---- a/examples/genl/.gitignore
-+++ b/examples/genl/.gitignore
-@@ -1 +1,2 @@
- /genl-family-get
-+/genl-group-events
-\ No newline at end of file
-diff --git a/examples/kobject/.gitignore b/examples/kobject/.gitignore
-new file mode 100644
-index 000000000000..4d95e59a588b
---- /dev/null
-+++ b/examples/kobject/.gitignore
-@@ -0,0 +1 @@
-+/kobject-event
-diff --git a/examples/netfilter/.gitignore b/examples/netfilter/.gitignore
-index f2f863fc8534..bbeb03117849 100644
---- a/examples/netfilter/.gitignore
-+++ b/examples/netfilter/.gitignore
-@@ -1,3 +1,6 @@
- /nf-log
- /nf-queue
-+/nfct-create-batch
-+/nfct-daemon
-+/nfct-dump
- /nfct-event
-diff --git a/examples/rtnl/.gitignore b/examples/rtnl/.gitignore
-index 24ac633b6bed..4b16c5385aa5 100644
---- a/examples/rtnl/.gitignore
-+++ b/examples/rtnl/.gitignore
-@@ -1,8 +1,12 @@
- /rtnl-addr-add
-+/rtnl-addr-dump
-+/rtnl-link-can
- /rtnl-link-dump
- /rtnl-link-dump2
- /rtnl-link-dump3
- /rtnl-link-event
- /rtnl-link-set
-+/rtnl-neigh-dump
-+/rtnl-route-event
- /rtnl-route-add
- /rtnl-route-dump
--- 
-2.32.0
-
+Applied, thanks
