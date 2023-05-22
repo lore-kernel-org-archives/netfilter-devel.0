@@ -2,58 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA9FC77B73
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 May 2023 07:32:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82345C77B75
+	for <netfilter-devel@archiver.kernel.org>; Mon, 22 May 2023 17:50:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230440AbjEVHcN (ORCPT
+        id S233346AbjEVRuw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 May 2023 03:32:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57546 "EHLO
+        Mon, 22 May 2023 13:50:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232476AbjEVHcM (ORCPT
+        with ESMTP id S231610AbjEVRuv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 May 2023 03:32:12 -0400
-Received: from mail.craftsplex.pl (mail.craftsplex.pl [162.19.155.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BC60A8
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 May 2023 00:32:11 -0700 (PDT)
-Received: by mail.craftsplex.pl (Postfix, from userid 1002)
-        id 2D32A22647; Mon, 22 May 2023 07:31:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=craftsplex.pl;
-        s=mail; t=1684740730;
-        bh=PcMncQpBfIZCnTOfZJY5G1G+gaLn4c9QPfFvoXrE4rA=;
-        h=Date:From:To:Subject:From;
-        b=noIMDis5P6FMX5BwZAe8tLaOn7KYeWsgSPzGYaXPOhfPme8J1JiETLVVx52BTv07p
-         WGJxbANRprqpEE/X0DwA2rV20Q7L30cpA23puVA4VARoryR697BWC8dmx5o0LThCl5
-         SsHTjnSKhx722Qn7RvCwU4QKkL6vcXrIEWyaDKYfogcvYqvyLKwSFCplG+niZE2tbq
-         zwf4UXEpUykYhrAp/dSy/uMwanyw3+Yl8/wtaxRK2caCWfsaVeRi0VzmkfhHTf55Qx
-         qmr5Z7Iq+OyPyRNjvKIoT1fnh62FuDmj7MNflseAiDGMJl2URiXHmvAioHytkR3/A6
-         WYlWHgaiVaubA==
-Received: by mail.craftsplex.pl for <netfilter-devel@vger.kernel.org>; Mon, 22 May 2023 07:30:55 GMT
-Message-ID: <20230522064500-0.1.69.wdfy.0.7ah32mbogi@craftsplex.pl>
-Date:   Mon, 22 May 2023 07:30:55 GMT
-From:   "Kamil Tralewski" <kamil.tralewski@craftsplex.pl>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: =?UTF-8?Q?S=C5=82owa_kluczowe_do_wypozycjonowania?=
-X-Mailer: mail.craftsplex.pl
+        Mon, 22 May 2023 13:50:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BD63FA;
+        Mon, 22 May 2023 10:50:48 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 20E98622B0;
+        Mon, 22 May 2023 17:50:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57494C433EF;
+        Mon, 22 May 2023 17:50:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1684777847;
+        bh=9q4AZFNIos4l/XUurkzGQgAQjQCdSUI92QqPuypIlUg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=aM3JsaOKj/Rc+y0ez/fZOJKeI/nXgbLiDA+z1pGooZA6y98xek1buEUGqgY1DHF4r
+         5pVPP0C/niBTU4OTHFIxhaflNRC+OHiPpORcHmLY21CxHAUenpKKIB4ZNuSQcvZJZ3
+         ZBvJVRSxvS811vvGGuU1K0V9Kx9TD9wTHImicBsmggi2cegCxzlmb/K3VLScVIHL2g
+         bk2pEngUKlzcxaPJmoKbOkMLiTBdqXhEcR0SpiM+QAEyZX7EQFThdJRH7CsGXweF52
+         66Xf3AuLW6ftbP7HuSmuEsYvrfdhFDc5EsyJ2GwvJcqXvAF+Q+zUVlcPuxrzlZD6AW
+         T7W0PGXaqE2vw==
+Date:   Mon, 22 May 2023 13:50:46 -0400
+From:   Sasha Levin <sashal@kernel.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, fw@strlen.de,
+        gregkh@linuxfoundation.org, stable@vger.kernel.org
+Subject: Re: Patch for -stable, 6.3.x
+Message-ID: <ZGurdlwawzvZYkBS@sashalap>
+References: <ZGL/S2D68bm29hC4@calendula>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <ZGL/S2D68bm29hC4@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Tue, May 16, 2023 at 05:58:03AM +0200, Pablo Neira Ayuso wrote:
+>Hi Greg, Sasha,
+>
+>Could you cherry-pick the follow patch into 6.3.x? Thanks.
+>
+>commit f057b63bc11d86a98176de31b437e46789f44d8f
+>Author: Florian Westphal <fw@strlen.de>
+>Date:   Wed May 3 12:00:18 2023 +0200
+>
+>    netfilter: nf_tables: fix ct untracked match breakage
+>
+>    "ct untracked" no longer works properly due to erroneous NFT_BREAK.
+>    We have to check ctinfo enum first.
+>
+>    Fixes: d9e789147605 ("netfilter: nf_tables: avoid retpoline overhead for some ct expression calls")
+>    Reported-by: Rvfg <i@rvf6.com>
+>    Link: https://marc.info/?l=netfilter&m=168294996212038&w=2
+>    Signed-off-by: Florian Westphal <fw@strlen.de>
+>    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-zapozna=C5=82em si=C4=99 z Pa=C5=84stwa ofert=C4=85 i z przyjemno=C5=9Bci=
-=C4=85 przyznaj=C4=99, =C5=BCe przyci=C4=85ga uwag=C4=99 i zach=C4=99ca d=
-o dalszych rozm=C3=B3w.=20
+Looks like it's been picked up, thanks!
 
-Pomy=C5=9Bla=C5=82em, =C5=BCe mo=C5=BCe m=C3=B3g=C5=82bym mie=C4=87 sw=C3=
-=B3j wk=C5=82ad w Pa=C5=84stwa rozw=C3=B3j i pom=C3=B3c dotrze=C4=87 z t=C4=
-=85 ofert=C4=85 do wi=C4=99kszego grona odbiorc=C3=B3w. Pozycjonuj=C4=99 =
-strony www, dzi=C4=99ki czemu generuj=C4=85 =C5=9Bwietny ruch w sieci.
-
-Mo=C5=BCemy porozmawia=C4=87 w najbli=C5=BCszym czasie?
-
-Pozdrawiam
-Kamil Tralewski
+-- 
+Thanks,
+Sasha
