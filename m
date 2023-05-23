@@ -2,81 +2,177 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E30CC7EE26
-	for <netfilter-devel@archiver.kernel.org>; Mon, 22 May 2023 17:55:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E78CC7EE23
+	for <netfilter-devel@archiver.kernel.org>; Tue, 23 May 2023 02:39:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbjEVRzr (ORCPT
+        id S234814AbjEWCjV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 22 May 2023 13:55:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55780 "EHLO
+        Mon, 22 May 2023 22:39:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229723AbjEVRzr (ORCPT
+        with ESMTP id S233967AbjEWCjR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 May 2023 13:55:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92FCEFF;
-        Mon, 22 May 2023 10:55:46 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F60162160;
-        Mon, 22 May 2023 17:55:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62908C433EF;
-        Mon, 22 May 2023 17:55:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684778145;
-        bh=a8FRsjoTGvN91icSayR4DQgfYSvqNCPh1+GQef0dDnI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=GtcimX2iBq9w9+EP2tsbif5ow8z9ZQseNmkMWyaPNYFQNPQz4YrzYvaxr/Mo9ealW
-         Det9Lb9FY8YZHgvhOYs9Z9ewHE1NiLu3EOKCzVAKcPGejPnhVx928rGQY+R47nNB2s
-         Uoeq3ES4Ym8Bu4XnS12UsTx9NTQmUs3DSrFG7ABiew3k7NlBg2dr/bbOoPL+WUYy0M
-         wJxG6HuLLmFcnGKhmxY0Ku94515BeFRlvBFqyFrXcHfh9JjNokFtkiwrLavyWsLyqL
-         2RXyJC8rjhSxZJaSj0Mnvl5jWAJzBydsbv/YmtzfcDqVODQ7xoI0je8QchBvNPnGOP
-         0th+bVx8VOktQ==
-Date:   Mon, 22 May 2023 13:55:44 -0400
-From:   Sasha Levin <sashal@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, gregkh@linuxfoundation.org,
-        stable@vger.kernel.org
-Subject: Re: [PATCH -stable,4.14 0/8] more stable fixes for 4.14
-Message-ID: <ZGusoFuQqgzDWXAx@sashalap>
-References: <20230516151606.4892-1-pablo@netfilter.org>
+        Mon, 22 May 2023 22:39:17 -0400
+Received: from smtp-fw-9103.amazon.com (smtp-fw-9103.amazon.com [207.171.188.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F90CFD;
+        Mon, 22 May 2023 19:39:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1684809554; x=1716345554;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=nny6LjxpUW6mJRzHzp9QlRzCPGPnlS5WgOn3BfbgZ8Q=;
+  b=WofiW930yBbmNG7fWEAaJMcXjKVqmerWGSBXpbo66bIPBzbXzRuF2Kbi
+   3qfjMFPxSt7pr/UMZqs7pUSg9pT75ywgbOz7h3tstrMmfgPBnnmk+srfO
+   o6/pXggVguxiS9Q+NVgg8Try2NBKXefvW0De5+h6yHdupYV13yux81LML
+   s=;
+X-IronPort-AV: E=Sophos;i="6.00,185,1681171200"; 
+   d="scan'208";a="1132910551"
+Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO email-inbound-relay-pdx-2c-m6i4x-d2040ec1.us-west-2.amazon.com) ([10.25.36.214])
+  by smtp-border-fw-9103.sea19.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 May 2023 02:39:07 +0000
+Received: from EX19D009EUA003.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan3.pdx.amazon.com [10.236.137.198])
+        by email-inbound-relay-pdx-2c-m6i4x-d2040ec1.us-west-2.amazon.com (Postfix) with ESMTPS id EAE3A40D40;
+        Tue, 23 May 2023 02:39:01 +0000 (UTC)
+Received: from EX19D026EUB004.ant.amazon.com (10.252.61.64) by
+ EX19D009EUA003.ant.amazon.com (10.252.50.105) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Tue, 23 May 2023 02:38:53 +0000
+Received: from uc3ecf78c6baf56.ant.amazon.com (10.119.183.60) by
+ EX19D026EUB004.ant.amazon.com (10.252.61.64) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Tue, 23 May 2023 02:38:50 +0000
+From:   Andrew Paniakin <apanyaki@amazon.com>
+CC:     <luizcap@amazon.com>, <benh@amazon.com>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Andrew Paniakin <apanyaki@amazon.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH] netfilter: nf_tables: fix register ordering
+Date:   Mon, 22 May 2023 19:35:14 -0700
+Message-ID: <20230523023514.1672418-1-apanyaki@amazon.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20230516151606.4892-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.119.183.60]
+X-ClientProxiedBy: EX19D045UWA003.ant.amazon.com (10.13.139.46) To
+ EX19D026EUB004.ant.amazon.com (10.252.61.64)
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, May 16, 2023 at 05:15:58PM +0200, Pablo Neira Ayuso wrote:
->Hi Greg, Sasha,
->
->This is second round of -stable backport fixes for 4.14. This batch
->includes dependency patches which are not currently in the 4.14 branch.
->
->The following list shows the backported patches, I am using original
->commit IDs for reference:
->
->1) 08a01c11a5bb ("netfilter: nftables: statify nft_parse_register()")
->
->2) 6e1acfa387b9 ("netfilter: nf_tables: validate registers coming from userspace.")
->
->3) 20a1452c3542 ("netfilter: nf_tables: add nft_setelem_parse_key()")
->
->4) fdb9c405e35b ("netfilter: nf_tables: allow up to 64 bytes in the set element data area")
->
->5) 7e6bc1f6cabc ("netfilter: nf_tables: stricter validation of element data")
->
->6) 215a31f19ded ("netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL")
->
->7) 36d5b2913219 ("netfilter: nf_tables: do not allow RULE_ID to refer to another chain")
->
->8) 470ee20e069a ("netfilter: nf_tables: do not allow SET_ID to refer to another table")
+From: Florian Westphal <fw@strlen.de>
 
-I've applied the 5.4 and 4.19 series, but it looks like patch #1 here
-fails to apply. Could you please re-send the 4.14 series?
+commit d209df3e7f7002d9099fdb0f6df0f972b4386a63 upstream
 
+[ We hit the trace described in commit message with the
+kselftest/nft_trans_stress.sh. This patch diverges from the upstream one
+since kernel 4.14 does not have following symbols:
+nft_chain_filter_init, nf_tables_flowtable_notifier ]
+
+We must register nfnetlink ops last, as that exposes nf_tables to
+userspace.  Without this, we could theoretically get nfnetlink request
+before net->nft state has been initialized.
+
+Fixes: 99633ab29b213 ("netfilter: nf_tables: complete net namespace support")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[apanyaki: backport to v4.14-stable]
+Signed-off-by: Andrew Paniakin <apanyaki@amazon.com>
+---
+
+[  163.471426] Call Trace:
+[  163.474901]  netlink_dump+0x125/0x2d0
+[  163.479081]  __netlink_dump_start+0x16a/0x1c0
+[  163.483589]  nf_tables_gettable+0x151/0x180 [nf_tables]
+[  163.488561]  ? nf_tables_gettable+0x180/0x180 [nf_tables]
+[  163.493658]  nfnetlink_rcv_msg+0x222/0x250 [nfnetlink]
+[  163.498608]  ? __skb_try_recv_datagram+0x114/0x180
+[  163.503359]  ? nfnetlink_net_exit_batch+0x60/0x60 [nfnetlink]
+[  163.508590]  netlink_rcv_skb+0x4d/0x130
+[  163.512832]  nfnetlink_rcv+0x92/0x780 [nfnetlink]
+[  163.517465]  ? netlink_recvmsg+0x202/0x3e0
+[  163.521801]  ? __kmalloc_node_track_caller+0x31/0x290
+[  163.526635]  ? copy_msghdr_from_user+0xd5/0x150
+[  163.531216]  ? __netlink_lookup+0xd0/0x130
+[  163.535536]  netlink_unicast+0x196/0x240
+[  163.539759]  netlink_sendmsg+0x2da/0x400
+[  163.544010]  sock_sendmsg+0x36/0x40
+[  163.548030]  SYSC_sendto+0x10e/0x140
+[  163.552119]  ? __audit_syscall_entry+0xbc/0x110
+[  163.556741]  ? syscall_trace_enter+0x1df/0x2e0
+[  163.561315]  ? __audit_syscall_exit+0x231/0x2b0
+[  163.565857]  do_syscall_64+0x67/0x110
+[  163.569930]  entry_SYSCALL_64_after_hwframe+0x59/0xbe
+
+Reproduce with debug logs clearly shows the nft initialization issue exactly as
+in ported patch description:
+[   22.600051] nft load start
+[   22.600858] nf_tables: (c) 2007-2009 Patrick McHardy <kaber@trash.net>
+[   22.601241] nf_tables_gettable start: ffff888527c10000
+[   22.601271] register_pernet_subsys ffffffffa02ba0c0
+[   22.601274] netns ops_init ffffffffa02ba0c0 ffffffff821aeec0
+[   22.602506] nf_tables_dump_tables: ffff888527c10000
+[   22.603187] af_info list init done: ffffffff821aeec0
+[   22.604064] nf_tables_dump_tables: afi:           (null)
+[   22.604077] BUG: unable to handle kernel
+[   22.604820] netns ops_init end ffffffffa02ba0c0 ffffffff821aeec0
+[   22.605698] NULL pointer dereference
+[   22.606354] netns ops_init ffffffffa02ba0c0 ffff888527c10000
+
+(gdb) p &init_net
+$2 = (struct net *) 0xffffffff821aeec0 <init_net>
+ffff888527c10000 is a testns1 namespaces
+
+To reproduce this problem and test the fix I scripted following steps:
+- start Qemu VM
+- run nft_trans_stress.sh test
+- check dmesg logs for NULL pointer dereference
+- reboot via QMP and repeat
+
+I tested the fix with our kernel regression tests (including kselftest) also.
+
+ net/netfilter/nf_tables_api.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c683a45b8ae53..65495b528290b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6032,18 +6032,25 @@ static int __init nf_tables_module_init(void)
+ 		goto err1;
+ 	}
+ 
+-	err = nf_tables_core_module_init();
++	err = register_pernet_subsys(&nf_tables_net_ops);
+ 	if (err < 0)
+ 		goto err2;
+ 
+-	err = nfnetlink_subsys_register(&nf_tables_subsys);
++	err = nf_tables_core_module_init();
+ 	if (err < 0)
+ 		goto err3;
+ 
++	/* must be last */
++	err = nfnetlink_subsys_register(&nf_tables_subsys);
++	if (err < 0)
++		goto err4;
++
+ 	pr_info("nf_tables: (c) 2007-2009 Patrick McHardy <kaber@trash.net>\n");
+-	return register_pernet_subsys(&nf_tables_net_ops);
+-err3:
++	return err;
++err4:
+ 	nf_tables_core_module_exit();
++err3:
++	unregister_pernet_subsys(&nf_tables_net_ops);
+ err2:
+ 	kfree(info);
+ err1:
 -- 
-Thanks,
-Sasha
+2.39.2
+
