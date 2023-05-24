@@ -2,47 +2,107 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11709C77B73
-	for <netfilter-devel@archiver.kernel.org>; Wed, 24 May 2023 11:34:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57B06C7EE23
+	for <netfilter-devel@archiver.kernel.org>; Wed, 24 May 2023 12:25:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231848AbjEXLeb (ORCPT
+        id S230476AbjEXMZe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 24 May 2023 07:34:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53596 "EHLO
+        Wed, 24 May 2023 08:25:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231921AbjEXLea (ORCPT
+        with ESMTP id S229509AbjEXMZd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2023 07:34:30 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 102B3122
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2023 04:34:28 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1q1ml8-0003M0-Vt; Wed, 24 May 2023 13:34:27 +0200
-Date:   Wed, 24 May 2023 13:34:26 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Wed, 24 May 2023 08:25:33 -0400
+Received: from mx0.infotecs.ru (mx0.infotecs.ru [91.244.183.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD1F59C;
+        Wed, 24 May 2023 05:25:30 -0700 (PDT)
+Received: from mx0.infotecs-nt (localhost [127.0.0.1])
+        by mx0.infotecs.ru (Postfix) with ESMTP id 0127411BF7BF;
+        Wed, 24 May 2023 15:25:28 +0300 (MSK)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mx0.infotecs.ru 0127411BF7BF
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=infotecs.ru; s=mx;
+        t=1684931128; bh=9mAjhgzeqJ7XN8wp3Dnu2jv0mqJQOccXz7CqEQVQHKw=;
+        h=From:To:CC:Subject:Date:From;
+        b=VC2xCnBzIQNPacx5/gYtdGIZGnKlrudWZOCCQvxEqdQYUZ04IaeWNAHEPDb2F+T+9
+         BCzL9RVCOe1TSp5dT2TbtzAu91SVVPE63JSU60dxW/u95+axQPOweYkVdCFWxgAzJ3
+         UdhvCdJkPLEtSm8UqZxc4ELLgzf7l0W4SfSlkGn8=
+Received: from msk-exch-01.infotecs-nt (msk-exch-01.infotecs-nt [10.0.7.191])
+        by mx0.infotecs-nt (Postfix) with ESMTP id EE1F530CF59E;
+        Wed, 24 May 2023 15:25:27 +0300 (MSK)
+From:   Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, f@calendula,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: nftables; key update with symbolic values/immediates
-Message-ID: <20230524113426.GA12567@breakpoint.cc>
-References: <20230523172931.GB17561@breakpoint.cc>
- <ZG3Bqcz3Dru4xOBS@calendula>
+CC:     Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "lvc-project@linuxtesting.org" <lvc-project@linuxtesting.org>
+Subject: [PATCH net] netfilter: nf_tables: Add null check for
+ nla_nest_start_noflag() in nft_dump_basechain_hook()
+Thread-Topic: [PATCH net] netfilter: nf_tables: Add null check for
+ nla_nest_start_noflag() in nft_dump_basechain_hook()
+Thread-Index: AQHZjjrSqRHcp0pJTUepPr3ePI89VQ==
+Date:   Wed, 24 May 2023 12:25:27 +0000
+Message-ID: <20230524122448.1860908-1-Ilia.Gavrilov@infotecs.ru>
+Accept-Language: ru-RU, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.17.0.10]
+x-exclaimer-md-config: 208ac3cd-1ed4-4982-a353-bdefac89ac0a
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZG3Bqcz3Dru4xOBS@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-KLMS-Rule-ID: 1
+X-KLMS-Message-Action: clean
+X-KLMS-AntiSpam-Lua-Profiles: 177575 [May 24 2023]
+X-KLMS-AntiSpam-Version: 5.9.59.0
+X-KLMS-AntiSpam-Envelope-From: Ilia.Gavrilov@infotecs.ru
+X-KLMS-AntiSpam-Rate: 0
+X-KLMS-AntiSpam-Status: not_detected
+X-KLMS-AntiSpam-Method: none
+X-KLMS-AntiSpam-Auth: dkim=none
+X-KLMS-AntiSpam-Info: LuaCore: 513 513 41a024eb192917672f8141390381bc9a34ec945f, {Tracking_from_domain_doesnt_match_to}, infotecs.ru:7.1.1;127.0.0.199:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1
+X-MS-Exchange-Organization-SCL: -1
+X-KLMS-AntiSpam-Interceptor-Info: scan successful
+X-KLMS-AntiPhishing: Clean, bases: 2023/05/24 11:31:00
+X-KLMS-AntiVirus: Kaspersky Security for Linux Mail Server, version 8.0.3.30, bases: 2023/05/24 09:52:00 #21416728
+X-KLMS-AntiVirus-Status: Clean, skipped
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> If you have a use-case for this, go ahead.
+The nla_nest_start_noflag() function may fail and return NULL;
+the return value needs to be checked.
 
-Thanks, will do.
+Found by InfoTeCS on behalf of Linux Verification Center
+(linuxtesting.org) with SVACE.
 
-> Is there any other issue you can forecast on the delinearize path? Or
-> is it just that the code to handle this is missing?
+Fixes: d54725cd11a5 ("netfilter: nf_tables: support for multiple devices pe=
+r netdev hook")
+Signed-off-by: Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Its just missing, I hope it doesn't require any insane stunts.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8c09e4d12ac1..b49f7f877ba6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1588,6 +1588,8 @@ static int nft_dump_basechain_hook(struct sk_buff *sk=
+b, int family,
+=20
+ 	if (nft_base_chain_netdev(family, ops->hooknum)) {
+ 		nest_devs =3D nla_nest_start_noflag(skb, NFTA_HOOK_DEVS);
++		if (!nest_devs)
++			goto nla_put_failure;
+ 		list_for_each_entry(hook, &basechain->hook_list, list) {
+ 			if (!first)
+ 				first =3D hook;
+--=20
+2.30.2
