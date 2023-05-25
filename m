@@ -2,99 +2,113 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1F2DC7EE2D
-	for <netfilter-devel@archiver.kernel.org>; Thu, 25 May 2023 15:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D69BDC7EE29
+	for <netfilter-devel@archiver.kernel.org>; Thu, 25 May 2023 18:44:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230502AbjEYPug (ORCPT
+        id S242447AbjEYSn7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 25 May 2023 11:50:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40982 "EHLO
+        Thu, 25 May 2023 14:43:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236063AbjEYPuT (ORCPT
+        with ESMTP id S242325AbjEYSnn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 May 2023 11:50:19 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C03C9C0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 May 2023 08:50:17 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1q2DEG-0006c9-Cz; Thu, 25 May 2023 17:50:16 +0200
-Date:   Thu, 25 May 2023 17:50:16 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next,v1 0/6] nf_tables combo match
-Message-ID: <20230525155016.GA25057@breakpoint.cc>
-References: <20230525154024.222338-1-pablo@netfilter.org>
+        Thu, 25 May 2023 14:43:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1816173C;
+        Thu, 25 May 2023 11:40:21 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4428163985;
+        Thu, 25 May 2023 18:38:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 296B2C4339C;
+        Thu, 25 May 2023 18:38:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1685039909;
+        bh=neEQQcwzMS4leMh2rFFk6gXw/rhv/YocNDnT7xN7yCc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=OE3LUJC1pMQpHeEv42T5pkQSVOUCp7A9NpN+OZpxRgY8dMIHLtLFotit9zakmxzyD
+         XwqlcZL/sNrb0mzEj7HISMgjJ2HBLErfQwua8xlh7TwMRNC7DR26M9GilaHf6T/1YS
+         x243PgDiz470CXU/MBepQxgmlmRMAEbboo8+cRfKREq90AnGwIiUmBQrRWVlBps8Zd
+         pXIDLveSHZu9FrJYqyHVsiy+KQoR5K1RDxgJaB5A0sSiIAkoTWt4QLv/rp2cDySbzU
+         QJDTwKFkD8H5HEmi/BuL6INBfjwArfnJg2kbJF2i0uTuoiRvZxlNGlg6J2YMvNnG3m
+         CT3yupPFW/IHg==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Tom Rix <trix@redhat.com>,
+        Simon Horman <simon.horman@corigine.com>,
+        Florian Westphal <fw@strlen.de>,
+        Sasha Levin <sashal@kernel.org>, pablo@netfilter.org,
+        kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.1 46/57] netfilter: conntrack: define variables exp_nat_nla_policy and any_addr with CONFIG_NF_NAT
+Date:   Thu, 25 May 2023 14:35:56 -0400
+Message-Id: <20230525183607.1793983-46-sashal@kernel.org>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230525183607.1793983-1-sashal@kernel.org>
+References: <20230525183607.1793983-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230525154024.222338-1-pablo@netfilter.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=UTF-8
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi,
-> 
-> This patchset provides the combo match for payload and the iifname and
-> oifname meta selector. The idea is to track and coalesce expressions in
-> an internal special combo expression. This batch adds support to coalesce
-> the following expressions:
-> 
-> 	payload + cmp
-> 	payload + bitwise + cmp
-> 	meta {iifname,oifname} + cmp
+From: Tom Rix <trix@redhat.com>
 
-Interesting concept, thanks for exploring this.
+[ Upstream commit 224a876e37543eee111bf9b6aa4935080e619335 ]
 
-> The coalesce happens when the ruleset blob is built, the expression
-> tracking is done at rule level, ie. by iterating over the expressions
-> that represent the rule. The expression tracking happens twice, once to
-> calculate the ruleset blob (because the combo expression alters the
-> expected rule data size) and then to build the ruleset blob.
+gcc with W=1 and ! CONFIG_NF_NAT
+net/netfilter/nf_conntrack_netlink.c:3463:32: error:
+  ‘exp_nat_nla_policy’ defined but not used [-Werror=unused-const-variable=]
+ 3463 | static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
+      |                                ^~~~~~~~~~~~~~~~~~
+net/netfilter/nf_conntrack_netlink.c:2979:33: error:
+  ‘any_addr’ defined but not used [-Werror=unused-const-variable=]
+ 2979 | static const union nf_inet_addr any_addr;
+      |                                 ^~~~~~~~
 
-This might be useful for other representation transformations, cf. the
-pending 'remove register zeroing' patchset.
+These variables use is controlled by CONFIG_NF_NAT, so should their definitions.
 
-If that breaks 3rd party users we can now simply force the zeroing
-from the internal ruleset representation.
+Signed-off-by: Tom Rix <trix@redhat.com>
+Reviewed-by: Simon Horman <simon.horman@corigine.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_conntrack_netlink.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-> This batch replaces the existing approach which based on fast variants
-> of the cmp and bitwise expressions, that are also removed.
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index cb4325b8ebb11..2c21b4ed87c37 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2984,7 +2984,9 @@ static int ctnetlink_exp_dump_mask(struct sk_buff *skb,
+ 	return -1;
+ }
+ 
++#if IS_ENABLED(CONFIG_NF_NAT)
+ static const union nf_inet_addr any_addr;
++#endif
+ 
+ static __be32 nf_expect_get_id(const struct nf_conntrack_expect *exp)
+ {
+@@ -3468,10 +3470,12 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x,
+ 	return 0;
+ }
+ 
++#if IS_ENABLED(CONFIG_NF_NAT)
+ static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
+ 	[CTA_EXPECT_NAT_DIR]	= { .type = NLA_U32 },
+ 	[CTA_EXPECT_NAT_TUPLE]	= { .type = NLA_NESTED },
+ };
++#endif
+ 
+ static int
+ ctnetlink_parse_expect_nat(const struct nlattr *attr,
+-- 
+2.39.2
 
-I think its good to re-evaluate the eval loop from time to time
-and axe whats not needed anymore.
-
-> This approach is an alternative to the register track & reduce approach,
-> which so far works at chain level. Such approach requires descending the
-> tree of chains and tracking registers from base to leaf chains, this
-> becomes more complicated with dynamic ruleset, but it could be useful
-> for static rulesets, such approach also requires significant updates in
-> userspace. Therefore, I'm inclined towards this more simple solution.
-
-I like this approach.
-
-> One question with this update is whether removing the fast bitwise and
-> cmp variants slows down other (non-coalesced) expressions. The results
-> I collected with a simple ruleset to test worst case scenario like this:
-> 
-> 	-m state --state ESTABLISHED -j DROP
-> 	... 99 times more
-> 	-m state --state NEW -j DROP  [ <- this is the matching rule ]
-
-Oh, I was about to ask if you're using an out-of-tree version but
-then I saw you picked this to test *absence* of any cmp/bitwise.
-
-> shows 301 Mb/s without this patchset vs 412 Mb/s with this patchset,
-
-Did not expect such a big difference.
-
-> that it, results are better with this patchset while the payload and
-> meta expression that are coalesced show much better numbers.
-> 
-> I'm collecting more detailed numbers, I will post them soon.
-
-Excellent, thanks!  I think this is a good appraoch, I will review
-patches in more detail soon.
