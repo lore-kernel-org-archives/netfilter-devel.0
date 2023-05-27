@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CA60C7EE43
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 May 2023 15:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C043C7EE23
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 May 2023 15:08:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232727AbjE0PIJ (ORCPT
+        id S232772AbjE0PIK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 May 2023 11:08:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41046 "EHLO
+        Sat, 27 May 2023 11:08:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232752AbjE0PIH (ORCPT
+        with ESMTP id S232744AbjE0PIG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 May 2023 11:08:07 -0400
+        Sat, 27 May 2023 11:08:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 086C2EB;
-        Sat, 27 May 2023 08:08:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 91E4DE4;
+        Sat, 27 May 2023 08:08:05 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,4.14 08/11] netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL
-Date:   Sat, 27 May 2023 18:08:08 +0200
-Message-Id: <20230527160811.67779-9-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 07/11] netfilter: nf_tables: stricter validation of element data
+Date:   Sat, 27 May 2023 18:08:07 +0200
+Message-Id: <20230527160811.67779-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230527160811.67779-1-pablo@netfilter.org>
 References: <20230527160811.67779-1-pablo@netfilter.org>
@@ -32,48 +32,44 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 215a31f19dedd4e92a67cf5a9717ee898d012b3a ]
+[ 7e6bc1f6cabcd30aba0b11219d8e01b952eacbb6 ]
 
-NFT_SET_EVAL is signalling the kernel that this sets can be updated from
-the evaluation path, even if there are no expressions attached to the
-element. Otherwise, set updates with no expressions fail. Update
-description to describe the right semantics.
+Make sure element data type and length do not mismatch the one specified
+by the set declaration.
 
-Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
+Fixes: 7d7402642eaf ("netfilter: nf_tables: variable sized set element keys / data")
+Reported-by: Hugues ANGUELKOV <hanguelkov@randorisec.fr>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 2 +-
- net/netfilter/nft_dynset.c               | 4 +---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 49b6997c3255..c7bb18ea4962 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -258,7 +258,7 @@ enum nft_rule_compat_attributes {
-  * @NFT_SET_INTERVAL: set contains intervals
-  * @NFT_SET_MAP: set is used as a dictionary
-  * @NFT_SET_TIMEOUT: set uses timeouts
-- * @NFT_SET_EVAL: set contains expressions for evaluation
-+ * @NFT_SET_EVAL: set can be updated from the evaluation path
-  * @NFT_SET_OBJECT: set contains stateful objects
-  */
- enum nft_set_flags {
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index f174a66bbc4b..d1dc5c8937a5 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -190,9 +190,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 		priv->expr = nft_expr_init(ctx, tb[NFTA_DYNSET_EXPR]);
- 		if (IS_ERR(priv->expr))
- 			return PTR_ERR(priv->expr);
--
--	} else if (set->flags & NFT_SET_EVAL)
--		return -EINVAL;
-+	}
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1cd49af7d375..9caaac459ca9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3959,13 +3959,20 @@ static int nft_setelem_parse_data(struct nft_ctx *ctx, struct nft_set *set,
+ 				  struct nft_data *data,
+ 				  struct nlattr *attr)
+ {
++	u32 dtype;
+ 	int err;
  
- 	nft_set_ext_prepare(&priv->tmpl);
- 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
+ 	err = nft_data_init(ctx, data, NFT_DATA_VALUE_MAXLEN, desc, attr);
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (desc->type != NFT_DATA_VERDICT && desc->len != set->dlen) {
++	if (set->dtype == NFT_DATA_VERDICT)
++		dtype = NFT_DATA_VERDICT;
++	else
++		dtype = NFT_DATA_VALUE;
++
++	if (dtype != desc->type ||
++	    set->dlen != desc->len) {
+ 		nft_data_release(data, desc->type);
+ 		return -EINVAL;
+ 	}
 -- 
 2.30.2
 
