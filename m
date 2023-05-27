@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA05C77B7E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CA60C7EE43
 	for <netfilter-devel@archiver.kernel.org>; Sat, 27 May 2023 15:08:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232715AbjE0PII (ORCPT
+        id S232727AbjE0PIJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 May 2023 11:08:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41100 "EHLO
+        Sat, 27 May 2023 11:08:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232732AbjE0PIG (ORCPT
+        with ESMTP id S232752AbjE0PIH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 May 2023 11:08:06 -0400
+        Sat, 27 May 2023 11:08:07 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 98D94EA;
-        Sat, 27 May 2023 08:08:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 086C2EB;
+        Sat, 27 May 2023 08:08:06 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,4.14 05/11] netfilter: nf_tables: add nft_setelem_parse_key()
-Date:   Sat, 27 May 2023 18:08:05 +0200
-Message-Id: <20230527160811.67779-6-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 08/11] netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL
+Date:   Sat, 27 May 2023 18:08:08 +0200
+Message-Id: <20230527160811.67779-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230527160811.67779-1-pablo@netfilter.org>
 References: <20230527160811.67779-1-pablo@netfilter.org>
@@ -32,213 +32,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 20a1452c35425b2cef76f21f8395ef069dfddfa9 ]
+[ 215a31f19dedd4e92a67cf5a9717ee898d012b3a ]
 
-Add helper function to parse the set element key netlink attribute.
+NFT_SET_EVAL is signalling the kernel that this sets can be updated from
+the evaluation path, even if there are no expressions attached to the
+element. Otherwise, set updates with no expressions fail. Update
+description to describe the right semantics.
 
-v4: No changes
-v3: New patch
-
-[sbrivio: refactor error paths and labels; use NFT_DATA_VALUE_MAXLEN
-  instead of sizeof(*key) in helper, value can be longer than that;
-  rebase]
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 78 +++++++++++++++++++----------------
- 1 file changed, 42 insertions(+), 36 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 +-
+ net/netfilter/nft_dynset.c               | 4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 404e0484ddd0..c49e93c5db9c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3736,6 +3736,24 @@ static int nf_tables_dump_set_done(struct netlink_callback *cb)
- 	return 0;
- }
- 
-+static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *set,
-+				 struct nft_data *key, struct nlattr *attr)
-+{
-+	struct nft_data_desc desc;
-+	int err;
-+
-+	err = nft_data_init(ctx, key, NFT_DATA_VALUE_MAXLEN, &desc, attr);
-+	if (err < 0)
-+		return err;
-+
-+	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen) {
-+		nft_data_release(key, desc.type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int nf_tables_getsetelem(struct net *net, struct sock *nlsk,
- 				struct sk_buff *skb, const struct nlmsghdr *nlh,
- 				const struct nlattr * const nla[],
-@@ -3941,13 +3959,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
- 	u8 genmask = nft_genmask_next(ctx->net);
--	struct nft_data_desc d1, d2;
- 	struct nft_set_ext_tmpl tmpl;
- 	struct nft_set_ext *ext, *ext2;
- 	struct nft_set_elem elem;
- 	struct nft_set_binding *binding;
- 	struct nft_object *obj = NULL;
- 	struct nft_userdata *udata;
-+	struct nft_data_desc desc;
- 	struct nft_data data;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
-@@ -4000,15 +4018,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		timeout = set->timeout;
- 	}
- 
--	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &d1,
--			    nla[NFTA_SET_ELEM_KEY]);
-+	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
-+				    nla[NFTA_SET_ELEM_KEY]);
- 	if (err < 0)
- 		goto err1;
--	err = -EINVAL;
--	if (d1.type != NFT_DATA_VALUE || d1.len != set->klen)
--		goto err2;
- 
--	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, d1.len);
-+	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
- 	if (timeout > 0) {
- 		nft_set_ext_add(&tmpl, NFT_SET_EXT_EXPIRATION);
- 		if (timeout != set->timeout)
-@@ -4030,13 +4045,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
- 
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL) {
--		err = nft_data_init(ctx, &data, sizeof(data), &d2,
-+		err = nft_data_init(ctx, &data, sizeof(data), &desc,
- 				    nla[NFTA_SET_ELEM_DATA]);
- 		if (err < 0)
- 			goto err2;
- 
- 		err = -EINVAL;
--		if (set->dtype != NFT_DATA_VERDICT && d2.len != set->dlen)
-+		if (set->dtype != NFT_DATA_VERDICT && desc.len != set->dlen)
- 			goto err3;
- 
- 		dreg = nft_type_to_reg(set->dtype);
-@@ -4053,12 +4068,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 
- 			err = nft_validate_register_store(&bind_ctx, dreg,
- 							  &data,
--							  d2.type, d2.len);
-+							  desc.type, desc.len);
- 			if (err < 0)
- 				goto err3;
- 		}
- 
--		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, d2.len);
-+		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, desc.len);
- 	}
- 
- 	/* The full maximum length of userdata can exceed the maximum
-@@ -4141,9 +4156,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
--		nft_data_release(&data, d2.type);
-+		nft_data_release(&data, desc.type);
- err2:
--	nft_data_release(&elem.key.val, d1.type);
-+	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- err1:
- 	return err;
- }
-@@ -4241,7 +4256,6 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
- 	struct nft_set_ext_tmpl tmpl;
--	struct nft_data_desc desc;
- 	struct nft_set_elem elem;
- 	struct nft_set_ext *ext;
- 	struct nft_trans *trans;
-@@ -4252,11 +4266,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	err = nla_parse_nested(nla, NFTA_SET_ELEM_MAX, attr,
- 			       nft_set_elem_policy, NULL);
- 	if (err < 0)
--		goto err1;
-+		return err;
- 
--	err = -EINVAL;
- 	if (nla[NFTA_SET_ELEM_KEY] == NULL)
--		goto err1;
-+		return -EINVAL;
- 
- 	nft_set_ext_prepare(&tmpl);
- 
-@@ -4266,37 +4279,31 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (flags != 0)
- 		nft_set_ext_add(&tmpl, NFT_SET_EXT_FLAGS);
- 
--	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
--			    nla[NFTA_SET_ELEM_KEY]);
-+	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
-+				    nla[NFTA_SET_ELEM_KEY]);
- 	if (err < 0)
--		goto err1;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 49b6997c3255..c7bb18ea4962 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -258,7 +258,7 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
+  * @NFT_SET_TIMEOUT: set uses timeouts
+- * @NFT_SET_EVAL: set contains expressions for evaluation
++ * @NFT_SET_EVAL: set can be updated from the evaluation path
+  * @NFT_SET_OBJECT: set contains stateful objects
+  */
+ enum nft_set_flags {
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index f174a66bbc4b..d1dc5c8937a5 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -190,9 +190,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 		priv->expr = nft_expr_init(ctx, tb[NFTA_DYNSET_EXPR]);
+ 		if (IS_ERR(priv->expr))
+ 			return PTR_ERR(priv->expr);
 -
--	err = -EINVAL;
--	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
--		goto err2;
-+		return err;
+-	} else if (set->flags & NFT_SET_EVAL)
+-		return -EINVAL;
++	}
  
--	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, desc.len);
-+	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
- 
- 	err = -ENOMEM;
- 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data, NULL, 0,
- 				      GFP_KERNEL);
- 	if (elem.priv == NULL)
--		goto err2;
-+		goto fail_elem;
- 
- 	ext = nft_set_elem_ext(set, elem.priv);
- 	if (flags)
- 		*nft_set_ext_flags(ext) = flags;
- 
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
--	if (trans == NULL) {
--		err = -ENOMEM;
--		goto err3;
--	}
-+	if (trans == NULL)
-+		goto fail_trans;
- 
- 	priv = set->ops->deactivate(ctx->net, set, &elem);
- 	if (priv == NULL) {
- 		err = -ENOENT;
--		goto err4;
-+		goto fail_ops;
- 	}
- 	kfree(elem.priv);
- 	elem.priv = priv;
-@@ -4307,13 +4314,12 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
- 	return 0;
- 
--err4:
-+fail_ops:
- 	kfree(trans);
--err3:
-+fail_trans:
- 	kfree(elem.priv);
--err2:
--	nft_data_release(&elem.key.val, desc.type);
--err1:
-+fail_elem:
-+	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- 	return err;
- }
- 
+ 	nft_set_ext_prepare(&priv->tmpl);
+ 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
 -- 
 2.30.2
 
