@@ -2,569 +2,243 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F211C7EE31
-	for <netfilter-devel@archiver.kernel.org>; Sat, 27 May 2023 15:08:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA05C77B7E
+	for <netfilter-devel@archiver.kernel.org>; Sat, 27 May 2023 15:08:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232728AbjE0PIG (ORCPT
+        id S232715AbjE0PII (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 May 2023 11:08:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41082 "EHLO
+        Sat, 27 May 2023 11:08:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232711AbjE0PIF (ORCPT
+        with ESMTP id S232732AbjE0PIG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 May 2023 11:08:05 -0400
+        Sat, 27 May 2023 11:08:06 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BBBAEF3;
-        Sat, 27 May 2023 08:08:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 98D94EA;
+        Sat, 27 May 2023 08:08:04 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,4.14 02/11] netfilter: nftables: add nft_parse_register_store() and use it
-Date:   Sat, 27 May 2023 18:08:02 +0200
-Message-Id: <20230527160811.67779-3-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 05/11] netfilter: nf_tables: add nft_setelem_parse_key()
+Date:   Sat, 27 May 2023 18:08:05 +0200
+Message-Id: <20230527160811.67779-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230527160811.67779-1-pablo@netfilter.org>
 References: <20230527160811.67779-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 345023b0db315648ccc3c1a36aee88304a8b4d91 ]
+[ 20a1452c35425b2cef76f21f8395ef069dfddfa9 ]
 
-This new function combines the netlink register attribute parser
-and the store validation function.
+Add helper function to parse the set element key netlink attribute.
 
-This update requires to replace:
+v4: No changes
+v3: New patch
 
-        enum nft_registers      dreg:8;
-
-in many of the expression private areas otherwise compiler complains
-with:
-
-        error: cannot take address of bit-field ‘dreg’
-
-when passing the register field as reference.
-
+[sbrivio: refactor error paths and labels; use NFT_DATA_VALUE_MAXLEN
+  instead of sizeof(*key) in helper, value can be longer than that;
+  rebase]
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h      |  8 +++---
- include/net/netfilter/nf_tables_core.h |  4 +--
- include/net/netfilter/nft_fib.h        |  2 +-
- include/net/netfilter/nft_meta.h       |  2 +-
- net/bridge/netfilter/nft_meta_bridge.c |  5 ++--
- net/netfilter/nf_tables_api.c          | 34 ++++++++++++++++++++++----
- net/netfilter/nft_bitwise.c            |  8 +++---
- net/netfilter/nft_byteorder.c          |  8 +++---
- net/netfilter/nft_ct.c                 |  7 +++---
- net/netfilter/nft_exthdr.c             |  8 +++---
- net/netfilter/nft_fib.c                |  5 ++--
- net/netfilter/nft_hash.c               | 17 ++++++-------
- net/netfilter/nft_immediate.c          |  8 +++---
- net/netfilter/nft_lookup.c             |  8 +++---
- net/netfilter/nft_meta.c               |  5 ++--
- net/netfilter/nft_numgen.c             | 15 +++++-------
- net/netfilter/nft_payload.c            |  6 ++---
- net/netfilter/nft_rt.c                 |  7 +++---
- 18 files changed, 85 insertions(+), 72 deletions(-)
+ net/netfilter/nf_tables_api.c | 78 +++++++++++++++++++----------------
+ 1 file changed, 42 insertions(+), 36 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 70a19b1ea8d4..e837bf96c6a3 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -199,10 +199,10 @@ unsigned int nft_parse_register(const struct nlattr *attr);
- int nft_dump_register(struct sk_buff *skb, unsigned int attr, unsigned int reg);
- 
- int nft_parse_register_load(const struct nlattr *attr, u8 *sreg, u32 len);
--int nft_validate_register_store(const struct nft_ctx *ctx,
--				enum nft_registers reg,
--				const struct nft_data *data,
--				enum nft_data_types type, unsigned int len);
-+int nft_parse_register_store(const struct nft_ctx *ctx,
-+			     const struct nlattr *attr, u8 *dreg,
-+			     const struct nft_data *data,
-+			     enum nft_data_types type, unsigned int len);
- 
- /**
-  *	struct nft_userdata - user defined data associated with an object
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 4747de40fb05..98bd13fbfa89 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -18,7 +18,7 @@ struct nft_bitwise_fast_expr {
- 	u32			mask;
- 	u32			xor;
- 	u8			sreg;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- };
- 
- struct nft_cmp_fast_expr {
-@@ -44,7 +44,7 @@ struct nft_payload {
- 	enum nft_payload_bases	base:8;
- 	u8			offset;
- 	u8			len;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- };
- 
- struct nft_payload_set {
-diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
-index a88f92737308..1f8726739529 100644
---- a/include/net/netfilter/nft_fib.h
-+++ b/include/net/netfilter/nft_fib.h
-@@ -3,7 +3,7 @@
- #define _NFT_FIB_H_
- 
- struct nft_fib {
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- 	u8			result;
- 	u32			flags;
- };
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index ee956e6ca02c..f64b8197c807 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -5,7 +5,7 @@
- struct nft_meta {
- 	enum nft_meta_keys	key:8;
- 	union {
--		enum nft_registers	dreg:8;
-+		u8		dreg;
- 		u8		sreg;
- 	};
- };
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index bb63c9aed55d..985ff136b674 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -65,9 +65,8 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
- 		return nft_meta_get_init(ctx, expr, tb);
- 	}
- 
--	priv->dreg = nft_parse_register(tb[NFTA_META_DREG]);
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, len);
-+	return nft_parse_register_store(ctx, tb[NFTA_META_DREG], &priv->dreg,
-+					NULL, NFT_DATA_VALUE, len);
- }
- 
- static struct nft_expr_type nft_meta_bridge_type;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d363a71addda..3adefb2a625c 100644
+index 404e0484ddd0..c49e93c5db9c 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3349,6 +3349,12 @@ static int nf_tables_delset(struct net *net, struct sock *nlsk,
- 	return nft_delset(&ctx, set);
+@@ -3736,6 +3736,24 @@ static int nf_tables_dump_set_done(struct netlink_callback *cb)
+ 	return 0;
  }
  
-+static int nft_validate_register_store(const struct nft_ctx *ctx,
-+				       enum nft_registers reg,
-+				       const struct nft_data *data,
-+				       enum nft_data_types type,
-+				       unsigned int len);
-+
- static int nf_tables_bind_check_setelem(const struct nft_ctx *ctx,
- 					struct nft_set *set,
- 					const struct nft_set_iter *iter,
-@@ -5704,10 +5710,11 @@ EXPORT_SYMBOL_GPL(nft_parse_register_load);
-  * 	A value of NULL for the data means that its runtime gathered
-  * 	data.
-  */
--int nft_validate_register_store(const struct nft_ctx *ctx,
--				enum nft_registers reg,
--				const struct nft_data *data,
--				enum nft_data_types type, unsigned int len)
-+static int nft_validate_register_store(const struct nft_ctx *ctx,
-+				       enum nft_registers reg,
-+				       const struct nft_data *data,
-+				       enum nft_data_types type,
-+				       unsigned int len)
- {
- 	int err;
- 
-@@ -5746,7 +5753,24 @@ int nft_validate_register_store(const struct nft_ctx *ctx,
- 		return 0;
- 	}
- }
--EXPORT_SYMBOL_GPL(nft_validate_register_store);
-+
-+int nft_parse_register_store(const struct nft_ctx *ctx,
-+			     const struct nlattr *attr, u8 *dreg,
-+			     const struct nft_data *data,
-+			     enum nft_data_types type, unsigned int len)
++static int nft_setelem_parse_key(struct nft_ctx *ctx, struct nft_set *set,
++				 struct nft_data *key, struct nlattr *attr)
 +{
++	struct nft_data_desc desc;
 +	int err;
-+	u32 reg;
 +
-+	reg = nft_parse_register(attr);
-+	err = nft_validate_register_store(ctx, reg, data, type, len);
++	err = nft_data_init(ctx, key, NFT_DATA_VALUE_MAXLEN, &desc, attr);
 +	if (err < 0)
 +		return err;
 +
-+	*dreg = reg;
++	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen) {
++		nft_data_release(key, desc.type);
++		return -EINVAL;
++	}
++
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nft_parse_register_store);
- 
- static const struct nla_policy nft_verdict_policy[NFTA_VERDICT_MAX + 1] = {
- 	[NFTA_VERDICT_CODE]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 12700c85142e..a89152cd60ec 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -19,7 +19,7 @@
- 
- struct nft_bitwise {
- 	u8			sreg;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- 	u8			len;
- 	struct nft_data		mask;
- 	struct nft_data		xor;
-@@ -73,9 +73,9 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	priv->dreg = nft_parse_register(tb[NFTA_BITWISE_DREG]);
--	err = nft_validate_register_store(ctx, priv->dreg, NULL,
--					  NFT_DATA_VALUE, priv->len);
-+	err = nft_parse_register_store(ctx, tb[NFTA_BITWISE_DREG],
-+				       &priv->dreg, NULL, NFT_DATA_VALUE,
-+				       priv->len);
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index c81d618137ce..5e1fbdd7b284 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -20,7 +20,7 @@
- 
- struct nft_byteorder {
- 	u8			sreg;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- 	enum nft_byteorder_ops	op:8;
- 	u8			len;
- 	u8			size;
-@@ -144,9 +144,9 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	priv->dreg = nft_parse_register(tb[NFTA_BYTEORDER_DREG]);
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, priv->len);
-+	return nft_parse_register_store(ctx, tb[NFTA_BYTEORDER_DREG],
-+					&priv->dreg, NULL, NFT_DATA_VALUE,
-+					priv->len);
- }
- 
- static int nft_byteorder_dump(struct sk_buff *skb, const struct nft_expr *expr)
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 0480d513bc2d..2af2a1038271 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -27,7 +27,7 @@ struct nft_ct {
- 	enum nft_ct_keys	key:8;
- 	enum ip_conntrack_dir	dir:8;
- 	union {
--		enum nft_registers	dreg:8;
-+		u8		dreg;
- 		u8		sreg;
- 	};
- };
-@@ -483,9 +483,8 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 		}
++
+ static int nf_tables_getsetelem(struct net *net, struct sock *nlsk,
+ 				struct sk_buff *skb, const struct nlmsghdr *nlh,
+ 				const struct nlattr * const nla[],
+@@ -3941,13 +3959,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+ 	u8 genmask = nft_genmask_next(ctx->net);
+-	struct nft_data_desc d1, d2;
+ 	struct nft_set_ext_tmpl tmpl;
+ 	struct nft_set_ext *ext, *ext2;
+ 	struct nft_set_elem elem;
+ 	struct nft_set_binding *binding;
+ 	struct nft_object *obj = NULL;
+ 	struct nft_userdata *udata;
++	struct nft_data_desc desc;
+ 	struct nft_data data;
+ 	enum nft_registers dreg;
+ 	struct nft_trans *trans;
+@@ -4000,15 +4018,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		timeout = set->timeout;
  	}
  
--	priv->dreg = nft_parse_register(tb[NFTA_CT_DREG]);
--	err = nft_validate_register_store(ctx, priv->dreg, NULL,
--					  NFT_DATA_VALUE, len);
-+	err = nft_parse_register_store(ctx, tb[NFTA_CT_DREG], &priv->dreg, NULL,
-+				       NFT_DATA_VALUE, len);
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 0aa92b7699b3..9f1e801ae34f 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -23,7 +23,7 @@ struct nft_exthdr {
- 	u8			offset;
- 	u8			len;
- 	u8			op;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- 	u8			sreg;
- 	u8			flags;
- };
-@@ -257,12 +257,12 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
- 	priv->offset = offset;
- 	priv->len    = len;
--	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
- 	priv->flags  = flags;
- 	priv->op     = op;
- 
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, priv->len);
-+	return nft_parse_register_store(ctx, tb[NFTA_EXTHDR_DREG],
-+					&priv->dreg, NULL, NFT_DATA_VALUE,
-+					priv->len);
- }
- 
- static int nft_exthdr_tcp_set_init(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-index 21df8cccea65..ce6891337304 100644
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -88,7 +88,6 @@ int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return -EINVAL;
- 
- 	priv->result = ntohl(nla_get_be32(tb[NFTA_FIB_RESULT]));
--	priv->dreg = nft_parse_register(tb[NFTA_FIB_DREG]);
- 
- 	switch (priv->result) {
- 	case NFT_FIB_RESULT_OIF:
-@@ -108,8 +107,8 @@ int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return -EINVAL;
- 	}
- 
--	err = nft_validate_register_store(ctx, priv->dreg, NULL,
--					  NFT_DATA_VALUE, len);
-+	err = nft_parse_register_store(ctx, tb[NFTA_FIB_DREG], &priv->dreg,
-+				       NULL, NFT_DATA_VALUE, len);
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 9ae2cb3dadce..5d067ca29446 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -19,7 +19,7 @@
- 
- struct nft_jhash {
- 	u8			sreg;
--	enum nft_registers      dreg:8;
-+	u8			dreg;
- 	u8			len;
- 	bool			autogen_seed:1;
- 	u32			modulus;
-@@ -40,7 +40,7 @@ static void nft_jhash_eval(const struct nft_expr *expr,
- }
- 
- struct nft_symhash {
--	enum nft_registers      dreg:8;
-+	u8			dreg;
- 	u32			modulus;
- 	u32			offset;
- };
-@@ -85,8 +85,6 @@ static int nft_jhash_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_HASH_OFFSET])
- 		priv->offset = ntohl(nla_get_be32(tb[NFTA_HASH_OFFSET]));
- 
--	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
--
- 	err = nft_parse_u32_check(tb[NFTA_HASH_LEN], U8_MAX, &len);
- 	if (err < 0)
- 		return err;
-@@ -113,8 +111,8 @@ static int nft_jhash_init(const struct nft_ctx *ctx,
- 		get_random_bytes(&priv->seed, sizeof(priv->seed));
- 	}
- 
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, sizeof(u32));
-+	return nft_parse_register_store(ctx, tb[NFTA_HASH_DREG], &priv->dreg,
-+					NULL, NFT_DATA_VALUE, sizeof(u32));
- }
- 
- static int nft_symhash_init(const struct nft_ctx *ctx,
-@@ -130,8 +128,6 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_HASH_OFFSET])
- 		priv->offset = ntohl(nla_get_be32(tb[NFTA_HASH_OFFSET]));
- 
--	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
--
- 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
- 	if (priv->modulus < 1)
- 		return -ERANGE;
-@@ -139,8 +135,9 @@ static int nft_symhash_init(const struct nft_ctx *ctx,
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
- 
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, sizeof(u32));
-+	return nft_parse_register_store(ctx, tb[NFTA_HASH_DREG],
-+					&priv->dreg, NULL, NFT_DATA_VALUE,
-+					sizeof(u32));
- }
- 
- static int nft_jhash_dump(struct sk_buff *skb,
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 86fd35018b4a..99f528e5f154 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -19,7 +19,7 @@
- 
- struct nft_immediate_expr {
- 	struct nft_data		data;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- 	u8			dlen;
- };
- 
-@@ -56,9 +56,9 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 
- 	priv->dlen = desc.len;
- 
--	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
--	err = nft_validate_register_store(ctx, priv->dreg, &priv->data,
--					  desc.type, desc.len);
-+	err = nft_parse_register_store(ctx, tb[NFTA_IMMEDIATE_DREG],
-+				       &priv->dreg, &priv->data, desc.type,
-+				       desc.len);
+-	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &d1,
+-			    nla[NFTA_SET_ELEM_KEY]);
++	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
++				    nla[NFTA_SET_ELEM_KEY]);
  	if (err < 0)
  		goto err1;
+-	err = -EINVAL;
+-	if (d1.type != NFT_DATA_VALUE || d1.len != set->klen)
+-		goto err2;
  
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index c7b37b10dcaa..7577a486635a 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -21,7 +21,7 @@
- struct nft_lookup {
- 	struct nft_set			*set;
- 	u8				sreg;
--	enum nft_registers		dreg:8;
-+	u8				dreg;
- 	bool				invert;
- 	struct nft_set_binding		binding;
- };
-@@ -100,9 +100,9 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 		if (!(set->flags & NFT_SET_MAP))
- 			return -EINVAL;
+-	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, d1.len);
++	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
+ 	if (timeout > 0) {
+ 		nft_set_ext_add(&tmpl, NFT_SET_EXT_EXPIRATION);
+ 		if (timeout != set->timeout)
+@@ -4030,13 +4045,13 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	}
  
--		priv->dreg = nft_parse_register(tb[NFTA_LOOKUP_DREG]);
--		err = nft_validate_register_store(ctx, priv->dreg, NULL,
--						  set->dtype, set->dlen);
-+		err = nft_parse_register_store(ctx, tb[NFTA_LOOKUP_DREG],
-+					       &priv->dreg, NULL, set->dtype,
-+					       set->dlen);
+ 	if (nla[NFTA_SET_ELEM_DATA] != NULL) {
+-		err = nft_data_init(ctx, &data, sizeof(data), &d2,
++		err = nft_data_init(ctx, &data, sizeof(data), &desc,
+ 				    nla[NFTA_SET_ELEM_DATA]);
  		if (err < 0)
- 			return err;
- 	} else if (set->flags & NFT_SET_MAP)
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 185c7e26609d..c9bf2b17b7bd 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -314,9 +314,8 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 		return -EOPNOTSUPP;
+ 			goto err2;
+ 
+ 		err = -EINVAL;
+-		if (set->dtype != NFT_DATA_VERDICT && d2.len != set->dlen)
++		if (set->dtype != NFT_DATA_VERDICT && desc.len != set->dlen)
+ 			goto err3;
+ 
+ 		dreg = nft_type_to_reg(set->dtype);
+@@ -4053,12 +4068,12 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 			err = nft_validate_register_store(&bind_ctx, dreg,
+ 							  &data,
+-							  d2.type, d2.len);
++							  desc.type, desc.len);
+ 			if (err < 0)
+ 				goto err3;
+ 		}
+ 
+-		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, d2.len);
++		nft_set_ext_add_length(&tmpl, NFT_SET_EXT_DATA, desc.len);
  	}
  
--	priv->dreg = nft_parse_register(tb[NFTA_META_DREG]);
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, len);
-+	return nft_parse_register_store(ctx, tb[NFTA_META_DREG], &priv->dreg,
-+					NULL, NFT_DATA_VALUE, len);
+ 	/* The full maximum length of userdata can exceed the maximum
+@@ -4141,9 +4156,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	kfree(elem.priv);
+ err3:
+ 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
+-		nft_data_release(&data, d2.type);
++		nft_data_release(&data, desc.type);
+ err2:
+-	nft_data_release(&elem.key.val, d1.type);
++	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
+ err1:
+ 	return err;
  }
- EXPORT_SYMBOL_GPL(nft_meta_get_init);
+@@ -4241,7 +4256,6 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+ 	struct nft_set_ext_tmpl tmpl;
+-	struct nft_data_desc desc;
+ 	struct nft_set_elem elem;
+ 	struct nft_set_ext *ext;
+ 	struct nft_trans *trans;
+@@ -4252,11 +4266,10 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 	err = nla_parse_nested(nla, NFTA_SET_ELEM_MAX, attr,
+ 			       nft_set_elem_policy, NULL);
+ 	if (err < 0)
+-		goto err1;
++		return err;
  
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-index 5a3a52c71545..befc715cb06f 100644
---- a/net/netfilter/nft_numgen.c
-+++ b/net/netfilter/nft_numgen.c
-@@ -20,7 +20,7 @@
- static DEFINE_PER_CPU(struct rnd_state, nft_numgen_prandom_state);
+-	err = -EINVAL;
+ 	if (nla[NFTA_SET_ELEM_KEY] == NULL)
+-		goto err1;
++		return -EINVAL;
  
- struct nft_ng_inc {
--	enum nft_registers      dreg:8;
-+	u8			dreg;
- 	u32			modulus;
- 	atomic_t		counter;
- 	u32			offset;
-@@ -64,11 +64,10 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
+ 	nft_set_ext_prepare(&tmpl);
  
--	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
- 	atomic_set(&priv->counter, priv->modulus - 1);
+@@ -4266,37 +4279,31 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 	if (flags != 0)
+ 		nft_set_ext_add(&tmpl, NFT_SET_EXT_FLAGS);
  
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, sizeof(u32));
-+	return nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
-+					NULL, NFT_DATA_VALUE, sizeof(u32));
- }
- 
- static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
-@@ -98,7 +97,7 @@ static int nft_ng_inc_dump(struct sk_buff *skb, const struct nft_expr *expr)
- }
- 
- struct nft_ng_random {
--	enum nft_registers      dreg:8;
-+	u8			dreg;
- 	u32			modulus;
- 	u32			offset;
- };
-@@ -133,10 +132,8 @@ static int nft_ng_random_init(const struct nft_ctx *ctx,
- 
- 	prandom_init_once(&nft_numgen_prandom_state);
- 
--	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
+-	err = nft_data_init(ctx, &elem.key.val, sizeof(elem.key), &desc,
+-			    nla[NFTA_SET_ELEM_KEY]);
++	err = nft_setelem_parse_key(ctx, set, &elem.key.val,
++				    nla[NFTA_SET_ELEM_KEY]);
+ 	if (err < 0)
+-		goto err1;
 -
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, sizeof(u32));
-+	return nft_parse_register_store(ctx, tb[NFTA_NG_DREG], &priv->dreg,
-+					NULL, NFT_DATA_VALUE, sizeof(u32));
- }
+-	err = -EINVAL;
+-	if (desc.type != NFT_DATA_VALUE || desc.len != set->klen)
+-		goto err2;
++		return err;
  
- static int nft_ng_random_dump(struct sk_buff *skb, const struct nft_expr *expr)
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 6c5312fecac5..77cfd5182784 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -135,10 +135,10 @@ static int nft_payload_init(const struct nft_ctx *ctx,
- 	priv->base   = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_BASE]));
- 	priv->offset = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_OFFSET]));
- 	priv->len    = ntohl(nla_get_be32(tb[NFTA_PAYLOAD_LEN]));
--	priv->dreg   = nft_parse_register(tb[NFTA_PAYLOAD_DREG]);
+-	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, desc.len);
++	nft_set_ext_add_length(&tmpl, NFT_SET_EXT_KEY, set->klen);
  
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, priv->len);
-+	return nft_parse_register_store(ctx, tb[NFTA_PAYLOAD_DREG],
-+					&priv->dreg, NULL, NFT_DATA_VALUE,
-+					priv->len);
- }
+ 	err = -ENOMEM;
+ 	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data, NULL, 0,
+ 				      GFP_KERNEL);
+ 	if (elem.priv == NULL)
+-		goto err2;
++		goto fail_elem;
  
- static int nft_payload_dump(struct sk_buff *skb, const struct nft_expr *expr)
-diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
-index a6b7d05aeacf..60d3f86a1fd9 100644
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -20,7 +20,7 @@
+ 	ext = nft_set_elem_ext(set, elem.priv);
+ 	if (flags)
+ 		*nft_set_ext_flags(ext) = flags;
  
- struct nft_rt {
- 	enum nft_rt_keys	key:8;
--	enum nft_registers	dreg:8;
-+	u8			dreg;
- };
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
+-	if (trans == NULL) {
+-		err = -ENOMEM;
+-		goto err3;
+-	}
++	if (trans == NULL)
++		goto fail_trans;
  
- static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skbdst)
-@@ -141,9 +141,8 @@ static int nft_rt_get_init(const struct nft_ctx *ctx,
- 		return -EOPNOTSUPP;
+ 	priv = set->ops->deactivate(ctx->net, set, &elem);
+ 	if (priv == NULL) {
+ 		err = -ENOENT;
+-		goto err4;
++		goto fail_ops;
  	}
+ 	kfree(elem.priv);
+ 	elem.priv = priv;
+@@ -4307,13 +4314,12 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
+ 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+ 	return 0;
  
--	priv->dreg = nft_parse_register(tb[NFTA_RT_DREG]);
--	return nft_validate_register_store(ctx, priv->dreg, NULL,
--					   NFT_DATA_VALUE, len);
-+	return nft_parse_register_store(ctx, tb[NFTA_RT_DREG], &priv->dreg,
-+					NULL, NFT_DATA_VALUE, len);
+-err4:
++fail_ops:
+ 	kfree(trans);
+-err3:
++fail_trans:
+ 	kfree(elem.priv);
+-err2:
+-	nft_data_release(&elem.key.val, desc.type);
+-err1:
++fail_elem:
++	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
+ 	return err;
  }
  
- static int nft_rt_get_dump(struct sk_buff *skb,
 -- 
 2.30.2
 
