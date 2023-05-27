@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A557C77B73
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FD15C7EE2F
 	for <netfilter-devel@archiver.kernel.org>; Sat, 27 May 2023 15:08:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232768AbjE0PIK (ORCPT
+        id S232804AbjE0PIM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 27 May 2023 11:08:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41046 "EHLO
+        Sat, 27 May 2023 11:08:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232746AbjE0PIG (ORCPT
+        with ESMTP id S232762AbjE0PIH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 27 May 2023 11:08:06 -0400
+        Sat, 27 May 2023 11:08:07 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1AEC1E3;
-        Sat, 27 May 2023 08:08:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 07C46E3;
+        Sat, 27 May 2023 08:08:07 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,4.14 06/11] netfilter: nf_tables: allow up to 64 bytes in the set element data area
-Date:   Sat, 27 May 2023 18:08:06 +0200
-Message-Id: <20230527160811.67779-7-pablo@netfilter.org>
+Subject: [PATCH -stable,4.14 11/11] netfilter: nf_tables: fix register ordering
+Date:   Sat, 27 May 2023 18:08:11 +0200
+Message-Id: <20230527160811.67779-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230527160811.67779-1-pablo@netfilter.org>
 References: <20230527160811.67779-1-pablo@netfilter.org>
@@ -32,114 +32,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ fdb9c405e35bdc6e305b9b4e20ebc141ed14fc81 ]
+From: Florian Westphal <fw@strlen.de>
 
-So far, the set elements could store up to 128-bits in the data area.
+[ d209df3e7f7002d9099fdb0f6df0f972b4386a63 ]
 
+[ We hit the trace described in commit message with the
+kselftest/nft_trans_stress.sh. This patch diverges from the upstream one
+since kernel 4.14 does not have following symbols:
+nft_chain_filter_init, nf_tables_flowtable_notifier ]
+
+We must register nfnetlink ops last, as that exposes nf_tables to
+userspace.  Without this, we could theoretically get nfnetlink request
+before net->nft state has been initialized.
+
+Fixes: 99633ab29b213 ("netfilter: nf_tables: complete net namespace support")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[apanyaki: backport to v4.14-stable]
+Signed-off-by: Andrew Paniakin <apanyaki@amazon.com>
 ---
- include/net/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nf_tables_api.c     | 35 ++++++++++++++++++++++---------
- 2 files changed, 29 insertions(+), 10 deletions(-)
+ net/netfilter/nf_tables_api.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 8397f859ff70..4eb90800fc2e 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -229,6 +229,10 @@ struct nft_set_elem {
- 		u32		buf[NFT_DATA_VALUE_MAXLEN / sizeof(u32)];
- 		struct nft_data	val;
- 	} key;
-+	union {
-+		u32		buf[NFT_DATA_VALUE_MAXLEN / sizeof(u32)];
-+		struct nft_data val;
-+	} data;
- 	void			*priv;
- };
- 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c49e93c5db9c..1cd49af7d375 100644
+index 345fa29f34b9..241a3032d0e6 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3954,6 +3954,25 @@ static int nft_setelem_parse_flags(const struct nft_set *set,
- 	return 0;
- }
- 
-+static int nft_setelem_parse_data(struct nft_ctx *ctx, struct nft_set *set,
-+				  struct nft_data_desc *desc,
-+				  struct nft_data *data,
-+				  struct nlattr *attr)
-+{
-+	int err;
-+
-+	err = nft_data_init(ctx, data, NFT_DATA_VALUE_MAXLEN, desc, attr);
-+	if (err < 0)
-+		return err;
-+
-+	if (desc->type != NFT_DATA_VERDICT && desc->len != set->dlen) {
-+		nft_data_release(data, desc->type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr, u32 nlmsg_flags)
- {
-@@ -3966,7 +3985,6 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_object *obj = NULL;
- 	struct nft_userdata *udata;
- 	struct nft_data_desc desc;
--	struct nft_data data;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
- 	u32 flags = 0;
-@@ -4045,15 +4063,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+@@ -6105,18 +6105,25 @@ static int __init nf_tables_module_init(void)
+ 		goto err1;
  	}
  
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL) {
--		err = nft_data_init(ctx, &data, sizeof(data), &desc,
--				    nla[NFTA_SET_ELEM_DATA]);
-+		err = nft_setelem_parse_data(ctx, set, &desc, &elem.data.val,
-+					     nla[NFTA_SET_ELEM_DATA]);
- 		if (err < 0)
- 			goto err2;
+-	err = nf_tables_core_module_init();
++	err = register_pernet_subsys(&nf_tables_net_ops);
+ 	if (err < 0)
+ 		goto err2;
  
--		err = -EINVAL;
--		if (set->dtype != NFT_DATA_VERDICT && desc.len != set->dlen)
--			goto err3;
--
- 		dreg = nft_type_to_reg(set->dtype);
- 		list_for_each_entry(binding, &set->bindings, list) {
- 			struct nft_ctx bind_ctx = {
-@@ -4067,7 +4081,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 				continue;
- 
- 			err = nft_validate_register_store(&bind_ctx, dreg,
--							  &data,
-+							  &elem.data.val,
- 							  desc.type, desc.len);
- 			if (err < 0)
- 				goto err3;
-@@ -4089,7 +4103,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
- 
- 	err = -ENOMEM;
--	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data, data.data,
-+	elem.priv = nft_set_elem_init(set, &tmpl, elem.key.val.data,
-+				      elem.data.val.data,
- 				      timeout, GFP_KERNEL);
- 	if (elem.priv == NULL)
+-	err = nfnetlink_subsys_register(&nf_tables_subsys);
++	err = nf_tables_core_module_init();
+ 	if (err < 0)
  		goto err3;
-@@ -4156,7 +4171,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
--		nft_data_release(&data, desc.type);
-+		nft_data_release(&elem.data.val, desc.type);
+ 
++	/* must be last */
++	err = nfnetlink_subsys_register(&nf_tables_subsys);
++	if (err < 0)
++		goto err4;
++
+ 	pr_info("nf_tables: (c) 2007-2009 Patrick McHardy <kaber@trash.net>\n");
+-	return register_pernet_subsys(&nf_tables_net_ops);
+-err3:
++	return err;
++err4:
+ 	nf_tables_core_module_exit();
++err3:
++	unregister_pernet_subsys(&nf_tables_net_ops);
  err2:
- 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
+ 	kfree(info);
  err1:
 -- 
 2.30.2
