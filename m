@@ -2,43 +2,41 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70C3AC77B7E
-	for <netfilter-devel@archiver.kernel.org>; Sun, 28 May 2023 19:15:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C07BC7EE2C
+	for <netfilter-devel@archiver.kernel.org>; Sun, 28 May 2023 19:15:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229740AbjE1TPN (ORCPT
+        id S229725AbjE1TPS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 28 May 2023 15:15:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34630 "EHLO
+        Sun, 28 May 2023 15:15:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbjE1TPM (ORCPT
+        with ESMTP id S229484AbjE1TPR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 May 2023 15:15:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9114DA2;
-        Sun, 28 May 2023 12:15:11 -0700 (PDT)
+        Sun, 28 May 2023 15:15:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6C5C4;
+        Sun, 28 May 2023 12:15:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 240346197E;
-        Sun, 28 May 2023 19:15:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 414CEC433EF;
-        Sun, 28 May 2023 19:15:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 138206158B;
+        Sun, 28 May 2023 19:15:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 303CDC433D2;
+        Sun, 28 May 2023 19:15:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1685301310;
-        bh=YJEINVjHXav0HLqcmNQGE/KV/xKH+xvCjdy/dQUhkzQ=;
+        s=korg; t=1685301315;
+        bh=KdbP9Gju9nKc/REI7lJ1C9p5zHGg4yjYdtLkDpLXh3o=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rIyF3FVkxqOeJv61pCjf6GKk+nMx3D5T5u+APRPrrYfxVn/mufbgGG4M+NvUl1IKf
-         gWxZRRXzi5QSJbu6jWUMnRW/YzFNhTFP5ipESvPOPz0J74CK8GA61CodltmXYM86bq
-         6WLHdYojhdJdizQAGFeyNeroEgtsGfi01Jkl5eZQ=
+        b=AhOWavd6AsvLTe/vaY5Wq5+UxRh/qfJIEKZ/s8iy5UaGEtK/YDgJncv7+mZi90HFQ
+         pphuHLDUSPG14T6YV8NZxD7nokY6rT/u1PXfI3+uGtcUlm5Jk8qGgVCFX8zuQJULTa
+         EibfjDfnUzd8H+4Bf5DhiMdN0vfu2LiiU88hrsy4=
 From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        patches@lists.linux.dev,
-        Hugues ANGUELKOV <hanguelkov@randorisec.fr>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4.14 66/86] netfilter: nf_tables: stricter validation of element data
-Date:   Sun, 28 May 2023 20:10:40 +0100
-Message-Id: <20230528190831.087932516@linuxfoundation.org>
+        patches@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4.14 67/86] netfilter: nft_dynset: do not reject set updates with NFT_SET_EVAL
+Date:   Sun, 28 May 2023 20:10:41 +0100
+Message-Id: <20230528190831.122346503@linuxfoundation.org>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230528190828.564682883@linuxfoundation.org>
 References: <20230528190828.564682883@linuxfoundation.org>
@@ -52,42 +50,44 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ 7e6bc1f6cabcd30aba0b11219d8e01b952eacbb6 ]
+[ 215a31f19dedd4e92a67cf5a9717ee898d012b3a ]
 
-Make sure element data type and length do not mismatch the one specified
-by the set declaration.
+NFT_SET_EVAL is signalling the kernel that this sets can be updated from
+the evaluation path, even if there are no expressions attached to the
+element. Otherwise, set updates with no expressions fail. Update
+description to describe the right semantics.
 
-Fixes: 7d7402642eaf ("netfilter: nf_tables: variable sized set element keys / data")
-Reported-by: Hugues ANGUELKOV <hanguelkov@randorisec.fr>
+Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h |    2 +-
+ net/netfilter/nft_dynset.c               |    4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3959,13 +3959,20 @@ static int nft_setelem_parse_data(struct
- 				  struct nft_data *data,
- 				  struct nlattr *attr)
- {
-+	u32 dtype;
- 	int err;
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -258,7 +258,7 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
+  * @NFT_SET_TIMEOUT: set uses timeouts
+- * @NFT_SET_EVAL: set contains expressions for evaluation
++ * @NFT_SET_EVAL: set can be updated from the evaluation path
+  * @NFT_SET_OBJECT: set contains stateful objects
+  */
+ enum nft_set_flags {
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -190,9 +190,7 @@ static int nft_dynset_init(const struct
+ 		priv->expr = nft_expr_init(ctx, tb[NFTA_DYNSET_EXPR]);
+ 		if (IS_ERR(priv->expr))
+ 			return PTR_ERR(priv->expr);
+-
+-	} else if (set->flags & NFT_SET_EVAL)
+-		return -EINVAL;
++	}
  
- 	err = nft_data_init(ctx, data, NFT_DATA_VALUE_MAXLEN, desc, attr);
- 	if (err < 0)
- 		return err;
- 
--	if (desc->type != NFT_DATA_VERDICT && desc->len != set->dlen) {
-+	if (set->dtype == NFT_DATA_VERDICT)
-+		dtype = NFT_DATA_VERDICT;
-+	else
-+		dtype = NFT_DATA_VALUE;
-+
-+	if (dtype != desc->type ||
-+	    set->dlen != desc->len) {
- 		nft_data_release(data, desc->type);
- 		return -EINVAL;
- 	}
+ 	nft_set_ext_prepare(&priv->tmpl);
+ 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
 
 
