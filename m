@@ -2,268 +2,152 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CACAEC77B7A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 May 2023 00:16:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 075C3C77B73
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 May 2023 06:32:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230187AbjEaAQZ (ORCPT
+        id S234055AbjEaGc3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 May 2023 20:16:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45432 "EHLO
+        Wed, 31 May 2023 02:32:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229725AbjEaAQY (ORCPT
+        with ESMTP id S230001AbjEaGc2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 May 2023 20:16:24 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ECF81B2
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2023 17:16:22 -0700 (PDT)
-Date:   Wed, 31 May 2023 02:16:20 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Eric Garver <e@erig.me>, danw@redhat.com, aauren@gmail.com
-Subject: Re: [iptables PATCH 3/4] Add --compat option to *tables-nft and
- *-nft-restore commands
-Message-ID: <ZHaR1M+EFjUHLOc/@calendula>
-References: <20230505183446.28822-1-phil@nwl.cc>
- <20230505183446.28822-4-phil@nwl.cc>
+        Wed, 31 May 2023 02:32:28 -0400
+X-Greylist: delayed 356 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 30 May 2023 23:32:25 PDT
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F2C999;
+        Tue, 30 May 2023 23:32:25 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 76FECCC02B5;
+        Wed, 31 May 2023 08:26:24 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Wed, 31 May 2023 08:26:22 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id C902ECC02B4;
+        Wed, 31 May 2023 08:26:21 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id B5ECD3431A9; Wed, 31 May 2023 08:26:21 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id B4B253431A8;
+        Wed, 31 May 2023 08:26:21 +0200 (CEST)
+Date:   Wed, 31 May 2023 08:26:21 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     Kuniyuki Iwashima <kuniyu@amazon.com>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Kuniyuki Iwashima <kuni1840@gmail.com>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        syzkaller <syzkaller@googlegroups.com>
+Subject: Re: [PATCH v1 nf] netfilter: ipset: Add schedule point in
+ call_ad().
+In-Reply-To: <20230518173300.34531-1-kuniyu@amazon.com>
+Message-ID: <75355720-85d0-7c50-bc41-522924585336@netfilter.org>
+References: <20230518173300.34531-1-kuniyu@amazon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230505183446.28822-4-phil@nwl.cc>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+On Thu, 18 May 2023, Kuniyuki Iwashima wrote:
 
-On Fri, May 05, 2023 at 08:34:45PM +0200, Phil Sutter wrote:
-> The flag sets nft_handle::compat boolean, indicating a compatible rule
-> implementation is wanted. Users expecting their created rules to be
-> fetched from kernel by an older version of *tables-nft may use this to
-> avoid potential compatibility issues.
-
-This would require containers to be updated to use this new option or
-maybe there is a transparent way to invoke this new --compat option?
-
-I still think using userdata for this is the way to address I call it
-"forward compatibility" issue, that is: old iptables binaries can
-interpret what new iptables binary generates.
-
-I am afraid this new option does not handle these two scenarios?
-
-- new match/target that is not supported by older iptables version
-  could not be printed.
-- match/target from xtables-addons that is not supported by different
-  iptables without these extensions.
-
-I read the notes we collected during NFWS and we seem to agree at that
-time. Maybe some of the requirements have changed since NFWS?
-
-Apologies in advance if you feel we are going a bit into circles with
-this.
-
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> syzkaller found a repro that causes Hung Task [0] with ipset.  The repro
+> first creates an ipset and then tries to delete a large number of IPs
+> from the ipset concurrently:
+> 
+>   IPSET_ATTR_IPADDR_IPV4 : 172.20.20.187
+>   IPSET_ATTR_CIDR        : 2
+> 
+> The first deleting thread hogs a CPU with nfnl_lock(NFNL_SUBSYS_IPSET)
+> held, and other threads wait for it to be released.
+> 
+> Previously, the same issue existed in set->variant->uadt() that could run
+> so long under ip_set_lock(set).  Commit 5e29dc36bd5e ("netfilter: ipset:
+> Rework long task execution when adding/deleting entries") tried to fix it,
+> but the issue still exists in the caller with another mutex.
+> 
+> While adding/deleting many IPs, we should release the CPU periodically to
+> prevent someone from abusing ipset to hang the system.
+> 
+> Note we need to increment the ipset's refcnt to prevent the ipset from
+> being destroyed while rescheduling.
+> 
+> [0]:
+> INFO: task syz-executor174:268 blocked for more than 143 seconds.
+>       Not tainted 6.4.0-rc1-00145-gba79e9a73284 #1
+> "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> task:syz-executor174 state:D stack:0     pid:268   ppid:260    flags:0x0000000d
+> Call trace:
+>  __switch_to+0x308/0x714 arch/arm64/kernel/process.c:556
+>  context_switch kernel/sched/core.c:5343 [inline]
+>  __schedule+0xd84/0x1648 kernel/sched/core.c:6669
+>  schedule+0xf0/0x214 kernel/sched/core.c:6745
+>  schedule_preempt_disabled+0x58/0xf0 kernel/sched/core.c:6804
+>  __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+>  __mutex_lock+0x6fc/0xdb0 kernel/locking/mutex.c:747
+>  __mutex_lock_slowpath+0x14/0x20 kernel/locking/mutex.c:1035
+>  mutex_lock+0x98/0xf0 kernel/locking/mutex.c:286
+>  nfnl_lock net/netfilter/nfnetlink.c:98 [inline]
+>  nfnetlink_rcv_msg+0x480/0x70c net/netfilter/nfnetlink.c:295
+>  netlink_rcv_skb+0x1c0/0x350 net/netlink/af_netlink.c:2546
+>  nfnetlink_rcv+0x18c/0x199c net/netfilter/nfnetlink.c:658
+>  netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+>  netlink_unicast+0x664/0x8cc net/netlink/af_netlink.c:1365
+>  netlink_sendmsg+0x6d0/0xa4c net/netlink/af_netlink.c:1913
+>  sock_sendmsg_nosec net/socket.c:724 [inline]
+>  sock_sendmsg net/socket.c:747 [inline]
+>  ____sys_sendmsg+0x4b8/0x810 net/socket.c:2503
+>  ___sys_sendmsg net/socket.c:2557 [inline]
+>  __sys_sendmsg+0x1f8/0x2a4 net/socket.c:2586
+>  __do_sys_sendmsg net/socket.c:2595 [inline]
+>  __se_sys_sendmsg net/socket.c:2593 [inline]
+>  __arm64_sys_sendmsg+0x80/0x94 net/socket.c:2593
+>  __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+>  invoke_syscall+0x84/0x270 arch/arm64/kernel/syscall.c:52
+>  el0_svc_common+0x134/0x24c arch/arm64/kernel/syscall.c:142
+>  do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+>  el0_svc+0x2c/0x7c arch/arm64/kernel/entry-common.c:637
+>  el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+>  el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+> 
+> Reported-by: syzkaller <syzkaller@googlegroups.com>
+> Fixes: a7b4f989a629 ("netfilter: ipset: IP set core support")
+> Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.com>
 > ---
->  iptables/xshared.c         |  7 ++++++-
->  iptables/xshared.h         |  1 +
->  iptables/xtables-arp.c     |  1 +
->  iptables/xtables-eb.c      |  7 ++++++-
->  iptables/xtables-restore.c | 17 +++++++++++++++--
->  iptables/xtables.c         |  2 ++
->  6 files changed, 31 insertions(+), 4 deletions(-)
+>  net/netfilter/ipset/ip_set_core.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> diff --git a/iptables/xshared.c b/iptables/xshared.c
-> index 17aed04e02b09..502d0a9bda4c6 100644
-> --- a/iptables/xshared.c
-> +++ b/iptables/xshared.c
-> @@ -1273,7 +1273,8 @@ xtables_printhelp(const struct xtables_rule_match *matches)
->  	printf(
->  "  --modprobe=<command>		try to insert modules using this command\n"
->  "  --set-counters -c PKTS BYTES	set the counter during insert/append\n"
-> -"[!] --version	-V		print package version.\n");
-> +"[!] --version	-V		print package version\n"
-> +"  --compat			create rules compatible for parsing with old binaries\n");
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 46ebee9400da..9a6b64779e64 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -1694,6 +1694,14 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+>  	bool eexist = flags & IPSET_FLAG_EXIST, retried = false;
 >  
->  	if (afinfo->family == NFPROTO_ARP) {
->  		int i;
-> @@ -1796,6 +1797,10 @@ void do_parse(int argc, char *argv[],
->  
->  			exit_tryhelp(2, p->line);
->  
-> +		case 15: /* --compat */
-> +			p->compat = true;
-> +			break;
+>  	do {
+> +		if (retried) {
+> +			__ip_set_get(set);
+> +			nfnl_unlock(NFNL_SUBSYS_IPSET);
+> +			cond_resched();
+> +			nfnl_lock(NFNL_SUBSYS_IPSET);
+> +			__ip_set_put(set);
+> +		}
 > +
->  		case 1: /* non option */
->  			if (optarg[0] == '!' && optarg[1] == '\0') {
->  				if (invert)
-> diff --git a/iptables/xshared.h b/iptables/xshared.h
-> index 0ed9f3c29c600..d8c56cf38790d 100644
-> --- a/iptables/xshared.h
-> +++ b/iptables/xshared.h
-> @@ -276,6 +276,7 @@ struct xt_cmd_parse {
->  	int				line;
->  	int				verbose;
->  	bool				xlate;
-> +	bool				compat;
->  	struct xt_cmd_parse_ops		*ops;
->  };
->  
-> diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-> index 71518a9cbdb6a..c6a9c6d68cb10 100644
-> --- a/iptables/xtables-arp.c
-> +++ b/iptables/xtables-arp.c
-> @@ -78,6 +78,7 @@ static struct option original_opts[] = {
->  	{ "line-numbers", 0, 0, '0' },
->  	{ "modprobe", 1, 0, 'M' },
->  	{ "set-counters", 1, 0, 'c' },
-> +	{ "compat", 0, 0, 15 },
->  	{ 0 }
->  };
->  
-> diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-> index bf35f52b7585d..857a3c6f19d82 100644
-> --- a/iptables/xtables-eb.c
-> +++ b/iptables/xtables-eb.c
-> @@ -199,6 +199,7 @@ struct option ebt_original_options[] =
->  	{ "init-table"     , no_argument      , 0, 11  },
->  	{ "concurrent"     , no_argument      , 0, 13  },
->  	{ "check"          , required_argument, 0, 14  },
-> +	{ "compat"         , no_argument      , 0, 15  },
->  	{ 0 }
->  };
->  
-> @@ -311,7 +312,8 @@ static void print_help(const struct xtables_target *t,
->  "--modprobe -M program         : try to insert modules using this program\n"
->  "--concurrent                  : use a file lock to support concurrent scripts\n"
->  "--verbose -v                  : verbose mode\n"
-> -"--version -V                  : print package version\n\n"
-> +"--version -V                  : print package version\n"
-> +"--compat                      : create rules compatible for parsing with old binaries\n\n"
->  "Environment variable:\n"
->  /*ATOMIC_ENV_VARIABLE "          : if set <FILE> (see above) will equal its value"*/
->  "\n\n");
-> @@ -1074,6 +1076,9 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
->  			return 1;
->  		case 13 :
->  			break;
-> +		case 15:
-> +			h->compat = true;
-> +			break;
->  		case 1 :
->  			if (!strcmp(optarg, "!"))
->  				ebt_check_inverse2(optarg, argc, argv);
-> diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-> index abe56374289f4..14699a514f5ce 100644
-> --- a/iptables/xtables-restore.c
-> +++ b/iptables/xtables-restore.c
-> @@ -26,6 +26,7 @@ static int counters, verbose;
->  /* Keeping track of external matches and targets.  */
->  static const struct option options[] = {
->  	{.name = "counters", .has_arg = false, .val = 'c'},
-> +	{.name = "compat",   .has_arg = false, .val = 'C'},
->  	{.name = "verbose",  .has_arg = false, .val = 'v'},
->  	{.name = "version",       .has_arg = 0, .val = 'V'},
->  	{.name = "test",     .has_arg = false, .val = 't'},
-> @@ -45,8 +46,9 @@ static const struct option options[] = {
->  
->  static void print_usage(const char *name, const char *version)
->  {
-> -	fprintf(stderr, "Usage: %s [-c] [-v] [-V] [-t] [-h] [-n] [-T table] [-M command] [-4] [-6] [file]\n"
-> +	fprintf(stderr, "Usage: %s [-c] [-C] [-v] [-V] [-t] [-h] [-n] [-T table] [-M command] [-4] [-6] [file]\n"
->  			"	   [ --counters ]\n"
-> +			"	   [ --compat ]\n"
->  			"	   [ --verbose ]\n"
->  			"	   [ --version]\n"
->  			"	   [ --test ]\n"
-> @@ -291,6 +293,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
->  		.cb = &restore_cb,
->  	};
->  	bool noflush = false;
-> +	bool compat = false;
->  	struct nft_handle h;
->  	int c;
->  
-> @@ -313,6 +316,9 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
->  			case 'c':
->  				counters = 1;
->  				break;
-> +			case 'C':
-> +				compat = true;
-> +				break;
->  			case 'v':
->  				verbose++;
->  				break;
-> @@ -389,6 +395,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
->  	}
->  	h.noflush = noflush;
->  	h.restore = true;
-> +	h.compat = compat;
->  
->  	xtables_restore_parse(&h, &p);
->  
-> @@ -419,6 +426,7 @@ static const struct nft_xt_restore_cb ebt_restore_cb = {
->  };
->  
->  static const struct option ebt_restore_options[] = {
-> +	{.name = "compat",  .has_arg = 0, .val = 'C'},
->  	{.name = "noflush", .has_arg = 0, .val = 'n'},
->  	{.name = "verbose", .has_arg = 0, .val = 'v'},
->  	{ 0 }
-> @@ -431,12 +439,16 @@ int xtables_eb_restore_main(int argc, char *argv[])
->  		.cb = &ebt_restore_cb,
->  	};
->  	bool noflush = false;
-> +	bool compat = false;
->  	struct nft_handle h;
->  	int c;
->  
->  	while ((c = getopt_long(argc, argv, "nv",
->  				ebt_restore_options, NULL)) != -1) {
->  		switch(c) {
-> +		case 'C':
-> +			compat = true;
-> +			break;
->  		case 'n':
->  			noflush = 1;
->  			break;
-> @@ -445,7 +457,7 @@ int xtables_eb_restore_main(int argc, char *argv[])
->  			break;
->  		default:
->  			fprintf(stderr,
-> -				"Usage: ebtables-restore [ --verbose ] [ --noflush ]\n");
-> +				"Usage: ebtables-restore [ --compat ] [ --verbose ] [ --noflush ]\n");
->  			exit(1);
->  			break;
->  		}
-> @@ -453,6 +465,7 @@ int xtables_eb_restore_main(int argc, char *argv[])
->  
->  	nft_init_eb(&h, "ebtables-restore");
->  	h.noflush = noflush;
-> +	h.compat = compat;
->  	xtables_restore_parse(&h, &p);
->  	nft_fini_eb(&h);
->  
-> diff --git a/iptables/xtables.c b/iptables/xtables.c
-> index 22d6ea58376fc..25b4dbc6b8475 100644
-> --- a/iptables/xtables.c
-> +++ b/iptables/xtables.c
-> @@ -82,6 +82,7 @@ static struct option original_opts[] = {
->  	{.name = "goto",	  .has_arg = 1, .val = 'g'},
->  	{.name = "ipv4",	  .has_arg = 0, .val = '4'},
->  	{.name = "ipv6",	  .has_arg = 0, .val = '6'},
-> +	{.name = "compat",        .has_arg = 0, .val = 15 },
->  	{NULL},
->  };
->  
-> @@ -161,6 +162,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
->  
->  	do_parse(argc, argv, &p, &cs, &args);
->  	h->verbose = p.verbose;
-> +	h->compat = p.compat;
->  
->  	if (!nft_table_builtin_find(h, p.table))
->  		xtables_error(VERSION_PROBLEM,
+>  		ip_set_lock(set);
+>  		ret = set->variant->uadt(set, tb, adt, &lineno, flags, retried);
+>  		ip_set_unlock(set);
 > -- 
-> 2.40.0
-> 
+
+The patch looks fine to me, thanks!
+
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
