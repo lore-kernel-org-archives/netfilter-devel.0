@@ -2,110 +2,110 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D14ECC77B7A
-	for <netfilter-devel@archiver.kernel.org>; Wed, 31 May 2023 12:21:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58198C77B73
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 May 2023 15:01:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230341AbjEaMVM (ORCPT
+        id S233365AbjEaPBO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 31 May 2023 08:21:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60834 "EHLO
+        Wed, 31 May 2023 11:01:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229765AbjEaMVK (ORCPT
+        with ESMTP id S233575AbjEaPBN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 May 2023 08:21:10 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9990121
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 May 2023 05:21:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        Wed, 31 May 2023 11:01:13 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25C35C0
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 May 2023 08:01:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=med82VaP8wDKII3FRJc9TMupWS+s5CY74HKJ6X+OxIU=; b=Au++35kuM4uFNhW9rc3Vu+qtGs
-        maniCDQthKshYIiZkLEDEv22MT9vUCNGAA4mJuzeff6nWEYPielC4exBt38cwBDAcL0Z/FLqcR9Og
-        +PY3HDEHd2TPxQDqjVKb8bYVCN7dIVCXoh3R2dIl21Q0AUX6ZbLMNrPnsmWqgWPrC/KosQ9Vr7NaL
-        Tw176KQAGViglUwsyHH4KaYyJhMWsC5Oh07G2MTYwk9XFj+Ea/Rx+VOxXb35ogJGgC3VGVW+iRKX/
-        zXvPyOiXsVLfVT/EcrlFfKboKJY7T0dY6mIm1HQyrkdBMM6kPen4l3iKgHPuDXEpWzXSF5CJjhSdk
-        v3UK7UMQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1q4Kp9-0005uZ-7E; Wed, 31 May 2023 14:21:07 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [libnftnl PATCH] set: Do not leave free'd expr_list elements in place
-Date:   Wed, 31 May 2023 14:32:56 +0200
-Message-Id: <20230531123256.4882-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.40.0
+        bh=TYAUZxdP9/WntNa5Zi6BpTH5LjH+Da18BbR5Eyll4MM=; b=T/YktXcyfdKYII7Yu4BJA/olqX
+        7hyFwa1N4OARG/lsovXEsyLxOKt5/g2OyhGU3Z1cDEJzLHnti6gIrBSp5JXnfbSNwbiVnuA6gexD7
+        /i7shJlq6GzKLfIoOR+2EEoNdGNWbNkiuKEQ9ntMRV2rOcwI9p69O9Bsi9VSOC+Sftjlu4r7zzxPh
+        MpNKgJ0NgY8kzwIVqdzkpcNM32MX1DuHISxX84W3bp/8Go4Ehd7TO7fRgJjKV5MmBvXHNBaJqrzit
+        mpc9PbvTzVIWt85+65LddvwU1f2GljdYUUyvFbtTKLjqchFKxdtlZlvM6BgGNk0sHmtiTEEih9orO
+        0Qm3Llzg==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=azazel.net)
+        by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1q4NJy-00Bfit-Ks; Wed, 31 May 2023 16:01:06 +0100
+Date:   Wed, 31 May 2023 16:01:02 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     ValdikSS <iam@valdikss.org.ru>, netfilter-devel@vger.kernel.org
+Subject: Re: xtables-addons: ipp2p does not block TCP traffic with nonlinear
+ skb
+Message-ID: <20230531150102.GA1355804@azazel.net>
+References: <2b05bb89-08bf-b3b1-c2d7-9b391953f303@valdikss.org.ru>
+ <7rr4q976-5qn6-382r-0pp-66rq492r9376@vanv.qr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="E2f57VnskL+TofF/"
+Content-Disposition: inline
+In-Reply-To: <7rr4q976-5qn6-382r-0pp-66rq492r9376@vanv.qr>
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When freeing elements, remove them also to prevent a potential UAF.
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1685
-Fixes: 3469f09286cee ("src: add NFTNL_SET_EXPRESSIONS")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/set.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+--E2f57VnskL+TofF/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/src/set.c b/src/set.c
-index c46f8277ff687..719e59616e974 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -54,8 +54,10 @@ void nftnl_set_free(const struct nftnl_set *s)
- 	if (s->flags & (1 << NFTNL_SET_USERDATA))
- 		xfree(s->user.data);
- 
--	list_for_each_entry_safe(expr, next, &s->expr_list, head)
-+	list_for_each_entry_safe(expr, next, &s->expr_list, head) {
-+		list_del(&expr->head);
- 		nftnl_expr_free(expr);
-+	}
- 
- 	list_for_each_entry_safe(elem, tmp, &s->element_list, head) {
- 		list_del(&elem->head);
-@@ -105,8 +107,10 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
- 		break;
- 	case NFTNL_SET_EXPR:
- 	case NFTNL_SET_EXPRESSIONS:
--		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
-+		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
-+			list_del(&expr->head);
- 			nftnl_expr_free(expr);
-+		}
- 		break;
- 	default:
- 		return;
-@@ -210,8 +214,10 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
- 		s->user.len = data_len;
- 		break;
- 	case NFTNL_SET_EXPR:
--		list_for_each_entry_safe(expr, tmp, &s->expr_list, head)
-+		list_for_each_entry_safe(expr, tmp, &s->expr_list, head) {
-+			list_del(&expr->head);
- 			nftnl_expr_free(expr);
-+		}
- 
- 		expr = (void *)data;
- 		list_add(&expr->head, &s->expr_list);
-@@ -742,8 +748,10 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
- 
- 	return 0;
- out_set_expr:
--	list_for_each_entry_safe(expr, next, &s->expr_list, head)
-+	list_for_each_entry_safe(expr, next, &s->expr_list, head) {
-+		list_del(&expr->head);
- 		nftnl_expr_free(expr);
-+	}
- 
- 	return -1;
- }
--- 
-2.40.0
+On 2023-05-31, at 11:41:07 +0200, Jan Engelhardt wrote:
+> On Wednesday 2023-05-31 08:42, ValdikSS wrote:
+> > However, it's not getting processed due to nonlinear skb:
+> >
+> >> static bool
+> >> ipp2p_mt(const struct sk_buff *skb, struct xt_action_param *par)
+> >>  /* make sure that skb is linear */
+> >>  if (skb_is_nonlinear(skb)) {
+> >>   if (info->debug)
+> >>   	printk("IPP2P.match: nonlinear skb found\n");
+> >>  	return 0;
+> >>  }
+>=20
+> It should be possible to just take the code from xt_ECHO and call
+>=20
+> if (skb_linearize(skb) < 0)
+> 	return false;
+>=20
+> However, none of the xtables matches in the Linux kernel do this
+> linearization, at least not that I can see directly.
 
+They use `skb_header_pointer` instead, I think, which handles the
+linearization behind the scenes.  I'll send a patch.
+
+> Or xt_string's call to skb_find_text is magic..
+
+J.
+
+--E2f57VnskL+TofF/
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmR3YScACgkQKYasCr3x
+BA0QCRAAg1mYUdPURt9uBpTMxm66oUFtfSfXVgnL2TVR5j8yHHkzmlyWONYVRIV9
+RaYa2pryxxW5GzPKwf9EMO7Pl/Ahmh99TaHZtzLLv+/T7+XNREVzhw5xNAuMbjN+
+LV0bjZhGiw2AeCqgOq4T/j1VzZXxcoA4xhibWIDrp9DkQLhhzeoyCJ7H/Loc0ibz
+SBj0zEfK54NwkrRqEZD2z3vQhDqad0VAsCRLCWn5j/RKLxFda4fDC51Z4K8Oglcu
+6R+QDF8jIsKVkUSXxaP75V5ZDr2fn1+EJLI6TH+8ttC0UhlPLudMgnkASg309/Lj
+Zw+DdRYGkkzv/cyqIIUIGpfT1xnlcG3zZsJxzpoGNukRqYPLLuEIQRSqEZCQkYxk
+sT015TS2zPeOEGH0noROzqMbQuE6imMlOJoP3VjmyPE5KNYtflpY+upHXX/unblK
+bKhtISGGZM3uaGqvIfhzyZb6ZoVoAOlKH/HziopLfGSsJsXXCVy4eoF6svvymrEs
+hO+rsCEwzX+Lwqb8u9dcEJRmoPKQJ+tR4U6sb98CaqW8WDhR8rwXlos/rfaBputp
+38H30KDUy1KZlCvz8EUZxzBTFEiiZkL9znGghp+5xZWMRPJz70PK/oD5GLs0z8MA
+977DQHf6501d7pYVugwpC8Mah8dhqk1rvS7X1bbNdgY2/WYR8dY=
+=Y51x
+-----END PGP SIGNATURE-----
+
+--E2f57VnskL+TofF/--
