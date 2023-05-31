@@ -2,107 +2,268 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D56F2C7EE23
-	for <netfilter-devel@archiver.kernel.org>; Tue, 30 May 2023 23:49:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CACAEC77B7A
+	for <netfilter-devel@archiver.kernel.org>; Wed, 31 May 2023 00:16:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233731AbjE3Xtx (ORCPT
+        id S230187AbjEaAQZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 30 May 2023 19:49:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35816 "EHLO
+        Tue, 30 May 2023 20:16:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229590AbjE3Xtx (ORCPT
+        with ESMTP id S229725AbjEaAQY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 May 2023 19:49:53 -0400
+        Tue, 30 May 2023 20:16:24 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3AEFFB2
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2023 16:49:51 -0700 (PDT)
-Date:   Wed, 31 May 2023 01:49:48 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ECF81B2
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2023 17:16:22 -0700 (PDT)
+Date:   Wed, 31 May 2023 02:16:20 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 2/3] netfilter: nf_tables: validate register
- loads never access unitialised registers
-Message-ID: <ZHaLnEMlaGG0mwUs@calendula>
-References: <20230505111656.32238-1-fw@strlen.de>
- <20230505111656.32238-3-fw@strlen.de>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Eric Garver <e@erig.me>, danw@redhat.com, aauren@gmail.com
+Subject: Re: [iptables PATCH 3/4] Add --compat option to *tables-nft and
+ *-nft-restore commands
+Message-ID: <ZHaR1M+EFjUHLOc/@calendula>
+References: <20230505183446.28822-1-phil@nwl.cc>
+ <20230505183446.28822-4-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230505111656.32238-3-fw@strlen.de>
+In-Reply-To: <20230505183446.28822-4-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+Hi Phil,
 
-On Fri, May 05, 2023 at 01:16:55PM +0200, Florian Westphal wrote:
-> Reject rules where a load occurs from a register that has not seen a
-> store early in the same rule.
+On Fri, May 05, 2023 at 08:34:45PM +0200, Phil Sutter wrote:
+> The flag sets nft_handle::compat boolean, indicating a compatible rule
+> implementation is wanted. Users expecting their created rules to be
+> fetched from kernel by an older version of *tables-nft may use this to
+> avoid potential compatibility issues.
+
+This would require containers to be updated to use this new option or
+maybe there is a transparent way to invoke this new --compat option?
+
+I still think using userdata for this is the way to address I call it
+"forward compatibility" issue, that is: old iptables binaries can
+interpret what new iptables binary generates.
+
+I am afraid this new option does not handle these two scenarios?
+
+- new match/target that is not supported by older iptables version
+  could not be printed.
+- match/target from xtables-addons that is not supported by different
+  iptables without these extensions.
+
+I read the notes we collected during NFWS and we seem to agree at that
+time. Maybe some of the requirements have changed since NFWS?
+
+Apologies in advance if you feel we are going a bit into circles with
+this.
+
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  iptables/xshared.c         |  7 ++++++-
+>  iptables/xshared.h         |  1 +
+>  iptables/xtables-arp.c     |  1 +
+>  iptables/xtables-eb.c      |  7 ++++++-
+>  iptables/xtables-restore.c | 17 +++++++++++++++--
+>  iptables/xtables.c         |  2 ++
+>  6 files changed, 31 insertions(+), 4 deletions(-)
 > 
-> commit 4c905f6740a3 ("netfilter: nf_tables: initialize registers in nft_do_chain()")
-> had to add a unconditional memset to the nftables register space to
-> avoid leaking stack information to userspace.
+> diff --git a/iptables/xshared.c b/iptables/xshared.c
+> index 17aed04e02b09..502d0a9bda4c6 100644
+> --- a/iptables/xshared.c
+> +++ b/iptables/xshared.c
+> @@ -1273,7 +1273,8 @@ xtables_printhelp(const struct xtables_rule_match *matches)
+>  	printf(
+>  "  --modprobe=<command>		try to insert modules using this command\n"
+>  "  --set-counters -c PKTS BYTES	set the counter during insert/append\n"
+> -"[!] --version	-V		print package version.\n");
+> +"[!] --version	-V		print package version\n"
+> +"  --compat			create rules compatible for parsing with old binaries\n");
+>  
+>  	if (afinfo->family == NFPROTO_ARP) {
+>  		int i;
+> @@ -1796,6 +1797,10 @@ void do_parse(int argc, char *argv[],
+>  
+>  			exit_tryhelp(2, p->line);
+>  
+> +		case 15: /* --compat */
+> +			p->compat = true;
+> +			break;
+> +
+>  		case 1: /* non option */
+>  			if (optarg[0] == '!' && optarg[1] == '\0') {
+>  				if (invert)
+> diff --git a/iptables/xshared.h b/iptables/xshared.h
+> index 0ed9f3c29c600..d8c56cf38790d 100644
+> --- a/iptables/xshared.h
+> +++ b/iptables/xshared.h
+> @@ -276,6 +276,7 @@ struct xt_cmd_parse {
+>  	int				line;
+>  	int				verbose;
+>  	bool				xlate;
+> +	bool				compat;
+>  	struct xt_cmd_parse_ops		*ops;
+>  };
+>  
+> diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+> index 71518a9cbdb6a..c6a9c6d68cb10 100644
+> --- a/iptables/xtables-arp.c
+> +++ b/iptables/xtables-arp.c
+> @@ -78,6 +78,7 @@ static struct option original_opts[] = {
+>  	{ "line-numbers", 0, 0, '0' },
+>  	{ "modprobe", 1, 0, 'M' },
+>  	{ "set-counters", 1, 0, 'c' },
+> +	{ "compat", 0, 0, 15 },
+>  	{ 0 }
+>  };
+>  
+> diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+> index bf35f52b7585d..857a3c6f19d82 100644
+> --- a/iptables/xtables-eb.c
+> +++ b/iptables/xtables-eb.c
+> @@ -199,6 +199,7 @@ struct option ebt_original_options[] =
+>  	{ "init-table"     , no_argument      , 0, 11  },
+>  	{ "concurrent"     , no_argument      , 0, 13  },
+>  	{ "check"          , required_argument, 0, 14  },
+> +	{ "compat"         , no_argument      , 0, 15  },
+>  	{ 0 }
+>  };
+>  
+> @@ -311,7 +312,8 @@ static void print_help(const struct xtables_target *t,
+>  "--modprobe -M program         : try to insert modules using this program\n"
+>  "--concurrent                  : use a file lock to support concurrent scripts\n"
+>  "--verbose -v                  : verbose mode\n"
+> -"--version -V                  : print package version\n\n"
+> +"--version -V                  : print package version\n"
+> +"--compat                      : create rules compatible for parsing with old binaries\n\n"
+>  "Environment variable:\n"
+>  /*ATOMIC_ENV_VARIABLE "          : if set <FILE> (see above) will equal its value"*/
+>  "\n\n");
+> @@ -1074,6 +1076,9 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
+>  			return 1;
+>  		case 13 :
+>  			break;
+> +		case 15:
+> +			h->compat = true;
+> +			break;
+>  		case 1 :
+>  			if (!strcmp(optarg, "!"))
+>  				ebt_check_inverse2(optarg, argc, argv);
+> diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+> index abe56374289f4..14699a514f5ce 100644
+> --- a/iptables/xtables-restore.c
+> +++ b/iptables/xtables-restore.c
+> @@ -26,6 +26,7 @@ static int counters, verbose;
+>  /* Keeping track of external matches and targets.  */
+>  static const struct option options[] = {
+>  	{.name = "counters", .has_arg = false, .val = 'c'},
+> +	{.name = "compat",   .has_arg = false, .val = 'C'},
+>  	{.name = "verbose",  .has_arg = false, .val = 'v'},
+>  	{.name = "version",       .has_arg = 0, .val = 'V'},
+>  	{.name = "test",     .has_arg = false, .val = 't'},
+> @@ -45,8 +46,9 @@ static const struct option options[] = {
+>  
+>  static void print_usage(const char *name, const char *version)
+>  {
+> -	fprintf(stderr, "Usage: %s [-c] [-v] [-V] [-t] [-h] [-n] [-T table] [-M command] [-4] [-6] [file]\n"
+> +	fprintf(stderr, "Usage: %s [-c] [-C] [-v] [-V] [-t] [-h] [-n] [-T table] [-M command] [-4] [-6] [file]\n"
+>  			"	   [ --counters ]\n"
+> +			"	   [ --compat ]\n"
+>  			"	   [ --verbose ]\n"
+>  			"	   [ --version]\n"
+>  			"	   [ --test ]\n"
+> @@ -291,6 +293,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+>  		.cb = &restore_cb,
+>  	};
+>  	bool noflush = false;
+> +	bool compat = false;
+>  	struct nft_handle h;
+>  	int c;
+>  
+> @@ -313,6 +316,9 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+>  			case 'c':
+>  				counters = 1;
+>  				break;
+> +			case 'C':
+> +				compat = true;
+> +				break;
+>  			case 'v':
+>  				verbose++;
+>  				break;
+> @@ -389,6 +395,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+>  	}
+>  	h.noflush = noflush;
+>  	h.restore = true;
+> +	h.compat = compat;
+>  
+>  	xtables_restore_parse(&h, &p);
+>  
+> @@ -419,6 +426,7 @@ static const struct nft_xt_restore_cb ebt_restore_cb = {
+>  };
+>  
+>  static const struct option ebt_restore_options[] = {
+> +	{.name = "compat",  .has_arg = 0, .val = 'C'},
+>  	{.name = "noflush", .has_arg = 0, .val = 'n'},
+>  	{.name = "verbose", .has_arg = 0, .val = 'v'},
+>  	{ 0 }
+> @@ -431,12 +439,16 @@ int xtables_eb_restore_main(int argc, char *argv[])
+>  		.cb = &ebt_restore_cb,
+>  	};
+>  	bool noflush = false;
+> +	bool compat = false;
+>  	struct nft_handle h;
+>  	int c;
+>  
+>  	while ((c = getopt_long(argc, argv, "nv",
+>  				ebt_restore_options, NULL)) != -1) {
+>  		switch(c) {
+> +		case 'C':
+> +			compat = true;
+> +			break;
+>  		case 'n':
+>  			noflush = 1;
+>  			break;
+> @@ -445,7 +457,7 @@ int xtables_eb_restore_main(int argc, char *argv[])
+>  			break;
+>  		default:
+>  			fprintf(stderr,
+> -				"Usage: ebtables-restore [ --verbose ] [ --noflush ]\n");
+> +				"Usage: ebtables-restore [ --compat ] [ --verbose ] [ --noflush ]\n");
+>  			exit(1);
+>  			break;
+>  		}
+> @@ -453,6 +465,7 @@ int xtables_eb_restore_main(int argc, char *argv[])
+>  
+>  	nft_init_eb(&h, "ebtables-restore");
+>  	h.noflush = noflush;
+> +	h.compat = compat;
+>  	xtables_restore_parse(&h, &p);
+>  	nft_fini_eb(&h);
+>  
+> diff --git a/iptables/xtables.c b/iptables/xtables.c
+> index 22d6ea58376fc..25b4dbc6b8475 100644
+> --- a/iptables/xtables.c
+> +++ b/iptables/xtables.c
+> @@ -82,6 +82,7 @@ static struct option original_opts[] = {
+>  	{.name = "goto",	  .has_arg = 1, .val = 'g'},
+>  	{.name = "ipv4",	  .has_arg = 0, .val = '4'},
+>  	{.name = "ipv6",	  .has_arg = 0, .val = '6'},
+> +	{.name = "compat",        .has_arg = 0, .val = 15 },
+>  	{NULL},
+>  };
+>  
+> @@ -161,6 +162,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+>  
+>  	do_parse(argc, argv, &p, &cs, &args);
+>  	h->verbose = p.verbose;
+> +	h->compat = p.compat;
+>  
+>  	if (!nft_table_builtin_find(h, p.table))
+>  		xtables_error(VERSION_PROBLEM,
+> -- 
+> 2.40.0
 > 
-> This memset shows up in benchmarks.  After this change, this commit
-> can be reverted again.
-> 
-> Note that this breaks userspace compatibility, because theoretically
-> you can do
-> 
->     rule 1: reg2 := meta load iif, reg2  == 1 jump ...
->     rule 2: reg2 == 2 jump ...   // read access with no store in this rule
-> 
-> ... after this change this is rejected.
-
-We can probably achieve the same effect by recovering the runtime
-register tracking patches I posted. It should be possible to add
-unlikely() to the branch that checks for uninitialized data in source
-register, that is missing in this patch:
-
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230505153130.2385-6-pablo@netfilter.org/
-
-such patch also equires these patches to add the helpers to load and
-store:
-
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230505153130.2385-3-pablo@netfilter.org/
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230505153130.2385-4-pablo@netfilter.org/
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230505153130.2385-5-pablo@netfilter.org/
-
-I think those helpers to load and store on registers should have been
-there since the beginning instead of opencoding operations on the
-registers. I am going to collect some numbers with these patches
-including unlikely() to the _load() checks. I fear I might have
-introduced some subtle bug, I remember these patches are passing
-selftests fine, but I am not sure we have enough of these selftests.
-
-As you suggested, I also considered using the new track infrastructure
-(the one I posted to achieve the combo expressions) to detect a read
-to uninitialized registers from control plane, but it gets complicated
-again because:
-
-1) what level should register tracking happen at? rule, chain or from
-   basechain to leaf chains (to ensure that we retain the freedom to
-   make more transformation from userspace, eg. static flag for ruleset
-   that never change to omit redundant operations in the generated
-   bytecode). Your patch selects rule level. Chain level will lose
-   context when jumping/going to another chain. Inspecting from
-   basechain to leaf chains will be expensive in dynamic rulesets.
-
-2) combo expressions omit the register store operation, the tracking
-   infrastructure would need to distinguish between two situations:
-   register data has been omitted or register data is missing because
-   userspace provides bytecode that tries to read uninitialized
-   registers.
-
-While I agree control plane is ideal for this, because it allows to
-reject a ruleset that reads on uninitialized register data, checking
-at rule/chain level cripples expressiveness in a way that it will not
-be easy to revert in the future if we want to change direction.
-
-> Neither nftables nor iptables-nft generate such rules, each rule is
-> always standalone.
-
-That is true these days indeed. I like your approach because it is
-simple. But my concern is that this limits expressiveness.
-
-Thanks.
