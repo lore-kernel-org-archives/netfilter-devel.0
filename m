@@ -2,73 +2,68 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 914C7C7EE2A
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Jun 2023 15:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80E7DC7EE23
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Jun 2023 15:54:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234349AbjFAPLo (ORCPT
+        id S233226AbjFAPyC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Jun 2023 11:11:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51508 "EHLO
+        Thu, 1 Jun 2023 11:54:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234299AbjFAPLh (ORCPT
+        with ESMTP id S233815AbjFAPxy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Jun 2023 11:11:37 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 472ABE5F
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Jun 2023 08:11:19 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1q4jxB-0004Up-7i; Thu, 01 Jun 2023 17:11:05 +0200
-Date:   Thu, 1 Jun 2023 17:11:05 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: nftables: Writers starve readers
-Message-ID: <20230601151105.GB26130@breakpoint.cc>
-References: <ZHhm1dn6L1BUAQKK@orbyte.nwl.cc>
+        Thu, 1 Jun 2023 11:53:54 -0400
+Received: from m126.mail.126.com (m126.mail.126.com [220.181.12.35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 70FB8E2
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Jun 2023 08:53:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=jz9J1
+        7qPdzKxSrE6AEZwO9U/5asKmv5w1Avw9vbbjEU=; b=G/6KdIK4Yj+YtNeYvutMF
+        qv3alu8WTLtHdw1P4tcnKaWMePIczgOZ0+CAHoCJzr4PDNyqrToZbNLIfWMKAN2R
+        qgOGvz82VbL1t6SF6nocYblv0VRIGpxlwYXIPY4MZtuwwk/cj717RPSWHdeAC9QK
+        2FEc8xqgB7oXrfELElNwiI=
+Received: from localhost.localdomain (unknown [39.170.41.95])
+        by zwqz-smtp-mta-g4-1 (Coremail) with SMTP id _____wD3sxv9vnhkjcWoAg--.13594S2;
+        Thu, 01 Jun 2023 23:53:34 +0800 (CST)
+From:   tongxiaoge1001@126.com
+To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Cc:     shixuantong1@huawei.com, shixuantong <tongxiaoge1001@126.com>
+Subject: [PATCH] fix typo
+Date:   Thu,  1 Jun 2023 23:53:23 +0800
+Message-Id: <20230601155323.65484-1-tongxiaoge1001@126.com>
+X-Mailer: git-send-email 2.33.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZHhm1dn6L1BUAQKK@orbyte.nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: _____wD3sxv9vnhkjcWoAg--.13594S2
+X-Coremail-Antispam: 1Uf129KBjvdXoW7Jr43KryxZrW5Aw4DWF17KFg_yoWxCFX_G3
+        45ZFs7Way2yF1qva1kX3Z5A34xGrnrJr1xXwn3JFnrt3yUAr4Yk3WkWFW8Aw1UWrW5KasI
+        qwnIvrykCw47GjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUjwvttUUUUU==
+X-Originating-IP: [39.170.41.95]
+X-CM-SenderInfo: pwrqw55ldrwvirqqiqqrswhudrp/1tbiGB+BWlpEKFk2lQAAsQ
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> A call to 'nft list ruleset' in a second terminal hangs without output.
-> It apparently hangs in nft_cache_update() because rule_cache_dump()
-> returns EINTR. On kernel side, I guess it stems from
-> nl_dump_check_consistent() in __nf_tables_dump_rules(). I haven't
-> checked, but the generation counter likely increases while dumping the
-> 100k rules.
+From: shixuantong <tongxiaoge1001@126.com>
 
-Yes.
+---
+ tests/nft-table-test.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> One may deem this scenario unrealistic, but I had to insert a 'sleep 5'
-> into the while-loop to unblock 'nft list ruleset' again. A new rule
-> every 4s especially in such a large ruleset is not that unrealistic IMO.
+diff --git a/tests/nft-table-test.c b/tests/nft-table-test.c
+index 1b2f280..53cf3d1 100644
+--- a/tests/nft-table-test.c
++++ b/tests/nft-table-test.c
+@@ -34,7 +34,7 @@ static void cmp_nftnl_table(struct nftnl_table *a, struct nftnl_table *b)
+ 		print_err("table flags mismatches");
+ 	if (nftnl_table_get_u32(a, NFTNL_TABLE_FAMILY) !=
+ 	    nftnl_table_get_u32(b, NFTNL_TABLE_FAMILY))
+-		print_err("tabke family mismatches");
++		print_err("table family mismatches");
+ }
+ 
+ int main(int argc, char *argv[])
+-- 
+2.33.0
 
-Several seconds is very strange indeed, how is the data that needs
-to be transferred to userspace and how large is the buffer provided
-during dumps? strace would help here.
-
-If thats rather small, then dumping a chain with 10k rules may
-have to re-iterate the existig list for long time before it finds
-the starting point on where to resume the dump.
-
-> I wonder if we can provide some fairness to readers? Ideally a reader
-> would just see the ruleset as it was when it started dumping, but
-> keeping a copy of the large ruleset is probably not feasible.
-
-I can't think of a good solution.  We could add a
-"--allow-inconsistent-dump" flag to nftables that disables the restart
-logic for -EINTR case, but we can't make that the default unfortunately.
-
-Or we could experiment with serializing the remaining rules into a
-private kernel-side kmalloc'd buffer once the userspace buffer is
-full, then copy from that buffer on resume without the inconsistency check.
-
-I don't think that we can solve this, slowing down writers when there
-are dumpers will load to the same issue, just in the oppostite direction.
