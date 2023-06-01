@@ -2,69 +2,100 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04B63C77B7E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Jun 2023 16:07:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B490C77B7E
+	for <netfilter-devel@archiver.kernel.org>; Thu,  1 Jun 2023 16:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234584AbjFAQHC (ORCPT
+        id S229947AbjFAQmv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 1 Jun 2023 12:07:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34156 "EHLO
+        Thu, 1 Jun 2023 12:42:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234196AbjFAQHA (ORCPT
+        with ESMTP id S229476AbjFAQmu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Jun 2023 12:07:00 -0400
-X-Greylist: delayed 957 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 01 Jun 2023 09:06:58 PDT
-Received: from m126.mail.126.com (m126.mail.126.com [220.181.12.36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 46268199
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Jun 2023 09:06:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=jz9J1
-        7qPdzKxSrE6AEZwO9U/5asKmv5w1Avw9vbbjEU=; b=aQ2YcjP9duUWY1jyxrJMs
-        t5kHhEZQg+azeRmAEvIVz5lR+HcVDOnuSUXs/zlpjCtlSeG1kjmGDOX0NAzJZO42
-        S/uHo80r+g/y1TNM++Wlx3t8VyZbESXaq+PYRG/b+XjlQ7woRDgGzZRMdtQoBgk8
-        tlZ/ZrhdtF8QJXXUayNfFg=
-Received: from localhost.localdomain (unknown [101.71.37.67])
-        by zwqz-smtp-mta-g0-1 (Coremail) with SMTP id _____wCHOwQevnhknYqlAg--.13462S2;
-        Thu, 01 Jun 2023 23:49:52 +0800 (CST)
-From:   tongxiaoge1001@126.com
-To:     netfilter-devel@vger.kernel.org
-Cc:     shixuantong1@huawei.com, shixuantong <tongxiaoge1001@126.com>
-Subject: [PATCH] fix typo
-Date:   Thu,  1 Jun 2023 23:49:45 +0800
-Message-Id: <20230601154945.65460-1-tongxiaoge1001@126.com>
-X-Mailer: git-send-email 2.33.0
+        Thu, 1 Jun 2023 12:42:50 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C3DD184
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Jun 2023 09:42:48 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1q4lNu-0005BJ-AT; Thu, 01 Jun 2023 18:42:46 +0200
+Date:   Thu, 1 Jun 2023 18:42:46 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: nftables: Writers starve readers
+Message-ID: <ZHjKhvWbM5tb/lEh@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <ZHhm1dn6L1BUAQKK@orbyte.nwl.cc>
+ <20230601151105.GB26130@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: _____wCHOwQevnhknYqlAg--.13462S2
-X-Coremail-Antispam: 1Uf129KBjvdXoW7Jr43KryxZrW5Aw4DWF17KFg_yoWxCFX_G3
-        45ZFs7Way2yF1qva1kX3Z5A34xGrnrJr1xXwn3JFnrt3yUAr4Yk3WkWFW8Aw1UWrW5KasI
-        qwnIvrykCw47GjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUUfOz3UUUUU==
-X-Originating-IP: [101.71.37.67]
-X-CM-SenderInfo: pwrqw55ldrwvirqqiqqrswhudrp/1tbiHASBWlpEKGCLhgAAsY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230601151105.GB26130@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: shixuantong <tongxiaoge1001@126.com>
+On Thu, Jun 01, 2023 at 05:11:05PM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > A call to 'nft list ruleset' in a second terminal hangs without output.
+> > It apparently hangs in nft_cache_update() because rule_cache_dump()
+> > returns EINTR. On kernel side, I guess it stems from
+> > nl_dump_check_consistent() in __nf_tables_dump_rules(). I haven't
+> > checked, but the generation counter likely increases while dumping the
+> > 100k rules.
+> 
+> Yes.
+> 
+> > One may deem this scenario unrealistic, but I had to insert a 'sleep 5'
+> > into the while-loop to unblock 'nft list ruleset' again. A new rule
+> > every 4s especially in such a large ruleset is not that unrealistic IMO.
+> 
+> Several seconds is very strange indeed, how is the data that needs
+> to be transferred to userspace and how large is the buffer provided
+> during dumps? strace would help here.
 
----
- tests/nft-table-test.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Each recvmsg() call returns 32KB, grepping for NFT_MSG_NEWRULE returns
+4290 lines.
 
-diff --git a/tests/nft-table-test.c b/tests/nft-table-test.c
-index 1b2f280..53cf3d1 100644
---- a/tests/nft-table-test.c
-+++ b/tests/nft-table-test.c
-@@ -34,7 +34,7 @@ static void cmp_nftnl_table(struct nftnl_table *a, struct nftnl_table *b)
- 		print_err("table flags mismatches");
- 	if (nftnl_table_get_u32(a, NFTNL_TABLE_FAMILY) !=
- 	    nftnl_table_get_u32(b, NFTNL_TABLE_FAMILY))
--		print_err("tabke family mismatches");
-+		print_err("table family mismatches");
- }
- 
- int main(int argc, char *argv[])
--- 
-2.33.0
+| # time ./src/nft list ruleset | wc -l
+| # Warning: table ip filter is managed by iptables-nft, do not touch!
+| # Warning: table ip nat is managed by iptables-nft, do not touch!
+| # Warning: table ip mangle is managed by iptables-nft, do not touch!
+| 100190
+| 
+| real  0m5.572s
+| user  0m1.014s
+| sys   0m4.885s 
 
+> If thats rather small, then dumping a chain with 10k rules may
+> have to re-iterate the existig list for long time before it finds
+> the starting point on where to resume the dump.
+
+To my surprise, the mnl_nft_rule_dump() code-path does not call
+mnl_set_rcvbuffer(). Though explicitly calling it from nft_mnl_talk() passing
+1<<24 as buffer size does not lead to different behaviour. I seem to recall the
+32k was a kernel-side limit in netlink?
+
+> > I wonder if we can provide some fairness to readers? Ideally a reader
+> > would just see the ruleset as it was when it started dumping, but
+> > keeping a copy of the large ruleset is probably not feasible.
+> 
+> I can't think of a good solution.  We could add a
+> "--allow-inconsistent-dump" flag to nftables that disables the restart
+> logic for -EINTR case, but we can't make that the default unfortunately.
+> 
+> Or we could experiment with serializing the remaining rules into a
+> private kernel-side kmalloc'd buffer once the userspace buffer is
+> full, then copy from that buffer on resume without the inconsistency check.
+> 
+> I don't think that we can solve this, slowing down writers when there
+> are dumpers will load to the same issue, just in the oppostite direction.
+
+You're probably right, thanks for spending cycles on it.
+
+Cheers, Phil
