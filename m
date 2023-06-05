@@ -2,97 +2,78 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D847EC7EE24
-	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jun 2023 16:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0613EC7EE24
+	for <netfilter-devel@archiver.kernel.org>; Mon,  5 Jun 2023 19:20:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231165AbjFEQOX (ORCPT
+        id S232171AbjFETUR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 5 Jun 2023 12:14:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37212 "EHLO
+        Mon, 5 Jun 2023 15:20:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230223AbjFEQOX (ORCPT
+        with ESMTP id S235760AbjFETTx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Jun 2023 12:14:23 -0400
-Received: from m126.mail.126.com (m126.mail.126.com [220.181.12.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6E4D4B7
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Jun 2023 09:14:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=atRbz
-        VD5gzHRWW5/k9kAN454+QkrwNfWBMgp+CfsT8E=; b=DvNo6CNlb0E+jZSRW4hoK
-        A+AVbC92FSs1lmDBGWK73pnYIECNLsoIseGEUOc59QFnoJZw+0kGfS+H05n2iyCh
-        UF5P+p3L1tpazncm4g8fM8SPyM9fkTxvFyEbIYEKxY7KlqbeghvtRC8//JaEZEIK
-        SsIrJQ3bWsubGzXFt8frL0=
-Received: from localhost.localdomain (unknown [58.101.35.131])
-        by zwqz-smtp-mta-g3-1 (Coremail) with SMTP id _____wCnUpXOCX5kAfQIAw--.19198S4;
-        Tue, 06 Jun 2023 00:14:07 +0800 (CST)
-From:   tongxiaoge1001@126.com
-To:     pablo@netfilter.org
-Cc:     netfilter-devel@vger.kernel.org, shixuantong1@huawei.com,
-        tongxiaoge1001@126.com
-Subject: [PATCH] add some test cases to improve code coverage
-Date:   Tue,  6 Jun 2023 00:14:04 +0800
-Message-Id: <20230605161404.117404-1-tongxiaoge1001@126.com>
-X-Mailer: git-send-email 2.33.0
+        Mon, 5 Jun 2023 15:19:53 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2E271706
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Jun 2023 12:19:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=FGBJWk09SxVYUOVSifnIcd9VrkGVyWS7kh9bnNpDVxQ=; b=W6Xjbof9dykaDkhFNfqknWdXB4
+        mfAXqNrIwSBmCgssRXITZp1jqmbAF+A4sG/QCHid0Tzl4G0zhfpSyFXQVewIN3Usat7SK8tEQYDfW
+        XP/8H11SsuEaecJ5Q8bmVsBHyxl/PgUZ+6+sUMLqw2DNj6Xff0vuHh4jFGdnaVHw5xoTRpEF4Znbu
+        M4V1TlpH6R6a3yiBPwwyrqxZkC5bDpy7HIESea1oZA1PC1T8K8lj1MEYm/bQsXE799ykDXQ2lAMjJ
+        55V5I2a73vAw+wP4fz+BXeLNUuYwp6kR1/0YA+7furzVPXmuseIFlm3OMLcywb3h8MrLkMogYVV9q
+        bGBdgWzw==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <jeremy@azazel.net>)
+        id 1q6FjL-00H0rc-5l
+        for netfilter-devel@vger.kernel.org; Mon, 05 Jun 2023 20:19:03 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons 3/8] xt_ipp2p: change byte-orer conversion
+Date:   Mon,  5 Jun 2023 20:17:30 +0100
+Message-Id: <20230605191735.119210-4-jeremy@azazel.net>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230605191735.119210-1-jeremy@azazel.net>
+References: <20230605191735.119210-1-jeremy@azazel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: _____wCnUpXOCX5kAfQIAw--.19198S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7AFWxZFW7uFyxtrWfCrWktFb_yoW8CF4kpa
-        n0vry7Kr4rAFnrt3Z2kwsFgFn5Cw1vkr18Cr9F9r17Ar4rXay8JFsrKF93GFn5Jr4rXwn3
-        Zw1qyFWUKrsYvaUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jz1v3UUUUU=
-X-Originating-IP: [58.101.35.131]
-X-CM-SenderInfo: pwrqw55ldrwvirqqiqqrswhudrp/1tbibRaFWlpEDnkKngACsb
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: shixuantong <tongxiaoge1001@126.com>
+Instead of converting the packet bytes before comparing it to a constant,
+convert the constant.
 
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- tests/nft-rule-test.c  | 3 +++
- tests/nft-table-test.c | 8 ++++++++
- 2 files changed, 11 insertions(+)
+ extensions/xt_ipp2p.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tests/nft-rule-test.c b/tests/nft-rule-test.c
-index 3a92223..8cbd961 100644
---- a/tests/nft-rule-test.c
-+++ b/tests/nft-rule-test.c
-@@ -106,6 +106,9 @@ int main(int argc, char *argv[])
- 
- 	cmp_nftnl_rule(a,b);
- 
-+	nftnl_rule_unset(a, NFTNL_RULE_TABLE);
-+	nftnl_rule_unset(a, NFTNL_RULE_CHAIN);
-+	nftnl_rule_unset(a, NFTNL_RULE_USERDATA);
- 	nftnl_rule_free(a);
- 	nftnl_rule_free(b);
- 	if (!test_ok)
-diff --git a/tests/nft-table-test.c b/tests/nft-table-test.c
-index 53cf3d1..61becd4 100644
---- a/tests/nft-table-test.c
-+++ b/tests/nft-table-test.c
-@@ -35,6 +35,12 @@ static void cmp_nftnl_table(struct nftnl_table *a, struct nftnl_table *b)
- 	if (nftnl_table_get_u32(a, NFTNL_TABLE_FAMILY) !=
- 	    nftnl_table_get_u32(b, NFTNL_TABLE_FAMILY))
- 		print_err("table family mismatches");
-+	if (nftnl_table_get_u64(a, NFTNL_TABLE_HANDLE) !=
-+            nftnl_table_get_u64(b, NFTNL_TABLE_HANDLE))
-+                print_err("tabke handle mismatches");
-+	if (strcmp(nftnl_table_get_str(a, NFTNL_TABLE_USERDATA),
-+                   nftnl_table_get_str(b, NFTNL_TABLE_USERDATA)) != 0)
-+                print_err("table userdata mismatches");
- }
- 
- int main(int argc, char *argv[])
-@@ -53,6 +59,8 @@ int main(int argc, char *argv[])
- 	nftnl_table_set_str(a, NFTNL_TABLE_NAME, "test");
- 	nftnl_table_set_u32(a, NFTNL_TABLE_FAMILY, AF_INET);
- 	nftnl_table_set_u32(a, NFTNL_TABLE_FLAGS, 0);
-+	nftnl_table_set_u64(a, NFTNL_TABLE_HANDLE, 0x12345678);
-+	nftnl_table_set_str(a, NFTNL_TABLE_USERDATA, "test for userdata");
- 
- 	/* cmd extracted from include/linux/netfilter/nf_tables.h */
- 	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET, 0, 1234);
+diff --git a/extensions/xt_ipp2p.c b/extensions/xt_ipp2p.c
+index 5f7d5f61b96e..4790c2fca229 100644
+--- a/extensions/xt_ipp2p.c
++++ b/extensions/xt_ipp2p.c
+@@ -210,8 +210,8 @@ udp_search_bit(const unsigned char *haystack, const unsigned int packet_len)
+ 	switch (packet_len) {
+ 	case 16:
+ 		/* ^ 00 00 04 17 27 10 19 80 */
+-		if (ntohl(get_u32(haystack, 0)) == 0x00000417 &&
+-		    ntohl(get_u32(haystack, 4)) == 0x27101980)
++		if (get_u32(haystack, 0) == __constant_htonl(0x00000417) &&
++		    get_u32(haystack, 4) == __constant_htonl(0x27101980))
+ 			return IPP2P_BIT * 100 + 50;
+ 		break;
+ 	case 36:
 -- 
-2.33.0
+2.39.2
 
