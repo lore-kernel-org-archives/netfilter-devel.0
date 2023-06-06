@@ -2,174 +2,186 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C287C77B7A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jun 2023 20:37:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04666C7EE37
+	for <netfilter-devel@archiver.kernel.org>; Tue,  6 Jun 2023 20:59:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232537AbjFFUhQ (ORCPT
+        id S237218AbjFFU7m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 6 Jun 2023 16:37:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54038 "EHLO
+        Tue, 6 Jun 2023 16:59:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232556AbjFFUhP (ORCPT
+        with ESMTP id S231706AbjFFU7l (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Jun 2023 16:37:15 -0400
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E1E6E49
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jun 2023 13:37:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1686083834; x=1717619834;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ngE5tkLL3OUbO5pflDl4gRt6pQd57kpEElEHSkEOFKE=;
-  b=W56JPoJjiobEshZ9okgloytPmpzU4VsupQuYRy7Vu7/Ce6XPDvDy8F6y
-   scXAjCrevdud8IMH0QR2k11sXhMajwWhGOOHBDqqgv1V+lhJ7rHSI5G5E
-   Dta1t6Vw0LYh3cIf9L1sxiAsxeMemSoTevWVYEj7LktqGeVBTfr7Mxnpj
-   fneDN+rPbBm6fOZjZ+rcbGtuYuBMiPxOsd8jAZ8VSnfNRAR61P24I4iL+
-   S9vWVo3CuM346Kv7BMW3aAivlK6ORcrHxRVdDILip5OReb0ey9FoGSI/U
-   bun1sfvs/JDMz3oFNBC3LrqZHdMmvgrL+9H+ZNApLtXrzw5yIGvH4OuOU
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10733"; a="359258314"
-X-IronPort-AV: E=Sophos;i="6.00,221,1681196400"; 
-   d="scan'208";a="359258314"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jun 2023 13:37:13 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10733"; a="703341919"
-X-IronPort-AV: E=Sophos;i="6.00,221,1681196400"; 
-   d="scan'208";a="703341919"
-Received: from lkp-server01.sh.intel.com (HELO 15ab08e44a81) ([10.239.97.150])
-  by orsmga007.jf.intel.com with ESMTP; 06 Jun 2023 13:37:12 -0700
-Received: from kbuild by 15ab08e44a81 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1q6dQV-0005iB-1p;
-        Tue, 06 Jun 2023 20:37:11 +0000
-Date:   Wed, 7 Jun 2023 04:37:05 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: snat: evict closing tcp entries on
- reply tuple collision
-Message-ID: <202306070406.KtN7gaNL-lkp@intel.com>
-References: <20230606125421.15487-1-fw@strlen.de>
+        Tue, 6 Jun 2023 16:59:41 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9DF41717
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jun 2023 13:59:39 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1q6dmD-0001lD-ME; Tue, 06 Jun 2023 22:59:37 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v2] netfilter: snat: evict closing tcp entries on reply tuple collision
+Date:   Tue,  6 Jun 2023 22:59:30 +0200
+Message-Id: <20230606205930.14762-1-fw@strlen.de>
+X-Mailer: git-send-email 2.39.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230606125421.15487-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Florian,
+When all tried source tuples are in use, the connection request (skb)
+and the new conntrack will be dropped in nf_confirm() due to the
+non-recoverable clash.
 
-kernel test robot noticed the following build warnings:
+Make it so that the last 32 attempts are allowed to evict a colliding
+entry if this connection is already closing and the new sequence number
+has advanced past the old one.
 
-[auto build test WARNING on linus/master]
-[also build test WARNING on v6.4-rc5 next-20230606]
-[cannot apply to nf-next/master]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+Such "all tuples taken" secenario can happen with tcp-rpc workloads where
+same dst:dport gets queried repeatedly.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-snat-evict-closing-tcp-entries-on-reply-tuple-collision/20230606-205654
-base:   linus/master
-patch link:    https://lore.kernel.org/r/20230606125421.15487-1-fw%40strlen.de
-patch subject: [PATCH nf-next] netfilter: snat: evict closing tcp entries on reply tuple collision
-config: x86_64-randconfig-a014-20230606 (https://download.01.org/0day-ci/archive/20230607/202306070406.KtN7gaNL-lkp@intel.com/config)
-compiler: clang version 15.0.7 (https://github.com/llvm/llvm-project.git 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a)
-reproduce (this is a W=1 build):
-        mkdir -p ~/bin
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout linus/master
-        b4 shazam https://lore.kernel.org/r/20230606125421.15487-1-fw@strlen.de
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang ~/bin/make.cross W=1 O=build_dir ARCH=x86_64 olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang ~/bin/make.cross W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash net/netfilter/
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ v2: fix uaf, gcc doesn't catch this for some reason. Will
+ switch from gcc to clang for future work.
 
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202306070406.KtN7gaNL-lkp@intel.com/
+ net/netfilter/nf_nat_core.c | 92 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 88 insertions(+), 4 deletions(-)
 
-All warnings (new ones prefixed by >>):
-
->> net/netfilter/nf_nat_core.c:262:6: warning: variable 'ct' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
-           if (thash->tuple.dst.dir == IP_CT_DIR_ORIGINAL)
-               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   net/netfilter/nf_nat_core.c:280:12: note: uninitialized use occurs here
-           nf_ct_put(ct);
-                     ^~
-   net/netfilter/nf_nat_core.c:262:2: note: remove the 'if' if its condition is always false
-           if (thash->tuple.dst.dir == IP_CT_DIR_ORIGINAL)
-           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   net/netfilter/nf_nat_core.c:239:20: note: initialize the variable 'ct' to silence this warning
-           struct nf_conn *ct;
-                             ^
-                              = NULL
-   1 warning generated.
-
-
-vim +262 net/netfilter/nf_nat_core.c
-
-   228	
-   229	static int
-   230	nf_nat_used_tuple_harder(const struct nf_conntrack_tuple *tuple,
-   231				 const struct nf_conn *ignored_conntrack,
-   232				 unsigned int attempts_left)
-   233	{
-   234		static const unsigned long flags_offload = IPS_OFFLOAD | IPS_HW_OFFLOAD;
-   235		struct nf_conntrack_tuple_hash *thash;
-   236		const struct nf_conntrack_zone *zone;
-   237		struct nf_conntrack_tuple reply;
-   238		unsigned long flags;
-   239		struct nf_conn *ct;
-   240		bool taken = true;
-   241		struct net *net;
-   242	
-   243		nf_ct_invert_tuple(&reply, tuple);
-   244	
-   245		if (attempts_left > NF_NAT_HARDER_THRESH ||
-   246		    tuple->dst.protonum != IPPROTO_TCP ||
-   247		    ignored_conntrack->proto.tcp.state != TCP_CONNTRACK_SYN_SENT)
-   248			return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
-   249	
-   250		/* :ast few attempts to find a free tcp port. Destructive
-   251		 * action: evict colliding if its in timewait state and the
-   252		 * tcp sequence number has advanced past the one used by the
-   253		 * old entry.
-   254		 */
-   255		net = nf_ct_net(ignored_conntrack);
-   256		zone = nf_ct_zone(ignored_conntrack);
-   257	
-   258		thash = nf_conntrack_find_get(net, zone, &reply);
-   259		if (!thash)
-   260			return false;
-   261	
- > 262		if (thash->tuple.dst.dir == IP_CT_DIR_ORIGINAL)
-   263			goto out;
-   264	
-   265		ct = nf_ct_tuplehash_to_ctrack(thash);
-   266		if (WARN_ON_ONCE(ct == ignored_conntrack))
-   267			goto out;
-   268	
-   269		flags = READ_ONCE(ct->status);
-   270		if (!nf_nat_may_kill(ct, flags))
-   271			goto out;
-   272	
-   273		if (!nf_seq_has_advanced(ct, ignored_conntrack))
-   274			goto out;
-   275	
-   276		/* Even if we can evict do not reuse if entry is offloaded. */
-   277		if (nf_ct_kill(ct))
-   278			taken = flags & flags_offload;
-   279	out:
-   280		nf_ct_put(ct);
-   281		return taken;
-   282	}
-   283	
-
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ce829d434f13..fadbd4ed3dc0 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -27,6 +27,9 @@
+ 
+ #include "nf_internals.h"
+ 
++#define NF_NAT_MAX_ATTEMPTS	128
++#define NF_NAT_HARDER_THRESH	(NF_NAT_MAX_ATTEMPTS / 4)
++
+ static spinlock_t nf_nat_locks[CONNTRACK_LOCKS];
+ 
+ static DEFINE_MUTEX(nf_nat_proto_mutex);
+@@ -197,6 +200,88 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
+ }
+ 
++static bool nf_nat_may_kill(struct nf_conn *ct, unsigned long flags)
++{
++	static const unsigned long flags_refuse = IPS_FIXED_TIMEOUT |
++						  IPS_DYING;
++	static const unsigned long flags_needed = IPS_SRC_NAT;
++	enum tcp_conntrack old_state;
++
++	old_state = READ_ONCE(ct->proto.tcp.state);
++	if (old_state < TCP_CONNTRACK_TIME_WAIT)
++		return false;
++
++	if (flags & flags_refuse)
++		return false;
++
++	return (flags & flags_needed) == flags_needed;
++}
++
++/* reverse direction will send packets to new source, so
++ * make sure such packets are invalid.
++ */
++static bool nf_seq_has_advanced(const struct nf_conn *old, const struct nf_conn *new)
++{
++	return (__s32)(new->proto.tcp.seen[0].td_end -
++		       old->proto.tcp.seen[0].td_end) > 0;
++}
++
++static int
++nf_nat_used_tuple_harder(const struct nf_conntrack_tuple *tuple,
++			 const struct nf_conn *ignored_conntrack,
++			 unsigned int attempts_left)
++{
++	static const unsigned long flags_offload = IPS_OFFLOAD | IPS_HW_OFFLOAD;
++	struct nf_conntrack_tuple_hash *thash;
++	const struct nf_conntrack_zone *zone;
++	struct nf_conntrack_tuple reply;
++	unsigned long flags;
++	struct nf_conn *ct;
++	bool taken = true;
++	struct net *net;
++
++	nf_ct_invert_tuple(&reply, tuple);
++
++	if (attempts_left > NF_NAT_HARDER_THRESH ||
++	    tuple->dst.protonum != IPPROTO_TCP ||
++	    ignored_conntrack->proto.tcp.state != TCP_CONNTRACK_SYN_SENT)
++		return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
++
++	/* :ast few attempts to find a free tcp port. Destructive
++	 * action: evict colliding if its in timewait state and the
++	 * tcp sequence number has advanced past the one used by the
++	 * old entry.
++	 */
++	net = nf_ct_net(ignored_conntrack);
++	zone = nf_ct_zone(ignored_conntrack);
++
++	thash = nf_conntrack_find_get(net, zone, &reply);
++	if (!thash)
++		return false;
++
++	ct = nf_ct_tuplehash_to_ctrack(thash);
++
++	if (thash->tuple.dst.dir == IP_CT_DIR_ORIGINAL)
++		goto out;
++
++	if (WARN_ON_ONCE(ct == ignored_conntrack))
++		goto out;
++
++	flags = READ_ONCE(ct->status);
++	if (!nf_nat_may_kill(ct, flags))
++		goto out;
++
++	if (!nf_seq_has_advanced(ct, ignored_conntrack))
++		goto out;
++
++	/* Even if we can evict do not reuse if entry is offloaded. */
++	if (nf_ct_kill(ct))
++		taken = flags & flags_offload;
++out:
++	nf_ct_put(ct);
++	return taken;
++}
++
+ static bool nf_nat_inet_in_range(const struct nf_conntrack_tuple *t,
+ 				 const struct nf_nat_range2 *range)
+ {
+@@ -385,7 +470,6 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	unsigned int range_size, min, max, i, attempts;
+ 	__be16 *keyptr;
+ 	u16 off;
+-	static const unsigned int max_attempts = 128;
+ 
+ 	switch (tuple->dst.protonum) {
+ 	case IPPROTO_ICMP:
+@@ -471,8 +555,8 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		off = get_random_u16();
+ 
+ 	attempts = range_size;
+-	if (attempts > max_attempts)
+-		attempts = max_attempts;
++	if (attempts > NF_NAT_MAX_ATTEMPTS)
++		attempts = NF_NAT_MAX_ATTEMPTS;
+ 
+ 	/* We are in softirq; doing a search of the entire range risks
+ 	 * soft lockup when all tuples are already used.
+@@ -483,7 +567,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ another_round:
+ 	for (i = 0; i < attempts; i++, off++) {
+ 		*keyptr = htons(min + off % range_size);
+-		if (!nf_nat_used_tuple(tuple, ct))
++		if (!nf_nat_used_tuple_harder(tuple, ct, attempts - i))
+ 			return;
+ 	}
+ 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.39.3
+
