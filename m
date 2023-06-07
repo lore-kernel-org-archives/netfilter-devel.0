@@ -2,385 +2,81 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E2C4C77B7A
-	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jun 2023 05:47:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E51C77B7A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  7 Jun 2023 06:22:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229603AbjFGFrB (ORCPT
+        id S234983AbjFGGWE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 7 Jun 2023 01:47:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40100 "EHLO
+        Wed, 7 Jun 2023 02:22:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233746AbjFGFq7 (ORCPT
+        with ESMTP id S232580AbjFGGWD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Jun 2023 01:46:59 -0400
-Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E45819BA
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jun 2023 22:46:56 -0700 (PDT)
-Received: by mail-oi1-x232.google.com with SMTP id 5614622812f47-38e3228d120so4563358b6e.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jun 2023 22:46:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1686116815; x=1688708815;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=GyERF0RS7JY1jKOtadu+WV5iG7DwiHrgJtcnyQtVxBs=;
-        b=GlOMRdsW7+vgAflLBokBqQInqf2YvCY16X9F7c0oI8vzt5RrnAH0JABHIBuBY1W1eM
-         uO8Gz5eaHaY73kqV41aFZc7ygwYaAPKAUYPtbxB/gIv3p/rF0qCAe/jT/CsRsq0pDJt6
-         oy2OnS0/M3yFeSnWibgScbxQoNEsTapqvob48=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686116815; x=1688708815;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=GyERF0RS7JY1jKOtadu+WV5iG7DwiHrgJtcnyQtVxBs=;
-        b=NRVtl55vmPm6rIjXHphOz/6ZOMHUYmKxsweOFBFXQeyD9Ry11svgVXHUIiZ5xd3gPV
-         /cAOx5kzPdK8rvGIzay7diOW2ipkMW2N8tVFe0WLjRo1omHQPNIvd5FQlR4kLAcikjio
-         dcQIFRkPDO2WuRkuN890lb2Vf8ktqfFXxeZZq8316xBsW6YPXCRvfMr8amSW496gXekD
-         kPAhOl5qaUVdZ9krktPGuRkUxzQZBtkfowLxTvp+HQH9zbAzPE1LSxfvBDRYcwcmwUrN
-         SHpSXRsVe1CJsUI4zuG+9iaUm5Y9SeBkeQEOakCIBV8oGqR+rK16aVOdVMsD7QvMmThK
-         UF6A==
-X-Gm-Message-State: AC+VfDzunwocD7rvbMkfoCfGe56eNdaOrgWjeBeC+ePtOxFfFxydW/4y
-        gjgNmZyHHYAydisDiYXY/47MUFUuAbn4ZvfdfkRD4RhYOZhCD9Vs
-X-Google-Smtp-Source: ACHHUZ5zS5dgpa7YaYuHV2jJugHaYJIOv9d28BunL9wYs4BNz5uH8Cp/8zFK5xbtcki3Nii4xLGr3KpAncBsV1F6M2Y=
-X-Received: by 2002:a05:6808:4287:b0:397:ec35:f5a6 with SMTP id
- dq7-20020a056808428700b00397ec35f5a6mr2109539oib.57.1686116814839; Tue, 06
- Jun 2023 22:46:54 -0700 (PDT)
+        Wed, 7 Jun 2023 02:22:03 -0400
+X-Greylist: delayed 509 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 06 Jun 2023 23:21:58 PDT
+Received: from smtp-out.freemail.hu (fmfe39.freemail.hu [46.107.16.244])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2FDF11F
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Jun 2023 23:21:58 -0700 (PDT)
+Received: from FX4320 (catv-176-63-76-57.catv.fixed.vodafone.hu [176.63.76.57])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by smtp.freemail.hu (Postfix) with ESMTPSA id 4QbcTQ40DNzLHS
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Jun 2023 08:12:58 +0200 (CEST)
+From:   =?iso-8859-2?Q?Ol=E1h_Ambrus_S=E1ndor?= <aolah76@freemail.hu>
+To:     <netfilter-devel@vger.kernel.org>
+Subject: xtables-addons passes through an IP from RU
+Date:   Wed, 7 Jun 2023 08:12:58 +0200
+Message-ID: <000001d99907$1c266780$54733680$@freemail.hu>
 MIME-Version: 1.0
-References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
- <20230515161339.631577-13-konstantin.meskhidze@huawei.com> <ZH89Pi1QAqNW2QgG@google.com>
-In-Reply-To: <ZH89Pi1QAqNW2QgG@google.com>
-From:   Jeff Xu <jeffxu@chromium.org>
-Date:   Tue, 6 Jun 2023 22:46:43 -0700
-Message-ID: <CABi2SkWqHeLkmqONbmavcp2SCiwe6YeH_3dkBLZwSsk7neyPMw@mail.gmail.com>
-Subject: Re: [PATCH v11 12/12] landlock: Document Landlock's network support
-To:     =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>
-Cc:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>,
-        mic@digikod.net, willemdebruijn.kernel@gmail.com,
-        gnoack3000@gmail.com, linux-security-module@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        yusongping@huawei.com, artem.kuzin@huawei.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+        charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
+X-Mailer: Microsoft Outlook 16.0
+Thread-Index: AdmZBJs9DbOHMqtcQBSOrFo+VPy4Kw==
+Content-Language: hu
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=simple/relaxed; t=1686118379;
+        s=20181004; d=freemail.hu;
+        h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        l=1132; bh=CgAH9r2s3QisswPt9YGWb/zpoLOGNBQzxd7jBM43ET0=;
+        b=LcFg/zcl8vGSSfHwHCiVMKtnKWDcYooYoqm2JtY1Gin/wOfXHxKq4n/1CWQH/fjy
+        O1JrPEqgf5QGjzU7z6fdm+Sp6pJmmplxeSNNdeDws/3LbEoOa67ZszqbOj1HcCu6Jvx
+        qGOpKBY+qSpscnIRS8faKYfo0GF59oz75DiyWN3eObaV3a7615vonfa0DixsGRNgFPB
+        EzRSyptY8XNiUJztJR5i40tSbv5It9sMaTCFqa5El0IwCNS8uyxEwWJtoQ2GqPgsblw
+        4/Z+D7LaFRNmxTjwo1lGCS4UvEbroeZsZXSaUtRKU9VFfMyCsbgB1erChu5szcOuf+M
+        Z9YcVS3u+w==
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 6, 2023 at 7:09=E2=80=AFAM G=C3=BCnther Noack <gnoack@google.co=
-m> wrote:
->
-> On Tue, May 16, 2023 at 12:13:39AM +0800, Konstantin Meskhidze wrote:
-> > Describe network access rules for TCP sockets. Add network access
-> > example in the tutorial. Add kernel configuration support for network.
-> >
-> > Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> > ---
-> >
-> > Changes since v10:
-> > * Fixes documentaion as Micka=D1=91l suggested:
-> > https://lore.kernel.org/linux-security-module/ec23be77-566e-c8fd-179e-f=
-50e025ac2cf@digikod.net/
-> >
-> > Changes since v9:
-> > * Minor refactoring.
-> >
-> > Changes since v8:
-> > * Minor refactoring.
-> >
-> > Changes since v7:
-> > * Fixes documentaion logic errors and typos as Micka=D1=91l suggested:
-> > https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@dig=
-ikod.net/
-> >
-> > Changes since v6:
-> > * Adds network support documentaion.
-> >
-> > ---
-> >  Documentation/userspace-api/landlock.rst | 83 ++++++++++++++++++------
-> >  1 file changed, 62 insertions(+), 21 deletions(-)
-> >
-> > diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/u=
-serspace-api/landlock.rst
-> > index f6a7da21708a..f185dbaa726a 100644
-> > --- a/Documentation/userspace-api/landlock.rst
-> > +++ b/Documentation/userspace-api/landlock.rst
-> > @@ -11,10 +11,10 @@ Landlock: unprivileged access control
-> >  :Date: October 2022
-> >
-> >  The goal of Landlock is to enable to restrict ambient rights (e.g. glo=
-bal
-> > -filesystem access) for a set of processes.  Because Landlock is a stac=
-kable
-> > -LSM, it makes possible to create safe security sandboxes as new securi=
-ty layers
-> > -in addition to the existing system-wide access-controls. This kind of =
-sandbox
-> > -is expected to help mitigate the security impact of bugs or
-> > +filesystem or network access) for a set of processes.  Because Landloc=
-k
-> > +is a stackable LSM, it makes possible to create safe security sandboxe=
-s as new
-> > +security layers in addition to the existing system-wide access-control=
-s. This
-> > +kind of sandbox is expected to help mitigate the security impact of bu=
-gs or
-> >  unexpected/malicious behaviors in user space applications.  Landlock e=
-mpowers
-> >  any process, including unprivileged ones, to securely restrict themsel=
-ves.
-> >
-> > @@ -28,20 +28,24 @@ appropriately <kernel_support>`.
-> >  Landlock rules
-> >  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >
-> > -A Landlock rule describes an action on an object.  An object is curren=
-tly a
-> > -file hierarchy, and the related filesystem actions are defined with `a=
-ccess
-> > -rights`_.  A set of rules is aggregated in a ruleset, which can then r=
-estrict
-> > -the thread enforcing it, and its future children.
-> > +A Landlock rule describes an action on a kernel object.  Filesystem
-> > +objects can be defined with a file hierarchy.  Since the fourth ABI
-> > +version, TCP ports enable to identify inbound or outbound connections.
-> > +Actions on these kernel objects are defined according to `access
-> > +rights`_.  A set of rules is aggregated in a ruleset, which
-> > +can then restrict the thread enforcing it, and its future children.
->
-> I feel that this paragraph is a bit long-winded to read when the
-> additional networking aspect is added on top as well.  Maybe it would
-> be clearer if we spelled it out in a more structured way, splitting up
-> the filesystem/networking aspects?
->
-> Suggestion:
->
->   A Landlock rule describes an action on an object which the process
->   intends to perform.  A set of rules is aggregated in a ruleset,
->   which can then restrict the thread enforcing it, and its future
->   children.
->
->   The two existing types of rules are:
->
->   Filesystem rules
->       For these rules, the object is a file hierarchy,
->       and the related filesystem actions are defined with
->       `filesystem access rights`.
->
->   Network rules (since ABI v4)
->       For these rules, the object is currently a TCP port,
-Remote port or local port ?
+Hello netfilter developers,
+
+	I would like to report a possible problem. I have discovered access
+attempts from IP address: 83.97.73.89 in my nginx access.log. I have
+configured nginx with maxmind mmdb databases, so nginx identifies it as
+coming from RU, Russion Federation.
+=09
+	I have applied the following iptables rule: -A INPUT -i eth0 -m
+geoip ! --source-country DE,GB,HU,RO  -j DROP
+=09
+	I am running debian bullseye. Output of uname -a:
+=09
+	Linux myhostname 5.10.0-10-686-pae #1 SMP Debian 5.10.84-1
+(2021-12-08) i686 GNU/Linux
+=09
+	I have installed the following stock debian packages:
+=09
+	xtables-addons-common:i386/stable 3.13-1+deb11u1 uptodate
+	xtables-addons-dkms:all/stable 3.13-1+deb11u1 uptodate
+      =09
+	I am downloading weekly the maxmind geolite2 databases in both mmdb
+and csv formats. The csv file contains related IP range of  RU. I am
+generating the .iv4 and iv6 files with xt_geoip_build_maxmind script
+installed by the above mentioned xtables-addons packages.
+     =20
+	Could someone support me to investigate this problem? Thank's in
+advance!
+      =09
+	Ambrus Ol=E1h
+	Budapest, Hungary
 
 
->       and the related actions are defined with `network access rights`.
->
-> Please note that the landlock(7) man page is in large parts using the
-> same phrasing as the kernel documentation.  It might be a good idea to
-> keep them in sync and structured similarly.  (On that mailing list,
-> the reviews are a bit more focused on good writing style.)
->
-> The same reasoning applies to the example below as well.  Explaining
-> multiple aspects of a thing in a single example can muddy the message,
-> let's try to avoid that.  But I can also see that if we had two
-> separate examples, a large part of the example would be duplicated.
->
-> >  Defining and enforcing a security policy
-> >  ----------------------------------------
-> >
-> >  We first need to define the ruleset that will contain our rules.  For =
-this
-> > -example, the ruleset will contain rules that only allow read actions, =
-but write
-> > -actions will be denied.  The ruleset then needs to handle both of thes=
-e kind of
-> > -actions.  This is required for backward and forward compatibility (i.e=
-. the
-> > -kernel and user space may not know each other's supported restrictions=
-), hence
-> > -the need to be explicit about the denied-by-default access rights.
-> > +example, the ruleset will contain rules that only allow filesystem rea=
-d actions
-> > +and establish a specific TCP connection, but filesystem write actions
-> > +and other TCP actions will be denied.  The ruleset then needs to handl=
-e both of
-> > +these kind of actions.  This is required for backward and forward comp=
-atibility
-> > +(i.e. the kernel and user space may not know each other's supported
-> > +restrictions), hence the need to be explicit about the denied-by-defau=
-lt access
-> > +rights.
->
-> I think it became a bit long - I'd suggest to split it into multiple
-> paragraphs, one after "our rules." (in line with landlock(7)), and one
-> after "will be denied."
->
-> Maybe the long sentence "For this example, ..." in the middle
-> paragraph could also be split up in two, to make it more readable?  I
-> think the point of that sentence is really just to give a brief
-> overview over what ruleset we are setting out to write.
->
-> >
-> >  .. code-block:: c
-> >
-> > @@ -62,6 +66,9 @@ the need to be explicit about the denied-by-default a=
-ccess rights.
-> >              LANDLOCK_ACCESS_FS_MAKE_SYM |
-> >              LANDLOCK_ACCESS_FS_REFER |
-> >              LANDLOCK_ACCESS_FS_TRUNCATE,
-> > +        .handled_access_net =3D
-> > +            LANDLOCK_ACCESS_NET_BIND_TCP |
-> > +            LANDLOCK_ACCESS_NET_CONNECT_TCP,
-> >      };
-> >
-> >  Because we may not know on which kernel version an application will be
-> > @@ -70,14 +77,18 @@ should try to protect users as much as possible wha=
-tever the kernel they are
-> >  using.  To avoid binary enforcement (i.e. either all security features=
- or
-> >  none), we can leverage a dedicated Landlock command to get the current=
- version
-> >  of the Landlock ABI and adapt the handled accesses.  Let's check if we=
- should
-> > -remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCA=
-TE``
-> > -access rights, which are only supported starting with the second and t=
-hird
-> > -version of the ABI.
-> > +remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCA=
-TE`` or
-> > +network access rights, which are only supported starting with the seco=
-nd,
-> > +third and fourth version of the ABI.
->
-> At some point it becomes too much to spell it out in one sentence; I'd re=
-commend
->
->   Let's check if we should remove access rights which are only supported
->   in higher versions of the ABI.
->
-> >
-> >  .. code-block:: c
-> >
-> >      int abi;
-> >
-> > +    #define ACCESS_NET_BIND_CONNECT ( \
-> > +        LANDLOCK_ACCESS_NET_BIND_TCP | \
-> > +        LANDLOCK_ACCESS_NET_CONNECT_TCP)
-> > +
->
-> This #define does not seem to be used? -- Drop it?
->
->
-> >      abi =3D landlock_create_ruleset(NULL, 0, LANDLOCK_CREATE_RULESET_V=
-ERSION);
-> >      if (abi < 0) {
-> >          /* Degrades gracefully if Landlock is not handled. */
-> > @@ -92,6 +103,11 @@ version of the ABI.
-> >      case 2:
-> >          /* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
-> >          ruleset_attr.handled_access_fs &=3D ~LANDLOCK_ACCESS_FS_TRUNCA=
-TE;
-> > +    case 3:
-> > +        /* Removes network support for ABI < 4 */
-> > +        ruleset_attr.handled_access_net &=3D
-> > +            ~(LANDLOCK_ACCESS_NET_BIND_TCP |
-> > +              LANDLOCK_ACCESS_NET_CONNECT_TCP);
-> >      }
-> >
-> >  This enables to create an inclusive ruleset that will contain our rule=
-s.
-> > @@ -143,10 +159,23 @@ for the ruleset creation, by filtering access rig=
-hts according to the Landlock
-> >  ABI version.  In this example, this is not required because all of the=
- requested
-> >  ``allowed_access`` rights are already available in ABI 1.
-> >
-> > -We now have a ruleset with one rule allowing read access to ``/usr`` w=
-hile
-> > -denying all other handled accesses for the filesystem.  The next step =
-is to
-> > -restrict the current thread from gaining more privileges (e.g. thanks =
-to a SUID
-> > -binary).
-> > +For network access-control, we can add a set of rules that allow to us=
-e a port
-> > +number for a specific action: HTTPS connections.
-> > +
-> > +.. code-block:: c
-> > +
-> > +    struct landlock_net_service_attr net_service =3D {
-> > +        .allowed_access =3D NET_CONNECT_TCP,
-> > +        .port =3D 443,
-> > +    };
-> > +
-> > +    err =3D landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
-> > +                            &net_service, 0);
-> > +
-> > +The next step is to restrict the current thread from gaining more priv=
-ileges
-> > +(e.g. through a SUID binary). We now have a ruleset with the first rul=
-e allowing
-> > +read access to ``/usr`` while denying all other handled accesses for t=
-he filesystem,
-> > +and a second rule allowing HTTPS connections.
-> >
-> >  .. code-block:: c
-> >
-> > @@ -355,7 +384,7 @@ Access rights
-> >  -------------
-> >
-> >  .. kernel-doc:: include/uapi/linux/landlock.h
-> > -    :identifiers: fs_access
-> > +    :identifiers: fs_access net_access
-> >
-> >  Creating a new ruleset
-> >  ----------------------
-> > @@ -374,6 +403,7 @@ Extending a ruleset
-> >
-> >  .. kernel-doc:: include/uapi/linux/landlock.h
-> >      :identifiers: landlock_rule_type landlock_path_beneath_attr
-> > +                  landlock_net_service_attr
-> >
-> >  Enforcing a ruleset
-> >  -------------------
-> > @@ -451,6 +481,12 @@ always allowed when using a kernel that only suppo=
-rts the first or second ABI.
-> >  Starting with the Landlock ABI version 3, it is now possible to secure=
-ly control
-> >  truncation thanks to the new ``LANDLOCK_ACCESS_FS_TRUNCATE`` access ri=
-ght.
-> >
-> > +Network support (ABI < 4)
-> > +-------------------------
-> > +
-> > +Starting with the Landlock ABI version 4, it is now possible to restri=
-ct TCP
-> > +bind and connect actions to only a set of allowed ports.
-> > +
-> >  .. _kernel_support:
-> >
-> >  Kernel support
-> > @@ -469,6 +505,11 @@ still enable it by adding ``lsm=3Dlandlock,[...]``=
- to
-> >  Documentation/admin-guide/kernel-parameters.rst thanks to the bootload=
-er
-> >  configuration.
-> >
-> > +To be able to explicitly allow TCP operations (e.g., adding a network =
-rule with
-> > +``LANDLOCK_ACCESS_NET_TCP_BIND``), the kernel must support TCP (``CONF=
-IG_INET=3Dy``).
-> > +Otherwise, sys_landlock_add_rule() returns an ``EAFNOSUPPORT`` error, =
-which can
-> > +safely be ignored because this kind of TCP operation is already not po=
-ssible.
-> > +
-> >  Questions and answers
-> >  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >
-> > --
-> > 2.25.1
-> >
->
-> =E2=80=94G=C3=BCnther
->
-> --
-> Sent using Mutt =F0=9F=90=95 Woof Woof
