@@ -2,25 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3F9AC7EE29
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Jun 2023 19:41:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0003C7EE25
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Jun 2023 19:57:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230162AbjFHTlf (ORCPT
+        id S234560AbjFHT5R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Jun 2023 15:41:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51348 "EHLO
+        Thu, 8 Jun 2023 15:57:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229864AbjFHTlf (ORCPT
+        with ESMTP id S230299AbjFHT5Q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Jun 2023 15:41:35 -0400
+        Thu, 8 Jun 2023 15:57:16 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 289FE2113
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Jun 2023 12:41:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 923231FDE;
+        Thu,  8 Jun 2023 12:57:15 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE
-Date:   Thu,  8 Jun 2023 21:41:30 +0200
-Message-Id: <20230608194130.3215-1-pablo@netfilter.org>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 0/3] Netfilter fixes for net
+Date:   Thu,  8 Jun 2023 21:57:03 +0200
+Message-Id: <20230608195706.4429-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,68 +30,48 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In case of error when adding a new rule that refers to an anonymous set,
-deactivate expressions via NFT_TRANS_PREPARE state, not NFT_TRANS_RELEASE.
-Thus, the lookup expression marks anonymous sets as inactive in the next
-generation to ensure it is not reachable in this transaction anymore and
-decrement the set refcount as introduced by c1592a89942e ("netfilter:
-nf_tables: deactivate anonymous set from preparation phase"). The abort
-step takes care of undoing the anonymous set.
+Hi,
 
-This is also consistent with rule deletion, where NFT_TRANS_PREPARE is
-used. Note that this error path is exercised in the preparation step of
-the commit protocol. This patch replaces nf_tables_rule_release() by the
-deactivate and destroy calls, this time with NFT_TRANS_PREPARE.
+The following patchset contains Netfilter fixes for net:
 
-Due to this incorrect error handling, it is possible to access a
-dangling pointer to the anonymous set that remains in the transaction
-list.
+1) Add commit and abort set operation to pipapo set abort path.
 
-[1009.379054] BUG: KASAN: use-after-free in nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379106] Read of size 8 at addr ffff88816c4c8020 by task nft-rule-add/137110
-[1009.379116] CPU: 7 PID: 137110 Comm: nft-rule-add Not tainted 6.4.0-rc4+ #256
-[1009.379128] Call Trace:
-[1009.379132]  <TASK>
-[1009.379135]  dump_stack_lvl+0x33/0x50
-[1009.379146]  ? nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379191]  print_address_description.constprop.0+0x27/0x300
-[1009.379201]  kasan_report+0x107/0x120
-[1009.379210]  ? nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379255]  nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379302]  nft_lookup_init+0xa5/0x270 [nf_tables]
-[1009.379350]  nf_tables_newrule+0x698/0xe50 [nf_tables]
-[1009.379397]  ? nf_tables_rule_release+0xe0/0xe0 [nf_tables]
-[1009.379441]  ? kasan_unpoison+0x23/0x50
-[1009.379450]  nfnetlink_rcv_batch+0x97c/0xd90 [nfnetlink]
-[1009.379470]  ? nfnetlink_rcv_msg+0x480/0x480 [nfnetlink]
-[1009.379485]  ? __alloc_skb+0xb8/0x1e0
-[1009.379493]  ? __alloc_skb+0xb8/0x1e0
-[1009.379502]  ? entry_SYSCALL_64_after_hwframe+0x46/0xb0
-[1009.379509]  ? unwind_get_return_address+0x2a/0x40
-[1009.379517]  ? write_profile+0xc0/0xc0
-[1009.379524]  ? avc_lookup+0x8f/0xc0
-[1009.379532]  ? __rcu_read_unlock+0x43/0x60
+2) Bail out immediately in case of ENOMEM in nfnetlink batch.
 
-Fixes: 958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+3) Incorrect error path handling when creating a new rule leads to
+   dangling pointer in set transaction list.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3bb0800b3849..69bceefaa5c8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3844,7 +3844,8 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (flow)
- 		nft_flow_rule_destroy(flow);
- err_release_rule:
--	nf_tables_rule_release(&ctx, rule);
-+	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE);
-+	nf_tables_rule_destroy(&ctx, rule);
- err_release_expr:
- 	for (i = 0; i < n; i++) {
- 		if (expr_info[i].ops) {
--- 
-2.30.2
+Please, pull these changes from:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-06-08
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit ab39b113e74751958aac1b125a14ee42bd7d3efd:
+
+  Merge tag 'for-net-2023-06-05' of git://git.kernel.org/pub/scm/linux/kernel/git/bluetooth/bluetooth (2023-06-06 21:36:57 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-06-08
+
+for you to fetch changes up to 1240eb93f0616b21c675416516ff3d74798fdc97:
+
+  netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE (2023-06-08 21:49:26 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 23-06-08
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: integrate pipapo into commit protocol
+      netfilter: nfnetlink: skip error delivery on batch in case of ENOMEM
+      netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE
+
+ include/net/netfilter/nf_tables.h |  4 ++-
+ net/netfilter/nf_tables_api.c     | 59 ++++++++++++++++++++++++++++++++++++++-
+ net/netfilter/nfnetlink.c         |  3 +-
+ net/netfilter/nft_set_pipapo.c    | 55 ++++++++++++++++++++++++++----------
+ 4 files changed, 103 insertions(+), 18 deletions(-)
