@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB86CC7EE29
-	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Jun 2023 19:40:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3F9AC7EE29
+	for <netfilter-devel@archiver.kernel.org>; Thu,  8 Jun 2023 19:41:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233233AbjFHTkf (ORCPT
+        id S230162AbjFHTlf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 8 Jun 2023 15:40:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51238 "EHLO
+        Thu, 8 Jun 2023 15:41:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229864AbjFHTke (ORCPT
+        with ESMTP id S229864AbjFHTlf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Jun 2023 15:40:34 -0400
+        Thu, 8 Jun 2023 15:41:35 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C6870134
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Jun 2023 12:40:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 289FE2113
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Jun 2023 12:41:34 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Subject: [PATCH nf] netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE
-Date:   Thu,  8 Jun 2023 21:40:26 +0200
-Message-Id: <20230608194026.3076-1-pablo@netfilter.org>
+Date:   Thu,  8 Jun 2023 21:41:30 +0200
+Message-Id: <20230608194130.3215-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -34,7 +34,7 @@ Thus, the lookup expression marks anonymous sets as inactive in the next
 generation to ensure it is not reachable in this transaction anymore and
 decrement the set refcount as introduced by c1592a89942e ("netfilter:
 nf_tables: deactivate anonymous set from preparation phase"). The abort
-step takes care of undoing such rule and anonymous set.
+step takes care of undoing the anonymous set.
 
 This is also consistent with rule deletion, where NFT_TRANS_PREPARE is
 used. Note that this error path is exercised in the preparation step of
