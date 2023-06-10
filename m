@@ -2,135 +2,86 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A95D0C7EE2E
-	for <netfilter-devel@archiver.kernel.org>; Fri,  9 Jun 2023 20:58:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61235C77B7A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 10 Jun 2023 19:12:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229471AbjFIU6t (ORCPT
+        id S229746AbjFJTMa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:58:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49884 "EHLO
+        Sat, 10 Jun 2023 15:12:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230096AbjFIU6q (ORCPT
+        with ESMTP id S229667AbjFJTMa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Jun 2023 16:58:46 -0400
-Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A7F630FE
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Jun 2023 13:58:44 -0700 (PDT)
-Received: by mail-ed1-x534.google.com with SMTP id 4fb4d7f45d1cf-5169f614977so3787687a12.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Jun 2023 13:58:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google; t=1686344323; x=1688936323;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=SUKe/UP7zV/rwVtB2kksqTJM4NgjI+Cu+z4nW1n1A5c=;
-        b=H2tL83AW2wrV9l8hCzczLdthWLNl6ThA8QTKT5j3unHNsxu7xDhoTgvtmxmSnsF/6P
-         PynzEfD3Qs/IHiasejywjunVPIuOOBVMDUMJE1QSqZzrGzXnnEPG4ERWVyjezSjQUwyI
-         VA2W5Mo5wYreI+60aFwm2mqx+AzYQFpgP8PvA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686344323; x=1688936323;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=SUKe/UP7zV/rwVtB2kksqTJM4NgjI+Cu+z4nW1n1A5c=;
-        b=a0tblRV8qcWoLmI81koSYStzz+9YSU75h9+9ZqtuJdwo2NaIwfE5e3cQpAtsBzdIMi
-         PH1//ABDx+X51hzclEWJLy8pD5JLfqWupnJl9AR9Oj5Toe4ZrB9hx1QwfyyxRErvt9wb
-         RvWPmxtp517qRZ2ql36FA47ja0tya0L8QkYPJxMlZ84kGYqLLh+Gzf2g4eWkmfJcsEYI
-         0UwXHBmGIeq0HmmCU1Q32Y6S2hsA0ndVoNOyEZmIugxsXT1HURBRR4Lu0zVTuOy8Gzhq
-         UfXpi0EXpSbB8Xor/aL7U/P5eu6FSh33n8o8McKj0h3UcK22cS24TTMEnj0LJSH9SYJG
-         Z0/Q==
-X-Gm-Message-State: AC+VfDwF2wclJNkdt1wS8bIYAOWmRDFo9eMuvyZ00JUzug3K5vDX+62j
-        82YT2z8VzlmyB6LJaYkUGoekSQ==
-X-Google-Smtp-Source: ACHHUZ7zXZjlBMowDNO0ht8YDkO23m/gtqNgV++I7BD5yWIBxlt2brksyJ/S04E7OfUxKj32+82i+Q==
-X-Received: by 2002:a17:907:6d04:b0:974:326b:f9b2 with SMTP id sa4-20020a1709076d0400b00974326bf9b2mr2888800ejc.66.1686344323011;
-        Fri, 09 Jun 2023 13:58:43 -0700 (PDT)
-Received: from localhost (2a02-a210-2543-4700-cdda-6311-64ee-c89f.cable.dynamic.v6.ziggo.nl. [2a02:a210:2543:4700:cdda:6311:64ee:c89f])
-        by smtp.gmail.com with ESMTPSA id x15-20020a170906710f00b009745bac0567sm1687832ejj.126.2023.06.09.13.58.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 09 Jun 2023 13:58:42 -0700 (PDT)
-From:   Terin Stock <terin@cloudflare.com>
-To:     horms@verge.net.au, ja@ssi.bg
-Cc:     netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        kernel-team@cloudflare.com, pablo@netfilter.org,
-        hengqing.hu@gmail.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, fw@strlen.de,
-        coreteam@netfilter.org, davem@davemloft.net, kadlec@netfilter.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH v2] ipvs: align inner_mac_header for encapsulation
-Date:   Fri,  9 Jun 2023 22:58:42 +0200
-Message-Id: <20230609205842.2333727-1-terin@cloudflare.com>
-X-Mailer: git-send-email 2.40.1
+        Sat, 10 Jun 2023 15:12:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3866B1FE9
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Jun 2023 12:12:29 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C94D461A43
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Jun 2023 19:12:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 23661C433D2;
+        Sat, 10 Jun 2023 19:12:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686424348;
+        bh=MnsFWRXlDOpNeOfrRaLfHEX8hGlKa+XhJ7sR/IyaEcg=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=hBqldKsToM4vwuBKc2rZNUZT6IVkm+cpN8e63BKu1vKEC+t/TKo7qHPiFOQ/+zUIZ
+         5NFG3c+b2njXJSIMAVJ9CZSI2tQncmOzks8rj8477QYVqfuF2qTafpA12NL4m4RJGM
+         OtOYwZy/F8DaOlte+eX/1yLEpMA2HywQtsjBpjIxl+dERPlIPBP1aa09dhlL99dmQJ
+         JyDt/48WUyTPP6EZgPakDN8XTwTfrrWJTlyoE88cfWzPog/Lx3hyT73kf4pA/kIfqz
+         Jfllwabowm10fIfSKdq1oUaygLyY1tEH2WioZV1A6IOxx3xELYmRVDLukemuxnhtoD
+         7cFmJZJk4FAhw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 050CAC395F3;
+        Sat, 10 Jun 2023 19:12:28 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: nf_tables: integrate pipapo into commit
+ protocol
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168642434801.30474.1571791241057313404.git-patchwork-notify@kernel.org>
+Date:   Sat, 10 Jun 2023 19:12:28 +0000
+References: <20230608195706.4429-2-pablo@netfilter.org>
+In-Reply-To: <20230608195706.4429-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When using encapsulation the original packet's headers are copied to the
-inner headers. This preserves the space for an inner mac header, which
-is not used by the inner payloads for the encapsulation types supported
-by IPVS. If a packet is using GUE or GRE encapsulation and needs to be
-segmented, flow can be passed to __skb_udp_tunnel_segment() which
-calculates a negative tunnel header length. A negative tunnel header
-length causes pskb_may_pull() to fail, dropping the packet.
+Hello:
 
-This can be observed by attaching probes to ip_vs_in_hook(),
-__dev_queue_xmit(), and __skb_udp_tunnel_segment():
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-    perf probe --add '__dev_queue_xmit skb->inner_mac_header \
-    skb->inner_network_header skb->mac_header skb->network_header'
-    perf probe --add '__skb_udp_tunnel_segment:7 tnl_hlen'
-    perf probe -m ip_vs --add 'ip_vs_in_hook skb->inner_mac_header \
-    skb->inner_network_header skb->mac_header skb->network_header'
+On Thu,  8 Jun 2023 21:57:04 +0200 you wrote:
+> The pipapo set backend follows copy-on-update approach, maintaining one
+> clone of the existing datastructure that is being updated. The clone
+> and current datastructures are swapped via rcu from the commit step.
+> 
+> The existing integration with the commit protocol is flawed because
+> there is no operation to clean up the clone if the transaction is
+> aborted. Moreover, the datastructure swap happens on set element
+> activation.
+> 
+> [...]
 
-These probes the headers and tunnel header length for packets which
-traverse the IPVS encapsulation path. A TCP packet can be forced into
-the segmentation path by being smaller than a calculated clamped MSS,
-but larger than the advertised MSS.
+Here is the summary with links:
+  - [net,1/3] netfilter: nf_tables: integrate pipapo into commit protocol
+    https://git.kernel.org/netdev/net/c/212ed75dc5fb
+  - [net,2/3] netfilter: nfnetlink: skip error delivery on batch in case of ENOMEM
+    https://git.kernel.org/netdev/net/c/a1a64a151dae
+  - [net,3/3] netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE
+    https://git.kernel.org/netdev/net/c/1240eb93f061
 
-    probe:ip_vs_in_hook: inner_mac_header=0x0 inner_network_header=0x0 mac_header=0x44 network_header=0x52
-    probe:ip_vs_in_hook: inner_mac_header=0x44 inner_network_header=0x52 mac_header=0x44 network_header=0x32
-    probe:dev_queue_xmit: inner_mac_header=0x44 inner_network_header=0x52 mac_header=0x44 network_header=0x32
-    probe:__skb_udp_tunnel_segment_L7: tnl_hlen=-2
-
-When using veth-based encapsulation, the interfaces are set to be
-mac-less, which does not preserve space for an inner mac header. This
-prevents this issue from occurring.
-
-In our real-world testing of sending a 32KB file we observed operation
-time increasing from ~75ms for veth-based encapsulation to over 1.5s
-using IPVS encapsulation due to retries from dropped packets.
-
-This changeset modifies the packet on the encapsulation path in
-ip_vs_tunnel_xmit() and ip_vs_tunnel_xmit_v6() to remove the inner mac
-header offset. This fixes UDP segmentation for both encapsulation types,
-and corrects the inner headers for any IPIP flows that may use it.
-
-Fixes: 84c0d5e96f3a ("ipvs: allow tunneling with gue encapsulation")
-Signed-off-by: Terin Stock <terin@cloudflare.com>
----
- net/netfilter/ipvs/ip_vs_xmit.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index c7652da78c88..9193e109e6b3 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -1207,6 +1207,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	skb->transport_header = skb->network_header;
- 
- 	skb_set_inner_ipproto(skb, next_protocol);
-+	skb_set_inner_mac_header(skb, skb_inner_network_offset(skb));
- 
- 	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
- 		bool check = false;
-@@ -1349,6 +1350,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	skb->transport_header = skb->network_header;
- 
- 	skb_set_inner_ipproto(skb, next_protocol);
-+	skb_set_inner_mac_header(skb, skb_inner_network_offset(skb));
- 
- 	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
- 		bool check = false;
+You are awesome, thank you!
 -- 
-2.40.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
