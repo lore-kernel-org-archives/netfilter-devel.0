@@ -2,57 +2,53 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20496C83005
-	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Jun 2023 21:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C757C77B7A
+	for <netfilter-devel@archiver.kernel.org>; Sun, 11 Jun 2023 21:37:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232389AbjFKVWO (ORCPT
+        id S230008AbjFKVhK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 11 Jun 2023 17:22:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58130 "EHLO
+        Sun, 11 Jun 2023 17:37:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232964AbjFKVWM (ORCPT
+        with ESMTP id S229531AbjFKVhJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Jun 2023 17:22:12 -0400
+        Sun, 11 Jun 2023 17:37:09 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B4396E57
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Jun 2023 14:22:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C651AA9
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Jun 2023 14:37:08 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 5/6] netfilter: nf_tables: disallow updates of anonymous sets
-Date:   Sun, 11 Jun 2023 23:22:02 +0200
-Message-Id: <20230611212203.1127-5-pablo@netfilter.org>
+Subject: [PATCH nft] tests: shell: fix spurious errors in terse listing in json
+Date:   Sun, 11 Jun 2023 23:37:04 +0200
+Message-Id: <20230611213704.983-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230611212203.1127-1-pablo@netfilter.org>
-References: <20230611212203.1127-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Disallow updates of set timeout and garbage collection parameters for
-anonymous sets.
+Sometimes table handle becomes 192, which makes this test fail. Check
+for 192.168 instead to make sure terse listing works fine instead.
 
-Fixes: 123b99619cca ("netfilter: nf_tables: honor set timeout and garbage collection updates")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ tests/shell/testcases/listing/0021ruleset_json_terse_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a4f1a9f3d6d4..e8865a85b7d6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4890,6 +4890,9 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
- 		if (info->nlh->nlmsg_flags & NLM_F_REPLACE)
- 			return -EOPNOTSUPP;
+diff --git a/tests/shell/testcases/listing/0021ruleset_json_terse_0 b/tests/shell/testcases/listing/0021ruleset_json_terse_0
+index c739ac3f29d0..6be41b8635ae 100755
+--- a/tests/shell/testcases/listing/0021ruleset_json_terse_0
++++ b/tests/shell/testcases/listing/0021ruleset_json_terse_0
+@@ -6,7 +6,7 @@ $NFT add chain ip test c
+ $NFT add set ip test s { type ipv4_addr\; }
+ $NFT add element ip test s { 192.168.3.4, 192.168.3.5 }
  
-+		if (nft_set_is_anonymous(set))
-+			return -EOPNOTSUPP;
-+
- 		err = nft_set_expr_alloc(&ctx, set, nla, exprs, &num_exprs, flags);
- 		if (err < 0)
- 			return err;
+-if $NFT -j -t list ruleset | grep '192'
++if $NFT -j -t list ruleset | grep '192\.168'
+ then
+ 	exit 1
+ fi
 -- 
 2.30.2
 
