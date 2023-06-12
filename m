@@ -2,132 +2,142 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0CABC88CB2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 13:51:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C57F4C88CB7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 17:35:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236731AbjFLNvx (ORCPT
+        id S231175AbjFLRfu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jun 2023 09:51:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39828 "EHLO
+        Mon, 12 Jun 2023 13:35:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235916AbjFLNvu (ORCPT
+        with ESMTP id S238073AbjFLRfY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2023 09:51:50 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E32010D8;
-        Mon, 12 Jun 2023 06:51:42 -0700 (PDT)
-Received: from mg.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 9FF4223DAB;
-        Mon, 12 Jun 2023 16:51:39 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 86C4C23DAA;
-        Mon, 12 Jun 2023 16:51:39 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [178.16.129.10])
-        by ink.ssi.bg (Postfix) with ESMTPS id E67A83C0440;
-        Mon, 12 Jun 2023 16:51:32 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 35CDpT40102565;
-        Mon, 12 Jun 2023 16:51:30 +0300
-Date:   Mon, 12 Jun 2023 16:51:29 +0300 (EEST)
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Terin Stock <terin@cloudflare.com>
-cc:     horms@verge.net.au, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, kernel-team@cloudflare.com,
-        pablo@netfilter.org, hengqing.hu@gmail.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org, fw@strlen.de,
-        coreteam@netfilter.org, davem@davemloft.net, kadlec@netfilter.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: Re: [PATCH v2] ipvs: align inner_mac_header for encapsulation
-In-Reply-To: <20230609205842.2333727-1-terin@cloudflare.com>
-Message-ID: <ad564469-c999-3658-d94c-07301702ad27@ssi.bg>
-References: <20230609205842.2333727-1-terin@cloudflare.com>
+        Mon, 12 Jun 2023 13:35:24 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5044A2717
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 10:34:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=fliJTigqgB+27V00TewwkpobhGSwVY0St+zvp8U8h9c=; b=jkqT8jlRiGuovJmctx1thmKHBE
+        OZjvXuN7Rn76MeM0Ty1ScJTcdQxw17y3hD32W0b5Wkw3+yF+8EAXhYrZfWMnvwp4R2Z3yTQk0uQpo
+        WgNsb4TasjQlRoW6jkPR0ApvoPHEHlyDQwKTYc4Zzuzqr7c/IbN619YsbRKNZMzojBKHd8OXn/trP
+        KcYJHUq5COQFlYgGcXj15wEUe/imyfV968kigETne16KET+gH7YGqI+gH8MQ4Rl9ge0TV1zI2KOkF
+        ePtLjNT02iB3LcdVApWXgvoUXWu3vxr27T+D6lWtn9cmQEWpIhHMMo/tFTFLsI3phC61HI2ddHd3R
+        vLoPkmKg==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.96)
+        (envelope-from <jeremy@azazel.net>)
+        id 1q8lPS-000wtJ-1K
+        for netfilter-devel@vger.kernel.org;
+        Mon, 12 Jun 2023 18:32:54 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH xtables-addons] xt_ipp2p: change text-search algo to KMP
+Date:   Mon, 12 Jun 2023 18:31:33 +0100
+Message-Id: <20230612173133.795980-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+The kernel's Boyer-Moore text-search implementation may miss matches in
+non-linear skb's, so use Knuth-Morris-Pratt instead.
 
-	Hello,
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ extensions/xt_ipp2p.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-On Fri, 9 Jun 2023, Terin Stock wrote:
-
-> When using encapsulation the original packet's headers are copied to the
-> inner headers. This preserves the space for an inner mac header, which
-> is not used by the inner payloads for the encapsulation types supported
-> by IPVS. If a packet is using GUE or GRE encapsulation and needs to be
-> segmented, flow can be passed to __skb_udp_tunnel_segment() which
-> calculates a negative tunnel header length. A negative tunnel header
-> length causes pskb_may_pull() to fail, dropping the packet.
-> 
-> This can be observed by attaching probes to ip_vs_in_hook(),
-> __dev_queue_xmit(), and __skb_udp_tunnel_segment():
-> 
->     perf probe --add '__dev_queue_xmit skb->inner_mac_header \
->     skb->inner_network_header skb->mac_header skb->network_header'
->     perf probe --add '__skb_udp_tunnel_segment:7 tnl_hlen'
->     perf probe -m ip_vs --add 'ip_vs_in_hook skb->inner_mac_header \
->     skb->inner_network_header skb->mac_header skb->network_header'
-> 
-> These probes the headers and tunnel header length for packets which
-> traverse the IPVS encapsulation path. A TCP packet can be forced into
-> the segmentation path by being smaller than a calculated clamped MSS,
-> but larger than the advertised MSS.
-> 
->     probe:ip_vs_in_hook: inner_mac_header=0x0 inner_network_header=0x0 mac_header=0x44 network_header=0x52
->     probe:ip_vs_in_hook: inner_mac_header=0x44 inner_network_header=0x52 mac_header=0x44 network_header=0x32
->     probe:dev_queue_xmit: inner_mac_header=0x44 inner_network_header=0x52 mac_header=0x44 network_header=0x32
->     probe:__skb_udp_tunnel_segment_L7: tnl_hlen=-2
-> 
-> When using veth-based encapsulation, the interfaces are set to be
-> mac-less, which does not preserve space for an inner mac header. This
-> prevents this issue from occurring.
-> 
-> In our real-world testing of sending a 32KB file we observed operation
-> time increasing from ~75ms for veth-based encapsulation to over 1.5s
-> using IPVS encapsulation due to retries from dropped packets.
-> 
-> This changeset modifies the packet on the encapsulation path in
-> ip_vs_tunnel_xmit() and ip_vs_tunnel_xmit_v6() to remove the inner mac
-> header offset. This fixes UDP segmentation for both encapsulation types,
-> and corrects the inner headers for any IPIP flows that may use it.
-> 
-> Fixes: 84c0d5e96f3a ("ipvs: allow tunneling with gue encapsulation")
-> Signed-off-by: Terin Stock <terin@cloudflare.com>
-
-	Looks good to me for nf/net tree, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index c7652da78c88..9193e109e6b3 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -1207,6 +1207,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	skb->transport_header = skb->network_header;
->  
->  	skb_set_inner_ipproto(skb, next_protocol);
-> +	skb_set_inner_mac_header(skb, skb_inner_network_offset(skb));
->  
->  	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
->  		bool check = false;
-> @@ -1349,6 +1350,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	skb->transport_header = skb->network_header;
->  
->  	skb_set_inner_ipproto(skb, next_protocol);
-> +	skb_set_inner_mac_header(skb, skb_inner_network_offset(skb));
->  
->  	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
->  		bool check = false;
-> -- 
-> 2.40.1
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/extensions/xt_ipp2p.c b/extensions/xt_ipp2p.c
+index 2962909930df..eba0b5581273 100644
+--- a/extensions/xt_ipp2p.c
++++ b/extensions/xt_ipp2p.c
+@@ -18,6 +18,8 @@
+ #define get_u16(X, O)  get_unaligned((const __u16 *)((X) + O))
+ #define get_u32(X, O)  get_unaligned((const __u32 *)((X) + O))
+ 
++#define TEXTSEARCH_ALGO "kmp"
++
+ MODULE_AUTHOR("Eicke Friedrich/Klaus Degner <ipp2p@ipp2p.org>");
+ MODULE_DESCRIPTION("An extension to iptables to identify P2P traffic.");
+ MODULE_LICENSE("GPL");
+@@ -1326,55 +1328,57 @@ static int ipp2p_mt_check(const struct xt_mtchk_param *par)
+ 	struct ipt_p2p_info *info = par->matchinfo;
+ 	struct ts_config *ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "\x20\x22", 2,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "\x20\x22", 2,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_return;
+ 	info->ts_conf_winmx = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "info_hash=", 10,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "info_hash=", 10,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_winmx;
+ 	info->ts_conf_bt_info_hash = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "peer_id=", 8,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "peer_id=", 8,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_bt_info_hash;
+ 	info->ts_conf_bt_peer_id = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "passkey", 8,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "passkey", 8,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_bt_peer_id;
+ 	info->ts_conf_bt_passkey = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "\r\nX-Gnutella-", 13,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "\r\nX-Gnutella-", 13,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_bt_passkey;
+ 	info->ts_conf_gnu_x_gnutella = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "\r\nX-Queue-", 10,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "\r\nX-Queue-", 10,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_gnu_x_gnutella;
+ 	info->ts_conf_gnu_x_queue = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "\r\nX-Kazaa-Username: ", 20,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO,
++				     "\r\nX-Kazaa-Username: ", 20,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_gnu_x_queue;
+ 	info->ts_conf_kz_x_kazaa_username = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", "\r\nUser-Agent: PeerEnabler/", 26,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO,
++				     "\r\nUser-Agent: PeerEnabler/", 26,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_kazaa_x_kazaa_username;
+ 	info->ts_conf_kz_user_agent = ts_conf;
+ 
+-	ts_conf = textsearch_prepare("bm", ":xdcc send #", 12,
++	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, ":xdcc send #", 12,
+ 				     GFP_KERNEL, TS_AUTOLOAD);
+ 	if (IS_ERR(ts_conf))
+ 		goto err_ts_destroy_kazaa_user_agent;
+-- 
+2.39.2
 
