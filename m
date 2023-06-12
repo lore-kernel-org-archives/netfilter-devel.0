@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07AF5C7EE45
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B63C8300C
 	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 13:14:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231127AbjFLNOT (ORCPT
+        id S229691AbjFLNOU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jun 2023 09:14:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49694 "EHLO
+        Mon, 12 Jun 2023 09:14:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229691AbjFLNOR (ORCPT
+        with ESMTP id S232156AbjFLNOR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 12 Jun 2023 09:14:17 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8E917D7
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8DB43B8
         for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 06:14:15 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2 3/7] netfilter: nf_tables: reject unbound anonymous set before commit phase
-Date:   Mon, 12 Jun 2023 15:14:05 +0200
-Message-Id: <20230612131409.63157-3-pablo@netfilter.org>
+Subject: [PATCH nf,v2 2/7] netfilter: nf_tables: disallow element updates of bound anonymous sets
+Date:   Mon, 12 Jun 2023 15:14:04 +0200
+Message-Id: <20230612131409.63157-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230612131409.63157-1-pablo@netfilter.org>
 References: <20230612131409.63157-1-pablo@netfilter.org>
@@ -30,130 +30,42 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new list to track set transaction and to check for unbound
-anonymous sets before entering the commit phase.
-
-Bail out at the end of the transaction handling if an anonymous set
-remains unbound.
+Anonymous sets come with NFT_SET_CONSTANT from userspace. Although API
+allows to create anonymous sets without NFT_SET_CONSTANT, it makes no
+sense to allow to add and to delete elements for bound anonymous sets.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2: no changes
 
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 35 ++++++++++++++++++++++++++++---
- 2 files changed, 34 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9d8f57301aad..007dfa65c6c6 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1572,6 +1572,7 @@ static inline void nft_set_elem_clear_busy(struct nft_set_ext *ext)
-  */
- struct nft_trans {
- 	struct list_head		list;
-+	struct list_head		binding_list;
- 	int				msg_type;
- 	bool				put_net;
- 	struct nft_ctx			ctx;
-@@ -1713,6 +1714,7 @@ static inline int nft_request_module(struct net *net, const char *fmt, ...) { re
- struct nftables_pernet {
- 	struct list_head	tables;
- 	struct list_head	commit_list;
-+	struct list_head	binding_list;
- 	struct list_head	module_list;
- 	struct list_head	notify_list;
- 	struct mutex		commit_mutex;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f008fdbe83e1..92cc9141de5d 100644
+index 467c2a20e16d..f008fdbe83e1 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -151,6 +151,7 @@ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
- 		return NULL;
+@@ -6644,7 +6644,8 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
+ 	if (IS_ERR(set))
+ 		return PTR_ERR(set);
  
- 	INIT_LIST_HEAD(&trans->list);
-+	INIT_LIST_HEAD(&trans->binding_list);
- 	trans->msg_type = msg_type;
- 	trans->ctx	= *ctx;
+-	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
++	if (!list_empty(&set->bindings) &&
++	    (set->flags & (NFT_SET_CONSTANT | NFT_SET_ANONYMOUS)))
+ 		return -EBUSY;
  
-@@ -163,9 +164,15 @@ static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
- 	return nft_trans_alloc_gfp(ctx, msg_type, size, GFP_KERNEL);
- }
- 
--static void nft_trans_destroy(struct nft_trans *trans)
-+static void nft_trans_list_del(struct nft_trans *trans)
- {
- 	list_del(&trans->list);
-+	list_del(&trans->binding_list);
-+}
+ 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+@@ -6918,7 +6919,9 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
+ 	set = nft_set_lookup(table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
+ 	if (IS_ERR(set))
+ 		return PTR_ERR(set);
+-	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
 +
-+static void nft_trans_destroy(struct nft_trans *trans)
-+{
-+	nft_trans_list_del(trans);
- 	kfree(trans);
- }
++	if (!list_empty(&set->bindings) &&
++	    (set->flags & (NFT_SET_CONSTANT | NFT_SET_ANONYMOUS)))
+ 		return -EBUSY;
  
-@@ -330,6 +337,14 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 
-+	switch (trans->msg_type) {
-+	case NFT_MSG_NEWSET:
-+		if (!nft_trans_set_update(trans) &&
-+		    nft_set_is_anonymous(nft_trans_set(trans)))
-+			list_add_tail(&trans->binding_list, &nft_net->binding_list);
-+		break;
-+	}
-+
- 	list_add_tail(&trans->list, &nft_net->commit_list);
- }
- 
-@@ -8975,7 +8990,7 @@ static void nf_tables_trans_destroy_work(struct work_struct *w)
- 	synchronize_rcu();
- 
- 	list_for_each_entry_safe(trans, next, &head, list) {
--		list_del(&trans->list);
-+		nft_trans_list_del(trans);
- 		nft_commit_release(trans);
- 	}
- }
-@@ -9340,6 +9355,19 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		return 0;
- 	}
- 
-+	list_for_each_entry(trans, &nft_net->binding_list, binding_list) {
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWSET:
-+			if (!nft_trans_set_update(trans) &&
-+			    nft_set_is_anonymous(nft_trans_set(trans)) &&
-+			    !nft_trans_set_bound(trans)) {
-+				pr_warn_once("nftables ruleset with unbound set\n");
-+				return -EINVAL;
-+			}
-+			break;
-+		}
-+	}
-+
- 	/* 0. Validate ruleset, otherwise roll back for error reporting. */
- 	if (nf_tables_validate(net) < 0)
- 		return -EAGAIN;
-@@ -9846,7 +9874,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 
- 	list_for_each_entry_safe_reverse(trans, next,
- 					 &nft_net->commit_list, list) {
--		list_del(&trans->list);
-+		nft_trans_list_del(trans);
- 		nf_tables_abort_release(trans);
- 	}
- 
-@@ -10619,6 +10647,7 @@ static int __net_init nf_tables_init_net(struct net *net)
- 
- 	INIT_LIST_HEAD(&nft_net->tables);
- 	INIT_LIST_HEAD(&nft_net->commit_list);
-+	INIT_LIST_HEAD(&nft_net->binding_list);
- 	INIT_LIST_HEAD(&nft_net->module_list);
- 	INIT_LIST_HEAD(&nft_net->notify_list);
- 	mutex_init(&nft_net->commit_mutex);
+ 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
 -- 
 2.30.2
 
