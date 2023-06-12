@@ -2,74 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61054C7EE2E
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 09:53:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAC77C7EE2E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 10:49:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232494AbjFLJxp (ORCPT
+        id S234821AbjFLKt0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jun 2023 05:53:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33450 "EHLO
+        Mon, 12 Jun 2023 06:49:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230361AbjFLJxJ (ORCPT
+        with ESMTP id S234881AbjFLKtO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2023 05:53:09 -0400
-Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com [IPv6:2607:f8b0:4864:20::230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A90E46A0
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 02:37:30 -0700 (PDT)
-Received: by mail-oi1-x230.google.com with SMTP id 5614622812f47-39a55e706deso1380532b6e.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 02:37:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686562649; x=1689154649;
-        h=content-transfer-encoding:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xtaI7/N6HM5p1lxbE/lWr+5dBnZ6TgGapLuwnXDXk80=;
-        b=avWk6nIFe+0USWMpE/dNtAKSdE9r3cyUG3oDO50lmd3pM1ENCyM1IlkCVfAOBUcHX3
-         +D6hLCFaasOI7937c2FHiE1JjOLq6EbamCmC/sedmyhIyvoLHUdLhHrPgX4wjTAvTEh+
-         GPcCywMbJA8nrvgrI5hUJ4z9mZXyNsU0Jq/TkaH+PLHnOtEAOC/n6/z8wWBXpqLHLWLk
-         6rrBxNEatGNeNoiS7RW7P5RpSYQsYtdiWFrXt6J6vpni1NvXSmeLovWagvtTLCpKL8p9
-         qPbj4kBa+JphMTJxFN3Qin32Ia4kGsIVdjtnjZT7BRjsLqnfo4Jb52YEdO5Ztk7IvgEM
-         TEJQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686562649; x=1689154649;
-        h=content-transfer-encoding:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xtaI7/N6HM5p1lxbE/lWr+5dBnZ6TgGapLuwnXDXk80=;
-        b=Xd+H+FPQU1GRK0mPGqmmiv0fXXbHt20QaYfCmbWzmtYSChub9TlPhtFcn0gYb30gea
-         Zqf+swdllvin54PS6qQzG9tH/sM08tFOqMcxETD/ZhmsYAAfSUHrAl/YbQwjPEGtaOWZ
-         JQdna95Tzkkqju0MDtS8XG0azOiVC8B5u1eoB8FAbBiINCp8g6ysCXidmHxydYiKxGLg
-         ITtwojHenG041g7gbx09P5mg5eQufRKdwInZI09VYkpl/R6xWf/NSIkSIUldPqUWMP5y
-         IygIy1RJ3pg1+R26OrpfkaZ9g3knUSuWMvqNsXjcLaciE7V5zoUIEQOTddlgbI7muwvC
-         s3/g==
-X-Gm-Message-State: AC+VfDzS5NpSp990s+tBy+y6x1o2Bkah3+b/UcEu52mOFBh2MVlaAQ7l
-        mn/K5eB9Q8ctni0AuWREg/qnrvcmbneAb6iML65+HU25BD8=
-X-Google-Smtp-Source: ACHHUZ6+h2GDeQwU/19vQuM2/TQ6pYXvc61yL5XK4tL6+dkp9IHIRdruytMb0bNXVF56mxEoISD+gv0ZkfElnPxCo14=
-X-Received: by 2002:a05:6808:1885:b0:395:eed6:5193 with SMTP id
- bi5-20020a056808188500b00395eed65193mr3959281oib.10.1686562649234; Mon, 12
- Jun 2023 02:37:29 -0700 (PDT)
+        Mon, 12 Jun 2023 06:49:14 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1DAE5FDC
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 03:33:50 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1q8erq-0006OK-VT; Mon, 12 Jun 2023 12:33:46 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: add test case for chain-in-use-splat
+Date:   Mon, 12 Jun 2023 12:33:43 +0200
+Message-Id: <20230612103343.36735-1-fw@strlen.de>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-References: <CAPK07tJebGZU+c=BkY+i8YnNVcWkdmruJswh_wcrmU_+RXFYCg@mail.gmail.com>
-In-Reply-To: <CAPK07tJebGZU+c=BkY+i8YnNVcWkdmruJswh_wcrmU_+RXFYCg@mail.gmail.com>
-From:   stanzgy <stanzgy@gmail.com>
-Date:   Mon, 12 Jun 2023 17:36:53 +0800
-Message-ID: <CAPK07tLNqtKkOc+-MKcQ7z=XfTpnrYponwWgc3crueKB40hfww@mail.gmail.com>
-Subject: Re: help
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-help
+WARNING [.]: at net/netfilter/nf_tables_api.c:1885
+6.3.4-201.fc38.x86_64 #1
+nft_immediate_destroy+0xc1/0xd0 [nf_tables]
+__nf_tables_abort+0x4b9/0xb20 [nf_tables]
+nf_tables_abort+0x39/0x50 [nf_tables]
+nfnetlink_rcv_batch+0x47c/0x8e0 [nfnetlink]
+nfnetlink_rcv+0x179/0x1a0 [nfnetlink]
+netlink_unicast+0x19e/0x290
 
-On Mon, Jun 12, 2023 at 5:33=E2=80=AFPM stanzgy <stanzgy@gmail.com> wrote:
->
-> --
-> Best regards
+This is because of chain->use underflow, at time destroy
+function is called, ->use has wrapped back to -1.
 
+Fixed via
+"netfilter: nf_tables: fix chain binding transaction logic".
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../testcases/transactions/anon_chain_loop    | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100755 tests/shell/testcases/transactions/anon_chain_loop
 
---=20
-Best regards
+diff --git a/tests/shell/testcases/transactions/anon_chain_loop b/tests/shell/testcases/transactions/anon_chain_loop
+new file mode 100755
+index 000000000000..1820fb74485b
+--- /dev/null
++++ b/tests/shell/testcases/transactions/anon_chain_loop
+@@ -0,0 +1,19 @@
++#!/bin/bash
++
++# anon chains with c1 -> c2 recursive jump, expect failure
++$NFT -f - <<EOF
++table ip t {
++ chain c2 { }
++ chain c1 { }
++}
++
++add bla c1 ip saddr 127.0.0.1 jump { jump c2; }
++add bla c2 ip saddr 127.0.0.1 jump { jump c1; }
++EOF
++
++if [ $? -eq 0 ] ; then
++        echo "E: able to load bad ruleset" >&2
++        exit 1
++fi
++
++exit 0
+-- 
+2.40.1
+
