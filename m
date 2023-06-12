@@ -2,190 +2,132 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42297C87FDD
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 13:14:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0CABC88CB2
+	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 13:51:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231328AbjFLNOV (ORCPT
+        id S236731AbjFLNvx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jun 2023 09:14:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49708 "EHLO
+        Mon, 12 Jun 2023 09:51:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232577AbjFLNOS (ORCPT
+        with ESMTP id S235916AbjFLNvu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2023 09:14:18 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 352951A1
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 06:14:17 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2 7/7] netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain
-Date:   Mon, 12 Jun 2023 15:14:09 +0200
-Message-Id: <20230612131409.63157-7-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230612131409.63157-1-pablo@netfilter.org>
-References: <20230612131409.63157-1-pablo@netfilter.org>
+        Mon, 12 Jun 2023 09:51:50 -0400
+Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E32010D8;
+        Mon, 12 Jun 2023 06:51:42 -0700 (PDT)
+Received: from mg.ssi.bg (localhost [127.0.0.1])
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 9FF4223DAB;
+        Mon, 12 Jun 2023 16:51:39 +0300 (EEST)
+Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 86C4C23DAA;
+        Mon, 12 Jun 2023 16:51:39 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [178.16.129.10])
+        by ink.ssi.bg (Postfix) with ESMTPS id E67A83C0440;
+        Mon, 12 Jun 2023 16:51:32 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+        by ja.ssi.bg (8.17.1/8.16.1) with ESMTP id 35CDpT40102565;
+        Mon, 12 Jun 2023 16:51:30 +0300
+Date:   Mon, 12 Jun 2023 16:51:29 +0300 (EEST)
+From:   Julian Anastasov <ja@ssi.bg>
+To:     Terin Stock <terin@cloudflare.com>
+cc:     horms@verge.net.au, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, kernel-team@cloudflare.com,
+        pablo@netfilter.org, hengqing.hu@gmail.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, fw@strlen.de,
+        coreteam@netfilter.org, davem@davemloft.net, kadlec@netfilter.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: Re: [PATCH v2] ipvs: align inner_mac_header for encapsulation
+In-Reply-To: <20230609205842.2333727-1-terin@cloudflare.com>
+Message-ID: <ad564469-c999-3658-d94c-07301702ad27@ssi.bg>
+References: <20230609205842.2333727-1-terin@cloudflare.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new state to deal with rule expressions deactivation from the
-newrule error path, otherwise the anonymous set remains in the list in
-inactive state. Mark the set/chain transaction as unbound so the abort
-path releases this object. Then, this falls through the NFT_TRANS_PREPARE
-case to deactivate this set in this transaction, so it is not visible
-anymore through set lookup.
 
-Fixes: 1240eb93f061 ("netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: new in this series
+	Hello,
 
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 39 ++++++++++++++++++++++++++-----
- net/netfilter/nft_immediate.c     |  3 +++
- 3 files changed, 38 insertions(+), 6 deletions(-)
+On Fri, 9 Jun 2023, Terin Stock wrote:
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 007dfa65c6c6..9d0fa0f2ba67 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -901,6 +901,7 @@ struct nft_expr_type {
- 
- enum nft_trans_phase {
- 	NFT_TRANS_PREPARE,
-+	NFT_TRANS_PREPARE_ERROR,
- 	NFT_TRANS_ABORT,
- 	NFT_TRANS_COMMIT,
- 	NFT_TRANS_RELEASE
-@@ -1105,6 +1106,7 @@ int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
- 			 struct nft_set_elem *elem);
- int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set);
- int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
-+void nf_tables_unbind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
- 
- enum nft_chain_types {
- 	NFT_CHAIN_T_DEFAULT = 0,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 37981472f148..9430f297916c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -176,7 +176,8 @@ static void nft_trans_destroy(struct nft_trans *trans)
- 	kfree(trans);
- }
- 
--static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
-+static void __nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set,
-+				 bool bind)
- {
- 	struct nftables_pernet *nft_net;
- 	struct net *net = ctx->net;
-@@ -190,17 +191,28 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWSET:
- 			if (nft_trans_set(trans) == set)
--				nft_trans_set_bound(trans) = true;
-+				nft_trans_set_bound(trans) = bind;
- 			break;
- 		case NFT_MSG_NEWSETELEM:
- 			if (nft_trans_elem_set(trans) == set)
--				nft_trans_elem_set_bound(trans) = true;
-+				nft_trans_elem_set_bound(trans) = bind;
- 			break;
- 		}
- 	}
- }
- 
--static void nft_chain_trans_bind(const struct nft_ctx *ctx, struct nft_chain *chain)
-+static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	return __nft_set_trans_bind(ctx, set, true);
-+}
-+
-+static void nft_set_trans_unbind(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	return __nft_set_trans_bind(ctx, set, false);
-+}
-+
-+static void __nft_chain_trans_bind(const struct nft_ctx *ctx,
-+				   struct nft_chain *chain, bool bind)
- {
- 	struct nftables_pernet *nft_net;
- 	struct net *net = ctx->net;
-@@ -214,12 +226,18 @@ static void nft_chain_trans_bind(const struct nft_ctx *ctx, struct nft_chain *ch
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWCHAIN:
- 			if (nft_trans_chain(trans) == chain)
--				nft_trans_chain_bound(trans) = true;
-+				nft_trans_chain_bound(trans) = bind;
- 			break;
- 		}
- 	}
- }
- 
-+static void nft_chain_trans_bind(const struct nft_ctx *ctx,
-+				 struct nft_chain *chain)
-+{
-+	__nft_chain_trans_bind(ctx, chain, true);
-+}
-+
- int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain)
- {
- 	if (!nft_chain_binding(chain))
-@@ -238,6 +256,11 @@ int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain)
- 	return 0;
- }
- 
-+void nf_tables_unbind_chain(const struct nft_ctx *ctx, struct nft_chain *chain)
-+{
-+	__nft_chain_trans_bind(ctx, chain, false);
-+}
-+
- static int nft_netdev_register_hooks(struct net *net,
- 				     struct list_head *hook_list)
- {
-@@ -3903,7 +3926,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 	if (flow)
- 		nft_flow_rule_destroy(flow);
- err_release_rule:
--	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE);
-+	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
- 	nf_tables_rule_destroy(&ctx, rule);
- err_release_expr:
- 	for (i = 0; i < n; i++) {
-@@ -5212,6 +5235,9 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
- 			      enum nft_trans_phase phase)
- {
- 	switch (phase) {
-+	case NFT_TRANS_PREPARE_ERROR:
-+		nft_set_trans_unbind(ctx, set);
-+		fallthrough;
- 	case NFT_TRANS_PREPARE:
- 		if (nft_set_is_anonymous(set))
- 			nft_deactivate_next(ctx->net, set);
-@@ -7733,6 +7759,7 @@ void nf_tables_deactivate_flowtable(const struct nft_ctx *ctx,
- 				    enum nft_trans_phase phase)
- {
- 	switch (phase) {
-+	case NFT_TRANS_PREPARE_ERROR:
- 	case NFT_TRANS_PREPARE:
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index 85382d7428b0..b69bd2c042de 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -136,6 +136,9 @@ static void nft_immediate_deactivate(const struct nft_ctx *ctx,
- 				break;
- 
- 			switch (phase) {
-+			case NFT_TRANS_PREPARE_ERROR:
-+				nf_tables_unbind_chain(ctx, chain);
-+				fallthrough;
- 			case NFT_TRANS_PREPARE:
- 				nft_deactivate_next(ctx->net, chain);
- 				break;
--- 
-2.30.2
+> When using encapsulation the original packet's headers are copied to the
+> inner headers. This preserves the space for an inner mac header, which
+> is not used by the inner payloads for the encapsulation types supported
+> by IPVS. If a packet is using GUE or GRE encapsulation and needs to be
+> segmented, flow can be passed to __skb_udp_tunnel_segment() which
+> calculates a negative tunnel header length. A negative tunnel header
+> length causes pskb_may_pull() to fail, dropping the packet.
+> 
+> This can be observed by attaching probes to ip_vs_in_hook(),
+> __dev_queue_xmit(), and __skb_udp_tunnel_segment():
+> 
+>     perf probe --add '__dev_queue_xmit skb->inner_mac_header \
+>     skb->inner_network_header skb->mac_header skb->network_header'
+>     perf probe --add '__skb_udp_tunnel_segment:7 tnl_hlen'
+>     perf probe -m ip_vs --add 'ip_vs_in_hook skb->inner_mac_header \
+>     skb->inner_network_header skb->mac_header skb->network_header'
+> 
+> These probes the headers and tunnel header length for packets which
+> traverse the IPVS encapsulation path. A TCP packet can be forced into
+> the segmentation path by being smaller than a calculated clamped MSS,
+> but larger than the advertised MSS.
+> 
+>     probe:ip_vs_in_hook: inner_mac_header=0x0 inner_network_header=0x0 mac_header=0x44 network_header=0x52
+>     probe:ip_vs_in_hook: inner_mac_header=0x44 inner_network_header=0x52 mac_header=0x44 network_header=0x32
+>     probe:dev_queue_xmit: inner_mac_header=0x44 inner_network_header=0x52 mac_header=0x44 network_header=0x32
+>     probe:__skb_udp_tunnel_segment_L7: tnl_hlen=-2
+> 
+> When using veth-based encapsulation, the interfaces are set to be
+> mac-less, which does not preserve space for an inner mac header. This
+> prevents this issue from occurring.
+> 
+> In our real-world testing of sending a 32KB file we observed operation
+> time increasing from ~75ms for veth-based encapsulation to over 1.5s
+> using IPVS encapsulation due to retries from dropped packets.
+> 
+> This changeset modifies the packet on the encapsulation path in
+> ip_vs_tunnel_xmit() and ip_vs_tunnel_xmit_v6() to remove the inner mac
+> header offset. This fixes UDP segmentation for both encapsulation types,
+> and corrects the inner headers for any IPIP flows that may use it.
+> 
+> Fixes: 84c0d5e96f3a ("ipvs: allow tunneling with gue encapsulation")
+> Signed-off-by: Terin Stock <terin@cloudflare.com>
+
+	Looks good to me for nf/net tree, thanks!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> ---
+>  net/netfilter/ipvs/ip_vs_xmit.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index c7652da78c88..9193e109e6b3 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -1207,6 +1207,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	skb->transport_header = skb->network_header;
+>  
+>  	skb_set_inner_ipproto(skb, next_protocol);
+> +	skb_set_inner_mac_header(skb, skb_inner_network_offset(skb));
+>  
+>  	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
+>  		bool check = false;
+> @@ -1349,6 +1350,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	skb->transport_header = skb->network_header;
+>  
+>  	skb_set_inner_ipproto(skb, next_protocol);
+> +	skb_set_inner_mac_header(skb, skb_inner_network_offset(skb));
+>  
+>  	if (tun_type == IP_VS_CONN_F_TUNNEL_TYPE_GUE) {
+>  		bool check = false;
+> -- 
+> 2.40.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
