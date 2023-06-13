@@ -2,142 +2,136 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C57F4C88CB7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 12 Jun 2023 17:35:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42CF8C88CB2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jun 2023 00:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231175AbjFLRfu (ORCPT
+        id S238954AbjFMAer (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 12 Jun 2023 13:35:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42266 "EHLO
+        Mon, 12 Jun 2023 20:34:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238073AbjFLRfY (ORCPT
+        with ESMTP id S230445AbjFMAel (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2023 13:35:24 -0400
-Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5044A2717
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2023 10:34:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=fliJTigqgB+27V00TewwkpobhGSwVY0St+zvp8U8h9c=; b=jkqT8jlRiGuovJmctx1thmKHBE
-        OZjvXuN7Rn76MeM0Ty1ScJTcdQxw17y3hD32W0b5Wkw3+yF+8EAXhYrZfWMnvwp4R2Z3yTQk0uQpo
-        WgNsb4TasjQlRoW6jkPR0ApvoPHEHlyDQwKTYc4Zzuzqr7c/IbN619YsbRKNZMzojBKHd8OXn/trP
-        KcYJHUq5COQFlYgGcXj15wEUe/imyfV968kigETne16KET+gH7YGqI+gH8MQ4Rl9ge0TV1zI2KOkF
-        ePtLjNT02iB3LcdVApWXgvoUXWu3vxr27T+D6lWtn9cmQEWpIhHMMo/tFTFLsI3phC61HI2ddHd3R
-        vLoPkmKg==;
-Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
-        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.96)
-        (envelope-from <jeremy@azazel.net>)
-        id 1q8lPS-000wtJ-1K
-        for netfilter-devel@vger.kernel.org;
-        Mon, 12 Jun 2023 18:32:54 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons] xt_ipp2p: change text-search algo to KMP
-Date:   Mon, 12 Jun 2023 18:31:33 +0100
-Message-Id: <20230612173133.795980-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.39.2
+        Mon, 12 Jun 2023 20:34:41 -0400
+Received: from mail-io1-xd34.google.com (mail-io1-xd34.google.com [IPv6:2607:f8b0:4864:20::d34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EACDE188;
+        Mon, 12 Jun 2023 17:34:40 -0700 (PDT)
+Received: by mail-io1-xd34.google.com with SMTP id ca18e2360f4ac-77ad3bba2a9so305273939f.1;
+        Mon, 12 Jun 2023 17:34:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686616480; x=1689208480;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=wvMdVrWmm1KsKBFUWEX6pgpKCo/fWwZOLXy0dcLNEyU=;
+        b=mCW+LG6bMXAYtLCunsvonmLxyBwyUFcx5jUrWNVjeHc7toh2Dq4/vOar2JNiboPLme
+         YcOH0Fu+C6tihvwzzV4+yjl3a4IPYxr19Og3DsyjYJg0mChL7A8gjWUvRQjPjr4213w4
+         Jfc35+Oj6B6tYLRkMf082yIDz6YpUeGnlo4OjrUHXMCekHvCreSqrC3KmpGGs5Wnf0cI
+         IjB79ujFXXWDosvZfxjNzM/FPiUsCwj5V+SvNyaGdDZCyaw+ztAt5x5HR6YKSn8SjqnC
+         v0Y+YLVRqSn5BO4mRLTRTc825WBm4b6PzRUqx/M8hNBp+O3e8rJC+HOZp6L8dSVPXWmP
+         R0iw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686616480; x=1689208480;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=wvMdVrWmm1KsKBFUWEX6pgpKCo/fWwZOLXy0dcLNEyU=;
+        b=LbwvehTKKdfwjPVj8sI+Z3dSKvjq/rxsQ6Uydz3GY5NHfBa1q6dgw2axtMroJAqOjQ
+         n81o63lkYe2+EOiRscqaFThRGyQw2ayT8s/X5WPfcfxMKRYAtLNd7FdZ0bp86pQnXueh
+         LorgTrlllmxXt87EE6lIqPTayvu9lz+S5Zr90wRzEMYrWAbcwJ73e+Yid7mtWq39IwXV
+         FogEMl5YWiZSBNU7pGLyx9jwLBSSt2legyaagucsb47TcJm72+BhIKU2ijYU7lP4SZLJ
+         VghEzfjbP6G87VWEBZChTA8qV74qShu7Pn7oli+FlG69rgcKl3Xb/YoyMIvBcThIXJ+l
+         9+dA==
+X-Gm-Message-State: AC+VfDy2f7Kkwe1EbboPb4LBwbPeWoLhn0JL9Fb4HG55MRSp58Zff6sW
+        ZOjhRBsmT4F335ecVBJ5Cp0=
+X-Google-Smtp-Source: ACHHUZ4feAvrqg921toBhoDlWAO1vwl0K8oIcaaXToOdRvE3/z0T+XUpqJRbfQv4M6eTOEyMgG9Sdg==
+X-Received: by 2002:a05:6602:1851:b0:77a:c00c:1166 with SMTP id d17-20020a056602185100b0077ac00c1166mr9660252ioi.15.1686616480236;
+        Mon, 12 Jun 2023 17:34:40 -0700 (PDT)
+Received: from azeems-kspp.c.googlers.com.com (54.70.188.35.bc.googleusercontent.com. [35.188.70.54])
+        by smtp.gmail.com with ESMTPSA id f5-20020a056638118500b0041eb1fb695csm3115812jas.105.2023.06.12.17.34.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 Jun 2023 17:34:39 -0700 (PDT)
+From:   Azeem Shaikh <azeemshaikh38@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     linux-hardening@vger.kernel.org,
+        Azeem Shaikh <azeemshaikh38@gmail.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org
+Subject: [PATCH] netfilter: ipset: Replace strlcpy with strscpy
+Date:   Tue, 13 Jun 2023 00:34:37 +0000
+Message-ID: <20230613003437.3538694-1-azeemshaikh38@gmail.com>
+X-Mailer: git-send-email 2.41.0.162.gfafddb0af9-goog
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The kernel's Boyer-Moore text-search implementation may miss matches in
-non-linear skb's, so use Knuth-Morris-Pratt instead.
+strlcpy() reads the entire source buffer first.
+This read may exceed the destination size limit.
+This is both inefficient and can lead to linear read
+overflows if a source string is not NUL-terminated [1].
+In an effort to remove strlcpy() completely [2], replace
+strlcpy() here with strscpy().
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Direct replacement is safe here since return value from all
+callers of STRLCPY macro were ignored.
+
+[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
+[2] https://github.com/KSPP/linux/issues/89
+
+Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
 ---
- extensions/xt_ipp2p.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ net/netfilter/ipset/ip_set_hash_netiface.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/extensions/xt_ipp2p.c b/extensions/xt_ipp2p.c
-index 2962909930df..eba0b5581273 100644
---- a/extensions/xt_ipp2p.c
-+++ b/extensions/xt_ipp2p.c
-@@ -18,6 +18,8 @@
- #define get_u16(X, O)  get_unaligned((const __u16 *)((X) + O))
- #define get_u32(X, O)  get_unaligned((const __u32 *)((X) + O))
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 031073286236..95aeb31c60e0 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -40,7 +40,7 @@ MODULE_ALIAS("ip_set_hash:net,iface");
+ #define IP_SET_HASH_WITH_MULTI
+ #define IP_SET_HASH_WITH_NET0
  
-+#define TEXTSEARCH_ALGO "kmp"
-+
- MODULE_AUTHOR("Eicke Friedrich/Klaus Degner <ipp2p@ipp2p.org>");
- MODULE_DESCRIPTION("An extension to iptables to identify P2P traffic.");
- MODULE_LICENSE("GPL");
-@@ -1326,55 +1328,57 @@ static int ipp2p_mt_check(const struct xt_mtchk_param *par)
- 	struct ipt_p2p_info *info = par->matchinfo;
- 	struct ts_config *ts_conf;
+-#define STRLCPY(a, b)	strlcpy(a, b, IFNAMSIZ)
++#define STRSCPY(a, b)	strscpy(a, b, IFNAMSIZ)
  
--	ts_conf = textsearch_prepare("bm", "\x20\x22", 2,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "\x20\x22", 2,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_return;
- 	info->ts_conf_winmx = ts_conf;
+ /* IPv4 variant */
  
--	ts_conf = textsearch_prepare("bm", "info_hash=", 10,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "info_hash=", 10,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_winmx;
- 	info->ts_conf_bt_info_hash = ts_conf;
+@@ -182,11 +182,11 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
  
--	ts_conf = textsearch_prepare("bm", "peer_id=", 8,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "peer_id=", 8,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_bt_info_hash;
- 	info->ts_conf_bt_peer_id = ts_conf;
+ 		if (!eiface)
+ 			return -EINVAL;
+-		STRLCPY(e.iface, eiface);
++		STRSCPY(e.iface, eiface);
+ 		e.physdev = 1;
+ #endif
+ 	} else {
+-		STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
++		STRSCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 	}
  
--	ts_conf = textsearch_prepare("bm", "passkey", 8,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "passkey", 8,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_bt_peer_id;
- 	info->ts_conf_bt_passkey = ts_conf;
+ 	if (strlen(e.iface) == 0)
+@@ -400,11 +400,11 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
  
--	ts_conf = textsearch_prepare("bm", "\r\nX-Gnutella-", 13,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "\r\nX-Gnutella-", 13,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_bt_passkey;
- 	info->ts_conf_gnu_x_gnutella = ts_conf;
+ 		if (!eiface)
+ 			return -EINVAL;
+-		STRLCPY(e.iface, eiface);
++		STRSCPY(e.iface, eiface);
+ 		e.physdev = 1;
+ #endif
+ 	} else {
+-		STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
++		STRSCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+ 	}
  
--	ts_conf = textsearch_prepare("bm", "\r\nX-Queue-", 10,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, "\r\nX-Queue-", 10,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_gnu_x_gnutella;
- 	info->ts_conf_gnu_x_queue = ts_conf;
- 
--	ts_conf = textsearch_prepare("bm", "\r\nX-Kazaa-Username: ", 20,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO,
-+				     "\r\nX-Kazaa-Username: ", 20,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_gnu_x_queue;
- 	info->ts_conf_kz_x_kazaa_username = ts_conf;
- 
--	ts_conf = textsearch_prepare("bm", "\r\nUser-Agent: PeerEnabler/", 26,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO,
-+				     "\r\nUser-Agent: PeerEnabler/", 26,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_kazaa_x_kazaa_username;
- 	info->ts_conf_kz_user_agent = ts_conf;
- 
--	ts_conf = textsearch_prepare("bm", ":xdcc send #", 12,
-+	ts_conf = textsearch_prepare(TEXTSEARCH_ALGO, ":xdcc send #", 12,
- 				     GFP_KERNEL, TS_AUTOLOAD);
- 	if (IS_ERR(ts_conf))
- 		goto err_ts_destroy_kazaa_user_agent;
+ 	if (strlen(e.iface) == 0)
 -- 
-2.39.2
+2.41.0.162.gfafddb0af9-goog
+
 
