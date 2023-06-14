@@ -2,251 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DB40EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 13 Jun 2023 20:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB54EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Jun 2023 08:40:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239641AbjFMUiP (ORCPT
+        id S241042AbjFNIk1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 13 Jun 2023 16:38:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44160 "EHLO
+        Wed, 14 Jun 2023 04:40:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238855AbjFMUiJ (ORCPT
+        with ESMTP id S243683AbjFNIkZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Jun 2023 16:38:09 -0400
-X-Greylist: delayed 1540 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 13 Jun 2023 13:38:07 PDT
-Received: from smtp-42ac.mail.infomaniak.ch (smtp-42ac.mail.infomaniak.ch [84.16.66.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 061BC92
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jun 2023 13:38:07 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QggNt2js4zMq7Hy;
-        Tue, 13 Jun 2023 20:38:06 +0000 (UTC)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QggNs3nTwzMrqy1;
-        Tue, 13 Jun 2023 22:38:05 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1686688686;
-        bh=MDXbqQMrGmj7AFcbDOpwLAhhsUlLbijiq4qmklUysz4=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=kYXPXZGO6BWTbhpwVZCU23irT06yY03ejfp5y5rIw4Jenk0+bNySTVBg7SWzZaBJ9
-         9zJXO0mnq+i3KhVoYzhd+acmaBkbx5e76SxuZaoSE9NZobTxPR6OvoCIg7gfmnL6T7
-         SfHgYMuT2kG0eR+bWp3c2OerBh5tH1jMPaB0i8xQ=
-Message-ID: <8c09fc5a-e3a5-4792-65a8-b84c6044128a@digikod.net>
-Date:   Tue, 13 Jun 2023 22:38:04 +0200
+        Wed, 14 Jun 2023 04:40:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8630A1BE3;
+        Wed, 14 Jun 2023 01:40:24 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1249C63EF7;
+        Wed, 14 Jun 2023 08:40:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6463EC433AD;
+        Wed, 14 Jun 2023 08:40:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686732023;
+        bh=w7r/Vy2RBgUGguVLqB/vtm9DdBD26hBrdfNnOcrlkOE=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=sTVizSWFb/tzgy5+wTBvprejqGJcc4Ww/FCrXSMdhUC+0j7FGaWBicvTiHvgwzTlX
+         tMQvF6uLXVhh9x8SGKUmd2LHBO5/FRNn30wzr6OXbfmLV3amJbPAJ82oV2LhIpo/1n
+         xourXznT9H9cli0svwAOkSPODn8ZcxeiiqVEiXLJhuK0ZtpE9Jr5vB4LTvlIJ+DKm2
+         hPi7VhJjCiYq4WaEJnZRxKDNU7wyBP4TgHHY5AX6NKSxcWKRj5kvrBfDQN+5CtAw/P
+         lqgEr9laYn27OOCKEM+p6r0zevQjnqc8eBpt+mK2TvIoXvWQiNzH9rFsplNgORfGjs
+         b0NQMnmfL4RVw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 449DDE2A048;
+        Wed, 14 Jun 2023 08:40:23 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v11 11/12] samples/landlock: Add network demo
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack@google.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
- <20230515161339.631577-12-konstantin.meskhidze@huawei.com>
- <ZH9OFyWZ1njI7VG9@google.com>
- <d9f07165-f589-13d4-6484-1272704f1de0@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <d9f07165-f589-13d4-6484-1272704f1de0@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+Subject: Re: [PATCH net 1/1] net/sched: act_ct: Fix promotion of offloaded
+ unreplied tuple
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168673202327.7814.1952400928675625882.git-patchwork-notify@kernel.org>
+Date:   Wed, 14 Jun 2023 08:40:23 +0000
+References: <1686313379-117663-1-git-send-email-paulb@nvidia.com>
+In-Reply-To: <1686313379-117663-1-git-send-email-paulb@nvidia.com>
+To:     Paul Blakey <paulb@nvidia.com>
+Cc:     vladbu@nvidia.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, ozsh@nvidia.com, roid@nvidia.com,
+        saeedm@nvidia.com, pablo@netfilter.org, kadlec@netfilter.org,
+        fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, jhs@mojatatu.com,
+        xiyou.wangcong@gmail.com, jiri@resnulli.us
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hello:
 
-On 13/06/2023 12:54, Konstantin Meskhidze (A) wrote:
+This patch was applied to netdev/net.git (main)
+by Paolo Abeni <pabeni@redhat.com>:
+
+On Fri, 9 Jun 2023 15:22:59 +0300 you wrote:
+> Currently UNREPLIED and UNASSURED connections are added to the nf flow
+> table. This causes the following connection packets to be processed
+> by the flow table which then skips conntrack_in(), and thus such the
+> connections will remain UNREPLIED and UNASSURED even if reply traffic
+> is then seen. Even still, the unoffloaded reply packets are the ones
+> triggering hardware update from new to established state, and if
+> there aren't any to triger an update and/or previous update was
+> missed, hardware can get out of sync with sw and still mark
+> packets as new.
 > 
-> 
-> 6/6/2023 6:17 PM, Günther Noack пишет:
->> Hi Konstantin!
->>
->> Apologies if some of this was discussed before, in this case,
->> Mickaël's review overrules my opinions from the sidelines ;)
->>
->> On Tue, May 16, 2023 at 12:13:38AM +0800, Konstantin Meskhidze wrote:
->>> This commit adds network demo. It's possible to allow a sandboxer to
->>> bind/connect to a list of particular ports restricting network
->>> actions to the rest of ports.
->>>
->>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>
->>
->>> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
->>> index e2056c8b902c..b0250edb6ccb 100644
->>> --- a/samples/landlock/sandboxer.c
->>> +++ b/samples/landlock/sandboxer.c
->>
->> ...
->>
->>> +static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
->>> +				const __u64 allowed_access)
->>> +{
->>> +	int num_ports, i, ret = 1;
->>
->> I thought the convention was normally to set ret = 0 initially and to
->> override it in case of error, rather than the other way around?
+> [...]
 
-Which convention? In this case, by default the return code is an error.
+Here is the summary with links:
+  - [net,1/1] net/sched: act_ct: Fix promotion of offloaded unreplied tuple
+    https://git.kernel.org/netdev/net/c/41f2c7c342d3
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
 
->>
->     Well, I just followed Mickaёl's way of logic here. >
-> 
->>> +	char *env_port_name;
->>> +	struct landlock_net_service_attr net_service = {
->>> +		.allowed_access = allowed_access,
->>> +		.port = 0,
->>> +	};
->>> +
->>> +	env_port_name = getenv(env_var);
->>> +	if (!env_port_name)
->>> +		return 0;
->>> +	env_port_name = strdup(env_port_name);
->>> +	unsetenv(env_var);
->>> +	num_ports = parse_port_num(env_port_name);
->>> +
->>> +	if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == NULL)) {
->>> +		ret = 0;
->>> +		goto out_free_name;
->>> +	}
->>
->> I don't understand why parse_port_num and strtok are necessary in this
->> program. The man-page for strsep(3) describes it as a replacement to
->> strtok(3) (in the HISTORY section), and it has a very short example
->> for how it is used.
->>
->> Wouldn't it work like this as well?
->>
->> while ((strport = strsep(&env_port_name, ":"))) {
->>     net_service.port = atoi(strport);
->>     /* etc */
->> }
-> 
->     Thanks for a tip. I think it's a better solution here. Now this
-> commit is in Mickaёl's -next branch. I could send a one-commit patch later.
-> Mickaёl, what do you think?
-
-I removed this series from -next because there is some issues (see the 
-bot's emails), but anyway, this doesn't mean these patches don't need to 
-be changed, they do. The goal of -next is to test more widely a patch 
-series and get more feedbacks, especially from bots. When this series 
-will be fully ready (and fuzzed with syzkaller), I'll push it to Linus 
-Torvalds.
-
-I'll review the remaining tests and sample code this week, but you can 
-still take into account the documentation review.
-
-
-> 
->>
->>> +
->>> +	for (i = 0; i < num_ports; i++) {
->>> +		net_service.port = atoi(strsep(&env_port_name, ENV_PATH_TOKEN));
->>
->> Naming of ENV_PATH_TOKEN:
->> This usage is not related to paths, maybe rename the variable?
->> It's also technically not the token, but the delimiter.
->>
->    What do you think of ENV_PORT_TOKEN or ENV_PORT_DELIMITER???
-
-You can rename ENV_PATH_TOKEN to ENV_DELIMITER for the FS and network parts.
-
-
-> 
->>> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->>> +				      &net_service, 0)) {
->>> +			fprintf(stderr,
->>> +				"Failed to update the ruleset with port \"%lld\": %s\n",
->>> +				net_service.port, strerror(errno));
->>> +			goto out_free_name;
->>> +		}
->>> +	}
->>> +	ret = 0;
->>> +
->>> +out_free_name:
->>> +	free(env_port_name);
->>> +	return ret;
->>> +}
->>
->>
->>>   		fprintf(stderr,
->>>   			"Launch a command in a restricted environment.\n\n");
->>> -		fprintf(stderr, "Environment variables containing paths, "
->>> -				"each separated by a colon:\n");
->>> +		fprintf(stderr,
->>> +			"Environment variables containing paths and ports "
->>> +			"each separated by a colon:\n");
->>>   		fprintf(stderr,
->>>   			"* %s: list of paths allowed to be used in a read-only way.\n",
->>>   			ENV_FS_RO_NAME);
->>>   		fprintf(stderr,
->>> -			"* %s: list of paths allowed to be used in a read-write way.\n",
->>> +			"* %s: list of paths allowed to be used in a read-write way.\n\n",
->>>   			ENV_FS_RW_NAME);
->>> +		fprintf(stderr,
->>> +			"Environment variables containing ports are optional "
->>> +			"and could be skipped.\n");
->>
->> As it is, I believe the program does something different when I'm
->> setting these to the empty string (ENV_TCP_BIND_NAME=""), compared to
->> when I'm unsetting them?
->>
->> I think the case where we want to forbid all handle-able networking is
->> a legit and very common use case - it could be clearer in the
->> documentation how this is done with the tool. (And maybe the interface
->> could be something more explicit than setting the environment variable
->> to empty?)
-
-I'd like to keep it simple, and it should be seen as an example code, 
-not a full-feature sandboxer, but still a consistent and useful one. 
-What would you suggest?
-
-This sandboxer tool relies on environment variables for its 
-configuration. This is definitely not a good fit for all use cases, but 
-I think it is simple and flexible enough. One use case might be to 
-export a set of environment variables and simply call this tool. I'd 
-prefer to not deal with argument parsing, but maybe that was too 
-simplistic? We might want to revisit this approach but probably not with 
-this series.
-
-
->>
->>
->>> +	/* Removes bind access attribute if not supported by a user. */
->>> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
->>> +	if (!env_port_name) {
->>> +		ruleset_attr.handled_access_net &=
->>> +			~LANDLOCK_ACCESS_NET_BIND_TCP;
->>> +	}
->>> +	/* Removes connect access attribute if not supported by a user. */
->>> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
->>> +	if (!env_port_name) {
->>> +		ruleset_attr.handled_access_net &=
->>> +			~LANDLOCK_ACCESS_NET_CONNECT_TCP;
->>> +	}
->>
->> This is the code where the program does not restrict network usage,
->> if the corresponding environment variable is not set.
-> 
->     Yep. Right.
->>
->> It's slightly inconsistent with what this tool does for filesystem
->> paths. - If you don't specify any file paths, it will still restrict
->> file operations there, independent of whether that env variable was
->> set or not.  (Apologies if it was discussed before.)
-> 
->    Mickaёl wanted to make network ports optional here.
->    Please check:
->   
-> https://lore.kernel.org/linux-security-module/179ac2ee-37ff-92da-c381-c2c716725045@digikod.net/
-
-Right, the rationale is for compatibility with the previous version of 
-this tool. We should not break compatibility when possible. A comment 
-should explain the rationale though.
-
-> 
-> https://lore.kernel.org/linux-security-module/fe3bc928-14f8-5e2b-359e-9a87d6cf5b01@digikod.net/
->>
->> —Günther
->>
