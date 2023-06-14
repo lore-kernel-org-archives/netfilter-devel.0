@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 346E7EB64DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 871DBC001B0
 	for <netfilter-devel@archiver.kernel.org>; Wed, 14 Jun 2023 16:17:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232616AbjFNQQe (ORCPT
+        id S232748AbjFNQQj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 14 Jun 2023 12:16:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35426 "EHLO
+        Wed, 14 Jun 2023 12:16:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232905AbjFNQQT (ORCPT
+        with ESMTP id S233030AbjFNQQV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Jun 2023 12:16:19 -0400
+        Wed, 14 Jun 2023 12:16:21 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4055E2101
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2023 09:16:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4D0051FE5
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2023 09:16:20 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nf,v3 03/10] netfilter: nf_tables: reject unbound anonymous set before commit phase
-Date:   Wed, 14 Jun 2023 18:16:05 +0200
-Message-Id: <20230614161612.68452-3-pablo@netfilter.org>
+Subject: [PATCH nf,v3 09/10] netfilter: nft_set_pipapo: .walk does not deal with generations
+Date:   Wed, 14 Jun 2023 18:16:11 +0200
+Message-Id: <20230614161612.68452-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230614161612.68452-1-pablo@netfilter.org>
 References: <20230614161612.68452-1-pablo@netfilter.org>
@@ -31,131 +31,41 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add a new list to track set transaction and to check for unbound
-anonymous sets before entering the commit phase.
+The .walk callback iterates over the current active set, but it might be
+useful to iterate over the next generation set. Use the generation mask
+to determine what set view (either current or next generation) is use
+for the walk iteration.
 
-Bail out at the end of the transaction handling if an anonymous set
-remains unbound.
-
-Fixes: 96518518cc41 ("netfilter: add nftables")
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: no changes.
+v3: new in this series.
 
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 35 ++++++++++++++++++++++++++++---
- 2 files changed, 34 insertions(+), 3 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 8ba7f81e81a6..0536198173da 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1575,6 +1575,7 @@ static inline void nft_set_elem_clear_busy(struct nft_set_ext *ext)
-  */
- struct nft_trans {
- 	struct list_head		list;
-+	struct list_head		binding_list;
- 	int				msg_type;
- 	bool				put_net;
- 	struct nft_ctx			ctx;
-@@ -1719,6 +1720,7 @@ static inline int nft_request_module(struct net *net, const char *fmt, ...) { re
- struct nftables_pernet {
- 	struct list_head	tables;
- 	struct list_head	commit_list;
-+	struct list_head	binding_list;
- 	struct list_head	module_list;
- 	struct list_head	notify_list;
- 	struct mutex		commit_mutex;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index febe8c34ab98..9178ded456f4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -151,6 +151,7 @@ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
- 		return NULL;
- 
- 	INIT_LIST_HEAD(&trans->list);
-+	INIT_LIST_HEAD(&trans->binding_list);
- 	trans->msg_type = msg_type;
- 	trans->ctx	= *ctx;
- 
-@@ -163,9 +164,15 @@ static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
- 	return nft_trans_alloc_gfp(ctx, msg_type, size, GFP_KERNEL);
- }
- 
--static void nft_trans_destroy(struct nft_trans *trans)
-+static void nft_trans_list_del(struct nft_trans *trans)
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index c867b5b772e8..ee2ae170eff7 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1974,12 +1974,16 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 			    struct nft_set_iter *iter)
  {
- 	list_del(&trans->list);
-+	list_del(&trans->binding_list);
-+}
-+
-+static void nft_trans_destroy(struct nft_trans *trans)
-+{
-+	nft_trans_list_del(trans);
- 	kfree(trans);
- }
+ 	struct nft_pipapo *priv = nft_set_priv(set);
++	struct net *net = read_pnet(&set->net);
+ 	struct nft_pipapo_match *m;
+ 	struct nft_pipapo_field *f;
+ 	int i, r;
  
-@@ -334,6 +341,14 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	rcu_read_lock();
+-	m = rcu_dereference(priv->match);
++	if (iter->genmask == nft_genmask_cur(net))
++		m = rcu_dereference(priv->match);
++	else
++		m = rcu_dereference(priv->clone);
  
-+	switch (trans->msg_type) {
-+	case NFT_MSG_NEWSET:
-+		if (!nft_trans_set_update(trans) &&
-+		    nft_set_is_anonymous(nft_trans_set(trans)))
-+			list_add_tail(&trans->binding_list, &nft_net->binding_list);
-+		break;
-+	}
-+
- 	list_add_tail(&trans->list, &nft_net->commit_list);
- }
- 
-@@ -8976,7 +8991,7 @@ static void nf_tables_trans_destroy_work(struct work_struct *w)
- 	synchronize_rcu();
- 
- 	list_for_each_entry_safe(trans, next, &head, list) {
--		list_del(&trans->list);
-+		nft_trans_list_del(trans);
- 		nft_commit_release(trans);
- 	}
- }
-@@ -9341,6 +9356,19 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		return 0;
- 	}
- 
-+	list_for_each_entry(trans, &nft_net->binding_list, binding_list) {
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWSET:
-+			if (!nft_trans_set_update(trans) &&
-+			    nft_set_is_anonymous(nft_trans_set(trans)) &&
-+			    !nft_trans_set_bound(trans)) {
-+				pr_warn_once("nftables ruleset with unbound set\n");
-+				return -EINVAL;
-+			}
-+			break;
-+		}
-+	}
-+
- 	/* 0. Validate ruleset, otherwise roll back for error reporting. */
- 	if (nf_tables_validate(net) < 0)
- 		return -EAGAIN;
-@@ -9851,7 +9879,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 
- 	list_for_each_entry_safe_reverse(trans, next,
- 					 &nft_net->commit_list, list) {
--		list_del(&trans->list);
-+		nft_trans_list_del(trans);
- 		nf_tables_abort_release(trans);
- 	}
- 
-@@ -10624,6 +10652,7 @@ static int __net_init nf_tables_init_net(struct net *net)
- 
- 	INIT_LIST_HEAD(&nft_net->tables);
- 	INIT_LIST_HEAD(&nft_net->commit_list);
-+	INIT_LIST_HEAD(&nft_net->binding_list);
- 	INIT_LIST_HEAD(&nft_net->module_list);
- 	INIT_LIST_HEAD(&nft_net->notify_list);
- 	mutex_init(&nft_net->commit_mutex);
+ 	if (unlikely(!m))
+ 		goto out;
 -- 
 2.30.2
 
