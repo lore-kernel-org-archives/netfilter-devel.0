@@ -2,112 +2,132 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA375EB64D9
-	for <netfilter-devel@archiver.kernel.org>; Thu, 15 Jun 2023 15:30:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79265EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 16 Jun 2023 11:11:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345154AbjFOPa3 (ORCPT
+        id S232366AbjFPLLT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 15 Jun 2023 11:30:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58944 "EHLO
+        Fri, 16 Jun 2023 07:11:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345368AbjFOPaO (ORCPT
+        with ESMTP id S229913AbjFPLLS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Jun 2023 11:30:14 -0400
-Received: from mail-wm1-x334.google.com (mail-wm1-x334.google.com [IPv6:2a00:1450:4864:20::334])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44C5C2D5D
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jun 2023 08:29:35 -0700 (PDT)
-Received: by mail-wm1-x334.google.com with SMTP id 5b1f17b1804b1-3f736e0c9a8so17825505e9.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jun 2023 08:29:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1686842964; x=1689434964;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=DmTVCcDzgdb0rJxfE0Wgi1MTtd65tPNrOoDRMDRx3gQ=;
-        b=ZWKJCPeyY3OAvLfQ/Akuz48aKCvTBQTX/njIi7+Ped9HxmetqggAQuX8AfhzbOMrMB
-         0SjxhsxeYOEEX9VqUD5ASxl4hgU9Nz2oqcj/uFxTGO7cYvDZyEyoyjgYsc9H67ECc5K4
-         h6ydnE3ghYlThrijidU2Apjum47pypqMDNRd4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686842964; x=1689434964;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=DmTVCcDzgdb0rJxfE0Wgi1MTtd65tPNrOoDRMDRx3gQ=;
-        b=hi6VpvaAD1gdZCDW1bO9eEx09RQlK2tx91DjBVpafSKeSnNVHP34M/AVtOGeW5rvSq
-         gmBhd7p/o9+hltpsNGHKhAhJYznUanhygElo76DojwBl/drm+8iLMMB4S+3zG88umKT0
-         CSbg8gES9laPk6AKekqdd3QXbdUI7RF3IMEfDBWfGSrKe7kgG1kABMbM+0e8YCFUM1VI
-         Z15/jl51HJKohdsMuDsQZWjNU0N+hW756SHIz3aBm3LF9f14njaCr6Qz5WsGK5B3cp/C
-         PUidqBJ9sK0pTWcnBWycC8saYeYtqD4QhX+SARHZFUw7HJ2h1QLyxrjIBLcmQ0Zsn+TN
-         OYQg==
-X-Gm-Message-State: AC+VfDwcyBHSXOzcSyMqByCC2cd2zLFmUTcdGscJQJQ9pFn/T1Ec2QCI
-        2r80Vs+ihADd3uJiiZFfWJl9T+YJVccW9LqWg/FDKg==
-X-Google-Smtp-Source: ACHHUZ7if8/QjJGrlFQPl6PUziSmXH/MThCln20vJrrNGAbg26qZf+cyoV/v/dt8J17ZWjgWvauPdA==
-X-Received: by 2002:a05:600c:2212:b0:3f6:cfc7:8bc7 with SMTP id z18-20020a05600c221200b003f6cfc78bc7mr12113985wml.17.1686842963710;
-        Thu, 15 Jun 2023 08:29:23 -0700 (PDT)
-Received: from revest.zrh.corp.google.com ([2a00:79e0:9d:6:7ec7:7f97:45af:3056])
-        by smtp.gmail.com with ESMTPSA id k1-20020a5d6e81000000b0030e5ccaec84sm21510469wrz.32.2023.06.15.08.29.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Jun 2023 08:29:23 -0700 (PDT)
-From:   Florent Revest <revest@chromium.org>
-To:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bpf@vger.kernel.org
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, lirongqing@baidu.com, wangli39@baidu.com,
-        zhangyu31@baidu.com, daniel@iogearbox.net, ast@kernel.org,
-        kpsingh@kernel.org, Florent Revest <revest@chromium.org>,
-        stable@vger.kernel.org
-Subject: [PATCH nf] netfilter: conntrack: Avoid nf_ct_helper_hash uses after free
-Date:   Thu, 15 Jun 2023 17:29:18 +0200
-Message-ID: <20230615152918.3484699-1-revest@chromium.org>
-X-Mailer: git-send-email 2.41.0.162.gfafddb0af9-goog
+        Fri, 16 Jun 2023 07:11:18 -0400
+X-Greylist: delayed 602 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 16 Jun 2023 04:11:15 PDT
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 022F1C5;
+        Fri, 16 Jun 2023 04:11:14 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 0F2FCCC0100;
+        Fri, 16 Jun 2023 12:51:21 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Fri, 16 Jun 2023 12:51:18 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 8219DCC00FE;
+        Fri, 16 Jun 2023 12:51:16 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 5CB2B3431A9; Fri, 16 Jun 2023 12:51:16 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 5B076343155;
+        Fri, 16 Jun 2023 12:51:16 +0200 (CEST)
+Date:   Fri, 16 Jun 2023 12:51:16 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     Azeem Shaikh <azeemshaikh38@gmail.com>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        linux-hardening@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ipset: Replace strlcpy with strscpy
+In-Reply-To: <20230613003437.3538694-1-azeemshaikh38@gmail.com>
+Message-ID: <b7f91b9f-84d9-8eb9-246f-68b4cb3721f9@netfilter.org>
+References: <20230613003437.3538694-1-azeemshaikh38@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-If register_nf_conntrack_bpf() fails (for example, if the .BTF section
-contains an invalid entry), nf_conntrack_init_start() calls
-nf_conntrack_helper_fini() as part of its cleanup path and
-nf_ct_helper_hash gets freed.
+On Tue, 13 Jun 2023, Azeem Shaikh wrote:
 
-Further netfilter modules like netfilter_conntrack_ftp don't check
-whether nf_conntrack initialized correctly and call
-nf_conntrack_helpers_register() which accesses the freed
-nf_ct_helper_hash and causes a uaf.
+> strlcpy() reads the entire source buffer first.
+> This read may exceed the destination size limit.
+> This is both inefficient and can lead to linear read
+> overflows if a source string is not NUL-terminated [1].
+> In an effort to remove strlcpy() completely [2], replace
+> strlcpy() here with strscpy().
+> 
+> Direct replacement is safe here since return value from all
+> callers of STRLCPY macro were ignored.
+> 
+> [1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
+> [2] https://github.com/KSPP/linux/issues/89
+> 
+> Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
 
-This patch guards nf_conntrack_helper_register() from accessing
-freed/uninitialized nf_ct_helper_hash maps and fixes a boot-time
-use-after-free.
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-Cc: stable@vger.kernel.org
-Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
-Signed-off-by: Florent Revest <revest@chromium.org>
----
- net/netfilter/nf_conntrack_helper.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Best regards,
+Jozsef
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 0c4db2f2ac43..f22691f83853 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -360,6 +360,9 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 	BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
- 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
- 
-+	if (!nf_ct_helper_hash)
-+		return -ENOENT;
-+
- 	if (me->expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
- 		return -EINVAL;
- 
-@@ -515,4 +518,5 @@ int nf_conntrack_helper_init(void)
- void nf_conntrack_helper_fini(void)
- {
- 	kvfree(nf_ct_helper_hash);
-+	nf_ct_helper_hash = NULL;
- }
--- 
-2.41.0.162.gfafddb0af9-goog
+> ---
+>  net/netfilter/ipset/ip_set_hash_netiface.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+> index 031073286236..95aeb31c60e0 100644
+> --- a/net/netfilter/ipset/ip_set_hash_netiface.c
+> +++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+> @@ -40,7 +40,7 @@ MODULE_ALIAS("ip_set_hash:net,iface");
+>  #define IP_SET_HASH_WITH_MULTI
+>  #define IP_SET_HASH_WITH_NET0
+>  
+> -#define STRLCPY(a, b)	strlcpy(a, b, IFNAMSIZ)
+> +#define STRSCPY(a, b)	strscpy(a, b, IFNAMSIZ)
+>  
+>  /* IPv4 variant */
+>  
+> @@ -182,11 +182,11 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+>  
+>  		if (!eiface)
+>  			return -EINVAL;
+> -		STRLCPY(e.iface, eiface);
+> +		STRSCPY(e.iface, eiface);
+>  		e.physdev = 1;
+>  #endif
+>  	} else {
+> -		STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+> +		STRSCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+>  	}
+>  
+>  	if (strlen(e.iface) == 0)
+> @@ -400,11 +400,11 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+>  
+>  		if (!eiface)
+>  			return -EINVAL;
+> -		STRLCPY(e.iface, eiface);
+> +		STRSCPY(e.iface, eiface);
+>  		e.physdev = 1;
+>  #endif
+>  	} else {
+> -		STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+> +		STRSCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+>  	}
+>  
+>  	if (strlen(e.iface) == 0)
+> -- 
+> 2.41.0.162.gfafddb0af9-goog
+> 
+> 
+> 
 
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
