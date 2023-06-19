@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE025EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 20:43:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20879EB64DB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 20:43:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229472AbjFSUnc (ORCPT
+        id S229797AbjFSUni (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Jun 2023 16:43:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41106 "EHLO
+        Mon, 19 Jun 2023 16:43:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229820AbjFSUna (ORCPT
+        with ESMTP id S229783AbjFSUnh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Jun 2023 16:43:30 -0400
+        Mon, 19 Jun 2023 16:43:37 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E1E7128
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jun 2023 13:43:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4692CE72
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jun 2023 13:43:33 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qBLih-0003rZ-QT; Mon, 19 Jun 2023 22:43:27 +0200
+        id 1qBLil-0003ry-Sm; Mon, 19 Jun 2023 22:43:31 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/6] parser: reject zero-length interface names
-Date:   Mon, 19 Jun 2023 22:43:04 +0200
-Message-Id: <20230619204306.11785-5-fw@strlen.de>
+Subject: [PATCH nft 5/6] parser: reject zero-length interface names in flowtables
+Date:   Mon, 19 Jun 2023 22:43:05 +0200
+Message-Id: <20230619204306.11785-6-fw@strlen.de>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20230619204306.11785-1-fw@strlen.de>
 References: <20230619204306.11785-1-fw@strlen.de>
@@ -34,84 +34,58 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-device "" results in an assertion during evaluation.
-Before:
-nft: expression.c:426: constant_expr_alloc: Assertion `(((len) + (8) - 1) / (8)) > 0' failed.
-After:
-zero_length_devicename_assert:3:42-49: Error: you cannot set an empty interface name
-type filter hook ingress device""lo" priority -1
-                         ^^^^^^^^
+Previous patch wasn't enough, also disable this for flowtable device lists.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/parser_bison.y                            | 36 ++++++++++++++++---
- .../nft-f/zero_length_devicename_assert       |  5 +++
- 2 files changed, 36 insertions(+), 5 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert
+ src/parser_bison.y                            | 20 +++++++++++--------
+ .../zero_length_devicename_flowtable_assert   |  5 +++++
+ 2 files changed, 17 insertions(+), 8 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/zero_length_devicename_flowtable_assert
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index f5f6bf04d064..d5a2f85387cb 100644
+index d5a2f85387cb..8a559103250e 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -144,6 +144,33 @@ static bool already_set(const void *attr, const struct location *loc,
- 	return true;
- }
+@@ -2380,17 +2380,21 @@ flowtable_list_expr	:	flowtable_expr_member
  
-+static struct expr* ifname_expr_alloc(const struct location *location,
-+				      struct list_head *queue,
-+				      const char *name)
-+{
-+	unsigned int length = strlen(name);
-+	struct expr *expr;
-+
-+	if (length == 0) {
-+		xfree(name);
-+		erec_queue(error(location, "empty interface name"), queue);
-+		return NULL;
-+	}
-+
-+	if (length > 16) {
-+		xfree(name);
-+		erec_queue(error(location, "interface name too long"), queue);
-+		return NULL;
-+	}
-+
-+	expr = constant_expr_alloc(location, &ifname_type, BYTEORDER_HOST_ENDIAN,
-+				   length * BITS_PER_BYTE, name);
-+
-+	xfree(name);
-+
-+	return expr;
-+}
-+
- #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
- 
- #define symbol_value(loc, str) \
-@@ -2664,12 +2691,11 @@ int_num			:	NUM			{ $$ = $1; }
- 
- dev_spec		:	DEVICE	string
+ flowtable_expr_member	:	QUOTED_STRING
  			{
--				struct expr *expr;
-+				struct expr *expr = ifname_expr_alloc(&@$, state->msgs, $2);
+-				$$ = constant_expr_alloc(&@$, &string_type,
+-							 BYTEORDER_HOST_ENDIAN,
+-							 strlen($1) * BITS_PER_BYTE, $1);
+-				xfree($1);
++				struct expr *expr = ifname_expr_alloc(&@$, state->msgs, $1);
 +
 +				if (!expr)
 +					YYERROR;
- 
--				expr = constant_expr_alloc(&@$, &string_type,
--							   BYTEORDER_HOST_ENDIAN,
--							   strlen($2) * BITS_PER_BYTE, $2);
--				xfree($2);
- 				$$ = compound_expr_alloc(&@$, EXPR_LIST);
- 				compound_expr_add($$, expr);
- 
-diff --git a/tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert b/tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert
++
++				$$ = expr;
+ 			}
+ 			|	STRING
+ 			{
+-				$$ = constant_expr_alloc(&@$, &string_type,
+-							 BYTEORDER_HOST_ENDIAN,
+-							 strlen($1) * BITS_PER_BYTE, $1);
+-				xfree($1);
++				struct expr *expr = ifname_expr_alloc(&@$, state->msgs, $1);
++
++				if (!expr)
++					YYERROR;
++
++				$$ = expr;
+ 			}
+ 			|	variable_expr
+ 			{
+diff --git a/tests/shell/testcases/bogons/nft-f/zero_length_devicename_flowtable_assert b/tests/shell/testcases/bogons/nft-f/zero_length_devicename_flowtable_assert
 new file mode 100644
-index 000000000000..84f330730fce
+index 000000000000..2c3e6c3ffbd2
 --- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert
++++ b/tests/shell/testcases/bogons/nft-f/zero_length_devicename_flowtable_assert
 @@ -0,0 +1,5 @@
-+table ip x {
-+        chain Main_Ingress1 {
-+                type filter hook ingress device""lo" priority -1
++table t {
++	flowtable f {
++		devices = { """"lo }
 +	}
 +}
 -- 
