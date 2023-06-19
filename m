@@ -2,44 +2,44 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C40EEB64D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 19:08:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B28EB64D9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 19:09:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231224AbjFSTIW (ORCPT
+        id S229862AbjFSTJ0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Jun 2023 15:08:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36854 "EHLO
+        Mon, 19 Jun 2023 15:09:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232043AbjFSTIV (ORCPT
+        with ESMTP id S229861AbjFSTJZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Jun 2023 15:08:21 -0400
+        Mon, 19 Jun 2023 15:09:25 -0400
 Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ABE5E68
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jun 2023 12:08:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E1F29C
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jun 2023 12:09:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
         To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
         Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
         In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=HzPUxAzqHLAG4hAhWPiwcJe9Z0y256FlkONLwGFCP7k=; b=f1H4/xy23BGl9mqku4xF1NETvZ
-        xzVaHM47tlXZGxsr3C9w78EubVf3++2k2gA8CkqmeL1dHwPHqTGL/fKS/kLlgW8jeOXBy1e8Or96E
-        FkdadlnJmImSVf0Tr5h8CQcX944fylOTlj6Ea7CGM+Nre/Ow+l0BfioCnKI5JN1Xhl/n/6JvQwX09
-        rrBXEzUnX1csEsQG1H5ZjCUGOU8bLQmjkovbq0HcEDQGd5HB0NOoiiZNZ6gwe37XZaa9RWluFKFAb
-        fC6Vg+QSx5rCEAyxV8EQu08QE+EnKOy7WBpXV50auneTab4Y72B9aGdLxRHPOKy7eoxByMq6SvFkc
-        ZuP7gvyQ==;
+        bh=dtH/HgPU04v44sfXcmah5GZ7s6G7EaamEj5MCXfefCo=; b=VcXCnrllc46W9pApoUIInfMYUJ
+        zIwelssQvR+uxx9E9ZwHrjqqcVOMUUzDju9RhitCm0W6d8r4OFKBVplIrzRMSeDbSm9VHGdheLmUm
+        uKjL0utXClQuMcXfs905wBSivNJBNMStp8La9ypugRzHhvGw9OcldgiQkOp8QOWzLkbtInQtudG/V
+        3w0LqptapRZ2cNisBlVtVR5cJJzFduG0Km+E6m3Y7Opb0sYLusq2/ai43q9omrA+ahjWzKvurJ4cI
+        OngA1Q2AWtcL6amOcd5WzbHXuJ7te/BjaW886GA2k47FsubUiUlLxWIXk+R2hmZX+c1gEeimzM2DH
+        M+tuZGjA==;
 Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
         by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.96)
         (envelope-from <jeremy@azazel.net>)
-        id 1qBKEZ-008EPd-0I
+        id 1qBKFe-008EQy-32
         for netfilter-devel@vger.kernel.org;
-        Mon, 19 Jun 2023 20:08:15 +0100
+        Mon, 19 Jun 2023 20:09:22 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf v2] lib/ts_bm: reset initial match offset for every block of text
-Date:   Mon, 19 Jun 2023 20:06:57 +0100
-Message-Id: <20230619190657.1905910-1-jeremy@azazel.net>
+Subject: [PATCH nf-next] lib/ts_bm: add helper to reduce indentation and improve readability
+Date:   Mon, 19 Jun 2023 20:08:03 +0100
+Message-Id: <20230619190803.1906012-1-jeremy@azazel.net>
 X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -50,55 +50,78 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The `shift` variable which indicates the offset in the string at which
-to start matching the pattern is initialized to `bm->patlen - 1`, but it
-is not reset when a new block is retrieved.  This means the implemen-
-tation may start looking at later and later positions in each successive
-block and miss occurrences of the pattern at the beginning.  E.g.,
-consider a HTTP packet held in a non-linear skb, where the HTTP request
-line occurs in the second block:
+The flow-control of `bm_find` is very deeply nested with a conditional
+comparing a ternary expression against the pattern inside a for-loop
+inside a while-loop inside a for-loop.
 
-  [... 52 bytes of packet headers ...]
-  GET /bmtest HTTP/1.1\r\nHost: www.example.com\r\n\r\n
+Move the inner for-loop into a helper function to reduce the amount of
+indentation and make the code easier to read.
 
-and the pattern is "GET /bmtest".
-
-Once the first block comprising the packet headers has been examined,
-`shift` will be pointing to somewhere near the end of the block, and so
-when the second block is examined the request line at the beginning will
-be missed.
-
-Reinitialize the variable for each new block.
-
-Fixes: 8082e4ed0a61 ("[LIB]: Boyer-Moore extension for textsearch infrastructure strike #2")
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1390
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
-Changes since v1
-
- The indentation and white-space fixes have been moved into a separate patch.
-
- lib/ts_bm.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/ts_bm.c | 42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
 diff --git a/lib/ts_bm.c b/lib/ts_bm.c
-index 1f2234221dd1..c8ecbf74ef29 100644
+index 1f2234221dd1..d74fdb87d269 100644
 --- a/lib/ts_bm.c
 +++ b/lib/ts_bm.c
-@@ -60,10 +60,12 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
- 	struct ts_bm *bm = ts_config_priv(conf);
- 	unsigned int i, text_len, consumed = state->offset;
- 	const u8 *text;
--	int shift = bm->patlen - 1, bs;
-+	int bs;
- 	const u8 icase = conf->flags & TS_IGNORECASE;
+@@ -55,6 +55,24 @@ struct ts_bm
+ 	unsigned int	good_shift[];
+ };
  
- 	for (;;) {
-+		int shift = bm->patlen - 1;
++static bool patmtch(const u8 *pattern, const u8 *text, unsigned int patlen,
++		    bool icase)
++{
++	unsigned int i;
 +
- 		text_len = conf->get_next_block(consumed, &text, conf, state);
++	for (i = 0; i < patlen; i++) {
++		u8 t = *(text-i);
++
++		if (icase)
++			t = toupper(t);
++
++		if (t != *(pattern-i))
++			return false;
++	}
++
++	return true;
++}
++
+ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
+ {
+ 	struct ts_bm *bm = ts_config_priv(conf);
+@@ -70,19 +88,17 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
+ 			break;
  
- 		if (unlikely(text_len == 0))
+ 		while (shift < text_len) {
+-			DEBUGP("Searching in position %d (%c)\n", 
+-				shift, text[shift]);
+-			for (i = 0; i < bm->patlen; i++) 
+-				if ((icase ? toupper(text[shift-i])
+-				    : text[shift-i])
+-					!= bm->pattern[bm->patlen-1-i])
+-				     goto next;
+-
+-			/* London calling... */
+-			DEBUGP("found!\n");
+-			return consumed + (shift-(bm->patlen-1));
+-
+-next:			bs = bm->bad_shift[text[shift-i]];
++			DEBUGP("Searching in position %d (%c)\n",
++			       shift, text[shift]);
++
++			if (patmtch(&bm->pattern[bm->patlen-1], &text[shift],
++				    bm->patlen, icase)) {
++				/* London calling... */
++				DEBUGP("found!\n");
++				return consumed + (shift-(bm->patlen-1));
++			}
++
++			bs = bm->bad_shift[text[shift-i]];
+ 
+ 			/* Now jumping to... */
+ 			shift = max_t(int, shift-i+bs, shift+bm->good_shift[i]);
 -- 
 2.39.2
 
