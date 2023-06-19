@@ -2,184 +2,262 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B05ABEB64D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 14:03:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D281EB64D9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 14:24:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230313AbjFSODv (ORCPT
+        id S230172AbjFSOYn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Jun 2023 10:03:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51364 "EHLO
+        Mon, 19 Jun 2023 10:24:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229886AbjFSODu (ORCPT
+        with ESMTP id S229481AbjFSOYm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Jun 2023 10:03:50 -0400
-Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14D4310D
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jun 2023 07:03:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=FVjgOnYBrtDbthoWsZRdjF3zRQdFcwgU6gyxbw+3fcM=; b=SNtj1ADf9vetMvz7q37/vQ75qD
-        3P1nCtNnpvozOdZvhqHuNxdG0POPG+ayAodmWir/t029UjkRHDbu2MVF/8Q+Vc9sWJ6NHhON5xZeF
-        Jv7TEdwgJDYg+aGESFSDTQRrqR0UQVc1d9k4XpA+QQlstAky5htMoBVgeYEl84R9VChvlNSF70InR
-        j7AyRHSxB4TzGoIj8NIBsrcJAkmd0hCKspqeg6p+3g9vvLtvFC7sraMP1TwpD5SBQMgAWBLWFrl3s
-        TDFG5g3Wlm8uPYGrXxSlPXQ3nJoXuDKKV5cNaYPcoIGgi0+zqGYGF4yuN9CvclnJMH40rtUYaFS3o
-        aoQkDP+Q==;
-Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=azazel.net)
-        by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.96)
-        (envelope-from <jeremy@azazel.net>)
-        id 1qBFTu-0087sx-2G;
-        Mon, 19 Jun 2023 15:03:46 +0100
-Date:   Mon, 19 Jun 2023 15:02:34 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nf] lib/ts_bm: reset initial match offset for every block
- of text
-Message-ID: <20230619140234.GC82872@azazel.net>
-References: <20230611081719.612675-1-jeremy@azazel.net>
- <ZJBc2qInxGK7yY34@calendula>
+        Mon, 19 Jun 2023 10:24:42 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0600FE;
+        Mon, 19 Jun 2023 07:24:38 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4QlBm85Nc6z6D93N;
+        Mon, 19 Jun 2023 22:22:00 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Mon, 19 Jun 2023 15:24:35 +0100
+Message-ID: <c0713bf1-a65e-c4cd-08b9-c60bd79fc86f@huawei.com>
+Date:   Mon, 19 Jun 2023 17:24:17 +0300
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="RVt4/YBZenQug9fk"
-Content-Disposition: inline
-In-Reply-To: <ZJBc2qInxGK7yY34@calendula>
-X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v11 11/12] samples/landlock: Add network demo
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>,
+        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack@google.com>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>
+References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
+ <20230515161339.631577-12-konstantin.meskhidze@huawei.com>
+ <ZH9OFyWZ1njI7VG9@google.com>
+ <d9f07165-f589-13d4-6484-1272704f1de0@huawei.com>
+ <8c09fc5a-e3a5-4792-65a8-b84c6044128a@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <8c09fc5a-e3a5-4792-65a8-b84c6044128a@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---RVt4/YBZenQug9fk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On 2023-06-19, at 15:49:14 +0200, Pablo Neira Ayuso wrote:
-> On Sun, Jun 11, 2023 at 09:17:19AM +0100, Jeremy Sowden wrote:
-> > The `shift` variable which indicates the offset in the string at which
-> > to start matching the pattern is initialized to `bm->patlen - 1`, but it
-> > is not reset when a new block is retrieved.  This means the implemen-
-> > tation may start looking at later and later positions in each successive
-> > block and miss occurrences of the pattern at the beginning.  E.g.,
-> > consider a HTTP packet held in a non-linear skb, where the HTTP request
-> > line occurs in the second block:
-> >=20
-> >   [... 52 bytes of packet headers ...]
-> >   GET /bmtest HTTP/1.1\r\nHost: www.example.com\r\n\r\n
-> >=20
-> > and the pattern is "GET /bmtest".
-> >=20
-> > Once the first block comprising the packet headers has been examined,
-> > `shift` will be pointing to somewhere near the end of the block, and so
-> > when the second block is examined the request line at the beginning will
-> > be missed.
-> >=20
-> > Reinitialize the variable for each new block.
-> >=20
-> > Adjust some indentation and remove some trailing white-space at the same
-> > time.
-> >=20
-> > Fixes: 8082e4ed0a61 ("[LIB]: Boyer-Moore extension for textsearch infra=
-structure strike #2")
-> > Link: https://bugzilla.netfilter.org/show_bug.cgi?id=3D1390
-> > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> > ---
-> >  lib/ts_bm.c | 16 +++++++++-------
-> >  1 file changed, 9 insertions(+), 7 deletions(-)
-> >=20
-> > diff --git a/lib/ts_bm.c b/lib/ts_bm.c
-> > index 1f2234221dd1..ef448490a2cc 100644
-> > --- a/lib/ts_bm.c
-> > +++ b/lib/ts_bm.c
-> > @@ -60,23 +60,25 @@ static unsigned int bm_find(struct ts_config *conf,=
- struct ts_state *state)
-> >  	struct ts_bm *bm =3D ts_config_priv(conf);
-> >  	unsigned int i, text_len, consumed =3D state->offset;
-> >  	const u8 *text;
-> > -	int shift =3D bm->patlen - 1, bs;
-> > +	int bs;
-> >  	const u8 icase =3D conf->flags & TS_IGNORECASE;
-> > =20
-> >  	for (;;) {
-> > +		int shift =3D bm->patlen - 1;
->=20
-> This line is the fix, right?
+6/13/2023 11:38 PM, Mickaël Salaün пишет:
+> 
+> On 13/06/2023 12:54, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 6/6/2023 6:17 PM, Günther Noack пишет:
+>>> Hi Konstantin!
+>>>
+>>> Apologies if some of this was discussed before, in this case,
+>>> Mickaël's review overrules my opinions from the sidelines ;)
+>>>
+>>> On Tue, May 16, 2023 at 12:13:38AM +0800, Konstantin Meskhidze wrote:
+>>>> This commit adds network demo. It's possible to allow a sandboxer to
+>>>> bind/connect to a list of particular ports restricting network
+>>>> actions to the rest of ports.
+>>>>
+>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>>>
+>>>
+>>>> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
+>>>> index e2056c8b902c..b0250edb6ccb 100644
+>>>> --- a/samples/landlock/sandboxer.c
+>>>> +++ b/samples/landlock/sandboxer.c
+>>>
+>>> ...
+>>>
+>>>> +static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
+>>>> +				const __u64 allowed_access)
+>>>> +{
+>>>> +	int num_ports, i, ret = 1;
+>>>
+>>> I thought the convention was normally to set ret = 0 initially and to
+>>> override it in case of error, rather than the other way around?
+> 
+> Which convention? In this case, by default the return code is an error.
+> 
+> 
+>>>
+>>     Well, I just followed Mickaёl's way of logic here. >
+>> 
+>>>> +	char *env_port_name;
+>>>> +	struct landlock_net_service_attr net_service = {
+>>>> +		.allowed_access = allowed_access,
+>>>> +		.port = 0,
+>>>> +	};
+>>>> +
+>>>> +	env_port_name = getenv(env_var);
+>>>> +	if (!env_port_name)
+>>>> +		return 0;
+>>>> +	env_port_name = strdup(env_port_name);
+>>>> +	unsetenv(env_var);
+>>>> +	num_ports = parse_port_num(env_port_name);
+>>>> +
+>>>> +	if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == NULL)) {
+>>>> +		ret = 0;
+>>>> +		goto out_free_name;
+>>>> +	}
+>>>
+>>> I don't understand why parse_port_num and strtok are necessary in this
+>>> program. The man-page for strsep(3) describes it as a replacement to
+>>> strtok(3) (in the HISTORY section), and it has a very short example
+>>> for how it is used.
+>>>
+>>> Wouldn't it work like this as well?
+>>>
+>>> while ((strport = strsep(&env_port_name, ":"))) {
+>>>     net_service.port = atoi(strport);
+>>>     /* etc */
+>>> }
+>> 
+>>     Thanks for a tip. I think it's a better solution here. Now this
+>> commit is in Mickaёl's -next branch. I could send a one-commit patch later.
+>> Mickaёl, what do you think?
+> 
+> I removed this series from -next because there is some issues (see the
+> bot's emails), but anyway, this doesn't mean these patches don't need to
+> be changed, they do. The goal of -next is to test more widely a patch
+> series and get more feedbacks, especially from bots. When this series
+> will be fully ready (and fuzzed with syzkaller), I'll push it to Linus
+> Torvalds.
+> 
+> I'll review the remaining tests and sample code this week, but you can
+> still take into account the documentation review.
 
-Yup.
+  Hi, Mickaёl.
 
-> >  		text_len =3D conf->get_next_block(consumed, &text, conf, state);
-> > =20
-> >  		if (unlikely(text_len =3D=3D 0))
-> >  			break;
-> >
->=20
-> These updates below are a clean up, right? If so, maybe split this in
-> two patches I'd suggest?
+  I have a few quetions?
+   - Are you going to fix warnings for bots, meanwhile I run syzcaller?
+   - I will fix documentation and sandbox demo and sent patch v12?
 
-Sure.
-
-> >  		while (shift < text_len) {
-> > -			DEBUGP("Searching in position %d (%c)\n",=20
-> > -				shift, text[shift]);
-> > -			for (i =3D 0; i < bm->patlen; i++)=20
-> > +			DEBUGP("Searching in position %d (%c)\n",
-> > +			       shift, text[shift]);
-> > +			for (i =3D 0; i < bm->patlen; i++)
-> >  				if ((icase ? toupper(text[shift-i])
-> > -				    : text[shift-i])
-> > -					!=3D bm->pattern[bm->patlen-1-i])
-> > -				     goto next;
-> > +				     : text[shift-i])
-> > +				    !=3D bm->pattern[bm->patlen-1-i])
->=20
-> Maybe disentagle this with a few helper functions?
->=20
-> static char bm_get_char(const char *text, unsigned int pos, bool icase)
-> {
->         return icase ? toupper(text[pos]) : text[pos];
-> }
-
-Sure.
-
-> Thanks
->=20
-> >  				if ((icase ? toupper(text[shift-i])
-> > -				    : text[shift-i])
-> > +					goto next;
-> > =20
-> >  			/* London calling... */
-> >  			DEBUGP("found!\n");
-> > --=20
-> > 2.39.2
-> >=20
-
-J.
-
---RVt4/YBZenQug9fk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmSQX+8ACgkQKYasCr3x
-BA1svxAAkyjf9KAdvR+19n3tQxtcQaljKBXVUSjUsxhbTW+vkfSwkbDLz14cR/1J
-6nmW9Yh8M7IBxrLsARN9PxQcDLYiJy81tX7xMOKgxpPhBQq0h5dq74ABgEImrSS0
-wRxGjRR9kmL173GloOAMElh7fNdeYGTtJo8jm2gsPqmk5LSr5uakt0dBhRLub/4N
-vUqh1dFImncQYQhrahOa+znmMmKMLDtUZgXgG1SdK13LRHkXaiE2xpbVebxODh/4
-v8hKK47L35FLgBhnbMEMf1CgvkvLPZlntRkMQxavbI7l+jXy4wUOVtYpRXo4CnZ4
-4sqjYTTJidqEDS3gjLwzT/YwakYC9J2YVJLHlZgVnuguf0bSfQ3ubbOYznocYE6P
-CNlwtW9YLj08KZ0FLWIQFGEHwWbLHjKpuWxtqCvN69WS87Q0VFpAHzImuwarcS9L
-HKyeptlYr7jcxQcT8TnVha2sm0D52rUdvUc39d4PnZUCDSlLOvlSs1NqwqAOwcCl
-k2GYOh+LTMsjep/wD9Hj+KD1Gh793wYUGTbGdPbOHm7G5ddkAhireBuPscAuGZaG
-Zi5bubALLt3qv6KBgsPc640a7MFwFfJ72tRguZGN4BlUbJVGnLxwl/g6ePxMdl4j
-dwuivrLtdUxVQsks39bLmwGsY1XBrIHtK2WZwgrMj0azCxOPwdY=
-=m4cF
------END PGP SIGNATURE-----
-
---RVt4/YBZenQug9fk--
+> 
+> 
+>> 
+>>>
+>>>> +
+>>>> +	for (i = 0; i < num_ports; i++) {
+>>>> +		net_service.port = atoi(strsep(&env_port_name, ENV_PATH_TOKEN));
+>>>
+>>> Naming of ENV_PATH_TOKEN:
+>>> This usage is not related to paths, maybe rename the variable?
+>>> It's also technically not the token, but the delimiter.
+>>>
+>>    What do you think of ENV_PORT_TOKEN or ENV_PORT_DELIMITER???
+> 
+> You can rename ENV_PATH_TOKEN to ENV_DELIMITER for the FS and network parts.
+> 
+    Ok. Got it.
+> 
+>> 
+>>>> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>>>> +				      &net_service, 0)) {
+>>>> +			fprintf(stderr,
+>>>> +				"Failed to update the ruleset with port \"%lld\": %s\n",
+>>>> +				net_service.port, strerror(errno));
+>>>> +			goto out_free_name;
+>>>> +		}
+>>>> +	}
+>>>> +	ret = 0;
+>>>> +
+>>>> +out_free_name:
+>>>> +	free(env_port_name);
+>>>> +	return ret;
+>>>> +}
+>>>
+>>>
+>>>>   		fprintf(stderr,
+>>>>   			"Launch a command in a restricted environment.\n\n");
+>>>> -		fprintf(stderr, "Environment variables containing paths, "
+>>>> -				"each separated by a colon:\n");
+>>>> +		fprintf(stderr,
+>>>> +			"Environment variables containing paths and ports "
+>>>> +			"each separated by a colon:\n");
+>>>>   		fprintf(stderr,
+>>>>   			"* %s: list of paths allowed to be used in a read-only way.\n",
+>>>>   			ENV_FS_RO_NAME);
+>>>>   		fprintf(stderr,
+>>>> -			"* %s: list of paths allowed to be used in a read-write way.\n",
+>>>> +			"* %s: list of paths allowed to be used in a read-write way.\n\n",
+>>>>   			ENV_FS_RW_NAME);
+>>>> +		fprintf(stderr,
+>>>> +			"Environment variables containing ports are optional "
+>>>> +			"and could be skipped.\n");
+>>>
+>>> As it is, I believe the program does something different when I'm
+>>> setting these to the empty string (ENV_TCP_BIND_NAME=""), compared to
+>>> when I'm unsetting them?
+>>>
+>>> I think the case where we want to forbid all handle-able networking is
+>>> a legit and very common use case - it could be clearer in the
+>>> documentation how this is done with the tool. (And maybe the interface
+>>> could be something more explicit than setting the environment variable
+>>> to empty?)
+> 
+> I'd like to keep it simple, and it should be seen as an example code,
+> not a full-feature sandboxer, but still a consistent and useful one.
+> What would you suggest?
+> 
+> This sandboxer tool relies on environment variables for its
+> configuration. This is definitely not a good fit for all use cases, but
+> I think it is simple and flexible enough. One use case might be to
+> export a set of environment variables and simply call this tool. I'd
+> prefer to not deal with argument parsing, but maybe that was too
+> simplistic? We might want to revisit this approach but probably not with
+> this series.
+> 
+> 
+>>>
+>>>
+>>>> +	/* Removes bind access attribute if not supported by a user. */
+>>>> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
+>>>> +	if (!env_port_name) {
+>>>> +		ruleset_attr.handled_access_net &=
+>>>> +			~LANDLOCK_ACCESS_NET_BIND_TCP;
+>>>> +	}
+>>>> +	/* Removes connect access attribute if not supported by a user. */
+>>>> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
+>>>> +	if (!env_port_name) {
+>>>> +		ruleset_attr.handled_access_net &=
+>>>> +			~LANDLOCK_ACCESS_NET_CONNECT_TCP;
+>>>> +	}
+>>>
+>>> This is the code where the program does not restrict network usage,
+>>> if the corresponding environment variable is not set.
+>> 
+>>     Yep. Right.
+>>>
+>>> It's slightly inconsistent with what this tool does for filesystem
+>>> paths. - If you don't specify any file paths, it will still restrict
+>>> file operations there, independent of whether that env variable was
+>>> set or not.  (Apologies if it was discussed before.)
+>> 
+>>    Mickaёl wanted to make network ports optional here.
+>>    Please check:
+>>   
+>> https://lore.kernel.org/linux-security-module/179ac2ee-37ff-92da-c381-c2c716725045@digikod.net/
+> 
+> Right, the rationale is for compatibility with the previous version of
+> this tool. We should not break compatibility when possible. A comment
+> should explain the rationale though.
+> 
+>> 
+>> https://lore.kernel.org/linux-security-module/fe3bc928-14f8-5e2b-359e-9a87d6cf5b01@digikod.net/
+>>>
+>>> —Günther
+>>>
+> .
