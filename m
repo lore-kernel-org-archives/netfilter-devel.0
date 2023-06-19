@@ -2,163 +2,131 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB908EB64DB
-	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 14:28:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD4EEEB64D9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 19 Jun 2023 14:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229563AbjFSO2o (ORCPT
+        id S232257AbjFSO6p (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 19 Jun 2023 10:28:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35164 "EHLO
+        Mon, 19 Jun 2023 10:58:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbjFSO2o (ORCPT
+        with ESMTP id S230271AbjFSO6n (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Jun 2023 10:28:44 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B16FC186;
-        Mon, 19 Jun 2023 07:28:42 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4QlBtk5dmbz6J7MC;
-        Mon, 19 Jun 2023 22:27:42 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Mon, 19 Jun 2023 15:28:40 +0100
-Message-ID: <a1995119-48d1-6e5b-c6c7-d5f7a973ca1f@huawei.com>
-Date:   Mon, 19 Jun 2023 17:28:39 +0300
+        Mon, 19 Jun 2023 10:58:43 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0274D1AE;
+        Mon, 19 Jun 2023 07:58:40 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net 00/14] Netfilter/IPVS fixes for net
+Date:   Mon, 19 Jun 2023 16:57:51 +0200
+Message-Id: <20230619145805.303940-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v11 00/12] Network support for Landlock
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
- <8f3d242a-c0ee-217e-8094-84093ce4e134@digikod.net>
- <ea810d57-93fe-1724-4aab-5cbc1a35062f@huawei.com>
- <96c88b9f-7625-7aae-83a5-a91586a9bc15@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <96c88b9f-7625-7aae-83a5-a91586a9bc15@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi,
 
+The following patchset contains Netfilter/IPVS fixes for net:
 
-6/6/2023 12:40 PM, Mickaël Salaün пишет:
-> 
-> On 06/06/2023 11:10, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 6/5/2023 6:02 PM, Mickaël Salaün пишет:
->>> Hi Konstantin,
->>>
->>> The kernel code looks good. I found some issues in tests and
->>> documentation, and I'm still reviewing the whole patches. In the
->>> meantime, I've pushed it in -next, we'll see how it goes.
->>>
->>> We need to have this new code covered by syzkaller. I'll work on that
->>> unless you want to.
->>>
->>> Regards,
->>>     Mickaël
->>>
->>     Hi, Mickaël!
->>     I have never set up syzkaller. Do you have a syzkaller scenario for
->> Landlock code? I need some hints. I will give it a shot.
-> 
-> You can get a look at https://github.com/google/syzkaller/pull/3423 or
-> other Landlock-related PR.
-> 
-> The setup might be a bit challenging though, but it will be a good
-> investment for future kernel changes.
+1) Fix UDP segmentation with IPVS tunneled traffic, from Terin Stock.
 
-   Thanks. I will handle it. Can you give me a hand with some tips if I 
-have issues with syzkaller setup?
-> 
-> 
->> 
->>    Regards,
->>       Konstantin.
->>>
->>> On 15/05/2023 18:13, Konstantin Meskhidze wrote:
->>>> Hi,
->>>> This is a new V11 patch related to Landlock LSM network confinement.
->>>> It is based on the landlock's -next branch on top of v6.2-rc3+ kernel version:
->>>> https://git.kernel.org/pub/scm/linux/kernel/git/mic/linux.git/log/?h=next
->>>>
->>>> It brings refactoring of previous patch version V10.
->>>> Mostly there are fixes of logic and typos, refactoring some selftests.
->>>>
->>>> All test were run in QEMU evironment and compiled with
->>>>    -static flag.
->>>>    1. network_test: 36/36 tests passed.
->>>>    2. base_test: 7/7 tests passed.
->>>>    3. fs_test: 78/78 tests passed.
->>>>    4. ptrace_test: 8/8 tests passed.
->>>>
->>>> Previous versions:
->>>> v10: https://lore.kernel.org/linux-security-module/20230323085226.1432550-1-konstantin.meskhidze@huawei.com/
->>>> v9: https://lore.kernel.org/linux-security-module/20230116085818.165539-1-konstantin.meskhidze@huawei.com/
->>>> v8: https://lore.kernel.org/linux-security-module/20221021152644.155136-1-konstantin.meskhidze@huawei.com/
->>>> v7: https://lore.kernel.org/linux-security-module/20220829170401.834298-1-konstantin.meskhidze@huawei.com/
->>>> v6: https://lore.kernel.org/linux-security-module/20220621082313.3330667-1-konstantin.meskhidze@huawei.com/
->>>> v5: https://lore.kernel.org/linux-security-module/20220516152038.39594-1-konstantin.meskhidze@huawei.com
->>>> v4: https://lore.kernel.org/linux-security-module/20220309134459.6448-1-konstantin.meskhidze@huawei.com/
->>>> v3: https://lore.kernel.org/linux-security-module/20220124080215.265538-1-konstantin.meskhidze@huawei.com/
->>>> v2: https://lore.kernel.org/linux-security-module/20211228115212.703084-1-konstantin.meskhidze@huawei.com/
->>>> v1: https://lore.kernel.org/linux-security-module/20211210072123.386713-1-konstantin.meskhidze@huawei.com/
->>>>
->>>> Konstantin Meskhidze (11):
->>>>     landlock: Make ruleset's access masks more generic
->>>>     landlock: Refactor landlock_find_rule/insert_rule
->>>>     landlock: Refactor merge/inherit_ruleset functions
->>>>     landlock: Move and rename layer helpers
->>>>     landlock: Refactor layer helpers
->>>>     landlock: Refactor landlock_add_rule() syscall
->>>>     landlock: Add network rules and TCP hooks support
->>>>     selftests/landlock: Share enforce_ruleset()
->>>>     selftests/landlock: Add 11 new test suites dedicated to network
->>>>     samples/landlock: Add network demo
->>>>     landlock: Document Landlock's network support
->>>>
->>>> Mickaël Salaün (1):
->>>>     landlock: Allow filesystem layout changes for domains without such
->>>>       rule type
->>>>
->>>>    Documentation/userspace-api/landlock.rst     |   89 +-
->>>>    include/uapi/linux/landlock.h                |   48 +
->>>>    samples/landlock/sandboxer.c                 |  128 +-
->>>>    security/landlock/Kconfig                    |    1 +
->>>>    security/landlock/Makefile                   |    2 +
->>>>    security/landlock/fs.c                       |  232 +--
->>>>    security/landlock/limits.h                   |    7 +-
->>>>    security/landlock/net.c                      |  174 +++
->>>>    security/landlock/net.h                      |   26 +
->>>>    security/landlock/ruleset.c                  |  405 +++++-
->>>>    security/landlock/ruleset.h                  |  185 ++-
->>>>    security/landlock/setup.c                    |    2 +
->>>>    security/landlock/syscalls.c                 |  163 ++-
->>>>    tools/testing/selftests/landlock/base_test.c |    2 +-
->>>>    tools/testing/selftests/landlock/common.h    |   10 +
->>>>    tools/testing/selftests/landlock/config      |    4 +
->>>>    tools/testing/selftests/landlock/fs_test.c   |   74 +-
->>>>    tools/testing/selftests/landlock/net_test.c  | 1317 ++++++++++++++++++
->>>>    18 files changed, 2520 insertions(+), 349 deletions(-)
->>>>    create mode 100644 security/landlock/net.c
->>>>    create mode 100644 security/landlock/net.h
->>>>    create mode 100644 tools/testing/selftests/landlock/net_test.c
->>>>
->>>> --
->>>> 2.25.1
->>>>
->>> .
-> .
+2) Fix chain binding transaction logic, add a bound flag to rule
+   transactions. Remove incorrect logic in nft_data_hold() and
+   nft_data_release().
+
+3) Add a NFT_TRANS_PREPARE_ERROR deactivate state to deal with releasing
+   the set/chain as a follow up to 1240eb93f061 ("netfilter: nf_tables:
+   incorrect error path handling with NFT_MSG_NEWRULE")
+
+4) Drop map element references from preparation phase instead of
+   set destroy path, otherwise bogus EBUSY with transactions such as:
+
+	flush chain ip x y
+	delete chain ip x w
+
+   where chain ip x y contains jump/goto from set elements.
+
+5) Pipapo set type does not regard generation mask from the walk
+   iteration.
+
+6) Fix reference count underflow in set element reference to
+   stateful object.
+
+7) Several patches to tighten the nf_tables API:
+   - disallow set element updates of bound anonymous set
+   - disallow unbound anonymous set/chain at the end of transaction.
+   - disallow updates of anonymous set.
+   - disallow timeout configuration for anonymous sets.
+
+8) Fix module reference leak in chain updates.
+
+9) Fix nfnetlink_osf module autoload.
+
+10) Fix deletion of basechain when NFTA_CHAIN_HOOK is specified as
+    in iptables-nft.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-06-19
+
+This Netfilter batch is larger than usual, I am aware we are fairly late
+in the -rc cycle, if you prefer to route them through net-next, please
+let me know.
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 0dbcac3a6dbb32c1de53ebebfd28452965e12950:
+
+  Merge tag 'mlx5-fixes-2023-06-16' of git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux (2023-06-19 10:28:56 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-06-19
+
+for you to fetch changes up to 1f30503496da3cfa0917e398c6dbda3cc2d78e79:
+
+  netfilter: nf_tables: Fix for deleting base chains with payload (2023-06-19 16:01:09 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 23-06-19
+
+----------------------------------------------------------------
+Pablo Neira Ayuso (12):
+      netfilter: nf_tables: fix chain binding transaction logic
+      netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain
+      netfilter: nf_tables: drop map element references from preparation phase
+      netfilter: nft_set_pipapo: .walk does not deal with generations
+      netfilter: nf_tables: fix underflow in object reference counter
+      netfilter: nf_tables: disallow element updates of bound anonymous sets
+      netfilter: nf_tables: reject unbound anonymous set before commit phase
+      netfilter: nf_tables: reject unbound chain set before commit phase
+      netfilter: nf_tables: disallow updates of anonymous sets
+      netfilter: nf_tables: disallow timeout for anonymous sets
+      netfilter: nf_tables: drop module reference after updating chain
+      netfilter: nfnetlink_osf: fix module autoload
+
+Phil Sutter (1):
+      netfilter: nf_tables: Fix for deleting base chains with payload
+
+Terin Stock (1):
+      ipvs: align inner_mac_header for encapsulation
+
+ include/net/netfilter/nf_tables.h |  30 +++-
+ net/netfilter/ipvs/ip_vs_xmit.c   |   2 +
+ net/netfilter/nf_tables_api.c     | 366 ++++++++++++++++++++++++++++++--------
+ net/netfilter/nfnetlink_osf.c     |   1 +
+ net/netfilter/nft_immediate.c     |  78 +++++++-
+ net/netfilter/nft_set_bitmap.c    |   5 +-
+ net/netfilter/nft_set_hash.c      |  23 ++-
+ net/netfilter/nft_set_pipapo.c    |  20 ++-
+ net/netfilter/nft_set_rbtree.c    |   5 +-
+ net/netfilter/xt_osf.c            |   1 -
+ 10 files changed, 434 insertions(+), 97 deletions(-)
