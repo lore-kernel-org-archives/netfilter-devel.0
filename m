@@ -2,87 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1EA7EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 14:04:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE60EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 14:15:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232692AbjFTOEG (ORCPT
+        id S232596AbjFTOPk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Jun 2023 10:04:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57816 "EHLO
+        Tue, 20 Jun 2023 10:15:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232894AbjFTOEG (ORCPT
+        with ESMTP id S232480AbjFTOPj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2023 10:04:06 -0400
+        Tue, 20 Jun 2023 10:15:39 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9824DA4
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 07:04:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=Q5wuhQgG49UvRV7MRuo96JDusVTvSc0f31FTTIw+FFc=; b=M2gMjyae7T8yvP3t/EkhPs4k8F
-        g1eHYN28AjoLBn2xN4gG2Idy7hUVhz6lSiVRbUqnIihJ/x63WniY68xf9VAqCJSVOhwyFr4KvAt3f
-        wIMXmwOvhE7vv2nAk8ooMSwJPxYayRTIbs7pR9219gxAXVVWIGUMveSs5fmq7U5nXbFBjx3wpZ/OA
-        +BU+VQE9OBZK3sJpHQfCgGPRSR/sStyIvkELqfxAsoLih9DWRR36MAGViYKPLlqu+aAr6QTbuR6ok
-        SIwa0b7Njl51VjFyOzXDOGvBUvA2MxP0tBHiKf9KwS0zaDS5wAPEtLtPGIQTxd+LbQ6qV1vrFHNGa
-        yw3aswlQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1qBbxh-0000mW-E6; Tue, 20 Jun 2023 16:04:01 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B163E60
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 07:15:38 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qBc8u-0000wV-Ka; Tue, 20 Jun 2023 16:15:36 +0200
+Date:   Tue, 20 Jun 2023 16:15:36 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] cli: Make valgrind happy
-Date:   Tue, 20 Jun 2023 16:03:52 +0200
-Message-Id: <20230620140352.21633-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.40.0
+Subject: Re: [nf PATCH] netfilter: nf_tables: Fix for deleting base chains
+ with payload
+Message-ID: <ZJG0iM6VDhs+pkz0@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20230616155611.2468-1-phil@nwl.cc>
+ <ZI8b1ySlPjUucbdH@calendula>
+ <ZJAYHMk/HCUvnwIn@calendula>
+ <ZJAYzHYDnqcbq05B@calendula>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZJAYzHYDnqcbq05B@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Missing call to nft_ctx_free() upsets valgrind enough to suspect
-possible losses, add them where sensible. This fixes reports with
-readline-lined builds at least. The same code is shared for libedit
-though, and there's an obvious spot for linenoise.
+On Mon, Jun 19, 2023 at 10:58:52AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Jun 19, 2023 at 10:55:59AM +0200, Pablo Neira Ayuso wrote:
+> > On Sun, Jun 18, 2023 at 04:59:38PM +0200, Pablo Neira Ayuso wrote:
+> > > Hi Phil,
+> > > 
+> > > On Fri, Jun 16, 2023 at 05:56:11PM +0200, Phil Sutter wrote:
+> > > > When deleting a base chain, iptables-nft simply submits the whole chain
+> > > > to the kernel, including the NFTA_CHAIN_HOOK attribute. The new code
+> > > > added by fixed commit then turned this into a chain update, destroying
+> > > > the hook but not the chain itself.
+> > > > 
+> > > > Detect the situation by checking if the chain's hook list becomes empty
+> > > > after removing all submitted hooks from it. A base chain without hooks
+> > > > is pointless, so revert back to deleting the chain.
+> > > > 
+> > > > Note the 'goto err_chain_del_hook', error path takes care of undoing the
+> > > > hook_list modification and releasing the unused chain_hook.
+> > > 
+> > > Could you give a try to this alternative patch?
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/cli.c | 3 +++
- 1 file changed, 3 insertions(+)
+Ah, I guess my fix breaks temporary removal of a single interface from a
+netdev chain?
 
-diff --git a/src/cli.c b/src/cli.c
-index 11fc85abeaa2b..bc7f64ef0b762 100644
---- a/src/cli.c
-+++ b/src/cli.c
-@@ -126,6 +126,7 @@ static void cli_complete(char *line)
- 	if (line == NULL) {
- 		printf("\n");
- 		cli_exit();
-+		nft_ctx_free(cli_nft);
- 		exit(0);
- 	}
- 
-@@ -141,6 +142,7 @@ static void cli_complete(char *line)
- 
- 	if (!strcmp(line, CMDLINE_QUIT)) {
- 		cli_exit();
-+		nft_ctx_free(cli_nft);
- 		exit(0);
- 	}
- 
-@@ -244,6 +246,7 @@ int cli_init(struct nft_ctx *nft)
- 		linenoiseFree(line);
- 	}
- 	cli_exit();
-+	nft_ctx_free(nft);
- 	exit(0);
- }
- 
--- 
-2.40.0
+> > This is the full patch.
 
+Works fine, iptables testsuite is back to normal again. :)
+
+> I forgot to mangle the patch description describing the new approach.
+
+> From 3da13f15a02e065e12080f2d66f81289aa6ebd69 Mon Sep 17 00:00:00 2001
+> From: Phil Sutter <phil@nwl.cc>
+> Date: Fri, 16 Jun 2023 17:56:11 +0200
+> Subject: [PATCH] netfilter: nf_tables: Fix for deleting base chains with
+>  payload
+> 
+> When deleting a base chain, iptables-nft simply submits the whole chain
+> to the kernel, including the NFTA_CHAIN_HOOK attribute. The new code
+> added by fixed commit then turned this into a chain update, destroying
+> the hook but not the chain itself. Detect the situation by checking if
+> the chain is either the netdev or inet/ingress type.
+
+I'd change the last sentence to "Avoid the situation by applying the new
+logic to base chains in netdev family or inet family ingress hook." But
+feel free to push as-is, I'm just nit-picking here. :)
+
+Thanks, Phil
