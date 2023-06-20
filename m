@@ -2,141 +2,126 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA09EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 17:00:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65743EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 18:09:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230504AbjFTRAZ (ORCPT
+        id S230038AbjFTSJg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Jun 2023 13:00:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45016 "EHLO
+        Tue, 20 Jun 2023 14:09:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229678AbjFTRAZ (ORCPT
+        with ESMTP id S230009AbjFTSJf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2023 13:00:25 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C50411730;
-        Tue, 20 Jun 2023 10:00:23 -0700 (PDT)
-Date:   Tue, 20 Jun 2023 19:00:20 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        pabeni@redhat.com, edumazet@google.com
-Subject: Re: [PATCH net 00/14,v2] Netfilter/IPVS fixes for net
-Message-ID: <ZJHbJHKVSNpp5dBd@calendula>
-References: <20230620093542.69232-1-pablo@netfilter.org>
+        Tue, 20 Jun 2023 14:09:35 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03C7C18C
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 11:09:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=dtH/HgPU04v44sfXcmah5GZ7s6G7EaamEj5MCXfefCo=; b=ful0D8OjyUgegi+24eVjmtZ8vH
+        7JcNuylIJChNYXHHkZVwNxI6NH1rD2UCiA0kTPpkw1L0kd8q4skk/agmY9peEOPvoIEWISmWgc68l
+        GakDrEhwc1uBa750BmSEmgbx+pVhLs6Bg8huRicMuDvEi4GDc2OmvZrDf4boCWRS3Qo08yJjs35er
+        7dLlBV1DeRw50wgR4WildVk1l+hHml0f5LENPP7/nus/6bWI97XZWoaVeQtyOfOtzAt8LWNXVtd9D
+        2dfxrCMLxfeNMDiJSQO9P+HagNXpDuGle+GU/vmY/kpkypGRiuAWaqkCTsw0TX2qIWiFaY3Ojrw3u
+        NqPTzMEA==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.96)
+        (envelope-from <jeremy@azazel.net>)
+        id 1qBfnH-009DOo-1w
+        for netfilter-devel@vger.kernel.org;
+        Tue, 20 Jun 2023 19:09:31 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nf-next] lib/ts_bm: add helper to reduce indentation and improve readability
+Date:   Tue, 20 Jun 2023 19:09:25 +0100
+Message-Id: <20230620180925.2010176-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230620093542.69232-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+The flow-control of `bm_find` is very deeply nested with a conditional
+comparing a ternary expression against the pattern inside a for-loop
+inside a while-loop inside a for-loop.
 
-I found another bug on this batch.
+Move the inner for-loop into a helper function to reduce the amount of
+indentation and make the code easier to read.
 
-I need a v3. Sorry for the inconvenience.
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ lib/ts_bm.c | 42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
-On Tue, Jun 20, 2023 at 11:35:28AM +0200, Pablo Neira Ayuso wrote:
-> This is v2 addressing comments from Simon Horman.
-> 
-> -o-
-> 
-> Hi,
-> 
-> The following patchset contains Netfilter/IPVS fixes for net:
-> 
-> 1) Fix UDP segmentation with IPVS tunneled traffic, from Terin Stock.
-> 
-> 2) Fix chain binding transaction logic, add a bound flag to rule
->    transactions. Remove incorrect logic in nft_data_hold() and
->    nft_data_release().
-> 
-> 3) Add a NFT_TRANS_PREPARE_ERROR deactivate state to deal with releasing
->    the set/chain as a follow up to 1240eb93f061 ("netfilter: nf_tables:
->    incorrect error path handling with NFT_MSG_NEWRULE")
-> 
-> 4) Drop map element references from preparation phase instead of
->    set destroy path, otherwise bogus EBUSY with transactions such as:
-> 
->         flush chain ip x y
->         delete chain ip x w
-> 
->    where chain ip x y contains jump/goto from set elements.
-> 
-> 5) Pipapo set type does not regard generation mask from the walk
->    iteration.
-> 
-> 6) Fix reference count underflow in set element reference to
->    stateful object.
-> 
-> 7) Several patches to tighten the nf_tables API:
->    - disallow set element updates of bound anonymous set
->    - disallow unbound anonymous set/chain at the end of transaction.
->    - disallow updates of anonymous set.
->    - disallow timeout configuration for anonymous sets.
-> 
-> 8) Fix module reference leak in chain updates.
-> 
-> 9) Fix nfnetlink_osf module autoload.
-> 
-> 10) Fix deletion of basechain when NFTA_CHAIN_HOOK is specified as
->     in iptables-nft.
-> 
-> Please, pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-06-20
-> 
-> Thanks.
-> 
-> ----------------------------------------------------------------
-> 
-> The following changes since commit 0dbcac3a6dbb32c1de53ebebfd28452965e12950:
-> 
->   Merge tag 'mlx5-fixes-2023-06-16' of git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux (2023-06-19 10:28:56 +0100)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-06-20
-> 
-> for you to fetch changes up to 0bbeb93db1729a135370a99d1be715fd8a59e6c0:
-> 
->   netfilter: nf_tables: Fix for deleting base chains with payload (2023-06-19 23:29:18 +0200)
-> 
-> ----------------------------------------------------------------
-> netfilter pull request 23-06-20
-> 
-> ----------------------------------------------------------------
-> Pablo Neira Ayuso (12):
->       netfilter: nf_tables: fix chain binding transaction logic
->       netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain
->       netfilter: nf_tables: drop map element references from preparation phase
->       netfilter: nft_set_pipapo: .walk does not deal with generations
->       netfilter: nf_tables: fix underflow in object reference counter
->       netfilter: nf_tables: disallow element updates of bound anonymous sets
->       netfilter: nf_tables: reject unbound anonymous set before commit phase
->       netfilter: nf_tables: reject unbound chain set before commit phase
->       netfilter: nf_tables: disallow updates of anonymous sets
->       netfilter: nf_tables: disallow timeout for anonymous sets
->       netfilter: nf_tables: drop module reference after updating chain
->       netfilter: nfnetlink_osf: fix module autoload
-> 
-> Phil Sutter (1):
->       netfilter: nf_tables: Fix for deleting base chains with payload
-> 
-> Terin Stock (1):
->       ipvs: align inner_mac_header for encapsulation
-> 
->  include/net/netfilter/nf_tables.h |  31 +++-
->  net/netfilter/ipvs/ip_vs_xmit.c   |   2 +
->  net/netfilter/nf_tables_api.c     | 366 ++++++++++++++++++++++++++++++--------
->  net/netfilter/nfnetlink_osf.c     |   1 +
->  net/netfilter/nft_immediate.c     |  78 +++++++-
->  net/netfilter/nft_set_bitmap.c    |   5 +-
->  net/netfilter/nft_set_hash.c      |  23 ++-
->  net/netfilter/nft_set_pipapo.c    |  20 ++-
->  net/netfilter/nft_set_rbtree.c    |   5 +-
->  net/netfilter/xt_osf.c            |   1 -
->  10 files changed, 435 insertions(+), 97 deletions(-)
-> 
+diff --git a/lib/ts_bm.c b/lib/ts_bm.c
+index 1f2234221dd1..d74fdb87d269 100644
+--- a/lib/ts_bm.c
++++ b/lib/ts_bm.c
+@@ -55,6 +55,24 @@ struct ts_bm
+ 	unsigned int	good_shift[];
+ };
+ 
++static bool patmtch(const u8 *pattern, const u8 *text, unsigned int patlen,
++		    bool icase)
++{
++	unsigned int i;
++
++	for (i = 0; i < patlen; i++) {
++		u8 t = *(text-i);
++
++		if (icase)
++			t = toupper(t);
++
++		if (t != *(pattern-i))
++			return false;
++	}
++
++	return true;
++}
++
+ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
+ {
+ 	struct ts_bm *bm = ts_config_priv(conf);
+@@ -70,19 +88,17 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
+ 			break;
+ 
+ 		while (shift < text_len) {
+-			DEBUGP("Searching in position %d (%c)\n", 
+-				shift, text[shift]);
+-			for (i = 0; i < bm->patlen; i++) 
+-				if ((icase ? toupper(text[shift-i])
+-				    : text[shift-i])
+-					!= bm->pattern[bm->patlen-1-i])
+-				     goto next;
+-
+-			/* London calling... */
+-			DEBUGP("found!\n");
+-			return consumed + (shift-(bm->patlen-1));
+-
+-next:			bs = bm->bad_shift[text[shift-i]];
++			DEBUGP("Searching in position %d (%c)\n",
++			       shift, text[shift]);
++
++			if (patmtch(&bm->pattern[bm->patlen-1], &text[shift],
++				    bm->patlen, icase)) {
++				/* London calling... */
++				DEBUGP("found!\n");
++				return consumed + (shift-(bm->patlen-1));
++			}
++
++			bs = bm->bad_shift[text[shift-i]];
+ 
+ 			/* Now jumping to... */
+ 			shift = max_t(int, shift-i+bs, shift+bm->good_shift[i]);
+-- 
+2.39.2
+
