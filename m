@@ -2,88 +2,126 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE60EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 14:15:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A7F4EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 16:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232596AbjFTOPk (ORCPT
+        id S232057AbjFTQCo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Jun 2023 10:15:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35506 "EHLO
+        Tue, 20 Jun 2023 12:02:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232480AbjFTOPj (ORCPT
+        with ESMTP id S229896AbjFTQCn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2023 10:15:39 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B163E60
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 07:15:38 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qBc8u-0000wV-Ka; Tue, 20 Jun 2023 16:15:36 +0200
-Date:   Tue, 20 Jun 2023 16:15:36 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 20 Jun 2023 12:02:43 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6C66D188
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 09:02:41 -0700 (PDT)
+Date:   Tue, 20 Jun 2023 18:02:36 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH] netfilter: nf_tables: Fix for deleting base chains
- with payload
-Message-ID: <ZJG0iM6VDhs+pkz0@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230616155611.2468-1-phil@nwl.cc>
- <ZI8b1ySlPjUucbdH@calendula>
- <ZJAYHMk/HCUvnwIn@calendula>
- <ZJAYzHYDnqcbq05B@calendula>
+Subject: Re: [PATCH nft 4/6] parser: reject zero-length interface names
+Message-ID: <ZJHNnJVsLZL3AmH3@calendula>
+References: <20230619204306.11785-1-fw@strlen.de>
+ <20230619204306.11785-5-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZJAYzHYDnqcbq05B@calendula>
+In-Reply-To: <20230619204306.11785-5-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jun 19, 2023 at 10:58:52AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Jun 19, 2023 at 10:55:59AM +0200, Pablo Neira Ayuso wrote:
-> > On Sun, Jun 18, 2023 at 04:59:38PM +0200, Pablo Neira Ayuso wrote:
-> > > Hi Phil,
-> > > 
-> > > On Fri, Jun 16, 2023 at 05:56:11PM +0200, Phil Sutter wrote:
-> > > > When deleting a base chain, iptables-nft simply submits the whole chain
-> > > > to the kernel, including the NFTA_CHAIN_HOOK attribute. The new code
-> > > > added by fixed commit then turned this into a chain update, destroying
-> > > > the hook but not the chain itself.
-> > > > 
-> > > > Detect the situation by checking if the chain's hook list becomes empty
-> > > > after removing all submitted hooks from it. A base chain without hooks
-> > > > is pointless, so revert back to deleting the chain.
-> > > > 
-> > > > Note the 'goto err_chain_del_hook', error path takes care of undoing the
-> > > > hook_list modification and releasing the unused chain_hook.
-> > > 
-> > > Could you give a try to this alternative patch?
-
-Ah, I guess my fix breaks temporary removal of a single interface from a
-netdev chain?
-
-> > This is the full patch.
-
-Works fine, iptables testsuite is back to normal again. :)
-
-> I forgot to mangle the patch description describing the new approach.
-
-> From 3da13f15a02e065e12080f2d66f81289aa6ebd69 Mon Sep 17 00:00:00 2001
-> From: Phil Sutter <phil@nwl.cc>
-> Date: Fri, 16 Jun 2023 17:56:11 +0200
-> Subject: [PATCH] netfilter: nf_tables: Fix for deleting base chains with
->  payload
+On Mon, Jun 19, 2023 at 10:43:04PM +0200, Florian Westphal wrote:
+> device "" results in an assertion during evaluation.
+> Before:
+> nft: expression.c:426: constant_expr_alloc: Assertion `(((len) + (8) - 1) / (8)) > 0' failed.
+> After:
+> zero_length_devicename_assert:3:42-49: Error: you cannot set an empty interface name
+> type filter hook ingress device""lo" priority -1
+>                          ^^^^^^^^
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  src/parser_bison.y                            | 36 ++++++++++++++++---
+>  .../nft-f/zero_length_devicename_assert       |  5 +++
+>  2 files changed, 36 insertions(+), 5 deletions(-)
+>  create mode 100644 tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert
 > 
-> When deleting a base chain, iptables-nft simply submits the whole chain
-> to the kernel, including the NFTA_CHAIN_HOOK attribute. The new code
-> added by fixed commit then turned this into a chain update, destroying
-> the hook but not the chain itself. Detect the situation by checking if
-> the chain is either the netdev or inet/ingress type.
+> diff --git a/src/parser_bison.y b/src/parser_bison.y
+> index f5f6bf04d064..d5a2f85387cb 100644
+> --- a/src/parser_bison.y
+> +++ b/src/parser_bison.y
+> @@ -144,6 +144,33 @@ static bool already_set(const void *attr, const struct location *loc,
+>  	return true;
+>  }
+>  
+> +static struct expr* ifname_expr_alloc(const struct location *location,
 
-I'd change the last sentence to "Avoid the situation by applying the new
-logic to base chains in netdev family or inet family ingress hook." But
-feel free to push as-is, I'm just nit-picking here. :)
+Nitpick:
 
-Thanks, Phil
+static struct expr *ifname_expr_alloc(const struct location *location,
+                   ^
+
+> +				      struct list_head *queue,
+> +				      const char *name)
+> +{
+> +	unsigned int length = strlen(name);
+> +	struct expr *expr;
+> +
+> +	if (length == 0) {
+> +		xfree(name);
+> +		erec_queue(error(location, "empty interface name"), queue);
+> +		return NULL;
+> +	}
+> +
+> +	if (length > 16) {
+
+                     IFNAMSIZ instead of 16?
+
+> +		xfree(name);
+> +		erec_queue(error(location, "interface name too long"), queue);
+> +		return NULL;
+> +	}
+> +
+> +	expr = constant_expr_alloc(location, &ifname_type, BYTEORDER_HOST_ENDIAN,
+> +				   length * BITS_PER_BYTE, name);
+> +
+> +	xfree(name);
+> +
+> +	return expr;
+> +}
+> +
+>  #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
+>  
+>  #define symbol_value(loc, str) \
+> @@ -2664,12 +2691,11 @@ int_num			:	NUM			{ $$ = $1; }
+>  
+>  dev_spec		:	DEVICE	string
+>  			{
+> -				struct expr *expr;
+> +				struct expr *expr = ifname_expr_alloc(&@$, state->msgs, $2);
+> +
+> +				if (!expr)
+> +					YYERROR;
+>  
+> -				expr = constant_expr_alloc(&@$, &string_type,
+> -							   BYTEORDER_HOST_ENDIAN,
+> -							   strlen($2) * BITS_PER_BYTE, $2);
+> -				xfree($2);
+>  				$$ = compound_expr_alloc(&@$, EXPR_LIST);
+>  				compound_expr_add($$, expr);
+>  
+> diff --git a/tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert b/tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert
+> new file mode 100644
+> index 000000000000..84f330730fce
+> --- /dev/null
+> +++ b/tests/shell/testcases/bogons/nft-f/zero_length_devicename_assert
+> @@ -0,0 +1,5 @@
+> +table ip x {
+> +        chain Main_Ingress1 {
+> +                type filter hook ingress device""lo" priority -1
+> +	}
+> +}
+> -- 
+> 2.39.3
+> 
