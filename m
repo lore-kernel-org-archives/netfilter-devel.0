@@ -2,161 +2,141 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC2E0EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 10:34:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D08F0EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 10:43:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231374AbjFTKd7 (ORCPT
+        id S229926AbjFTKnQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Jun 2023 06:33:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53310 "EHLO
+        Tue, 20 Jun 2023 06:43:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231371AbjFTKd6 (ORCPT
+        with ESMTP id S231429AbjFTKnP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2023 06:33:58 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AC6BECE
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 03:33:56 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] src: add json support for last statement
-Date:   Tue, 20 Jun 2023 12:33:52 +0200
-Message-Id: <20230620103352.80728-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Tue, 20 Jun 2023 06:43:15 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3D519D
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 03:43:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687257794; x=1718793794;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=uWQlpkSqYtXGwmGI3si1xIcWLNSUgBELgGDSlST7O7g=;
+  b=YWuy7QJiJ3MXwUmg48ZlkZwqp01sg39gjPEC9MdT7zhn1dEuu7iiOrK7
+   Ohbqgze3Bwt4h82GKGbItnt5/bBxUMCbljgJhFgatgfnyzYGvSvzvzUk/
+   J3HjA2mgFJStiUpv0iDh5umH+IwIXeWrURUz0lSAFvx4KMWEJfJFoNa65
+   +mLq4dHBWPbkKGpcojbQ77I2/xZ8OKgL0RfPZcCL88BRyPPrtz1/WCAwd
+   3FS6BnMXrpwonbPxCRVmDxPjQvgId7zTDuld3rNJCfHnAhZxWPSHViVbX
+   K+A6OFtrVGhqTMdW/s30NTE9nmj7cVpio2gdVPEwKqlPKXH6D6L8i8e3i
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10746"; a="425781895"
+X-IronPort-AV: E=Sophos;i="6.00,256,1681196400"; 
+   d="scan'208";a="425781895"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2023 03:43:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10746"; a="858538335"
+X-IronPort-AV: E=Sophos;i="6.00,256,1681196400"; 
+   d="scan'208";a="858538335"
+Received: from lkp-server01.sh.intel.com (HELO 783282924a45) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 20 Jun 2023 03:43:12 -0700
+Received: from kbuild by 783282924a45 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qBYpL-0005oo-1x;
+        Tue, 20 Jun 2023 10:43:11 +0000
+Date:   Tue, 20 Jun 2023 18:42:43 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>
+Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev
+Subject: Re: [PATCH nf-next] lib/ts_bm: add helper to reduce indentation and
+ improve readability
+Message-ID: <202306201819.BoQ5IT7Y-lkp@intel.com>
+References: <20230619190803.1906012-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230619190803.1906012-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch adds json support for the last statement, it works for me here.
+Hi Jeremy,
 
-However, tests/py still displays a warning:
+kernel test robot noticed the following build warnings:
 
-any/last.t: WARNING: line 12: '{"nftables": [{"add": {"rule": {"family": "ip", "table": "test-ip4", "chain": "input", "expr": [{"last": {"used": 300000}}]}}}]}': '[{"last": {"used": 300000}}]' mismatches '[{"last": null}]'
+[auto build test WARNING on linus/master]
+[also build test WARNING on v6.4-rc7 next-20230620]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/json.h           |  2 ++
- src/json.c               |  8 ++++++++
- src/parser_json.c        | 22 ++++++++++++++++++++++
- src/statement.c          |  1 +
- tests/py/any/last.t.json | 16 ++++++++++++++++
- 5 files changed, 49 insertions(+)
- create mode 100644 tests/py/any/last.t.json
+url:    https://github.com/intel-lab-lkp/linux/commits/Jeremy-Sowden/lib-ts_bm-add-helper-to-reduce-indentation-and-improve-readability/20230620-031043
+base:   linus/master
+patch link:    https://lore.kernel.org/r/20230619190803.1906012-1-jeremy%40azazel.net
+patch subject: [PATCH nf-next] lib/ts_bm: add helper to reduce indentation and improve readability
+config: x86_64-rhel-8.3-rust (https://download.01.org/0day-ci/archive/20230620/202306201819.BoQ5IT7Y-lkp@intel.com/config)
+compiler: clang version 15.0.7 (https://github.com/llvm/llvm-project.git 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a)
+reproduce: (https://download.01.org/0day-ci/archive/20230620/202306201819.BoQ5IT7Y-lkp@intel.com/reproduce)
 
-diff --git a/include/json.h b/include/json.h
-index f691678d4d72..da605ed9e83d 100644
---- a/include/json.h
-+++ b/include/json.h
-@@ -74,6 +74,7 @@ json_t *payload_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
- json_t *exthdr_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
- json_t *quota_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
- json_t *ct_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
-+json_t *last_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
- json_t *limit_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
- json_t *fwd_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
- json_t *notrack_stmt_json(const struct stmt *stmt, struct output_ctx *octx);
-@@ -177,6 +178,7 @@ STMT_PRINT_STUB(payload)
- STMT_PRINT_STUB(exthdr)
- STMT_PRINT_STUB(quota)
- STMT_PRINT_STUB(ct)
-+STMT_PRINT_STUB(last)
- STMT_PRINT_STUB(limit)
- STMT_PRINT_STUB(fwd)
- STMT_PRINT_STUB(notrack)
-diff --git a/src/json.c b/src/json.c
-index 981d177b75d4..305eb6e397fe 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -1482,6 +1482,14 @@ json_t *counter_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
- 			 "bytes", stmt->counter.bytes);
- }
- 
-+json_t *last_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
-+{
-+	if (nft_output_stateless(octx) || stmt->last.set == 0)
-+		return json_pack("{s:n}", "last");
-+
-+	return json_pack("{s:{s:I}}", "last", "used", stmt->last.used);
-+}
-+
- json_t *set_stmt_json(const struct stmt *stmt, struct output_ctx *octx)
- {
- 	json_t *root;
-diff --git a/src/parser_json.c b/src/parser_json.c
-index f1cc39505382..605dcc49f715 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -1731,6 +1731,27 @@ static struct stmt *json_parse_counter_stmt(struct json_ctx *ctx,
- 	return stmt;
- }
- 
-+static struct stmt *json_parse_last_stmt(struct json_ctx *ctx,
-+					 const char *key, json_t *value)
-+{
-+	struct stmt *stmt;
-+	int64_t used;
-+
-+	if (json_is_null(value))
-+		return last_stmt_alloc(int_loc);
-+
-+	if (!json_unpack(value, "{s:I}", "used", &used)) {
-+		stmt = last_stmt_alloc(int_loc);
-+		if (used != -1) {
-+			stmt->last.used = used;
-+			stmt->last.set = 1;
-+		}
-+		return stmt;
-+	}
-+
-+	return NULL;
-+}
-+
- static struct stmt *json_parse_verdict_stmt(struct json_ctx *ctx,
- 					    const char *key, json_t *value)
- {
-@@ -2747,6 +2768,7 @@ static struct stmt *json_parse_stmt(struct json_ctx *ctx, json_t *root)
- 		{ "counter", json_parse_counter_stmt },
- 		{ "mangle", json_parse_mangle_stmt },
- 		{ "quota", json_parse_quota_stmt },
-+		{ "last", json_parse_last_stmt },
- 		{ "limit", json_parse_limit_stmt },
- 		{ "flow", json_parse_flow_offload_stmt },
- 		{ "fwd", json_parse_fwd_stmt },
-diff --git a/src/statement.c b/src/statement.c
-index 72455522c2c9..9ca7e208cf79 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -268,6 +268,7 @@ static const struct stmt_ops last_stmt_ops = {
- 	.type		= STMT_LAST,
- 	.name		= "last",
- 	.print		= last_stmt_print,
-+	.json		= last_stmt_json,
- };
- 
- struct stmt *last_stmt_alloc(const struct location *loc)
-diff --git a/tests/py/any/last.t.json b/tests/py/any/last.t.json
-new file mode 100644
-index 000000000000..2a2b9e7278f3
---- /dev/null
-+++ b/tests/py/any/last.t.json
-@@ -0,0 +1,16 @@
-+# last
-+[
-+    {
-+        "last": null
-+    }
-+]
-+
-+# last used 300s
-+[
-+    {
-+        "last": {
-+		"used": 300000
-+	}
-+    }
-+]
-+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202306201819.BoQ5IT7Y-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> lib/ts_bm.c:101:34: warning: variable 'i' is uninitialized when used here [-Wuninitialized]
+                           bs = bm->bad_shift[text[shift-i]];
+                                                         ^
+   lib/ts_bm.c:79:16: note: initialize the variable 'i' to silence this warning
+           unsigned int i, text_len, consumed = state->offset;
+                         ^
+                          = 0
+   1 warning generated.
+
+
+vim +/i +101 lib/ts_bm.c
+
+    75	
+    76	static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
+    77	{
+    78		struct ts_bm *bm = ts_config_priv(conf);
+    79		unsigned int i, text_len, consumed = state->offset;
+    80		const u8 *text;
+    81		int shift = bm->patlen - 1, bs;
+    82		const u8 icase = conf->flags & TS_IGNORECASE;
+    83	
+    84		for (;;) {
+    85			text_len = conf->get_next_block(consumed, &text, conf, state);
+    86	
+    87			if (unlikely(text_len == 0))
+    88				break;
+    89	
+    90			while (shift < text_len) {
+    91				DEBUGP("Searching in position %d (%c)\n",
+    92				       shift, text[shift]);
+    93	
+    94				if (patmtch(&bm->pattern[bm->patlen-1], &text[shift],
+    95					    bm->patlen, icase)) {
+    96					/* London calling... */
+    97					DEBUGP("found!\n");
+    98					return consumed + (shift-(bm->patlen-1));
+    99				}
+   100	
+ > 101				bs = bm->bad_shift[text[shift-i]];
+   102	
+   103				/* Now jumping to... */
+   104				shift = max_t(int, shift-i+bs, shift+bm->good_shift[i]);
+   105			}
+   106			consumed += text_len;
+   107		}
+   108	
+   109		return UINT_MAX;
+   110	}
+   111	
+
 -- 
-2.30.2
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
