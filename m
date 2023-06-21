@@ -2,269 +2,103 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0795EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 19:11:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E983EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 20:15:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229723AbjFUTLO (ORCPT
+        id S229452AbjFUUPx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Jun 2023 15:11:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50384 "EHLO
+        Wed, 21 Jun 2023 16:15:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229624AbjFUTLL (ORCPT
+        with ESMTP id S229549AbjFUUPu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Jun 2023 15:11:11 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 211051710
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 12:11:10 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qC3ES-0001iO-P7; Wed, 21 Jun 2023 21:11:08 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_tables: limit allowed range via nla_policy
-Date:   Wed, 21 Jun 2023 21:11:03 +0200
-Message-Id: <20230621191103.12702-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.3
+        Wed, 21 Jun 2023 16:15:50 -0400
+Received: from mail-qt1-x82f.google.com (mail-qt1-x82f.google.com [IPv6:2607:f8b0:4864:20::82f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6141019A3
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 13:15:49 -0700 (PDT)
+Received: by mail-qt1-x82f.google.com with SMTP id d75a77b69052e-3ff25ca795eso38921cf.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 13:15:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1687378548; x=1689970548;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=otb9mWh63Y8sqBsg0grRp44WNGjwqCjeQHKMdpQifmk=;
+        b=PMsJN9o7P+1pPrUVr+yWZ5pZMOSF4O1KAfin1dkvtAV2uIV3BXGecunusJP/6zScyM
+         fR/cAXGL4RodfXdFTx9VB4tZ13v1EdYe5i3UkIUGkyqJqGJ04Trl+K9SYhanr6AEZzaw
+         fvqxnotkETMZN32cqnlrFZI63JDdheOVTSlT3I1Obpf+IE4xxWinRlVZxYWYjZaFM/bp
+         ZY86RAWWo4IHxPIF1R+9GG3OxFJWMI9kE7GIRR08wgnVyIxbg/KKJTlzhIUWZY6qw9J8
+         R+i5COVHnQUFQztDmu5evD51VbQf5fw3zsxIrjfhWT8lTaJthAYwkEZRsyYKSuvplBj6
+         P7OA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687378548; x=1689970548;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=otb9mWh63Y8sqBsg0grRp44WNGjwqCjeQHKMdpQifmk=;
+        b=keGpptf55eMjPwtgs6AI6dAg/1gA9b/nkXzF2yUnKeYmCFfW+K3xlHqGf9dTsNi0x1
+         v/7Rch1BDPtXXIVIP9jF3cSqdPPUgDkjsTb1cMTIxUnr1vBmHA56hu4/AqgqndQzJzoX
+         929UjwBDWTSaH8fyHRU9SAbkvk8Y+rRrs5KdQv7In+Ikzz37kNpjrr0k7XctL913YVbR
+         PcjefW5PRxZ/J0j6TKe0Uv+xkvX8UYkRL+lqLqMKHRYpMNQ+p/iP9q6aQo8CgDtiHMij
+         IdHugSwn426qttoyBi7PSiO9q8PnLuc93oQgJy3O4B2v3QiqLMLQK3QAztfH/yXFEvfF
+         JqpQ==
+X-Gm-Message-State: AC+VfDwUV8ko7wGTScHfNPG/Fm7vFq1jBFfpPAeCbn6ZU4TvQmy0HWmv
+        BoH4WITtMd13ZYF40OLqc4JUSYgpgfaeKX0vQ/Zio1MEoGfFuK8qZkA=
+X-Google-Smtp-Source: ACHHUZ5PdL+jJhhV6wyJJp9mQiMh7px97kova23eRaRpXlev0zFZg3D+f2C+XFFzjK4CrFRLNBsi+hNEkGrub+noNTg=
+X-Received: by 2002:a05:622a:1447:b0:3f0:af20:1a37 with SMTP id
+ v7-20020a05622a144700b003f0af201a37mr1324191qtx.15.1687378548249; Wed, 21 Jun
+ 2023 13:15:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230621155653.11078-1-fw@strlen.de>
+In-Reply-To: <20230621155653.11078-1-fw@strlen.de>
+From:   Eric Dumazet <edumazet@google.com>
+Date:   Wed, 21 Jun 2023 22:15:37 +0200
+Message-ID: <CANn89iJu-4WNKh4Ah28gYTCFFr+DxqT35NG36zHbkBc7TDO9mQ@mail.gmail.com>
+Subject: Re: [PATCH nf v2] netfilter: conntrack: dccp: copy entire header to
+ stack buffer, not just basic one
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-These NLA_U32 types get stored in u8 fields, reject invalid values
-instead of silently casting to u8.
+On Wed, Jun 21, 2023 at 5:56=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
+te:
+>
+> Eric Dumazet says:
+>   nf_conntrack_dccp_packet() has an unique:
+>
+>   dh =3D skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
+>
+>   And nothing more is 'pulled' from the packet, depending on the content.
+>   dh->dccph_doff, and/or dh->dccph_x ...)
+>   So dccp_ack_seq() is happily reading stuff past the _dh buffer.
+>
+> BUG: KASAN: stack-out-of-bounds in nf_conntrack_dccp_packet+0x1134/0x11c0
+> Read of size 4 at addr ffff000128f66e0c by task syz-executor.2/29371
+> [..]
+>
+> Fix this by increasing the stack buffer to also include room for
+> the extra sequence numbers and all the known dccp packet type headers,
+> then pull again after the initial validation of the basic header.
+>
+> While at it, mark packets invalid that lack 48bit sequence bit but
+> where RFC says the type MUST use them.
+>
+> Compile tested only.
+>
+> v2: first skb_header_pointer() now needs to adjust the size to
+>     only pull the generic header. (Eric)
+>
+> Heads-up: I intend to remove dccp conntrack support later this year.
+>
+> Fixes: 2bc780499aa3 ("[NETFILTER]: nf_conntrack: add DCCP protocol suppor=
+t")
+> Reported-by: Eric Dumazet <edumazet@google.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_bitwise.c    | 2 +-
- net/netfilter/nft_byteorder.c  | 6 +++---
- net/netfilter/nft_ct.c         | 2 +-
- net/netfilter/nft_dynset.c     | 2 +-
- net/netfilter/nft_exthdr.c     | 4 ++--
- net/netfilter/nft_fwd_netdev.c | 2 +-
- net/netfilter/nft_hash.c       | 2 +-
- net/netfilter/nft_meta.c       | 2 +-
- net/netfilter/nft_range.c      | 2 +-
- net/netfilter/nft_reject.c     | 2 +-
- net/netfilter/nft_rt.c         | 2 +-
- net/netfilter/nft_socket.c     | 4 ++--
- net/netfilter/nft_tproxy.c     | 2 +-
- net/netfilter/nft_tunnel.c     | 4 ++--
- net/netfilter/nft_xfrm.c       | 4 ++--
- 15 files changed, 21 insertions(+), 21 deletions(-)
+Reviewed-by: Eric Dumazet <edumazet@google.com>
 
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index 84eae7cabc67..14e3c44ef959 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -86,7 +86,7 @@ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
- 	[NFTA_BITWISE_LEN]	= { .type = NLA_U32 },
- 	[NFTA_BITWISE_MASK]	= { .type = NLA_NESTED },
- 	[NFTA_BITWISE_XOR]	= { .type = NLA_NESTED },
--	[NFTA_BITWISE_OP]	= { .type = NLA_U32 },
-+	[NFTA_BITWISE_OP]	= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_BITWISE_DATA]	= { .type = NLA_NESTED },
- };
- 
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index b66647a5a171..9a85e797ed58 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -88,9 +88,9 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- static const struct nla_policy nft_byteorder_policy[NFTA_BYTEORDER_MAX + 1] = {
- 	[NFTA_BYTEORDER_SREG]	= { .type = NLA_U32 },
- 	[NFTA_BYTEORDER_DREG]	= { .type = NLA_U32 },
--	[NFTA_BYTEORDER_OP]	= { .type = NLA_U32 },
--	[NFTA_BYTEORDER_LEN]	= { .type = NLA_U32 },
--	[NFTA_BYTEORDER_SIZE]	= { .type = NLA_U32 },
-+	[NFTA_BYTEORDER_OP]	= NLA_POLICY_MAX(NLA_BE32, 255),
-+	[NFTA_BYTEORDER_LEN]	= NLA_POLICY_MAX(NLA_BE32, 255),
-+	[NFTA_BYTEORDER_SIZE]	= NLA_POLICY_MAX(NLA_BE32, 255),
- };
- 
- static int nft_byteorder_init(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index b9c84499438b..38958e067aa8 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -332,7 +332,7 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
- 
- static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
- 	[NFTA_CT_DREG]		= { .type = NLA_U32 },
--	[NFTA_CT_KEY]		= { .type = NLA_U32 },
-+	[NFTA_CT_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_CT_DIRECTION]	= { .type = NLA_U8 },
- 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
- };
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index bd19c7aec92e..4fb34d76dbea 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -148,7 +148,7 @@ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
- 	[NFTA_DYNSET_SET_NAME]	= { .type = NLA_STRING,
- 				    .len = NFT_SET_MAXNAMELEN - 1 },
- 	[NFTA_DYNSET_SET_ID]	= { .type = NLA_U32 },
--	[NFTA_DYNSET_OP]	= { .type = NLA_U32 },
-+	[NFTA_DYNSET_OP]	= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_DYNSET_SREG_KEY]	= { .type = NLA_U32 },
- 	[NFTA_DYNSET_SREG_DATA]	= { .type = NLA_U32 },
- 	[NFTA_DYNSET_TIMEOUT]	= { .type = NLA_U64 },
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 671474e59817..7f856ceb3a66 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -487,9 +487,9 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_DREG]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
- 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
--	[NFTA_EXTHDR_LEN]		= { .type = NLA_U32 },
-+	[NFTA_EXTHDR_LEN]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
--	[NFTA_EXTHDR_OP]		= { .type = NLA_U32 },
-+	[NFTA_EXTHDR_OP]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_EXTHDR_SREG]		= { .type = NLA_U32 },
- };
- 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 7b9d4d1bd17c..a5268e6dd32f 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -40,7 +40,7 @@ static void nft_fwd_netdev_eval(const struct nft_expr *expr,
- static const struct nla_policy nft_fwd_netdev_policy[NFTA_FWD_MAX + 1] = {
- 	[NFTA_FWD_SREG_DEV]	= { .type = NLA_U32 },
- 	[NFTA_FWD_SREG_ADDR]	= { .type = NLA_U32 },
--	[NFTA_FWD_NFPROTO]	= { .type = NLA_U32 },
-+	[NFTA_FWD_NFPROTO]	= NLA_POLICY_MAX(NLA_BE32, 255),
- };
- 
- static int nft_fwd_netdev_init(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index ee8d487b69c0..92d47e469204 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -59,7 +59,7 @@ static void nft_symhash_eval(const struct nft_expr *expr,
- static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
- 	[NFTA_HASH_SREG]	= { .type = NLA_U32 },
- 	[NFTA_HASH_DREG]	= { .type = NLA_U32 },
--	[NFTA_HASH_LEN]		= { .type = NLA_U32 },
-+	[NFTA_HASH_LEN]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_HASH_MODULUS]	= { .type = NLA_U32 },
- 	[NFTA_HASH_SEED]	= { .type = NLA_U32 },
- 	[NFTA_HASH_OFFSET]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index e384e0de7a54..8fdc7318c03c 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -458,7 +458,7 @@ EXPORT_SYMBOL_GPL(nft_meta_set_eval);
- 
- const struct nla_policy nft_meta_policy[NFTA_META_MAX + 1] = {
- 	[NFTA_META_DREG]	= { .type = NLA_U32 },
--	[NFTA_META_KEY]		= { .type = NLA_U32 },
-+	[NFTA_META_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_META_SREG]	= { .type = NLA_U32 },
- };
- EXPORT_SYMBOL_GPL(nft_meta_policy);
-diff --git a/net/netfilter/nft_range.c b/net/netfilter/nft_range.c
-index 0566d6aaf1e5..51ae64cd268f 100644
---- a/net/netfilter/nft_range.c
-+++ b/net/netfilter/nft_range.c
-@@ -42,7 +42,7 @@ void nft_range_eval(const struct nft_expr *expr,
- 
- static const struct nla_policy nft_range_policy[NFTA_RANGE_MAX + 1] = {
- 	[NFTA_RANGE_SREG]		= { .type = NLA_U32 },
--	[NFTA_RANGE_OP]			= { .type = NLA_U32 },
-+	[NFTA_RANGE_OP]			= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_RANGE_FROM_DATA]		= { .type = NLA_NESTED },
- 	[NFTA_RANGE_TO_DATA]		= { .type = NLA_NESTED },
- };
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index f2addc844dd2..ed2e668474d6 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -18,7 +18,7 @@
- #include <linux/icmpv6.h>
- 
- const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
--	[NFTA_REJECT_TYPE]		= { .type = NLA_U32 },
-+	[NFTA_REJECT_TYPE]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_REJECT_ICMP_CODE]		= { .type = NLA_U8 },
- };
- EXPORT_SYMBOL_GPL(nft_reject_policy);
-diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
-index 5990fdd7b3cc..35a2c28caa60 100644
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -104,7 +104,7 @@ void nft_rt_get_eval(const struct nft_expr *expr,
- 
- static const struct nla_policy nft_rt_policy[NFTA_RT_MAX + 1] = {
- 	[NFTA_RT_DREG]		= { .type = NLA_U32 },
--	[NFTA_RT_KEY]		= { .type = NLA_U32 },
-+	[NFTA_RT_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
- };
- 
- static int nft_rt_get_init(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 85f8df87efda..84def74698b7 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -138,9 +138,9 @@ static void nft_socket_eval(const struct nft_expr *expr,
- }
- 
- static const struct nla_policy nft_socket_policy[NFTA_SOCKET_MAX + 1] = {
--	[NFTA_SOCKET_KEY]		= { .type = NLA_U32 },
-+	[NFTA_SOCKET_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_SOCKET_DREG]		= { .type = NLA_U32 },
--	[NFTA_SOCKET_LEVEL]		= { .type = NLA_U32 },
-+	[NFTA_SOCKET_LEVEL]		= NLA_POLICY_MAX(NLA_BE32, 255),
- };
- 
- static int nft_socket_init(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nft_tproxy.c b/net/netfilter/nft_tproxy.c
-index ea83f661417e..ae15cd693f0e 100644
---- a/net/netfilter/nft_tproxy.c
-+++ b/net/netfilter/nft_tproxy.c
-@@ -183,7 +183,7 @@ static void nft_tproxy_eval(const struct nft_expr *expr,
- }
- 
- static const struct nla_policy nft_tproxy_policy[NFTA_TPROXY_MAX + 1] = {
--	[NFTA_TPROXY_FAMILY]   = { .type = NLA_U32 },
-+	[NFTA_TPROXY_FAMILY]   = NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_TPROXY_REG_ADDR] = { .type = NLA_U32 },
- 	[NFTA_TPROXY_REG_PORT] = { .type = NLA_U32 },
- };
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index b059aa541798..9f21953c7433 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -66,9 +66,9 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
- }
- 
- static const struct nla_policy nft_tunnel_policy[NFTA_TUNNEL_MAX + 1] = {
--	[NFTA_TUNNEL_KEY]	= { .type = NLA_U32 },
-+	[NFTA_TUNNEL_KEY]	= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_TUNNEL_DREG]	= { .type = NLA_U32 },
--	[NFTA_TUNNEL_MODE]	= { .type = NLA_U32 },
-+	[NFTA_TUNNEL_MODE]	= NLA_POLICY_MAX(NLA_BE32, 255),
- };
- 
- static int nft_tunnel_get_init(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
-index c88fd078a9ae..452f8587adda 100644
---- a/net/netfilter/nft_xfrm.c
-+++ b/net/netfilter/nft_xfrm.c
-@@ -16,9 +16,9 @@
- #include <net/xfrm.h>
- 
- static const struct nla_policy nft_xfrm_policy[NFTA_XFRM_MAX + 1] = {
--	[NFTA_XFRM_KEY]		= { .type = NLA_U32 },
-+	[NFTA_XFRM_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_XFRM_DIR]		= { .type = NLA_U8 },
--	[NFTA_XFRM_SPNUM]	= { .type = NLA_U32 },
-+	[NFTA_XFRM_SPNUM]	= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_XFRM_DREG]	= { .type = NLA_U32 },
- };
- 
--- 
-2.39.3
-
+Thanks Florian.
