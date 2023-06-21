@@ -2,65 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 649CAEB64DC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 12:42:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3723BEB64D7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 13:07:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbjFUMmC (ORCPT
+        id S232213AbjFUNHj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Jun 2023 08:42:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57828 "EHLO
+        Wed, 21 Jun 2023 09:07:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229976AbjFUMmB (ORCPT
+        with ESMTP id S231271AbjFUNHi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Jun 2023 08:42:01 -0400
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4B6C184
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 05:41:59 -0700 (PDT)
-Received: by mail-oi1-x231.google.com with SMTP id 5614622812f47-39fc0e3f0f2so1845323b6e.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 05:41:59 -0700 (PDT)
+        Wed, 21 Jun 2023 09:07:38 -0400
+Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5272E72
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 06:07:36 -0700 (PDT)
+Received: by mail-pj1-x1032.google.com with SMTP id 98e67ed59e1d1-25bf4b269e0so4776416a91.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 06:07:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1687351319; x=1689943319;
+        d=chromium.org; s=google; t=1687352856; x=1689944856;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=gEnN1eHhs1tN7/Y7t6he6p9VJhq0VBCBjTgHlWlf5vI=;
-        b=HZWfECMgE6MPIaSwTX+cstHxlqQcjci/Cx/EUw7h7RJ21GngIXSeLbaxr1PzBgj/OV
-         xGpGnb2+A6VkoT7tktNpSs1a5xqAxWu51LRmuYqq851vfPliIPKJArYjU8jh+MEv/nKQ
-         1OMcvACGuNQWIWCp3vi0JOtGzQ5TjxoB9VgXU=
+        bh=AN9rHqAMb+s9JldJn9/oqOzjlHcCzpCU13r5zGj/2KQ=;
+        b=cK7F3u9YWXKESMkYMrq4CLbiYhmqAwgCfOHFwEMrXZBDvEfantgIL+FukZP7lJa0HE
+         ea+9QoGvYwMLYvpCEbugNNosto1uR6rlY5mkWJTITzJG2HsAWzwIj4R3IGti2g+h74VS
+         9+4U+k4MGAY/K5+AO5LbCu4ijCkdwFXd/Flus=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687351319; x=1689943319;
+        d=1e100.net; s=20221208; t=1687352856; x=1689944856;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=gEnN1eHhs1tN7/Y7t6he6p9VJhq0VBCBjTgHlWlf5vI=;
-        b=IiKxQgcMzQoBNBtzviouzDZXQXpeojfpLPmMgtIi95Y96Gwq+RDfaWqTJY5wA+YytW
-         tvQVMEkOlLzg4hZLQY4v1iL1e7WTeQQuS2BY2+/cbkdsSlaIUVY2VcI5CAWyha9IxL21
-         4+xn3dnqGvLA+HELalQ7ID7zCYOOVlK5cgC78xF8i3Q7TgKCj3qaxks35U0+KhRpiWL5
-         Zq+oN5pEkvP2icFutVsGh1dXGdWRPsblk5Se0WnVulF1+czSY7BcrtQFocLpNfEedV2N
-         0wDbK1JgIoT5Tg2RAH7kVELfdV4p2+UYkAS0rHL/hHWJHV/Ywrivx5vPixhVuTW17DaB
-         8NOQ==
-X-Gm-Message-State: AC+VfDyaMlz+i1IrF1Y8tyy28/mPN+R38mFXoP3EQ6H5BajKrUAhBWIZ
-        0cVO7n6oN5jTVQJG1MMWDg1PKOSSpAJ6U2Bzsuje7w==
-X-Google-Smtp-Source: ACHHUZ7Lgbb/KL+C7uMlNHS0la3DKKGcJ/COXaSKZuAoRMdzSFtGhs5NNtbL0yuxXHyxxaWj05O6ICB82oBeoWWr5d4=
-X-Received: by 2002:a05:6808:120a:b0:39e:b985:b47e with SMTP id
- a10-20020a056808120a00b0039eb985b47emr15650678oil.36.1687351319039; Wed, 21
- Jun 2023 05:41:59 -0700 (PDT)
+        bh=AN9rHqAMb+s9JldJn9/oqOzjlHcCzpCU13r5zGj/2KQ=;
+        b=RTAWraotixJX4qi1Q7BC1PcdaGb1Abiu25Adb/5r5yyLVTeAP+7cgcqYrxOQpgwzK5
+         rgWEsBJLS5GBQrjHY6SXiGzrz/wwOEpbBvDdvjObuJpWI1abu7oZQZSYjEJFi+ayqMkt
+         E3/Z+UprNvzNsDtYjMR69RuyiuuiiM8DC3JOQtZDBnqtVlFyJHQOQTkzpnHJ6nAn3L3U
+         avAN1jIhbapjtj2thA+MIblPQpRxkW9LujkKs/N7qu6SFIo6XmrdxC8r2AA+YxdYnsi0
+         XURCkmx5O4gYf+T5r1TOpHB84aZLJkCfujWrcR+30NWx03ylvZc2T/nzWk1X4JK7lZxF
+         vaVA==
+X-Gm-Message-State: AC+VfDyWs1LWy+HmjMo21BrLS/6zNLj+LNnasznZ3QTvMqS90gf35OnK
+        Q99fRYtj/vOIfn2FYCUb8SaiBftoTOg9M8S5gvQs3w==
+X-Google-Smtp-Source: ACHHUZ58CXQQpAnHz3lkggiqe1EL/HQv8J6Ipct9oA7wdxqNiCgJ8ePDZU2c7RUje6+6AvX2hFO4F8Z0/irOHhzxVjI=
+X-Received: by 2002:a17:90a:e385:b0:25e:e70f:423f with SMTP id
+ b5-20020a17090ae38500b0025ee70f423fmr14962926pjz.19.1687352855923; Wed, 21
+ Jun 2023 06:07:35 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230615152918.3484699-1-revest@chromium.org> <ZJFIy+oJS+vTGJer@calendula>
- <CABRcYmJjv-JoadtzZwU5A+SZwbmbgnzWb27UNZ-UC+9r+JnVxg@mail.gmail.com> <ZJLbDiwsQnQkkZvy@calendula>
-In-Reply-To: <ZJLbDiwsQnQkkZvy@calendula>
+ <CABRcYmJjv-JoadtzZwU5A+SZwbmbgnzWb27UNZ-UC+9r+JnVxg@mail.gmail.com> <20230621111454.GB24035@breakpoint.cc>
+In-Reply-To: <20230621111454.GB24035@breakpoint.cc>
 From:   Florent Revest <revest@chromium.org>
-Date:   Wed, 21 Jun 2023 14:41:47 +0200
-Message-ID: <CABRcYmLgOn9=nNA151ibvRFeAGCzORAymmGsppjRPo9jPrF1ag@mail.gmail.com>
+Date:   Wed, 21 Jun 2023 15:07:24 +0200
+Message-ID: <CABRcYmKeo6A+3dmZd9bRp8W3tO9M5cHDpQ13b8aeMkhYr4L64Q@mail.gmail.com>
 Subject: Re: [PATCH nf] netfilter: conntrack: Avoid nf_ct_helper_hash uses
  after free
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bpf@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, lirongqing@baidu.com, wangli39@baidu.com,
-        zhangyu31@baidu.com, daniel@iogearbox.net, ast@kernel.org,
+        bpf@vger.kernel.org, kadlec@netfilter.org, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        lirongqing@baidu.com, daniel@iogearbox.net, ast@kernel.org,
         kpsingh@kernel.org, stable@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -68,62 +68,96 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 21, 2023 at 1:12=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.=
-org> wrote:
+On Wed, Jun 21, 2023 at 1:14=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
+te:
 >
-> On Wed, Jun 21, 2023 at 12:20:44PM +0200, Florent Revest wrote:
+> Florent Revest <revest@chromium.org> wrote:
 > > On Tue, Jun 20, 2023 at 8:35=E2=80=AFAM Pablo Neira Ayuso <pablo@netfil=
 ter.org> wrote:
-> > > nf_conntrack_ftp depends on nf_conntrack.
 > > >
-> > > If nf_conntrack fails to load, how can nf_conntrack_ftp be loaded?
-> >
-> > Is this maybe only true of dynamically loaded kmods ? With
-> > CONFIG_NF_CONNTRACK_FTP=3Dy, it seems to me that nf_conntrack_ftp_init(=
-)
-> > will be called as an __init function, independently of whether
-> > nf_conntrack_init_start() succeeded or not. Am I missing something ?
->
-> No idea, nf_conntrack init path invokes nf_conntrack_helper_init()
-> which initializes the helper hashtable.
-
-Yes
-
-> How is it that you can nf_conntrack_helpers_register() call before the
-> initialization path of nf_conntrack is run, that I don't know.
-
-No, this is not what happens. I tried to describe the problem in the
-following paragraph (I'm open to suggestions on how to explain this
-better!)
-
 > > > On Thu, Jun 15, 2023 at 05:29:18PM +0200, Florent Revest wrote:
 > > > > If register_nf_conntrack_bpf() fails (for example, if the .BTF sect=
 ion
 > > > > contains an invalid entry), nf_conntrack_init_start() calls
 > > > > nf_conntrack_helper_fini() as part of its cleanup path and
 > > > > nf_ct_helper_hash gets freed.
+> > > >
+> > > > Further netfilter modules like netfilter_conntrack_ftp don't check
+> > > > whether nf_conntrack initialized correctly and call
+> > > > nf_conntrack_helpers_register() which accesses the freed
+> > > > nf_ct_helper_hash and causes a uaf.
+> > > >
+> > > > This patch guards nf_conntrack_helper_register() from accessing
+> > > > freed/uninitialized nf_ct_helper_hash maps and fixes a boot-time
+> > > > use-after-free.
+> > >
+> > > How could this possibly happen?
+> >
+> > Here is one way to reproduce this bug:
+> >
+> >   # Use nf/main
+> >   git clone git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.=
+git
+> >   cd nf
+> >
+> >   # Start from a minimal config
+> >   make LLVM=3D1 LLVM_IAS=3D0 defconfig
+> >
+> >   # Enable KASAN, BTF and nf_conntrack_ftp
+> >   scripts/config -e KASAN -e BPF_SYSCALL -e DEBUG_INFO -e
+> > DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT -e DEBUG_INFO_BTF -e
+> > NF_CONNTRACK_FTP
+> >   make LLVM=3D1 LLVM_IAS=3D0 olddefconfig
+> >
+> >   # Build without the LLVM integrated assembler
+> >   make LLVM=3D1 LLVM_IAS=3D0 -j `nproc`
+> >
+> > (Note that the use of LLVM_IAS=3D0, KASAN and BTF is just to trigger a
+> > bug in BTF that will be fixed by
+> > https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/commit/?id=
+=3D9724160b3942b0a967b91a59f81da5593f28b8ba
+> > Independently of that specific BTF bug, it shows how an error in
+> > nf_conntrack_bpf can cause a boot-time uaf in netfilter)
+> >
+> > Then, booting gives me:
+> >
+> > [    4.624666] BPF: [13893] FUNC asan.module_ctor
+> > [    4.625611] BPF: type_id=3D1
+> > [    4.626176] BPF:
+> > [    4.626601] BPF: Invalid name
+> > [    4.627208] BPF:
+> > [    4.627723] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > [    4.628610] BUG: KASAN: slab-use-after-free in
+> > nf_conntrack_helper_register+0x129/0x2f0
+> > [    4.628610] Read of size 8 at addr ffff888102d24000 by task swapper/=
+0/1
+> > [    4.628610]
+>
+> Isn't that better than limping along?
 
-Said differently (chronologically, I hope that helps)
+Note that this only panics because KASAN instrumentation notices the
+use-after-free and makes a lot of noise about it. In a non-debug boot,
+this would just silently corrupt random memory instead.
 
-First, nf_conntrack_init_start() runs:
-- it calls nf_conntrack_helper_init() (this succeeds and initializes
-the hashmap)
-- it calls register_nf_conntrack_bpf() (this fails)
-- goto err_kfunc
-- it calls nf_conntrack_helper_fini() (this frees the hashmap and
-leaves a dangling nf_ct_helper_hash pointer)
-- it returns back an error such that nf_conntrack_standalone_init() fails
+> in this case an initcall is failing and I think panic is preferrable
+> to a kernel that behaves like NF_CONNTRACK_FTP=3Dn.
 
-At this point, the builtin nf_conntrack module failed to load.
+In that case, it seems like what you'd want is
+nf_conntrack_standalone_init() to BUG() instead of returning an error
+then ? (so you'd never get to NF_CONNTRACK_FTP or any other if
+nf_conntrack failed to initialize) If this is the prefered behavior,
+then sure, why not.
 
-But now, nf_conntrack_ftp_init() also runs:
-- it calls nf_conntrack_helpers_register()
-  - this calls nf_conntrack_helper_register()
-    - this accesses the hashmap pointer even though the hashmap has
-been freed already. That's where the use-after-free is.
+> AFAICS this problem is specific to NF_CONNTRACK_FTP=3Dy
+> (or any other helper module, for that matter).
 
-I proposed we fix this by not accessing a freed hashmap (using NULL as
-a clear indication that this is now an invalid pointer) but I suppose
-there are other ways one could go about it such as checking if
-nf_conntrack initialized successfully early in nf_conntrack_ftp_init()
-etc... I'm open to suggestions.
+Even with NF_CONNTRACK_FTP=3Dm, the initialization failure in
+nf_conntrack_standalone_init() still happens. Therefore, the helper
+hashtable gets freed and when the nf_conntrack_ftp.ko module gets
+insmod-ed, it calls nf_conntrack_helpers_register() and this still
+causes a use-after-free.
+
+> If you disagree please resend with a commit message that
+> makes it clear that this is only relevant for the 'builtin' case.
