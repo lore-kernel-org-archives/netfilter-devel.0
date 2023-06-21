@@ -2,236 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 489AFEB64DC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 10:24:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CC1DEB64D7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 10:41:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232302AbjFUKYT (ORCPT
+        id S232562AbjFUKk7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Jun 2023 06:24:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42602 "EHLO
+        Wed, 21 Jun 2023 06:40:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232018AbjFUKYK (ORCPT
+        with ESMTP id S230264AbjFUKkP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Jun 2023 06:24:10 -0400
-Received: from mail-lj1-x22d.google.com (mail-lj1-x22d.google.com [IPv6:2a00:1450:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F324170A
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 03:23:59 -0700 (PDT)
-Received: by mail-lj1-x22d.google.com with SMTP id 38308e7fff4ca-2b45c289615so75969311fa.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 03:23:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1687343037; x=1689935037;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=qIP/RgUHzsZiGVBRB71b7glXbG7VXiyuTjWvBX5krQg=;
-        b=S/CdoZua/1rLl8yRwjaUF9IfJ2JcWeppWIYsAe/kEWbp+VzSobUM4iS9eeLWZHt5FO
-         j/+mECwtEut66NCJpjuzLpLobjA7fzCyDUwpVOGTHl1cVmF3qTtFzfRaBX7G+Tegl8Tm
-         87Q/OZiSy1hpcxgY+MGptzKzvpXBNnTUuiwawnXX2OiPypV+k03lx7aTLBlVlmFPyOCK
-         oOwW0/iZyWnJ4lfaT24bKv+GYWW44GzHrflM4FjMvA3v2Bo8q5EMHhya2b4FnBXvqkic
-         qrcQPaiA4BdDNTsbHtCocDQbJDuuggPiCViWJpmfQFFiYemQpuO3YqlziZ0eyW6vOYiK
-         i8ZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687343037; x=1689935037;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qIP/RgUHzsZiGVBRB71b7glXbG7VXiyuTjWvBX5krQg=;
-        b=OLvQ/axXnm/cT0av9vka01+DnQTpNqXSESry1ucIdB2Sx5SzmDNZrPO6MInsDf2pQB
-         wDcQDwVBQJSbogMjCoNamSuwD5Hsv+zyhrCoWOt8Qq5K9T5D4rPzkhVil693wr0MfbyD
-         8vhqwiWJAnW5k2q/wGq/Bf03UDax0JS5LE6l+c0HqKohnsd2och0ojZMahVDa7wBHYq2
-         18sAYLjAVpl/GioJOrHwjgTWB61hrw2KFkokLhi86vpULy9PEh/aI4ScFI+Gwo+3Tul1
-         5CXlPfkT1DHd6FYZMngaStdhjSyeptogIIxZzfM+BvYkw47LzH0hYMqAEN8G9AVeLz/B
-         mHzg==
-X-Gm-Message-State: AC+VfDzdHfveu9Sx1EZ3PabuGkl5BFi284/riA3VtoNc8GAoYhE5IPnh
-        0chvHK4k/8gH6QSnnRN4SnMhDA==
-X-Google-Smtp-Source: ACHHUZ47T18xkAbbJT1Ek0oO9Y+tEkoagA5plZsIhQf/ly6xrGEeqlbNRj/M5efxydPdN9Sgu8PD7g==
-X-Received: by 2002:a2e:94c1:0:b0:2b3:4621:b6e3 with SMTP id r1-20020a2e94c1000000b002b34621b6e3mr9804142ljh.34.1687343037327;
-        Wed, 21 Jun 2023 03:23:57 -0700 (PDT)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id d2-20020adff842000000b00312793cc763sm4142979wrq.15.2023.06.21.03.23.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Jun 2023 03:23:55 -0700 (PDT)
-Date:   Wed, 21 Jun 2023 13:23:52 +0300
-From:   Dan Carpenter <dan.carpenter@linaro.org>
-To:     Joel Granados <j.granados@samsung.com>
-Cc:     mcgrof@kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        David Ahern <dsahern@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Joerg Reuter <jreuter@yaina.de>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Matthieu Baerts <matthieu.baerts@tessares.net>,
-        Mat Martineau <martineau@kernel.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Remi Denis-Courmont <courmisch@gmail.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Neil Horman <nhorman@tuxdriver.com>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Xin Long <lucien.xin@gmail.com>,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Wenjia Zhang <wenjia@linux.ibm.com>,
-        Jan Karcher <jaka@linux.ibm.com>,
-        Jon Maloy <jmaloy@redhat.com>,
-        Ying Xue <ying.xue@windriver.com>,
-        Martin Schiller <ms@dev.tdt.de>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-hams@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-        dccp@vger.kernel.org, linux-wpan@vger.kernel.org,
-        mptcp@lists.linux.dev, lvs-devel@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-afs@lists.infradead.org,
-        linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org,
-        tipc-discussion@lists.sourceforge.net, linux-x25@vger.kernel.org
-Subject: Re: [PATCH 06/11] sysctl: Add size to register_net_sysctl function
-Message-ID: <5aba7eee-7a6e-4f3b-9921-e4220d479346@kadam.mountain>
-References: <20230621091000.424843-1-j.granados@samsung.com>
- <CGME20230621091022eucas1p1c097da50842b23e902e1a674e117e1aa@eucas1p1.samsung.com>
- <20230621091000.424843-7-j.granados@samsung.com>
- <dab06c20-f8b0-4e34-b885-f3537e442d54@kadam.mountain>
+        Wed, 21 Jun 2023 06:40:15 -0400
+Received: from tretyak2.mcst.ru (tretyak2.mcst.ru [212.5.119.215])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D62062101;
+        Wed, 21 Jun 2023 03:39:15 -0700 (PDT)
+Received: from tretyak2.mcst.ru (localhost [127.0.0.1])
+        by tretyak2.mcst.ru (Postfix) with ESMTP id 8B30710239C;
+        Wed, 21 Jun 2023 13:39:10 +0300 (MSK)
+Received: from frog.lab.sun.mcst.ru (frog.lab.sun.mcst.ru [176.16.4.50])
+        by tretyak2.mcst.ru (Postfix) with ESMTP id 81FED102390;
+        Wed, 21 Jun 2023 13:38:15 +0300 (MSK)
+Received: from [172.16.7.18] (gang [172.16.7.18])
+        by frog.lab.sun.mcst.ru (8.13.4/8.12.11) with ESMTP id 35LAcEJg022490;
+        Wed, 21 Jun 2023 13:38:14 +0300
+Message-ID: <f687fe6f-3330-a9c5-4760-f753638c7b03@mcst.ru>
+Date:   Wed, 21 Jun 2023 13:49:28 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dab06c20-f8b0-4e34-b885-f3537e442d54@kadam.mountain>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+From:   "Igor A. Artemiev" <Igor.A.Artemiev@mcst.ru>
+Subject: Re: [lvc-project] [PATCH] netfilter: ebtables: remove unnecessary
+ NULL check
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        lvc-project@linuxtesting.org
+References: <20230620152549.2109063-1-Igor.A.Artemiev@mcst.ru>
+ <20230620163806.GB3799@breakpoint.cc>
+Content-Language: en-US
+In-Reply-To: <20230620163806.GB3799@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Anti-Virus: Kaspersky Anti-Virus for Linux Mail Server 5.6.39/RELEASE,
+         bases: 20111107 #2745587, check: 20230621 notchecked
+X-AV-Checked: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jun 21, 2023 at 12:47:30PM +0300, Dan Carpenter wrote:
-> The patchset doesn't include the actual interesting changes, just a
-> bunch of mechanical prep work.
-> 
-> On Wed, Jun 21, 2023 at 11:09:55AM +0200, Joel Granados wrote:
-> > diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
-> > index a91283d1e5bf..7b717434368c 100644
-> > --- a/net/ieee802154/6lowpan/reassembly.c
-> > +++ b/net/ieee802154/6lowpan/reassembly.c
-> > @@ -379,7 +379,8 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
-> >  	table[1].extra2	= &ieee802154_lowpan->fqdir->high_thresh;
-> >  	table[2].data	= &ieee802154_lowpan->fqdir->timeout;
-> >  
-> > -	hdr = register_net_sysctl(net, "net/ieee802154/6lowpan", table);
-> > +	hdr = register_net_sysctl(net, "net/ieee802154/6lowpan", table,
-> > +				  ARRAY_SIZE(lowpan_frags_ns_ctl_table));
-> 
-> For example, in lowpan_frags_ns_sysctl_register() the sentinel is
-> sometimes element zero if the user doesn't have enough permissions.  I
-> would want to ensure that was handled correctly, but that's going to be
-> done later in a completely different patchset.  I'm definitely not going
-> to remember to check.
+On 6/20/23 19:38, Florian Westphal wrote:
+> Igor Artemiev <Igor.A.Artemiev@mcst.ru> wrote:
+>> In ebt_do_table() 'private->chainstack' cannot be NULL
+>> and the 'cs' pointer is dereferenced below, so it does not make
+>> sense to compare 'private->chainstack' with NULL.
+> ?  Why do you think that?
+>
+The 'cs' pointer is dereferenced below without checking, as it is 
+assumed to always be initialized with 
+'private->chainstack[smp_processor_id()]'.
+>> +	cs = private->chainstack[smp_processor_id()];
+> Looks like NULL deref to me.  Did you test this?
+>
+No, I didn't test this.
 
-On reflecting the patch is obviously wrong.  It should be pass zero as
-table_size in that case.  See diff at the end.
+Thanks,
+Igor
 
-There is a similar bug in neigh_sysctl_register() where we use memset to
-zero out the whole table.  And another in __ip_vs_lblc_init().  I used
-the smatch cross function database
-	`smdb.py where ctl_table procname | grep '(null)' | grep min-max`
-to make a list of functions which set procname to zero.
-
-Probably we should add a WARN_ON() if procname is zero in the new code
-which doesn't use sentinels.
-
-regards,
-dan carpenter
-
-drivers/char/random.c          | proc_do_uuid                   | (struct ctl_table)->procname | 0
-fs/proc/proc_sysctl.c          | new_dir                        | (struct ctl_table)->procname | 48,3906148897379000352
-fs/proc/proc_sysctl.c          | new_links                      | (struct ctl_table)->procname | 4096-ptr_max
-arch/arm64/kernel/fpsimd.c     | vec_proc_do_default_vl         | (struct ctl_table)->procname | 0
-arch/arm64/kernel/armv8_deprecated.c | register_insn_emulation        | (struct ctl_table)->procname | 0-u64max
-kernel/sysctl-test.c           | sysctl_test_api_dointvec_null_tbl_data | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_api_dointvec_table_maxlen_unset | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_api_dointvec_table_len_is_zero | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_api_dointvec_table_read_but_position_set | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_dointvec_read_happy_single_positive | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_dointvec_read_happy_single_negative | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_dointvec_write_happy_single_positive | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_dointvec_write_happy_single_negative | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_api_dointvec_write_single_less_int_min | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl-test.c           | sysctl_test_api_dointvec_write_single_greater_int_max | (struct ctl_table)->procname | 7612622206476333056
-kernel/sysctl.c                | proc_do_static_key             | (struct ctl_table)->procname | 0
-kernel/kexec_core.c            | kexec_limit_handler            | (struct ctl_table)->procname | 0
-kernel/bpf/syscall.c           | bpf_stats_handler              | (struct ctl_table)->procname | 0
-net/core/sysctl_net_core.c     | rps_sock_flow_sysctl           | (struct ctl_table)->procname | 0
-net/core/sysctl_net_core.c     | set_default_qdisc              | (struct ctl_table)->procname | 0
-net/core/neighbour.c           | neigh_sysctl_register          | (struct ctl_table)->procname | 0
-net/netfilter/ipvs/ip_vs_lblc.c | __ip_vs_lblc_init              | (struct ctl_table)->procname | 0-u64max
-net/netfilter/ipvs/ip_vs_lblcr.c | __ip_vs_lblcr_init             | (struct ctl_table)->procname | 0-u64max
-net/netfilter/ipvs/ip_vs_ctl.c | proc_do_defense_mode           | (struct ctl_table)->procname | 0
-net/netfilter/ipvs/ip_vs_ctl.c | proc_do_sync_threshold         | (struct ctl_table)->procname | 0
-net/netfilter/ipvs/ip_vs_ctl.c | proc_do_sync_ports             | (struct ctl_table)->procname | 0
-net/netfilter/ipvs/ip_vs_ctl.c | ipvs_proc_est_nice             | (struct ctl_table)->procname | 0
-net/netfilter/ipvs/ip_vs_ctl.c | ipvs_proc_run_estimation       | (struct ctl_table)->procname | 0
-net/netfilter/ipvs/ip_vs_ctl.c | ip_vs_control_net_init_sysctl  | (struct ctl_table)->procname | 0-u64max
-net/netfilter/nf_log.c         | netfilter_log_sysctl_init      | (struct ctl_table)->procname | 0-u64max
-net/sctp/sysctl.c              | proc_sctp_do_hmac_alg          | (struct ctl_table)->procname | 0
-net/sctp/sysctl.c              | proc_sctp_do_rto_min           | (struct ctl_table)->procname | 0
-net/sctp/sysctl.c              | proc_sctp_do_rto_max           | (struct ctl_table)->procname | 0
-net/sctp/sysctl.c              | proc_sctp_do_auth              | (struct ctl_table)->procname | 0
-net/sctp/sysctl.c              | proc_sctp_do_udp_port          | (struct ctl_table)->procname | 0
-net/sctp/sysctl.c              | proc_sctp_do_probe_interval    | (struct ctl_table)->procname | 0
-net/ipv6/route.c               | ipv6_route_sysctl_init         | (struct ctl_table)->procname | 0-u64max
-net/ipv6/addrconf.c            | addrconf_sysctl_addr_gen_mode  | (struct ctl_table)->procname | 0
-net/ieee802154/6lowpan/reassembly.c | lowpan_frags_ns_sysctl_register | (struct ctl_table)->procname | 0-u64max
-net/xfrm/xfrm_sysctl.c         | xfrm_sysctl_init               | (struct ctl_table)->procname | 0-u64max
-net/phonet/sysctl.c            | proc_local_port_range          | (struct ctl_table)->procname | 0
-net/ipv4/route.c               | sysctl_route_net_init          | (struct ctl_table)->procname | 0-u64max
-net/ipv4/sysctl_net_ipv4.c     | ipv4_local_port_range          | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | ipv4_privileged_ports          | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | ipv4_ping_group_range          | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_tcp_congestion_control    | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_tcp_available_congestion_control | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_allowed_congestion_control | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_tcp_fastopen_key          | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_tcp_available_ulp         | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_tcp_ehash_entries         | (struct ctl_table)->procname | 0
-net/ipv4/sysctl_net_ipv4.c     | proc_udp_hash_entries          | (struct ctl_table)->procname | 0
-
-diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
-index a91283d1e5bf..749238d38014 100644
---- a/net/ieee802154/6lowpan/reassembly.c
-+++ b/net/ieee802154/6lowpan/reassembly.c
-@@ -360,6 +360,7 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
- 	struct ctl_table_header *hdr;
- 	struct netns_ieee802154_lowpan *ieee802154_lowpan =
- 		net_ieee802154_lowpan(net);
-+	size_t table_size = ARRAY_SIZE(lowpan_frags_ns_ctl_table);
- 
- 	table = lowpan_frags_ns_ctl_table;
- 	if (!net_eq(net, &init_net)) {
-@@ -369,8 +370,10 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
- 			goto err_alloc;
- 
- 		/* Don't export sysctls to unprivileged users */
--		if (net->user_ns != &init_user_ns)
-+		if (net->user_ns != &init_user_ns) {
- 			table[0].procname = NULL;
-+			table_size = 0;
-+		}
- 	}
- 
- 	table[0].data	= &ieee802154_lowpan->fqdir->high_thresh;
-@@ -379,7 +382,7 @@ static int __net_init lowpan_frags_ns_sysctl_register(struct net *net)
- 	table[1].extra2	= &ieee802154_lowpan->fqdir->high_thresh;
- 	table[2].data	= &ieee802154_lowpan->fqdir->timeout;
- 
--	hdr = register_net_sysctl(net, "net/ieee802154/6lowpan", table);
-+	hdr = register_net_sysctl(net, "net/ieee802154/6lowpan", table, table_size);
- 	if (hdr == NULL)
- 		goto err_reg;
- 
