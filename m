@@ -2,168 +2,185 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8AE3EB64DC
-	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 15:57:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA4AEEB64D7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 17:05:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233743AbjFUP5B (ORCPT
+        id S229941AbjFURFc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 21 Jun 2023 11:57:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58998 "EHLO
+        Wed, 21 Jun 2023 13:05:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231712AbjFUP5A (ORCPT
+        with ESMTP id S229501AbjFURFb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Jun 2023 11:57:00 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93A3E10A
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2023 08:56:59 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qC0CY-0000Kj-6a; Wed, 21 Jun 2023 17:56:58 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, Eric Dumazet <edumazet@google.com>
-Subject: [PATCH nf v2] netfilter: conntrack: dccp: copy entire header to stack buffer, not just basic one
-Date:   Wed, 21 Jun 2023 17:56:53 +0200
-Message-Id: <20230621155653.11078-1-fw@strlen.de>
-X-Mailer: git-send-email 2.39.3
+        Wed, 21 Jun 2023 13:05:31 -0400
+X-Greylist: delayed 600 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 21 Jun 2023 10:05:29 PDT
+Received: from picard.host.weltraumschlangen.de (picard.host.weltraumschlangen.de [IPv6:2a03:4000:7:3bd::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 543C7120;
+        Wed, 21 Jun 2023 10:05:29 -0700 (PDT)
+Received: from [IPV6:2003:cf:ef0a:9300:9e2b:6aaf:ea73:e9e4] (p200300cfef0a93009e2b6aafea73e9e4.dip0.t-ipconnect.de [IPv6:2003:cf:ef0a:9300:9e2b:6aaf:ea73:e9e4])
+        by picard.host.weltraumschlangen.de (Postfix) with ESMTPSA id 566D060240;
+        Wed, 21 Jun 2023 16:46:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weltraumschlangen.de;
+        s=default; t=1687366004;
+        bh=ypFq3Hy5Ug69KxlMuuzLAFHAdswop+HTm85KyFlpf0U=;
+        h=Date:To:Cc:From:Subject:From;
+        b=NFimPLeH4y0xL1umbSsYN0zrbNPYEu4Y4qUuHZHKEEGp0WDH52fzPvT/75PvIfSBZ
+         NJJ7UN9lNZ81KB98yXEq0siRDr8by96KdOofIHpXoSpZ8Y1nM1bvAuKjyWjchR0HTT
+         zDxdoWmYK3SOjYFdTXkQVmCkH1oRyv0topU3vpg/H76/PK8pyCnrakLPfpPKnKfDMD
+         ZkbyNFA/pglADtYaAiFjsCoWQlVWmUTGLStpNvnti8q12+rGRhPDG+Ud/QX5G0oZui
+         1xl7aWrNHKUiC+i3J1/Rd8q7hoLeCfSHqv/GNMMNQP3Fi+yI4172U4QplFFx2src2U
+         Jtn3X/NMLbmkg==
+Content-Type: multipart/mixed; boundary="------------IWmv06F5K0ydfM57bOh0gNny"
+Message-ID: <d3c93e6a-f8a0-5c72-d044-dcec7d8d235c@weltraumschlangen.de>
+Date:   Wed, 21 Jun 2023 18:46:43 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.12.0
+To:     lvs-devel@vger.kernel.org
+Content-Language: en-US
+Cc:     netfilter-devel@vger.kernel.org
+From:   Sven Bartscher <sven.bartscher@weltraumschlangen.de>
+Subject: vs conntrack changes TCP ports mid-stream
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Eric Dumazet says:
-  nf_conntrack_dccp_packet() has an unique:
+This is a multi-part message in MIME format.
+--------------IWmv06F5K0ydfM57bOh0gNny
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-  dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
+I'm forwarding the report from 
+https://bugzilla.netfilter.org/show_bug.cgi?id=1669 here, since it was 
+pointed out there, that this list would be more appropriate.
 
-  And nothing more is 'pulled' from the packet, depending on the content.
-  dh->dccph_doff, and/or dh->dccph_x ...)
-  So dccp_ack_seq() is happily reading stuff past the _dh buffer.
+When using an ipvs service in combination with SNAT and a NOTRACK rule, 
+specific circumstances can lead to TCP ports of packets being changed 
+mid-stream, which results in successful connections that no data can be 
+effectively sent over.
 
-BUG: KASAN: stack-out-of-bounds in nf_conntrack_dccp_packet+0x1134/0x11c0
-Read of size 4 at addr ffff000128f66e0c by task syz-executor.2/29371
-[..]
+Consider the following example:
 
-Fix this by increasing the stack buffer to also include room for
-the extra sequence numbers and all the known dccp packet type headers,
-then pull again after the initial validation of the basic header.
+```
+root@router:~# sysctl net.ipv4.vs.conntrack
+net.ipv4.vs.conntrack = 1
 
-While at it, mark packets invalid that lack 48bit sequence bit but
-where RFC says the type MUST use them.
+root@router:~# iptables -t raw -L -n -v
+Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source 
+destination
+    24  1296 CT         tcp  --  enp1s0 *       0.0.0.0/0 
+10.0.0.1             tcp dpt:1234 NOTRACK
 
-Compile tested only.
+root@router:~# iptables -t nat -L -n -v
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source 
+destination
 
-v2: first skb_header_pointer() now needs to adjust the size to
-    only pull the generic header. (Eric)
+Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source 
+destination
 
-Heads-up: I intend to remove dccp conntrack support later this year.
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source 
+destination
 
-Fixes: 2bc780499aa3 ("[NETFILTER]: nf_conntrack: add DCCP protocol support")
-Reported-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_proto_dccp.c | 52 +++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 3 deletions(-)
+Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source 
+destination
+     4   240 SNAT       all  --  *      *       10.0.0.0/24 
+10.0.1.0/24          to:10.0.1.1
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index c1557d47ccd1..d4fd626d2b8c 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -432,9 +432,19 @@ static bool dccp_error(const struct dccp_hdr *dh,
- 		       struct sk_buff *skb, unsigned int dataoff,
- 		       const struct nf_hook_state *state)
- {
-+	static const unsigned long require_seq48 = 1 << DCCP_PKT_REQUEST |
-+						   1 << DCCP_PKT_RESPONSE |
-+						   1 << DCCP_PKT_CLOSEREQ |
-+						   1 << DCCP_PKT_CLOSE |
-+						   1 << DCCP_PKT_RESET |
-+						   1 << DCCP_PKT_SYNC |
-+						   1 << DCCP_PKT_SYNCACK;
- 	unsigned int dccp_len = skb->len - dataoff;
- 	unsigned int cscov;
- 	const char *msg;
-+	u8 type;
-+
-+	BUILD_BUG_ON(DCCP_PKT_INVALID >= BITS_PER_LONG);
- 
- 	if (dh->dccph_doff * 4 < sizeof(struct dccp_hdr) ||
- 	    dh->dccph_doff * 4 > dccp_len) {
-@@ -459,34 +469,70 @@ static bool dccp_error(const struct dccp_hdr *dh,
- 		goto out_invalid;
- 	}
- 
--	if (dh->dccph_type >= DCCP_PKT_INVALID) {
-+	type = dh->dccph_type;
-+	if (type >= DCCP_PKT_INVALID) {
- 		msg = "nf_ct_dccp: reserved packet type ";
- 		goto out_invalid;
- 	}
-+
-+	if (test_bit(type, &require_seq48) && !dh->dccph_x) {
-+		msg = "nf_ct_dccp: type lacks 48bit sequence numbers";
-+		goto out_invalid;
-+	}
-+
- 	return false;
- out_invalid:
- 	nf_l4proto_log_invalid(skb, state, IPPROTO_DCCP, "%s", msg);
- 	return true;
- }
- 
-+struct nf_conntrack_dccp_buf {
-+	struct dccp_hdr dh;	 /* generic header part */
-+	struct dccp_hdr_ext ext; /* optional depending dh->dccph_x */
-+	union {			 /* depends on header type */
-+		struct dccp_hdr_ack_bits ack;
-+		struct dccp_hdr_request req;
-+		struct dccp_hdr_response response;
-+		struct dccp_hdr_reset rst;
-+	} u;
-+};
-+
-+static struct dccp_hdr *
-+dccp_header_pointer(const struct sk_buff *skb, int offset, const struct dccp_hdr *dh,
-+		    struct nf_conntrack_dccp_buf *buf)
-+{
-+	unsigned int hdrlen = __dccp_hdr_len(dh);
-+
-+	if (hdrlen > sizeof(*buf))
-+		return NULL;
-+
-+	return skb_header_pointer(skb, offset, hdrlen, buf);
-+}
-+
- int nf_conntrack_dccp_packet(struct nf_conn *ct, struct sk_buff *skb,
- 			     unsigned int dataoff,
- 			     enum ip_conntrack_info ctinfo,
- 			     const struct nf_hook_state *state)
- {
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
--	struct dccp_hdr _dh, *dh;
-+	struct nf_conntrack_dccp_buf _dh;
- 	u_int8_t type, old_state, new_state;
- 	enum ct_dccp_roles role;
- 	unsigned int *timeouts;
-+	struct dccp_hdr *dh;
- 
--	dh = skb_header_pointer(skb, dataoff, sizeof(_dh), &_dh);
-+	dh = skb_header_pointer(skb, dataoff, sizeof(*dh), &_dh.dh);
- 	if (!dh)
- 		return NF_DROP;
- 
- 	if (dccp_error(dh, skb, dataoff, state))
- 		return -NF_ACCEPT;
- 
-+	/* pull again, including possible 48 bit sequences and subtype header */
-+	dh = dccp_header_pointer(skb, dataoff, dh, &_dh);
-+	if (!dh)
-+		return NF_DROP;
-+
- 	type = dh->dccph_type;
- 	if (!nf_ct_is_confirmed(ct) && !dccp_new(ct, skb, dh, state))
- 		return -NF_ACCEPT;
--- 
-2.39.3
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+  pkts bytes target     prot opt in     out     source 
+destination
 
+root@router:~# ipvsadm -L -n
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+   -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  10.0.0.1:1234 rr
+   -> 10.0.1.2:1234                Masq    1      0          0
+   -> 10.0.1.3:1234                Masq    1      0          0
+```
+
+The reals servers are running
+
+```
+socat TCP4-LISTEN:1234,fork 'EXEC:sh -c 
+echo${IFS}hello;read${IFS}r${IFS}L;sleep${IFS}1'
+```
+
+We dump the network traffic between the router and client on the ipvs 
+router as follows:
+
+```
+root@router:~# tcpdump -pXXni enp1s0 icmp or tcp -w 
+/tmp/ipvs_port_reuse.pcap
+tcpdump: listening on enp1s0, link-type EN10MB (Ethernet), capture size 
+262144 bytes
+^C16 packets captured
+16 packets received by filter
+0 packets dropped by kernel
+```
+
+While the capture is running, we run the following commands on a client 
+to trigger the buggy behavior:
+
+```
+root@debian:~# netcat -p 4321 -v 10.0.01 1234
+Connection to 10.0.01 1234 port [tcp/*] succeeded!
+hello
+^C
+root@debian:~# sleep 60
+root@debian:~# netcat -p 4321 -v 10.0.01 1234
+Connection to 10.0.01 1234 port [tcp/*] succeeded!
+^C
+root@debian:~#
+```
+
+We can see that on the first connection attempt we successfully receive 
+a reply with payload from the server and then terminate the connection 
+with Ctrl+C. Then we wait 60 seconds, which is necessary for the 
+previous connection to move out of the TIME_WAIT state. Afterwards we 
+open another connection, reusing the same src port as on the first 
+connection and don't receive a reply from the server. The captured 
+traffic shows, that after the three-way handshake for the second TCP 
+connection, packets from the router to the clients use another server 
+port than the one used for the initiation of the connection.
+
+Regards
+Sven
+--------------IWmv06F5K0ydfM57bOh0gNny
+Content-Type: application/vnd.tcpdump.pcap; name="ipvs_port_reuse.pcap"
+Content-Disposition: attachment; filename="ipvs_port_reuse.pcap"
+Content-Transfer-Encoding: base64
+
+1MOyoQIABAAAAAAAAAAAAAAABAABAAAA+X6LZFtrAwBKAAAASgAAAFJUABIc31JUANtMVQgA
+RQAAPN6+QABABkf7CgAAAgoAAAEQ4QTSmm3wXAAAAACgAvrwFDEAAAIEBbQEAggKZuTRoAAA
+AAABAwMH+X6LZHhuAwBKAAAASgAAAFJUANtMVVJUABIc3wgARQAAPAAAQAA/Bie6CgAAAQoA
+AAIE0hDheYXcmZpt8F2gEv6IFDEAAAIEBbQEAggKjNQbZGbk0aABAwMH+X6LZJpwAwBCAAAA
+QgAAAFJUABIc31JUANtMVQgARQAANN6/QABABkgCCgAAAgoAAAEQ4QTSmm3wXXmF3JqAEAH2
+FCkAAAEBCApm5NGhjNQbZPl+i2QBegMASAAAAEgAAABSVADbTFVSVAASHN8IAEUAADrmU0AA
+PwZBaAoAAAEKAAACBNIQ4XmF3JqabfBdgBgB/hQvAAABAQgKjNQbZmbk0aFoZWxsbwr5fotk
+9noDAEIAAABCAAAAUlQAEhzfUlQA20xVCABFAAA03sBAAEAGSAEKAAACCgAAARDhBNKabfBd
+eYXcoIAQAfYUKQAAAQEICmbk0aSM1Btm+n6LZP1zAQBCAAAAQgAAAFJUABIc31JUANtMVQgA
+RQAANN7BQABABkgACgAAAgoAAAEQ4QTSmm3wXXmF3KCAEQH2FCkAAAEBCApm5NTEjNQbZvp+
+i2TIeQEAQgAAAEIAAABSVADbTFVSVAASHN8IAEUAADTmVEAAPwZBbQoAAAEKAAACBNIQ4XmF
+3KCabfBegBAB/hQpAAABAQgKjNQeiWbk1MT6fotkGogJAEIAAABCAAAAUlQA20xVUlQAEhzf
+CABFAAA05lVAAD8GQWwKAAABCgAAAgTSEOF5hdygmm3wXoARAf4UKQAAAQEICozUIG9m5NTE
++n6LZHuMCQBCAAAAQgAAAFJUABIc31JUANtMVQgARQAANAAAQABABibCCgAAAgoAAAEQ4QTS
+mm3wXnmF3KGAEAH2f0cAAAEBCApm5NaujNQgbzp/i2SUOgsASgAAAEoAAABSVAASHN9SVADb
+TFUIAEUAADxSJ0AAQAbUkgoAAAIKAAABEOEE0tdxJqsAAAAAoAL68BQxAAACBAW0BAIICmbl
+vdcAAAAAAQMDBzp/i2QOPQsASgAAAEoAAABSVADbTFVSVAASHN8IAEUAADwAAEAAPwYnugoA
+AAEKAAACBNIQ4av73WPXcSasoBL+iBQxAAACBAW0BAIICpb0jT1m5b3XAQMDBzp/i2TPPgsA
+QgAAAEIAAABSVAASHN9SVADbTFUIAEUAADRSKEAAQAbUmQoAAAIKAAABEOEE0tdxJqyr+91k
+gBAB9hQpAAABAQgKZuW92Zb0jT06f4tkS0cLAEgAAABIAAAAUlQA20xVUlQAEhzfCABFAAA6
+WflAAD8GzcIKAAABCgAAAm+DEOGr+91k13EmrIAYAf4ULwAAAQEICpb0jT9m5b3ZaGVsbG8K
+On+LZAhJCwA2AAAANgAAAFJUABIc31JUANtMVQgARQAAKAAAQABABibOCgAAAgoAAAEQ4W+D
+13EmrAAAAABQBAAAHVwAADx/i2RO8QwAQgAAAEIAAABSVAASHN9SVADbTFUIAEUAADRSKUAA
+QAbUmAoAAAIKAAABEOEE0tdxJqyr+91kgBEB9hQpAAABAQgKZuXFdZb0jT08f4tksvMMADYA
+AAA2AAAAUlQA20xVUlQAEhzfCABFAAAoAABAAD8GJ84KAAABCgAAAgTSEOGr+91kAAAAAFAE
+AAD8ygAA
+
+--------------IWmv06F5K0ydfM57bOh0gNny--
