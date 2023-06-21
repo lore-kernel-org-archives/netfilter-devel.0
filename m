@@ -2,467 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5542EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Tue, 20 Jun 2023 22:41:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38B28EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Wed, 21 Jun 2023 03:30:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229903AbjFTWld (ORCPT
+        id S230107AbjFUDaW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 20 Jun 2023 18:41:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45644 "EHLO
+        Tue, 20 Jun 2023 23:30:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229523AbjFTWlc (ORCPT
+        with ESMTP id S230039AbjFUDaO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2023 18:41:32 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0E59E193
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2023 15:41:30 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3 01/14] netfilter: nf_tables: fix chain binding transaction logic
-Date:   Wed, 21 Jun 2023 00:41:25 +0200
-Message-Id: <20230620224125.65526-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Tue, 20 Jun 2023 23:30:14 -0400
+Received: from mail-yw1-x1131.google.com (mail-yw1-x1131.google.com [IPv6:2607:f8b0:4864:20::1131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D08AEB3;
+        Tue, 20 Jun 2023 20:30:13 -0700 (PDT)
+Received: by mail-yw1-x1131.google.com with SMTP id 00721157ae682-5701810884aso49943117b3.0;
+        Tue, 20 Jun 2023 20:30:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1687318213; x=1689910213;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=eNV6wouyQqRPOtwOR4KYe1F+n00tweHR7R0i7NJCnW4=;
+        b=db63QhPA56quEpkVEMR4dzz+ae3wlR3Gw8CaCU/nO/gBqN0V+aqxKINsCxs6WNHE2t
+         OXK6MFi3nvBPUhhOm6cfqW7Xr3yjVaTpa7jv1jSA4SVK4h/a9IRxp3+9gUQHi74fHN46
+         PxB7tuAPT6gjAf4tpF4WzCzr99QKJda+CYZMwR1Z0tlDOvV585rnZ9Ey4zCiwhJiD+vT
+         /igMxI4oXgASt6yooPZGGfdT4BudWi97HBYM1zwZYoNG0OCIWyZv2vcT976bMG+C31Z7
+         HvuxRE58hFxLMhnyQElF4DZeP1adxBoeLJAR/1RGkAr5OOyj1C+py7V8LgwmADi8QO1y
+         hXrA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687318213; x=1689910213;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=eNV6wouyQqRPOtwOR4KYe1F+n00tweHR7R0i7NJCnW4=;
+        b=BxEd0ON8xSABHbczAfvKaHo6jetLa/Enlbs4VmO436sAxR/3FyG8i0BQXjlRprLuGN
+         /Qg9Ui02ahVBe56MCqoD0dJXvty4UL65YHCb9hZ+OQLe0HpPBjq3DYT7sBL9JJhxhTWa
+         H38Czjxbvn79z4T1RSSeSIaXTg5S7YmCWkHVjQHa4mWKl31U60jmm3wY/tmOWXe7p3l6
+         YBmjfGZlaMjL1HYGh9kUimQnSYiEJD7uSiyxLMiiKCxwpE/HrltjsuJk2gV0v08In1un
+         Mr0ykU0mq78SvcBp+pwOCuUdSgKxbrEeTR+PhmLtrYy9TzhK6TtNI32fs+oKvJnKkGUZ
+         AiaA==
+X-Gm-Message-State: AC+VfDxZERFi58AUrormxlXToOEFiOZB/z+0y+LmLuYELyuhqMa1ePv1
+        p1dMz3IGl4U5NpTsWM8Bc6U=
+X-Google-Smtp-Source: ACHHUZ5frbTX4q0Jupvc9jdlpo9vsgFXolS4+udT2wCvrs27uFQ4yGa96pFumCwVQt4eZiEv93TrjQ==
+X-Received: by 2002:a0d:ca86:0:b0:56d:2d67:cb38 with SMTP id m128-20020a0dca86000000b0056d2d67cb38mr5951174ywd.34.1687318211562;
+        Tue, 20 Jun 2023 20:30:11 -0700 (PDT)
+Received: from sohom-te15.lan (2603-6081-2401-85c7-0000-0000-0000-1112.res6.spectrum.com. [2603:6081:2401:85c7::1112])
+        by smtp.gmail.com with ESMTPSA id b142-20020a0dd994000000b0056974f4019esm885147ywe.6.2023.06.20.20.30.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Jun 2023 20:30:11 -0700 (PDT)
+From:   Sohom <sohomdatta1@gmail.com>
+X-Google-Original-From: Sohom <sohomdatta1+git@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     Sohom <sohomdatta1+git@gmail.com>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: Don't parse CTCP message if shorter than minimum length
+Date:   Tue, 20 Jun 2023 23:29:53 -0400
+Message-ID: <20230621032953.107143-1-sohomdatta1+git@gmail.com>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add bound flag to rule and chain transactions as in 6a0a8d10a366
-("netfilter: nf_tables: use-after-free in failing rule with bound set")
-to skip them in case that the chain is already bound from the abort
-path.
+If the CTCP message is shorter than 10 + 21 + MINMATCHLEN
+then exit early and don't parse the rest of the message.
 
-This patch fixes an imbalance in the chain use refcnt that triggers a
-WARN_ON on the table and chain destroy path.
-
-This patch also disallows nested chain bindings, which is not
-supported from userspace.
-
-The logic to deal with chain binding in nft_data_hold() and
-nft_data_release() is not correct. The NFT_TRANS_PREPARE state needs a
-special handling in case a chain is bound but next expressions in the
-same rule fail to initialize as described by 1240eb93f061 ("netfilter:
-nf_tables: incorrect error path handling with NFT_MSG_NEWRULE").
-
-The chain is left bound if rule construction fails, so the objects
-stored in this chain (and the chain itself) are released by the
-transaction records from the abort path, follow up patch ("netfilter:
-nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain")
-completes this error handling.
-
-When deleting an existing rule, chain bound flag is set off so the
-rule expression .destroy path releases the objects.
-
-Fixes: d0e2c7de92c7 ("netfilter: nf_tables: add NFT_CHAIN_BINDING")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sohom <sohomdatta1+git@gmail.com>
 ---
-v3: Fix error path for chain binding.
-    - Set chain->bound to false for abort, commit and release path to
-      immediate .destroy releases the chain and its rules, this is the case
-      for new rule aborted and rule deletion.
-    - For prepare/error, if chain->bound is true, then it means transaction
-      records take care of releasing the chain and its rules.
-    - add a few comments.
+ net/netfilter/nf_conntrack_irc.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
- include/net/netfilter/nf_tables.h | 21 +++++++-
- net/netfilter/nf_tables_api.c     | 86 +++++++++++++++++++-----------
- net/netfilter/nft_immediate.c     | 87 +++++++++++++++++++++++++++----
- 3 files changed, 153 insertions(+), 41 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 83db182decc8..8ba7f81e81a6 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1009,7 +1009,10 @@ static inline struct nft_userdata *nft_userdata(const struct nft_rule *rule)
- 	return (void *)&rule->data[rule->dlen];
- }
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 5703846bea3b..703b5a123cb5 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -157,8 +157,12 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 	data = ib_ptr;
+ 	data_limit = ib_ptr + datalen;
  
--void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *rule);
-+void nft_rule_expr_activate(const struct nft_ctx *ctx, struct nft_rule *rule);
-+void nft_rule_expr_deactivate(const struct nft_ctx *ctx, struct nft_rule *rule,
-+			      enum nft_trans_phase phase);
-+void nf_tables_rule_destroy(const struct nft_ctx *ctx, struct nft_rule *rule);
- 
- static inline void nft_set_elem_update_expr(const struct nft_set_ext *ext,
- 					    struct nft_regs *regs,
-@@ -1104,6 +1107,7 @@ int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
- 			 const struct nft_set_iter *iter,
- 			 struct nft_set_elem *elem);
- int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set);
-+int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
- 
- enum nft_chain_types {
- 	NFT_CHAIN_T_DEFAULT = 0,
-@@ -1140,11 +1144,17 @@ int nft_chain_validate_dependency(const struct nft_chain *chain,
- int nft_chain_validate_hooks(const struct nft_chain *chain,
-                              unsigned int hook_flags);
- 
-+static inline bool nft_chain_binding(const struct nft_chain *chain)
-+{
-+	return chain->flags & NFT_CHAIN_BINDING;
-+}
-+
- static inline bool nft_chain_is_bound(struct nft_chain *chain)
- {
- 	return (chain->flags & NFT_CHAIN_BINDING) && chain->bound;
- }
- 
-+int nft_chain_add(struct nft_table *table, struct nft_chain *chain);
- void nft_chain_del(struct nft_chain *chain);
- void nf_tables_chain_destroy(struct nft_ctx *ctx);
- 
-@@ -1575,6 +1585,7 @@ struct nft_trans_rule {
- 	struct nft_rule			*rule;
- 	struct nft_flow_rule		*flow;
- 	u32				rule_id;
-+	bool				bound;
- };
- 
- #define nft_trans_rule(trans)	\
-@@ -1583,6 +1594,8 @@ struct nft_trans_rule {
- 	(((struct nft_trans_rule *)trans->data)->flow)
- #define nft_trans_rule_id(trans)	\
- 	(((struct nft_trans_rule *)trans->data)->rule_id)
-+#define nft_trans_rule_bound(trans)	\
-+	(((struct nft_trans_rule *)trans->data)->bound)
- 
- struct nft_trans_set {
- 	struct nft_set			*set;
-@@ -1607,15 +1620,19 @@ struct nft_trans_set {
- 	(((struct nft_trans_set *)trans->data)->gc_int)
- 
- struct nft_trans_chain {
-+	struct nft_chain		*chain;
- 	bool				update;
- 	char				*name;
- 	struct nft_stats __percpu	*stats;
- 	u8				policy;
-+	bool				bound;
- 	u32				chain_id;
- 	struct nft_base_chain		*basechain;
- 	struct list_head		hook_list;
- };
- 
-+#define nft_trans_chain(trans)	\
-+	(((struct nft_trans_chain *)trans->data)->chain)
- #define nft_trans_chain_update(trans)	\
- 	(((struct nft_trans_chain *)trans->data)->update)
- #define nft_trans_chain_name(trans)	\
-@@ -1624,6 +1641,8 @@ struct nft_trans_chain {
- 	(((struct nft_trans_chain *)trans->data)->stats)
- #define nft_trans_chain_policy(trans)	\
- 	(((struct nft_trans_chain *)trans->data)->policy)
-+#define nft_trans_chain_bound(trans)	\
-+	(((struct nft_trans_chain *)trans->data)->bound)
- #define nft_trans_chain_id(trans)	\
- 	(((struct nft_trans_chain *)trans->data)->chain_id)
- #define nft_trans_basechain(trans)	\
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 69bceefaa5c8..5e4965b98528 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -193,6 +193,48 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
- 	}
- }
- 
-+static void nft_chain_trans_bind(const struct nft_ctx *ctx, struct nft_chain *chain)
-+{
-+	struct nftables_pernet *nft_net;
-+	struct net *net = ctx->net;
-+	struct nft_trans *trans;
-+
-+	if (!nft_chain_binding(chain))
-+		return;
-+
-+	nft_net = nft_pernet(net);
-+	list_for_each_entry_reverse(trans, &nft_net->commit_list, list) {
-+		switch (trans->msg_type) {
-+		case NFT_MSG_NEWCHAIN:
-+			if (nft_trans_chain(trans) == chain)
-+				nft_trans_chain_bound(trans) = true;
-+			break;
-+		case NFT_MSG_NEWRULE:
-+			if (trans->ctx.chain == chain)
-+				nft_trans_rule_bound(trans) = true;
-+			break;
-+		}
++	if (data >= data_limit - (10 + 21 + MINMATCHLEN)) {
++		goto out;
 +	}
-+}
 +
-+int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain)
-+{
-+	if (!nft_chain_binding(chain))
-+		return 0;
-+
-+	if (nft_chain_binding(ctx->chain))
-+		return -EOPNOTSUPP;
-+
-+	if (chain->bound)
-+		return -EBUSY;
-+
-+	chain->bound = true;
-+	chain->use++;
-+	nft_chain_trans_bind(ctx, chain);
-+
-+	return 0;
-+}
-+
- static int nft_netdev_register_hooks(struct net *net,
- 				     struct list_head *hook_list)
- {
-@@ -338,8 +380,9 @@ static struct nft_trans *nft_trans_chain_add(struct nft_ctx *ctx, int msg_type)
- 				ntohl(nla_get_be32(ctx->nla[NFTA_CHAIN_ID]));
- 		}
- 	}
--
-+	nft_trans_chain(trans) = ctx->chain;
- 	nft_trans_commit_list_add_tail(ctx->net, trans);
-+
- 	return trans;
- }
- 
-@@ -357,8 +400,7 @@ static int nft_delchain(struct nft_ctx *ctx)
- 	return 0;
- }
- 
--static void nft_rule_expr_activate(const struct nft_ctx *ctx,
--				   struct nft_rule *rule)
-+void nft_rule_expr_activate(const struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	struct nft_expr *expr;
- 
-@@ -371,9 +413,8 @@ static void nft_rule_expr_activate(const struct nft_ctx *ctx,
- 	}
- }
- 
--static void nft_rule_expr_deactivate(const struct nft_ctx *ctx,
--				     struct nft_rule *rule,
--				     enum nft_trans_phase phase)
-+void nft_rule_expr_deactivate(const struct nft_ctx *ctx, struct nft_rule *rule,
-+			      enum nft_trans_phase phase)
- {
- 	struct nft_expr *expr;
- 
-@@ -2226,7 +2267,7 @@ static int nft_basechain_init(struct nft_base_chain *basechain, u8 family,
- 	return 0;
- }
- 
--static int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
-+int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
- {
- 	int err;
- 
-@@ -3490,8 +3531,7 @@ static int nf_tables_getrule(struct sk_buff *skb, const struct nfnl_info *info,
- 	return err;
- }
- 
--static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
--				   struct nft_rule *rule)
-+void nf_tables_rule_destroy(const struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	struct nft_expr *expr, *next;
- 
-@@ -3508,7 +3548,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 	kfree(rule);
- }
- 
--void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *rule)
-+static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *rule)
- {
- 	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_RELEASE);
- 	nf_tables_rule_destroy(ctx, rule);
-@@ -6638,7 +6678,6 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
- {
- 	struct nft_chain *chain;
--	struct nft_rule *rule;
- 
- 	if (type == NFT_DATA_VERDICT) {
- 		switch (data->verdict.code) {
-@@ -6646,15 +6685,6 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
- 		case NFT_GOTO:
- 			chain = data->verdict.chain;
- 			chain->use++;
--
--			if (!nft_chain_is_bound(chain))
--				break;
--
--			chain->table->use++;
--			list_for_each_entry(rule, &chain->rules, list)
--				chain->use++;
--
--			nft_chain_add(chain->table, chain);
- 			break;
- 		}
- 	}
-@@ -9677,7 +9707,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 				kfree(nft_trans_chain_name(trans));
- 				nft_trans_destroy(trans);
- 			} else {
--				if (nft_chain_is_bound(trans->ctx.chain)) {
-+				if (nft_trans_chain_bound(trans)) {
- 					nft_trans_destroy(trans);
- 					break;
- 				}
-@@ -9700,6 +9730,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWRULE:
-+			if (nft_trans_rule_bound(trans)) {
-+				nft_trans_destroy(trans);
-+				break;
-+			}
- 			trans->ctx.chain->use--;
- 			list_del_rcu(&nft_trans_rule(trans)->list);
- 			nft_rule_expr_deactivate(&trans->ctx,
-@@ -10263,22 +10297,12 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- static void nft_verdict_uninit(const struct nft_data *data)
- {
- 	struct nft_chain *chain;
--	struct nft_rule *rule;
- 
- 	switch (data->verdict.code) {
- 	case NFT_JUMP:
- 	case NFT_GOTO:
- 		chain = data->verdict.chain;
- 		chain->use--;
--
--		if (!nft_chain_is_bound(chain))
--			break;
--
--		chain->table->use--;
--		list_for_each_entry(rule, &chain->rules, list)
--			chain->use--;
--
--		nft_chain_del(chain);
- 		break;
- 	}
- }
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index c9d2f7c29f53..0492a04064f1 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -76,11 +76,9 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 		switch (priv->data.verdict.code) {
- 		case NFT_JUMP:
- 		case NFT_GOTO:
--			if (nft_chain_is_bound(chain)) {
--				err = -EBUSY;
--				goto err1;
--			}
--			chain->bound = true;
-+			err = nf_tables_bind_chain(ctx, chain);
-+			if (err < 0)
-+				return err;
- 			break;
- 		default:
- 			break;
-@@ -98,6 +96,31 @@ static void nft_immediate_activate(const struct nft_ctx *ctx,
- 				   const struct nft_expr *expr)
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-+	const struct nft_data *data = &priv->data;
-+	struct nft_ctx chain_ctx;
-+	struct nft_chain *chain;
-+	struct nft_rule *rule;
-+
-+	if (priv->dreg == NFT_REG_VERDICT) {
-+		switch (data->verdict.code) {
-+		case NFT_JUMP:
-+		case NFT_GOTO:
-+			chain = data->verdict.chain;
-+			if (!nft_chain_binding(chain))
-+				break;
-+
-+			chain_ctx = *ctx;
-+			chain_ctx.chain = chain;
-+
-+			list_for_each_entry(rule, &chain->rules, list)
-+				nft_rule_expr_activate(&chain_ctx, rule);
-+
-+			nft_clear(ctx->net, chain);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
- 
- 	return nft_data_hold(&priv->data, nft_dreg_to_type(priv->dreg));
- }
-@@ -107,6 +130,40 @@ static void nft_immediate_deactivate(const struct nft_ctx *ctx,
- 				     enum nft_trans_phase phase)
- {
- 	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
-+	const struct nft_data *data = &priv->data;
-+	struct nft_ctx chain_ctx;
-+	struct nft_chain *chain;
-+	struct nft_rule *rule;
-+
-+	if (priv->dreg == NFT_REG_VERDICT) {
-+		switch (data->verdict.code) {
-+		case NFT_JUMP:
-+		case NFT_GOTO:
-+			chain = data->verdict.chain;
-+			if (!nft_chain_binding(chain))
-+				break;
-+
-+			chain_ctx = *ctx;
-+			chain_ctx.chain = chain;
-+
-+			list_for_each_entry(rule, &chain->rules, list)
-+				nft_rule_expr_deactivate(&chain_ctx, rule, phase);
-+
-+			switch (phase) {
-+			case NFT_TRANS_PREPARE:
-+				nft_deactivate_next(ctx->net, chain);
-+				break;
-+			default:
-+				nft_chain_del(chain);
-+				chain->bound = false;
-+				chain->table->use--;
-+				break;
-+			}
-+			break;
-+		default:
-+			break;
-+		}
-+	}
- 
- 	if (phase == NFT_TRANS_COMMIT)
- 		return;
-@@ -131,15 +188,27 @@ static void nft_immediate_destroy(const struct nft_ctx *ctx,
- 	case NFT_GOTO:
- 		chain = data->verdict.chain;
- 
--		if (!nft_chain_is_bound(chain))
-+		if (!nft_chain_binding(chain))
-+			break;
-+
-+		/* Rule construction failed, but chain is already bound:
-+		 * let the transaction records release this chain and its rules.
-+		 */
-+		if (chain->bound) {
-+			chain->use--;
- 			break;
-+		}
- 
-+		/* Rule has been deleted, release chain and its rules. */
- 		chain_ctx = *ctx;
- 		chain_ctx.chain = chain;
- 
--		list_for_each_entry_safe(rule, n, &chain->rules, list)
--			nf_tables_rule_release(&chain_ctx, rule);
--
-+		chain->use--;
-+		list_for_each_entry_safe(rule, n, &chain->rules, list) {
-+			chain->use--;
-+			list_del(&rule->list);
-+			nf_tables_rule_destroy(&chain_ctx, rule);
-+		}
- 		nf_tables_chain_destroy(&chain_ctx);
- 		break;
- 	default:
+ 	/* Skip any whitespace */
+-	while (data < data_limit - 10) {
++	while (data < data_limit) {
+ 		if (*data == ' ' || *data == '\r' || *data == '\n')
+ 			data++;
+ 		else
 -- 
-2.30.2
+2.41.0
 
