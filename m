@@ -2,80 +2,231 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83C16EB64D8
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jun 2023 14:51:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98D59EB64D8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jun 2023 15:46:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232005AbjFVOvm (ORCPT
+        id S229659AbjFVPqt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Jun 2023 10:51:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57086 "EHLO
+        Thu, 22 Jun 2023 11:46:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232004AbjFVOvW (ORCPT
+        with ESMTP id S230195AbjFVPqr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Jun 2023 10:51:22 -0400
-Received: from mail-yw1-x112b.google.com (mail-yw1-x112b.google.com [IPv6:2607:f8b0:4864:20::112b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E181F2682;
-        Thu, 22 Jun 2023 07:50:55 -0700 (PDT)
-Received: by mail-yw1-x112b.google.com with SMTP id 00721157ae682-57083a06b71so63479497b3.1;
-        Thu, 22 Jun 2023 07:50:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687445455; x=1690037455;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=h8i9k7iv1RVJET/Cr/juNPiq2j0xcHXuSj+X6Emo+kQ=;
-        b=TR6LpoiLpjDe4ONbyiH/m3qEgmQB3C8zRmRRQZUq3ZyMsIWg9cr1iem7vnC6S8DsFS
-         dIxVIm3xtHjWFOKe5Z7/UUHd5LEYQbXeeQ+DDxb6aIGtp2ZhQAcjs7nXDg1DMc6P1O/5
-         QPpkFNsEWP60Zg1JJdJqlCPYOqCUncsMySfoR1jkuh3O6Wnmpc5ff5WQsKhuRnctC4Sq
-         hLKBxrPheccHBRGUlEAytiJa4mzHz7m6ZRUWr8srJS2xCi/HRVJUfK9DC4kNWE2dRXDt
-         u7qNtBv/IuEKEtIONF8psmei4YIYstPhxF3srTq6/VQRqW70/MkBLvuCg8+eXRULXYQP
-         uIhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687445455; x=1690037455;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=h8i9k7iv1RVJET/Cr/juNPiq2j0xcHXuSj+X6Emo+kQ=;
-        b=ShsdvulG0kHmR7t3oB4R0aCrnomvHNSApOcvo0WFCazG6I9prK42WT9q4lSJlgpICA
-         dJjAuQ5Ds+pZ5OmFJqeyfl0vBzlCeM7AE11lqFqwTVF32OjATdFg5BkBfJTiGtw5MbY5
-         tz8ISHoV+YVzHcYE7DMvHdZwqBOBYuvqZaxV12eijZikA9YCj2QOhkVPb+z8eXxPuIwN
-         n1yQY7ukGOfiD+u0zPqgh94/W+2Kg4evT66eVWVZQSmEG90h1W2bzgZhv1sju8hgQ3P1
-         YnkUES4ZEylfXnwlCCNTopP9qHXg0z2lDQUCnwmb3lWGoyUz9kLl1d5dSl66Z5n6Oh9Z
-         Po1A==
-X-Gm-Message-State: AC+VfDxeLkKlLib+MjHg4LVl5RlRdTK+HjGjejyp2WV2Q2DigjaZ3WLG
-        jS6H3ewTINOIAyAuEWL/7nu2S8mKs3U2bVfEBco=
-X-Google-Smtp-Source: ACHHUZ5cZlyOFoP4CshYPHdGbrklMJMXRSZWHKv63RSFljlHi/JKlu6SZOMEdd3E/yhHrK8AQbv4hpSULI8CaAWSorQ=
-X-Received: by 2002:a81:8492:0:b0:56f:f7f6:52d8 with SMTP id
- u140-20020a818492000000b0056ff7f652d8mr17840914ywf.5.1687445454810; Thu, 22
- Jun 2023 07:50:54 -0700 (PDT)
+        Thu, 22 Jun 2023 11:46:47 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5122010F6
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jun 2023 08:46:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=KNkie3FTyJR/1gq++7/fOVJP8AWD6vTI1tHR21xugIU=; b=Fu2hbZlgNRWwoJEpQH8sYhdGWt
+        1EKk239Ph6uR8dW5kPM+CTOruFiYp9GUpONk2uceW6wi01rbqSYrWQ6tuFYttBkVvmzxgixyh4uYh
+        EpnqNt5pJfsCtRTsblQjjNMk5qg+PhDc/qUff/w+httttPLqDAagdJzvsBXxc15Hfb55p8J2yEmB/
+        hjYlay/5MRV0YonQWAqybtP2rVItBqy7kAyNri8WtqxBgQLydY7mQMaWmYbK/QkaCel3mP+KfWJz7
+        IP2J0xVt7icCQLJYlq8efC62PCy9p6fxkoJlJniZK1gJ+X0tSVrEh2lLGFMOtCuf/VDjE2TIeMzJq
+        rFuPDp/w==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qCMWA-0001sF-Sf; Thu, 22 Jun 2023 17:46:42 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 3/4] cli: Make cli_init() return to caller
+Date:   Thu, 22 Jun 2023 17:46:33 +0200
+Message-Id: <20230622154634.25862-4-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
+In-Reply-To: <20230622154634.25862-1-phil@nwl.cc>
+References: <20230622154634.25862-1-phil@nwl.cc>
 MIME-Version: 1.0
-From:   =?UTF-8?B?0JzQsNGA0Log0JrQvtGA0LXQvdCx0LXRgNCz?= 
-        <socketpair@gmail.com>
-Date:   Thu, 22 Jun 2023 17:50:43 +0300
-Message-ID: <CAEmTpZGTbHcd84vA5VL6FfDc8+n+E0VMt+GpPkVLw5Vijp5iLA@mail.gmail.com>
-Subject: ipset hash:net:port:net
-To:     Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        kadlecsik.jozsef@wigner.hu, kadlec@sunserv.kfki.hu
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi everyone.
+Avoid direct exit() calls as that leaves the caller-allocated nft_ctx
+object in place. Making sure it is freed helps with valgrind-analyses at
+least.
 
-1. In the latest ipset, adding "1.2.3.4/0,tcp:0,1.2.3.0/24" is not
-allowed. I would like it to be allowed. It should match on any TCP
-traffic that matches source and destination.
-2. The same for protocol number 0. I want  "1.2.3.4/0,0:0,1.2.3.0/24"
-to match all traffic that matches source and destination.
+To signal desired exit from CLI, introduce global cli_quit boolean and
+make all cli_exit() implementations also set cli_rc variable to the
+appropriate return code.
 
-These requirements come from the real cases, where an administrator
-adds rules to control access to his networks.
+The logic is to finish CLI only if cli_quit is true which asserts proper
+cleanup as it is set only by the respective cli_exit() function.
 
-Is it possible to make such changes? TCP port 0 is not real thing, as
-well as IP protocol 0. So we can give them special meaning in IPSets.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/cli.h |  2 +-
+ src/cli.c     | 63 ++++++++++++++++++++++++++++++++++-----------------
+ 2 files changed, 43 insertions(+), 22 deletions(-)
 
-although icmp:0 is not so clear in this case. Possibly allow to set -1
-? as protocol or port for matching any ?
-
+diff --git a/include/cli.h b/include/cli.h
+index 609ed2ed0e0aa..c854948e4a16d 100644
+--- a/include/cli.h
++++ b/include/cli.h
+@@ -12,6 +12,6 @@ static inline int cli_init(struct nft_ctx *nft)
+         return -1;
+ }
+ #endif
+-extern void cli_exit(void);
++extern void cli_exit(int rc);
+ 
+ #endif
+diff --git a/src/cli.c b/src/cli.c
+index 11fc85abeaa2b..5f7e01ff96314 100644
+--- a/src/cli.c
++++ b/src/cli.c
+@@ -37,6 +37,15 @@
+ #define CMDLINE_PROMPT		"nft> "
+ #define CMDLINE_QUIT		"quit"
+ 
++static bool cli_quit;
++static int cli_rc;
++
++static void __cli_exit(int rc)
++{
++	cli_quit = true;
++	cli_rc = rc;
++}
++
+ static char histfile[PATH_MAX];
+ 
+ static void
+@@ -100,8 +109,8 @@ static char *cli_append_multiline(char *line)
+ 		if (!s) {
+ 			fprintf(stderr, "%s:%u: Memory allocation failure\n",
+ 				__FILE__, __LINE__);
+-			cli_exit();
+-			exit(EXIT_FAILURE);
++			cli_exit(EXIT_FAILURE);
++			return NULL;
+ 		}
+ 		snprintf(s, len + 1, "%s%s", multiline, line);
+ 		free(multiline);
+@@ -125,8 +134,7 @@ static void cli_complete(char *line)
+ 
+ 	if (line == NULL) {
+ 		printf("\n");
+-		cli_exit();
+-		exit(0);
++		return cli_exit(0);
+ 	}
+ 
+ 	line = cli_append_multiline(line);
+@@ -139,10 +147,8 @@ static void cli_complete(char *line)
+ 	if (*c == '\0')
+ 		return;
+ 
+-	if (!strcmp(line, CMDLINE_QUIT)) {
+-		cli_exit();
+-		exit(0);
+-	}
++	if (!strcmp(line, CMDLINE_QUIT))
++		return cli_exit(0);
+ 
+ 	/* avoid duplicate history entries */
+ 	hist = history_get(history_length);
+@@ -176,16 +182,19 @@ int cli_init(struct nft_ctx *nft)
+ 	read_history(histfile);
+ 	history_set_pos(history_length);
+ 
+-	while (true)
++	while (!cli_quit)
+ 		rl_callback_read_char();
+-	return 0;
++
++	return cli_rc;
+ }
+ 
+-void cli_exit(void)
++void cli_exit(int rc)
+ {
+ 	rl_callback_handler_remove();
+ 	rl_deprep_terminal();
+ 	write_history(histfile);
++
++	__cli_exit(rc);
+ }
+ 
+ #elif defined(HAVE_LIBEDIT)
+@@ -205,51 +214,63 @@ int cli_init(struct nft_ctx *nft)
+ 	history_set_pos(history_length);
+ 
+ 	rl_set_prompt(CMDLINE_PROMPT);
+-	while ((line = readline(rl_prompt)) != NULL) {
++	while (!cli_quit) {
++		line = readline(rl_prompt);
++		if (!line) {
++			cli_exit(0);
++			break;
++		}
+ 		line = cli_append_multiline(line);
+ 		if (!line)
+ 			continue;
+ 
+ 		cli_complete(line);
+ 	}
+-	cli_exit();
+ 
+-	return 0;
++	return cli_rc;
+ }
+ 
+-void cli_exit(void)
++void cli_exit(int rc)
+ {
+ 	rl_deprep_terminal();
+ 	write_history(histfile);
++
++	__cli_exit(rc);
+ }
+ 
+ #else /* HAVE_LINENOISE */
+ 
+ int cli_init(struct nft_ctx *nft)
+ {
+-	int quit = 0;
+ 	char *line;
+ 
+ 	init_histfile();
+ 	linenoiseHistoryLoad(histfile);
+ 	linenoiseSetMultiLine(1);
+ 
+-	while (!quit && (line = linenoise(CMDLINE_PROMPT)) != NULL) {
++	while (!cli_quit) {
++		line = linenoise(CMDLINE_PROMPT);
++		if (!line) {
++			cli_exit(0);
++			break;
++		}
+ 		if (strcmp(line, CMDLINE_QUIT) == 0) {
+-			quit = 1;
++			cli_exit(0);
+ 		} else if (line[0] != '\0') {
+ 			linenoiseHistoryAdd(line);
+ 			nft_run_cmd_from_buffer(nft, line);
+ 		}
+ 		linenoiseFree(line);
+ 	}
+-	cli_exit();
+-	exit(0);
++
++	return cli_rc;
+ }
+ 
+-void cli_exit(void)
++void cli_exit(int rc)
+ {
+ 	linenoiseHistorySave(histfile);
++
++	__cli_exit(rc);
+ }
+ 
+ #endif /* HAVE_LINENOISE */
 -- 
-Segmentation fault
+2.40.0
+
