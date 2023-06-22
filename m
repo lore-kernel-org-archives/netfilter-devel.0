@@ -2,304 +2,140 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 573B7EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jun 2023 10:18:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAFCCEB64D8
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jun 2023 13:55:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229704AbjFVKS2 (ORCPT
+        id S230523AbjFVNze (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Jun 2023 06:18:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39078 "EHLO
+        Thu, 22 Jun 2023 09:55:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230523AbjFVKSZ (ORCPT
+        with ESMTP id S230364AbjFVNzc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Jun 2023 06:18:25 -0400
-Received: from smtp-8fa9.mail.infomaniak.ch (smtp-8fa9.mail.infomaniak.ch [83.166.143.169])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64932107;
-        Thu, 22 Jun 2023 03:18:21 -0700 (PDT)
-Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QmxCY6bYCzMpxDH;
-        Thu, 22 Jun 2023 10:18:17 +0000 (UTC)
-Received: from unknown by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4QmxCY0HH8zMppDP;
-        Thu, 22 Jun 2023 12:18:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1687429097;
-        bh=TKvVDRK40pmL3DAdWUP/FN4uWV05D4Vkf67P6sywwMo=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=HKXNXsEHnWLQhZK6/UNpjqzPeVCRqCrG6Vx3192qU1vIk9DQreCq8jgHCEGxduAlo
-         D9qEvGd1H3snHZ/BGM8+LO///8TdV3Eiap9YGW2N33M8O2iSdvZfS2Mvc1lYD7u+Gn
-         jC4bayJH46Gu9D/4NpCJiV1Kr889VOBIDgjGWMwQ=
-Message-ID: <1ee25561-96b8-67a6-77ca-475d12ea244d@digikod.net>
-Date:   Thu, 22 Jun 2023 12:18:15 +0200
+        Thu, 22 Jun 2023 09:55:32 -0400
+Received: from mx0.infotecs.ru (mx0.infotecs.ru [91.244.183.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3D771BF6;
+        Thu, 22 Jun 2023 06:55:26 -0700 (PDT)
+Received: from mx0.infotecs-nt (localhost [127.0.0.1])
+        by mx0.infotecs.ru (Postfix) with ESMTP id 041CE10F4874;
+        Thu, 22 Jun 2023 16:55:23 +0300 (MSK)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mx0.infotecs.ru 041CE10F4874
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=infotecs.ru; s=mx;
+        t=1687442123; bh=4n0/HOa8GcSzSv0ccDtNa+JBp10/ttCJkrIJGTCvlBU=;
+        h=From:To:CC:Subject:Date:References:In-Reply-To:From;
+        b=kHhFfhWWEBFs4xMaoIib8LP+3Swn1yh0P52ShIUncCSo5kch5jNeyUKoOKaxqCO8p
+         Mb1Pj/ATMB7MqsgNBTVb1QoEv2S2SyY0G3y+/jgIzkTd5cvhiRYr7GX6U7sRFrR4S1
+         X7lkaTFRwjTAWBJwWUSwznw1gPXnYy+OPi5wB58Q=
+Received: from msk-exch-01.infotecs-nt (msk-exch-01.infotecs-nt [10.0.7.191])
+        by mx0.infotecs-nt (Postfix) with ESMTP id 0102230D12EB;
+        Thu, 22 Jun 2023 16:55:23 +0300 (MSK)
+From:   Gavrilov Ilia <Ilia.Gavrilov@infotecs.ru>
+To:     Simon Horman <simon.horman@corigine.com>
+CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Patrick McHardy <kaber@trash.net>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "lvc-project@linuxtesting.org" <lvc-project@linuxtesting.org>
+Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix the
+ ct_sip_parse_numerical_param() return value.
+Thread-Topic: [PATCH] netfilter: nf_conntrack_sip: fix the
+ ct_sip_parse_numerical_param() return value.
+Thread-Index: AQHZpREwousYyJT2d0KPXYKYnJV5Dg==
+Date:   Thu, 22 Jun 2023 13:55:22 +0000
+Message-ID: <6f2b5c12-82b5-2496-23a3-05ab22d7b14b@infotecs.ru>
+References: <20230426150414.2768070-1-Ilia.Gavrilov@infotecs.ru>
+ <ZEwdd7Xj4fQtCXoe@corigine.com>
+ <d0a92686-acc4-4fd8-0505-60a8394d05d8@infotecs.ru>
+ <ZFEYpNsp/hBEJAGU@corigine.com>
+ <f9d9ac80-704a-91d7-b120-449b921e8bb0@infotecs.ru>
+ <ZFEuazEvNWHfEH93@corigine.com>
+In-Reply-To: <ZFEuazEvNWHfEH93@corigine.com>
+Accept-Language: ru-RU, en-US
+Content-Language: ru-RU
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.17.0.10]
+x-exclaimer-md-config: 208ac3cd-1ed4-4982-a353-bdefac89ac0a
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <10FD4159AF211947B84172ACF6576E05@infotecs.ru>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v11 11/12] samples/landlock: Add network demo
-Content-Language: en-US
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack@google.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
- <20230515161339.631577-12-konstantin.meskhidze@huawei.com>
- <ZH9OFyWZ1njI7VG9@google.com>
- <d9f07165-f589-13d4-6484-1272704f1de0@huawei.com>
- <8c09fc5a-e3a5-4792-65a8-b84c6044128a@digikod.net>
- <c0713bf1-a65e-c4cd-08b9-c60bd79fc86f@huawei.com>
- <fb1d9351-355c-feb8-c2a2-419e24000049@digikod.net>
- <60e5f0ea-39fa-9f76-35bd-ec88fc489922@huawei.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <60e5f0ea-39fa-9f76-35bd-ec88fc489922@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+X-KLMS-Rule-ID: 1
+X-KLMS-Message-Action: clean
+X-KLMS-AntiSpam-Lua-Profiles: 178188 [Jun 22 2023]
+X-KLMS-AntiSpam-Version: 5.9.59.0
+X-KLMS-AntiSpam-Envelope-From: Ilia.Gavrilov@infotecs.ru
+X-KLMS-AntiSpam-Rate: 0
+X-KLMS-AntiSpam-Status: not_detected
+X-KLMS-AntiSpam-Method: none
+X-KLMS-AntiSpam-Auth: dkim=none
+X-KLMS-AntiSpam-Info: LuaCore: 517 517 b0056c19d8e10afbb16cb7aad7258dedb0179a79, {Tracking_msgid_8}, {Tracking_from_domain_doesnt_match_to}, d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2;infotecs.ru:7.1.1, FromAlignment: s
+X-MS-Exchange-Organization-SCL: -1
+X-KLMS-AntiSpam-Interceptor-Info: scan successful
+X-KLMS-AntiPhishing: Clean, bases: 2023/06/22 12:25:00
+X-KLMS-AntiVirus: Kaspersky Security for Linux Mail Server, version 8.0.3.30, bases: 2023/06/22 09:26:00 #21554371
+X-KLMS-AntiVirus-Status: Clean, skipped
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 22/06/2023 10:00, Konstantin Meskhidze (A) wrote:
-> 
-> 
-> 6/19/2023 9:19 PM, Mickaël Salaün пишет:
->>
->> On 19/06/2023 16:24, Konstantin Meskhidze (A) wrote:
->>>
->>>
->>> 6/13/2023 11:38 PM, Mickaël Salaün пишет:
->>>>
->>>> On 13/06/2023 12:54, Konstantin Meskhidze (A) wrote:
->>>>>
->>>>>
->>>>> 6/6/2023 6:17 PM, Günther Noack пишет:
->>>>>> Hi Konstantin!
->>>>>>
->>>>>> Apologies if some of this was discussed before, in this case,
->>>>>> Mickaël's review overrules my opinions from the sidelines ;)
->>>>>>
->>>>>> On Tue, May 16, 2023 at 12:13:38AM +0800, Konstantin Meskhidze wrote:
->>>>>>> This commit adds network demo. It's possible to allow a sandboxer to
->>>>>>> bind/connect to a list of particular ports restricting network
->>>>>>> actions to the rest of ports.
->>>>>>>
->>>>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>>>>
->>>>>>
->>>>>>> diff --git a/samples/landlock/sandboxer.c b/samples/landlock/sandboxer.c
->>>>>>> index e2056c8b902c..b0250edb6ccb 100644
->>>>>>> --- a/samples/landlock/sandboxer.c
->>>>>>> +++ b/samples/landlock/sandboxer.c
->>>>>>
->>>>>> ...
->>>>>>
->>>>>>> +static int populate_ruleset_net(const char *const env_var, const int ruleset_fd,
->>>>>>> +				const __u64 allowed_access)
->>>>>>> +{
->>>>>>> +	int num_ports, i, ret = 1;
->>>>>>
->>>>>> I thought the convention was normally to set ret = 0 initially and to
->>>>>> override it in case of error, rather than the other way around?
->>>>
->>>> Which convention? In this case, by default the return code is an error.
->>>>
->>>>
->>>>>>
->>>>>       Well, I just followed Mickaёl's way of logic here. >
->>>>>
->>>>>>> +	char *env_port_name;
->>>>>>> +	struct landlock_net_service_attr net_service = {
->>>>>>> +		.allowed_access = allowed_access,
->>>>>>> +		.port = 0,
->>>>>>> +	};
->>>>>>> +
->>>>>>> +	env_port_name = getenv(env_var);
->>>>>>> +	if (!env_port_name)
->>>>>>> +		return 0;
->>>>>>> +	env_port_name = strdup(env_port_name);
->>>>>>> +	unsetenv(env_var);
->>>>>>> +	num_ports = parse_port_num(env_port_name);
->>>>>>> +
->>>>>>> +	if (num_ports == 1 && (strtok(env_port_name, ENV_PATH_TOKEN) == NULL)) {
->>>>>>> +		ret = 0;
->>>>>>> +		goto out_free_name;
->>>>>>> +	}
->>>>>>
->>>>>> I don't understand why parse_port_num and strtok are necessary in this
->>>>>> program. The man-page for strsep(3) describes it as a replacement to
->>>>>> strtok(3) (in the HISTORY section), and it has a very short example
->>>>>> for how it is used.
->>>>>>
->>>>>> Wouldn't it work like this as well?
->>>>>>
->>>>>> while ((strport = strsep(&env_port_name, ":"))) {
->>>>>>       net_service.port = atoi(strport);
->>>>>>       /* etc */
->>>>>> }
->>>>>
->>>>>       Thanks for a tip. I think it's a better solution here. Now this
->>>>> commit is in Mickaёl's -next branch. I could send a one-commit patch later.
->>>>> Mickaёl, what do you think?
->>>>
->>>> I removed this series from -next because there is some issues (see the
->>>> bot's emails), but anyway, this doesn't mean these patches don't need to
->>>> be changed, they do. The goal of -next is to test more widely a patch
->>>> series and get more feedbacks, especially from bots. When this series
->>>> will be fully ready (and fuzzed with syzkaller), I'll push it to Linus
->>>> Torvalds.
->>>>
->>>> I'll review the remaining tests and sample code this week, but you can
->>>> still take into account the documentation review.
->>>
->>>     Hi, Mickaёl.
->>>
->>>     I have a few quetions?
->>>      - Are you going to fix warnings for bots, meanwhile I run syzcaller?
->>
->> No, you need to fix that with the next series (except the Signed-off-by
->> warnings).
-> 
->    Hi, Mickaёl.
->     As I understand its possible to check bots warnings just after you
-> push the next V12 series again into your -next branch???
-
-Yes, we get bot warnings on the -next tree, but the command that 
-generate it should be reproducible.
-
-
-> 
->>
->> What is your status on syzkaller? Do you need some help? I can write the
->> tests if it's too much.
->>
->     Sorry. To be honest I'm busy with another project. I dont know how
-> much time it will take for me to set up and run syzkaller. I need your
-> help here please, how you do this, some roadmap.
-
-Ok, no worries, I have it set up so I'll take care of it and keep you in 
-the loop with your GitHub account.
-
-
->>
->>>      - I will fix documentation and sandbox demo and sent patch v12?
->>
->> Yes please. Let me a few days to send more reviews.
->>
->     Ok. Sure.
->>>
->>>>
->>>>
->>>>>
->>>>>>
->>>>>>> +
->>>>>>> +	for (i = 0; i < num_ports; i++) {
->>>>>>> +		net_service.port = atoi(strsep(&env_port_name, ENV_PATH_TOKEN));
->>>>>>
->>>>>> Naming of ENV_PATH_TOKEN:
->>>>>> This usage is not related to paths, maybe rename the variable?
->>>>>> It's also technically not the token, but the delimiter.
->>>>>>
->>>>>      What do you think of ENV_PORT_TOKEN or ENV_PORT_DELIMITER???
->>>>
->>>> You can rename ENV_PATH_TOKEN to ENV_DELIMITER for the FS and network parts.
->>>>
->>>       Ok. Got it.
->>>>
->>>>>
->>>>>>> +		if (landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
->>>>>>> +				      &net_service, 0)) {
->>>>>>> +			fprintf(stderr,
->>>>>>> +				"Failed to update the ruleset with port \"%lld\": %s\n",
->>>>>>> +				net_service.port, strerror(errno));
->>>>>>> +			goto out_free_name;
->>>>>>> +		}
->>>>>>> +	}
->>>>>>> +	ret = 0;
->>>>>>> +
->>>>>>> +out_free_name:
->>>>>>> +	free(env_port_name);
->>>>>>> +	return ret;
->>>>>>> +}
->>>>>>
->>>>>>
->>>>>>>     		fprintf(stderr,
->>>>>>>     			"Launch a command in a restricted environment.\n\n");
->>>>>>> -		fprintf(stderr, "Environment variables containing paths, "
->>>>>>> -				"each separated by a colon:\n");
->>>>>>> +		fprintf(stderr,
->>>>>>> +			"Environment variables containing paths and ports "
->>>>>>> +			"each separated by a colon:\n");
->>>>>>>     		fprintf(stderr,
->>>>>>>     			"* %s: list of paths allowed to be used in a read-only way.\n",
->>>>>>>     			ENV_FS_RO_NAME);
->>>>>>>     		fprintf(stderr,
->>>>>>> -			"* %s: list of paths allowed to be used in a read-write way.\n",
->>>>>>> +			"* %s: list of paths allowed to be used in a read-write way.\n\n",
->>>>>>>     			ENV_FS_RW_NAME);
->>>>>>> +		fprintf(stderr,
->>>>>>> +			"Environment variables containing ports are optional "
->>>>>>> +			"and could be skipped.\n");
->>>>>>
->>>>>> As it is, I believe the program does something different when I'm
->>>>>> setting these to the empty string (ENV_TCP_BIND_NAME=""), compared to
->>>>>> when I'm unsetting them?
->>>>>>
->>>>>> I think the case where we want to forbid all handle-able networking is
->>>>>> a legit and very common use case - it could be clearer in the
->>>>>> documentation how this is done with the tool. (And maybe the interface
->>>>>> could be something more explicit than setting the environment variable
->>>>>> to empty?)
->>>>
->>>> I'd like to keep it simple, and it should be seen as an example code,
->>>> not a full-feature sandboxer, but still a consistent and useful one.
->>>> What would you suggest?
->>>>
->>>> This sandboxer tool relies on environment variables for its
->>>> configuration. This is definitely not a good fit for all use cases, but
->>>> I think it is simple and flexible enough. One use case might be to
->>>> export a set of environment variables and simply call this tool. I'd
->>>> prefer to not deal with argument parsing, but maybe that was too
->>>> simplistic? We might want to revisit this approach but probably not with
->>>> this series.
->>>>
->>>>
->>>>>>
->>>>>>
->>>>>>> +	/* Removes bind access attribute if not supported by a user. */
->>>>>>> +	env_port_name = getenv(ENV_TCP_BIND_NAME);
->>>>>>> +	if (!env_port_name) {
->>>>>>> +		ruleset_attr.handled_access_net &=
->>>>>>> +			~LANDLOCK_ACCESS_NET_BIND_TCP;
->>>>>>> +	}
->>>>>>> +	/* Removes connect access attribute if not supported by a user. */
->>>>>>> +	env_port_name = getenv(ENV_TCP_CONNECT_NAME);
->>>>>>> +	if (!env_port_name) {
->>>>>>> +		ruleset_attr.handled_access_net &=
->>>>>>> +			~LANDLOCK_ACCESS_NET_CONNECT_TCP;
->>>>>>> +	}
->>>>>>
->>>>>> This is the code where the program does not restrict network usage,
->>>>>> if the corresponding environment variable is not set.
->>>>>
->>>>>       Yep. Right.
->>>>>>
->>>>>> It's slightly inconsistent with what this tool does for filesystem
->>>>>> paths. - If you don't specify any file paths, it will still restrict
->>>>>> file operations there, independent of whether that env variable was
->>>>>> set or not.  (Apologies if it was discussed before.)
->>>>>
->>>>>      Mickaёl wanted to make network ports optional here.
->>>>>      Please check:
->>>>>     
->>>>> https://lore.kernel.org/linux-security-module/179ac2ee-37ff-92da-c381-c2c716725045@digikod.net/
->>>>
->>>> Right, the rationale is for compatibility with the previous version of
->>>> this tool. We should not break compatibility when possible. A comment
->>>> should explain the rationale though.
->>>>
->>>>>
->>>>> https://lore.kernel.org/linux-security-module/fe3bc928-14f8-5e2b-359e-9a87d6cf5b01@digikod.net/
->>>>>>
->>>>>> —Günther
->>>>>>
->>>> .
->> .
+T24gNS8yLzIzIDE4OjM4LCBTaW1vbiBIb3JtYW4gd3JvdGU6DQo+IE9uIFR1ZSwgTWF5IDAyLCAy
+MDIzIGF0IDAyOjE2OjA5UE0gKzAwMDAsIEdhdnJpbG92IElsaWEgd3JvdGU6DQo+PiBPbiA1LzIv
+MjMgMTc6MDUsIFNpbW9uIEhvcm1hbiB3cm90ZToNCj4+PiBPbiBUdWUsIE1heSAwMiwgMjAyMyBh
+dCAxMTo0MzoxOUFNICswMDAwLCBHYXZyaWxvdiBJbGlhIHdyb3RlOg0KPj4+PiBPbiA0LzI4LzIz
+IDIyOjI0LCBTaW1vbiBIb3JtYW4gd3JvdGU6DQo+Pj4+PiBPbiBXZWQsIEFwciAyNiwgMjAyMyBh
+dCAwMzowNDozMVBNICswMDAwLCBHYXZyaWxvdiBJbGlhIHdyb3RlOg0KPj4+Pj4+IGN0X3NpcF9w
+YXJzZV9udW1lcmljYWxfcGFyYW0oKSByZXR1cm5zIG9ubHkgMCBvciAxIG5vdy4NCj4+Pj4+PiBC
+dXQgcHJvY2Vzc19yZWdpc3Rlcl9yZXF1ZXN0KCkgYW5kIHByb2Nlc3NfcmVnaXN0ZXJfcmVzcG9u
+c2UoKSBpbXBseQ0KPj4+Pj4+IGNoZWNraW5nIGZvciBhIG5lZ2F0aXZlIHZhbHVlIGlmIHBhcnNp
+bmcgb2YgYSBudW1lcmljYWwgaGVhZGVyIHBhcmFtZXRlcg0KPj4+Pj4+IGZhaWxlZC4gTGV0J3Mg
+Zml4IGl0Lg0KPj4+Pj4+DQo+Pj4+Pj4gRm91bmQgYnkgSW5mb1RlQ1Mgb24gYmVoYWxmIG9mIExp
+bnV4IFZlcmlmaWNhdGlvbiBDZW50ZXINCj4+Pj4+PiAobGludXh0ZXN0aW5nLm9yZykgd2l0aCBT
+VkFDRS4NCj4+Pj4+Pg0KPj4+Pj4+IEZpeGVzOiAwZjMyYTQwZmM5MWEgKCJbTkVURklMVEVSXTog
+bmZfY29ubnRyYWNrX3NpcDogY3JlYXRlIHNpZ25hbGxpbmcgZXhwZWN0YXRpb25zIikNCj4+Pj4+
+PiBTaWduZWQtb2ZmLWJ5OiBJbGlhLkdhdnJpbG92IDxJbGlhLkdhdnJpbG92QGluZm90ZWNzLnJ1
+Pg0KPj4+Pj4NCj4+Pj4+IEhpIEdhdnJpbG92LA0KPj4+Pj4NCj4+Pj4NCj4+Pj4gSGkgU2ltb24s
+IHRoYW5rIHlvdSBmb3IgeW91ciBhbnN3ZXIuDQo+Pj4+DQo+Pj4+PiBhbHRob3VnaCBpdCBpcyBh
+IHNsaWdodGx5IHVudXN1YWwgY29udmVudGlvbiBmb3Iga2VybmVsIGNvZGUsDQo+Pj4+PiBJIGJl
+bGlldmUgdGhlIGludGVudGlvbiBpcyB0aGF0IHRoaXMgZnVuY3Rpb24gcmV0dXJucyAwIHdoZW4N
+Cj4+Pj4+IGl0IGZhaWxzICh0byBwYXJzZSkgYW5kIDEgb24gc3VjY2Vzcy4gU28gSSB0aGluayB0
+aGF0IHBhcnQgaXMgZmluZS4NCj4+Pj4+DQo+Pj4+PiBXaGF0IHNlZW1zIGEgYml0IGJyb2tlbiBp
+cyB0aGUgd2F5IHRoYXQgY2FsbGVycyB1c2UgdGhlIHJldHVybiB2YWx1ZS4NCj4+Pj4+DQo+Pj4+
+PiAxLiBUaGUgY2FsbCBpbiBwcm9jZXNzX3JlZ2lzdGVyX3Jlc3BvbnNlKCkgbG9va3MgbGlrZSB0
+aGlzOg0KPj4+Pj4NCj4+Pj4+IAlyZXQgPSBjdF9zaXBfcGFyc2VfbnVtZXJpY2FsX3BhcmFtKC4u
+LikNCj4+Pj4+IAlpZiAocmV0IDwgMCkgew0KPj4+Pj4gCQluZl9jdF9oZWxwZXJfbG9nKHNrYiwg
+Y3QsICJjYW5ub3QgcGFyc2UgZXhwaXJlcyIpOw0KPj4+Pj4gCQlyZXR1cm4gTkZfRFJPUDsNCj4+
+Pj4+IAl9DQo+Pj4+Pg0KPj4+Pj4gICAgICAgIEJ1dCByZXQgY2FuIG9ubHkgYmUgMCBvciAxLCBz
+byB0aGUgZXJyb3IgaGFuZGxpbmcgaXMgbmV2ZXIgaW5va2VkLA0KPj4+Pj4gICAgICAgIGFuZCBh
+IGZhaWx1cmUgdG8gcGFyc2UgaXMgaWdub3JlZC4gSSBndWVzcyBmYWlsdXJlIGRvZXNuJ3Qgb2Nj
+dXIgaW4NCj4+Pj4+ICAgICAgICBwcmFjdGljZS4NCj4+Pj4+DQo+Pj4+PiAgICAgICAgSSBzdXNw
+ZWN0IHRoaXMgc2hvdWxkIGJlOg0KPj4+Pj4NCj4+Pj4+IAlyZXQgPSBjdF9zaXBfcGFyc2VfbnVt
+ZXJpY2FsX3BhcmFtKC4uLikNCj4+Pj4+IAlpZiAoIXJldCkgew0KPj4+Pj4gCQluZl9jdF9oZWxw
+ZXJfbG9nKHNrYiwgY3QsICJjYW5ub3QgcGFyc2UgZXhwaXJlcyIpOw0KPj4+Pj4gCQlyZXR1cm4g
+TkZfRFJPUDsNCj4+Pj4+IAl9DQo+Pj4+Pg0KPj4+Pg0KPj4+PiBjdF9zaXBfcGFyc2VfbnVtZXJp
+Y2FsX3BhcmFtKCkgcmV0dXJucyAwIGluIHRvIGNhc2VzIDEpIHdoZW4gdGhlDQo+Pj4+IHBhcmFt
+ZXRlciAnZXhwaXJlcz0nIGlzbid0IGZvdW5kIGluIHRoZSBoZWFkZXIgb3IgMikgaXQncyBpbmNv
+cnJlY3RseSBzZXQuDQo+Pj4+IEluIHRoZSBmaXJzdCBjYXNlLCB0aGUgcmV0dXJuIHZhbHVlIHNo
+b3VsZCBiZSBpZ25vcmVkLCBzaW5jZSB0aGlzIGlzIGENCj4+Pj4gbm9ybWFsIHNpdHVhdGlvbg0K
+Pj4+PiBJbiB0aGUgc2Vjb25kIGNhc2UsIGl0J3MgYmV0dGVyIHRvIHdyaXRlIHRvIHRoZSBsb2cg
+YW5kIHJldHVybiBORl9EUk9QLA0KPj4+PiBvciBpZ25vcmUgaXQgdG9vLCB0aGVuIGNoZWNraW5n
+IHRoZSByZXR1cm4gdmFsdWUgY2FuIGJlIHJlbW92ZWQgYXMNCj4+Pj4gdW5uZWNlc3NhcnkuDQo+
+Pj4NCj4+PiBTb3JyeSwgSSB0aGluayBJIG1pc3VuZGVyc3Rvb2QgdGhlIGludGVudGlvbiBvZiB5
+b3VyIHBhdGNoIGVhcmxpZXIuDQo+Pj4NCj4+PiBEbyBJIChub3cpIHVuZGVyc3RhbmQgY29ycmVj
+dGx5IHRoYXQgeW91IGFyZSBwcm9wb3NpbmcgYSB0cmlzdGF0ZT8NCj4+Pg0KPj4+IGEpIHJldHVy
+biAxIGlmIHZhbHVlIGlzIGZvdW5kOyAqdmFsIGlzIHNldA0KPj4+IGIpIHJldHVybiAwIGlmIHZh
+bHVlIGlzIG5vdCBmb3VuZDsgKnZhbCBpcyB1bmNoYW5nZWQNCj4+PiBjKSByZXR1cm4gLTEgb24g
+ZXJyb3I7ICp2YWwgaXMgdW5kZWZpbmVkDQo+Pg0KPj4gWWVzLCBpdCBzZWVtcyB0byBtZSB0aGF0
+IHRoaXMgd2FzIG9yaWdpbmFsbHkgaW50ZW5kZWQuDQo+IA0KPiBUaGFua3MuIFdpdGggbXkgbmV3
+IGZvdW5kIHVuZGVyc3RhbmRpbmcsIHRoaXMgbG9va3MgZ29vZCB0byBtZS4NCj4gDQo+IFJldmll
+d2VkLWJ5OiBTaW1vbiBIb3JtYW4gPHNpbW9uLmhvcm1hbkBjb3JpZ2luZS5jb20+DQo+IA0KDQpI
+aSwgU2ltb24uDQpJJ20gc29ycnkgdG8gYm90aGVyIHlvdS4NCldpbGwgdGhpcyBwYXRjaCBiZSBh
+cHBsaWVkIG9yIHJlamVjdGVkPw0KDQrQkmVzdCByZWdhcmRzLCBJbHlhLg0KDQoNCg==
