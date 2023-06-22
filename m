@@ -2,125 +2,147 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6587EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jun 2023 15:47:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EEC0EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 22 Jun 2023 16:50:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230342AbjFVPrI (ORCPT
+        id S231374AbjFVQuZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Jun 2023 11:47:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41312 "EHLO
+        Thu, 22 Jun 2023 12:50:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230201AbjFVPrH (ORCPT
+        with ESMTP id S231383AbjFVQuY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Jun 2023 11:47:07 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E061EA
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jun 2023 08:47:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=nMKYsAtz3+jN6MfD+qnUaE7zeRwmd+mh1krEPprIyOQ=; b=QrPK4G2ebsQeqdZzOwKlv17m2n
-        A5vfhwMhVcyLho8VrypUzuZjQZz2niSeeExI7bU9DRG0l/7WX/NMWMZdLgpq9TW8hAF3OKRcNEcxO
-        zofcfAEb1w/UtBf7XKffLOKpwHl4dF2FMX5MIvqBOVIXiio8VImYgMDNTKH1Jj6XzZ7y10iWGr2Z7
-        mxnXyxVPlU4+wG5AHXLXQKxxVdX76TPBZnlmNQd5Z271PlNEWjbXnDLq6HQD7iGZxUxiSqBSlgUfK
-        y7WZH2S+juP4W6E2XKIE8NYCEQ7PTVXgnQ4csqje2ZDoXLknf6qbVqASisBBGTst2XbNAdgFSNOZu
-        OhRr5Utw==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1qCMWW-0001sm-Lt; Thu, 22 Jun 2023 17:47:04 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 4/4] tests: shell: Introduce valgrind mode
-Date:   Thu, 22 Jun 2023 17:46:34 +0200
-Message-Id: <20230622154634.25862-5-phil@nwl.cc>
-X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230622154634.25862-1-phil@nwl.cc>
-References: <20230622154634.25862-1-phil@nwl.cc>
+        Thu, 22 Jun 2023 12:50:24 -0400
+Received: from smtp-190c.mail.infomaniak.ch (smtp-190c.mail.infomaniak.ch [IPv6:2001:1600:4:17::190c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA2E4E6E
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jun 2023 09:50:20 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4Qn5vq1J0dzMqTCw;
+        Thu, 22 Jun 2023 16:50:15 +0000 (UTC)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4Qn5vp15ZPzMpnPr;
+        Thu, 22 Jun 2023 18:50:13 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1687452615;
+        bh=i0pWvByrW9z0B0qMC2EGfccJ5CDeD/5G1+nmhQ+uLRQ=;
+        h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
+        b=bf+SX6SEXNbj7+3UQcRll0nP8zIfs+HTxGji3zM9psenwaqcoysWTSkgeG8wvYK+k
+         sqiAP5yg7acByGYwPHqjNYJj4yZA9/gsKobZbMxHzvtz9ZEz0U1v7tSmG8AVyhRLQH
+         lPmC8KkVfJcBqtZwEdhYCPiZc7KQlbLZsp+7wDxQ=
+Message-ID: <00a03f2c-892d-683e-96a0-c0ba8f293831@digikod.net>
+Date:   Thu, 22 Jun 2023 18:50:13 +0200
 MIME-Version: 1.0
+User-Agent: 
+Subject: Re: [PATCH v11 12/12] landlock: Document Landlock's network support
+Content-Language: en-US
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
+        Jeff Xu <jeffxu@chromium.org>,
+        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack@google.com>
+Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com
+References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
+ <20230515161339.631577-13-konstantin.meskhidze@huawei.com>
+ <ZH89Pi1QAqNW2QgG@google.com>
+ <CABi2SkWqHeLkmqONbmavcp2SCiwe6YeH_3dkBLZwSsk7neyPMw@mail.gmail.com>
+ <86108314-de87-5342-e0fb-a07feee457a5@huawei.com>
+ <97c15e23-8a89-79f2-4413-580153827ade@digikod.net>
+In-Reply-To: <97c15e23-8a89-79f2-4413-580153827ade@digikod.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pass flag '-V' to run-tests.sh to run all 'nft' invocations in valgrind
-leak checking environment. Code copied from iptables' shell-testsuite
-where it proved to be useful already.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/shell/run-tests.sh | 47 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+On 13/06/2023 22:12, Mickaël Salaün wrote:
+> 
+> On 13/06/2023 12:13, Konstantin Meskhidze (A) wrote:
+>>
+>>
+>> 6/7/2023 8:46 AM, Jeff Xu пишет:
+>>> On Tue, Jun 6, 2023 at 7:09 AM Günther Noack <gnoack@google.com> wrote:
+>>>>
+>>>> On Tue, May 16, 2023 at 12:13:39AM +0800, Konstantin Meskhidze wrote:
+>>>>> Describe network access rules for TCP sockets. Add network access
+>>>>> example in the tutorial. Add kernel configuration support for network.
+>>>>>
+>>>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 931bba967b370..1a69987598314 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -69,6 +69,11 @@ if [ "$1" == "-g" ] ; then
- 	shift
- fi
- 
-+if [ "$1" == "-V" ] ; then
-+	VALGRIND=y
-+	shift
-+fi
-+
- for arg in "$@"; do
- 	SINGLE+=" $arg"
- 	VERBOSE=y
-@@ -106,6 +111,48 @@ find_tests() {
- 	${FIND} ${TESTDIR} -type f -executable | sort
- }
- 
-+printscript() { # (cmd, tmpd)
-+	cat <<EOF
-+#!/bin/bash
-+
-+CMD="$1"
-+
-+# note: valgrind man page warns about --log-file with --trace-children, the
-+# last child executed overwrites previous reports unless %p or %q is used.
-+# Since libtool wrapper calls exec but none of the iptables tools do, this is
-+# perfect for us as it effectively hides bash-related errors
-+
-+valgrind --log-file=$2/valgrind.log --trace-children=yes \
-+	 --leak-check=full --show-leak-kinds=all \$CMD "\$@"
-+RC=\$?
-+
-+# don't keep uninteresting logs
-+if grep -q 'no leaks are possible' $2/valgrind.log; then
-+	rm $2/valgrind.log
-+else
-+	mv $2/valgrind.log $2/valgrind_\$\$.log
-+fi
-+
-+# drop logs for failing commands for now
-+[ \$RC -eq 0 ] || rm $2/valgrind_\$\$.log
-+
-+exit \$RC
-+EOF
-+}
-+
-+if [ "$VALGRIND" == "y" ]; then
-+	tmpd=$(mktemp -d)
-+	chmod 755 $tmpd
-+
-+	msg_info "writing valgrind logs to $tmpd"
-+
-+	printscript "$NFT" "$tmpd" >${tmpd}/nft
-+	trap "rm ${tmpd}/nft" EXIT
-+	chmod a+x ${tmpd}/nft
-+
-+	NFT="${tmpd}/nft"
-+fi
-+
- echo ""
- ok=0
- failed=0
--- 
-2.40.0
+[...]
 
+>>>>> @@ -28,20 +28,24 @@ appropriately <kernel_support>`.
+>>>>>    Landlock rules
+>>>>>    ==============
+>>>>>
+>>>>> -A Landlock rule describes an action on an object.  An object is currently a
+>>>>> -file hierarchy, and the related filesystem actions are defined with `access
+>>>>> -rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
+>>>>> -the thread enforcing it, and its future children.
+>>>>> +A Landlock rule describes an action on a kernel object.  Filesystem
+>>>>> +objects can be defined with a file hierarchy.  Since the fourth ABI
+>>>>> +version, TCP ports enable to identify inbound or outbound connections.
+>>>>> +Actions on these kernel objects are defined according to `access
+>>>>> +rights`_.  A set of rules is aggregated in a ruleset, which
+>>>>> +can then restrict the thread enforcing it, and its future children.
+>>>>
+>>>> I feel that this paragraph is a bit long-winded to read when the
+>>>> additional networking aspect is added on top as well.  Maybe it would
+>>>> be clearer if we spelled it out in a more structured way, splitting up
+>>>> the filesystem/networking aspects?
+>>>>
+>>>> Suggestion:
+>>>>
+>>>>     A Landlock rule describes an action on an object which the process
+>>>>     intends to perform.  A set of rules is aggregated in a ruleset,
+>>>>     which can then restrict the thread enforcing it, and its future
+>>>>     children.
+>>>>
+>>>>     The two existing types of rules are:
+>>>>
+>>>>     Filesystem rules
+>>>>         For these rules, the object is a file hierarchy,
+>>>>         and the related filesystem actions are defined with
+>>>>         `filesystem access rights`.
+>>>>
+>>>>     Network rules (since ABI v4)
+>>>>         For these rules, the object is currently a TCP port,
+>>> Remote port or local port ?
+>>>
+>>      Both ports - remote or local.
+> 
+> Hmm, at first I didn't think it was worth talking about remote or local,
+> but I now think it could be less confusing to specify a bit:
+> "For these rules, the object is the socket identified with a TCP (bind
+> or connect) port according to the related `network access rights`."
+> 
+> A port is not a kernel object per see, so I tried to tweak a bit the
+> sentence. I'm not sure such detail (object vs. data) would not confuse
+> users. Any thought?
+
+Well, here is a more accurate and generic definition (using "scope"):
+
+A Landlock rule describes a set of actions intended by a task on a scope 
+of objects.  A set of rules is aggregated in a ruleset, which can then 
+restrict the thread enforcing it, and its future children.
+
+The two existing types of rules are:
+
+Filesystem rules
+     For these rules, the scope of objects is a file hierarchy,
+     and the related filesystem actions are defined with
+     `filesystem access rights`.
+
+Network rules (since ABI v4)
+     For these rules, the scope of objects is the sockets identified
+     with a TCP (bind or connect) port according to the related
+     `network access rights`.
+
+
+What do you think?
+
+
+>>>
+>>>>         and the related actions are defined with `network access rights`.
