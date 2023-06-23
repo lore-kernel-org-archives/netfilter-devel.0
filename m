@@ -2,123 +2,103 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD31EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jun 2023 01:26:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37123C001B0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 23 Jun 2023 06:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229879AbjFWB0V (ORCPT
+        id S230169AbjFWGLK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 22 Jun 2023 21:26:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35860 "EHLO
+        Fri, 23 Jun 2023 02:11:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbjFWB0V (ORCPT
+        with ESMTP id S229902AbjFWGLJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Jun 2023 21:26:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E8EF1FCB;
-        Thu, 22 Jun 2023 18:26:20 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AFCEF61941;
-        Fri, 23 Jun 2023 01:26:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B2E0C433C8;
-        Fri, 23 Jun 2023 01:26:16 +0000 (UTC)
-Date:   Thu, 22 Jun 2023 21:26:14 -0400
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Bagas Sanjaya <bagasdotme@gmail.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Fri, 23 Jun 2023 02:11:09 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63FE710DB;
+        Thu, 22 Jun 2023 23:11:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=5UQOnj+EL/9oIsTofJlpcZai9GCdVN+roMEwh7clpOc=; b=2AChkdxEO1FmOtqF0sWRc4j9MO
+        8GT74VDCFNlhXzXQCK1frQWvEAOFCjJGUXMc5qGBkgWTM99B6qHQ9W+AFUnCpexGesAjycvyfdDFw
+        izi0sgqfE7VxNPwFAZWn0fW9H4dVpM5L+zLNjjQRlxL2B/2rWO41iKW82SXxZ5Bkm2sIbrFgHAotO
+        jUxPARZ2NyrruHpit44KZmKGH0n0wfL28Q3IcDpQ+Ll9GQw/LLry4dorttsRRfUg6zkzX7Y0QKksd
+        NsjIOraeG4y5w+aYV1aPrnXlBG6ZSFCONBJfVIGbbEAX0HJ6hq/8mXjTj/Ez4BWePuuVfGAhssz7n
+        nCmDNd9Q==;
+Received: from [2601:1c2:980:9ec0::2764] (helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+        id 1qCa0c-002fRx-1u;
+        Fri, 23 Jun 2023 06:11:02 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     netdev@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
         Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Lingutla Chandrasekhar <clingutla@codeaurora.org>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        "J. Avila" <elavila@google.com>,
-        Vivek Anand <vivekanand754@gmail.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Thomas Renninger <trenn@suse.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Regressions <regressions@lists.linux.dev>,
-        Linux Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Netfilter Core Developers <coreteam@netfilter.org>,
-        Linux Networking <netdev@vger.kernel.org>,
-        Linux Power Management <linux-pm@vger.kernel.org>
-Subject: Re: High cpu usage caused by kernel process when upgraded to linux
- 5.19.17 or later
-Message-ID: <20230622212614.5eb20dad@gandalf.local.home>
-In-Reply-To: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
-References: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        Paolo Abeni <pabeni@redhat.com>
+Subject: [PATCH net-next] linux/netfilter.h: fix kernel-doc warnings
+Date:   Thu, 22 Jun 2023 23:11:01 -0700
+Message-ID: <20230623061101.32513-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 23 Jun 2023 07:58:51 +0700
-Bagas Sanjaya <bagasdotme@gmail.com> wrote:
+kernel-doc does not support DECLARE_PER_CPU(), so don't mark it with
+kernel-doc notation.
 
-> Hi,
-> 
-> I notice a regression report on Bugzilla [1]. Quoting from it:
-> 
-> > kernel process "kworker/events_power_efficient" uses a lot of cpu power (100% on ESXI 6.7, ~30% on ESXI 7.0U3 or later) after upgrading from 5.17.3 to 5.19.17 or later.
-> > 
-> > dmesg log:
-> > [ 2430.973102]  </TASK>
-> > [ 2430.973131] Sending NMI from CPU 1 to CPUs 0:
-> > [ 2430.973241] NMI backtrace for cpu 0
-> > [ 2430.973247] CPU: 0 PID: 22 Comm: kworker/0:1 Not tainted 6.3.3 #1
-> > [ 2430.973254] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 11/12/2020
-> > [ 2430.973258] Workqueue: events_power_efficient htable_gc [xt_hashlimit]
-> > [ 2430.973275] RIP: 0010:preempt_count_sub+0x2e/0xa0
-> > [ 2430.973289] Code: 36 01 85 c9 75 1b 65 8b 15 a7 da f8 5e 89 d1 81 e1 ff ff ff 7f 39 f9 7c 16 81 ff fe 00 00 00 76 3b f7 df 65 01 3d 8a da f8 5e <c3> cc cc cc cc e8 98 aa 25 00 85 c0 74 f2 8b 15 da 71 ed 00 85 d2
-> > [ 2430.973294] RSP: 0018:ffffb15ec00dbe58 EFLAGS: 00000297
-> > [ 2430.973299] RAX: 0000000000000000 RBX: ffffb15ec12ad000 RCX: 0000000000000001
-> > [ 2430.973302] RDX: 0000000080000001 RSI: ffffffffa1c3313b RDI: 00000000ffffffff
-> > [ 2430.973306] RBP: dead000000000122 R08: 0000000000000010 R09: 0000746e65696369
-> > [ 2430.973309] R10: 8080808080808080 R11: 0000000000000018 R12: 0000000000000000
-> > [ 2430.973312] R13: 0000000000001e2b R14: ffffb15ec12ad048 R15: ffff91c279c26a05
-> > [ 2430.973316] FS:  0000000000000000(0000) GS:ffff91c279c00000(0000) knlGS:0000000000000000
-> > [ 2430.973320] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > [ 2430.973324] CR2: 000055fc138890e0 CR3: 000000010810e002 CR4: 00000000001706f0
-> > [ 2430.973374] Call Trace:
-> > [ 2430.973388]  <TASK>
-> > [ 2430.973390]  __local_bh_enable_ip+0x32/0x70
-> > [ 2430.973413]  htable_selective_cleanup+0x95/0xc0 [xt_hashlimit]
-> > [ 2430.973428]  htable_gc+0xf/0x30 [xt_hashlimit]
+One comment block is not kernel-doc notation, so just use
+"/*" to begin the comment.
 
-I take it that the "gc" in "htable_gc" means "garbage collection". It may
-not have anything to do with changes to this thread. It could very well be
-something is feeding it too much garbage!
+Quietens these warnings:
 
--- Steve
+netfilter.h:493: warning: Function parameter or member 'bool' not described in 'DECLARE_PER_CPU'
+netfilter.h:493: warning: Function parameter or member 'nf_skb_duplicated' not described in 'DECLARE_PER_CPU'
+netfilter.h:493: warning: expecting prototype for nf_skb_duplicated(). Prototype was for DECLARE_PER_CPU() instead
+netfilter.h:496: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * Contains bitmask of ctnetlink event subscribers, if any.
 
+Fixes: e7c8899f3e6f ("netfilter: move tee_active to core")
+Fixes: fdf6491193e4 ("netfilter: ctnetlink: make event listener tracking global")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+---
+ include/linux/netfilter.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> > [ 2430.973440]  process_one_work+0x1d4/0x360
-> > [ 2430.973459]  ? process_one_work+0x360/0x360
-> > [ 2430.973467]  worker_thread+0x25/0x3b0
-> > [ 2430.973476]  ? process_one_work+0x360/0x360
-> > [ 2430.973483]  kthread+0xe1/0x110
-> > [ 2430.973499]  ? kthread_complete_and_exit+0x20/0x20
-> > [ 2430.973507]  ret_from_fork+0x1f/0x30
-> > [ 2430.973526]  </TASK>  
-> 
-> See Bugzilla for the full thread and perf output.
-> 
-> Anyway, I'm tracking it in regzbot so that it doesn't fall through
-> cracks unnoticed:
-> 
-> #regzbot introduced: v5.17.3..v5.19.17 https://bugzilla.kernel.org/show_bug.cgi?id=217586
-> #regzbot title: kworker/events_power_efficient utilizes full CPU power after kernel upgrade
-> 
-> Thanks.
-> 
-> [1]: https://bugzilla.kernel.org/show_bug.cgi?id=217586
-> 
-
+diff -- a/include/linux/netfilter.h b/include/linux/netfilter.h
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -481,7 +481,7 @@ struct nfnl_ct_hook {
+ };
+ extern const struct nfnl_ct_hook __rcu *nfnl_ct_hook;
+ 
+-/**
++/*
+  * nf_skb_duplicated - TEE target has sent a packet
+  *
+  * When a xtables target sends a packet, the OUTPUT and POSTROUTING
+@@ -492,7 +492,7 @@ extern const struct nfnl_ct_hook __rcu *
+  */
+ DECLARE_PER_CPU(bool, nf_skb_duplicated);
+ 
+-/**
++/*
+  * Contains bitmask of ctnetlink event subscribers, if any.
+  * Can't be pernet due to NETLINK_LISTEN_ALL_NSID setsockopt flag.
+  */
