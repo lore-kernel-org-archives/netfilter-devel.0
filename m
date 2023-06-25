@@ -2,60 +2,54 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F8A6EB64DC
-	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Jun 2023 18:35:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0B70C001B0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 25 Jun 2023 22:42:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbjFYSfQ (ORCPT
+        id S229562AbjFYWm3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 25 Jun 2023 14:35:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36124 "EHLO
+        Sun, 25 Jun 2023 18:42:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229693AbjFYSfQ (ORCPT
+        with ESMTP id S229448AbjFYWm2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Jun 2023 14:35:16 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01190184;
-        Sun, 25 Jun 2023 11:35:14 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qDUZr-0006pz-Ia; Sun, 25 Jun 2023 20:35:11 +0200
-Date:   Sun, 25 Jun 2023 20:35:11 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Jason Vas Dias <jason.vas.dias@ptt.ie>,
-        Jason Vas Dias <jason.vas.dias@gmail.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        netfilter@vger.kernel.org
-Subject: Re: Linux netfilter / iptables : How to enable iptables TRACE chain
- handling with nf_log_syslog on RHEL8+?
-Message-ID: <20230625183511.GC3207@breakpoint.cc>
-References: <hhttuv65e9.fsf@jvdspc.jvds.net>
- <hhr0pz60h5.fsf@jvdspc.jvds.net>
+        Sun, 25 Jun 2023 18:42:28 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 83781193
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Jun 2023 15:42:26 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/2] netfilter: nf_tables: unbind non-anonymous set if rule construction fails
+Date:   Mon, 26 Jun 2023 00:42:18 +0200
+Message-Id: <20230625224219.64876-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <hhr0pz60h5.fsf@jvdspc.jvds.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Jason Vas Dias <jason.vas.dias@ptt.ie> wrote:
->   RE: you wrote:
->   > Run "xtables-monitor --trace".
-> 
->   Thanks for the info about xtables-monitor - yes, that does give alot
->   of extra information about rule chain processing.
-> 
->   But I'd just like to understand :
->     Why does this work under kernel v6.2.16 and not under v4.18.0-477 ?
->     :
->     # iptables -t raw -A PREROUTING -p icmp -j TRACE
->     # iptables -t raw -A OUTPUT -p icmp -j TRACE
->     # modprobe nf_log_ipv4
->     # echo nf_log_ipv4 > /proc/sys/net/netfilter/nf_log/2
-> 
->   How can I enable the 'nf_log_syslog' module, so that it does
->   in fact emit TRACE kernel messages to syslog, as it purports
->   to be able to do, under v4.18.0-477 ?
+Otherwise a dangling reference to a rule object that is gone remains
+in the set binding list.
 
-You need to install iptables-legacy, not shipped in RHEL8.
+Fixes: 26b5a5712eb8 ("netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4c7937fd803f..1d64c163076a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5343,6 +5343,8 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 		nft_set_trans_unbind(ctx, set);
+ 		if (nft_set_is_anonymous(set))
+ 			nft_deactivate_next(ctx->net, set);
++		else
++			list_del_rcu(&binding->list);
+ 
+ 		set->use--;
+ 		break;
+-- 
+2.30.2
+
