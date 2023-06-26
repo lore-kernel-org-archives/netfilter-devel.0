@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EAD1C001B0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 06:48:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF14C001DE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 06:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229507AbjFZGsC (ORCPT
+        id S229553AbjFZGsD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Jun 2023 02:48:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47978 "EHLO
+        Mon, 26 Jun 2023 02:48:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229548AbjFZGr7 (ORCPT
+        with ESMTP id S229557AbjFZGsA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Jun 2023 02:47:59 -0400
+        Mon, 26 Jun 2023 02:48:00 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4CB271AA;
-        Sun, 25 Jun 2023 23:47:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 822CF180;
+        Sun, 25 Jun 2023 23:47:59 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net-next 1/8] ipvs: increase ip_vs_conn_tab_bits range for 64BIT
-Date:   Mon, 26 Jun 2023 08:47:42 +0200
-Message-Id: <20230626064749.75525-2-pablo@netfilter.org>
+Subject: [PATCH net-next 6/8] netfilter: snat: evict closing tcp entries on reply tuple collision
+Date:   Mon, 26 Jun 2023 08:47:47 +0200
+Message-Id: <20230626064749.75525-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230626064749.75525-1-pablo@netfilter.org>
 References: <20230626064749.75525-1-pablo@netfilter.org>
@@ -32,91 +32,156 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Abhijeet Rastogi <abhijeet.1989@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-Current range [8, 20] is set purely due to historical reasons
-because at the time, ~1M (2^20) was considered sufficient.
-With this change, 27 is the upper limit for 64-bit, 20 otherwise.
+When all tried source tuples are in use, the connection request (skb)
+and the new conntrack will be dropped in nf_confirm() due to the
+non-recoverable clash.
 
-Previous change regarding this limit is here.
+Make it so that the last 32 attempts are allowed to evict a colliding
+entry if this connection is already closing and the new sequence number
+has advanced past the old one.
 
-Link: https://lore.kernel.org/all/86eabeb9dd62aebf1e2533926fdd13fed48bab1f.1631289960.git.aclaudi@redhat.com/T/#u
+Such "all tuples taken" secenario can happen with tcp-rpc workloads where
+same dst:dport gets queried repeatedly.
 
-Signed-off-by: Abhijeet Rastogi <abhijeet.1989@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/Kconfig      | 27 ++++++++++++++-------------
- net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
- 2 files changed, 16 insertions(+), 15 deletions(-)
+ net/netfilter/nf_nat_core.c | 92 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 88 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-index 271da8447b29..2a3017b9c001 100644
---- a/net/netfilter/ipvs/Kconfig
-+++ b/net/netfilter/ipvs/Kconfig
-@@ -44,7 +44,8 @@ config	IP_VS_DEBUG
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ce829d434f13..fadbd4ed3dc0 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -27,6 +27,9 @@
  
- config	IP_VS_TAB_BITS
- 	int "IPVS connection table size (the Nth power of 2)"
--	range 8 20
-+	range 8 20 if !64BIT
-+	range 8 27 if 64BIT
- 	default 12
- 	help
- 	  The IPVS connection hash table uses the chaining scheme to handle
-@@ -54,24 +55,24 @@ config	IP_VS_TAB_BITS
+ #include "nf_internals.h"
  
- 	  Note the table size must be power of 2. The table size will be the
- 	  value of 2 to the your input number power. The number to choose is
--	  from 8 to 20, the default number is 12, which means the table size
--	  is 4096. Don't input the number too small, otherwise you will lose
--	  performance on it. You can adapt the table size yourself, according
--	  to your virtual server application. It is good to set the table size
--	  not far less than the number of connections per second multiplying
--	  average lasting time of connection in the table.  For example, your
--	  virtual server gets 200 connections per second, the connection lasts
--	  for 200 seconds in average in the connection table, the table size
--	  should be not far less than 200x200, it is good to set the table
--	  size 32768 (2**15).
-+	  from 8 to 27 for 64BIT(20 otherwise), the default number is 12,
-+	  which means the table size is 4096. Don't input the number too
-+	  small, otherwise you will lose performance on it. You can adapt the
-+	  table size yourself, according to your virtual server application.
-+	  It is good to set the table size not far less than the number of
-+	  connections per second multiplying average lasting time of
-+	  connection in the table.  For example, your virtual server gets 200
-+	  connections per second, the connection lasts for 200 seconds in
-+	  average in the connection table, the table size should be not far
-+	  less than 200x200, it is good to set the table size 32768 (2**15).
++#define NF_NAT_MAX_ATTEMPTS	128
++#define NF_NAT_HARDER_THRESH	(NF_NAT_MAX_ATTEMPTS / 4)
++
+ static spinlock_t nf_nat_locks[CONNTRACK_LOCKS];
  
- 	  Another note that each connection occupies 128 bytes effectively and
- 	  each hash entry uses 8 bytes, so you can estimate how much memory is
- 	  needed for your box.
+ static DEFINE_MUTEX(nf_nat_proto_mutex);
+@@ -197,6 +200,88 @@ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 	return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
+ }
  
- 	  You can overwrite this number setting conn_tab_bits module parameter
--	  or by appending ip_vs.conn_tab_bits=? to the kernel command line
--	  if IP VS was compiled built-in.
-+	  or by appending ip_vs.conn_tab_bits=? to the kernel command line if
-+	  IP VS was compiled built-in.
++static bool nf_nat_may_kill(struct nf_conn *ct, unsigned long flags)
++{
++	static const unsigned long flags_refuse = IPS_FIXED_TIMEOUT |
++						  IPS_DYING;
++	static const unsigned long flags_needed = IPS_SRC_NAT;
++	enum tcp_conntrack old_state;
++
++	old_state = READ_ONCE(ct->proto.tcp.state);
++	if (old_state < TCP_CONNTRACK_TIME_WAIT)
++		return false;
++
++	if (flags & flags_refuse)
++		return false;
++
++	return (flags & flags_needed) == flags_needed;
++}
++
++/* reverse direction will send packets to new source, so
++ * make sure such packets are invalid.
++ */
++static bool nf_seq_has_advanced(const struct nf_conn *old, const struct nf_conn *new)
++{
++	return (__s32)(new->proto.tcp.seen[0].td_end -
++		       old->proto.tcp.seen[0].td_end) > 0;
++}
++
++static int
++nf_nat_used_tuple_harder(const struct nf_conntrack_tuple *tuple,
++			 const struct nf_conn *ignored_conntrack,
++			 unsigned int attempts_left)
++{
++	static const unsigned long flags_offload = IPS_OFFLOAD | IPS_HW_OFFLOAD;
++	struct nf_conntrack_tuple_hash *thash;
++	const struct nf_conntrack_zone *zone;
++	struct nf_conntrack_tuple reply;
++	unsigned long flags;
++	struct nf_conn *ct;
++	bool taken = true;
++	struct net *net;
++
++	nf_ct_invert_tuple(&reply, tuple);
++
++	if (attempts_left > NF_NAT_HARDER_THRESH ||
++	    tuple->dst.protonum != IPPROTO_TCP ||
++	    ignored_conntrack->proto.tcp.state != TCP_CONNTRACK_SYN_SENT)
++		return nf_conntrack_tuple_taken(&reply, ignored_conntrack);
++
++	/* :ast few attempts to find a free tcp port. Destructive
++	 * action: evict colliding if its in timewait state and the
++	 * tcp sequence number has advanced past the one used by the
++	 * old entry.
++	 */
++	net = nf_ct_net(ignored_conntrack);
++	zone = nf_ct_zone(ignored_conntrack);
++
++	thash = nf_conntrack_find_get(net, zone, &reply);
++	if (!thash)
++		return false;
++
++	ct = nf_ct_tuplehash_to_ctrack(thash);
++
++	if (thash->tuple.dst.dir == IP_CT_DIR_ORIGINAL)
++		goto out;
++
++	if (WARN_ON_ONCE(ct == ignored_conntrack))
++		goto out;
++
++	flags = READ_ONCE(ct->status);
++	if (!nf_nat_may_kill(ct, flags))
++		goto out;
++
++	if (!nf_seq_has_advanced(ct, ignored_conntrack))
++		goto out;
++
++	/* Even if we can evict do not reuse if entry is offloaded. */
++	if (nf_ct_kill(ct))
++		taken = flags & flags_offload;
++out:
++	nf_ct_put(ct);
++	return taken;
++}
++
+ static bool nf_nat_inet_in_range(const struct nf_conntrack_tuple *t,
+ 				 const struct nf_nat_range2 *range)
+ {
+@@ -385,7 +470,6 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	unsigned int range_size, min, max, i, attempts;
+ 	__be16 *keyptr;
+ 	u16 off;
+-	static const unsigned int max_attempts = 128;
  
- comment "IPVS transport protocol load balancing support"
+ 	switch (tuple->dst.protonum) {
+ 	case IPPROTO_ICMP:
+@@ -471,8 +555,8 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		off = get_random_u16();
  
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 928e64653837..f4c55e65abd1 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1485,8 +1485,8 @@ int __init ip_vs_conn_init(void)
- 	int idx;
+ 	attempts = range_size;
+-	if (attempts > max_attempts)
+-		attempts = max_attempts;
++	if (attempts > NF_NAT_MAX_ATTEMPTS)
++		attempts = NF_NAT_MAX_ATTEMPTS;
  
- 	/* Compute size and mask */
--	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 20) {
--		pr_info("conn_tab_bits not in [8, 20]. Using default value\n");
-+	if (ip_vs_conn_tab_bits < 8 || ip_vs_conn_tab_bits > 27) {
-+		pr_info("conn_tab_bits not in [8, 27]. Using default value\n");
- 		ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+ 	/* We are in softirq; doing a search of the entire range risks
+ 	 * soft lockup when all tuples are already used.
+@@ -483,7 +567,7 @@ static void nf_nat_l4proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ another_round:
+ 	for (i = 0; i < attempts; i++, off++) {
+ 		*keyptr = htons(min + off % range_size);
+-		if (!nf_nat_used_tuple(tuple, ct))
++		if (!nf_nat_used_tuple_harder(tuple, ct, attempts - i))
+ 			return;
  	}
- 	ip_vs_conn_tab_size = 1 << ip_vs_conn_tab_bits;
+ 
 -- 
 2.30.2
 
