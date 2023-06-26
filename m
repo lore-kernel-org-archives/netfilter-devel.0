@@ -2,59 +2,55 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F045C001DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 11:05:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6E02EB64D7
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 15:16:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229492AbjFZLFU (ORCPT
+        id S230336AbjFZPQN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Jun 2023 07:05:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48532 "EHLO
+        Mon, 26 Jun 2023 11:16:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229524AbjFZLFR (ORCPT
+        with ESMTP id S230394AbjFZPQM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Jun 2023 07:05:17 -0400
+        Mon, 26 Jun 2023 11:16:12 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B7C08AF;
-        Mon, 26 Jun 2023 04:05:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4C6EC10DC
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2023 08:16:07 -0700 (PDT)
+Date:   Mon, 26 Jun 2023 17:16:03 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     stable@vger.kernel.org, carnil@debian.org
-Subject: [PATCH -stable,5.10 3/3] netfilter: nf_tables: hold mutex on netns pre_exit path
-Date:   Mon, 26 Jun 2023 13:05:06 +0200
-Message-Id: <20230626110506.76630-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230626110506.76630-1-pablo@netfilter.org>
-References: <20230626110506.76630-1-pablo@netfilter.org>
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf v2] lib/ts_bm: reset initial match offset for every
+ block of text
+Message-ID: <ZJmrs+G4mNuoVnMs@calendula>
+References: <20230619190657.1905910-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230619190657.1905910-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ 3923b1e4406680d57da7e873da77b1683035d83f ]
+On Mon, Jun 19, 2023 at 08:06:57PM +0100, Jeremy Sowden wrote:
+> The `shift` variable which indicates the offset in the string at which
+> to start matching the pattern is initialized to `bm->patlen - 1`, but it
+> is not reset when a new block is retrieved.  This means the implemen-
+> tation may start looking at later and later positions in each successive
+> block and miss occurrences of the pattern at the beginning.  E.g.,
+> consider a HTTP packet held in a non-linear skb, where the HTTP request
+> line occurs in the second block:
+> 
+>   [... 52 bytes of packet headers ...]
+>   GET /bmtest HTTP/1.1\r\nHost: www.example.com\r\n\r\n
+> 
+> and the pattern is "GET /bmtest".
+> 
+> Once the first block comprising the packet headers has been examined,
+> `shift` will be pointing to somewhere near the end of the block, and so
+> when the second block is examined the request line at the beginning will
+> be missed.
+> 
+> Reinitialize the variable for each new block.
 
-clean_net() runs in workqueue while walking over the lists, grab mutex.
-
-Fixes: 767d1216bff8 ("netfilter: nftables: fix possible UAF over chains from packet path in netns")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0b2a6f988e9b..f5607d4359bb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8980,7 +8980,9 @@ static int __net_init nf_tables_init_net(struct net *net)
- 
- static void __net_exit nf_tables_pre_exit_net(struct net *net)
- {
-+	mutex_lock(&net->nft.commit_mutex);
- 	__nft_release_hooks(net);
-+	mutex_unlock(&net->nft.commit_mutex);
- }
- 
- static void __net_exit nf_tables_exit_net(struct net *net)
--- 
-2.30.2
-
+Applied to nf.git, thanks
