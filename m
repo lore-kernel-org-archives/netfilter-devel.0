@@ -2,105 +2,64 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43628EB64D7
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 05:31:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD82EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 06:48:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229731AbjFZFbZ (ORCPT
+        id S229535AbjFZGsB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Jun 2023 01:31:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55300 "EHLO
+        Mon, 26 Jun 2023 02:48:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229727AbjFZFbY (ORCPT
+        with ESMTP id S229542AbjFZGr7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Jun 2023 01:31:24 -0400
-X-Greylist: delayed 500 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 25 Jun 2023 22:31:18 PDT
-Received: from tsukuyomi.43-1.org (tsukuyomi.43-1.org [116.203.33.193])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7D04E44;
-        Sun, 25 Jun 2023 22:31:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=43-1.org;
- i=@43-1.org; q=dns/txt; s=2019; t=1687756972; h=from : to : cc :
- subject : in-reply-to : references : date : message-id : mime-version
- : content-type : from;
- bh=Eq4k6m+p07AiJXh4wBi2hik11r7Xs7nEHyzRzDKtkag=;
- b=NUgI0vT/PM49fItVgX9+3ne7CAVuWcZ2azz+OC2gdh6Z/z8WGBcH1Yxu2BP5PcWdcqbaD
- /2cSrI/nMbkSoBywV/4dBeAUV0gqTOjbhczJkf6pxtSL62RxONgXyONN7SdAses43lUD7iV
- 9/Z5rLIfcOgQKth2mnle3+GxAKmBBc0+kaNAMs41Hh0Z3k93LxJ9xKGiEaBrVxiD1ExMrIJ
- y5O1072Sec5G9Inj5ZmPRgiCY+uHJSP3D1fLaNi3CFNo0O1SIauQqfoQdDs3JgEYmD/bbGc
- Uso8ddxYK1WjsR7/f0mqNWy+5TEJ90jlzckIWBD65k4Ua3NzEF8ZLDS2pHtg==
-From:   Matthias Maier <tamiko@43-1.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Kernel oops with netfilter: nf_tables: incorrect error path
- handling with NFT_MSG_NEWRULE
-In-Reply-To: <ZJjIRQevLKW+YJP6@calendula> (Pablo Neira Ayuso's message of
-        "Mon, 26 Jun 2023 01:05:41 +0200")
-References: <87cz1j5tof.fsf@43-1.org> <ZJjIRQevLKW+YJP6@calendula>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
-Date:   Mon, 26 Jun 2023 00:22:51 -0500
-Message-ID: <87ttuuajbo.fsf@43-1.org>
+        Mon, 26 Jun 2023 02:47:59 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6E7C5E4E;
+        Sun, 25 Jun 2023 23:47:57 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com
+Subject: [PATCH net-next 4/8] netfilter: ipset: remove rcu_read_lock_bh pair from ip_set_test
+Date:   Mon, 26 Jun 2023 08:47:45 +0200
+Message-Id: <20230626064749.75525-5-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230626064749.75525-1-pablo@netfilter.org>
+References: <20230626064749.75525-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+From: Florian Westphal <fw@strlen.de>
 
-Thanks a lot for the quick reponse!
+Callers already hold rcu_read_lock.
 
+Prior to RCU conversion this used to be a read_lock_bh(), but now the
+bh-disable isn't needed anymore.
 
-On Sun, Jun 25, 2023, at 18:05 CDT, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipset/ip_set_core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-> [...]
->
-> Could you give a try to these two fixes on top?
->
-> 26b5a5712eb8 netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain
-> 4bedf9eee016 netfilter: nf_tables: fix chain binding transaction logic
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 46ebee9400da..a77c75f6dfb9 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -739,9 +739,7 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return 0;
+ 
+-	rcu_read_lock_bh();
+ 	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+-	rcu_read_unlock_bh();
+ 
+ 	if (ret == -EAGAIN) {
+ 		/* Type requests element to be completed */
+-- 
+2.30.2
 
-These two patches alone were not enough, I had to apply the third patch
-you mentioned:
-
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230625224219.64876-1-pablo@netfilter.org/
-
-With all three patches I do not run into the oops any more.
-
-
-Nevertheless, please find below a (somehwat minimal) reproducer. Loading
-this ruleset into nft_tables via  $ nft -f reproducer.ruleset  previously
-oopsed the kernel.
-
-Best,
-Matthias
-
-
-
-define guarded_ports = {ssh}
-
-table inet portknock {
-        set clients_ipv4 {
-                type ipv4_addr
-                flags timeout
-        }
-
-        set candidates_ipv4 {
-                type ipv4_addr . inet_service
-                flags timeout
-        }
-
-        chain input {
-                type filter hook input priority -10; policy accept;
-
-                tcp dport 10001 add @candidates_ipv4 {ip  saddr . 10002 timeout 1s}
-                tcp dport 10002 ip  saddr . tcp dport @candidates_ipv4 add @candidates_ipv4 {ip  saddr . 10003 timeout 1s}
-                tcp dport 10003 ip  saddr . tcp dport @candidates_ipv4 add @candidates_ipv4 {ip  saddr . 10004 timeout 1s}
-                tcp dport 10004 ip  saddr . tcp dport @candidates_ipv4 add @candidates_ipv4 {ip  saddr . 10005 timeout 1s}
-                tcp dport 10005 ip  saddr . tcp dport @candidates_ipv4 add @clients_ipv4 {ip  saddr timeout 600s} log prefix "Successful portknock: "
-
-                tcp dport $guarded_ports ip  saddr @clients_ipv4 counter accept
-                tcp dport $guarded_ports ct state established,related counter accept
-
-                tcp dport $guarded_ports reject with tcp reset
-        }
-}
