@@ -2,34 +2,34 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69F72EB64DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 18:42:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55694EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 26 Jun 2023 18:57:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232533AbjFZSmK (ORCPT
+        id S229626AbjFZS5T (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 26 Jun 2023 14:42:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54602 "EHLO
+        Mon, 26 Jun 2023 14:57:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231940AbjFZSmG (ORCPT
+        with ESMTP id S229788AbjFZS5S (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Jun 2023 14:42:06 -0400
-Received: from smtp-8fac.mail.infomaniak.ch (smtp-8fac.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fac])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F01F188
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2023 11:42:02 -0700 (PDT)
+        Mon, 26 Jun 2023 14:57:18 -0400
+Received: from smtp-bc09.mail.infomaniak.ch (smtp-bc09.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc09])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D374013D
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2023 11:57:16 -0700 (PDT)
 Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QqcBx05zczMq4rw;
-        Mon, 26 Jun 2023 18:42:01 +0000 (UTC)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QqcBw118LzMpvV8;
-        Mon, 26 Jun 2023 20:42:00 +0200 (CEST)
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QqcXT2gZtzMpnq3;
+        Mon, 26 Jun 2023 18:57:13 +0000 (UTC)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QqcXS3nDqzMpvTt;
+        Mon, 26 Jun 2023 20:57:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1687804920;
-        bh=O6Z//Jht1V+2grmqyyJ2OcZwGX8ozABe9JfLjyR0A2Y=;
+        s=20191114; t=1687805833;
+        bh=i82AV8gAS5naCAVaAT5nSKqFj/O0yC+fa0yOcPb/vLo=;
         h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=qMlBlkWqEqn7ixbT9M7Bk8dxXYiUjMVYopEgTAxSanhFwsMPFlu3zQxlAFbqw+ag5
-         Bkwzkz5IJ/KGK8eCBatjZK6q5c/sPE2+fX63fNaT+Q+ff4+TvNWlXGjekZFQmdGvSj
-         jRs29alhFhabKLhrM5Bed5eWgUwRSn4E8bpAvL2M=
-Message-ID: <fc490ec3-12ff-bca1-1c5e-44d09c54b8a4@digikod.net>
-Date:   Mon, 26 Jun 2023 20:41:59 +0200
+        b=bvzCKTOsg4bfFKVhUzs52KZeYPsOt66VCe7PtS9Rxttzf/b1DeKsuO+MwEYmFA6zf
+         1YICBTyBUAQsOLf7SMSM9Msmr6zO2BLGjLuHTGPaUNDOcVZNleQA/tuVEMSo+5s3TG
+         7l1gc0xwP4O+hQj53youxM4eGm/VlC/pPW62HNc0=
+Message-ID: <f14174f3-d855-dba9-5dd2-40a2c5e5ac3b@digikod.net>
+Date:   Mon, 26 Jun 2023 20:57:11 +0200
 MIME-Version: 1.0
 User-Agent: 
 Subject: Re: [PATCH v11 08/12] landlock: Add network rules and TCP hooks
@@ -51,6 +51,7 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Complementary review:
 
 On 15/05/2023 18:13, Konstantin Meskhidze wrote:
 > This commit adds network rules support in the ruleset management
@@ -63,10 +64,6 @@ On 15/05/2023 18:13, Konstantin Meskhidze wrote:
 > to specific ports.
 > 
 > Co-developed-by: Mickaël Salaün <mic@digikod.net>
-
-Signed-off-by: Mickaël Salaün <mic@digikod.net>
-
-
 > Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 > ---
 > 
@@ -146,9 +143,135 @@ Signed-off-by: Mickaël Salaün <mic@digikod.net>
 >   create mode 100644 security/landlock/net.c
 >   create mode 100644 security/landlock/net.h
 > 
+> diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
+> index 81d09ef9aa50..93794759dad4 100644
+> --- a/include/uapi/linux/landlock.h
+> +++ b/include/uapi/linux/landlock.h
+> @@ -31,6 +31,13 @@ struct landlock_ruleset_attr {
+>   	 * this access right.
+>   	 */
+>   	__u64 handled_access_fs;
+> +
 
-[...]
+Please remove this empty line.
 
+
+> +	/**
+> +	 * @handled_access_net: Bitmask of actions (cf. `Network flags`_)
+> +	 * that is handled by this ruleset and should then be forbidden if no
+> +	 * rule explicitly allow them.
+> +	 */
+> +	__u64 handled_access_net;
+>   };
+> 
+>   /*
+> @@ -54,6 +61,11 @@ enum landlock_rule_type {
+>   	 * landlock_path_beneath_attr .
+>   	 */
+>   	LANDLOCK_RULE_PATH_BENEATH = 1,
+> +	/**
+> +	 * @LANDLOCK_RULE_NET_SERVICE: Type of a &struct
+> +	 * landlock_net_service_attr .
+> +	 */
+> +	LANDLOCK_RULE_NET_SERVICE = 2,
+>   };
+> 
+>   /**
+> @@ -79,6 +91,23 @@ struct landlock_path_beneath_attr {
+>   	 */
+>   } __attribute__((packed));
+> 
+> +/**
+> + * struct landlock_net_service_attr - TCP subnet definition
+
+s/TCP subnet definition/Network service definition/
+
+
+> + *
+> + * Argument of sys_landlock_add_rule().
+> + */
+> +struct landlock_net_service_attr {
+> +	/**
+> +	 * @allowed_access: Bitmask of allowed access network for services
+> +	 * (cf. `Network flags`_).
+> +	 */
+> +	__u64 allowed_access;
+> +	/**
+> +	 * @port: Network port.
+> +	 */
+> +	__u64 port;
+> +};
+> +
+>   /**
+>    * DOC: fs_access
+>    *
+> @@ -189,4 +218,23 @@ struct landlock_path_beneath_attr {
+>   #define LANDLOCK_ACCESS_FS_TRUNCATE			(1ULL << 14)
+>   /* clang-format on */
+> 
+> +/**
+> + * DOC: net_access
+> + *
+> + * Network flags
+> + * ~~~~~~~~~~~~~~~~
+> + *
+> + * These flags enable to restrict a sandboxed process to a set of network
+> + * actions.
+> + *
+> + * TCP sockets with allowed actions:
+> + *
+> + * - %LANDLOCK_ACCESS_NET_BIND_TCP: Bind a TCP socket to a local port.
+> + * - %LANDLOCK_ACCESS_NET_CONNECT_TCP: Connect an active TCP socket to
+> + *   a remote port.
+> + */
+> +/* clang-format off */
+> +#define LANDLOCK_ACCESS_NET_BIND_TCP			(1ULL << 0)
+> +#define LANDLOCK_ACCESS_NET_CONNECT_TCP			(1ULL << 1)
+> +/* clang-format on */
+>   #endif /* _UAPI_LINUX_LANDLOCK_H */
+> diff --git a/security/landlock/Kconfig b/security/landlock/Kconfig
+> index 8e33c4e8ffb8..10c099097533 100644
+> --- a/security/landlock/Kconfig
+> +++ b/security/landlock/Kconfig
+> @@ -3,6 +3,7 @@
+>   config SECURITY_LANDLOCK
+>   	bool "Landlock support"
+>   	depends on SECURITY && !ARCH_EPHEMERAL_INODES
+> +	select SECURITY_NETWORK
+>   	select SECURITY_PATH
+>   	help
+>   	  Landlock is a sandboxing mechanism that enables processes to restrict
+> diff --git a/security/landlock/Makefile b/security/landlock/Makefile
+> index 7bbd2f413b3e..53d3c92ae22e 100644
+> --- a/security/landlock/Makefile
+> +++ b/security/landlock/Makefile
+> @@ -2,3 +2,5 @@ obj-$(CONFIG_SECURITY_LANDLOCK) := landlock.o
+> 
+>   landlock-y := setup.o syscalls.o object.o ruleset.o \
+>   	cred.o ptrace.o fs.o
+> +
+> +landlock-$(CONFIG_INET) += net.o
+> \ No newline at end of file
+> diff --git a/security/landlock/limits.h b/security/landlock/limits.h
+> index bafb3b8dc677..8a1a6463c64e 100644
+> --- a/security/landlock/limits.h
+> +++ b/security/landlock/limits.h
+> @@ -23,6 +23,10 @@
+>   #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
+>   #define LANDLOCK_SHIFT_ACCESS_FS	0
+> 
+> -/* clang-format on */
+> +#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
+> +#define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
+> +#define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
+> +#define LANDLOCK_SHIFT_ACCESS_NET	LANDLOCK_NUM_ACCESS_FS
+> 
+> +/* clang-format on */
+
+Please the empty line to make this patch clean.
+
+
+>   #endif /* _SECURITY_LANDLOCK_LIMITS_H */
 > diff --git a/security/landlock/net.c b/security/landlock/net.c
 > new file mode 100644
 > index 000000000000..f8d2be53ac0d
@@ -161,6 +284,100 @@ Signed-off-by: Mickaël Salaün <mic@digikod.net>
 > + *
 > + * Copyright © 2022 Huawei Tech. Co., Ltd.
 > + * Copyright © 2022 Microsoft Corporation
+> + */
+> +
+> +#include <linux/in.h>
+> +#include <linux/net.h>
+> +#include <linux/socket.h>
+> +#include <net/ipv6.h>
+> +
+> +#include "common.h"
+> +#include "cred.h"
+> +#include "limits.h"
+> +#include "net.h"
+> +#include "ruleset.h"
+> +
+> +int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
+> +			     const u16 port, access_mask_t access_rights)
+> +{
+> +	int err;
+> +	const struct landlock_id id = {
+> +		.key.data = (__force uintptr_t)htons(port),
+> +		.type = LANDLOCK_KEY_NET_PORT,
+> +	};
+> +
+> +	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+> +
+> +	/* Transforms relative access rights to absolute ones. */
+> +	access_rights |= LANDLOCK_MASK_ACCESS_NET &
+> +			 ~landlock_get_net_access_mask(ruleset, 0);
+> +
+> +	mutex_lock(&ruleset->lock);
+> +	err = landlock_insert_rule(ruleset, id, access_rights);
+> +	mutex_unlock(&ruleset->lock);
+> +
+> +	return err;
+> +}
+> +
+> +static access_mask_t
+> +get_raw_handled_net_accesses(const struct landlock_ruleset *const domain)
+> +{
+> +	access_mask_t access_dom = 0;
+> +	size_t layer_level;
+> +
+> +	for (layer_level = 0; layer_level < domain->num_layers; layer_level++)
+> +		access_dom |= landlock_get_net_access_mask(domain, layer_level);
+> +	return access_dom;
+> +}
+> +
+> +static const struct landlock_ruleset *get_current_net_domain(void)
+> +{
+> +	const struct landlock_ruleset *const dom =
+> +		landlock_get_current_domain();
+> +
+> +	if (!dom || !get_raw_handled_net_accesses(dom))
+> +		return NULL;
+> +
+> +	return dom;
+> +}
+> +
+> +static int check_socket_access(struct socket *const sock,
+> +			       struct sockaddr *const address,
+> +			       const int addrlen,
+> +			       const access_mask_t access_request)
+> +{
+> +	__be16 port;
+> +	layer_mask_t layer_masks[LANDLOCK_NUM_ACCESS_NET] = {};
+> +	const struct landlock_rule *rule;
+> +	access_mask_t handled_access;
+> +	struct landlock_id id = {
+> +		.type = LANDLOCK_KEY_NET_PORT,
+> +	};
+> +	const struct landlock_ruleset *const domain = get_current_net_domain();
+> +
+> +	if (WARN_ON_ONCE(!domain))
 
-You can replace these dates with "2022-2023", and same for all your 
-other "2022" I guess.
+The WARN_ON_ONCE() needs to be removed for processes not sandboxed. This 
+should be printed when running the tests.
+
+
+
+> +		return 0;
+> +	if (WARN_ON_ONCE(domain->num_layers < 1))
+> +		return -EACCES;
+> +
+> +	/* Checks if it's a TCP socket. */
+> +	if (sock->type != SOCK_STREAM)
+> +		return 0;
+> +
+> +	/* Checks for minimal header length. */
+> +	if (addrlen < offsetofend(struct sockaddr, sa_family))
+
+You can use "typeof(*address)" instead of struct sockaddr, this makes it 
+easier to review.
+
+
+> +		return -EINVAL;
+> +
+
+[...]
