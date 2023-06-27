@@ -2,78 +2,97 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14AE1EB64D9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 11:04:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F468EB64D9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 11:13:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231182AbjF0LEN (ORCPT
+        id S230315AbjF0LNB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jun 2023 07:04:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32822 "EHLO
+        Tue, 27 Jun 2023 07:13:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229623AbjF0LEN (ORCPT
+        with ESMTP id S229804AbjF0LNA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jun 2023 07:04:13 -0400
+        Tue, 27 Jun 2023 07:13:00 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06EF91BE8;
-        Tue, 27 Jun 2023 04:04:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E08181FF3;
+        Tue, 27 Jun 2023 04:12:58 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1qE6UK-0003PI-Kq; Tue, 27 Jun 2023 13:04:00 +0200
-Date:   Tue, 27 Jun 2023 13:04:00 +0200
+        id 1qE6cq-0003Sm-6H; Tue, 27 Jun 2023 13:12:48 +0200
+Date:   Tue, 27 Jun 2023 13:12:48 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     edumazet@google.com, dsahern@kernel.org, kuba@kernel.org,
+Cc:     daniel@iogearbox.net, edumazet@google.com, kuba@kernel.org,
         fw@strlen.de, pabeni@redhat.com, pablo@netfilter.org,
-        davem@davemloft.net, kadlec@netfilter.org, daniel@iogearbox.net,
+        andrii@kernel.org, davem@davemloft.net, ast@kernel.org,
+        kadlec@netfilter.org, martin.lau@linux.dev, song@kernel.org,
+        yhs@fb.com, john.fastabend@gmail.com, kpsingh@kernel.org,
+        sdf@google.com, haoluo@google.com, jolsa@kernel.org,
+        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        bpf@vger.kernel.org
-Subject: Re: [PATCH bpf-next 3/7] netfilter: defrag: Add glue hooks for
- enabling/disabling defrag
-Message-ID: <20230627110400.GG3207@breakpoint.cc>
+        netdev@vger.kernel.org, dsahern@kernel.org
+Subject: Re: [PATCH bpf-next 4/7] netfilter: bpf: Support
+ BPF_F_NETFILTER_IP_DEFRAG in netfilter link
+Message-ID: <20230627111248.GH3207@breakpoint.cc>
 References: <cover.1687819413.git.dxu@dxuuu.xyz>
- <66d1eaeb17721b1274eb4c1991a3725e47c912c5.1687819413.git.dxu@dxuuu.xyz>
+ <242c66138bf4ec8aa26b29d736fb48242b4164ce.1687819413.git.dxu@dxuuu.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <66d1eaeb17721b1274eb4c1991a3725e47c912c5.1687819413.git.dxu@dxuuu.xyz>
+In-Reply-To: <242c66138bf4ec8aa26b29d736fb48242b4164ce.1687819413.git.dxu@dxuuu.xyz>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Daniel Xu <dxu@dxuuu.xyz> wrote:
-> diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-> index e61ea428ea18..436e629b0969 100644
-> --- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-> @@ -7,6 +7,7 @@
->  #include <linux/ip.h>
->  #include <linux/netfilter.h>
->  #include <linux/module.h>
-> +#include <linux/rcupdate.h>
->  #include <linux/skbuff.h>
->  #include <net/netns/generic.h>
->  #include <net/route.h>
-> @@ -113,17 +114,24 @@ static void __net_exit defrag4_net_exit(struct net *net)
->  	}
->  }
->  
-> +static struct nf_defrag_v4_hook defrag_hook = {
-> +	.enable = nf_defrag_ipv4_enable,
-> +	.disable = nf_defrag_ipv4_disable,
-> +};
+> +static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
+> +{
+> +	int err;
+> +
+> +	switch (link->hook_ops.pf) {
+> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+> +	case NFPROTO_IPV4:
+> +		const struct nf_defrag_v4_hook *v4_hook;
+> +
+> +		err = request_module("nf_defrag_ipv4");
+> +		if (err)
+> +			return err;
+> +
+> +		rcu_read_lock();
+> +		v4_hook = rcu_dereference(nf_defrag_v4_hook);
+> +		err = v4_hook->enable(link->net);
+> +		rcu_read_unlock();
 
-Nit: static const, same for v6.
+I'd reverse this, first try rcu_dereference(), then modprobe
+if thats returned NULL.
 
->  static struct pernet_operations defrag4_net_ops = {
->  	.exit = defrag4_net_exit,
->  };
->  
->  static int __init nf_defrag_init(void)
->  {
-> +	rcu_assign_pointer(nf_defrag_v4_hook, &defrag_hook);
->  	return register_pernet_subsys(&defrag4_net_ops);
+> +static void bpf_nf_disable_defrag(struct bpf_nf_link *link)
+> +{
+> +	switch (link->hook_ops.pf) {
+> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+> +	case NFPROTO_IPV4:
+> +		const struct nf_defrag_v4_hook *v4_hook;
+> +
+> +		rcu_read_lock();
+> +		v4_hook = rcu_dereference(nf_defrag_v4_hook);
+> +		v4_hook->disable(link->net);
+> +		rcu_read_unlock();
 
-register_pernet failure results in nf_defrag_v4_hook pointing to
-garbage.
+if (v4_hook)
+	v4_hook->disable()
+
+Else we get trouble on manual 'rmmod'.
+
+> +	/* make sure conntrack confirm is always last */
+> +	prio = attr->link_create.netfilter.priority;
+> +	if (prio == NF_IP_PRI_FIRST)
+> +		return -ERANGE;  /* sabotage_in and other warts */
+> +	else if (prio == NF_IP_PRI_LAST)
+> +		return -ERANGE;  /* e.g. conntrack confirm */
+> +	else if ((attr->link_create.netfilter.flags & BPF_F_NETFILTER_IP_DEFRAG) &&
+> +		 (prio > NF_IP_PRI_FIRST && prio <= NF_IP_PRI_CONNTRACK_DEFRAG))
+> +		return -ERANGE;  /* cannot use defrag if prog runs before nf_defrag */
+
+You could elide the (prio > NF_IP_PRI_FIRST, its already handled by
+first conditional.  Otherwise this looks good to me.
