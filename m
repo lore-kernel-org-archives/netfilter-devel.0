@@ -2,90 +2,122 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F356FEB64D9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 14:26:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1818FEB64DC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 14:54:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231484AbjF0O00 (ORCPT
+        id S231916AbjF0OyE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jun 2023 10:26:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33288 "EHLO
+        Tue, 27 Jun 2023 10:54:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231464AbjF0O0X (ORCPT
+        with ESMTP id S231854AbjF0Oxs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jun 2023 10:26:23 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76D462D67
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2023 07:25:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1687875935;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=vGSc4mdTDNNjtXngrQkAE2Vk0OODhwWQe551QFWP1tI=;
-        b=WZEcEPexuz1DZhqeEiUjCwjCyvfqLhVfmAaZ9iTMPujS17Ow50H4DtmHvp3QpMAvdx0i0l
-        MMR4T47LW6DBcatwAeMV1ZBbpNflzOj8UrZWnuPSfTHmilMiDRSBwCKI9E49bVEX9zYpET
-        ciVGWfTy8tic79J1pW2HmYAwEVxsWVg=
-Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
- [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-122-utv6vHmZNiu-r1Cw9L5XQg-1; Tue, 27 Jun 2023 10:25:22 -0400
-X-MC-Unique: utv6vHmZNiu-r1Cw9L5XQg-1
-Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-94a341efd9aso273877766b.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2023 07:25:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687875915; x=1690467915;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=vGSc4mdTDNNjtXngrQkAE2Vk0OODhwWQe551QFWP1tI=;
-        b=JVkzWuNJU/uNdG8R+owPzXb6T9TH7TC6YRR9LErYLppx8anPDhPUNhK9Q5lprMBGNw
-         WV+nYVj06do/6Jbai69rVlmILPlSZ1ikaISL4o3/n/HNKCyINoaWOopRxN5+3LzCWKAJ
-         7LWvNCFdXNf0Xc//gpMUI2Jt7uL1DC1O4lE1E+f5EgioPtPsC+8RA2kwxty0ACyr8/ij
-         ufjua/QllZFdedXEPcRHt0cu5JM6zX0xoojSdlRUKghkCI3LfT6q5hGwaC0oKUKEzRQu
-         losMd6oe3SM2JzMh9ZO00c2lx5x6a0da3stdhaQvFc8eSHsd8THqvWy4Gl71imJ1Mb2h
-         Yapg==
-X-Gm-Message-State: AC+VfDw1rMO6qeG1r0wV2v4SLQQ+UJsptAXFQ10B8dgf8n0Yqf233EqZ
-        G4CyOnoY4qw2omYnYoozm/01YMBLxhdiYRvrT1X3stc6PTFEQGoIiLOAR9z0QUBUwmVm41Y2asc
-        CGsqcVTZ4sg/HYBFwgo33eY4prLOQ
-X-Received: by 2002:a17:906:da8b:b0:982:26c5:6525 with SMTP id xh11-20020a170906da8b00b0098226c56525mr32188639ejb.60.1687875914701;
-        Tue, 27 Jun 2023 07:25:14 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ6i5PkNbA3Uw3V9yHzNgEF6zgc+6XvzXai4Ju+na594EFjrV8ZjoKAuLT8tuRH4vcpCqG3Dfw==
-X-Received: by 2002:a17:906:da8b:b0:982:26c5:6525 with SMTP id xh11-20020a170906da8b00b0098226c56525mr32188620ejb.60.1687875914199;
-        Tue, 27 Jun 2023 07:25:14 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id qn1-20020a170907210100b0098e42bef731sm3234766ejb.169.2023.06.27.07.25.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Jun 2023 07:25:13 -0700 (PDT)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 2921ABBFF6C; Tue, 27 Jun 2023 16:25:13 +0200 (CEST)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-To:     Daniel Xu <dxu@dxuuu.xyz>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, fw@strlen.de, daniel@iogearbox.net
-Cc:     dsahern@kernel.org
-Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in BPF
-In-Reply-To: <cover.1687819413.git.dxu@dxuuu.xyz>
+        Tue, 27 Jun 2023 10:53:48 -0400
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 267A4FA;
+        Tue, 27 Jun 2023 07:51:51 -0700 (PDT)
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+        by mailout.west.internal (Postfix) with ESMTP id 076803200902;
+        Tue, 27 Jun 2023 10:51:49 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute4.internal (MEProxy); Tue, 27 Jun 2023 10:51:50 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:content-type:content-type:date
+        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
+        1687877509; x=1687963909; bh=J3c7xEg1YYI1wbRJy4qEuZ+boAxMySi5/Do
+        IOAO5gmQ=; b=hz+vJUg6/cZg8YDhve5zDRJlNDDz7L3F3NrNUBFBV7BRIVCY/cO
+        yudg+iwgFub4Y2o/zqIA/jswngiWu1DT8Jtxii5L/zV/tI7xKQMHIDfjpziFGnf6
+        GP9WqzvTGneYGh0KxDj5Mgj0oVPZgiEUIhiZ0iwlOXwgt9X1SSdmBUm3rQvNli8Q
+        W8Mgh17/B455eXKqfEsS4kjEw1tVnvqlUnBxElvl6AW61PvnKkA2+28lc0RiJbLo
+        CcFMZ0Ec+tvHXrIrB8Hz7uZ/IVQsDk38cuBOokKNrPWdsbAGQvYpSVk88JcQcoiV
+        jDvm4fvt/sJq9F9J0lvtjbvb2gMlopxHI6Q==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:content-type:date:date:feedback-id:feedback-id
+        :from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
+        1687877509; x=1687963909; bh=J3c7xEg1YYI1wbRJy4qEuZ+boAxMySi5/Do
+        IOAO5gmQ=; b=A29GD4T+i5IqDhXAoTc3X1F9q08SZiK4F/dqN2gK6eClwF+xUsc
+        Rb0kKaF8UXdrQWfWsfMX81NxWhJ4C37Yzn0VGKYaUF6ug2i8EYo7Musc3OhnuKSX
+        lsMwf5JynptvrqXgKjpDtbKF0V3Bb3iwxDy+q9Eu+/1nHbsSoEeL5h7SeS/19n3g
+        OHxElU34m3xpbnt5F0o1UE6pUc9uucx3wzW5PgnjUtetc2HZRcmxZLBJFlHFcGMN
+        xrIOcU2UGUdIoRihQVhfe/MwciVfteHECfgqJzrjGzz3qYXsnI9l8dn+yRLLktf7
+        6IMfDTEJRTQam69e+SHFs9Rz2N718k/vZVQ==
+X-ME-Sender: <xms:hfeaZOUsX6-KqQxbmdgBnMZ6wNH0rhCxn1TOVs_SDDeMdBKYWuM00A>
+    <xme:hfeaZKn37W5L4sGVVjJChvYyulvnep473lsDql4-0UvzhhD6PHZhmWb3yXSqIQJlx
+    4ZxETT6TQTyUySDAA>
+X-ME-Received: <xmr:hfeaZCahAN26rfSxkkVFGPyXi3CD6Qb9wQDzyqvVXo7SvVpGNOML-JGHFq0lorqspFmU4Rvw4wQG7TvMV8IH_p-T5G0svIZBpKax>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrtddtgdeflecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenfg
+    hrlhcuvffnffculdejtddmnecujfgurhepfffhvfevuffkfhggtggugfgjsehtkefstddt
+    tddunecuhfhrohhmpeffrghnihgvlhcuighuuceougiguhesugiguhhuuhdrgiihiieqne
+    cuggftrfgrthhtvghrnhepudefiedtieehffeuffelffegheegjeekteekgfdtkeefjeeh
+    ffejtdfgkeeiteelnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
+    hfrhhomhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:hfeaZFUt-HHxVlILylDOTB_guDV_gvTgjgjh468_aQIlDVu3G1dY9g>
+    <xmx:hfeaZIlvBTx6nBB6Nj_IvLEBd3yma-IqEq_zlI5mgoKcGK6pxQm7IQ>
+    <xmx:hfeaZKcvuJFGIxzHbokFp40x4LcuS9dbxC7U8xOHom64hGUfV0fckg>
+    <xmx:hfeaZC4fUpuPIKeRG5l1RH2I8d9cULCwJgiGhNg6D1ehy4U2aU3GkQ>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 27 Jun 2023 10:51:48 -0400 (EDT)
+Date:   Tue, 27 Jun 2023 08:51:47 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        fw@strlen.de, daniel@iogearbox.net, dsahern@kernel.org
+Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
+ BPF
+Message-ID: <hwsdt5pjygunx7lxrvnwjerugchzpu5mpb442hlwf2h5szqq2h@cuqbteb6bqyh>
 References: <cover.1687819413.git.dxu@dxuuu.xyz>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Tue, 27 Jun 2023 16:25:13 +0200
-Message-ID: <874jmthtiu.fsf@toke.dk>
+ <874jmthtiu.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <874jmthtiu.fsf@toke.dk>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> The basic idea is we bump a refcnt on the netfilter defrag module and
-> then run the bpf prog after the defrag module runs. This allows bpf
-> progs to transparently see full, reassembled packets. The nice thing
-> about this is that progs don't have to carry around logic to detect
-> fragments.
+Hi Toke,
 
-One high-level comment after glancing through the series: Instead of
-allocating a flag specifically for the defrag module, why not support
-loading (and holding) arbitrary netfilter modules in the UAPI? If we
-need to allocate a new flag every time someone wants to use a netfilter
-module along with BPF we'll run out of flags pretty quickly :)
+Thanks for taking a look at the patchset.
 
--Toke
+On Tue, Jun 27, 2023 at 04:25:13PM +0200, Toke Høiland-Jørgensen wrote:
+> > The basic idea is we bump a refcnt on the netfilter defrag module and
+> > then run the bpf prog after the defrag module runs. This allows bpf
+> > progs to transparently see full, reassembled packets. The nice thing
+> > about this is that progs don't have to carry around logic to detect
+> > fragments.
+> 
+> One high-level comment after glancing through the series: Instead of
+> allocating a flag specifically for the defrag module, why not support
+> loading (and holding) arbitrary netfilter modules in the UAPI? If we
+> need to allocate a new flag every time someone wants to use a netfilter
+> module along with BPF we'll run out of flags pretty quickly :)
 
+I don't have enough context on netfilter in general to say if it'd be
+generically useful -- perhaps Florian can comment on that.
+
+However, I'm not sure such a mechanism removes the need for a flag. The
+netfilter defrag modules still need to be called into to bump the refcnt.
+
+The module could export some kfuncs to inc/dec the refcnt, but it'd be
+rather odd for prog code to think about the lifetime of the attachment
+(as inc/dec for _each_ prog execution seems wasteful and slow).  AFAIK
+all the other resource acquire/release APIs are for a single prog
+execution.
+
+So a flag for link attach feels the most natural to me. We could always
+add a flag2 field or something right?
+
+[...]
+
+Thanks,
+Daniel
