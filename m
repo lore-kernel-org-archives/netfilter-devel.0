@@ -2,76 +2,97 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A24D7EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 15:45:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D81EB64D9
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 15:57:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231481AbjF0PpB (ORCPT
+        id S231206AbjF0P5I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jun 2023 11:45:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53810 "EHLO
+        Tue, 27 Jun 2023 11:57:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231268AbjF0Por (ORCPT
+        with ESMTP id S229487AbjF0P5I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jun 2023 11:44:47 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C34E4E68;
-        Tue, 27 Jun 2023 08:44:45 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qEArv-00056u-Ur; Tue, 27 Jun 2023 17:44:39 +0200
-Date:   Tue, 27 Jun 2023 17:44:39 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, fw@strlen.de,
-        daniel@iogearbox.net, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
- BPF
-Message-ID: <20230627154439.GA18285@breakpoint.cc>
-References: <cover.1687819413.git.dxu@dxuuu.xyz>
- <874jmthtiu.fsf@toke.dk>
+        Tue, 27 Jun 2023 11:57:08 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 873742D66
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2023 08:57:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=Gbf1Jd0dloWX7GSNIE4TTCq5xZH3CHFxi8TGzq8efrk=; b=hvmxEpVGigK/wH5GCfZNhvUmJD
+        +DJSxvHQLS3qepKvEmcFC4G9RaTjtnlZ1UGJMOJ1c6qNl9fH2CBc6pXRGSJDI3hegrvzpxCe4Qrjy
+        qBAyNRVtkiGJA/NdFu9vfv0IX6LdzAgfdtek6O5uEyhT28jwiDIxkC/TF5USHYHU9qKZ5XdzL2TtV
+        /DavEIWRVbE+MtxfdPrxDcjICXTBVMZj+87kZDsEqEvxL7nipUTEJqNqtay3ltN9Txxd/n0Ho9/gz
+        /o5S+9PE8SPYSsUhLdlb2ktc0PYrYEZIBmIjbN0E/LWmMBSwo9Axfcdt4Hch3LTNISWK2iZINOJfJ
+        i9OS9V6w==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qEB3v-00031t-Kw; Tue, 27 Jun 2023 17:57:03 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: [nft PATCH] tests: py: Document JSON mode in README
+Date:   Tue, 27 Jun 2023 17:56:56 +0200
+Message-Id: <20230627155656.20693-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <874jmthtiu.fsf@toke.dk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Toke Høiland-Jørgensen <toke@redhat.com> wrote:
-> > The basic idea is we bump a refcnt on the netfilter defrag module and
-> > then run the bpf prog after the defrag module runs. This allows bpf
-> > progs to transparently see full, reassembled packets. The nice thing
-> > about this is that progs don't have to carry around logic to detect
-> > fragments.
-> 
-> One high-level comment after glancing through the series: Instead of
-> allocating a flag specifically for the defrag module, why not support
-> loading (and holding) arbitrary netfilter modules in the UAPI?
+Mostly identify the various files that (may) appear or exist already and
+how to deal with them.
 
-How would that work/look like?
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/py/README | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-defrag (and conntrack) need special handling because loading these
-modules has no effect on the datapath.
+diff --git a/tests/py/README b/tests/py/README
+index ed5dc58b884ec..864a966e31959 100644
+--- a/tests/py/README
++++ b/tests/py/README
+@@ -163,4 +163,35 @@ G) Acknowledgements
+ Thanks to the Outreach Program for Women (OPW) for sponsoring this test
+ infrastructure and my mentor Pablo Neira.
+ 
++H) JSON (-j) Mode
++
++This mode is supposed to repeat the same tests using JSON syntax. For each test
++file example.t, there is supposed to be a file example.t.json holding the JSON
++equivalents of each rule in example.t. The file's syntax is similar to payload
++files: An initial comment identifies the rule belonging to the following JSON
++equivalent. Pairs of comment and JSON are separated by a single blank line.
++
++If the example.t.json file does not exist, the test script will warn and create
++(or append to) example.t.json.got. The JSON equivalent written is generated by
++applying the rule in standard syntax and listing the ruleset in JSON format.
++After thorough review, it may be renamed to example.t.json.
++
++One common case for editing the content in example.t.json.got is expected
++differences between input and output. The generated content will match the
++output while it is supposed to match the input.
++
++If a rule is expected to differ in output, the expected output must be recorded
++in example.t.json.output. Its syntax is identical to example.t.json, i.e. pairs
++of comment identifying the rule (in standard syntax) and JSON (output) format
++separated by blank lines. Note: the comment states the rule as in input, not
++output.
++
++If the example.t.json.output file does not exist and output differs from input,
++the file example.t.json.output.got is created with the actual output recorded.
++
++JSON mode will also check the payload created for the rule in JSON syntax by
++comparing it to the recorded one in example.t.payload. Should it differ, it
++will be recorded in example.t.json.payload.got. This is always a bug: A rule's
++JSON equivalent must turn into the same bytecode as the rule itself.
++
+ -EOF-
+-- 
+2.40.0
 
-Traditionally, yes, loading was enough, but now with netns being
-ubiquitous we don't want these to get enabled unless needed.
-
-Ignoring bpf, this happens when user adds nftables/iptables rules
-that check for conntrack state, use some form of NAT or use e.g. tproxy.
-
-For bpf a flag during link attachment seemed like the best way
-to go.
-
-At the moment I only see two flags for this, namely
-"need defrag" and "need conntrack".
-
-For conntrack, we MIGHT be able to not need a flag but
-maybe verifier could "guess" based on kfuncs used.
-
-But for defrag, I don't think its good to add a dummy do-nothing
-kfunc just for expressing the dependency on bpf prog side.
