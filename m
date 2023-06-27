@@ -2,97 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F468EB64D9
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 11:13:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91C70EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 14:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230315AbjF0LNB (ORCPT
+        id S229925AbjF0OSw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jun 2023 07:13:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35310 "EHLO
+        Tue, 27 Jun 2023 10:18:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229804AbjF0LNA (ORCPT
+        with ESMTP id S229664AbjF0OSv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jun 2023 07:13:00 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E08181FF3;
-        Tue, 27 Jun 2023 04:12:58 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qE6cq-0003Sm-6H; Tue, 27 Jun 2023 13:12:48 +0200
-Date:   Tue, 27 Jun 2023 13:12:48 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     daniel@iogearbox.net, edumazet@google.com, kuba@kernel.org,
-        fw@strlen.de, pabeni@redhat.com, pablo@netfilter.org,
-        andrii@kernel.org, davem@davemloft.net, ast@kernel.org,
-        kadlec@netfilter.org, martin.lau@linux.dev, song@kernel.org,
-        yhs@fb.com, john.fastabend@gmail.com, kpsingh@kernel.org,
-        sdf@google.com, haoluo@google.com, jolsa@kernel.org,
-        bpf@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next 4/7] netfilter: bpf: Support
- BPF_F_NETFILTER_IP_DEFRAG in netfilter link
-Message-ID: <20230627111248.GH3207@breakpoint.cc>
+        Tue, 27 Jun 2023 10:18:51 -0400
+Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72ACDE74;
+        Tue, 27 Jun 2023 07:18:50 -0700 (PDT)
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+        by mailout.west.internal (Postfix) with ESMTP id 288B43200902;
+        Tue, 27 Jun 2023 10:18:49 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute1.internal (MEProxy); Tue, 27 Jun 2023 10:18:49 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm1; t=1687875528; x=1687961928; bh=S1
+        D40gp6+PWYTPqDFOllnu+PG6ZODSbCZgaOeRMNOMk=; b=IJDkcnexA858NahWOP
+        6/wPMSfBEN5RjQQ5OFDYoJr86LbD+0VuT0sl1bR6Ef/WDcDaxhZWf7q7imOi6IBE
+        /F81rplB7nPe6ofa0J/tBasIY1ouJGY64UtHSuCXeMDNZEo4F/PRT7nZ9X2L8okj
+        6kgd5amVG1klPjvrry3y+BDAEZcthPiTozlYSicTZTGmeL48+4aBmvqOU3bZpZOH
+        J4dCfZP8oXV3yf3qfOo/FAHM9doc262+mYW1G0yQKcAhQ+bOm/rfbvJAWKWB6Hf8
+        s0xc79RL4GIzoX68szuOxGCOp22OjE8BmMncnNsSa2ZjDSd2msqIY/1J5K1J2GDB
+        vMBQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; t=1687875528; x=1687961928; bh=S1D40gp6+PWYT
+        PqDFOllnu+PG6ZODSbCZgaOeRMNOMk=; b=ikT1F2QhAPXkDzCXxFJkpvp/KlqdQ
+        igdx7jFSTngtUkC8kdzNoVMjlYwL5HL7NauVzzO5IT6VXmkGmrzStgo/o7ecX1nM
+        +ZZRH7SKa9nKbYSjPTHBkHpotDELw46jiyvEHwTaL+LVR9nhgL7KwzVu1V3Vy1TK
+        8Dij1AMdzACQw9wVEv8gcaDKngcX4qs6sVGQ+fktjEpHBS5ZvCFVwo08ug3/cF/E
+        1Z9yBX8uQQRBtRvRhtZmf5EQy7g829gEeR260p39IZplFeX78Y+4OxxT/AeGUNpy
+        PS4EL7dHpNkZWi5Fg+cXiPe13IY6fzgJYqUp1evNU5koI5RLSPvEx24OQ==
+X-ME-Sender: <xms:yO-aZAJiD2IA4CxUilKnax6Q2sIlB1MjX7gTN_ts5Xis-ehRvLhXxQ>
+    <xme:yO-aZAKjaPCSYa6dBth_D4P6ATBeQ5KuAM_BHiwQLi66JgvdW4BeGTTGBmhiZLLyG
+    ioYGNiBDA-5mYmH7Q>
+X-ME-Received: <xmr:yO-aZAuMOVg8ngM6tGXw9sm5xGYEzjgJktCXryJ02wSkQ8PVjmJ1bZTxTG7mQYKfNT3iHKl_ZdnCzC2uxCZOBUo05RGEuuW0t88M>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrtddtgdefvdcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenfg
+    hrlhcuvffnffculdejtddmnecujfgurhepfffhvfevuffkfhggtggujgesthdtsfdttddt
+    vdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihusegugihuuhhurdighiiiqeenuc
+    ggtffrrghtthgvrhhnpedvfeekteduudefieegtdehfeffkeeuudekheduffduffffgfeg
+    iedttefgvdfhvdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfh
+    hrohhmpegugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:yO-aZNbuWS0RNXvdoKdT6A5-U6gKwq2Lc9TuVPaD1Eis-g-4A8NPTQ>
+    <xmx:yO-aZHa5ahl8DmHTB0n2EjsvTohQK3L9EY7n0YT2UC2rQPHKVu4ulQ>
+    <xmx:yO-aZJCXv4JsOOP1HjTFJV6Bjqzhx5bnp92JekGarxi-g0IthyyIzQ>
+    <xmx:yO-aZL7xKGsruRStLr46VGr29MvH-GXmZPpGqWfj2qEzlusRwhsCLA>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 27 Jun 2023 10:18:47 -0400 (EDT)
+Date:   Tue, 27 Jun 2023 08:18:46 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        daniel@iogearbox.net, dsahern@kernel.org
+Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
+ BPF
+Message-ID: <uuxfzet3r6eovdtetr26cebbjoohizepbefggab6c5edjqjkjy@ntjyfw3v4jmd>
 References: <cover.1687819413.git.dxu@dxuuu.xyz>
- <242c66138bf4ec8aa26b29d736fb48242b4164ce.1687819413.git.dxu@dxuuu.xyz>
+ <20230627104820.GF3207@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <242c66138bf4ec8aa26b29d736fb48242b4164ce.1687819413.git.dxu@dxuuu.xyz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230627104820.GF3207@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Xu <dxu@dxuuu.xyz> wrote:
-> +static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
-> +{
-> +	int err;
-> +
-> +	switch (link->hook_ops.pf) {
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-> +	case NFPROTO_IPV4:
-> +		const struct nf_defrag_v4_hook *v4_hook;
-> +
-> +		err = request_module("nf_defrag_ipv4");
-> +		if (err)
-> +			return err;
-> +
-> +		rcu_read_lock();
-> +		v4_hook = rcu_dereference(nf_defrag_v4_hook);
-> +		err = v4_hook->enable(link->net);
-> +		rcu_read_unlock();
+Hi Florian,
 
-I'd reverse this, first try rcu_dereference(), then modprobe
-if thats returned NULL.
+On Tue, Jun 27, 2023 at 12:48:20PM +0200, Florian Westphal wrote:
+> Daniel Xu <dxu@dxuuu.xyz> wrote:
+> > Patches 1 & 2 are stolenfrom Florian. Hopefully he doesn't mind. There
+> > were some outstanding comments on the v2 [2] but it doesn't look like a
+> > v3 was ever submitted.  I've addressed the comments and put them in this
+> > patchset cuz I needed them.
+> 
+> I did not submit a v3 because i had to wait for the bpf -> bpf-next
+> merge to get "bpf: netfilter: Add BPF_NETFILTER bpf_attach_type".
+> 
+> Now that has been done so I will do v3 shortly.
 
-> +static void bpf_nf_disable_defrag(struct bpf_nf_link *link)
-> +{
-> +	switch (link->hook_ops.pf) {
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-> +	case NFPROTO_IPV4:
-> +		const struct nf_defrag_v4_hook *v4_hook;
-> +
-> +		rcu_read_lock();
-> +		v4_hook = rcu_dereference(nf_defrag_v4_hook);
-> +		v4_hook->disable(link->net);
-> +		rcu_read_unlock();
+Ack. Will wait for your patches to go in before sending my v2.
 
-if (v4_hook)
-	v4_hook->disable()
-
-Else we get trouble on manual 'rmmod'.
-
-> +	/* make sure conntrack confirm is always last */
-> +	prio = attr->link_create.netfilter.priority;
-> +	if (prio == NF_IP_PRI_FIRST)
-> +		return -ERANGE;  /* sabotage_in and other warts */
-> +	else if (prio == NF_IP_PRI_LAST)
-> +		return -ERANGE;  /* e.g. conntrack confirm */
-> +	else if ((attr->link_create.netfilter.flags & BPF_F_NETFILTER_IP_DEFRAG) &&
-> +		 (prio > NF_IP_PRI_FIRST && prio <= NF_IP_PRI_CONNTRACK_DEFRAG))
-> +		return -ERANGE;  /* cannot use defrag if prog runs before nf_defrag */
-
-You could elide the (prio > NF_IP_PRI_FIRST, its already handled by
-first conditional.  Otherwise this looks good to me.
+Thanks,
+Daniel
