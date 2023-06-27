@@ -2,87 +2,50 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7255FEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 10:23:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D38DEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 27 Jun 2023 10:48:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231727AbjF0KXI (ORCPT
+        id S229655AbjF0Ksa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 27 Jun 2023 06:23:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41828 "EHLO
+        Tue, 27 Jun 2023 06:48:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231562AbjF0KWp (ORCPT
+        with ESMTP id S231388AbjF0Ks0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jun 2023 06:22:45 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D572109;
-        Tue, 27 Jun 2023 03:20:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=QpIG8zIiPiSqoF8aX8idnXur9dqkJW4/QKoTrZH8cD8=; b=AvSWYAQNpQ/maAcKP7sl2uAWaM
-        r8VUkC/gUpf8gqV4fszhxttZkOR2LWKnEc87QNlx02OHUeHuUts/aXwTibIk39V5MnW2AcRRxkFw/
-        A5XYNmTvrwPSkdZqKNBuRoxZrePTBbZaP9Y1fHc3WOYafzBheEm/pdMdp/JftCUyKwlTmQLUhkkgO
-        E5bE9FwoMVtR525XRJIhz1KEncHrv9TwrCTeIrqVtuiHNK4ELXfXcDrCfNZIsKJCz+H+LwZmJiLNU
-        tB3d2WpFl5GpcyT6+4gZxPQsriZBPZcc2owzmgLkK5DEA6frQWGkpyGMtkQCmLDXJy7r6s1NWxF9P
-        e47EPxlA==;
-Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qE5nR-004e0Y-1h;
-        Tue, 27 Jun 2023 10:19:42 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 5A8D5300118;
-        Tue, 27 Jun 2023 12:19:39 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 3790924A40809; Tue, 27 Jun 2023 12:19:39 +0200 (CEST)
-Date:   Tue, 27 Jun 2023 12:19:39 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Bagas Sanjaya <bagasdotme@gmail.com>
-Cc:     "Steven Rostedt (Google)" <rostedt@goodmis.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Lingutla Chandrasekhar <clingutla@codeaurora.org>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        "J. Avila" <elavila@google.com>,
-        Vivek Anand <vivekanand754@gmail.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Thomas Renninger <trenn@suse.com>,
-        Shuah Khan <shuah@kernel.org>, Borislav Petkov <bp@alien8.de>,
-        Josh Poimboeuf <jpoimboe@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Regressions <regressions@lists.linux.dev>,
-        Linux Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Netfilter Core Developers <coreteam@netfilter.org>,
-        Linux Networking <netdev@vger.kernel.org>,
-        Linux Power Management <linux-pm@vger.kernel.org>,
-        x86@kernel.org
-Subject: Re: Fwd: High cpu usage caused by kernel process when upgraded to
- linux 5.19.17 or later
-Message-ID: <20230627101939.GZ4253@hirez.programming.kicks-ass.net>
-References: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
- <ZJpJkL3dPXxgw6RK@debian.me>
- <20230627073035.GV4253@hirez.programming.kicks-ass.net>
- <99b64dfd-be4a-2248-5c42-8eb9197824e1@gmail.com>
+        Tue, 27 Jun 2023 06:48:26 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9C1210FF;
+        Tue, 27 Jun 2023 03:48:23 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qE6FA-0003Jr-AG; Tue, 27 Jun 2023 12:48:20 +0200
+Date:   Tue, 27 Jun 2023 12:48:20 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     bpf@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+        fw@strlen.de, daniel@iogearbox.net, dsahern@kernel.org
+Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
+ BPF
+Message-ID: <20230627104820.GF3207@breakpoint.cc>
+References: <cover.1687819413.git.dxu@dxuuu.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <99b64dfd-be4a-2248-5c42-8eb9197824e1@gmail.com>
+In-Reply-To: <cover.1687819413.git.dxu@dxuuu.xyz>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Jun 27, 2023 at 05:15:42PM +0700, Bagas Sanjaya wrote:
-> On 6/27/23 14:30, Peter Zijlstra wrote:
-> > I can't tell from this. Also, please don't use bugzilla.
-> 
-> Why not BZ? I'm confused too...
+Daniel Xu <dxu@dxuuu.xyz> wrote:
+> Patches 1 & 2 are stolenfrom Florian. Hopefully he doesn't mind. There
+> were some outstanding comments on the v2 [2] but it doesn't look like a
+> v3 was ever submitted.  I've addressed the comments and put them in this
+> patchset cuz I needed them.
 
-Because we have email; and why would I want to touch a browser for this?
+I did not submit a v3 because i had to wait for the bpf -> bpf-next
+merge to get "bpf: netfilter: Add BPF_NETFILTER bpf_attach_type".
+
+Now that has been done so I will do v3 shortly.
