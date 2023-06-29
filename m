@@ -2,120 +2,77 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24FDAEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 13:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD923EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 14:04:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230164AbjF2NVu (ORCPT
+        id S231593AbjF2OEb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Jun 2023 09:21:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41110 "EHLO
+        Thu, 29 Jun 2023 10:04:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229494AbjF2NVt (ORCPT
+        with ESMTP id S231443AbjF2OEa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jun 2023 09:21:49 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4258F2707;
-        Thu, 29 Jun 2023 06:21:47 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qEraf-0006iS-KY; Thu, 29 Jun 2023 15:21:41 +0200
-Date:   Thu, 29 Jun 2023 15:21:41 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>
-Cc:     Florian Westphal <fw@strlen.de>, Daniel Xu <dxu@dxuuu.xyz>,
-        bpf@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        daniel@iogearbox.net, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
- BPF
-Message-ID: <20230629132141.GA10165@breakpoint.cc>
-References: <cover.1687819413.git.dxu@dxuuu.xyz>
- <874jmthtiu.fsf@toke.dk>
- <20230627154439.GA18285@breakpoint.cc>
- <87o7kyfoqf.fsf@toke.dk>
+        Thu, 29 Jun 2023 10:04:30 -0400
+Received: from smtp-bc09.mail.infomaniak.ch (smtp-bc09.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc09])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABDDB26B6
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2023 07:04:29 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QsKvD35f0zMv9Sj;
+        Thu, 29 Jun 2023 14:04:24 +0000 (UTC)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QsKvC4gyYzMq943;
+        Thu, 29 Jun 2023 16:04:23 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1688047464;
+        bh=zISBIrJvCaHLRpaYZPXAza1RbGmkHK5jlpXQyEL+/wQ=;
+        h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
+        b=G2IKbxTJjSTE0YizDdZocUBqMS5TGvHnP9teKeK6e5vwKRUm7vo+LJ1rdcQebD901
+         qR9J7+6nFp7i+256OKDUJSDcPWOqov00QGjywo4UflTjIWmP2+Yep9oMHPU4y+D48z
+         c8G7ySgOMc66YXaURaFnU8g7PvlLl/M1fmnydrN0=
+Message-ID: <62715f92-96ec-ca8b-afc7-a1ae85f4141d@digikod.net>
+Date:   Thu, 29 Jun 2023 16:04:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
+User-Agent: 
+Subject: Re: [PATCH v11 08/12] landlock: Add network rules and TCP hooks
+ support
+Content-Language: en-US
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com
+References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
+ <20230515161339.631577-9-konstantin.meskhidze@huawei.com>
+ <167413e7-c69a-3030-cd72-4c198158622e@digikod.net>
+In-Reply-To: <167413e7-c69a-3030-cd72-4c198158622e@digikod.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <87o7kyfoqf.fsf@toke.dk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Toke Høiland-Jørgensen <toke@redhat.com> wrote:
-> Florian Westphal <fw@strlen.de> writes:
-> > For bpf a flag during link attachment seemed like the best way
-> > to go.
+
+On 27/06/2023 18:14, MickaÃ«l SalaÃ¼n wrote:
 > 
-> Right, I wasn't disputing that having a flag to load a module was a good
-> idea. On the contrary, I was thinking we'd need many more of these
-> if/when BPF wants to take advantage of more netfilter code. Say, if a
-> BPF module wants to call into TPROXY, that module would also need go be
-> loaded and kept around, no?
+> On 15/05/2023 18:13, Konstantin Meskhidze wrote:
+>> This commit adds network rules support in the ruleset management
+>> helpers and the landlock_create_ruleset syscall.
+>> Refactor user space API to support network actions. Add new network
+>> access flags, network rule and network attributes. Increment Landlock
+>> ABI version. Expand access_masks_t to u32 to be sure network access
+>> rights can be stored. Implement socket_bind() and socket_connect()
+>> LSM hooks, which enables to restrict TCP socket binding and connection
+>> to specific ports.
 
-That seems to be a different topic that has nothing to do with
-either bpf_link or netfilter?
+It is important to explain the decision rationales. Please explain new 
+types, something like this:
 
-If the program calls into say, TPROXY, then I'd expect that this needs
-to be handled via kfuncs, no? Or if I misunderstand, what do you mean
-by "call into TPROXY"?
+The new landlock_net_port_attr structure has two fields. The 
+allowed_access field contains the LANDLOCK_ACCESS_NET_* rights. The port 
+field contains the port value according to the the allowed protocol. 
+This field can take up to a 64-bit value [1] but the maximum value 
+depends on the related protocol (e.g. 16-bit for TCP).
 
-And if so, thats already handled at bpf_prog load time, not
-at link creation time, or do I miss something here?
-
-AFAIU, if prog uses such kfuncs, verifier will grab needed module ref
-and if module isn't loaded the kfuncs won't be found and program load
-fails.
-
-> I was thinking something along the lines of just having a field
-> 'netfilter_modules[]' where userspace could put an arbitrary number of
-> module names into, and we'd load all of them and put a ref into the
-> bpf_link.
-
-Why?  I fail to understand the connection between bpf_link, netfilter
-and modules.  What makes netfilter so special that we need such a
-module array, and what does that have to do with bpf_link interface?
-
-> In principle, we could just have that be a string array f
-> module names, but that's probably a bit cumbersome (and, well, building
-> a generic module loader interface into the bpf_like API is not
-> desirable either). But maybe with an explicit ENUM?
-
-What functionality does that provide? I can't think of a single module
-where this functionality is needed.
-
-Either we're talking about future kfuncs, then, as far as i understand
-how kfuncs work, this is handled at bpf_prog load time, not when the
-bpf_link is created.
-
-Or we are talking about implicit dependencies, where program doesn't
-call function X but needs functionality handled earlier in the pipeline?
-
-The only two instances I know where this is the case for netfilter
-is defrag + conntrack.
-
-> > For conntrack, we MIGHT be able to not need a flag but
-> > maybe verifier could "guess" based on kfuncs used.
-> 
-> If the verifier can just identify the modules from the kfuncs and do the
-> whole thing automatically, that would of course be even better from an
-> ease-of-use PoV. Not sure what that would take, though? I seem to recall
-> having discussions around these lines before that fell down on various
-> points.
-
-AFAICS the conntrack kfuncs are wired to nf_conntrack already, so I
-would expect that the module has to be loaded already for the verifier
-to accept the program.
-
-Those kfuncs are not yet exposed to NETFILTER program types.
-Once they are, all that would be needed is for the netfilter bpf_link
-to be able tp detect that the prog is calling into those kfuncs, and
-then make the needed register/unregister calls to enable the conntrack
-hooks.
-
-Wheter thats better than using an explicit "please turn on conntrack for
-me", I don't know.  Perhaps future bpf programs could access skb->_nfct
-directly without kfuncs so I'd say the flag is a better approach
-from an uapi point of view.
+[1] 
+https://lore.kernel.org/r/278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net
