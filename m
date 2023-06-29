@@ -2,77 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD923EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 14:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5B78EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 14:19:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231593AbjF2OEb (ORCPT
+        id S232262AbjF2OTH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Jun 2023 10:04:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52368 "EHLO
+        Thu, 29 Jun 2023 10:19:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231443AbjF2OEa (ORCPT
+        with ESMTP id S231952AbjF2OTB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jun 2023 10:04:30 -0400
-Received: from smtp-bc09.mail.infomaniak.ch (smtp-bc09.mail.infomaniak.ch [IPv6:2001:1600:3:17::bc09])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABDDB26B6
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2023 07:04:29 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QsKvD35f0zMv9Sj;
-        Thu, 29 Jun 2023 14:04:24 +0000 (UTC)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QsKvC4gyYzMq943;
-        Thu, 29 Jun 2023 16:04:23 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1688047464;
-        bh=zISBIrJvCaHLRpaYZPXAza1RbGmkHK5jlpXQyEL+/wQ=;
-        h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-        b=G2IKbxTJjSTE0YizDdZocUBqMS5TGvHnP9teKeK6e5vwKRUm7vo+LJ1rdcQebD901
-         qR9J7+6nFp7i+256OKDUJSDcPWOqov00QGjywo4UflTjIWmP2+Yep9oMHPU4y+D48z
-         c8G7ySgOMc66YXaURaFnU8g7PvlLl/M1fmnydrN0=
-Message-ID: <62715f92-96ec-ca8b-afc7-a1ae85f4141d@digikod.net>
-Date:   Thu, 29 Jun 2023 16:04:23 +0200
+        Thu, 29 Jun 2023 10:19:01 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9615035A9;
+        Thu, 29 Jun 2023 07:19:00 -0700 (PDT)
+From:   Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1688048338;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=tcsyILS54G9Ylc5jhOd6kkhT9PsNGi7DVVNg0xcX1kQ=;
+        b=UCd+zetdFtrupJKCxOImcOxEEYVwTwTvmkKbn8hKvfSyKXqMbmVcR1zCTJi+G+RViUHK4E
+        Y9q0thPUWYdOXqChC/StMKF2R2w4nD0hiz4xNKzNr4M2EtQ9NRRA8SVB5G9U9ACtk2xCsc
+        PPQzJRvOsyumV/NC0gxfmVzaLNrKIl7HMEum0BbZMP+z4ACCuvbpH/8tFtYyphMuz/I3Ef
+        hJOKYUpeUcjpNpPvaR1IqKCZ8GNIwkjTdsfwv/jJzLmQWNviBAypnN++2aPu2bzOejUv2m
+        s7vhMr6wZ13FsN0P7As3VIpwdBaOvI+TTGMvDuwJnHlIM4s5ANGzLA0w1l5wwg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1688048338;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=tcsyILS54G9Ylc5jhOd6kkhT9PsNGi7DVVNg0xcX1kQ=;
+        b=eVh4xcwU+ECp7+of3b7renU0kjswNCBP4itYsa/RB7p1Pb1FjkVIcc8e0ibcsLlhES1S79
+        66vXMUDddUHapCCQ==
+To:     Vivek Anand <vivekanand754@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>
+Cc:     Bagas Sanjaya <bagasdotme@gmail.com>,
+        "Steven Rostedt (Google)" <rostedt@goodmis.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Lingutla Chandrasekhar <clingutla@codeaurora.org>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        "J. Avila" <elavila@google.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Thomas Renninger <trenn@suse.com>,
+        Shuah Khan <shuah@kernel.org>, Borislav Petkov <bp@alien8.de>,
+        Josh Poimboeuf <jpoimboe@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Regressions <regressions@lists.linux.dev>,
+        Linux Netfilter Development <netfilter-devel@vger.kernel.org>,
+        Netfilter Core Developers <coreteam@netfilter.org>,
+        Linux Networking <netdev@vger.kernel.org>,
+        Linux Power Management <linux-pm@vger.kernel.org>,
+        x86@kernel.org
+Subject: Re: Fwd: High cpu usage caused by kernel process when upgraded to
+ linux 5.19.17 or later
+In-Reply-To: <CAJnqnX5rYn65zVQ+SLN4m4ZzM_jOa_RjGhazWO=Fh8ZvdOCadg@mail.gmail.com>
+References: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
+ <ZJpJkL3dPXxgw6RK@debian.me>
+ <20230627073035.GV4253@hirez.programming.kicks-ass.net>
+ <99b64dfd-be4a-2248-5c42-8eb9197824e1@gmail.com>
+ <20230627101939.GZ4253@hirez.programming.kicks-ass.net>
+ <CAJnqnX5rYn65zVQ+SLN4m4ZzM_jOa_RjGhazWO=Fh8ZvdOCadg@mail.gmail.com>
+Date:   Thu, 29 Jun 2023 16:18:57 +0200
+Message-ID: <878rc22vxq.ffs@tglx>
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v11 08/12] landlock: Add network rules and TCP hooks
- support
-Content-Language: en-US
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
- <20230515161339.631577-9-konstantin.meskhidze@huawei.com>
- <167413e7-c69a-3030-cd72-4c198158622e@digikod.net>
-In-Reply-To: <167413e7-c69a-3030-cd72-4c198158622e@digikod.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+On Thu, Jun 29 2023 at 12:05, Vivek Anand wrote:
+> I've tried booting with "spectre_v2=retpoline retbleed=off".
+> This change didn't work. Still CPU is 100%
 
-On 27/06/2023 18:14, Mickaël Salaün wrote:
-> 
-> On 15/05/2023 18:13, Konstantin Meskhidze wrote:
->> This commit adds network rules support in the ruleset management
->> helpers and the landlock_create_ruleset syscall.
->> Refactor user space API to support network actions. Add new network
->> access flags, network rule and network attributes. Increment Landlock
->> ABI version. Expand access_masks_t to u32 to be sure network access
->> rights can be stored. Implement socket_bind() and socket_connect()
->> LSM hooks, which enables to restrict TCP socket binding and connection
->> to specific ports.
+This does not make sense.
 
-It is important to explain the decision rationales. Please explain new 
-types, something like this:
+retbleed=off has the same effect as CONFIG_X86_IBRS_ENTRY=n.
 
-The new landlock_net_port_attr structure has two fields. The 
-allowed_access field contains the LANDLOCK_ACCESS_NET_* rights. The port 
-field contains the port value according to the the allowed protocol. 
-This field can take up to a 64-bit value [1] but the maximum value 
-depends on the related protocol (e.g. 16-bit for TCP).
+The only difference is that with CONFIG_X86_IBRS_ENTRY=y and
+retbleed=off there is one extra jump in the low level entry code
+(syscall, interrupts, exceptions) and one extra jump on the exit side.
 
-[1] 
-https://lore.kernel.org/r/278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net
+But those extra jumps are completely irrelevant for the kworker threads.
+
+Can you please provide dmesg and the content of the files in
+
+ /sys/devices/system/cpu/vulnerabilities/
+
+on a kernel booted with "spectre_v2=retpoline retbleed=off" ?
+
+Thanks,
+
+        tglx
