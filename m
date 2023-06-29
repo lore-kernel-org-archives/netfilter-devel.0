@@ -2,141 +2,120 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD97C001B1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 12:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24FDAEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 13:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231550AbjF2MRF (ORCPT
+        id S230164AbjF2NVu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Jun 2023 08:17:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51474 "EHLO
+        Thu, 29 Jun 2023 09:21:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229494AbjF2MRE (ORCPT
+        with ESMTP id S229494AbjF2NVt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jun 2023 08:17:04 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94FCF30C7
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2023 05:16:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688040972;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=xRtfZg4SPW/dfExfHKxyTm+z8to08LGorkhnQOIa1Ew=;
-        b=DcXCcey3hZQkbG7IOdhT4/gA367sqKMgOz7kmRT3lXwccO6FcRg1ZyjjL8FOcFsa1XDwhp
-        YUZNvWnJR+bpfUn4EH07EkBEGs4fgJCt53mjC0WgBUETTb/F2m8Q5J8NYi6l30NKssgIE5
-        fxQ5AjZNxUCJizzbVQfxdcFofdrsetk=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-261-QwbD8WWTP0uwYMWTlekWuA-1; Thu, 29 Jun 2023 08:16:11 -0400
-X-MC-Unique: QwbD8WWTP0uwYMWTlekWuA-1
-Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-987a0365f77so42743066b.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2023 05:16:11 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688040970; x=1690632970;
-        h=content-transfer-encoding:mime-version:message-id:date:references
-         :in-reply-to:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xRtfZg4SPW/dfExfHKxyTm+z8to08LGorkhnQOIa1Ew=;
-        b=d+vbIvBUSHFf5SXT8mK8hGnKj4i+5u6gikIxxVdhj2XpQHqGa1VncowzOVWcu7YHhL
-         pGlo7dE/6uMJp+1ef/YV0YzdgLlnmAKBM9cDC+I6U7cU2uqLfJ7yXrDLIUaTBh/X7V+r
-         igHWNvK3HyJtHN11zQD94SdQN4uhziB06oN/25YRC0WDp1Mh9xmHuQTEhoEjmaPzWgHT
-         Ed1ATOCbRqYUKeYlGDx3Ot14O9ST5WuPpj0p/tIm2vD+Bc85xk5lg9pKaaS6+6kI9/v+
-         Aru8LVg4TcVENey0O8dqgkaJB2eYHP5b/inqZbJKh3JBEUZG64XsSzr+AcODNtW1vW7A
-         FmMw==
-X-Gm-Message-State: AC+VfDwEdsTDVtjBgJ28eNCAU6gAKD6fIkMK4hr/+slpg+jg8Tdg3ySm
-        lRo2iyNR8QiBbzHNDfrL9TxOhoHFygtcIWkPfq4zuuarU4Ix81MbX4LdmpjKHlTHiyWP+HW+tof
-        8jB2c6TH6E7GO0t7nrrEr5GM5gY40
-X-Received: by 2002:a17:907:7ba5:b0:982:9b01:a57c with SMTP id ne37-20020a1709077ba500b009829b01a57cmr35983871ejc.12.1688040970189;
-        Thu, 29 Jun 2023 05:16:10 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ440Dob8tg/t5hFb4HMywtZ2vhJhTJbVaJ/t/Vr2iJNg951ErahzdstJyCHl3lyIqlaAIFN+A==
-X-Received: by 2002:a17:907:7ba5:b0:982:9b01:a57c with SMTP id ne37-20020a1709077ba500b009829b01a57cmr35983845ejc.12.1688040969798;
-        Thu, 29 Jun 2023 05:16:09 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
-        by smtp.gmail.com with ESMTPSA id qq2-20020a17090720c200b00992aea2c55dsm589147ejb.153.2023.06.29.05.16.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jun 2023 05:16:09 -0700 (PDT)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-        id 940D2BC0450; Thu, 29 Jun 2023 14:16:08 +0200 (CEST)
-From:   Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Thu, 29 Jun 2023 09:21:49 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4258F2707;
+        Thu, 29 Jun 2023 06:21:47 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qEraf-0006iS-KY; Thu, 29 Jun 2023 15:21:41 +0200
+Date:   Thu, 29 Jun 2023 15:21:41 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@redhat.com>
+Cc:     Florian Westphal <fw@strlen.de>, Daniel Xu <dxu@dxuuu.xyz>,
+        bpf@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
         daniel@iogearbox.net, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in BPF
-In-Reply-To: <20230627154439.GA18285@breakpoint.cc>
-References: <cover.1687819413.git.dxu@dxuuu.xyz> <874jmthtiu.fsf@toke.dk>
+Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
+ BPF
+Message-ID: <20230629132141.GA10165@breakpoint.cc>
+References: <cover.1687819413.git.dxu@dxuuu.xyz>
+ <874jmthtiu.fsf@toke.dk>
  <20230627154439.GA18285@breakpoint.cc>
-X-Clacks-Overhead: GNU Terry Pratchett
-Date:   Thu, 29 Jun 2023 14:16:08 +0200
-Message-ID: <87o7kyfoqf.fsf@toke.dk>
+ <87o7kyfoqf.fsf@toke.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <87o7kyfoqf.fsf@toke.dk>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> writes:
+Toke Høiland-Jørgensen <toke@redhat.com> wrote:
+> Florian Westphal <fw@strlen.de> writes:
+> > For bpf a flag during link attachment seemed like the best way
+> > to go.
+> 
+> Right, I wasn't disputing that having a flag to load a module was a good
+> idea. On the contrary, I was thinking we'd need many more of these
+> if/when BPF wants to take advantage of more netfilter code. Say, if a
+> BPF module wants to call into TPROXY, that module would also need go be
+> loaded and kept around, no?
 
-> Toke H=C3=B8iland-J=C3=B8rgensen <toke@redhat.com> wrote:
->> > The basic idea is we bump a refcnt on the netfilter defrag module and
->> > then run the bpf prog after the defrag module runs. This allows bpf
->> > progs to transparently see full, reassembled packets. The nice thing
->> > about this is that progs don't have to carry around logic to detect
->> > fragments.
->>=20
->> One high-level comment after glancing through the series: Instead of
->> allocating a flag specifically for the defrag module, why not support
->> loading (and holding) arbitrary netfilter modules in the UAPI?
->
-> How would that work/look like?
->
-> defrag (and conntrack) need special handling because loading these
-> modules has no effect on the datapath.
->
-> Traditionally, yes, loading was enough, but now with netns being
-> ubiquitous we don't want these to get enabled unless needed.
->
-> Ignoring bpf, this happens when user adds nftables/iptables rules
-> that check for conntrack state, use some form of NAT or use e.g. tproxy.
->
-> For bpf a flag during link attachment seemed like the best way
-> to go.
+That seems to be a different topic that has nothing to do with
+either bpf_link or netfilter?
 
-Right, I wasn't disputing that having a flag to load a module was a good
-idea. On the contrary, I was thinking we'd need many more of these
-if/when BPF wants to take advantage of more netfilter code. Say, if a
-BPF module wants to call into TPROXY, that module would also need go be
-loaded and kept around, no?
+If the program calls into say, TPROXY, then I'd expect that this needs
+to be handled via kfuncs, no? Or if I misunderstand, what do you mean
+by "call into TPROXY"?
 
-I was thinking something along the lines of just having a field
-'netfilter_modules[]' where userspace could put an arbitrary number of
-module names into, and we'd load all of them and put a ref into the
-bpf_link. In principle, we could just have that be a string array of
-module names, but that's probably a bit cumbersome (and, well, building
-a generic module loader interface into the bpf_like API is not
-desirable either). But maybe with an explicit ENUM?
+And if so, thats already handled at bpf_prog load time, not
+at link creation time, or do I miss something here?
 
-> At the moment I only see two flags for this, namely
-> "need defrag" and "need conntrack".
->
-> For conntrack, we MIGHT be able to not need a flag but
-> maybe verifier could "guess" based on kfuncs used.
+AFAIU, if prog uses such kfuncs, verifier will grab needed module ref
+and if module isn't loaded the kfuncs won't be found and program load
+fails.
 
-If the verifier can just identify the modules from the kfuncs and do the
-whole thing automatically, that would of course be even better from an
-ease-of-use PoV. Not sure what that would take, though? I seem to recall
-having discussions around these lines before that fell down on various
-points.
+> I was thinking something along the lines of just having a field
+> 'netfilter_modules[]' where userspace could put an arbitrary number of
+> module names into, and we'd load all of them and put a ref into the
+> bpf_link.
 
-> But for defrag, I don't think its good to add a dummy do-nothing
-> kfunc just for expressing the dependency on bpf prog side.
+Why?  I fail to understand the connection between bpf_link, netfilter
+and modules.  What makes netfilter so special that we need such a
+module array, and what does that have to do with bpf_link interface?
 
-Agreed.
+> In principle, we could just have that be a string array f
+> module names, but that's probably a bit cumbersome (and, well, building
+> a generic module loader interface into the bpf_like API is not
+> desirable either). But maybe with an explicit ENUM?
 
--Toke
+What functionality does that provide? I can't think of a single module
+where this functionality is needed.
 
+Either we're talking about future kfuncs, then, as far as i understand
+how kfuncs work, this is handled at bpf_prog load time, not when the
+bpf_link is created.
+
+Or we are talking about implicit dependencies, where program doesn't
+call function X but needs functionality handled earlier in the pipeline?
+
+The only two instances I know where this is the case for netfilter
+is defrag + conntrack.
+
+> > For conntrack, we MIGHT be able to not need a flag but
+> > maybe verifier could "guess" based on kfuncs used.
+> 
+> If the verifier can just identify the modules from the kfuncs and do the
+> whole thing automatically, that would of course be even better from an
+> ease-of-use PoV. Not sure what that would take, though? I seem to recall
+> having discussions around these lines before that fell down on various
+> points.
+
+AFAICS the conntrack kfuncs are wired to nf_conntrack already, so I
+would expect that the module has to be loaded already for the verifier
+to accept the program.
+
+Those kfuncs are not yet exposed to NETFILTER program types.
+Once they are, all that would be needed is for the netfilter bpf_link
+to be able tp detect that the prog is calling into those kfuncs, and
+then make the needed register/unregister calls to enable the conntrack
+hooks.
+
+Wheter thats better than using an explicit "please turn on conntrack for
+me", I don't know.  Perhaps future bpf programs could access skb->_nfct
+directly without kfuncs so I'd say the flag is a better approach
+from an uapi point of view.
