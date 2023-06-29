@@ -2,116 +2,87 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0EB7C001B0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 17:59:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17045C001B1
+	for <netfilter-devel@archiver.kernel.org>; Thu, 29 Jun 2023 19:02:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231305AbjF2R7K (ORCPT
+        id S233144AbjF2TCP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 29 Jun 2023 13:59:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37486 "EHLO
+        Thu, 29 Jun 2023 15:02:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229794AbjF2R7J (ORCPT
+        with ESMTP id S232836AbjF2TBa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jun 2023 13:59:09 -0400
-Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4694EE49;
-        Thu, 29 Jun 2023 10:59:08 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.nyi.internal (Postfix) with ESMTP id 99BFF5C030F;
-        Thu, 29 Jun 2023 13:59:07 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute6.internal (MEProxy); Thu, 29 Jun 2023 13:59:07 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
-        1688061547; x=1688147947; bh=zcTZxE9rpOoRkiMqNrWJKVYoGMOyFfMOjEX
-        rxqdBCO0=; b=QOcUfjyvHJ6D2L3Dlwp0WTQ344bF9/0nbhpJze8piFkWG8+MkX+
-        UOCg6rcslYY1EqcOC9he1B8AmiuhRwPu0c2DeD7QPI0hWv/1sYtWjycs1MDaWBfY
-        mY+9LtflSl5HTTi2SXulWzPe+sOwJQGOzk7LLeObAaWQOjlLOx1Y0CImH1dXkCYa
-        +p/ajyTPybxU/CG5mpPwuZ5D2CO7rrhj1mxhl9sG48oG6LGHk40C1J7Uo/WE8/zo
-        y/P1NFDLv3zKD9xTfd8TYmlMsUe0+56nnDxgyNm7rksmrEnE2MqOv3KFYr9o6mb/
-        6HimsdiRxljAD0epXrfU2FI5ifeO98xrRgQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-        1688061547; x=1688147947; bh=zcTZxE9rpOoRkiMqNrWJKVYoGMOyFfMOjEX
-        rxqdBCO0=; b=KvDjFlOX3It/jB2DidOzLexu8tyDdbcVc97bseorb+kgeE6Cp+t
-        xGOuDCM0m5yGblZCDv8LYKshsajzIOIC8/TmFYxCcQeo/LwnR6uN2cb1t85vLXM8
-        w8KWP9sQqPmxhc0iZXCacKSbIRDZUdlTzzMAWXpR18Hau423nXMoGGllJOmdsJq4
-        IahcQpjXUnAKpCxqQ4CIcsk6fs+Qoyqwj6dRfDI8z1+2Wzcxqa1itwWI48h3v6Mu
-        7GKFr5iEe0+FvG3kXsrrxnAJLVbgREk1y+TmVJtGh2JES8ZaDKKYTVdoU8szn/m0
-        H3cBGwJOcsa3wYE24ChLDIpLLVaRKygqdsA==
-X-ME-Sender: <xms:asadZDjkKMaWuDTze6cFuJbqwcwnWbMh16BQlZdyNeTgGDdC3P9hIg>
-    <xme:asadZACYCVgLwjQtSadOrI9bn_iBQmGEFgioAGdIDwu78UbZ2eHW8piFHKvOnmDxC
-    lzZ_eb7jn4zaeTISw>
-X-ME-Received: <xmr:asadZDEQBjLJcoOU0ux7N7J5jGQEa_C4EYqpuOP4j7RmLSicnzRv7_bZd90I6ttiIqCtB3PythTSGUeEhICiJED0CWun6AZxXU-_>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrtdeggdduudelucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    gfrhhlucfvnfffucdlvdefmdenucfjughrpeffhffvvefukfhfgggtugfgjgestheksfdt
-    tddtudenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihusegugihuuhhurdighiiiqe
-    enucggtffrrghtthgvrhhnpedufeeitdeiheffueffleffgeehgeejkeetkefgtdekfeej
-    heffjedtgfekieetleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrih
-    hlfhhrohhmpegugihusegugihuuhhurdighiii
-X-ME-Proxy: <xmx:asadZARXMG_Xg5rfhd2yeyDHqx1XwQBXhhaBr0DDozekyiC_-39tvw>
-    <xmx:asadZAxptrHuJMR4cUkl-YO_rGhERLHkICobjSNACkhSoTozdLe1iw>
-    <xmx:asadZG4eAk216siHH6UQI0kuyExIcLUmG4Ty_24wADoCLFTcg360rQ>
-    <xmx:a8adZPlmja08QxHviOqdJjap12poRut-N_BKnVIyu1k6y7RXWpoQ5Q>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 29 Jun 2023 13:59:06 -0400 (EDT)
-Date:   Thu, 29 Jun 2023 11:59:04 -0600
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>,
-        bpf@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        daniel@iogearbox.net, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next 0/7] Support defragmenting IPv(4|6) packets in
- BPF
-Message-ID: <nk6jl4hqougwim4sfgnm6rleh64dqad6qbqghbmjcfi6o7qrae@q3jtw34azrml>
-References: <cover.1687819413.git.dxu@dxuuu.xyz>
- <874jmthtiu.fsf@toke.dk>
- <20230627154439.GA18285@breakpoint.cc>
- <87o7kyfoqf.fsf@toke.dk>
- <20230629132141.GA10165@breakpoint.cc>
- <87leg2fia0.fsf@toke.dk>
- <20230629145315.GB10165@breakpoint.cc>
+        Thu, 29 Jun 2023 15:01:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95901359C;
+        Thu, 29 Jun 2023 12:01:27 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2ABB5615D8;
+        Thu, 29 Jun 2023 19:01:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 599A2C43391;
+        Thu, 29 Jun 2023 19:01:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1688065286;
+        bh=eTtWHXgR4AnHVEzXQX7p9ra2/DOZ1yEDcQZ1L4ry2H4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=QyKCW/Oog7pZTvJUDhvVV8Rdjt7RnnGAGOQG4sFDkkRwP5Y5Yn6jnFbUADaLfNYyw
+         6gCsurUivqi4gVNQ6r7Ki05d5InGrkFDa9NZTMv6r26k5FE7Q7fQL7XnkSRjvzMmxo
+         N9OoQEq61x2Lo/Nmn2m48anzIf6K/vLG3mSytJ3kCHReEU14B+XeodOQQxnHKp8p5i
+         uocV7aiTbLGUVSWEwmusSGRHRNdroWKfNDw1iPF2K77zL0HdSA0KElfNA+O4MO/VTO
+         WLrSWTTnZxPQH5HY75QQIzVMeTOwi4wcz/tW2D+qm1F4Bon3KL3iNmRZK2W893yvx3
+         a8sMPvuxQDuzQ==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sasha Levin <sashal@kernel.org>, kadlec@netfilter.org,
+        fw@strlen.de, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.3 14/17] netfilter: nf_tables: drop module reference after updating chain
+Date:   Thu, 29 Jun 2023 15:00:43 -0400
+Message-Id: <20230629190049.907558-14-sashal@kernel.org>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230629190049.907558-1-sashal@kernel.org>
+References: <20230629190049.907558-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.3.9
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230629145315.GB10165@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jun 29, 2023 at 04:53:15PM +0200, Florian Westphal wrote:
-> Toke Høiland-Jørgensen <toke@redhat.com> wrote:
-> > Florian Westphal <fw@strlen.de> writes:
-> > As for the original question, that's answered by your point above: If
-> > those two modules are the only ones that are likely to need this, then a
-> > flag for each is fine by me - that was the key piece I was missing (I'm
-> > not a netfilter expert, as you well know).
-> 
-> No problem, I was worried I was missing an important piece of kfunc
-> plumbing :-)
-> 
-> You do raise a good point though.  With kfuncs, module is pinned.
-> So, should a "please turn on defrag for this bpf_link" pin
-> the defrag modules too?
-> 
-> For plain netfilter we don't do that, i.e. you can just do
-> "rmmod nf_defrag_ipv4".  But I suspect that for the new bpf-link
-> defrag we probably should grab a reference to prevent unwanted
-> functionality breakage of the bpf prog.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Ack. Will add to v3.
+[ Upstream commit 043d2acf57227db1fdaaa620b2a420acfaa56d6e ]
 
-Thanks,
-Daniel
+Otherwise the module reference counter is leaked.
+
+Fixes b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 26ab687ac9ab0..9ff16b710eb66 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2525,6 +2525,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	nft_trans_basechain(trans) = basechain;
+ 	INIT_LIST_HEAD(&nft_trans_chain_hooks(trans));
+ 	list_splice(&hook.list, &nft_trans_chain_hooks(trans));
++	if (nla[NFTA_CHAIN_HOOK])
++		module_put(hook.type->owner);
+ 
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+ 
+-- 
+2.39.2
+
