@@ -2,93 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A573BEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 20:12:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C635EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 20:23:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233472AbjGEUMm (ORCPT
+        id S233673AbjGEUXc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jul 2023 16:12:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37514 "EHLO
+        Wed, 5 Jul 2023 16:23:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233441AbjGEUMl (ORCPT
+        with ESMTP id S232401AbjGEUXa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jul 2023 16:12:41 -0400
+        Wed, 5 Jul 2023 16:23:30 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CA06173B;
-        Wed,  5 Jul 2023 13:12:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B3C41985;
+        Wed,  5 Jul 2023 13:23:29 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1qH8rY-0000L4-6w; Wed, 05 Jul 2023 22:12:32 +0200
-Date:   Wed, 5 Jul 2023 22:12:32 +0200
+        id 1qH927-0000NS-Ph; Wed, 05 Jul 2023 22:23:27 +0200
+Date:   Wed, 5 Jul 2023 22:23:27 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: prevent OOB access in
- nft_byteorder_eval
-Message-ID: <20230705201232.GG3751@breakpoint.cc>
-References: <20230705121515.747251-1-cascardo@canonical.com>
- <20230705130336.GD3751@breakpoint.cc>
- <ZKWzx3e6frpSs8bN@quatroqueijos.cascardo.eti.br>
+To:     Greg KH <gregkh@linuxfoundation.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
+        sashal@kernel.org
+Subject: Re: [PATCH -stable,5.15 2/2] netfilter: nf_tables: unbind
+ non-anonymous set if rule construction fails
+Message-ID: <20230705202327.GH3751@breakpoint.cc>
+References: <20230705141411.53123-1-pablo@netfilter.org>
+ <20230705141411.53123-3-pablo@netfilter.org>
+ <2023070533-swimwear-audition-49e8@gregkh>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZKWzx3e6frpSs8bN@quatroqueijos.cascardo.eti.br>
+In-Reply-To: <2023070533-swimwear-audition-49e8@gregkh>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thadeu Lima de Souza Cascardo <cascardo@canonical.com> wrote:
-> > > @@ -74,11 +77,11 @@ void nft_byteorder_eval(const struct nft_expr *expr,
-> > >  		switch (priv->op) {
-> > >  		case NFT_BYTEORDER_NTOH:
-> > >  			for (i = 0; i < priv->len / 2; i++)
-> > > -				d[i].u16 = ntohs((__force __be16)s[i].u16);
-> > > +				d16[i] = ntohs((__force __be16)s16[i]);
+Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Wed, Jul 05, 2023 at 04:14:11PM +0200, Pablo Neira Ayuso wrote:
+> > [ 3e70489721b6c870252c9082c496703677240f53 ]
 > > 
-> > This on the other hand... I'd say this should mimic what the 64bit
-> > case is doing and use nft_reg_store16() nft_reg_load16() helpers for
-> > the register accesses.
+> > Otherwise a dangling reference to a rule object that is gone remains
+> > in the set binding list.
 > > 
-> > something like:
-> > 
-> > for (i = 0; i < priv->len / 2; i++) {
-> >      v16 = nft_reg_load16(&src[i]);
-> >      nft_reg_store16(&dst[i], + ntohs((__force __be16)v16));
-> > }
-> > 
+> > Fixes: 26b5a5712eb8 ("netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain")
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> >  net/netfilter/nf_tables_api.c | 2 ++
+> >  1 file changed, 2 insertions(+)
 > 
-> The problem here is that we cannot index the 32-bit dst and src pointers as if
-> they were 16-bit pointers. We will end up with the exact same problem we are
-> trying to fix here.
-> 
-> I can change the code to use the accessors, but they use u32 pointers, so it
-> would end up looking like:
-> 
->  		case NFT_BYTEORDER_NTOH:
->  			for (i = 0; i < priv->len / 4; i++)
-> -				d[i].u32 = ntohl((__force __be32)s[i].u32);
-> +				dst[i] = ntohl((__force __be32)src[i]);
->  			break;
->  		case NFT_BYTEORDER_HTON:
->  			for (i = 0; i < priv->len / 4; i++)
-> -				d[i].u32 = (__force __u32)htonl(s[i].u32);
-> +				dst[i] = (__force __u32)htonl(src[i]);
+> But what about kernels newer than 5.15?  Surely this is also needed
+> there as this only is going to first show up in 6.5-rc1, which hasn't
+> been released yet.
 
-Ack, thanks.
-
->  		case NFT_BYTEORDER_NTOH:
-> -			for (i = 0; i < priv->len / 2; i++)
-> -				d[i].u16 = ntohs((__force __be16)s[i].u16);
-> +			for (i = 0; i < priv->len / 2; i++) {
-> +				__be16 src16;
-> +				src16 = nft_reg_load_be16((u32 *)&s16[i]);
-> +				nft_reg_store_be16((u32 *)&d16[i], ntohs(src16));
-> +			}
-
-These accessors take a registers' address, not something in-between.
-
-I think your original was better after all and we need to rely on whatever
-expression filled the register to have done the right thing.
-
+Yes, do you need a backport? The commit cherry-picks cleanly to
+6.1.y, 6.2.y and 6.3.y.
