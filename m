@@ -2,44 +2,40 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C8DEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 12:16:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FB8CEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 12:37:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230157AbjGEMQc (ORCPT
+        id S230049AbjGEMh3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jul 2023 08:16:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38244 "EHLO
+        Wed, 5 Jul 2023 08:37:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229901AbjGEMQc (ORCPT
+        with ESMTP id S229697AbjGEMh2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jul 2023 08:16:32 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72A20BE;
-        Wed,  5 Jul 2023 05:16:30 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qH1Qp-00062P-U5; Wed, 05 Jul 2023 14:16:27 +0200
-Date:   Wed, 5 Jul 2023 14:16:27 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: do not ignore genmask when looking
- up chain by id
-Message-ID: <20230705121627.GC19489@breakpoint.cc>
-References: <20230705121255.746628-1-cascardo@canonical.com>
+        Wed, 5 Jul 2023 08:37:28 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 98C49116
+        for <netfilter-devel@vger.kernel.org>; Wed,  5 Jul 2023 05:37:27 -0700 (PDT)
+Date:   Wed, 5 Jul 2023 14:37:23 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, faicker.mo@ucloud.cn
+Subject: Re: [PATCH nf] netfilter: conntrack: gre: don't set assured flag for
+ clash entries
+Message-ID: <ZKVkA08uTHPBl1cq@calendula>
+References: <20230703114318.20997-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230705121255.746628-1-cascardo@canonical.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230703114318.20997-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thadeu Lima de Souza Cascardo <cascardo@canonical.com> wrote:
-> When adding a rule to a chain referring to its ID, if that chain had been
-> deleted on the same batch, the rule might end up referring to a deleted
-> chain.
+On Mon, Jul 03, 2023 at 01:43:18PM +0200, Florian Westphal wrote:
+> Now that conntrack core is allowd to insert clashing entries, make sure
+> GRE won't set assured flag on NAT_CLASH entries, just like UDP.
+> 
+> Doing so prevents early_drop logic for these entries.
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Applied, thanks.
