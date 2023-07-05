@@ -2,305 +2,160 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AEF7EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 10:36:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EC3EEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 12:14:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229910AbjGEKgV (ORCPT
+        id S230439AbjGEMOQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jul 2023 06:36:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51100 "EHLO
+        Wed, 5 Jul 2023 08:14:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230285AbjGEKgU (ORCPT
+        with ESMTP id S231626AbjGEMON (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jul 2023 06:36:20 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85262E6E;
-        Wed,  5 Jul 2023 03:36:18 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Qwwws55CCz6J6K5;
-        Wed,  5 Jul 2023 18:33:17 +0800 (CST)
-Received: from [10.123.123.126] (10.123.123.126) by
- lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Wed, 5 Jul 2023 11:36:14 +0100
-Message-ID: <fa5301dc-f9c4-3029-a422-36b29fc076c5@huawei.com>
-Date:   Wed, 5 Jul 2023 13:36:14 +0300
+        Wed, 5 Jul 2023 08:14:13 -0400
+Received: from smtp-relay-canonical-0.canonical.com (smtp-relay-canonical-0.canonical.com [185.125.188.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E44F1BDF;
+        Wed,  5 Jul 2023 05:13:54 -0700 (PDT)
+Received: from localhost.localdomain (1.general.cascardo.us.vpn [10.172.70.58])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 122AE41495;
+        Wed,  5 Jul 2023 12:13:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1688559231;
+        bh=8mO+gHO62oR5Y3zx2yeUDLrgxlGAkZdbGA7wp8GIV6M=;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version;
+        b=ZalshJJ2VINs221Ao6wSsOBLvK2rqlyuu0dLoEZEFVE4cAcbgAsrj1NEkolJHrd0j
+         gFZS+ejig3wrv5UKd0gSzD5+iC5XlgY/1xOF/EQq/J479mmnqkACzUVjWlRW7XXuYO
+         853IbXDvEkVKW7ex6u7DxPEBPO/hGmviWcYJfHWChUeFR66tRWhpY1tZlC/P8aZqSI
+         FRAhj67iMsATEY8rEJsz1sYjRd/bqELzRvbOIzsIuQipM+hofFZve4UWd55v57Dq7T
+         UY/N3Hjet3E71Ry/uPx/p3XwTSA3KZKnkG8ki+916WMDsJLB+43dYozqvcHj2H172x
+         y6iJJZPrZQCpw==
+From:   Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
+To:     netfilter-devel@vger.kernel.org
+Cc:     cascardo@canonical.com, netdev@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nf_tables: do not ignore genmask when looking up chain by id
+Date:   Wed,  5 Jul 2023 09:12:55 -0300
+Message-Id: <20230705121255.746628-1-cascardo@canonical.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v11 04/12] landlock: Refactor merge/inherit_ruleset
- functions
-Content-Language: ru
-To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
- <20230515161339.631577-5-konstantin.meskhidze@huawei.com>
- <3b52ba0c-d013-b7a9-0f08-2e6d677a1df0@digikod.net>
- <12b5f33d-e2f5-3a12-c4f7-0164b6f36fba@huawei.com>
- <5713efed-22cb-7029-5dce-d2bd0b204a8b@digikod.net>
-From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <5713efed-22cb-7029-5dce-d2bd0b204a8b@digikod.net>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
- lhrpeml500004.china.huawei.com (7.191.163.9)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+When adding a rule to a chain referring to its ID, if that chain had been
+deleted on the same batch, the rule might end up referring to a deleted
+chain.
 
+This will lead to a WARNING like following:
 
-7/5/2023 1:16 PM, Mickaël Salaün пишет:
-> 
-> On 01/07/2023 16:52, Konstantin Meskhidze (A) wrote:
->> 
->> 
->> 6/26/2023 9:40 PM, Mickaël Salaün пишет:
->>>
->>> On 15/05/2023 18:13, Konstantin Meskhidze wrote:
->>>> Refactor merge_ruleset() and inherit_ruleset() functions to support
->>>> new rule types. This patch adds merge_tree() and inherit_tree()
->>>> helpers. They use a specific ruleset's red-black tree according to
->>>> a key type argument.
->>>>
->>>> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
->>>> ---
->>>>
->>>> Changes since v10:
->>>> * Refactors merge_tree() function.
->>>>
->>>> Changes since v9:
->>>> * None
->>>>
->>>> Changes since v8:
->>>> * Refactors commit message.
->>>> * Minor fixes.
->>>>
->>>> Changes since v7:
->>>> * Adds missed lockdep_assert_held it inherit_tree() and merge_tree().
->>>> * Fixes comment.
->>>>
->>>> Changes since v6:
->>>> * Refactors merge_ruleset() and inherit_ruleset() functions to support
->>>>     new rule types.
->>>> * Renames tree_merge() to merge_tree() (and reorder arguments), and
->>>>     tree_copy() to inherit_tree().
->>>>
->>>> Changes since v5:
->>>> * Refactors some logic errors.
->>>> * Formats code with clang-format-14.
->>>>
->>>> Changes since v4:
->>>> * None
->>>>
->>>> ---
->>>>    security/landlock/ruleset.c | 122 +++++++++++++++++++++++-------------
->>>>    1 file changed, 79 insertions(+), 43 deletions(-)
->>>>
->>>> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
->>>> index deab37838f5b..e4f449fdd6dd 100644
->>>> --- a/security/landlock/ruleset.c
->>>> +++ b/security/landlock/ruleset.c
->>>> @@ -302,36 +302,22 @@ static void put_hierarchy(struct landlock_hierarchy *hierarchy)
->>>>    	}
->>>>    }
->>>>
->>>> -static int merge_ruleset(struct landlock_ruleset *const dst,
->>>> -			 struct landlock_ruleset *const src)
->>>> +static int merge_tree(struct landlock_ruleset *const dst,
->>>> +		      struct landlock_ruleset *const src,
->>>> +		      const enum landlock_key_type key_type)
->>>>    {
->>>>    	struct landlock_rule *walker_rule, *next_rule;
->>>>    	struct rb_root *src_root;
->>>>    	int err = 0;
->>>>
->>>>    	might_sleep();
->>>> -	/* Should already be checked by landlock_merge_ruleset() */
->>>> -	if (WARN_ON_ONCE(!src))
->>>> -		return 0;
->>>> -	/* Only merge into a domain. */
->>>> -	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
->>>> -		return -EINVAL;
->>>> +	lockdep_assert_held(&dst->lock);
->>>> +	lockdep_assert_held(&src->lock);
->>>>
->>>> -	src_root = get_root(src, LANDLOCK_KEY_INODE);
->>>> +	src_root = get_root(src, key_type);
->>>>    	if (IS_ERR(src_root))
->>>>    		return PTR_ERR(src_root);
->>>>
->>>> -	/* Locks @dst first because we are its only owner. */
->>>> -	mutex_lock(&dst->lock);
->>>> -	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
->>>> -
->>>> -	/* Stacks the new layer. */
->>>> -	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
->>>> -		err = -EINVAL;
->>>> -		goto out_unlock;
->>>> -	}
->>>> -	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
->>>> -
->>>>    	/* Merges the @src tree. */
->>>>    	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule, src_root,
->>>>    					     node) {
->>>> @@ -340,23 +326,52 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->>>>    		} };
->>>>    		const struct landlock_id id = {
->>>>    			.key = walker_rule->key,
->>>> -			.type = LANDLOCK_KEY_INODE,
->>>> +			.type = key_type,
->>>>    		};
->>>>
->>>> -		if (WARN_ON_ONCE(walker_rule->num_layers != 1)) {
->>>> -			err = -EINVAL;
->>>> -			goto out_unlock;
->>>> -		}
->>>> -		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0)) {
->>>> -			err = -EINVAL;
->>>> -			goto out_unlock;
->>>> -		}
->>>> +		if (WARN_ON_ONCE(walker_rule->num_layers != 1))
->>>> +			return -EINVAL;
->>>> +
->>>> +		if (WARN_ON_ONCE(walker_rule->layers[0].level != 0))
->>>> +			return -EINVAL;
->>>> +
->>>>    		layers[0].access = walker_rule->layers[0].access;
->>>>
->>>>    		err = insert_rule(dst, id, &layers, ARRAY_SIZE(layers));
->>>>    		if (err)
->>>> -			goto out_unlock;
->>>> +			return err;
->>>> +	}
->>>> +	return err;
->>>> +}
->>>> +
->>>> +static int merge_ruleset(struct landlock_ruleset *const dst,
->>>> +			 struct landlock_ruleset *const src)
->>>> +{
->>>> +	int err = 0;
->>>> +
->>>> +	might_sleep();
->>>> +	/* Should already be checked by landlock_merge_ruleset() */
->>>> +	if (WARN_ON_ONCE(!src))
->>>> +		return 0;
->>>> +	/* Only merge into a domain. */
->>>> +	if (WARN_ON_ONCE(!dst || !dst->hierarchy))
->>>> +		return -EINVAL;
->>>> +
->>>> +	/* Locks @dst first because we are its only owner. */
->>>> +	mutex_lock(&dst->lock);
->>>> +	mutex_lock_nested(&src->lock, SINGLE_DEPTH_NESTING);
->>>> +
->>>> +	/* Stacks the new layer. */
->>>> +	if (WARN_ON_ONCE(src->num_layers != 1 || dst->num_layers < 1)) {
->>>> +		err = -EINVAL;
->>>> +		goto out_unlock;
->>>>    	}
->>>> +	dst->access_masks[dst->num_layers - 1] = src->access_masks[0];
->>>> +
->>>> +	/* Merges the @src inode tree. */
->>>> +	err = merge_tree(dst, src, LANDLOCK_KEY_INODE);
->>>> +	if (err)
->>>> +		goto out_unlock;
->>>>
->>>>    out_unlock:
->>>>    	mutex_unlock(&src->lock);
->>>> @@ -364,43 +379,64 @@ static int merge_ruleset(struct landlock_ruleset *const dst,
->>>>    	return err;
->>>>    }
->>>>
->>>> -static int inherit_ruleset(struct landlock_ruleset *const parent,
->>>> -			   struct landlock_ruleset *const child)
->>>> +static int inherit_tree(struct landlock_ruleset *const parent,
->>>> +			struct landlock_ruleset *const child,
->>>> +			const enum landlock_key_type key_type)
->>>>    {
->>>>    	struct landlock_rule *walker_rule, *next_rule;
->>>>    	struct rb_root *parent_root;
->>>>    	int err = 0;
->>>>
->>>>    	might_sleep();
->>>> -	if (!parent)
->>>> -		return 0;
->>>> +	lockdep_assert_held(&parent->lock);
->>>> +	lockdep_assert_held(&child->lock);
->>>>
->>>> -	parent_root = get_root(parent, LANDLOCK_KEY_INODE);
->>>> +	parent_root = get_root(parent, key_type);
->>>>    	if (IS_ERR(parent_root))
->>>>    		return PTR_ERR(parent_root);
->>>>
->>>> -	/* Locks @child first because we are its only owner. */
->>>> -	mutex_lock(&child->lock);
->>>> -	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
->>>> -
->>>> -	/* Copies the @parent tree. */
->>>> +	/* Copies the @parent inode or network tree. */
->>>>    	rbtree_postorder_for_each_entry_safe(walker_rule, next_rule,
->>>>    					     parent_root, node) {
->>>>    		const struct landlock_id id = {
->>>>    			.key = walker_rule->key,
->>>> -			.type = LANDLOCK_KEY_INODE,
->>>> +			.type = key_type,
->>>>    		};
->>>> +
->>>>    		err = insert_rule(child, id, &walker_rule->layers,
->>>>    				  walker_rule->num_layers);
->>>>    		if (err)
->>>> -			goto out_unlock;
->>>> +			return err;
->>>>    	}
->>>> +	return err;
->>>> +}
->>>> +
->>>> +static int inherit_ruleset(struct landlock_ruleset *const parent,
->>>> +			   struct landlock_ruleset *const child)
->>>> +{
->>>> +	int err = 0;
->>>> +
->>>> +	might_sleep();
->>>> +	if (!parent)
->>>> +		return 0;
->>>> +
->>>> +	/* Locks @child first because we are its only owner. */
->>>> +	mutex_lock(&child->lock);
->>>> +	mutex_lock_nested(&parent->lock, SINGLE_DEPTH_NESTING);
->>>> +
->>>> +	/* Copies the @parent inode tree. */
->>>> +	err = inherit_tree(parent, child, LANDLOCK_KEY_INODE);
->>>> +	if (err)
->>>> +		goto out_unlock;
->>>>
->>>>    	if (WARN_ON_ONCE(child->num_layers <= parent->num_layers)) {
->>>>    		err = -EINVAL;
->>>>    		goto out_unlock;
->>>>    	}
->>>> -	/* Copies the parent layer stack and leaves a space for the new layer. */
->>>> +	/*
->>>> +	 * Copies the parent layer stack and leaves a space
->>>> +	 * for the new layer.
->>>> +	 */
->>>
->>> Did that get formatted because of clang-format? The original line exceed
->>> the 80 columns limit, but it is not caught by different version of
->>> clang-format I tested. Anyway, we should remove this hunk for now
->>> because it has no link with the current patch.
->> 
->>     Yep. I format every patch with clnag-format.
->>     I will remove this hunk and let it be as it was.
-> 
-> It's weird because clang-format doesn't touch this hunk for me. Which
-> version do you use? Do you have any specific configuration?
+[   33.098431] ------------[ cut here ]------------
+[   33.098678] WARNING: CPU: 5 PID: 69 at net/netfilter/nf_tables_api.c:2037 nf_tables_chain_destroy+0x23d/0x260
+[   33.099217] Modules linked in:
+[   33.099388] CPU: 5 PID: 69 Comm: kworker/5:1 Not tainted 6.4.0+ #409
+[   33.099726] Workqueue: events nf_tables_trans_destroy_work
+[   33.100018] RIP: 0010:nf_tables_chain_destroy+0x23d/0x260
+[   33.100306] Code: 8b 7c 24 68 e8 64 9c ed fe 4c 89 e7 e8 5c 9c ed fe 48 83 c4 08 5b 41 5c 41 5d 41 5e 41 5f 5d 31 c0 89 c6 89 c7 c3 cc cc cc cc <0f> 0b 48 83 c4 08 5b 41 5c 41 5d 41 5e 41 5f 5d 31 c0 89 c6 89 c7
+[   33.101271] RSP: 0018:ffffc900004ffc48 EFLAGS: 00010202
+[   33.101546] RAX: 0000000000000001 RBX: ffff888006fc0a28 RCX: 0000000000000000
+[   33.101920] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+[   33.102649] RBP: ffffc900004ffc78 R08: 0000000000000000 R09: 0000000000000000
+[   33.103018] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880135ef500
+[   33.103385] R13: 0000000000000000 R14: dead000000000122 R15: ffff888006fc0a10
+[   33.103762] FS:  0000000000000000(0000) GS:ffff888024c80000(0000) knlGS:0000000000000000
+[   33.104184] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   33.104493] CR2: 00007fe863b56a50 CR3: 00000000124b0001 CR4: 0000000000770ee0
+[   33.104872] PKRU: 55555554
+[   33.104999] Call Trace:
+[   33.105113]  <TASK>
+[   33.105214]  ? show_regs+0x72/0x90
+[   33.105371]  ? __warn+0xa5/0x210
+[   33.105520]  ? nf_tables_chain_destroy+0x23d/0x260
+[   33.105732]  ? report_bug+0x1f2/0x200
+[   33.105902]  ? handle_bug+0x46/0x90
+[   33.106546]  ? exc_invalid_op+0x19/0x50
+[   33.106762]  ? asm_exc_invalid_op+0x1b/0x20
+[   33.106995]  ? nf_tables_chain_destroy+0x23d/0x260
+[   33.107249]  ? nf_tables_chain_destroy+0x30/0x260
+[   33.107506]  nf_tables_trans_destroy_work+0x669/0x680
+[   33.107782]  ? mark_held_locks+0x28/0xa0
+[   33.107996]  ? __pfx_nf_tables_trans_destroy_work+0x10/0x10
+[   33.108294]  ? _raw_spin_unlock_irq+0x28/0x70
+[   33.108538]  process_one_work+0x68c/0xb70
+[   33.108755]  ? lock_acquire+0x17f/0x420
+[   33.108977]  ? __pfx_process_one_work+0x10/0x10
+[   33.109218]  ? do_raw_spin_lock+0x128/0x1d0
+[   33.109435]  ? _raw_spin_lock_irq+0x71/0x80
+[   33.109634]  worker_thread+0x2bd/0x700
+[   33.109817]  ? __pfx_worker_thread+0x10/0x10
+[   33.110254]  kthread+0x18b/0x1d0
+[   33.110410]  ? __pfx_kthread+0x10/0x10
+[   33.110581]  ret_from_fork+0x29/0x50
+[   33.110757]  </TASK>
+[   33.110866] irq event stamp: 1651
+[   33.111017] hardirqs last  enabled at (1659): [<ffffffffa206a209>] __up_console_sem+0x79/0xa0
+[   33.111379] hardirqs last disabled at (1666): [<ffffffffa206a1ee>] __up_console_sem+0x5e/0xa0
+[   33.111740] softirqs last  enabled at (1616): [<ffffffffa1f5d40e>] __irq_exit_rcu+0x9e/0xe0
+[   33.112094] softirqs last disabled at (1367): [<ffffffffa1f5d40e>] __irq_exit_rcu+0x9e/0xe0
+[   33.112453] ---[ end trace 0000000000000000 ]---
 
-   Sorry for misleading, its my fault. I realized that I had formated it 
-by myself (more than 80 columns length). You are right that clang-format 
-does not have to do with it - just checked it. I will remove the hunk.
+This is due to the nft_chain_lookup_byid ignoring the genmask. After this
+change, adding the new rule will fail as it will not find the chain.
 
-> .
+Fixes: 837830a4b439 ("netfilter: nf_tables: add NFTA_RULE_CHAIN_ID attribute")
+Cc: stable@vger.kernel.org
+Reported-by: Mingi Cho of Theori working with ZDI
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
+---
+ net/netfilter/nf_tables_api.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 9573a8fcad79..3701493e5401 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2694,7 +2694,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 
+ static struct nft_chain *nft_chain_lookup_byid(const struct net *net,
+ 					       const struct nft_table *table,
+-					       const struct nlattr *nla)
++					       const struct nlattr *nla, u8 genmask)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+ 	u32 id = ntohl(nla_get_be32(nla));
+@@ -2705,7 +2705,8 @@ static struct nft_chain *nft_chain_lookup_byid(const struct net *net,
+ 
+ 		if (trans->msg_type == NFT_MSG_NEWCHAIN &&
+ 		    chain->table == table &&
+-		    id == nft_trans_chain_id(trans))
++		    id == nft_trans_chain_id(trans) &&
++		    nft_active_genmask(chain, genmask))
+ 			return chain;
+ 	}
+ 	return ERR_PTR(-ENOENT);
+@@ -3809,7 +3810,8 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 			return -EOPNOTSUPP;
+ 
+ 	} else if (nla[NFTA_RULE_CHAIN_ID]) {
+-		chain = nft_chain_lookup_byid(net, table, nla[NFTA_RULE_CHAIN_ID]);
++		chain = nft_chain_lookup_byid(net, table, nla[NFTA_RULE_CHAIN_ID],
++					      genmask);
+ 		if (IS_ERR(chain)) {
+ 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN_ID]);
+ 			return PTR_ERR(chain);
+@@ -10502,7 +10504,8 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 						 genmask);
+ 		} else if (tb[NFTA_VERDICT_CHAIN_ID]) {
+ 			chain = nft_chain_lookup_byid(ctx->net, ctx->table,
+-						      tb[NFTA_VERDICT_CHAIN_ID]);
++						      tb[NFTA_VERDICT_CHAIN_ID],
++						      genmask);
+ 			if (IS_ERR(chain))
+ 				return PTR_ERR(chain);
+ 		} else {
+-- 
+2.34.1
+
