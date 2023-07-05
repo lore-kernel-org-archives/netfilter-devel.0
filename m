@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 023F6EB64DD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 013CAC001B0
 	for <netfilter-devel@archiver.kernel.org>; Wed,  5 Jul 2023 23:04:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231393AbjGEXEV (ORCPT
+        id S231627AbjGEXEW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 5 Jul 2023 19:04:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35282 "EHLO
+        Wed, 5 Jul 2023 19:04:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231627AbjGEXET (ORCPT
+        with ESMTP id S231626AbjGEXEV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jul 2023 19:04:19 -0400
+        Wed, 5 Jul 2023 19:04:21 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A3E9F102;
-        Wed,  5 Jul 2023 16:04:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E0CC6122;
+        Wed,  5 Jul 2023 16:04:19 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com
-Subject: [PATCH net 5/6] netfilter: nf_tables: do not ignore genmask when looking up chain by id
-Date:   Thu,  6 Jul 2023 01:04:05 +0200
-Message-Id: <20230705230406.52201-6-pablo@netfilter.org>
+Subject: [PATCH net 6/6] netfilter: nf_tables: prevent OOB access in nft_byteorder_eval
+Date:   Thu,  6 Jul 2023 01:04:06 +0200
+Message-Id: <20230705230406.52201-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230705230406.52201-1-pablo@netfilter.org>
 References: <20230705230406.52201-1-pablo@netfilter.org>
@@ -34,118 +34,209 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
 
-When adding a rule to a chain referring to its ID, if that chain had been
-deleted on the same batch, the rule might end up referring to a deleted
-chain.
+When evaluating byteorder expressions with size 2, a union with 32-bit and
+16-bit members is used. Since the 16-bit members are aligned to 32-bit,
+the array accesses will be out-of-bounds.
 
-This will lead to a WARNING like following:
+It may lead to a stack-out-of-bounds access like the one below:
 
-[   33.098431] ------------[ cut here ]------------
-[   33.098678] WARNING: CPU: 5 PID: 69 at net/netfilter/nf_tables_api.c:2037 nf_tables_chain_destroy+0x23d/0x260
-[   33.099217] Modules linked in:
-[   33.099388] CPU: 5 PID: 69 Comm: kworker/5:1 Not tainted 6.4.0+ #409
-[   33.099726] Workqueue: events nf_tables_trans_destroy_work
-[   33.100018] RIP: 0010:nf_tables_chain_destroy+0x23d/0x260
-[   33.100306] Code: 8b 7c 24 68 e8 64 9c ed fe 4c 89 e7 e8 5c 9c ed fe 48 83 c4 08 5b 41 5c 41 5d 41 5e 41 5f 5d 31 c0 89 c6 89 c7 c3 cc cc cc cc <0f> 0b 48 83 c4 08 5b 41 5c 41 5d 41 5e 41 5f 5d 31 c0 89 c6 89 c7
-[   33.101271] RSP: 0018:ffffc900004ffc48 EFLAGS: 00010202
-[   33.101546] RAX: 0000000000000001 RBX: ffff888006fc0a28 RCX: 0000000000000000
-[   33.101920] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-[   33.102649] RBP: ffffc900004ffc78 R08: 0000000000000000 R09: 0000000000000000
-[   33.103018] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880135ef500
-[   33.103385] R13: 0000000000000000 R14: dead000000000122 R15: ffff888006fc0a10
-[   33.103762] FS:  0000000000000000(0000) GS:ffff888024c80000(0000) knlGS:0000000000000000
-[   33.104184] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   33.104493] CR2: 00007fe863b56a50 CR3: 00000000124b0001 CR4: 0000000000770ee0
-[   33.104872] PKRU: 55555554
-[   33.104999] Call Trace:
-[   33.105113]  <TASK>
-[   33.105214]  ? show_regs+0x72/0x90
-[   33.105371]  ? __warn+0xa5/0x210
-[   33.105520]  ? nf_tables_chain_destroy+0x23d/0x260
-[   33.105732]  ? report_bug+0x1f2/0x200
-[   33.105902]  ? handle_bug+0x46/0x90
-[   33.106546]  ? exc_invalid_op+0x19/0x50
-[   33.106762]  ? asm_exc_invalid_op+0x1b/0x20
-[   33.106995]  ? nf_tables_chain_destroy+0x23d/0x260
-[   33.107249]  ? nf_tables_chain_destroy+0x30/0x260
-[   33.107506]  nf_tables_trans_destroy_work+0x669/0x680
-[   33.107782]  ? mark_held_locks+0x28/0xa0
-[   33.107996]  ? __pfx_nf_tables_trans_destroy_work+0x10/0x10
-[   33.108294]  ? _raw_spin_unlock_irq+0x28/0x70
-[   33.108538]  process_one_work+0x68c/0xb70
-[   33.108755]  ? lock_acquire+0x17f/0x420
-[   33.108977]  ? __pfx_process_one_work+0x10/0x10
-[   33.109218]  ? do_raw_spin_lock+0x128/0x1d0
-[   33.109435]  ? _raw_spin_lock_irq+0x71/0x80
-[   33.109634]  worker_thread+0x2bd/0x700
-[   33.109817]  ? __pfx_worker_thread+0x10/0x10
-[   33.110254]  kthread+0x18b/0x1d0
-[   33.110410]  ? __pfx_kthread+0x10/0x10
-[   33.110581]  ret_from_fork+0x29/0x50
-[   33.110757]  </TASK>
-[   33.110866] irq event stamp: 1651
-[   33.111017] hardirqs last  enabled at (1659): [<ffffffffa206a209>] __up_console_sem+0x79/0xa0
-[   33.111379] hardirqs last disabled at (1666): [<ffffffffa206a1ee>] __up_console_sem+0x5e/0xa0
-[   33.111740] softirqs last  enabled at (1616): [<ffffffffa1f5d40e>] __irq_exit_rcu+0x9e/0xe0
-[   33.112094] softirqs last disabled at (1367): [<ffffffffa1f5d40e>] __irq_exit_rcu+0x9e/0xe0
-[   33.112453] ---[ end trace 0000000000000000 ]---
+[   23.095215] ==================================================================
+[   23.095625] BUG: KASAN: stack-out-of-bounds in nft_byteorder_eval+0x13c/0x320
+[   23.096020] Read of size 2 at addr ffffc90000007948 by task ping/115
+[   23.096358]
+[   23.096456] CPU: 0 PID: 115 Comm: ping Not tainted 6.4.0+ #413
+[   23.096770] Call Trace:
+[   23.096910]  <IRQ>
+[   23.097030]  dump_stack_lvl+0x60/0xc0
+[   23.097218]  print_report+0xcf/0x630
+[   23.097388]  ? nft_byteorder_eval+0x13c/0x320
+[   23.097577]  ? kasan_addr_to_slab+0xd/0xc0
+[   23.097760]  ? nft_byteorder_eval+0x13c/0x320
+[   23.097949]  kasan_report+0xc9/0x110
+[   23.098106]  ? nft_byteorder_eval+0x13c/0x320
+[   23.098298]  __asan_load2+0x83/0xd0
+[   23.098453]  nft_byteorder_eval+0x13c/0x320
+[   23.098659]  nft_do_chain+0x1c8/0xc50
+[   23.098852]  ? __pfx_nft_do_chain+0x10/0x10
+[   23.099078]  ? __kasan_check_read+0x11/0x20
+[   23.099295]  ? __pfx___lock_acquire+0x10/0x10
+[   23.099535]  ? __pfx___lock_acquire+0x10/0x10
+[   23.099745]  ? __kasan_check_read+0x11/0x20
+[   23.099929]  nft_do_chain_ipv4+0xfe/0x140
+[   23.100105]  ? __pfx_nft_do_chain_ipv4+0x10/0x10
+[   23.100327]  ? lock_release+0x204/0x400
+[   23.100515]  ? nf_hook.constprop.0+0x340/0x550
+[   23.100779]  nf_hook_slow+0x6c/0x100
+[   23.100977]  ? __pfx_nft_do_chain_ipv4+0x10/0x10
+[   23.101223]  nf_hook.constprop.0+0x334/0x550
+[   23.101443]  ? __pfx_ip_local_deliver_finish+0x10/0x10
+[   23.101677]  ? __pfx_nf_hook.constprop.0+0x10/0x10
+[   23.101882]  ? __pfx_ip_rcv_finish+0x10/0x10
+[   23.102071]  ? __pfx_ip_local_deliver_finish+0x10/0x10
+[   23.102291]  ? rcu_read_lock_held+0x4b/0x70
+[   23.102481]  ip_local_deliver+0xbb/0x110
+[   23.102665]  ? __pfx_ip_rcv+0x10/0x10
+[   23.102839]  ip_rcv+0x199/0x2a0
+[   23.102980]  ? __pfx_ip_rcv+0x10/0x10
+[   23.103140]  __netif_receive_skb_one_core+0x13e/0x150
+[   23.103362]  ? __pfx___netif_receive_skb_one_core+0x10/0x10
+[   23.103647]  ? mark_held_locks+0x48/0xa0
+[   23.103819]  ? process_backlog+0x36c/0x380
+[   23.103999]  __netif_receive_skb+0x23/0xc0
+[   23.104179]  process_backlog+0x91/0x380
+[   23.104350]  __napi_poll.constprop.0+0x66/0x360
+[   23.104589]  ? net_rx_action+0x1cb/0x610
+[   23.104811]  net_rx_action+0x33e/0x610
+[   23.105024]  ? _raw_spin_unlock+0x23/0x50
+[   23.105257]  ? __pfx_net_rx_action+0x10/0x10
+[   23.105485]  ? mark_held_locks+0x48/0xa0
+[   23.105741]  __do_softirq+0xfa/0x5ab
+[   23.105956]  ? __dev_queue_xmit+0x765/0x1c00
+[   23.106193]  do_softirq.part.0+0x49/0xc0
+[   23.106423]  </IRQ>
+[   23.106547]  <TASK>
+[   23.106670]  __local_bh_enable_ip+0xf5/0x120
+[   23.106903]  __dev_queue_xmit+0x789/0x1c00
+[   23.107131]  ? __pfx___dev_queue_xmit+0x10/0x10
+[   23.107381]  ? find_held_lock+0x8e/0xb0
+[   23.107585]  ? lock_release+0x204/0x400
+[   23.107798]  ? neigh_resolve_output+0x185/0x350
+[   23.108049]  ? mark_held_locks+0x48/0xa0
+[   23.108265]  ? neigh_resolve_output+0x185/0x350
+[   23.108514]  neigh_resolve_output+0x246/0x350
+[   23.108753]  ? neigh_resolve_output+0x246/0x350
+[   23.109003]  ip_finish_output2+0x3c3/0x10b0
+[   23.109250]  ? __pfx_ip_finish_output2+0x10/0x10
+[   23.109510]  ? __pfx_nf_hook+0x10/0x10
+[   23.109732]  __ip_finish_output+0x217/0x390
+[   23.109978]  ip_finish_output+0x2f/0x130
+[   23.110207]  ip_output+0xc9/0x170
+[   23.110404]  ip_push_pending_frames+0x1a0/0x240
+[   23.110652]  raw_sendmsg+0x102e/0x19e0
+[   23.110871]  ? __pfx_raw_sendmsg+0x10/0x10
+[   23.111093]  ? lock_release+0x204/0x400
+[   23.111304]  ? __mod_lruvec_page_state+0x148/0x330
+[   23.111567]  ? find_held_lock+0x8e/0xb0
+[   23.111777]  ? find_held_lock+0x8e/0xb0
+[   23.111993]  ? __rcu_read_unlock+0x7c/0x2f0
+[   23.112225]  ? aa_sk_perm+0x18a/0x550
+[   23.112431]  ? filemap_map_pages+0x4f1/0x900
+[   23.112665]  ? __pfx_aa_sk_perm+0x10/0x10
+[   23.112880]  ? find_held_lock+0x8e/0xb0
+[   23.113098]  inet_sendmsg+0xa0/0xb0
+[   23.113297]  ? inet_sendmsg+0xa0/0xb0
+[   23.113500]  ? __pfx_inet_sendmsg+0x10/0x10
+[   23.113727]  sock_sendmsg+0xf4/0x100
+[   23.113924]  ? move_addr_to_kernel.part.0+0x4f/0xa0
+[   23.114190]  __sys_sendto+0x1d4/0x290
+[   23.114391]  ? __pfx___sys_sendto+0x10/0x10
+[   23.114621]  ? __pfx_mark_lock.part.0+0x10/0x10
+[   23.114869]  ? lock_release+0x204/0x400
+[   23.115076]  ? find_held_lock+0x8e/0xb0
+[   23.115287]  ? rcu_is_watching+0x23/0x60
+[   23.115503]  ? __rseq_handle_notify_resume+0x6e2/0x860
+[   23.115778]  ? __kasan_check_write+0x14/0x30
+[   23.116008]  ? blkcg_maybe_throttle_current+0x8d/0x770
+[   23.116285]  ? mark_held_locks+0x28/0xa0
+[   23.116503]  ? do_syscall_64+0x37/0x90
+[   23.116713]  __x64_sys_sendto+0x7f/0xb0
+[   23.116924]  do_syscall_64+0x59/0x90
+[   23.117123]  ? irqentry_exit_to_user_mode+0x25/0x30
+[   23.117387]  ? irqentry_exit+0x77/0xb0
+[   23.117593]  ? exc_page_fault+0x92/0x140
+[   23.117806]  entry_SYSCALL_64_after_hwframe+0x6e/0xd8
+[   23.118081] RIP: 0033:0x7f744aee2bba
+[   23.118282] Code: d8 64 89 02 48 c7 c0 ff ff ff ff eb b8 0f 1f 00 f3 0f 1e fa 41 89 ca 64 8b 04 25 18 00 00 00 85 c0 75 15 b8 2c 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 7e c3 0f 1f 44 00 00 41 54 48 83 ec 30 44 89
+[   23.119237] RSP: 002b:00007ffd04a7c9f8 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+[   23.119644] RAX: ffffffffffffffda RBX: 00007ffd04a7e0a0 RCX: 00007f744aee2bba
+[   23.120023] RDX: 0000000000000040 RSI: 000056488e9e6300 RDI: 0000000000000003
+[   23.120413] RBP: 000056488e9e6300 R08: 00007ffd04a80320 R09: 0000000000000010
+[   23.120809] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000040
+[   23.121219] R13: 00007ffd04a7dc38 R14: 00007ffd04a7ca00 R15: 00007ffd04a7e0a0
+[   23.121617]  </TASK>
+[   23.121749]
+[   23.121845] The buggy address belongs to the virtual mapping at
+[   23.121845]  [ffffc90000000000, ffffc90000009000) created by:
+[   23.121845]  irq_init_percpu_irqstack+0x1cf/0x270
+[   23.122707]
+[   23.122803] The buggy address belongs to the physical page:
+[   23.123104] page:0000000072ac19f0 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x24a09
+[   23.123609] flags: 0xfffffc0001000(reserved|node=0|zone=1|lastcpupid=0x1fffff)
+[   23.123998] page_type: 0xffffffff()
+[   23.124194] raw: 000fffffc0001000 ffffea0000928248 ffffea0000928248 0000000000000000
+[   23.124610] raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+[   23.125023] page dumped because: kasan: bad access detected
+[   23.125326]
+[   23.125421] Memory state around the buggy address:
+[   23.125682]  ffffc90000007800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[   23.126072]  ffffc90000007880: 00 00 00 00 00 f1 f1 f1 f1 f1 f1 00 00 f2 f2 00
+[   23.126455] >ffffc90000007900: 00 00 00 00 00 00 00 00 00 f2 f2 f2 f2 00 00 00
+[   23.126840]                                               ^
+[   23.127138]  ffffc90000007980: 00 00 00 00 00 00 00 00 00 00 00 00 00 f3 f3 f3
+[   23.127522]  ffffc90000007a00: f3 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1
+[   23.127906] ==================================================================
+[   23.128324] Disabling lock debugging due to kernel taint
 
-This is due to the nft_chain_lookup_byid ignoring the genmask. After this
-change, adding the new rule will fail as it will not find the chain.
+Using simple s16 pointers for the 16-bit accesses fixes the problem. For
+the 32-bit accesses, src and dst can be used directly.
 
-Fixes: 837830a4b439 ("netfilter: nf_tables: add NFTA_RULE_CHAIN_ID attribute")
+Fixes: 96518518cc41 ("netfilter: add nftables")
 Cc: stable@vger.kernel.org
-Reported-by: Mingi Cho of Theori working with ZDI
+Reported-by: Tanguy DUBROCA (@SidewayRE) from @Synacktiv working with ZDI
 Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
 Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ net/netfilter/nft_byteorder.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 86b3c4de7f40..237f739da3ca 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2699,7 +2699,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index 9a85e797ed58..e596d1a842f7 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -30,11 +30,11 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 	const struct nft_byteorder *priv = nft_expr_priv(expr);
+ 	u32 *src = &regs->data[priv->sreg];
+ 	u32 *dst = &regs->data[priv->dreg];
+-	union { u32 u32; u16 u16; } *s, *d;
++	u16 *s16, *d16;
+ 	unsigned int i;
  
- static struct nft_chain *nft_chain_lookup_byid(const struct net *net,
- 					       const struct nft_table *table,
--					       const struct nlattr *nla)
-+					       const struct nlattr *nla, u8 genmask)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	u32 id = ntohl(nla_get_be32(nla));
-@@ -2710,7 +2710,8 @@ static struct nft_chain *nft_chain_lookup_byid(const struct net *net,
+-	s = (void *)src;
+-	d = (void *)dst;
++	s16 = (void *)src;
++	d16 = (void *)dst;
  
- 		if (trans->msg_type == NFT_MSG_NEWCHAIN &&
- 		    chain->table == table &&
--		    id == nft_trans_chain_id(trans))
-+		    id == nft_trans_chain_id(trans) &&
-+		    nft_active_genmask(chain, genmask))
- 			return chain;
- 	}
- 	return ERR_PTR(-ENOENT);
-@@ -3814,7 +3815,8 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- 			return -EOPNOTSUPP;
- 
- 	} else if (nla[NFTA_RULE_CHAIN_ID]) {
--		chain = nft_chain_lookup_byid(net, table, nla[NFTA_RULE_CHAIN_ID]);
-+		chain = nft_chain_lookup_byid(net, table, nla[NFTA_RULE_CHAIN_ID],
-+					      genmask);
- 		if (IS_ERR(chain)) {
- 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN_ID]);
- 			return PTR_ERR(chain);
-@@ -10540,7 +10542,8 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 						 genmask);
- 		} else if (tb[NFTA_VERDICT_CHAIN_ID]) {
- 			chain = nft_chain_lookup_byid(ctx->net, ctx->table,
--						      tb[NFTA_VERDICT_CHAIN_ID]);
-+						      tb[NFTA_VERDICT_CHAIN_ID],
-+						      genmask);
- 			if (IS_ERR(chain))
- 				return PTR_ERR(chain);
- 		} else {
+ 	switch (priv->size) {
+ 	case 8: {
+@@ -62,11 +62,11 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+ 			for (i = 0; i < priv->len / 4; i++)
+-				d[i].u32 = ntohl((__force __be32)s[i].u32);
++				dst[i] = ntohl((__force __be32)src[i]);
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+ 			for (i = 0; i < priv->len / 4; i++)
+-				d[i].u32 = (__force __u32)htonl(s[i].u32);
++				dst[i] = (__force __u32)htonl(src[i]);
+ 			break;
+ 		}
+ 		break;
+@@ -74,11 +74,11 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+ 		switch (priv->op) {
+ 		case NFT_BYTEORDER_NTOH:
+ 			for (i = 0; i < priv->len / 2; i++)
+-				d[i].u16 = ntohs((__force __be16)s[i].u16);
++				d16[i] = ntohs((__force __be16)s16[i]);
+ 			break;
+ 		case NFT_BYTEORDER_HTON:
+ 			for (i = 0; i < priv->len / 2; i++)
+-				d[i].u16 = (__force __u16)htons(s[i].u16);
++				d16[i] = (__force __u16)htons(s16[i]);
+ 			break;
+ 		}
+ 		break;
 -- 
 2.30.2
 
