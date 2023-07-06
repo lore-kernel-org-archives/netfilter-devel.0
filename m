@@ -2,146 +2,163 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAEABEB64DC
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jul 2023 16:33:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF83C001B0
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jul 2023 23:26:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230108AbjGFQdI convert rfc822-to-8bit (ORCPT
+        id S231666AbjGFX0W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jul 2023 12:33:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37652 "EHLO
+        Thu, 6 Jul 2023 19:26:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229610AbjGFQdI (ORCPT
+        with ESMTP id S230045AbjGFX0V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jul 2023 12:33:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27EA5183;
-        Thu,  6 Jul 2023 09:33:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E07260F16;
-        Thu,  6 Jul 2023 16:33:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4518EC433C7;
-        Thu,  6 Jul 2023 16:33:03 +0000 (UTC)
-Date:   Thu, 6 Jul 2023 12:33:00 -0400
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Vivek Anand <vivekanand754@gmail.com>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Bagas Sanjaya <bagasdotme@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Lingutla Chandrasekhar <clingutla@codeaurora.org>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        "J. Avila" <elavila@google.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Thomas Renninger <trenn@suse.com>,
-        Shuah Khan <shuah@kernel.org>, Borislav Petkov <bp@alien8.de>,
-        Josh Poimboeuf <jpoimboe@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Regressions <regressions@lists.linux.dev>,
-        Linux Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Netfilter Core Developers <coreteam@netfilter.org>,
-        Linux Networking <netdev@vger.kernel.org>,
-        Linux Power Management <linux-pm@vger.kernel.org>,
-        x86@kernel.org
-Subject: Re: High cpu usage caused by kernel process when upgraded to linux
- 5.19.17 or later
-Message-ID: <20230706123300.55d6450b@gandalf.local.home>
-In-Reply-To: <CAJnqnX5dHiXe3smKhj6JT9+6FNdgrAR=5_Hm8BSRpVF3uARYUg@mail.gmail.com>
-References: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
-        <ZJpJkL3dPXxgw6RK@debian.me>
-        <20230627073035.GV4253@hirez.programming.kicks-ass.net>
-        <99b64dfd-be4a-2248-5c42-8eb9197824e1@gmail.com>
-        <20230627101939.GZ4253@hirez.programming.kicks-ass.net>
-        <CAJnqnX5rYn65zVQ+SLN4m4ZzM_jOa_RjGhazWO=Fh8ZvdOCadg@mail.gmail.com>
-        <878rc22vxq.ffs@tglx>
-        <CAJnqnX5dHiXe3smKhj6JT9+6FNdgrAR=5_Hm8BSRpVF3uARYUg@mail.gmail.com>
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        Thu, 6 Jul 2023 19:26:21 -0400
+Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52F351BC9;
+        Thu,  6 Jul 2023 16:26:20 -0700 (PDT)
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+        by mailout.nyi.internal (Postfix) with ESMTP id 2FB8A5C00C2;
+        Thu,  6 Jul 2023 19:26:17 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute2.internal (MEProxy); Thu, 06 Jul 2023 19:26:17 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to; s=fm1; t=1688685977; x=1688772377; bh=ILwmPPxacB
+        L9zHkUCRnVdWlL4Glqz4GoyWt1wwCPYNE=; b=oX2Lbacu5ZaiB4hPXiUf3PTxaa
+        Z+2UiyVyluT96v6omjhkLL5pzeKuECXV2JAUrCOkn6gD+UTlznPXzrUrr8KlQIRa
+        M0u0DGIKKW67iE/Qs5EyiEY15DqI5raRd6z3BsBI5R5Ftywgycm4o0Hh8ft06UY9
+        jA7m48wenNlkcSHxSJTYYmGxGEJF6auz75ExNEGa/Oncn6JEV0BDR7IPrQkip3cZ
+        ptioHTXIxx4PRCartqeV81ekU0uPa8ZkS5s6Fr4FRqX/hJe+lboN+oi/4MWsGNHt
+        9oc4CZ8WDA8Cu8LMTp/49Mn8L4Ay0WtF3Jfrf9I+IKwUwBVG8zWfU5v3/hXA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:date:date:feedback-id:feedback-id:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm2; t=1688685977; x=1688772377; bh=ILwmPPxacBL9z
+        HkUCRnVdWlL4Glqz4GoyWt1wwCPYNE=; b=a7U9Y5pXlK/McK3TuGOYrQCbp1qlZ
+        Gc2bY5/kUSE7PhsCRqJoetcE8jaO2QKkwztLsr/QQHNcQpJ/QufTI47DX6XurzzA
+        V/arE28UuMHIkYVXhkePMzDgd0obl4/Vn8fciCOFw+XqPzd8BlWRGr+D0iWFqWWR
+        iaGz85OUKhDYIqHraDxuqm9gRrlu0mRR5hL+1bl5fhcHC7h5wb4CRm+Gc+iZjRuV
+        nrg+s0x93s+0OOJm+F+HfhoHGJnkOWLSqGSHn1J+eblu9iIpiUXncXp81rknJfzF
+        9kD1DJ8hT77oAVstRVYFhUJj8MfApkySOslL2SbUX3FcuteuctjabBpXQ==
+X-ME-Sender: <xms:mE2nZFPpRtm2CfCwEr9q2ivFyFM0yQJDe4m8wsP0OVRd_WatoXwMnA>
+    <xme:mE2nZH8GTJNJBqzCdxlbEbHhtfEm9QA-fKUjf7mey3I68siJvKFB4f-UZ2OfcMmx1
+    Iuy7BlvzKlmrXAtTg>
+X-ME-Received: <xmr:mE2nZEQ2qRtXvsFI0S0hQRZx133cGIWSyK7HdpFu3aRbLgXiV0FNRfraHKe0RyT3XZQkRjuQCZsCpfyHVZoBTL1eUpumBdGKMVdbXxrv4UI>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrvddtgddvudcutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdefhedmnecujfgurhephffvve
+    fufffkofgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihu
+    segugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpeetgefhhfeigfejtddvteefff
+    fgteekteduiedtkeevleduvdejueeggfdtfeegfeenucffohhmrghinhepihgvthhfrdho
+    rhhgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepug
+    iguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:mE2nZBufYBER5ZlEgGn6xzP7cuO7fFX8KbT-l07JLeYk7vMu3bT_Kg>
+    <xmx:mE2nZNfEPYiNN-E3BtGw3noSA2F4jNgb9o7zjum8nwPheIvKqyACqg>
+    <xmx:mE2nZN2VQOoRQFZkF1arEtp3-mPJMf3JC-swxlu98P9Qn_UkQddZ1g>
+    <xmx:mU2nZHsuUIIq88dUqvxaPLQN80XYNnh3kaqmvIRzfL7536n0J0fVhg>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 6 Jul 2023 19:26:15 -0400 (EDT)
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        bpf@vger.kernel.org, coreteam@netfilter.org,
+        linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
+        fw@strlen.de, daniel@iogearbox.net
+Cc:     dsahern@kernel.org
+Subject: [PATCH bpf-next v2 0/6] Support defragmenting IPv(4|6) packets in BPF
+Date:   Thu,  6 Jul 2023 17:25:47 -0600
+Message-ID: <cover.1688685338.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 3 Jul 2023 18:23:25 +0530
-Vivek Anand <vivekanand754@gmail.com> wrote:
+=== Context ===
 
-> Hi Thomas,
-> 
-> Further analyzing, I found that I did set
-> "CONFIG_NETFILTER_XT_MATCH_LIMIT=m" in my kernel config earlier which was
-> causing high CPU consumption.
-> Setting it to "CONFIG_NETFILTER_XT_MATCH_LIMIT=n" resolved the high CPU
-> issue.
-> 
-> Is there any suggestion regarding the use of this config
-> "CONFIG_NETFILTER_XT_MATCH_LIMIT" as I'm getting high CPU by setting it to
-> "m" ?
+In the context of a middlebox, fragmented packets are tricky to handle.
+The full 5-tuple of a packet is often only available in the first
+fragment which makes enforcing consistent policy difficult. There are
+really only two stateless options, neither of which are very nice:
 
-That config enables the compiling of: net/netfilter/xt_limit.c
+1. Enforce policy on first fragment and accept all subsequent fragments.
+   This works but may let in certain attacks or allow data exfiltration.
 
-The htable_gc that you reported is defined in: net/netfilter/xt_hashlimit.c
+2. Enforce policy on first fragment and drop all subsequent fragments.
+   This does not really work b/c some protocols may rely on
+   fragmentation. For example, DNS may rely on oversized UDP packets for
+   large responses.
 
-It has:
+So stateful tracking is the only sane option. RFC 8900 [0] calls this
+out as well in section 6.3:
 
-static void htable_gc(struct work_struct *work)
-{
-        struct xt_hashlimit_htable *ht;
+    Middleboxes [...] should process IP fragments in a manner that is
+    consistent with [RFC0791] and [RFC8200]. In many cases, middleboxes
+    must maintain state in order to achieve this goal.
 
-        ht = container_of(work, struct xt_hashlimit_htable, gc_work.work);
+=== BPF related bits ===
 
-        htable_selective_cleanup(ht, false);
+Policy has traditionally been enforced from XDP/TC hooks. Both hooks
+run before kernel reassembly facilities. However, with the new
+BPF_PROG_TYPE_NETFILTER, we can rather easily hook into existing
+netfilter reassembly infra.
 
-        queue_delayed_work(system_power_efficient_wq,
-                           &ht->gc_work, msecs_to_jiffies(ht->cfg.gc_interval));
-}
+The basic idea is we bump a refcnt on the netfilter defrag module and
+then run the bpf prog after the defrag module runs. This allows bpf
+progs to transparently see full, reassembled packets. The nice thing
+about this is that progs don't have to carry around logic to detect
+fragments.
 
-So it queues itself every ht->cfg.gc_interval msecs. That variable seems to
-come from some configuration of netfilter, and I think you can see these in:
+=== Changelog ===
 
- find /proc/sys/net -name 'gc_interval'
+Changes from v1:
 
-Perhaps you have it set off to go too much?
+* Drop bpf_program__attach_netfilter() patches
+* static -> static const where appropriate
+* Fix callback assignment order during registration
+* Only request_module() if callbacks are missing
+* Fix retval when modprobe fails in userspace
+* Fix v6 defrag module name (nf_defrag_ipv6_hooks -> nf_defrag_ipv6)
+* Simplify priority checking code
+* Add warning if module doesn't assign callbacks in the future
+* Take refcnt on module while defrag link is active
 
--- Steve
+
+[0]: https://datatracker.ietf.org/doc/html/rfc8900
 
 
-> 
-> Thanks,
-> Vivek
-> 
-> On Thu, Jun 29, 2023 at 7:48 PM Thomas Gleixner <tglx@linutronix.de> wrote:
-> 
-> > On Thu, Jun 29 2023 at 12:05, Vivek Anand wrote:
-> > > I've tried booting with "spectre_v2=retpoline retbleed=off".
-> > > This change didn't work. Still CPU is 100%
-> >
-> > This does not make sense.
-> >
-> > retbleed=off has the same effect as CONFIG_X86_IBRS_ENTRY=n.
-> >
-> > The only difference is that with CONFIG_X86_IBRS_ENTRY=y and
-> > retbleed=off there is one extra jump in the low level entry code
-> > (syscall, interrupts, exceptions) and one extra jump on the exit side.
-> >
-> > But those extra jumps are completely irrelevant for the kworker threads.
-> >
-> > Can you please provide dmesg and the content of the files in
-> >
-> >  /sys/devices/system/cpu/vulnerabilities/
-> >
-> > on a kernel booted with "spectre_v2=retpoline retbleed=off" ?
-> >
-> > Thanks,
-> >
-> >         tglx
-> >
+Daniel Xu (6):
+  netfilter: defrag: Add glue hooks for enabling/disabling defrag
+  netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link
+  netfilter: bpf: Prevent defrag module unload while link active
+  bpf: selftests: Support not connecting client socket
+  bpf: selftests: Support custom type and proto for client sockets
+  bpf: selftests: Add defrag selftests
+
+ include/linux/netfilter.h                     |  15 +
+ include/uapi/linux/bpf.h                      |   5 +
+ net/ipv4/netfilter/nf_defrag_ipv4.c           |  17 +-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c     |  11 +
+ net/netfilter/core.c                          |   6 +
+ net/netfilter/nf_bpf_link.c                   | 149 ++++++++-
+ tools/include/uapi/linux/bpf.h                |   5 +
+ tools/testing/selftests/bpf/Makefile          |   4 +-
+ .../selftests/bpf/generate_udp_fragments.py   |  90 ++++++
+ .../selftests/bpf/ip_check_defrag_frags.h     |  57 ++++
+ tools/testing/selftests/bpf/network_helpers.c |  26 +-
+ tools/testing/selftests/bpf/network_helpers.h |   3 +
+ .../bpf/prog_tests/ip_check_defrag.c          | 282 ++++++++++++++++++
+ .../selftests/bpf/progs/ip_check_defrag.c     | 104 +++++++
+ 14 files changed, 752 insertions(+), 22 deletions(-)
+ create mode 100755 tools/testing/selftests/bpf/generate_udp_fragments.py
+ create mode 100644 tools/testing/selftests/bpf/ip_check_defrag_frags.h
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/ip_check_defrag.c
+ create mode 100644 tools/testing/selftests/bpf/progs/ip_check_defrag.c
+
+-- 
+2.41.0
 
