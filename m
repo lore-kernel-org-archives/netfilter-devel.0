@@ -2,91 +2,167 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B19EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jul 2023 09:20:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63D8BEB64DC
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jul 2023 14:35:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231905AbjGFJU0 (ORCPT
+        id S233015AbjGFOfE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jul 2023 05:20:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
+        Thu, 6 Jul 2023 10:35:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229527AbjGFJUY (ORCPT
+        with ESMTP id S231925AbjGFOfD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jul 2023 05:20:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62BAB1BD4
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2023 02:20:23 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E77D7618DC
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2023 09:20:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 5128DC433C9;
-        Thu,  6 Jul 2023 09:20:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688635222;
-        bh=2INGgEDHKXSagiP46fEaa51hlLtiaD991u5jIm6fMFA=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=dnAvELrg96Jne7r5x6U/AXdgJq/sleKoCjSIUFI7J3gwomD3o1fbiOHeTGARPCbVR
-         Xs8BzNvuxd3C3jerCHxquBQ7sQwS7NqwonwEJuknOfadDHOXHUfo0+WIz2+dr/8VUF
-         gjpXtiPtrTRZpL3Kakq6ho8DRJnOr5PNWgq9mJahvaB1S/oXGVGrRIfotEowT/SpUQ
-         SxyYGsCSr6rVcK4g4Q5ilbMABiI5ADUHv5SBfl4F22RR7lukMPXFcEMaItBjzQitJ7
-         m7W3qyAufJD7MHQIev4ci2VeJU4IL4Djs4mYj2Cw7hRb15WzU+1Ce3SkJUp+1PsF2x
-         DY629x9h/YCOA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 345CCE5381B;
-        Thu,  6 Jul 2023 09:20:22 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 6 Jul 2023 10:35:03 -0400
+Received: from smtp-190e.mail.infomaniak.ch (smtp-190e.mail.infomaniak.ch [185.125.25.14])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF46D10F5
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2023 07:35:00 -0700 (PDT)
+Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QxfFG26stzMqvsW;
+        Thu,  6 Jul 2023 14:34:58 +0000 (UTC)
+Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QxfFF36qHzMpr1M;
+        Thu,  6 Jul 2023 16:34:57 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1688654098;
+        bh=Al8MPGnendAoYtffWyrnkzctwTz9tkzB4l1vsKqhTOU=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=cBGKGqNfxrIcI1wUmW85uDN6vGH4Bb0NOHs1T4VdHq6bEOcmsXJa6A8C0RkwfUtcj
+         Dy/tPFaE7tDHwGm9m/GZBdvHu+7E7ueIikVhVLX2iBDy/otIxzjv66/Ynlut6dE2Ht
+         7TgMgqZtOW2DuLqCCgwS6KztUKWiI8w3Nn2ZxZ6Y=
+Message-ID: <ac3c0b76-01a9-b36f-63a2-734250d486b2@digikod.net>
+Date:   Thu, 6 Jul 2023 16:34:56 +0200
 MIME-Version: 1.0
+User-Agent: 
+Subject: Re: [PATCH v11 03/12] landlock: Refactor
+ landlock_find_rule/insert_rule
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com
+References: <20230515161339.631577-1-konstantin.meskhidze@huawei.com>
+ <20230515161339.631577-4-konstantin.meskhidze@huawei.com>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <20230515161339.631577-4-konstantin.meskhidze@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/6] netfilter: nf_tables: report use refcount overflow
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <168863522221.622.7964673708466321007.git-patchwork-notify@kernel.org>
-Date:   Thu, 06 Jul 2023 09:20:22 +0000
-References: <20230705230406.52201-2-pablo@netfilter.org>
-In-Reply-To: <20230705230406.52201-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Thu,  6 Jul 2023 01:04:01 +0200 you wrote:
-> Overflow use refcount checks are not complete.
+On 15/05/2023 18:13, Konstantin Meskhidze wrote:
+> Add a new landlock_key union and landlock_id structure to support
+> a socket port rule type. A struct landlock_id identifies a unique entry
+> in a ruleset: either a kernel object (e.g inode) or typed data (e.g TCP
+> port). There is one red-black tree per key type.
 > 
-> Add helper function to deal with object reference counter tracking.
-> Report -EMFILE in case UINT_MAX is reached.
+> This patch also adds is_object_pointer() and get_root() helpers.
+> is_object_pointer() returns true if key type is LANDLOCK_KEY_INODE.
+> get_root() helper returns a red_black tree root pointer according to
+> a key type.
 > 
-> nft_use_dec() splats in case that reference counter underflows,
-> which should not ever happen.
+> Refactor landlock_insert_rule() and landlock_find_rule() to support coming
+> network modifications. Adding or searching a rule in ruleset can now be
+> done thanks to a Landlock ID argument passed to these helpers.
 > 
-> [...]
+> Co-developed-by: Mickaël Salaün <mic@digikod.net>
+> Signed-off-by: Mickaël Salaün <mic@digikod.net>
+> Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> ---
 
-Here is the summary with links:
-  - [net,1/6] netfilter: nf_tables: report use refcount overflow
-    https://git.kernel.org/netdev/net/c/1689f25924ad
-  - [net,2/6] netfilter: conntrack: gre: don't set assured flag for clash entries
-    https://git.kernel.org/netdev/net/c/8a9dc07ba924
-  - [net,3/6] netfilter: conntrack: Avoid nf_ct_helper_hash uses after free
-    https://git.kernel.org/netdev/net/c/6eef7a2b9338
-  - [net,4/6] netfilter: conntrack: don't fold port numbers into addresses before hashing
-    https://git.kernel.org/netdev/net/c/eaf9e7192ec9
-  - [net,5/6] netfilter: nf_tables: do not ignore genmask when looking up chain by id
-    https://git.kernel.org/netdev/net/c/515ad530795c
-  - [net,6/6] netfilter: nf_tables: prevent OOB access in nft_byteorder_eval
-    https://git.kernel.org/netdev/net/c/caf3ef7468f7
+[...]
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+> diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
+> index 1f3188b4e313..deab37838f5b 100644
+> --- a/security/landlock/ruleset.c
+> +++ b/security/landlock/ruleset.c
+> @@ -35,7 +35,7 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
+>   		return ERR_PTR(-ENOMEM);
+>   	refcount_set(&new_ruleset->usage, 1);
+>   	mutex_init(&new_ruleset->lock);
+> -	new_ruleset->root = RB_ROOT;
+> +	new_ruleset->root_inode = RB_ROOT;
+>   	new_ruleset->num_layers = num_layers;
+>   	/*
+>   	 * hierarchy = NULL
+> @@ -68,8 +68,18 @@ static void build_check_rule(void)
+>   	BUILD_BUG_ON(rule.num_layers < LANDLOCK_MAX_NUM_LAYERS);
+>   }
+> 
+> +static bool is_object_pointer(const enum landlock_key_type key_type)
+> +{
+> +	switch (key_type) {
+> +	case LANDLOCK_KEY_INODE:
+> +		return true;
+
+> +	}
 
 
+Because of enum change [1], could you please put the following block 
+inside this commit's switch with a new "default:" case, and add a line 
+break after the previous return like this:
+
+\n
+default:
+> +	WARN_ON_ONCE(1);
+> +	return false;
+
+break;
+}
+
+> +}
+> +
+>   static struct landlock_rule *
+> -create_rule(struct landlock_object *const object,
+> +create_rule(const struct landlock_id id,
+>   	    const struct landlock_layer (*const layers)[], const u32 num_layers,
+>   	    const struct landlock_layer *const new_layer)
+>   {
+> @@ -90,8 +100,13 @@ create_rule(struct landlock_object *const object,
+>   	if (!new_rule)
+>   		return ERR_PTR(-ENOMEM);
+>   	RB_CLEAR_NODE(&new_rule->node);
+> -	landlock_get_object(object);
+> -	new_rule->object = object;
+> +	if (is_object_pointer(id.type)) {
+> +		/* This should be catched by insert_rule(). */
+> +		WARN_ON_ONCE(!id.key.object);
+> +		landlock_get_object(id.key.object);
+> +	}
+> +
+> +	new_rule->key = id.key;
+>   	new_rule->num_layers = new_num_layers;
+>   	/* Copies the original layer stack. */
+>   	memcpy(new_rule->layers, layers,
+> @@ -102,12 +117,29 @@ create_rule(struct landlock_object *const object,
+>   	return new_rule;
+>   }
+> 
+> -static void free_rule(struct landlock_rule *const rule)
+> +static struct rb_root *get_root(struct landlock_ruleset *const ruleset,
+> +				const enum landlock_key_type key_type)
+> +{
+
+Same here, you can remove the "root" variable:
+
+> +	struct rb_root *root = NULL;
+> +
+> +	switch (key_type) {
+> +	case LANDLOCK_KEY_INODE:
+> +		root = &ruleset->root_inode;
+> +		break;
+
+return &ruleset->root_inode;
+\n
+default:
+> +	if (WARN_ON_ONCE(!root))
+> +		return ERR_PTR(-EINVAL);
+break;
+}
+
+> +}
+
+Actually, I've pushed this change here: 
+https://git.kernel.org/mic/c/8c96c7eee3ff (landlock-net-v11 branch)
