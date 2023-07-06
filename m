@@ -2,99 +2,91 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F6BEB64D9
-	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jul 2023 09:02:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B19EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  6 Jul 2023 09:20:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229660AbjGFJCf (ORCPT
+        id S231905AbjGFJU0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 6 Jul 2023 05:02:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55988 "EHLO
+        Thu, 6 Jul 2023 05:20:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229489AbjGFJCe (ORCPT
+        with ESMTP id S229527AbjGFJUY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jul 2023 05:02:34 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 292EF1BCC
-        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2023 02:01:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688634109;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Qi7u0r6BcPK/thgcy9NPn79CF3hPv/q0g1w/o2j+xHE=;
-        b=iEc4p4Edj6EaaJSBaDglr3FBzHGf9rBR9fSEbBzL8CbZX2Gxqjisdov/8XA4gpCFAhRew2
-        vT4qPFYCKU1vBVV2ZdcjYItqVUYmcupkE46BKtsLuuxUYDTQ64YgUqfPo3JD+0vmPRbRO0
-        wpqQc2iR9eUgDsUz1/8SJ7dUScsZspw=
-Received: from mail-qv1-f71.google.com (mail-qv1-f71.google.com
- [209.85.219.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-110-9b5R9NJ-NRW23NnuGsSOcQ-1; Thu, 06 Jul 2023 05:01:48 -0400
-X-MC-Unique: 9b5R9NJ-NRW23NnuGsSOcQ-1
-Received: by mail-qv1-f71.google.com with SMTP id 6a1803df08f44-635e2618aaeso1343506d6.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Jul 2023 02:01:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688634107; x=1691226107;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Qi7u0r6BcPK/thgcy9NPn79CF3hPv/q0g1w/o2j+xHE=;
-        b=PGnzIPE4pcHIlME51ZK1vgLIkjXBI+oRbTmLGWBJiQgskVaG3RixWLpdSAM/sH7J5e
-         4Ok35Ow4kwsP8oJrG+rzJQC/Qc95+L/Nr21BSMusdMsfxE+u+YzmE842yZ8EbVupM5Kl
-         rci0w3E8iffhQJRC9Sg35RMzxdbR1WQRscpfjTfw8Orcpos+W/gmn6JJUd4DwnNcZ7nP
-         YVQi4ZHmNuEXf4kzRobFFMZ7Hvp9beMB5XMf8jEwKk0yAYaRahDBMDnAeK+XyG3A4TA5
-         BPtnCyt2L77cXg2G9nr5/u3p5beSuK5rkn2Y9uJfvqD8wlRssDImzfeG1R7YSamDBOtc
-         9pFA==
-X-Gm-Message-State: ABy/qLbK0ZM5nbiaZWVJX5k52NtOsOgPpL5upL7ysckLD5hAmi/mdiM2
-        TUlbsMd0qczuxI3AlBLFm8S14cK96jPK5p+joqBzOKDPjeNLyIjzfOFs0ztIPA/+ZDDAqgB5d/n
-        F3HdfXzAJERrTC6i3SCC7zVnGeo8B0vkuVRoN
-X-Received: by 2002:a05:6214:5298:b0:635:ec47:bfa4 with SMTP id kj24-20020a056214529800b00635ec47bfa4mr1161161qvb.4.1688634107646;
-        Thu, 06 Jul 2023 02:01:47 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlGtWnu41mn5Ponn3JjXVBuIzv07N/hyizwAr6C422tUw/GBlo7Epua+9aJP5n1D7Em8tWJ66A==
-X-Received: by 2002:a05:6214:5298:b0:635:ec47:bfa4 with SMTP id kj24-20020a056214529800b00635ec47bfa4mr1161142qvb.4.1688634107320;
-        Thu, 06 Jul 2023 02:01:47 -0700 (PDT)
-Received: from gerbillo.redhat.com (host-95-248-55-118.retail.telecomitalia.it. [95.248.55.118])
-        by smtp.gmail.com with ESMTPSA id f1-20020a0ccc81000000b0062ffcda34c6sm618257qvl.137.2023.07.06.02.01.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Jul 2023 02:01:46 -0700 (PDT)
-Message-ID: <8c98394f6d399b4e725521f8d9fe9788f7fe3784.camel@redhat.com>
-Subject: Re: [PATCH net 1/6] netfilter: nf_tables: report use refcount
- overflow
-From:   Paolo Abeni <pabeni@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
-        edumazet@google.com
-Date:   Thu, 06 Jul 2023 11:01:42 +0200
-In-Reply-To: <20230705230406.52201-2-pablo@netfilter.org>
-References: <20230705230406.52201-1-pablo@netfilter.org>
-         <20230705230406.52201-2-pablo@netfilter.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+        Thu, 6 Jul 2023 05:20:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62BAB1BD4
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2023 02:20:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E77D7618DC
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2023 09:20:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 5128DC433C9;
+        Thu,  6 Jul 2023 09:20:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1688635222;
+        bh=2INGgEDHKXSagiP46fEaa51hlLtiaD991u5jIm6fMFA=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=dnAvELrg96Jne7r5x6U/AXdgJq/sleKoCjSIUFI7J3gwomD3o1fbiOHeTGARPCbVR
+         Xs8BzNvuxd3C3jerCHxquBQ7sQwS7NqwonwEJuknOfadDHOXHUfo0+WIz2+dr/8VUF
+         gjpXtiPtrTRZpL3Kakq6ho8DRJnOr5PNWgq9mJahvaB1S/oXGVGrRIfotEowT/SpUQ
+         SxyYGsCSr6rVcK4g4Q5ilbMABiI5ADUHv5SBfl4F22RR7lukMPXFcEMaItBjzQitJ7
+         m7W3qyAufJD7MHQIev4ci2VeJU4IL4Djs4mYj2Cw7hRb15WzU+1Ce3SkJUp+1PsF2x
+         DY629x9h/YCOA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 345CCE5381B;
+        Thu,  6 Jul 2023 09:20:22 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/6] netfilter: nf_tables: report use refcount overflow
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168863522221.622.7964673708466321007.git-patchwork-notify@kernel.org>
+Date:   Thu, 06 Jul 2023 09:20:22 +0000
+References: <20230705230406.52201-2-pablo@netfilter.org>
+In-Reply-To: <20230705230406.52201-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 2023-07-06 at 01:04 +0200, Pablo Neira Ayuso wrote:
+Hello:
+
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu,  6 Jul 2023 01:04:01 +0200 you wrote:
 > Overflow use refcount checks are not complete.
->=20
+> 
 > Add helper function to deal with object reference counter tracking.
 > Report -EMFILE in case UINT_MAX is reached.
->=20
+> 
 > nft_use_dec() splats in case that reference counter underflows,
 > which should not ever happen.
+> 
+> [...]
 
-For the records, I also once had the need for an non atomic reference
-counters implementing sanity checks on underflows/overflows. I resorted
-to use plain refcount_t, since the atomic op overhead was not
-noticeable in my use-case.
+Here is the summary with links:
+  - [net,1/6] netfilter: nf_tables: report use refcount overflow
+    https://git.kernel.org/netdev/net/c/1689f25924ad
+  - [net,2/6] netfilter: conntrack: gre: don't set assured flag for clash entries
+    https://git.kernel.org/netdev/net/c/8a9dc07ba924
+  - [net,3/6] netfilter: conntrack: Avoid nf_ct_helper_hash uses after free
+    https://git.kernel.org/netdev/net/c/6eef7a2b9338
+  - [net,4/6] netfilter: conntrack: don't fold port numbers into addresses before hashing
+    https://git.kernel.org/netdev/net/c/eaf9e7192ec9
+  - [net,5/6] netfilter: nf_tables: do not ignore genmask when looking up chain by id
+    https://git.kernel.org/netdev/net/c/515ad530795c
+  - [net,6/6] netfilter: nf_tables: prevent OOB access in nft_byteorder_eval
+    https://git.kernel.org/netdev/net/c/caf3ef7468f7
 
-[not blocking this series, just thinking aloud] I'm wondering if a
-generic, non-atomic refcounter infra could be useful?
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Cheers,
-
-Paolo
 
