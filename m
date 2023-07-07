@@ -2,70 +2,227 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E46DDEB64D9
-	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jul 2023 10:09:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AEB0C001DE
+	for <netfilter-devel@archiver.kernel.org>; Fri,  7 Jul 2023 16:51:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232543AbjGGKJo (ORCPT
+        id S232836AbjGGQvH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 7 Jul 2023 06:09:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39206 "EHLO
+        Fri, 7 Jul 2023 12:51:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232068AbjGGKJn (ORCPT
+        with ESMTP id S231594AbjGGQvG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jul 2023 06:09:43 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D220A90;
-        Fri,  7 Jul 2023 03:09:41 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qHiP2-00033x-Dk; Fri, 07 Jul 2023 12:09:28 +0200
-Date:   Fri, 7 Jul 2023 12:09:28 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     pabeni@redhat.com, edumazet@google.com, kuba@kernel.org,
-        fw@strlen.de, davem@davemloft.net, pablo@netfilter.org,
-        kadlec@netfilter.org, dsahern@kernel.org, daniel@iogearbox.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Fri, 7 Jul 2023 12:51:06 -0400
+Received: from wout3-smtp.messagingengine.com (wout3-smtp.messagingengine.com [64.147.123.19])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9120B210C;
+        Fri,  7 Jul 2023 09:51:05 -0700 (PDT)
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+        by mailout.west.internal (Postfix) with ESMTP id DC9EB320015C;
+        Fri,  7 Jul 2023 12:51:03 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute2.internal (MEProxy); Fri, 07 Jul 2023 12:51:05 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to; s=fm1; t=1688748663; x=
+        1688835063; bh=50Mq7yDH4SaalwjOr9VWbgSV3HaqQVn5wwG7OgrzEBE=; b=O
+        fqFSHotl5MPw+omR7FqaSYyuuht7W7DDKg+v2/eHGO1wiruemdRLo1MTeEaSxivu
+        s0RqOqhl4TFy4MgwyB4y9pfFdIHne6J062sLfU9D9ZnbB8TpHa13+MCwHJTNR3Pd
+        ziLU2yztrAr5IEK8z4JTnpozUddATvo+j/auSNyRTkzoeM2lPRp6Peun6mMavK6y
+        197s9men4fwMgPuiWCLujuhJ4L7PDLsyZKK5ZxqoyvkRAQuHUwLLfkwONCmcu6qJ
+        k7m9G86SQbFaB8Y95lt7N2uu88MhVOKWEBERHBWC3bVK5dEOFAylvWalPVSpmXBd
+        blu7/MSzz303GiEMx0ioA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:date:date:feedback-id:feedback-id:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1688748663; x=
+        1688835063; bh=50Mq7yDH4SaalwjOr9VWbgSV3HaqQVn5wwG7OgrzEBE=; b=D
+        Np3goPrOcaNvkVar8Cni9qJJJxRiaNmv68DIU97gBo83H1Shc3FaPPL9oTLGfT7w
+        dScyySdJRWCiMJJ9bge8rxrHAamfreAqNRiLBCFxBCPWuFw4cmpOFSN6xw4JHGmw
+        XOBKoAzWz9QJ3NSbvWsbw6lxVKgEcUYX9Uk0WCzPapCEj4ZXro8wKYdYDCKyibh5
+        5d0zn8nCfiNT2q1GIo6msaVFV8uxw9iROpCVRmGKNZ/QoveToLk4v4svwTSiSfu0
+        rtES0SaHXVtkEKv+EPPQUmX/pXX+GZBKLQosL6RIIJwu1uTt/DwdjX1Y0Km+h21b
+        +dXMHUSiB7lnsy9SNntdg==
+X-ME-Sender: <xms:d0KoZIbcf7VMeTd2CDLCkkaU6jPxCYJGVu_qAVQmjARkOtrHYRyOBA>
+    <xme:d0KoZDZlD--WTCl-pKmqvP0vxUIoOS67QTxBo30sEofGd93VDYiHa3pOUIluWksyT
+    9NgrVsmIf7bJJgsjA>
+X-ME-Received: <xmr:d0KoZC_0pLdD57MCh5ExBGkW8wu6arg5Fcnahjo0n1e5sW-Kr3TSwh08EQSHNd0JkwzxCwC1I0hAN73S6x6l808-fbHJ5Mcv-NtTy9i9nyw>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrvddugddutdehucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdljedtmdenucfjughrpefhvf
+    evufffkffojghfggfgsedtkeertdertddtnecuhfhrohhmpeffrghnihgvlhcuighuuceo
+    ugiguhesugiguhhuuhdrgiihiieqnecuggftrfgrthhtvghrnhepgfefgfegjefhudeike
+    dvueetffelieefuedvhfehjeeljeejkefgffeghfdttdetnecuvehluhhsthgvrhfuihii
+    vgeptdenucfrrghrrghmpehmrghilhhfrhhomhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:d0KoZCqe1Ybln4f3wJ4BvVDyxgxV_OrKQfgbE0WrspwgqIMG_2FL9Q>
+    <xmx:d0KoZDrYCczugKjErchDBjf8PttVu2vh_wsoPoRET51LyGpqk5-9KA>
+    <xmx:d0KoZATJ09rnpyiok0PiDn5882OlnZd4XYnoWElGl1D-u1Urtp4sew>
+    <xmx:d0KoZBhDeJo_fN0BrKphHTOroXT-zf2KYxXER2m9RjLPMhXgHw1RfQ>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
+ 7 Jul 2023 12:51:02 -0400 (EDT)
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     pablo@netfilter.org, kuba@kernel.org, edumazet@google.com,
+        davem@davemloft.net, kadlec@netfilter.org, pabeni@redhat.com,
+        dsahern@kernel.org, fw@strlen.de, daniel@iogearbox.net
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
         bpf@vger.kernel.org
-Subject: Re: [PATCH bpf-next v2 3/6] netfilter: bpf: Prevent defrag module
- unload while link active
-Message-ID: <20230707100928.GA11622@breakpoint.cc>
-References: <cover.1688685338.git.dxu@dxuuu.xyz>
- <81ede90e3f1468763ea5b0b6ec2971b7b1b870c1.1688685338.git.dxu@dxuuu.xyz>
+Subject: [PATCH bpf-next v3 1/6] netfilter: defrag: Add glue hooks for enabling/disabling defrag
+Date:   Fri,  7 Jul 2023 10:50:16 -0600
+Message-ID: <8a20b0a3fff75bce1bed207631fe4f56abc3e99d.1688748455.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <cover.1688748455.git.dxu@dxuuu.xyz>
+References: <cover.1688748455.git.dxu@dxuuu.xyz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <81ede90e3f1468763ea5b0b6ec2971b7b1b870c1.1688685338.git.dxu@dxuuu.xyz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Xu <dxu@dxuuu.xyz> wrote:
-> +		/* Prevent defrag module from going away while in use */
-> +		if (!try_module_get(v4_hook->owner)) {
-> +			err = -ENOENT;
-> +			goto out_v4;
-> +		}
-> +
->  		err = v4_hook->enable(link->net);
->  out_v4:
->  		rcu_read_unlock();
-> @@ -79,6 +86,12 @@ static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
->  			}
->  		}
->  
-> +		/* Prevent defrag module from going away while in use */
-> +		if (!try_module_get(v6_hook->owner)) {
-> +			err = -ENOENT;
-> +			goto out_v6;
-> +		}
-> +
->  		err = v6_hook->enable(link->net);
->  out_v6:
->  		rcu_read_unlock();
+We want to be able to enable/disable IP packet defrag from core
+bpf/netfilter code. In other words, execute code from core that could
+possibly be built as a module.
 
-This needs module_put() calls in case ->enable() returns an error, no?
+To help avoid symbol resolution errors, use glue hooks that the modules
+will register callbacks with during module init.
 
-Other than this this series LGTM, thanks!
+Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+---
+ include/linux/netfilter.h                 | 12 ++++++++++++
+ net/ipv4/netfilter/nf_defrag_ipv4.c       | 16 +++++++++++++++-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c | 10 ++++++++++
+ net/netfilter/core.c                      |  6 ++++++
+ 4 files changed, 43 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index d4fed4c508ca..77a637b681f2 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -481,6 +481,18 @@ struct nfnl_ct_hook {
+ };
+ extern const struct nfnl_ct_hook __rcu *nfnl_ct_hook;
+ 
++struct nf_defrag_v4_hook {
++	int (*enable)(struct net *net);
++	void (*disable)(struct net *net);
++};
++extern const struct nf_defrag_v4_hook __rcu *nf_defrag_v4_hook;
++
++struct nf_defrag_v6_hook {
++	int (*enable)(struct net *net);
++	void (*disable)(struct net *net);
++};
++extern const struct nf_defrag_v6_hook __rcu *nf_defrag_v6_hook;
++
+ /*
+  * nf_skb_duplicated - TEE target has sent a packet
+  *
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index e61ea428ea18..1f3e0e893b7a 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -7,6 +7,7 @@
+ #include <linux/ip.h>
+ #include <linux/netfilter.h>
+ #include <linux/module.h>
++#include <linux/rcupdate.h>
+ #include <linux/skbuff.h>
+ #include <net/netns/generic.h>
+ #include <net/route.h>
+@@ -113,17 +114,30 @@ static void __net_exit defrag4_net_exit(struct net *net)
+ 	}
+ }
+ 
++static const struct nf_defrag_v4_hook defrag_hook = {
++	.enable = nf_defrag_ipv4_enable,
++	.disable = nf_defrag_ipv4_disable,
++};
++
+ static struct pernet_operations defrag4_net_ops = {
+ 	.exit = defrag4_net_exit,
+ };
+ 
+ static int __init nf_defrag_init(void)
+ {
+-	return register_pernet_subsys(&defrag4_net_ops);
++	int err;
++
++	err = register_pernet_subsys(&defrag4_net_ops);
++	if (err)
++		return err;
++
++	rcu_assign_pointer(nf_defrag_v4_hook, &defrag_hook);
++	return err;
+ }
+ 
+ static void __exit nf_defrag_fini(void)
+ {
++	rcu_assign_pointer(nf_defrag_v4_hook, NULL);
+ 	unregister_pernet_subsys(&defrag4_net_ops);
+ }
+ 
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index cb4eb1d2c620..f7c7ee31c472 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/icmp.h>
++#include <linux/rcupdate.h>
+ #include <linux/sysctl.h>
+ #include <net/ipv6_frag.h>
+ 
+@@ -96,6 +97,11 @@ static void __net_exit defrag6_net_exit(struct net *net)
+ 	}
+ }
+ 
++static const struct nf_defrag_v6_hook defrag_hook = {
++	.enable = nf_defrag_ipv6_enable,
++	.disable = nf_defrag_ipv6_disable,
++};
++
+ static struct pernet_operations defrag6_net_ops = {
+ 	.exit = defrag6_net_exit,
+ };
+@@ -114,6 +120,9 @@ static int __init nf_defrag_init(void)
+ 		pr_err("nf_defrag_ipv6: can't register pernet ops\n");
+ 		goto cleanup_frag6;
+ 	}
++
++	rcu_assign_pointer(nf_defrag_v6_hook, &defrag_hook);
++
+ 	return ret;
+ 
+ cleanup_frag6:
+@@ -124,6 +133,7 @@ static int __init nf_defrag_init(void)
+ 
+ static void __exit nf_defrag_fini(void)
+ {
++	rcu_assign_pointer(nf_defrag_v6_hook, NULL);
+ 	unregister_pernet_subsys(&defrag6_net_ops);
+ 	nf_ct_frag6_cleanup();
+ }
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 5f76ae86a656..34845155bb85 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -680,6 +680,12 @@ EXPORT_SYMBOL_GPL(nfnl_ct_hook);
+ const struct nf_ct_hook __rcu *nf_ct_hook __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_hook);
+ 
++const struct nf_defrag_v4_hook __rcu *nf_defrag_v4_hook __read_mostly;
++EXPORT_SYMBOL_GPL(nf_defrag_v4_hook);
++
++const struct nf_defrag_v6_hook __rcu *nf_defrag_v6_hook __read_mostly;
++EXPORT_SYMBOL_GPL(nf_defrag_v6_hook);
++
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ u8 nf_ctnetlink_has_listener;
+ EXPORT_SYMBOL_GPL(nf_ctnetlink_has_listener);
+-- 
+2.41.0
+
