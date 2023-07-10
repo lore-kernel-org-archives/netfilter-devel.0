@@ -2,95 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2681EB64D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 17:59:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 167EDEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 18:03:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229543AbjGJR67 (ORCPT
+        id S231784AbjGJSDG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 13:58:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33364 "EHLO
+        Mon, 10 Jul 2023 14:03:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232969AbjGJR66 (ORCPT
+        with ESMTP id S230210AbjGJSDF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 13:58:58 -0400
+        Mon, 10 Jul 2023 14:03:05 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C406D127
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 10:58:54 -0700 (PDT)
-Date:   Mon, 10 Jul 2023 19:58:51 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BDC92128
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 11:03:04 -0700 (PDT)
+Date:   Mon, 10 Jul 2023 20:03:01 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [nft PATCH] nftables: add flag for nft context to avoid blocking
- getaddrinfo()
-Message-ID: <ZKxG23yJzlRRPpsO@calendula>
-References: <20230710174652.221651-1-thaller@redhat.com>
+To:     Igor Raits <igor@gooddata.com>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: ebtables-nft can't delete complex rules by specifying complete
+ rule with kernel 6.3+
+Message-ID: <ZKxH1eNXcI5k9oJq@calendula>
+References: <CA+9S74jbOefRzu1YxUrXC7gbYY8xDKH6QNJBuAQoNnnLODxWrg@mail.gmail.com>
+ <20230710112135.GA12203@breakpoint.cc>
+ <20230710124950.GC12203@breakpoint.cc>
+ <CA+9S74h4ME7sxt7L1VcU+hPXj1H-cWwTcrEsyyrjSAHx_UxCwA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230710174652.221651-1-thaller@redhat.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+9S74h4ME7sxt7L1VcU+hPXj1H-cWwTcrEsyyrjSAHx_UxCwA@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Jul 10, 2023 at 07:46:30PM +0200, Thomas Haller wrote:
-> getaddrinfo() blocks while trying to resolve the name. Blocking the
-> caller of the library is bad in some cases. Especially, while
-> reconfiguring the firewall, it's not clear that we can access the
-> network to resolve names.
+Hi,
+
+On Mon, Jul 10, 2023 at 04:41:27PM +0200, Igor Raits wrote:
+> Hello Florian,
 > 
-> Add a way to opt out from getaddrinfo() and only accept plain IP addresses.
+> On Mon, Jul 10, 2023 at 2:49 PM Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Florian Westphal <fw@strlen.de> wrote:
+> > > Igor Raits <igor@gooddata.com> wrote:
+> > > > Hello,
+> > > >
+> > > > We started to observe the issue regarding ebtables-nft and how it
+> > > > can't wipe rules when specifying full rule. Removing the rule by index
+> > > > works fine, though. Also with kernel 6.1.y it works completely fine.
+> > > >
+> > > > I've started with 1.8.8 provided in CentOS Stream 9, then tried the
+> > > > latest git version and all behave exactly the same. See the behavior
+> > > > below. As you can see, simple DROP works, but more complex one do not.
+> > > >
+> > > > As bugzilla requires some special sign-up procedure, apologize for
+> > > > reporting it directly here in the ML.
+> > >
+> > > Thanks for the report, I'll look into it later today.
+> >
+> > Its a bug in ebtables-nft, it fails to delete the rule since
+> >
+> > 938154b93be8cd611ddfd7bafc1849f3c4355201,
+> > netfilter: nf_tables: reject unbound anonymous set before commit phase
+> >
+> > But its possible do remove the rule via
+> > nft delete rule .. handle $x
+> >
+> > so the breakge is limited to ebtables-nft.
 > 
-> The opt-out is per nft_ctx instance and cannot be changed after the
-> context is created. I think that is sufficient.
-> 
-> We could also use AI_NUMERICHOST and getaddrinfo() instead of
-> inet_pton(). But it seems we can do a better job of generating an error
-> message, when we try to parse via inet_pton(). Then our error message
-> can clearly indicate that the string is not a valid IP address.
-> 
-> Signed-off-by: Thomas Haller <thaller@redhat.com>
-> ---
->  include/datatype.h             |  1 +
->  include/nftables/libnftables.h |  1 +
->  py/nftables.py                 | 12 +++++-
->  src/datatype.c                 | 68 ++++++++++++++++++++--------------
->  src/evaluate.c                 | 16 +++++++-
->  5 files changed, 66 insertions(+), 32 deletions(-)
-> 
-> diff --git a/include/datatype.h b/include/datatype.h
-> index 4b59790b67f9..108bf03ad0ed 100644
-> --- a/include/datatype.h
-> +++ b/include/datatype.h
-> @@ -182,6 +182,7 @@ struct datatype *dtype_clone(const struct datatype *orig_dtype);
->  
->  struct parse_ctx {
->  	struct symbol_tables	*tbl;
-> +	bool			no_block;
->  };
->  
->  extern struct error_record *symbol_parse(struct parse_ctx *ctx,
-> diff --git a/include/nftables/libnftables.h b/include/nftables/libnftables.h
-> index 85e08c9bc98b..d75aff05dec8 100644
-> --- a/include/nftables/libnftables.h
-> +++ b/include/nftables/libnftables.h
-> @@ -34,6 +34,7 @@ enum nft_debug_level {
->   * Possible flags to pass to nft_ctx_new()
->   */
->  #define NFT_CTX_DEFAULT		0
-> +#define NFT_CTX_NO_BLOCK	1
+> Thanks for confirmation and additional information regarding where
+> exactly the issue was introduced.
+> The ebtables-nft (well, ebtables in general) is heavily used by the
+> OpenStack Neutron (in linuxbridge mode), so this breaks our setup
+> quite a bit. Would you recommend to revert kernel change or would you
+> have the actual fix soon (ebtables-nft or kernel)?
 
-Could you add this flag instead?
+Just to make sure this bug is not caused by something else.
 
-        NFT_CTX_INPUT_NO_DNS
+Could you cherry-pick this kernel patch? It is currently missing 6.1.38:
 
-there are NFT_CTX_OUTPUT_* flags already in place that determine how
-the output is done, but better not to (ab)use them.
+commit 3e70489721b6c870252c9082c496703677240f53
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Mon Jun 26 00:42:18 2023 +0200
 
-And add:
+    netfilter: nf_tables: unbind non-anonymous set if rule construction fails
+    
+    Otherwise a dangling reference to a rule object that is gone remains
+    in the set binding list.
 
-        nft_ctx_input_set_flags(...)
+I have requested included to -stable already.
 
-to allow users to set it on.
-
->  struct nft_ctx *nft_ctx_new(uint32_t flags);
->  void nft_ctx_free(struct nft_ctx *ctx);
+Thanks.
