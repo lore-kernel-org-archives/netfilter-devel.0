@@ -2,91 +2,106 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAA66EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 19:18:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 306F4EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 23:00:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229619AbjGJTSv (ORCPT
+        id S229576AbjGJXAO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 15:18:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38834 "EHLO
+        Mon, 10 Jul 2023 19:00:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229562AbjGJTSr (ORCPT
+        with ESMTP id S229569AbjGJXAN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 15:18:47 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 612CC95
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 12:18:46 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qIwPD-0006zi-IL; Mon, 10 Jul 2023 21:18:43 +0200
-Date:   Mon, 10 Jul 2023 21:18:43 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Igor Raits <igor@gooddata.com>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: ebtables-nft can't delete complex rules by specifying complete
- rule with kernel 6.3+
-Message-ID: <20230710191843.GA22277@breakpoint.cc>
-References: <CA+9S74jbOefRzu1YxUrXC7gbYY8xDKH6QNJBuAQoNnnLODxWrg@mail.gmail.com>
- <20230710112135.GA12203@breakpoint.cc>
- <20230710124950.GC12203@breakpoint.cc>
- <CA+9S74h4ME7sxt7L1VcU+hPXj1H-cWwTcrEsyyrjSAHx_UxCwA@mail.gmail.com>
- <ZKxH1eNXcI5k9oJq@calendula>
+        Mon, 10 Jul 2023 19:00:13 -0400
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8B8DE5;
+        Mon, 10 Jul 2023 16:00:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1689030004;
+        bh=rrskI+q7R9a0pNB+HSclMU73QhH+3YqzYp6kWphE1ik=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=JnKoUUWzsgMaZ6pcHdm56iUmTEtOTjOd+FKt7RnzF7fdbYpO+y2zipsSPlw30ARRi
+         UcgIdpWxQh9cB5w2Mnsg2KUzZBCbxOgytTuSSxcE61Q099wSDaVuhEm+8bZ0E/OaR0
+         FbcQdTzp0jyQYxjH8eKlQ0fn/jdpU9Sn1NZyh5xDg73fJdWJJaNzLtuH+aR+i3Yz0i
+         QZo4p46O5DeL+WgS9Q5BP8HPcxgLSf69a7qzXPx+YkBk2wXGRztTKAKCbCMS6FhDbp
+         IUBXCZGBGaFKS4swVUYn5ZokvYMwxviZAmFMZzLITPSlhE0Uk3eZK59BGjix6aghFK
+         W+aCqtcnK5eMg==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (prime256v1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4R0KGB2fDpz4wbP;
+        Tue, 11 Jul 2023 09:00:02 +1000 (AEST)
+Date:   Tue, 11 Jul 2023 08:59:49 +1000
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Gabriel Krisman Bertazi <krisman@suse.de>
+Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        David Howells <dhowells@redhat.com>,
+        Gabriel Krisman Bertazi <krisman@collabora.com>,
+        Leo Li <leoyang.li@nxp.com>,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Miguel Ojeda <ojeda@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Vineet Gupta <vgupta@kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: linux-next: branches to be removed
+Message-ID: <20230711085949.609305ef@canb.auug.org.au>
+In-Reply-To: <87wmz7rej3.fsf@suse.de>
+References: <20230710172602.05d32c03@canb.auug.org.au>
+        <87wmz7rej3.fsf@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZKxH1eNXcI5k9oJq@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: multipart/signed; boundary="Sig_/Tin3KwabZpDiyIGKKbVOCwG";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Jul 10, 2023 at 04:41:27PM +0200, Igor Raits wrote:
-> > Hello Florian,
-> > 
-> > On Mon, Jul 10, 2023 at 2:49 PM Florian Westphal <fw@strlen.de> wrote:
-> > >
-> > > Florian Westphal <fw@strlen.de> wrote:
-> > > > Igor Raits <igor@gooddata.com> wrote:
-> > > > > Hello,
-> > > > >
-> > > > > We started to observe the issue regarding ebtables-nft and how it
-> > > > > can't wipe rules when specifying full rule. Removing the rule by index
-> > > > > works fine, though. Also with kernel 6.1.y it works completely fine.
-> > > > >
-> > > > > I've started with 1.8.8 provided in CentOS Stream 9, then tried the
-> > > > > latest git version and all behave exactly the same. See the behavior
-> > > > > below. As you can see, simple DROP works, but more complex one do not.
-> > > > >
-> > > > > As bugzilla requires some special sign-up procedure, apologize for
-> > > > > reporting it directly here in the ML.
-> > > >
-> > > > Thanks for the report, I'll look into it later today.
-> > >
-> > > Its a bug in ebtables-nft, it fails to delete the rule since
-> > >
-> > > 938154b93be8cd611ddfd7bafc1849f3c4355201,
-> > > netfilter: nf_tables: reject unbound anonymous set before commit phase
-> > >
-> > > But its possible do remove the rule via
-> > > nft delete rule .. handle $x
-> > >
-> > > so the breakge is limited to ebtables-nft.
-> > 
-> > Thanks for confirmation and additional information regarding where
-> > exactly the issue was introduced.
-> > The ebtables-nft (well, ebtables in general) is heavily used by the
-> > OpenStack Neutron (in linuxbridge mode), so this breaks our setup
-> > quite a bit. Would you recommend to revert kernel change or would you
-> > have the actual fix soon (ebtables-nft or kernel)?
-> 
-> Just to make sure this bug is not caused by something else.
+--Sig_/Tin3KwabZpDiyIGKKbVOCwG
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-No no no, this is a userspace bug.
-netfilter: nf_tables: reject unbound anonymous set before commit phase
+Hi Gabriel,
 
-ebtables-nft emits a DELRULE followed by creation of a (dangling!)
-anon set, because backend code that handles add/delete is identical,
-so 'delete' request for among schedules addition of the set.
+On Mon, 10 Jul 2023 11:07:28 -0400 Gabriel Krisman Bertazi <krisman@suse.de=
+> wrote:
+>
+> Stephen Rothwell <sfr@canb.auug.org.au> writes:
+>=20
+> > unicode			2022-04-28 18:19:09 -0400
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/krisman/unicode.git    =
+   for-next
+> >
+> > These branches are all empty except the last which just contains a
+> > commit that is the same patch of a commit in Linus' tree. =20
+>=20
+> Please, keep it.  It is not a busy area for development, but we I'm
+> looking into a unicode version update soon that will go through
+> this tree.
+
+I have added it back.  You might consider rebasing it onto v6.5-rc1 and
+I think you will find that its only commit will disappear.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/Tin3KwabZpDiyIGKKbVOCwG
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmSsjWUACgkQAVBC80lX
+0Gyypwf/awP9ZYx0yIhigLEMkjiUinM3v5ZG9Q5lTIamXfL2qrWE7BlI38C6Gjl/
+dX/gfR/aCBIBQOB+eTmtX2fhTJhe0SlhPJHzIdwDToPGzkCBoCS62pP3zSEKZYLO
+NkehE1xdGYmtjiKUd4Zvx3yTvYIkAnnE9D1t7MmWj2C0EsQmmetNYzUvE0RtGdG7
+Ak5DFBVO7q50ifgH9wLbpUSHtcSJHYdxpF30SQBjKBUDjCXip5ET62v3ZUhovFrN
+pyl3gckjS1PyXjVrsAL2olIsU1HzlRKnZYFfBTDNJv/cvzbooxteHK2eVXzxKEKJ
+yTYr6O7qpU8s29aqnlLg+umu7+Btdw==
+=Zyb6
+-----END PGP SIGNATURE-----
+
+--Sig_/Tin3KwabZpDiyIGKKbVOCwG--
