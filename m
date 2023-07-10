@@ -2,396 +2,103 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A18EB64D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 15:28:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8008AEB64DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 16:06:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230406AbjGJP2V (ORCPT
+        id S231435AbjGJQG2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 11:28:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42766 "EHLO
+        Mon, 10 Jul 2023 12:06:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230399AbjGJP2V (ORCPT
+        with ESMTP id S230310AbjGJQG1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 11:28:21 -0400
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECD29F4;
-        Mon, 10 Jul 2023 08:28:16 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=16;SR=0;TI=SMTPD_---0Vn53M3h_1689002889;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0Vn53M3h_1689002889)
-          by smtp.aliyun-inc.com;
-          Mon, 10 Jul 2023 23:28:10 +0800
-Date:   Mon, 10 Jul 2023 23:28:09 +0800
-From:   Dust Li <dust.li@linux.alibaba.com>
-To:     Julian Anastasov <ja@ssi.bg>
-Cc:     Jiejian Wu <jiejian@linux.alibaba.com>,
-        Simon Horman <horms@verge.net.au>,
-        "David S. Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH net-next] ipvs: make ip_vs_svc_table and
- ip_vs_svc_fwm_table per netns
-Message-ID: <20230710152809.GD6751@linux.alibaba.com>
-Reply-To: dust.li@linux.alibaba.com
-References: <20230707020708.75168-1-dust.li@linux.alibaba.com>
- <28a87ee9-5f94-2506-3cb9-8a19144e2061@ssi.bg>
+        Mon, 10 Jul 2023 12:06:27 -0400
+Received: from smtp-8fab.mail.infomaniak.ch (smtp-8fab.mail.infomaniak.ch [IPv6:2001:1600:3:17::8fab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F059AC3
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 09:06:24 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4R084t4Y8PzMqNQd;
+        Mon, 10 Jul 2023 16:06:22 +0000 (UTC)
+Received: from unknown by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4R084s66tYzMppq8;
+        Mon, 10 Jul 2023 18:06:21 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1689005182;
+        bh=FT/Iq0DkCVsHjKVPnLtkqhfF27BDGNgGWVrpdACmXk0=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=TZWMOyKWuN2dIVcNQ0Xt+RBGhwk566pffa1tNEQ5sRkgwBbLskWEWcWDHIDghkdUs
+         zjV1y8enxIzm0sozCYPfkHXuR5TzvwU5b8ngi+nmwy3z0PQh2eZqp1e4kJK5I6OuUT
+         FGV9stNmBa9f/ioX9ixR0pUmdhsdazgMw+PMjoOQ=
+Message-ID: <f8f76bff-c434-07f8-8a53-f8a0d69292b1@digikod.net>
+Date:   Mon, 10 Jul 2023 18:06:21 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <28a87ee9-5f94-2506-3cb9-8a19144e2061@ssi.bg>
+User-Agent: 
+Subject: Re: [PATCH v11.1] selftests/landlock: Add 11 new test suites
+ dedicated to network
+Content-Language: en-US
+To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     artem.kuzin@huawei.com, gnoack3000@gmail.com,
+        willemdebruijn.kernel@gmail.com, yusongping@huawei.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+References: <20230515161339.631577-11-konstantin.meskhidze@huawei.com>
+ <20230706145543.1284007-1-mic@digikod.net>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <20230706145543.1284007-1-mic@digikod.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Jul 09, 2023 at 08:45:19PM +0300, Julian Anastasov wrote:
->
->	Hello,
->
->On Fri, 7 Jul 2023, Dust Li wrote:
->
->> From: Jiejian Wu <jiejian@linux.alibaba.com>
->> 
->> Current ipvs uses one global mutex "__ip_vs_mutex" to keep the global
->> "ip_vs_svc_table" and "ip_vs_svc_fwm_table" safe. But when there are
->> tens of thousands of services from different netns in the table, it
->> takes a long time to look up the table, for example, using "ipvsadm
->> -ln" from different netns simultaneously.
->> 
->> We make "ip_vs_svc_table" and "ip_vs_svc_fwm_table" per netns, and we
->> add "service_mutex" per netns to keep these two tables safe instead of
->> the global "__ip_vs_mutex" in current version. To this end, looking up
->> services from different netns simultaneously will not get stuck,
->> shortening the time consumption in large-scale deployment. Evaluation
->> methods and results are provided below.
->> 
->> init.sh: #!/bin/bash
->> for((i=1;i<=4;i++));do
->>         ip netns add ns$i
->>         ip netns exec ns$i ip link set dev lo up
->>         ip netns exec ns$i sh add-services.sh
->> done
->> 
->> add-services.sh: #!/bin/bash
->> for((i=0;i<30000;i++)); do
->>         ipvsadm -A  -t 10.10.10.10:$((80+$i)) -s rr
->> done
->> 
->> runtest.sh: #!/bin/bash
->> for((i=1;i<4;i++));do
->>         ip netns exec ns$i ipvsadm -ln > /dev/null &
->> done
->> ip netns exec ns4 ipvsadm -ln > /dev/null
->> 
->> Run "sh init.sh" to initiate the network environment. Then run "time
->> ./runtest.sh" to evaluate the time consumption. Our testbed is a 4-core
->> Intel Xeon ECS. The result of the original version is around 8 seconds,
->> while the result of the modified version is only 0.8 seconds.
->> 
->> Signed-off-by: Jiejian Wu <jiejian@linux.alibaba.com>
->> Co-developed-by: Dust Li <dust.li@linux.alibaba.com>
->> Signed-off-by: Dust Li <dust.li@linux.alibaba.com>
->> ---
->>  include/net/ip_vs.h            |  12 ++++
->>  net/netfilter/ipvs/ip_vs_ctl.c | 109 +++++++++++++++------------------
->>  2 files changed, 62 insertions(+), 59 deletions(-)
->> 
->> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
->> index ff406ef4fd4aa..83ab2db4a994b 100644
->> --- a/include/net/ip_vs.h
->> +++ b/include/net/ip_vs.h
->> @@ -33,6 +33,12 @@
->>  
->>  #define IP_VS_HDR_INVERSE	1
->>  #define IP_VS_HDR_ICMP		2
->> +/*
->> + *	Hash table: for virtual service lookups
->> + */
->> +#define IP_VS_SVC_TAB_BITS 8
->> +#define IP_VS_SVC_TAB_SIZE (1 << IP_VS_SVC_TAB_BITS)
->> +#define IP_VS_SVC_TAB_MASK (IP_VS_SVC_TAB_SIZE - 1)
->>  
->>  /* Generic access of ipvs struct */
->>  static inline struct netns_ipvs *net_ipvs(struct net* net)
->> @@ -1041,6 +1047,12 @@ struct netns_ipvs {
->>  	 */
->>  	unsigned int		mixed_address_family_dests;
->>  	unsigned int		hooks_afmask;	/* &1=AF_INET, &2=AF_INET6 */
->> +
->> +	struct mutex service_mutex;
->> +	/* the service table hashed by <protocol, addr, port> */
->> +	struct hlist_head ip_vs_svc_table[IP_VS_SVC_TAB_SIZE];
->> +	/* the service table hashed by fwmark */
->> +	struct hlist_head ip_vs_svc_fwm_table[IP_VS_SVC_TAB_SIZE];
->
->	Can we use svc_table and svc_fwm_table for the table names?
->
 
-Sure, will do.
-
->>  };
->>  
->>  #define DEFAULT_SYNC_THRESHOLD	3
->> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
->> index 62606fb44d027..c8b30f9ec5106 100644
->> --- a/net/netfilter/ipvs/ip_vs_ctl.c
->> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
->
->> @@ -414,7 +404,7 @@ __ip_vs_service_find(struct netns_ipvs *ipvs, int af, __u16 protocol,
->>  	/* Check for "full" addressed entries */
->>  	hash = ip_vs_svc_hashkey(ipvs, af, protocol, vaddr, vport);
->>  
->> -	hlist_for_each_entry_rcu(svc, &ip_vs_svc_table[hash], s_list) {
->> +	hlist_for_each_entry_rcu(svc, &ipvs->ip_vs_svc_table[hash], s_list) {
->>  		if ((svc->af == af)
->>  		    && ip_vs_addr_equal(af, &svc->addr, vaddr)
->>  		    && (svc->port == vport)
->> @@ -441,7 +431,7 @@ __ip_vs_svc_fwm_find(struct netns_ipvs *ipvs, int af, __u32 fwmark)
->>  	/* Check for fwmark addressed entries */
->>  	hash = ip_vs_svc_fwm_hashkey(ipvs, fwmark);
->>  
->> -	hlist_for_each_entry_rcu(svc, &ip_vs_svc_fwm_table[hash], f_list) {
->> +	hlist_for_each_entry_rcu(svc, &ipvs->ip_vs_svc_fwm_table[hash], f_list) {
->>  		if (svc->fwmark == fwmark && svc->af == af
->>  		    && (svc->ipvs == ipvs)) {
->
->	__ip_vs_service_find and __ip_vs_svc_fwm_find: match
->by svc->ipvs is not needed anymore. There are other svc->ipvs == ipvs
->checks in this file.
->
-
-Yes, will remove the check in the next version.
-
->> @@ -1732,12 +1722,12 @@ void ip_vs_service_nets_cleanup(struct list_head *net_list)
->>  	struct net *net;
->>  
->>  	/* Check for "full" addressed entries */
->> -	mutex_lock(&__ip_vs_mutex);
->>  	list_for_each_entry(net, net_list, exit_list) {
->>  		ipvs = net_ipvs(net);
->> +		mutex_lock(&ipvs->service_mutex);
->>  		ip_vs_flush(ipvs, true);
->> +		mutex_unlock(&ipvs->service_mutex);
->>  	}
->> -	mutex_unlock(&__ip_vs_mutex);
->
->	This reverts speedups from commit 5d5a0815f854 but with some
-Yes :)
-
->reordering we probably can remove the mutex completely as part from
->further optimizations.
->
-
-Agree. It is not a frequently called routine, so we kept it here.
+On 06/07/2023 16:55, Mickaël Salaün wrote:
+> From: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+> 
+> This patch is a revamp of the v11 tests [1] with new tests (see the
+> "Changes since v11" description).  I (Mickaël) only added the following
+> todo list and the "Changes since v11" sections in this commit message.
+> I think this patch is good but it would appreciate reviews.
+> You can find the diff of my changes here but it is not really readable:
+> https://git.kernel.org/mic/c/78edf722fba5 (landlock-net-v11 branch)
+> [1] https://lore.kernel.org/all/20230515161339.631577-11-konstantin.meskhidze@huawei.com/
+> TODO:
+> - Rename all "net_service" to "net_port".
+> - Fix the two kernel bugs found with the new tests.
+> - Update this commit message with a small description of all tests.
+> 
 
 
->>  }
->>  
->>  /* Put all references for device (dst_cache) */
->> @@ -1775,9 +1765,9 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
->>  	if (event != NETDEV_DOWN || !ipvs)
->>  		return NOTIFY_DONE;
->>  	IP_VS_DBG(3, "%s() dev=%s\n", __func__, dev->name);
->> -	mutex_lock(&__ip_vs_mutex);
->> +	mutex_lock(&ipvs->service_mutex);
->
->	Looks like with global notifier we have a problem where 
->ip_vs_dst_event() can not know if net->ipvs is not in process
->of freeing from another CPU. The global __ip_vs_mutex helped
->to avoid the problem, if we see svc then svc->ipvs is valid.
->But now even the ipvs->dest_trash_lock access looks under risk.
->Probably, we should switch to register_netdevice_notifier_net,
->so that ip_vs_dst_event() can safely work with the ipvs struct.
->At first look, unregister_netdevice_notifier_net() should be
->called in ip_vs_control_net_cleanup() just after the
->ip_vs_trash_cleanup() call. A drawback is that when we unregister
->from netns exit context __unregister_netdevice_notifier_net()
->still calls call_netdevice_unregister_net_notifiers, something
->that we do not want. May be we can silence these events with
->some new wrapper/parameter.
->
->> @@ -2303,9 +2293,9 @@ static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
->>  
->>  	/* look in hash by protocol */
->>  	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
->> -		hlist_for_each_entry_rcu(svc, &ip_vs_svc_table[idx], s_list) {
->> +		hlist_for_each_entry_rcu(svc, &ipvs->ip_vs_svc_table[idx], s_list) {
->>  			if ((svc->ipvs == ipvs) && pos-- == 0) {
->> -				iter->table = ip_vs_svc_table;
->> +				iter->table = ipvs->ip_vs_svc_table;
->
->	We can change iter->table to int table_id, 0 (ip_vs_svc_table)
->and 1 (ip_vs_svc_fwm_table), for all these ip_vs_info_* funcs.
+[...]
 
-Sorry, I don't get this. Why do we need to change this ?
+> +static int bind_variant_addrlen(const int sock_fd,
+> +				const struct service_fixture *const srv,
+> +				const socklen_t addrlen)
+> +{
+> +	int ret;
+> +
+> +	switch (srv->protocol.domain) {
+> +	case AF_UNSPEC:
+> +	case AF_INET:
+> +		ret = bind(sock_fd, &srv->ipv4_addr, addrlen);
+> +		break;
+> +
+> +	case AF_INET6:
+> +		ret = bind(sock_fd, &srv->ipv6_addr, addrlen);
+> +		break;
+> +
+> +	case AF_UNIX:
+> +		ret = bind(sock_fd, &srv->unix_addr, addrlen);
+> +		break;
+> +
+> +	default:
+> +		errno = -EAFNOSUPPORT;
 
->
->>  				iter->bucket = idx;
->>  				return svc;
->>  			}
->> @@ -2314,10 +2304,10 @@ static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
->>  
->>  	/* keep looking in fwmark */
->>  	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
->> -		hlist_for_each_entry_rcu(svc, &ip_vs_svc_fwm_table[idx],
->> +		hlist_for_each_entry_rcu(svc, &ipvs->ip_vs_svc_fwm_table[idx],
->>  					 f_list) {
->>  			if ((svc->ipvs == ipvs) && pos-- == 0) {
->> -				iter->table = ip_vs_svc_fwm_table;
->> +				iter->table = ipvs->ip_vs_svc_fwm_table;
->>  				iter->bucket = idx;
->>  				return svc;
->>  			}
->
->> @@ -3058,7 +3050,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
->>  		return ret;
->>  	}
->>  
->> -	mutex_lock(&__ip_vs_mutex);
->> +	mutex_lock(&ipvs->service_mutex);
->>  	switch (cmd) {
->>  	case IP_VS_SO_GET_VERSION:
->>  	{
->> @@ -3157,7 +3149,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
->>  	}
->>  
->>  out:
->> -	mutex_unlock(&__ip_vs_mutex);
->> +	mutex_unlock(&ipvs->service_mutex);
->>  	return ret;
->>  }
->>  
->> @@ -3392,9 +3384,9 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
->>  	struct net *net = sock_net(skb->sk);
->>  	struct netns_ipvs *ipvs = net_ipvs(net);
->>  
->> -	mutex_lock(&__ip_vs_mutex);
->> +	mutex_lock(&ipvs->service_mutex);
->
->	While do_ip_vs_get_ctl is a reader that can block we
->can not use RCU but in ip_vs_genl_dump_services() we can replace
->the __ip_vs_mutex with rcu_read_lock because we just fill the skb.
->
+This should be `errno = EAFNOSUPPORT`
 
-I think we can replace mutex in ip_vs_genl_dump_services() by RCU.
-Do you prefer replacing it in this patch or later ?
-
-
->>  	for (i = 0; i < IP_VS_SVC_TAB_SIZE; i++) {
->> -		hlist_for_each_entry(svc, &ip_vs_svc_table[i], s_list) {
->> +		hlist_for_each_entry(svc, &ipvs->ip_vs_svc_table[i], s_list) {
->>  			if (++idx <= start || (svc->ipvs != ipvs))
->>  				continue;
->>  			if (ip_vs_genl_dump_service(skb, svc, cb) < 0) {
->> @@ -3405,7 +3397,7 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
->>  	}
->>  
->>  	for (i = 0; i < IP_VS_SVC_TAB_SIZE; i++) {
->> -		hlist_for_each_entry(svc, &ip_vs_svc_fwm_table[i], f_list) {
->> +		hlist_for_each_entry(svc, &ipvs->ip_vs_svc_fwm_table[i], f_list) {
->>  			if (++idx <= start || (svc->ipvs != ipvs))
->>  				continue;
->>  			if (ip_vs_genl_dump_service(skb, svc, cb) < 0) {
->> @@ -3416,7 +3408,7 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
->>  	}
->>  
->>  nla_put_failure:
->> -	mutex_unlock(&__ip_vs_mutex);
->> +	mutex_unlock(&ipvs->service_mutex);
->>  	cb->args[0] = idx;
->>  
->>  	return skb->len;
->> @@ -3605,7 +3597,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
->>  	struct net *net = sock_net(skb->sk);
->>  	struct netns_ipvs *ipvs = net_ipvs(net);
->>  
->> -	mutex_lock(&__ip_vs_mutex);
->> +	mutex_lock(&ipvs->service_mutex);
->
->	In ip_vs_genl_dump_dests() we can use RCU too but there
->will be probably double rcu_read_lock in ip_vs_genl_parse_service(),
->so rcu_read_lock can be moved into the top caller.
-
-Yes.
-
->
->>  
->>  	/* Try to find the service for which to dump destinations */
->>  	if (nlmsg_parse_deprecated(cb->nlh, GENL_HDRLEN, attrs, IPVS_CMD_ATTR_MAX, ip_vs_cmd_policy, cb->extack))
->> @@ -3630,7 +3622,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
->>  	cb->args[0] = idx;
->>  
->>  out_err:
->> -	mutex_unlock(&__ip_vs_mutex);
->> +	mutex_unlock(&ipvs->service_mutex);
->>  
->>  	return skb->len;
->>  }
->
->> @@ -4058,7 +4050,7 @@ static int ip_vs_genl_get_cmd(struct sk_buff *skb, struct genl_info *info)
->>  	if (!msg)
->>  		return -ENOMEM;
->>  
->> -	mutex_lock(&__ip_vs_mutex);
->> +	mutex_lock(&ipvs->service_mutex);
->
->	ip_vs_genl_get_cmd is another place that we can use RCU.
->
-
-OK
-
->>  
->>  	reply = genlmsg_put_reply(msg, info, &ip_vs_genl_family, 0, reply_cmd);
->>  	if (reply == NULL)
->> @@ -4126,7 +4118,7 @@ static int ip_vs_genl_get_cmd(struct sk_buff *skb, struct genl_info *info)
->>  out_err:
->>  	nlmsg_free(msg);
->>  out:
->> -	mutex_unlock(&__ip_vs_mutex);
->> +	mutex_unlock(&ipvs->service_mutex);
->>  
->>  	return ret;
->>  }
->
->	Note that ip_vs_est.c uses __ip_vs_mutex too, it should be
->changed to service_mutex. Do not keep __ip_vs_mutex anymore.
-
-OK, will fix in the next version.
-
->
->	Also, there is more work if we want independent
->namespaces and to give power to users:
->
->- account memory: GFP_KERNEL -> GFP_KERNEL_ACCOUNT
->
->- the connections table is still global but it should be possible
->to make all tables per-net and to grow on load from NULL to max bits
->
->- convert GENL_ADMIN_PERM -> GENL_UNS_ADMIN_PERM and make
->sysctls visible to other namespaces
->
->	If the plan is to have multiple netns loaded with many
->conns may be I can follow your patch with more optimization
->patches.
-
-Yes, we do missed those details. I think moving those into different
-netns is good, besides we already have netns supported. So why not do
-it more completely ?
-
-If it is convenient for you to do more optimizations, we would greatly
-appreciate it !
-
-Best regards,
-Dust
-
-
->
->Regards
->
->--
->Julian Anastasov <ja@ssi.bg>
+> +		return -errno;
+> +	}
+> +
+> +	if (ret < 0)
+> +		return -errno;
+> +	return ret;
