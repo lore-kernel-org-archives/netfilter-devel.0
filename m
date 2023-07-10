@@ -2,95 +2,89 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0015BEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 08:50:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17034EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 09:11:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230319AbjGJIuj (ORCPT
+        id S231136AbjGJJLX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 04:50:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59510 "EHLO
+        Mon, 10 Jul 2023 05:11:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230167AbjGJIui (ORCPT
+        with ESMTP id S230289AbjGJJLW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 04:50:38 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DC53118
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 01:49:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688978987;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=l9rq8NRpR2njBA08OWcvSoajA+Ltoifvp1BWXwF6C7o=;
-        b=U49Acs79eWLe7kgaTtGOISqynsgn9iyFtfr+zYg1s9F3hfT8UEtN9Yv1rsx3onT3QWMqoF
-        F8xsNCUy86fNREkFqhEWC8k0kbNpNHbqAUjDFYolhNbWjRAOdWiZ6Hl34gujF5FPSoNIia
-        5ut3OQ4UHTjJCdeWu7d3N4HzkiCVEZU=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-509-OfI8414HOFS_GYPvdOSGAQ-1; Mon, 10 Jul 2023 04:49:43 -0400
-X-MC-Unique: OfI8414HOFS_GYPvdOSGAQ-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id EA1E81C0896B
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 08:49:42 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.193.41])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 6DE6A111DCE3;
-        Mon, 10 Jul 2023 08:49:42 +0000 (UTC)
-From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [nft PATCH 3/4] libnftables: inline creation of nf_sock in nft_ctx_new()
-Date:   Mon, 10 Jul 2023 10:45:18 +0200
-Message-ID: <20230710084926.172198-4-thaller@redhat.com>
-In-Reply-To: <20230710084926.172198-1-thaller@redhat.com>
-References: <20230710084926.172198-1-thaller@redhat.com>
+        Mon, 10 Jul 2023 05:11:22 -0400
+Received: from mail-yw1-x112a.google.com (mail-yw1-x112a.google.com [IPv6:2607:f8b0:4864:20::112a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 312D6FB;
+        Mon, 10 Jul 2023 02:11:20 -0700 (PDT)
+Received: by mail-yw1-x112a.google.com with SMTP id 00721157ae682-57688a146ecso53268187b3.2;
+        Mon, 10 Jul 2023 02:11:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1688980279; x=1691572279;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4OE6ds8cXty874rwlHXWKLaM8k6hS9SCvEgtZP9n8Ek=;
+        b=ERr5GyxWLoIfqKeAKocVZjbK3VKsETi85NEQUFRVKkqRhBmh0L+l/JNheQLLNrSMlV
+         Z38Qxt3XytDiIyjE0c+lc1EwP6diVjNtg/dPqhgdTqdmx2bkBWvPWnwI1UZGxPIokKGy
+         kfhJZk3MWUx6G6/QBb5lD/Nzp7KGZy7PlkwSL4tYC4MU6fCR93CgtxKYzBk+ZEML8qXG
+         cLYf1IKpcQTnTCR6aA3i2fYKSbrZ5pjDqJUzhszDLEKqotstWIl5sDOKxJDVtHAIStAI
+         vBCwjTaen2HDguZJgjeU/qyw2czvKnWDu4ZAxNOuG1DbdkuUMV9b9xaLQsPTeO4+eBMA
+         7YQA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688980279; x=1691572279;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=4OE6ds8cXty874rwlHXWKLaM8k6hS9SCvEgtZP9n8Ek=;
+        b=T9zBUYynfilz89uN//9V8lPx/drw7kmAKd9eacEAnX+0dd5W6KBSgZ0KOs8Em/fDVk
+         2M5jszKQP5izX2OoOz5zTmYSqcyETXnXETyUBdKrtG74u2GYGpQdBpAcDc46uG+Cg6LW
+         OLGQzURE0hAZN93FJl81qenqfAvyOvOSc1wD9g4bGvEEYdrA7l9DVeVGiD9Y3LhIZRjG
+         1mJRnxFZdcosBDWRmlFArdB7dR0xmf/02br91susMonHy6awOw0c4WOXkgYePTDZ7bLE
+         UcCf8KeWqJWv7Wv4vfmZKLWQ5XIXd74GfUvdArjnJSsN51UelDqXlA3jHmV+zjUm/F6g
+         Z9Wg==
+X-Gm-Message-State: ABy/qLajngcjzMf+EZEiqjc0wJyzsXuV+cVDZ7AJkKyXKDORxfG3iG60
+        5oQEtDoieo1nNfXTvujeDWJUTcRH15AMg7bSRkU=
+X-Google-Smtp-Source: APBJJlEOaZTO+JULkSw/suJWkWQ7bUuQ3/HVKN/CTohfWjXI2KIjFUKuoRVnTVJI1mE4eFYHxzCdMMBXwp89Gnf4lMI=
+X-Received: by 2002:a25:810f:0:b0:c62:9634:d39 with SMTP id
+ o15-20020a25810f000000b00c6296340d39mr10794429ybk.52.1688980279362; Mon, 10
+ Jul 2023 02:11:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
+References: <20230710172602.05d32c03@canb.auug.org.au>
+In-Reply-To: <20230710172602.05d32c03@canb.auug.org.au>
+From:   Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date:   Mon, 10 Jul 2023 11:11:08 +0200
+Message-ID: <CANiq72npQiWMebvYTu8Z+XuJAyUH6-iygGtbF9V6y+R2aD1-vw@mail.gmail.com>
+Subject: Re: linux-next: branches to be removed
+To:     Stephen Rothwell <sfr@canb.auug.org.au>
+Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        David Howells <dhowells@redhat.com>,
+        Gabriel Krisman Bertazi <krisman@collabora.com>,
+        Leo Li <leoyang.li@nxp.com>,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Miguel Ojeda <ojeda@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Vineet Gupta <vgupta@kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The function only has one caller. It's not clear how to extend this in a
-useful way, so that it makes sense to keep the initialization in a
-separate function.
+On Mon, Jul 10, 2023 at 9:32=E2=80=AFAM Stephen Rothwell <sfr@canb.auug.org=
+.au> wrote:
+>
+> clang-format            2022-05-20 19:27:16 +0200
+>   https://github.com/ojeda/linux.git      clang-format
 
-Simplify the code, by inlining and dropping the static function
-nft_ctx_netlink_init(). There was only one caller.
+We will eventually have updates for clang-format -- if it doesn't hurt
+too much keeping it, then I would prefer to have it around vs.
+creating it again later.
 
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- src/libnftables.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+Thanks!
 
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 5b3eb2dc3df4..79dfdfc7c6ec 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -186,11 +186,6 @@ void nft_ctx_clear_include_paths(struct nft_ctx *ctx)
- 	ctx->include_paths = NULL;
- }
- 
--static void nft_ctx_netlink_init(struct nft_ctx *ctx)
--{
--	ctx->nf_sock = nft_mnl_socket_open();
--}
--
- EXPORT_SYMBOL(nft_ctx_new);
- struct nft_ctx *nft_ctx_new(uint32_t flags)
- {
-@@ -218,7 +213,7 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
- 	ctx->output.error_fp = stderr;
- 	init_list_head(&ctx->vars_ctx.indesc_list);
- 
--	nft_ctx_netlink_init(ctx);
-+	ctx->nf_sock = nft_mnl_socket_open();
- 
- 	return ctx;
- }
--- 
-2.41.0
-
+Cheers,
+Miguel
