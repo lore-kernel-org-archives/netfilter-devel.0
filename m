@@ -2,84 +2,95 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 050A0EB64DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 17:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2681EB64D9
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 17:59:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230150AbjGJRwN (ORCPT
+        id S229543AbjGJR67 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 13:52:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58452 "EHLO
+        Mon, 10 Jul 2023 13:58:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230004AbjGJRwM (ORCPT
+        with ESMTP id S232969AbjGJR66 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 13:52:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A030AB;
-        Mon, 10 Jul 2023 10:52:11 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D433361178;
-        Mon, 10 Jul 2023 17:52:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6B72C433C8;
-        Mon, 10 Jul 2023 17:52:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689011530;
-        bh=YKlGppxljjRcSI8ysxSVnU0A/O3Ow0tYV8rhEbSSGJ4=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=uGimDA5f7tHbu5ZnNKK0X2tAluzDf4gKIGrpXUKKBTM433d+k55de/sRbA4FZbdfZ
-         EK0Zb0dncnNL7qRdCdEIal0QdH4iy5BuLfpdqZ14dMVug5wF5pLnCEmqroYzCzAJxJ
-         yneEIaDnZiWWj+/fo7QxqzNGO3KGnY++Q2l0zTqTigTkvCFNUOLF38NvRp8g5sAbk9
-         1wojaFpn1NSUgvihyaqvdcK/jBtXLuLZes1CnExuGyxaahCm090ZYcso1o2IbsUszD
-         f5xObQiHhPJ9fo39WwWp0qKjktXLk3HAZhwWctMMsCqqSd5f+oeKgYJVZ9rDnz5ldw
-         1UbXpJIe60EQw==
-Message-ID: <ccc0f8d4-3900-a766-7303-85e44bffd875@kernel.org>
-Date:   Mon, 10 Jul 2023 10:52:08 -0700
+        Mon, 10 Jul 2023 13:58:58 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C406D127
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 10:58:54 -0700 (PDT)
+Date:   Mon, 10 Jul 2023 19:58:51 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [nft PATCH] nftables: add flag for nft context to avoid blocking
+ getaddrinfo()
+Message-ID: <ZKxG23yJzlRRPpsO@calendula>
+References: <20230710174652.221651-1-thaller@redhat.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: linux-next: branches to be removed
-To:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
-        Leo Li <leoyang.li@nxp.com>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        Miguel Ojeda <ojeda@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Vineet Gupta <vgupta@kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20230710172602.05d32c03@canb.auug.org.au>
-Content-Language: en-US
-From:   Vineet Gupta <vgupta@kernel.org>
-In-Reply-To: <20230710172602.05d32c03@canb.auug.org.au>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230710174652.221651-1-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Stephen,
+On Mon, Jul 10, 2023 at 07:46:30PM +0200, Thomas Haller wrote:
+> getaddrinfo() blocks while trying to resolve the name. Blocking the
+> caller of the library is bad in some cases. Especially, while
+> reconfiguring the firewall, it's not clear that we can access the
+> network to resolve names.
+> 
+> Add a way to opt out from getaddrinfo() and only accept plain IP addresses.
+> 
+> The opt-out is per nft_ctx instance and cannot be changed after the
+> context is created. I think that is sufficient.
+> 
+> We could also use AI_NUMERICHOST and getaddrinfo() instead of
+> inet_pton(). But it seems we can do a better job of generating an error
+> message, when we try to parse via inet_pton(). Then our error message
+> can clearly indicate that the string is not a valid IP address.
+> 
+> Signed-off-by: Thomas Haller <thaller@redhat.com>
+> ---
+>  include/datatype.h             |  1 +
+>  include/nftables/libnftables.h |  1 +
+>  py/nftables.py                 | 12 +++++-
+>  src/datatype.c                 | 68 ++++++++++++++++++++--------------
+>  src/evaluate.c                 | 16 +++++++-
+>  5 files changed, 66 insertions(+), 32 deletions(-)
+> 
+> diff --git a/include/datatype.h b/include/datatype.h
+> index 4b59790b67f9..108bf03ad0ed 100644
+> --- a/include/datatype.h
+> +++ b/include/datatype.h
+> @@ -182,6 +182,7 @@ struct datatype *dtype_clone(const struct datatype *orig_dtype);
+>  
+>  struct parse_ctx {
+>  	struct symbol_tables	*tbl;
+> +	bool			no_block;
+>  };
+>  
+>  extern struct error_record *symbol_parse(struct parse_ctx *ctx,
+> diff --git a/include/nftables/libnftables.h b/include/nftables/libnftables.h
+> index 85e08c9bc98b..d75aff05dec8 100644
+> --- a/include/nftables/libnftables.h
+> +++ b/include/nftables/libnftables.h
+> @@ -34,6 +34,7 @@ enum nft_debug_level {
+>   * Possible flags to pass to nft_ctx_new()
+>   */
+>  #define NFT_CTX_DEFAULT		0
+> +#define NFT_CTX_NO_BLOCK	1
 
-On 7/10/23 00:26, Stephen Rothwell wrote:
-> Hi all,
->
-> I will remove the following branches from linux-next tomorrow as they have
-> not been updated in over a year.  If you want your branch retained or
-> reinstated, please just send me an email letting me know.
->
-> Tree			Last commit date
-> ----			----------------
-> arc			2022-06-05 17:18:54 -0700
->    git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc.git    for-next
+Could you add this flag instead?
 
-Would request to please keep arc next around even though upstream dev is 
-slow'ish these days.
-I do have some patches for absolute near future as well.
+        NFT_CTX_INPUT_NO_DNS
 
-Thx,
--Vineet
+there are NFT_CTX_OUTPUT_* flags already in place that determine how
+the output is done, but better not to (ab)use them.
+
+And add:
+
+        nft_ctx_input_set_flags(...)
+
+to allow users to set it on.
+
+>  struct nft_ctx *nft_ctx_new(uint32_t flags);
+>  void nft_ctx_free(struct nft_ctx *ctx);
