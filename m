@@ -2,94 +2,106 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C13DEB64D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 10:24:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D535EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 10:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231435AbjGJKYe (ORCPT
+        id S231435AbjGJKdR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 06:24:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37470 "EHLO
+        Mon, 10 Jul 2023 06:33:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230345AbjGJKYd (ORCPT
+        with ESMTP id S231789AbjGJKcv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 06:24:33 -0400
-Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DEF494
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 03:24:31 -0700 (PDT)
-Received: by mail-wm1-x32a.google.com with SMTP id 5b1f17b1804b1-3fbc77e76abso45162105e9.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Jul 2023 03:24:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gooddata.com; s=google; t=1688984668; x=1691576668;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=6cRtBGl2Jd1fZvryX9XkjpF1gAXAlryMpWJLazKFVjI=;
-        b=X4DS7UynebrTJVoaLCWi34C2KFcljiicvoAdlMxJT2icAMBTv8+436wBbgEcmL4vQz
-         oCO0Ll7lSOswr7ix+SyzTxWy2h0Keubes4cuNUQ7L3nJ6iQo9pTweuGARhbYVMZKkha2
-         pat2F06Gp2SsANs8SONYRmZXEf5fAlq31XSfE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688984668; x=1691576668;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=6cRtBGl2Jd1fZvryX9XkjpF1gAXAlryMpWJLazKFVjI=;
-        b=V1NDKocKnMLAZBOSPa2w5gE0Gv93UaBrGjjJyNAAqB01FHGVkMb7wZT9RgF/jVulI6
-         ak1nptxnTsdZxsiCatL+mGCtJTUaNrOSgYvGlz5hH+PtR2FdGEd6PMyPC4AE1sJF4bYQ
-         ankJP/lIOLJfCK0L7m2Qr1Vu5WXymueSPcv9ars/lSiOzbaVtUTgkqLCSp+Otb8oSVRL
-         du6uWfnw5Yg1DXvAhpi2wVtwH0F9XEAE5PJwKbVp09xD0bpm8IzS7eXpH7KBOMrCxnKj
-         7aJI0x4nEX263n2rQwORh0WByPMf+uhS4is7axxMdgCkOrVySBtgbhtf9E0Jh5C91x2B
-         KAlw==
-X-Gm-Message-State: ABy/qLYaaaxsVeeaPRdrjqp0UguzXNRvet4IHoF4iyg4ScQGz+I7K4Qr
-        MFfQot+F9DW2kDrAP6WxxF/VocZTyiWRCN3PycLmYOnH64qerzllAKU=
-X-Google-Smtp-Source: APBJJlEzrjahu6hPGchrl8vN+fympQ1Z+FsBQ/pvfT9nGT1KLynwxnHBOS+0ucXJb7NNFFFxWPY0yxhUYl8lY62dNLo=
-X-Received: by 2002:a05:600c:21d4:b0:3fb:ad5d:9568 with SMTP id
- x20-20020a05600c21d400b003fbad5d9568mr10754047wmj.38.1688984668668; Mon, 10
- Jul 2023 03:24:28 -0700 (PDT)
+        Mon, 10 Jul 2023 06:32:51 -0400
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E82F4B2;
+        Mon, 10 Jul 2023 03:32:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1688985165;
+        bh=oRijPJJKzfq1q9MD5wWegjOEj9xa6p+4w7cHkx2LsuI=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=ZRc2WuaisazJtOAj/p5cakHlyrDzTc9rDj7duH8GHe08yjJP9ZGbPAK/i0NFdwzxv
+         XxwfDBPR77h6SA5YgV0XoVHjY/UmfJLSCfynBtYrqvdxqy/cwvFnl41nw1WYIOeI00
+         CURSNB1hokQ7Q2P8jb8TuAbYcks+4nzoWraMW7t5Yd/E1qyc++4FsRjtQlRbSr493F
+         kJ9f5RBJiKU/2hHD2QF/XLmMNBVJ7eOfeaCDUqPJXKzSI8xidyiKjpua/fGg+fsknJ
+         720b0i8UKArh+nVZucBvsRAwroHDdG3KCz7TGSWq8OaGPpCMcfwrNhJoMDXXlQw6p5
+         SmPNVwZ3Un03Q==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (prime256v1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4R00gv3T2Cz4wZw;
+        Mon, 10 Jul 2023 20:32:43 +1000 (AEST)
+Date:   Mon, 10 Jul 2023 18:40:54 +1000
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        David Howells <dhowells@redhat.com>,
+        Gabriel Krisman Bertazi <krisman@collabora.com>,
+        Leo Li <leoyang.li@nxp.com>,
+        Lucas Stach <l.stach@pengutronix.de>,
+        Miguel Ojeda <ojeda@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Vignesh Raghavendra <vigneshr@ti.com>,
+        Vineet Gupta <vgupta@kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: linux-next: branches to be removed
+Message-ID: <20230710184054.5463d3da@canb.auug.org.au>
+In-Reply-To: <20230710074656.GA32562@breakpoint.cc>
+References: <20230710172602.05d32c03@canb.auug.org.au>
+        <20230710074656.GA32562@breakpoint.cc>
 MIME-Version: 1.0
-From:   Igor Raits <igor@gooddata.com>
-Date:   Mon, 10 Jul 2023 12:24:17 +0200
-Message-ID: <CA+9S74jbOefRzu1YxUrXC7gbYY8xDKH6QNJBuAQoNnnLODxWrg@mail.gmail.com>
-Subject: ebtables-nft can't delete complex rules by specifying complete rule
- with kernel 6.3+
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; boundary="Sig_/92SqFP_2XhIt5Lio6uLtm7Q";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+--Sig_/92SqFP_2XhIt5Lio6uLtm7Q
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-We started to observe the issue regarding ebtables-nft and how it
-can't wipe rules when specifying full rule. Removing the rule by index
-works fine, though. Also with kernel 6.1.y it works completely fine.
+Hi Florian,
 
-I've started with 1.8.8 provided in CentOS Stream 9, then tried the
-latest git version and all behave exactly the same. See the behavior
-below. As you can see, simple DROP works, but more complex one do not.
+On Mon, 10 Jul 2023 09:46:56 +0200 Florian Westphal <fw@strlen.de> wrote:
+>
+> Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> > netfilter		2022-05-23 14:33:38 -0700
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git      maste=
+r =20
+>=20
+> The tree changed to
+> git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git   main
+>=20
+> > netfilter-next		2022-05-23 21:19:17 -0700
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git maste=
+r =20
+>=20
+> This changed to
+> git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git   main
 
-As bugzilla requires some special sign-up procedure, apologize for
-reporting it directly here in the ML.
+Thanks.  I have resurrected the branches in their new location.
 
-# ebtables -L
-Bridge table: filter
+--=20
+Cheers,
+Stephen Rothwell
 
-Bridge chain: INPUT, entries: 0, policy: ACCEPT
+--Sig_/92SqFP_2XhIt5Lio6uLtm7Q
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-Bridge chain: FORWARD, entries: 0, policy: ACCEPT
+-----BEGIN PGP SIGNATURE-----
 
-Bridge chain: OUTPUT, entries: 0, policy: ACCEPT
-# ebtables -t nat -N barani
-# ebtables -t nat -A barani -i br_public --among-src fa:16:3e:26:bf:42 -j RETURN
-# ebtables -t nat -D barani -i br_public --among-src fa:16:3e:26:bf:42 -j RETURN
-ebtables v1.8.9 (nf_tables):  RULE_DELETE failed (Invalid argument):
-rule in chain barani
-# ebtables -t nat -A barani -j DROP
-# ebtables -t nat -D barani -j DROP
-# ebtables -t nat -L barani
-Bridge table: nat
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmSrxBYACgkQAVBC80lX
+0GwrYwf/feK6vFsaw4LwE+Z2Oj8CZV6KtKFQApLMuszrh3xAA6XnF6mAG56zs1sw
+d0CLnsyZhu11Dey5gkyJ81eFpbetBc1lmInYuwt1EhqWZt4nr00XGvgwIuLYHY4F
+ikd6igeX2RNodjL1tdUVzV4U06FcsSPqGILwuSoffys9pHCXKAAq2oaqLmlpm0oR
+qZljjyxK17T35ehnqFVK2VzFiAVHGfGc/wwXx6PlEADnN/FG9zDE+Pa/JgLFiqqs
+V50lVqG3c5exnsmqi+uxFNFbQ6Mxzt4Gr1ySeDOSXUJl5SL1rTpSEu79tEX4doUp
+EGzCp1wbM9FM0xVZyXl7nWO+fuRuqw==
+=hsEX
+-----END PGP SIGNATURE-----
 
-Bridge chain: barani, entries: 1, policy: RETURN
--i br_public --among-src fa:16:3e:26:bf:42 -j RETURN
-# ebtables -t nat -D barani 1
-# ebtables -t nat -L barani
-Bridge table: nat
-
-Bridge chain: barani, entries: 0, policy: RETURN
+--Sig_/92SqFP_2XhIt5Lio6uLtm7Q--
