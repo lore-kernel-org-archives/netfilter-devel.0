@@ -2,102 +2,101 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A51CEB64DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 10 Jul 2023 23:04:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB718EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Tue, 11 Jul 2023 00:37:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229864AbjGJXEc (ORCPT
+        id S229886AbjGKAhR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 10 Jul 2023 19:04:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42708 "EHLO
+        Mon, 10 Jul 2023 20:37:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229641AbjGJXEb (ORCPT
+        with ESMTP id S229538AbjGKAhQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2023 19:04:31 -0400
-Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9181A11D;
-        Mon, 10 Jul 2023 16:04:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1689030268;
-        bh=dpPyTCvCNzCOS0I/wq9mgI37mF5FOhPHWJw+BqGKOic=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=hSGtaLbGqwyIlRZtWiS4+QY6D9VfSa/bgDs+I2Jfj+MeZoXqDjxNdqtumUu/O8KPX
-         puF6zNRhBVhvxUJmXNsvrhkYjWJstoxDXxjOYVFHf8HrNkQ8CHUegrlNL/Ldix6LGO
-         qVUybQ1XxzFtzkGLYeN2YgAqXmuQIpAVAifTf6/gfXvlj7k3BAsOhuF8S8YPwkZY4Y
-         OXmbyrx1yYMKW2eZ+Vl55VwSbrrgWKeDSI3fIVvbh3fCdcHZannN9GJyFzLKZuh61H
-         6fTduG+zBYGwZ3jp2sLqmpC/NhTGKx5ATWYj9H5ZEX8jUu2nDo7gonD3QYXELE0bod
-         dCxiA+4Lc/SpA==
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (prime256v1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4R0KMJ2Pftz4wbP;
-        Tue, 11 Jul 2023 09:04:28 +1000 (AEST)
-Date:   Tue, 11 Jul 2023 09:04:27 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Vineet Gupta <vgupta@kernel.org>
-Cc:     Linux Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
-        Leo Li <leoyang.li@nxp.com>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        Miguel Ojeda <ojeda@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: linux-next: branches to be removed
-Message-ID: <20230711090427.27e07509@canb.auug.org.au>
-In-Reply-To: <ccc0f8d4-3900-a766-7303-85e44bffd875@kernel.org>
-References: <20230710172602.05d32c03@canb.auug.org.au>
-        <ccc0f8d4-3900-a766-7303-85e44bffd875@kernel.org>
+        Mon, 10 Jul 2023 20:37:16 -0400
+Received: from mail-lj1-x22e.google.com (mail-lj1-x22e.google.com [IPv6:2a00:1450:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BFDF1AC;
+        Mon, 10 Jul 2023 17:37:15 -0700 (PDT)
+Received: by mail-lj1-x22e.google.com with SMTP id 38308e7fff4ca-2b6a6f224a1so83371081fa.1;
+        Mon, 10 Jul 2023 17:37:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1689035833; x=1691627833;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7KzZR+3uBAAfoyD64XhpmvukCNRgSrEvKBzVHoKvA4I=;
+        b=QePSPYmXWBGIDNUBrGBf5dNhcMIgQXxeSLRtxqxBcsVcRzTIUh7r+RU+SJgk/tmHGt
+         8ZoLhHoWtRH2tgqNmUgQy9A9InN93Do8kb5ER210aYcrZTmWOPm1pr37GIYVQbHF3lYv
+         1teYgsn0Cnt2EHvRiPl/ffYISmv8S38q1G11FpdRLRiAGt/z7PZvttauDbVQ89la54m2
+         BeVbhy/8N+QbNSyslcBmQkJq8cVVmQErH/APZuyYtuoXn1RKtKaZeYSV1eMo4RMTNbwL
+         LjsuLhXCSyfJkcf9PU9AO/cNxgPkvnsuRMwjmZm7oqPnj1d+OrAPeHX3fvKFc7FoMYUg
+         P7qg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689035833; x=1691627833;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7KzZR+3uBAAfoyD64XhpmvukCNRgSrEvKBzVHoKvA4I=;
+        b=JMAwWM0idH6i0ZzOIhcnZ4rbp0xXR03rqDiApdpo4q9/MV11w3pGX2QaZdhxdys/du
+         B9Z0Rf9kNe+uVWXIAjT53dXi4GxtIEI7I5PjgWlIj++072BFbDdwljxMzQk15Th40I0F
+         EIoB8CkQqUWzLbBCF8Mk4a3HPM6l+kD5kp22v4PaiDnI+p8x9aRYPZwlMFCGUMvPgzwJ
+         tI8Q9Sp85UD1pkD0u9PHtYVWPac/AulrzcLmEHy6Ft/WS1xQq1N7L5isJZ2aPZVS/ljf
+         h2aym/zG6bt7sxMajnXmqq+zfeHE1vq8fPxPNWS4SETj/VnktrvUlacLtfbhsuUau0kd
+         LReQ==
+X-Gm-Message-State: ABy/qLYEODthPWn62gmZxSXKOpa6DXzNT6mmxlsIl6GWBSFKF7MrvK6d
+        GHjhAp01UkfGwZ1hqBxOr20mPry3+aPmh+s6iRY=
+X-Google-Smtp-Source: APBJJlEnq2pY54DPq3uUhu9mvqZQeE6rwDrv5wtxw4z6ZOom5E9R2u1iJKyFPEgekhQxSbs17e6NVE2XcwInUAgpuG0=
+X-Received: by 2002:a2e:964e:0:b0:2b6:fa3f:9233 with SMTP id
+ z14-20020a2e964e000000b002b6fa3f9233mr7975582ljh.46.1689035833423; Mon, 10
+ Jul 2023 17:37:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/3vFqHq=aVl19w0aZkeK6IpR";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+References: <cover.1688748455.git.dxu@dxuuu.xyz> <13720a4b7a18b2409357a82eebe57ef388ab9cf1.1688748455.git.dxu@dxuuu.xyz>
+In-Reply-To: <13720a4b7a18b2409357a82eebe57ef388ab9cf1.1688748455.git.dxu@dxuuu.xyz>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Mon, 10 Jul 2023 17:37:01 -0700
+Message-ID: <CAADnVQLaepgpoH4qjbhAmq-+JLiAXyJ=4nXgbu6NSkZmpF9ghg@mail.gmail.com>
+Subject: Re: [PATCH bpf-next v3 6/6] bpf: selftests: Add defrag selftests
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     Andrii Nakryiko <andrii@kernel.org>, Shuah Khan <shuah@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Mykola Lysenko <mykolal@fb.com>,
+        LKML <linux-kernel@vger.kernel.org>, bpf <bpf@vger.kernel.org>,
+        "open list:KERNEL SELFTEST FRAMEWORK" 
+        <linux-kselftest@vger.kernel.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        David Ahern <dsahern@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
---Sig_/3vFqHq=aVl19w0aZkeK6IpR
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi Vineet,
-
-On Mon, 10 Jul 2023 10:52:08 -0700 Vineet Gupta <vgupta@kernel.org> wrote:
+On Fri, Jul 7, 2023 at 9:51=E2=80=AFAM Daniel Xu <dxu@dxuuu.xyz> wrote:
 >
-> On 7/10/23 00:26, Stephen Rothwell wrote:
-> >
-> > Tree			Last commit date
-> > ----			----------------
-> > arc			2022-06-05 17:18:54 -0700
-> >    git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc.git    for-=
-next =20
->=20
-> Would request to please keep arc next around even though upstream dev is =
-slow'ish these days.
-> I do have some patches for absolute near future as well.
+> These selftests tests 2 major scenarios: the BPF based defragmentation
+> can successfully be done and that packet pointers are invalidated after
+> calls to the kfunc. The logic is similar for both ipv4 and ipv6.
+>
+> In the first scenario, we create a UDP client and UDP echo server. The
+> the server side is fairly straightforward: we attach the prog and simply
+> echo back the message.
+>
+> The on the client side, we send fragmented packets to and expect the
+> reassembled message back from the server.
+>
+> Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
 
-I have added it back.
+The patches look good, but new tests are failing on arm64.
 
---=20
-Cheers,
-Stephen Rothwell
+test_bpf_ip_check_defrag_ok:FAIL:server recvfrom unexpected server
+recvfrom: actual -1 < expected 0
 
---Sig_/3vFqHq=aVl19w0aZkeK6IpR
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmSsjnsACgkQAVBC80lX
-0Gwjjwf+JRALHHIzdiKIFJl5oIuw8MRM1/opTQ0dixMqTpErLdnO2pxz1r1/q/In
-CDZGU87lhgbyLcVGEgdW7y3YcRgjonrraitnFADZmozUEqS3PHkP4OLEOWeYuqQv
-aHxzCNLdCgA0nRewLV3ahkHK+zyeOg/OUmlLE3T83C1ETPlgowZDpj2HdfRdPP5/
-YBSTQUi1y7wJeKyM1MKehHEU7xv9xi1Fzlt5iHlXrOsRIBFedo2/w7/CWTCgwSL0
-4xHpyKKUV4W3/gVevjPDq2UTD2shbnjiBIhcxAECzXjpxNNKadSupYM/LpFr+g9N
-nXKFTc3zGCuiyKNNYtrJL5fo4wHn+g==
-=jgep
------END PGP SIGNATURE-----
-
---Sig_/3vFqHq=aVl19w0aZkeK6IpR--
+see BPF CI.
+Feels like a timing issue, but pls take a look.
