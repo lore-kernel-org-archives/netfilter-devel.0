@@ -2,181 +2,167 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FC4EB64D9
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jul 2023 11:30:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94F8FEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jul 2023 13:17:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbjGLLaU (ORCPT
+        id S233451AbjGLNRF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Jul 2023 07:30:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53942 "EHLO
+        Wed, 12 Jul 2023 09:17:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229506AbjGLLaU (ORCPT
+        with ESMTP id S233297AbjGLNRE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2023 07:30:20 -0400
-Received: from smtp-8fa9.mail.infomaniak.ch (smtp-8fa9.mail.infomaniak.ch [83.166.143.169])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8665A8F
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2023 04:30:18 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-2-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4R1FsN751RzMq1Kb;
-        Wed, 12 Jul 2023 11:30:16 +0000 (UTC)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4R1FsM49x6zMprvw;
-        Wed, 12 Jul 2023 13:30:15 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1689161416;
-        bh=HZrYlrtt7f56eqLiIloFhRy/XIBcbyv2PMXek231cfg=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=nFa3yb+6PcIWf5ZCd99wHaSo0yXI6nmztOE/Qv1fIfVg/u9OhfUa7LGZOapIe9wP7
-         Wr40BOOIJEbvpvB8Rd0Sh+ZDBAf+7MgHyHj9FopEIOdEvtrkrWKsAPUwjnWCyp5+/J
-         MPtyIzH6h1SDHhgzD1MUdsKBnmIKcEZ8LuDLqLto=
-Message-ID: <9fc33a12-276d-8f68-eeb8-1258559b30d4@digikod.net>
-Date:   Wed, 12 Jul 2023 13:30:15 +0200
+        Wed, 12 Jul 2023 09:17:04 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2105.outbound.protection.outlook.com [40.107.93.105])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92D591984;
+        Wed, 12 Jul 2023 06:17:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=SctPp1CGqD99NjYUH8ReJHGvatObRzO8b5K6T8hTNwcFoX+ESSUnCp0CakatFPBfqGR+K/w1UYJcjwUeC1i2ZvTeOxnzn/XOTkJLNgl28E+a4K6Q6n3FQExIOqkpwGV4ZmX9Nt0I+m/5O02IgyyS8HvXnl+UE/XcNX+5/LiC3IpE0/plp2sdYzMR8aZo4BGRODRD+ctkveuiXiyVa3+KVDi8I4+HThoSlzm8YSBAmvYxi347SWROj8H19TzYOVjpjK3PGCT32lm2JgfmyGQz/gTABgb1+jm2G4Ks0969UzMw1pWxbsvUgQBH+lxuv4FJp0RyeVxxy5PZjXdDvUAmHA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=lR38tOdTYJugkhlE84oqW2Xb/unr+1YjFwaMDA8TgGg=;
+ b=aIMzwVFlHUjQNmRDZEL2CwZ3EmcRWhtWjej5lYuRtVgSBu6TWH5OWvJuzUCqfDTwmglxjNB46jyd1BxXeVAX7+vA6gYJploMkGdU+RBsvOLsfG0NnkufCYfBwL97OuZCbN4RX0bpcU0YDkPCmEHCz86siqVmFd0fTTA5jFTQYnrg+WCfZjFzYcqnFzXoggB7dPv5d5tdMKBBI/ROHrV9pyhJuKdRzKARy0OvMahY+f8PXRe/uqwHEl6paDv1NIOqfsxATEVH8SehOSGgyUqWA6mX1lf2luqjzxmvYbouo6L9prWHf7X93qUxZQQFunZqFdl8zzdnPM9tK64pk43YKA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
+ dkim=pass header.d=corigine.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=lR38tOdTYJugkhlE84oqW2Xb/unr+1YjFwaMDA8TgGg=;
+ b=c9PFLu974+n1Q3svFfXIlVPgVWYTrOgABA9ZDGBNIjk0zBuYgC4T+SCYfTHU5Podlg6sHtEWolsXowBKqq80whQmLiD+Fbt0X6HYU0WpMZRlUoArgQboBxMUx0lBJxdOM8BBUhwZKb2m9pY/R3FlkSut91Q5209Ardf/h5BrnQA=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=corigine.com;
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
+ by SN7PR13MB6254.namprd13.prod.outlook.com (2603:10b6:806:2ed::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6565.30; Wed, 12 Jul
+ 2023 13:16:58 +0000
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::d23a:8c12:d561:470]) by PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::d23a:8c12:d561:470%6]) with mapi id 15.20.6588.017; Wed, 12 Jul 2023
+ 13:16:57 +0000
+Date:   Wed, 12 Jul 2023 14:16:50 +0100
+From:   Simon Horman <simon.horman@corigine.com>
+To:     Lin Ma <linma@zju.edu.cn>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH v1] netfilter: conntrack: validate cta_ip via parsing
+Message-ID: <ZK6nwn99T8NAP6pC@corigine.com>
+References: <20230711032257.3561166-1-linma@zju.edu.cn>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230711032257.3561166-1-linma@zju.edu.cn>
+X-ClientProxiedBy: LO4P123CA0562.GBRP123.PROD.OUTLOOK.COM
+ (2603:10a6:600:33b::12) To PH0PR13MB4842.namprd13.prod.outlook.com
+ (2603:10b6:510:78::6)
 MIME-Version: 1.0
-User-Agent: 
-Subject: Re: [PATCH v9 00/12] Network support for Landlock - allowed list of
- protocols
-Content-Language: en-US
-To:     Jeff Xu <jeffxu@google.com>
-Cc:     Jeff Xu <jeffxu@chromium.org>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack@google.com>,
-        "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>,
-        =?UTF-8?Q?G=c3=bcnther_Noack?= <gnoack3000@gmail.com>,
-        willemdebruijn.kernel@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com,
-        Jorge Lucangeli Obes <jorgelo@chromium.org>,
-        Allen Webb <allenwebb@google.com>,
-        Dmitry Torokhov <dtor@google.com>
-References: <20230116085818.165539-1-konstantin.meskhidze@huawei.com>
- <Y/fl5iEbkL5Pj5cJ@galopp> <c20fc9eb-518e-84b4-0dd5-7b97c0825259@huawei.com>
- <3e113e1c-4c7b-af91-14c2-11b6ffb4d3ef@digikod.net>
- <b8a2045a-e7e8-d141-7c01-bf47874c7930@digikod.net>
- <ZJvy2SViorgc+cZI@google.com>
- <CABi2SkX-dzUO6NnbyqfrAg7Bbn+Ne=Xi1qC1XMrzHqVEVucQ0Q@mail.gmail.com>
- <43e8acb2-d696-c001-b54b-d2b7cf244de7@digikod.net>
- <CABi2SkV1Q-cvMScEtcsHbgNRuGc39eJo6KT=GwUxsWPpFGSR4A@mail.gmail.com>
- <b4440d19-93b9-e234-007b-4fc4f987550b@digikod.net>
- <CABi2SkVbD8p0AHhvKLXPh-bQSNAk__8_ONxpE+8hisoZxF-h6g@mail.gmail.com>
- <fb206d63-e51d-c701-8987-42078f8ccb5f@digikod.net>
- <CALmYWFuJOae2mNp47NCzuz251Asm5Cm3hRZNtPOb7+1oty67Tg@mail.gmail.com>
-From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
-In-Reply-To: <CALmYWFuJOae2mNp47NCzuz251Asm5Cm3hRZNtPOb7+1oty67Tg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Infomaniak-Routing: alpha
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|SN7PR13MB6254:EE_
+X-MS-Office365-Filtering-Correlation-Id: da8ee4f5-a61d-45f7-0f1a-08db82da44eb
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: V87Bh+g5Y2q2NriHJLg6b811USL12Ku79JgHlyYgcQCEeDeCGdFEiGVRNfWn7Z6V5VJWsa5jj/mDeQVJrt99bHGQhMLDOwua46qfj0RpvQOB7WxOWOGAuJhR3XmsOZDTfCrPTkQuy87CaLiIg94lMUwmaa4aUKP0xVsNftI/4TojOzlmizUnZdME1TsmIfQGai3Lt+Ou1rHscCvD2aKib3EnaOnUGUWElngX3OZSofCm0WoE4E/xLvHOLs1tS2IQGYY7lxMMB2xk8xV25eoAbp4egAJPzn+xG8+1hQPWG58CSdaWpmwjBxrLFWli0XNXN4jHNhJEhn0XpCBXxx0X+sMk21vCoMcHfg2E6okD/V+Xf63/0lHz7pjzOnJC9uLKcqV0UkxHuOoVrKMzux76sUy2OrH8ZFgzByLs1wTUBZSXsJsuthkzsdhDFBPFSWz9cTLVJX2HI7KbfxBbnCschAI2p2JGWVXmr0J4eqefB0ODE8wAxwp77RNwuhCbX9uBds2Nuf/5zy5JL1HDAUzqL6VkG1UGUGpvT0dD2l9UQcy+LirCLHIPFt1IvYMqof2YiIIt22k+lMgtZoztjiM0ApX+8CVqdsZroDPxu8xStaI=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(376002)(366004)(136003)(396003)(346002)(39840400004)(451199021)(186003)(26005)(6512007)(2616005)(6506007)(5660300002)(83380400001)(4326008)(44832011)(8936002)(478600001)(41300700001)(6916009)(2906002)(66556008)(316002)(66946007)(66476007)(8676002)(7416002)(15650500001)(36756003)(6666004)(6486002)(38100700002)(86362001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?mRFleSNx1RRipqrklR8vVn6kQAgVqGBe5zW1tgrhwGxvYuRd0OniHHCKQ7EI?=
+ =?us-ascii?Q?eqjjE16Ztn4540azI/FysTEbH0mPtGeA4WtiI1wPcs4Rwq0DJpqgmqHuG/h/?=
+ =?us-ascii?Q?ukyr5FhhRFvBABWunlJVGSEbH9hISfNxrh7vSN8B5d06HR9MgkpkzuPDyURP?=
+ =?us-ascii?Q?ODi9+NWxivxRY3HUHifFMViC0zUovbRRnZ/ISzyXo71ZOtqUkFqXT2/DyYsF?=
+ =?us-ascii?Q?A7RxtnVdxVX4m9h/ZOk/UMszKYn89csc6U1yDa6NoyHLIPoNuMObXxXtDBD4?=
+ =?us-ascii?Q?k8sPQZox6ZHTPVJIE4AGxKr0FR865dFRpGuxmyJuzlWycmrHvozwoeef3YHq?=
+ =?us-ascii?Q?RxP43p0khRBzkIeKiyquqFGqxYYcJyCfr+Z1zEFALxNwB8VuZc/huCs3D6xA?=
+ =?us-ascii?Q?ZSGnYVJLeqxn7FgUpYM2dvBE96+RE1pvUmsiMcXseEUeckxKtCbqWBTDl7RN?=
+ =?us-ascii?Q?2Wd9bc8nR6RKmP8M5zY4959dAy72sP0L/Lj4tSpgPX0XP0UUW1WfLe9F0mH5?=
+ =?us-ascii?Q?YdzEYipa0ck+3+DW1aRFL9umYeABC7G6vZoVdieX63FKiBcGKAOvVdyWOBgw?=
+ =?us-ascii?Q?Y5VQ5JM59s3uEHZFKe7lOUDiAovHutUkOGc2szdiBb4eE/2MdN/kwDBlIlAR?=
+ =?us-ascii?Q?1ltSu862GuEDd3TX+XPGqC0g4Fekb5/aK33e/Jx8+6Dt8N0Teye8A0/2Vw6U?=
+ =?us-ascii?Q?Sp7BbdzZQ++EQ9OKtg7Br1XLK/U63G33go1yBHvlfS1L7FjfIgxvnQnMPn2f?=
+ =?us-ascii?Q?XlHDPBBN8kF5SoAQPbfM9YNfMSkdlMOfNU/qox1iBE/4y3bgTrew+RGOK373?=
+ =?us-ascii?Q?BZLd+e8OtmfLqijJTSLlGG+oMUnuD8HQhnaLAJI90/FEpcBLv9CpzQpDrbUY?=
+ =?us-ascii?Q?5H1gZcgUaTTo2MD/LWPiTt90/uCPTZMgXePQRxdtGKju3rB4EAI6y/cShVYr?=
+ =?us-ascii?Q?GqnfVkb/xAOu1cVs1MTLgiW992BfZUHdm5vv21LOOjLDUTidDEWOBmXeyd7v?=
+ =?us-ascii?Q?Z+k+8WVh1YcguRd4LRLN0HN2WJUfKQDMWz1a2XldrfqS13dtLyz9I8xMKvmv?=
+ =?us-ascii?Q?5VXSZXVH6yW6fs6y9L5TGQe9jk6CTty3F9qtMJvMitXAhRBO+YZKoKFLtigU?=
+ =?us-ascii?Q?8eGvs1+iAkN8iKqOvf/D0IQYftgrZ80v8uRMHPKr+ElqlcarTQjkfx2VM7hq?=
+ =?us-ascii?Q?1AY7kjetHY+Q3T3G0yhrX0rISAYFGKdxBnJw4/rYk9In2iYJMzSj48T3ksXB?=
+ =?us-ascii?Q?db0mcNnUcDpAtiIhBLAC4iPLzlogoP8TgUc4pfMtwLmELYXsCrZnKfw8J2id?=
+ =?us-ascii?Q?h9Un3FkInuMkivFgbJFq3KlqRCOkiQtVYCmOhBibB4PdWviTRBEbMLBIbLCS?=
+ =?us-ascii?Q?wFFnlVnLa8OgKRSQvMv4YYHny8hqBMdJ3soyDTZLJ964c7zhu0OsrvAQIGzC?=
+ =?us-ascii?Q?yyGZ+HETWP05qnO0j1vVIi4UC2IhW3I9z5yVB0B+f2PfQg3/CCzgrtBdRtx3?=
+ =?us-ascii?Q?swu16OB4/+WN27mgGAswNNI4wW0QI/CXcYTK9VhGE8/raQPxjfNJgScfPW3b?=
+ =?us-ascii?Q?NfN1oonBjv0v+wyMFSdewFAUsHbgY/S9GK3hY+iw1JuDIK+1OjHOYkVzyZIq?=
+ =?us-ascii?Q?iA=3D=3D?=
+X-OriginatorOrg: corigine.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: da8ee4f5-a61d-45f7-0f1a-08db82da44eb
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jul 2023 13:16:57.6847
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: qsAPNpEJ215Lkkzh/8pxtfsKaqUTS3mtfnPD2OjROPzTjVHI9q3tUU3g+1ePyKkFTJtc1b7G8yWEJeM82d5bgyR9DhL2AwIHlGFuwy5JTiU=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR13MB6254
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-On 05/07/2023 17:00, Jeff Xu wrote:
-> On Fri, Jun 30, 2023 at 11:23 AM Mickaël Salaün <mic@digikod.net> wrote:
->>
->>
->> On 30/06/2023 06:18, Jeff Xu wrote:
->>> On Thu, Jun 29, 2023 at 4:07 AM Mickaël Salaün <mic@digikod.net> wrote:
->>>>
->>>>
->>>> On 29/06/2023 05:18, Jeff Xu wrote:
->>>>> resend.
->>>>>
->>>>> On Wed, Jun 28, 2023 at 12:29 PM Mickaël Salaün <mic@digikod.net> wrote:
->>>>>>
->>>>>>
->>>>>> On 28/06/2023 19:03, Jeff Xu wrote:
-
-[...]
-
->> The sandboxing/Landlock threat model is to restrict a process when it is
->> sandboxed, but this sandboxing is a request from the same process (or
->> one of its parent) that happen when it is more trustworthy (or at least
->> has more privileges) than after it sandbox itself.
->>
->> The process sandboxing itself can use several kernel features, and one
->> of it is Landlock. In any case, it should take care of closing file
->> descriptors that should not be passed to the sandboxed process.
->>
-> Agree.
+On Tue, Jul 11, 2023 at 11:22:57AM +0800, Lin Ma wrote:
+> In current ctnetlink_parse_tuple_ip() function, nested parsing and
+> validation is splitting as two parts. This is unnecessary as the
+> nla_parse_nested_deprecated function supports validation in the fly.
+> These two finially reach same place __nla_validate_parse with same
+> validate flag.
 > 
->> The limits of sandboxing are the communication channels from and to
->> outside the sandbox. The peers talking with sandboxed processes should
->> then not be subject to confused deputy attacks, which means they must
->> not enable to bypass the user-defined security policy (from which the
->> Landlock policy is only a part). Receiving file descriptors should then
->> not be more important than controlling the communication channels. If a
->> not-sandboxed process is willing to give more right to a sandboxed
->> process, by passing FDs or just receiving commands, then this
->> not-sandboxed process need to be fixed.
->>
->> This is the rationale to not care about received nor sent file
->> descriptors. The communication channels and the remote peers must be
->> trusted to not give more privileges to the sandboxed processes.
->>
->> If a peer is malicious, it doesn't need to pass a file descriptor to the
->> sandboxed process, it can just read (data) commands and apply them to
->> its file descriptors.
+> nla_parse_nested_deprecated
+>   __nla_parse(.., NL_VALIDATE_LIBERAL, ..)
+>     __nla_validate_parse
 > 
-> I see the reasoning. i.e. sandboxing the process is not more
-> important than securing communication channels, or securing the peer.
+> nla_validate_nested_deprecated
+>   __nla_validate_nested(.., NL_VALIDATE_LIBERAL, ..)
+>     __nla_validate
+>       __nla_validate_parse
 > 
-> So in a system that let a peer process to pass a socket into a
-> higher privileged process, when the communication channel or the peer
-> process is compromised,  e.g. swapping the fd/socket into a different
-> one that the attacker controls, confuse deputy attack can happen. The
-> recommendation here is to secure peer and communication.
-> I agree with this approach in general.  I need to think about how it
-> applies to specific cases.
+> This commit removes the call to nla_validate_nested_deprecated and pass
+> cta_ip_nla_policy when do parsing.
 > 
->> I think the ability to pass file descriptors
->> should be seen as a way to improve performance by avoiding a user space
->> process to act as a proxy receiving read/write commands and managing
->> file descriptors itself. On the other hand, file descriptors could be
->> used as real capabilities/tokens to manage access, but senders still
->> need to be careful to only pass the required ones.
->>
->> All this to say that being able to restrict actions on file descriptors
->> would be useful for senders/services to send a subset of the file
->> descriptor capabilities (cf. Capsicum), but not the other way around.
->>
-> In the Landlock kernel doc:
-> Similarly to file access modes (e.g. O_RDWR), Landlock access rights
-> attached to file descriptors are retained even if they are passed
-> between processes (e.g. through a Unix domain socket). Such access
-> rights will then be enforced even if the receiving process is not
-> sandboxed by Landlock. Indeed, this is required to keep a consistent
-> access control over the whole system, and this avoids unattended
-> bypasses through file descriptor passing (i.e. confused deputy
-> attack).
-> 
-> iiuc, the design for file and socket in landlock is different. For
-> socket, the access rules are applied only to the current process (more
-> like seccomp), while for file restriction, the rules can be passed
-> into another un-landlocked process.
+> Fixes: 8cb081746c03 ("netlink: make validation more configurable for future strictness")
 
-The O_RDWR restrictions are enforced by the basic kernel access control, 
-not Landlock. However, for file truncation, Landlock complements the 
-basic kernel access rights and behave the same.
+I don't think this warrants a fixes tag, as it's not fixing any
+user-visible behaviour. Rather, it is a clean-up.
 
-There is indeed slight differences between file system and socket 
-restrictions. For the file system, a file descriptor is a direct access 
-to a file/data. For the network, we cannot identify for which data/peer 
-a newly created socket will give access to, we need to wait for a 
-connect or bind request to identify the use case for this socket. We 
-could tie the access rights (related to ports) to an opened socket, but 
-this would not align with the way Landlock access control works for the 
-file system. Indeed, a directory file descriptor may enable to open 
-another file (i.e. a new data item), but this opening is restricted by 
-Landlock. A newly created socket gives access to the network (or a 
-subset of it), but binding or connecting to a peer (i.e. accessing new 
-data) is restricted by Landlock. Accesses tied to FDs are those that 
-enable to get access to the underlying data (e.g. read, write, 
-truncate). A newly created socket is harmless until it is connected to a 
-peer, similarly to a memfd file descriptor. A directory opened by a 
-sandboxed process can be passed to a process outside this sandbox and it 
-might be allowed to open a relative path/file, which might not be the 
-case for the sandboxed process.
-
-I think it might be summarize by the difference between underlying FD 
-data in the case of a regular file (i.e. tied access rights), and 
-relative new data in the case of a directory or a socket (i.e. 
-sandboxing policy scope).
+> Signed-off-by: Lin Ma <linma@zju.edu.cn>
+> ---
+>  net/netfilter/nf_conntrack_netlink.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index 69c8c8c7e9b8..334db22199c1 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1321,15 +1321,11 @@ static int ctnetlink_parse_tuple_ip(struct nlattr *attr,
+>  	struct nlattr *tb[CTA_IP_MAX+1];
+>  	int ret = 0;
+>  
+> -	ret = nla_parse_nested_deprecated(tb, CTA_IP_MAX, attr, NULL, NULL);
+> +	ret = nla_parse_nested_deprecated(tb, CTA_IP_MAX, attr,
+> +					  cta_ip_nla_policy, NULL);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	ret = nla_validate_nested_deprecated(attr, CTA_IP_MAX,
+> -					     cta_ip_nla_policy, NULL);
+> -	if (ret)
+> -		return ret;
+> -
+>  	switch (tuple->src.l3num) {
+>  	case NFPROTO_IPV4:
+>  		ret = ipv4_nlattr_to_tuple(tb, tuple, flags);
+> -- 
+> 2.17.1
+> 
+> 
