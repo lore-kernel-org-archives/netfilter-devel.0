@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 733BAEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jul 2023 08:43:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A586BEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 12 Jul 2023 09:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232180AbjGLInG (ORCPT
+        id S231144AbjGLJ5W (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 12 Jul 2023 04:43:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40294 "EHLO
+        Wed, 12 Jul 2023 05:57:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229802AbjGLInE (ORCPT
+        with ESMTP id S229473AbjGLJ5V (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2023 04:43:04 -0400
+        Wed, 12 Jul 2023 05:57:21 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD7081703;
-        Wed, 12 Jul 2023 01:42:40 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4R1B3d6XQhz67qBF;
-        Wed, 12 Jul 2023 16:38:53 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4768594;
+        Wed, 12 Jul 2023 02:57:20 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4R1Cjr4d5Bz6857p;
+        Wed, 12 Jul 2023 17:53:36 +0800 (CST)
 Received: from [10.123.123.126] (10.123.123.126) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Wed, 12 Jul 2023 09:42:34 +0100
-Message-ID: <7219eb87-8211-bfff-5d63-f1483973dab6@huawei.com>
-Date:   Wed, 12 Jul 2023 11:42:33 +0300
+ 15.1.2507.27; Wed, 12 Jul 2023 10:57:17 +0100
+Message-ID: <0e549107-0435-717d-4b98-7f6578919c8b@huawei.com>
+Date:   Wed, 12 Jul 2023 12:57:16 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.4.1
@@ -38,13 +38,13 @@ CC:     <artem.kuzin@huawei.com>, <gnoack3000@gmail.com>,
         <netfilter-devel@vger.kernel.org>
 References: <20230515161339.631577-11-konstantin.meskhidze@huawei.com>
  <20230706145543.1284007-1-mic@digikod.net>
- <f8f76bff-c434-07f8-8a53-f8a0d69292b1@digikod.net>
+ <3db64cf8-6a45-a361-aa57-9bfbaf866ef8@digikod.net>
 From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-In-Reply-To: <f8f76bff-c434-07f8-8a53-f8a0d69292b1@digikod.net>
+In-Reply-To: <3db64cf8-6a45-a361-aa57-9bfbaf866ef8@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
+X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
  lhrpeml500004.china.huawei.com (7.191.163.9)
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -53,7 +53,7 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
 
-7/10/2023 7:06 PM, Mickaël Salaün пишет:
+7/12/2023 10:02 AM, Mickaël Salaün пишет:
 > 
 > On 06/07/2023 16:55, Mickaël Salaün wrote:
 >> From: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
@@ -69,42 +69,222 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 >> - Rename all "net_service" to "net_port".
 >> - Fix the two kernel bugs found with the new tests.
 >> - Update this commit message with a small description of all tests.
->> 
-> 
 > 
 > [...]
 > 
->> +static int bind_variant_addrlen(const int sock_fd,
->> +				const struct service_fixture *const srv,
->> +				const socklen_t addrlen)
+>> +FIXTURE_SETUP(ipv4)
 >> +{
->> +	int ret;
+>> +	const struct protocol_variant prot = {
+>> +		.domain = AF_INET,
+>> +		.type = variant->type,
+>> +	};
 >> +
->> +	switch (srv->protocol.domain) {
->> +	case AF_UNSPEC:
->> +	case AF_INET:
->> +		ret = bind(sock_fd, &srv->ipv4_addr, addrlen);
->> +		break;
+>> +	disable_caps(_metadata);
 >> +
->> +	case AF_INET6:
->> +		ret = bind(sock_fd, &srv->ipv6_addr, addrlen);
->> +		break;
+>> +	set_service(&self->srv0, prot, 0);
+>> +	set_service(&self->srv1, prot, 1);
 >> +
->> +	case AF_UNIX:
->> +		ret = bind(sock_fd, &srv->unix_addr, addrlen);
->> +		break;
+>> +	setup_loopback(_metadata);
+>> +};
 >> +
->> +	default:
->> +		errno = -EAFNOSUPPORT;
-> 
-> This should be `errno = EAFNOSUPPORT`
-
-   Ok. Got it.
-> 
->> +		return -errno;
+>> +FIXTURE_TEARDOWN(ipv4)
+>> +{
+>> +}
+>> +
+>> +// Kernel FIXME: tcp_sandbox_with_tcp and tcp_sandbox_with_udp
+>> +TEST_F(ipv4, from_unix_to_inet)
+>> +{
+>> +	int unix_stream_fd, unix_dgram_fd;
+>> +
+>> +	if (variant->sandbox == TCP_SANDBOX) {
+>> +		const struct landlock_ruleset_attr ruleset_attr = {
+>> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +		};
+>> +		const struct landlock_net_service_attr tcp_bind_connect_p0 = {
+>> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +			.port = self->srv0.port,
+>> +		};
+>> +		int ruleset_fd;
+>> +
+>> +		/* Denies connect and bind to check errno value. */
+>> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+>> +						     sizeof(ruleset_attr), 0);
+>> +		ASSERT_LE(0, ruleset_fd);
+>> +
+>> +		/* Allows connect and bind for srv0.  */
+>> +		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
+>> +					       LANDLOCK_RULE_NET_SERVICE,
+>> +					       &tcp_bind_connect_p0, 0));
+>> +
+>> +		enforce_ruleset(_metadata, ruleset_fd);
+>> +		EXPECT_EQ(0, close(ruleset_fd));
 >> +	}
 >> +
->> +	if (ret < 0)
->> +		return -errno;
->> +	return ret;
+>> +	unix_stream_fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+>> +	ASSERT_LE(0, unix_stream_fd);
+>> +
+>> +	unix_dgram_fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+>> +	ASSERT_LE(0, unix_dgram_fd);
+>> +
+>> +	/* Checks unix stream bind and connect for srv0. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_stream_fd, &self->srv0));
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_stream_fd, &self->srv0));
+>> +
+>> +	/* Checks unix stream bind and connect for srv1. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_stream_fd, &self->srv1))
+>> +	{
+>> +		TH_LOG("Wrong bind error: %s", strerror(errno));
+>> +	}
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_stream_fd, &self->srv1));
+>> +
+>> +	/* Checks unix datagram bind and connect for srv0. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_dgram_fd, &self->srv0));
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_dgram_fd, &self->srv0));
+>> +
+>> +	/* Checks unix datagram bind and connect for srv0. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_dgram_fd, &self->srv1));
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_dgram_fd, &self->srv1));
+>> +}
+> 
+> We should also add a test to make sure errno is the same with and
+> without sandboxing when using port 0 for connect and consistent with
+> bind (using an available port). The test fixture and variants should be
+> quite similar to the "ipv4" ones, but we can also add AF_INET6 variants,
+> which will result in 8 "ip" variants:
+> 
+> TEST_F(ip, port_zero)
+> {
+> 	if (variant->sandbox == TCP_SANDBOX) {
+> 		/* Denies any connect and bind. */
+> 	}
+> 	/* Checks errno for port 0. */
+> }
+
+  Ok. Got it.
+> 
+> [...]
+> 
+>> +FIXTURE(inet)
+>> +{
+>> +	struct service_fixture srv0, srv1;
+>> +};
+> 
+> The "inet" variants are useless and should be removed. The "inet"
+> fixture can then be renamed to "ipv4_tcp".
+> 
+   Right. Thanks.
+> 
+>> +
+>> +FIXTURE_VARIANT(inet)
+>> +{
+>> +	const bool is_sandboxed;
+>> +	const struct protocol_variant prot;
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, no_sandbox_with_ipv4) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = false,
+>> +	.prot = {
+>> +		.domain = AF_INET,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, sandbox_with_ipv4) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = true,
+>> +	.prot = {
+>> +		.domain = AF_INET,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, no_sandbox_with_ipv6) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = false,
+>> +	.prot = {
+>> +		.domain = AF_INET6,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, sandbox_with_ipv6) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = true,
+>> +	.prot = {
+>> +		.domain = AF_INET6,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +FIXTURE_SETUP(inet)
+>> +{
+>> +	const struct protocol_variant ipv4_tcp = {
+>> +		.domain = AF_INET,
+>> +		.type = SOCK_STREAM,
+>> +	};
+>> +
+>> +	disable_caps(_metadata);
+>> +
+>> +	ASSERT_EQ(0, set_service(&self->srv0, ipv4_tcp, 0));
+>> +	ASSERT_EQ(0, set_service(&self->srv1, ipv4_tcp, 1));
+>> +
+>> +	setup_loopback(_metadata);
+>> +};
+>> +
+>> +FIXTURE_TEARDOWN(inet)
+>> +{
+>> +}
+>> +
+>> +TEST_F(inet, port_endianness)
+>> +{
+>> +	const struct landlock_ruleset_attr ruleset_attr = {
+>> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +	};
+>> +	const struct landlock_net_service_attr bind_host_endian_p0 = {
+>> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>> +		/* Host port format. */
+>> +		.port = self->srv0.port,
+>> +	};
+>> +	const struct landlock_net_service_attr connect_big_endian_p0 = {
+>> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +		/* Big endian port format. */
+>> +		.port = htons(self->srv0.port),
+>> +	};
+>> +	const struct landlock_net_service_attr bind_connect_host_endian_p1 = {
+>> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +		/* Host port format. */
+>> +		.port = self->srv1.port,
+>> +	};
+>> +	const unsigned int one = 1;
+>> +	const char little_endian = *(const char *)&one;
+>> +	int ruleset_fd;
+>> +
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>> +				       &bind_host_endian_p0, 0));
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>> +				       &connect_big_endian_p0, 0));
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>> +				       &bind_connect_host_endian_p1, 0));
+>> +	enforce_ruleset(_metadata, ruleset_fd);
+>> +
+>> +	/* No restriction for big endinan CPU. */
+>> +	test_bind_and_connect(_metadata, &self->srv0, false, little_endian);
+>> +
+>> +	/* No restriction for any CPU. */
+>> +	test_bind_and_connect(_metadata, &self->srv1, false, false);
+>> +}
+>> +
+>> +TEST_HARNESS_MAIN
 > .
