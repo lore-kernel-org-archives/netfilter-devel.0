@@ -2,413 +2,125 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D439DC3DA40
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jul 2023 08:49:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95CC0EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jul 2023 08:52:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234695AbjGMItv (ORCPT
+        id S231200AbjGMIwO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Jul 2023 04:49:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50924 "EHLO
+        Thu, 13 Jul 2023 04:52:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234621AbjGMItX (ORCPT
+        with ESMTP id S229506AbjGMIwM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Jul 2023 04:49:23 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4F85D2101;
-        Thu, 13 Jul 2023 01:49:15 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
-        sashal@kernel.org
-Subject: [PATCH -stable,5.10 v3 09/11] netfilter: nf_tables: drop map element references from preparation phase
-Date:   Thu, 13 Jul 2023 10:48:57 +0200
-Message-Id: <20230713084859.71541-10-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230713084859.71541-1-pablo@netfilter.org>
-References: <20230713084859.71541-1-pablo@netfilter.org>
+        Thu, 13 Jul 2023 04:52:12 -0400
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2107.outbound.protection.outlook.com [40.107.94.107])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C98F51B6;
+        Thu, 13 Jul 2023 01:52:11 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Nzo9zROzUP8VyXzEuRoR4/td/r34dPqLJr3hk1KT0yvgr8+0RxHmOHrigJRmkjXKRsL1iP8K0W4AXL3JBJf4hDzSPHCW0RhtbdyKwZf5SthGcKm3LVOeuogcfqBVDuxWyJv6RVKfXVxTpsXrplH/9ocHhTH4UlEXjlFL9vSXGSnYjFRx1l8r8LsX/NtjzLADyct5FtD5sOtEnZiXYOr0rn4lr+7ZlBG+DBL211kLMs1V9JBNKNmRUd45whkZuHiRZDDgDTcXmNa7v2PPtuaWD2Xez31qQqIujCvr3mqfdIlYRFO0Crx2os+Y3m+287DugvBJWP3JUlzoiwiw6Me4dQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=VI2K4xYi4gf/VuDNoCuy//SJ+6v07UOqI1xcOaDKa0o=;
+ b=gn6lZPj7nm9MebUgixezCnmGrSMUTaRuyxEliOO0wnyS/vnw7RR0pNSJ3PUvvH2uMPXOYA7TizSq+YWaHNFcJemDYnq4so3pAlE0438ZasLui+MV+Pj7Z3IgP/E4TOYJd2TfrZW21WZsfCl+H9UDujbtS8UMbjvHAJUwndUWYVw7pK9oBs1bACPuJs0CUk65amwhnffqPu7QCLu09G0Td9ABOBzj6ed848z4Gx7I88K0tXzIASPuBNFnY0GkBLXYBFATdgvrtMrbjoe+DREoPBr7Q55fMcZY3YpD5DvyQN/OH9+Ee0c/KzkWpchySUYeauxl0L6x7GSHmAvdEeW5WQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
+ dkim=pass header.d=corigine.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=VI2K4xYi4gf/VuDNoCuy//SJ+6v07UOqI1xcOaDKa0o=;
+ b=iw9QRR2CRts3a5CmHxJ0TdwMydPKWZVCXxfYcWCSCMuY94nzfozKTmeTlfLcPpDGhuzqrk0K+Im0tJlX4uGWgX7MKBep1w6VbgqJSKf+5ux7m9MU4ke2Tg9C1AiGZB6g7UqY5f8KYkifvc9Bty77GmXAg5oXiJZ7BAD7MNH2PwM=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=corigine.com;
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
+ by PH0PR13MB4889.namprd13.prod.outlook.com (2603:10b6:510:98::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6588.20; Thu, 13 Jul
+ 2023 08:52:10 +0000
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::d23a:8c12:d561:470]) by PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::d23a:8c12:d561:470%6]) with mapi id 15.20.6588.024; Thu, 13 Jul 2023
+ 08:52:10 +0000
+Date:   Thu, 13 Jul 2023 09:52:02 +0100
+From:   Simon Horman <simon.horman@corigine.com>
+To:     Lin Ma <linma@zju.edu.cn>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH v1] netfilter: conntrack: validate cta_ip via parsing
+Message-ID: <ZK+7Mp/t9P/IJCXO@corigine.com>
+References: <20230711032257.3561166-1-linma@zju.edu.cn>
+ <ZK6nwn99T8NAP6pC@corigine.com>
+ <65fa5eb3.cd95a.1894a47d75b.Coremail.linma@zju.edu.cn>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <65fa5eb3.cd95a.1894a47d75b.Coremail.linma@zju.edu.cn>
+X-ClientProxiedBy: LO4P265CA0237.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:315::20) To PH0PR13MB4842.namprd13.prod.outlook.com
+ (2603:10b6:510:78::6)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|PH0PR13MB4889:EE_
+X-MS-Office365-Filtering-Correlation-Id: 392fd53b-141b-46df-7008-08db837e719d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: a+Lq3WihW51Ye7q3rO/F/TwOtlq75w/6JDl687804PD6x3isTE95LmcnM+xN9UNG10PEZMT2MguoI+X8wZHLJY3bLfCnnzQZ7T6zGLNcohVf6FIgrMaDm5J1ONFOLCt2fDxw3mQIeh/EOr8o7xtMlUAJzkAC5k+xXFbh704QkAqbwR4cCeyLne62MQlBc+pP0ucKwauv2zhf99Mz8J4SeZgDioGkxGoi4UIt48HpfGIiTIrCkDTjv/E6TyqMmAtbVsqmFGt7yEkB/myoxkukWnJRBwnqjNGRDAFoq/FCfO8yB9iJk6/tt0O2GTvAQBxHLYyPIwg+oRdS3kWaGF19IFaV/iPsAjeATBNIQc430FYkvuyhXtSc3pBrWEHHn+d9h44UG+pUCsgYasOwsCb+6jn/Y6n6TUK3plWsznuVqnee2IXvvolgwrM10ixpCtyBP4ynfGMv3CZlEyQQTn/eDHQZYYB6EMftmDKzeojCogj3KuPh0xt6se244dmqhpuT8Fh3reNq4yjVhn10iBaZ2bXlAVvQ1yFRXsfjQrwZpyaYsSoj8PfxLRjeGlFr6PY2Y8MkSgEXzl+LzIxu+4z+9tCiSm1tqnMRzFIK8XR/xo4=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(366004)(136003)(396003)(39840400004)(346002)(376002)(451199021)(6512007)(6916009)(4326008)(66476007)(66556008)(66946007)(38100700002)(86362001)(186003)(26005)(6506007)(2616005)(83380400001)(558084003)(36756003)(478600001)(41300700001)(8676002)(8936002)(44832011)(7416002)(15650500001)(6486002)(6666004)(2906002)(316002)(5660300002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?l+hBim4MB2liEieXkCL/w+D9OJejC3tFLS6aR7F07gfwlVyj6zy24h04yLvI?=
+ =?us-ascii?Q?2Mpe53ss+Yso1gtVesZPiS1RTCxo75LFZNMyWESR2aMXMe2Gcd2YrlpSetFS?=
+ =?us-ascii?Q?Ml4NIiJ+YDBZ9uQ7zB4N+uK+ILaHjtzeIKU8HeX8y9N1cwCeBmLL+N/cLYA6?=
+ =?us-ascii?Q?DKxPZJ9fFNrOqIg9wyvlzKFTLF1U2OJIl82b2zgVsxzC+8XFlbHtJsDsVnye?=
+ =?us-ascii?Q?jTw/dPE1ngtOuZJ9azuMDo6m6uGvX+NE8gUou6fOHoOXC9q0YFAeQi4Yw78v?=
+ =?us-ascii?Q?Tt6rAvxUjt96jeRideCqqaWvXHJOq6lrBlC2FxMvOfZjcP7MWYLgKWwbBj6S?=
+ =?us-ascii?Q?6Y0PWFjcsNfIdf9APnKVAX6dU6yRdKvmnEGpo7MgR4/n9GU62UWPHDj8mi+I?=
+ =?us-ascii?Q?x+cXTf85oo4IYJtJSYQDJpOg0rgWWPATnb9GV489N4sqRQ6QDTp94xgvyuom?=
+ =?us-ascii?Q?/eyNFQe7fTkurVbBDb/Ak3GSRl23KDfdGPpYZIxvTM9bO+2LRTzCql6Z+BBC?=
+ =?us-ascii?Q?HuLZI6FC02o3DKt6DFymsaueAUFFOY2v1XL/gK/fWWbK6I70g4U2ZP/RHYjW?=
+ =?us-ascii?Q?JpFfttp3Mw1aO0KqesWk+cumopICFRr1RRgqBvxRwdd6LEv4nJd9uQAa1TLZ?=
+ =?us-ascii?Q?AFMEG+V68k3HAYWSqlUPYtAE1aXEAg7xJhRYYq9uytvu+QyRk2grSgYh0M1h?=
+ =?us-ascii?Q?XxbU0lV28Ws6YRh+GPyCLXdx0LAmApe6rOXEY8T4dKPTtNITBlq528w6qKs1?=
+ =?us-ascii?Q?+UP/22bfW2UN2qdEezq+mP3Vd+o5Nctlq1pjmsUqyfJ98xdguQf2B2J3quAD?=
+ =?us-ascii?Q?hv69HMmJETlqnfC3QX3WIvjr5NJXxtwXKkP3M5Z0r1a8RmEtMGb5U6NmuPql?=
+ =?us-ascii?Q?pplxPdiuhC9XZX31tu8nJbE64L3sQZK/qm/9yQPoc2e3ksGnTcOR9XSpaW2m?=
+ =?us-ascii?Q?dLcjeSnhJIKX3tmPPqzS89zk97RM79JEQ5DEKQXdxDSDEdEOv40zhcyP8zfk?=
+ =?us-ascii?Q?uHskcSMUNIzOwKM06enSfDrXaFEbVo9CkOwKm8p8xzs436/wuM90NccZU425?=
+ =?us-ascii?Q?Bk279CPsF19Uq+nJ/Np75rYZUMYo5K147xLnu+OeeS/ylitPH2ZJ5X+bfWAO?=
+ =?us-ascii?Q?n+QpKOwmemMHurYCW1JDZrMtY33+aILkOkhsCazdWB6ARpGJCmExnbVNEoXs?=
+ =?us-ascii?Q?vEl3wt29eF5JuCnhFtSV1dSnvtJZLZ0VJBgWFG28D4Xua//Xfec1Pnp5ykhk?=
+ =?us-ascii?Q?PTuT5QBXQ57Wc8q13Tu8T8do2G9Futap9+S6MiUHKRhIbTVnn6DRL0YqyfS9?=
+ =?us-ascii?Q?4ugd1VvDKaImayjoTdx+1PSfQXAHjZJXJLC6bV4HP0MwUdyN8r9uL/5zQ5s5?=
+ =?us-ascii?Q?cnsgVWTh6wwGAVLc3AkivLgkLzJz1bmA7c6LJ9zA9Km85mc8mlmaYKITJg4K?=
+ =?us-ascii?Q?Miseb2UAmrR3to+/LG9SN3xAjxqRB+RmkCYrFLUCk0I3AVmKRoHBo6aUtgVD?=
+ =?us-ascii?Q?NoRwLrR2msYX8r507P+jHbkSQzEyTxNrOCnPcDVJG9C5EOnaxKzzf43Iouvw?=
+ =?us-ascii?Q?fbkOKMmin319jbKqT0ZyhKyaFoJoh3vO+DB4eXKeetEqcE61C1xY4mwsv8/L?=
+ =?us-ascii?Q?nA=3D=3D?=
+X-OriginatorOrg: corigine.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 392fd53b-141b-46df-7008-08db837e719d
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2023 08:52:10.0060
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: JTCec7ybBEx/uHZim9TP4snbM0Bhny8Ch+5Z8lyyHXQD6WzBPKcC24E9vqGcKT5XegHokW0jjj98a3QaDKSEeskuSRQwflcQ29Y4jwAanjQ=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR13MB4889
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[ Upstream commit 628bd3e49cba1c066228e23d71a852c23e26da73 ]
+On Wed, Jul 12, 2023 at 09:26:09PM +0800, Lin Ma wrote:
+> Hello Simon,
+> 
+> > 
+> > I don't think this warrants a fixes tag, as it's not fixing any
+> > user-visible behaviour. Rather, it is a clean-up.
+> > 
+> 
+> My bad, I will resend one with adjusted message.
 
-set .destroy callback releases the references to other objects in maps.
-This is very late and it results in spurious EBUSY errors. Drop refcount
-from the preparation phase instead, update set backend not to drop
-reference counter from set .destroy path.
-
-Exceptions: NFT_TRANS_PREPARE_ERROR does not require to drop the
-reference counter because the transaction abort path releases the map
-references for each element since the set is unbound. The abort path
-also deals with releasing reference counter for new elements added to
-unbound sets.
-
-Fixes: 591054469b3e ("netfilter: nf_tables: revisit chain/object refcounting from elements")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |  5 +-
- net/netfilter/nf_tables_api.c     | 89 +++++++++++++++++++++++++++----
- net/netfilter/nft_set_bitmap.c    |  5 +-
- net/netfilter/nft_set_hash.c      | 23 ++++++--
- net/netfilter/nft_set_pipapo.c    | 14 +++--
- net/netfilter/nft_set_rbtree.c    |  5 +-
- 6 files changed, 117 insertions(+), 24 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 716a974a7263..fb3c5f690750 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -382,7 +382,8 @@ struct nft_set_ops {
- 	int				(*init)(const struct nft_set *set,
- 						const struct nft_set_desc *desc,
- 						const struct nlattr * const nla[]);
--	void				(*destroy)(const struct nft_set *set);
-+	void				(*destroy)(const struct nft_ctx *ctx,
-+						   const struct nft_set *set);
- 	void				(*gc_init)(const struct nft_set *set);
- 
- 	unsigned int			elemsize;
-@@ -686,6 +687,8 @@ void *nft_set_elem_init(const struct nft_set *set,
- 			u64 timeout, u64 expiration, gfp_t gfp);
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr);
-+void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
-+				const struct nft_set *set, void *elem);
- 
- /**
-  *	struct nft_set_gc_batch_head - nf_tables set garbage collection batch
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5af9290af34f..6f6e8c567892 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -557,6 +557,31 @@ static int nft_trans_set_add(const struct nft_ctx *ctx, int msg_type,
- 	return 0;
- }
- 
-+static void nft_setelem_data_deactivate(const struct net *net,
-+					const struct nft_set *set,
-+					struct nft_set_elem *elem);
-+
-+static int nft_mapelem_deactivate(const struct nft_ctx *ctx,
-+				  struct nft_set *set,
-+				  const struct nft_set_iter *iter,
-+				  struct nft_set_elem *elem)
-+{
-+	nft_setelem_data_deactivate(ctx->net, set, elem);
-+
-+	return 0;
-+}
-+
-+static void nft_map_deactivate(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	struct nft_set_iter iter = {
-+		.genmask	= nft_genmask_next(ctx->net),
-+		.fn		= nft_mapelem_deactivate,
-+	};
-+
-+	set->ops->walk(ctx, set, &iter);
-+	WARN_ON_ONCE(iter.err);
-+}
-+
- static int nft_delset(const struct nft_ctx *ctx, struct nft_set *set)
- {
- 	int err;
-@@ -565,6 +590,9 @@ static int nft_delset(const struct nft_ctx *ctx, struct nft_set *set)
- 	if (err < 0)
- 		return err;
- 
-+	if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+		nft_map_deactivate(ctx, set);
-+
- 	nft_deactivate_next(ctx->net, set);
- 	ctx->table->use--;
- 
-@@ -4474,7 +4502,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
- 	if (set->expr)
- 		nft_expr_destroy(&ctx, set->expr);
- 
--	ops->destroy(set);
-+	ops->destroy(&ctx, set);
- err_set_init:
- 	kfree(set->name);
- err_set_name:
-@@ -4490,7 +4518,7 @@ static void nft_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
- 	if (set->expr)
- 		nft_expr_destroy(ctx, set->expr);
- 
--	set->ops->destroy(set);
-+	set->ops->destroy(ctx, set);
- 	kfree(set->name);
- 	kvfree(set);
- }
-@@ -4614,10 +4642,39 @@ static void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 	}
- }
- 
-+static void nft_setelem_data_activate(const struct net *net,
-+				      const struct nft_set *set,
-+				      struct nft_set_elem *elem);
-+
-+static int nft_mapelem_activate(const struct nft_ctx *ctx,
-+				struct nft_set *set,
-+				const struct nft_set_iter *iter,
-+				struct nft_set_elem *elem)
-+{
-+	nft_setelem_data_activate(ctx->net, set, elem);
-+
-+	return 0;
-+}
-+
-+static void nft_map_activate(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	struct nft_set_iter iter = {
-+		.genmask	= nft_genmask_next(ctx->net),
-+		.fn		= nft_mapelem_activate,
-+	};
-+
-+	set->ops->walk(ctx, set, &iter);
-+	WARN_ON_ONCE(iter.err);
-+}
-+
- void nf_tables_activate_set(const struct nft_ctx *ctx, struct nft_set *set)
- {
--	if (nft_set_is_anonymous(set))
-+	if (nft_set_is_anonymous(set)) {
-+		if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+			nft_map_activate(ctx, set);
-+
- 		nft_clear(ctx->net, set);
-+	}
- 
- 	set->use++;
- }
-@@ -4636,13 +4693,20 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
- 		set->use--;
- 		break;
- 	case NFT_TRANS_PREPARE:
--		if (nft_set_is_anonymous(set))
--			nft_deactivate_next(ctx->net, set);
-+		if (nft_set_is_anonymous(set)) {
-+			if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+				nft_map_deactivate(ctx, set);
- 
-+			nft_deactivate_next(ctx->net, set);
-+		}
- 		set->use--;
- 		return;
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
-+		if (nft_set_is_anonymous(set) &&
-+		    set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+			nft_map_deactivate(ctx, set);
-+
- 		set->use--;
- 		fallthrough;
- 	default:
-@@ -5249,6 +5313,7 @@ static void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
- 	}
- }
- 
-+/* Drop references and destroy. Called from gc, dynset and abort path. */
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr)
- {
-@@ -5270,11 +5335,11 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- }
- EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
- 
--/* Only called from commit path, nft_setelem_data_deactivate() already deals
-- * with the refcounting from the preparation phase.
-+/* Destroy element. References have been already dropped in the preparation
-+ * path via nft_setelem_data_deactivate().
-  */
--static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
--				       const struct nft_set *set, void *elem)
-+void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
-+				const struct nft_set *set, void *elem)
- {
- 	struct nft_set_ext *ext = nft_set_elem_ext(set, elem);
- 
-@@ -8399,6 +8464,9 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_DELSET:
- 			trans->ctx.table->use++;
- 			nft_clear(trans->ctx.net, nft_trans_set(trans));
-+			if (nft_trans_set(trans)->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+				nft_map_activate(&trans->ctx, nft_trans_set(trans));
-+
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
-@@ -9128,6 +9196,9 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
- 	list_for_each_entry_safe(set, ns, &table->sets, list) {
- 		list_del(&set->list);
- 		table->use--;
-+		if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+			nft_map_deactivate(&ctx, set);
-+
- 		nft_set_destroy(&ctx, set);
- 	}
- 	list_for_each_entry_safe(obj, ne, &table->objects, list) {
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 2a81ea421819..3c63f8acebd8 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -270,13 +270,14 @@ static int nft_bitmap_init(const struct nft_set *set,
- 	return 0;
- }
- 
--static void nft_bitmap_destroy(const struct nft_set *set)
-+static void nft_bitmap_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_set *set)
- {
- 	struct nft_bitmap *priv = nft_set_priv(set);
- 	struct nft_bitmap_elem *be, *n;
- 
- 	list_for_each_entry_safe(be, n, &priv->list, head)
--		nft_set_elem_destroy(set, be, true);
-+		nf_tables_set_elem_destroy(ctx, set, be);
- }
- 
- static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index a5cfb321ae23..51d3e6f0934a 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -380,19 +380,31 @@ static int nft_rhash_init(const struct nft_set *set,
- 	return 0;
- }
- 
-+struct nft_rhash_ctx {
-+	const struct nft_ctx	ctx;
-+	const struct nft_set	*set;
-+};
-+
- static void nft_rhash_elem_destroy(void *ptr, void *arg)
- {
--	nft_set_elem_destroy(arg, ptr, true);
-+	struct nft_rhash_ctx *rhash_ctx = arg;
-+
-+	nf_tables_set_elem_destroy(&rhash_ctx->ctx, rhash_ctx->set, ptr);
- }
- 
--static void nft_rhash_destroy(const struct nft_set *set)
-+static void nft_rhash_destroy(const struct nft_ctx *ctx,
-+			      const struct nft_set *set)
- {
- 	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_ctx rhash_ctx = {
-+		.ctx	= *ctx,
-+		.set	= set,
-+	};
- 
- 	cancel_delayed_work_sync(&priv->gc_work);
- 	rcu_barrier();
- 	rhashtable_free_and_destroy(&priv->ht, nft_rhash_elem_destroy,
--				    (void *)set);
-+				    (void *)&rhash_ctx);
- }
- 
- /* Number of buckets is stored in u32, so cap our result to 1U<<31 */
-@@ -621,7 +633,8 @@ static int nft_hash_init(const struct nft_set *set,
- 	return 0;
- }
- 
--static void nft_hash_destroy(const struct nft_set *set)
-+static void nft_hash_destroy(const struct nft_ctx *ctx,
-+			     const struct nft_set *set)
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 	struct nft_hash_elem *he;
-@@ -631,7 +644,7 @@ static void nft_hash_destroy(const struct nft_set *set)
- 	for (i = 0; i < priv->buckets; i++) {
- 		hlist_for_each_entry_safe(he, next, &priv->table[i], node) {
- 			hlist_del_rcu(&he->node);
--			nft_set_elem_destroy(set, he, true);
-+			nf_tables_set_elem_destroy(ctx, set, he);
- 		}
- 	}
- }
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index eb5934eb3adf..7c759e9b4d84 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -2127,10 +2127,12 @@ static int nft_pipapo_init(const struct nft_set *set,
- 
- /**
-  * nft_set_pipapo_match_destroy() - Destroy elements from key mapping array
-+ * @ctx:	context
-  * @set:	nftables API set representation
-  * @m:		matching data pointing to key mapping array
-  */
--static void nft_set_pipapo_match_destroy(const struct nft_set *set,
-+static void nft_set_pipapo_match_destroy(const struct nft_ctx *ctx,
-+					 const struct nft_set *set,
- 					 struct nft_pipapo_match *m)
- {
- 	struct nft_pipapo_field *f;
-@@ -2147,15 +2149,17 @@ static void nft_set_pipapo_match_destroy(const struct nft_set *set,
- 
- 		e = f->mt[r].e;
- 
--		nft_set_elem_destroy(set, e, true);
-+		nf_tables_set_elem_destroy(ctx, set, e);
- 	}
- }
- 
- /**
-  * nft_pipapo_destroy() - Free private data for set and all committed elements
-+ * @ctx:	context
-  * @set:	nftables API set representation
-  */
--static void nft_pipapo_destroy(const struct nft_set *set)
-+static void nft_pipapo_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_set *set)
- {
- 	struct nft_pipapo *priv = nft_set_priv(set);
- 	struct nft_pipapo_match *m;
-@@ -2165,7 +2169,7 @@ static void nft_pipapo_destroy(const struct nft_set *set)
- 	if (m) {
- 		rcu_barrier();
- 
--		nft_set_pipapo_match_destroy(set, m);
-+		nft_set_pipapo_match_destroy(ctx, set, m);
- 
- #ifdef NFT_PIPAPO_ALIGN
- 		free_percpu(m->scratch_aligned);
-@@ -2182,7 +2186,7 @@ static void nft_pipapo_destroy(const struct nft_set *set)
- 		m = priv->clone;
- 
- 		if (priv->dirty)
--			nft_set_pipapo_match_destroy(set, m);
-+			nft_set_pipapo_match_destroy(ctx, set, m);
- 
- #ifdef NFT_PIPAPO_ALIGN
- 		free_percpu(priv->clone->scratch_aligned);
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 1ffb24f4c74c..172b994790a0 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -657,7 +657,8 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	return 0;
- }
- 
--static void nft_rbtree_destroy(const struct nft_set *set)
-+static void nft_rbtree_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_set *set)
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe;
-@@ -668,7 +669,7 @@ static void nft_rbtree_destroy(const struct nft_set *set)
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
--		nft_set_elem_destroy(set, rbe, true);
-+		nf_tables_set_elem_destroy(ctx, set, rbe);
- 	}
- }
- 
--- 
-2.30.2
-
+Thanks, much appreciated.
