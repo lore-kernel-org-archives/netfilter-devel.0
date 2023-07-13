@@ -2,61 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BADFCC0015E
-	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jul 2023 08:49:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DF81C001DF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 13 Jul 2023 08:49:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234553AbjGMItA (ORCPT
+        id S234591AbjGMItB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 13 Jul 2023 04:49:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51338 "EHLO
+        Thu, 13 Jul 2023 04:49:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234868AbjGMIs2 (ORCPT
+        with ESMTP id S234871AbjGMIs2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 13 Jul 2023 04:48:28 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C03512689;
-        Thu, 13 Jul 2023 01:48:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AAF9726A0;
+        Thu, 13 Jul 2023 01:48:02 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,5.15 v2 0/2] netfilter stable fixes for 5.15
-Date:   Thu, 13 Jul 2023 10:47:48 +0200
-Message-Id: <20230713084750.71456-1-pablo@netfilter.org>
+Subject: [PATCH -stable,5.15 v2 2/2] netfilter: nf_tables: unbind non-anonymous set if rule construction fails
+Date:   Thu, 13 Jul 2023 10:47:50 +0200
+Message-Id: <20230713084750.71456-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230713084750.71456-1-pablo@netfilter.org>
+References: <20230713084750.71456-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Greg, Sasha,
+[ Upstream commit 3e70489721b6c870252c9082c496703677240f53 ]
 
-[ this is v2, using "Upstream commit tag XYZ" as suggested by Salvatore Bonaccorso,
-  only this comestic change in this batch. ]
+Otherwise a dangling reference to a rule object that is gone remains
+in the set binding list.
 
-The following list shows the backported patches, I am using original
-commit IDs for reference:
+Fixes: 26b5a5712eb8 ("netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-1) 628bd3e49cba ("netfilter: nf_tables: drop map element references from preparation phase")
-
-2) 3e70489721b6 ("netfilter: nf_tables: unbind non-anonymous set if rule construction fails")
-
-Please, apply.
-Thanks.
-
-Pablo Neira Ayuso (2):
-  netfilter: nf_tables: drop map element references from preparation phase
-  netfilter: nf_tables: unbind non-anonymous set if rule construction fails
-
- include/net/netfilter/nf_tables.h |   5 +-
- net/netfilter/nf_tables_api.c     | 147 ++++++++++++++++++++++++++----
- net/netfilter/nft_set_bitmap.c    |   5 +-
- net/netfilter/nft_set_hash.c      |  23 ++++-
- net/netfilter/nft_set_pipapo.c    |  14 ++-
- net/netfilter/nft_set_rbtree.c    |   5 +-
- 6 files changed, 168 insertions(+), 31 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f7b4e3f9d280..aa22c4a1f64c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5042,6 +5042,8 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 		nft_set_trans_unbind(ctx, set);
+ 		if (nft_set_is_anonymous(set))
+ 			nft_deactivate_next(ctx->net, set);
++		else
++			list_del_rcu(&binding->list);
+ 
+ 		set->use--;
+ 		break;
 -- 
 2.30.2
 
