@@ -2,151 +2,109 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E830EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Jul 2023 09:48:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 152E7C001E0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Jul 2023 09:59:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235974AbjGNJsR (ORCPT
+        id S234627AbjGNJ7q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Jul 2023 05:48:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40360 "EHLO
+        Fri, 14 Jul 2023 05:59:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235072AbjGNJsE (ORCPT
+        with ESMTP id S234131AbjGNJ7p (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Jul 2023 05:48:04 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8A32D73;
-        Fri, 14 Jul 2023 02:47:59 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qKFOn-0002GU-MB; Fri, 14 Jul 2023 11:47:41 +0200
-Date:   Fri, 14 Jul 2023 11:47:41 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        bpf <bpf@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org,
-        Network Development <netdev@vger.kernel.org>,
-        David Ahern <dsahern@kernel.org>
-Subject: Re: [PATCH bpf-next v4 2/6] netfilter: bpf: Support
- BPF_F_NETFILTER_IP_DEFRAG in netfilter link
-Message-ID: <20230714094741.GA7912@breakpoint.cc>
-References: <cover.1689203090.git.dxu@dxuuu.xyz>
- <d3b0ff95c58356192ea3b50824f8cdbf02c354e3.1689203090.git.dxu@dxuuu.xyz>
- <CAADnVQKKfEtZYZxihxvG3aQ34E1m95qTZ=jTD7yd0qvOASpAjQ@mail.gmail.com>
- <kwiwaeaijj6sxwz5fhtxyoquhz2kpujbsbeajysufgmdjgyx5c@f6lqrd23xr5f>
- <CAADnVQLcAoN5z+HD_44UKgJJc6t5TPW8+Ai9We0qJpau4NtEzA@mail.gmail.com>
- <wltfmammaf5g4gumsbna4kmwo6dtd24g472o7kgkug42dhwcy2@32fmd7q6kvg4>
- <CAADnVQJQZ2jQSWByVvi3N2ZOoL0XDSJzx5biSVvq=inS7OSW7A@mail.gmail.com>
- <t6wypww537golmoosbikfuombrqq555fh5mbycwl4whto6joo4@hcqlospkgqyr>
+        Fri, 14 Jul 2023 05:59:45 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD79E1989
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Jul 2023 02:59:43 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qKFaP-00088l-HB; Fri, 14 Jul 2023 11:59:41 +0200
+Date:   Fri, 14 Jul 2023 11:59:41 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft v2 PATCH 3/3] py: add input_{set,get}_flags() API to helpers
+Message-ID: <ZLEcjSPnc3PoN57E@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Thomas Haller <thaller@redhat.com>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <ZKxG23yJzlRRPpsO@calendula>
+ <20230714084943.1080757-1-thaller@redhat.com>
+ <20230714084943.1080757-3-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <t6wypww537golmoosbikfuombrqq555fh5mbycwl4whto6joo4@hcqlospkgqyr>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20230714084943.1080757-3-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Xu <dxu@dxuuu.xyz> wrote:
-> On Thu, Jul 13, 2023 at 04:10:03PM -0700, Alexei Starovoitov wrote:
-> > Why is rcu_assign_pointer() used?
-> > If it's not RCU protected, what is the point of rcu_*() accessors
-> > and rcu_read_lock() ?
-> > 
-> > In general, the pattern:
-> > rcu_read_lock();
-> > ptr = rcu_dereference(...);
-> > rcu_read_unlock();
-> > ptr->..
-> > is a bug. 100%.
+Hi Thomas,
 
-FWIW, I agree with Alexei, it does look... dodgy.
-
-> The reason I left it like this is b/c otherwise I think there is a race
-> with module unload and taking a refcnt. For example:
+On Fri, Jul 14, 2023 at 10:48:53AM +0200, Thomas Haller wrote:
+> Note that the corresponding API for output flags does not expose the
+> plain numeric flags. Instead, it exposes the underlying, flag-based C
+> API more directly.
 > 
-> ptr = READ_ONCE(global_var)
->                                              <module unload on other cpu>
-> // ptr invalid
-> try_module_get(ptr->owner) 
->
-
-Yes, I agree.
-
-> I think the the synchronize_rcu() call in
-> kernel/module/main.c:free_module() protects against that race based on
-> my reading.
+> Reasons:
 > 
-> Maybe the ->enable() path can store a copy of the hook ptr in
-> struct bpf_nf_link to get rid of the odd rcu_dereference()?
+> - a flags property has the benefits that adding new flags is very light
+>   weight. Otherwise, every addition of a flag requires new API. That new
+>   API increases the documentation and what the user needs to understand.
+>   With a flag API, we just need new documentation what the new flag is.
+>   It's already clear how to use it.
 > 
-> Open to other ideas too -- would appreciate any hints.
+> - opinionated, also the usage of "many getter/setter API" is not have
+>   better usability. Its convenient when we can do similar things (setting
+>   a boolean flag) depending on an argument of a function, instead of
+>   having different functions.
+> 
+>   Compare
+> 
+>      ctx.set_reversedns_output(True)
+>      ctx.set_handle_output(True)
+> 
+>   with
+> 
+>      ctx.ouput_set_flags(NFT_CTX_OUTPUT_REVERSEDNS | NFT_CTX_OUTPUT_HANDLE)
+> 
+>   Note that the vast majority of users of this API will just create one
+>   nft_ctx instance and set the flags once. Each user application
+>   probably has only one place where they call the setter once. So
+>   while I think flags have better usability, it doesn't matter much
+>   either way.
+> 
+> - if individual properties are preferable over flags, then the C API
+>   should also do that. In other words, the Python API should be similar
+>   to the underlying C API.
+> 
+> - I don't understand how to do this best. Is Nftables.output_flags
+>   public API? It appears to be, as it has no underscore. Why does this
+>   additional mapping from function (get_reversedns_output()) to name
+>   ("reversedns") to number (1<<0) exist?
 
-I would suggest the following:
+I don't recall why I chose to add setters/getters for individual output
+flags instead of expecting users to do bit-fiddling. Maybe the latter is
+not as common among Python users. :)
 
-- Switch ordering of patches 2 and 3.
-  What is currently patch 3 would add the .owner fields only.
+On the other hand, things are a bit inconsistent already, see
+set_debug() method. 
 
-Then, what is currently patch #2 would document the rcu/modref
-interaction like this (omitting error checking for brevity):
+Maybe we could turn __{get,set}_output_flag() public and make them
+accept an array of strings or numbers just like set_debug()? If you
+then adjust your input flag API accordingly, things become consistent
+(enough?), without breaking existing users.
 
-rcu_read_lock();
-v6_hook = rcu_dereference(nf_defrag_v6_hook);
-if (!v6_hook) {
-        rcu_read_unlock();
-        err = request_module("nf_defrag_ipv6");
-        if (err)
-                 return err < 0 ? err : -EINVAL;
-        rcu_read_lock();
-	v6_hook = rcu_dereference(nf_defrag_v6_hook);
-}
+FWIW, I find
 
-if (v6_hook && try_module_get(v6_hook->owner))
-	v6_hook = rcu_pointer_handoff(v6_hook);
-else
-	v6_hook = NULL;
+| ctx.set_output_flags(["reversedns", "stateless"])
 
-rcu_read_unlock();
+nicer than
 
-if (!v6_hook)
-	err();
-v6_hook->enable();
+| ctx.set_output_flags(REVERSEDNS | STATELESS)
 
+at least with a Python hat on. WDYT?
 
-I'd store the v4/6_hook pointer in the nf bpf link struct, its probably more
-self-explanatory for the disable side in that we did pick up a module reference
-that we still own at delete time, without need for any rcu involvement.
-
-Because above handoff is repetitive for ipv4 and ipv6,
-I suggest to add an agnostic helper for this.
-
-I know you added distinct structures for ipv4 and ipv6 but if they would use
- the same one you could add
-
-static const struct nf_defrag_hook *get_proto_frag_hook(const struct nf_defrag_hook __rcu *hook,
-							const char *modulename);
-
-And then use it like:
-
-v4_hook = get_proto_frag_hook(nf_defrag_v4_hook, "nf_defrag_ipv4");
-
-Without a need to copy the modprobe and handoff part.
-
-What do you think?
+Cheers, Phil
