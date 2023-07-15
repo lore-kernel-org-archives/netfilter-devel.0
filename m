@@ -2,66 +2,106 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A088FEB64DC
-	for <netfilter-devel@archiver.kernel.org>; Fri, 14 Jul 2023 14:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24642EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Sat, 15 Jul 2023 12:59:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236157AbjGNOyq (ORCPT
+        id S229593AbjGOM7q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 14 Jul 2023 10:54:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59996 "EHLO
+        Sat, 15 Jul 2023 08:59:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235574AbjGNOyo (ORCPT
+        with ESMTP id S229552AbjGOM7p (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Jul 2023 10:54:44 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B45BC3A95
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Jul 2023 07:54:14 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qKKBQ-00044a-He; Fri, 14 Jul 2023 16:54:12 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] exthdr: prefer raw_type instead of desc->type
-Date:   Fri, 14 Jul 2023 16:53:57 +0200
-Message-ID: <20230714145400.27274-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Sat, 15 Jul 2023 08:59:45 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DF9C35B5
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Jul 2023 05:59:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=pZgP58MwircQ12wUwAmel/yrcPYuFHW1QWLLohP5Q/0=; b=UPUA/dc+9sGAMR84Gj9VdX06WT
+        YWgXVnz6iQlKd3+NSqIAP5hr+PyZz8AmCnDfKIRCivGf7o2dlGZUPiEDPkbbSi9Du8fEy+XpHJLoe
+        XEtjAZWOHqqKPKAnCLtcOVRGJbpvx68MOLcgCUc4LE6kLa7Mp3D54lTmp2PIxKNS9rFhTt/9d8kwC
+        ea+D07wrKqQ15YWVHQGI2p5P6kDNMQXuiN/bhOJx2an57rkZkxyH+3fA8cvhz1WcszAWopDvjPp5I
+        6y8LzdBpWsENIaLk0MZ8jQDPWCDrLfBh6ygFAWuCF5AtEIeOTV24/aplZMWOCRrQS3/oNdij4Vppy
+        kocxt90Q==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qKes5-0002NA-FA; Sat, 15 Jul 2023 14:59:37 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, igor@gooddata.com
+Subject: [iptables PATCH 2/3] nft: Do not pass nft_rule_ctx to add_nft_among()
+Date:   Sat, 15 Jul 2023 14:59:27 +0200
+Message-Id: <20230715125928.18395-3-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
+In-Reply-To: <20230715125928.18395-1-phil@nwl.cc>
+References: <20230715125928.18395-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On ancient kernels desc can be NULL, because such kernels do not
-understand NFTA_EXTHDR_TYPE.
+It is not used, must be a left-over from an earlier version of the fixed
+commit.
 
-Thus they don't include it in the reverse dump, so the tcp/ip
-option gets treated like an ipv6 exthdr, but no matching
-description will be found.
-
-This then gives a crash due to the null deref.
-
-Just use the raw value here, this will at least make nft print
-that the exthdr and type is invalid.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 4e95200ded923 ("nft-bridge: pass context structure to ops->add() to improve anonymous set support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/exthdr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/nft.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/src/exthdr.c b/src/exthdr.c
-index f5527ddb4a3f..0358005b1b89 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -405,7 +405,7 @@ bool exthdr_find_template(struct expr *expr, const struct expr *mask, unsigned i
- 		found = tcpopt_find_template(expr, off, mask_len - mask_offset);
- 		break;
- 	case NFT_EXTHDR_OP_IPV6:
--		exthdr_init_raw(expr, expr->exthdr.desc->type,
-+		exthdr_init_raw(expr, expr->exthdr.raw_type,
- 				off, mask_len - mask_offset, expr->exthdr.op, 0);
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 230946d30108d..f453f07acb7e9 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1154,8 +1154,7 @@ gen_lookup(uint32_t sreg, const char *set_name, uint32_t set_id, uint32_t flags)
+ #define NFT_DATATYPE_ETHERADDR	9
  
- 		/* still failed to find a template... Bug. */
+ static int __add_nft_among(struct nft_handle *h, const char *table,
+-			   struct nft_rule_ctx *ctx, struct nftnl_rule *r,
+-			   struct nft_among_pair *pairs,
++			   struct nftnl_rule *r, struct nft_among_pair *pairs,
+ 			   int cnt, bool dst, bool inv, bool ip)
+ {
+ 	uint32_t set_id, type = NFT_DATATYPE_ETHERADDR, len = ETH_ALEN;
+@@ -1236,7 +1235,7 @@ static int __add_nft_among(struct nft_handle *h, const char *table,
+ 	return 0;
+ }
+ 
+-static int add_nft_among(struct nft_handle *h, struct nft_rule_ctx *ctx,
++static int add_nft_among(struct nft_handle *h,
+ 			 struct nftnl_rule *r, struct xt_entry_match *m)
+ {
+ 	struct nft_among_data *data = (struct nft_among_data *)m->data;
+@@ -1252,10 +1251,10 @@ static int add_nft_among(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 	}
+ 
+ 	if (data->src.cnt)
+-		__add_nft_among(h, table, ctx, r, data->pairs, data->src.cnt,
++		__add_nft_among(h, table, r, data->pairs, data->src.cnt,
+ 				false, data->src.inv, data->src.ip);
+ 	if (data->dst.cnt)
+-		__add_nft_among(h, table, ctx, r, data->pairs + data->src.cnt,
++		__add_nft_among(h, table, r, data->pairs + data->src.cnt,
+ 				data->dst.cnt, true, data->dst.inv,
+ 				data->dst.ip);
+ 	return 0;
+@@ -1476,7 +1475,7 @@ int add_match(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 		if (!strcmp(m->u.user.name, "limit"))
+ 			return add_nft_limit(r, m);
+ 		else if (!strcmp(m->u.user.name, "among"))
+-			return add_nft_among(h, ctx, r, m);
++			return add_nft_among(h, r, m);
+ 		else if (!strcmp(m->u.user.name, "udp"))
+ 			return add_nft_udp(h, r, m);
+ 		else if (!strcmp(m->u.user.name, "tcp"))
 -- 
-2.41.0
+2.40.0
 
