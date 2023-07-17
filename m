@@ -2,95 +2,153 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1F7C001B0
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jul 2023 09:19:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F4FEB64DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jul 2023 10:13:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230095AbjGQJTj (ORCPT
+        id S229563AbjGQKNb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Jul 2023 05:19:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34082 "EHLO
+        Mon, 17 Jul 2023 06:13:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229789AbjGQJTi (ORCPT
+        with ESMTP id S230194AbjGQKNa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jul 2023 05:19:38 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1E70A10DC;
-        Mon, 17 Jul 2023 02:19:37 -0700 (PDT)
-Date:   Mon, 17 Jul 2023 11:19:31 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-        netfilter-announce@lists.netfilter.org, lwn@lwn.net,
-        guigom@riseup.net
-Subject: Re: [ANNOUNCE] libnftnl 1.2.6 release
-Message-ID: <ZLUHo/spWd98PMUS@calendula>
-References: <ZK2KUlzZzlQ8/mKa@calendula>
- <36852014-p9pp-srp2-pn24-orr4385p70qo@vanv.qr>
+        Mon, 17 Jul 2023 06:13:30 -0400
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 291BA1BE
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2023 03:13:27 -0700 (PDT)
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-3fbc244d384so39229965e9.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2023 03:13:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689588805; x=1692180805;
+        h=content-transfer-encoding:mime-version:user-agent:message-id:date
+         :to:from:subject:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4O1ZI33kSqM1Yhtfv63IL7auDzL2Vfn0I4M3Ody7VUw=;
+        b=ijbmneWP7sheY1tSC66uUec8uDq/FEJx8w8VoxN0qalETGnE5kqQDFSi7kdwWyURTp
+         klEI7OC5l8BPPPcKtuMeW81Yq4mArUiDHpOJmf2YaEcXTMgF38khd0hnqz9GG8/tRqXz
+         5+BkJ9Ck7igNXw3LKrhBlDA+wPDz3F92W0KsoAySPxDg3h9ooYVHMKl4GbjA2U3McQ6W
+         GaB4SQnCd5IHdEFcTPiqWBBcfiA1PgsDB6IoDS8dzsrRdrg4PEGRo5bnSwSe5yZrJ1Km
+         zDLvdUt3Y5m6BI4wmSg08cAiOhfR0xQEokg1MqBCKfytZ+K4OHQSHkphR1uRRLDzSzSC
+         C8UQ==
+X-Gm-Message-State: ABy/qLaMnn/Sq39BC86626l9sgeWyyU/WbeiMt/MR9dzUs9R6tiFAQd2
+        QaLH5+x7VeDN8iAZPUnSyPpk3RtxEIs=
+X-Google-Smtp-Source: APBJJlFN6EfMw4QwTnF0OGFy8OTiKhN/uzOr9dB/mt+TkuLNtfCRNLKrbuv7ERMZFciUWxLVn1eh4g==
+X-Received: by 2002:adf:dcca:0:b0:313:ed1d:39d5 with SMTP id x10-20020adfdcca000000b00313ed1d39d5mr8508422wrm.35.1689588805373;
+        Mon, 17 Jul 2023 03:13:25 -0700 (PDT)
+Received: from localhost ([2a0c:5a85:a105:cd00:7813:538a:55d6:7150])
+        by smtp.gmail.com with ESMTPSA id a23-20020a5d4577000000b0030ae53550f5sm18763106wrc.51.2023.07.17.03.13.24
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 17 Jul 2023 03:13:25 -0700 (PDT)
+Subject: [nft PATCH] tests/build/run-tests.sh: fix issues reported by
+ shellcheck
+From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Date:   Mon, 17 Jul 2023 12:13:24 +0200
+Message-ID: <168958880448.138167.17646583365002263276.stgit@nostromo.nostromo>
+User-Agent: StGit/0.19
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <36852014-p9pp-srp2-pn24-orr4385p70qo@vanv.qr>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jan,
+Improve a bit the script as reported by shellcheck, also including
+information about the log file.
 
-On Mon, Jul 17, 2023 at 10:09:09AM +0200, Jan Engelhardt wrote:
-> 
-> On Tuesday 2023-07-11 18:58, Pablo Neira Ayuso wrote:
-> >The Netfilter project proudly presents:
-> >        libnftnl 1.2.6
-> 
-> Something is off here.
-> With 1.2.5 I had:
-> 
-> /usr/lib/python3.11/site-packages/nftables
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg-info
-> /usr/lib/python3.11/site-packages/nftables/__init__.py
-> /usr/lib/python3.11/site-packages/nftables/__pycache__
-> /usr/lib/python3.11/site-packages/nftables/__pycache__/__init__.cpython-311.pyc
-> /usr/lib/python3.11/site-packages/nftables/__pycache__/nftables.cpython-311.pyc
-> /usr/lib/python3.11/site-packages/nftables/nftables.py
-> /usr/lib/python3.11/site-packages/nftables/schema.json
-> 
-> With 1.2.6 I get:
-> 
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/EGG-INFO
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/EGG-INFO/PKG-INFO
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/EGG-INFO/SOURCES.txt
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/EGG-INFO/dependency_links.txt
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/EGG-INFO/not-zip-safe
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/EGG-INFO/top_level.txt
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/__init__.py
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/__pycache__
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/__pycache__/__init__.cpython-311.pyc
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/__pycache__/nftables.cpython-311.pyc
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/nftables.py
-> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/schema.json
-> 
-> And then python3 -c 'import nftables' no longer wants to do anything with it:
-> 
-> Traceback (most recent call last):
->   File "<string>", line 1, in <module>
-> ModuleNotFoundError: No module named 'nftables'
-> 
-> Looking at how other modules are laid out, I find e.g.
-> 
-> [...]
-> /usr/lib/python3.11/site-packages/pycparser/plyparser.py
-> /usr/lib/python3.11/site-packages/pycparser/yacctab.py
-> /usr/lib/python3.11/site-packages/pycparser-2.21-py3.11.egg-info
-> /usr/lib/python3.11/site-packages/pycparser-2.21-py3.11.egg-info/PKG-INFO
-> /usr/lib/python3.11/site-packages/pycparser-2.21-py3.11.egg-info/SOURCES.txt
-> [...]
-> 
-> So there is one directory level too much.
+The log file, by the way, is added to the gitignore to reduce noise
+in the git tree.
 
-Could you revert:
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+---
+ .gitignore               |    1 +
+ tests/build/run-tests.sh |   34 +++++++++++++++++++---------------
+ 2 files changed, 20 insertions(+), 15 deletions(-)
 
-1acc2fd48c75 ("py: replace distutils with setuptools")
+diff --git a/.gitignore b/.gitignore
+index 6b37b123..d6f17e4f 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -16,6 +16,7 @@ libtool
+ 
+ # Generated by tests
+ *.payload.got
++tests/build/tests.log
+ 
+ # Debian package build temporary files
+ build-stamp
+diff --git a/tests/build/run-tests.sh b/tests/build/run-tests.sh
+index f78cc901..4616387f 100755
+--- a/tests/build/run-tests.sh
++++ b/tests/build/run-tests.sh
+@@ -1,32 +1,36 @@
+ #!/bin/bash
+ 
+-log_file="`pwd`/tests.log"
++log_file="$(pwd)/tests.log"
+ dir=../..
+ argument=( --without-cli --with-cli=linenoise --with-cli=editline --enable-debug --with-mini-gmp
+ 	   --enable-man-doc --with-xtables --with-json)
+ ok=0
+ failed=0
+ 
+-[ -f $log_file ] && rm -rf $log_file
++[ -f "$log_file" ] && rm -rf "$log_file"
+ 
+ tmpdir=$(mktemp -d)
+-if [ ! -w $tmpdir ] ; then
++if [ ! -w "$tmpdir" ] ; then
+         echo "Failed to create tmp file" >&2
+         exit 0
+ fi
+ 
+-git clone $dir $tmpdir >/dev/null 2>>$log_file
+-cd $tmpdir
++git clone "$dir" "$tmpdir" >/dev/null 2>>"$log_file"
++cd "$tmpdir" || exit
+ 
+-autoreconf -fi >/dev/null 2>>$log_file
+-./configure >/dev/null 2>>$log_file
++if ! autoreconf -fi >"$log_file" 2>>"$log_file" ; then
++	echo "Something went wrong. Check the log '${log_file}' for details."
++	exit 1
++fi
+ 
+-echo  "Testing build with distcheck"
+-make distcheck >/dev/null 2>>$log_file
+-rt=$?
++if ! ./configure >"$log_file" 2>>"$log_file" ; then
++	echo "Something went wrong. Check the log '${log_file}' for details."
++	exit 1
++fi
+ 
+-if [ $rt != 0 ] ; then
+-	echo "Something went wrong. Check the log for details."
++echo  "Testing build with distcheck"
++if ! make distcheck >/dev/null 2>>"$log_file" ; then
++	echo "Something went wrong. Check the log '${log_file}' for details."
+ 	exit 1
+ fi
+ 
+@@ -35,8 +39,8 @@ echo "Build works. Now, testing compile options"
+ 
+ for var in "${argument[@]}" ; do
+ 	echo "[EXECUTING] Testing compile option $var"
+-	./configure $var >/dev/null 2>>$log_file
+-	make -j 8 >/dev/null 2>>$log_file
++	./configure "$var" >/dev/null 2>>"$log_file"
++	make -j 8 >/dev/null 2>>"$log_file"
+ 	rt=$?
+ 	echo -en "\033[1A\033[K" # clean the [EXECUTING] foobar line
+ 
+@@ -49,7 +53,7 @@ for var in "${argument[@]}" ; do
+ 	fi
+ done
+ 
+-rm -rf $tmpdir
++rm -rf "$tmpdir"
+ 
+ echo "results: [OK] $ok [FAILED] $failed [TOTAL] $((ok+failed))"
+ [ "$failed" -eq 0 ]
 
-I suspect the problem is in the update from distutil to setuptools.
