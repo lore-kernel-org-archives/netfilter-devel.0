@@ -2,153 +2,64 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F4FEB64DC
-	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jul 2023 10:13:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82E97EB64DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 17 Jul 2023 10:20:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229563AbjGQKNb (ORCPT
+        id S230445AbjGQKUl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 17 Jul 2023 06:13:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34814 "EHLO
+        Mon, 17 Jul 2023 06:20:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230194AbjGQKNa (ORCPT
+        with ESMTP id S230368AbjGQKUk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jul 2023 06:13:30 -0400
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 291BA1BE
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2023 03:13:27 -0700 (PDT)
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-3fbc244d384so39229965e9.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2023 03:13:27 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689588805; x=1692180805;
-        h=content-transfer-encoding:mime-version:user-agent:message-id:date
-         :to:from:subject:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4O1ZI33kSqM1Yhtfv63IL7auDzL2Vfn0I4M3Ody7VUw=;
-        b=ijbmneWP7sheY1tSC66uUec8uDq/FEJx8w8VoxN0qalETGnE5kqQDFSi7kdwWyURTp
-         klEI7OC5l8BPPPcKtuMeW81Yq4mArUiDHpOJmf2YaEcXTMgF38khd0hnqz9GG8/tRqXz
-         5+BkJ9Ck7igNXw3LKrhBlDA+wPDz3F92W0KsoAySPxDg3h9ooYVHMKl4GbjA2U3McQ6W
-         GaB4SQnCd5IHdEFcTPiqWBBcfiA1PgsDB6IoDS8dzsrRdrg4PEGRo5bnSwSe5yZrJ1Km
-         zDLvdUt3Y5m6BI4wmSg08cAiOhfR0xQEokg1MqBCKfytZ+K4OHQSHkphR1uRRLDzSzSC
-         C8UQ==
-X-Gm-Message-State: ABy/qLaMnn/Sq39BC86626l9sgeWyyU/WbeiMt/MR9dzUs9R6tiFAQd2
-        QaLH5+x7VeDN8iAZPUnSyPpk3RtxEIs=
-X-Google-Smtp-Source: APBJJlFN6EfMw4QwTnF0OGFy8OTiKhN/uzOr9dB/mt+TkuLNtfCRNLKrbuv7ERMZFciUWxLVn1eh4g==
-X-Received: by 2002:adf:dcca:0:b0:313:ed1d:39d5 with SMTP id x10-20020adfdcca000000b00313ed1d39d5mr8508422wrm.35.1689588805373;
-        Mon, 17 Jul 2023 03:13:25 -0700 (PDT)
-Received: from localhost ([2a0c:5a85:a105:cd00:7813:538a:55d6:7150])
-        by smtp.gmail.com with ESMTPSA id a23-20020a5d4577000000b0030ae53550f5sm18763106wrc.51.2023.07.17.03.13.24
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Jul 2023 03:13:25 -0700 (PDT)
-Subject: [nft PATCH] tests/build/run-tests.sh: fix issues reported by
- shellcheck
-From:   Arturo Borrero Gonzalez <arturo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Date:   Mon, 17 Jul 2023 12:13:24 +0200
-Message-ID: <168958880448.138167.17646583365002263276.stgit@nostromo.nostromo>
-User-Agent: StGit/0.19
+        Mon, 17 Jul 2023 06:20:40 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3815E1BE;
+        Mon, 17 Jul 2023 03:20:38 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 8C8225872FFD4; Mon, 17 Jul 2023 12:20:36 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 8A91460D6E2C6;
+        Mon, 17 Jul 2023 12:20:36 +0200 (CEST)
+Date:   Mon, 17 Jul 2023 12:20:36 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+cc:     netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+        netfilter-announce@lists.netfilter.org, lwn@lwn.net,
+        guigom@riseup.net
+Subject: Re: [ANNOUNCE] libnftnl 1.2.6 release
+In-Reply-To: <ZLUHo/spWd98PMUS@calendula>
+Message-ID: <p722n04o-80pp-6573-r832-621610s2r749@vanv.qr>
+References: <ZK2KUlzZzlQ8/mKa@calendula> <36852014-p9pp-srp2-pn24-orr4385p70qo@vanv.qr> <ZLUHo/spWd98PMUS@calendula>
+User-Agent: Alpine 2.25 (LSU 592 2021-09-18)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Improve a bit the script as reported by shellcheck, also including
-information about the log file.
 
-The log file, by the way, is added to the gitignore to reduce noise
-in the git tree.
+On Monday 2023-07-17 11:19, Pablo Neira Ayuso wrote:
+>On Mon, Jul 17, 2023 at 10:09:09AM +0200, Jan Engelhardt wrote:
+>> 
+>> On Tuesday 2023-07-11 18:58, Pablo Neira Ayuso wrote:
+>> >The Netfilter project proudly presents:
+>> >        libnftnl 1.2.6
+>> 
+>> Something is off here.
+>> With 1.2.5 I had:
+>> 
+>> /usr/lib/python3.11/site-packages/nftables
+>> /usr/lib/python3.11/site-packages/nftables/__init__.py
+>> 
+>> With 1.2.6 I get:
+>> 
+>> /usr/lib/python3.11/site-packages/nftables-0.1-py3.11.egg/nftables/__init__.py
+>
+>Could you revert:
+>1acc2fd48c75 ("py: replace distutils with setuptools")
+>I suspect the problem is in the update from distutil to setuptools.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
----
- .gitignore               |    1 +
- tests/build/run-tests.sh |   34 +++++++++++++++++++---------------
- 2 files changed, 20 insertions(+), 15 deletions(-)
-
-diff --git a/.gitignore b/.gitignore
-index 6b37b123..d6f17e4f 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -16,6 +16,7 @@ libtool
- 
- # Generated by tests
- *.payload.got
-+tests/build/tests.log
- 
- # Debian package build temporary files
- build-stamp
-diff --git a/tests/build/run-tests.sh b/tests/build/run-tests.sh
-index f78cc901..4616387f 100755
---- a/tests/build/run-tests.sh
-+++ b/tests/build/run-tests.sh
-@@ -1,32 +1,36 @@
- #!/bin/bash
- 
--log_file="`pwd`/tests.log"
-+log_file="$(pwd)/tests.log"
- dir=../..
- argument=( --without-cli --with-cli=linenoise --with-cli=editline --enable-debug --with-mini-gmp
- 	   --enable-man-doc --with-xtables --with-json)
- ok=0
- failed=0
- 
--[ -f $log_file ] && rm -rf $log_file
-+[ -f "$log_file" ] && rm -rf "$log_file"
- 
- tmpdir=$(mktemp -d)
--if [ ! -w $tmpdir ] ; then
-+if [ ! -w "$tmpdir" ] ; then
-         echo "Failed to create tmp file" >&2
-         exit 0
- fi
- 
--git clone $dir $tmpdir >/dev/null 2>>$log_file
--cd $tmpdir
-+git clone "$dir" "$tmpdir" >/dev/null 2>>"$log_file"
-+cd "$tmpdir" || exit
- 
--autoreconf -fi >/dev/null 2>>$log_file
--./configure >/dev/null 2>>$log_file
-+if ! autoreconf -fi >"$log_file" 2>>"$log_file" ; then
-+	echo "Something went wrong. Check the log '${log_file}' for details."
-+	exit 1
-+fi
- 
--echo  "Testing build with distcheck"
--make distcheck >/dev/null 2>>$log_file
--rt=$?
-+if ! ./configure >"$log_file" 2>>"$log_file" ; then
-+	echo "Something went wrong. Check the log '${log_file}' for details."
-+	exit 1
-+fi
- 
--if [ $rt != 0 ] ; then
--	echo "Something went wrong. Check the log for details."
-+echo  "Testing build with distcheck"
-+if ! make distcheck >/dev/null 2>>"$log_file" ; then
-+	echo "Something went wrong. Check the log '${log_file}' for details."
- 	exit 1
- fi
- 
-@@ -35,8 +39,8 @@ echo "Build works. Now, testing compile options"
- 
- for var in "${argument[@]}" ; do
- 	echo "[EXECUTING] Testing compile option $var"
--	./configure $var >/dev/null 2>>$log_file
--	make -j 8 >/dev/null 2>>$log_file
-+	./configure "$var" >/dev/null 2>>"$log_file"
-+	make -j 8 >/dev/null 2>>"$log_file"
- 	rt=$?
- 	echo -en "\033[1A\033[K" # clean the [EXECUTING] foobar line
- 
-@@ -49,7 +53,7 @@ for var in "${argument[@]}" ; do
- 	fi
- done
- 
--rm -rf $tmpdir
-+rm -rf "$tmpdir"
- 
- echo "results: [OK] $ok [FAILED] $failed [TOTAL] $((ok+failed))"
- [ "$failed" -eq 0 ]
-
+Revert alone is not enough; a removal of python3-setuptools from the
+buildroot is also needed to restore the previous structure, which
+suggests there is an autoforwarding mechanism in python :(
