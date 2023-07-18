@@ -2,74 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D199AEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jul 2023 10:09:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91613EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Tue, 18 Jul 2023 10:31:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232474AbjGRKJA (ORCPT
+        id S229927AbjGRKbx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 18 Jul 2023 06:09:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58916 "EHLO
+        Tue, 18 Jul 2023 06:31:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231549AbjGRKIn (ORCPT
+        with ESMTP id S229539AbjGRKbw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2023 06:08:43 -0400
+        Tue, 18 Jul 2023 06:31:52 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6804C130
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2023 03:07:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A7DBE4F
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2023 03:31:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1689674878;
+        s=mimecast20190719; t=1689676266;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Dqxntuz5AvQQ3092uxYIo+ShVkQoqqHoY0BrtDypkQI=;
-        b=GJK8XMQvY6WPTRxXyiL8NIAVYz2u+B9n+ZzfKpJnhcWiveNe6BjIIxOSsr1+sebwyjWvVd
-        kNHvKBnuUmPCxpI3+QBia1kFzWKr7AKU875gE0zQYL9lj87OVnZFkg/oRKsFUJRWSsw3H8
-        jiZWy2NYSXtc0PhShjZ0+xJ/9AhnjH8=
-Received: from mail-lj1-f198.google.com (mail-lj1-f198.google.com
- [209.85.208.198]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=ObEXh8L0QyBNJtRf6haqMrPu1Qa2iuT88jmKz3X9m4E=;
+        b=YwYfbTK7M/75QepVDzTxBNgaJxs5ZaDYlMNbaNNPFceSoQIS8lzGNtYMalzZu95k3cRHln
+        Ggvefv7c4H0ZXOBoWB77B7r4bBtBDi03JsoSpaA08oiaWN6Spnoi4EJi2JnxqKrKJ8x+Io
+        1uhtB4G2F4muQfGjWl0LjRiood2MAbI=
+Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
+ [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-624-90tjWWQ6P-2defbVRCnA5A-1; Tue, 18 Jul 2023 06:07:57 -0400
-X-MC-Unique: 90tjWWQ6P-2defbVRCnA5A-1
-Received: by mail-lj1-f198.google.com with SMTP id 38308e7fff4ca-2b04d5ed394so9510631fa.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2023 03:07:57 -0700 (PDT)
+ us-mta-500-jQZW3oq5MXmiEQamTU6l5g-1; Tue, 18 Jul 2023 06:31:05 -0400
+X-MC-Unique: jQZW3oq5MXmiEQamTU6l5g-1
+Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-4fbf2724a51so926537e87.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2023 03:31:05 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689674875; x=1690279675;
+        d=1e100.net; s=20221208; t=1689676264; x=1690281064;
         h=mime-version:user-agent:content-transfer-encoding:references
          :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=Dqxntuz5AvQQ3092uxYIo+ShVkQoqqHoY0BrtDypkQI=;
-        b=MYRKgEnzqjAs/ExmO4Pzt5RMhe2aGmpaSNE4OvUHxMCd39w7sJ65KYRpuz7WkR4MjI
-         cZSfwjZeqQPfGTKYqssXcBx+apUCDHlVwkeeAktmxWfYcC/jI5pKOA6EealsvF+IkbIB
-         ltkVKa1dl0yBuwFWN0DYYHuIoFIpXUGDMPjY8jtP8Kn10NO184FLNkiwdpipviDGj9A9
-         p6sbr14W8RPWRCqSrRfqe1RZ53btB5Vp48tB+7zBBg0gAbnjQyfVzRyrue0qHcPQmKuG
-         ZpW4qMkLKd00FlXx34U/CxgVQBHL14djfBj3ONgwkAEIeaV5HOstTlF6xcb1hQeJJ5n6
-         RD0g==
-X-Gm-Message-State: ABy/qLZTcl2OpCvBGlu93ZvAn9NVHce1m3i0anwZjkfhf+FFbsOz1PFC
-        oV5mI9wwWRMcVS/oaSXuqb2ehKAqQZnVPaNbqlope94ExL5pSTJF3BshSg3OMmeja4IcQMwNmUB
-        TGC7FPS8CznlRhTOkQZEvG8qKseFxUsmAq3bq
-X-Received: by 2002:a05:651c:a06:b0:2b6:9ebc:d8c4 with SMTP id k6-20020a05651c0a0600b002b69ebcd8c4mr7905437ljq.0.1689674875496;
-        Tue, 18 Jul 2023 03:07:55 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlHhUuBXL8sSKINe7I5zo5rdMGj3yyDTMCRHwNE+TvHsMeSA/CX9j8mp6bEsgFBF7oBgLMHhzQ==
-X-Received: by 2002:a05:651c:a06:b0:2b6:9ebc:d8c4 with SMTP id k6-20020a05651c0a0600b002b69ebcd8c4mr7905419ljq.0.1689674875113;
-        Tue, 18 Jul 2023 03:07:55 -0700 (PDT)
+        bh=ObEXh8L0QyBNJtRf6haqMrPu1Qa2iuT88jmKz3X9m4E=;
+        b=KmA/ASLpvX5pEFDoDvemTI2gcEb28g7UFnwyB5+5XoDh/8jlBbierUA7zB+sg4Ya+d
+         N/h1zqAeCjAFU7Ib3KqrYsHMmhpqkxiEoHNWdIKL4r39/X5ucF4nvSF9sRiQldgHLlXy
+         uSme1hqTBWLIzco8b0EJ8bNOTzyLrRAnZvVS1WpYHVfxKTqgS2dEaL6Vw43zSb9yee6X
+         l1mRIZRZKv/P5kUTRMQsqzqXplB7ioyJGO7zOuxLuDSIzMRxMWN9T8/H3prOFtIPHXWb
+         sDndquEjqqsfQtdVl/HCDxruRh0kccdLnwkl0Wl5oQGVtrDnjUYXYQOjt0AXqFsvNPgJ
+         su0A==
+X-Gm-Message-State: ABy/qLZM/A0XQIMJyPcA5lx1dXiiYI4sSH4rVLlSnEPV3TdZNCvjD4qh
+        t5fd3RZvpCvqv3nJbgwopod6kN2mBUf2s/wWXjqM5Mjh53+5PexU/JLLVMDKQ9B6BQqNFdIhDLm
+        5HNpA7sJxj4hMQT+4XRiVAiUTpYDP
+X-Received: by 2002:a05:6512:4859:b0:4fa:73ea:aa2d with SMTP id ep25-20020a056512485900b004fa73eaaa2dmr4787795lfb.4.1689676264074;
+        Tue, 18 Jul 2023 03:31:04 -0700 (PDT)
+X-Google-Smtp-Source: APBJJlGPWqlwFmOMvE7NP7YRr6Rej6lgiob+/2oosVos1RgO/dS0A0Qj4sKDlj0RcZotISOwPDdEzg==
+X-Received: by 2002:a05:6512:4859:b0:4fa:73ea:aa2d with SMTP id ep25-20020a056512485900b004fa73eaaa2dmr4787782lfb.4.1689676263751;
+        Tue, 18 Jul 2023 03:31:03 -0700 (PDT)
 Received: from [10.0.0.196] ([37.186.189.9])
-        by smtp.gmail.com with ESMTPSA id y12-20020a1709064b0c00b009929c39d5c4sm831265eju.36.2023.07.18.03.07.54
+        by smtp.gmail.com with ESMTPSA id s10-20020aa7cb0a000000b0051bfc7763c2sm1003882edt.25.2023.07.18.03.31.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Jul 2023 03:07:54 -0700 (PDT)
-Message-ID: <69c557292b363e407b7dc1763f541d9f40b612bb.camel@redhat.com>
-Subject: Re: [nft v2 PATCH 3/3] py: add input_{set,get}_flags() API to
- helpers
+        Tue, 18 Jul 2023 03:31:03 -0700 (PDT)
+Message-ID: <df678cf06fc32f5487e8f89e0089ff7895d2c733.camel@redhat.com>
+Subject: Re: [nft v2 PATCH 1/3] nftables: add input flags for nft_ctx
 From:   Thomas Haller <thaller@redhat.com>
 To:     Phil Sutter <phil@nwl.cc>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Tue, 18 Jul 2023 12:07:54 +0200
-In-Reply-To: <ZLEcjSPnc3PoN57E@orbyte.nwl.cc>
+Date:   Tue, 18 Jul 2023 12:31:02 +0200
+In-Reply-To: <ZLZcepeCgDVLQLKG@orbyte.nwl.cc>
 References: <ZKxG23yJzlRRPpsO@calendula>
          <20230714084943.1080757-1-thaller@redhat.com>
-         <20230714084943.1080757-3-thaller@redhat.com>
-         <ZLEcjSPnc3PoN57E@orbyte.nwl.cc>
+         <ZLEgaNIH/ZD4hnf3@orbyte.nwl.cc>
+         <98298234d31a02f10cfd022ce59140db80ca8750.camel@redhat.com>
+         <ZLZcepeCgDVLQLKG@orbyte.nwl.cc>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
@@ -78,131 +78,143 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2023-07-14 at 11:59 +0200, Phil Sutter wrote:
-> Hi Thomas,
+On Tue, 2023-07-18 at 11:33 +0200, Phil Sutter wrote:
+> On Tue, Jul 18, 2023 at 11:05:45AM +0200, Thomas Haller wrote:
+> > On Fri, 2023-07-14 at 12:16 +0200, Phil Sutter wrote:
+> > > On Fri, Jul 14, 2023 at 10:48:51AM +0200, Thomas Haller wrote:
+> > > [...]
+> > > > +=3D=3D=3D nft_ctx_input_get_flags() and nft_ctx_input_set_flags()
+> > > > +The flags setting controls the input format.
+> > >=20
+> > > Note how we turn on JSON input parsing if JSON output is enabled.
+> > >=20
+> > > I think we could tidy things up by introducing NFT_CTX_INPUT_JSON
+> > > and
+> > > flip it from nft_ctx_output_set_flags() to match
+> > > NFT_CTX_OUTPUT_JSON
+> > > for
+> > > compatibility?
+> >=20
+> > The doc says:
+> >=20
+> > doc/libnftables.adoc:NFT_CTX_OUTPUT_JSON::
+> > doc/libnftables.adoc-=C2=A0=C2=A0=C2=A0 If enabled at compile-time, lib=
+nftables
+> > accepts input in JSON format and is able to print output in JSON
+> > format as well.
+> > doc/libnftables.adoc-=C2=A0=C2=A0=C2=A0 See *libnftables-json*(5) for a
+> > description of the supported schema.
+> > doc/libnftables.adoc-=C2=A0=C2=A0=C2=A0 This flag controls JSON output =
+format,
+> > input is auto-detected.
+> >=20
+> > which is a bit inaccurate, as JSON is auto-detect if-and-only-if
+> > NFT_CTX_OUTPUT_JSON is set.
 >=20
-> On Fri, Jul 14, 2023 at 10:48:53AM +0200, Thomas Haller wrote:
-> > Note that the corresponding API for output flags does not expose
-> > the
-> > plain numeric flags. Instead, it exposes the underlying, flag-based
-> > C
-> > API more directly.
-> >=20
-> > Reasons:
-> >=20
-> > - a flags property has the benefits that adding new flags is very
-> > light
-> > =C2=A0 weight. Otherwise, every addition of a flag requires new API.
-> > That new
-> > =C2=A0 API increases the documentation and what the user needs to
-> > understand.
-> > =C2=A0 With a flag API, we just need new documentation what the new fla=
-g
-> > is.
-> > =C2=A0 It's already clear how to use it.
-> >=20
-> > - opinionated, also the usage of "many getter/setter API" is not
-> > have
-> > =C2=A0 better usability. Its convenient when we can do similar things
-> > (setting
-> > =C2=A0 a boolean flag) depending on an argument of a function, instead
-> > of
-> > =C2=A0 having different functions.
-> >=20
-> > =C2=A0 Compare
-> >=20
-> > =C2=A0=C2=A0=C2=A0=C2=A0 ctx.set_reversedns_output(True)
-> > =C2=A0=C2=A0=C2=A0=C2=A0 ctx.set_handle_output(True)
-> >=20
-> > =C2=A0 with
-> >=20
-> > =C2=A0=C2=A0=C2=A0=C2=A0 ctx.ouput_set_flags(NFT_CTX_OUTPUT_REVERSEDNS =
-|
-> > NFT_CTX_OUTPUT_HANDLE)
-> >=20
-> > =C2=A0 Note that the vast majority of users of this API will just creat=
-e
-> > one
-> > =C2=A0 nft_ctx instance and set the flags once. Each user application
-> > =C2=A0 probably has only one place where they call the setter once. So
-> > =C2=A0 while I think flags have better usability, it doesn't matter muc=
-h
-> > =C2=A0 either way.
-> >=20
-> > - if individual properties are preferable over flags, then the C
-> > API
-> > =C2=A0 should also do that. In other words, the Python API should be
-> > similar
-> > =C2=A0 to the underlying C API.
-> >=20
-> > - I don't understand how to do this best. Is Nftables.output_flags
-> > =C2=A0 public API? It appears to be, as it has no underscore. Why does
-> > this
-> > =C2=A0 additional mapping from function (get_reversedns_output()) to
-> > name
-> > =C2=A0 ("reversedns") to number (1<<0) exist?
+> Yes, I'd even call it incorrect. :)
 >=20
-> I don't recall why I chose to add setters/getters for individual
-> output
-> flags instead of expecting users to do bit-fiddling. Maybe the latter
-> is
-> not as common among Python users. :)
+> > src/libnftables.c:=C2=A0 if (nft_output_json(&nft->output))
+> > src/libnftables.c-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 rc =3D nft_parse=
+_json_buffer(nft, nlbuf,
+> > &msgs, &cmds);
+> > src/libnftables.c-=C2=A0 if (rc =3D=3D -EINVAL)
+> > src/libnftables.c-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 rc =3D nft_parse=
+_bison_buffer(nft, nlbuf,
+> > &msgs, &cmds,
+> > src/libnftables.c-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0 &indesc_cmdline);
+> >=20
+> >=20
+> > I think, that toggling the input flag when setting an output flag
+> > should not be done. It's confusing to behave differently depending
+> > on
+> > the order in which nft_ctx_output_set_flags() and
+> > nft_ctx_input_set_flags() are called. And it's confusing that
+> > setting
+> > output flags would mangle input flags.
 >=20
-> On the other hand, things are a bit inconsistent already, see
-> set_debug() method.=20
+> That's a valid point, indeed.
 >=20
-> Maybe we could turn __{get,set}_output_flag() public and make them
-> accept an array of strings or numbers just like set_debug()? If you
-> then adjust your input flag API accordingly, things become consistent
-> (enough?), without breaking existing users.
+> > And for the sake of backwards compatibility, the current behavior
+> > must
+> > be kept anyway. So there is only a place for overruling the current
+> > automatism via some NFT_CTX_INPUT_NO_JSON (aka
+> > NFT_CTX_INOUT_FORCE_BISON) or NFT_CTX_INPUT_FORCE_JSON flags, like
+> >=20
+> > =C2=A0=C2=A0=C2=A0 try_json =3D TRUE;
+> > =C2=A0=C2=A0=C2=A0 try_bison =3D TRUE;
+> > =C2=A0=C2=A0=C2=A0 if (nft_ctx_input_get_flags(ctx) & NFT_CTX_INPUT_NO_=
+JSON)
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 try_json =3D FALSE;
+> > =C2=A0=C2=A0=C2=A0 else if (nft_ctx_input_get_flags(ctx) &
+> > NFT_CTX_INPUT_FORCE_JSON)
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 try_bison =3D FALSE;
+> > =C2=A0=C2=A0=C2=A0 else if (nft_output_json(&ctx->output)) {
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* try both, JSON first */
+> > =C2=A0=C2=A0=C2=A0 } else
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 try_json =3D FALSE;
+> >=20
+> > =C2=A0=C2=A0=C2=A0 if (try_json)
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 rc =3D nft_parse_json_buffer=
+(nft, nlbuf, &msgs, &cmds);
+> > =C2=A0=C2=A0=C2=A0 if (try_bison && (!try_json || rc =3D=3D -EINVAL))
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 rc =3D nft_parse_bison_buffe=
+r(nft, nlbuf, ...);
+> >=20
+> >=20
+> > This would not require to mangle input flags during
+> > nft_ctx_output_set_flags().
+> >=20
+> > =C2=A0
+> > But I find those two flags unnecessary. Both can be added any time
+> > later when needed. The addition of nft_ctx_input_set_flags() does
+> > not
+> > force a resolution now.
+> >=20
+> >=20
+> > Also, depending on the semantics, I don't understand how
+> > NFT_CTX_INPUT_JSON extends the current behavior in a backward
+> > compatible way. The default would be to not have that flag set,
+> > which
+> > already means to enable JSON parsing depending on
+> > NFT_CTX_OUTPUT_JSON.
+> > If NFT_CTX_INPUT_JSON merely means to explicitly enable JSON input,
+> > then that is already fully configurable today. Having this flag
+> > does
+> > not provide something new (unlike NO_JSON/FORCE_BISON or FORCE_JSON
+> > flags would).
 >=20
-> FWIW, I find
+> The use-case I had in mind was to enable JSON parsing while keeping
+> standard output. This was possible with setting NFT_CTX_INPUT_JSON
+> and
+> keeping NFT_CTX_OUTPUT_JSON unset.
+
+you are right. A NFT_CTX_INPUT_JSON (or TRY_JSON?) flag makes sense
+beside NO_JSON/FORCE_BISON and FORCE_JSON/ALWAYS_JSON to enable to try
+both.
+
 >=20
-> > ctx.set_output_flags(["reversedns", "stateless"])
+> The reason for libnftables' odd behaviour probably stems from nft
+> using
+> just a single flag ('-j') to control JSON "mode" and I wanted to
+> still
+> support non-JSON input - I tend to (mis-)use it as JSON-translator in
+> the testsuite and personally. ;)
 >=20
-> nicer than
->=20
-> > ctx.set_output_flags(REVERSEDNS | STATELESS)
->=20
-> at least with a Python hat on. WDYT?
-
-Hi Phil,
+> You're right, we may just leave JSON input/output toggles alone for
+> now.
+> I also didn't intend to block the patches - giving it a thought (as
+> you
+> did) is fine from my side.
 
 
-I see set_debug().
-
-So we can do:
-
-   nft.set_debug("netlink")
-
-or
-
-   nft.set_debug(("netlink", "scanner"))
-
-but to me, that is not an improvement over plain
-
-   nft.output_set_debug(nftables.NFT_DEBUG_NETLINK | nftables.NFT_DEBUG_SCA=
-NNER)
-
-(which would be a thin layer over the underlying, documented C API).
+makes sense. But doesn't block the addition of
+nft_ctx_input_set_flags(), because I would not try to automatically add
+the NFT_CTX_INPUT_JSON flag (based on the output flag). Setting the
+input flag should still be an explicit user action, so the flag can be
+added any time later.
 
 
-I like set_debug() better than the __set_output_flag() approach,
-because the flags are an argument of one function, instead of multiple
-set-flag-xyz() functions. I don't like very much that
-
-  - the "set_debug()" name does not resemble the underlying=C2=A0
-    nft_ctx_output_set_debug() name.
-  - it encourages using string literals as arguments (instead of=C2=A0
-    Python=C2=A0constants which I can grep for and find with ctags).
-  - it requires extra some code to translate from one domain=C2=A0
-    (the list of names/ints)) to another (plain integer flags), when=C2=A0
-    the user could just as well use the=C2=A0flags directly.
-
-Anyway. I don't really mind either way. I will do whatever we agree
-upon.
-
-
-Thanks,
 Thomas
 
