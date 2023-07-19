@@ -2,49 +2,100 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D787C001B0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jul 2023 13:06:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85A66C00528
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jul 2023 17:11:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230405AbjGSNGb (ORCPT
+        id S231136AbjGSRLb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jul 2023 09:06:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40638 "EHLO
+        Wed, 19 Jul 2023 13:11:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230293AbjGSNGa (ORCPT
+        with ESMTP id S230256AbjGSRL3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jul 2023 09:06:30 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72B351A6
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jul 2023 06:06:29 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qM6st-0007BE-Tm
-        for netfilter-devel@vger.kernel.org; Wed, 19 Jul 2023 15:06:27 +0200
-Date:   Wed, 19 Jul 2023 15:06:27 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] tests: shell: Sanitize
- nft-only/0009-needless-bitwise_0
-Message-ID: <ZLff0+8Qoe2uPSIn@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org
-References: <20230719130432.1306-1-phil@nwl.cc>
+        Wed, 19 Jul 2023 13:11:29 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7569B7;
+        Wed, 19 Jul 2023 10:11:27 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 883F821F0A;
+        Wed, 19 Jul 2023 17:11:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1689786686;
+        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+         cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=mfLGzypO41q2AnbyNUD6HDkv4PbvHAEefgIPqN/Q2zs=;
+        b=raP72Lpxh7qGJWXM3itms65FExUoex6SktQl4E90imoUr1UGyqhzDSGXYBklmCH2N38hns
+        2/TUiRjdw3ZcZF+7GPs0cMOwA0TNSE58DqmOUwGL3xM4+fCh+QSTbDAtsj5N4iCXEMknD3
+        nlxSy2rLD1DWfW4zja0s1TpkupYJNiM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1689786686;
+        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+         cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=mfLGzypO41q2AnbyNUD6HDkv4PbvHAEefgIPqN/Q2zs=;
+        b=pKbaLihWcZxCvRx9YVlSv+2P+QaucoG4ip6h7g+TejsnVpOHUV+x9mDC7GjElDQjyt7YJq
+        5Y4zwlB6vg/EI/Dg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 2C1C613460;
+        Wed, 19 Jul 2023 17:11:26 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id fMcnCj4ZuGSwIQAAMHmgww
+        (envelope-from <dsterba@suse.cz>); Wed, 19 Jul 2023 17:11:26 +0000
+Date:   Wed, 19 Jul 2023 19:04:46 +0200
+From:   David Sterba <dsterba@suse.cz>
+To:     syzbot <syzbot+9bbbacfbf1e04d5221f7@syzkaller.appspotmail.com>
+Cc:     bakmitopiacibubur@boga.indosterling.com, clm@fb.com,
+        davem@davemloft.net, dsahern@kernel.org, dsterba@suse.com,
+        fw@strlen.de, gregkh@linuxfoundation.org, jirislaby@kernel.org,
+        josef@toxicpanda.com, kadlec@netfilter.org, kuba@kernel.org,
+        linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux@armlinux.org.uk, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
+Subject: Re: [syzbot] [btrfs?] [netfilter?] BUG: MAX_LOCKDEP_CHAIN_HLOCKS too
+ low! (2)
+Message-ID: <20230719170446.GR20457@twin.jikos.cz>
+Reply-To: dsterba@suse.cz
+References: <000000000000a054ee05bc4b2009@google.com>
+ <0000000000002b2f180600d3b79e@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230719130432.1306-1-phil@nwl.cc>
+In-Reply-To: <0000000000002b2f180600d3b79e@google.com>
+User-Agent: Mutt/1.5.23.1-rc1 (2014-03-12)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 19, 2023 at 03:04:32PM +0200, Phil Sutter wrote:
-> Some versions of awk (gawk-4.2.1-4.el8 in particular) also print the
-> non-debug ruleset listing's empty lines, causing the diff to fail. Catch
-> this by exiting upon seeing the first table heading. For the sake of
-> comparing bytecode, the actual ruleset listing is not interesting,
-> anyway.
+On Wed, Jul 19, 2023 at 02:32:51AM -0700, syzbot wrote:
+> syzbot has found a reproducer for the following issue on:
 > 
-> Fixes: 0f7ea0390b336 ("tests/shell: Fix nft-only/0009-needless-bitwise_0")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> HEAD commit:    e40939bbfc68 Merge branch 'for-next/core' into for-kernelci
+> git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
+> console output: https://syzkaller.appspot.com/x/log.txt?x=15d92aaaa80000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=c4a2640e4213bc2f
+> dashboard link: https://syzkaller.appspot.com/bug?extid=9bbbacfbf1e04d5221f7
+> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+> userspace arch: arm64
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=149b2d66a80000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1214348aa80000
+> 
+> Downloadable assets:
+> disk image: https://storage.googleapis.com/syzbot-assets/9d87aa312c0e/disk-e40939bb.raw.xz
+> vmlinux: https://storage.googleapis.com/syzbot-assets/22a11d32a8b2/vmlinux-e40939bb.xz
+> kernel image: https://storage.googleapis.com/syzbot-assets/0978b5788b52/Image-e40939bb.gz.xz
 
-Patch applied.
+#syz unset btrfs
+
+The MAX_LOCKDEP_CHAIN_HLOCKS bugs/warnings can be worked around by
+configuration, otherwise are considered invalid. This report has also
+'netfilter' label so I'm not closing it right away.
