@@ -2,92 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06659EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jul 2023 11:31:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6598EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jul 2023 13:04:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229991AbjGSLbf (ORCPT
+        id S229646AbjGSNEp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jul 2023 07:31:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52206 "EHLO
+        Wed, 19 Jul 2023 09:04:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229809AbjGSLbe (ORCPT
+        with ESMTP id S229589AbjGSNEp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jul 2023 07:31:34 -0400
-X-Greylist: delayed 59362 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 19 Jul 2023 04:31:31 PDT
-Received: from smtp01.easynet.dev (smtp01.easynet.dev [IPv6:2a00:ece1:2:10::1:110])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E387E10D4
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jul 2023 04:31:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=easynet.dev; s=mail;
-        t=1689766288; bh=OxH8GWjJVSfobM7s2S+TvSBVleb6bPlFnhQXkhYRMbI=;
-        h=Date:Subject:To:References:From:In-Reply-To:From;
-        b=uDPWnW7K0372kIlIOF2yGNRb4PTuCLv37ffVouoWZKENls06IQVbZJ35ItEFZnSZv
-         zUjGS6AW2ktKwA7SW2jV35u6y6kb79i9KikJhQSKf70cI3zBZIXordezp8JWQssOzk
-         W3+HK2juBd+sYx6pPo/D58aA5DhYyt5vi19C99rtUD6WegKePBN36+jM+tqhEzl9f4
-         PRy9J2Ycj4GZHiH06LuurggOFxn8qzBc9W2Xj2BFV7xHoFdjbinl5CiIYwtFGGdbzY
-         ZLCbCg9v4ORuXAgoyM4TOStIyNZdZxajk4zFSdm5jkb159dlCAd1BduXvUeKmT0D90
-         F3jibxHyGqGBw==
-Received: from [192.168.55.102] (unknown [89.38.58.13])
-        (Authenticated sender: adrian@easynet.dev)
-        by smtp1.easynet.dev (Postfix) with ESMTPSA id 6C18160035;
-        Wed, 19 Jul 2023 14:31:28 +0300 (EEST)
-Message-ID: <f0138f3a-ac95-a0fc-206b-f3f3ba5977e1@easynet.dev>
-Date:   Wed, 19 Jul 2023 13:31:26 +0200
+        Wed, 19 Jul 2023 09:04:45 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F44B113
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Jul 2023 06:04:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=Og37k5xZ9dJOHPJGIwpyj/Tl50Nv0SbTEV9S1X+XYIk=; b=bgQ1ONlsKopff+AJaqv4MTwz8Y
+        W5//kbfDpviIhVh72jQJJlioa6Mc16XavcoM2/aV2yCUyxHbiF2AxwBEp+xCsRyyHFfOcHAXL3idd
+        X8zgpUQvIA+9e2NXk2AzzhuTI3u4rveGz96HJwR1NrrfYLBQuukv3bOjIrJobPbywbn/IXDlaDAQq
+        ElsXiPoFIXWbJPLH78JLeEr9OnVjk7/rmq6iczzY3H5nJHZruLSr3VqHthtwTtCt52hWxNteQlnmz
+        3+igPN1K2hMVO0dYFW4xbQCCSr4SqdeB9EC2nbUFBTdXfJsyK0kYNYbmE20kBTZk4KQSNGo01jhvy
+        6ex0C0Cw==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qM6rA-00079A-Tr
+        for netfilter-devel@vger.kernel.org; Wed, 19 Jul 2023 15:04:41 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] tests: shell: Sanitize nft-only/0009-needless-bitwise_0
+Date:   Wed, 19 Jul 2023 15:04:32 +0200
+Message-Id: <20230719130432.1306-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: libnftnl adding element to a set of type ipv4_addr or ipv6_addr
-Content-Language: en-US
-To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-References: <ff54bc23-95f3-8300-c9d4-e5d74581a0e7@easynet.dev>
- <ZLfAshHpX+Zqp6Mh@orbyte.nwl.cc>
-From:   Easynet <devel@easynet.dev>
-Organization: EasyNet Consulting SRL
-In-Reply-To: <ZLfAshHpX+Zqp6Mh@orbyte.nwl.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+Some versions of awk (gawk-4.2.1-4.el8 in particular) also print the
+non-debug ruleset listing's empty lines, causing the diff to fail. Catch
+this by exiting upon seeing the first table heading. For the sake of
+comparing bytecode, the actual ruleset listing is not interesting,
+anyway.
 
-Thanks for the answer. That's a very good idea. Today I saw the example 
-sources of nftables using nft_run_cmd_from_buffer and I was wondering 
-perhaps if I can use this function somehow.
-I will simplify my code a lot. It will not be necessary to build all 
-code for my mini-firewall tool and I think the foot print will be reduced.
+Fixes: 0f7ea0390b336 ("tests/shell: Fix nft-only/0009-needless-bitwise_0")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the idea!
-
-Cheers.
-
-On 7/19/2023 12:53 PM, Phil Sutter wrote:
-> Hi,
->
-> On Tue, Jul 18, 2023 at 09:02:02PM +0200, Easynet wrote:
->> I'm building a small firewall daemon that it receives if an user is
->> authenticated and then is adding his IP in a set to be allowed for 24h.
->> I'm new in nftnl library and I started to read the documentation and
->> also the examples.
->>
->> Until now I was able to add in my daemon these tools based on libnftnl:
->>
->> - create / delete / get tables
->> - create / delete chains
->> - create / delete sets.
->>
->> Right now I'm facing an issue that I can't understand how to build the
->> nftnl packet for adding an element to my set, which has interval and
->> timeout flags.
-> With libnftnl, source is documentation. Go check nftables code on how to
-> use it. If you need a simpler interface to nftables, I highly recommend
-> using libnftables instead. You'll either have to pass strings or use a
-> JSON library for structured in- and output. For simple things such as
-> adding an element to a set, it more or less boils down to:
->
-> | struct nft_ctx *ctx = nft_ctx_new(NFT_CTX_DEFAULT);
-> | nft_run_cmd_from_buffer(ctx, "add element mytable myset { 123 }");
-> | nft_ctx_free(ctx);
->
-> Cheers, Phil
+diff --git a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0 b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+index 41588a10863ec..34802cc26aad4 100755
+--- a/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
++++ b/iptables/tests/shell/testcases/nft-only/0009-needless-bitwise_0
+@@ -340,7 +340,7 @@ bridge filter OUTPUT 10 9
+ # - lines with bytecode (starting with '  [')
+ # - empty lines (so printed diff is not a complete mess)
+ filter() {
+-	awk '/^(  \[|$)/{print}'
++	awk '/^table /{exit} /^(  \[|$)/{print}'
+ }
+ 
+ diff -u -Z <(filter <<< "$EXPECT") <(nft --debug=netlink list ruleset | filter)
+-- 
+2.40.0
 
