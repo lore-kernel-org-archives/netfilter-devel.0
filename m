@@ -2,90 +2,177 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F2FEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 20:00:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BC8EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 20:58:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230274AbjGTUA0 (ORCPT
+        id S229683AbjGTU6N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jul 2023 16:00:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53328 "EHLO
+        Thu, 20 Jul 2023 16:58:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231233AbjGTUA0 (ORCPT
+        with ESMTP id S229579AbjGTU6L (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2023 16:00:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1FA9270B
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 13:00:23 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7165B61C43
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 20:00:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id C6BB5C433C7;
-        Thu, 20 Jul 2023 20:00:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689883222;
-        bh=LvhYmR5MI0Y93Db3DTx92Hny9qHPOPc7zMb7XD4ncqo=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=mrDG7Iz8atbCjY3ffJGouw3Gjo1suybCmXoYZR+f19M4J8eqJVyAEiX4t0B8XwlrQ
-         aVoDXdzvCoPIDveKhQDaXNpBnajEzPSS0ne9/Otv3qfDnfVJccghhNeMYHsThyHCT/
-         DRugrIp7VFB6DOs5MOKV7fXfLMwEE83sYK4Of32/IaFFUCj4VK/HaJpokRD8w8jyDA
-         BCDrui194lPVufWrKwfF7Tz9D+KHnc1M5u3cZ8DK8IFGZxX4NBjfaw5swil6A3x0bV
-         QzVUHEzlxQXx1UirmK0pz31cMEBr5kM3+Psv+EtMlo/X02Sx/QVeJkIRBd6omHs6w3
-         bqkxZsQvGL+UQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id AB23BE21EFF;
-        Thu, 20 Jul 2023 20:00:22 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 20 Jul 2023 16:58:11 -0400
+Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E84719A6;
+        Thu, 20 Jul 2023 13:58:10 -0700 (PDT)
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+        by mailout.west.internal (Postfix) with ESMTP id 08E493202AC7;
+        Thu, 20 Jul 2023 16:58:08 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute3.internal (MEProxy); Thu, 20 Jul 2023 16:58:09 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to; s=fm2; t=1689886688; x=1689973088; bh=yUfxtH9RM9
+        dukICZlQ4Vtj2WahFi7TaKXxx1t/LzP8g=; b=jnbUWFqLonaYD0wJnjWR447TLX
+        6KZOS1lqBpHOkNRRBvyPNJwk4Du8ZOU7yn3R38vRetybkQyOhVVZHIZFX8cpcRW9
+        PLQRKICpzBBEk+V2G29bKvuCWpGQBCSgtsczm8IGf04pUkmyFRzj1supFvWB67/t
+        lr95C4+8+lCDc1KmpeJIK/ND9IMACKU2JJuQMIbqNK08QGyazz/utgXNJLYFT0LC
+        80iXLhFu4FyT+MqPc9AGVzbGDYEiV4SnLC9lu5Xhnhh1HwWE6ACGDlSdMziwtF0V
+        eWxG9q9JUbzbxLvNJJED+dTC951B5oVuj1Zdcpns4BstMUcXKrwNwASWbQbg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:date:date:feedback-id:feedback-id:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1689886688; x=1689973088; bh=yUfxtH9RM9duk
+        ICZlQ4Vtj2WahFi7TaKXxx1t/LzP8g=; b=utSeSJADxLz8NqE2H8w6aVSBOYOQc
+        7/jy1qmi9qivajSdOjM2XFMtOWg5v9yOluvbtyW32apr2y1Cyauq1wV/s1n1TrE7
+        qc4Z/wn3CtMz3NvPnnIixeYVIpVuA7cb5af0St1ncKp+zdobhQ2Aj6xShoQxFArX
+        T6MVDWO8DQvZhASuy2SkUd1MqA2PdgtzgKAfWXomOPuToe4XhUYTyGJy08IV+pRU
+        y4ied0xgoUvnh28sLl946YSzThM/SSYm4Iw5qGBLJF1qGN+74smha5H+Qz1sLsbe
+        y2l5yiLYjos8l7frUh+w2L7cwy0yvpJOmN9rn1Au7eo92128HiAZUpklA==
+X-ME-Sender: <xms:35-5ZL7_c3CmZkLaBVOEisa3FEYcfd5tqFSUs_O8OLkmfatBULR9Kw>
+    <xme:35-5ZA60RuhMDOA6ksQdA6Knb0i00ggcxpLiMhy7w0A2QT_iPONcVKNaHGjYrRuJe
+    jHEnEa2zRfxklPQCQ>
+X-ME-Received: <xmr:35-5ZCeWJ4SsJCz-I_Y9f8wId1Xv9Ao3JnD2ntCBomlN5uhltNldO3wOFdCgNc1AzAnqSVzcRRwr1o-PRIjHVuGb9nbVLvj0qCiTkVLT_0A>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrhedtgdduheegucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucgfrhhlucfvnfffucdlfeehmdenucfjughrpefhvf
+    evufffkffoggfgsedtkeertdertddtnecuhfhrohhmpeffrghnihgvlhcuighuuceougig
+    uhesugiguhhuuhdrgiihiieqnecuggftrfgrthhtvghrnhepteeghffhiefgjedtvdetfe
+    ffgfetkeetudeitdekveeluddvjeeugefgtdefgeefnecuffhomhgrihhnpehivghtfhdr
+    ohhrghenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
+    gugihusegugihuuhhurdighiii
+X-ME-Proxy: <xmx:35-5ZMJkmVizijuFXxAfkorLfsVy6RQaO9OZaIr4QbvUCKgfAgDv0w>
+    <xmx:35-5ZPL28eShlmMQ578luou5CRnTZheuAmY5rWFRkb7QLFn5WNUdLA>
+    <xmx:35-5ZFwt4uLgn_nLaEnO1XKcknE0F7jiNkhs2zKRxlQxnpK2PVdMdA>
+    <xmx:4J-5ZG9WlL7jr04aRTSGf14rTCBvyDmyLJsP9-wYiW41pCncJnW5fQ>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 20 Jul 2023 16:58:06 -0400 (EDT)
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        bpf@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+        alexei.starovoitov@gmail.com, fw@strlen.de, daniel@iogearbox.net
+Cc:     dsahern@kernel.org
+Subject: [PATCH bpf-next v5 0/5] Support defragmenting IPv(4|6) packets in BPF
+Date:   Thu, 20 Jul 2023 14:57:34 -0600
+Message-ID: <cover.1689884827.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: nf_tables: fix spurious set element
- insertion failure
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <168988322269.13634.17225693802889324247.git-patchwork-notify@kernel.org>
-Date:   Thu, 20 Jul 2023 20:00:22 +0000
-References: <20230720165143.30208-2-fw@strlen.de>
-In-Reply-To: <20230720165143.30208-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+=== Context ===
 
-This series was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
+In the context of a middlebox, fragmented packets are tricky to handle.
+The full 5-tuple of a packet is often only available in the first
+fragment which makes enforcing consistent policy difficult. There are
+really only two stateless options, neither of which are very nice:
 
-On Thu, 20 Jul 2023 18:51:33 +0200 you wrote:
-> On some platforms there is a padding hole in the nft_verdict
-> structure, between the verdict code and the chain pointer.
-> 
-> On element insertion, if the new element clashes with an existing one and
-> NLM_F_EXCL flag isn't set, we want to ignore the -EEXIST error as long as
-> the data associated with duplicated element is the same as the existing
-> one.  The data equality check uses memcmp.
-> 
-> [...]
+1. Enforce policy on first fragment and accept all subsequent fragments.
+   This works but may let in certain attacks or allow data exfiltration.
 
-Here is the summary with links:
-  - [net,1/5] netfilter: nf_tables: fix spurious set element insertion failure
-    https://git.kernel.org/netdev/net/c/ddbd8be68941
-  - [net,2/5] netfilter: nf_tables: can't schedule in nft_chain_validate
-    https://git.kernel.org/netdev/net/c/314c82841602
-  - [net,3/5] netfilter: nft_set_pipapo: fix improper element removal
-    https://git.kernel.org/netdev/net/c/87b5a5c20940
-  - [net,4/5] netfilter: nf_tables: skip bound chain in netns release path
-    https://git.kernel.org/netdev/net/c/751d460ccff3
-  - [net,5/5] netfilter: nf_tables: skip bound chain on rule flush
-    https://git.kernel.org/netdev/net/c/6eaf41e87a22
+2. Enforce policy on first fragment and drop all subsequent fragments.
+   This does not really work b/c some protocols may rely on
+   fragmentation. For example, DNS may rely on oversized UDP packets for
+   large responses.
 
-You are awesome, thank you!
+So stateful tracking is the only sane option. RFC 8900 [0] calls this
+out as well in section 6.3:
+
+    Middleboxes [...] should process IP fragments in a manner that is
+    consistent with [RFC0791] and [RFC8200]. In many cases, middleboxes
+    must maintain state in order to achieve this goal.
+
+=== BPF related bits ===
+
+Policy has traditionally been enforced from XDP/TC hooks. Both hooks
+run before kernel reassembly facilities. However, with the new
+BPF_PROG_TYPE_NETFILTER, we can rather easily hook into existing
+netfilter reassembly infra.
+
+The basic idea is we bump a refcnt on the netfilter defrag module and
+then run the bpf prog after the defrag module runs. This allows bpf
+progs to transparently see full, reassembled packets. The nice thing
+about this is that progs don't have to carry around logic to detect
+fragments.
+
+=== Changelog ===
+
+Changes from v4:
+
+* Refactor module handling code to not sleep in rcu_read_lock()
+* Also unify the v4 and v6 hook structs so they can share codepaths
+* Fixed some checkpatch.pl formatting warnings
+
+Changes from v3:
+
+* Correctly initialize `addrlen` stack var for recvmsg()
+
+Changes from v2:
+
+* module_put() if ->enable() fails
+* Fix CI build errors
+
+Changes from v1:
+
+* Drop bpf_program__attach_netfilter() patches
+* static -> static const where appropriate
+* Fix callback assignment order during registration
+* Only request_module() if callbacks are missing
+* Fix retval when modprobe fails in userspace
+* Fix v6 defrag module name (nf_defrag_ipv6_hooks -> nf_defrag_ipv6)
+* Simplify priority checking code
+* Add warning if module doesn't assign callbacks in the future
+* Take refcnt on module while defrag link is active
+
+
+[0]: https://datatracker.ietf.org/doc/html/rfc8900
+
+
+Daniel Xu (5):
+  netfilter: defrag: Add glue hooks for enabling/disabling defrag
+  netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link
+  bpf: selftests: Support not connecting client socket
+  bpf: selftests: Support custom type and proto for client sockets
+  bpf: selftests: Add defrag selftests
+
+ include/linux/netfilter.h                     |  10 +
+ include/uapi/linux/bpf.h                      |   5 +
+ net/ipv4/netfilter/nf_defrag_ipv4.c           |  17 +-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c     |  11 +
+ net/netfilter/core.c                          |   6 +
+ net/netfilter/nf_bpf_link.c                   | 116 ++++++-
+ tools/include/uapi/linux/bpf.h                |   5 +
+ tools/testing/selftests/bpf/Makefile          |   4 +-
+ .../selftests/bpf/generate_udp_fragments.py   |  90 ++++++
+ .../selftests/bpf/ip_check_defrag_frags.h     |  57 ++++
+ tools/testing/selftests/bpf/network_helpers.c |  26 +-
+ tools/testing/selftests/bpf/network_helpers.h |   3 +
+ .../bpf/prog_tests/ip_check_defrag.c          | 283 ++++++++++++++++++
+ .../selftests/bpf/progs/ip_check_defrag.c     | 104 +++++++
+ 14 files changed, 715 insertions(+), 22 deletions(-)
+ create mode 100755 tools/testing/selftests/bpf/generate_udp_fragments.py
+ create mode 100644 tools/testing/selftests/bpf/ip_check_defrag_frags.h
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/ip_check_defrag.c
+ create mode 100644 tools/testing/selftests/bpf/progs/ip_check_defrag.c
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.41.0
 
