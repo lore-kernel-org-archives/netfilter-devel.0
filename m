@@ -2,136 +2,110 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4C46EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 21:05:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1475AEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 23:19:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229593AbjGTVE7 (ORCPT
+        id S229819AbjGTXT1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jul 2023 17:04:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46990 "EHLO
+        Thu, 20 Jul 2023 19:19:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229737AbjGTVE6 (ORCPT
+        with ESMTP id S229824AbjGTXT0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2023 17:04:58 -0400
+        Thu, 20 Jul 2023 19:19:26 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 717942123
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 14:04:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C874B2713;
+        Thu, 20 Jul 2023 16:19:19 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1qMapT-0002fz-6n; Thu, 20 Jul 2023 23:04:55 +0200
-Date:   Thu, 20 Jul 2023 23:04:55 +0200
+        id 1qMcvI-0003Fw-2U; Fri, 21 Jul 2023 01:19:04 +0200
+Date:   Fri, 21 Jul 2023 01:19:04 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: skip immediate deactivate in
- _PREPARE_ERROR and _COMMIT
-Message-ID: <ZLmhd4g85Jk8oGRR@strlen.de>
-References: <20230720070725.13602-1-pablo@netfilter.org>
+To:     Daniel Xu <dxu@dxuuu.xyz>
+Cc:     daniel@iogearbox.net, kadlec@netfilter.org, ast@kernel.org,
+        pablo@netfilter.org, kuba@kernel.org, davem@davemloft.net,
+        andrii@kernel.org, edumazet@google.com, pabeni@redhat.com,
+        fw@strlen.de, alexei.starovoitov@gmail.com, martin.lau@linux.dev,
+        song@kernel.org, yhs@fb.com, john.fastabend@gmail.com,
+        kpsingh@kernel.org, sdf@google.com, haoluo@google.com,
+        jolsa@kernel.org, bpf@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org, dsahern@kernel.org
+Subject: Re: [PATCH bpf-next v5 2/5] netfilter: bpf: Support
+ BPF_F_NETFILTER_IP_DEFRAG in netfilter link
+Message-ID: <20230720231904.GA31372@breakpoint.cc>
+References: <cover.1689884827.git.dxu@dxuuu.xyz>
+ <690a1b09db84547b0f0c73654df3f4950f1262b7.1689884827.git.dxu@dxuuu.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230720070725.13602-1-pablo@netfilter.org>
+In-Reply-To: <690a1b09db84547b0f0c73654df3f4950f1262b7.1689884827.git.dxu@dxuuu.xyz>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On error when building the rule, the immediate expression unbinds the
-> chain, hence objects can be deactivated by the transaction records.
-> Similarly, commit path also does not require deactivate because this is
-> already done from _PREPARE.
->
-> Otherwise, it is possible to trigger the following warning:
-> 
->  WARNING: CPU: 3 PID: 915 at net/netfilter/nf_tables_api.c:2013 nf_tables_chain_destroy+0x1f7/0x210 [nf_tables]
->  CPU: 3 PID: 915 Comm: chain-bind-err- Not tainted 6.1.39 #1
->  RIP: 0010:nf_tables_chain_destroy+0x1f7/0x210 [nf_tables]
-> 
-> Reported-by: Kevin Rich <kevinrich1337@gmail.com>
-> Fixes: 4bedf9eee016 ("netfilter: nf_tables: fix chain binding transaction logic")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nft_immediate.c | 30 +++++++++++++++++++++---------
->  1 file changed, 21 insertions(+), 9 deletions(-)
-> 
-> diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-> index 407d7197f75b..a46f872a31cd 100644
-> --- a/net/netfilter/nft_immediate.c
-> +++ b/net/netfilter/nft_immediate.c
-> @@ -125,15 +125,27 @@ static void nft_immediate_activate(const struct nft_ctx *ctx,
->  	return nft_data_hold(&priv->data, nft_dreg_to_type(priv->dreg));
->  }
->  
-> +static void nft_immediate_chain_deactivate(const struct nft_ctx *ctx,
-> +					   struct nft_chain *chain,
-> +					   enum nft_trans_phase phase)
-> +{
-> +	struct nft_ctx chain_ctx;
-> +	struct nft_rule *rule;
+Daniel Xu <dxu@dxuuu.xyz> wrote:
+> +	const struct nf_defrag_hook __maybe_unused *hook;
 > +
-> +	chain_ctx = *ctx;
-> +	chain_ctx.chain = chain;
+> +	switch (link->hook_ops.pf) {
+> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+> +	case NFPROTO_IPV4:
+> +		hook = get_proto_defrag_hook(link, nf_defrag_v4_hook, "nf_defrag_ipv4");
+> +		if (IS_ERR(hook))
+> +			return PTR_ERR(hook);
 > +
-> +	list_for_each_entry(rule, &chain->rules, list)
-> +		nft_rule_expr_deactivate(&chain_ctx, rule, phase);
+> +		link->defrag_hook = hook;
+> +		return 0;
+> +#endif
+> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+> +	case NFPROTO_IPV6:
+> +		hook = get_proto_defrag_hook(link, nf_defrag_v6_hook, "nf_defrag_ipv6");
+> +		if (IS_ERR(hook))
+> +			return PTR_ERR(hook);
+> +
+> +		link->defrag_hook = hook;
+> +		return 0;
+> +#endif
+> +	default:
+> +		return -EAFNOSUPPORT;
+> +	}
 > +}
 > +
->  static void nft_immediate_deactivate(const struct nft_ctx *ctx,
->  				     const struct nft_expr *expr,
->  				     enum nft_trans_phase phase)
+> +static void bpf_nf_disable_defrag(struct bpf_nf_link *link)
+> +{
+> +	const struct nf_defrag_hook *hook = link->defrag_hook;
+> +
+> +	if (!hook)
+> +		return;
+> +	hook->disable(link->net);
+> +	module_put(hook->owner);
+> +}
+> +
+>  static void bpf_nf_link_release(struct bpf_link *link)
 >  {
->  	const struct nft_immediate_expr *priv = nft_expr_priv(expr);
->  	const struct nft_data *data = &priv->data;
-> -	struct nft_ctx chain_ctx;
->  	struct nft_chain *chain;
-> -	struct nft_rule *rule;
->  
->  	if (priv->dreg == NFT_REG_VERDICT) {
->  		switch (data->verdict.code) {
-> @@ -143,19 +155,19 @@ static void nft_immediate_deactivate(const struct nft_ctx *ctx,
->  			if (!nft_chain_binding(chain))
->  				break;
->  
-> -			chain_ctx = *ctx;
-> -			chain_ctx.chain = chain;
-> -
-> -			list_for_each_entry(rule, &chain->rules, list)
-> -				nft_rule_expr_deactivate(&chain_ctx, rule, phase);
-> -
->  			switch (phase) {
->  			case NFT_TRANS_PREPARE_ERROR:
->  				nf_tables_unbind_chain(ctx, chain);
-> -				fallthrough;
-> +				nft_deactivate_next(ctx->net, chain);
-> +				break;
->  			case NFT_TRANS_PREPARE:
-> +				nft_immediate_chain_deactivate(ctx, chain, phase);
->  				nft_deactivate_next(ctx->net, chain);
->  				break;
+>  	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
+> @@ -37,6 +119,8 @@ static void bpf_nf_link_release(struct bpf_link *link)
+>  	 */
+>  	if (!cmpxchg(&nf_link->dead, 0, 1))
+>  		nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
+> +
+> +	bpf_nf_disable_defrag(nf_link);
+>  }
 
-So far so good, don't do deactivate from PREPARE_ERROR.
-> +			case NFT_TRANS_ABORT:
-> +			case NFT_TRANS_RELEASE:
-> +				nft_immediate_chain_deactivate(ctx, chain, phase);
-> +				fallthrough;
->  			default:
->  				nft_chain_del(chain);
+I suspect this needs to be within the cmpxchg() branch to avoid
+multiple ->disable() calls.
 
-But this one I don't understand, this introduces a memory leak.
+> +	if (attr->link_create.netfilter.flags & BPF_F_NETFILTER_IP_DEFRAG) {
+> +		err = bpf_nf_enable_defrag(link);
+> +		if (err) {
+> +			bpf_link_cleanup(&link_primer);
+> +			return err;
+> +		}
+> +	}
+> +
+>  	err = nf_register_net_hook(net, &link->hook_ops);
+>  	if (err) {
+		bpf_nf_disable_defrag(link);
 
-After this, COMMIT no longer calls deactivate which means
-nft_lookup ->deactivate won't call nf_tables_deactivate_set()
-which then won't call into nf_tables_unbind_set().
-
-I've removed the entire hunk above to do:
-
->  			case NFT_TRANS_PREPARE:
-> +				nft_immediate_chain_deactivate(ctx, chain, phase);
->  				nft_deactivate_next(ctx->net, chain);
->  				break;
->  			default:
-> +				nft_immediate_chain_deactivate(ctx, chain, phase);
->  				nft_chain_del(chain);
-
-Which means nft_immediate_chain_deactivate() is always called except
-for PREPARE_ERROR. Does that make sense to you?
+Other than those nits this lgtm, thanks!
