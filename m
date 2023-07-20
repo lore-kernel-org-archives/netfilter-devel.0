@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92127EB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 16:51:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CBE9EB64DA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 16:52:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230169AbjGTQv5 (ORCPT
+        id S230230AbjGTQwB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jul 2023 12:51:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43276 "EHLO
+        Thu, 20 Jul 2023 12:52:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229526AbjGTQv4 (ORCPT
+        with ESMTP id S229526AbjGTQwA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2023 12:51:56 -0400
+        Thu, 20 Jul 2023 12:52:00 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E413C1715;
-        Thu, 20 Jul 2023 09:51:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAFF1123;
+        Thu, 20 Jul 2023 09:51:59 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qMWsZ-0001Lf-Vc; Thu, 20 Jul 2023 18:51:51 +0200
+        id 1qMWse-0001Lw-1J; Thu, 20 Jul 2023 18:51:56 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -26,9 +26,9 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>
-Subject: [PATCH net 1/5] netfilter: nf_tables: fix spurious set element insertion failure
-Date:   Thu, 20 Jul 2023 18:51:33 +0200
-Message-ID: <20230720165143.30208-2-fw@strlen.de>
+Subject: [PATCH net 2/5] netfilter: nf_tables: can't schedule in nft_chain_validate
+Date:   Thu, 20 Jul 2023 18:51:34 +0200
+Message-ID: <20230720165143.30208-3-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230720165143.30208-1-fw@strlen.de>
 References: <20230720165143.30208-1-fw@strlen.de>
@@ -38,42 +38,57 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On some platforms there is a padding hole in the nft_verdict
-structure, between the verdict code and the chain pointer.
+Can be called via nft set element list iteration, which may acquire
+rcu and/or bh read lock (depends on set type).
 
-On element insertion, if the new element clashes with an existing one and
-NLM_F_EXCL flag isn't set, we want to ignore the -EEXIST error as long as
-the data associated with duplicated element is the same as the existing
-one.  The data equality check uses memcmp.
+BUG: sleeping function called from invalid context at net/netfilter/nf_tables_api.c:3353
+in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 1232, name: nft
+preempt_count: 0, expected: 0
+RCU nest depth: 1, expected: 0
+2 locks held by nft/1232:
+ #0: ffff8881180e3ea8 (&nft_net->commit_mutex){+.+.}-{3:3}, at: nf_tables_valid_genid
+ #1: ffffffff83f5f540 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire
+Call Trace:
+ nft_chain_validate
+ nft_lookup_validate_setelem
+ nft_pipapo_walk
+ nft_lookup_validate
+ nft_chain_validate
+ nft_immediate_validate
+ nft_chain_validate
+ nf_tables_validate
+ nf_tables_abort
 
-For normal data (NFT_DATA_VALUE) this works fine, but for NFT_DATA_VERDICT
-padding area leads to spurious failure even if the verdict data is the
-same.
+No choice but to move it to nf_tables_validate().
 
-This then makes the insertion fail with 'already exists' error, even
-though the new "key : data" matches an existing entry and userspace
-told the kernel that it doesn't want to receive an error indication.
-
-Fixes: c016c7e45ddf ("netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion")
+Fixes: 81ea01066741 ("netfilter: nf_tables: add rescheduling points during loop detection walks")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_tables_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 237f739da3ca..79c7eee33dcd 100644
+index 79c7eee33dcd..41e7d21d4429 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -10517,6 +10517,9 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+@@ -3685,8 +3685,6 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
+ 			if (err < 0)
+ 				return err;
+ 		}
+-
+-		cond_resched();
+ 	}
  
- 	if (!tb[NFTA_VERDICT_CODE])
- 		return -EINVAL;
+ 	return 0;
+@@ -3710,6 +3708,8 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 		err = nft_chain_validate(&ctx, chain);
+ 		if (err < 0)
+ 			return err;
 +
-+	/* zero padding hole for memcmp */
-+	memset(data, 0, sizeof(*data));
- 	data->verdict.code = ntohl(nla_get_be32(tb[NFTA_VERDICT_CODE]));
++		cond_resched();
+ 	}
  
- 	switch (data->verdict.code) {
+ 	return 0;
 -- 
 2.41.0
 
