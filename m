@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D308EEB64DC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D09EB64DD
 	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 14:32:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231713AbjGTOcw (ORCPT
+        id S229586AbjGTOcw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Thu, 20 Jul 2023 10:32:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58582 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229586AbjGTOcv (ORCPT
+        with ESMTP id S231293AbjGTOcw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2023 10:32:51 -0400
+        Thu, 20 Jul 2023 10:32:52 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A72426AC
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D96F26AD
         for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 07:32:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
         s=mimecast20190719; t=1689863523;
@@ -22,30 +22,30 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=051AwssLUwkUR9Cvm44K2UV2wpr4fI6ITILlA5ifiyg=;
-        b=YpOVAgMNqv4xHYnzkI3rLjUap46UErS6DBEeRwVoyG7hB9m5KQiooAOnNpvBfdmddBwQpS
-        jycEiTDSSVyd9hmEzAP9Dfiglz1g5/rkbMy41Fl0LNLZ3jIn9576rUSNL0fy/IYsRGlIj7
-        2gYYqWnwXGXP3WJgHSvyHn+d7CPGlSw=
+        bh=/FFg+Shveq1rwruBhJh8Oh1SOYL5hrtL0zSKAqH0R1k=;
+        b=Yp/JQ0oArbhC2EVBw4IZK76d2GyRAKVEHvRvK/nrbcgAyQ1/6HhdumHEBN/d5/m+q7eJDQ
+        9ChM28n6iZM06lzrpvmhc4lfxg0bGDMCB5DgRK2o0E92Zt6JoxJqQb1QLhP3Ig4t7jlZWi
+        LzAYa0t3rLLJZ0kjvdlG67riFSxYYGw=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-553-309HrZm5MM6wBmBvo9dWRQ-1; Thu, 20 Jul 2023 10:31:59 -0400
-X-MC-Unique: 309HrZm5MM6wBmBvo9dWRQ-1
+ us-mta-145-SFG_Kp9bNXSsC_MGVU_oXg-1; Thu, 20 Jul 2023 10:32:00 -0400
+X-MC-Unique: SFG_Kp9bNXSsC_MGVU_oXg-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 0C932104458D;
-        Thu, 20 Jul 2023 14:31:59 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 091651044590;
+        Thu, 20 Jul 2023 14:32:00 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.210])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 4C34840C2070;
-        Thu, 20 Jul 2023 14:31:58 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 45B6C40C206F;
+        Thu, 20 Jul 2023 14:31:59 +0000 (UTC)
 From:   Thomas Haller <thaller@redhat.com>
 To:     NetFilter <netfilter-devel@vger.kernel.org>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
         Thomas Haller <thaller@redhat.com>
-Subject: [nft v3 PATCH 3/4] src: add input flag NFT_CTX_INPUT_JSON to enable JSON parsing
-Date:   Thu, 20 Jul 2023 16:27:02 +0200
-Message-ID: <20230720143147.669250-4-thaller@redhat.com>
+Subject: [nft v3 PATCH 4/4] py: add Nftables.input_{set,get}_flags() API
+Date:   Thu, 20 Jul 2023 16:27:03 +0200
+Message-ID: <20230720143147.669250-5-thaller@redhat.com>
 In-Reply-To: <20230720143147.669250-1-thaller@redhat.com>
 References: <20230720143147.669250-1-thaller@redhat.com>
 MIME-Version: 1.0
@@ -55,81 +55,99 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-By default, the input is parsed using the nftables grammar. When setting
-NFT_CTX_OUTPUT_JSON flag, nftables will first try to parse the input as
-JSON before falling back to the nftables grammar.
+Add new API to expose the input flags in the Python API.
 
-But NFT_CTX_OUTPUT_JSON flag also turns on JSON for the output. Add a
-flag NFT_CTX_INPUT_JSON which allows to treat only the input in JSON
-format, but keep the output mode unchanged.
+Note that the chosen approach differs from the existing
+nft_ctx_output_get_flags() and nft_ctx_output_get_debug()
+API, which themselves are inconsistent approaches.
+
+The new API directly exposes the underlying C API, that is, the numeric
+flags.
 
 Signed-off-by: Thomas Haller <thaller@redhat.com>
 ---
- doc/libnftables.adoc           | 6 ++++++
- include/nftables/libnftables.h | 1 +
- src/libnftables.c              | 6 ++++--
- 3 files changed, 11 insertions(+), 2 deletions(-)
+ py/nftables.py | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
-diff --git a/doc/libnftables.adoc b/doc/libnftables.adoc
-index 77f3a0fd5659..27e230281edb 100644
---- a/doc/libnftables.adoc
-+++ b/doc/libnftables.adoc
-@@ -87,6 +87,7 @@ The flags setting controls the input format.
- ----
- enum {
-         NFT_CTX_INPUT_NO_DNS = (1 << 0),
-+        NFT_CTX_INPUT_JSON   = (1 << 1),
- };
- ----
+diff --git a/py/nftables.py b/py/nftables.py
+index 68fcd7dd103c..e2417b7598c0 100644
+--- a/py/nftables.py
++++ b/py/nftables.py
+@@ -21,6 +21,29 @@ import os
  
-@@ -94,6 +95,11 @@ NFT_CTX_INPUT_NO_DNS::
- 	Avoid resolving IP addresses with blocking getaddrinfo(). In that case,
- 	only plain IP addresses are accepted.
+ NFTABLES_VERSION = "0.1"
  
-+NFT_CTX_INPUT_JSON:
-+	When parsing the input, first try to interpret the input as JSON before
-+	falling back to the nftables format. This behavior is implied when setting
-+	the NFT_CTX_OUTPUT_JSON flag.
++"""Prevent blocking DNS lookups for IP addresses.
 +
- The *nft_ctx_input_get_flags*() function returns the input flags setting's value in 'ctx'.
++By default, nftables will try to resolve IP addresses with blocking getaddrinfo() API.
++By setting this flag, only literal IP addresses are supported in input.
++
++This numeric flag can be passed to Nftables.input_get_flags() and is returned
++by Nftables.input_set_flags().
++"""
++NFT_CTX_INPUT_NO_DNS = 1
++
++"""Attempt to parse input in JSON format.
++
++By default, input will be parsed using the nftables format. By setting
++this flag, the parsing will first attempt to read the input in the
++JSON format as documented in libnftables-json manual. This flag is
++implied by NFT_CTX_OUTPUT_JSON flag (Nftables.set_json_output()).
++
++This numeric flag can be passed to Nftables.input_get_flags() and is returned
++by Nftables.input_set_flags().
++"""
++NFT_CTX_INPUT_JSON = 2
++
++
+ class SchemaValidator:
+     """Libnftables JSON validator using jsonschema"""
  
- The *nft_ctx_input_set_flags*() function sets the input flags setting in 'ctx' to the value of 'val'.
-diff --git a/include/nftables/libnftables.h b/include/nftables/libnftables.h
-index 2f5f079efff0..152c7a5b75da 100644
---- a/include/nftables/libnftables.h
-+++ b/include/nftables/libnftables.h
-@@ -50,6 +50,7 @@ void nft_ctx_set_optimize(struct nft_ctx *ctx, uint32_t flags);
+@@ -82,6 +105,13 @@ class Nftables:
+         self.nft_ctx_new.restype = c_void_p
+         self.nft_ctx_new.argtypes = [c_int]
  
- enum {
- 	NFT_CTX_INPUT_NO_DNS		= (1 << 0),
-+	NFT_CTX_INPUT_JSON		= (1 << 1),
- };
++        self.nft_ctx_input_get_flags = lib.nft_ctx_input_get_flags
++        self.nft_ctx_input_get_flags.restype = c_uint
++        self.nft_ctx_input_get_flags.argtypes = [c_void_p]
++
++        self.nft_ctx_input_set_flags = lib.nft_ctx_input_set_flags
++        self.nft_ctx_input_set_flags.argtypes = [c_void_p, c_uint]
++
+         self.nft_ctx_output_get_flags = lib.nft_ctx_output_get_flags
+         self.nft_ctx_output_get_flags.restype = c_uint
+         self.nft_ctx_output_get_flags.argtypes = [c_void_p]
+@@ -152,6 +182,30 @@ class Nftables:
+     def __del__(self):
+         self.nft_ctx_free(self.__ctx)
  
- unsigned int nft_ctx_input_get_flags(struct nft_ctx *ctx);
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 6832f0486d6d..a2e0ae6b5843 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -578,7 +578,8 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
- 	nlbuf = xzalloc(strlen(buf) + 2);
- 	sprintf(nlbuf, "%s\n", buf);
- 
--	if (nft_output_json(&nft->output))
-+	if (nft_output_json(&nft->output) ||
-+	    (nft_ctx_input_get_flags(nft) & NFT_CTX_INPUT_JSON))
- 		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &cmds);
- 	if (rc == -EINVAL)
- 		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds,
-@@ -677,7 +678,8 @@ static int __nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename
- 		goto err;
- 
- 	rc = -EINVAL;
--	if (nft_output_json(&nft->output))
-+	if (nft_output_json(&nft->output) ||
-+	    (nft_ctx_input_get_flags(nft) & NFT_CTX_INPUT_JSON))
- 		rc = nft_parse_json_filename(nft, filename, &msgs, &cmds);
- 	if (rc == -EINVAL)
- 		rc = nft_parse_bison_filename(nft, filename, &msgs, &cmds);
++    def input_get_flags(self):
++        """Query input flags for the nft context.
++
++        See input_get_flags() for supported flags.
++
++        Returns the currently set input flags as number.
++        """
++        return self.nft_ctx_input_get_flags(self.__ctx)
++
++    def input_set_flags(self, flags):
++        """Set input flags for the nft context as number.
++
++        By default, a new context objects has flags set to zero.
++
++        The following flags are currently supported.
++        NFT_CTX_INPUT_NO_DNS (0x1) disables blocking address lookup.
++        NFT_CTX_INPUT_JSON (0x2) enables JSON mode for input.
++
++        Unknown flags are silently accepted.
++
++        Returns nothing.
++        """
++        self.nft_ctx_input_set_flags(self.__ctx, flags)
++
+     def __get_output_flag(self, name):
+         flag = self.output_flags[name]
+         return (self.nft_ctx_output_get_flags(self.__ctx) & flag) != 0
 -- 
 2.41.0
 
