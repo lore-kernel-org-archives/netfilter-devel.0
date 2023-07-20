@@ -2,112 +2,90 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B41FEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 19:30:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F2FEB64DA
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 20:00:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230283AbjGTTaR (ORCPT
+        id S230274AbjGTUA0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jul 2023 15:30:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39854 "EHLO
+        Thu, 20 Jul 2023 16:00:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229729AbjGTTaQ (ORCPT
+        with ESMTP id S231233AbjGTUA0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2023 15:30:16 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C29521737
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 12:30:15 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qMZLq-0002Dk-Fn; Thu, 20 Jul 2023 21:30:14 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nft_set_rbtree: fix overlap expiration walk
-Date:   Thu, 20 Jul 2023 21:30:05 +0200
-Message-ID: <20230720193009.18289-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Thu, 20 Jul 2023 16:00:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1FA9270B
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 13:00:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7165B61C43
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jul 2023 20:00:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C6BB5C433C7;
+        Thu, 20 Jul 2023 20:00:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1689883222;
+        bh=LvhYmR5MI0Y93Db3DTx92Hny9qHPOPc7zMb7XD4ncqo=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=mrDG7Iz8atbCjY3ffJGouw3Gjo1suybCmXoYZR+f19M4J8eqJVyAEiX4t0B8XwlrQ
+         aVoDXdzvCoPIDveKhQDaXNpBnajEzPSS0ne9/Otv3qfDnfVJccghhNeMYHsThyHCT/
+         DRugrIp7VFB6DOs5MOKV7fXfLMwEE83sYK4Of32/IaFFUCj4VK/HaJpokRD8w8jyDA
+         BCDrui194lPVufWrKwfF7Tz9D+KHnc1M5u3cZ8DK8IFGZxX4NBjfaw5swil6A3x0bV
+         QzVUHEzlxQXx1UirmK0pz31cMEBr5kM3+Psv+EtMlo/X02Sx/QVeJkIRBd6omHs6w3
+         bqkxZsQvGL+UQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id AB23BE21EFF;
+        Thu, 20 Jul 2023 20:00:22 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/5] netfilter: nf_tables: fix spurious set element
+ insertion failure
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <168988322269.13634.17225693802889324247.git-patchwork-notify@kernel.org>
+Date:   Thu, 20 Jul 2023 20:00:22 +0000
+References: <20230720165143.30208-2-fw@strlen.de>
+In-Reply-To: <20230720165143.30208-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The lazy gc on insert that should remove timed-out entries
-fails to release the other half of the interval, if any.
+Hello:
 
-Can be reproduced with tests/shell/testcases/sets/0044interval_overlap_0
-in nftables.git and kmemleak enabled kernel.
+This series was applied to netdev/net.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-Second bug is the use of rbe_prev vs. prev pointer.
-If rbe_prev() returns NULL after at least one iteration,
-rbe_prev points to an rbtree element that is not an end
-interval, hence it should not be removed.
+On Thu, 20 Jul 2023 18:51:33 +0200 you wrote:
+> On some platforms there is a padding hole in the nft_verdict
+> structure, between the verdict code and the chain pointer.
+> 
+> On element insertion, if the new element clashes with an existing one and
+> NLM_F_EXCL flag isn't set, we want to ignore the -EEXIST error as long as
+> the data associated with duplicated element is the same as the existing
+> one.  The data equality check uses memcmp.
+> 
+> [...]
 
-Lastly, check the genmask of the end interval if
-this is active in the current generation.
+Here is the summary with links:
+  - [net,1/5] netfilter: nf_tables: fix spurious set element insertion failure
+    https://git.kernel.org/netdev/net/c/ddbd8be68941
+  - [net,2/5] netfilter: nf_tables: can't schedule in nft_chain_validate
+    https://git.kernel.org/netdev/net/c/314c82841602
+  - [net,3/5] netfilter: nft_set_pipapo: fix improper element removal
+    https://git.kernel.org/netdev/net/c/87b5a5c20940
+  - [net,4/5] netfilter: nf_tables: skip bound chain in netns release path
+    https://git.kernel.org/netdev/net/c/751d460ccff3
+  - [net,5/5] netfilter: nf_tables: skip bound chain on rule flush
+    https://git.kernel.org/netdev/net/c/6eaf41e87a22
 
-Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_rbtree.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 5c05c9b990fb..8d73fffd2d09 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -217,29 +217,37 @@ static void *nft_rbtree_get(const struct net *net, const struct nft_set *set,
- 
- static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe)
-+			      struct nft_rbtree_elem *rbe,
-+			      u8 genmask)
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
--	struct nft_rbtree_elem *rbe_prev = NULL;
-+	struct nft_rbtree_elem *rbe_prev;
- 	struct nft_set_gc_batch *gcb;
- 
- 	gcb = nft_set_gc_batch_check(set, NULL, GFP_ATOMIC);
- 	if (!gcb)
- 		return -ENOMEM;
- 
--	/* search for expired end interval coming before this element. */
-+	/* search for end interval coming before this element.
-+	 * end intervals don't carry a timeout extension, they
-+	 * are coupled with the interval start element.
-+	 */
- 	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
--		if (nft_rbtree_interval_end(rbe_prev))
-+		if (nft_rbtree_interval_end(rbe_prev) &&
-+		    nft_set_elem_active(&rbe_prev->ext, genmask))
- 			break;
- 
- 		prev = rb_prev(prev);
- 	}
- 
--	if (rbe_prev) {
-+	if (prev) {
-+		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
-+
- 		rb_erase(&rbe_prev->node, &priv->root);
- 		atomic_dec(&set->nelems);
-+		nft_set_gc_batch_add(gcb, rbe_prev);
- 	}
- 
- 	rb_erase(&rbe->node, &priv->root);
-@@ -321,7 +329,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 
- 		/* perform garbage collection to avoid bogus overlap reports. */
- 		if (nft_set_elem_expired(&rbe->ext)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe);
-+			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
- 			if (err < 0)
- 				return err;
- 
+You are awesome, thank you!
 -- 
-2.41.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
