@@ -2,94 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B8AC001DE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 19 Jul 2023 23:12:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C83BEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 03:30:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229868AbjGSXMg (ORCPT
+        id S229868AbjGTDaf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 19 Jul 2023 19:12:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59844 "EHLO
+        Wed, 19 Jul 2023 23:30:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229571AbjGSXMf (ORCPT
+        with ESMTP id S229451AbjGTDae (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jul 2023 19:12:35 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FC401701;
-        Wed, 19 Jul 2023 16:12:34 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qMGL1-0003Yx-B2; Thu, 20 Jul 2023 01:12:07 +0200
-Date:   Thu, 20 Jul 2023 01:12:07 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Aleksandr Nogikh <nogikh@google.com>
-Cc:     syzbot <syzbot+9bbbacfbf1e04d5221f7@syzkaller.appspotmail.com>,
+        Wed, 19 Jul 2023 23:30:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56CB41B9;
+        Wed, 19 Jul 2023 20:30:33 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B222F6126D;
+        Thu, 20 Jul 2023 03:30:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F35FC433C8;
+        Thu, 20 Jul 2023 03:30:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1689823832;
+        bh=OnSRL/M/dbuk991nGBrfC0/pCCMwx2qMx5t/Th8WDY4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=DLP0S+lHKonruVV95NGNwFLFr5aWNx45vINgAd1CVjDbI/PxvcmUv57niu5feAGkY
+         AWElUA7x+ISFrYGq/jkvkfn4q6t04zKRia/WReyo9T88T6CNd+m2heMlul2896iWth
+         JguL4emjfN7RreQNklhpOSKt4TGwUgNqssc7rhrAOqGdUy0Ixax1p0M54pRFVuyGwE
+         i7dgQlwm0YcCQHmSiMSik+TgPhgoWfrExGhO4xVhNqw1sBDlfaokr/47tixTw3D+mM
+         IrJc2AQzdNVRpO4QDu4TdwbOA4T2hESliP6LNvOgpqRdMk7YriQ3UqnC9d8w085jmB
+         EIvkZAqeEpKSg==
+Date:   Wed, 19 Jul 2023 20:30:30 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     netdev@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>,
+        Aleksandr Nogikh <nogikh@google.com>,
+        syzbot <syzbot+9bbbacfbf1e04d5221f7@syzkaller.appspotmail.com>,
         dsterba@suse.cz, bakmitopiacibubur@boga.indosterling.com,
         clm@fb.com, davem@davemloft.net, dsahern@kernel.org,
-        dsterba@suse.com, fw@strlen.de, gregkh@linuxfoundation.org,
-        jirislaby@kernel.org, josef@toxicpanda.com, kadlec@netfilter.org,
-        kuba@kernel.org, linux-btrfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux@armlinux.org.uk,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        yoshfuji@linux-ipv6.org
-Subject: Re: [syzbot] [btrfs?] [netfilter?] BUG: MAX_LOCKDEP_CHAIN_HLOCKS too
- low! (2)
-Message-ID: <20230719231207.GF32192@breakpoint.cc>
+        dsterba@suse.com, gregkh@linuxfoundation.org, jirislaby@kernel.org,
+        josef@toxicpanda.com, kadlec@netfilter.org,
+        linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux@armlinux.org.uk, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] [btrfs?] [netfilter?] BUG: MAX_LOCKDEP_CHAIN_HLOCKS
+ too low! (2)
+Message-ID: <20230719203030.1296596a@kernel.org>
+In-Reply-To: <20230719231207.GF32192@breakpoint.cc>
 References: <20230719170446.GR20457@twin.jikos.cz>
- <00000000000042a3ac0600da1f69@google.com>
- <CANp29Y4Dx3puutrowfZBzkHy1VpWHhQ6tZboBrwq_qNcFRrFGw@mail.gmail.com>
+        <00000000000042a3ac0600da1f69@google.com>
+        <CANp29Y4Dx3puutrowfZBzkHy1VpWHhQ6tZboBrwq_qNcFRrFGw@mail.gmail.com>
+        <20230719231207.GF32192@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANp29Y4Dx3puutrowfZBzkHy1VpWHhQ6tZboBrwq_qNcFRrFGw@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Aleksandr Nogikh <nogikh@google.com> wrote:
-> On Wed, Jul 19, 2023 at 7:11 PM syzbot
-> <syzbot+9bbbacfbf1e04d5221f7@syzkaller.appspotmail.com> wrote:
-> >
-> > > On Wed, Jul 19, 2023 at 02:32:51AM -0700, syzbot wrote:
-> > >> syzbot has found a reproducer for the following issue on:
-> > >>
-> > >> HEAD commit:    e40939bbfc68 Merge branch 'for-next/core' into for-kernelci
-> > >> git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
-> > >> console output: https://syzkaller.appspot.com/x/log.txt?x=15d92aaaa80000
-> > >> kernel config:  https://syzkaller.appspot.com/x/.config?x=c4a2640e4213bc2f
-> > >> dashboard link: https://syzkaller.appspot.com/bug?extid=9bbbacfbf1e04d5221f7
-> > >> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-> > >> userspace arch: arm64
-> > >> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=149b2d66a80000
-> > >> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1214348aa80000
-> > >>
-> > >> Downloadable assets:
-> > >> disk image: https://storage.googleapis.com/syzbot-assets/9d87aa312c0e/disk-e40939bb.raw.xz
-> > >> vmlinux: https://storage.googleapis.com/syzbot-assets/22a11d32a8b2/vmlinux-e40939bb.xz
-> > >> kernel image: https://storage.googleapis.com/syzbot-assets/0978b5788b52/Image-e40939bb.gz.xz
-> > >
-> > > #syz unset btrfs
-> >
-> > The following labels did not exist: btrfs
+On Thu, 20 Jul 2023 01:12:07 +0200 Florian Westphal wrote:
+> I don't see any netfilter involvement here.
 > 
-> #syz set subsystems: netfilter
+> The repro just creates a massive amount of team devices.
+> 
+> At the time it hits the LOCKDEP limits on my test vm it has
+> created ~2k team devices, system load is at +14 because udev
+> is also busy spawing hotplug scripts for the new devices.
+> 
+> After reboot and suspending the running reproducer after about 1500
+> devices (before hitting lockdep limits), followed by 'ip link del' for
+> the team devices gets the lockdep entries down to ~8k (from 40k),
+> which is in the range that it has on this VM after a fresh boot.
+> 
+> So as far as I can see this workload is just pushing lockdep
+> past what it can handle with the configured settings and is
+> not triggering any actual bug.
 
-I don't see any netfilter involvement here.
-
-The repro just creates a massive amount of team devices.
-
-At the time it hits the LOCKDEP limits on my test vm it has
-created ~2k team devices, system load is at +14 because udev
-is also busy spawing hotplug scripts for the new devices.
-
-After reboot and suspending the running reproducer after about 1500
-devices (before hitting lockdep limits), followed by 'ip link del' for
-the team devices gets the lockdep entries down to ~8k (from 40k),
-which is in the range that it has on this VM after a fresh boot.
-
-So as far as I can see this workload is just pushing lockdep
-past what it can handle with the configured settings and is
-not triggering any actual bug.
+The lockdep splat because of netdevice stacking is one of our top
+reports from syzbot. Is anyone else feeling like we should add 
+an artificial but very high limit on netdev stacking? :(
