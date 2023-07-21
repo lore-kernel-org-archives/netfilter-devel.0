@@ -2,110 +2,105 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1475AEB64DA
-	for <netfilter-devel@archiver.kernel.org>; Thu, 20 Jul 2023 23:19:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37BD4C001DC
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jul 2023 10:00:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229819AbjGTXT1 (ORCPT
+        id S231603AbjGUKAX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 20 Jul 2023 19:19:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36430 "EHLO
+        Fri, 21 Jul 2023 06:00:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229824AbjGTXT0 (ORCPT
+        with ESMTP id S231636AbjGUKAQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2023 19:19:26 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C874B2713;
-        Thu, 20 Jul 2023 16:19:19 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qMcvI-0003Fw-2U; Fri, 21 Jul 2023 01:19:04 +0200
-Date:   Fri, 21 Jul 2023 01:19:04 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Daniel Xu <dxu@dxuuu.xyz>
-Cc:     daniel@iogearbox.net, kadlec@netfilter.org, ast@kernel.org,
-        pablo@netfilter.org, kuba@kernel.org, davem@davemloft.net,
-        andrii@kernel.org, edumazet@google.com, pabeni@redhat.com,
-        fw@strlen.de, alexei.starovoitov@gmail.com, martin.lau@linux.dev,
-        song@kernel.org, yhs@fb.com, john.fastabend@gmail.com,
-        kpsingh@kernel.org, sdf@google.com, haoluo@google.com,
-        jolsa@kernel.org, bpf@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next v5 2/5] netfilter: bpf: Support
- BPF_F_NETFILTER_IP_DEFRAG in netfilter link
-Message-ID: <20230720231904.GA31372@breakpoint.cc>
-References: <cover.1689884827.git.dxu@dxuuu.xyz>
- <690a1b09db84547b0f0c73654df3f4950f1262b7.1689884827.git.dxu@dxuuu.xyz>
+        Fri, 21 Jul 2023 06:00:16 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B84F30DD
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jul 2023 02:59:58 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qMmvT-0007v5-RO; Fri, 21 Jul 2023 11:59:55 +0200
+Date:   Fri, 21 Jul 2023 11:59:55 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        igor@gooddata.com
+Subject: Re: [iptables PATCH 1/3] extensions: libebt_among: Fix for false
+ positive match comparison
+Message-ID: <ZLpXG2GzqH3QLveA@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        igor@gooddata.com
+References: <20230715125928.18395-1-phil@nwl.cc>
+ <20230715125928.18395-2-phil@nwl.cc>
+ <ZLUg97WtqnWR6aqT@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <690a1b09db84547b0f0c73654df3f4950f1262b7.1689884827.git.dxu@dxuuu.xyz>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZLUg97WtqnWR6aqT@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Daniel Xu <dxu@dxuuu.xyz> wrote:
-> +	const struct nf_defrag_hook __maybe_unused *hook;
-> +
-> +	switch (link->hook_ops.pf) {
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-> +	case NFPROTO_IPV4:
-> +		hook = get_proto_defrag_hook(link, nf_defrag_v4_hook, "nf_defrag_ipv4");
-> +		if (IS_ERR(hook))
-> +			return PTR_ERR(hook);
-> +
-> +		link->defrag_hook = hook;
-> +		return 0;
-> +#endif
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-> +	case NFPROTO_IPV6:
-> +		hook = get_proto_defrag_hook(link, nf_defrag_v6_hook, "nf_defrag_ipv6");
-> +		if (IS_ERR(hook))
-> +			return PTR_ERR(hook);
-> +
-> +		link->defrag_hook = hook;
-> +		return 0;
-> +#endif
-> +	default:
-> +		return -EAFNOSUPPORT;
-> +	}
-> +}
-> +
-> +static void bpf_nf_disable_defrag(struct bpf_nf_link *link)
-> +{
-> +	const struct nf_defrag_hook *hook = link->defrag_hook;
-> +
-> +	if (!hook)
-> +		return;
-> +	hook->disable(link->net);
-> +	module_put(hook->owner);
-> +}
-> +
->  static void bpf_nf_link_release(struct bpf_link *link)
->  {
->  	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
-> @@ -37,6 +119,8 @@ static void bpf_nf_link_release(struct bpf_link *link)
->  	 */
->  	if (!cmpxchg(&nf_link->dead, 0, 1))
->  		nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
-> +
-> +	bpf_nf_disable_defrag(nf_link);
->  }
+Pablo,
 
-I suspect this needs to be within the cmpxchg() branch to avoid
-multiple ->disable() calls.
+On Mon, Jul 17, 2023 at 01:07:35PM +0200, Pablo Neira Ayuso wrote:
+> On Sat, Jul 15, 2023 at 02:59:26PM +0200, Phil Sutter wrote:
+> > When comparing matches for equality, trailing data in among match is not
+> > considered. Therefore two matches with identical pairs count may be
+> > treated as identical when the pairs actually differ.
+> 
+> By "trailing data", you mean the right-hand side of this?
+> 
+>         fe:ed:ba:be:00:01=10.0.0.1
+> 
+> > Matches' parsing callbacks have no access to the xtables_match itself,
+> > so can't update userspacesize field as needed.
+> > 
+> > To fix this, extend struct nft_among_data by a hash field to contain a
+> > DJB hash of the trailing data.
+> 
+> Is this DJB hash use subject to collisions?
 
-> +	if (attr->link_create.netfilter.flags & BPF_F_NETFILTER_IP_DEFRAG) {
-> +		err = bpf_nf_enable_defrag(link);
-> +		if (err) {
-> +			bpf_link_cleanup(&link_primer);
-> +			return err;
-> +		}
-> +	}
-> +
->  	err = nf_register_net_hook(net, &link->hook_ops);
->  	if (err) {
-		bpf_nf_disable_defrag(link);
+Thanks for the heads-up. I suspected DJB hash algo might not be perfect
+when it comes to collisions, but "good enough" for the task. In fact,
+collisions are pretty common, so this approach is not a proper solution
+to the problem.
 
-Other than those nits this lgtm, thanks!
+Searching for other ways to fix the issue, I noticed that
+compare_matches() was deliberately changed to compare only the first
+'userspacesize' bytes of extensions to avoid false-negatives caused by
+kernel-internals in extension data.
+
+I see two different solutions and would like to hear your opinion. First
+one is a hack, special treatment for among match in compare_matches():
+
+| @@ -381,6 +381,7 @@ bool compare_matches(struct xtables_rule_match *mt1,
+|         for (mp1 = mt1, mp2 = mt2; mp1 && mp2; mp1 = mp1->next, mp2 = mp2->next) {
+|                 struct xt_entry_match *m1 = mp1->match->m;
+|                 struct xt_entry_match *m2 = mp2->match->m;
+| +               size_t cmplen = mp1->match->userspacesize;
+|  
+|                 if (strcmp(m1->u.user.name, m2->u.user.name) != 0) {
+|                         DEBUGP("mismatching match name\n");
+| @@ -392,8 +393,10 @@ bool compare_matches(struct xtables_rule_match *mt1,
+|                         return false;
+|                 }
+|  
+| -               if (memcmp(m1->data, m2->data,
+| -                          mp1->match->userspacesize) != 0) {
+| +               if (!strcmp(m1->u.user.name, "among"))
+| +                       cmplen = m1->u.match_size - sizeof(*m1);
+| +
+| +               if (memcmp(m1->data, m2->data, cmplen) != 0) {
+|                         DEBUGP("mismatch match data\n");
+|                         return false;
+|                 }
+
+The second one is more generic, reusing extensions' 'udata' pointer. One
+could make xtables_option_{m,t}fcall() functions zero the scratch area
+if present (so locally created extensions match ones fetched from
+kernel) and compare that scratch area in compare_matches(). For among
+match, using the scratch area to store pairs is fine.
+
+Cheers, Phil
