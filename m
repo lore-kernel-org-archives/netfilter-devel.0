@@ -2,167 +2,86 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67F24EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jul 2023 20:03:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40174EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jul 2023 20:14:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229533AbjGUUDm (ORCPT
+        id S229597AbjGUUOh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Jul 2023 16:03:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33830 "EHLO
+        Fri, 21 Jul 2023 16:14:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbjGUUDl (ORCPT
+        with ESMTP id S229560AbjGUUOh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Jul 2023 16:03:41 -0400
-Received: from wnew4-smtp.messagingengine.com (wnew4-smtp.messagingengine.com [64.147.123.18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 529A1272C;
-        Fri, 21 Jul 2023 13:03:39 -0700 (PDT)
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-        by mailnew.west.internal (Postfix) with ESMTP id 1D99E2B00169;
-        Fri, 21 Jul 2023 16:03:34 -0400 (EDT)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute4.internal (MEProxy); Fri, 21 Jul 2023 16:03:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm2; t=1689969813; x=1689977013; bh=UI
-        xSERX8/T0QhMA41PxgSILvKp1Mo/d3t7SIbHJ30FM=; b=t48KOEps/vCcAI7DxH
-        mMtvIueAxN1ZU4cTbiqPu1lCCyFdy83iX7cSuiW88Rc/iGJjZo5VKLVtSJkgKBYT
-        2gKdzkEb3EBc8wuTXV/RPO5XwcJDdYBURiqAp2yGU8j4c5Lz0ZVOHNUiZ6qCo1Xe
-        bL4QIktHu/2GuzJiUsP1sW9oV+CebNH3btNt8Fb4GGUBvuhEUSwKbjs+YceDLwqE
-        wDeWeXA0k85WM4qxv11pIJCRQvCK3Mf1XOJTWSffF1UU/cwoNotj8AAu/0iGrejI
-        CO0XX2ElBmcwyuAyuRP2xQp2YOpB4GnASkeQMgjoegqq3VaTi1ECshbJBuHLf5I+
-        VwUQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1689969813; x=1689977013; bh=UIxSERX8/T0Qh
-        MA41PxgSILvKp1Mo/d3t7SIbHJ30FM=; b=DNcO38MFDJ/BX9RI1DERnK7T82652
-        LbDTk23wYUgeUIg8cVJRj5kaUejXv3Jh5Q55I3tJdc1z2yqXswdlGgKQoWt3KXMy
-        ppdC7aA2v9w938C9T6DWUD3Nsjhvgs+oot/aFZ1DER+1kDTElPprs17OAxhJdBU5
-        9Ws2kh1VXJ21Kq3511b7+DEPf3+IAi/dslfY5laRlsNDZeDkgQUYPMrl1K8CWAiY
-        MtQ8zxzRbcuK9/nfdktUVlWEDWNzh8J4erjzK95sNoJHeS/fEV2W5N2l3e6ZSTP7
-        iLVAAp7K1EXrHnNjT4yTqNyCbBVnUrfIJ0OhrAEUxiI8D+atNWOE++Thw==
-X-ME-Sender: <xms:lOS6ZLi_yl2HEx8VNhPzXISbLHNDccRa4qdqkaEkYYHIFUaa0-Phvg>
-    <xme:lOS6ZIANKa0Fe-CWSCLV7KmOeogapQ3OxYmJp_BwMGaVpetH7KZG_ylvTtzP4eDD6
-    r0PfuKZu9bJb9mlIQ>
-X-ME-Received: <xmr:lOS6ZLEX_AV5j1TyvlUPDixKyvVcmK00XVk3ff_R1JBC1O1Ve_crbubbe2jzKae7x39MtdO2cN4AIyrEX_-c5TAR4XZYJRUAB9PY>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrhedvgddufeekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    gfrhhlucfvnfffucdljedtmdenucfjughrpeffhffvvefukfhfgggtuggjsehttdfstddt
-    tddvnecuhfhrohhmpeffrghnihgvlhcuighuuceougiguhesugiguhhuuhdrgiihiieqne
-    cuggftrfgrthhtvghrnhepvdefkeetuddufeeigedtheefffekuedukeehudffudfffffg
-    geeitdetgfdvhfdvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
-    hfrhhomhepugiguhesugiguhhuuhdrgiihii
-X-ME-Proxy: <xmx:lOS6ZISIrqP9DmogYZlfIhS1AHOz9ht7hAOJh8Ks8flYsHdgsw5Zrw>
-    <xmx:lOS6ZIx86g21Z66hxEaTtAlnF63MWXKQmyAOdUJ0C7bMkmbnigv8pA>
-    <xmx:lOS6ZO5rs1Ky-lE-zxOyYIYbqSeGOOlORer4lqBlLvtJ1yG8dJhUDg>
-    <xmx:leS6ZHi9AvtvYGlY_SOCwmEKnLe0DXKCdmvumiTkBNinwEt__yKEnX8ETLs>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 21 Jul 2023 16:03:30 -0400 (EDT)
-Date:   Fri, 21 Jul 2023 14:03:29 -0600
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     daniel@iogearbox.net, kadlec@netfilter.org, ast@kernel.org,
-        pablo@netfilter.org, kuba@kernel.org, davem@davemloft.net,
-        andrii@kernel.org, edumazet@google.com, pabeni@redhat.com,
-        alexei.starovoitov@gmail.com, martin.lau@linux.dev,
-        song@kernel.org, yhs@fb.com, john.fastabend@gmail.com,
-        kpsingh@kernel.org, sdf@google.com, haoluo@google.com,
-        jolsa@kernel.org, bpf@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org, dsahern@kernel.org
-Subject: Re: [PATCH bpf-next v5 2/5] netfilter: bpf: Support
- BPF_F_NETFILTER_IP_DEFRAG in netfilter link
-Message-ID: <waoejzg2unjytkjflwvcff4z6wu2vlsji5neybrt4p5a3bn3ev@nznwevyfywvh>
-References: <cover.1689884827.git.dxu@dxuuu.xyz>
- <690a1b09db84547b0f0c73654df3f4950f1262b7.1689884827.git.dxu@dxuuu.xyz>
- <20230720231904.GA31372@breakpoint.cc>
+        Fri, 21 Jul 2023 16:14:37 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B525D30CB
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jul 2023 13:14:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=I0tBntSA3pJIvdcW0hqT8eiT2RvjBdVJgANbpcH7//Q=; b=Gtn27H5JitjTbzd3ncgsjDcQV4
+        bAxEX+xf4hkLmTEy7pabuYIKmJi1/OBCgaHuPG7GRni1eFla+rFQCwiGBlb0xap1IMpk7cDoSkbAf
+        2VqVAEa+K6am8exSDy1BkqvyTQcxFrdihJ/CKYjvTps0jDn64l4DGMQm3JcWj3/WBd5qbItFbffaT
+        Nt2MKkPf0zl3/CztkAMA8rlcvoifNFODkk8W+WWYST5pkJBVGxj/CLsKW9X1lxd8T5E8X/6dFY8Dq
+        70pfwegBq2ZHGEcv4iybSejyD6DuNsyFUd0SUN67tcMHvWCLbf82DNh/WfHIcbKMIE8UUtlufFWSa
+        fgsQpkIA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qMwWH-0005j5-Rq
+        for netfilter-devel@vger.kernel.org; Fri, 21 Jul 2023 22:14:33 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 1/2] nft: Special casing for among match in compare_matches()
+Date:   Fri, 21 Jul 2023 22:14:24 +0200
+Message-Id: <20230721201425.16448-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230720231904.GA31372@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Jul 21, 2023 at 01:19:04AM +0200, Florian Westphal wrote:
-> Daniel Xu <dxu@dxuuu.xyz> wrote:
-> > +	const struct nf_defrag_hook __maybe_unused *hook;
-> > +
-> > +	switch (link->hook_ops.pf) {
-> > +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-> > +	case NFPROTO_IPV4:
-> > +		hook = get_proto_defrag_hook(link, nf_defrag_v4_hook, "nf_defrag_ipv4");
-> > +		if (IS_ERR(hook))
-> > +			return PTR_ERR(hook);
-> > +
-> > +		link->defrag_hook = hook;
-> > +		return 0;
-> > +#endif
-> > +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-> > +	case NFPROTO_IPV6:
-> > +		hook = get_proto_defrag_hook(link, nf_defrag_v6_hook, "nf_defrag_ipv6");
-> > +		if (IS_ERR(hook))
-> > +			return PTR_ERR(hook);
-> > +
-> > +		link->defrag_hook = hook;
-> > +		return 0;
-> > +#endif
-> > +	default:
-> > +		return -EAFNOSUPPORT;
-> > +	}
-> > +}
-> > +
-> > +static void bpf_nf_disable_defrag(struct bpf_nf_link *link)
-> > +{
-> > +	const struct nf_defrag_hook *hook = link->defrag_hook;
-> > +
-> > +	if (!hook)
-> > +		return;
-> > +	hook->disable(link->net);
-> > +	module_put(hook->owner);
-> > +}
-> > +
-> >  static void bpf_nf_link_release(struct bpf_link *link)
-> >  {
-> >  	struct bpf_nf_link *nf_link = container_of(link, struct bpf_nf_link, link);
-> > @@ -37,6 +119,8 @@ static void bpf_nf_link_release(struct bpf_link *link)
-> >  	 */
-> >  	if (!cmpxchg(&nf_link->dead, 0, 1))
-> >  		nf_unregister_net_hook(nf_link->net, &nf_link->hook_ops);
-> > +
-> > +	bpf_nf_disable_defrag(nf_link);
-> >  }
-> 
-> I suspect this needs to be within the cmpxchg() branch to avoid
-> multiple ->disable() calls.
+When other extensions may have "garbage" appended to their data which
+should not be considered for match comparison, among match is the
+opposite in that it extends its data beyond the value in 'size' field.
+Add special casing to cover for this, avoiding false-positive rule
+comparison.
 
-Ah, good catch.
+Fixes: 26753888720d8 ("nft: bridge: Rudimental among extension support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft-shared.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-> 
-> > +	if (attr->link_create.netfilter.flags & BPF_F_NETFILTER_IP_DEFRAG) {
-> > +		err = bpf_nf_enable_defrag(link);
-> > +		if (err) {
-> > +			bpf_link_cleanup(&link_primer);
-> > +			return err;
-> > +		}
-> > +	}
-> > +
-> >  	err = nf_register_net_hook(net, &link->hook_ops);
-> >  	if (err) {
-> 		bpf_nf_disable_defrag(link);
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 12860fbf6d575..0cd082b5396d0 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -381,6 +381,7 @@ bool compare_matches(struct xtables_rule_match *mt1,
+ 	for (mp1 = mt1, mp2 = mt2; mp1 && mp2; mp1 = mp1->next, mp2 = mp2->next) {
+ 		struct xt_entry_match *m1 = mp1->match->m;
+ 		struct xt_entry_match *m2 = mp2->match->m;
++		size_t cmplen = mp1->match->userspacesize;
+ 
+ 		if (strcmp(m1->u.user.name, m2->u.user.name) != 0) {
+ 			DEBUGP("mismatching match name\n");
+@@ -392,8 +393,10 @@ bool compare_matches(struct xtables_rule_match *mt1,
+ 			return false;
+ 		}
+ 
+-		if (memcmp(m1->data, m2->data,
+-			   mp1->match->userspacesize) != 0) {
++		if (!strcmp(m1->u.user.name, "among"))
++			cmplen = m1->u.match_size - sizeof(*m1);
++
++		if (memcmp(m1->data, m2->data, cmplen) != 0) {
+ 			DEBUGP("mismatch match data\n");
+ 			return false;
+ 		}
+-- 
+2.40.0
 
-Ack. Did not see that bpf_link_cleanup() sets link->prog to NULL which
-disables bpf_link_ops:release() on the release codepath.
-
-> 
-> Other than those nits this lgtm, thanks!
-> 
-
-Thanks for reviewing!
-
-Daniel
