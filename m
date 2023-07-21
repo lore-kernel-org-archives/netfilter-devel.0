@@ -2,100 +2,131 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7B27EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jul 2023 14:03:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 688BAC0015E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 21 Jul 2023 14:42:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230484AbjGUODW convert rfc822-to-8bit (ORCPT
+        id S231372AbjGUOmA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 21 Jul 2023 10:03:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59490 "EHLO
+        Fri, 21 Jul 2023 10:42:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229737AbjGUODV (ORCPT
+        with ESMTP id S231451AbjGUOlp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Jul 2023 10:03:21 -0400
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 134DE2737
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jul 2023 07:03:12 -0700 (PDT)
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-31438512cafso1668336f8f.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jul 2023 07:03:12 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689948190; x=1690552990;
-        h=content-transfer-encoding:mime-version:organization:user-agent
-         :message-id:in-reply-to:references:from:subject:cc:to:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=vceOqaktkiSE2cQE0zExZEjVbdIAaq15Y6qyBTUcBb0=;
-        b=hk6QlfZXUDTxVco9mPEpAAjOySC2BrFy8T0E2idtY/4ja88ZO1Ss8e8MHAjpwKhVQq
-         QEwhaZ+6vDd7UgDWvCf49EWtToZi+QDzCqZbad8aalhdDnj6mzvHfAiJaaZOBnJZVSLt
-         EvkQ1v5Q7N/mphYl7ozocpKzdmZ4xYzOdrtFshNGoDfuRfYzm82wJWyh9ZmWhtYqg39P
-         yPoR2GoEsPTe+XjOe2p1ryfj+3jg6/PTPfLsrzsR2C4kXnwXgwUSKaKaHFZfB9Rt5x55
-         x83+GPMASA37URZmo2taigeYTcSCXSj/cuRjKgqPxEtqmUiHtiaAKK/Zk2mlg85O/Yc+
-         B3eg==
-X-Gm-Message-State: ABy/qLbgQ/hlMNZibVLsBss48mhvKX7XdbHWt626UyeXgbc7KGR/SW8h
-        f/+WaSFEOWA6dPzsrFxr7pE2Pz8dHXOYfg==
-X-Google-Smtp-Source: APBJJlHXrBttoLrl3z2stqnAJqyodJ5JjZ7tIjjiBaX1vqDmD6WdvP8bYYpZ555qQfA1VXNTgvyFBg==
-X-Received: by 2002:adf:f592:0:b0:314:13e2:2f6c with SMTP id f18-20020adff592000000b0031413e22f6cmr1517995wro.58.1689948190082;
-        Fri, 21 Jul 2023 07:03:10 -0700 (PDT)
-Received: from rhea.home.vuxu.org ([94.45.237.107])
-        by smtp.gmail.com with ESMTPSA id z24-20020aa7c658000000b0051e166f342asm2143566edr.66.2023.07.21.07.03.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Jul 2023 07:03:09 -0700 (PDT)
-Received: from localhost (rhea.home.vuxu.org [local])
-        by rhea.home.vuxu.org (OpenSMTPD) with ESMTPA id 7437705a;
-        Fri, 21 Jul 2023 14:03:07 +0000 (UTC)
-Date:   Fri, 21 Jul 2023 16:03:07 +0200
+        Fri, 21 Jul 2023 10:41:45 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6756F30C2
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jul 2023 07:41:43 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qMrK8-0002OK-GL; Fri, 21 Jul 2023 16:41:40 +0200
+Date:   Fri, 21 Jul 2023 16:41:40 +0200
+From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     arturo@netfilter.org, netfilter-devel@vger.kernel.org,
-        Jan Engelhardt <jengelh@inai.de>, phil@nwl.cc
-Subject: Re: [ANNOUNCE] nftables 1.0.8 release
-From:   Leah Neukirchen <leah@vuxu.org>
-References: <cc7b9429-540e-967d-1c50-7475b28a0973@netfilter.org>
- <87351i8unw.fsf@vuxu.org> <ZLqL1g6YAbNOloRN@calendula>
-In-Reply-To: <ZLqL1g6YAbNOloRN@calendula>
-Message-Id: <3JB4V2Y9XMB3V.2LVU7NM8H08ZO@rhea.home.vuxu.org>
-User-Agent: mblaze/1.2-20-g23a9e70-dirty (2023-07-18)
-Organization: vuxu.org
+Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        igor@gooddata.com
+Subject: Re: [iptables PATCH 1/3] extensions: libebt_among: Fix for false
+ positive match comparison
+Message-ID: <ZLqZJPrn9+M+eloE@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        igor@gooddata.com
+References: <20230715125928.18395-1-phil@nwl.cc>
+ <20230715125928.18395-2-phil@nwl.cc>
+ <ZLUg97WtqnWR6aqT@calendula>
+ <ZLpXG2GzqH3QLveA@orbyte.nwl.cc>
+ <ZLqOfeIBpOFGNX/l@calendula>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZLqOfeIBpOFGNX/l@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi,
+On Fri, Jul 21, 2023 at 03:56:13PM +0200, Pablo Neira Ayuso wrote:
+> Hi Phil,
 > 
-> Thanks for your patch.
-> 
-> On Thu, Jul 20, 2023 at 05:33:23PM +0200, Leah Neukirchen wrote:
-> > For Void Linux, I have applied this fix, which results in installing
-> > the same way was for 1.0.7 (else it creates a .egg directory which isn't
-> > loaded properly on a plain Python):
+> On Fri, Jul 21, 2023 at 11:59:55AM +0200, Phil Sutter wrote:
+> > Pablo,
 > > 
-> > --- a/py/Makefile.am
-> > +++ b/py/Makefile.am
-> > @@ -7,7 +7,7 @@
-> >  install-exec-local:
-> >  	cd $(srcdir) && \
-> >  		$(PYTHON_BIN) setup.py build --build-base $(abs_builddir) \
-> > -		install --prefix $(DESTDIR)$(prefix)
-> > +		install --prefix $(prefix) --root $(DESTDIR)
-> >  
-> >  uninstall-local:
-> >  	rm -rf $(DESTDIR)$(prefix)/lib*/python*/site-packages/nftables
+> > On Mon, Jul 17, 2023 at 01:07:35PM +0200, Pablo Neira Ayuso wrote:
+> > > On Sat, Jul 15, 2023 at 02:59:26PM +0200, Phil Sutter wrote:
+> > > > When comparing matches for equality, trailing data in among match is not
+> > > > considered. Therefore two matches with identical pairs count may be
+> > > > treated as identical when the pairs actually differ.
+> > > 
+> > > By "trailing data", you mean the right-hand side of this?
+> > > 
+> > >         fe:ed:ba:be:00:01=10.0.0.1
+> > > 
+> > > > Matches' parsing callbacks have no access to the xtables_match itself,
+> > > > so can't update userspacesize field as needed.
+> > > > 
+> > > > To fix this, extend struct nft_among_data by a hash field to contain a
+> > > > DJB hash of the trailing data.
+> > > 
+> > > Is this DJB hash use subject to collisions?
+> > 
+> > Thanks for the heads-up. I suspected DJB hash algo might not be perfect
+> > when it comes to collisions, but "good enough" for the task. In fact,
+> > collisions are pretty common, so this approach is not a proper solution
+> > to the problem.
+> >
+> > Searching for other ways to fix the issue, I noticed that
+> > compare_matches() was deliberately changed to compare only the first
+> > 'userspacesize' bytes of extensions to avoid false-negatives caused by
+> > kernel-internals in extension data.
 > 
-> I proposed the following patch to remove py integration with
-> autotools/automake:
+> Indeed, that was a deliberate decision.
+
+Yes, you did it! :)
+
+> > I see two different solutions and would like to hear your opinion. First
+> > one is a hack, special treatment for among match in compare_matches():
+> > 
+> > | @@ -381,6 +381,7 @@ bool compare_matches(struct xtables_rule_match *mt1,
+> > |         for (mp1 = mt1, mp2 = mt2; mp1 && mp2; mp1 = mp1->next, mp2 = mp2->next) {
+> > |                 struct xt_entry_match *m1 = mp1->match->m;
+> > |                 struct xt_entry_match *m2 = mp2->match->m;
+> > | +               size_t cmplen = mp1->match->userspacesize;
+> > |  
+> > |                 if (strcmp(m1->u.user.name, m2->u.user.name) != 0) {
+> > |                         DEBUGP("mismatching match name\n");
+> > | @@ -392,8 +393,10 @@ bool compare_matches(struct xtables_rule_match *mt1,
+> > |                         return false;
+> > |                 }
+> > |  
+> > | -               if (memcmp(m1->data, m2->data,
+> > | -                          mp1->match->userspacesize) != 0) {
+> > | +               if (!strcmp(m1->u.user.name, "among"))
+> > | +                       cmplen = m1->u.match_size - sizeof(*m1);
+> > | +
+> > | +               if (memcmp(m1->data, m2->data, cmplen) != 0) {
+> > |                         DEBUGP("mismatch match data\n");
+> > |                         return false;
+> > |                 }
 > 
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230718120119.172757-2-pablo@netfilter.org/
+> This incremental update is relatively simple and it is only 'among'
+> that requires this special handling. Maybe you start with this, also
+> placing a comment to describe the intention for this particular case.
+> I don't remember if among allows to delete a rule with set elements
+> that are placed in different order.
 > 
-> Rationale is that this provides more flexibility to users and
-> packagers to deal with nftables Python support.
+> Then, if you have to follow up because this is not enough...
 
-More flexibility and more work. ;) Packagers still can disable python
-support if they want to install it their way.
+Luckily, I had that in mind already and implemented element sorting in
+the among parser, it should match how the kernel returns the elements.
 
-(I don't really mind either way, I'm not very happy how Python
-currently likes to break stuff that worked fine for decades, really.)
+> > The second one is more generic, reusing extensions' 'udata' pointer. One
+> > could make xtables_option_{m,t}fcall() functions zero the scratch area
+> > if present (so locally created extensions match ones fetched from
+> > kernel) and compare that scratch area in compare_matches(). For among
+> > match, using the scratch area to store pairs is fine.
+> 
+> then pursue this second approach?
 
--- 
-Leah Neukirchen  <leah@vuxu.org>  https://leahneukirchen.org/
+ACK, I'll keep that around somewhere. For now that special casing above
+is probably fine.
+
+Thanks, Phil
