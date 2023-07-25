@@ -2,116 +2,136 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54E31C41513
-	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jul 2023 08:55:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A1F7C04A6A
+	for <netfilter-devel@archiver.kernel.org>; Tue, 25 Jul 2023 11:25:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231955AbjGYIzx (ORCPT
+        id S234594AbjGYLZg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 25 Jul 2023 04:55:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41028 "EHLO
+        Tue, 25 Jul 2023 07:25:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232464AbjGYIzd (ORCPT
+        with ESMTP id S234597AbjGYLZf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2023 04:55:33 -0400
-Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9311E1BF9
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jul 2023 01:54:55 -0700 (PDT)
-Received: by mail-yb1-xb49.google.com with SMTP id 3f1490d57ef6-c8f360a07a2so4548010276.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jul 2023 01:54:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1690275294; x=1690880094;
-        h=content-transfer-encoding:cc:to:from:subject:mime-version
-         :message-id:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q/B/cwBITrcp6YMK1dYqIGTxmL0cVgD8ah6GakAHUfE=;
-        b=4r+2Vv2lkO5XxAaE7r208KlJTD9Yq3ahzvvFWm4CLqyBhITlnDDZtKbRSyWRoPGp5M
-         L0jFRi27SyD8HOvVCVDoeJJRsPElH+2wWGGW5rmHADOVDMo2g7tYWkEjta9e9KCPEAu9
-         oQxsaaf9CK/4qIeCpw3Z2/sObRse+403srhicgpB2vB1Cl6YwwDg0FHFbRvWym3LT/mC
-         64ZlVe9iIExM3emKABjKJVWEda68s993pgBtafRmN6AZALGp5cPNSWgiNBtxyOehLhg3
-         uWlWk0yZ6iDf7bDg8dpR3siULbdE+GbV/3jgza14Acv+iqfq5pZkCsg9gdu6qTTYKd4c
-         h8hA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690275294; x=1690880094;
-        h=content-transfer-encoding:cc:to:from:subject:mime-version
-         :message-id:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Q/B/cwBITrcp6YMK1dYqIGTxmL0cVgD8ah6GakAHUfE=;
-        b=eZZlyCsz5crq8gYQXHPVl9rCe6Eic7EBUlbA9z7daynFHEsneePovpNNkYnmfVp2g2
-         gDQGLeGHR6oOedFpzp3YqdvEoQihfL3qQkq9guWHas6bMMEuHEyNIzGJhvvyd3gXpt+y
-         PArtCpkY0Uk4ouQ9J0Wzl2j4p4fifOB8t6qO+RASK/EOeJLs1h2dgaI3cR451CGwDloa
-         EJNnafaRb1mKqmB3aotCcD4YSW6CSBi1Ij240ge9B//q098Bpne4vf9SvGyi/eLdi+M+
-         gan8iQy1km8JzrgnHfLnM1MF3Ig+NmcDCftJn+QIVA/TTaifjloQMxB0ftarXdhivHWB
-         /5Bg==
-X-Gm-Message-State: ABy/qLZ8elJhvyyGC9IZOtOKrUZ7rL54gfJ5yRF7L338b9RS8eiaXdQj
-        g54SJOgXutTQ7IOugkP8sjNXUhI5
-X-Google-Smtp-Source: APBJJlEKmek+a6BKsm9iBt6wCMVu+64Bu2bNSSZrAcuXfo7sY2IfQJKVXVC0wRNo5F3jIb3uaJE+bqk3
-X-Received: from athina.mtv.corp.google.com ([2620:15c:211:200:b5af:c23f:2354:ac])
- (user=maze job=sendgmr) by 2002:a05:6902:1369:b0:d12:eab5:5130 with SMTP id
- bt9-20020a056902136900b00d12eab55130mr27484ybb.13.1690275294451; Tue, 25 Jul
- 2023 01:54:54 -0700 (PDT)
-Date:   Tue, 25 Jul 2023 01:54:43 -0700
-Message-Id: <20230725085443.2102634-1-maze@google.com>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.41.0.487.g6d72f3e995-goog
-Subject: [PATCH netfilter] netfilter: nfnetlink_log: always add a timestamp
-From:   "=?UTF-8?q?Maciej=20=C5=BBenczykowski?=" <maze@google.com>
-To:     "=?UTF-8?q?Maciej=20=C5=BBenczykowski?=" <zenczykowski@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Cc:     Linux Network Development Mailing List <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        "=?UTF-8?q?Maciej=20=C5=BBenczykowski?=" <maze@google.com>,
-        Martin KaFai Lau <kafai@fb.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 25 Jul 2023 07:25:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE7E613D;
+        Tue, 25 Jul 2023 04:25:33 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 65FAC6166E;
+        Tue, 25 Jul 2023 11:25:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79131C433C7;
+        Tue, 25 Jul 2023 11:25:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1690284332;
+        bh=IWBoDHMDl92qNmaLZ6dH47zNmuusT9RUCSmnaSfZVwQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=gt8K5/f9gzIVYlV7qcbNJV97B6psl/+YoSuD2w6SwsHsWTATA5BtwvM59Xhpn4vwJ
+         3m0zjBtkPqAvE5hf1T9Ta/DptlXBAHkyRCXuI+gIDa5o+GaHRV9O94gSoAy9KSHwvC
+         Pwdalpxd938GrxkvkuX1cf1NyXD3MHicQwPk8EYk=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        patches@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 5.10 319/509] netfilter: nftables: rename set element data activation/deactivation functions
+Date:   Tue, 25 Jul 2023 12:44:18 +0200
+Message-ID: <20230725104608.305294211@linuxfoundation.org>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230725104553.588743331@linuxfoundation.org>
+References: <20230725104553.588743331@linuxfoundation.org>
+User-Agent: quilt/0.67
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Compared to all the other work we're already doing to deliver
-an skb to userspace this is very cheap - at worse an extra
-call to ktime_get_real() - and very useful.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-(and indeed it may even be cheaper if we're running from other hooks)
+[ Upstream commit f8bb7889af58d8e74d2d61c76b1418230f1610fa ]
 
-(background: Android occasionally logs packets which
-caused wake from sleep/suspend and we'd like to have
-timestamps reliably associated with these events)
+Rename:
 
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Florian Westphal <fw@strlen.de>
-Signed-off-by: Maciej =C5=BBenczykowski <maze@google.com>
+- nft_set_elem_activate() to nft_set_elem_data_activate().
+- nft_set_elem_deactivate() to nft_set_elem_data_deactivate().
+
+To prepare for updates in the set element infrastructure to add support
+for the special catch-all element.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nfnetlink_log.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index e57eb168ee13..53c9e76473ba 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -470,7 +470,6 @@ __build_packet_message(struct nfnl_log_net *log,
- 	sk_buff_data_t old_tail =3D inst->skb->tail;
- 	struct sock *sk;
- 	const unsigned char *hwhdrp;
--	ktime_t tstamp;
-=20
- 	nlh =3D nfnl_msg_put(inst->skb, 0, 0,
- 			   nfnl_msg_type(NFNL_SUBSYS_ULOG, NFULNL_MSG_PACKET),
-@@ -599,10 +598,9 @@ __build_packet_message(struct nfnl_log_net *log,
- 			goto nla_put_failure;
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5270,8 +5270,8 @@ void nft_set_elem_destroy(const struct n
+ }
+ EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
+ 
+-/* Only called from commit path, nft_set_elem_deactivate() already deals with
+- * the refcounting from the preparation phase.
++/* Only called from commit path, nft_setelem_data_deactivate() already deals
++ * with the refcounting from the preparation phase.
+  */
+ static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
+ 				       const struct nft_set *set, void *elem)
+@@ -5649,9 +5649,9 @@ void nft_data_hold(const struct nft_data
  	}
-=20
--	tstamp =3D skb_tstamp_cond(skb, false);
--	if (hooknum <=3D NF_INET_FORWARD && tstamp) {
-+	if (hooknum <=3D NF_INET_FORWARD) {
-+		struct timespec64 kts =3D ktime_to_timespec64(skb_tstamp_cond(skb, true)=
-);
- 		struct nfulnl_msg_packet_timestamp ts;
--		struct timespec64 kts =3D ktime_to_timespec64(tstamp);
- 		ts.sec =3D cpu_to_be64(kts.tv_sec);
- 		ts.usec =3D cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
-=20
---=20
-2.41.0.487.g6d72f3e995-goog
+ }
+ 
+-static void nft_set_elem_activate(const struct net *net,
+-				  const struct nft_set *set,
+-				  struct nft_set_elem *elem)
++static void nft_setelem_data_activate(const struct net *net,
++				      const struct nft_set *set,
++				      struct nft_set_elem *elem)
+ {
+ 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+ 
+@@ -5661,9 +5661,9 @@ static void nft_set_elem_activate(const
+ 		(*nft_set_ext_obj(ext))->use++;
+ }
+ 
+-static void nft_set_elem_deactivate(const struct net *net,
+-				    const struct nft_set *set,
+-				    struct nft_set_elem *elem)
++static void nft_setelem_data_deactivate(const struct net *net,
++					const struct nft_set *set,
++					struct nft_set_elem *elem)
+ {
+ 	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+ 
+@@ -5740,7 +5740,7 @@ static int nft_del_setelem(struct nft_ct
+ 	kfree(elem.priv);
+ 	elem.priv = priv;
+ 
+-	nft_set_elem_deactivate(ctx->net, set, &elem);
++	nft_setelem_data_deactivate(ctx->net, set, &elem);
+ 
+ 	nft_trans_elem(trans) = elem;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+@@ -5774,7 +5774,7 @@ static int nft_flush_set(const struct nf
+ 	}
+ 	set->ndeact++;
+ 
+-	nft_set_elem_deactivate(ctx->net, set, elem);
++	nft_setelem_data_deactivate(ctx->net, set, elem);
+ 	nft_trans_elem_set(trans) = set;
+ 	nft_trans_elem(trans) = *elem;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+@@ -8413,7 +8413,7 @@ static int __nf_tables_abort(struct net
+ 		case NFT_MSG_DELSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
+ 
+-			nft_set_elem_activate(net, te->set, &te->elem);
++			nft_setelem_data_activate(net, te->set, &te->elem);
+ 			te->set->ops->activate(net, te->set, &te->elem);
+ 			te->set->ndeact--;
+ 
+
 
