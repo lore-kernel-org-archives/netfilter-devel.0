@@ -2,139 +2,376 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78F18C001DE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jul 2023 12:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 842A5C001DC
+	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jul 2023 13:38:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233176AbjGZMy4 (ORCPT
+        id S232715AbjGZNie (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jul 2023 08:54:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55648 "EHLO
+        Wed, 26 Jul 2023 09:38:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234446AbjGZMxR (ORCPT
+        with ESMTP id S232483AbjGZNid (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jul 2023 08:53:17 -0400
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2118.outbound.protection.outlook.com [40.107.93.118])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E74A22706;
-        Wed, 26 Jul 2023 05:53:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Tv//zvokgVnXCpfRLN1DXbOZmkUrnZV0FFSAS/iGDbckSG18+q6OL3ob00uank4mxLgMxo40Kn43mfPgaKmGVtG1VyHyDZi9S3MKm6dp+w5oUbKY0YRec+HqKTTzyTpINYIxVSMRWXX5aiKrgUaK4/wKxsIKAkfYaTKyNmSe7iOeYDVFxUvueVrCIgtgo1utoyKF3/FiOdyuH0fEM1qKH3gvbdpMnVnR4Jr4jtyFVs9ehjF7re/z6EFov2y5uPFDKqL1FEhqfZEuVIYLvhKu3sY7d7QSkD8fpHqBr07SevSlVzRp06EFA8CZofRuIc++SWSo0imICDHhywjDZTF4hQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=e2wtpMppcJhMiCF6gqJKYQgwn1qYj/WSVoahmv7yXHs=;
- b=LNkaydDW12cSPjlXGb1vVjnBTnv08hft6JL1+qBDQ+SwSwDy+VVF/M22ahDnWqVUGada8oaR6j4i3o7UZJ8rsab8t+uTNnqrzXzrrxnPzRvs8k0uLFYGXCL9cDPM0jhSxd8kQ5ZTHzM7Srbplxky1leApKSaipKDLrywbeEnmJ76/C3UzS1jHDxZBEZskPQwIx2FjP8fEJhRs4QCIIjRt0oJp6AafVXZwHxAXem0tSTbuJDrL6x2BpsVNUnh6ODDN0mVt6+Vik8LApGWJegRZQPYm3ulkaTdDO7efygQ+VkvMeMb9aRtnqbwuDZCmTd0tt8bsv+2dFTHTk71xzFuWQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
- dkim=pass header.d=corigine.com; arc=none
+        Wed, 26 Jul 2023 09:38:33 -0400
+Received: from mail-ua1-x92a.google.com (mail-ua1-x92a.google.com [IPv6:2607:f8b0:4864:20::92a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8EAD213F;
+        Wed, 26 Jul 2023 06:38:28 -0700 (PDT)
+Received: by mail-ua1-x92a.google.com with SMTP id a1e0cc1a2514c-794d1714617so2512999241.0;
+        Wed, 26 Jul 2023 06:38:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=e2wtpMppcJhMiCF6gqJKYQgwn1qYj/WSVoahmv7yXHs=;
- b=as4eVJ+8+zidtgmgMAOBkLpJiubue1RomWPSpQ5WG/eFptRwON65roGR2cPVj/L1Ni64P74koj82yfmX+YFNNR6wWE22D0Y2yHQDCLCkrzNvtjceiuQO2L62O5k6FRgxsSrWt9lnCQWGQbTMtVauJH/1XniIQ8mnxbQEZ3XkFxk=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=corigine.com;
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
- by CO1PR13MB5030.namprd13.prod.outlook.com (2603:10b6:303:f4::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6631.29; Wed, 26 Jul
- 2023 12:53:09 +0000
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::fde7:9821:f2d9:101d]) by PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::fde7:9821:f2d9:101d%7]) with mapi id 15.20.6609.032; Wed, 26 Jul 2023
- 12:53:09 +0000
-Date:   Wed, 26 Jul 2023 14:53:02 +0200
-From:   Simon Horman <simon.horman@corigine.com>
-To:     Zhu Wang <wangzhu9@huawei.com>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, kaber@trash.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH -next] nf_conntrack: fix -Wunused-const-variable=
-Message-ID: <ZMEXLp4kyQj/Yb1/@corigine.com>
-References: <20230726101531.169376-1-wangzhu9@huawei.com>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230726101531.169376-1-wangzhu9@huawei.com>
-X-ClientProxiedBy: AM4PR0302CA0004.eurprd03.prod.outlook.com
- (2603:10a6:205:2::17) To PH0PR13MB4842.namprd13.prod.outlook.com
- (2603:10b6:510:78::6)
+        d=gmail.com; s=20221208; t=1690378707; x=1690983507;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cs/p7CEZuKxjp9osy4jGhfk2FuGB/ZhQkEOtsKZJ8ww=;
+        b=nrshTphkQdtZw7WFXHJ9bbOZFP4jYem4nHD12FXabkaLkuPa+RPDtf5HA09yrKd1th
+         LHt8gOlUP8nl07YfOAyKdc02fKmGxwVSX/9Xed3GC2xif02cGixvEfLq+IUdkCALUUcp
+         OvERfyALoXeV+spqW+ExxDgUMg6yDMRt/LQ19s63Y8Fb3SXjeJYzuH24psq7RjHEUd1j
+         yjoocYI2bj9xigqEbkAtBkxW9uGhjNr5KPclrHmXKK5sWDwrNJvtB7tSAUX/nD8DY1mr
+         eX3zQ5Q4a251q8FhtZhNg1E7ho9U/9U1uZ0ymn1PXEKpsLvQLevJmeQbN+99l6quhPpu
+         8sng==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690378707; x=1690983507;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=cs/p7CEZuKxjp9osy4jGhfk2FuGB/ZhQkEOtsKZJ8ww=;
+        b=EmP1P7Fk/nJNkFknKT9Y1umUS+FcJVd2TYKSKHZBFv9D1olhk9yB9JdTIgZ7nl9VDr
+         KMKKEH9khEiBnJQYcvGYWyESr5DhcrpOaXL9JuEAu16oYxizaX3XFIM4bvIHNBuu0JeA
+         ueREst2MDFB5hwm1sOnIupWw8a2UUTlCwYM+YkhkoyoQ6f3cuLi06MKGuOcrVeNZmlHd
+         Ag0Wb66Pm1S5dZkAPYY+Qi2NPb70ltzpx+1tfFJTH+COxpbSY8nOnJouOwo0T7EY6g7f
+         pDoR5aiDZyqhHD2W2QkPHhQ5F6ZnEcTSh0AwfSVtv4ouq0Qd3HcoO2XoAr3fQ6Sq6RVE
+         CptQ==
+X-Gm-Message-State: ABy/qLbOhOdo6rebQAqUUrbmEZDYm1RtiZyCHQRYpN4PcTWGjBi75Oi/
+        gOBGy6Y3q2L2uDGcZtnEd2+bVU1BuVL288j7wweZeu5BtpU=
+X-Google-Smtp-Source: APBJJlEyguJ8p3ofKHVLX5kUQfrFC8murdqdMJdO4JoSGYJ2j+uDsO2D4D5M22Q1aVzNZCe/H98JLmvCd8a+PCVS1cI=
+X-Received: by 2002:a67:ce11:0:b0:443:8f10:7f72 with SMTP id
+ s17-20020a67ce11000000b004438f107f72mr1443798vsl.14.1690378707462; Wed, 26
+ Jul 2023 06:38:27 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|CO1PR13MB5030:EE_
-X-MS-Office365-Filtering-Correlation-Id: d402cc6f-ab51-441b-58df-08db8dd74335
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: AKvQ5DSoy1Rtlsp7HkPJwyDU9T5+Q4omDWAQezRzAIw/076ierAqa03t9BinQqLiIhOc/6Dyd9ww/zoIWM2PeoEFh1i53Z8pX0Drg2ikrT3HL0vSlyvbNgg6tOlsOyfhE9Sq0Df+mWOcKt+V6/UVSuaLvN6PkzPfTDoy8eJSIyTLcU3MaMdXjZLED23asAUDaYGsJCCPT7GT9F7d+1MNhmYJ3jiV0XItDd3v6HYQfIWTxxzO2N7riwFU0mSQNoirrqYY50Lv+mYQdcP4YaQki9V9Y7fx+VtcAKBNW02QAC1qqPUszHUnp7gSdqW/gB9pjD7rbopJtnISxO35wsOJUy+mtn/jYTFfuS8SlFJlNClf8W548D73pPxX8OIpy0w3NdwVVN/fHBpLyZ8tTBMDArLp+o9SXRn/y/v8jL/l5STKTmpVxjQlfTiJjiJrtQa5zjq7Pxodav7c1ahPMRCHWh98+IucrXa+P9YmHZ1BFsZZFMNcZF/oSodGhPKjtt/SxDGrlkYvepVGI/o4Lqcx1pIy1T7C2vyZwlr0w7b5EGwaic+JrusSK6SRLdpgwVsidZijTZBaWtLq/SsSBCMr5iPMClqyWkoZfqranGAV5QE=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(366004)(136003)(39850400004)(376002)(346002)(396003)(451199021)(6666004)(6486002)(478600001)(83380400001)(6506007)(6512007)(6916009)(4326008)(66476007)(66556008)(66946007)(186003)(2616005)(38100700002)(44832011)(7416002)(8676002)(8936002)(5660300002)(4744005)(316002)(41300700001)(2906002)(86362001)(36756003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?QVY1UUlHWUUvU05pOGxud0JsZStDbmxlc0RkbHA2QURLQWpZSTNKcEhXRXZz?=
- =?utf-8?B?RFZwcjBFVzR0TUUyWFluaFR0RjNhV294RFQyeWlzdlA5cVpTcTU3bFptcFRi?=
- =?utf-8?B?RmZiQlZMNUJFS3dBeFVQNTdETWIreTdtWWh6ZWpaL1VUUjRMem9TT1VwQVll?=
- =?utf-8?B?eEtNbTd0UUx1WnNld2pjZnBXY0ZuaUllSkNrUUxwdzYvRm95bk5hcDlFMTNC?=
- =?utf-8?B?QUZTL1FNdnE1VG1mNUVMYWNkYmNrSzNnTHB1WnNqaUJtNElockhwWGJaNUlq?=
- =?utf-8?B?dEwrL0hydmZzRUw4aWFrSnRsZlpNQTI0cXJQUWRaOUhBNWpkTEc2SzYrbE05?=
- =?utf-8?B?eERGOE9iV0E5VXhZOUxnV0hhTi9RbGovMlZ6a1JuU0dZS2dNQ3hOcUw0cWZ0?=
- =?utf-8?B?OGdKTlNvdjE0dTRqcG5pTm5KYmpjd1RRYkE1Z0R5REJvVVViMEo4QUFjakpK?=
- =?utf-8?B?T1RsWkJEc3hEZmlvQ2pOajlhek9PYktBYkZ3OUVKbGxDUnJCYUpXZWtnRjYw?=
- =?utf-8?B?VFFkTHV6ZitwSmVqSGV4RVppdzI0Qmx3ZGVrNTVreUFSZGpqbnlyVXlnY0dY?=
- =?utf-8?B?cGtnMk5ZNXpWUVIxSDRlZ0xDdTBDNklYejVCVDkzdW8zNnl3Y3hBSit2bUJ3?=
- =?utf-8?B?eURwZkFhbzJiWFNNUVFjSzhvdkxxdVliakZLSnBwQXFFaVViQ0lQSWo3QVFp?=
- =?utf-8?B?UEwyQjV1ZmFxK2FvdTdGNFg1eEpvQ1dJelF6eTZiWElCQmtrTElONlpPS29T?=
- =?utf-8?B?Zis2KzRlaytKNlg1dnV4eTJFQjZTOHhOY1UzdzRFUU1Ca1dYZ3BqZW4xVjZ2?=
- =?utf-8?B?R24rYWZaQ2pubVNqbFU0U3RjREpkRW9XeUJ3ZXR5aUZraEl4TEtWb2tCZFZx?=
- =?utf-8?B?ZkdzNXo1NmVxdGE1eEg3cHhKeE5tejBFTDI3anpxUkwyM3lvTmhJZUhIY0g0?=
- =?utf-8?B?dUJmdkRkMXQwR2g0c3VSNmRnN2c0R1l6SUl1QjRBMHY0SDJIazJERU5CWllD?=
- =?utf-8?B?R3d2U2ZiZHhYSXhhUlhDNlBwMXJFOUhZZUdVY09rbktteXBHSlNNV0JCS2pS?=
- =?utf-8?B?OXdBSmF4MkJTRUJEWjB6S2ZVcENJMElDY3JPZS9JdGdSZlFzQlFITE1VR3JB?=
- =?utf-8?B?dkZJa2ltUEJSOHFDZURDeEtMTGxGTi96bjNFSjNOVmF5bjBrc1A2Qm5ObERl?=
- =?utf-8?B?TVBGZVBoNXVYZEFGclgxTVo1bURVZEFucldYQ1l5ZUJUNFBKSkN3bWFoTlZM?=
- =?utf-8?B?UExROWZMeDhibFJIRWUxS3hJQituVDgxcG9JeFRudkxIbWVtUWlTbVFmZHdP?=
- =?utf-8?B?a0ZFTWRHTkFwaitsaWp2SVR2dkpHT3l0QXVEZUsxZ2pNa3FqdFhtR0Q4dkZu?=
- =?utf-8?B?Q2dhQWhEUkNsTE1RVFJ6QkdzMC84dEpobFpEc1JmZmVSVW9FZXBrMmtlV1lX?=
- =?utf-8?B?Q0xJdGtrZmpqMUhXSzZiUEo2YkhORTlCUFo3TDZXMk1VNG1QK1JXWVpROUli?=
- =?utf-8?B?U0dLNG9WL3lKL2xnYzJPSURVanl4KzhsR3BQZFVMTk1WL3dIQzZhcU1HODhC?=
- =?utf-8?B?QkNUUDkzdldEb3hBZ0lsd21BdU1mOUhnWVd6Si9mRFcxZThIM2JRdWUvaVd6?=
- =?utf-8?B?MERPaFh6TGhKeC9OOHlILzFtNyt6dTcvQnpQKzVUaGpOMktZSFB2emNXM3dB?=
- =?utf-8?B?VjdERndLQXQ1Ky8xZDBXV0RjOWFmTFI0em4zZDFJbUh4VEh4clo5Q2JzaGcy?=
- =?utf-8?B?M1FJdUF0cG1CWDJNbmh0anlvZDRVS2RWZkoyVWFqMHl6QXo1K2VBNXpFY3or?=
- =?utf-8?B?NHE4ZGdwL0tuQ1VOSlZNcVZRMlJzalpOK2lqUE9Cb3RJaXBZeXZKVkNQS1Bp?=
- =?utf-8?B?ODR4UjdTaDR6V2JxVTlCWXFmOGUvLzZza0ZGWEpPbjNKSUwzNlhHdFU3VEZJ?=
- =?utf-8?B?M0d2VCtpd2NjSVA3RXhObWVMMStSWXZFclU1bU1MeGU1ZjhVVUFjaWxjODI2?=
- =?utf-8?B?bzdzbFpZUjNqNSs3cHdKM0JERHc4bFdOWUpFbHJqUHdNT25hODczT05LMzFq?=
- =?utf-8?B?R1kyRTJaaVZicnZESzZTZURlclhIS1RBenFCeWpwNitlUFZMYmxJZlhZbDRi?=
- =?utf-8?B?d0o1N3RkUnpyaTRIcnNEbDJiQ0xNazBFSVVKeGRLVGI1SENWTE9hejJkVmd0?=
- =?utf-8?B?T2wvNDd2ci92RmpuMDVMZHh5L0xtTzh2TE55ZTVoOFlaaStvQ1NFYWRhSmFU?=
- =?utf-8?B?UlNwQ2tBVTFYOVJBTDlWalFpRzZRPT0=?=
-X-OriginatorOrg: corigine.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: d402cc6f-ab51-441b-58df-08db8dd74335
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Jul 2023 12:53:08.9592
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: SV0CxCcL8e/PGGCJNl47OBV+y9+48u/RjOFLo2kfu5tRGEBiaTHqwMtsbpxGy/DrdHfkxfUkZFT1juOibAi9xnroVy0LpfG8RraX8ucCwTo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO1PR13MB5030
+References: <CAA85sZsTF21va8HhwrJc_yuVgVU6+dppEd-SdQpDjqLNFtcneQ@mail.gmail.com>
+ <20230724142415.03a9d133@kernel.org> <ZMDTUHlPmns/85Kk@calendula> <CAA85sZs4RqJc51po=W-No-DMgWQGVa=hsRdRS5e6FG-F7SnZYA@mail.gmail.com>
+In-Reply-To: <CAA85sZs4RqJc51po=W-No-DMgWQGVa=hsRdRS5e6FG-F7SnZYA@mail.gmail.com>
+From:   Ian Kumlien <ian.kumlien@gmail.com>
+Date:   Wed, 26 Jul 2023 15:38:16 +0200
+Message-ID: <CAA85sZt46J5NJfja=Z-pHnoiS5bJphggf0us8UezmE1CsU8wFw@mail.gmail.com>
+Subject: Re: Kernel oops with 6.4.4 - flow offloads - NULL pointer deref
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Jakub Kicinski <kuba@kernel.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Jul 26, 2023 at 06:15:31PM +0800, Zhu Wang wrote:
-> When building with W=1, the following warning occurs.
-> 
-> net/netfilter/nf_conntrack_proto_dccp.c:72:27: warning: ‘dccp_state_names’ defined but not used [-Wunused-const-variable=]
->  static const char * const dccp_state_names[] = {
-> 
-> We include dccp_state_names in the macro
-> CONFIG_NF_CONNTRACK_PROCFS, since it is only used in the place
-> which is included in the macro CONFIG_NF_CONNTRACK_PROCFS.
-> 
-> Fixes: 2bc780499aa3 ("[NETFILTER]: nf_conntrack: add DCCP protocol support")
-> Signed-off-by: Zhu Wang <wangzhu9@huawei.com>
+On Wed, Jul 26, 2023 at 2:00=E2=80=AFPM Ian Kumlien <ian.kumlien@gmail.com>=
+ wrote:
+>
+> On Wed, Jul 26, 2023 at 10:03=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilt=
+er.org> wrote:
+> >
+> > Hi,
+> >
+> > On Mon, Jul 24, 2023 at 02:24:15PM -0700, Jakub Kicinski wrote:
+> > > Adding netfilter to CC.
+> > >
+> > > On Sun, 23 Jul 2023 16:44:50 +0200 Ian Kumlien wrote:
+> > > > Running vanilla 6.4.4 with cherry picked:
+> > > > https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/co=
+mmit/?h=3Dv6.4.5&id=3D7a59f29961cf97b98b02acaadf5a0b1f8dde938c
+> > > >
+> > [...]
+> > > > [108431.305700] RSP: 0018:ffffac250ade7e28 EFLAGS: 00010206
+> > > > [108431.311107] RAX: 0000000000000081 RBX: ffff9ebc413b42f8 RCX:
+> > > > 0000000000000001
+> > > > [108431.318420] RDX: 00000001067200c0 RSI: ffff9ebeda71ce58 RDI:
+> > > > ffff9ebeda71ce58
+> > > > [108431.325735] RBP: ffff9ebc413b4250 R08: ffff9ebc413b4250 R09:
+> > > > ffff9ebe3d7fad58
+> > > > [108431.333068] R10: 0000000000000000 R11: 0000000000000003 R12:
+> > > > ffff9ebfafab0000
+> > > > [108431.340415] R13: 0000000000000000 R14: ffff9ebfafab0005 R15:
+> > > > ffff9ebd79a0f780
+> > > > [108431.347764] FS:  0000000000000000(0000) GS:ffff9ebfafa80000(000=
+0)
+> > > > knlGS:0000000000000000
+> > > > [108431.356069] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > > [108431.362012] CR2: 0000000000000081 CR3: 000000045e99e000 CR4:
+> > > > 00000000003526e0
+> > > > [108431.369361] Call Trace:
+> > > > [108431.371999]  <TASK>
+> > > > [108431.374296] ? __die (arch/x86/kernel/dumpstack.c:421
+> > > > arch/x86/kernel/dumpstack.c:434)
+> > > > [108431.377553] ? page_fault_oops (arch/x86/mm/fault.c:707)
+> > > > [108431.381850] ? load_balance (kernel/sched/fair.c:10926)
+> > > > [108431.385884] ? exc_page_fault (arch/x86/mm/fault.c:1279
+> > > > arch/x86/mm/fault.c:1486 arch/x86/mm/fault.c:1542)
+> > > > [108431.390094] ? asm_exc_page_fault (./arch/x86/include/asm/idtent=
+ry.h:570)
+> > > > [108431.394482] ? flow_offload_teardown
+> > > > (./arch/x86/include/asm/bitops.h:75
+> > > > ./include/asm-generic/bitops/instrumented-atomic.h:42
+> > > > net/netfilter/nf_flow_table_core.c:362)
+> > > > [108431.399036] nf_flow_offload_gc_step
+> > > > (./arch/x86/include/asm/bitops.h:207
+> > > > ./arch/x86/include/asm/bitops.h:239
+> > > > ./include/asm-generic/bitops/instrumented-non-atomic.h:142
+> > > > net/netfilter/nf_flow_table_core.c:436)
+> >
+> > This crash points here.
+> >
+> > static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+> >                                     struct flow_offload *flow, void *da=
+ta)
+> > {
+> >         if (nf_flow_has_expired(flow) ||
+> >             nf_ct_is_dying(flow->ct) ||
+> >             nf_flow_is_outdated(flow))
+> >                 flow_offload_teardown(flow);
+> >
+> >         if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) { <--
+> >
+> > Is this always reproducible on your testbed?
+>
+> That's a bit unknown, I don't quite know what triggers it... I only
+> know it's happened twice :/
+> (That i've noticed - the fw runs with a watchdog and it's always been
+> a "uhuh... uptime is less than expected" kind of thing)
 
-Reviewed-by: Simon Horman <simon.horman@corigine.com>
+I should add that i do:
+for interface in eno1 eno2 eno3 eno4 ; do
+for offload in ntuple hw-tc-offload rx-udp-gro-forwarding rx-gro-list ; do
+ethtool -K $interface $offload on > /dev/null
+done
+done
 
+And that some interfaces are directly attached to a bridge while
+others are more normal
+
+lspci |grep Ethernet
+06:00.0 Ethernet controller: Intel Corporation Ethernet Connection
+X553 1GbE (rev 11)
+06:00.1 Ethernet controller: Intel Corporation Ethernet Connection
+X553 1GbE (rev 11)
+07:00.0 Ethernet controller: Intel Corporation Ethernet Connection
+X553 1GbE (rev 11)
+07:00.1 Ethernet controller: Intel Corporation Ethernet Connection
+X553 1GbE (rev 11)
+
+This is since i added NET_SCHED etc support back in to the kernel
+
+tc qdisc show
+qdisc noqueue 0: dev lo root refcnt 2
+qdisc mq 0: dev eno1 root
+qdisc fq 0: dev eno1 parent :c limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :b limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :a limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :9 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :8 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :7 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :6 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :5 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :4 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :3 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :2 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno1 parent :1 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc mq 0: dev eno2 root
+qdisc fq 0: dev eno2 parent :c limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :b limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :a limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :9 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :8 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :7 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :6 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :5 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :4 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :3 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :2 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno2 parent :1 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 18028b initial_quantum 90140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc mq 0: dev eno3 root
+qdisc fq 0: dev eno3 parent :c limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :b limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :a limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :9 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :8 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :7 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :6 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :5 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :4 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :3 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :2 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno3 parent :1 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc mq 0: dev eno4 root
+qdisc fq 0: dev eno4 parent :c limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :b limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :a limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :9 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :8 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :7 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :6 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :5 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :4 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :3 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :2 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc fq 0: dev eno4 parent :1 limit 10000p flow_limit 100p buckets
+1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b
+low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon
+10s horizon_drop
+qdisc noqueue 0: dev external-net root refcnt 2
+qdisc noqueue 0: dev local-lan root refcnt 2
+qdisc noqueue 0: dev virtual-net root refcnt 2
+qdisc noqueue 8001: dev vnet0 root refcnt 2
+qdisc noqueue 8002: dev vnet1 root refcnt 2
+qdisc noqueue 8003: dev vnet2 root refcnt 2
+qdisc noqueue 8004: dev vnet3 root refcnt 2
+qdisc noqueue 8005: dev vnet4 root refcnt 2
+qdisc noqueue 8006: dev vnet5 root refcnt 2
+qdisc noqueue 8007: dev vnet6 root refcnt 2
+qdisc noqueue 8008: dev vnet7 root refcnt 2
+qdisc noqueue 0: dev int root refcnt 2
+
+
+> > Thanks.
