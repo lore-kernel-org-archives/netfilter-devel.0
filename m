@@ -2,88 +2,163 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84F8DEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jul 2023 05:20:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E50C5C001DC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jul 2023 10:46:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231527AbjG0FUZ (ORCPT
+        id S231383AbjG0Kqu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jul 2023 01:20:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47800 "EHLO
+        Thu, 27 Jul 2023 06:46:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230060AbjG0FUX (ORCPT
+        with ESMTP id S229659AbjG0Kqt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jul 2023 01:20:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5839226A1
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jul 2023 22:20:22 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA01F61D32
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2023 05:20:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 4DF76C433CA;
-        Thu, 27 Jul 2023 05:20:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690435221;
-        bh=vSwZX0BIXyFbNfDAwkHdw6kvHKmRUxgspGD/XzL2DO4=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=HftlvU74rHMFtFW2MhfJKNG2/soMFZlyCXiTYpQsnrwu/syFfyEOGhSwb51rtwg68
-         yGfJidpLMKn4gVzwsSf4V6W1MXDD3uEUtmMLqunWUM7Lod+MiUE3Nkop+rgSFIXaqA
-         bfxE/17uabZVu2N9hoiczVDrkHdtmHiBdOz7YhxCES/98tLqPs1EnqkyxupjBWOpI8
-         zwGWPwSnzGYMU2dm4re3SyxJhLCUyKle4HclI1PK8dM10KtEVGCIpYi5AjzgvnlAHW
-         5Bthtz96QH2zFC7GG7bxXck5HXDcHuTNYi6IxEBFTBYWQiUt72iw4Setskn0U3Vwiu
-         DCC5IVx7VTclA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2E27CC41672;
-        Thu, 27 Jul 2023 05:20:21 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 27 Jul 2023 06:46:49 -0400
+Received: from mail-oi1-f207.google.com (mail-oi1-f207.google.com [209.85.167.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC64C1FF0
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2023 03:46:47 -0700 (PDT)
+Received: by mail-oi1-f207.google.com with SMTP id 5614622812f47-3a4261fc598so1820418b6e.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2023 03:46:47 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690454807; x=1691059607;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=LvI6vtfQJFf8LXXcJyjBDqhJYmrLxLa/d2Tx/45QJ/4=;
+        b=eIxsHrub8Psqqd3gtXxz1v0ZsqoZU+pv08Id5nCQpaRnr7MEaQUBsVZRWt+qWzryVq
+         vWCMQSWooGsd98ca5rCQw37uaRAZjSST9kJMr6WFUBoPG9CO/N4jD7I+CaT6Abg6xhBS
+         lWCATd1vsxK+Dpl+Y34Z4fA7gIIJWXg9MYj9yKRXCEprHmvERAYI2iXI7K8td8mimYIZ
+         CRRxj2+NeIzFRDECw1vUORlT+OJE2sBniY4cWgTWNPH+svByQDr9uz03ByaG5pJKLg1+
+         xmmAfmEgNT49jkh/lFg2XfHsXqwKQCQTkoSY57OXf/KarDmKHvoNgo48adQ2D/A8f+Yb
+         LXFA==
+X-Gm-Message-State: ABy/qLbAtD3Y2kTeaQh/6rJ00DGZy2nyKKZ+83XvGkODAqR0kwfvyjg+
+        CkU6x58dEGvz5vSnc3iUqZvPs7DAaK1kbrxFIGDgg6ePzGa5
+X-Google-Smtp-Source: APBJJlEjHNOn01A7PhQWqnlltz8q9HyG34aGQpyMcKlcIfoPZdDs6G+HJfbX5y+E5uQqAt5wnkcTQrVHYprRdQVKORLxIcQez/7u
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/3] netfilter: nft_set_rbtree: fix overlap expiration
- walk
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169043522118.2558.8083806332093090188.git-patchwork-notify@kernel.org>
-Date:   Thu, 27 Jul 2023 05:20:21 +0000
-References: <20230726152524.26268-2-fw@strlen.de>
-In-Reply-To: <20230726152524.26268-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org
+X-Received: by 2002:a05:6808:2092:b0:3a4:2943:8f7 with SMTP id
+ s18-20020a056808209200b003a4294308f7mr5363691oiw.5.1690454807115; Thu, 27 Jul
+ 2023 03:46:47 -0700 (PDT)
+Date:   Thu, 27 Jul 2023 03:46:47 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000497c3c060175aed9@google.com>
+Subject: [syzbot] [netfilter?] WARNING in __nf_conntrack_confirm
+From:   syzbot <syzbot+ff6e85a2812073da0a36@syzkaller.appspotmail.com>
+To:     bpf@vger.kernel.org, coreteam@netfilter.org, davem@davemloft.net,
+        edumazet@google.com, fw@strlen.de, kadlec@netfilter.org,
+        kuba@kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pabeni@redhat.com, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Hello,
 
-This series was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
+syzbot found the following issue on:
 
-On Wed, 26 Jul 2023 17:23:47 +0200 you wrote:
-> The lazy gc on insert that should remove timed-out entries fails to release
-> the other half of the interval, if any.
-> 
-> Can be reproduced with tests/shell/testcases/sets/0044interval_overlap_0
-> in nftables.git and kmemleak enabled kernel.
-> 
-> Second bug is the use of rbe_prev vs. prev pointer.
-> If rbe_prev() returns NULL after at least one iteration, rbe_prev points
-> to element that is not an end interval, hence it should not be removed.
-> 
-> [...]
+HEAD commit:    15cec633fc7b net: fec: tx processing does not call XDP API..
+git tree:       net
+console output: https://syzkaller.appspot.com/x/log.txt?x=17fbd745a80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=77b9a3cf8f44c6da
+dashboard link: https://syzkaller.appspot.com/bug?extid=ff6e85a2812073da0a36
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
 
-Here is the summary with links:
-  - [net,1/3] netfilter: nft_set_rbtree: fix overlap expiration walk
-    https://git.kernel.org/netdev/net/c/f718863aca46
-  - [net,2/3] netfilter: nf_tables: skip immediate deactivate in _PREPARE_ERROR
-    https://git.kernel.org/netdev/net/c/0a771f7b266b
-  - [net,3/3] netfilter: nf_tables: disallow rule addition to bound chain via NFTA_RULE_CHAIN_ID
-    https://git.kernel.org/netdev/net/c/0ebc1064e487
+Unfortunately, I don't have any reproducer for this issue yet.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/cfb97ef3ebf9/disk-15cec633.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/2e8df2be69d2/vmlinux-15cec633.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/2bdf17720191/bzImage-15cec633.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+ff6e85a2812073da0a36@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 12 at net/netfilter/nf_conntrack_core.c:1198 __nf_conntrack_confirm+0x867/0x12c0 net/netfilter/nf_conntrack_core.c:1198
+Modules linked in:
+CPU: 1 PID: 12 Comm: kworker/u4:1 Not tainted 6.5.0-rc2-syzkaller-00231-g15cec633fc7b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/12/2023
+Workqueue: events_unbound macvlan_process_broadcast
+RIP: 0010:__nf_conntrack_confirm+0x867/0x12c0 net/netfilter/nf_conntrack_core.c:1198
+Code: df e8 5d 64 ff ff 31 ff 41 89 c4 89 c6 e8 91 b5 1c f9 45 84 e4 0f 84 7a ff ff ff 44 8b 7c 24 18 e9 3b fe ff ff e8 49 ba 1c f9 <0f> 0b 48 8b 7c 24 20 e8 bd f6 cb 01 44 8b 74 24 44 8b 5c 24 38 44
+RSP: 0018:ffffc900001e08b0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff888077a75bc0 RCX: 0000000000000100
+RDX: ffff888015265940 RSI: ffffffff8869b667 RDI: 0000000000000001
+RBP: 000000000001e698 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000004f10 R12: ffff888077a75b00
+R13: 0000000000000001 R14: 000000000001e698 R15: 00000000000038d1
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fea3059d988 CR3: 000000004f78b000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ nf_conntrack_confirm include/net/netfilter/nf_conntrack_core.h:62 [inline]
+ nf_confirm+0xfae/0x1200 net/netfilter/nf_conntrack_proto.c:155
+ nf_hook_entry_hookfn include/linux/netfilter.h:143 [inline]
+ nf_hook_slow+0xbf/0x1e0 net/netfilter/core.c:626
+ nf_hook include/linux/netfilter.h:258 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip_local_deliver+0x2f1/0x540 net/ipv4/ip_input.c:254
+ dst_input include/net/dst.h:468 [inline]
+ ip_rcv_finish+0x1c4/0x2e0 net/ipv4/ip_input.c:449
+ NF_HOOK include/linux/netfilter.h:303 [inline]
+ NF_HOOK include/linux/netfilter.h:297 [inline]
+ ip_rcv+0xc8/0x410 net/ipv4/ip_input.c:569
+ __netif_receive_skb_one_core+0x115/0x180 net/core/dev.c:5452
+ __netif_receive_skb+0x1f/0x1b0 net/core/dev.c:5566
+ process_backlog+0x101/0x6c0 net/core/dev.c:5894
+ __napi_poll.constprop.0+0xb4/0x530 net/core/dev.c:6460
+ napi_poll net/core/dev.c:6527 [inline]
+ net_rx_action+0x956/0xe90 net/core/dev.c:6660
+ __do_softirq+0x218/0x965 kernel/softirq.c:553
+ do_softirq kernel/softirq.c:454 [inline]
+ do_softirq+0xaa/0xe0 kernel/softirq.c:441
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0xf8/0x120 kernel/softirq.c:381
+ local_bh_enable include/linux/bottom_half.h:33 [inline]
+ netif_rx net/core/dev.c:4972 [inline]
+ netif_rx+0x332/0x420 net/core/dev.c:4961
+ macvlan_broadcast+0x37d/0x680 drivers/net/macvlan.c:290
+ macvlan_multicast_rx drivers/net/macvlan.c:302 [inline]
+ macvlan_multicast_rx+0xd6/0x100 drivers/net/macvlan.c:296
+ macvlan_process_broadcast+0x225/0x690 drivers/net/macvlan.c:338
+ process_one_work+0xaa2/0x16f0 kernel/workqueue.c:2597
+ worker_thread+0x687/0x1110 kernel/workqueue.c:2748
+ kthread+0x33a/0x430 kernel/kthread.c:389
+ ret_from_fork+0x2c/0x70 arch/x86/kernel/process.c:145
+ ret_from_fork_asm+0x11/0x20 arch/x86/entry/entry_64.S:296
+RIP: 0000:0x0
+Code: Unable to access opcode bytes at 0xffffffffffffffd6.
+RSP: 0000:0000000000000000 EFLAGS: 00000000 ORIG_RAX: 0000000000000000
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
 
 
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the bug is already fixed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to change bug's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the bug is a duplicate of another bug, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
