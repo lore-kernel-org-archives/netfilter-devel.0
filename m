@@ -2,90 +2,101 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAA4BC04A6A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jul 2023 16:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86EA6C0015E
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jul 2023 17:02:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230285AbjG0Q5H (ORCPT
+        id S229961AbjG0RC5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 27 Jul 2023 12:57:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33650 "EHLO
+        Thu, 27 Jul 2023 13:02:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232434AbjG0Q5G (ORCPT
+        with ESMTP id S229526AbjG0RC4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jul 2023 12:57:06 -0400
+        Thu, 27 Jul 2023 13:02:56 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6D7A273C
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2023 09:57:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FF28F7
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2023 10:02:55 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qP4IS-0003OL-9q; Thu, 27 Jul 2023 18:57:04 +0200
-Date:   Thu, 27 Jul 2023 18:57:04 +0200
+        id 1qP4O6-0003St-1C; Thu, 27 Jul 2023 19:02:54 +0200
+Date:   Thu, 27 Jul 2023 19:02:54 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Thomas Haller <thaller@redhat.com>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft v3 PATCH 3/4] src: add input flag NFT_CTX_INPUT_JSON to
- enable JSON parsing
-Message-ID: <ZMKh4DcZBqDYIaXH@orbyte.nwl.cc>
+Subject: Re: [nft v3 PATCH 4/4] py: add Nftables.input_{set,get}_flags() API
+Message-ID: <ZMKjPtfVkeycyU8s@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Thomas Haller <thaller@redhat.com>,
         NetFilter <netfilter-devel@vger.kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>
 References: <20230720143147.669250-1-thaller@redhat.com>
- <20230720143147.669250-4-thaller@redhat.com>
+ <20230720143147.669250-5-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230720143147.669250-4-thaller@redhat.com>
+In-Reply-To: <20230720143147.669250-5-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 20, 2023 at 04:27:02PM +0200, Thomas Haller wrote:
-[...]
-> diff --git a/doc/libnftables.adoc b/doc/libnftables.adoc
-> index 77f3a0fd5659..27e230281edb 100644
-> --- a/doc/libnftables.adoc
-> +++ b/doc/libnftables.adoc
-> @@ -87,6 +87,7 @@ The flags setting controls the input format.
->  ----
->  enum {
->          NFT_CTX_INPUT_NO_DNS = (1 << 0),
-> +        NFT_CTX_INPUT_JSON   = (1 << 1),
->  };
->  ----
->  
-> @@ -94,6 +95,11 @@ NFT_CTX_INPUT_NO_DNS::
->  	Avoid resolving IP addresses with blocking getaddrinfo(). In that case,
->  	only plain IP addresses are accepted.
->  
-> +NFT_CTX_INPUT_JSON:
-> +	When parsing the input, first try to interpret the input as JSON before
-> +	falling back to the nftables format. This behavior is implied when setting
-> +	the NFT_CTX_OUTPUT_JSON flag.
+On Thu, Jul 20, 2023 at 04:27:03PM +0200, Thomas Haller wrote:
+> Add new API to expose the input flags in the Python API.
+> 
+> Note that the chosen approach differs from the existing
+> nft_ctx_output_get_flags() and nft_ctx_output_get_debug()
+> API, which themselves are inconsistent approaches.
+> 
+> The new API directly exposes the underlying C API, that is, the numeric
+> flags.
 
-I would drop the last sentence here and extend NFT_CTX_OUTPUT_JSON docs
-instead, illustrating that it implicitly enables NFT_CTX_INPUT_JSON. Or
-keep the sentence here, if you prefer. But JSON input being enabled when
-enabling JSON output is the actually unintuitive part for people aware
-of input flags' existence.
+Insisting on forcing users to set input flags differently than output
+flags is a bit odd, but once complaints come in we can still follow-up I
+guess.
 
 [...]
-> diff --git a/src/libnftables.c b/src/libnftables.c
-> index 6832f0486d6d..a2e0ae6b5843 100644
-> --- a/src/libnftables.c
-> +++ b/src/libnftables.c
-> @@ -578,7 +578,8 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
->  	nlbuf = xzalloc(strlen(buf) + 2);
->  	sprintf(nlbuf, "%s\n", buf);
+> diff --git a/py/nftables.py b/py/nftables.py
+> index 68fcd7dd103c..e2417b7598c0 100644
+> --- a/py/nftables.py
+> +++ b/py/nftables.py
+[...]
+> @@ -152,6 +182,30 @@ class Nftables:
+>      def __del__(self):
+>          self.nft_ctx_free(self.__ctx)
 >  
-> -	if (nft_output_json(&nft->output))
-> +	if (nft_output_json(&nft->output) ||
-> +	    (nft_ctx_input_get_flags(nft) & NFT_CTX_INPUT_JSON))
+> +    def input_get_flags(self):
+> +        """Query input flags for the nft context.
+> +
+> +        See input_get_flags() for supported flags.
+> +
+> +        Returns the currently set input flags as number.
+> +        """
+> +        return self.nft_ctx_input_get_flags(self.__ctx)
+> +
+> +    def input_set_flags(self, flags):
+> +        """Set input flags for the nft context as number.
+> +
+> +        By default, a new context objects has flags set to zero.
+> +
+> +        The following flags are currently supported.
+> +        NFT_CTX_INPUT_NO_DNS (0x1) disables blocking address lookup.
+> +        NFT_CTX_INPUT_JSON (0x2) enables JSON mode for input.
+> +
+> +        Unknown flags are silently accepted.
+> +
+> +        Returns nothing.
+> +        """
+> +        self.nft_ctx_input_set_flags(self.__ctx, flags)
 
-As pointed out before, this reads much nicer with a getter:
+Please make this return the old flags. It makes temporary flag setting
+much easier, see this snippet from tests/py/nft-test.py for instance:
 
-|	if (nft_output_json(&nft->output) ||
-|	    nft_input_json(&nft->input))
+|  # Check for matching ruleset listing
+|  numeric_proto_old = nftables.set_numeric_proto_output(True)
+|  stateless_old = nftables.set_stateless_output(True)
+|  list_cmd = 'list table %s' % table
+|  rc, pre_output, err = nftables.cmd(list_cmd)
+|  nftables.set_numeric_proto_output(numeric_proto_old)
+|  nftables.set_stateless_output(stateless_old)
 
-Cheers, Phil
+Thanks, Phil
