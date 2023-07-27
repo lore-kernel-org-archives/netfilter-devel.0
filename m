@@ -2,64 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F7BBC001DE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 26 Jul 2023 22:30:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84F8DEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 27 Jul 2023 05:20:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229966AbjGZWaZ (ORCPT
+        id S231527AbjG0FUZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 26 Jul 2023 18:30:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33912 "EHLO
+        Thu, 27 Jul 2023 01:20:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229506AbjGZWaY (ORCPT
+        with ESMTP id S230060AbjG0FUX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jul 2023 18:30:24 -0400
-X-Greylist: delayed 764 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 26 Jul 2023 15:30:23 PDT
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B2941FFA;
-        Wed, 26 Jul 2023 15:30:23 -0700 (PDT)
-Received: from [46.222.17.104] (port=6984 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qOn1P-006lJc-6D; Thu, 27 Jul 2023 00:30:21 +0200
-Date:   Thu, 27 Jul 2023 00:30:17 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     stable@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sasha Levin <sashal@kernel.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: Netfilter -stable patches for 6.1.y
-Message-ID: <ZMGeeQiPNLhIlAd4@calendula>
-References: <ZMGbe24I9I+FOH57@calendula>
+        Thu, 27 Jul 2023 01:20:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5839226A1
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jul 2023 22:20:22 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA01F61D32
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2023 05:20:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 4DF76C433CA;
+        Thu, 27 Jul 2023 05:20:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1690435221;
+        bh=vSwZX0BIXyFbNfDAwkHdw6kvHKmRUxgspGD/XzL2DO4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=HftlvU74rHMFtFW2MhfJKNG2/soMFZlyCXiTYpQsnrwu/syFfyEOGhSwb51rtwg68
+         yGfJidpLMKn4gVzwsSf4V6W1MXDD3uEUtmMLqunWUM7Lod+MiUE3Nkop+rgSFIXaqA
+         bfxE/17uabZVu2N9hoiczVDrkHdtmHiBdOz7YhxCES/98tLqPs1EnqkyxupjBWOpI8
+         zwGWPwSnzGYMU2dm4re3SyxJhLCUyKle4HclI1PK8dM10KtEVGCIpYi5AjzgvnlAHW
+         5Bthtz96QH2zFC7GG7bxXck5HXDcHuTNYi6IxEBFTBYWQiUt72iw4Setskn0U3Vwiu
+         DCC5IVx7VTclA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 2E27CC41672;
+        Thu, 27 Jul 2023 05:20:21 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZMGbe24I9I+FOH57@calendula>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: nft_set_rbtree: fix overlap expiration
+ walk
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <169043522118.2558.8083806332093090188.git-patchwork-notify@kernel.org>
+Date:   Thu, 27 Jul 2023 05:20:21 +0000
+References: <20230726152524.26268-2-fw@strlen.de>
+In-Reply-To: <20230726152524.26268-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Jul 27, 2023 at 12:17:31AM +0200, Pablo Neira Ayuso wrote:
-> Hi Greg, Sasha,
-> 
-> Could you please cherry-pick:
-> 
->  29ad9a305943 ("netfilter: nf_tables: fix underflow in chain reference counter")
->  b8ae60de6fd3 ("netfilter: nf_tables: fix underflow in object reference counter"
+Hello:
 
-Err. Wrong commit IDs and patch order, apologies.
+This series was applied to netdev/net.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-Correct commit IDs are:
+On Wed, 26 Jul 2023 17:23:47 +0200 you wrote:
+> The lazy gc on insert that should remove timed-out entries fails to release
+> the other half of the interval, if any.
+> 
+> Can be reproduced with tests/shell/testcases/sets/0044interval_overlap_0
+> in nftables.git and kmemleak enabled kernel.
+> 
+> Second bug is the use of rbe_prev vs. prev pointer.
+> If rbe_prev() returns NULL after at least one iteration, rbe_prev points
+> to element that is not an end interval, hence it should not be removed.
+> 
+> [...]
 
-Patch #1 d6b478666ffa ("netfilter: nf_tables: fix underflow in object reference counter")
-Patch #2 b389139f12f2 ("netfilter: nf_tables: fix underflow in chain reference counter")
+Here is the summary with links:
+  - [net,1/3] netfilter: nft_set_rbtree: fix overlap expiration walk
+    https://git.kernel.org/netdev/net/c/f718863aca46
+  - [net,2/3] netfilter: nf_tables: skip immediate deactivate in _PREPARE_ERROR
+    https://git.kernel.org/netdev/net/c/0a771f7b266b
+  - [net,3/3] netfilter: nf_tables: disallow rule addition to bound chain via NFTA_RULE_CHAIN_ID
+    https://git.kernel.org/netdev/net/c/0ebc1064e487
 
-> into 6.1.y?
-> 
-> Other -stable kernels I have just audited do not need these updates,
-> since this fix have been already included in my recent -stable backports.
-> 
-> Thanks.
-> 
-> P.S: Moving forward, I will add the Cc: stable@vger.kernel.org tag to
->      patches as Greg suggested.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
