@@ -2,108 +2,124 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A5CEC04FDF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 08:21:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53003C001DC
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 11:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231384AbjGaIVp (ORCPT
+        id S229741AbjGaLYg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Jul 2023 04:21:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39282 "EHLO
+        Mon, 31 Jul 2023 07:24:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231336AbjGaIVT (ORCPT
+        with ESMTP id S229981AbjGaLYf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2023 04:21:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EC05E7A;
-        Mon, 31 Jul 2023 01:20:24 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CF30160F99;
-        Mon, 31 Jul 2023 08:20:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 3E9D4C433AD;
-        Mon, 31 Jul 2023 08:20:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690791623;
-        bh=iFw1eTT0uqbhzj8JDGSr0fgbWXoLNoGg8HGa6Krj/BE=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=pdzuiheNxcAIUt7dl4VvftR6KVgfb4WfHYzXw7S4BW3HMeL0KMuaUJegDV4ye1i2q
-         xt+IXuw4p4K/OydDVMCVezK9Voc5opQc2n1uQHW+pCcF2S8wyiKFcuPa64UxEPUtvQ
-         G1Iwdhc79AaODYjflPpqOtbjQJnp2U4Fo+ECkhcQA/WYz7nibFltasYOX6TfOGyiQm
-         DkftOEw0qo8qS7YQ1KRXR6FKZrHxTFzDS6vQd6ySIF1lkhclBxDg0VactJ9YcERA3Q
-         lruw6F4hQjhGdeD4QZ4puijNgB6y1lT949oNG2pypUD5bnAAqPINZFgkA0SmN19lHN
-         qOipMmAtNgTCQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 1B4A1E96AC0;
-        Mon, 31 Jul 2023 08:20:23 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Mon, 31 Jul 2023 07:24:35 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 954B7F1
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2023 04:24:32 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] libnftables: Drop cache in -c/--check mode
+Date:   Mon, 31 Jul 2023 13:24:24 +0200
+Message-Id: <20230731112424.69600-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v3 net-next] net: flow_dissector: Use 64bits for used_keys
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169079162310.10005.11385616493848955483.git-patchwork-notify@kernel.org>
-Date:   Mon, 31 Jul 2023 08:20:23 +0000
-References: <20230728232215.2071351-1-rkannoth@marvell.com>
-In-Reply-To: <20230728232215.2071351-1-rkannoth@marvell.com>
-To:     Ratheesh Kannoth <rkannoth@marvell.com>
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        vladimir.oltean@nxp.com, claudiu.manoil@nxp.com,
-        alexandre.belloni@bootlin.com, andrew@lunn.ch,
-        f.fainelli@gmail.com, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, olteanv@gmail.com,
-        michael.chan@broadcom.com, rajur@chelsio.com,
-        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
-        jesse.brandeburg@intel.com, anthony.l.nguyen@intel.com,
-        taras.chornyi@plvision.eu, saeedm@nvidia.com, leon@kernel.org,
-        idosch@nvidia.com, petrm@nvidia.com, horatiu.vultur@microchip.com,
-        lars.povlsen@microchip.com, Steen.Hegelund@microchip.com,
-        daniel.machon@microchip.com, simon.horman@corigine.com,
-        aelior@marvell.com, manishc@marvell.com, ecree.xilinx@gmail.com,
-        habetsm.xilinx@gmail.com, peppe.cavallaro@st.com,
-        alexandre.torgue@foss.st.com, joabreu@synopsys.com,
-        mcoquelin.stm32@gmail.com, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de,
-        muhammad.husaini.zulkifli@intel.com, coreteam@netfilter.org,
-        ioana.ciornei@nxp.com, wojciech.drewek@intel.com,
-        gerhard@engleder-embedded.com, oss-drivers@corigine.com,
-        shenjian15@huawei.com, wentao.jia@corigine.com,
-        linux-net-drivers@amd.com, huangguangbin2@huawei.com,
-        hui.zhou@corigine.com, linux-rdma@vger.kernel.org,
-        louis.peens@corigine.com, zdoychev@maxlinear.com,
-        intel-wired-lan@lists.osuosl.org, wenjuan.geng@corigine.com,
-        grygorii.strashko@ti.com, kurt@linutronix.de,
-        UNGLinuxDriver@microchip.com, netfilter-devel@vger.kernel.org,
-        lanhao@huawei.com, linux-omap@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, shmulik.ladkani@gmail.com,
-        d-tatianin@yandex-team.ru,
-        linux-stm32@st-md-mailman.stormreply.com, jdamato@fastly.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Extend e0aace943412 ("libnftables: Drop cache in error case") to also
+drop the cache with -c/--check, this is a dry run mode and kernel does
+not get any update.
 
-This patch was applied to netdev/net-next.git (main)
-by David S. Miller <davem@davemloft.net>:
+This fixes a bug with -o/--optimize, which first runs in an implicit
+-c/--check mode to validate that the ruleset is correct, then it
+provides the proposed optimization. In this case, if the cache is not
+emptied, old objects in the cache refer to scanner data that was
+already released, which triggers BUG like this:
 
-On Sat, 29 Jul 2023 04:52:15 +0530 you wrote:
-> As 32bits of dissector->used_keys are exhausted,
-> increase the size to 64bits.
-> 
-> This is base change for ESP/AH flow dissector patch.
-> Please find patch and discussions at
-> https://lore.kernel.org/netdev/ZMDNjD46BvZ5zp5I@corigine.com/T/#t
-> 
-> [...]
+ BUG: invalid input descriptor type 151665524
+ nft: erec.c:161: erec_print: Assertion `0' failed.
+ Aborted
 
-Here is the summary with links:
-  - [v3,net-next] net: flow_dissector: Use 64bits for used_keys
-    https://git.kernel.org/netdev/net-next/c/2b3082c6ef3b
+This bug was triggered in a ruleset that contains a set for geoip
+filtering. This patch also extends tests/shell to cover this case.
 
-You are awesome, thank you!
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/libnftables.c                                     |  7 +++++--
+ .../optimizations/dumps/skip_unsupported.nft          | 11 +++++++++++
+ tests/shell/testcases/optimizations/skip_unsupported  | 11 +++++++++++
+ 3 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 6fc4f7db6760..e214abb69cf2 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -607,8 +607,10 @@ err:
+ 	    nft_output_json(&nft->output) &&
+ 	    nft_output_echo(&nft->output))
+ 		json_print_echo(nft);
+-	if (rc)
++
++	if (rc || nft->check)
+ 		nft_cache_release(&nft->cache);
++
+ 	return rc;
+ }
+ 
+@@ -713,7 +715,8 @@ err:
+ 	    nft_output_json(&nft->output) &&
+ 	    nft_output_echo(&nft->output))
+ 		json_print_echo(nft);
+-	if (rc)
++
++	if (rc || nft->check)
+ 		nft_cache_release(&nft->cache);
+ 
+ 	scope_release(nft->state->scopes[0]);
+diff --git a/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft b/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft
+index 43b6578dc704..f24855e7b5e1 100644
+--- a/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft
++++ b/tests/shell/testcases/optimizations/dumps/skip_unsupported.nft
+@@ -1,4 +1,15 @@
+ table inet x {
++	set GEOIP_CC_wan-lan_120 {
++		type ipv4_addr
++		flags interval
++		elements = { 1.32.128.0/18, 1.32.200.0-1.32.204.128,
++			     1.32.207.0/24, 1.32.216.118-1.32.216.255,
++			     1.32.219.0-1.32.222.255, 1.32.226.0/23,
++			     1.32.231.0/24, 1.32.233.0/24,
++			     1.32.238.0/23, 1.32.240.0/24,
++			     223.223.220.0/22, 223.255.254.0/24 }
++	}
++
+ 	chain y {
+ 		ip saddr 1.2.3.4 tcp dport 80 meta mark set 0x0000000a accept
+ 		ip saddr 1.2.3.4 tcp dport 81 meta mark set 0x0000000b accept
+diff --git a/tests/shell/testcases/optimizations/skip_unsupported b/tests/shell/testcases/optimizations/skip_unsupported
+index 9313c302048c..6baa8280a9b5 100755
+--- a/tests/shell/testcases/optimizations/skip_unsupported
++++ b/tests/shell/testcases/optimizations/skip_unsupported
+@@ -3,6 +3,17 @@
+ set -e
+ 
+ RULESET="table inet x {
++	set GEOIP_CC_wan-lan_120 {
++		type ipv4_addr
++		flags interval
++		elements = { 1.32.128.0/18, 1.32.200.0-1.32.204.128,
++			     1.32.207.0/24, 1.32.216.118-1.32.216.255,
++			     1.32.219.0-1.32.222.255, 1.32.226.0/23,
++			     1.32.231.0/24, 1.32.233.0/24,
++			     1.32.238.0/23, 1.32.240.0/24,
++			     223.223.220.0/22, 223.255.254.0/24 }
++	}
++
+ 	chain y {
+ 		ip saddr 1.2.3.4 tcp dport 80 meta mark set 10 accept
+ 		ip saddr 1.2.3.4 tcp dport 81 meta mark set 11 accept
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.30.2
 
