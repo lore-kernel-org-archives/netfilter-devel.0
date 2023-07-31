@@ -2,116 +2,117 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A0BCC04E69
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 21:37:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5440C001DE
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 21:55:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231167AbjGaVhb (ORCPT
+        id S231701AbjGaVzo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Jul 2023 17:37:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51484 "EHLO
+        Mon, 31 Jul 2023 17:55:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230320AbjGaVh3 (ORCPT
+        with ESMTP id S231745AbjGaVzh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2023 17:37:29 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0CDF1BEC;
-        Mon, 31 Jul 2023 14:37:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=LddVCcT5Tl/w5tkU77QzXl+CGDu6387cGpG48tppgHc=; b=0Ynn7Y/7W6+gDCwSOAZ/hzNhAf
-        ncsnWc6Ebm0glt4s2jy+6ENEVw8CCnDcddcPxAeqCO1Vm6rOWP40UtXpk7WqdG3Sbb1q/3CucAmPZ
-        qDhNbMsdf3BrUSfNJ1r9+31fDwhdC1gU4CacjWVr4B82FZjG4LdFg30afj+w9oiGhUs73HGFs/v/L
-        xvY5hvk58sAfA5z4McMTW8BtxkIZN9OihahGe+3Vyzuv0tK0LxQraesPWqUx6J4ahrTelf12g654L
-        J2r7IbQOEmrqGnynl/sNARXbjYdGVcA+NX/WO2gi/nP8HJYhRloIot6akbGmFUUqoN7p6p9WZ0onF
-        W4rm/+EQ==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
-        id 1qQaZO-00HOoz-18;
-        Mon, 31 Jul 2023 21:36:50 +0000
-Date:   Mon, 31 Jul 2023 14:36:50 -0700
-From:   Luis Chamberlain <mcgrof@kernel.org>
-To:     Joel Granados <joel.granados@gmail.com>
-Cc:     Catalin Marinas <catalin.marinas@arm.com>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Kees Cook <keescook@chromium.org>,
-        "D. Wythe" <alibuda@linux.alibaba.com>, mptcp@lists.linux.dev,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Paolo Abeni <pabeni@redhat.com>, coreteam@netfilter.org,
-        Jan Karcher <jaka@linux.ibm.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Matthieu Baerts <matthieu.baerts@tessares.net>,
-        bridge@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org,
-        Joerg Reuter <jreuter@yaina.de>, Julian Anastasov <ja@ssi.bg>,
-        David Ahern <dsahern@kernel.org>,
-        netfilter-devel@vger.kernel.org, Wen Gu <guwen@linux.alibaba.com>,
-        linux-kernel@vger.kernel.org,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        linux-sctp@vger.kernel.org, Tony Lu <tonylu@linux.alibaba.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        Florian Westphal <fw@strlen.de>, willy@infradead.org,
-        Heiko Carstens <hca@linux.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-rdma@vger.kernel.org, Roopa Prabhu <roopa@nvidia.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Simon Horman <horms@verge.net.au>,
-        Mat Martineau <martineau@kernel.org>, josh@joshtriplett.org,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Eric Dumazet <edumazet@google.com>, linux-hams@vger.kernel.org,
-        Wenjia Zhang <wenjia@linux.ibm.com>,
-        linux-fsdevel@vger.kernel.org, linux-s390@vger.kernel.org,
-        Xin Long <lucien.xin@gmail.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        netdev@vger.kernel.org, rds-devel@oss.oracle.com,
-        Joel Granados <j.granados@samsung.com>
-Subject: Re: [PATCH v2 00/14] sysctl: Add a size argument to register
- functions in sysctl
-Message-ID: <ZMgpck0rjqHR74sl@bombadil.infradead.org>
-References: <20230731071728.3493794-1-j.granados@samsung.com>
+        Mon, 31 Jul 2023 17:55:37 -0400
+Received: from out2-smtp.messagingengine.com (out2-smtp.messagingengine.com [66.111.4.26])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6FFD1FF0;
+        Mon, 31 Jul 2023 14:55:28 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.nyi.internal (Postfix) with ESMTP id D9D515C019E;
+        Mon, 31 Jul 2023 17:55:25 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute5.internal (MEProxy); Mon, 31 Jul 2023 17:55:25 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+        :cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to; s=fm2; t=1690840525; x=1690926925; bh=r3NTgG4qLC
+        9ZQhYXCs1UXPjCX4mwEQOdjG4bzdifxkI=; b=vZylnhrkSW7MBNL5YAgTv8djUG
+        eySXV57dXy3KGxs0C8lSaKf0v5rs+upnskhR4UugPFDd/W+bbDyTeQShUAtOSHdE
+        FljVCmrDRsw0+IOasPj44TCglOZ9puA8wEa7tTGeEhYnhuEZvhZhO7s5y3YNmbui
+        f/4OcLGnD/7UX0+qb/RTsQR72lLyOhwcHRUfsHuUREu0Cl9u/xmxfSfVe7oTH0tV
+        vfi4ZpIKRpLY8o/Oz4Bmuy761Haq+bE9/y1wXy/jJz6L1HrPnHDATfWUtY+HzKx4
+        GrrKI7QlGp3Dv5YyKqO8C4Mv4o/FVsCAULc+OAuCvFgbI3wesULxHyBs/dpg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:date:date:feedback-id:feedback-id:from:from
+        :in-reply-to:message-id:mime-version:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1690840525; x=1690926925; bh=r3NTgG4qLC9ZQ
+        hYXCs1UXPjCX4mwEQOdjG4bzdifxkI=; b=dNQcqzLXz1LBlJZBUinplkmVHEYaC
+        ssgVLtML0avz4wnTdONP2fhO/yK9kgveKbr4UW7zU9NVsFOjRGTWpj29lWMdgZpC
+        2SSWPNoL3n44oIZG2duAeUpbRnDArEllrLsmZQXZ98AzaCv0hAOqeuAXL6GJsSZS
+        MN3uubIVLporrz3mz4jIClUzXo/PSatE8OVgtxEYx38j0zCT7IRTzE+UeLyf/XJQ
+        zLcWq6S8sVjQNxyfgVW/OWb4ubpKKCIZxYEKOS+4hjvb65SBxOvAPn2hc90n2xDC
+        qvZABoJcR8vmyRhbs+ySwLx9pzxTtUKkD6EXBt6t6kVh2D2ZaKVZZv52w==
+X-ME-Sender: <xms:zS3IZLWjb92NwR5GZ8puc815lBR224UFEow8unK-5X6X5EhqFdV9Vw>
+    <xme:zS3IZDlub75xmfd-BONhJojF66BrHlPRXiZKAyNU7Ef7advln21kDEejf1Kx8b03X
+    sO-7OyXtIG4ldByOQ>
+X-ME-Received: <xmr:zS3IZHZ8ZTQdabAjdXdWHV6x7Z8zLiSwFezT1fkrDyu_-oL0zpOX5Yp5-FRHcZUdXdSxh6KIqTPZYba2Z30mHZ2j9dCKkrEBXqrdFxi59W4gGg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrjeehgddtfecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecufghrlhcuvffnffculddvfedmnecujfgurhephffvve
+    fufffkofgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihu
+    segugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpeetueektdeuhfefvefggfevge
+    ffgfekfefhkeekteffheevtddvhedukeehffeltdenucffohhmrghinhepkhgvrhhnvghl
+    rdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomh
+    epugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:zS3IZGVus9IQwwMDzSpZik9RMZ5Cy8R-7SKBaFWNaXNj_zjlBjBpGA>
+    <xmx:zS3IZFmD9IIr6YS-Otm5u3Is1JCUlsVYIBQgwr050KyB-lfPJ4CFCw>
+    <xmx:zS3IZDd_EDViJFvd6Xp3HvLs0-ySSXL_5WwHBi_sWvPaoBcpWg0H1g>
+    <xmx:zS3IZHlmPvQR-H5ide7b-Z0EHJ18dXzLCM5hvZQg12QUKeDBogIEwQ>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 31 Jul 2023 17:55:24 -0400 (EDT)
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     kadlec@netfilter.org, davem@davemloft.net, pabeni@redhat.com,
+        dxu@dxuuu.xyz, ast@kernel.org, edumazet@google.com,
+        pablo@netfilter.org, kuba@kernel.org, fw@strlen.de
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        bpf@vger.kernel.org, kernel test robot <lkp@intel.com>
+Subject: [PATCH] netfilter: bpf: Only define get_proto_defrag_hook() if necessary
+Date:   Mon, 31 Jul 2023 15:55:00 -0600
+Message-ID: <b128b6489f0066db32c4772ae4aaee1480495929.1690840454.git.dxu@dxuuu.xyz>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230731071728.3493794-1-j.granados@samsung.com>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-> Joel Granados (14):
->   sysctl: Prefer ctl_table_header in proc_sysctl
->   sysctl: Use ctl_table_header in list_for_each_table_entry
->   sysctl: Add ctl_table_size to ctl_table_header
->   sysctl: Add size argument to init_header
->   sysctl: Add a size arg to __register_sysctl_table
->   sysctl: Add size to register_sysctl
->   sysctl: Add size arg to __register_sysctl_init
+Before, we were getting this warning:
 
-This is looking great thanks, I've taken the first 7 patches above
-to sysctl-next to get more exposure / testing and since we're already
-on rc4.
+  net/netfilter/nf_bpf_link.c:32:1: warning: 'get_proto_defrag_hook' defined but not used [-Wunused-function]
 
-Since the below patches involve more networking I'll wait to get
-more feedback from networking folks before merging them.
+Guard the definition with CONFIG_NF_DEFRAG_IPV[4|6].
 
->   sysctl: Add size to register_net_sysctl function
->   ax.25: Update to register_net_sysctl_sz
->   netfilter: Update to register_net_sysctl_sz
->   networking: Update to register_net_sysctl_sz
->   vrf: Update to register_net_sysctl_sz
->   sysctl: SIZE_MAX->ARRAY_SIZE in register_net_sysctl
->   sysctl: Use ctl_table_size as stopping criteria for list macro
+Fixes: 91721c2d02d3 ("netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202307291213.fZ0zDmoG-lkp@intel.com/
+Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
+---
+ net/netfilter/nf_bpf_link.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-  Luis
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index 8fe594bbc7e2..e502ec00b2fe 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -28,6 +28,7 @@ struct bpf_nf_link {
+ 	const struct nf_defrag_hook *defrag_hook;
+ };
+ 
++#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ static const struct nf_defrag_hook *
+ get_proto_defrag_hook(struct bpf_nf_link *link,
+ 		      const struct nf_defrag_hook __rcu *global_hook,
+@@ -68,6 +69,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
+ 
+ 	return hook;
+ }
++#endif
+ 
+ static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
+ {
+-- 
+2.41.0
+
