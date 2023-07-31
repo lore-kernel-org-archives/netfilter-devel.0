@@ -2,117 +2,47 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5440C001DE
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 21:55:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7A64C001DF
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 22:15:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231701AbjGaVzo (ORCPT
+        id S229676AbjGaWPR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Jul 2023 17:55:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33760 "EHLO
+        Mon, 31 Jul 2023 18:15:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231745AbjGaVzh (ORCPT
+        with ESMTP id S229664AbjGaWPQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2023 17:55:37 -0400
-Received: from out2-smtp.messagingengine.com (out2-smtp.messagingengine.com [66.111.4.26])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6FFD1FF0;
-        Mon, 31 Jul 2023 14:55:28 -0700 (PDT)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-        by mailout.nyi.internal (Postfix) with ESMTP id D9D515C019E;
-        Mon, 31 Jul 2023 17:55:25 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute5.internal (MEProxy); Mon, 31 Jul 2023 17:55:25 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-transfer-encoding:content-type:date:date:from:from
-        :in-reply-to:message-id:mime-version:reply-to:sender:subject
-        :subject:to:to; s=fm2; t=1690840525; x=1690926925; bh=r3NTgG4qLC
-        9ZQhYXCs1UXPjCX4mwEQOdjG4bzdifxkI=; b=vZylnhrkSW7MBNL5YAgTv8djUG
-        eySXV57dXy3KGxs0C8lSaKf0v5rs+upnskhR4UugPFDd/W+bbDyTeQShUAtOSHdE
-        FljVCmrDRsw0+IOasPj44TCglOZ9puA8wEa7tTGeEhYnhuEZvhZhO7s5y3YNmbui
-        f/4OcLGnD/7UX0+qb/RTsQR72lLyOhwcHRUfsHuUREu0Cl9u/xmxfSfVe7oTH0tV
-        vfi4ZpIKRpLY8o/Oz4Bmuy761Haq+bE9/y1wXy/jJz6L1HrPnHDATfWUtY+HzKx4
-        GrrKI7QlGp3Dv5YyKqO8C4Mv4o/FVsCAULc+OAuCvFgbI3wesULxHyBs/dpg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:date:date:feedback-id:feedback-id:from:from
-        :in-reply-to:message-id:mime-version:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1690840525; x=1690926925; bh=r3NTgG4qLC9ZQ
-        hYXCs1UXPjCX4mwEQOdjG4bzdifxkI=; b=dNQcqzLXz1LBlJZBUinplkmVHEYaC
-        ssgVLtML0avz4wnTdONP2fhO/yK9kgveKbr4UW7zU9NVsFOjRGTWpj29lWMdgZpC
-        2SSWPNoL3n44oIZG2duAeUpbRnDArEllrLsmZQXZ98AzaCv0hAOqeuAXL6GJsSZS
-        MN3uubIVLporrz3mz4jIClUzXo/PSatE8OVgtxEYx38j0zCT7IRTzE+UeLyf/XJQ
-        zLcWq6S8sVjQNxyfgVW/OWb4ubpKKCIZxYEKOS+4hjvb65SBxOvAPn2hc90n2xDC
-        qvZABoJcR8vmyRhbs+ySwLx9pzxTtUKkD6EXBt6t6kVh2D2ZaKVZZv52w==
-X-ME-Sender: <xms:zS3IZLWjb92NwR5GZ8puc815lBR224UFEow8unK-5X6X5EhqFdV9Vw>
-    <xme:zS3IZDlub75xmfd-BONhJojF66BrHlPRXiZKAyNU7Ef7advln21kDEejf1Kx8b03X
-    sO-7OyXtIG4ldByOQ>
-X-ME-Received: <xmr:zS3IZHZ8ZTQdabAjdXdWHV6x7Z8zLiSwFezT1fkrDyu_-oL0zpOX5Yp5-FRHcZUdXdSxh6KIqTPZYba2Z30mHZ2j9dCKkrEBXqrdFxi59W4gGg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrjeehgddtfecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecufghrlhcuvffnffculddvfedmnecujfgurhephffvve
-    fufffkofgggfestdekredtredttdenucfhrhhomhepffgrnhhivghlucgiuhcuoegugihu
-    segugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpeetueektdeuhfefvefggfevge
-    ffgfekfefhkeekteffheevtddvhedukeehffeltdenucffohhmrghinhepkhgvrhhnvghl
-    rdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomh
-    epugiguhesugiguhhuuhdrgiihii
-X-ME-Proxy: <xmx:zS3IZGVus9IQwwMDzSpZik9RMZ5Cy8R-7SKBaFWNaXNj_zjlBjBpGA>
-    <xmx:zS3IZFmD9IIr6YS-Otm5u3Is1JCUlsVYIBQgwr050KyB-lfPJ4CFCw>
-    <xmx:zS3IZDd_EDViJFvd6Xp3HvLs0-ySSXL_5WwHBi_sWvPaoBcpWg0H1g>
-    <xmx:zS3IZHlmPvQR-H5ide7b-Z0EHJ18dXzLCM5hvZQg12QUKeDBogIEwQ>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 31 Jul 2023 17:55:24 -0400 (EDT)
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     kadlec@netfilter.org, davem@davemloft.net, pabeni@redhat.com,
-        dxu@dxuuu.xyz, ast@kernel.org, edumazet@google.com,
-        pablo@netfilter.org, kuba@kernel.org, fw@strlen.de
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bpf@vger.kernel.org, kernel test robot <lkp@intel.com>
-Subject: [PATCH] netfilter: bpf: Only define get_proto_defrag_hook() if necessary
-Date:   Mon, 31 Jul 2023 15:55:00 -0600
-Message-ID: <b128b6489f0066db32c4772ae4aaee1480495929.1690840454.git.dxu@dxuuu.xyz>
-X-Mailer: git-send-email 2.41.0
+        Mon, 31 Jul 2023 18:15:16 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7237CB2
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2023 15:15:15 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qQbAX-0008SP-Ng; Tue, 01 Aug 2023 00:15:13 +0200
+Date:   Tue, 1 Aug 2023 00:15:13 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Jeremy Sowden <jeremy@azazel.net>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ulogd2 patch ping
+Message-ID: <20230731221513.GA32288@breakpoint.cc>
+References: <20230725191128.GE84273@celephais.dreamlands>
+ <20230726143533.GB2963@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230726143533.GB2963@breakpoint.cc>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Before, we were getting this warning:
+Florian Westphal <fw@strlen.de> wrote:
+> I'll apply it on Friday in case noone objects until then.
 
-  net/netfilter/nf_bpf_link.c:32:1: warning: 'get_proto_defrag_hook' defined but not used [-Wunused-function]
+Just for completeness: I did not apply it due to the unanswered
+question from Pablo.
 
-Guard the definition with CONFIG_NF_DEFRAG_IPV[4|6].
-
-Fixes: 91721c2d02d3 ("netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202307291213.fZ0zDmoG-lkp@intel.com/
-Signed-off-by: Daniel Xu <dxu@dxuuu.xyz>
----
- net/netfilter/nf_bpf_link.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index 8fe594bbc7e2..e502ec00b2fe 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -28,6 +28,7 @@ struct bpf_nf_link {
- 	const struct nf_defrag_hook *defrag_hook;
- };
- 
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- static const struct nf_defrag_hook *
- get_proto_defrag_hook(struct bpf_nf_link *link,
- 		      const struct nf_defrag_hook __rcu *global_hook,
-@@ -68,6 +69,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
- 
- 	return hook;
- }
-+#endif
- 
- static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
- {
--- 
-2.41.0
-
+Also, don't we risk ambiguity here, or is there a guarantee that kernel
+never emits mapped addresses?
