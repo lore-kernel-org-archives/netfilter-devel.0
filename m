@@ -2,55 +2,55 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02CE3C001DF
-	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 07:20:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9CB4C07E8C
+	for <netfilter-devel@archiver.kernel.org>; Mon, 31 Jul 2023 07:21:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230002AbjGaHUe (ORCPT
+        id S231572AbjGaHVE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 31 Jul 2023 03:20:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59370 "EHLO
+        Mon, 31 Jul 2023 03:21:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231888AbjGaHT2 (ORCPT
+        with ESMTP id S231902AbjGaHT2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 31 Jul 2023 03:19:28 -0400
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03AEF19A4;
-        Mon, 31 Jul 2023 00:17:45 -0700 (PDT)
-Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3fe2048c910so5836485e9.1;
-        Mon, 31 Jul 2023 00:17:44 -0700 (PDT)
+Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B85F42D5D;
+        Mon, 31 Jul 2023 00:17:37 -0700 (PDT)
+Received: by mail-lj1-x230.google.com with SMTP id 38308e7fff4ca-2b9bee2d320so61009651fa.1;
+        Mon, 31 Jul 2023 00:17:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1690787863; x=1691392663;
+        d=gmail.com; s=20221208; t=1690787855; x=1691392655;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=GPr2gCh0WwKGZ3vD5F3mcw/cD05Ywt0Q6uWcdKx3iw8=;
-        b=ODQWGR3LflWQq2OvtY1YynEp6l9qd94J4wKNyHC1oHlJSpHL0Xo0lx7HnVPh+Maav4
-         mdFvIf8q88vjdEfhrWv/mi8K27TOWd10Rfkuz2+tkKycXmM8soU71r2e2LC/cCVW8PZz
-         rEwAtYG8tVYRDVtkFAdTT2B1OmQaCWtLnsADAc48NDQAR4KcEelo5MOqIjDh0HTiLMWs
-         eTzmivPPY1muLmBnjFmKwT38ltKrocMx7hYMk6cMgxR9cuLiAzwnyvbOrj5d05fgDd6t
-         aTA/0Fc49Q2iW1UkOCGVn4PWcKcCz83OlVO72nubL6VbL56RiI98SEglN+i3pXoWKjHs
-         Bljw==
+        bh=akvTsUNH5BR7B9r/hWx35oPtJ0e++GeR0ZkfT+4F3fU=;
+        b=ZKQeQX5TR6QzJyvC+jY3QinjsFbGR63r2icZC6hzaVo+s0UZo1N65kjwkZmKHZrkKE
+         sSYOktpPLbGgM7aqBZ0b1rqN2BxrDUJEH2hSAwmCepD/Rnl20eMrMex+h6LkhwAlRRxP
+         4VAezr+wMiqBBh/ks6rfYJ6F6OceClwfqnKIoljP8I2C/BrMALnLZe0aI9bB7s+wQLhQ
+         ENxpNvWIYFyncIGwwtoPq84D6YspqNt05jaf84ECX5PKzi8xKkI+be3IbzdkaH1oKEeO
+         oldlnFQnhBVNJ8w02YtPED3gSrPaCnL/RBpOScGa/8v4QhijcBrs6CpRh28yzNB0FWOB
+         JOeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690787863; x=1691392663;
+        d=1e100.net; s=20221208; t=1690787855; x=1691392655;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=GPr2gCh0WwKGZ3vD5F3mcw/cD05Ywt0Q6uWcdKx3iw8=;
-        b=Oe7lmprXeAtPwnrkH18PlksF1lcGJM51fd/9UQ5ccNw01x7nFl3WuxfFTjH3vQNdEU
-         yj1d//eTuNnGhRuRuY5IcFWQ9IXgNyls/uEefsb2AbbtHsc2ELFfDYl5gXwPCvXKhixd
-         83IRYgNHXJh6azF55J7s5JFMaZQGlZyQixa4tqz1VM54ANiVqMD76Ucy3vy2E7lqlK8H
-         5ZiRY6pL+u+jm+S5ExK0bKhEMPhKn8fJi7nJriRjY3tm8cxCdTnG3vG8VdaKFvDxHibI
-         X/Qlc0xJYSQOwYMtumUUB/ySwUKvmYK6U8nMe/w6RK4XG5ysKjfM+GKzaDnV2e4QhMfm
-         Gaeg==
-X-Gm-Message-State: ABy/qLa6hjdPqmh4GlwuZUuRwxDNIiHC2GiZkg6JiJoAG9a47TWCHKk8
-        h5GhAP2EQyhRgjaBGH1dZeo=
-X-Google-Smtp-Source: APBJJlFUT54AdCuyyb2qFmdAJQLKO+XCQKR52YjLBjQXK2DMkv1v7jl1zW+1BcBKyEgho/gdATMlgQ==
-X-Received: by 2002:a05:600c:2242:b0:3fe:179d:d42e with SMTP id a2-20020a05600c224200b003fe179dd42emr3711564wmm.23.1690787863281;
-        Mon, 31 Jul 2023 00:17:43 -0700 (PDT)
+        bh=akvTsUNH5BR7B9r/hWx35oPtJ0e++GeR0ZkfT+4F3fU=;
+        b=WZIJ0xjA4uyeJT33Z7YgZm5yf9XghDhuoV2Hny835E62PSQOdoLxEfTsOeyGHpI9iW
+         53ZwlExP+piRKGdaxO8P8CcI3K24KkvXUY1xyHbOrpDXprmzXlUeuOmWfbp0oiZ1VEwX
+         bQJKyvHSYRezKFhk0x49qLg8qD0GhBdqrx9arkLpHpkHpfZDG/7YUZEihkI5ZRxDH2K4
+         y4w6Fg1aHa21fRfoKnIb+bnnD3xdqs2fGJOZSd3t/EiQJrHdKr3Xi4VwreFCXEmjgOC6
+         9SrYbP5OBAt1c/1tpY5tAnQIy+iaYnCpIP9yYoCoUrhmZhG5QK7bHAwFyHTe9fr7as+2
+         Hf7w==
+X-Gm-Message-State: ABy/qLaZi+jzZmE/QJ8GbBu88RXjKG0BFnrqNl7p69Dt5GDgzT1wE+En
+        O6ojMLb08XHQrAGk3i58AmA=
+X-Google-Smtp-Source: APBJJlFF4kKT7juN18QvvJPucpMXcrmLWnn3HtokESNRx9okAVLCBri/cLwdzx5mg4xeb7fvNIXGsQ==
+X-Received: by 2002:a2e:7218:0:b0:2b9:b4eb:c39c with SMTP id n24-20020a2e7218000000b002b9b4ebc39cmr5234236ljc.8.1690787855231;
+        Mon, 31 Jul 2023 00:17:35 -0700 (PDT)
 Received: from localhost ([165.225.194.214])
-        by smtp.gmail.com with ESMTPSA id h14-20020a05600c260e00b003fbca942499sm13493952wma.14.2023.07.31.00.17.42
+        by smtp.gmail.com with ESMTPSA id n5-20020a7bc5c5000000b003fbe4cecc3bsm13472652wmk.16.2023.07.31.00.17.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Jul 2023 00:17:42 -0700 (PDT)
+        Mon, 31 Jul 2023 00:17:34 -0700 (PDT)
 From:   Joel Granados <joel.granados@gmail.com>
 X-Google-Original-From: Joel Granados <j.granados@samsung.com>
 To:     mcgrof@kernel.org
@@ -98,11 +98,10 @@ Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         Xin Long <lucien.xin@gmail.com>,
         Nikolay Aleksandrov <razor@blackwall.org>,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com,
-        Joel Granados <j.granados@samsung.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH v2 07/14] sysctl: Add size arg to __register_sysctl_init
-Date:   Mon, 31 Jul 2023 09:17:21 +0200
-Message-Id: <20230731071728.3493794-8-j.granados@samsung.com>
+        Joel Granados <j.granados@samsung.com>
+Subject: [PATCH v2 03/14] sysctl: Add ctl_table_size to ctl_table_header
+Date:   Mon, 31 Jul 2023 09:17:17 +0200
+Message-Id: <20230731071728.3493794-4-j.granados@samsung.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230731071728.3493794-1-j.granados@samsung.com>
 References: <20230731071728.3493794-1-j.granados@samsung.com>
@@ -112,70 +111,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This commit adds table_size to __register_sysctl_init in preparation for
-the removal of the sentinel elements in the ctl_table arrays (last empty
-markers). And though we do *not* remove any sentinels in this commit, we
-set things up by calculating the ctl_table array size with ARRAY_SIZE.
+The new ctl_table_size element will hold the size of the ctl_table
+arrays contained in the ctl_table_header. This value should eventually
+be passed by the callers to the sysctl register infrastructure. And
+while this commit introduces the variable, it does not set nor use it
+because that requires case by case considerations for each caller.
 
-We add a table_size argument to __register_sysctl_init and modify the
-register_sysctl_init macro to calculate the array size with ARRAY_SIZE.
-The original callers do not need to be updated as they will go through
-the new macro.
+It provides two important things: (1) A place to put the
+result of the ctl_table array calculation when it gets introduced for
+each caller. And (2) the size that will be used as the additional
+stopping criteria in the list_for_each_table_entry macro (to be added
+when all the callers are migrated)
 
 Signed-off-by: Joel Granados <j.granados@samsung.com>
-Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- fs/proc/proc_sysctl.c  | 12 +++---------
- include/linux/sysctl.h |  5 +++--
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ include/linux/sysctl.h | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
-index 80d3e2f61947..817bc51c58d8 100644
---- a/fs/proc/proc_sysctl.c
-+++ b/fs/proc/proc_sysctl.c
-@@ -1433,6 +1433,7 @@ EXPORT_SYMBOL(register_sysctl_sz);
-  * 	lifetime use of the sysctl.
-  * @table_name: The name of sysctl table, only used for log printing when
-  *              registration fails
-+ * @table_size: The number of elements in table
-  *
-  * The sysctl interface is used by userspace to query or modify at runtime
-  * a predefined value set on a variable. These variables however have default
-@@ -1445,16 +1446,9 @@ EXPORT_SYMBOL(register_sysctl_sz);
-  * Context: if your base directory does not exist it will be created for you.
-  */
- void __init __register_sysctl_init(const char *path, struct ctl_table *table,
--				 const char *table_name)
-+				 const char *table_name, size_t table_size)
- {
--	int count = 0;
--	struct ctl_table *entry;
--	struct ctl_table_header t_hdr, *hdr;
--
--	t_hdr.ctl_table = table;
--	list_for_each_table_entry(entry, (&t_hdr))
--		count++;
--	hdr = register_sysctl_sz(path, table, count);
-+	struct ctl_table_header *hdr = register_sysctl_sz(path, table, table_size);
- 
- 	if (unlikely(!hdr)) {
- 		pr_err("failed when register_sysctl_sz %s to %s\n", table_name, path);
 diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-index b1168ae281c9..09d7429d67c0 100644
+index 59d451f455bf..33252ad58ebe 100644
 --- a/include/linux/sysctl.h
 +++ b/include/linux/sysctl.h
-@@ -236,8 +236,9 @@ void unregister_sysctl_table(struct ctl_table_header * table);
+@@ -159,12 +159,22 @@ struct ctl_node {
+ 	struct ctl_table_header *header;
+ };
  
- extern int sysctl_init_bases(void);
- extern void __register_sysctl_init(const char *path, struct ctl_table *table,
--				 const char *table_name);
--#define register_sysctl_init(path, table) __register_sysctl_init(path, table, #table)
-+				 const char *table_name, size_t table_size);
-+#define register_sysctl_init(path, table)	\
-+	__register_sysctl_init(path, table, #table, ARRAY_SIZE(table))
- extern struct ctl_table_header *register_sysctl_mount_point(const char *path);
- 
- void do_sysctl_args(void);
+-/* struct ctl_table_header is used to maintain dynamic lists of
+-   struct ctl_table trees. */
++/**
++ * struct ctl_table_header - maintains dynamic lists of struct ctl_table trees
++ * @ctl_table: pointer to the first element in ctl_table array
++ * @ctl_table_size: number of elements pointed by @ctl_table
++ * @used: The entry will never be touched when equal to 0.
++ * @count: Upped every time something is added to @inodes and downed every time
++ *         something is removed from inodes
++ * @nreg: When nreg drops to 0 the ctl_table_header will be unregistered.
++ * @rcu: Delays the freeing of the inode. Introduced with "unfuck proc_sysctl ->d_compare()"
++ *
++ */
+ struct ctl_table_header {
+ 	union {
+ 		struct {
+ 			struct ctl_table *ctl_table;
++			int ctl_table_size;
+ 			int used;
+ 			int count;
+ 			int nreg;
 -- 
 2.30.2
 
