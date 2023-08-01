@@ -2,107 +2,175 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D97C3EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Aug 2023 08:13:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90F13C04FE2
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Aug 2023 09:38:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231952AbjHAINh (ORCPT
+        id S233136AbjHAJiN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Aug 2023 04:13:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34124 "EHLO
+        Tue, 1 Aug 2023 05:38:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232164AbjHAINd (ORCPT
+        with ESMTP id S233209AbjHAJhg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2023 04:13:33 -0400
-Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8D2F1FFD
-        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 01:13:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=MKd5kaH22z2TdiO/QwaJPIVyWY8mPNjo/omd8r4inwY=; b=HLxy0tX4ENuJy2erRn2NQPVcsC
-        47L03hrCE3jC+rXoCA24zeBUtVWpKmXe0UDdy4JKtjoiDum4xmTg3qgF7gM/zr/xV0DWzY3ntgjDP
-        FqLCHVpHFq3/lKAY6ats/biG0iWQgERyo3pligTo5/l0mUHVATFu7n/KeCmLR2Js63Yq/UNWlQY3/
-        V4OELzvh4H+GCPmNoC7O83zMDKEIYh84h0E1rW+JyfsZ/8uzxT7ocgcYIAMEuO1WFgr8Fof5x86Tg
-        etjzkiOJqFAFfRxHCLAldyOR5ItqwrI1n/clAiuLmQwoP/DUFqxMaif2znpV1JQbcdZZxEE91+3nM
-        OnhqSJMg==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-        by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.96)
-        (envelope-from <jeremy@azazel.net>)
-        id 1qQkVR-000j0t-30;
-        Tue, 01 Aug 2023 09:13:25 +0100
-Date:   Tue, 1 Aug 2023 09:13:24 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ulogd2 patch ping
-Message-ID: <20230801081324.GJ84273@celephais.dreamlands>
-References: <20230725191128.GE84273@celephais.dreamlands>
- <20230726143533.GB2963@breakpoint.cc>
- <20230731221513.GA32288@breakpoint.cc>
+        Tue, 1 Aug 2023 05:37:36 -0400
+Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B96FF1BD9;
+        Tue,  1 Aug 2023 02:35:59 -0700 (PDT)
+Received: by mail-wr1-x42d.google.com with SMTP id ffacd0b85a97d-31297125334so3670523f8f.0;
+        Tue, 01 Aug 2023 02:35:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1690882558; x=1691487358;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=VvT5J/1PJpb72S8f2nh5awbFCHxyuUpdf923ik/K8j4=;
+        b=ExXgh7eFyYEhKQs65FHri/ViJcpb8MfKCX9kbY13ZsJxBfJuzrlXbGUOa6PJHRnfVL
+         5KktONa25XH2j439bmJpT0Q4yTjYmX4D0DiBC4baDGrA30FHudWESCVxKcX9ypBipHeM
+         SQep1J2NOOI4y6MR1DOFPz5PzuY+E3qQVzADtwAIobtemnENQgZGsUJnpi/joyh4WivY
+         LIlCKOUJEek89CNVl+TOnj477K/qps7R9Z8rmn8+cL4kkeZWcXXI6KXXgTaf/3PYTlrh
+         pg5N0MEigdMBUTHFqQA2OwiMPdbJ/RuZNlJ9em5VweXgkSGFnwmWM0zlA01zCeSuodhm
+         IVHw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690882558; x=1691487358;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=VvT5J/1PJpb72S8f2nh5awbFCHxyuUpdf923ik/K8j4=;
+        b=F92qiyd2ELRgN0C9Eqo0eeM6vKTrICn4XmoijAWyEoQuQNNBrYt5M0qDe75la1KrpA
+         kGUaFyKXnMeBS1lV3K3tT3Jo44uDxScFIzOVipqL5bzkZjO4g1/Jvgm5r6PtBbvZGpBT
+         rQo26uMD3DB1P3sgfZmENXsA0sCCUhHhfib6+4UOGxwd41+gKfs/G113vJrsZNwH63ev
+         etI9JvaJJLGBA5Ud8DEMCN4EZUL95PeS8MEDpuwGTjbJai074sXn90UCiZUyHoD/YVFu
+         cac4BZXifnjB5VxJHQtp4MZoxQ9D/ueu/xrQMI43orgJP4SxxC2GKnAkCKD5+TJP75Q0
+         csHg==
+X-Gm-Message-State: ABy/qLav90cpuWyUPIT+1eJucyRIfRKYtX/gjbqvvqQHsVAJC6bWGhG8
+        ufcGc9httUC6C/E201vQshg=
+X-Google-Smtp-Source: APBJJlFenT4lJzl0wyFu60kMYJMIoCsq+b5HauhGzk/5vhq31BmGRtO2EgfwE19ne+ER5DzuG/6KpA==
+X-Received: by 2002:a5d:6b8c:0:b0:30a:c681:fd2e with SMTP id n12-20020a5d6b8c000000b0030ac681fd2emr1793379wrx.22.1690882557942;
+        Tue, 01 Aug 2023 02:35:57 -0700 (PDT)
+Received: from localhost (0x934e1fc8.cust.fastspeed.dk. [147.78.31.200])
+        by smtp.gmail.com with ESMTPSA id p16-20020a5d68d0000000b003140f47224csm15519172wrw.15.2023.08.01.02.35.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 01 Aug 2023 02:35:57 -0700 (PDT)
+Date:   Tue, 1 Aug 2023 11:35:55 +0200
+From:   Joel Granados <joel.granados@gmail.com>
+To:     Luis Chamberlain <mcgrof@kernel.org>
+Cc:     Catalin Marinas <catalin.marinas@arm.com>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        Kees Cook <keescook@chromium.org>,
+        "D. Wythe" <alibuda@linux.alibaba.com>, mptcp@lists.linux.dev,
+        Jakub Kicinski <kuba@kernel.org>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Paolo Abeni <pabeni@redhat.com>, coreteam@netfilter.org,
+        Jan Karcher <jaka@linux.ibm.com>,
+        Alexander Aring <alex.aring@gmail.com>,
+        Will Deacon <will@kernel.org>,
+        Stefan Schmidt <stefan@datenfreihafen.org>,
+        Matthieu Baerts <matthieu.baerts@tessares.net>,
+        bridge@lists.linux-foundation.org,
+        linux-arm-kernel@lists.infradead.org,
+        Joerg Reuter <jreuter@yaina.de>, Julian Anastasov <ja@ssi.bg>,
+        David Ahern <dsahern@kernel.org>,
+        netfilter-devel@vger.kernel.org, Wen Gu <guwen@linux.alibaba.com>,
+        linux-kernel@vger.kernel.org,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org,
+        Karsten Graul <kgraul@linux.ibm.com>,
+        Miquel Raynal <miquel.raynal@bootlin.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        linux-sctp@vger.kernel.org, Tony Lu <tonylu@linux.alibaba.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Ralf Baechle <ralf@linux-mips.org>,
+        Florian Westphal <fw@strlen.de>, willy@infradead.org,
+        Heiko Carstens <hca@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-rdma@vger.kernel.org, Roopa Prabhu <roopa@nvidia.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Simon Horman <horms@verge.net.au>,
+        Mat Martineau <martineau@kernel.org>, josh@joshtriplett.org,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Eric Dumazet <edumazet@google.com>, linux-hams@vger.kernel.org,
+        Wenjia Zhang <wenjia@linux.ibm.com>,
+        linux-fsdevel@vger.kernel.org, linux-s390@vger.kernel.org,
+        Xin Long <lucien.xin@gmail.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        netdev@vger.kernel.org, rds-devel@oss.oracle.com
+Subject: Re: [PATCH v2 00/14] sysctl: Add a size argument to register
+ functions in sysctl
+Message-ID: <20230801093555.wwl27a7wjm2oinxx@localhost>
+References: <20230731071728.3493794-1-j.granados@samsung.com>
+ <CGME20230731213734eucas1p2728233a3b9ecd360bbd0cb77f8a44002@eucas1p2.samsung.com>
+ <ZMgpck0rjqHR74sl@bombadil.infradead.org>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="zXf8p6IEASpSptKA"
+        protocol="application/pgp-signature"; boundary="ltg4mtomzaz4i2ki"
 Content-Disposition: inline
-In-Reply-To: <20230731221513.GA32288@breakpoint.cc>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+In-Reply-To: <ZMgpck0rjqHR74sl@bombadil.infradead.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---zXf8p6IEASpSptKA
+--ltg4mtomzaz4i2ki
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2023-08-01, at 00:15:13 +0200, Florian Westphal wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > I'll apply it on Friday in case noone objects until then.
+On Mon, Jul 31, 2023 at 02:36:50PM -0700, Luis Chamberlain wrote:
+> > Joel Granados (14):
+> >   sysctl: Prefer ctl_table_header in proc_sysctl
+> >   sysctl: Use ctl_table_header in list_for_each_table_entry
+> >   sysctl: Add ctl_table_size to ctl_table_header
+> >   sysctl: Add size argument to init_header
+> >   sysctl: Add a size arg to __register_sysctl_table
+> >   sysctl: Add size to register_sysctl
+> >   sysctl: Add size arg to __register_sysctl_init
 >=20
-> Just for completeness: I did not apply it due to the unanswered
-> question from Pablo.
+> This is looking great thanks, I've taken the first 7 patches above
+> to sysctl-next to get more exposure / testing and since we're already
+> on rc4.
+Thx for the feedback.
 
-Thanks, Florian. I had hoped to have reponded over the week-end, but I
-was busier than I expected and didn't pick this up again till yesterday
-evening.  Answers should be forthcoming soon.
+>=20
+> Since the below patches involve more networking I'll wait to get
+> more feedback from networking folks before merging them.
+Just FYI, these are all networking except for the last one. That one is
+actually just in sysctl and will set everything up for removing the
+sentinels.
 
-> Also, don't we risk ambiguity here, or is there a guarantee that
-> kernel never emits mapped addresses?
+>=20
+> >   sysctl: Add size to register_net_sysctl function
+> >   ax.25: Update to register_net_sysctl_sz
+> >   netfilter: Update to register_net_sysctl_sz
+> >   networking: Update to register_net_sysctl_sz
+> >   vrf: Update to register_net_sysctl_sz
+> >   sysctl: SIZE_MAX->ARRAY_SIZE in register_net_sysctl
+> >   sysctl: Use ctl_table_size as stopping criteria for list macro
+>=20
+>   Luis
 
-It would indeed mean that real ipv4-in-ipv6 addresses would be output in
-ipv4 format.  It's been several months, so I can't quite remember my
-thinking, but I probably inclined towards regarding the ambiguity as
-benign.  I have spotted a problem with the existing patch, however, so
-another version will definitely be needed, and I can look at eliminating
-the ambiguity at the same time.
+--=20
 
-J.
+Joel Granados
 
---zXf8p6IEASpSptKA
+--ltg4mtomzaz4i2ki
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmTIvp4ACgkQKYasCr3x
-BA3EZA//RGUBvVe00mZ3aV2FEr10FP0ks3y14px2MDZrI9iZueBiU5FkpW/tH7nK
-Sm78cjDyJ/x1ONCmubLGZSp4edLOsLNPA7NBNasb8Ffjoy4fGdlC5oGxkB2xqA64
-mSal8eu2YDtl96dIxVZG/YZzAZFCG4IbpXnPDfLJti8iyZ/En69n+Ers07E/H/Gf
-NwGq3ScQKt8I26gv2BICOssFNW80VKJEN3KAiShteWEULLhgIGqAr8zCz4Mg5Bp7
-CV251S44SBjrZnk8SdGTE10VyPKvCaR1Hlf+nNR0poqa/20IAcdSZtztkj1rol/1
-Qrl2Eui8S5sjGDonEOFCkU8mUgIiVbjo8PXZ7fLvni0QYANH0izoILbC0LbHWddQ
-LZ8NfOjRfI4AmxWZNTDBbBacuqEBQHt9KxLgR0Pkwqxtm7rGaQioSxjQSI3qI6jp
-AmlJAnuIYQLGJXZAyP1MP/mWKT8dj7xT0PUaYX9qcoJLAJOEu7JHs5eJlm5ow8IB
-VPHo59CX0QLFvbyXmfMBEOEutFkEf+hE4hwSUxMyDU6mbJNsN0049HlgfKYt0ceP
-Mc2THByqyJXlwEgIa7uXG9YzOjnVeKNtaPej510axCDb9se9gRcI8s6DktoE/2Mr
-yOSZf6+PLIUQo3AlPUVD/gGYwrCCBgBN1CEqDYDrlCKGLrs0QU4=
-=n0Jt
+iQGyBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmTI0fkACgkQupfNUreW
+QU/TKwv3ZwfCMFKh+tMOXHzAsW3p+jp8IR2frQvlCy8j4amsnTB8wJmsjkpeuJ3p
+s6IFeYrPE0pDidKOwzYiA4JDZdYDgF1hevrQAuqDsLkKBHzW0Cr6dt21CIQx9uZR
+RwhONU/JHoW6MKmO2PlcOiSQiRAhX/OvUhtCgQPTbff3fT6EAu9twn0vfWcyy+H0
+mn6LM2go/DW2cgdm4oa1U+DqwpJiGCabLbQNfPa8Vx8g7CK2y2Azd5/obW6ryOxe
+QDPdmQdVjytDnDHSW2AEYe2bDympPHaaoDU79e4FPVXC15+UAgF+/ExfDUVq6ek4
+FG5Gjh7ev+i6vPYAUR4AuPtB3hwH+vDsSE6Vcd37iKn/mjg1fi0DHx7Wz1Be/n1o
+8iSbL0N6an0fzzKlOdfwQs1bytw+ssWZtxLIQ3MUhHvwj882OXkYCBRW4Aycgop7
+/H+zOm0K2Yluph2h+5qmhjkzUlTx2MNwfSs34wsvBNsbb1MGZQouIAAQowb+mTzS
+31kDDA8=
+=shIJ
 -----END PGP SIGNATURE-----
 
---zXf8p6IEASpSptKA--
+--ltg4mtomzaz4i2ki--
