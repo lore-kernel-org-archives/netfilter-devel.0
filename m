@@ -2,109 +2,118 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBC7CC001DF
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Aug 2023 17:28:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56359C0015E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Aug 2023 19:29:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230459AbjHAR2R (ORCPT
+        id S229596AbjHAT3J (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Aug 2023 13:28:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36820 "EHLO
+        Tue, 1 Aug 2023 15:29:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234944AbjHAR2J (ORCPT
+        with ESMTP id S232257AbjHAT3I (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2023 13:28:09 -0400
-Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67B5DB0;
-        Tue,  1 Aug 2023 10:28:08 -0700 (PDT)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.west.internal (Postfix) with ESMTP id BE1443200786;
-        Tue,  1 Aug 2023 13:28:05 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Tue, 01 Aug 2023 13:28:07 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        Tue, 1 Aug 2023 15:29:08 -0400
+Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B698D103;
+        Tue,  1 Aug 2023 12:29:07 -0700 (PDT)
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
+        by mailout.nyi.internal (Postfix) with ESMTP id 891CB5C00D1;
+        Tue,  1 Aug 2023 15:29:04 -0400 (EDT)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute2.internal (MEProxy); Tue, 01 Aug 2023 15:29:04 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
         :cc:content-type:content-type:date:date:from:from:in-reply-to
         :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm2; t=1690910885; x=1690997285; bh=pB
-        pYc/Pf6EGtAPeRfMhWXTZpwXc2kxuh9RaouaWP5Dw=; b=Nsg+7TxwZjrfPQ0oUg
-        Rd6gTA3CErwZSNBVie63BRxs9h6FBgRV8/3PuKHqUYEnEu3EEDOP/AbKtmrfpkjJ
-        46ImZDp7lFRV/tj/HFACQRWOcj5TxnOi/hbEtOxu4jUButpFnUeW8+oEfXeHBIvG
-        eBPQtO0a7cXSeUc3auFEgkTwJIJI59b9LKX2LKqr91BoXjLrh2rWJNH9S0vwTpGE
-        L7YIZ9G3s3aeQyceSuNmGtF+TJ6nMDEShXsE93eVw1TmBypL7a/FUH8eHvXCXkE0
-        kR/AiAPMnXicENica8y8iVSx1GpQ35nyyE8opqcofFl1LJz2Xr4Rp5tSUfBsgSXe
-        MvLA==
+        :subject:subject:to:to; s=fm2; t=1690918144; x=1691004544; bh=50
+        K0rjAZpMOLnZsQS3es5SZ7R2JGHZMJS2+QIhOnXEc=; b=T9GkXm5gSU3tOXrp9E
+        36ZU/UZXuBRob2tmtMybh09WX2gr52fiBEgj86/KpJvPMt7JaiHDWo36mUPT6P2v
+        mNUtYOgMCsOeA8LCZMR9MfZexBqvuwl0MHyP3QYaU47l40L3o6vIkexRf9wW94HN
+        mUWUfczWXu+ls645LESj+SPKBOXKEp19EGb5GnX1YmWMwrO/wjl3s7Z4vA+YhF2A
+        fv+2SSmdPrVG4ixz31HsCVwgqRrZFGBgzBgqLB2Quoilr3mmLmx8XmF/m7TcO8Nu
+        mYUIZGfHAhYHWKQ2ok2EJBHYI4mi65kvEqhFaz9xbSEGQmOph1pvOdPzXmrYk0eW
+        Aj6Q==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:cc:content-type:content-type:date:date
         :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
         :message-id:mime-version:references:reply-to:sender:subject
         :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; t=1690910885; x=1690997285; bh=pBpYc/Pf6EGtA
-        PeRfMhWXTZpwXc2kxuh9RaouaWP5Dw=; b=iSXVeUBA4GKKpcMQFBgspREN365eW
-        PnF8/KeAneSZRg+gggl2J22u5eeTprMXHUdYbwL3BUu2kyDdT2OHTeiyPx377FNc
-        P4sR5zN4z899zJWyPPNDRon85E/tOnRiwhHBLR5xCrDnN1DTkKD+Fc6gvnzAnPoR
-        ZFPOquO0ss5gy11sOamUF4bSvbQYZfsf40rXSxF82/dTSax4b8TQq9fXAMEKf/iB
-        DFsKR85PcSwvKR938w2M/GGWKRRmEnp3Y3bR+RNXmU0nW+Pv3RIqvXDjr/Gxwigt
-        u9XfYQflMIeCjja0l4jB29FW9O5y1BRf97KAMfhrcTcCM9M7stfNLEVyQ==
-X-ME-Sender: <xms:pEDJZCFHMoIEi0_cCZO9ZwJjueZCHRyMR8Ofe90iDsIUayKJ2v7tyw>
-    <xme:pEDJZDULshMJlCAsK9bRZmQQvbtyTFUISO0rbDPHpv-pipkNqFmiotqAFCbUFO-ee
-    lJQb-MWRkI_AvKyXs0>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrjeeigdduuddtucetufdoteggodetrfdotf
+        :x-sasl-enc; s=fm3; t=1690918144; x=1691004544; bh=50K0rjAZpMOLn
+        ZsQS3es5SZ7R2JGHZMJS2+QIhOnXEc=; b=ysrqy/DPDf0EDgyHSuuTQzcKD6IEe
+        5Nsi0NaQcyAXZCHiWQOBtDspe1Ckg5vHX/sBUi8GbhHobW/XqZr+HGbHg3E/B1Wd
+        t4Ex+90CAKfXIJ61NGvdpDQkg0oaP+L9ycpf0MvqRmo6W65x4D2zIu3vvmgfkD/T
+        li4xwcjbfTP266cmlZZ0hkTHnC0wH1Dqlxe5hnSQDpK4NjIY05OqCTm5cA1zQtXx
+        PVtDdgYBshNCIqWFrXkaS9Q0ZEsBsE/EnKRBlX1XWIrVq1Ir9AGGKNJTVIusofx6
+        Ae4q3x/ObPB/VzNmp/+uZO9dzV+0T5JubSCz9jC+KlpwUfllOG+kdr0Fg==
+X-ME-Sender: <xms:AF3JZI6fiaI-pjU2nZvB6MIVZtW8ZcoxupuDdlAMacWqgeeCBnQxPA>
+    <xme:AF3JZJ6f0FxRdpyqu6juKKBhOYP9GE6a6RcH_IJCUOnelPycwe0Eg6gg-a6rIXoqU
+    qtxeZv4p0YUEGbnDA>
+X-ME-Received: <xmr:AF3JZHdCRBWRDfDjX-ktcCZFzKEztQ_sKbTg1HQURmKzbPIFrFzGOkcwQx_twWL87qAWAvVhZOD-Fe0Z9_8SxBrvjbcfyACQsdALoSc>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrjeeigddufeegucetufdoteggodetrfdotf
     fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
     uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
-    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:pEDJZMK7HJugwr8VpLH6EMN-UDvUKPbLpsyTkSJibenVWxwhp7h0dg>
-    <xmx:pEDJZMGpp3NkTYEKgECHYNFL6sA_UWIdH_kUZumSIxGEw2qKJjT2SA>
-    <xmx:pEDJZIVxFvnTVTrD5zzJL_VewZKxdu_9DmgyCr298k7iArTkmIQg3A>
-    <xmx:pUDJZJsHq8hLtjehM9o8mpkXz_eDn5miyg0-GrtI6QKuzmxrs1qONA>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 9176CB60089; Tue,  1 Aug 2023 13:28:04 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-592-ga9d4a09b4b-fm-defalarms-20230725.001-ga9d4a09b
-Mime-Version: 1.0
-Message-Id: <b795ccdf-ad53-407e-ba01-a703e353b3fb@app.fastmail.com>
-In-Reply-To: <z3gp6rcrlotwjwux7chza4vmbgv747v5jlr4xhuaad3y2yofsf@jjiju6zltbmh>
-References: <20230801150304.1980987-1-arnd@kernel.org>
- <z3gp6rcrlotwjwux7chza4vmbgv747v5jlr4xhuaad3y2yofsf@jjiju6zltbmh>
-Date:   Tue, 01 Aug 2023 19:27:33 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Daniel Xu" <dxu@dxuuu.xyz>, "Arnd Bergmann" <arnd@kernel.org>
-Cc:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
-        "Jozsef Kadlecsik" <kadlec@netfilter.org>,
-        "Florian Westphal" <fw@strlen.de>,
+    gfrhhlucfvnfffucdlfeehmdenucfjughrpeffhffvvefukfhfgggtuggjsehttdfstddt
+    tddvnecuhfhrohhmpeffrghnihgvlhcuighuuceougiguhesugiguhhuuhdrgiihiieqne
+    cuggftrfgrthhtvghrnhepvdefkeetuddufeeigedtheefffekuedukeehudffudfffffg
+    geeitdetgfdvhfdvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
+    hfrhhomhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:AF3JZNKiXh6XPsasb7_LWp1ls-nxuZtwkCqhldtR7rafO1d64ob4Zg>
+    <xmx:AF3JZMLDb2Zq3odcK6LbthBi2C3Y0_0NzQPyMuOvuAGkuikbxFUmwQ>
+    <xmx:AF3JZOxBNTvdS-eIePhnA-f47JroGxCypBhyZeYaBVm5LKixfXYE6A>
+    <xmx:AF3JZPZdCUZISi1hQuNEJMuTbjBQWjP_VPOUaK5Ir2b9zHRXyZtrwg>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 1 Aug 2023 15:29:03 -0400 (EDT)
+Date:   Tue, 1 Aug 2023 13:29:01 -0600
+From:   Daniel Xu <dxu@dxuuu.xyz>
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Arnd Bergmann <arnd@kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         "David S . Miller" <davem@davemloft.net>,
-        "Eric Dumazet" <edumazet@google.com>,
-        "Jakub Kicinski" <kuba@kernel.org>,
-        "Paolo Abeni" <pabeni@redhat.com>,
-        "Alexei Starovoitov" <ast@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Alexei Starovoitov <ast@kernel.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         Netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org,
         bpf@vger.kernel.org
 Subject: Re: [PATCH] netfilter: bpf_link: avoid unused-function warning
-Content-Type: text/plain
+Message-ID: <ewu46co43ldtnsedbaqvs4ihpebr7wxjbpum32iq4i766egpyu@bzocmghr636q>
+References: <20230801150304.1980987-1-arnd@kernel.org>
+ <z3gp6rcrlotwjwux7chza4vmbgv747v5jlr4xhuaad3y2yofsf@jjiju6zltbmh>
+ <b795ccdf-ad53-407e-ba01-a703e353b3fb@app.fastmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b795ccdf-ad53-407e-ba01-a703e353b3fb@app.fastmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 1, 2023, at 17:20, Daniel Xu wrote:
-> Hi Arnd,
->
-> On Tue, Aug 01, 2023 at 05:02:41PM +0200, Arnd Bergmann wrote:
->> From: Arnd Bergmann <arnd@arndb.de>
->> 
->> The newly added function is unused in some random configurations:
->> 
->> net/netfilter/nf_bpf_link.c:32:1: error: 'get_proto_defrag_hook' defined but not used [-Werror=unused-function]
->>    32 | get_proto_defrag_hook(struct bpf_nf_link *link,
->>       | ^~~~~~~~~~~~~~~~~~~~~
->> 
->
-> This was fixed in 81584c23f249 ("netfilter: bpf: Only define 
-> get_proto_defrag_hook() if necessary").
+On Tue, Aug 01, 2023 at 07:27:33PM +0200, Arnd Bergmann wrote:
+> On Tue, Aug 1, 2023, at 17:20, Daniel Xu wrote:
+> > Hi Arnd,
+> >
+> > On Tue, Aug 01, 2023 at 05:02:41PM +0200, Arnd Bergmann wrote:
+> >> From: Arnd Bergmann <arnd@arndb.de>
+> >> 
+> >> The newly added function is unused in some random configurations:
+> >> 
+> >> net/netfilter/nf_bpf_link.c:32:1: error: 'get_proto_defrag_hook' defined but not used [-Werror=unused-function]
+> >>    32 | get_proto_defrag_hook(struct bpf_nf_link *link,
+> >>       | ^~~~~~~~~~~~~~~~~~~~~
+> >> 
+> >
+> > This was fixed in 81584c23f249 ("netfilter: bpf: Only define 
+> > get_proto_defrag_hook() if necessary").
+> 
+> Ok, I guess this will be in tomorrow's linux-next then, right?
+> 
+>     Arnd
 
-Ok, I guess this will be in tomorrow's linux-next then, right?
+I'm not too familiar with the linux-next process, but chatgpt is telling
+me it should be.
 
-    Arnd
+Thanks,
+Daniel
