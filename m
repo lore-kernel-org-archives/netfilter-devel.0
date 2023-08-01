@@ -2,224 +2,244 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA15C04A94
-	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Aug 2023 10:03:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6119CC0015E
+	for <netfilter-devel@archiver.kernel.org>; Tue,  1 Aug 2023 11:42:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233797AbjHAKDl (ORCPT
+        id S231883AbjHALmw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Aug 2023 06:03:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58910 "EHLO
+        Tue, 1 Aug 2023 07:42:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233982AbjHAKDU (ORCPT
+        with ESMTP id S231271AbjHALmv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2023 06:03:20 -0400
-Received: from mail-wm1-x32c.google.com (mail-wm1-x32c.google.com [IPv6:2a00:1450:4864:20::32c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 602F7EE;
-        Tue,  1 Aug 2023 03:03:19 -0700 (PDT)
-Received: by mail-wm1-x32c.google.com with SMTP id 5b1f17b1804b1-3fe167d4a18so31975935e9.0;
-        Tue, 01 Aug 2023 03:03:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1690884198; x=1691488998;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=6xzFd6kXeaygrI5Ej8/AL8nxngfv7zWbrLM3nGa6LwE=;
-        b=eXsvFh6BK+B4iuEJYMTnBcTL7rHnOTSND3P9MAnpkjJqEpLCdcVuq/3LHC8WhWxlOi
-         AYVHc0UleUBBoRaduveJnpBbMfklz/v7bfVQyhDeoiCpwWcDLTvnVdKzWsATvnXRFrIQ
-         4sxETc63wfFaT1bcwPenmbK5Cd68zjDF7/mwm/QlGSxaYKSqfPBfKA0mGUHtfQgxDKuN
-         bfckck3WXSVwZdpmMoaLqOAU0MAofGr+AO2UcfWw2DAsMdq42RxNJsTnAee8Lvikj6hM
-         UobnKUJtXdI2bFxeUV6lKnu0txtKROjJB89U3UM49XZz3hMCMQfPajpd2YztNuqg5bYr
-         w4qQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690884198; x=1691488998;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=6xzFd6kXeaygrI5Ej8/AL8nxngfv7zWbrLM3nGa6LwE=;
-        b=FmxKcGxm0PfjF2A3o4YIU4YHqPa2Bb3ZtIwM4LFrKGxKPgIHiGQ0U9QFu0apKbbk7L
-         SIzblwYWgbHhCKloBctr2ZAVJrtelCQNpySQ3TpvXQYl7NRvp8xpinHgD7XtS4DyaIm3
-         ldCYRbGxCfUgQTyXBc9PjwXicwCu4JaQWsUYS3SxC5l6V07X/Q1b1DlTA5WrfF8pKokD
-         DzZpmRZH7Dvrx3Q7GkH0qRn89Xg6ETNC0X1hAo729a+OKdDDytLvfydGvJQQsYZA7BYj
-         UHq+GYSNvtUhMqy1CUuEsSSOdARtoq/JwaUAJ/9/cmXKPRoyBV23SjcpHSPxXNdLoKDx
-         n+cA==
-X-Gm-Message-State: ABy/qLZDBAo9OUQtBN6f2vaJVmGLsCQGz6NhSPLr2IRgTferO15u1Twh
-        g+EjizDozUAixlbWO2BBZ8I=
-X-Google-Smtp-Source: APBJJlHPT6WT6baqr5uMvSTuUS8XBMuz9v2AzEIRtzwB1vPwVdTIJR+TY0kuPM2KiW9G9XEqBLrTBg==
-X-Received: by 2002:a05:600c:214d:b0:3fe:20b6:41b2 with SMTP id v13-20020a05600c214d00b003fe20b641b2mr2182378wml.4.1690884197477;
-        Tue, 01 Aug 2023 03:03:17 -0700 (PDT)
-Received: from localhost (0x934e1fc8.cust.fastspeed.dk. [147.78.31.200])
-        by smtp.gmail.com with ESMTPSA id n1-20020a05600c4f8100b003fe15ac0934sm2670378wmq.1.2023.08.01.03.03.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Aug 2023 03:03:16 -0700 (PDT)
-Date:   Tue, 1 Aug 2023 12:03:15 +0200
-From:   Joel Granados <joel.granados@gmail.com>
-To:     Simon Horman <horms@kernel.org>
-Cc:     mcgrof@kernel.org, Catalin Marinas <catalin.marinas@arm.com>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Kees Cook <keescook@chromium.org>,
-        "D. Wythe" <alibuda@linux.alibaba.com>, mptcp@lists.linux.dev,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Paolo Abeni <pabeni@redhat.com>, coreteam@netfilter.org,
-        Jan Karcher <jaka@linux.ibm.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Matthieu Baerts <matthieu.baerts@tessares.net>,
-        bridge@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org,
-        Joerg Reuter <jreuter@yaina.de>, Julian Anastasov <ja@ssi.bg>,
-        David Ahern <dsahern@kernel.org>,
-        netfilter-devel@vger.kernel.org, Wen Gu <guwen@linux.alibaba.com>,
-        linux-kernel@vger.kernel.org,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        linux-sctp@vger.kernel.org, Tony Lu <tonylu@linux.alibaba.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        Florian Westphal <fw@strlen.de>, willy@infradead.org,
-        Heiko Carstens <hca@linux.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-rdma@vger.kernel.org, Roopa Prabhu <roopa@nvidia.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Simon Horman <horms@verge.net.au>,
-        Mat Martineau <martineau@kernel.org>, josh@joshtriplett.org,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Eric Dumazet <edumazet@google.com>, linux-hams@vger.kernel.org,
-        Wenjia Zhang <wenjia@linux.ibm.com>,
-        linux-fsdevel@vger.kernel.org, linux-s390@vger.kernel.org,
-        Xin Long <lucien.xin@gmail.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        netdev@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: Re: [PATCH v2 03/14] sysctl: Add ctl_table_size to ctl_table_header
-Message-ID: <20230801100315.ymcahsxu6qpw7kct@localhost>
-References: <20230731071728.3493794-1-j.granados@samsung.com>
- <20230731071728.3493794-4-j.granados@samsung.com>
- <ZMf9vZpGE98oM9W2@kernel.org>
- <CGME20230731190724eucas1p14cc08261cd20815797958bbebc0fafe7@eucas1p1.samsung.com>
- <ZMgGWm4sT+VqDZ3u@kernel.org>
+        Tue, 1 Aug 2023 07:42:51 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D18EC103
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 04:42:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=4yq9AShB3tFQFEjSW6UmlXi/ilmP58owRMsLvB1/Z84=; b=EoPNMsHM97VuYW8ICt5xBcmylv
+        VepKzBYTh5TJntyatIBEdRjSz9Tq3SWqiNuCqsNTji1gRCfE238Oo9JK1pr1/Kxq8VSSg/dOu+Kjb
+        8AzlmjAizQMj7vV7UKoEnckURGRo0mVdmoqW7VSPjxcNrFsQREKofs0nMiPh80ezFMDPfLL+bkuvI
+        mVpnmE+U148ZLmQhaBdfrHvdwurIbcKCf0K5alIMANXCiDnTDb2h7Oo7Ci//KeTrYLenmzk2BVJS0
+        hCyhCqoBWv12A3FM4gY+rGlmQ10+kZXOFWryuoNsnL8V6lK2IVkz2PKWGjMjNhhqdwiKVPSBWqpO6
+        x6AvrjUA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qQnm1-0003Bl-5u; Tue, 01 Aug 2023 13:42:45 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Cc:     "Fernando F . Mancera" <ffmancera@riseup.net>
+Subject: [nft PATCH] tests: shell: Review test-cases for destroy command
+Date:   Tue,  1 Aug 2023 13:42:36 +0200
+Message-Id: <20230801114236.27235-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="d62tnfuywe5q6aej"
-Content-Disposition: inline
-In-Reply-To: <ZMgGWm4sT+VqDZ3u@kernel.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Having separate files for successful destroy of existing and
+non-existing objects is a bit too much, just combine them into one.
 
---d62tnfuywe5q6aej
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+While being at it:
 
-On Mon, Jul 31, 2023 at 09:07:06PM +0200, Simon Horman wrote:
-> On Mon, Jul 31, 2023 at 08:30:34PM +0200, Simon Horman wrote:
-> > On Mon, Jul 31, 2023 at 09:17:17AM +0200, Joel Granados wrote:
-> > > The new ctl_table_size element will hold the size of the ctl_table
-> > > arrays contained in the ctl_table_header. This value should eventually
-> > > be passed by the callers to the sysctl register infrastructure. And
-> > > while this commit introduces the variable, it does not set nor use it
-> > > because that requires case by case considerations for each caller.
-> > >=20
-> > > It provides two important things: (1) A place to put the
-> > > result of the ctl_table array calculation when it gets introduced for
-> > > each caller. And (2) the size that will be used as the additional
-> > > stopping criteria in the list_for_each_table_entry macro (to be added
-> > > when all the callers are migrated)
-> > >=20
-> > > Signed-off-by: Joel Granados <j.granados@samsung.com>
-> > > ---
-> > >  include/linux/sysctl.h | 14 ++++++++++++--
-> > >  1 file changed, 12 insertions(+), 2 deletions(-)
-> > >=20
-> > > diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-> > > index 59d451f455bf..33252ad58ebe 100644
-> > > --- a/include/linux/sysctl.h
-> > > +++ b/include/linux/sysctl.h
-> > > @@ -159,12 +159,22 @@ struct ctl_node {
-> > >  	struct ctl_table_header *header;
-> > >  };
-> > > =20
-> > > -/* struct ctl_table_header is used to maintain dynamic lists of
-> > > -   struct ctl_table trees. */
-> > > +/**
-> > > + * struct ctl_table_header - maintains dynamic lists of struct ctl_t=
-able trees
-> > > + * @ctl_table: pointer to the first element in ctl_table array
-> > > + * @ctl_table_size: number of elements pointed by @ctl_table
-> > > + * @used: The entry will never be touched when equal to 0.
-> > > + * @count: Upped every time something is added to @inodes and downed=
- every time
-> > > + *         something is removed from inodes
-> > > + * @nreg: When nreg drops to 0 the ctl_table_header will be unregist=
-ered.
-> > > + * @rcu: Delays the freeing of the inode. Introduced with "unfuck pr=
-oc_sysctl ->d_compare()"
-> > > + *
-> > > + */
-> >=20
-> > Hi Joel,
-> >=20
-> > Please consider also adding kernel doc entries for the other fields of
-> > struct ctl_table_header. According to ./scripts/kernel-doc -none
-> > they are:
-> >=20
-> >   unregistering
-> >   ctl_table_arg
-> >   root
-> >   set
-> >   parent
-> >   node
-> >   inodes
->=20
-> Sorry, I now realise that I made the same comment on v1.
-> And I didn't see your response to that until after I wrote the above.
-np. I'll hold off adding this to the set until I get feedback from my
-proposal. I do this as I'm unsure about the contents of the docs.
+* Check that deleted objects are actually gone
+* No bashisms, using /bin/sh is fine
+* Append '-e' to shebang itself instead of calling 'set'
+* Use 'nft -a -e' instead of assuming the created rule's handle value
+* Shellcheck warned about curly braces, quote them
 
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/shell/testcases/chains/0044chain_destroy_0    | 12 ++++++++----
+ tests/shell/testcases/chains/0045chain_destroy_0    |  8 --------
+ tests/shell/testcases/flowtable/0015destroy_0       | 10 +++++++---
+ tests/shell/testcases/flowtable/0016destroy_0       |  6 ------
+ tests/shell/testcases/maps/0014destroy_0            | 11 +++++++----
+ tests/shell/testcases/maps/0015destroy_0            |  7 -------
+ tests/shell/testcases/rule_management/0012destroy_0 | 10 ++++++++--
+ tests/shell/testcases/rule_management/0013destroy_0 |  8 --------
+ tests/shell/testcases/sets/0072destroy_0            | 11 +++++++----
+ tests/shell/testcases/sets/0073destroy_0            |  7 -------
+ 10 files changed, 37 insertions(+), 53 deletions(-)
+ delete mode 100755 tests/shell/testcases/chains/0045chain_destroy_0
+ delete mode 100755 tests/shell/testcases/flowtable/0016destroy_0
+ delete mode 100755 tests/shell/testcases/maps/0015destroy_0
+ delete mode 100755 tests/shell/testcases/rule_management/0013destroy_0
+ delete mode 100755 tests/shell/testcases/sets/0073destroy_0
 
->=20
-> >=20
-> >=20
-> > >  struct ctl_table_header {
-> > >  	union {
-> > >  		struct {
-> > >  			struct ctl_table *ctl_table;
-> > > +			int ctl_table_size;
-> > >  			int used;
-> > >  			int count;
-> > >  			int nreg;
-> > > --=20
-> > > 2.30.2
-> > >=20
+diff --git a/tests/shell/testcases/chains/0044chain_destroy_0 b/tests/shell/testcases/chains/0044chain_destroy_0
+index 070021cf12f24..fbc1044474b12 100755
+--- a/tests/shell/testcases/chains/0044chain_destroy_0
++++ b/tests/shell/testcases/chains/0044chain_destroy_0
+@@ -1,7 +1,11 @@
+-#!/bin/bash
+-
+-set -e
++#!/bin/sh -e
+ 
+ $NFT add table t
+ 
+-$NFT destroy chain t nochain
++# pass for non-existent chain
++$NFT destroy chain t c
++
++# successfully delete existing chain
++$NFT add chain t c
++$NFT destroy chain t c
++! $NFT list chain t c 2>/dev/null
+diff --git a/tests/shell/testcases/chains/0045chain_destroy_0 b/tests/shell/testcases/chains/0045chain_destroy_0
+deleted file mode 100755
+index b356f8f885ca4..0000000000000
+--- a/tests/shell/testcases/chains/0045chain_destroy_0
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#!/bin/bash
+-
+-set -e
+-
+-$NFT add table t
+-$NFT add chain t c
+-
+-$NFT destroy chain t c
+diff --git a/tests/shell/testcases/flowtable/0015destroy_0 b/tests/shell/testcases/flowtable/0015destroy_0
+index 4828d8187018c..01af84869a3e0 100755
+--- a/tests/shell/testcases/flowtable/0015destroy_0
++++ b/tests/shell/testcases/flowtable/0015destroy_0
+@@ -1,7 +1,11 @@
+-#!/bin/bash
++#!/bin/sh -e
+ 
+-set -e
+ $NFT add table t
+-$NFT add flowtable t f { hook ingress priority 10 \; devices = { lo }\; }
+ 
++# pass for non-existent flowtable
+ $NFT destroy flowtable t f
++
++# successfully delete existing flowtable
++$NFT add flowtable t f '{ hook ingress priority 10; devices = { lo }; }'
++$NFT destroy flowtable t f
++! $NFT list flowtable t f 2>/dev/null
+diff --git a/tests/shell/testcases/flowtable/0016destroy_0 b/tests/shell/testcases/flowtable/0016destroy_0
+deleted file mode 100755
+index ce23c753365af..0000000000000
+--- a/tests/shell/testcases/flowtable/0016destroy_0
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#!/bin/bash
+-
+-set -e
+-$NFT add table t
+-
+-$NFT destroy flowtable t f
+diff --git a/tests/shell/testcases/maps/0014destroy_0 b/tests/shell/testcases/maps/0014destroy_0
+index b769276d52599..6e639a11e2ac2 100755
+--- a/tests/shell/testcases/maps/0014destroy_0
++++ b/tests/shell/testcases/maps/0014destroy_0
+@@ -1,8 +1,11 @@
+-#!/bin/bash
+-
+-set -e
++#!/bin/sh -e
+ 
+ $NFT add table x
+-$NFT add map x y { type ipv4_addr : ipv4_addr\; }
+ 
++# pass for non-existent map
++$NFT destroy map x y
++
++# successfully delete existing map
++$NFT add map x y '{ type ipv4_addr : ipv4_addr; }'
+ $NFT destroy map x y
++! $NFT list map x y 2>/dev/null
+diff --git a/tests/shell/testcases/maps/0015destroy_0 b/tests/shell/testcases/maps/0015destroy_0
+deleted file mode 100755
+index abad4d57e7221..0000000000000
+--- a/tests/shell/testcases/maps/0015destroy_0
++++ /dev/null
+@@ -1,7 +0,0 @@
+-#!/bin/bash
+-
+-set -e
+-
+-$NFT add table x
+-
+-$NFT destroy map x nonmap
+diff --git a/tests/shell/testcases/rule_management/0012destroy_0 b/tests/shell/testcases/rule_management/0012destroy_0
+index 1b61155e9b7ef..57c4da99c285c 100755
+--- a/tests/shell/testcases/rule_management/0012destroy_0
++++ b/tests/shell/testcases/rule_management/0012destroy_0
+@@ -1,7 +1,13 @@
+-#!/bin/bash
++#!/bin/sh -e
+ 
+-set -e
+ $NFT add table t
+ $NFT add chain t c
+ 
++# pass for non-existent rule
+ $NFT destroy rule t c handle 3333
++
++# successfully delete existing rule
++handle=$($NFT -a -e insert rule t c accept | \
++	sed -n 's/.*handle \([0-9]*\)$/\1/p')
++$NFT destroy rule t c handle "$handle"
++! $NFT list chain t c | grep -q accept
+diff --git a/tests/shell/testcases/rule_management/0013destroy_0 b/tests/shell/testcases/rule_management/0013destroy_0
+deleted file mode 100755
+index 895c24a4dacba..0000000000000
+--- a/tests/shell/testcases/rule_management/0013destroy_0
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#!/bin/bash
+-
+-set -e
+-$NFT add table t
+-$NFT add chain t c
+-$NFT insert rule t c accept # should have handle 2
+-
+-$NFT destroy rule t c handle 2
+diff --git a/tests/shell/testcases/sets/0072destroy_0 b/tests/shell/testcases/sets/0072destroy_0
+index c9cf9ff716349..80d24b4760099 100755
+--- a/tests/shell/testcases/sets/0072destroy_0
++++ b/tests/shell/testcases/sets/0072destroy_0
+@@ -1,8 +1,11 @@
+-#!/bin/bash
+-
+-set -e
++#!/bin/sh -e
+ 
+ $NFT add table x
+-$NFT add set x s {type ipv4_addr\; size 2\;}
+ 
++# pass for non-existent set
++$NFT destroy set x s
++
++# successfully delete existing set
++$NFT add set x s '{type ipv4_addr; size 2;}'
+ $NFT destroy set x s
++! $NFT list set x s 2>/dev/null
+diff --git a/tests/shell/testcases/sets/0073destroy_0 b/tests/shell/testcases/sets/0073destroy_0
+deleted file mode 100755
+index a9d65a5541c53..0000000000000
+--- a/tests/shell/testcases/sets/0073destroy_0
++++ /dev/null
+@@ -1,7 +0,0 @@
+-#!/bin/bash
+-
+-set -e
+-
+-$NFT add table x
+-
+-$NFT destroy set x s
+-- 
+2.40.0
 
---=20
-
-Joel Granados
-
---d62tnfuywe5q6aej
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmTI2GIACgkQupfNUreW
-QU/jnAv/XiexP2W1Y950obHBDBGWwb2QRwk7qg172MXMjFQl6+imM/lk9f2BbUyv
-yHqtlJQeHzRDFmaanGI2f0Cd5i7XkupsNoINecjz4w7t3g4pgPxjYO+KRGJoQxRx
-zfGIkM/UKYfW53TJRg0P0b9t7XnQ+yew+ZAEULLKb23ElXZ+hFXMtH8K938NEqxz
-ETsCG4rlGIO3QMm0epmk4EaMr34faYtf8fzaY6T3PshcTq+vklW7M/gHjcMkICK5
-GZM7Ijb2sU5Xd4d8hkoSpPh8TErgjuNVU2LpzlzjyC25WFM0xpPnKRDB5ENGa4m4
-ZWu67LrebJoLjoE0vJUMMfZu9PCmvQp4Wijuc/ImQA4BA8hNwsarFhYlFMPp3Ixn
-AC51TcUplS956Laxzjd51ql75jba5ul88ZGiqnkNL+IXKOjceJSKM68lVQELv1Lq
-m9Il+S1C7xVBNvDQo9yE5jA7mdju9NyxvL2UXr4sZU7Gmp8qiY5Zw4H6T6dSQy8H
-ELxemNee
-=dUoN
------END PGP SIGNATURE-----
-
---d62tnfuywe5q6aej--
