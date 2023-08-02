@@ -2,105 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C193EB64DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 02:05:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC2CEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 02:05:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230508AbjHBCFl (ORCPT
+        id S229884AbjHBCF6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Aug 2023 22:05:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57646 "EHLO
+        Tue, 1 Aug 2023 22:05:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229884AbjHBCFk (ORCPT
+        with ESMTP id S230036AbjHBCF6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2023 22:05:40 -0400
+        Tue, 1 Aug 2023 22:05:58 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBF742690
-        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 19:05:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D415213D
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 19:05:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=J7pd0a25z0J/Axlub5nAqOLEVNS6gQnBtx7KwoZnZ0A=; b=RqInDwy4+gkBhOyZS+3ShWa5mc
-        O2aGdisv4yU++FnPKzWRIRYASDEWR3SWNFoGJ9lQBtSh+/wwLEIUATkZQGB8HwxRQDe9NLlH23e0h
-        UWPFl/+7FV108KsDKkyFWzQBVVDsChmvO1MKqIZpt8EQFbzYRzcEolJmQDweQyPpSRX47zHLXVb/F
-        Qv05uGZv68ga+UUvbV/w8C0Of+i69J4rxvvZN89e6mWRTNmz0pQFgES90Bvif0FnEQ1LEYSHlbdWS
-        3cDE/qj6plEGCoPqO+tCtWJDZulkZihcma4dzx7dvL3i4ez3O52pZ0LEjyuG6CaSI9CSn6xHgU8Cw
-        KwYQpJvg==;
+        bh=3xe5MqqWlyRzXVmlqHyO96H8Ly0eDTm5rKmqnY/x9oI=; b=YTp23fuE6E3FiaTOJ3QAjzk4WC
+        p3jDlgBFzmXWeX2aAVeE8/4RHnSwySur3JbF1t3ii+mdm1qmvlBI/Aii1YNS0O7CJCRy6GATWSlsU
+        KxJgQrGS1jn0ss8x063ZpFKykIeINCjTS2jIxss6PUsAdYb4voEwrk63YNTbCpQaLMpUumXeZSljv
+        Pc6YRXYmyi9/BQ8CZ235YnUaCwMUS04kAfnQfkkgdYa+TVfwADp2ObEG72YTOoo5/iQHUBy2giqom
+        L8PsOwdGatdGhEQyUP45Qn8Vi15wG227WYUEK8+P8YPQqr0n9xATEWqmq2AP+pJZVKCbbeRpwWzWZ
+        RQomCdQQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qR1F0-0002u1-5J; Wed, 02 Aug 2023 04:05:34 +0200
+        id 1qR1FL-0002v7-PS
+        for netfilter-devel@vger.kernel.org; Wed, 02 Aug 2023 04:05:55 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Cc:     debian@helgefjell.de
-Subject: [iptables PATCH 02/16] man: iptables.8: Trivial spelling fixes
-Date:   Wed,  2 Aug 2023 04:03:46 +0200
-Message-Id: <20230802020400.28220-3-phil@nwl.cc>
+Subject: [iptables PATCH 2/3] extensions: libipt_icmp: --icmp-type is not mandatory
+Date:   Wed,  2 Aug 2023 04:05:46 +0200
+Message-Id: <20230802020547.28886-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230802020400.28220-1-phil@nwl.cc>
-References: <20230802020400.28220-1-phil@nwl.cc>
+In-Reply-To: <20230802020547.28886-1-phil@nwl.cc>
+References: <20230802020547.28886-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-- Missing "and" as well as full stop
-- Missing comma in enumeration
-- Duplicate "previous"
-- Confusions are avoided rather than simplified
-- Missing space after comma
+The init callback sets things up for us, not specifying --icmp-type
+results in an '--icmp-type any' match which seems perfectly fine.
 
-Reported-by: debian@helgefjell.de
+Fixes: 1b8db4f4ca250 ("libip[6]t_icmp: use guided option parser")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/iptables.8.in | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ extensions/libipt_icmp.c | 2 +-
+ extensions/libipt_icmp.t | 4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index 2dd1406615106..6486588e34744 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -125,8 +125,8 @@ This table is used mainly for configuring exemptions from connection
- tracking in combination with the NOTRACK target.  It registers at the netfilter
- hooks with higher priority and is thus called before ip_conntrack, or any other
- IP tables.  It provides the following built-in chains: \fBPREROUTING\fP
--(for packets arriving via any network interface) \fBOUTPUT\fP
--(for packets generated by local processes)
-+(for packets arriving via any network interface) and \fBOUTPUT\fP
-+(for packets generated by local processes).
- .TP
- \fBsecurity\fP:
- This table is used for Mandatory Access Control (MAC) networking rules, such
-@@ -258,7 +258,7 @@ This option has no effect in ip6tables and ip6tables-restore.
- [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
- The protocol of the rule or of the packet to check.
- The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
--\fBicmp\fP, \fBicmpv6\fP,\fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
-+\fBicmp\fP, \fBicmpv6\fP, \fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
- or it can be a numeric value, representing one of these protocols or a
- different one.  A protocol name from /etc/protocols is also allowed.
- A "!" argument before the protocol inverts the
-@@ -386,7 +386,7 @@ network names, or services (whenever applicable).
- \fB\-x\fP, \fB\-\-exact\fP
- Expand numbers.
- Display the exact value of the packet and byte counters,
--instead of only the rounded number in K's (multiples of 1000)
-+instead of only the rounded number in K's (multiples of 1000),
- M's (multiples of 1000K) or G's (multiples of 1000M).  This option is
- only relevant for the \fB\-L\fP command.
- .TP
-@@ -441,7 +441,7 @@ entering the \fBFORWARD\fP chain.
- .PP
- The various forms of NAT have been separated out; \fBiptables\fP
- is a pure packet filter when using the default `filter' table, with
--optional extension modules.  This should simplify much of the previous
-+optional extension modules.  This should avoid much of the
- confusion over the combination of IP masquerading and packet filtering
- seen previously.  So the following options are handled differently:
- .nf
+diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
+index 171b3b3949e54..29c9e1a6cd727 100644
+--- a/extensions/libipt_icmp.c
++++ b/extensions/libipt_icmp.c
+@@ -31,7 +31,7 @@ static void icmp_help(void)
+ 
+ static const struct xt_option_entry icmp_opts[] = {
+ 	{.name = "icmp-type", .id = O_ICMP_TYPE, .type = XTTYPE_STRING,
+-	 .flags = XTOPT_MAND | XTOPT_INVERT},
++	 .flags = XTOPT_INVERT},
+ 	XTOPT_TABLEEND,
+ };
+ 
+diff --git a/extensions/libipt_icmp.t b/extensions/libipt_icmp.t
+index ce4a33f9633b5..08692900dba12 100644
+--- a/extensions/libipt_icmp.t
++++ b/extensions/libipt_icmp.t
+@@ -10,8 +10,6 @@
+ # ERROR: cannot load: iptables -A INPUT -p icmp -m icmp --icmp-type destination-unreachable/network-unreachable
+ # -p icmp -m icmp --icmp-type destination-unreachable/network-unreachable;=;OK
+ -m icmp;;FAIL
+-# we accept "iptables -I INPUT -p tcp -m tcp", why not this below?
+-# ERROR: cannot load: iptables -A INPUT -p icmp -m icmp
+-# -p icmp -m icmp;=;OK
++-p icmp -m icmp;-p icmp -m icmp --icmp-type any;OK
+ -p icmp -m icmp --icmp-type 255/255;=;OK
+ -p icmp -m icmp --icmp-type 255/0:255;-p icmp -m icmp --icmp-type any;OK
 -- 
 2.40.0
 
