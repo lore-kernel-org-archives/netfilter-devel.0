@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D4EBC04E69
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 16:09:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C0B0C04A6A
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 16:10:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231315AbjHBQJ4 (ORCPT
+        id S232082AbjHBQKB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Aug 2023 12:09:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54950 "EHLO
+        Wed, 2 Aug 2023 12:10:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232096AbjHBQJ4 (ORCPT
+        with ESMTP id S231690AbjHBQKB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Aug 2023 12:09:56 -0400
+        Wed, 2 Aug 2023 12:10:01 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB08D171B
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2023 09:09:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30269E1
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2023 09:10:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=Fm9uswpRhmQWLrC/6KteD+0m5GS1oHPRauVPEvYafMA=; b=cJ/OS9pfeXJrf6WUS5qvb5T7mc
-        dBhom3kUxManIfaIxgLVhlNfJiczDqAmKmiM4QTq8lx+LwCJv5o2dPmRWHvRb+u05MGDP6U6zQJcy
-        j0btDwaN/Kl4D1bRReu383K5RKwlkcEbhaCS9vWtu8kNr++Uxa9eWfRvuDBG0jsG+bzFqvpCtxUE9
-        G8xA6xNnhJ84BudvhSwfoqOWI7VaHx7qv01HGis+W4H1QKUM3BpozwA1M8G8+v2ym2P4lxBwlk2k+
-        D7OlSfGpvk7dYBl6bXYpwm1aNZxzEZ0MVTnIh9tTzAEXRBZhanoztYRL4aXC1o7zQF0MOYPbXRkh7
-        4gecX65A==;
+        bh=WR2JIEuuwH83+3VqVFMvTLiiltBU/28fj7f0buuyjL4=; b=BYQJ6Hezb+5OTXXhlhcTIMg9s9
+        yokSdbxRTe+MLOXsYNFYaiYkHgshDVFrN/wdekwrAJHxaD5EBDev92w0tcc0Kq5Xp9t1gc8xyof3F
+        yArQw5dxD8PVJJ3G8VPoBz9rxGI6zI9pxlT/ulYr9bwbjKXvJNPPsSkF0pVl0PE18LCEZ8lS36e63
+        umQLLW75RCwibTzYItI03zBWj+gCUgWCtOSTQCUxO0iPymi6rUpGizXWqq1DO47tn4vrFThCTeFC7
+        i7iPf04KP7DCFC1Tu7o52FauUtr8fBNFClQnHYkapQSMesZIE+SFC6XdOpi2ciX5V/q3V43wv/Id3
+        kfJKwvSQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qREQ5-0004u7-9i
-        for netfilter-devel@vger.kernel.org; Wed, 02 Aug 2023 18:09:53 +0200
+        id 1qREQA-0004uB-K5
+        for netfilter-devel@vger.kernel.org; Wed, 02 Aug 2023 18:09:58 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 14/15] man: iptables-save.8: Fix --modprobe description
-Date:   Wed,  2 Aug 2023 18:09:22 +0200
-Message-Id: <20230802160923.17949-15-phil@nwl.cc>
+Subject: [iptables PATCH v2 02/15] man: iptables.8: Trivial spelling fixes
+Date:   Wed,  2 Aug 2023 18:09:10 +0200
+Message-Id: <20230802160923.17949-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.40.0
 In-Reply-To: <20230802160923.17949-1-phil@nwl.cc>
 References: <20230802160923.17949-1-phil@nwl.cc>
@@ -47,37 +47,59 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-- Consistently use 'modprobe' as option argument name
-- Add a reference to modprobe man page
-- Put the path in italics and the command in bold
+- Missing "and" as well as full stop
+- Missing comma in enumeration
+- Duplicate "previous"
+- Confusions are avoided rather than simplified
+- Missing space after comma
 
-Fixes: fbb5639c02218 ("iptables-save: module loading corrections")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v1:
-- Non-bold "modprobe" and iptables-restore program name
----
- iptables/iptables-save.8.in | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ iptables/iptables.8.in | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/iptables/iptables-save.8.in b/iptables/iptables-save.8.in
-index 7f84907352238..118dddcdf62d5 100644
---- a/iptables/iptables-save.8.in
-+++ b/iptables/iptables-save.8.in
-@@ -36,9 +36,10 @@ and
- are used to dump the contents of IP or IPv6 Table in easily parseable format
- either to STDOUT or to a specified file.
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 2dd1406615106..6486588e34744 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -125,8 +125,8 @@ This table is used mainly for configuring exemptions from connection
+ tracking in combination with the NOTRACK target.  It registers at the netfilter
+ hooks with higher priority and is thus called before ip_conntrack, or any other
+ IP tables.  It provides the following built-in chains: \fBPREROUTING\fP
+-(for packets arriving via any network interface) \fBOUTPUT\fP
+-(for packets generated by local processes)
++(for packets arriving via any network interface) and \fBOUTPUT\fP
++(for packets generated by local processes).
  .TP
--\fB\-M\fR, \fB\-\-modprobe\fR \fImodprobe_program\fP
--Specify the path to the modprobe program. By default, iptables-save will
--inspect /proc/sys/kernel/modprobe to determine the executable's path.
-+\fB\-M\fR, \fB\-\-modprobe\fR \fImodprobe\fP
-+Specify the path to the modprobe(8) program. By default,
-+iptables-save will inspect \fI/proc/sys/kernel/modprobe\fP to determine
-+the executable's path.
+ \fBsecurity\fP:
+ This table is used for Mandatory Access Control (MAC) networking rules, such
+@@ -258,7 +258,7 @@ This option has no effect in ip6tables and ip6tables-restore.
+ [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
+ The protocol of the rule or of the packet to check.
+ The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
+-\fBicmp\fP, \fBicmpv6\fP,\fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
++\fBicmp\fP, \fBicmpv6\fP, \fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
+ or it can be a numeric value, representing one of these protocols or a
+ different one.  A protocol name from /etc/protocols is also allowed.
+ A "!" argument before the protocol inverts the
+@@ -386,7 +386,7 @@ network names, or services (whenever applicable).
+ \fB\-x\fP, \fB\-\-exact\fP
+ Expand numbers.
+ Display the exact value of the packet and byte counters,
+-instead of only the rounded number in K's (multiples of 1000)
++instead of only the rounded number in K's (multiples of 1000),
+ M's (multiples of 1000K) or G's (multiples of 1000M).  This option is
+ only relevant for the \fB\-L\fP command.
  .TP
- \fB\-f\fR, \fB\-\-file\fR \fIfilename\fP
- Specify a filename to log the output to. If not specified, iptables-save
+@@ -441,7 +441,7 @@ entering the \fBFORWARD\fP chain.
+ .PP
+ The various forms of NAT have been separated out; \fBiptables\fP
+ is a pure packet filter when using the default `filter' table, with
+-optional extension modules.  This should simplify much of the previous
++optional extension modules.  This should avoid much of the
+ confusion over the combination of IP masquerading and packet filtering
+ seen previously.  So the following options are handled differently:
+ .nf
 -- 
 2.40.0
 
