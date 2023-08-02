@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E29BAEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 02:05:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C193EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 02:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230308AbjHBCFd (ORCPT
+        id S230508AbjHBCFl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Aug 2023 22:05:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57516 "EHLO
+        Tue, 1 Aug 2023 22:05:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230399AbjHBCFc (ORCPT
+        with ESMTP id S229884AbjHBCFk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2023 22:05:32 -0400
+        Tue, 1 Aug 2023 22:05:40 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCAD62139
-        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 19:05:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBF742690
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 19:05:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=G3NEGrSjXnU3DUgT2BKOHDIgIdxk+LO5Plc8bmK7cOY=; b=qrla3WPZzTxQHjNzUp9G/MGi/n
-        9e5brQn1kl/yxzTosoSuUPSa7R4WgiZB3JDRiOBYZH+il+y9qZioY0V4Is2KQvksqHPmZXhE7xW0R
-        /chUQVabY+oHM1/99KEF2RWGwAZbzFCew97B52Emu1f14tkkmXMKYrsbwXYblREma+sVmH8oYw9k1
-        LYvrqxqYLrbKWYPktK6MUD5I6tm5AUwWWMQZh5WRTwYe5WSS1L/eifPOTKVC/dXzAjsB04AQmF3LK
-        QX2hA5lhH5izfPcsYMoWwA0YZvde9u4uv7RdEF8kjst7B+ee445oLTdzCoyHWxvnr1NfSobcrAWqN
-        ONCkdBxQ==;
+        bh=J7pd0a25z0J/Axlub5nAqOLEVNS6gQnBtx7KwoZnZ0A=; b=RqInDwy4+gkBhOyZS+3ShWa5mc
+        O2aGdisv4yU++FnPKzWRIRYASDEWR3SWNFoGJ9lQBtSh+/wwLEIUATkZQGB8HwxRQDe9NLlH23e0h
+        UWPFl/+7FV108KsDKkyFWzQBVVDsChmvO1MKqIZpt8EQFbzYRzcEolJmQDweQyPpSRX47zHLXVb/F
+        Qv05uGZv68ga+UUvbV/w8C0Of+i69J4rxvvZN89e6mWRTNmz0pQFgES90Bvif0FnEQ1LEYSHlbdWS
+        3cDE/qj6plEGCoPqO+tCtWJDZulkZihcma4dzx7dvL3i4ez3O52pZ0LEjyuG6CaSI9CSn6xHgU8Cw
+        KwYQpJvg==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qR1Eu-0002tw-Q7; Wed, 02 Aug 2023 04:05:28 +0200
+        id 1qR1F0-0002u1-5J; Wed, 02 Aug 2023 04:05:34 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
 Cc:     debian@helgefjell.de
-Subject: [iptables PATCH 12/16] man: iptables-restore.8: Trivial: Missing space after comma
-Date:   Wed,  2 Aug 2023 04:03:56 +0200
-Message-Id: <20230802020400.28220-13-phil@nwl.cc>
+Subject: [iptables PATCH 02/16] man: iptables.8: Trivial spelling fixes
+Date:   Wed,  2 Aug 2023 04:03:46 +0200
+Message-Id: <20230802020400.28220-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.40.0
 In-Reply-To: <20230802020400.28220-1-phil@nwl.cc>
 References: <20230802020400.28220-1-phil@nwl.cc>
@@ -47,26 +47,60 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+- Missing "and" as well as full stop
+- Missing comma in enumeration
+- Duplicate "previous"
+- Confusions are avoided rather than simplified
+- Missing space after comma
+
 Reported-by: debian@helgefjell.de
-Fixes: 6a79d78986c02 ("iptables: mention iptables-apply(8) in manpages")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/iptables-restore.8.in | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ iptables/iptables.8.in | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/iptables/iptables-restore.8.in b/iptables/iptables-restore.8.in
-index f97f53813aeed..b7217b4118fc0 100644
---- a/iptables/iptables-restore.8.in
-+++ b/iptables/iptables-restore.8.in
-@@ -82,7 +82,7 @@ from Rusty Russell.
- .br
- Andras Kis-Szabo <kisza@sch.bme.hu> contributed ip6tables-restore.
- .SH SEE ALSO
--\fBiptables\-apply\fP(8),\fBiptables\-save\fP(8), \fBiptables\fP(8)
-+\fBiptables\-apply\fP(8), \fBiptables\-save\fP(8), \fBiptables\fP(8)
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 2dd1406615106..6486588e34744 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -125,8 +125,8 @@ This table is used mainly for configuring exemptions from connection
+ tracking in combination with the NOTRACK target.  It registers at the netfilter
+ hooks with higher priority and is thus called before ip_conntrack, or any other
+ IP tables.  It provides the following built-in chains: \fBPREROUTING\fP
+-(for packets arriving via any network interface) \fBOUTPUT\fP
+-(for packets generated by local processes)
++(for packets arriving via any network interface) and \fBOUTPUT\fP
++(for packets generated by local processes).
+ .TP
+ \fBsecurity\fP:
+ This table is used for Mandatory Access Control (MAC) networking rules, such
+@@ -258,7 +258,7 @@ This option has no effect in ip6tables and ip6tables-restore.
+ [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
+ The protocol of the rule or of the packet to check.
+ The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
+-\fBicmp\fP, \fBicmpv6\fP,\fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
++\fBicmp\fP, \fBicmpv6\fP, \fBesp\fP, \fBah\fP, \fBsctp\fP, \fBmh\fP or the special keyword "\fBall\fP",
+ or it can be a numeric value, representing one of these protocols or a
+ different one.  A protocol name from /etc/protocols is also allowed.
+ A "!" argument before the protocol inverts the
+@@ -386,7 +386,7 @@ network names, or services (whenever applicable).
+ \fB\-x\fP, \fB\-\-exact\fP
+ Expand numbers.
+ Display the exact value of the packet and byte counters,
+-instead of only the rounded number in K's (multiples of 1000)
++instead of only the rounded number in K's (multiples of 1000),
+ M's (multiples of 1000K) or G's (multiples of 1000M).  This option is
+ only relevant for the \fB\-L\fP command.
+ .TP
+@@ -441,7 +441,7 @@ entering the \fBFORWARD\fP chain.
  .PP
- The iptables-HOWTO, which details more iptables usage, the NAT-HOWTO,
- which details NAT, and the netfilter-hacking-HOWTO which details the
+ The various forms of NAT have been separated out; \fBiptables\fP
+ is a pure packet filter when using the default `filter' table, with
+-optional extension modules.  This should simplify much of the previous
++optional extension modules.  This should avoid much of the
+ confusion over the combination of IP masquerading and packet filtering
+ seen previously.  So the following options are handled differently:
+ .nf
 -- 
 2.40.0
 
