@@ -2,81 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D582FEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 02:05:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B92C0C001E0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 02:05:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229772AbjHBCFK (ORCPT
+        id S231483AbjHBCFQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 1 Aug 2023 22:05:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57202 "EHLO
+        Tue, 1 Aug 2023 22:05:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229952AbjHBCFK (ORCPT
+        with ESMTP id S229952AbjHBCFP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2023 22:05:10 -0400
+        Tue, 1 Aug 2023 22:05:15 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0F83212D
-        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 19:05:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6686E212C
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Aug 2023 19:05:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=VzrReA6btN13dEB6YGhN4VGigQbZCrQJhrwzFG9b094=; b=BsilEd/neMB+G5E35PXe+pf3UN
-        Y7i03eC3CIRmovJpUTyDUVlpp2CQUJD/s7UivvSwoh/aoPt7vV/jtRnuvf+bLckvAog/mxi2kUP/p
-        lwxp7DF1kcAsVqdFIaWGoL+z997MO3BDyL+xnZYf4jfBcS0a2kj+fJUSTeC6XobQd1jQizAVZFFSY
-        vr67VMdszrrqfQ+MMpbEZ/h40kJDA2pIpqNuowBcPr/tQ6QoBCrjTu3TbH0Oq36ZOpmTCkygdL6/4
-        Q6/BBdjoFvXSqMhN3xwvoNAhVSAO6o7642Ve6JxQcXJy+54bMG2JLnCygHtbIsqfJHFVuT9O8ozaQ
-        4oGYiPzg==;
+        bh=PkY57qdaTrdD+o4h8omHf2iU17A4MuX/wHh84Dz1kT4=; b=VlFnzCG4ChOOkVJLXF1DE4a05g
+        EVZHs46eFjmECUmo/rb8pcIgAVn77dNercQbKkxBeV9RIGBh4Npz3mB2z6Dtav5CskAo5eBj7T9zp
+        g6PgZBybmNJs1chjfWT/bfMPDl919CIUBlPATCk/8Kp3Ij021vQY7GubaIfvyeSmMje7VTNsUtqYq
+        KfO4frEnA8svVhpYnI6jqfA9S4EN9avCayx/1MsCbEjpFlUI9K9jzl1EaHPHXS5BpoNmhv/AKA0WW
+        /F4bYIFiCBd/+7NTS6zhnYi/4A3MZ/mv1/hY9yCYKhTgCJ1G8PrLtNa8+Aw/KSY/WFDXWf4OfQ1i1
+        P86KL3Dw==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qR1EZ-0002ss-CO
-        for netfilter-devel@vger.kernel.org; Wed, 02 Aug 2023 04:05:07 +0200
+        id 1qR1Ee-0002tA-O2; Wed, 02 Aug 2023 04:05:12 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 00/16] Man pages review
-Date:   Wed,  2 Aug 2023 04:03:44 +0200
-Message-Id: <20230802020400.28220-1-phil@nwl.cc>
+Cc:     debian@helgefjell.de
+Subject: [iptables PATCH 05/16] man: Use HTTPS for links to netfilter.org
+Date:   Wed,  2 Aug 2023 04:03:49 +0200
+Message-Id: <20230802020400.28220-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.40.0
+In-Reply-To: <20230802020400.28220-1-phil@nwl.cc>
+References: <20230802020400.28220-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thanks to the manpage-l10n project, we received several tickets listing
-a number of corrections and improvements to the different iptables man
-pages. This series implements what I considered valid and worth keeping.
+The browser is redirected there anyway, but who cares about such minor
+details nowadays.
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1682
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1683
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1684
+Reported-by: debian@helgefjell.de
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libxt_nfacct.man | 2 +-
+ iptables/iptables.8.in      | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-Phil Sutter (16):
-  man: iptables.8: Extend exit code description
-  man: iptables.8: Trivial spelling fixes
-  man: iptables.8: Fix intra page reference
-  man: iptables.8: Clarify --goto description
-  man: Use HTTPS for links to netfilter.org
-  man: iptables.8: Trivial font fixes
-  man: iptables-restore.8: Fix --modprobe description
-  man: iptables-restore.8: Consistently document -w option
-  man: iptables-restore.8: Drop -W option from synopsis
-  man: iptables-restore.8: Put 'file' in italics in synopsis
-  man: iptables-restore.8: Start paragraphs in upper-case
-  man: iptables-restore.8: Trivial: Missing space after comma
-  man: iptables-save.8: Clarify 'available tables'
-  man: iptables-save.8: Fix --modprobe description
-  man: iptables-save.8: Start paragraphs in upper-case
-  man: iptables-save.8: Trivial: Missing space in enumeration
-
- extensions/libxt_nfacct.man    |  2 +-
- iptables/iptables-restore.8.in | 25 ++++++++--------
- iptables/iptables-save.8.in    | 18 +++++++-----
- iptables/iptables.8.in         | 53 ++++++++++++++++++----------------
- 4 files changed, 53 insertions(+), 45 deletions(-)
-
+diff --git a/extensions/libxt_nfacct.man b/extensions/libxt_nfacct.man
+index b755f9770451c..a818fedd6b1ac 100644
+--- a/extensions/libxt_nfacct.man
++++ b/extensions/libxt_nfacct.man
+@@ -26,5 +26,5 @@ nfacct get http\-traffic
+ .PP
+ You can obtain
+ .B nfacct(8)
+-from http://www.netfilter.org or, alternatively, from the git.netfilter.org
++from https://www.netfilter.org or, alternatively, from the git.netfilter.org
+ repository.
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index c83275b294872..71a6251d6b00c 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -419,7 +419,7 @@ allocation or error messages from kernel cause an exit code of 4. Finally,
+ other errors cause an exit code of 1.
+ .SH BUGS
+ Bugs?  What's this? ;-)
+-Well, you might want to have a look at http://bugzilla.netfilter.org/
++Well, you might want to have a look at https://bugzilla.netfilter.org/
+ \fBiptables\fP will exit immediately with an error code of 111 if it finds
+ that it was called as a setuid-to-root program.
+ iptables cannot be used safely in this manner because it trusts
+@@ -463,7 +463,7 @@ not in the standard distribution,
+ and the netfilter-hacking-HOWTO details the netfilter internals.
+ .br
+ See
+-.BR "http://www.netfilter.org/" .
++.BR "https://www.netfilter.org/" .
+ .SH AUTHORS
+ Rusty Russell originally wrote iptables, in early consultation with Michael
+ Neuling.
 -- 
 2.40.0
 
