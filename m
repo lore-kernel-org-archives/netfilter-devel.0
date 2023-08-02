@@ -2,83 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F94CC001E0
-	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 11:31:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D9D0C001DF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  2 Aug 2023 13:10:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229958AbjHBLb5 (ORCPT
+        id S232731AbjHBNKg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 2 Aug 2023 07:31:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55448 "EHLO
+        Wed, 2 Aug 2023 09:10:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231894AbjHBLb5 (ORCPT
+        with ESMTP id S232277AbjHBNKf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Aug 2023 07:31:57 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16EE7211B
-        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2023 04:31:55 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 844355872FA7E; Wed,  2 Aug 2023 13:31:53 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 8258160C29143;
-        Wed,  2 Aug 2023 13:31:53 +0200 (CEST)
-Date:   Wed, 2 Aug 2023 13:31:53 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Phil Sutter <phil@nwl.cc>
-cc:     netfilter-devel@vger.kernel.org, debian@helgefjell.de
-Subject: Re: [iptables PATCH 06/16] man: iptables.8: Trivial font fixes
-In-Reply-To: <ZMouXeTcmQOZ17QQ@orbyte.nwl.cc>
-Message-ID: <p51ropqs-5so5-s52p-7po4-q7808oq04q58@vanv.qr>
-References: <20230802020400.28220-1-phil@nwl.cc> <20230802020400.28220-7-phil@nwl.cc> <7n662o78-97qr-25n8-130s-prp6rp35n1r0@vanv.qr> <ZMouXeTcmQOZ17QQ@orbyte.nwl.cc>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+        Wed, 2 Aug 2023 09:10:35 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA44A268E
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2023 06:10:34 -0700 (PDT)
+Received: from canpemm500007.china.huawei.com (unknown [172.30.72.53])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RGC492XpDzrS04;
+        Wed,  2 Aug 2023 21:09:29 +0800 (CST)
+Received: from localhost (10.174.179.215) by canpemm500007.china.huawei.com
+ (7.192.104.62) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Wed, 2 Aug
+ 2023 21:10:31 +0800
+From:   Yue Haibing <yuehaibing@huawei.com>
+To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
+        <yuehaibing@huawei.com>
+CC:     <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
+Subject: [PATCH net-next] netfilter: gre: Remove unused function declaration nf_ct_gre_keymap_flush()
+Date:   Wed, 2 Aug 2023 21:09:57 +0800
+Message-ID: <20230802130957.37080-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
+X-Originating-IP: [10.174.179.215]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ canpemm500007.china.huawei.com (7.192.104.62)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Commit a23f89a99906 ("netfilter: conntrack: nf_ct_gre_keymap_flush() removal")
+leave this unused, remove it.
 
-On Wednesday 2023-08-02 12:22, Phil Sutter wrote:
->
->> (Also note that ifff you did \fBiptables-save\fP, it would have need to be
->> \fBiptables\-save\fP, because that is required for verbatim forms.)
->
->Ah, thanks! It's misleading if output looks fine anyway.
+Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
+---
+ include/linux/netfilter/nf_conntrack_proto_gre.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-You just need a better font! '-' U+002D in troff source becomes U+2010 in
-rendering. (At least on some systems. Mine is currently suffering from demo
-effect. ;-)
+diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
+index f33aa6021364..34ce5d2f37a2 100644
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -25,7 +25,6 @@ struct nf_ct_gre_keymap {
+ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ 			 struct nf_conntrack_tuple *t);
+ 
+-void nf_ct_gre_keymap_flush(struct net *net);
+ /* delete keymap entries */
+ void nf_ct_gre_keymap_destroy(struct nf_conn *ct);
+ 
+-- 
+2.34.1
 
-That's why \- is used.
-
->> > .TP
->> > \fB\-4\fP, \fB\-\-ipv4\fP
->> >-This option has no effect in iptables and iptables-restore.
->> >+This option has no effect in \fBiptables\fP and \fBiptables-restore\fP.
->> > If a rule using the \fB\-4\fP option is inserted with (and only with)
->> >-ip6tables-restore, it will be silently ignored. Any other uses will throw an
->> >+\fBip6tables-restore\fP, it will be silently ignored. Any other uses will throw an
->
->Can you maybe clarify how to distinct between "command" and "name"? I'm
->tempted to just leave things as they are instead of doing changes
->randomly.
-
-Tough question, I like it.
-
-1.
-For example, the command is `fontforge`, but the program's name is FontForge.
-When a name is the same as a command, it gets trickier.
-
-2.
-A name can be substituted by "the program"/"program X", without a sentence
-losing its meaning; a command can be prefixed by "the command" without breaking
-the sentence.
-
-	< ls consists of 6000 LOC
-	>
-	  O  The program consists of 6000 LOC
-	  X  The command `ls` consists of 6000 LOC  [nope - it's usually 1!]
-
-Arguably, one can create sentences where both become valid, and the -4 option
-thing quoted above seems to be one such thing.
-
-Oh well.
