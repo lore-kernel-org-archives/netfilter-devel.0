@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB4DEEB64DD
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Aug 2023 14:48:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 485BAEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Aug 2023 15:02:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233321AbjHCOsT (ORCPT
+        id S235774AbjHCPCp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Aug 2023 10:48:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59074 "EHLO
+        Thu, 3 Aug 2023 11:02:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236913AbjHCOsG (ORCPT
+        with ESMTP id S236237AbjHCPCo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Aug 2023 10:48:06 -0400
+        Thu, 3 Aug 2023 11:02:44 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BF9230DA
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2023 07:48:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2BA010B
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2023 08:02:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
         Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
         In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=Uf7ZI6KLDDb8usp30b2pKmR71sUo1jhX76XZv+0hO0A=; b=kSAbECyY5TG7r3mdFfgW06qNE5
-        IXpQuA5LqRSQ5+PuQaRkdghj9z4u60xOrVuL4rYncaF/VwVN4vm8uDQUgNiOHu7JmTK0/M+VVnTw6
-        xcw9+vx68gCRJDzk7GJdt8+7gHC4vVvWqjo4p6lxwoOqXVBH5ZN5DHB2i1gwVSV/GybZAg91oUJtQ
-        2A2oEU6Fwu0poUTpwUtGq9QIk5nsdtjBqpLWgpcH5JpHS+jaliVLt2yYyhFpxvwtPmJyi63Ik8/AM
-        CLXvgeSXyGea+3KIHSy9oPhv8iJvV58J4VJER2Jt77lk1GFOF/KhPMvOPx3XxASl/5EHCyVk9Ynqk
-        fsPxAE7w==;
+        bh=oKeoGeWjtkIVYJENunHKjxg7wfRjT2jVKwtIznSUT4s=; b=MGaMMQGYekMb9s1FnQF4LvXk7g
+        gjX4/nPP4XQyp5xUasXBS3hpNsw4RsMVpAxrO6wN5rRpNhT1zUqeAOQhibPVucG6trxjKm5ioQM43
+        kg1oNL+Uq1AcIRttMMh8E6yShi4G2RS+XSRAUaDRkkIPhx/C1pkpSE42PegPw1sKXwDuom+5gI45R
+        9c72gKBPhGw0X5gcG8tY6cyM1I7nE9Exl0AQ9Ut8RVHUnQLUQhuzBcgxUjDUlopn7KRDMt93ApluC
+        /SHNIuRRrvEr5jkrxe8Xp7x0scM735mhOOj6Ml7bR0U91HWaCVemkM5qc6RmgUffloB4FbJBwor1O
+        Z6feuxFQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qRZcQ-0006Cd-19; Thu, 03 Aug 2023 16:48:02 +0200
+        id 1qRZqb-0006Ou-86
+        for netfilter-devel@vger.kernel.org; Thu, 03 Aug 2023 17:02:41 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Cc:     Jan Palus <atler@pld-linux.org>
-Subject: [iptables PATCH] nft: move processing logic out of asserts
-Date:   Thu,  3 Aug 2023 16:47:53 +0200
-Message-Id: <20230803144753.27070-1-phil@nwl.cc>
+Subject: [iptables PATCH] extensions: libip6t_icmp: Add names for mld-listener types
+Date:   Thu,  3 Aug 2023 17:02:32 +0200
+Message-Id: <20230803150232.30741-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.40.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -45,106 +45,45 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Jan Palus <atler@pld-linux.org>
+Add the three names (plus one alias) just as in nftables.
 
-[Phil: Introduce assert_nft_restart() to keep things clean, also add
-       fallback returns to nft_action() and nft_prepare(), sanitizing
-       things at least a bit.]
-
-Signed-off-by: Jan Palus <atler@pld-linux.org>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1250
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-cache.c | 16 ++++++++++++----
- iptables/nft.c       |  7 +++++--
- 2 files changed, 17 insertions(+), 6 deletions(-)
+ extensions/libip6t_icmp6.t | 4 ++++
+ extensions/libxt_icmp.h    | 7 +++++++
+ 2 files changed, 11 insertions(+)
 
-diff --git a/iptables/nft-cache.c b/iptables/nft-cache.c
-index fabb577903f28..91d296709b9de 100644
---- a/iptables/nft-cache.c
-+++ b/iptables/nft-cache.c
-@@ -26,6 +26,14 @@
- #include "nft-cache.h"
- #include "nft-chain.h"
+diff --git a/extensions/libip6t_icmp6.t b/extensions/libip6t_icmp6.t
+index 028cfc16ede24..b9a4dcd3abc77 100644
+--- a/extensions/libip6t_icmp6.t
++++ b/extensions/libip6t_icmp6.t
+@@ -4,3 +4,7 @@
+ -p ipv6-icmp -m icmp6 --icmpv6-type 2;=;OK
+ # cannot use option twice:
+ -p ipv6-icmp -m icmp6 --icmpv6-type no-route --icmpv6-type packet-too-big;;FAIL
++-p ipv6-icmp -m icmp6 --icmpv6-type mld-listener-query;-p ipv6-icmp -m icmp6 --icmpv6-type 130;OK
++-p ipv6-icmp -m icmp6 --icmpv6-type mld-listener-report;-p ipv6-icmp -m icmp6 --icmpv6-type 131;OK
++-p ipv6-icmp -m icmp6 --icmpv6-type mld-listener-done;-p ipv6-icmp -m icmp6 --icmpv6-type 132;OK
++-p ipv6-icmp -m icmp6 --icmpv6-type mld-listener-reduction;-p ipv6-icmp -m icmp6 --icmpv6-type 132;OK
+diff --git a/extensions/libxt_icmp.h b/extensions/libxt_icmp.h
+index a763e50c1de32..7a45b4bd2ec6d 100644
+--- a/extensions/libxt_icmp.h
++++ b/extensions/libxt_icmp.h
+@@ -83,6 +83,13 @@ static const struct xt_icmp_names {
+ 	{ "echo-reply", 129, 0, 0xFF },
+ 	/* Alias */ { "pong", 129, 0, 0xFF },
  
-+/* users may define NDEBUG */
-+static void assert_nft_restart(struct nft_handle *h)
-+{
-+	int rc = nft_restart(h);
++	{ "mld-listener-query", 130, 0, 0xFF },
 +
-+	assert(rc >= 0);
-+}
++	{ "mld-listener-report", 131, 0, 0xFF },
 +
- static void cache_chain_list_insert(struct list_head *list, const char *name)
- {
- 	struct cache_chain *pos = NULL, *new;
-@@ -147,7 +155,7 @@ static int fetch_table_cache(struct nft_handle *h)
- 
- 	ret = mnl_talk(h, nlh, nftnl_table_list_cb, h);
- 	if (ret < 0 && errno == EINTR)
--		assert(nft_restart(h) >= 0);
-+		assert_nft_restart(h);
- 
- 	for (i = 0; i < NFT_TABLE_MAX; i++) {
- 		enum nft_table_type type = h->tables[i].type;
-@@ -472,7 +480,7 @@ static int fetch_set_cache(struct nft_handle *h,
- 
- 	ret = mnl_talk(h, nlh, nftnl_set_list_cb, &d);
- 	if (ret < 0 && errno == EINTR) {
--		assert(nft_restart(h) >= 0);
-+		assert_nft_restart(h);
- 		return ret;
- 	}
- 
-@@ -512,7 +520,7 @@ static int __fetch_chain_cache(struct nft_handle *h,
- 
- 	ret = mnl_talk(h, nlh, nftnl_chain_list_cb, &d);
- 	if (ret < 0 && errno == EINTR)
--		assert(nft_restart(h) >= 0);
-+		assert_nft_restart(h);
- 
- 	return ret;
- }
-@@ -606,7 +614,7 @@ static int nft_rule_list_update(struct nft_chain *nc, void *data)
- 
- 	ret = mnl_talk(h, nlh, nftnl_rule_list_cb, &rld);
- 	if (ret < 0 && errno == EINTR)
--		assert(nft_restart(h) >= 0);
-+		assert_nft_restart(h);
- 
- 	nftnl_rule_free(rule);
- 
-diff --git a/iptables/nft.c b/iptables/nft.c
-index b702c65ae49aa..326dc20b21d65 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -109,7 +109,9 @@ static struct nftnl_batch *mnl_batch_init(void)
- 
- static void mnl_nft_batch_continue(struct nftnl_batch *batch)
- {
--	assert(nftnl_batch_update(batch) >= 0);
-+	int ret = nftnl_batch_update(batch);
++	{ "mld-listener-done", 132, 0, 0xFF },
++	/* Alias */ { "mld-listener-reduction", 132, 0, 0xFF },
 +
-+	assert(ret >= 0);
- }
+ 	{ "router-solicitation", 133, 0, 0xFF },
  
- static uint32_t mnl_batch_begin(struct nftnl_batch *batch, uint32_t genid, uint32_t seqnum)
-@@ -3227,6 +3229,7 @@ static int nft_action(struct nft_handle *h, int action)
- 		case NFT_COMPAT_RULE_ZERO:
- 		case NFT_COMPAT_BRIDGE_USER_CHAIN_UPDATE:
- 			assert(0);
-+			return 0;
- 		}
- 
- 		mnl_nft_batch_continue(h->batch);
-@@ -3504,7 +3507,7 @@ static int nft_prepare(struct nft_handle *h)
- 		case NFT_COMPAT_TABLE_ADD:
- 		case NFT_COMPAT_CHAIN_ADD:
- 			assert(0);
--			break;
-+			return 0;
- 		}
- 
- 		nft_cmd_free(cmd);
+ 	{ "router-advertisement", 134, 0, 0xFF },
 -- 
 2.40.0
 
