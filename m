@@ -2,49 +2,49 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36F14C001DF
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Aug 2023 19:42:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D0D7C001DF
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Aug 2023 19:42:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230518AbjHCTm3 (ORCPT
+        id S231187AbjHCTmi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Aug 2023 15:42:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36358 "EHLO
+        Thu, 3 Aug 2023 15:42:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229998AbjHCTm2 (ORCPT
+        with ESMTP id S229998AbjHCTmh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Aug 2023 15:42:28 -0400
+        Thu, 3 Aug 2023 15:42:37 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA4674200
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2023 12:41:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C3C83C3E
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2023 12:41:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1691091698;
+        s=mimecast20190719; t=1691091712;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=E2/qtBS6h3UMIZhrk2tWrjiQm3MsKQfIjMS4MpLgFuM=;
-        b=UZSQB70fd7dBxdZ2cyipYaCyCQBIZ2MyfNj7J2KSBDcUpGE++xPiWLJFhXOxBA+oZYlfSv
-        NAQ3s+4MiopeXuhyV88KCY9jFxAkBhVSJbkmTSVODr9bdgIU1IplRvEiy4O+7fgSAj1opp
-        Daxpf6XzVun4Q9/BEb7ZepM8dGA8gRA=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-547-3J2GJVFJPciR5sj1f5aCXA-1; Thu, 03 Aug 2023 15:41:36 -0400
-X-MC-Unique: 3J2GJVFJPciR5sj1f5aCXA-1
+        bh=Jahh2dz9WnGpt4/VMzj1QgQFCsny/D1VbciFs6sPL3w=;
+        b=G7OIHOoz5N30kehmMslbbfIZxP+2/OTa44OnibFM2/Ebh+vJvyASon9yKxaVDvZaVFDk0d
+        lQUyQdVanVKLM7UsLAICg4dD59HHobFvSOFhQF6/0JcyK2nQ8aRP0lt+Pb82xslQGJxXBU
+        w0Pb7whO+Uw7UVvY1Hd7Ry8JkBw3EPA=
+Received: from mimecast-mx02.redhat.com (66.187.233.73 [66.187.233.73]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-7-cYKRJtEtMtGH5PNdyo-gfQ-1; Thu, 03 Aug 2023 15:41:47 -0400
+X-MC-Unique: cYKRJtEtMtGH5PNdyo-gfQ-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D1525800159;
-        Thu,  3 Aug 2023 19:41:35 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id CE1883C13937;
+        Thu,  3 Aug 2023 19:41:46 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.194.144])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 18C4F40C6CCC;
-        Thu,  3 Aug 2023 19:41:34 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id D67DC4021520;
+        Thu,  3 Aug 2023 19:41:45 +0000 (UTC)
 From:   Thomas Haller <thaller@redhat.com>
 To:     NetFilter <netfilter-devel@vger.kernel.org>
 Cc:     Phil Sutter <phil@nwl.cc>, Thomas Haller <thaller@redhat.com>
-Subject: [nft PATCH v4 4/6] py: fix exception during cleanup of half-initialized Nftables
-Date:   Thu,  3 Aug 2023 21:35:20 +0200
-Message-ID: <20230803193940.1105287-9-thaller@redhat.com>
+Subject: [nft PATCH v4 5/6] py: extract flags helper functions for set_debug()/get_debug()
+Date:   Thu,  3 Aug 2023 21:35:22 +0200
+Message-ID: <20230803193940.1105287-11-thaller@redhat.com>
 In-Reply-To: <20230803193940.1105287-1-thaller@redhat.com>
 References: <20230803193940.1105287-1-thaller@redhat.com>
 MIME-Version: 1.0
@@ -54,62 +54,109 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When we create a Nftables instance against an older library version,
-we might not find a symbol and fail with an exception when initializing
-the context object.
+Will be re-used for nft_ctx_input_set_flags() and
+nft_ctx_input_get_flags().
 
-Then, __del__() is still called, but resulting in a second exception
-because self.__ctx is not set. Avoid that second exception.
+There are changes in behavior here.
 
-    $ python -c 'import nftables; nftables.Nftables()'
-    Traceback (most recent call last):
-      File "<string>", line 1, in <module>
-      File "/data/src/nftables/py/nftables.py", line 90, in __init__
-        self.nft_ctx_input_get_flags = lib.nft_ctx_input_get_flags
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      File "/usr/lib64/python3.11/ctypes/__init__.py", line 389, in __getattr__
-        func = self.__getitem__(name)
-               ^^^^^^^^^^^^^^^^^^^^^^
-      File "/usr/lib64/python3.11/ctypes/__init__.py", line 394, in __getitem__
-        func = self._FuncPtr((name_or_ordinal, self))
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    AttributeError: /lib64/libnftables.so.1: undefined symbol: nft_ctx_input_get_flags
-    Exception ignored in: <function Nftables.__del__ at 0x7f6315a2c540>
-    Traceback (most recent call last):
-      File "/data/src/nftables/py/nftables.py", line 166, in __del__
-        self.nft_ctx_free(self.__ctx)
-        ^^^^^^^^^^^^^^^^^
-    AttributeError: 'Nftables' object has no attribute 'nft_ctx_free'
+- when passing an unrecognized string (e.g. `ctx.set_debug('foo')` or
+  `ctx.set_debug(['foo'])`), a ValueError is now raised instead of a
+  KeyError.
+
+- when passing an out-of-range integer, now a ValueError is no raised.
+  Previously the integer was truncated to 32bit.
+
+Changing the exception is an API change, but most likely nobody will
+care or try to catch a KeyError to find out whether a flag is supported.
+Especially, since such a check would be better performed via `'foo' in
+ctx.debug_flags`.
+
+In other cases, a TypeError is raised as before.
 
 Signed-off-by: Thomas Haller <thaller@redhat.com>
 ---
- py/src/nftables.py | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ py/src/nftables.py | 52 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 31 insertions(+), 21 deletions(-)
 
 diff --git a/py/src/nftables.py b/py/src/nftables.py
-index 68fcd7dd103c..b1186781ab5c 100644
+index b1186781ab5c..95c65cde69c4 100644
 --- a/py/src/nftables.py
 +++ b/py/src/nftables.py
-@@ -74,6 +74,8 @@ class Nftables:
-         is requested from the library and buffering of output and error streams
-         is turned on.
-         """
-+        self.__ctx = None
+@@ -156,6 +156,35 @@ class Nftables:
+             self.nft_ctx_free(self.__ctx)
+             self.__ctx = None
+ 
++    def _flags_from_numeric(self, flags_dict, val):
++        names = []
++        for n, v in flags_dict.items():
++            if val & v:
++                names.append(n)
++                val &= ~v
++        if val:
++            names.append(val)
++        return names
 +
-         lib = cdll.LoadLibrary(sofile)
- 
-         ### API function definitions
-@@ -150,7 +152,9 @@ class Nftables:
-         self.nft_ctx_buffer_error(self.__ctx)
- 
-     def __del__(self):
--        self.nft_ctx_free(self.__ctx)
-+        if self.__ctx is not None:
-+            self.nft_ctx_free(self.__ctx)
-+            self.__ctx = None
- 
++    def _flags_to_numeric(self, flags_dict, values):
++        if isinstance(values, (str, int)):
++            values = (values,)
++
++        val = 0
++        for v in values:
++            if isinstance(v, str):
++                v = flags_dict.get(v)
++                if v is None:
++                    raise ValueError("Invalid argument")
++            elif isinstance(v, int):
++                if v < 0 or v > 0xFFFFFFFF:
++                    raise ValueError("Invalid argument")
++            else:
++                raise TypeError("Not a valid flag")
++            val |= v
++
++        return val
++
      def __get_output_flag(self, name):
          flag = self.output_flags[name]
+         return (self.nft_ctx_output_get_flags(self.__ctx) & flag) != 0
+@@ -375,16 +404,7 @@ class Nftables:
+         Returns a set of flag names. See set_debug() for details.
+         """
+         val = self.nft_ctx_output_get_debug(self.__ctx)
+-
+-        names = []
+-        for n,v in self.debug_flags.items():
+-            if val & v:
+-                names.append(n)
+-                val &= ~v
+-        if val:
+-            names.append(val)
+-
+-        return names
++        return self._flags_from_numeric(self.debug_flags, val)
+ 
+     def set_debug(self, values):
+         """Set debug output flags.
+@@ -406,19 +426,9 @@ class Nftables:
+         Returns a set of previously active debug flags, as returned by
+         get_debug() method.
+         """
++        val = self._flags_to_numeric(self.debug_flags, values)
+         old = self.get_debug()
+-
+-        if type(values) in [str, int]:
+-            values = [values]
+-
+-        val = 0
+-        for v in values:
+-            if type(v) is str:
+-                v = self.debug_flags[v]
+-            val |= v
+-
+         self.nft_ctx_output_set_debug(self.__ctx, val)
+-
+         return old
+ 
+     def cmd(self, cmdline):
 -- 
 2.41.0
 
