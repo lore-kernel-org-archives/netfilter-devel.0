@@ -2,46 +2,57 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E065C00528
-	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Aug 2023 19:06:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB06C00528
+	for <netfilter-devel@archiver.kernel.org>; Thu,  3 Aug 2023 19:38:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232819AbjHCTGP (ORCPT
+        id S230190AbjHCTix (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 3 Aug 2023 15:06:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47364 "EHLO
+        Thu, 3 Aug 2023 15:38:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232384AbjHCTGA (ORCPT
+        with ESMTP id S229777AbjHCTiw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Aug 2023 15:06:00 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 014903588
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2023 12:05:38 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qRddg-0007Vm-Os; Thu, 03 Aug 2023 21:05:36 +0200
-Date:   Thu, 3 Aug 2023 21:05:36 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Robert <robert.smith51@protonmail.com>
-Cc:     "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Solution Bugzilla Issue 1659 - iptables-nft v1.8.9 Error: meta
- sreg key not supported
-Message-ID: <20230803190536.GI30550@breakpoint.cc>
-References: <0TcEByvmmvSrVOL2oYdyKhBojClLwt3xHHGYkphjAaaBm2jOxRmlvXJqEykAbCkuyOKHORKJ8epnPMSPocplpWrWpczuyjoOcrOurG9jJ2k=@protonmail.com>
+        Thu, 3 Aug 2023 15:38:52 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 754083C3D
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2023 12:38:50 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id 0D8EF5872A169; Thu,  3 Aug 2023 21:38:48 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id 05A9760BEC94A;
+        Thu,  3 Aug 2023 21:38:48 +0200 (CEST)
+Date:   Thu, 3 Aug 2023 21:38:47 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Phil Sutter <phil@nwl.cc>
+cc:     netfilter-devel@vger.kernel.org, Amelia Downs <adowns@vmware.com>
+Subject: Re: [iptables PATCH 1/3] extensions: libipt_icmp: Fix confusion
+ between 255/255 and any
+In-Reply-To: <ZMukQr8GYFVLyAGa@orbyte.nwl.cc>
+Message-ID: <p6460n00-n577-2173-sosp-11q275538n0s@vanv.qr>
+References: <20230802020547.28886-1-phil@nwl.cc> <s4402816-ros7-qqoq-73r0-147po5s5862p@vanv.qr> <ZMukQr8GYFVLyAGa@orbyte.nwl.cc>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0TcEByvmmvSrVOL2oYdyKhBojClLwt3xHHGYkphjAaaBm2jOxRmlvXJqEykAbCkuyOKHORKJ8epnPMSPocplpWrWpczuyjoOcrOurG9jJ2k=@protonmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Robert <robert.smith51@protonmail.com> wrote:
-> I have recently encountered the issue described in the aforementioned Bugzilla issue (#1659)  as, among others, Debian 12 ships the affected iptables v1.8.9. This can trip up a number of other applications that rely on the iptables command, including the Docker daemon, preventing it from creating correct FW rules if any nftables "meta" rules are present during startup.
-> 
-> After some bisecting, I was able to determine that this issue was introduced by commit 66806feef085c0504966c484f687bdf7b09510e3 ("nft: Fix meta statement parsing"). Reverting the commit in question resolves the issue, and no further errors are produced by builds of the 1.8.9 version.
 
-No, the old version doesn't work either, it will ignore/suppress the nft
-mark rule.
+On Thursday 2023-08-03 14:57, Phil Sutter wrote:
+>> >
+>> >It is not entirely clear what the fixed commit was trying to establish,
+>> >but the save output is certainly not correct (especially since print
+>> >callback gets things right).
+>> 
+>> v1.2.7a-35-gfc9237da missed touching *libip6t_icmp6.c*, so
+>> it was never updated with the same "bug".[...]
+>
+>One could extend icmp6 match (in kernel and user space) to support this
+>"any" type, though it seems not guaranteed the value 255 won't be used
+>for a real message at some point. So a proper solution was to support type
+>ranges like ebtables does. Then "any" type is 0:255/0:255.
+>
+>Apart from the above, the three patches of this series should be fine,
+>right?
 
-You cannot mix nftables and iptables-nft one the same table.
+Yeah.
