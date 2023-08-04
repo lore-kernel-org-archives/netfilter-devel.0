@@ -2,80 +2,78 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03FEAC001DF
-	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Aug 2023 13:56:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EA1CC04A6A
+	for <netfilter-devel@archiver.kernel.org>; Fri,  4 Aug 2023 16:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230486AbjHDN4P (ORCPT
+        id S229459AbjHDQWD (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 4 Aug 2023 09:56:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34610 "EHLO
+        Fri, 4 Aug 2023 12:22:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231199AbjHDN4K (ORCPT
+        with ESMTP id S229545AbjHDQWC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 4 Aug 2023 09:56:10 -0400
+        Fri, 4 Aug 2023 12:22:02 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 862E73A96
-        for <netfilter-devel@vger.kernel.org>; Fri,  4 Aug 2023 06:56:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 603E92D71
+        for <netfilter-devel@vger.kernel.org>; Fri,  4 Aug 2023 09:22:00 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qRvHf-0008BB-OV; Fri, 04 Aug 2023 15:56:03 +0200
-Date:   Fri, 4 Aug 2023 15:56:03 +0200
+        id 1qRxYs-0001lV-6l; Fri, 04 Aug 2023 18:21:58 +0200
+Date:   Fri, 4 Aug 2023 18:21:58 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     netfilter-devel@vger.kernel.org, Amelia Downs <adowns@vmware.com>
-Subject: Re: [iptables PATCH 1/3] extensions: libipt_icmp: Fix confusion
- between 255/255 and any
-Message-ID: <ZM0Dc9WttcsfPhI3@orbyte.nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org, robert.smith51@protonmail.com
+Subject: Re: [PATCH iptables] nft-ruleparse: parse meta mark set as MARK
+ target
+Message-ID: <ZM0lptBHzgTMV24n@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
-        Amelia Downs <adowns@vmware.com>
-References: <20230802020547.28886-1-phil@nwl.cc>
- <s4402816-ros7-qqoq-73r0-147po5s5862p@vanv.qr>
- <ZMukQr8GYFVLyAGa@orbyte.nwl.cc>
- <p6460n00-n577-2173-sosp-11q275538n0s@vanv.qr>
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        robert.smith51@protonmail.com
+References: <20230803193917.26779-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <p6460n00-n577-2173-sosp-11q275538n0s@vanv.qr>
+In-Reply-To: <20230803193917.26779-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 03, 2023 at 09:38:47PM +0200, Jan Engelhardt wrote:
+On Thu, Aug 03, 2023 at 09:39:13PM +0200, Florian Westphal wrote:
+> Mixing nftables and iptables-nft in the same table doesn't work,
+> but some people do this.
 > 
-> On Thursday 2023-08-03 14:57, Phil Sutter wrote:
-> >> >
-> >> >It is not entirely clear what the fixed commit was trying to establish,
-> >> >but the save output is certainly not correct (especially since print
-> >> >callback gets things right).
-> >> 
-> >> v1.2.7a-35-gfc9237da missed touching *libip6t_icmp6.c*, so
-> >> it was never updated with the same "bug".[...]
-> >
-> >One could extend icmp6 match (in kernel and user space) to support this
-> >"any" type, though it seems not guaranteed the value 255 won't be used
-> >for a real message at some point. So a proper solution was to support type
-> >ranges like ebtables does. Then "any" type is 0:255/0:255.
-> >
-> >Apart from the above, the three patches of this series should be fine,
-> >right?
+> v1.8.8 ignored rules it could not represent in iptables syntax,
+> v1.8.9 bails in this case.
 > 
-> Yeah.
+> Add parsing of meta mark expressions so iptables-nft can render them
+> as -j MARK rules.
+> 
+> This is flawed, nft has features that have no corresponding
+> syntax in iptables, but we can't undo this.
+> 
+> Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1659
 
-I have applied the series apart from patch 2: The wrong XTOPT_MAND flag
-is present since v1.4.11, if anyone actually depends on the behaviour,
-they would have complained. So leaving things as they are is fine, and
-instead one should go into another direction:
+Intentionally not "Closes:"?
 
-- Drop XTOPT_MAND and instead provide a better error message in
-  x6_fcheck callback, pointing out that '-p icmp -m icmp' is equivalent
-  to plain '-p icmp'.
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  iptables/nft-ruleparse.c | 83 +++++++++++++++++++++++++++-------------
+>  1 file changed, 56 insertions(+), 27 deletions(-)
+> 
+> diff --git a/iptables/nft-ruleparse.c b/iptables/nft-ruleparse.c
+> index edbbfa40e9c4..44b9bcc268f4 100644
+> --- a/iptables/nft-ruleparse.c
+> +++ b/iptables/nft-ruleparse.c
+> @@ -84,6 +84,37 @@ nft_create_match(struct nft_xt_ctx *ctx,
+>  	return match->m->data;
+>  }
+>  
+> +static void *
+> +nft_create_target(struct nft_xt_ctx *ctx,
+> +		  struct iptables_command_state *cs,
+> +		  const char *name)
 
-- Same for '--icmp-type any'? In theory, it's pointless.
+Please hold back a bit, I have a better implementation of this function
+lingering locally. Will adjust and submit both in a minute.
 
-A nicer option would be to turn '-m icmp [--icmp-type any]' into a NOP.
-Using '-p icmp' is mandatory anyway. There's no support for matches to
-remove themselves, though. I guess this could be done by extending
-xtables_option_mfcall().
-
-Cheers, Phil
+Thanks, Phil
