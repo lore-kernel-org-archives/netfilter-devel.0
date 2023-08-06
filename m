@@ -2,64 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDAFFC0015E
-	for <netfilter-devel@archiver.kernel.org>; Sat,  5 Aug 2023 19:25:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2936EC0015E
+	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Aug 2023 10:22:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbjHETZD (ORCPT
+        id S230298AbjHFKW5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 5 Aug 2023 15:25:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56134 "EHLO
+        Sun, 6 Aug 2023 06:22:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229712AbjHETZC (ORCPT
+        with ESMTP id S230326AbjHFKWz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 5 Aug 2023 15:25:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0F5F194
-        for <netfilter-devel@vger.kernel.org>; Sat,  5 Aug 2023 12:25:01 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 279C860EB9
-        for <netfilter-devel@vger.kernel.org>; Sat,  5 Aug 2023 19:25:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1C3FC433C8;
-        Sat,  5 Aug 2023 19:24:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691263500;
-        bh=qoVovonkDlCZAGyHdpkcLhNyRI9P5U68HXbWXLRHeeM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=iq9AqL8t+LduND4co3bPZubsqBrA8Kkg4SFb8PFmOr1qN6jUW7tjAUfETfvySdhaX
-         bAsyX9TRz7XeysHeq6AGx4fbH7Oqod9pYfgnrhOeBNoXhwWB/RJX/diSv1Wx5cDVJG
-         sNBkpQx0jPieBMlbjpgSdXjkebLkRXSEoBMf6We5460yRi907NIp5PVFzLdAJ0MZMd
-         5g2X6remQeEZklQa1pTIp6C4uQ5Dqdk994YVa1kBK1V+2oJzzoKI7KUYgvsHM5sKNv
-         sKTxx4wuG8ak23vOgxl4TnY8xyXfbNHvS6TCeZ2Wpq+fAHwW7puNZHGJ1H38aZQQR5
-         wOK4ERwfqOxNg==
-Date:   Sat, 5 Aug 2023 21:24:53 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     Yue Haibing <yuehaibing@huawei.com>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net-next] netfilter: conntrack: Remove unused function
- declarations
-Message-ID: <ZM6iBSr3/Sd8Uarl@vergenet.net>
-References: <20230804134149.39748-1-yuehaibing@huawei.com>
+        Sun, 6 Aug 2023 06:22:55 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB8101BC2
+        for <netfilter-devel@vger.kernel.org>; Sun,  6 Aug 2023 03:22:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=7dNkGJVfgJwGN8rAU7kTPXTJ90+Y1IF7Nkp/MUyR/p0=; b=m+q0w6e5PFisdJEMVB9EcCndtJ
+        8bw8ozC4R16scdhTzDUjLQKvxCZ8/rqKHOUSYm4TT+rndR3m6XmOkJ7CTD4fFFSJmOxPI9MZqAm+4
+        1cRdeJN9tBA1QNlVqHQF6Eu0zAb59oI8IIreS+a7bcZnuCtwZSYr69bIXvLwLHGKVx+vtfzSB5oXV
+        dwoX9wmQ89qDofUP6fUbw+drO+Fyg+4QhbLL4+b6a3Xw/xh7UbRiKFu6nUYvTheqOZho4V9sRP8WD
+        yqervQEJJRAxb+QuFY+AvRVI+0nOO8oRIoHN0KmpAfo26motmZHSMr8XY4uEUw5fKIK2xpR+3ePd4
+        NRvuiXBA==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.96)
+        (envelope-from <jeremy@azazel.net>)
+        id 1qSauR-005mug-1E
+        for netfilter-devel@vger.kernel.org;
+        Sun, 06 Aug 2023 11:22:51 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH nft 0/2] doc: fix cleaning of man-pages
+Date:   Sun,  6 Aug 2023 11:22:46 +0100
+Message-Id: <20230806102248.3517776-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230804134149.39748-1-yuehaibing@huawei.com>
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 04, 2023 at 09:41:49PM +0800, Yue Haibing wrote:
-> Commit 1015c3de23ee ("netfilter: conntrack: remove extension register api")
-> leave nf_conntrack_acct_fini() and nf_conntrack_labels_init() unused, remove it.
-> And commit a0ae2562c6c4 ("netfilter: conntrack: remove l3proto abstraction")
-> leave behind nf_ct_l3proto_try_module_get() and nf_ct_l3proto_module_put().
-> 
-> Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
+Currently, the man-page pages are generated by `make dist`, but removed
+by `make clean`.  By constrast, the flex and bison C sources, which are
+also generated by `make dist`, are removed by `make maintainer-clean`.
+The latter are handled automatically by automake, and in fact a change
+was committed to src/Makfile.am to remove them from `CLEANFILES` for
+this reason:
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+  http://git.netfilter.org/nftables/commit/src/Makefile.am?id=3eaba1125798c7b8f2e8ad3d1a572de6b84f4e5a
+
+However, automake doesn't automatically generate man-pages in `make
+dist`: we have to tell it to do so; and thus we also have to tell it
+when to clean them.  This patch-set changes the clean target for the
+man-pages to follow the pattern automake uses for bison and flex.
+
+Jeremy Sowden (2):
+  doc: move man-pages to `dist_man_MANS`
+  doc: move man-pages to `MAINTAINERCLEANFILES`
+
+ doc/Makefile.am | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+-- 
+2.40.1
 
