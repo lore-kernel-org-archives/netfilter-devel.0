@@ -2,75 +2,69 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BDBC04A6A
-	for <netfilter-devel@archiver.kernel.org>; Sun,  6 Aug 2023 10:23:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 604BEC001B0
+	for <netfilter-devel@archiver.kernel.org>; Mon,  7 Aug 2023 14:25:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230303AbjHFKW7 (ORCPT
+        id S233687AbjHGOZi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 6 Aug 2023 06:22:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46630 "EHLO
+        Mon, 7 Aug 2023 10:25:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230327AbjHFKWz (ORCPT
+        with ESMTP id S231620AbjHGOZh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 6 Aug 2023 06:22:55 -0400
-Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBDBB1BD0
-        for <netfilter-devel@vger.kernel.org>; Sun,  6 Aug 2023 03:22:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=d8Owcfou1GHhx88xHCnzs40F2Dd8y1Zm0PzXsNpAvbI=; b=Fwthu70PfDih+21BQpxjEMcXt5
-        kcPVW+l9Upgj6tou6gZmSfVIBBqqQMOtbSNVLvyLcepct0M2XK92bMu883f3oqJl8pR7ziQGYG9Fq
-        7dg5v/kpeyVOiSx5xe/xywlin62lbFultYrzwNIwAtolBZuRHg+jqHOlTd5kV2P/l63Yo25oPiYX0
-        WysbJSuFGEucrF28oRPxecbDvs65Dl6i6mpkpGVkYY8wNfLcInDuqHiDR2LPuzzBv82Bul90yZv7T
-        9zoLD7MEdpxWtItZyEs/K8Sw79vIYY5cv3e4Z9MZOqZN6xzK82uAfxr09iQ6o5HAjvFYxDQ66C/0q
-        o9BJNTZQ==;
-Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
-        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.96)
-        (envelope-from <jeremy@azazel.net>)
-        id 1qSauR-005mug-1W
-        for netfilter-devel@vger.kernel.org;
-        Sun, 06 Aug 2023 11:22:51 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 2/2] doc: move man-pages to `MAINTAINERCLEANFILES`
-Date:   Sun,  6 Aug 2023 11:22:48 +0100
-Message-Id: <20230806102248.3517776-3-jeremy@azazel.net>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230806102248.3517776-1-jeremy@azazel.net>
-References: <20230806102248.3517776-1-jeremy@azazel.net>
+        Mon, 7 Aug 2023 10:25:37 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2645B170A;
+        Mon,  7 Aug 2023 07:25:34 -0700 (PDT)
+Received: from canpemm500007.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4RKJTS0NJfzVk5T;
+        Mon,  7 Aug 2023 22:23:40 +0800 (CST)
+Received: from localhost (10.174.179.215) by canpemm500007.china.huawei.com
+ (7.192.104.62) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 7 Aug
+ 2023 22:25:32 +0800
+From:   Yue Haibing <yuehaibing@huawei.com>
+To:     <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
+        <yuehaibing@huawei.com>
+CC:     <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <linux-kernel@vger.kernel.org>
+Subject: [PATCH net-next] netfilter: h323: Remove unused function declarations
+Date:   Mon, 7 Aug 2023 22:25:26 +0800
+Message-ID: <20230807142526.35648-1-yuehaibing@huawei.com>
+X-Mailer: git-send-email 2.10.2.windows.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Type: text/plain
+X-Originating-IP: [10.174.179.215]
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ canpemm500007.china.huawei.com (7.192.104.62)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since the man-pages are built and included in the distribution
-tar-balls, the appropriate clean target is `maintainer-clean`.
+Commit f587de0e2feb ("[NETFILTER]: nf_conntrack/nf_nat: add H.323 helper port")
+declared but never implemented these.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
 ---
- doc/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/netfilter/nf_conntrack_h323.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/doc/Makefile.am b/doc/Makefile.am
-index 5a64e39b48cf..b43cb08d2d14 100644
---- a/doc/Makefile.am
-+++ b/doc/Makefile.am
-@@ -26,5 +26,5 @@ nft.8: ${ASCIIDOCS}
- .adoc.5:
- 	${AM_V_GEN}${A2X} ${A2X_OPTS_MANPAGE} $<
+diff --git a/include/linux/netfilter/nf_conntrack_h323.h b/include/linux/netfilter/nf_conntrack_h323.h
+index 9e937f64a1ad..81286c499325 100644
+--- a/include/linux/netfilter/nf_conntrack_h323.h
++++ b/include/linux/netfilter/nf_conntrack_h323.h
+@@ -34,10 +34,6 @@ struct nf_ct_h323_master {
+ int get_h225_addr(struct nf_conn *ct, unsigned char *data,
+ 		  TransportAddress *taddr, union nf_inet_addr *addr,
+ 		  __be16 *port);
+-void nf_conntrack_h245_expect(struct nf_conn *new,
+-			      struct nf_conntrack_expect *this);
+-void nf_conntrack_q931_expect(struct nf_conn *new,
+-			      struct nf_conntrack_expect *this);
  
--CLEANFILES += ${dist_man_MANS}
-+MAINTAINERCLEANFILES = ${dist_man_MANS}
- endif
+ struct nfct_h323_nat_hooks {
+ 	int (*set_h245_addr)(struct sk_buff *skb, unsigned int protoff,
 -- 
-2.40.1
+2.34.1
 
