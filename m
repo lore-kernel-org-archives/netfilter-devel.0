@@ -2,29 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7548C04A94
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 23:20:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8625C41513
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 23:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229852AbjHHXUi (ORCPT
+        id S230459AbjHHXjH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 19:20:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36506 "EHLO
+        Tue, 8 Aug 2023 19:39:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229489AbjHHXUh (ORCPT
+        with ESMTP id S231258AbjHHXjG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 19:20:37 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97C2A19AF;
-        Tue,  8 Aug 2023 16:20:36 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 5916758730BD3; Wed,  9 Aug 2023 01:20:34 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 5716D60C2FC35;
-        Wed,  9 Aug 2023 01:20:34 +0200 (CEST)
-Date:   Wed, 9 Aug 2023 01:20:34 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
+        Tue, 8 Aug 2023 19:39:06 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58F9E1BFE;
+        Tue,  8 Aug 2023 16:39:02 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qTWHv-0005Zw-9W; Wed, 09 Aug 2023 01:38:55 +0200
+Date:   Wed, 9 Aug 2023 01:38:55 +0200
+From:   Florian Westphal <fw@strlen.de>
 To:     Justin Stitt <justinstitt@google.com>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -34,35 +32,32 @@ cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 7/7] netfilter: xtables: refactor deprecated strncpy
-In-Reply-To: <20230808-net-netfilter-v1-7-efbbe4ec60af@google.com>
-Message-ID: <35rnr776-4ssp-314r-0473-p19q3r880ps1@vanv.qr>
-References: <20230808-net-netfilter-v1-0-efbbe4ec60af@google.com> <20230808-net-netfilter-v1-7-efbbe4ec60af@google.com>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+Subject: Re: [PATCH 1/7] netfilter: ipset: refactor deprecated strncpy
+Message-ID: <20230808233855.GI9741@breakpoint.cc>
+References: <20230808-net-netfilter-v1-0-efbbe4ec60af@google.com>
+ <20230808-net-netfilter-v1-1-efbbe4ec60af@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230808-net-netfilter-v1-1-efbbe4ec60af@google.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Justin Stitt <justinstitt@google.com> wrote:
+> Fixes several buffer overread bugs present in `ip_set_core.c` by using
+> `strscpy` over `strncpy`.
+> 
+> Link: https://github.com/KSPP/linux/issues/90
+> Cc: linux-hardening@vger.kernel.org
+> Signed-off-by: Justin Stitt <justinstitt@google.com>
+> 
+> ---
+> There exists several potential buffer overread bugs here. These bugs
+> exist due to the fact that the destination and source strings may have
+> the same length which is equal to the max length `IPSET_MAXNAMELEN`.
 
-On Wednesday 2023-08-09 00:48, Justin Stitt wrote:
+There is no truncation.  Inputs are checked via nla_policy:
 
->Prefer `strscpy` as it's a more robust interface.
->
->There may have existed a bug here due to both `tbl->repl.name` and
->`info->name` having a size of 32 as defined below:
->|  #define XT_TABLE_MAXNAMELEN 32
->
->This may lead to buffer overreads in some situations -- `strscpy` solves
->this by guaranteeing NUL-termination of the dest buffer.
-
-It generally will not lead to overreads.
-xt not only deals with strings on its own turf, it even takes
-them from userspace-provided buffers, which means extra scrutiny is
-absolutely required. Done in places like
-
-x_tables.c:     if (strnlen(name, XT_EXTENSION_MAXNAMELEN) == XT_EXTENSION_MAXNAMELEN)
-
-
-(Which is not to say the strncpy->strscpy mop-up is bad.)
+[IPSET_ATTR_SETNAME2]   = { .type = NLA_NUL_STRING, .len = IPSET_MAXNAMELEN - 1 },
