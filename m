@@ -2,39 +2,39 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9062FC001B0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 22:55:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C22D1C04A94
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 23:00:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229499AbjHHWye (ORCPT
+        id S230004AbjHHXAk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 18:54:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35842 "EHLO
+        Tue, 8 Aug 2023 19:00:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230049AbjHHWyC (ORCPT
+        with ESMTP id S230027AbjHHXAj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 18:54:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A25A61982;
-        Tue,  8 Aug 2023 15:54:01 -0700 (PDT)
+        Tue, 8 Aug 2023 19:00:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CD7E19A1;
+        Tue,  8 Aug 2023 16:00:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4002C62DEE;
-        Tue,  8 Aug 2023 22:54:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CC9CC433C8;
-        Tue,  8 Aug 2023 22:54:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E106462DF0;
+        Tue,  8 Aug 2023 23:00:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40E44C433C9;
+        Tue,  8 Aug 2023 23:00:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691535240;
-        bh=S1YyyKsi4PMJ1YeMq4VI9CGk5TcWYpFJDARF/6lAgcE=;
+        s=k20201202; t=1691535637;
+        bh=1+fp21MqF6KntDdFbgZ1oMwBrAWE3yROyeT/Yf4gLaA=;
         h=Date:From:To:CC:Subject:In-Reply-To:References:From;
-        b=Jztk+FrWloB1ICOuUWZ4Y7ESx72xfy5uLlMPr+puXMbdhni+b8KIQqN5g+ysW6/6X
-         ME68n6TIAz/wg9+X8jcmgLhpw/h3LBhGVK6oB8sr+ycCNPcC8NWCb9vlQ0jtD/65LJ
-         wC6zjTvNwbuJD3QxjnmSfzsf+qom5hvKeaRSZCSKE9CQq+/7fV3VMC35Wp/FRcKmGj
-         8nUPWZ0K6vBv5gsTBzWKhmrrt2XNq5/GkxfOZ1SaUC+oEJtqMZut+hsuVZXEUbTVBr
-         3cKkJlyLXdFaxvZoC9bFFqVi1DBfOP98UbOqpSvuAkLcZHtjPxO97TMptuwjKbk65b
-         yFRGxwmtDcm5A==
-Date:   Tue, 08 Aug 2023 15:53:59 -0700
+        b=HV74zwmQ9KMzQVRuCI4qOWFBpxm1whPstAE6VTcXGI27a836eve4BHUhDQ6ZFrC0a
+         BQ4Mkjy1mkMXU2VdMCDfg7ic7NBPPKveWSt4+lVQuUQKm2MoLKFcUA8DB5oH33kLfM
+         L/DcI98+DBMx3Rc84SFCnwXVlbwP64W1fvJM75p8D41letvCfh9GRvKmNGXOfXq60G
+         F3uOq1RfFPgi0Vw0EO+rfzD6MQTLqEYpaPz05J9cLCA/pU222VzXpYyCc60BKB6vUq
+         VlZVnAzr7GmDDSZlpeNu1h+pHGpjZRNhYCeOE51giyiD8OmL2jIpFVLOQUBjwQyo2n
+         2GqkwP7vVLt1w==
+Date:   Tue, 08 Aug 2023 16:00:36 -0700
 From:   Kees Cook <kees@kernel.org>
 To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>,
         "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
@@ -53,7 +53,7 @@ Subject: Re: [PATCH v2] netfilter: ebtables: fix fortify warnings
 User-Agent: K-9 Mail for Android
 In-Reply-To: <ZNJuMoe37L02TP20@work>
 References: <20230808133038.771316-1-gongruiqi@huaweicloud.com> <ZNJuMoe37L02TP20@work>
-Message-ID: <5E8E0F9C-EE3F-4B0D-B827-DC47397E2A4A@kernel.org>
+Message-ID: <45DEF7A6-093D-4517-8CD8-D86D1671BE48@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain;
  charset=utf-8
@@ -128,12 +128,14 @@ ze);
 >> +	);
 >>  	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct eb=
 t_replace))));
+>>  };
 
-While we're here, can we drop this [0] in favor of []?
+Actually, looking at what size_entry_mwt() is doing, I think you probably =
+DO want a tag for this and to use a real structure for the manipulations in=
+stead of doing array indexing? I dunno=2E This is a weird function! :)
 
 -Kees
 
->>  };
 >> =20
 >> diff --git a/net/bridge/netfilter/ebtables=2Ec b/net/bridge/netfilter/e=
 btables=2Ec
