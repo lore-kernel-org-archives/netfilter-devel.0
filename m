@@ -2,138 +2,70 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F348C04A6A
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 03:07:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 204D7C04FE1
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 16:25:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbjHHDHl (ORCPT
+        id S231248AbjHHQYo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 7 Aug 2023 23:07:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42108 "EHLO
+        Tue, 8 Aug 2023 12:24:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229553AbjHHDHh (ORCPT
+        with ESMTP id S230512AbjHHQXH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Aug 2023 23:07:37 -0400
-Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D722180;
-        Mon,  7 Aug 2023 20:07:36 -0700 (PDT)
-Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-5861116fd74so49005587b3.0;
-        Mon, 07 Aug 2023 20:07:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691464055; x=1692068855;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=0G2Gm44L7ws5E/quoPqMuJmdghfzOor5wGEa6AaRIig=;
-        b=MIB1dRWNV6Yb3HUd1qPb/bgwaoUzAlGVu8CxiiwIDYwN4TMseNzdPMVbuAfPyciWjI
-         AZzeBtiA00C4EVQ8EGlp9e8Q3pbBFc8aCRl+HJu3YtRoio8lAQY1qu2UvIE5hChxs5Q1
-         PKMC/y7tlRiDWg5YOtPXbZsaYs//GKuhiSEDo5WpI7edOLzGAaAJjqvFIOQWWQAuLo7Z
-         JBsPnB5UvxOuJ1p76ZyxSuA7+KQWE3J2jS89kM5pl3PIv+dMsBBD/LquAyRZomdcC7zN
-         v+sSG+iPprRQeQoEH+XZP/GEzjEboCjqHBhNwHzm7vxhsHdZplrvrz31A5i2G+xxBQ4/
-         u+EA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691464055; x=1692068855;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=0G2Gm44L7ws5E/quoPqMuJmdghfzOor5wGEa6AaRIig=;
-        b=cTAhVJDVEwS8pBrL0SXNg3xFgnu4vZIU6lfQn2gDq/eIdolAU9TIC+ou5tokaftI+9
-         mtUtgXKRyRudmqhl9YfrHSS43aDD0oD/K37mVVcecuoDRxxbolTEFoZf5vO/ky7XGkXH
-         7J3sW/KIiEJvkuaE9Dq5LNGNXhIwCGi1YpPyqDosfSTIRe2oRSicB+02CwgQSwuCwQbN
-         KfJwPJEo/DaesAeCnohgFjM6xjNJlKCn7L6seUd6sfmNskz8x1+HOllrVd9Yr9Jf0HoX
-         grksd3LcUPDn23cLuTdAeryouLh/sxwbnaOABtHmiMeHIxPe22tDDyD0VPGUus1usR5P
-         OL7A==
-X-Gm-Message-State: AOJu0YznfGMieNEkSIdc/xYwQunbD1ZgIZuYbs6BDwk+bZMW8qVnrafK
-        tMz721jgIzMLSSdVF+/WF+kouKBvwYAulTCE11k=
-X-Google-Smtp-Source: AGHT+IHQrIvich9PHSVbgRXTdmB7iIbb8QzxP6y5/ZjBG6gKIk1MkGZwx3L/64MT/J6/QOrL9i/+Y+FD0/7A7U+VjlM=
-X-Received: by 2002:a0d:dd4a:0:b0:589:642d:6d84 with SMTP id
- g71-20020a0ddd4a000000b00589642d6d84mr2728002ywe.23.1691464055184; Mon, 07
- Aug 2023 20:07:35 -0700 (PDT)
+        Tue, 8 Aug 2023 12:23:07 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51164A5C1
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 08:49:37 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qTNK2-0000h3-6S; Tue, 08 Aug 2023 16:04:30 +0200
+Date:   Tue, 8 Aug 2023 16:04:30 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [nft PATCH v4 6/6] py: add Nftables.{get,set}_input() API
+Message-ID: <ZNJLbiVq6QolAOvi@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Thomas Haller <thaller@redhat.com>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+References: <20230803193940.1105287-1-thaller@redhat.com>
+ <20230803193940.1105287-13-thaller@redhat.com>
 MIME-Version: 1.0
-References: <20230731071728.3493794-1-j.granados@samsung.com>
- <ZMgpck0rjqHR74sl@bombadil.infradead.org> <ZNFlqwwvE6w6HyHl@bombadil.infradead.org>
- <CANnsUMG3WO_19GpnsNaXPqu6eEnpBvYUpkrf1QbHwsc9wEoCZQ@mail.gmail.com>
- <ZNGBrkP7J2g/BAWV@bombadil.infradead.org> <CANnsUMGRBnatKB4-3eYjb5aG7YnXDiZG6cjuwSgtjvVF6ErJNg@mail.gmail.com>
- <ZNGv3Q5VBsS2/w4e@bombadil.infradead.org>
-In-Reply-To: <ZNGv3Q5VBsS2/w4e@bombadil.infradead.org>
-From:   Chris Maness <christopher.maness@gmail.com>
-Date:   Mon, 7 Aug 2023 20:07:24 -0700
-Message-ID: <CANnsUMGHnurbph9F7mex=1s0mxhwpNgeQbKJ6j1r37Qmd6LAMQ@mail.gmail.com>
-Subject: Re: [PATCH v2 00/14] sysctl: Add a size argument to register
- functions in sysctl
-To:     Luis Chamberlain <mcgrof@kernel.org>
-Cc:     Alexander Aring <alex.aring@gmail.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        "D. Wythe" <alibuda@linux.alibaba.com>,
-        David Ahern <dsahern@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jan Karcher <jaka@linux.ibm.com>,
-        Joel Granados <joel.granados@gmail.com>,
-        Joel Granados <j.granados@samsung.com>,
-        Joerg Reuter <jreuter@yaina.de>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Julian Anastasov <ja@ssi.bg>,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Kees Cook <keescook@chromium.org>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Mat Martineau <martineau@kernel.org>,
-        Matthieu Baerts <matthieu.baerts@tessares.net>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        Simon Horman <horms@verge.net.au>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Tony Lu <tonylu@linux.alibaba.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Wen Gu <guwen@linux.alibaba.com>,
-        Wenjia Zhang <wenjia@linux.ibm.com>,
-        Will Deacon <will@kernel.org>, Xin Long <lucien.xin@gmail.com>,
-        bridge@lists.linux-foundation.org, coreteam@netfilter.org,
-        josh@joshtriplett.org, linux-arm-kernel@lists.infradead.org,
-        linux-fsdevel@vger.kernel.org, linux-hams@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-sctp@vger.kernel.org,
-        linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org,
-        mptcp@lists.linux.dev, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, rds-devel@oss.oracle.com,
-        willy@infradead.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230803193940.1105287-13-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
->
-> Are you reporting a separate regression that goes all the way back to v4 kernels?
->
+On Thu, Aug 03, 2023 at 09:35:24PM +0200, Thomas Haller wrote:
+> Similar to the existing Nftables.{get,set}_debug() API.
+> 
+> Only notable (internal) difference is that nft_ctx_input_set_flags()
+> returns the old value already, so we don't need to call
+> Nftables.get_input() first.
+> 
+> The benefit of this API, is that it follows the existing API for debug
+> flags. Also, when future flags are added it requires few changes to the
+> python code.
+> 
+> The disadvantage is that it looks different from the underlying C API,
+> which is confusing when reading the C API. Also, it's a bit cumbersome
+> to reset only one flag. For example:
+> 
+>      def _drop_flag_foo(flag):
+>         if isinstance(flag, int):
+>             return flag & ~FOO_NUM
+>         if flag == 'foo':
+>             return 0
+>         return flag
+> 
+>      ctx.set_input(_drop_flag_foo(v) for v in ctx.get_input())
 
-I am not certain what you mean by regression.
+Which would be easier if there were dedicated setter/getter pairs for
+each flag. The code for debug flags optimizes for setting multiple flags
+at once ("get me all the debugging now!"). Not a veto from my side
+though, adding getter/setter pairs after the fact is still possible
+without breaking anything.
 
-> > v2 is fine there.
->
-> What does this mean?
-
-I have to go all the way back to kernel version 2 for the serial 6PACK
-driver to work.  If I try to use it in Kernel version 4, 5, or 6 the
-kernel panics as soon as I attempt to connect to another station.
-
->
->   Luis
-
-Chris KQ6UP
-
-
--- 
-Thanks,
-Chris Maness
+Thanks, Phil
