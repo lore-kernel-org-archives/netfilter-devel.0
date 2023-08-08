@@ -2,111 +2,171 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DC15C41513
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 22:48:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9062FC001B0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 22:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231610AbjHHWso (ORCPT
+        id S229499AbjHHWye (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 18:48:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36890 "EHLO
+        Tue, 8 Aug 2023 18:54:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231539AbjHHWsm (ORCPT
+        with ESMTP id S230049AbjHHWyC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 18:48:42 -0400
-Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 937E812C
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 15:48:41 -0700 (PDT)
-Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-5896bdb0b18so6726817b3.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Aug 2023 15:48:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1691534921; x=1692139721;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=G9OF2QFsiP3MkrzN4gKJO5o0WhLZ6LzcN9E8K6dc8dQ=;
-        b=Tk5sym5cRDFSry8K+vc1HytKkY3IbV6iZulQcdqzajiE0IVk3xAlVvRndUZmAf1bym
-         qmBA/CUFS/PGUXiFjGhkccdVwoX3zHUdcOMoLvXMMUMjR8yufvUM3BMxdbZVUZUBohHJ
-         XDd0dKfCAqHUdAGRMbnyrr4FGDyVDAC1FubuFJd7iCMUjnLDpsu9n3DTiB9Phq8Qvf0E
-         q8U2keEGG0MEUAozFw72uG4Zvu2LbBhukIi5JUVz+Vr+B72eM5IBoS4QlmZ4vDb1Wq63
-         DfyTE1Qq1a9iFWqR253R9wuYjfP9rEWY7oXwiicHyPCLs7WfdwbOq9mI2Yx1daOUKLxs
-         Jqyg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691534921; x=1692139721;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=G9OF2QFsiP3MkrzN4gKJO5o0WhLZ6LzcN9E8K6dc8dQ=;
-        b=IrhPyOt4CNtH0gcLK59jm794efLDBWaAB7C7Pxl2Fc8R66Hl6jy5Q+E3RVyxfQ0fzF
-         3z/RNvj2TSpz9fby1VJAREdtpMi/4hgV7cPgscvYl/GBMPpPPHQ7uStyHIppdE+PMXKK
-         BT7G1oCe2eAd3vmr+M3P8i8XNqcVbYy7rADAGxsEUbK1CbDf8ACicM2qOMlHsAc4Qa8c
-         YHPMMenj9nJwyRZh/bfBc78nF814WeFrTLfxs8YlGMEhmlIxg1JYI3Hm0pme26uVREDW
-         v2wnieIlmZQwzgrneG5mHnSGgiQoLzJNJ5LjViR1CpqyMPs6Rl937BW+tCEvDM7wDtst
-         4Spg==
-X-Gm-Message-State: AOJu0Yw9eAn5e51qW61gOehvXzmoJ126lucGai3FJQFVaUW2Oew+11Ra
-        Amo7oqVbkKBgAnHfpDTa2uesFFnilNskHKBiXQ==
-X-Google-Smtp-Source: AGHT+IGCyJW7+H01CcBpmwMLWO4IJOM2JRZefUJenQ9SapEIQSusWKx57m2Q2rpVYsPLUriKIRjxQtAgRFf96MgkCg==
-X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
- (user=justinstitt job=sendgmr) by 2002:a81:b61a:0:b0:586:e91a:46c2 with SMTP
- id u26-20020a81b61a000000b00586e91a46c2mr107296ywh.4.1691534920928; Tue, 08
- Aug 2023 15:48:40 -0700 (PDT)
-Date:   Tue, 08 Aug 2023 22:48:12 +0000
-In-Reply-To: <20230808-net-netfilter-v1-0-efbbe4ec60af@google.com>
-Mime-Version: 1.0
-References: <20230808-net-netfilter-v1-0-efbbe4ec60af@google.com>
-X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1691534912; l=1134;
- i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
- bh=Bp+w2rTLNgdzNlxLi9FLD4utZ4QUqpPxaPIds7U/AGY=; b=odK4V1dqN6Y308K04MH8d/MRrkeaDSd1rELzLfU+7SDbRdFBl0nXUSsw+H9Y12YsVkVDC43lj
- zmYSndS5Js/Dv3+IClsSCDsbs7OJ2vOQ6onFe43X7Ff2wDY/LO6DwG0
-X-Mailer: b4 0.12.3
-Message-ID: <20230808-net-netfilter-v1-7-efbbe4ec60af@google.com>
-Subject: [PATCH 7/7] netfilter: xtables: refactor deprecated strncpy
-From:   Justin Stitt <justinstitt@google.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Tue, 8 Aug 2023 18:54:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A25A61982;
+        Tue,  8 Aug 2023 15:54:01 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4002C62DEE;
+        Tue,  8 Aug 2023 22:54:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CC9CC433C8;
+        Tue,  8 Aug 2023 22:54:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691535240;
+        bh=S1YyyKsi4PMJ1YeMq4VI9CGk5TcWYpFJDARF/6lAgcE=;
+        h=Date:From:To:CC:Subject:In-Reply-To:References:From;
+        b=Jztk+FrWloB1ICOuUWZ4Y7ESx72xfy5uLlMPr+puXMbdhni+b8KIQqN5g+ysW6/6X
+         ME68n6TIAz/wg9+X8jcmgLhpw/h3LBhGVK6oB8sr+ycCNPcC8NWCb9vlQ0jtD/65LJ
+         wC6zjTvNwbuJD3QxjnmSfzsf+qom5hvKeaRSZCSKE9CQq+/7fV3VMC35Wp/FRcKmGj
+         8nUPWZ0K6vBv5gsTBzWKhmrrt2XNq5/GkxfOZ1SaUC+oEJtqMZut+hsuVZXEUbTVBr
+         3cKkJlyLXdFaxvZoC9bFFqVi1DBfOP98UbOqpSvuAkLcZHtjPxO97TMptuwjKbk65b
+         yFRGxwmtDcm5A==
+Date:   Tue, 08 Aug 2023 15:53:59 -0700
+From:   Kees Cook <kees@kernel.org>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
+CC:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>
-Cc:     linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Kees Cook <keescook@chromium.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Justin Stitt <justinstitt@google.com>
-Content-Type: text/plain; charset="utf-8"
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Wang Weiyang <wangweiyang2@huawei.com>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
+Subject: Re: [PATCH v2] netfilter: ebtables: fix fortify warnings
+User-Agent: K-9 Mail for Android
+In-Reply-To: <ZNJuMoe37L02TP20@work>
+References: <20230808133038.771316-1-gongruiqi@huaweicloud.com> <ZNJuMoe37L02TP20@work>
+Message-ID: <5E8E0F9C-EE3F-4B0D-B827-DC47397E2A4A@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Prefer `strscpy` as it's a more robust interface.
+On August 8, 2023 9:32:50 AM PDT, "Gustavo A=2E R=2E Silva" <gustavoars@ker=
+nel=2Eorg> wrote:
+>On Tue, Aug 08, 2023 at 09:30:38PM +0800, GONG, Ruiqi wrote:
+>> From: "GONG, Ruiqi" <gongruiqi1@huawei=2Ecom>
+>>=20
+>> When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=3Dy, the following
+>> warning appears:
+>>=20
+>> In function =E2=80=98fortify_memcpy_chk=E2=80=99,
+>>     inlined from =E2=80=98size_entry_mwt=E2=80=99 at net/bridge/netfilt=
+er/ebtables=2Ec:2118:2:
+>> =2E/include/linux/fortify-string=2Eh:592:25: error: call to =E2=80=98__=
+read_overflow2_field=E2=80=99
+>> declared with attribute warning: detected read beyond size of field (2n=
+d parameter);
+>> maybe use struct_group()? [-Werror=3Dattribute-warning]
+>>   592 |                         __read_overflow2_field(q_size_field, si=
+ze);
+>>       |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~=
+~~~
+>>=20
+>> The compiler is complaining:
+>>=20
+>> memcpy(&offsets[1], &entry->watchers_offset,
+>>                        sizeof(offsets) - sizeof(offsets[0]));
+>>=20
+>> where memcpy reads beyong &entry->watchers_offset to copy
+>> {watchers,target,next}_offset altogether into offsets[]=2E Silence the
+>> warning by wrapping these three up via struct_group()=2E
+>>=20
+>> Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei=2Ecom>
+>> ---
+>>=20
+>> v2: fix HDRTEST error by replacing struct_group() with __struct_group()=
+,
+>> since it's a uapi header=2E
+>>=20
+>>  include/uapi/linux/netfilter_bridge/ebtables=2Eh | 14 ++++++++------
+>>  net/bridge/netfilter/ebtables=2Ec                |  3 +--
+>>  2 files changed, 9 insertions(+), 8 deletions(-)
+>>=20
+>> diff --git a/include/uapi/linux/netfilter_bridge/ebtables=2Eh b/include=
+/uapi/linux/netfilter_bridge/ebtables=2Eh
+>> index a494cf43a755=2E=2Eb0caad82b693 100644
+>> --- a/include/uapi/linux/netfilter_bridge/ebtables=2Eh
+>> +++ b/include/uapi/linux/netfilter_bridge/ebtables=2Eh
+>> @@ -182,12 +182,14 @@ struct ebt_entry {
+>>  	unsigned char sourcemsk[ETH_ALEN];
+>>  	unsigned char destmac[ETH_ALEN];
+>>  	unsigned char destmsk[ETH_ALEN];
+>> -	/* sizeof ebt_entry + matches */
+>> -	unsigned int watchers_offset;
+>> -	/* sizeof ebt_entry + matches + watchers */
+>> -	unsigned int target_offset;
+>> -	/* sizeof ebt_entry + matches + watchers + target */
+>> -	unsigned int next_offset;
+>> +	__struct_group(/* no tag */, offsets, /* no attrs */,
+>> +		/* sizeof ebt_entry + matches */
+>> +		unsigned int watchers_offset;
+>> +		/* sizeof ebt_entry + matches + watchers */
+>> +		unsigned int target_offset;
+>> +		/* sizeof ebt_entry + matches + watchers + target */
+>> +		unsigned int next_offset;
+>> +	);
+>>  	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct eb=
+t_replace))));
 
-There may have existed a bug here due to both `tbl->repl.name` and
-`info->name` having a size of 32 as defined below:
-|  #define XT_TABLE_MAXNAMELEN 32
+While we're here, can we drop this [0] in favor of []?
 
-This may lead to buffer overreads in some situations -- `strscpy` solves
-this by guaranteeing NUL-termination of the dest buffer.
+-Kees
 
-Signed-off-by: Justin Stitt <justinstitt@google.com>
+>>  };
+>> =20
+>> diff --git a/net/bridge/netfilter/ebtables=2Ec b/net/bridge/netfilter/e=
+btables=2Ec
+>> index 757ec46fc45a=2E=2E5ec66b1ebb64 100644
+>> --- a/net/bridge/netfilter/ebtables=2Ec
+>> +++ b/net/bridge/netfilter/ebtables=2Ec
+>> @@ -2115,8 +2115,7 @@ static int size_entry_mwt(const struct ebt_entry =
+*entry, const unsigned char *ba
+>>  		return ret;
+>> =20
+>>  	offsets[0] =3D sizeof(struct ebt_entry); /* matches come first */
+>> -	memcpy(&offsets[1], &entry->watchers_offset,
+>> -			sizeof(offsets) - sizeof(offsets[0]));
+>> +	memcpy(&offsets[1], &entry->offsets, sizeof(offsets) - sizeof(offsets=
+[0]));
+>							^^^^^^^^^^^^
+>You now can replace this ____________________________________|
+>with just `sizeof(entry->offsets)`
+>
+>With that change you can add my
+>Reviewed-by: Gustavo A=2E R=2E Silva <gustavoars@kernel=2Eorg>
+>
+>Thank you
+>--
+>Gustavo
+>
+>> =20
+>>  	if (state->buf_kern_start) {
+>>  		buf_start =3D state->buf_kern_start + state->buf_kern_offset;
+>> --=20
+>> 2=2E41=2E0
+>>=20
 
----
-Note: build tested only
----
- net/netfilter/xt_repldata.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
-index 68ccbe50bb1e..63869fd0ec57 100644
---- a/net/netfilter/xt_repldata.h
-+++ b/net/netfilter/xt_repldata.h
-@@ -29,7 +29,7 @@
- 	if (tbl == NULL) \
- 		return NULL; \
- 	term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
--	strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-+	strscpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
- 	*term = (struct type##_error)typ2##_ERROR_INIT;  \
- 	tbl->repl.valid_hooks = hook_mask; \
- 	tbl->repl.num_entries = nhooks + 1; \
-
--- 
-2.41.0.640.ga95def55d0-goog
-
+--=20
+Kees Cook
