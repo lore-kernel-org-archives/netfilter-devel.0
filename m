@@ -2,54 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39316C001B0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 16:25:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ABF2C001B0
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 16:41:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232531AbjHHQZg (ORCPT
+        id S233252AbjHHQlv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:25:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45780 "EHLO
+        Tue, 8 Aug 2023 12:41:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59298 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232556AbjHHQY3 (ORCPT
+        with ESMTP id S232268AbjHHQlI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 12:24:29 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2FEDAD0F
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 08:50:02 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qTMhQ-00006A-3q; Tue, 08 Aug 2023 15:24:36 +0200
-Date:   Tue, 8 Aug 2023 15:24:36 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [nft PATCH v4 2/6] src: add input flag NFT_CTX_INPUT_NO_DNS to
- avoid blocking
-Message-ID: <ZNJCFNlZ8bHuJOkl@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20230803193940.1105287-1-thaller@redhat.com>
- <20230803193940.1105287-5-thaller@redhat.com>
+        Tue, 8 Aug 2023 12:41:08 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2EE415B8C;
+        Tue,  8 Aug 2023 08:54:50 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qTP2U-0001Au-Qj; Tue, 08 Aug 2023 17:54:30 +0200
+Date:   Tue, 8 Aug 2023 17:54:30 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Kees Cook <keescook@chromium.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Wang Weiyang <wangweiyang2@huawei.com>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: Re: [PATCH] netfilter: ebtables: fix fortify warnings
+Message-ID: <20230808155430.GB9741@breakpoint.cc>
+References: <20230808014821.241688-1-gongruiqi@huaweicloud.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230803193940.1105287-5-thaller@redhat.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230808014821.241688-1-gongruiqi@huaweicloud.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 03, 2023 at 09:35:16PM +0200, Thomas Haller wrote:
-> getaddrinfo() blocks while trying to resolve the name. Blocking the
-> caller of the library is in many cases undesirable. Also, while
-> reconfiguring the firewall, it's not clear that resolving names via
-> the network will work or makes sense.
+GONG, Ruiqi <gongruiqi@huaweicloud.com> wrote:
+> From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
 > 
-> Add a new input flag NFT_CTX_INPUT_NO_DNS to opt-out from getaddrinfo()
-> and only accept plain IP addresses.
+> When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=y, the following
+> warning appears:
+> 
+> In function ‘fortify_memcpy_chk’,
+>     inlined from ‘size_entry_mwt’ at net/bridge/netfilter/ebtables.c:2118:2:
+> ./include/linux/fortify-string.h:592:25: error: call to ‘__read_overflow2_field’
+> declared with attribute warning: detected read beyond size of field (2nd parameter);
+> maybe use struct_group()? [-Werror=attribute-warning]
+>   592 |                         __read_overflow2_field(q_size_field, size);
+>       |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> The compiler is complaining:
+> 
+> memcpy(&offsets[1], &entry->watchers_offset,
+>                        sizeof(offsets) - sizeof(offsets[0]));
+> 
+> where memcpy reads beyong &entry->watchers_offset to copy
+> {watchers,target,next}_offset altogether into offsets[]. Silence the
+> warning by wrapping these three up via struct_group().
+> 
+> Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
+> ---
+>  include/uapi/linux/netfilter_bridge/ebtables.h | 14 ++++++++------
+>  net/bridge/netfilter/ebtables.c                |  3 +--
+>  2 files changed, 9 insertions(+), 8 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
+> index a494cf43a755..e634da196d08 100644
+> --- a/include/uapi/linux/netfilter_bridge/ebtables.h
+> +++ b/include/uapi/linux/netfilter_bridge/ebtables.h
+> @@ -182,12 +182,14 @@ struct ebt_entry {
+>  	unsigned char sourcemsk[ETH_ALEN];
+>  	unsigned char destmac[ETH_ALEN];
+>  	unsigned char destmsk[ETH_ALEN];
+> -	/* sizeof ebt_entry + matches */
+> -	unsigned int watchers_offset;
+> -	/* sizeof ebt_entry + matches + watchers */
+> -	unsigned int target_offset;
+> -	/* sizeof ebt_entry + matches + watchers + target */
+> -	unsigned int next_offset;
+> +	struct_group(offsets,
+> +		/* sizeof ebt_entry + matches */
 
-This sounds like user input validation via backend. Another way to solve
-the problem at hand is to not insert host names into the rules(et) fed
-into libnftables, right?
-
-Cheers, Phil
+This is an UAPI header, I think you need to use __struct_group here.
