@@ -2,147 +2,93 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17617C04A94
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 19:11:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D4BC04A6A
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 20:09:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234409AbjHHTLB (ORCPT
+        id S230331AbjHHUJl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:11:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52608 "EHLO
+        Tue, 8 Aug 2023 16:09:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234429AbjHHTKl (ORCPT
+        with ESMTP id S234166AbjHHUJa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 15:10:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BA5ADE9E6;
-        Tue,  8 Aug 2023 09:32:25 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 827D362456;
-        Tue,  8 Aug 2023 16:31:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BFB7C433C7;
-        Tue,  8 Aug 2023 16:31:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691512307;
-        bh=i13P5MPqrTGWCc+X/5J6OL6JOdO6y17/4r5Ys53Uur0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=sUMo/ilNQjbTst5YG3/9ijxPs5mOI9ZLOnEjxhzeCm7KVteaFEsYSUu5F6P5kCu+c
-         cDaMjxIKKwWidt/oceJJBCYnV4cFJKtfctLYSJ4ksPmAW/mb38/qSvKosaEX4A4AjN
-         CJHDCGGD7KwDVjPZfJb+G4cSKBX6ud/7sUKmGVrFJHLfmwsYj9VVWTHu9mNAOWjzdW
-         AKx8NFq+92kLHrAdr4HfDc3o4JkeKHf6cNUluVZhfJcInujueS73luI8vViMDUBWyO
-         mRE2WFQtt7XWsExLES5NjKAfQgypy4Ibl5O1/3olZO1Bx3mrMHCF1On6OrRysXMZRm
-         JHDn+8ZoDXNMw==
-Date:   Tue, 8 Aug 2023 10:32:50 -0600
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Kees Cook <keescook@chromium.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Wang Weiyang <wangweiyang2@huawei.com>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
-Subject: Re: [PATCH v2] netfilter: ebtables: fix fortify warnings
-Message-ID: <ZNJuMoe37L02TP20@work>
-References: <20230808133038.771316-1-gongruiqi@huaweicloud.com>
+        Tue, 8 Aug 2023 16:09:30 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AD8A1FD6
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 11:40:27 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qTRd3-0003Ja-Ah; Tue, 08 Aug 2023 20:40:25 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_tables: fix false-positive lockdep splat
+Date:   Tue,  8 Aug 2023 20:40:17 +0200
+Message-ID: <20230808184020.12779-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230808133038.771316-1-gongruiqi@huaweicloud.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 08, 2023 at 09:30:38PM +0800, GONG, Ruiqi wrote:
-> From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
-> 
-> When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=y, the following
-> warning appears:
-> 
-> In function ‘fortify_memcpy_chk’,
->     inlined from ‘size_entry_mwt’ at net/bridge/netfilter/ebtables.c:2118:2:
-> ./include/linux/fortify-string.h:592:25: error: call to ‘__read_overflow2_field’
-> declared with attribute warning: detected read beyond size of field (2nd parameter);
-> maybe use struct_group()? [-Werror=attribute-warning]
->   592 |                         __read_overflow2_field(q_size_field, size);
->       |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> The compiler is complaining:
-> 
-> memcpy(&offsets[1], &entry->watchers_offset,
->                        sizeof(offsets) - sizeof(offsets[0]));
-> 
-> where memcpy reads beyong &entry->watchers_offset to copy
-> {watchers,target,next}_offset altogether into offsets[]. Silence the
-> warning by wrapping these three up via struct_group().
-> 
-> Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
-> ---
-> 
-> v2: fix HDRTEST error by replacing struct_group() with __struct_group(),
-> since it's a uapi header.
-> 
->  include/uapi/linux/netfilter_bridge/ebtables.h | 14 ++++++++------
->  net/bridge/netfilter/ebtables.c                |  3 +--
->  2 files changed, 9 insertions(+), 8 deletions(-)
-> 
-> diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
-> index a494cf43a755..b0caad82b693 100644
-> --- a/include/uapi/linux/netfilter_bridge/ebtables.h
-> +++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-> @@ -182,12 +182,14 @@ struct ebt_entry {
->  	unsigned char sourcemsk[ETH_ALEN];
->  	unsigned char destmac[ETH_ALEN];
->  	unsigned char destmsk[ETH_ALEN];
-> -	/* sizeof ebt_entry + matches */
-> -	unsigned int watchers_offset;
-> -	/* sizeof ebt_entry + matches + watchers */
-> -	unsigned int target_offset;
-> -	/* sizeof ebt_entry + matches + watchers + target */
-> -	unsigned int next_offset;
-> +	__struct_group(/* no tag */, offsets, /* no attrs */,
-> +		/* sizeof ebt_entry + matches */
-> +		unsigned int watchers_offset;
-> +		/* sizeof ebt_entry + matches + watchers */
-> +		unsigned int target_offset;
-> +		/* sizeof ebt_entry + matches + watchers + target */
-> +		unsigned int next_offset;
-> +	);
->  	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
->  };
->  
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 757ec46fc45a..5ec66b1ebb64 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -2115,8 +2115,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
->  		return ret;
->  
->  	offsets[0] = sizeof(struct ebt_entry); /* matches come first */
-> -	memcpy(&offsets[1], &entry->watchers_offset,
-> -			sizeof(offsets) - sizeof(offsets[0]));
-> +	memcpy(&offsets[1], &entry->offsets, sizeof(offsets) - sizeof(offsets[0]));
-							^^^^^^^^^^^^
-You now can replace this ____________________________________|
-with just `sizeof(entry->offsets)`
+->abort invocation may cause splat on debug kernels:
 
-With that change you can add my
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+WARNING: suspicious RCU usage
+net/netfilter/nft_set_pipapo.c:1697 suspicious rcu_dereference_check() usage!
+[..]
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by nft/133554: [..] (nft_net->commit_mutex){+.+.}-{3:3}, at: nf_tables_valid_genid
+[..]
+ lockdep_rcu_suspicious+0x1ad/0x260
+ nft_pipapo_abort+0x145/0x180
+ __nf_tables_abort+0x5359/0x63d0
+ nf_tables_abort+0x24/0x40
+ nfnetlink_rcv+0x1a0a/0x22c0
+ netlink_unicast+0x73c/0x900
+ netlink_sendmsg+0x7f0/0xc20
+ ____sys_sendmsg+0x48d/0x760
 
-Thank you
---
-Gustavo
+Transaction mutex is held, so parallel updates are not possible.
+Switch to _protected and check mutex is held for lockdep enabled builds.
 
->  
->  	if (state->buf_kern_start) {
->  		buf_start = state->buf_kern_start + state->buf_kern_offset;
-> -- 
-> 2.41.0
-> 
+Fixes: 212ed75dc5fb ("netfilter: nf_tables: integrate pipapo into commit protocol")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_set_pipapo.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 49915a2a58eb..f29c4bef1a3e 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1664,6 +1664,17 @@ static void nft_pipapo_commit(const struct nft_set *set)
+ 	priv->clone = new_clone;
+ }
+ 
++static bool nft_pipapo_transaction_mutex_held(const struct nft_set *set)
++{
++#ifdef CONFIG_PROVE_LOCKING
++	const struct net *net = read_pnet(&set->net);
++
++	return lockdep_is_held(&nft_pernet(net)->commit_mutex);
++#else
++	return true;
++#endif
++}
++
+ static void nft_pipapo_abort(const struct nft_set *set)
+ {
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+@@ -1672,7 +1683,7 @@ static void nft_pipapo_abort(const struct nft_set *set)
+ 	if (!priv->dirty)
+ 		return;
+ 
+-	m = rcu_dereference(priv->match);
++	m = rcu_dereference_protected(priv->match, nft_pipapo_transaction_mutex_held(set));
+ 
+ 	new_clone = pipapo_clone(m);
+ 	if (IS_ERR(new_clone))
+-- 
+2.41.0
+
