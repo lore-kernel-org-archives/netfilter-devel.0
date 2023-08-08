@@ -2,196 +2,108 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC826C05051
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 16:49:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7267EC41513
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 17:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233555AbjHHQth (ORCPT
+        id S234289AbjHHRSW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 12:49:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53032 "EHLO
+        Tue, 8 Aug 2023 13:18:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232062AbjHHQss (ORCPT
+        with ESMTP id S234302AbjHHRRg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 12:48:48 -0400
-Received: from mail-lf1-x132.google.com (mail-lf1-x132.google.com [IPv6:2a00:1450:4864:20::132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DC444447B;
-        Tue,  8 Aug 2023 08:57:16 -0700 (PDT)
-Received: by mail-lf1-x132.google.com with SMTP id 2adb3069b0e04-4fe4762173bso9624702e87.3;
-        Tue, 08 Aug 2023 08:57:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691510195; x=1692114995;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=EKR/mQxiWCp6UmZoc/ZIdm/CvMRbYORnLL2Bmf5WunY=;
-        b=iTep3vMy6Z8EHVl1pNEMn2tN+1w99+9Dgp6gAbfQO3hye73jDjBdCub0T2zqH9X7hD
-         noYURqNZ/iggYzokFPQFPUCJ+YaRsqyljdSvL3znPKS9FmhZ4/OkbBbZv2jVRlYmiEP1
-         vkTgmujWH7QdPoYhDSHUmN3kGqsy8spVGBdMriHHT+TIm6srxytss76c0BZzpd6eTVYo
-         HChuERSTjv7yicIqn3TmG7rfgl/GFLAbQZagCVVkY4E6/7GnxAYyCw9v+QUTQVxJUtle
-         NPW60gvllRzBqLHk9eOWD9RR52y7u8XOeCw6JWaKtqPMSAX5Yy2L1FzRT8dsoy+RWVd9
-         s0rA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691510195; x=1692114995;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=EKR/mQxiWCp6UmZoc/ZIdm/CvMRbYORnLL2Bmf5WunY=;
-        b=iz8fRiVPO5DYbcN1sqJmxrj6kfRfx2EHmXaZk4Hrzcy5rCVxguA5Bx7IlP+v2qP/br
-         UfmQVQiAboVgOGnLH2A4L0Ex7e0slkv9IoPkfy0+EGjO162zMQbxk27vCnJ/m1klKU1R
-         nAvREpSNg+FCVqeFJuOE8azncNSLAYzRxLdfjDkfzwRtjd6j7z3kSuQSA/KUYyWhhvVz
-         uL3zS3pqakebLxYFkLq2eZ1Lrr8r9yp3BJroA0bXyMa6ixfXq8k3kTI1VScAKXJah9c0
-         qzUu6qjMAeoYVfYCL74ggVClc1sAg/QdbENhzhW3cr93yoyim+BPjQgVwVcRi5Jw7CGs
-         BOTA==
-X-Gm-Message-State: AOJu0Yyrnnet/IFtl8CTde8u6iirhZCeAVTOI7MsdYEd/vO5nZ4rCEZO
-        wkJmwng9pTni8IvLVu8t3YkLG43UTdFaW//T
-X-Google-Smtp-Source: AGHT+IFnYhIzaS3Y+KcV0Lrw6qJXYUrYWCoAb9tRY2N+65/72vnKp1uSD5k97nShAi0GFBixW7Zi2Q==
-X-Received: by 2002:a05:6512:3b0a:b0:4fe:3f2:2efc with SMTP id f10-20020a0565123b0a00b004fe03f22efcmr11495192lfv.0.1691508221319;
-        Tue, 08 Aug 2023 08:23:41 -0700 (PDT)
-Received: from localhost (0x934e1fc8.cust.fastspeed.dk. [147.78.31.200])
-        by smtp.gmail.com with ESMTPSA id a3-20020a056512020300b004fcdd81355csm1920516lfo.269.2023.08.08.08.23.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 08:23:40 -0700 (PDT)
-Date:   Tue, 8 Aug 2023 17:23:38 +0200
-From:   Joel Granados <joel.granados@gmail.com>
-To:     Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Cc:     mcgrof@kernel.org, Catalin Marinas <catalin.marinas@arm.com>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Kees Cook <keescook@chromium.org>,
-        "D. Wythe" <alibuda@linux.alibaba.com>, mptcp@lists.linux.dev,
-        Jakub Kicinski <kuba@kernel.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Paolo Abeni <pabeni@redhat.com>, coreteam@netfilter.org,
-        Jan Karcher <jaka@linux.ibm.com>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        Stefan Schmidt <stefan@datenfreihafen.org>,
-        Matthieu Baerts <matthieu.baerts@tessares.net>,
-        bridge@lists.linux-foundation.org,
-        linux-arm-kernel@lists.infradead.org,
-        Joerg Reuter <jreuter@yaina.de>, Julian Anastasov <ja@ssi.bg>,
-        David Ahern <dsahern@kernel.org>,
-        netfilter-devel@vger.kernel.org, Wen Gu <guwen@linux.alibaba.com>,
-        linux-kernel@vger.kernel.org,
-        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
-        linux-wpan@vger.kernel.org, lvs-devel@vger.kernel.org,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        linux-sctp@vger.kernel.org, Tony Lu <tonylu@linux.alibaba.com>,
+        Tue, 8 Aug 2023 13:17:36 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 787D81DC9A;
+        Tue,  8 Aug 2023 09:07:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1691510832; x=1723046832;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=kJCDgp5sRmlWoO/VG7oNBaGSk6kyXjxy6z+c89DOgxk=;
+  b=gD01RJzfPQny10OtjNmvjHZHBggUGJjfKyYRpqP1mPEjGKZ/nd8W4r2b
+   141/s7F+sv/ohJdxAujuAmGBeZ/ahrk15eGsabW5F7458aWlknuPwtt3u
+   Sn5LjUwqXCWACdOhGFQx6xyR5ugLap//fTupiFo3NGoLVx0OYSwXzOQcf
+   Fb+KnHntHI/i+GI6EPKHxuPNdxJAdmBu4x+C4LxqE73Vc6D1TfcGlYzPl
+   Rgxwk7OLrV0kb8GANxx9kSikr5m8xrOcWfGhcgHkEgxdJ5qwKoW7pOqFl
+   xfeA48E+yyfpCbAw9U//t2AokylWa2YEAxMSKiZEN9p5vwc1U0UJ8/eKL
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="351084472"
+X-IronPort-AV: E=Sophos;i="6.01,263,1684825200"; 
+   d="scan'208";a="351084472"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Aug 2023 03:17:59 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="977798345"
+X-IronPort-AV: E=Sophos;i="6.01,263,1684825200"; 
+   d="scan'208";a="977798345"
+Received: from lkp-server01.sh.intel.com (HELO d1ccc7e87e8f) ([10.239.97.150])
+  by fmsmga006.fm.intel.com with ESMTP; 08 Aug 2023 03:17:55 -0700
+Received: from kbuild by d1ccc7e87e8f with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qTJml-0005Hm-0D;
+        Tue, 08 Aug 2023 10:17:55 +0000
+Date:   Tue, 8 Aug 2023 18:17:44 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     "GONG, Ruiqi" <gongruiqi@huaweicloud.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        Florian Westphal <fw@strlen.de>, willy@infradead.org,
-        Heiko Carstens <hca@linux.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-rdma@vger.kernel.org, Roopa Prabhu <roopa@nvidia.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Simon Horman <horms@verge.net.au>,
-        Mat Martineau <martineau@kernel.org>, josh@joshtriplett.org,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Eric Dumazet <edumazet@google.com>, linux-hams@vger.kernel.org,
-        Wenjia Zhang <wenjia@linux.ibm.com>,
-        linux-fsdevel@vger.kernel.org, linux-s390@vger.kernel.org,
-        Xin Long <lucien.xin@gmail.com>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@nvidia.com>,
         Nikolay Aleksandrov <razor@blackwall.org>,
-        netdev@vger.kernel.org, rds-devel@oss.oracle.com
-Subject: Re: [PATCH v2 11/14] networking: Update to register_net_sysctl_sz
-Message-ID: <20230808152338.aoubpvauxpcuwfuz@localhost>
-References: <20230731071728.3493794-1-j.granados@samsung.com>
- <20230731071728.3493794-12-j.granados@samsung.com>
- <CGME20230808112110eucas1p1332795fa88d771ac3f05825f33052cf9@eucas1p1.samsung.com>
- <22e0e672-f9f6-6afe-6ce6-63de264e7b6d@intel.com>
+        Kees Cook <keescook@chromium.org>
+Cc:     oe-kbuild-all@lists.linux.dev, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Wang Weiyang <wangweiyang2@huawei.com>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>,
+        gongruiqi@huaweicloud.com
+Subject: Re: [PATCH] netfilter: ebtables: fix fortify warnings
+Message-ID: <202308081840.VN5BvVWf-lkp@intel.com>
+References: <20230808014821.241688-1-gongruiqi@huaweicloud.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ry2jlv6i2gzplzus"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <22e0e672-f9f6-6afe-6ce6-63de264e7b6d@intel.com>
+In-Reply-To: <20230808014821.241688-1-gongruiqi@huaweicloud.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Hi Ruiqi,
 
---ry2jlv6i2gzplzus
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+kernel test robot noticed the following build errors:
 
-On Tue, Aug 08, 2023 at 01:20:36PM +0200, Przemek Kitszel wrote:
-> On 7/31/23 09:17, Joel Granados wrote:
-> > Move from register_net_sysctl to register_net_sysctl_sz for all the
-> > networking related files. Do this while making sure to mirror the NULL
-> > assignments with a table_size of zero for the unprivileged users.
-> >=20
-> > We need to move to the new function in preparation for when we change
-> > SIZE_MAX to ARRAY_SIZE() in the register_net_sysctl macro. Failing to do
-> > so would erroneously allow ARRAY_SIZE() to be called on a pointer. We
-> > hold off the SIZE_MAX to ARRAY_SIZE change until we have migrated all
-> > the relevant net sysctl registering functions to register_net_sysctl_sz
-> > in subsequent commits.
-> >=20
-> > An additional size function was added to the following files in order to
-> > calculate the size of an array that is defined in another file:
-> >      include/net/ipv6.h
-> >      net/ipv6/icmp.c
-> >      net/ipv6/route.c
+[auto build test ERROR on linus/master]
+[also build test ERROR on horms-ipvs/master v6.5-rc5 next-20230808]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-=2E..
+url:    https://github.com/intel-lab-lkp/linux/commits/GONG-Ruiqi/netfilter-ebtables-fix-fortify-warnings/20230808-095125
+base:   linus/master
+patch link:    https://lore.kernel.org/r/20230808014821.241688-1-gongruiqi%40huaweicloud.com
+patch subject: [PATCH] netfilter: ebtables: fix fortify warnings
+config: i386-randconfig-r011-20230808 (https://download.01.org/0day-ci/archive/20230808/202308081840.VN5BvVWf-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+reproduce: (https://download.01.org/0day-ci/archive/20230808/202308081840.VN5BvVWf-lkp@intel.com/reproduce)
 
-> > diff --git a/net/ipv6/route.c b/net/ipv6/route.c
-> > index 64e873f5895f..51c6cdae8723 100644
-> > --- a/net/ipv6/route.c
-> > +++ b/net/ipv6/route.c
-> > @@ -6447,14 +6447,19 @@ struct ctl_table * __net_init ipv6_route_sysctl=
-_init(struct net *net)
-> >   		table[8].data =3D &net->ipv6.sysctl.ip6_rt_min_advmss;
-> >   		table[9].data =3D &net->ipv6.sysctl.ip6_rt_gc_min_interval;
-> >   		table[10].data =3D &net->ipv6.sysctl.skip_notify_on_dev_down;
-> > -
-> > -		/* Don't export sysctls to unprivileged users */
-> > -		if (net->user_ns !=3D &init_user_ns)
-> > -			table[1].procname =3D NULL;
-Here I remove the setting of the procname to NULL for ipv6 sysctl
-registers in route.c and I do not replace that assignment anywhere.
-This means that we will export sysctls to unprivilged users for ipv6.
-I'll correct this in V3.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202308081840.VN5BvVWf-lkp@intel.com/
 
-> >   	}
-> >   	return table;
-> >   }
-> > +
-> > +size_t ipv6_route_sysctl_table_size(struct net *net)
-> > +{
-> > +	/* Don't export sysctls to unprivileged users */
-> > +	if (net->user_ns !=3D &init_user_ns)
-> > +		return 0;
-> > +
-> > +	return ARRAY_SIZE(ipv6_route_table_template);
-> > +}
-> >   #endif
-> >   static int __net_init ip6_route_net_init(struct net *net)
+All errors (new ones prefixed by >>):
 
---=20
+   In file included from <command-line>:
+>> ./usr/include/linux/netfilter_bridge/ebtables.h:185:9: error: expected specifier-qualifier-list before 'struct_group'
+     185 |         struct_group(offsets,
+         |         ^~~~~~~~~~~~
+   ./usr/include/linux/netfilter_bridge/ebtables.h: In function 'ebt_get_target':
+>> ./usr/include/linux/netfilter_bridge/ebtables.h:199:57: error: 'struct ebt_entry' has no member named 'target_offset'
+     199 |         return (struct ebt_entry_target *)((char *)e + e->target_offset);
+         |                                                         ^~
 
-Joel Granados
-
---ry2jlv6i2gzplzus
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQGzBAABCgAdFiEErkcJVyXmMSXOyyeQupfNUreWQU8FAmTSXfgACgkQupfNUreW
-QU9uhwv/YNoyTbkHH/5RMLpQdKDepd7w6f8Rtax3cD35VYfVbj2aNFy9lcELq0sL
-WWEkcnq1tZav3I+it4as5M7BUfGePS1Zj/D2OYSS7sR0ehwJMaO19qvfuGLiQLP9
-XQe6cyy071sk9U5fxmpZkZgfKtldzchYMt1GluPzw0/a1CRkUlQqaDkHS0/hiOAn
-JCY8mDLWC5DZwVZjz1Ai3UZ3lSIoxFqZbIk8IWpB6E6r9j+ulQUBw6CnYpSu8HMg
-JNHA2wqyYaNLKxwQzSDhG3E0AaK59dPzneyrLVRnpJhc4yMFY+yDSPAzAZTgr1Ny
-+/lASH2c7d0obmafitPwIOhxg7xPPnp+AYKDP65ZMGp0olUCNYKqUhF0Mc8sWq75
-1kzOSul2jqUCTCkODYWut1aoqApizX5phuRCj/wCorVWBazLV7J9fDNopmAtmTYY
-MKPmbbgWQdQHKDCEN7aSL5GGY51bp1dl4M0G+rkmW3RXRPl1OJLTsxP6Vk7ZizpE
-4CYHvD9R
-=8NUh
------END PGP SIGNATURE-----
-
---ry2jlv6i2gzplzus--
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
