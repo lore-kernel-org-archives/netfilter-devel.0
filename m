@@ -2,123 +2,139 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3459C41513
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 20:39:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A82EC41513
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 20:54:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231158AbjHHUjd (ORCPT
+        id S235587AbjHHUyt (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:39:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48442 "EHLO
+        Tue, 8 Aug 2023 16:54:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231218AbjHHUi5 (ORCPT
+        with ESMTP id S232950AbjHHUyi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 16:38:57 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33E085A7D
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 13:07:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1691525273;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=XQxg2+GFsWE1eF8crOmGCbQlbI55NVJdzJHl8bILcbo=;
-        b=Td/V4sRhZCg+PE+me/dJz5nzChZkBxVJaL1dI7u6m7YcY1KuE2SFklLN11vOC9Cwk9gXnx
-        6ve/3rpe6oqmne87QR2k/nDVsWA9+mBJmZjXQOqZjW5Rb1DNzprWvGF2os9Bhw3le789Lq
-        NNk3EY4eP0Cd/bIq5hGTNa3r3Ze8C8M=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-434-oSNdlrezPGC0kdHeXv2GTg-1; Tue, 08 Aug 2023 16:07:52 -0400
-X-MC-Unique: oSNdlrezPGC0kdHeXv2GTg-1
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-31799700ed4so544963f8f.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Aug 2023 13:07:50 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691525269; x=1692130069;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=XQxg2+GFsWE1eF8crOmGCbQlbI55NVJdzJHl8bILcbo=;
-        b=bSHgfk/j2QOcOjCDTJFODTKNgIy9RRO4dovoXftFU9IYFxVBWo6i/ggv2d5FGjn6FG
-         VLDFTZYapW2WMgq6ZH2mdBbZ3afXSKPemNR7bLgwXvrfse6SiaOBaHJDF0LZRFdW4v3I
-         OVw8YsFCjCH8DCWQlI+BDZBKnQGu3V1DMAVm2nPZcKP3tmfS1tWZOOxzCVey7EXNS5DM
-         uGK1/hTj5kPAdH2Wd3ev8AGkCoa+ykNsKdp8lz4Z4+FfvDZljb4qXT/dG4CfowebN8yF
-         sJXKJJGDZLP+ZgwiHumDRSqdyEio1pzoUqFn9R//29cC1ndQc8bJkswdm9oWzWeXQntb
-         FDug==
-X-Gm-Message-State: AOJu0YxbFFLc5D+dT9/p9WynQ7K1a+GJ3+0P1NK2+InJu8Lj7NSnVo6b
-        /XJwAhJoOO6kFBRX5YgZc6OINXelYXcK073VNeV5QbYg/ITn6y4XEyiaUBijXliyHVh09DXi6s6
-        4iIvF1IUW6T7SOca7/Xnk92DbDKPpHeOADRuX
-X-Received: by 2002:adf:e892:0:b0:317:5f08:32a3 with SMTP id d18-20020adfe892000000b003175f0832a3mr318419wrm.6.1691525269651;
-        Tue, 08 Aug 2023 13:07:49 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFil7N/gk6ljHxJZUn7WRLS6XdAC5j4SvWXn4adaQKAHgMz38u+bdhJ34WH8VKxAgew6gl50g==
-X-Received: by 2002:adf:e892:0:b0:317:5f08:32a3 with SMTP id d18-20020adfe892000000b003175f0832a3mr318412wrm.6.1691525269377;
-        Tue, 08 Aug 2023 13:07:49 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.180.70])
-        by smtp.gmail.com with ESMTPSA id o10-20020a5d474a000000b003141a3c4353sm14542273wrs.30.2023.08.08.13.07.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Aug 2023 13:07:48 -0700 (PDT)
-Message-ID: <87ab9a5321184254f40941a1f6f265b4ac66804f.camel@redhat.com>
-Subject: Re: [nft PATCH v4 6/6] py: add Nftables.{get,set}_input() API
-From:   Thomas Haller <thaller@redhat.com>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Tue, 08 Aug 2023 22:07:48 +0200
-In-Reply-To: <ZNJLbiVq6QolAOvi@orbyte.nwl.cc>
-References: <20230803193940.1105287-1-thaller@redhat.com>
-         <20230803193940.1105287-13-thaller@redhat.com>
-         <ZNJLbiVq6QolAOvi@orbyte.nwl.cc>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Tue, 8 Aug 2023 16:54:38 -0400
+Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97CB11B508;
+        Tue,  8 Aug 2023 10:10:57 -0700 (PDT)
+Received: from mail02.huawei.com (unknown [172.30.67.169])
+        by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4RKvHw44tyz4f3t7S;
+        Tue,  8 Aug 2023 21:32:28 +0800 (CST)
+Received: from vm-fedora-38.huawei.com (unknown [10.67.174.164])
+        by APP3 (Coremail) with SMTP id _Ch0CgDX+sLnQ9JkxaPeAA--.27925S2;
+        Tue, 08 Aug 2023 21:32:31 +0800 (CST)
+From:   "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Kees Cook <keescook@chromium.org>,
+        "Gustavo A . R . Silva" <gustavoars@kernel.org>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Wang Weiyang <wangweiyang2@huawei.com>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
+Subject: [PATCH v2] netfilter: ebtables: fix fortify warnings
+Date:   Tue,  8 Aug 2023 21:30:38 +0800
+Message-ID: <20230808133038.771316-1-gongruiqi@huaweicloud.com>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: _Ch0CgDX+sLnQ9JkxaPeAA--.27925S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxXF1xJw4UCw4xZw1DCF45KFg_yoW5Cr1DpF
+        1qka45trWrJ3yakw4rJw1vvr1ruw4kWa43ArW7C34FkFyjqFyDXa92kryjka4kJws09F13
+        trZ0qFWfGrWDAaUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUkYb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
+        6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+        vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7Cj
+        xVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxV
+        AFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2
+        j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7x
+        kEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACI402YVCY1x02628vn2kIc2xKxwCF04k20xvY
+        0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I
+        0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAI
+        cVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcV
+        CF04k26cxKx2IYs7xG6rW3Jr0E3s1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280
+        aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU1zuWJUUUUU==
+X-CM-SenderInfo: pjrqw2pxltxq5kxd4v5lfo033gof0z/
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 2023-08-08 at 16:04 +0200, Phil Sutter wrote:
-> On Thu, Aug 03, 2023 at 09:35:24PM +0200, Thomas Haller wrote:
-> > Similar to the existing Nftables.{get,set}_debug() API.
-> >=20
-> > Only notable (internal) difference is that
-> > nft_ctx_input_set_flags()
-> > returns the old value already, so we don't need to call
-> > Nftables.get_input() first.
-> >=20
-> > The benefit of this API, is that it follows the existing API for
-> > debug
-> > flags. Also, when future flags are added it requires few changes to
-> > the
-> > python code.
-> >=20
-> > The disadvantage is that it looks different from the underlying C
-> > API,
-> > which is confusing when reading the C API. Also, it's a bit
-> > cumbersome
-> > to reset only one flag. For example:
-> >=20
-> > =C2=A0=C2=A0=C2=A0=C2=A0 def _drop_flag_foo(flag):
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if isinstance(flag, int):
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 retu=
-rn flag & ~FOO_NUM
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if flag =3D=3D 'foo':
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 retu=
-rn 0
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return flag
-> >=20
-> > =C2=A0=C2=A0=C2=A0=C2=A0 ctx.set_input(_drop_flag_foo(v) for v in ctx.g=
-et_input())
->=20
-> Which would be easier if there were dedicated setter/getter pairs for
-> each flag. The code for debug flags optimizes for setting multiple
-> flags
-> at once ("get me all the debugging now!"). Not a veto from my side
-> though, adding getter/setter pairs after the fact is still possible
-> without breaking anything.
+From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
 
-Or
+When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=y, the following
+warning appears:
 
-  ctx.set_input(ctx.get_input(numeric=3DTrue) & ~FOO_NUM)
+In function ‘fortify_memcpy_chk’,
+    inlined from ‘size_entry_mwt’ at net/bridge/netfilter/ebtables.c:2118:2:
+./include/linux/fortify-string.h:592:25: error: call to ‘__read_overflow2_field’
+declared with attribute warning: detected read beyond size of field (2nd parameter);
+maybe use struct_group()? [-Werror=attribute-warning]
+  592 |                         __read_overflow2_field(q_size_field, size);
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The compiler is complaining:
 
-Thomas
+memcpy(&offsets[1], &entry->watchers_offset,
+                       sizeof(offsets) - sizeof(offsets[0]));
+
+where memcpy reads beyong &entry->watchers_offset to copy
+{watchers,target,next}_offset altogether into offsets[]. Silence the
+warning by wrapping these three up via struct_group().
+
+Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
+---
+
+v2: fix HDRTEST error by replacing struct_group() with __struct_group(),
+since it's a uapi header.
+
+ include/uapi/linux/netfilter_bridge/ebtables.h | 14 ++++++++------
+ net/bridge/netfilter/ebtables.c                |  3 +--
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
+index a494cf43a755..b0caad82b693 100644
+--- a/include/uapi/linux/netfilter_bridge/ebtables.h
++++ b/include/uapi/linux/netfilter_bridge/ebtables.h
+@@ -182,12 +182,14 @@ struct ebt_entry {
+ 	unsigned char sourcemsk[ETH_ALEN];
+ 	unsigned char destmac[ETH_ALEN];
+ 	unsigned char destmsk[ETH_ALEN];
+-	/* sizeof ebt_entry + matches */
+-	unsigned int watchers_offset;
+-	/* sizeof ebt_entry + matches + watchers */
+-	unsigned int target_offset;
+-	/* sizeof ebt_entry + matches + watchers + target */
+-	unsigned int next_offset;
++	__struct_group(/* no tag */, offsets, /* no attrs */,
++		/* sizeof ebt_entry + matches */
++		unsigned int watchers_offset;
++		/* sizeof ebt_entry + matches + watchers */
++		unsigned int target_offset;
++		/* sizeof ebt_entry + matches + watchers + target */
++		unsigned int next_offset;
++	);
+ 	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
+ };
+ 
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 757ec46fc45a..5ec66b1ebb64 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -2115,8 +2115,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
+ 		return ret;
+ 
+ 	offsets[0] = sizeof(struct ebt_entry); /* matches come first */
+-	memcpy(&offsets[1], &entry->watchers_offset,
+-			sizeof(offsets) - sizeof(offsets[0]));
++	memcpy(&offsets[1], &entry->offsets, sizeof(offsets) - sizeof(offsets[0]));
+ 
+ 	if (state->buf_kern_start) {
+ 		buf_start = state->buf_kern_start + state->buf_kern_offset;
+-- 
+2.41.0
 
