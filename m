@@ -2,139 +2,118 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A82EC41513
-	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 20:54:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D40BC04A94
+	for <netfilter-devel@archiver.kernel.org>; Tue,  8 Aug 2023 22:48:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235587AbjHHUyt (ORCPT
+        id S230079AbjHHWsf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:54:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45482 "EHLO
+        Tue, 8 Aug 2023 18:48:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232950AbjHHUyi (ORCPT
+        with ESMTP id S229526AbjHHWse (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 16:54:38 -0400
-Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97CB11B508;
-        Tue,  8 Aug 2023 10:10:57 -0700 (PDT)
-Received: from mail02.huawei.com (unknown [172.30.67.169])
-        by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4RKvHw44tyz4f3t7S;
-        Tue,  8 Aug 2023 21:32:28 +0800 (CST)
-Received: from vm-fedora-38.huawei.com (unknown [10.67.174.164])
-        by APP3 (Coremail) with SMTP id _Ch0CgDX+sLnQ9JkxaPeAA--.27925S2;
-        Tue, 08 Aug 2023 21:32:31 +0800 (CST)
-From:   "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
+        Tue, 8 Aug 2023 18:48:34 -0400
+Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10B4B106
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 15:48:34 -0700 (PDT)
+Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-56942667393so77484927b3.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Aug 2023 15:48:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1691534913; x=1692139713;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=w6IYf4nshxor0R0BfWz4JihwJzXUnsgpsQ8Bx+FCm50=;
+        b=v/F4rK8C1c6Y8YTaAeOsPAc5rlC8DfTsdhN2NcOQy8xZRaoS9cvitj9HgolcvWE5XN
+         ZCiP+oEC5RA+WP6fZlEU1CnM2RNWG7JAxRMbaAZFn9uJ6EZdyRVTLnMIFZmpJ0leHpqh
+         7spA+UxF93A8SpFyC9uM2L+GVmrc2Oz7NekmEKSBkf/D0u4FLjt9CTUbtd+8gtFhaZz7
+         k18znWmvXCXpii8KvsTYg2aJQtU0osYwWxLYMWbgCMw6nzwrDCkx//Fl2Uaf3ok/PA19
+         fBUF7829XdzW7mM47blfRSu0JxMy05t+IbWe2W6Sq0zG9sswyCnMVFGIHsZd252DX9zq
+         QYqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691534913; x=1692139713;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=w6IYf4nshxor0R0BfWz4JihwJzXUnsgpsQ8Bx+FCm50=;
+        b=gSlYl/4OidGoym635Ts9LEWld/fGDTjQ7GI2y9hiUYFFDGdb8na16IpmJGCZcLnQCv
+         YGYUlMwz7fPEbD95bS2ZfoSQXmcBD+z5w5tovn53C4AEvIrJM+Wn8lte2DClqiB1EcRK
+         H9ypF86pLKWifRFB9R9Oi7g/b9hPstDJAIW+4bKbXeYgeaQPUxK2lNBBVlQVhc99rnz9
+         gzoMYLtSyW8AAExvKAydwL/30MYuilcdAps717hOrUAWRdWQTev9jP0FjBYJdS+kUg6k
+         dH6hh9dJdeJfijeWKx2CB1jLadT/IiWlsksJLiciK9Ui10J//jghz40i7FIYVd/x7pve
+         E9fw==
+X-Gm-Message-State: AOJu0Yyw+1ne30XGTXPdenC+tE+3Zad8CKN/cauIVRlSHpPvx8jKY/hy
+        pRZWlyvBLTtCVBQXTfJjHrMOF/exJj0oycUPYQ==
+X-Google-Smtp-Source: AGHT+IGCKCpjw+qQSDFPyaaHwnCmIRgOXWU0/CPaXzJcAH1H2D2px83oqOo3PmhmQlTBWJHjAd9H6SpIq9/Lr6ycUw==
+X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
+ (user=justinstitt job=sendgmr) by 2002:a81:aa0b:0:b0:586:4eae:b942 with SMTP
+ id i11-20020a81aa0b000000b005864eaeb942mr25570ywh.4.1691534913334; Tue, 08
+ Aug 2023 15:48:33 -0700 (PDT)
+Date:   Tue, 08 Aug 2023 22:48:05 +0000
+Mime-Version: 1.0
+X-B4-Tracking: v=1; b=H4sIACXG0mQC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDI2MDCwNz3bzUEhBOy8wpSS3SNTEwMjcytExKMks1VwLqKShKTcusAJsXHVt bCwBxh7PoXwAAAA==
+X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1691534912; l=1704;
+ i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
+ bh=ZOPiCy7w2pT1kz3c5DhiCZiV+zTmBFI8xyOrhaHPkq8=; b=35hLj7PJ6DP6/IdiB2Ylc5Y2G6xQ/3oI1SXKLWZ4BpDIns5/qOxf/7y6WjAKgN2o0Nv1hmmKZ
+ 7RXdFr4FcSnA1LghMYnhNj8402rOA1pYEJ9KZdZBr1W0Mso8AV+M+KL
+X-Mailer: b4 0.12.3
+Message-ID: <20230808-net-netfilter-v1-0-efbbe4ec60af@google.com>
+Subject: [PATCH 0/7] netfilter: refactor deprecated strncpy
+From:   Justin Stitt <justinstitt@google.com>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Kees Cook <keescook@chromium.org>,
-        "Gustavo A . R . Silva" <gustavoars@kernel.org>
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Wang Weiyang <wangweiyang2@huawei.com>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
-Subject: [PATCH v2] netfilter: ebtables: fix fortify warnings
-Date:   Tue,  8 Aug 2023 21:30:38 +0800
-Message-ID: <20230808133038.771316-1-gongruiqi@huaweicloud.com>
-X-Mailer: git-send-email 2.41.0
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: _Ch0CgDX+sLnQ9JkxaPeAA--.27925S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxXF1xJw4UCw4xZw1DCF45KFg_yoW5Cr1DpF
-        1qka45trWrJ3yakw4rJw1vvr1ruw4kWa43ArW7C34FkFyjqFyDXa92kryjka4kJws09F13
-        trZ0qFWfGrWDAaUanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDU0xBIdaVrnRJUUUkYb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
-        6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-        vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7Cj
-        xVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxV
-        AFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2
-        j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7x
-        kEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACI402YVCY1x02628vn2kIc2xKxwCF04k20xvY
-        0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I
-        0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAI
-        cVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcV
-        CF04k26cxKx2IYs7xG6rW3Jr0E3s1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280
-        aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU1zuWJUUUUU==
-X-CM-SenderInfo: pjrqw2pxltxq5kxd4v5lfo033gof0z/
-X-CFilter-Loop: Reflected
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Justin Stitt <justinstitt@google.com>
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
+`strncpy` is deprecated for use on NUL-terminated destination strings [1].
 
-When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=y, the following
-warning appears:
+A suitable replacement is `strscpy` [2] due to the fact that it
+guarantees NUL-termination on its destination buffer argument which is
+_not_ the case for `strncpy`!
 
-In function ‘fortify_memcpy_chk’,
-    inlined from ‘size_entry_mwt’ at net/bridge/netfilter/ebtables.c:2118:2:
-./include/linux/fortify-string.h:592:25: error: call to ‘__read_overflow2_field’
-declared with attribute warning: detected read beyond size of field (2nd parameter);
-maybe use struct_group()? [-Werror=attribute-warning]
-  592 |                         __read_overflow2_field(q_size_field, size);
-      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This series of patches aims to swap out `strncpy` for more robust and
+less ambiguous interfaces like `strscpy` and `strtomem`. This patch
+series, if applied in its entirety, removes most if not all instances of
+`strncpy` in the `net/netfilter` directory.
 
-The compiler is complaining:
+[1]: www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings
+[2]: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
 
-memcpy(&offsets[1], &entry->watchers_offset,
-                       sizeof(offsets) - sizeof(offsets[0]));
-
-where memcpy reads beyong &entry->watchers_offset to copy
-{watchers,target,next}_offset altogether into offsets[]. Silence the
-warning by wrapping these three up via struct_group().
-
-Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
+Link: https://github.com/KSPP/linux/issues/90
 ---
+Justin Stitt (7):
+      netfilter: ipset: refactor deprecated strncpy
+      netfilter: nf_tables: refactor deprecated strncpy
+      netfilter: nf_tables: refactor deprecated strncpy
+      netfilter: nft_meta: refactor deprecated strncpy
+      netfilter: nft_osf: refactor deprecated strncpy to strscpy
+      netfilter: x_tables: refactor deprecated strncpy
+      netfilter: xtables: refactor deprecated strncpy
 
-v2: fix HDRTEST error by replacing struct_group() with __struct_group(),
-since it's a uapi header.
+ net/netfilter/ipset/ip_set_core.c | 10 +++++-----
+ net/netfilter/nft_ct.c            |  2 +-
+ net/netfilter/nft_fib.c           |  2 +-
+ net/netfilter/nft_meta.c          |  6 +++---
+ net/netfilter/nft_osf.c           |  6 +++---
+ net/netfilter/x_tables.c          |  5 ++---
+ net/netfilter/xt_repldata.h       |  2 +-
+ 7 files changed, 16 insertions(+), 17 deletions(-)
+---
+base-commit: 14f9643dc90adea074a0ffb7a17d337eafc6a5cc
+change-id: 20230807-net-netfilter-4027219bb6e7
 
- include/uapi/linux/netfilter_bridge/ebtables.h | 14 ++++++++------
- net/bridge/netfilter/ebtables.c                |  3 +--
- 2 files changed, 9 insertions(+), 8 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
-index a494cf43a755..b0caad82b693 100644
---- a/include/uapi/linux/netfilter_bridge/ebtables.h
-+++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-@@ -182,12 +182,14 @@ struct ebt_entry {
- 	unsigned char sourcemsk[ETH_ALEN];
- 	unsigned char destmac[ETH_ALEN];
- 	unsigned char destmsk[ETH_ALEN];
--	/* sizeof ebt_entry + matches */
--	unsigned int watchers_offset;
--	/* sizeof ebt_entry + matches + watchers */
--	unsigned int target_offset;
--	/* sizeof ebt_entry + matches + watchers + target */
--	unsigned int next_offset;
-+	__struct_group(/* no tag */, offsets, /* no attrs */,
-+		/* sizeof ebt_entry + matches */
-+		unsigned int watchers_offset;
-+		/* sizeof ebt_entry + matches + watchers */
-+		unsigned int target_offset;
-+		/* sizeof ebt_entry + matches + watchers + target */
-+		unsigned int next_offset;
-+	);
- 	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
- };
- 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 757ec46fc45a..5ec66b1ebb64 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2115,8 +2115,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
- 		return ret;
- 
- 	offsets[0] = sizeof(struct ebt_entry); /* matches come first */
--	memcpy(&offsets[1], &entry->watchers_offset,
--			sizeof(offsets) - sizeof(offsets[0]));
-+	memcpy(&offsets[1], &entry->offsets, sizeof(offsets) - sizeof(offsets[0]));
- 
- 	if (state->buf_kern_start) {
- 		buf_start = state->buf_kern_start + state->buf_kern_offset;
--- 
-2.41.0
+Best regards,
+--
+Justin Stitt <justinstitt@google.com>
 
