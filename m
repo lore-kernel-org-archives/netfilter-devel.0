@@ -2,112 +2,100 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB835C04E69
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 01:07:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12EA5C001DE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 03:06:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231492AbjHIBHz (ORCPT
+        id S229553AbjHIDF6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 21:07:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32838 "EHLO
+        Tue, 8 Aug 2023 23:05:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231493AbjHIBHx (ORCPT
+        with ESMTP id S230088AbjHIDF5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 21:07:53 -0400
-Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CB4B1BF5
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 18:07:47 -0700 (PDT)
-Received: by mail-yb1-xb4a.google.com with SMTP id 3f1490d57ef6-d11f35a0d5cso7407850276.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Aug 2023 18:07:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1691543266; x=1692148066;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=MG9K9YUhTMTzK19uCHNnSBLcKhcXx1YxnQhkeYxtQnQ=;
-        b=FLufdnQLID7CLFxDuinWTCHCNOM0tHWDzh/Q+ezwYBHvUhcKrvNRwf2X/858fNR7wb
-         d8vbxPP43ceY/pyaj0Uw5PQ59JrcnSpcF/a3LfcIMqUOkY5p5Iam1144VCB1Ons2vj81
-         BmLiwO5IZchhdKNB3Hp+SHWii5wcBQkoVNE1bp5inoSeur+njvbFP1qGHTgPtXq1kfjg
-         BEkjKbj13r7baEfK+6B3OTRz0y7Eybl5D1FWifL02RvN4LssSj5E1eUpHkMefprJM5KT
-         H0ueJcMX3S8gV9suDKG8GXE43UgliTiV3eYQCRxb8WAldQnhoOh0RconuamFRyja+cUu
-         eP6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691543266; x=1692148066;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=MG9K9YUhTMTzK19uCHNnSBLcKhcXx1YxnQhkeYxtQnQ=;
-        b=mI1FiXgyImUUkhGoxjdKQjxKB55Lmo/yJUiCElCv+4FvnkH0OKLalhLuM515SIt/D6
-         MyL2QOnJxAOw/GPLMbxaiaGOIBJ38vo0IoTuPBeCtIMio2H+dbLhrCC2Ai0fes6gxhcY
-         +nPz4PmQxpXgJsESo5ZbGr8vkSZ2t38Zxaj0IBcz3O77OPCZQmQdPChens4BI8eLkY5H
-         VAOd7zkzk4gHYyb4sLIn2F+ck/yiItIMGMxRW5Jyi2V/0Si04F238hS1T9Xhu5pN/kMB
-         pVVvEBeKkA+ciKHRZ0M8pHTlzasfUdrfZ8hu14EPp9KwV6SCDXrl0zlo4lyo3qGRQTLx
-         LHcw==
-X-Gm-Message-State: AOJu0YzVDe2XXpRv/diwGdA1qgKbM8nFOAhDKnDC+72+WiPgA1Hr0y9r
-        /1vPsL/pa2ng2QXOd1CTScN1D9YYd9VvAKnsvw==
-X-Google-Smtp-Source: AGHT+IHZpwGDo8C14lufhH346u2Bau1BUWvvndGq88fm59ryfmewZSsy7jAPCKUfUcYrjFtU1dpqY0m+aY5jSzBV5Q==
-X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
- (user=justinstitt job=sendgmr) by 2002:a25:ad26:0:b0:d58:6cea:84de with SMTP
- id y38-20020a25ad26000000b00d586cea84demr24517ybi.11.1691543266633; Tue, 08
- Aug 2023 18:07:46 -0700 (PDT)
-Date:   Wed, 09 Aug 2023 01:06:10 +0000
-In-Reply-To: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com>
-Mime-Version: 1.0
-References: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com>
-X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1691543258; l=1182;
- i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
- bh=PvqWKqnPHt6FvPDmHzVp42icOwjac4OjqNFq/tqlT4Q=; b=sh9zj/YLC302K92KXYEsgv5KQ7slHtAn4AjmXQutkadONIDR1z3dS2tfhEUE1/fEjCLLxhXmz
- uQNQ/ErDWgqDBqL2ooZ4J+hnTeNjcylCNu2Z3wgVuRaaaBWLe9vWLDa
-X-Mailer: b4 0.12.3
-Message-ID: <20230809-net-netfilter-v2-7-5847d707ec0a@google.com>
-Subject: [PATCH v2 7/7] netfilter: xtables: refactor deprecated strncpy
-From:   Justin Stitt <justinstitt@google.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Tue, 8 Aug 2023 23:05:57 -0400
+Received: from dggsgout11.his.huawei.com (dggsgout11.his.huawei.com [45.249.212.51])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 774111BEF;
+        Tue,  8 Aug 2023 20:05:56 -0700 (PDT)
+Received: from mail02.huawei.com (unknown [172.30.67.169])
+        by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4RLFLS22rVz4f3tpx;
+        Wed,  9 Aug 2023 11:05:52 +0800 (CST)
+Received: from [10.67.110.48] (unknown [10.67.110.48])
+        by APP3 (Coremail) with SMTP id _Ch0CgC328ONAtNktWYIAQ--.34063S2;
+        Wed, 09 Aug 2023 11:05:50 +0800 (CST)
+Message-ID: <5095df45-c7bf-9040-1720-09a562b8714a@huaweicloud.com>
+Date:   Wed, 9 Aug 2023 11:05:49 +0800
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH] netfilter: ebtables: fix fortify warnings
+Content-Language: en-US
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>
-Cc:     linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        Kees Cook <keescook@chromium.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Justin Stitt <justinstitt@google.com>
-Content-Type: text/plain; charset="utf-8"
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Wang Weiyang <wangweiyang2@huawei.com>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>
+References: <20230808014821.241688-1-gongruiqi@huaweicloud.com>
+ <20230808155430.GB9741@breakpoint.cc>
+From:   "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
+In-Reply-To: <20230808155430.GB9741@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-CM-TRANSID: _Ch0CgC328ONAtNktWYIAQ--.34063S2
+X-Coremail-Antispam: 1UD129KBjvdXoW7XrWDKF4kuFy7Cw4rKF1UAwb_yoWDuFg_Aw
+        n2kryDGr129r95tF40qFy7Gry5Ww1rCFy8Wa40qrsYqrZ8Ar1FgaykJr9xZw47t39akr9r
+        CFn0vr48u3Wj9jkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUbI8YFVCjjxCrM7AC8VAFwI0_Gr0_Xr1l1xkIjI8I6I8E6xAIw20E
+        Y4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwV
+        A0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x02
+        67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxV
+        AFwI0_GcCE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2
+        j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7x
+        kEbVWUJVW8JwACjcxG0xvEwIxGrwACI402YVCY1x02628vn2kIc2xKxwCYjI0SjxkI62AI
+        1cAE67vIY487MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I
+        8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8
+        ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x
+        0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_WFyUJVCq3wCI42IY6I8E87Iv67AK
+        xVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvj
+        xUrR6zUUUUU
+X-CM-SenderInfo: pjrqw2pxltxq5kxd4v5lfo033gof0z/
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Prefer `strscpy_pad` as it's a more robust interface whilst maintaing
-zero-padding behavior.
 
-There may have existed a bug here due to both `tbl->repl.name` and
-`info->name` having a size of 32 as defined below:
-|  #define XT_TABLE_MAXNAMELEN 32
+On 2023/08/08 23:54, Florian Westphal wrote:
+> 
+> [...]
+>>
+>> diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
+>> index a494cf43a755..e634da196d08 100644
+>> --- a/include/uapi/linux/netfilter_bridge/ebtables.h
+>> +++ b/include/uapi/linux/netfilter_bridge/ebtables.h
+>> @@ -182,12 +182,14 @@ struct ebt_entry {
+>>  	unsigned char sourcemsk[ETH_ALEN];
+>>  	unsigned char destmac[ETH_ALEN];
+>>  	unsigned char destmsk[ETH_ALEN];
+>> -	/* sizeof ebt_entry + matches */
+>> -	unsigned int watchers_offset;
+>> -	/* sizeof ebt_entry + matches + watchers */
+>> -	unsigned int target_offset;
+>> -	/* sizeof ebt_entry + matches + watchers + target */
+>> -	unsigned int next_offset;
+>> +	struct_group(offsets,
+>> +		/* sizeof ebt_entry + matches */
+> 
+> This is an UAPI header, I think you need to use __struct_group here.
 
-This may lead to buffer overreads in some situations -- `strscpy` solves
-this by guaranteeing NUL-termination of the dest buffer.
+Thanks for the reminder! I've fixed it in v2:
 
-Signed-off-by: Justin Stitt <justinstitt@google.com>
+https://lore.kernel.org/all/20230808133038.771316-1-gongruiqi@huaweicloud.com/
 
----
-Note: build tested only
----
- net/netfilter/xt_repldata.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
-index 68ccbe50bb1e..5d1fb7018dba 100644
---- a/net/netfilter/xt_repldata.h
-+++ b/net/netfilter/xt_repldata.h
-@@ -29,7 +29,7 @@
- 	if (tbl == NULL) \
- 		return NULL; \
- 	term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
--	strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-+	strscpy_pad(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
- 	*term = (struct type##_error)typ2##_ERROR_INIT;  \
- 	tbl->repl.valid_hooks = hook_mask; \
- 	tbl->repl.num_entries = nhooks + 1; \
-
--- 
-2.41.0.640.ga95def55d0-goog
+Please review it :)
 
