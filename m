@@ -2,29 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6D76C001DE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 21:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78990C41513
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 21:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232704AbjHIVyw (ORCPT
+        id S229623AbjHIV66 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Aug 2023 17:54:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42068 "EHLO
+        Wed, 9 Aug 2023 17:58:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229623AbjHIVyv (ORCPT
+        with ESMTP id S230375AbjHIV66 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Aug 2023 17:54:51 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F387A6;
-        Wed,  9 Aug 2023 14:54:50 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id D932B587264C0; Wed,  9 Aug 2023 23:54:48 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id D6F4060D19E7B;
-        Wed,  9 Aug 2023 23:54:48 +0200 (CEST)
-Date:   Wed, 9 Aug 2023 23:54:48 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
+        Wed, 9 Aug 2023 17:58:58 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A6B22103;
+        Wed,  9 Aug 2023 14:58:56 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qTrCY-0002Gf-QW; Wed, 09 Aug 2023 23:58:46 +0200
+Date:   Wed, 9 Aug 2023 23:58:46 +0200
+From:   Florian Westphal <fw@strlen.de>
 To:     Justin Stitt <justinstitt@google.com>
-cc:     Florian Westphal <fw@strlen.de>,
+Cc:     Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -35,33 +33,35 @@ cc:     Florian Westphal <fw@strlen.de>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 Subject: Re: [PATCH v2 1/7] netfilter: ipset: refactor deprecated strncpy
-In-Reply-To: <CAFhGd8oNsGEAmSYs4H3ppm1t2DrD8Br5wwg+VuNtwfoOA_-64A@mail.gmail.com>
-Message-ID: <q49499n7-54p3-1soo-8s83-7p84724o08p7@vanv.qr>
-References: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com> <20230809-net-netfilter-v2-1-5847d707ec0a@google.com> <20230809201926.GA3325@breakpoint.cc> <CAFhGd8oNsGEAmSYs4H3ppm1t2DrD8Br5wwg+VuNtwfoOA_-64A@mail.gmail.com>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+Message-ID: <20230809215846.GE3325@breakpoint.cc>
+References: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com>
+ <20230809-net-netfilter-v2-1-5847d707ec0a@google.com>
+ <20230809201926.GA3325@breakpoint.cc>
+ <CAFhGd8oNsGEAmSYs4H3ppm1t2DrD8Br5wwg+VuNtwfoOA_-64A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFhGd8oNsGEAmSYs4H3ppm1t2DrD8Br5wwg+VuNtwfoOA_-64A@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Justin Stitt <justinstitt@google.com> wrote:
+> On Wed, Aug 9, 2023 at 1:19 PM Florian Westphal <fw@strlen.de> wrote:
+> >
+> > Justin Stitt <justinstitt@google.com> wrote:
+> > > Use `strscpy_pad` instead of `strncpy`.
+> >
+> > I don't think that any of these need zero-padding.
+> It's a more consistent change with the rest of the series and I don't
+> believe it has much different behavior to `strncpy` (other than
+> NUL-termination) as that will continue to pad to `n` as well.
+> 
+> Do you think the `_pad` for 1/7, 6/7 and 7/7 should be changed back to
+> `strscpy` in a v3? I really am shooting in the dark as it is quite
+> hard to tell whether or not a buffer is expected to be NUL-padded or
+> not.
 
-On Wednesday 2023-08-09 23:40, Justin Stitt wrote:
->On Wed, Aug 9, 2023 at 1:19 PM Florian Westphal <fw@strlen.de> wrote:
->>
->> Justin Stitt <justinstitt@google.com> wrote:
->> > Use `strscpy_pad` instead of `strncpy`.
->>
->> I don't think that any of these need zero-padding.
->It's a more consistent change with the rest of the series and I don't
->believe it has much different behavior to `strncpy` (other than
->NUL-termination) as that will continue to pad to `n` as well.
->
->Do you think the `_pad` for 1/7, 6/7 and 7/7 should be changed back to
->`strscpy` in a v3? I really am shooting in the dark as it is quite
->hard to tell whether or not a buffer is expected to be NUL-padded or
->not.
-
-I don't recall either NF userspace or kernelspace code doing memcmp
-with name-like fields, so padding should not be strictly needed.
+No, you can keep it as-is.  Which tree are you targetting with this?
