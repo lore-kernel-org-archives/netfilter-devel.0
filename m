@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92507C41513
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 11:17:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E33C001DE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 11:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232163AbjHILRH (ORCPT
+        id S233425AbjHILRL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Aug 2023 07:17:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43040 "EHLO
+        Wed, 9 Aug 2023 07:17:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232201AbjHILRH (ORCPT
+        with ESMTP id S233428AbjHILRK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Aug 2023 07:17:07 -0400
+        Wed, 9 Aug 2023 07:17:10 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9EF3FA;
-        Wed,  9 Aug 2023 04:17:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A57C1FCE;
+        Wed,  9 Aug 2023 04:17:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4919F63164;
-        Wed,  9 Aug 2023 11:17:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51288C433C7;
-        Wed,  9 Aug 2023 11:17:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 101266316D;
+        Wed,  9 Aug 2023 11:17:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F0A9C433C7;
+        Wed,  9 Aug 2023 11:17:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1691579825;
-        bh=Xh+qNotRh0Do15wMY7NuH5TWHy+729x+0BEayb2P+z4=;
+        s=korg; t=1691579828;
+        bh=FutleaIwIsS7DgTOfN5HB8Zu1BpPa4bDOzb7URiRQ4Y=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=yl4jb3AOg01/ApveFqf40svagToe4GyOsU5HTc9OL7EkCH9kkLCg0RqxRkuV587L9
-         oF/+vYVy96XLvSEC5UnxGae6pEExcZCaUxM6eOnWfvR4SpmxCdIF4qGZPOxA+FEspX
-         VYgXnqTFcGLOYACYVc8U00yLY8e12AzjJqb3nQFo=
+        b=kXW2JUKxbYymPQCzfYX0Vh1qbSngpa3HpltVDtSToGnfCyLo4llXFwKOj8z4LS+IN
+         c9CiplGXwT7UF+lAIKnLX17bzbZIEShgRtm20Vpp7pltKjJ/OODrLBQopH1gVQTAyE
+         ljBW18Xlz7h33U2czi5F6rHUXlh+f6A6++CWJWi0=
 From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
 Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         patches@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4.19 129/323] netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE
-Date:   Wed,  9 Aug 2023 12:39:27 +0200
-Message-ID: <20230809103704.028373891@linuxfoundation.org>
+Subject: [PATCH 4.19 130/323] netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain
+Date:   Wed,  9 Aug 2023 12:39:28 +0200
+Message-ID: <20230809103704.077981780@linuxfoundation.org>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230809103658.104386911@linuxfoundation.org>
 References: <20230809103658.104386911@linuxfoundation.org>
@@ -51,68 +51,96 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ 1240eb93f0616b21c675416516ff3d74798fdc97 ]
+[ 26b5a5712eb85e253724e56a54c17f8519bd8e4e ]
 
-In case of error when adding a new rule that refers to an anonymous set,
-deactivate expressions via NFT_TRANS_PREPARE state, not NFT_TRANS_RELEASE.
-Thus, the lookup expression marks anonymous sets as inactive in the next
-generation to ensure it is not reachable in this transaction anymore and
-decrement the set refcount as introduced by c1592a89942e ("netfilter:
-nf_tables: deactivate anonymous set from preparation phase"). The abort
-step takes care of undoing the anonymous set.
+Add a new state to deal with rule expressions deactivation from the
+newrule error path, otherwise the anonymous set remains in the list in
+inactive state for the next generation. Mark the set/chain transaction
+as unbound so the abort path releases this object, set it as inactive in
+the next generation so it is not reachable anymore from this transaction
+and reference counter is dropped.
 
-This is also consistent with rule deletion, where NFT_TRANS_PREPARE is
-used. Note that this error path is exercised in the preparation step of
-the commit protocol. This patch replaces nf_tables_rule_release() by the
-deactivate and destroy calls, this time with NFT_TRANS_PREPARE.
-
-Due to this incorrect error handling, it is possible to access a
-dangling pointer to the anonymous set that remains in the transaction
-list.
-
-[1009.379054] BUG: KASAN: use-after-free in nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379106] Read of size 8 at addr ffff88816c4c8020 by task nft-rule-add/137110
-[1009.379116] CPU: 7 PID: 137110 Comm: nft-rule-add Not tainted 6.4.0-rc4+ #256
-[1009.379128] Call Trace:
-[1009.379132]  <TASK>
-[1009.379135]  dump_stack_lvl+0x33/0x50
-[1009.379146]  ? nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379191]  print_address_description.constprop.0+0x27/0x300
-[1009.379201]  kasan_report+0x107/0x120
-[1009.379210]  ? nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379255]  nft_set_lookup_global+0x147/0x1a0 [nf_tables]
-[1009.379302]  nft_lookup_init+0xa5/0x270 [nf_tables]
-[1009.379350]  nf_tables_newrule+0x698/0xe50 [nf_tables]
-[1009.379397]  ? nf_tables_rule_release+0xe0/0xe0 [nf_tables]
-[1009.379441]  ? kasan_unpoison+0x23/0x50
-[1009.379450]  nfnetlink_rcv_batch+0x97c/0xd90 [nfnetlink]
-[1009.379470]  ? nfnetlink_rcv_msg+0x480/0x480 [nfnetlink]
-[1009.379485]  ? __alloc_skb+0xb8/0x1e0
-[1009.379493]  ? __alloc_skb+0xb8/0x1e0
-[1009.379502]  ? entry_SYSCALL_64_after_hwframe+0x46/0xb0
-[1009.379509]  ? unwind_get_return_address+0x2a/0x40
-[1009.379517]  ? write_profile+0xc0/0xc0
-[1009.379524]  ? avc_lookup+0x8f/0xc0
-[1009.379532]  ? __rcu_read_unlock+0x43/0x60
-
-Fixes: 958bee14d071 ("netfilter: nf_tables: use new transaction infrastructure to handle sets")
+Fixes: 1240eb93f061 ("netfilter: nf_tables: incorrect error path handling with NFT_MSG_NEWRULE")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h |    1 +
+ net/netfilter/nf_tables_api.c     |   26 ++++++++++++++++++++++----
+ 2 files changed, 23 insertions(+), 4 deletions(-)
 
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -736,6 +736,7 @@ struct nft_expr_type {
+ 
+ enum nft_trans_phase {
+ 	NFT_TRANS_PREPARE,
++	NFT_TRANS_PREPARE_ERROR,
+ 	NFT_TRANS_ABORT,
+ 	NFT_TRANS_COMMIT,
+ 	NFT_TRANS_RELEASE
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2784,7 +2784,8 @@ static int nf_tables_newrule(struct net
+@@ -120,7 +120,8 @@ static void nft_trans_destroy(struct nft
+ 	kfree(trans);
+ }
+ 
+-static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
++static void __nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set,
++				 bool bind)
+ {
+ 	struct nftables_pernet *nft_net;
+ 	struct net *net = ctx->net;
+@@ -134,16 +135,26 @@ static void nft_set_trans_bind(const str
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWSET:
+ 			if (nft_trans_set(trans) == set)
+-				nft_trans_set_bound(trans) = true;
++				nft_trans_set_bound(trans) = bind;
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+ 			if (nft_trans_elem_set(trans) == set)
+-				nft_trans_elem_set_bound(trans) = true;
++				nft_trans_elem_set_bound(trans) = bind;
+ 			break;
+ 		}
+ 	}
+ }
+ 
++static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
++{
++	return __nft_set_trans_bind(ctx, set, true);
++}
++
++static void nft_set_trans_unbind(const struct nft_ctx *ctx, struct nft_set *set)
++{
++	return __nft_set_trans_bind(ctx, set, false);
++}
++
+ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *trans)
+ {
+ 	struct nftables_pernet *nft_net;
+@@ -2784,7 +2795,7 @@ static int nf_tables_newrule(struct net
  
  	return 0;
  err2:
--	nf_tables_rule_release(&ctx, rule);
-+	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE);
-+	nf_tables_rule_destroy(&ctx, rule);
+-	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE);
++	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
+ 	nf_tables_rule_destroy(&ctx, rule);
  err1:
  	for (i = 0; i < n; i++) {
- 		if (info[i].ops) {
+@@ -3809,6 +3820,13 @@ void nf_tables_deactivate_set(const stru
+ 			      enum nft_trans_phase phase)
+ {
+ 	switch (phase) {
++	case NFT_TRANS_PREPARE_ERROR:
++		nft_set_trans_unbind(ctx, set);
++		if (nft_set_is_anonymous(set))
++			nft_deactivate_next(ctx->net, set);
++
++		set->use--;
++		break;
+ 	case NFT_TRANS_PREPARE:
+ 		if (nft_set_is_anonymous(set))
+ 			nft_deactivate_next(ctx->net, set);
 
 
