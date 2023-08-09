@@ -2,55 +2,55 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA9FC04E69
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 10:50:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 390BEC04FE0
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 10:50:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232509AbjHIKuu (ORCPT
+        id S232369AbjHIKuv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Aug 2023 06:50:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35380 "EHLO
+        Wed, 9 Aug 2023 06:50:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232334AbjHIKud (ORCPT
+        with ESMTP id S232319AbjHIKu1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Aug 2023 06:50:33 -0400
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EE701FD4;
-        Wed,  9 Aug 2023 03:50:31 -0700 (PDT)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-3fe12baec61so56027305e9.2;
-        Wed, 09 Aug 2023 03:50:31 -0700 (PDT)
+        Wed, 9 Aug 2023 06:50:27 -0400
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D57B1FCE;
+        Wed,  9 Aug 2023 03:50:16 -0700 (PDT)
+Received: by mail-wr1-x42a.google.com with SMTP id ffacd0b85a97d-3178fa77b27so5451930f8f.2;
+        Wed, 09 Aug 2023 03:50:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691578229; x=1692183029;
+        d=gmail.com; s=20221208; t=1691578214; x=1692183014;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=96SMSIXLVkZfqbaV9batFLU523UsmZ99h7lWRpVXrNI=;
-        b=VEpYGGIQtxCIc/hqI59n7RIzgYZEXsBVDIEFWGLTkNIMchoJzdF7jCzqz8pJ6FaEMi
-         ZO3eTu4w/wKhi80SSxicLz2KHZR1EjJZ25jkriimySUMX4OpWJLk/WfZAVRwdFF78k1Q
-         fBld8iyWk2HDPheDhHNixKQ06Q6WFU+8GrhkYKdFQedcPSWtTtZ0ykM1e1tBGkjaFu3h
-         Tj874b/JgSQ6/tG1t59vneijYp2wvWMHbiy/dd3OdVuKaDhndRPCBZuT5KK4Suyx/iaA
-         CRijwNZNjW8vRuYiKN0JpHQtLj5tYLz8Qu0XbMgOUT6GLANkyMOR+WqzGuJJ0Mnjioo6
-         yz0g==
+        bh=akvTsUNH5BR7B9r/hWx35oPtJ0e++GeR0ZkfT+4F3fU=;
+        b=DIpNAVvqJjecgmHxhh/MMRMB6JQ0cQ5/pMDaa7WYGiGSlLNo2GueNm8uCnf8c4bLIg
+         Jh2/V9eDbEdRC729m+hu4ww5z5FaeN/b5Orkwci/i2SVrBx/prvWFJ+nUTp5TAka6ZWQ
+         VdOImPhuX9gff7/faPKV7lUbtH5Wa6nzUdbat0ktYNe2z5jkuFWTIQveT6P6ug2Ozlg4
+         m+3pGIbuZXaQv49t+IPpm6LcHq1/TfBEv4sUH9Kf2GTcYAwaLuI52sbUOA/8f8TWiE7g
+         8uWZnDUw085zl7p2xGYwkNfV+fRHfDxGBsZSKhPQwpO/guRzFqg8/M9IkUWjaPTZxUpR
+         WEFQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691578229; x=1692183029;
+        d=1e100.net; s=20221208; t=1691578214; x=1692183014;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=96SMSIXLVkZfqbaV9batFLU523UsmZ99h7lWRpVXrNI=;
-        b=Uu0Ms/OZMk3wpHUsYwW8rLbDaRgEgY0ssVaIxl44+0ESPxcrc168wn2p49iDmZY5tY
-         uwZ7YXZEFd/H567+g71+lGDBcNGwBqKhKb/HOtREGlYJ3ERu7SchhUxxx9GXWkEv9p0j
-         hRHoP7XDAXYSZzjfNiNVt6uqJutU+nXGQxsB85Z6z5QSeRriBiwiCjTwFoxFDe+PqlDn
-         W+tijt2tOp+DcoHpEMXIMqnVCzCcCw84WvdEjLXDtS8nxVM3dIwP+5rHouRxEVA0jxOA
-         J8tToHCS8a6NWbXb87iKP1IFNGyRriiJfvj35gKuC6BbUJpQ2Cgmxja27+KV/8G7mNck
-         ACpw==
-X-Gm-Message-State: AOJu0YzUhptBttJ4e4QGYD5GokhlioyX+I8/fmBfJmaRDXxJzJMgh7zY
-        rOvio81by4cYzUfBV/9bwVw=
-X-Google-Smtp-Source: AGHT+IEN5mNsdNrqRWDLscSNnJZhbnLs9UYZFn1arYYLWIgF/P8TKYR94Tn2CwLFdUu7hZdo5KQnvw==
-X-Received: by 2002:a7b:cd18:0:b0:3fa:98c3:7dbd with SMTP id f24-20020a7bcd18000000b003fa98c37dbdmr1859000wmj.41.1691578229374;
-        Wed, 09 Aug 2023 03:50:29 -0700 (PDT)
+        bh=akvTsUNH5BR7B9r/hWx35oPtJ0e++GeR0ZkfT+4F3fU=;
+        b=T05cckjamAn7XNx0ZtufeLyB/LSSkFG/pqZGhtju8pKqn6bWU7RRSEt37RCZ7la9aQ
+         cLiV+ZzV84De3ulnYD+nrMof/sW8Ec4Y27DJj/aI0+9dgMaw1vwRTxiWHpnGOfjW2GAY
+         ZemuzHzSrEoA/gL8ldc+hqWfyUt/gnexvbaY+jBWDtkcT6Bj+J666F9xuLQ1o+1x6zpI
+         h8l/Ux0ygcm+8fWPhh3oiVQpxUgpp37hDVYM3SSnjvRmEXFgci9JDWtlUunADqT/A6Bg
+         j2OifJyuoYcF1IjxJJDiwg0rV7Qhlecwb7mFg3UOtEDJvub1rE3meKDf6x/4KzX6pg2w
+         JH3Q==
+X-Gm-Message-State: AOJu0YwlDrOcZSE7NPWkjKXFJXQ6eigchIYWngq5+JJJQI3Wt9g+r+V4
+        g0zmpg4u9Px470XN7Gjh6sI=
+X-Google-Smtp-Source: AGHT+IFXthxR30RQgpx73Zfj1dpZ+KWe6tVohuHxQB14UCF1BcuOVclJYzFEHCpt2sceIQmz/La4Nw==
+X-Received: by 2002:adf:ec85:0:b0:314:15b7:1fb5 with SMTP id z5-20020adfec85000000b0031415b71fb5mr1561622wrn.34.1691578214394;
+        Wed, 09 Aug 2023 03:50:14 -0700 (PDT)
 Received: from localhost ([165.225.194.193])
-        by smtp.gmail.com with ESMTPSA id u16-20020a05600c19d000b003fe1b3e0852sm2973070wmq.0.2023.08.09.03.50.28
+        by smtp.gmail.com with ESMTPSA id b12-20020a05600010cc00b0031432f1528csm16319804wrx.45.2023.08.09.03.50.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Aug 2023 03:50:28 -0700 (PDT)
+        Wed, 09 Aug 2023 03:50:13 -0700 (PDT)
 From:   Joel Granados <joel.granados@gmail.com>
 X-Google-Original-From: Joel Granados <j.granados@samsung.com>
 To:     mcgrof@kernel.org
@@ -97,9 +97,9 @@ Cc:     rds-devel@oss.oracle.com, "David S. Miller" <davem@davemloft.net>,
         Miquel Raynal <miquel.raynal@bootlin.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Joel Granados <j.granados@samsung.com>
-Subject: [PATCH v3 10/14] netfilter: Update to register_net_sysctl_sz
-Date:   Wed,  9 Aug 2023 12:50:02 +0200
-Message-Id: <20230809105006.1198165-11-j.granados@samsung.com>
+Subject: [PATCH v3 03/14] sysctl: Add ctl_table_size to ctl_table_header
+Date:   Wed,  9 Aug 2023 12:49:55 +0200
+Message-Id: <20230809105006.1198165-4-j.granados@samsung.com>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230809105006.1198165-1-j.granados@samsung.com>
 References: <20230809105006.1198165-1-j.granados@samsung.com>
@@ -109,193 +109,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Move from register_net_sysctl to register_net_sysctl_sz for all the
-netfilter related files. Do this while making sure to mirror the NULL
-assignments with a table_size of zero for the unprivileged users.
+The new ctl_table_size element will hold the size of the ctl_table
+arrays contained in the ctl_table_header. This value should eventually
+be passed by the callers to the sysctl register infrastructure. And
+while this commit introduces the variable, it does not set nor use it
+because that requires case by case considerations for each caller.
 
-We need to move to the new function in preparation for when we change
-SIZE_MAX to ARRAY_SIZE() in the register_net_sysctl macro. Failing to do
-so would erroneously allow ARRAY_SIZE() to be called on a pointer. We
-hold off the SIZE_MAX to ARRAY_SIZE change until we have migrated all
-the relevant net sysctl registering functions to register_net_sysctl_sz
-in subsequent commits.
+It provides two important things: (1) A place to put the
+result of the ctl_table array calculation when it gets introduced for
+each caller. And (2) the size that will be used as the additional
+stopping criteria in the list_for_each_table_entry macro (to be added
+when all the callers are migrated)
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Joel Granados <j.granados@samsung.com>
 ---
- net/bridge/br_netfilter_hooks.c         |  3 ++-
- net/ipv6/netfilter/nf_conntrack_reasm.c |  3 ++-
- net/netfilter/ipvs/ip_vs_ctl.c          |  8 ++++++--
- net/netfilter/ipvs/ip_vs_lblc.c         | 10 +++++++---
- net/netfilter/ipvs/ip_vs_lblcr.c        | 10 +++++++---
- net/netfilter/nf_conntrack_standalone.c |  4 +++-
- net/netfilter/nf_log.c                  |  7 ++++---
- 7 files changed, 31 insertions(+), 14 deletions(-)
+ include/linux/sysctl.h | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 1a801fab9543..15186247b59a 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -1135,7 +1135,8 @@ static int br_netfilter_sysctl_init_net(struct net *net)
+diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
+index 59d451f455bf..33252ad58ebe 100644
+--- a/include/linux/sysctl.h
++++ b/include/linux/sysctl.h
+@@ -159,12 +159,22 @@ struct ctl_node {
+ 	struct ctl_table_header *header;
+ };
  
- 	br_netfilter_sysctl_default(brnet);
- 
--	brnet->ctl_hdr = register_net_sysctl(net, "net/bridge", table);
-+	brnet->ctl_hdr = register_net_sysctl_sz(net, "net/bridge", table,
-+						ARRAY_SIZE(brnf_table));
- 	if (!brnet->ctl_hdr) {
- 		if (!net_eq(net, &init_net))
- 			kfree(table);
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index d13240f13607..b2dd48911c8d 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -87,7 +87,8 @@ static int nf_ct_frag6_sysctl_register(struct net *net)
- 	table[2].data	= &nf_frag->fqdir->high_thresh;
- 	table[2].extra1	= &nf_frag->fqdir->low_thresh;
- 
--	hdr = register_net_sysctl(net, "net/netfilter", table);
-+	hdr = register_net_sysctl_sz(net, "net/netfilter", table,
-+				     ARRAY_SIZE(nf_ct_frag6_sysctl_table));
- 	if (hdr == NULL)
- 		goto err_reg;
- 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 62606fb44d02..8d69e4c2d822 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -4266,6 +4266,7 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 	struct net *net = ipvs->net;
- 	struct ctl_table *tbl;
- 	int idx, ret;
-+	size_t ctl_table_size = ARRAY_SIZE(vs_vars);
- 
- 	atomic_set(&ipvs->dropentry, 0);
- 	spin_lock_init(&ipvs->dropentry_lock);
-@@ -4282,8 +4283,10 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- 			return -ENOMEM;
- 
- 		/* Don't export sysctls to unprivileged users */
--		if (net->user_ns != &init_user_ns)
-+		if (net->user_ns != &init_user_ns) {
- 			tbl[0].procname = NULL;
-+			ctl_table_size = 0;
-+		}
- 	} else
- 		tbl = vs_vars;
- 	/* Initialize sysctl defaults */
-@@ -4353,7 +4356,8 @@ static int __net_init ip_vs_control_net_init_sysctl(struct netns_ipvs *ipvs)
- #endif
- 
- 	ret = -ENOMEM;
--	ipvs->sysctl_hdr = register_net_sysctl(net, "net/ipv4/vs", tbl);
-+	ipvs->sysctl_hdr = register_net_sysctl_sz(net, "net/ipv4/vs", tbl,
-+						  ctl_table_size);
- 	if (!ipvs->sysctl_hdr)
- 		goto err;
- 	ipvs->sysctl_tbl = tbl;
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index 1b87214d385e..cf78ba4ce5ff 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -550,6 +550,7 @@ static struct ip_vs_scheduler ip_vs_lblc_scheduler = {
- static int __net_init __ip_vs_lblc_init(struct net *net)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
-+	size_t vars_table_size = ARRAY_SIZE(vs_vars_table);
- 
- 	if (!ipvs)
- 		return -ENOENT;
-@@ -562,16 +563,19 @@ static int __net_init __ip_vs_lblc_init(struct net *net)
- 			return -ENOMEM;
- 
- 		/* Don't export sysctls to unprivileged users */
--		if (net->user_ns != &init_user_ns)
-+		if (net->user_ns != &init_user_ns) {
- 			ipvs->lblc_ctl_table[0].procname = NULL;
-+			vars_table_size = 0;
-+		}
- 
- 	} else
- 		ipvs->lblc_ctl_table = vs_vars_table;
- 	ipvs->sysctl_lblc_expiration = DEFAULT_EXPIRATION;
- 	ipvs->lblc_ctl_table[0].data = &ipvs->sysctl_lblc_expiration;
- 
--	ipvs->lblc_ctl_header =
--		register_net_sysctl(net, "net/ipv4/vs", ipvs->lblc_ctl_table);
-+	ipvs->lblc_ctl_header = register_net_sysctl_sz(net, "net/ipv4/vs",
-+						       ipvs->lblc_ctl_table,
-+						       vars_table_size);
- 	if (!ipvs->lblc_ctl_header) {
- 		if (!net_eq(net, &init_net))
- 			kfree(ipvs->lblc_ctl_table);
-diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index ad8f5fea6d3a..9eddf118b40e 100644
---- a/net/netfilter/ipvs/ip_vs_lblcr.c
-+++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-@@ -736,6 +736,7 @@ static struct ip_vs_scheduler ip_vs_lblcr_scheduler =
- static int __net_init __ip_vs_lblcr_init(struct net *net)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
-+	size_t vars_table_size = ARRAY_SIZE(vs_vars_table);
- 
- 	if (!ipvs)
- 		return -ENOENT;
-@@ -748,15 +749,18 @@ static int __net_init __ip_vs_lblcr_init(struct net *net)
- 			return -ENOMEM;
- 
- 		/* Don't export sysctls to unprivileged users */
--		if (net->user_ns != &init_user_ns)
-+		if (net->user_ns != &init_user_ns) {
- 			ipvs->lblcr_ctl_table[0].procname = NULL;
-+			vars_table_size = 0;
-+		}
- 	} else
- 		ipvs->lblcr_ctl_table = vs_vars_table;
- 	ipvs->sysctl_lblcr_expiration = DEFAULT_EXPIRATION;
- 	ipvs->lblcr_ctl_table[0].data = &ipvs->sysctl_lblcr_expiration;
- 
--	ipvs->lblcr_ctl_header =
--		register_net_sysctl(net, "net/ipv4/vs", ipvs->lblcr_ctl_table);
-+	ipvs->lblcr_ctl_header = register_net_sysctl_sz(net, "net/ipv4/vs",
-+							ipvs->lblcr_ctl_table,
-+							vars_table_size);
- 	if (!ipvs->lblcr_ctl_header) {
- 		if (!net_eq(net, &init_net))
- 			kfree(ipvs->lblcr_ctl_table);
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 169e16fc2bce..0ee98ce5b816 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -1106,7 +1106,9 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
- 	}
- 
--	cnet->sysctl_header = register_net_sysctl(net, "net/netfilter", table);
-+	cnet->sysctl_header = register_net_sysctl_sz(net, "net/netfilter",
-+						     table,
-+						     ARRAY_SIZE(nf_ct_sysctl_table));
- 	if (!cnet->sysctl_header)
- 		goto out_unregister_netfilter;
- 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 8a29290149bd..8cc52d2bd31b 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -487,9 +487,10 @@ static int netfilter_log_sysctl_init(struct net *net)
- 	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
- 		table[i].extra2 = net;
- 
--	net->nf.nf_log_dir_header = register_net_sysctl(net,
--						"net/netfilter/nf_log",
--						table);
-+	net->nf.nf_log_dir_header = register_net_sysctl_sz(net,
-+							   "net/netfilter/nf_log",
-+							   table,
-+							   ARRAY_SIZE(nf_log_sysctl_table));
- 	if (!net->nf.nf_log_dir_header)
- 		goto err_reg;
- 
+-/* struct ctl_table_header is used to maintain dynamic lists of
+-   struct ctl_table trees. */
++/**
++ * struct ctl_table_header - maintains dynamic lists of struct ctl_table trees
++ * @ctl_table: pointer to the first element in ctl_table array
++ * @ctl_table_size: number of elements pointed by @ctl_table
++ * @used: The entry will never be touched when equal to 0.
++ * @count: Upped every time something is added to @inodes and downed every time
++ *         something is removed from inodes
++ * @nreg: When nreg drops to 0 the ctl_table_header will be unregistered.
++ * @rcu: Delays the freeing of the inode. Introduced with "unfuck proc_sysctl ->d_compare()"
++ *
++ */
+ struct ctl_table_header {
+ 	union {
+ 		struct {
+ 			struct ctl_table *ctl_table;
++			int ctl_table_size;
+ 			int used;
+ 			int count;
+ 			int nreg;
 -- 
 2.30.2
 
