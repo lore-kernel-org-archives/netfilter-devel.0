@@ -2,87 +2,69 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C98B4C41513
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 12:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F21BFEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 13:15:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232106AbjHIM2g (ORCPT
+        id S232809AbjHINPy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 9 Aug 2023 08:28:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41136 "EHLO
+        Wed, 9 Aug 2023 09:15:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229549AbjHIM2f (ORCPT
+        with ESMTP id S232326AbjHINPx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Aug 2023 08:28:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2362E1FCC;
-        Wed,  9 Aug 2023 05:28:35 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD68D63889;
-        Wed,  9 Aug 2023 12:28:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25A73C433C7;
-        Wed,  9 Aug 2023 12:28:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691584114;
-        bh=sEM6A7v8beM65GOpgbPHHqgeliizvdkk3E1U4YHkLoU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=lpoK/uANDrW8WWjFdIuPn8HIUyukQYCDHPHUzvttZ439ycDydHiICm5YqRDCqY6fX
-         GhUTaH+Tj/1szgSGYR7S6EQdOjsMVdj4pvqmSSrtvP5avxFBLiaWavN8Kb3h28jJXg
-         0VqS1lIIo9GuUeiOgZH1PUu7H7QSp23twNms3I9JUpceKvuKxSZpnG5ZNNoIHDz3Ed
-         UMGCP3VYYbXzf8n4GhWVDo8RVGAGAuw7lwGS4GMhtU3bZxpSZum6GlCMb07OXLrdwn
-         5fLzVBS/OUNhIv+pdDtHcBi114C5FDI0zl8wpha3dCK7Ny0bGlzjDJ21vQU6w/HEoR
-         FzVF/NRyH3dQQ==
-Date:   Wed, 9 Aug 2023 14:28:27 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Kees Cook <keescook@chromium.org>,
-        "Gustavo A . R . Silva" <gustavoars@kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Wang Weiyang <wangweiyang2@huawei.com>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
-Subject: Re: [PATCH v3] netfilter: ebtables: fix fortify warnings in
- size_entry_mwt()
-Message-ID: <ZNOGa02ymvkTAXPD@vergenet.net>
-References: <20230809074503.1323102-1-gongruiqi@huaweicloud.com>
+        Wed, 9 Aug 2023 09:15:53 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3FFC82106
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Aug 2023 06:15:53 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 4/5] netfilter: nft_set_hash: mark set element as dead when deleting from packet path
+Date:   Wed,  9 Aug 2023 15:15:45 +0200
+Message-Id: <20230809131546.8598-4-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230809131546.8598-1-pablo@netfilter.org>
+References: <20230809131546.8598-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230809074503.1323102-1-gongruiqi@huaweicloud.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 09, 2023 at 03:45:03PM +0800, GONG, Ruiqi wrote:
-> From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
-> 
-> When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=y, the following
-> warning appears:
-> 
-> In function ‘fortify_memcpy_chk’,
->     inlined from ‘size_entry_mwt’ at net/bridge/netfilter/ebtables.c:2118:2:
-> ./include/linux/fortify-string.h:592:25: error: call to ‘__read_overflow2_field’
-> declared with attribute warning: detected read beyond size of field (2nd parameter);
-> maybe use struct_group()? [-Werror=attribute-warning]
->   592 |                         __read_overflow2_field(q_size_field, size);
->       |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> The compiler is complaining:
-> 
-> memcpy(&offsets[1], &entry->watchers_offset,
->                        sizeof(offsets) - sizeof(offsets[0]));
-> 
-> where memcpy reads beyong &entry->watchers_offset to copy
+Set on the NFT_SET_ELEM_DEAD_BIT flag on this element, instead of
+performing element removal which might race with an ongoing transaction.
+Enable gc when dynamic flag is set on since dynset deletion requires
+garbage collection after this patch.
 
-nit: beyong -> beyond
+Fixes: d0a8d877da97 ("netfilter: nft_dynset: support for element deletion")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_set_hash.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-...
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 2f067e4596b0..cef5df846000 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -249,7 +249,9 @@ static bool nft_rhash_delete(const struct nft_set *set,
+ 	if (he == NULL)
+ 		return false;
+ 
+-	return rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params) == 0;
++	nft_set_elem_dead(&he->ext);
++
++	return true;
+ }
+ 
+ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+@@ -412,7 +414,7 @@ static int nft_rhash_init(const struct nft_set *set,
+ 		return err;
+ 
+ 	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rhash_gc);
+-	if (set->flags & NFT_SET_TIMEOUT)
++	if (set->flags & (NFT_SET_TIMEOUT | NFT_SET_EVAL))
+ 		nft_rhash_gc_init(set);
+ 
+ 	return 0;
+-- 
+2.30.2
+
