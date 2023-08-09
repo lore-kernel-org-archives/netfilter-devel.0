@@ -2,94 +2,125 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22B81C41513
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 00:41:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72653C001DB
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 01:07:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230429AbjHIAlR (ORCPT
+        id S231200AbjHIBHl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 20:41:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35732 "EHLO
+        Tue, 8 Aug 2023 21:07:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjHIAlR (ORCPT
+        with ESMTP id S229544AbjHIBHk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 20:41:17 -0400
-Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED37D19A1
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 17:41:15 -0700 (PDT)
-Received: by mail-ej1-x633.google.com with SMTP id a640c23a62f3a-99c47ef365cso923856666b.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Aug 2023 17:41:15 -0700 (PDT)
+        Tue, 8 Aug 2023 21:07:40 -0400
+Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D30F19AF
+        for <netfilter-devel@vger.kernel.org>; Tue,  8 Aug 2023 18:07:39 -0700 (PDT)
+Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-583312344e7so79127837b3.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Aug 2023 18:07:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1691541674; x=1692146474;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=53bleXI1rwMamZX0JWcAtU23Wr0BIzKJAx0qsLh8yXA=;
-        b=P+2/9o3rsXDweHtlRPZzhxI1iPCzdYp9atAuwlSGbuCtNsTg5F1zH06KhH1cW5Xlyy
-         /Km0R6yfUAhnTFrbOCO6sdKHEZ4Y7ljRokGXJXX5dDPTduAIQ8kNl2t+P4Ah84gbtO/1
-         cQc0By1FBfOsuEQhzbEWjf6w5eXtd+aEcKNLed5lFmRBL3JXeXJOyvbfNoJx0YPfxghY
-         k5AI//fgNi2wlHUiN/f2psVTQBNoVGHFqbdmYKRLu9cf3e6qVMd0KVS5KH74h8v/J9uu
-         rv9niSeuRyxYyNwhuLqZZNqWMQ+pPiddBL/eualB55TM9RpcrqiCml9iYLd8BA6LSUmX
-         K8eQ==
+        d=google.com; s=20221208; t=1691543258; x=1692148058;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=cYMuekBbj+9f4BIAzTUfsUU97y+973XUFTIbO36R3rA=;
+        b=YIMsp/gepK4kb1PZrGz/jrI1btP3/fBq0VS+Jtihn9KfhSn8ASHiORAJli9LUEFqQq
+         HoxnuyBFBTo8dB+4vGMJnI9dJSLhOl/0LOqk8+JXBkWgQ0YcMOBlBgBDWTd9ZQGfUb7v
+         v134eGbaCnhWJ6LlAN8bF4NJMexGDk2YjiUYpRwvqCcb+On066DYJ1u9PdLs/mhAWZdL
+         P1gjm7ryz172CjgpqGQWMkMzbxADrIQ8l3m6Sj95aHIH88NNhVuWYh6o6EDtv1MxMUfp
+         Z+g/P1Xrj3jChKB/JxAPZwQvvPTJAq11vzytlJrZk2L/TCIWjrIcFl3UwEkZphez2g1v
+         pb1w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691541674; x=1692146474;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=53bleXI1rwMamZX0JWcAtU23Wr0BIzKJAx0qsLh8yXA=;
-        b=hCCxmXi93RvuS7NXxOKPEtLfsopeEZLbG1XoSh994eNlM9SfZoZcD2vEdQsti8qYLt
-         NV0ts2LRvl8i1Iun8mX+gkAcQ1jqPU23iPiXhAupYuDv7gjSoCCdOdRxcopEpXYFy1xt
-         GsGVF9nRK0OklcRObGxWQt7ZjLchi8d0KZoO9vFZfQ8Hp8bcep4OM+TJuwv5sLBcvftv
-         LMkbPbg5Uj3A2QN/M7bTWtYj5F9EFyZyFaPYU8bu3cMVxGqEbJd9aKeoopUBE6eysrEX
-         hfyvxOTxWWap2nLtevC/wkkgb4mjU3i7dta45vHc5xtv9Lwms4VojCbc3L4IOyLBAy3Y
-         uQ/A==
-X-Gm-Message-State: AOJu0YwtWZpyttXno8idtN5fz6MAkBpc8XKPk/SoqBHvOY9qSLAbjxcz
-        b8DnSa4pm91r63EgZ2iKVvlctPiktb/j/XbfFtjg6A==
-X-Google-Smtp-Source: AGHT+IH+o2gQmZ+g2rXKzG+WrwjtCAkrRGG17r1COP/wNQau3mqxf/ssgwfBWD/6BXEh19oUwJIUMTL6DpaCyUXau/o=
-X-Received: by 2002:a17:906:218a:b0:988:6491:98e1 with SMTP id
- 10-20020a170906218a00b00988649198e1mr892372eju.42.1691541674457; Tue, 08 Aug
- 2023 17:41:14 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230808-net-netfilter-v1-0-efbbe4ec60af@google.com>
- <20230808-net-netfilter-v1-2-efbbe4ec60af@google.com> <20230808234001.GJ9741@breakpoint.cc>
-In-Reply-To: <20230808234001.GJ9741@breakpoint.cc>
+        d=1e100.net; s=20221208; t=1691543258; x=1692148058;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=cYMuekBbj+9f4BIAzTUfsUU97y+973XUFTIbO36R3rA=;
+        b=cG56V9ykrNTWqC63JriRJw8OfDmCoZ3KkWbR7L2JkGx1YLqsVEQ9GUIny8lDL99vqh
+         xailTiqk+DMJ52eVK/qc8QXBzHtzlCFWzFVf2WnL9QuH/kPiSK8/sId9RxqAcg5EGdfv
+         gVt7C8lXrXc99maA0CPX2cJwhWMl6dfKJOgbyUoDxAT6izqrqXL08lKE6/e0UZUGkh6p
+         5x0nKKvkNfAZ6JgGqntFkPvbgIPIhll9oe7LxOBjCeoShmI0+VWeCQrE6aC3PUUP4rz4
+         i+ThIPTZlHRVfUsMmCaWxb8EvE6ep75qp+xdglG5qrNYWVkdpUIcflLwS+YVWl4jxNiJ
+         4Y2w==
+X-Gm-Message-State: AOJu0YzRDEOkEbV5ULmgnWdD+SjCiIipHqB8ftTPDfUB+Z/jNP497rYC
+        EE7XMWJ4Rx1jjlE6nVfUtIFe/mQ57Ojcvmixaw==
+X-Google-Smtp-Source: AGHT+IGd83ZX8ReCo4MMl2lJZKLr1ZI7hb1MShC/jpbSLkoqOwVElD6/rAY/fzNhyBCRDKlaKo7v5RwRnBDWeusQ7Q==
+X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
+ (user=justinstitt job=sendgmr) by 2002:a25:860e:0:b0:d5d:511b:16da with SMTP
+ id y14-20020a25860e000000b00d5d511b16damr23286ybk.2.1691543258744; Tue, 08
+ Aug 2023 18:07:38 -0700 (PDT)
+Date:   Wed, 09 Aug 2023 01:06:03 +0000
+Mime-Version: 1.0
+X-B4-Tracking: v=1; b=H4sIAHvm0mQC/13MQQrDIBCF4auEWddibIhpV71HySLa0QykGlSkJ
+ Xj3mkA3XcziH3jfBhEDYYRbs0HATJG8qyFODeh5chYZPWuD4OLCBy6Zw7SfoSVhYB0XUrRXpXq UUDdrQEPvw3uMtWeKyYfPwed2//6k4U/KLeMMjVLYoe75ZO7We7vgWfsXjKWUL1fUF26rAAAA
+X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1691543257; l=2008;
+ i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
+ bh=DjNoNzSyECOWj9GeXGlWOMxAjhA7ZpfNH4jo0ilcj8k=; b=eCNgnGJeu1Qv/WXO/mUtZaRocGNwb35CduUVrPmAFtVA5M7UN6+TZeUoZU4xYFxcchLexcVlB
+ GpJOw23FBD2Dy+A/fk64whbFgk/e9XmhwgV8fBND3vzMDG/7xrdupwr
+X-Mailer: b4 0.12.3
+Message-ID: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com>
+Subject: [PATCH v2 0/7] netfilter: refactor deprecated strncpy
 From:   Justin Stitt <justinstitt@google.com>
-Date:   Tue, 8 Aug 2023 17:41:01 -0700
-Message-ID: <CAFhGd8r5LfczABYD3YNmbwH9tJtsr5MQNi6pUMLiZY3Qywo0kw@mail.gmail.com>
-Subject: Re: [PATCH 2/7] netfilter: nf_tables: refactor deprecated strncpy
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     linux-hardening@vger.kernel.org, Kees Cook <keescook@chromium.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Justin Stitt <justinstitt@google.com>
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Aug 8, 2023 at 4:40=E2=80=AFPM Florian Westphal <fw@strlen.de> wrot=
-e:
->
-> Justin Stitt <justinstitt@google.com> wrote:
-> > Prefer `strscpy` over `strncpy`.
->
-> Just like all other nft_*.c changes, this relies on zeroing
-> the remaining buffer, so please use strscpy_pad if this is
-> really needed for some reason.
-I'm soon sending a v2 series that prefers `strscpy_pad` to `strscpy`
-as per Florian and Kees' feedback.
+`strncpy` is deprecated for use on NUL-terminated destination strings [1].
 
-It should be noted that there was a similar refactor that took place
-in this tree as well [1]. Wolfram Sang opted for `strscpy` as a
-replacement to `strlcpy`. I assume the zero-padding is not needed in
-such instances, right?
+A suitable replacement is `strscpy` or `strscpy_pad` [2] due to the fact
+that they guarantee NUL-termination on their destination buffer argument
+which is _not_ the case for `strncpy`!
 
-[1]: https://lore.kernel.org/all/20220818210224.8563-1-wsa+renesas@sang-eng=
-ineering.com/
+This series of patches aims to swap out `strncpy` for more a robust and
+less ambiguous interface `strscpy_pad` . This patch series, if applied
+in its entirety, removes most if not all instances of `strncpy` in the
+`net/netfilter` directory.
 
-Thanks.
+[1]: www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings
+[2]: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html
+
+Link: https://github.com/KSPP/linux/issues/90
+Related: commit 8556bceb9c40 ("netfilter: move from strlcpy with unused retval to strscpy")
+---
+Changes in v2:
+- use `strscpy_pad` instead of `strscpy` since zero-padding is needed
+  (thanks Florian and Kees)
+- Link to v1: https://lore.kernel.org/r/20230808-net-netfilter-v1-0-efbbe4ec60af@google.com
+
+---
+Justin Stitt (7):
+      netfilter: ipset: refactor deprecated strncpy
+      netfilter: nf_tables: refactor deprecated strncpy
+      netfilter: nf_tables: refactor deprecated strncpy
+      netfilter: nft_meta: refactor deprecated strncpy
+      netfilter: nft_osf: refactor deprecated strncpy
+      netfilter: x_tables: refactor deprecated strncpy
+      netfilter: xtables: refactor deprecated strncpy
+
+ net/netfilter/ipset/ip_set_core.c | 10 +++++-----
+ net/netfilter/nft_ct.c            |  2 +-
+ net/netfilter/nft_fib.c           |  2 +-
+ net/netfilter/nft_meta.c          |  6 +++---
+ net/netfilter/nft_osf.c           |  6 +++---
+ net/netfilter/x_tables.c          |  5 ++---
+ net/netfilter/xt_repldata.h       |  2 +-
+ 7 files changed, 16 insertions(+), 17 deletions(-)
+---
+base-commit: 14f9643dc90adea074a0ffb7a17d337eafc6a5cc
+change-id: 20230807-net-netfilter-4027219bb6e7
+
+Best regards,
+--
+Justin Stitt <justinstitt@google.com>
+
