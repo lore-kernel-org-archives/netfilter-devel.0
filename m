@@ -2,36 +2,37 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12EA5C001DE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 03:06:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8283EB64DD
+	for <netfilter-devel@archiver.kernel.org>; Wed,  9 Aug 2023 03:25:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229553AbjHIDF6 (ORCPT
+        id S229960AbjHIDZw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 8 Aug 2023 23:05:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32980 "EHLO
+        Tue, 8 Aug 2023 23:25:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230088AbjHIDF5 (ORCPT
+        with ESMTP id S229543AbjHIDZv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Aug 2023 23:05:57 -0400
+        Tue, 8 Aug 2023 23:25:51 -0400
 Received: from dggsgout11.his.huawei.com (dggsgout11.his.huawei.com [45.249.212.51])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 774111BEF;
-        Tue,  8 Aug 2023 20:05:56 -0700 (PDT)
-Received: from mail02.huawei.com (unknown [172.30.67.169])
-        by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4RLFLS22rVz4f3tpx;
-        Wed,  9 Aug 2023 11:05:52 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A0721BF1;
+        Tue,  8 Aug 2023 20:25:49 -0700 (PDT)
+Received: from mail02.huawei.com (unknown [172.30.67.153])
+        by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4RLFnN5LKmz4f3wQh;
+        Wed,  9 Aug 2023 11:25:44 +0800 (CST)
 Received: from [10.67.110.48] (unknown [10.67.110.48])
-        by APP3 (Coremail) with SMTP id _Ch0CgC328ONAtNktWYIAQ--.34063S2;
-        Wed, 09 Aug 2023 11:05:50 +0800 (CST)
-Message-ID: <5095df45-c7bf-9040-1720-09a562b8714a@huaweicloud.com>
-Date:   Wed, 9 Aug 2023 11:05:49 +0800
+        by APP1 (Coremail) with SMTP id cCh0CgA3sy84B9NkGt0JAQ--.33760S2;
+        Wed, 09 Aug 2023 11:25:45 +0800 (CST)
+Message-ID: <b78cdc3b-8e08-6c75-de8e-15946789056f@huaweicloud.com>
+Date:   Wed, 9 Aug 2023 11:25:44 +0800
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
  Thunderbird/102.11.0
-Subject: Re: [PATCH] netfilter: ebtables: fix fortify warnings
+Subject: Re: [PATCH v2] netfilter: ebtables: fix fortify warnings
 Content-Language: en-US
-To:     Florian Westphal <fw@strlen.de>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
         Roopa Prabhu <roopa@nvidia.com>,
         Nikolay Aleksandrov <razor@blackwall.org>,
         Kees Cook <keescook@chromium.org>,
@@ -39,18 +40,18 @@ Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Wang Weiyang <wangweiyang2@huawei.com>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>
-References: <20230808014821.241688-1-gongruiqi@huaweicloud.com>
- <20230808155430.GB9741@breakpoint.cc>
+        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
+References: <20230808133038.771316-1-gongruiqi@huaweicloud.com>
+ <ZNJuMoe37L02TP20@work>
 From:   "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
-In-Reply-To: <20230808155430.GB9741@breakpoint.cc>
+In-Reply-To: <ZNJuMoe37L02TP20@work>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-CM-TRANSID: _Ch0CgC328ONAtNktWYIAQ--.34063S2
-X-Coremail-Antispam: 1UD129KBjvdXoW7XrWDKF4kuFy7Cw4rKF1UAwb_yoWDuFg_Aw
-        n2kryDGr129r95tF40qFy7Gry5Ww1rCFy8Wa40qrsYqrZ8Ar1FgaykJr9xZw47t39akr9r
-        CFn0vr48u3Wj9jkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-        9fnUUIcSsGvfJTRUUUbI8YFVCjjxCrM7AC8VAFwI0_Gr0_Xr1l1xkIjI8I6I8E6xAIw20E
+X-CM-TRANSID: cCh0CgA3sy84B9NkGt0JAQ--.33760S2
+X-Coremail-Antispam: 1UD129KBjvdXoW7Xr15Gr4rAw48Gw1kuFyxGrg_yoWkJrX_Aw
+        srZr97GrWjya4Dtr45J39xXrn3XwnYvFy7WryIqrW8ZwnxJr1jk39rXr9Yvw1rJryxCr4U
+        ArZ3GF98Gw1UGjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUIcSsGvfJTRUUUbIxYFVCjjxCrM7AC8VAFwI0_Gr0_Xr1l1xkIjI8I6I8E6xAIw20E
         Y4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwV
         A0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x02
         67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxV
@@ -60,9 +61,9 @@ X-Coremail-Antispam: 1UD129KBjvdXoW7XrWDKF4kuFy7Cw4rKF1UAwb_yoWDuFg_Aw
         1cAE67vIY487MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I
         8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8
         ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x
-        0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_WFyUJVCq3wCI42IY6I8E87Iv67AK
-        xVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvj
-        xUrR6zUUUUU
+        0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Wr1j6rW3Jr1lIxAIcVC2z280aVAF
+        wI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa
+        7IU1zuWJUUUUU==
 X-CM-SenderInfo: pjrqw2pxltxq5kxd4v5lfo033gof0z/
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -70,32 +71,39 @@ List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-On 2023/08/08 23:54, Florian Westphal wrote:
-> 
+On 2023/08/09 0:32, Gustavo A. R. Silva wrote:
+>
 > [...]
->>
->> diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
->> index a494cf43a755..e634da196d08 100644
->> --- a/include/uapi/linux/netfilter_bridge/ebtables.h
->> +++ b/include/uapi/linux/netfilter_bridge/ebtables.h
->> @@ -182,12 +182,14 @@ struct ebt_entry {
->>  	unsigned char sourcemsk[ETH_ALEN];
->>  	unsigned char destmac[ETH_ALEN];
->>  	unsigned char destmsk[ETH_ALEN];
->> -	/* sizeof ebt_entry + matches */
->> -	unsigned int watchers_offset;
->> -	/* sizeof ebt_entry + matches + watchers */
->> -	unsigned int target_offset;
->> -	/* sizeof ebt_entry + matches + watchers + target */
->> -	unsigned int next_offset;
->> +	struct_group(offsets,
->> +		/* sizeof ebt_entry + matches */
+>
+>> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+>> index 757ec46fc45a..5ec66b1ebb64 100644
+>> --- a/net/bridge/netfilter/ebtables.c
+>> +++ b/net/bridge/netfilter/ebtables.c
+>> @@ -2115,8 +2115,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
+>>  		return ret;
+>>  
+>>  	offsets[0] = sizeof(struct ebt_entry); /* matches come first */
+>> -	memcpy(&offsets[1], &entry->watchers_offset,
+>> -			sizeof(offsets) - sizeof(offsets[0]));
+>> +	memcpy(&offsets[1], &entry->offsets, sizeof(offsets) - sizeof(offsets[0]));
+> 							^^^^^^^^^^^^
+> You now can replace this ____________________________________|
+> with just `sizeof(entry->offsets)`
 > 
-> This is an UAPI header, I think you need to use __struct_group here.
+> With that change you can add my
+> Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> 
+> Thank you
+> --
+> Gustavo
+> 
 
-Thanks for the reminder! I've fixed it in v2:
+Will do. Thanks for the suggestion & review!
 
-https://lore.kernel.org/all/20230808133038.771316-1-gongruiqi@huaweicloud.com/
-
-Please review it :)
+>>  
+>>  	if (state->buf_kern_start) {
+>>  		buf_start = state->buf_kern_start + state->buf_kern_offset;
+>> -- 
+>> 2.41.0
+>>
 
