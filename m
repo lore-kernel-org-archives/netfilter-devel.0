@@ -2,195 +2,106 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E31CC001DE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 18:55:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F81AC04A6A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 19:07:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234126AbjHJSzZ (ORCPT
+        id S234620AbjHJTHp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Aug 2023 14:55:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40896 "EHLO
+        Thu, 10 Aug 2023 15:07:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229848AbjHJSzY (ORCPT
+        with ESMTP id S235428AbjHJTHo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2023 14:55:24 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 067062703
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 11:55:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=NGR50Ju20ZTwhqi7GmiwwUZRRQyeqNfQloTLbj5ikhs=; b=a4cVFkxFXnJN/gJDLhHL9tXevJ
-        kJ/BBImduvGQDPtVwyJs9FMS1GomoS7ULYbK4Gnma9eMlBt9PO/xWAVAblF4F69cHSg/pZgw0G8Z9
-        YuBKtOa2I7gYH+p8iBgniKNOS0gGqa232f3Pmq810M9nSnoEhgRGW3K3rmIRmUK8C7qoNo4+8Qrfv
-        4e0/arFzqlGU3vGTAvofdXPdDY9D/Bl30v8LtrW8OnzAdPrAd2JyXX5vG8rboOtyPZEQvAMF+9s0x
-        mqaoKfHtR3icn68WgumkDns+ZlSJbReauhxxRpN3m7ioqbQQ/jGJV3QJOpJ4/VHhgmWIfL2p9C2eW
-        6/+aZ2kQ==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1qUAoc-0002Yv-EP
-        for netfilter-devel@vger.kernel.org; Thu, 10 Aug 2023 20:55:22 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH v2 1/4] nft: Pass nft_handle to add_{target,action}()
-Date:   Thu, 10 Aug 2023 20:54:49 +0200
-Message-Id: <20230810185452.24387-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230810185452.24387-1-phil@nwl.cc>
-References: <20230810185452.24387-1-phil@nwl.cc>
+        Thu, 10 Aug 2023 15:07:44 -0400
+Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC3722D4A
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 12:07:40 -0700 (PDT)
+Received: by mail-pl1-x631.google.com with SMTP id d9443c01a7336-1bbbbb77b38so9494585ad.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 12:07:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1691694460; x=1692299260;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=nmOwYu+wAsqoAkxbWGneNadnCgLM0c5R8LClfgUNH9I=;
+        b=QkOkm0aFedzWAtuNszKzcm0KrHyY4YEWT0ltIriL5dNGRCGtKtfbjQGZDoRu8PHTGL
+         2q19rGzd320iFiPEMeYLLVjDrO+n8xsOaMVVVB1p6UAnbmbd6CBz92szKDrxxgg9pRQn
+         Rn8S9Iw75DpdEDSpYWSO36hoPOuxO4htgB28E=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691694460; x=1692299260;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=nmOwYu+wAsqoAkxbWGneNadnCgLM0c5R8LClfgUNH9I=;
+        b=bXpa2fZPKZxXitwZ2FoQeMxCyKnT7DfP67W0ahbZfSir3kZf9PT/Pe7+iEINev2yTt
+         HIrkVHru+V8A3OYw+vJhn3iJdl6nGPSO1SHJ0R2dJDt/CRckj59p+Hn2w9fVk+c4Bhsu
+         NQ5WgHa2+LMeo8105KpEDKbxnKEh0vDmilQxIvJxkYqiwWiCIYxdVk7LJ2rBB0pre8QG
+         S4Lm4NDyq/xyRrmMC8tpqZtTKcoQQGQ1fFFoTIY+GmMLjasiDLUgzVQylGiQ50CNwRYT
+         IWrw7B3f+jFECq9Zil0DhfePe6lFyj70B/ca4X19rQMzx9ibaeddJroeXum48/ypqfOt
+         Efbw==
+X-Gm-Message-State: AOJu0Yy2ZKiMJtGCNOl1wS44pRFcVyskxO+mSxbR2on4CWdcPTBvAyKL
+        53FA+17c6wkWs2Rm4ZmyaNz4uw==
+X-Google-Smtp-Source: AGHT+IEmgnGLrUOSbaCk2ycL3uzAZ+J06bwEXpv2ztZy56vch26GG8o6dUtXoEcAdUqVf+nIc0tC+A==
+X-Received: by 2002:a17:902:d4c3:b0:1bb:bc6d:457 with SMTP id o3-20020a170902d4c300b001bbbc6d0457mr3391924plg.36.1691694460449;
+        Thu, 10 Aug 2023 12:07:40 -0700 (PDT)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id r2-20020a170902be0200b001bbbbda70ccsm2134447pls.158.2023.08.10.12.07.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Aug 2023 12:07:39 -0700 (PDT)
+Date:   Thu, 10 Aug 2023 12:07:39 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     Justin Stitt <justinstitt@google.com>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        linux-hardening@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/7] netfilter: ipset: refactor deprecated strncpy
+Message-ID: <202308101206.35C628E5@keescook>
+References: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com>
+ <20230809-net-netfilter-v2-1-5847d707ec0a@google.com>
+ <20230809201926.GA3325@breakpoint.cc>
+ <CAFhGd8oNsGEAmSYs4H3ppm1t2DrD8Br5wwg+VuNtwfoOA_-64A@mail.gmail.com>
+ <q49499n7-54p3-1soo-8s83-7p84724o08p7@vanv.qr>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <q49499n7-54p3-1soo-8s83-7p84724o08p7@vanv.qr>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Prepare for varying rule content based on a global flag.
+On Wed, Aug 09, 2023 at 11:54:48PM +0200, Jan Engelhardt wrote:
+> 
+> On Wednesday 2023-08-09 23:40, Justin Stitt wrote:
+> >On Wed, Aug 9, 2023 at 1:19 PM Florian Westphal <fw@strlen.de> wrote:
+> >>
+> >> Justin Stitt <justinstitt@google.com> wrote:
+> >> > Use `strscpy_pad` instead of `strncpy`.
+> >>
+> >> I don't think that any of these need zero-padding.
+> >It's a more consistent change with the rest of the series and I don't
+> >believe it has much different behavior to `strncpy` (other than
+> >NUL-termination) as that will continue to pad to `n` as well.
+> >
+> >Do you think the `_pad` for 1/7, 6/7 and 7/7 should be changed back to
+> >`strscpy` in a v3? I really am shooting in the dark as it is quite
+> >hard to tell whether or not a buffer is expected to be NUL-padded or
+> >not.
+> 
+> I don't recall either NF userspace or kernelspace code doing memcmp
+> with name-like fields, so padding should not be strictly needed.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/nft-arp.c    | 2 +-
- iptables/nft-bridge.c | 9 +++++----
- iptables/nft-ipv4.c   | 2 +-
- iptables/nft-ipv6.c   | 2 +-
- iptables/nft.c        | 9 +++++----
- iptables/nft.h        | 6 ++++--
- 6 files changed, 17 insertions(+), 13 deletions(-)
+My only concern with padding is just to make sure any buffers copied to
+userspace have been zeroed. I would need to take a close look at how
+buffers are passed around here to know for sure...
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 9868966a03688..14b352cebf9d3 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -151,7 +151,7 @@ static int nft_arp_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 		else if (strcmp(cs->jumpto, XTC_LABEL_RETURN) == 0)
- 			ret = add_verdict(r, NFT_RETURN);
- 		else
--			ret = add_target(r, cs->target->t);
-+			ret = add_target(h, r, cs->target->t);
- 	} else if (strlen(cs->jumpto) > 0) {
- 		/* No goto in arptables */
- 		ret = add_jumpto(r, cs->jumpto, NFT_JUMP);
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 391a8ab723c1c..616ae5a3a2a3c 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -117,7 +117,8 @@ static int add_meta_broute(struct nftnl_rule *r)
- 	return 0;
- }
- 
--static int _add_action(struct nftnl_rule *r, struct iptables_command_state *cs)
-+static int _add_action(struct nft_handle *h, struct nftnl_rule *r,
-+		       struct iptables_command_state *cs)
- {
- 	const char *table = nftnl_rule_get_str(r, NFTNL_RULE_TABLE);
- 
-@@ -133,7 +134,7 @@ static int _add_action(struct nftnl_rule *r, struct iptables_command_state *cs)
- 		}
- 	}
- 
--	return add_action(r, cs, false);
-+	return add_action(h, r, cs, false);
- }
- 
- static int
-@@ -221,7 +222,7 @@ static int nft_bridge_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 			if (nft_bridge_add_match(h, fw, ctx, r, iter->u.match->m))
- 				break;
- 		} else {
--			if (add_target(r, iter->u.watcher->t))
-+			if (add_target(h, r, iter->u.watcher->t))
- 				break;
- 		}
- 	}
-@@ -229,7 +230,7 @@ static int nft_bridge_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 	if (add_counters(r, cs->counters.pcnt, cs->counters.bcnt) < 0)
- 		return -1;
- 
--	return _add_action(r, cs);
-+	return _add_action(h, r, cs);
- }
- 
- static bool nft_rule_to_ebtables_command_state(struct nft_handle *h,
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index 2f10220edd509..663052fc57f0a 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -95,7 +95,7 @@ static int nft_ipv4_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 	if (add_counters(r, cs->counters.pcnt, cs->counters.bcnt) < 0)
- 		return -1;
- 
--	return add_action(r, cs, !!(cs->fw.ip.flags & IPT_F_GOTO));
-+	return add_action(h, r, cs, !!(cs->fw.ip.flags & IPT_F_GOTO));
- }
- 
- static bool nft_ipv4_is_same(const struct iptables_command_state *a,
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index d53f87c1d26e3..8bc633df0e93a 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -81,7 +81,7 @@ static int nft_ipv6_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 	if (add_counters(r, cs->counters.pcnt, cs->counters.bcnt) < 0)
- 		return -1;
- 
--	return add_action(r, cs, !!(cs->fw6.ipv6.flags & IP6T_F_GOTO));
-+	return add_action(h, r, cs, !!(cs->fw6.ipv6.flags & IP6T_F_GOTO));
- }
- 
- static bool nft_ipv6_is_same(const struct iptables_command_state *a,
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 97fd4f49fdb4c..1fc12b0c659c7 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -1538,7 +1538,8 @@ static int add_meta_nftrace(struct nftnl_rule *r)
- 	return 0;
- }
- 
--int add_target(struct nftnl_rule *r, struct xt_entry_target *t)
-+int add_target(struct nft_handle *h, struct nftnl_rule *r,
-+	       struct xt_entry_target *t)
- {
- 	struct nftnl_expr *expr;
- 	int ret;
-@@ -1587,8 +1588,8 @@ int add_verdict(struct nftnl_rule *r, int verdict)
- 	return 0;
- }
- 
--int add_action(struct nftnl_rule *r, struct iptables_command_state *cs,
--	       bool goto_set)
-+int add_action(struct nft_handle *h, struct nftnl_rule *r,
-+	       struct iptables_command_state *cs, bool goto_set)
- {
- 	int ret = 0;
- 
-@@ -1604,7 +1605,7 @@ int add_action(struct nftnl_rule *r, struct iptables_command_state *cs,
- 		else if (strcmp(cs->jumpto, "NFLOG") == 0)
- 			ret = add_log(r, cs);
- 		else
--			ret = add_target(r, cs->target->t);
-+			ret = add_target(h, r, cs->target->t);
- 	} else if (strlen(cs->jumpto) > 0) {
- 		/* Not standard, then it's a go / jump to chain */
- 		if (goto_set)
-diff --git a/iptables/nft.h b/iptables/nft.h
-index 5acbbf82e2c29..a89aff0af68d0 100644
---- a/iptables/nft.h
-+++ b/iptables/nft.h
-@@ -192,9 +192,11 @@ int add_counters(struct nftnl_rule *r, uint64_t packets, uint64_t bytes);
- int add_verdict(struct nftnl_rule *r, int verdict);
- int add_match(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 	      struct nftnl_rule *r, struct xt_entry_match *m);
--int add_target(struct nftnl_rule *r, struct xt_entry_target *t);
-+int add_target(struct nft_handle *h, struct nftnl_rule *r,
-+	       struct xt_entry_target *t);
- int add_jumpto(struct nftnl_rule *r, const char *name, int verdict);
--int add_action(struct nftnl_rule *r, struct iptables_command_state *cs, bool goto_set);
-+int add_action(struct nft_handle *h, struct nftnl_rule *r,
-+	       struct iptables_command_state *cs, bool goto_set);
- int add_log(struct nftnl_rule *r, struct iptables_command_state *cs);
- char *get_comment(const void *data, uint32_t data_len);
- 
 -- 
-2.40.0
-
+Kees Cook
