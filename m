@@ -2,90 +2,116 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A0C4C001E0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 18:00:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49FA3C001DE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 18:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235841AbjHJSAe (ORCPT
+        id S234789AbjHJSzF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Aug 2023 14:00:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35798 "EHLO
+        Thu, 10 Aug 2023 14:55:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235714AbjHJSA2 (ORCPT
+        with ESMTP id S233637AbjHJSzE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2023 14:00:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0DE22D60;
-        Thu, 10 Aug 2023 11:00:23 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2BB8262C17;
-        Thu, 10 Aug 2023 18:00:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 8D2D0C433C7;
-        Thu, 10 Aug 2023 18:00:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691690422;
-        bh=uvSuZ13YW1WPt7fE/E72Bjy5V5Eusa9pHgu2Ss+Db6Q=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=SMUaMeedci5RbmQkLkAqI9gj6YWYwct3+Nfnop2nS97dk9OWYD4RzltXGJGNTet17
-         x13ZJWm2vKWAxyTxYqemW6sgIN6Ee8orZh0FOTGQjjuMqeID2dYKbGh0y7cb+ChVVr
-         Fwo84lH/ROW+QdfyCiQrZZJyaLcFTaHzN916Ug8/V95WiVICFU0IE51i/i5VYLVEPq
-         QXfxp2NC45iNejuQI/G/a160aKmrlPGF9r715WIAACJdGLVHWIXBhktLgOsUtbsHkZ
-         UJ1I8SyOlDtUlwfisnnzKtElZVNt5Ox6/m9XqQ4hIUXbzrLY8RTr4hA1A0wYkuMMHX
-         O7otfIG6P47Aw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 726EFC64459;
-        Thu, 10 Aug 2023 18:00:22 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Thu, 10 Aug 2023 14:55:04 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC440270A
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 11:55:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=CaxCCD5gWEDur1KbzY7YetyTic9AetWvbd6vdUQcGpo=; b=C7LjKa6SEQ0ioUL2jZehkT/loW
+        qQE5ovmqiZWJtYwPwpee1hHqeUiZ/5DjrO5fcfWIgB35uCPK4EJg2td7ijvWWezHT+fkoFU593xNz
+        PD4KOiUqAAtCH8t9fnwBoFhdRbcGoKSAufyWhArnJDtzUxa3yS2g0X9lQv/RSKTWAsCQYo7OqWC1v
+        wHTxc/7rD+mWVmRkdz27XSaxR0yJbnHUWDsRv1Ui7sAKLaYzntvVELDDn/tw1x0heakqKcGxTQMpN
+        yB70PSd0Yc5YPoGS6eJqADGvDyGfN4/5oEf2JnaSoVLinhu5Lsh5xLRZsmnxJsrn+tkXKX1Ba/9xl
+        PewSV2mQ==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qUAoG-0002YS-Qv
+        for netfilter-devel@vger.kernel.org; Thu, 10 Aug 2023 20:55:00 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH v2 2/4] nft: Introduce and use bool nft_handle::compat
+Date:   Thu, 10 Aug 2023 20:54:50 +0200
+Message-Id: <20230810185452.24387-3-phil@nwl.cc>
+X-Mailer: git-send-email 2.40.0
+In-Reply-To: <20230810185452.24387-1-phil@nwl.cc>
+References: <20230810185452.24387-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: nf_tables: don't skip expired elements
- during walk
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169169042246.11500.14866835870797630076.git-patchwork-notify@kernel.org>
-Date:   Thu, 10 Aug 2023 18:00:22 +0000
-References: <20230810070830.24064-2-pablo@netfilter.org>
-In-Reply-To: <20230810070830.24064-2-pablo@netfilter.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com, stable@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+If set, create rules using compat expressions where possible and disable
+the bitwise expression avoidance introduced in 323259001d617 ("nft:
+Optimize class-based IP prefix matches").
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft-shared.c |  2 +-
+ iptables/nft.c        | 10 ++++++----
+ iptables/nft.h        |  1 +
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-On Thu, 10 Aug 2023 09:08:26 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> There is an asymmetry between commit/abort and preparation phase if the
-> following conditions are met:
-> 
-> 1. set is a verdict map ("1.2.3.4 : jump foo")
-> 2. timeouts are enabled
-> 
-> [...]
-
-Here is the summary with links:
-  - [net,1/5] netfilter: nf_tables: don't skip expired elements during walk
-    https://git.kernel.org/netdev/net/c/24138933b97b
-  - [net,2/5] netfilter: nf_tables: GC transaction API to avoid race with control plane
-    https://git.kernel.org/netdev/net/c/5f68718b34a5
-  - [net,3/5] netfilter: nf_tables: adapt set backend to use GC transaction API
-    https://git.kernel.org/netdev/net/c/f6c383b8c31a
-  - [net,4/5] netfilter: nft_set_hash: mark set element as dead when deleting from packet path
-    https://git.kernel.org/netdev/net/c/c92db3030492
-  - [net,5/5] netfilter: nf_tables: remove busy mark and gc batch API
-    https://git.kernel.org/netdev/net/c/a2dd0233cbc4
-
-You are awesome, thank you!
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 34ca9d16569d0..5e0ca00e7dd36 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -198,7 +198,7 @@ void add_addr(struct nft_handle *h, struct nftnl_rule *r,
+ 
+ 	for (i = 0; i < len; i++) {
+ 		if (m[i] != 0xff) {
+-			bitwise = m[i] != 0;
++			bitwise = h->compat || m[i] != 0;
+ 			break;
+ 		}
+ 	}
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 1fc12b0c659c7..09ff9cf11e195 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -1476,10 +1476,12 @@ int add_match(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 	case NFT_COMPAT_RULE_APPEND:
+ 	case NFT_COMPAT_RULE_INSERT:
+ 	case NFT_COMPAT_RULE_REPLACE:
+-		if (!strcmp(m->u.user.name, "limit"))
+-			return add_nft_limit(r, m);
+-		else if (!strcmp(m->u.user.name, "among"))
++		if (!strcmp(m->u.user.name, "among"))
+ 			return add_nft_among(h, r, m);
++		else if (h->compat)
++			break;
++		else if (!strcmp(m->u.user.name, "limit"))
++			return add_nft_limit(r, m);
+ 		else if (!strcmp(m->u.user.name, "udp"))
+ 			return add_nft_udp(h, r, m);
+ 		else if (!strcmp(m->u.user.name, "tcp"))
+@@ -1544,7 +1546,7 @@ int add_target(struct nft_handle *h, struct nftnl_rule *r,
+ 	struct nftnl_expr *expr;
+ 	int ret;
+ 
+-	if (strcmp(t->u.user.name, "TRACE") == 0)
++	if (!h->compat && strcmp(t->u.user.name, "TRACE") == 0)
+ 		return add_meta_nftrace(r);
+ 
+ 	expr = nftnl_expr_alloc("target");
+diff --git a/iptables/nft.h b/iptables/nft.h
+index a89aff0af68d0..fb9fc81ea2704 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -111,6 +111,7 @@ struct nft_handle {
+ 	struct list_head	cmd_list;
+ 	bool			cache_init;
+ 	int			verbose;
++	bool			compat;
+ 
+ 	/* meta data, for error reporting */
+ 	struct {
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.40.0
 
