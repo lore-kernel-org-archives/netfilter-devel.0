@@ -2,123 +2,93 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3883CC001DE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 19:48:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C30FC001B0
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 20:18:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234876AbjHJTsQ (ORCPT
+        id S235602AbjHJUSv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Aug 2023 15:48:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45086 "EHLO
+        Thu, 10 Aug 2023 16:18:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234595AbjHJTsP (ORCPT
+        with ESMTP id S234996AbjHJUSu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2023 15:48:15 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEAB412B
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 12:48:11 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qUBdh-0002JZ-0d; Thu, 10 Aug 2023 21:48:09 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: add test with concatenation, vmap and timeout
-Date:   Thu, 10 Aug 2023 21:48:01 +0200
-Message-ID: <20230810194804.14969-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Thu, 10 Aug 2023 16:18:50 -0400
+Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14634272C
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 13:18:50 -0700 (PDT)
+Received: by mail-pl1-x636.google.com with SMTP id d9443c01a7336-1bc0d39b52cso9747205ad.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 13:18:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1691698729; x=1692303529;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=3kJtbeMd1DC0iwf7dIt5vaIqCFoNN1NxlZ/NfDv5F7k=;
+        b=FCF+Wwv3S/8SqhDJAVj3HEgDOxOPixLgcJvqdYQAH1j+YW245ZFcnvNZjGujwYtR0Q
+         pn2gvaHu8I+Ng7lyB5MFXtbXBmVybora9cdXqKw8ZPiDnqRcELg9poV0ZQDoytGeUxh/
+         NyhU472SfwlDvshlui960Ud23rM35VCRAtME8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691698729; x=1692303529;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3kJtbeMd1DC0iwf7dIt5vaIqCFoNN1NxlZ/NfDv5F7k=;
+        b=TyQGGQLUccYYVJBnONchnqcHW+ZUS795uQL30QPLhG4Sb3sHkQ8RtjlzEvvr7VGwKG
+         r8wFBf8TTaA3IZKtQa8E3oJMHcPCmiaDBrzvofG04hybPkAqvRz1HqpKzPo1oPHMigGe
+         eppMSueSxovXW4S7XkjG1uMWEeORnv0vJWIPKho2KLVJ3rAiQ6MBx6JuRIMq8dytLIgc
+         IH09iFgS70p0IKl3oEeeAgjstWfepGor1VqM8EC6UXbT4CEbhTElwGVSXBZyXCqVxqQR
+         ccMjnguQkP8IlaIBUYNCPOyC1UUMgRa2Jcs23cn5ZoljZkymLHccpEypQNoGi2P10Zl2
+         gPYQ==
+X-Gm-Message-State: AOJu0YxLEXQAjKlOeMpneHLkIVbBENb2Yu4J8B+CkatL1T7LsNT+MxW4
+        PUN+OYnRoqisXRfaz3WhH6tLhA==
+X-Google-Smtp-Source: AGHT+IFT1Y7VV5nno22ITJV4ENgNNpdHnyB1CYiMpLWZvConebc8vMlqaaHPcnrsW/4L73D14eVMcQ==
+X-Received: by 2002:a17:903:2285:b0:1b8:9044:b8ae with SMTP id b5-20020a170903228500b001b89044b8aemr3583313plh.11.1691698729615;
+        Thu, 10 Aug 2023 13:18:49 -0700 (PDT)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id x20-20020a170902ea9400b001b9de67285dsm2190933plb.156.2023.08.10.13.18.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Aug 2023 13:18:49 -0700 (PDT)
+Date:   Thu, 10 Aug 2023 13:18:48 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     "GONG, Ruiqi" <gongruiqi@huaweicloud.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Roopa Prabhu <roopa@nvidia.com>,
+        Nikolay Aleksandrov <razor@blackwall.org>,
+        "Gustavo A . R . Silva" <gustavoars@kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-hardening@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Wang Weiyang <wangweiyang2@huawei.com>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>, gongruiqi1@huawei.com
+Subject: Re: [PATCH] netfilter: ebtables: replace zero-length array members
+Message-ID: <202308101317.7AAED4DF6A@keescook>
+References: <20230809075136.1323302-1-gongruiqi@huaweicloud.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230809075136.1323302-1-gongruiqi@huaweicloud.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add 4k elements to map, with timeouts in range 1..3s, also add a
-catchall element with timeout.
+On Wed, Aug 09, 2023 at 03:51:36PM +0800, GONG, Ruiqi wrote:
+> From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
+> 
+> As suggested by Kees[1], replace the old-style 0-element array members
+> of multiple structs in ebtables.h with modern C99 flexible array.
+> 
+> [1]: https://lore.kernel.org/all/5E8E0F9C-EE3F-4B0D-B827-DC47397E2A4A@kernel.org/
+> 
+> Link: https://github.com/KSPP/linux/issues/21
+> Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
 
-Check that all elements are no longer included in set list after 4s.
+In theory, this should be fine. It is possible there are userspace tools
+that are doing (already) buggy things that will now turn into build
+failures. If the userspace ebtable tools still build happily with these
+UAPI changes, I imagine that would be a sufficient test.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../testcases/maps/dumps/vmap_timeout.nft     | 29 ++++++++++++++++
- tests/shell/testcases/maps/vmap_timeout       | 33 +++++++++++++++++++
- 2 files changed, 62 insertions(+)
- create mode 100644 tests/shell/testcases/maps/dumps/vmap_timeout.nft
- create mode 100755 tests/shell/testcases/maps/vmap_timeout
+Reviewed-by: Kees Cook <keescook@chromium.org>
 
-diff --git a/tests/shell/testcases/maps/dumps/vmap_timeout.nft b/tests/shell/testcases/maps/dumps/vmap_timeout.nft
-new file mode 100644
-index 000000000000..7bbad87cbb15
---- /dev/null
-+++ b/tests/shell/testcases/maps/dumps/vmap_timeout.nft
-@@ -0,0 +1,29 @@
-+table inet filter {
-+	map portmap {
-+		type inet_service : verdict
-+		flags timeout
-+		elements = { 22 : jump ssh_input }
-+	}
-+
-+	map portaddrmap {
-+		typeof ip daddr . th dport : verdict
-+		flags timeout
-+		elements = { 1.2.3.4 . 22 : jump ssh_input }
-+	}
-+
-+	chain ssh_input {
-+	}
-+
-+	chain other_input {
-+	}
-+
-+	chain wan_input {
-+		ip daddr . tcp dport vmap @portaddrmap
-+		tcp dport vmap @portmap
-+	}
-+
-+	chain prerouting {
-+		type filter hook prerouting priority raw; policy accept;
-+		iif vmap { "lo" : jump wan_input }
-+	}
-+}
-diff --git a/tests/shell/testcases/maps/vmap_timeout b/tests/shell/testcases/maps/vmap_timeout
-new file mode 100755
-index 000000000000..7d3dc454f6c8
---- /dev/null
-+++ b/tests/shell/testcases/maps/vmap_timeout
-@@ -0,0 +1,33 @@
-+#!/bin/bash
-+
-+set -e
-+
-+dumpfile=$(dirname $0)/dumps/$(basename $0).nft
-+$NFT -f $dumpfile
-+
-+port=23
-+for i in $(seq 1 400) ; do
-+	timeout=$((RANDOM%3))
-+	timeout=$((timeout+1))
-+	j=1
-+
-+	batched="{ $port timeout 3s : jump other_input "
-+	batched_addr="{ 10.0.$((i%256)).$j . $port timeout 3s : jump other_input "
-+	port=$((port + 1))
-+	for j in $(seq 2 100); do
-+		batched="$batched, $port timeout ${timeout}s : jump other_input "
-+		batched_addr="$batched_addr, 10.0.$((i%256)).$j . $port timeout ${timeout}s : jump other_input "
-+		port=$((port + 1))
-+	done
-+
-+	batched="$batched }"
-+	batched_addr="$batched_addr }"
-+	$NFT add element inet filter portmap "$batched"
-+	$NFT add element inet filter portaddrmap "$batched_addr"
-+done
-+
-+$NFT add element inet filter portaddrmap { "* timeout 2s : drop" }
-+$NFT add element inet filter portmap { "* timeout 3s : drop" }
-+
-+# wait for elements to time out
-+sleep 4
 -- 
-2.41.0
-
+Kees Cook
