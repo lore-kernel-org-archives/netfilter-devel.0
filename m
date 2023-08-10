@@ -2,106 +2,123 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F81AC04A6A
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 19:07:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3883CC001DE
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 19:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234620AbjHJTHp (ORCPT
+        id S234876AbjHJTsQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Aug 2023 15:07:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34812 "EHLO
+        Thu, 10 Aug 2023 15:48:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235428AbjHJTHo (ORCPT
+        with ESMTP id S234595AbjHJTsP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2023 15:07:44 -0400
-Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC3722D4A
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 12:07:40 -0700 (PDT)
-Received: by mail-pl1-x631.google.com with SMTP id d9443c01a7336-1bbbbb77b38so9494585ad.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 12:07:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1691694460; x=1692299260;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=nmOwYu+wAsqoAkxbWGneNadnCgLM0c5R8LClfgUNH9I=;
-        b=QkOkm0aFedzWAtuNszKzcm0KrHyY4YEWT0ltIriL5dNGRCGtKtfbjQGZDoRu8PHTGL
-         2q19rGzd320iFiPEMeYLLVjDrO+n8xsOaMVVVB1p6UAnbmbd6CBz92szKDrxxgg9pRQn
-         Rn8S9Iw75DpdEDSpYWSO36hoPOuxO4htgB28E=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691694460; x=1692299260;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=nmOwYu+wAsqoAkxbWGneNadnCgLM0c5R8LClfgUNH9I=;
-        b=bXpa2fZPKZxXitwZ2FoQeMxCyKnT7DfP67W0ahbZfSir3kZf9PT/Pe7+iEINev2yTt
-         HIrkVHru+V8A3OYw+vJhn3iJdl6nGPSO1SHJ0R2dJDt/CRckj59p+Hn2w9fVk+c4Bhsu
-         NQ5WgHa2+LMeo8105KpEDKbxnKEh0vDmilQxIvJxkYqiwWiCIYxdVk7LJ2rBB0pre8QG
-         S4Lm4NDyq/xyRrmMC8tpqZtTKcoQQGQ1fFFoTIY+GmMLjasiDLUgzVQylGiQ50CNwRYT
-         IWrw7B3f+jFECq9Zil0DhfePe6lFyj70B/ca4X19rQMzx9ibaeddJroeXum48/ypqfOt
-         Efbw==
-X-Gm-Message-State: AOJu0Yy2ZKiMJtGCNOl1wS44pRFcVyskxO+mSxbR2on4CWdcPTBvAyKL
-        53FA+17c6wkWs2Rm4ZmyaNz4uw==
-X-Google-Smtp-Source: AGHT+IEmgnGLrUOSbaCk2ycL3uzAZ+J06bwEXpv2ztZy56vch26GG8o6dUtXoEcAdUqVf+nIc0tC+A==
-X-Received: by 2002:a17:902:d4c3:b0:1bb:bc6d:457 with SMTP id o3-20020a170902d4c300b001bbbc6d0457mr3391924plg.36.1691694460449;
-        Thu, 10 Aug 2023 12:07:40 -0700 (PDT)
-Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id r2-20020a170902be0200b001bbbbda70ccsm2134447pls.158.2023.08.10.12.07.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Aug 2023 12:07:39 -0700 (PDT)
-Date:   Thu, 10 Aug 2023 12:07:39 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     Justin Stitt <justinstitt@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        linux-hardening@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/7] netfilter: ipset: refactor deprecated strncpy
-Message-ID: <202308101206.35C628E5@keescook>
-References: <20230809-net-netfilter-v2-0-5847d707ec0a@google.com>
- <20230809-net-netfilter-v2-1-5847d707ec0a@google.com>
- <20230809201926.GA3325@breakpoint.cc>
- <CAFhGd8oNsGEAmSYs4H3ppm1t2DrD8Br5wwg+VuNtwfoOA_-64A@mail.gmail.com>
- <q49499n7-54p3-1soo-8s83-7p84724o08p7@vanv.qr>
+        Thu, 10 Aug 2023 15:48:15 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEAB412B
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 12:48:11 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qUBdh-0002JZ-0d; Thu, 10 Aug 2023 21:48:09 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: add test with concatenation, vmap and timeout
+Date:   Thu, 10 Aug 2023 21:48:01 +0200
+Message-ID: <20230810194804.14969-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <q49499n7-54p3-1soo-8s83-7p84724o08p7@vanv.qr>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 09, 2023 at 11:54:48PM +0200, Jan Engelhardt wrote:
-> 
-> On Wednesday 2023-08-09 23:40, Justin Stitt wrote:
-> >On Wed, Aug 9, 2023 at 1:19 PM Florian Westphal <fw@strlen.de> wrote:
-> >>
-> >> Justin Stitt <justinstitt@google.com> wrote:
-> >> > Use `strscpy_pad` instead of `strncpy`.
-> >>
-> >> I don't think that any of these need zero-padding.
-> >It's a more consistent change with the rest of the series and I don't
-> >believe it has much different behavior to `strncpy` (other than
-> >NUL-termination) as that will continue to pad to `n` as well.
-> >
-> >Do you think the `_pad` for 1/7, 6/7 and 7/7 should be changed back to
-> >`strscpy` in a v3? I really am shooting in the dark as it is quite
-> >hard to tell whether or not a buffer is expected to be NUL-padded or
-> >not.
-> 
-> I don't recall either NF userspace or kernelspace code doing memcmp
-> with name-like fields, so padding should not be strictly needed.
+Add 4k elements to map, with timeouts in range 1..3s, also add a
+catchall element with timeout.
 
-My only concern with padding is just to make sure any buffers copied to
-userspace have been zeroed. I would need to take a close look at how
-buffers are passed around here to know for sure...
+Check that all elements are no longer included in set list after 4s.
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../testcases/maps/dumps/vmap_timeout.nft     | 29 ++++++++++++++++
+ tests/shell/testcases/maps/vmap_timeout       | 33 +++++++++++++++++++
+ 2 files changed, 62 insertions(+)
+ create mode 100644 tests/shell/testcases/maps/dumps/vmap_timeout.nft
+ create mode 100755 tests/shell/testcases/maps/vmap_timeout
+
+diff --git a/tests/shell/testcases/maps/dumps/vmap_timeout.nft b/tests/shell/testcases/maps/dumps/vmap_timeout.nft
+new file mode 100644
+index 000000000000..7bbad87cbb15
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/vmap_timeout.nft
+@@ -0,0 +1,29 @@
++table inet filter {
++	map portmap {
++		type inet_service : verdict
++		flags timeout
++		elements = { 22 : jump ssh_input }
++	}
++
++	map portaddrmap {
++		typeof ip daddr . th dport : verdict
++		flags timeout
++		elements = { 1.2.3.4 . 22 : jump ssh_input }
++	}
++
++	chain ssh_input {
++	}
++
++	chain other_input {
++	}
++
++	chain wan_input {
++		ip daddr . tcp dport vmap @portaddrmap
++		tcp dport vmap @portmap
++	}
++
++	chain prerouting {
++		type filter hook prerouting priority raw; policy accept;
++		iif vmap { "lo" : jump wan_input }
++	}
++}
+diff --git a/tests/shell/testcases/maps/vmap_timeout b/tests/shell/testcases/maps/vmap_timeout
+new file mode 100755
+index 000000000000..7d3dc454f6c8
+--- /dev/null
++++ b/tests/shell/testcases/maps/vmap_timeout
+@@ -0,0 +1,33 @@
++#!/bin/bash
++
++set -e
++
++dumpfile=$(dirname $0)/dumps/$(basename $0).nft
++$NFT -f $dumpfile
++
++port=23
++for i in $(seq 1 400) ; do
++	timeout=$((RANDOM%3))
++	timeout=$((timeout+1))
++	j=1
++
++	batched="{ $port timeout 3s : jump other_input "
++	batched_addr="{ 10.0.$((i%256)).$j . $port timeout 3s : jump other_input "
++	port=$((port + 1))
++	for j in $(seq 2 100); do
++		batched="$batched, $port timeout ${timeout}s : jump other_input "
++		batched_addr="$batched_addr, 10.0.$((i%256)).$j . $port timeout ${timeout}s : jump other_input "
++		port=$((port + 1))
++	done
++
++	batched="$batched }"
++	batched_addr="$batched_addr }"
++	$NFT add element inet filter portmap "$batched"
++	$NFT add element inet filter portaddrmap "$batched_addr"
++done
++
++$NFT add element inet filter portaddrmap { "* timeout 2s : drop" }
++$NFT add element inet filter portmap { "* timeout 3s : drop" }
++
++# wait for elements to time out
++sleep 4
 -- 
-Kees Cook
+2.41.0
+
