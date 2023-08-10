@@ -2,119 +2,137 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2C9DC001DE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 07:45:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55787C04A94
+	for <netfilter-devel@archiver.kernel.org>; Thu, 10 Aug 2023 07:49:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230197AbjHJHpn (ORCPT
+        id S233936AbjHJHtS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 10 Aug 2023 03:45:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40590 "EHLO
+        Thu, 10 Aug 2023 03:49:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231517AbjHJHpn (ORCPT
+        with ESMTP id S234038AbjHJHtR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2023 03:45:43 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D51EC3
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Aug 2023 00:45:42 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qU0MW-0001FU-1X; Thu, 10 Aug 2023 09:45:40 +0200
-Date:   Thu, 10 Aug 2023 09:45:39 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [nft PATCH v4 2/6] src: add input flag NFT_CTX_INPUT_NO_DNS to
- avoid blocking
-Message-ID: <ZNSVo9Um6T0fgqXA@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20230803193940.1105287-1-thaller@redhat.com>
- <20230803193940.1105287-5-thaller@redhat.com>
- <ZNJCFNlZ8bHuJOkl@orbyte.nwl.cc>
- <e095b0fe0c6db0eaafb8072abfa5102a55f9df41.camel@redhat.com>
- <ZNNoUHB/i7rxPXS1@orbyte.nwl.cc>
- <b1829e8f312b2e626dc4efefdc1d666044405552.camel@redhat.com>
+        Thu, 10 Aug 2023 03:49:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A8DC211E;
+        Thu, 10 Aug 2023 00:49:15 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F04665221;
+        Thu, 10 Aug 2023 07:49:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F3EFC433C7;
+        Thu, 10 Aug 2023 07:49:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1691653754;
+        bh=e7MEa/R7xR4Wky+nEP3+CKBKXMOoeInQccy4b2OpW7k=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=2RYiO6BHui3lLTY2qbfObRvRrIsw2Tqu8L7uhIvPFScH/TtiWLmNlE9H9FdLpS5L2
+         LfL5fZzXbCZ50T2GQMx0wOrrCRUlHUxXkRZDB1bwEjsh8WFbVeaIisz0+a0J8zn9tc
+         GuJzL8ncjUNG4Fo4zuvrkVctpy3qGP81LR1+b5e0=
+Date:   Thu, 10 Aug 2023 09:49:11 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com, stable@vger.kernel.org
+Subject: Re: [PATCH net 0/5] Netfilter fixes for net
+Message-ID: <2023081006-nurture-landside-fb56@gregkh>
+References: <20230810070830.24064-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <b1829e8f312b2e626dc4efefdc1d666044405552.camel@redhat.com>
+In-Reply-To: <20230810070830.24064-1-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 09, 2023 at 09:17:36PM +0200, Thomas Haller wrote:
-> On Wed, 2023-08-09 at 12:20 +0200, Phil Sutter wrote:
-> > On Tue, Aug 08, 2023 at 10:05:19PM +0200, Thomas Haller wrote:
-> > > On Tue, 2023-08-08 at 15:24 +0200, Phil Sutter wrote:
-> > > > On Thu, Aug 03, 2023 at 09:35:16PM +0200, Thomas Haller wrote:
-> > > > > getaddrinfo() blocks while trying to resolve the name. Blocking
-> > > > > the
-> > > > > caller of the library is in many cases undesirable. Also, while
-> > > > > reconfiguring the firewall, it's not clear that resolving names
-> > > > > via
-> > > > > the network will work or makes sense.
-> > > > > 
-> > > > > Add a new input flag NFT_CTX_INPUT_NO_DNS to opt-out from
-> > > > > getaddrinfo()
-> > > > > and only accept plain IP addresses.
-> > > > 
-> > > > This sounds like user input validation via backend. Another way
-> > > > to
-> > > > solve
-> > > > the problem at hand is to not insert host names into the
-> > > > rules(et)
-> > > > fed
-> > > > into libnftables, right?
-> > > 
-> > > Right. More generally, ensure not to pass any non-addresses in JSON
-> > > that would be resolved.
-> > 
-> > Well, detecting if a string constitutes a valid IP address is rather
-> > trivial. In Python, there's even 'ipaddress' module for that job.
+On Thu, Aug 10, 2023 at 09:08:25AM +0200, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> firewalld messed it up, showing that it can happen.
-
-I'm just saying it's possible. From libnftables' PoV, hostname input is
-supported and works as expected.
-
-> > > Which requires that the user application is keenly aware,
-> > > understands
-> > > and validates the input data. For example, there couldn't be a
-> > > "expert
-> > > option" where the admin configures arbitrary JSON.
-> > 
-> > Why is host resolution a problem in such scenario? The fact that
-> > using
-> > host names instead of IP addresses may result in significant delays
-> > due
-> > to the required DNS queries is pretty common knowledge among system
-> > administrators.
+> The following patchset contains Netfilter fixes for net.
 > 
+> The existing attempt to resolve races between control plane and GC work
+> is error prone, as reported by Bien Pham <phamnnb@sea.com>, some places
+> forgot to call nft_set_elem_mark_busy(), leading to double-deactivation
+> of elements.
 > 
-> It seems prudent that libnftables provides a mode of operation so that
-> it doesn't block the calling application. Otherwise, it is a problem
-> for applications that care about that.
-
-Hmm. In that case, one might also have to take care of calls to
-getprotobyname() and maybe others (getaddrinfo()?). Depending on
-nsswitch.conf it may block, too, right?
-
-> > > And that the application doesn't make a mistake with that ([1]).
-> > > 
-> > > [1]
-> > > https://github.com/firewalld/firewalld/commit/4db89e316f2d60f3cf856a7025a96a61e40b1e5a
-> > 
-> > This is just a bug in firewall-cmd, missing to convert ranges into
-> > JSON
-> > format. I don't see the benefit for users which no longer may use
-> > host
-> > names in that spot.
+> This series contains the following patches:
 > 
-> Which spot do you mean? /sbin/nft is not affected, unless it opts-in to
-> the new flag. firewalld never supported hostnames at that spot anyway
-> (or does it?).
+> 1) Do not skip expired elements during walk otherwise elements might
+>    never decrement the reference counter on data, leading to memleak.
+> 
+> 2) Add a GC transaction API to replace the former attempt to deal with
+>    races between control plane and GC. GC worker sets on NFT_SET_ELEM_DEAD_BIT
+>    on elements and it creates a GC transaction to remove the expired
+>    elements, GC transaction could abort in case of interference with
+>    control plane and retried later (GC async). Set backends such as
+>    rbtree and pipapo also perform GC from control plane (GC sync), in
+>    such case, element deactivation and removal is safe because mutex
+>    is held then collected elements are released via call_rcu().
+> 
+> 3) Adapt existing set backends to use the GC transaction API.
+> 
+> 4) Update rhash set backend to set on _DEAD bit to report deleted
+>    elements from datapath for GC.
+> 
+> 5) Remove old GC batch API and the NFT_SET_ELEM_BUSY_BIT.
+> 
+> Florian Westphal (1):
+>   netfilter: nf_tables: don't skip expired elements during walk
+> 
+> Pablo Neira Ayuso (4):
+>   netfilter: nf_tables: GC transaction API to avoid race with control plane
+>   netfilter: nf_tables: adapt set backend to use GC transaction API
+>   netfilter: nft_set_hash: mark set element as dead when deleting from packet path
+>   netfilter: nf_tables: remove busy mark and gc batch API
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-08-10
+> 
+> Thanks.
+> 
+> ----------------------------------------------------------------
+> 
+> The following changes since commit c5ccff70501d92db445a135fa49cf9bc6b98c444:
+> 
+>   Merge branch 'net-sched-bind-logic-fixes-for-cls_fw-cls_u32-and-cls_route' (2023-07-31 20:10:39 -0700)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-08-10
+> 
+> for you to fetch changes up to a2dd0233cbc4d8a0abb5f64487487ffc9265beb5:
+> 
+>   netfilter: nf_tables: remove busy mark and gc batch API (2023-08-10 08:25:27 +0200)
+> 
+> ----------------------------------------------------------------
+> netfilter pull request 23-08-10
+> 
+> ----------------------------------------------------------------
+> Florian Westphal (1):
+>       netfilter: nf_tables: don't skip expired elements during walk
+> 
+> Pablo Neira Ayuso (4):
+>       netfilter: nf_tables: GC transaction API to avoid race with control plane
+>       netfilter: nf_tables: adapt set backend to use GC transaction API
+>       netfilter: nft_set_hash: mark set element as dead when deleting from packet path
+>       netfilter: nf_tables: remove busy mark and gc batch API
+> 
+>  include/net/netfilter/nf_tables.h | 120 ++++++---------
+>  net/netfilter/nf_tables_api.c     | 307 ++++++++++++++++++++++++++++++--------
+>  net/netfilter/nft_set_hash.c      |  85 +++++++----
+>  net/netfilter/nft_set_pipapo.c    |  66 +++++---
+>  net/netfilter/nft_set_rbtree.c    | 146 ++++++++++--------
+>  5 files changed, 476 insertions(+), 248 deletions(-)
 
-I'm pretty sure it does, albeit maybe not officially.
+<formletter>
 
-Cheers, Phil
+This is not the correct way to submit patches for inclusion in the
+stable kernel tree.  Please read:
+    https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+for how to do this properly.
+
+</formletter>
