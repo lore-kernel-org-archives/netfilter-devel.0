@@ -2,125 +2,56 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93CE9C41513
-	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Aug 2023 18:10:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60C3BC001E0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 12 Aug 2023 22:06:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229625AbjHLSKX (ORCPT
+        id S230292AbjHLWFu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 12 Aug 2023 14:10:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42054 "EHLO
+        Sat, 12 Aug 2023 18:05:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229497AbjHLSKX (ORCPT
+        with ESMTP id S230313AbjHLWFr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 12 Aug 2023 14:10:23 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 297361716
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Aug 2023 11:10:25 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qUt4B-000855-7O; Sat, 12 Aug 2023 20:10:23 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: don't fail inserts if duplicate has expired
-Date:   Sat, 12 Aug 2023 20:03:57 +0200
-Message-ID: <20230812181018.406776-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Sat, 12 Aug 2023 18:05:47 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5E6809F;
+        Sat, 12 Aug 2023 15:05:49 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
+        sashal@kernel.org
+Subject: [PATCH -stable,6.1 0/1] netfilter stable fix for 6.1
+Date:   Sun, 13 Aug 2023 00:05:31 +0200
+Message-Id: <20230812220532.56251-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nftables selftests fail:
-run-tests.sh testcases/sets/0044interval_overlap_0
-Expected: 0-2 . 0-3, got:
-W: [FAILED]     ./testcases/sets/0044interval_overlap_0: got 1
+Hi Greg, Sasha,
 
-Insertion must ignore duplicate but expired entries.
+This is a backport of:
 
-Moreover, there is a strange asymmetry in nft_pipapo_activate:
+  1689f25924ad ("netfilter: nf_tables: report use refcount overflow")
 
-It refetches the current element, whereas the other ->activate callbacks
-(bitmap, hash, rhash, rbtree) use elem->priv.
-Same for .remove: other set implementations take elem->priv,
-nft_pipapo_remove fetches elem->priv, then does a relookup,
-remove this.
+for -stable 6.1.
 
-I suspect this was the reason for the change that prompted the
-removal of the expired check in pipapo_get() in the first place,
-but skipping exired elements there makes no sense to me, this helper
-is used for normal get requests, insertions (duplicate check)
-and deactivate callback.
+Please, apply.
 
-In first two cases expired elements must be skipped.
+Thanks.
 
-For ->deactivate(), this gets called for DELSETELEM, so it
-seems to me that expired elements should be skipped as well, i.e.
-delete request should fail with -ENOENT error.
+Pablo Neira Ayuso (1):
+  netfilter: nf_tables: report use refcount overflow
 
-Fixes: 24138933b97b ("netfilter: nf_tables: don't skip expired elements during walk")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_pipapo.c | 23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+ include/net/netfilter/nf_tables.h |  31 +++++-
+ net/netfilter/nf_tables_api.c     | 163 ++++++++++++++++++------------
+ net/netfilter/nft_flow_offload.c  |   6 +-
+ net/netfilter/nft_immediate.c     |   8 +-
+ net/netfilter/nft_objref.c        |   8 +-
+ 5 files changed, 141 insertions(+), 75 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index a5b8301afe4a..98895395c876 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -566,6 +566,8 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
- 			goto out;
- 
- 		if (last) {
-+			if (nft_set_elem_expired(&f->mt[b].e->ext))
-+				goto next_match;
- 			if ((genmask &&
- 			     !nft_set_elem_active(&f->mt[b].e->ext, genmask)))
- 				goto next_match;
-@@ -600,17 +602,8 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
- static void *nft_pipapo_get(const struct net *net, const struct nft_set *set,
- 			    const struct nft_set_elem *elem, unsigned int flags)
- {
--	struct nft_pipapo_elem *ret;
--
--	ret = pipapo_get(net, set, (const u8 *)elem->key.val.data,
-+	return pipapo_get(net, set, (const u8 *)elem->key.val.data,
- 			 nft_genmask_cur(net));
--	if (IS_ERR(ret))
--		return ret;
--
--	if (nft_set_elem_expired(&ret->ext))
--		return ERR_PTR(-ENOENT);
--
--	return ret;
- }
- 
- /**
-@@ -1732,11 +1725,7 @@ static void nft_pipapo_activate(const struct net *net,
- 				const struct nft_set *set,
- 				const struct nft_set_elem *elem)
- {
--	struct nft_pipapo_elem *e;
--
--	e = pipapo_get(net, set, (const u8 *)elem->key.val.data, 0);
--	if (IS_ERR(e))
--		return;
-+	struct nft_pipapo_elem *e = elem->priv;
- 
- 	nft_set_elem_change_active(net, set, &e->ext);
- }
-@@ -1950,10 +1939,6 @@ static void nft_pipapo_remove(const struct net *net, const struct nft_set *set,
- 
- 	data = (const u8 *)nft_set_ext_key(&e->ext);
- 
--	e = pipapo_get(net, set, data, 0);
--	if (IS_ERR(e))
--		return;
--
- 	while ((rules_f0 = pipapo_rules_same_key(m->f, first_rule))) {
- 		union nft_pipapo_map_bucket rulemap[NFT_PIPAPO_MAX_FIELDS];
- 		const u8 *match_start, *match_end;
 -- 
-2.41.0
+2.30.2
 
