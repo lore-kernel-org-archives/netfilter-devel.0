@@ -2,75 +2,132 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D0DAC41513
-	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Aug 2023 16:34:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5798EC001E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Aug 2023 16:55:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230209AbjHMQdi (ORCPT
+        id S230200AbjHMQzh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 13 Aug 2023 12:33:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50572 "EHLO
+        Sun, 13 Aug 2023 12:55:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232982AbjHMQdd (ORCPT
+        with ESMTP id S229451AbjHMQzh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 13 Aug 2023 12:33:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AA39E4B;
-        Sun, 13 Aug 2023 09:33:34 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0954660C7D;
-        Sun, 13 Aug 2023 16:33:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19698C433C7;
-        Sun, 13 Aug 2023 16:33:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1691944413;
-        bh=144iv3Vtni+8xIetQrxR2SbjUNKQr1hRvSHwIJPjJ0M=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=IpQW+VW22omOKCKZjR9u55LV1Vmm/nLbEme8PN8Jcd62Z/dQ8O5Oab6b+HxB4/vqW
-         C5SFrGF8MJ9RyqVclCC7iV4X6o4MWLk4dgzQoucofhlaCXjd934MQop478Yp5LcE0G
-         ptTEHTMdyhrd39K7bULurqIoC0t7S7Fs6WrgohIc=
-Date:   Sun, 13 Aug 2023 18:33:28 +0200
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
-        sashal@kernel.org
-Subject: Re: [PATCH -stable,4.14 0/1] netfilter stable fix for 4.14
-Message-ID: <2023081320-nacho-proofread-fb69@gregkh>
-References: <20230812220941.56747-1-pablo@netfilter.org>
+        Sun, 13 Aug 2023 12:55:37 -0400
+Received: from mail-qt1-x831.google.com (mail-qt1-x831.google.com [IPv6:2607:f8b0:4864:20::831])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E9881B5;
+        Sun, 13 Aug 2023 09:55:39 -0700 (PDT)
+Received: by mail-qt1-x831.google.com with SMTP id d75a77b69052e-4103c24a989so10985541cf.1;
+        Sun, 13 Aug 2023 09:55:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1691945738; x=1692550538;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=vSdA6ApZsPY7cmDtjPuprpoFVLsF4VqlO0j7jIEE/k8=;
+        b=eUgEDR4HUlFf707/FHe+kfMpqXFfHL2N4hJfYyosl7pn6dP+k2IjvTJ5cO3EWsCaVI
+         HWawwcQkh7KmYyJRAIQk2906THURI7CETevCa+0jImW7eMpB9qf7tDf3hLqWCJKqVGTt
+         rYuiJ12myL/lV8i6sFdHibAavUO+oNH4L7RPN6JZG3bdD50obaEBKIXqhIo0bAmLlQGs
+         nSaVlqm9MJxZnufbyo0rwB993Ss+C22K7+sSXoCWQ6NH0lvP85U/p4QxEhXDjwLD4F2u
+         IRwzDP7vZMWfgSdIJATvBYzjZbo35m4u8GrFFoODC1/+w13JvABXHbf70KNukCehgZVu
+         kW8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691945738; x=1692550538;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=vSdA6ApZsPY7cmDtjPuprpoFVLsF4VqlO0j7jIEE/k8=;
+        b=Hs6OAwmahEe0sa7zXXv/pxiM5MDkGOGAA4AyTIV3e1C4N4m0kI9l7Bsg7TCuoJ8MHy
+         zadD5gVORFhYuMYHPpl/POgDuztGznsp2gG76ljFe9U73gAqsukjugvL6Rng+E1Hlt9X
+         iTpEH4DVq9GUYVjXacE92ucRM9nUWGh3Q7nSLDDS06/OFOpshvZkhnbV3aRpRNhP/yIm
+         xFGDw/er9ZTiyACobF2MgCDlH7XZkaLqSZ0546zA54Hn/3ymYjNSuMR/RHG0qtBzRHjw
+         vjBJq4G7hreJkoMmwtprQnjnOjVcgBR+mwos3lrw7g8bwKsCY0Dx0hKJmmfmIZxe6ApF
+         VCdQ==
+X-Gm-Message-State: AOJu0Yz8ep1IVmCs/JvP3vHSduX2AYpsUC4byux5EytuHW6rFa+YeQl4
+        N+rwDsUrXerVNHjRoTJK2x3OrompnG/m6A==
+X-Google-Smtp-Source: AGHT+IEoivS6R7xoE8FZ1UTfgYsYBFunLwL3dVucEh74lUWsrd6gA5Q0kqBgVhCEm/vyX47iPY4zgA==
+X-Received: by 2002:ac8:7dcd:0:b0:403:b85c:2ac8 with SMTP id c13-20020ac87dcd000000b00403b85c2ac8mr9798173qte.14.1691945737903;
+        Sun, 13 Aug 2023 09:55:37 -0700 (PDT)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id v10-20020ac873ca000000b0040554ed322dsm2504271qtp.62.2023.08.13.09.55.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 13 Aug 2023 09:55:37 -0700 (PDT)
+From:   Xin Long <lucien.xin@gmail.com>
+To:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org
+Cc:     davem@davemloft.net, kuba@kernel.org,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: [PATCH nf] netfilter: set default timeout to 3 secs for sctp shutdown send and recv state
+Date:   Sun, 13 Aug 2023 12:55:35 -0400
+Message-Id: <4e2e8aad9c4646ec3a51833cbbf95a006a98b756.1691945735.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230812220941.56747-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Aug 13, 2023 at 12:09:40AM +0200, Pablo Neira Ayuso wrote:
-> Hi Greg, Sasha,
-> 
-> This is a backport of:
-> 
->   1689f25924ad ("netfilter: nf_tables: report use refcount overflow")
-> 
-> for -stable 4.14.
-> 
-> Please, apply.
-> 
-> Thanks.
-> 
-> Pablo Neira Ayuso (1):
->   netfilter: nf_tables: report use refcount overflow
-> 
->  include/net/netfilter/nf_tables.h |  27 +++++-
->  net/netfilter/nf_tables_api.c     | 143 +++++++++++++++++++-----------
->  net/netfilter/nft_objref.c        |   8 +-
->  3 files changed, 119 insertions(+), 59 deletions(-)
-> 
-> --
-> 2.30.2
+In SCTP protocol, it is using the same timer (T2 timer) for SHUTDOWN and
+SHUTDOWN_ACK retransmission. However in sctp conntrack the default timeout
+value for SCTP_CONNTRACK_SHUTDOWN_ACK_SENT state is 3 secs while it's 300
+msecs for SCTP_CONNTRACK_SHUTDOWN_SEND/RECV state.
 
-All now queued up, thanks!
+As Paolo Valerio noticed, this might cause unwanted expiration of the ct
+entry. In my test, with 1s tc netem delay set on the NAT path, after the
+SHUTDOWN is sent, the sctp ct entry enters SCTP_CONNTRACK_SHUTDOWN_SEND
+state. However, due to 300ms (too short) delay, when the SHUTDOWN_ACK is
+sent back from the peer, the sctp ct entry has expired and been deleted,
+and then the SHUTDOWN_ACK has to be dropped.
 
-greg k-h
+Also, it is confusing these two sysctl options always show 0 due to all
+timeout values using sec as unit:
+
+  net.netfilter.nf_conntrack_sctp_timeout_shutdown_recd = 0
+  net.netfilter.nf_conntrack_sctp_timeout_shutdown_sent = 0
+
+This patch fixes it by also using 3 secs for sctp shutdown send and recv
+state in sctp conntrack, which is also RTO.initial value in SCTP protocol.
+
+Note that the very short time value for SCTP_CONNTRACK_SHUTDOWN_SEND/RECV
+was probably used for a rare scenario where SHUTDOWN is sent on 1st path
+but SHUTDOWN_ACK is replied on 2nd path, then a new connection started
+immediately on 1st path. So this patch also moves from SHUTDOWN_SEND/RECV
+to CLOSE when receiving INIT in the ORIGINAL direction.
+
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Reported-by: Paolo Valerio <pvalerio@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+---
+ net/netfilter/nf_conntrack_proto_sctp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 91eacc9b0b98..b6bcc8f2f46b 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -49,8 +49,8 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
+ 	[SCTP_CONNTRACK_COOKIE_WAIT]		= 3 SECS,
+ 	[SCTP_CONNTRACK_COOKIE_ECHOED]		= 3 SECS,
+ 	[SCTP_CONNTRACK_ESTABLISHED]		= 210 SECS,
+-	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 300 SECS / 1000,
+-	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 300 SECS / 1000,
++	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 3 SECS,
++	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 3 SECS,
+ 	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	= 3 SECS,
+ 	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= 30 SECS,
+ };
+@@ -105,7 +105,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
+ 	{
+ /*	ORIGINAL	*/
+ /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS */
+-/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW},
++/* init         */ {sCL, sCL, sCW, sCE, sES, sCL, sCL, sSA, sCW},
+ /* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},
+ /* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
+ /* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL},
+-- 
+2.39.1
+
