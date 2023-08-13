@@ -2,132 +2,290 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5798EC001E0
-	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Aug 2023 16:55:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47438C001E0
+	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Aug 2023 20:10:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230200AbjHMQzh (ORCPT
+        id S229712AbjHMUKE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 13 Aug 2023 12:55:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35094 "EHLO
+        Sun, 13 Aug 2023 16:10:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjHMQzh (ORCPT
+        with ESMTP id S229519AbjHMUKD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 13 Aug 2023 12:55:37 -0400
-Received: from mail-qt1-x831.google.com (mail-qt1-x831.google.com [IPv6:2607:f8b0:4864:20::831])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E9881B5;
-        Sun, 13 Aug 2023 09:55:39 -0700 (PDT)
-Received: by mail-qt1-x831.google.com with SMTP id d75a77b69052e-4103c24a989so10985541cf.1;
-        Sun, 13 Aug 2023 09:55:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691945738; x=1692550538;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=vSdA6ApZsPY7cmDtjPuprpoFVLsF4VqlO0j7jIEE/k8=;
-        b=eUgEDR4HUlFf707/FHe+kfMpqXFfHL2N4hJfYyosl7pn6dP+k2IjvTJ5cO3EWsCaVI
-         HWawwcQkh7KmYyJRAIQk2906THURI7CETevCa+0jImW7eMpB9qf7tDf3hLqWCJKqVGTt
-         rYuiJ12myL/lV8i6sFdHibAavUO+oNH4L7RPN6JZG3bdD50obaEBKIXqhIo0bAmLlQGs
-         nSaVlqm9MJxZnufbyo0rwB993Ss+C22K7+sSXoCWQ6NH0lvP85U/p4QxEhXDjwLD4F2u
-         IRwzDP7vZMWfgSdIJATvBYzjZbo35m4u8GrFFoODC1/+w13JvABXHbf70KNukCehgZVu
-         kW8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691945738; x=1692550538;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vSdA6ApZsPY7cmDtjPuprpoFVLsF4VqlO0j7jIEE/k8=;
-        b=Hs6OAwmahEe0sa7zXXv/pxiM5MDkGOGAA4AyTIV3e1C4N4m0kI9l7Bsg7TCuoJ8MHy
-         zadD5gVORFhYuMYHPpl/POgDuztGznsp2gG76ljFe9U73gAqsukjugvL6Rng+E1Hlt9X
-         iTpEH4DVq9GUYVjXacE92ucRM9nUWGh3Q7nSLDDS06/OFOpshvZkhnbV3aRpRNhP/yIm
-         xFGDw/er9ZTiyACobF2MgCDlH7XZkaLqSZ0546zA54Hn/3ymYjNSuMR/RHG0qtBzRHjw
-         vjBJq4G7hreJkoMmwtprQnjnOjVcgBR+mwos3lrw7g8bwKsCY0Dx0hKJmmfmIZxe6ApF
-         VCdQ==
-X-Gm-Message-State: AOJu0Yz8ep1IVmCs/JvP3vHSduX2AYpsUC4byux5EytuHW6rFa+YeQl4
-        N+rwDsUrXerVNHjRoTJK2x3OrompnG/m6A==
-X-Google-Smtp-Source: AGHT+IEoivS6R7xoE8FZ1UTfgYsYBFunLwL3dVucEh74lUWsrd6gA5Q0kqBgVhCEm/vyX47iPY4zgA==
-X-Received: by 2002:ac8:7dcd:0:b0:403:b85c:2ac8 with SMTP id c13-20020ac87dcd000000b00403b85c2ac8mr9798173qte.14.1691945737903;
-        Sun, 13 Aug 2023 09:55:37 -0700 (PDT)
-Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
-        by smtp.gmail.com with ESMTPSA id v10-20020ac873ca000000b0040554ed322dsm2504271qtp.62.2023.08.13.09.55.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 13 Aug 2023 09:55:37 -0700 (PDT)
-From:   Xin Long <lucien.xin@gmail.com>
-To:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org
-Cc:     davem@davemloft.net, kuba@kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: [PATCH nf] netfilter: set default timeout to 3 secs for sctp shutdown send and recv state
-Date:   Sun, 13 Aug 2023 12:55:35 -0400
-Message-Id: <4e2e8aad9c4646ec3a51833cbbf95a006a98b756.1691945735.git.lucien.xin@gmail.com>
-X-Mailer: git-send-email 2.39.1
+        Sun, 13 Aug 2023 16:10:03 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5769F10F9;
+        Sun, 13 Aug 2023 13:10:03 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.201])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RP7nn4hqMz67PjK;
+        Mon, 14 Aug 2023 04:06:05 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.31; Sun, 13 Aug 2023 21:10:00 +0100
+Message-ID: <30e2bacd-2e48-9056-5950-1974b9373ee3@huawei.com>
+Date:   Sun, 13 Aug 2023 23:09:59 +0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v11.1] selftests/landlock: Add 11 new test suites
+ dedicated to network
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <artem.kuzin@huawei.com>, <gnoack3000@gmail.com>,
+        <willemdebruijn.kernel@gmail.com>, <yusongping@huawei.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>
+References: <20230515161339.631577-11-konstantin.meskhidze@huawei.com>
+ <20230706145543.1284007-1-mic@digikod.net>
+ <3db64cf8-6a45-a361-aa57-9bfbaf866ef8@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <3db64cf8-6a45-a361-aa57-9bfbaf866ef8@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In SCTP protocol, it is using the same timer (T2 timer) for SHUTDOWN and
-SHUTDOWN_ACK retransmission. However in sctp conntrack the default timeout
-value for SCTP_CONNTRACK_SHUTDOWN_ACK_SENT state is 3 secs while it's 300
-msecs for SCTP_CONNTRACK_SHUTDOWN_SEND/RECV state.
 
-As Paolo Valerio noticed, this might cause unwanted expiration of the ct
-entry. In my test, with 1s tc netem delay set on the NAT path, after the
-SHUTDOWN is sent, the sctp ct entry enters SCTP_CONNTRACK_SHUTDOWN_SEND
-state. However, due to 300ms (too short) delay, when the SHUTDOWN_ACK is
-sent back from the peer, the sctp ct entry has expired and been deleted,
-and then the SHUTDOWN_ACK has to be dropped.
 
-Also, it is confusing these two sysctl options always show 0 due to all
-timeout values using sec as unit:
+7/12/2023 10:02 AM, Mickaël Salaün пишет:
+> 
+> On 06/07/2023 16:55, Mickaël Salaün wrote:
+>> From: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> 
+>> This patch is a revamp of the v11 tests [1] with new tests (see the
+>> "Changes since v11" description).  I (Mickaël) only added the following
+>> todo list and the "Changes since v11" sections in this commit message.
+>> I think this patch is good but it would appreciate reviews.
+>> You can find the diff of my changes here but it is not really readable:
+>> https://git.kernel.org/mic/c/78edf722fba5 (landlock-net-v11 branch)
+>> [1] https://lore.kernel.org/all/20230515161339.631577-11-konstantin.meskhidze@huawei.com/
+>> TODO:
+>> - Rename all "net_service" to "net_port".
+>> - Fix the two kernel bugs found with the new tests.
+>> - Update this commit message with a small description of all tests.
+> 
+> [...]
+> 
+>> +FIXTURE_SETUP(ipv4)
+>> +{
+>> +	const struct protocol_variant prot = {
+>> +		.domain = AF_INET,
+>> +		.type = variant->type,
+>> +	};
+>> +
+>> +	disable_caps(_metadata);
+>> +
+>> +	set_service(&self->srv0, prot, 0);
+>> +	set_service(&self->srv1, prot, 1);
+>> +
+>> +	setup_loopback(_metadata);
+>> +};
+>> +
+>> +FIXTURE_TEARDOWN(ipv4)
+>> +{
+>> +}
+>> +
+>> +// Kernel FIXME: tcp_sandbox_with_tcp and tcp_sandbox_with_udp
+>> +TEST_F(ipv4, from_unix_to_inet)
+>> +{
+>> +	int unix_stream_fd, unix_dgram_fd;
+>> +
+>> +	if (variant->sandbox == TCP_SANDBOX) {
+>> +		const struct landlock_ruleset_attr ruleset_attr = {
+>> +			.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +					      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +		};
+>> +		const struct landlock_net_service_attr tcp_bind_connect_p0 = {
+>> +			.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +					  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +			.port = self->srv0.port,
+>> +		};
+>> +		int ruleset_fd;
+>> +
+>> +		/* Denies connect and bind to check errno value. */
+>> +		ruleset_fd = landlock_create_ruleset(&ruleset_attr,
+>> +						     sizeof(ruleset_attr), 0);
+>> +		ASSERT_LE(0, ruleset_fd);
+>> +
+>> +		/* Allows connect and bind for srv0.  */
+>> +		ASSERT_EQ(0, landlock_add_rule(ruleset_fd,
+>> +					       LANDLOCK_RULE_NET_SERVICE,
+>> +					       &tcp_bind_connect_p0, 0));
+>> +
+>> +		enforce_ruleset(_metadata, ruleset_fd);
+>> +		EXPECT_EQ(0, close(ruleset_fd));
+>> +	}
+>> +
+>> +	unix_stream_fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+>> +	ASSERT_LE(0, unix_stream_fd);
+>> +
+>> +	unix_dgram_fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+>> +	ASSERT_LE(0, unix_dgram_fd);
+>> +
+>> +	/* Checks unix stream bind and connect for srv0. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_stream_fd, &self->srv0));
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_stream_fd, &self->srv0));
+>> +
+>> +	/* Checks unix stream bind and connect for srv1. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_stream_fd, &self->srv1))
+>> +	{
+>> +		TH_LOG("Wrong bind error: %s", strerror(errno));
+>> +	}
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_stream_fd, &self->srv1));
+>> +
+>> +	/* Checks unix datagram bind and connect for srv0. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_dgram_fd, &self->srv0));
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_dgram_fd, &self->srv0));
+>> +
+>> +	/* Checks unix datagram bind and connect for srv0. */
+>> +	EXPECT_EQ(-EINVAL, bind_variant(unix_dgram_fd, &self->srv1));
+>> +	EXPECT_EQ(-EINVAL, connect_variant(unix_dgram_fd, &self->srv1));
+>> +}
+> 
+> We should also add a test to make sure errno is the same with and
+> without sandboxing when using port 0 for connect and consistent with
+> bind (using an available port). The test fixture and variants should be
+> quite similar to the "ipv4" ones, but we can also add AF_INET6 variants,
+> which will result in 8 "ip" variants:
+> 
+> TEST_F(ip, port_zero)
+> {
+> 	if (variant->sandbox == TCP_SANDBOX) {
+> 		/* Denies any connect and bind. */
+> 	}
+> 	/* Checks errno for port 0. */
+> }
+> 
+> [...]
+> 
+>> +FIXTURE(inet)
+>> +{
+>> +	struct service_fixture srv0, srv1;
+>> +};
+> 
+> The "inet" variants are useless and should be removed. The "inet"
+> fixture can then be renamed to "ipv4_tcp".
+> 
+   Maybe its better to name it "tcp". So we dont need to copy 
+TEST_F(tcp, port_endianness) for ipv6 and ipv4.
+What do you think?
 
-  net.netfilter.nf_conntrack_sctp_timeout_shutdown_recd = 0
-  net.netfilter.nf_conntrack_sctp_timeout_shutdown_sent = 0
-
-This patch fixes it by also using 3 secs for sctp shutdown send and recv
-state in sctp conntrack, which is also RTO.initial value in SCTP protocol.
-
-Note that the very short time value for SCTP_CONNTRACK_SHUTDOWN_SEND/RECV
-was probably used for a rare scenario where SHUTDOWN is sent on 1st path
-but SHUTDOWN_ACK is replied on 2nd path, then a new connection started
-immediately on 1st path. So this patch also moves from SHUTDOWN_SEND/RECV
-to CLOSE when receiving INIT in the ORIGINAL direction.
-
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-Reported-by: Paolo Valerio <pvalerio@redhat.com>
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
----
- net/netfilter/nf_conntrack_proto_sctp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 91eacc9b0b98..b6bcc8f2f46b 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -49,8 +49,8 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
- 	[SCTP_CONNTRACK_COOKIE_WAIT]		= 3 SECS,
- 	[SCTP_CONNTRACK_COOKIE_ECHOED]		= 3 SECS,
- 	[SCTP_CONNTRACK_ESTABLISHED]		= 210 SECS,
--	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 300 SECS / 1000,
--	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 300 SECS / 1000,
-+	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 3 SECS,
-+	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 3 SECS,
- 	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	= 3 SECS,
- 	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= 30 SECS,
- };
-@@ -105,7 +105,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
- 	{
- /*	ORIGINAL	*/
- /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS */
--/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW},
-+/* init         */ {sCL, sCL, sCW, sCE, sES, sCL, sCL, sSA, sCW},
- /* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},
- /* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
- /* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL},
--- 
-2.39.1
-
+> 
+>> +
+>> +FIXTURE_VARIANT(inet)
+>> +{
+>> +	const bool is_sandboxed;
+>> +	const struct protocol_variant prot;
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, no_sandbox_with_ipv4) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = false,
+>> +	.prot = {
+>> +		.domain = AF_INET,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, sandbox_with_ipv4) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = true,
+>> +	.prot = {
+>> +		.domain = AF_INET,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, no_sandbox_with_ipv6) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = false,
+>> +	.prot = {
+>> +		.domain = AF_INET6,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +/* clang-format off */
+>> +FIXTURE_VARIANT_ADD(inet, sandbox_with_ipv6) {
+>> +	/* clang-format on */
+>> +	.is_sandboxed = true,
+>> +	.prot = {
+>> +		.domain = AF_INET6,
+>> +		.type = SOCK_STREAM,
+>> +	},
+>> +};
+>> +
+>> +FIXTURE_SETUP(inet)
+>> +{
+>> +	const struct protocol_variant ipv4_tcp = {
+>> +		.domain = AF_INET,
+>> +		.type = SOCK_STREAM,
+>> +	};
+>> +
+>> +	disable_caps(_metadata);
+>> +
+>> +	ASSERT_EQ(0, set_service(&self->srv0, ipv4_tcp, 0));
+>> +	ASSERT_EQ(0, set_service(&self->srv1, ipv4_tcp, 1));
+>> +
+>> +	setup_loopback(_metadata);
+>> +};
+>> +
+>> +FIXTURE_TEARDOWN(inet)
+>> +{
+>> +}
+>> +
+>> +TEST_F(inet, port_endianness)
+>> +{
+>> +	const struct landlock_ruleset_attr ruleset_attr = {
+>> +		.handled_access_net = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +				      LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +	};
+>> +	const struct landlock_net_service_attr bind_host_endian_p0 = {
+>> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP,
+>> +		/* Host port format. */
+>> +		.port = self->srv0.port,
+>> +	};
+>> +	const struct landlock_net_service_attr connect_big_endian_p0 = {
+>> +		.allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +		/* Big endian port format. */
+>> +		.port = htons(self->srv0.port),
+>> +	};
+>> +	const struct landlock_net_service_attr bind_connect_host_endian_p1 = {
+>> +		.allowed_access = LANDLOCK_ACCESS_NET_BIND_TCP |
+>> +				  LANDLOCK_ACCESS_NET_CONNECT_TCP,
+>> +		/* Host port format. */
+>> +		.port = self->srv1.port,
+>> +	};
+>> +	const unsigned int one = 1;
+>> +	const char little_endian = *(const char *)&one;
+>> +	int ruleset_fd;
+>> +
+>> +	ruleset_fd =
+>> +		landlock_create_ruleset(&ruleset_attr, sizeof(ruleset_attr), 0);
+>> +	ASSERT_LE(0, ruleset_fd);
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>> +				       &bind_host_endian_p0, 0));
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>> +				       &connect_big_endian_p0, 0));
+>> +	ASSERT_EQ(0, landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_SERVICE,
+>> +				       &bind_connect_host_endian_p1, 0));
+>> +	enforce_ruleset(_metadata, ruleset_fd);
+>> +
+>> +	/* No restriction for big endinan CPU. */
+>> +	test_bind_and_connect(_metadata, &self->srv0, false, little_endian);
+>> +
+>> +	/* No restriction for any CPU. */
+>> +	test_bind_and_connect(_metadata, &self->srv1, false, false);
+>> +}
+>> +
+>> +TEST_HARNESS_MAIN
+> .
