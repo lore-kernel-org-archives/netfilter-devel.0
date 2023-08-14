@@ -2,754 +2,92 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85186C41513
-	for <netfilter-devel@archiver.kernel.org>; Sun, 13 Aug 2023 21:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F7CEB64DD
+	for <netfilter-devel@archiver.kernel.org>; Mon, 14 Aug 2023 19:38:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232486AbjHMVwy (ORCPT
+        id S229733AbjHNTiS (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 13 Aug 2023 17:52:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60720 "EHLO
+        Mon, 14 Aug 2023 15:38:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232492AbjHMVu5 (ORCPT
+        with ESMTP id S231233AbjHNTh7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 13 Aug 2023 17:50:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B1633AA1;
-        Sun, 13 Aug 2023 14:48:42 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC56163F1C;
-        Sun, 13 Aug 2023 21:48:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EECFDC433C7;
-        Sun, 13 Aug 2023 21:48:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1691963321;
-        bh=On13n61MXvS0V1ZRhbnIt7pNX7A2dN1OCEVDqD8hBRI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=0WmWGEEMnJcUYBXRrMMHHDTgLNQhL5BvZAHhQ2z5F9x0AFkAPWOsRHwsjr0HVqTd8
-         kN3B9nGRrii/j1UzZmI53MXQxQjnc5AsuEGfmZ7DQsEJHTdP9pWq/i/3DIyKw+8fLM
-         SBG05Z+b3e8Mw1CN7NEBd7cRPsXHL28dh9ovpAVY=
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        patches@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5.4 32/39] netfilter: nf_tables: report use refcount overflow
-Date:   Sun, 13 Aug 2023 23:20:23 +0200
-Message-ID: <20230813211705.902150875@linuxfoundation.org>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230813211704.796906808@linuxfoundation.org>
-References: <20230813211704.796906808@linuxfoundation.org>
-User-Agent: quilt/0.67
+        Mon, 14 Aug 2023 15:37:59 -0400
+Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D7F8BB;
+        Mon, 14 Aug 2023 12:37:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=iogearbox.net; s=default2302; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:From:Subject:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
+        bh=H3/XY/jv4icK4NgBoiigxpPa2AsF3Mqwv5r97vJFS/w=; b=pOr8bcG6l/kfke8Nee4BbrwhDN
+        A2s7rzPErfg+NVwgfSWisFIPVQH8cUmi9poBS1F1nB4w0UNXGjbNEK6bNA/ENONh546s78g4R1edz
+        WAuBCj2wUx0j5lG1e9keu4qCMaxo35Zlae00gOpVVmuNUq5yHF6GbNIAizv/Ly7lH+ud3UzJKq/iE
+        9PPEPCWlZ40lnWip20o8IyQj3PlXFdkIZziRyF1CKarFaKT2LOy1L195COrXoJbtVWRluBGdKwI2x
+        yX8yOtm+eAo3yEBl/j9XgHpxa8a++yujMymBpgH1ERG+rbzqQZR4Wj7/rfbvbPsUZA4i5FRL1cJ0L
+        zm2L6yhw==;
+Received: from sslproxy05.your-server.de ([78.46.172.2])
+        by www62.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1qVdNw-000Kkk-B7; Mon, 14 Aug 2023 21:37:52 +0200
+Received: from [85.1.206.226] (helo=pc-102.home)
+        by sslproxy05.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1qVdNw-0002wv-35; Mon, 14 Aug 2023 21:37:52 +0200
+Subject: LPC 2023 Networking and BPF Track CFP (Reminder)
+From:   Daniel Borkmann <daniel@iogearbox.net>
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc:     xdp-newbies@vger.kernel.org, linux-wireless@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+References: <1515db2c-f517-76da-8aad-127a67da802f@iogearbox.net>
+Message-ID: <db3003d6-733b-099f-ef73-abce750d66c6@iogearbox.net>
+Date:   Mon, 14 Aug 2023 21:37:51 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1515db2c-f517-76da-8aad-127a67da802f@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.8/27000/Mon Aug 14 09:37:02 2023)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+This is a reminder for the Call for Proposals (CFP) for the Networking and
+BPF track at the 2023 edition of the Linux Plumbers Conference (LPC) which is
+taking place in Richmond, VA, United States, on November 13th - 15th, 2023.
 
-commit 1689f25924ada8fe14a4a82c38925d04994c7142 upstream.
+Note that the conference is planned to be both in person and remote (hybrid).
+CFP submitters should ideally be able to give their presentation in person to
+minimize technical issues, although presenting remotely will also be possible.
 
-Overflow use refcount checks are not complete.
+The Networking and BPF track technical committee consists of:
 
-Add helper function to deal with object reference counter tracking.
-Report -EMFILE in case UINT_MAX is reached.
+     David S. Miller <davem@davemloft.net>
+     Jakub Kicinski <kuba@kernel.org>
+     Paolo Abeni <pabeni@redhat.com>
+     Eric Dumazet <edumazet@google.com>
+     Alexei Starovoitov <ast@kernel.org>
+     Daniel Borkmann <daniel@iogearbox.net>
+     Andrii Nakryiko <andrii@kernel.org>
+     Martin Lau <martin.lau@linux.dev>
 
-nft_use_dec() splats in case that reference counter underflows,
-which should not ever happen.
+We are seeking proposals of 30 minutes in length (including Q&A discussion). Any
+kind of advanced Linux networking and/or BPF related topic will be considered.
 
-Add nft_use_inc_restore() and nft_use_dec_restore() which are used
-to restore reference counter from error and abort paths.
+Please submit your proposals through the official LPC website at:
 
-Use u32 in nft_flowtable and nft_object since helper functions cannot
-work on bitfields.
+     https://lpc.events/event/17/abstracts/
 
-Remove the few early incomplete checks now that the helper functions
-are in place and used to check for refcount overflow.
+Make sure to select "eBPF & Networking Track" in the track pull-down menu.
 
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- include/net/netfilter/nf_tables.h |   31 ++++++-
- net/netfilter/nf_tables_api.c     |  166 +++++++++++++++++++++++---------------
- net/netfilter/nft_flow_offload.c  |    6 -
- net/netfilter/nft_objref.c        |    8 +
- 4 files changed, 140 insertions(+), 71 deletions(-)
+Proposals must be submitted by September 27th, and submitters will be notified
+of acceptance by October 2nd. Final slides (as PDF) are due on the first day of
+the conference.
 
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1013,6 +1013,29 @@ int __nft_release_basechain(struct nft_c
- 
- unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
- 
-+static inline bool nft_use_inc(u32 *use)
-+{
-+	if (*use == UINT_MAX)
-+		return false;
-+
-+	(*use)++;
-+
-+	return true;
-+}
-+
-+static inline void nft_use_dec(u32 *use)
-+{
-+	WARN_ON_ONCE((*use)-- == 0);
-+}
-+
-+/* For error and abort path: restore use counter to previous state. */
-+static inline void nft_use_inc_restore(u32 *use)
-+{
-+	WARN_ON_ONCE(!nft_use_inc(use));
-+}
-+
-+#define nft_use_dec_restore	nft_use_dec
-+
- /**
-  *	struct nft_table - nf_tables table
-  *
-@@ -1082,8 +1105,8 @@ struct nft_object {
- 	struct list_head		list;
- 	struct rhlist_head		rhlhead;
- 	struct nft_object_hash_key	key;
--	u32				genmask:2,
--					use:30;
-+	u32				genmask:2;
-+	u32				use;
- 	u64				handle;
- 	/* runtime data below here */
- 	const struct nft_object_ops	*ops ____cacheline_aligned;
-@@ -1185,8 +1208,8 @@ struct nft_flowtable {
- 	int				hooknum;
- 	int				priority;
- 	int				ops_len;
--	u32				genmask:2,
--					use:30;
-+	u32				genmask:2;
-+	u32				use;
- 	u64				handle;
- 	/* runtime data below here */
- 	struct nf_hook_ops		*ops ____cacheline_aligned;
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -282,7 +282,7 @@ static int nft_delchain(struct nft_ctx *
- 	if (IS_ERR(trans))
- 		return PTR_ERR(trans);
- 
--	ctx->table->use--;
-+	nft_use_dec(&ctx->table->use);
- 	nft_deactivate_next(ctx->net, ctx->chain);
- 
- 	return 0;
-@@ -323,7 +323,7 @@ nf_tables_delrule_deactivate(struct nft_
- 	/* You cannot delete the same rule twice */
- 	if (nft_is_active_next(ctx->net, rule)) {
- 		nft_deactivate_next(ctx->net, rule);
--		ctx->chain->use--;
-+		nft_use_dec(&ctx->chain->use);
- 		return 0;
- 	}
- 	return -ENOENT;
-@@ -412,7 +412,7 @@ static int nft_delset(const struct nft_c
- 		return err;
- 
- 	nft_deactivate_next(ctx->net, set);
--	ctx->table->use--;
-+	nft_use_dec(&ctx->table->use);
- 
- 	return err;
- }
-@@ -444,7 +444,7 @@ static int nft_delobj(struct nft_ctx *ct
- 		return err;
- 
- 	nft_deactivate_next(ctx->net, obj);
--	ctx->table->use--;
-+	nft_use_dec(&ctx->table->use);
- 
- 	return err;
- }
-@@ -478,7 +478,7 @@ static int nft_delflowtable(struct nft_c
- 		return err;
- 
- 	nft_deactivate_next(ctx->net, flowtable);
--	ctx->table->use--;
-+	nft_use_dec(&ctx->table->use);
- 
- 	return err;
- }
-@@ -1715,9 +1715,6 @@ static int nf_tables_addchain(struct nft
- 	struct nft_rule **rules;
- 	int err;
- 
--	if (table->use == UINT_MAX)
--		return -EOVERFLOW;
--
- 	if (nla[NFTA_CHAIN_HOOK]) {
- 		struct nft_chain_hook hook;
- 		struct nf_hook_ops *ops;
-@@ -1794,6 +1791,11 @@ static int nf_tables_addchain(struct nft
- 	if (err < 0)
- 		goto err1;
- 
-+	if (!nft_use_inc(&table->use)) {
-+		err = -EMFILE;
-+		goto err_use;
-+	}
-+
- 	err = rhltable_insert_key(&table->chains_ht, chain->name,
- 				  &chain->rhlhead, nft_chain_ht_params);
- 	if (err)
-@@ -1811,11 +1813,12 @@ static int nf_tables_addchain(struct nft
- 	if (nft_is_base_chain(chain))
- 		nft_trans_chain_policy(trans) = policy;
- 
--	table->use++;
- 	list_add_tail_rcu(&chain->list, &table->chains);
- 
- 	return 0;
- err2:
-+	nft_use_dec_restore(&table->use);
-+err_use:
- 	nf_tables_unregister_hook(net, table, chain);
- err1:
- 	nf_tables_chain_destroy(ctx);
-@@ -2831,9 +2834,6 @@ static int nf_tables_newrule(struct net
- 			return -EINVAL;
- 		handle = nf_tables_alloc_handle(table);
- 
--		if (chain->use == UINT_MAX)
--			return -EOVERFLOW;
--
- 		if (nla[NFTA_RULE_POSITION]) {
- 			pos_handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_POSITION]));
- 			old_rule = __nft_rule_lookup(chain, pos_handle);
-@@ -2915,16 +2915,21 @@ static int nf_tables_newrule(struct net
- 		expr = nft_expr_next(expr);
- 	}
- 
-+	if (!nft_use_inc(&chain->use)) {
-+		err = -EMFILE;
-+		goto err2;
-+	}
-+
- 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
- 		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
- 		if (trans == NULL) {
- 			err = -ENOMEM;
--			goto err2;
-+			goto err_destroy_flow_rule;
- 		}
- 		err = nft_delrule(&ctx, old_rule);
- 		if (err < 0) {
- 			nft_trans_destroy(trans);
--			goto err2;
-+			goto err_destroy_flow_rule;
- 		}
- 
- 		list_add_tail_rcu(&rule->list, &old_rule->list);
-@@ -2932,7 +2937,7 @@ static int nf_tables_newrule(struct net
- 		trans = nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule);
- 		if (!trans) {
- 			err = -ENOMEM;
--			goto err2;
-+			goto err_destroy_flow_rule;
- 		}
- 
- 		if (nlh->nlmsg_flags & NLM_F_APPEND) {
-@@ -2948,7 +2953,6 @@ static int nf_tables_newrule(struct net
- 		}
- 	}
- 	kvfree(info);
--	chain->use++;
- 
- 	if (nft_net->validate_state == NFT_VALIDATE_DO)
- 		return nft_table_validate(net, table);
-@@ -2962,6 +2966,9 @@ static int nf_tables_newrule(struct net
- 	}
- 
- 	return 0;
-+
-+err_destroy_flow_rule:
-+	nft_use_dec_restore(&chain->use);
- err2:
- 	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
- 	nf_tables_rule_destroy(&ctx, rule);
-@@ -3775,10 +3782,15 @@ static int nf_tables_newset(struct net *
- 	if (ops->privsize != NULL)
- 		size = ops->privsize(nla, &desc);
- 
-+	if (!nft_use_inc(&table->use)) {
-+		err = -EMFILE;
-+		goto err1;
-+	}
-+
- 	set = kvzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
- 	if (!set) {
- 		err = -ENOMEM;
--		goto err1;
-+		goto err_alloc;
- 	}
- 
- 	name = nla_strdup(nla[NFTA_SET_NAME], GFP_KERNEL);
-@@ -3825,7 +3837,7 @@ static int nf_tables_newset(struct net *
- 		goto err4;
- 
- 	list_add_tail_rcu(&set->list, &table->sets);
--	table->use++;
-+
- 	return 0;
- 
- err4:
-@@ -3834,6 +3846,8 @@ err3:
- 	kfree(set->name);
- err2:
- 	kvfree(set);
-+err_alloc:
-+	nft_use_dec_restore(&table->use);
- err1:
- 	module_put(to_set_type(ops)->owner);
- 	return err;
-@@ -3920,9 +3934,6 @@ int nf_tables_bind_set(const struct nft_
- 	struct nft_set_binding *i;
- 	struct nft_set_iter iter;
- 
--	if (set->use == UINT_MAX)
--		return -EOVERFLOW;
--
- 	if (!list_empty(&set->bindings) && nft_set_is_anonymous(set))
- 		return -EBUSY;
- 
-@@ -3947,10 +3958,12 @@ int nf_tables_bind_set(const struct nft_
- 			return iter.err;
- 	}
- bind:
-+	if (!nft_use_inc(&set->use))
-+		return -EMFILE;
-+
- 	binding->chain = ctx->chain;
- 	list_add_tail_rcu(&binding->list, &set->bindings);
- 	nft_set_trans_bind(ctx, set);
--	set->use++;
- 
- 	return 0;
- }
-@@ -3974,7 +3987,7 @@ void nf_tables_activate_set(const struct
- 	if (nft_set_is_anonymous(set))
- 		nft_clear(ctx->net, set);
- 
--	set->use++;
-+	nft_use_inc_restore(&set->use);
- }
- EXPORT_SYMBOL_GPL(nf_tables_activate_set);
- 
-@@ -3990,17 +4003,17 @@ void nf_tables_deactivate_set(const stru
- 		else
- 			list_del_rcu(&binding->list);
- 
--		set->use--;
-+		nft_use_dec(&set->use);
- 		break;
- 	case NFT_TRANS_PREPARE:
- 		if (nft_set_is_anonymous(set))
- 			nft_deactivate_next(ctx->net, set);
- 
--		set->use--;
-+		nft_use_dec(&set->use);
- 		return;
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
--		set->use--;
-+		nft_use_dec(&set->use);
- 		/* fall through */
- 	default:
- 		nf_tables_unbind_set(ctx, set, binding,
-@@ -4585,7 +4598,7 @@ void nft_set_elem_destroy(const struct n
- 		}
- 	}
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
--		(*nft_set_ext_obj(ext))->use--;
-+		nft_use_dec(&(*nft_set_ext_obj(ext))->use);
- 	kfree(elem);
- }
- EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
-@@ -4706,8 +4719,16 @@ static int nft_add_set_elem(struct nft_c
- 				     set->objtype, genmask);
- 		if (IS_ERR(obj)) {
- 			err = PTR_ERR(obj);
-+			obj = NULL;
-+			goto err2;
-+		}
-+
-+		if (!nft_use_inc(&obj->use)) {
-+			err = -EMFILE;
-+			obj = NULL;
- 			goto err2;
- 		}
-+
- 		nft_set_ext_add(&tmpl, NFT_SET_EXT_OBJREF);
- 	}
- 
-@@ -4772,10 +4793,8 @@ static int nft_add_set_elem(struct nft_c
- 		udata->len = ulen - 1;
- 		nla_memcpy(&udata->data, nla[NFTA_SET_ELEM_USERDATA], ulen);
- 	}
--	if (obj) {
-+	if (obj)
- 		*nft_set_ext_obj(ext) = obj;
--		obj->use++;
--	}
- 
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
- 	if (trans == NULL)
-@@ -4821,13 +4840,14 @@ err6:
- err5:
- 	kfree(trans);
- err4:
--	if (obj)
--		obj->use--;
- 	kfree(elem.priv);
- err3:
- 	if (nla[NFTA_SET_ELEM_DATA] != NULL)
- 		nft_data_release(&elem.data.val, desc.type);
- err2:
-+	if (obj)
-+		nft_use_dec_restore(&obj->use);
-+
- 	nft_data_release(&elem.key.val, NFT_DATA_VALUE);
- err1:
- 	return err;
-@@ -4887,11 +4907,14 @@ static int nf_tables_newsetelem(struct n
-  */
- void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
- {
-+	struct nft_chain *chain;
-+
- 	if (type == NFT_DATA_VERDICT) {
- 		switch (data->verdict.code) {
- 		case NFT_JUMP:
- 		case NFT_GOTO:
--			data->verdict.chain->use++;
-+			chain = data->verdict.chain;
-+			nft_use_inc_restore(&chain->use);
- 			break;
- 		}
- 	}
-@@ -4906,7 +4929,7 @@ static void nft_set_elem_activate(const
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
- 		nft_data_hold(nft_set_ext_data(ext), set->dtype);
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
--		(*nft_set_ext_obj(ext))->use++;
-+		nft_use_inc_restore(&(*nft_set_ext_obj(ext))->use);
- }
- 
- static void nft_set_elem_deactivate(const struct net *net,
-@@ -4918,7 +4941,7 @@ static void nft_set_elem_deactivate(cons
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
- 		nft_data_release(nft_set_ext_data(ext), set->dtype);
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF))
--		(*nft_set_ext_obj(ext))->use--;
-+		nft_use_dec(&(*nft_set_ext_obj(ext))->use);
- }
- 
- static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
-@@ -5375,9 +5398,14 @@ static int nf_tables_newobj(struct net *
- 
- 	nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
- 
-+	if (!nft_use_inc(&table->use))
-+		return -EMFILE;
-+
- 	type = nft_obj_type_get(net, objtype);
--	if (IS_ERR(type))
--		return PTR_ERR(type);
-+	if (IS_ERR(type)) {
-+		err = PTR_ERR(type);
-+		goto err_type;
-+	}
- 
- 	obj = nft_obj_init(&ctx, type, nla[NFTA_OBJ_DATA]);
- 	if (IS_ERR(obj)) {
-@@ -5403,7 +5431,7 @@ static int nf_tables_newobj(struct net *
- 		goto err4;
- 
- 	list_add_tail_rcu(&obj->list, &table->objects);
--	table->use++;
-+
- 	return 0;
- err4:
- 	/* queued in transaction log */
-@@ -5417,6 +5445,9 @@ err2:
- 	kfree(obj);
- err1:
- 	module_put(type->owner);
-+err_type:
-+	nft_use_dec_restore(&table->use);
-+
- 	return err;
- }
- 
-@@ -5761,7 +5792,7 @@ void nf_tables_deactivate_flowtable(cons
- 	case NFT_TRANS_PREPARE:
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
--		flowtable->use--;
-+		nft_use_dec(&flowtable->use);
- 		/* fall through */
- 	default:
- 		return;
-@@ -5967,9 +5998,14 @@ static int nf_tables_newflowtable(struct
- 
- 	nft_ctx_init(&ctx, net, skb, nlh, family, table, NULL, nla);
- 
-+	if (!nft_use_inc(&table->use))
-+		return -EMFILE;
-+
- 	flowtable = kzalloc(sizeof(*flowtable), GFP_KERNEL);
--	if (!flowtable)
--		return -ENOMEM;
-+	if (!flowtable) {
-+		err = -ENOMEM;
-+		goto flowtable_alloc;
-+	}
- 
- 	flowtable->table = table;
- 	flowtable->handle = nf_tables_alloc_handle(table);
-@@ -6023,7 +6059,6 @@ static int nf_tables_newflowtable(struct
- 		goto err6;
- 
- 	list_add_tail_rcu(&flowtable->list, &table->flowtables);
--	table->use++;
- 
- 	return 0;
- err6:
-@@ -6041,6 +6076,9 @@ err2:
- 	kfree(flowtable->name);
- err1:
- 	kfree(flowtable);
-+flowtable_alloc:
-+	nft_use_dec_restore(&table->use);
-+
- 	return err;
- }
- 
-@@ -7035,7 +7073,7 @@ static int nf_tables_commit(struct net *
- 			 */
- 			if (nft_set_is_anonymous(nft_trans_set(trans)) &&
- 			    !list_empty(&nft_trans_set(trans)->bindings))
--				trans->ctx.table->use--;
-+				nft_use_dec(&trans->ctx.table->use);
- 
- 			nf_tables_set_notify(&trans->ctx, nft_trans_set(trans),
- 					     NFT_MSG_NEWSET, GFP_KERNEL);
-@@ -7188,7 +7226,7 @@ static int __nf_tables_abort(struct net
- 				kfree(nft_trans_chain_name(trans));
- 				nft_trans_destroy(trans);
- 			} else {
--				trans->ctx.table->use--;
-+				nft_use_dec_restore(&trans->ctx.table->use);
- 				nft_chain_del(trans->ctx.chain);
- 				nf_tables_unregister_hook(trans->ctx.net,
- 							  trans->ctx.table,
-@@ -7196,25 +7234,25 @@ static int __nf_tables_abort(struct net
- 			}
- 			break;
- 		case NFT_MSG_DELCHAIN:
--			trans->ctx.table->use++;
-+			nft_use_inc_restore(&trans->ctx.table->use);
- 			nft_clear(trans->ctx.net, trans->ctx.chain);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWRULE:
--			trans->ctx.chain->use--;
-+			nft_use_dec_restore(&trans->ctx.chain->use);
- 			list_del_rcu(&nft_trans_rule(trans)->list);
- 			nft_rule_expr_deactivate(&trans->ctx,
- 						 nft_trans_rule(trans),
- 						 NFT_TRANS_ABORT);
- 			break;
- 		case NFT_MSG_DELRULE:
--			trans->ctx.chain->use++;
-+			nft_use_inc_restore(&trans->ctx.chain->use);
- 			nft_clear(trans->ctx.net, nft_trans_rule(trans));
- 			nft_rule_expr_activate(&trans->ctx, nft_trans_rule(trans));
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSET:
--			trans->ctx.table->use--;
-+			nft_use_dec_restore(&trans->ctx.table->use);
- 			if (nft_trans_set_bound(trans)) {
- 				nft_trans_destroy(trans);
- 				break;
-@@ -7222,7 +7260,7 @@ static int __nf_tables_abort(struct net
- 			list_del_rcu(&nft_trans_set(trans)->list);
- 			break;
- 		case NFT_MSG_DELSET:
--			trans->ctx.table->use++;
-+			nft_use_inc_restore(&trans->ctx.table->use);
- 			nft_clear(trans->ctx.net, nft_trans_set(trans));
- 			nft_trans_destroy(trans);
- 			break;
-@@ -7249,23 +7287,23 @@ static int __nf_tables_abort(struct net
- 				nft_obj_destroy(&trans->ctx, nft_trans_obj_newobj(trans));
- 				nft_trans_destroy(trans);
- 			} else {
--				trans->ctx.table->use--;
-+				nft_use_dec_restore(&trans->ctx.table->use);
- 				nft_obj_del(nft_trans_obj(trans));
- 			}
- 			break;
- 		case NFT_MSG_DELOBJ:
--			trans->ctx.table->use++;
-+			nft_use_inc_restore(&trans->ctx.table->use);
- 			nft_clear(trans->ctx.net, nft_trans_obj(trans));
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWFLOWTABLE:
--			trans->ctx.table->use--;
-+			nft_use_dec_restore(&trans->ctx.table->use);
- 			list_del_rcu(&nft_trans_flowtable(trans)->list);
- 			nft_unregister_flowtable_net_hooks(net,
- 					nft_trans_flowtable(trans));
- 			break;
- 		case NFT_MSG_DELFLOWTABLE:
--			trans->ctx.table->use++;
-+			nft_use_inc_restore(&trans->ctx.table->use);
- 			nft_clear(trans->ctx.net, nft_trans_flowtable(trans));
- 			nft_trans_destroy(trans);
- 			break;
-@@ -7685,8 +7723,9 @@ static int nft_verdict_init(const struct
- 			return PTR_ERR(chain);
- 		if (nft_is_base_chain(chain))
- 			return -EOPNOTSUPP;
-+		if (!nft_use_inc(&chain->use))
-+			return -EMFILE;
- 
--		chain->use++;
- 		data->verdict.chain = chain;
- 		break;
- 	}
-@@ -7698,10 +7737,13 @@ static int nft_verdict_init(const struct
- 
- static void nft_verdict_uninit(const struct nft_data *data)
- {
-+	struct nft_chain *chain;
-+
- 	switch (data->verdict.code) {
- 	case NFT_JUMP:
- 	case NFT_GOTO:
--		data->verdict.chain->use--;
-+		chain = data->verdict.chain;
-+		nft_use_dec(&chain->use);
- 		break;
- 	}
- }
-@@ -7855,11 +7897,11 @@ int __nft_release_basechain(struct nft_c
- 	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
- 	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
- 		list_del(&rule->list);
--		ctx->chain->use--;
-+		nft_use_dec(&ctx->chain->use);
- 		nf_tables_rule_release(ctx, rule);
- 	}
- 	nft_chain_del(ctx->chain);
--	ctx->table->use--;
-+	nft_use_dec(&ctx->table->use);
- 	nf_tables_chain_destroy(ctx);
- 
- 	return 0;
-@@ -7896,29 +7938,29 @@ static void __nft_release_table(struct n
- 		ctx.chain = chain;
- 		list_for_each_entry_safe(rule, nr, &chain->rules, list) {
- 			list_del(&rule->list);
--			chain->use--;
-+			nft_use_dec(&chain->use);
- 			nf_tables_rule_release(&ctx, rule);
- 		}
- 	}
- 	list_for_each_entry_safe(flowtable, nf, &table->flowtables, list) {
- 		list_del(&flowtable->list);
--		table->use--;
-+		nft_use_dec(&table->use);
- 		nf_tables_flowtable_destroy(flowtable);
- 	}
- 	list_for_each_entry_safe(set, ns, &table->sets, list) {
- 		list_del(&set->list);
--		table->use--;
-+		nft_use_dec(&table->use);
- 		nft_set_destroy(set);
- 	}
- 	list_for_each_entry_safe(obj, ne, &table->objects, list) {
- 		nft_obj_del(obj);
--		table->use--;
-+		nft_use_dec(&table->use);
- 		nft_obj_destroy(&ctx, obj);
- 	}
- 	list_for_each_entry_safe(chain, nc, &table->chains, list) {
- 		ctx.chain = chain;
- 		nft_chain_del(chain);
--		table->use--;
-+		nft_use_dec(&table->use);
- 		nf_tables_chain_destroy(&ctx);
- 	}
- 	list_del(&table->list);
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -171,8 +171,10 @@ static int nft_flow_offload_init(const s
- 	if (IS_ERR(flowtable))
- 		return PTR_ERR(flowtable);
- 
-+	if (!nft_use_inc(&flowtable->use))
-+		return -EMFILE;
-+
- 	priv->flowtable = flowtable;
--	flowtable->use++;
- 
- 	return nf_ct_netns_get(ctx->net, ctx->family);
- }
-@@ -191,7 +193,7 @@ static void nft_flow_offload_activate(co
- {
- 	struct nft_flow_offload *priv = nft_expr_priv(expr);
- 
--	priv->flowtable->use++;
-+	nft_use_inc_restore(&priv->flowtable->use);
- }
- 
- static void nft_flow_offload_destroy(const struct nft_ctx *ctx,
---- a/net/netfilter/nft_objref.c
-+++ b/net/netfilter/nft_objref.c
-@@ -41,8 +41,10 @@ static int nft_objref_init(const struct
- 	if (IS_ERR(obj))
- 		return -ENOENT;
- 
-+	if (!nft_use_inc(&obj->use))
-+		return -EMFILE;
-+
- 	nft_objref_priv(expr) = obj;
--	obj->use++;
- 
- 	return 0;
- }
-@@ -71,7 +73,7 @@ static void nft_objref_deactivate(const
- 	if (phase == NFT_TRANS_COMMIT)
- 		return;
- 
--	obj->use--;
-+	nft_use_dec(&obj->use);
- }
- 
- static void nft_objref_activate(const struct nft_ctx *ctx,
-@@ -79,7 +81,7 @@ static void nft_objref_activate(const st
- {
- 	struct nft_object *obj = nft_objref_priv(expr);
- 
--	obj->use++;
-+	nft_use_inc_restore(&obj->use);
- }
- 
- static struct nft_expr_type nft_objref_type;
-
-
+We are very much looking forward to a great conference and seeing you all!
