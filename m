@@ -2,400 +2,157 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B10CAC04FE0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Aug 2023 17:33:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B81C41513
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Aug 2023 18:09:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238894AbjHORc7 (ORCPT
+        id S237952AbjHOSJU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Aug 2023 13:32:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33498 "EHLO
+        Tue, 15 Aug 2023 14:09:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238918AbjHORcj (ORCPT
+        with ESMTP id S237636AbjHOSIw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2023 13:32:39 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 429461BDD;
-        Tue, 15 Aug 2023 10:32:36 -0700 (PDT)
-Received: from mg.bb.i.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id DB3AA10001;
-        Tue, 15 Aug 2023 20:32:34 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id C3260FF8D;
-        Tue, 15 Aug 2023 20:32:34 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-        by ink.ssi.bg (Postfix) with ESMTPSA id 97B9A3C07C9;
-        Tue, 15 Aug 2023 20:32:16 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-        t=1692120736; bh=U1NUjivCNAXMFj00ypTiYeVSy0so+alu6FpqOds2pjk=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=JTMWL0F2DifEnN0146aO/gTFojdzh9BMKZe3luaLCWxITEBcDy1qFGF63UqAC1nlB
-         xSQ7F1nwK8d2DN++XLT4C00zJNuycxuAVclSxSCik7zlVQMyM0fkmBJGXELi/wb1x5
-         tySk9X6R98TGwZ+uMUrT6eedu4H2iKSdysbA9YbI=
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 37FHWGYh168623;
-        Tue, 15 Aug 2023 20:32:16 +0300
-Received: (from root@localhost)
-        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 37FHWG4E168622;
-        Tue, 15 Aug 2023 20:32:16 +0300
-From:   Julian Anastasov <ja@ssi.bg>
-To:     Simon Horman <horms@verge.net.au>
-Cc:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, "Paul E . McKenney" <paulmck@kernel.org>,
-        rcu@vger.kernel.org, Dust Li <dust.li@linux.alibaba.com>,
-        Jiejian Wu <jiejian@linux.alibaba.com>,
-        Jiri Wiesner <jwiesner@suse.de>
-Subject: [PATCH RFC net-next 04/14] ipvs: use single svc table
-Date:   Tue, 15 Aug 2023 20:30:21 +0300
-Message-ID: <20230815173031.168344-5-ja@ssi.bg>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230815173031.168344-1-ja@ssi.bg>
-References: <20230815173031.168344-1-ja@ssi.bg>
+        Tue, 15 Aug 2023 14:08:52 -0400
+Received: from mail-qk1-x732.google.com (mail-qk1-x732.google.com [IPv6:2607:f8b0:4864:20::732])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA6C7106;
+        Tue, 15 Aug 2023 11:08:50 -0700 (PDT)
+Received: by mail-qk1-x732.google.com with SMTP id af79cd13be357-76c845dc5beso349174685a.1;
+        Tue, 15 Aug 2023 11:08:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692122930; x=1692727730;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=9Vxb3z1IyIN9TwyIHVuiJGwsFwB19zV9fp6dkcldmjA=;
+        b=qRpYBpjBwulpss0QRfUXJOB9fnOl/4njSUxgWt8Z0iLYXxrSEvpm9Luw07J/wSUsJ7
+         UshR1GlpAjpuG2jJ+9bjQ0Wo2vqMsuIFbA9I7I+wfs9u6wF4XDXdu4dKE/hmi5De4fPP
+         mDExX4qTnkdP47pprV0E4cXII6lcqyD2cJD1jmcKIU3yucmQl0IL90RlWkLGbj0UGlww
+         jBmXwoKd/+wndytZKpCks2hmR6YTdmqZm0vOis5CdJJRrURWiPbgGbH3gCNU9l5ckGgl
+         EVqS1vWPhFkSLhJ2/yFuDpCpywkcBldC7IHjYuZpihFQ8mgbUQTuSykAFO4nhztRWVw/
+         mIAQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692122930; x=1692727730;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=9Vxb3z1IyIN9TwyIHVuiJGwsFwB19zV9fp6dkcldmjA=;
+        b=Oom5/jTgxw/V5Ts2W57QL/CeW3eU9dMLblbkD8NrnbJN9iWRy0M5FfTgT8Js7UIk0Z
+         lfF6Je1wLbJGoQwde96j9/3COftmLyve/+3q80ARgcRI+FPQHe5Rj35Xe9HCWsRCMcYl
+         sHpHbr2HGSQ5zJEcO//+3cklrU4Za8jvQGeJXnRt2SquUbtCMFpexhqOWg7ydh8HyjGv
+         UqNWv88qFijVs0FtbGNBhY/d3DGrJxhzHnAS675gClwIognfKFofNh2NhEjFszQHTRZ+
+         KYMGzeVdbHn5oJ/KgpPbVxANIx+puqku7UzfMZL6D2G8jEZxOS/n1zjsuZSuwcfdW5Yd
+         GCxg==
+X-Gm-Message-State: AOJu0YxLrMe2LvMm8606Z4qXoPm1h+0jTOH040kRea4VBaXzou57TJKV
+        O8dovG2293yZV8PW2vbyJ61lrYqsoNNLVg==
+X-Google-Smtp-Source: AGHT+IHRA5lORqlA0Yf1DFvIYlvudekPcuFkO7x81IuuWMG6eZd+uQwGVZuHRUwp/XUz0Iu9zmcepw==
+X-Received: by 2002:a05:620a:4712:b0:76c:cb3c:30c with SMTP id bs18-20020a05620a471200b0076ccb3c030cmr13889648qkb.52.1692122929813;
+        Tue, 15 Aug 2023 11:08:49 -0700 (PDT)
+Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
+        by smtp.gmail.com with ESMTPSA id w7-20020ae9e507000000b00767d572d651sm3907916qkf.87.2023.08.15.11.08.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 15 Aug 2023 11:08:49 -0700 (PDT)
+From:   Xin Long <lucien.xin@gmail.com>
+To:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org
+Cc:     davem@davemloft.net, kuba@kernel.org,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        Simon Horman <horms@kernel.org>,
+        Sriram Yagnaraman <sriram.yagnaraman@est.tech>
+Subject: [PATCHv2 nf] netfilter: set default timeout to 3 secs for sctp shutdown send and recv state
+Date:   Tue, 15 Aug 2023 14:08:47 -0400
+Message-Id: <4f2f3f3e0402c41ed46483dc9254dc6d71f06ceb.1692122927.git.lucien.xin@gmail.com>
+X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-fwmark based services and non-fwmark based services can be hashed
-in same service table. This reduces the burden of working with two
-tables.
+In SCTP protocol, it is using the same timer (T2 timer) for SHUTDOWN and
+SHUTDOWN_ACK retransmission. However in sctp conntrack the default timeout
+value for SCTP_CONNTRACK_SHUTDOWN_ACK_SENT state is 3 secs while it's 300
+msecs for SCTP_CONNTRACK_SHUTDOWN_SEND/RECV state.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+As Paolo Valerio noticed, this might cause unwanted expiration of the ct
+entry. In my test, with 1s tc netem delay set on the NAT path, after the
+SHUTDOWN is sent, the sctp ct entry enters SCTP_CONNTRACK_SHUTDOWN_SEND
+state. However, due to 300ms (too short) delay, when the SHUTDOWN_ACK is
+sent back from the peer, the sctp ct entry has expired and been deleted,
+and then the SHUTDOWN_ACK has to be dropped.
+
+Also, it is confusing these two sysctl options always show 0 due to all
+timeout values using sec as unit:
+
+  net.netfilter.nf_conntrack_sctp_timeout_shutdown_recd = 0
+  net.netfilter.nf_conntrack_sctp_timeout_shutdown_sent = 0
+
+This patch fixes it by also using 3 secs for sctp shutdown send and recv
+state in sctp conntrack, which is also RTO.initial value in SCTP protocol.
+
+Note that the very short time value for SCTP_CONNTRACK_SHUTDOWN_SEND/RECV
+was probably used for a rare scenario where SHUTDOWN is sent on 1st path
+but SHUTDOWN_ACK is replied on 2nd path, then a new connection started
+immediately on 1st path. So this patch also moves from SHUTDOWN_SEND/RECV
+to CLOSE when receiving INIT in the ORIGINAL direction.
+
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Reported-by: Paolo Valerio <pvalerio@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
 ---
- include/net/ip_vs.h            |   8 +-
- net/netfilter/ipvs/ip_vs_ctl.c | 146 +++++----------------------------
- 2 files changed, 22 insertions(+), 132 deletions(-)
+v1->v2:
+- fix sysctl nf_conntrack_sctp_timeout_shutdown_sent default value
+  described in nf_conntrack-sysctl.rst, as Sriram noticed.
+---
+ Documentation/networking/nf_conntrack-sysctl.rst | 4 ++--
+ net/netfilter/nf_conntrack_proto_sctp.c          | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 68e562bc9df2..b0a9f67a5c33 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -679,8 +679,7 @@ struct ip_vs_dest_user_kern {
-  * forwarding entries.
-  */
- struct ip_vs_service {
--	struct hlist_node	s_list;   /* for normal service table */
--	struct hlist_node	f_list;   /* for fwmark-based service table */
-+	struct hlist_node	s_list;   /* node in service table */
- 	atomic_t		refcnt;   /* reference counter */
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 8b1045c3b59e..c383a394c665 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -178,10 +178,10 @@ nf_conntrack_sctp_timeout_established - INTEGER (seconds)
+ 	Default is set to (hb_interval * path_max_retrans + rto_max)
  
- 	u16			af;       /* address family */
-@@ -1050,10 +1049,7 @@ struct netns_ipvs {
+ nf_conntrack_sctp_timeout_shutdown_sent - INTEGER (seconds)
+-	default 0.3
++	default 3
  
- 	/* the service mutex that protect svc_table and svc_fwm_table */
- 	struct mutex service_mutex;
--	/* the service table hashed by <protocol, addr, port> */
--	struct hlist_head svc_table[IP_VS_SVC_TAB_SIZE];
--	/* the service table hashed by fwmark */
--	struct hlist_head svc_fwm_table[IP_VS_SVC_TAB_SIZE];
-+	struct hlist_head svc_table[IP_VS_SVC_TAB_SIZE];	/* Services */
+ nf_conntrack_sctp_timeout_shutdown_recd - INTEGER (seconds)
+-	default 0.3
++	default 3
+ 
+ nf_conntrack_sctp_timeout_shutdown_ack_sent - INTEGER (seconds)
+ 	default 3
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 91eacc9b0b98..b6bcc8f2f46b 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -49,8 +49,8 @@ static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
+ 	[SCTP_CONNTRACK_COOKIE_WAIT]		= 3 SECS,
+ 	[SCTP_CONNTRACK_COOKIE_ECHOED]		= 3 SECS,
+ 	[SCTP_CONNTRACK_ESTABLISHED]		= 210 SECS,
+-	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 300 SECS / 1000,
+-	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 300 SECS / 1000,
++	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 3 SECS,
++	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 3 SECS,
+ 	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	= 3 SECS,
+ 	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= 30 SECS,
  };
- 
- #define DEFAULT_SYNC_THRESHOLD	3
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 276fdc31e938..5b865c87e63d 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -329,7 +329,7 @@ static inline unsigned int ip_vs_svc_fwm_hashkey(struct netns_ipvs *ipvs, __u32
- 
- /*
-  *	Hashes a service in the svc_table by <netns,proto,addr,port>
-- *	or in the svc_fwm_table by fwmark.
-+ *	or by fwmark.
-  *	Should be called with locked tables.
-  */
- static int ip_vs_svc_hash(struct ip_vs_service *svc)
-@@ -344,18 +344,17 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- 
- 	if (svc->fwmark == 0) {
- 		/*
--		 *  Hash it by <netns,protocol,addr,port> in svc_table
-+		 *  Hash it by <netns,protocol,addr,port>
- 		 */
- 		hash = ip_vs_svc_hashkey(svc->ipvs, svc->af, svc->protocol,
- 					 &svc->addr, svc->port);
--		hlist_add_head_rcu(&svc->s_list, &svc->ipvs->svc_table[hash]);
- 	} else {
- 		/*
--		 *  Hash it by fwmark in svc_fwm_table
-+		 *  Hash it by fwmark
- 		 */
- 		hash = ip_vs_svc_fwm_hashkey(svc->ipvs, svc->fwmark);
--		hlist_add_head_rcu(&svc->f_list, &svc->ipvs->svc_fwm_table[hash]);
- 	}
-+	hlist_add_head_rcu(&svc->s_list, &svc->ipvs->svc_table[hash]);
- 
- 	svc->flags |= IP_VS_SVC_F_HASHED;
- 	/* increase its refcnt because it is referenced by the svc table */
-@@ -365,7 +364,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- 
- 
- /*
-- *	Unhashes a service from svc_table / svc_fwm_table.
-+ *	Unhashes a service from svc_table.
-  *	Should be called with locked tables.
-  */
- static int ip_vs_svc_unhash(struct ip_vs_service *svc)
-@@ -376,13 +375,8 @@ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
- 		return 0;
- 	}
- 
--	if (svc->fwmark == 0) {
--		/* Remove it from the svc_table table */
--		hlist_del_rcu(&svc->s_list);
--	} else {
--		/* Remove it from the svc_fwm_table table */
--		hlist_del_rcu(&svc->f_list);
--	}
-+	/* Remove it from svc_table */
-+	hlist_del_rcu(&svc->s_list);
- 
- 	svc->flags &= ~IP_VS_SVC_F_HASHED;
- 	atomic_dec(&svc->refcnt);
-@@ -405,7 +399,8 @@ __ip_vs_service_find(struct netns_ipvs *ipvs, int af, __u16 protocol,
- 
- 	hlist_for_each_entry_rcu(svc, &ipvs->svc_table[hash], s_list) {
- 		if (svc->af == af && ip_vs_addr_equal(af, &svc->addr, vaddr) &&
--		    svc->port == vport && svc->protocol == protocol) {
-+		    svc->port == vport && svc->protocol == protocol &&
-+		    !svc->fwmark) {
- 			/* HIT */
- 			return svc;
- 		}
-@@ -427,7 +422,7 @@ __ip_vs_svc_fwm_find(struct netns_ipvs *ipvs, int af, __u32 fwmark)
- 	/* Check for fwmark addressed entries */
- 	hash = ip_vs_svc_fwm_hashkey(ipvs, fwmark);
- 
--	hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[hash], f_list) {
-+	hlist_for_each_entry_rcu(svc, &ipvs->svc_table[hash], s_list) {
- 		if (svc->fwmark == fwmark && svc->af == af) {
- 			/* HIT */
- 			return svc;
-@@ -1682,26 +1677,11 @@ static int ip_vs_flush(struct netns_ipvs *ipvs, bool cleanup)
- 	struct ip_vs_service *svc;
- 	struct hlist_node *n;
- 
--	/*
--	 * Flush the service table hashed by <netns,protocol,addr,port>
--	 */
- 	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
- 		hlist_for_each_entry_safe(svc, n, &ipvs->svc_table[idx],
--					  s_list) {
-+					  s_list)
- 			ip_vs_unlink_service(svc, cleanup);
--		}
- 	}
--
--	/*
--	 * Flush the service table hashed by fwmark
--	 */
--	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
--		hlist_for_each_entry_safe(svc, n, &ipvs->svc_fwm_table[idx],
--					  f_list) {
--			ip_vs_unlink_service(svc, cleanup);
--		}
--	}
--
- 	return 0;
- }
- 
-@@ -1764,11 +1744,6 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
- 			list_for_each_entry_rcu(dest, &svc->destinations,
- 						n_list)
- 				ip_vs_forget_dev(dest, dev);
--
--		hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[idx], f_list)
--			list_for_each_entry_rcu(dest, &svc->destinations,
--						n_list)
--				ip_vs_forget_dev(dest, dev);
- 	}
- 	rcu_read_unlock();
- 
-@@ -1802,15 +1777,8 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- 	struct ip_vs_service *svc;
- 
- 	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
--		hlist_for_each_entry(svc, &ipvs->svc_table[idx], s_list) {
-+		hlist_for_each_entry(svc, &ipvs->svc_table[idx], s_list)
- 			ip_vs_zero_service(svc);
--		}
--	}
--
--	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
--		hlist_for_each_entry(svc, &ipvs->svc_fwm_table[idx], f_list) {
--			ip_vs_zero_service(svc);
--		}
- 	}
- 
- 	ip_vs_zero_stats(&ipvs->tot_stats->s);
-@@ -2243,7 +2211,6 @@ static struct ctl_table vs_vars[] = {
- 
- struct ip_vs_iter {
- 	struct seq_net_private p;  /* Do not move this, netns depends upon it*/
--	struct hlist_head *table;
- 	int bucket;
- };
- 
-@@ -2266,7 +2233,6 @@ static inline const char *ip_vs_fwd_name(unsigned int flags)
- }
- 
- 
--/* Get the Nth entry in the two lists */
- static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
- {
- 	struct net *net = seq_file_net(seq);
-@@ -2275,29 +2241,14 @@ static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
- 	int idx;
- 	struct ip_vs_service *svc;
- 
--	/* look in hash by protocol */
- 	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
- 		hlist_for_each_entry_rcu(svc, &ipvs->svc_table[idx], s_list) {
- 			if (pos-- == 0) {
--				iter->table = ipvs->svc_table;
--				iter->bucket = idx;
--				return svc;
--			}
--		}
--	}
--
--	/* keep looking in fwmark */
--	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
--		hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[idx],
--					 f_list) {
--			if (pos-- == 0) {
--				iter->table = ipvs->svc_fwm_table;
- 				iter->bucket = idx;
- 				return svc;
- 			}
- 		}
- 	}
--
- 	return NULL;
- }
- 
-@@ -2324,38 +2275,17 @@ static void *ip_vs_info_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- 	svc = v;
- 	iter = seq->private;
- 
--	if (iter->table == ipvs->svc_table) {
--		/* next service in table hashed by protocol */
--		e = rcu_dereference(hlist_next_rcu(&svc->s_list));
--		if (e)
--			return hlist_entry(e, struct ip_vs_service, s_list);
--
--		while (++iter->bucket < IP_VS_SVC_TAB_SIZE) {
--			hlist_for_each_entry_rcu(svc,
--						 &ipvs->svc_table[iter->bucket],
--						 s_list) {
--				return svc;
--			}
--		}
--
--		iter->table = ipvs->svc_fwm_table;
--		iter->bucket = -1;
--		goto scan_fwmark;
--	}
--
--	/* next service in hashed by fwmark */
--	e = rcu_dereference(hlist_next_rcu(&svc->f_list));
-+	e = rcu_dereference(hlist_next_rcu(&svc->s_list));
- 	if (e)
--		return hlist_entry(e, struct ip_vs_service, f_list);
-+		return hlist_entry(e, struct ip_vs_service, s_list);
- 
-- scan_fwmark:
- 	while (++iter->bucket < IP_VS_SVC_TAB_SIZE) {
- 		hlist_for_each_entry_rcu(svc,
--					 &ipvs->svc_fwm_table[iter->bucket],
--					 f_list)
-+					 &ipvs->svc_table[iter->bucket],
-+					 s_list) {
- 			return svc;
-+		}
- 	}
--
- 	return NULL;
- }
- 
-@@ -2377,17 +2307,12 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
- 		seq_puts(seq,
- 			 "  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n");
- 	} else {
--		struct net *net = seq_file_net(seq);
--		struct netns_ipvs *ipvs = net_ipvs(net);
- 		const struct ip_vs_service *svc = v;
--		const struct ip_vs_iter *iter = seq->private;
- 		const struct ip_vs_dest *dest;
- 		struct ip_vs_scheduler *sched = rcu_dereference(svc->scheduler);
- 		char *sched_name = sched ? sched->name : "none";
- 
--		if (svc->ipvs != ipvs)
--			return 0;
--		if (iter->table == ipvs->svc_table) {
-+		if (!svc->fwmark) {
- #ifdef CONFIG_IP_VS_IPV6
- 			if (svc->af == AF_INET6)
- 				seq_printf(seq, "%s  [%pI6]:%04X %s ",
-@@ -2862,24 +2787,6 @@ __ip_vs_get_service_entries(struct netns_ipvs *ipvs,
- 		}
- 	}
- 
--	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
--		hlist_for_each_entry(svc, &ipvs->svc_fwm_table[idx], f_list) {
--			/* Only expose IPv4 entries to old interface */
--			if (svc->af != AF_INET)
--				continue;
--
--			if (count >= get->num_services)
--				goto out;
--			memset(&entry, 0, sizeof(entry));
--			ip_vs_copy_service(&entry, svc);
--			if (copy_to_user(&uptr->entrytable[count],
--					 &entry, sizeof(entry))) {
--				ret = -EFAULT;
--				goto out;
--			}
--			count++;
--		}
--	}
- out:
- 	return ret;
- }
-@@ -3380,17 +3287,6 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
- 		}
- 	}
- 
--	for (i = 0; i < IP_VS_SVC_TAB_SIZE; i++) {
--		hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[i], f_list) {
--			if (++idx <= start)
--				continue;
--			if (ip_vs_genl_dump_service(skb, svc, cb) < 0) {
--				idx--;
--				goto nla_put_failure;
--			}
--		}
--	}
--
- nla_put_failure:
- 	rcu_read_unlock();
- 	cb->args[0] = idx;
-@@ -4389,12 +4285,10 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
- 	int ret = -ENOMEM;
- 	int idx;
- 
--	/* Initialize service_mutex, svc_table, svc_fwm_table per netns */
-+	/* Initialize service_mutex, svc_table per netns */
- 	__mutex_init(&ipvs->service_mutex, "ipvs->service_mutex", &__ipvs_service_key);
--	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
-+	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++)
- 		INIT_HLIST_HEAD(&ipvs->svc_table[idx]);
--		INIT_HLIST_HEAD(&ipvs->svc_fwm_table[idx]);
--	}
- 
- 	/* Initialize rs_table */
- 	for (idx = 0; idx < IP_VS_RTAB_SIZE; idx++)
+@@ -105,7 +105,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
+ 	{
+ /*	ORIGINAL	*/
+ /*                  sNO, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS */
+-/* init         */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCW},
++/* init         */ {sCL, sCL, sCW, sCE, sES, sCL, sCL, sSA, sCW},
+ /* init_ack     */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},
+ /* abort        */ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL},
+ /* shutdown     */ {sCL, sCL, sCW, sCE, sSS, sSS, sSR, sSA, sCL},
 -- 
-2.41.0
-
+2.39.1
 
