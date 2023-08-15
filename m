@@ -2,41 +2,41 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8EA5C04FDF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8AABC04FE1
 	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Aug 2023 01:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241158AbjHPB5o (ORCPT
+        id S241161AbjHPB5o (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 15 Aug 2023 21:57:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59600 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241191AbjHPB5Z (ORCPT
+        with ESMTP id S241223AbjHPB5i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2023 21:57:25 -0400
+        Tue, 15 Aug 2023 21:57:38 -0400
 Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCC2010D1;
-        Tue, 15 Aug 2023 18:57:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70E9B2109;
+        Tue, 15 Aug 2023 18:57:24 -0700 (PDT)
 Received: from mg.bb.i.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 72AE1121AC;
-        Wed, 16 Aug 2023 04:57:18 +0300 (EEST)
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 0A60B121B0;
+        Wed, 16 Aug 2023 04:57:23 +0300 (EEST)
 Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 5DFF4121AB;
-        Wed, 16 Aug 2023 04:57:18 +0300 (EEST)
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id E7C98121AF;
+        Wed, 16 Aug 2023 04:57:22 +0300 (EEST)
 Received: from ja.ssi.bg (unknown [213.16.62.126])
-        by ink.ssi.bg (Postfix) with ESMTPSA id 965443C07D1;
+        by ink.ssi.bg (Postfix) with ESMTPSA id B6B383C07D2;
         Wed, 16 Aug 2023 04:57:08 +0300 (EEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-        t=1692151028; bh=XcE1ptLktK3uyDhF6WKrZKptpn4/xt5YFEG2dA+VJOw=;
+        t=1692151028; bh=Ew7hm85tKXib8qHRJUoYIIAFkQSDxR+OwF18o24BLsk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=JPkuukBASlvVKL1yNJnIrsZyqEjhMKJkhNin+U9S9X7CUofZMhFYgTtSrRU128w1/
-         E57lfLX5Q+uqw7sixPaxqk54AQsk1vz35YjGQ/U0kGYXLoXsiS6fn4GCKj6+ixGtSI
-         jjfzpdQkHWVjdkl33I75CpI7QiRCcaEWqfbuGx6g=
+        b=taqsfAUTPGqE6mw+7ps/XiA6JSlNF+EoHdWdAP0KgJ8rBWnYqSM2EWsFw1NRfk9hm
+         sh3IZe1HNhBQA2aZOxe+LBPNa/4sbpvUNRpLasNRF72fmuu1OSP4fIrZnKyURfFLQ8
+         W1rRm+OFeSSarjVmTFRamGfuT6HD7gbYNxv8GKcY=
 Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 37FHWGcP168627;
-        Tue, 15 Aug 2023 20:32:16 +0300
+        by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 37FHWHj6168655;
+        Tue, 15 Aug 2023 20:32:17 +0300
 Received: (from root@localhost)
-        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 37FHWGrx168626;
-        Tue, 15 Aug 2023 20:32:16 +0300
+        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 37FHWHeC168654;
+        Tue, 15 Aug 2023 20:32:17 +0300
 From:   Julian Anastasov <ja@ssi.bg>
 To:     Simon Horman <horms@verge.net.au>
 Cc:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         rcu@vger.kernel.org, Dust Li <dust.li@linux.alibaba.com>,
         Jiejian Wu <jiejian@linux.alibaba.com>,
         Jiri Wiesner <jwiesner@suse.de>
-Subject: [PATCH RFC net-next 05/14] ipvs: do not keep dest_dst after dest is removed
-Date:   Tue, 15 Aug 2023 20:30:22 +0300
-Message-ID: <20230815173031.168344-6-ja@ssi.bg>
+Subject: [PATCH RFC net-next 11/14] ipvs: no_cport and dropentry counters can be per-net
+Date:   Tue, 15 Aug 2023 20:30:28 +0300
+Message-ID: <20230815173031.168344-12-ja@ssi.bg>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230815173031.168344-1-ja@ssi.bg>
 References: <20230815173031.168344-1-ja@ssi.bg>
@@ -56,165 +56,165 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Before now dest->dest_dst is not released when server is moved into
-dest_trash list after removal. As result, we can keep dst/dev
-references for long time without actively using them.
-
-It is better to avoid walking the dest_trash list when
-ip_vs_dst_event() receives dev events. So, make sure we do not
-hold dev references in dest_trash list. As packets can be flying
-while server is being removed, check the IP_VS_DEST_F_AVAILABLE
-flag in slow path to ensure we do not save new dev references to
-removed servers.
+With using per-net conn_tab these counters do not need to be
+global anymore.
 
 Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c  | 20 +++++++----------
- net/netfilter/ipvs/ip_vs_xmit.c | 39 ++++++++++++++++++++++++---------
- 2 files changed, 37 insertions(+), 22 deletions(-)
+ include/net/ip_vs.h             |  2 ++
+ net/netfilter/ipvs/ip_vs_conn.c | 59 +++++++++++++++++++--------------
+ 2 files changed, 37 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 5b865c87e63d..475521af5530 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -810,7 +810,6 @@ static void ip_vs_dest_free(struct ip_vs_dest *dest)
- {
- 	struct ip_vs_service *svc = rcu_dereference_protected(dest->svc, 1);
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index f5605c289bba..ed74e4e36f21 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1158,6 +1158,7 @@ struct netns_ipvs {
+ #endif
+ 	/* ip_vs_conn */
+ 	atomic_t		conn_count;      /* connection counter */
++	atomic_t		no_cport_conns[IP_VS_AF_MAX];
+ 	struct delayed_work	conn_resize_work;/* resize conn_tab */
  
--	__ip_vs_dst_cache_reset(dest);
- 	__ip_vs_svc_put(svc);
- 	call_rcu(&dest->rcu_head, ip_vs_dest_rcu_free);
- }
-@@ -1013,10 +1012,6 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
+ 	/* ip_vs_ctl */
+@@ -1188,6 +1189,7 @@ struct netns_ipvs {
+ 	int			drop_counter;
+ 	int			old_secure_tcp;
+ 	atomic_t		dropentry;
++	s8			dropentry_counters[8];
+ 	/* locks in ctl.c */
+ 	spinlock_t		dropentry_lock;  /* drop entry handling */
+ 	spinlock_t		droppacket_lock; /* drop packet handling */
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index f9111bfefd81..80858d9c69ac 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -53,9 +53,6 @@ int ip_vs_conn_tab_size __read_mostly;
+ /*  SLAB cache for IPVS connections */
+ static struct kmem_cache *ip_vs_conn_cachep __read_mostly;
  
- 	dest->af = udest->af;
- 
--	spin_lock_bh(&dest->dst_lock);
--	__ip_vs_dst_cache_reset(dest);
--	spin_unlock_bh(&dest->dst_lock);
+-/*  counter for no client port connections */
+-static atomic_t ip_vs_conn_no_cport_cnt = ATOMIC_INIT(0);
 -
- 	if (add) {
- 		list_add_rcu(&dest->n_list, &svc->destinations);
- 		svc->num_dests++;
-@@ -1024,6 +1019,10 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
- 		if (sched && sched->add_dest)
- 			sched->add_dest(svc, dest);
- 	} else {
-+		spin_lock_bh(&dest->dst_lock);
-+		__ip_vs_dst_cache_reset(dest);
-+		spin_unlock_bh(&dest->dst_lock);
-+
- 		sched = rcu_dereference_protected(svc->scheduler, 1);
- 		if (sched && sched->upd_dest)
- 			sched->upd_dest(svc, dest);
-@@ -1258,6 +1257,10 @@ static void __ip_vs_unlink_dest(struct ip_vs_service *svc,
- {
- 	dest->flags &= ~IP_VS_DEST_F_AVAILABLE;
+ /* We need an addrstrlen that works with or without v6 */
+ #ifdef CONFIG_IP_VS_IPV6
+ #define IP_VS_ADDRSTRLEN INET6_ADDRSTRLEN
+@@ -318,10 +315,16 @@ struct ip_vs_conn *ip_vs_conn_in_get(const struct ip_vs_conn_param *p)
+ 	struct ip_vs_conn *cp;
  
-+	spin_lock_bh(&dest->dst_lock);
-+	__ip_vs_dst_cache_reset(dest);
-+	spin_unlock_bh(&dest->dst_lock);
+ 	cp = __ip_vs_conn_in_get(p);
+-	if (!cp && atomic_read(&ip_vs_conn_no_cport_cnt)) {
+-		struct ip_vs_conn_param cport_zero_p = *p;
+-		cport_zero_p.cport = 0;
+-		cp = __ip_vs_conn_in_get(&cport_zero_p);
++	if (!cp) {
++		struct netns_ipvs *ipvs = p->ipvs;
++		int af_id = ip_vs_af_index(p->af);
 +
- 	/*
- 	 *  Remove it from the d-linked destination list.
- 	 */
-@@ -1747,13 +1750,6 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
++		if (atomic_read(&ipvs->no_cport_conns[af_id])) {
++			struct ip_vs_conn_param cport_zero_p = *p;
++
++			cport_zero_p.cport = 0;
++			cp = __ip_vs_conn_in_get(&cport_zero_p);
++		}
  	}
- 	rcu_read_unlock();
  
--	mutex_lock(&ipvs->service_mutex);
--	spin_lock_bh(&ipvs->dest_trash_lock);
--	list_for_each_entry(dest, &ipvs->dest_trash, t_list) {
--		ip_vs_forget_dev(dest, dev);
--	}
--	spin_unlock_bh(&ipvs->dest_trash_lock);
--	mutex_unlock(&ipvs->service_mutex);
- 	return NOTIFY_DONE;
+ 	IP_VS_DBG_BUF(9, "lookup/in %s %s:%d->%s:%d %s\n",
+@@ -534,6 +537,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
+ {
+ 	struct hlist_bl_head *head, *head2, *head_new;
+ 	struct netns_ipvs *ipvs = cp->ipvs;
++	int af_id = ip_vs_af_index(cp->af);
+ 	u32 hash_r = 0, hash_key_r = 0;
+ 	struct ip_vs_rht *t, *tp, *t2;
+ 	u32 hash_key, hash_key_new;
+@@ -612,7 +616,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
+ 			hlist_bl_del_rcu(&cp->c_list);
+ 			hlist_bl_add_head_rcu(&cp->c_list, head_new);
+ 		}
+-		atomic_dec(&ip_vs_conn_no_cport_cnt);
++		atomic_dec(&ipvs->no_cport_conns[af_id]);
+ 		cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
+ 		cp->cport = cport;
+ 	}
+@@ -1177,8 +1181,11 @@ static void ip_vs_conn_expire(struct timer_list *t)
+ 		if (unlikely(cp->app != NULL))
+ 			ip_vs_unbind_app(cp);
+ 		ip_vs_unbind_dest(cp);
+-		if (cp->flags & IP_VS_CONN_F_NO_CPORT)
+-			atomic_dec(&ip_vs_conn_no_cport_cnt);
++		if (unlikely(cp->flags & IP_VS_CONN_F_NO_CPORT)) {
++			int af_id = ip_vs_af_index(cp->af);
++
++			atomic_dec(&ipvs->no_cport_conns[af_id]);
++		}
+ 		if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
+ 			ip_vs_conn_rcu_free(&cp->rcu_head);
+ 		else
+@@ -1285,8 +1292,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
+ 	cp->out_seq.delta = 0;
+ 
+ 	atomic_inc(&ipvs->conn_count);
+-	if (flags & IP_VS_CONN_F_NO_CPORT)
+-		atomic_inc(&ip_vs_conn_no_cport_cnt);
++	if (unlikely(flags & IP_VS_CONN_F_NO_CPORT)) {
++		int af_id = ip_vs_af_index(cp->af);
++
++		atomic_inc(&ipvs->no_cport_conns[af_id]);
++	}
+ 
+ 	/* Bind the connection with a destination server */
+ 	cp->dest = NULL;
+@@ -1571,12 +1581,7 @@ static const struct seq_operations ip_vs_conn_sync_seq_ops = {
+  */
+ static inline int todrop_entry(struct ip_vs_conn *cp)
+ {
+-	/*
+-	 * The drop rate array needs tuning for real environments.
+-	 * Called from timer bh only => no locking
+-	 */
+-	static const signed char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+-	static signed char todrop_counter[9] = {0};
++	struct netns_ipvs *ipvs = cp->ipvs;
+ 	int i;
+ 
+ 	/* if the conn entry hasn't lasted for 60 seconds, don't drop it.
+@@ -1585,15 +1590,17 @@ static inline int todrop_entry(struct ip_vs_conn *cp)
+ 	if (time_before(cp->timeout + jiffies, cp->timer.expires + 60*HZ))
+ 		return 0;
+ 
+-	/* Don't drop the entry if its number of incoming packets is not
+-	   located in [0, 8] */
++	/* Drop only conns with number of incoming packets in [1..8] range */
+ 	i = atomic_read(&cp->in_pkts);
+-	if (i > 8 || i < 0) return 0;
++	if (i > 8 || i < 1)
++		return 0;
+ 
+-	if (!todrop_rate[i]) return 0;
+-	if (--todrop_counter[i] > 0) return 0;
++	i--;
++	if (--ipvs->dropentry_counters[i] > 0)
++		return 0;
+ 
+-	todrop_counter[i] = todrop_rate[i];
++	/* Prefer to drop conns with less number of incoming packets */
++	ipvs->dropentry_counters[i] = i + 1;
+ 	return 1;
  }
  
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 9193e109e6b3..d7499f1e3af2 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -317,9 +317,11 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 
- 	if (dest) {
- 		dest_dst = __ip_vs_dst_check(dest);
--		if (likely(dest_dst))
-+		if (likely(dest_dst)) {
- 			rt = (struct rtable *) dest_dst->dst_cache;
--		else {
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.ip;
-+		} else {
- 			dest_dst = ip_vs_dest_dst_alloc();
- 			spin_lock_bh(&dest->dst_lock);
- 			if (!dest_dst) {
-@@ -335,14 +337,24 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 				ip_vs_dest_dst_free(dest_dst);
- 				goto err_unreach;
- 			}
--			__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
-+			/* It is forbidden to attach dest->dest_dst if
-+			 * server is deleted. We can see the flag going down,
-+			 * for very short period and it must be checked under
-+			 * dst_lock.
-+			 */
-+			if (dest->flags & IP_VS_DEST_F_AVAILABLE)
-+				__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
-+			else
-+				noref = 0;
- 			spin_unlock_bh(&dest->dst_lock);
- 			IP_VS_DBG(10, "new dst %pI4, src %pI4, refcnt=%d\n",
- 				  &dest->addr.ip, &dest_dst->dst_saddr.ip,
- 				  rcuref_read(&rt->dst.__rcuref));
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.ip;
-+			if (!noref)
-+				ip_vs_dest_dst_free(dest_dst);
- 		}
--		if (ret_saddr)
--			*ret_saddr = dest_dst->dst_saddr.ip;
- 	} else {
- 		__be32 saddr = htonl(INADDR_ANY);
- 
-@@ -480,9 +492,11 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 
- 	if (dest) {
- 		dest_dst = __ip_vs_dst_check(dest);
--		if (likely(dest_dst))
-+		if (likely(dest_dst)) {
- 			rt = (struct rt6_info *) dest_dst->dst_cache;
--		else {
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.in6;
-+		} else {
- 			u32 cookie;
- 
- 			dest_dst = ip_vs_dest_dst_alloc();
-@@ -503,14 +517,19 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 			}
- 			rt = (struct rt6_info *) dst;
- 			cookie = rt6_get_cookie(rt);
--			__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
-+			if (dest->flags & IP_VS_DEST_F_AVAILABLE)
-+				__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
-+			else
-+				noref = 0;
- 			spin_unlock_bh(&dest->dst_lock);
- 			IP_VS_DBG(10, "new dst %pI6, src %pI6, refcnt=%d\n",
- 				  &dest->addr.in6, &dest_dst->dst_saddr.in6,
- 				  rcuref_read(&rt->dst.__rcuref));
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.in6;
-+			if (!noref)
-+				ip_vs_dest_dst_free(dest_dst);
- 		}
--		if (ret_saddr)
--			*ret_saddr = dest_dst->dst_saddr.in6;
- 	} else {
- 		noref = 0;
- 		dst = __ip_vs_route_output_v6(net, daddr, ret_saddr, do_xfrm,
+@@ -1811,7 +1818,11 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
+  */
+ int __net_init ip_vs_conn_net_init(struct netns_ipvs *ipvs)
+ {
++	int idx;
++
+ 	atomic_set(&ipvs->conn_count, 0);
++	for (idx = 0; idx < IP_VS_AF_MAX; idx++)
++		atomic_set(&ipvs->no_cport_conns[idx], 0);
+ 	INIT_DELAYED_WORK(&ipvs->conn_resize_work, conn_resize_work_handler);
+ 	RCU_INIT_POINTER(ipvs->conn_tab, NULL);
+ 	atomic_set(&ipvs->conn_tab_changes, 0);
 -- 
 2.41.0
 
