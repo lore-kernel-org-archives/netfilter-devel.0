@@ -2,277 +2,137 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBB33C001B0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Aug 2023 12:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EA7AC001B0
+	for <netfilter-devel@archiver.kernel.org>; Tue, 15 Aug 2023 13:39:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237078AbjHOMlw (ORCPT
+        id S237204AbjHONj2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 15 Aug 2023 08:41:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48558 "EHLO
+        Tue, 15 Aug 2023 09:39:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237235AbjHOMlr (ORCPT
+        with ESMTP id S237312AbjHONjJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2023 08:41:47 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 419FDF1
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Aug 2023 05:41:46 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qVtMl-0007JW-SX; Tue, 15 Aug 2023 14:41:43 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: add transaction stress test with parallel delete/add/flush and netns deletion
-Date:   Tue, 15 Aug 2023 14:41:36 +0200
-Message-ID: <20230815124139.17713-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Tue, 15 Aug 2023 09:39:09 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 88BD51985
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Aug 2023 06:39:07 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/3] netfilter: nf_tables: fix GC transaction races with netns and netlink event exit path
+Date:   Tue, 15 Aug 2023 15:39:00 +0200
+Message-Id: <20230815133902.65242-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Based on nft_trans_stress.sh from kernel selftests, changed to run from
-run-tests.sh, plus additional ideas from Pablo Neira, such as del+readd
-of the netns.
+Netlink event path is missing a synchronization point with GC
+transactions. Add GC sequence number update to netns release path and
+netlink event path, any GC transaction losing race will be discarded.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/shell/testcases/transactions/30s-stress | 225 ++++++++++++++++++
- 1 file changed, 225 insertions(+)
- create mode 100755 tests/shell/testcases/transactions/30s-stress
+ net/netfilter/nf_tables_api.c | 36 +++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff --git a/tests/shell/testcases/transactions/30s-stress b/tests/shell/testcases/transactions/30s-stress
-new file mode 100755
-index 000000000000..3539a3078b13
---- /dev/null
-+++ b/tests/shell/testcases/transactions/30s-stress
-@@ -0,0 +1,225 @@
-+#!/bin/bash
-+
-+testns=testns-$(mktemp -u "XXXXXXXX")
-+tmp=""
-+
-+tables="foo bar baz"
-+runtime=10
-+
-+netns_del() {
-+	ip netns del "$testns"
-+}
-+
-+netns_add()
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c62227ae7746..eed690dd1796 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9738,6 +9738,22 @@ static void nft_set_commit_update(struct list_head *set_update_list)
+ 	}
+ }
+ 
++static unsigned int nft_gc_seq_begin(struct nftables_pernet *nft_net)
 +{
-+	ip netns add "$testns"
-+	ip -netns "$testns" link set lo up
++	unsigned int gc_seq;
++
++	/* Bump gc counter, it becomes odd, this is the busy mark. */
++	gc_seq = READ_ONCE(nft_net->gc_seq);
++	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++
++	return gc_seq;
 +}
 +
-+cleanup() {
-+	[ "$tmp" = "" ] || rm -f "$tmp"
-+	netns_del
-+}
-+
-+trap cleanup EXIT
-+tmp=$(mktemp)
-+
-+random_verdict()
++static void nft_gc_seq_end(struct nftables_pernet *nft_net, unsigned int gc_seq)
 +{
-+	max="$1"
-+	rnd=$((RANDOM%max))
-+
-+	if [ $rnd -gt 0 ];then
-+		printf "jump chain%03u" "$((rnd+1))"
-+		return
-+	fi
-+
-+	if [ $((RANDOM & 1)) -eq 0 ] ;then
-+		echo "accept"
-+	else
-+		echo "drop"
-+	fi
++	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
 +}
 +
-+randsleep()
-+{
-+	local s=$((RANDOM%3))
-+	local ms=$((RANDOM%10))
-+	sleep $s.$ms
-+}
+ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+@@ -9823,9 +9839,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 
+ 	WRITE_ONCE(nft_net->base_seq, base_seq);
+ 
+-	/* Bump gc counter, it becomes odd, this is the busy mark. */
+-	gc_seq = READ_ONCE(nft_net->gc_seq);
+-	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++	gc_seq = nft_gc_seq_begin(nft_net);
+ 
+ 	/* step 3. Start new generation, rules_gen_X now in use. */
+ 	net->nft.gencursor = nft_gencursor_next(net);
+@@ -10038,7 +10052,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
+ 	nf_tables_commit_audit_log(&adl, nft_net->base_seq);
+ 
+-	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++	nft_gc_seq_end(nft_net, gc_seq);
+ 	nf_tables_commit_release(net);
+ 
+ 	return 0;
+@@ -11039,6 +11053,7 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
+ 	struct net *net = n->net;
+ 	unsigned int deleted;
+ 	bool restart = false;
++	unsigned int gc_seq;
+ 
+ 	if (event != NETLINK_URELEASE || n->protocol != NETLINK_NETFILTER)
+ 		return NOTIFY_DONE;
+@@ -11046,6 +11061,9 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
+ 	nft_net = nft_pernet(net);
+ 	deleted = 0;
+ 	mutex_lock(&nft_net->commit_mutex);
 +
-+randlist()
-+{
-+	while [ -r $tmp ]; do
-+		randsleep
-+		ip netns exec $testns $NFT list ruleset > /dev/null
-+	done
-+}
++	gc_seq = nft_gc_seq_begin(nft_net);
 +
-+randflush()
-+{
-+	while [ -r $tmp ]; do
-+		randsleep
-+		ip netns exec $testns $NFT flush ruleset > /dev/null
-+	done
-+}
+ 	if (!list_empty(&nf_tables_destroy_list))
+ 		rcu_barrier();
+ again:
+@@ -11068,6 +11086,8 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
+ 		if (restart)
+ 			goto again;
+ 	}
++	nft_gc_seq_end(nft_net, gc_seq);
 +
-+randdeltable()
-+{
-+	while [ -r $tmp ]; do
-+		randsleep
-+		for t in $tables; do
-+			r=$((RANDOM%10))
+ 	mutex_unlock(&nft_net->commit_mutex);
+ 
+ 	return NOTIFY_DONE;
+@@ -11105,12 +11125,20 @@ static void __net_exit nf_tables_pre_exit_net(struct net *net)
+ static void __net_exit nf_tables_exit_net(struct net *net)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
++	unsigned int gc_seq;
+ 
+ 	mutex_lock(&nft_net->commit_mutex);
 +
-+			if [ $r -eq 1 ] ;then
-+				ip netns exec $testns $NFT delete table $t
-+				randsleep
-+			fi
-+		done
-+	done
-+}
++	gc_seq = nft_gc_seq_begin(nft_net);
 +
-+randdelns()
-+{
-+	while [ -r $tmp ]; do
-+		randsleep
-+		netns_del
-+		netns_add
-+		randsleep
-+	done
-+}
+ 	if (!list_empty(&nft_net->commit_list) ||
+ 	    !list_empty(&nft_net->module_list))
+ 		__nf_tables_abort(net, NFNL_ABORT_NONE);
 +
-+randload()
-+{
-+	while [ -r $tmp ]; do
-+		r=$((RANDOM%10))
+ 	__nft_release_tables(net);
 +
-+		if [ $r -eq 1 ] ;then
-+			(echo "flush ruleset"; cat "$tmp"
-+			 echo "insert rule inet foo INPUT meta nftrace set 1"
-+			 echo "insert rule inet foo OUTPUT meta nftrace set 1"
-+			) | ip netns exec "$testns" $NFT -f /dev/stdin
-+		else
-+			ip netns exec "$testns" $NFT -f "$tmp"
-+		fi
++	nft_gc_seq_end(nft_net, gc_seq);
 +
-+		randsleep
-+	done
-+}
-+
-+floodping() {
-+	cpunum=$(grep -c processor /proc/cpuinfo)
-+
-+	while [ -r $tmp ]; do
-+		i=0
-+		while [ $i -lt $cpunum ]; do
-+			mask=$(printf 0x%x $((1<<$i)))
-+		        timeout 3 ip netns exec "$testns" taskset $mask ping -4 -fq 127.0.0.1 > /dev/null &
-+		        timeout 3 ip netns exec "$testns" taskset $mask ping -6 -fq ::1 > /dev/null &
-+			i=$((i+1))
-+		done
-+
-+		wait
-+		randsleep
-+	done
-+}
-+
-+stress_all()
-+{
-+	randlist &
-+	randflush &
-+	randdeltable &
-+	randdelns &
-+	randload &
-+}
-+
-+for table in $tables; do
-+	count=$((RANDOM % 200))
-+	echo add table inet "$table" >> "$tmp"
-+	echo flush table inet "$table" >> "$tmp"
-+
-+	echo "add chain inet $table INPUT { type filter hook input priority 0; }" >> "$tmp"
-+	echo "add chain inet $table OUTPUT { type filter hook output priority 0; }" >> "$tmp"
-+	for c in $(seq 1 $count); do
-+		chain=$(printf "chain%03u" "$c")
-+		echo "add chain inet $table $chain" >> "$tmp"
-+	done
-+
-+	for c in $(seq 1 $count); do
-+		chain=$(printf "chain%03u" "$c")
-+		for BASE in INPUT OUTPUT; do
-+			echo "add rule inet $table $BASE counter jump $chain" >> "$tmp"
-+		done
-+		echo "add rule inet $table $chain counter return" >> "$tmp"
-+	done
-+
-+	cnt=0
-+	for key in "ip saddr" "ip saddr . tcp dport"; do
-+		for flags in "" "flags interval;" ; do
-+			timeout=$((RANDOM%10))
-+			timeout=$((timeout+1))
-+			timeout="timeout ${timeout}s"
-+
-+			cnt=$((cnt+1))
-+			echo "add set inet $table set_${cnt}  { typeof ${key} ; ${flags} }" >> "$tmp"
-+			echo "add set inet $table sett${cnt} { typeof ${key} ; $timeout; ${flags} }" >> "$tmp"
-+			echo "add map inet $table dmap_${cnt} { typeof ${key} : meta mark ; ${flags} }" >> "$tmp"
-+			echo "add map inet $table dmapt${cnt} { typeof ${key} : meta mark ; $timeout ; ${flags} }" >> "$tmp"
-+			echo "add map inet $table vmap_${cnt} { typeof ${key} : verdict ; ${flags} }" >> "$tmp"
-+			echo "add map inet $table vmapt${cnt} { typeof ${key} : verdict; $timeout ; ${flags} }" >> "$tmp"
-+		done
-+	done
-+
-+	cnt=0
-+	for key in "single" "concat"; do
-+		for flags in "" "interval" ; do
-+			want="${key}${flags}"
-+			cnt=$((cnt+1))
-+
-+			for e in $(seq 1 255);do
-+				case "$want" in
-+				"single")
-+					element="10.1.1.$e"
-+					;;
-+				"concat")
-+					element="10.1.2.$e . $((RANDOM%65536))"
-+					;;
-+				"singleinterval")
-+					element="10.1.$e.0-10.1.$e.$e"
-+					;;
-+				"concatinterval")
-+					element="10.1.$e.0-10.1.$e.$e . $((RANDOM%65536))"
-+					;;
-+				*)
-+					echo "bogus key $want"
-+					exit 111
-+					;;
-+				esac
-+
-+				echo "add element inet $table set_${cnt} { $element }" >> "$tmp"
-+				echo "add element inet $table sett${cnt} { $element timeout $((RANDOM%60))s }" >> "$tmp"
-+				echo "add element inet $table dmap_${cnt} { $element : $RANDOM }" >> "$tmp"
-+				echo "add element inet $table dmapt${cnt} { $element timeout $((RANDOM%60))s : $RANDOM }" >> "$tmp"
-+				echo "add element inet $table vmap_${cnt} { $element : `random_verdict $count` }" >> "$tmp"
-+				echo "add element inet $table vmapt${cnt} { $element timeout $((RANDOM%60))s : `random_verdict $count` }" >> "$tmp"
-+			done
-+		done
-+	done
-+done
-+
-+netns_add
-+
-+ip netns exec "$testns" $NFT -f "$tmp" || exit 1
-+
-+stress_all 2>/dev/null &
-+
-+randsleep
-+
-+floodping 2> /dev/null &
-+
-+sleep $runtime
-+
-+# this stops stress_all
-+rm -f "$tmp"
-+tmp=""
-+sleep 4
+ 	mutex_unlock(&nft_net->commit_mutex);
+ 	WARN_ON_ONCE(!list_empty(&nft_net->tables));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
 -- 
-2.41.0
+2.30.2
 
