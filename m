@@ -2,41 +2,41 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B272C04FDF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 895EBC04FE0
 	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Aug 2023 01:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240828AbjHPB6P (ORCPT
+        id S240848AbjHPB6P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Tue, 15 Aug 2023 21:58:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39174 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241172AbjHPB5t (ORCPT
+        with ESMTP id S241241AbjHPB5n (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2023 21:57:49 -0400
+        Tue, 15 Aug 2023 21:57:43 -0400
 Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F028F26B9;
-        Tue, 15 Aug 2023 18:57:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04C6C2136;
+        Tue, 15 Aug 2023 18:57:27 -0700 (PDT)
 Received: from mg.bb.i.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 9003F121B4;
-        Wed, 16 Aug 2023 04:57:30 +0300 (EEST)
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 87393121B2;
+        Wed, 16 Aug 2023 04:57:26 +0300 (EEST)
 Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 76672121B3;
-        Wed, 16 Aug 2023 04:57:30 +0300 (EEST)
+        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 7026C121B1;
+        Wed, 16 Aug 2023 04:57:26 +0300 (EEST)
 Received: from ja.ssi.bg (unknown [213.16.62.126])
-        by ink.ssi.bg (Postfix) with ESMTPSA id ED9D23C07D4;
+        by ink.ssi.bg (Postfix) with ESMTPSA id D42633C07D3;
         Wed, 16 Aug 2023 04:57:08 +0300 (EEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-        t=1692151029; bh=U7L3zoqhCwu5M8Fib74tMlUPBqHxZrA8d3dSyNTiFkM=;
+        t=1692151028; bh=pK1P7x01A48ZlwM1FSadC7e6+gxKK8w7zEAoSAA/BfQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=Cgb4JShpjNd4J2SLuQZanaSrwmpip6Ag84mIBUl/4AcQPeK+qQ6UJ7tOri6ycD9l7
-         zQTy+OZtf6lzo8sUHJtAe4e74aioNzh+qehQx8BBnjeTpa7CRsxDlHvzUtyq95pAth
-         Ge9Qvf2TUlCP3+17D5BMsOgrKIRmplKfXDHe527c=
+        b=hV5lz2bkOTp2l1Op7GCT25WW6LX/WInycMkrRJAwJvvsIWff3Xx5MCo/noGP/6ys/
+         zrTvBdX7tvsOYFOFVd+XDo68tY1JUgkmSGHviLD2ySTMzXL6ti04nyvaMgX5uyfe7h
+         nDF/YkcftVQE2+s8Pq6MNzXMuWuAHgsOJScn0HNw=
 Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 37FHWGh2168632;
-        Tue, 15 Aug 2023 20:32:16 +0300
+        by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 37FHWI2i168665;
+        Tue, 15 Aug 2023 20:32:18 +0300
 Received: (from root@localhost)
-        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 37FHWGev168630;
-        Tue, 15 Aug 2023 20:32:16 +0300
+        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 37FHWIG4168664;
+        Tue, 15 Aug 2023 20:32:18 +0300
 From:   Julian Anastasov <ja@ssi.bg>
 To:     Simon Horman <horms@verge.net.au>
 Cc:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
@@ -44,9 +44,9 @@ Cc:     lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         rcu@vger.kernel.org, Dust Li <dust.li@linux.alibaba.com>,
         Jiejian Wu <jiejian@linux.alibaba.com>,
         Jiri Wiesner <jwiesner@suse.de>
-Subject: [PATCH RFC net-next 06/14] ipvs: use more counters to avoid service lookups
-Date:   Tue, 15 Aug 2023 20:30:23 +0300
-Message-ID: <20230815173031.168344-7-ja@ssi.bg>
+Subject: [PATCH RFC net-next 13/14] ipvs: add ip_vs_status info
+Date:   Tue, 15 Aug 2023 20:30:30 +0300
+Message-ID: <20230815173031.168344-14-ja@ssi.bg>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230815173031.168344-1-ja@ssi.bg>
 References: <20230815173031.168344-1-ja@ssi.bg>
@@ -56,275 +56,192 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When new connection is created we can lookup for services multiple
-times to support fallback options. We already have some counters
-to skip specific lookups because it costs CPU cycles for hash
-calculation, etc.
-
-Add more counters for fwmark/non-fwmark services (fwm_services and
-nonfwm_services) and make all counters per address family.
+Add /proc/net/ip_vs_status to show current state of IPVS.
 
 Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- include/net/ip_vs.h             | 24 ++++++---
- net/netfilter/ipvs/ip_vs_core.c |  2 +-
- net/netfilter/ipvs/ip_vs_ctl.c  | 86 +++++++++++++++++++--------------
- 3 files changed, 69 insertions(+), 43 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 147 +++++++++++++++++++++++++++++++++
+ 1 file changed, 147 insertions(+)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index b0a9f67a5c33..6b9b32257e10 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -271,6 +271,18 @@ static inline const char *ip_vs_dbg_addr(int af, char *buf, size_t buf_len,
- 			pr_err(msg, ##__VA_ARGS__);			\
- 	} while (0)
- 
-+/* For arrays per family */
-+enum {
-+	IP_VS_AF_INET,
-+	IP_VS_AF_INET6,
-+	IP_VS_AF_MAX
-+};
-+
-+static inline int ip_vs_af_index(int af)
-+{
-+	return af == AF_INET6 ? IP_VS_AF_INET6 : IP_VS_AF_INET;
-+}
-+
- /* The port number of FTP service (in network order). */
- #define FTPPORT  cpu_to_be16(21)
- #define FTPDATA  cpu_to_be16(20)
-@@ -940,17 +952,17 @@ struct netns_ipvs {
- 	/* ip_vs_ctl */
- 	struct ip_vs_stats_rcu	*tot_stats;      /* Statistics & est. */
- 
--	int			num_services;    /* no of virtual services */
--	int			num_services6;   /* IPv6 virtual services */
--
- 	/* Trash for destinations */
- 	struct list_head	dest_trash;
- 	spinlock_t		dest_trash_lock;
- 	struct timer_list	dest_trash_timer; /* expiration timer */
- 	/* Service counters */
--	atomic_t		ftpsvc_counter;
--	atomic_t		nullsvc_counter;
--	atomic_t		conn_out_counter;
-+	atomic_t		num_services[IP_VS_AF_MAX];   /* Services */
-+	atomic_t		fwm_services[IP_VS_AF_MAX];   /* Services */
-+	atomic_t		nonfwm_services[IP_VS_AF_MAX];/* Services */
-+	atomic_t		ftpsvc_counter[IP_VS_AF_MAX]; /* FTPPORT */
-+	atomic_t		nullsvc_counter[IP_VS_AF_MAX];/* Zero port */
-+	atomic_t		conn_out_counter[IP_VS_AF_MAX];/* out conn */
- 
- #ifdef CONFIG_SYSCTL
- 	/* delayed work for expiring no dest connections */
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index cb83ca506c5c..b56bef234ed4 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1404,7 +1404,7 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
- 		return handle_response(af, skb, pd, cp, &iph, hooknum);
- 
- 	/* Check for real-server-started requests */
--	if (atomic_read(&ipvs->conn_out_counter)) {
-+	if (atomic_read(&ipvs->conn_out_counter[ip_vs_af_index(af)])) {
- 		/* Currently only for UDP:
- 		 * connection oriented protocols typically use
- 		 * ephemeral ports for outgoing connections, so
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 475521af5530..e44dfb97566a 100644
+index 43057b81c924..5b2a5e3bf309 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -437,35 +437,42 @@ struct ip_vs_service *
- ip_vs_service_find(struct netns_ipvs *ipvs, int af, __u32 fwmark, __u16 protocol,
- 		   const union nf_inet_addr *vaddr, __be16 vport)
- {
--	struct ip_vs_service *svc;
-+	struct ip_vs_service *svc = NULL;
-+	int af_id = ip_vs_af_index(af);
+@@ -2910,6 +2910,146 @@ static int ip_vs_stats_percpu_show(struct seq_file *seq, void *v)
  
- 	/*
- 	 *	Check the table hashed by fwmark first
- 	 */
--	if (fwmark) {
-+	if (fwmark && atomic_read(&ipvs->fwm_services[af_id])) {
- 		svc = __ip_vs_svc_fwm_find(ipvs, af, fwmark);
- 		if (svc)
- 			goto out;
- 	}
- 
-+	if (!atomic_read(&ipvs->nonfwm_services[af_id]))
-+		goto out;
+ 	return 0;
+ }
 +
- 	/*
- 	 *	Check the table hashed by <protocol,addr,port>
- 	 *	for "full" addressed entries
- 	 */
- 	svc = __ip_vs_service_find(ipvs, af, protocol, vaddr, vport);
-+	if (svc)
-+		goto out;
- 
--	if (!svc && protocol == IPPROTO_TCP &&
--	    atomic_read(&ipvs->ftpsvc_counter) &&
-+	if (protocol == IPPROTO_TCP &&
-+	    atomic_read(&ipvs->ftpsvc_counter[af_id]) &&
- 	    (vport == FTPDATA || !inet_port_requires_bind_service(ipvs->net, ntohs(vport)))) {
- 		/*
- 		 * Check if ftp service entry exists, the packet
- 		 * might belong to FTP data connections.
- 		 */
- 		svc = __ip_vs_service_find(ipvs, af, protocol, vaddr, FTPPORT);
-+		if (svc)
-+			goto out;
- 	}
- 
--	if (svc == NULL
--	    && atomic_read(&ipvs->nullsvc_counter)) {
-+	if (atomic_read(&ipvs->nullsvc_counter[af_id])) {
- 		/*
- 		 * Check if the catch-all port (port zero) exists
- 		 */
-@@ -1352,6 +1359,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- {
- 	int ret = 0;
- 	struct ip_vs_scheduler *sched = NULL;
-+	int af_id = ip_vs_af_index(u->af);
- 	struct ip_vs_pe *pe = NULL;
- 	struct ip_vs_service *svc = NULL;
- 	int ret_hooks = -1;
-@@ -1396,8 +1404,7 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 	}
++static int ip_vs_status_show(struct seq_file *seq, void *v)
++{
++	struct net *net = seq_file_single_net(seq);
++	struct netns_ipvs *ipvs = net_ipvs(net);
++	unsigned int resched_score = 0;
++	struct ip_vs_conn_hnode *hn;
++	struct hlist_bl_head *head;
++	struct ip_vs_service *svc;
++	struct ip_vs_rht *t, *pt;
++	struct hlist_bl_node *e;
++	int old_gen, new_gen;
++	u32 counts[8];
++	u32 bucket;
++	int count;
++	u32 sum1;
++	u32 sum;
++	int i;
++
++	old_gen = atomic_read(&ipvs->conn_tab_changes);
++
++	rcu_read_lock();
++
++	t = rcu_dereference(ipvs->conn_tab);
++
++	seq_printf(seq, "Conns:\t%d\n", atomic_read(&ipvs->conn_count));
++	seq_printf(seq, "Conn buckets:\t%d (%d bits, lfactor %d)\n",
++		   t ? t->size : 0, t ? t->bits : 0, t ? t->lfactor : 0);
++
++	if (!atomic_read(&ipvs->conn_count))
++		goto after_conns;
++	old_gen = atomic_read(&ipvs->conn_tab_changes);
++
++repeat_conn:
++	smp_rmb(); /* ipvs->conn_tab and conn_tab_changes */
++	memset(counts, 0, sizeof(counts));
++	ip_vs_rht_for_each_table_rcu(ipvs->conn_tab, t, pt) {
++		for (bucket = 0; bucket < t->size; bucket++) {
++			DECLARE_IP_VS_RHT_WALK_BUCKET_RCU();
++
++			count = 0;
++			resched_score++;
++			ip_vs_rht_walk_bucket_rcu(t, bucket, head) {
++				count = 0;
++				hlist_bl_for_each_entry_rcu(hn, e, head, node)
++					count++;
++			}
++			resched_score += count;
++			if (resched_score >= 100) {
++				resched_score = 0;
++				cond_resched_rcu();
++				new_gen = atomic_read(&ipvs->conn_tab_changes);
++				/* New table installed ? */
++				if (old_gen != new_gen) {
++					old_gen = new_gen;
++					goto repeat_conn;
++				}
++			}
++			counts[min(count, (int)ARRAY_SIZE(counts) - 1)]++;
++		}
++	}
++	for (sum = 0, i = 0; i < ARRAY_SIZE(counts); i++)
++		sum += counts[i];
++	sum1 = sum - counts[0];
++	seq_printf(seq, "Conn buckets empty:\t%u (%lu%%)\n",
++		   counts[0], (unsigned long)counts[0] * 100 / max(sum, 1U));
++	for (i = 1; i < ARRAY_SIZE(counts); i++) {
++		if (!counts[i])
++			continue;
++		seq_printf(seq, "Conn buckets len-%d:\t%u (%lu%%)\n",
++			   i, counts[i],
++			   (unsigned long)counts[i] * 100 / max(sum1, 1U));
++	}
++
++after_conns:
++	t = rcu_dereference(ipvs->svc_table);
++
++	count = ip_vs_get_num_services(ipvs);
++	seq_printf(seq, "Services:\t%d\n", count);
++	seq_printf(seq, "Service buckets:\t%d (%d bits, lfactor %d)\n",
++		   t ? t->size : 0, t ? t->bits : 0, t ? t->lfactor : 0);
++
++	if (!count)
++		goto after_svc;
++	old_gen = atomic_read(&ipvs->svc_table_changes);
++
++repeat_svc:
++	smp_rmb(); /* ipvs->svc_table and svc_table_changes */
++	memset(counts, 0, sizeof(counts));
++	ip_vs_rht_for_each_table_rcu(ipvs->svc_table, t, pt) {
++		for (bucket = 0; bucket < t->size; bucket++) {
++			DECLARE_IP_VS_RHT_WALK_BUCKET_RCU();
++
++			count = 0;
++			resched_score++;
++			ip_vs_rht_walk_bucket_rcu(t, bucket, head) {
++				count = 0;
++				hlist_bl_for_each_entry_rcu(svc, e, head,
++							    s_list)
++					count++;
++			}
++			resched_score += count;
++			if (resched_score >= 100) {
++				resched_score = 0;
++				cond_resched_rcu();
++				new_gen = atomic_read(&ipvs->svc_table_changes);
++				/* New table installed ? */
++				if (old_gen != new_gen) {
++					old_gen = new_gen;
++					goto repeat_svc;
++				}
++			}
++			counts[min(count, (int)ARRAY_SIZE(counts) - 1)]++;
++		}
++	}
++	for (sum = 0, i = 0; i < ARRAY_SIZE(counts); i++)
++		sum += counts[i];
++	sum1 = sum - counts[0];
++	seq_printf(seq, "Service buckets empty:\t%u (%lu%%)\n",
++		   counts[0], (unsigned long)counts[0] * 100 / max(sum, 1U));
++	for (i = 1; i < ARRAY_SIZE(counts); i++) {
++		if (!counts[i])
++			continue;
++		seq_printf(seq, "Service buckets len-%d:\t%u (%lu%%)\n",
++			   i, counts[i],
++			   (unsigned long)counts[i] * 100 / max(sum1, 1U));
++	}
++
++after_svc:
++	seq_printf(seq, "Stats thread slots:\t%d (max %lu)\n",
++		   ipvs->est_kt_count, ipvs->est_max_threads);
++	seq_printf(seq, "Stats chain max len:\t%d\n", ipvs->est_chain_max);
++	seq_printf(seq, "Stats thread ests:\t%d\n",
++		   ipvs->est_chain_max * IPVS_EST_CHAIN_FACTOR *
++		   IPVS_EST_NTICKS);
++
++	rcu_read_unlock();
++	return 0;
++}
++
  #endif
  
--	if ((u->af == AF_INET && !ipvs->num_services) ||
--	    (u->af == AF_INET6 && !ipvs->num_services6)) {
-+	if (!atomic_read(&ipvs->num_services[af_id])) {
- 		ret = ip_vs_register_hooks(ipvs, u->af);
- 		if (ret < 0)
- 			goto out_err;
-@@ -1448,17 +1455,17 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ /*
+@@ -4819,6 +4959,9 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
+ 				    ipvs->net->proc_net,
+ 				    ip_vs_stats_percpu_show, NULL))
+ 		goto err_percpu;
++	if (!proc_create_net_single("ip_vs_status", 0, ipvs->net->proc_net,
++				    ip_vs_status_show, NULL))
++		goto err_status;
+ #endif
  
- 	/* Update the virtual service counters */
- 	if (svc->port == FTPPORT)
--		atomic_inc(&ipvs->ftpsvc_counter);
--	else if (svc->port == 0)
--		atomic_inc(&ipvs->nullsvc_counter);
-+		atomic_inc(&ipvs->ftpsvc_counter[af_id]);
-+	else if (!svc->port && !svc->fwmark)
-+		atomic_inc(&ipvs->nullsvc_counter[af_id]);
- 	if (svc->pe && svc->pe->conn_out)
--		atomic_inc(&ipvs->conn_out_counter);
-+		atomic_inc(&ipvs->conn_out_counter[af_id]);
+ 	ret = ip_vs_control_net_init_sysctl(ipvs);
+@@ -4829,6 +4972,9 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
  
--	/* Count only IPv4 services for old get/setsockopt interface */
--	if (svc->af == AF_INET)
--		ipvs->num_services++;
--	else if (svc->af == AF_INET6)
--		ipvs->num_services6++;
-+	if (svc->fwmark)
-+		atomic_inc(&ipvs->fwm_services[af_id]);
-+	else
-+		atomic_inc(&ipvs->nonfwm_services[af_id]);
-+	atomic_inc(&ipvs->num_services[af_id]);
+ err:
+ #ifdef CONFIG_PROC_FS
++	remove_proc_entry("ip_vs_status", ipvs->net->proc_net);
++
++err_status:
+ 	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
  
- 	/* Hash the service into the service table */
- 	ip_vs_svc_hash(svc);
-@@ -1503,6 +1510,8 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
- 	struct ip_vs_pe *pe = NULL, *old_pe = NULL;
- 	int ret = 0;
- 	bool new_pe_conn_out, old_pe_conn_out;
-+	struct netns_ipvs *ipvs = svc->ipvs;
-+	int af_id = ip_vs_af_index(svc->af);
- 
- 	/*
- 	 * Lookup the scheduler, by 'u->sched_name'
-@@ -1571,9 +1580,9 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
- 		new_pe_conn_out = (pe && pe->conn_out) ? true : false;
- 		old_pe_conn_out = (old_pe && old_pe->conn_out) ? true : false;
- 		if (new_pe_conn_out && !old_pe_conn_out)
--			atomic_inc(&svc->ipvs->conn_out_counter);
-+			atomic_inc(&ipvs->conn_out_counter[af_id]);
- 		if (old_pe_conn_out && !new_pe_conn_out)
--			atomic_dec(&svc->ipvs->conn_out_counter);
-+			atomic_dec(&ipvs->conn_out_counter[af_id]);
- 	}
- 
- out:
-@@ -1593,16 +1602,15 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
- 	struct ip_vs_scheduler *old_sched;
- 	struct ip_vs_pe *old_pe;
- 	struct netns_ipvs *ipvs = svc->ipvs;
-+	int af_id = ip_vs_af_index(svc->af);
- 
--	if (svc->af == AF_INET) {
--		ipvs->num_services--;
--		if (!ipvs->num_services)
--			ip_vs_unregister_hooks(ipvs, svc->af);
--	} else if (svc->af == AF_INET6) {
--		ipvs->num_services6--;
--		if (!ipvs->num_services6)
--			ip_vs_unregister_hooks(ipvs, svc->af);
--	}
-+	atomic_dec(&ipvs->num_services[af_id]);
-+	if (!atomic_read(&ipvs->num_services[af_id]))
-+		ip_vs_unregister_hooks(ipvs, svc->af);
-+	if (svc->fwmark)
-+		atomic_dec(&ipvs->fwm_services[af_id]);
-+	else
-+		atomic_dec(&ipvs->nonfwm_services[af_id]);
- 
- 	ip_vs_stop_estimator(svc->ipvs, &svc->stats);
- 
-@@ -1614,7 +1622,7 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
- 	/* Unbind persistence engine, keep svc->pe */
- 	old_pe = rcu_dereference_protected(svc->pe, 1);
- 	if (old_pe && old_pe->conn_out)
--		atomic_dec(&ipvs->conn_out_counter);
-+		atomic_dec(&ipvs->conn_out_counter[af_id]);
- 	ip_vs_pe_put(old_pe);
- 
- 	/*
-@@ -1629,9 +1637,9 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
- 	 *    Update the virtual service counters
- 	 */
- 	if (svc->port == FTPPORT)
--		atomic_dec(&ipvs->ftpsvc_counter);
--	else if (svc->port == 0)
--		atomic_dec(&ipvs->nullsvc_counter);
-+		atomic_dec(&ipvs->ftpsvc_counter[af_id]);
-+	else if (!svc->port && !svc->fwmark)
-+		atomic_dec(&ipvs->nullsvc_counter[af_id]);
- 
- 	/*
- 	 *    Free the service if nobody refers to it
-@@ -2958,7 +2966,8 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 		struct ip_vs_getinfo info;
- 		info.version = IP_VS_VERSION_CODE;
- 		info.size = ip_vs_conn_tab_size;
--		info.num_services = ipvs->num_services;
-+		info.num_services =
-+			atomic_read(&ipvs->num_services[IP_VS_AF_INET]);
- 		if (copy_to_user(user, &info, sizeof(info)) != 0)
- 			ret = -EFAULT;
- 	}
-@@ -4293,9 +4302,14 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
- 	INIT_LIST_HEAD(&ipvs->dest_trash);
- 	spin_lock_init(&ipvs->dest_trash_lock);
- 	timer_setup(&ipvs->dest_trash_timer, ip_vs_dest_trash_expire, 0);
--	atomic_set(&ipvs->ftpsvc_counter, 0);
--	atomic_set(&ipvs->nullsvc_counter, 0);
--	atomic_set(&ipvs->conn_out_counter, 0);
-+	for (idx = 0; idx < IP_VS_AF_MAX; idx++) {
-+		atomic_set(&ipvs->num_services[idx], 0);
-+		atomic_set(&ipvs->fwm_services[idx], 0);
-+		atomic_set(&ipvs->nonfwm_services[idx], 0);
-+		atomic_set(&ipvs->ftpsvc_counter[idx], 0);
-+		atomic_set(&ipvs->nullsvc_counter[idx], 0);
-+		atomic_set(&ipvs->conn_out_counter[idx], 0);
-+	}
- 
- 	INIT_DELAYED_WORK(&ipvs->est_reload_work, est_reload_work_handler);
- 
+ err_percpu:
+@@ -4854,6 +5000,7 @@ void __net_exit ip_vs_control_net_cleanup(struct netns_ipvs *ipvs)
+ 	ip_vs_control_net_cleanup_sysctl(ipvs);
+ 	cancel_delayed_work_sync(&ipvs->est_reload_work);
+ #ifdef CONFIG_PROC_FS
++	remove_proc_entry("ip_vs_status", ipvs->net->proc_net);
+ 	remove_proc_entry("ip_vs_stats_percpu", ipvs->net->proc_net);
+ 	remove_proc_entry("ip_vs_stats", ipvs->net->proc_net);
+ 	remove_proc_entry("ip_vs", ipvs->net->proc_net);
 -- 
 2.41.0
 
