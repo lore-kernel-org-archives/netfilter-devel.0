@@ -2,70 +2,69 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2142C001E0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Aug 2023 16:11:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9411C41513
+	for <netfilter-devel@archiver.kernel.org>; Wed, 16 Aug 2023 16:17:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235032AbjHPQKw (ORCPT
+        id S234886AbjHPQRR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 16 Aug 2023 12:10:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50394 "EHLO
+        Wed, 16 Aug 2023 12:17:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344554AbjHPQKh (ORCPT
+        with ESMTP id S1344688AbjHPQRH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Aug 2023 12:10:37 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 809B5E2
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Aug 2023 09:10:36 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qWJ6Q-00017x-Pn; Wed, 16 Aug 2023 18:10:34 +0200
-Date:   Wed, 16 Aug 2023 18:10:34 +0200
-From:   Phil Sutter <phil@nwl.cc>
+        Wed, 16 Aug 2023 12:17:07 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50B962716
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Aug 2023 09:17:05 -0700 (PDT)
+Received: from [78.30.34.192] (port=53788 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qWJCc-00AoNA-N7; Wed, 16 Aug 2023 18:17:01 +0200
+Date:   Wed, 16 Aug 2023 18:16:58 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Thomas Haller <thaller@redhat.com>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [nft PATCH v4 6/6] py: add Nftables.{get,set}_input() API
-Message-ID: <ZNz0+hTYXVqvozX+@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20230803193940.1105287-1-thaller@redhat.com>
- <20230803193940.1105287-13-thaller@redhat.com>
+Subject: Re: [nft PATCH] src: use reentrant
+ getprotobyname_r()/getprotobynumber_r()/getservbyport_r()
+Message-ID: <ZNz2emyHGgx6ZtQj@calendula>
+References: <20230810123035.3866306-1-thaller@redhat.com>
+ <ZNYng8dQBhk48kj9@calendula>
+ <c5d1ed7aa26a439314fd26a959fd03b77d7ee7c0.camel@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230803193940.1105287-13-thaller@redhat.com>
+In-Reply-To: <c5d1ed7aa26a439314fd26a959fd03b77d7ee7c0.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 03, 2023 at 09:35:24PM +0200, Thomas Haller wrote:
-> Similar to the existing Nftables.{get,set}_debug() API.
-> 
-> Only notable (internal) difference is that nft_ctx_input_set_flags()
-> returns the old value already, so we don't need to call
-> Nftables.get_input() first.
-> 
-> The benefit of this API, is that it follows the existing API for debug
-> flags. Also, when future flags are added it requires few changes to the
-> python code.
-> 
-> The disadvantage is that it looks different from the underlying C API,
-> which is confusing when reading the C API. Also, it's a bit cumbersome
-> to reset only one flag. For example:
-> 
->      def _drop_flag_foo(flag):
->         if isinstance(flag, int):
->             return flag & ~FOO_NUM
->         if flag == 'foo':
->             return 0
->         return flag
-> 
->      ctx.set_input(_drop_flag_foo(v) for v in ctx.get_input())
+Hi Thomas,
 
-IMO the name is too short. While I find it works with debug ("set_debug"
-as in "enable_debugging") but with input I expect something to follow.
-So I suggest renaming to (get|set)_input_flags(), similar to
-__(get|set)_output_flag() (which get/set a single flag instead of
-multiple).
+Apologies for the late reply.
 
-Cheers, Phil
+On Fri, Aug 11, 2023 at 02:58:48PM +0200, Thomas Haller wrote:
+> Hi Pablo,
+> 
+> On Fri, 2023-08-11 at 14:20 +0200, Pablo Neira Ayuso wrote:
+> > On Thu, Aug 10, 2023 at 02:30:30PM +0200, Thomas Haller wrote:
+> > > If the reentrant versions of the functions are available, use them
+> > > so
+> > > that libnftables is thread-safe in this regard.
+> > 
+> > At netlink sequence tracking is not thread-safe, users hit EILSEQ
+> > errors when multiple threads recycle the same nft_ctx object. Updates
+> > are serialized by mutex per netns, batching is usually the way to go
+> > to amortize the cost of ruleset updates.
+> 
+> The problem already happens when one thread is using libnftables and
+> another thread calls one of those libc functions at an unfortunate
+> moment. It doesn't require multi-threaded uses of libnftables itself.
+
+Indeed.
+
+> Also, why couldn't you have two threads, handling one netns each, with
+> separate nft_ctx objects?
+
+You have to have one nft_ctx per thread, that should be sufficient,
+this probably needs to be documented.
