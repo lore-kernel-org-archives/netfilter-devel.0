@@ -2,42 +2,48 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA99AC71156
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Aug 2023 14:54:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC6CC71156
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Aug 2023 14:59:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353001AbjHROyJ (ORCPT
+        id S1377832AbjHRO6a (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Aug 2023 10:54:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53624 "EHLO
+        Fri, 18 Aug 2023 10:58:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377912AbjHROxv (ORCPT
+        with ESMTP id S1377969AbjHRO63 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Aug 2023 10:53:51 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 532F33C21
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 07:53:50 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qX0rD-0002Cx-DN; Fri, 18 Aug 2023 16:53:47 +0200
-Date:   Fri, 18 Aug 2023 16:53:47 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH] json: use strtok_r() instead of strtok()
-Message-ID: <20230818145347.GA6510@breakpoint.cc>
-References: <20230818143348.874561-1-thaller@redhat.com>
+        Fri, 18 Aug 2023 10:58:29 -0400
+Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F250A30F3
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 07:58:27 -0700 (PDT)
+Received: by a3.inai.de (Postfix, from userid 25121)
+        id A6306587264C0; Fri, 18 Aug 2023 16:58:26 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by a3.inai.de (Postfix) with ESMTP id A36CE60C28F47;
+        Fri, 18 Aug 2023 16:58:26 +0200 (CEST)
+Date:   Fri, 18 Aug 2023 16:58:26 +0200 (CEST)
+From:   Jan Engelhardt <jengelh@inai.de>
+To:     Jeremy Sowden <jeremy@azazel.net>
+cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH xtables-addons] doc: fix version number in
+ xtables-addons.8
+In-Reply-To: <20230818142828.2807221-1-jeremy@azazel.net>
+Message-ID: <n89pn421-p764-n7n5-4o0p-2pp1s177843q@vanv.qr>
+References: <20230818142828.2807221-1-jeremy@azazel.net>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230818143348.874561-1-thaller@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thomas Haller <thaller@redhat.com> wrote:
-> strtok_r() is probably(?) everywhere available where we care.
-> Use it. It is thread-safe, and libnftables shouldn't make
-> assumptions about what other threads of the process are doing.
 
-Agree. Applied, thanks.
+On Friday 2023-08-18 16:28, Jeremy Sowden wrote:
+> xtables-addons.8: ${srcdir}/xtables-addons.8.in matches.man targets.man
+>-	${AM_V_GEN}sed -e '/@MATCHES@/ r matches.man' -e '/@TARGET@/ r targets.man' $< >$@;
+>+	${AM_V_GEN}sed \
+>+		-e 's/@PACKAGE'_'VERSION@/@PACKAGE_VERSION@/' \
+
+I am surprised the normal escape stanza @@xyz@@ doesn't work..
+
+6/6 applied.
