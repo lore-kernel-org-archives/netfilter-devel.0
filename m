@@ -2,244 +2,116 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF0E1C71150
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Aug 2023 14:13:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2C54C71149
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Aug 2023 14:16:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377653AbjHROMb (ORCPT
+        id S1377696AbjHROPo (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Aug 2023 10:12:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34676 "EHLO
+        Fri, 18 Aug 2023 10:15:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377630AbjHROMZ (ORCPT
+        with ESMTP id S1377663AbjHROPK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Aug 2023 10:12:25 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD53E359D
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 07:11:40 -0700 (PDT)
+        Fri, 18 Aug 2023 10:15:10 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C4394223
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 07:14:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692367900;
+        s=mimecast20190719; t=1692368046;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=cTJL6GHB8mjJkjEvSFynSx7zBj4Lv2luQlNbQExs4iU=;
-        b=Gz+em1qeVzxF0AYra+hb0mL/bGLADgFhwiG39DyuhJK4mOTshaz7MG8qYrrOLLkLmwKAxs
-        6KBYIZ+Zdtg85wXRVlZNbgVVjTU42d+SpAIKunLQfOEXoEmRH4Bv6B+IZv1V8epOL8TPwM
-        TPX+JOWta2poSB5FibAIF/iVt+B5zzU=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-287-9XvKCvx9Nmq87w9W81MYIg-1; Fri, 18 Aug 2023 10:11:38 -0400
-X-MC-Unique: 9XvKCvx9Nmq87w9W81MYIg-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 3DC5C8007A4
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 14:11:38 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.207])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id AF35840C6F4E;
-        Fri, 18 Aug 2023 14:11:37 +0000 (UTC)
+        bh=ZeVMSXLPfL6xxlEnfaqxgRQq8UNYTLII8EdIIVyHIs8=;
+        b=JTIO0dkrt2KKEawSan2ZUqTBc7tqVm2BOKunKrEZsMQpA59gKnA9dhfV/OVh3Gc8IWTYjY
+        /o0fFFsgrGoyO7I2DJLLPgV8DfCFBb1Z498dW42YQz+bLkcFGrXySA53iXiUbH7709ZAuG
+        JP+lwo85uuctssHf19wBROC9cQmJo8Q=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-608-oevVOWeaNSKVHg31hHjTfg-1; Fri, 18 Aug 2023 10:14:04 -0400
+X-MC-Unique: oevVOWeaNSKVHg31hHjTfg-1
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-3fe246ec511so2038525e9.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 07:14:04 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692368043; x=1692972843;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ZeVMSXLPfL6xxlEnfaqxgRQq8UNYTLII8EdIIVyHIs8=;
+        b=Y9Sc8cGQ2Wfc1DJtt1vejriYpHoaYjyUYY8cGigkSYKQlQnAXY5CgZMjghJMQzteQN
+         0REVAkgoAH6MhxGZhR8SRvfs+fEaEmPVXE+JqKhaV9Xqe2xRqxyFHBQG3oXfoJfws2kK
+         d1pnDQfBY/z5DDPN29nRju3qrZ5MtGwu/cjnFsXoLWp4MhfYhQrPowfDkuCu+hmrmSKB
+         3M2nQhf7ZECi7icji+1Nfg0YXSP+JdK8ETLW/w3lrONqaalnKhTMP+umgGlgh1GS+XkH
+         yKq4AxYkRhaXAL2d9X6cjhaCWc0ivNwH51ahIM9p19h1D/Q2mD/16N7t2T6yum/5OyEQ
+         EuSw==
+X-Gm-Message-State: AOJu0YznYFBaENrQB2gRGm7Gew4MKQiH0WXrhezrcL4sMngeRdwoXgWE
+        bhL+Rg7zY/krYur+Mo0doGKVdlXR1YMNVJOgA4g/Iobr6kE2GS/ITVfElB2jTOSej9Y8p9U34lI
+        Lr2WFszdkV6MGpMcuk1pIQnxDOphab4/U4vNF
+X-Received: by 2002:a05:600c:3b0c:b0:3fa:9767:bb0 with SMTP id m12-20020a05600c3b0c00b003fa97670bb0mr2281144wms.0.1692368042970;
+        Fri, 18 Aug 2023 07:14:02 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEmETJTV6g/hpQx3TlEdJ7VjHUcMGiSZIRGXeWwWLhQemDouBtCuOum5YNH06iJ9AXhrCiEWg==
+X-Received: by 2002:a05:600c:3b0c:b0:3fa:9767:bb0 with SMTP id m12-20020a05600c3b0c00b003fa97670bb0mr2281129wms.0.1692368042601;
+        Fri, 18 Aug 2023 07:14:02 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id z22-20020a7bc7d6000000b003fbfef555d2sm6408539wmk.23.2023.08.18.07.14.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 18 Aug 2023 07:14:01 -0700 (PDT)
+Message-ID: <5541fc793b4346e2f00eaf3e7f18c754053d8d00.camel@redhat.com>
+Subject: Re: [nft PATCH v2] src: use reentrant
+ getprotobyname_r()/getprotobynumber_r()/getservbyport_r()
 From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [nft PATCH v3 3/3] src: use wrappers for getprotoby{name,number}_r(), getservbyport_r()
-Date:   Fri, 18 Aug 2023 16:08:21 +0200
-Message-ID: <20230818141124.859037-4-thaller@redhat.com>
-In-Reply-To: <20230818141124.859037-1-thaller@redhat.com>
-References: <20230818141124.859037-1-thaller@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Fri, 18 Aug 2023 16:14:01 +0200
+In-Reply-To: <ZN9AnetYNCRBODhb@calendula>
+References: <20230810123035.3866306-1-thaller@redhat.com>
+         <20230818091926.526246-1-thaller@redhat.com> <ZN9AnetYNCRBODhb@calendula>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-These wrappers are thread-safe, if libc provides the reentrant versions.
-Use them.
-
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- src/datatype.c | 33 +++++++++++++++++----------------
- src/json.c     | 22 +++++++++++-----------
- src/rule.c     |  7 ++++---
- 3 files changed, 32 insertions(+), 30 deletions(-)
-
-diff --git a/src/datatype.c b/src/datatype.c
-index da802a18bccd..381320eaf842 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -29,6 +29,7 @@
- #include <netlink.h>
- #include <json.h>
- #include <misspell.h>
-+#include "nftutils.h"
- 
- #include <netinet/ip_icmp.h>
- 
-@@ -697,12 +698,11 @@ const struct datatype ip6addr_type = {
- static void inet_protocol_type_print(const struct expr *expr,
- 				      struct output_ctx *octx)
- {
--	struct protoent *p;
--
- 	if (!nft_output_numeric_proto(octx)) {
--		p = getprotobynumber(mpz_get_uint8(expr->value));
--		if (p != NULL) {
--			nft_print(octx, "%s", p->p_name);
-+		char name[NFT_PROTONAME_MAXSIZE];
-+
-+		if (nft_getprotobynumber(mpz_get_uint8(expr->value), name, sizeof(name))) {
-+			nft_print(octx, "%s", name);
- 			return;
- 		}
- 	}
-@@ -711,15 +711,15 @@ static void inet_protocol_type_print(const struct expr *expr,
- 
- static void inet_protocol_type_describe(struct output_ctx *octx)
- {
--	struct protoent *p;
- 	uint8_t protonum;
- 
- 	for (protonum = 0; protonum < UINT8_MAX; protonum++) {
--		p = getprotobynumber(protonum);
--		if (!p)
-+		char name[NFT_PROTONAME_MAXSIZE];
-+
-+		if (!nft_getprotobynumber(protonum, name, sizeof(name)))
- 			continue;
- 
--		nft_print(octx, "\t%-30s\t%u\n", p->p_name, protonum);
-+		nft_print(octx, "\t%-30s\t%u\n", name, protonum);
- 	}
- }
- 
-@@ -727,7 +727,6 @@ static struct error_record *inet_protocol_type_parse(struct parse_ctx *ctx,
- 						     const struct expr *sym,
- 						     struct expr **res)
- {
--	struct protoent *p;
- 	uint8_t proto;
- 	uintmax_t i;
- 	char *end;
-@@ -740,11 +739,13 @@ static struct error_record *inet_protocol_type_parse(struct parse_ctx *ctx,
- 
- 		proto = i;
- 	} else {
--		p = getprotobyname(sym->identifier);
--		if (p == NULL)
-+		int r;
-+
-+		r = nft_getprotobyname(sym->identifier);
-+		if (r < 0)
- 			return error(&sym->location, "Could not resolve protocol name");
- 
--		proto = p->p_proto;
-+		proto = r;
- 	}
- 
- 	*res = constant_expr_alloc(&sym->location, &inet_protocol_type,
-@@ -768,12 +769,12 @@ const struct datatype inet_protocol_type = {
- static void inet_service_print(const struct expr *expr, struct output_ctx *octx)
- {
- 	uint16_t port = mpz_get_be16(expr->value);
--	const struct servent *s = getservbyport(port, NULL);
-+	char name[NFT_SERVNAME_MAXSIZE];
- 
--	if (s == NULL)
-+	if (!nft_getservbyport(port, NULL, name, sizeof(name)))
- 		nft_print(octx, "%hu", ntohs(port));
- 	else
--		nft_print(octx, "\"%s\"", s->s_name);
-+		nft_print(octx, "\"%s\"", name);
- }
- 
- void inet_service_type_print(const struct expr *expr, struct output_ctx *octx)
-diff --git a/src/json.c b/src/json.c
-index a119dfc4f1eb..57a597bce467 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -15,6 +15,7 @@
- #include <netlink.h>
- #include <rule.h>
- #include <rt.h>
-+#include "nftutils.h"
- 
- #include <netdb.h>
- #include <netinet/icmp6.h>
-@@ -297,10 +298,10 @@ static json_t *chain_print_json(const struct chain *chain)
- 
- static json_t *proto_name_json(uint8_t proto)
- {
--	const struct protoent *p = getprotobynumber(proto);
-+	char name[NFT_PROTONAME_MAXSIZE];
- 
--	if (p)
--		return json_string(p->p_name);
-+	if (nft_getprotobynumber(proto, name, sizeof(name)))
-+		return json_string(name);
- 	return json_integer(proto);
- }
- 
-@@ -1093,12 +1094,11 @@ json_t *boolean_type_json(const struct expr *expr, struct output_ctx *octx)
- json_t *inet_protocol_type_json(const struct expr *expr,
- 				struct output_ctx *octx)
- {
--	struct protoent *p;
--
- 	if (!nft_output_numeric_proto(octx)) {
--		p = getprotobynumber(mpz_get_uint8(expr->value));
--		if (p != NULL)
--			return json_string(p->p_name);
-+		char name[NFT_PROTONAME_MAXSIZE];
-+
-+		if (nft_getprotobynumber(mpz_get_uint8(expr->value), name, sizeof(name)))
-+			return json_string(name);
- 	}
- 	return integer_type_json(expr, octx);
- }
-@@ -1106,13 +1106,13 @@ json_t *inet_protocol_type_json(const struct expr *expr,
- json_t *inet_service_type_json(const struct expr *expr, struct output_ctx *octx)
- {
- 	uint16_t port = mpz_get_be16(expr->value);
--	const struct servent *s = NULL;
-+	char name[NFT_SERVNAME_MAXSIZE];
- 
- 	if (!nft_output_service(octx) ||
--	    (s = getservbyport(port, NULL)) == NULL)
-+	    !nft_getservbyport(port, NULL, name, sizeof(name)))
- 		return json_integer(ntohs(port));
- 
--	return json_string(s->s_name);
-+	return json_string(name);
- }
- 
- json_t *mark_type_json(const struct expr *expr, struct output_ctx *octx)
-diff --git a/src/rule.c b/src/rule.c
-index 99c4f0bb8b00..b59fcd3a9fa8 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -27,6 +27,7 @@
- #include <cache.h>
- #include <owner.h>
- #include <intervals.h>
-+#include "nftutils.h"
- 
- #include <libnftnl/common.h>
- #include <libnftnl/ruleset.h>
-@@ -1666,10 +1667,10 @@ struct obj *obj_lookup_fuzzy(const char *obj_name,
- 
- static void print_proto_name_proto(uint8_t l4, struct output_ctx *octx)
- {
--	const struct protoent *p = getprotobynumber(l4);
-+	char name[NFT_PROTONAME_MAXSIZE];
- 
--	if (p)
--		nft_print(octx, "%s", p->p_name);
-+	if (nft_getprotobynumber(l4, name, sizeof(name)))
-+		nft_print(octx, "%s", name);
- 	else
- 		nft_print(octx, "%d", l4);
- }
--- 
-2.41.0
+SGkgUGFibG8sCgpPbiBGcmksIDIwMjMtMDgtMTggYXQgMTE6NTcgKzAyMDAsIFBhYmxvIE5laXJh
+IEF5dXNvIHdyb3RlOgo+IAo+ID4gLcKgwqDCoMKgwqDCoMKgc3RydWN0IHByb3RvZW50ICpwOwo+
+ID4gLQo+ID4gwqDCoMKgwqDCoMKgwqDCoGlmICghbmZ0X291dHB1dF9udW1lcmljX3Byb3RvKG9j
+dHgpKSB7Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcCA9IGdldHByb3RvYnlu
+dW1iZXIobXB6X2dldF91aW50OChleHByLT52YWx1ZSkpOwo+ID4gLcKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGlmIChwICE9IE5VTEwpIHsKPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbmZ0X3ByaW50KG9jdHgsICIlcyIsIHAtPnBfbmFtZSk7
+Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY2hhciBuYW1lWzEwMjRdOwo+IAo+
+IElzIHRoZXJlIGFueSBkZWZpbml0aW9uIHRoYXQgY291bGQgYmUgdXNlZCBpbnN0ZWFkIG9mIDEw
+MjQuIFNhbWUKPiBjb21tZW50IGZvciBhbGwgb3RoZXIgaGFyZGNvZGVkIGJ1ZmZlcnMuIE9yIG1h
+eWJlIGFkZCBhIGRlZmluaXRpb24KPiBmb3IKPiB0aGlzPwoKQWRkZWQgZGVmaW5lcyBpbnN0ZWFk
+LiBTZWUgdjMuCgpbLi4uXQoKPiA+IMKgI2luY2x1ZGUgPG5mdGFibGVzLmg+Cj4gPiDCoCNpbmNs
+dWRlIDx1dGlscy5oPgo+ID4gQEAgLTEwNSwzICsxMDYsOTAgQEAgaW50IHJvdW5kX3Bvd18yKHVu
+c2lnbmVkIGludCBuKQo+ID4gwqB7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIDFVTCA8PCBm
+bHMobiAtIDEpOwo+ID4gwqB9Cj4gPiArCj4gCj4gQ291bGQgeW91IG1vdmUgdGhpcyBuZXcgY29k
+ZSB0byBhIG5ldyBmaWxlIGluc3RlYWQgb2YgdXRpbHMuYz8gV2UgYXJlCj4gc2xvd2luZyBtb3Zp
+bmcgdG93YXJkcyBHUEx2MiBvciBhbnkgbGF0ZXIgZm9yIG5ldyBjb2RlLiBQcm9iYWJseQo+IG5l
+dGRiLmMgb3IgcGljayBhIGJldHRlciBuYW1lIHRoYXQgeW91IGxpa2UuCgpUaGlzIHJlcXVlc3Qg
+bGVhdmVzIG1lIHdpdGggYSBsb3Qgb2YgY2hvaWNlcy4gSSBtYWRlIHRoZW0sIGJ1dCBJIGd1ZXNz
+CnlvdSB3aWxsIGhhdmUgc29tZXRoaW5nIHRvIHNheSBhYm91dCBpdC4gU2VlIHYzLgoKPiAKPiA+
+ICtib29sIG5mdF9nZXRwcm90b2J5bnVtYmVyKGludCBwcm90bywgY2hhciAqb3V0X25hbWUsIHNp
+emVfdAo+ID4gbmFtZV9sZW4pCj4gPiArewo+ID4gK8KgwqDCoMKgwqDCoMKgY29uc3Qgc3RydWN0
+IHByb3RvZW50ICpyZXN1bHQ7Cj4gPiArCj4gPiArI2lmIEhBVkVfREVDTF9HRVRQUk9UT0JZTlVN
+QkVSX1IKPiA+ICvCoMKgwqDCoMKgwqDCoHN0cnVjdCBwcm90b2VudCByZXN1bHRfYnVmOwo+ID4g
+K8KgwqDCoMKgwqDCoMKgY2hhciBidWZbMjA0OF07Cj4gPiArwqDCoMKgwqDCoMKgwqBpbnQgcjsK
+PiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoHIgPSBnZXRwcm90b2J5bnVtYmVyX3IocHJvdG8sCj4g
+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCAmcmVzdWx0X2J1ZiwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJ1ZiwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHNpemVvZihidWYpLAo+ID4gK8Kg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+KHN0cnVjdCBwcm90b2VudCAqKikgJnJlc3VsdCk7Cj4gPiArwqDCoMKgwqDCoMKgwqBpZiAociAh
+PSAwIHx8IHJlc3VsdCAhPSAmcmVzdWx0X2J1ZikKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqByZXN1bHQgPSBOVUxMOwo+ID4gKyNlbHNlCj4gPiArwqDCoMKgwqDCoMKgwqByZXN1
+bHQgPSBnZXRwcm90b2J5bnVtYmVyKHByb3RvKTsKPiA+ICsjZW5kaWYKPiAKPiBJJ2Qgc3VnZ2Vz
+dCB3cmFwIHRoaXMgY29kZSB3aXRoICNpZmRlZidzIGluIGEgaGVscGVyIGZ1bmN0aW9uLgoKSSBk
+b24ndCB1bmRlcnN0YW5kLiBuZnRfZ2V0cHJvdG9ieW51bWJlcigpICppcyogdGhhdCBoZWxwZXIg
+ZnVuY3Rpb24gdG8Kd3JhcCB0aGUgI2lmLiBUaGlzIHBvaW50IGlzIG5vdCBhZGRyZXNzZWQgYnkg
+djMgKD8/KS4KCgoKdGhhbmtzLApUaG9tYXMK
 
