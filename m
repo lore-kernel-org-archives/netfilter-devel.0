@@ -2,78 +2,71 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF3E2C001DE
-	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Aug 2023 09:46:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3374C001DE
+	for <netfilter-devel@archiver.kernel.org>; Fri, 18 Aug 2023 09:47:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359331AbjHRJqI (ORCPT
+        id S1343819AbjHRJrL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 18 Aug 2023 05:46:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33032 "EHLO
+        Fri, 18 Aug 2023 05:47:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359333AbjHRJpp (ORCPT
+        with ESMTP id S1346482AbjHRJqj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Aug 2023 05:45:45 -0400
+        Fri, 18 Aug 2023 05:46:39 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 258062684
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 02:45:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E2002684
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 02:45:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692351907;
+        s=mimecast20190719; t=1692351955;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=YhAOOpjdRwHeH7uSTgcK9qACYuSm34SyzRzvzpIPz/U=;
-        b=P5OFk84vBs8UtxdVCB/ZBgfB0EGROcVu8t9Pduim0Mwa2nnKzAenWg/S3ouOgHE+wyOfgk
-        wdAV5Rv4R8YfYf2MBsZKk8kKso9eNmYSwLYJDkqcV1P7XcZCZK6KGgIQnZTpnhvL1Y1LDl
-        ClJYBg/rSLvGEZxcRQq2UU9BFsyMOJg=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=xu9gXbFFlv3JWPBDXHSz0r4IxMquUv3L3hZx2YIL1DI=;
+        b=ESDjmCj0o/QZ0szU8Y8o3wuCt59YM753SH5XIVynroBkbQzqM9jw9RDFTxqb0Rnv4SSHib
+        idMbxHZLrAlXGENzpRgUH9KCXRzs84i8saEjXjWEKGX3LWxakcqpP0xyEAAQZf2Pqe+cit
+        ZsCvDmLWVAboYVJwo/4Hdk6vW3cVWno=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-463-XMblsx1GOrmDeq97s5LA3Q-1; Fri, 18 Aug 2023 05:45:05 -0400
-X-MC-Unique: XMblsx1GOrmDeq97s5LA3Q-1
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-3fe14dc8d7aso1736845e9.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 02:45:05 -0700 (PDT)
+ us-mta-31-0zCJAeZ5P6KRqKGkQF3kDg-1; Fri, 18 Aug 2023 05:45:52 -0400
+X-MC-Unique: 0zCJAeZ5P6KRqKGkQF3kDg-1
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-3fe12bf2db4so1156535e9.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2023 02:45:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692351904; x=1692956704;
+        d=1e100.net; s=20221208; t=1692351951; x=1692956751;
         h=mime-version:user-agent:content-transfer-encoding:references
          :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=YhAOOpjdRwHeH7uSTgcK9qACYuSm34SyzRzvzpIPz/U=;
-        b=QsTNR0hXzeXQadi3a3aLaGX5bmCCpKR6GSvSjyPpBBXjAm+McG3avcNBnz+JkiWkmM
-         dr4QSHSHexl+yy6diyHKbSinbWGSA78SKBlCEtR6B7/zare01Lx29gXLRJXXQt2lWzxp
-         f5r8q8bnUm5Isox1pZ5zuw0VdUEtLFk6s9/7yJRsdMoOKQiMdHWqiBj7x1jkEkgpaItK
-         GUyIEw81ouc5TEILOqqaZztz7G56wy0hdVp394LLNoF21J6F1/HMufuA43iptwHzdfZG
-         A6AX5iV6lsjcdUSWKm1dckDf+/KKumaOie+vmtV9Y2WKyuv5975QH90HTEaYQXFDiN1d
-         aV4A==
-X-Gm-Message-State: AOJu0Yxuq1dmiTGFl7bm423pauboEIELAXO6WoZKEzlIlDrcsQZXQDIW
-        GLiBinXWLqoc5ciN8nu3LsI1eK7xgQRE6Y7AfSQtPtOlNBPhbYznt6UpmTAMdio/R5170+u8TQ5
-        WwgxJh6niUOxvCNY3fB6xgwoPMeCUmO82pLjK
-X-Received: by 2002:a05:600c:1c1b:b0:3fc:2d8:b1f2 with SMTP id j27-20020a05600c1c1b00b003fc02d8b1f2mr1762438wms.3.1692351903947;
-        Fri, 18 Aug 2023 02:45:03 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHptfQGCtu+dz6e6PrA6WvR6yEduoVazwvJKo/3S+kmVo3x2I5GqfIf5CduNmiqr4VAG9v1pQ==
-X-Received: by 2002:a05:600c:1c1b:b0:3fc:2d8:b1f2 with SMTP id j27-20020a05600c1c1b00b003fc02d8b1f2mr1762423wms.3.1692351903608;
-        Fri, 18 Aug 2023 02:45:03 -0700 (PDT)
+        bh=xu9gXbFFlv3JWPBDXHSz0r4IxMquUv3L3hZx2YIL1DI=;
+        b=QYjvJCk2dKX9jG60Z3PO8iBw4nZw5mKMxFeBVhXFjFCjIx1or1Vlf/EzpX54A7BoJy
+         iZhYWqCe9A997qXiq9dJngoRNz2oAvHOAp2SPDQCl/Cme7pMDiYpulGnhvPo1KFB1SB5
+         b6EMA/fBrA17LSjAqQ0mVfQzDTBkNxPbYScqdTtyiiBAS1G81bv5DJDiAOKSC34itpyh
+         nAU3u3C4tcXQ8U/SkocKgTpbwvxkEWZ4KB3W+1Noc8eaY2e4JSI64bkZ3KQRI5HJFRUQ
+         nO8TqUYGZu5jBo/g0HdC/CJQDVRsRnYEPRPvCshSYNUaoLRfY25msUDjpWp4xOUDlw3t
+         Tdtw==
+X-Gm-Message-State: AOJu0YyIn47wgNsTmjRUsDDFONPCW/tctIq3b6i9jRKPJ2AvwnE0Hu6k
+        PATWwueok8baXYkgJ5v3Z3Yl0PQpbIGvP9MRo3qaq8uOp+WsFaveFXnnG82+j4CAquKeD3VIw/7
+        51vDwfnq5MX0EcFpqYKiK//O4Xysu
+X-Received: by 2002:a05:600c:3b0f:b0:3fa:97b1:b12d with SMTP id m15-20020a05600c3b0f00b003fa97b1b12dmr1767207wms.2.1692351951072;
+        Fri, 18 Aug 2023 02:45:51 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEHX+7XohHJHqWpEW9KRFujKffBjC7ya7DqyBkwwYxhgnWLPodpNN1ZEUSOZmSNN1pZPYPdAw==
+X-Received: by 2002:a05:600c:3b0f:b0:3fa:97b1:b12d with SMTP id m15-20020a05600c3b0f00b003fa97b1b12dmr1767203wms.2.1692351950806;
+        Fri, 18 Aug 2023 02:45:50 -0700 (PDT)
 Received: from [10.0.0.196] ([37.186.167.86])
-        by smtp.gmail.com with ESMTPSA id v26-20020a05600c215a00b003fbb618f7adsm2248973wml.15.2023.08.18.02.45.02
+        by smtp.gmail.com with ESMTPSA id p14-20020a7bcc8e000000b003fe1cac37d8sm5719361wma.11.2023.08.18.02.45.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Aug 2023 02:45:03 -0700 (PDT)
-Message-ID: <83178df199548eef789707dcedd6783d7307cc91.camel@redhat.com>
-Subject: Re: [nft PATCH v4 2/6] src: add input flag NFT_CTX_INPUT_NO_DNS to
- avoid blocking
+        Fri, 18 Aug 2023 02:45:50 -0700 (PDT)
+Message-ID: <79a7170508e209263241654f7195cd4cd31abbae.camel@redhat.com>
+Subject: Re: [nft PATCH v4 6/6] py: add Nftables.{get,set}_input() API
 From:   Thomas Haller <thaller@redhat.com>
 To:     Phil Sutter <phil@nwl.cc>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Fri, 18 Aug 2023 11:45:02 +0200
-In-Reply-To: <ZNzy9+OPzBiYVnvT@orbyte.nwl.cc>
+Date:   Fri, 18 Aug 2023 11:45:49 +0200
+In-Reply-To: <ZNz0+hTYXVqvozX+@orbyte.nwl.cc>
 References: <20230803193940.1105287-1-thaller@redhat.com>
-         <20230803193940.1105287-5-thaller@redhat.com>
-         <ZNJCFNlZ8bHuJOkl@orbyte.nwl.cc>
-         <e095b0fe0c6db0eaafb8072abfa5102a55f9df41.camel@redhat.com>
-         <ZNNoUHB/i7rxPXS1@orbyte.nwl.cc>
-         <b1829e8f312b2e626dc4efefdc1d666044405552.camel@redhat.com>
-         <ZNSVo9Um6T0fgqXA@orbyte.nwl.cc>
-         <7f3848f6d52a2521df8bd1ee01b2fdb0af9b57a1.camel@redhat.com>
-         <ZNzy9+OPzBiYVnvT@orbyte.nwl.cc>
+         <20230803193940.1105287-13-thaller@redhat.com>
+         <ZNz0+hTYXVqvozX+@orbyte.nwl.cc>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
@@ -82,22 +75,52 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 2023-08-16 at 18:01 +0200, Phil Sutter wrote:
-> > >=20
-> > > I'm pretty sure it does, albeit maybe not officially.
+On Wed, 2023-08-16 at 18:10 +0200, Phil Sutter wrote:
+> On Thu, Aug 03, 2023 at 09:35:24PM +0200, Thomas Haller wrote:
+> > Similar to the existing Nftables.{get,set}_debug() API.
 > >=20
-> > That would be important to verify. I will check, thank you.
+> > Only notable (internal) difference is that
+> > nft_ctx_input_set_flags()
+> > returns the old value already, so we don't need to call
+> > Nftables.get_input() first.
+> >=20
+> > The benefit of this API, is that it follows the existing API for
+> > debug
+> > flags. Also, when future flags are added it requires few changes to
+> > the
+> > python code.
+> >=20
+> > The disadvantage is that it looks different from the underlying C
+> > API,
+> > which is confusing when reading the C API. Also, it's a bit
+> > cumbersome
+> > to reset only one flag. For example:
+> >=20
+> > =C2=A0=C2=A0=C2=A0=C2=A0 def _drop_flag_foo(flag):
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if isinstance(flag, int):
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 retu=
+rn flag & ~FOO_NUM
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if flag =3D=3D 'foo':
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 retu=
+rn 0
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return flag
+> >=20
+> > =C2=A0=C2=A0=C2=A0=C2=A0 ctx.set_input(_drop_flag_foo(v) for v in ctx.g=
+et_input())
 >=20
-> Did you find time for it already?
+> IMO the name is too short. While I find it works with debug
+> ("set_debug"
+> as in "enable_debugging") but with input I expect something to
+> follow.
+> So I suggest renaming to (get|set)_input_flags(), similar to
+> __(get|set)_output_flag() (which get/set a single flag instead of
+> multiple).
+
 
 Hi Phil,
 
+changed in v5.
 
-Not yet. Will do.
-
-Note that the new behavior is opt-in, and firewalld will have to change
-to get it.
-
-
+thank you!
 Thomas
 
