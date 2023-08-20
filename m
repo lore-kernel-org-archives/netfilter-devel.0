@@ -2,63 +2,63 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C9EEE4996
-	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Aug 2023 20:39:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C6BEEE4996
+	for <netfilter-devel@archiver.kernel.org>; Sun, 20 Aug 2023 21:34:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232033AbjHTUjI (ORCPT
+        id S229869AbjHTVem (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 20 Aug 2023 16:39:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33514 "EHLO
+        Sun, 20 Aug 2023 17:34:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231945AbjHTUiz (ORCPT
+        with ESMTP id S229982AbjHTVem (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Aug 2023 16:38:55 -0400
+        Sun, 20 Aug 2023 17:34:42 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3758559B
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Aug 2023 13:36:03 -0700 (PDT)
-Received: from [78.30.34.192] (port=44688 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1280CA4
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Aug 2023 14:34:39 -0700 (PDT)
+Received: from [78.30.34.192] (port=54124 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qXp9R-00Aojd-Fm; Sun, 20 Aug 2023 22:36:00 +0200
-Date:   Sun, 20 Aug 2023 22:35:56 +0200
+        id 1qXq4B-00Azdq-6K
+        for netfilter-devel@vger.kernel.org; Sun, 20 Aug 2023 23:34:38 +0200
+Date:   Sun, 20 Aug 2023 23:34:34 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [nft PATCH v3 0/3] src: use reentrant
- getprotobyname_r()/getprotobynumber_r()/getservbyport_r()
-Message-ID: <ZOJ5LMyDVJL7hkMf@calendula>
-References: <20230818141124.859037-1-thaller@redhat.com>
- <ZN+Yf0rQ/W+zkpI0@calendula>
- <bb3935579c7492373e76f8e71f4a739bcb7fcda4.camel@redhat.com>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: libnetfilter_queue patch ping
+Message-ID: <ZOKG6nnqEY9v6ctp@calendula>
+References: <ZOAvByRubG+0lVHX@slk15.local.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <bb3935579c7492373e76f8e71f4a739bcb7fcda4.camel@redhat.com>
+In-Reply-To: <ZOAvByRubG+0lVHX@slk15.local.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Aug 18, 2023 at 07:39:31PM +0200, Thomas Haller wrote:
-> On Fri, 2023-08-18 at 18:12 +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Aug 18, 2023 at 04:08:18PM +0200, Thomas Haller wrote:
-> > > Changes since version 2:
-> > > 
-> > > - split the patch.
-> > > 
-> > > - add and use defines NFT_PROTONAME_MAXSIZE, NFT_SERVNAME_MAXSIZE,
-> > >   NETDB_BUFSIZE.
-> > > 
-> > > - add new GPL2+ source file as a place for the wrapper functions.
-> > 
-> > Series LGTM. I would just collapse patch 1 and 2, I can do that
-> > before
-> > applying if you like. Or you send v4 as you prefer.
+On Sat, Aug 19, 2023 at 12:55:03PM +1000, Duncan Roe wrote:
+> There is a libnetfilter_queue patch of mine from the March 2022 that is still
+> under review in Patchwork:
 > 
-> Hi Pablo,
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20220328024821.9927-1-duncan_roe@optusnet.com.au/
 > 
-> if you are OK with applying it (and mangling it first), please go
-> ahead.
+> I tested recently with 63KB packets: overall CPU decrease 20%, user CPU decrease
+> 50%.
 
-Applied, thanks.
+I just took the bare minimum of this patch to provide more control on
+memory management as you request, it is here:
+
+http://git.netfilter.org/libnetfilter_queue/commit/?id=91d2c947b473b3540be5474c7128a5fa4ce60934
+
+I have removed the extra callback wrapper which does not provide much
+but an extra layer to the user.
+
+> This patch could open an avenue to having libnetfilter_queue handle tunneling.
+> E.g. for tcp over udp, you could have 2 pktbuff structs (because the data area
+> can be anywhere, rather than residing after the pktbuff head).
+
+Please, do not pursue this approach, this pkt_buff structure is
+mocking the sk_buff API in the kernel in a very simplistic way. You
+can still implement such tunnel handling in your application.
+
+Thanks.
