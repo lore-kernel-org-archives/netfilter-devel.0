@@ -2,71 +2,135 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44A33EE4993
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 13:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85A06EE4993
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 14:11:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232359AbjHUNOm (ORCPT
+        id S235521AbjHUOLm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Aug 2023 09:14:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56098 "EHLO
+        Mon, 21 Aug 2023 10:11:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234052AbjHUNOm (ORCPT
+        with ESMTP id S235686AbjHUOLl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Aug 2023 09:14:42 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DF8C12D
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Aug 2023 06:14:15 -0700 (PDT)
-Received: from [78.30.34.192] (port=46230 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qY4iW-00Dm3H-6D
-        for netfilter-devel@vger.kernel.org; Mon, 21 Aug 2023 15:13:14 +0200
-Date:   Mon, 21 Aug 2023 15:13:11 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: use correct lock to protect
- gc_list
-Message-ID: <ZONi53oXf8Agcvwh@calendula>
-References: <20230821123332.34690-1-pablo@netfilter.org>
+        Mon, 21 Aug 2023 10:11:41 -0400
+Received: from mail-pj1-x1036.google.com (mail-pj1-x1036.google.com [IPv6:2607:f8b0:4864:20::1036])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43B55E6;
+        Mon, 21 Aug 2023 07:11:40 -0700 (PDT)
+Received: by mail-pj1-x1036.google.com with SMTP id 98e67ed59e1d1-26d60e6fe19so1156869a91.1;
+        Mon, 21 Aug 2023 07:11:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692627100; x=1693231900;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=3dNZIrk8cdTlP5FxvTPOvR6yau8NHeOzj6hC5/gPKFo=;
+        b=NI4VdfEs+S4ba51EOwI21Y8k5Sn6J4avI0XCxfVgfT4tLh3RmZg2jYOnpZtAGVJ+Yt
+         2ggneJcbkcPCYa3xm2KhcRTn1lFr9vVxV3QLKSO0tl1SZJctE7O9G0yY4jovD/u4lQu/
+         vDi3zr3PEgqnhLcf0WPvUs/93doTNVe17Ij2fzy6hUBMd/R0DPPpWfyB4RslLvWljAEs
+         D6D9YghJdkt0TBnKNvCcIXZ1X0tm0PkGpPhympJHEpiyy8RgaI4vrxaGFAN7Vrxooq3a
+         Ue0vA73HTPF++6fQM/JisRY7xBKgDYkdGpUyhieMCQguD6GKG8erPgIVGlgWwHtXxUps
+         5/pQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692627100; x=1693231900;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3dNZIrk8cdTlP5FxvTPOvR6yau8NHeOzj6hC5/gPKFo=;
+        b=k1dx6O7nMbTVC7vifYI3vhVZza55l2Iy+FYelgAdmv1DqzSKklfkLVgMK8YELElKmQ
+         koew53YJTOuqPle8O7OMxLcwDtJONCa+1M49Q5QTNZv/g6pK2gfkCWdF9VNGo9Rukup+
+         vG6eVcz0srOIuvxc4tri659sUVgZby0yYzk47hDlB9WEtVXjBxLjkCmnviuYunJD8MiG
+         FvIcnUGLN3DdWnptNOsmciMIvTjsVOmLmAzZzhoe6OGy4fOzAI+uJuWKZsjNYqBUbghl
+         cV4z8yCsJNT0uiBLQEptE9v2bD2uxgADEspQHFa/iKcRKBhlP5e5c8CO+5IebcvPTxpU
+         x0/w==
+X-Gm-Message-State: AOJu0YxHIJSgE86Z66WEZ+/felVWWv5ndoIicWElmAhdHw+tZM4j4Puo
+        sUQ80RCRiE91uToI52KGVnk=
+X-Google-Smtp-Source: AGHT+IEkFYv67zZssZZUgDaFEIb6DG5zWbc+68lZRn7X+KyaH7nWoP4kkpaBT1HxtyXvlhNQB2C8yQ==
+X-Received: by 2002:a17:90b:3884:b0:268:3b8b:140d with SMTP id mu4-20020a17090b388400b002683b8b140dmr3480681pjb.35.1692627099506;
+        Mon, 21 Aug 2023 07:11:39 -0700 (PDT)
+Received: from debian.me ([103.124.138.83])
+        by smtp.gmail.com with ESMTPSA id y13-20020a17090aca8d00b002693505391csm7786734pjt.37.2023.08.21.07.11.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Aug 2023 07:11:38 -0700 (PDT)
+Received: by debian.me (Postfix, from userid 1000)
+        id B1C5B81961C9; Mon, 21 Aug 2023 21:11:34 +0700 (WIB)
+Date:   Mon, 21 Aug 2023 21:11:34 +0700
+From:   Bagas Sanjaya <bagasdotme@gmail.com>
+To:     Turritopsis Dohrnii Teo En Ming <tdtemccnp@gmail.com>,
+        cluster-devel.redhat.com@debian.me
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Networking <netdev@vger.kernel.org>,
+        Linux Netfilter <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Cluster-devel] I have been given the guide with full network
+ diagram on configuring High Availability (HA) Cluster and SD-WAN for
+ Fortigate firewalls by my boss on 10 May 2023 Wed
+Message-ID: <ZONwlkirjv2iBFiA@debian.me>
+References: <CAD3upLsRxrvG0GAcFZj+BfAb6jbwd-vc2170sZHguWu4mRJpog@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="9id3nzJVoXz9daxh"
 Content-Disposition: inline
-In-Reply-To: <20230821123332.34690-1-pablo@netfilter.org>
+In-Reply-To: <CAD3upLsRxrvG0GAcFZj+BfAb6jbwd-vc2170sZHguWu4mRJpog@mail.gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 21, 2023 at 02:33:32PM +0200, Pablo Neira Ayuso wrote:
-> Use nf_tables_gc_list_lock spinlock, not nf_tables_destroy_list_lock to
-> protect the destroy list.
 
-For the record, this text should be instead:
+--9id3nzJVoXz9daxh
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  ... to protect the gc_list.
+On Wed, May 10, 2023 at 11:12:26PM +0800, Turritopsis Dohrnii Teo En Ming w=
+rote:
+> Good day from Singapore,
+>=20
+> I have been given the guide with full network diagram on configuring
+> High Availability (HA) Cluster and SD-WAN for Fortigate firewalls by
+> my boss on 10 May 2023 Wed. This involves 2 ISPs, 2 identical
+> Fortigate firewalls and 3 network switches.
+>=20
+> Reference guide: SD-WAN with FGCP HA
+> Link: https://docs.fortinet.com/document/fortigate/6.2.14/cookbook/23145/=
+sd-wan-with-fgcp-ha
+>=20
+> I have managed to deploy HA cluster and SD-WAN for a nursing home at
+> Serangoon Singapore on 9 May 2023 Tue, with some minor hiccups. The
+> hiccup is due to M1 ISP ONT not accepting connections from 2 Fortigate
+> firewalls. Singtel ISP ONT accepts connections from 2 Fortigate
+> firewalls without any problems though. On 9 May 2023 Tue, I was
+> following the network diagram drawn by my team leader KKK. My team
+> leader KKK's network diagram matches the network diagram in Fortinet's
+> guide shown in the link above.
+>=20
+> The nursing home purchased the following network equipment:
+>=20
+> [1] 2 units of Fortigate 101F firewalls with firmware upgraded to version=
+ 7.2.4
+>=20
+> [2] 3 units of Aruba Instant On 1830 8-port network switches
+>=20
+> [3] Multiple 5-meter LAN cables
+>=20
 
-> Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_tables_api.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index a255456efae4..eb8b1167dced 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -9456,9 +9456,9 @@ static void nft_trans_gc_work(struct work_struct *work)
->  	struct nft_trans_gc *trans, *next;
->  	LIST_HEAD(trans_gc_list);
->  
-> -	spin_lock(&nf_tables_destroy_list_lock);
-> +	spin_lock(&nf_tables_gc_list_lock);
->  	list_splice_init(&nf_tables_gc_list, &trans_gc_list);
-> -	spin_unlock(&nf_tables_destroy_list_lock);
-> +	spin_unlock(&nf_tables_gc_list_lock);
->  
->  	list_for_each_entry_safe(trans, next, &trans_gc_list, list) {
->  		list_del(&trans->list);
-> -- 
-> 2.30.2
-> 
+Then why did you post Fortigate stuffs here in LKML when these are (obvious=
+ly)
+off-topic? Why don't you try netfilter instead? And do you have any
+kernel-related problems?
+
+Confused...
+
+--=20
+An old man doll... just what I always wanted! - Clara
+
+--9id3nzJVoXz9daxh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZONwkAAKCRD2uYlJVVFO
+o2v9APwLSkYfNhrIlWLvqv1XaVd4D6YSmC1QEaYhXa7Nf2pcewEAmXXstMCWZtZt
+6l62/RN1wYSQNNh+HfJNE5+KG3YXDQ4=
+=tY/a
+-----END PGP SIGNATURE-----
+
+--9id3nzJVoXz9daxh--
