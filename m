@@ -2,51 +2,47 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA969EE4996
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 17:55:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A5FEE4996
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 19:43:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235424AbjHURz1 (ORCPT
+        id S230064AbjHUTnI (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Aug 2023 13:55:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32844 "EHLO
+        Mon, 21 Aug 2023 15:43:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231528AbjHURz1 (ORCPT
+        with ESMTP id S229602AbjHUTnG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Aug 2023 13:55:27 -0400
+        Mon, 21 Aug 2023 15:43:06 -0400
 Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 607B6E9
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Aug 2023 10:55:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7639D9
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Aug 2023 12:43:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=GpOcglZgjwxyyEmJ+XwDUvgM2VqALT6DDSOpqT4Ta2g=; b=FJjKLza/qVYq5MVMzwDJNUSUXi
-        iCgwKdg5kFYpls3DSS5S9TGc87R2TWEAV0CdVcLGmL1YoNAGVZwXLH305VxFYilJ/3f+U9rGTaO8O
-        qivrqaEflA65sqx0yrSCSZQVAyYrApAA2eCxD41pl9THJ9uuG+gNGFWT9z+rSWUKhDGzWS7Jzk8Uj
-        ia3rNn/Z8xqGX/dmEaB0c7MZTOyvWbyG7TD89Ba8dod9BW2JPgRyfcBwXKI+xCVLpG0/1yJjoRaBz
-        6Qkr/MIEUau2HlyOuTJQYhKj7yRfP9QmXLZ4MSvh3gqbJaWYfKKzgO/h8xCVHlN7AB7Ea5p2iMHaR
-        FbfK94rw==;
-Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=azazel.net)
-        by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        bh=Fs0SD16kBJTFNYx5sUguAJrcgnleJJitzcPAYCzb+6s=; b=PYHPJODiE+1dgxeZfSLqa+C8AA
+        D9tbGixDnMag/HVCT93pJ0ngrRKeJBGyRQOfvXI1ZLQF5mo3uRhD+OUGaiE5RdyIdHTtgnPM6rHbw
+        1s8+lUSBKsF6ZwMbsRTbzIsZRgZ0IdgO9sT659HNoTV70KDzXh08sOVpOZF0LmdbPlRBpkp1JN7vn
+        yrIs8EsEfFV6oDpbW5iUIJ/Egm0Zz/41Y4QhlWEx03naAknCdo+pplY4hq39njca6WVWCkgMw2OFU
+        KKvew6AP4OBnyDkK/DMZgpZirMNZQcMEInz+vh9iYWjgVm0XgDsA91UuypcQWmZXIUN6nO2DkVQhL
+        eL1sM6qg==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.96)
         (envelope-from <jeremy@azazel.net>)
-        id 1qY97b-008xmX-0H;
-        Mon, 21 Aug 2023 18:55:23 +0100
-Date:   Mon, 21 Aug 2023 18:55:21 +0100
+        id 1qYAnn-00909U-1N
+        for netfilter-devel@vger.kernel.org;
+        Mon, 21 Aug 2023 20:43:03 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft,v2] INSTALL: provide examples to install python
- bindings
-Message-ID: <20230821175521.GA46797@azazel.net>
-References: <20230821112840.27221-1-pablo@netfilter.org>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH ulogd2 v3 00/11] Fixes for handling and output of IP addresses
+Date:   Mon, 21 Aug 2023 20:42:26 +0100
+Message-Id: <20230821194237.51139-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="btKuI8dzd2rcMl5b"
-Content-Disposition: inline
-In-Reply-To: <20230821112840.27221-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
@@ -54,130 +50,61 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Robert O'Brien reported a bug in the output of the source and target IP
+addresses of ARP packets using the GPRINT output plug-in and proposed a
+fix for that particular bug:
 
---btKuI8dzd2rcMl5b
-Content-Type: multipart/mixed; boundary="nqh+74DdzC3jSCo+"
-Content-Disposition: inline
+  https://lore.kernel.org/netfilter-devel/005601d8f532$49cd7080$dd685180$@foxtrot-research.com/
 
+It transpired that there are a number of incorrect assumptions about the
+format of IP addresses in the code-base.  In a couple of places there
+are endianness mismatches, but more commonly it is assumed that all IP
+addresses are IPv4.
 
---nqh+74DdzC3jSCo+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In the previous versions of this work, my solution for fixing the
+handling of IPv6 addresses was to handle all addresses internally as
+IPv6 by converting IPv4 addresses to IPv4-in-IPv6 ("::ffff:a.b.c.d"),
+and then convert IPv4-in-IPv6 address back to IPv4 on output.  However,
+Florian pointed out that this means that if ulogd2 receives a real
+IPv4-in-IPv6 address as input it will be indistinguishable from the
+synthetic ones and so converted to IPv4 format on output.
 
-On 2023-08-21, at 13:28:40 +0200, Pablo Neira Ayuso wrote:
-> Provide examples to install python bindings with legacy setup.py and pip
-> with .toml file.
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v2: add Jeremy's feedback.
->=20
->  INSTALL | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
->=20
-> diff --git a/INSTALL b/INSTALL
-> index 53021e5aafc3..6539ebdd6457 100644
-> --- a/INSTALL
-> +++ b/INSTALL
-> @@ -84,10 +84,14 @@ Installation instructions for nftables
->   Python support
->   =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =20
-> - CPython bindings are available for nftables under the py/ folder.
-> + CPython bindings are available for nftables under the py/ folder.  They=
- can be
-> + installed using pip:
-> =20
-> - A pyproject.toml config file and legacy setup.py script are provided to=
- install
-> - it.
-> +    python -m pip install py/
-> +
-> + Alternatively, legacy setup.py script is also provided to install it:
-> +
-> +	python setup.py install
-> =20
->   Source code
->   =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --=20
-> 2.30.2
->=20
+In this version, I have taken a different approach.  Input keys have a
+legnth field which is not used for fixed-width data-types.  I have used
+this to distinguish 128-bit IPv6 addresses from 32-bit IPv4 ones.
 
-If you want to retain a reference to setup.py, then how about this
-patch?
+I have also broken up the single patch of previous versions into a
+series of smaller, hopefully more easily comprehensible ones, separating
+out, in particular, the endianness fixes from the IPv6 ones.
 
-J.
+One thing to note is that this changes the expected endianness of IP
+address in the OPRINT plug-in.
 
---nqh+74DdzC3jSCo+
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment;
-	filename="0001-INSTALL-provide-examples-to-install-python-bindings.patch"
-Content-Transfer-Encoding: quoted-printable
+Jeremy Sowden (11):
+  src: record length of integer key values
+  printpkt: fix statement punctuator
+  printpkt, raw2packet_BASE: keep gateway address in NBO
+  raw2packet_BASE: store ARP address values as integers
+  ip2hbin: store ipv6 address as integer
+  ipfix: skip non-ipv4 addresses
+  gprint, oprint: use inet_ntop to format ip addresses
+  gprint, oprint: add support for printing ipv6 addresses
+  sqlite3: correct binding of ipv4 addresses and 64-bit integers
+  sqlite3: insert ipv6 addresses as null rather than garbage
+  db: insert ipv6 addresses in the same format as ip2bin
 
-=46rom 415b23098ad9d48bd6f45f3edc589abcb9aaf87a Mon Sep 17 00:00:00 2001
-=46rom: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 21 Aug 2023 13:28:40 +0200
-Subject: [PATCH] INSTALL: provide examples to install python bindings
+ filter/raw2packet/ulogd_raw2packet_BASE.c | 15 ++++---
+ filter/ulogd_filter_IP2BIN.c              | 33 +--------------
+ filter/ulogd_filter_IP2HBIN.c             |  9 ++--
+ include/ulogd/ulogd.h                     | 50 ++++++++++++++++++++++-
+ output/ipfix/ulogd_output_IPFIX.c         |  3 ++
+ output/sqlite3/ulogd_output_SQLITE3.c     | 20 ++++++---
+ output/ulogd_output_GPRINT.c              | 32 ++++++++++-----
+ output/ulogd_output_OPRINT.c              | 41 +++++++++++--------
+ util/db.c                                 | 19 +++++++--
+ util/printpkt.c                           |  5 ++-
+ 10 files changed, 146 insertions(+), 81 deletions(-)
 
-Provide examples to install python bindings with legacy setup.py and pip
-with .toml file.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- INSTALL | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
-
-diff --git a/INSTALL b/INSTALL
-index 53021e5aafc3..5d45ec988c9f 100644
---- a/INSTALL
-+++ b/INSTALL
-@@ -84,10 +84,16 @@ Installation instructions for nftables
-  Python support
-  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
-- CPython bindings are available for nftables under the py/ folder.
-+ CPython bindings are available for nftables under the py/ folder.  They c=
-an be
-+ installed using pip:
-=20
-- A pyproject.toml config file and legacy setup.py script are provided to i=
-nstall
-- it.
-+	python -m pip install py/
-+
-+ A legacy setup.py script can also be used:
-+
-+	( cd py && python setup.py install )
-+
-+ However, this method is deprecated.
-=20
-  Source code
-  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---=20
+-- 
 2.40.1
 
-
---nqh+74DdzC3jSCo+--
-
---btKuI8dzd2rcMl5b
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmTjpQkACgkQKYasCr3x
-BA3BXA//UJOb2x/R7ZMB1HTkuFUrV23v7P99B71ypZdkASbF3xCPjP9DB5ksxd4c
-cwILmculftYCsRnsiCuarQ91VRcQW58datS+mpAFFoZfzsEbwhcW3iLeHQ4/Nw++
-LtMP4jkn5T8bKfDYm3G+6JdHna9s8nGIf4wBx6GeyU45vyuyV/RyMSerbXeiSCAv
-6C4IlDEMHK1YOaLZxbjtYzJWESZDYk+NBj6c/Tk9kLiYUze/q2pcf4JD2lNogYgv
-DBN6OJ+TxB2kQd6a3YEbgaQ/OqmMkcxLs0jj+0VV+0+0w+blE8pkzLJzJeGz1a0s
-+L7jBX9tYegNRtib2kggWWwpF09gAlGNzR+7q15DXyajIqyCwFvOte/nvWMB+JME
-69EMPKm3BAfzuHxkEvMQf6poB7rQGMsCKcHEjhMvNby2xW3tisMxt1JZCW7XUyiv
-1xsn/0psn0KbpaQc6i7HhOV6Qm+9yZxZS9L3S5xwk0Eabf7szQzrJEwHXQGqOWVy
-p9+ENdBHb0etkGiaRRKBXBWHEnloFGQ4Bgz9EY5yPd0Ka9wTKtCAf21aCfQ7SaLR
-5ur4NFCEdeLXJUf8yNste2a+FOS+L+WL0120CSvMOYTcGtW+qdni8dEd1WqjUGgM
-FKXDu5An0P5JZh8TiFGBxqjp2C+MywB+UW0HcwIWT4EZbqWIcSE=
-=PWRu
------END PGP SIGNATURE-----
-
---btKuI8dzd2rcMl5b--
