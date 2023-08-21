@@ -2,25 +2,25 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA947EE4993
-	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 10:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18CB2EE4996
+	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 10:27:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233894AbjHUKSA (ORCPT
+        id S231940AbjHUK1s (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Aug 2023 06:18:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34294 "EHLO
+        Mon, 21 Aug 2023 06:27:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231183AbjHUKSA (ORCPT
+        with ESMTP id S234690AbjHUK1s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Aug 2023 06:18:00 -0400
+        Mon, 21 Aug 2023 06:27:48 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D302DCF
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Aug 2023 03:17:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3F767E7
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Aug 2023 03:27:44 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack] conntrack: unbreak -U command, use correct family
-Date:   Mon, 21 Aug 2023 12:17:51 +0200
-Message-Id: <20230821101751.4083-1-pablo@netfilter.org>
+Subject: [PATCH conntrack] conntrack: skip ENOENT when -U/-D finds a stale conntrack entry
+Date:   Mon, 21 Aug 2023 12:27:39 +0200
+Message-Id: <20230821102739.4893-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,43 +28,50 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set the family from the conntrack object, otherwise, if -f is not specified
-and the kernel bails out with:
+-U and -D commands iterate over the netlink dump and it might try to
+update/delete an entry which is not in the kernel anymore. Skip ENOENT
+errors.
 
- # conntrack -U -p tcp -m 1
- Operation failed: Not supported
- conntrack v1.4.7 (conntrack-tools): Operation failed: Not supported
-
-Reported-by: Tony He <huangya90@gmail.com>
-Fixes: b7a396b70015 ("conntrack: use libmnl for updating conntrack table")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/conntrack.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ src/conntrack.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index bf727391bcf6..69a8fde6b5ee 100644
+index 69a8fde6b5ee..20aeed52da0f 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -2184,14 +2184,16 @@ static int mnl_nfct_update_cb(const struct nlmsghdr *nlh, void *data)
- 	if (nfct_cmp(tmp, ct, NFCT_CMP_ALL | NFCT_CMP_MASK))
- 		goto destroy_ok;
+@@ -1989,10 +1989,14 @@ static int mnl_nfct_delete_cb(const struct nlmsghdr *nlh, void *data)
+ 	res = nfct_mnl_request(modifier_sock, NFNL_SUBSYS_CTNETLINK,
+ 			       nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO),
+ 			       IPCTNL_MSG_CT_DELETE, NLM_F_ACK, NULL, ct, NULL);
+-	if (res < 0)
++	if (res < 0) {
++		/* the entry has vanish in middle of the delete */
++		if (errno == ENOENT)
++			goto done;
+ 		exit_error(OTHER_PROBLEM,
+ 			   "Operation failed: %s",
+ 			   err2str(errno, CT_DELETE));
++	}
  
--	res = nfct_mnl_request(modifier_sock, NFNL_SUBSYS_CTNETLINK, cmd->family,
-+	res = nfct_mnl_request(modifier_sock, NFNL_SUBSYS_CTNETLINK,
-+			       nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO),
+ 	if (output_mask & _O_SAVE) {
+ 		ct_save_snprintf(buf, sizeof(buf), ct, labelmap, NFCT_T_DESTROY);
+@@ -2188,8 +2192,12 @@ static int mnl_nfct_update_cb(const struct nlmsghdr *nlh, void *data)
+ 			       nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO),
  			       IPCTNL_MSG_CT_NEW, NLM_F_ACK, NULL, tmp, NULL);
  	if (res < 0) {
- 		fprintf(stderr, "Operation failed: %s\n",
- 			err2str(errno, CT_UPDATE));
+-		fprintf(stderr, "Operation failed: %s\n",
+-			err2str(errno, CT_UPDATE));
++		/* the entry has vanish in middle of the update */
++		if (errno == ENOENT)
++			goto destroy_ok;
++		exit_error(OTHER_PROBLEM,
++			   "Operation failed: %s",
++			   err2str(errno, CT_UPDATE));
  	}
  
--	res = nfct_mnl_request(modifier_sock, NFNL_SUBSYS_CTNETLINK, cmd->family,
-+	res = nfct_mnl_request(modifier_sock, NFNL_SUBSYS_CTNETLINK,
-+			       nfct_get_attr_u8(ct, ATTR_ORIG_L3PROTO),
- 			       IPCTNL_MSG_CT_GET, NLM_F_ACK,
- 			       mnl_nfct_print_cb, tmp, NULL);
- 	if (res < 0) {
+ 	res = nfct_mnl_request(modifier_sock, NFNL_SUBSYS_CTNETLINK,
 -- 
 2.30.2
 
