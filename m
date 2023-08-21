@@ -2,44 +2,44 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 391F3EE49A5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D131AEE49AE
 	for <netfilter-devel@archiver.kernel.org>; Mon, 21 Aug 2023 19:43:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229602AbjHUTnI (ORCPT
+        id S230041AbjHUTnK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 21 Aug 2023 15:43:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44770 "EHLO
+        Mon, 21 Aug 2023 15:43:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229870AbjHUTnG (ORCPT
+        with ESMTP id S230049AbjHUTnH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Aug 2023 15:43:06 -0400
+        Mon, 21 Aug 2023 15:43:07 -0400
 Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0954BE8
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18855F3
         for <netfilter-devel@vger.kernel.org>; Mon, 21 Aug 2023 12:43:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=2/L3wmJzY6e8hmg12erEoZUnPJ1B1Zfg+lBuTrnxglg=; b=onfIpHKDXHcmWmQsBZ52LCVbVW
-        Xzt2spSv63iiANW+Q9rbDaaKPHVqQ1qcPKDDGLSM2YHK1ndnmeejqtcSWGI3BNR3wgVhDCYbpzNwu
-        T99ao7NqiDlxG1gUwtMKjH040NB29M8MfHyTffHR/l0U/TEZZizV+MPTskD+u0nZ2d7Xg1q14/GHm
-        ThxXSkDdNSonYmzcqcjGmpxiICcdBd5OR6NB1b8NkLf353hCd/g4fgoU3ZKKrSQFsNSf7am/rHuxH
-        hg4yLoF/Sle0kpH3bRKhPJNuwTN8Yq5D1IYg3sEuMVSsNHQKzWk2IPnvtF5T01YIefcPHXaCu20OS
-        StZi1kbA==;
+        bh=jZ9O6CRbiBKsWabEkLnyd26dau9cMzRFsGDcEYwuE+s=; b=fUDWTxclPlCRUh6AcrO2npOFLL
+        NX/OfyE5d22hZqr3J+d9XOpchUafFRQ4q85/6NM1Jrv02bNfc1M4t1gKYzPiyN9LHqaGwNUZCs8eW
+        EqXt7xWAaikJSB5Xem8LfdL9IIPc8She+jxcdNIRRi5T9sJ2Nek3pxxuPmjEmosL7RIduQC/IDZvg
+        8Tiawnw44jf3biuOLjDkVm2LOfyZMktKTrQIxLvMFpxo91jTRTCXP8ChkEfvcga9zi7+iyx9oCeCv
+        PAmsDk8DdgO+KL0gZkfFM0Ps6UTok5H8pY1D/ZrfeGxJPb81NSuJFuy2Xhk5IxocLO6KKu/7DisBy
+        KbZkcq3Q==;
 Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
         by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.96)
         (envelope-from <jeremy@azazel.net>)
-        id 1qYAnn-00909U-1W
-        for netfilter-devel@vger.kernel.org;
+        id 1qYAnn-00909U-1y;
         Mon, 21 Aug 2023 20:43:03 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH ulogd2 v3 01/11] src: record length of integer key values
-Date:   Mon, 21 Aug 2023 20:42:27 +0100
-Message-Id: <20230821194237.51139-2-jeremy@azazel.net>
+Cc:     Robert O'Brien <robrien@foxtrot-research.com>
+Subject: [PATCH ulogd2 v3 04/11] raw2packet_BASE: store ARP address values as integers
+Date:   Mon, 21 Aug 2023 20:42:30 +0100
+Message-Id: <20230821194237.51139-5-jeremy@azazel.net>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230821194237.51139-1-jeremy@azazel.net>
 References: <20230821194237.51139-1-jeremy@azazel.net>
@@ -52,67 +52,49 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Keys of type `ULOGD_RET_IPADDR` may be ipv4 or ipv6.  ARP protocol
+addresses are 32-bits (i.e., ipv4).  By using `okey_set_u32` we keep
+track of the size and allow downstream plug-ins to handle them
+correctly.
+
+Reported-by: Robert O'Brien <robrien@foxtrot-research.com>
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- include/ulogd/ulogd.h | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ filter/raw2packet/ulogd_raw2packet_BASE.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
-index 092d9f521a70..cb0174042235 100644
---- a/include/ulogd/ulogd.h
-+++ b/include/ulogd/ulogd.h
-@@ -134,36 +134,42 @@ static inline void okey_set_b(struct ulogd_key *key, uint8_t value)
- {
- 	key->u.value.b = value;
- 	key->flags |= ULOGD_RETF_VALID;
-+	key->len = sizeof(key->u.value.b);
+diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
+index 14423486a880..09e931349acf 100644
+--- a/filter/raw2packet/ulogd_raw2packet_BASE.c
++++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
+@@ -896,18 +896,23 @@ static int _interp_arp(struct ulogd_pluginstance *pi, uint32_t len)
+ 	struct ulogd_key *ret = pi->output.keys;
+ 	const struct ether_arp *arph =
+ 		ikey_get_ptr(&pi->input.keys[INKEY_RAW_PCKT]);
++	uint32_t arp_spa, arp_tpa;
+ 
+ 	if (len < sizeof(struct ether_arp))
+ 		return ULOGD_IRET_OK;
+ 
+-	okey_set_u16(&ret[KEY_ARP_HTYPE], ntohs(arph->arp_hrd));
+-	okey_set_u16(&ret[KEY_ARP_PTYPE], ntohs(arph->arp_pro));
++	okey_set_u16(&ret[KEY_ARP_HTYPE],  ntohs(arph->arp_hrd));
++	okey_set_u16(&ret[KEY_ARP_PTYPE],  ntohs(arph->arp_pro));
+ 	okey_set_u16(&ret[KEY_ARP_OPCODE], ntohs(arph->arp_op));
+ 
+ 	okey_set_ptr(&ret[KEY_ARP_SHA], (void *)&arph->arp_sha);
+-	okey_set_ptr(&ret[KEY_ARP_SPA], (void *)&arph->arp_spa);
+ 	okey_set_ptr(&ret[KEY_ARP_THA], (void *)&arph->arp_tha);
+-	okey_set_ptr(&ret[KEY_ARP_TPA], (void *)&arph->arp_tpa);
++
++	memcpy(&arp_spa, arph->arp_spa, sizeof(arp_spa));
++	memcpy(&arp_tpa, arph->arp_tpa, sizeof(arp_tpa));
++
++	okey_set_u32(&ret[KEY_ARP_SPA], arp_spa);
++	okey_set_u32(&ret[KEY_ARP_TPA], arp_tpa);
+ 
+ 	return ULOGD_IRET_OK;
  }
- 
- static inline void okey_set_u8(struct ulogd_key *key, uint8_t value)
- {
- 	key->u.value.ui8 = value;
- 	key->flags |= ULOGD_RETF_VALID;
-+	key->len = sizeof(key->u.value.ui8);
- }
- 
- static inline void okey_set_u16(struct ulogd_key *key, uint16_t value)
- {
- 	key->u.value.ui16 = value;
- 	key->flags |= ULOGD_RETF_VALID;
-+	key->len = sizeof(key->u.value.ui16);
- }
- 
- static inline void okey_set_u32(struct ulogd_key *key, uint32_t value)
- {
- 	key->u.value.ui32 = value;
- 	key->flags |= ULOGD_RETF_VALID;
-+	key->len = sizeof(key->u.value.ui32);
- }
- 
- static inline void okey_set_u64(struct ulogd_key *key, uint64_t value)
- {
- 	key->u.value.ui64 = value;
- 	key->flags |= ULOGD_RETF_VALID;
-+	key->len = sizeof(key->u.value.ui64);
- }
- 
- static inline void okey_set_u128(struct ulogd_key *key, const void *value)
- {
--	memcpy(key->u.value.ui128, value, 16);
-+	memcpy(key->u.value.ui128, value, sizeof(key->u.value.ui128));
- 	key->flags |= ULOGD_RETF_VALID;
-+	key->len = sizeof(key->u.value.ui128);
- }
- 
- static inline void okey_set_ptr(struct ulogd_key *key, void *value)
-@@ -309,6 +315,7 @@ void __ulogd_log(int level, char *file, int line, const char *message, ...)
- #define SET_NEEDED(x)	(x.flags |= ULOGD_RETF_NEEDED)
- 
- #define GET_FLAGS(res, x)	(res[x].u.source->flags)
-+#define GET_LENGTH(res, x)	(res[x].u.source->len)
- #define pp_is_valid(res, x)	\
- 	(res[x].u.source && (GET_FLAGS(res, x) & ULOGD_RETF_VALID))
- 
 -- 
 2.40.1
 
