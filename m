@@ -2,108 +2,96 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66607EE4996
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Aug 2023 15:16:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5449CEE4993
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Aug 2023 15:43:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236436AbjHVPQL (ORCPT
+        id S237299AbjHVPnw (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Aug 2023 11:16:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36252 "EHLO
+        Tue, 22 Aug 2023 11:43:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234758AbjHVPQL (ORCPT
+        with ESMTP id S237296AbjHVPnv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Aug 2023 11:16:11 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 737D0CD2
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Aug 2023 08:15:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692717319;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=XaWvCljYeSrofr5/PbOGKe4C6yPU6STnRM4+E9CkTLQ=;
-        b=hteq0REm+q9DvEouWPTgT9KWGnGYJVMMSDfcUbTCMNDf5sMMdaRNZwmw5+TXwttDozcxOX
-        JQeW4V2OaDMlA+J1+0J2nf8bk4QfdJU+zcgbN76tUntxnvXVTJnYyRxvziyj04qmKE7c3H
-        aKBKkJpbb1uPsNuRK9UjXThLMzG36kc=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-505-If9CsEtxN6q-qdZym_p8KA-1; Tue, 22 Aug 2023 11:15:18 -0400
-X-MC-Unique: If9CsEtxN6q-qdZym_p8KA-1
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-3fef7a0509bso2084005e9.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Aug 2023 08:15:17 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692717316; x=1693322116;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=XaWvCljYeSrofr5/PbOGKe4C6yPU6STnRM4+E9CkTLQ=;
-        b=jIOTOjS7yJ3tFS+3TBNou1wsYGmytNWVsx/IiYH5eshHe5xAiyRH8EjrT6DDmhtmtJ
-         +88/Bewjx3lL6njik8DbZvQtgYayYoFyEwMHMIFKYPaxDIj7XtPU7VL+oBdws3LQBbHh
-         pa2yhxHKqr0tXQMrQTu1c6F4BJVhQP/u5emhHR/R4FR3ODYTnqEXP6xHaNuI89HSRuZJ
-         ZQJnp50izL8jy2Rk9UV3l7VzVcMGihGva5Tb2tVLv08DkySkIPVCNizqT12Z01KKna+s
-         hZkXZ2IdA8cXfifTnFKTL9Nt+Gzf4UfWjKuzCmjhyOQnZ7h+sB69OSTIjwDoUnWQ5CjZ
-         Au3g==
-X-Gm-Message-State: AOJu0YwB8IXmmqv3c+muyPvXtkuqaV1rEmtxEPPGXgAY3fKy/NPkz7PB
-        MIw9ICRDyy/Vh56qaJbrYhYZq8ljRdB4OLmk/M9NULMNa4OkG9+EUqZVL9M36ZcgWR6pY0Yi8Pk
-        xfLLbg53EQuNjclFCNV1bsvKSx60ihTliWndA
-X-Received: by 2002:a05:600c:8516:b0:3fe:5228:b77d with SMTP id gw22-20020a05600c851600b003fe5228b77dmr7839399wmb.3.1692717316562;
-        Tue, 22 Aug 2023 08:15:16 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHdvw1ZUEb+l7+SkxAJuLuRTK8e0qTh2XRQnEGl0L5NHp7A/rr5GLW40kWGLvAn78TUL6N82w==
-X-Received: by 2002:a05:600c:8516:b0:3fe:5228:b77d with SMTP id gw22-20020a05600c851600b003fe5228b77dmr7839391wmb.3.1692717316210;
-        Tue, 22 Aug 2023 08:15:16 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.167.86])
-        by smtp.gmail.com with ESMTPSA id c1-20020a7bc001000000b003fee567235bsm12004149wmb.1.2023.08.22.08.15.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Aug 2023 08:15:15 -0700 (PDT)
-Message-ID: <ba3ff8dcecbd37a3e59c30dc26fd4e8fc6734352.camel@redhat.com>
-Subject: Re: [nft PATCH 2/2] meta: use reentrant localtime_r()/gmtime_r()
- functions
-From:   Thomas Haller <thaller@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Tue, 22 Aug 2023 17:15:14 +0200
-In-Reply-To: <f5680cd01051242a87f768f5770b062c199971b1.camel@redhat.com>
-References: <20230822081318.1370371-1-thaller@redhat.com>
-         <20230822081318.1370371-2-thaller@redhat.com> <ZOR3za+Z+1X0VnIo@calendula>
-         <f5680cd01051242a87f768f5770b062c199971b1.camel@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Tue, 22 Aug 2023 11:43:51 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DDF2CCB;
+        Tue, 22 Aug 2023 08:43:49 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qYTXg-0003EH-TZ; Tue, 22 Aug 2023 17:43:40 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH net-next 00/10] netfilter updates for net-next
+Date:   Tue, 22 Aug 2023 17:43:21 +0200
+Message-ID: <20230822154336.12888-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, 2023-08-22 at 13:39 +0200, Thomas Haller wrote:
-> On Tue, 2023-08-22 at 10:54 +0200, Pablo Neira Ayuso wrote:
->=20
->=20
-> nftables calls localtime_r() from print/parse functions. Presumably,
-> we
-> will print/parse several timestamps during a larger operation, it
-> would
-> be odd to change/reload the timezone in between or to meaningfully
-> support that.
->=20
->=20
-> I think it is all good, nothing to change. Just to be aware of.
->=20
+Hello,
 
-Thinking some more, the "problem" is that when we parse a larger data,
-then multiple subfields are parsed. Thereby we call "time()" and
-"localtime()" multiple times. The time() keeps ticking, and time and tz
-can be reset at any moment -- so we see different time/tz, in the
-middle of parsing the larger set of data.
+This batch contains a few updates for your *net-next* tree.
+First patch resolves a fortify warning by wrapping the to-be-copied
+members via struct_group.
 
-What IMO should happen, is that for one parse operation, we call such
-operations at most once, and cache them in `struct netlink_parse_ctx`.
+Second patch replaces array[0] with array[] in ebtables uapi.
+Both changes from GONG Ruiqi.
 
+The largest chunk is replacement of strncpy with strscpy_pad()
+in netfilter, from Justin Stitt.
 
-Is that considered a problem to be solved? Seems simple. Would you
-accept a patch for that?
+Last patch, from myself, aborts ruleset validation if a fatal
+signal is pending, this speeds up process exit.
 
+The following changes since commit 43c2817225fce05701f062a996255007481935e2:
 
-Thomas
+  net: remove unnecessary input parameter 'how' in ifdown function (2023-08-22 13:19:02 +0200)
 
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-23-08-22
+
+for you to fetch changes up to 169384fbe8513185499bcbb817d198e6a63eb37e:
+
+  netfilter: nf_tables: allow loop termination for pending fatal signal (2023-08-22 15:14:32 +0200)
+
+----------------------------------------------------------------
+nf-next pull request 2023-08-22
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: nf_tables: allow loop termination for pending fatal signal
+
+GONG, Ruiqi (2):
+      netfilter: ebtables: fix fortify warnings in size_entry_mwt()
+      netfilter: ebtables: replace zero-length array members
+
+Justin Stitt (7):
+      netfilter: ipset: refactor deprecated strncpy
+      netfilter: nf_tables: refactor deprecated strncpy
+      netfilter: nf_tables: refactor deprecated strncpy
+      netfilter: nft_osf: refactor deprecated strncpy
+      netfilter: nft_meta: refactor deprecated strncpy
+      netfilter: x_tables: refactor deprecated strncpy
+      netfilter: xtables: refactor deprecated strncpy
+
+ include/uapi/linux/netfilter_bridge/ebtables.h | 22 ++++++++++++----------
+ net/bridge/netfilter/ebtables.c                |  3 +--
+ net/netfilter/ipset/ip_set_core.c              | 10 +++++-----
+ net/netfilter/nf_tables_api.c                  |  6 ++++++
+ net/netfilter/nft_ct.c                         |  2 +-
+ net/netfilter/nft_fib.c                        |  2 +-
+ net/netfilter/nft_meta.c                       |  6 +++---
+ net/netfilter/nft_osf.c                        |  6 +++---
+ net/netfilter/x_tables.c                       |  5 ++---
+ net/netfilter/xt_repldata.h                    |  2 +-
+ 10 files changed, 35 insertions(+), 29 deletions(-)
