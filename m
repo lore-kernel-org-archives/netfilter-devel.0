@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADB9CEE49AC
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Aug 2023 15:43:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F20B3EE49A4
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Aug 2023 15:44:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237302AbjHVPnz (ORCPT
+        id S237277AbjHVPoB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Aug 2023 11:43:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43242 "EHLO
+        Tue, 22 Aug 2023 11:44:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237307AbjHVPny (ORCPT
+        with ESMTP id S237276AbjHVPn7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Aug 2023 11:43:54 -0400
+        Tue, 22 Aug 2023 11:43:59 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32E75CC1;
-        Tue, 22 Aug 2023 08:43:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F223CD5;
+        Tue, 22 Aug 2023 08:43:58 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qYTXp-0003Ei-24; Tue, 22 Aug 2023 17:43:49 +0200
+        id 1qYTXt-0003FA-4T; Tue, 22 Aug 2023 17:43:53 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -26,11 +26,11 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>,
-        "GONG, Ruiqi" <gongruiqi1@huawei.com>, GONG@breakpoint.cc,
-        Kees Cook <keescook@chromium.org>
-Subject: [PATCH net-next 02/10] netfilter: ebtables: replace zero-length array members
-Date:   Tue, 22 Aug 2023 17:43:23 +0200
-Message-ID: <20230822154336.12888-3-fw@strlen.de>
+        Justin Stitt <justinstitt@google.com>,
+        linux-hardening@vger.kernel.org
+Subject: [PATCH net-next 03/10] netfilter: ipset: refactor deprecated strncpy
+Date:   Tue, 22 Aug 2023 17:43:24 +0200
+Message-ID: <20230822154336.12888-4-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230822154336.12888-1-fw@strlen.de>
 References: <20230822154336.12888-1-fw@strlen.de>
@@ -40,66 +40,53 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
+From: Justin Stitt <justinstitt@google.com>
 
-As suggested by Kees[1], replace the old-style 0-element array members
-of multiple structs in ebtables.h with modern C99 flexible array.
+Use `strscpy_pad` instead of `strncpy`.
 
-[1]: https://lore.kernel.org/all/5E8E0F9C-EE3F-4B0D-B827-DC47397E2A4A@kernel.org/
-
-[ fw@strlen.de:
-  keep struct ebt_entry_target as-is, causes compiler warning:
-  "variable sized type 'struct ebt_entry_target' not at the end of a
-  struct or class is a GNU extension" ]
-
-Link: https://github.com/KSPP/linux/issues/21
-Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Link: https://github.com/KSPP/linux/issues/90
+Cc: linux-hardening@vger.kernel.org
+Signed-off-by: Justin Stitt <justinstitt@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter_bridge/ebtables.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
-index b0caad82b693..4ff328f3d339 100644
---- a/include/uapi/linux/netfilter_bridge/ebtables.h
-+++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-@@ -87,7 +87,7 @@ struct ebt_entries {
- 	/* nr. of entries */
- 	unsigned int nentries;
- 	/* entry list */
--	char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	char data[] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
- };
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 0b68e2e2824e..e564b5174261 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -872,7 +872,7 @@ ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name)
+ 	BUG_ON(!set);
  
- /* used for the bitmask of struct ebt_entry */
-@@ -129,7 +129,7 @@ struct ebt_entry_match {
- 	} u;
- 	/* size of data */
- 	unsigned int match_size;
--	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char data[] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
- };
+ 	read_lock_bh(&ip_set_ref_lock);
+-	strncpy(name, set->name, IPSET_MAXNAMELEN);
++	strscpy_pad(name, set->name, IPSET_MAXNAMELEN);
+ 	read_unlock_bh(&ip_set_ref_lock);
+ }
+ EXPORT_SYMBOL_GPL(ip_set_name_byindex);
+@@ -1326,7 +1326,7 @@ static int ip_set_rename(struct sk_buff *skb, const struct nfnl_info *info,
+ 			goto out;
+ 		}
+ 	}
+-	strncpy(set->name, name2, IPSET_MAXNAMELEN);
++	strscpy_pad(set->name, name2, IPSET_MAXNAMELEN);
  
- struct ebt_entry_watcher {
-@@ -142,7 +142,7 @@ struct ebt_entry_watcher {
- 	} u;
- 	/* size of data */
- 	unsigned int watcher_size;
--	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char data[] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
- };
+ out:
+ 	write_unlock_bh(&ip_set_ref_lock);
+@@ -1380,9 +1380,9 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
+ 		return -EBUSY;
+ 	}
  
- struct ebt_entry_target {
-@@ -190,7 +190,7 @@ struct ebt_entry {
- 		/* sizeof ebt_entry + matches + watchers + target */
- 		unsigned int next_offset;
- 	);
--	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
-+	unsigned char elems[] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
- };
+-	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
+-	strncpy(from->name, to->name, IPSET_MAXNAMELEN);
+-	strncpy(to->name, from_name, IPSET_MAXNAMELEN);
++	strscpy_pad(from_name, from->name, IPSET_MAXNAMELEN);
++	strscpy_pad(from->name, to->name, IPSET_MAXNAMELEN);
++	strscpy_pad(to->name, from_name, IPSET_MAXNAMELEN);
  
- static __inline__ struct ebt_entry_target *
+ 	swap(from->ref, to->ref);
+ 	ip_set(inst, from_id) = to;
 -- 
 2.41.0
 
