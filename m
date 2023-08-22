@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56E8EEE49A3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Aug 2023 15:44:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCBE5EE4993
+	for <netfilter-devel@archiver.kernel.org>; Tue, 22 Aug 2023 15:44:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237288AbjHVPoP (ORCPT
+        id S237279AbjHVPoT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 22 Aug 2023 11:44:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47630 "EHLO
+        Tue, 22 Aug 2023 11:44:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237290AbjHVPoO (ORCPT
+        with ESMTP id S237290AbjHVPoS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Aug 2023 11:44:14 -0400
+        Tue, 22 Aug 2023 11:44:18 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01405CDA;
-        Tue, 22 Aug 2023 08:44:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E73F1CDD;
+        Tue, 22 Aug 2023 08:44:16 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qYTY9-0003H9-Eb; Tue, 22 Aug 2023 17:44:09 +0200
+        id 1qYTYD-0003Hj-Gx; Tue, 22 Aug 2023 17:44:13 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -27,9 +27,9 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>,
         Justin Stitt <justinstitt@google.com>
-Subject: [PATCH net-next 07/10] netfilter: nft_meta: refactor deprecated strncpy
-Date:   Tue, 22 Aug 2023 17:43:28 +0200
-Message-ID: <20230822154336.12888-8-fw@strlen.de>
+Subject: [PATCH net-next 08/10] netfilter: x_tables: refactor deprecated strncpy
+Date:   Tue, 22 Aug 2023 17:43:29 +0200
+Message-ID: <20230822154336.12888-9-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230822154336.12888-1-fw@strlen.de>
 References: <20230822154336.12888-1-fw@strlen.de>
@@ -46,37 +46,36 @@ Prefer `strscpy_pad` to `strncpy`.
 Signed-off-by: Justin Stitt <justinstitt@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_meta.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/x_tables.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 8fdc7318c03c..f7da7c43333b 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -185,12 +185,12 @@ static noinline bool nft_meta_get_eval_kind(enum nft_meta_keys key,
- 	case NFT_META_IIFKIND:
- 		if (!in || !in->rtnl_link_ops)
- 			return false;
--		strncpy((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
-+		strscpy_pad((char *)dest, in->rtnl_link_ops->kind, IFNAMSIZ);
- 		break;
- 	case NFT_META_OIFKIND:
- 		if (!out || !out->rtnl_link_ops)
- 			return false;
--		strncpy((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
-+		strscpy_pad((char *)dest, out->rtnl_link_ops->kind, IFNAMSIZ);
- 		break;
- 	default:
- 		return false;
-@@ -206,7 +206,7 @@ static void nft_meta_store_ifindex(u32 *dest, const struct net_device *dev)
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 470282cf3fae..21624d68314f 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -768,7 +768,7 @@ void xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
+ 	m->u.user.match_size = msize;
+ 	strscpy(name, match->name, sizeof(name));
+ 	module_put(match->me);
+-	strncpy(m->u.user.name, name, sizeof(m->u.user.name));
++	strscpy_pad(m->u.user.name, name, sizeof(m->u.user.name));
  
- static void nft_meta_store_ifname(u32 *dest, const struct net_device *dev)
- {
--	strncpy((char *)dest, dev ? dev->name : "", IFNAMSIZ);
-+	strscpy_pad((char *)dest, dev ? dev->name : "", IFNAMSIZ);
- }
+ 	*size += off;
+ 	*dstptr += msize;
+@@ -1148,7 +1148,7 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
+ 	t->u.user.target_size = tsize;
+ 	strscpy(name, target->name, sizeof(name));
+ 	module_put(target->me);
+-	strncpy(t->u.user.name, name, sizeof(t->u.user.name));
++	strscpy_pad(t->u.user.name, name, sizeof(t->u.user.name));
  
- static bool nft_meta_store_iftype(u32 *dest, const struct net_device *dev)
+ 	*size += off;
+ 	*dstptr += tsize;
+@@ -2014,4 +2014,3 @@ static void __exit xt_fini(void)
+ 
+ module_init(xt_init);
+ module_exit(xt_fini);
+-
 -- 
 2.41.0
 
