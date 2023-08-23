@@ -2,103 +2,76 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 532B5EE49AE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Aug 2023 07:34:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83C96EE4993
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Aug 2023 09:19:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232303AbjHWHeJ (ORCPT
+        id S233442AbjHWJR3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Aug 2023 03:34:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35126 "EHLO
+        Wed, 23 Aug 2023 05:17:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231473AbjHWHeI (ORCPT
+        with ESMTP id S235238AbjHWJPQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Aug 2023 03:34:08 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6B35FB
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2023 00:34:06 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qYiNR-0007V6-Kp; Wed, 23 Aug 2023 09:34:05 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: defer gc run if previous batch is still pending
-Date:   Wed, 23 Aug 2023 09:33:58 +0200
-Message-ID: <20230823073401.16625-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Wed, 23 Aug 2023 05:15:16 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 311035252
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2023 02:06:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1692781595;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=9c+TgxZa7cnrCJBQLGvPaOLfSuQltahIaqxXjSxqF0g=;
+        b=b3gir6vMty9ivEJAbVa/sjuoIz1dP5dEFsJSItHOz7M/AzBy4FP9eXVDKSk6BTEaW4FUIZ
+        E8mxdzSnRWMyvh/ixCKe6iVDiuEW2H0GlS+rmK1fWWCT0gmfsN81ALSkEMkA61HCxqKC7J
+        PQxGKS+xzXPhOfMjE1iEnsdDN2bxAwM=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-435-YKgENhSqP4aI-no2RKgcow-1; Wed, 23 Aug 2023 05:06:31 -0400
+X-MC-Unique: YKgENhSqP4aI-no2RKgcow-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2E42E101A528;
+        Wed, 23 Aug 2023 09:06:31 +0000 (UTC)
+Received: from elisabeth (unknown [10.39.208.21])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 5558340D283A;
+        Wed, 23 Aug 2023 09:06:30 +0000 (UTC)
+Date:   Wed, 23 Aug 2023 11:06:28 +0200
+From:   Stefano Brivio <sbrivio@redhat.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf] netfilter: nft_set_pipapo: fix out of memory error
+ handling
+Message-ID: <20230823110628.56a553d3@elisabeth>
+In-Reply-To: <20230823072752.16361-1-fw@strlen.de>
+References: <20230823072752.16361-1-fw@strlen.de>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Don't queue more gc work, else we may queue the same elements multiple
-times.
+On Wed, 23 Aug 2023 09:27:47 +0200
+Florian Westphal <fw@strlen.de> wrote:
 
-If an element is flagged as dead, this can mean that either the previous
-gc request was invalidated/discarded by a transaction or that the previous
-request is still pending in the system work queue.
+> Several instances of pipapo_resize() don't propagate allocation failures,
+> this causes a crash when fault injection is used with
+> 
+>  echo Y > /sys/kernel/debug/failslab/ignore-gfp-wait
 
-The latter will happen if the gc interval is set to a very low value,
-e.g. 1ms, and system work queue is backlogged.
+Oops, I didn't think about that. Thanks.
 
-The sets refcount is 1 if no previous gc requeusts are queued, so add
-a helper for this and skip gc run if old requests are pending.
+> Cc: Stefano Brivio <sbrivio@redhat.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Add a helper for this and skip the gc run in this case.
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 
-Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_tables.h | 5 +++++
- net/netfilter/nft_set_hash.c      | 3 +++
- net/netfilter/nft_set_rbtree.c    | 3 +++
- 3 files changed, 11 insertions(+)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ffcbdf08380f..dd40c75011d2 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -587,6 +587,11 @@ static inline void *nft_set_priv(const struct nft_set *set)
- 	return (void *)set->data;
- }
- 
-+static inline bool nft_set_gc_is_pending(const struct nft_set *s)
-+{
-+	return refcount_read(&s->refs) != 1;
-+}
-+
- static inline struct nft_set *nft_set_container_of(const void *priv)
- {
- 	return (void *)priv - offsetof(struct nft_set, data);
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index cef5df846000..524763659f25 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -326,6 +326,9 @@ static void nft_rhash_gc(struct work_struct *work)
- 	nft_net = nft_pernet(net);
- 	gc_seq = READ_ONCE(nft_net->gc_seq);
- 
-+	if (nft_set_gc_is_pending(set))
-+		goto done;
-+
- 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index f9d4c8fcbbf8..c6435e709231 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -611,6 +611,9 @@ static void nft_rbtree_gc(struct work_struct *work)
- 	nft_net = nft_pernet(net);
- 	gc_seq  = READ_ONCE(nft_net->gc_seq);
- 
-+	if (nft_set_gc_is_pending(set))
-+		goto done;
-+
- 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
 -- 
-2.41.0
+Stefano
 
