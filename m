@@ -2,111 +2,87 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B2F2EE49B2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Aug 2023 15:27:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD5BEE4993
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Aug 2023 16:31:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237208AbjHWP1t (ORCPT
+        id S232724AbjHWQb5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Aug 2023 11:27:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60904 "EHLO
+        Wed, 23 Aug 2023 12:31:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237330AbjHWP1q (ORCPT
+        with ESMTP id S237603AbjHWQb5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Aug 2023 11:27:46 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39F16CD9;
-        Wed, 23 Aug 2023 08:27:45 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qYplk-0001la-DY; Wed, 23 Aug 2023 17:27:40 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net 6/6] netfilter: nf_tables: defer gc run if previous batch is still pending
-Date:   Wed, 23 Aug 2023 17:26:54 +0200
-Message-ID: <20230823152711.15279-7-fw@strlen.de>
+        Wed, 23 Aug 2023 12:31:57 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FEECCEE
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2023 09:31:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=kve3jiz7eTiQd5PGrrRji6k1s+Byd8fmEOe/O312CjI=; b=KbtPgSYE67HZpEhW5+0zMC1nFS
+        hlsWqnfsHHZMFMumBuuPPTkQMxtSQaKOmuiKBcv3/2Ys6uJ9yHnaf5jZL2gviegdb5CGABr/x+08C
+        UUOgFsU5vuVAAzpMiZKv9wUPAUiagjeqS8/9GKwBtVQq128OuZH9XwZPgRLhhIUb5TOW5p68UMRWu
+        QL42uZup1VtPjttZllWJ7XBBbyIF8Pp+pUR22y4c+6Rb2Z97arfkIkITwmIj6fL5oTmO2HLVEDOQ+
+        kyDkahxgwa3464aQrN0tK9+rt5t61VW2ltz3AeZ4XItKUHABgrbZ73N2ghos6Dz2Ur29pYG9TR27v
+        aCDkqwrQ==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qYqlm-0006mM-TH; Wed, 23 Aug 2023 18:31:46 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] tests: shell: Stabilize sets/0043concatenated_ranges_0 test
+Date:   Wed, 23 Aug 2023 18:33:15 +0200
+Message-ID: <20230823163315.4049-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230823152711.15279-1-fw@strlen.de>
-References: <20230823152711.15279-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Don't queue more gc work, else we may queue the same elements multiple
-times.
+On a slow system, one of the 'delete element' commands would
+occasionally fail. Assuming it can only happen if the 2s timeout passes
+"too quickly", work around it by adding elements with a 2m timeout
+instead and when wanting to test the element expiry just drop and add
+the element again with a short timeout.
 
-If an element is flagged as dead, this can mean that either the previous
-gc request was invalidated/discarded by a transaction or that the previous
-request is still pending in the system work queue.
-
-The latter will happen if the gc interval is set to a very low value,
-e.g. 1ms, and system work queue is backlogged.
-
-The sets refcount is 1 if no previous gc requeusts are queued, so add
-a helper for this and skip gc run if old requests are pending.
-
-Add a helper for this and skip the gc run in this case.
-
-Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 6231d3fa4af1e ("tests: shell: Fix for unstable sets/0043concatenated_ranges_0")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/net/netfilter/nf_tables.h | 5 +++++
- net/netfilter/nft_set_hash.c      | 3 +++
- net/netfilter/nft_set_rbtree.c    | 3 +++
- 3 files changed, 11 insertions(+)
+ tests/shell/testcases/sets/0043concatenated_ranges_0 | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ffcbdf08380f..dd40c75011d2 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -587,6 +587,11 @@ static inline void *nft_set_priv(const struct nft_set *set)
- 	return (void *)set->data;
- }
+diff --git a/tests/shell/testcases/sets/0043concatenated_ranges_0 b/tests/shell/testcases/sets/0043concatenated_ranges_0
+index 6e8f4000aa4ef..8d3dacf6e38ad 100755
+--- a/tests/shell/testcases/sets/0043concatenated_ranges_0
++++ b/tests/shell/testcases/sets/0043concatenated_ranges_0
+@@ -147,7 +147,7 @@ for ta in ${TYPES}; do
+ 			eval add_b=\$ADD_${tb}
+ 			eval add_c=\$ADD_${tc}
+ 			${NFT} add element inet filter test \
+-				"{ ${add_a} . ${add_b} . ${add_c} timeout 2s${mapv}}"
++				"{ ${add_a} . ${add_b} . ${add_c} timeout 2m${mapv}}"
+ 			[ $(${NFT} list ${setmap} inet filter test |	\
+ 			   grep -c "${add_a} . ${add_b} . ${add_c}") -eq 1 ]
  
-+static inline bool nft_set_gc_is_pending(const struct nft_set *s)
-+{
-+	return refcount_read(&s->refs) != 1;
-+}
-+
- static inline struct nft_set *nft_set_container_of(const void *priv)
- {
- 	return (void *)priv - offsetof(struct nft_set, data);
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index cef5df846000..524763659f25 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -326,6 +326,9 @@ static void nft_rhash_gc(struct work_struct *work)
- 	nft_net = nft_pernet(net);
- 	gc_seq = READ_ONCE(nft_net->gc_seq);
+@@ -180,7 +180,11 @@ for ta in ${TYPES}; do
+ 				continue
+ 			fi
  
-+	if (nft_set_gc_is_pending(set))
-+		goto done;
-+
- 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index f9d4c8fcbbf8..c6435e709231 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -611,6 +611,9 @@ static void nft_rbtree_gc(struct work_struct *work)
- 	nft_net = nft_pernet(net);
- 	gc_seq  = READ_ONCE(nft_net->gc_seq);
- 
-+	if (nft_set_gc_is_pending(set))
-+		goto done;
-+
- 	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
- 	if (!gc)
- 		goto done;
+-			sleep 2
++			${NFT} delete element inet filter test \
++				"{ ${add_a} . ${add_b} . ${add_c} ${mapv}}"
++			${NFT} add element inet filter test \
++				"{ ${add_a} . ${add_b} . ${add_c} timeout 1s${mapv}}"
++			sleep 1
+ 			[ $(${NFT} list ${setmap} inet filter test |		\
+ 			   grep -c "${add_a} . ${add_b} . ${add_c} ${mapv}") -eq 0 ]
+ 			timeout_tested=1
 -- 
 2.41.0
 
