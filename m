@@ -2,50 +2,41 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF93CC3DA66
-	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Aug 2023 16:53:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84571C3DA6F
+	for <netfilter-devel@archiver.kernel.org>; Wed, 23 Aug 2023 17:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236084AbjHWQxm (ORCPT
+        id S237538AbjHWRR4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 23 Aug 2023 12:53:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50350 "EHLO
+        Wed, 23 Aug 2023 13:17:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234205AbjHWQxl (ORCPT
+        with ESMTP id S233743AbjHWRR4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Aug 2023 12:53:41 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95521E5C
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2023 09:53:39 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qYr6w-0006z3-1j; Wed, 23 Aug 2023 18:53:38 +0200
-Date:   Wed, 23 Aug 2023 18:53:37 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] tests: shell: Stabilize
- sets/0043concatenated_ranges_0 test
-Message-ID: <ZOY5kbIMO22TeIQw@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230823163315.4049-1-phil@nwl.cc>
+        Wed, 23 Aug 2023 13:17:56 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8218610D2
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2023 10:17:51 -0700 (PDT)
+Received: from [78.30.34.192] (port=42394 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qYrUI-005Y8m-Pu; Wed, 23 Aug 2023 19:17:48 +0200
+Date:   Wed, 23 Aug 2023 19:17:45 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [nft PATCH] gitignore: ignore cscope files
+Message-ID: <ZOY/OcsnnBDHrCLV@calendula>
+References: <20230823065705.1571696-1-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230823163315.4049-1-phil@nwl.cc>
+In-Reply-To: <20230823065705.1571696-1-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 23, 2023 at 06:33:15PM +0200, Phil Sutter wrote:
-> On a slow system, one of the 'delete element' commands would
-> occasionally fail. Assuming it can only happen if the 2s timeout passes
-> "too quickly", work around it by adding elements with a 2m timeout
-> instead and when wanting to test the element expiry just drop and add
-> the element again with a short timeout.
-> 
-> Fixes: 6231d3fa4af1e ("tests: shell: Fix for unstable sets/0043concatenated_ranges_0")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+On Wed, Aug 23, 2023 at 08:56:08AM +0200, Thomas Haller wrote:
+> Cscope is useful. Ignore the files it creates.
 
-Patch applied.
+Applied, thanks
