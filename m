@@ -2,197 +2,125 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D441FC7EE43
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Aug 2023 11:57:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85159C3DA6F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Aug 2023 12:11:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241230AbjHXL47 (ORCPT
+        id S241333AbjHXMKc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Aug 2023 07:56:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59574 "EHLO
+        Thu, 24 Aug 2023 08:10:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241290AbjHXL4s (ORCPT
+        with ESMTP id S241370AbjHXMKX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2023 07:56:48 -0400
-Received: from mg.ssi.bg (mg.ssi.bg [193.238.174.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0395E198B;
-        Thu, 24 Aug 2023 04:56:46 -0700 (PDT)
-Received: from mg.bb.i.ssi.bg (localhost [127.0.0.1])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTP id 91C0B9232;
-        Thu, 24 Aug 2023 14:56:44 +0300 (EEST)
-Received: from ink.ssi.bg (ink.ssi.bg [193.238.174.40])
-        by mg.bb.i.ssi.bg (Proxmox) with ESMTPS id 795659231;
-        Thu, 24 Aug 2023 14:56:44 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-        by ink.ssi.bg (Postfix) with ESMTPSA id 55FB33C0325;
-        Thu, 24 Aug 2023 14:56:42 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=ssi.bg; s=ink;
-        t=1692878202; bh=DEFhqn/SUwHt36fsBBUJoTeVBuql/eCobbe3o7v28gY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=XQjAB+wUXA8RmxiQhrQ5hm6JSlPASZJWbJxmY3ak+nACy4E5wHv2iRKreS7FXhb/W
-         CI0PRxAkt2syeqzLXzQc3L5paBoYt+JC6h8E9I3ULoXN5R8OxLy/eyCWVhpntEkX+L
-         eRGbCTlpWgesvjcOXm6rEoOIXMfQuuTQ+lmvVrmc=
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-        by ja.ssi.bg (8.17.1/8.17.1) with ESMTP id 37OBsdrN061806;
-        Thu, 24 Aug 2023 14:54:39 +0300
-Received: (from root@localhost)
-        by ja.home.ssi.bg (8.17.1/8.17.1/Submit) id 37OBsdlQ061805;
-        Thu, 24 Aug 2023 14:54:39 +0300
-From:   Julian Anastasov <ja@ssi.bg>
-To:     stable@vger.kernel.org
-Cc:     Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Junwei Hu <hujunwei4@huawei.com>,
-        Sishuai Gong <sishuai.system@gmail.com>
-Subject: [PATCH -stable,4.14.y,4.19.y 1/1] ipvs: Improve robustness to the ipvs sysctl
-Date:   Thu, 24 Aug 2023 14:53:54 +0300
-Message-ID: <20230824115354.61669-2-ja@ssi.bg>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230824115354.61669-1-ja@ssi.bg>
-References: <2023082114-remix-cable-0852@gregkh>
- <20230824115354.61669-1-ja@ssi.bg>
+        Thu, 24 Aug 2023 08:10:23 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0773519AD
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 05:10:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=5VTIKm09kADhrbWz4WA7FCHjCXjjdFHzhdqvaF4It9w=; b=fiizLc7rNA1eVCioV+gjDhIqbV
+        jXiJScj2oNJAwsRjd6MWyBGYtXVwpNX46sMNDzXahsgLu8hIhMYnHYbdZF8oZ3OGSPROj17oYZVU5
+        VW59yfsn4fWiktECB6cDAEx6chBA/cmtGP/Ii0QmdBFtIBnbrx+mcWUcGl4XBcbEouikJs489yQI7
+        LSRmVEhvfi8VJISrqUCK87W8be+QRSt50IDyTM6jT16zR9KeOhLrOi+nS02BEks/9/dcfd44xj+3A
+        980S6Ocdu9vdjC+lqeJQOlhooWl1P9b6WiQP4w556SSYv1FVlNJT8A8OsjHAuUj33QcMR6pI7xltD
+        NmXHoEHQ==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.96)
+        (envelope-from <jeremy@azazel.net>)
+        id 1qZ9AE-00BlW7-2I
+        for netfilter-devel@vger.kernel.org;
+        Thu, 24 Aug 2023 13:10:14 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH conntrack-tools] conntrack, nfct: fix some typo's
+Date:   Thu, 24 Aug 2023 13:10:07 +0100
+Message-Id: <20230824121007.679770-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Junwei Hu <hujunwei4@huawei.com>
+Four misspellings and a missing pronoun.
 
-The ipvs module parse the user buffer and save it to sysctl,
-then check if the value is valid. invalid value occurs
-over a period of time.
-Here, I add a variable, struct ctl_table tmp, used to read
-the value from the user buffer, and save only when it is valid.
-I delete proc_do_sync_mode and use extra1/2 in table for the
-proc_dointvec_minmax call.
-
-Fixes: f73181c8288f ("ipvs: add support for sync threads")
-Signed-off-by: Junwei Hu <hujunwei4@huawei.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-(cherry picked from commit 1b90af292e71b20d03b837d39406acfbdc5d4b2a)
-[Julian: Backport by changing SYSCTL_ZERO/SYSCTL_ONE to zero/one]
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 70 +++++++++++++++++-----------------
- 1 file changed, 36 insertions(+), 34 deletions(-)
+ conntrack.8       | 2 +-
+ conntrackd.conf.5 | 4 ++--
+ nfct.8            | 2 +-
+ src/conntrack.c   | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index ecc16d8c1cc3..4e78c2a6a3ca 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1648,6 +1648,7 @@ static int ip_vs_zero_all(struct netns_ipvs *ipvs)
- #ifdef CONFIG_SYSCTL
+diff --git a/conntrack.8 b/conntrack.8
+index 6fbb41fe81fc..031eaa4e9fef 100644
+--- a/conntrack.8
++++ b/conntrack.8
+@@ -180,7 +180,7 @@ Specify the conntrack mark.  Optionally, a mask value can be specified.
+ In "\-\-update" mode, this mask specifies the bits that should be zeroed before
+ XORing the MARK value into the ctmark.
+ Otherwise, the mask is logically ANDed with the existing mark before the
+-comparision. In "\-\-create" mode, the mask is ignored.
++comparison. In "\-\-create" mode, the mask is ignored.
+ .TP
+ .BI "-l, --label " "LABEL"
+ Specify a conntrack label.
+diff --git a/conntrackd.conf.5 b/conntrackd.conf.5
+index a73c3f715df9..50d7b989a942 100644
+--- a/conntrackd.conf.5
++++ b/conntrackd.conf.5
+@@ -52,7 +52,7 @@ You should consider this file as case-sensitive.
+ Empty lines and lines starting with the '#' character are ignored.
  
- static int zero;
-+static int one = 1;
- static int three = 3;
+ Before starting to develop a new configuration, you may want to learn the
+-concepts behind this technlogy at
++concepts behind this technology at
+ \fIhttp://conntrack-tools.netfilter.org/manual.html\fP.
  
- static int
-@@ -1659,12 +1660,18 @@ proc_do_defense_mode(struct ctl_table *table, int write,
- 	int val = *valp;
- 	int rc;
+ There are complete configuration examples at the end of this man page.
+@@ -630,7 +630,7 @@ filter-sets in positive or negative logic depending on your needs.
+ You can select if \fBconntrackd(8)\fP filters the event messages from
+ user-space or kernel-space. The kernel-space event filtering saves some CPU
+ cycles by avoiding the copy of the event message from kernel-space to
+-user-space. The kernel-space event filtering is prefered, however, you require
++user-space. The kernel-space event filtering is preferred, however, you require
+ a \fBLinux kernel >= 2.6.29\fP to filter from kernel-space.
  
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
-+
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if ((*valp < 0) || (*valp > 3)) {
--			/* Restore the correct value */
--			*valp = val;
-+		if (val < 0 || val > 3) {
-+			rc = -EINVAL;
- 		} else {
-+			*valp = val;
- 			update_defense_level(ipvs);
- 		}
- 	}
-@@ -1678,33 +1685,20 @@ proc_do_sync_threshold(struct ctl_table *table, int write,
- 	int *valp = table->data;
- 	int val[2];
- 	int rc;
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = table->maxlen,
-+		.mode = table->mode,
-+	};
- 
--	/* backup the value first */
- 	memcpy(val, valp, sizeof(val));
--
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
--	if (write && (valp[0] < 0 || valp[1] < 0 ||
--	    (valp[0] >= valp[1] && valp[1]))) {
--		/* Restore the correct value */
--		memcpy(valp, val, sizeof(val));
--	}
--	return rc;
--}
--
--static int
--proc_do_sync_mode(struct ctl_table *table, int write,
--		     void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	int *valp = table->data;
--	int val = *valp;
--	int rc;
--
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
--	if (write && (*valp != val)) {
--		if ((*valp < 0) || (*valp > 1)) {
--			/* Restore the correct value */
--			*valp = val;
--		}
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
-+	if (write) {
-+		if (val[0] < 0 || val[1] < 0 ||
-+		    (val[0] >= val[1] && val[1]))
-+			rc = -EINVAL;
-+		else
-+			memcpy(valp, val, sizeof(val));
- 	}
- 	return rc;
- }
-@@ -1717,12 +1711,18 @@ proc_do_sync_ports(struct ctl_table *table, int write,
- 	int val = *valp;
- 	int rc;
- 
--	rc = proc_dointvec(table, write, buffer, lenp, ppos);
-+	struct ctl_table tmp = {
-+		.data = &val,
-+		.maxlen = sizeof(int),
-+		.mode = table->mode,
-+	};
-+
-+	rc = proc_dointvec(&tmp, write, buffer, lenp, ppos);
- 	if (write && (*valp != val)) {
--		if (*valp < 1 || !is_power_of_2(*valp)) {
--			/* Restore the correct value */
-+		if (val < 1 || !is_power_of_2(val))
-+			rc = -EINVAL;
-+		else
- 			*valp = val;
--		}
- 	}
- 	return rc;
- }
-@@ -1782,7 +1782,9 @@ static struct ctl_table vs_vars[] = {
- 		.procname	= "sync_version",
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_do_sync_mode,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &one,
- 	},
- 	{
- 		.procname	= "sync_ports",
+ The syntax for this section is: \fBFilter From <from> { }\fP.
+diff --git a/nfct.8 b/nfct.8
+index c38bdbe45788..b130a8804c4a 100644
+--- a/nfct.8
++++ b/nfct.8
+@@ -8,7 +8,7 @@ nfct \- command line tool to configure with the connection tracking system
+ .BR "nfct command subsystem [parameters]"
+ .SH DESCRIPTION
+ .B nfct
+-is the command line tool that allows to configure the Connection Tracking
++is the command line tool that allows you to configure the Connection Tracking
+ System.
+ .SH COMMANDS
+ .TP
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 77c60b9391a5..f9758d78d39b 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -538,7 +538,7 @@ static const char usage_parameters[] =
+ 	"Common parameters and options:\n"
+ 	"  -s, --src, --orig-src ip\t\tSource address from original direction\n"
+ 	"  -d, --dst, --orig-dst ip\t\tDestination address from original direction\n"
+-	"  -r, --reply-src ip\t\tSource addres from reply direction\n"
++	"  -r, --reply-src ip\t\tSource address from reply direction\n"
+ 	"  -q, --reply-dst ip\t\tDestination address from reply direction\n"
+ 	"  -p, --protonum proto\t\tLayer 4 Protocol, eg. 'tcp'\n"
+ 	"  -f, --family proto\t\tLayer 3 Protocol, eg. 'ipv6'\n"
 -- 
-2.41.0
-
+2.40.1
 
