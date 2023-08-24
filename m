@@ -2,161 +2,90 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F1FC7113B
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Aug 2023 12:56:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E08FC3DA6F
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Aug 2023 13:20:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230303AbjHXM4A (ORCPT
+        id S237293AbjHXNUL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Aug 2023 08:56:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48996 "EHLO
+        Thu, 24 Aug 2023 09:20:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241358AbjHXMze (ORCPT
+        with ESMTP id S237563AbjHXNTj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2023 08:55:34 -0400
-Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C32C19B0
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 05:55:23 -0700 (PDT)
-Received: by mail-pl1-x631.google.com with SMTP id d9443c01a7336-1bf7a6509deso29671495ad.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 05:55:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692881723; x=1693486523;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=oTr6Fye9Sd7qJOJPwegEV16I2HL1wvxsXVw3NwKlTI4=;
-        b=Dwqz9Yclt7oYfzvU+ZAKf4V4MNlttQwWjb+H2HwE5afS+ASWRsD9y0QGHowyg9ZAoX
-         CdXkkj4snOgX83mjmq+qdV3du0w3TI5wVQrNTzN+8oO1DA9S1N2OaC1iAU5yjjM1Wl9K
-         jslrSmTfMONpuwbizLbMnM5FEuxOckM5oeh/H2sf9XOaRQA/netnyolQKfJNN5MJRGlV
-         RTCzFUBflilbPk7grQZVAZjET2oO8xqjOEqesVlva/sXEdYmlblBRNj05qusrqgCT/js
-         AA61WhcKNP4UBe/GJfWH3IvWZM8Api9hx8egTBql26vkn+mA8Yfk17HDF3BghjQ8rB2A
-         pVVg==
+        Thu, 24 Aug 2023 09:19:39 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99EE19B7
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 06:18:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1692883117;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=85gJ17Zng9HVxrU32N97+N7Hsn/7Kk8ejLSG5k/WCOU=;
+        b=JKGuzTMbmnRibKI1CcA2+LSTM9TV60PaW2bbHefGGooiF8d3AdWBFxNk7qdO8cT8tzNq0w
+        Rc4h2/o56nHozw6OF2BGhxFLGJNFLAALeomgvJj0hI/joqnKEJAYfzP5UpEyD3KocWpfKQ
+        4IFLgo1TIsa/lRTLt2ZVMyaYMWCSDpo=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-317-zV2uULuiNYipMnhkK7Vlpg-1; Thu, 24 Aug 2023 09:18:36 -0400
+X-MC-Unique: zV2uULuiNYipMnhkK7Vlpg-1
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3175b9a0094so938465f8f.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 06:18:36 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692881723; x=1693486523;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oTr6Fye9Sd7qJOJPwegEV16I2HL1wvxsXVw3NwKlTI4=;
-        b=SHcyntWUYU/hhVIfMjazX5WEL7vYee5po9OO/7VeNugIQ9Ty86xUJ2d0LTninf6eb5
-         fYgqCrTwsZD1vEam4y8FaH5AFm57iJO4g+LeTJihozUoapRkFdasJZbvZoHlXaZ3x4DD
-         1LWlUX4Ik4EA1I3Gl3lNwXa799V+Af4yM6HfwBvcf7CsPQKStXeoUn7xldDxqw5EjpFw
-         FXTPHyXntrvjcokCL3aFfW13b2ElS5As6qJak9TEPRl59q04jPyG1LgSuYdFM3jU6yok
-         TpnO7meSyuIKV40T9ak6NIthmFC80BEFiywWmHbP4EZhdP+T/cRbu4KQyW+uI0YX8frb
-         Iv4Q==
-X-Gm-Message-State: AOJu0YwVx0qOk9LzasLFlXM2ZwQGN6pJ3b0Kuv1a6ehh0NCRUKcov349
-        pHZPa7d9z7uwZVXEkSyilII=
-X-Google-Smtp-Source: AGHT+IGQDPHcTCtN2KIlf6tCDqDLynvqrKK+GL/I/RILryE75BLNfdvwFTd2WQzcvwteaOpV0+0b2Q==
-X-Received: by 2002:a17:902:f7cb:b0:1c0:9eaa:c65a with SMTP id h11-20020a170902f7cb00b001c09eaac65amr6317251plw.34.1692881722555;
-        Thu, 24 Aug 2023 05:55:22 -0700 (PDT)
-Received: from debian.me ([103.124.138.83])
-        by smtp.gmail.com with ESMTPSA id m13-20020a170902db0d00b001b8a8154f3fsm12711218plx.270.2023.08.24.05.55.19
+        d=1e100.net; s=20221208; t=1692883115; x=1693487915;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=85gJ17Zng9HVxrU32N97+N7Hsn/7Kk8ejLSG5k/WCOU=;
+        b=MD3jdlndWYjLnbww/gwsb2o4hRBB1oycgp0NW9drHn1tEKquQiJ1lDv/oLFumXSdh9
+         mIdqR2VcP0vp4B/aZJLshwmt/zf91K4nmcvD4EGJwn3t6Alkzca4FFFWOEvU9dgn9Di+
+         SufHTD9Ud8UxEY2xqSNGWFieC0KEvLi7AZA50ynKwC/gYrDkksVzZl2VkXNjYaPx9Sbn
+         4cxWsg7THa6FKWY8m46yCuU7Qq0K0gb6YNsLII72LoekoEdaCBxxAdD3utmYij1Nmk2T
+         3aXJvSZhWDBnwNaZhHo5O9M2Cf0i1/UT+1wOM3JjQL4rs6UXhevJvGCaw388MbfbsvQz
+         GIdg==
+X-Gm-Message-State: AOJu0YyBPeT22N7mR/gu9vLZ5DgDfqwll7tuOdKYyBun4roR/tQVvF6W
+        5p4F7VRgrQw07Gy1zZtXVCtqdpNdlbZhU81ViY+HcR2bI626ccZTuoGRxxBwpM0BXcWT3sAtezD
+        Zrnxz4H2jTk9C4dE45vrfJDZ95xOLuZfjYgCD
+X-Received: by 2002:a5d:6949:0:b0:319:7624:4c88 with SMTP id r9-20020a5d6949000000b0031976244c88mr11669738wrw.0.1692883115004;
+        Thu, 24 Aug 2023 06:18:35 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEBm6HPDDORzN8B30qz/j8KhLnrGRHP9rOu1fsaGQ3ejBckgLJ2iL2s9ABAXEwF3TizW2iayw==
+X-Received: by 2002:a5d:6949:0:b0:319:7624:4c88 with SMTP id r9-20020a5d6949000000b0031976244c88mr11669731wrw.0.1692883114751;
+        Thu, 24 Aug 2023 06:18:34 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id 13-20020a05600c228d00b003fefd46df47sm2635893wmf.29.2023.08.24.06.18.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Aug 2023 05:55:20 -0700 (PDT)
-Received: by debian.me (Postfix, from userid 1000)
-        id C541B81A1A74; Thu, 24 Aug 2023 19:55:15 +0700 (WIB)
-Date:   Thu, 24 Aug 2023 19:55:15 +0700
-From:   Bagas Sanjaya <bagasdotme@gmail.com>
-To:     Phil Sutter <phil@nwl.cc>,
-        Turritopsis Dohrnii Teo En Ming <tdtemccnp@gmail.com>,
-        Linux Cluster <cluster-devel@redhat.com>,
-        Linux Netfilter <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Cluster-devel] I have been given the guide with full network
- diagram on configuring High Availability (HA) Cluster and SD-WAN for
- Fortigate firewalls by my boss on 10 May 2023 Wed
-Message-ID: <ZOdTMzsw1fuLCt-a@debian.me>
-References: <CAD3upLsRxrvG0GAcFZj+BfAb6jbwd-vc2170sZHguWu4mRJpog@mail.gmail.com>
- <ZONwlkirjv2iBFiA@debian.me>
- <ZOXfBivIvWHkprB0@orbyte.nwl.cc>
+        Thu, 24 Aug 2023 06:18:34 -0700 (PDT)
+Message-ID: <3969057145140cfcd67d0277b11089548b22c504.camel@redhat.com>
+Subject: Re: [PATCH nft 0/6] cleanup base includes and add <nftdefault.h>
+ header
+From:   Thomas Haller <thaller@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Thu, 24 Aug 2023 15:18:33 +0200
+In-Reply-To: <ZOdS6DOQLYPkthoX@calendula>
+References: <20230824111456.2005125-1-thaller@redhat.com>
+         <ZOdS6DOQLYPkthoX@calendula>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="8sKYQrMVynUgW6U4"
-Content-Disposition: inline
-In-Reply-To: <ZOXfBivIvWHkprB0@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
---8sKYQrMVynUgW6U4
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-[fixing up cluster-devel address]
-
-On Wed, Aug 23, 2023 at 12:27:18PM +0200, Phil Sutter wrote:
-> [ Dropped lkml and netdev lists.]
+On Thu, 2023-08-24 at 14:54 +0200, Pablo Neira Ayuso wrote:
+> On Thu, Aug 24, 2023 at 01:13:28PM +0200, Thomas Haller wrote:
+> > - cleanup _GNU_SOURCE/_XOPEN_SOURCE handling
+> > - ensure <config.h> is included as first (via <nftdefault.h>
+> > header)
+> > - add <nftdefault.h> to provide a base header that is included
+> > =C2=A0 everywhere.
 >=20
-> On Mon, Aug 21, 2023 at 09:11:34PM +0700, Bagas Sanjaya wrote:
-> > On Wed, May 10, 2023 at 11:12:26PM +0800, Turritopsis Dohrnii Teo En Mi=
-ng wrote:
-> > > Good day from Singapore,
-> > >=20
-> > > I have been given the guide with full network diagram on configuring
-> > > High Availability (HA) Cluster and SD-WAN for Fortigate firewalls by
-> > > my boss on 10 May 2023 Wed. This involves 2 ISPs, 2 identical
-> > > Fortigate firewalls and 3 network switches.
-> > >=20
-> > > Reference guide: SD-WAN with FGCP HA
-> > > Link: https://docs.fortinet.com/document/fortigate/6.2.14/cookbook/23=
-145/sd-wan-with-fgcp-ha
-> > >=20
-> > > I have managed to deploy HA cluster and SD-WAN for a nursing home at
-> > > Serangoon Singapore on 9 May 2023 Tue, with some minor hiccups. The
-> > > hiccup is due to M1 ISP ONT not accepting connections from 2 Fortigate
-> > > firewalls. Singtel ISP ONT accepts connections from 2 Fortigate
-> > > firewalls without any problems though. On 9 May 2023 Tue, I was
-> > > following the network diagram drawn by my team leader KKK. My team
-> > > leader KKK's network diagram matches the network diagram in Fortinet's
-> > > guide shown in the link above.
-> > >=20
-> > > The nursing home purchased the following network equipment:
-> > >=20
-> > > [1] 2 units of Fortigate 101F firewalls with firmware upgraded to ver=
-sion 7.2.4
-> > >=20
-> > > [2] 3 units of Aruba Instant On 1830 8-port network switches
-> > >=20
-> > > [3] Multiple 5-meter LAN cables
-> > >=20
-> >=20
-> > Then why did you post Fortigate stuffs here in LKML when these are (obv=
-iously)
-> > off-topic? Why don't you try netfilter instead? And do you have any
-> > kernel-related problems?
->=20
-> I am not familiar with fortinet products, but the above neither mentions
-> "kernel", nor "netfilter" or even "linux". There's no evidence either of
-> the addressed kernel mailing lists should be concerned. I suggest to
-> contact fortinet support instead.
->=20
+> Could you use include/nft.h instead?
 
-To Teo En Ming: Again you confuse kernel mailing lists (like LKML) with
-Fortinet forum. If you really want the latter, you're welcome at its
-official community [1].
+ACK. I will rename for v2.
 
-> > Confused...
->=20
-> BtW: Adding yet another unrelated mailing list to Cc is just making
-> things worse.
+Thomas
 
-At the time I added netdev since IMO this was a networking topic.
-
-Thanks.
-
-[1]: https://community.fortinet.com/
-
---=20
-An old man doll... just what I always wanted! - Clara
-
---8sKYQrMVynUgW6U4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZOdTLwAKCRD2uYlJVVFO
-o7haAPwIv2sqOziIdG/4ZgXmUpMTvDunB5sjh2luvWHeqV7oFwD/Q63CdVLO/dEx
-LrAr4/fQ3YNJvH+nI5JvCe5NBpSTEg8=
-=NLZq
------END PGP SIGNATURE-----
-
---8sKYQrMVynUgW6U4--
