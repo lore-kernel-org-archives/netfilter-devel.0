@@ -2,133 +2,96 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A855C83003
-	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Aug 2023 11:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA62EE49A6
+	for <netfilter-devel@archiver.kernel.org>; Thu, 24 Aug 2023 11:47:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238172AbjHXLQc (ORCPT
+        id S238996AbjHXLrU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Aug 2023 07:16:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45144 "EHLO
+        Thu, 24 Aug 2023 07:47:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241013AbjHXLQR (ORCPT
+        with ESMTP id S241142AbjHXLqy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2023 07:16:17 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 986D019B3
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 04:15:11 -0700 (PDT)
+        Thu, 24 Aug 2023 07:46:54 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFCE81736
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 04:46:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692875710;
+        s=mimecast20190719; t=1692877574;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=SqFbJkhLA4H4MalkVjYXYBTRauei2/jjZu/Hnt7HtUc=;
-        b=H+v0TX6IhPDTFAWYFfNEGu5ORg17WOZsOJ4rhr2Sz0E9pvRMuZECMr5OQf/C/r+wPVdn+g
-        7DoQerCmhoLVGyrlAxZLvF4yuNAIeLzigcQlCPae1PoNt+FsGFRpcXuU1xan2ZwDh4Cp0U
-        47wZvr6Z7k+ewOYlGHndia03Tic45EI=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-580-wWRltOAwM-iAKav95EXAaw-1; Thu, 24 Aug 2023 07:15:08 -0400
-X-MC-Unique: wWRltOAwM-iAKav95EXAaw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A24C585CCE3
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 11:15:08 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.207])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 213F5C1602B;
-        Thu, 24 Aug 2023 11:15:08 +0000 (UTC)
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=AzIih3JvCE9DGHO93tElU7vDOT/6ETH+VEsIZT4s4u8=;
+        b=A657N6j2IwahdgPhD9sQAEekCZBJizcssaJA676qnr+FNsxh1U+gjJD/LZsZxXTxi9N5er
+        CPCGPlKIFtxovochs0t2+pkjzal6YuQPAW8EgNoLIEJmSbOEiw+TpdJiAjFpcT1Xk2vrkK
+        k1pkrCrNkFFw1LB8Z5PMdXp4w5yu0h8=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-307-r9-h0C_rNsivrO8uJ8n3oQ-1; Thu, 24 Aug 2023 07:46:12 -0400
+X-MC-Unique: r9-h0C_rNsivrO8uJ8n3oQ-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-3fe805a8826so12748585e9.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 04:46:12 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692877571; x=1693482371;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:to:from:subject:message-id:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=AzIih3JvCE9DGHO93tElU7vDOT/6ETH+VEsIZT4s4u8=;
+        b=MRu30ulHMO5mJwSnncjdIaW884t6er0L0sPbuA+Coz4zdZuvtiCRPD6MfAmAmkZhws
+         f56kRI5gBWz0XoFOGuYGbA79DmYTlC6OeCgBilrk7CFkXTjBsSTLg7+zngoe4FModZ8O
+         bVtzonA1ndnF5e7n5XRxMdw/saofNKLVvf8p4Pz+FjIKVewXtsIUv6eLRWzeiXEynq0n
+         eAl8msXJYWlrnDqspWxBOLwNOpETXQMdf3XBCmBCQJ/COEcUY2605KtANOh/ytvgs16q
+         uMkDo0VUgNrCi+bJ/zyYbZCKGDFLKLyElb8ZjY0ZctstwBWLZWTKvlFyMiKJh0t5mn5o
+         hKig==
+X-Gm-Message-State: AOJu0YxuGZZUgffHcuzAFa/KXV4TYrXAcQtgfyu9iSKcoUEAPIk/UhLp
+        ju2FnLW2bCInGHWEE7Yvj6jkumWMA5K73sWigoLSbNi5p0GOFKawMg+GDFTawPfJMuqByyESujG
+        wFd/28bIUoUWUzSx/j2YtCMIQ7pDdoWK3+VkqCECYGL2hs4xx0C8rjvfVcIKiwD2Hk9NBe0phIK
+        V4c6Zc4DWnCFo=
+X-Received: by 2002:a05:600c:3b05:b0:3f6:8a3:8e59 with SMTP id m5-20020a05600c3b0500b003f608a38e59mr12101977wms.1.1692877571228;
+        Thu, 24 Aug 2023 04:46:11 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHA4w0UVlLgbpXEKLXF/fztZVQIbx5ejmKzAGUDUL6PumEIwaQSe9LyG9IKmag0eDYxoMJU1g==
+X-Received: by 2002:a05:600c:3b05:b0:3f6:8a3:8e59 with SMTP id m5-20020a05600c3b0500b003f608a38e59mr12101965wms.1.1692877570823;
+        Thu, 24 Aug 2023 04:46:10 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id u6-20020a7bc046000000b003fedcd02e2asm2402865wmc.35.2023.08.24.04.46.09
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 24 Aug 2023 04:46:10 -0700 (PDT)
+Message-ID: <5abb46169719717e3761a5833deb87a7fcaee52b.camel@redhat.com>
+Subject: Re: [PATCH nft 4/6] configure: use AC_USE_SYSTEM_EXTENSIONS to get
+ _GNU_SOURCE
 From:   Thomas Haller <thaller@redhat.com>
 To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 0/6] cleanup base includes and add <nftdefault.h> header
-Date:   Thu, 24 Aug 2023 13:13:28 +0200
-Message-ID: <20230824111456.2005125-1-thaller@redhat.com>
+Date:   Thu, 24 Aug 2023 13:46:09 +0200
+In-Reply-To: <20230824111456.2005125-5-thaller@redhat.com>
+References: <20230824111456.2005125-1-thaller@redhat.com>
+         <20230824111456.2005125-5-thaller@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.8
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-- cleanup _GNU_SOURCE/_XOPEN_SOURCE handling
-- ensure <config.h> is included as first (via <nftdefault.h> header)
-- add <nftdefault.h> to provide a base header that is included
-  everywhere.
+On Thu, 2023-08-24 at 13:13 +0200, Thomas Haller wrote:
+>=20
+> diff --git a/configure.ac b/configure.ac
+> index 42f0dc4cf392..9d859307adaa 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -45,6 +45,9 @@ fi
+> =C2=A0AM_PROG_AR
+> =C2=A0LT_INIT([disable-static])
+> =C2=A0AM_PROG_CC_C_O
+> +
+> +AC_USE_SYSTEM_EXTENSIONS
 
-Thomas Haller (6):
-  meta: define _GNU_SOURCE to get strptime() from <time.h>
-  src: add <nftdefault.h> header and include it as first
-  include: don't define _GNU_SOURCE in public header
-  configure: use AC_USE_SYSTEM_EXTENSIONS to get _GNU_SOURCE
-  include: include <std{bool,int}.h> via nftdefault.h
-  configure: drop AM_PROG_CC_C_O autoconf check
+AC_USE_SYSTEM_EXTENTIONS needs to move up, right after AC_PROG_CC.
+I will fix that in v2.
 
- configure.ac                   |  4 +++-
- include/Makefile.am            |  3 ++-
- include/cli.h                  |  1 -
- include/datatype.h             |  1 -
- include/dccpopt.h              |  1 -
- include/expression.h           |  1 -
- include/gmputil.h              |  2 --
- include/nftables.h             |  1 -
- include/nftables/libnftables.h |  1 -
- include/nftdefault.h           | 10 ++++++++++
- include/rule.h                 |  1 -
- include/utils.h                |  3 ---
- src/cache.c                    |  2 ++
- src/cli.c                      |  3 ++-
- src/cmd.c                      |  2 ++
- src/ct.c                       |  2 ++
- src/datatype.c                 |  2 ++
- src/dccpopt.c                  |  3 ++-
- src/erec.c                     |  4 ++--
- src/evaluate.c                 |  3 ++-
- src/expression.c               |  3 ++-
- src/exthdr.c                   |  3 ++-
- src/fib.c                      |  2 ++
- src/gmputil.c                  |  2 ++
- src/hash.c                     |  2 ++
- src/iface.c                    |  2 ++
- src/intervals.c                |  2 ++
- src/ipopt.c                    |  3 ++-
- src/json.c                     |  3 ++-
- src/libnftables.c              |  3 +++
- src/main.c                     |  2 ++
- src/mergesort.c                |  3 ++-
- src/meta.c                     |  8 +++-----
- src/mini-gmp.c                 |  2 ++
- src/misspell.c                 |  2 ++
- src/mnl.c                      |  2 ++
- src/monitor.c                  |  2 ++
- src/netlink.c                  |  2 ++
- src/netlink_delinearize.c      |  3 ++-
- src/netlink_linearize.c        |  2 ++
- src/nfnl_osf.c                 |  2 ++
- src/nftutils.c                 |  3 +--
- src/nftutils.h                 |  1 -
- src/numgen.c                   |  2 ++
- src/optimize.c                 |  3 ++-
- src/osf.c                      |  2 ++
- src/owner.c                    |  2 ++
- src/parser_json.c              |  4 ++--
- src/payload.c                  |  3 ++-
- src/print.c                    |  2 ++
- src/proto.c                    |  3 ++-
- src/rt.c                       |  3 ++-
- src/rule.c                     |  3 ++-
- src/scanner.l                  |  2 ++
- src/sctp_chunk.c               |  2 ++
- src/segtree.c                  |  2 ++
- src/socket.c                   |  2 ++
- src/statement.c                |  3 ++-
- src/tcpopt.c                   |  3 ++-
- src/utils.c                    |  2 ++
- src/xfrm.c                     |  2 ++
- src/xt.c                       |  2 ++
- 62 files changed, 114 insertions(+), 42 deletions(-)
- create mode 100644 include/nftdefault.h
 
--- 
-2.41.0
+Thomas
 
