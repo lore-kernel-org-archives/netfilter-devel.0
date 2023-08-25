@@ -2,58 +2,58 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81CACC71133
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Aug 2023 03:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43CC1EE49A0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Aug 2023 03:36:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229836AbjHYDYl (ORCPT
+        id S236918AbjHYDfe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Aug 2023 23:24:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40812 "EHLO
+        Thu, 24 Aug 2023 23:35:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230114AbjHYDYP (ORCPT
+        with ESMTP id S238681AbjHYDfe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2023 23:24:15 -0400
-Received: from mail-vk1-xa36.google.com (mail-vk1-xa36.google.com [IPv6:2607:f8b0:4864:20::a36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A499D3
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:24:14 -0700 (PDT)
-Received: by mail-vk1-xa36.google.com with SMTP id 71dfb90a1353d-48d05fdb8bfso225341e0c.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:24:13 -0700 (PDT)
+        Thu, 24 Aug 2023 23:35:34 -0400
+Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FD84E54
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:35:32 -0700 (PDT)
+Received: by mail-ua1-x92c.google.com with SMTP id a1e0cc1a2514c-794b8fe8cc4so946423241.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:35:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692933853; x=1693538653;
+        d=gmail.com; s=20221208; t=1692934531; x=1693539331;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=s3UMw3ek7mW2+XAmhzePXEjcYXd3JnYarNLQT4aY0Tk=;
-        b=Kvj/WBR9d3QuOkvudl676f/63v7gbq/XvGZ/HnyMJZFpC3EpA0YX0+hXf3XQqdWIC0
-         hA3lfiezsZIgAYoDqzKTGbrmM+ElfCvfZDTu5pM102+mud4N2MWUB7RkYIDHmQMmT82z
-         qgqwxnGQxxdbGcb7Hi+rl62NFs1zE4HgvBdTmPRQUgErF60ozv74XhP6droLphx0SuDy
-         +HNY0Tr9euum2aXaQIUYMAmtZgzxmwH8hKrUG6XZLuVxoTGNzGd8eK5lNEvLq6eLtt2c
-         +2AkLLCEmI0SyJEjEK9QE7SOT52MeV7gj4OOw1u2guXTdR933NjPeikKWr1yyPkOuwGR
-         hmpw==
+        bh=ZeKXsR5i+3t7A7RQz6wv4NhKrRHghpFsyUaMj80SHmY=;
+        b=WR2EAU6w0c+k79PfFrAizWik7OaqMHYbdqG7lT30MVQtD+oNJ9OjPk++fLr5PLxOoc
+         eY9tYy+4Ow1Gcv8tieuh167jypZalL8vwoWYVIL3rjBK8+5LswGL8VcEGTC+HWioA9Pm
+         yKh+eEUsOZ2a/8aiKZz1YC5ip/NAf6BMwwYU79s2cMB0veasRecc52fsUiXZwkQY6u8t
+         2vmZZm2iOvGpB/NQjLd1dVrMgx3Xi+rFZV1FJHpGd8qklz6M+Ps+Hki2HOPBfCpgBGXs
+         W3XRRCKoyDnjv3NxqefT5x3UlFOHr/UmI7F5MmrGpdNCKZblL3+DDJchaSCt6curHXyN
+         mq2Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692933853; x=1693538653;
+        d=1e100.net; s=20221208; t=1692934531; x=1693539331;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=s3UMw3ek7mW2+XAmhzePXEjcYXd3JnYarNLQT4aY0Tk=;
-        b=CxKShPS9HB7DxCN9d9TdLgQFt715MGNRkbFG1hSkSkqeKY6NDefyVpGhpjtWFJ/300
-         G2AUIyeBlGmJFltCYzmUdJQKBBpBwDzbNHvASsXVxJGEtGGGXDUn46f4pkgURXLAPQke
-         OApc2jiEt84QUd3Bqv/hY+aXHCCvwDbH2tIuyVjVwfVMmFRjVKpHAWEgCVEXxrCyW3LO
-         g+Q2/vhiXqq7MjCclhfzbRkpQRSvoPFL1GhqOG6OJOS21bMGqticK8Wjc1VrHMOEcFSB
-         Xr3pwuo5aBjNtfU8p9vyd9uDbh00Smhs9ie4O7fLajBfQBnek+LRaPysdjxerDTmItTT
-         epFg==
-X-Gm-Message-State: AOJu0YxCQMtyd+vbFpXznQtuDSZxaIJr5ePnE9CyRiPMQz9kKXbfDxCy
-        I07vUcysVfrg6E6B5VM/gW39gtsh+SPo4A3DTkDEiri5sSyj5g==
-X-Google-Smtp-Source: AGHT+IEpqb+L5exV97ClnsNN3L7Ul2NNeB+LdKRekeEHCVIwGFxJ/B9p9vOcDSat9idUieoxtSUyXMGhzE1zJDid+Ls=
-X-Received: by 2002:a1f:c9c5:0:b0:487:d56f:fc82 with SMTP id
- z188-20020a1fc9c5000000b00487d56ffc82mr14057578vkf.6.1692933852969; Thu, 24
- Aug 2023 20:24:12 -0700 (PDT)
+        bh=ZeKXsR5i+3t7A7RQz6wv4NhKrRHghpFsyUaMj80SHmY=;
+        b=arFh4cbujqYYrJ4Nadekjs6EjGN0rhxgPLgTnsx+7QqDNjHeoeg8XQjXAX+FSqZ7nE
+         Rve3YQ3p4F32xVgIpNBcwytannl28rEXGl/FF1YmO6KPFUwvyJdPJy8yNgpn4Rt7EkQn
+         6mnDu1tEvk4p0KuEu6KNlQuizOrGoXMRNjH2I/WTe/8CIKQ+wV5emjKhH8x1OMDQFlp9
+         fAig9t6hgGDY++NiDqzWpF0H2YPKgJ3Zh9k1hpxA3FOOOiCoC/NrrwQ6I8SQl+KlUrP1
+         jdkGYoOnRN410C+yiUkhfF8Y62O9H7i7QDZYHRPHrMNsqHNPrK3K/zbn0TqDYaWpLdxs
+         oAVA==
+X-Gm-Message-State: AOJu0YxEqotJpDY9rmBczsZJVjkpwRRSK+yudR2cHVRP+J2HjxffVYdH
+        etnyNL5jaftjZxtEdZBViKvhCdO7aLDtE7AI3dfjkJxav9M=
+X-Google-Smtp-Source: AGHT+IH4lAJSiSruTgYuAFoDdHFg3JIkWpT0MMRKUyPHx0S+EDXmh0sG9MtB+Wx9fJBBeDSvQOgFr2jMNZr/0PmR9tg=
+X-Received: by 2002:a67:f8d5:0:b0:44d:51e4:a000 with SMTP id
+ c21-20020a67f8d5000000b0044d51e4a000mr6454748vsp.3.1692934531174; Thu, 24 Aug
+ 2023 20:35:31 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230825021432.6053-1-shaw.leon@gmail.com> <20230825031110.GA9265@breakpoint.cc>
 In-Reply-To: <20230825031110.GA9265@breakpoint.cc>
 From:   Xiao Liang <shaw.leon@gmail.com>
-Date:   Fri, 25 Aug 2023 11:23:36 +0800
-Message-ID: <CABAhCOTHyEvrGFcKxpO0uD1mwRKFds6HmP0eC8hHVT8wxOMj0g@mail.gmail.com>
+Date:   Fri, 25 Aug 2023 11:34:54 +0800
+Message-ID: <CABAhCOTbKPmzg_5L7EkS+eivNNH=9hjG=q_aCGewB+H4QQgg=A@mail.gmail.com>
 Subject: Re: [PATCH nf] netfilter: nft_exthdr: Fix non-linear header modification
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
@@ -65,6 +65,29 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 On Fri, Aug 25, 2023 at 11:11=E2=80=AFAM Florian Westphal <fw@strlen.de> wr=
 ote:
+> > -             tcph =3D nft_tcp_header_pointer(pkt, sizeof(buff), buff,
+> > -                                           &tcphdr_len);
+> > -             if (!tcph)
+> > -                     goto err;
+> > +             tcph =3D (struct tcphdr *)(pkt->skb->data + nft_thoff(pkt=
+));
+> > +             opt =3D (u8 *)tcph;
+>
+> This modification is not related to the bug?
+>
+> If you think this is better, then please say that the 'do not use
+> nft_tcp_header_pointer' is an unrelated cleanup in the commit message.
+>
+> But I would prefer to not mix functional and non-functional changes.
+> Also, the use of the nft_tcp_header_pointer() helper is the reason why
+> this doesn't result in memory corruption.
+
+I think this makes it explicit that
+    "we are modifying the original packet"
+rather than
+    "we are modifying the packet because above skb_ensure_writable() is eno=
+ugh"
+
 >
 > > @@ -325,9 +324,9 @@ static void nft_exthdr_tcp_strip_eval(const struct =
 nft_expr *expr,
@@ -73,4 +96,5 @@ nft_expr *expr,
 > Just use the above in nft_exthdr_tcp_set_eval and place it before the loo=
 p?
 
-Sure. Need to pull the entire TCP header with skb_ensure_writable() then.
+In this case, all TCP headers will be pulled even if they don't have
+the target option.
