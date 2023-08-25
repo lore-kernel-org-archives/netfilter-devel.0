@@ -2,89 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AD40C71153
-	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Aug 2023 03:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81CACC71133
+	for <netfilter-devel@archiver.kernel.org>; Fri, 25 Aug 2023 03:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230090AbjHYDLT (ORCPT
+        id S229836AbjHYDYl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 24 Aug 2023 23:11:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46298 "EHLO
+        Thu, 24 Aug 2023 23:24:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238037AbjHYDLO (ORCPT
+        with ESMTP id S230114AbjHYDYP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2023 23:11:14 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A79271995
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:11:12 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qZNE6-0003Gy-C7; Fri, 25 Aug 2023 05:11:10 +0200
-Date:   Fri, 25 Aug 2023 05:11:10 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Xiao Liang <shaw.leon@gmail.com>
-Cc:     netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nft_exthdr: Fix non-linear header
- modification
-Message-ID: <20230825031110.GA9265@breakpoint.cc>
-References: <20230825021432.6053-1-shaw.leon@gmail.com>
+        Thu, 24 Aug 2023 23:24:15 -0400
+Received: from mail-vk1-xa36.google.com (mail-vk1-xa36.google.com [IPv6:2607:f8b0:4864:20::a36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A499D3
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:24:14 -0700 (PDT)
+Received: by mail-vk1-xa36.google.com with SMTP id 71dfb90a1353d-48d05fdb8bfso225341e0c.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2023 20:24:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692933853; x=1693538653;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=s3UMw3ek7mW2+XAmhzePXEjcYXd3JnYarNLQT4aY0Tk=;
+        b=Kvj/WBR9d3QuOkvudl676f/63v7gbq/XvGZ/HnyMJZFpC3EpA0YX0+hXf3XQqdWIC0
+         hA3lfiezsZIgAYoDqzKTGbrmM+ElfCvfZDTu5pM102+mud4N2MWUB7RkYIDHmQMmT82z
+         qgqwxnGQxxdbGcb7Hi+rl62NFs1zE4HgvBdTmPRQUgErF60ozv74XhP6droLphx0SuDy
+         +HNY0Tr9euum2aXaQIUYMAmtZgzxmwH8hKrUG6XZLuVxoTGNzGd8eK5lNEvLq6eLtt2c
+         +2AkLLCEmI0SyJEjEK9QE7SOT52MeV7gj4OOw1u2guXTdR933NjPeikKWr1yyPkOuwGR
+         hmpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692933853; x=1693538653;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=s3UMw3ek7mW2+XAmhzePXEjcYXd3JnYarNLQT4aY0Tk=;
+        b=CxKShPS9HB7DxCN9d9TdLgQFt715MGNRkbFG1hSkSkqeKY6NDefyVpGhpjtWFJ/300
+         G2AUIyeBlGmJFltCYzmUdJQKBBpBwDzbNHvASsXVxJGEtGGGXDUn46f4pkgURXLAPQke
+         OApc2jiEt84QUd3Bqv/hY+aXHCCvwDbH2tIuyVjVwfVMmFRjVKpHAWEgCVEXxrCyW3LO
+         g+Q2/vhiXqq7MjCclhfzbRkpQRSvoPFL1GhqOG6OJOS21bMGqticK8Wjc1VrHMOEcFSB
+         Xr3pwuo5aBjNtfU8p9vyd9uDbh00Smhs9ie4O7fLajBfQBnek+LRaPysdjxerDTmItTT
+         epFg==
+X-Gm-Message-State: AOJu0YxCQMtyd+vbFpXznQtuDSZxaIJr5ePnE9CyRiPMQz9kKXbfDxCy
+        I07vUcysVfrg6E6B5VM/gW39gtsh+SPo4A3DTkDEiri5sSyj5g==
+X-Google-Smtp-Source: AGHT+IEpqb+L5exV97ClnsNN3L7Ul2NNeB+LdKRekeEHCVIwGFxJ/B9p9vOcDSat9idUieoxtSUyXMGhzE1zJDid+Ls=
+X-Received: by 2002:a1f:c9c5:0:b0:487:d56f:fc82 with SMTP id
+ z188-20020a1fc9c5000000b00487d56ffc82mr14057578vkf.6.1692933852969; Thu, 24
+ Aug 2023 20:24:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230825021432.6053-1-shaw.leon@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20230825021432.6053-1-shaw.leon@gmail.com> <20230825031110.GA9265@breakpoint.cc>
+In-Reply-To: <20230825031110.GA9265@breakpoint.cc>
+From:   Xiao Liang <shaw.leon@gmail.com>
+Date:   Fri, 25 Aug 2023 11:23:36 +0800
+Message-ID: <CABAhCOTHyEvrGFcKxpO0uD1mwRKFds6HmP0eC8hHVT8wxOMj0g@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: nft_exthdr: Fix non-linear header modification
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Xiao Liang <shaw.leon@gmail.com> wrote:
-> nft_tcp_header_pointer() may copy TCP header if it's not linear.
-> In that case, we should modify the packet rather than the buffer, after
-> proper skb_ensure_writable().
+On Fri, Aug 25, 2023 at 11:11=E2=80=AFAM Florian Westphal <fw@strlen.de> wr=
+ote:
+>
+> > @@ -325,9 +324,9 @@ static void nft_exthdr_tcp_strip_eval(const struct =
+nft_expr *expr,
+> >       if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
+>
+> Just use the above in nft_exthdr_tcp_set_eval and place it before the loo=
+p?
 
-Fixes: 99d1712bc41c ("netfilter: exthdr: tcp option set support")
-
-I do not understand this changelog.
-
-The bug is that skb_ensure_writable() size is too small, hence
-nft_tcp_header_pointer() may return a pointer to local stack
-buffer.
-
-> Signed-off-by: Xiao Liang <shaw.leon@gmail.com>
-> ---
->  net/netfilter/nft_exthdr.c | 15 +++++++--------
->  1 file changed, 7 insertions(+), 8 deletions(-)
-> 
-> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-> index 7f856ceb3a66..2189ccc1119c 100644
-> --- a/net/netfilter/nft_exthdr.c
-> +++ b/net/netfilter/nft_exthdr.c
-> @@ -254,13 +254,12 @@ static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
->  			goto err;
->  
->  		if (skb_ensure_writable(pkt->skb,
-> -					nft_thoff(pkt) + i + priv->len))
-> +					nft_thoff(pkt) + i + priv->offset +
-> +					priv->len))
-
-[..]
-
-> -		tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff,
-> -					      &tcphdr_len);
-> -		if (!tcph)
-> -			goto err;
-> +		tcph = (struct tcphdr *)(pkt->skb->data + nft_thoff(pkt));
-> +		opt = (u8 *)tcph;
-
-This modification is not related to the bug?
-
-If you think this is better, then please say that the 'do not use
-nft_tcp_header_pointer' is an unrelated cleanup in the commit message.
-
-But I would prefer to not mix functional and non-functional changes.
-Also, the use of the nft_tcp_header_pointer() helper is the reason why
-this doesn't result in memory corruption.
-
-> @@ -325,9 +324,9 @@ static void nft_exthdr_tcp_strip_eval(const struct nft_expr *expr,
->  	if (skb_ensure_writable(pkt->skb, nft_thoff(pkt) + tcphdr_len))
-
-Just use the above in nft_exthdr_tcp_set_eval and place it before the loop?
+Sure. Need to pull the entire TCP header with skb_ensure_writable() then.
