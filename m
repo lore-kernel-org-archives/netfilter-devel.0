@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A16EBC83F18
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Aug 2023 16:33:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B18DC83F1A
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Aug 2023 16:33:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229934AbjHZQcy (ORCPT
+        id S229789AbjHZQcx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Aug 2023 12:32:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52048 "EHLO
+        Sat, 26 Aug 2023 12:32:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229977AbjHZQcu (ORCPT
+        with ESMTP id S229934AbjHZQcs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Aug 2023 12:32:50 -0400
+        Sat, 26 Aug 2023 12:32:48 -0400
 Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB9A0171A
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58C310FF
         for <netfilter-devel@vger.kernel.org>; Sat, 26 Aug 2023 09:32:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,24 +22,24 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=kZ7RQ9HpOgaOAAvpxFzYq/VP4NfeZzhiZEGshOzY/YA=; b=K17lOxygXAbXC+AlmO8MtoXOv2
-        uo3JUN7cRrapuLoFMehRQ/GUmhxVXmI4rFeV5jHIh6c6VQB5rUMQhu68LP9ae0+NBYqvQgaYH5Vkc
-        R3qaqNVfY3ArFXxgkdeLUhvLNg3y61ZJWfMGs+dfVJNn3DV2ELFf5ZWnWzszMPMsaQ9/p9CGSjabD
-        Rduv3xB7yPBNAA7l127Tz46iL3G4krqYfrSpYUdRI7gRM5XO4qy/6DlY91kdmUmUNcFCy7vWJ0oJM
-        KxEvlI1CAGZMTEmGSTN4JsyalPvghqOP78aE3Z2rgSbuAoHZfW4miKhRX2TKLinFQxQkzupZi0YmQ
-        A5Elc33Q==;
+        bh=sjZJ8aO/tpxB+Hs+fQMulyJy68WuXmfNT4KMYAxtRUw=; b=fzRQx924KgK54cR4uGM/nEj+zf
+        nwSM7B/2xBpBlgj8If4oqf0c15fL07ZzPDL/gQsxlzug5SqtVCkGqneFAPUhx1ilRzjZvNuooYVZ7
+        lYBbnh+lmSOAFmf9oEIX0UwvfA70fN/fiR6tcEhuZEFb76Y4n8YrhuQLszqevVqTCXItRdr+oSBmc
+        mFV8zBbCo32nZpGAOhAVncTtmKK+GoZfAyQVXMvTJm5b+hCOV4EnrCqP/QGGsTGtNVnRiKMxSKOVx
+        wtRM/V8KEyZ5FREnxmhGEkDZZY3ckO5l+fWMtzW358JNu1OCl36nYe5NxLTjGnzO9PNmlB+Wa+IcX
+        emJLaB8g==;
 Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
         by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.96)
         (envelope-from <jeremy@azazel.net>)
-        id 1qZwDJ-00DpTC-18
+        id 1qZwDJ-00DpTC-0g
         for netfilter-devel@vger.kernel.org;
         Sat, 26 Aug 2023 17:32:41 +0100
 From:   Jeremy Sowden <jeremy@azazel.net>
 To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH conntrack-tools 4/4] read_config_yy: correct arguments passed to `inet_aton`
-Date:   Sat, 26 Aug 2023 17:32:26 +0100
-Message-Id: <20230826163226.1104220-5-jeremy@azazel.net>
+Subject: [PATCH conntrack-tools 1/4] build: reformat and sort `conntrack_LDADD` and `conntrackd_SOURCES`
+Date:   Sat, 26 Aug 2023 17:32:23 +0100
+Message-Id: <20230826163226.1104220-2-jeremy@azazel.net>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230826163226.1104220-1-jeremy@azazel.net>
 References: <20230826163226.1104220-1-jeremy@azazel.net>
@@ -52,107 +52,106 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-`inet_aton` expects a `struct in_addr *`.  In a number of calls, we pass
-pointers to structs or unions which contain a `struct in_addr` member.  Pass
-pointers to the members instead.  In another call, we pass a pointer to a
-uint32_t.  Cast it.
-
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- src/read_config_yy.y | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ src/Makefile.am | 77 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 60 insertions(+), 17 deletions(-)
 
-diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-index be927c049056..d9b02ab37c5a 100644
---- a/src/read_config_yy.y
-+++ b/src/read_config_yy.y
-@@ -246,9 +246,11 @@ multicast_options :
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 2986ab3b4d4f..4ea573abc12d 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -11,7 +11,18 @@ BUILT_SOURCES = read_config_yy.h
+ sbin_PROGRAMS = conntrack conntrackd nfct
  
- multicast_option : T_IPV4_ADDR T_IP
- {
-+	struct channel_conf *channel_conf = &conf.channel[conf.channel_num];
-+
- 	__max_dedicated_links_reached();
+ conntrack_SOURCES = conntrack.c
+-conntrack_LDADD = ../extensions/libct_proto_tcp.la ../extensions/libct_proto_udp.la ../extensions/libct_proto_udplite.la ../extensions/libct_proto_icmp.la ../extensions/libct_proto_icmpv6.la ../extensions/libct_proto_sctp.la ../extensions/libct_proto_dccp.la ../extensions/libct_proto_gre.la ../extensions/libct_proto_unknown.la ${LIBNETFILTER_CONNTRACK_LIBS} ${LIBMNL_LIBS} ${LIBNFNETLINK_LIBS}
++conntrack_LDADD   = ../extensions/libct_proto_dccp.la    \
++                    ../extensions/libct_proto_gre.la     \
++                    ../extensions/libct_proto_icmp.la    \
++                    ../extensions/libct_proto_icmpv6.la  \
++                    ../extensions/libct_proto_sctp.la    \
++                    ../extensions/libct_proto_tcp.la     \
++                    ../extensions/libct_proto_udp.la     \
++                    ../extensions/libct_proto_udplite.la \
++                    ../extensions/libct_proto_unknown.la \
++                    ${LIBMNL_LIBS}                       \
++                    ${LIBNETFILTER_CONNTRACK_LIBS}       \
++                    ${LIBNFNETLINK_LIBS}
  
--	if (!inet_aton($2, &conf.channel[conf.channel_num].u.mcast.in)) {
-+	if (!inet_aton($2, &channel_conf->u.mcast.in.inet_addr)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4 address", $2);
- 		free($2);
- 		break;
-@@ -310,9 +312,11 @@ multicast_option : T_IPV6_ADDR T_IP
+ nfct_SOURCES = nfct.c
  
- multicast_option : T_IPV4_IFACE T_IP
- {
-+	struct channel_conf *channel_conf = &conf.channel[conf.channel_num];
-+
- 	__max_dedicated_links_reached();
+@@ -35,22 +46,54 @@ if HAVE_CTHELPER
+ nfct_LDADD += ${LIBNETFILTER_CTHELPER_LIBS}
+ endif
  
--	if (!inet_aton($2, &conf.channel[conf.channel_num].u.mcast.ifa)) {
-+	if (!inet_aton($2, &channel_conf->u.mcast.ifa.interface_addr)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4 address", $2);
- 		free($2);
- 		break;
-@@ -423,9 +427,11 @@ udp_options :
+-conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c queue_tx.c rbtree.c \
+-		    local.c log.c mcast.c udp.c netlink.c vector.c \
+-		    filter.c fds.c event.c process.c origin.c date.c \
+-		    cache.c cache-ct.c cache-exp.c \
+-		    cache_timer.c \
+-		    ctnl.c \
+-		    sync-mode.c sync-alarm.c sync-ftfw.c sync-notrack.c \
+-		    traffic_stats.c stats-mode.c \
+-		    network.c cidr.c \
+-		    build.c parse.c \
+-		    channel.c multichannel.c channel_mcast.c channel_udp.c \
+-		    tcp.c channel_tcp.c \
+-		    external_cache.c external_inject.c \
+-		    internal_cache.c internal_bypass.c \
+-		    read_config_yy.y read_config_lex.l \
+-		    stack.c resync.c
++conntrackd_SOURCES = alarm.c            \
++                     build.c            \
++                     cache.c            \
++                     cache-ct.c         \
++                     cache-exp.c        \
++                     cache_timer.c      \
++                     channel.c          \
++                     channel_mcast.c    \
++                     channel_tcp.c      \
++                     channel_udp.c      \
++                     cidr.c             \
++                     ctnl.c             \
++                     date.c             \
++                     event.c            \
++                     external_cache.c   \
++                     external_inject.c  \
++                     fds.c              \
++                     filter.c           \
++                     hash.c             \
++                     internal_bypass.c  \
++                     internal_cache.c   \
++                     local.c            \
++                     log.c              \
++                     main.c             \
++                     mcast.c            \
++                     multichannel.c     \
++                     netlink.c          \
++                     network.c          \
++                     origin.c           \
++                     parse.c            \
++                     process.c          \
++                     queue.c            \
++                     queue_tx.c         \
++                     rbtree.c           \
++                     read_config_lex.l  \
++                     read_config_yy.y   \
++                     resync.c           \
++                     run.c              \
++                     stack.c            \
++                     stats-mode.c       \
++                     sync-alarm.c       \
++                     sync-ftfw.c        \
++                     sync-mode.c        \
++                     sync-notrack.c     \
++                     tcp.c              \
++                     traffic_stats.c    \
++                     udp.c              \
++                     vector.c
  
- udp_option : T_IPV4_ADDR T_IP
- {
-+	struct channel_conf *channel_conf = &conf.channel[conf.channel_num];
-+
- 	__max_dedicated_links_reached();
- 
--	if (!inet_aton($2, &conf.channel[conf.channel_num].u.udp.server.ipv4)) {
-+	if (!inet_aton($2, &channel_conf->u.udp.server.ipv4.inet_addr)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4 address", $2);
- 		free($2);
- 		break;
-@@ -456,9 +462,11 @@ udp_option : T_IPV6_ADDR T_IP
- 
- udp_option : T_IPV4_DEST_ADDR T_IP
- {
-+	struct channel_conf *channel_conf = &conf.channel[conf.channel_num];
-+
- 	__max_dedicated_links_reached();
- 
--	if (!inet_aton($2, &conf.channel[conf.channel_num].u.udp.client)) {
-+	if (!inet_aton($2, &channel_conf->u.udp.client.inet_addr)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4 address", $2);
- 		free($2);
- 		break;
-@@ -574,9 +582,11 @@ tcp_options :
- 
- tcp_option : T_IPV4_ADDR T_IP
- {
-+	struct channel_conf *channel_conf = &conf.channel[conf.channel_num];
-+
- 	__max_dedicated_links_reached();
- 
--	if (!inet_aton($2, &conf.channel[conf.channel_num].u.tcp.server.ipv4)) {
-+	if (!inet_aton($2, &channel_conf->u.tcp.server.ipv4.inet_addr)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4 address", $2);
- 		free($2);
- 		break;
-@@ -607,9 +617,11 @@ tcp_option : T_IPV6_ADDR T_IP
- 
- tcp_option : T_IPV4_DEST_ADDR T_IP
- {
-+	struct channel_conf *channel_conf = &conf.channel[conf.channel_num];
-+
- 	__max_dedicated_links_reached();
- 
--	if (!inet_aton($2, &conf.channel[conf.channel_num].u.tcp.client)) {
-+	if (!inet_aton($2, &channel_conf->u.tcp.client.inet_addr)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4 address", $2);
- 		free($2);
- 		break;
-@@ -1239,7 +1251,7 @@ filter_address_item : T_IPV4_ADDR T_IP
- 		}
- 	}
- 
--	if (!inet_aton($2, &ip.ipv4)) {
-+	if (!inet_aton($2, (struct in_addr *) &ip.ipv4)) {
- 		dlog(LOG_WARNING, "%s is not a valid IPv4, ignoring", $2);
- 		free($2);
- 		break;
+ if HAVE_CTHELPER
+ conntrackd_SOURCES += cthelper.c helpers.c utils.c expect.c
 -- 
 2.40.1
 
