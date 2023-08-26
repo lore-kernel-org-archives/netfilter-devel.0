@@ -2,156 +2,78 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B18DC83F1A
-	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Aug 2023 16:33:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 396DFC83F16
+	for <netfilter-devel@archiver.kernel.org>; Sat, 26 Aug 2023 16:37:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229789AbjHZQcx (ORCPT
+        id S229757AbjHZQhM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 26 Aug 2023 12:32:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52026 "EHLO
+        Sat, 26 Aug 2023 12:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229934AbjHZQcs (ORCPT
+        with ESMTP id S230137AbjHZQgw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Aug 2023 12:32:48 -0400
-Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58C310FF
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Aug 2023 09:32:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-        s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-        Message-Id:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
-        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=sjZJ8aO/tpxB+Hs+fQMulyJy68WuXmfNT4KMYAxtRUw=; b=fzRQx924KgK54cR4uGM/nEj+zf
-        nwSM7B/2xBpBlgj8If4oqf0c15fL07ZzPDL/gQsxlzug5SqtVCkGqneFAPUhx1ilRzjZvNuooYVZ7
-        lYBbnh+lmSOAFmf9oEIX0UwvfA70fN/fiR6tcEhuZEFb76Y4n8YrhuQLszqevVqTCXItRdr+oSBmc
-        mFV8zBbCo32nZpGAOhAVncTtmKK+GoZfAyQVXMvTJm5b+hCOV4EnrCqP/QGGsTGtNVnRiKMxSKOVx
-        wtRM/V8KEyZ5FREnxmhGEkDZZY3ckO5l+fWMtzW358JNu1OCl36nYe5NxLTjGnzO9PNmlB+Wa+IcX
-        emJLaB8g==;
-Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
-        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.96)
-        (envelope-from <jeremy@azazel.net>)
-        id 1qZwDJ-00DpTC-0g
-        for netfilter-devel@vger.kernel.org;
-        Sat, 26 Aug 2023 17:32:41 +0100
-From:   Jeremy Sowden <jeremy@azazel.net>
-To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH conntrack-tools 1/4] build: reformat and sort `conntrack_LDADD` and `conntrackd_SOURCES`
-Date:   Sat, 26 Aug 2023 17:32:23 +0100
-Message-Id: <20230826163226.1104220-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230826163226.1104220-1-jeremy@azazel.net>
-References: <20230826163226.1104220-1-jeremy@azazel.net>
+        Sat, 26 Aug 2023 12:36:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A21D61991;
+        Sat, 26 Aug 2023 09:36:50 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 418ED616E6;
+        Sat, 26 Aug 2023 16:36:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50245C433C7;
+        Sat, 26 Aug 2023 16:36:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1693067809;
+        bh=Bw8aXWJjlayr4JFwZwbqJJnYZJRH6/I9kF9alThINnM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=FJbwLHRQkJCvnOxlkzE9v6BH95R2CNXEOUcB/mcsoMILwR6DOZ5srlpeE4XL6gY0e
+         YZo+icE1dGDIcER8Mt0x8OWQm53yacn4zkB963DnVkydBrLG5F+22or4UmjMASnWpD
+         HcaUdYBCw5M39/ZsnPJD6yp3pXkbVOIBT63nl5xo=
+Date:   Sat, 26 Aug 2023 18:36:46 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     Julian Anastasov <ja@ssi.bg>
+Cc:     stable@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Junwei Hu <hujunwei4@huawei.com>,
+        Sishuai Gong <sishuai.system@gmail.com>
+Subject: Re: [PATCH -stable,4.14.y,4.19.y 0/1] ipvs: backport 1b90af292e71
+ and 5310760af1d4
+Message-ID: <2023082639-hacking-yoga-85c0@gregkh>
+References: <2023082114-remix-cable-0852@gregkh>
+ <20230824115354.61669-1-ja@ssi.bg>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230824115354.61669-1-ja@ssi.bg>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- src/Makefile.am | 77 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 60 insertions(+), 17 deletions(-)
+On Thu, Aug 24, 2023 at 02:53:53PM +0300, Julian Anastasov wrote:
+> 	Hello,
+> 
+> 	This patchset contains backport for
+> commit 1b90af292e71b20d03b837d39406acfbdc5d4b2a. It applies
+> to linux-4.14.y and linux-4.19.y and differs from original commit
+> for the zero/one values used for extra1/extra2.
+> 
+> 	When applied, the concerned commit
+> 5310760af1d4fbea1452bfc77db5f9a680f7ae47 can be cherry-picked and
+> it will apply cleanly on top of 1b90af292e71.
+> 
+> Junwei Hu (1):
+>   ipvs: Improve robustness to the ipvs sysctl
+> 
+>  net/netfilter/ipvs/ip_vs_ctl.c | 70 +++++++++++++++++-----------------
+>  1 file changed, 36 insertions(+), 34 deletions(-)
+> 
+> -- 
+> 2.41.0
+> 
+> 
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 2986ab3b4d4f..4ea573abc12d 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -11,7 +11,18 @@ BUILT_SOURCES = read_config_yy.h
- sbin_PROGRAMS = conntrack conntrackd nfct
- 
- conntrack_SOURCES = conntrack.c
--conntrack_LDADD = ../extensions/libct_proto_tcp.la ../extensions/libct_proto_udp.la ../extensions/libct_proto_udplite.la ../extensions/libct_proto_icmp.la ../extensions/libct_proto_icmpv6.la ../extensions/libct_proto_sctp.la ../extensions/libct_proto_dccp.la ../extensions/libct_proto_gre.la ../extensions/libct_proto_unknown.la ${LIBNETFILTER_CONNTRACK_LIBS} ${LIBMNL_LIBS} ${LIBNFNETLINK_LIBS}
-+conntrack_LDADD   = ../extensions/libct_proto_dccp.la    \
-+                    ../extensions/libct_proto_gre.la     \
-+                    ../extensions/libct_proto_icmp.la    \
-+                    ../extensions/libct_proto_icmpv6.la  \
-+                    ../extensions/libct_proto_sctp.la    \
-+                    ../extensions/libct_proto_tcp.la     \
-+                    ../extensions/libct_proto_udp.la     \
-+                    ../extensions/libct_proto_udplite.la \
-+                    ../extensions/libct_proto_unknown.la \
-+                    ${LIBMNL_LIBS}                       \
-+                    ${LIBNETFILTER_CONNTRACK_LIBS}       \
-+                    ${LIBNFNETLINK_LIBS}
- 
- nfct_SOURCES = nfct.c
- 
-@@ -35,22 +46,54 @@ if HAVE_CTHELPER
- nfct_LDADD += ${LIBNETFILTER_CTHELPER_LIBS}
- endif
- 
--conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c queue_tx.c rbtree.c \
--		    local.c log.c mcast.c udp.c netlink.c vector.c \
--		    filter.c fds.c event.c process.c origin.c date.c \
--		    cache.c cache-ct.c cache-exp.c \
--		    cache_timer.c \
--		    ctnl.c \
--		    sync-mode.c sync-alarm.c sync-ftfw.c sync-notrack.c \
--		    traffic_stats.c stats-mode.c \
--		    network.c cidr.c \
--		    build.c parse.c \
--		    channel.c multichannel.c channel_mcast.c channel_udp.c \
--		    tcp.c channel_tcp.c \
--		    external_cache.c external_inject.c \
--		    internal_cache.c internal_bypass.c \
--		    read_config_yy.y read_config_lex.l \
--		    stack.c resync.c
-+conntrackd_SOURCES = alarm.c            \
-+                     build.c            \
-+                     cache.c            \
-+                     cache-ct.c         \
-+                     cache-exp.c        \
-+                     cache_timer.c      \
-+                     channel.c          \
-+                     channel_mcast.c    \
-+                     channel_tcp.c      \
-+                     channel_udp.c      \
-+                     cidr.c             \
-+                     ctnl.c             \
-+                     date.c             \
-+                     event.c            \
-+                     external_cache.c   \
-+                     external_inject.c  \
-+                     fds.c              \
-+                     filter.c           \
-+                     hash.c             \
-+                     internal_bypass.c  \
-+                     internal_cache.c   \
-+                     local.c            \
-+                     log.c              \
-+                     main.c             \
-+                     mcast.c            \
-+                     multichannel.c     \
-+                     netlink.c          \
-+                     network.c          \
-+                     origin.c           \
-+                     parse.c            \
-+                     process.c          \
-+                     queue.c            \
-+                     queue_tx.c         \
-+                     rbtree.c           \
-+                     read_config_lex.l  \
-+                     read_config_yy.y   \
-+                     resync.c           \
-+                     run.c              \
-+                     stack.c            \
-+                     stats-mode.c       \
-+                     sync-alarm.c       \
-+                     sync-ftfw.c        \
-+                     sync-mode.c        \
-+                     sync-notrack.c     \
-+                     tcp.c              \
-+                     traffic_stats.c    \
-+                     udp.c              \
-+                     vector.c
- 
- if HAVE_CTHELPER
- conntrackd_SOURCES += cthelper.c helpers.c utils.c expect.c
--- 
-2.40.1
+Now queued up, thanks.
 
+greg k-h
