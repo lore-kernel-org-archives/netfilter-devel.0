@@ -2,227 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F35B4C83F17
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Aug 2023 15:51:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0F61C83F12
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Aug 2023 15:55:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230522AbjH1PvI (ORCPT
+        id S232528AbjH1Pyy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Aug 2023 11:51:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34720 "EHLO
+        Mon, 28 Aug 2023 11:54:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232571AbjH1Pur (ORCPT
+        with ESMTP id S232604AbjH1Pyg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Aug 2023 11:50:47 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E932FC5
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Aug 2023 08:49:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1693237797;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=i0OJuyNDSqGryEm07MK6haG18iHFBvFsfUBg4HizrA4=;
-        b=SxSl7Er2hF6+R5QiYP/XCwLrH9Kf+C1kK5ZDCYkWXJKs71YH27wFZ6yjSiJEjCfytJi7zl
-        nKxqtztoyhokdreMnk9nIwezKzJTsHaxtN3h6A98bchOJEm+2HCLKBy3DFNgf7avDi06cS
-        dw40Z7yXcJQqLglVp85LE0q/P9b3MsM=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-470-JJXMcyuGMUKeglchsWVmYA-1; Mon, 28 Aug 2023 11:49:56 -0400
-X-MC-Unique: JJXMcyuGMUKeglchsWVmYA-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-3fe4f8a557dso11198025e9.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Aug 2023 08:49:56 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693237795; x=1693842595;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=i0OJuyNDSqGryEm07MK6haG18iHFBvFsfUBg4HizrA4=;
-        b=MZn/0fOQgWSSA4G6ZNSjlbwn9ArbM2LmD5YBHCEfDTMta7WW9Gbavq05sCVvDnSrEp
-         v3vEbibFO7PvRXDbgYNcxWAhr9k3g9N1OIl1GFPmRiN09AVCTM7Se7io5+F9D7QCxRAy
-         DJ+z9i1fHRvbg3KZsCIMrXAhyGtd9fKdm1wn49pKcSXAtiOgpHn5XI1Ne5R1+rbtSvCI
-         D4a0FgHms70B98DoMJugma8VbSoiGxgVBJEyGt2GVxy6C4b1RsMvPUAxhbGLdyWS/uSF
-         P9IOnRduLj6bIoM0d92oa6MEEnZMLO9q+AY3PYHVvGa7mzKFHD8lnIU1kvo8RtS7c8It
-         yzDg==
-X-Gm-Message-State: AOJu0YyhpDvmLGzcg8j/b3cwcQ3Xsj67FPzgfPgGLGe9YV784zfWGUvM
-        pwlG+5jxHFNcxxHx52TO4ngZAGhV1vN+zb/SVz+A/T4mm45V2Bftj+s61zxt6D+vLemmSiNE4di
-        hrQ5O6ipkZyKT3R1Gf6Hf+d42e0UwgTanPXBH
-X-Received: by 2002:a05:600c:4194:b0:401:b53e:6c3e with SMTP id p20-20020a05600c419400b00401b53e6c3emr7303025wmh.1.1693237794758;
-        Mon, 28 Aug 2023 08:49:54 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IF0t3xQMd7efKfLzSGAqUSFaam70b82UC2Pn3E16iR9Q9u8Z4mhm7YK6NhJ2JWZl9Lwef4Ivg==
-X-Received: by 2002:a05:600c:4194:b0:401:b53e:6c3e with SMTP id p20-20020a05600c419400b00401b53e6c3emr7303015wmh.1.1693237794414;
-        Mon, 28 Aug 2023 08:49:54 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.167.86])
-        by smtp.gmail.com with ESMTPSA id p25-20020a1c7419000000b003fe195cecb3sm14291339wmc.38.2023.08.28.08.49.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 28 Aug 2023 08:49:53 -0700 (PDT)
-Message-ID: <aa481d83b0320078a17bebf215378992a4f7cb21.camel@redhat.com>
-Subject: Re: [PATCH nft 5/8] src: rework SNPRINTF_BUFFER_SIZE() and avoid
- "-Wunused-but-set-variable"
-From:   Thomas Haller <thaller@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+        Mon, 28 Aug 2023 11:54:36 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 445F0102
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Aug 2023 08:54:33 -0700 (PDT)
+Received: from [78.30.34.192] (port=34050 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qaeZQ-00AU7A-NA; Mon, 28 Aug 2023 17:54:31 +0200
+Date:   Mon, 28 Aug 2023 17:54:28 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Mon, 28 Aug 2023 17:49:53 +0200
-In-Reply-To: <ZOy5nTEQJvu7zdrx@calendula>
+Subject: Re: [PATCH nft 8/8] datatype: suppress "-Wformat-nonliteral" warning
+ in integer_type_print()
+Message-ID: <ZOzDNFqXdftWgtTF@calendula>
 References: <20230828144441.3303222-1-thaller@redhat.com>
-         <20230828144441.3303222-6-thaller@redhat.com> <ZOy5nTEQJvu7zdrx@calendula>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+ <20230828144441.3303222-9-thaller@redhat.com>
+ <ZOy4VvjT/vxpR5iR@calendula>
+ <dd5bf8c204447fa7dda1b5bfb87a830f07a55c04.camel@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <dd5bf8c204447fa7dda1b5bfb87a830f07a55c04.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-T24gTW9uLCAyMDIzLTA4LTI4IGF0IDE3OjEzICswMjAwLCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
-ZToKPiBPbiBNb24sIEF1ZyAyOCwgMjAyMyBhdCAwNDo0Mzo1NVBNICswMjAwLCBUaG9tYXMgSGFs
-bGVyIHdyb3RlOgo+ID4gU05QUklOVEZfQlVGRkVSX1NJWkUoKSBjYXVzZXMgYSB3YXJuaW5nIHdp
-dGggY2xhbmcuCj4gPiAKPiA+IMKgwqDCoCBldmFsdWF0ZS5jOjQxMzQ6OTogZXJyb3I6IHZhcmlh
-YmxlICdzaXplJyBzZXQgYnV0IG5vdCB1c2VkIFstCj4gPiBXZXJyb3IsLVd1bnVzZWQtYnV0LXNl
-dC12YXJpYWJsZV0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc2l6ZV90IHNpemUgPSAwOwo+
-ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIF4KPiA+IAo+ID4gwqDCoMKg
-IG1ldGEuYzoxMDA2Ojk6IGVycm9yOiB2YXJpYWJsZSAnc2l6ZScgc2V0IGJ1dCBub3QgdXNlZCBb
-LQo+ID4gV2Vycm9yLC1XdW51c2VkLWJ1dC1zZXQtdmFyaWFibGVdCj4gPiDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgIHNpemVfdCBzaXplOwo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgIF4KPiA+IAo+ID4gRml4IHRoYXQsIGFuZCByZXdvcmsgU05QUklOVEZfQlVGRkVSX1NJ
-WkUoKS4KPiA+IAo+ID4gLSBiZWZvcmUgYW5kIG5vdywgdGhlIG1hY3JvIGFzc2VydHMgYWdhaW5z
-dCB0cnVuY2F0aW9uLiBSZW1vdmUKPiA+IGVycm9yCj4gPiDCoCBoYW5kbGluZyByZWxhdGVkIHRv
-IHRydW5jYXRpb24gaW4gdGhlIGNhbGxlcnMuCj4gPiAKPiA+IC0gd3JhcCB0aGUgbWFjcm8gaW4g
-ImRvIHsgLi4uIH0gd2hpbGUoMCkiIHRvIG1ha2UgaXQgbW9yZQo+ID4gwqAgZnVuY3Rpb24tbGlr
-ZS4KPiA+IAo+ID4gLSBldmFsdWF0ZSBtYWNybyBhcmd1bWVudHMgZXhhY3RseSBvbmNlLCB0byBt
-YWtlIGl0IG1vcmUgZnVuY3Rpb24tCj4gPiBsaWtlLgo+ID4gCj4gPiAtIHRha2UgcG9pbnRlcnMg
-dG8gdGhlIGFyZ3VtZW50cyB0aGF0IGFyZSBiZWluZyBtb2RpZmllZC4KPiA+IAo+ID4gLSB1c2Ug
-YXNzZXJ0KCkgaW5zdGVhZCBvZiBhYm9ydCgpLgo+ID4gCj4gPiAtIHVzZSBzaXplX3QgdHlwZSBm
-b3IgYXJndW1lbnRzIHJlbGF0ZWQgdG8gdGhlIGJ1ZmZlciBzaXplLgo+ID4gCj4gPiAtIGRyb3Ag
-InNpemUiLiBJdCB3YXMgdW51c2VkLCBhbmQsIHVubGVzcyB0aGUgc3RyaW5nIHdhcyB0cnVuY2F0
-ZWQsCj4gPiDCoCBpdCB3YXMgaWRlbnRpY2FsIHRvICJvZmZzZXQiLgo+ID4gCj4gPiAtICJvZmZz
-ZXQiIHByZXZpb3VzbHkgd2FzIGluY3JlbWVudGVkIGJlZm9yZSBjaGVja2luZyBmb3IKPiA+IHRy
-dW5jYXRpb24uCj4gPiDCoCBTbyBpdCB3b3VsZCBwb2ludCBzb21ld2hlcmUgcGFzdCB0aGUgYnVm
-ZmVyLiBUaGlzIGJlaGF2aW9yIGlzIG5vdAo+ID4gwqAgdXNlZnVsLCBiZWNhdXNlIHdlIGFzc2Vy
-dCBhZ2FpbnN0IHRydW5jYXRpb24uIE5vdywgaW4gY2FzZSBvZgo+ID4gwqAgdHJ1bmNhdGlvbiwg
-ImxlbiIgd2lsbCBiZSB6ZXJvIGFuZCAib2Zmc2V0IiB3aWxsIGJlIHRoZSBvcmlnaW5hbAo+ID4g
-ImxlbiIKPiA+IMKgICh0aGF0IGlzLCBwb2ludCBhZnRlciB0aGUgYnVmZmVyIGFuZCBvbmUgYnl0
-ZSBhZnRlciB0aGUKPiA+IHRlcm1pbmF0aW5nIE5VTCkuCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6
-IFRob21hcyBIYWxsZXIgPHRoYWxsZXJAcmVkaGF0LmNvbT4KPiA+IC0tLQo+ID4gwqBpbmNsdWRl
-L3V0aWxzLmggfCAzMiArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLQo+ID4gwqBzcmMv
-ZXZhbHVhdGUuY8KgIHwgMTEgKysrKystLS0tLS0KPiA+IMKgc3JjL21ldGEuY8KgwqDCoMKgwqAg
-fCAxMCArKysrKy0tLS0tCj4gPiDCoDMgZmlsZXMgY2hhbmdlZCwgMzMgaW5zZXJ0aW9ucygrKSwg
-MjAgZGVsZXRpb25zKC0pCj4gPiAKPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3V0aWxzLmggYi9p
-bmNsdWRlL3V0aWxzLmgKPiA+IGluZGV4IGNlZTFlNWMxZThhZS4uODczMTQ3ZmI1NGVjIDEwMDY0
-NAo+ID4gLS0tIGEvaW5jbHVkZS91dGlscy5oCj4gPiArKysgYi9pbmNsdWRlL3V0aWxzLmgKPiA+
-IEBAIC03MiwxNSArNzIsMjkgQEAKPiA+IMKgI2RlZmluZSBtYXgoX3gsIF95KSAoe8KgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gwqDCoMKgwqDC
-oMKgwqDCoF94ID4gX3kgPyBfeCA6IF95OyB9KQo+ID4gwqAKPiA+IC0jZGVmaW5lIFNOUFJJTlRG
-X0JVRkZFUl9TSVpFKHJldCwgc2l6ZSwgbGVuLCBvZmZzZXQpwqDCoMKgXAo+ID4gLcKgwqDCoMKg
-wqDCoMKgaWYgKHJldCA8IDApwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gLcKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoGFib3J0KCk7wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFwKPiA+IC3CoMKgwqDCoMKgwqDCoG9mZnNldCAr
-PSByZXQ7wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqBcCj4gPiAtwqDCoMKgwqDCoMKgwqBhc3NlcnQocmV0IDwgbGVuKTvC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqBcCj4gPiAtwqDCoMKgwqDCoMKgwqBpZiAocmV0ID4gbGVuKcKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gLcKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldCA9IGxlbjvCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBcCj4gPiAtwqDCoMKgwqDC
-oMKgwqBzaXplICs9IHJldDvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBcCj4gPiAtwqDCoMKgwqDCoMKgwqBsZW4g
-LT0gcmV0Owo+ID4gKyNkZWZpbmUgU05QUklOVEZfQlVGRkVSX1NJWkUocmV0LCBsZW4sIG9mZnNl
-dCnCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gK8KgwqDCoMKgwqDCoMKg
-ZG8geyBcCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY29uc3QgaW50IF9yZXQg
-PSAocmV0KTvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oFwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzaXplX3QgKmNvbnN0IF9sZW4g
-PSAobGVuKTvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBcCj4gPiAr
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc2l6ZV90ICpjb25zdCBfb2Zmc2V0ID0gKG9m
-ZnNldCk7wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gK8KgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoHNpemVfdCBfcmV0MjvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gK8KgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoFwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBhc3NlcnQoX3JldCA+PSAw
-KTvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqBcCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoGlmICgoc2l6ZV90KSBfcmV0ID49ICpfbGVuKSB7wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqBcCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoC8qIEZhaWwgYW4gYXNzZXJ0aW9uIG9uIHRydW5jYXRpb24uCj4gPiArwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAqCj4gPiArwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAqIEFueXdheSwgd2Ugd291bGQg
-c2V0ICJsZW4iIHRvIHplcm8gYW5kCj4gPiAib2Zmc2V0IiBvbmUKPiA+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICogYWZ0ZXIgdGhlIGJ1ZmZlciBzaXpl
-IChwYXN0IHRoZQo+ID4gdGVybWluYXRpbmcgTlVMCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAqIGJ5dGUpLiAqL8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gK8KgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBhc3NlcnQoKHNpemVfdCkgX3JldCA8ICpf
-bGVuKTvCoMKgwqDCoMKgwqDCoMKgwqDCoFwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgX3JldDIgPSAqX2xlbjvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgXAo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoH0gZWxzZcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFwKPiA+ICvCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgX3JldDIgPSAoc2l6ZV90KSBf
-cmV0O8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFwKPiA+ICvCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqBcCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgKl9vZmZzZXQgKz0gX3JldDI7
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgXAo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCpfbGVuIC09IF9yZXQyO8Kg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoFwKPiA+ICvCoMKgwqDCoMKgwqDCoH0gd2hpbGUgKDApCj4gCj4gVGhpcyBtYWNybyBp
-cyBzb21ldGhpbmcgSSBtYWRlIG15c2VsZiwgd2hpY2ggSSBhbSBwYXJ0aWN1bGFybHkgbm90Cj4g
-cHJvdWQgb2YgaXQsIGJ1dCBpdCBnZXR0aW5nIHNsaWdodGx5IG1vcmUgY29tcGxpY2F0ZWQuCgpJ
-TU8gaXQganVzdCBnb3Qgc2ltcGxlci4gRS5nLiBpdCBpcyBub3cgZnVuY3Rpb24tbGlrZTsgeW91
-IGNhbiBlYXNpZXIKc2VlIHdoaWNoIGFyZ3VtZW50cyBhcmUgbW9kaWZpZWQgKHdlIHRha2UgYSBw
-b2ludGVyIHRvIHRoZW0pOyBvbmUKYXJndW1lbnQgZ290IGRyb3BwZWQuCgpUaGUgcmVtYWluaW5n
-IHJlbGV2YW50IHBhcnRzIChhc3NlcnRpb25zIGFuZCB0cnVuY2F0aW9uIGNoZWNrIGFzaWRlKSBp
-cwpsaXRlcmFsbHkKCiAgIG9mZnNldCArPSByZXQ7CiAgIGxlbiAtPSByZXQ7CgoKPiAKPiBQcm9i
-YWJseSBpdCB0aW1lIHRvIHR1cm4gdGhpcyBpbnRvIGEgcmVhbCBmdW5jdGlvbj8KCmFzIGl0IG5v
-dyBiZWhhdmVzIGZ1bmN0aW9uLWxpa2UsIGl0IGNhbiBiZSBlYXNpbHkgY29udmVydGVkIHRvIGFu
-CmlubGluZSBmdW5jdGlvbi4gT25seSBkaWZmZXJlbmNlIGlzIHRoYXQgdXBvbiBhc3NlcnRpb24g
-ZmFpbHVyZSwgd2Ugbm8KbG9uZ2VyIHNlZSB0aGUgbG9jYXRpb24gb2YgdGhlIGNhbGxlci4gSXQg
-ZG9lcyBub3Qgc2VlbSBhbiBpbXByb3ZlbWVudC4KCgo+IAo+ID4gwqAjZGVmaW5lIE1TRUNfUEVS
-X1NFQ8KgwqDCoDEwMDBMCj4gPiDCoAo+ID4gZGlmZiAtLWdpdCBhL3NyYy9ldmFsdWF0ZS5jIGIv
-c3JjL2V2YWx1YXRlLmMKPiA+IGluZGV4IDFhZTJlZjBkZTEwYy4uZjhjZDdiN2FmZGEzIDEwMDY0
-NAo+ID4gLS0tIGEvc3JjL2V2YWx1YXRlLmMKPiA+ICsrKyBiL3NyYy9ldmFsdWF0ZS5jCj4gPiBA
-QCAtNDEyOSwxNCArNDEyOSwxNiBAQCBzdGF0aWMgaW50IHN0bXRfZXZhbHVhdGVfcXVldWUoc3Ry
-dWN0Cj4gPiBldmFsX2N0eCAqY3R4LCBzdHJ1Y3Qgc3RtdCAqc3RtdCkKPiA+IMKgc3RhdGljIGlu
-dCBzdG10X2V2YWx1YXRlX2xvZ19wcmVmaXgoc3RydWN0IGV2YWxfY3R4ICpjdHgsIHN0cnVjdAo+
-ID4gc3RtdCAqc3RtdCkKPiA+IMKgewo+ID4gwqDCoMKgwqDCoMKgwqDCoGNoYXIgcHJlZml4W05G
-X0xPR19QUkVGSVhMRU5dID0ge30sIHRtcFtORl9MT0dfUFJFRklYTEVOXSA9Cj4gPiB7fTsKPiA+
-IC3CoMKgwqDCoMKgwqDCoGludCBsZW4gPSBzaXplb2YocHJlZml4KSwgb2Zmc2V0ID0gMCwgcmV0
-Owo+ID4gK8KgwqDCoMKgwqDCoMKgc2l6ZV90IGxlbiA9IHNpemVvZihwcmVmaXgpOwo+ID4gK8Kg
-wqDCoMKgwqDCoMKgc2l6ZV90IG9mZnNldCA9IDA7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0
-IGV4cHIgKmV4cHI7Cj4gPiAtwqDCoMKgwqDCoMKgwqBzaXplX3Qgc2l6ZSA9IDA7Cj4gPiDCoAo+
-ID4gwqDCoMKgwqDCoMKgwqDCoGlmIChzdG10LT5sb2cucHJlZml4LT5ldHlwZSAhPSBFWFBSX0xJ
-U1QpCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAwOwo+ID4gwqAK
-PiA+IMKgwqDCoMKgwqDCoMKgwqBsaXN0X2Zvcl9lYWNoX2VudHJ5KGV4cHIsICZzdG10LT5sb2cu
-cHJlZml4LT5leHByZXNzaW9ucywKPiA+IGxpc3QpIHsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqBpbnQgcmV0Owo+ID4gKwo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqBzd2l0Y2ggKGV4cHItPmV0eXBlKSB7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoGNhc2UgRVhQUl9WQUxVRToKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoGV4cHJfdG9fc3RyaW5nKGV4cHIsIHRtcCk7Cj4gPiBAQCAtNDE1
-MCwxMiArNDE1Miw5IEBAIHN0YXRpYyBpbnQgc3RtdF9ldmFsdWF0ZV9sb2dfcHJlZml4KHN0cnVj
-dAo+ID4gZXZhbF9jdHggKmN0eCwgc3RydWN0IHN0bXQgKnN0bXQpCj4gPiDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBCVUcoInVua25vd24gZXhwcmVzc2lv
-biB0eXBlICVzXG4iLAo+ID4gZXhwcl9uYW1lKGV4cHIpKTsKPiA+IMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGJyZWFrOwo+ID4gwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqB9Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgU05Q
-UklOVEZfQlVGRkVSX1NJWkUocmV0LCBzaXplLCBsZW4sIG9mZnNldCk7Cj4gPiArwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgU05QUklOVEZfQlVGRkVSX1NJWkUocmV0LCAmbGVuLCAmb2Zm
-c2V0KTsKPiA+IMKgwqDCoMKgwqDCoMKgwqB9Cj4gPiDCoAo+ID4gLcKgwqDCoMKgwqDCoMKgaWYg
-KGxlbiA9PSBORl9MT0dfUFJFRklYTEVOKQo+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoHJldHVybiBzdG10X2Vycm9yKGN0eCwgc3RtdCwgImxvZyBwcmVmaXggaXMgdG9vCj4gPiBs
-b25nIik7Cj4gCj4gTm8gZXJyb3IgYW55bW9yZT8KPiAKPiBOb3QgZGlyZWN0bHkgcmVsYXRlZCwg
-YnV0IGFyZSB5b3Ugc3VyZSB0ZXN0cyB3ZSBoYXZlIGFyZSBzdWZmaWNpZW50Cj4gdG8KPiBjb3Zl
-ciBmb3IgYWxsIHRoZXNlIHVwZGF0ZXPCoAoKTm8uIEkgYW0gbm90IGF3YXJlIG9mIHRlc3QgY292
-ZXJhZ2UuCgpTTlBSSU5URl9CVUZGRVJfU0laRSgpIHJlamVjdHMgdHJ1bmNhdGlvbiBvZiB0aGUg
-c3RyaW5nIGJ5IGFzc2VydGluZwphZ2FpbnN0IGl0LiBUaGF0IGJlaGF2aW9yIGlzIHBhcnQgb2Yg
-dGhlIEFQSSBvZiB0aGF0IGZ1bmN0aW9uLiBFcnJvcgpjaGVja2luZyBhZnRlciBhbiBhc3NlcnQg
-c2VlbXMgdW5uZWNlc3NhcnkuCgpUaGUgY2hlY2sgImlmIChsZW4gPT0gTkZfTE9HX1BSRUZJWExF
-TikiIHNlZW1zIHdyb25nIGFueXdheS4gQWZ0ZXIKdHJ1bmNhdGlvbiwgImxlbiIgd291bGQgYmUg
-emVyby4gVGhlIGNvZGUgcHJldmlvdXNseSBjaGVja2VkIHdoZXRoZXIKbm90aGluZyB3YXMgYXBw
-ZW5kZWQsIGJ1dCB0aGUgZXJyb3Igc3RyaW5nIGRpZG4ndCBtYXRjaCB0aGF0IHNpdHVhdGlvbi4K
-CgpNYXliZSBTTlBSSU5URl9CVUZGRVJfU0laRSgpIHNob3VsZCBub3QgYXNzZXJ0IGFnYWluc3Qg
-dHJ1bmNhdGlvbj8KCgpUaG9tYXMK
+On Mon, Aug 28, 2023 at 05:33:01PM +0200, Thomas Haller wrote:
+> On Mon, 2023-08-28 at 17:08 +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Aug 28, 2023 at 04:43:58PM +0200, Thomas Haller wrote:
+> > > 
+> > > +       _NFT_PRAGMA_WARNING_DISABLE("-Wformat-nonliteral")
+> > 
+> > Maybe simply -Wno-format-nonliteral turn off in Clang so there is no
+> > need for this PRAGMA in order to simplify things.
+> 
+> "-Wformat-nonliteral" seems a useful warning. I would rather not
+> disable it at a larger scale.
+> 
+> Gcc also supports "-Wformat-nonliteral" warning, but for some reason it
+> does not warn here (also not, when I pass "-Wformat=2"). I don't
+> understand why that is.
 
+Can you see any other way to fix this clang compilation eror without
+this pragma? What makes clang unhappy with this code?
