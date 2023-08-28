@@ -2,105 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 489CEC71153
-	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Aug 2023 19:54:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1352C83F11
+	for <netfilter-devel@archiver.kernel.org>; Mon, 28 Aug 2023 22:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230295AbjH1Txs (ORCPT
+        id S233854AbjH1WO0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 28 Aug 2023 15:53:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53056 "EHLO
+        Mon, 28 Aug 2023 18:14:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229592AbjH1TxP (ORCPT
+        with ESMTP id S232726AbjH1WNy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Aug 2023 15:53:15 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6672186
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Aug 2023 12:53:11 -0700 (PDT)
-Received: from [78.30.34.192] (port=59182 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qaiIL-00BIhV-57; Mon, 28 Aug 2023 21:53:07 +0200
-Date:   Mon, 28 Aug 2023 21:53:04 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 5/8] src: rework SNPRINTF_BUFFER_SIZE() and avoid
- "-Wunused-but-set-variable"
-Message-ID: <ZOz7IMG0J1B0HVlB@calendula>
-References: <20230828144441.3303222-1-thaller@redhat.com>
- <20230828144441.3303222-6-thaller@redhat.com>
- <ZOy5nTEQJvu7zdrx@calendula>
- <aa481d83b0320078a17bebf215378992a4f7cb21.camel@redhat.com>
- <ZOzFgtwJI6AasAYZ@calendula>
- <31efcb8e9ceac6f71003abd9517cca981550fc91.camel@redhat.com>
+        Mon, 28 Aug 2023 18:13:54 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 879CA10A
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Aug 2023 15:13:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1693260786;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=UxpDpPAMPR581hkKTSpjHx5QGnh304423RA3WXpTtQw=;
+        b=jCKad89lN9pXX4bM1xApEO1qtdUofs4uL2CGRNQjSncopEcu5HEkSaVTkalIElzPbXreZu
+        ubtkjB5GEh9Tkc6DcBZd/2Cf1+bx0XK4X1bOgWkPdKdXiD+xMdA9iYSHE27ZtoMCci5tP9
+        uR+tULcUgRAbXCgBM+MgLeqH8KC1lJo=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-446--bkHvolmNvWFZKT8dRxZ0Q-1; Mon, 28 Aug 2023 18:13:03 -0400
+X-MC-Unique: -bkHvolmNvWFZKT8dRxZ0Q-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 97018101A52E;
+        Mon, 28 Aug 2023 22:13:02 +0000 (UTC)
+Received: from fedora.redhat.com (unknown [10.22.16.86])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 14AD86B2B6;
+        Mon, 28 Aug 2023 22:12:58 +0000 (UTC)
+From:   Wander Lairson Costa <wander@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Harald Welte <laforge@netfilter.org>,
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        netdev@vger.kernel.org (open list:NETWORKING [GENERAL]),
+        linux-kernel@vger.kernel.org (open list)
+Cc:     Wander Lairson Costa <wander@redhat.com>,
+        Lucas Leong <wmliang@infosec.exchange>, stable@kernel.org
+Subject: [PATCH nf] netfilter/xt_sctp: validate the flag_info count
+Date:   Mon, 28 Aug 2023 19:12:55 -0300
+Message-ID: <20230828221255.124812-1-wander@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <31efcb8e9ceac6f71003abd9517cca981550fc91.camel@redhat.com>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Aug 28, 2023 at 06:45:00PM +0200, Thomas Haller wrote:
-> On Mon, 2023-08-28 at 18:04 +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Aug 28, 2023 at 05:49:53PM +0200, Thomas Haller wrote:
-> > > On Mon, 2023-08-28 at 17:13 +0200, Pablo Neira Ayuso wrote:
-> > 
-> > > SNPRINTF_BUFFER_SIZE() rejects truncation of the string by
-> > > asserting
-> > > against it. That behavior is part of the API of that function.
-> > > Error
-> > > checking after an assert seems unnecessary.
-> > > 
-> > > The check "if (len == NF_LOG_PREFIXLEN)" seems wrong anyway. After
-> > > truncation, "len" would be zero. The code previously checked
-> > > whether
-> > > nothing was appended, but the error string didn't match that
-> > > situation.
-> > > 
-> > > Maybe SNPRINTF_BUFFER_SIZE() should not assert against truncation?
-> > 
-> > IIRC, the goal for this function was to handle snprintf() and all its
-> > corner cases. If there is no need for it or a better way to do this,
-> > this is welcome.
-> > 
-> 
-> I think the macro is sensible (at least, after some cleanup).
-> 
-> It makes a choice, that the caller must ensure a priori that the buffer
-> is long enough (by asserting).
-> 
-> By looking at the callers, it's not clear to me, whether the callers
-> can always ensure that.  For meta_key_parse(), it seems the maximum
-> string is limited by meta_templates. But for stmt_evaluate_log_prefix()
-> it may be possible to craft user-input that triggers the assertion,
-> isn't it?
-> 
-> Maybe the macro and the callers should anticipate and handle
-> truncation?
+sctp_mt_check doesn't validate the flag_count field. An attacker can
+take advantage of that to trigger a OOB read and leak memory
+information.
 
-This should not silently truncate strings, instead bail out to user in
-case the string is too long.
+Add the field validation in the checkentry function.
 
-#define NF_LOG_PREFIXLEN       128
+Fixes: 2e4e6a17af35 ("[NETFILTER] x_tables: Abstraction layer for {ip,ip6,arp}_tables")
+Reported-by: Lucas Leong <wmliang@infosec.exchange>
+Cc: stable@kernel.org
+Signed-off-by: Wander Lairson Costa <wander@redhat.com>
+---
+ net/netfilter/xt_sctp.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Maximum length as specified by uapi/linux/netfilter/nf_log.h
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index e8961094a282..b46a6a512058 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -149,6 +149,8 @@ static int sctp_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_sctp_info *info = par->matchinfo;
+ 
++	if (info->flag_count > ARRAY_SIZE(info->flag_info))
++		return -EINVAL;
+ 	if (info->flags & ~XT_SCTP_VALID_FLAGS)
+ 		return -EINVAL;
+ 	if (info->invflags & ~XT_SCTP_VALID_FLAGS)
+-- 
+2.41.0
 
-Currently in userspace, if I specify a string longest than that, I can
-see ASAN complains on incorrect memory management from userspace
-(without your patchset), so this code is currently broken (by me
-mostly likely since I was the last one to touch those bits).
-
-While at this, it would be good to fix it and add a test to cover
-maximum prefix length.
-
-Regarding meta_key_parse(), these days the preferred approach is to
-use start conditions in flex. This function should go away, it was an
-early attempt to reduce tokens by using STRING from bison, which
-turned out to be flawed.
-
-It is not worth to fix meta_key_parse(), flex start conditions and
-bison parser should be used.
-
-This macro is hiding behind a bit of technical debt.
