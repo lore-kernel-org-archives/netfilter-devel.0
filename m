@@ -2,82 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7C6BC83F18
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Aug 2023 12:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7832C83F12
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Aug 2023 13:00:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235632AbjH2MyQ (ORCPT
+        id S232759AbjH2M7j (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Aug 2023 08:54:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35432 "EHLO
+        Tue, 29 Aug 2023 08:59:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235624AbjH2Mxr (ORCPT
+        with ESMTP id S235600AbjH2M7N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Aug 2023 08:53:47 -0400
-Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com [209.85.215.200])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0C7E1B3
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 05:53:44 -0700 (PDT)
-Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-565c824a23bso4520054a12.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 05:53:44 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693313624; x=1693918424;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=kZ+os1R67rvUTPDMXhUIVv3XfDBA28er5i/NIXAH+4E=;
-        b=D+Z6K0d3GOijw8+jzor5muENqmVDk0B3fVOIQPM1TwcvJK5BJ8ZZux2BMmLeBPcpQy
-         CTXTUPvRvdS1IC7Jf+1lEghuS5mxAach1htPpWcvscy8VVg8hYxd4c8/rYp4tJmPiDvD
-         4SD0Ygr4Smk6V7CphkUKAbLgl4QMvUUMEgrHuX0LO2cRtuZFg2LyP5y3ic6yQBPPvEgN
-         LAXQHGJ1apHu85vdgZOrZffMDTImMY4yM4UEXaVUHUrcpMUNY7ch6ibXuVVxmC3Km2cB
-         gw50HOgF/XKHzyKpTx7N5hpZR0+H6/t7r7WmVsSApobk9lKbE6+FnnjbpxvL1pVBB+1S
-         b/Qg==
-X-Gm-Message-State: AOJu0YyQvS9L1jyRxZBvg/KZ0owP5gnny0nUPcazzWFL/p5SrzkHmqqW
-        hHAdfHUatdOZuNrdSCQHbqonL39xf47mc2GYkxAK1mmGLMTf
-X-Google-Smtp-Source: AGHT+IFP5qJvkOXATmmjLWH1Dmw1i2i2kEaQWhoEF3X9kvCWXv4ZGMx9dwBMr5sQqFYphvWueCMJPze7rs5rf0LpDMsV4hrv5KuG
+        Tue, 29 Aug 2023 08:59:13 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6BB099
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 05:58:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1693313901;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=+rqARaudvWT3oOdAeTMHVtFyhsqJMBiuDvGS+yRiQcY=;
+        b=MG1h2rl2e2Y3oHLJC8KHb3TbQ+41b4z5cH98Y1QQExMqrJW2UsJAJA6o78N9kCwu118a+L
+        fR36Z1n7gRbsux+7fWa/re1R051qBNRFZ/ixVwEEmDXbSo5DmUcbTyiW6nEQxsqwH918KE
+        rFKpy6qN7PJ4xvA5TUGiooGc7CFSJRQ=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-635-nSNAlXwlPZ2J6xGBDtcckQ-1; Tue, 29 Aug 2023 08:58:20 -0400
+X-MC-Unique: nSNAlXwlPZ2J6xGBDtcckQ-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 29887185A78F
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 12:58:20 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.193.45])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 9529340C2063;
+        Tue, 29 Aug 2023 12:58:19 +0000 (UTC)
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft v2 0/8] fix compiler warnings with clang
+Date:   Tue, 29 Aug 2023 14:53:29 +0200
+Message-ID: <20230829125809.232318-1-thaller@redhat.com>
 MIME-Version: 1.0
-X-Received: by 2002:a63:3c13:0:b0:564:2c32:360a with SMTP id
- j19-20020a633c13000000b005642c32360amr5780569pga.12.1693313624329; Tue, 29
- Aug 2023 05:53:44 -0700 (PDT)
-Date:   Tue, 29 Aug 2023 05:53:44 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000001254e506040f4d07@google.com>
-Subject: [syzbot] Monthly netfilter report (Aug 2023)
-From:   syzbot <syzbot+list815e32c42e38d564bf0e@syzkaller.appspotmail.com>
-To:     fw@strlen.de, kadlec@netfilter.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello netfilter maintainers/developers,
+Building with clang caused some compiler warnings. Fix, suppress or work
+around them.
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+Changes to v1:
+- replace patches
+    "src: use "%zx" format instead of "%Zx""
+    "utils: add _NFT_PRAGMA_WARNING_DISABLE()/_NFT_PRAGMA_WARNING_REENABLE helpers"
+    "datatype: suppress "-Wformat-nonliteral" warning in integer_type_print()"
+  with
+    "include: drop "format" attribute from nft_gmp_print()"
+  which is the better solution.
+- let SNPRINTF_BUFFER_SIZE() not assert against truncation. Instead, the
+  callers handle it.
+- add bugfix "evaluate: fix check for truncation in stmt_evaluate_log_prefix()"
+- add minor patch "evaluate: don't needlessly clear full string buffer in stmt_evaluate_log_prefix()"
 
-During the period, 0 new issues were detected and 0 were fixed.
-In total, 7 issues are still open and 156 have been fixed so far.
+Thomas Haller (8):
+  netlink: avoid "-Wenum-conversion" warning in dtype_map_from_kernel()
+  netlink: avoid "-Wenum-conversion" warning in parser_bison.y
+  datatype: avoid cast-align warning with struct sockaddr result from
+    getaddrinfo()
+  evaluate: fix check for truncation in stmt_evaluate_log_prefix()
+  src: rework SNPRINTF_BUFFER_SIZE() and handle truncation
+  evaluate: don't needlessly clear full string buffer in
+    stmt_evaluate_log_prefix()
+  src: suppress "-Wunused-but-set-variable" warning with
+    "parser_bison.c"
+  include: drop "format" attribute from nft_gmp_print()
 
-Some of the still happening issues:
+ include/nftables.h |  3 +--
+ include/utils.h    | 35 ++++++++++++++++++++++++++---------
+ src/Makefile.am    |  1 +
+ src/datatype.c     | 14 +++++++++++---
+ src/evaluate.c     | 15 ++++++++++-----
+ src/meta.c         | 11 ++++++-----
+ src/netlink.c      |  2 +-
+ src/parser_bison.y |  4 ++--
+ 8 files changed, 58 insertions(+), 27 deletions(-)
 
-Ref Crashes Repro Title
-<1> 144     Yes   KASAN: slab-out-of-bounds Read in do_csum
-                  https://syzkaller.appspot.com/bug?extid=4a9f9820bd8d302e22f7
-<2> 25      Yes   INFO: rcu detected stall in gc_worker (3)
-                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-<3> 4       Yes   INFO: rcu detected stall in tcp_setsockopt
-                  https://syzkaller.appspot.com/bug?extid=1a11c39caf29450eac9f
+-- 
+2.41.0
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
-
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
