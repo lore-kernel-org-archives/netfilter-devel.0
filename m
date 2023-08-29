@@ -2,371 +2,162 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DC3DC6FA8F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Aug 2023 17:49:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BB9C71153
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Aug 2023 17:54:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229921AbjH2Rso (ORCPT
+        id S236522AbjH2Rxe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Aug 2023 13:48:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47088 "EHLO
+        Tue, 29 Aug 2023 13:53:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238196AbjH2Rs3 (ORCPT
+        with ESMTP id S238166AbjH2RxQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Aug 2023 13:48:29 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 98598194
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 10:48:19 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/2] proto: use hexadecimal to display ip frag-off field
-Date:   Tue, 29 Aug 2023 19:48:11 +0200
-Message-Id: <20230829174812.158595-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Tue, 29 Aug 2023 13:53:16 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31630FD
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 10:52:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1693331550;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=mp/+SMcxEHJjPngNkLItZK/TaS7kM1ZCC9hy3yRgScY=;
+        b=IranHYdYSF3MsDNXVff/p2WmVLJobb1NPUWi2qALkLgM1Rl1kr0NJZQlQW9ufV40JYuwM0
+        F475rV91Xe7DmL/cZ7dARnAyMbuXOLDB4csEtsYksoZU56UqEkZbzNlseQX4y8bfkB2Ueb
+        G4FG/oAvYR+GT/PG/5blDOA0Mat2xRY=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-171-vtmV39-xNOCstgvATes-jg-1; Tue, 29 Aug 2023 13:52:29 -0400
+X-MC-Unique: vtmV39-xNOCstgvATes-jg-1
+Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-3fe12bf2db4so5741255e9.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 10:52:28 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693331547; x=1693936347;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=mp/+SMcxEHJjPngNkLItZK/TaS7kM1ZCC9hy3yRgScY=;
+        b=PfGEVZhQJATsMdhRBjCY/TMyzUjzkWOuDR0+L8pK/0e7GAVpR/rNgBdVPdggd4JXzL
+         nua9x3unIfWVRHDpg+UmoIs0vk1DBLHddcpVMcCAdZZLxPxoidz01WbRxsfTVKXdYSxQ
+         aKBFqG77YxwVkK0oNW/UKtg1kaBLNNRNLQgTXvQxw2houSvxeV+lBNjiUUl+9r5VRFay
+         ZIAWGKHVVzHWWVa2fQyLLfaTTqhwqbMmIabwRIjbsb+2Oc/qvVWp6BZK1thvv0i7eevY
+         Pvejm9prIuJbtIGaxyTkDiMeJY0xWt3wqGl3iIJFWUirzN4zEX4h95xum0UZrPHWfiQD
+         yy3g==
+X-Gm-Message-State: AOJu0Yy4ra/C4L2ZoklJgrHWi9ddI4JAdcw2HiYJOfv329eCv8ebOozb
+        9lE82wqiSzQAGr5s9+y8vOm/Pk6KkV7PE+JGdIru7yW20eboqVbxPOHGMIM5IuKIO1YensDJ5jy
+        i48dzLzSS9dgkTgbRAfvyoyPhdHnxFJKPKfh4
+X-Received: by 2002:a05:600c:54eb:b0:401:c6a2:3cd5 with SMTP id jb11-20020a05600c54eb00b00401c6a23cd5mr32249wmb.2.1693331547562;
+        Tue, 29 Aug 2023 10:52:27 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHEiG638dP9S5Br7olartxseTF4GJITMbe8ScdQkbKZ7IpaawCumnwfNBFbikwWxlCPZS928Q==
+X-Received: by 2002:a05:600c:54eb:b0:401:c6a2:3cd5 with SMTP id jb11-20020a05600c54eb00b00401c6a23cd5mr32236wmb.2.1693331547276;
+        Tue, 29 Aug 2023 10:52:27 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id n11-20020a05600c294b00b003fee6e170f9sm14438012wmd.45.2023.08.29.10.52.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Aug 2023 10:52:26 -0700 (PDT)
+Message-ID: <213abb9727c74bff3136eea8f38dd554c33f7c16.camel@redhat.com>
+Subject: Re: [PATCH nft v2 0/8] fix compiler warnings with clang
+From:   Thomas Haller <thaller@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Tue, 29 Aug 2023 19:52:25 +0200
+In-Reply-To: <ZO4IEwJPaP9FZiqF@calendula>
+References: <20230829125809.232318-1-thaller@redhat.com>
+         <ZO4IEwJPaP9FZiqF@calendula>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ip frag-off field in the protocol definition is 16-bits long
-and it contains the DF (0x2000) and MF (0x4000) bits too.
+On Tue, 2023-08-29 at 17:00 +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 29, 2023 at 02:53:29PM +0200, Thomas Haller wrote:
+> > Building with clang caused some compiler warnings. Fix, suppress or
+> > work
+> > around them.
+>=20
+> Series LGTM, applied.
 
-iptables-translate also suggests:
 
-	ip frag-off & 0x1ffff != 0
+Thank you!!
 
-to match on fragments. Use hexadecimal for listing this header field.
+>=20
+> The ugly macro can go away later, once meta_parse_key() is removed
+> when bison/flex use start conditions for this, and probably log
+> prefix
+> is reviewed not to use it anymore. I still think that macro is not
+> looking any better after this update but this is not a deal breaker
+> for this series.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/proto.c                     |  4 +++-
- tests/py/ip/ip.t                | 12 ++++++------
- tests/py/ip/ip.t.json           | 12 ++++++------
- tests/py/ip/ip.t.payload        | 12 ++++++------
- tests/py/ip/ip.t.payload.bridge | 12 ++++++------
- tests/py/ip/ip.t.payload.inet   | 12 ++++++------
- tests/py/ip/ip.t.payload.netdev | 12 ++++++------
- 7 files changed, 39 insertions(+), 37 deletions(-)
+I don't find that macro that ugly (anymore). But OK.
 
-diff --git a/src/proto.c b/src/proto.c
-index 4650e58cd6ed..d3bcb0c4bd0b 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -306,6 +306,8 @@ const struct proto_desc *proto_ctx_find_conflict(struct proto_ctx *ctx,
- 
- #define HDR_FIELD(__name, __struct, __member)				\
- 	HDR_TEMPLATE(__name, &integer_type, __struct, __member)
-+#define HDR_HEX_FIELD(__name, __struct, __member)				\
-+	HDR_TEMPLATE(__name, &xinteger_type, __struct, __member)
- #define HDR_BITFIELD(__name, __dtype,  __offset, __len)			\
- 	PROTO_HDR_TEMPLATE(__name, __dtype, BYTEORDER_BIG_ENDIAN,	\
- 			   __offset, __len)
-@@ -846,7 +848,7 @@ const struct proto_desc proto_ip = {
- 		[IPHDR_ECN]		= HDR_BITFIELD("ecn", &ecn_type, 14, 2),
- 		[IPHDR_LENGTH]		= IPHDR_FIELD("length",		tot_len),
- 		[IPHDR_ID]		= IPHDR_FIELD("id",		id),
--		[IPHDR_FRAG_OFF]	= IPHDR_FIELD("frag-off",	frag_off),
-+		[IPHDR_FRAG_OFF]	= HDR_HEX_FIELD("frag-off", struct iphdr, frag_off),
- 		[IPHDR_TTL]		= IPHDR_FIELD("ttl",		ttl),
- 		[IPHDR_PROTOCOL]	= INET_PROTOCOL("protocol", struct iphdr, protocol),
- 		[IPHDR_CHECKSUM]	= IPHDR_FIELD("checksum",	check),
-diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
-index d5a4d8a5e46e..309faad40b52 100644
---- a/tests/py/ip/ip.t
-+++ b/tests/py/ip/ip.t
-@@ -48,12 +48,12 @@ ip id != 33-45;ok
- ip id { 33, 55, 67, 88};ok
- ip id != { 33, 55, 67, 88};ok
- 
--ip frag-off 222 accept;ok
--ip frag-off != 233;ok
--ip frag-off 33-45;ok
--ip frag-off != 33-45;ok
--ip frag-off { 33, 55, 67, 88};ok
--ip frag-off != { 33, 55, 67, 88};ok
-+ip frag-off 0xde accept;ok
-+ip frag-off != 0xe9;ok
-+ip frag-off 0x21-0x2d;ok
-+ip frag-off != 0x21-0x2d;ok
-+ip frag-off { 0x21, 0x37, 0x43, 0x58};ok
-+ip frag-off != { 0x21, 0x37, 0x43, 0x58};ok
- 
- ip ttl 0 drop;ok
- ip ttl 233;ok
-diff --git a/tests/py/ip/ip.t.json b/tests/py/ip/ip.t.json
-index b1085035a000..faf18fef05f1 100644
---- a/tests/py/ip/ip.t.json
-+++ b/tests/py/ip/ip.t.json
-@@ -384,7 +384,7 @@
-     }
- ]
- 
--# ip frag-off 222 accept
-+# ip frag-off 0xde accept
- [
-     {
-         "match": {
-@@ -403,7 +403,7 @@
-     }
- ]
- 
--# ip frag-off != 233
-+# ip frag-off != 0xe9
- [
-     {
-         "match": {
-@@ -419,7 +419,7 @@
-     }
- ]
- 
--# ip frag-off 33-45
-+# ip frag-off 0x21-0x2d
- [
-     {
-         "match": {
-@@ -437,7 +437,7 @@
-     }
- ]
- 
--# ip frag-off != 33-45
-+# ip frag-off != 0x21-0x2d
- [
-     {
-         "match": {
-@@ -455,7 +455,7 @@
-     }
- ]
- 
--# ip frag-off { 33, 55, 67, 88}
-+# ip frag-off { 0x21, 0x37, 0x43, 0x58}
- [
-     {
-         "match": {
-@@ -478,7 +478,7 @@
-     }
- ]
- 
--# ip frag-off != { 33, 55, 67, 88}
-+# ip frag-off != { 0x21, 0x37, 0x43, 0x58}
- [
-     {
-         "match": {
-diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
-index b9fcb5158e9d..1d677669c324 100644
---- a/tests/py/ip/ip.t.payload
-+++ b/tests/py/ip/ip.t.payload
-@@ -124,29 +124,29 @@ ip test-ip4 input
-   [ payload load 2b @ network header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
--# ip frag-off 222 accept
-+# ip frag-off 0xde accept
- ip test-ip4 input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ cmp eq reg 1 0x0000de00 ]
-   [ immediate reg 0 accept ]
- 
--# ip frag-off != 233
-+# ip frag-off != 0xe9
- ip test-ip4 input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
- 
--# ip frag-off 33-45
-+# ip frag-off 0x21-0x2d
- ip test-ip4 input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
- 
--# ip frag-off != 33-45
-+# ip frag-off != 0x21-0x2d
- ip test-ip4 input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
- 
--# ip frag-off { 33, 55, 67, 88}
-+# ip frag-off { 0x21, 0x37, 0x43, 0x58}
- __set%d test-ip4 3
- __set%d test-ip4 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-@@ -154,7 +154,7 @@ ip test-ip4 input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
--# ip frag-off != { 33, 55, 67, 88}
-+# ip frag-off != { 0x21, 0x37, 0x43, 0x58}
- __set%d test-ip4 3
- __set%d test-ip4 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-diff --git a/tests/py/ip/ip.t.payload.bridge b/tests/py/ip/ip.t.payload.bridge
-index c6f8d4e5575b..11e49540c5f0 100644
---- a/tests/py/ip/ip.t.payload.bridge
-+++ b/tests/py/ip/ip.t.payload.bridge
-@@ -162,7 +162,7 @@ bridge test-bridge input
-   [ payload load 2b @ network header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
--# ip frag-off 222 accept
-+# ip frag-off 0xde accept
- bridge test-bridge input 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-@@ -170,14 +170,14 @@ bridge test-bridge input
-   [ cmp eq reg 1 0x0000de00 ]
-   [ immediate reg 0 accept ]
- 
--# ip frag-off != 233
-+# ip frag-off != 0xe9
- bridge test-bridge input 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
- 
--# ip frag-off 33-45
-+# ip frag-off 0x21-0x2d
- bridge test-bridge input 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-@@ -185,14 +185,14 @@ bridge test-bridge input
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
- 
--# ip frag-off != 33-45
-+# ip frag-off != 0x21-0x2d
- bridge test-bridge input 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
- 
--# ip frag-off { 33, 55, 67, 88}
-+# ip frag-off { 0x21, 0x37, 0x43, 0x58}
- __set%d test-bridge 3 size 4
- __set%d test-bridge 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-@@ -202,7 +202,7 @@ bridge test-bridge input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
--# ip frag-off != { 33, 55, 67, 88}
-+# ip frag-off != { 0x21, 0x37, 0x43, 0x58}
- __set%d test-bridge 3 size 4
- __set%d test-bridge 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
-index e26d0dac47be..84fa66e92c0c 100644
---- a/tests/py/ip/ip.t.payload.inet
-+++ b/tests/py/ip/ip.t.payload.inet
-@@ -162,7 +162,7 @@ inet test-inet input
-   [ payload load 2b @ network header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
--# ip frag-off 222 accept
-+# ip frag-off 0xde accept
- inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x00000002 ]
-@@ -170,14 +170,14 @@ inet test-inet input
-   [ cmp eq reg 1 0x0000de00 ]
-   [ immediate reg 0 accept ]
- 
--# ip frag-off != 233
-+# ip frag-off != 0xe9
- inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x00000002 ]
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
- 
--# ip frag-off 33-45
-+# ip frag-off 0x21-0x2d
- inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x00000002 ]
-@@ -185,14 +185,14 @@ inet test-inet input
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
- 
--# ip frag-off != 33-45
-+# ip frag-off != 0x21-0x2d
- inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x00000002 ]
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
- 
--# ip frag-off { 33, 55, 67, 88}
-+# ip frag-off { 0x21, 0x37, 0x43, 0x58}
- __set%d test-inet 3
- __set%d test-inet 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-@@ -202,7 +202,7 @@ inet test-inet input
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
--# ip frag-off != { 33, 55, 67, 88}
-+# ip frag-off != { 0x21, 0x37, 0x43, 0x58}
- __set%d test-inet 3
- __set%d test-inet 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
-index de990f5bba12..f14ff2c21f48 100644
---- a/tests/py/ip/ip.t.payload.netdev
-+++ b/tests/py/ip/ip.t.payload.netdev
-@@ -96,7 +96,7 @@ netdev test-netdev ingress
-   [ payload load 2b @ network header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d 0x1 ]
- 
--# ip frag-off 222 accept
-+# ip frag-off 0xde accept
- netdev test-netdev ingress 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-@@ -104,14 +104,14 @@ netdev test-netdev ingress
-   [ cmp eq reg 1 0x0000de00 ]
-   [ immediate reg 0 accept ]
- 
--# ip frag-off != 233
-+# ip frag-off != 0xe9
- netdev test-netdev ingress 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ cmp neq reg 1 0x0000e900 ]
- 
--# ip frag-off 33-45
-+# ip frag-off 0x21-0x2d
- netdev test-netdev ingress 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-@@ -119,14 +119,14 @@ netdev test-netdev ingress
-   [ cmp gte reg 1 0x00002100 ]
-   [ cmp lte reg 1 0x00002d00 ]
- 
--# ip frag-off != 33-45
-+# ip frag-off != 0x21-0x2d
- netdev test-netdev ingress 
-   [ meta load protocol => reg 1 ]
-   [ cmp eq reg 1 0x00000008 ]
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ range neq reg 1 0x00002100 0x00002d00 ]
- 
--# ip frag-off { 33, 55, 67, 88}
-+# ip frag-off { 0x21, 0x37, 0x43, 0x58}
- __set%d test-netdev 3
- __set%d test-netdev 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-@@ -136,7 +136,7 @@ netdev test-netdev ingress
-   [ payload load 2b @ network header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
--# ip frag-off != { 33, 55, 67, 88}
-+# ip frag-off != { 0x21, 0x37, 0x43, 0x58}
- __set%d test-netdev 3
- __set%d test-netdev 0
- 	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
--- 
-2.30.2
+>=20
+> BTW, would you extend tests/build to check for run build tests for
+> clang in a follow up patch? That would help a lot to improve
+> coverage,
+> and reduce chances compilation with clang breaks again in the future
+> before a release.
+
+Yes, I have several more patches, that I will send soon.
+
+
+Thomas
+
+>=20
+> Thanks.
+>=20
+> > Changes to v1:
+> > - replace patches
+> > =C2=A0=C2=A0=C2=A0 "src: use "%zx" format instead of "%Zx""
+> > =C2=A0=C2=A0=C2=A0 "utils: add
+> > _NFT_PRAGMA_WARNING_DISABLE()/_NFT_PRAGMA_WARNING_REENABLE helpers"
+> > =C2=A0=C2=A0=C2=A0 "datatype: suppress "-Wformat-nonliteral" warning in
+> > integer_type_print()"
+> > =C2=A0 with
+> > =C2=A0=C2=A0=C2=A0 "include: drop "format" attribute from nft_gmp_print=
+()"
+> > =C2=A0 which is the better solution.
+> > - let SNPRINTF_BUFFER_SIZE() not assert against truncation.
+> > Instead, the
+> > =C2=A0 callers handle it.
+> > - add bugfix "evaluate: fix check for truncation in
+> > stmt_evaluate_log_prefix()"
+> > - add minor patch "evaluate: don't needlessly clear full string
+> > buffer in stmt_evaluate_log_prefix()"
+> >=20
+> > Thomas Haller (8):
+> > =C2=A0 netlink: avoid "-Wenum-conversion" warning in
+> > dtype_map_from_kernel()
+> > =C2=A0 netlink: avoid "-Wenum-conversion" warning in parser_bison.y
+> > =C2=A0 datatype: avoid cast-align warning with struct sockaddr result
+> > from
+> > =C2=A0=C2=A0=C2=A0 getaddrinfo()
+> > =C2=A0 evaluate: fix check for truncation in stmt_evaluate_log_prefix()
+> > =C2=A0 src: rework SNPRINTF_BUFFER_SIZE() and handle truncation
+> > =C2=A0 evaluate: don't needlessly clear full string buffer in
+> > =C2=A0=C2=A0=C2=A0 stmt_evaluate_log_prefix()
+> > =C2=A0 src: suppress "-Wunused-but-set-variable" warning with
+> > =C2=A0=C2=A0=C2=A0 "parser_bison.c"
+> > =C2=A0 include: drop "format" attribute from nft_gmp_print()
+> >=20
+> > =C2=A0include/nftables.h |=C2=A0 3 +--
+> > =C2=A0include/utils.h=C2=A0=C2=A0=C2=A0 | 35 ++++++++++++++++++++++++++=
+---------
+> > =C2=A0src/Makefile.am=C2=A0=C2=A0=C2=A0 |=C2=A0 1 +
+> > =C2=A0src/datatype.c=C2=A0=C2=A0=C2=A0=C2=A0 | 14 +++++++++++---
+> > =C2=A0src/evaluate.c=C2=A0=C2=A0=C2=A0=C2=A0 | 15 ++++++++++-----
+> > =C2=A0src/meta.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 11 +=
++++++-----
+> > =C2=A0src/netlink.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 2 +-
+> > =C2=A0src/parser_bison.y |=C2=A0 4 ++--
+> > =C2=A08 files changed, 58 insertions(+), 27 deletions(-)
+> >=20
+> > --=20
+> > 2.41.0
+> >=20
+>=20
 
