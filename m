@@ -2,77 +2,101 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C26EFC71153
-	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Aug 2023 15:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C823FC6FA8F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 29 Aug 2023 15:39:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231945AbjH2PEV (ORCPT
+        id S237300AbjH2Pig (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 29 Aug 2023 11:04:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54364 "EHLO
+        Tue, 29 Aug 2023 11:38:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237185AbjH2PEQ (ORCPT
+        with ESMTP id S237314AbjH2PiV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Aug 2023 11:04:16 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CF3A7C9
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 08:04:13 -0700 (PDT)
+        Tue, 29 Aug 2023 11:38:21 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AC28193
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2023 08:38:18 -0700 (PDT)
+Received: from [78.30.34.192] (port=36856 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qb0nF-00FGk4-BE; Tue, 29 Aug 2023 17:38:16 +0200
+Date:   Tue, 29 Aug 2023 17:38:11 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nft] evaluate: do not remove anonymous set with protocol flags and single element
-Date:   Tue, 29 Aug 2023 17:04:08 +0200
-Message-Id: <20230829150408.42355-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 0/4] add operation cache for timestamp
+Message-ID: <ZO4Q4xZGvg+E+j3P@calendula>
+References: <20230825132942.2733840-1-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="LNyHpERKoVFM5NGw"
+Content-Disposition: inline
+In-Reply-To: <20230825132942.2733840-1-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Set lookups with flags search for an exact match, however:
 
-	tcp flags { syn }
+--LNyHpERKoVFM5NGw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-gets transformed into:
+On Fri, Aug 25, 2023 at 03:24:16PM +0200, Thomas Haller wrote:
+> Add a cache for "time(NULL)" and tm_gmtoff from localtime_r(time(NULL), &tm).
+> The point is to ensure that one parse/output operation fetches the current time
+> and GMT offset at most once.
+> 
+> Follow up to ([1])
+> 
+>   Subject:  Re: [nft PATCH 2/2] meta: use reentrant localtime_r()/gmtime_r() functions
+>   Date:     Tue, 22 Aug 2023 17:15:14 +0200
+> 
+> [1] https://marc.info/?l=netfilter-devel&m=169271724629901&w=4
 
-	tcp flags syn
+To extend what I said yesterday. It would be great if you could
+validate that we have sufficient tests for time support.
 
-which is matching on the syn flag only (non-exact match).
+Probably you can use this ruleset that I am attaching as reference and
+think of a ruleset to cover this? I am attaching an example ruleset
+which is basically a "timetable" using nftables sets/maps.
 
-This optimization is safe for ct state though, because only one bit is
-ever set on in the ct state bitmask.
+--LNyHpERKoVFM5NGw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="schedules.nft"
 
-Since protocol flags allow for combining flags, skip this optimization
-to retain exact match semantics.
+table netdev filter {
+	map ether_to_chain {
+		typeof ether saddr : verdict
+		elements = { 96:68:97:a7:e8:a7 comment "Device match" : jump fw_p0_dev0 }
+	}
 
-Another possible solution is to turn OP_IMPLICIT into OP_EQ for exact
-flag match to re-introduce this optimization to deal with this corner
-case.
+	map schedule_time {
+		typeof meta time : verdict
+		flags interval
+		counter
+		elements = { "2022-10-09 18:46:50" - "2022-10-09 19:16:50" comment "!Schedule OFFLINE override" : drop }
+	}
 
-Fixes: fee6bda06403 ("evaluate: remove anon sets with exactly one element")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+	map schedule_day {
+		typeof meta day . meta hour : verdict
+		flags interval
+		counter
+		elements = { "Tuesday" . "06:00" - "07:00" : drop }
+	}
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 1ae2ef0de10c..39b0077ce99e 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1817,7 +1817,12 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 			set->set_flags |= NFT_SET_CONCAT;
- 	} else if (set->size == 1) {
- 		i = list_first_entry(&set->expressions, struct expr, list);
--		if (i->etype == EXPR_SET_ELEM && list_empty(&i->stmt_list)) {
-+		if (i->etype == EXPR_SET_ELEM &&
-+		    (!i->dtype->basetype ||
-+		     i->dtype->basetype->type != TYPE_BITMASK ||
-+		     i->dtype->type == TYPE_CT_STATE) &&
-+		    list_empty(&i->stmt_list)) {
-+
- 			switch (i->key->etype) {
- 			case EXPR_PREFIX:
- 			case EXPR_RANGE:
--- 
-2.30.2
+	chain fw_p0_dev0 {
+		meta time vmap @schedule_time
+		meta day . meta hour vmap @schedule_day
+	}
 
+	chain my_devices_rules {
+		ether saddr vmap @ether_to_chain
+	}
+
+	chain ingress {
+		type filter hook ingress device eth0 priority filter; policy accept;
+		jump my_devices_rules
+	}
+}
+
+--LNyHpERKoVFM5NGw--
