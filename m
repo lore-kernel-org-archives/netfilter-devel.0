@@ -2,147 +2,121 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44572C83F19
-	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Aug 2023 18:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 449AFC83F01
+	for <netfilter-devel@archiver.kernel.org>; Wed, 30 Aug 2023 18:43:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236992AbjH3Siv (ORCPT
+        id S237933AbjH3Six (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Aug 2023 14:38:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49648 "EHLO
+        Wed, 30 Aug 2023 14:38:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245423AbjH3PMr (ORCPT
+        with ESMTP id S242270AbjH3HqM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Aug 2023 11:12:47 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A3A0C1A2
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2023 08:12:43 -0700 (PDT)
+        Wed, 30 Aug 2023 03:46:12 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 440C2CD8
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2023 00:46:07 -0700 (PDT)
+Received: from [78.30.34.192] (port=50674 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qbFtp-000rLM-Ii; Wed, 30 Aug 2023 09:46:04 +0200
+Date:   Wed, 30 Aug 2023 09:46:00 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/2] src: simplify chain_alloc()
-Date:   Wed, 30 Aug 2023 17:12:38 +0200
-Message-Id: <20230830151239.448463-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 5/5] datatype: check against negative "type" argument
+ in datatype_lookup()
+Message-ID: <ZO7zuKiWk3x7E5bS@calendula>
+References: <20230829185509.374614-1-thaller@redhat.com>
+ <20230829185509.374614-6-thaller@redhat.com>
+ <ZO5Cnmck5tKCvVFE@calendula>
+ <ZO5DsA4eCnYkEWxC@calendula>
+ <c452805919f688f15a95e52139c8686e1a6571a1.camel@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <c452805919f688f15a95e52139c8686e1a6571a1.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Remove parameter to set the chain name which is only used from netlink
-path.
+On Tue, Aug 29, 2023 at 09:58:53PM +0200, Thomas Haller wrote:
+> On Tue, 2023-08-29 at 21:14 +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Aug 29, 2023 at 09:10:26PM +0200, Pablo Neira Ayuso wrote:
+> > > On Tue, Aug 29, 2023 at 08:54:11PM +0200, Thomas Haller wrote:
+> > > > An enum can be either signed or unsigned (implementation
+> > > > defined).
+> > > > 
+> > > > datatype_lookup() checks for invalid type arguments. Also check,
+> > > > whether
+> > > > the argument is not negative (which, depending on the compiler it
+> > > > may
+> > > > never be).
+> > > > 
+> > > > Signed-off-by: Thomas Haller <thaller@redhat.com>
+> > > > ---
+> > > >  src/datatype.c | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > > 
+> > > > diff --git a/src/datatype.c b/src/datatype.c
+> > > > index ba1192c83595..91735ff8b360 100644
+> > > > --- a/src/datatype.c
+> > > > +++ b/src/datatype.c
+> > > > @@ -87,7 +87,7 @@ const struct datatype *datatype_lookup(enum
+> > > > datatypes type)
+> > > >  {
+> > > >         BUILD_BUG_ON(TYPE_MAX & ~TYPE_MASK);
+> > > >  
+> > > > -       if (type > TYPE_MAX)
+> > > > +       if ((uintmax_t) type > TYPE_MAX)
+> > > 
+> > >             uint32_t ?
+> 
+> The more straight forward way would be
+> 
+>     if (type < 0 || type > TYPE_MAX)
+> 
+> However, if the enum is unsigned, then the compiler might see that the
+> condition is never true and warn against that. It does warn, if "type"
+> were just an "unsigned int". I cannot actually reproduce a compiler
+> warning with the enum (for now).
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/rule.h     | 2 +-
- src/evaluate.c     | 2 +-
- src/netlink.c      | 4 +++-
- src/parser_bison.y | 2 +-
- src/parser_json.c  | 4 ++--
- src/rule.c         | 4 +---
- 6 files changed, 9 insertions(+), 9 deletions(-)
+Then, better keep it back?
 
-diff --git a/include/rule.h b/include/rule.h
-index 8e876d0a42ed..5ceb3ae62288 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -260,7 +260,7 @@ struct chain {
- extern int std_prio_lookup(const char *std_prio_name, int family, int hook);
- extern const char *chain_type_name_lookup(const char *name);
- extern const char *chain_hookname_lookup(const char *name);
--extern struct chain *chain_alloc(const char *name);
-+extern struct chain *chain_alloc(void);
- extern struct chain *chain_get(struct chain *chain);
- extern void chain_free(struct chain *chain);
- extern struct chain *chain_lookup_fuzzy(const struct handle *h,
-diff --git a/src/evaluate.c b/src/evaluate.c
-index b5326d7df4ba..4c23bba3fdb3 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -5005,7 +5005,7 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 
- 	if (chain == NULL) {
- 		if (!chain_cache_find(table, ctx->cmd->handle.chain.name)) {
--			chain = chain_alloc(NULL);
-+			chain = chain_alloc();
- 			handle_merge(&chain->handle, &ctx->cmd->handle);
- 			chain_cache_add(chain, table);
- 		}
-diff --git a/src/netlink.c b/src/netlink.c
-index 1afe162ec79b..af6fd427bd57 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -626,11 +626,13 @@ struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
- 	const char *udata;
- 	uint32_t ulen;
- 
--	chain = chain_alloc(nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
-+	chain = chain_alloc();
- 	chain->handle.family =
- 		nftnl_chain_get_u32(nlc, NFTNL_CHAIN_FAMILY);
- 	chain->handle.table.name  =
- 		xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_TABLE));
-+	chain->handle.chain.name =
-+		xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
- 	chain->handle.handle.id =
- 		nftnl_chain_get_u64(nlc, NFTNL_CHAIN_HANDLE);
- 	if (nftnl_chain_is_set(nlc, NFTNL_CHAIN_FLAGS))
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index a248b335b01d..4a0c09a2912a 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -2029,7 +2029,7 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
- 
- chain_block_alloc	:	/* empty */
- 			{
--				$$ = chain_alloc(NULL);
-+				$$ = chain_alloc();
- 				if (open_scope(state, &$$->scope) < 0) {
- 					erec_queue(error(&@$, "too many levels of nesting"),
- 						   state->msgs);
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 4ea5b4326a90..81497d1034b7 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2965,7 +2965,7 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
- 		h.chain.name = xstrdup(h.chain.name);
- 
- 	if (comment) {
--		chain = chain_alloc(NULL);
-+		chain = chain_alloc();
- 		handle_merge(&chain->handle, &h);
- 		chain->comment = xstrdup(comment);
- 	}
-@@ -2978,7 +2978,7 @@ static struct cmd *json_parse_cmd_add_chain(struct json_ctx *ctx, json_t *root,
- 		return cmd_alloc(op, obj, &h, int_loc, chain);
- 
- 	if (!chain)
--		chain = chain_alloc(NULL);
-+		chain = chain_alloc();
- 
- 	chain->flags |= CHAIN_F_BASECHAIN;
- 	chain->type.str = xstrdup(type);
-diff --git a/src/rule.c b/src/rule.c
-index 35f6d8f28aee..fa4c72adab06 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -700,7 +700,7 @@ const char *chain_hookname_lookup(const char *name)
- /* internal ID to uniquely identify a set in the batch */
- static uint32_t chain_id;
- 
--struct chain *chain_alloc(const char *name)
-+struct chain *chain_alloc(void)
- {
- 	struct chain *chain;
- 
-@@ -709,8 +709,6 @@ struct chain *chain_alloc(const char *name)
- 	chain->handle.chain_id = ++chain_id;
- 	init_list_head(&chain->rules);
- 	init_list_head(&chain->scope.symbols);
--	if (name != NULL)
--		chain->handle.chain.name = xstrdup(name);
- 
- 	chain->policy = NULL;
- 	return chain;
--- 
-2.30.2
+> The size of the enum is most likely int/unsigned (or smaller, with "-
+> fshort-enums" or packed). Is it on POSIX/Linux always guaranteed that
+> an int is 32bit? I think not, but I cannot find an architecture where
+> int is larger either. Also, if someone would add an enum value larger
+> than the 32 bit range, then the behavior is compiler dependent, but
+> most likely the enum type would be a 64 bit integer and
+> "uint"/"uint32_t" would not be the right check.
 
+I don't expect to ever have such a large number of types. Specifically
+because there are API restrictions that apply in this case.
+
+> All of this is highly theoretical. But "uintmax_t" avoids all those
+> problems and makes fewer assumptions on what the enum actually is. Is
+> there a hypothetical scenario where it wouldn't work correctly?
+
+I was trying to figure out what this is fixing.
+
+> > Another question: What warning does clang print on this one?
+> > Description does not specify.
+> 
+> this one isn't about a compiler warning. Sorry, I should not have
+> included it in this set.
+
+This TYPE_MAX will not ever become very large to require 64-bits.
+With an implementation where enum is taken as signed, then this should
+be sufficient too:
+
+     if (type > TYPE_MAX)
+
+If this is not fixing up anything right now, I would prefer to keep
+this back.
+
+I'll take this series except this one.
+
+Thanks.
