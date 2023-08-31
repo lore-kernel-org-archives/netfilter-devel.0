@@ -2,97 +2,84 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB0AC6FA8F
-	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Aug 2023 02:26:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B437DC83F16
+	for <netfilter-devel@archiver.kernel.org>; Thu, 31 Aug 2023 02:27:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236318AbjHaC03 (ORCPT
+        id S243995AbjHaC1U (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 30 Aug 2023 22:26:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37944 "EHLO
+        Wed, 30 Aug 2023 22:27:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234922AbjHaC02 (ORCPT
+        with ESMTP id S234922AbjHaC1U (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Aug 2023 22:26:28 -0400
-Received: from mail-yw1-x112b.google.com (mail-yw1-x112b.google.com [IPv6:2607:f8b0:4864:20::112b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6943BCDD
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2023 19:26:24 -0700 (PDT)
-Received: by mail-yw1-x112b.google.com with SMTP id 00721157ae682-594ebdf7bceso4706767b3.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2023 19:26:24 -0700 (PDT)
+        Wed, 30 Aug 2023 22:27:20 -0400
+Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8193DCE7
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2023 19:27:12 -0700 (PDT)
+Received: by mail-yb1-xb29.google.com with SMTP id 3f1490d57ef6-d7bae413275so1605141276.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2023 19:27:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1693448783; x=1694053583; darn=vger.kernel.org;
+        d=paul-moore.com; s=google; t=1693448831; x=1694053631; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ZsfJ/MEEgYAJXY6xphXxWpd/ISMRnmTjf9MyGGBs+Ec=;
-        b=LyFjxapqLRg0XbM6jbuKV4fyzyCyYH53P5dLVW+xY3ZFv7I4O2uddBsOWog2jDitZm
-         zRszndLqGwRQr2OXaf7+FWYeIjGiWGFD+cji17+AvHJqyZ5VBfihQ6ptoS+uyJ1jb7v4
-         UWT7EfLQbNCISgt6o2ILB6ARZ0xI4QoweoFw2SyhE1FReJh/rtIN0EGDDWHP6ZGV3yPn
-         dNOUAOUBp82b3YY1+HGPn1LZtvdRBP66SQRWjpy7vUcSmbKMswS5wVgo9D9TLHaldlLY
-         FSS54rgF1zZjNw1jAw7Jj59Q1gMB38X7c8PQwx+SPBikYvaLmQ/XtjoQPlFwB4Peb0vg
-         S+Og==
+        bh=UxPIrfMOSgJoCJ0abPoHMU83KuuFZMtAqB1RmHO2mPk=;
+        b=db0YC9HssVJLqQFszT20UMSdq79Wek8Vms/ZjSF+0/kGNfE3TpMxI7UEWCilloLrGV
+         w7pJ8Jv1JJuFDdEdial2FJ3OxdEugX9qj88m3YJevMeoBoahtpgdwBrVOWvseTF74UFY
+         e5Ck92oCmRLNweIAnYvyk6RL1+lK+usp+jRkmpwDTXhyFZ+oI5COhX0oUkMG6QR8/VUq
+         DNUPakUbGT0jaW6kvs+na9e7D5l62XdPssC7/fIrRvaqJo18Uwa8S5YRgGJhw6ajX1jy
+         sVBWY01sTe/wFP0ilYoadv21Wt452p4H3rU+5iJfF/cRPAz5wMuGbjUePwy222nlutEE
+         80+g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693448783; x=1694053583;
+        d=1e100.net; s=20221208; t=1693448831; x=1694053631;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ZsfJ/MEEgYAJXY6xphXxWpd/ISMRnmTjf9MyGGBs+Ec=;
-        b=AuUfn9XN9Ii6svbwEvq5lSDs7bey3c/v2pCZ0rhHC8GFl6E9CawAIWBUfR95NMvJ2z
-         khXLfcAcPRrnR5AuWHhd808fjYxb6AmRcrjLFM1+C08QruGkaQA7p7VBHF5FAGO53DJy
-         eC+MKMzEl8PvpgAZ3xmhv/cGLyiDvHDKE5MaTmc5WavkJZO5zvDB4nKR5ZuzjVBIOxvo
-         cWOnoDlGrUhftGO7/I0b9C7B7IoeeidJ283rZdwhqITPtlsyMmTULml+QH+2ezgz+mhb
-         RThiV3knEen9tsZBwANehtJmny2YZoh/QQcyVbuBEb1CJ4jJ7QwPqnfnDyIviRFppwiC
-         l6Nw==
-X-Gm-Message-State: AOJu0YzKmrEEdQ71wFNsQYFpKL8zcw/8ErNoKnlIy16i2Ef91skZsRjz
-        7riaNC6xchtRrtgBkWkBYv20ezXA4HII8wnDVe4J
-X-Google-Smtp-Source: AGHT+IH4UOT9KZGz6mMxMoKEsv724UIFMMXL1G/OLrTQrFR1/baKTwwLhVq6AEEM0LNJnjVnhlHHLhruUHmjvhx6gjE=
-X-Received: by 2002:a0d:d9ca:0:b0:570:7b4d:f694 with SMTP id
- b193-20020a0dd9ca000000b005707b4df694mr3547864ywe.3.1693448783584; Wed, 30
- Aug 2023 19:26:23 -0700 (PDT)
+        bh=UxPIrfMOSgJoCJ0abPoHMU83KuuFZMtAqB1RmHO2mPk=;
+        b=i5iTHEdb3ve7z1c+f3rYbfOh29zWUvEO2OR8isxCCgKTG3eFYanHWKA1F/evPB6LCB
+         HnEE9qK2yIUiViQ+cBmTjL2/aZFmDgvvpy8sR1Wma124EdgGhpDHTVazvbOJZHvrro1n
+         0/7ZbrBQq9Mk0Jt74lLhlZeiSY+AjuxVFjNTtjziLhOPj3xR6fAi8yzVmedvAGm6fTUP
+         qghK318fHuDoPYzD1z5AbJHH3HLzaCeaKsa0VjERVtQDQYloD3/yKa57YTk+IKFzm0gZ
+         9tCBAwBHulNuramKHYL3JymJLrx/egqg1Zsr+sK41jptTEGkclLT/GPXR7pQc/D4bTF0
+         hf0Q==
+X-Gm-Message-State: AOJu0YylOP6VZdSW2mZGJgMB4UUvadyrtZHOyqUUQZR4ipfLRLOIuBv6
+        IxO1jjJMw7Ap92T5BzWrZ7U6UeiOFMMW+RsDND9I
+X-Google-Smtp-Source: AGHT+IGFBWfHD3oP8mUz0d73L6lvJ9J4UgM6Xhhr2BsahXYXIcJCnWEaHwUQIoSgHhkng/j4tXkRAiU49y5Cbd/KUb8=
+X-Received: by 2002:a81:8547:0:b0:56c:e480:2b2b with SMTP id
+ v68-20020a818547000000b0056ce4802b2bmr1364155ywf.12.1693448831752; Wed, 30
+ Aug 2023 19:27:11 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230829175158.20202-1-phil@nwl.cc> <ZO9kberk3iNZv2qj@calendula> <ZO+sbVTuNOZ4hfOe@madcap2.tricolour.ca>
-In-Reply-To: <ZO+sbVTuNOZ4hfOe@madcap2.tricolour.ca>
+References: <20230829175158.20202-1-phil@nwl.cc> <20230829175158.20202-2-phil@nwl.cc>
+In-Reply-To: <20230829175158.20202-2-phil@nwl.cc>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 30 Aug 2023 22:26:12 -0400
-Message-ID: <CAHC9VhTJofX9c6fsB_x6wbmXunPjdaOjJe0o78AMrTHGcUAmdw@mail.gmail.com>
-Subject: Re: [nf PATCH 1/2] netfilter: nf_tables: Audit log setelem reset
+Date:   Wed, 30 Aug 2023 22:27:01 -0400
+Message-ID: <CAHC9VhTMMp6Xsc2phTqx9T4h9VQ-ZK4mfa_+RTmOBN-8CBgnng@mail.gmail.com>
+Subject: Re: [nf PATCH 2/2] netfilter: nf_tables: Audit log rule reset
 To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, linux-audit@redhat.com,
-        Richard Guy Briggs <rgb@redhat.com>, audit@vger.kernel.org
+Cc:     Richard Guy Briggs <rgb@redhat.com>, linux-audit@redhat.com,
+        netfilter-devel@vger.kernel.org, audit@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Aug 30, 2023 at 4:54=E2=80=AFPM Richard Guy Briggs <rgb@redhat.com>=
- wrote:
-> On 2023-08-30 17:46, Pablo Neira Ayuso wrote:
-> > On Tue, Aug 29, 2023 at 07:51:57PM +0200, Phil Sutter wrote:
-> > > Since set element reset is not integrated into nf_tables' transaction
-> > > logic, an explicit log call is needed, similar to NFT_MSG_GETOBJ_RESE=
-T
-> > > handling.
-> > >
-> > > For the sake of simplicity, catchall element reset will always genera=
-te
-> > > a dedicated log entry. This relieves nf_tables_dump_set() from having=
- to
-> > > adjust the logged element count depending on whether a catchall eleme=
-nt
-> > > was found or not.
-> >
-> > Applied, thanks Phil
+On Tue, Aug 29, 2023 at 2:24=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote:
 >
-> Thanks Phil, Pablo.  If it isn't too late, please add my
-> Reviewed-by: Richard Guy Briggs <rgb@redhat.com>
+> Resetting rules' stateful data happens outside of the transaction logic,
+> so 'get' and 'dump' handlers have to emit audit log entries themselves.
+>
+> Cc: Richard Guy Briggs <rgb@redhat.com>
+> Fixes: 8daa8fde3fc3f ("netfilter: nf_tables: Introduce NFT_MSG_GETRULE_RE=
+SET")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  include/linux/audit.h         |  1 +
+>  kernel/auditsc.c              |  1 +
+>  net/netfilter/nf_tables_api.c | 18 ++++++++++++++++++
+>  3 files changed, 20 insertions(+)
 
-Similarly, you can add my ACK.  FWIW, if you're sending patches out
-during the first few days of the merge window it might be advisable to
-wait more than a day or two to give the relevant maintainers a chance
-to review the patch.
-
-Also, as a note for future submissions, we've moved the audit kernel
-mailing list to audit@vger.kernel.org.
+See my comments in patch 1/2.
 
 Acked-by: Paul Moore <paul@paul-moore.com>
 
