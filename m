@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1754CA0FE1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 01:04:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98AEECA0FE4
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 01:04:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242639AbjIABEh (ORCPT
+        id S1347998AbjIABEi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Aug 2023 21:04:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56322 "EHLO
+        Thu, 31 Aug 2023 21:04:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241329AbjIABEh (ORCPT
+        with ESMTP id S1347966AbjIABEh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 31 Aug 2023 21:04:37 -0400
 Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADAD5E0;
-        Thu, 31 Aug 2023 18:04:33 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10819"; a="375009822"
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDE74E6A;
+        Thu, 31 Aug 2023 18:04:34 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6600,9927,10819"; a="375009845"
 X-IronPort-AV: E=Sophos;i="6.02,218,1688454000"; 
-   d="scan'208";a="375009822"
+   d="scan'208";a="375009845"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2023 18:04:32 -0700
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2023 18:04:33 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10819"; a="733361463"
+X-IronPort-AV: E=McAfee;i="6600,9927,10819"; a="733361469"
 X-IronPort-AV: E=Sophos;i="6.02,218,1688454000"; 
-   d="scan'208";a="733361463"
+   d="scan'208";a="733361469"
 Received: from pinksteam.jf.intel.com ([10.165.239.231])
   by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2023 18:04:31 -0700
 From:   joao@overdrivepizza.com
@@ -36,10 +36,12 @@ Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
         rkannoth@marvell.com, wojciech.drewek@intel.com,
         steen.hegenlund@microhip.com, keescook@chromium.org,
         Joao Moreira <joao.moreira@intel.com>
-Subject: [PATCH 0/2] Prevent potential write out of bounds
-Date:   Thu, 31 Aug 2023 18:04:35 -0700
-Message-ID: <20230901010437.126631-1-joao@overdrivepizza.com>
+Subject: [PATCH 2/2] Ensure num_actions is not a negative
+Date:   Thu, 31 Aug 2023 18:04:37 -0700
+Message-ID: <20230901010437.126631-3-joao@overdrivepizza.com>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230901010437.126631-1-joao@overdrivepizza.com>
+References: <20230901010437.126631-1-joao@overdrivepizza.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -48,34 +50,34 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Joao Moreira <joao.moreira@intel.com>
 
-The function flow_rule_alloc in net/core/flow_offload.c [2] gets an
-unsigned int num_actions (line 10) and later traverses the actions in
-the rule (line 24) setting hw.stats to FLOW_ACTION_HW_STATS_DONT_CARE.
+In nft_flow_rule_create function, num_actions is a signed integer. Yet,
+it is processed within a loop which increments its value. To prevent an
+overflow from occurring, check if num_actions is not only equal to 0,
+but also not negative.
 
-Within the same file, the loop in the line 24 compares a signed int
-(i) to an unsigned int (num_actions), and then uses i as an array
-index. If an integer overflow happens, then the array within the loop
-is wrongly indexed, causing a write out of bounds.
+After checking with maintainers, it was mentioned that front-end will
+cap the num_actions vlaue and that it is not possible to reach such
+condition for an overflow. Yet, for correctness, it is still better to
+fix this.
 
-After checking with maintainers, it seems that the front-end caps the
-maximum value of num_action, thus it is not possible to reach the given
-write out of bounds, yet, still, to prevent disasters it is better to
-fix the signedness here.
-
-Similarly, also it is also good to ensure that an overflow won't happen
-in net/netfilter/nf_tables_offload.c's function nft_flow_rule_create by
-checking that num_actions is not negative.
-
-Tks,
-
-Joao Moreira (2):
-  Make loop indexes unsigned
-  Ensure num_actions is not a negative
-
- net/core/flow_offload.c           | 4 ++--
+Signed-off-by: Joao Moreira <joao.moreira@intel.com>
+---
  net/netfilter/nf_tables_offload.c | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 12ab78fa5d84..20dbc95de895 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -102,7 +102,7 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 		expr = nft_expr_next(expr);
+ 	}
+ 
+-	if (num_actions == 0)
++	if (num_actions <= 0)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	flow = nft_flow_rule_alloc(num_actions);
 -- 
 2.41.0
 
