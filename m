@@ -2,41 +2,26 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64A16CA0FE1
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 01:28:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9BD6CA0FE1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 05:47:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237087AbjIAB2F (ORCPT
+        id S242196AbjIAFrF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Aug 2023 21:28:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40272 "EHLO
+        Fri, 1 Sep 2023 01:47:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230294AbjIAB2F (ORCPT
+        with ESMTP id S229569AbjIAFrC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Aug 2023 21:28:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94538E67;
-        Thu, 31 Aug 2023 18:28:02 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E56561BA0;
-        Fri,  1 Sep 2023 01:28:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0925BC433C7;
-        Fri,  1 Sep 2023 01:28:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1693531681;
-        bh=wfKITlhsoQmivTcQnEhF6jPQbiuN6NmrSQ2Hh7h3Qw4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=gfZJ0y0KEMzMGUTLDIoB3W5mwXa9hIZHdwdg9OdFt+sno/Yf5W6BE/UnOr6hvslR0
-         Scu3llwRnQLLdEqu9EQSURsHaKa0kk3eoAA8cCF252uYas/CNVvE3nPLbPSA+TA6SN
-         9QCZpLzPmDKNVEgcgf+k2Us6hoJg7j/vSM9VzE5hPbWVxraMkLJ+1XlJmfJpee06P8
-         4vuhTF5bDQxalTeH1qg5NMCQQRD+QRbk8/uRVqpEK2BtduMRxigZUg2kaLL2e02BBS
-         84oPqXL0ZgDEEROP0xkruzCsXu0WScYKukNsTsB2+Z50ALNN/MgqQxrm4RjuNQ3aR5
-         iNq011wzXBEHA==
-Date:   Thu, 31 Aug 2023 18:28:00 -0700
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     joao@overdrivepizza.com
+        Fri, 1 Sep 2023 01:47:02 -0400
+Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [IPv6:2001:4b98:dc4:8::224])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 813EAE50;
+        Thu, 31 Aug 2023 22:46:55 -0700 (PDT)
+Received: by mail.gandi.net (Postfix) with ESMTPA id C8080E0003;
+        Fri,  1 Sep 2023 05:46:49 +0000 (UTC)
+MIME-Version: 1.0
+Date:   Thu, 31 Aug 2023 22:46:49 -0700
+From:   Joao Moreira <joao@overdrivepizza.com>
+To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
@@ -45,32 +30,47 @@ Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
         steen.hegenlund@microhip.com, keescook@chromium.org,
         Joao Moreira <joao.moreira@intel.com>
 Subject: Re: [PATCH 0/2] Prevent potential write out of bounds
-Message-ID: <20230831182800.25e5d4d9@kernel.org>
-In-Reply-To: <20230901010437.126631-1-joao@overdrivepizza.com>
+In-Reply-To: <20230831182800.25e5d4d9@kernel.org>
 References: <20230901010437.126631-1-joao@overdrivepizza.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+ <20230831182800.25e5d4d9@kernel.org>
+Message-ID: <00d4a104c17d92562f03042c31ea664b@overdrivepizza.com>
+X-Sender: joao@overdrivepizza.com
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+X-GND-Sasl: joao@overdrivepizza.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 31 Aug 2023 18:04:35 -0700 joao@overdrivepizza.com wrote:
-> The function flow_rule_alloc in net/core/flow_offload.c [2] gets an
-> unsigned int num_actions (line 10) and later traverses the actions in
-> the rule (line 24) setting hw.stats to FLOW_ACTION_HW_STATS_DONT_CARE.
+On 2023-08-31 18:28, Jakub Kicinski wrote:
+> On Thu, 31 Aug 2023 18:04:35 -0700 joao@overdrivepizza.com wrote:
+>> The function flow_rule_alloc in net/core/flow_offload.c [2] gets an
+>> unsigned int num_actions (line 10) and later traverses the actions in
+>> the rule (line 24) setting hw.stats to FLOW_ACTION_HW_STATS_DONT_CARE.
+>> 
+>> Within the same file, the loop in the line 24 compares a signed int
+>> (i) to an unsigned int (num_actions), and then uses i as an array
+>> index. If an integer overflow happens, then the array within the loop
+>> is wrongly indexed, causing a write out of bounds.
+>> 
+>> After checking with maintainers, it seems that the front-end caps the
+>> maximum value of num_action, thus it is not possible to reach the 
+>> given
+>> write out of bounds, yet, still, to prevent disasters it is better to
+>> fix the signedness here.
 > 
-> Within the same file, the loop in the line 24 compares a signed int
-> (i) to an unsigned int (num_actions), and then uses i as an array
-> index. If an integer overflow happens, then the array within the loop
-> is wrongly indexed, causing a write out of bounds.
-> 
-> After checking with maintainers, it seems that the front-end caps the
-> maximum value of num_action, thus it is not possible to reach the given
-> write out of bounds, yet, still, to prevent disasters it is better to
-> fix the signedness here.
+> How did you find this? The commit messages should include info
+> about how the issue was discovered.
 
-How did you find this? The commit messages should include info
-about how the issue was discovered.
--- 
-pw-bot: cr
+Sure, I'll wait a bit longer for more suggestions and add the info in a 
+next patch version.
+
+Meanwhile, fwiiw, I stumbled on the bug when I was reading Nick 
+Gregory's write-up on CVE-2022-25636 [1], which happens nearby but is 
+not exactly this issue.
+
+Tks,
+Joao
+
+[1] - https://nickgregory.me/post/2022/03/12/cve-2022-25636/
