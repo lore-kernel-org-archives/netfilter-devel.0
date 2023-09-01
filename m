@@ -2,86 +2,95 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B813CA0FE6
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 08:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE651CA0FE1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 10:30:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236168AbjIAI6v (ORCPT
+        id S233343AbjIAKao (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 1 Sep 2023 04:58:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55998 "EHLO
+        Fri, 1 Sep 2023 06:30:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231297AbjIAI6u (ORCPT
+        with ESMTP id S1348911AbjIAKao (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Sep 2023 04:58:50 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6738810D2;
-        Fri,  1 Sep 2023 01:58:47 -0700 (PDT)
-Received: from [78.30.34.192] (port=40982 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        Fri, 1 Sep 2023 06:30:44 -0400
+Received: from nbd.name (nbd.name [46.4.11.11])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 018E910D2;
+        Fri,  1 Sep 2023 03:30:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
+        s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=1i5lS85W58QnjOOKtVTvaT39okxLcnuyYWwE7KmFCWo=; b=oHA5xF5qmeQtNtp1SKH9c2XnH1
+        4yQcEbFhcLMAVvIr9WlQpvYgamW74YXruTIhvYlAywHpIVqr85FDnV6nSKhXw4qodMu6xE9D5LrgZ
+        eblqt+/4g5O1wIgAr8QaXkLaLi86IkSADfyT9pYMUGKVsi9IYmgnEIv2bqUIwBfJJuMg=;
+Received: from p4ff13705.dip0.t-ipconnect.de ([79.241.55.5] helo=nf.local)
+        by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qbzzE-00AMu7-Nc; Fri, 01 Sep 2023 10:58:43 +0200
-Date:   Fri, 1 Sep 2023 10:58:39 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     joao@overdrivepizza.com
-Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        rkannoth@marvell.com, wojciech.drewek@intel.com,
-        steen.hegenlund@microhip.com, keescook@chromium.org,
-        Joao Moreira <joao.moreira@intel.com>
-Subject: Re: [PATCH 2/2] Ensure num_actions is not a negative
-Message-ID: <ZPGnv40EYt/lnOVj@calendula>
-References: <20230901010437.126631-1-joao@overdrivepizza.com>
- <20230901010437.126631-3-joao@overdrivepizza.com>
+        (envelope-from <nbd@nbd.name>)
+        id 1qc1QE-00ExuY-A9; Fri, 01 Sep 2023 12:30:38 +0200
+Message-ID: <2575f329-7d95-46f8-ab88-2bcdf8b87d66@nbd.name>
+Date:   Fri, 1 Sep 2023 12:30:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230901010437.126631-3-joao@overdrivepizza.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC] netfilter: nf_tables: ignore -EOPNOTSUPP on flowtable
+ device offload setup
+Content-Language: en-US
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+References: <20230831201420.63178-1-nbd@nbd.name> <ZPGjVl7jmLhMhgBP@calendula>
+From:   Felix Fietkau <nbd@nbd.name>
+Autocrypt: addr=nbd@nbd.name; keydata=
+ xsDiBEah5CcRBADIY7pu4LIv3jBlyQ/2u87iIZGe6f0f8pyB4UjzfJNXhJb8JylYYRzIOSxh
+ ExKsdLCnJqsG1PY1mqTtoG8sONpwsHr2oJ4itjcGHfn5NJSUGTbtbbxLro13tHkGFCoCr4Z5
+ Pv+XRgiANSpYlIigiMbOkide6wbggQK32tC20QxUIwCg4k6dtV/4kwEeiOUfErq00TVqIiEE
+ AKcUi4taOuh/PQWx/Ujjl/P1LfJXqLKRPa8PwD4j2yjoc9l+7LptSxJThL9KSu6gtXQjcoR2
+ vCK0OeYJhgO4kYMI78h1TSaxmtImEAnjFPYJYVsxrhay92jisYc7z5R/76AaELfF6RCjjGeP
+ wdalulG+erWju710Bif7E1yjYVWeA/9Wd1lsOmx6uwwYgNqoFtcAunDaMKi9xVQW18FsUusM
+ TdRvTZLBpoUAy+MajAL+R73TwLq3LnKpIcCwftyQXK5pEDKq57OhxJVv1Q8XkA9Dn1SBOjNB
+ l25vJDFAT9ntp9THeDD2fv15yk4EKpWhu4H00/YX8KkhFsrtUs69+vZQwc0cRmVsaXggRmll
+ dGthdSA8bmJkQG5iZC5uYW1lPsJgBBMRAgAgBQJGoeQnAhsjBgsJCAcDAgQVAggDBBYCAwEC
+ HgECF4AACgkQ130UHQKnbvXsvgCgjsAIIOsY7xZ8VcSm7NABpi91yTMAniMMmH7FRenEAYMa
+ VrwYTIThkTlQzsFNBEah5FQQCACMIep/hTzgPZ9HbCTKm9xN4bZX0JjrqjFem1Nxf3MBM5vN
+ CYGBn8F4sGIzPmLhl4xFeq3k5irVg/YvxSDbQN6NJv8o+tP6zsMeWX2JjtV0P4aDIN1pK2/w
+ VxcicArw0VYdv2ZCarccFBgH2a6GjswqlCqVM3gNIMI8ikzenKcso8YErGGiKYeMEZLwHaxE
+ Y7mTPuOTrWL8uWWRL5mVjhZEVvDez6em/OYvzBwbkhImrryF29e3Po2cfY2n7EKjjr3/141K
+ DHBBdgXlPNfDwROnA5ugjjEBjwkwBQqPpDA7AYPvpHh5vLbZnVGu5CwG7NAsrb2isRmjYoqk
+ wu++3117AAMFB/9S0Sj7qFFQcD4laADVsabTpNNpaV4wAgVTRHKV/kC9luItzwDnUcsZUPdQ
+ f3MueRJ3jIHU0UmRBG3uQftqbZJj3ikhnfvyLmkCNe+/hXhPu9sGvXyi2D4vszICvc1KL4RD
+ aLSrOsROx22eZ26KqcW4ny7+va2FnvjsZgI8h4sDmaLzKczVRIiLITiMpLFEU/VoSv0m1F4B
+ FtRgoiyjFzigWG0MsTdAN6FJzGh4mWWGIlE7o5JraNhnTd+yTUIPtw3ym6l8P+gbvfoZida0
+ TspgwBWLnXQvP5EDvlZnNaKa/3oBes6z0QdaSOwZCRA3QSLHBwtgUsrT6RxRSweLrcabwkkE
+ GBECAAkFAkah5FQCGwwACgkQ130UHQKnbvW2GgCeMncXpbbWNT2AtoAYICrKyX5R3iMAoMhw
+ cL98efvrjdstUfTCP2pfetyN
+In-Reply-To: <ZPGjVl7jmLhMhgBP@calendula>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Aug 31, 2023 at 06:04:37PM -0700, joao@overdrivepizza.com wrote:
-> From: Joao Moreira <joao.moreira@intel.com>
+On 01.09.23 10:39, Pablo Neira Ayuso wrote:
+> Hi Felix,
 > 
-> In nft_flow_rule_create function, num_actions is a signed integer. Yet,
-> it is processed within a loop which increments its value. To prevent an
-> overflow from occurring, check if num_actions is not only equal to 0,
-> but also not negative.
+> On Thu, Aug 31, 2023 at 10:14:20PM +0200, Felix Fietkau wrote:
+>> On many embedded devices, it is common to configure flowtable offloading for
+>> a mix of different devices, some of which have hardware offload support and
+>> some of which don't.
+>> The current code limits the ability of user space to properly set up such a
+>> configuration by only allowing adding devices with hardware offload support to
+>> a offload-enabled flowtable.
+>> Given that offload-enabled flowtables also imply fallback to pure software
+>> offloading, this limitation makes little sense.
+>> Fix it by not bailing out when the offload setup returns -EOPNOTSUPP
 > 
-> After checking with maintainers, it was mentioned that front-end will
-> cap the num_actions vlaue and that it is not possible to reach such
-> condition for an overflow. Yet, for correctness, it is still better to
-> fix this.
-> 
-> Signed-off-by: Joao Moreira <joao.moreira@intel.com>
-> ---
->  net/netfilter/nf_tables_offload.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> index 12ab78fa5d84..20dbc95de895 100644
-> --- a/net/netfilter/nf_tables_offload.c
-> +++ b/net/netfilter/nf_tables_offload.c
-> @@ -102,7 +102,7 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
->  		expr = nft_expr_next(expr);
->  	}
->  
-> -	if (num_actions == 0)
-> +	if (num_actions <= 0)
->  		return ERR_PTR(-EOPNOTSUPP);
+> Would you send a v2 to untoggle the offload flag when listing the
+> ruleset if EOPNOTSUPP is reported? Thus, the user knows that no
+> hardware offload is being used.
 
-Better turn num_actions into unsigned int I'd suggest.
+Wouldn't that mess up further updates to the flowtable? From what I can 
+tell, when updating a flow table, changing its offload flag is not 
+supported.
 
-Next hypothetical problem would be an overflow in the number of
-actions, you could check for UINT_MAX if you like here to report
-ENOMEM.
-
-Thanks.
-
->  	flow = nft_flow_rule_alloc(num_actions);
-> -- 
-> 2.41.0
-> 
+- Felix
