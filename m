@@ -2,92 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75467CA0FE5
-	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 01:04:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64A16CA0FE1
+	for <netfilter-devel@archiver.kernel.org>; Fri,  1 Sep 2023 01:28:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347978AbjIABEh (ORCPT
+        id S237087AbjIAB2F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 31 Aug 2023 21:04:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56354 "EHLO
+        Thu, 31 Aug 2023 21:28:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241661AbjIABEh (ORCPT
+        with ESMTP id S230294AbjIAB2F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 31 Aug 2023 21:04:37 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC75AE67;
-        Thu, 31 Aug 2023 18:04:34 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10819"; a="375009834"
-X-IronPort-AV: E=Sophos;i="6.02,218,1688454000"; 
-   d="scan'208";a="375009834"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2023 18:04:33 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10819"; a="733361465"
-X-IronPort-AV: E=Sophos;i="6.02,218,1688454000"; 
-   d="scan'208";a="733361465"
-Received: from pinksteam.jf.intel.com ([10.165.239.231])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2023 18:04:31 -0700
-From:   joao@overdrivepizza.com
-To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        Thu, 31 Aug 2023 21:28:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94538E67;
+        Thu, 31 Aug 2023 18:28:02 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E56561BA0;
+        Fri,  1 Sep 2023 01:28:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0925BC433C7;
+        Fri,  1 Sep 2023 01:28:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1693531681;
+        bh=wfKITlhsoQmivTcQnEhF6jPQbiuN6NmrSQ2Hh7h3Qw4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=gfZJ0y0KEMzMGUTLDIoB3W5mwXa9hIZHdwdg9OdFt+sno/Yf5W6BE/UnOr6hvslR0
+         Scu3llwRnQLLdEqu9EQSURsHaKa0kk3eoAA8cCF252uYas/CNVvE3nPLbPSA+TA6SN
+         9QCZpLzPmDKNVEgcgf+k2Us6hoJg7j/vSM9VzE5hPbWVxraMkLJ+1XlJmfJpee06P8
+         4vuhTF5bDQxalTeH1qg5NMCQQRD+QRbk8/uRVqpEK2BtduMRxigZUg2kaLL2e02BBS
+         84oPqXL0ZgDEEROP0xkruzCsXu0WScYKukNsTsB2+Z50ALNN/MgqQxrm4RjuNQ3aR5
+         iNq011wzXBEHA==
+Date:   Thu, 31 Aug 2023 18:28:00 -0700
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     joao@overdrivepizza.com
+Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, joao@overdrivepizza.com
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        linux-kernel@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
         rkannoth@marvell.com, wojciech.drewek@intel.com,
         steen.hegenlund@microhip.com, keescook@chromium.org,
         Joao Moreira <joao.moreira@intel.com>
-Subject: [PATCH 1/2] Make loop indexes unsigned
-Date:   Thu, 31 Aug 2023 18:04:36 -0700
-Message-ID: <20230901010437.126631-2-joao@overdrivepizza.com>
-X-Mailer: git-send-email 2.41.0
+Subject: Re: [PATCH 0/2] Prevent potential write out of bounds
+Message-ID: <20230831182800.25e5d4d9@kernel.org>
 In-Reply-To: <20230901010437.126631-1-joao@overdrivepizza.com>
 References: <20230901010437.126631-1-joao@overdrivepizza.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Joao Moreira <joao.moreira@intel.com>
+On Thu, 31 Aug 2023 18:04:35 -0700 joao@overdrivepizza.com wrote:
+> The function flow_rule_alloc in net/core/flow_offload.c [2] gets an
+> unsigned int num_actions (line 10) and later traverses the actions in
+> the rule (line 24) setting hw.stats to FLOW_ACTION_HW_STATS_DONT_CARE.
+> 
+> Within the same file, the loop in the line 24 compares a signed int
+> (i) to an unsigned int (num_actions), and then uses i as an array
+> index. If an integer overflow happens, then the array within the loop
+> is wrongly indexed, causing a write out of bounds.
+> 
+> After checking with maintainers, it seems that the front-end caps the
+> maximum value of num_action, thus it is not possible to reach the given
+> write out of bounds, yet, still, to prevent disasters it is better to
+> fix the signedness here.
 
-Both flow_rule_alloc and offload_action_alloc functions received an
-unsigned num_actions parameters which are then operated within a loop.
-The index of this loop is declared as a signed int. If it was possible
-to pass a large enough num_actions to these functions, it would lead to
-an out of bounds write.
-
-After checking with maintainers, it was mentioned that front-end will
-cap the num_actions value and that it is not possible to reach this
-function with such a large number. Yet, for correctness, it is still
-better to fix this.
-
-Signed-off-by: Joao Moreira <joao.moreira@intel.com>
----
- net/core/flow_offload.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
-index bc5169482710..bc3f53a09d8f 100644
---- a/net/core/flow_offload.c
-+++ b/net/core/flow_offload.c
-@@ -10,7 +10,7 @@
- struct flow_rule *flow_rule_alloc(unsigned int num_actions)
- {
- 	struct flow_rule *rule;
--	int i;
-+	unsigned int i;
- 
- 	rule = kzalloc(struct_size(rule, action.entries, num_actions),
- 		       GFP_KERNEL);
-@@ -31,7 +31,7 @@ EXPORT_SYMBOL(flow_rule_alloc);
- struct flow_offload_action *offload_action_alloc(unsigned int num_actions)
- {
- 	struct flow_offload_action *fl_action;
--	int i;
-+	unsigned int i;
- 
- 	fl_action = kzalloc(struct_size(fl_action, action.entries, num_actions),
- 			    GFP_KERNEL);
+How did you find this? The commit messages should include info
+about how the issue was discovered.
 -- 
-2.41.0
-
+pw-bot: cr
