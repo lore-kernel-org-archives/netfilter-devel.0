@@ -2,25 +2,26 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D3E6CA0FF6
-	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Sep 2023 08:37:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD3B3C001DB
+	for <netfilter-devel@archiver.kernel.org>; Sat,  2 Sep 2023 18:57:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350324AbjIBIhv (ORCPT
+        id S231929AbjIBS5G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 2 Sep 2023 04:37:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44598 "EHLO
+        Sat, 2 Sep 2023 14:57:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239611AbjIBIhv (ORCPT
+        with ESMTP id S229875AbjIBS5F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 2 Sep 2023 04:37:51 -0400
+        Sat, 2 Sep 2023 14:57:05 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 69C4910F4
-        for <netfilter-devel@vger.kernel.org>; Sat,  2 Sep 2023 01:37:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4C9EAED
+        for <netfilter-devel@vger.kernel.org>; Sat,  2 Sep 2023 11:57:01 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] evaluate: revisit anonymous set with single element optimization
-Date:   Sat,  2 Sep 2023 10:37:39 +0200
-Message-Id: <20230902083739.219746-1-pablo@netfilter.org>
+Cc:     phil@nwl.cc
+Subject: [PATCH nf] netfilter: nf_tables: ensure audit reset access to table under rcu read side lock
+Date:   Sat,  2 Sep 2023 20:56:56 +0200
+Message-Id: <20230902185656.12022-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -28,105 +29,85 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch reworks it to perform this optimization from the evaluation
-step of the relational expression. Hence, when optimizing for protocol
-flags, use OP_EQ instead of OP_IMPLICIT, that is:
+The table list iteration holds rcu read lock side, but recent audit code
+dereferences table object out of the rcu read lock side:
 
-	tcp flags { syn }
+[ 4137.407349] BUG: unable to handle page fault for address: 00000000001f3c50
+[ 4137.407357] #PF: supervisor read access in kernel mode
+[ 4137.407359] #PF: error_code(0x0000) - not-present page
+[ 4137.407360] PGD 0 P4D 0
+[ 4137.407363] Oops: 0000 [#1] PREEMPT SMP PTI
+[ 4137.407365] CPU: 4 PID: 500177 Comm: nft Not tainted 6.5.0+ #277
+[ 4137.407369] RIP: 0010:string+0x49/0xd0
+[ 4137.407374] Code: ff 77 36 45 89 d1 31 f6 49 01 f9 66 45 85 d2 75 19 eb 1e 49 39 f8 76 02 88 07 48 83 c7 01 83 c6 01 48 83 c2 01 4c 39 cf 74 07 <0f> b6 02 84 c0 75 e2 4c 89 c2 e9 58 e5 ff ff 48 c7 c0 0e b2 ff 81
+[ 4137.407377] RSP: 0018:ffff8881179737f0 EFLAGS: 00010286
+[ 4137.407379] RAX: 00000000001f2c50 RBX: ffff888117973848 RCX: ffff0a00ffffff04
+[ 4137.407380] RDX: 00000000001f3c50 RSI: 0000000000000000 RDI: 0000000000000000
+[ 4137.407381] RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000ffffffff
+[ 4137.407383] R10: ffffffffffffffff R11: ffff88813584d200 R12: 0000000000000000
+[ 4137.407384] R13: ffffffffa15cf709 R14: 0000000000000000 R15: ffffffffa15cf709
+[ 4137.407385] FS:  00007fcfc18bb580(0000) GS:ffff88840e700000(0000) knlGS:0000000000000000
+[ 4137.407387] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 4137.407388] CR2: 00000000001f3c50 CR3: 00000001055b2001 CR4: 00000000001706e0
+[ 4137.407390] Call Trace:
+[ 4137.407392]  <TASK>
+[ 4137.407393]  ? __die+0x1b/0x60
+[ 4137.407397]  ? page_fault_oops+0x6b/0xa0
+[ 4137.407399]  ? exc_page_fault+0x60/0x120
+[ 4137.407403]  ? asm_exc_page_fault+0x22/0x30
+[ 4137.407408]  ? string+0x49/0xd0
+[ 4137.407410]  vsnprintf+0x257/0x4f0
+[ 4137.407414]  kvasprintf+0x3e/0xb0
+[ 4137.407417]  kasprintf+0x3e/0x50
+[ 4137.407419]  nf_tables_dump_rules+0x1c0/0x360 [nf_tables]
+[ 4137.407439]  ? __alloc_skb+0xc3/0x170
+[ 4137.407442]  netlink_dump+0x170/0x330
+[ 4137.407447]  __netlink_dump_start+0x227/0x300
+[ 4137.407449]  nf_tables_getrule+0x205/0x390 [nf_tables]
 
-becomes (to represent an exact match):
-
-	tcp flags == syn
-
-given OP_IMPLICIT and OP_EQ are not equivalent for flags.
-
-01167c393a12 ("evaluate: do not remove anonymous set with protocol flags
-and single element") disabled this optimization, which is enabled again
-after this patch.
-
-Fixes: 01167c393a12 ("evaluate: do not remove anonymous set with protocol flags and single element")
+Fixes: ea078ae9108e ("netfilter: nf_tables: Audit log rule reset")
+Fixes: 7e9be1124dbe ("netfilter: nf_tables: Audit log setelem reset")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c | 52 +++++++++++++++++++++++++++++++-------------------
- 1 file changed, 32 insertions(+), 20 deletions(-)
+ net/netfilter/nf_tables_api.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index a7725f4e4c96..746719e85420 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1815,26 +1815,6 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 	if (ctx->set) {
- 		if (ctx->set->flags & NFT_SET_CONCAT)
- 			set->set_flags |= NFT_SET_CONCAT;
--	} else if (set->size == 1) {
--		i = list_first_entry(&set->expressions, struct expr, list);
--		if (i->etype == EXPR_SET_ELEM &&
--		    (!i->dtype->basetype ||
--		     i->dtype->basetype->type != TYPE_BITMASK ||
--		     i->dtype->type == TYPE_CT_STATE) &&
--		    list_empty(&i->stmt_list)) {
--
--			switch (i->key->etype) {
--			case EXPR_PREFIX:
--			case EXPR_RANGE:
--			case EXPR_VALUE:
--				*expr = i->key;
--				i->key = NULL;
--				expr_free(set);
--				return 0;
--			default:
--				break;
--			}
--		}
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2c81cee858d6..68aa8e4ea2e2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3538,11 +3538,12 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 			break;
  	}
+ done:
+-	rcu_read_unlock();
  
- 	set->set_flags |= NFT_SET_CONSTANT;
-@@ -2355,6 +2335,35 @@ static bool range_needs_swap(const struct expr *range)
- 	return mpz_cmp(left->value, right->value) > 0;
+ 	if (reset && idx > cb->args[0])
+ 		audit_log_rule_reset(table, cb->seq, idx - cb->args[0]);
+ 
++	rcu_read_unlock();
++
+ 	cb->args[0] = idx;
+ 	return skb->len;
  }
+@@ -5760,8 +5761,6 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 	if (!args.iter.err && args.iter.count == cb->args[0])
+ 		args.iter.err = nft_set_catchall_dump(net, skb, set,
+ 						      reset, cb->seq);
+-	rcu_read_unlock();
+-
+ 	nla_nest_end(skb, nest);
+ 	nlmsg_end(skb, nlh);
  
-+static void optimize_singleton_set(struct expr *rel, struct expr **expr)
-+{
-+	struct expr *set = rel->right, *i;
+@@ -5769,6 +5768,8 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 		audit_log_nft_set_reset(table, cb->seq,
+ 					args.iter.count - args.iter.skip);
+ 
++	rcu_read_unlock();
 +
-+	i = list_first_entry(&set->expressions, struct expr, list);
-+	if (i->etype == EXPR_SET_ELEM &&
-+	    list_empty(&i->stmt_list)) {
-+
-+		switch (i->key->etype) {
-+		case EXPR_PREFIX:
-+		case EXPR_RANGE:
-+		case EXPR_VALUE:
-+			rel->right = *expr = i->key;
-+			i->key = NULL;
-+			expr_free(set);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+
-+	if (rel->op == OP_IMPLICIT &&
-+	    rel->right->dtype->basetype &&
-+	    rel->right->dtype->basetype->type == TYPE_BITMASK &&
-+	    rel->right->dtype->type != TYPE_CT_STATE) {
-+		rel->op = OP_EQ;
-+	}
-+}
-+
- static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- {
- 	struct expr *rel = *expr, *left, *right;
-@@ -2437,6 +2446,9 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 	switch (rel->op) {
- 	case OP_EQ:
- 	case OP_IMPLICIT:
-+		if (right->etype == EXPR_SET && right->size == 1)
-+			optimize_singleton_set(rel, &right);
-+
- 		/*
- 		 * Update protocol context for payload and meta iiftype
- 		 * equality expressions.
+ 	if (args.iter.err && args.iter.err != -EMSGSIZE)
+ 		return args.iter.err;
+ 	if (args.iter.count == cb->args[0])
 -- 
 2.30.2
 
