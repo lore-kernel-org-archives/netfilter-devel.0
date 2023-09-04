@@ -2,42 +2,99 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79BE3C83F33
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Sep 2023 09:59:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 261E3C83F2C
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Sep 2023 13:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232255AbjIDJ7G (ORCPT
+        id S232654AbjIDNFL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Sep 2023 05:59:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48182 "EHLO
+        Mon, 4 Sep 2023 09:05:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229729AbjIDJ7F (ORCPT
+        with ESMTP id S231233AbjIDNFL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Sep 2023 05:59:05 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF71110F6
-        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2023 02:58:29 -0700 (PDT)
-Received: from [78.30.34.192] (port=37870 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qd6Le-0073fp-DI; Mon, 04 Sep 2023 11:58:25 +0200
-Date:   Mon, 4 Sep 2023 11:58:21 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Jeremy Sowden <jeremy@azazel.net>
-Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH libnetfilter_log] libipulog: remove debugging printfs
-Message-ID: <ZPWqPXH4aKsD5a6W@calendula>
-References: <20230903210357.2139250-1-jeremy@azazel.net>
+        Mon, 4 Sep 2023 09:05:11 -0400
+Received: from m12.mail.163.com (m12.mail.163.com [220.181.12.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 60D35F9;
+        Mon,  4 Sep 2023 06:05:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=6LzN0
+        UAzG8+m6OJmo1SPcFqvwr26rP6o6hRn4fJfRcE=; b=NpELvzQhnCb13V2aXZBMv
+        vu5J4x4IMD6m0XZuY5pK3qOMpxcoT/xhVu5tAODQ7wjtcd1jCnrWdXrawV1TZ3jN
+        1GZ7NRQTf1ioZRgni8MNMfBpAIcvNYhhe+E5ocDl8neRk0uROpZh2qK4vCJyYILR
+        WAkTdnZqkDsPYENwT2cc/w=
+Received: from localhost.localdomain (unknown [111.35.184.199])
+        by zwqz-smtp-mta-g1-1 (Coremail) with SMTP id _____wAna3zK1fVk4xioBA--.12532S4;
+        Mon, 04 Sep 2023 21:04:29 +0800 (CST)
+From:   David Wang <00107082@163.com>
+Cc:     David Wang <00107082@163.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
+Subject: [PATCH] uapi/netfilter: Change netfilter hook verdict code definition from macro to enum
+Date:   Mon,  4 Sep 2023 21:02:02 +0800
+Message-Id: <20230904130201.14632-1-00107082@163.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230903210357.2139250-1-jeremy@azazel.net>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: _____wAna3zK1fVk4xioBA--.12532S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tF1rXw4ktFW5Zry3KFW5GFg_yoW8WrWUpF
+        9xCasIyr18WFW3C34vyw1S9F13Jws3AF17ury29ryUWF1rJw4vg3yY9r45t3Z3WrZ2yayj
+        qF1jqw1UC34DZrJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pi1xRfUUUUU=
+X-Originating-IP: [111.35.184.199]
+X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiOwHgqmC5nH6kMwAAsc
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Sep 03, 2023 at 10:03:57PM +0100, Jeremy Sowden wrote:
-> There are a couple of `printf` calls which appear to be left over debugging
-> aids.  Remove them.
+As BPF_PROG_TYPE_NETFILTER was added in 6.4, a netfilter
+bpf program can attach to netfilter hooks, process package
+and return verdict back to netfilter. But those verdict
+codes are defined as macro, which could not be compiled
+into BTF with btf.c. libbpf, and maybe other bpf tools,
+would extract information from BTF and generate a
+common header "vmlinux.h". With macro definition, netfilter
+bpf program would have to redefine those macro again,
+besides including "vmlinux.h".
 
-Applied, thanks
+This code change netfilter hook verdict code definition to
+enum, this way,  make it into BTF.
+
+Signed-off-by: David Wang <00107082@163.com>
+---
+ include/uapi/linux/netfilter.h | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index 5a79ccb76701..d2f5dfab20dc 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -8,13 +8,15 @@
+ #include <linux/in6.h>
+ 
+ /* Responses from hook functions. */
+-#define NF_DROP 0
+-#define NF_ACCEPT 1
+-#define NF_STOLEN 2
+-#define NF_QUEUE 3
+-#define NF_REPEAT 4
+-#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
+-#define NF_MAX_VERDICT NF_STOP
++enum {
++	NF_DROP        = 0,
++	NF_ACCEPT      = 1,
++	NF_STOLEN      = 2,
++	NF_QUEUE       = 3,
++	NF_REPEAT      = 4,
++	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
++	NF_MAX_VERDICT = NF_STOP,
++};
+ 
+ /* we overload the higher bits for encoding auxiliary data such as the queue
+  * number or errno values. Not nice, but better than additional function
+-- 
+2.20.1
+
