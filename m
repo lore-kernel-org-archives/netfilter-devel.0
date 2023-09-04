@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E3EC83F2C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Sep 2023 09:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0312C83F3F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Sep 2023 09:07:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350273AbjIDJHH (ORCPT
+        id S229716AbjIDJHM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Sep 2023 05:07:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53268 "EHLO
+        Mon, 4 Sep 2023 05:07:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344770AbjIDJHG (ORCPT
+        with ESMTP id S1350634AbjIDJHL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Sep 2023 05:07:06 -0400
+        Mon, 4 Sep 2023 05:07:11 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C5EF13D
-        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2023 02:07:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4FF218B
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2023 02:07:07 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qd5Xy-0000Ep-7s; Mon, 04 Sep 2023 11:07:02 +0200
+        id 1qd5Y2-0000F4-AR; Mon, 04 Sep 2023 11:07:06 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/5] tests: shell: let netdev_chain_0 test indicate SKIP if kernel requires netdev device
-Date:   Mon,  4 Sep 2023 11:06:31 +0200
-Message-ID: <20230904090640.3015-3-fw@strlen.de>
+Subject: [PATCH nft 3/5] tests: shell: typeof_integer/raw: prefer @nh for payload matching
+Date:   Mon,  4 Sep 2023 11:06:32 +0200
+Message-ID: <20230904090640.3015-4-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230904090640.3015-1-fw@strlen.de>
 References: <20230904090640.3015-1-fw@strlen.de>
@@ -34,87 +34,110 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This test case only works on kernel 6.4+.
-Add feature probe for this and then exit early.
+@ih fails on kernels where payload expression doesn't support the 'inner'
+base offset.
 
-We don't want to indicate a test failure, as this test doesn't apply
-on older kernels.
-
-But we should not indicate sucess either, else we might be fooled
-in case something went wrong during feature probe.
-
-Add a special return value, 123, and let run-tests.sh count this
-as 'SKIPPED'.
+This test isn't about inner headers, so just use @nh which is
+universally available.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/shell/features/netdev_chain_without_device.nft |  7 +++++++
- tests/shell/run-tests.sh                             | 11 ++++++++++-
- tests/shell/testcases/chains/netdev_chain_0          |  2 ++
- 3 files changed, 19 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/features/netdev_chain_without_device.nft
+ tests/shell/testcases/maps/dumps/typeof_integer_0.nft | 4 ++--
+ tests/shell/testcases/maps/dumps/typeof_raw_0.nft     | 4 ++--
+ tests/shell/testcases/maps/typeof_integer_0           | 4 ++--
+ tests/shell/testcases/maps/typeof_raw_0               | 4 ++--
+ tests/shell/testcases/sets/dumps/typeof_raw_0.nft     | 4 ++--
+ tests/shell/testcases/sets/typeof_raw_0               | 4 ++--
+ 6 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/tests/shell/features/netdev_chain_without_device.nft b/tests/shell/features/netdev_chain_without_device.nft
-new file mode 100644
-index 000000000000..25eb200ffe31
---- /dev/null
-+++ b/tests/shell/features/netdev_chain_without_device.nft
-@@ -0,0 +1,7 @@
-+# 207296f1a03b ("netfilter: nf_tables: allow to create netdev chain without device")
-+# v6.4-rc1~132^2~14^2
-+table netdev t {
-+	chain c {
-+		type filter hook ingress priority 0; policy accept;
-+        }
-+}
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 3113404de2b9..17cab3f11c9b 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -161,6 +161,7 @@ fi
- echo ""
- ok=0
- failed=0
-+skipped=0
- taint=0
+diff --git a/tests/shell/testcases/maps/dumps/typeof_integer_0.nft b/tests/shell/testcases/maps/dumps/typeof_integer_0.nft
+index 330415574c95..19c24febffcc 100644
+--- a/tests/shell/testcases/maps/dumps/typeof_integer_0.nft
++++ b/tests/shell/testcases/maps/dumps/typeof_integer_0.nft
+@@ -13,8 +13,8 @@ table inet t {
+ 	}
  
- check_features()
-@@ -270,6 +271,9 @@ do
- 				msg_warn "[DUMP FAIL]	$testfile"
- 			fi
- 		fi
-+	elif [ "$rc_got" -eq 123 ]; then
-+		((skipped++))
-+		msg_info "[SKIPPED]	$testfile"
- 	else
- 		((failed++))
- 		if [ "$VERBOSE" == "y" ] ; then
-@@ -294,7 +298,12 @@ echo ""
- kmemleak_found=0
- check_kmemleak_force
+ 	chain c {
+-		udp length . @ih,32,32 vmap @m1
+-		udp length . @ih,32,32 vmap @m2
++		udp length . @nh,32,32 vmap @m1
++		udp length . @nh,32,32 vmap @m2
+ 		udp length . @th,160,128 vmap { 47-63 . 0xe373135363130333131303735353203 : accept }
+ 	}
+ }
+diff --git a/tests/shell/testcases/maps/dumps/typeof_raw_0.nft b/tests/shell/testcases/maps/dumps/typeof_raw_0.nft
+index e876425b2bc6..476169f2943b 100644
+--- a/tests/shell/testcases/maps/dumps/typeof_raw_0.nft
++++ b/tests/shell/testcases/maps/dumps/typeof_raw_0.nft
+@@ -7,7 +7,7 @@ table ip x {
+ 	}
  
--msg_info "results: [OK] $ok [FAILED] $failed [TOTAL] $((ok+failed))"
-+msg_info "results: [OK] $ok [FAILED] $failed [SKIPPED] $skipped [TOTAL] $((ok+failed+skipped))"
-+
-+if [ $ok -eq 0 -a  $failed -eq 0 ]; then
-+	# no test cases were run, indicate a failure
-+	failed=1
-+fi
+ 	chain y {
+-		ip saddr . @ih,32,32 vmap @y
+-		ip saddr . @ih,32,32 vmap { 4.4.4.4 . 0x34 : accept, 5.5.5.5 . 0x45 : drop }
++		ip saddr . @nh,32,32 vmap @y
++		ip saddr . @nh,32,32 vmap { 4.4.4.4 . 0x34 : accept, 5.5.5.5 . 0x45 : drop }
+ 	}
+ }
+diff --git a/tests/shell/testcases/maps/typeof_integer_0 b/tests/shell/testcases/maps/typeof_integer_0
+index d51510af9073..0deff5eef67b 100755
+--- a/tests/shell/testcases/maps/typeof_integer_0
++++ b/tests/shell/testcases/maps/typeof_integer_0
+@@ -13,8 +13,8 @@ EXPECTED="table inet t {
+ 	}
  
- if [ "$VERBOSE" == "y" ] ; then
- 	echo "Probed Features:"
-diff --git a/tests/shell/testcases/chains/netdev_chain_0 b/tests/shell/testcases/chains/netdev_chain_0
-index 67cd715fc59f..2e2a0c177fcb 100755
---- a/tests/shell/testcases/chains/netdev_chain_0
-+++ b/tests/shell/testcases/chains/netdev_chain_0
-@@ -1,5 +1,7 @@
- #!/bin/bash
+ 	chain c {
+-		udp length . @ih,32,32 vmap @m1
+-		udp length . @ih,32,32 vmap @m2
++		udp length . @nh,32,32 vmap @m1
++		udp length . @nh,32,32 vmap @m2
+ 		udp length . @th,160,128 vmap { 47-63 . 0xe373135363130333131303735353203 : accept }
+ 	}
+ }"
+diff --git a/tests/shell/testcases/maps/typeof_raw_0 b/tests/shell/testcases/maps/typeof_raw_0
+index e3da7825cb7b..bcd2c6d8c502 100755
+--- a/tests/shell/testcases/maps/typeof_raw_0
++++ b/tests/shell/testcases/maps/typeof_raw_0
+@@ -7,8 +7,8 @@ EXPECTED="table ip x {
+ 	}
  
-+[ "$NFT_HAVE_netdev_chain_without_device" -eq 0 ] && exit 123
-+
- ip link add d0 type dummy || {
-         echo "Skipping, no dummy interface available"
-         exit 0
+ 	chain y {
+-		ip saddr . @ih,32,32 vmap @y
+-		ip saddr . @ih,32,32 vmap { 4.4.4.4 . 0x34 : accept, 5.5.5.5 . 0x45 : drop}
++		ip saddr . @nh,32,32 vmap @y
++		ip saddr . @nh,32,32 vmap { 4.4.4.4 . 0x34 : accept, 5.5.5.5 . 0x45 : drop}
+ 	}
+ }"
+ 
+diff --git a/tests/shell/testcases/sets/dumps/typeof_raw_0.nft b/tests/shell/testcases/sets/dumps/typeof_raw_0.nft
+index 499ff167f51d..4d6abaaa151b 100644
+--- a/tests/shell/testcases/sets/dumps/typeof_raw_0.nft
++++ b/tests/shell/testcases/sets/dumps/typeof_raw_0.nft
+@@ -6,7 +6,7 @@ table inet t {
+ 	}
+ 
+ 	chain y {
+-		ip saddr . @ih,32,32 { 1.1.1.1 . 0x14, 2.2.2.2 . 0x1e }
+-		ip daddr . @ih,32,32 @y
++		ip saddr . @nh,32,32 { 1.1.1.1 . 0x14, 2.2.2.2 . 0x1e }
++		ip daddr . @nh,32,32 @y
+ 	}
+ }
+diff --git a/tests/shell/testcases/sets/typeof_raw_0 b/tests/shell/testcases/sets/typeof_raw_0
+index 36396b5c2e1d..66042eb4085a 100755
+--- a/tests/shell/testcases/sets/typeof_raw_0
++++ b/tests/shell/testcases/sets/typeof_raw_0
+@@ -7,8 +7,8 @@ EXPECTED="table inet t {
+ 	}
+ 
+ 	chain y {
+-		ip saddr . @ih,32,32 { 1.1.1.1 . 0x14, 2.2.2.2 . 0x1e }
+-		ip daddr . @ih,32,32 @y
++		ip saddr . @nh,32,32 { 1.1.1.1 . 0x14, 2.2.2.2 . 0x1e }
++		ip daddr . @nh,32,32 @y
+ 	}
+ }"
+ 
 -- 
 2.41.0
 
