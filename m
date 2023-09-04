@@ -2,99 +2,100 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 261E3C83F2C
-	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Sep 2023 13:05:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6332C83F2C
+	for <netfilter-devel@archiver.kernel.org>; Mon,  4 Sep 2023 13:52:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232654AbjIDNFL (ORCPT
+        id S236935AbjIDNwi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 4 Sep 2023 09:05:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59972 "EHLO
+        Mon, 4 Sep 2023 09:52:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231233AbjIDNFL (ORCPT
+        with ESMTP id S232137AbjIDNwi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Sep 2023 09:05:11 -0400
-Received: from m12.mail.163.com (m12.mail.163.com [220.181.12.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 60D35F9;
-        Mon,  4 Sep 2023 06:05:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=6LzN0
-        UAzG8+m6OJmo1SPcFqvwr26rP6o6hRn4fJfRcE=; b=NpELvzQhnCb13V2aXZBMv
-        vu5J4x4IMD6m0XZuY5pK3qOMpxcoT/xhVu5tAODQ7wjtcd1jCnrWdXrawV1TZ3jN
-        1GZ7NRQTf1ioZRgni8MNMfBpAIcvNYhhe+E5ocDl8neRk0uROpZh2qK4vCJyYILR
-        WAkTdnZqkDsPYENwT2cc/w=
-Received: from localhost.localdomain (unknown [111.35.184.199])
-        by zwqz-smtp-mta-g1-1 (Coremail) with SMTP id _____wAna3zK1fVk4xioBA--.12532S4;
-        Mon, 04 Sep 2023 21:04:29 +0800 (CST)
-From:   David Wang <00107082@163.com>
-Cc:     David Wang <00107082@163.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH] uapi/netfilter: Change netfilter hook verdict code definition from macro to enum
-Date:   Mon,  4 Sep 2023 21:02:02 +0800
-Message-Id: <20230904130201.14632-1-00107082@163.com>
-X-Mailer: git-send-email 2.20.1
+        Mon, 4 Sep 2023 09:52:38 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6B3FE3
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2023 06:51:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1693835507;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=C+7ouEPjtbpAoi+wF5jrsnNEWd+pPV9oxk4TyGo2FnM=;
+        b=hjUHth57iIT943RZrC+HlrnfeCn9tiJB4agVM02OwIsCcCnhTy5iBSzMXSaVQ+6TyoeYJJ
+        jct9pkIuDJnm/0n4cBu5ABKSDiIQQ9i2XRcCKiSlrAgcktFwlYxHcqgyBnBXEQP+uik/TY
+        mK5ZvHpJzRZRrtcL0Lp3gz0RD7Hg5Ws=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-65-ZHVpon2HPpqxUUJqia0Glw-1; Mon, 04 Sep 2023 09:51:46 -0400
+X-MC-Unique: ZHVpon2HPpqxUUJqia0Glw-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 31536803E2E
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2023 13:51:46 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.26])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id A5B741121314;
+        Mon,  4 Sep 2023 13:51:45 +0000 (UTC)
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft v3 00/11] tests/shell: allow running tests as
+Date:   Mon,  4 Sep 2023 15:48:02 +0200
+Message-ID: <20230904135135.1568180-1-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: _____wAna3zK1fVk4xioBA--.12532S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7tF1rXw4ktFW5Zry3KFW5GFg_yoW8WrWUpF
-        9xCasIyr18WFW3C34vyw1S9F13Jws3AF17ury29ryUWF1rJw4vg3yY9r45t3Z3WrZ2yayj
-        qF1jqw1UC34DZrJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pi1xRfUUUUU=
-X-Originating-IP: [111.35.184.199]
-X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiOwHgqmC5nH6kMwAAsc
-To:     unlisted-recipients:; (no To-header on input)
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-As BPF_PROG_TYPE_NETFILTER was added in 6.4, a netfilter
-bpf program can attach to netfilter hooks, process package
-and return verdict back to netfilter. But those verdict
-codes are defined as macro, which could not be compiled
-into BTF with btf.c. libbpf, and maybe other bpf tools,
-would extract information from BTF and generate a
-common header "vmlinux.h". With macro definition, netfilter
-bpf program would have to redefine those macro again,
-besides including "vmlinux.h".
+Changes to v3:
 
-This code change netfilter hook verdict code definition to
-enum, this way,  make it into BTF.
+- large rework of all patches.
+- we still try to unshare as much as we can, but gracefully fallback to
+  only unshare the netns. What we don't do anymore, is accept failure to unshare
+  altogether and proceed silently. If you want that, use NFT_TEST_NO_UNSHARE=y or
+  NFT_TEST_UNSHARE_CMD=cmd.
+- compared to v2, fix `nft flush` to be called inside the target netns.
+  It's now done by "test-wrapper.sh"
+- add mode to run jobs in parallel.
+- move test-specific functionality from "run-tests.sh to "test-wrapper.sh".
+- collect test results in a temporary directory for later inspection.
 
-Signed-off-by: David Wang <00107082@163.com>
----
- include/uapi/linux/netfilter.h | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+Changes to v2:
 
-diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
-index 5a79ccb76701..d2f5dfab20dc 100644
---- a/include/uapi/linux/netfilter.h
-+++ b/include/uapi/linux/netfilter.h
-@@ -8,13 +8,15 @@
- #include <linux/in6.h>
- 
- /* Responses from hook functions. */
--#define NF_DROP 0
--#define NF_ACCEPT 1
--#define NF_STOLEN 2
--#define NF_QUEUE 3
--#define NF_REPEAT 4
--#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
--#define NF_MAX_VERDICT NF_STOP
-+enum {
-+	NF_DROP        = 0,
-+	NF_ACCEPT      = 1,
-+	NF_STOLEN      = 2,
-+	NF_QUEUE       = 3,
-+	NF_REPEAT      = 4,
-+	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
-+	NF_MAX_VERDICT = NF_STOP,
-+};
- 
- /* we overload the higher bits for encoding auxiliary data such as the queue
-  * number or errno values. Not nice, but better than additional function
+- new patch: rework the parsing of command line options
+- new patch: add a "--list-tests" option to show the found tests
+- call "unshare" for each test individually.
+- drop NFT_TEST_ROOTLESS environment variable. You no longer have to
+  opt-in to run rootless. However, if any tests fail and we ran
+  rootless, then an info is printed at the end.
+- the environment variables NFT_TEST_HAVE_REALROOT and
+  NFT_TEST_NO_UNSHARE can still be set to configure the script.
+  Those are now also configurable via command line options.
+  Usually you would not have to set them.
+
+Thomas Haller (11):
+  tests/shell: rework command line parsing in "run-tests.sh"
+  tests/shell: rework finding tests and add "--list-tests" option
+  tests/shell: check test names before start and support directories
+  tests/shell: export NFT_TEST_BASEDIR and NFT_TEST_TMPDIR for tests
+  tests/shell: run each test in separate namespace and allow rootless
+  tests/shell: interpret an exit code of 77 from scripts as "skipped"
+  tests/shell: support --keep-logs option (NFT_TEST_KEEP_LOGS=y) to
+    preserve test output
+  tests/shell: move the dump diff handling inside "test-wrapper.sh"
+  tests/shell: rework printing of test results
+  tests/shell: move taint check to "test-wrapper.sh"
+  tests/shell: support running tests in parallel
+
+ tests/shell/helpers/test-wrapper.sh |  77 +++++
+ tests/shell/run-tests.sh            | 467 ++++++++++++++++++++--------
+ 2 files changed, 422 insertions(+), 122 deletions(-)
+ create mode 100755 tests/shell/helpers/test-wrapper.sh
+
 -- 
-2.20.1
+2.41.0
 
