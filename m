@@ -2,79 +2,111 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00490CA1008
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Sep 2023 20:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF193CA101B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Sep 2023 22:01:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236369AbjIEUtS (ORCPT
+        id S231357AbjIEWBp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Sep 2023 16:49:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48050 "EHLO
+        Tue, 5 Sep 2023 18:01:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243760AbjIEUtS (ORCPT
+        with ESMTP id S230241AbjIEWBp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Sep 2023 16:49:18 -0400
-X-Greylist: delayed 4504 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 13:49:13 PDT
-Received: from m1380.mail.163.com (m1380.mail.163.com [220.181.13.80])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 25E5D132;
-        Tue,  5 Sep 2023 13:49:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=Date:From:Subject:Content-Type:MIME-Version:
-        Message-ID; bh=zjkgSPNyl1Ii404LUexGjZzuKpWa/hMD4sGafVzau7U=; b=G
-        Uiq09ZwFyhXfIc2jdeEybvbTXTMdXx9rzcKSR0DjYXudSuI+hUdcuF8ZE+B/WgBG
-        EtbTLmrtxt3JNZ9jHetdxmLQFd9I0dpCWlyD3NJJlmagAm4Tqz7S/Ib26xS35m33
-        Jirflak85ferl2Ph35AANT5yyIvhFpqDSIFGrWrHRM=
-Received: from 00107082$163.com ( [111.35.184.199] ) by ajax-webmail-wmsvr80
- (Coremail) ; Wed, 6 Sep 2023 00:57:56 +0800 (CST)
-X-Originating-IP: [111.35.184.199]
-Date:   Wed, 6 Sep 2023 00:57:56 +0800 (CST)
-From:   "David Wang" <00107082@163.com>
-To:     "Daniel Xu" <dxu@dxuuu.xyz>
-Cc:     "Pablo Neira Ayuso" <pablo@netfilter.org>,
-        "Jozsef Kadlecsik" <kadlec@netfilter.org>,
-        "Florian Westphal" <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        bpf@vger.kernel.org
-Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
- definition from macro to enum
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version XT5.0.14 build 20230109(dcb5de15)
- Copyright (c) 2002-2023 www.mailtech.cn 163com
-In-Reply-To: <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
-References: <20230904130201.14632-1-00107082@163.com>
- <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
-X-NTES-SC: AL_QuySAfWYvEgs4CidY+kXn0oTju85XMCzuv8j3YJeN500hyrP/yMcQEJqGmPq1seOICGMjSWMdBNC08teX6N9bbgB1OIaCTbjAwa1Sq2dLQrf
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=GBK
+        Tue, 5 Sep 2023 18:01:45 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5CBDE6;
+        Tue,  5 Sep 2023 15:01:40 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qde6u-0002RP-0z; Wed, 06 Sep 2023 00:01:24 +0200
+Date:   Wed, 6 Sep 2023 00:01:24 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Wander Lairson Costa <wander@redhat.com>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Fernando Fernandez Mancera <ffmancera@riseup.net>,
+        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+        "open list:NETFILTER" <coreteam@netfilter.org>,
+        "open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        Lucas Leong <wmliang@infosec.exchange>, stable@kernel.org
+Subject: Re: [PATH nf v3] netfilter/osf: avoid OOB read
+Message-ID: <20230905220124.GD28379@breakpoint.cc>
+References: <20230901135021.30252-1-wander@redhat.com>
 MIME-Version: 1.0
-Message-ID: <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID: UMGowAD3H88VXvdkUwIAAA--.195W
-X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiOxThqmC5nJKIeQAEsG
-X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230901135021.30252-1-wander@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-CgpBdCAyMDIzLTA5LTA2IDAwOjM4OjAyLCAiRGFuaWVsIFh1IiA8ZHh1QGR4dXV1Lnh5ej4gd3Jv
-dGU6Cj5IaSBEYXZpZCwKPgo+T24gTW9uLCBTZXAgMDQsIDIwMjMgYXQgMDk6MDI6MDJQTSArMDgw
-MCwgRGF2aWQgV2FuZyB3cm90ZToKCj4+ICAjaW5jbHVkZSA8bGludXgvaW42Lmg+Cj4+ICAKPj4g
-IC8qIFJlc3BvbnNlcyBmcm9tIGhvb2sgZnVuY3Rpb25zLiAqLwo+PiAtI2RlZmluZSBORl9EUk9Q
-IDAKPj4gLSNkZWZpbmUgTkZfQUNDRVBUIDEKPj4gLSNkZWZpbmUgTkZfU1RPTEVOIDIKPj4gLSNk
-ZWZpbmUgTkZfUVVFVUUgMwo+PiAtI2RlZmluZSBORl9SRVBFQVQgNAo+PiAtI2RlZmluZSBORl9T
-VE9QIDUJLyogRGVwcmVjYXRlZCwgZm9yIHVzZXJzcGFjZSBuZl9xdWV1ZSBjb21wYXRpYmlsaXR5
-LiAqLwo+PiAtI2RlZmluZSBORl9NQVhfVkVSRElDVCBORl9TVE9QCj4+ICtlbnVtIHsKPj4gKwlO
-Rl9EUk9QICAgICAgICA9IDAsCj4+ICsJTkZfQUNDRVBUICAgICAgPSAxLAo+PiArCU5GX1NUT0xF
-TiAgICAgID0gMiwKPj4gKwlORl9RVUVVRSAgICAgICA9IDMsCj4+ICsJTkZfUkVQRUFUICAgICAg
-PSA0LAo+PiArCU5GX1NUT1AgICAgICAgID0gNSwJLyogRGVwcmVjYXRlZCwgZm9yIHVzZXJzcGFj
-ZSBuZl9xdWV1ZSBjb21wYXRpYmlsaXR5LiAqLwo+PiArCU5GX01BWF9WRVJESUNUID0gTkZfU1RP
-UCwKPj4gK307Cj4KPlN3aXRjaGluZyBmcm9tIG1hY3JvIHRvIGVudW0gd29ya3MgZm9yIGFsbW9z
-dCBhbGwgdXNlIGNhc2VzLCBidXQgbm90Cj5hbGwuIElmIHNvbWVvbmUgaWYgI2lmZGVmaW5nIHRo
-ZSBzeW1ib2xzICh3aGljaCBpcyBwbGF1c2libGUpIHRoaXMKPmNoYW5nZSB3b3VsZCBicmVhayB0
-aGVtLgo+Cj5JIHRoaW5rIEkndmUgc2VlbiBzb21lIG90aGVyIG5ldHdvcmtpbmcgY29kZSBkZWZp
-bmUgYm90aCBlbnVtcyBhbmQKPm1hY3Jvcy4gQnV0IGl0IHdhcyBhIGxpdHRsZSB1Z2x5LiBOb3Qg
-c3VyZSBpZiB0aGF0IGlzIGFjY2VwdGFibGUgaGVyZSBvcgo+bm90Lgo+Cj5bLi4uXQo+Cj5UaGFu
-a3MsCj5EYW5pZWwKCgpUaGFua3MgZm9yIHRoZSByZXZpZXd+CkkgZG8gbm90IGhhdmUgYSBzdHJv
-bmcgcmVhc29uaW5nIHRvIGRlbnkgdGhlIHBvc3NpYmlsaXR5IG9mIGJyZWFraW5nIHVuZXhwZWN0
-ZWQgdXNhZ2Ugb2YgdGhpcyBtYWNyb3MsCgpidXQgSSBhbHNvIGFncmVlIHRoYXQgaXQgaXMgdWds
-eSB0byB1c2UgYm90aCBlbnVtIGFuZCBtYWNybyBhdCB0aGUgc2FtZSB0aW1lLgoKS2luZCBvZiBk
-b24ndCBrbm93IGhvdyB0byBwcm9jZWVkIGZyb20gaGVyZSBub3cuLi4=
+Wander Lairson Costa <wander@redhat.com> wrote:
+> The opt_num field is controlled by user mode and is not currently
+> validated inside the kernel. An attacker can take advantage of this to
+> trigger an OOB read and potentially leak information.
+> 
+> Also add validation to genre, subtype and version fields.
+
+I was about to apply this but your patch misses the Signed-off-by line.
+
+> Reproducer:
+> 
+> void install_filter_for_leak()
+> {
+
+Please remove this for v4, it only clutters the changelog.
+
+> KASAN report:
+> 
+> ==================================================================
+> BUG: KASAN: slab-out-of-bounds in nf_osf_match_one+0xbed/0xd10 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:88
+> Read of size 2 at addr ffff88804bc64272 by task poc/6431
+> 
+> CPU: 1 PID: 6431 Comm: poc Not tainted 6.0.0-rc4 #1
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.14.0-0-g155821a1990b-prebuilt.qemu.org 04/01/2014
+> Call Trace:
+>  <IRQ>
+>  __dump_stack linux-6.0-rc4/lib/dump_stack.c:88
+>  dump_stack_lvl+0xcd/0x134 linux-6.0-rc4/lib/dump_stack.c:106
+>  print_address_description linux-6.0-rc4/mm/kasan/report.c:317
+>  print_report.cold+0x2ba/0x6e9 linux-6.0-rc4/mm/kasan/report.c:433
+>  kasan_report+0xb1/0x1e0 linux-6.0-rc4/mm/kasan/report.c:495
+>  nf_osf_match_one+0xbed/0xd10 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:88
+>  nf_osf_find+0x186/0x2f0 linux-6.0-rc4/net/netfilter/nfnetlink_osf.c:281
+>  nft_osf_eval+0x37f/0x590 linux-6.0-rc4/net/netfilter/nft_osf.c:47
+>  expr_call_ops_eval linux-6.0-rc4/net/netfilter/nf_tables_core.c:214
+>  nft_do_chain+0x2b0/0x1490 linux-6.0-rc4/net/netfilter/nf_tables_core.c:264
+>  nft_do_chain_ipv4+0x17c/0x1f0 linux-6.0-rc4/net/netfilter/nft_chain_filter.c:23
+>  nf_hook_entry_hookfn linux-6.0-rc4/./include/linux/netfilter.h:142
+>  nf_hook_slow+0xc5/0x1f0 linux-6.0-rc4/net/netfilter/core.c:620
+
+You can keep the KASAN splat but please trim it down, anything below
+here
+doesn't add much value and neither does print_address_description etc.
+above.
+
+>  ffff88804bc64300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+> 
+> ---
+
+git-am chopped everything below off, so
+
+> 
+> Fixes: f9324952088f ("netfilter: nfnetlink_osf: extract nfnetlink_subsystem code from xt_osf.c")
+> Reported-by: Lucas Leong <wmliang@infosec.exchange>
+> Cc: stable@kernel.org
+> Signed-off-by: Wander Lairson Costa <wander@redhat.com>
+
+The above wasn't there when I looked at 'git log'.
+
+I will fix this up locally, no need to resend,
+but please keep this in mind next time.
+
+Thanks!
