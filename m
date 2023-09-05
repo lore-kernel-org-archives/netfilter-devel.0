@@ -2,85 +2,135 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5005FCA0FE2
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Sep 2023 16:26:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 593FECA0FFE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Sep 2023 16:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351671AbjIEQ0N (ORCPT
+        id S1351846AbjIEQ0P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:26:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41404 "EHLO
+        Tue, 5 Sep 2023 12:26:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354502AbjIEMCE (ORCPT
+        with ESMTP id S1353610AbjIEGwe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Sep 2023 08:02:04 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28FE7CE0
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Sep 2023 05:00:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1693915201;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=DGFId+I9uEAmv8nKgoPgjK1ub2KpU9SoKEy+FQil0Cw=;
-        b=LnyeBubKO8pa+espx1cM9pRqTezAKphsce+P0+VfNKA+XgrJeVQHDjryrcdgeXYvA2pAex
-        1ElFO0H9b41qU8j/o3K01GIGD4f3hhDCt5FZ3S6E8DxJbLUHl1rp3PDZAPHpxpmrnyAc3D
-        abOkgKG6Xk8CjWGyvx8k4CNJgSXwKDU=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-528-Xec7CuRIOCWLiEDW0drNDA-1; Tue, 05 Sep 2023 08:00:00 -0400
-X-MC-Unique: Xec7CuRIOCWLiEDW0drNDA-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 45A79928A42
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Sep 2023 12:00:00 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.26])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id BAE3B1121314;
-        Tue,  5 Sep 2023 11:59:59 +0000 (UTC)
-From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft v4 17/17] tests/shell: set TMPDIR for tests in "test-wrapper.sh"
-Date:   Tue,  5 Sep 2023 13:58:46 +0200
-Message-ID: <20230905115936.607599-18-thaller@redhat.com>
-In-Reply-To: <20230905115936.607599-1-thaller@redhat.com>
-References: <20230905115936.607599-1-thaller@redhat.com>
+        Tue, 5 Sep 2023 02:52:34 -0400
+X-Greylist: delayed 406 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 04 Sep 2023 23:52:28 PDT
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92D591B4
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2023 23:52:28 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 1D304CC02CC;
+        Tue,  5 Sep 2023 08:45:38 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Tue,  5 Sep 2023 08:45:35 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id DE184CC02B3;
+        Tue,  5 Sep 2023 08:45:34 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id AADCA3431A9; Tue,  5 Sep 2023 08:45:34 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id A9578343155;
+        Tue,  5 Sep 2023 08:45:34 +0200 (CEST)
+Date:   Tue, 5 Sep 2023 08:45:34 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     Kyle Zeng <zengyhkyle@gmail.com>
+cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        pablo@netfilter.org, edumazet@google.com
+Subject: Re: Race between IPSET_CMD_CREATE and IPSET_CMD_SWAP
+In-Reply-To: <ZPZqetxOmH+w/myc@westworld>
+Message-ID: <6e4a44b1-fa78-bcb3-5c2e-fcfd6489dac4@netfilter.org>
+References: <ZPZqetxOmH+w/myc@westworld>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Various tests create additional temporary files. They really should just
-use "$NFT_TEST_TESTTMPDIR" for that. However, they mostly use `mktemp`.
+Hi Kyle,
 
-The scripts are supposed to cleanup those files afterwards. However,
-often that does not work correctly and /tmp gets full of left over
-temporary files.
+On Mon, 4 Sep 2023, Kyle Zeng wrote:
 
-Export "TMPDIR" so that they use the test-specific temporary directory.
+> There is a race between IPSET_CMD_ADD and IPSET_CMD_SWAP in 
+> netfilter/ip_set, which can lead to the invocation of `__ip_set_put` on 
+> a wrong `set`, triggering the `BUG_ON(set->ref == 0);` check in it.
+> 
+> More specifically, in `ip_set_swap`, it will hold the `ip_set_ref_lock`
+> and then do the following to swap the sets:
+> ~~~
+> 	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
+> 	strncpy(from->name, to->name, IPSET_MAXNAMELEN);
+> 	strncpy(to->name, from_name, IPSET_MAXNAMELEN);
+> 
+> 	swap(from->ref, to->ref);
+> ~~~
+> But in the retry loop in `call_ad`:
+> ~~~
+> 		if (retried) {
+> 			__ip_set_get(set);
+> 			nfnl_unlock(NFNL_SUBSYS_IPSET);
+> 			cond_resched();
+> 			nfnl_lock(NFNL_SUBSYS_IPSET);
+> 			__ip_set_put(set);
+> 		}
+> ~~~
+> No lock is hold, when it does the `cond_resched()`.
+> As a result, `ip_set_ref_lock` (in thread 2) can swap the set with another when thread
+> 1 is doing the `cond_resched()`. When it wakes up, the `set` variable
+> alreays means another `set`, calling `__ip_set_put` on it will decrease
+> the refcount on the wrong `set`, triggering the `BUG_ON` call.
+> 
+> I'm not sure what is the proper way to fix this issue so I'm asking for
+> help.
+> 
+> A proof-of-concept code that can trigger the bug is attached.
+> 
+> The bug is confirmed on v5.10, v6.1, v6.5.rc7 and upstream.
 
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- tests/shell/helpers/test-wrapper.sh | 2 ++
- 1 file changed, 2 insertions(+)
+Thanks for the thorough report. I think the proper fix is to change the 
+reference counter at rescheduling from "ref" to "ref_netlink", which 
+protects long taking procedures (originally just dumping). Could you 
+verify that the patch below fixes the issue?
 
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-index f8aed3241aea..9782040ed798 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -11,6 +11,8 @@ TESTDIR="$(dirname "$TEST")"
- 
- START_TIME="$(cut -d ' ' -f1 /proc/uptime)"
- 
-+export TMPDIR="$NFT_TEST_TESTTMPDIR"
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index e564b5174261..8a9cea8ed5ed 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -682,6 +682,15 @@ __ip_set_put(struct ip_set *set)
+ /* set->ref can be swapped out by ip_set_swap, netlink events (like dump) need
+  * a separate reference counter
+  */
++static void
++__ip_set_get_netlink(struct ip_set *set)
++{
++	write_lock_bh(&ip_set_ref_lock);
++	set->ref_netlink++;
++	write_unlock_bh(&ip_set_ref_lock);
++}
 +
- CLEANUP_UMOUNT_RUN_NETNS=n
++
+ static void
+ __ip_set_put_netlink(struct ip_set *set)
+ {
+@@ -1693,11 +1702,11 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
  
- cleanup() {
--- 
-2.41.0
+ 	do {
+ 		if (retried) {
+-			__ip_set_get(set);
++			__ip_set_get_netlink(set);
+ 			nfnl_unlock(NFNL_SUBSYS_IPSET);
+ 			cond_resched();
+ 			nfnl_lock(NFNL_SUBSYS_IPSET);
+-			__ip_set_put(set);
++			__ip_set_put_netlink(set);
+ 		}
+ 
+ 		ip_set_lock(set);
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
