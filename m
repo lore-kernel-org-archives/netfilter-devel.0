@@ -2,142 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB69DC83F3E
-	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Sep 2023 18:05:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 679F9CA0FFE
+	for <netfilter-devel@archiver.kernel.org>; Tue,  5 Sep 2023 19:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238318AbjIESFw (ORCPT
+        id S237864AbjIETAE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:05:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45830 "EHLO
+        Tue, 5 Sep 2023 15:00:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238252AbjIESFj (ORCPT
+        with ESMTP id S241696AbjIES7s (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Sep 2023 14:05:39 -0400
-Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54DC49008;
-        Tue,  5 Sep 2023 09:53:07 -0700 (PDT)
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-        by mailout.west.internal (Postfix) with ESMTP id 174B732001AB;
-        Tue,  5 Sep 2023 12:38:05 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute4.internal (MEProxy); Tue, 05 Sep 2023 12:38:05 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
-        :cc:content-type:content-type:date:date:from:from:in-reply-to
-        :in-reply-to:message-id:mime-version:references:reply-to:sender
-        :subject:subject:to:to; s=fm3; t=1693931884; x=1694018284; bh=21
-        1jhUVDutOPYWl/TUpiZdIjCc0S5zbUfDCJu+M5WtQ=; b=gDMHhI6eKdFawWqdov
-        3iCOnAADb0iEyR+A2dTtKMs5yNoi+R820jDShvv1fyT2HGWad8pQiEwCWhlaNWoQ
-        GlGwMXnlBsPIP8kqNcM8oULek0UG/Q3CLUmxhQHLVYcaTuoFmP75L6jjygOP72Di
-        6O5D879awH1Br8hMG5HPobqiyG7pzbkdfhFpv7HVe+uaqTc2mD8U1O6uzgpmjPuY
-        easeFu9rMFPeqerD3XbHiqQYDS6iQ7GBbE4rbnAEau5Gy1P4L+xN1vK6Rwejaiqi
-        twjpJqqfenH96ohjladwkiSeqpD77GoSaD0939XC69O/XipC85iuw7RIUhbA0yjI
-        N7Cw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:content-type:date:date
-        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; t=1693931884; x=1694018284; bh=211jhUVDutOPY
-        Wl/TUpiZdIjCc0S5zbUfDCJu+M5WtQ=; b=ISEKd62joyIdwKbrd5C8utIydRrzJ
-        syzxlsH6i2ic6TT+fsBTvJNKdf9Vplpe1+e7sP6x0Ov0GJZiiYZAyr410kUO71HO
-        wchOeOdyQ5DeCaATg2Od7iz7CROszj56IW5Er5kI0ICLqYWJZvEBHL+aF31YgzHO
-        Lxr7ZR5Q14ruTElgWuog86gq8cG4oIUhim/itWAFitoP1DUo0qTic503Yj+cr110
-        /092egBYW903nS7hKItlWfYuOgA0THPMtKXFcilVxJr1zB3rp1TyV5FPU83PEnBB
-        WqaveDOy2JDgwGgA9gj/msR1XEhZ3/BHiaZ2puMAY434VWd72ocwyKsfw==
-X-ME-Sender: <xms:bFn3ZL-aV8hTm7XsLdLTp4Dn3mHMsSEP6ovGEgszee4hEkboN9JLfg>
-    <xme:bFn3ZHuZXpQhuY5IGdjXfJaTgnYOwrZV4SwwAbqhS0ay0T5jQq6rY4yobF9s4cLr4
-    2ljJkzmG8f5SCiA7g>
-X-ME-Received: <xmr:bFn3ZJAz8Egxu7gzyLJNTszuD6nHzhofkcF68ymds5kcDVaPOXaeP-Nc0JvWCPOqeNDEDoN5J9Naf9C6YB-L82vkeC-2_Z6a2EFJRKA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedviedrudehuddgkedtucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    gfrhhlucfvnfffucdlfeehmdenucfjughrpeffhffvvefukfhfgggtuggjsehttdfstddt
-    tddvnecuhfhrohhmpeffrghnihgvlhcuighuuceougiguhesugiguhhuuhdrgiihiieqne
-    cuggftrfgrthhtvghrnhepvdefkeetuddufeeigedtheefffekuedukeehudffudfffffg
-    geeitdetgfdvhfdvnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
-    hfrhhomhepugiguhesugiguhhuuhdrgiihii
-X-ME-Proxy: <xmx:bFn3ZHfAPIp0Lnej5eB6PeOofxboA1HmGJo8HzBSbzlcvpH5IY8fuQ>
-    <xmx:bFn3ZAOhwExOvcbwdNdRdvW_vB3vswyVteirryymvt2BtuUI9cjvDw>
-    <xmx:bFn3ZJncV0gQxRVw-y9uqss9Z72bh5OZFvHv1HF-FqbED18RpS4d1g>
-    <xmx:bFn3ZMAtbfd8GVfs_yiKUQZk7W6VVtCp8J4yCGFFV94ib-YtqOomoQ>
-Feedback-ID: i6a694271:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 5 Sep 2023 12:38:03 -0400 (EDT)
-Date:   Tue, 5 Sep 2023 10:38:02 -0600
-From:   Daniel Xu <dxu@dxuuu.xyz>
-To:     David Wang <00107082@163.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
- definition from macro to enum
-Message-ID: <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
-References: <20230904130201.14632-1-00107082@163.com>
+        Tue, 5 Sep 2023 14:59:48 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FDF0A9
+        for <netfilter-devel@vger.kernel.org>; Tue,  5 Sep 2023 11:59:19 -0700 (PDT)
+Received: from [78.30.34.192] (port=56356 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qdbFe-00Ds3j-8x; Tue, 05 Sep 2023 20:58:17 +0200
+Date:   Tue, 5 Sep 2023 20:58:12 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] evaluate: fix get element for concatenated set
+Message-ID: <ZPd6RGiItVPcfGsi@calendula>
+References: <20230905144141.9290-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230904130201.14632-1-00107082@163.com>
+In-Reply-To: <20230905144141.9290-1-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi David,
+On Tue, Sep 05, 2023 at 04:41:38PM +0200, Florian Westphal wrote:
+> given:
+> table ip filter {
+> 	set test {
+> 		type ipv4_addr . ether_addr . mark
+> 		flags interval
+> 		elements = { 198.51.100.0/25 . 00:0b:0c:ca:cc:10-c1:a0:c1:cc:10:00 . 0x0000006f, }
+> 	}
+> }
+> 
+> We get lookup failure:
+> 
+> nft get element ip filter test { 198.51.100.1 . 00:0b:0c:ca:cc:10 . 0x6f }
+> Error: Could not process rule: No such file or directory
+> 
+> Its possible to work around this via dummy range somewhere in the key, e.g.
+> nft get element ip filter test { 198.51.100.1 . 00:0b:0c:ca:cc:10 . 0x6f-0x6f }
+> 
+> but that shouldn't be needed, so make sure the INTERVAL flag is enabled
+> for the queried element if the set is of interval type.
 
-On Mon, Sep 04, 2023 at 09:02:02PM +0800, David Wang wrote:
-> As BPF_PROG_TYPE_NETFILTER was added in 6.4, a netfilter
-> bpf program can attach to netfilter hooks, process package
-> and return verdict back to netfilter. But those verdict
-> codes are defined as macro, which could not be compiled
-> into BTF with btf.c. libbpf, and maybe other bpf tools,
-> would extract information from BTF and generate a
-> common header "vmlinux.h". With macro definition, netfilter
-> bpf program would have to redefine those macro again,
-> besides including "vmlinux.h".
-> 
-> This code change netfilter hook verdict code definition to
-> enum, this way,  make it into BTF.
-> 
-> Signed-off-by: David Wang <00107082@163.com>
+LGTM, comment below:
+
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  include/uapi/linux/netfilter.h | 16 +++++++++-------
->  1 file changed, 9 insertions(+), 7 deletions(-)
+>  src/evaluate.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
 > 
-> diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
-> index 5a79ccb76701..d2f5dfab20dc 100644
-> --- a/include/uapi/linux/netfilter.h
-> +++ b/include/uapi/linux/netfilter.h
-> @@ -8,13 +8,15 @@
->  #include <linux/in6.h>
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index ab3ec98739e9..b1fe7147c2e1 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -4500,11 +4500,14 @@ static int setelem_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
+>  		return -1;
 >  
->  /* Responses from hook functions. */
-> -#define NF_DROP 0
-> -#define NF_ACCEPT 1
-> -#define NF_STOLEN 2
-> -#define NF_QUEUE 3
-> -#define NF_REPEAT 4
-> -#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
-> -#define NF_MAX_VERDICT NF_STOP
-> +enum {
-> +	NF_DROP        = 0,
-> +	NF_ACCEPT      = 1,
-> +	NF_STOLEN      = 2,
-> +	NF_QUEUE       = 3,
-> +	NF_REPEAT      = 4,
-> +	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
-> +	NF_MAX_VERDICT = NF_STOP,
-> +};
+>  	cmd->elem.set = set_get(set);
+> +	if (set_is_interval(ctx->set->flags)) {
+> +		if (!(set->flags & NFT_SET_CONCAT) &&
+> +		    interval_set_eval(ctx, ctx->set, cmd->expr) < 0)
+> +			return -1;
+>  
+> -	if (set_is_interval(ctx->set->flags) &&
+> -	    !(set->flags & NFT_SET_CONCAT) &&
+> -	    interval_set_eval(ctx, ctx->set, cmd->expr) < 0)
+> -		return -1;
+> +		if (cmd->expr->etype == EXPR_SET)
 
-Switching from macro to enum works for almost all use cases, but not
-all. If someone if #ifdefing the symbols (which is plausible) this
-change would break them.
+setelem_evaluate() is always called for CMD_OBJ_ELEMENTS.
 
-I think I've seen some other networking code define both enums and
-macros. But it was a little ugly. Not sure if that is acceptable here or
-not.
+I think this branch always evaluates 'true'.
 
-[...]
+                if (cmd->expr->etype == EXPR_SET)
 
-Thanks,
-Daniel
+
+> +			cmd->expr->set_flags |= NFT_SET_INTERVAL;
+
+so maybe set_flags inconditionally?
+
+> +	}
+>  
+>  	ctx->set = NULL;
+>  
+> -- 
+> 2.41.0
+> 
