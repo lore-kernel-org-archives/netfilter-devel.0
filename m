@@ -2,131 +2,91 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF99EB8FAF
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 09:42:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECDDEB8FA5
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 10:05:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235849AbjIFJmc (ORCPT
+        id S238591AbjIFKFf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Sep 2023 05:42:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48032 "EHLO
+        Wed, 6 Sep 2023 06:05:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236139AbjIFJm2 (ORCPT
+        with ESMTP id S238805AbjIFKF1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2023 05:42:28 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6DA961723
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 02:42:11 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     phil@nwl.cc
-Subject: [PATCH nf] netfilter: nf_tables: Unbreak audit log reset
-Date:   Wed,  6 Sep 2023 11:42:02 +0200
-Message-Id: <20230906094202.1712-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Wed, 6 Sep 2023 06:05:27 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67D5919BA
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 03:04:43 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qdpOq-0005e2-S2; Wed, 06 Sep 2023 12:04:40 +0200
+Date:   Wed, 6 Sep 2023 12:04:40 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH RFC] tests: add feature probing
+Message-ID: <20230906100440.GD9603@breakpoint.cc>
+References: <20230831135112.30306-1-fw@strlen.de>
+ <c322af5a87a7a4b31d4c4897fe5c3059e9735b4e.camel@redhat.com>
+ <20230904085301.GC11802@breakpoint.cc>
+ <7731edd7662e606a06b1d4c60fb4cff9096fa758.camel@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7731edd7662e606a06b1d4c60fb4cff9096fa758.camel@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Deliver audit log from __nf_tables_dump_rules(), table dereference at
-the end of the table list loop might point to the list head, leading to
-this crash.
+Thomas Haller <thaller@redhat.com> wrote:
+> On Mon, 2023-09-04 at 10:53 +0200, Florian Westphal wrote:
+> > Thomas Haller <thaller@redhat.com> wrote:
+> > > 
+> > > 
+> > > But why this "nft -f" specific detection? Why not just executable
+> > > scripts?
+> > 
+> > Because I want it to be simple,
+> 
+> It does not seem "simple[r]" to me. The approach requires extra
+> infrastructure in run-test.sh, while being less flexible.
 
-[ 4137.407349] BUG: unable to handle page fault for address: 00000000001f3c50
-[ 4137.407357] #PF: supervisor read access in kernel mode
-[ 4137.407359] #PF: error_code(0x0000) - not-present page
-[ 4137.407360] PGD 0 P4D 0
-[ 4137.407363] Oops: 0000 [#1] PREEMPT SMP PTI
-[ 4137.407365] CPU: 4 PID: 500177 Comm: nft Not tainted 6.5.0+ #277
-[ 4137.407369] RIP: 0010:string+0x49/0xd0
-[ 4137.407374] Code: ff 77 36 45 89 d1 31 f6 49 01 f9 66 45 85 d2 75 19 eb 1e 49 39 f8 76 02 88 07 48 83 c7 01 83 c6 01 48 83 c2 01 4c 39 cf 74 07 <0f> b6 02 84 c0 75 e2 4c 89 c2 e9 58 e5 ff ff 48 c7 c0 0e b2 ff 81
-[ 4137.407377] RSP: 0018:ffff8881179737f0 EFLAGS: 00010286
-[ 4137.407379] RAX: 00000000001f2c50 RBX: ffff888117973848 RCX: ffff0a00ffffff04
-[ 4137.407380] RDX: 00000000001f3c50 RSI: 0000000000000000 RDI: 0000000000000000
-[ 4137.407381] RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000ffffffff
-[ 4137.407383] R10: ffffffffffffffff R11: ffff88813584d200 R12: 0000000000000000
-[ 4137.407384] R13: ffffffffa15cf709 R14: 0000000000000000 R15: ffffffffa15cf709
-[ 4137.407385] FS:  00007fcfc18bb580(0000) GS:ffff88840e700000(0000) knlGS:0000000000000000
-[ 4137.407387] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 4137.407388] CR2: 00000000001f3c50 CR3: 00000001055b2001 CR4: 00000000001706e0
-[ 4137.407390] Call Trace:
-[ 4137.407392]  <TASK>
-[ 4137.407393]  ? __die+0x1b/0x60
-[ 4137.407397]  ? page_fault_oops+0x6b/0xa0
-[ 4137.407399]  ? exc_page_fault+0x60/0x120
-[ 4137.407403]  ? asm_exc_page_fault+0x22/0x30
-[ 4137.407408]  ? string+0x49/0xd0
-[ 4137.407410]  vsnprintf+0x257/0x4f0
-[ 4137.407414]  kvasprintf+0x3e/0xb0
-[ 4137.407417]  kasprintf+0x3e/0x50
-[ 4137.407419]  nf_tables_dump_rules+0x1c0/0x360 [nf_tables]
-[ 4137.407439]  ? __alloc_skb+0xc3/0x170
-[ 4137.407442]  netlink_dump+0x170/0x330
-[ 4137.407447]  __netlink_dump_start+0x227/0x300
-[ 4137.407449]  nf_tables_getrule+0x205/0x390 [nf_tables]
+I can add bla.nft and use nft --check -f bla.nft.
 
-Deliver audit log only once at the end of the rule dump+reset for
-consistency with the set dump+reset.
+Or, I can add bla.sh, which does
 
-Ensure audit reset access to table under rcu read side lock. The table
-list iteration holds rcu read lock side, but recent audit code
-dereferences table object out of the rcu read lock side.
+exec $NFT -f - <<EOF
+table ...
+EOF
 
-Fixes: ea078ae9108e ("netfilter: nf_tables: Audit log rule reset")
-Fixes: 7e9be1124dbe ("netfilter: nf_tables: Audit log setelem reset")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Supersedes:
-netfilter: nf_tables: ensure audit reset access to table under rcu read side lock
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230902185656.12022-1-pablo@netfilter.org/
+I see zero reason why we can't add scripts later on if there
+are cases where flat-files don't work.
 
- net/netfilter/nf_tables_api.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+At this point, its just more boilerplate to add a script wrapper
+around the .nft file.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2c81cee858d6..e429ebba74b3 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3480,6 +3480,10 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- cont_skip:
- 		(*idx)++;
- 	}
-+
-+	if (reset && *idx)
-+		audit_log_rule_reset(table, cb->seq, *idx);
-+
- 	return 0;
- }
- 
-@@ -3540,9 +3544,6 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- done:
- 	rcu_read_unlock();
- 
--	if (reset && idx > cb->args[0])
--		audit_log_rule_reset(table, cb->seq, idx - cb->args[0]);
--
- 	cb->args[0] = idx;
- 	return skb->len;
- }
-@@ -5760,8 +5761,6 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 	if (!args.iter.err && args.iter.count == cb->args[0])
- 		args.iter.err = nft_set_catchall_dump(net, skb, set,
- 						      reset, cb->seq);
--	rcu_read_unlock();
--
- 	nla_nest_end(skb, nest);
- 	nlmsg_end(skb, nlh);
- 
-@@ -5769,6 +5768,8 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 		audit_log_nft_set_reset(table, cb->seq,
- 					args.iter.count - args.iter.skip);
- 
-+	rcu_read_unlock();
-+
- 	if (args.iter.err && args.iter.err != -EMSGSIZE)
- 		return args.iter.err;
- 	if (args.iter.count == cb->args[0])
--- 
-2.30.2
+> > I could do that, but I don't see the need for arbitrary scripts so
+> > far.
+> 
+> When building without JSON support, various tests fail, but should be
+> skipped.
+> 
+> Could we detect JSON support via .nft files? Would we drop then a JSON
+> .nft file and change the check call to `nft --check -j`?).
 
+No, but the test that should be skipped can do
+
+$NFT -j list ruleset || exit 77
+
+as first line of the script, no need to load any files, nft will fail
+with error in case its not built with json support.
+
+> Or maybe detection of JSON support needs to be a shell script (doing
+> `ldd "$NFT_REAL" | greq libjansson`)? In that case, we would have
+> features-as-shell-scripts very soon.
+
+Sure, I see no reason why to not have both.  The flat files have the
+'*nft' suffix for a reason...
+
+I'll no longer work on this for the remainder of the month due to
+time constraints.
