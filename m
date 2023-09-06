@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2123EE14B2
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 16:56:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8E68EE14B3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 16:56:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239046AbjIFQ4f (ORCPT
+        id S237118AbjIFQ4t (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Sep 2023 12:56:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59098 "EHLO
+        Wed, 6 Sep 2023 12:56:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241497AbjIFQ4e (ORCPT
+        with ESMTP id S241497AbjIFQ4t (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2023 12:56:34 -0400
+        Wed, 6 Sep 2023 12:56:49 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CBC3199A
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 09:56:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6C9519B1
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 09:56:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
         To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
         Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
         In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=fus59mgn6qgmWV5mFvn+lwddI1cwRqVPr6hLGBNCHhE=; b=Ni8hJC6o/JKIi4PDJa2pkMHYzx
-        sn8sAtP7YwOw4er/Pjp7Dq+tkksVS/sOZr1rQ60x5vhwh2a0ZBamIh2sNq6JG0NX6woSYD3dlxyEf
-        FOHG6VVMo5Q1/qRIHYFSGp/sqM37GGWxR/1CNm6HA8bq/KY56jBraEKywI51Di83PjYwAEgO6SoT+
-        DM68A9mWkhN7jMfwh2lBA5S313bPvkSUlC2qyrwYbS5JG7YZne6P3z5sfxzSmqE9Z07RvTeShpsLT
-        SsBm9uqbR3T4otNt2ZzYwKbO+IJ4x+SCxatyhdl4obpcXffnMHv41DmE5WcQJNYP2O9raK7LUjrHO
-        EssleB+w==;
+        bh=J7bxh+sM8aRYS6ppjZchPgVZbZ+D3rgABx7Wbxizv9Q=; b=hKqgn8ZGTgKvJS7xgzE4iT46i1
+        vNXl63+LhIQo4xAGPrcQZ/tsq9cjyWBjqQybkqs9ssKWA2LCmLO7Yx9FcS/G3MqYsJVHPkuXZS+f7
+        NX4GPlw0/iRGGFxVgMeblHldGtzv9yykz3lfhE+wz1L7Dluc2W8pdSen12tKaOPLnk/Ya9KXLz563
+        v3E5PykgacnFZ1S+6qCOuyYBlLoe0jnbkom2HPK8MaeI6Vsi4c3aGTdZXtZ1loEPgNCwKfFuqvvEa
+        YHfeHVWX6EbZ8lQWer5VP40Oc8jTa2V3wZJcmvX0BvsjAGllaCAxbLWyxjkbr4Y4fdP5CEEeQ9fMy
+        BQCxAZ4w==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qdvpD-00087z-T9
-        for netfilter-devel@vger.kernel.org; Wed, 06 Sep 2023 18:56:19 +0200
+        id 1qdvpU-00088C-0G
+        for netfilter-devel@vger.kernel.org; Wed, 06 Sep 2023 18:56:36 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] nft: Fix for useless meta expressions in rule
-Date:   Wed,  6 Sep 2023 19:07:51 +0200
-Message-ID: <20230906170751.23040-1-phil@nwl.cc>
+Subject: [iptables PATCH] include: linux: Update kernel.h
+Date:   Wed,  6 Sep 2023 19:08:07 +0200
+Message-ID: <20230906170807.23100-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -45,274 +45,143 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A relict of legacy iptables' mandatory matching on interfaces and IP
-addresses is support for the '-i +' notation, basically a "match any
-input interface". Trying to make things better than its predecessor,
-iptables-nft boldly optimizes that nop away - not entirely though, the
-meta expression loading the interface name was left in place. While not
-a problem (apart from pointless overhead) in current HEAD, v1.8.7 would
-trip over this as a following cmp expression (for another match) was
-incorrectly linked to that stale meta expression, loading strange values
-into the respective interface name field.
+Its contents were moved into const.h and sysinfo.h, apply these changes
+to the cached copies. Fixes for the following warning when compiling
+xtables-monitor.c with new kernel headers in /usr/include:
 
-While being at it, merge and generalize the functions into a common one
-for use with ebtables' NFT_META_BRI_(I|O)IFNAME matches, too.
+| In file included from ../include/linux/netfilter/x_tables.h:3,
+|                  from ../include/xtables.h:19,
+|                  from xtables-monitor.c:36:
+| ../include/linux/kernel.h:7: warning: "__ALIGN_KERNEL" redefined
+|     7 | #define __ALIGN_KERNEL(x, a)            __ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+|       |
+| In file included from /usr/include/linux/netlink.h:5,
+|                  from /home/n0-1/git/libmnl/install/include/libmnl/libmnl.h:9,
+|                  from xtables-monitor.c:30:
+| /usr/include/linux/const.h:31: note: this is the location of the previous definition
+|    31 | #define __ALIGN_KERNEL(x, a)            __ALIGN_KERNEL_MASK(x, (__typeof__(x))(a) - 1)
+|       |
 
-Fixes: 0a8635183edd0 ("xtables-compat: ignore '+' interface name")
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1702
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/libebt_standard.t  |  4 ++++
- extensions/libip6t_standard.t |  3 +++
- extensions/libxt_standard.t   |  2 ++
- iptables/nft-arp.c            |  4 ++--
- iptables/nft-bridge.c         | 38 ++++-------------------------
- iptables/nft-ipv4.c           |  4 ++--
- iptables/nft-ipv6.c           |  4 ++--
- iptables/nft-shared.c         | 45 ++++++++++++-----------------------
- iptables/nft-shared.h         |  4 ++--
- 9 files changed, 36 insertions(+), 72 deletions(-)
+ include/linux/const.h   | 36 ++++++++++++++++++++++++++++++++++++
+ include/linux/kernel.h  | 29 ++++-------------------------
+ include/linux/sysinfo.h | 25 +++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+), 25 deletions(-)
+ create mode 100644 include/linux/const.h
+ create mode 100644 include/linux/sysinfo.h
 
-diff --git a/extensions/libebt_standard.t b/extensions/libebt_standard.t
-index 97cb3baaf6d21..370a12f4a2cec 100644
---- a/extensions/libebt_standard.t
-+++ b/extensions/libebt_standard.t
-@@ -14,6 +14,10 @@
- -o foobar;=;FAIL
- --logical-in br0;=;OK
- --logical-out br1;=;FAIL
-+-i + -d 00:0f:ee:d0:ba:be;-d 00:0f:ee:d0:ba:be;OK
-+-i + -p ip;-p IPv4;OK
-+--logical-in + -d 00:0f:ee:d0:ba:be;-d 00:0f:ee:d0:ba:be;OK
-+--logical-in + -p ip;-p IPv4;OK
- :FORWARD
- -i foobar;=;OK
- -o foobar;=;OK
-diff --git a/extensions/libip6t_standard.t b/extensions/libip6t_standard.t
-index a528af10ea152..0c559cc5021f6 100644
---- a/extensions/libip6t_standard.t
-+++ b/extensions/libip6t_standard.t
-@@ -3,3 +3,6 @@
- ! -d ::;! -d ::/128;OK
- ! -s ::;! -s ::/128;OK
- -s ::/64;=;OK
-+:INPUT
-+-i + -d c0::fe;-d c0::fe/128;OK
-+-i + -p tcp;-p tcp;OK
-diff --git a/extensions/libxt_standard.t b/extensions/libxt_standard.t
-index 6ed978e442b80..7c83cfa3ba232 100644
---- a/extensions/libxt_standard.t
-+++ b/extensions/libxt_standard.t
-@@ -24,3 +24,5 @@
- :FORWARD
- --protocol=tcp --source=1.2.3.4 --destination=5.6.7.8/32 --in-interface=eth0 --out-interface=eth1 --jump=ACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
- -ptcp -s1.2.3.4 -d5.6.7.8/32 -ieth0 -oeth1 -jACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
-+-i + -d 1.2.3.4;-d 1.2.3.4/32;OK
-+-i + -p tcp;-p tcp;OK
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 9868966a03688..aed39ebdd5166 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -49,12 +49,12 @@ static int nft_arp_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
+diff --git a/include/linux/const.h b/include/linux/const.h
+new file mode 100644
+index 0000000000000..1eb84b5087f8a
+--- /dev/null
++++ b/include/linux/const.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/* const.h: Macros for dealing with constants.  */
++
++#ifndef _LINUX_CONST_H
++#define _LINUX_CONST_H
++
++/* Some constant macros are used in both assembler and
++ * C code.  Therefore we cannot annotate them always with
++ * 'UL' and other type specifiers unilaterally.  We
++ * use the following macros to deal with this.
++ *
++ * Similarly, _AT() will cast an expression with a type in C, but
++ * leave it unchanged in asm.
++ */
++
++#ifdef __ASSEMBLY__
++#define _AC(X,Y)	X
++#define _AT(T,X)	X
++#else
++#define __AC(X,Y)	(X##Y)
++#define _AC(X,Y)	__AC(X,Y)
++#define _AT(T,X)	((T)(X))
++#endif
++
++#define _UL(x)		(_AC(x, UL))
++#define _ULL(x)		(_AC(x, ULL))
++
++#define _BITUL(x)	(_UL(1) << (x))
++#define _BITULL(x)	(_ULL(1) << (x))
++
++#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (__typeof__(x))(a) - 1)
++#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
++
++#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
++
++#endif /* _LINUX_CONST_H */
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index d4c59f6557d35..5413a8c50bfe4 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -1,29 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+ #ifndef _LINUX_KERNEL_H
+ #define _LINUX_KERNEL_H
  
- 	if (fw->arp.iniface[0] != '\0') {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_VIA_IN);
--		add_iniface(h, r, fw->arp.iniface, op);
-+		add_iface(h, r, fw->arp.iniface, NFT_META_IIFNAME, op);
- 	}
+-/*
+- * 'kernel.h' contains some often-used function prototypes etc
+- */
+-#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+-#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
++#include <linux/sysinfo.h>
++#include <linux/const.h>
  
- 	if (fw->arp.outiface[0] != '\0') {
- 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_VIA_OUT);
--		add_outiface(h, r, fw->arp.outiface, op);
-+		add_iface(h, r, fw->arp.outiface, NFT_META_OIFNAME, op);
- 	}
- 
- 	if (fw->arp.arhrd != 0 ||
-diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
-index 391a8ab723c1c..d9a8ad2b0f373 100644
---- a/iptables/nft-bridge.c
-+++ b/iptables/nft-bridge.c
-@@ -65,36 +65,6 @@ static void ebt_print_mac_and_mask(const unsigned char *mac, const unsigned char
- 		xtables_print_mac_and_mask(mac, mask);
- }
- 
--static void add_logical_iniface(struct nft_handle *h, struct nftnl_rule *r,
--				char *iface, uint32_t op)
--{
--	int iface_len;
--	uint8_t reg;
 -
--	iface_len = strlen(iface);
+-#define SI_LOAD_SHIFT	16
+-struct sysinfo {
+-	long uptime;			/* Seconds since boot */
+-	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
+-	unsigned long totalram;		/* Total usable main memory size */
+-	unsigned long freeram;		/* Available memory size */
+-	unsigned long sharedram;	/* Amount of shared memory */
+-	unsigned long bufferram;	/* Memory used by buffers */
+-	unsigned long totalswap;	/* Total swap space size */
+-	unsigned long freeswap;		/* swap space still available */
+-	unsigned short procs;		/* Number of current processes */
+-	unsigned short pad;		/* explicit padding for m68k */
+-	unsigned long totalhigh;	/* Total high memory size */
+-	unsigned long freehigh;		/* Available high memory size */
+-	unsigned int mem_unit;		/* Memory unit size in bytes */
+-	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
+-};
 -
--	add_meta(h, r, NFT_META_BRI_IIFNAME, &reg);
--	if (iface[iface_len - 1] == '+')
--		add_cmp_ptr(r, op, iface, iface_len - 1, reg);
--	else
--		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
--}
--
--static void add_logical_outiface(struct nft_handle *h, struct nftnl_rule *r,
--				 char *iface, uint32_t op)
--{
--	int iface_len;
--	uint8_t reg;
--
--	iface_len = strlen(iface);
--
--	add_meta(h, r, NFT_META_BRI_OIFNAME, &reg);
--	if (iface[iface_len - 1] == '+')
--		add_cmp_ptr(r, op, iface, iface_len - 1, reg);
--	else
--		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
--}
--
- static int add_meta_broute(struct nftnl_rule *r)
- {
- 	struct nftnl_expr *expr;
-@@ -180,22 +150,22 @@ static int nft_bridge_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 
- 	if (fw->in[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_IIN);
--		add_iniface(h, r, fw->in, op);
-+		add_iface(h, r, fw->in, NFT_META_IIFNAME, op);
- 	}
- 
- 	if (fw->out[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_IOUT);
--		add_outiface(h, r, fw->out, op);
-+		add_iface(h, r, fw->out, NFT_META_OIFNAME, op);
- 	}
- 
- 	if (fw->logical_in[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALIN);
--		add_logical_iniface(h, r, fw->logical_in, op);
-+		add_iface(h, r, fw->logical_in, NFT_META_BRI_IIFNAME, op);
- 	}
- 
- 	if (fw->logical_out[0] != '\0') {
- 		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALOUT);
--		add_logical_outiface(h, r, fw->logical_out, op);
-+		add_iface(h, r, fw->logical_out, NFT_META_BRI_OIFNAME, op);
- 	}
- 
- 	if ((fw->bitmask & EBT_NOPROTO) == 0) {
-diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-index 2f10220edd509..75912847aea3e 100644
---- a/iptables/nft-ipv4.c
-+++ b/iptables/nft-ipv4.c
-@@ -51,12 +51,12 @@ static int nft_ipv4_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 
- 	if (cs->fw.ip.iniface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_VIA_IN);
--		add_iniface(h, r, cs->fw.ip.iniface, op);
-+		add_iface(h, r, cs->fw.ip.iniface, NFT_META_IIFNAME, op);
- 	}
- 
- 	if (cs->fw.ip.outiface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_VIA_OUT);
--		add_outiface(h, r, cs->fw.ip.outiface, op);
-+		add_iface(h, r, cs->fw.ip.outiface, NFT_META_OIFNAME, op);
- 	}
- 
- 	if (cs->fw.ip.proto != 0) {
-diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
-index d53f87c1d26e3..5aef365b79f2a 100644
---- a/iptables/nft-ipv6.c
-+++ b/iptables/nft-ipv6.c
-@@ -54,12 +54,12 @@ static int nft_ipv6_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 
- 	if (cs->fw6.ipv6.iniface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_VIA_IN);
--		add_iniface(h, r, cs->fw6.ipv6.iniface, op);
-+		add_iface(h, r, cs->fw6.ipv6.iniface, NFT_META_IIFNAME, op);
- 	}
- 
- 	if (cs->fw6.ipv6.outiface[0] != '\0') {
- 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_VIA_OUT);
--		add_outiface(h, r, cs->fw6.ipv6.outiface, op);
-+		add_iface(h, r, cs->fw6.ipv6.outiface, NFT_META_OIFNAME, op);
- 	}
- 
- 	if (cs->fw6.ipv6.proto != 0) {
-diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
-index 34ca9d16569d0..6775578b1e36b 100644
---- a/iptables/nft-shared.c
-+++ b/iptables/nft-shared.c
-@@ -147,44 +147,29 @@ void add_cmp_u32(struct nftnl_rule *r, uint32_t val, uint32_t op, uint8_t sreg)
- 	add_cmp_ptr(r, op, &val, sizeof(val), sreg);
- }
- 
--void add_iniface(struct nft_handle *h, struct nftnl_rule *r,
--		 char *iface, uint32_t op)
-+void add_iface(struct nft_handle *h, struct nftnl_rule *r,
-+	       char *iface, uint32_t key, uint32_t op)
- {
--	int iface_len;
-+	int iface_len = strlen(iface);
- 	uint8_t reg;
- 
--	iface_len = strlen(iface);
- 
--	add_meta(h, r, NFT_META_IIFNAME, &reg);
- 	if (iface[iface_len - 1] == '+') {
--		if (iface_len > 1)
--			add_cmp_ptr(r, op, iface, iface_len - 1, reg);
--		else if (op != NFT_CMP_EQ)
--			add_cmp_ptr(r, NFT_CMP_EQ, "INVAL/D",
--				    strlen("INVAL/D") + 1, reg);
-+		if (iface_len > 1) {
-+			iface_len -= 1;
-+		} else if (op != NFT_CMP_EQ) {
-+			op = NFT_CMP_EQ;
-+			iface = "INVAL/D";
-+			iface_len = strlen(iface) + 1;
-+		} else {
-+			return; /* -o + */
-+		}
- 	} else {
--		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
-+		iface_len += 1;
- 	}
--}
--
--void add_outiface(struct nft_handle *h, struct nftnl_rule *r,
--		  char *iface, uint32_t op)
--{
--	int iface_len;
--	uint8_t reg;
- 
--	iface_len = strlen(iface);
--
--	add_meta(h, r, NFT_META_OIFNAME, &reg);
--	if (iface[iface_len - 1] == '+') {
--		if (iface_len > 1)
--			add_cmp_ptr(r, op, iface, iface_len - 1, reg);
--		else if (op != NFT_CMP_EQ)
--			add_cmp_ptr(r, NFT_CMP_EQ, "INVAL/D",
--				    strlen("INVAL/D") + 1, reg);
--	} else {
--		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
--	}
-+	add_meta(h, r, key, &reg);
-+	add_cmp_ptr(r, op, iface, iface_len, reg);
- }
- 
- void add_addr(struct nft_handle *h, struct nftnl_rule *r,
-diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
-index 4f47058d2ec5c..51d1e4609a3b6 100644
---- a/iptables/nft-shared.h
-+++ b/iptables/nft-shared.h
-@@ -95,8 +95,8 @@ void add_cmp_ptr(struct nftnl_rule *r, uint32_t op, void *data, size_t len, uint
- void add_cmp_u8(struct nftnl_rule *r, uint8_t val, uint32_t op, uint8_t sreg);
- void add_cmp_u16(struct nftnl_rule *r, uint16_t val, uint32_t op, uint8_t sreg);
- void add_cmp_u32(struct nftnl_rule *r, uint32_t val, uint32_t op, uint8_t sreg);
--void add_iniface(struct nft_handle *h, struct nftnl_rule *r, char *iface, uint32_t op);
--void add_outiface(struct nft_handle *h, struct nftnl_rule *r, char *iface, uint32_t op);
-+void add_iface(struct nft_handle *h, struct nftnl_rule *r,
-+	       char *iface, uint32_t key, uint32_t op);
- void add_addr(struct nft_handle *h, struct nftnl_rule *r, enum nft_payload_bases base, int offset,
- 	      void *data, void *mask, size_t len, uint32_t op);
- void add_proto(struct nft_handle *h, struct nftnl_rule *r, int offset, size_t len,
+-#endif
++#endif /* _LINUX_KERNEL_H */
+diff --git a/include/linux/sysinfo.h b/include/linux/sysinfo.h
+new file mode 100644
+index 0000000000000..435d5c23f0c0e
+--- /dev/null
++++ b/include/linux/sysinfo.h
+@@ -0,0 +1,25 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _LINUX_SYSINFO_H
++#define _LINUX_SYSINFO_H
++
++#include <linux/types.h>
++
++#define SI_LOAD_SHIFT	16
++struct sysinfo {
++	__kernel_long_t uptime;		/* Seconds since boot */
++	__kernel_ulong_t loads[3];	/* 1, 5, and 15 minute load averages */
++	__kernel_ulong_t totalram;	/* Total usable main memory size */
++	__kernel_ulong_t freeram;	/* Available memory size */
++	__kernel_ulong_t sharedram;	/* Amount of shared memory */
++	__kernel_ulong_t bufferram;	/* Memory used by buffers */
++	__kernel_ulong_t totalswap;	/* Total swap space size */
++	__kernel_ulong_t freeswap;	/* swap space still available */
++	__u16 procs;		   	/* Number of current processes */
++	__u16 pad;		   	/* Explicit padding for m68k */
++	__kernel_ulong_t totalhigh;	/* Total high memory size */
++	__kernel_ulong_t freehigh;	/* Available high memory size */
++	__u32 mem_unit;			/* Memory unit size in bytes */
++	char _f[20-2*sizeof(__kernel_ulong_t)-sizeof(__u32)];	/* Padding: libc5 uses this.. */
++};
++
++#endif /* _LINUX_SYSINFO_H */
 -- 
 2.41.0
 
