@@ -2,105 +2,131 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E15EB8FA5
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 05:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF99EB8FAF
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 09:42:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240898AbjIFFqD (ORCPT
+        id S235849AbjIFJmc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Sep 2023 01:46:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35580 "EHLO
+        Wed, 6 Sep 2023 05:42:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233278AbjIFFqC (ORCPT
+        with ESMTP id S236139AbjIFJm2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2023 01:46:02 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A9F010C3
-        for <netfilter-devel@vger.kernel.org>; Tue,  5 Sep 2023 22:44:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1693979097;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=CePulaA3b8HjHd0g3NyB6jArjIXrg8OfnYBmh9El8Jc=;
-        b=icMTDL5l2XPbhsXWribIazJnKC9rBQmTJlxgNJjevLb+ZTC8tKiPesQ4FaWFqNsNDNP2Ja
-        aDd/hM3ZrkR2mXOHKgbmFM/atSA7F1MwOOCYdw3D4K/1mwrphUhaQgsyNfE6HuLKZMlJiG
-        sqkbuDhXpzTYnrPf/ePYGGfDh12SzrE=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-561-yKblL5OQP8qSA4TDwivM0g-1; Wed, 06 Sep 2023 01:44:56 -0400
-X-MC-Unique: yKblL5OQP8qSA4TDwivM0g-1
-Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-9a1aaaf6460so69655566b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Sep 2023 22:44:56 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693979095; x=1694583895;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=CePulaA3b8HjHd0g3NyB6jArjIXrg8OfnYBmh9El8Jc=;
-        b=MFbLZkx8xfacLa6OUUxu+1+qOa7vdU1AIamerWMoGbK9HqtK8JhvBB2zK0HwWmq5DE
-         HBcvM5hmYynJ7JNomqIyyo+IapC51ayOZobzUv4sRVw4KA5XhxfwIX00gMGEXJB4/Sbb
-         qOZzaDnZ4whcN0JM1WHLWC00+HoX1M6AeVuDblKnwqkbvBazu+HGbnVDtWTxf9vkv3Kq
-         eX/HJ0qaWNS85+7zYQfYyTY86SopMqCxkJsO+ZA9/njY3W6MHRSoOQdEFavWgRVVYJfs
-         1WppXoRKNZIcirYzhPLGVnZgClEZu9NlIH35HAjJ0ETRDJ5hUekzDXbaANdGlx7Wv8cx
-         TcAQ==
-X-Gm-Message-State: AOJu0Yya5KSIBT5hygJeYlgtAQ5CksgN0p2I2RRHfH+yv2JeYTaapn2D
-        Y3YC6vgQI3cgc8LLs7OqKmhAsjCzCAh9CjoIRa+pQl96Bp4xyfX8o5g2DtRhvwAamewNbfhM0ee
-        7MFqN7kL5tWBTz57tmJSFzOofbpjI
-X-Received: by 2002:a05:6402:50cf:b0:522:e6b0:8056 with SMTP id h15-20020a05640250cf00b00522e6b08056mr10777984edb.4.1693979095360;
-        Tue, 05 Sep 2023 22:44:55 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGN8+ATv8/91rTqcUDEbfWTM0p3T8yuwuiV45/EpNxdAbgmq9FIoeXpibXiJwbEbUgg+cOChg==
-X-Received: by 2002:a05:6402:50cf:b0:522:e6b0:8056 with SMTP id h15-20020a05640250cf00b00522e6b08056mr10777978edb.4.1693979095044;
-        Tue, 05 Sep 2023 22:44:55 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.167.86])
-        by smtp.gmail.com with ESMTPSA id f2-20020a056402150200b0052a3b212157sm7862845edw.63.2023.09.05.22.44.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 22:44:54 -0700 (PDT)
-Message-ID: <7731edd7662e606a06b1d4c60fb4cff9096fa758.camel@redhat.com>
-Subject: Re: [PATCH RFC] tests: add feature probing
-From:   Thomas Haller <thaller@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Date:   Wed, 06 Sep 2023 07:44:53 +0200
-In-Reply-To: <20230904085301.GC11802@breakpoint.cc>
-References: <20230831135112.30306-1-fw@strlen.de>
-         <c322af5a87a7a4b31d4c4897fe5c3059e9735b4e.camel@redhat.com>
-         <20230904085301.GC11802@breakpoint.cc>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Wed, 6 Sep 2023 05:42:28 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6DA961723
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 02:42:11 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     phil@nwl.cc
+Subject: [PATCH nf] netfilter: nf_tables: Unbreak audit log reset
+Date:   Wed,  6 Sep 2023 11:42:02 +0200
+Message-Id: <20230906094202.1712-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 2023-09-04 at 10:53 +0200, Florian Westphal wrote:
-> Thomas Haller <thaller@redhat.com> wrote:
-> >=20
-> >=20
-> > But why this "nft -f" specific detection? Why not just executable
-> > scripts?
->=20
-> Because I want it to be simple,
+Deliver audit log from __nf_tables_dump_rules(), table dereference at
+the end of the table list loop might point to the list head, leading to
+this crash.
 
-It does not seem "simple[r]" to me. The approach requires extra
-infrastructure in run-test.sh, while being less flexible.
+[ 4137.407349] BUG: unable to handle page fault for address: 00000000001f3c50
+[ 4137.407357] #PF: supervisor read access in kernel mode
+[ 4137.407359] #PF: error_code(0x0000) - not-present page
+[ 4137.407360] PGD 0 P4D 0
+[ 4137.407363] Oops: 0000 [#1] PREEMPT SMP PTI
+[ 4137.407365] CPU: 4 PID: 500177 Comm: nft Not tainted 6.5.0+ #277
+[ 4137.407369] RIP: 0010:string+0x49/0xd0
+[ 4137.407374] Code: ff 77 36 45 89 d1 31 f6 49 01 f9 66 45 85 d2 75 19 eb 1e 49 39 f8 76 02 88 07 48 83 c7 01 83 c6 01 48 83 c2 01 4c 39 cf 74 07 <0f> b6 02 84 c0 75 e2 4c 89 c2 e9 58 e5 ff ff 48 c7 c0 0e b2 ff 81
+[ 4137.407377] RSP: 0018:ffff8881179737f0 EFLAGS: 00010286
+[ 4137.407379] RAX: 00000000001f2c50 RBX: ffff888117973848 RCX: ffff0a00ffffff04
+[ 4137.407380] RDX: 00000000001f3c50 RSI: 0000000000000000 RDI: 0000000000000000
+[ 4137.407381] RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000ffffffff
+[ 4137.407383] R10: ffffffffffffffff R11: ffff88813584d200 R12: 0000000000000000
+[ 4137.407384] R13: ffffffffa15cf709 R14: 0000000000000000 R15: ffffffffa15cf709
+[ 4137.407385] FS:  00007fcfc18bb580(0000) GS:ffff88840e700000(0000) knlGS:0000000000000000
+[ 4137.407387] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 4137.407388] CR2: 00000000001f3c50 CR3: 00000001055b2001 CR4: 00000000001706e0
+[ 4137.407390] Call Trace:
+[ 4137.407392]  <TASK>
+[ 4137.407393]  ? __die+0x1b/0x60
+[ 4137.407397]  ? page_fault_oops+0x6b/0xa0
+[ 4137.407399]  ? exc_page_fault+0x60/0x120
+[ 4137.407403]  ? asm_exc_page_fault+0x22/0x30
+[ 4137.407408]  ? string+0x49/0xd0
+[ 4137.407410]  vsnprintf+0x257/0x4f0
+[ 4137.407414]  kvasprintf+0x3e/0xb0
+[ 4137.407417]  kasprintf+0x3e/0x50
+[ 4137.407419]  nf_tables_dump_rules+0x1c0/0x360 [nf_tables]
+[ 4137.407439]  ? __alloc_skb+0xc3/0x170
+[ 4137.407442]  netlink_dump+0x170/0x330
+[ 4137.407447]  __netlink_dump_start+0x227/0x300
+[ 4137.407449]  nf_tables_getrule+0x205/0x390 [nf_tables]
 
+Deliver audit log only once at the end of the rule dump+reset for
+consistency with the set dump+reset.
 
-> I could do that, but I don't see the need for arbitrary scripts so
-> far.
+Ensure audit reset access to table under rcu read side lock. The table
+list iteration holds rcu read lock side, but recent audit code
+dereferences table object out of the rcu read lock side.
 
-When building without JSON support, various tests fail, but should be
-skipped.
+Fixes: ea078ae9108e ("netfilter: nf_tables: Audit log rule reset")
+Fixes: 7e9be1124dbe ("netfilter: nf_tables: Audit log setelem reset")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Supersedes:
+netfilter: nf_tables: ensure audit reset access to table under rcu read side lock
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230902185656.12022-1-pablo@netfilter.org/
 
-Could we detect JSON support via .nft files? Would we drop then a JSON
-.nft file and change the check call to `nft --check -j`?).
+ net/netfilter/nf_tables_api.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Or maybe detection of JSON support needs to be a shell script (doing
-`ldd "$NFT_REAL" | greq libjansson`)? In that case, we would have
-features-as-shell-scripts very soon.
-  =20
-
-Thomas
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2c81cee858d6..e429ebba74b3 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3480,6 +3480,10 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
+ cont_skip:
+ 		(*idx)++;
+ 	}
++
++	if (reset && *idx)
++		audit_log_rule_reset(table, cb->seq, *idx);
++
+ 	return 0;
+ }
+ 
+@@ -3540,9 +3544,6 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ done:
+ 	rcu_read_unlock();
+ 
+-	if (reset && idx > cb->args[0])
+-		audit_log_rule_reset(table, cb->seq, idx - cb->args[0]);
+-
+ 	cb->args[0] = idx;
+ 	return skb->len;
+ }
+@@ -5760,8 +5761,6 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 	if (!args.iter.err && args.iter.count == cb->args[0])
+ 		args.iter.err = nft_set_catchall_dump(net, skb, set,
+ 						      reset, cb->seq);
+-	rcu_read_unlock();
+-
+ 	nla_nest_end(skb, nest);
+ 	nlmsg_end(skb, nlh);
+ 
+@@ -5769,6 +5768,8 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 		audit_log_nft_set_reset(table, cb->seq,
+ 					args.iter.count - args.iter.skip);
+ 
++	rcu_read_unlock();
++
+ 	if (args.iter.err && args.iter.err != -EMSGSIZE)
+ 		return args.iter.err;
+ 	if (args.iter.count == cb->args[0])
+-- 
+2.30.2
 
