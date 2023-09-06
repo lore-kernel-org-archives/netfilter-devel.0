@@ -2,142 +2,317 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7633DEE14AD
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 16:26:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2123EE14B2
+	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 16:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243024AbjIFQ0C (ORCPT
+        id S239046AbjIFQ4f (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Sep 2023 12:26:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48238 "EHLO
+        Wed, 6 Sep 2023 12:56:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234200AbjIFQ0B (ORCPT
+        with ESMTP id S241497AbjIFQ4e (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2023 12:26:01 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A214199A;
-        Wed,  6 Sep 2023 09:25:57 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qdvLl-0007wk-IH; Wed, 06 Sep 2023 18:25:53 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Phil Sutter <phil@nwl.cc>
-Subject: [PATCH net 6/6] netfilter: nf_tables: Unbreak audit log reset
-Date:   Wed,  6 Sep 2023 18:25:12 +0200
-Message-ID: <20230906162525.11079-7-fw@strlen.de>
+        Wed, 6 Sep 2023 12:56:34 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CBC3199A
+        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 09:56:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=fus59mgn6qgmWV5mFvn+lwddI1cwRqVPr6hLGBNCHhE=; b=Ni8hJC6o/JKIi4PDJa2pkMHYzx
+        sn8sAtP7YwOw4er/Pjp7Dq+tkksVS/sOZr1rQ60x5vhwh2a0ZBamIh2sNq6JG0NX6woSYD3dlxyEf
+        FOHG6VVMo5Q1/qRIHYFSGp/sqM37GGWxR/1CNm6HA8bq/KY56jBraEKywI51Di83PjYwAEgO6SoT+
+        DM68A9mWkhN7jMfwh2lBA5S313bPvkSUlC2qyrwYbS5JG7YZne6P3z5sfxzSmqE9Z07RvTeShpsLT
+        SsBm9uqbR3T4otNt2ZzYwKbO+IJ4x+SCxatyhdl4obpcXffnMHv41DmE5WcQJNYP2O9raK7LUjrHO
+        EssleB+w==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qdvpD-00087z-T9
+        for netfilter-devel@vger.kernel.org; Wed, 06 Sep 2023 18:56:19 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] nft: Fix for useless meta expressions in rule
+Date:   Wed,  6 Sep 2023 19:07:51 +0200
+Message-ID: <20230906170751.23040-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230906162525.11079-1-fw@strlen.de>
-References: <20230906162525.11079-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+A relict of legacy iptables' mandatory matching on interfaces and IP
+addresses is support for the '-i +' notation, basically a "match any
+input interface". Trying to make things better than its predecessor,
+iptables-nft boldly optimizes that nop away - not entirely though, the
+meta expression loading the interface name was left in place. While not
+a problem (apart from pointless overhead) in current HEAD, v1.8.7 would
+trip over this as a following cmp expression (for another match) was
+incorrectly linked to that stale meta expression, loading strange values
+into the respective interface name field.
 
-Deliver audit log from __nf_tables_dump_rules(), table dereference at
-the end of the table list loop might point to the list head, leading to
-this crash.
+While being at it, merge and generalize the functions into a common one
+for use with ebtables' NFT_META_BRI_(I|O)IFNAME matches, too.
 
-[ 4137.407349] BUG: unable to handle page fault for address: 00000000001f3c50
-[ 4137.407357] #PF: supervisor read access in kernel mode
-[ 4137.407359] #PF: error_code(0x0000) - not-present page
-[ 4137.407360] PGD 0 P4D 0
-[ 4137.407363] Oops: 0000 [#1] PREEMPT SMP PTI
-[ 4137.407365] CPU: 4 PID: 500177 Comm: nft Not tainted 6.5.0+ #277
-[ 4137.407369] RIP: 0010:string+0x49/0xd0
-[ 4137.407374] Code: ff 77 36 45 89 d1 31 f6 49 01 f9 66 45 85 d2 75 19 eb 1e 49 39 f8 76 02 88 07 48 83 c7 01 83 c6 01 48 83 c2 01 4c 39 cf 74 07 <0f> b6 02 84 c0 75 e2 4c 89 c2 e9 58 e5 ff ff 48 c7 c0 0e b2 ff 81
-[ 4137.407377] RSP: 0018:ffff8881179737f0 EFLAGS: 00010286
-[ 4137.407379] RAX: 00000000001f2c50 RBX: ffff888117973848 RCX: ffff0a00ffffff04
-[ 4137.407380] RDX: 00000000001f3c50 RSI: 0000000000000000 RDI: 0000000000000000
-[ 4137.407381] RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000ffffffff
-[ 4137.407383] R10: ffffffffffffffff R11: ffff88813584d200 R12: 0000000000000000
-[ 4137.407384] R13: ffffffffa15cf709 R14: 0000000000000000 R15: ffffffffa15cf709
-[ 4137.407385] FS:  00007fcfc18bb580(0000) GS:ffff88840e700000(0000) knlGS:0000000000000000
-[ 4137.407387] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 4137.407388] CR2: 00000000001f3c50 CR3: 00000001055b2001 CR4: 00000000001706e0
-[ 4137.407390] Call Trace:
-[ 4137.407392]  <TASK>
-[ 4137.407393]  ? __die+0x1b/0x60
-[ 4137.407397]  ? page_fault_oops+0x6b/0xa0
-[ 4137.407399]  ? exc_page_fault+0x60/0x120
-[ 4137.407403]  ? asm_exc_page_fault+0x22/0x30
-[ 4137.407408]  ? string+0x49/0xd0
-[ 4137.407410]  vsnprintf+0x257/0x4f0
-[ 4137.407414]  kvasprintf+0x3e/0xb0
-[ 4137.407417]  kasprintf+0x3e/0x50
-[ 4137.407419]  nf_tables_dump_rules+0x1c0/0x360 [nf_tables]
-[ 4137.407439]  ? __alloc_skb+0xc3/0x170
-[ 4137.407442]  netlink_dump+0x170/0x330
-[ 4137.407447]  __netlink_dump_start+0x227/0x300
-[ 4137.407449]  nf_tables_getrule+0x205/0x390 [nf_tables]
-
-Deliver audit log only once at the end of the rule dump+reset for
-consistency with the set dump+reset.
-
-Ensure audit reset access to table under rcu read side lock. The table
-list iteration holds rcu read lock side, but recent audit code
-dereferences table object out of the rcu read lock side.
-
-Fixes: ea078ae9108e ("netfilter: nf_tables: Audit log rule reset")
-Fixes: 7e9be1124dbe ("netfilter: nf_tables: Audit log setelem reset")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Acked-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 0a8635183edd0 ("xtables-compat: ignore '+' interface name")
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1702
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nf_tables_api.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ extensions/libebt_standard.t  |  4 ++++
+ extensions/libip6t_standard.t |  3 +++
+ extensions/libxt_standard.t   |  2 ++
+ iptables/nft-arp.c            |  4 ++--
+ iptables/nft-bridge.c         | 38 ++++-------------------------
+ iptables/nft-ipv4.c           |  4 ++--
+ iptables/nft-ipv6.c           |  4 ++--
+ iptables/nft-shared.c         | 45 ++++++++++++-----------------------
+ iptables/nft-shared.h         |  4 ++--
+ 9 files changed, 36 insertions(+), 72 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2c81cee858d6..e429ebba74b3 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3480,6 +3480,10 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
- cont_skip:
- 		(*idx)++;
+diff --git a/extensions/libebt_standard.t b/extensions/libebt_standard.t
+index 97cb3baaf6d21..370a12f4a2cec 100644
+--- a/extensions/libebt_standard.t
++++ b/extensions/libebt_standard.t
+@@ -14,6 +14,10 @@
+ -o foobar;=;FAIL
+ --logical-in br0;=;OK
+ --logical-out br1;=;FAIL
++-i + -d 00:0f:ee:d0:ba:be;-d 00:0f:ee:d0:ba:be;OK
++-i + -p ip;-p IPv4;OK
++--logical-in + -d 00:0f:ee:d0:ba:be;-d 00:0f:ee:d0:ba:be;OK
++--logical-in + -p ip;-p IPv4;OK
+ :FORWARD
+ -i foobar;=;OK
+ -o foobar;=;OK
+diff --git a/extensions/libip6t_standard.t b/extensions/libip6t_standard.t
+index a528af10ea152..0c559cc5021f6 100644
+--- a/extensions/libip6t_standard.t
++++ b/extensions/libip6t_standard.t
+@@ -3,3 +3,6 @@
+ ! -d ::;! -d ::/128;OK
+ ! -s ::;! -s ::/128;OK
+ -s ::/64;=;OK
++:INPUT
++-i + -d c0::fe;-d c0::fe/128;OK
++-i + -p tcp;-p tcp;OK
+diff --git a/extensions/libxt_standard.t b/extensions/libxt_standard.t
+index 6ed978e442b80..7c83cfa3ba232 100644
+--- a/extensions/libxt_standard.t
++++ b/extensions/libxt_standard.t
+@@ -24,3 +24,5 @@
+ :FORWARD
+ --protocol=tcp --source=1.2.3.4 --destination=5.6.7.8/32 --in-interface=eth0 --out-interface=eth1 --jump=ACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
+ -ptcp -s1.2.3.4 -d5.6.7.8/32 -ieth0 -oeth1 -jACCEPT;-s 1.2.3.4/32 -d 5.6.7.8/32 -i eth0 -o eth1 -p tcp -j ACCEPT;OK
++-i + -d 1.2.3.4;-d 1.2.3.4/32;OK
++-i + -p tcp;-p tcp;OK
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 9868966a03688..aed39ebdd5166 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -49,12 +49,12 @@ static int nft_arp_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 
+ 	if (fw->arp.iniface[0] != '\0') {
+ 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_VIA_IN);
+-		add_iniface(h, r, fw->arp.iniface, op);
++		add_iface(h, r, fw->arp.iniface, NFT_META_IIFNAME, op);
  	}
-+
-+	if (reset && *idx)
-+		audit_log_rule_reset(table, cb->seq, *idx);
-+
- 	return 0;
+ 
+ 	if (fw->arp.outiface[0] != '\0') {
+ 		op = nft_invflags2cmp(fw->arp.invflags, IPT_INV_VIA_OUT);
+-		add_outiface(h, r, fw->arp.outiface, op);
++		add_iface(h, r, fw->arp.outiface, NFT_META_OIFNAME, op);
+ 	}
+ 
+ 	if (fw->arp.arhrd != 0 ||
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 391a8ab723c1c..d9a8ad2b0f373 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -65,36 +65,6 @@ static void ebt_print_mac_and_mask(const unsigned char *mac, const unsigned char
+ 		xtables_print_mac_and_mask(mac, mask);
  }
  
-@@ -3540,9 +3544,6 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- done:
- 	rcu_read_unlock();
- 
--	if (reset && idx > cb->args[0])
--		audit_log_rule_reset(table, cb->seq, idx - cb->args[0]);
+-static void add_logical_iniface(struct nft_handle *h, struct nftnl_rule *r,
+-				char *iface, uint32_t op)
+-{
+-	int iface_len;
+-	uint8_t reg;
 -
- 	cb->args[0] = idx;
- 	return skb->len;
+-	iface_len = strlen(iface);
+-
+-	add_meta(h, r, NFT_META_BRI_IIFNAME, &reg);
+-	if (iface[iface_len - 1] == '+')
+-		add_cmp_ptr(r, op, iface, iface_len - 1, reg);
+-	else
+-		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
+-}
+-
+-static void add_logical_outiface(struct nft_handle *h, struct nftnl_rule *r,
+-				 char *iface, uint32_t op)
+-{
+-	int iface_len;
+-	uint8_t reg;
+-
+-	iface_len = strlen(iface);
+-
+-	add_meta(h, r, NFT_META_BRI_OIFNAME, &reg);
+-	if (iface[iface_len - 1] == '+')
+-		add_cmp_ptr(r, op, iface, iface_len - 1, reg);
+-	else
+-		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
+-}
+-
+ static int add_meta_broute(struct nftnl_rule *r)
+ {
+ 	struct nftnl_expr *expr;
+@@ -180,22 +150,22 @@ static int nft_bridge_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 
+ 	if (fw->in[0] != '\0') {
+ 		op = nft_invflags2cmp(fw->invflags, EBT_IIN);
+-		add_iniface(h, r, fw->in, op);
++		add_iface(h, r, fw->in, NFT_META_IIFNAME, op);
+ 	}
+ 
+ 	if (fw->out[0] != '\0') {
+ 		op = nft_invflags2cmp(fw->invflags, EBT_IOUT);
+-		add_outiface(h, r, fw->out, op);
++		add_iface(h, r, fw->out, NFT_META_OIFNAME, op);
+ 	}
+ 
+ 	if (fw->logical_in[0] != '\0') {
+ 		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALIN);
+-		add_logical_iniface(h, r, fw->logical_in, op);
++		add_iface(h, r, fw->logical_in, NFT_META_BRI_IIFNAME, op);
+ 	}
+ 
+ 	if (fw->logical_out[0] != '\0') {
+ 		op = nft_invflags2cmp(fw->invflags, EBT_ILOGICALOUT);
+-		add_logical_outiface(h, r, fw->logical_out, op);
++		add_iface(h, r, fw->logical_out, NFT_META_BRI_OIFNAME, op);
+ 	}
+ 
+ 	if ((fw->bitmask & EBT_NOPROTO) == 0) {
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index 2f10220edd509..75912847aea3e 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -51,12 +51,12 @@ static int nft_ipv4_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 
+ 	if (cs->fw.ip.iniface[0] != '\0') {
+ 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_VIA_IN);
+-		add_iniface(h, r, cs->fw.ip.iniface, op);
++		add_iface(h, r, cs->fw.ip.iniface, NFT_META_IIFNAME, op);
+ 	}
+ 
+ 	if (cs->fw.ip.outiface[0] != '\0') {
+ 		op = nft_invflags2cmp(cs->fw.ip.invflags, IPT_INV_VIA_OUT);
+-		add_outiface(h, r, cs->fw.ip.outiface, op);
++		add_iface(h, r, cs->fw.ip.outiface, NFT_META_OIFNAME, op);
+ 	}
+ 
+ 	if (cs->fw.ip.proto != 0) {
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index d53f87c1d26e3..5aef365b79f2a 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -54,12 +54,12 @@ static int nft_ipv6_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
+ 
+ 	if (cs->fw6.ipv6.iniface[0] != '\0') {
+ 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_VIA_IN);
+-		add_iniface(h, r, cs->fw6.ipv6.iniface, op);
++		add_iface(h, r, cs->fw6.ipv6.iniface, NFT_META_IIFNAME, op);
+ 	}
+ 
+ 	if (cs->fw6.ipv6.outiface[0] != '\0') {
+ 		op = nft_invflags2cmp(cs->fw6.ipv6.invflags, IPT_INV_VIA_OUT);
+-		add_outiface(h, r, cs->fw6.ipv6.outiface, op);
++		add_iface(h, r, cs->fw6.ipv6.outiface, NFT_META_OIFNAME, op);
+ 	}
+ 
+ 	if (cs->fw6.ipv6.proto != 0) {
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 34ca9d16569d0..6775578b1e36b 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -147,44 +147,29 @@ void add_cmp_u32(struct nftnl_rule *r, uint32_t val, uint32_t op, uint8_t sreg)
+ 	add_cmp_ptr(r, op, &val, sizeof(val), sreg);
  }
-@@ -5760,8 +5761,6 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 	if (!args.iter.err && args.iter.count == cb->args[0])
- 		args.iter.err = nft_set_catchall_dump(net, skb, set,
- 						      reset, cb->seq);
--	rcu_read_unlock();
+ 
+-void add_iniface(struct nft_handle *h, struct nftnl_rule *r,
+-		 char *iface, uint32_t op)
++void add_iface(struct nft_handle *h, struct nftnl_rule *r,
++	       char *iface, uint32_t key, uint32_t op)
+ {
+-	int iface_len;
++	int iface_len = strlen(iface);
+ 	uint8_t reg;
+ 
+-	iface_len = strlen(iface);
+ 
+-	add_meta(h, r, NFT_META_IIFNAME, &reg);
+ 	if (iface[iface_len - 1] == '+') {
+-		if (iface_len > 1)
+-			add_cmp_ptr(r, op, iface, iface_len - 1, reg);
+-		else if (op != NFT_CMP_EQ)
+-			add_cmp_ptr(r, NFT_CMP_EQ, "INVAL/D",
+-				    strlen("INVAL/D") + 1, reg);
++		if (iface_len > 1) {
++			iface_len -= 1;
++		} else if (op != NFT_CMP_EQ) {
++			op = NFT_CMP_EQ;
++			iface = "INVAL/D";
++			iface_len = strlen(iface) + 1;
++		} else {
++			return; /* -o + */
++		}
+ 	} else {
+-		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
++		iface_len += 1;
+ 	}
+-}
 -
- 	nla_nest_end(skb, nest);
- 	nlmsg_end(skb, nlh);
+-void add_outiface(struct nft_handle *h, struct nftnl_rule *r,
+-		  char *iface, uint32_t op)
+-{
+-	int iface_len;
+-	uint8_t reg;
  
-@@ -5769,6 +5768,8 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 		audit_log_nft_set_reset(table, cb->seq,
- 					args.iter.count - args.iter.skip);
+-	iface_len = strlen(iface);
+-
+-	add_meta(h, r, NFT_META_OIFNAME, &reg);
+-	if (iface[iface_len - 1] == '+') {
+-		if (iface_len > 1)
+-			add_cmp_ptr(r, op, iface, iface_len - 1, reg);
+-		else if (op != NFT_CMP_EQ)
+-			add_cmp_ptr(r, NFT_CMP_EQ, "INVAL/D",
+-				    strlen("INVAL/D") + 1, reg);
+-	} else {
+-		add_cmp_ptr(r, op, iface, iface_len + 1, reg);
+-	}
++	add_meta(h, r, key, &reg);
++	add_cmp_ptr(r, op, iface, iface_len, reg);
+ }
  
-+	rcu_read_unlock();
-+
- 	if (args.iter.err && args.iter.err != -EMSGSIZE)
- 		return args.iter.err;
- 	if (args.iter.count == cb->args[0])
+ void add_addr(struct nft_handle *h, struct nftnl_rule *r,
+diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
+index 4f47058d2ec5c..51d1e4609a3b6 100644
+--- a/iptables/nft-shared.h
++++ b/iptables/nft-shared.h
+@@ -95,8 +95,8 @@ void add_cmp_ptr(struct nftnl_rule *r, uint32_t op, void *data, size_t len, uint
+ void add_cmp_u8(struct nftnl_rule *r, uint8_t val, uint32_t op, uint8_t sreg);
+ void add_cmp_u16(struct nftnl_rule *r, uint16_t val, uint32_t op, uint8_t sreg);
+ void add_cmp_u32(struct nftnl_rule *r, uint32_t val, uint32_t op, uint8_t sreg);
+-void add_iniface(struct nft_handle *h, struct nftnl_rule *r, char *iface, uint32_t op);
+-void add_outiface(struct nft_handle *h, struct nftnl_rule *r, char *iface, uint32_t op);
++void add_iface(struct nft_handle *h, struct nftnl_rule *r,
++	       char *iface, uint32_t key, uint32_t op);
+ void add_addr(struct nft_handle *h, struct nftnl_rule *r, enum nft_payload_bases base, int offset,
+ 	      void *data, void *mask, size_t len, uint32_t op);
+ void add_proto(struct nft_handle *h, struct nftnl_rule *r, int offset, size_t len,
 -- 
 2.41.0
 
