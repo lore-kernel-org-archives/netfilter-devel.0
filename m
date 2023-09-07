@@ -2,128 +2,140 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6963EE14C3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  6 Sep 2023 23:25:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15099EE14A9
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 02:21:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244836AbjIFXZg (ORCPT
+        id S231378AbjIGCVy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Sep 2023 19:25:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57516 "EHLO
+        Wed, 6 Sep 2023 22:21:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232862AbjIFXZe (ORCPT
+        with ESMTP id S229498AbjIGCVy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2023 19:25:34 -0400
-Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D1FC173B
-        for <netfilter-devel@vger.kernel.org>; Wed,  6 Sep 2023 16:25:31 -0700 (PDT)
-Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-58cd9d9dbf5so4611137b3.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Sep 2023 16:25:31 -0700 (PDT)
+        Wed, 6 Sep 2023 22:21:54 -0400
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F73819A0;
+        Wed,  6 Sep 2023 19:21:49 -0700 (PDT)
+Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-68a56401b9aso443812b3a.1;
+        Wed, 06 Sep 2023 19:21:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1694042730; x=1694647530; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=p2kBOi6TalS0ex+1SxjRU4auFtqoVkK5v83q8840CGQ=;
-        b=HtisTxbg0/jXajMbSUaZGVb2Ex03a07U0XO8yugtpQ3KkpCRALHle3SRN97vmwyKKo
-         D08w0DjWdj1N76/b1PW9reLFp5P4iw3Vg+u1bzo07ilxFvrS1eQmqGrw/kUJ8CMSf4os
-         jU2w8B9F+1DMjyoSFgTAjKDyz45zsA7+rMrHfOtSEGapA78OdA918lfLqc9180/J3mFu
-         o1g9dRAdQ9v6l59xd7e/uVKyw/Z5LpCWt+Uzk08+zP2rZDGhZj45MPkzucnCvrSUc5F7
-         dx7TWZm4Ktx+dgV7V+JoSP0Feyq5HcSglpTWrdNn4H9QSUVLaQjhadijOxuJXqWp4VuE
-         fN9A==
+        d=gmail.com; s=20221208; t=1694053309; x=1694658109; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Zrzp+LrMkD8774TjBw8qs3UdHHFa6iqgdGHZnd8QV0M=;
+        b=qpejSjsjRLDqHRJhEuFs9Mr7epB9VX7jFd+wkVYZa6vJ4qwk4Y3bT8cmOfowe/qnNW
+         GTF/CrYTh4f0UuwJxygBDK8piMPDPqBfFQU8ZtvJhzB1RTSFNe2ohpDF9SeFPwa7wZXa
+         9AYjc8Od+Gfcrf/WFafX3JOytzZO0zZr3oAdodieVUvNvEiV4EB/lyXupXMC0VZvCLij
+         G1bPHZMlTsUU8MjstbX2omR5JJqQU+mPUlcOc/qwnPHA7cQZbhGCBw883ze9ER1x7w+7
+         uT6aTngyEyWS/SphADJuCG3QwKM06X2ebhvy3bUgyYvZPcwpp6xaI52r3QnqHCRqEn3W
+         csNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694042730; x=1694647530;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=p2kBOi6TalS0ex+1SxjRU4auFtqoVkK5v83q8840CGQ=;
-        b=XEur/jsrwx+OtoILbFeAd9weFvmQjopXQ0h4ZPPRRKHrh1IS5k47CcEVvCn0+OLTy5
-         RgRHMeDiMPpLPsSglvpAPbWT2jEC4gwPQAltEVAu84knOllqQf9ZnG6AWbVwLMafg1Qy
-         1ElZxzAgJPUniApZuElbqEvfzMMyrtz0KOtAOLAUOAndwSBQBqVRwiqr9RBPW4dEFoq6
-         wceAhxMs1by+goAj0qepasT5nI3pq/6UbMikyBHLkWhlni0jHr/xK5Ay9j5t3g+nf9T0
-         eLKl1EKv8YNJIiR8mRzijzLghhBl20Y3eqmjalnj/rFuzCr+RpaieFLOiwViVFqEek3Y
-         fDnA==
-X-Gm-Message-State: AOJu0Yy3aeUu1QAueN1xH/OKkluVqhDOZ63WOBNNjWASuLnTFH/EO/yl
-        gLFIQTpZ2IFyFNocuXa7kJVQH53PKIbBqjMrctPECycHPFRisC4=
-X-Google-Smtp-Source: AGHT+IGirEgrnhB2m61RbZ3m1ra5wEtE6paUBVAAeaCtiB5DDurzRuSARCNaPckFTCq44U4w9iqSZTXu1BGwNnra/Fw=
-X-Received: by 2002:a0d:e249:0:b0:583:821b:603a with SMTP id
- l70-20020a0de249000000b00583821b603amr1175263ywe.20.1694042730594; Wed, 06
- Sep 2023 16:25:30 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1694053309; x=1694658109;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Zrzp+LrMkD8774TjBw8qs3UdHHFa6iqgdGHZnd8QV0M=;
+        b=NqlQAVRfteiILRJPVEKDCOc6+K5OHN9/NPKdsCRgZU44vWU6gfCkbY6fV5WQ/X46i8
+         8l4UulUlcinZXIwE2hkpuT8GJRGLyehjnWJomtCv2t9w8jT/W0xV/ZQCutobAp2uoxrj
+         8LSAuyNh0ipfWCe50Yhe/xOjffUzz6lAa4YqcM6h0Lk6EqSKjNmYqVlwqAvtmdhlhV7F
+         oxQi205lMX3ND27dDV41n5mcBNtlN+PEuEgE52yi4HyZSwwbgPPGDBlS6uv9Qli7y2A8
+         jmi2XycpEWW3E/3y0OhZ/4McgWhMEPl1Po0qyrV5OBtE2bVTrRCzocvcljeZQazNygst
+         EShg==
+X-Gm-Message-State: AOJu0YwQcHxj27z7/cN0OXq/1obcoPvgDVEZP1eP6Fd4d5XBpKGiOTgz
+        HWI4w4Fzr+OtxP+QXU+mkRpQXk0d9x4=
+X-Google-Smtp-Source: AGHT+IHmYU1WN263QpinG68LrFn66v8fr8GJ6Z0V5J0QGCjn3TGdhBPHoxSrcY/c4+4HtGeIiBQG+g==
+X-Received: by 2002:a05:6a00:b95:b0:686:fd66:a41c with SMTP id g21-20020a056a000b9500b00686fd66a41cmr17566102pfj.17.1694053308208;
+        Wed, 06 Sep 2023 19:21:48 -0700 (PDT)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id v10-20020a62ac0a000000b0063b96574b8bsm11354180pfe.220.2023.09.06.19.21.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Sep 2023 19:21:47 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date:   Thu, 7 Sep 2023 12:21:43 +1000
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
+ definition from macro to enum
+Message-ID: <ZPkzt56kHLnHSJR9@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+References: <20230904130201.14632-1-00107082@163.com>
+ <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
+ <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
 MIME-Version: 1.0
-References: <20230906094202.1712-1-pablo@netfilter.org> <ZPhjYkRpUvfqPB9F@orbyte.nwl.cc>
- <ZPhm1mf0GaeQUr0e@calendula> <ZPiyGC+TfRgyOabJ@orbyte.nwl.cc>
- <ZPjJAicFFam5AFIq@calendula> <CAHC9VhQ0n8Ezef8wYC7uV-MHccqHobYxoB3VYoC9TaGiFm9noQ@mail.gmail.com>
- <ZPjxnSg3/gDy25r0@orbyte.nwl.cc> <ZPj7cbtvF5SdaWrx@calendula>
- <CAHC9VhR5Mq76TQj-zKn4Y2=ehrsmoXUvq=zaM=zY7E9S-tu3Ug@mail.gmail.com> <ZPkE1VyCX1BNc76q@calendula>
-In-Reply-To: <ZPkE1VyCX1BNc76q@calendula>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 6 Sep 2023 19:25:19 -0400
-Message-ID: <CAHC9VhTGhTdaRpQj8sQZLeibWAA=2_SyUkSwPQvp2BLSBy3JGg@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: nf_tables: Unbreak audit log reset
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, audit@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 6, 2023 at 7:01=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.o=
-rg> wrote:
-> On Wed, Sep 06, 2023 at 06:41:13PM -0400, Paul Moore wrote:
-> > On Wed, Sep 6, 2023 at 6:21=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilt=
-er.org> wrote:
-> > > On Wed, Sep 06, 2023 at 11:39:41PM +0200, Phil Sutter wrote:
-> > > > On Wed, Sep 06, 2023 at 03:56:41PM -0400, Paul Moore wrote:
-> > > [...]
-> > > > > If it is a bug, please submit a fix for this as soon as possible =
-Pablo.
-> > > >
-> > > > Thanks for your support, but I can take over, too. The number of
-> > > > notifications emitted even for a small ruleset is not ideal, also. =
-It's
-> > > > just a bit sad that I ACKed the patch already and so it went out th=
-e
-> > > > door. Florian, can we still put a veto there?
-> > >
-> > > Phil, kernel was crashing after your patch, this was resulting in a
-> > > kernel panic when running tests here. I had to revert your patches
-> > > locally to keep running tests.
-> > >
-> > > Please, just send an incremental fix to adjust the idx, revert will
-> > > leave things in worse state.
-> >
-> > If we can get a fix out soon then I'm fine with that, if we can't get
-> > a fix out soon then a revert may be wise.
+On Wed, Sep 06, 2023 at 12:57:56AM +0800, David Wang wrote:
 >
-> I believe it should be possible to fix this in the next -rc, which
-> should be quick. If Phil is busy I will jump on this and I will keep
-> you on Cc so you and Richard can review.
-
-Great, thank you.
-
-> I apologize for forgetting to Cc you in first place.
-
-No worries :)
-
-> > > Audit does not show chains either, which is not very useful to locate
-> > > what where exactly the rules have been reset, but that can probably
-> > > discussed in net-next. Richard provided a way to extend this if audit
-> > > maintainer find it useful too.
-> >
-> > Richard was correct in saying that new fields must be added to the end
-> > of the record.  The only correction I would make to Richard's comments
-> > is that we tend to prefer that if a field is present in a record, it
-> > is always present in a record; if there is no useful information to
-> > log in that field, a "?" can be substituted for the value (e.g.
-> > "nftfield=3D?").
 >
-> Thanks for clarification, hopefully this will help to explore
-> extensions to include chain information in the logs. I think that
-> might help users to understand better the kind of updated that
-> happened in the Netfilter subsystem.
+> At 2023-09-06 00:38:02, "Daniel Xu" <dxu@dxuuu.xyz> wrote:
+> >Hi David,
+> >
+> >On Mon, Sep 04, 2023 at 09:02:02PM +0800, David Wang wrote:
+>
+> >>  #include <linux/in6.h>
+> >>
+> >>  /* Responses from hook functions. */
+> >> -#define NF_DROP 0
+> >> -#define NF_ACCEPT 1
+> >> -#define NF_STOLEN 2
+> >> -#define NF_QUEUE 3
+> >> -#define NF_REPEAT 4
+> >> -#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
+> >> -#define NF_MAX_VERDICT NF_STOP
+> >> +enum {
+> >> +	NF_DROP        = 0,
+> >> +	NF_ACCEPT      = 1,
+> >> +	NF_STOLEN      = 2,
+> >> +	NF_QUEUE       = 3,
+> >> +	NF_REPEAT      = 4,
+> >> +	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
+> >> +	NF_MAX_VERDICT = NF_STOP,
+> >> +};
+> >
+> >Switching from macro to enum works for almost all use cases, but not
+> >all. If someone if #ifdefing the symbols (which is plausible) this
+> >change would break them.
+> >
+> >I think I've seen some other networking code define both enums and
+> >macros. But it was a little ugly. Not sure if that is acceptable here or
+> >not.
+> >
+> >[...]
+> >
+> >Thanks,
+> >Daniel
+>
+>
+> Thanks for the review~
+> I do not have a strong reasoning to deny the possibility of breaking unexpected usage of this macros,
+>
+> but I also agree that it is ugly to use both enum and macro at the same time.
+>
+> Kind of don't know how to proceed from here now...
 
-Great, I'll look forward to the patches.
+I did see code like that somewhere and wondered what was going on. The #define
+lines were interspersed with the enum members which indeed looked ugly to me.
 
---=20
-paul-moore.com
+I'd suggest a block of #defines after the enum close e.g.
+
+> #define NF_DROP NF_DROP
+>...
+
+perhaps with a comment preceding to advise that the defines were there for
+the benefit of anyone using #ifdef.
+
+Cheers ... Duncan.
