@@ -2,140 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15099EE14A9
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 02:21:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D438EC873F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 15:42:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231378AbjIGCVy (ORCPT
+        id S230170AbjIGPmX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 6 Sep 2023 22:21:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56976 "EHLO
+        Thu, 7 Sep 2023 11:42:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbjIGCVy (ORCPT
+        with ESMTP id S1344506AbjIGPdL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2023 22:21:54 -0400
-Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F73819A0;
-        Wed,  6 Sep 2023 19:21:49 -0700 (PDT)
-Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-68a56401b9aso443812b3a.1;
-        Wed, 06 Sep 2023 19:21:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1694053309; x=1694658109; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Zrzp+LrMkD8774TjBw8qs3UdHHFa6iqgdGHZnd8QV0M=;
-        b=qpejSjsjRLDqHRJhEuFs9Mr7epB9VX7jFd+wkVYZa6vJ4qwk4Y3bT8cmOfowe/qnNW
-         GTF/CrYTh4f0UuwJxygBDK8piMPDPqBfFQU8ZtvJhzB1RTSFNe2ohpDF9SeFPwa7wZXa
-         9AYjc8Od+Gfcrf/WFafX3JOytzZO0zZr3oAdodieVUvNvEiV4EB/lyXupXMC0VZvCLij
-         G1bPHZMlTsUU8MjstbX2omR5JJqQU+mPUlcOc/qwnPHA7cQZbhGCBw883ze9ER1x7w+7
-         uT6aTngyEyWS/SphADJuCG3QwKM06X2ebhvy3bUgyYvZPcwpp6xaI52r3QnqHCRqEn3W
-         csNg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1694053309; x=1694658109;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Zrzp+LrMkD8774TjBw8qs3UdHHFa6iqgdGHZnd8QV0M=;
-        b=NqlQAVRfteiILRJPVEKDCOc6+K5OHN9/NPKdsCRgZU44vWU6gfCkbY6fV5WQ/X46i8
-         8l4UulUlcinZXIwE2hkpuT8GJRGLyehjnWJomtCv2t9w8jT/W0xV/ZQCutobAp2uoxrj
-         8LSAuyNh0ipfWCe50Yhe/xOjffUzz6lAa4YqcM6h0Lk6EqSKjNmYqVlwqAvtmdhlhV7F
-         oxQi205lMX3ND27dDV41n5mcBNtlN+PEuEgE52yi4HyZSwwbgPPGDBlS6uv9Qli7y2A8
-         jmi2XycpEWW3E/3y0OhZ/4McgWhMEPl1Po0qyrV5OBtE2bVTrRCzocvcljeZQazNygst
-         EShg==
-X-Gm-Message-State: AOJu0YwQcHxj27z7/cN0OXq/1obcoPvgDVEZP1eP6Fd4d5XBpKGiOTgz
-        HWI4w4Fzr+OtxP+QXU+mkRpQXk0d9x4=
-X-Google-Smtp-Source: AGHT+IHmYU1WN263QpinG68LrFn66v8fr8GJ6Z0V5J0QGCjn3TGdhBPHoxSrcY/c4+4HtGeIiBQG+g==
-X-Received: by 2002:a05:6a00:b95:b0:686:fd66:a41c with SMTP id g21-20020a056a000b9500b00686fd66a41cmr17566102pfj.17.1694053308208;
-        Wed, 06 Sep 2023 19:21:48 -0700 (PDT)
-Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
-        by smtp.gmail.com with ESMTPSA id v10-20020a62ac0a000000b0063b96574b8bsm11354180pfe.220.2023.09.06.19.21.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Sep 2023 19:21:47 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From:   Duncan Roe <duncan_roe@optusnet.com.au>
-X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date:   Thu, 7 Sep 2023 12:21:43 +1000
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
- definition from macro to enum
-Message-ID: <ZPkzt56kHLnHSJR9@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-References: <20230904130201.14632-1-00107082@163.com>
- <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
- <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
+        Thu, 7 Sep 2023 11:33:11 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 753D3171C;
+        Thu,  7 Sep 2023 08:32:51 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C5BFB153B;
+        Thu,  7 Sep 2023 02:35:57 -0700 (PDT)
+Received: from [10.57.30.76] (unknown [10.57.30.76])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 40DAB3F64C;
+        Thu,  7 Sep 2023 02:35:18 -0700 (PDT)
+Message-ID: <59465cbb-48b4-c32b-8a7a-c9b51556d5e1@arm.com>
+Date:   Thu, 7 Sep 2023 10:35:13 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:102.0) Gecko/20100101
+ Thunderbird/102.15.0
+Subject: Re: [syzbot] [arm?] [netfilter?] KASAN: slab-out-of-bounds Read in
+ do_csum
+Content-Language: en-GB
+To:     Will Deacon <will@kernel.org>
+Cc:     syzbot <syzbot+4a9f9820bd8d302e22f7@syzkaller.appspotmail.com>,
+        catalin.marinas@arm.com, fw@strlen.de, kadlec@netfilter.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
+References: <000000000000e0e94c0603f8d213@google.com>
+ <20230905143711.GB3322@willie-the-truck>
+ <0dea99d9-3334-3fd3-3776-074ecace0259@arm.com>
+ <20230907092511.GB5731@willie-the-truck>
+From:   Robin Murphy <robin.murphy@arm.com>
+In-Reply-To: <20230907092511.GB5731@willie-the-truck>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 06, 2023 at 12:57:56AM +0800, David Wang wrote:
->
->
-> At 2023-09-06 00:38:02, "Daniel Xu" <dxu@dxuuu.xyz> wrote:
-> >Hi David,
-> >
-> >On Mon, Sep 04, 2023 at 09:02:02PM +0800, David Wang wrote:
->
-> >>  #include <linux/in6.h>
-> >>
-> >>  /* Responses from hook functions. */
-> >> -#define NF_DROP 0
-> >> -#define NF_ACCEPT 1
-> >> -#define NF_STOLEN 2
-> >> -#define NF_QUEUE 3
-> >> -#define NF_REPEAT 4
-> >> -#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
-> >> -#define NF_MAX_VERDICT NF_STOP
-> >> +enum {
-> >> +	NF_DROP        = 0,
-> >> +	NF_ACCEPT      = 1,
-> >> +	NF_STOLEN      = 2,
-> >> +	NF_QUEUE       = 3,
-> >> +	NF_REPEAT      = 4,
-> >> +	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
-> >> +	NF_MAX_VERDICT = NF_STOP,
-> >> +};
-> >
-> >Switching from macro to enum works for almost all use cases, but not
-> >all. If someone if #ifdefing the symbols (which is plausible) this
-> >change would break them.
-> >
-> >I think I've seen some other networking code define both enums and
-> >macros. But it was a little ugly. Not sure if that is acceptable here or
-> >not.
-> >
-> >[...]
-> >
-> >Thanks,
-> >Daniel
->
->
-> Thanks for the review~
-> I do not have a strong reasoning to deny the possibility of breaking unexpected usage of this macros,
->
-> but I also agree that it is ugly to use both enum and macro at the same time.
->
-> Kind of don't know how to proceed from here now...
+On 2023-09-07 10:25, Will Deacon wrote:
+> On Tue, Sep 05, 2023 at 04:02:19PM +0100, Robin Murphy wrote:
+>> On 05/09/2023 3:37 pm, Will Deacon wrote:
+>>> On Mon, Aug 28, 2023 at 03:04:44AM -0700, syzbot wrote:
+>>>> HEAD commit:    908f31f2a05b Merge branch 'for-next/core', remote-tracking..
+>>>> git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
+>>>> console output: https://syzkaller.appspot.com/x/log.txt?x=155e0463280000
+>>>> kernel config:  https://syzkaller.appspot.com/x/.config?x=c1058fe68f4b7b2c
+>>>> dashboard link: https://syzkaller.appspot.com/bug?extid=4a9f9820bd8d302e22f7
+>>>> compiler:       Debian clang version 15.0.7, GNU ld (GNU Binutils for Debian) 2.35.2
+>>>> userspace arch: arm64
+>>>> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16bc548d280000
+>>>> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=135bba3b280000
+>>>>
+>>>> Downloadable assets:
+>>>> disk image: https://storage.googleapis.com/syzbot-assets/87d095820229/disk-908f31f2.raw.xz
+>>>> vmlinux: https://storage.googleapis.com/syzbot-assets/a1bf67af9675/vmlinux-908f31f2.xz
+>>>> kernel image: https://storage.googleapis.com/syzbot-assets/7784a88b37e8/Image-908f31f2.gz.xz
+>>>>
+>>>> IMPORTANT: if you fix the issue, please add the following tag to the commit:
+>>>> Reported-by: syzbot+4a9f9820bd8d302e22f7@syzkaller.appspotmail.com
+>>>>
+>>>> netdevsim netdevsim0 netdevsim2: set [1, 0] type 2 family 0 port 6081 - 0
+>>>> netdevsim netdevsim0 netdevsim3: set [1, 0] type 2 family 0 port 6081 - 0
+>>>> ==================================================================
+>>>> BUG: KASAN: slab-out-of-bounds in do_csum+0x44/0x254 arch/arm64/lib/csum.c:39
+>>>> Read of size 4294966928 at addr ffff0000d7ac0170 by task syz-executor412/5975
+>>
+>> Yup, that looks suspiciously "-368"-shaped...
+>>
+>>> Judging by the UBSAN errors:
+>>>
+>>> | shift exponent 3008 is too large for 64-bit type 'u64' (aka 'unsigned long long')
+>>>
+>>> We're probably being passed a negative 'len' argument. It looks like the
+>>> generic version in lib/checksum.c rejects that early, so maybe we should
+>>> do the same in the arch code?
+>>
+>> Hmm, indeed I can offer no explanation as to why I put "if (len == 0)" there
+>> rather than "if (len <= 0)" like literally every other C implementation* :/
+> 
+> I've made that change:
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git/commit/?h=for-next/fixes&id=8bd795fedb8450ecbef18eeadbd23ed8fc7630f5
 
-I did see code like that somewhere and wondered what was going on. The #define
-lines were interspersed with the enum members which indeed looked ugly to me.
+If you want it,
 
-I'd suggest a block of #defines after the enum close e.g.
+Acked-by: Robin Murphy <robin.murphy@arm.com>
 
-> #define NF_DROP NF_DROP
->...
-
-perhaps with a comment preceding to advise that the defines were there for
-the benefit of anyone using #ifdef.
-
-Cheers ... Duncan.
+> 
+> Cheers,
+> 
+> Will
