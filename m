@@ -2,99 +2,110 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 109A8EC873E
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 15:42:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E6ECEC8742
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 17:52:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233487AbjIGPm1 (ORCPT
+        id S237129AbjIGRw7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Sep 2023 11:42:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50162 "EHLO
+        Thu, 7 Sep 2023 13:52:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231776AbjIGPXH (ORCPT
+        with ESMTP id S229710AbjIGRw4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Sep 2023 11:23:07 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5533710DF;
-        Thu,  7 Sep 2023 08:22:54 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B04C7C433AD;
-        Thu,  7 Sep 2023 09:25:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694078718;
-        bh=ofrREB+XRbUYVS5Sh20JAfhhFAJ49iPxwIALV7BFZUU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hzRT/Gb9kx8nzgECyIcfiRkD2AdsyIVnMTBz9cQ27fJUfdlg1iooQk7r/6WpR34t0
-         HCDlqYGGyBjosugpXaUcBnJ+eeS4r1PAa+L5iTtN962KVlv5C3P2bCjfBAjCMGzBCm
-         u32uZQTdd2mBdzStbWxHi3rwHmb8OVb3jNeLZ0x6yMpHhOkSYKQO1mALmcpyfA2Aoh
-         7uSvAF/GdMZu34z4xCcMxqNEqfFofBGxJ7gTx2BGggBqwt4ECDXuw6wYp+uWDCAjJt
-         cHoiuOWo3YhSdk67dQQXUmY15b+IwwOnd/j+VM/Bn/rjSA1KXHBpl7ge3JOl0gWa/6
-         e8cuMErprpgNA==
-Date:   Thu, 7 Sep 2023 10:25:13 +0100
-From:   Will Deacon <will@kernel.org>
-To:     Robin Murphy <robin.murphy@arm.com>
-Cc:     syzbot <syzbot+4a9f9820bd8d302e22f7@syzkaller.appspotmail.com>,
-        catalin.marinas@arm.com, fw@strlen.de, kadlec@netfilter.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [arm?] [netfilter?] KASAN: slab-out-of-bounds Read in
- do_csum
-Message-ID: <20230907092511.GB5731@willie-the-truck>
-References: <000000000000e0e94c0603f8d213@google.com>
- <20230905143711.GB3322@willie-the-truck>
- <0dea99d9-3334-3fd3-3776-074ecace0259@arm.com>
+        Thu, 7 Sep 2023 13:52:56 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BAB22CF
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Sep 2023 10:52:34 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: disallow rule removal from chain binding
+Date:   Thu,  7 Sep 2023 09:42:12 +0200
+Message-Id: <20230907074212.105544-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0dea99d9-3334-3fd3-3776-074ecace0259@arm.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 05, 2023 at 04:02:19PM +0100, Robin Murphy wrote:
-> On 05/09/2023 3:37 pm, Will Deacon wrote:
-> > On Mon, Aug 28, 2023 at 03:04:44AM -0700, syzbot wrote:
-> > > HEAD commit:    908f31f2a05b Merge branch 'for-next/core', remote-tracking..
-> > > git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
-> > > console output: https://syzkaller.appspot.com/x/log.txt?x=155e0463280000
-> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=c1058fe68f4b7b2c
-> > > dashboard link: https://syzkaller.appspot.com/bug?extid=4a9f9820bd8d302e22f7
-> > > compiler:       Debian clang version 15.0.7, GNU ld (GNU Binutils for Debian) 2.35.2
-> > > userspace arch: arm64
-> > > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16bc548d280000
-> > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=135bba3b280000
-> > > 
-> > > Downloadable assets:
-> > > disk image: https://storage.googleapis.com/syzbot-assets/87d095820229/disk-908f31f2.raw.xz
-> > > vmlinux: https://storage.googleapis.com/syzbot-assets/a1bf67af9675/vmlinux-908f31f2.xz
-> > > kernel image: https://storage.googleapis.com/syzbot-assets/7784a88b37e8/Image-908f31f2.gz.xz
-> > > 
-> > > IMPORTANT: if you fix the issue, please add the following tag to the commit:
-> > > Reported-by: syzbot+4a9f9820bd8d302e22f7@syzkaller.appspotmail.com
-> > > 
-> > > netdevsim netdevsim0 netdevsim2: set [1, 0] type 2 family 0 port 6081 - 0
-> > > netdevsim netdevsim0 netdevsim3: set [1, 0] type 2 family 0 port 6081 - 0
-> > > ==================================================================
-> > > BUG: KASAN: slab-out-of-bounds in do_csum+0x44/0x254 arch/arm64/lib/csum.c:39
-> > > Read of size 4294966928 at addr ffff0000d7ac0170 by task syz-executor412/5975
-> 
-> Yup, that looks suspiciously "-368"-shaped...
-> 
-> > Judging by the UBSAN errors:
-> > 
-> > | shift exponent 3008 is too large for 64-bit type 'u64' (aka 'unsigned long long')
-> > 
-> > We're probably being passed a negative 'len' argument. It looks like the
-> > generic version in lib/checksum.c rejects that early, so maybe we should
-> > do the same in the arch code?
-> 
-> Hmm, indeed I can offer no explanation as to why I put "if (len == 0)" there
-> rather than "if (len <= 0)" like literally every other C implementation* :/
+Chain binding only requires the rule addition/insertion command within
+the same transaction. Removal of rules from chain bindings within the
+same transaction makes no sense, userspace does not utilize this
+feature. Replace nft_chain_is_bound() check to nft_chain_binding() in
+rule deletion commands.
 
-I've made that change:
+Rule flush command can also safely rely on this nft_chain_binding()
+check because unbound chains are not allowed since 62e1e94b246e
+("netfilter: nf_tables: reject unbound chain set before commit phase").
 
-https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git/commit/?h=for-next/fixes&id=8bd795fedb8450ecbef18eeadbd23ed8fc7630f5
+Fixes: d0e2c7de92c7 ("netfilter: nf_tables: add NFT_CHAIN_BINDING")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Supersedes:
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230906221219.1378-1-pablo@netfilter.org/
 
-Cheers,
+ net/netfilter/nf_tables_api.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-Will
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4696be5615d3..4d75d9174885 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1432,7 +1432,7 @@ static int nft_flush_table(struct nft_ctx *ctx)
+ 		if (!nft_is_active_next(ctx->net, chain))
+ 			continue;
+ 
+-		if (nft_chain_is_bound(chain))
++		if (nft_chain_binding(chain))
+ 			continue;
+ 
+ 		ctx->chain = chain;
+@@ -1477,7 +1477,7 @@ static int nft_flush_table(struct nft_ctx *ctx)
+ 		if (!nft_is_active_next(ctx->net, chain))
+ 			continue;
+ 
+-		if (nft_chain_is_bound(chain))
++		if (nft_chain_binding(chain))
+ 			continue;
+ 
+ 		ctx->chain = chain;
+@@ -2910,6 +2910,9 @@ static int nf_tables_delchain(struct sk_buff *skb, const struct nfnl_info *info,
+ 		return PTR_ERR(chain);
+ 	}
+ 
++	if (nft_chain_binding(chain))
++		return -EOPNOTSUPP;
++
+ 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, chain, nla);
+ 
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+@@ -4078,7 +4081,7 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 			NL_SET_BAD_ATTR(extack, nla[NFTA_RULE_CHAIN]);
+ 			return PTR_ERR(chain);
+ 		}
+-		if (nft_chain_is_bound(chain))
++		if (nft_chain_binding(chain))
+ 			return -EOPNOTSUPP;
+ 	}
+ 
+@@ -4112,7 +4115,7 @@ static int nf_tables_delrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 		list_for_each_entry(chain, &table->chains, list) {
+ 			if (!nft_is_active_next(net, chain))
+ 				continue;
+-			if (nft_chain_is_bound(chain))
++			if (nft_chain_binding(chain))
+ 				continue;
+ 
+ 			ctx.chain = chain;
+@@ -11070,7 +11073,7 @@ static void __nft_release_table(struct net *net, struct nft_table *table)
+ 	ctx.family = table->family;
+ 	ctx.table = table;
+ 	list_for_each_entry(chain, &table->chains, list) {
+-		if (nft_chain_is_bound(chain))
++		if (nft_chain_binding(chain))
+ 			continue;
+ 
+ 		ctx.chain = chain;
+-- 
+2.30.2
+
