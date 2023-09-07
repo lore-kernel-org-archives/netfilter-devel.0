@@ -2,96 +2,70 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 922C5EC874D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 18:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B51F3EC8750
+	for <netfilter-devel@archiver.kernel.org>; Thu,  7 Sep 2023 19:19:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344277AbjIGSon (ORCPT
+        id S233118AbjIGTTj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Sep 2023 14:44:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50364 "EHLO
+        Thu, 7 Sep 2023 15:19:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344279AbjIGSom (ORCPT
+        with ESMTP id S233772AbjIGTTj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Sep 2023 14:44:42 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B4FA132;
-        Thu,  7 Sep 2023 11:44:37 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qeJzS-0001hz-Iq; Thu, 07 Sep 2023 20:44:30 +0200
-Date:   Thu, 7 Sep 2023 20:44:30 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     David Wang <00107082@163.com>
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
- definition from macro to enum
-Message-ID: <20230907184430.GF20947@breakpoint.cc>
-References: <20230904130201.14632-1-00107082@163.com>
- <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
- <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
+        Thu, 7 Sep 2023 15:19:39 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BBFCBC
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Sep 2023 12:19:33 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qeCHp-0000Ig-UN; Thu, 07 Sep 2023 12:30:57 +0200
+Date:   Thu, 7 Sep 2023 12:30:57 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net 6/6] netfilter: nf_tables: Unbreak audit log reset
+Message-ID: <ZPmmYayuzmMPJXqu@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+References: <20230906162525.11079-1-fw@strlen.de>
+ <20230906162525.11079-7-fw@strlen.de>
+ <ZPjyB48c+y6P9MOZ@orbyte.nwl.cc>
+ <ZPkAIUSuc0lZl3yu@strlen.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZPkAIUSuc0lZl3yu@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-David Wang <00107082@163.com> wrote:
-> At 2023-09-06 00:38:02, "Daniel Xu" <dxu@dxuuu.xyz> wrote:
-> >Hi David,
-> >
-> >On Mon, Sep 04, 2023 at 09:02:02PM +0800, David Wang wrote:
+On Thu, Sep 07, 2023 at 12:41:37AM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > On Wed, Sep 06, 2023 at 06:25:12PM +0200, Florian Westphal wrote:
+> > > From: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > 
+> > > Deliver audit log from __nf_tables_dump_rules(), table dereference at
+> > > the end of the table list loop might point to the list head, leading to
+> > > this crash.
+> > 
+> > There are a few issues with this patch, can we please drop it from this
+> > MR for now?
 > 
-> >>  #include <linux/in6.h>
-> >>  
-> >>  /* Responses from hook functions. */
-> >> -#define NF_DROP 0
-> >> -#define NF_ACCEPT 1
-> >> -#define NF_STOLEN 2
-> >> -#define NF_QUEUE 3
-> >> -#define NF_REPEAT 4
-> >> -#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
-> >> -#define NF_MAX_VERDICT NF_STOP
-> >> +enum {
-> >> +	NF_DROP        = 0,
-> >> +	NF_ACCEPT      = 1,
-> >> +	NF_STOLEN      = 2,
-> >> +	NF_QUEUE       = 3,
-> >> +	NF_REPEAT      = 4,
-> >> +	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
-> >> +	NF_MAX_VERDICT = NF_STOP,
-> >> +};
-> >
-> >Switching from macro to enum works for almost all use cases, but not
-> >all. If someone if #ifdefing the symbols (which is plausible) this
-> >change would break them.
-> >
-> >I think I've seen some other networking code define both enums and
-> >macros. But it was a little ugly. Not sure if that is acceptable here or
-> >not.
-> >
-> >[...]
-> >
-> >Thanks,
-> >Daniel
+> If this were a change that *adds* a kernel crash, then, sure.
+> But this fixes a crash, so I see no reason to keep it back.
 > 
-> 
-> Thanks for the review~
-> I do not have a strong reasoning to deny the possibility of breaking unexpected usage of this macros,
-> 
-> but I also agree that it is ugly to use both enum and macro at the same time.
-> 
-> Kind of don't know how to proceed from here now...
+> Please do an incremental followup instead.
 
-I don't see anyone doing #ifdef tests on these, so I suggest we
-give your patch a try and see if anything breaks.
+ACK, I'll do that instead.
 
-Technically only ACCEPT and DROP can be used by bpf
-programs but splitting it in
-enum-for-accept-drop-and-define-for-the-rest looks even more silly.
+Thanks, Phil
