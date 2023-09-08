@@ -2,32 +2,32 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B136EEB560
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 18:22:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E70CEEB562
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 18:23:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344391AbjIHSWR (ORCPT
+        id S240546AbjIHSXq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Sep 2023 14:22:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57286 "EHLO
+        Fri, 8 Sep 2023 14:23:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344088AbjIHSVX (ORCPT
+        with ESMTP id S1344480AbjIHSWu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Sep 2023 14:21:23 -0400
+        Fri, 8 Sep 2023 14:22:50 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 865F230D5;
-        Fri,  8 Sep 2023 11:19:21 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4F53C43395;
-        Fri,  8 Sep 2023 18:19:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8FD43A88;
+        Fri,  8 Sep 2023 11:19:56 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75814C433BF;
+        Fri,  8 Sep 2023 18:19:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694197147;
-        bh=liMbP5RMQjvARMjT61+20zvhPE+McbXIwRmdFix/leU=;
+        s=k20201202; t=1694197196;
+        bh=X0jbyBkErnFvtcxeoHao+vqypF8h09Ocizozo+uSAzc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=i6N89X5toUuB97pYw0PNV15tjpX78URPGyBsR63Kach3vARXAE9Oo9D9CPPeCIiAQ
-         NA85tsUyStoP55ijIFONhuS69vDelKLeRbrfUXV7SGPR0JrSCsu8vu3WQ31Ru7H290
-         XCSerQojIAWQLE7tbBfS1L6rmfy/tzFaXd/MFMTkdDS+S3jDBZ52RS8iKk6XFIpqXI
-         2lftNR386Fl9110t8+nnt35xXVgsjMxrRIqsDnqJlQ5D/LMlUPnsyUwOh4SIdgEcto
-         ZydZ6FOX77AVQrfVbAQSwFWsPzmiw5Zs5+zZY4mUwINNfjcqdrSjFhL2BioQFd5Q2c
-         dlvvShoXTf7GQ==
+        b=RlFsnLGZnnZ6fXcfCM+YY2cFo3mmmmcLL6Sk0r1LMjLdP5itePkpDpq1zXRrqQFPI
+         fnm14HX2r6xv0lvW2hhYPQ0TkX44x3loaZ7LydpRcyQoXl0QHRInbCxMgjmBn2i4sc
+         I2sNLYhMm3JMlPd3/Msb4o2gSNFZrMuSQkvYW5XiL79ykK7Gl+qcmR1dq/O43EurVN
+         eMRMFlpt04gOmJ21wWFiarUKJ8lu+3q1Z1yDPWJZfdpDJoWn0bnHp6F7fcl+nEhYeQ
+         rMw7c0Ca9MDPwA05fJs3KdEjv+k4Q3ffx7koYu6vwx1EwIPsAv1G6sePvvC9pdAhrO
+         9vTmZQ9j/1cdw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     "GONG, Ruiqi" <gongruiqi1@huawei.com>, GONG@vger.kernel.org,
@@ -40,17 +40,17 @@ Cc:     "GONG, Ruiqi" <gongruiqi1@huawei.com>, GONG@vger.kernel.org,
         pabeni@redhat.com, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, bridge@lists.linux-foundation.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 20/26] netfilter: ebtables: fix fortify warnings in size_entry_mwt()
-Date:   Fri,  8 Sep 2023 14:17:58 -0400
-Message-Id: <20230908181806.3460164-20-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 12/15] netfilter: ebtables: fix fortify warnings in size_entry_mwt()
+Date:   Fri,  8 Sep 2023 14:19:15 -0400
+Message-Id: <20230908181920.3460520-12-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230908181806.3460164-1-sashal@kernel.org>
-References: <20230908181806.3460164-1-sashal@kernel.org>
+In-Reply-To: <20230908181920.3460520-1-sashal@kernel.org>
+References: <20230908181920.3460520-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.1.52
+X-stable-base: Linux 5.15.131
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -116,10 +116,10 @@ index a494cf43a7552..b0caad82b6937 100644
  };
  
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 757ec46fc45a0..aa23479b20b2a 100644
+index a09b2fc11c80e..c0389199c0dcb 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -2115,8 +2115,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
+@@ -2114,8 +2114,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
  		return ret;
  
  	offsets[0] = sizeof(struct ebt_entry); /* matches come first */
