@@ -2,178 +2,138 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D971EC8732
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 03:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C49EE57E0
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 08:10:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234557AbjIHDS7 (ORCPT
+        id S240553AbjIHIKp (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 7 Sep 2023 23:18:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48504 "EHLO
+        Fri, 8 Sep 2023 04:10:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235586AbjIHDS5 (ORCPT
+        with ESMTP id S240575AbjIHIKo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Sep 2023 23:18:57 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFBBF1BEE;
-        Thu,  7 Sep 2023 20:18:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1694143129; x=1725679129;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=oVRh3cA4wodne8omB5dWpaFCF6ymIphW1ZyNXeyQkJk=;
-  b=SC+bf5PrIGz6ZQKFCSdrknYEMkshPuuht6fcrFg4/UPF3cL9QA/kFzQW
-   uZZPvTlUzXOXYrKVHxTITjccWJj1jE8RbJi2Ybp2Kuna6+fwZGFaoAnN/
-   vm9A4eVG3nP/NvrvD/bI3PEbT0PrGbI/87l9y0isc9l5X8s7gaK37+tKw
-   x82rXZUS/nxpoK/82n6y3UsnxNgevNXivfxNhjuRySBOqcINFXl8DLOpZ
-   iAr5c5K7sb+brYSoyaT5wZXMM6Z9qdR5nQ9I/wWzKWNmBVThwPj2+Gblw
-   E9r4gCC75VsafXeSakiQk4ykFqBpaeo36wMsgET3L87W89LDY10dq5usW
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10826"; a="376451965"
-X-IronPort-AV: E=Sophos;i="6.02,236,1688454000"; 
-   d="scan'208";a="376451965"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2023 20:18:49 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10826"; a="718974117"
-X-IronPort-AV: E=Sophos;i="6.02,236,1688454000"; 
-   d="scan'208";a="718974117"
-Received: from lkp-server01.sh.intel.com (HELO 59b3c6e06877) ([10.239.97.150])
-  by orsmga006.jf.intel.com with ESMTP; 07 Sep 2023 20:18:46 -0700
-Received: from kbuild by 59b3c6e06877 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qeS15-0001rz-2f;
-        Fri, 08 Sep 2023 03:18:43 +0000
-Date:   Fri, 8 Sep 2023 11:17:46 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Fri, 8 Sep 2023 04:10:44 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 180631BF1;
+        Fri,  8 Sep 2023 01:10:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=3Xq5Im7fumYrRMB6e8uFKv7Zwppr6d8ISGzTZvMpbco=; b=V+YzuZm/dX4/KoN4kuzUd88PqY
+        z4EKQJklsm006orL+LGups/tsGrJujYcnibeNZie9Hs+/qcf7DhhrfdZFenapIw/ge7timdWfs0tS
+        YQMr+Q6VSg9zC4JPGnX747gQG3sbGIkhn7S+yssVP50NdwpaSUZmcOb8djg+aZvzBW4GCWVgLOyYT
+        e1VDOQZMOsbpdgqhlICHJW1sLKf8HwFrLbW3wZwnRVIq3fVum6PjwyJlkdp3LfSOm7H1B50nP1NZi
+        U+GvadoO9vLIR/9gLbp6/mCubspK//ddQIbJ755e2Ai7DxHBlTfdC/C+GlD9MGufyOpaCWw9SU7lz
+        yeu+CrdA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qeWZY-00046B-PI; Fri, 08 Sep 2023 10:10:36 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
         audit@vger.kernel.org
-Subject: Re: [nf PATCH 1/2] netfilter: nf_tables: Fix entries val in rule
- reset audit log
-Message-ID: <202309081138.IpMoJwFy-lkp@intel.com>
-References: <20230908002229.1409-2-phil@nwl.cc>
+Subject: [nf PATCH v2] netfilter: nf_tables: Fix entries val in rule reset audit log
+Date:   Fri,  8 Sep 2023 10:10:33 +0200
+Message-ID: <20230908081033.30806-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230908002229.1409-2-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Phil,
+The value in idx and the number of rules handled in that particular
+__nf_tables_dump_rules() call is not identical. The former is a cursor
+to pick up from if multiple netlink messages are needed, so its value is
+ever increasing. Fixing this is not just a matter of subtracting s_idx
+from it, though: When resetting rules in multiple chains,
+__nf_tables_dump_rules() is called for each and cb->args[0] is not
+adjusted in between.
 
-kernel test robot noticed the following build warnings:
+The audit notification in __nf_tables_dump_rules() had another problem:
+If nf_tables_fill_rule_info() failed (e.g. due to buffer exhaustion), no
+notification was sent - despite the rules having been reset already.
 
-[auto build test WARNING on netfilter-nf/main]
+To catch all the above and return to a single (if possible) notification
+per table again, move audit logging back into the caller but into the
+table loop instead of past it to avoid the potential null-pointer
+deref.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Phil-Sutter/netfilter-nf_tables-Fix-entries-val-in-rule-reset-audit-log/20230908-082530
-base:   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20230908002229.1409-2-phil%40nwl.cc
-patch subject: [nf PATCH 1/2] netfilter: nf_tables: Fix entries val in rule reset audit log
-config: mips-randconfig-r002-20230908 (https://download.01.org/0day-ci/archive/20230908/202309081138.IpMoJwFy-lkp@intel.com/config)
-compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project.git 4a5ac14ee968ff0ad5d2cc1ffa0299048db4c88a)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230908/202309081138.IpMoJwFy-lkp@intel.com/reproduce)
+This requires to trigger the notification in two spots. Care has to be
+taken in the second case as cb->args[0] is also not updated in between
+tables. This requires a helper variable as either it is the first table
+(with potential non-zero cb->args[0] cursor) or a consecutive one (with
+idx holding the current cursor already).
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202309081138.IpMoJwFy-lkp@intel.com/
+Fixes: 9b5ba5c9c5109 ("netfilter: nf_tables: Unbreak audit log reset")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Use max_t() to eliminate the kernel warning
+---
+ net/netfilter/nf_tables_api.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-All warnings (new ones prefixed by >>):
-
->> net/netfilter/nf_tables_api.c:3536:11: warning: comparison of distinct pointer types ('typeof (idx) *' (aka 'unsigned int *') and 'typeof (cb->args[0]) *' (aka 'long *')) [-Wcompare-distinct-pointer-types]
-    3536 |                 s_idx = max(idx, cb->args[0]);
-         |                         ^~~~~~~~~~~~~~~~~~~~~
-   include/linux/minmax.h:74:19: note: expanded from macro 'max'
-      74 | #define max(x, y)       __careful_cmp(x, y, >)
-         |                         ^~~~~~~~~~~~~~~~~~~~~~
-   include/linux/minmax.h:36:24: note: expanded from macro '__careful_cmp'
-      36 |         __builtin_choose_expr(__safe_cmp(x, y), \
-         |                               ^~~~~~~~~~~~~~~~
-   include/linux/minmax.h:26:4: note: expanded from macro '__safe_cmp'
-      26 |                 (__typecheck(x, y) && __no_side_effects(x, y))
-         |                  ^~~~~~~~~~~~~~~~~
-   include/linux/minmax.h:20:28: note: expanded from macro '__typecheck'
-      20 |         (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-         |                    ~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~
-   1 warning generated.
-
-
-vim +3536 net/netfilter/nf_tables_api.c
-
-  3486	
-  3487	static int nf_tables_dump_rules(struct sk_buff *skb,
-  3488					struct netlink_callback *cb)
-  3489	{
-  3490		const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-  3491		const struct nft_rule_dump_ctx *ctx = cb->data;
-  3492		struct nft_table *table;
-  3493		const struct nft_chain *chain;
-  3494		unsigned int idx = 0, s_idx;
-  3495		struct net *net = sock_net(skb->sk);
-  3496		int family = nfmsg->nfgen_family;
-  3497		struct nftables_pernet *nft_net;
-  3498		bool reset = false;
-  3499		int ret;
-  3500	
-  3501		if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) == NFT_MSG_GETRULE_RESET)
-  3502			reset = true;
-  3503	
-  3504		rcu_read_lock();
-  3505		nft_net = nft_pernet(net);
-  3506		cb->seq = READ_ONCE(nft_net->base_seq);
-  3507	
-  3508		list_for_each_entry_rcu(table, &nft_net->tables, list) {
-  3509			if (family != NFPROTO_UNSPEC && family != table->family)
-  3510				continue;
-  3511	
-  3512			if (ctx && ctx->table && strcmp(ctx->table, table->name) != 0)
-  3513				continue;
-  3514	
-  3515			if (ctx && ctx->table && ctx->chain) {
-  3516				struct rhlist_head *list, *tmp;
-  3517	
-  3518				list = rhltable_lookup(&table->chains_ht, ctx->chain,
-  3519						       nft_chain_ht_params);
-  3520				if (!list)
-  3521					goto done;
-  3522	
-  3523				rhl_for_each_entry_rcu(chain, tmp, list, rhlhead) {
-  3524					if (!nft_is_active(net, chain))
-  3525						continue;
-  3526					__nf_tables_dump_rules(skb, &idx,
-  3527							       cb, table, chain, reset);
-  3528					break;
-  3529				}
-  3530				if (reset && idx > cb->args[0])
-  3531					audit_log_rule_reset(table, cb->seq,
-  3532							     idx - cb->args[0]);
-  3533				goto done;
-  3534			}
-  3535	
-> 3536			s_idx = max(idx, cb->args[0]);
-  3537			list_for_each_entry_rcu(chain, &table->chains, list) {
-  3538				ret = __nf_tables_dump_rules(skb, &idx,
-  3539							     cb, table, chain, reset);
-  3540				if (ret)
-  3541					break;
-  3542			}
-  3543			if (reset && idx > s_idx)
-  3544				audit_log_rule_reset(table, cb->seq, idx - s_idx);
-  3545	
-  3546			if ((ctx && ctx->table) || ret)
-  3547				break;
-  3548		}
-  3549	done:
-  3550		rcu_read_unlock();
-  3551	
-  3552		cb->args[0] = idx;
-  3553		return skb->len;
-  3554	}
-  3555	
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e429ebba74b3d..5a1ff10d1d2a5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3481,9 +3481,6 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
+ 		(*idx)++;
+ 	}
+ 
+-	if (reset && *idx)
+-		audit_log_rule_reset(table, cb->seq, *idx);
+-
+ 	return 0;
+ }
+ 
+@@ -3494,11 +3491,12 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 	const struct nft_rule_dump_ctx *ctx = cb->data;
+ 	struct nft_table *table;
+ 	const struct nft_chain *chain;
+-	unsigned int idx = 0;
++	unsigned int idx = 0, s_idx;
+ 	struct net *net = sock_net(skb->sk);
+ 	int family = nfmsg->nfgen_family;
+ 	struct nftables_pernet *nft_net;
+ 	bool reset = false;
++	int ret;
+ 
+ 	if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) == NFT_MSG_GETRULE_RESET)
+ 		reset = true;
+@@ -3529,16 +3527,23 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 						       cb, table, chain, reset);
+ 				break;
+ 			}
++			if (reset && idx > cb->args[0])
++				audit_log_rule_reset(table, cb->seq,
++						     idx - cb->args[0]);
+ 			goto done;
+ 		}
+ 
++		s_idx = max_t(long, idx, cb->args[0]);
+ 		list_for_each_entry_rcu(chain, &table->chains, list) {
+-			if (__nf_tables_dump_rules(skb, &idx,
+-						   cb, table, chain, reset))
+-				goto done;
++			ret = __nf_tables_dump_rules(skb, &idx,
++						     cb, table, chain, reset);
++			if (ret)
++				break;
+ 		}
++		if (reset && idx > s_idx)
++			audit_log_rule_reset(table, cb->seq, idx - s_idx);
+ 
+-		if (ctx && ctx->table)
++		if ((ctx && ctx->table) || ret)
+ 			break;
+ 	}
+ done:
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.41.0
+
