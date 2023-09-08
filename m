@@ -2,49 +2,49 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC150EE800D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 14:17:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B8CEE800C
+	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 14:17:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235341AbjIHORr (ORCPT
+        id S239272AbjIHORu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Sep 2023 10:17:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60498 "EHLO
+        Fri, 8 Sep 2023 10:17:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238573AbjIHORq (ORCPT
+        with ESMTP id S238573AbjIHORu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Sep 2023 10:17:46 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55D651BEE
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Sep 2023 07:16:57 -0700 (PDT)
+        Fri, 8 Sep 2023 10:17:50 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FB571BF5
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Sep 2023 07:16:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1694182616;
+        s=mimecast20190719; t=1694182617;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ZPUjb4nfexMhzaYT6rSvjSQRWp8cUtlUO+99mGnF3vs=;
-        b=Lg7c9ZPSS/X8OXyF08A9Z/G5rsLO+uunwq/sBpg3Illpje1oCPxYYHy8TyEQiS6Dlh8RCm
-        l6rLQdL1LkAh2egRlC3FJPSha5Kp8pIok2a5inR/31OZGQluq0lEwZQ97+9/DeJ5Yj7oZd
-        tbBrmSr7KlE32dUL1dbn0z/pbxnCsJw=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-501-xy3uRgKhO3uky8SDBWGaRg-1; Fri, 08 Sep 2023 10:16:54 -0400
-X-MC-Unique: xy3uRgKhO3uky8SDBWGaRg-1
+        bh=nEoZW+pAcTbFrhSqzjdEEplTm5dpX7sQk7y0iTYfTr4=;
+        b=HxpGQVvmwR+ojh7XnBYpUp84ZjWvSh9H0WYx6bXx7+22BV9PcmZUn0S9h08Z6bUY6UetSc
+        NWEfqTnYt8C22aut9N2socUEuYn1Lv5C5w4EGxZJh/oVgSWw+OuztvLDiUU50XNNMaLyvO
+        mWZU4Tdk+Sc2Bwjw+/xkD8ezteD1Y8k=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-246-ZnMdXz0IMQ2ZknFHSSZRAQ-1; Fri, 08 Sep 2023 10:16:53 -0400
+X-MC-Unique: ZnMdXz0IMQ2ZknFHSSZRAQ-1
 Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 92D3B18307C6
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Sep 2023 14:16:46 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C4E0E1C18C95
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Sep 2023 14:16:47 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.3])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0C4CA40ED774;
-        Fri,  8 Sep 2023 14:16:45 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id D070240C6CCC;
+        Fri,  8 Sep 2023 14:16:46 +0000 (UTC)
 From:   Thomas Haller <thaller@redhat.com>
 To:     NetFilter <netfilter-devel@vger.kernel.org>
 Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft v2 1/4] tests/shell: honor .nodump file for tests without nft dumps
-Date:   Fri,  8 Sep 2023 16:14:24 +0200
-Message-ID: <20230908141634.1023071-2-thaller@redhat.com>
+Subject: [PATCH nft v2 2/4] tests/shell: generate and add ".nft" dump files for existing tests
+Date:   Fri,  8 Sep 2023 16:14:25 +0200
+Message-ID: <20230908141634.1023071-3-thaller@redhat.com>
 In-Reply-To: <20230908141634.1023071-1-thaller@redhat.com>
 References: <20230908141634.1023071-1-thaller@redhat.com>
 MIME-Version: 1.0
@@ -54,62 +54,3710 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-For some tests, the dump is not stable or useful to test. For example,
-if they have an "expires" timestamps. Those tests don't have a .nft file
-in the dumps directory, and don't have it checked.
+Several tests didn't have a ".nft" dump file committed. Generate one and
+commit it to git.
 
-DUMPGEN=y generates a new dump file, if the "dumps/" directory exists.
-Omitting that directory is a way to prevent the generation of the file.
-However, many such tests share their directory with tests that do have dumps.
+While not all tests have a stable ruleset to compare, many have. Commit
+the .nft files for the tests where the output appears to be stable.
 
-When running tests with DUMPGEN=y, new files for old tests are generated.
-Those files are not meant to be compared or committed to git because
-it's known to not work.
+This was generated by running `./tests/shell/run-tests.sh -g` twice, and
+commit the files that were identical both times. Note that 7 tests on my
+machine fail, so those are skipped.
 
-Whether a test has a dump file, is part of the test. The absence of the
-dump file should also be recorded and committed to git.
+Also skip the files
 
-Add a way to opt-out from such generating such dumps by having .nodump
-files instead of the .nft dump.
+  tests/shell/testcases/maps/dumps/0004interval_map_create_once_0.nft
+  tests/shell/testcases/nft-f/dumps/0011manydefines_0.nft
+  tests/shell/testcases/sets/dumps/0011add_many_elements_0.nft
+  tests/shell/testcases/sets/dumps/0030add_many_elements_interval_0.nft
+  tests/shell/testcases/sets/dumps/0068interval_stack_overflow_0.nft
 
-Later we should add unit tests that checks that no test has both a .nft
-and a .nodump file in git, that the .nodump file is always empty, and
-that every .nft/.nodump file has a corresponding test committed to git.
+Those files are larger than 100KB, and I don't think we want to blow up
+the git repository this way. Even if they are only text files and
+compress well.
 
 Signed-off-by: Thomas Haller <thaller@redhat.com>
 ---
- tests/shell/helpers/test-wrapper.sh | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ .../cache/dumps/0003_cache_update_0.nft       |  18 +
+ .../cache/dumps/0004_cache_update_0.nft       |   5 +
+ .../cache/dumps/0005_cache_chain_flush.nft    |  14 +
+ .../cache/dumps/0006_cache_table_flush.nft    |  14 +
+ .../cache/dumps/0008_delete_by_handle_0.nft   |   2 +
+ .../0009_delete_by_handle_incorrect_0.nft     |   0
+ .../cache/dumps/0010_implicit_chain_0.nft     |   7 +
+ .../testcases/chains/dumps/0002jumps_1.nft    |  68 ++
+ .../chains/dumps/0003jump_loop_1.nft          |  64 ++
+ .../testcases/chains/dumps/0004busy_1.nft     |   8 +
+ .../testcases/chains/dumps/0005busy_map_1.nft |   8 +
+ .../chains/dumps/0007masquerade_1.nft         |   5 +
+ .../chains/dumps/0008masquerade_jump_1.nft    |   9 +
+ .../chains/dumps/0009masquerade_jump_1.nft    |   9 +
+ .../chains/dumps/0010endless_jump_loop_1.nft  |   4 +
+ .../chains/dumps/0011endless_jump_loop_1.nft  |  13 +
+ .../testcases/chains/dumps/0014rename_0.nft   |   7 +
+ .../chains/dumps/0015check_jump_loop_1.nft    |   8 +
+ .../chains/dumps/0017masquerade_jump_1.nft    |   9 +
+ .../chains/dumps/0018check_jump_loop_1.nft    |   8 +
+ .../chains/dumps/0019masquerade_jump_1.nft    |   9 +
+ .../testcases/chains/dumps/0020depth_1.nft    |  84 ++
+ .../chains/dumps/0022prio_dummy_1.nft         |   2 +
+ .../chains/dumps/0023prio_inet_srcnat_1.nft   |   6 +
+ .../chains/dumps/0024prio_inet_dstnat_1.nft   |   6 +
+ .../testcases/chains/dumps/0025prio_arp_1.nft |   2 +
+ .../chains/dumps/0026prio_netdev_1.nft        |   2 +
+ .../chains/dumps/0027prio_bridge_dstnat_1.nft |   2 +
+ .../chains/dumps/0028prio_bridge_out_1.nft    |   2 +
+ .../chains/dumps/0029prio_bridge_srcnat_1.nft |   2 +
+ .../chains/dumps/0033priority_variable_1.nft  |   0
+ .../chains/dumps/0034priority_variable_1.nft  |   0
+ .../chains/dumps/0036policy_variable_0.nft    |   5 +
+ .../chains/dumps/0037policy_variable_1.nft    |   0
+ .../chains/dumps/0038policy_variable_1.nft    |   0
+ .../chains/dumps/0039negative_priority_0.nft  |   5 +
+ .../chains/dumps/0043chain_ingress_0.nft      |  13 +
+ .../dumps/0002create_flowtable_0.nft          |   6 +
+ .../flowtable/dumps/0003add_after_flush_0.nft |   6 +
+ .../dumps/0004delete_after_add_0.nft          |   2 +
+ .../flowtable/dumps/0005delete_in_use_1.nft   |  10 +
+ .../flowtable/dumps/0006segfault_0.nft        |   2 +
+ .../testcases/flowtable/dumps/0007prio_0.nft  |   2 +
+ .../testcases/flowtable/dumps/0008prio_1.nft  |   2 +
+ .../dumps/0009deleteafterflush_0.nft          |   4 +
+ .../flowtable/dumps/0010delete_handle_0.nft   |   2 +
+ .../dumps/0011deleteafterflush_0.nft          |   4 +
+ .../flowtable/dumps/0013addafterdelete_0.nft  |   7 +
+ .../flowtable/dumps/0014addafterdelete_0.nft  |  12 +
+ .../include/dumps/0004endlessloop_1.nft       |   0
+ .../include/dumps/0005glob_empty_0.nft        |   0
+ .../dumps/0008glob_nofile_wildcard_0.nft      |   0
+ .../include/dumps/0009glob_nofile_1.nft       |   0
+ .../include/dumps/0010glob_broken_file_1.nft  |   0
+ .../include/dumps/0012glob_dependency_1.nft   |   0
+ ...0013input_descriptors_included_files_0.nft |   0
+ .../include/dumps/0014glob_directory_0.nft    |   0
+ .../include/dumps/0016maxdepth_0.nft          |   0
+ .../dumps/0017glob_more_than_maxdepth_1.nft   |   0
+ .../include/dumps/0018include_error_0.nft     |   0
+ .../include/dumps/0019include_error_0.nft     |   0
+ tests/shell/testcases/json/dumps/netdev.nft   |   2 +
+ .../testcases/listing/dumps/0002ruleset_0.nft |   0
+ .../testcases/listing/dumps/0003table_0.nft   |   2 +
+ .../testcases/listing/dumps/0004table_0.nft   |   4 +
+ .../listing/dumps/0005ruleset_ip_0.nft        |  10 +
+ .../listing/dumps/0006ruleset_ip6_0.nft       |  10 +
+ .../listing/dumps/0007ruleset_inet_0.nft      |  10 +
+ .../listing/dumps/0008ruleset_arp_0.nft       |  10 +
+ .../listing/dumps/0009ruleset_bridge_0.nft    |  10 +
+ .../testcases/listing/dumps/0010sets_0.nft    |  39 +
+ .../testcases/listing/dumps/0011sets_0.nft    |  25 +
+ .../testcases/listing/dumps/0012sets_0.nft    |  39 +
+ .../testcases/listing/dumps/0014objects_0.nft |  12 +
+ .../testcases/listing/dumps/0015dynamic_0.nft |   7 +
+ .../listing/dumps/0016anonymous_0.nft         |   6 +
+ .../testcases/listing/dumps/0017objects_0.nft |   5 +
+ .../testcases/listing/dumps/0018data_0.nft    |   5 +
+ .../testcases/listing/dumps/0019set_0.nft     |   5 +
+ .../listing/dumps/0020flowtable_0.nft         |  20 +
+ .../dumps/0021ruleset_json_terse_0.nft        |   9 +
+ .../testcases/listing/dumps/0022terse_0.nft   |  12 +
+ .../dumps/0003map_add_many_elements_0.nft     | 486 ++++++++++++
+ .../maps/dumps/0008interval_map_delete_0.nft  |  15 +
+ .../testcases/maps/dumps/0016map_leak_0.nft   |   0
+ .../maps/dumps/0017_map_variable_0.nft        |  11 +
+ .../maps/dumps/0018map_leak_timeout_0.nft     |   0
+ .../maps/dumps/different_map_types_1.nft      |   5 +
+ .../nft-f/dumps/0001define_slash_0.nft        |   0
+ .../nft-f/dumps/0006action_object_0.nft       |   0
+ .../0007action_object_set_segfault_1.nft      |   0
+ .../testcases/nft-f/dumps/0013defines_1.nft   |   0
+ .../testcases/nft-f/dumps/0014defines_1.nft   |   0
+ .../testcases/nft-f/dumps/0015defines_1.nft   |   0
+ .../testcases/nft-f/dumps/0016redefines_1.nft |   6 +
+ .../nft-f/dumps/0018ct_expectation_obj_0.nft  |  13 +
+ .../nft-f/dumps/0019jump_variable_1.nft       |   0
+ .../nft-f/dumps/0020jump_variable_1.nft       |   0
+ .../testcases/nft-f/dumps/0023check_1.nft     |   5 +
+ .../testcases/nft-f/dumps/0026listing_0.nft   |   5 +
+ .../nft-f/dumps/0029split_file_0.nft          |  10 +
+ .../nft-f/dumps/0031vmap_string_0.nft         |   0
+ .../testcases/optimizations/dumps/ruleset.nft |   0
+ .../optimizations/dumps/variables.nft         |   0
+ .../dumps/comments_objects_dup_0.nft          |   0
+ .../dumps/delete_object_handles_0.nft         |  18 +
+ .../testcases/optionals/dumps/handles_1.nft   |   5 +
+ .../dumps/update_object_handles_0.nft         |   9 +
+ .../testcases/parsing/dumps/describe.nft      |   0
+ tests/shell/testcases/parsing/dumps/log.nft   |   0
+ tests/shell/testcases/parsing/dumps/octal.nft |   0
+ .../dumps/0001addinsertposition_0.nft         |   7 +
+ .../dumps/0002addinsertlocation_1.nft         |   6 +
+ .../rule_management/dumps/0005replace_1.nft   |   4 +
+ .../rule_management/dumps/0006replace_1.nft   |   4 +
+ .../rule_management/dumps/0008delete_1.nft    |   4 +
+ .../rule_management/dumps/0009delete_1.nft    |   4 +
+ .../rule_management/dumps/0010replace_0.nft   |   0
+ .../0014malformed_set_is_not_defined_0.nft    |   0
+ .../sets/dumps/0018set_check_size_1.nft       |   7 +
+ .../testcases/sets/dumps/0028autoselect_0.nft |  26 +
+ .../sets/dumps/0028delete_handle_0.nft        |  15 +
+ .../sets/dumps/0031set_timeout_size_0.nft     |  13 +
+ .../sets/dumps/0033add_set_simple_flat_0.nft  |  11 +
+ .../sets/dumps/0034get_element_0.nft          |  23 +
+ .../dumps/0035add_set_elements_flat_0.nft     |   6 +
+ .../testcases/sets/dumps/0038meter_list_0.nft |  11 +
+ .../sets/dumps/0039delete_interval_0.nft      |   7 +
+ .../dumps/0040get_host_endian_elements_0.nft  |   7 +
+ .../testcases/sets/dumps/0041interval_0.nft   |   7 +
+ .../testcases/sets/dumps/0042update_set_0.nft |  15 +
+ .../sets/dumps/0043concatenated_ranges_0.nft  |  11 +
+ .../sets/dumps/0043concatenated_ranges_1.nft  | 116 +++
+ .../sets/dumps/0044interval_overlap_1.nft     | 106 +++
+ .../testcases/sets/dumps/0050set_define_1.nft |   0
+ .../sets/dumps/0056dynamic_limit_0.nft        |   0
+ .../sets/dumps/0057set_create_fails_0.nft     |   7 +
+ .../sets/dumps/0062set_connlimit_0.nft        |  16 +
+ .../sets/dumps/0065_icmp_postprocessing.nft   |   6 +
+ tests/shell/testcases/sets/dumps/errors_0.nft |   0
+ .../testcases/sets/dumps/exact_overlap_0.nft  |  13 +
+ .../transactions/dumps/0003table_0.nft        |   4 +
+ .../transactions/dumps/0014chain_1.nft        |   0
+ .../transactions/dumps/0015chain_0.nft        |   0
+ .../transactions/dumps/0020rule_0.nft         |   0
+ .../transactions/dumps/0022rule_1.nft         |   0
+ .../transactions/dumps/0023rule_1.nft         |   0
+ .../transactions/dumps/0036set_1.nft          |   0
+ .../transactions/dumps/0041nat_restore_0.nft  |   5 +
+ .../dumps/0042_stateful_expr_0.nft            |   5 +
+ .../transactions/dumps/0043set_1.nft          |   0
+ .../transactions/dumps/0044rule_0.nft         |   0
+ .../transactions/dumps/0045anon-unbind_0.nft  |   0
+ .../transactions/dumps/0046set_0.nft          |   2 +
+ .../transactions/dumps/0047set_0.nft          |  11 +
+ .../transactions/dumps/0048helpers_0.nft      |   2 +
+ .../transactions/dumps/0049huge_0.nft         | 749 ++++++++++++++++++
+ .../transactions/dumps/0050rule_1.nft         |   0
+ .../transactions/dumps/0051map_0.nft          |   7 +
+ .../transactions/dumps/30s-stress.nft         |   0
+ .../transactions/dumps/anon_chain_loop.nft    |   0
+ 161 files changed, 2546 insertions(+)
+ create mode 100644 tests/shell/testcases/cache/dumps/0003_cache_update_0.nft
+ create mode 100644 tests/shell/testcases/cache/dumps/0004_cache_update_0.nft
+ create mode 100644 tests/shell/testcases/cache/dumps/0005_cache_chain_flush.nft
+ create mode 100644 tests/shell/testcases/cache/dumps/0006_cache_table_flush.nft
+ create mode 100644 tests/shell/testcases/cache/dumps/0008_delete_by_handle_0.nft
+ create mode 100644 tests/shell/testcases/cache/dumps/0009_delete_by_handle_incorrect_0.nft
+ create mode 100644 tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0002jumps_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0003jump_loop_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0004busy_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0005busy_map_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0007masquerade_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0008masquerade_jump_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0009masquerade_jump_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0014rename_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0015check_jump_loop_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0017masquerade_jump_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0019masquerade_jump_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0020depth_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0022prio_dummy_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0023prio_inet_srcnat_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0024prio_inet_dstnat_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0025prio_arp_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0026prio_netdev_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0027prio_bridge_dstnat_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0028prio_bridge_out_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0029prio_bridge_srcnat_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0033priority_variable_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0034priority_variable_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0036policy_variable_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0037policy_variable_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0038policy_variable_1.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0039negative_priority_0.nft
+ create mode 100644 tests/shell/testcases/chains/dumps/0043chain_ingress_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0002create_flowtable_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0003add_after_flush_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0004delete_after_add_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0005delete_in_use_1.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0006segfault_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0007prio_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0008prio_1.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0009deleteafterflush_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0010delete_handle_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0011deleteafterflush_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0013addafterdelete_0.nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0014addafterdelete_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0004endlessloop_1.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0005glob_empty_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0008glob_nofile_wildcard_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0009glob_nofile_1.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0010glob_broken_file_1.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0012glob_dependency_1.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0013input_descriptors_included_files_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0014glob_directory_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0016maxdepth_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0017glob_more_than_maxdepth_1.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0018include_error_0.nft
+ create mode 100644 tests/shell/testcases/include/dumps/0019include_error_0.nft
+ create mode 100644 tests/shell/testcases/json/dumps/netdev.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0002ruleset_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0003table_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0004table_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0005ruleset_ip_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0006ruleset_ip6_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0007ruleset_inet_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0008ruleset_arp_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0009ruleset_bridge_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0010sets_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0011sets_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0012sets_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0014objects_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0015dynamic_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0016anonymous_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0017objects_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0018data_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0019set_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0020flowtable_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0021ruleset_json_terse_0.nft
+ create mode 100644 tests/shell/testcases/listing/dumps/0022terse_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/0003map_add_many_elements_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/0008interval_map_delete_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/0016map_leak_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/0017_map_variable_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/0018map_leak_timeout_0.nft
+ create mode 100644 tests/shell/testcases/maps/dumps/different_map_types_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0001define_slash_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0006action_object_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0007action_object_set_segfault_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0013defines_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0014defines_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0015defines_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0016redefines_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0018ct_expectation_obj_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0019jump_variable_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0020jump_variable_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0023check_1.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0026listing_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0029split_file_0.nft
+ create mode 100644 tests/shell/testcases/nft-f/dumps/0031vmap_string_0.nft
+ create mode 100644 tests/shell/testcases/optimizations/dumps/ruleset.nft
+ create mode 100644 tests/shell/testcases/optimizations/dumps/variables.nft
+ create mode 100644 tests/shell/testcases/optionals/dumps/comments_objects_dup_0.nft
+ create mode 100644 tests/shell/testcases/optionals/dumps/delete_object_handles_0.nft
+ create mode 100644 tests/shell/testcases/optionals/dumps/handles_1.nft
+ create mode 100644 tests/shell/testcases/optionals/dumps/update_object_handles_0.nft
+ create mode 100644 tests/shell/testcases/parsing/dumps/describe.nft
+ create mode 100644 tests/shell/testcases/parsing/dumps/log.nft
+ create mode 100644 tests/shell/testcases/parsing/dumps/octal.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0001addinsertposition_0.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0002addinsertlocation_1.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0005replace_1.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0006replace_1.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0008delete_1.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0009delete_1.nft
+ create mode 100644 tests/shell/testcases/rule_management/dumps/0010replace_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0014malformed_set_is_not_defined_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0018set_check_size_1.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0028autoselect_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0028delete_handle_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0031set_timeout_size_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0033add_set_simple_flat_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0034get_element_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0035add_set_elements_flat_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0038meter_list_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0039delete_interval_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0040get_host_endian_elements_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0041interval_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0042update_set_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0043concatenated_ranges_1.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0044interval_overlap_1.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0050set_define_1.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0056dynamic_limit_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0057set_create_fails_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0062set_connlimit_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/0065_icmp_postprocessing.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/errors_0.nft
+ create mode 100644 tests/shell/testcases/sets/dumps/exact_overlap_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0003table_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0014chain_1.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0015chain_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0020rule_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0022rule_1.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0023rule_1.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0036set_1.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0041nat_restore_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0042_stateful_expr_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0043set_1.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0044rule_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0045anon-unbind_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0046set_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0047set_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0048helpers_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0049huge_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0050rule_1.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/0051map_0.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/30s-stress.nft
+ create mode 100644 tests/shell/testcases/transactions/dumps/anon_chain_loop.nft
 
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-index 405e70c86751..03213187eb3c 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -49,6 +49,7 @@ read tainted_after < /proc/sys/kernel/tainted
- 
- DUMPPATH="$TESTDIR/dumps"
- DUMPFILE="$DUMPPATH/$TESTBASE.nft"
-+NODUMPFILE="$DUMPPATH/$TESTBASE.nodump"
- 
- dump_written=
- 
-@@ -59,9 +60,14 @@ dump_written=
- #
- # It also will only happen for tests, that have a "$DUMPPATH" directory. There
- # might be tests, that don't want to have dumps created. The existence of the
--# directory controls that.
--if [ "$rc_test" -eq 0 -a "$DUMPGEN" = y -a -d "$DUMPPATH" ] ; then
-+# directory controls that. Tests that have a "$NODUMPFILE" file, don't get a dump generated.
-+if [ "$rc_test" -eq 0 -a "$DUMPGEN" = y -a -d "$DUMPPATH" -a ! -f "$NODUMPFILE" ] ; then
- 	dump_written=y
-+	if [ ! -f "$DUMPFILE" ] ; then
-+		# No dumpfile exists yet. We generate both a .nft and a .nodump
-+		# file. The user can pick which one to commit to git.
-+		: > "$NODUMPFILE"
-+	fi
- 	cat "$NFT_TEST_TESTTMPDIR/ruleset-after" > "$DUMPFILE"
- fi
- 
+diff --git a/tests/shell/testcases/cache/dumps/0003_cache_update_0.nft b/tests/shell/testcases/cache/dumps/0003_cache_update_0.nft
+new file mode 100644
+index 000000000000..43898d336d02
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0003_cache_update_0.nft
+@@ -0,0 +1,18 @@
++table ip t {
++	chain c {
++	}
++}
++table ip t2 {
++	chain c {
++	}
++}
++table ip t3 {
++}
++table ip t4 {
++	chain c {
++		meta l4proto icmp accept
++		drop
++		meta l4proto igmp accept
++		drop
++	}
++}
+diff --git a/tests/shell/testcases/cache/dumps/0004_cache_update_0.nft b/tests/shell/testcases/cache/dumps/0004_cache_update_0.nft
+new file mode 100644
+index 000000000000..4f5761bc79cd
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0004_cache_update_0.nft
+@@ -0,0 +1,5 @@
++table inet testfilter {
++	chain test {
++		counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/cache/dumps/0005_cache_chain_flush.nft b/tests/shell/testcases/cache/dumps/0005_cache_chain_flush.nft
+new file mode 100644
+index 000000000000..8ab55a2cac5a
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0005_cache_chain_flush.nft
+@@ -0,0 +1,14 @@
++table ip x {
++	map mapping {
++		type ipv4_addr : inet_service
++		size 65535
++		flags dynamic,timeout
++	}
++
++	chain y {
++		update @mapping { ip saddr : tcp sport }
++	}
++
++	chain z {
++	}
++}
+diff --git a/tests/shell/testcases/cache/dumps/0006_cache_table_flush.nft b/tests/shell/testcases/cache/dumps/0006_cache_table_flush.nft
+new file mode 100644
+index 000000000000..8ab55a2cac5a
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0006_cache_table_flush.nft
+@@ -0,0 +1,14 @@
++table ip x {
++	map mapping {
++		type ipv4_addr : inet_service
++		size 65535
++		flags dynamic,timeout
++	}
++
++	chain y {
++		update @mapping { ip saddr : tcp sport }
++	}
++
++	chain z {
++	}
++}
+diff --git a/tests/shell/testcases/cache/dumps/0008_delete_by_handle_0.nft b/tests/shell/testcases/cache/dumps/0008_delete_by_handle_0.nft
+new file mode 100644
+index 000000000000..985768baf3a1
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0008_delete_by_handle_0.nft
+@@ -0,0 +1,2 @@
++table ip t {
++}
+diff --git a/tests/shell/testcases/cache/dumps/0009_delete_by_handle_incorrect_0.nft b/tests/shell/testcases/cache/dumps/0009_delete_by_handle_incorrect_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft b/tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft
+new file mode 100644
+index 000000000000..aba92c0e5065
+--- /dev/null
++++ b/tests/shell/testcases/cache/dumps/0010_implicit_chain_0.nft
+@@ -0,0 +1,7 @@
++table ip f {
++	chain c {
++		jump {
++			accept
++		}
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0002jumps_1.nft b/tests/shell/testcases/chains/dumps/0002jumps_1.nft
+new file mode 100644
+index 000000000000..ed37ad0ef9a7
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0002jumps_1.nft
+@@ -0,0 +1,68 @@
++table ip t {
++	chain c1 {
++		type filter hook input priority filter; policy accept;
++		jump c2
++	}
++
++	chain c2 {
++		jump c3
++	}
++
++	chain c3 {
++		jump c4
++	}
++
++	chain c4 {
++		jump c5
++	}
++
++	chain c5 {
++		jump c6
++	}
++
++	chain c6 {
++		jump c7
++	}
++
++	chain c7 {
++		jump c8
++	}
++
++	chain c8 {
++		jump c9
++	}
++
++	chain c9 {
++		jump c10
++	}
++
++	chain c10 {
++		jump c11
++	}
++
++	chain c11 {
++		jump c12
++	}
++
++	chain c12 {
++		jump c13
++	}
++
++	chain c13 {
++		jump c14
++	}
++
++	chain c14 {
++		jump c15
++	}
++
++	chain c15 {
++		jump c16
++	}
++
++	chain c16 {
++	}
++
++	chain c17 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft
+new file mode 100644
+index 000000000000..7054cde45963
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0003jump_loop_1.nft
+@@ -0,0 +1,64 @@
++table ip t {
++	chain c1 {
++		jump c2
++	}
++
++	chain c2 {
++		jump c3
++	}
++
++	chain c3 {
++		jump c4
++	}
++
++	chain c4 {
++		jump c5
++	}
++
++	chain c5 {
++		jump c6
++	}
++
++	chain c6 {
++		jump c7
++	}
++
++	chain c7 {
++		jump c8
++	}
++
++	chain c8 {
++		jump c9
++	}
++
++	chain c9 {
++		jump c10
++	}
++
++	chain c10 {
++		jump c11
++	}
++
++	chain c11 {
++		jump c12
++	}
++
++	chain c12 {
++		jump c13
++	}
++
++	chain c13 {
++		jump c14
++	}
++
++	chain c14 {
++		jump c15
++	}
++
++	chain c15 {
++		jump c16
++	}
++
++	chain c16 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0004busy_1.nft b/tests/shell/testcases/chains/dumps/0004busy_1.nft
+new file mode 100644
+index 000000000000..429dd494f0bd
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0004busy_1.nft
+@@ -0,0 +1,8 @@
++table ip t {
++	chain c1 {
++		jump c2
++	}
++
++	chain c2 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0005busy_map_1.nft b/tests/shell/testcases/chains/dumps/0005busy_map_1.nft
+new file mode 100644
+index 000000000000..acf23183fdf4
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0005busy_map_1.nft
+@@ -0,0 +1,8 @@
++table ip t {
++	chain c1 {
++		tcp dport vmap { 1 : jump c2 }
++	}
++
++	chain c2 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0007masquerade_1.nft b/tests/shell/testcases/chains/dumps/0007masquerade_1.nft
+new file mode 100644
+index 000000000000..b25355f7fc1e
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0007masquerade_1.nft
+@@ -0,0 +1,5 @@
++table ip t {
++	chain c1 {
++		type filter hook output priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0008masquerade_jump_1.nft b/tests/shell/testcases/chains/dumps/0008masquerade_jump_1.nft
+new file mode 100644
+index 000000000000..4991071159ef
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0008masquerade_jump_1.nft
+@@ -0,0 +1,9 @@
++table ip t {
++	chain output {
++		type nat hook output priority filter; policy accept;
++	}
++
++	chain c1 {
++		masquerade
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0009masquerade_jump_1.nft b/tests/shell/testcases/chains/dumps/0009masquerade_jump_1.nft
+new file mode 100644
+index 000000000000..4991071159ef
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0009masquerade_jump_1.nft
+@@ -0,0 +1,9 @@
++table ip t {
++	chain output {
++		type nat hook output priority filter; policy accept;
++	}
++
++	chain c1 {
++		masquerade
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft
+new file mode 100644
+index 000000000000..1e0d1d603739
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0010endless_jump_loop_1.nft
+@@ -0,0 +1,4 @@
++table ip t {
++	chain c {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft
+new file mode 100644
+index 000000000000..ca0a7378a584
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0011endless_jump_loop_1.nft
+@@ -0,0 +1,13 @@
++table ip t {
++	map m {
++		type inet_service : verdict
++		elements = { 2 : jump c2 }
++	}
++
++	chain c1 {
++		tcp dport vmap @m
++	}
++
++	chain c2 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0014rename_0.nft b/tests/shell/testcases/chains/dumps/0014rename_0.nft
+new file mode 100644
+index 000000000000..574c4863711c
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0014rename_0.nft
+@@ -0,0 +1,7 @@
++table ip t {
++	chain c1 {
++	}
++
++	chain c2 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0015check_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0015check_jump_loop_1.nft
+new file mode 100644
+index 000000000000..429dd494f0bd
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0015check_jump_loop_1.nft
+@@ -0,0 +1,8 @@
++table ip t {
++	chain c1 {
++		jump c2
++	}
++
++	chain c2 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0017masquerade_jump_1.nft b/tests/shell/testcases/chains/dumps/0017masquerade_jump_1.nft
+new file mode 100644
+index 000000000000..636e8440ea6f
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0017masquerade_jump_1.nft
+@@ -0,0 +1,9 @@
++table ip t {
++	chain input {
++		type filter hook input priority filter + 4; policy accept;
++		jump c1
++	}
++
++	chain c1 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft b/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft
+new file mode 100644
+index 000000000000..437900bc6793
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0018check_jump_loop_1.nft
+@@ -0,0 +1,8 @@
++table ip filter {
++	chain ap1 {
++		jump ap2
++	}
++
++	chain ap2 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0019masquerade_jump_1.nft b/tests/shell/testcases/chains/dumps/0019masquerade_jump_1.nft
+new file mode 100644
+index 000000000000..81cf9cc79ecd
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0019masquerade_jump_1.nft
+@@ -0,0 +1,9 @@
++table ip t {
++	chain input {
++		type filter hook input priority filter + 4; policy accept;
++		ip saddr vmap { 1.1.1.1 : jump c1 }
++	}
++
++	chain c1 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0020depth_1.nft b/tests/shell/testcases/chains/dumps/0020depth_1.nft
+new file mode 100644
+index 000000000000..422c39521149
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0020depth_1.nft
+@@ -0,0 +1,84 @@
++table ip filter {
++	chain input {
++		type filter hook input priority filter; policy accept;
++		jump a1
++	}
++
++	chain a0 {
++		jump a1
++	}
++
++	chain a1 {
++		jump a2
++	}
++
++	chain a2 {
++		jump a3
++	}
++
++	chain a3 {
++		jump a4
++	}
++
++	chain a4 {
++		jump a5
++	}
++
++	chain a5 {
++		jump a6
++	}
++
++	chain a6 {
++		jump a7
++	}
++
++	chain a7 {
++		jump a8
++	}
++
++	chain a8 {
++		jump a9
++	}
++
++	chain a9 {
++		jump a10
++	}
++
++	chain a10 {
++	}
++
++	chain a11 {
++		jump a12
++	}
++
++	chain a12 {
++		jump a13
++	}
++
++	chain a13 {
++		jump a14
++	}
++
++	chain a14 {
++		jump a15
++	}
++
++	chain a15 {
++		jump a16
++	}
++
++	chain a16 {
++		jump a17
++	}
++
++	chain a17 {
++		jump a18
++	}
++
++	chain a18 {
++		jump a19
++	}
++
++	chain a19 {
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0022prio_dummy_1.nft b/tests/shell/testcases/chains/dumps/0022prio_dummy_1.nft
+new file mode 100644
+index 000000000000..5d4d2cafb577
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0022prio_dummy_1.nft
+@@ -0,0 +1,2 @@
++table ip x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0023prio_inet_srcnat_1.nft b/tests/shell/testcases/chains/dumps/0023prio_inet_srcnat_1.nft
+new file mode 100644
+index 000000000000..46912eaa9a80
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0023prio_inet_srcnat_1.nft
+@@ -0,0 +1,6 @@
++table ip x {
++}
++table ip6 x {
++}
++table inet x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0024prio_inet_dstnat_1.nft b/tests/shell/testcases/chains/dumps/0024prio_inet_dstnat_1.nft
+new file mode 100644
+index 000000000000..46912eaa9a80
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0024prio_inet_dstnat_1.nft
+@@ -0,0 +1,6 @@
++table ip x {
++}
++table ip6 x {
++}
++table inet x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0025prio_arp_1.nft b/tests/shell/testcases/chains/dumps/0025prio_arp_1.nft
+new file mode 100644
+index 000000000000..7483cdaa2b12
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0025prio_arp_1.nft
+@@ -0,0 +1,2 @@
++table arp x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0026prio_netdev_1.nft b/tests/shell/testcases/chains/dumps/0026prio_netdev_1.nft
+new file mode 100644
+index 000000000000..aa571e00885f
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0026prio_netdev_1.nft
+@@ -0,0 +1,2 @@
++table netdev x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0027prio_bridge_dstnat_1.nft b/tests/shell/testcases/chains/dumps/0027prio_bridge_dstnat_1.nft
+new file mode 100644
+index 000000000000..d17be818127a
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0027prio_bridge_dstnat_1.nft
+@@ -0,0 +1,2 @@
++table bridge x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0028prio_bridge_out_1.nft b/tests/shell/testcases/chains/dumps/0028prio_bridge_out_1.nft
+new file mode 100644
+index 000000000000..d17be818127a
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0028prio_bridge_out_1.nft
+@@ -0,0 +1,2 @@
++table bridge x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0029prio_bridge_srcnat_1.nft b/tests/shell/testcases/chains/dumps/0029prio_bridge_srcnat_1.nft
+new file mode 100644
+index 000000000000..d17be818127a
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0029prio_bridge_srcnat_1.nft
+@@ -0,0 +1,2 @@
++table bridge x {
++}
+diff --git a/tests/shell/testcases/chains/dumps/0033priority_variable_1.nft b/tests/shell/testcases/chains/dumps/0033priority_variable_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/chains/dumps/0034priority_variable_1.nft b/tests/shell/testcases/chains/dumps/0034priority_variable_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/chains/dumps/0036policy_variable_0.nft b/tests/shell/testcases/chains/dumps/0036policy_variable_0.nft
+new file mode 100644
+index 000000000000..d729e1eab74d
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0036policy_variable_0.nft
+@@ -0,0 +1,5 @@
++table inet global {
++	chain prerouting {
++		type filter hook prerouting priority filter; policy drop;
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0037policy_variable_1.nft b/tests/shell/testcases/chains/dumps/0037policy_variable_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/chains/dumps/0038policy_variable_1.nft b/tests/shell/testcases/chains/dumps/0038policy_variable_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/chains/dumps/0039negative_priority_0.nft b/tests/shell/testcases/chains/dumps/0039negative_priority_0.nft
+new file mode 100644
+index 000000000000..20f8272a156f
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0039negative_priority_0.nft
+@@ -0,0 +1,5 @@
++table ip t {
++	chain c {
++		type filter hook input priority -30; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/chains/dumps/0043chain_ingress_0.nft b/tests/shell/testcases/chains/dumps/0043chain_ingress_0.nft
+new file mode 100644
+index 000000000000..8483b265c1a4
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/0043chain_ingress_0.nft
+@@ -0,0 +1,13 @@
++table inet filter {
++	chain ingress {
++		type filter hook ingress device "lo" priority filter; policy accept;
++	}
++
++	chain input {
++		type filter hook input priority filter; policy accept;
++	}
++
++	chain forward {
++		type filter hook forward priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0002create_flowtable_0.nft b/tests/shell/testcases/flowtable/dumps/0002create_flowtable_0.nft
+new file mode 100644
+index 000000000000..aecfb2ab25df
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0002create_flowtable_0.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	flowtable f {
++		hook ingress priority filter + 10
++		devices = { lo }
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0003add_after_flush_0.nft b/tests/shell/testcases/flowtable/dumps/0003add_after_flush_0.nft
+new file mode 100644
+index 000000000000..dd904f449ca1
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0003add_after_flush_0.nft
+@@ -0,0 +1,6 @@
++table ip x {
++	flowtable y {
++		hook ingress priority filter
++		devices = { lo }
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0004delete_after_add_0.nft b/tests/shell/testcases/flowtable/dumps/0004delete_after_add_0.nft
+new file mode 100644
+index 000000000000..5d4d2cafb577
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0004delete_after_add_0.nft
+@@ -0,0 +1,2 @@
++table ip x {
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0005delete_in_use_1.nft b/tests/shell/testcases/flowtable/dumps/0005delete_in_use_1.nft
+new file mode 100644
+index 000000000000..c1d79e7b144d
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0005delete_in_use_1.nft
+@@ -0,0 +1,10 @@
++table ip x {
++	flowtable y {
++		hook ingress priority filter
++		devices = { lo }
++	}
++
++	chain x {
++		flow add @y
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0006segfault_0.nft b/tests/shell/testcases/flowtable/dumps/0006segfault_0.nft
+new file mode 100644
+index 000000000000..985768baf3a1
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0006segfault_0.nft
+@@ -0,0 +1,2 @@
++table ip t {
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0007prio_0.nft b/tests/shell/testcases/flowtable/dumps/0007prio_0.nft
+new file mode 100644
+index 000000000000..985768baf3a1
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0007prio_0.nft
+@@ -0,0 +1,2 @@
++table ip t {
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0008prio_1.nft b/tests/shell/testcases/flowtable/dumps/0008prio_1.nft
+new file mode 100644
+index 000000000000..985768baf3a1
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0008prio_1.nft
+@@ -0,0 +1,2 @@
++table ip t {
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0009deleteafterflush_0.nft b/tests/shell/testcases/flowtable/dumps/0009deleteafterflush_0.nft
+new file mode 100644
+index 000000000000..8e818d2d05e6
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0009deleteafterflush_0.nft
+@@ -0,0 +1,4 @@
++table ip x {
++	chain y {
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0010delete_handle_0.nft b/tests/shell/testcases/flowtable/dumps/0010delete_handle_0.nft
+new file mode 100644
+index 000000000000..17838bdf85b1
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0010delete_handle_0.nft
+@@ -0,0 +1,2 @@
++table inet t {
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0011deleteafterflush_0.nft b/tests/shell/testcases/flowtable/dumps/0011deleteafterflush_0.nft
+new file mode 100644
+index 000000000000..8e818d2d05e6
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0011deleteafterflush_0.nft
+@@ -0,0 +1,4 @@
++table ip x {
++	chain y {
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0013addafterdelete_0.nft b/tests/shell/testcases/flowtable/dumps/0013addafterdelete_0.nft
+new file mode 100644
+index 000000000000..83fdd5d01d3a
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0013addafterdelete_0.nft
+@@ -0,0 +1,7 @@
++table inet filter {
++	flowtable f {
++		hook ingress priority filter - 1
++		devices = { lo }
++		counter
++	}
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0014addafterdelete_0.nft b/tests/shell/testcases/flowtable/dumps/0014addafterdelete_0.nft
+new file mode 100644
+index 000000000000..145aa08153bc
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0014addafterdelete_0.nft
+@@ -0,0 +1,12 @@
++table inet filter {
++	flowtable f {
++		hook ingress priority filter - 1
++		devices = { lo }
++		counter
++	}
++
++	chain y {
++		type filter hook forward priority filter; policy accept;
++		flow add @f counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/include/dumps/0004endlessloop_1.nft b/tests/shell/testcases/include/dumps/0004endlessloop_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0005glob_empty_0.nft b/tests/shell/testcases/include/dumps/0005glob_empty_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0008glob_nofile_wildcard_0.nft b/tests/shell/testcases/include/dumps/0008glob_nofile_wildcard_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0009glob_nofile_1.nft b/tests/shell/testcases/include/dumps/0009glob_nofile_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0010glob_broken_file_1.nft b/tests/shell/testcases/include/dumps/0010glob_broken_file_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0012glob_dependency_1.nft b/tests/shell/testcases/include/dumps/0012glob_dependency_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0013input_descriptors_included_files_0.nft b/tests/shell/testcases/include/dumps/0013input_descriptors_included_files_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0014glob_directory_0.nft b/tests/shell/testcases/include/dumps/0014glob_directory_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0016maxdepth_0.nft b/tests/shell/testcases/include/dumps/0016maxdepth_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0017glob_more_than_maxdepth_1.nft b/tests/shell/testcases/include/dumps/0017glob_more_than_maxdepth_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0018include_error_0.nft b/tests/shell/testcases/include/dumps/0018include_error_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/include/dumps/0019include_error_0.nft b/tests/shell/testcases/include/dumps/0019include_error_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/json/dumps/netdev.nft b/tests/shell/testcases/json/dumps/netdev.nft
+new file mode 100644
+index 000000000000..3c568ed3eb38
+--- /dev/null
++++ b/tests/shell/testcases/json/dumps/netdev.nft
+@@ -0,0 +1,2 @@
++table netdev test_table {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0002ruleset_0.nft b/tests/shell/testcases/listing/dumps/0002ruleset_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/listing/dumps/0003table_0.nft b/tests/shell/testcases/listing/dumps/0003table_0.nft
+new file mode 100644
+index 000000000000..1c9f40c57259
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0003table_0.nft
+@@ -0,0 +1,2 @@
++table ip test {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0004table_0.nft b/tests/shell/testcases/listing/dumps/0004table_0.nft
+new file mode 100644
+index 000000000000..56d035d12a4e
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0004table_0.nft
+@@ -0,0 +1,4 @@
++table ip test {
++}
++table ip test2 {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0005ruleset_ip_0.nft b/tests/shell/testcases/listing/dumps/0005ruleset_ip_0.nft
+new file mode 100644
+index 000000000000..c37261b34bdb
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0005ruleset_ip_0.nft
+@@ -0,0 +1,10 @@
++table ip test {
++}
++table ip6 test {
++}
++table inet test {
++}
++table arp test {
++}
++table bridge test {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0006ruleset_ip6_0.nft b/tests/shell/testcases/listing/dumps/0006ruleset_ip6_0.nft
+new file mode 100644
+index 000000000000..c37261b34bdb
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0006ruleset_ip6_0.nft
+@@ -0,0 +1,10 @@
++table ip test {
++}
++table ip6 test {
++}
++table inet test {
++}
++table arp test {
++}
++table bridge test {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0007ruleset_inet_0.nft b/tests/shell/testcases/listing/dumps/0007ruleset_inet_0.nft
+new file mode 100644
+index 000000000000..c37261b34bdb
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0007ruleset_inet_0.nft
+@@ -0,0 +1,10 @@
++table ip test {
++}
++table ip6 test {
++}
++table inet test {
++}
++table arp test {
++}
++table bridge test {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0008ruleset_arp_0.nft b/tests/shell/testcases/listing/dumps/0008ruleset_arp_0.nft
+new file mode 100644
+index 000000000000..c37261b34bdb
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0008ruleset_arp_0.nft
+@@ -0,0 +1,10 @@
++table ip test {
++}
++table ip6 test {
++}
++table inet test {
++}
++table arp test {
++}
++table bridge test {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0009ruleset_bridge_0.nft b/tests/shell/testcases/listing/dumps/0009ruleset_bridge_0.nft
+new file mode 100644
+index 000000000000..c37261b34bdb
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0009ruleset_bridge_0.nft
+@@ -0,0 +1,10 @@
++table ip test {
++}
++table ip6 test {
++}
++table inet test {
++}
++table arp test {
++}
++table bridge test {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0010sets_0.nft b/tests/shell/testcases/listing/dumps/0010sets_0.nft
+new file mode 100644
+index 000000000000..7303c4036e06
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0010sets_0.nft
+@@ -0,0 +1,39 @@
++table ip nat {
++	set ssh {
++		type ipv4_addr
++	}
++}
++table ip6 test {
++	set testset {
++		type ipv6_addr
++	}
++}
++table arp test_arp {
++	set test_set_arp00 {
++		type inet_service
++	}
++
++	set test_set_arp01 {
++		type inet_service
++		flags constant
++	}
++}
++table bridge test_bridge {
++	set test_set_bridge {
++		type inet_service
++	}
++}
++table inet filter {
++	set set0 {
++		type inet_service
++	}
++
++	set set1 {
++		type inet_service
++		flags constant
++	}
++
++	set set2 {
++		type icmpv6_type
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0011sets_0.nft b/tests/shell/testcases/listing/dumps/0011sets_0.nft
+new file mode 100644
+index 000000000000..4d0aeaf33fd1
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0011sets_0.nft
+@@ -0,0 +1,25 @@
++table ip nat {
++	chain test {
++		tcp dport { 123, 321 }
++	}
++}
++table ip6 test {
++	chain test {
++		udp sport { 123, 321 }
++	}
++}
++table arp test_arp {
++	chain test {
++		meta mark { 0x0000007b, 0x00000141 }
++	}
++}
++table bridge test_bridge {
++	chain test {
++		ip daddr { 1.1.1.1, 2.2.2.2 }
++	}
++}
++table inet filter {
++	chain test {
++		tcp dport { 80, 443 }
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0012sets_0.nft b/tests/shell/testcases/listing/dumps/0012sets_0.nft
+new file mode 100644
+index 000000000000..7303c4036e06
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0012sets_0.nft
+@@ -0,0 +1,39 @@
++table ip nat {
++	set ssh {
++		type ipv4_addr
++	}
++}
++table ip6 test {
++	set testset {
++		type ipv6_addr
++	}
++}
++table arp test_arp {
++	set test_set_arp00 {
++		type inet_service
++	}
++
++	set test_set_arp01 {
++		type inet_service
++		flags constant
++	}
++}
++table bridge test_bridge {
++	set test_set_bridge {
++		type inet_service
++	}
++}
++table inet filter {
++	set set0 {
++		type inet_service
++	}
++
++	set set1 {
++		type inet_service
++		flags constant
++	}
++
++	set set2 {
++		type icmpv6_type
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0014objects_0.nft b/tests/shell/testcases/listing/dumps/0014objects_0.nft
+new file mode 100644
+index 000000000000..9281a1a06193
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0014objects_0.nft
+@@ -0,0 +1,12 @@
++table ip test {
++	quota https-quota {
++		25 mbytes
++	}
++
++	ct helper cthelp {
++		type "sip" protocol tcp
++		l3proto ip
++	}
++}
++table ip test-ip {
++}
+diff --git a/tests/shell/testcases/listing/dumps/0015dynamic_0.nft b/tests/shell/testcases/listing/dumps/0015dynamic_0.nft
+new file mode 100644
+index 000000000000..0f4244bf22b9
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0015dynamic_0.nft
+@@ -0,0 +1,7 @@
++table ip filter {
++	set test_set {
++		type ipv4_addr . inet_service . ipv4_addr . inet_service . inet_proto
++		size 100000
++		flags dynamic,timeout
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0016anonymous_0.nft b/tests/shell/testcases/listing/dumps/0016anonymous_0.nft
+new file mode 100644
+index 000000000000..cb089337bc13
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0016anonymous_0.nft
+@@ -0,0 +1,6 @@
++table ip x {
++	chain y {
++		ip saddr 1.1.1.1
++		meta mark set ip saddr map { 1.1.1.1 : 0x00000002 }
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0017objects_0.nft b/tests/shell/testcases/listing/dumps/0017objects_0.nft
+new file mode 100644
+index 000000000000..e60e3afaab7b
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0017objects_0.nft
+@@ -0,0 +1,5 @@
++table inet filter {
++	map countermap {
++		type ipv4_addr : counter
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0018data_0.nft b/tests/shell/testcases/listing/dumps/0018data_0.nft
+new file mode 100644
+index 000000000000..5d3185505284
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0018data_0.nft
+@@ -0,0 +1,5 @@
++table inet filter {
++	map ipmap {
++		type ipv4_addr : ipv4_addr
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0019set_0.nft b/tests/shell/testcases/listing/dumps/0019set_0.nft
+new file mode 100644
+index 000000000000..915922ca4570
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0019set_0.nft
+@@ -0,0 +1,5 @@
++table inet filter {
++	set ipset {
++		type ipv4_addr
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0020flowtable_0.nft b/tests/shell/testcases/listing/dumps/0020flowtable_0.nft
+new file mode 100644
+index 000000000000..4a64e531db84
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0020flowtable_0.nft
+@@ -0,0 +1,20 @@
++table inet filter {
++	flowtable f {
++		hook ingress priority filter
++		devices = { lo }
++	}
++
++	flowtable f2 {
++		hook ingress priority filter
++	}
++}
++table ip filter {
++	flowtable f {
++		hook ingress priority filter
++		devices = { lo }
++	}
++
++	flowtable f2 {
++		hook ingress priority filter
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0021ruleset_json_terse_0.nft b/tests/shell/testcases/listing/dumps/0021ruleset_json_terse_0.nft
+new file mode 100644
+index 000000000000..13c8ac63e0a6
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0021ruleset_json_terse_0.nft
+@@ -0,0 +1,9 @@
++table ip test {
++	set s {
++		type ipv4_addr
++		elements = { 192.168.3.4, 192.168.3.5 }
++	}
++
++	chain c {
++	}
++}
+diff --git a/tests/shell/testcases/listing/dumps/0022terse_0.nft b/tests/shell/testcases/listing/dumps/0022terse_0.nft
+new file mode 100644
+index 000000000000..40665cb7dc19
+--- /dev/null
++++ b/tests/shell/testcases/listing/dumps/0022terse_0.nft
+@@ -0,0 +1,12 @@
++table inet filter {
++	set example {
++		type ipv4_addr
++		flags interval
++		elements = { 10.10.10.10, 10.10.11.11 }
++	}
++
++	chain input {
++		type filter hook prerouting priority filter; policy accept;
++		ip saddr != { 10.10.10.100, 10.10.10.111 } ip saddr @example drop
++	}
++}
+diff --git a/tests/shell/testcases/maps/dumps/0003map_add_many_elements_0.nft b/tests/shell/testcases/maps/dumps/0003map_add_many_elements_0.nft
+new file mode 100644
+index 000000000000..c651af0689f4
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/0003map_add_many_elements_0.nft
+@@ -0,0 +1,486 @@
++table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		elements = { 10.0.1.1 : 10.0.1.1, 10.0.1.2 : 10.0.1.2,
++			     10.0.1.3 : 10.0.1.3, 10.0.1.4 : 10.0.1.4,
++			     10.0.1.5 : 10.0.1.5, 10.0.1.6 : 10.0.1.6,
++			     10.0.1.7 : 10.0.1.7, 10.0.1.8 : 10.0.1.8,
++			     10.0.1.9 : 10.0.1.9, 10.0.1.10 : 10.0.1.10,
++			     10.0.1.11 : 10.0.1.11, 10.0.1.12 : 10.0.1.12,
++			     10.0.1.13 : 10.0.1.13, 10.0.1.14 : 10.0.1.14,
++			     10.0.1.15 : 10.0.1.15, 10.0.1.16 : 10.0.1.16,
++			     10.0.1.17 : 10.0.1.17, 10.0.1.18 : 10.0.1.18,
++			     10.0.1.19 : 10.0.1.19, 10.0.1.20 : 10.0.1.20,
++			     10.0.1.21 : 10.0.1.21, 10.0.1.22 : 10.0.1.22,
++			     10.0.1.23 : 10.0.1.23, 10.0.1.24 : 10.0.1.24,
++			     10.0.1.25 : 10.0.1.25, 10.0.1.26 : 10.0.1.26,
++			     10.0.1.27 : 10.0.1.27, 10.0.1.28 : 10.0.1.28,
++			     10.0.1.29 : 10.0.1.29, 10.0.1.30 : 10.0.1.30,
++			     10.0.1.31 : 10.0.1.31, 10.0.2.1 : 10.0.2.1,
++			     10.0.2.2 : 10.0.2.2, 10.0.2.3 : 10.0.2.3,
++			     10.0.2.4 : 10.0.2.4, 10.0.2.5 : 10.0.2.5,
++			     10.0.2.6 : 10.0.2.6, 10.0.2.7 : 10.0.2.7,
++			     10.0.2.8 : 10.0.2.8, 10.0.2.9 : 10.0.2.9,
++			     10.0.2.10 : 10.0.2.10, 10.0.2.11 : 10.0.2.11,
++			     10.0.2.12 : 10.0.2.12, 10.0.2.13 : 10.0.2.13,
++			     10.0.2.14 : 10.0.2.14, 10.0.2.15 : 10.0.2.15,
++			     10.0.2.16 : 10.0.2.16, 10.0.2.17 : 10.0.2.17,
++			     10.0.2.18 : 10.0.2.18, 10.0.2.19 : 10.0.2.19,
++			     10.0.2.20 : 10.0.2.20, 10.0.2.21 : 10.0.2.21,
++			     10.0.2.22 : 10.0.2.22, 10.0.2.23 : 10.0.2.23,
++			     10.0.2.24 : 10.0.2.24, 10.0.2.25 : 10.0.2.25,
++			     10.0.2.26 : 10.0.2.26, 10.0.2.27 : 10.0.2.27,
++			     10.0.2.28 : 10.0.2.28, 10.0.2.29 : 10.0.2.29,
++			     10.0.2.30 : 10.0.2.30, 10.0.2.31 : 10.0.2.31,
++			     10.0.3.1 : 10.0.3.1, 10.0.3.2 : 10.0.3.2,
++			     10.0.3.3 : 10.0.3.3, 10.0.3.4 : 10.0.3.4,
++			     10.0.3.5 : 10.0.3.5, 10.0.3.6 : 10.0.3.6,
++			     10.0.3.7 : 10.0.3.7, 10.0.3.8 : 10.0.3.8,
++			     10.0.3.9 : 10.0.3.9, 10.0.3.10 : 10.0.3.10,
++			     10.0.3.11 : 10.0.3.11, 10.0.3.12 : 10.0.3.12,
++			     10.0.3.13 : 10.0.3.13, 10.0.3.14 : 10.0.3.14,
++			     10.0.3.15 : 10.0.3.15, 10.0.3.16 : 10.0.3.16,
++			     10.0.3.17 : 10.0.3.17, 10.0.3.18 : 10.0.3.18,
++			     10.0.3.19 : 10.0.3.19, 10.0.3.20 : 10.0.3.20,
++			     10.0.3.21 : 10.0.3.21, 10.0.3.22 : 10.0.3.22,
++			     10.0.3.23 : 10.0.3.23, 10.0.3.24 : 10.0.3.24,
++			     10.0.3.25 : 10.0.3.25, 10.0.3.26 : 10.0.3.26,
++			     10.0.3.27 : 10.0.3.27, 10.0.3.28 : 10.0.3.28,
++			     10.0.3.29 : 10.0.3.29, 10.0.3.30 : 10.0.3.30,
++			     10.0.3.31 : 10.0.3.31, 10.0.4.1 : 10.0.4.1,
++			     10.0.4.2 : 10.0.4.2, 10.0.4.3 : 10.0.4.3,
++			     10.0.4.4 : 10.0.4.4, 10.0.4.5 : 10.0.4.5,
++			     10.0.4.6 : 10.0.4.6, 10.0.4.7 : 10.0.4.7,
++			     10.0.4.8 : 10.0.4.8, 10.0.4.9 : 10.0.4.9,
++			     10.0.4.10 : 10.0.4.10, 10.0.4.11 : 10.0.4.11,
++			     10.0.4.12 : 10.0.4.12, 10.0.4.13 : 10.0.4.13,
++			     10.0.4.14 : 10.0.4.14, 10.0.4.15 : 10.0.4.15,
++			     10.0.4.16 : 10.0.4.16, 10.0.4.17 : 10.0.4.17,
++			     10.0.4.18 : 10.0.4.18, 10.0.4.19 : 10.0.4.19,
++			     10.0.4.20 : 10.0.4.20, 10.0.4.21 : 10.0.4.21,
++			     10.0.4.22 : 10.0.4.22, 10.0.4.23 : 10.0.4.23,
++			     10.0.4.24 : 10.0.4.24, 10.0.4.25 : 10.0.4.25,
++			     10.0.4.26 : 10.0.4.26, 10.0.4.27 : 10.0.4.27,
++			     10.0.4.28 : 10.0.4.28, 10.0.4.29 : 10.0.4.29,
++			     10.0.4.30 : 10.0.4.30, 10.0.4.31 : 10.0.4.31,
++			     10.0.5.1 : 10.0.5.1, 10.0.5.2 : 10.0.5.2,
++			     10.0.5.3 : 10.0.5.3, 10.0.5.4 : 10.0.5.4,
++			     10.0.5.5 : 10.0.5.5, 10.0.5.6 : 10.0.5.6,
++			     10.0.5.7 : 10.0.5.7, 10.0.5.8 : 10.0.5.8,
++			     10.0.5.9 : 10.0.5.9, 10.0.5.10 : 10.0.5.10,
++			     10.0.5.11 : 10.0.5.11, 10.0.5.12 : 10.0.5.12,
++			     10.0.5.13 : 10.0.5.13, 10.0.5.14 : 10.0.5.14,
++			     10.0.5.15 : 10.0.5.15, 10.0.5.16 : 10.0.5.16,
++			     10.0.5.17 : 10.0.5.17, 10.0.5.18 : 10.0.5.18,
++			     10.0.5.19 : 10.0.5.19, 10.0.5.20 : 10.0.5.20,
++			     10.0.5.21 : 10.0.5.21, 10.0.5.22 : 10.0.5.22,
++			     10.0.5.23 : 10.0.5.23, 10.0.5.24 : 10.0.5.24,
++			     10.0.5.25 : 10.0.5.25, 10.0.5.26 : 10.0.5.26,
++			     10.0.5.27 : 10.0.5.27, 10.0.5.28 : 10.0.5.28,
++			     10.0.5.29 : 10.0.5.29, 10.0.5.30 : 10.0.5.30,
++			     10.0.5.31 : 10.0.5.31, 10.0.6.1 : 10.0.6.1,
++			     10.0.6.2 : 10.0.6.2, 10.0.6.3 : 10.0.6.3,
++			     10.0.6.4 : 10.0.6.4, 10.0.6.5 : 10.0.6.5,
++			     10.0.6.6 : 10.0.6.6, 10.0.6.7 : 10.0.6.7,
++			     10.0.6.8 : 10.0.6.8, 10.0.6.9 : 10.0.6.9,
++			     10.0.6.10 : 10.0.6.10, 10.0.6.11 : 10.0.6.11,
++			     10.0.6.12 : 10.0.6.12, 10.0.6.13 : 10.0.6.13,
++			     10.0.6.14 : 10.0.6.14, 10.0.6.15 : 10.0.6.15,
++			     10.0.6.16 : 10.0.6.16, 10.0.6.17 : 10.0.6.17,
++			     10.0.6.18 : 10.0.6.18, 10.0.6.19 : 10.0.6.19,
++			     10.0.6.20 : 10.0.6.20, 10.0.6.21 : 10.0.6.21,
++			     10.0.6.22 : 10.0.6.22, 10.0.6.23 : 10.0.6.23,
++			     10.0.6.24 : 10.0.6.24, 10.0.6.25 : 10.0.6.25,
++			     10.0.6.26 : 10.0.6.26, 10.0.6.27 : 10.0.6.27,
++			     10.0.6.28 : 10.0.6.28, 10.0.6.29 : 10.0.6.29,
++			     10.0.6.30 : 10.0.6.30, 10.0.6.31 : 10.0.6.31,
++			     10.0.7.1 : 10.0.7.1, 10.0.7.2 : 10.0.7.2,
++			     10.0.7.3 : 10.0.7.3, 10.0.7.4 : 10.0.7.4,
++			     10.0.7.5 : 10.0.7.5, 10.0.7.6 : 10.0.7.6,
++			     10.0.7.7 : 10.0.7.7, 10.0.7.8 : 10.0.7.8,
++			     10.0.7.9 : 10.0.7.9, 10.0.7.10 : 10.0.7.10,
++			     10.0.7.11 : 10.0.7.11, 10.0.7.12 : 10.0.7.12,
++			     10.0.7.13 : 10.0.7.13, 10.0.7.14 : 10.0.7.14,
++			     10.0.7.15 : 10.0.7.15, 10.0.7.16 : 10.0.7.16,
++			     10.0.7.17 : 10.0.7.17, 10.0.7.18 : 10.0.7.18,
++			     10.0.7.19 : 10.0.7.19, 10.0.7.20 : 10.0.7.20,
++			     10.0.7.21 : 10.0.7.21, 10.0.7.22 : 10.0.7.22,
++			     10.0.7.23 : 10.0.7.23, 10.0.7.24 : 10.0.7.24,
++			     10.0.7.25 : 10.0.7.25, 10.0.7.26 : 10.0.7.26,
++			     10.0.7.27 : 10.0.7.27, 10.0.7.28 : 10.0.7.28,
++			     10.0.7.29 : 10.0.7.29, 10.0.7.30 : 10.0.7.30,
++			     10.0.7.31 : 10.0.7.31, 10.0.8.1 : 10.0.8.1,
++			     10.0.8.2 : 10.0.8.2, 10.0.8.3 : 10.0.8.3,
++			     10.0.8.4 : 10.0.8.4, 10.0.8.5 : 10.0.8.5,
++			     10.0.8.6 : 10.0.8.6, 10.0.8.7 : 10.0.8.7,
++			     10.0.8.8 : 10.0.8.8, 10.0.8.9 : 10.0.8.9,
++			     10.0.8.10 : 10.0.8.10, 10.0.8.11 : 10.0.8.11,
++			     10.0.8.12 : 10.0.8.12, 10.0.8.13 : 10.0.8.13,
++			     10.0.8.14 : 10.0.8.14, 10.0.8.15 : 10.0.8.15,
++			     10.0.8.16 : 10.0.8.16, 10.0.8.17 : 10.0.8.17,
++			     10.0.8.18 : 10.0.8.18, 10.0.8.19 : 10.0.8.19,
++			     10.0.8.20 : 10.0.8.20, 10.0.8.21 : 10.0.8.21,
++			     10.0.8.22 : 10.0.8.22, 10.0.8.23 : 10.0.8.23,
++			     10.0.8.24 : 10.0.8.24, 10.0.8.25 : 10.0.8.25,
++			     10.0.8.26 : 10.0.8.26, 10.0.8.27 : 10.0.8.27,
++			     10.0.8.28 : 10.0.8.28, 10.0.8.29 : 10.0.8.29,
++			     10.0.8.30 : 10.0.8.30, 10.0.8.31 : 10.0.8.31,
++			     10.0.9.1 : 10.0.9.1, 10.0.9.2 : 10.0.9.2,
++			     10.0.9.3 : 10.0.9.3, 10.0.9.4 : 10.0.9.4,
++			     10.0.9.5 : 10.0.9.5, 10.0.9.6 : 10.0.9.6,
++			     10.0.9.7 : 10.0.9.7, 10.0.9.8 : 10.0.9.8,
++			     10.0.9.9 : 10.0.9.9, 10.0.9.10 : 10.0.9.10,
++			     10.0.9.11 : 10.0.9.11, 10.0.9.12 : 10.0.9.12,
++			     10.0.9.13 : 10.0.9.13, 10.0.9.14 : 10.0.9.14,
++			     10.0.9.15 : 10.0.9.15, 10.0.9.16 : 10.0.9.16,
++			     10.0.9.17 : 10.0.9.17, 10.0.9.18 : 10.0.9.18,
++			     10.0.9.19 : 10.0.9.19, 10.0.9.20 : 10.0.9.20,
++			     10.0.9.21 : 10.0.9.21, 10.0.9.22 : 10.0.9.22,
++			     10.0.9.23 : 10.0.9.23, 10.0.9.24 : 10.0.9.24,
++			     10.0.9.25 : 10.0.9.25, 10.0.9.26 : 10.0.9.26,
++			     10.0.9.27 : 10.0.9.27, 10.0.9.28 : 10.0.9.28,
++			     10.0.9.29 : 10.0.9.29, 10.0.9.30 : 10.0.9.30,
++			     10.0.9.31 : 10.0.9.31, 10.0.10.1 : 10.0.10.1,
++			     10.0.10.2 : 10.0.10.2, 10.0.10.3 : 10.0.10.3,
++			     10.0.10.4 : 10.0.10.4, 10.0.10.5 : 10.0.10.5,
++			     10.0.10.6 : 10.0.10.6, 10.0.10.7 : 10.0.10.7,
++			     10.0.10.8 : 10.0.10.8, 10.0.10.9 : 10.0.10.9,
++			     10.0.10.10 : 10.0.10.10, 10.0.10.11 : 10.0.10.11,
++			     10.0.10.12 : 10.0.10.12, 10.0.10.13 : 10.0.10.13,
++			     10.0.10.14 : 10.0.10.14, 10.0.10.15 : 10.0.10.15,
++			     10.0.10.16 : 10.0.10.16, 10.0.10.17 : 10.0.10.17,
++			     10.0.10.18 : 10.0.10.18, 10.0.10.19 : 10.0.10.19,
++			     10.0.10.20 : 10.0.10.20, 10.0.10.21 : 10.0.10.21,
++			     10.0.10.22 : 10.0.10.22, 10.0.10.23 : 10.0.10.23,
++			     10.0.10.24 : 10.0.10.24, 10.0.10.25 : 10.0.10.25,
++			     10.0.10.26 : 10.0.10.26, 10.0.10.27 : 10.0.10.27,
++			     10.0.10.28 : 10.0.10.28, 10.0.10.29 : 10.0.10.29,
++			     10.0.10.30 : 10.0.10.30, 10.0.10.31 : 10.0.10.31,
++			     10.0.11.1 : 10.0.11.1, 10.0.11.2 : 10.0.11.2,
++			     10.0.11.3 : 10.0.11.3, 10.0.11.4 : 10.0.11.4,
++			     10.0.11.5 : 10.0.11.5, 10.0.11.6 : 10.0.11.6,
++			     10.0.11.7 : 10.0.11.7, 10.0.11.8 : 10.0.11.8,
++			     10.0.11.9 : 10.0.11.9, 10.0.11.10 : 10.0.11.10,
++			     10.0.11.11 : 10.0.11.11, 10.0.11.12 : 10.0.11.12,
++			     10.0.11.13 : 10.0.11.13, 10.0.11.14 : 10.0.11.14,
++			     10.0.11.15 : 10.0.11.15, 10.0.11.16 : 10.0.11.16,
++			     10.0.11.17 : 10.0.11.17, 10.0.11.18 : 10.0.11.18,
++			     10.0.11.19 : 10.0.11.19, 10.0.11.20 : 10.0.11.20,
++			     10.0.11.21 : 10.0.11.21, 10.0.11.22 : 10.0.11.22,
++			     10.0.11.23 : 10.0.11.23, 10.0.11.24 : 10.0.11.24,
++			     10.0.11.25 : 10.0.11.25, 10.0.11.26 : 10.0.11.26,
++			     10.0.11.27 : 10.0.11.27, 10.0.11.28 : 10.0.11.28,
++			     10.0.11.29 : 10.0.11.29, 10.0.11.30 : 10.0.11.30,
++			     10.0.11.31 : 10.0.11.31, 10.0.12.1 : 10.0.12.1,
++			     10.0.12.2 : 10.0.12.2, 10.0.12.3 : 10.0.12.3,
++			     10.0.12.4 : 10.0.12.4, 10.0.12.5 : 10.0.12.5,
++			     10.0.12.6 : 10.0.12.6, 10.0.12.7 : 10.0.12.7,
++			     10.0.12.8 : 10.0.12.8, 10.0.12.9 : 10.0.12.9,
++			     10.0.12.10 : 10.0.12.10, 10.0.12.11 : 10.0.12.11,
++			     10.0.12.12 : 10.0.12.12, 10.0.12.13 : 10.0.12.13,
++			     10.0.12.14 : 10.0.12.14, 10.0.12.15 : 10.0.12.15,
++			     10.0.12.16 : 10.0.12.16, 10.0.12.17 : 10.0.12.17,
++			     10.0.12.18 : 10.0.12.18, 10.0.12.19 : 10.0.12.19,
++			     10.0.12.20 : 10.0.12.20, 10.0.12.21 : 10.0.12.21,
++			     10.0.12.22 : 10.0.12.22, 10.0.12.23 : 10.0.12.23,
++			     10.0.12.24 : 10.0.12.24, 10.0.12.25 : 10.0.12.25,
++			     10.0.12.26 : 10.0.12.26, 10.0.12.27 : 10.0.12.27,
++			     10.0.12.28 : 10.0.12.28, 10.0.12.29 : 10.0.12.29,
++			     10.0.12.30 : 10.0.12.30, 10.0.12.31 : 10.0.12.31,
++			     10.0.13.1 : 10.0.13.1, 10.0.13.2 : 10.0.13.2,
++			     10.0.13.3 : 10.0.13.3, 10.0.13.4 : 10.0.13.4,
++			     10.0.13.5 : 10.0.13.5, 10.0.13.6 : 10.0.13.6,
++			     10.0.13.7 : 10.0.13.7, 10.0.13.8 : 10.0.13.8,
++			     10.0.13.9 : 10.0.13.9, 10.0.13.10 : 10.0.13.10,
++			     10.0.13.11 : 10.0.13.11, 10.0.13.12 : 10.0.13.12,
++			     10.0.13.13 : 10.0.13.13, 10.0.13.14 : 10.0.13.14,
++			     10.0.13.15 : 10.0.13.15, 10.0.13.16 : 10.0.13.16,
++			     10.0.13.17 : 10.0.13.17, 10.0.13.18 : 10.0.13.18,
++			     10.0.13.19 : 10.0.13.19, 10.0.13.20 : 10.0.13.20,
++			     10.0.13.21 : 10.0.13.21, 10.0.13.22 : 10.0.13.22,
++			     10.0.13.23 : 10.0.13.23, 10.0.13.24 : 10.0.13.24,
++			     10.0.13.25 : 10.0.13.25, 10.0.13.26 : 10.0.13.26,
++			     10.0.13.27 : 10.0.13.27, 10.0.13.28 : 10.0.13.28,
++			     10.0.13.29 : 10.0.13.29, 10.0.13.30 : 10.0.13.30,
++			     10.0.13.31 : 10.0.13.31, 10.0.14.1 : 10.0.14.1,
++			     10.0.14.2 : 10.0.14.2, 10.0.14.3 : 10.0.14.3,
++			     10.0.14.4 : 10.0.14.4, 10.0.14.5 : 10.0.14.5,
++			     10.0.14.6 : 10.0.14.6, 10.0.14.7 : 10.0.14.7,
++			     10.0.14.8 : 10.0.14.8, 10.0.14.9 : 10.0.14.9,
++			     10.0.14.10 : 10.0.14.10, 10.0.14.11 : 10.0.14.11,
++			     10.0.14.12 : 10.0.14.12, 10.0.14.13 : 10.0.14.13,
++			     10.0.14.14 : 10.0.14.14, 10.0.14.15 : 10.0.14.15,
++			     10.0.14.16 : 10.0.14.16, 10.0.14.17 : 10.0.14.17,
++			     10.0.14.18 : 10.0.14.18, 10.0.14.19 : 10.0.14.19,
++			     10.0.14.20 : 10.0.14.20, 10.0.14.21 : 10.0.14.21,
++			     10.0.14.22 : 10.0.14.22, 10.0.14.23 : 10.0.14.23,
++			     10.0.14.24 : 10.0.14.24, 10.0.14.25 : 10.0.14.25,
++			     10.0.14.26 : 10.0.14.26, 10.0.14.27 : 10.0.14.27,
++			     10.0.14.28 : 10.0.14.28, 10.0.14.29 : 10.0.14.29,
++			     10.0.14.30 : 10.0.14.30, 10.0.14.31 : 10.0.14.31,
++			     10.0.15.1 : 10.0.15.1, 10.0.15.2 : 10.0.15.2,
++			     10.0.15.3 : 10.0.15.3, 10.0.15.4 : 10.0.15.4,
++			     10.0.15.5 : 10.0.15.5, 10.0.15.6 : 10.0.15.6,
++			     10.0.15.7 : 10.0.15.7, 10.0.15.8 : 10.0.15.8,
++			     10.0.15.9 : 10.0.15.9, 10.0.15.10 : 10.0.15.10,
++			     10.0.15.11 : 10.0.15.11, 10.0.15.12 : 10.0.15.12,
++			     10.0.15.13 : 10.0.15.13, 10.0.15.14 : 10.0.15.14,
++			     10.0.15.15 : 10.0.15.15, 10.0.15.16 : 10.0.15.16,
++			     10.0.15.17 : 10.0.15.17, 10.0.15.18 : 10.0.15.18,
++			     10.0.15.19 : 10.0.15.19, 10.0.15.20 : 10.0.15.20,
++			     10.0.15.21 : 10.0.15.21, 10.0.15.22 : 10.0.15.22,
++			     10.0.15.23 : 10.0.15.23, 10.0.15.24 : 10.0.15.24,
++			     10.0.15.25 : 10.0.15.25, 10.0.15.26 : 10.0.15.26,
++			     10.0.15.27 : 10.0.15.27, 10.0.15.28 : 10.0.15.28,
++			     10.0.15.29 : 10.0.15.29, 10.0.15.30 : 10.0.15.30,
++			     10.0.15.31 : 10.0.15.31, 10.0.16.1 : 10.0.16.1,
++			     10.0.16.2 : 10.0.16.2, 10.0.16.3 : 10.0.16.3,
++			     10.0.16.4 : 10.0.16.4, 10.0.16.5 : 10.0.16.5,
++			     10.0.16.6 : 10.0.16.6, 10.0.16.7 : 10.0.16.7,
++			     10.0.16.8 : 10.0.16.8, 10.0.16.9 : 10.0.16.9,
++			     10.0.16.10 : 10.0.16.10, 10.0.16.11 : 10.0.16.11,
++			     10.0.16.12 : 10.0.16.12, 10.0.16.13 : 10.0.16.13,
++			     10.0.16.14 : 10.0.16.14, 10.0.16.15 : 10.0.16.15,
++			     10.0.16.16 : 10.0.16.16, 10.0.16.17 : 10.0.16.17,
++			     10.0.16.18 : 10.0.16.18, 10.0.16.19 : 10.0.16.19,
++			     10.0.16.20 : 10.0.16.20, 10.0.16.21 : 10.0.16.21,
++			     10.0.16.22 : 10.0.16.22, 10.0.16.23 : 10.0.16.23,
++			     10.0.16.24 : 10.0.16.24, 10.0.16.25 : 10.0.16.25,
++			     10.0.16.26 : 10.0.16.26, 10.0.16.27 : 10.0.16.27,
++			     10.0.16.28 : 10.0.16.28, 10.0.16.29 : 10.0.16.29,
++			     10.0.16.30 : 10.0.16.30, 10.0.16.31 : 10.0.16.31,
++			     10.0.17.1 : 10.0.17.1, 10.0.17.2 : 10.0.17.2,
++			     10.0.17.3 : 10.0.17.3, 10.0.17.4 : 10.0.17.4,
++			     10.0.17.5 : 10.0.17.5, 10.0.17.6 : 10.0.17.6,
++			     10.0.17.7 : 10.0.17.7, 10.0.17.8 : 10.0.17.8,
++			     10.0.17.9 : 10.0.17.9, 10.0.17.10 : 10.0.17.10,
++			     10.0.17.11 : 10.0.17.11, 10.0.17.12 : 10.0.17.12,
++			     10.0.17.13 : 10.0.17.13, 10.0.17.14 : 10.0.17.14,
++			     10.0.17.15 : 10.0.17.15, 10.0.17.16 : 10.0.17.16,
++			     10.0.17.17 : 10.0.17.17, 10.0.17.18 : 10.0.17.18,
++			     10.0.17.19 : 10.0.17.19, 10.0.17.20 : 10.0.17.20,
++			     10.0.17.21 : 10.0.17.21, 10.0.17.22 : 10.0.17.22,
++			     10.0.17.23 : 10.0.17.23, 10.0.17.24 : 10.0.17.24,
++			     10.0.17.25 : 10.0.17.25, 10.0.17.26 : 10.0.17.26,
++			     10.0.17.27 : 10.0.17.27, 10.0.17.28 : 10.0.17.28,
++			     10.0.17.29 : 10.0.17.29, 10.0.17.30 : 10.0.17.30,
++			     10.0.17.31 : 10.0.17.31, 10.0.18.1 : 10.0.18.1,
++			     10.0.18.2 : 10.0.18.2, 10.0.18.3 : 10.0.18.3,
++			     10.0.18.4 : 10.0.18.4, 10.0.18.5 : 10.0.18.5,
++			     10.0.18.6 : 10.0.18.6, 10.0.18.7 : 10.0.18.7,
++			     10.0.18.8 : 10.0.18.8, 10.0.18.9 : 10.0.18.9,
++			     10.0.18.10 : 10.0.18.10, 10.0.18.11 : 10.0.18.11,
++			     10.0.18.12 : 10.0.18.12, 10.0.18.13 : 10.0.18.13,
++			     10.0.18.14 : 10.0.18.14, 10.0.18.15 : 10.0.18.15,
++			     10.0.18.16 : 10.0.18.16, 10.0.18.17 : 10.0.18.17,
++			     10.0.18.18 : 10.0.18.18, 10.0.18.19 : 10.0.18.19,
++			     10.0.18.20 : 10.0.18.20, 10.0.18.21 : 10.0.18.21,
++			     10.0.18.22 : 10.0.18.22, 10.0.18.23 : 10.0.18.23,
++			     10.0.18.24 : 10.0.18.24, 10.0.18.25 : 10.0.18.25,
++			     10.0.18.26 : 10.0.18.26, 10.0.18.27 : 10.0.18.27,
++			     10.0.18.28 : 10.0.18.28, 10.0.18.29 : 10.0.18.29,
++			     10.0.18.30 : 10.0.18.30, 10.0.18.31 : 10.0.18.31,
++			     10.0.19.1 : 10.0.19.1, 10.0.19.2 : 10.0.19.2,
++			     10.0.19.3 : 10.0.19.3, 10.0.19.4 : 10.0.19.4,
++			     10.0.19.5 : 10.0.19.5, 10.0.19.6 : 10.0.19.6,
++			     10.0.19.7 : 10.0.19.7, 10.0.19.8 : 10.0.19.8,
++			     10.0.19.9 : 10.0.19.9, 10.0.19.10 : 10.0.19.10,
++			     10.0.19.11 : 10.0.19.11, 10.0.19.12 : 10.0.19.12,
++			     10.0.19.13 : 10.0.19.13, 10.0.19.14 : 10.0.19.14,
++			     10.0.19.15 : 10.0.19.15, 10.0.19.16 : 10.0.19.16,
++			     10.0.19.17 : 10.0.19.17, 10.0.19.18 : 10.0.19.18,
++			     10.0.19.19 : 10.0.19.19, 10.0.19.20 : 10.0.19.20,
++			     10.0.19.21 : 10.0.19.21, 10.0.19.22 : 10.0.19.22,
++			     10.0.19.23 : 10.0.19.23, 10.0.19.24 : 10.0.19.24,
++			     10.0.19.25 : 10.0.19.25, 10.0.19.26 : 10.0.19.26,
++			     10.0.19.27 : 10.0.19.27, 10.0.19.28 : 10.0.19.28,
++			     10.0.19.29 : 10.0.19.29, 10.0.19.30 : 10.0.19.30,
++			     10.0.19.31 : 10.0.19.31, 10.0.20.1 : 10.0.20.1,
++			     10.0.20.2 : 10.0.20.2, 10.0.20.3 : 10.0.20.3,
++			     10.0.20.4 : 10.0.20.4, 10.0.20.5 : 10.0.20.5,
++			     10.0.20.6 : 10.0.20.6, 10.0.20.7 : 10.0.20.7,
++			     10.0.20.8 : 10.0.20.8, 10.0.20.9 : 10.0.20.9,
++			     10.0.20.10 : 10.0.20.10, 10.0.20.11 : 10.0.20.11,
++			     10.0.20.12 : 10.0.20.12, 10.0.20.13 : 10.0.20.13,
++			     10.0.20.14 : 10.0.20.14, 10.0.20.15 : 10.0.20.15,
++			     10.0.20.16 : 10.0.20.16, 10.0.20.17 : 10.0.20.17,
++			     10.0.20.18 : 10.0.20.18, 10.0.20.19 : 10.0.20.19,
++			     10.0.20.20 : 10.0.20.20, 10.0.20.21 : 10.0.20.21,
++			     10.0.20.22 : 10.0.20.22, 10.0.20.23 : 10.0.20.23,
++			     10.0.20.24 : 10.0.20.24, 10.0.20.25 : 10.0.20.25,
++			     10.0.20.26 : 10.0.20.26, 10.0.20.27 : 10.0.20.27,
++			     10.0.20.28 : 10.0.20.28, 10.0.20.29 : 10.0.20.29,
++			     10.0.20.30 : 10.0.20.30, 10.0.20.31 : 10.0.20.31,
++			     10.0.21.1 : 10.0.21.1, 10.0.21.2 : 10.0.21.2,
++			     10.0.21.3 : 10.0.21.3, 10.0.21.4 : 10.0.21.4,
++			     10.0.21.5 : 10.0.21.5, 10.0.21.6 : 10.0.21.6,
++			     10.0.21.7 : 10.0.21.7, 10.0.21.8 : 10.0.21.8,
++			     10.0.21.9 : 10.0.21.9, 10.0.21.10 : 10.0.21.10,
++			     10.0.21.11 : 10.0.21.11, 10.0.21.12 : 10.0.21.12,
++			     10.0.21.13 : 10.0.21.13, 10.0.21.14 : 10.0.21.14,
++			     10.0.21.15 : 10.0.21.15, 10.0.21.16 : 10.0.21.16,
++			     10.0.21.17 : 10.0.21.17, 10.0.21.18 : 10.0.21.18,
++			     10.0.21.19 : 10.0.21.19, 10.0.21.20 : 10.0.21.20,
++			     10.0.21.21 : 10.0.21.21, 10.0.21.22 : 10.0.21.22,
++			     10.0.21.23 : 10.0.21.23, 10.0.21.24 : 10.0.21.24,
++			     10.0.21.25 : 10.0.21.25, 10.0.21.26 : 10.0.21.26,
++			     10.0.21.27 : 10.0.21.27, 10.0.21.28 : 10.0.21.28,
++			     10.0.21.29 : 10.0.21.29, 10.0.21.30 : 10.0.21.30,
++			     10.0.21.31 : 10.0.21.31, 10.0.22.1 : 10.0.22.1,
++			     10.0.22.2 : 10.0.22.2, 10.0.22.3 : 10.0.22.3,
++			     10.0.22.4 : 10.0.22.4, 10.0.22.5 : 10.0.22.5,
++			     10.0.22.6 : 10.0.22.6, 10.0.22.7 : 10.0.22.7,
++			     10.0.22.8 : 10.0.22.8, 10.0.22.9 : 10.0.22.9,
++			     10.0.22.10 : 10.0.22.10, 10.0.22.11 : 10.0.22.11,
++			     10.0.22.12 : 10.0.22.12, 10.0.22.13 : 10.0.22.13,
++			     10.0.22.14 : 10.0.22.14, 10.0.22.15 : 10.0.22.15,
++			     10.0.22.16 : 10.0.22.16, 10.0.22.17 : 10.0.22.17,
++			     10.0.22.18 : 10.0.22.18, 10.0.22.19 : 10.0.22.19,
++			     10.0.22.20 : 10.0.22.20, 10.0.22.21 : 10.0.22.21,
++			     10.0.22.22 : 10.0.22.22, 10.0.22.23 : 10.0.22.23,
++			     10.0.22.24 : 10.0.22.24, 10.0.22.25 : 10.0.22.25,
++			     10.0.22.26 : 10.0.22.26, 10.0.22.27 : 10.0.22.27,
++			     10.0.22.28 : 10.0.22.28, 10.0.22.29 : 10.0.22.29,
++			     10.0.22.30 : 10.0.22.30, 10.0.22.31 : 10.0.22.31,
++			     10.0.23.1 : 10.0.23.1, 10.0.23.2 : 10.0.23.2,
++			     10.0.23.3 : 10.0.23.3, 10.0.23.4 : 10.0.23.4,
++			     10.0.23.5 : 10.0.23.5, 10.0.23.6 : 10.0.23.6,
++			     10.0.23.7 : 10.0.23.7, 10.0.23.8 : 10.0.23.8,
++			     10.0.23.9 : 10.0.23.9, 10.0.23.10 : 10.0.23.10,
++			     10.0.23.11 : 10.0.23.11, 10.0.23.12 : 10.0.23.12,
++			     10.0.23.13 : 10.0.23.13, 10.0.23.14 : 10.0.23.14,
++			     10.0.23.15 : 10.0.23.15, 10.0.23.16 : 10.0.23.16,
++			     10.0.23.17 : 10.0.23.17, 10.0.23.18 : 10.0.23.18,
++			     10.0.23.19 : 10.0.23.19, 10.0.23.20 : 10.0.23.20,
++			     10.0.23.21 : 10.0.23.21, 10.0.23.22 : 10.0.23.22,
++			     10.0.23.23 : 10.0.23.23, 10.0.23.24 : 10.0.23.24,
++			     10.0.23.25 : 10.0.23.25, 10.0.23.26 : 10.0.23.26,
++			     10.0.23.27 : 10.0.23.27, 10.0.23.28 : 10.0.23.28,
++			     10.0.23.29 : 10.0.23.29, 10.0.23.30 : 10.0.23.30,
++			     10.0.23.31 : 10.0.23.31, 10.0.24.1 : 10.0.24.1,
++			     10.0.24.2 : 10.0.24.2, 10.0.24.3 : 10.0.24.3,
++			     10.0.24.4 : 10.0.24.4, 10.0.24.5 : 10.0.24.5,
++			     10.0.24.6 : 10.0.24.6, 10.0.24.7 : 10.0.24.7,
++			     10.0.24.8 : 10.0.24.8, 10.0.24.9 : 10.0.24.9,
++			     10.0.24.10 : 10.0.24.10, 10.0.24.11 : 10.0.24.11,
++			     10.0.24.12 : 10.0.24.12, 10.0.24.13 : 10.0.24.13,
++			     10.0.24.14 : 10.0.24.14, 10.0.24.15 : 10.0.24.15,
++			     10.0.24.16 : 10.0.24.16, 10.0.24.17 : 10.0.24.17,
++			     10.0.24.18 : 10.0.24.18, 10.0.24.19 : 10.0.24.19,
++			     10.0.24.20 : 10.0.24.20, 10.0.24.21 : 10.0.24.21,
++			     10.0.24.22 : 10.0.24.22, 10.0.24.23 : 10.0.24.23,
++			     10.0.24.24 : 10.0.24.24, 10.0.24.25 : 10.0.24.25,
++			     10.0.24.26 : 10.0.24.26, 10.0.24.27 : 10.0.24.27,
++			     10.0.24.28 : 10.0.24.28, 10.0.24.29 : 10.0.24.29,
++			     10.0.24.30 : 10.0.24.30, 10.0.24.31 : 10.0.24.31,
++			     10.0.25.1 : 10.0.25.1, 10.0.25.2 : 10.0.25.2,
++			     10.0.25.3 : 10.0.25.3, 10.0.25.4 : 10.0.25.4,
++			     10.0.25.5 : 10.0.25.5, 10.0.25.6 : 10.0.25.6,
++			     10.0.25.7 : 10.0.25.7, 10.0.25.8 : 10.0.25.8,
++			     10.0.25.9 : 10.0.25.9, 10.0.25.10 : 10.0.25.10,
++			     10.0.25.11 : 10.0.25.11, 10.0.25.12 : 10.0.25.12,
++			     10.0.25.13 : 10.0.25.13, 10.0.25.14 : 10.0.25.14,
++			     10.0.25.15 : 10.0.25.15, 10.0.25.16 : 10.0.25.16,
++			     10.0.25.17 : 10.0.25.17, 10.0.25.18 : 10.0.25.18,
++			     10.0.25.19 : 10.0.25.19, 10.0.25.20 : 10.0.25.20,
++			     10.0.25.21 : 10.0.25.21, 10.0.25.22 : 10.0.25.22,
++			     10.0.25.23 : 10.0.25.23, 10.0.25.24 : 10.0.25.24,
++			     10.0.25.25 : 10.0.25.25, 10.0.25.26 : 10.0.25.26,
++			     10.0.25.27 : 10.0.25.27, 10.0.25.28 : 10.0.25.28,
++			     10.0.25.29 : 10.0.25.29, 10.0.25.30 : 10.0.25.30,
++			     10.0.25.31 : 10.0.25.31, 10.0.26.1 : 10.0.26.1,
++			     10.0.26.2 : 10.0.26.2, 10.0.26.3 : 10.0.26.3,
++			     10.0.26.4 : 10.0.26.4, 10.0.26.5 : 10.0.26.5,
++			     10.0.26.6 : 10.0.26.6, 10.0.26.7 : 10.0.26.7,
++			     10.0.26.8 : 10.0.26.8, 10.0.26.9 : 10.0.26.9,
++			     10.0.26.10 : 10.0.26.10, 10.0.26.11 : 10.0.26.11,
++			     10.0.26.12 : 10.0.26.12, 10.0.26.13 : 10.0.26.13,
++			     10.0.26.14 : 10.0.26.14, 10.0.26.15 : 10.0.26.15,
++			     10.0.26.16 : 10.0.26.16, 10.0.26.17 : 10.0.26.17,
++			     10.0.26.18 : 10.0.26.18, 10.0.26.19 : 10.0.26.19,
++			     10.0.26.20 : 10.0.26.20, 10.0.26.21 : 10.0.26.21,
++			     10.0.26.22 : 10.0.26.22, 10.0.26.23 : 10.0.26.23,
++			     10.0.26.24 : 10.0.26.24, 10.0.26.25 : 10.0.26.25,
++			     10.0.26.26 : 10.0.26.26, 10.0.26.27 : 10.0.26.27,
++			     10.0.26.28 : 10.0.26.28, 10.0.26.29 : 10.0.26.29,
++			     10.0.26.30 : 10.0.26.30, 10.0.26.31 : 10.0.26.31,
++			     10.0.27.1 : 10.0.27.1, 10.0.27.2 : 10.0.27.2,
++			     10.0.27.3 : 10.0.27.3, 10.0.27.4 : 10.0.27.4,
++			     10.0.27.5 : 10.0.27.5, 10.0.27.6 : 10.0.27.6,
++			     10.0.27.7 : 10.0.27.7, 10.0.27.8 : 10.0.27.8,
++			     10.0.27.9 : 10.0.27.9, 10.0.27.10 : 10.0.27.10,
++			     10.0.27.11 : 10.0.27.11, 10.0.27.12 : 10.0.27.12,
++			     10.0.27.13 : 10.0.27.13, 10.0.27.14 : 10.0.27.14,
++			     10.0.27.15 : 10.0.27.15, 10.0.27.16 : 10.0.27.16,
++			     10.0.27.17 : 10.0.27.17, 10.0.27.18 : 10.0.27.18,
++			     10.0.27.19 : 10.0.27.19, 10.0.27.20 : 10.0.27.20,
++			     10.0.27.21 : 10.0.27.21, 10.0.27.22 : 10.0.27.22,
++			     10.0.27.23 : 10.0.27.23, 10.0.27.24 : 10.0.27.24,
++			     10.0.27.25 : 10.0.27.25, 10.0.27.26 : 10.0.27.26,
++			     10.0.27.27 : 10.0.27.27, 10.0.27.28 : 10.0.27.28,
++			     10.0.27.29 : 10.0.27.29, 10.0.27.30 : 10.0.27.30,
++			     10.0.27.31 : 10.0.27.31, 10.0.28.1 : 10.0.28.1,
++			     10.0.28.2 : 10.0.28.2, 10.0.28.3 : 10.0.28.3,
++			     10.0.28.4 : 10.0.28.4, 10.0.28.5 : 10.0.28.5,
++			     10.0.28.6 : 10.0.28.6, 10.0.28.7 : 10.0.28.7,
++			     10.0.28.8 : 10.0.28.8, 10.0.28.9 : 10.0.28.9,
++			     10.0.28.10 : 10.0.28.10, 10.0.28.11 : 10.0.28.11,
++			     10.0.28.12 : 10.0.28.12, 10.0.28.13 : 10.0.28.13,
++			     10.0.28.14 : 10.0.28.14, 10.0.28.15 : 10.0.28.15,
++			     10.0.28.16 : 10.0.28.16, 10.0.28.17 : 10.0.28.17,
++			     10.0.28.18 : 10.0.28.18, 10.0.28.19 : 10.0.28.19,
++			     10.0.28.20 : 10.0.28.20, 10.0.28.21 : 10.0.28.21,
++			     10.0.28.22 : 10.0.28.22, 10.0.28.23 : 10.0.28.23,
++			     10.0.28.24 : 10.0.28.24, 10.0.28.25 : 10.0.28.25,
++			     10.0.28.26 : 10.0.28.26, 10.0.28.27 : 10.0.28.27,
++			     10.0.28.28 : 10.0.28.28, 10.0.28.29 : 10.0.28.29,
++			     10.0.28.30 : 10.0.28.30, 10.0.28.31 : 10.0.28.31,
++			     10.0.29.1 : 10.0.29.1, 10.0.29.2 : 10.0.29.2,
++			     10.0.29.3 : 10.0.29.3, 10.0.29.4 : 10.0.29.4,
++			     10.0.29.5 : 10.0.29.5, 10.0.29.6 : 10.0.29.6,
++			     10.0.29.7 : 10.0.29.7, 10.0.29.8 : 10.0.29.8,
++			     10.0.29.9 : 10.0.29.9, 10.0.29.10 : 10.0.29.10,
++			     10.0.29.11 : 10.0.29.11, 10.0.29.12 : 10.0.29.12,
++			     10.0.29.13 : 10.0.29.13, 10.0.29.14 : 10.0.29.14,
++			     10.0.29.15 : 10.0.29.15, 10.0.29.16 : 10.0.29.16,
++			     10.0.29.17 : 10.0.29.17, 10.0.29.18 : 10.0.29.18,
++			     10.0.29.19 : 10.0.29.19, 10.0.29.20 : 10.0.29.20,
++			     10.0.29.21 : 10.0.29.21, 10.0.29.22 : 10.0.29.22,
++			     10.0.29.23 : 10.0.29.23, 10.0.29.24 : 10.0.29.24,
++			     10.0.29.25 : 10.0.29.25, 10.0.29.26 : 10.0.29.26,
++			     10.0.29.27 : 10.0.29.27, 10.0.29.28 : 10.0.29.28,
++			     10.0.29.29 : 10.0.29.29, 10.0.29.30 : 10.0.29.30,
++			     10.0.29.31 : 10.0.29.31, 10.0.30.1 : 10.0.30.1,
++			     10.0.30.2 : 10.0.30.2, 10.0.30.3 : 10.0.30.3,
++			     10.0.30.4 : 10.0.30.4, 10.0.30.5 : 10.0.30.5,
++			     10.0.30.6 : 10.0.30.6, 10.0.30.7 : 10.0.30.7,
++			     10.0.30.8 : 10.0.30.8, 10.0.30.9 : 10.0.30.9,
++			     10.0.30.10 : 10.0.30.10, 10.0.30.11 : 10.0.30.11,
++			     10.0.30.12 : 10.0.30.12, 10.0.30.13 : 10.0.30.13,
++			     10.0.30.14 : 10.0.30.14, 10.0.30.15 : 10.0.30.15,
++			     10.0.30.16 : 10.0.30.16, 10.0.30.17 : 10.0.30.17,
++			     10.0.30.18 : 10.0.30.18, 10.0.30.19 : 10.0.30.19,
++			     10.0.30.20 : 10.0.30.20, 10.0.30.21 : 10.0.30.21,
++			     10.0.30.22 : 10.0.30.22, 10.0.30.23 : 10.0.30.23,
++			     10.0.30.24 : 10.0.30.24, 10.0.30.25 : 10.0.30.25,
++			     10.0.30.26 : 10.0.30.26, 10.0.30.27 : 10.0.30.27,
++			     10.0.30.28 : 10.0.30.28, 10.0.30.29 : 10.0.30.29,
++			     10.0.30.30 : 10.0.30.30, 10.0.30.31 : 10.0.30.31,
++			     10.0.31.1 : 10.0.31.1, 10.0.31.2 : 10.0.31.2,
++			     10.0.31.3 : 10.0.31.3, 10.0.31.4 : 10.0.31.4,
++			     10.0.31.5 : 10.0.31.5, 10.0.31.6 : 10.0.31.6,
++			     10.0.31.7 : 10.0.31.7, 10.0.31.8 : 10.0.31.8,
++			     10.0.31.9 : 10.0.31.9, 10.0.31.10 : 10.0.31.10,
++			     10.0.31.11 : 10.0.31.11, 10.0.31.12 : 10.0.31.12,
++			     10.0.31.13 : 10.0.31.13, 10.0.31.14 : 10.0.31.14,
++			     10.0.31.15 : 10.0.31.15, 10.0.31.16 : 10.0.31.16,
++			     10.0.31.17 : 10.0.31.17, 10.0.31.18 : 10.0.31.18,
++			     10.0.31.19 : 10.0.31.19, 10.0.31.20 : 10.0.31.20,
++			     10.0.31.21 : 10.0.31.21, 10.0.31.22 : 10.0.31.22,
++			     10.0.31.23 : 10.0.31.23, 10.0.31.24 : 10.0.31.24,
++			     10.0.31.25 : 10.0.31.25, 10.0.31.26 : 10.0.31.26,
++			     10.0.31.27 : 10.0.31.27, 10.0.31.28 : 10.0.31.28,
++			     10.0.31.29 : 10.0.31.29, 10.0.31.30 : 10.0.31.30,
++			     10.0.31.31 : 10.0.31.31 }
++	}
++}
+diff --git a/tests/shell/testcases/maps/dumps/0008interval_map_delete_0.nft b/tests/shell/testcases/maps/dumps/0008interval_map_delete_0.nft
+new file mode 100644
+index 000000000000..a470a340655f
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/0008interval_map_delete_0.nft
+@@ -0,0 +1,15 @@
++table ip filter {
++	map m {
++		type ipv4_addr : mark
++		flags interval
++		elements = { 127.0.0.2 : 0x00000002, 127.0.0.3 : 0x00000003 }
++	}
++
++	chain input {
++		type filter hook input priority filter; policy accept;
++		meta mark set ip daddr map @m
++		meta mark 0x00000002 counter packets 0 bytes 0 accept
++		meta mark 0x00000003 counter packets 0 bytes 0 accept
++		counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/maps/dumps/0016map_leak_0.nft b/tests/shell/testcases/maps/dumps/0016map_leak_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/maps/dumps/0017_map_variable_0.nft b/tests/shell/testcases/maps/dumps/0017_map_variable_0.nft
+new file mode 100644
+index 000000000000..796dd729566f
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/0017_map_variable_0.nft
+@@ -0,0 +1,11 @@
++table ip x {
++	map y {
++		typeof ip saddr : meta mark
++		elements = { 1.1.1.1 : 0x00000002, * : 0x00000003 }
++	}
++
++	map z {
++		typeof ip saddr : meta mark
++		elements = { 1.1.1.1 : 0x00000002, * : 0x00000003 }
++	}
++}
+diff --git a/tests/shell/testcases/maps/dumps/0018map_leak_timeout_0.nft b/tests/shell/testcases/maps/dumps/0018map_leak_timeout_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/maps/dumps/different_map_types_1.nft b/tests/shell/testcases/maps/dumps/different_map_types_1.nft
+new file mode 100644
+index 000000000000..3c18b5c7f8b3
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/different_map_types_1.nft
+@@ -0,0 +1,5 @@
++table ip filter {
++	chain output {
++		type filter hook output priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0001define_slash_0.nft b/tests/shell/testcases/nft-f/dumps/0001define_slash_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0006action_object_0.nft b/tests/shell/testcases/nft-f/dumps/0006action_object_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0007action_object_set_segfault_1.nft b/tests/shell/testcases/nft-f/dumps/0007action_object_set_segfault_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0013defines_1.nft b/tests/shell/testcases/nft-f/dumps/0013defines_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0014defines_1.nft b/tests/shell/testcases/nft-f/dumps/0014defines_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0015defines_1.nft b/tests/shell/testcases/nft-f/dumps/0015defines_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0016redefines_1.nft b/tests/shell/testcases/nft-f/dumps/0016redefines_1.nft
+new file mode 100644
+index 000000000000..65b7f4913a8e
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0016redefines_1.nft
+@@ -0,0 +1,6 @@
++table ip x {
++	chain y {
++		ip saddr { 1.1.1.1, 2.2.2.2 }
++		ip saddr { 3.3.3.3, 4.4.4.4 }
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0018ct_expectation_obj_0.nft b/tests/shell/testcases/nft-f/dumps/0018ct_expectation_obj_0.nft
+new file mode 100644
+index 000000000000..396185eb196f
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0018ct_expectation_obj_0.nft
+@@ -0,0 +1,13 @@
++table ip filter {
++	ct expectation ctexpect {
++		protocol tcp
++		dport 9876
++		timeout 1m
++		size 12
++		l3proto ip
++	}
++
++	chain c {
++		ct expectation set "ctexpect"
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0019jump_variable_1.nft b/tests/shell/testcases/nft-f/dumps/0019jump_variable_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0020jump_variable_1.nft b/tests/shell/testcases/nft-f/dumps/0020jump_variable_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/nft-f/dumps/0023check_1.nft b/tests/shell/testcases/nft-f/dumps/0023check_1.nft
+new file mode 100644
+index 000000000000..04b9e70f23c6
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0023check_1.nft
+@@ -0,0 +1,5 @@
++table ip foo {
++	chain bar {
++		type filter hook prerouting priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0026listing_0.nft b/tests/shell/testcases/nft-f/dumps/0026listing_0.nft
+new file mode 100644
+index 000000000000..fd0bb6860892
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0026listing_0.nft
+@@ -0,0 +1,5 @@
++table ip A {
++	chain B {
++		tcp dport { 1, 2 } accept
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0029split_file_0.nft b/tests/shell/testcases/nft-f/dumps/0029split_file_0.nft
+new file mode 100644
+index 000000000000..32d5c0e91331
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/dumps/0029split_file_0.nft
+@@ -0,0 +1,10 @@
++table inet filter {
++	set whitelist_v4 {
++		type ipv4_addr
++	}
++
++	chain prerouting {
++		type filter hook prerouting priority filter; policy accept;
++		ip daddr @whitelist_v4
++	}
++}
+diff --git a/tests/shell/testcases/nft-f/dumps/0031vmap_string_0.nft b/tests/shell/testcases/nft-f/dumps/0031vmap_string_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/optimizations/dumps/ruleset.nft b/tests/shell/testcases/optimizations/dumps/ruleset.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/optimizations/dumps/variables.nft b/tests/shell/testcases/optimizations/dumps/variables.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/optionals/dumps/comments_objects_dup_0.nft b/tests/shell/testcases/optionals/dumps/comments_objects_dup_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/optionals/dumps/delete_object_handles_0.nft b/tests/shell/testcases/optionals/dumps/delete_object_handles_0.nft
+new file mode 100644
+index 000000000000..aac03cc50a48
+--- /dev/null
++++ b/tests/shell/testcases/optionals/dumps/delete_object_handles_0.nft
+@@ -0,0 +1,18 @@
++table ip test-ip {
++	quota https-quota {
++		25 mbytes
++	}
++
++	map ports {
++		type inet_service : quota
++	}
++}
++table ip6 test-ip6 {
++	quota http-quota {
++		over 25 mbytes
++	}
++
++	counter http-traffic {
++		packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/optionals/dumps/handles_1.nft b/tests/shell/testcases/optionals/dumps/handles_1.nft
+new file mode 100644
+index 000000000000..085c6cf1f5a8
+--- /dev/null
++++ b/tests/shell/testcases/optionals/dumps/handles_1.nft
+@@ -0,0 +1,5 @@
++table ip test {
++	chain test {
++		tcp dport 22 counter packets 0 bytes 0 accept
++	}
++}
+diff --git a/tests/shell/testcases/optionals/dumps/update_object_handles_0.nft b/tests/shell/testcases/optionals/dumps/update_object_handles_0.nft
+new file mode 100644
+index 000000000000..f391b6314600
+--- /dev/null
++++ b/tests/shell/testcases/optionals/dumps/update_object_handles_0.nft
+@@ -0,0 +1,9 @@
++table ip test-ip {
++	counter traffic-counter {
++		packets 0 bytes 0
++	}
++
++	quota traffic-quota {
++		50 mbytes
++	}
++}
+diff --git a/tests/shell/testcases/parsing/dumps/describe.nft b/tests/shell/testcases/parsing/dumps/describe.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/parsing/dumps/log.nft b/tests/shell/testcases/parsing/dumps/log.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/parsing/dumps/octal.nft b/tests/shell/testcases/parsing/dumps/octal.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/rule_management/dumps/0001addinsertposition_0.nft b/tests/shell/testcases/rule_management/dumps/0001addinsertposition_0.nft
+new file mode 100644
+index 000000000000..527d79d655db
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/dumps/0001addinsertposition_0.nft
+@@ -0,0 +1,7 @@
++table ip t {
++	chain c {
++		drop
++		accept
++		accept
++	}
++}
+diff --git a/tests/shell/testcases/rule_management/dumps/0002addinsertlocation_1.nft b/tests/shell/testcases/rule_management/dumps/0002addinsertlocation_1.nft
+new file mode 100644
+index 000000000000..b76cd930e603
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/dumps/0002addinsertlocation_1.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	chain c {
++		accept
++		accept
++	}
++}
+diff --git a/tests/shell/testcases/rule_management/dumps/0005replace_1.nft b/tests/shell/testcases/rule_management/dumps/0005replace_1.nft
+new file mode 100644
+index 000000000000..1e0d1d603739
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/dumps/0005replace_1.nft
+@@ -0,0 +1,4 @@
++table ip t {
++	chain c {
++	}
++}
+diff --git a/tests/shell/testcases/rule_management/dumps/0006replace_1.nft b/tests/shell/testcases/rule_management/dumps/0006replace_1.nft
+new file mode 100644
+index 000000000000..1e0d1d603739
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/dumps/0006replace_1.nft
+@@ -0,0 +1,4 @@
++table ip t {
++	chain c {
++	}
++}
+diff --git a/tests/shell/testcases/rule_management/dumps/0008delete_1.nft b/tests/shell/testcases/rule_management/dumps/0008delete_1.nft
+new file mode 100644
+index 000000000000..1e0d1d603739
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/dumps/0008delete_1.nft
+@@ -0,0 +1,4 @@
++table ip t {
++	chain c {
++	}
++}
+diff --git a/tests/shell/testcases/rule_management/dumps/0009delete_1.nft b/tests/shell/testcases/rule_management/dumps/0009delete_1.nft
+new file mode 100644
+index 000000000000..1e0d1d603739
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/dumps/0009delete_1.nft
+@@ -0,0 +1,4 @@
++table ip t {
++	chain c {
++	}
++}
+diff --git a/tests/shell/testcases/rule_management/dumps/0010replace_0.nft b/tests/shell/testcases/rule_management/dumps/0010replace_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/sets/dumps/0014malformed_set_is_not_defined_0.nft b/tests/shell/testcases/sets/dumps/0014malformed_set_is_not_defined_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/sets/dumps/0018set_check_size_1.nft b/tests/shell/testcases/sets/dumps/0018set_check_size_1.nft
+new file mode 100644
+index 000000000000..8cd3707607b3
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0018set_check_size_1.nft
+@@ -0,0 +1,7 @@
++table ip x {
++	set s {
++		type ipv4_addr
++		size 2
++		elements = { 1.1.1.1, 1.1.1.2 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0028autoselect_0.nft b/tests/shell/testcases/sets/dumps/0028autoselect_0.nft
+new file mode 100644
+index 000000000000..0c604927f2fe
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0028autoselect_0.nft
+@@ -0,0 +1,26 @@
++table ip t {
++	set s1 {
++		type inet_proto
++		size 65535
++		flags dynamic
++	}
++
++	set s2 {
++		type ipv4_addr
++		size 65535
++		flags dynamic
++	}
++
++	set s3 {
++		type ipv4_addr
++		size 1024
++		flags dynamic
++	}
++
++	chain c {
++		type filter hook input priority filter; policy accept;
++		iifname "foobar" add @s1 { ip protocol }
++		iifname "foobar" add @s2 { ip daddr }
++		iifname "foobar" add @s3 { ip daddr }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0028delete_handle_0.nft b/tests/shell/testcases/sets/dumps/0028delete_handle_0.nft
+new file mode 100644
+index 000000000000..0f25c763708c
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0028delete_handle_0.nft
+@@ -0,0 +1,15 @@
++table ip test-ip {
++	set x {
++		type ipv4_addr
++	}
++
++	set y {
++		type inet_service
++		timeout 3h45s
++	}
++
++	set z {
++		type ipv4_addr
++		flags constant,interval
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0031set_timeout_size_0.nft b/tests/shell/testcases/sets/dumps/0031set_timeout_size_0.nft
+new file mode 100644
+index 000000000000..e5732c9bf95c
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0031set_timeout_size_0.nft
+@@ -0,0 +1,13 @@
++table ip x {
++	set y {
++		type ipv4_addr
++		size 128
++		flags dynamic,timeout
++		timeout 30s
++	}
++
++	chain test {
++		update @y { ip saddr timeout 1d2h3m4s10ms }
++		update @y { ip daddr timeout 100ms }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0033add_set_simple_flat_0.nft b/tests/shell/testcases/sets/dumps/0033add_set_simple_flat_0.nft
+new file mode 100644
+index 000000000000..d6174c51172c
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0033add_set_simple_flat_0.nft
+@@ -0,0 +1,11 @@
++table ip x {
++	set setA {
++		type ipv4_addr . inet_service . ipv4_addr
++		flags timeout
++	}
++
++	set setB {
++		type ipv4_addr . inet_service
++		flags timeout
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0034get_element_0.nft b/tests/shell/testcases/sets/dumps/0034get_element_0.nft
+new file mode 100644
+index 000000000000..1c1dd9779a8a
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0034get_element_0.nft
+@@ -0,0 +1,23 @@
++table ip t {
++	set s {
++		type inet_service
++		flags interval
++		elements = { 10, 20-30, 40, 50-60 }
++	}
++
++	set ips {
++		type ipv4_addr
++		flags interval
++		elements = { 10.0.0.1, 10.0.0.5-10.0.0.8,
++			     10.0.0.128/25, 10.0.1.0/24,
++			     10.0.2.3-10.0.2.12 }
++	}
++
++	set cs {
++		type ipv4_addr . inet_service
++		flags interval
++		elements = { 10.0.0.1 . 22,
++			     10.1.0.0/16 . 1-1024,
++			     10.2.0.1-10.2.0.8 . 1024-65535 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0035add_set_elements_flat_0.nft b/tests/shell/testcases/sets/dumps/0035add_set_elements_flat_0.nft
+new file mode 100644
+index 000000000000..ca69cee281a2
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0035add_set_elements_flat_0.nft
+@@ -0,0 +1,6 @@
++table ip x {
++	set y {
++		type ipv4_addr
++		flags interval
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0038meter_list_0.nft b/tests/shell/testcases/sets/dumps/0038meter_list_0.nft
+new file mode 100644
+index 000000000000..c537aa1c702a
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0038meter_list_0.nft
+@@ -0,0 +1,11 @@
++table ip t {
++	set s {
++		type ipv4_addr
++		size 256
++		flags dynamic,timeout
++	}
++
++	chain c {
++		tcp dport 80 meter m size 128 { ip saddr limit rate 10/second }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0039delete_interval_0.nft b/tests/shell/testcases/sets/dumps/0039delete_interval_0.nft
+new file mode 100644
+index 000000000000..1fc76572d4a8
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0039delete_interval_0.nft
+@@ -0,0 +1,7 @@
++table ip t {
++	set s {
++		type ipv4_addr
++		flags interval
++		elements = { 192.168.1.0-192.168.1.254, 192.168.1.255 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0040get_host_endian_elements_0.nft b/tests/shell/testcases/sets/dumps/0040get_host_endian_elements_0.nft
+new file mode 100644
+index 000000000000..f580c381394b
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0040get_host_endian_elements_0.nft
+@@ -0,0 +1,7 @@
++table ip t {
++	set s {
++		type mark
++		flags interval
++		elements = { 0x00000023-0x00000042, 0x00001337 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0041interval_0.nft b/tests/shell/testcases/sets/dumps/0041interval_0.nft
+new file mode 100644
+index 000000000000..222d4d747229
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0041interval_0.nft
+@@ -0,0 +1,7 @@
++table ip t {
++	set s {
++		type ipv4_addr
++		flags interval
++		elements = { 192.168.2.196 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0042update_set_0.nft b/tests/shell/testcases/sets/dumps/0042update_set_0.nft
+new file mode 100644
+index 000000000000..56cc875e34b7
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0042update_set_0.nft
+@@ -0,0 +1,15 @@
++table ip t {
++	set set1 {
++		type ether_addr
++	}
++
++	set set2 {
++		type ether_addr
++		size 65535
++		flags dynamic
++	}
++
++	chain c {
++		ether daddr @set1 add @set2 { ether daddr counter }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.nft b/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.nft
+new file mode 100644
+index 000000000000..f2077b91bb42
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.nft
+@@ -0,0 +1,11 @@
++table inet filter {
++	map test {
++		type mark . inet_service . inet_proto : mark
++		flags interval,timeout
++	}
++
++	chain output {
++		type filter hook output priority filter; policy accept;
++		meta mark set meta mark . tcp dport . meta l4proto map @test counter packets 0 bytes 0
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0043concatenated_ranges_1.nft b/tests/shell/testcases/sets/dumps/0043concatenated_ranges_1.nft
+new file mode 100644
+index 000000000000..19d08d3d5d90
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0043concatenated_ranges_1.nft
+@@ -0,0 +1,116 @@
++table ip6 t {
++	set s {
++		type ipv6_addr . ipv6_addr
++		flags interval
++		elements = { 2001:db8::/32 . 2001:db8:20::-2001:db8:20::20:1,
++			     2001:db8::/33 . 2001:db8:21::-2001:db8:21::21:1,
++			     2001:db8::/34 . 2001:db8:22::-2001:db8:22::22:1,
++			     2001:db8::/35 . 2001:db8:23::-2001:db8:23::23:1,
++			     2001:db8::/36 . 2001:db8:24::-2001:db8:24::24:1,
++			     2001:db8::/37 . 2001:db8:25::-2001:db8:25::25:1,
++			     2001:db8::/38 . 2001:db8:26::-2001:db8:26::26:1,
++			     2001:db8::/39 . 2001:db8:27::-2001:db8:27::27:1,
++			     2001:db8::/40 . 2001:db8:28::-2001:db8:28::28:1,
++			     2001:db8::/41 . 2001:db8:29::-2001:db8:29::29:1,
++			     2001:db8::/42 . 2001:db8:2a::-2001:db8:2a::2a:1,
++			     2001:db8::/43 . 2001:db8:2b::-2001:db8:2b::2b:1,
++			     2001:db8::/44 . 2001:db8:2c::-2001:db8:2c::2c:1,
++			     2001:db8::/45 . 2001:db8:2d::-2001:db8:2d::2d:1,
++			     2001:db8::/46 . 2001:db8:2e::-2001:db8:2e::2e:1,
++			     2001:db8::/47 . 2001:db8:2f::-2001:db8:2f::2f:1,
++			     2001:db8::/48 . 2001:db8:30::-2001:db8:30::30:1,
++			     2001:db8::/49 . 2001:db8:31::-2001:db8:31::31:1,
++			     2001:db8::/50 . 2001:db8:32::-2001:db8:32::32:1,
++			     2001:db8::/51 . 2001:db8:33::-2001:db8:33::33:1,
++			     2001:db8::/52 . 2001:db8:34::-2001:db8:34::34:1,
++			     2001:db8::/53 . 2001:db8:35::-2001:db8:35::35:1,
++			     2001:db8::/54 . 2001:db8:36::-2001:db8:36::36:1,
++			     2001:db8::/55 . 2001:db8:37::-2001:db8:37::37:1,
++			     2001:db8::/56 . 2001:db8:38::-2001:db8:38::38:1,
++			     2001:db8::/57 . 2001:db8:39::-2001:db8:39::39:1,
++			     2001:db8::/58 . 2001:db8:3a::-2001:db8:3a::3a:1,
++			     2001:db8::/59 . 2001:db8:3b::-2001:db8:3b::3b:1,
++			     2001:db8::/60 . 2001:db8:3c::-2001:db8:3c::3c:1,
++			     2001:db8::/61 . 2001:db8:3d::-2001:db8:3d::3d:1,
++			     2001:db8::/62 . 2001:db8:3e::-2001:db8:3e::3e:1,
++			     2001:db8::/63 . 2001:db8:3f::-2001:db8:3f::3f:1,
++			     2001:db8::/64 . 2001:db8:40::-2001:db8:40::40:1,
++			     2001:db8::/65 . 2001:db8:41::-2001:db8:41::41:1,
++			     2001:db8::/66 . 2001:db8:42::-2001:db8:42::42:1,
++			     2001:db8::/67 . 2001:db8:43::-2001:db8:43::43:1,
++			     2001:db8::/68 . 2001:db8:44::-2001:db8:44::44:1,
++			     2001:db8::/69 . 2001:db8:45::-2001:db8:45::45:1,
++			     2001:db8::/70 . 2001:db8:46::-2001:db8:46::46:1,
++			     2001:db8::/71 . 2001:db8:47::-2001:db8:47::47:1,
++			     2001:db8::/72 . 2001:db8:48::-2001:db8:48::48:1,
++			     2001:db8::/73 . 2001:db8:49::-2001:db8:49::49:1,
++			     2001:db8::/74 . 2001:db8:4a::-2001:db8:4a::4a:1,
++			     2001:db8::/75 . 2001:db8:4b::-2001:db8:4b::4b:1,
++			     2001:db8::/76 . 2001:db8:4c::-2001:db8:4c::4c:1,
++			     2001:db8::/77 . 2001:db8:4d::-2001:db8:4d::4d:1,
++			     2001:db8::/78 . 2001:db8:4e::-2001:db8:4e::4e:1,
++			     2001:db8::/79 . 2001:db8:4f::-2001:db8:4f::4f:1,
++			     2001:db8::/80 . 2001:db8:50::-2001:db8:50::50:1,
++			     2001:db8::/81 . 2001:db8:51::-2001:db8:51::51:1,
++			     2001:db8::/82 . 2001:db8:52::-2001:db8:52::52:1,
++			     2001:db8::/83 . 2001:db8:53::-2001:db8:53::53:1,
++			     2001:db8::/84 . 2001:db8:54::-2001:db8:54::54:1,
++			     2001:db8::/85 . 2001:db8:55::-2001:db8:55::55:1,
++			     2001:db8::/86 . 2001:db8:56::-2001:db8:56::56:1,
++			     2001:db8::/87 . 2001:db8:57::-2001:db8:57::57:1,
++			     2001:db8::/88 . 2001:db8:58::-2001:db8:58::58:1,
++			     2001:db8::/89 . 2001:db8:59::-2001:db8:59::59:1,
++			     2001:db8::/90 . 2001:db8:5a::-2001:db8:5a::5a:1,
++			     2001:db8::/91 . 2001:db8:5b::-2001:db8:5b::5b:1,
++			     2001:db8::/92 . 2001:db8:5c::-2001:db8:5c::5c:1,
++			     2001:db8::/93 . 2001:db8:5d::-2001:db8:5d::5d:1,
++			     2001:db8::/94 . 2001:db8:5e::-2001:db8:5e::5e:1,
++			     2001:db8::/95 . 2001:db8:5f::-2001:db8:5f::5f:1,
++			     2001:db8::/96 . 2001:db8:60::-2001:db8:60::60:1,
++			     2001:db8::/97 . 2001:db8:61::-2001:db8:61::61:1,
++			     2001:db8::/98 . 2001:db8:62::-2001:db8:62::62:1,
++			     2001:db8::/99 . 2001:db8:63::-2001:db8:63::63:1,
++			     2001:db8::/100 . 2001:db8:64::-2001:db8:64::64:1,
++			     2001:db8::/101 . 2001:db8:65::-2001:db8:65::65:1,
++			     2001:db8::/102 . 2001:db8:66::-2001:db8:66::66:1,
++			     2001:db8::/103 . 2001:db8:67::-2001:db8:67::67:1,
++			     2001:db8::/104 . 2001:db8:68::-2001:db8:68::68:1,
++			     2001:db8::/105 . 2001:db8:69::-2001:db8:69::69:1,
++			     2001:db8::/106 . 2001:db8:6a::-2001:db8:6a::6a:1,
++			     2001:db8::/107 . 2001:db8:6b::-2001:db8:6b::6b:1,
++			     2001:db8::/108 . 2001:db8:6c::-2001:db8:6c::6c:1,
++			     2001:db8::/109 . 2001:db8:6d::-2001:db8:6d::6d:1,
++			     2001:db8::/110 . 2001:db8:6e::-2001:db8:6e::6e:1,
++			     2001:db8::/111 . 2001:db8:6f::-2001:db8:6f::6f:1,
++			     2001:db8::/112 . 2001:db8:70::-2001:db8:70::70:1,
++			     2001:db8::/113 . 2001:db8:71::-2001:db8:71::71:1,
++			     2001:db8::/114 . 2001:db8:72::-2001:db8:72::72:1,
++			     2001:db8::/115 . 2001:db8:73::-2001:db8:73::73:1,
++			     2001:db8::/116 . 2001:db8:74::-2001:db8:74::74:1,
++			     2001:db8::/117 . 2001:db8:75::-2001:db8:75::75:1,
++			     2001:db8::/118 . 2001:db8:76::-2001:db8:76::76:1,
++			     2001:db8::/119 . 2001:db8:77::-2001:db8:77::77:1,
++			     2001:db8::/120 . 2001:db8:78::-2001:db8:78::78:1,
++			     2001:db8::/121 . 2001:db8:79::-2001:db8:79::79:1,
++			     2001:db8::/122 . 2001:db8:7a::-2001:db8:7a::7a:1,
++			     2001:db8::/123 . 2001:db8:7b::-2001:db8:7b::7b:1,
++			     2001:db8::/124 . 2001:db8:7c::-2001:db8:7c::7c:1,
++			     2001:db8::/125 . 2001:db8:7d::-2001:db8:7d::7d:1,
++			     2001:db8::/126 . 2001:db8:7e::-2001:db8:7e::7e:1,
++			     2001:db8::/127 . 2001:db8:7f::-2001:db8:7f::7f:1 }
++	}
++}
++table ip t {
++	set s {
++		type ipv4_addr . ipv4_addr
++		flags interval
++		elements = { 192.0.2.0/24 . 192.0.2.72-192.0.2.74,
++			     192.0.2.0/25 . 192.0.2.75-192.0.2.77,
++			     192.0.2.0/26 . 192.0.2.78-192.0.2.80,
++			     192.0.2.0/27 . 192.0.2.81-192.0.2.83,
++			     192.0.2.0/28 . 192.0.2.84-192.0.2.86,
++			     192.0.2.0/29 . 192.0.2.87-192.0.2.89,
++			     192.0.2.0/30 . 192.0.2.90-192.0.2.92,
++			     192.0.2.0/31 . 192.0.2.93-192.0.2.95 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0044interval_overlap_1.nft b/tests/shell/testcases/sets/dumps/0044interval_overlap_1.nft
+new file mode 100644
+index 000000000000..5b249a3e6496
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0044interval_overlap_1.nft
+@@ -0,0 +1,106 @@
++table ip t {
++	set s {
++		type inet_service
++		flags interval
++		elements = { 25, 30, 82, 119, 349,
++			     745, 748, 1165, 1233, 1476,
++			     1550, 1562, 1743, 1745, 1882,
++			     2070, 2194, 2238, 2450, 2455,
++			     2642, 2671, 2906, 3093, 3203,
++			     3287, 3348, 3411, 3540, 3892,
++			     3943, 4133, 4205, 4317, 4733,
++			     5095, 5156, 5223, 5230, 5432,
++			     5826, 5828, 6044, 6377, 6388,
++			     6491, 6952, 6986, 7012, 7187,
++			     7300, 7305, 7549, 7664, 8111,
++			     8206, 8396, 8782, 8920, 8981,
++			     9067, 9216, 9245, 9315, 9432,
++			     9587, 9689, 9844, 9991, 10045,
++			     10252, 10328, 10670, 10907, 11021,
++			     11337, 11427, 11497, 11502, 11523,
++			     11552, 11577, 11721, 11943, 12474,
++			     12718, 12764, 12794, 12922, 13186,
++			     13232, 13383, 13431, 13551, 13676,
++			     13685, 13747, 13925, 13935, 14015,
++			     14090, 14320, 14392, 14515, 14647,
++			     14911, 15096, 15105, 15154, 15440,
++			     15583, 15623, 15677, 15710, 15926,
++			     15934, 15960, 16068, 16166, 16486,
++			     16489, 16528, 16646, 16650, 16770,
++			     16882, 17052, 17237, 17387, 17431,
++			     17886, 17939, 17999, 18092, 18123,
++			     18238, 18562, 18698, 19004, 19229,
++			     19237, 19585, 19879, 19938, 19950,
++			     19958, 20031, 20138, 20157, 20205,
++			     20368, 20682, 20687, 20873, 20910,
++			     20919, 21019, 21068, 21115, 21188,
++			     21236, 21319, 21563, 21734, 21806,
++			     21810, 21959, 21982, 22078, 22181,
++			     22308, 22480, 22643, 22854, 22879,
++			     22961, 23397, 23534, 23845, 23893,
++			     24130, 24406, 24794, 24997, 25019,
++			     25143, 25179, 25439, 25603, 25718,
++			     25859, 25949, 26006, 26022, 26047,
++			     26170, 26193, 26725, 26747, 26924,
++			     27023, 27040, 27233, 27344, 27478,
++			     27593, 27600, 27664, 27678, 27818,
++			     27822, 28003, 28038, 28709, 28808,
++			     29010, 29057, 29228, 29485, 30132,
++			     30160, 30415, 30469, 30673, 30736,
++			     30776, 30780, 31450, 31537, 31669,
++			     31839, 31873, 32019, 32229, 32685,
++			     32879, 33318, 33337, 33404, 33517,
++			     33906, 34214, 34346, 34416, 34727,
++			     34848, 35325, 35400, 35451, 35501,
++			     35637, 35653, 35710, 35761, 35767,
++			     36238, 36258, 36279, 36464, 36586,
++			     36603, 36770, 36774, 36805, 36851,
++			     37079, 37189, 37209, 37565, 37570,
++			     37585, 37832, 37931, 37954, 38006,
++			     38015, 38045, 38109, 38114, 38200,
++			     38209, 38214, 38277, 38306, 38402,
++			     38606, 38697, 38960, 39004, 39006,
++			     39197, 39217, 39265, 39319, 39460,
++			     39550, 39615, 39871, 39886, 40088,
++			     40135, 40244, 40323, 40339, 40355,
++			     40385, 40428, 40538, 40791, 40848,
++			     40959, 41003, 41131, 41349, 41643,
++			     41710, 41826, 41904, 42027, 42148,
++			     42235, 42255, 42498, 42680, 42973,
++			     43118, 43135, 43233, 43349, 43411,
++			     43487, 43840, 43843, 43870, 44040,
++			     44204, 44817, 44883, 44894, 44958,
++			     45201, 45259, 45283, 45357, 45423,
++			     45473, 45498, 45519, 45561, 45611,
++			     45627, 45831, 46043, 46105, 46116,
++			     46147, 46169, 46349, 47147, 47252,
++			     47314, 47335, 47360, 47546, 47617,
++			     47648, 47772, 47793, 47846, 47913,
++			     47952, 48095, 48325, 48334, 48412,
++			     48419, 48540, 48569, 48628, 48751,
++			     48944, 48971, 49008, 49025, 49503,
++			     49505, 49613, 49767, 49839, 49925,
++			     50022, 50028, 50238, 51057, 51477,
++			     51617, 51910, 52044, 52482, 52550,
++			     52643, 52832, 53382, 53690, 53809,
++			     53858, 54001, 54198, 54280, 54327,
++			     54376, 54609, 54776, 54983, 54984,
++			     55019, 55038, 55094, 55368, 55737,
++			     55793, 55904, 55941, 55960, 55978,
++			     56063, 56121, 56314, 56505, 56548,
++			     56568, 56696, 56798, 56855, 57102,
++			     57236, 57333, 57334, 57441, 57574,
++			     57659, 57987, 58325, 58404, 58509,
++			     58782, 58876, 59116, 59544, 59685,
++			     59700, 59750, 59799, 59866, 59870,
++			     59894, 59984, 60343, 60481, 60564,
++			     60731, 61075, 61087, 61148, 61174,
++			     61655, 61679, 61691, 61723, 61730,
++			     61758, 61824, 62035, 62056, 62661,
++			     62768, 62946, 63059, 63116, 63338,
++			     63387, 63672, 63719, 63881, 63995,
++			     64197, 64374, 64377, 64472, 64606,
++			     64662, 64777, 64795, 64906, 65049,
++			     65122, 65318 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0050set_define_1.nft b/tests/shell/testcases/sets/dumps/0050set_define_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/sets/dumps/0056dynamic_limit_0.nft b/tests/shell/testcases/sets/dumps/0056dynamic_limit_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/sets/dumps/0057set_create_fails_0.nft b/tests/shell/testcases/sets/dumps/0057set_create_fails_0.nft
+new file mode 100644
+index 000000000000..de43d565084b
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0057set_create_fails_0.nft
+@@ -0,0 +1,7 @@
++table inet filter {
++	set test {
++		type ipv4_addr
++		size 65535
++		elements = { 1.1.1.1 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0062set_connlimit_0.nft b/tests/shell/testcases/sets/dumps/0062set_connlimit_0.nft
+new file mode 100644
+index 000000000000..080d675c3ac7
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0062set_connlimit_0.nft
+@@ -0,0 +1,16 @@
++table ip x {
++	set est-connlimit {
++		type ipv4_addr
++		size 65535
++		flags dynamic
++		elements = { 84.245.120.167 ct count over 20 }
++	}
++
++	set new-connlimit {
++		type ipv4_addr
++		size 65535
++		flags dynamic
++		ct count over 20
++		elements = { 84.245.120.167 ct count over 20 }
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/0065_icmp_postprocessing.nft b/tests/shell/testcases/sets/dumps/0065_icmp_postprocessing.nft
+new file mode 100644
+index 000000000000..461c7a73ba09
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/0065_icmp_postprocessing.nft
+@@ -0,0 +1,6 @@
++table ip x {
++	chain foo {
++		accept
++		icmp type { echo-reply, echo-request } icmp id 42
++	}
++}
+diff --git a/tests/shell/testcases/sets/dumps/errors_0.nft b/tests/shell/testcases/sets/dumps/errors_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/sets/dumps/exact_overlap_0.nft b/tests/shell/testcases/sets/dumps/exact_overlap_0.nft
+new file mode 100644
+index 000000000000..c903e3fc2ce3
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/exact_overlap_0.nft
+@@ -0,0 +1,13 @@
++table ip t {
++	set s {
++		type ipv4_addr
++		flags interval
++		elements = { 1.0.1.0/24, 1.0.2.0/23,
++			     1.0.8.0/21, 1.0.32.0/19,
++			     1.1.0.0/24, 1.1.2.0/23,
++			     1.1.4.0/22, 1.1.8.0/24,
++			     1.1.9.0/24, 1.1.10.0/23,
++			     1.1.12.0/22, 1.1.16.0/20,
++			     1.1.32.0/19 }
++	}
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0003table_0.nft b/tests/shell/testcases/transactions/dumps/0003table_0.nft
+new file mode 100644
+index 000000000000..e4e5f9b1794c
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0003table_0.nft
+@@ -0,0 +1,4 @@
++table ip x {
++}
++table ip y {
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0014chain_1.nft b/tests/shell/testcases/transactions/dumps/0014chain_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0015chain_0.nft b/tests/shell/testcases/transactions/dumps/0015chain_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0020rule_0.nft b/tests/shell/testcases/transactions/dumps/0020rule_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0022rule_1.nft b/tests/shell/testcases/transactions/dumps/0022rule_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0023rule_1.nft b/tests/shell/testcases/transactions/dumps/0023rule_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0036set_1.nft b/tests/shell/testcases/transactions/dumps/0036set_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0041nat_restore_0.nft b/tests/shell/testcases/transactions/dumps/0041nat_restore_0.nft
+new file mode 100644
+index 000000000000..b718001298db
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0041nat_restore_0.nft
+@@ -0,0 +1,5 @@
++table ip t {
++	chain c {
++		type nat hook postrouting priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0042_stateful_expr_0.nft b/tests/shell/testcases/transactions/dumps/0042_stateful_expr_0.nft
+new file mode 100644
+index 000000000000..e5cc63f2800f
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0042_stateful_expr_0.nft
+@@ -0,0 +1,5 @@
++table ip filter {
++	map m1 {
++		type ipv4_addr : counter
++	}
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0043set_1.nft b/tests/shell/testcases/transactions/dumps/0043set_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0044rule_0.nft b/tests/shell/testcases/transactions/dumps/0044rule_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0045anon-unbind_0.nft b/tests/shell/testcases/transactions/dumps/0045anon-unbind_0.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0046set_0.nft b/tests/shell/testcases/transactions/dumps/0046set_0.nft
+new file mode 100644
+index 000000000000..eb39c44f93c0
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0046set_0.nft
+@@ -0,0 +1,2 @@
++table ip filter {
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0047set_0.nft b/tests/shell/testcases/transactions/dumps/0047set_0.nft
+new file mode 100644
+index 000000000000..4da397b28072
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0047set_0.nft
+@@ -0,0 +1,11 @@
++table ip filter {
++	map group_10060 {
++		type ipv4_addr : classid
++		flags interval
++		elements = { 10.1.26.2 : 1:bbf8, 10.1.26.3 : 1:c1ad,
++			     10.1.26.4 : 1:b2d7, 10.1.26.5 : 1:f705,
++			     10.1.26.6 : 1:b895, 10.1.26.7 : 1:ec4c,
++			     10.1.26.8 : 1:de78, 10.1.26.9 : 1:b4f3,
++			     10.1.26.10 : 1:dec6, 10.1.26.11 : 1:b4c0 }
++	}
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0048helpers_0.nft b/tests/shell/testcases/transactions/dumps/0048helpers_0.nft
+new file mode 100644
+index 000000000000..eb39c44f93c0
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0048helpers_0.nft
+@@ -0,0 +1,2 @@
++table ip filter {
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0049huge_0.nft b/tests/shell/testcases/transactions/dumps/0049huge_0.nft
+new file mode 100644
+index 000000000000..96f5a38723fb
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0049huge_0.nft
+@@ -0,0 +1,749 @@
++table inet firewalld {
++	chain raw_PREROUTING {
++		type filter hook prerouting priority raw + 10; policy accept;
++		icmpv6 type { nd-router-advert, nd-neighbor-solicit } accept
++		meta nfproto ipv6 fib saddr . iif oif missing drop
++		jump raw_PREROUTING_ZONES
++	}
++
++	chain raw_PREROUTING_ZONES {
++		iifname "perm_dummy" goto raw_PRE_work
++		iifname "perm_dummy2" goto raw_PRE_trusted
++		goto raw_PRE_public
++	}
++
++	chain mangle_PREROUTING {
++		type filter hook prerouting priority mangle + 10; policy accept;
++		jump mangle_PREROUTING_ZONES
++	}
++
++	chain mangle_PREROUTING_ZONES {
++		iifname "perm_dummy" goto mangle_PRE_work
++		iifname "perm_dummy2" goto mangle_PRE_trusted
++		goto mangle_PRE_public
++	}
++
++	chain filter_INPUT {
++		type filter hook input priority filter + 10; policy accept;
++		ct state { established, related } accept
++		ct status dnat accept
++		iifname "lo" accept
++		jump filter_INPUT_ZONES
++		ct state invalid drop
++		reject with icmpx admin-prohibited
++	}
++
++	chain filter_FORWARD {
++		type filter hook forward priority filter + 10; policy accept;
++		ct state { established, related } accept
++		ct status dnat accept
++		iifname "lo" accept
++		ip6 daddr { ::/96, ::ffff:0.0.0.0/96, 2002::/24, 2002:a00::/24, 2002:7f00::/24, 2002:a9fe::/32, 2002:ac10::/28, 2002:c0a8::/32, 2002:e000::/19 } reject with icmpv6 addr-unreachable
++		jump filter_FORWARD_IN_ZONES
++		jump filter_FORWARD_OUT_ZONES
++		ct state invalid drop
++		reject with icmpx admin-prohibited
++	}
++
++	chain filter_OUTPUT {
++		type filter hook output priority filter + 10; policy accept;
++		oifname "lo" accept
++		ip6 daddr { ::/96, ::ffff:0.0.0.0/96, 2002::/24, 2002:a00::/24, 2002:7f00::/24, 2002:a9fe::/32, 2002:ac10::/28, 2002:c0a8::/32, 2002:e000::/19 } reject with icmpv6 addr-unreachable
++	}
++
++	chain filter_INPUT_ZONES {
++		iifname "perm_dummy" goto filter_IN_work
++		iifname "perm_dummy2" goto filter_IN_trusted
++		goto filter_IN_public
++	}
++
++	chain filter_FORWARD_IN_ZONES {
++		iifname "perm_dummy" goto filter_FWDI_work
++		iifname "perm_dummy2" goto filter_FWDI_trusted
++		goto filter_FWDI_public
++	}
++
++	chain filter_FORWARD_OUT_ZONES {
++		oifname "perm_dummy" goto filter_FWDO_work
++		oifname "perm_dummy2" goto filter_FWDO_trusted
++		goto filter_FWDO_public
++	}
++
++	chain raw_PRE_public {
++		jump raw_PRE_public_pre
++		jump raw_PRE_public_log
++		jump raw_PRE_public_deny
++		jump raw_PRE_public_allow
++		jump raw_PRE_public_post
++	}
++
++	chain raw_PRE_public_pre {
++	}
++
++	chain raw_PRE_public_log {
++	}
++
++	chain raw_PRE_public_deny {
++	}
++
++	chain raw_PRE_public_allow {
++	}
++
++	chain raw_PRE_public_post {
++	}
++
++	chain filter_IN_public {
++		jump filter_IN_public_pre
++		jump filter_IN_public_log
++		jump filter_IN_public_deny
++		jump filter_IN_public_allow
++		jump filter_IN_public_post
++		meta l4proto { icmp, ipv6-icmp } accept
++	}
++
++	chain filter_IN_public_pre {
++	}
++
++	chain filter_IN_public_log {
++	}
++
++	chain filter_IN_public_deny {
++	}
++
++	chain filter_IN_public_allow {
++		tcp dport 22 ct state { new, untracked } accept
++		ip6 daddr fe80::/64 udp dport 546 ct state { new, untracked } accept
++	}
++
++	chain filter_IN_public_post {
++	}
++
++	chain filter_FWDI_public {
++		jump filter_FWDI_public_pre
++		jump filter_FWDI_public_log
++		jump filter_FWDI_public_deny
++		jump filter_FWDI_public_allow
++		jump filter_FWDI_public_post
++		meta l4proto { icmp, ipv6-icmp } accept
++	}
++
++	chain filter_FWDI_public_pre {
++	}
++
++	chain filter_FWDI_public_log {
++	}
++
++	chain filter_FWDI_public_deny {
++	}
++
++	chain filter_FWDI_public_allow {
++	}
++
++	chain filter_FWDI_public_post {
++	}
++
++	chain mangle_PRE_public {
++		jump mangle_PRE_public_pre
++		jump mangle_PRE_public_log
++		jump mangle_PRE_public_deny
++		jump mangle_PRE_public_allow
++		jump mangle_PRE_public_post
++	}
++
++	chain mangle_PRE_public_pre {
++	}
++
++	chain mangle_PRE_public_log {
++	}
++
++	chain mangle_PRE_public_deny {
++	}
++
++	chain mangle_PRE_public_allow {
++	}
++
++	chain mangle_PRE_public_post {
++	}
++
++	chain filter_FWDO_public {
++		jump filter_FWDO_public_pre
++		jump filter_FWDO_public_log
++		jump filter_FWDO_public_deny
++		jump filter_FWDO_public_allow
++		jump filter_FWDO_public_post
++	}
++
++	chain filter_FWDO_public_pre {
++	}
++
++	chain filter_FWDO_public_log {
++	}
++
++	chain filter_FWDO_public_deny {
++	}
++
++	chain filter_FWDO_public_allow {
++	}
++
++	chain filter_FWDO_public_post {
++	}
++
++	chain raw_PRE_trusted {
++		jump raw_PRE_trusted_pre
++		jump raw_PRE_trusted_log
++		jump raw_PRE_trusted_deny
++		jump raw_PRE_trusted_allow
++		jump raw_PRE_trusted_post
++	}
++
++	chain raw_PRE_trusted_pre {
++	}
++
++	chain raw_PRE_trusted_log {
++	}
++
++	chain raw_PRE_trusted_deny {
++	}
++
++	chain raw_PRE_trusted_allow {
++	}
++
++	chain raw_PRE_trusted_post {
++	}
++
++	chain mangle_PRE_trusted {
++		jump mangle_PRE_trusted_pre
++		jump mangle_PRE_trusted_log
++		jump mangle_PRE_trusted_deny
++		jump mangle_PRE_trusted_allow
++		jump mangle_PRE_trusted_post
++	}
++
++	chain mangle_PRE_trusted_pre {
++	}
++
++	chain mangle_PRE_trusted_log {
++	}
++
++	chain mangle_PRE_trusted_deny {
++	}
++
++	chain mangle_PRE_trusted_allow {
++	}
++
++	chain mangle_PRE_trusted_post {
++	}
++
++	chain filter_IN_trusted {
++		jump filter_IN_trusted_pre
++		jump filter_IN_trusted_log
++		jump filter_IN_trusted_deny
++		jump filter_IN_trusted_allow
++		jump filter_IN_trusted_post
++		accept
++	}
++
++	chain filter_IN_trusted_pre {
++	}
++
++	chain filter_IN_trusted_log {
++	}
++
++	chain filter_IN_trusted_deny {
++	}
++
++	chain filter_IN_trusted_allow {
++	}
++
++	chain filter_IN_trusted_post {
++	}
++
++	chain filter_FWDI_trusted {
++		jump filter_FWDI_trusted_pre
++		jump filter_FWDI_trusted_log
++		jump filter_FWDI_trusted_deny
++		jump filter_FWDI_trusted_allow
++		jump filter_FWDI_trusted_post
++		accept
++	}
++
++	chain filter_FWDI_trusted_pre {
++	}
++
++	chain filter_FWDI_trusted_log {
++	}
++
++	chain filter_FWDI_trusted_deny {
++	}
++
++	chain filter_FWDI_trusted_allow {
++	}
++
++	chain filter_FWDI_trusted_post {
++	}
++
++	chain filter_FWDO_trusted {
++		jump filter_FWDO_trusted_pre
++		jump filter_FWDO_trusted_log
++		jump filter_FWDO_trusted_deny
++		jump filter_FWDO_trusted_allow
++		jump filter_FWDO_trusted_post
++		accept
++	}
++
++	chain filter_FWDO_trusted_pre {
++	}
++
++	chain filter_FWDO_trusted_log {
++	}
++
++	chain filter_FWDO_trusted_deny {
++	}
++
++	chain filter_FWDO_trusted_allow {
++	}
++
++	chain filter_FWDO_trusted_post {
++	}
++
++	chain raw_PRE_work {
++		jump raw_PRE_work_pre
++		jump raw_PRE_work_log
++		jump raw_PRE_work_deny
++		jump raw_PRE_work_allow
++		jump raw_PRE_work_post
++	}
++
++	chain raw_PRE_work_pre {
++	}
++
++	chain raw_PRE_work_log {
++	}
++
++	chain raw_PRE_work_deny {
++	}
++
++	chain raw_PRE_work_allow {
++	}
++
++	chain raw_PRE_work_post {
++	}
++
++	chain filter_IN_work {
++		jump filter_IN_work_pre
++		jump filter_IN_work_log
++		jump filter_IN_work_deny
++		jump filter_IN_work_allow
++		jump filter_IN_work_post
++		meta l4proto { icmp, ipv6-icmp } accept
++	}
++
++	chain filter_IN_work_pre {
++	}
++
++	chain filter_IN_work_log {
++	}
++
++	chain filter_IN_work_deny {
++	}
++
++	chain filter_IN_work_allow {
++		tcp dport 22 ct state { new, untracked } accept
++		ip6 daddr fe80::/64 udp dport 546 ct state { new, untracked } accept
++	}
++
++	chain filter_IN_work_post {
++	}
++
++	chain mangle_PRE_work {
++		jump mangle_PRE_work_pre
++		jump mangle_PRE_work_log
++		jump mangle_PRE_work_deny
++		jump mangle_PRE_work_allow
++		jump mangle_PRE_work_post
++	}
++
++	chain mangle_PRE_work_pre {
++	}
++
++	chain mangle_PRE_work_log {
++	}
++
++	chain mangle_PRE_work_deny {
++	}
++
++	chain mangle_PRE_work_allow {
++	}
++
++	chain mangle_PRE_work_post {
++	}
++
++	chain filter_FWDI_work {
++		jump filter_FWDI_work_pre
++		jump filter_FWDI_work_log
++		jump filter_FWDI_work_deny
++		jump filter_FWDI_work_allow
++		jump filter_FWDI_work_post
++		meta l4proto { icmp, ipv6-icmp } accept
++	}
++
++	chain filter_FWDI_work_pre {
++	}
++
++	chain filter_FWDI_work_log {
++	}
++
++	chain filter_FWDI_work_deny {
++	}
++
++	chain filter_FWDI_work_allow {
++	}
++
++	chain filter_FWDI_work_post {
++	}
++
++	chain filter_FWDO_work {
++		jump filter_FWDO_work_pre
++		jump filter_FWDO_work_log
++		jump filter_FWDO_work_deny
++		jump filter_FWDO_work_allow
++		jump filter_FWDO_work_post
++	}
++
++	chain filter_FWDO_work_pre {
++	}
++
++	chain filter_FWDO_work_log {
++	}
++
++	chain filter_FWDO_work_deny {
++	}
++
++	chain filter_FWDO_work_allow {
++	}
++
++	chain filter_FWDO_work_post {
++	}
++}
++table ip firewalld {
++	chain nat_PREROUTING {
++		type nat hook prerouting priority dstnat + 10; policy accept;
++		jump nat_PREROUTING_ZONES
++	}
++
++	chain nat_PREROUTING_ZONES {
++		iifname "perm_dummy" goto nat_PRE_work
++		iifname "perm_dummy2" goto nat_PRE_trusted
++		goto nat_PRE_public
++	}
++
++	chain nat_POSTROUTING {
++		type nat hook postrouting priority srcnat + 10; policy accept;
++		jump nat_POSTROUTING_ZONES
++	}
++
++	chain nat_POSTROUTING_ZONES {
++		oifname "perm_dummy" goto nat_POST_work
++		oifname "perm_dummy2" goto nat_POST_trusted
++		goto nat_POST_public
++	}
++
++	chain nat_PRE_public {
++		jump nat_PRE_public_pre
++		jump nat_PRE_public_log
++		jump nat_PRE_public_deny
++		jump nat_PRE_public_allow
++		jump nat_PRE_public_post
++	}
++
++	chain nat_PRE_public_pre {
++	}
++
++	chain nat_PRE_public_log {
++	}
++
++	chain nat_PRE_public_deny {
++	}
++
++	chain nat_PRE_public_allow {
++	}
++
++	chain nat_PRE_public_post {
++	}
++
++	chain nat_POST_public {
++		jump nat_POST_public_pre
++		jump nat_POST_public_log
++		jump nat_POST_public_deny
++		jump nat_POST_public_allow
++		jump nat_POST_public_post
++	}
++
++	chain nat_POST_public_pre {
++	}
++
++	chain nat_POST_public_log {
++	}
++
++	chain nat_POST_public_deny {
++	}
++
++	chain nat_POST_public_allow {
++	}
++
++	chain nat_POST_public_post {
++	}
++
++	chain nat_PRE_trusted {
++		jump nat_PRE_trusted_pre
++		jump nat_PRE_trusted_log
++		jump nat_PRE_trusted_deny
++		jump nat_PRE_trusted_allow
++		jump nat_PRE_trusted_post
++	}
++
++	chain nat_PRE_trusted_pre {
++	}
++
++	chain nat_PRE_trusted_log {
++	}
++
++	chain nat_PRE_trusted_deny {
++	}
++
++	chain nat_PRE_trusted_allow {
++	}
++
++	chain nat_PRE_trusted_post {
++	}
++
++	chain nat_POST_trusted {
++		jump nat_POST_trusted_pre
++		jump nat_POST_trusted_log
++		jump nat_POST_trusted_deny
++		jump nat_POST_trusted_allow
++		jump nat_POST_trusted_post
++	}
++
++	chain nat_POST_trusted_pre {
++	}
++
++	chain nat_POST_trusted_log {
++	}
++
++	chain nat_POST_trusted_deny {
++	}
++
++	chain nat_POST_trusted_allow {
++	}
++
++	chain nat_POST_trusted_post {
++	}
++
++	chain nat_PRE_work {
++		jump nat_PRE_work_pre
++		jump nat_PRE_work_log
++		jump nat_PRE_work_deny
++		jump nat_PRE_work_allow
++		jump nat_PRE_work_post
++	}
++
++	chain nat_PRE_work_pre {
++	}
++
++	chain nat_PRE_work_log {
++	}
++
++	chain nat_PRE_work_deny {
++	}
++
++	chain nat_PRE_work_allow {
++	}
++
++	chain nat_PRE_work_post {
++	}
++
++	chain nat_POST_work {
++		jump nat_POST_work_pre
++		jump nat_POST_work_log
++		jump nat_POST_work_deny
++		jump nat_POST_work_allow
++		jump nat_POST_work_post
++	}
++
++	chain nat_POST_work_pre {
++	}
++
++	chain nat_POST_work_log {
++	}
++
++	chain nat_POST_work_deny {
++	}
++
++	chain nat_POST_work_allow {
++	}
++
++	chain nat_POST_work_post {
++	}
++}
++table ip6 firewalld {
++	chain nat_PREROUTING {
++		type nat hook prerouting priority dstnat + 10; policy accept;
++		jump nat_PREROUTING_ZONES
++	}
++
++	chain nat_PREROUTING_ZONES {
++		iifname "perm_dummy" goto nat_PRE_work
++		iifname "perm_dummy2" goto nat_PRE_trusted
++		goto nat_PRE_public
++	}
++
++	chain nat_POSTROUTING {
++		type nat hook postrouting priority srcnat + 10; policy accept;
++		jump nat_POSTROUTING_ZONES
++	}
++
++	chain nat_POSTROUTING_ZONES {
++		oifname "perm_dummy" goto nat_POST_work
++		oifname "perm_dummy2" goto nat_POST_trusted
++		goto nat_POST_public
++	}
++
++	chain nat_PRE_public {
++		jump nat_PRE_public_pre
++		jump nat_PRE_public_log
++		jump nat_PRE_public_deny
++		jump nat_PRE_public_allow
++		jump nat_PRE_public_post
++	}
++
++	chain nat_PRE_public_pre {
++	}
++
++	chain nat_PRE_public_log {
++	}
++
++	chain nat_PRE_public_deny {
++	}
++
++	chain nat_PRE_public_allow {
++	}
++
++	chain nat_PRE_public_post {
++	}
++
++	chain nat_POST_public {
++		jump nat_POST_public_pre
++		jump nat_POST_public_log
++		jump nat_POST_public_deny
++		jump nat_POST_public_allow
++		jump nat_POST_public_post
++	}
++
++	chain nat_POST_public_pre {
++	}
++
++	chain nat_POST_public_log {
++	}
++
++	chain nat_POST_public_deny {
++	}
++
++	chain nat_POST_public_allow {
++	}
++
++	chain nat_POST_public_post {
++	}
++
++	chain nat_PRE_trusted {
++		jump nat_PRE_trusted_pre
++		jump nat_PRE_trusted_log
++		jump nat_PRE_trusted_deny
++		jump nat_PRE_trusted_allow
++		jump nat_PRE_trusted_post
++	}
++
++	chain nat_PRE_trusted_pre {
++	}
++
++	chain nat_PRE_trusted_log {
++	}
++
++	chain nat_PRE_trusted_deny {
++	}
++
++	chain nat_PRE_trusted_allow {
++	}
++
++	chain nat_PRE_trusted_post {
++	}
++
++	chain nat_POST_trusted {
++		jump nat_POST_trusted_pre
++		jump nat_POST_trusted_log
++		jump nat_POST_trusted_deny
++		jump nat_POST_trusted_allow
++		jump nat_POST_trusted_post
++	}
++
++	chain nat_POST_trusted_pre {
++	}
++
++	chain nat_POST_trusted_log {
++	}
++
++	chain nat_POST_trusted_deny {
++	}
++
++	chain nat_POST_trusted_allow {
++	}
++
++	chain nat_POST_trusted_post {
++	}
++
++	chain nat_PRE_work {
++		jump nat_PRE_work_pre
++		jump nat_PRE_work_log
++		jump nat_PRE_work_deny
++		jump nat_PRE_work_allow
++		jump nat_PRE_work_post
++	}
++
++	chain nat_PRE_work_pre {
++	}
++
++	chain nat_PRE_work_log {
++	}
++
++	chain nat_PRE_work_deny {
++	}
++
++	chain nat_PRE_work_allow {
++	}
++
++	chain nat_PRE_work_post {
++	}
++
++	chain nat_POST_work {
++		jump nat_POST_work_pre
++		jump nat_POST_work_log
++		jump nat_POST_work_deny
++		jump nat_POST_work_allow
++		jump nat_POST_work_post
++	}
++
++	chain nat_POST_work_pre {
++	}
++
++	chain nat_POST_work_log {
++	}
++
++	chain nat_POST_work_deny {
++	}
++
++	chain nat_POST_work_allow {
++	}
++
++	chain nat_POST_work_post {
++	}
++}
+diff --git a/tests/shell/testcases/transactions/dumps/0050rule_1.nft b/tests/shell/testcases/transactions/dumps/0050rule_1.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/0051map_0.nft b/tests/shell/testcases/transactions/dumps/0051map_0.nft
+new file mode 100644
+index 000000000000..59d69df70e61
+--- /dev/null
++++ b/tests/shell/testcases/transactions/dumps/0051map_0.nft
+@@ -0,0 +1,7 @@
++table ip x {
++	chain m {
++	}
++
++	chain y {
++	}
++}
+diff --git a/tests/shell/testcases/transactions/dumps/30s-stress.nft b/tests/shell/testcases/transactions/dumps/30s-stress.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/transactions/dumps/anon_chain_loop.nft b/tests/shell/testcases/transactions/dumps/anon_chain_loop.nft
+new file mode 100644
+index 000000000000..e69de29bb2d1
 -- 
 2.41.0
 
