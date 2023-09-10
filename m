@@ -2,76 +2,119 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F77FEE57DF
-	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Sep 2023 16:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC04FEE49A4
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Sep 2023 20:30:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230240AbjIJQIM (ORCPT
+        id S229688AbjIJUae (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 10 Sep 2023 12:08:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47666 "EHLO
+        Sun, 10 Sep 2023 16:30:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230177AbjIJQIL (ORCPT
+        with ESMTP id S229605AbjIJUad (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Sep 2023 12:08:11 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDC98180
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Sep 2023 09:08:05 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nf] netfilter: nf_tables: disallow element removal on anonymous sets
-Date:   Sun, 10 Sep 2023 18:07:42 +0200
-Message-Id: <20230910160742.32988-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Sun, 10 Sep 2023 16:30:33 -0400
+Received: from taras.nevrast.org (unknown [IPv6:2a05:d01c:431:aa03:b7e1:333d:ea2a:b14e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D39A59C
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Sep 2023 13:30:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+        s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:
+        To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=QjvhJC7iYWe1rKy8UfxZ3Z2H5znLUS97GXLKohUV0/4=; b=jaPP02o/wc956QoOSCAon40Vbm
+        MdWiOSDSPRGqUj1cGZXbwN6TJ0/Pc+llLcZJd+2JQHcbZVkEnN+9NPOfXDIfSFt58yX9MwXNOgg5E
+        KWWswo5/k9yBR/a8+f+QVAkAFi9Le7R9BHKLW1lSFSPr8HALSxGrr2sqrBrAoibMXXLP711uP676N
+        GwOB6ylmkICPRtqkWwQCYuLlfLIQfHAN1aYi55Lc49wXsR+nmASeGRWuTtiEX88gmeuPKLTT5vKEB
+        dn38xq82/PtSgEzmveRHuypLHLqEtz+FTWgESd4Oa+T31r7T9+NIkLOrl8YjgzK42rTySVezeXAF0
+        T84el0RQ==;
+Received: from [2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608] (helo=ulthar.dreamlands)
+        by taras.nevrast.org with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.96)
+        (envelope-from <jeremy@azazel.net>)
+        id 1qfR4b-0006H3-29
+        for netfilter-devel@vger.kernel.org;
+        Sun, 10 Sep 2023 21:30:25 +0100
+From:   Jeremy Sowden <jeremy@azazel.net>
+To:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: [PATCH libmnl] nlmsg, attr: fix false positives when validating buffer sizes
+Date:   Sun, 10 Sep 2023 21:30:18 +0100
+Message-Id: <20230910203018.2782009-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.40.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2001:8b0:135f:bcd1:e0cb:4eff:fedf:e608
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Anonymous sets need to be populated once at creation and then they are
-bound to rule since 938154b93be8 ("netfilter: nf_tables: reject unbound
-anonymous set before commit phase"), otherwise transaction reports
-EINVAL.
+`mnl_nlmsg_ok` and `mnl_attr_ok` both expect a signed buffer length
+value, `len`, against which to compare the size of the object expected
+to fit into the buffer, because they are intended to validate the length
+and it may be negative in the case of malformed messages.  Comparing
+this signed value against unsigned operands leads to compiler warnings,
+so the unsigned operands are cast to `int`.  Comparing `len` to the size
+of the structure is fine, because the structures are only a few bytes in
+size.  Comparing it to the length fields of `struct nlmsg` and `struct
+nlattr`, however, is problematic, since these fields may hold values
+greater than `INT_MAX`, in which case the casts will yield negative
+values and result in false positives.
 
-Userspace does not need to delete element of anonymous sets that are
-not yet bound, reject this with EOPNOTSUPP.
+Instead, assign `len` to an unsigned local variable, check for negative
+values first, then use the unsigned local for the other comparisons, and
+remove the casts.
 
-From flush command path, skip anonymous sets, they are expected to be
-bound already. Otherwise, EINVAL is hit for unbound sets.
-
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1691
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- net/netfilter/nf_tables_api.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ src/attr.c  | 9 +++++++--
+ src/nlmsg.c | 9 +++++++--
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7b59311931fb..c1e485aee763 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1446,8 +1446,7 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 		if (!nft_is_active_next(ctx->net, set))
- 			continue;
- 
--		if (nft_set_is_anonymous(set) &&
--		    !list_empty(&set->bindings))
-+		if (nft_set_is_anonymous(set))
- 			continue;
- 
- 		err = nft_delset(ctx, set);
-@@ -7191,8 +7190,10 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
- 
--	if (!list_empty(&set->bindings) &&
--	    (set->flags & (NFT_SET_CONSTANT | NFT_SET_ANONYMOUS)))
-+	if (nft_set_is_anonymous(set))
-+		return -EOPNOTSUPP;
+diff --git a/src/attr.c b/src/attr.c
+index bc39df4199e7..48e95019d5e8 100644
+--- a/src/attr.c
++++ b/src/attr.c
+@@ -97,9 +97,14 @@ EXPORT_SYMBOL void *mnl_attr_get_payload(const struct nlattr *attr)
+  */
+ EXPORT_SYMBOL bool mnl_attr_ok(const struct nlattr *attr, int len)
+ {
+-	return len >= (int)sizeof(struct nlattr) &&
++	size_t ulen = len;
 +
-+	if (!list_empty(&set->bindings) && (set->flags & NFT_SET_CONSTANT))
- 		return -EBUSY;
++	if (len < 0)
++		return 0;
++
++	return ulen          >= sizeof(struct nlattr) &&
+ 	       attr->nla_len >= sizeof(struct nlattr) &&
+-	       (int)attr->nla_len <= len;
++	       attr->nla_len <= ulen;
+ }
  
- 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+ /**
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index c63450174c67..920cad0e0f46 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -152,9 +152,14 @@ EXPORT_SYMBOL void *mnl_nlmsg_get_payload_offset(const struct nlmsghdr *nlh,
+  */
+ EXPORT_SYMBOL bool mnl_nlmsg_ok(const struct nlmsghdr *nlh, int len)
+ {
+-	return len >= (int)sizeof(struct nlmsghdr) &&
++	size_t ulen = len;
++
++	if (len < 0)
++		return 0;
++
++	return ulen           >= sizeof(struct nlmsghdr) &&
+ 	       nlh->nlmsg_len >= sizeof(struct nlmsghdr) &&
+-	       (int)nlh->nlmsg_len <= len;
++	       nlh->nlmsg_len <= ulen;
+ }
+ 
+ /**
 -- 
-2.30.2
+2.40.1
 
