@@ -2,133 +2,76 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2247EEB56A
-	for <netfilter-devel@archiver.kernel.org>; Fri,  8 Sep 2023 19:17:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F77FEE57DF
+	for <netfilter-devel@archiver.kernel.org>; Sun, 10 Sep 2023 16:08:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236650AbjIHTRV (ORCPT
+        id S230240AbjIJQIM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 8 Sep 2023 15:17:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42586 "EHLO
+        Sun, 10 Sep 2023 12:08:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231321AbjIHTRU (ORCPT
+        with ESMTP id S230177AbjIJQIL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Sep 2023 15:17:20 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97C5CA9;
-        Fri,  8 Sep 2023 12:17:16 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C257EC43142;
-        Fri,  8 Sep 2023 18:20:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694197240;
-        bh=/H9l6lorHQfgkgSlQnFmbCyvnxmwEZQEYDSD2f3FJkw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=okrbgLvpCTlKGACMYUj2Hap7uBniVM2drANkWTp7LIYTjldJ7SK64x6u1Yhl8DAAt
-         yWrlw4Ddi9fCy/VzC87l3e6ewsOD7LFxC0arD7JnIXdNKWIAWnIBH63cQDTzqNFXLF
-         mM7s5ys0A8rpWSShwaKBMApfaH9q9utcUlTEUx4XrHCm6cT2KUmPGHGh6gH3aXqYso
-         Rg5WCOnj7Osop40lOBeUHlwzZUTwRRsGwSIqNjU5DgAZuVcu/rgpiuSJwZKSuSkBzd
-         Qe6YVdN4piErgxLblFozc0KwsV8R57UfG4wXwuAlhaaZXn58olWxfNpT/0I4314NWl
-         bOuJo8EnA37Bg==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     "GONG, Ruiqi" <gongruiqi1@huawei.com>, GONG@vger.kernel.org,
-        "Gustavo A . R . Silva" <gustavoars@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Florian Westphal <fw@strlen.de>,
-        Sasha Levin <sashal@kernel.org>, pablo@netfilter.org,
-        kadlec@netfilter.org, roopa@nvidia.com, razor@blackwall.org,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 11/14] netfilter: ebtables: fix fortify warnings in size_entry_mwt()
-Date:   Fri,  8 Sep 2023 14:19:58 -0400
-Message-Id: <20230908182003.3460721-11-sashal@kernel.org>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230908182003.3460721-1-sashal@kernel.org>
-References: <20230908182003.3460721-1-sashal@kernel.org>
+        Sun, 10 Sep 2023 12:08:11 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDC98180
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Sep 2023 09:08:05 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nf_tables: disallow element removal on anonymous sets
+Date:   Sun, 10 Sep 2023 18:07:42 +0200
+Message-Id: <20230910160742.32988-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.194
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: "GONG, Ruiqi" <gongruiqi1@huawei.com>
+Anonymous sets need to be populated once at creation and then they are
+bound to rule since 938154b93be8 ("netfilter: nf_tables: reject unbound
+anonymous set before commit phase"), otherwise transaction reports
+EINVAL.
 
-[ Upstream commit a7ed3465daa240bdf01a5420f64336fee879c09d ]
+Userspace does not need to delete element of anonymous sets that are
+not yet bound, reject this with EOPNOTSUPP.
 
-When compiling with gcc 13 and CONFIG_FORTIFY_SOURCE=y, the following
-warning appears:
+From flush command path, skip anonymous sets, they are expected to be
+bound already. Otherwise, EINVAL is hit for unbound sets.
 
-In function ‘fortify_memcpy_chk’,
-    inlined from ‘size_entry_mwt’ at net/bridge/netfilter/ebtables.c:2118:2:
-./include/linux/fortify-string.h:592:25: error: call to ‘__read_overflow2_field’
-declared with attribute warning: detected read beyond size of field (2nd parameter);
-maybe use struct_group()? [-Werror=attribute-warning]
-  592 |                         __read_overflow2_field(q_size_field, size);
-      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The compiler is complaining:
-
-memcpy(&offsets[1], &entry->watchers_offset,
-                       sizeof(offsets) - sizeof(offsets[0]));
-
-where memcpy reads beyong &entry->watchers_offset to copy
-{watchers,target,next}_offset altogether into offsets[]. Silence the
-warning by wrapping these three up via struct_group().
-
-Signed-off-by: GONG, Ruiqi <gongruiqi1@huawei.com>
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: 96518518cc41 ("netfilter: add nftables")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter_bridge/ebtables.h | 14 ++++++++------
- net/bridge/netfilter/ebtables.c                |  3 +--
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ net/netfilter/nf_tables_api.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
-index a494cf43a7552..b0caad82b6937 100644
---- a/include/uapi/linux/netfilter_bridge/ebtables.h
-+++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-@@ -182,12 +182,14 @@ struct ebt_entry {
- 	unsigned char sourcemsk[ETH_ALEN];
- 	unsigned char destmac[ETH_ALEN];
- 	unsigned char destmsk[ETH_ALEN];
--	/* sizeof ebt_entry + matches */
--	unsigned int watchers_offset;
--	/* sizeof ebt_entry + matches + watchers */
--	unsigned int target_offset;
--	/* sizeof ebt_entry + matches + watchers + target */
--	unsigned int next_offset;
-+	__struct_group(/* no tag */, offsets, /* no attrs */,
-+		/* sizeof ebt_entry + matches */
-+		unsigned int watchers_offset;
-+		/* sizeof ebt_entry + matches + watchers */
-+		unsigned int target_offset;
-+		/* sizeof ebt_entry + matches + watchers + target */
-+		unsigned int next_offset;
-+	);
- 	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
- };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7b59311931fb..c1e485aee763 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1446,8 +1446,7 @@ static int nft_flush_table(struct nft_ctx *ctx)
+ 		if (!nft_is_active_next(ctx->net, set))
+ 			continue;
  
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 8335b7e4bcf6f..bab14186f9ad5 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -2001,8 +2001,7 @@ static int size_entry_mwt(const struct ebt_entry *entry, const unsigned char *ba
- 		return ret;
+-		if (nft_set_is_anonymous(set) &&
+-		    !list_empty(&set->bindings))
++		if (nft_set_is_anonymous(set))
+ 			continue;
  
- 	offsets[0] = sizeof(struct ebt_entry); /* matches come first */
--	memcpy(&offsets[1], &entry->watchers_offset,
--			sizeof(offsets) - sizeof(offsets[0]));
-+	memcpy(&offsets[1], &entry->offsets, sizeof(entry->offsets));
+ 		err = nft_delset(ctx, set);
+@@ -7191,8 +7190,10 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
+ 	if (IS_ERR(set))
+ 		return PTR_ERR(set);
  
- 	if (state->buf_kern_start) {
- 		buf_start = state->buf_kern_start + state->buf_kern_offset;
+-	if (!list_empty(&set->bindings) &&
+-	    (set->flags & (NFT_SET_CONSTANT | NFT_SET_ANONYMOUS)))
++	if (nft_set_is_anonymous(set))
++		return -EOPNOTSUPP;
++
++	if (!list_empty(&set->bindings) && (set->flags & NFT_SET_CONSTANT))
+ 		return -EBUSY;
+ 
+ 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
 -- 
-2.40.1
+2.30.2
 
