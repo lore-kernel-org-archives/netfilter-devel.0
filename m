@@ -2,143 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91106CA0EC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 11:45:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8472DCA0EC3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 11:47:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234774AbjILLqB (ORCPT
+        id S232806AbjILLrk (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Sep 2023 07:46:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34390 "EHLO
+        Tue, 12 Sep 2023 07:47:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234814AbjILLp6 (ORCPT
+        with ESMTP id S234814AbjILLrg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Sep 2023 07:45:58 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8B2FF10C9
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Sep 2023 04:45:54 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     devel@linux-ipsec.org, tobias@strongswan.org,
-        steffen.klassert@secunet.com, antony@phenome.org,
-        thomas.egerer@secunet.com
-Subject: [iproute2] xfrm: add udp standalone encapsulation mode
-Date:   Tue, 12 Sep 2023 13:45:43 +0200
-Message-Id: <20230912114543.7683-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+        Tue, 12 Sep 2023 07:47:36 -0400
+Received: from dd20004.kasserver.com (dd20004.kasserver.com [85.13.150.92])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ED3410D2;
+        Tue, 12 Sep 2023 04:47:31 -0700 (PDT)
+Received: from dd20004.kasserver.com (dd0804.kasserver.com [85.13.146.35])
+        by dd20004.kasserver.com (Postfix) with ESMTPSA id EFBC26320998;
+        Tue, 12 Sep 2023 13:47:29 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=silentcreek.de;
+        s=kas202306171005; t=1694519249;
+        bh=Ujehp2CrxYPoXuYDlpiKj4du5N6E27baKTbPSJgLyDs=;
+        h=Subject:To:References:Cc:From:In-Reply-To:Date:From;
+        b=I50aEkjTO1YDotnc2qFwZ9CM00zhMymhQh3v4UbI4IYSBll47/qoTqM/SeUk6M9kg
+         AbwEoHlZdvCtVcGCL2HQ6KynlRlJOYxepjA24K2qDw86hU3EiJEutMf9BijDSBYI7j
+         R9PLEc9w1P3ROpifpDr/yIIV42BiRzNTNqm8gfqtXzKkiIFAJdNNyZiEtOetb9/xHc
+         SGOJVXn4sN1HuKEk2hGRDjZLOWxHrtnGNCPtFK/m0/deZkrcqdUYcf4TPA5zGQPdmi
+         FjIAP1CW+ypnSQ7De1ONtmJHEZEl37x3gmKkeMn4hYhC0/e70G1X6yGg/EVxJngFLT
+         g1v5SqsU/WWVw==
+Subject: Re: Regression: Commit "netfilter: nf_tables: disallow rule addition
+ to bound chain via NFTA_RULE_CHAIN_ID" breaks ruleset loading in linux-stable
+To:     regressions@lists.linux.dev, fw@strlen.de
+References: <20230911213750.5B4B663206F5@dd20004.kasserver.com>
+ <ZP+bUpxJiFcmTWhy@calendula>
+ <b30a81fa-6b59-4bac-b109-99a4dca689de@leemhuis.info><20230912102701.GA13516@breakpoint.cc>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        sashal@kernel.org, carnil@debian.org, 1051592@bugs.debian.org
+From:   "Timo Sigurdsson" <public_timo.s@silentcreek.de>
+User-Agent: ALL-INKL Webmail 2.11
+X-SenderIP: 89.246.188.214
 MIME-Version: 1.0
+In-Reply-To: <20230912102701.GA13516@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Message-Id: <20230912114729.EFBC26320998@dd20004.kasserver.com>
+Date:   Tue, 12 Sep 2023 13:47:29 +0200 (CEST)
+X-Spamd-Bar: /
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This patch enables two new encapsulation modes:
+Hi,
 
-- espinudp-tx, for the sender side, this requires the source and
-  destination ports to be specified, to be placed in the UDP header.
-- espinudp-rx, for the receiver side, this requires only the source port
-  which is used for the listener in-kernel UDP socket.
+Florian Westphal schrieb am 12.09.2023 12:27 (GMT +02:00):
 
-The following example shows how to configure the SAs:
+> Linux regression tracking (Thorsten Leemhuis) <regressions@leemhuis.info>
+> wrote:
+>> On 12.09.23 00:57, Pablo Neira Ayuso wrote:
+>> > Userspace nftables v1.0.6 generates incorrect bytecode that hits a new
+>> > kernel check that rejects adding rules to bound chains. The incorrect
+>> > bytecode adds the chain binding, attach it to the rule and it adds the
+>> > rules to the chain binding. I have cherry-picked these three patches
+>> > for nftables v1.0.6 userspace and your ruleset restores fine.
+>> > [...]
+>> 
+>> Hmmmm. Well, this sounds like a kernel regression to me that normally
+>> should be dealt with on the kernel level, as users after updating the
+>> kernel should never have to update any userspace stuff to continue what
+>> they have been doing before the kernel update.
+> 
+> This is a combo of a userspace bug and this new sanity check that
+> rejects the incorrect ordering (adding rules to the already-bound
+> anonymous chain).
+> 
 
-  ip xfrm state add src 192.168.10.10 dst 192.168.10.11 proto esp spi 1 \
-        encap espinudp-tx 9999 9999 0.0.0.0 \
-        if_id 0x1 reqid 1 replay-window 1  mode tunnel aead 'rfc4106(gcm(aes))' \
-        0x1111111111111111111111111111111111111111 96 \
-        sel src 10.141.10.0/24 dst 10.141.11.0/24
+Out of curiosity, did the incorrect ordering or bytecode from the older userspace components actually lead to a wrong representation of the rules in the kernel or did the rules still work despite all that?
 
-  ip xfrm state add src 192.168.10.11 dst 192.168.10.10 proto esp spi 2 \
-        encap espinudp-rx 9999 0 0.0.0.0 \
-        if_id 0x1 reqid 2 replay-window 10 mode tunnel aead 'rfc4106(gcm(aes))' \
-        0x2222222222222222222222222222222222222222 96
+Thanks,
 
-People work around this by creating dummy userspace daemon such
-as in smallish programs to work around this limitation, see:
-
-  https://github.com/nilcons/ipsec-stun-explain/blob/master/tools/orig_ipsec_decap.pl
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/udp.h |  2 ++
- ip/ipxfrm.c              | 10 ++++++++++
- ip/xfrm_state.c          |  2 +-
- man/man8/ip-xfrm.8       |  4 ++--
- 4 files changed, 15 insertions(+), 3 deletions(-)
-
-diff --git a/include/uapi/linux/udp.h b/include/uapi/linux/udp.h
-index d0a7223a0119..8ff9b547733c 100644
---- a/include/uapi/linux/udp.h
-+++ b/include/uapi/linux/udp.h
-@@ -43,5 +43,7 @@ struct udphdr {
- #define UDP_ENCAP_GTP1U		5 /* 3GPP TS 29.060 */
- #define UDP_ENCAP_RXRPC		6
- #define TCP_ENCAP_ESPINTCP	7 /* Yikes, this is really xfrm encap types. */
-+#define UDP_ENCAP_ESPINUDP_RX	8
-+#define UDP_ENCAP_ESPINUDP_TX	9
- 
- #endif /* _LINUX_UDP_H */
-diff --git a/ip/ipxfrm.c b/ip/ipxfrm.c
-index b78c712dfd73..50ae147c333f 100644
---- a/ip/ipxfrm.c
-+++ b/ip/ipxfrm.c
-@@ -751,6 +751,12 @@ void xfrm_xfrma_print(struct rtattr *tb[], __u16 family, FILE *fp,
- 		case TCP_ENCAP_ESPINTCP:
- 			fprintf(fp, "espintcp ");
- 			break;
-+		case UDP_ENCAP_ESPINUDP_RX:
-+			fprintf(fp, "espinudp-rx ");
-+			break;
-+		case UDP_ENCAP_ESPINUDP_TX:
-+			fprintf(fp, "espinudp-tx ");
-+			break;
- 		default:
- 			fprintf(fp, "%u ", e->encap_type);
- 			break;
-@@ -1212,6 +1218,10 @@ int xfrm_encap_type_parse(__u16 *type, int *argcp, char ***argvp)
- 		*type = UDP_ENCAP_ESPINUDP;
- 	else if (strcmp(*argv, "espintcp") == 0)
- 		*type = TCP_ENCAP_ESPINTCP;
-+	else if (strcmp(*argv, "espinudp-rx") == 0)
-+		*type = UDP_ENCAP_ESPINUDP_RX;
-+	else if (strcmp(*argv, "espinudp-tx") == 0)
-+		*type = UDP_ENCAP_ESPINUDP_TX;
- 	else
- 		invarg("ENCAP-TYPE value is invalid", *argv);
- 
-diff --git a/ip/xfrm_state.c b/ip/xfrm_state.c
-index aa0dce072dff..eaadf86cc913 100644
---- a/ip/xfrm_state.c
-+++ b/ip/xfrm_state.c
-@@ -96,7 +96,7 @@ static void usage(void)
- 		"LIMIT-LIST := [ LIMIT-LIST ] limit LIMIT\n"
- 		"LIMIT := { time-soft | time-hard | time-use-soft | time-use-hard } SECONDS |\n"
- 		"         { byte-soft | byte-hard } SIZE | { packet-soft | packet-hard } COUNT\n"
--		"ENCAP := { espinudp | espinudp-nonike | espintcp } SPORT DPORT OADDR\n"
-+		"ENCAP := { espinudp | espinudp-nonike | espintcp | espinudp-rx | espinudp-tx } SPORT DPORT OADDR\n"
- 		"DIR := in | out\n");
- 
- 	exit(-1);
-diff --git a/man/man8/ip-xfrm.8 b/man/man8/ip-xfrm.8
-index 3270f336d070..92e82ddb9534 100644
---- a/man/man8/ip-xfrm.8
-+++ b/man/man8/ip-xfrm.8
-@@ -219,7 +219,7 @@ ip-xfrm \- transform configuration
- 
- .ti -8
- .IR ENCAP " :="
--.RB "{ " espinudp " | " espinudp-nonike " | " espintcp " }"
-+.RB "{ " espinudp " | " espinudp-nonike " | " espintcp " | " espinudp-rx " | " espinudp-tx " }"
- .IR SPORT " " DPORT " " OADDR
- 
- .ti -8
-@@ -580,7 +580,7 @@ sets limits in seconds, bytes, or numbers of packets.
- .TP
- .I ENCAP
- encapsulates packets with protocol
--.BR espinudp ", " espinudp-nonike ", or " espintcp ","
-+.BR espinudp ", " espinudp-nonike ", " espintcp ", " or " espinudp-rx " | " espinudp-tx ","
- .RI "using source port " SPORT ", destination port "  DPORT
- .RI ", and original address " OADDR "."
- 
--- 
-2.30.2
-
+Timo 
