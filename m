@@ -2,141 +2,165 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BDD7CA0EC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 04:41:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 207C6CA0EC3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 06:20:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229520AbjILEl2 (ORCPT
+        id S229744AbjILGUM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Sep 2023 00:41:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51450 "EHLO
+        Tue, 12 Sep 2023 02:20:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229460AbjILEl1 (ORCPT
+        with ESMTP id S229751AbjILGUL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Sep 2023 00:41:27 -0400
-Received: from mail-lj1-x22b.google.com (mail-lj1-x22b.google.com [IPv6:2a00:1450:4864:20::22b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6DF8B8
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Sep 2023 21:41:22 -0700 (PDT)
-Received: by mail-lj1-x22b.google.com with SMTP id 38308e7fff4ca-2b962535808so88395261fa.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Sep 2023 21:41:22 -0700 (PDT)
+        Tue, 12 Sep 2023 02:20:11 -0400
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 563AFE79
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Sep 2023 23:20:07 -0700 (PDT)
+Received: by mail-pf1-x436.google.com with SMTP id d2e1a72fcca58-68fb46f38f9so1891891b3a.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Sep 2023 23:20:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1694493681; x=1695098481; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IesEn5tdA1SJXmeb07LLZemkYsmGxrPA/FkLyLh/bhE=;
-        b=hJ3tLccMZnSkx99S3dVaeJLF8Fzks3YaWfnhP9GhoKaXPxFfvMcHPFMf2LboPKbgG4
-         3NR5SiVuaAYZV03Mzad3zmwOFUZqSMFTsJIK2NGeRaVzVypyMmdbqkjCxWNbPbOXXIz+
-         orOYIDg5+aalmkAS6pRMXS3+ni6DPE8/H0WB+lW27miWMB1rs7VZG0N5ykb2YSGuxOx9
-         HPAWxk5W7G+7JW+v37ROg9rvJMcDtOq2mWvZsxDuH0KvVC/+OqCpyzthx62zGVzr34Nu
-         b69pH3Oti+XSKZzNXFc3sJ6FYXxaaVWeWLK7kfpkQCDJHBOEcj4BVhRA91WWNdcwWisV
-         jKTA==
+        d=gmail.com; s=20221208; t=1694499607; x=1695104407; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=RS7+jLODvzxADj9eQis8o3ousHgdj6aH8QlnUMJFzyw=;
+        b=TN3kWViPXaVjwmssscNyseIMyorAqWuCpdW90mV6MCQMcadKXdMOwtyFqqWhA+m8tn
+         Mww+tHHqW+k/7PNEx0yXAjuGMSrJgbhHQ8M1AnLanT8ccaLdkOeb7qXXlcUxDsd82A8J
+         uwmXGdwLj6D4bwIUdxtPQqCBpWF9jlfEyzRubXr+FWMuLqjpp0TR3v90glIUCA7zlTkN
+         5SOZ8AyHKWxyegjloOJt90HdqsxzEwsjGVoxtgOqWv3sNS60m7BjO0RPcYbaw0i6GSr9
+         60HJndpGsXW4VwIE6YNzIKRpGY/MNRuIw9JHWqi6YbBidOVne36fq7EO00Q7AyNRuFKS
+         nqrg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694493681; x=1695098481;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=IesEn5tdA1SJXmeb07LLZemkYsmGxrPA/FkLyLh/bhE=;
-        b=hoikOwlngfXQ/9O0cIK2IzTzsYbIiLO2rrxrpmg4yHbB6Ksrq+ATwzYoT2Ikef4Rmo
-         Mq5jRXzLby3VRpIXwWLSLAfXrzx4ojg5pofGoH2MR25WZ7/q1zkkldl+QXlbp7UiZuhN
-         26MjHcgoRhGiXACGnhXF4nh2+tt9aGeGN/qoayFVnVATesnk4d96xlXQZ/mq3Zve8oY5
-         Zo9Ja81ITcCcr3ZdXHifvJCMndZk+cCTyy6xnlnX0nMnjdlqOE6MVD/Z19PkHJlvq/0G
-         Eg9eNUcG1TCnjExA45GGtnHlsYgfDvJiLlGaegjzmHs8kKD+DBSfeKSq8Mok0w1WoXXI
-         TgnQ==
-X-Gm-Message-State: AOJu0Yxd6NgtKRsJefiLTQo2JV3mzhivlAJ7Ph4EXDa35fFMRbmkq/UI
-        cy8LjsHkYZzfCugmsSfKIEa99XbB9DVFYIcwsgY=
-X-Google-Smtp-Source: AGHT+IFoMlTctxjiIVKmr4kIHAKZkxsIsXRgN6w/syRWcUrl8pLjyGqZVKqeJ6YJRbw6KqbRGyJ4YqPlWAX5q74IKu8=
-X-Received: by 2002:a2e:7213:0:b0:2bc:e51e:b007 with SMTP id
- n19-20020a2e7213000000b002bce51eb007mr9985490ljc.41.1694493680707; Mon, 11
- Sep 2023 21:41:20 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1694499607; x=1695104407;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=RS7+jLODvzxADj9eQis8o3ousHgdj6aH8QlnUMJFzyw=;
+        b=cZyB5Rw4HUUzKLABw2lgSvnAP2moE1A4sgHBEbDPnDJpgLzRt8cIUvsGMNM1FxGOgq
+         BTFMwTp4rUTIAm+vnLx94sjyV//va/iJZcsDM8f3M8TAMQWSvk9r06H9iiadJRZohlbt
+         cvVKdhH9RQWNfLIQUQkx6K7olAcg1z/M6GzMTdhowJVLRGiqbO7z/jXfPuGM/JSsQaia
+         FcreK2Ek7Cjpxfca1gOZvBpx8mSseIESSUlxsidP2p7M4vwexXTT/sKYwdawal9HnRle
+         tGkJGGuWkNPp4eTLhJnBnEhJmUhy5gDN+k450rVOCBk8B/yQa0BmU+EKPAOlZgci3JoE
+         Rd2Q==
+X-Gm-Message-State: AOJu0YzN/cYZVSsWE74u5+TguGz8xthlRz+fcOBrIE/Jr7UljoSCcjcq
+        eAGwE5fiJp+YVCA2oz4qdI+iIygmwxY=
+X-Google-Smtp-Source: AGHT+IGJkJEPymxayOTMfp4cbZmABoJ1Wb0xK/60TsPlxDZHgcFAbQUgfu/KnC9brNKkXQh+0+vENg==
+X-Received: by 2002:a05:6a00:2386:b0:68b:f529:a329 with SMTP id f6-20020a056a00238600b0068bf529a329mr11147849pfc.5.1694499606668;
+        Mon, 11 Sep 2023 23:20:06 -0700 (PDT)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id c21-20020aa78c15000000b0068bade042besm6627363pfd.48.2023.09.11.23.20.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 11 Sep 2023 23:20:06 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date:   Tue, 12 Sep 2023 16:20:03 +1000
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH RFC libnetfilter_queue] doc: Get rid of DEPRECATED tag
+ (Work In Progress)
+Message-ID: <ZQADE0GDMLN/xDDr@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20230911055425.8524-1-duncan_roe@optusnet.com.au>
+ <ZP7G68U/HKxIkUmp@calendula>
 MIME-Version: 1.0
-References: <ZPZqetxOmH+w/myc@westworld> <6e4a44b1-fa78-bcb3-5c2e-fcfd6489dac4@netfilter.org>
-In-Reply-To: <6e4a44b1-fa78-bcb3-5c2e-fcfd6489dac4@netfilter.org>
-From:   Kyle Zeng <zengyhkyle@gmail.com>
-Date:   Mon, 11 Sep 2023 21:40:44 -0700
-Message-ID: <CADW8OBsTm=2y9vYmusLvhVEhxwS_C3PFogzx8r+oW7zhSjOMGA@mail.gmail.com>
-Subject: Re: Race between IPSET_CMD_CREATE and IPSET_CMD_SWAP
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        pablo@netfilter.org, edumazet@google.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZP7G68U/HKxIkUmp@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jozsef,
-
-On Mon, Sep 4, 2023 at 11:45=E2=80=AFPM Jozsef Kadlecsik <kadlec@netfilter.=
-org> wrote:
->
-> Hi Kyle,
->
-> On Mon, 4 Sep 2023, Kyle Zeng wrote:
->
-> > There is a race between IPSET_CMD_ADD and IPSET_CMD_SWAP in
-> > netfilter/ip_set, which can lead to the invocation of `__ip_set_put` on
-> > a wrong `set`, triggering the `BUG_ON(set->ref =3D=3D 0);` check in it.
-> > ......
-> > A proof-of-concept code that can trigger the bug is attached.
+On Mon, Sep 11, 2023 at 09:51:07AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Sep 11, 2023 at 03:54:25PM +1000, Duncan Roe wrote:
+> > This is a call for comments on how we want the documentation to look.
+> > In conjunction with the git diff, readers may find it helpful to apply the patch
+> > in a temporary branch and check how the web page / man pages look.
+> > To get web & man pages, do something like
 > >
-> > The bug is confirmed on v5.10, v6.1, v6.5.rc7 and upstream.
+> > ./configure --enable-html-doc; make -j; firefox doxygen/html/index.html
+> > MANPATH=$PWD/doxygen/man:$MANPATH
+> >
+> > Some changes are documented below - I'll post more later
+> >
+> > --- Preparation for man 7 libnetfilter_queue
+> > The /anchor / <h1> ... </h1> combo is in preparation for making
+> > libnetfilter_queue.7 from the main page. mainpage is morphed to a group
+> > (temporarily) so all \section lines have to be changed to <h1> because \section
+> > doesn't work in a group. The appearance stays the same.
+> >
+> > ---1st stab at commit message for finished patch
+**                 ^^^^^^
+> > libnetfilter_queue effectively supports 2 ABIs, the older being based on
+> > libnfnetlink and the newer on libmnl.
 >
-> Thanks for the thorough report. I think the proper fix is to change the
-> reference counter at rescheduling from "ref" to "ref_netlink", which
-> protects long taking procedures (originally just dumping). Could you
-> verify that the patch below fixes the issue?
+> Yes, there are two APIs, same thing occurs in other existing
+> libnetfilter_* libraries, each of these APIs are based on libnfnetlink
+> and libmnl respectively.
 >
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
-et_core.c
-> index e564b5174261..8a9cea8ed5ed 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -682,6 +682,15 @@ __ip_set_put(struct ip_set *set)
->  /* set->ref can be swapped out by ip_set_swap, netlink events (like dump=
-) need
->   * a separate reference counter
->   */
-> +static void
-> +__ip_set_get_netlink(struct ip_set *set)
-> +{
-> +       write_lock_bh(&ip_set_ref_lock);
-> +       set->ref_netlink++;
-> +       write_unlock_bh(&ip_set_ref_lock);
-> +}
-> +
-> +
->  static void
->  __ip_set_put_netlink(struct ip_set *set)
->  {
-> @@ -1693,11 +1702,11 @@ call_ad(struct net *net, struct sock *ctnl, struc=
-t sk_buff *skb,
+> > The libnetfilter_queue-based functions were tagged DEPRECATED but
+** s/libnetfilter_queue/libnfnetlink
+> > there is a fading hope to re-implement these functions using libmnl.
+> > So change DEPRECATED to "OLD API" and update the main page to
+> > explain stuff.
 >
->         do {
->                 if (retried) {
-> -                       __ip_set_get(set);
-> +                       __ip_set_get_netlink(set);
->                         nfnl_unlock(NFNL_SUBSYS_IPSET);
->                         cond_resched();
->                         nfnl_lock(NFNL_SUBSYS_IPSET);
-> -                       __ip_set_put(set);
-> +                       __ip_set_put_netlink(set);
->                 }
->
->                 ip_set_lock(set);
->
+> libnfnetlink will go away sooner or later. We are steadily replacing
+> all client of this library for netfilter.org projects. Telling that
+> this is not deprecated without providing a compatible "old API" for
+> libmnl adds more confusion to this subject.
 
-Sorry for the late reply, somehow the response was moved to spam folder and=
- I
-didn't notice it.
+I suggest there's bound to be confusion whilstever libnetfilter_queue and the
+other libraries support two APIs. The question is how to minimise this
+confusion. 3 suggestions:
 
-> Thanks for the thorough report. I think the proper fix is to change the
-> reference counter at rescheduling from "ref" to "ref_netlink", which
-> protects long taking procedures (originally just dumping). Could you
-> verify that the patch below fixes the issue?
+1. Split out the old API functions to their own library, say libnfnetlink_queue.
 
-I applied the patch to the upstream kernel and tested it. The proof-of-conc=
-ept
-crash program can no longer trigger the crash.
+2. Don't tag functions at all, but put something very obvious at the head of
+mainpage(*) explaining thare are 2 ABIs and the pros & cons of each.
 
-Best,
-Kyle Zeng
+3. Tag the libnfnetlink-based functions with something other than DEPRECATED.
+"OLD API" was my suggestion, do you have another?
+
+How about this re-worded paragraph (in the COMMIT message, *not* the
+documentation!):
+
+The libnfnetlink-based functions were tagged DEPRECATED but they are not. Change
+DEPRECATED to "OLD API" and update the main page to explain the difference.
+
+I was really hoping for comments on the rest of the patch. Would you find time
+to take a look?
+>
+> If you want to explore providing a patch that makes the
+> libnfnetlink-based API work over libmnl, then go for it.
+
+Others have tried. Recall this conversation:
+
+On Thu, Jan 20, 2022 at 01:15:22PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Jan 20, 2022 at 01:01:45PM +0100, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > >
+> > > The documentation is tagging the old API as deprecated which is not,
+> > > this needs to be reverted.
+> >
+> > Hmm, IIRC i tried to reimplement it on top of libmnl but there were too
+> > many libnfnetlink implementation details leaked into the old api.
+>
+> I guess these two are the problematic ones to move to libmnl:
+>
+> - nfq_open_nfnl()
+> - nfq_nfnlh()
+
+With regard to nfq_open_nfnl() and nfq_nfnlh(): neither of these are documented.
+Anyone using them has found them in the source. They are also using libnfnetlink
+directly.
+
+My first step in moving to libmnl would to to make those two static, or at least
+remove EXPORT_SYMBOL for them. If anyone complains, tell them to copy from
+source into their application.
+
+(*) Soon to double as libnetfilter_queue.7, if you apply that patch once I've
+finished it.
+
+Cheers ... Duncan.
