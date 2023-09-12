@@ -2,124 +2,93 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B636CA0EC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 11:59:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2551EE3F0C
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 18:55:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235056AbjILL76 (ORCPT
+        id S234760AbjILSzl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Sep 2023 07:59:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54340 "EHLO
+        Tue, 12 Sep 2023 14:55:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235069AbjILL7O (ORCPT
+        with ESMTP id S231477AbjILSzk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Sep 2023 07:59:14 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D655E1717;
-        Tue, 12 Sep 2023 04:58:27 -0700 (PDT)
-Received: from [46.6.227.206] (port=6296 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        Tue, 12 Sep 2023 14:55:40 -0400
+Received: from www62.your-server.de (www62.your-server.de [213.133.104.62])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0ADB125;
+        Tue, 12 Sep 2023 11:55:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=iogearbox.net; s=default2302; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:References:Cc:To:From:Subject:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
+        bh=H3/XY/jv4icK4NgBoiigxpPa2AsF3Mqwv5r97vJFS/w=; b=RA/wx0tUm3Vp9scFBNIDz5aBad
+        57SO6Le9cPhQkKGGqL0nuOWzThcfhm/53JrwETkK8H/mmRCQ0ZrhvuD7f+ydRQcrPNZH6SWygJGf3
+        8STCqlopXi0x3/sePJEWe0YZiQ6luUOP89ZHecuzQQfMdlpdNHFCdtgv2F+XEw9hKwIvMnXiYUpal
+        sQDaWolmVS4DnMULSTLViflt+VJXZKjtKQgA5++MOrXm4tfD4ids5GZQVvi41ZmaowzFaCjhGr09r
+        9GYGDGgQ4R2OHXpmQT1XdfKzrDs1nWBMvk17ipTFo2pTenXGGcFs4UcPHC3n5bbBM0pyXPbrEQdo0
+        34HuguIQ==;
+Received: from sslproxy06.your-server.de ([78.46.172.3])
+        by www62.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
         (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qg224-00CtNF-Px; Tue, 12 Sep 2023 13:58:23 +0200
-Date:   Tue, 12 Sep 2023 13:58:13 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Timo Sigurdsson <public_timo.s@silentcreek.de>
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, regressions@lists.linux.dev,
-        sashal@kernel.org, carnil@debian.org, 1051592@bugs.debian.org
-Subject: Re: Regression: Commit "netfilter: nf_tables: disallow rule addition
- to bound chain via NFTA_RULE_CHAIN_ID" breaks ruleset loading in
- linux-stable
-Message-ID: <ZQBSVTCxyi+zH9qG@calendula>
-References: <20230911213750.5B4B663206F5@dd20004.kasserver.com>
- <ZP+bUpxJiFcmTWhy@calendula>
- <20230912113959.8F8B26321005@dd20004.kasserver.com>
+        (envelope-from <daniel@iogearbox.net>)
+        id 1qg8Xp-000FQs-8e; Tue, 12 Sep 2023 20:55:29 +0200
+Received: from [194.230.161.182] (helo=localhost.localdomain)
+        by sslproxy06.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1qg8Xo-00041T-OO; Tue, 12 Sep 2023 20:55:29 +0200
+Subject: LPC 2023 Networking and BPF Track CFP (Reminder)
+From:   Daniel Borkmann <daniel@iogearbox.net>
+To:     netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc:     xdp-newbies@vger.kernel.org, linux-wireless@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+References: <1515db2c-f517-76da-8aad-127a67da802f@iogearbox.net>
+ <db3003d6-733b-099f-ef73-abce750d66c6@iogearbox.net>
+Message-ID: <5c9482c9-1f61-2886-4137-a2e2679b2662@iogearbox.net>
+Date:   Tue, 12 Sep 2023 20:55:24 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230912113959.8F8B26321005@dd20004.kasserver.com>
+In-Reply-To: <db3003d6-733b-099f-ef73-abce750d66c6@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.8/27029/Tue Sep 12 09:38:51 2023)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 12, 2023 at 01:39:59PM +0200, Timo Sigurdsson wrote:
-> Hi Pablo,
-> 
-> Pablo Neira Ayuso schrieb am 12.09.2023 00:57 (GMT +02:00):
-> 
-> > Hi Timo,
-> > 
-> > On Mon, Sep 11, 2023 at 11:37:50PM +0200, Timo Sigurdsson wrote:
-> >> Hi,
-> >> 
-> >> recently, Debian updated their stable kernel from 6.1.38 to 6.1.52
-> >> which broke nftables ruleset loading on one of my machines with lots
-> >> of "Operation not supported" errors. I've reported this to the
-> >> Debian project (see link below) and Salvatore Bonaccorso and I
-> >> identified "netfilter: nf_tables: disallow rule addition to bound
-> >> chain via NFTA_RULE_CHAIN_ID" (0ebc1064e487) as the offending commit
-> >> that introduced the regression. Salvatore also found that this issue
-> >> affects the 5.10 stable tree as well (observed in 5.10.191), but he
-> >> cannot reproduce it on 6.4.13 and 6.5.2.
-> >> 
-> >> The issue only occurs with some rulesets. While I can't trigger it
-> >> with simple/minimal rulesets that I use on some machines, it does
-> >> occur with a more complex ruleset that has been in use for months
-> >> (if not years, for large parts of it). I'm attaching a somewhat
-> >> stripped down version of the ruleset from the machine I originally
-> >> observed this issue on. It's still not a small or simple ruleset,
-> >> but I'll try to reduce it further when I have more time.
-> >> 
-> >> The error messages shown when trying to load the ruleset don't seem
-> >> to be helpful. Just two simple examples: Just to give two simple
-> >> examples from the log when nftables fails to start:
-> >> /etc/nftables.conf:99:4-44: Error: Could not process rule: Operation not
-> >> supported
-> >>                         tcp option maxseg size 1-500 counter drop
-> >>                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> >> /etc/nftables.conf:308:4-27: Error: Could not process rule: Operation not
-> >> supported
-> >>                         tcp dport sip-tls accept
-> >>                         ^^^^^^^^^^^^^^^^^^^^^^^^
-> > 
-> > I can reproduce this issue with 5.10.191 and 6.1.52 and nftables v1.0.6,
-> > this is not reproducible with v1.0.7 and v1.0.8.
-> > 
-> >> Since the issue only affects some stable trees, Salvatore thought it
-> >> might be an incomplete backport that causes this.
-> >> 
-> >> If you need further information, please let me know.
-> > 
-> > Userspace nftables v1.0.6 generates incorrect bytecode that hits a new
-> > kernel check that rejects adding rules to bound chains. The incorrect
-> > bytecode adds the chain binding, attach it to the rule and it adds the
-> > rules to the chain binding. I have cherry-picked these three patches
-> > for nftables v1.0.6 userspace and your ruleset restores fine.
-> 
-> hmm, that doesn't explain why Salvatore didn't observe this with
-> more recent kernels.
->
-> Salvatore, did you use newer userspace components when you tested
-> your 6.4.13 and 6.5.2 builds?
-> 
-> As for the regression and how it be dealt with: Personally, I don't
-> really care whether the regression is solved in the kernel or
-> userspace. If everybody agrees that this is the best or only viable
-> option and Debian decides to push a nftables update to fix this,
-> that works for me. But I do feel the burden to justify this should
-> be high. A kernel change that leaves users without a working packet
-> filter after upgrading their machines is serious, if you ask me. And
-> since it affects several stable/longterm trees, I would assume this
-> will hit other stable (non-rolling) distributions as well, since
-> they will also use older userspace components (unless this is
-> behavior specific to nftables 1.0.6 but not older versions). They
-> probably should get a heads up then.
+This is a reminder for the Call for Proposals (CFP) for the Networking and
+BPF track at the 2023 edition of the Linux Plumbers Conference (LPC) which is
+taking place in Richmond, VA, United States, on November 13th - 15th, 2023.
 
-There is coverage for the chain binding feature in our tests
-infrastructure, but unfortunately the bug did not trigger with newer
-nftables versions. In the future, I will keep an eye with running our
-tests on older userspace nftables versions when working on stable
-trees.
+Note that the conference is planned to be both in person and remote (hybrid).
+CFP submitters should ideally be able to give their presentation in person to
+minimize technical issues, although presenting remotely will also be possible.
+
+The Networking and BPF track technical committee consists of:
+
+     David S. Miller <davem@davemloft.net>
+     Jakub Kicinski <kuba@kernel.org>
+     Paolo Abeni <pabeni@redhat.com>
+     Eric Dumazet <edumazet@google.com>
+     Alexei Starovoitov <ast@kernel.org>
+     Daniel Borkmann <daniel@iogearbox.net>
+     Andrii Nakryiko <andrii@kernel.org>
+     Martin Lau <martin.lau@linux.dev>
+
+We are seeking proposals of 30 minutes in length (including Q&A discussion). Any
+kind of advanced Linux networking and/or BPF related topic will be considered.
+
+Please submit your proposals through the official LPC website at:
+
+     https://lpc.events/event/17/abstracts/
+
+Make sure to select "eBPF & Networking Track" in the track pull-down menu.
+
+Proposals must be submitted by September 27th, and submitters will be notified
+of acceptance by October 2nd. Final slides (as PDF) are due on the first day of
+the conference.
+
+We are very much looking forward to a great conference and seeing you all!
