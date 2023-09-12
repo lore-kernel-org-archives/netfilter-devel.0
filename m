@@ -2,117 +2,143 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA9B7CA0ECA
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 11:40:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91106CA0EC3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 11:45:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234766AbjILLkd (ORCPT
+        id S234774AbjILLqB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Sep 2023 07:40:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56430 "EHLO
+        Tue, 12 Sep 2023 07:46:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234963AbjILLkL (ORCPT
+        with ESMTP id S234814AbjILLp6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Sep 2023 07:40:11 -0400
-Received: from dd20004.kasserver.com (dd20004.kasserver.com [85.13.150.92])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6468BBE;
-        Tue, 12 Sep 2023 04:40:02 -0700 (PDT)
-Received: from dd20004.kasserver.com (dd0804.kasserver.com [85.13.146.35])
-        by dd20004.kasserver.com (Postfix) with ESMTPSA id 8F8B26321005;
-        Tue, 12 Sep 2023 13:39:59 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=silentcreek.de;
-        s=kas202306171005; t=1694518799;
-        bh=UrbQBqd8zMpLmeGK23sKwCxYqAihgygn61K/bBr1bGs=;
-        h=Subject:To:References:Cc:From:In-Reply-To:Date:From;
-        b=cn0C0vw94X2JRKKegIgoHqYuGPWIRMuiFhGrd+8SqrDCQox3OpTxTZQFwTXIB3MPK
-         HvkT1urbRT/uB5BNQ69MNapFhhl36sBoIKx2b+3awAEuQAOKmemGj04Zccp9/SE0tO
-         lei5q2l1Ot5YJ8kRMC5T1T9FV+GNu+zmlMJgXnOMyrWVDJUvvelpHG7r0Xq4GJ5e2g
-         fuzCJ9k59v9mrZJBcczWfooMR7LvDKVIZCAQqN4/3dC6/WmzZe2yIVemL1suWNe8SK
-         apVM6Mlk3MazTsTJx9KFekyr2mwFraGDxypZwcliaaQT6xucOQwg/oLBd0mqknxsLy
-         3bF1pnZQUnzWQ==
-Subject: Re: Regression: Commit "netfilter: nf_tables: disallow rule addition
- to bound chain via NFTA_RULE_CHAIN_ID" breaks ruleset loading in linux-stable
-To:     pablo@netfilter.org
-References: <20230911213750.5B4B663206F5@dd20004.kasserver.com><ZP+bUpxJiFcmTWhy@calendula>
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, regressions@lists.linux.dev,
-        sashal@kernel.org, carnil@debian.org, 1051592@bugs.debian.org
-From:   "Timo Sigurdsson" <public_timo.s@silentcreek.de>
-User-Agent: ALL-INKL Webmail 2.11
-X-SenderIP: 89.246.188.214
+        Tue, 12 Sep 2023 07:45:58 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8B2FF10C9
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Sep 2023 04:45:54 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     devel@linux-ipsec.org, tobias@strongswan.org,
+        steffen.klassert@secunet.com, antony@phenome.org,
+        thomas.egerer@secunet.com
+Subject: [iproute2] xfrm: add udp standalone encapsulation mode
+Date:   Tue, 12 Sep 2023 13:45:43 +0200
+Message-Id: <20230912114543.7683-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-In-Reply-To: <ZP+bUpxJiFcmTWhy@calendula>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Message-Id: <20230912113959.8F8B26321005@dd20004.kasserver.com>
-Date:   Tue, 12 Sep 2023 13:39:59 +0200 (CEST)
-X-Spamd-Bar: /
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Pablo,
+This patch enables two new encapsulation modes:
 
-Pablo Neira Ayuso schrieb am 12.09.2023 00:57 (GMT +02:00):
+- espinudp-tx, for the sender side, this requires the source and
+  destination ports to be specified, to be placed in the UDP header.
+- espinudp-rx, for the receiver side, this requires only the source port
+  which is used for the listener in-kernel UDP socket.
 
-> Hi Timo,
-> 
-> On Mon, Sep 11, 2023 at 11:37:50PM +0200, Timo Sigurdsson wrote:
->> Hi,
->> 
->> recently, Debian updated their stable kernel from 6.1.38 to 6.1.52
->> which broke nftables ruleset loading on one of my machines with lots
->> of "Operation not supported" errors. I've reported this to the
->> Debian project (see link below) and Salvatore Bonaccorso and I
->> identified "netfilter: nf_tables: disallow rule addition to bound
->> chain via NFTA_RULE_CHAIN_ID" (0ebc1064e487) as the offending commit
->> that introduced the regression. Salvatore also found that this issue
->> affects the 5.10 stable tree as well (observed in 5.10.191), but he
->> cannot reproduce it on 6.4.13 and 6.5.2.
->> 
->> The issue only occurs with some rulesets. While I can't trigger it
->> with simple/minimal rulesets that I use on some machines, it does
->> occur with a more complex ruleset that has been in use for months
->> (if not years, for large parts of it). I'm attaching a somewhat
->> stripped down version of the ruleset from the machine I originally
->> observed this issue on. It's still not a small or simple ruleset,
->> but I'll try to reduce it further when I have more time.
->> 
->> The error messages shown when trying to load the ruleset don't seem
->> to be helpful. Just two simple examples: Just to give two simple
->> examples from the log when nftables fails to start:
->> /etc/nftables.conf:99:4-44: Error: Could not process rule: Operation not
->> supported
->>                         tcp option maxseg size 1-500 counter drop
->>                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->> /etc/nftables.conf:308:4-27: Error: Could not process rule: Operation not
->> supported
->>                         tcp dport sip-tls accept
->>                         ^^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> I can reproduce this issue with 5.10.191 and 6.1.52 and nftables v1.0.6,
-> this is not reproducible with v1.0.7 and v1.0.8.
-> 
->> Since the issue only affects some stable trees, Salvatore thought it
->> might be an incomplete backport that causes this.
->> 
->> If you need further information, please let me know.
-> 
-> Userspace nftables v1.0.6 generates incorrect bytecode that hits a new
-> kernel check that rejects adding rules to bound chains. The incorrect
-> bytecode adds the chain binding, attach it to the rule and it adds the
-> rules to the chain binding. I have cherry-picked these three patches
-> for nftables v1.0.6 userspace and your ruleset restores fine.
+The following example shows how to configure the SAs:
 
-hmm, that doesn't explain why Salvatore didn't observe this with more recent kernels.
+  ip xfrm state add src 192.168.10.10 dst 192.168.10.11 proto esp spi 1 \
+        encap espinudp-tx 9999 9999 0.0.0.0 \
+        if_id 0x1 reqid 1 replay-window 1  mode tunnel aead 'rfc4106(gcm(aes))' \
+        0x1111111111111111111111111111111111111111 96 \
+        sel src 10.141.10.0/24 dst 10.141.11.0/24
 
-Salvatore, did you use newer userspace components when you tested your 6.4.13 and 6.5.2 builds?
+  ip xfrm state add src 192.168.10.11 dst 192.168.10.10 proto esp spi 2 \
+        encap espinudp-rx 9999 0 0.0.0.0 \
+        if_id 0x1 reqid 2 replay-window 10 mode tunnel aead 'rfc4106(gcm(aes))' \
+        0x2222222222222222222222222222222222222222 96
 
-As for the regression and how it be dealt with: Personally, I don't really care whether the regression is solved in the kernel or userspace. If everybody agrees that this is the best or only viable option and Debian decides to push a nftables update to fix this, that works for me. But I do feel the burden to justify this should be high. A kernel change that leaves users without a working packet filter after upgrading their machines is serious, if you ask me. And since it affects several stable/longterm trees, I would assume this will hit other stable (non-rolling) distributions as well, since they will also use older userspace components (unless this is behavior specific to nftables 1.0.6 but not older versions). They probably should get a heads up then.
+People work around this by creating dummy userspace daemon such
+as in smallish programs to work around this limitation, see:
 
+  https://github.com/nilcons/ipsec-stun-explain/blob/master/tools/orig_ipsec_decap.pl
 
-Regards,
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/udp.h |  2 ++
+ ip/ipxfrm.c              | 10 ++++++++++
+ ip/xfrm_state.c          |  2 +-
+ man/man8/ip-xfrm.8       |  4 ++--
+ 4 files changed, 15 insertions(+), 3 deletions(-)
 
-Timo
+diff --git a/include/uapi/linux/udp.h b/include/uapi/linux/udp.h
+index d0a7223a0119..8ff9b547733c 100644
+--- a/include/uapi/linux/udp.h
++++ b/include/uapi/linux/udp.h
+@@ -43,5 +43,7 @@ struct udphdr {
+ #define UDP_ENCAP_GTP1U		5 /* 3GPP TS 29.060 */
+ #define UDP_ENCAP_RXRPC		6
+ #define TCP_ENCAP_ESPINTCP	7 /* Yikes, this is really xfrm encap types. */
++#define UDP_ENCAP_ESPINUDP_RX	8
++#define UDP_ENCAP_ESPINUDP_TX	9
+ 
+ #endif /* _LINUX_UDP_H */
+diff --git a/ip/ipxfrm.c b/ip/ipxfrm.c
+index b78c712dfd73..50ae147c333f 100644
+--- a/ip/ipxfrm.c
++++ b/ip/ipxfrm.c
+@@ -751,6 +751,12 @@ void xfrm_xfrma_print(struct rtattr *tb[], __u16 family, FILE *fp,
+ 		case TCP_ENCAP_ESPINTCP:
+ 			fprintf(fp, "espintcp ");
+ 			break;
++		case UDP_ENCAP_ESPINUDP_RX:
++			fprintf(fp, "espinudp-rx ");
++			break;
++		case UDP_ENCAP_ESPINUDP_TX:
++			fprintf(fp, "espinudp-tx ");
++			break;
+ 		default:
+ 			fprintf(fp, "%u ", e->encap_type);
+ 			break;
+@@ -1212,6 +1218,10 @@ int xfrm_encap_type_parse(__u16 *type, int *argcp, char ***argvp)
+ 		*type = UDP_ENCAP_ESPINUDP;
+ 	else if (strcmp(*argv, "espintcp") == 0)
+ 		*type = TCP_ENCAP_ESPINTCP;
++	else if (strcmp(*argv, "espinudp-rx") == 0)
++		*type = UDP_ENCAP_ESPINUDP_RX;
++	else if (strcmp(*argv, "espinudp-tx") == 0)
++		*type = UDP_ENCAP_ESPINUDP_TX;
+ 	else
+ 		invarg("ENCAP-TYPE value is invalid", *argv);
+ 
+diff --git a/ip/xfrm_state.c b/ip/xfrm_state.c
+index aa0dce072dff..eaadf86cc913 100644
+--- a/ip/xfrm_state.c
++++ b/ip/xfrm_state.c
+@@ -96,7 +96,7 @@ static void usage(void)
+ 		"LIMIT-LIST := [ LIMIT-LIST ] limit LIMIT\n"
+ 		"LIMIT := { time-soft | time-hard | time-use-soft | time-use-hard } SECONDS |\n"
+ 		"         { byte-soft | byte-hard } SIZE | { packet-soft | packet-hard } COUNT\n"
+-		"ENCAP := { espinudp | espinudp-nonike | espintcp } SPORT DPORT OADDR\n"
++		"ENCAP := { espinudp | espinudp-nonike | espintcp | espinudp-rx | espinudp-tx } SPORT DPORT OADDR\n"
+ 		"DIR := in | out\n");
+ 
+ 	exit(-1);
+diff --git a/man/man8/ip-xfrm.8 b/man/man8/ip-xfrm.8
+index 3270f336d070..92e82ddb9534 100644
+--- a/man/man8/ip-xfrm.8
++++ b/man/man8/ip-xfrm.8
+@@ -219,7 +219,7 @@ ip-xfrm \- transform configuration
+ 
+ .ti -8
+ .IR ENCAP " :="
+-.RB "{ " espinudp " | " espinudp-nonike " | " espintcp " }"
++.RB "{ " espinudp " | " espinudp-nonike " | " espintcp " | " espinudp-rx " | " espinudp-tx " }"
+ .IR SPORT " " DPORT " " OADDR
+ 
+ .ti -8
+@@ -580,7 +580,7 @@ sets limits in seconds, bytes, or numbers of packets.
+ .TP
+ .I ENCAP
+ encapsulates packets with protocol
+-.BR espinudp ", " espinudp-nonike ", or " espintcp ","
++.BR espinudp ", " espinudp-nonike ", " espintcp ", " or " espinudp-rx " | " espinudp-tx ","
+ .RI "using source port " SPORT ", destination port "  DPORT
+ .RI ", and original address " OADDR "."
+ 
+-- 
+2.30.2
+
