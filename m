@@ -2,115 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52FFACA0EC3
-	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 08:33:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D5C4CA0EC3
+	for <netfilter-devel@archiver.kernel.org>; Tue, 12 Sep 2023 08:56:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232689AbjILIdI (ORCPT
+        id S233014AbjILI4x (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 12 Sep 2023 04:33:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57070 "EHLO
+        Tue, 12 Sep 2023 04:56:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232421AbjILIdH (ORCPT
+        with ESMTP id S233382AbjILI4k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Sep 2023 04:33:07 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95389B9;
-        Tue, 12 Sep 2023 01:33:03 -0700 (PDT)
-Received: from [2a02:8108:8980:2478:8cde:aa2c:f324:937e]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1qfypO-0003Kf-NB; Tue, 12 Sep 2023 10:32:58 +0200
-Message-ID: <b30a81fa-6b59-4bac-b109-99a4dca689de@leemhuis.info>
-Date:   Tue, 12 Sep 2023 10:32:57 +0200
+        Tue, 12 Sep 2023 04:56:40 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D03B01715
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Sep 2023 01:56:30 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qfzC8-0003Gz-HC; Tue, 12 Sep 2023 10:56:28 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: conntrack: fix extension size table
+Date:   Tue, 12 Sep 2023 10:56:07 +0200
+Message-ID: <20230912085615.89333-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Regression: Commit "netfilter: nf_tables: disallow rule addition
- to bound chain via NFTA_RULE_CHAIN_ID" breaks ruleset loading in linux-stable
-Content-Language: en-US, de-DE
-To:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Timo Sigurdsson <public_timo.s@silentcreek.de>
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, regressions@lists.linux.dev,
-        sashal@kernel.org, carnil@debian.org, 1051592@bugs.debian.org
-References: <20230911213750.5B4B663206F5@dd20004.kasserver.com>
- <ZP+bUpxJiFcmTWhy@calendula>
-From:   "Linux regression tracking (Thorsten Leemhuis)" 
-        <regressions@leemhuis.info>
-Reply-To: Linux regressions mailing list <regressions@lists.linux.dev>
-In-Reply-To: <ZP+bUpxJiFcmTWhy@calendula>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1694507583;1f6f9fff;
-X-HE-SMSGID: 1qfypO-0003Kf-NB
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 12.09.23 00:57, Pablo Neira Ayuso wrote:
-> On Mon, Sep 11, 2023 at 11:37:50PM +0200, Timo Sigurdsson wrote:
->>
->> recently, Debian updated their stable kernel from 6.1.38 to 6.1.52
->> which broke nftables ruleset loading on one of my machines with lots
->> of "Operation not supported" errors. I've reported this to the
->> Debian project (see link below) and Salvatore Bonaccorso and I
->> identified "netfilter: nf_tables: disallow rule addition to bound
->> chain via NFTA_RULE_CHAIN_ID" (0ebc1064e487) as the offending commit
->> that introduced the regression. Salvatore also found that this issue
->> affects the 5.10 stable tree as well (observed in 5.10.191), but he
->> cannot reproduce it on 6.4.13 and 6.5.2.
->>
->> The issue only occurs with some rulesets. While I can't trigger it
->> with simple/minimal rulesets that I use on some machines, it does
->> occur with a more complex ruleset that has been in use for months
->> (if not years, for large parts of it). I'm attaching a somewhat
->> stripped down version of the ruleset from the machine I originally
->> observed this issue on. It's still not a small or simple ruleset,
->> but I'll try to reduce it further when I have more time.
->>
->> The error messages shown when trying to load the ruleset don't seem
->> to be helpful. Just two simple examples: Just to give two simple
->> examples from the log when nftables fails to start:
->> /etc/nftables.conf:99:4-44: Error: Could not process rule: Operation not supported
->>                         tcp option maxseg size 1-500 counter drop
->>                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->> /etc/nftables.conf:308:4-27: Error: Could not process rule: Operation not supported
->>                         tcp dport sip-tls accept
->>                         ^^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> I can reproduce this issue with 5.10.191 and 6.1.52 and nftables v1.0.6,
-> this is not reproducible with v1.0.7 and v1.0.8.
-> 
->> Since the issue only affects some stable trees, Salvatore thought it
->> might be an incomplete backport that causes this.
->>
->> If you need further information, please let me know.
-> 
-> Userspace nftables v1.0.6 generates incorrect bytecode that hits a new
-> kernel check that rejects adding rules to bound chains. The incorrect
-> bytecode adds the chain binding, attach it to the rule and it adds the
-> rules to the chain binding. I have cherry-picked these three patches
-> for nftables v1.0.6 userspace and your ruleset restores fine.
-> [...]
+The size table is incorrect due to copypaste error,
+this reserves more size than needed.
 
-Hmmmm. Well, this sounds like a kernel regression to me that normally
-should be dealt with on the kernel level, as users after updating the
-kernel should never have to update any userspace stuff to continue what
-they have been doing before the kernel update.
+TSTAMP reserved 32 instead of 16 bytes.
+TIMEOUT reserved 16 instead of 8 bytes.
 
-Can't the kernel somehow detect the incorrect bytecode and do the right
-thing(tm) somehow?
+Fixes: 5f31edc0676b ("netfilter: conntrack: move extension sizes into core")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_extend.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-But yes, don't worry, I know that reality is not black and white and
-that it's crucial that things like package filtering do exactly what the
-user expect it to do; that's why this might be one of those rare
-situations where "user has to update userspace components to support
-newer kernels" might be the better of two bad choices. But I had to ask
-to ensure it's something like that.
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 0b513f7bf9f3..dd62cc12e775 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -40,10 +40,10 @@ static const u8 nf_ct_ext_type_len[NF_CT_EXT_NUM] = {
+ 	[NF_CT_EXT_ECACHE] = sizeof(struct nf_conntrack_ecache),
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+-	[NF_CT_EXT_TSTAMP] = sizeof(struct nf_conn_acct),
++	[NF_CT_EXT_TSTAMP] = sizeof(struct nf_conn_tstamp),
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+-	[NF_CT_EXT_TIMEOUT] = sizeof(struct nf_conn_tstamp),
++	[NF_CT_EXT_TIMEOUT] = sizeof(struct nf_conn_timeout),
+ #endif
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+ 	[NF_CT_EXT_LABELS] = sizeof(struct nf_conn_labels),
+-- 
+2.41.0
 
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
---
-Everything you wanna know about Linux kernel regression tracking:
-https://linux-regtracking.leemhuis.info/about/#tldr
-If I did something stupid, please tell me, as explained on that page.
