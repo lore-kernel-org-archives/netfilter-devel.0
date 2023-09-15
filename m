@@ -2,145 +2,164 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D04BEED61E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Sep 2023 17:52:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96CA5CD37AA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 15 Sep 2023 20:45:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235532AbjIORwM (ORCPT
+        id S236780AbjIOUpH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 15 Sep 2023 13:52:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35196 "EHLO
+        Fri, 15 Sep 2023 16:45:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236385AbjIORv5 (ORCPT
+        with ESMTP id S231834AbjIOUok (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 15 Sep 2023 13:51:57 -0400
-Received: from mail-1.server.selfnet.de (mail-1.server.selfnet.de [IPv6:2001:7c7:2100:400::37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 632651BF2
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Sep 2023 10:51:47 -0700 (PDT)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 2DA4A411A7;
-        Fri, 15 Sep 2023 19:51:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=selfnet.de; s=selfnet;
-        t=1694800299;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-        bh=MWU/c4DyFuHqeLmIr6StTxbxDIS6tTDHv5ye03apS+w=;
-        b=J1eij7UNJdR76DoLFTo6ucj6eB3lqF5yupY8inBT+vcYvYpLapwlbJaFUJsNd4/+4EZ4Kp
-        a5SGfZAroFb6LxDk6PgvTVXHgBEYmPRW+Ne39JZwQ5zqwL/Uf0dxdWNajmOL7cwnuT73rW
-        UszULt3qNLkvsZ9izecSj2hidqNDu4uUIveMNYcF0WEWib142v5JGd0h4pT589bBr/ixv3
-        gxEEgQIzaNwKWUDs+iI0DOe5PNTdgTWGD+559OnWwdeeCGA/EMwZbSm1P7rG6i+MiYkCyN
-        UQUKZ85rE2PNwmejUeieb6mt3GtXAEkmVKuxtc2ng4mMtHG3iWeMJOPWFSYAoA==
-Authentication-Results: mail-1.server.selfnet.de;
-        auth=pass smtp.auth=jannh smtp.mailfrom=jannh@selfnet.de
-Content-Type: multipart/mixed; boundary="------------IrgR7RUjdwbfG0bt0L6GXytD"
-Message-ID: <5359e787-d056-480a-8154-9cf459dd5bea@selfnet.de>
-Date:   Fri, 15 Sep 2023 19:51:37 +0200
+        Fri, 15 Sep 2023 16:44:40 -0400
+Received: from dd20004.kasserver.com (dd20004.kasserver.com [85.13.150.92])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAED818D;
+        Fri, 15 Sep 2023 13:44:31 -0700 (PDT)
+Received: from dd20004.kasserver.com (dd0806.kasserver.com [85.13.161.252])
+        by dd20004.kasserver.com (Postfix) with ESMTPSA id 37CC96320BA2;
+        Fri, 15 Sep 2023 22:44:29 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=silentcreek.de;
+        s=kas202306171005; t=1694810669;
+        bh=GTAOtFXfmJE5tMJE+b2ZF9kJaBinx/6Zrq5uUHmsRiY=;
+        h=Subject:To:References:Cc:From:In-Reply-To:Date:From;
+        b=MLShIkK3WmQ5Jthg3oQker3OrjJzHIR+RHpiZ+vylYdomMeOjvP8EVCmtaqBAkcrk
+         NxCUHrpC8HrGnQOjvCcy2iBzQEgDq+HCJvOqHFPp7JxVsCW7lhgfin93Kxvxu9nw5H
+         qfVF8j/GIAt/1Sx9UGQWHHJ1/8AUqDxgRfMmvxUoV/hh6mV+xALtgFRJKW0mdmpdjq
+         oC/vaQExav7xH4AItkRgx81Wm+/J+goaJzeIv+cW1uwhGH51tudeayMBPiqWvPGWk7
+         HUCPNKkG56jozD+SP1EqtWvHVWLGdfRkaEpSNW7KB70+XPjnzv0OZH55eShLF9mG7W
+         nXSjDMjZ2qEXw==
+Subject: Re: Regression: Commit "netfilter: nf_tables: disallow rule addition
+ to bound chain via NFTA_RULE_CHAIN_ID" breaks ruleset loading in linux-stable
+To:     carnil@debian.org
+References: <20230911213750.5B4B663206F5@dd20004.kasserver.com>
+ <ZP+bUpxJiFcmTWhy@calendula>
+ <20230912113959.8F8B26321005@dd20004.kasserver.com><ZQC4bcVVK99Q8WrO@eldamar.lan>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+        regressions@lists.linux.dev, sashal@kernel.org,
+        1051592@bugs.debian.org, arturo@debian.org
+From:   "Timo Sigurdsson" <public_timo.s@silentcreek.de>
+User-Agent: ALL-INKL Webmail 2.11
+X-SenderIP: 89.246.185.100
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Issue with counter and interval map
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Jonas Burgdorf <jonas@selfnet.de>
-References: <f65ce9da-e780-433d-be98-44080754109e@selfnet.de>
- <ZQI89KmxZpTEKYN9@calendula>
-Content-Language: en-US
-From:   Jann Haber <jannh@selfnet.de>
-Autocrypt: addr=jannh@selfnet.de; keydata=
- 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
- WHNJ3cmDuyd7EfOt
-In-Reply-To: <ZQI89KmxZpTEKYN9@calendula>
+In-Reply-To: <ZQC4bcVVK99Q8WrO@eldamar.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Message-Id: <20230915204429.37CC96320BA2@dd20004.kasserver.com>
+Date:   Fri, 15 Sep 2023 22:44:29 +0200 (CEST)
+X-Spamd-Bar: /
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------IrgR7RUjdwbfG0bt0L6GXytD
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi Pablo,
+Salvatore Bonaccorso schrieb am 12.09.2023 21:13 (GMT +02:00):
 
-thank you first of all for your prompt response, very appreciated!
+> Hi Timo,
+> 
+> On Tue, Sep 12, 2023 at 01:39:59PM +0200, Timo Sigurdsson wrote:
+>> Hi Pablo,
+>> 
+>> Pablo Neira Ayuso schrieb am 12.09.2023 00:57 (GMT +02:00):
+>> 
+>> > Hi Timo,
+>> > 
+>> > On Mon, Sep 11, 2023 at 11:37:50PM +0200, Timo Sigurdsson wrote:
+>> >> Hi,
+>> >> 
+>> >> recently, Debian updated their stable kernel from 6.1.38 to 6.1.52
+>> >> which broke nftables ruleset loading on one of my machines with lots
+>> >> of "Operation not supported" errors. I've reported this to the
+>> >> Debian project (see link below) and Salvatore Bonaccorso and I
+>> >> identified "netfilter: nf_tables: disallow rule addition to bound
+>> >> chain via NFTA_RULE_CHAIN_ID" (0ebc1064e487) as the offending commit
+>> >> that introduced the regression. Salvatore also found that this issue
+>> >> affects the 5.10 stable tree as well (observed in 5.10.191), but he
+>> >> cannot reproduce it on 6.4.13 and 6.5.2.
+>> >> 
+>> >> The issue only occurs with some rulesets. While I can't trigger it
+>> >> with simple/minimal rulesets that I use on some machines, it does
+>> >> occur with a more complex ruleset that has been in use for months
+>> >> (if not years, for large parts of it). I'm attaching a somewhat
+>> >> stripped down version of the ruleset from the machine I originally
+>> >> observed this issue on. It's still not a small or simple ruleset,
+>> >> but I'll try to reduce it further when I have more time.
+>> >> 
+>> >> The error messages shown when trying to load the ruleset don't seem
+>> >> to be helpful. Just two simple examples: Just to give two simple
+>> >> examples from the log when nftables fails to start:
+>> >> /etc/nftables.conf:99:4-44: Error: Could not process rule: Operation not
+>> >> supported
+>> >>                         tcp option maxseg size 1-500 counter drop
+>> >>                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> >> /etc/nftables.conf:308:4-27: Error: Could not process rule: Operation not
+>> >> supported
+>> >>                         tcp dport sip-tls accept
+>> >>                         ^^^^^^^^^^^^^^^^^^^^^^^^
+>> > 
+>> > I can reproduce this issue with 5.10.191 and 6.1.52 and nftables v1.0.6,
+>> > this is not reproducible with v1.0.7 and v1.0.8.
+>> > 
+>> >> Since the issue only affects some stable trees, Salvatore thought it
+>> >> might be an incomplete backport that causes this.
+>> >> 
+>> >> If you need further information, please let me know.
+>> > 
+>> > Userspace nftables v1.0.6 generates incorrect bytecode that hits a new
+>> > kernel check that rejects adding rules to bound chains. The incorrect
+>> > bytecode adds the chain binding, attach it to the rule and it adds the
+>> > rules to the chain binding. I have cherry-picked these three patches
+>> > for nftables v1.0.6 userspace and your ruleset restores fine.
+>> 
+>> hmm, that doesn't explain why Salvatore didn't observe this with
+>> more recent kernels.
+>> 
+>> Salvatore, did you use newer userspace components when you tested
+>> your 6.4.13 and 6.5.2 builds?
+> 
+> It does explain now because understanding the issue better. While one
+> while experinting should only change each one constraint for the
+> 6.4.13 and 6.5.2 testing I indeed switched to a Debian unstable
+> system, which has newer userpace nftables and so not triggering the
+> issue. This was missleading for the report.
+> 
+>> As for the regression and how it be dealt with: Personally, I don't
+>> really care whether the regression is solved in the kernel or
+>> userspace. If everybody agrees that this is the best or only viable
+>> option and Debian decides to push a nftables update to fix this,
+>> that works for me. But I do feel the burden to justify this should
+>> be high. A kernel change that leaves users without a working packet
+>> filter after upgrading their machines is serious, if you ask me. And
+>> since it affects several stable/longterm trees, I would assume this
+>> will hit other stable (non-rolling) distributions as well, since
+>> they will also use older userspace components (unless this is
+>> behavior specific to nftables 1.0.6 but not older versions). They
+>> probably should get a heads up then.
+> 
+> So if it is generally believed on kernel side there should not happen
+> any further changes to work with older userland, I guess in Debian we
+> will need to patch nftables. I'm CC'ing Arturo Borrero Gonzalez
+> <arturo@debian.org>, maintainer for the package. The update should go
+> ideally in the next point releases from October (and maybe released
+> earlier as well trough the stable-updates mechanism).
 
-We have a second issue also related to interval maps and counters, however this seems to be more along the lines of a userspace performance problem. At Selfnet, we will soon hit 7000 members, with our traffic running across two redundant CGN machines powered by nftables. Naturally, our maps and sets can become quite large and may have some tens of thousands of entries.
+So, I built nftables 1.0.6-2+deb12u1 with the three cherry-picked patches from Pablo and can confirm that they resolve the issue for me on bookworm. I can now run linux 6.1.52-1 and load my original nftables ruleset again.
+ 
+> FWIW: In Debian bullseye we have 0.9.8 based nftables, in bookworm
+> 1.0.6, so both will need those fixes.
+> 
+> As 0ebc1064e487 is to address CVE-2023-4147 other distros picking the
+> fix will likely encounter the problem at some point. It looks Red Hat
+> has taken it (some RHSA's were released), I assume Ubuntu will shortly
+> as well release USN's containing a fix.
 
-I have attached a small python script that creates an "example.conf" file containing a simple set of very repetitive rules including counters and 4 interval maps each of the size ~16000 entries referencing these counters. On our bookworm and ArchLinux hosts, the resulting rules take very long to load with "nft -f" (at least multiple minutes). All other maps in our ruleset, some of which have similar size, are loaded instantly, so the size itself seems not to be an issue for nft in general.
-If needed I can also provide the example.conf file itself, but due to the size of a few MB, I rather avoid to spam the mailing list.
+SUSE has also picked this patch for SLES/SLED. I hope maintainers follow the mailing lists cc'ed here or that someone gives them a heads up before this hits more production systems.
 
-Further info:
-- With a regular map instead of an interval map (just remove the "flags interval" in the example), the rules are loaded in fractions of a second
-- Using add map { [...] elements = [...] } instead of add map { [...] }; add element [...]; add element [...] and so on, the ruleset is also loaded quickly (this is our workaround that we use for now)
-- We have had no issues with this kind of ruleset on Debian Bullseye (Kernel 5.10, nftables 0.9.8), it seems to have been introduced later
+Thanks and regards,
 
-Thanks again and looking forward to your feedback!
-
-Kind Regards,
-Jann
---------------IrgR7RUjdwbfG0bt0L6GXytD
-Content-Type: text/x-python; charset=UTF-8; name="nftables-slow.py"
-Content-Disposition: attachment; filename="nftables-slow.py"
-Content-Transfer-Encoding: base64
-
-Cgp3aXRoIG9wZW4oImV4YW1wbGUuY29uZiIsICJ3IikgYXMgZjoKICAgIHByaW50KCJJbml0
-aWFsIGxpbmVzIikKICAgIGYud3JpdGUoImZsdXNoIHJ1bGVzZXRcbiIpCiAgICBmLndyaXRl
-KCJhZGQgdGFibGUgaW5ldCBmaWx0ZXJcbiIpCgogICAgcHJpbnQoIkNvdW50ZXJzIikKICAg
-IGZvciBpIGluIHJhbmdlKDMyKjI1Nik6CiAgICAgICAgZi53cml0ZShmImFkZCBjb3VudGVy
-IGluZXQgZmlsdGVyIGNvdW50e2l9XG4iKQoKICAgIHByaW50KCJNYXAiKQogICAgZi53cml0
-ZSgiXG5hZGQgbWFwIGluZXQgZmlsdGVyIHRlc3RtYXAwIHsgdHlwZSBpcHY0X2FkZHIgOiBj
-b3VudGVyOyBmbGFncyBpbnRlcnZhbDt9XG5cbiIpCiAgICBmLndyaXRlKCJcbmFkZCBtYXAg
-aW5ldCBmaWx0ZXIgdGVzdG1hcDEgeyB0eXBlIGlwdjRfYWRkciA6IGNvdW50ZXI7IGZsYWdz
-IGludGVydmFsO31cblxuIikKICAgIGYud3JpdGUoIlxuYWRkIG1hcCBpbmV0IGZpbHRlciB0
-ZXN0bWFwMiB7IHR5cGUgaXB2NF9hZGRyIDogY291bnRlcjsgZmxhZ3MgaW50ZXJ2YWw7fVxu
-XG4iKQogICAgZi53cml0ZSgiXG5hZGQgbWFwIGluZXQgZmlsdGVyIHRlc3RtYXAzIHsgdHlw
-ZSBpcHY0X2FkZHIgOiBjb3VudGVyOyBmbGFncyBpbnRlcnZhbDt9XG5cbiIpCiAgICAjZi53
-cml0ZSgiXG5hZGQgbWFwIGluZXQgZmlsdGVyIHRlc3RtYXAwIHsgdHlwZSBpcHY0X2FkZHIg
-OiBjb3VudGVyO31cblxuIikKICAgICNmLndyaXRlKCJcbmFkZCBtYXAgaW5ldCBmaWx0ZXIg
-dGVzdG1hcDEgeyB0eXBlIGlwdjRfYWRkciA6IGNvdW50ZXI7fVxuXG4iKQogICAgI2Yud3Jp
-dGUoIlxuYWRkIG1hcCBpbmV0IGZpbHRlciB0ZXN0bWFwMiB7IHR5cGUgaXB2NF9hZGRyIDog
-Y291bnRlcjt9XG5cbiIpCiAgICAjZi53cml0ZSgiXG5hZGQgbWFwIGluZXQgZmlsdGVyIHRl
-c3RtYXAzIHsgdHlwZSBpcHY0X2FkZHIgOiBjb3VudGVyO31cblxuIikKCiAgICBmb3IgaSBp
-biByYW5nZSgyNTYpOgogICAgICAgIGZvciBqIGluIHJhbmdlKDI1Nik6CiAgICAgICAgICAg
-IGNvdW50ID0gKGkqMjU2K2opICUgKDMyKjI1NikKICAgICAgICAgICAgbWFwX251bWJlciA9
-IGNvdW50ICUgNAogICAgICAgICAgICBmLndyaXRlKGYiYWRkIGVsZW1lbnQgaW5ldCBmaWx0
-ZXIgdGVzdG1hcHttYXBfbnVtYmVyfSB7eyAxMC4wLntpfS57an0gOiBcImNvdW50e2NvdW50
-fVwiIH19XG4iKQo=
-
---------------IrgR7RUjdwbfG0bt0L6GXytD--
+Timo
