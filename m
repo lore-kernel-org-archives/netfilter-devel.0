@@ -2,51 +2,48 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F131DCD13D2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Sep 2023 20:00:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B60CD37B0
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Sep 2023 20:28:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229554AbjIRUAl (ORCPT
+        id S229988AbjIRU2P (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Sep 2023 16:00:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57494 "EHLO
+        Mon, 18 Sep 2023 16:28:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229578AbjIRUAk (ORCPT
+        with ESMTP id S229853AbjIRU2O (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Sep 2023 16:00:40 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD53110A
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 12:59:49 -0700 (PDT)
+        Mon, 18 Sep 2023 16:28:14 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1953E10A
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 13:27:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695067188;
+        s=mimecast20190719; t=1695068845;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=y2cMe4UJvKzRvI0LDSM9SAYAKWNexALGYQtufFO5TxE=;
-        b=H9xV0qOg8PTCTaZeN1kMSEftKGvhjg5wN22tHQdc3TL1o2LtG176IpNy3VwhlkQnp8POUk
-        E3aoFx4/mMruAhpaNz/mmcRhfQogOTPEbmvc0hMv1TJPVitkqO814SxUotBUDIUo/iw+Zg
-        OY3wUWKkenISVXJaYxq2tBSdDw21CiU=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=c/YP1P/Izmc2cQU2udtUv1+3d8kNLXsp1uGRmHUSVUI=;
+        b=RpowvLXEn/zE6bn1oM0G/+zcBInCEj1hBjwWcpaHMwh4DYOKIJdWbWYExWA61JQSUgOuxY
+        3ZSBP/eriEPBGWFliHhDOjTm6DGFzrLyVe0ejdwJrM2+u7dnT+C03xUjW0MB3T+goeiQvu
+        gUC13GOn8sDS7KhR/jeHiha1yoalJMo=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-461-_mYnbirxOx6rEr4nU321Pw-1; Mon, 18 Sep 2023 15:59:47 -0400
-X-MC-Unique: _mYnbirxOx6rEr4nU321Pw-1
+ us-mta-408-Dwy9h5x2NGyDOY8YUPi_wQ-1; Mon, 18 Sep 2023 16:27:21 -0400
+X-MC-Unique: Dwy9h5x2NGyDOY8YUPi_wQ-1
 Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id F25D3185A79B
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 19:59:46 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A9D39800883
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 20:27:20 +0000 (UTC)
 Received: from localhost.localdomain (unknown [10.39.192.6])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 6EA431005E28;
-        Mon, 18 Sep 2023 19:59:46 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 2813210EE402;
+        Mon, 18 Sep 2023 20:27:20 +0000 (UTC)
 From:   Thomas Haller <thaller@redhat.com>
 To:     NetFilter <netfilter-devel@vger.kernel.org>
 Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 3/3] tests/shell: run `nft --check` on persisted dump files
-Date:   Mon, 18 Sep 2023 21:59:24 +0200
-Message-ID: <20230918195933.318893-3-thaller@redhat.com>
-In-Reply-To: <20230918195933.318893-1-thaller@redhat.com>
-References: <20230918195933.318893-1-thaller@redhat.com>
+Subject: [PATCH nft 1/1] tests/shell: honor NFT_TEST_FAIL_ON_SKIP variable to fail on any skipped tests
+Date:   Mon, 18 Sep 2023 22:27:07 +0200
+Message-ID: <20230918202709.470288-1-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
@@ -54,87 +51,71 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-"nft --check" will trigger a rollback in kernel. The existing dump files
-might hit new code paths. Take the opportunity to call the command on
-the existing files.
+The test suite should pass with various kernels and build
+configurations. Of course, that means, that some tests will be
+gracefully skipped, and we don't treat that as an overall failure.
 
-And alternative would be to write a separate tests, that iterates over
-all files. However, then we can only run all the commands sequentially
-(unless we do something smart). That might be slower than the
-opportunity to run the checks in parallel. More importantly, it would be
-nice if the check for the dump file is clearly tied to the file's test.
-So run it right after the test, from the test wrapper.
+However, it should be possible to run a specific kernel (net-next?) and
+build configuration, where we expect that all tests pass.
+
+Add an option to fail the run, if any tests were skipped. This is to
+ensure that we don't have broken tests that never pass.
+
+This will make more sense with automated CI is running, to enable on a
+test system and ensure that at least on that system, all tests pass.
 
 Signed-off-by: Thomas Haller <thaller@redhat.com>
 ---
- tests/shell/helpers/test-wrapper.sh | 31 +++++++++++++++++++++++++++++
- tests/shell/run-tests.sh            |  4 +++-
- 2 files changed, 34 insertions(+), 1 deletion(-)
+ tests/shell/run-tests.sh | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-index 165a944da2b1..e10360c9b266 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -134,6 +134,35 @@ if [ "$rc_dump" -ne 0 ] ; then
- 	echo "$DUMPFILE" > "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
- fi
- 
-+rc_chkdump=0
-+# check that a flush after the test succeeds. We anyway need a clean ruleset
-+# for the `nft --check` next.
-+$NFT flush ruleset &> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump" || rc_chkdump=1
-+if [ -f "$DUMPFILE" ] ; then
-+	# We have a dumpfile. Call `nft --check` to possibly cover new code
-+	# paths.
-+	if [ "$rc_test" -eq 77 ] ; then
-+		# The test was skipped. Possibly we don't have the required
-+		# features to process this file. Ignore any output and exit
-+		# code, but still call the program (for valgrind or sanitizer
-+		# issue we hope to find).
-+		$NFT --check -f "$DUMPFILE" &>/dev/null || :
-+	else
-+		$NFT --check -f "$DUMPFILE" &>> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump" || rc_chkdump=1
-+	fi
-+fi
-+if [ -s "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump" ] ; then
-+	# Non-empty output? That is wrong.
-+	rc_chkdump=1
-+elif [ "$rc_chkdump" -eq 0 ] ; then
-+	rm -rf "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
-+fi
-+if [ "$rc_chkdump" -ne 0 ] ; then
-+	# Ensure we don't have empty output files. Always write something, so
-+	# that `grep ^ -R` lists the file.
-+	echo -e "<<<<<\n\nCalling \`nft --check\` (or \`nft flush ruleset\`) failed for \"$DUMPFILE\"" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
-+fi
-+
- rc_valgrind=0
- [ -f "$NFT_TEST_TESTTMPDIR/rc-failed-valgrind" ] && rc_valgrind=1
- 
-@@ -154,6 +183,8 @@ elif [ "$rc_test" -ne 0 ] ; then
- 	rc_exit="$rc_test"
- elif [ "$rc_dump" -ne 0 ] ; then
- 	rc_exit=124
-+elif [ "$rc_chkdump" -ne 0 ] ; then
-+	rc_exit=121
- else
- 	rc_exit=0
- fi
 diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 528646f57eca..85aa498ca8ee 100755
+index 528646f57eca..d60237cdc7d9 100755
 --- a/tests/shell/run-tests.sh
 +++ b/tests/shell/run-tests.sh
-@@ -731,7 +731,9 @@ print_test_result() {
- 	else
- 		((failed++))
- 		result_msg_level="W"
--		if [ "$rc_got" -eq 122 ] ; then
-+		if [ "$rc_got" -eq 121 ] ; then
-+			result_msg_status="CHK DUMP"
-+		elif [ "$rc_got" -eq 122 ] ; then
- 			result_msg_status="VALGRIND"
- 		elif [ "$rc_got" -eq 123 ] ; then
- 			result_msg_status="TAINTED"
+@@ -201,6 +201,7 @@ usage() {
+ 	echo "                 Setting this to \"0\" means also to perform global cleanups between tests (remove"
+ 	echo "                 kernel modules)."
+ 	echo "                 Parallel jobs requires unshare and are disabled with NFT_TEST_UNSHARE_CMD=\"\"."
++	echo " NFT_TEST_FAIL_ON_SKIP=*|y: if any jobs are skipped, exit with error."
+ 	echo " NFT_TEST_RANDOM_SEED=<SEED>: The test runner will export the environment variable NFT_TEST_RANDOM_SEED"
+ 	echo "                 set to a random number. This can be used as a stable seed for tests to randomize behavior."
+ 	echo "                 Set this to a fixed value to get reproducible behavior."
+@@ -261,6 +262,7 @@ KMEMLEAK="$(bool_y "$KMEMLEAK")"
+ NFT_TEST_KEEP_LOGS="$(bool_y "$NFT_TEST_KEEP_LOGS")"
+ NFT_TEST_HAS_REALROOT="$NFT_TEST_HAS_REALROOT"
+ NFT_TEST_JOBS="${NFT_TEST_JOBS:-$_NFT_TEST_JOBS_DEFAULT}"
++NFT_TEST_FAIL_ON_SKIP="$(bool_y "$NFT_TEST_FAIL_ON_SKIP")"
+ NFT_TEST_RANDOM_SEED="$NFT_TEST_RANDOM_SEED"
+ NFT_TEST_SHUFFLE_TESTS="$NFT_TEST_SHUFFLE_TESTS"
+ NFT_TEST_SKIP_slow="$(bool_y "$NFT_TEST_SKIP_slow")"
+@@ -573,6 +575,7 @@ msg_info "conf: NFT_TEST_HAS_UNSHARED=$(printf '%q' "$NFT_TEST_HAS_UNSHARED")"
+ msg_info "conf: NFT_TEST_HAS_UNSHARED_MOUNT=$(printf '%q' "$NFT_TEST_HAS_UNSHARED_MOUNT")"
+ msg_info "conf: NFT_TEST_KEEP_LOGS=$(printf '%q' "$NFT_TEST_KEEP_LOGS")"
+ msg_info "conf: NFT_TEST_JOBS=$NFT_TEST_JOBS"
++msg_info "conf: NFT_TEST_FAIL_ON_SKIP=$NFT_TEST_FAIL_ON_SKIP"
+ msg_info "conf: NFT_TEST_RANDOM_SEED=$NFT_TEST_RANDOM_SEED"
+ msg_info "conf: NFT_TEST_SHUFFLE_TESTS=$NFT_TEST_SHUFFLE_TESTS"
+ msg_info "conf: TMPDIR=$(printf '%q' "$_TMPDIR")"
+@@ -837,7 +840,7 @@ echo ""
+ kmemleak_found=0
+ check_kmemleak_force
+ 
+-if [ "$failed" -gt 0 ] ; then
++if [ "$failed" -gt 0 ] || [ "$NFT_TEST_FAIL_ON_SKIP" = y -a "$skipped" -gt 0 ] ; then
+ 	RR="$RED"
+ elif [ "$skipped" -gt 0 ] ; then
+ 	RR="$YELLOW"
+@@ -871,6 +874,9 @@ fi
+ 
+ if [ "$failed" -gt 0 ] ; then
+ 	exit 1
++elif [ "$NFT_TEST_FAIL_ON_SKIP" = y -a "$skipped" -gt 0 ] ; then
++	msg_info "some tests were skipped. Fail due to NFT_TEST_FAIL_ON_SKIP=y"
++	exit 1
+ elif [ "$ok" -eq 0 -a "$skipped" -gt 0 ] ; then
+ 	exit 77
+ else
 -- 
 2.41.0
 
