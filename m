@@ -2,57 +2,177 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCE9BCD13D9
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Sep 2023 12:30:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68F1DC46CA1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Sep 2023 18:14:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238383AbjIRM3e (ORCPT
+        id S229501AbjIRSOE (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Sep 2023 08:29:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46466 "EHLO
+        Mon, 18 Sep 2023 14:14:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241970AbjIRM3H (ORCPT
+        with ESMTP id S229454AbjIRSOD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Sep 2023 08:29:07 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B983B5;
-        Mon, 18 Sep 2023 05:28:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01981C433C8;
-        Mon, 18 Sep 2023 12:28:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1695040137;
-        bh=/zHWfRhhpSRxTBXH3tr4O5+a7KoRhJVWXPMMdPu8//s=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=pElYJfPpuHfl24j4ZRw6ZTvuejQelCFomSPBlJV/210KYH4EPSTIinDSTz1ew0twS
-         TGlG+BW+2UqSRkxR9obicO9V0MKY+1leG85W+WpQOSuZuw5O+Lt2wk4kHKokIsVdcR
-         Y7Kct5yo+Do9MN4KuHjW1Y9yiNzXQi6Yb4nHq6t0=
-Date:   Mon, 18 Sep 2023 14:28:52 +0200
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
-        sashal@kernel.org
-Subject: Re: [PATCH -stable,4.19 0/2] netfilter stable fixes for 4.19
-Message-ID: <2023091843-luncheon-football-41be@gregkh>
-References: <20230918120656.218135-1-pablo@netfilter.org>
+        Mon, 18 Sep 2023 14:14:03 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 29D82101
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 11:13:56 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] evaluate: update mark datatype compatibility check from maps
+Date:   Mon, 18 Sep 2023 20:13:50 +0200
+Message-Id: <20230918181350.330701-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230918120656.218135-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Sep 18, 2023 at 02:06:54PM +0200, Pablo Neira Ayuso wrote:
-> Hi Greg, Sasha,
-> 
-> This batch contains a fixes for 4.19:
-> 
-> 1) Missing fix in 4.19, you can cherry-pick it from
->    8ca79606cdfd ("netfilter: nft_flow_offload: fix underflow in flowtable reference counter")
-> 
-> 2) Oneliner that includes missing chunk in 4.19 backport.
->    Fixes: 1df28fde1270 ("netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain") in 4.19
->    This patch you have to manually apply it.
+Wrap datatype compatibility check into a helper function and use it for
+map evaluation, otherwise the following bogus error message is
+displayed:
 
-All now queued up, thanks.
+  Error: datatype mismatch, map expects packet mark, mapping expression has type integer
 
-greg k-h
+Add unit tests to improve coverage for this usecase.
+
+Fixes: 5d8e33ddb112 ("evaluate: relax type-checking for integer arguments in mark statements")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c                                | 19 ++++++----
+ .../maps/dumps/vmap_mark_bitwise_0.nft        | 26 +++++++++++++
+ .../shell/testcases/maps/vmap_mark_bitwise_0  | 38 +++++++++++++++++++
+ 3 files changed, 76 insertions(+), 7 deletions(-)
+ create mode 100644 tests/shell/testcases/maps/dumps/vmap_mark_bitwise_0.nft
+ create mode 100755 tests/shell/testcases/maps/vmap_mark_bitwise_0
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a537dcfd52b3..9fccd032aaee 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1882,6 +1882,15 @@ static int mapping_expr_expand(struct eval_ctx *ctx)
+ 	return 0;
+ }
+ 
++static bool datatype_compatible(const struct datatype *a, const struct datatype *b)
++{
++	return (a->type == TYPE_MARK &&
++		!datatype_equal(datatype_basetype(a), datatype_basetype(b))) ||
++	       (a->type != TYPE_MARK &&
++		b->type != TYPE_INTEGER &&
++		!datatype_equal(b, a));
++}
++
+ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	struct expr *map = *expr, *mappings;
+@@ -1989,7 +1998,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 		    expr_name(map->mappings));
+ 	}
+ 
+-	if (!datatype_equal(map->map->dtype, map->mappings->set->key->dtype))
++	if (!datatype_compatible(map->map->dtype, map->mappings->set->key->dtype))
+ 		return expr_binary_error(ctx->msgs, map->mappings, map->map,
+ 					 "datatype mismatch, map expects %s, "
+ 					 "mapping expression has type %s",
+@@ -2823,11 +2832,7 @@ static int __stmt_evaluate_arg(struct eval_ctx *ctx, struct stmt *stmt,
+ 					 dtype->desc, (*expr)->dtype->desc,
+ 					 (*expr)->len);
+ 
+-	if ((dtype->type == TYPE_MARK &&
+-	     !datatype_equal(datatype_basetype(dtype), datatype_basetype((*expr)->dtype))) ||
+-	    (dtype->type != TYPE_MARK &&
+-	     (*expr)->dtype->type != TYPE_INTEGER &&
+-	     !datatype_equal((*expr)->dtype, dtype)))
++	if (!datatype_compatible(dtype, (*expr)->dtype))
+ 		return stmt_binary_error(ctx, *expr, stmt,		/* verdict vs invalid? */
+ 					 "datatype mismatch: expected %s, "
+ 					 "expression has type %s",
+@@ -4385,7 +4390,7 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 		    expr_name(map->mappings));
+ 	}
+ 
+-	if (!datatype_equal(map->map->dtype, map->mappings->set->key->dtype))
++	if (!datatype_compatible(map->map->dtype, map->mappings->set->key->dtype))
+ 		return expr_binary_error(ctx->msgs, map->mappings, map->map,
+ 					 "datatype mismatch, map expects %s, "
+ 					 "mapping expression has type %s",
+diff --git a/tests/shell/testcases/maps/dumps/vmap_mark_bitwise_0.nft b/tests/shell/testcases/maps/dumps/vmap_mark_bitwise_0.nft
+new file mode 100644
+index 000000000000..beb5ffb098f5
+--- /dev/null
++++ b/tests/shell/testcases/maps/dumps/vmap_mark_bitwise_0.nft
+@@ -0,0 +1,26 @@
++table ip x {
++	counter c_o0_0 {
++		packets 0 bytes 0
++	}
++
++	map sctm_o0 {
++		type mark : verdict
++		elements = { 0x00000000 : jump sctm_o0_0, 0x00000001 : jump sctm_o0_1 }
++	}
++
++	map sctm_o1 {
++		type mark : counter
++		elements = { 0x00000000 : "c_o0_0" }
++	}
++
++	chain sctm_o0_0 {
++	}
++
++	chain sctm_o0_1 {
++	}
++
++	chain SET_ctmark_RPLYroute {
++		meta mark >> 8 & 0xf vmap @sctm_o0
++		counter name meta mark >> 8 & 0xf map @sctm_o1
++	}
++}
+diff --git a/tests/shell/testcases/maps/vmap_mark_bitwise_0 b/tests/shell/testcases/maps/vmap_mark_bitwise_0
+new file mode 100755
+index 000000000000..3ac99d2853b2
+--- /dev/null
++++ b/tests/shell/testcases/maps/vmap_mark_bitwise_0
+@@ -0,0 +1,38 @@
++#!/bin/bash
++
++set -e
++
++RULESET="table ip x {
++	chain sctm_o0_0 {
++	}
++
++	chain sctm_o0_1 {
++	}
++
++	map sctm_o0 {
++		type mark : verdict
++		elements = {
++			0x0 : jump sctm_o0_0,
++			0x1 : jump sctm_o0_1,
++		}
++	}
++
++	counter c_o0_0 {}
++
++	map sctm_o1 {
++		type mark : counter
++		elements = {
++			0x0 : \"c_o0_0\",
++		}
++	}
++
++	chain SET_ctmark_RPLYroute {
++		(meta mark >> 8) & 0xF vmap @sctm_o0
++	}
++
++	chain SET_ctmark_RPLYroute {
++		counter name (meta mark >>  8) & 0xF map @sctm_o1
++	}
++}"
++
++$NFT -f - <<< $RULESET
+-- 
+2.30.2
+
