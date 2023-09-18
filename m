@@ -2,147 +2,153 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B1B4CD13D2
-	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Sep 2023 06:57:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBA52CD13D1
+	for <netfilter-devel@archiver.kernel.org>; Mon, 18 Sep 2023 09:32:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239892AbjIRG4l (ORCPT
+        id S239366AbjIRJcG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 18 Sep 2023 02:56:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37976 "EHLO
+        Mon, 18 Sep 2023 05:32:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239937AbjIRG4a (ORCPT
+        with ESMTP id S240942AbjIRJbw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Sep 2023 02:56:30 -0400
-Received: from smtp-42ac.mail.infomaniak.ch (smtp-42ac.mail.infomaniak.ch [84.16.66.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E608ED
-        for <netfilter-devel@vger.kernel.org>; Sun, 17 Sep 2023 23:56:22 -0700 (PDT)
-Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4RpwYw44wgzMpvj8;
-        Mon, 18 Sep 2023 06:56:20 +0000 (UTC)
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4RpwYv6pBhzMpp9q;
-        Mon, 18 Sep 2023 08:56:19 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1695020180;
-        bh=W0JS7Bsx1CtCiU+24S/P6j4fgRH6Nm/XGb0DMnycSRo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=PuCP25W3BWxawH4FD41ECC4I/T+/fGUZai+OpF8YFpl8xNgHCHuk6ncer63+nxfQF
-         CoKF35XYAssQVf21LhB3vIJJB/xrf59n91vR9uxpGuy1A4S2oBOCnMPyXr1u6TRmao
-         g1MaS+PpRZkv4AYsy8x2ekqJoqsgoLkFXWSgK/YY=
-Date:   Mon, 18 Sep 2023 08:56:16 +0200
-From:   =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-Cc:     Paul Moore <paul@paul-moore.com>, artem.kuzin@huawei.com,
-        gnoack3000@gmail.com, willemdebruijn.kernel@gmail.com,
-        yusongping@huawei.com, linux-security-module@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v11.1] selftests/landlock: Add 11 new test suites
- dedicated to network
-Message-ID: <20230918.shauB5gei9Ai@digikod.net>
-References: <20230515161339.631577-11-konstantin.meskhidze@huawei.com>
- <20230706145543.1284007-1-mic@digikod.net>
- <3db64cf8-6a45-a361-aa57-9bfbaf866ef8@digikod.net>
- <b2a94da1-f9df-b684-7666-1c63060f68f1@huawei.com>
- <20230817.koh5see0eaLa@digikod.net>
- <239800f3-baf4-1c7d-047f-8ba90b097bee@huawei.com>
- <20230914.ASu9sho1Aef0@digikod.net>
- <076bfaa6-1e0b-c95b-5727-00001c79f2c0@huawei.com>
+        Mon, 18 Sep 2023 05:31:52 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC57710D
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 02:31:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1695029465;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=bHU4YlwSFXi1XoLmAC4wpfJTSoau/940l2aWduvp2f0=;
+        b=FzQGVbOWu2fOj8d+cgzMyVXrfLJ7k5HRCtKliFIlJJw+urwbIqTOxz4Xe+8x9X51FBo3wb
+        NazXCtn4dlsg/iv16fEIcJGbQ9gZWWvvzEfUYJAlZjAtEljadw7xJDNAaZlvs0+4OQp18S
+        wzrJ2LiA1HAOJZkezo/nczQDM9w9AAQ=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-190-1zDbXbNtNb62N_H4WeDC6A-1; Mon, 18 Sep 2023 05:30:15 -0400
+X-MC-Unique: 1zDbXbNtNb62N_H4WeDC6A-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-404f8ccee4bso5846355e9.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Sep 2023 02:30:15 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695029414; x=1695634214;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:to:from:subject:message-id:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=bHU4YlwSFXi1XoLmAC4wpfJTSoau/940l2aWduvp2f0=;
+        b=c5jgfcA6uGpgbImL+xngK+/PyBpPPsx7ezsazEqyzJEuNNwgJGcqpvjuaCwxU3y/6P
+         J5EwPWZrFQAWTLTSL1fmvM7nNoKuaefKXQPhwbstGZYNHI2Jr0NjmuEXx2Pj83EApquA
+         N0gmylRZ2bfAWCNQiT2wf11vqn/39sSt8NGyp7y/sBLtA0gw+jGnDjFR5q4ukvFQZd6U
+         Jv4pphpBLco2WW1NQcLdSavogncE7meCnhsTasHkmpNUJnPbdGotx2af2YQvCo25UKdi
+         Da4QIT3SJz/F4YDGU5M5nzJ6dfa+h38osT8Uvy7Yn2BMljSNstA7/Dcwb8+I2XVsFFDa
+         PjVg==
+X-Gm-Message-State: AOJu0Yx827Msqd8OHVCPbx0C9fDn8EDBDnvSIIUdhVrWdKCOtMKCoIhb
+        AsCsh0bHhnG13SkNCY0MrqQsNSeyNLuLTb8VAKyuJKigCD1a0WFCsS6IKDxskHPrt3BECK9tPTo
+        9DctDtxIMoOxvKBydwczpKmpK+JlF1oUWLINsYgM6Rj4XiuAz4gdIxB7lqfsfsslEUfXY3OS/J9
+        Q1uxqanOKD3ZY=
+X-Received: by 2002:a05:600c:1da9:b0:404:72f9:d59a with SMTP id p41-20020a05600c1da900b0040472f9d59amr7630714wms.0.1695029414510;
+        Mon, 18 Sep 2023 02:30:14 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHjg/7n1E5p2ovt06h90JcUlOou/OiD0zcsotNTu9AjTK2kyQO+Vu3Xl9WG/qUWvrmuadga7Q==
+X-Received: by 2002:a05:600c:1da9:b0:404:72f9:d59a with SMTP id p41-20020a05600c1da900b0040472f9d59amr7630702wms.0.1695029414137;
+        Mon, 18 Sep 2023 02:30:14 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id r9-20020a05600c320900b00404732ad815sm11096755wmp.42.2023.09.18.02.30.13
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 Sep 2023 02:30:13 -0700 (PDT)
+Message-ID: <3a95f0f8b9275828af700ae4bb284df7ff494854.camel@redhat.com>
+Subject: Re: [PATCH nft 2/3] tests/shell: skip "sets/reset_command_0" on
+ unsupported reset command
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Mon, 18 Sep 2023 11:30:12 +0200
+In-Reply-To: <20230915155614.1325657-3-thaller@redhat.com>
+References: <20230915155614.1325657-1-thaller@redhat.com>
+         <20230915155614.1325657-3-thaller@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <076bfaa6-1e0b-c95b-5727-00001c79f2c0@huawei.com>
-X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 15, 2023 at 11:54:46AM +0300, Konstantin Meskhidze (A) wrote:
-> 
-> 
-> 9/14/2023 11:08 AM, Mickaël Salaün пишет:
-> > On Mon, Sep 11, 2023 at 01:13:24PM +0300, Konstantin Meskhidze (A) wrote:
-> > > 
-> > > 
-> > > 8/17/2023 6:08 PM, Mickaël Salaün пишет:
-> > > > On Sat, Aug 12, 2023 at 05:37:00PM +0300, Konstantin Meskhidze (A) wrote:
-> > > > > > > > > 7/12/2023 10:02 AM, Mickaël Salaün пишет:
-> > > > > > > On 06/07/2023 16:55, Mickaël Salaün wrote:
-> > > > > > > From: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-> > > > > > > > > This patch is a revamp of the v11 tests [1] with new tests
-> > > > > (see the
-> > > > > > > "Changes since v11" description).  I (Mickaël) only added the following
-> > > > > > > todo list and the "Changes since v11" sections in this commit message.
-> > > > > > > I think this patch is good but it would appreciate reviews.
-> > > > > > > You can find the diff of my changes here but it is not really readable:
-> > > > > > > https://git.kernel.org/mic/c/78edf722fba5 (landlock-net-v11 branch)
-> > > > > > > [1] https://lore.kernel.org/all/20230515161339.631577-11-konstantin.meskhidze@huawei.com/
-> > > > > > > TODO:
-> > > > > > > - Rename all "net_service" to "net_port".
-> > > > > > > - Fix the two kernel bugs found with the new tests.
-> > > > > > > - Update this commit message with a small description of all tests.
-> > > > > > > [...]
-> > > > > > > We should also add a test to make sure errno is the same
-> > > with and
-> > > > > > without sandboxing when using port 0 for connect and consistent with
-> > > > > > bind (using an available port). The test fixture and variants should be
-> > > > > > quite similar to the "ipv4" ones, but we can also add AF_INET6 variants,
-> > > > > > which will result in 8 "ip" variants:
-> > > > > > > TEST_F(ip, port_zero)
-> > > > > > {
-> > > > > > 	if (variant->sandbox == TCP_SANDBOX) {
-> > > > > > 		/* Denies any connect and bind. */
-> > > > > > 	}
-> > > > > > 	/* Checks errno for port 0. */
-> > > > > > }
-> > > > > As I understand the would be the next test cases:
-> > > > > > > 	1. ip4, sandboxed, bind port 0 -> should return EACCES
-> > > (denied by
-> > > > > landlock).
-> > > > > Without any allowed port, yes. This test case is useful.
-> > > > > By tuning /proc/sys/net/ipv4/ip_local_port_range (see
-> > > > inet_csk_find_open_port call) we should be able to pick a specific
-> > > > allowed port and test it.  We can also test for the EADDRINUSE error to
-> > > > make sure error ordering is correct (compared with -EACCES).
-> > >   Sorry, did not get this case. Could please explain it with more details?
-> > 
-> > According to bind(2), if no port are available, the syscall should
-> > return EADDRINUSE. And this returned value should be the same whatever
-> > the process is sandbox or not (and never EACCES). But as I explained
-> > just below, we cannot know this random port from the LSM hook, so no
-> > need to tweak /proc/sys/net/ipv4/ip_local_port_range, and your this is
-> > correct:
-> > 
-> > 1. ip4, sandboxed, bind port 0 -> should return EACCES (denied by
-> > landlock).
-> 
->   yep, adding rule with port 0 (for bind) returns EINVAL then
->   calling bind port 0 returns EACCES cause there is no rule with port 0.
-> > 
-> > > > > However, I think the current LSM API don't enable to infer this
-> > > random
-> > > > port because the LSM hook is called before a port is picked.  If this is
-> > > > correct, the best way to control port binding would be to always deny
-> > > > binding on port zero/random (when restricting port binding, whatever
-> > > > exception rules are in place). This explanation should be part of a
-> > > > comment for this specific exception.
-> > > 
-> > >   Yep, if some LSM rule (for bind) has been applied a with specific port,
-> > > other attemps to bind with zero/random ports would be refused by LSM
-> > > security checks.
-> > 
-> > To say it another way, we should not allow to add a rule with port 0 for
-> > LANDLOCK_ACCESS_NET_BIND_TCP, but return -EINVAL in this case. This
-> > limitation should be explained, documented and tested.
-> > 
-> > With (only) LANDLOCK_ACCESS_NET_CONNECT_TCP it should be allowed though
-> > (except if there is also LANDLOCK_ACCESS_NET_BIND_TCP) of course.
-> > Another test should cover the case with a new rule with these two access
-> > rights and port 0.
-> 
->  I think it's possible to have LANDLOCK_ACCESS_NET_CONNECT_TCP with port 0
-> with LANDLOCK_ACCESS_NET_BIND_TCP at the same time, cause
-> LANDLOCK_ACCESS_NET_BIND_TCP rule is allowed (by Landlock) with any other
-> port but 0.
+This patch (#2 of 3) should be dropped. Don't apply.
 
-It would mask the fact that port zero cannot be allowed, which could be
-possible one day. So for now we need to return EINVAL in this case.
+It will be solved differently by a patch from Florian.
+
+
+Thomas
+
+
+On Fri, 2023-09-15 at 17:54 +0200, Thomas Haller wrote:
+> The NFT_MSG_GETSETELEM_RESET command was only added to kernel
+> v6.4-rc3-764-g079cd633219d. Also, it doesn't work on Fedora 38
+> (6.4.14-200.fc38.x86_64), although that would appear to have the
+> feature. On CentOS-Stream-9 (5.14.0-354.el9.x86_64) the test passes.
+>=20
+> Note that this is not implemented via a re-usable feature detection.
+> Instead, we just in the middle of the test notice that it appears not
+> to
+> work, and abort (skip).
+>=20
+> [1]
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
+/?id=3D079cd633219d7298d087cd115c17682264244c18
+>=20
+> Signed-off-by: Thomas Haller <thaller@redhat.com>
+> ---
+> =C2=A0tests/shell/testcases/sets/reset_command_0 | 20 +++++++++++++++----=
+-
+> =C2=A01 file changed, 15 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/tests/shell/testcases/sets/reset_command_0
+> b/tests/shell/testcases/sets/reset_command_0
+> index ad2e16a7d274..a0f5ca017b0f 100755
+> --- a/tests/shell/testcases/sets/reset_command_0
+> +++ b/tests/shell/testcases/sets/reset_command_0
+> @@ -2,7 +2,7 @@
+> =C2=A0
+> =C2=A0set -e
+> =C2=A0
+> -trap '[[ $? -eq 0 ]] || echo FAIL' EXIT
+> +trap 'rc=3D"$?"; [ "$rc" -ne 0 -a "$rc" -ne 77 ] && echo FAIL' EXIT
+> =C2=A0
+> =C2=A0RULESET=3D"table t {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0set s {
+> @@ -36,11 +36,21 @@ expires_minutes() {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0sed -n 's/.*expires \([0-=
+9]*\)m.*/\1/p'
+> =C2=A0}
+> =C2=A0
+> -echo -n "get set elem matches reset set elem: "
+> =C2=A0elem=3D'element t s { 1.0.0.1 . udp . 53 }'
+> -[[ $($NFT "get $elem ; reset $elem" | \
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0grep 'elements =3D ' | drop_se=
+conds | uniq | wc -l) =3D=3D 1 ]]
+> -echo OK
+> +
+> +rc=3D0
+> +OUT=3D"$( $NFT "get $elem ; reset $elem" )" || rc=3D$?
+> +if [ "$rc" -ne 0 ] ; then
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0echo "Command \`nft \"get $ele=
+m ; reset $elem\"\` failed.
+> Assume reset is not supported. SKIP"
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0exit 77
+> +fi
+> +
+> +[ "$(printf '%s\n' "$OUT" | \
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 grep 'elements =3D ' | \
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 drop_seconds | \
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 uniq | \
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 wc -l)" =3D 1 ] || die "Unexpected output=
+ getting elements:
+> \`nft \"get $elem ; reset $elem\"\`"$'\nOutput\n>'"$OUT"'<'
+> +echo "get set elem matches reset set elem: OK"
+> =C2=A0
+> =C2=A0echo -n "counters and expiry are reset: "
+> =C2=A0NEW=3D$($NFT "get $elem")
+
