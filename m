@@ -2,45 +2,55 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AF11CD5BC0
-	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Sep 2023 13:44:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9238FCD5BBD
+	for <netfilter-devel@archiver.kernel.org>; Tue, 19 Sep 2023 13:44:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232459AbjISNoS (ORCPT
+        id S232527AbjISNoT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 19 Sep 2023 09:44:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41136 "EHLO
+        Tue, 19 Sep 2023 09:44:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232648AbjISNny (ORCPT
+        with ESMTP id S232642AbjISNny (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 19 Sep 2023 09:43:54 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8F32125
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Sep 2023 06:43:18 -0700 (PDT)
-Received: from [78.30.34.192] (port=35032 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C7ED1BC5
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Sep 2023 06:42:45 -0700 (PDT)
+Received: from [78.30.34.192] (port=36318 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qib0U-00Fxj3-T9; Tue, 19 Sep 2023 15:43:16 +0200
-Date:   Tue, 19 Sep 2023 15:43:14 +0200
+        id 1qiazx-00FxhA-Cd; Tue, 19 Sep 2023 15:42:43 +0200
+Date:   Tue, 19 Sep 2023 15:42:40 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Thomas Haller <thaller@redhat.com>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/1] netlink: fix leaking
- typeof_expr_data/typeof_expr_key in netlink_delinearize_set()
-Message-ID: <ZQmlctgHDx6U3T21@calendula>
-References: <20230914140952.4177765-1-thaller@redhat.com>
+Subject: Re: [PATCH nft 1/2] libnftables: drop gmp_init() and
+ mp_set_memory_functions()
+Message-ID: <ZQmlUExigKwdqDI6@calendula>
+References: <20230919123621.2770734-1-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230914140952.4177765-1-thaller@redhat.com>
+In-Reply-To: <20230919123621.2770734-1-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Sep 14, 2023 at 04:09:50PM +0200, Thomas Haller wrote:
-> There are various code paths that return without freeing typeof_expr_data
-> and typeof_expr_key. It's not at all obvious, that there isn't a leak
-> that way. Quite possibly there is a leak. Fix it, or at least make the
-> code more obviously correct.
+On Tue, Sep 19, 2023 at 02:36:16PM +0200, Thomas Haller wrote:
+> Setting global handles for libgmp via mp_set_memory_functions() is very
+> ugly. When we don't use mini-gmp, then potentially there are other users
+> of the library in the same process, and every process fighting about the
+> allocation functions is not gonna work.
+> 
+> It also means, we must not reset the allocation functions after somebody
+> already allocated GMP data with them. Which we cannot ensure, as we
+> don't know what other parts of the process are doing.
+> 
+> It's also unnecessary. The default allocation functions for gmp and
+> mini-gmp already abort the process on allocation failure ([1], [2]),
+> just like our xmalloc().
+> 
+> Just don't do this.
 
 Applied, thanks
