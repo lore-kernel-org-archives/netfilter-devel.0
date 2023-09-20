@@ -2,42 +2,42 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E3EC27C7B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28A1BC05024
 	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 20:57:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229606AbjITU5m (ORCPT
+        id S229777AbjITU5m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 20 Sep 2023 16:57:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37800 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229949AbjITU5k (ORCPT
+        with ESMTP id S229867AbjITU5k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 20 Sep 2023 16:57:40 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 637E0CE
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 13:57:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A617C2
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 13:57:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=ElU7Pr63tVEOxBtHuAk/cugvBWTjZ+s4vvKG9FGbfvU=; b=RDei1YpveXs/ZG8Iowtalu/LOc
-        9K03Qafc4VLaq+sOB17Ej8B6GQHWOXm6WdSQhTs9HKl9c+c7/lOLNo0FH9b8co7LsS3KHMr3HFRYv
-        5Z3kvh2DmCL9llot2r6dk9oZrCYogmPqWRitD/Qwq+aHN+f7Wg3D/IK4a+md9X+98q2wANTqHH/v5
-        gKy08R3qArXX1V1yLFKdb/Nx2/K/Q7DE45B7AUkGKMKbv3GhDuQDJwML5/+QjiKeaDRPzAOyBIzQ6
-        UOsiuLje0Y0WIlKMqlvx/hLKNOBddEkBy4cSkPHyAYLbwbAARIHWD5hUFXKEmYBehAmyUPLfaujgi
-        YEFckG4A==;
+        bh=b2zNxHrH+z/TvVcaGNx2kzdny7YeiOmkhO2aySM/Kgo=; b=kLYc4RNcnrq1oUPSegHSdFYqF4
+        lxleGf7iC3yyiL4qjA7KT8ro00tNB8pqp5gR25pbjGuRnZVfeHwJRl9X4cKvrdGZ5RTxH9qRsCzTC
+        1cmmzVfOV8U1MKRtAI77ewGesP8uj6VUePUy9Y2biR4oFQYX0aAAJPQ1Pe4jKRlg5DJQASvUFpHIq
+        QRNvxTAuzNQwaL4AzUMRRGAI1fz97KLRqORsj8ig09VOJ9KgeiWFF4TL0pZta1z8Jw1LlPXvATKOx
+        MzWtWVPrFh+ymr32wp4Mcrx7ijYsn9OKtqCJuxwS6qGSPRdsIZeqJFeM2NNxSSmpEsdcDa15zP6cF
+        2ly704Gg==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qj4GK-0007qK-Lq; Wed, 20 Sep 2023 22:57:32 +0200
+        id 1qj4GJ-0007q5-QJ; Wed, 20 Sep 2023 22:57:31 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 6/9] parser_json: Fix synproxy object mss/wscale parsing
-Date:   Wed, 20 Sep 2023 22:57:24 +0200
-Message-ID: <20230920205727.22103-7-phil@nwl.cc>
+Subject: [nft PATCH 1/9] parser_json: Catch wrong "reset" payload
+Date:   Wed, 20 Sep 2023 22:57:19 +0200
+Message-ID: <20230920205727.22103-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230920205727.22103-1-phil@nwl.cc>
 References: <20230920205727.22103-1-phil@nwl.cc>
@@ -47,43 +47,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The fields are 16 and 8 bits in size, introduce temporary variables to
-parse into.
+The statement happily accepted any valid expression as payload and
+assumed it to be a tcpopt expression (actually, a special case of
+exthdr). Add a check to make sure this is the case.
 
-Fixes: f44ab88b1088e ("src: add synproxy stateful object support")
+Standard syntax does not provide this flexibility, so no need to have
+the check there as well.
+
+Fixes: 5d837d270d5a8 ("src: add tcp option reset support")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/parser_json.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ src/parser_json.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/src/parser_json.c b/src/parser_json.c
-index 2b244783c442d..8ec11083f463c 100644
+index 4ea5b4326a900..242f05eece58c 100644
 --- a/src/parser_json.c
 +++ b/src/parser_json.c
-@@ -3447,7 +3447,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
+@@ -2797,7 +2797,14 @@ static struct stmt *json_parse_optstrip_stmt(struct json_ctx *ctx,
  {
- 	const char *family, *tmp, *rate_unit = "packets", *burst_unit = "bytes";
- 	uint32_t l3proto = NFPROTO_UNSPEC;
--	int inv = 0, flags = 0, i;
-+	int inv = 0, flags = 0, i, j;
- 	struct handle h = { 0 };
- 	struct obj *obj;
- 	json_t *jflags;
-@@ -3634,11 +3634,12 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- 	case CMD_OBJ_SYNPROXY:
- 		obj->type = NFT_OBJECT_SYNPROXY;
- 		if (json_unpack_err(ctx, root, "{s:i, s:i}",
--				    "mss", &obj->synproxy.mss,
--				    "wscale", &obj->synproxy.wscale)) {
-+				    "mss", &i, "wscale", &j)) {
- 			obj_free(obj);
- 			return NULL;
- 		}
-+		obj->synproxy.mss = i;
-+		obj->synproxy.wscale = j;
- 		obj->synproxy.flags |= NF_SYNPROXY_OPT_MSS;
- 		obj->synproxy.flags |= NF_SYNPROXY_OPT_WSCALE;
- 		if (!json_unpack(root, "{s:o}", "flags", &jflags)) {
+ 	struct expr *expr = json_parse_expr(ctx, value);
+ 
+-	return expr ? optstrip_stmt_alloc(int_loc, expr) : NULL;
++	if (!expr ||
++	    expr->etype != EXPR_EXTHDR ||
++	    expr->exthdr.op != NFT_EXTHDR_OP_TCPOPT) {
++		json_error(ctx, "Illegal TCP optstrip argument");
++		return NULL;
++	}
++
++	return optstrip_stmt_alloc(int_loc, expr);
+ }
+ 
+ static struct stmt *json_parse_stmt(struct json_ctx *ctx, json_t *root)
 -- 
 2.41.0
 
