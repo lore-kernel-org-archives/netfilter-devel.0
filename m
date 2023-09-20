@@ -2,272 +2,159 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13E28C04FCD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 18:10:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4127C04FD0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 18:13:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229594AbjITSKr (ORCPT
+        id S229698AbjITSN3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Sep 2023 14:10:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33646 "EHLO
+        Wed, 20 Sep 2023 14:13:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229639AbjITSKq (ORCPT
+        with ESMTP id S229704AbjITSN2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 14:10:46 -0400
+        Wed, 20 Sep 2023 14:13:28 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 622EAC9
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 11:10:40 -0700 (PDT)
-Received: from [78.30.34.192] (port=43504 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF6D4C9
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 11:13:22 -0700 (PDT)
+Received: from [78.30.34.192] (port=43944 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qj1el-0053KB-HI; Wed, 20 Sep 2023 20:10:38 +0200
-Date:   Wed, 20 Sep 2023 20:10:34 +0200
+        id 1qj1hO-0055Q7-V4; Wed, 20 Sep 2023 20:13:21 +0200
+Date:   Wed, 20 Sep 2023 20:13:18 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Thomas Haller <thaller@redhat.com>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 3/9] datatype: drop flags field from datatype
-Message-ID: <ZQs1msEk15D687Rn@calendula>
+Subject: Re: [PATCH nft 7/9] expression: cleanup expr_ops_by_type() and
+ handle u32 input
+Message-ID: <ZQs2Pmq6J5ZdXDQb@calendula>
 References: <20230920142958.566615-1-thaller@redhat.com>
- <20230920142958.566615-4-thaller@redhat.com>
+ <20230920142958.566615-8-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230920142958.566615-4-thaller@redhat.com>
+In-Reply-To: <20230920142958.566615-8-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 20, 2023 at 04:26:04PM +0200, Thomas Haller wrote:
-> Flags are not always bad. For example, as a function argument they allow
-> easier extension in the future. But with datatype's "flags" argument and
-> enum datatype_flags there are no advantages of this approach.
+On Wed, Sep 20, 2023 at 04:26:08PM +0200, Thomas Haller wrote:
+> Be more careful about casting an uint32_t value to "enum expr_types" and
+> make fewer assumptions about the underlying integer type of the enum.
+> Instead, be clear about where we have an untrusted uint32_t from netlink
+> and an enum. Rename expr_ops_by_type() to expr_ops_by_type_u32() to make
+> this clearer. Later we might make the enum as packed, when this starts
+> to matter more.
 > 
-> - replace DTYPE_F_PREFIX with a "bool f_prefix" field. This could even
->   be a bool:1 bitfield if we cared to represent the information with
->   one bit only. For now it's not done because that would not help reducing
->   the size of the struct, so a bitfield is less preferable.
-> 
-> - instead of DTYPE_F_ALLOC, use the refcnt of zero to represent static
->   instances. Drop this redundant flag.
-
-Not sure I want to rely on refcnt to zero to identify dynamic
-datatypes. I think we need to consolidate datatype_set() to be used
-not only where this deals with dynamic datatypes, it might help
-improve traceability of datatype assignment.
-
-> - move the integer field "refcnt" in struct datatype beside other fields
->   of similar size/alignment. This makes the size of the struct by one
->   pointer size smaller (on x86-64).
+> Also, only the code path expr_ops() wants strict validation and assert
+> against valid enum values. Move the assertion out of
+> __expr_ops_by_type(). Then expr_ops_by_type_u32() does not need to
+> duplicate the handling of EXPR_INVALID. We still need to duplicate the
+> check against EXPR_MAX, to ensure that the uint32_t value can be cast to
+> an enum value.
 > 
 > Signed-off-by: Thomas Haller <thaller@redhat.com>
 > ---
->  include/datatype.h        | 24 +++++++++---------------
->  src/datatype.c            | 20 ++++++++------------
->  src/meta.c                |  2 +-
->  src/netlink_delinearize.c |  2 +-
->  src/rt.c                  |  2 +-
->  src/segtree.c             |  5 ++---
->  6 files changed, 22 insertions(+), 33 deletions(-)
+>  include/expression.h |  2 +-
+>  src/expression.c     | 23 +++++++++++------------
+>  src/netlink.c        |  4 ++--
+>  3 files changed, 14 insertions(+), 15 deletions(-)
 > 
-> diff --git a/include/datatype.h b/include/datatype.h
-> index 52a2e943b252..5b85adc15857 100644
-> --- a/include/datatype.h
-> +++ b/include/datatype.h
-> @@ -120,24 +120,13 @@ enum byteorder {
+> diff --git a/include/expression.h b/include/expression.h
+> index 469f41ecd613..aede223db741 100644
+> --- a/include/expression.h
+> +++ b/include/expression.h
+> @@ -189,7 +189,7 @@ struct expr_ops {
+>  };
 >  
->  struct expr;
+>  const struct expr_ops *expr_ops(const struct expr *e);
+> -const struct expr_ops *expr_ops_by_type(enum expr_types etype);
+> +const struct expr_ops *expr_ops_by_type_u32(uint32_t value);
 >  
-> -/**
-> - * enum datatype_flags
-> - *
-> - * @DTYPE_F_ALLOC:		datatype is dynamically allocated
-> - * @DTYPE_F_PREFIX:		preferred representation for ranges is a prefix
-> - */
-> -enum datatype_flags {
-> -	DTYPE_F_ALLOC		= (1 << 0),
-> -	DTYPE_F_PREFIX		= (1 << 1),
-> -};
-> -
->  struct parse_ctx;
 >  /**
->   * struct datatype
->   *
->   * @type:	numeric identifier
->   * @byteorder:	byteorder of type (non-basetypes only)
-> - * @flags:	flags
-> + * @f_prefix:	preferred representation for ranges is a prefix
->   * @size:	type size (fixed sized non-basetypes only)
->   * @subtypes:	number of subtypes (concat type)
->   * @name:	type name
-> @@ -147,14 +136,20 @@ struct parse_ctx;
->   * @print:	function to print a constant of this type
->   * @parse:	function to parse a symbol and return an expression
->   * @sym_tbl:	symbol table for this type
-> - * @refcnt:	reference counter (only for DTYPE_F_ALLOC)
-> + * @refcnt:	reference counter for dynamically allocated instances.
->   */
->  struct datatype {
->  	uint32_t			type;
->  	enum byteorder			byteorder;
-> -	unsigned int			flags;
-> +	bool				f_prefix;
->  	unsigned int			size;
->  	unsigned int			subtypes;
-> +
-> +	/* Refcount for dynamically allocated instances. For static instances
-> +	 * this is zero (get() and free() are NOPs).
-> +	 */
-> +	unsigned int			refcnt;
-> +
->  	const char			*name;
->  	const char			*desc;
->  	const struct datatype		*basetype;
-> @@ -169,7 +164,6 @@ struct datatype {
->  	struct error_record		*(*err)(const struct expr *sym);
->  	void				(*describe)(struct output_ctx *octx);
->  	const struct symbol_table	*sym_tbl;
-> -	unsigned int			refcnt;
->  };
+>   * enum expr_flags
+> diff --git a/src/expression.c b/src/expression.c
+> index 87d5a9fcbe09..320c02be522c 100644
+> --- a/src/expression.c
+> +++ b/src/expression.c
+> @@ -995,7 +995,7 @@ static struct expr *concat_expr_parse_udata(const struct nftnl_udata *attr)
+>  			goto err_free;
 >  
->  extern const struct datatype *datatype_lookup(enum datatypes type);
-> diff --git a/src/datatype.c b/src/datatype.c
-> index 70c84846f70e..c5d88d9a90b6 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -641,7 +641,7 @@ const struct datatype ipaddr_type = {
->  	.basetype	= &integer_type,
->  	.print		= ipaddr_type_print,
->  	.parse		= ipaddr_type_parse,
-> -	.flags		= DTYPE_F_PREFIX,
-> +	.f_prefix	= true,
->  };
+>  		etype = nftnl_udata_get_u32(nest_ud[NFTNL_UDATA_SET_KEY_CONCAT_SUB_TYPE]);
+> -		ops = expr_ops_by_type(etype);
+> +		ops = expr_ops_by_type_u32(etype);
+>  		if (!ops || !ops->parse_udata)
+>  			goto err_free;
 >  
->  static void ip6addr_type_print(const struct expr *expr, struct output_ctx *octx)
-> @@ -708,7 +708,7 @@ const struct datatype ip6addr_type = {
->  	.basetype	= &integer_type,
->  	.print		= ip6addr_type_print,
->  	.parse		= ip6addr_type_parse,
-> -	.flags		= DTYPE_F_PREFIX,
-> +	.f_prefix	= true,
->  };
+> @@ -1509,9 +1509,7 @@ void range_expr_value_high(mpz_t rop, const struct expr *expr)
+>  static const struct expr_ops *__expr_ops_by_type(enum expr_types etype)
+>  {
+>  	switch (etype) {
+> -	case EXPR_INVALID:
+> -		BUG("Invalid expression ops requested");
+> -		break;
+> +	case EXPR_INVALID: break;
+>  	case EXPR_VERDICT: return &verdict_expr_ops;
+>  	case EXPR_SYMBOL: return &symbol_expr_ops;
+>  	case EXPR_VARIABLE: return &variable_expr_ops;
+> @@ -1543,21 +1541,22 @@ static const struct expr_ops *__expr_ops_by_type(enum expr_types etype)
+>  	case EXPR_FLAGCMP: return &flagcmp_expr_ops;
+>  	}
 >  
->  static void inet_protocol_type_print(const struct expr *expr,
-> @@ -944,7 +944,7 @@ const struct datatype mark_type = {
->  	.print		= mark_type_print,
->  	.json		= mark_type_json,
->  	.parse		= mark_type_parse,
-> -	.flags		= DTYPE_F_PREFIX,
-> +	.f_prefix	= true,
->  };
->  
->  static const struct symbol_table icmp_code_tbl = {
-> @@ -1203,9 +1203,7 @@ static struct datatype *datatype_alloc(void)
->  	struct datatype *dtype;
->  
->  	dtype = xzalloc(sizeof(*dtype));
-> -	dtype->flags = DTYPE_F_ALLOC;
->  	dtype->refcnt = 1;
-> -
->  	return dtype;
+> -	BUG("Unknown expression type %d\n", etype);
+> +	return NULL;
 >  }
 >  
-> @@ -1215,10 +1213,10 @@ struct datatype *datatype_get(const struct datatype *ptr)
+>  const struct expr_ops *expr_ops(const struct expr *e)
+>  {
+> -	return __expr_ops_by_type(e->etype);
+> +	const struct expr_ops *ops;
+> +
+> +	ops = __expr_ops_by_type(e->etype);
+> +	if (!ops)
+> +		BUG("Unknown expression type %d\n", e->etype);
+> +	return ops;
+>  }
 >  
->  	if (!dtype)
+> -const struct expr_ops *expr_ops_by_type(enum expr_types value)
+> +const struct expr_ops *expr_ops_by_type_u32(uint32_t value)
+>  {
+> -	/* value might come from unreliable source, such as "udata"
+> -	 * annotation of set keys.  Avoid BUG() assertion.
+> -	 */
+> -	if (value == EXPR_INVALID || value > EXPR_MAX)
+> +	if (value > (uint32_t) EXPR_MAX)
+
+I think this still allows a third party to set EXPR_INVALID in the
+netlink userdata attribute, right?
+
 >  		return NULL;
-> -	if (!(dtype->flags & DTYPE_F_ALLOC))
-> -		return dtype;
->  
-> -	dtype->refcnt++;
-> +	if (dtype->refcnt > 0)
-> +		dtype->refcnt++;
-> +
->  	return dtype;
+> -
+>  	return __expr_ops_by_type(value);
 >  }
+> diff --git a/src/netlink.c b/src/netlink.c
+> index 70ebf382b14f..8af579c7b778 100644
+> --- a/src/netlink.c
+> +++ b/src/netlink.c
+> @@ -878,8 +878,8 @@ static struct expr *set_make_key(const struct nftnl_udata *attr)
+>  {
+>  	const struct nftnl_udata *ud[NFTNL_UDATA_SET_TYPEOF_MAX + 1] = {};
+>  	const struct expr_ops *ops;
+> -	enum expr_types etype;
+>  	struct expr *expr;
+> +	uint32_t etype;
+>  	int err;
 >  
-> @@ -1245,7 +1243,6 @@ struct datatype *datatype_clone(const struct datatype *orig_dtype)
->  	*dtype = *orig_dtype;
->  	dtype->name = xstrdup(orig_dtype->name);
->  	dtype->desc = xstrdup(orig_dtype->desc);
-> -	dtype->flags = DTYPE_F_ALLOC | orig_dtype->flags;
->  	dtype->refcnt = 1;
+>  	if (!attr)
+> @@ -895,7 +895,7 @@ static struct expr *set_make_key(const struct nftnl_udata *attr)
+>  		return NULL;
 >  
->  	return dtype;
-> @@ -1257,10 +1254,9 @@ void datatype_free(const struct datatype *ptr)
+>  	etype = nftnl_udata_get_u32(ud[NFTNL_UDATA_SET_TYPEOF_EXPR]);
+> -	ops = expr_ops_by_type(etype);
+> +	ops = expr_ops_by_type_u32(etype);
+>  	if (!ops)
+>  		return NULL;
 >  
->  	if (!dtype)
->  		return;
-> -	if (!(dtype->flags & DTYPE_F_ALLOC))
-> -		return;
->  
-> -	assert(dtype->refcnt != 0);
-> +	if (dtype->refcnt == 0)
-> +		return;
->  
->  	if (--dtype->refcnt > 0)
->  		return;
-> diff --git a/src/meta.c b/src/meta.c
-> index 181e111cbbdc..7bf749b34fb4 100644
-> --- a/src/meta.c
-> +++ b/src/meta.c
-> @@ -368,7 +368,7 @@ const struct datatype devgroup_type = {
->  	.print		= devgroup_type_print,
->  	.json		= devgroup_type_json,
->  	.parse		= devgroup_type_parse,
-> -	.flags		= DTYPE_F_PREFIX,
-> +	.f_prefix	= true,
->  };
->  
->  const struct datatype ifname_type = {
-> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> index 41cb37a3ccb3..f3939be2d063 100644
-> --- a/src/netlink_delinearize.c
-> +++ b/src/netlink_delinearize.c
-> @@ -2568,7 +2568,7 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx,
->  		default:
->  			break;
->  		}
-> -	} else if (binop->left->dtype->flags & DTYPE_F_PREFIX &&
-> +	} else if (binop->left->dtype->f_prefix &&
->  		   binop->op == OP_AND && expr->right->etype == EXPR_VALUE &&
->  		   expr_mask_is_prefix(binop->right)) {
->  		expr->left = expr_get(binop->left);
-> diff --git a/src/rt.c b/src/rt.c
-> index 9ddcb210eaad..ccea0aa9bc44 100644
-> --- a/src/rt.c
-> +++ b/src/rt.c
-> @@ -55,7 +55,7 @@ const struct datatype realm_type = {
->  	.basetype	= &integer_type,
->  	.print		= realm_type_print,
->  	.parse		= realm_type_parse,
-> -	.flags		= DTYPE_F_PREFIX,
-> +	.f_prefix	= true,
->  };
->  
->  const struct rt_template rt_templates[] = {
-> diff --git a/src/segtree.c b/src/segtree.c
-> index 0a12a0cd5151..637457b087b9 100644
-> --- a/src/segtree.c
-> +++ b/src/segtree.c
-> @@ -402,8 +402,7 @@ void concat_range_aggregate(struct expr *set)
->  				goto next;
->  			}
->  
-> -			if (prefix_len < 0 ||
-> -			    !(r1->dtype->flags & DTYPE_F_PREFIX)) {
-> +			if (prefix_len < 0 || !r1->dtype->f_prefix) {
->  				tmp = range_expr_alloc(&r1->location, r1,
->  						       r2);
->  
-> @@ -518,7 +517,7 @@ add_interval(struct expr *set, struct expr *low, struct expr *i)
->  		expr = expr_get(low);
->  	} else if (range_is_prefix(range) && !mpz_cmp_ui(p, 0)) {
->  
-> -		if (i->dtype->flags & DTYPE_F_PREFIX)
-> +		if (i->dtype->f_prefix)
->  			expr = interval_to_prefix(low, i, range);
->  		else if (expr_basetype(i)->type == TYPE_STRING)
->  			expr = interval_to_string(low, i, range);
 > -- 
 > 2.41.0
 > 
