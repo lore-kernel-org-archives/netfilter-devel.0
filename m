@@ -2,116 +2,109 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CEECC04FD1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 18:22:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 565EAC04FF1
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 19:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229687AbjITSXB (ORCPT
+        id S230059AbjITTYr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Sep 2023 14:23:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45762 "EHLO
+        Wed, 20 Sep 2023 15:24:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbjITSXA (ORCPT
+        with ESMTP id S230078AbjITTYo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 14:23:00 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C495ECF
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 11:22:52 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qj1qc-0006Ju-JZ; Wed, 20 Sep 2023 20:22:50 +0200
-Date:   Wed, 20 Sep 2023 20:22:50 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 3/4] all: add free_const() and use it instead of
- xfree()
-Message-ID: <ZQs4eu74k86+7FK0@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20230920131554.204899-1-thaller@redhat.com>
- <20230920131554.204899-4-thaller@redhat.com>
- <ZQr+F7ChyFfArBYQ@orbyte.nwl.cc>
- <ZQsYf3moTtXQytXX@calendula>
- <ZQsitnx/cPf2cPk0@orbyte.nwl.cc>
- <754c07f7fc0a44d3619e51993c7a891a064ccdae.camel@redhat.com>
+        Wed, 20 Sep 2023 15:24:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECCBCC9
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 12:23:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1695237831;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=9dvld/WPd0EFVWG7SD8/boCPVhylmIiN190h8yVQI0Y=;
+        b=Ob5WQvkHBq064TtyYusg+RmeVRtgceCTVx5+LRcJDjnVCoCDagoYTZsZAQhro+cJktSt4Q
+        1r8At8b5o+7O+qC0hYKfsWwA1ugmI9mcflBTYR8yng4ft1gBLANo4GEZ3jqzqrEw25ZokZ
+        478hMqAa1Dczzpaa/JheJ6vTyy3Ygcw=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-610-xfqWrLVkOweljSavmOxJZw-1; Wed, 20 Sep 2023 15:23:49 -0400
+X-MC-Unique: xfqWrLVkOweljSavmOxJZw-1
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-31ff3e943e0so8772f8f.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 12:23:49 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695237828; x=1695842628;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=9dvld/WPd0EFVWG7SD8/boCPVhylmIiN190h8yVQI0Y=;
+        b=RgzmvdZrnpEsax2I0Jfmpr/EfTkpRwZNT8wt7UQsQYvOMOgmVCMTQpF/I8TqelvVu+
+         1HN4FUWJFF7m+i0aglHFzN0ROs88p5PTan5KFldli7lHhe6lUVsoNVTw/rGJucbufH/8
+         coO1wtc+5nsXxmhij9MX2jJKCmLro6UFYZoqzFjaVNXWjAO4EfTKcEaaip+kpiyM1rr7
+         xuficY4wp44mwVTyQq1hwp4E1eG7deMTdgoYfa5cyRwk13lMXbdjMzjHEHmA8I8OTZ3f
+         s736VdEtAnYZiHmG6wNBU5jqvhQG9sveTrxMcJMLHTthK+Y0zRSxRJY2klSFAbwXHOhs
+         TZgw==
+X-Gm-Message-State: AOJu0YyXkcMecg/BiqX0Ad+Jz0+v+LEt59YQ0bpFqaQsNR6TUDVkbqQg
+        Vyotcw+7OZwYDCjkbEF54g3uMlRdEGb696rrqxF3Xm0/UwGqfNeMTcwY5kpacDP0Am/smyf5Va/
+        V4S1T1dO3yjPYRF9v9Qk0i0e4eou7u85pf0d7
+X-Received: by 2002:a5d:6a8c:0:b0:31a:e54e:c790 with SMTP id s12-20020a5d6a8c000000b0031ae54ec790mr3069997wru.6.1695237828100;
+        Wed, 20 Sep 2023 12:23:48 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFTI7SKl1kz63OmGuqgRADMsEj3ronYkaEfZUdohfeklECj4Xi7R6Sf3PK5kCLpbHQEArkOgw==
+X-Received: by 2002:a5d:6a8c:0:b0:31a:e54e:c790 with SMTP id s12-20020a5d6a8c000000b0031ae54ec790mr3069980wru.6.1695237827697;
+        Wed, 20 Sep 2023 12:23:47 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id bw17-20020a0560001f9100b003217cbab88bsm1095546wrb.16.2023.09.20.12.23.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 20 Sep 2023 12:23:47 -0700 (PDT)
+Message-ID: <546258d1a67ca455e0f7fdcce4c58c587324e798.camel@redhat.com>
+Subject: Re: [PATCH nft 3/9] datatype: drop flags field from datatype
+From:   Thomas Haller <thaller@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Wed, 20 Sep 2023 21:23:46 +0200
+In-Reply-To: <ZQs1msEk15D687Rn@calendula>
+References: <20230920142958.566615-1-thaller@redhat.com>
+         <20230920142958.566615-4-thaller@redhat.com> <ZQs1msEk15D687Rn@calendula>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <754c07f7fc0a44d3619e51993c7a891a064ccdae.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 20, 2023 at 08:03:17PM +0200, Thomas Haller wrote:
-> On Wed, 2023-09-20 at 18:49 +0200, Phil Sutter wrote:
-> > On Wed, Sep 20, 2023 at 06:06:23PM +0200, Pablo Neira Ayuso wrote:
-> > > On Wed, Sep 20, 2023 at 04:13:43PM +0200, Phil Sutter wrote:
-> > > > On Wed, Sep 20, 2023 at 03:13:40PM +0200, Thomas Haller wrote:
-> > > > [...]
-> > > > > There are many places that rightly cast away const during free.
-> > > > > But not
-> > > > > all of them. Add a free_const() macro, which is like free(),
-> > > > > but accepts
-> > > > > const pointers. We should always make an intentional choice
-> > > > > whether to
-> > > > > use free() or free_const(). Having a free_const() macro makes
-> > > > > this very
-> > > > > common choice clearer, instead of adding a (void*) cast at many
-> > > > > places.
-> > > > 
-> > > > I wonder whether pointers to allocated data should be const in
-> > > > the first
-> > > > place. Maybe I miss the point here? Looking at flow offload
-> > > > statement
-> > > > for instance, should 'table_name' not be 'char *' instead of
-> > > > using this
-> > > > free_const() to free it?
-> > > 
-> > > The const here tells us that this string is set once and it gets
-> > > never
-> > > updated again, which provides useful information when reading the
-> > > code IMO.
-> > 
-> > That seems like reasonable rationale. I like to declare function
-> > arguments as const too in order to mark them as not being altered by
-> > the
-> > function.
-> > 
-> > With strings, I find it odd to do:
-> > 
-> > const char *buf = strdup("foo");
-> > free((void *)buf);
-> > 
-> > > I interpret from Phil's words that it would be better to
-> > > consolidate
-> > > this to have one single free call, in that direction, I agree.
-> > 
-> > No, I was just wondering why we have this need for free_const() in
-> > the
-> > first place (i.e., why we declare pointers as const if we
-> > allocate/free
-> > them).
-> 
-> 
-> I think that we use free_const() is correct.
-> 
-> 
-> Look at "struct datatype", which are either immutable global instances,
-> or heap allocated (and ref-counted). For the most part, we want to
-> treat these instances (both constant and allocated) as immutable, and
-> the "const" specifier expresses that well.
+On Wed, 2023-09-20 at 20:10 +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 20, 2023 at 04:26:04PM +0200, Thomas Haller wrote:
+> > Flags are not always bad. For example, as a function argument they
+> > allow
+> > easier extension in the future. But with datatype's "flags"
+> > argument and
+> > enum datatype_flags there are no advantages of this approach.
+> >=20
+> > - replace DTYPE_F_PREFIX with a "bool f_prefix" field. This could
+> > even
+> > =C2=A0 be a bool:1 bitfield if we cared to represent the information
+> > with
+> > =C2=A0 one bit only. For now it's not done because that would not help
+> > reducing
+> > =C2=A0 the size of the struct, so a bitfield is less preferable.
+> >=20
+> > - instead of DTYPE_F_ALLOC, use the refcnt of zero to represent
+> > static
+> > =C2=A0 instances. Drop this redundant flag.
+>=20
+> Not sure I want to rely on refcnt to zero to identify dynamic
+> datatypes. I think we need to consolidate datatype_set() to be used
+> not only where this deals with dynamic datatypes, it might help
+> improve traceability of datatype assignment.
 
-So why doesn't datatype_get() return a const pointer then? I don't find
-struct datatype a particularly good example here: datatype_free() does
-not require free_const() at all.
+I don't understand. Could you elaborate about datatype_set()?
 
-BTW: I found two lines in src/netlink.c reading:
+Btw, for dynamically allocated instances the refcnt is always positive,
+and for static ones it's always zero. The DTYPE_F_ALLOC flag is
+redundant.
 
-| datatype_free(datatype_get(dtype));
 
-Aren't those just fancy nops?
+Thomas
 
-Cheers, Phil
