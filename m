@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6656CE79AD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 08:42:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 838CECE79AF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 08:42:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233718AbjITImX (ORCPT
+        id S233629AbjITImY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Sep 2023 04:42:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57952 "EHLO
+        Wed, 20 Sep 2023 04:42:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232034AbjITImS (ORCPT
+        with ESMTP id S233349AbjITImW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 04:42:18 -0400
+        Wed, 20 Sep 2023 04:42:22 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A428A1;
-        Wed, 20 Sep 2023 01:42:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3144B93;
+        Wed, 20 Sep 2023 01:42:17 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qismf-0004wx-0I; Wed, 20 Sep 2023 10:42:09 +0200
+        id 1qismj-0004xM-2C; Wed, 20 Sep 2023 10:42:13 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -26,10 +26,11 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net 2/3] netfilter: nf_tables: fix memleak when more than 255 elements expired
-Date:   Wed, 20 Sep 2023 10:41:50 +0200
-Message-ID: <20230920084156.4192-3-fw@strlen.de>
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Kyle Zeng <zengyhkyle@gmail.com>
+Subject: [PATCH net 3/3] netfilter: ipset: Fix race between IPSET_CMD_CREATE and IPSET_CMD_SWAP
+Date:   Wed, 20 Sep 2023 10:41:51 +0200
+Message-ID: <20230920084156.4192-4-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230920084156.4192-1-fw@strlen.de>
 References: <20230920084156.4192-1-fw@strlen.de>
@@ -39,79 +40,58 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When more than 255 elements expired we're supposed to switch to a new gc
-container structure.
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-This never happens: u8 type will wrap before reaching the boundary
-and nft_trans_gc_space() always returns true.
+Kyle Zeng reported that there is a race between IPSET_CMD_ADD and IPSET_CMD_SWAP
+in netfilter/ip_set, which can lead to the invocation of `__ip_set_put` on a
+wrong `set`, triggering the `BUG_ON(set->ref == 0);` check in it.
 
-This means we recycle the initial gc container structure and
-lose track of the elements that came before.
+The race is caused by using the wrong reference counter, i.e. the ref counter instead
+of ref_netlink.
 
-While at it, don't deref 'gc' after we've passed it to call_rcu.
-
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 24e227896bbf ("netfilter: ipset: Add schedule point in call_ad().")
+Reported-by: Kyle Zeng <zengyhkyle@gmail.com>
+Closes: https://lore.kernel.org/netfilter-devel/ZPZqetxOmH+w%2Fmyc@westworld/#r
+Tested-by: Kyle Zeng <zengyhkyle@gmail.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 10 ++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index a4455f4995ab..7c816359d5a9 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1682,7 +1682,7 @@ struct nft_trans_gc {
- 	struct net		*net;
- 	struct nft_set		*set;
- 	u32			seq;
--	u8			count;
-+	u16			count;
- 	void			*priv[NFT_TRANS_GC_BATCHCOUNT];
- 	struct rcu_head		rcu;
- };
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a3680638ec60..4356189360fb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9579,12 +9579,15 @@ static int nft_trans_gc_space(struct nft_trans_gc *trans)
- struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
- 					      unsigned int gc_seq, gfp_t gfp)
- {
-+	struct nft_set *set;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index e564b5174261..35d2f9c9ada0 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -682,6 +682,14 @@ __ip_set_put(struct ip_set *set)
+ /* set->ref can be swapped out by ip_set_swap, netlink events (like dump) need
+  * a separate reference counter
+  */
++static void
++__ip_set_get_netlink(struct ip_set *set)
++{
++	write_lock_bh(&ip_set_ref_lock);
++	set->ref_netlink++;
++	write_unlock_bh(&ip_set_ref_lock);
++}
 +
- 	if (nft_trans_gc_space(gc))
- 		return gc;
- 
-+	set = gc->set;
- 	nft_trans_gc_queue_work(gc);
- 
--	return nft_trans_gc_alloc(gc->set, gc_seq, gfp);
-+	return nft_trans_gc_alloc(set, gc_seq, gfp);
- }
- 
- void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
-@@ -9599,15 +9602,18 @@ void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
- 
- struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp)
+ static void
+ __ip_set_put_netlink(struct ip_set *set)
  {
-+	struct nft_set *set;
-+
- 	if (WARN_ON_ONCE(!lockdep_commit_lock_is_held(gc->net)))
- 		return NULL;
+@@ -1693,11 +1701,11 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
  
- 	if (nft_trans_gc_space(gc))
- 		return gc;
+ 	do {
+ 		if (retried) {
+-			__ip_set_get(set);
++			__ip_set_get_netlink(set);
+ 			nfnl_unlock(NFNL_SUBSYS_IPSET);
+ 			cond_resched();
+ 			nfnl_lock(NFNL_SUBSYS_IPSET);
+-			__ip_set_put(set);
++			__ip_set_put_netlink(set);
+ 		}
  
-+	set = gc->set;
- 	call_rcu(&gc->rcu, nft_trans_gc_trans_free);
- 
--	return nft_trans_gc_alloc(gc->set, 0, gfp);
-+	return nft_trans_gc_alloc(set, 0, gfp);
- }
- 
- void nft_trans_gc_queue_sync_done(struct nft_trans_gc *trans)
+ 		ip_set_lock(set);
 -- 
 2.41.0
 
