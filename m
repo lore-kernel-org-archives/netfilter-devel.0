@@ -2,67 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 835CCCE79CE
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 11:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE3EECE79CF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 12:10:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234234AbjITLaO (ORCPT
+        id S235355AbjITMKc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Sep 2023 07:30:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57430 "EHLO
+        Wed, 20 Sep 2023 08:10:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234271AbjITLaN (ORCPT
+        with ESMTP id S235326AbjITMKb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 07:30:13 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80CEEA9;
-        Wed, 20 Sep 2023 04:30:07 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id 1B3505939DCA9; Wed, 20 Sep 2023 13:30:06 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id 155D660BDEC6D;
-        Wed, 20 Sep 2023 13:30:06 +0200 (CEST)
-Date:   Wed, 20 Sep 2023 13:30:06 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [ANNOUNCE] ipset 7.18 released
-In-Reply-To: <382279q3-6on5-32rq-po59-6r18os6934n9@vanv.qr>
-Message-ID: <0r045rnn-70s8-34pq-o5o3-nr3q48n9sq68@vanv.qr>
-References: <55c2bf9d-ec58-8db-e457-8a36ebbbc4c0@blackhole.kfki.hu> <382279q3-6on5-32rq-po59-6r18os6934n9@vanv.qr>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+        Wed, 20 Sep 2023 08:10:31 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EC18C2;
+        Wed, 20 Sep 2023 05:10:18 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97869C433C8;
+        Wed, 20 Sep 2023 12:10:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1695211817;
+        bh=rjyEXmzBHzrlOdyaV9VlkgNNFUlZRT2zJepPQSHUt1w=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=bM5gIWpA1zi8onoXZzIPOoUMrJgWn8ckUiT1alpYsoZ5f1w5qhc1UcTJE/SmQJEXa
+         eF8dS0FyJW0aOUqgvZJkqJslC03Mv3BGjycdmK+eQZ10p/sogl9ZI4TSTHcEHq6Me4
+         LaCI3KFrCmIX6ET96cY9qJZbt7XxUZez51EEcGSE=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        patches@lists.linux.dev, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4.19 047/273] netfilter: nf_tables: missing NFT_TRANS_PREPARE_ERROR in flowtable deactivatation
+Date:   Wed, 20 Sep 2023 13:28:07 +0200
+Message-ID: <20230920112847.872366034@linuxfoundation.org>
+X-Mailer: git-send-email 2.42.0
+In-Reply-To: <20230920112846.440597133@linuxfoundation.org>
+References: <20230920112846.440597133@linuxfoundation.org>
+User-Agent: quilt/0.67
+X-stable: review
+X-Patchwork-Hint: ignore
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+4.19-stable review patch.  If anyone has any objections, please let me know.
 
-On Wednesday 2023-09-20 13:20, Jan Engelhardt wrote:
->On Tuesday 2023-09-19 20:26, Jozsef Kadlecsik wrote:
->>
->>I'm happy to announce ipset 7.18, which brings a few fixes, backports, 
->>tests suite fixes and json output support.
->
->The installation of the pkgconfig file is now broken.
->
->>  - lib/Makefile.am: fix pkgconfig dir (Sam James)
->
->Aaaaagh.. that change completely broke installation and must be reverted.
+------------------
 
-commit 326932be0c4f47756f9809cad5a103ac310f700d
-Author: Sam James <sam@gentoo.org>
-Date:   Sat Jan 28 19:23:54 2023 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-    lib/Makefile.am: fix pkgconfig dir
+commit 26b5a5712eb85e253724e56a54c17f8519bd8e4e upstream.
 
-    Signed-off-by: Sam James <sam@gentoo.org>
-    Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Missing NFT_TRANS_PREPARE_ERROR in 1df28fde1270 ("netfilter: nf_tables: add
+NFT_TRANS_PREPARE_ERROR to deal with bound set/chain") in 4.19.
 
-Can I just take a moment to vent about this some more.
-The change is, in the words of another Linux developer, utter garbage.
-${libdir} contains ${prefix} and did so for eternities.
+Fixes: 1df28fde1270 ("netfilter: nf_tables: add NFT_TRANS_PREPARE_ERROR to deal with bound set/chain") in 4.19
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/netfilter/nf_tables_api.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-The commit message is utter garbage too, because it does not
-even try to make an argument to even _have_ the change in the
-first place. Allowing such an underdocumented change is a
-failure in the review process itself.
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5555,6 +5555,7 @@ void nf_tables_deactivate_flowtable(cons
+ 				    enum nft_trans_phase phase)
+ {
+ 	switch (phase) {
++	case NFT_TRANS_PREPARE_ERROR:
+ 	case NFT_TRANS_PREPARE:
+ 	case NFT_TRANS_ABORT:
+ 	case NFT_TRANS_RELEASE:
+
+
