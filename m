@@ -2,67 +2,73 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 601F0C05028
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D67FAC2FC03
 	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 20:57:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229867AbjITU5n (ORCPT
+        id S229935AbjITU5n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Wed, 20 Sep 2023 16:57:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37860 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229974AbjITU5l (ORCPT
+        with ESMTP id S229959AbjITU5k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 16:57:41 -0400
+        Wed, 20 Sep 2023 16:57:40 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E953D8
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 13:57:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95152D3
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 13:57:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=dH4sr/fwzfmMEuc7KCxrpAhWso4nd81EQkSMctigek4=; b=Sa6kCLobG94kkI3WGk2R76bDKe
-        kpFk8En2Nxg0j5r0SFby54Tov4P73B6kfGzSzZY4KSyzEgFLzfOkUxX9sy3dzWd5YNogH/RnJWs+O
-        u2hQPDPaznZrYdB+Y+QM5+6zKpSqIHv/h34dp37wVksHvVaXIaAYLcylcBwaLPpHvb/w9IIcbGmuz
-        2GWiH/bVYF65w/BU3ekS+KoVE8gzDREaAeFACAgECOquXPI6lNSzsD4ZzhWpnDm7oq+eEprkk30f2
-        Ca9X3Ua6FHqFUPrXz0kW5YC1nGhQ+Sz8l9nXvQWLFbaFc5zLTpAs4x7R28QgGCzhUhKLCHg6Jk0X4
-        RtlrOBOw==;
+        bh=nRdN5k/2N5PBA6HkJas21RKZ8mYV/hQo4UE20KnwmkQ=; b=CLTd3JvImDCLUjLpQvB/BtketV
+        p6VpW55DYJLvOp9Kw3XHIQV2XM1+FYwhk0S4lfQaMtPCrcRTLozpiJZbRlF8IHadmd6CNWrotsxZj
+        OWc/s+X3F6YPc998a0Rne9ndJP9EhbPv7tZN9FJOR16CHlt98PHDjqf3g89tV16uafBSbWkObIy4Z
+        lQzjjHqcjKXzIM4CXR4l9xtKTGrGS7uHrAYJxChiSwkMCsWY9AnJVeFl+ru/IoXqN76z1fDRkfZ02
+        kCPXaTOOgrIOpkdgSOKSgnN3oGroAcJTPjgLbCEtG5u49sx0OXl5iNdwG6GXOiHND382WbcB9dOQ0
+        nH7FXHtg==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qj4GL-0007qZ-GW; Wed, 20 Sep 2023 22:57:33 +0200
+        id 1qj4GK-0007qP-V2; Wed, 20 Sep 2023 22:57:32 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 0/9] Misc JSON parser fixes
-Date:   Wed, 20 Sep 2023 22:57:18 +0200
-Message-ID: <20230920205727.22103-1-phil@nwl.cc>
+Subject: [nft PATCH 4/9] parser_json: Fix flowtable prio value parsing
+Date:   Wed, 20 Sep 2023 22:57:22 +0200
+Message-ID: <20230920205727.22103-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230920205727.22103-1-phil@nwl.cc>
+References: <20230920205727.22103-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-This is a series of memory corruption fixes kindly reported by Secunet.
-The first six patches fix severe issues, patches seven and eight
-moderate problems and the last one a minor issue noticed along the way.
+Using format specifier 'I' requires a 64bit variable to write into. The
+temporary variable 'prio' is of type int, though.
 
-Phil Sutter (9):
-  parser_json: Catch wrong "reset" payload
-  parser_json: Fix typo in json_parse_cmd_add_object()
-  parser_json: Proper ct expectation attribute parsing
-  parser_json: Fix flowtable prio value parsing
-  parser_json: Fix limit object burst value parsing
-  parser_json: Fix synproxy object mss/wscale parsing
-  parser_json: Wrong check in json_parse_ct_timeout_policy()
-  parser_json: Catch nonsense ops in match statement
-  parser_json: Default meter size to zero
+Fixes: 586ad210368b7 ("libnftables: Implement JSON parser")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/parser_json.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- src/parser_json.c | 50 ++++++++++++++++++++++++++++++-----------------
- 1 file changed, 32 insertions(+), 18 deletions(-)
-
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 92168b9ab580e..1921f301c51be 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -3374,7 +3374,7 @@ static struct cmd *json_parse_cmd_add_flowtable(struct json_ctx *ctx,
+ 	if (op == CMD_DELETE || op == CMD_LIST || op == CMD_DESTROY)
+ 		return cmd_alloc(op, cmd_obj, &h, int_loc, NULL);
+ 
+-	if (json_unpack_err(ctx, root, "{s:s, s:I}",
++	if (json_unpack_err(ctx, root, "{s:s, s:i}",
+ 			    "hook", &hook,
+ 			    "prio", &prio)) {
+ 		handle_free(&h);
 -- 
 2.41.0
 
