@@ -2,199 +2,119 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70BD3CE79DD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 14:31:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84812CE79DC
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 14:48:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234994AbjITObM (ORCPT
+        id S235005AbjITOs2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Sep 2023 10:31:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55976 "EHLO
+        Wed, 20 Sep 2023 10:48:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235150AbjITObL (ORCPT
+        with ESMTP id S236626AbjITOsR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 10:31:11 -0400
+        Wed, 20 Sep 2023 10:48:17 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB5D3DD
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 07:30:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FEB92139
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 07:46:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695220219;
+        s=mimecast20190719; t=1695221176;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=QiWRlx/fVnDIDHJq0728x3jSc6CUqx0zfXucjT+EbuI=;
-        b=N6a/w0j8l+f8/U9bT2JbIy9IOrS+aSAJB+LqXgAKQh7Bn4XLh9Rc7v+E+RUqD1ZqyAz+VN
-        Yesz5RAqOvfxkwBtxBXCFJfeKF6dY5ioFCmTHfXfk/cTjWv8Q89yrCGuPd6VYhH7+WLoQs
-        mjhTQr02krLCLdvFbdQHUvH/GEqde8s=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-351-4q8S_RkNM2OmALPX13Z6AQ-1; Wed, 20 Sep 2023 10:30:16 -0400
-X-MC-Unique: 4q8S_RkNM2OmALPX13Z6AQ-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 9FE6189C6A7
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 14:30:16 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.6])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 1E7DC10F1BE7;
-        Wed, 20 Sep 2023 14:30:15 +0000 (UTC)
+        bh=j/OPlq1vvrLwFXEfDhbrtMIxuEFcrJHfYr2dqXh20XE=;
+        b=eADEYDJdXlZxP/XhVOqAkNGa693hsS/V1FM0lGclvl6M2mTQTm8Guw+Xe9t3mMQ+UspCMS
+        QRh248ZfnEVq/hk0K5jK3HjOEZyAEPZ8VbSOsE/60OXIqs9UrGypzRhYJ48RxU2Hc+xzd5
+        LXKk2eXIjT2CDP0VxPzLJDY04l1dvEs=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-553-tR9fLvKOP0mjnd-xNjZuCw-1; Wed, 20 Sep 2023 10:46:15 -0400
+X-MC-Unique: tR9fLvKOP0mjnd-xNjZuCw-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-404fc59b8acso13869515e9.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Sep 2023 07:46:15 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695221174; x=1695825974;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=j/OPlq1vvrLwFXEfDhbrtMIxuEFcrJHfYr2dqXh20XE=;
+        b=vHKxFqXSrIVRsgUa0g9L+VqC/8UjPiMQ/X2WtoVuLhZSOcWgrgxHw8UGYsL+hJ90OF
+         C7yQBNZ8TzlvEkbS5lni3pnfu7bBb/u4T8VMkAG7xv1bO+lHBOfYX4EZP6CaSia2jLc6
+         icL33VCPltGFJbSOUR9tdtEhrV0Yb7SUaoGQa0l4zQP7EGbHzenINt8c7nCGTi/VoPGU
+         X4k9xJW05uDkGM6AseVSVvokxjTNqDDeQL5gYtIP90HjFUFmJPU+WA/y1KJoot5CajF1
+         vDXxzvyEe0FWSuD9P3T2V/jT2wVdI7Gjw+wYOmlR6kuSAilaGZ+V+0eiy2TD4nbBIVRS
+         TF5w==
+X-Gm-Message-State: AOJu0Yx1CQh3WXL7Tl4CxnWYNWXmD+Yn0Z0yZMr2NeJI+8vNpLt4QLXl
+        38VbIs+6oAnWfB1ZVYC4vKY5Ok2YcJOc5/b6eiWGjC3VM9nVWVn3nr6LhYGuNry051V71APdiRw
+        55TCY4EsG0Y6aV0awZvEvSSitahpHyGe1JVwR
+X-Received: by 2002:a05:600c:3b82:b0:401:c717:ec69 with SMTP id n2-20020a05600c3b8200b00401c717ec69mr2622992wms.4.1695221173765;
+        Wed, 20 Sep 2023 07:46:13 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGanwMFklB3gpKon1hkouuEUiq5lBTIrRcly5FL2t86B7bq3J2OtCQ9KgHpW93Rj2cQlOcuxQ==
+X-Received: by 2002:a05:600c:3b82:b0:401:c717:ec69 with SMTP id n2-20020a05600c3b8200b00401c717ec69mr2622972wms.4.1695221173375;
+        Wed, 20 Sep 2023 07:46:13 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id m25-20020a7bca59000000b003fefb94ccc9sm2141453wml.11.2023.09.20.07.46.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 20 Sep 2023 07:46:12 -0700 (PDT)
+Message-ID: <9d90f25dd24e76567e784c93b2a1a5493c14e379.camel@redhat.com>
+Subject: Re: [PATCH nft 2/4] gmputil: add nft_gmp_free() to free strings
+ from mpz_get_str()
 From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 8/9] datatype: use __attribute__((packed)) instead of enum bitfields
-Date:   Wed, 20 Sep 2023 16:26:09 +0200
-Message-ID: <20230920142958.566615-9-thaller@redhat.com>
-In-Reply-To: <20230920142958.566615-1-thaller@redhat.com>
-References: <20230920142958.566615-1-thaller@redhat.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Wed, 20 Sep 2023 16:46:12 +0200
+In-Reply-To: <ZQr8KsFAXIT0mca9@orbyte.nwl.cc>
+References: <20230920131554.204899-1-thaller@redhat.com>
+         <20230920131554.204899-3-thaller@redhat.com>
+         <ZQr8KsFAXIT0mca9@orbyte.nwl.cc>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-At some places we use bitfields of those enums, to save space inside the
-structure. We can achieve that in a better way, by using GCC's
-__attribute__((packed)) on the enum type.
+On Wed, 2023-09-20 at 16:05 +0200, Phil Sutter wrote:
+> On Wed, Sep 20, 2023 at 03:13:39PM +0200, Thomas Haller wrote:
+> >=20
+> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0mp_get_memory_functions(NULL=
+, NULL, &free_fcn);
+>=20
+> Do we have to expect the returned pointer to change at run-time?
+> Because
+> if not, couldn't one make free_fcn static and call
+> mp_get_memory_functions() only if it's NULL?
 
-It's better because a :8 bitfield makes the assumption that all enum
-values (valid or invalid) fit into that field. With packed enums, we
-don't need that assumption as the field can hold all possible numbers
-that the enum type can hold. This reduces the places we need to worry
-about truncating a value to casts between other types and the enum.
-Those places already require us to be careful.
+Hi Phil,
 
-On the other hand, previously casting an int (or uint32_t) likely didn't
-cause a truncation as the underlying type was large enough. So we could
-check for invalid enum values after the cast. We might do that at
-places. For example, we do
 
-	key  = nftnl_expr_get_u32(nle, NFTNL_EXPR_META_KEY);
-	expr = meta_expr_alloc(loc, key);
+no, it's not expected to EVER change. Users must not change
+mp_set_memory_functions() after any GMP objects were allocated,
+otherwise there would be a mixup of allocators and crashes ahead.
 
-where we cast from an uint32_t to an enum without checking. Note that
-`enum nft_meta_keys` is not packed by this patch. But this is an example
-how things could be wrong. But the bug already exits before: don't make
-assumption about the underlying enum type and take care of truncation
-during casts.
+However, I didn't cache the value, because I don't want to use global
+data without atomic compare-exchange (or thread-local). Doing it
+without regard of thread-safety so would be a code smell (even if
+probably not an issue in practice). And getting it with atomic/thread-
+local would be cumbersome. It's hard to ensure a code base has no
+threading issues, when having lots of places that "most likely are
+99.99% fine (but not 100%)". Hence, I want to avoid the global.
 
-This makes the change potentially dangerous, and it's hard to be sure
-that it doesn't uncover bugs (due tow rong assumptions about enum types).
+I think the call to mp_get_memory_functions() should be cheap.
 
-Note that we were already using the GCC-ism __attribute__((packed))
-previously, however on a struct and not on an enum. Anyway. It seems
-unlikely that we support any other compilers than GCC/Clang. Those both
-support this attribute.  We should not worry about portability towards
-hypothetical compilers (the C standard), unless there is a real compiler
-that we can use and test and shows a problem with this. Especially when
-we support both GCC and Clang, which themselves are ubiquitous and
-accessible to all users (as they also need to build the kernel in the
-first place).
+Note that libnftables no longer calls mp_set_memory_functions() ([1]).
+So for the patch to have practical effects, you would need to have
+another part of the process call mp_set_memory_functions() and set a
+free function incompatible with libc's free(). So the scenario is very
+unlikely already. It's more about being clear about using the correct
+free for an allocation (even if in practice it all ends up being the
+same).
 
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- include/datatype.h   |  1 +
- include/expression.h |  8 +++++---
- include/proto.h      | 11 +++++++----
- 3 files changed, 13 insertions(+), 7 deletions(-)
+[1] https://git.netfilter.org/nftables/commit/?id=3D96ee78ec4a0707114d2f8ef=
+7590d08cfd25080ea
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 202935bd322f..c8b3b77ad0c0 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -112,6 +112,7 @@ enum datatypes {
-  * @BYTEORDER_HOST_ENDIAN:	host endian
-  * @BYTEORDER_BIG_ENDIAN:	big endian
-  */
-+__attribute__((packed))
- enum byteorder {
- 	BYTEORDER_INVALID,
- 	BYTEORDER_HOST_ENDIAN,
-diff --git a/include/expression.h b/include/expression.h
-index aede223db741..11a1dbf00b8c 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -45,6 +45,7 @@
-  * @EXPR_SET_ELEM_CATCHALL catchall element expression
-  * @EXPR_FLAGCMP	flagcmp expression
-  */
-+__attribute__((packed))
- enum expr_types {
- 	EXPR_INVALID,
- 	EXPR_VERDICT,
-@@ -80,6 +81,7 @@ enum expr_types {
- 	EXPR_MAX = EXPR_FLAGCMP
- };
- 
-+__attribute__((packed))
- enum ops {
- 	OP_INVALID,
- 	OP_IMPLICIT,
-@@ -247,9 +249,9 @@ struct expr {
- 	unsigned int		flags;
- 
- 	const struct datatype	*dtype;
--	enum byteorder		byteorder:8;
--	enum expr_types		etype:8;
--	enum ops		op:8;
-+	enum byteorder		byteorder;
-+	enum expr_types		etype;
-+	enum ops		op;
- 	unsigned int		len;
- 	struct cmd		*cmd;
- 
-diff --git a/include/proto.h b/include/proto.h
-index 3a20ff8c4071..3756a4ab79a4 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -13,6 +13,7 @@
-  * @PROTO_BASE_NETWORK_HDR:	network layer header
-  * @PROTO_BASE_TRANSPORT_HDR:	transport layer header
-  */
-+__attribute__((packed))
- enum proto_bases {
- 	PROTO_BASE_INVALID,
- 	PROTO_BASE_LL_HDR,
-@@ -26,6 +27,7 @@ enum proto_bases {
- extern const char *proto_base_names[];
- extern const char *proto_base_tokens[];
- 
-+__attribute__((packed))
- enum icmp_hdr_field_type {
- 	PROTO_ICMP_ANY = 0,
- 	PROTO_ICMP_ECHO,	/* echo and reply */
-@@ -52,9 +54,9 @@ struct proto_hdr_template {
- 	const struct datatype		*dtype;
- 	uint16_t			offset;
- 	uint16_t			len;
--	enum byteorder			byteorder:8;
-+	enum byteorder			byteorder;
- 	enum nft_meta_keys		meta_key:8;
--	enum icmp_hdr_field_type	icmp_dep:8;
-+	enum icmp_hdr_field_type	icmp_dep;
- };
- 
- #define PROTO_HDR_TEMPLATE(__token, __dtype,  __byteorder, __offset, __len)\
-@@ -77,6 +79,7 @@ struct proto_hdr_template {
- #define PROTO_UPPER_MAX		16
- #define PROTO_HDRS_MAX		20
- 
-+__attribute__((packed))
- enum proto_desc_id {
- 	PROTO_DESC_UNKNOWN	= 0,
- 	PROTO_DESC_AH,
-@@ -119,8 +122,8 @@ enum proto_desc_id {
-  */
- struct proto_desc {
- 	const char			*name;
--	enum proto_desc_id		id:8;
--	enum proto_bases		base:8;
-+	enum proto_desc_id		id;
-+	enum proto_bases		base;
- 	enum nft_payload_csum_types	checksum_type:8;
- 	uint16_t			checksum_key;
- 	uint16_t			protocol_key;
--- 
-2.41.0
+
+Thomas
 
