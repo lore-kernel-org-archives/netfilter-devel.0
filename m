@@ -2,247 +2,156 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4609FCE79AD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 09:27:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B051CE79AF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 20 Sep 2023 10:00:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234145AbjITJ1y (ORCPT
+        id S234352AbjITKAO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 20 Sep 2023 05:27:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35502 "EHLO
+        Wed, 20 Sep 2023 06:00:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234148AbjITJ10 (ORCPT
+        with ESMTP id S234347AbjITKAN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Sep 2023 05:27:26 -0400
+        Wed, 20 Sep 2023 06:00:13 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 085F7132;
-        Wed, 20 Sep 2023 02:27:14 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RrCml0LrJz6HJbf;
-        Wed, 20 Sep 2023 17:25:11 +0800 (CST)
-Received: from mscphis00759.huawei.com (10.123.66.134) by
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B89A8F;
+        Wed, 20 Sep 2023 03:00:06 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.206])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RrDVd4wpkz6HJcK;
+        Wed, 20 Sep 2023 17:58:01 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Wed, 20 Sep 2023 10:27:07 +0100
-From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-To:     <mic@digikod.net>
-CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
-        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
-        <artem.kuzin@huawei.com>
-Subject: [PATCH v12 12/12] landlock: Document Landlock's network support
-Date:   Wed, 20 Sep 2023 17:26:40 +0800
-Message-ID: <20230920092641.832134-13-konstantin.meskhidze@huawei.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20230920092641.832134-1-konstantin.meskhidze@huawei.com>
-References: <20230920092641.832134-1-konstantin.meskhidze@huawei.com>
+ 15.1.2507.31; Wed, 20 Sep 2023 11:00:03 +0100
+Message-ID: <7cb458f1-7aff-ccf3-abfd-b563bfc65b84@huawei.com>
+Date:   Wed, 20 Sep 2023 13:00:02 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v11.1] selftests/landlock: Add 11 new test suites
+ dedicated to network
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     Paul Moore <paul@paul-moore.com>, <artem.kuzin@huawei.com>,
+        <gnoack3000@gmail.com>, <willemdebruijn.kernel@gmail.com>,
+        <yusongping@huawei.com>, <linux-security-module@vger.kernel.org>,
+        <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+References: <20230515161339.631577-11-konstantin.meskhidze@huawei.com>
+ <20230706145543.1284007-1-mic@digikod.net>
+ <3db64cf8-6a45-a361-aa57-9bfbaf866ef8@digikod.net>
+ <b2a94da1-f9df-b684-7666-1c63060f68f1@huawei.com>
+ <20230817.koh5see0eaLa@digikod.net>
+ <239800f3-baf4-1c7d-047f-8ba90b097bee@huawei.com>
+ <20230914.ASu9sho1Aef0@digikod.net>
+ <076bfaa6-1e0b-c95b-5727-00001c79f2c0@huawei.com>
+ <20230918.shauB5gei9Ai@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <20230918.shauB5gei9Ai@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.123.66.134]
-X-ClientProxiedBy: mscpeml500002.china.huawei.com (7.188.26.138) To
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
  lhrpeml500004.china.huawei.com (7.191.163.9)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Describe network access rules for TCP sockets. Add network access
-example in the tutorial. Add kernel configuration support for network.
 
-Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
----
 
-Changes since v11:
-* Fixes documentaion as suggested in Günther's and Mickaёl's reviews:
-https://lore.kernel.org/netdev/3ad02c76-90d8-4723-e554-7f97ef115fc0@digikod.net/
+9/18/2023 9:56 AM, Mickaël Salaün пишет:
+> On Fri, Sep 15, 2023 at 11:54:46AM +0300, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 9/14/2023 11:08 AM, Mickaël Salaün пишет:
+>> > On Mon, Sep 11, 2023 at 01:13:24PM +0300, Konstantin Meskhidze (A) wrote:
+>> > > 
+>> > > 
+>> > > 8/17/2023 6:08 PM, Mickaël Salaün пишет:
+>> > > > On Sat, Aug 12, 2023 at 05:37:00PM +0300, Konstantin Meskhidze (A) wrote:
+>> > > > > > > > > 7/12/2023 10:02 AM, Mickaël Salaün пишет:
+>> > > > > > > On 06/07/2023 16:55, Mickaël Salaün wrote:
+>> > > > > > > From: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> > > > > > > > > This patch is a revamp of the v11 tests [1] with new tests
+>> > > > > (see the
+>> > > > > > > "Changes since v11" description).  I (Mickaël) only added the following
+>> > > > > > > todo list and the "Changes since v11" sections in this commit message.
+>> > > > > > > I think this patch is good but it would appreciate reviews.
+>> > > > > > > You can find the diff of my changes here but it is not really readable:
+>> > > > > > > https://git.kernel.org/mic/c/78edf722fba5 (landlock-net-v11 branch)
+>> > > > > > > [1] https://lore.kernel.org/all/20230515161339.631577-11-konstantin.meskhidze@huawei.com/
+>> > > > > > > TODO:
+>> > > > > > > - Rename all "net_service" to "net_port".
+>> > > > > > > - Fix the two kernel bugs found with the new tests.
+>> > > > > > > - Update this commit message with a small description of all tests.
+>> > > > > > > [...]
+>> > > > > > > We should also add a test to make sure errno is the same
+>> > > with and
+>> > > > > > without sandboxing when using port 0 for connect and consistent with
+>> > > > > > bind (using an available port). The test fixture and variants should be
+>> > > > > > quite similar to the "ipv4" ones, but we can also add AF_INET6 variants,
+>> > > > > > which will result in 8 "ip" variants:
+>> > > > > > > TEST_F(ip, port_zero)
+>> > > > > > {
+>> > > > > > 	if (variant->sandbox == TCP_SANDBOX) {
+>> > > > > > 		/* Denies any connect and bind. */
+>> > > > > > 	}
+>> > > > > > 	/* Checks errno for port 0. */
+>> > > > > > }
+>> > > > > As I understand the would be the next test cases:
+>> > > > > > > 	1. ip4, sandboxed, bind port 0 -> should return EACCES
+>> > > (denied by
+>> > > > > landlock).
+>> > > > > Without any allowed port, yes. This test case is useful.
+>> > > > > By tuning /proc/sys/net/ipv4/ip_local_port_range (see
+>> > > > inet_csk_find_open_port call) we should be able to pick a specific
+>> > > > allowed port and test it.  We can also test for the EADDRINUSE error to
+>> > > > make sure error ordering is correct (compared with -EACCES).
+>> > >   Sorry, did not get this case. Could please explain it with more details?
+>> > 
+>> > According to bind(2), if no port are available, the syscall should
+>> > return EADDRINUSE. And this returned value should be the same whatever
+>> > the process is sandbox or not (and never EACCES). But as I explained
+>> > just below, we cannot know this random port from the LSM hook, so no
+>> > need to tweak /proc/sys/net/ipv4/ip_local_port_range, and your this is
+>> > correct:
+>> > 
+>> > 1. ip4, sandboxed, bind port 0 -> should return EACCES (denied by
+>> > landlock).
+>> 
+>>   yep, adding rule with port 0 (for bind) returns EINVAL then
+>>   calling bind port 0 returns EACCES cause there is no rule with port 0.
+>> > 
+>> > > > > However, I think the current LSM API don't enable to infer this
+>> > > random
+>> > > > port because the LSM hook is called before a port is picked.  If this is
+>> > > > correct, the best way to control port binding would be to always deny
+>> > > > binding on port zero/random (when restricting port binding, whatever
+>> > > > exception rules are in place). This explanation should be part of a
+>> > > > comment for this specific exception.
+>> > > 
+>> > >   Yep, if some LSM rule (for bind) has been applied a with specific port,
+>> > > other attemps to bind with zero/random ports would be refused by LSM
+>> > > security checks.
+>> > 
+>> > To say it another way, we should not allow to add a rule with port 0 for
+>> > LANDLOCK_ACCESS_NET_BIND_TCP, but return -EINVAL in this case. This
+>> > limitation should be explained, documented and tested.
+>> > 
+>> > With (only) LANDLOCK_ACCESS_NET_CONNECT_TCP it should be allowed though
+>> > (except if there is also LANDLOCK_ACCESS_NET_BIND_TCP) of course.
+>> > Another test should cover the case with a new rule with these two access
+>> > rights and port 0.
+>> 
+>>  I think it's possible to have LANDLOCK_ACCESS_NET_CONNECT_TCP with port 0
+>> with LANDLOCK_ACCESS_NET_BIND_TCP at the same time, cause
+>> LANDLOCK_ACCESS_NET_BIND_TCP rule is allowed (by Landlock) with any other
+>> port but 0.
+> 
+> It would mask the fact that port zero cannot be allowed, which could be
+> possible one day. So for now we need to return EINVAL in this case.
 
-Changes since v10:
-* Fixes documentaion as Mickaёl suggested:
-https://lore.kernel.org/linux-security-module/ec23be77-566e-c8fd-179e-f50e025ac2cf@digikod.net/
-
-Changes since v9:
-* Minor refactoring.
-
-Changes since v8:
-* Minor refactoring.
-
-Changes since v7:
-* Fixes documentaion logic errors and typos as Mickaёl suggested:
-https://lore.kernel.org/netdev/9f354862-2bc3-39ea-92fd-53803d9bbc21@digikod.net/
-
-Changes since v6:
-* Adds network support documentaion.
-
----
- Documentation/userspace-api/landlock.rst | 87 ++++++++++++++++++------
- 1 file changed, 66 insertions(+), 21 deletions(-)
-
-diff --git a/Documentation/userspace-api/landlock.rst b/Documentation/userspace-api/landlock.rst
-index f6a7da21708a..affadd9ac662 100644
---- a/Documentation/userspace-api/landlock.rst
-+++ b/Documentation/userspace-api/landlock.rst
-@@ -11,10 +11,10 @@ Landlock: unprivileged access control
- :Date: October 2022
-
- The goal of Landlock is to enable to restrict ambient rights (e.g. global
--filesystem access) for a set of processes.  Because Landlock is a stackable
--LSM, it makes possible to create safe security sandboxes as new security layers
--in addition to the existing system-wide access-controls. This kind of sandbox
--is expected to help mitigate the security impact of bugs or
-+filesystem or network access) for a set of processes.  Because Landlock
-+is a stackable LSM, it makes possible to create safe security sandboxes as new
-+security layers in addition to the existing system-wide access-controls. This
-+kind of sandbox is expected to help mitigate the security impact of bugs or
- unexpected/malicious behaviors in user space applications.  Landlock empowers
- any process, including unprivileged ones, to securely restrict themselves.
-
-@@ -28,20 +28,34 @@ appropriately <kernel_support>`.
- Landlock rules
- ==============
-
--A Landlock rule describes an action on an object.  An object is currently a
--file hierarchy, and the related filesystem actions are defined with `access
--rights`_.  A set of rules is aggregated in a ruleset, which can then restrict
-+A Landlock rule describes an action on an object which the process intends to
-+perform.  A set of rules is aggregated in a ruleset, which can then restrict
- the thread enforcing it, and its future children.
-
-+The two existing types of rules are:
-+
-+Filesystem rules
-+    For these rules, the object is a file hierarchy,
-+    and the related filesystem actions are defined with
-+    `filesystem access rights`.
-+
-+Network rules (since ABI v4)
-+    For these rules, the object is currently a TCP port,
-+    and the related actions are defined with `network access rights`.
-+
- Defining and enforcing a security policy
- ----------------------------------------
-
--We first need to define the ruleset that will contain our rules.  For this
--example, the ruleset will contain rules that only allow read actions, but write
--actions will be denied.  The ruleset then needs to handle both of these kind of
--actions.  This is required for backward and forward compatibility (i.e. the
--kernel and user space may not know each other's supported restrictions), hence
--the need to be explicit about the denied-by-default access rights.
-+We first need to define the ruleset that will contain our rules.
-+
-+For this example, the ruleset will contain rules that only allow filesystem
-+read actions and establish a specific TCP connection. Filesystem write
-+actions and other TCP actions will be denied.
-+
-+The ruleset then needs to handle both of these kind of actions.  This is
-+required for backward and forward compatibility (i.e. the kernel and user
-+space may not know each other's supported restrictions), hence the need
-+to be explicit about the denied-by-default access rights.
-
- .. code-block:: c
-
-@@ -62,6 +76,9 @@ the need to be explicit about the denied-by-default access rights.
-             LANDLOCK_ACCESS_FS_MAKE_SYM |
-             LANDLOCK_ACCESS_FS_REFER |
-             LANDLOCK_ACCESS_FS_TRUNCATE,
-+        .handled_access_net =
-+            LANDLOCK_ACCESS_NET_BIND_TCP |
-+            LANDLOCK_ACCESS_NET_CONNECT_TCP,
-     };
-
- Because we may not know on which kernel version an application will be
-@@ -70,9 +87,7 @@ should try to protect users as much as possible whatever the kernel they are
- using.  To avoid binary enforcement (i.e. either all security features or
- none), we can leverage a dedicated Landlock command to get the current version
- of the Landlock ABI and adapt the handled accesses.  Let's check if we should
--remove the ``LANDLOCK_ACCESS_FS_REFER`` or ``LANDLOCK_ACCESS_FS_TRUNCATE``
--access rights, which are only supported starting with the second and third
--version of the ABI.
-+remove access rights which are only supported in higher versions of the ABI.
-
- .. code-block:: c
-
-@@ -92,6 +107,11 @@ version of the ABI.
-     case 2:
-         /* Removes LANDLOCK_ACCESS_FS_TRUNCATE for ABI < 3 */
-         ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
-+    case 3:
-+        /* Removes network support for ABI < 4 */
-+        ruleset_attr.handled_access_net &=
-+            ~(LANDLOCK_ACCESS_NET_BIND_TCP |
-+              LANDLOCK_ACCESS_NET_CONNECT_TCP);
-     }
-
- This enables to create an inclusive ruleset that will contain our rules.
-@@ -143,10 +163,23 @@ for the ruleset creation, by filtering access rights according to the Landlock
- ABI version.  In this example, this is not required because all of the requested
- ``allowed_access`` rights are already available in ABI 1.
-
--We now have a ruleset with one rule allowing read access to ``/usr`` while
--denying all other handled accesses for the filesystem.  The next step is to
--restrict the current thread from gaining more privileges (e.g. thanks to a SUID
--binary).
-+For network access-control, we can add a set of rules that allow to use a port
-+number for a specific action: HTTPS connections.
-+
-+.. code-block:: c
-+
-+    struct landlock_net_port_attr net_port = {
-+        .allowed_access = LANDLOCK_ACCESS_NET_CONNECT_TCP,
-+        .port = 443,
-+    };
-+
-+    err = landlock_add_rule(ruleset_fd, LANDLOCK_RULE_NET_PORT,
-+                            &net_port, 0);
-+
-+The next step is to restrict the current thread from gaining more privileges
-+(e.g. through a SUID binary). We now have a ruleset with the first rule allowing
-+read access to ``/usr`` while denying all other handled accesses for the filesystem,
-+and a second rule allowing HTTPS connections.
-
- .. code-block:: c
-
-@@ -355,7 +388,7 @@ Access rights
- -------------
-
- .. kernel-doc:: include/uapi/linux/landlock.h
--    :identifiers: fs_access
-+    :identifiers: fs_access net_access
-
- Creating a new ruleset
- ----------------------
-@@ -374,6 +407,7 @@ Extending a ruleset
-
- .. kernel-doc:: include/uapi/linux/landlock.h
-     :identifiers: landlock_rule_type landlock_path_beneath_attr
-+                  landlock_net_service_attr
-
- Enforcing a ruleset
- -------------------
-@@ -451,6 +485,12 @@ always allowed when using a kernel that only supports the first or second ABI.
- Starting with the Landlock ABI version 3, it is now possible to securely control
- truncation thanks to the new ``LANDLOCK_ACCESS_FS_TRUNCATE`` access right.
-
-+Network support (ABI < 4)
-+-------------------------
-+
-+Starting with the Landlock ABI version 4, it is now possible to restrict TCP
-+bind and connect actions to only a set of allowed ports.
-+
- .. _kernel_support:
-
- Kernel support
-@@ -469,6 +509,11 @@ still enable it by adding ``lsm=landlock,[...]`` to
- Documentation/admin-guide/kernel-parameters.rst thanks to the bootloader
- configuration.
-
-+To be able to explicitly allow TCP operations (e.g., adding a network rule with
-+``LANDLOCK_ACCESS_NET_TCP_BIND``), the kernel must support TCP (``CONFIG_INET=y``).
-+Otherwise, sys_landlock_add_rule() returns an ``EAFNOSUPPORT`` error, which can
-+safely be ignored because this kind of TCP operation is already not possible.
-+
- Questions and answers
- =====================
-
---
-2.25.1
-
+   Got it. I added bind mask in add_rule_net_service() to check that 
+zero port is not allowed with bind action. I sent all changes in the 
+latest V12 patch.
+> .
