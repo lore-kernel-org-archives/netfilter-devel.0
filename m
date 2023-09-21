@@ -2,77 +2,80 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F3FE7D0AB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 21:57:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A908E7D0AF
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 22:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230091AbjIUV5Y (ORCPT
+        id S233018AbjIUWL0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Sep 2023 17:57:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60952 "EHLO
+        Thu, 21 Sep 2023 18:11:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232910AbjIUV5O (ORCPT
+        with ESMTP id S232577AbjIUWLB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Sep 2023 17:57:14 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 117797AF47;
-        Thu, 21 Sep 2023 10:34:43 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id DD8CACC02C9;
-        Thu, 21 Sep 2023 08:57:02 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 21 Sep 2023 08:57:00 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 98DB7CC011C;
-        Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 9B6733431A9; Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 98CD4343155;
-        Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
-Date:   Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Jan Engelhardt <jengelh@inai.de>, Sam James <sam@gentoo.org>
-cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [ANNOUNCE] ipset 7.18 released
-In-Reply-To: <382279q3-6on5-32rq-po59-6r18os6934n9@vanv.qr>
-Message-ID: <62d31829-d130-2e80-e7c-d3da4f19e90@netfilter.org>
-References: <55c2bf9d-ec58-8db-e457-8a36ebbbc4c0@blackhole.kfki.hu> <382279q3-6on5-32rq-po59-6r18os6934n9@vanv.qr>
+        Thu, 21 Sep 2023 18:11:01 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 825008333F
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Sep 2023 10:37:29 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 00A1BC4AF5C;
+        Thu, 21 Sep 2023 09:20:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1695288023;
+        bh=/M9gDZgRl0G96EDpzfP/SP+62+5bj7V8RhOws+XasC8=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=X+LNU8qSah75ovGBsLbjtQezeyXFimrCInAwLL1U4iSf09M5vi8iKlz3B6gEpWAOt
+         i1TzCyI+bFcfmPaWlMi2u6ooscLB2q/flnbGHJHOqzJaiVv6i3c/QBoeuWpM6cCAH4
+         zdfntK5TH56pPzlY5/IUhmejs4g1uUaQ4mvmdJ670cXLIY4SRC7luUOhn+i6qO7sfl
+         52WKqze82IZa76Q2b9khbjY5zp3VCmvpXItqZKvLUPVIImknnKMjMqZU2TgUaSV22O
+         pQ0MPedJSOIogHyOBLQqxa/o0KGJrHRyHZadNd+WEyJRmk91kBq2eYxTjlSecA+LpO
+         eaD+75OF5hrcw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id DC6A6C595C0;
+        Thu, 21 Sep 2023 09:20:22 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/3] netfilter: nf_tables: disable toggling dormant table
+ state more than once
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <169528802289.18364.6481033051092265766.git-patchwork-notify@kernel.org>
+Date:   Thu, 21 Sep 2023 09:20:22 +0000
+References: <20230920084156.4192-2-fw@strlen.de>
+In-Reply-To: <20230920084156.4192-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org, cherie.lee@starlabs.sg,
+        billy@starlabs.sg, info@starlabs.sg
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Jan,
+Hello:
 
-On Wed, 20 Sep 2023, Jan Engelhardt wrote:
+This series was applied to netdev/net.git (main)
+by Florian Westphal <fw@strlen.de>:
 
+On Wed, 20 Sep 2023 10:41:49 +0200 you wrote:
+> nft -f -<<EOF
+> add table ip t
+> add table ip t { flags dormant; }
+> add chain ip t c { type filter hook input priority 0; }
+> add table ip t
+> EOF
 > 
-> On Tuesday 2023-09-19 20:26, Jozsef Kadlecsik wrote:
-> >
-> >I'm happy to announce ipset 7.18, which brings a few fixes, backports, 
-> >tests suite fixes and json output support.
-> 
-> The installation of the pkgconfig file is now broken.
-> 
-> >  - lib/Makefile.am: fix pkgconfig dir (Sam James)
-> 
-> Aaaaagh.. that change completely broke installation and must be reverted.
-> 
-> [   44s] RPM build errors:
-> [   44s]     Installed (but unpackaged) file(s) found:
-> [   44s]    /usr/usr/lib64/pkgconfig/libipset.pc
+> [...]
 
-Thanks for quickly noticing the issue - the new release is already out.
+Here is the summary with links:
+  - [net,1/3] netfilter: nf_tables: disable toggling dormant table state more than once
+    https://git.kernel.org/netdev/net/c/c9bd26513b3a
+  - [net,2/3] netfilter: nf_tables: fix memleak when more than 255 elements expired
+    https://git.kernel.org/netdev/net/c/cf5000a7787c
+  - [net,3/3] netfilter: ipset: Fix race between IPSET_CMD_CREATE and IPSET_CMD_SWAP
+    https://git.kernel.org/netdev/net/c/7433b6d2afd5
 
-Even two persons can make mistakes.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
