@@ -2,68 +2,75 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8BFBE7D0A0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 17:27:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33EAAE7D0AD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 20:33:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229745AbjIUR1z (ORCPT
+        id S231716AbjIUUdN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:27:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53638 "EHLO
+        Thu, 21 Sep 2023 16:33:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230167AbjIUR1Y (ORCPT
+        with ESMTP id S230477AbjIUUcy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Sep 2023 13:27:24 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 589033589
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Sep 2023 10:03:13 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qjFMl-0004LQ-Cv; Thu, 21 Sep 2023 10:48:55 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH 0/3] nftables: add feature probes for sctp and multistmt set support
-Date:   Thu, 21 Sep 2023 10:48:43 +0200
-Message-ID: <20230921084849.634-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Thu, 21 Sep 2023 16:32:54 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89DFC7960A
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Sep 2023 10:34:52 -0700 (PDT)
+Received: from [78.30.34.192] (port=50182 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qjKWI-009mRI-2B; Thu, 21 Sep 2023 16:19:08 +0200
+Date:   Thu, 21 Sep 2023 16:19:05 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 7/9] expression: cleanup expr_ops_by_type() and
+ handle u32 input
+Message-ID: <ZQxQ2bDCBBZGGfAR@calendula>
+References: <20230920142958.566615-1-thaller@redhat.com>
+ <20230920142958.566615-8-thaller@redhat.com>
+ <ZQs2Pmq6J5ZdXDQb@calendula>
+ <47d61eebc85999dbd2f5b7a038b00723dea70cae.camel@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <47d61eebc85999dbd2f5b7a038b00723dea70cae.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On some kernels tests can fail because a required feature is absent.
-This can happen depending on kernel .config or because a required
-feature was added in a later kernel release.
+On Wed, Sep 20, 2023 at 09:28:29PM +0200, Thomas Haller wrote:
+> On Wed, 2023-09-20 at 20:13 +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Sep 20, 2023 at 04:26:08PM +0200, Thomas Haller wrote:
+> > > 
+> > > -const struct expr_ops *expr_ops_by_type(enum expr_types value)
+> > > +const struct expr_ops *expr_ops_by_type_u32(uint32_t value)
+> > >  {
+> > > -       /* value might come from unreliable source, such as "udata"
+> > > -        * annotation of set keys.  Avoid BUG() assertion.
+> > > -        */
+> > > -       if (value == EXPR_INVALID || value > EXPR_MAX)
+> > > +       if (value > (uint32_t) EXPR_MAX)
+> > 
+> > I think this still allows a third party to set EXPR_INVALID in the
+> > netlink userdata attribute, right?
+> > 
+> > >                 return NULL;
+> > > -
+> > >         return __expr_ops_by_type(value);
+> > >  }
+> 
+> Yes, it still allows that. It's handled by the following
+> __expr_ops_by_type(), which returns NULL for invalid types (like
+> EXPR_INVALID).
 
-Patch 1 adds a missing check for catchall to the vmap timeout test so we
-no longer try to add '*' keys.
+Oh indeed.
 
-Patch 2 adds a feature probe for multi-statement support in sets.
-Add REQUIRES condition to all tests that do involve multistmt.
-One of the test cases can be run partially, we only need to skip the
-dump validation.
+> The check "if (value > (uint32_t) EXPR_MAX)" is only here to ensure
+> that nothing is lost while casting the uint32_t "value" to the enum
+> expr_types.
 
-Patch 3 adds feature probing for sctp chunk matching in nft_exthdr
-and the needed conditionals to the test.
-
-Florian Westphal (3):
-  tests: shell: skip adding catchall elements if unuspported
-  tests: shell: add feature probe for sets with more than one element
-  tests: shell: add feature probe for sctp chunk matching
-
- tests/shell/features/sctp_chunks.nft          |  7 +++++
- .../features/set_with_two_expressions.nft     |  9 +++++++
- tests/shell/testcases/maps/vmap_timeout       |  8 ++++--
- .../shell/testcases/nft-f/0025empty_dynset_0  |  8 ++++++
- .../testcases/sets/0059set_update_multistmt_0 |  2 ++
- .../shell/testcases/sets/0060set_multistmt_0  |  2 ++
- .../shell/testcases/sets/0060set_multistmt_1  |  2 ++
- tests/shell/testcases/sets/typeof_sets_0      | 26 ++++++++++++-------
- 8 files changed, 52 insertions(+), 12 deletions(-)
- create mode 100644 tests/shell/features/sctp_chunks.nft
- create mode 100644 tests/shell/features/set_with_two_expressions.nft
-
--- 
-2.41.0
-
+Is this cast really required? This is to handle the hypothetical case
+where EXPR_MAX ever gets a negative value?
