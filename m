@@ -2,88 +2,77 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D05CCE7D0AD
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 21:06:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F3FE7D0AB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 21:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232663AbjIUVHB (ORCPT
+        id S230091AbjIUV5Y (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Sep 2023 17:07:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35388 "EHLO
+        Thu, 21 Sep 2023 17:57:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233262AbjIUVFj (ORCPT
+        with ESMTP id S232910AbjIUV5O (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Sep 2023 17:05:39 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE3656DE04
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Sep 2023 10:32:35 -0700 (PDT)
-Received: from [78.30.34.192] (port=50184 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qjKaF-009oVU-Jc; Thu, 21 Sep 2023 16:23:13 +0200
-Date:   Thu, 21 Sep 2023 16:23:10 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 3/9] datatype: drop flags field from datatype
-Message-ID: <ZQxRziOfXho5SZ7e@calendula>
-References: <20230920142958.566615-1-thaller@redhat.com>
- <20230920142958.566615-4-thaller@redhat.com>
- <ZQs1msEk15D687Rn@calendula>
- <546258d1a67ca455e0f7fdcce4c58c587324e798.camel@redhat.com>
+        Thu, 21 Sep 2023 17:57:14 -0400
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 117797AF47;
+        Thu, 21 Sep 2023 10:34:43 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id DD8CACC02C9;
+        Thu, 21 Sep 2023 08:57:02 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Thu, 21 Sep 2023 08:57:00 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 98DB7CC011C;
+        Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 9B6733431A9; Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 98CD4343155;
+        Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
+Date:   Thu, 21 Sep 2023 08:56:59 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     Jan Engelhardt <jengelh@inai.de>, Sam James <sam@gentoo.org>
+cc:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [ANNOUNCE] ipset 7.18 released
+In-Reply-To: <382279q3-6on5-32rq-po59-6r18os6934n9@vanv.qr>
+Message-ID: <62d31829-d130-2e80-e7c-d3da4f19e90@netfilter.org>
+References: <55c2bf9d-ec58-8db-e457-8a36ebbbc4c0@blackhole.kfki.hu> <382279q3-6on5-32rq-po59-6r18os6934n9@vanv.qr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <546258d1a67ca455e0f7fdcce4c58c587324e798.camel@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 20, 2023 at 09:23:46PM +0200, Thomas Haller wrote:
-> On Wed, 2023-09-20 at 20:10 +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Sep 20, 2023 at 04:26:04PM +0200, Thomas Haller wrote:
-> > > Flags are not always bad. For example, as a function argument they
-> > > allow
-> > > easier extension in the future. But with datatype's "flags"
-> > > argument and
-> > > enum datatype_flags there are no advantages of this approach.
-> > > 
-> > > - replace DTYPE_F_PREFIX with a "bool f_prefix" field. This could
-> > > even
-> > >   be a bool:1 bitfield if we cared to represent the information
-> > > with
-> > >   one bit only. For now it's not done because that would not help
-> > > reducing
-> > >   the size of the struct, so a bitfield is less preferable.
-> > > 
-> > > - instead of DTYPE_F_ALLOC, use the refcnt of zero to represent
-> > > static
-> > >   instances. Drop this redundant flag.
-> > 
-> > Not sure I want to rely on refcnt to zero to identify dynamic
-> > datatypes. I think we need to consolidate datatype_set() to be used
-> > not only where this deals with dynamic datatypes, it might help
-> > improve traceability of datatype assignment.
+Hi Jan,
+
+On Wed, 20 Sep 2023, Jan Engelhardt wrote:
+
 > 
-> I don't understand. Could you elaborate about datatype_set()?
+> On Tuesday 2023-09-19 20:26, Jozsef Kadlecsik wrote:
+> >
+> >I'm happy to announce ipset 7.18, which brings a few fixes, backports, 
+> >tests suite fixes and json output support.
+> 
+> The installation of the pkgconfig file is now broken.
+> 
+> >  - lib/Makefile.am: fix pkgconfig dir (Sam James)
+> 
+> Aaaaagh.. that change completely broke installation and must be reverted.
+> 
+> [   44s] RPM build errors:
+> [   44s]     Installed (but unpackaged) file(s) found:
+> [   44s]    /usr/usr/lib64/pkgconfig/libipset.pc
 
-I wonder if we could use datatype_set() to attach static datatypes
-too, instead of manually attaching datatypes, such as:
+Thanks for quickly noticing the issue - the new release is already out.
 
-        expr->dtype = &integer_type;
+Even two persons can make mistakes.
 
-in case of future extensions, using consistently this helper function
-will help to identify datatype attachments.
-
-> Btw, for dynamically allocated instances the refcnt is always positive,
-> and for static ones it's always zero. The DTYPE_F_ALLOC flag is
-> redundant.
-
-That is a correct observation, but a (hipothetical) subtle bug in
-refcnt might lead to a dynamic datatype get to refcnt to zero, and
-that might be harder to track?
-
-Let me have a look if I can come up with some counter proposal to get
-rid of this flag, I would prefer not to infer the datatype class from
-reference counter value.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
