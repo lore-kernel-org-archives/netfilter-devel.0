@@ -2,179 +2,127 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C18EE71094
-	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 16:58:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2A5BE7109A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 21 Sep 2023 16:59:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229696AbjIUQ6x (ORCPT
+        id S229535AbjIUQ7k (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 21 Sep 2023 12:58:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42200 "EHLO
+        Thu, 21 Sep 2023 12:59:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbjIUQ6w (ORCPT
+        with ESMTP id S229734AbjIUQ7g (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Sep 2023 12:58:52 -0400
+        Thu, 21 Sep 2023 12:59:36 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0202CE6
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Sep 2023 09:58:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C76091FC8
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Sep 2023 09:58:51 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qjK6M-0005Kk-RM; Thu, 21 Sep 2023 15:52:18 +0200
+        id 1qjFMt-0004Lv-UU; Thu, 21 Sep 2023 10:49:03 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [RFC nf] netfilter: nf_tables: nft_set_rbtree: invalidate greater range element on removal
-Date:   Thu, 21 Sep 2023 15:52:09 +0200
-Message-ID: <20230921135212.31288-1-fw@strlen.de>
+Subject: [PATCH 2/3] tests: shell: add feature probe for sets with more than one element
+Date:   Thu, 21 Sep 2023 10:48:45 +0200
+Message-ID: <20230921084849.634-3-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230921084849.634-1-fw@strlen.de>
+References: <20230921084849.634-1-fw@strlen.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_rbtree_gc_elem() walks back and removes the end interval element that
-comes before the expired element.
+Kernels < 5.11 can handle only one expression per element, e.g.
+its possible to attach a counter per key, or a rate limiter,
+or a quota, but not two at the same time.
 
-There is a small chance that we've cached this element as 'rbe_ge'.
-If this happens, we hold and test a pointer that has been queued for
-freeing.
-
-It also causes spurious insertion failures:
-
-$ cat nft-test.20230921-143934.826.dMBwHt/test-testcases-sets-0044interval_overlap_0.1/testout.log
-Error: Could not process rule: File exists
-add element t s {  0 -  2 }
-                   ^^^^^^
-Failed to insert  0 -  2 given:
-table ip t {
-        set s {
-                type inet_service
-                flags interval,timeout
-                timeout 2s
-                gc-interval 2s
-        }
-}
-
-The set (rbtree) is empty. The 'failure' doesn't happen when userspace
-retries immediately.
-
-Reason is that when we try to insert, the tree may hold an expired
-element that collides with the range we're adding.
-While we do evict/erase this element, we can trip over this check:
-
-if (rbe_ge && nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
-      return -ENOTEMPTY;
-
-But rbe_ge was already erased/collected by the synchronous gc, we should
-not have done this check.
-
-Because the pointer is stale, next attempt won't find it and insertion
-can succeed.
-
-I'd feel better if the entire procedure would be re-tried to make sure
-we do not mask/skip an earlier colliding element post invalidation
-of rbe_ge.
-
-Caching the old rbe_ge would work, but would make this even more
-messy.
-
-Any comments?
-
-Main agenda here is to not just fix the spurious failure but to
-get rid of the async gc worker.
+Add a probe file and skip the relevant tests if the feature is absent.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_rbtree.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ tests/shell/features/set_with_two_expressions.nft     | 9 +++++++++
+ tests/shell/testcases/nft-f/0025empty_dynset_0        | 8 ++++++++
+ tests/shell/testcases/sets/0059set_update_multistmt_0 | 2 ++
+ tests/shell/testcases/sets/0060set_multistmt_0        | 2 ++
+ tests/shell/testcases/sets/0060set_multistmt_1        | 2 ++
+ 5 files changed, 23 insertions(+)
+ create mode 100644 tests/shell/features/set_with_two_expressions.nft
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 487572dcd614..836f3a71e15b 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -233,10 +233,9 @@ static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
- 	rb_erase(&rbe->node, &priv->root);
- }
+diff --git a/tests/shell/features/set_with_two_expressions.nft b/tests/shell/features/set_with_two_expressions.nft
+new file mode 100644
+index 000000000000..97632a7af6d3
+--- /dev/null
++++ b/tests/shell/features/set_with_two_expressions.nft
+@@ -0,0 +1,9 @@
++# 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
++# v5.11-rc1~169^2~25^2
++table x {
++        set y {
++                type ipv4_addr
++                size 65535
++                counter quota 500 bytes
++        }
++}
+diff --git a/tests/shell/testcases/nft-f/0025empty_dynset_0 b/tests/shell/testcases/nft-f/0025empty_dynset_0
+index b66c802f8536..fbdb57931ed0 100755
+--- a/tests/shell/testcases/nft-f/0025empty_dynset_0
++++ b/tests/shell/testcases/nft-f/0025empty_dynset_0
+@@ -1,5 +1,7 @@
+ #!/bin/bash
  
--static int nft_rbtree_gc_elem(const struct nft_set *__set,
--			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe,
--			      u8 genmask)
-+static const struct nft_rbtree_elem *
-+nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
-+		   struct nft_rbtree_elem *rbe, u8 genmask)
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
-@@ -246,7 +245,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 
- 	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
- 	if (!gc)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	/* search for end interval coming before this element.
- 	 * end intervals don't carry a timeout extension, they
-@@ -261,6 +260,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 		prev = rb_prev(prev);
- 	}
- 
-+	rbe_prev = NULL;
- 	if (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		nft_rbtree_gc_remove(net, set, priv, rbe_prev);
-@@ -272,7 +272,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 		 */
- 		gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
- 		if (WARN_ON_ONCE(!gc))
--			return -ENOMEM;
-+			return ERR_PTR(-ENOMEM);
- 
- 		nft_trans_gc_elem_add(gc, rbe_prev);
- 	}
-@@ -280,13 +280,13 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 	nft_rbtree_gc_remove(net, set, priv, rbe);
- 	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
- 	if (WARN_ON_ONCE(!gc))
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	nft_trans_gc_elem_add(gc, rbe);
- 
- 	nft_trans_gc_queue_sync_done(gc);
- 
--	return 0;
-+	return rbe_prev;
- }
- 
- static bool nft_rbtree_update_first(const struct nft_set *set,
-@@ -314,7 +314,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 cur_genmask = nft_genmask_cur(net);
- 	u8 genmask = nft_genmask_next(net);
--	int d, err;
-+	int d;
- 
- 	/* Descend the tree to search for an existing element greater than the
- 	 * key value to insert that is greater than the new element. This is the
-@@ -363,10 +363,14 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		 */
- 		if (nft_set_elem_expired(&rbe->ext) &&
- 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
--			if (err < 0)
--				return err;
-+			const struct nft_rbtree_elem *removed_end;
++set -e
 +
-+			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
-+			if (IS_ERR(removed_end))
-+				return PTR_ERR(removed_end);
+ RULESET="table ip foo {
+ 	        set inflows {
+                 type ipv4_addr . inet_service . ifname . ipv4_addr . inet_service
+@@ -20,3 +22,9 @@ RULESET="table ip foo {
+ }"
  
-+			if (removed_end == rbe_ge)
-+				rbe_ge = NULL;
- 			continue;
- 		}
+ $NFT -f - <<< "$RULESET"
++
++# inflows_ratelimit will be dumped without 'limit rate .. counter' on old kernels.
++if [ "$NFT_TEST_HAVE_set_with_two_expressions" = n ]; then
++	echo "Partial test due to NFT_TEST_HAVE_set_with_two_expressions=n."
++	exit 77
++fi
+diff --git a/tests/shell/testcases/sets/0059set_update_multistmt_0 b/tests/shell/testcases/sets/0059set_update_multistmt_0
+index 107bfb870932..2aeba2c5d227 100755
+--- a/tests/shell/testcases/sets/0059set_update_multistmt_0
++++ b/tests/shell/testcases/sets/0059set_update_multistmt_0
+@@ -1,5 +1,7 @@
+ #!/bin/bash
  
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_set_with_two_expressions)
++
+ RULESET="table x {
+ 	set y {
+ 		type ipv4_addr
+diff --git a/tests/shell/testcases/sets/0060set_multistmt_0 b/tests/shell/testcases/sets/0060set_multistmt_0
+index 6bd147c3540c..8e17444e9ec5 100755
+--- a/tests/shell/testcases/sets/0060set_multistmt_0
++++ b/tests/shell/testcases/sets/0060set_multistmt_0
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_set_with_two_expressions)
++
+ RULESET="table x {
+ 	set y {
+ 		type ipv4_addr
+diff --git a/tests/shell/testcases/sets/0060set_multistmt_1 b/tests/shell/testcases/sets/0060set_multistmt_1
+index 1652668a2fec..04ef047caa52 100755
+--- a/tests/shell/testcases/sets/0060set_multistmt_1
++++ b/tests/shell/testcases/sets/0060set_multistmt_1
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_set_with_two_expressions)
++
+ RULESET="table x {
+ 	set y {
+ 		type ipv4_addr
 -- 
 2.41.0
 
