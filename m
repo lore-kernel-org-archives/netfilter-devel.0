@@ -2,55 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC87CD4F33
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 08:56:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25358CD4F47
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 09:55:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbjIVI4M (ORCPT
+        id S232711AbjIVJzR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Sep 2023 04:56:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55322 "EHLO
+        Fri, 22 Sep 2023 05:55:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232696AbjIVI4L (ORCPT
+        with ESMTP id S232728AbjIVJzQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Sep 2023 04:56:11 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EA43CF
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Sep 2023 01:56:04 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qjbxB-0006dG-Mw; Fri, 22 Sep 2023 10:56:01 +0200
-Date:   Fri, 22 Sep 2023 10:56:01 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/9] Misc JSON parser fixes
-Message-ID: <ZQ1WodBDLS6kTMJ2@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230920205727.22103-1-phil@nwl.cc>
+        Fri, 22 Sep 2023 05:55:16 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F404E19D
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Sep 2023 02:55:08 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qjcsM-0004nn-84; Fri, 22 Sep 2023 11:55:06 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: skip flowtable-uaf if we lack table owner support
+Date:   Fri, 22 Sep 2023 11:54:58 +0200
+Message-ID: <20230922095501.3302-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230920205727.22103-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 20, 2023 at 10:57:18PM +0200, Phil Sutter wrote:
-> This is a series of memory corruption fixes kindly reported by Secunet.
-> The first six patches fix severe issues, patches seven and eight
-> moderate problems and the last one a minor issue noticed along the way.
-> 
-> Phil Sutter (9):
->   parser_json: Catch wrong "reset" payload
->   parser_json: Fix typo in json_parse_cmd_add_object()
->   parser_json: Proper ct expectation attribute parsing
->   parser_json: Fix flowtable prio value parsing
->   parser_json: Fix limit object burst value parsing
->   parser_json: Fix synproxy object mss/wscale parsing
->   parser_json: Wrong check in json_parse_ct_timeout_policy()
->   parser_json: Catch nonsense ops in match statement
->   parser_json: Default meter size to zero
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/shell/features/table_flag_owner.nft      | 5 +++++
+ tests/shell/testcases/owner/0001-flowtable-uaf | 2 ++
+ 2 files changed, 7 insertions(+)
+ create mode 100644 tests/shell/features/table_flag_owner.nft
 
-Series applied.
+diff --git a/tests/shell/features/table_flag_owner.nft b/tests/shell/features/table_flag_owner.nft
+new file mode 100644
+index 000000000000..6e6f608a7e94
+--- /dev/null
++++ b/tests/shell/features/table_flag_owner.nft
+@@ -0,0 +1,5 @@
++# 6001a930ce03 ("netfilter: nftables: introduce table ownership")
++# v5.12-rc1~200^2~6^2
++table t {
++	flag owner;
++}
+diff --git a/tests/shell/testcases/owner/0001-flowtable-uaf b/tests/shell/testcases/owner/0001-flowtable-uaf
+index 8b7a551cc69e..c07e8d6a0ab9 100755
+--- a/tests/shell/testcases/owner/0001-flowtable-uaf
++++ b/tests/shell/testcases/owner/0001-flowtable-uaf
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_table_flag_owner)
++
+ set -e
+ 
+ $NFT -f - <<EOF
+-- 
+2.41.0
+
