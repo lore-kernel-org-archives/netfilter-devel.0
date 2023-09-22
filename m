@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC49AE6FE5B
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 16:03:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4A37E6FE5E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 16:03:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232113AbjIVQDK (ORCPT
+        id S231462AbjIVQDL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Sep 2023 12:03:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56360 "EHLO
+        Fri, 22 Sep 2023 12:03:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231330AbjIVQDJ (ORCPT
+        with ESMTP id S232053AbjIVQDK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Sep 2023 12:03:09 -0400
+        Fri, 22 Sep 2023 12:03:10 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B6AFD100;
-        Fri, 22 Sep 2023 09:03:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8722D198;
+        Fri, 22 Sep 2023 09:03:04 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, sashal@kernel.org,
         stable@vger.kernel.org
-Subject: [PATCH -stable,6.5 1/5] netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention
-Date:   Fri, 22 Sep 2023 18:02:52 +0200
-Message-Id: <20230922160256.150178-2-pablo@netfilter.org>
+Subject: [PATCH -stable,6.5 4/5] netfilter: nft_set_hash: try later when GC hits EAGAIN on iteration
+Date:   Fri, 22 Sep 2023 18:02:55 +0200
+Message-Id: <20230922160256.150178-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230922160256.150178-1-pablo@netfilter.org>
 References: <20230922160256.150178-1-pablo@netfilter.org>
@@ -32,42 +32,37 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-commit 96b33300fba880ec0eafcf3d82486f3463b4b6da upstream.
+commit b079155faae94e9b3ab9337e82100a914ebb4e8d upstream.
 
-rbtree GC does not modify the datastructure, instead it collects expired
-elements and it enqueues a GC transaction. Use a read spinlock instead
-to avoid data contention while GC worker is running.
+Skip GC run if iterator rewinds to the beginning with EAGAIN, otherwise GC
+might collect the same element more than once.
 
 Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_rbtree.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/nft_set_hash.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index f250b5399344..70491ba98dec 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -622,8 +622,7 @@ static void nft_rbtree_gc(struct work_struct *work)
- 	if (!gc)
- 		goto done;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index eca20dc60138..2013de934cef 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -338,12 +338,9 @@ static void nft_rhash_gc(struct work_struct *work)
  
--	write_lock_bh(&priv->lock);
--	write_seqcount_begin(&priv->count);
-+	read_lock_bh(&priv->lock);
- 	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
+ 	while ((he = rhashtable_walk_next(&hti))) {
+ 		if (IS_ERR(he)) {
+-			if (PTR_ERR(he) != -EAGAIN) {
+-				nft_trans_gc_destroy(gc);
+-				gc = NULL;
+-				goto try_later;
+-			}
+-			continue;
++			nft_trans_gc_destroy(gc);
++			gc = NULL;
++			goto try_later;
+ 		}
  
  		/* Ruleset has been updated, try later. */
-@@ -673,8 +672,7 @@ static void nft_rbtree_gc(struct work_struct *work)
- 	gc = nft_trans_gc_catchall(gc, gc_seq);
- 
- try_later:
--	write_seqcount_end(&priv->count);
--	write_unlock_bh(&priv->lock);
-+	read_unlock_bh(&priv->lock);
- 
- 	if (gc)
- 		nft_trans_gc_queue_async_done(gc);
 -- 
 2.30.2
 
