@@ -2,106 +2,167 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F14ACD4847
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 16:43:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB2C8CD4844
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 16:43:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232817AbjIVQnc (ORCPT
+        id S232916AbjIVQni (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Sep 2023 12:43:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54372 "EHLO
+        Fri, 22 Sep 2023 12:43:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232554AbjIVQna (ORCPT
+        with ESMTP id S232680AbjIVQnf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Sep 2023 12:43:30 -0400
+        Fri, 22 Sep 2023 12:43:35 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 29D511A7;
-        Fri, 22 Sep 2023 09:43:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8C9631B5;
+        Fri, 22 Sep 2023 09:43:19 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,5.15 00/17] Netfilter stable fixes for 5.15
-Date:   Fri, 22 Sep 2023 18:42:56 +0200
-Message-Id: <20230922164313.151564-1-pablo@netfilter.org>
+Subject: [PATCH -stable,5.15 01/17] netfilter: nf_tables: don't skip expired elements during walk
+Date:   Fri, 22 Sep 2023 18:42:57 +0200
+Message-Id: <20230922164313.151564-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230922164313.151564-1-pablo@netfilter.org>
+References: <20230922164313.151564-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Greg, Sasha,
+From: Florian Westphal <fw@strlen.de>
 
-The following list shows the backported patches, this batch is targeting
-at garbage collection (GC) / set timeout fixes that address possible UaF
-and memleaks. I am using original commit IDs for reference:
+commit 24138933b97b055d486e8064b4a1721702442a9b upstream.
 
-1) 24138933b97b ("netfilter: nf_tables: don't skip expired elements during walk")
+There is an asymmetry between commit/abort and preparation phase if the
+following conditions are met:
 
-2) 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
+1. set is a verdict map ("1.2.3.4 : jump foo")
+2. timeouts are enabled
 
-3) f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+In this case, following sequence is problematic:
 
-4) c92db3030492 ("netfilter: nft_set_hash: mark set element as dead when deleting from packet path")
+1. element E in set S refers to chain C
+2. userspace requests removal of set S
+3. kernel does a set walk to decrement chain->use count for all elements
+   from preparation phase
+4. kernel does another set walk to remove elements from the commit phase
+   (or another walk to do a chain->use increment for all elements from
+    abort phase)
 
-5) a2dd0233cbc4 ("netfilter: nf_tables: remove busy mark and gc batch API")
+If E has already expired in 1), it will be ignored during list walk, so its use count
+won't have been changed.
 
-6) 7845914f45f0 ("netfilter: nf_tables: don't fail inserts if duplicate has expired")
+Then, when set is culled, ->destroy callback will zap the element via
+nf_tables_set_elem_destroy(), but this function is only safe for
+elements that have been deactivated earlier from the preparation phase:
+lack of earlier deactivate removes the element but leaks the chain use
+count, which results in a WARN splat when the chain gets removed later,
+plus a leak of the nft_chain structure.
 
-7) 6a33d8b73dfa ("netfilter: nf_tables: fix GC transaction races with netns and netlink event exit path")
+Update pipapo_get() not to skip expired elements, otherwise flush
+command reports bogus ENOENT errors.
 
-8) 02c6c24402bf ("netfilter: nf_tables: GC transaction race with netns dismantle")
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Fixes: 8d8540c4f5e0 ("netfilter: nft_set_rbtree: add timeout support")
+Fixes: 9d0982927e79 ("netfilter: nft_hash: add support for timeouts")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c  |  4 ++++
+ net/netfilter/nft_set_hash.c   |  2 --
+ net/netfilter/nft_set_pipapo.c | 18 ++++++++++++------
+ net/netfilter/nft_set_rbtree.c |  2 --
+ 4 files changed, 16 insertions(+), 10 deletions(-)
 
-9) 720344340fb9 ("netfilter: nf_tables: GC transaction race with abort path")
-
-10) 8357bc946a2a ("netfilter: nf_tables: use correct lock to protect gc_list")
-
-11) 8e51830e29e1 ("netfilter: nf_tables: defer gc run if previous batch is still pending")
-
-12) 2ee52ae94baa ("netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction")
-
-13) 96b33300fba8 ("netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention")
-
-14) 4a9e12ea7e70 ("netfilter: nft_set_pipapo: call nft_trans_gc_queue_sync() in catchall GC")
-
-15) 6d365eabce3c ("netfilter: nft_set_pipapo: stop GC iteration if GC transaction allocation fails")
-
-16) b079155faae9 ("netfilter: nft_set_hash: try later when GC hits EAGAIN on iteration")
-
-17) cf5000a7787c ("netfilter: nf_tables: fix memleak when more than 255 elements expired")
-
-Please, apply.
-
-Thanks.
-
-Florian Westphal (4):
-  netfilter: nf_tables: don't skip expired elements during walk
-  netfilter: nf_tables: don't fail inserts if duplicate has expired
-  netfilter: nf_tables: defer gc run if previous batch is still pending
-  netfilter: nf_tables: fix memleak when more than 255 elements expired
-
-Pablo Neira Ayuso (13):
-  netfilter: nf_tables: GC transaction API to avoid race with control plane
-  netfilter: nf_tables: adapt set backend to use GC transaction API
-  netfilter: nft_set_hash: mark set element as dead when deleting from packet path
-  netfilter: nf_tables: remove busy mark and gc batch API
-  netfilter: nf_tables: fix GC transaction races with netns and netlink event exit path
-  netfilter: nf_tables: GC transaction race with netns dismantle
-  netfilter: nf_tables: GC transaction race with abort path
-  netfilter: nf_tables: use correct lock to protect gc_list
-  netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction
-  netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention
-  netfilter: nft_set_pipapo: call nft_trans_gc_queue_sync() in catchall GC
-  netfilter: nft_set_pipapo: stop GC iteration if GC transaction allocation fails
-  netfilter: nft_set_hash: try later when GC hits EAGAIN on iteration
-
- include/net/netfilter/nf_tables.h | 126 +++++-----
- net/netfilter/nf_tables_api.c     | 369 ++++++++++++++++++++++++------
- net/netfilter/nft_set_hash.c      |  87 ++++---
- net/netfilter/nft_set_pipapo.c    |  67 +++---
- net/netfilter/nft_set_rbtree.c    | 161 +++++++------
- 5 files changed, 547 insertions(+), 263 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d84da11aaee5..9ac8b83b4a45 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5289,8 +5289,12 @@ static int nf_tables_dump_setelem(const struct nft_ctx *ctx,
+ 				  const struct nft_set_iter *iter,
+ 				  struct nft_set_elem *elem)
+ {
++	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+ 	struct nft_set_dump_args *args;
+ 
++	if (nft_set_elem_expired(ext))
++		return 0;
++
+ 	args = container_of(iter, struct nft_set_dump_args, iter);
+ 	return nf_tables_fill_setelem(args->skb, set, elem);
+ }
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 0b73cb0e752f..24caa31fa231 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -278,8 +278,6 @@ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 		if (iter->count < iter->skip)
+ 			goto cont;
+-		if (nft_set_elem_expired(&he->ext))
+-			goto cont;
+ 		if (!nft_set_elem_active(&he->ext, iter->genmask))
+ 			goto cont;
+ 
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 8c16681884b7..b6a994ba72f3 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -566,8 +566,7 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
+ 			goto out;
+ 
+ 		if (last) {
+-			if (nft_set_elem_expired(&f->mt[b].e->ext) ||
+-			    (genmask &&
++			if ((genmask &&
+ 			     !nft_set_elem_active(&f->mt[b].e->ext, genmask)))
+ 				goto next_match;
+ 
+@@ -601,8 +600,17 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
+ static void *nft_pipapo_get(const struct net *net, const struct nft_set *set,
+ 			    const struct nft_set_elem *elem, unsigned int flags)
+ {
+-	return pipapo_get(net, set, (const u8 *)elem->key.val.data,
+-			  nft_genmask_cur(net));
++	struct nft_pipapo_elem *ret;
++
++	ret = pipapo_get(net, set, (const u8 *)elem->key.val.data,
++			 nft_genmask_cur(net));
++	if (IS_ERR(ret))
++		return ret;
++
++	if (nft_set_elem_expired(&ret->ext))
++		return ERR_PTR(-ENOENT);
++
++	return ret;
+ }
+ 
+ /**
+@@ -2024,8 +2032,6 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 			goto cont;
+ 
+ 		e = f->mt[r].e;
+-		if (nft_set_elem_expired(&e->ext))
+-			goto cont;
+ 
+ 		elem.priv = e;
+ 
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 8d73fffd2d09..39956e5341c9 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -552,8 +552,6 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 
+ 		if (iter->count < iter->skip)
+ 			goto cont;
+-		if (nft_set_elem_expired(&rbe->ext))
+-			goto cont;
+ 		if (!nft_set_elem_active(&rbe->ext, iter->genmask))
+ 			goto cont;
+ 
 -- 
 2.30.2
 
