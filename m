@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E18CECD484E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 17:01:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F628CD4852
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 17:01:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232727AbjIVRBp (ORCPT
+        id S232776AbjIVRBr (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Sep 2023 13:01:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44198 "EHLO
+        Fri, 22 Sep 2023 13:01:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232713AbjIVRBj (ORCPT
+        with ESMTP id S232760AbjIVRBh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Sep 2023 13:01:39 -0400
+        Fri, 22 Sep 2023 13:01:37 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D4EB194;
-        Fri, 22 Sep 2023 10:01:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7F2E919D;
+        Fri, 22 Sep 2023 10:01:31 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,5.10 17/17] netfilter: nf_tables: fix memleak when more than 255 elements expired
-Date:   Fri, 22 Sep 2023 19:01:18 +0200
-Message-Id: <20230922170118.152420-18-pablo@netfilter.org>
+Subject: [PATCH -stable,5.10 13/17] netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction
+Date:   Fri, 22 Sep 2023 19:01:14 +0200
+Message-Id: <20230922170118.152420-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230922170118.152420-1-pablo@netfilter.org>
 References: <20230922170118.152420-1-pablo@netfilter.org>
@@ -32,84 +32,47 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+commit 2ee52ae94baabf7ee09cf2a8d854b990dac5d0e4 upstream.
 
-commit cf5000a7787cbc10341091d37245a42c119d26c5 upstream.
+New elements in this transaction might expired before such transaction
+ends. Skip sync GC for such elements otherwise commit path might walk
+over an already released object. Once transaction is finished, async GC
+will collect such expired element.
 
-When more than 255 elements expired we're supposed to switch to a new gc
-container structure.
-
-This never happens: u8 type will wrap before reaching the boundary
-and nft_trans_gc_space() always returns true.
-
-This means we recycle the initial gc container structure and
-lose track of the elements that came before.
-
-While at it, don't deref 'gc' after we've passed it to call_rcu.
-
-Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 10 ++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index bbe472c07d07..5619642b9ad4 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1525,7 +1525,7 @@ struct nft_trans_gc {
- 	struct net		*net;
- 	struct nft_set		*set;
- 	u32			seq;
--	u8			count;
-+	u16			count;
- 	void			*priv[NFT_TRANS_GC_BATCHCOUNT];
- 	struct rcu_head		rcu;
- };
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9fc302a6836b..32c97cc87ddc 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8124,12 +8124,15 @@ static int nft_trans_gc_space(struct nft_trans_gc *trans)
- struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
- 					      unsigned int gc_seq, gfp_t gfp)
- {
-+	struct nft_set *set;
-+
- 	if (nft_trans_gc_space(gc))
- 		return gc;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 9b0bdd421615..535076b4de53 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -314,6 +314,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
+ 	struct rb_node *node, *next, *parent, **p, *first = NULL;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
++	u8 cur_genmask = nft_genmask_cur(net);
+ 	u8 genmask = nft_genmask_next(net);
+ 	int d, err;
  
-+	set = gc->set;
- 	nft_trans_gc_queue_work(gc);
+@@ -359,8 +360,11 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		if (!nft_set_elem_active(&rbe->ext, genmask))
+ 			continue;
  
--	return nft_trans_gc_alloc(gc->set, gc_seq, gfp);
-+	return nft_trans_gc_alloc(set, gc_seq, gfp);
- }
- 
- void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
-@@ -8144,15 +8147,18 @@ void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
- 
- struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp)
- {
-+	struct nft_set *set;
-+
- 	if (WARN_ON_ONCE(!lockdep_commit_lock_is_held(gc->net)))
- 		return NULL;
- 
- 	if (nft_trans_gc_space(gc))
- 		return gc;
- 
-+	set = gc->set;
- 	call_rcu(&gc->rcu, nft_trans_gc_trans_free);
- 
--	return nft_trans_gc_alloc(gc->set, 0, gfp);
-+	return nft_trans_gc_alloc(set, 0, gfp);
- }
- 
- void nft_trans_gc_queue_sync_done(struct nft_trans_gc *trans)
+-		/* perform garbage collection to avoid bogus overlap reports. */
+-		if (nft_set_elem_expired(&rbe->ext)) {
++		/* perform garbage collection to avoid bogus overlap reports
++		 * but skip new elements in this transaction.
++		 */
++		if (nft_set_elem_expired(&rbe->ext) &&
++		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+ 			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
+ 			if (err < 0)
+ 				return err;
 -- 
 2.30.2
 
