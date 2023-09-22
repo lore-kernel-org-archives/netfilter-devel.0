@@ -2,259 +2,127 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 452FFCD4F57
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 11:15:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DD0CD4F5B
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 11:18:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229800AbjIVLPw (ORCPT
+        id S233551AbjIVLSV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Sep 2023 07:15:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60096 "EHLO
+        Fri, 22 Sep 2023 07:18:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233574AbjIVLPv (ORCPT
+        with ESMTP id S230156AbjIVLSU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Sep 2023 07:15:51 -0400
+        Fri, 22 Sep 2023 07:18:20 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01606194
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Sep 2023 04:15:44 -0700 (PDT)
-Received: from [78.30.34.192] (port=51156 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E9ECAF
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Sep 2023 04:18:13 -0700 (PDT)
+Received: from [78.30.34.192] (port=56560 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qje8K-00ElsB-HF; Fri, 22 Sep 2023 13:15:43 +0200
-Date:   Fri, 22 Sep 2023 13:15:39 +0200
+        id 1qjeAj-00ElzA-Jr; Fri, 22 Sep 2023 13:18:11 +0200
+Date:   Fri, 22 Sep 2023 13:18:08 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [RFC nf] netfilter: nf_tables: nft_set_rbtree: invalidate
- greater range element on removal
-Message-ID: <ZQ13W2Ih8e2CvzeV@calendula>
-References: <20230921135212.31288-1-fw@strlen.de>
- <ZQ1ohTAB/u2XZRpV@calendula>
- <20230922102742.GE17533@breakpoint.cc>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 3/9] datatype: drop flags field from datatype
+Message-ID: <ZQ138B+q7k7qciAP@calendula>
+References: <20230920142958.566615-1-thaller@redhat.com>
+ <20230920142958.566615-4-thaller@redhat.com>
+ <ZQs1msEk15D687Rn@calendula>
+ <546258d1a67ca455e0f7fdcce4c58c587324e798.camel@redhat.com>
+ <ZQxRziOfXho5SZ7e@calendula>
+ <b23b4f63e2a5a5296820c66262c16b824ea1b6fe.camel@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="5NG4vy397WY02ysq"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230922102742.GE17533@breakpoint.cc>
+In-Reply-To: <b23b4f63e2a5a5296820c66262c16b824ea1b6fe.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
---5NG4vy397WY02ysq
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-On Fri, Sep 22, 2023 at 12:27:42PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Main agenda here is to not just fix the spurious failure but to
-> > > get rid of the async gc worker.
+On Fri, Sep 22, 2023 at 10:51:29AM +0200, Thomas Haller wrote:
+> On Thu, 2023-09-21 at 16:23 +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Sep 20, 2023 at 09:23:46PM +0200, Thomas Haller wrote:
+> > > On Wed, 2023-09-20 at 20:10 +0200, Pablo Neira Ayuso wrote:
+> > > > On Wed, Sep 20, 2023 at 04:26:04PM +0200, Thomas Haller wrote:
+> > > > > Flags are not always bad. For example, as a function argument
+> > > > > they
+> > > > > allow
+> > > > > easier extension in the future. But with datatype's "flags"
+> > > > > argument and
+> > > > > enum datatype_flags there are no advantages of this approach.
+> > > > > 
+> > > > > - replace DTYPE_F_PREFIX with a "bool f_prefix" field. This
+> > > > > could
+> > > > > even
+> > > > >   be a bool:1 bitfield if we cared to represent the information
+> > > > > with
+> > > > >   one bit only. For now it's not done because that would not
+> > > > > help
+> > > > > reducing
+> > > > >   the size of the struct, so a bitfield is less preferable.
+> > > > > 
+> > > > > - instead of DTYPE_F_ALLOC, use the refcnt of zero to represent
+> > > > > static
+> > > > >   instances. Drop this redundant flag.
+> > > > 
+> > > > Not sure I want to rely on refcnt to zero to identify dynamic
+> > > > datatypes. I think we need to consolidate datatype_set() to be
+> > > > used
+> > > > not only where this deals with dynamic datatypes, it might help
+> > > > improve traceability of datatype assignment.
+> > > 
+> > > I don't understand. Could you elaborate about datatype_set()?
 > > 
-> > I would like to move this sync GC collection from insert() path, it is
-> > sloppy and zapping entries that we hold references to as in this case.
-> > I would like to move to use the .commit phase just like pipapo.
+> > I wonder if we could use datatype_set() to attach static datatypes
+> > too, instead of manually attaching datatypes, such as:
+> > 
+> >         expr->dtype = &integer_type;
+> > 
+> > in case of future extensions, using consistently this helper function
+> > will help to identify datatype attachments.
 > 
-> I can experiment with this next week.
->
-> I already have a patch that converts async to sync gc similar to
-> pipapo but it currently keeps the limited on-demand cycle too.
-
-I am attaching a patch I tried, it moves GC sync from insert path it
-to .commit step as an alternative to:
-
-commit 2ee52ae94baabf7ee09cf2a8d854b990dac5d0e4
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Mon Sep 4 02:14:36 2023 +0200
-
-    netfilter: nft_set_rbtree: skip sync GC for new elements in this transaction
-
-Moreover, Stefano reported that having redundant nodes with same key
-is a problem because rotations might hide entire subtrees.
-
-> > The only solution I can see right now is to maintain two copies of the
-> > rbtree, just like pipapo, then use the .commit phase, I started
-> > sketching this updates.
+> I think `expr->dtype = &integer_type` is fine, if
 > 
-> I would like to avoid this, see below.
+> - expr->dtype doesn't previously point to a datatype that requires
+> datatype_free() (e.g. because it's NULL).
 > 
-> > Meanwhile setting rbe_ge and rbe_le to NULL if the element that is
-> > referenced is removed makes sense to me.
+> - the new datatype requires no datatype_get() (e.g. because it's
+> static).
 > 
-> Great, I will submit this patch formally with a slightly updated
-> commit message.
-
-Thanks.
-
-> > The current GC sync inlined in insert() is also making it hard to
-> > support for timeout refresh (element update command) without
-> > reintroducing the _BUSY bit, which is something I would like to skip.
+> > 
+> > > Btw, for dynamically allocated instances the refcnt is always
+> > > positive,
+> > > and for static ones it's always zero. The DTYPE_F_ALLOC flag is
+> > > redundant.
+> > 
+> > That is a correct observation, but a (hipothetical) subtle bug in
+> > refcnt might lead to a dynamic datatype get to refcnt to zero, and
+> > that might be harder to track?
+> > 
+> > Let me have a look if I can come up with some counter proposal to get
+> > rid of this flag, I would prefer not to infer the datatype class from
+> > reference counter value.
 > 
-> Ugh, yes, no busy bit please.
+> If the reference counting is messed up, there is either a leak, a use-
+> after-free or modification of static data.
 
-Agreed.
+I am refering to a hypothetical dynamic datatype object reaching
+refcnt == 0.
 
-> > Then, there is another possibility that is to provide a hint to
-> > userspace to use pipapo instead rbtree, via _GENMSG, but there is a
-> > need to update pipapo to allow for singleton sets (with no
-> > concatenation), which requires a oneliner in the kernel.
-> >
-> > The rbtree set backend is the corner that holds more technical debt
-> > IMO.
+> These are all bad bugs that needs fixing and are avoided by best
+> practices and testing.
 > 
-> I'm all in favor of getting rid of rbtree where possible.
-> So we can keep it in-tree with 'acceptable' shortcomings (= no crashes)
-> but userspace would no longer use it.
+> IMO keeping redundant state does not help with that or with
+> readability.
+> 
+> I'd like to replace the "unsigned int flags" field with individual
+> boolean fields like "bool f_prefix" or "bool f_alloc".
 
-OK, still it would prevent from adding timeout refresh support, that
-is a new command we have to deal with (element update) and we would
-need to make sure GC sync cycle embbeded into _insert() does not zap
-an element that has been updated. Things get a lot easier with GC sync
-from .commit() step.
+As for f_prefix, there is probably a way to infer this from context,
+I would need to have a look.
 
---5NG4vy397WY02ysq
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment;
-	filename="0001-netfilter-nft_set_rbtree-remove-sync-GC-from-insert-.patch"
-
-From 1b757e2f678b127dc7c951f8d7987eb3219107f9 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 4 Sep 2023 00:03:22 +0200
-Subject: [PATCH] netfilter: nft_set_rbtree: remove sync GC from insert path
-
-New elements in this transaction might expire before such transaction
-ends. Skip sync GC for such elements otherwise commit path might walk
-over an already released object.
-
-Skip expired elements in the overlap detection routine which iterates on
-the reversed ordered list of elements that represent the intervals.
-Since end elements provide no expiration extension, check for the next
-non-end element in this interval, hence, skip both elements in the
-iteration if the interval has expired. Finally, let async GC collect
-such expired interval.
-
-Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_set_rbtree.c | 88 +++++-----------------------------
- 1 file changed, 13 insertions(+), 75 deletions(-)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index c6435e709231..ff0cdc3ab7d8 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -221,74 +221,6 @@ static void *nft_rbtree_get(const struct net *net, const struct nft_set *set,
- 	return rbe;
- }
- 
--static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
--				 struct nft_rbtree *priv,
--				 struct nft_rbtree_elem *rbe)
--{
--	struct nft_set_elem elem = {
--		.priv	= rbe,
--	};
--
--	nft_setelem_data_deactivate(net, set, &elem);
--	rb_erase(&rbe->node, &priv->root);
--}
--
--static int nft_rbtree_gc_elem(const struct nft_set *__set,
--			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe,
--			      u8 genmask)
--{
--	struct nft_set *set = (struct nft_set *)__set;
--	struct rb_node *prev = rb_prev(&rbe->node);
--	struct net *net = read_pnet(&set->net);
--	struct nft_rbtree_elem *rbe_prev;
--	struct nft_trans_gc *gc;
--
--	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
--	if (!gc)
--		return -ENOMEM;
--
--	/* search for end interval coming before this element.
--	 * end intervals don't carry a timeout extension, they
--	 * are coupled with the interval start element.
--	 */
--	while (prev) {
--		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
--		if (nft_rbtree_interval_end(rbe_prev) &&
--		    nft_set_elem_active(&rbe_prev->ext, genmask))
--			break;
--
--		prev = rb_prev(prev);
--	}
--
--	if (prev) {
--		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
--		nft_rbtree_gc_remove(net, set, priv, rbe_prev);
--
--		/* There is always room in this trans gc for this element,
--		 * memory allocation never actually happens, hence, the warning
--		 * splat in such case. No need to set NFT_SET_ELEM_DEAD_BIT,
--		 * this is synchronous gc which never fails.
--		 */
--		gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
--		if (WARN_ON_ONCE(!gc))
--			return -ENOMEM;
--
--		nft_trans_gc_elem_add(gc, rbe_prev);
--	}
--
--	nft_rbtree_gc_remove(net, set, priv, rbe);
--	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
--	if (WARN_ON_ONCE(!gc))
--		return -ENOMEM;
--
--	nft_trans_gc_elem_add(gc, rbe);
--
--	nft_trans_gc_queue_sync_done(gc);
--
--	return 0;
--}
--
- static bool nft_rbtree_update_first(const struct nft_set *set,
- 				    struct nft_rbtree_elem *rbe,
- 				    struct rb_node *first)
-@@ -313,7 +245,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	struct rb_node *node, *next, *parent, **p, *first = NULL;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
--	int d, err;
-+	int d;
- 
- 	/* Descend the tree to search for an existing element greater than the
- 	 * key value to insert that is greater than the new element. This is the
-@@ -357,13 +289,19 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		if (!nft_set_elem_active(&rbe->ext, genmask))
- 			continue;
- 
--		/* perform garbage collection to avoid bogus overlap reports. */
--		if (nft_set_elem_expired(&rbe->ext)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
--			if (err < 0)
--				return err;
-+		/* skip expired intervals to avoid bogus overlap reports:
-+		 * end element has no expiration, check next start element.
-+		 */
-+		if (nft_rbtree_interval_end(rbe) && next) {
-+			struct nft_rbtree_elem *rbe_next;
-+
-+			rbe_next = rb_entry(next, struct nft_rbtree_elem, node);
- 
--			continue;
-+			if (nft_set_elem_expired(&rbe_next->ext)) {
-+				/* skip expired next start element. */
-+				next = rb_next(next);
-+				continue;
-+			}
- 		}
- 
- 		d = nft_rbtree_cmp(set, rbe, new);
--- 
-2.30.2
-
-
---5NG4vy397WY02ysq--
+> Dropping DTYPE_F_ALLOC/f_alloc flag altogether can be done (or not
+> done) independently from that.
