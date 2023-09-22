@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54A0DCD4847
-	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 16:43:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46450CD4847
+	for <netfilter-devel@archiver.kernel.org>; Fri, 22 Sep 2023 16:43:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232940AbjIVQnx (ORCPT
+        id S229664AbjIVQn5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 22 Sep 2023 12:43:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55300 "EHLO
+        Fri, 22 Sep 2023 12:43:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232984AbjIVQni (ORCPT
+        with ESMTP id S232850AbjIVQng (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Sep 2023 12:43:38 -0400
+        Fri, 22 Sep 2023 12:43:36 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 89E74CF2;
-        Fri, 22 Sep 2023 09:43:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DA99FCCD;
+        Fri, 22 Sep 2023 09:43:21 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     gregkh@linuxfoundation.org, stable@vger.kernel.org,
         sashal@kernel.org
-Subject: [PATCH -stable,5.15 17/17] netfilter: nf_tables: fix memleak when more than 255 elements expired
-Date:   Fri, 22 Sep 2023 18:43:13 +0200
-Message-Id: <20230922164313.151564-18-pablo@netfilter.org>
+Subject: [PATCH -stable,5.15 07/17] netfilter: nf_tables: fix GC transaction races with netns and netlink event exit path
+Date:   Fri, 22 Sep 2023 18:43:03 +0200
+Message-Id: <20230922164313.151564-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20230922164313.151564-1-pablo@netfilter.org>
 References: <20230922164313.151564-1-pablo@netfilter.org>
@@ -32,84 +32,114 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+commit 6a33d8b73dfac0a41f3877894b38082bd0c9a5bc upstream.
 
-commit cf5000a7787cbc10341091d37245a42c119d26c5 upstream.
-
-When more than 255 elements expired we're supposed to switch to a new gc
-container structure.
-
-This never happens: u8 type will wrap before reaching the boundary
-and nft_trans_gc_space() always returns true.
-
-This means we recycle the initial gc container structure and
-lose track of the elements that came before.
-
-While at it, don't deref 'gc' after we've passed it to call_rcu.
+Netlink event path is missing a synchronization point with GC
+transactions. Add GC sequence number update to netns release path and
+netlink event path, any GC transaction losing race will be discarded.
 
 Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables.h |  2 +-
- net/netfilter/nf_tables_api.c     | 10 ++++++++--
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c | 36 +++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index d543078c43f9..098e829fd762 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1605,7 +1605,7 @@ struct nft_trans_gc {
- 	struct net		*net;
- 	struct nft_set		*set;
- 	u32			seq;
--	u8			count;
-+	u16			count;
- 	void			*priv[NFT_TRANS_GC_BATCHCOUNT];
- 	struct rcu_head		rcu;
- };
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 58fec8806ec5..4dadb0eebf61 100644
+index 194b78900bd3..aadcb2a5dc81 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -8984,12 +8984,15 @@ static int nft_trans_gc_space(struct nft_trans_gc *trans)
- struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
- 					      unsigned int gc_seq, gfp_t gfp)
- {
-+	struct nft_set *set;
-+
- 	if (nft_trans_gc_space(gc))
- 		return gc;
- 
-+	set = gc->set;
- 	nft_trans_gc_queue_work(gc);
- 
--	return nft_trans_gc_alloc(gc->set, gc_seq, gfp);
-+	return nft_trans_gc_alloc(set, gc_seq, gfp);
+@@ -9207,6 +9207,22 @@ static void nft_set_commit_update(struct list_head *set_update_list)
+ 	}
  }
  
- void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
-@@ -9004,15 +9007,18 @@ void nft_trans_gc_queue_async_done(struct nft_trans_gc *trans)
- 
- struct nft_trans_gc *nft_trans_gc_queue_sync(struct nft_trans_gc *gc, gfp_t gfp)
- {
-+	struct nft_set *set;
++static unsigned int nft_gc_seq_begin(struct nftables_pernet *nft_net)
++{
++	unsigned int gc_seq;
 +
- 	if (WARN_ON_ONCE(!lockdep_commit_lock_is_held(gc->net)))
- 		return NULL;
++	/* Bump gc counter, it becomes odd, this is the busy mark. */
++	gc_seq = READ_ONCE(nft_net->gc_seq);
++	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++
++	return gc_seq;
++}
++
++static void nft_gc_seq_end(struct nftables_pernet *nft_net, unsigned int gc_seq)
++{
++	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++}
++
+ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
+@@ -9292,9 +9308,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
  
- 	if (nft_trans_gc_space(gc))
- 		return gc;
+ 	WRITE_ONCE(nft_net->base_seq, base_seq);
  
-+	set = gc->set;
- 	call_rcu(&gc->rcu, nft_trans_gc_trans_free);
+-	/* Bump gc counter, it becomes odd, this is the busy mark. */
+-	gc_seq = READ_ONCE(nft_net->gc_seq);
+-	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++	gc_seq = nft_gc_seq_begin(nft_net);
  
--	return nft_trans_gc_alloc(gc->set, 0, gfp);
-+	return nft_trans_gc_alloc(set, 0, gfp);
- }
+ 	/* step 3. Start new generation, rules_gen_X now in use. */
+ 	net->nft.gencursor = nft_gencursor_next(net);
+@@ -9485,7 +9499,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
+ 	nf_tables_commit_audit_log(&adl, nft_net->base_seq);
  
- void nft_trans_gc_queue_sync_done(struct nft_trans_gc *trans)
+-	WRITE_ONCE(nft_net->gc_seq, ++gc_seq);
++	nft_gc_seq_end(nft_net, gc_seq);
+ 	nf_tables_commit_release(net);
+ 
+ 	return 0;
+@@ -10468,6 +10482,7 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
+ 	struct net *net = n->net;
+ 	unsigned int deleted;
+ 	bool restart = false;
++	unsigned int gc_seq;
+ 
+ 	if (event != NETLINK_URELEASE || n->protocol != NETLINK_NETFILTER)
+ 		return NOTIFY_DONE;
+@@ -10475,6 +10490,9 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
+ 	nft_net = nft_pernet(net);
+ 	deleted = 0;
+ 	mutex_lock(&nft_net->commit_mutex);
++
++	gc_seq = nft_gc_seq_begin(nft_net);
++
+ 	if (!list_empty(&nf_tables_destroy_list))
+ 		nf_tables_trans_destroy_flush_work();
+ again:
+@@ -10497,6 +10515,8 @@ static int nft_rcv_nl_event(struct notifier_block *this, unsigned long event,
+ 		if (restart)
+ 			goto again;
+ 	}
++	nft_gc_seq_end(nft_net, gc_seq);
++
+ 	mutex_unlock(&nft_net->commit_mutex);
+ 
+ 	return NOTIFY_DONE;
+@@ -10535,12 +10555,20 @@ static void __net_exit nf_tables_pre_exit_net(struct net *net)
+ static void __net_exit nf_tables_exit_net(struct net *net)
+ {
+ 	struct nftables_pernet *nft_net = nft_pernet(net);
++	unsigned int gc_seq;
+ 
+ 	mutex_lock(&nft_net->commit_mutex);
++
++	gc_seq = nft_gc_seq_begin(nft_net);
++
+ 	if (!list_empty(&nft_net->commit_list) ||
+ 	    !list_empty(&nft_net->module_list))
+ 		__nf_tables_abort(net, NFNL_ABORT_NONE);
++
+ 	__nft_release_tables(net);
++
++	nft_gc_seq_end(nft_net, gc_seq);
++
+ 	mutex_unlock(&nft_net->commit_mutex);
+ 	WARN_ON_ONCE(!list_empty(&nft_net->tables));
+ 	WARN_ON_ONCE(!list_empty(&nft_net->module_list));
 -- 
 2.30.2
 
