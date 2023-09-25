@@ -2,82 +2,70 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E42FCE7A88
-	for <netfilter-devel@archiver.kernel.org>; Sun, 24 Sep 2023 10:59:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEAB4CE7A81
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Sep 2023 08:44:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229504AbjIXK7Z (ORCPT
+        id S232958AbjIYIor (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 24 Sep 2023 06:59:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54456 "EHLO
+        Mon, 25 Sep 2023 04:44:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjIXK7Y (ORCPT
+        with ESMTP id S232873AbjIYIoq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 24 Sep 2023 06:59:24 -0400
-Received: from mail-oa1-f71.google.com (mail-oa1-f71.google.com [209.85.160.71])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 503D7100
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Sep 2023 03:59:18 -0700 (PDT)
-Received: by mail-oa1-f71.google.com with SMTP id 586e51a60fabf-1bf2e81ce63so9892871fac.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Sep 2023 03:59:18 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695553157; x=1696157957;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Jlk+O3J+o0kkp1OKytTuo5mn2nF+ogupL5uOl8zcGuA=;
-        b=vZSCiJNTkRGrBxNXkKce6sPK6byjhCNcM5MkFyLlh15gPaBAF+MJjquMGdSVPo26ys
-         +jUktvGd10DDj208XO5gVs/fpKYhZxpV7A8bPR0ZC8shmWESU7lp80WwMsExEB5SSf4S
-         PjYWOzX4Wjm5q52lLfhXTle4D0MPERAvQa05ic/42xFgZQ6PzAytfXVMVAuI0NxFObrY
-         5pMxmKnmpKtjBRyRTi88LfwKiVsd1RyN7Jz/5t0ojZIy5D8xenX3PZR8SLg8v6EEz03x
-         ghxrPH48Yc4rwB7MSVxpJXo55s/ozbVwZB+c4R96pzuBiWmXduUXJvseVdj2hhqOVyag
-         5bgg==
-X-Gm-Message-State: AOJu0YylzNeWqzfqi6+Gg62cCKDkjy3dFIHAiCP7B2p1GMNamm4jmZYx
-        3G2QdSzmeFz8i38R3YmoHcVmmNOyVC1hKsw4t9Y8fVfxIU35
-X-Google-Smtp-Source: AGHT+IGp8vx1D9jMEB/i7wblpIR1qbSKkkYzRnZBs6mxLXQ6LjSZuwUrXWRzpxMUsQ4CTqUu0G4qMtnatkOXoDUjowcVzPeX9afh
+        Mon, 25 Sep 2023 04:44:46 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35C27C0
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2023 01:44:39 -0700 (PDT)
+Received: from [78.30.34.192] (port=47940 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qkhCi-00FOWz-EC; Mon, 25 Sep 2023 10:44:34 +0200
+Date:   Mon, 25 Sep 2023 10:44:31 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 7/9] expression: cleanup expr_ops_by_type() and
+ handle u32 input
+Message-ID: <ZRFIb4BhMdtfwe11@calendula>
+References: <20230920142958.566615-1-thaller@redhat.com>
+ <20230920142958.566615-8-thaller@redhat.com>
+ <ZQs2Pmq6J5ZdXDQb@calendula>
+ <47d61eebc85999dbd2f5b7a038b00723dea70cae.camel@redhat.com>
+ <ZQxQ2bDCBBZGGfAR@calendula>
+ <988c6c1bc2a2fff3d0ab65bdd5c7bdb9e09499a1.camel@redhat.com>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:9a93:b0:1d6:a9da:847 with SMTP id
- hp19-20020a0568709a9300b001d6a9da0847mr2947177oab.0.1695553157625; Sun, 24
- Sep 2023 03:59:17 -0700 (PDT)
-Date:   Sun, 24 Sep 2023 03:59:17 -0700
-In-Reply-To: <0000000000000c439a05daa527cb@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000a87e66060618bb7e@google.com>
-Subject: Re: [syzbot] [netfilter?] INFO: rcu detected stall in gc_worker (3)
-From:   syzbot <syzbot+eec403943a2a2455adaa@syzkaller.appspotmail.com>
-To:     bpf@vger.kernel.org, coreteam@netfilter.org, davem@davemloft.net,
-        dvyukov@google.com, edumazet@google.com, fw@strlen.de,
-        gautamramk@gmail.com, hdanton@sina.com, jhs@mojatatu.com,
-        jiri@resnulli.us, kadlec@netfilter.org, kuba@kernel.org,
-        lesliemonis@gmail.com, linux-kernel@vger.kernel.org,
-        mohitbhasi1998@gmail.com, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-        pablo@netfilter.org, paulmck@kernel.org, sdp.sachin@gmail.com,
-        syzkaller-bugs@googlegroups.com, tahiliani@nitk.edu.in,
-        tglx@linutronix.de, vsaicharan1998@gmail.com,
-        xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <988c6c1bc2a2fff3d0ab65bdd5c7bdb9e09499a1.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has bisected this issue to:
+On Fri, Sep 22, 2023 at 10:54:52AM +0200, Thomas Haller wrote:
+> On Thu, 2023-09-21 at 16:19 +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Sep 20, 2023 at 09:28:29PM +0200, Thomas Haller wrote:
+> > 
+> > 
+> > > The check "if (value > (uint32_t) EXPR_MAX)" is only here to ensure
+> > > that nothing is lost while casting the uint32_t "value" to the enum
+> > > expr_types.
+> > 
+> > Is this cast really required? This is to handle the hypothetical case
+> > where EXPR_MAX ever gets a negative value?
+> > 
+> 
+> EXPR_MAX is never negative.
+> 
+> If EXPR_MAX is treated as a signed integer, then it will be implicitly
+> cast to unsigned when comparing with the uint32_t. The behavior will be
+> correct without a cast.
+> 
+> But won't the compiler warn about comparing integers of different
+> signedness?
+> 
+> The cast is probably not needed. But it doesn't hurt.
 
-commit ec97ecf1ebe485a17cd8395a5f35e6b80b57665a
-Author: Mohit P. Tahiliani <tahiliani@nitk.edu.in>
-Date:   Wed Jan 22 18:22:33 2020 +0000
-
-    net: sched: add Flow Queue PIE packet scheduler
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=15c5748e680000
-start commit:   d4a7ce642100 igc: Fix Kernel Panic during ndo_tx_timeout c..
-git tree:       net
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=17c5748e680000
-console output: https://syzkaller.appspot.com/x/log.txt?x=13c5748e680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=77b9a3cf8f44c6da
-dashboard link: https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1504b511a80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=137bf931a80000
-
-Reported-by: syzbot+eec403943a2a2455adaa@syzkaller.appspotmail.com
-Fixes: ec97ecf1ebe4 ("net: sched: add Flow Queue PIE packet scheduler")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Applied, I removed the cast and I added a note in the commit that I
+mangled this myself, it is really turns out we really need it, we can
+recover it. Thanks.
