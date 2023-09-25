@@ -2,70 +2,101 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEAB4CE7A81
-	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Sep 2023 08:44:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F296CE7A89
+	for <netfilter-devel@archiver.kernel.org>; Mon, 25 Sep 2023 09:33:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232958AbjIYIor (ORCPT
+        id S230061AbjIYJdZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 25 Sep 2023 04:44:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57136 "EHLO
+        Mon, 25 Sep 2023 05:33:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232873AbjIYIoq (ORCPT
+        with ESMTP id S233236AbjIYJdH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Sep 2023 04:44:46 -0400
+        Mon, 25 Sep 2023 05:33:07 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35C27C0
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2023 01:44:39 -0700 (PDT)
-Received: from [78.30.34.192] (port=47940 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7C6BFE
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2023 02:33:00 -0700 (PDT)
+Received: from [78.30.34.192] (port=41490 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qkhCi-00FOWz-EC; Mon, 25 Sep 2023 10:44:34 +0200
-Date:   Mon, 25 Sep 2023 10:44:31 +0200
+        id 1qkhxY-00FcHO-Lj; Mon, 25 Sep 2023 11:32:58 +0200
+Date:   Mon, 25 Sep 2023 11:32:55 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 7/9] expression: cleanup expr_ops_by_type() and
- handle u32 input
-Message-ID: <ZRFIb4BhMdtfwe11@calendula>
-References: <20230920142958.566615-1-thaller@redhat.com>
- <20230920142958.566615-8-thaller@redhat.com>
- <ZQs2Pmq6J5ZdXDQb@calendula>
- <47d61eebc85999dbd2f5b7a038b00723dea70cae.camel@redhat.com>
- <ZQxQ2bDCBBZGGfAR@calendula>
- <988c6c1bc2a2fff3d0ab65bdd5c7bdb9e09499a1.camel@redhat.com>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf PATCH 2/5] netfilter: nf_tables: Add locking for
+ NFT_MSG_GETRULE_RESET requests
+Message-ID: <ZRFTx6pFYt2tZuSy@calendula>
+References: <20230923013807.11398-1-phil@nwl.cc>
+ <20230923013807.11398-3-phil@nwl.cc>
+ <20230923110437.GB22532@breakpoint.cc>
+ <ZQ7+MF4aweUYmU7j@orbyte.nwl.cc>
+ <20230923161813.GB19098@breakpoint.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <988c6c1bc2a2fff3d0ab65bdd5c7bdb9e09499a1.camel@redhat.com>
+In-Reply-To: <20230923161813.GB19098@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 22, 2023 at 10:54:52AM +0200, Thomas Haller wrote:
-> On Thu, 2023-09-21 at 16:19 +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Sep 20, 2023 at 09:28:29PM +0200, Thomas Haller wrote:
+On Sat, Sep 23, 2023 at 06:18:13PM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > > Can you split that into another patch?
 > > 
+> > You mean the whole creation of nf_tables_getrule_single()? Because the
+> > above change is only required due to the changed return type.
+> 
+> Yes, I was wondering if there is a way to convert the return type
+> in a different patch.
+> 
+> If its too costly, don't bother.
+> 
+> > > Hmm. Stupid question.  Why do we need a spinlock to serialize?
+> > > This is now a distinct function, so:
 > > 
-> > > The check "if (value > (uint32_t) EXPR_MAX)" is only here to ensure
-> > > that nothing is lost while casting the uint32_t "value" to the enum
-> > > expr_types.
-> > 
-> > Is this cast really required? This is to handle the hypothetical case
-> > where EXPR_MAX ever gets a negative value?
-> > 
-> 
-> EXPR_MAX is never negative.
-> 
-> If EXPR_MAX is treated as a signed integer, then it will be implicitly
-> cast to unsigned when comparing with the uint32_t. The behavior will be
-> correct without a cast.
-> 
-> But won't the compiler warn about comparing integers of different
-> signedness?
-> 
-> The cast is probably not needed. But it doesn't hurt.
+> > On Tue, Sep 05, 2023 at 11:11:07PM +0200, Phil Sutter wrote:
+> > [...]
+> > > I guess NFNL_CB_MUTEX is a no go because it locks down the whole
+> > > subsystem, right?
 
-Applied, I removed the cast and I added a note in the commit that I
-mangled this myself, it is really turns out we really need it, we can
-recover it. Thanks.
+NFNL_CB_MUTEX takes the global subsystem mutex, see
+net/netfilter/nfnetlink.c
+
+                case NFNL_CB_MUTEX:
+                        rcu_read_unlock();
+                        nfnl_lock(subsys_id);
+                        ...
+
+This does not help either for netlink dumps, because NFNL_CB_MUTEX
+only guarantees that the first netlink dump chunk holds the mutex
+while follow up calls to netlink_recvmsg() would be lockless.
+
+Note, Florian updated nf_tables to use a per-netns mutex only.
+
+> If thats really a concern. alernative would be to do same thing as
+> nft_netlink_dump_start_rcu(), i.e. use _RCU as-is and then switch
+> from rcu to module reference held, plus, in your case, the transaction
+> mutex.
+> 
+> Actually I like that better because we already use this pattern and
+> afaics all dumpers call rcu_read_lock for us; i.e.:
+> 
+> callback_that_might_reset()
+> {
+> 	try_module_get ...
+> 	rcu_read_unlock()
+> 	mutex_lock(net->commit_mutex)
+> 	  dumper();
+> 	mutex_unlock(net->commit_mutex)
+> 	rcu_read_lock();
+> 	module_put()
+> }
+>
+> should do the trick.
+
+Idiom above LGTM, *except for net->commit_mutex*. Please do not use
+->commit_mutex: This will stall ruleset updates for no reason, netlink
+dump would grab and release such mutex for each netlink_recvmsg() call
+and netlink dump side will always retry because of NLM_F_EINTR.
