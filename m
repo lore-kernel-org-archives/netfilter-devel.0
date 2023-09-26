@@ -2,33 +2,32 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8115E7E62E
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Sep 2023 12:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 181C2E7E635
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Sep 2023 13:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233754AbjIZMOQ (ORCPT
+        id S234739AbjIZNey (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Sep 2023 08:14:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60148 "EHLO
+        Tue, 26 Sep 2023 09:34:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230231AbjIZMOP (ORCPT
+        with ESMTP id S233786AbjIZNex (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2023 08:14:15 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 235C5EB
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 05:14:08 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1ql6x3-0002Yh-Lr; Tue, 26 Sep 2023 14:14:05 +0200
-Date:   Tue, 26 Sep 2023 14:14:05 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+        Tue, 26 Sep 2023 09:34:53 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4151FC
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 06:34:45 -0700 (PDT)
+Received: from [78.30.34.192] (port=44968 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1ql8D2-005jxx-Rw; Tue, 26 Sep 2023 15:34:42 +0200
+Date:   Tue, 26 Sep 2023 15:34:40 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
 Subject: Re: [nf PATCH 2/5] netfilter: nf_tables: Add locking for
  NFT_MSG_GETRULE_RESET requests
-Message-ID: <ZRLLDbVlYK5c9HX+@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Message-ID: <ZRLd8MxWZMt3O/Yh@calendula>
 References: <20230923013807.11398-1-phil@nwl.cc>
  <20230923013807.11398-3-phil@nwl.cc>
  <20230923110437.GB22532@breakpoint.cc>
@@ -38,92 +37,121 @@ References: <20230923013807.11398-1-phil@nwl.cc>
  <20230925195317.GC22532@breakpoint.cc>
  <ZRKlszo1ra1EakD+@orbyte.nwl.cc>
  <ZRKt31Vs382Z31IO@calendula>
+ <ZRLLDbVlYK5c9HX+@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZRKt31Vs382Z31IO@calendula>
+In-Reply-To: <ZRLLDbVlYK5c9HX+@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 26, 2023 at 12:09:35PM +0200, Pablo Neira Ayuso wrote:
-> Hi Phil,
-> 
-> On Tue, Sep 26, 2023 at 11:34:43AM +0200, Phil Sutter wrote:
-> > On Mon, Sep 25, 2023 at 09:53:17PM +0200, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > On Sat, Sep 23, 2023 at 06:18:13PM +0200, Florian Westphal wrote:
-> > > > > callback_that_might_reset()
-> > > > > {
-> > > > > 	try_module_get ...
-> > > > > 	rcu_read_unlock()
-> > > > > 	mutex_lock(net->commit_mutex)
-> > > > > 	  dumper();
-> > > > > 	mutex_unlock(net->commit_mutex)
-> > > > > 	rcu_read_lock();
-> > > > > 	module_put()
-> > > > > }
-> > > > >
-> > > > > should do the trick.
-> > > > 
-> > > > Idiom above LGTM, *except for net->commit_mutex*. Please do not use
-> > > > ->commit_mutex: This will stall ruleset updates for no reason, netlink
-> > > > dump would grab and release such mutex for each netlink_recvmsg() call
-> > > > and netlink dump side will always retry because of NLM_F_EINTR.
-> > > 
-> > > It will stall updates, but for good reason: we are making changes to the
-> > > expressions state.
+On Tue, Sep 26, 2023 at 02:14:05PM +0200, Phil Sutter wrote:
+> On Tue, Sep 26, 2023 at 12:09:35PM +0200, Pablo Neira Ayuso wrote:
+> > Hi Phil,
 > > 
-> > This also disqualifies the use of Pablo's suggested reset_lock, right?
+> > On Tue, Sep 26, 2023 at 11:34:43AM +0200, Phil Sutter wrote:
+> > > On Mon, Sep 25, 2023 at 09:53:17PM +0200, Florian Westphal wrote:
+> > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > > On Sat, Sep 23, 2023 at 06:18:13PM +0200, Florian Westphal wrote:
+> > > > > > callback_that_might_reset()
+> > > > > > {
+> > > > > > 	try_module_get ...
+> > > > > > 	rcu_read_unlock()
+> > > > > > 	mutex_lock(net->commit_mutex)
+> > > > > > 	  dumper();
+> > > > > > 	mutex_unlock(net->commit_mutex)
+> > > > > > 	rcu_read_lock();
+> > > > > > 	module_put()
+> > > > > > }
+> > > > > >
+> > > > > > should do the trick.
+> > > > > 
+> > > > > Idiom above LGTM, *except for net->commit_mutex*. Please do not use
+> > > > > ->commit_mutex: This will stall ruleset updates for no reason, netlink
+> > > > > dump would grab and release such mutex for each netlink_recvmsg() call
+> > > > > and netlink dump side will always retry because of NLM_F_EINTR.
+> > > > 
+> > > > It will stall updates, but for good reason: we are making changes to the
+> > > > expressions state.
+> > > 
+> > > This also disqualifies the use of Pablo's suggested reset_lock, right?
+> > 
+> > Quick summary:
+> > 
+> > We are currently discussing if it makes sense to add a new lock or
+> > not. The commit_mutex stalls updates, but netlink dumps retrieves
+> > listings in chunks, that is, one recvmsg() call from userspace (to
+> > retrieve one list chunk) will grab the mutex then release it until the
+> > next recvmsg() call is done. Between these two calls an update is
+> > still possible. The question is if it is worth to stall an ongoing
+> > listing or updates.
 > 
-> Quick summary:
+> Thanks for the summary. Assuming that a blocked commit will only be
+> postponed until after the current chunk was filled and is being
+> submitted to user space, I don't see how it would make a practical
+> difference for reset command if commit_mutex is used instead of
+> reset_lock (or a dedicated reset_mutex).
+
+If the problem we are addressing is two processes listing the ruleset
+that concur to reset stateful expressions, then there is no difference.
+However, this is stalling writers and I don't think we need this
+according to the problem description.
+
+Another point to consider is how likely this list-and-reset happens.
+If it is unlikely, then commit_mutex should be fine. But if we expect
+a process polling to fetch counters very often, this will introduce an
+unnecessary interference with writers. In a very dynamic deployment,
+with frequent transaction updates, that might stall transactions for
+no reason.
+
+Please, note that using commit_mutex will *not* fix either that
+userspace has to properly deal with NLM_F_EINTR, and I am 100% sure
+you told me last time when you submitted this that you would prefer to
+fix that once you get a ticket^H^H^H^H^H^H complain from someone else.
+Oh, and I accepted that deal.
+
+Honestly, we already have things to improve in other fronts, such
+speeding up set updates and reducing userspace memory consumption,
+much of this is userspace work.
+
+> > There is the NLM_F_EINTR mechanism in place that tells that an
+> > interference has occured while keeping the listing lockless.
+> > 
+> > Unless I am missing anything, the goal is to fix two different
+> > processes that are listing at the same time, that is, two processes
+> > running a netlink dump at the same time that are resetting the
+> > stateful expressions in the ruleset.
 > 
-> We are currently discussing if it makes sense to add a new lock or
-> not. The commit_mutex stalls updates, but netlink dumps retrieves
-> listings in chunks, that is, one recvmsg() call from userspace (to
-> retrieve one list chunk) will grab the mutex then release it until the
-> next recvmsg() call is done. Between these two calls an update is
-> still possible. The question is if it is worth to stall an ongoing
-> listing or updates.
-
-Thanks for the summary. Assuming that a blocked commit will only be
-postponed until after the current chunk was filled and is being
-submitted to user space, I don't see how it would make a practical
-difference for reset command if commit_mutex is used instead of
-reset_lock (or a dedicated reset_mutex).
-
-> There is the NLM_F_EINTR mechanism in place that tells that an
-> interference has occured while keeping the listing lockless.
+> Here's a simple repro I use to verify the locking approach (only rule
+> reset for now):
 > 
-> Unless I am missing anything, the goal is to fix two different
-> processes that are listing at the same time, that is, two processes
-> running a netlink dump at the same time that are resetting the
-> stateful expressions in the ruleset.
+> | set -e
+> | 
+> | RULESET='flush ruleset
+> | table t {
+> |       chain c {
+> |               counter packets 23 bytes 42
+> |       }
+> | }'
+> | 
+> | trap "$NFT list ruleset" EXIT
+> | for ((i = 0; i < 10000; i++)); do
+> |       echo "iter $i"
+> |       $NFT -f - <<< "$RULESET"
+> |       $NFT list ruleset | grep -q 'packets 23 bytes 42' >/dev/null
+> |       $NFT reset rules >/dev/null &
+> |       pid=$!
+> |       $NFT reset rules >/dev/null
+> |       wait $!
+> |       #$NFT list ruleset | grep 'packets'
+> |       $NFT list ruleset | grep -q 'packets 0 bytes 0' >/dev/null
+> | done
+> 
+> If the two calls clash, the rule will have huge counter values due to
+> underflow.
 
-Here's a simple repro I use to verify the locking approach (only rule
-reset for now):
+Can you give a try with the reset_lock spinlock approach with this
+script that exercises worst case?
 
-| set -e
-| 
-| RULESET='flush ruleset
-| table t {
-|       chain c {
-|               counter packets 23 bytes 42
-|       }
-| }'
-| 
-| trap "$NFT list ruleset" EXIT
-| for ((i = 0; i < 10000; i++)); do
-|       echo "iter $i"
-|       $NFT -f - <<< "$RULESET"
-|       $NFT list ruleset | grep -q 'packets 23 bytes 42' >/dev/null
-|       $NFT reset rules >/dev/null &
-|       pid=$!
-|       $NFT reset rules >/dev/null
-|       wait $!
-|       #$NFT list ruleset | grep 'packets'
-|       $NFT list ruleset | grep -q 'packets 0 bytes 0' >/dev/null
-| done
-
-If the two calls clash, the rule will have huge counter values due to
-underflow.
+Thanks.
