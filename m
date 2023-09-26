@@ -2,161 +2,108 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03E7DE7F126
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Sep 2023 20:05:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24B8EE7F140
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Sep 2023 22:28:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235816AbjIZUF0 (ORCPT
+        id S229839AbjIZW2I (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Sep 2023 16:05:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52274 "EHLO
+        Tue, 26 Sep 2023 18:28:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235817AbjIZUFZ (ORCPT
+        with ESMTP id S229960AbjIZW0H (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2023 16:05:25 -0400
-Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61BC413A
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 13:05:17 -0700 (PDT)
-Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-59c0327b75dso179927777b3.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 13:05:17 -0700 (PDT)
+        Tue, 26 Sep 2023 18:26:07 -0400
+Received: from mail-yw1-x112d.google.com (mail-yw1-x112d.google.com [IPv6:2607:f8b0:4864:20::112d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 401758A76
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 14:25:03 -0700 (PDT)
+Received: by mail-yw1-x112d.google.com with SMTP id 00721157ae682-59f6763767dso75532477b3.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 14:25:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1695758716; x=1696363516; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=iUWT+ccHYSlqR7Gmrnq8A76xPWnK8wJVTcz3EkgFwkk=;
-        b=fHvz/oXfN/BEP2dph9JC3zX7RplJK25pHOYQ4k6IYY2hH90LJ9R8h6X9CBSdVPWzOA
-         zZ/uFcKpr7u4eQsd5O2ZSK+xcQXrOywBXajCGjcm0whNsAFfSsrd738LczlzCSllqloF
-         pEzhSw4I1X44/guUCDwGqfzt9QuibRzEndhzaLrYP7lK6AG64NG8oc2alRg7CkTJ7JOZ
-         bOx/0fu4TVsqxt+gD/reQgOiiGqTXzlYIgCQRXfciGybYOOS7c1U9Q1SAtvzHOyiSP4G
-         taSxv0/UENApCkCQ7xsaAMjZBN1Pgu/eEuwoYJpS59T8gWm6HkncOggfOM07dVhLywpq
-         HUEA==
+        d=paul-moore.com; s=google; t=1695763502; x=1696368302; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hwijluXAJKvne9nyx6goJKnLPUI/1CGCM6T80bPQaYM=;
+        b=LR2FX1f3DDBRQYRdtvnoDE0f+uH+7KoAD6fh0mCa/BXBlGRZ1icvRDPb0kMIE/+e+h
+         mjvU1TMBJmwmU12hmgJnSjO1FE7UivTwxapLI+hC/aEluSvhAYrKYABBFBdKqQS/jPIE
+         quHNW3D8taM3MXVGb9x31zKxBN5LmWXD5aVmb8bwGNy0yr+8CU5oylSa9YxaiE5M8jKC
+         u8VlzGeO5yGikhZgBGgDRJ7vuVdJNjb+ryEgbmTDYA94D4etrotoNKhikjaTzHW7TSon
+         vBZEwmC7ybj0IJXfsTZuMLNZlyAGMBLditaBKy9xbsM6Od9WZT95OQwJ3vlpRscJp+Vp
+         GCSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695758716; x=1696363516;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=iUWT+ccHYSlqR7Gmrnq8A76xPWnK8wJVTcz3EkgFwkk=;
-        b=MvbtCES3va5i/6x0ZZ+F4sATRbDkAf2/AeyfmkUYm1nWLX1I0hAUOsyyAqALdB/8+7
-         huSdgzw9rnJx7g4tuCT5Lj8N63C+Cl6cwAu6tFGxA86nSxNyy5Zw+XyBZd/ChAqrPDmz
-         tT00vNfX0pad85film0ZPzopxblm6cz5jJKenBN4MnEo7CGzVwCVLYgGAdP1QLeiYevH
-         yriW0Bj3WRHvrUdWaeUg7sxWW3lNQmEJDo+fwz8UsxkDLZn02RPPtgHyiuY/i7Op9nIv
-         LBw71ZQJU/QULZ1t5C0usdAMFVWFE8A5AbHU8VKLMl2aP4SecKh9sdPh3ER8BBOM9EDs
-         b7MQ==
-X-Gm-Message-State: AOJu0YzDx3OgmI/tHNoRpv43xelbyLZJotX1tyKpszqFwte40Xo0K+zw
-        26US547qMkbq5UJ23R9jzOecglENhw==
-X-Google-Smtp-Source: AGHT+IEUd45Rw2MBKHocGo/lYiGWT9CIksAVWd6cnwx9BMyxx8zuAa0FUl0Vs9Eq31nY+vAcjI1OSk/2lQ==
-X-Received: from jrife.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:9f])
- (user=jrife job=sendgmr) by 2002:a81:af60:0:b0:59b:ca80:919a with SMTP id
- x32-20020a81af60000000b0059bca80919amr428ywj.0.1695758716434; Tue, 26 Sep
- 2023 13:05:16 -0700 (PDT)
-Date:   Tue, 26 Sep 2023 15:05:05 -0500
-In-Reply-To: <20230926200505.2804266-1-jrife@google.com>
-Mime-Version: 1.0
-References: <20230926200505.2804266-1-jrife@google.com>
-X-Mailer: git-send-email 2.42.0.515.g380fc7ccd1-goog
-Message-ID: <20230926200505.2804266-4-jrife@google.com>
-Subject: [PATCH net v6 3/3] net: prevent address rewrite in kernel_bind()
-From:   Jordan Rife <jrife@google.com>
-To:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, willemdebruijn.kernel@gmail.com,
-        netdev@vger.kernel.org
-Cc:     dborkman@kernel.org, horms@verge.net.au, pablo@netfilter.org,
-        kadlec@netfilter.org, fw@strlen.de, santosh.shilimkar@oracle.com,
-        ast@kernel.org, rdna@fb.com, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, ja@ssi.bg,
-        lvs-devel@vger.kernel.org, kafai@fb.com, daniel@iogearbox.net,
-        daan.j.demeyer@gmail.com, Jordan Rife <jrife@google.com>,
-        stable@vger.kernel.org, Willem de Bruijn <willemb@google.com>
+        d=1e100.net; s=20230601; t=1695763502; x=1696368302;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=hwijluXAJKvne9nyx6goJKnLPUI/1CGCM6T80bPQaYM=;
+        b=GgjkgQKaJdRlKKrt3gpqVkrsDp79W6EgHaAXN79Bpc9KUpVbURnj6N4xuDAfMov+ie
+         AldDDKwTjO9aOsAXW9+YDj3tDoMcS8KlpbTT0rHSQo9XJ+i8jqRRnZKPkseeCzR7J5+u
+         rRXToQzSiv3NCemhx86a/iGRtKqJm0GzcD5rZZVCIHfX06+ghWZ7vGd3qkB540ws8sG7
+         N7r/HMpKlyJk3KwD+s2Iji3RDAba8SXKm//JuH1QTdZiWq/v4Xx5GF/ZGtI77TSud2L2
+         WF7RPkJ7ZvEg0JJQ9ab/iScjL9VejVNkP1m+vtBlGm5lOuBeNro4Hfmdrn9GYvpvf/E4
+         ELoQ==
+X-Gm-Message-State: AOJu0Yw2W31EjOKqdcpkYPqr9F6/S1wZQxwL0rNCAEtxQ3R08ceQ0VS5
+        xl4id/ybEoDc8ndEoUChSGjw2bVbz3Q2jbUYikEb
+X-Google-Smtp-Source: AGHT+IHWBrVpaEs8oeLeJX4Du6t+Xq/8ntooKfhRzbkI+hrad/LJobEDNuHtrB4FZeMEAvoJSWXS/3Y3U0XqWUf8NlE=
+X-Received: by 2002:a0d:cbd6:0:b0:599:da80:e1eb with SMTP id
+ n205-20020a0dcbd6000000b00599da80e1ebmr287256ywd.24.1695763502468; Tue, 26
+ Sep 2023 14:25:02 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230923015351.15707-1-phil@nwl.cc>
+In-Reply-To: <20230923015351.15707-1-phil@nwl.cc>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Tue, 26 Sep 2023 17:24:51 -0400
+Message-ID: <CAHC9VhQv6dbgbfxEn4EjHhhfu3YDT0Ed76gZQNFyhY2mzeE0bg@mail.gmail.com>
+Subject: Re: [nf PATCH 0/3] Review nf_tables audit logging
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        audit@vger.kernel.org, Richard Guy Briggs <rgb@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Similar to the change in commit 0bdf399342c5("net: Avoid address
-overwrite in kernel_connect"), BPF hooks run on bind may rewrite the
-address passed to kernel_bind(). This change
+On Fri, Sep 22, 2023 at 9:53=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote:
+>
+> When working on locking for reset commands, some audit log calls had to
+> be adjusted as well. This series deals with the "fallout" from adding
+> tests for the changed log calls, dealing with the uncovered issues and
+> adding more tests.
+>
+> Patch 1 adds more testing to nft_audit.sh for commands which are
+> unproblematic.
+>
+> Patch 2 deals with (likely) leftovers from audit log flood prevention in
+> commit c520292f29b80 ("audit: log nftables configuration change events
+> once per table").
+>
+> Patch 3 changes logging for object reset requests to happen once per
+> table (if skb size is sufficient) and thereby aligns output with object
+> add requests. As a side-effect, logging is fixed to happen after the
+> actual reset has succeeded, not before.
+>
+> NOTE: This whole series probably depends on the reset locking series[1]
+> submitted earlier, but there's no functional connection and reviews
+> should happen independently.
+>
+> [1] https://lore.kernel.org/netfilter-devel/20230923013807.11398-1-phil@n=
+wl.cc/
+>
+> Phil Sutter (3):
+>   selftests: netfilter: Extend nft_audit.sh
+>   netfilter: nf_tables: Deduplicate nft_register_obj audit logs
+>   netfilter: nf_tables: Audit log object reset once per table
+>
+>  net/netfilter/nf_tables_api.c                 |  95 +++++-----
+>  .../testing/selftests/netfilter/nft_audit.sh  | 163 ++++++++++++++++--
+>  2 files changed, 203 insertions(+), 55 deletions(-)
 
-1) Makes a copy of the bind address in kernel_bind() to insulate
-   callers.
-2) Replaces direct calls to sock->ops->bind() in net with kernel_bind()
+Hi Phil,
 
-Link: https://lore.kernel.org/netdev/20230912013332.2048422-1-jrife@google.com/
-Fixes: 4fbac77d2d09 ("bpf: Hooks for sys_bind")
-Cc: stable@vger.kernel.org
-Reviewed-by: Willem de Bruijn <willemb@google.com>
-Signed-off-by: Jordan Rife <jrife@google.com>
----
- net/netfilter/ipvs/ip_vs_sync.c | 4 ++--
- net/rds/tcp_connect.c           | 2 +-
- net/rds/tcp_listen.c            | 2 +-
- net/socket.c                    | 7 ++++++-
- 4 files changed, 10 insertions(+), 5 deletions(-)
+Thanks for continuing to work on this, my network access is limited at
+the moment but I hope to be able to review this next week.
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 6e4ed1e11a3b7..4174076c66fa7 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1439,7 +1439,7 @@ static int bind_mcastif_addr(struct socket *sock, struct net_device *dev)
- 	sin.sin_addr.s_addr  = addr;
- 	sin.sin_port         = 0;
- 
--	return sock->ops->bind(sock, (struct sockaddr*)&sin, sizeof(sin));
-+	return kernel_bind(sock, (struct sockaddr *)&sin, sizeof(sin));
- }
- 
- static void get_mcast_sockaddr(union ipvs_sockaddr *sa, int *salen,
-@@ -1546,7 +1546,7 @@ static int make_receive_sock(struct netns_ipvs *ipvs, int id,
- 
- 	get_mcast_sockaddr(&mcast_addr, &salen, &ipvs->bcfg, id);
- 	sock->sk->sk_bound_dev_if = dev->ifindex;
--	result = sock->ops->bind(sock, (struct sockaddr *)&mcast_addr, salen);
-+	result = kernel_bind(sock, (struct sockaddr *)&mcast_addr, salen);
- 	if (result < 0) {
- 		pr_err("Error binding to the multicast addr\n");
- 		goto error;
-diff --git a/net/rds/tcp_connect.c b/net/rds/tcp_connect.c
-index d788c6d28986f..a0046e99d6df7 100644
---- a/net/rds/tcp_connect.c
-+++ b/net/rds/tcp_connect.c
-@@ -145,7 +145,7 @@ int rds_tcp_conn_path_connect(struct rds_conn_path *cp)
- 		addrlen = sizeof(sin);
- 	}
- 
--	ret = sock->ops->bind(sock, addr, addrlen);
-+	ret = kernel_bind(sock, addr, addrlen);
- 	if (ret) {
- 		rdsdebug("bind failed with %d at address %pI6c\n",
- 			 ret, &conn->c_laddr);
-diff --git a/net/rds/tcp_listen.c b/net/rds/tcp_listen.c
-index 014fa24418c12..53b3535a1e4a8 100644
---- a/net/rds/tcp_listen.c
-+++ b/net/rds/tcp_listen.c
-@@ -306,7 +306,7 @@ struct socket *rds_tcp_listen_init(struct net *net, bool isv6)
- 		addr_len = sizeof(*sin);
- 	}
- 
--	ret = sock->ops->bind(sock, (struct sockaddr *)&ss, addr_len);
-+	ret = kernel_bind(sock, (struct sockaddr *)&ss, addr_len);
- 	if (ret < 0) {
- 		rdsdebug("could not bind %s listener socket: %d\n",
- 			 isv6 ? "IPv6" : "IPv4", ret);
-diff --git a/net/socket.c b/net/socket.c
-index 107a257a75186..3408bd6bb1e5a 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -3518,7 +3518,12 @@ static long compat_sock_ioctl(struct file *file, unsigned int cmd,
- 
- int kernel_bind(struct socket *sock, struct sockaddr *addr, int addrlen)
- {
--	return READ_ONCE(sock->ops)->bind(sock, addr, addrlen);
-+	struct sockaddr_storage address;
-+
-+	memcpy(&address, addr, addrlen);
-+
-+	return READ_ONCE(sock->ops)->bind(sock, (struct sockaddr *)&address,
-+					  addrlen);
- }
- EXPORT_SYMBOL(kernel_bind);
- 
--- 
-2.42.0.515.g380fc7ccd1-goog
-
+--=20
+paul-moore.com
