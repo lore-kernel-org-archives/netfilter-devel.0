@@ -2,177 +2,171 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BD39E7E635
-	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Sep 2023 13:59:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BE88E7E644
+	for <netfilter-devel@archiver.kernel.org>; Tue, 26 Sep 2023 15:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234852AbjIZN70 (ORCPT
+        id S234692AbjIZPZQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Sep 2023 09:59:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52074 "EHLO
+        Tue, 26 Sep 2023 11:25:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234828AbjIZN70 (ORCPT
+        with ESMTP id S229520AbjIZPZP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2023 09:59:26 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3033FC
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 06:59:18 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1ql8ap-0003Sp-Us; Tue, 26 Sep 2023 15:59:16 +0200
-Date:   Tue, 26 Sep 2023 15:59:15 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH 2/5] netfilter: nf_tables: Add locking for
- NFT_MSG_GETRULE_RESET requests
-Message-ID: <ZRLjs5Rv91mJWbC0@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20230923013807.11398-3-phil@nwl.cc>
- <20230923110437.GB22532@breakpoint.cc>
- <ZQ7+MF4aweUYmU7j@orbyte.nwl.cc>
- <20230923161813.GB19098@breakpoint.cc>
- <ZRFTx6pFYt2tZuSy@calendula>
- <20230925195317.GC22532@breakpoint.cc>
- <ZRKlszo1ra1EakD+@orbyte.nwl.cc>
- <ZRKt31Vs382Z31IO@calendula>
- <ZRLLDbVlYK5c9HX+@orbyte.nwl.cc>
- <ZRLd8MxWZMt3O/Yh@calendula>
+        Tue, 26 Sep 2023 11:25:15 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 235D711F
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2023 08:25:08 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/3] tests: py: add map support
+Date:   Tue, 26 Sep 2023 17:24:58 +0200
+Message-Id: <20230926152500.30571-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZRLd8MxWZMt3O/Yh@calendula>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Sep 26, 2023 at 03:34:40PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Sep 26, 2023 at 02:14:05PM +0200, Phil Sutter wrote:
-> > On Tue, Sep 26, 2023 at 12:09:35PM +0200, Pablo Neira Ayuso wrote:
-> > > Hi Phil,
-> > > 
-> > > On Tue, Sep 26, 2023 at 11:34:43AM +0200, Phil Sutter wrote:
-> > > > On Mon, Sep 25, 2023 at 09:53:17PM +0200, Florian Westphal wrote:
-> > > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > > > On Sat, Sep 23, 2023 at 06:18:13PM +0200, Florian Westphal wrote:
-> > > > > > > callback_that_might_reset()
-> > > > > > > {
-> > > > > > > 	try_module_get ...
-> > > > > > > 	rcu_read_unlock()
-> > > > > > > 	mutex_lock(net->commit_mutex)
-> > > > > > > 	  dumper();
-> > > > > > > 	mutex_unlock(net->commit_mutex)
-> > > > > > > 	rcu_read_lock();
-> > > > > > > 	module_put()
-> > > > > > > }
-> > > > > > >
-> > > > > > > should do the trick.
-> > > > > > 
-> > > > > > Idiom above LGTM, *except for net->commit_mutex*. Please do not use
-> > > > > > ->commit_mutex: This will stall ruleset updates for no reason, netlink
-> > > > > > dump would grab and release such mutex for each netlink_recvmsg() call
-> > > > > > and netlink dump side will always retry because of NLM_F_EINTR.
-> > > > > 
-> > > > > It will stall updates, but for good reason: we are making changes to the
-> > > > > expressions state.
-> > > > 
-> > > > This also disqualifies the use of Pablo's suggested reset_lock, right?
-> > > 
-> > > Quick summary:
-> > > 
-> > > We are currently discussing if it makes sense to add a new lock or
-> > > not. The commit_mutex stalls updates, but netlink dumps retrieves
-> > > listings in chunks, that is, one recvmsg() call from userspace (to
-> > > retrieve one list chunk) will grab the mutex then release it until the
-> > > next recvmsg() call is done. Between these two calls an update is
-> > > still possible. The question is if it is worth to stall an ongoing
-> > > listing or updates.
-> > 
-> > Thanks for the summary. Assuming that a blocked commit will only be
-> > postponed until after the current chunk was filled and is being
-> > submitted to user space, I don't see how it would make a practical
-> > difference for reset command if commit_mutex is used instead of
-> > reset_lock (or a dedicated reset_mutex).
-> 
-> If the problem we are addressing is two processes listing the ruleset
-> that concur to reset stateful expressions, then there is no difference.
-> However, this is stalling writers and I don't think we need this
-> according to the problem description.
+Add basic map support to this infrastructure, eg.
 
-ACK. Maybe Florian has a case in mind which requires to serialize reset
-and commit?
+  !map1 ipv4_addr : mark;ok
 
-> Another point to consider is how likely this list-and-reset happens.
-> If it is unlikely, then commit_mutex should be fine. But if we expect
-> a process polling to fetch counters very often, this will introduce an
-> unnecessary interference with writers. In a very dynamic deployment,
-> with frequent transaction updates, that might stall transactions for
-> no reason.
+Adding elements to map is still not supported.
 
-I wonder if hardcore 'reset the rules fetching counters' users care
-about performance of ruleset changes at the same time. Maybe we
-shouldn't care until someone complains?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/py/nft-test.py | 70 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 66 insertions(+), 4 deletions(-)
 
-> Please, note that using commit_mutex will *not* fix either that
-> userspace has to properly deal with NLM_F_EINTR, and I am 100% sure
-> you told me last time when you submitted this that you would prefer to
-> fix that once you get a ticket^H^H^H^H^H^H complain from someone else.
-> Oh, and I accepted that deal.
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index b66a33c21f66..9a25503d1f38 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -86,11 +86,12 @@ class Table:
+ class Set:
+     """Class that represents a set"""
+ 
+-    def __init__(self, family, table, name, type, timeout, flags):
++    def __init__(self, family, table, name, type, data, timeout, flags):
+         self.family = family
+         self.table = table
+         self.name = name
+         self.type = type
++        self.data = data
+         self.timeout = timeout
+         self.flags = flags
+ 
+@@ -366,7 +367,11 @@ def set_add(s, test_result, filename, lineno):
+         if flags != "":
+             flags = "flags %s; " % flags
+ 
+-        cmd = "add set %s %s { type %s;%s %s}" % (table, s.name, s.type, s.timeout, flags)
++        if s.data == "":
++                cmd = "add set %s %s { type %s;%s %s}" % (table, s.name, s.type, s.timeout, flags)
++        else:
++                cmd = "add map %s %s { type %s : %s;%s %s}" % (table, s.name, s.type, s.data, s.timeout, flags)
++
+         ret = execute_cmd(cmd, filename, lineno)
+ 
+         if (ret == 0 and test_result == "fail") or \
+@@ -384,6 +389,44 @@ def set_add(s, test_result, filename, lineno):
+     return 0
+ 
+ 
++def map_add(s, test_result, filename, lineno):
++    '''
++    Adds a map
++    '''
++    if not table_list:
++        reason = "Missing table to add rule"
++        print_error(reason, filename, lineno)
++        return -1
++
++    for table in table_list:
++        s.table = table.name
++        s.family = table.family
++        if _map_exist(s, filename, lineno):
++            reason = "Map %s already exists in %s" % (s.name, table)
++            print_error(reason, filename, lineno)
++            return -1
++
++        flags = s.flags
++        if flags != "":
++            flags = "flags %s; " % flags
++
++        cmd = "add map %s %s { type %s : %s;%s %s}" % (table, s.name, s.type, s.data, s.timeout, flags)
++
++        ret = execute_cmd(cmd, filename, lineno)
++
++        if (ret == 0 and test_result == "fail") or \
++                (ret != 0 and test_result == "ok"):
++            reason = "%s: I cannot add the set %s" % (cmd, s.name)
++            print_error(reason, filename, lineno)
++            return -1
++
++        if not _map_exist(s, filename, lineno):
++            reason = "I have just added the set %s to " \
++                     "the table %s but it does not exist" % (s.name, table)
++            print_error(reason, filename, lineno)
++            return -1
++
++
+ def set_add_elements(set_element, set_name, state, filename, lineno):
+     '''
+     Adds elements to the set.
+@@ -490,6 +533,16 @@ def _set_exist(s, filename, lineno):
+     return True if (ret == 0) else False
+ 
+ 
++def _map_exist(s, filename, lineno):
++    '''
++    Check if the map exists.
++    '''
++    cmd = "list map %s %s %s" % (s.family, s.table, s.name)
++    ret = execute_cmd(cmd, filename, lineno)
++
++    return True if (ret == 0) else False
++
++
+ def set_check_element(rule1, rule2):
+     '''
+     Check if element exists in anonymous sets.
+@@ -1092,6 +1145,7 @@ def set_process(set_line, filename, lineno):
+     tokens = set_line[0].split(" ")
+     set_name = tokens[0]
+     set_type = tokens[2]
++    set_data = ""
+     set_flags = ""
+ 
+     i = 3
+@@ -1099,6 +1153,10 @@ def set_process(set_line, filename, lineno):
+         set_type += " . " + tokens[i+1]
+         i += 2
+ 
++    while len(tokens) > i and tokens[i] == ":":
++        set_data = tokens[i+1]
++        i += 2
++
+     if len(tokens) == i+2 and tokens[i] == "timeout":
+         timeout = "timeout " + tokens[i+1] + ";"
+         i += 2
+@@ -1108,9 +1166,13 @@ def set_process(set_line, filename, lineno):
+     elif len(tokens) != i:
+         print_error(set_name + " bad flag: " + tokens[i], filename, lineno)
+ 
+-    s = Set("", "", set_name, set_type, timeout, set_flags)
++    s = Set("", "", set_name, set_type, set_data, timeout, set_flags)
++
++    if set_data == "":
++        ret = set_add(s, test_result, filename, lineno)
++    else:
++        ret = map_add(s, test_result, filename, lineno)
+ 
+-    ret = set_add(s, test_result, filename, lineno)
+     if ret == 0:
+         all_set[set_name] = set()
+ 
+-- 
+2.30.2
 
-Sorry, I don't recall. What did I promise to fix once someone complains?
-NLM_F_EINTR handling in user space for reset commands? Is it broken??
-
-> Honestly, we already have things to improve in other fronts, such
-> speeding up set updates and reducing userspace memory consumption,
-> much of this is userspace work.
-
-I totally agree. And I didn't make the call for locking reset requests,
-I'm just trying to answer it since it's my code that's broken in that
-regard.
-
-> > > There is the NLM_F_EINTR mechanism in place that tells that an
-> > > interference has occured while keeping the listing lockless.
-> > > 
-> > > Unless I am missing anything, the goal is to fix two different
-> > > processes that are listing at the same time, that is, two processes
-> > > running a netlink dump at the same time that are resetting the
-> > > stateful expressions in the ruleset.
-> > 
-> > Here's a simple repro I use to verify the locking approach (only rule
-> > reset for now):
-> > 
-> > | set -e
-> > | 
-> > | RULESET='flush ruleset
-> > | table t {
-> > |       chain c {
-> > |               counter packets 23 bytes 42
-> > |       }
-> > | }'
-> > | 
-> > | trap "$NFT list ruleset" EXIT
-> > | for ((i = 0; i < 10000; i++)); do
-> > |       echo "iter $i"
-> > |       $NFT -f - <<< "$RULESET"
-> > |       $NFT list ruleset | grep -q 'packets 23 bytes 42' >/dev/null
-> > |       $NFT reset rules >/dev/null &
-> > |       pid=$!
-> > |       $NFT reset rules >/dev/null
-> > |       wait $!
-> > |       #$NFT list ruleset | grep 'packets'
-> > |       $NFT list ruleset | grep -q 'packets 0 bytes 0' >/dev/null
-> > | done
-> > 
-> > If the two calls clash, the rule will have huge counter values due to
-> > underflow.
-> 
-> Can you give a try with the reset_lock spinlock approach with this
-> script that exercises worst case?
-
-It passes with this series applied. It just takes long to finish (due to
-10k retries). If it triggers, it usually does within ~100 tries. But it
-depends, and I don't know how to increase the chances. Otherwise I would
-have put this in a kselftest.
-
-Cheers, Phil
