@@ -2,77 +2,129 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7756CE80AB1
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 14:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD61AE80ABD
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 14:41:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232046AbjI0O3F (ORCPT
+        id S232114AbjI0OlX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Sep 2023 10:29:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38396 "EHLO
+        Wed, 27 Sep 2023 10:41:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231733AbjI0O3F (ORCPT
+        with ESMTP id S232050AbjI0OlW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2023 10:29:05 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E0F8F9
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 07:29:03 -0700 (PDT)
-Received: from [78.30.34.192] (port=52858 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qlVXA-00Cs2e-4W; Wed, 27 Sep 2023 16:29:02 +0200
-Date:   Wed, 27 Sep 2023 16:28:58 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/3] nft: add NFT_ARRAY_SIZE() helper
-Message-ID: <ZRQ8Kki2ABsS+JPL@calendula>
-References: <20230927122744.3434851-1-thaller@redhat.com>
- <20230927122744.3434851-2-thaller@redhat.com>
- <6298b85f20f868e97e1465f06d7e68139b57aca8.camel@redhat.com>
+        Wed, 27 Sep 2023 10:41:22 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC49DF4
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 07:41:20 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qlVj5-0002Rz-0w; Wed, 27 Sep 2023 16:41:19 +0200
+Date:   Wed, 27 Sep 2023 16:41:18 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 3/3,v2] netlink_linearize: skip set element
+ expression in map statement key
+Message-ID: <ZRQ/DhU558tSxQ/D@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20230926160216.152549-1-pablo@netfilter.org>
+ <ZRMNB+3/4rzYb08p@orbyte.nwl.cc>
+ <ZRPq/JMoVffTEDM4@calendula>
+ <ZRQNkSG/dnesQ6Wv@orbyte.nwl.cc>
+ <ZRQPw+jMI+i9qSyE@calendula>
+ <ZRQpodNr/9aiVI7H@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6298b85f20f868e97e1465f06d7e68139b57aca8.camel@redhat.com>
+In-Reply-To: <ZRQpodNr/9aiVI7H@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 27, 2023 at 04:24:19PM +0200, Thomas Haller wrote:
-> On Wed, 2023-09-27 at 14:23 +0200, Thomas Haller wrote:
-> > Add NFT_ARRAY_SIZE() macro, commonly known as ARRAY_SIZE() (or
-> > G_N_ELEMENTS()).
+On Wed, Sep 27, 2023 at 03:09:53PM +0200, Phil Sutter wrote:
+> On Wed, Sep 27, 2023 at 01:19:31PM +0200, Pablo Neira Ayuso wrote:
+> > Hi Phil,
 > > 
-> > <nft.h> is the right place for macros and static-inline functions. It
-> > is
-> > included in *every* C sources, as it only depends on libc headers and
-> > <config.h>. NFT_ARRAY_SIZE() is part of the basic toolset, that
-> > should
-> > be available everywhere.
+> > On Wed, Sep 27, 2023 at 01:10:09PM +0200, Phil Sutter wrote:
+> > > Hi Pablo,
+> > > 
+> > > On Wed, Sep 27, 2023 at 10:42:36AM +0200, Pablo Neira Ayuso wrote:
+> > > [...]
+> > > > Did you ever follow up on your pull request for libjansson or did you
+> > > > find a way to dynamically allocate the error reporting area that they
+> > > > complain about?
+> > > 
+> > > All done. When there were no technical reasons left to reject it, I was
+> > > told it's not important enough[1].
 > > 
-> > Signed-off-by: Thomas Haller <thaller@redhat.com>
-> > ---
-> >  include/nft.h | 2 ++
-> >  1 file changed, 2 insertions(+)
+> > Concern seems to be related to extra memory consumption.
 > > 
-> > diff --git a/include/nft.h b/include/nft.h
-> > index 9384054c11c8..4463b5c0fa4a 100644
-> > --- a/include/nft.h
-> > +++ b/include/nft.h
-> > @@ -8,4 +8,6 @@
-> >  #include <stdint.h>
-> >  #include <stdlib.h>
-> >  
-> > +#define NFT_ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
-> > +
-> >  #endif /* NFTABLES_NFT_H */
+> > Would it be possible to revisit your patchset so the extra memory
+> > consumption for error reporting only happens if some flag is toggle to
+> > request this? Some sort of opt-in mechanism. Would that be feasible?
 > 
-> oh, I just found the "array_size()" macro. Didn't expect it to be
-> lower-case.
+> You mean eliminate the 'location' pointer field from json_*_t structs?
+> Because apart from that, the whole thing is already opt-in based on
+> JSON_STORE_LOCATION flag.
 > 
-> Will use that in v2.
+> > > > Error reporting with libjansson is very rudimentary, there is no way
+> > > > to tell what precisely in the command that is represented in JSON is
+> > > > actually causing the error, this coarse grain error reporting is too
+> > > > broad.
+> > > 
+> > > Indeed, and my implementation would integrate nicely with nftables'
+> > > erecs.
+> > 
+> > Yes, I like that.
+> > 
+> > > I actually considered forking the project. Or we just ship a copy of the
+> > > lib with nftables sources?
+> > 
+> > I would try to get back to them to refresh and retry.
+> 
+> Oh well. I'll try an approach which eliminates the pointer if not
+> enabled. The terse feedback and pessimistic replies right from the start
+> convinced me though they just don't want it.
 
-If you read this before you post v2, then for this oneliner, I'd
-suggest to squash it where it is used for the first time, otherwise it
-is fine, not a deal breaker.
+OK, so I had a close look at the code and played a bit with pahole. My
+approach to avoiding the extra pointer is to add another set of types
+which json_t embed. So taking json_array_t as an example:
+
+| typedef struct {
+|     json_t json;
+|     size_t size;
+|     size_t entries;
+|     json_t **table;
+| } json_array_t;
+
+I could introduce json_location_array_t:
+
+| typedef struct {
+|     json_array_t array;
+|     json_location_t *location;
+| } json_location_array_t;
+
+The above structs are opaque to users, they only know about json_t. So I
+introduced a getter for the location data:
+
+| int json_get_location(json_t *json, int *line, int *column,
+|                       int *position, int *length);
+
+In there, I have to map from json_t to the type in question. The problem
+is to know whether I have a json_location_array_t or just a
+json_array_t. The json_t may have been allocated by the input parser
+with either JSON_STORE_LOCATION set or not or by json_array(). In order
+to make the decision, I need at least a bit in well-known memory. Pahole
+tells there's a 4byte hole in json_t, but it may be gone in 32bit builds
+(and enlarging json_t is a no-go, they consider it ABI). The json_*_t
+structures don't show any holes, and extending them means adding a
+mandatory word due to buffering, so I may just as well store the
+location pointer itself in them.
+
+The only feasible alternative is to store location data separate from
+the objects themselves, ideally in a hash table. This reduces the
+overhead if not used by a failing hash table lookup in json_delete().
+
+Cheers, Phil
