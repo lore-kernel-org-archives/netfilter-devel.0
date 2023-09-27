@@ -2,31 +2,31 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5193AE7F14B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 02:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF90E7F150
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 02:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229901AbjI0Cjk (ORCPT
+        id S234058AbjI0Cjv (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 26 Sep 2023 22:39:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53464 "EHLO
+        Tue, 26 Sep 2023 22:39:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229993AbjI0Chj (ORCPT
+        with ESMTP id S229499AbjI0Chv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2023 22:37:39 -0400
+        Tue, 26 Sep 2023 22:37:51 -0400
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 759641C26A;
-        Tue, 26 Sep 2023 19:02:54 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="385565329"
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21CDE1C26C;
+        Tue, 26 Sep 2023 19:02:56 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="385565355"
 X-IronPort-AV: E=Sophos;i="6.03,179,1694761200"; 
-   d="scan'208";a="385565329"
+   d="scan'208";a="385565355"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 19:02:38 -0700
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 19:02:41 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="725628814"
+X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="725628857"
 X-IronPort-AV: E=Sophos;i="6.03,179,1694761200"; 
-   d="scan'208";a="725628814"
+   d="scan'208";a="725628857"
 Received: from pinksteam.jf.intel.com ([10.165.239.231])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 19:02:37 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 19:02:41 -0700
 From:   joao@overdrivepizza.com
 To:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, netdev@vger.kernel.org,
@@ -36,10 +36,12 @@ Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
         rkannoth@marvell.com, wojciech.drewek@intel.com,
         steen.hegenlund@microhip.com, keescook@chromium.org,
         Joao Moreira <joao.moreira@intel.com>
-Subject: [PATCH v2 0/2] Prevent potential write out of bounds
-Date:   Tue, 26 Sep 2023 19:02:19 -0700
-Message-ID: <20230927020221.85292-1-joao@overdrivepizza.com>
+Subject: [PATCH v2 2/2] Make num_actions unsigned
+Date:   Tue, 26 Sep 2023 19:02:21 -0700
+Message-ID: <20230927020221.85292-3-joao@overdrivepizza.com>
 X-Mailer: git-send-email 2.42.0
+In-Reply-To: <20230927020221.85292-1-joao@overdrivepizza.com>
+References: <20230927020221.85292-1-joao@overdrivepizza.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -48,40 +50,50 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Joao Moreira <joao.moreira@intel.com>
 
-The function flow_rule_alloc in net/core/flow_offload.c [2] gets an
-unsigned int num_actions (line 10) and later traverses the actions in
-the rule (line 24) setting hw.stats to FLOW_ACTION_HW_STATS_DONT_CARE.
+Currently, in nft_flow_rule_create function, num_actions is a signed
+integer. Yet, it is processed within a loop which increments its
+value. To prevent an overflow from occurring, make it unsigned and
+also check if it reaches UINT_MAX when being incremented.
 
-Within the same file, the loop in the line 24 compares a signed int
-(i) to an unsigned int (num_actions), and then uses i as an array
-index. If an integer overflow happens, then the array within the loop
-is wrongly indexed, causing a write out of bounds.
-
-After checking with maintainers, it seems that the front-end caps the
-maximum value of num_action, thus it is not possible to reach the given
-write out of bounds, yet, still, to prevent disasters it is better to
-fix the signedness here.
-
-Similarly, also it is also good to ensure that an overflow won't happen
-in net/netfilter/nf_tables_offload.c's function nft_flow_rule_create by
-making the variable unsigned and ensuring that it returns an error if
-its value reaches UINT_MAX.
+After checking with maintainers, it was mentioned that front-end will
+cap the num_actions value and that it is not possible to reach such
+condition for an overflow. Yet, for correctness, it is still better to
+fix this.
 
 This issue was observed by the commit author while reviewing a write-up
 regarding a CVE within the same subsystem [1].
 
 1 - https://nickgregory.me/post/2022/03/12/cve-2022-25636/
 
-Tks,
-
-Joao Moreira (2):
-  Make loop indexes unsigned
-  Make num_actions unsigned
-
- net/core/flow_offload.c           | 4 ++--
+Signed-off-by: Joao Moreira <joao.moreira@intel.com>
+---
  net/netfilter/nf_tables_offload.c | 6 +++++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 12ab78fa5d84..d25088791a74 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -90,7 +90,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ {
+ 	struct nft_offload_ctx *ctx;
+ 	struct nft_flow_rule *flow;
+-	int num_actions = 0, err;
++	unsigned int num_actions = 0;
++	int err;
+ 	struct nft_expr *expr;
+ 
+ 	expr = nft_expr_first(rule);
+@@ -99,6 +100,9 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 		    expr->ops->offload_action(expr))
+ 			num_actions++;
+ 
++		if (num_actions == UINT_MAX)
++			return ERR_PTR(-ENOMEM);
++
+ 		expr = nft_expr_next(expr);
+ 	}
+ 
 -- 
 2.42.0
 
