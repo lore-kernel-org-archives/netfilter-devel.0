@@ -2,292 +2,136 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D300EE82CCD
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 20:03:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95D68E82CD0
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 20:12:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229819AbjI0UDA (ORCPT
+        id S229796AbjI0UMH (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Sep 2023 16:03:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60144 "EHLO
+        Wed, 27 Sep 2023 16:12:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229817AbjI0UC7 (ORCPT
+        with ESMTP id S229664AbjI0UMG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2023 16:02:59 -0400
+        Wed, 27 Sep 2023 16:12:06 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DC78126
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:02:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1716193
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:11:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695844928;
+        s=mimecast20190719; t=1695845480;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=s+TCLL8ggyPYHaTKeMaDPRoCRE64OltaaMKUScs1Seg=;
-        b=boihEwf20jMKKnD1hlYLlfOZFyfAjJBL9/o1oSJeviuTi+I+DmKfRlMk4T0QqJc9hF3Dl3
-        gP3/fIQImGIUODtiWx6POQ4cMQ0UmCYVyYdvUsIdCjSuJUVjf9myuMI1Vpq+V+wdUTQbOx
-        b8jNLLrc/ZP+N1JQwUp5mAye2YM9Z3U=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-64-zbq94umbN2WjCjzv4oisLg-1; Wed, 27 Sep 2023 16:01:56 -0400
-X-MC-Unique: zbq94umbN2WjCjzv4oisLg-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2F1C9101AA42
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 20:01:56 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.194.70])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8312940C6EA8;
-        Wed, 27 Sep 2023 20:01:55 +0000 (UTC)
+        bh=l8EGaTStu6LM7m93NsT2Q3Jg9KkD7+mkkXvbRdbXkj0=;
+        b=Ifb1lh5phofR3G1C/zyRbiEpPHFLnZEitKPK6za85Gv6KorI2BsGaS/Dv+2TyOdtqP4y5J
+        WYc6Bp0Ur+3Pnzuz4GZDy4jpJn79w3LPMLlSy+yxzrxjAopjVBWpkGMTnQxyf5wmE/x6jn
+        9oNHPITC4iEFdhIHpX+Atn5cqr7QHR8=
+Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
+ [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-370-CONbV5ASPim4g5KFzE3iaA-1; Wed, 27 Sep 2023 16:11:18 -0400
+X-MC-Unique: CONbV5ASPim4g5KFzE3iaA-1
+Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-9ae660b4e41so268534566b.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:11:18 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695845477; x=1696450277;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=l8EGaTStu6LM7m93NsT2Q3Jg9KkD7+mkkXvbRdbXkj0=;
+        b=GHoE5VS8sBaAegraClEBfTwD14hK8zFmL4QAH4748HDt/qxtwq9p/TmalXxWLoESRA
+         tlqtf8CUfwE3HANfRCikyQC+Kdod1XePh2Q0+eE/iFxqRFc39eOenasfLk8JEry0dn0M
+         AEBBgy0wuLWfAiGnSGlV93r+jVRcKTQfnnZ9BYWWgEybdY0LLlBd3OxfvziyJGsnxj9U
+         TN/pu7VriB0hKFlHJScfzKb5XGtv1qEZLfWkHdjnFH6mSXoCDiqTdUQeLH/QP4nUVD09
+         XaxhYuTqbPntFwcl7ejI0w4PB61bWf++B08hKCzCy0lcGo8thBN1ClkoBp7j7t1cTqma
+         aEmg==
+X-Gm-Message-State: AOJu0YxtCSQEuziai0DWKsxhqH8YFGgvZ69FDl6qdtNMzNGL4QW0wgjh
+        eU1m8h2DMRXpPCoSDXTsJeMNR5xs8waw7JEMFEGUYB8Q69GvyouKXV2O+xR0BwUu312hd4P016/
+        fMzcRoPUOkGpQE0K9LKSIo2IYofHLMTKhiawy
+X-Received: by 2002:a17:906:73db:b0:9a6:5340:c331 with SMTP id n27-20020a17090673db00b009a65340c331mr2770349ejl.2.1695845477127;
+        Wed, 27 Sep 2023 13:11:17 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHUywgVeLi5aaPubD4bgh2m8KYroU1S7s2MRlO/MOYgINdzDMpRgZf5rBiw4bHkjDecocgejA==
+X-Received: by 2002:a17:906:73db:b0:9a6:5340:c331 with SMTP id n27-20020a17090673db00b009a65340c331mr2770335ejl.2.1695845476768;
+        Wed, 27 Sep 2023 13:11:16 -0700 (PDT)
+Received: from [10.0.0.196] ([37.186.167.86])
+        by smtp.gmail.com with ESMTPSA id ez23-20020a1709070bd700b009b285351817sm3425812ejc.116.2023.09.27.13.11.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 Sep 2023 13:11:15 -0700 (PDT)
+Message-ID: <c234813727e4cd5bf5fc4a5b4d4d80b0863c47f0.camel@redhat.com>
+Subject: Re: [PATCH nft 2/3] nfnl_osf: rework nf_osf_parse_opt() and avoid
+ "-Wstrict-overflow" warning
 From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 1/5] datatype: make "flags" field of datatype struct simple booleans
-Date:   Wed, 27 Sep 2023 21:57:24 +0200
-Message-ID: <20230927200143.3798124-2-thaller@redhat.com>
-In-Reply-To: <20230927200143.3798124-1-thaller@redhat.com>
-References: <20230927200143.3798124-1-thaller@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Wed, 27 Sep 2023 22:11:15 +0200
+In-Reply-To: <ZRR/lx1S3kPdk6Vu@calendula>
+References: <20230927122744.3434851-1-thaller@redhat.com>
+         <20230927122744.3434851-3-thaller@redhat.com> <ZRRbgRny2AHfvV5H@calendula>
+         <07bdaa70fcecb26fe6638e10152d41239068571d.camel@redhat.com>
+         <ZRRiK70d4FJUJgsP@calendula>
+         <c746f59f24efcc610a883795c834728bfb86d651.camel@redhat.com>
+         <ZRR/lx1S3kPdk6Vu@calendula>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Flags are not always bad. For example, as a function argument they allow
-easier extension in the future. But with datatype's "flags" argument and
-enum datatype_flags there are no advantages of this approach.
+On Wed, 2023-09-27 at 21:16 +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 27, 2023 at 07:50:27PM +0200, Thomas Haller wrote:
+>=20
+>=20
+> > IMO the netfilter projects should require contributors to provide
+> > tests
+> > (as sensible). That is, tests that are simply invoked via `make
+> > check`
+> > and don't require to build special features in the kernel
+> > (CONFIG_NFT_OSF).
+>=20
+> You mean, some way to exercise userspace code without involving the
+> kernel at all.
 
-- replace DTYPE_F_PREFIX with a "bool f_prefix:1" field.
+Yes, the relevant part is parsing some strings. That should be tested
+in isolation. Or just to validate the pf.os file...
 
-- replace DTYPE_F_ALLOC with a "bool f_alloc:1" field.
+>=20
+> > I have patches that would add unit tests to the project (merely as
+> > a
+> > place where more unit tests could be added). I will add a test
+> > there.
+>=20
+> We have tests/py/ as unit tests, if that might look similar to what
+> you have in mind? Or are you thinking of more tests/shell/ scripts?
 
-- the new boolean fields are made bitfields, although for the moment
-  that does not reduce the size of the struct. If we add more flags,
-  that will be different.
+Those only use the public API of libnftables.so. What would be also
+useful, is to statically link against the code and have more immediate
+access.
 
-- also reorder fields in "struct datatype" so that fields of similar
-  alignment (and type) are beside each other. Specifically moving
-  "refcnt" field beside other integer fields saves one pointer size on
-  x86-64.
+Also, currently they don't unshare and cannot run rootless. That should
+be fixed by extending tests/shell/run-tests.sh script. Well, you
+already hack that via `./tests/shell/run-tests.sh ./tests/py/nft-
+test.py`, but this should integrate better.
 
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- include/datatype.h        | 32 +++++++++++++++-----------------
- src/datatype.c            | 21 ++++++++++-----------
- src/meta.c                |  2 +-
- src/netlink_delinearize.c |  2 +-
- src/rt.c                  |  2 +-
- src/segtree.c             |  5 ++---
- 6 files changed, 30 insertions(+), 34 deletions(-)
+It's waiting on the WIP branch:
+https://gitlab.freedesktop.org/thaller/nftables/-/commits/th/no-recursive-m=
+ake
+https://gitlab.freedesktop.org/thaller/nftables/-/blob/545f40babb90584fd188=
+ebe80a1103b93ba49707/tests/unit/test-libnftables-static.c#L177
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 09a7894567e4..b53a739e1e6c 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -120,26 +120,18 @@ enum byteorder {
- 
- struct expr;
- 
--/**
-- * enum datatype_flags
-- *
-- * @DTYPE_F_ALLOC:		datatype is dynamically allocated
-- * @DTYPE_F_PREFIX:		preferred representation for ranges is a prefix
-- */
--enum datatype_flags {
--	DTYPE_F_ALLOC		= (1 << 0),
--	DTYPE_F_PREFIX		= (1 << 1),
--};
--
- struct parse_ctx;
- /**
-  * struct datatype
-  *
-  * @type:	numeric identifier
-- * @byteorder:	byteorder of type (non-basetypes only)
-- * @flags:	flags
-  * @size:	type size (fixed sized non-basetypes only)
-  * @subtypes:	number of subtypes (concat type)
-+ * @refcnt:	reference counter for dynamically allocated instances.
-+ * @byteorder:	byteorder of type (non-basetypes only)
-+ * @f_prefix:	preferred representation for ranges is a prefix
-+ * @f_alloc:	whether the instance is dynamically allocated. If not, datatype_get() and
-+ *		datatype_free() are NOPs.
-  * @name:	type name
-  * @desc:	type description
-  * @basetype:	basetype for subtypes, determines type compatibility
-@@ -147,14 +139,21 @@ struct parse_ctx;
-  * @print:	function to print a constant of this type
-  * @parse:	function to parse a symbol and return an expression
-  * @sym_tbl:	symbol table for this type
-- * @refcnt:	reference counter (only for DTYPE_F_ALLOC)
-  */
- struct datatype {
- 	uint32_t			type;
--	enum byteorder			byteorder;
--	unsigned int			flags;
- 	unsigned int			size;
- 	unsigned int			subtypes;
-+
-+	/* Refcount for dynamically allocated instances. For static instances
-+	 * this is zero (get() and free() are NOPs).
-+	 */
-+	unsigned int			refcnt;
-+
-+	enum byteorder			byteorder;
-+	bool				f_prefix:1;
-+	bool				f_alloc:1;
-+
- 	const char			*name;
- 	const char			*desc;
- 	const struct datatype		*basetype;
-@@ -169,7 +168,6 @@ struct datatype {
- 	struct error_record		*(*err)(const struct expr *sym);
- 	void				(*describe)(struct output_ctx *octx);
- 	const struct symbol_table	*sym_tbl;
--	unsigned int			refcnt;
- };
- 
- extern const struct datatype *datatype_lookup(enum datatypes type);
-diff --git a/src/datatype.c b/src/datatype.c
-index 6fe46e899c4b..464eb49171c6 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -642,7 +642,7 @@ const struct datatype ipaddr_type = {
- 	.basetype	= &integer_type,
- 	.print		= ipaddr_type_print,
- 	.parse		= ipaddr_type_parse,
--	.flags		= DTYPE_F_PREFIX,
-+	.f_prefix	= true,
- };
- 
- static void ip6addr_type_print(const struct expr *expr, struct output_ctx *octx)
-@@ -709,7 +709,7 @@ const struct datatype ip6addr_type = {
- 	.basetype	= &integer_type,
- 	.print		= ip6addr_type_print,
- 	.parse		= ip6addr_type_parse,
--	.flags		= DTYPE_F_PREFIX,
-+	.f_prefix	= true,
- };
- 
- static void inet_protocol_type_print(const struct expr *expr,
-@@ -945,7 +945,7 @@ const struct datatype mark_type = {
- 	.print		= mark_type_print,
- 	.json		= mark_type_json,
- 	.parse		= mark_type_parse,
--	.flags		= DTYPE_F_PREFIX,
-+	.f_prefix	= true,
- };
- 
- static const struct symbol_table icmp_code_tbl = {
-@@ -1204,7 +1204,7 @@ static struct datatype *datatype_alloc(void)
- 	struct datatype *dtype;
- 
- 	dtype = xzalloc(sizeof(*dtype));
--	dtype->flags = DTYPE_F_ALLOC;
-+	dtype->f_alloc = true;
- 	dtype->refcnt = 1;
- 
- 	return dtype;
-@@ -1216,10 +1216,10 @@ const struct datatype *datatype_get(const struct datatype *ptr)
- 
- 	if (!dtype)
- 		return NULL;
--	if (!(dtype->flags & DTYPE_F_ALLOC))
--		return dtype;
- 
--	dtype->refcnt++;
-+	if (dtype->f_alloc)
-+		dtype->refcnt++;
-+
- 	return dtype;
- }
- 
-@@ -1246,7 +1246,7 @@ struct datatype *datatype_clone(const struct datatype *orig_dtype)
- 	*dtype = *orig_dtype;
- 	dtype->name = xstrdup(orig_dtype->name);
- 	dtype->desc = xstrdup(orig_dtype->desc);
--	dtype->flags = DTYPE_F_ALLOC | orig_dtype->flags;
-+	dtype->f_alloc = true;
- 	dtype->refcnt = 1;
- 
- 	return dtype;
-@@ -1258,10 +1258,9 @@ void datatype_free(const struct datatype *ptr)
- 
- 	if (!dtype)
- 		return;
--	if (!(dtype->flags & DTYPE_F_ALLOC))
--		return;
- 
--	assert(dtype->refcnt != 0);
-+	if (!dtype->f_alloc)
-+		return;
- 
- 	if (--dtype->refcnt > 0)
- 		return;
-diff --git a/src/meta.c b/src/meta.c
-index b578d5e24c06..536954a7f9eb 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -367,7 +367,7 @@ const struct datatype devgroup_type = {
- 	.print		= devgroup_type_print,
- 	.json		= devgroup_type_json,
- 	.parse		= devgroup_type_parse,
--	.flags		= DTYPE_F_PREFIX,
-+	.f_prefix	= true,
- };
- 
- const struct datatype ifname_type = {
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index e21451044451..9dc1ffa533d4 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2567,7 +2567,7 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx,
- 		default:
- 			break;
- 		}
--	} else if (binop->left->dtype->flags & DTYPE_F_PREFIX &&
-+	} else if (binop->left->dtype->f_prefix &&
- 		   binop->op == OP_AND && expr->right->etype == EXPR_VALUE &&
- 		   expr_mask_is_prefix(binop->right)) {
- 		expr->left = expr_get(binop->left);
-diff --git a/src/rt.c b/src/rt.c
-index f5c80559ffee..63939c23604c 100644
---- a/src/rt.c
-+++ b/src/rt.c
-@@ -54,7 +54,7 @@ const struct datatype realm_type = {
- 	.basetype	= &integer_type,
- 	.print		= realm_type_print,
- 	.parse		= realm_type_parse,
--	.flags		= DTYPE_F_PREFIX,
-+	.f_prefix	= true,
- };
- 
- const struct rt_template rt_templates[] = {
-diff --git a/src/segtree.c b/src/segtree.c
-index 28172b30c5b3..768d27b8188c 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -401,8 +401,7 @@ void concat_range_aggregate(struct expr *set)
- 				goto next;
- 			}
- 
--			if (prefix_len < 0 ||
--			    !(r1->dtype->flags & DTYPE_F_PREFIX)) {
-+			if (prefix_len < 0 || !r1->dtype->f_prefix) {
- 				tmp = range_expr_alloc(&r1->location, r1,
- 						       r2);
- 
-@@ -517,7 +516,7 @@ add_interval(struct expr *set, struct expr *low, struct expr *i)
- 		expr = expr_get(low);
- 	} else if (range_is_prefix(range) && !mpz_cmp_ui(p, 0)) {
- 
--		if (i->dtype->flags & DTYPE_F_PREFIX)
-+		if (i->dtype->f_prefix)
- 			expr = interval_to_prefix(low, i, range);
- 		else if (expr_basetype(i)->type == TYPE_STRING)
- 			expr = interval_to_string(low, i, range);
--- 
-2.41.0
+>=20
+
+> > But that is based on top of "no recursive make", and I'd like to
+> > get
+> > that changed first.
+>=20
+> I would like to make a release before such change is applied, build
+> infrastructure and python support was messy in the previous release.
+> Then we look into this, OK?
+
+Sounds great. Thank you.
+
+
+Thomas
 
