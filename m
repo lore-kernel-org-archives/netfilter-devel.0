@@ -2,136 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95D68E82CD0
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 20:12:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57263E82CCF
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 20:15:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229796AbjI0UMH (ORCPT
+        id S229458AbjI0UPQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Sep 2023 16:12:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57944 "EHLO
+        Wed, 27 Sep 2023 16:15:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229664AbjI0UMG (ORCPT
+        with ESMTP id S229437AbjI0UPQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2023 16:12:06 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1716193
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:11:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695845480;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=l8EGaTStu6LM7m93NsT2Q3Jg9KkD7+mkkXvbRdbXkj0=;
-        b=Ifb1lh5phofR3G1C/zyRbiEpPHFLnZEitKPK6za85Gv6KorI2BsGaS/Dv+2TyOdtqP4y5J
-        WYc6Bp0Ur+3Pnzuz4GZDy4jpJn79w3LPMLlSy+yxzrxjAopjVBWpkGMTnQxyf5wmE/x6jn
-        9oNHPITC4iEFdhIHpX+Atn5cqr7QHR8=
-Received: from mail-ej1-f70.google.com (mail-ej1-f70.google.com
- [209.85.218.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-370-CONbV5ASPim4g5KFzE3iaA-1; Wed, 27 Sep 2023 16:11:18 -0400
-X-MC-Unique: CONbV5ASPim4g5KFzE3iaA-1
-Received: by mail-ej1-f70.google.com with SMTP id a640c23a62f3a-9ae660b4e41so268534566b.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:11:18 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695845477; x=1696450277;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=l8EGaTStu6LM7m93NsT2Q3Jg9KkD7+mkkXvbRdbXkj0=;
-        b=GHoE5VS8sBaAegraClEBfTwD14hK8zFmL4QAH4748HDt/qxtwq9p/TmalXxWLoESRA
-         tlqtf8CUfwE3HANfRCikyQC+Kdod1XePh2Q0+eE/iFxqRFc39eOenasfLk8JEry0dn0M
-         AEBBgy0wuLWfAiGnSGlV93r+jVRcKTQfnnZ9BYWWgEybdY0LLlBd3OxfvziyJGsnxj9U
-         TN/pu7VriB0hKFlHJScfzKb5XGtv1qEZLfWkHdjnFH6mSXoCDiqTdUQeLH/QP4nUVD09
-         XaxhYuTqbPntFwcl7ejI0w4PB61bWf++B08hKCzCy0lcGo8thBN1ClkoBp7j7t1cTqma
-         aEmg==
-X-Gm-Message-State: AOJu0YxtCSQEuziai0DWKsxhqH8YFGgvZ69FDl6qdtNMzNGL4QW0wgjh
-        eU1m8h2DMRXpPCoSDXTsJeMNR5xs8waw7JEMFEGUYB8Q69GvyouKXV2O+xR0BwUu312hd4P016/
-        fMzcRoPUOkGpQE0K9LKSIo2IYofHLMTKhiawy
-X-Received: by 2002:a17:906:73db:b0:9a6:5340:c331 with SMTP id n27-20020a17090673db00b009a65340c331mr2770349ejl.2.1695845477127;
-        Wed, 27 Sep 2023 13:11:17 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHUywgVeLi5aaPubD4bgh2m8KYroU1S7s2MRlO/MOYgINdzDMpRgZf5rBiw4bHkjDecocgejA==
-X-Received: by 2002:a17:906:73db:b0:9a6:5340:c331 with SMTP id n27-20020a17090673db00b009a65340c331mr2770335ejl.2.1695845476768;
-        Wed, 27 Sep 2023 13:11:16 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.167.86])
-        by smtp.gmail.com with ESMTPSA id ez23-20020a1709070bd700b009b285351817sm3425812ejc.116.2023.09.27.13.11.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Sep 2023 13:11:15 -0700 (PDT)
-Message-ID: <c234813727e4cd5bf5fc4a5b4d4d80b0863c47f0.camel@redhat.com>
-Subject: Re: [PATCH nft 2/3] nfnl_osf: rework nf_osf_parse_opt() and avoid
- "-Wstrict-overflow" warning
-From:   Thomas Haller <thaller@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Wed, 27 Sep 2023 22:11:15 +0200
-In-Reply-To: <ZRR/lx1S3kPdk6Vu@calendula>
-References: <20230927122744.3434851-1-thaller@redhat.com>
-         <20230927122744.3434851-3-thaller@redhat.com> <ZRRbgRny2AHfvV5H@calendula>
-         <07bdaa70fcecb26fe6638e10152d41239068571d.camel@redhat.com>
-         <ZRRiK70d4FJUJgsP@calendula>
-         <c746f59f24efcc610a883795c834728bfb86d651.camel@redhat.com>
-         <ZRR/lx1S3kPdk6Vu@calendula>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Wed, 27 Sep 2023 16:15:16 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30F5510E
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:15:13 -0700 (PDT)
+Received: from [78.30.34.192] (port=39316 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qlaw8-00EZP3-QA; Wed, 27 Sep 2023 22:15:10 +0200
+Date:   Wed, 27 Sep 2023 22:15:08 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Duncan Roe <duncan_roe@optusnet.com.au>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libnetfilter_queue v2] doc: make the HTML main page
+ available as `man 7 libnetfilter_queue`
+Message-ID: <ZRSNTIRBcm6PbN4g@calendula>
+References: <20230921004311.18412-1-duncan_roe@optusnet.com.au>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230921004311.18412-1-duncan_roe@optusnet.com.au>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 2023-09-27 at 21:16 +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 27, 2023 at 07:50:27PM +0200, Thomas Haller wrote:
->=20
->=20
-> > IMO the netfilter projects should require contributors to provide
-> > tests
-> > (as sensible). That is, tests that are simply invoked via `make
-> > check`
-> > and don't require to build special features in the kernel
-> > (CONFIG_NFT_OSF).
->=20
-> You mean, some way to exercise userspace code without involving the
-> kernel at all.
+Hi Duncan,
 
-Yes, the relevant part is parsing some strings. That should be tested
-in isolation. Or just to validate the pf.os file...
+On Thu, Sep 21, 2023 at 10:43:11AM +1000, Duncan Roe wrote:
+> Without this patch, man page users can miss important general information.
+> 
+> The HTML display stays as it was.
+> The man3 pages are updated to reference libnetfilter_queue.7.
+> build_man.sh must be invoked with arguments to activate man7 generation,
+> so will continue to work in other projects as before.
+> build_man.sh remains generic,
+> so should be able to make man7 pages for other netfilter projects.
+> 
+> v2: Change commit message from "how" to "why"
+> 
+> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> ---
+>  doxygen/Makefile.am      |   6 +--
+>  doxygen/build_man.sh     | 101 +++++++++++++++++++++++++++++++++++++--
+>  doxygen/man7.extra.txt   |   1 +
+>  doxygen/old_doxy_fix.txt |   5 ++
+>  src/libnetfilter_queue.c |  14 +++---
+>  5 files changed, 113 insertions(+), 14 deletions(-)
+>  create mode 100644 doxygen/man7.extra.txt
+>  create mode 100644 doxygen/old_doxy_fix.txt
+> 
+> diff --git a/doxygen/Makefile.am b/doxygen/Makefile.am
+> index c6eeed7..e98368b 100644
+> --- a/doxygen/Makefile.am
+> +++ b/doxygen/Makefile.am
+> @@ -10,12 +10,12 @@ doc_srcs = $(top_srcdir)/src/libnetfilter_queue.c\
+>             $(top_srcdir)/src/extra/udp.c\
+>             $(top_srcdir)/src/extra/icmp.c
+>  
+> -doxyfile.stamp: $(doc_srcs) Makefile
+> +doxyfile.stamp: $(doc_srcs) Makefile build_man.sh man7.extra.txt old_doxy_fix.txt
+>  	rm -rf html man
+>  	doxygen doxygen.cfg >/dev/null
+>  
+>  if BUILD_MAN
+> -	$(abs_top_srcdir)/doxygen/build_man.sh
+> +	$(abs_top_srcdir)/doxygen/build_man.sh libnetfilter_queue libnetfilter_queue.c
+>  endif
+>  
+>  	touch doxyfile.stamp
+> @@ -42,4 +42,4 @@ uninstall-local:
+>  	rm -rf $(DESTDIR)$(mandir) man html doxyfile.stamp $(DESTDIR)$(htmldir)
+>  endif
+>  
+> -EXTRA_DIST = build_man.sh
+> +EXTRA_DIST = build_man.sh man7.extra.txt old_doxy_fix.txt
 
->=20
-> > I have patches that would add unit tests to the project (merely as
-> > a
-> > place where more unit tests could be added). I will add a test
-> > there.
->=20
-> We have tests/py/ as unit tests, if that might look similar to what
-> you have in mind? Or are you thinking of more tests/shell/ scripts?
+Please, find a way to make this self-contained. We agreed to keep this
+mangling to generate the API manpages and such in the build_man.sh
+script, it will probably require more work on that front.
 
-Those only use the public API of libnftables.so. What would be also
-useful, is to statically link against the code and have more immediate
-access.
-
-Also, currently they don't unshare and cannot run rootless. That should
-be fixed by extending tests/shell/run-tests.sh script. Well, you
-already hack that via `./tests/shell/run-tests.sh ./tests/py/nft-
-test.py`, but this should integrate better.
-
-It's waiting on the WIP branch:
-https://gitlab.freedesktop.org/thaller/nftables/-/commits/th/no-recursive-m=
-ake
-https://gitlab.freedesktop.org/thaller/nftables/-/blob/545f40babb90584fd188=
-ebe80a1103b93ba49707/tests/unit/test-libnftables-static.c#L177
-
->=20
-
-> > But that is based on top of "no recursive make", and I'd like to
-> > get
-> > that changed first.
->=20
-> I would like to make a release before such change is applied, build
-> infrastructure and python support was messy in the previous release.
-> Then we look into this, OK?
-
-Sounds great. Thank you.
-
-
-Thomas
-
+Thanks.
