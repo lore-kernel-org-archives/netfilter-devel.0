@@ -2,61 +2,74 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C5F6E810A2
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 08:00:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D872FE810A2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 08:26:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230027AbjI0IAy (ORCPT
+        id S230127AbjI0I0R (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Sep 2023 04:00:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34180 "EHLO
+        Wed, 27 Sep 2023 04:26:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230049AbjI0IAx (ORCPT
+        with ESMTP id S230357AbjI0IZu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2023 04:00:53 -0400
-Received: from mail.corebizinsight.com (mail.corebizinsight.com [217.61.112.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E35C126
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 01:00:48 -0700 (PDT)
-Received: by mail.corebizinsight.com (Postfix, from userid 1002)
-        id 567E383827; Wed, 27 Sep 2023 10:00:44 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corebizinsight.com;
-        s=mail; t=1695801646;
-        bh=CEmchsDu5Oe+RNHCZSBmKSgMOuy1xnO2dydqkEjt3Qs=;
-        h=Date:From:To:Subject:From;
-        b=w0+amD02ILWxm7yeqAeqBrdWnkoeJQ1UkRU9ZfRvB1sN9FnfAINBvBOd9xgQUP5kA
-         o5sYA0wZc87SnBjfkA35qxHxil3itWMFYq+2fhXzVhcbWmjK0sp5gEU/v1Jt8Aao9d
-         1WCdk/D3U/K/KwdUeCcKomWXC51tuQKR1Ldr2zYK5yRlW4Tf021lB9SzmuunUEtPi5
-         2NS/EVysGsJHVQK+Wj+TACehVIhia8d5blNQd9HzreScie6zlY3suuwqMt6PsWk5u2
-         h0tnAeEE8BFTHxoF0CpEKKfvCLpoB88/hfVsSWgixHGcOhWStl/6nmiJXwQ9WpJMm3
-         2W/qR2q9Mfl6w==
-Received: by mail.corebizinsight.com for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 08:00:42 GMT
-Message-ID: <20230927084500-0.1.12.4iah.0.lo7nm8cw4i@corebizinsight.com>
-Date:   Wed, 27 Sep 2023 08:00:42 GMT
-From:   "Jakub Kovarik" <jakub.kovarik@corebizinsight.com>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: =?UTF-8?Q?Pros=C3=ADm_kontaktujte?=
-X-Mailer: mail.corebizinsight.com
+        Wed, 27 Sep 2023 04:25:50 -0400
+Received: from ganesha.gnumonks.org (unknown [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CC5E13A;
+        Wed, 27 Sep 2023 01:25:22 -0700 (PDT)
+Received: from [78.30.34.192] (port=39392 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qlPqu-00B95F-Su; Wed, 27 Sep 2023 10:25:02 +0200
+Date:   Wed, 27 Sep 2023 10:24:59 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     joao@overdrivepizza.com
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        rkannoth@marvell.com, wojciech.drewek@intel.com,
+        steen.hegenlund@microhip.com, keescook@chromium.org,
+        Joao Moreira <joao.moreira@intel.com>
+Subject: Re: [PATCH v2 0/2] Prevent potential write out of bounds
+Message-ID: <ZRPm2/KsmDmFTOcS@calendula>
+References: <20230927020221.85292-1-joao@overdrivepizza.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230927020221.85292-1-joao@overdrivepizza.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dobr=C3=A9 r=C3=A1no,
+On Tue, Sep 26, 2023 at 07:02:19PM -0700, joao@overdrivepizza.com wrote:
+> From: Joao Moreira <joao.moreira@intel.com>
+> 
+> The function flow_rule_alloc in net/core/flow_offload.c [2] gets an
+> unsigned int num_actions (line 10) and later traverses the actions in
+> the rule (line 24) setting hw.stats to FLOW_ACTION_HW_STATS_DONT_CARE.
+> 
+> Within the same file, the loop in the line 24 compares a signed int
+> (i) to an unsigned int (num_actions), and then uses i as an array
+> index. If an integer overflow happens, then the array within the loop
+> is wrongly indexed, causing a write out of bounds.
+> 
+> After checking with maintainers, it seems that the front-end caps the
+> maximum value of num_action, thus it is not possible to reach the given
+> write out of bounds, yet, still, to prevent disasters it is better to
+> fix the signedness here.
+> 
+> Similarly, also it is also good to ensure that an overflow won't happen
+> in net/netfilter/nf_tables_offload.c's function nft_flow_rule_create by
+> making the variable unsigned and ensuring that it returns an error if
+> its value reaches UINT_MAX.
+> 
+> This issue was observed by the commit author while reviewing a write-up
+> regarding a CVE within the same subsystem [1].
 
-Je mo=C5=BEn=C3=A9 s v=C3=A1mi nav=C3=A1zat spolupr=C3=A1ci?
+I keep spinning around this, this is not really an issue.
 
-R=C3=A1d si promluv=C3=ADm s osobou zab=C3=BDvaj=C3=ADc=C3=AD se prodejn=C3=
-=AD =C4=8Dinnost=C3=AD.
+No frontend uses this amount of actions.
 
-Pom=C3=A1h=C3=A1me efektivn=C4=9B z=C3=ADsk=C3=A1vat nov=C3=A9 z=C3=A1kaz=
-n=C3=ADky.
-
-Nevahejte me kontaktovat.
-
-V p=C5=99=C3=ADpad=C4=9B z=C3=A1jmu V=C3=A1s bude kontaktovat n=C3=A1=C5=A1=
- anglicky mluv=C3=ADc=C3=AD z=C3=A1stupce.
-
-
-Pozdravy
-Jakub Kovarik
+Probably cap this to uint16_t because 2^16 actions is more than
+sufficient by now.
