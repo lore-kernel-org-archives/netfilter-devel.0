@@ -2,116 +2,100 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB380E732DE
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 14:49:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E2D1E732DB
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 14:58:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230291AbjI1Oto (ORCPT
+        id S231294AbjI1O6u (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Sep 2023 10:49:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39212 "EHLO
+        Thu, 28 Sep 2023 10:58:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230377AbjI1Otn (ORCPT
+        with ESMTP id S230430AbjI1O6u (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Sep 2023 10:49:43 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9866419E;
-        Thu, 28 Sep 2023 07:49:41 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qlsKf-0005VN-5n; Thu, 28 Sep 2023 16:49:37 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>, Phil Sutter <phil@nwl.cc>
-Subject: [PATCH net-next 4/4] netfilter: nf_tables: Utilize NLA_POLICY_NESTED_ARRAY
-Date:   Thu, 28 Sep 2023 16:49:01 +0200
-Message-ID: <20230928144916.18339-5-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230928144916.18339-1-fw@strlen.de>
-References: <20230928144916.18339-1-fw@strlen.de>
+        Thu, 28 Sep 2023 10:58:50 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97C3119E
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 07:58:48 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qlsTW-0003Uo-LK; Thu, 28 Sep 2023 16:58:46 +0200
+Date:   Thu, 28 Sep 2023 16:58:46 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft,v3] tests: shell: fix spurious errors in
+ sets/0036add_set_element_expiration_0
+Message-ID: <ZRWUpn963dk3Eaey@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20230927163937.757167-1-pablo@netfilter.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230927163937.757167-1-pablo@netfilter.org>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+On Wed, Sep 27, 2023 at 06:39:37PM +0200, Pablo Neira Ayuso wrote:
+> A number of changes to fix spurious errors:
+> 
+> - Add seconds as expiration, otherwise 14m59 reports 14m in minute
+>   granularity, this ensures suficient time in a very slow environment with
+>   debugging instrumentation.
+> 
+> - Provide expected output.
+> 
+> - Update sed regular expression to make 'ms' optional and use -E mode.
+> 
+> Fixes: adf38fd84257 ("tests: shell: use minutes granularity in sets/0036add_set_element_expiration_0")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> v3: - [ "$test_output" != "$EXPECTED" ], not [ "$test_output" != "$RULESET" ]
+>     - Make 'ms' optional in sed regular expression
+>     - Use -E in sed
+> 
+>  .../testcases/sets/0036add_set_element_expiration_0    | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/tests/shell/testcases/sets/0036add_set_element_expiration_0 b/tests/shell/testcases/sets/0036add_set_element_expiration_0
+> index 12f10074409f..0fd016e9f857 100755
+> --- a/tests/shell/testcases/sets/0036add_set_element_expiration_0
+> +++ b/tests/shell/testcases/sets/0036add_set_element_expiration_0
+> @@ -3,17 +3,21 @@
+>  set -e
+>  
+>  drop_seconds() {
+> -       sed 's/m[0-9]*s[0-9]*ms/m/g'
+> +	sed -E 's/m[0-9]*s([0-9]*ms)?/m/g'
+>  }
 
-Mark attributes which are supposed to be arrays of nested attributes
-with known content as such. Originally suggested for
-NFTA_RULE_EXPRESSIONS only, but does apply to others as well.
+So sometimes there's no ms part in output. In theory one would have to
+make the seconds part optional, too. Funny how tedious these little
+things may become to fix.
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Anyway, it should work without -E by escaping braces and the question
+mark. But accoring to sed(1), -E is in POSIX meanwhile so no big deal.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f993c237afd0..7e2e76086d25 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3316,7 +3316,7 @@ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
- 	[NFTA_RULE_CHAIN]	= { .type = NLA_STRING,
- 				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
- 	[NFTA_RULE_HANDLE]	= { .type = NLA_U64 },
--	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
-+	[NFTA_RULE_EXPRESSIONS]	= NLA_POLICY_NESTED_ARRAY(nft_expr_policy),
- 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
- 	[NFTA_RULE_POSITION]	= { .type = NLA_U64 },
- 	[NFTA_RULE_USERDATA]	= { .type = NLA_BINARY,
-@@ -4254,12 +4254,16 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
- 	[NFTA_SET_OBJ_TYPE]		= { .type = NLA_U32 },
- 	[NFTA_SET_HANDLE]		= { .type = NLA_U64 },
- 	[NFTA_SET_EXPR]			= { .type = NLA_NESTED },
--	[NFTA_SET_EXPRESSIONS]		= { .type = NLA_NESTED },
-+	[NFTA_SET_EXPRESSIONS]		= NLA_POLICY_NESTED_ARRAY(nft_expr_policy),
-+};
-+
-+static const struct nla_policy nft_concat_policy[NFTA_SET_FIELD_MAX + 1] = {
-+	[NFTA_SET_FIELD_LEN]	= { .type = NLA_U32 },
- };
- 
- static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
- 	[NFTA_SET_DESC_SIZE]		= { .type = NLA_U32 },
--	[NFTA_SET_DESC_CONCAT]		= { .type = NLA_NESTED },
-+	[NFTA_SET_DESC_CONCAT]		= NLA_POLICY_NESTED_ARRAY(nft_concat_policy),
- };
- 
- static struct nft_set *nft_set_lookup(const struct nft_table *table,
-@@ -4715,10 +4719,6 @@ static int nf_tables_getset(struct sk_buff *skb, const struct nfnl_info *info,
- 	return err;
- }
- 
--static const struct nla_policy nft_concat_policy[NFTA_SET_FIELD_MAX + 1] = {
--	[NFTA_SET_FIELD_LEN]	= { .type = NLA_U32 },
--};
--
- static int nft_set_desc_concat_parse(const struct nlattr *attr,
- 				     struct nft_set_desc *desc)
- {
-@@ -5500,7 +5500,7 @@ static const struct nla_policy nft_set_elem_policy[NFTA_SET_ELEM_MAX + 1] = {
- 	[NFTA_SET_ELEM_OBJREF]		= { .type = NLA_STRING,
- 					    .len = NFT_OBJ_MAXNAMELEN - 1 },
- 	[NFTA_SET_ELEM_KEY_END]		= { .type = NLA_NESTED },
--	[NFTA_SET_ELEM_EXPRESSIONS]	= { .type = NLA_NESTED },
-+	[NFTA_SET_ELEM_EXPRESSIONS]	= NLA_POLICY_NESTED_ARRAY(nft_expr_policy),
- };
- 
- static const struct nla_policy nft_set_elem_list_policy[NFTA_SET_ELEM_LIST_MAX + 1] = {
-@@ -5508,7 +5508,7 @@ static const struct nla_policy nft_set_elem_list_policy[NFTA_SET_ELEM_LIST_MAX +
- 					    .len = NFT_TABLE_MAXNAMELEN - 1 },
- 	[NFTA_SET_ELEM_LIST_SET]	= { .type = NLA_STRING,
- 					    .len = NFT_SET_MAXNAMELEN - 1 },
--	[NFTA_SET_ELEM_LIST_ELEMENTS]	= { .type = NLA_NESTED },
-+	[NFTA_SET_ELEM_LIST_ELEMENTS]	= NLA_POLICY_NESTED_ARRAY(nft_set_elem_policy),
- 	[NFTA_SET_ELEM_LIST_SET_ID]	= { .type = NLA_U32 },
- };
- 
--- 
-2.41.0
+>  RULESET="add table ip x
+> +add set ip x y { type ipv4_addr; flags dynamic,timeout; }
+> +add element ip x y { 1.1.1.1 timeout 30m expires 15m59s }"
+> +
+> +EXPECTED="add table ip x
+>  add set ip x y { type ipv4_addr; flags dynamic,timeout; } 
+>  add element ip x y { 1.1.1.1 timeout 30m expires 15m }"
 
+I would have piped RULESET through drop_seconds in the $DIFF call below,
+but this variant surely saves a few cycles. :D
+
+>  test_output=$($NFT -e -f - <<< "$RULESET" 2>&1 | grep -v '# new generation' | drop_seconds)
+>  
+> -if [ "$test_output" != "$RULESET" ] ; then
+> -	$DIFF -u <(echo "$test_output") <(echo "$RULESET")
+> +if [ "$test_output" != "$EXPECTED" ] ; then
+> +	$DIFF -u <(echo "$test_output") <(echo "$EXPECTED")
+>  	exit 1
+>  fi
+
+Cheers, Phil
