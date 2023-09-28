@@ -2,112 +2,208 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E2F6E732C5
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 11:54:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF3DE732CC
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 13:12:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232089AbjI1LyK (ORCPT
+        id S231986AbjI1NM5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Sep 2023 07:54:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37460 "EHLO
+        Thu, 28 Sep 2023 09:12:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231982AbjI1LyJ (ORCPT
+        with ESMTP id S231920AbjI1NM4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Sep 2023 07:54:09 -0400
+        Thu, 28 Sep 2023 09:12:56 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0AF5F5;
-        Thu, 28 Sep 2023 04:54:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97520F5
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 06:12:54 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qlpah-0004NV-5c; Thu, 28 Sep 2023 13:53:59 +0200
-Date:   Thu, 28 Sep 2023 13:53:59 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qlqp2-0004uC-Cz; Thu, 28 Sep 2023 15:12:52 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     David Wang <00107082@163.com>
-Cc:     Daniel Xu <dxu@dxuuu.xyz>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
- definition from macro to enum
-Message-ID: <20230928115359.GB27208@breakpoint.cc>
-References: <20230904130201.14632-1-00107082@163.com>
- <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
- <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_tables: nft_set_rbtree: fix spurious insertion failure
+Date:   Thu, 28 Sep 2023 15:12:44 +0200
+Message-ID: <20230928131247.3391-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-David Wang <00107082@163.com> wrote:
+nft_rbtree_gc_elem() walks back and removes the end interval element that
+comes before the expired element.
 
-Hello,
+There is a small chance that we've cached this element as 'rbe_ge'.
+If this happens, we hold and test a pointer that has been queued for
+freeing.
 
-> At 2023-09-06 00:38:02, "Daniel Xu" <dxu@dxuuu.xyz> wrote:
-> >Hi David,
-> >
-> >On Mon, Sep 04, 2023 at 09:02:02PM +0800, David Wang wrote:
-> 
-> >>  #include <linux/in6.h>
-> >>  
-> >>  /* Responses from hook functions. */
-> >> -#define NF_DROP 0
-> >> -#define NF_ACCEPT 1
-> >> -#define NF_STOLEN 2
-> >> -#define NF_QUEUE 3
-> >> -#define NF_REPEAT 4
-> >> -#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
-> >> -#define NF_MAX_VERDICT NF_STOP
-> >> +enum {
-> >> +	NF_DROP        = 0,
-> >> +	NF_ACCEPT      = 1,
-> >> +	NF_STOLEN      = 2,
-> >> +	NF_QUEUE       = 3,
-> >> +	NF_REPEAT      = 4,
-> >> +	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
-> >> +	NF_MAX_VERDICT = NF_STOP,
-> >> +};
-> >
-> >Switching from macro to enum works for almost all use cases, but not
-> >all. If someone if #ifdefing the symbols (which is plausible) this
-> >change would break them.
-> >
-> >I think I've seen some other networking code define both enums and
-> >macros. But it was a little ugly. Not sure if that is acceptable here or
-> >not.
-> >
-> >[...]
-> >
-> >Thanks,
-> >Daniel
-> 
-> 
-> Thanks for the review~
-> I do not have a strong reasoning to deny the possibility of breaking unexpected usage of this macros,
-> 
-> but I also agree that it is ugly to use both enum and macro at the same time.
-> 
-> Kind of don't know how to proceed from here now...
+It also causes spurious insertion failures:
 
-I was about to apply this as-is, but Pablo Neira would prefer to
-keep the defines as well.
+$ cat nft-test.20230921-143934.826.dMBwHt/test-testcases-sets-0044interval_overlap_0.1/testout.log
+Error: Could not process rule: File exists
+add element t s {  0 -  2 }
+                   ^^^^^^
+Failed to insert  0 -  2 given:
+table ip t {
+        set s {
+                type inet_service
+                flags interval,timeout
+                timeout 2s
+                gc-interval 2s
+        }
+}
 
-So, as a compromise, I would suggest to just *add*
+The set (rbtree) is empty. The 'failure' doesn't happen on next attempt.
 
-/* verdicts available to BPF are exported via vmlinux.h */
-enum {
-	NF_DROP = 0,
-	NF_ACCEPT = 1,
-};
+Reason is that when we try to insert, the tree may hold an expired
+element that collides with the range we're adding.
+While we do evict/erase this element, we can trip over this check:
 
-#define NF_DROP 0
-...
+if (rbe_ge && nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
+      return -ENOTEMPTY;
 
-This way BTF won't have the other verdicts, but ATM those
-cannot be used in BPF programs anyway.
+rbe_ge was erased by the synchronous gc, we should not have done this
+check.  Next attempt won't find it, so retry results in successful
+insertion.
 
-Would you mind making a new version of the patch?
-Otherwise I can mangle it locally here as needed.
+Restart in-kernel to avoid such spurious errors.
+
+Such restart are rare, unless userspace intentionally adds very large
+numbers of elements with very short timeouts while setting a huge
+gc interval.
+
+Even in this case, this cannot loop forever, on each retry an existing
+element has been removed.
+
+As the caller is holding the transaction mutex, its impossible
+for a second entity to add more expiring elements to the tree.
+
+After this it also becomes feasible to remove the async gc worker
+and perform all garbage collection from the commit path.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since v1:
+  - restart entire insertion process in case we remove
+  element that we held as lesser/greater overlap detection
+  edge candidate.
+
+ net/netfilter/nft_set_rbtree.c | 46 +++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 17 deletions(-)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 487572dcd614..2660ceab3759 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -233,10 +233,9 @@ static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
+ 	rb_erase(&rbe->node, &priv->root);
+ }
+ 
+-static int nft_rbtree_gc_elem(const struct nft_set *__set,
+-			      struct nft_rbtree *priv,
+-			      struct nft_rbtree_elem *rbe,
+-			      u8 genmask)
++static const struct nft_rbtree_elem *
++nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
++		   struct nft_rbtree_elem *rbe, u8 genmask)
+ {
+ 	struct nft_set *set = (struct nft_set *)__set;
+ 	struct rb_node *prev = rb_prev(&rbe->node);
+@@ -246,7 +245,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 
+ 	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
+ 	if (!gc)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	/* search for end interval coming before this element.
+ 	 * end intervals don't carry a timeout extension, they
+@@ -261,6 +260,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 		prev = rb_prev(prev);
+ 	}
+ 
++	rbe_prev = NULL;
+ 	if (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+ 		nft_rbtree_gc_remove(net, set, priv, rbe_prev);
+@@ -272,7 +272,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 		 */
+ 		gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
+ 		if (WARN_ON_ONCE(!gc))
+-			return -ENOMEM;
++			return ERR_PTR(-ENOMEM);
+ 
+ 		nft_trans_gc_elem_add(gc, rbe_prev);
+ 	}
+@@ -280,13 +280,13 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 	nft_rbtree_gc_remove(net, set, priv, rbe);
+ 	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
+ 	if (WARN_ON_ONCE(!gc))
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	nft_trans_gc_elem_add(gc, rbe);
+ 
+ 	nft_trans_gc_queue_sync_done(gc);
+ 
+-	return 0;
++	return rbe_prev;
+ }
+ 
+ static bool nft_rbtree_update_first(const struct nft_set *set,
+@@ -314,7 +314,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 cur_genmask = nft_genmask_cur(net);
+ 	u8 genmask = nft_genmask_next(net);
+-	int d, err;
++	int d;
+ 
+ 	/* Descend the tree to search for an existing element greater than the
+ 	 * key value to insert that is greater than the new element. This is the
+@@ -363,9 +363,14 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		 */
+ 		if (nft_set_elem_expired(&rbe->ext) &&
+ 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+-			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
+-			if (err < 0)
+-				return err;
++			const struct nft_rbtree_elem *removed_end;
++
++			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
++			if (IS_ERR(removed_end))
++				return PTR_ERR(removed_end);
++
++			if (removed_end == rbe_le || removed_end == rbe_ge)
++				return -EAGAIN;
+ 
+ 			continue;
+ 		}
+@@ -486,11 +491,18 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree_elem *rbe = elem->priv;
+ 	int err;
+ 
+-	write_lock_bh(&priv->lock);
+-	write_seqcount_begin(&priv->count);
+-	err = __nft_rbtree_insert(net, set, rbe, ext);
+-	write_seqcount_end(&priv->count);
+-	write_unlock_bh(&priv->lock);
++	do {
++		if (fatal_signal_pending(current))
++			return -EINTR;
++
++		cond_resched();
++
++		write_lock_bh(&priv->lock);
++		write_seqcount_begin(&priv->count);
++		err = __nft_rbtree_insert(net, set, rbe, ext);
++		write_seqcount_end(&priv->count);
++		write_unlock_bh(&priv->lock);
++	} while (err == -EAGAIN);
+ 
+ 	return err;
+ }
+-- 
+2.41.0
+
