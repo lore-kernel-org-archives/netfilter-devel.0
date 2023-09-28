@@ -2,100 +2,81 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E2D1E732DB
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 14:58:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1416CE732E5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 16:19:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231294AbjI1O6u (ORCPT
+        id S231285AbjI1QTq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Sep 2023 10:58:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49462 "EHLO
+        Thu, 28 Sep 2023 12:19:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230430AbjI1O6u (ORCPT
+        with ESMTP id S230081AbjI1QTp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Sep 2023 10:58:50 -0400
+        Thu, 28 Sep 2023 12:19:45 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97C3119E
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 07:58:48 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qlsTW-0003Uo-LK; Thu, 28 Sep 2023 16:58:46 +0200
-Date:   Thu, 28 Sep 2023 16:58:46 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63F56199
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 09:19:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=dJMmkjnILAvO/MDzw4yFORChFOfJQfn6CWJFDQKTq0k=; b=l27Wvg87DOSn/nYduEtnY6a/zE
+        vqspTFpRe7/iz/AtYvn95a0oNoNJ23aLTi2vz4PkFKcoQIsJVrVqt0BeYCytfOZayGnfq3EX7rLjR
+        S1ymA3W90qRRoTYL4mXDbXo+h6FmS2W3mxkDT4wIiYGYvLcwHVe6B0X2/X2S/LQA4iAGg5c2HQ7bz
+        mxFx64aXY7K71FDimYhRmXZ+iWs4XH4HBtdU5zssAqDqu3giDy5vMpDb7+HeJHJQu5rfN+M2XuDG2
+        MP1Xvw8d5Uvr16eBOQI7+sLpJA0iPZ5jrxov+RvWnhNmtDIe5jw08+BPL1nNOHMOVEyvp4PsYBeUr
+        xrnXyFvg==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qltjo-0004W1-ID; Thu, 28 Sep 2023 18:19:40 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft,v3] tests: shell: fix spurious errors in
- sets/0036add_set_element_expiration_0
-Message-ID: <ZRWUpn963dk3Eaey@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <20230927163937.757167-1-pablo@netfilter.org>
+Subject: [nft PATCH] tests: shell: Fix for failing nft-f/sample-ruleset
+Date:   Thu, 28 Sep 2023 18:19:37 +0200
+Message-ID: <20230928161937.4310-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230927163937.757167-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 27, 2023 at 06:39:37PM +0200, Pablo Neira Ayuso wrote:
-> A number of changes to fix spurious errors:
-> 
-> - Add seconds as expiration, otherwise 14m59 reports 14m in minute
->   granularity, this ensures suficient time in a very slow environment with
->   debugging instrumentation.
-> 
-> - Provide expected output.
-> 
-> - Update sed regular expression to make 'ms' optional and use -E mode.
-> 
-> Fixes: adf38fd84257 ("tests: shell: use minutes granularity in sets/0036add_set_element_expiration_0")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v3: - [ "$test_output" != "$EXPECTED" ], not [ "$test_output" != "$RULESET" ]
->     - Make 'ms' optional in sed regular expression
->     - Use -E in sed
-> 
->  .../testcases/sets/0036add_set_element_expiration_0    | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/tests/shell/testcases/sets/0036add_set_element_expiration_0 b/tests/shell/testcases/sets/0036add_set_element_expiration_0
-> index 12f10074409f..0fd016e9f857 100755
-> --- a/tests/shell/testcases/sets/0036add_set_element_expiration_0
-> +++ b/tests/shell/testcases/sets/0036add_set_element_expiration_0
-> @@ -3,17 +3,21 @@
->  set -e
->  
->  drop_seconds() {
-> -       sed 's/m[0-9]*s[0-9]*ms/m/g'
-> +	sed -E 's/m[0-9]*s([0-9]*ms)?/m/g'
->  }
+For whatever reason, my system lacks an entry for 'sip' in
+/etc/services. Assuming the service name is not relevant to the test,
+just replace it by the respective port number.
 
-So sometimes there's no ms part in output. In theory one would have to
-make the seconds part optional, too. Funny how tedious these little
-things may become to fix.
+Fixes: 68728014435d9 ("tests: shell: add sample ruleset reproducer")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/shell/testcases/nft-f/sample-ruleset | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Anyway, it should work without -E by escaping braces and the question
-mark. But accoring to sed(1), -E is in POSIX meanwhile so no big deal.
+diff --git a/tests/shell/testcases/nft-f/sample-ruleset b/tests/shell/testcases/nft-f/sample-ruleset
+index 8cee74b94664f..763e41a1f7214 100755
+--- a/tests/shell/testcases/nft-f/sample-ruleset
++++ b/tests/shell/testcases/nft-f/sample-ruleset
+@@ -175,7 +175,7 @@ table inet filter {
+ 		log prefix "NFT REJECT FWD " flags ether flags ip options limit rate 5/second burst 10 packets reject
+ 	}
+ 	chain public_forward {
+-		udp dport { sip, 7078-7097 } oifname $voip_if jump {
++		udp dport { 5060, 7078-7097 } oifname $voip_if jump {
+ 			ip6 saddr $sip_whitelist_ip6 accept
+ 			meta nfproto ipv6 log prefix "NFT DROP SIP " flags ether flags ip options limit rate 5/second burst 10 packets drop
+ 		}
+@@ -199,7 +199,7 @@ table inet filter {
+ 		icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request } oifname $public_if accept
+ 
+ 		ip6 daddr $sip_whitelist_ip6 jump {
+-			udp dport { 3478, sip } accept
++			udp dport { 3478, 5060 } accept
+ 			udp sport { 7078-7097 } accept
+ 			tcp dport 5061 accept
+ 		}
+-- 
+2.41.0
 
->  RULESET="add table ip x
-> +add set ip x y { type ipv4_addr; flags dynamic,timeout; }
-> +add element ip x y { 1.1.1.1 timeout 30m expires 15m59s }"
-> +
-> +EXPECTED="add table ip x
->  add set ip x y { type ipv4_addr; flags dynamic,timeout; } 
->  add element ip x y { 1.1.1.1 timeout 30m expires 15m }"
-
-I would have piped RULESET through drop_seconds in the $DIFF call below,
-but this variant surely saves a few cycles. :D
-
->  test_output=$($NFT -e -f - <<< "$RULESET" 2>&1 | grep -v '# new generation' | drop_seconds)
->  
-> -if [ "$test_output" != "$RULESET" ] ; then
-> -	$DIFF -u <(echo "$test_output") <(echo "$RULESET")
-> +if [ "$test_output" != "$EXPECTED" ] ; then
-> +	$DIFF -u <(echo "$test_output") <(echo "$EXPECTED")
->  	exit 1
->  fi
-
-Cheers, Phil
