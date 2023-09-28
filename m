@@ -2,65 +2,112 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96848E732C0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 11:30:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E2F6E732C5
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 11:54:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231778AbjI1Lao (ORCPT
+        id S232089AbjI1LyK (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Sep 2023 07:30:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55478 "EHLO
+        Thu, 28 Sep 2023 07:54:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231167AbjI1Lan (ORCPT
+        with ESMTP id S231982AbjI1LyJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Sep 2023 07:30:43 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6A079C;
-        Thu, 28 Sep 2023 04:30:42 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26019C433C8;
-        Thu, 28 Sep 2023 11:30:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695900642;
-        bh=XUGjjfqZSfPT6r6W3F0evqoEC0B03asOvLdRaYwqxnk=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=KeYl3VOfsZ9gigdil3ijduxX9QflhRm+zWHaUiejR/DcVH42YKvE5F8DPWFMcWCLb
-         zWizPZdfNCc31/7YOgk7SIiCBxnoefl2fjyrL+4dxQtFvd2n1sExPgQYkCn2wjxEd4
-         yBcMaTAGx23MZc37t2av99pcpdRhT9Doij3HAsm1OImsDwxs7sDPYcQksCUZxV9zfH
-         OM3snX/ANMyu1/oIDcKVvujVcefqY+CuuJx74jPAoVKStt0ZjXzqukll1RNgA/JISI
-         XpKK8punC8um+K+pd1Uvo8tVHMCIgP0bDehk5H5EO6KY8ptMaLc3AOON/rs6rz2dWv
-         Yc9S6mZr7thHQ==
-Date:   Thu, 28 Sep 2023 07:30:40 -0400
-From:   Sasha Levin <sashal@kernel.org>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, gregkh@linuxfoundation.org,
-        stable@vger.kernel.org
-Subject: Re: [PATCH -stable,5.10 0/2] Netfilter stable fixes for 5.10
-Message-ID: <ZRVj4OD1PNl+ZK0t@sashalap>
-References: <20230927153007.562809-1-pablo@netfilter.org>
+        Thu, 28 Sep 2023 07:54:09 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0AF5F5;
+        Thu, 28 Sep 2023 04:54:07 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qlpah-0004NV-5c; Thu, 28 Sep 2023 13:53:59 +0200
+Date:   Thu, 28 Sep 2023 13:53:59 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     David Wang <00107082@163.com>
+Cc:     Daniel Xu <dxu@dxuuu.xyz>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
+Subject: Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
+ definition from macro to enum
+Message-ID: <20230928115359.GB27208@breakpoint.cc>
+References: <20230904130201.14632-1-00107082@163.com>
+ <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
+ <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230927153007.562809-1-pablo@netfilter.org>
+In-Reply-To: <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Sep 27, 2023 at 05:30:05PM +0200, Pablo Neira Ayuso wrote:
->Hi Greg, Sasha,
->
->The following small batch contains two more fixes for a WARNING splat on
->chain unregistration and UaF in the flowtable unregistration that is
->exercised from netns path for 5.10 -stable.
->
->I am using original commit IDs for reference:
->
->1) 6069da443bf6 ("netfilter: nf_tables: unregister flowtable hooks on netns exit")
->
->2) f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
->
->Please, apply.
+David Wang <00107082@163.com> wrote:
 
-Queued up, thanks!
+Hello,
 
--- 
-Thanks,
-Sasha
+> At 2023-09-06 00:38:02, "Daniel Xu" <dxu@dxuuu.xyz> wrote:
+> >Hi David,
+> >
+> >On Mon, Sep 04, 2023 at 09:02:02PM +0800, David Wang wrote:
+> 
+> >>  #include <linux/in6.h>
+> >>  
+> >>  /* Responses from hook functions. */
+> >> -#define NF_DROP 0
+> >> -#define NF_ACCEPT 1
+> >> -#define NF_STOLEN 2
+> >> -#define NF_QUEUE 3
+> >> -#define NF_REPEAT 4
+> >> -#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
+> >> -#define NF_MAX_VERDICT NF_STOP
+> >> +enum {
+> >> +	NF_DROP        = 0,
+> >> +	NF_ACCEPT      = 1,
+> >> +	NF_STOLEN      = 2,
+> >> +	NF_QUEUE       = 3,
+> >> +	NF_REPEAT      = 4,
+> >> +	NF_STOP        = 5,	/* Deprecated, for userspace nf_queue compatibility. */
+> >> +	NF_MAX_VERDICT = NF_STOP,
+> >> +};
+> >
+> >Switching from macro to enum works for almost all use cases, but not
+> >all. If someone if #ifdefing the symbols (which is plausible) this
+> >change would break them.
+> >
+> >I think I've seen some other networking code define both enums and
+> >macros. But it was a little ugly. Not sure if that is acceptable here or
+> >not.
+> >
+> >[...]
+> >
+> >Thanks,
+> >Daniel
+> 
+> 
+> Thanks for the review~
+> I do not have a strong reasoning to deny the possibility of breaking unexpected usage of this macros,
+> 
+> but I also agree that it is ugly to use both enum and macro at the same time.
+> 
+> Kind of don't know how to proceed from here now...
+
+I was about to apply this as-is, but Pablo Neira would prefer to
+keep the defines as well.
+
+So, as a compromise, I would suggest to just *add*
+
+/* verdicts available to BPF are exported via vmlinux.h */
+enum {
+	NF_DROP = 0,
+	NF_ACCEPT = 1,
+};
+
+#define NF_DROP 0
+...
+
+This way BTF won't have the other verdicts, but ATM those
+cannot be used in BPF programs anyway.
+
+Would you mind making a new version of the patch?
+Otherwise I can mangle it locally here as needed.
