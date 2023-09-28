@@ -2,107 +2,122 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09203E732D0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 13:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE553E732DD
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 14:26:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232286AbjI1Nt0 (ORCPT
+        id S232316AbjI1O0r (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Sep 2023 09:49:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40328 "EHLO
+        Thu, 28 Sep 2023 10:26:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231902AbjI1NtZ (ORCPT
+        with ESMTP id S232070AbjI1O0q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Sep 2023 09:49:25 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D4E311F
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 06:49:24 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qlrON-0005Ar-35; Thu, 28 Sep 2023 15:49:23 +0200
-Date:   Thu, 28 Sep 2023 15:49:23 +0200
-From:   Florian Westphal <fw@strlen.de>
+        Thu, 28 Sep 2023 10:26:46 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2523136
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 07:26:43 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qlryT-0002rA-BO; Thu, 28 Sep 2023 16:26:41 +0200
+Date:   Thu, 28 Sep 2023 16:26:41 +0200
+From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: nft_set_rbtree: fix spurious
- insertion failure
-Message-ID: <20230928134923.GD27208@breakpoint.cc>
-References: <20230928131247.3391-1-fw@strlen.de>
- <ZRWBxJBxQ4z7QYVo@calendula>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 3/3,v2] netlink_linearize: skip set element
+ expression in map statement key
+Message-ID: <ZRWNIXfj02u0v8na@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20230926160216.152549-1-pablo@netfilter.org>
+ <ZRMNB+3/4rzYb08p@orbyte.nwl.cc>
+ <ZRPq/JMoVffTEDM4@calendula>
+ <ZRQNkSG/dnesQ6Wv@orbyte.nwl.cc>
+ <ZRQPw+jMI+i9qSyE@calendula>
+ <ZRQpodNr/9aiVI7H@orbyte.nwl.cc>
+ <ZRQ/DhU558tSxQ/D@orbyte.nwl.cc>
+ <ZRRd0gxC81eoYNSP@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZRWBxJBxQ4z7QYVo@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZRRd0gxC81eoYNSP@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Sep 28, 2023 at 03:12:44PM +0200, Florian Westphal wrote:
-> > nft_rbtree_gc_elem() walks back and removes the end interval element that
-> > comes before the expired element.
+On Wed, Sep 27, 2023 at 06:52:34PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 27, 2023 at 04:41:18PM +0200, Phil Sutter wrote:
+> > On Wed, Sep 27, 2023 at 03:09:53PM +0200, Phil Sutter wrote:
+> > > On Wed, Sep 27, 2023 at 01:19:31PM +0200, Pablo Neira Ayuso wrote:
+> > > > Hi Phil,
+> > > > 
+> > > > On Wed, Sep 27, 2023 at 01:10:09PM +0200, Phil Sutter wrote:
+> [...]
+> > > > > I actually considered forking the project. Or we just ship a copy of the
+> > > > > lib with nftables sources?
+> > > > 
+> > > > I would try to get back to them to refresh and retry.
+> > > 
+> > > Oh well. I'll try an approach which eliminates the pointer if not
+> > > enabled. The terse feedback and pessimistic replies right from the start
+> > > convinced me though they just don't want it.
 > > 
-> > There is a small chance that we've cached this element as 'rbe_ge'.
-> > If this happens, we hold and test a pointer that has been queued for
-> > freeing.
+> > OK, so I had a close look at the code and played a bit with pahole. My
+> > approach to avoiding the extra pointer is to add another set of types
+> > which json_t embed. So taking json_array_t as an example:
 > > 
-> > It also causes spurious insertion failures:
+> > | typedef struct {
+> > |     json_t json;
+> > |     size_t size;
+> > |     size_t entries;
+> > |     json_t **table;
+> > | } json_array_t;
 > > 
-> > $ cat nft-test.20230921-143934.826.dMBwHt/test-testcases-sets-0044interval_overlap_0.1/testout.log
-> > Error: Could not process rule: File exists
-> > add element t s {  0 -  2 }
-> >                    ^^^^^^
-> > Failed to insert  0 -  2 given:
-> > table ip t {
-> >         set s {
-> >                 type inet_service
-> >                 flags interval,timeout
-> >                 timeout 2s
-> >                 gc-interval 2s
-> >         }
-> > }
+> > I could introduce json_location_array_t:
 > > 
-> > The set (rbtree) is empty. The 'failure' doesn't happen on next attempt.
+> > | typedef struct {
+> > |     json_array_t array;
+> > |     json_location_t *location;
+> > | } json_location_array_t;
+> >
+> > The above structs are opaque to users, they only know about json_t.
+> 
+> OK, so this new object type is hiding behind the json_t opaque type.
+> 
+> > So I introduced a getter for the location data:
 > > 
-> > Reason is that when we try to insert, the tree may hold an expired
-> > element that collides with the range we're adding.
-> > While we do evict/erase this element, we can trip over this check:
+> > | int json_get_location(json_t *json, int *line, int *column,
+> > |                       int *position, int *length);
 > > 
-> > if (rbe_ge && nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
-> >       return -ENOTEMPTY;
-> > 
-> > rbe_ge was erased by the synchronous gc, we should not have done this
-> > check.  Next attempt won't find it, so retry results in successful
-> > insertion.
-> > 
-> > Restart in-kernel to avoid such spurious errors.
-> > 
-> > Such restart are rare, unless userspace intentionally adds very large
-> > numbers of elements with very short timeouts while setting a huge
-> > gc interval.
-> > 
-> > Even in this case, this cannot loop forever, on each retry an existing
-> > element has been removed.
-> > 
-> > As the caller is holding the transaction mutex, its impossible
-> > for a second entity to add more expiring elements to the tree.
-> > 
-> > After this it also becomes feasible to remove the async gc worker
-> > and perform all garbage collection from the commit path.
-> > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> >  Changes since v1:
-> >   - restart entire insertion process in case we remove
-> >   element that we held as lesser/greater overlap detection
-> Thanks, I am still looking at finding a way to move this to .commit,
-> if no better solution, then let's get this in for the next round.
+> > In there, I have to map from json_t to the type in question. The problem
+> > is to know whether I have a json_location_array_t or just a
+> > json_array_t. The json_t may have been allocated by the input parser
+> > with either JSON_STORE_LOCATION set or not or by json_array().
+> >
+> > In order to make the decision, I need at least a bit in well-known
+> > memory. Pahole tells there's a 4byte hole in json_t, but it may be
+> > gone in 32bit builds (and enlarging json_t is a no-go, they consider
+> > it ABI). The json_*_t structures don't show any holes, and extending
+> > them means adding a mandatory word due to buffering, so I may just
+> > as well store the location pointer itself in them.
+> >
+> > The only feasible alternative is to store location data separate from
+> > the objects themselves, ideally in a hash table. This reduces the
+> > overhead if not used by a failing hash table lookup in json_delete().
+> 
+> If I understood correctly, then this means you are ditching the
+> json_location_array_t approach that you are detailing above.
+> 
+> The hashtable approach might be sensible to follow, and such approach
+> does not require any update to libjansson?
+> 
 
-I don't think its that bad.  In most cases, no restart is required
-as no expired elements in the interesting range will ever be found.
+It does! We can't access the parser state from outside and during the
+parsing of input data. The whole thing has to reside within libjansson.
+Here's my reimplementation:
 
-I think its fine really, no need to go for two trees or anything
-like pipapo is doing.
+https://github.com/akheron/jansson/pull/662
 
-I have a few patches that build on top of this, first one
-gets rid of async worker and places it in commit.
+Any review and/or supportive comment highly appreciated. (:
+
+Cheers, Phil
