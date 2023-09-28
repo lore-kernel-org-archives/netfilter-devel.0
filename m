@@ -2,117 +2,190 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FCBE82CD9
-	for <netfilter-devel@archiver.kernel.org>; Wed, 27 Sep 2023 20:48:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE471E80A8A
+	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 01:38:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229493AbjI0Usk (ORCPT
+        id S229445AbjI1Biu (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 27 Sep 2023 16:48:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44190 "EHLO
+        Wed, 27 Sep 2023 21:38:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229460AbjI0Usj (ORCPT
+        with ESMTP id S229437AbjI1Bit (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2023 16:48:39 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6230F126
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:47:57 -0700 (PDT)
+        Wed, 27 Sep 2023 21:38:49 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D19EDAC
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 18:37:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695847676;
+        s=mimecast20190719; t=1695865079;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=YMq06b4ueJv2rqvhvzAhdjxLBU/UrlBbIgIXL0VcVNw=;
-        b=TX2/TODOhDN/SDGQXouKdAec/jmqfY/seu3ZF7Xnir8Q7jlIvFeSO48deyxkt8349TUVvf
-        c5MhZrM0zBjVl3B7x4ohXLHEVKLkqBJvPH2WSJr9AjauVfEWLQ9Egi+JSte+nfB/qTkm7m
-        doebEYE8915EyC8zEBFik5s1JMlWOYU=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-355-NbalMx5zO_-7k8Hy7Rydcw-1; Wed, 27 Sep 2023 16:47:54 -0400
-X-MC-Unique: NbalMx5zO_-7k8Hy7Rydcw-1
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-320089dad3cso1322381f8f.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Sep 2023 13:47:54 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695847673; x=1696452473;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=YMq06b4ueJv2rqvhvzAhdjxLBU/UrlBbIgIXL0VcVNw=;
-        b=UJCcJUWORWOgSLDNlZnl2ec5Tpe8c281N6pjUU9CLzC1jBBw0jJ0WJT/F2FbW8ykR/
-         e8HfnVTE88oabiqv+DMvyn1g7I9LyitmsiJBDXyMzWHwMTLYn3XmJrfxajMhxaboHoyt
-         XfVtaQHk4CIyic3HH1QfHdDAp8J+IUue1uhOVhF6l/YnqAuX+ycr2mhGc/LgfHyYrRGl
-         wyxHbDM8SzBeQr4PDh5IlNSVCQejiQTIEh2w+bEvDNIfYyu9Iy6KzFag+Vy5lO+vkthk
-         3c4tBZxI7/dCxIut3i/d/yDHzPgQA8myZn6SE8OSDcnVfXnoa1f2UlH/PF942o45Myu+
-         nFrg==
-X-Gm-Message-State: AOJu0Yx3+iXfytzcypxfmd6AhEnx8qzt32FHuxxZS9CKLmX3DeIPRtLU
-        1OS5qYNecAu1Z35UEp0A1IEh1gL5tBJuJggyrdpwgg8zSdc1qH4P8wVhA99fvpFbG6Vf1g/ZfPA
-        oHrtnMZoRNxSQke8TFcckApI1HkP8y/U6OW6u
-X-Received: by 2002:a5d:60ca:0:b0:322:5251:d78b with SMTP id x10-20020a5d60ca000000b003225251d78bmr2443267wrt.6.1695847673490;
-        Wed, 27 Sep 2023 13:47:53 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IG37dQcLjbsmg9Zd6WsR3ECvE2Wy4co0fb4VVJFIzmRhg2TAfao9EWP45Z0eomiff/cExIo1w==
-X-Received: by 2002:a5d:60ca:0:b0:322:5251:d78b with SMTP id x10-20020a5d60ca000000b003225251d78bmr2443258wrt.6.1695847673105;
-        Wed, 27 Sep 2023 13:47:53 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.167.86])
-        by smtp.gmail.com with ESMTPSA id gs10-20020a170906f18a00b009ae40563b7csm9759219ejb.21.2023.09.27.13.47.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Sep 2023 13:47:52 -0700 (PDT)
-Message-ID: <9751fa69c866b9772831123300991716ace08c5a.camel@redhat.com>
-Subject: Re: [PATCH nft 0/3] tests/shell: minor improvements to
- "run-tests.sh"
-From:   Thomas Haller <thaller@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Wed, 27 Sep 2023 22:47:51 +0200
-In-Reply-To: <ZRSQI9a2UQn6bZUY@calendula>
-References: <20230918184634.3471832-1-thaller@redhat.com>
-         <ZRSQI9a2UQn6bZUY@calendula>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        bh=XttOFD0p7t9x/VHxblIuZYpwuhmFkxFey/Qzulrcy9Y=;
+        b=WOurc95RqHYB+DYQDZBnJhOz7QEwoMdDt4/GYUByctRexr+uZZ4W4bCxOax0uIhU2bFwyH
+        qNyjS/kntYu9FiGdC7iUPLnat7P0g9QXU6AmJDRN9mWQGvSKi7mPapnWkcA5NfQ3YuRM62
+        8N3WA5P5f7Pqyv1TT0ExgPxXCYW0sqc=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-632-FT1x9T_KMje_UI--wgLPRA-1; Wed, 27 Sep 2023 21:37:55 -0400
+X-MC-Unique: FT1x9T_KMje_UI--wgLPRA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 031B1811E7E;
+        Thu, 28 Sep 2023 01:37:55 +0000 (UTC)
+Received: from madcap2.tricolour.ca (ovpn-0-7.rdu2.redhat.com [10.22.0.7])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8B9C02156702;
+        Thu, 28 Sep 2023 01:37:53 +0000 (UTC)
+Date:   Wed, 27 Sep 2023 21:37:51 -0400
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        audit@vger.kernel.org, Paul Moore <paul@paul-moore.com>
+Subject: Re: [nf PATCH 2/3] netfilter: nf_tables: Deduplicate
+ nft_register_obj audit logs
+Message-ID: <ZRTY78uKUuqo4WHP@madcap2.tricolour.ca>
+References: <20230923015351.15707-1-phil@nwl.cc>
+ <20230923015351.15707-3-phil@nwl.cc>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230923015351.15707-3-phil@nwl.cc>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 2023-09-27 at 22:27 +0200, Pablo Neira Ayuso wrote:
-> Hi Thomas,
->=20
-> Not precisely related to this series in this email thread, but...
->=20
-> I occasionally see errors like this when running tests in a loop:
->=20
-> ./run-tests.sh: line 673: echo: write error: Interrupted system call
->=20
-> it is happening since the recent updates, do you have any idea what
-> could be wrong?
->=20
-> Thanks.
->=20
+On 2023-09-23 03:53, Phil Sutter wrote:
+> When adding/updating an object, the transaction handler emits suitable
+> audit log entries already, the one in nft_obj_notify() is redundant. To
+> fix that (and retain the audit logging from objects' 'update' callback),
+> Introduce an "audit log free" variant for internal use.
+> 
+> Fixes: c520292f29b80 ("audit: log nftables configuration change events once per table")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Hi,
+Reviewed-by: Richard Guy Briggs <rgb@redhat.com>
 
+> ---
+>  net/netfilter/nf_tables_api.c                 | 44 ++++++++++++-------
+>  .../testing/selftests/netfilter/nft_audit.sh  | 20 +++++++++
+>  2 files changed, 48 insertions(+), 16 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 0e5d9bdba82b8..48d50df950a18 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -8046,24 +8046,14 @@ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
+>  	return nft_delobj(&ctx, obj);
+>  }
+>  
+> -void nft_obj_notify(struct net *net, const struct nft_table *table,
+> -		    struct nft_object *obj, u32 portid, u32 seq, int event,
+> -		    u16 flags, int family, int report, gfp_t gfp)
+> +static void
+> +__nft_obj_notify(struct net *net, const struct nft_table *table,
+> +		 struct nft_object *obj, u32 portid, u32 seq, int event,
+> +		 u16 flags, int family, int report, gfp_t gfp)
+>  {
+>  	struct nftables_pernet *nft_net = nft_pernet(net);
+>  	struct sk_buff *skb;
+>  	int err;
+> -	char *buf = kasprintf(gfp, "%s:%u",
+> -			      table->name, nft_net->base_seq);
+> -
+> -	audit_log_nfcfg(buf,
+> -			family,
+> -			obj->handle,
+> -			event == NFT_MSG_NEWOBJ ?
+> -				 AUDIT_NFT_OP_OBJ_REGISTER :
+> -				 AUDIT_NFT_OP_OBJ_UNREGISTER,
+> -			gfp);
+> -	kfree(buf);
+>  
+>  	if (!report &&
+>  	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
+> @@ -8086,13 +8076,35 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
+>  err:
+>  	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
+>  }
+> +
+> +void nft_obj_notify(struct net *net, const struct nft_table *table,
+> +		    struct nft_object *obj, u32 portid, u32 seq, int event,
+> +		    u16 flags, int family, int report, gfp_t gfp)
+> +{
+> +	struct nftables_pernet *nft_net = nft_pernet(net);
+> +	char *buf = kasprintf(gfp, "%s:%u",
+> +			      table->name, nft_net->base_seq);
+> +
+> +	audit_log_nfcfg(buf,
+> +			family,
+> +			obj->handle,
+> +			event == NFT_MSG_NEWOBJ ?
+> +				 AUDIT_NFT_OP_OBJ_REGISTER :
+> +				 AUDIT_NFT_OP_OBJ_UNREGISTER,
+> +			gfp);
+> +	kfree(buf);
+> +
+> +	__nft_obj_notify(net, table, obj, portid, seq, event,
+> +			 flags, family, report, gfp);
+> +}
+>  EXPORT_SYMBOL_GPL(nft_obj_notify);
+>  
+>  static void nf_tables_obj_notify(const struct nft_ctx *ctx,
+>  				 struct nft_object *obj, int event)
+>  {
+> -	nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid, ctx->seq, event,
+> -		       ctx->flags, ctx->family, ctx->report, GFP_KERNEL);
+> +	__nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid,
+> +			 ctx->seq, event, ctx->flags, ctx->family,
+> +			 ctx->report, GFP_KERNEL);
+>  }
+>  
+>  /*
+> diff --git a/tools/testing/selftests/netfilter/nft_audit.sh b/tools/testing/selftests/netfilter/nft_audit.sh
+> index 0b3255e7b3538..bb34329e02a7f 100755
+> --- a/tools/testing/selftests/netfilter/nft_audit.sh
+> +++ b/tools/testing/selftests/netfilter/nft_audit.sh
+> @@ -85,6 +85,26 @@ do_test "nft add set t1 s2 $setblock; add set t1 s3 { $settype; }" \
+>  do_test "nft add element t1 s3 $setelem" \
+>  "table=t1 family=2 entries=3 op=nft_register_setelem"
+>  
+> +# adding counters
+> +
+> +do_test 'nft add counter t1 c1' \
+> +'table=t1 family=2 entries=1 op=nft_register_obj'
+> +
+> +do_test 'nft add counter t2 c1; add counter t2 c2' \
+> +'table=t2 family=2 entries=2 op=nft_register_obj'
+> +
+> +# adding/updating quotas
+> +
+> +do_test 'nft add quota t1 q1 { 10 bytes }' \
+> +'table=t1 family=2 entries=1 op=nft_register_obj'
+> +
+> +do_test 'nft add quota t2 q1 { 10 bytes }; add quota t2 q2 { 10 bytes }' \
+> +'table=t2 family=2 entries=2 op=nft_register_obj'
+> +
+> +# changing the quota value triggers obj update path
+> +do_test 'nft add quota t1 q1 { 20 bytes }' \
+> +'table=t1 family=2 entries=1 op=nft_register_obj'
+> +
+>  # resetting rules
+>  
+>  do_test 'nft reset rules t1 c2' \
+> -- 
+> 2.41.0
+> 
 
-I think that line is
+- RGB
 
-=C2=BB=C2=B7=C2=B7=C2=B7=C2=B7=C2=B7=C2=B7=C2=B7echo scan > /sys/kernel/deb=
-ug/kmemleak
-
-Are you running with KMEMLEAK=3Dy? But also without that, it gets called
-after every 30th test returning -- since usually the fast tests run
-quickly in parallel, we would call it more frequently at the beginning
-of the tests.
-
-
-Note that the "check_kmemleak_force" function in the run-tests.sh
-script does NOT run in parallel.=20
-
-
-I am not familiar with kmemleak, but seems not serious.=20
-Maybe just ignore the error output?
-
-  ( echo scan > /sys/kernel/debug/kmemleak ) &>/dev/null
-
-
-Thomas
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+Upstream IRC: SunRaycer
+Voice: +1.613.860 2354 SMS: +1.613.518.6570
 
