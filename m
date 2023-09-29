@@ -2,181 +2,171 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A031E728C5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 852BBE728CA
 	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 16:44:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233215AbjI2QoO (ORCPT
+        id S232748AbjI2QoO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 29 Sep 2023 12:44:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56588 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232748AbjI2QoN (ORCPT
+        with ESMTP id S233141AbjI2QoN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 29 Sep 2023 12:44:13 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C376BD6
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C3F02199
         for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 09:44:10 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de
-Subject: [PATCH nf 1/2] netfilter: nft_set_rbtree: move sync GC from insert path to set->ops->commit
-Date:   Fri, 29 Sep 2023 18:44:03 +0200
-Message-Id: <20230929164404.172081-1-pablo@netfilter.org>
+Subject: [PATCH nf 2/2] netfilter: nft_set_rbtree: remove async GC
+Date:   Fri, 29 Sep 2023 18:44:04 +0200
+Message-Id: <20230929164404.172081-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230929164404.172081-1-pablo@netfilter.org>
+References: <20230929164404.172081-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-According to 2ee52ae94baa ("netfilter: nft_set_rbtree: skip sync GC for
-new elements in this transaction"), new elements in this transaction
-might expire before such transaction ends. Skip sync GC is needed for
-such elements otherwise commit path might walk over an already released
-object.
+Let sync GC remove entries from the tree instead. The sync GC read
+spinlock might still stall an update from the control plane with a
+sufficiently large tree.
 
-However, Florian found that while iterating the tree from the insert
-path for sync GC, it is possible that stale references could still
-happen for elements in the less-equal and great-than boundaries to
-narrow down the tree descend to speed up overlap detection, this
-triggers bogus overlap errors.
-
-This patch skips expired elements in the overlap detection routine which
-iterates on the reversed ordered list of elements that represent the
-intervals. Since end elements provide no expiration extension, check for
-the next non-end element in this interval, hence, skip both elements in
-the iteration if the interval has expired.
-
-Moreover, move GC sync to the set->ops->commit interface to collect
-expired interval. The GC run needs to ignore the gc_interval because the
-tree cannot store duplicated expired elements, otherwise bogus
-mismatches might occur.
-
-Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+Fixes: 96b33300fba8 ("netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 Hi Florian,
 
-I picked up on issue, this proposed as an alternative to:
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230928131247.3391-1-fw@strlen.de/
+You asked for this.
 
-Note this ignores the specified gc_interval. For this to work, a copy of the
-tree would need to be maintained, similar to what pipapo does.
-
-This approach should clear the path to support for set element timeout
-update/refresh.
-
-I still spinning over this one and running test to see if I see any failure
-with sets/0044_interval_overlap_{0,1}.
-
- net/netfilter/nft_set_rbtree.c | 57 +++++++++++++++++++++++++---------
- 1 file changed, 43 insertions(+), 14 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 90 ----------------------------------
+ 1 file changed, 90 deletions(-)
 
 diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 487572dcd614..de6d812fc790 100644
+index de6d812fc790..17500f4f6f1d 100644
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -235,8 +235,7 @@ static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
+@@ -19,7 +19,6 @@ struct nft_rbtree {
+ 	struct rb_root		root;
+ 	rwlock_t		lock;
+ 	seqcount_rwlock_t	count;
+-	struct delayed_work	gc_work;
+ };
  
- static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe,
--			      u8 genmask)
-+			      struct nft_rbtree_elem *rbe)
+ struct nft_rbtree_elem {
+@@ -626,89 +625,6 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 	read_unlock_bh(&priv->lock);
+ }
+ 
+-static void nft_rbtree_gc(struct work_struct *work)
+-{
+-	struct nft_rbtree_elem *rbe, *rbe_end = NULL;
+-	struct nftables_pernet *nft_net;
+-	struct nft_rbtree *priv;
+-	struct nft_trans_gc *gc;
+-	struct rb_node *node;
+-	struct nft_set *set;
+-	unsigned int gc_seq;
+-	struct net *net;
+-
+-	priv = container_of(work, struct nft_rbtree, gc_work.work);
+-	set  = nft_set_container_of(priv);
+-	net  = read_pnet(&set->net);
+-	nft_net = nft_pernet(net);
+-	gc_seq  = READ_ONCE(nft_net->gc_seq);
+-
+-	if (nft_set_gc_is_pending(set))
+-		goto done;
+-
+-	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
+-	if (!gc)
+-		goto done;
+-
+-	read_lock_bh(&priv->lock);
+-	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
+-
+-		/* Ruleset has been updated, try later. */
+-		if (READ_ONCE(nft_net->gc_seq) != gc_seq) {
+-			nft_trans_gc_destroy(gc);
+-			gc = NULL;
+-			goto try_later;
+-		}
+-
+-		rbe = rb_entry(node, struct nft_rbtree_elem, node);
+-
+-		if (nft_set_elem_is_dead(&rbe->ext))
+-			goto dead_elem;
+-
+-		/* elements are reversed in the rbtree for historical reasons,
+-		 * from highest to lowest value, that is why end element is
+-		 * always visited before the start element.
+-		 */
+-		if (nft_rbtree_interval_end(rbe)) {
+-			rbe_end = rbe;
+-			continue;
+-		}
+-		if (!nft_set_elem_expired(&rbe->ext))
+-			continue;
+-
+-		nft_set_elem_dead(&rbe->ext);
+-
+-		if (!rbe_end)
+-			continue;
+-
+-		nft_set_elem_dead(&rbe_end->ext);
+-
+-		gc = nft_trans_gc_queue_async(gc, gc_seq, GFP_ATOMIC);
+-		if (!gc)
+-			goto try_later;
+-
+-		nft_trans_gc_elem_add(gc, rbe_end);
+-		rbe_end = NULL;
+-dead_elem:
+-		gc = nft_trans_gc_queue_async(gc, gc_seq, GFP_ATOMIC);
+-		if (!gc)
+-			goto try_later;
+-
+-		nft_trans_gc_elem_add(gc, rbe);
+-	}
+-
+-	gc = nft_trans_gc_catchall_async(gc, gc_seq);
+-
+-try_later:
+-	read_unlock_bh(&priv->lock);
+-
+-	if (gc)
+-		nft_trans_gc_queue_async_done(gc);
+-done:
+-	queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
+-			   nft_set_gc_interval(set));
+-}
+-
+ static u64 nft_rbtree_privsize(const struct nlattr * const nla[],
+ 			       const struct nft_set_desc *desc)
  {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
-@@ -254,8 +253,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 	 */
- 	while (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
--		if (nft_rbtree_interval_end(rbe_prev) &&
--		    nft_set_elem_active(&rbe_prev->ext, genmask))
-+		if (nft_rbtree_interval_end(rbe_prev))
- 			break;
+@@ -725,11 +641,6 @@ static int nft_rbtree_init(const struct nft_set *set,
+ 	seqcount_rwlock_init(&priv->count, &priv->lock);
+ 	priv->root = RB_ROOT;
  
- 		prev = rb_prev(prev);
-@@ -289,6 +287,34 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+-	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rbtree_gc);
+-	if (set->flags & NFT_SET_TIMEOUT)
+-		queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
+-				   nft_set_gc_interval(set));
+-
  	return 0;
  }
  
-+static void nft_rbtree_commit(const struct nft_set *set)
-+{
-+	struct nft_rbtree *priv = nft_set_priv(set);
-+	struct rb_node *node, *next, *first;
-+	struct nft_rbtree_elem *rbe;
-+
-+	if (!(set->flags & NFT_SET_TIMEOUT))
-+		return;
-+
-+	/* ignore GC interval here, unless two copies of the tree are
-+	 * maintained, it is not possible to postpone removal of expired
-+	 * elements.
-+	 */
-+
-+	first = rb_first(&priv->root);
-+
-+	for (node = first; node != NULL; node = next) {
-+		next = rb_next(node);
-+
-+		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-+
-+		if (!nft_set_elem_expired(&rbe->ext))
-+			continue;
-+
-+		nft_rbtree_gc_elem(set, priv, rbe);
-+	}
-+}
-+
- static bool nft_rbtree_update_first(const struct nft_set *set,
- 				    struct nft_rbtree_elem *rbe,
- 				    struct rb_node *first)
-@@ -312,9 +338,8 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
- 	struct rb_node *node, *next, *parent, **p, *first = NULL;
- 	struct nft_rbtree *priv = nft_set_priv(set);
--	u8 cur_genmask = nft_genmask_cur(net);
- 	u8 genmask = nft_genmask_next(net);
--	int d, err;
-+	int d;
+@@ -740,7 +651,6 @@ static void nft_rbtree_destroy(const struct nft_ctx *ctx,
+ 	struct nft_rbtree_elem *rbe;
+ 	struct rb_node *node;
  
- 	/* Descend the tree to search for an existing element greater than the
- 	 * key value to insert that is greater than the new element. This is the
-@@ -358,16 +383,19 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		if (!nft_set_elem_active(&rbe->ext, genmask))
- 			continue;
- 
--		/* perform garbage collection to avoid bogus overlap reports
--		 * but skip new elements in this transaction.
-+		/* skip expired intervals to avoid bogus overlap reports:
-+		 * end element has no expiration, check next start element.
- 		 */
--		if (nft_set_elem_expired(&rbe->ext) &&
--		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
--			if (err < 0)
--				return err;
-+		if (nft_rbtree_interval_end(rbe) && next) {
-+			struct nft_rbtree_elem *rbe_next;
- 
--			continue;
-+			rbe_next = rb_entry(next, struct nft_rbtree_elem, node);
-+
-+			if (nft_set_elem_expired(&rbe_next->ext)) {
-+				/* skip expired next start element. */
-+				next = rb_next(next);
-+				continue;
-+			}
- 		}
- 
- 		d = nft_rbtree_cmp(set, rbe, new);
-@@ -755,5 +783,6 @@ const struct nft_set_type nft_set_rbtree_type = {
- 		.lookup		= nft_rbtree_lookup,
- 		.walk		= nft_rbtree_walk,
- 		.get		= nft_rbtree_get,
-+		.commit		= nft_rbtree_commit,
- 	},
- };
+-	cancel_delayed_work_sync(&priv->gc_work);
+ 	rcu_barrier();
+ 	while ((node = priv->root.rb_node) != NULL) {
+ 		rb_erase(node, &priv->root);
 -- 
 2.30.2
 
