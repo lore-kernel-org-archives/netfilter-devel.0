@@ -2,88 +2,104 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 482F3E7F156
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 11:12:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8F86E7F154
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 11:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232954AbjI2LMk (ORCPT
+        id S231774AbjI2LSV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Sep 2023 07:12:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58428 "EHLO
+        Fri, 29 Sep 2023 07:18:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232834AbjI2LMe (ORCPT
+        with ESMTP id S229687AbjI2LSV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Sep 2023 07:12:34 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 471BAB7
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 04:12:32 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qmBQ6-0007yK-Ai; Fri, 29 Sep 2023 13:12:30 +0200
-Date:   Fri, 29 Sep 2023 13:12:30 +0200
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH v2 7/8] netfilter: nf_tables: Pass reset bit in
- nft_set_dump_ctx
-Message-ID: <ZRaxHlrhNsBBrLC6@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20230928165244.7168-1-phil@nwl.cc>
- <20230928165244.7168-8-phil@nwl.cc>
- <ZRXLlwkeCBWgXqGZ@calendula>
- <ZRaiEjg2g6UuLPpS@orbyte.nwl.cc>
- <ZRajtFQ1dtMokDUM@calendula>
- <ZRakdAbR39fS3thz@orbyte.nwl.cc>
- <ZRatT4q729r7MPBO@calendula>
+        Fri, 29 Sep 2023 07:18:21 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CEF0DE;
+        Fri, 29 Sep 2023 04:18:17 -0700 (PDT)
+Received: from [78.30.34.192] (port=37622 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qmBVa-008uRk-Vb; Fri, 29 Sep 2023 13:18:13 +0200
+Date:   Fri, 29 Sep 2023 13:18:10 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc:     lwn@lwn.net, netfilter-announce@lists.netfilter.org
+Subject: [ANNOUNCE] conntrack-tools 1.4.8 release
+Message-ID: <ZRaycoBMnOsxHNK8@calendula>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="iSyG50L6krH8poFB"
 Content-Disposition: inline
-In-Reply-To: <ZRatT4q729r7MPBO@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 29, 2023 at 12:56:15PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Sep 29, 2023 at 12:18:28PM +0200, Phil Sutter wrote:
-> > On Fri, Sep 29, 2023 at 12:15:16PM +0200, Pablo Neira Ayuso wrote:
-> > > On Fri, Sep 29, 2023 at 12:08:18PM +0200, Phil Sutter wrote:
-> > > > On Thu, Sep 28, 2023 at 08:53:11PM +0200, Pablo Neira Ayuso wrote:
-> > > > > On Thu, Sep 28, 2023 at 06:52:43PM +0200, Phil Sutter wrote:
-> > > > > > Relieve the dump callback from having to check nlmsg_type upon each
-> > > > > > call. Prep work for set element reset locking.
-> > > > > 
-> > > > > Maybe add this as a preparation patch first place in this series,
-> > > > > rather making this cleanup at this late stage of the batch.
-> > > > 
-> > > > Sure, no problem. I extracted it from v1 of patch 8 and so they are
-> > > > closely related.
-> > > > 
-> > > > Maybe I should split the series up in per-callback ones? I'd start with
-> > > > the getsetelem_reset one as that is most cumbersome it seems.
-> > > 
-> > > Thanks.
-> > > 
-> > > Side note: I also read a comment from Florian regarding the use of
-> > > ctx.table. You have to be very careful with what you cache in the dump
-> > > context area, since such pointer might just go away.
-> > > 
-> > > So far this code caches was "careful" to cache only to check if the
-> > > table was still there, but iterating over the table list again
-> > > (another safer approach could be to use the table handle which is
-> > > unique).
-> > > 
-> > > All this is also related to the chunked nature of netlink dumps
-> > > (in other words, userspace retrieves part of it in every
-> > > netlink_recvmsg() call).
-> > 
-> > Good point. I think we may reduce all this to 'strdup(table->name)' and
-> > not care what happens in other CPUs. The only requirement is to cache
-> > table->family for audit logging also (IIRC). I'll give this a try.
-> 
-> table handle is u64 and you don't need to clone, right? Handle
-> allocation is monotonic.
 
-The intention was to use it for audit logging as well which requires the
-name (and family). Pulling anything that accesses the cached data into
-the critical section is probably more straightforward.
+--iSyG50L6krH8poFB
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Hi!
+
+The Netfilter project proudly presents:
+
+        conntrack-tools 1.4.8
+
+This release contains bugfixes:
+
+- fix spurious EOPNOSUPP and ENOBUFS errors with -U/--update command.
+- fix spurious ENOENT -D/--delete.
+
+You can download the new release from:
+
+https://netfilter.org/projects/conntrack-tools/downloads.html#conntrack-tools-1.4.8
+
+To build the code, updated libnetfilter_conntrack 1.0.9 is required:
+
+https://netfilter.org/projects/libnetfilter_conntrack/downloads.html#libnetfilter_conntrack-1.0.9
+
+In case of bugs and feature requests, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling!
+
+--iSyG50L6krH8poFB
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment;
+	filename="changes-conntrack-tools-1.4.8.txt"
+
+Jacek Tomasiak (1):
+      conntrack: don't override mark when filtering by status
+
+Jeremy Sowden (5):
+      conntrack, nfct: fix some typo's
+      build: reformat and sort `conntrack_LDADD` and `conntrackd_SOURCES`
+      build: stop suppressing warnings for generated sources
+      read_config_yy: correct `yyerror` prototype
+      read_config_yy: correct arguments passed to `inet_aton`
+
+Pablo Neira Ayuso (8):
+      build: conntrack-tools requires libnetfilter_conntrack >= 1.0.9
+      conntrack: do not silence EEXIST error, use NLM_F_EXCL
+      conntrack: unbreak -U command, use correct family
+      conntrack: skip ENOENT when -U/-D finds a stale conntrack entry
+      conntrack: do not set on NLM_F_ACK in IPCTNL_MSG_CT_GET requests
+      tests/conntrack: add initial stress test for conntrack
+      conntrackd: consolidate check for maximum number of channels
+      conntrack-tools 1.4.8 release
+
+Phil Sutter (5):
+      Makefile: Create LZMA-compressed dist-files
+      conntrack: Fix potential array out of bounds access
+      conntrack: Fix for unused assignment in do_command_ct()
+      conntrack: Fix for unused assignment in ct_save_snprintf()
+      conntrack: Sanitize free_tmpl_objects()
+
+Sam James (3):
+      build: don't suppress various warnings
+      network: Fix -Wstrict-prototypes
+      config: Fix -Wimplicit-function-declaration
+
+
+--iSyG50L6krH8poFB--
