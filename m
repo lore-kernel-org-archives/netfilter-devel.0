@@ -2,102 +2,108 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0A70E743C1
-	for <netfilter-devel@archiver.kernel.org>; Thu, 28 Sep 2023 20:25:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 811E6E743C0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 02:53:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231822AbjI1UZr (ORCPT
+        id S229745AbjI2CxY (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 28 Sep 2023 16:25:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49042 "EHLO
+        Thu, 28 Sep 2023 22:53:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230251AbjI1UZq (ORCPT
+        with ESMTP id S229541AbjI2CxX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Sep 2023 16:25:46 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C4D41A2
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Sep 2023 13:25:45 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 0B2FECC02C6;
-        Thu, 28 Sep 2023 22:25:42 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 28 Sep 2023 22:25:39 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id C32B9CC02B4;
-        Thu, 28 Sep 2023 22:25:39 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id BBD3E3431A9; Thu, 28 Sep 2023 22:25:39 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id B9708343155;
-        Thu, 28 Sep 2023 22:25:39 +0200 (CEST)
-Date:   Thu, 28 Sep 2023 22:25:39 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf PATCH v2 8/8] netfilter: nf_tables: Add locking for
- NFT_MSG_GETSETELEM_RESET requests
-In-Reply-To: <20230928200946.GB28176@breakpoint.cc>
-Message-ID: <3ec2da74-e884-3273-2dce-eab01a65ab70@netfilter.org>
-References: <20230928165244.7168-1-phil@nwl.cc> <20230928165244.7168-9-phil@nwl.cc> <20230928174630.GD19098@breakpoint.cc> <ZRXKWuGAE1snXkaK@calendula> <20230928185745.GE19098@breakpoint.cc> <ZRXOIrxtu5JPN4jA@calendula> <fedeecd9-b03-789-bc6c-21a697fc29d@netfilter.org>
- <20230928200946.GB28176@breakpoint.cc>
+        Thu, 28 Sep 2023 22:53:23 -0400
+Received: from relay7-d.mail.gandi.net (relay7-d.mail.gandi.net [217.70.183.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC11D1A1;
+        Thu, 28 Sep 2023 19:53:20 -0700 (PDT)
+Received: by mail.gandi.net (Postfix) with ESMTPA id 19D8B20002;
+        Fri, 29 Sep 2023 02:53:14 +0000 (UTC)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Date:   Thu, 28 Sep 2023 19:53:14 -0700
+From:   Joao Moreira <joao@overdrivepizza.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        rkannoth@marvell.com, wojciech.drewek@intel.com,
+        steen.hegenlund@microhip.com, keescook@chromium.org,
+        Joao Moreira <joao.moreira@intel.com>
+Subject: Re: [PATCH v3 1/2] Make loop indexes unsigned
+In-Reply-To: <ZRWCPTVd7b6+a7N5@calendula>
+References: <20230927164715.76744-1-joao@overdrivepizza.com>
+ <20230927164715.76744-2-joao@overdrivepizza.com>
+ <ZRWCPTVd7b6+a7N5@calendula>
+Message-ID: <77df92a5627411471f1f374d41ae500c@overdrivepizza.com>
+X-Sender: joao@overdrivepizza.com
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+X-GND-Sasl: joao@overdrivepizza.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 28 Sep 2023, Florian Westphal wrote:
-
-> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > On Thu, 28 Sep 2023, Pablo Neira Ayuso wrote:
-> > > One concern might be deadlock due to reordering, but I don't see how
-> > > that can happen.
-> > 
-> > The same problem exists ipset: when a set is listed/saved (dumped), 
-> > concurrent destroy/rename/swap for the same set must be excluded. As 
-> > neither spinlock nor mutex helps, a reference counter is used: the start 
-> > of the dump increases it and by checking it all concurrent events can 
-> > safely be rejected by returning EBUSY.
+On 2023-09-28 06:40, Pablo Neira Ayuso wrote:
+> On Wed, Sep 27, 2023 at 09:47:14AM -0700, joao@overdrivepizza.com 
+> wrote:
+>> From: Joao Moreira <joao.moreira@intel.com>
+>> 
+>> Both flow_rule_alloc and offload_action_alloc functions received an
+>> unsigned num_actions parameters which are then operated within a loop.
+>> The index of this loop is declared as a signed int. If it was possible
+>> to pass a large enough num_actions to these functions, it would lead 
+>> to
+>> an out of bounds write.
+>> 
+>> After checking with maintainers, it was mentioned that front-end will
+>> cap the num_actions value and that it is not possible to reach this
+>> function with such a large number. Yet, for correctness, it is still
+>> better to fix this.
+>> 
+>> This issue was observed by the commit author while reviewing a 
+>> write-up
+>> regarding a CVE within the same subsystem [1].
+>> 
+>> 1 - https://nickgregory.me/post/2022/03/12/cve-2022-25636/
+>> 
+>> Signed-off-by: Joao Moreira <joao.moreira@intel.com>
+>> ---
+>>  net/core/flow_offload.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>> 
+>> diff --git a/net/core/flow_offload.c b/net/core/flow_offload.c
+>> index bc5169482710..bc3f53a09d8f 100644
+>> --- a/net/core/flow_offload.c
+>> +++ b/net/core/flow_offload.c
+>> @@ -10,7 +10,7 @@
+>>  struct flow_rule *flow_rule_alloc(unsigned int num_actions)
+>>  {
+>>  	struct flow_rule *rule;
+>> -	int i;
+>> +	unsigned int i;
 > 
-> Thanks for sharing!
+> With the 2^8 cap, I don't think this patch is required anymore.
+
+Hm. While I understand that there is not a significant menace haunting 
+this... would it be good for (1) type correctness and (2) prevent that 
+things blow up if something changes and someone misses this spot?
+
 > 
-> I assume that means that a dumper that starts a dump, and then
-> goes to sleep before closing the socket/finishing the dump can
-> block further ipset updates, is that correct?
-
-Concurrent updates are supported, both from user and kernel space.
-
-The operations which would lead to corruption are excluded, like 
-destroying the set being dumped or swapping the dumped set with another 
-one. A relatively new application of the method is when there's a huge 
-add-del operation which must be temporarily halted and the scheduler 
-called (so spinlock/mutex cannot be held): for that time destroy/swap must 
-also be excluded.
- 
-> (I assume so, I don't see a solution that doesn't trade one problem
->  for another).
-
-Yes, usually that's the case. However, this code segment triggered me:
-
-> > > > +       mutex_lock(&nft_net->commit_mutex);
-> > > > +       ret = nf_tables_dump_set(skb, cb);
-> > > > +       mutex_unlock(&nft_net->commit_mutex);
-> > > > +
-> > > > +       if (cb->args[0] > skip)
-> > > > +               audit_log_nft_set_reset(dump_ctx->ctx.table, 
-cb->seq,
-> > > > +                                       cb->args[0] - skip);
-> > > > +
-
-That can quite nicely be handled by reference counting the object and 
-protecting that way.
-
-Best regards, 
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+>> 
+>>  	rule = kzalloc(struct_size(rule, action.entries, num_actions),
+>>  		       GFP_KERNEL);
+>> @@ -31,7 +31,7 @@ EXPORT_SYMBOL(flow_rule_alloc);
+>>  struct flow_offload_action *offload_action_alloc(unsigned int 
+>> num_actions)
+>>  {
+>>  	struct flow_offload_action *fl_action;
+>> -	int i;
+>> +	unsigned int i;
+>> 
+>>  	fl_action = kzalloc(struct_size(fl_action, action.entries, 
+>> num_actions),
+>>  			    GFP_KERNEL);
+>> --
+>> 2.42.0
+>> 
