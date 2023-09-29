@@ -2,161 +2,259 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CD24E732D0
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 10:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AEF5E7F156
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 10:28:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232630AbjI2KUn (ORCPT
+        id S232944AbjI2K20 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Sep 2023 06:20:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47792 "EHLO
+        Fri, 29 Sep 2023 06:28:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232519AbjI2KUm (ORCPT
+        with ESMTP id S233001AbjI2K2Z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Sep 2023 06:20:42 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6017EC0
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 03:20:40 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qmAbu-0005G1-2E; Fri, 29 Sep 2023 12:20:38 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] rule: never merge across non-expr statements
-Date:   Fri, 29 Sep 2023 12:20:30 +0200
-Message-ID: <20230929102033.22140-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Fri, 29 Sep 2023 06:28:25 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4BA51AA
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 03:28:22 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qmAjN-0007TE-0W; Fri, 29 Sep 2023 12:28:21 +0200
+Date:   Fri, 29 Sep 2023 12:28:20 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf PATCH v2 8/8] netfilter: nf_tables: Add locking for
+ NFT_MSG_GETSETELEM_RESET requests
+Message-ID: <ZRamxKx6CzvkPYeP@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20230928165244.7168-1-phil@nwl.cc>
+ <20230928165244.7168-9-phil@nwl.cc>
+ <ZRXLSYT97VifR2Hk@calendula>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZRXLSYT97VifR2Hk@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The existing logic can merge across non-expression statements,
-if there is only one payload expression.
+On Thu, Sep 28, 2023 at 08:51:53PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Sep 28, 2023 at 06:52:44PM +0200, Phil Sutter wrote:
+> > Set expressions' dump callbacks are not concurrency-safe per-se with
+> > reset bit set. If two CPUs reset the same element at the same time,
+> > values may underrun at least with element-attached counters and quotas.
+> > 
+> > Prevent this by introducing dedicated callbacks for nfnetlink and the
+> > asynchronous dump handling to serialize access.
+> > 
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> > Changes since v1:
+> > - Improved commit description
+> > - Unrelated chunk moved into a previous patch
+> > ---
+> >  net/netfilter/nf_tables_api.c | 105 +++++++++++++++++++++++++++++-----
+> >  1 file changed, 91 insertions(+), 14 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index 1491d4c65fed9..a855b43fe72db 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> > @@ -5834,10 +5834,6 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+> >  	nla_nest_end(skb, nest);
+> >  	nlmsg_end(skb, nlh);
+> >  
+> > -	if (dump_ctx->reset && args.iter.count > args.iter.skip)
+> > -		audit_log_nft_set_reset(table, cb->seq,
+> > -					args.iter.count - args.iter.skip);
+> > -
+> >  	rcu_read_unlock();
+> >  
+> >  	if (args.iter.err && args.iter.err != -EMSGSIZE)
+> > @@ -5853,6 +5849,24 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+> >  	return -ENOSPC;
+> >  }
+> >  
+> > +static int nf_tables_dumpreset_set(struct sk_buff *skb,
+> > +				   struct netlink_callback *cb)
+> > +{
+> > +	struct nftables_pernet *nft_net = nft_pernet(sock_net(skb->sk));
+> > +	struct nft_set_dump_ctx *dump_ctx = cb->data;
+> > +	int ret, skip = cb->args[0];
+> > +
+> > +	mutex_lock(&nft_net->commit_mutex);
+> > +	ret = nf_tables_dump_set(skb, cb);
+> > +	mutex_unlock(&nft_net->commit_mutex);
+> > +
+> > +	if (cb->args[0] > skip)
+> > +		audit_log_nft_set_reset(dump_ctx->ctx.table, cb->seq,
+> > +					cb->args[0] - skip);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> >  static int nf_tables_dump_set_start(struct netlink_callback *cb)
+> >  {
+> >  	struct nft_set_dump_ctx *dump_ctx = cb->data;
+> > @@ -6070,7 +6084,6 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
+> >  	struct nft_set *set;
+> >  	struct nlattr *attr;
+> >  	struct nft_ctx ctx;
+> > -	bool reset = false;
+> >  
+> >  	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
+> >  				 genmask, 0);
+> > @@ -6085,9 +6098,6 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
+> >  
+> >  	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+> >  
+> > -	if (NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_GETSETELEM_RESET)
+> > -		reset = true;
+> > -
+> >  	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
+> >  		struct netlink_dump_control c = {
+> >  			.start = nf_tables_dump_set_start,
+> > @@ -6098,7 +6108,67 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
+> >  		struct nft_set_dump_ctx dump_ctx = {
+> >  			.set = set,
+> >  			.ctx = ctx,
+> > -			.reset = reset,
+> > +			.reset = false,
+> > +		};
+> > +
+> > +		c.data = &dump_ctx;
+> > +		return nft_netlink_dump_start_rcu(info->sk, skb, info->nlh, &c);
+> > +	}
+> > +
+> > +	if (!nla[NFTA_SET_ELEM_LIST_ELEMENTS])
+> > +		return -EINVAL;
+> > +
+> > +	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
+> > +		err = nft_get_set_elem(&ctx, set, attr, false);
+> > +		if (err < 0) {
+> > +			NL_SET_BAD_ATTR(extack, attr);
+> > +			break;
+> > +		}
+> > +		nelems++;
+> > +	}
+> > +
+> > +	return err;
+> > +}
+> > +
+> > +static int nf_tables_getsetelem_reset(struct sk_buff *skb,
+> > +				      const struct nfnl_info *info,
+> > +				      const struct nlattr * const nla[])
+> > +{
+> > +	struct nftables_pernet *nft_net = nft_pernet(info->net);
+> > +	struct netlink_ext_ack *extack = info->extack;
+> > +	u8 genmask = nft_genmask_cur(info->net);
+> > +	u8 family = info->nfmsg->nfgen_family;
+> > +	int rem, err = 0, nelems = 0;
+> > +	struct net *net = info->net;
+> > +	struct nft_table *table;
+> > +	struct nft_set *set;
+> > +	struct nlattr *attr;
+> > +	struct nft_ctx ctx;
+> > +
+> > +	table = nft_table_lookup(net, nla[NFTA_SET_ELEM_LIST_TABLE], family,
+> > +				 genmask, 0);
+> > +	if (IS_ERR(table)) {
+> > +		NL_SET_BAD_ATTR(extack, nla[NFTA_SET_ELEM_LIST_TABLE]);
+> > +		return PTR_ERR(table);
+> > +	}
+> > +
+> > +	set = nft_set_lookup(table, nla[NFTA_SET_ELEM_LIST_SET], genmask);
+> > +	if (IS_ERR(set))
+> > +		return PTR_ERR(set);
+> > +
+> > +	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
+> > +
+> > +	if (info->nlh->nlmsg_flags & NLM_F_DUMP) {
+> > +		struct netlink_dump_control c = {
+> > +			.start = nf_tables_dump_set_start,
+> > +			.dump = nf_tables_dumpreset_set,
+> > +			.done = nf_tables_dump_set_done,
+> > +			.module = THIS_MODULE,
+> > +		};
+> > +		struct nft_set_dump_ctx dump_ctx = {
+> > +			.set = set,
+> > +			.ctx = ctx,
+> > +			.reset = true,
+> >  		};
+> >  
+> >  		c.data = &dump_ctx;
+> > @@ -6108,18 +6178,25 @@ static int nf_tables_getsetelem(struct sk_buff *skb,
+> >  	if (!nla[NFTA_SET_ELEM_LIST_ELEMENTS])
+> >  		return -EINVAL;
+> >  
+> > +	if (!try_module_get(THIS_MODULE))
+> > +		return -EINVAL;
+> > +	rcu_read_unlock();
+> > +	mutex_lock(&nft_net->commit_mutex);
+> > +	rcu_read_lock();
+> >  	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
+> > -		err = nft_get_set_elem(&ctx, set, attr, reset);
+> > +		err = nft_get_set_elem(&ctx, set, attr, true);
+> >  		if (err < 0) {
+> >  			NL_SET_BAD_ATTR(extack, attr);
+> >  			break;
+> >  		}
+> >  		nelems++;
+> >  	}
+> > +	rcu_read_unlock();
+> > +	mutex_unlock(&nft_net->commit_mutex);
+> > +	rcu_read_lock();
+> > +	module_put(THIS_MODULE);
+> >  
+> > -	if (reset)
+> > -		audit_log_nft_set_reset(table, nft_pernet(net)->base_seq,
+> > -					nelems);
+> > +	audit_log_nft_set_reset(table, nft_net->base_seq, nelems);
+> >  
+> >  	return err;
+> >  }
+> > @@ -9140,7 +9217,7 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
+> >  		.policy		= nft_set_elem_list_policy,
+> >  	},
+> >  	[NFT_MSG_GETSETELEM_RESET] = {
+> > -		.call		= nf_tables_getsetelem,
+> > +		.call		= nf_tables_getsetelem_reset,
+> 
+> This diff is weird. This is a complete new function, but it show like
+> new code in nf_tables_getsetelem(), this is difficult to track at
+> review.
+> 
+> What did it change for this diff to happen?
 
-Example:
-ether saddr 00:11:22:33:44:55 counter ether type 8021q
+Well, the new function nf_tables_getsetelem_reset is very similar to
+nf_tables_getsetelem, so diff is a bit too creative reducing the diff
+size. Also, I see that labels refer to the wrong function name. It's a
+funny result for something like this:
 
-is turned into
-counter ether saddr 00:11:22:33:44:55 ether type 8021q
+| old_function() {
+| 	old_header;
+| 	common_body;
+| 	old_body;
+| }
 
-which isn't the same thing.
+Adding 'new_function' may be done like so:
 
-Fix this up and add test cases for adjacent vlan and ip header
-fields.  'Counter' serves as a non-merge fence.
+| old_function() {
+| 	old_header;
+|+      common_body;
+|+	old_body;
+|+}
+|+new_function() {
+|+      new_header;
+| 	common_body;
+|@@...@@ old_function
+|-      old_body;
+|+      new_body;
+| }
 
-Currently we also prevent merging of the two saddr/daddr loads
-in the 'ip' case, as two distinct 32 bit loads are handled by
-the interpreter directly without a function call.
+I'll keep an eye on this for v3. If it still happens, maybe some diff
+option helps or reordering where I add the new function.
 
-This might change at some point, so cover this too.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/rule.c                            |  6 ++----
- tests/py/bridge/vlan.t                |  2 ++
- tests/py/bridge/vlan.t.payload        |  8 ++++++++
- tests/py/bridge/vlan.t.payload.netdev | 10 ++++++++++
- tests/py/ip/ip.t                      |  3 +++
- tests/py/ip/ip.t.payload              | 15 +++++++++++++++
- 6 files changed, 40 insertions(+), 4 deletions(-)
-
-diff --git a/src/rule.c b/src/rule.c
-index 52c0672d4cf0..739b7a541583 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -2744,10 +2744,8 @@ static void stmt_reduce(const struct rule *rule)
- 
- 		/* Must not merge across other statements */
- 		if (stmt->ops->type != STMT_EXPRESSION) {
--			if (idx < 2)
--				continue;
--
--			payload_do_merge(sa, idx);
-+			if (idx >= 2)
-+				payload_do_merge(sa, idx);
- 			idx = 0;
- 			continue;
- 		}
-diff --git a/tests/py/bridge/vlan.t b/tests/py/bridge/vlan.t
-index 95bdff4f1b75..8fa90dac7416 100644
---- a/tests/py/bridge/vlan.t
-+++ b/tests/py/bridge/vlan.t
-@@ -52,3 +52,5 @@ ether saddr 00:01:02:03:04:05 vlan id 1;ok
- vlan id 2 ether saddr 0:1:2:3:4:6;ok;ether saddr 00:01:02:03:04:06 vlan id 2
- 
- ether saddr . vlan id { 0a:0b:0c:0d:0e:0f . 42, 0a:0b:0c:0d:0e:0f . 4095 };ok
-+
-+ether saddr 00:11:22:33:44:55 counter ether type 8021q;ok
-diff --git a/tests/py/bridge/vlan.t.payload b/tests/py/bridge/vlan.t.payload
-index 62e4b89bd0b2..2592bb96ad7c 100644
---- a/tests/py/bridge/vlan.t.payload
-+++ b/tests/py/bridge/vlan.t.payload
-@@ -304,3 +304,11 @@ bridge test-bridge input
-   [ payload load 2b @ link header + 14 => reg 10 ]
-   [ bitwise reg 10 = ( reg 10 & 0x0000ff0f ) ^ 0x00000000 ]
-   [ lookup reg 1 set __set%d ]
-+
-+# ether saddr 00:11:22:33:44:55 counter ether type 8021q
-+bridge test-bridge input
-+  [ payload load 6b @ link header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x33221100 0x00005544 ]
-+  [ counter pkts 0 bytes 0 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-diff --git a/tests/py/bridge/vlan.t.payload.netdev b/tests/py/bridge/vlan.t.payload.netdev
-index 1018d4c6588f..f33419470ad5 100644
---- a/tests/py/bridge/vlan.t.payload.netdev
-+++ b/tests/py/bridge/vlan.t.payload.netdev
-@@ -356,3 +356,13 @@ netdev test-netdev ingress
-   [ payload load 2b @ link header + 14 => reg 10 ]
-   [ bitwise reg 10 = ( reg 10 & 0x0000ff0f ) ^ 0x00000000 ]
-   [ lookup reg 1 set __set%d ]
-+
-+# ether saddr 00:11:22:33:44:55 counter ether type 8021q
-+bridge test-bridge input
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 6b @ link header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x33221100 0x00005544 ]
-+  [ counter pkts 0 bytes 0 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
-index a8f0d8202400..720d9ae92b60 100644
---- a/tests/py/ip/ip.t
-+++ b/tests/py/ip/ip.t
-@@ -130,3 +130,6 @@ iif "lo" ip dscp set cs0;ok
- 
- ip saddr . ip daddr { 192.0.2.1 . 10.0.0.1-10.0.0.2 };ok
- ip saddr . ip daddr vmap { 192.168.5.1-192.168.5.128 . 192.168.6.1-192.168.6.128 : accept };ok
-+
-+ip saddr 1.2.3.4 ip daddr 3.4.5.6;ok
-+ip saddr 1.2.3.4 counter ip daddr 3.4.5.6;ok
-diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
-index 8224d4cd46de..43605a361a7a 100644
---- a/tests/py/ip/ip.t.payload
-+++ b/tests/py/ip/ip.t.payload
-@@ -541,3 +541,18 @@ ip
-   [ payload load 4b @ network header + 12 => reg 1 ]
-   [ payload load 4b @ network header + 16 => reg 9 ]
-   [ lookup reg 1 set __map%d dreg 0 ]
-+
-+# ip saddr 1.2.3.4 ip daddr 3.4.5.6
-+ip test-ip4 input
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x04030201 ]
-+  [ payload load 4b @ network header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x06050403 ]
-+
-+# ip saddr 1.2.3.4 counter ip daddr 3.4.5.6
-+ip test-ip4 input
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x04030201 ]
-+  [ counter pkts 0 bytes 0 ]
-+  [ payload load 4b @ network header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x06050403 ]
--- 
-2.41.0
-
+Cheers, Phil
