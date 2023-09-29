@@ -2,99 +2,181 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 206EAE810D5
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 11:46:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A031E728C5
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 16:44:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233105AbjI2Lqz (ORCPT
+        id S233215AbjI2QoO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Sep 2023 07:46:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55574 "EHLO
+        Fri, 29 Sep 2023 12:44:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233069AbjI2Lqo (ORCPT
+        with ESMTP id S232748AbjI2QoN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Sep 2023 07:46:44 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE28B1B4;
-        Fri, 29 Sep 2023 04:46:36 -0700 (PDT)
-Received: from [2a02:8108:8980:2478:8cde:aa2c:f324:937e]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1qmBx0-00054T-AZ; Fri, 29 Sep 2023 13:46:30 +0200
-Message-ID: <89dded30-d250-4b7a-b5a8-b18e3b509bf1@leemhuis.info>
-Date:   Fri, 29 Sep 2023 13:46:29 +0200
+        Fri, 29 Sep 2023 12:44:13 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C376BD6
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 09:44:10 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf 1/2] netfilter: nft_set_rbtree: move sync GC from insert path to set->ops->commit
+Date:   Fri, 29 Sep 2023 18:44:03 +0200
+Message-Id: <20230929164404.172081-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Regression: Commit "netfilter: nf_tables: disallow rule addition
- to bound chain via NFTA_RULE_CHAIN_ID" breaks ruleset loading in linux-stable
-Content-Language: en-US, de-DE
-To:     Florian Westphal <fw@strlen.de>,
-        Linux regressions mailing list <regressions@lists.linux.dev>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Timo Sigurdsson <public_timo.s@silentcreek.de>,
-        kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, sashal@kernel.org, carnil@debian.org,
-        1051592@bugs.debian.org
-References: <20230911213750.5B4B663206F5@dd20004.kasserver.com>
- <ZP+bUpxJiFcmTWhy@calendula>
- <b30a81fa-6b59-4bac-b109-99a4dca689de@leemhuis.info>
- <20230912102701.GA13516@breakpoint.cc>
-From:   "Linux regression tracking (Thorsten Leemhuis)" 
-        <regressions@leemhuis.info>
-Reply-To: Linux regressions mailing list <regressions@lists.linux.dev>
-In-Reply-To: <20230912102701.GA13516@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1695987996;3a87d281;
-X-HE-SMSGID: 1qmBx0-00054T-AZ
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On 12.09.23 12:27, Florian Westphal wrote:
-> Linux regression tracking (Thorsten Leemhuis) <regressions@leemhuis.info> wrote:
->> On 12.09.23 00:57, Pablo Neira Ayuso wrote:
->>> Userspace nftables v1.0.6 generates incorrect bytecode that hits a new
->>> kernel check that rejects adding rules to bound chains. The incorrect
->>> bytecode adds the chain binding, attach it to the rule and it adds the
->>> rules to the chain binding. I have cherry-picked these three patches
->>> for nftables v1.0.6 userspace and your ruleset restores fine.
->>> [...]
->>
->> Hmmmm. Well, this sounds like a kernel regression to me that normally
->> should be dealt with on the kernel level, as users after updating the
->> kernel should never have to update any userspace stuff to continue what
->> they have been doing before the kernel update.
-> 
-> This is a combo of a userspace bug and this new sanity check that
-> rejects the incorrect ordering (adding rules to the already-bound
-> anonymous chain).
-> 
-> nf_tables uses a transaction allor-nothing model, this means that any
-> error that occurs during a transaction has to be reverse/undo all the
-> pending changes.  This has caused a myriad of bugs already.
-> 
-> So while this can be theoretically fixed in the kernel I don't see
-> a sane way to do it.  Error unwinding / recovery from deeply nested
-> errors is already too complex for my taste.
-> 
->> Can't the kernel somehow detect the incorrect bytecode and do the right
->> thing(tm) somehow?
-> 
-> Theoretically yes, but I don't feel competent enough to do it, just look
-> at all the UaF bugs of the past month.
+According to 2ee52ae94baa ("netfilter: nft_set_rbtree: skip sync GC for
+new elements in this transaction"), new elements in this transaction
+might expire before such transaction ends. Skip sync GC is needed for
+such elements otherwise commit path might walk over an already released
+object.
 
-Thx for the answer. FWIW, as this was a judgement call I mentioned this
-in my last regression report to Linus; he didn't reply, so I guess it is
--- and will remove this issue from my tracking:
+However, Florian found that while iterating the tree from the insert
+path for sync GC, it is possible that stale references could still
+happen for elements in the less-equal and great-than boundaries to
+narrow down the tree descend to speed up overlap detection, this
+triggers bogus overlap errors.
 
-#regzbot resolve: can be solved by a nftables userspace update; not
-nice, but likely best solution in this case
-#regzbot ignore-activity
+This patch skips expired elements in the overlap detection routine which
+iterates on the reversed ordered list of elements that represent the
+intervals. Since end elements provide no expiration extension, check for
+the next non-end element in this interval, hence, skip both elements in
+the iteration if the interval has expired.
 
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
---
-Everything you wanna know about Linux kernel regression tracking:
-https://linux-regtracking.leemhuis.info/about/#tldr
-If I did something stupid, please tell me, as explained on that page.
+Moreover, move GC sync to the set->ops->commit interface to collect
+expired interval. The GC run needs to ignore the gc_interval because the
+tree cannot store duplicated expired elements, otherwise bogus
+mismatches might occur.
+
+Fixes: f6c383b8c31a ("netfilter: nf_tables: adapt set backend to use GC transaction API")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Hi Florian,
+
+I picked up on issue, this proposed as an alternative to:
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20230928131247.3391-1-fw@strlen.de/
+
+Note this ignores the specified gc_interval. For this to work, a copy of the
+tree would need to be maintained, similar to what pipapo does.
+
+This approach should clear the path to support for set element timeout
+update/refresh.
+
+I still spinning over this one and running test to see if I see any failure
+with sets/0044_interval_overlap_{0,1}.
+
+ net/netfilter/nft_set_rbtree.c | 57 +++++++++++++++++++++++++---------
+ 1 file changed, 43 insertions(+), 14 deletions(-)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 487572dcd614..de6d812fc790 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -235,8 +235,7 @@ static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
+ 
+ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 			      struct nft_rbtree *priv,
+-			      struct nft_rbtree_elem *rbe,
+-			      u8 genmask)
++			      struct nft_rbtree_elem *rbe)
+ {
+ 	struct nft_set *set = (struct nft_set *)__set;
+ 	struct rb_node *prev = rb_prev(&rbe->node);
+@@ -254,8 +253,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 	 */
+ 	while (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+-		if (nft_rbtree_interval_end(rbe_prev) &&
+-		    nft_set_elem_active(&rbe_prev->ext, genmask))
++		if (nft_rbtree_interval_end(rbe_prev))
+ 			break;
+ 
+ 		prev = rb_prev(prev);
+@@ -289,6 +287,34 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 	return 0;
+ }
+ 
++static void nft_rbtree_commit(const struct nft_set *set)
++{
++	struct nft_rbtree *priv = nft_set_priv(set);
++	struct rb_node *node, *next, *first;
++	struct nft_rbtree_elem *rbe;
++
++	if (!(set->flags & NFT_SET_TIMEOUT))
++		return;
++
++	/* ignore GC interval here, unless two copies of the tree are
++	 * maintained, it is not possible to postpone removal of expired
++	 * elements.
++	 */
++
++	first = rb_first(&priv->root);
++
++	for (node = first; node != NULL; node = next) {
++		next = rb_next(node);
++
++		rbe = rb_entry(node, struct nft_rbtree_elem, node);
++
++		if (!nft_set_elem_expired(&rbe->ext))
++			continue;
++
++		nft_rbtree_gc_elem(set, priv, rbe);
++	}
++}
++
+ static bool nft_rbtree_update_first(const struct nft_set *set,
+ 				    struct nft_rbtree_elem *rbe,
+ 				    struct rb_node *first)
+@@ -312,9 +338,8 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
+ 	struct rb_node *node, *next, *parent, **p, *first = NULL;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+-	u8 cur_genmask = nft_genmask_cur(net);
+ 	u8 genmask = nft_genmask_next(net);
+-	int d, err;
++	int d;
+ 
+ 	/* Descend the tree to search for an existing element greater than the
+ 	 * key value to insert that is greater than the new element. This is the
+@@ -358,16 +383,19 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		if (!nft_set_elem_active(&rbe->ext, genmask))
+ 			continue;
+ 
+-		/* perform garbage collection to avoid bogus overlap reports
+-		 * but skip new elements in this transaction.
++		/* skip expired intervals to avoid bogus overlap reports:
++		 * end element has no expiration, check next start element.
+ 		 */
+-		if (nft_set_elem_expired(&rbe->ext) &&
+-		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+-			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
+-			if (err < 0)
+-				return err;
++		if (nft_rbtree_interval_end(rbe) && next) {
++			struct nft_rbtree_elem *rbe_next;
+ 
+-			continue;
++			rbe_next = rb_entry(next, struct nft_rbtree_elem, node);
++
++			if (nft_set_elem_expired(&rbe_next->ext)) {
++				/* skip expired next start element. */
++				next = rb_next(next);
++				continue;
++			}
+ 		}
+ 
+ 		d = nft_rbtree_cmp(set, rbe, new);
+@@ -755,5 +783,6 @@ const struct nft_set_type nft_set_rbtree_type = {
+ 		.lookup		= nft_rbtree_lookup,
+ 		.walk		= nft_rbtree_walk,
+ 		.get		= nft_rbtree_get,
++		.commit		= nft_rbtree_commit,
+ 	},
+ };
+-- 
+2.30.2
+
