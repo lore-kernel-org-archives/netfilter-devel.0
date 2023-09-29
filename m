@@ -2,83 +2,106 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 295FBE728D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E03E2E728D8
 	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 19:19:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233525AbjI2TTd (ORCPT
+        id S233540AbjI2TTd (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Fri, 29 Sep 2023 15:19:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40062 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233327AbjI2TTc (ORCPT
+        with ESMTP id S233421AbjI2TTc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 29 Sep 2023 15:19:32 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA483F5
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 12:19:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C7261B2
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 12:19:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=5AHf6X4EpzacVib9Gr14I+6KklGxFzNKMluUxA6aNs4=; b=jVKCkhn9cNboCwpXZXWE+S1kAJ
-        SeU0e+3p7u8I2idb6LN72hOm0CfjEHpyskWq7zvqzDZYoZJAWxrB7fNhWJQodT/9nx48/TTP6fYmi
-        9DM06CRXijLIxoQrzthz/DZR+IkWPvFlpyxiWqhlod8WzhM31WZ+WlltnNsc01p0Y01QcFgfvFzD8
-        tv2DDDzHUWEN5IKk03aTji5dIrD77LDxmudNV4ari1ca/mnU6rextWyu9ydjIknqCnNWLooiQoZQX
-        Sjp9il82l2JWnSQShKiNYxAR8YETco+qDmmuyihXnbsZ0z+D7SBlAZE8hq/hKQ9J9Nczs0e7ZlDA1
-        abHJrGuw==;
+        bh=4iLw5HydcjFP3TigUtAIxxhOcyZtHMIgKKljcHJTXk4=; b=Yq1dE4DPPHsE3x0hBcL8DwEpLB
+        slBCzSLQgw3VVZpQwyK3Mn5BRfEyWbGhgUohANJZZHPL2ObxdusHW1zGn/7IZYOdasKsKS5LkOdfw
+        rjI3D0Zeuhi3qakymHbcO8wjtsbiA3vughjmO0cf097lbe0Zw3v/Zc4yljw/pgX1NxEWxIr8HSirD
+        rMEtUEF2dss5BUZIoyMVbdVYCYtqcO1DLNk+JLdupt8mFUfrDfQ2lsIEoT/1vmk33ecLQmopJ1X/C
+        B6DSHbokUWA/lvGsAnOLus9mfEPrfF70WNTywUyriJQMi3j2eD76c0wU48knkVtrfKKCBInacelmz
+        JZq1UEZA==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qmJ1K-0005E9-GM; Fri, 29 Sep 2023 21:19:26 +0200
+        id 1qmJ1L-0005EP-Es; Fri, 29 Sep 2023 21:19:27 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: [nf-next PATCH 0/5] nf_tables: nft_rule_dump_ctx fits into netlink_callback
-Date:   Fri, 29 Sep 2023 21:19:17 +0200
-Message-ID: <20230929191922.6230-1-phil@nwl.cc>
+Subject: [nf-next PATCH 4/5] netfilter: nf_tables: Carry s_idx in nft_rule_dump_ctx
+Date:   Fri, 29 Sep 2023 21:19:21 +0200
+Message-ID: <20230929191922.6230-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230929191922.6230-1-phil@nwl.cc>
+References: <20230929191922.6230-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Struct netlink_callback has a 48byte scratch area for use by dump
-callbacks to keep personal stuff.
+In order to move the context into struct netlink_callback's scratch
+area, the latter must be unused first.
 
-In rule dumps set up by nf_tables_getrule(), this is used only to store
-a cursor into the list of rules being dumped. Other data is allocated
-and the pointer value assigned to struct netlink_callback::data.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_tables_api.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Since the allocated data structure is small and fits into the scratch
-area even after adding some more fields, move it there.
-
-Patch 1 "simplifies" nf_tables_dump_rules_start() a bit, but actually
-exists only to reduce patch 5's size.
-
-Patch 2 is more or less fallout: The memset would mess things up after
-this series, but it was pointless in the first place.
-
-Patches 3 and 4 extend struct nft_rule_dump_ctx and make
-struct netlink_callback's scratch area unused.
-
-Patch 5 then finally eliminates the allocation.
-
-All this is early preparation for reset command locking but unrelated
-enough to go alone.
-
-Phil Sutter (5):
-  netfilter: nf_tables: Always allocate nft_rule_dump_ctx
-  netfilter: nf_tables: Drop pointless memset when dumping rules
-  netfilter: nf_tables: Carry reset flag in nft_rule_dump_ctx
-  netfilter: nf_tables: Carry s_idx in nft_rule_dump_ctx
-  netfilter: nf_tables: Don't allocate nft_rule_dump_ctx
-
- net/netfilter/nf_tables_api.c | 80 ++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 49 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 21dd6a27ca598..a8c8d9d116d56 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3441,6 +3441,7 @@ static void audit_log_rule_reset(const struct nft_table *table,
+ }
+ 
+ struct nft_rule_dump_ctx {
++	unsigned int s_idx;
+ 	char *table;
+ 	char *chain;
+ 	bool reset;
+@@ -3455,7 +3456,6 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
+ 	struct nft_rule_dump_ctx *ctx = cb->data;
+ 	struct net *net = sock_net(skb->sk);
+ 	const struct nft_rule *rule, *prule;
+-	unsigned int s_idx = cb->args[0];
+ 	unsigned int entries = 0;
+ 	int ret = 0;
+ 	u64 handle;
+@@ -3464,7 +3464,7 @@ static int __nf_tables_dump_rules(struct sk_buff *skb,
+ 	list_for_each_entry_rcu(rule, &chain->rules, list) {
+ 		if (!nft_is_active(net, rule))
+ 			goto cont_skip;
+-		if (*idx < s_idx)
++		if (*idx < ctx->s_idx)
+ 			goto cont;
+ 		if (prule)
+ 			handle = prule->handle;
+@@ -3498,7 +3498,7 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 				struct netlink_callback *cb)
+ {
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+-	const struct nft_rule_dump_ctx *ctx = cb->data;
++	struct nft_rule_dump_ctx *ctx = cb->data;
+ 	struct nft_table *table;
+ 	const struct nft_chain *chain;
+ 	unsigned int idx = 0;
+@@ -3547,7 +3547,7 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ done:
+ 	rcu_read_unlock();
+ 
+-	cb->args[0] = idx;
++	ctx->s_idx = idx;
+ 	return skb->len;
+ }
+ 
 -- 
 2.41.0
 
