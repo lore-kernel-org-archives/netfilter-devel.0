@@ -2,130 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12CB9E743F2
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 08:10:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F65E743FA
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 08:42:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232800AbjI2IKV convert rfc822-to-8bit (ORCPT
+        id S232875AbjI2ImZ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Sep 2023 04:10:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40730 "EHLO
+        Fri, 29 Sep 2023 04:42:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232810AbjI2IKU (ORCPT
+        with ESMTP id S232841AbjI2ImW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Sep 2023 04:10:20 -0400
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EF1A1A7
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 01:10:15 -0700 (PDT)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with both STARTTLS and AUTH (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-136-V-eKdlGtNjCLQJKswWmyoQ-1; Fri, 29 Sep 2023 09:10:02 +0100
-X-MC-Unique: V-eKdlGtNjCLQJKswWmyoQ-1
-Received: from AcuMS.Aculab.com (10.202.163.4) by AcuMS.aculab.com
- (10.202.163.4) with Microsoft SMTP Server (TLS) id 15.0.1497.48; Fri, 29 Sep
- 2023 09:10:00 +0100
-Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
- id 15.00.1497.048; Fri, 29 Sep 2023 09:10:00 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     "'joao@overdrivepizza.com'" <joao@overdrivepizza.com>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC:     "kadlec@netfilter.org" <kadlec@netfilter.org>,
-        "fw@strlen.de" <fw@strlen.de>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "edumazet@google.com" <edumazet@google.com>,
-        "kuba@kernel.org" <kuba@kernel.org>,
-        "pabeni@redhat.com" <pabeni@redhat.com>,
-        "rkannoth@marvell.com" <rkannoth@marvell.com>,
-        "wojciech.drewek@intel.com" <wojciech.drewek@intel.com>,
-        "steen.hegenlund@microhip.com" <steen.hegenlund@microhip.com>,
-        "keescook@chromium.org" <keescook@chromium.org>,
-        Joao Moreira <joao.moreira@intel.com>
-Subject: RE: [PATCH v2 2/2] Make num_actions unsigned
-Thread-Topic: [PATCH v2 2/2] Make num_actions unsigned
-Thread-Index: AQHZ8ObIeUWAs73e2U+3ivRy5uEH5bAxdYzQ
-Date:   Fri, 29 Sep 2023 08:10:00 +0000
-Message-ID: <09695e42dfaf4dfe9457aa814fef297e@AcuMS.aculab.com>
-References: <20230927020221.85292-1-joao@overdrivepizza.com>
- <20230927020221.85292-3-joao@overdrivepizza.com>
-In-Reply-To: <20230927020221.85292-3-joao@overdrivepizza.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        Fri, 29 Sep 2023 04:42:22 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 719B71BC
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 01:42:19 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qm94j-0004jn-NO; Fri, 29 Sep 2023 10:42:17 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>, David Ward <david.ward@ll.mit.edu>
+Subject: [PATCH nf] netfilter: nft_payload: rebuild vlan header on h_proto access
+Date:   Fri, 29 Sep 2023 10:42:10 +0200
+Message-ID: <20230929084213.19401-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: joao@overdrivepizza.com
-> Sent: 27 September 2023 03:02
-> 
-> From: Joao Moreira <joao.moreira@intel.com>
-> 
-> Currently, in nft_flow_rule_create function, num_actions is a signed
-> integer. Yet, it is processed within a loop which increments its
-> value. To prevent an overflow from occurring, make it unsigned and
-> also check if it reaches UINT_MAX when being incremented.
-> 
-> After checking with maintainers, it was mentioned that front-end will
-> cap the num_actions value and that it is not possible to reach such
-> condition for an overflow. Yet, for correctness, it is still better to
-> fix this.
-> 
-> This issue was observed by the commit author while reviewing a write-up
-> regarding a CVE within the same subsystem [1].
-> 
-> 1 - https://nickgregory.me/post/2022/03/12/cve-2022-25636/
-> 
-> Signed-off-by: Joao Moreira <joao.moreira@intel.com>
-> ---
->  net/netfilter/nf_tables_offload.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> index 12ab78fa5d84..d25088791a74 100644
-> --- a/net/netfilter/nf_tables_offload.c
-> +++ b/net/netfilter/nf_tables_offload.c
-> @@ -90,7 +90,8 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
->  {
->  	struct nft_offload_ctx *ctx;
->  	struct nft_flow_rule *flow;
-> -	int num_actions = 0, err;
-> +	unsigned int num_actions = 0;
-> +	int err;
->  	struct nft_expr *expr;
-> 
->  	expr = nft_expr_first(rule);
-> @@ -99,6 +100,9 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
->  		    expr->ops->offload_action(expr))
->  			num_actions++;
-> 
-> +		if (num_actions == UINT_MAX)
-> +			return ERR_PTR(-ENOMEM);
-> +
->  		expr = nft_expr_next(expr);
+nft can perform merging of adjacent payload requests.
+This means that:
 
-The code is going to 'crash and burn' well before the counter
-can possibly overflow.
+ether saddr 00:11 ... ether type 8021ad ...
 
-nft_expr_next() is ((void *)expr) + expr->ops->size;
+is a single payload expression, for 8 bytes, starting at the
+ethernet source offset.
 
-It is far more likely that has got setup wrong than the
-count is too big. 
+Check that offset+length is fully within the source/destination mac
+addersses.
 
-	David
+This bug prevents 'ether type' from matching the correct h_proto in case
+vlan tag got stripped.
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+Fixes: de6843be3082 ("netfilter: nft_payload: rebuild vlan header when needed")
+Reported-by: David Ward <david.ward@ll.mit.edu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_payload.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 8cb800989947..120f6d395b98 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -154,6 +154,17 @@ int nft_payload_inner_offset(const struct nft_pktinfo *pkt)
+ 	return pkt->inneroff;
+ }
+ 
++static bool nft_payload_need_vlan_copy(const struct nft_payload *priv)
++{
++	unsigned int len = priv->offset + priv->len;
++
++	/* data past ether src/dst requested, copy needed */
++	if (len > offsetof(struct ethhdr, h_proto))
++		return true;
++
++	return false;
++}
++
+ void nft_payload_eval(const struct nft_expr *expr,
+ 		      struct nft_regs *regs,
+ 		      const struct nft_pktinfo *pkt)
+@@ -172,7 +183,7 @@ void nft_payload_eval(const struct nft_expr *expr,
+ 			goto err;
+ 
+ 		if (skb_vlan_tag_present(skb) &&
+-		    priv->offset >= offsetof(struct ethhdr, h_proto)) {
++		    nft_payload_need_vlan_copy(priv)) {
+ 			if (!nft_payload_copy_vlan(dest, skb,
+ 						   priv->offset, priv->len))
+ 				goto err;
+-- 
+2.41.0
 
