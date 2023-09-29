@@ -2,171 +2,73 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 852BBE728CA
-	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 16:44:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACDC0E728CF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 29 Sep 2023 18:05:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232748AbjI2QoO (ORCPT
+        id S233879AbjI2SFG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 29 Sep 2023 12:44:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56604 "EHLO
+        Fri, 29 Sep 2023 14:05:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233141AbjI2QoN (ORCPT
+        with ESMTP id S233877AbjI2SEz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Sep 2023 12:44:13 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C3F02199
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 09:44:10 -0700 (PDT)
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de
-Subject: [PATCH nf 2/2] netfilter: nft_set_rbtree: remove async GC
-Date:   Fri, 29 Sep 2023 18:44:04 +0200
-Message-Id: <20230929164404.172081-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230929164404.172081-1-pablo@netfilter.org>
-References: <20230929164404.172081-1-pablo@netfilter.org>
+        Fri, 29 Sep 2023 14:04:55 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94AE830DF
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Sep 2023 11:03:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=2XTl3xGbDOwxza2yFvr8kfWCKdhqbxvcV/iBIU/tPrY=; b=Xy0sbvfp1bSzTYMvurr41Jd5NP
+        4q2ZDXuzyMBX7WeUhnfzqLD/1ccZOQYLScGZfcX+nr7kmbc+/++dgznm2sOgSZZ8SMevSGSOIzU9o
+        g4E01cPoOmlWGdPf8RfX7/DJgU24TmBnK+tNBk8ue/0KleqHxU0nKbgprrr/DXcMNLJmAYf71v2I6
+        CbKLlc8XisgOhycv3IJQCrwvyE73mJHGxkkbLEnylXoSdDWP0t6OyxdbiEfyY1+1dhUHP6UpKwYKx
+        oNsbC3Fk6/jX6UOFVqLPRnwieL3iuHuFLL3N2f+JhYvYdeUsenTHC12r7wMydM48ZPnEPX0v6jQKs
+        Bn9Nr4ng==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qmHq8-0004Mj-HM; Fri, 29 Sep 2023 20:03:48 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] tests: shell: sets/reset_command_0: Fix drop_seconds()
+Date:   Fri, 29 Sep 2023 20:03:44 +0200
+Message-ID: <20230929180345.19037-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Let sync GC remove entries from the tree instead. The sync GC read
-spinlock might still stall an update from the control plane with a
-sufficiently large tree.
+The function print_times() skips any time elements which are zero, so
+output may lack the ms part. Adjust the sed call dropping anything but
+the minutes value to not fail in that case.
 
-Fixes: 96b33300fba8 ("netfilter: nft_set_rbtree: use read spinlock to avoid datapath contention")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 255ec36a11525 ("tests: shell: Stabilize sets/reset_command_0 test")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Hi Florian,
+ tests/shell/testcases/sets/reset_command_0 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-You asked for this.
-
- net/netfilter/nft_set_rbtree.c | 90 ----------------------------------
- 1 file changed, 90 deletions(-)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index de6d812fc790..17500f4f6f1d 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -19,7 +19,6 @@ struct nft_rbtree {
- 	struct rb_root		root;
- 	rwlock_t		lock;
- 	seqcount_rwlock_t	count;
--	struct delayed_work	gc_work;
- };
+diff --git a/tests/shell/testcases/sets/reset_command_0 b/tests/shell/testcases/sets/reset_command_0
+index 5e769fe66d684..e663dac831f8c 100755
+--- a/tests/shell/testcases/sets/reset_command_0
++++ b/tests/shell/testcases/sets/reset_command_0
+@@ -32,7 +32,7 @@ $NFT -f - <<< "$RULESET"
+ echo OK
  
- struct nft_rbtree_elem {
-@@ -626,89 +625,6 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 	read_unlock_bh(&priv->lock);
+ drop_seconds() {
+-	sed 's/m[0-9]*s[0-9]*ms/m/g'
++	sed 's/[0-9]\+m\?s//g'
  }
- 
--static void nft_rbtree_gc(struct work_struct *work)
--{
--	struct nft_rbtree_elem *rbe, *rbe_end = NULL;
--	struct nftables_pernet *nft_net;
--	struct nft_rbtree *priv;
--	struct nft_trans_gc *gc;
--	struct rb_node *node;
--	struct nft_set *set;
--	unsigned int gc_seq;
--	struct net *net;
--
--	priv = container_of(work, struct nft_rbtree, gc_work.work);
--	set  = nft_set_container_of(priv);
--	net  = read_pnet(&set->net);
--	nft_net = nft_pernet(net);
--	gc_seq  = READ_ONCE(nft_net->gc_seq);
--
--	if (nft_set_gc_is_pending(set))
--		goto done;
--
--	gc = nft_trans_gc_alloc(set, gc_seq, GFP_KERNEL);
--	if (!gc)
--		goto done;
--
--	read_lock_bh(&priv->lock);
--	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
--
--		/* Ruleset has been updated, try later. */
--		if (READ_ONCE(nft_net->gc_seq) != gc_seq) {
--			nft_trans_gc_destroy(gc);
--			gc = NULL;
--			goto try_later;
--		}
--
--		rbe = rb_entry(node, struct nft_rbtree_elem, node);
--
--		if (nft_set_elem_is_dead(&rbe->ext))
--			goto dead_elem;
--
--		/* elements are reversed in the rbtree for historical reasons,
--		 * from highest to lowest value, that is why end element is
--		 * always visited before the start element.
--		 */
--		if (nft_rbtree_interval_end(rbe)) {
--			rbe_end = rbe;
--			continue;
--		}
--		if (!nft_set_elem_expired(&rbe->ext))
--			continue;
--
--		nft_set_elem_dead(&rbe->ext);
--
--		if (!rbe_end)
--			continue;
--
--		nft_set_elem_dead(&rbe_end->ext);
--
--		gc = nft_trans_gc_queue_async(gc, gc_seq, GFP_ATOMIC);
--		if (!gc)
--			goto try_later;
--
--		nft_trans_gc_elem_add(gc, rbe_end);
--		rbe_end = NULL;
--dead_elem:
--		gc = nft_trans_gc_queue_async(gc, gc_seq, GFP_ATOMIC);
--		if (!gc)
--			goto try_later;
--
--		nft_trans_gc_elem_add(gc, rbe);
--	}
--
--	gc = nft_trans_gc_catchall_async(gc, gc_seq);
--
--try_later:
--	read_unlock_bh(&priv->lock);
--
--	if (gc)
--		nft_trans_gc_queue_async_done(gc);
--done:
--	queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
--			   nft_set_gc_interval(set));
--}
--
- static u64 nft_rbtree_privsize(const struct nlattr * const nla[],
- 			       const struct nft_set_desc *desc)
- {
-@@ -725,11 +641,6 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	seqcount_rwlock_init(&priv->count, &priv->lock);
- 	priv->root = RB_ROOT;
- 
--	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rbtree_gc);
--	if (set->flags & NFT_SET_TIMEOUT)
--		queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
--				   nft_set_gc_interval(set));
--
- 	return 0;
- }
- 
-@@ -740,7 +651,6 @@ static void nft_rbtree_destroy(const struct nft_ctx *ctx,
- 	struct nft_rbtree_elem *rbe;
- 	struct rb_node *node;
- 
--	cancel_delayed_work_sync(&priv->gc_work);
- 	rcu_barrier();
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
+ expires_minutes() {
+ 	sed -n 's/.*expires \([0-9]*\)m.*/\1/p'
 -- 
-2.30.2
+2.41.0
 
