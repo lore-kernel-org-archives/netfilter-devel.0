@@ -2,230 +2,89 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EABAFE748E9
-	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Oct 2023 15:07:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9BF1E78488
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Oct 2023 18:40:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235113AbjJAPHz (ORCPT
+        id S235280AbjJASka (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 1 Oct 2023 11:07:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41018 "EHLO
+        Sun, 1 Oct 2023 14:40:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235075AbjJAPHy (ORCPT
+        with ESMTP id S229505AbjJASk3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 1 Oct 2023 11:07:54 -0400
-Received: from mail-qt1-x82d.google.com (mail-qt1-x82d.google.com [IPv6:2607:f8b0:4864:20::82d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93570D9;
-        Sun,  1 Oct 2023 08:07:51 -0700 (PDT)
-Received: by mail-qt1-x82d.google.com with SMTP id d75a77b69052e-4197bb0a0d9so16751441cf.3;
-        Sun, 01 Oct 2023 08:07:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696172870; x=1696777670; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=uUcV+Z9d+ZbN189XwOZEn5wIKxAIgH34VNcGHPGRlFI=;
-        b=dx6pheS6I84feKP9kd9bGRi+MufB4OhUSmympxyi7CYNnG+zc+U/gfZtT/wPAbdPWi
-         Q9oNW6kp8qKsDftJIBRjZsP/av7LD8Ot7DFVpbT9L92sf2md4z6KDVPYYmIC98VFSpFW
-         vnkKZ5ijKHyEM3LaZrD0Vzk5p6zAnkla1YulEnEQupNYHzEVHzC1pJm6o8pYXau+3vKc
-         DGEyqXwbRc6eJ5ZxGEmMViGtv48+sEmr10Idh5TYmYs6ztNmFd2cHufnfP/p7ZaX2lZ7
-         P9bbwXqcSPkPOPsxEhEvROjQWuYunhfS3oHWvBkTF4T7fUU7ZhHqz+5nt9UCp7P/tLKw
-         N55A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696172870; x=1696777670;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=uUcV+Z9d+ZbN189XwOZEn5wIKxAIgH34VNcGHPGRlFI=;
-        b=DclKkXwGmbXJIyWV2v4Ws+VKR7rdFiZ+0kMsmzAT8zmzoXALzJbTYfN6GqpGpjWW2w
-         K5c2eMtrb7H2L5Tp2IJ0SHkbfy/kXJJ5B0OynhkoSVIIBo41wk4Tsf/g4dH4AVStVdZy
-         SSwrcBjLLS/hFj62smrqLoIG5aLrsH4q1rLqOBgtUY1HLokCxVsYrHUh+OvPKUsL18Hn
-         +V3ehQymjzBHDAJ4iW8YR2BTboATwPoArktotABUWWosuaqNooK3EEl88/IKsm/3AU/x
-         Mn6ZtQoI4yI7V32GAaaVupvtQmyMlZfIkgwu8WkKRQuFAOu9Ig08l1NMgifs85KtdDLa
-         YGFQ==
-X-Gm-Message-State: AOJu0YxvgzE75BoDMQhniioYXnRgTWzLgYxK7hupflAR3mOU8Q479Y7D
-        km4J5pwwfz6P8oCggyqdvvke8mSh5hZX5A==
-X-Google-Smtp-Source: AGHT+IGuhEsxgWFjtArRcyX04Q3eCD+hFfxJv09vftqdRE+XjdoUqH4x+ybNbgVRF6zU/iK+MCU0Mw==
-X-Received: by 2002:a05:622a:1047:b0:417:9e48:44d7 with SMTP id f7-20020a05622a104700b004179e4844d7mr11351168qte.1.1696172870159;
-        Sun, 01 Oct 2023 08:07:50 -0700 (PDT)
-Received: from wsfd-netdev15.ntdv.lab.eng.bos.redhat.com (nat-pool-bos-t.redhat.com. [66.187.233.206])
-        by smtp.gmail.com with ESMTPSA id jv24-20020a05622aa09800b00417d56d432asm8074938qtb.40.2023.10.01.08.07.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Oct 2023 08:07:49 -0700 (PDT)
-From:   Xin Long <lucien.xin@gmail.com>
-To:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org
-Cc:     davem@davemloft.net, kuba@kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: [PATCH nf] netfilter: handle the connecting collision properly in nf_conntrack_proto_sctp
-Date:   Sun,  1 Oct 2023 11:07:48 -0400
-Message-Id: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
-X-Mailer: git-send-email 2.39.1
+        Sun, 1 Oct 2023 14:40:29 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA498D9;
+        Sun,  1 Oct 2023 11:40:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 73002C433CA;
+        Sun,  1 Oct 2023 18:40:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696185625;
+        bh=vHpYQw4Xo9ncTL+cTD5bhjtdjFWeRqIriCu/Ce16oc4=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=BEstLtKJIXt0IJ4gCEvv4DRQRrPAiKpdLtX0LWl0eWl3Nty1flLkeAMAk6VoQ3hFH
+         zfw2pT3j66ZWc4mAFtr0hI1r+/FdoaNS5LzyTt6pfQTwiVmIB3ytjv0Jx8v8IPwEBb
+         Lswz85b/WEMSd+P5Aqfm8HJK4pxY7Vc3lDKxHO2ou4ct8H8qk6GPllQmsiRm14NXTE
+         PExldMIYnTMvAOv5UWs9RqqO5bctrk+swoNCnH8Je1QlBthCz46pHYh+NRrdY+sVYa
+         8FInmRSG0tvh+6NaOnjbWMJZ8lSCfrKmpZj7YuRXGfRFBRx+qMZRFTMMqhW2JbMr+k
+         JgyencAyzITyw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4CF22C73FE1;
+        Sun,  1 Oct 2023 18:40:25 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v6 0/3] Insulate Kernel Space From SOCK_ADDR Hooks
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <169618562530.20334.3438760815048190740.git-patchwork-notify@kernel.org>
+Date:   Sun, 01 Oct 2023 18:40:25 +0000
+References: <20230926200505.2804266-1-jrife@google.com>
+In-Reply-To: <20230926200505.2804266-1-jrife@google.com>
+To:     Jordan Rife <jrife@google.com>
+Cc:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, willemdebruijn.kernel@gmail.com,
+        netdev@vger.kernel.org, dborkman@kernel.org, horms@verge.net.au,
+        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        santosh.shilimkar@oracle.com, ast@kernel.org, rdna@fb.com,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        coreteam@netfilter.org, netfilter-devel@vger.kernel.org, ja@ssi.bg,
+        lvs-devel@vger.kernel.org, kafai@fb.com, daniel@iogearbox.net,
+        daan.j.demeyer@gmail.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-In Scenario A and B below, as the delayed INIT_ACK always changes the peer
-vtag, SCTP ct with the incorrect vtag may cause packet loss.
+Hello:
 
-Scenario A: INIT_ACK is delayed until the peer receives its own INIT_ACK
+This series was applied to netdev/net.git (main)
+by David S. Miller <davem@davemloft.net>:
 
-  192.168.1.2 > 192.168.1.1: [INIT] [init tag: 1328086772]
-    192.168.1.1 > 192.168.1.2: [INIT] [init tag: 1414468151]
-    192.168.1.2 > 192.168.1.1: [INIT ACK] [init tag: 1328086772]
-  192.168.1.1 > 192.168.1.2: [INIT ACK] [init tag: 1650211246] *
-  192.168.1.2 > 192.168.1.1: [COOKIE ECHO]
-    192.168.1.1 > 192.168.1.2: [COOKIE ECHO]
-    192.168.1.2 > 192.168.1.1: [COOKIE ACK]
+On Tue, 26 Sep 2023 15:05:02 -0500 you wrote:
+> ==OVERVIEW==
+> 
+> The sock_sendmsg(), kernel_connect(), and kernel_bind() functions
+> provide kernel space equivalents to the sendmsg(), connect(), and bind()
+> system calls.
+> 
+> When used in conjunction with BPF SOCK_ADDR hooks that rewrite the send,
+> connect, or bind address, callers may observe that the address passed to
+> the call is modified. This is a problem not just in theory, but in
+> practice, with uninsulated calls to kernel_connect() causing issues with
+> broken NFS and CIFS mounts.
+> 
+> [...]
 
-Scenario B: INIT_ACK is delayed until the peer completes its own handshake
+Here is the summary with links:
+  - [net,v6,1/3] net: replace calls to sock->ops->connect() with kernel_connect()
+    https://git.kernel.org/netdev/net/c/26297b4ce1ce
+  - [net,v6,2/3] net: prevent rewrite of msg_name and msg_namelen in sock_sendmsg()
+    (no matching commit)
+  - [net,v6,3/3] net: prevent address rewrite in kernel_bind()
+    https://git.kernel.org/netdev/net/c/c889a99a21bf
 
-  192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-    192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
-    192.168.1.2 > 192.168.1.1: sctp (1) [INIT ACK] [init tag: 3922216408]
-    192.168.1.1 > 192.168.1.2: sctp (1) [COOKIE ECHO]
-    192.168.1.2 > 192.168.1.1: sctp (1) [COOKIE ACK]
-  192.168.1.1 > 192.168.1.2: sctp (1) [INIT ACK] [init tag: 3914796021] *
-
-This patch fixes it as below:
-
-In SCTP_CID_INIT processing:
-- clear ct->proto.sctp.init[!dir] if ct->proto.sctp.init[dir] &&
-  ct->proto.sctp.init[!dir]. (Scenario E)
-- set ct->proto.sctp.init[dir].
-
-In SCTP_CID_INIT_ACK processing:
-- drop it if !ct->proto.sctp.init[!dir] && ct->proto.sctp.vtag[!dir] &&
-  ct->proto.sctp.vtag[!dir] != ih->init_tag. (Scenario B, Scenario C)
-- drop it if ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
-  ct->proto.sctp.vtag[!dir] != ih->init_tag. (Scenario A)
-
-In SCTP_CID_COOKIE_ACK processing:
-- clear ct->proto.sctp.init[dir] and ct->proto.sctp.init[!dir]. (Scenario D)
-
-Also, it's important to allow the ct state to move forward with cookie_echo
-and cookie_ack from the opposite dir for the collision scenarios.
-
-There are also other Scenarios where it should allow the packet through,
-addressed by the processing above:
-
-Scenario C: new CT is created by INIT_ACK.
-
-Scenario D: start INIT on the existing ESTABLISHED ct.
-
-Scenario E: start INIT after the old collision on the existing ESTABLISHED ct.
-
-  192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-  192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
-  (both side are stopped, then start new connection again in hours)
-  192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 242308742]
-
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
----
- include/linux/netfilter/nf_conntrack_sctp.h |  1 +
- net/netfilter/nf_conntrack_proto_sctp.c     | 41 ++++++++++++++++-----
- 2 files changed, 33 insertions(+), 9 deletions(-)
-
-diff --git a/include/linux/netfilter/nf_conntrack_sctp.h b/include/linux/netfilter/nf_conntrack_sctp.h
-index 625f491b95de..fb31312825ae 100644
---- a/include/linux/netfilter/nf_conntrack_sctp.h
-+++ b/include/linux/netfilter/nf_conntrack_sctp.h
-@@ -9,6 +9,7 @@ struct ip_ct_sctp {
- 	enum sctp_conntrack state;
- 
- 	__be32 vtag[IP_CT_DIR_MAX];
-+	u8 init[IP_CT_DIR_MAX];
- 	u8 last_dir;
- 	u8 flags;
- };
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index b6bcc8f2f46b..91aee286d503 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -112,7 +112,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
- /* shutdown_ack */ {sSA, sCL, sCW, sCE, sES, sSA, sSA, sSA, sSA},
- /* error        */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},/* Can't have Stale cookie*/
- /* cookie_echo  */ {sCL, sCL, sCE, sCE, sES, sSS, sSR, sSA, sCL},/* 5.2.4 - Big TODO */
--/* cookie_ack   */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},/* Can't come in orig dir */
-+/* cookie_ack   */ {sCL, sCL, sCW, sES, sES, sSS, sSR, sSA, sCL},/* Can't come in orig dir */
- /* shutdown_comp*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sCL, sCL},
- /* heartbeat    */ {sHS, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS},
- /* heartbeat_ack*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS},
-@@ -126,7 +126,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
- /* shutdown     */ {sIV, sCL, sCW, sCE, sSR, sSS, sSR, sSA, sIV},
- /* shutdown_ack */ {sIV, sCL, sCW, sCE, sES, sSA, sSA, sSA, sIV},
- /* error        */ {sIV, sCL, sCW, sCL, sES, sSS, sSR, sSA, sIV},
--/* cookie_echo  */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV},/* Can't come in reply dir */
-+/* cookie_echo  */ {sIV, sCL, sCE, sCE, sES, sSS, sSR, sSA, sIV},/* Can't come in reply dir */
- /* cookie_ack   */ {sIV, sCL, sCW, sES, sES, sSS, sSR, sSA, sIV},
- /* shutdown_comp*/ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sCL, sIV},
- /* heartbeat    */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS},
-@@ -412,6 +412,9 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			/* (D) vtag must be same as init_vtag as found in INIT_ACK */
- 			if (sh->vtag != ct->proto.sctp.vtag[dir])
- 				goto out_unlock;
-+		} else if (sch->type == SCTP_CID_COOKIE_ACK) {
-+			ct->proto.sctp.init[dir] = 0;
-+			ct->proto.sctp.init[!dir] = 0;
- 		} else if (sch->type == SCTP_CID_HEARTBEAT) {
- 			if (ct->proto.sctp.vtag[dir] == 0) {
- 				pr_debug("Setting %d vtag %x for dir %d\n", sch->type, sh->vtag, dir);
-@@ -461,16 +464,18 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 		}
- 
- 		/* If it is an INIT or an INIT ACK note down the vtag */
--		if (sch->type == SCTP_CID_INIT ||
--		    sch->type == SCTP_CID_INIT_ACK) {
--			struct sctp_inithdr _inithdr, *ih;
-+		if (sch->type == SCTP_CID_INIT) {
-+			struct sctp_inithdr _ih, *ih;
- 
--			ih = skb_header_pointer(skb, offset + sizeof(_sch),
--						sizeof(_inithdr), &_inithdr);
-+			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
- 			if (ih == NULL)
- 				goto out_unlock;
--			pr_debug("Setting vtag %x for dir %d\n",
--				 ih->init_tag, !dir);
-+
-+			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir])
-+				ct->proto.sctp.init[!dir] = 0;
-+			ct->proto.sctp.init[dir] = 1;
-+
-+			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
- 			ct->proto.sctp.vtag[!dir] = ih->init_tag;
- 
- 			/* don't renew timeout on init retransmit so
-@@ -481,6 +486,24 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			    old_state == SCTP_CONNTRACK_CLOSED &&
- 			    nf_ct_is_confirmed(ct))
- 				ignore = true;
-+		} else if (sch->type == SCTP_CID_INIT_ACK) {
-+			struct sctp_inithdr _ih, *ih;
-+			u32 vtag;
-+
-+			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
-+			if (ih == NULL)
-+				goto out_unlock;
-+
-+			vtag = ct->proto.sctp.vtag[!dir];
-+			if (!ct->proto.sctp.init[!dir] && vtag && vtag != ih->init_tag)
-+				goto out_unlock;
-+			/* collision */
-+			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
-+			    vtag != ih->init_tag)
-+				goto out_unlock;
-+
-+			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
-+			ct->proto.sctp.vtag[!dir] = ih->init_tag;
- 		}
- 
- 		ct->proto.sctp.state = new_state;
+You are awesome, thank you!
 -- 
-2.39.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
