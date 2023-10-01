@@ -2,89 +2,100 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9BF1E78488
-	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Oct 2023 18:40:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F658E78486
+	for <netfilter-devel@archiver.kernel.org>; Sun,  1 Oct 2023 20:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235280AbjJASka (ORCPT
+        id S231147AbjJAUKQ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 1 Oct 2023 14:40:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58998 "EHLO
+        Sun, 1 Oct 2023 16:10:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbjJASk3 (ORCPT
+        with ESMTP id S235346AbjJAUKQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 1 Oct 2023 14:40:29 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA498D9;
-        Sun,  1 Oct 2023 11:40:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 73002C433CA;
-        Sun,  1 Oct 2023 18:40:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696185625;
-        bh=vHpYQw4Xo9ncTL+cTD5bhjtdjFWeRqIriCu/Ce16oc4=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=BEstLtKJIXt0IJ4gCEvv4DRQRrPAiKpdLtX0LWl0eWl3Nty1flLkeAMAk6VoQ3hFH
-         zfw2pT3j66ZWc4mAFtr0hI1r+/FdoaNS5LzyTt6pfQTwiVmIB3ytjv0Jx8v8IPwEBb
-         Lswz85b/WEMSd+P5Aqfm8HJK4pxY7Vc3lDKxHO2ou4ct8H8qk6GPllQmsiRm14NXTE
-         PExldMIYnTMvAOv5UWs9RqqO5bctrk+swoNCnH8Je1QlBthCz46pHYh+NRrdY+sVYa
-         8FInmRSG0tvh+6NaOnjbWMJZ8lSCfrKmpZj7YuRXGfRFBRx+qMZRFTMMqhW2JbMr+k
-         JgyencAyzITyw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 4CF22C73FE1;
-        Sun,  1 Oct 2023 18:40:25 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        Sun, 1 Oct 2023 16:10:16 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB377C6
+        for <netfilter-devel@vger.kernel.org>; Sun,  1 Oct 2023 13:10:10 -0700 (PDT)
+Received: from [78.30.34.192] (port=43188 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qn2lP-008ktb-NS; Sun, 01 Oct 2023 22:10:06 +0200
+Date:   Sun, 1 Oct 2023 22:10:03 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 1/2] netfilter: nft_set_rbtree: move sync GC from
+ insert path to set->ops->commit
+Message-ID: <ZRnSGwk40jpUActD@calendula>
+References: <20230929164404.172081-1-pablo@netfilter.org>
+ <ZRdOxs+i1EuC+zoS@calendula>
+ <20230930081038.GB23327@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v6 0/3] Insulate Kernel Space From SOCK_ADDR Hooks
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169618562530.20334.3438760815048190740.git-patchwork-notify@kernel.org>
-Date:   Sun, 01 Oct 2023 18:40:25 +0000
-References: <20230926200505.2804266-1-jrife@google.com>
-In-Reply-To: <20230926200505.2804266-1-jrife@google.com>
-To:     Jordan Rife <jrife@google.com>
-Cc:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, willemdebruijn.kernel@gmail.com,
-        netdev@vger.kernel.org, dborkman@kernel.org, horms@verge.net.au,
-        pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        santosh.shilimkar@oracle.com, ast@kernel.org, rdna@fb.com,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org, ja@ssi.bg,
-        lvs-devel@vger.kernel.org, kafai@fb.com, daniel@iogearbox.net,
-        daan.j.demeyer@gmail.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230930081038.GB23327@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello:
+Hi Florian,
 
-This series was applied to netdev/net.git (main)
-by David S. Miller <davem@davemloft.net>:
-
-On Tue, 26 Sep 2023 15:05:02 -0500 you wrote:
-> ==OVERVIEW==
+On Sat, Sep 30, 2023 at 10:10:38AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > - read spin lock is required for the sync GC to make sure this does
+> >   not zap entries that are being used from the datapath.
 > 
-> The sock_sendmsg(), kernel_connect(), and kernel_bind() functions
-> provide kernel space equivalents to the sendmsg(), connect(), and bind()
-> system calls.
+> It needs to grab the write spinlock for each rb_erase, plus
+> the seqcount increase to make sure that parallel lookup doesn't
+> miss an element in the tree.
+
+Right, read lock is not enough for sync GC, and it would be also
+required by this approach.
+
+> > - the full GC batch could be used to amortize the memory allocation
+> >   (not only two slots as it happens now, I am recycling an existing
+> >    function).
 > 
-> When used in conjunction with BPF SOCK_ADDR hooks that rewrite the send,
-> connect, or bind address, callers may observe that the address passed to
-> the call is modified. This is a problem not just in theory, but in
-> practice, with uninsulated calls to kernel_connect() causing issues with
-> broken NFS and CIFS mounts.
+> Yes.
 > 
-> [...]
+> > - ENOMEM on GC sync commit path could be an issue. It is too late to
+> >   fail. The tree would start collecting expired elements that might
+> >   duplicate existing, triggering bogus mismatches. In this path the
+> >   commit_mutex is held, and this set backend does not support for
+> >   lockless read,
+> 
+> It does.  If lockless doesn't return a match it falls back to readlock.
 
-Here is the summary with links:
-  - [net,v6,1/3] net: replace calls to sock->ops->connect() with kernel_connect()
-    https://git.kernel.org/netdev/net/c/26297b4ce1ce
-  - [net,v6,2/3] net: prevent rewrite of msg_name and msg_namelen in sock_sendmsg()
-    (no matching commit)
-  - [net,v6,3/3] net: prevent address rewrite in kernel_bind()
-    https://git.kernel.org/netdev/net/c/c889a99a21bf
+And it will in case of the update to remove the expired element, right?
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+> >   it might be possible to simply grab the spinlock
+> >   in write mode and release entries inmediately, without requiring the
+> >   sync GC batch infrastructure that pipapo is using.
+> 
+> Is there evidence that the on-demand GC is a problem?
 
+After your last fix, not really, other than we have to be care not to
+zap elements that are in any of the pending transaction in this batch.
 
+> It only searches in the relevant subtree, it should rarely, if ever,
+> encounter any expired element.
+
+Not a problem now, but this path that we follow blocks a requested
+feature.
+
+I currently do not know how to support for set element timeout update
+with this on-demand GC on the rbtree. This feature will require a new
+update state in the transaction to update the timer for an element. We
+will have to be careful because on-demand GC might zap an expired
+element that got just refreshed in this transaction (unless we
+reintroduce some sort of 'busy' bit for updates again which is
+something I prefer we do not). With 2ee52ae94baa ("netfilter:
+nft_set_rbtree: skip sync GC for new elements in this transaction")
+I could fix by looking at the generation mask to infer that this
+element is 'busy' by some pending transaction, but I do not see a way
+with an element update command in place.
+
+Maybe take your patch and then follow up to nf-next with this approach
+based once set element timer update is introduced? Otherwise, rbtree
+will block the introduction of this new feature for other sets too.
