@@ -2,90 +2,131 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D96BE743C3
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Oct 2023 15:39:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D06A2E743C3
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Oct 2023 16:07:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238039AbjJBPjR (ORCPT
+        id S237928AbjJBQHB (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Oct 2023 11:39:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37948 "EHLO
+        Mon, 2 Oct 2023 12:07:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237903AbjJBPjQ (ORCPT
+        with ESMTP id S232151AbjJBQHB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Oct 2023 11:39:16 -0400
-Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6CC2B8;
-        Mon,  2 Oct 2023 08:39:13 -0700 (PDT)
-Received: by mail-yb1-xb2a.google.com with SMTP id 3f1490d57ef6-d81afd5273eso18231359276.3;
-        Mon, 02 Oct 2023 08:39:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696261153; x=1696865953; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jRvyABZPczFSZcoyIQXVdYUk+Ea3zUQJXaiYFDP+fxg=;
-        b=JZtsgrLlHQOuijahodzMGHn0edbn9Sl5yoFxnEJZKV/jEW3i9mNox1IbwLsVLYv7Sx
-         rZo4q4tvSCSaU/yHryat45AAeCznftaUP2/2nrsB2U1H98AfUM/CGPavBg+bjKDG2eXM
-         8w1T8Hi/JQrjjdVJ3s0mWXfIIqoXNBhKK6BANuKsiBF9pHQZczts73nhKiLpZ+cA8Trf
-         uKkQusK/nDQGqpErwqWxSOwunywwjLpM7fCtimNj9QcwotpIlMc/G3+SDapchZzfODUO
-         Wm7fMLDYBb1htIi4edu+EAFZ8W6Yhh3hIhzGmBQZhB3WTGKfffQvkppXcRIo/t0Nan9z
-         4mKw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696261153; x=1696865953;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=jRvyABZPczFSZcoyIQXVdYUk+Ea3zUQJXaiYFDP+fxg=;
-        b=kHjbyRQAHdrv7WuOaGbSyHd6mDD3StjH4Tso6gYudY77ni2RGQRmFKXQxMhv80XmU6
-         1e5Gyo6LZyIk1DBXPgK6RQ2sYqpmQUjDGdcHgMYdzyICvdZzqKW5oL1u9wRkpnZubbgR
-         KfJPkoYLs2xOyu7jvjpFbJxEDJeb7FcgrycygK4X0lvq8JR1CbUYKLeqRkPUNu2JtdSD
-         vv0uIx46TQd8T0eGmsIurqymbaAQviSFdKvmHRsx38zMB10ARsoSnocA1Ndu0LG0729+
-         aLs3VVLMXgkphQqYwK3nKASHXz+bidJp6+oxIMY1hqdNhB4WREEvt/R6/8xcpHjowBAB
-         0AWQ==
-X-Gm-Message-State: AOJu0YxErg3in8ZEq6U4A998QxFyg3wx9AnFeNllAEa+X+/VHP4vrWlt
-        cJjjX+BtqaY0RbgRqzKkf77bUlqDtrUD+Nx4TF3u8UGwDJo=
-X-Google-Smtp-Source: AGHT+IENydjMyeuzCrBdfZZdIWXIq+qgMNkij+CGVTp3pEgELoZL1wECHCLiTSbOsANLl93q/9hcAHROcfpHxEwxjOk=
-X-Received: by 2002:a5b:143:0:b0:d81:87d9:6ad0 with SMTP id
- c3-20020a5b0143000000b00d8187d96ad0mr10004726ybp.28.1696261152737; Mon, 02
- Oct 2023 08:39:12 -0700 (PDT)
+        Mon, 2 Oct 2023 12:07:01 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0E1DB3;
+        Mon,  2 Oct 2023 09:06:56 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97AF1C433C8;
+        Mon,  2 Oct 2023 16:06:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696262816;
+        bh=hjJsXyNAF1V7Na1B/S3lP6ETWWJSxW2eEAWFxd1xSuk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=rDFT9Jte07g2Ec1nFQBlQricWs9bCv0EicI7uAjZMT9tEbZ8nIQ7Yl2Sk1V4xrjdL
+         Q9yh1LOzF8wtvQEj4rhgV9aEks47N7m/MBvFKn3UHdk6mjupdMhwwiHkHMrEMCSGj2
+         4OiS0urZS4d+GO6AkGTVOnhvbIgYa8FPDG4jmsntNfTGqa+7a+mq1kkSrcAUnpEDmp
+         QhhnZRdudOlKTmclWJg5kqnmlny6wH1a4JwKoE92zVbOT+mrQTbiToHv68k/o5nnE2
+         FGHcr83eXgUDNFsMjBxgb2adQqwqpAa9PXkpdDCvuNMo+Pi2nr7KIZKh38HdCugje1
+         /kPlnY4nkNNEA==
+Date:   Mon, 2 Oct 2023 18:06:51 +0200
+From:   Simon Horman <horms@kernel.org>
+To:     xiaolinkui <xiaolinkui@126.com>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, justinstitt@google.com, kuniyu@amazon.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linkui Xiao <xiaolinkui@kylinos.cn>
+Subject: Re: [PATCH] netfilter: ipset: add ip_set lock to ip_set_test
+Message-ID: <20231002160651.GX92317@kernel.org>
+References: <20230927130309.30891-1-xiaolinkui@126.com>
 MIME-Version: 1.0
-References: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
- <CADvbK_fE2KGLtqBxFUVikrCxkRjG_eodeHjRuMGWU=og_qk9_A@mail.gmail.com> <20231002151808.GD30843@breakpoint.cc>
-In-Reply-To: <20231002151808.GD30843@breakpoint.cc>
-From:   Xin Long <lucien.xin@gmail.com>
-Date:   Mon, 2 Oct 2023 11:39:01 -0400
-Message-ID: <CADvbK_edFWwc3JGyyexCw+vKbpKsbftRDZD34sjRXCCWtGYLYg@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: handle the connecting collision properly in nf_conntrack_proto_sctp
-To:     Florian Westphal <fw@strlen.de>
-Cc:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-        davem@davemloft.net, kuba@kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230927130309.30891-1-xiaolinkui@126.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Oct 2, 2023 at 11:18=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> Xin Long <lucien.xin@gmail.com> wrote:
-> > a reproducer is attached.
-> >
-> > Thanks.
->
-> Do you think its worth it to turn this into a selftest?
-I think so, it's a typical SCTP collision scenario, if it's okay to you
-I'd like to add this to:
+On Wed, Sep 27, 2023 at 09:03:09PM +0800, xiaolinkui wrote:
+> From: Linkui Xiao <xiaolinkui@kylinos.cn>
+> 
+> If the ip_set is not locked during ip_set_test, the following situations
+> may occur:
+> 
+> 	CPU0				CPU1
+> 	ip_rcv->
+> 	ip_rcv_finish->
+> 	ip_local_deliver->
+> 	nf_hook_slow->
+> 	iptable_filter_hook->
+> 	ipt_do_table->
+> 	set_match_v4->
+> 	ip_set_test->			list_set_destroy->
+> 	hash_net4_kadt->		set->data = NULL
 
-tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
+Hi,
 
-should I repost this netfilter patch together with this selftest or I
-can post this selftest later?
+I'm having a bit of trouble analysing this.
+In particular, I'm concerned that in such a scenario set
+itself will be also freed, which seems likely to lead to problems.
 
-Thanks.
+Can you provide a more complete call stack for CPU1 ?
+
+> 	h = set->data
+> 	.cidr = INIT_CIDR(h->nets[0].cidr[0], HOST_MASK)
+> 
+> The set->data is empty, continuing to access set->data will result in a
+> kernel NULL pointer. The call trace is as follows:
+> 
+> [2350616.024418] Call trace:
+> [2350616.024670]  hash_net4_kadt+0x38/0x148 [ip_set_hash_net]
+> [2350616.025147]  ip_set_test+0xbc/0x230 [ip_set]
+> [2350616.025549]  set_match_v4+0xac/0xd0 [xt_set]
+> [2350616.025951]  ipt_do_table+0x32c/0x678 [ip_tables]
+> [2350616.026391]  iptable_filter_hook+0x30/0x40 [iptable_filter]
+> [2350616.026905]  nf_hook_slow+0x50/0x100
+> [2350616.027256]  ip_local_deliver+0xd4/0xe8
+> [2350616.027616]  ip_rcv_finish+0x90/0xb0
+> [2350616.027961]  ip_rcv+0x50/0xb0
+> [2350616.028261]  __netif_receive_skb_one_core+0x58/0x68
+> [2350616.028716]  __netif_receive_skb+0x28/0x80
+> [2350616.029098]  netif_receive_skb_internal+0x3c/0xa8
+> [2350616.029533]  napi_gro_receive+0xf8/0x170
+> [2350616.029898]  receive_buf+0xec/0xa08 [virtio_net]
+> [2350616.030323]  virtnet_poll+0x144/0x310 [virtio_net]
+> [2350616.030761]  net_rx_action+0x158/0x3a0
+> [2350616.031124]  __do_softirq+0x11c/0x33c
+> [2350616.031470]  irq_exit+0x11c/0x128
+> [2350616.031793]  __handle_domain_irq+0x6c/0xc0
+> [2350616.032172]  gic_handle_irq+0x6c/0x170
+> [2350616.032528]  el1_irq+0xb8/0x140
+> [2350616.032835]  arch_cpu_idle+0x38/0x1c0
+> [2350616.033183]  default_idle_call+0x24/0x58
+> [2350616.033549]  do_idle+0x1a4/0x268
+> [2350616.033859]  cpu_startup_entry+0x28/0x78
+> [2350616.034234]  secondary_start_kernel+0x17c/0x1c8
+> 
+> Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 35d2f9c9ada0..46f4f47e29e4 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -747,7 +747,9 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+>  	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+>  		return 0;
+>  
+> +	ip_set_lock(set);
+>  	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+> +	ip_set_unlock(set);
+>  
+>  	if (ret == -EAGAIN) {
+>  		/* Type requests element to be completed */
+> -- 
+> 2.17.1
+> 
+> 
