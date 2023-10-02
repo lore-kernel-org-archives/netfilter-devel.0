@@ -2,101 +2,71 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E79E776C6
-	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Oct 2023 21:42:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 293ECE776C7
+	for <netfilter-devel@archiver.kernel.org>; Mon,  2 Oct 2023 21:50:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229650AbjJBVmr (ORCPT
+        id S230014AbjJBVub (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 2 Oct 2023 17:42:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40720 "EHLO
+        Mon, 2 Oct 2023 17:50:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230037AbjJBVmq (ORCPT
+        with ESMTP id S229927AbjJBVua (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Oct 2023 17:42:46 -0400
+        Mon, 2 Oct 2023 17:50:30 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01B13C9
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Oct 2023 14:42:42 -0700 (PDT)
-Received: from [78.30.34.192] (port=36644 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77C98AB
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Oct 2023 14:50:27 -0700 (PDT)
+Received: from [78.30.34.192] (port=36648 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qnQgZ-00GVrN-7e; Mon, 02 Oct 2023 23:42:41 +0200
-Date:   Mon, 2 Oct 2023 23:42:38 +0200
+        id 1qnQo3-00GXA4-Jr; Mon, 02 Oct 2023 23:50:25 +0200
+Date:   Mon, 2 Oct 2023 23:50:23 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 1/2] netfilter: nft_set_rbtree: move sync GC from
- insert path to set->ops->commit
-Message-ID: <ZRs5TvrxdZK3JAhY@calendula>
-References: <20230929164404.172081-1-pablo@netfilter.org>
- <20231002142312.GC30843@breakpoint.cc>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
+ resetting element
+Message-ID: <ZRs7H7C/Xr7dbRc7@calendula>
+References: <20231002090516.3200649-1-pablo@netfilter.org>
+ <ZRsGslT23xzSsbgd@orbyte.nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20231002142312.GC30843@breakpoint.cc>
+In-Reply-To: <ZRsGslT23xzSsbgd@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Oct 02, 2023 at 04:23:12PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > According to 2ee52ae94baa ("netfilter: nft_set_rbtree: skip sync GC for
-> > new elements in this transaction"), new elements in this transaction
-> > might expire before such transaction ends. Skip sync GC is needed for
-> > such elements otherwise commit path might walk over an already released
-> > object.
-> > 
-> > However, Florian found that while iterating the tree from the insert
-> > path for sync GC, it is possible that stale references could still
-> > happen for elements in the less-equal and great-than boundaries to
-> > narrow down the tree descend to speed up overlap detection, this
-> > triggers bogus overlap errors.
-> > 
-> > This patch skips expired elements in the overlap detection routine which
-> > iterates on the reversed ordered list of elements that represent the
-> > intervals. Since end elements provide no expiration extension, check for
-> > the next non-end element in this interval, hence, skip both elements in
-> > the iteration if the interval has expired.
+On Mon, Oct 02, 2023 at 08:06:42PM +0200, Phil Sutter wrote:
+> On Mon, Oct 02, 2023 at 11:05:16AM +0200, Pablo Neira Ayuso wrote:
+> > The dump and reset command should not refresh the timeout, this command
+> > is intended to allow users to list existing stateful objects and reset
+> > them, element expiration should be refresh via transaction instead with
+> > a specific command to achieve this, otherwise this is entering combo
+> > semantics that will be hard to be undone later (eg. a user asking to
+> > retrieve counters but _not_ requiring to refresh expiration).
 > 
-> 10.1.2.3 - 10.1.2.30  (expired!)
-> 
-> transaction wants to add:
-> 10.1.2.2 - 10.1.2.29
-> 
-> AFAICS, this is now mismerged into:
-> 
-> 10.1.2.2 - 10.1.2.30, because walking back to
-> next end element from expired 10.1.2.3 will
-> find 10.1.2.29 as first preceeding end element, no?
-
-Yes, this corner case is currently possible.
-
-> and the "commit" operation comes after genid bump, so we can't
-> restrict that to "not active in next gen" or similar :-/
-> 
-> Can you use dead-bit instead?
-
-Yes, on-demand GC remains in place from insert path and it uses the
-dead bit.
-
-> Element has expired -> Mark element and the end-pair as dead,
-> then reap all expired and dead nodes from commit callback.
+> From a users' perspective, what is special about the element expires
+> value disqualifying it from being reset along with any counter/quota
+> values?
 >
-> Problem is what to do after reset-inerval support is added,
-> because the newly-marked-dead elements could have a timeout
-> refresh already pending, and I don't see how this can be handled.
+> Do you have a PoC for set element reset via transaction yet? Can we
+> integrate non-timeout resets with it, too? Because IIUC, that's an
+> alternative to the pending reset locking.
 
-You mean:
+Problem is listing is not supported from transaction path, this is
+using existing netlink dump infrastructure which runs lockless via
+rcu. So we could support reset, but we could not use netlink dump
+semantics to fetch the values, and user likely wants this to
+fetch-and-reset as in ctnetlink.
 
-transaction
-set element E is refreshed
-set element E expires
-set element E is marked as dead by on-demand GC (when walking down for different element E2)
-end transaction
+> What we have now is a broad 'reset element', not specifying what to
+> reset. If the above is a feature being asked for, I'd rather implement
+> 'reset element counter', 'reset element timeout', 'reset element quota',
+> etc. commands.
 
-This can probably be addressed by using a curren time snapshot at the
-beginning of the transaction to check for the expiration, instead of
-checking for the current real time which is a moving target.
+We are currently discussing how to implement refresh timeout into the
+transaction model.
 
-Let's consolidate this discussion in one single email thread, all
-these issues are interrelated :)
+I would suggest we keep this chunk away by now for the _RESET command,
+until we agree on next steps.
