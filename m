@@ -2,92 +2,150 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E612E75455
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 17:51:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DD86E75455
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 17:52:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232064AbjJCRvo (ORCPT
+        id S232089AbjJCRwi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 13:51:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43930 "EHLO
+        Tue, 3 Oct 2023 13:52:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231967AbjJCRvo (ORCPT
+        with ESMTP id S232071AbjJCRwh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 13:51:44 -0400
-Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A36195
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 10:51:41 -0700 (PDT)
-Received: by mail-yb1-xb2f.google.com with SMTP id 3f1490d57ef6-d84d883c1b6so70841276.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Oct 2023 10:51:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1696355500; x=1696960300; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=48BWQwPh2K54L8OtDceJIKDMlt1uxT8fEejbEi1kObY=;
-        b=NYMnLQxYmN6kM16HWpf+p9KGiFS6mt3Gbkvom7qEhPIeQl1rpW91Fr+omYOLhmLvhS
-         FHV9JQPDNu4fnAAzh2SPqZRNaoCxKoinlIzwzchh4oWEkWJsj3mnRINoTPZj3PvlMfyC
-         ODjGlX0laplztNVnsm739J9m/Az7WwMloDb7jtGlAGfsy+DVAPYGiXJjnsYLL5KKkQT+
-         GrbOlSXciadKMlITE4kfMcSxMK6DL6AUURnoJRH33NlWm2ELNGDZ2+QWiMZqO2AOzU6U
-         Dh6UzlKsx5Hs2CkmLOSpQbxou/Kp3JqiKtA/M/qVnMk+Lezw4VJkU0ruzKmpzTRKKap5
-         dTOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696355500; x=1696960300;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=48BWQwPh2K54L8OtDceJIKDMlt1uxT8fEejbEi1kObY=;
-        b=lmc8J41oJOi7NUiCeaDtdMycjn8SxkgLG8vh6wuT9TSsJG9/p2cAXEqdfguS8B9dc6
-         nj7CQDGeYoXPSe2JKID5hKAs9zAGSs0nC8VPlMuwOpBuw4yysLAJPJsXqNWsbczbVF64
-         vJwW5QJzobb/xz0GCX2y04fWd/jlZ1A9mVfCcBQ3Y3R7eFuYFkCW/0g37WGUSzFYhPFd
-         ODYVq12Lx+P3H6vwVTyB+5ifTA5CjnopQ6FcHB/WELDCy5lyr3zwd+Cx8Ixr3AZxIwR1
-         1HY8yY/++uWtf7ueY9mpZM63lAsjVyDPsHF2qsUnz5JodfcZUaFZyrtLsVWs48L+K+oM
-         /l+A==
-X-Gm-Message-State: AOJu0YxH3de5nvG4v88gkG73RU0m25LWkvEr6HWXmDpAyclUCR5WwH4j
-        Yhh/gSE7iD3nzzPv8u9cou48RFkIQIwQaqgOhJcoRRGVdad3XeU=
-X-Google-Smtp-Source: AGHT+IEwSKYo0Tqq5yjhf87gg13I2zziXciKBXawB3BzGZ/jtJnEvUPgkFRh3gX04iaUHE6Np8Zm1+hyrwyNkKCTEcI=
-X-Received: by 2002:a25:f607:0:b0:d86:5cb8:29e0 with SMTP id
- t7-20020a25f607000000b00d865cb829e0mr2636045ybd.6.1696355500577; Tue, 03 Oct
- 2023 10:51:40 -0700 (PDT)
+        Tue, 3 Oct 2023 13:52:37 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAA72A6
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 10:52:32 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qnjZP-0004ab-4Y; Tue, 03 Oct 2023 19:52:31 +0200
+Date:   Tue, 3 Oct 2023 19:52:31 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
+ resetting element
+Message-ID: <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20231002090516.3200649-1-pablo@netfilter.org>
+ <ZRsGslT23xzSsbgd@orbyte.nwl.cc>
+ <ZRs7H7C/Xr7dbRc7@calendula>
+ <ZRtBkeP9TYJ10Nrm@calendula>
+ <ZRtKbZmqr4uZRT9Y@orbyte.nwl.cc>
+ <ZRvG5vesKHRyUvzx@calendula>
+ <ZRw6B+28jT/uJxJP@orbyte.nwl.cc>
+ <ZRxNnYWrsw0VXBNn@calendula>
 MIME-Version: 1.0
-References: <20230923015351.15707-1-phil@nwl.cc> <20230923015351.15707-4-phil@nwl.cc>
-In-Reply-To: <20230923015351.15707-4-phil@nwl.cc>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Tue, 3 Oct 2023 13:51:29 -0400
-Message-ID: <CAHC9VhT=C9K8bkzdDiDNp383CS_U=YMOVbzzHMnXET2D+XLZDg@mail.gmail.com>
-Subject: Re: [nf PATCH 3/3] netfilter: nf_tables: Audit log object reset once
- per table
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        audit@vger.kernel.org, Richard Guy Briggs <rgb@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZRxNnYWrsw0VXBNn@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Sep 22, 2023 at 9:53=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote:
->
-> When resetting multiple objects at once (via dump request), emit a log
-> message per table (or filled skb) and resurrect the 'entries' parameter
-> to contain the number of objects being logged for.
->
-> With the above in place, all audit logs for op=3Dnft_register_obj have a
-> predictable value in 'entries', so drop the value zeroing for them in
-> audit_logread.c.
->
-> To test the skb exhaustion path, perform some bulk counter and quota
-> adds in the kselftest.
->
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  net/netfilter/nf_tables_api.c                 | 51 ++++++++++---------
->  .../testing/selftests/netfilter/nft_audit.sh  | 46 +++++++++++++++++
->  2 files changed, 74 insertions(+), 23 deletions(-)
+On Tue, Oct 03, 2023 at 07:21:33PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Oct 03, 2023 at 05:57:59PM +0200, Phil Sutter wrote:
+> > On Tue, Oct 03, 2023 at 09:46:46AM +0200, Pablo Neira Ayuso wrote:
+> > > On Tue, Oct 03, 2023 at 12:55:41AM +0200, Phil Sutter wrote:
+> > > > On Tue, Oct 03, 2023 at 12:17:53AM +0200, Pablo Neira Ayuso wrote:
+> > > > > On Mon, Oct 02, 2023 at 11:50:25PM +0200, Pablo Neira Ayuso wrote:
+> > > > > > On Mon, Oct 02, 2023 at 08:06:42PM +0200, Phil Sutter wrote:
+> > > > > > > On Mon, Oct 02, 2023 at 11:05:16AM +0200, Pablo Neira Ayuso wrote:
+> > > > > > > > The dump and reset command should not refresh the timeout, this command
+> > > > > > > > is intended to allow users to list existing stateful objects and reset
+> > > > > > > > them, element expiration should be refresh via transaction instead with
+> > > > > > > > a specific command to achieve this, otherwise this is entering combo
+> > > > > > > > semantics that will be hard to be undone later (eg. a user asking to
+> > > > > > > > retrieve counters but _not_ requiring to refresh expiration).
+> > > > > > > 
+> > > > > > > From a users' perspective, what is special about the element expires
+> > > > > > > value disqualifying it from being reset along with any counter/quota
+> > > > > > > values?
+> > > > > > >
+> > > > > > > Do you have a PoC for set element reset via transaction yet? Can we
+> > > > > > > integrate non-timeout resets with it, too? Because IIUC, that's an
+> > > > > > > alternative to the pending reset locking.
+> > > > > > 
+> > > > > > Problem is listing is not supported from transaction path, this is
+> > > > > > using existing netlink dump infrastructure which runs lockless via
+> > > > > > rcu. So we could support reset, but we could not use netlink dump
+> > > > > > semantics to fetch the values, and user likely wants this to
+> > > > > > fetch-and-reset as in ctnetlink.
+> > > > > 
+> > > > > Well, with NLM_F_ECHO, it should be possible to explore reset under
+> > > > > commit_mutex, but is it really worth the effort?
+> > > > 
+> > > > I don't understand. Wasn't it your proposal to move things into the
+> > > > transaction? Above you write: "element expiration should be refresh via
+> > > > transaction instead". I asked what is special about timeout, why not
+> > > > handle all element state reset the same way?
+> > > > 
+> > > > > With two concurrent threads, we just want to ensure that no invalid
+> > > > > state shows in the listing (you mentioned it is possible to list
+> > > > > negative values with two threads listing-and-resetting at the same
+> > > > > time).
+> > > > 
+> > > > It's not just in the listing, the actual values underrun. A quota e.g.
+> > > > will immediately deny.
+> > > > 
+> > > > > I think we should just make sure something valid is included in the
+> > > > > listing, but as for the two threads performing list-and-reset, why
+> > > > > ensure strict serialization?
+> > > > 
+> > > > I seem to lack context here. Is there an alternative to "strict"
+> > > > serializing? Expressions' dump+reset callbacks must not run multiple
+> > > > times at the same time for the same expression. At least not how they
+> > > > are currently implemented.
+> > > > 
+> > > > > This is a rare operation to fetch statistics, most likely having a
+> > > > > single process performing this in place? So we are currently
+> > > > > discussing how to fix the (negative) non-sense in the listing.
+> > > > > 
+> > > > > > > What we have now is a broad 'reset element', not specifying what to
+> > > > > > > reset. If the above is a feature being asked for, I'd rather implement
+> > > > > > > 'reset element counter', 'reset element timeout', 'reset element quota',
+> > > > > > > etc. commands.
+> > > > > > 
+> > > > > > We are currently discussing how to implement refresh timeout into the
+> > > > > > transaction model.
+> > > > > > 
+> > > > > > I would suggest we keep this chunk away by now for the _RESET command,
+> > > > > > until we agree on next steps.
+> > > > 
+> > > > I would suggest to leave things as-is until there's hard evidence why it
+> > > > has to change now or there is a viable alternative implementation.
+> > > 
+> > > Leave things as is means we will have this implicit refresh in the
+> > > element refresh. We have no such semantics in conntrack, for example,
+> > > and conntrack can be seen as a hardcoded set with a fixed number of
+> > > tuples.
+> > 
+> > It's just as implicit as counter or quota reset. I define "reset
+> > element" command as "reset any state in given element", so from my
+> > perspective it makes perfectly sense to reset the timeout as well.
+> 
+> The timer is usually updated from the packet path. We are now planning
+> to support for refreshing the timer from control plane which is not
+> supported.
 
-Thanks Phil.
+This implies that people create dynamic sets and then use reset command
+on the temporary elements. I would assume one either lets packet path
+"maintain" elements or control path but not both.
 
-Acked-by: Paul Moore <paul@paul-moore.com> (Audit)
+> Note it is possible to set custom timeouts in elements too, for
+> example:
+> 
+>         # nft add element x y { 1.2.3.4 expires 50s }
 
---=20
-paul-moore.com
+I assumed this is for dump'n'restore purposes. If you set a custom
+*timeout* when adding a set, the current reset code respects that.
+
+> while default set policy might be different 3m. In this case, you
+> assume resetting to the default set timeout policy (3m) is fine.
+> 
+> I can keep searching for more scenarios where this timeout refresh
+> does not make sense in this reset path.
+
+Cheers, Phil
