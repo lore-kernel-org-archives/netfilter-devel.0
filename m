@@ -2,81 +2,117 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D2CAE7543D
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 09:42:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8BD7E75458
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 12:44:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231931AbjJCJmy (ORCPT
+        id S230156AbjJCMo4 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 05:42:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43492 "EHLO
+        Tue, 3 Oct 2023 08:44:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231744AbjJCJmx (ORCPT
+        with ESMTP id S229849AbjJCMoz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 05:42:53 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E62319B
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 02:42:48 -0700 (PDT)
-Received: from [78.30.34.192] (port=37664 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qnbvQ-002c30-IW; Tue, 03 Oct 2023 11:42:47 +0200
-Date:   Tue, 3 Oct 2023 11:42:43 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: update element timeout support [was Re: [PATCH nf 1/2]
- netfilter: nft_set_rbtree: move sync GC from insert path to
- set->ops->commit]
-Message-ID: <ZRviE9t+xJBV73Di@calendula>
-References: <20230929164404.172081-1-pablo@netfilter.org>
- <ZRdOxs+i1EuC+zoS@calendula>
- <20230930081038.GB23327@breakpoint.cc>
- <ZRnSGwk40jpUActD@calendula>
- <20231001210816.GA15564@breakpoint.cc>
- <ZRq6oP2/hns1qoaq@calendula>
- <20231002135838.GB30843@breakpoint.cc>
- <20231002142141.GA7339@breakpoint.cc>
- <ZRvPSw5PGFyt7S10@calendula>
- <20231003090410.GA446@breakpoint.cc>
+        Tue, 3 Oct 2023 08:44:55 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEFF091;
+        Tue,  3 Oct 2023 05:44:52 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7789CC433C7;
+        Tue,  3 Oct 2023 12:44:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696337092;
+        bh=yxVFqdrVypVYPhUgP12T4SsGPkXaA4vzqa7NeiFSR9w=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=M0i4klhBXUIXUlg47tK0NRlTedyhHHdA8YYeevRcp1em7QNl37cFoRiT09JUuHAUL
+         2+M+SNVyeHFBJB83Kdwe+NgXCXeznXXPiWUkH/4O3GbcpW2iUNYxvhTI5CSYlvGggr
+         TBJHhRq53IcM0BHSRxI880efmAs/RoabBsEgEA3IKd5GR4uaFSSwLI3j1ivaRhwSyc
+         2DK/S0gqAmq3REMhlNcBFn100K10pcBjNF8+8van2GMGRq1ZdF+dAZroOeIEiYcnzD
+         JOiVbo0QITiuBTMCjCpAtLrOkTJiB6w0dNtxsUbO5ukafcpcFRRAV2vOF/5nXKDAa3
+         epvChKHD2eRrQ==
+Date:   Tue, 3 Oct 2023 14:44:48 +0200
+From:   Simon Horman <horms@kernel.org>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
+        davem@davemloft.net, kuba@kernel.org,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH nf] netfilter: handle the connecting collision properly
+ in nf_conntrack_proto_sctp
+Message-ID: <ZRwMwFgCCM3nMeBG@kernel.org>
+References: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231003090410.GA446@breakpoint.cc>
+In-Reply-To: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 03, 2023 at 11:04:10AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Hi Florian,
-> > 
-> > I am collecting here your comments for the model we are defining for
-> > set elements:
-> > 
-> > https://people.netfilter.org/pablo/setelems-timeout.txt
+On Sun, Oct 01, 2023 at 11:07:48AM -0400, Xin Long wrote:
+> In Scenario A and B below, as the delayed INIT_ACK always changes the peer
+> vtag, SCTP ct with the incorrect vtag may cause packet loss.
 > 
-> LGTM.  I think your proposal to snapshot current time and
-> remove the "moving target" is key.
-
-Agreed.
-
-> > Let me know if you have more possible scenarios that you think that
-> > might not be address by this model:
-> > 
-> > - Annotate current time at the beginning of the transaction, use it
-> >   in _expired() check (=> timeout is not a moving target anymore).
-> > - Annotate element timeout update in transaction, update timeout from
-> >   _commit() path not to refresh it.
+> Scenario A: INIT_ACK is delayed until the peer receives its own INIT_ACK
 > 
-> Right, I think that will work.
-> For rbtree, sync gc is kept in place, elements are not zapped,
-> they get tagged as DEAD, including the end element.
+>   192.168.1.2 > 192.168.1.1: [INIT] [init tag: 1328086772]
+>     192.168.1.1 > 192.168.1.2: [INIT] [init tag: 1414468151]
+>     192.168.1.2 > 192.168.1.1: [INIT ACK] [init tag: 1328086772]
+>   192.168.1.1 > 192.168.1.2: [INIT ACK] [init tag: 1650211246] *
+>   192.168.1.2 > 192.168.1.1: [COOKIE ECHO]
+>     192.168.1.1 > 192.168.1.2: [COOKIE ECHO]
+>     192.168.1.2 > 192.168.1.1: [COOKIE ACK]
 > 
-> Then from commit, do full scan and remove any and all elements
-> that are flagged as DEAD or have expired.
+> Scenario B: INIT_ACK is delayed until the peer completes its own handshake
+> 
+>   192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
+>     192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
+>     192.168.1.2 > 192.168.1.1: sctp (1) [INIT ACK] [init tag: 3922216408]
+>     192.168.1.1 > 192.168.1.2: sctp (1) [COOKIE ECHO]
+>     192.168.1.2 > 192.168.1.1: sctp (1) [COOKIE ACK]
+>   192.168.1.1 > 192.168.1.2: sctp (1) [INIT ACK] [init tag: 3914796021] *
+> 
+> This patch fixes it as below:
+> 
+> In SCTP_CID_INIT processing:
+> - clear ct->proto.sctp.init[!dir] if ct->proto.sctp.init[dir] &&
+>   ct->proto.sctp.init[!dir]. (Scenario E)
+> - set ct->proto.sctp.init[dir].
+> 
+> In SCTP_CID_INIT_ACK processing:
+> - drop it if !ct->proto.sctp.init[!dir] && ct->proto.sctp.vtag[!dir] &&
+>   ct->proto.sctp.vtag[!dir] != ih->init_tag. (Scenario B, Scenario C)
+> - drop it if ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
+>   ct->proto.sctp.vtag[!dir] != ih->init_tag. (Scenario A)
+> 
+> In SCTP_CID_COOKIE_ACK processing:
+> - clear ct->proto.sctp.init[dir] and ct->proto.sctp.init[!dir]. (Scenario D)
+> 
+> Also, it's important to allow the ct state to move forward with cookie_echo
+> and cookie_ack from the opposite dir for the collision scenarios.
+> 
+> There are also other Scenarios where it should allow the packet through,
+> addressed by the processing above:
+> 
+> Scenario C: new CT is created by INIT_ACK.
+> 
+> Scenario D: start INIT on the existing ESTABLISHED ct.
+> 
+> Scenario E: start INIT after the old collision on the existing ESTABLISHED ct.
+> 
+>   192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
+>   192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
+>   (both side are stopped, then start new connection again in hours)
+>   192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 242308742]
+> 
+> Signed-off-by: Xin Long <lucien.xin@gmail.com>
 
-Sounds good.
+Hi,
 
-Would you follow this approach to fix the existing issue with the
-rbtree on-demand GC in nf.git?
+as a fix I wonder if this warrants a Fixes tag.
+Perhaps our old friend:
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
