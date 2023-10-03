@@ -2,97 +2,133 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D946AE7AD60
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 14:37:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D17AE7AD75
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 15:58:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240159AbjJCOhU (ORCPT
+        id S232181AbjJCP6F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 10:37:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60532 "EHLO
+        Tue, 3 Oct 2023 11:58:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240154AbjJCOhS (ORCPT
+        with ESMTP id S237235AbjJCP6F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 10:37:18 -0400
-Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60DA3AB;
-        Tue,  3 Oct 2023 07:37:14 -0700 (PDT)
-Received: by mail-yb1-xb2c.google.com with SMTP id 3f1490d57ef6-d90da64499cso1056806276.0;
-        Tue, 03 Oct 2023 07:37:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696343833; x=1696948633; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=kDSrbor6d5vrsa4WUXcUYUUsBIxTGmw3LfKQuRqMfxg=;
-        b=AUE67MRPiRoTLOgVdDB+5QdYtsEM47K9N4jCJCbZoAbSPGLI0B2/fNu9JhyWGqqwaj
-         1dyiLmgFQrOok+OHF2RkLNyS7NhUXV+9QPt8pfouhHv2GRvW028G7u2L3Y4NX5UDvgE/
-         6iTOS1d0fs4mK9Aik456o/UckMqVKQTfn3KoU0xXFdJGjACAh61UxP22Y3DsB3eRjh63
-         8KIC3KRsvP21+eOFx3G4FC1Epnh2G8on/0HIzscXvvHg6OKeM1LjNnKquaffOkZWJ/Nd
-         M8OvH5dR/emUOtqTIx64VkCGd9g14ZTLavhPWaoEKwhMio9HmGvdCd3nNMDtpWvmHefv
-         m+SQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696343833; x=1696948633;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kDSrbor6d5vrsa4WUXcUYUUsBIxTGmw3LfKQuRqMfxg=;
-        b=MgCwcXwc9ysGgJn+Lbpqtqcs7ckA/VGp2WlARJSjm2zlc+g+hbE4eH+0bryYgUZe3L
-         HbVmBTZ7ud2lXRbXwN8iEhCe1kRW9+hfcU9epFYi05QYU4OK8QTgueO0Mqq1x4VxquA+
-         tq+PQnJhdWCf0RzdLydCZjAdrfBj/qpbxwwuJkMKu3w0+xhO7rAvXm+3izJegAyqJu76
-         +kA2j/CuE4p3pYtb4v8g1CtISNTG0xCzhp0XLOHwdMTgjUMnp2fr9jMuND7JqvKJqYms
-         VHkgpA9fUivG9xCDk3Zfyy8B9QfA+EipKom/R6AKjCPlhw48ZcAqza8KU/StBKVL3D22
-         7b/g==
-X-Gm-Message-State: AOJu0YytEkS/RMr4xF+/sHdPIecN+2S+kA8jrvHcprstFUFcFhAAunpm
-        Io4g1ochpDLu9EcVDxuhl5dwF0c3Ucj9MR6I/ys7Ywxk
-X-Google-Smtp-Source: AGHT+IFZxGTJOgKxVQG5wsIyVvQRptQFng65OIT7UDDJjnn2dGSTzmZIsyhQJdinmjW/Mf9HMf+iU2VXM9tLzzv5t7c=
-X-Received: by 2002:a25:df91:0:b0:d86:2156:c314 with SMTP id
- w139-20020a25df91000000b00d862156c314mr14930517ybg.28.1696343833061; Tue, 03
- Oct 2023 07:37:13 -0700 (PDT)
-MIME-Version: 1.0
-References: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
- <ZRwOVyKQR8MBjpBh@kernel.org> <CADvbK_fK03UO3R=70J+VoGVm_LJuzZbh+_=0doceS8DCPJYBVA@mail.gmail.com>
- <20231003142343.GA8405@breakpoint.cc>
-In-Reply-To: <20231003142343.GA8405@breakpoint.cc>
-From:   Xin Long <lucien.xin@gmail.com>
-Date:   Tue, 3 Oct 2023 10:37:01 -0400
-Message-ID: <CADvbK_cHfsGaLG5NyWo6rXBpuPvqS4yWUCEhK3TcC65gixkPTQ@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: handle the connecting collision properly in nf_conntrack_proto_sctp
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Simon Horman <horms@kernel.org>,
-        network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-        davem@davemloft.net, kuba@kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
+        Tue, 3 Oct 2023 11:58:05 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24D8D9E
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 08:58:01 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qnhmZ-0003B2-6d; Tue, 03 Oct 2023 17:57:59 +0200
+Date:   Tue, 3 Oct 2023 17:57:59 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
+ resetting element
+Message-ID: <ZRw6B+28jT/uJxJP@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        netfilter-devel@vger.kernel.org
+References: <20231002090516.3200649-1-pablo@netfilter.org>
+ <ZRsGslT23xzSsbgd@orbyte.nwl.cc>
+ <ZRs7H7C/Xr7dbRc7@calendula>
+ <ZRtBkeP9TYJ10Nrm@calendula>
+ <ZRtKbZmqr4uZRT9Y@orbyte.nwl.cc>
+ <ZRvG5vesKHRyUvzx@calendula>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZRvG5vesKHRyUvzx@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 3, 2023 at 10:23=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> Xin Long <lucien.xin@gmail.com> wrote:
-> > > The type of vtag is u32. But the type of ct->proto.sctp.vtag[!dir] an=
-d init_tag
-> > > is __be32. This doesn't seem right (and makes Sparse unhappy).
-> > You're right, I will fix it and re-post with tag:
-> >
-> > Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
->
-> I'm fine with this, the bug is likely inherited from
-> ipt_conntrack_sctp.c, but that doesn't exist anymore.
-ah, I see.
+On Tue, Oct 03, 2023 at 09:46:46AM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Oct 03, 2023 at 12:55:41AM +0200, Phil Sutter wrote:
+> > On Tue, Oct 03, 2023 at 12:17:53AM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Oct 02, 2023 at 11:50:25PM +0200, Pablo Neira Ayuso wrote:
+> > > > On Mon, Oct 02, 2023 at 08:06:42PM +0200, Phil Sutter wrote:
+> > > > > On Mon, Oct 02, 2023 at 11:05:16AM +0200, Pablo Neira Ayuso wrote:
+> > > > > > The dump and reset command should not refresh the timeout, this command
+> > > > > > is intended to allow users to list existing stateful objects and reset
+> > > > > > them, element expiration should be refresh via transaction instead with
+> > > > > > a specific command to achieve this, otherwise this is entering combo
+> > > > > > semantics that will be hard to be undone later (eg. a user asking to
+> > > > > > retrieve counters but _not_ requiring to refresh expiration).
+> > > > > 
+> > > > > From a users' perspective, what is special about the element expires
+> > > > > value disqualifying it from being reset along with any counter/quota
+> > > > > values?
+> > > > >
+> > > > > Do you have a PoC for set element reset via transaction yet? Can we
+> > > > > integrate non-timeout resets with it, too? Because IIUC, that's an
+> > > > > alternative to the pending reset locking.
+> > > > 
+> > > > Problem is listing is not supported from transaction path, this is
+> > > > using existing netlink dump infrastructure which runs lockless via
+> > > > rcu. So we could support reset, but we could not use netlink dump
+> > > > semantics to fetch the values, and user likely wants this to
+> > > > fetch-and-reset as in ctnetlink.
+> > > 
+> > > Well, with NLM_F_ECHO, it should be possible to explore reset under
+> > > commit_mutex, but is it really worth the effort?
+> > 
+> > I don't understand. Wasn't it your proposal to move things into the
+> > transaction? Above you write: "element expiration should be refresh via
+> > transaction instead". I asked what is special about timeout, why not
+> > handle all element state reset the same way?
+> > 
+> > > With two concurrent threads, we just want to ensure that no invalid
+> > > state shows in the listing (you mentioned it is possible to list
+> > > negative values with two threads listing-and-resetting at the same
+> > > time).
+> > 
+> > It's not just in the listing, the actual values underrun. A quota e.g.
+> > will immediately deny.
+> > 
+> > > I think we should just make sure something valid is included in the
+> > > listing, but as for the two threads performing list-and-reset, why
+> > > ensure strict serialization?
+> > 
+> > I seem to lack context here. Is there an alternative to "strict"
+> > serializing? Expressions' dump+reset callbacks must not run multiple
+> > times at the same time for the same expression. At least not how they
+> > are currently implemented.
+> > 
+> > > This is a rare operation to fetch statistics, most likely having a
+> > > single process performing this in place? So we are currently
+> > > discussing how to fix the (negative) non-sense in the listing.
+> > > 
+> > > > > What we have now is a broad 'reset element', not specifying what to
+> > > > > reset. If the above is a feature being asked for, I'd rather implement
+> > > > > 'reset element counter', 'reset element timeout', 'reset element quota',
+> > > > > etc. commands.
+> > > > 
+> > > > We are currently discussing how to implement refresh timeout into the
+> > > > transaction model.
+> > > > 
+> > > > I would suggest we keep this chunk away by now for the _RESET command,
+> > > > until we agree on next steps.
+> > 
+> > I would suggest to leave things as-is until there's hard evidence why it
+> > has to change now or there is a viable alternative implementation.
+> 
+> Leave things as is means we will have this implicit refresh in the
+> element refresh. We have no such semantics in conntrack, for example,
+> and conntrack can be seen as a hardcoded set with a fixed number of
+> tuples.
 
->
-> Would you also fix up the __be32/u32 confusion?
->
-> Better to not add more sparse warnings...
->
-yes, I will fix the __be32 one too.
+It's just as implicit as counter or quota reset. I define "reset
+element" command as "reset any state in given element", so from my
+perspective it makes perfectly sense to reset the timeout as well.
 
-Thanks.
+> > It's your call to make since you're the maintainer of the project, but
+> > please stick to the standards you demand from other contributors.
+> 
+> We are discussing a very specific topic here and I am expecting to get
+> some kind of acknowledgement from you that this revert of this
+> specific chunk is good to have.
+
+Given the data you provided: No, I don't see any sense in this change.
+
+Cheers, Phil
