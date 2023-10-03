@@ -2,90 +2,109 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A38E75457
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 12:51:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5349EE75455
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 13:15:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230437AbjJCMvn (ORCPT
+        id S232690AbjJCNPh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 08:51:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48276 "EHLO
+        Tue, 3 Oct 2023 09:15:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229689AbjJCMvn (ORCPT
+        with ESMTP id S234630AbjJCNPc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 08:51:43 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B155683;
-        Tue,  3 Oct 2023 05:51:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1895BC433C8;
-        Tue,  3 Oct 2023 12:51:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696337500;
-        bh=giCCL/NQzyaXSepsEpVlfuBXyhXS1M2eW5ebS85qKZo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Rz4WfdlKsXh1tFMotFawMYFAsYy2FjqKasOSSRBu5y6Yk6xxZUt7oaPH/+FfMAXll
-         xw207CQd/qaXVdVNBPqnp+u3U/jhAMUB+31upo1GUynANt3cOzOX4VlJpjunymCOiA
-         bgWi+0exsrfd1Wh6EDX3xJzXxZ+B4PU5vblYXaG94i7URiI9Smqex+9+YTqXAEULI+
-         i5G9QD10CdKbMjRN22No7aBUoZEaTWNgHB0NkkeYRbSB3NNo6b+HilmgzhUJYVCGfz
-         oOQPKxmyfTZhHJMRJmr8Lh4tw0m7FCcVxPMe7A9c5qZAMLqY/boJFiGnDAbDVcc4e+
-         zVWQGxcBPSdaw==
-Date:   Tue, 3 Oct 2023 14:51:35 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     Xin Long <lucien.xin@gmail.com>
-Cc:     network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-        davem@davemloft.net, kuba@kernel.org,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH nf] netfilter: handle the connecting collision properly
- in nf_conntrack_proto_sctp
-Message-ID: <ZRwOVyKQR8MBjpBh@kernel.org>
-References: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
+        Tue, 3 Oct 2023 09:15:32 -0400
+X-Greylist: delayed 60529 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 03 Oct 2023 06:15:28 PDT
+Received: from smtp-42aa.mail.infomaniak.ch (smtp-42aa.mail.infomaniak.ch [IPv6:2001:1600:4:17::42aa])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34CC4D3
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 06:15:28 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4S0JGN1SdlzMqN0Q;
+        Tue,  3 Oct 2023 13:15:24 +0000 (UTC)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4S0JGM1Ml8zMppBN;
+        Tue,  3 Oct 2023 15:15:22 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1696338924;
+        bh=mYXOJz9gAA/llGqc8uja06Dbq61EdeXQL0OOvglJWBw=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=bjXA7XOX13EKX+vc5LCkJetsHYHgzPULA+1gAEpaqNFZ9FusLSnpTbijlBTmaUUrY
+         Go4PIClN/Mzu3FvFYrxZIN7aLTMZqF6EU334UiM+U2PomHPmP2IXgtbzKlNz6XS/Kn
+         AgLUGGTixs44NQIt7DiNAxfZnYs+Px6a+AQNKhpI=
+Date:   Tue, 3 Oct 2023 15:15:22 +0200
+From:   =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To:     Stephen Rothwell <sfr@canb.auug.org.au>
+Cc:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com, Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: linux-next: build warning after merge of the landlock tree
+Message-ID: <20231003.ahPha5bengee@digikod.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <6ee630f777cada3259b29e732e7ea9321a99197b.1696172868.git.lucien.xin@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20231003142737.381e7dcb@canb.auug.org.au>
+ <20230920092641.832134-12-konstantin.meskhidze@huawei.com>
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Oct 01, 2023 at 11:07:48AM -0400, Xin Long wrote:
+PowerPC-64 follows the LP64 data model and then uses int-l64.h (instead of
+int-ll64.h like most architectures) for user space code.
 
-...
+Here is the same code with the (suggested) "%lu" token on x86_86:
 
-> @@ -481,6 +486,24 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
->  			    old_state == SCTP_CONNTRACK_CLOSED &&
->  			    nf_ct_is_confirmed(ct))
->  				ignore = true;
-> +		} else if (sch->type == SCTP_CID_INIT_ACK) {
-> +			struct sctp_inithdr _ih, *ih;
-> +			u32 vtag;
-> +
-> +			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
-> +			if (ih == NULL)
-> +				goto out_unlock;
-> +
-> +			vtag = ct->proto.sctp.vtag[!dir];
-> +			if (!ct->proto.sctp.init[!dir] && vtag && vtag != ih->init_tag)
-> +				goto out_unlock;
-> +			/* collision */
-> +			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
-> +			    vtag != ih->init_tag)
+  samples/landlock/sandboxer.c: In function ‘populate_ruleset_net’:
+  samples/landlock/sandboxer.c:170:77: error: format ‘%lu’ expects argument of type ‘long unsigned int’, but argument 3 has type ‘__u64’ {aka ‘long long unsigned int’} [-Werror=format=]
+    170 |                                 "Failed to update the ruleset with port \"%lu\": %s\n",
+        |                                                                           ~~^
+        |                                                                             |
+        |                                                                             long unsigned int
+        |                                                                           %llu
+    171 |                                 net_port.port, strerror(errno));
+        |                                 ~~~~~~~~~~~~~
+        |                                         |
+        |                                         __u64 {aka long long unsigned int}
 
-The type of vtag is u32. But the type of ct->proto.sctp.vtag[!dir] and init_tag
-is __be32. This doesn't seem right (and makes Sparse unhappy).
 
-> +				goto out_unlock;
-> +
-> +			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
-> +			ct->proto.sctp.vtag[!dir] = ih->init_tag;
->  		}
->  
->  		ct->proto.sctp.state = new_state;
+We would then need to cast __u64 to unsigned long long to avoid this warning,
+which may look useless, of even buggy, for people taking a look at this sample.
+
+Anyway, it makes more sense to cast it to __u16 because it is the
+expected type for a TCP port. I'm updating the patch with that.
+Konstantin, please take this fix for the next series:
+https://git.kernel.org/mic/c/fc9de206a61a
+
+
+On Tue, Oct 03, 2023 at 02:27:37PM +1100, Stephen Rothwell wrote:
+> Hi all,
+> 
+> After merging the landlock tree, today's linux-next build (powerpc
+> allyesconfig) produced this warning:
+> 
+> samples/landlock/sandboxer.c: In function 'populate_ruleset_net':
+> samples/landlock/sandboxer.c:170:78: warning: format '%llu' expects argument of type 'long long unsigned int', but argument 3 has type '__u64' {aka 'long unsigned int'} [-Wformat=]
+>   170 |                                 "Failed to update the ruleset with port \"%llu\": %s\n",
+>       |                                                                           ~~~^
+>       |                                                                              |
+>       |                                                                              long long unsigned int
+>       |                                                                           %lu
+>   171 |                                 net_port.port, strerror(errno));
+>       |                                 ~~~~~~~~~~~~~                                 
+>       |                                         |
+>       |                                         __u64 {aka long unsigned int}
+> 
+> Introduced by commit
+> 
+>   24889e7a2079 ("samples/landlock: Add network demo")
+> 
 > -- 
-> 2.39.1
-> 
-> 
+> Cheers,
+> Stephen Rothwell
+
+
