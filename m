@@ -2,134 +2,156 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C93AE7AD43
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 13:23:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B3E3E7AD4B
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 13:40:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232667AbjJCNXk convert rfc822-to-8bit (ORCPT
+        id S232351AbjJCNky (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 09:23:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33724 "EHLO
+        Tue, 3 Oct 2023 09:40:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232479AbjJCNXj (ORCPT
+        with ESMTP id S232169AbjJCNkx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 09:23:39 -0400
-Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F3E5A1;
-        Tue,  3 Oct 2023 06:23:36 -0700 (PDT)
-Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-5a22eaafd72so11219977b3.3;
-        Tue, 03 Oct 2023 06:23:36 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696339415; x=1696944215;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=RyqO5Si8x9tH0yrrGtUM2VgzCztD//mXgGUJcJBODIM=;
-        b=a7vcZ9tiYUhbWGbLRzuEPbyxTT93C8FXysXVB4bAtaldp0D5/VtQR06OqRGMW40Twl
-         oKV5tbTFweAs15zo/XospIWSqCZb7jA5tcLqotTkz4CXpl1uAQn8qQIt7f4ZuXIsy7pR
-         PyZ0peXBHIctqpGNzjAZ9hgLA7BT/3FgR8Hee3/jOeIajNYEXODjMGfVkpcIenrLXUXj
-         qKdiOwOM3HMeAl78kJrponz48R4dn9nUknOoqvSKyZoeqSfZK3QCvyxzwRcrLxqNo2hb
-         WiO1wDKbhsBaMMLP1tiWJV8FjJQXpzPaaC4btiWb111RUTf3ftFfSVuHYi1IAWVkDJ6L
-         rpGg==
-X-Gm-Message-State: AOJu0YyP2hgQNRdagr89U6xVBubNOMbc2TxL8h+l1vly+geGMdCntv1f
-        aUVZtd6dijEw0uaEVKuoGF4DnbIeg1HhPA==
-X-Google-Smtp-Source: AGHT+IFU8dFMsoL99k55rFKjS/yIgR33TCJviv7HWMdQfJry+Qoxbwlp3gGKuVh8MnaTpRTsccW0aA==
-X-Received: by 2002:a81:6c88:0:b0:5a1:c610:1154 with SMTP id h130-20020a816c88000000b005a1c6101154mr14046953ywc.10.1696339415219;
-        Tue, 03 Oct 2023 06:23:35 -0700 (PDT)
-Received: from mail-yw1-f170.google.com (mail-yw1-f170.google.com. [209.85.128.170])
-        by smtp.gmail.com with ESMTPSA id j13-20020a81920d000000b0059f61be458esm367746ywg.82.2023.10.03.06.23.35
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 03 Oct 2023 06:23:35 -0700 (PDT)
-Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-5a200028437so11327487b3.1;
-        Tue, 03 Oct 2023 06:23:35 -0700 (PDT)
-X-Received: by 2002:a81:a0d2:0:b0:57a:9b2c:51f1 with SMTP id
- x201-20020a81a0d2000000b0057a9b2c51f1mr14931488ywg.1.1696339414847; Tue, 03
- Oct 2023 06:23:34 -0700 (PDT)
+        Tue, 3 Oct 2023 09:40:53 -0400
+Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14591AD;
+        Tue,  3 Oct 2023 06:40:49 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.west.internal (Postfix) with ESMTP id 8AB133200B40;
+        Tue,  3 Oct 2023 09:40:45 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Tue, 03 Oct 2023 09:40:46 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-transfer-encoding:content-type:content-type:date
+        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
+        1696340445; x=1696426845; bh=pFiUCM0Cn00jPD1kU6gNbpIBQuIHykihdnF
+        gCoeT11M=; b=N1rsup18Lf/e/7bOBtifmqIztvYO5QZengtcNpzCJUyAeIOrTTQ
+        RwSPWXxrpgkpGub37RnfhA4l8kNZQ2/6ISAtp4cXBp4pd3EKcIhdhuISJbqMH3QW
+        VqmrZPyWiiojsQA5j+Bq7TWvI7emjjNTTN97CZt1V3mWhIJWVUJQuhxqkN9PWg/v
+        LRsQuH3JdNmtHO9nOBgsU8298q1dSBXlrhbpGNJfHdzpTlRkTe1EgY800b63u7Kb
+        BE87xNSa8uC4A/ZlPsfVjAUyBOFSn3Vdg+iypFhO55M2CVb0AeST8iyxupVigOkg
+        ZzNy4a+XxzwvQjdzhcXceRKkfi/dSkqG9TA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:content-type:date:date:feedback-id:feedback-id
+        :from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
+        1696340445; x=1696426845; bh=pFiUCM0Cn00jPD1kU6gNbpIBQuIHykihdnF
+        gCoeT11M=; b=X8xWX1F87dFRO3w8fBnHCxAjOlmej7UIeTtFEDQO3JFj/z8xhhD
+        aqjCsFoshVqquyrxj81l2OdqYMGnfHAoT/nqTkKtWiJf1IHJu7mnbaf3Z3PuCYs9
+        b2sM7M3PJmxAbYOTRr89zA4YghcmGNN23VyItGXPLMnhNfFmxRHKF2Y/p31zrZv3
+        DF9LC44mfcQ40ZFJUDlywjvAn5wtDgx+gcB11wfUg46FGB+GOkxW2me4VD3jXMEt
+        HEjHxcA4Regb8zAABd97Eh+CtQ3ZujpuRyzA5jWMBKBNjnLTgdEOeerC58PD2e44
+        lyRKaXA+a0Lr+HSchP8KNTHjK15YI4eq2cw==
+X-ME-Sender: <xms:3BkcZWwjGs7LvcVC55nvMdLGmR9riSdPjYORODr6gtPz9GK-cGTc-g>
+    <xme:3BkcZSQ5etQsozNBvMakkeCpck1-cuwFp8qsdzYhcDYWMnIzwv3bf1CflTP_ep1Jz
+    q_qiNJY6B2xjdIbGVg>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrfeeigdeihecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpefofgggkfgjfhffhffvvefutgfgsehtqhertderreejnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepgfekueelgeeigefhudduledtkeefffejueelheelfedutedttdfgveeufeef
+    ieegnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpe
+    dtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:3BkcZYUE8SN8HerVPa3OcBXQR5czyY9JUEKot_I15wNz2yoWT1VMDw>
+    <xmx:3BkcZcjWLZ1RDOhC-0EiDQtl_E_FbQc6oFR5BbIP0uTIq5yMO9Maaw>
+    <xmx:3BkcZYDnH8g49iUq2pL8bFWVz9yW9vTeazdOY-kBlLTanv0l-TuHtg>
+    <xmx:3RkcZRJZ3hxVzxVnwd3RLlepQE3kDRSWegZNuC_ltIWliSaKyMIg3w>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 0F0E8B6008D; Tue,  3 Oct 2023 09:40:44 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-958-g1b1b911df8-fm-20230927.002-g1b1b911d
 MIME-Version: 1.0
-References: <20231003142737.381e7dcb@canb.auug.org.au> <20230920092641.832134-12-konstantin.meskhidze@huawei.com>
- <20231003.ahPha5bengee@digikod.net>
+Message-Id: <0174c612-ed97-44f3-bec5-1f512f135d21@app.fastmail.com>
 In-Reply-To: <20231003.ahPha5bengee@digikod.net>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 3 Oct 2023 15:23:22 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdVZsA4H47od6FV9+OzgWB2hnTQGr8YOcAL3yyURdm1AoA@mail.gmail.com>
-Message-ID: <CAMuHMdVZsA4H47od6FV9+OzgWB2hnTQGr8YOcAL3yyURdm1AoA@mail.gmail.com>
+References: <20231003.ahPha5bengee@digikod.net>
+Date:   Tue, 03 Oct 2023 15:40:23 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     =?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
+        "Stephen Rothwell" <sfr@canb.auug.org.au>
+Cc:     "Konstantin Meskhidze" <konstantin.meskhidze@huawei.com>,
+        "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
+        linux-next <linux-next@vger.kernel.org>,
+        "Willem de Bruijn" <willemdebruijn.kernel@gmail.com>,
+        gnoack3000@gmail.com, linux-security-module@vger.kernel.org,
+        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        yusongping@huawei.com, artem.kuzin@huawei.com,
+        "Geert Uytterhoeven" <geert@linux-m68k.org>,
+        "Randy Dunlap" <rdunlap@infradead.org>
 Subject: Re: linux-next: build warning after merge of the landlock tree
-To:     =?UTF-8?B?TWlja2HDq2wgU2FsYcO8bg==?= <mic@digikod.net>
-Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        Konstantin Meskhidze <konstantin.meskhidze@huawei.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Next Mailing List <linux-next@vger.kernel.org>,
-        willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com, Arnd Bergmann <arnd@arndb.de>,
-        Randy Dunlap <rdunlap@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Mickaël,
-
-On Tue, Oct 3, 2023 at 3:15 PM Mickaël Salaün <mic@digikod.net> wrote:
-> On Tue, Oct 03, 2023 at 02:27:37PM +1100, Stephen Rothwell wrote:
-> > After merging the landlock tree, today's linux-next build (powerpc
-> > allyesconfig) produced this warning:
-> >
-> > samples/landlock/sandboxer.c: In function 'populate_ruleset_net':
-> > samples/landlock/sandboxer.c:170:78: warning: format '%llu' expects argument of type 'long long unsigned int', but argument 3 has type '__u64' {aka 'long unsigned int'} [-Wformat=]
-> >   170 |                                 "Failed to update the ruleset with port \"%llu\": %s\n",
-> >       |                                                                           ~~~^
-> >       |                                                                              |
-> >       |                                                                              long long unsigned int
-> >       |                                                                           %lu
-> >   171 |                                 net_port.port, strerror(errno));
-> >       |                                 ~~~~~~~~~~~~~
-> >       |                                         |
-> >       |                                         __u64 {aka long unsigned int}
-> >
-> > Introduced by commit
-> >
-> >   24889e7a2079 ("samples/landlock: Add network demo")
->
-> PowerPC-64 follows the LP64 data model and then uses int-l64.h (instead of
+On Tue, Oct 3, 2023, at 15:15, Micka=C3=ABl Sala=C3=BCn wrote:
+> PowerPC-64 follows the LP64 data model and then uses int-l64.h (instea=
+d of
 > int-ll64.h like most architectures) for user space code.
 >
 > Here is the same code with the (suggested) "%lu" token on x86_86:
 >
->   samples/landlock/sandboxer.c: In function ‘populate_ruleset_net’:
->   samples/landlock/sandboxer.c:170:77: error: format ‘%lu’ expects argument of type ‘long unsigned int’, but argument 3 has type ‘__u64’ {aka ‘long long unsigned int’} [-Werror=format=]
->     170 |                                 "Failed to update the ruleset with port \"%lu\": %s\n",
->         |                                                                           ~~^
->         |                                                                             |
->         |                                                                             long unsigned int
->         |                                                                           %llu
->     171 |                                 net_port.port, strerror(errno));
+>   samples/landlock/sandboxer.c: In function =E2=80=98populate_ruleset_=
+net=E2=80=99:
+>   samples/landlock/sandboxer.c:170:77: error: format =E2=80=98%lu=E2=80=
+=99 expects=20
+> argument of type =E2=80=98long unsigned int=E2=80=99, but argument 3 h=
+as type =E2=80=98__u64=E2=80=99=20
+> {aka =E2=80=98long long unsigned int=E2=80=99} [-Werror=3Dformat=3D]
+>     170 |                                 "Failed to update the rulese=
+t=20
+> with port \"%lu\": %s\n",
+>         |                                                             =
+ =20
+>             ~~^
+>         |                                                             =
+ =20
+>               |
+>         |                                                             =
+ =20
+>               long unsigned int
+>         |                                                             =
+ =20
+>             %llu
+>     171 |                                 net_port.port,=20
+> strerror(errno));
 >         |                                 ~~~~~~~~~~~~~
 >         |                                         |
->         |                                         __u64 {aka long long unsigned int}
+>         |                                         __u64 {aka long long=20
+> unsigned int}
 >
 >
-> We would then need to cast __u64 to unsigned long long to avoid this warning,
-> which may look useless, of even buggy, for people taking a look at this sample.
-
-In userspace code, you are supposed to #include <inttypes.h>
-and use PRIu64.
-
+> We would then need to cast __u64 to unsigned long long to avoid this w=
+arning,
+> which may look useless, of even buggy, for people taking a look at thi=
+s sample.
+>
 > Anyway, it makes more sense to cast it to __u16 because it is the
 > expected type for a TCP port. I'm updating the patch with that.
 > Konstantin, please take this fix for the next series:
 > https://git.kernel.org/mic/c/fc9de206a61a
+>
+>
+> On Tue, Oct 03, 2023 at 02:27:37PM +1100, Stephen Rothwell wrote:
+>> Hi all,
+>>=20
+>> After merging the landlock tree, today's linux-next build (powerpc
+>> allyesconfig) produced this warning:
+>>=20
+>> samples/landlock/sandboxer.c: In function 'populate_ruleset_net':
+>> samples/landlock/sandboxer.c:170:78: warning: format '%llu' expects a=
+rgument of type 'long long unsigned int', but argument 3 has type '__u64=
+' {aka 'long unsigned int'} [-Wformat=3D]
+>>   170 |                                 "Failed to update the ruleset=
+ with port \"%llu\": %s\n"
 
-Until someone passes a too large number, and it becomes truncated...
+I think defining the __SANE_USERSPACE_TYPES__ macro should take care of =
+this,
+then __u64 has the same type as it does in the kernel.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+        Arnd
