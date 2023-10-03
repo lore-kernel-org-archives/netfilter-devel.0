@@ -2,54 +2,129 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CFB4E8FDB3
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 20:48:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59C1AE8FDBF
+	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 23:18:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232269AbjJCUsf (ORCPT
+        id S232371AbjJCXSR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 16:48:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37018 "EHLO
+        Tue, 3 Oct 2023 19:18:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231653AbjJCUsf (ORCPT
+        with ESMTP id S233030AbjJCXSQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 16:48:35 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3936AB;
-        Tue,  3 Oct 2023 13:48:31 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qnmJg-0004c5-P8; Tue, 03 Oct 2023 22:48:28 +0200
-Date:   Tue, 3 Oct 2023 22:48:28 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        audit@vger.kernel.org, Paul Moore <paul@paul-moore.com>,
-        Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [nf PATCH 3/3] netfilter: nf_tables: Audit log object reset once
- per table
-Message-ID: <20231003204828.GA15013@breakpoint.cc>
-References: <20230923015351.15707-1-phil@nwl.cc>
- <20230923015351.15707-4-phil@nwl.cc>
+        Tue, 3 Oct 2023 19:18:16 -0400
+Received: from mail-oa1-x29.google.com (mail-oa1-x29.google.com [IPv6:2001:4860:4864:20::29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04F60BB
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 16:18:09 -0700 (PDT)
+Received: by mail-oa1-x29.google.com with SMTP id 586e51a60fabf-1dc863efb61so991755fac.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Oct 2023 16:18:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1696375089; x=1696979889; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=bih+EsLhqqE18INEKlidrn1Kal2heWWzJ4ETbgTX94I=;
+        b=gWbjyVCSoYjNgqXY/1vrUb+LcPUVzLsCYd7NQ/l6818pTUxFjo1kTibUBwZZcAxeDw
+         8UTxJ9ujjwDrG807kDYCA41CE8uPjgEI8gGxCHvA+eEFg1T5H4Sbrsi9o0fDo1x7ru7l
+         bJ5eE8X2Xm4UMGTLConj6pLRJpH5B/igY3M0A=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696375089; x=1696979889;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=bih+EsLhqqE18INEKlidrn1Kal2heWWzJ4ETbgTX94I=;
+        b=EoMqrdm11kClPF3Qk3MtV/yiNw7ljVNYEPGT3AUQ5qV8FEMEIqKBJNQ3SRaHHBaoFJ
+         9kFSs813lkj1zEtMWhmzIOtsRs+4SVH3wfa7W7Sqy4m97CBK8w3ZWm8p2f5z0uhtNWcs
+         mm3Mx8+fLaM3ddVCkCjBTi7hmhJH1lr4yiOwS39/rZler6AJRQ/DkZB1JKaeXOXd0cnw
+         SnNJxWJAKHp3dAz+rT5qesDvV1thsNC6FtEBR9hJHN6qoz+njbRH5z1+wHdV1kji8k2w
+         dnjlajw8RYw9PR6Yo/h/d66GKwLzV2UVY549vqX4zBPxdCEGpg1Za3Pn39cIqMzTEI5q
+         dPkg==
+X-Gm-Message-State: AOJu0YwrKkBZHNdg74tDH29akaMRDlbG9JABh0DhL+Do11c865VZduTM
+        lYA/e//ubmABOhVJkkYLJAZlvw==
+X-Google-Smtp-Source: AGHT+IGMuEXMH0klQynXNGDf9mXvorUx4r7dHi8rq3SeI8WCyENuzvx2RH4KRVoIABsMtoPkloKObQ==
+X-Received: by 2002:a05:6870:f708:b0:1d6:567b:7a93 with SMTP id ej8-20020a056870f70800b001d6567b7a93mr1041157oab.11.1696375089114;
+        Tue, 03 Oct 2023 16:18:09 -0700 (PDT)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id fm18-20020a056a002f9200b00684ca1b45b9sm1978519pfb.149.2023.10.03.16.18.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Oct 2023 16:18:08 -0700 (PDT)
+From:   Kees Cook <keescook@chromium.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Kees Cook <keescook@chromium.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Tom Rix <trix@redhat.com>, linux-kernel@vger.kernel.org,
+        linux-hardening@vger.kernel.org, llvm@lists.linux.dev
+Subject: [PATCH] netfilter: nf_tables: Annotate struct nft_pipapo_match with __counted_by
+Date:   Tue,  3 Oct 2023 16:17:51 -0700
+Message-Id: <20231003231750.work.190-kees@kernel.org>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230923015351.15707-4-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1445; i=keescook@chromium.org;
+ h=from:subject:message-id; bh=Wy0TE8qEtssfM7cN9gcV0HXN7z8A45g0+0RjkMYsJ6Q=;
+ b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlHKEeqBf2tLycKMWuivraE0LzPS9ivsggbdtww
+ QfkATjpb1eJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZRyhHgAKCRCJcvTf3G3A
+ JjOHEACMTVDOfHBHAk8PGKTzvz8VfSLnexla3kFw3JTpU4WFBKxGBGl0Rk5JPIl9QNAC7P8Tv1D
+ tc6AdnTmyqE+nwKP/rjvAMfjAYECHpwYOaJAeUK0uSQQ3jiYQ204Rz1XeNmkZtrPMUV84YO3wn+
+ z9J6E3OILiVubIm1FpaooFMb2RfqcbXIrOvy17H2o3l5TFI5SlTdOudtqU2Xfw9MA6gCOSPUAD6
+ E7/ZbZKh0SUmBJ8g2XXQ1efypS4fTtGGX6vIjdTFNb3mm/pl8u8pUb7HIHIHmx4ajHVULNXKhJS
+ FR+2+4KIcgUfZUwkEVfkbHYdrPhSezICZCwT98pN7OaP7oSAmWvM1r4OgWIwd9HZH9//lFyFOwY
+ ku9TgykVDQJR1/DogW3OlpuAW3tSz/kdhPLsQzo37jmts3qaiNitpS798OLrieiY/7QCbKO6Hro
+ vfM94GieScRafb2hlRygTpf5wAVkl9oWAlzXRrkQ9Op8ErfEGnPtTwp+0/+UEqXWirSg+4H4C1j
+ /6joRVoyBrCr3Gf0sujbuMbKM2gE42TMVkCJJU6EUnIi3F4F6rLLbcywyi/unnsiDjd1Lw3uUZl
+ tCYdMDgGHXxRMzdhiqbuSLOqg6Zs2i5mheccBCbgvf7k2bPgzQlmsTRrlmWWWwm0+BhcuXWScmO
+ cyWMQGk mmrEgDeA==
+X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> When resetting multiple objects at once (via dump request), emit a log
-> message per table (or filled skb) and resurrect the 'entries' parameter
-> to contain the number of objects being logged for.
-> 
-> With the above in place, all audit logs for op=nft_register_obj have a
-> predictable value in 'entries', so drop the value zeroing for them in
-> audit_logread.c.
-> 
-> To test the skb exhaustion path, perform some bulk counter and quota
-> adds in the kselftest.
+Prepare for the coming implementation by GCC and Clang of the __counted_by
+attribute. Flexible array members annotated with __counted_by can have
+their accesses bounds-checked at run-time via CONFIG_UBSAN_BOUNDS (for
+array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
+functions).
 
-This patch doesnt apply to nf.git, can you rebase it?
+As found with Coccinelle[1], add __counted_by for struct nft_pipapo_match.
+
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Link: https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci [1]
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ net/netfilter/nft_set_pipapo.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
+index 25a75591583e..2e164a319945 100644
+--- a/net/netfilter/nft_set_pipapo.h
++++ b/net/netfilter/nft_set_pipapo.h
+@@ -147,7 +147,7 @@ struct nft_pipapo_match {
+ 	unsigned long * __percpu *scratch;
+ 	size_t bsize_max;
+ 	struct rcu_head rcu;
+-	struct nft_pipapo_field f[];
++	struct nft_pipapo_field f[] __counted_by(field_count);
+ };
+ 
+ /**
+-- 
+2.34.1
+
