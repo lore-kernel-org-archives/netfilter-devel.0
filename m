@@ -2,147 +2,129 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99BF7E7B5E1
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 09:27:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07AB9E7B5ED
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 11:01:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241782AbjJDJ1O (ORCPT
+        id S233001AbjJDLBy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 05:27:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52788 "EHLO
+        Wed, 4 Oct 2023 07:01:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232774AbjJDJ1N (ORCPT
+        with ESMTP id S241213AbjJDLBx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 05:27:13 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BC3F9E
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 02:27:08 -0700 (PDT)
-Received: from [78.30.34.192] (port=37582 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qny9o-00A9AN-HK; Wed, 04 Oct 2023 11:27:06 +0200
-Date:   Wed, 4 Oct 2023 11:27:03 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
- resetting element
-Message-ID: <ZR0v54xJwllozQhR@calendula>
-References: <ZRvG5vesKHRyUvzx@calendula>
- <ZRw6B+28jT/uJxJP@orbyte.nwl.cc>
- <ZRxNnYWrsw0VXBNn@calendula>
- <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
- <ZRxXXr5H0grbSb9j@calendula>
- <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
- <ZR0b693BiY6KzD3k@calendula>
- <20231004080702.GD15013@breakpoint.cc>
- <ZR0hFIIqdTixdPi4@calendula>
- <20231004084623.GA9350@breakpoint.cc>
+        Wed, 4 Oct 2023 07:01:53 -0400
+Received: from smtp-8fac.mail.infomaniak.ch (smtp-8fac.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fac])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCFCEC1
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 04:01:48 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4S0sFl0WlJzMqGWl;
+        Wed,  4 Oct 2023 11:01:47 +0000 (UTC)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4S0sFf5pRbzMppB8;
+        Wed,  4 Oct 2023 13:01:42 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1696417306;
+        bh=gWybje2HvLgDOH5ZYG1Lx+4xobEwytv14WvC0k0ZXhQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=NlG1gyKYLonJ1+MJppZUKCtoojLOgIeJbKleESzlTWhJtG4VndWzCUSU64xXJh6iu
+         T7kCQFVJV6tXIWJ9h2K86LxQSFmErn/4HiC2IYPyQNTVfJ3gA12QhyEXH8o7DQzUOK
+         kq+wAhIkTPO2dLkT8kJDGGiT3OXNWvnZsMHiDrF8=
+Date:   Wed, 4 Oct 2023 13:01:45 +0200
+From:   =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
+        Konstantin Meskhidze <konstantin.meskhidze@huawei.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Next Mailing List <linux-next@vger.kernel.org>,
+        willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
+        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
+        artem.kuzin@huawei.com, Arnd Bergmann <arnd@arndb.de>,
+        Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: linux-next: build warning after merge of the landlock tree
+Message-ID: <20231004.SeachioS1aop@digikod.net>
+References: <20231003142737.381e7dcb@canb.auug.org.au>
+ <20230920092641.832134-12-konstantin.meskhidze@huawei.com>
+ <20231003.ahPha5bengee@digikod.net>
+ <CAMuHMdVZsA4H47od6FV9+OzgWB2hnTQGr8YOcAL3yyURdm1AoA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20231004084623.GA9350@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAMuHMdVZsA4H47od6FV9+OzgWB2hnTQGr8YOcAL3yyURdm1AoA@mail.gmail.com>
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 04, 2023 at 10:46:23AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Oct 04, 2023 at 10:07:02AM +0200, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > We will soon need NFT_MSG_GETRULE_RESET_NO_TIMEOUT to undo this combo
-> > > > command semantics, from userspace this will require some sort of 'nft
-> > > > reset table x notimeout' syntax.
-> > > 
-> > > NFT_MSG_GETRULE_RESET_NO_TIMEOUT sounds super ugly :/
-> > > 
-> > > Do you think we can add a flags attr that describes which parts
-> > > to reset?
-> > 
-> > Sure. This will require one attribute for each object type, also
-> > reject it where it does not make sense.
-> > 
-> > > No flags attr would reset everything.
-> > 
-> > Refreshing timers is a bad default behaviour.
+On Tue, Oct 03, 2023 at 03:23:22PM +0200, Geert Uytterhoeven wrote:
+> Hi Mickaël,
 > 
-> Looking at the "evolution" of the reset command in nftables.git
-> I agree.  "reset counters" etc. was rather specific as to what
-> is reset.
+> On Tue, Oct 3, 2023 at 3:15 PM Mickaël Salaün <mic@digikod.net> wrote:
+> > On Tue, Oct 03, 2023 at 02:27:37PM +1100, Stephen Rothwell wrote:
+> > > After merging the landlock tree, today's linux-next build (powerpc
+> > > allyesconfig) produced this warning:
+> > >
+> > > samples/landlock/sandboxer.c: In function 'populate_ruleset_net':
+> > > samples/landlock/sandboxer.c:170:78: warning: format '%llu' expects argument of type 'long long unsigned int', but argument 3 has type '__u64' {aka 'long unsigned int'} [-Wformat=]
+> > >   170 |                                 "Failed to update the ruleset with port \"%llu\": %s\n",
+> > >       |                                                                           ~~~^
+> > >       |                                                                              |
+> > >       |                                                                              long long unsigned int
+> > >       |                                                                           %lu
+> > >   171 |                                 net_port.port, strerror(errno));
+> > >       |                                 ~~~~~~~~~~~~~
+> > >       |                                         |
+> > >       |                                         __u64 {aka long unsigned int}
+> > >
+> > > Introduced by commit
+> > >
+> > >   24889e7a2079 ("samples/landlock: Add network demo")
+> >
+> > PowerPC-64 follows the LP64 data model and then uses int-l64.h (instead of
+> > int-ll64.h like most architectures) for user space code.
+> >
+> > Here is the same code with the (suggested) "%lu" token on x86_86:
+> >
+> >   samples/landlock/sandboxer.c: In function ‘populate_ruleset_net’:
+> >   samples/landlock/sandboxer.c:170:77: error: format ‘%lu’ expects argument of type ‘long unsigned int’, but argument 3 has type ‘__u64’ {aka ‘long long unsigned int’} [-Werror=format=]
+> >     170 |                                 "Failed to update the ruleset with port \"%lu\": %s\n",
+> >         |                                                                           ~~^
+> >         |                                                                             |
+> >         |                                                                             long unsigned int
+> >         |                                                                           %llu
+> >     171 |                                 net_port.port, strerror(errno));
+> >         |                                 ~~~~~~~~~~~~~
+> >         |                                         |
+> >         |                                         __u64 {aka long long unsigned int}
+> >
+> >
+> > We would then need to cast __u64 to unsigned long long to avoid this warning,
+> > which may look useless, of even buggy, for people taking a look at this sample.
 > 
-> > And how does this mix with the set element timeout model from
-> > transaction? Now timers becomes a "moving target" again with this
-> > refresh? Oh, this will drag commit_mutex to netlink dump path to avoid
-> > that.
+> In userspace code, you are supposed to #include <inttypes.h>
+> and use PRIu64.
+
+Thanks for these tips!
+
 > 
-> The lock is needed to prevent *two* reset calls messing up the
-> interal object state, e.g. quota or counters.
-
-Agreed, no question there is a need for a lock from that path, the
-discussion so far has been what type of lock, whether reset_spinlock
-or commit_mutex.
-
-reset_spinlock just makes sure that:
-
-Cpu 1: nft list ruleset
-Cpu 2: nft reset ruleset
-
-do not show negative counters, as Phil reported with a test script.
-
-commit_mutex just mitigates this issue, for reason see my reply below.
-
-> We will need *some* type of lock for the commands where
-> the reset logic is handled via dump path.
+> > Anyway, it makes more sense to cast it to __u16 because it is the
+> > expected type for a TCP port. I'm updating the patch with that.
+> > Konstantin, please take this fix for the next series:
+> > https://git.kernel.org/mic/c/fc9de206a61a
 > 
-> At this point I think we should consider reverting ALL
-> reset changes that use the dump path, because we also have
-> the consistency issue:
-> 
-> Cpu 1: nft list ruleset
-> Cpu 2: nft reset ruleset
-> Cpu 3: transaction, seq is bumped
-> 
-> AFAIU Cpu2 will restart dump due to interrupt, so the listing
-> will be consistent but will, on retry -- show counters zeroed
-> in previous, inconsitent and suppressed dump.
->
-> So I think the reset logic should be reworked to walk the rules
-> and use the transaction infra to reset everything manually.
-> I think we can optimize by letting userspace skip rules that
-> lack a stateful object that cannot be reset.
-> 
-> I don't think the dump paths were ever designed to munge existing
-> data.  For those parts that provide full/consistent serialization,
-> e.g. single rule is fetched, its fine.
-> 
-> But whenever we may yield in between successive partial dumps, its not.
+> Until someone passes a too large number, and it becomes truncated...
 
-Yes, netlink dumps do not provide atomic listing semantics, that is
-why there is the generation ID from userspace. I am trying to think of
-a way to achieve this from the kernel but I did not come with any so
-far.
+That should not happen because it is checked by the kernel (for this
+specific case), but let's make it simple and print the 64-bit value.
 
-From userspace, it should be possible to keep a generation ID per
-object in the cache, so the cache becomes a collection of objects of
-different generations, then when listing, just take the objects that
-are still current. Or it should be possible to disambiguate this from
-userspace with the u64 handle, ie. keep stale objects around and merge
-them to new ones when fetching the counters.
-
-But this is lots of work from userspace, and it might get more
-complicated if more transactions happen while retrying (see test
-script from Phil where transaction happens in an infinite loop).
-
-This is the other open issue we have been discussing lately :)
-
-> > For counters, this is to collect stats while leaving remaining things
-> > as is. Refreshing timers make no sense to me.
 > 
-> Looking at the history, I agree... for something like "reset counters"
-> its clear what should happen.
+> Gr{oetje,eeting}s,
 > 
-> > For quota, this is to fetch the consumed quota and restart it, it
-> > might make sense to refresh the timer, but transaction sounds like a
-> > better path for this usecase?
+>                         Geert
 > 
-> See above, I agree.
+> -- 
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
