@@ -2,60 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78941E7C4C3
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:32:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90474E936E7
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 21:30:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242817AbjJDOcg (ORCPT
+        id S243933AbjJDVad (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 10:32:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
+        Wed, 4 Oct 2023 17:30:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233466AbjJDOcg (ORCPT
+        with ESMTP id S243954AbjJDVac (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 10:32:36 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDB01C1
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 07:32:31 -0700 (PDT)
-Received: from [78.30.34.192] (port=57658 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qo2vL-00Bk5r-LK; Wed, 04 Oct 2023 16:32:29 +0200
-Date:   Wed, 4 Oct 2023 16:32:26 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
- resetting element
-Message-ID: <ZR13ejv1iBzrzEor@calendula>
-References: <ZRxNnYWrsw0VXBNn@calendula>
- <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
- <ZRxXXr5H0grbSb9j@calendula>
- <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
- <ZR0b693BiY6KzD3k@calendula>
- <20231004080702.GD15013@breakpoint.cc>
- <ZR0hFIIqdTixdPi4@calendula>
- <20231004084623.GA9350@breakpoint.cc>
- <ZR0v54xJwllozQhR@calendula>
- <20231004124845.GA3974@breakpoint.cc>
+        Wed, 4 Oct 2023 17:30:32 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEA6790
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 14:30:28 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 884B8C433C7;
+        Wed,  4 Oct 2023 21:30:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696455028;
+        bh=PKLIN1crRYWBJUMODHzc6hZBbUNq1h2NBIRSnzC7bJs=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=GjqKOdwCcYFOic9T6ObXXaxJHd5PBYZfVoSP0Kc56c4+gPgjWxVCLTxFEYtZ3xZ0+
+         LZ0bttA73tD9pMQHPR9JcUzzK3s1LENteP4OXHXhyeIJdLMgrdu1U6EO2IXfWtSWY/
+         CJLrAjnTxSEH3Er2uKj7TNMIfijr5IQUzmJkkMD29P9oN/65o5ZN9Zqf/0IJ9nUnYb
+         lhZtfWMBbda2eIuNyF2UxOZz00V/NusyIhtPlx1y6LZYIg/LJe0J6kgNiCSyQuLwTT
+         vVc9lw7SmB0NFLjVVh5Zllf0VZecQyRkz8NPtLdUsROU/COlmEpX0u8AEvSlEZqvgy
+         1HRYg+lvup03w==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 72689E632D6;
+        Wed,  4 Oct 2023 21:30:28 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20231004124845.GA3974@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/4] netfilter: nf_nat: undo erroneous tcp edemux
+ lookup after port clash
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <169645502846.6604.14166144214217944082.git-patchwork-notify@kernel.org>
+Date:   Wed, 04 Oct 2023 21:30:28 +0000
+References: <20230928144916.18339-2-fw@strlen.de>
+In-Reply-To: <20230928144916.18339-2-fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org,
+        netfilter-devel@vger.kernel.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 04, 2023 at 02:48:45PM +0200, Florian Westphal wrote:
-> I also think we need to find a different strategy for the
-> dump-and-reset part when the reset could be interrupted
-> by a transaction.
+Hello:
 
-I think it should be possible to deal with this from userspace.
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-The idea would be to keep the old cache. Then, from the new cache, if
-EINTR happened before, iterate over the list of objects in the new
-cache and then lookup for the old objects, then pour the stats from
-the old to the new objects, then release old cache. Then only one old
-cache is kept around in worst case. This needs a lookup function for
-each stateful object type on the old cache based on the handle.
+On Thu, 28 Sep 2023 16:48:58 +0200 you wrote:
+> In commit 03a3ca37e4c6 ("netfilter: nf_nat: undo erroneous tcp edemux lookup")
+> I fixed a problem with source port clash resolution and DNAT.
+> 
+> A very similar issue exists with REDIRECT (DNAT to local address) and
+> port rewrites.
+> 
+> Consider two port redirections done at prerouting hook:
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,1/4] netfilter: nf_nat: undo erroneous tcp edemux lookup after port clash
+    https://git.kernel.org/netdev/net-next/c/e27c3295114b
+  - [net-next,2/4] selftests: netfilter: test nat source port clash resolution interaction with tcp early demux
+    https://git.kernel.org/netdev/net-next/c/117e149e26d1
+  - [net-next,3/4] netfilter: nf_tables: missing extended netlink error in lookup functions
+    https://git.kernel.org/netdev/net-next/c/aee1f692bfed
+  - [net-next,4/4] netfilter: nf_tables: Utilize NLA_POLICY_NESTED_ARRAY
+    https://git.kernel.org/netdev/net-next/c/013714bf3e12
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
