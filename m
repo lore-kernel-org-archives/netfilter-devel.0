@@ -2,148 +2,174 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3268E8FDC0
-	for <netfilter-devel@archiver.kernel.org>; Tue,  3 Oct 2023 23:35:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECD5E8FDD9
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 08:02:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236153AbjJCXgA (ORCPT
+        id S241105AbjJDICC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 3 Oct 2023 19:36:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59106 "EHLO
+        Wed, 4 Oct 2023 04:02:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236259AbjJCXf7 (ORCPT
+        with ESMTP id S232790AbjJDICB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Oct 2023 19:35:59 -0400
-Received: from omta38.uswest2.a.cloudfilter.net (omta38.uswest2.a.cloudfilter.net [35.89.44.37])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE6CBAF
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Oct 2023 16:35:52 -0700 (PDT)
-Received: from eig-obgw-5010a.ext.cloudfilter.net ([10.0.29.199])
-        by cmsmtp with ESMTP
-        id nmSgqoY0rytxcnovgqJRtv; Tue, 03 Oct 2023 23:35:52 +0000
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with ESMTPS
-        id novfq94Sf3s6Tnovfq4Mkr; Tue, 03 Oct 2023 23:35:51 +0000
-X-Authority-Analysis: v=2.4 cv=EoDBEAQA c=1 sm=1 tr=0 ts=651ca557
- a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=Dx1Zrv+1i3YEdDUMOX3koA==:17
- a=OWjo9vPv0XrRhIrVQ50Ab3nP57M=:19 a=dLZJa+xiwSxG16/P+YVxDGlgEgI=:19
- a=IkcTkHD0fZMA:10 a=bhdUkHdE2iEA:10 a=wYkD_t78qR0A:10 a=3HDBlxybAAAA:8
- a=J1Y8HTJGAAAA:8 a=1XWaLZrsAAAA:8 a=VwQbUJbxAAAA:8 a=20KFwNOVAAAA:8
- a=NEAV23lmAAAA:8 a=cm27Pg_UAAAA:8 a=YSKGN3ub9cUXa_79IdMA:9 a=QEXdDO2ut3YA:10
- a=laEoCiVfU_Unz3mSdgXN:22 a=y1Q9-5lHfBjTkpIzbSAN:22 a=AjGcO6oz07-iQ99wixmX:22
- a=xmb-EsYY8bH0VWELuYED:22
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=N8OoUqclecjSXuxsX++R1XQqudAlWxTs4LvafvsnyYw=; b=WcJGOnjCVOyzuv9c3Ui2vkOssc
-        cNZs0wcj6FgTs47K8Hh6JBgDm3cRQqhPXlu2ngGn2aou6wyFP605cLlsPUbqQkwia2Q5X3Z/uYC2O
-        pwZZhCwuElQVgs4dOzYiL06jQ+FkSsi8S3+2WTevWTTfD1xpgFRG3QBrA94yLGYa6/1d8y0cMqMBn
-        i8DK17m4q2F9Pnajk7QcWgbTfB+e5ELusECASs6VM8H6XiH6qHRpAP62RFrK+o8Q9dh1754DB4+7O
-        4Gg1M6Rung+sfKv9elzHLRlG8EOoDwlYir6qDlVbx6CmZVm4XH+TiVt2NpaEqUHsQJCO5u6E+M0gN
-        qc5f5e9g==;
-Received: from 94-238-9-39.abo.bbox.fr ([94.238.9.39]:36624 helo=[192.168.1.98])
-        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.96)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1qnove-001QlU-0b;
-        Tue, 03 Oct 2023 18:35:50 -0500
-Message-ID: <a1be01f4-3e39-a42a-3112-5bcf728ccd0c@embeddedor.com>
-Date:   Wed, 4 Oct 2023 01:35:43 +0200
+        Wed, 4 Oct 2023 04:02:01 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22D21A7
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 01:01:56 -0700 (PDT)
+Received: from [78.30.34.192] (port=43110 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qnwpI-009iy1-QC; Wed, 04 Oct 2023 10:01:53 +0200
+Date:   Wed, 4 Oct 2023 10:01:47 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
+ resetting element
+Message-ID: <ZR0b693BiY6KzD3k@calendula>
+References: <ZRsGslT23xzSsbgd@orbyte.nwl.cc>
+ <ZRs7H7C/Xr7dbRc7@calendula>
+ <ZRtBkeP9TYJ10Nrm@calendula>
+ <ZRtKbZmqr4uZRT9Y@orbyte.nwl.cc>
+ <ZRvG5vesKHRyUvzx@calendula>
+ <ZRw6B+28jT/uJxJP@orbyte.nwl.cc>
+ <ZRxNnYWrsw0VXBNn@calendula>
+ <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
+ <ZRxXXr5H0grbSb9j@calendula>
+ <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.1
-Subject: Re: [PATCH] netfilter: nf_tables: Annotate struct nft_pipapo_match
- with __counted_by
-Content-Language: en-US
-To:     Kees Cook <keescook@chromium.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>, linux-kernel@vger.kernel.org,
-        linux-hardening@vger.kernel.org, llvm@lists.linux.dev
-References: <20231003231750.work.190-kees@kernel.org>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-In-Reply-To: <20231003231750.work.190-kees@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 94.238.9.39
-X-Source-L: No
-X-Exim-ID: 1qnove-001QlU-0b
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: 94-238-9-39.abo.bbox.fr ([192.168.1.98]) [94.238.9.39]:36624
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 59
-X-Org:  HG=hgshared;ORG=hostgator;
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
-X-CMAE-Envelope: MS4xfKcm3fl2rVbc094eYYuoCjGpACEuNL94AHev2B4xmufs3U+0GcF6BHY3T+ma/pf/28dqDZEtkogb2GUCr8f+Wd9uFGUXlNXzopZESmajTtt6PmHntQdH
- 20YYA5wV0SRQEpSvPCo6XQSnyTljE1nf+Mblhm8gRckdDxTm3nmeJerF2PZSswvUeF2fR/d0zHnPIL2XZHbF6oY2OHoUPjCKVMoPxv4g5YjLaKdKnusagN5g
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-
-
-On 10/4/23 01:17, Kees Cook wrote:
-> Prepare for the coming implementation by GCC and Clang of the __counted_by
-> attribute. Flexible array members annotated with __counted_by can have
-> their accesses bounds-checked at run-time via CONFIG_UBSAN_BOUNDS (for
-> array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
-> functions).
+On Tue, Oct 03, 2023 at 10:12:18PM +0200, Phil Sutter wrote:
+> On Tue, Oct 03, 2023 at 08:03:10PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Oct 03, 2023 at 07:52:31PM +0200, Phil Sutter wrote:
+> > > On Tue, Oct 03, 2023 at 07:21:33PM +0200, Pablo Neira Ayuso wrote:
+> > > > On Tue, Oct 03, 2023 at 05:57:59PM +0200, Phil Sutter wrote:
+> > > > > On Tue, Oct 03, 2023 at 09:46:46AM +0200, Pablo Neira Ayuso wrote:
+> > > > > > On Tue, Oct 03, 2023 at 12:55:41AM +0200, Phil Sutter wrote:
+> > > > > > > On Tue, Oct 03, 2023 at 12:17:53AM +0200, Pablo Neira Ayuso wrote:
+> > > > > > > > On Mon, Oct 02, 2023 at 11:50:25PM +0200, Pablo Neira Ayuso wrote:
+> > > > > > > > > On Mon, Oct 02, 2023 at 08:06:42PM +0200, Phil Sutter wrote:
+> > > > > > > > > > On Mon, Oct 02, 2023 at 11:05:16AM +0200, Pablo Neira Ayuso wrote:
+> > > > > > > > > > > The dump and reset command should not refresh the timeout, this command
+> > > > > > > > > > > is intended to allow users to list existing stateful objects and reset
+> > > > > > > > > > > them, element expiration should be refresh via transaction instead with
+> > > > > > > > > > > a specific command to achieve this, otherwise this is entering combo
+> > > > > > > > > > > semantics that will be hard to be undone later (eg. a user asking to
+> > > > > > > > > > > retrieve counters but _not_ requiring to refresh expiration).
+> > > > > > > > > > 
+> > > > > > > > > > From a users' perspective, what is special about the element expires
+> > > > > > > > > > value disqualifying it from being reset along with any counter/quota
+> > > > > > > > > > values?
+> > > > > > > > > >
+> > > > > > > > > > Do you have a PoC for set element reset via transaction yet? Can we
+> > > > > > > > > > integrate non-timeout resets with it, too? Because IIUC, that's an
+> > > > > > > > > > alternative to the pending reset locking.
+> > > > > > > > > 
+> > > > > > > > > Problem is listing is not supported from transaction path, this is
+> > > > > > > > > using existing netlink dump infrastructure which runs lockless via
+> > > > > > > > > rcu. So we could support reset, but we could not use netlink dump
+> > > > > > > > > semantics to fetch the values, and user likely wants this to
+> > > > > > > > > fetch-and-reset as in ctnetlink.
+> > > > > > > > 
+> > > > > > > > Well, with NLM_F_ECHO, it should be possible to explore reset under
+> > > > > > > > commit_mutex, but is it really worth the effort?
+> > > > > > > 
+> > > > > > > I don't understand. Wasn't it your proposal to move things into the
+> > > > > > > transaction? Above you write: "element expiration should be refresh via
+> > > > > > > transaction instead". I asked what is special about timeout, why not
+> > > > > > > handle all element state reset the same way?
+> > > > > > > 
+> > > > > > > > With two concurrent threads, we just want to ensure that no invalid
+> > > > > > > > state shows in the listing (you mentioned it is possible to list
+> > > > > > > > negative values with two threads listing-and-resetting at the same
+> > > > > > > > time).
+> > > > > > > 
+> > > > > > > It's not just in the listing, the actual values underrun. A quota e.g.
+> > > > > > > will immediately deny.
+> > > > > > > 
+> > > > > > > > I think we should just make sure something valid is included in the
+> > > > > > > > listing, but as for the two threads performing list-and-reset, why
+> > > > > > > > ensure strict serialization?
+> > > > > > > 
+> > > > > > > I seem to lack context here. Is there an alternative to "strict"
+> > > > > > > serializing? Expressions' dump+reset callbacks must not run multiple
+> > > > > > > times at the same time for the same expression. At least not how they
+> > > > > > > are currently implemented.
+> > > > > > > 
+> > > > > > > > This is a rare operation to fetch statistics, most likely having a
+> > > > > > > > single process performing this in place? So we are currently
+> > > > > > > > discussing how to fix the (negative) non-sense in the listing.
+> > > > > > > > 
+> > > > > > > > > > What we have now is a broad 'reset element', not specifying what to
+> > > > > > > > > > reset. If the above is a feature being asked for, I'd rather implement
+> > > > > > > > > > 'reset element counter', 'reset element timeout', 'reset element quota',
+> > > > > > > > > > etc. commands.
+> > > > > > > > > 
+> > > > > > > > > We are currently discussing how to implement refresh timeout into the
+> > > > > > > > > transaction model.
+> > > > > > > > > 
+> > > > > > > > > I would suggest we keep this chunk away by now for the _RESET command,
+> > > > > > > > > until we agree on next steps.
+> > > > > > > 
+> > > > > > > I would suggest to leave things as-is until there's hard evidence why it
+> > > > > > > has to change now or there is a viable alternative implementation.
+> > > > > > 
+> > > > > > Leave things as is means we will have this implicit refresh in the
+> > > > > > element refresh. We have no such semantics in conntrack, for example,
+> > > > > > and conntrack can be seen as a hardcoded set with a fixed number of
+> > > > > > tuples.
+> > > > > 
+> > > > > It's just as implicit as counter or quota reset. I define "reset
+> > > > > element" command as "reset any state in given element", so from my
+> > > > > perspective it makes perfectly sense to reset the timeout as well.
+> > > > 
+> > > > The timer is usually updated from the packet path. We are now planning
+> > > > to support for refreshing the timer from control plane which is not
+> > > > supported.
+> > > 
+> > > This implies that people create dynamic sets and then use reset command
+> > > on the temporary elements. I would assume one either lets packet path
+> > > "maintain" elements or control path but not both.
+> > > 
+> > > > Note it is possible to set custom timeouts in elements too, for
+> > > > example:
+> > > > 
+> > > >         # nft add element x y { 1.2.3.4 expires 50s }
+> > > 
+> > > I assumed this is for dump'n'restore purposes. If you set a custom
+> > > *timeout* when adding a set, the current reset code respects that.
+> > 
+> > This could be an exception, ie. a specific timeout for a given
+> > element, I am afraid there are more usecases that just a
+> > dump'n'restore. User is really free to add specific timeouts for the
+> > sets it adds. The default set timeout only applies if user does not
+> > specify a timeout for new elements.
 > 
-> As found with Coccinelle[1], add __counted_by for struct nft_pipapo_match.
+> Yes, and if a user chooses a custom timeout like so:
 > 
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Cc: Florian Westphal <fw@strlen.de>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Eric Dumazet <edumazet@google.com>
-> Cc: Jakub Kicinski <kuba@kernel.org>
-> Cc: Paolo Abeni <pabeni@redhat.com>
-> Cc: netfilter-devel@vger.kernel.org
-> Cc: coreteam@netfilter.org
-> Cc: netdev@vger.kernel.org
-> Link: https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci [1]
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-
-Thanks
---
-Gustavo
-
-> ---
->   net/netfilter/nft_set_pipapo.h | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> | nft add element x y { 1.2.3.4 timeout 50s }
 > 
-> diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
-> index 25a75591583e..2e164a319945 100644
-> --- a/net/netfilter/nft_set_pipapo.h
-> +++ b/net/netfilter/nft_set_pipapo.h
-> @@ -147,7 +147,7 @@ struct nft_pipapo_match {
->   	unsigned long * __percpu *scratch;
->   	size_t bsize_max;
->   	struct rcu_head rcu;
-> -	struct nft_pipapo_field f[];
-> +	struct nft_pipapo_field f[] __counted_by(field_count);
->   };
->   
->   /**
+> the element will timeout in 50s and reset command will reset expires
+> value to 50s not the set's default. Adding an element with a defined
+> expires value makes it expire within that time but the set's timeout
+> value applies.
+
+That is correct.
+
+> Or am I missing a use-case requiring to use expires instead of timeout?
+
+You are correct.
+
+We will soon need NFT_MSG_GETRULE_RESET_NO_TIMEOUT to undo this combo
+command semantics, from userspace this will require some sort of 'nft
+reset table x notimeout' syntax.
+
+I really don't understand why you consider a timer is a stateful
+property, ctnetlink does not reset timeouts when you list-and-reset
+counters, I do not see why you have to do this with set elements.
