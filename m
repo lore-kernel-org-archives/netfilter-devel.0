@@ -2,112 +2,63 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9F2DE7B5EE
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 11:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55C71E7B5EE
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 11:13:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242127AbjJDLEY (ORCPT
+        id S242231AbjJDLNL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 07:04:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41878 "EHLO
+        Wed, 4 Oct 2023 07:13:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233140AbjJDLCU (ORCPT
+        with ESMTP id S242227AbjJDLNK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 07:02:20 -0400
-Received: from smtp-bc0c.mail.infomaniak.ch (smtp-bc0c.mail.infomaniak.ch [45.157.188.12])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA7BDDD
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 04:02:16 -0700 (PDT)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4S0sGG5VqQzMqBgl;
-        Wed,  4 Oct 2023 11:02:14 +0000 (UTC)
-Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4S0sGD2t0SzMppKM;
-        Wed,  4 Oct 2023 13:02:12 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1696417334;
-        bh=ykMu7wUYzgFvuDZ0CG84JZTWl5H2yiOE35Ezb8Q8IBQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=aGm6yXkxSlt7Dsy/LA1bJBD9HJ16gTSzg2aXKERwe1o0CJGBcfVv6Qe6CMp6Addnm
-         pw5b8tVBCrsxyutWFQjlfsrb1Oe26L2qfjjQkp+NM7iZ/rFM5dRy71KkNEZkyd5TYJ
-         sBuVUTjM5z0l9lqBJZNnSVZDjICADSuVibhMC+JE=
-Date:   Wed, 4 Oct 2023 13:02:15 +0200
-From:   =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        Konstantin Meskhidze <konstantin.meskhidze@huawei.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-next <linux-next@vger.kernel.org>,
-        Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
-        gnoack3000@gmail.com, linux-security-module@vger.kernel.org,
-        Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        yusongping@huawei.com, artem.kuzin@huawei.com,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: linux-next: build warning after merge of the landlock tree
-Message-ID: <20231004.ieZ2eekae5Ch@digikod.net>
-References: <20231003.ahPha5bengee@digikod.net>
- <0174c612-ed97-44f3-bec5-1f512f135d21@app.fastmail.com>
+        Wed, 4 Oct 2023 07:13:10 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 60141EA
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 04:13:05 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf] netfilter: nf_tables: do not remove elements if set backend implements .abort
+Date:   Wed,  4 Oct 2023 13:12:58 +0200
+Message-Id: <20231004111258.6732-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <0174c612-ed97-44f3-bec5-1f512f135d21@app.fastmail.com>
-X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 03, 2023 at 03:40:23PM +0200, Arnd Bergmann wrote:
-> On Tue, Oct 3, 2023, at 15:15, Mickaël Salaün wrote:
-> > PowerPC-64 follows the LP64 data model and then uses int-l64.h (instead of
-> > int-ll64.h like most architectures) for user space code.
-> >
-> > Here is the same code with the (suggested) "%lu" token on x86_86:
-> >
-> >   samples/landlock/sandboxer.c: In function ‘populate_ruleset_net’:
-> >   samples/landlock/sandboxer.c:170:77: error: format ‘%lu’ expects 
-> > argument of type ‘long unsigned int’, but argument 3 has type ‘__u64’ 
-> > {aka ‘long long unsigned int’} [-Werror=format=]
-> >     170 |                                 "Failed to update the ruleset 
-> > with port \"%lu\": %s\n",
-> >         |                                                               
-> >             ~~^
-> >         |                                                               
-> >               |
-> >         |                                                               
-> >               long unsigned int
-> >         |                                                               
-> >             %llu
-> >     171 |                                 net_port.port, 
-> > strerror(errno));
-> >         |                                 ~~~~~~~~~~~~~
-> >         |                                         |
-> >         |                                         __u64 {aka long long 
-> > unsigned int}
-> >
-> >
-> > We would then need to cast __u64 to unsigned long long to avoid this warning,
-> > which may look useless, of even buggy, for people taking a look at this sample.
-> >
-> > Anyway, it makes more sense to cast it to __u16 because it is the
-> > expected type for a TCP port. I'm updating the patch with that.
-> > Konstantin, please take this fix for the next series:
-> > https://git.kernel.org/mic/c/fc9de206a61a
-> >
-> >
-> > On Tue, Oct 03, 2023 at 02:27:37PM +1100, Stephen Rothwell wrote:
-> >> Hi all,
-> >> 
-> >> After merging the landlock tree, today's linux-next build (powerpc
-> >> allyesconfig) produced this warning:
-> >> 
-> >> samples/landlock/sandboxer.c: In function 'populate_ruleset_net':
-> >> samples/landlock/sandboxer.c:170:78: warning: format '%llu' expects argument of type 'long long unsigned int', but argument 3 has type '__u64' {aka 'long unsigned int'} [-Wformat=]
-> >>   170 |                                 "Failed to update the ruleset with port \"%llu\": %s\n"
-> 
-> I think defining the __SANE_USERSPACE_TYPES__ macro should take care of this,
-> then __u64 has the same type as it does in the kernel.
+pipapo set backend maintains two copies of the datastructure, removing
+the elements from the copy that is going to be discarded slows down
+the abort path significantly, from several minutes to few seconds after
+this patch.
 
-Thanks! I didn't know about this macro. We'll use that and print the
-full 64-bit value.
+Fixes: 212ed75dc5fb ("netfilter: nf_tables: integrate pipapo into commit protocol")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+no crash, but very slow nft --check when adding a lot of elements in a batch.
+Feel free to route to nf-next if you prefer slow path.
 
-> 
->         Arnd
+ net/netfilter/nf_tables_api.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4356189360fb..3bb5ea5d4eed 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -10335,7 +10335,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 				break;
+ 			}
+ 			te = (struct nft_trans_elem *)trans->data;
+-			nft_setelem_remove(net, te->set, &te->elem);
++			if (!te->set->ops->abort ||
++			    nft_setelem_is_catchall(te->set, &te->elem))
++				nft_setelem_remove(net, te->set, &te->elem);
++
+ 			if (!nft_setelem_is_catchall(te->set, &te->elem))
+ 				atomic_dec(&te->set->nelems);
+ 
+-- 
+2.30.2
+
