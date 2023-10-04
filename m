@@ -2,210 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03FBAE75455
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78941E7C4C3
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242855AbjJDOOl (ORCPT
+        id S242817AbjJDOcg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 10:14:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44282 "EHLO
+        Wed, 4 Oct 2023 10:32:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242862AbjJDOOl (ORCPT
+        with ESMTP id S233466AbjJDOcg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 10:14:41 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8751FAD;
-        Wed,  4 Oct 2023 07:14:37 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qo2e1-0002NP-Lz; Wed, 04 Oct 2023 16:14:33 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>
-Subject: [PATCH net 6/6] netfilter: nf_tables: nft_set_rbtree: fix spurious insertion failure
-Date:   Wed,  4 Oct 2023 16:13:50 +0200
-Message-ID: <20231004141405.28749-7-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20231004141405.28749-1-fw@strlen.de>
-References: <20231004141405.28749-1-fw@strlen.de>
+        Wed, 4 Oct 2023 10:32:36 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDB01C1
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 07:32:31 -0700 (PDT)
+Received: from [78.30.34.192] (port=57658 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qo2vL-00Bk5r-LK; Wed, 04 Oct 2023 16:32:29 +0200
+Date:   Wed, 4 Oct 2023 16:32:26 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
+ resetting element
+Message-ID: <ZR13ejv1iBzrzEor@calendula>
+References: <ZRxNnYWrsw0VXBNn@calendula>
+ <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
+ <ZRxXXr5H0grbSb9j@calendula>
+ <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
+ <ZR0b693BiY6KzD3k@calendula>
+ <20231004080702.GD15013@breakpoint.cc>
+ <ZR0hFIIqdTixdPi4@calendula>
+ <20231004084623.GA9350@breakpoint.cc>
+ <ZR0v54xJwllozQhR@calendula>
+ <20231004124845.GA3974@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231004124845.GA3974@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-nft_rbtree_gc_elem() walks back and removes the end interval element that
-comes before the expired element.
+On Wed, Oct 04, 2023 at 02:48:45PM +0200, Florian Westphal wrote:
+> I also think we need to find a different strategy for the
+> dump-and-reset part when the reset could be interrupted
+> by a transaction.
 
-There is a small chance that we've cached this element as 'rbe_ge'.
-If this happens, we hold and test a pointer that has been queued for
-freeing.
+I think it should be possible to deal with this from userspace.
 
-It also causes spurious insertion failures:
-
-$ cat test-testcases-sets-0044interval_overlap_0.1/testout.log
-Error: Could not process rule: File exists
-add element t s {  0 -  2 }
-                   ^^^^^^
-Failed to insert  0 -  2 given:
-table ip t {
-        set s {
-                type inet_service
-                flags interval,timeout
-                timeout 2s
-                gc-interval 2s
-        }
-}
-
-The set (rbtree) is empty. The 'failure' doesn't happen on next attempt.
-
-Reason is that when we try to insert, the tree may hold an expired
-element that collides with the range we're adding.
-While we do evict/erase this element, we can trip over this check:
-
-if (rbe_ge && nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
-      return -ENOTEMPTY;
-
-rbe_ge was erased by the synchronous gc, we should not have done this
-check.  Next attempt won't find it, so retry results in successful
-insertion.
-
-Restart in-kernel to avoid such spurious errors.
-
-Such restart are rare, unless userspace intentionally adds very large
-numbers of elements with very short timeouts while setting a huge
-gc interval.
-
-Even in this case, this cannot loop forever, on each retry an existing
-element has been removed.
-
-As the caller is holding the transaction mutex, its impossible
-for a second entity to add more expiring elements to the tree.
-
-After this it also becomes feasible to remove the async gc worker
-and perform all garbage collection from the commit path.
-
-Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_rbtree.c | 46 +++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 17 deletions(-)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 487572dcd614..2660ceab3759 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -233,10 +233,9 @@ static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
- 	rb_erase(&rbe->node, &priv->root);
- }
- 
--static int nft_rbtree_gc_elem(const struct nft_set *__set,
--			      struct nft_rbtree *priv,
--			      struct nft_rbtree_elem *rbe,
--			      u8 genmask)
-+static const struct nft_rbtree_elem *
-+nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
-+		   struct nft_rbtree_elem *rbe, u8 genmask)
- {
- 	struct nft_set *set = (struct nft_set *)__set;
- 	struct rb_node *prev = rb_prev(&rbe->node);
-@@ -246,7 +245,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 
- 	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
- 	if (!gc)
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	/* search for end interval coming before this element.
- 	 * end intervals don't carry a timeout extension, they
-@@ -261,6 +260,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 		prev = rb_prev(prev);
- 	}
- 
-+	rbe_prev = NULL;
- 	if (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
- 		nft_rbtree_gc_remove(net, set, priv, rbe_prev);
-@@ -272,7 +272,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 		 */
- 		gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
- 		if (WARN_ON_ONCE(!gc))
--			return -ENOMEM;
-+			return ERR_PTR(-ENOMEM);
- 
- 		nft_trans_gc_elem_add(gc, rbe_prev);
- 	}
-@@ -280,13 +280,13 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
- 	nft_rbtree_gc_remove(net, set, priv, rbe);
- 	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
- 	if (WARN_ON_ONCE(!gc))
--		return -ENOMEM;
-+		return ERR_PTR(-ENOMEM);
- 
- 	nft_trans_gc_elem_add(gc, rbe);
- 
- 	nft_trans_gc_queue_sync_done(gc);
- 
--	return 0;
-+	return rbe_prev;
- }
- 
- static bool nft_rbtree_update_first(const struct nft_set *set,
-@@ -314,7 +314,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 cur_genmask = nft_genmask_cur(net);
- 	u8 genmask = nft_genmask_next(net);
--	int d, err;
-+	int d;
- 
- 	/* Descend the tree to search for an existing element greater than the
- 	 * key value to insert that is greater than the new element. This is the
-@@ -363,9 +363,14 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		 */
- 		if (nft_set_elem_expired(&rbe->ext) &&
- 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
--			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
--			if (err < 0)
--				return err;
-+			const struct nft_rbtree_elem *removed_end;
-+
-+			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
-+			if (IS_ERR(removed_end))
-+				return PTR_ERR(removed_end);
-+
-+			if (removed_end == rbe_le || removed_end == rbe_ge)
-+				return -EAGAIN;
- 
- 			continue;
- 		}
-@@ -486,11 +491,18 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	struct nft_rbtree_elem *rbe = elem->priv;
- 	int err;
- 
--	write_lock_bh(&priv->lock);
--	write_seqcount_begin(&priv->count);
--	err = __nft_rbtree_insert(net, set, rbe, ext);
--	write_seqcount_end(&priv->count);
--	write_unlock_bh(&priv->lock);
-+	do {
-+		if (fatal_signal_pending(current))
-+			return -EINTR;
-+
-+		cond_resched();
-+
-+		write_lock_bh(&priv->lock);
-+		write_seqcount_begin(&priv->count);
-+		err = __nft_rbtree_insert(net, set, rbe, ext);
-+		write_seqcount_end(&priv->count);
-+		write_unlock_bh(&priv->lock);
-+	} while (err == -EAGAIN);
- 
- 	return err;
- }
--- 
-2.41.0
-
+The idea would be to keep the old cache. Then, from the new cache, if
+EINTR happened before, iterate over the list of objects in the new
+cache and then lookup for the old objects, then pour the stats from
+the old to the new objects, then release old cache. Then only one old
+cache is kept around in worst case. This needs a lookup function for
+each stateful object type on the old cache based on the handle.
