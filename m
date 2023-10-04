@@ -2,35 +2,33 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 325E2E7B61B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03FBAE75455
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242863AbjJDOOi (ORCPT
+        id S242855AbjJDOOl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 10:14:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58508 "EHLO
+        Wed, 4 Oct 2023 10:14:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242860AbjJDOOh (ORCPT
+        with ESMTP id S242862AbjJDOOl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 10:14:37 -0400
+        Wed, 4 Oct 2023 10:14:41 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A20DC9;
-        Wed,  4 Oct 2023 07:14:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8751FAD;
+        Wed,  4 Oct 2023 07:14:37 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qo2dx-0002Mw-Jg; Wed, 04 Oct 2023 16:14:29 +0200
+        id 1qo2e1-0002NP-Lz; Wed, 04 Oct 2023 16:14:33 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>, Phil Sutter <phil@nwl.cc>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Paul Moore <paul@paul-moore.com>
-Subject: [PATCH net 5/6] netfilter: nf_tables: Deduplicate nft_register_obj audit logs
-Date:   Wed,  4 Oct 2023 16:13:49 +0200
-Message-ID: <20231004141405.28749-6-fw@strlen.de>
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH net 6/6] netfilter: nf_tables: nft_set_rbtree: fix spurious insertion failure
+Date:   Wed,  4 Oct 2023 16:13:50 +0200
+Message-ID: <20231004141405.28749-7-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231004141405.28749-1-fw@strlen.de>
 References: <20231004141405.28749-1-fw@strlen.de>
@@ -40,125 +38,174 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+nft_rbtree_gc_elem() walks back and removes the end interval element that
+comes before the expired element.
 
-When adding/updating an object, the transaction handler emits suitable
-audit log entries already, the one in nft_obj_notify() is redundant. To
-fix that (and retain the audit logging from objects' 'update' callback),
-Introduce an "audit log free" variant for internal use.
+There is a small chance that we've cached this element as 'rbe_ge'.
+If this happens, we hold and test a pointer that has been queued for
+freeing.
 
-Fixes: c520292f29b8 ("audit: log nftables configuration change events once per table")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Reviewed-by: Richard Guy Briggs <rgb@redhat.com>
-Acked-by: Paul Moore <paul@paul-moore.com> (Audit)
+It also causes spurious insertion failures:
+
+$ cat test-testcases-sets-0044interval_overlap_0.1/testout.log
+Error: Could not process rule: File exists
+add element t s {  0 -  2 }
+                   ^^^^^^
+Failed to insert  0 -  2 given:
+table ip t {
+        set s {
+                type inet_service
+                flags interval,timeout
+                timeout 2s
+                gc-interval 2s
+        }
+}
+
+The set (rbtree) is empty. The 'failure' doesn't happen on next attempt.
+
+Reason is that when we try to insert, the tree may hold an expired
+element that collides with the range we're adding.
+While we do evict/erase this element, we can trip over this check:
+
+if (rbe_ge && nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
+      return -ENOTEMPTY;
+
+rbe_ge was erased by the synchronous gc, we should not have done this
+check.  Next attempt won't find it, so retry results in successful
+insertion.
+
+Restart in-kernel to avoid such spurious errors.
+
+Such restart are rare, unless userspace intentionally adds very large
+numbers of elements with very short timeouts while setting a huge
+gc interval.
+
+Even in this case, this cannot loop forever, on each retry an existing
+element has been removed.
+
+As the caller is holding the transaction mutex, its impossible
+for a second entity to add more expiring elements to the tree.
+
+After this it also becomes feasible to remove the async gc worker
+and perform all garbage collection from the commit path.
+
+Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c                 | 44 ++++++++++++-------
- .../testing/selftests/netfilter/nft_audit.sh  | 20 +++++++++
- 2 files changed, 48 insertions(+), 16 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 46 +++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 17 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4356189360fb..a72b6aeefb1b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7871,24 +7871,14 @@ static int nf_tables_delobj(struct sk_buff *skb, const struct nfnl_info *info,
- 	return nft_delobj(&ctx, obj);
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 487572dcd614..2660ceab3759 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -233,10 +233,9 @@ static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
+ 	rb_erase(&rbe->node, &priv->root);
  }
  
--void nft_obj_notify(struct net *net, const struct nft_table *table,
--		    struct nft_object *obj, u32 portid, u32 seq, int event,
--		    u16 flags, int family, int report, gfp_t gfp)
-+static void
-+__nft_obj_notify(struct net *net, const struct nft_table *table,
-+		 struct nft_object *obj, u32 portid, u32 seq, int event,
-+		 u16 flags, int family, int report, gfp_t gfp)
+-static int nft_rbtree_gc_elem(const struct nft_set *__set,
+-			      struct nft_rbtree *priv,
+-			      struct nft_rbtree_elem *rbe,
+-			      u8 genmask)
++static const struct nft_rbtree_elem *
++nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
++		   struct nft_rbtree_elem *rbe, u8 genmask)
  {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 	struct sk_buff *skb;
+ 	struct nft_set *set = (struct nft_set *)__set;
+ 	struct rb_node *prev = rb_prev(&rbe->node);
+@@ -246,7 +245,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 
+ 	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
+ 	if (!gc)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	/* search for end interval coming before this element.
+ 	 * end intervals don't carry a timeout extension, they
+@@ -261,6 +260,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 		prev = rb_prev(prev);
+ 	}
+ 
++	rbe_prev = NULL;
+ 	if (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+ 		nft_rbtree_gc_remove(net, set, priv, rbe_prev);
+@@ -272,7 +272,7 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 		 */
+ 		gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
+ 		if (WARN_ON_ONCE(!gc))
+-			return -ENOMEM;
++			return ERR_PTR(-ENOMEM);
+ 
+ 		nft_trans_gc_elem_add(gc, rbe_prev);
+ 	}
+@@ -280,13 +280,13 @@ static int nft_rbtree_gc_elem(const struct nft_set *__set,
+ 	nft_rbtree_gc_remove(net, set, priv, rbe);
+ 	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
+ 	if (WARN_ON_ONCE(!gc))
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	nft_trans_gc_elem_add(gc, rbe);
+ 
+ 	nft_trans_gc_queue_sync_done(gc);
+ 
+-	return 0;
++	return rbe_prev;
+ }
+ 
+ static bool nft_rbtree_update_first(const struct nft_set *set,
+@@ -314,7 +314,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 cur_genmask = nft_genmask_cur(net);
+ 	u8 genmask = nft_genmask_next(net);
+-	int d, err;
++	int d;
+ 
+ 	/* Descend the tree to search for an existing element greater than the
+ 	 * key value to insert that is greater than the new element. This is the
+@@ -363,9 +363,14 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		 */
+ 		if (nft_set_elem_expired(&rbe->ext) &&
+ 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+-			err = nft_rbtree_gc_elem(set, priv, rbe, genmask);
+-			if (err < 0)
+-				return err;
++			const struct nft_rbtree_elem *removed_end;
++
++			removed_end = nft_rbtree_gc_elem(set, priv, rbe, genmask);
++			if (IS_ERR(removed_end))
++				return PTR_ERR(removed_end);
++
++			if (removed_end == rbe_le || removed_end == rbe_ge)
++				return -EAGAIN;
+ 
+ 			continue;
+ 		}
+@@ -486,11 +491,18 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree_elem *rbe = elem->priv;
  	int err;
--	char *buf = kasprintf(gfp, "%s:%u",
--			      table->name, nft_net->base_seq);
--
--	audit_log_nfcfg(buf,
--			family,
--			obj->handle,
--			event == NFT_MSG_NEWOBJ ?
--				 AUDIT_NFT_OP_OBJ_REGISTER :
--				 AUDIT_NFT_OP_OBJ_UNREGISTER,
--			gfp);
--	kfree(buf);
  
- 	if (!report &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
-@@ -7911,13 +7901,35 @@ void nft_obj_notify(struct net *net, const struct nft_table *table,
- err:
- 	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
+-	write_lock_bh(&priv->lock);
+-	write_seqcount_begin(&priv->count);
+-	err = __nft_rbtree_insert(net, set, rbe, ext);
+-	write_seqcount_end(&priv->count);
+-	write_unlock_bh(&priv->lock);
++	do {
++		if (fatal_signal_pending(current))
++			return -EINTR;
++
++		cond_resched();
++
++		write_lock_bh(&priv->lock);
++		write_seqcount_begin(&priv->count);
++		err = __nft_rbtree_insert(net, set, rbe, ext);
++		write_seqcount_end(&priv->count);
++		write_unlock_bh(&priv->lock);
++	} while (err == -EAGAIN);
+ 
+ 	return err;
  }
-+
-+void nft_obj_notify(struct net *net, const struct nft_table *table,
-+		    struct nft_object *obj, u32 portid, u32 seq, int event,
-+		    u16 flags, int family, int report, gfp_t gfp)
-+{
-+	struct nftables_pernet *nft_net = nft_pernet(net);
-+	char *buf = kasprintf(gfp, "%s:%u",
-+			      table->name, nft_net->base_seq);
-+
-+	audit_log_nfcfg(buf,
-+			family,
-+			obj->handle,
-+			event == NFT_MSG_NEWOBJ ?
-+				 AUDIT_NFT_OP_OBJ_REGISTER :
-+				 AUDIT_NFT_OP_OBJ_UNREGISTER,
-+			gfp);
-+	kfree(buf);
-+
-+	__nft_obj_notify(net, table, obj, portid, seq, event,
-+			 flags, family, report, gfp);
-+}
- EXPORT_SYMBOL_GPL(nft_obj_notify);
- 
- static void nf_tables_obj_notify(const struct nft_ctx *ctx,
- 				 struct nft_object *obj, int event)
- {
--	nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid, ctx->seq, event,
--		       ctx->flags, ctx->family, ctx->report, GFP_KERNEL);
-+	__nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid,
-+			 ctx->seq, event, ctx->flags, ctx->family,
-+			 ctx->report, GFP_KERNEL);
- }
- 
- /*
-diff --git a/tools/testing/selftests/netfilter/nft_audit.sh b/tools/testing/selftests/netfilter/nft_audit.sh
-index 0b3255e7b353..bb34329e02a7 100755
---- a/tools/testing/selftests/netfilter/nft_audit.sh
-+++ b/tools/testing/selftests/netfilter/nft_audit.sh
-@@ -85,6 +85,26 @@ do_test "nft add set t1 s2 $setblock; add set t1 s3 { $settype; }" \
- do_test "nft add element t1 s3 $setelem" \
- "table=t1 family=2 entries=3 op=nft_register_setelem"
- 
-+# adding counters
-+
-+do_test 'nft add counter t1 c1' \
-+'table=t1 family=2 entries=1 op=nft_register_obj'
-+
-+do_test 'nft add counter t2 c1; add counter t2 c2' \
-+'table=t2 family=2 entries=2 op=nft_register_obj'
-+
-+# adding/updating quotas
-+
-+do_test 'nft add quota t1 q1 { 10 bytes }' \
-+'table=t1 family=2 entries=1 op=nft_register_obj'
-+
-+do_test 'nft add quota t2 q1 { 10 bytes }; add quota t2 q2 { 10 bytes }' \
-+'table=t2 family=2 entries=2 op=nft_register_obj'
-+
-+# changing the quota value triggers obj update path
-+do_test 'nft add quota t1 q1 { 20 bytes }' \
-+'table=t1 family=2 entries=1 op=nft_register_obj'
-+
- # resetting rules
- 
- do_test 'nft reset rules t1 c2' \
 -- 
 2.41.0
 
