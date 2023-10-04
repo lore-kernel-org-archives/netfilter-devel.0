@@ -2,112 +2,98 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 008B7E7B608
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 12:48:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC23FE7B61E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242501AbjJDMsv (ORCPT
+        id S242857AbjJDOOX (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 08:48:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57454 "EHLO
+        Wed, 4 Oct 2023 10:14:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242482AbjJDMsu (ORCPT
+        with ESMTP id S242854AbjJDOOW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 08:48:50 -0400
+        Wed, 4 Oct 2023 10:14:22 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35541BD
-        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2023 05:48:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A60BC1;
+        Wed,  4 Oct 2023 07:14:18 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qo1Iz-0001qs-3Y; Wed, 04 Oct 2023 14:48:45 +0200
-Date:   Wed, 4 Oct 2023 14:48:45 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qo2dd-0002LF-6Q; Wed, 04 Oct 2023 16:14:09 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
- resetting element
-Message-ID: <20231004124845.GA3974@breakpoint.cc>
-References: <ZRw6B+28jT/uJxJP@orbyte.nwl.cc>
- <ZRxNnYWrsw0VXBNn@calendula>
- <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
- <ZRxXXr5H0grbSb9j@calendula>
- <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
- <ZR0b693BiY6KzD3k@calendula>
- <20231004080702.GD15013@breakpoint.cc>
- <ZR0hFIIqdTixdPi4@calendula>
- <20231004084623.GA9350@breakpoint.cc>
- <ZR0v54xJwllozQhR@calendula>
+To:     <netdev@vger.kernel.org>
+Cc:     Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH net 0/6] netfilter patches for net
+Date:   Wed,  4 Oct 2023 16:13:44 +0200
+Message-ID: <20231004141405.28749-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZR0v54xJwllozQhR@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Oct 04, 2023 at 10:46:23AM +0200, Florian Westphal wrote:
-> > I don't think the dump paths were ever designed to munge existing
-> > data.  For those parts that provide full/consistent serialization,
-> > e.g. single rule is fetched, its fine.
-> > 
-> > But whenever we may yield in between successive partial dumps, its not.
-> 
-> Yes, netlink dumps do not provide atomic listing semantics, that is
-> why there is the generation ID from userspace. I am trying to think of
-> a way to achieve this from the kernel but I did not come with any so
-> far.
->
-> From userspace, it should be possible to keep a generation ID per
-> object in the cache, so the cache becomes a collection of objects of
-> different generations, then when listing, just take the objects that
-> are still current. Or it should be possible to disambiguate this from
-> userspace with the u64 handle, ie. keep stale objects around and merge
-> them to new ones when fetching the counters.
-> 
-> But this is lots of work from userspace, and it might get more
-> complicated if more transactions happen while retrying (see test
-> script from Phil where transaction happens in an infinite loop).
->
-> This is the other open issue we have been discussing lately :)
+Hello,
 
-Right, there is an amalgamation of different issues, lets not get swamped
-trying to solve everything at once :-)
+The following batch contains netfilter fixes and selftests for the *net* tree.
 
-I've collected a few patches and pushed them out to :testing.
-Stresstest is still running but so far it looks good to me.
+First patch resolves a regression with vlan header matching, this was
+broken since 6.5 release.  From myself.
 
-The updated audit selftest passes, as does Xins sctp test case.
+Second patch fixes an ancient problem with sctp connection tracking in
+case INIT_ACK packets are delayed.  This comes with a selftest, both
+patches from Xin Long.
 
-I expect to do the PR in the next few hours or so.
+Patch 4 extends the existing nftables audit selftest, from
+Phil Sutter.
 
-I will followup on nf-next once upstream has pulled the PR
-into net and did a net -> net-next merge, which might take a
-while. Followup as in "send rebased patches that get rid of
-the async gc in nft_set_rbtree".
+Patch 5, also from Phil, avoids a situation where nftables
+would emit an audit record twice. This was broken since 5.13 days.
 
-Let me know if there is anything else I can help
-with.
+Patch 6, from myself, avoids spurious insertion failure if we encounter an
+overlapping but expired range during element insertion with the
+'nft_set_rbtree' backend. This problem exists since 6.2.
 
-Phil, I know all of this sucks from your point of view,
-this is also my fault, I did not pay too close attention
-to the reset patches, and, to be clear, even if I would have
-its likely I would have missed all of the implications
-of reusing the dump infrastructure for this.
+The following changes since commit 51e7a66666e0ca9642c59464ef8359f0ac604d41:
 
-I have not applied Pablos patch to revert the "timeout reset"
-because its relatively fresh compared to the other patches
-in the batch (and the batch is already large enough).
+  ibmveth: Remove condition to recompute TCP header checksum. (2023-10-04 11:19:57 +0100)
 
-But I do agree with having a separate facility for timeout
-resets (timeout updates) would be better.
+are available in the Git repository at:
 
-I also think we need to find a different strategy for the
-dump-and-reset part when the reset could be interrupted
-by a transaction.
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-10-04
 
-ATM userspace would have to add a userspace lock like
-iptables-legacy to prevent any generation id changes while
-a "reset dump" is happening and I hope we can all agree that
-this is something we definitely do not want :-)
+for you to fetch changes up to 087388278e0f301f4c61ddffb1911d3a180f84b8:
+
+  netfilter: nf_tables: nft_set_rbtree: fix spurious insertion failure (2023-10-04 15:57:28 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 2023-10-04
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: nft_payload: rebuild vlan header on h_proto access
+      netfilter: nf_tables: nft_set_rbtree: fix spurious insertion failure
+
+Phil Sutter (2):
+      selftests: netfilter: Extend nft_audit.sh
+      netfilter: nf_tables: Deduplicate nft_register_obj audit logs
+
+Xin Long (2):
+      netfilter: handle the connecting collision properly in nf_conntrack_proto_sctp
+      selftests: netfilter: test for sctp collision processing in nf_conntrack
+
+ include/linux/netfilter/nf_conntrack_sctp.h        |   1 +
+ net/netfilter/nf_conntrack_proto_sctp.c            |  43 ++++++--
+ net/netfilter/nf_tables_api.c                      |  44 +++++---
+ net/netfilter/nft_payload.c                        |  13 ++-
+ net/netfilter/nft_set_rbtree.c                     |  46 +++++---
+ tools/testing/selftests/netfilter/Makefile         |   5 +-
+ .../netfilter/conntrack_sctp_collision.sh          |  89 ++++++++++++++++
+ tools/testing/selftests/netfilter/nft_audit.sh     | 117 ++++++++++++++++++---
+ tools/testing/selftests/netfilter/sctp_collision.c |  99 +++++++++++++++++
+ 9 files changed, 395 insertions(+), 62 deletions(-)
+ create mode 100755 tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
+ create mode 100644 tools/testing/selftests/netfilter/sctp_collision.c
