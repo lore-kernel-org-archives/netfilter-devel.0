@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF50E7B61B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D671BE7B61E
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242856AbjJDOO2 (ORCPT
+        id S242853AbjJDOOe (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 10:14:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58234 "EHLO
+        Wed, 4 Oct 2023 10:14:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242790AbjJDOO2 (ORCPT
+        with ESMTP id S242863AbjJDOOd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 10:14:28 -0400
+        Wed, 4 Oct 2023 10:14:33 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA435AD;
-        Wed,  4 Oct 2023 07:14:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51C4FCE;
+        Wed,  4 Oct 2023 07:14:28 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qo2dl-0002Lh-BR; Wed, 04 Oct 2023 16:14:17 +0200
+        id 1qo2dp-0002M3-EC; Wed, 04 Oct 2023 16:14:21 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -26,9 +26,9 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>, Xin Long <lucien.xin@gmail.com>
-Subject: [PATCH net 2/6] netfilter: handle the connecting collision properly in nf_conntrack_proto_sctp
-Date:   Wed,  4 Oct 2023 16:13:46 +0200
-Message-ID: <20231004141405.28749-3-fw@strlen.de>
+Subject: [PATCH net 3/6] selftests: netfilter: test for sctp collision processing in nf_conntrack
+Date:   Wed,  4 Oct 2023 16:13:47 +0200
+Message-ID: <20231004141405.28749-4-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231004141405.28749-1-fw@strlen.de>
 References: <20231004141405.28749-1-fw@strlen.de>
@@ -40,167 +40,251 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Xin Long <lucien.xin@gmail.com>
 
-In Scenario A and B below, as the delayed INIT_ACK always changes the peer
-vtag, SCTP ct with the incorrect vtag may cause packet loss.
+This patch adds a test case to reproduce the SCTP DATA chunk retransmission
+timeout issue caused by the improper SCTP collision processing in netfilter
+nf_conntrack_proto_sctp.
 
-Scenario A: INIT_ACK is delayed until the peer receives its own INIT_ACK
+In this test, client sends a INIT chunk, but the INIT_ACK replied from
+server is delayed until the server sends a INIT chunk to start a new
+connection from its side. After the connection is complete from server
+side, the delayed INIT_ACK arrives in nf_conntrack_proto_sctp.
 
-  192.168.1.2 > 192.168.1.1: [INIT] [init tag: 1328086772]
-    192.168.1.1 > 192.168.1.2: [INIT] [init tag: 1414468151]
-    192.168.1.2 > 192.168.1.1: [INIT ACK] [init tag: 1328086772]
-  192.168.1.1 > 192.168.1.2: [INIT ACK] [init tag: 1650211246] *
-  192.168.1.2 > 192.168.1.1: [COOKIE ECHO]
-    192.168.1.1 > 192.168.1.2: [COOKIE ECHO]
-    192.168.1.2 > 192.168.1.1: [COOKIE ACK]
+The delayed INIT_ACK should be dropped in nf_conntrack_proto_sctp instead
+of updating the vtag with the out-of-date init_tag, otherwise, the vtag
+in DATA chunks later sent by client don't match the vtag in the conntrack
+entry and the DATA chunks get dropped.
 
-Scenario B: INIT_ACK is delayed until the peer completes its own handshake
-
-  192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-    192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
-    192.168.1.2 > 192.168.1.1: sctp (1) [INIT ACK] [init tag: 3922216408]
-    192.168.1.1 > 192.168.1.2: sctp (1) [COOKIE ECHO]
-    192.168.1.2 > 192.168.1.1: sctp (1) [COOKIE ACK]
-  192.168.1.1 > 192.168.1.2: sctp (1) [INIT ACK] [init tag: 3914796021] *
-
-This patch fixes it as below:
-
-In SCTP_CID_INIT processing:
-- clear ct->proto.sctp.init[!dir] if ct->proto.sctp.init[dir] &&
-  ct->proto.sctp.init[!dir]. (Scenario E)
-- set ct->proto.sctp.init[dir].
-
-In SCTP_CID_INIT_ACK processing:
-- drop it if !ct->proto.sctp.init[!dir] && ct->proto.sctp.vtag[!dir] &&
-  ct->proto.sctp.vtag[!dir] != ih->init_tag. (Scenario B, Scenario C)
-- drop it if ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
-  ct->proto.sctp.vtag[!dir] != ih->init_tag. (Scenario A)
-
-In SCTP_CID_COOKIE_ACK processing:
-- clear ct->proto.sctp.init[dir] and ct->proto.sctp.init[!dir].
-  (Scenario D)
-
-Also, it's important to allow the ct state to move forward with cookie_echo
-and cookie_ack from the opposite dir for the collision scenarios.
-
-There are also other Scenarios where it should allow the packet through,
-addressed by the processing above:
-
-Scenario C: new CT is created by INIT_ACK.
-
-Scenario D: start INIT on the existing ESTABLISHED ct.
-
-Scenario E: start INIT after the old collision on the existing ESTABLISHED
-ct.
-
-  192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 3922216408]
-  192.168.1.1 > 192.168.1.2: sctp (1) [INIT] [init tag: 144230885]
-  (both side are stopped, then start new connection again in hours)
-  192.168.1.2 > 192.168.1.1: sctp (1) [INIT] [init tag: 242308742]
-
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
 Signed-off-by: Xin Long <lucien.xin@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/nf_conntrack_sctp.h |  1 +
- net/netfilter/nf_conntrack_proto_sctp.c     | 43 ++++++++++++++++-----
- 2 files changed, 34 insertions(+), 10 deletions(-)
+ tools/testing/selftests/netfilter/Makefile    |  5 +-
+ .../netfilter/conntrack_sctp_collision.sh     | 89 +++++++++++++++++
+ .../selftests/netfilter/sctp_collision.c      | 99 +++++++++++++++++++
+ 3 files changed, 191 insertions(+), 2 deletions(-)
+ create mode 100755 tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
+ create mode 100644 tools/testing/selftests/netfilter/sctp_collision.c
 
-diff --git a/include/linux/netfilter/nf_conntrack_sctp.h b/include/linux/netfilter/nf_conntrack_sctp.h
-index 625f491b95de..fb31312825ae 100644
---- a/include/linux/netfilter/nf_conntrack_sctp.h
-+++ b/include/linux/netfilter/nf_conntrack_sctp.h
-@@ -9,6 +9,7 @@ struct ip_ct_sctp {
- 	enum sctp_conntrack state;
+diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
+index 321db8850da0..ef90aca4cc96 100644
+--- a/tools/testing/selftests/netfilter/Makefile
++++ b/tools/testing/selftests/netfilter/Makefile
+@@ -6,13 +6,14 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
+ 	nft_concat_range.sh nft_conntrack_helper.sh \
+ 	nft_queue.sh nft_meta.sh nf_nat_edemux.sh \
+ 	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
+-	conntrack_vrf.sh nft_synproxy.sh rpath.sh nft_audit.sh
++	conntrack_vrf.sh nft_synproxy.sh rpath.sh nft_audit.sh \
++	conntrack_sctp_collision.sh
  
- 	__be32 vtag[IP_CT_DIR_MAX];
-+	u8 init[IP_CT_DIR_MAX];
- 	u8 last_dir;
- 	u8 flags;
- };
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index b6bcc8f2f46b..c6bd533983c1 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -112,7 +112,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
- /* shutdown_ack */ {sSA, sCL, sCW, sCE, sES, sSA, sSA, sSA, sSA},
- /* error        */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},/* Can't have Stale cookie*/
- /* cookie_echo  */ {sCL, sCL, sCE, sCE, sES, sSS, sSR, sSA, sCL},/* 5.2.4 - Big TODO */
--/* cookie_ack   */ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sCL},/* Can't come in orig dir */
-+/* cookie_ack   */ {sCL, sCL, sCW, sES, sES, sSS, sSR, sSA, sCL},/* Can't come in orig dir */
- /* shutdown_comp*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sCL, sCL},
- /* heartbeat    */ {sHS, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS},
- /* heartbeat_ack*/ {sCL, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS},
-@@ -126,7 +126,7 @@ static const u8 sctp_conntracks[2][11][SCTP_CONNTRACK_MAX] = {
- /* shutdown     */ {sIV, sCL, sCW, sCE, sSR, sSS, sSR, sSA, sIV},
- /* shutdown_ack */ {sIV, sCL, sCW, sCE, sES, sSA, sSA, sSA, sIV},
- /* error        */ {sIV, sCL, sCW, sCL, sES, sSS, sSR, sSA, sIV},
--/* cookie_echo  */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sIV},/* Can't come in reply dir */
-+/* cookie_echo  */ {sIV, sCL, sCE, sCE, sES, sSS, sSR, sSA, sIV},/* Can't come in reply dir */
- /* cookie_ack   */ {sIV, sCL, sCW, sES, sES, sSS, sSR, sSA, sIV},
- /* shutdown_comp*/ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sCL, sIV},
- /* heartbeat    */ {sIV, sCL, sCW, sCE, sES, sSS, sSR, sSA, sHS},
-@@ -412,6 +412,9 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			/* (D) vtag must be same as init_vtag as found in INIT_ACK */
- 			if (sh->vtag != ct->proto.sctp.vtag[dir])
- 				goto out_unlock;
-+		} else if (sch->type == SCTP_CID_COOKIE_ACK) {
-+			ct->proto.sctp.init[dir] = 0;
-+			ct->proto.sctp.init[!dir] = 0;
- 		} else if (sch->type == SCTP_CID_HEARTBEAT) {
- 			if (ct->proto.sctp.vtag[dir] == 0) {
- 				pr_debug("Setting %d vtag %x for dir %d\n", sch->type, sh->vtag, dir);
-@@ -461,16 +464,18 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 		}
+ HOSTPKG_CONFIG := pkg-config
  
- 		/* If it is an INIT or an INIT ACK note down the vtag */
--		if (sch->type == SCTP_CID_INIT ||
--		    sch->type == SCTP_CID_INIT_ACK) {
--			struct sctp_inithdr _inithdr, *ih;
-+		if (sch->type == SCTP_CID_INIT) {
-+			struct sctp_inithdr _ih, *ih;
+ CFLAGS += $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
+ LDLIBS += $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
  
--			ih = skb_header_pointer(skb, offset + sizeof(_sch),
--						sizeof(_inithdr), &_inithdr);
--			if (ih == NULL)
-+			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
-+			if (!ih)
- 				goto out_unlock;
--			pr_debug("Setting vtag %x for dir %d\n",
--				 ih->init_tag, !dir);
-+
-+			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir])
-+				ct->proto.sctp.init[!dir] = 0;
-+			ct->proto.sctp.init[dir] = 1;
-+
-+			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
- 			ct->proto.sctp.vtag[!dir] = ih->init_tag;
+-TEST_GEN_FILES =  nf-queue connect_close audit_logread
++TEST_GEN_FILES =  nf-queue connect_close audit_logread sctp_collision
  
- 			/* don't renew timeout on init retransmit so
-@@ -481,6 +486,24 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			    old_state == SCTP_CONNTRACK_CLOSED &&
- 			    nf_ct_is_confirmed(ct))
- 				ignore = true;
-+		} else if (sch->type == SCTP_CID_INIT_ACK) {
-+			struct sctp_inithdr _ih, *ih;
-+			__be32 vtag;
+ include ../lib.mk
+diff --git a/tools/testing/selftests/netfilter/conntrack_sctp_collision.sh b/tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
+new file mode 100755
+index 000000000000..a924e595cfd8
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
+@@ -0,0 +1,89 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Testing For SCTP COLLISION SCENARIO as Below:
++#
++#   14:35:47.655279 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT] [init tag: 2017837359]
++#   14:35:48.353250 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT] [init tag: 1187206187]
++#   14:35:48.353275 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT ACK] [init tag: 2017837359]
++#   14:35:48.353283 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [COOKIE ECHO]
++#   14:35:48.353977 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [COOKIE ACK]
++#   14:35:48.855335 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT ACK] [init tag: 164579970]
++#
++# TOPO: SERVER_NS (link0)<--->(link1) ROUTER_NS (link2)<--->(link3) CLIENT_NS
 +
-+			ih = skb_header_pointer(skb, offset + sizeof(_sch), sizeof(*ih), &_ih);
-+			if (!ih)
-+				goto out_unlock;
++CLIENT_NS=$(mktemp -u client-XXXXXXXX)
++CLIENT_IP="198.51.200.1"
++CLIENT_PORT=1234
 +
-+			vtag = ct->proto.sctp.vtag[!dir];
-+			if (!ct->proto.sctp.init[!dir] && vtag && vtag != ih->init_tag)
-+				goto out_unlock;
-+			/* collision */
-+			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir] &&
-+			    vtag != ih->init_tag)
-+				goto out_unlock;
++SERVER_NS=$(mktemp -u server-XXXXXXXX)
++SERVER_IP="198.51.100.1"
++SERVER_PORT=1234
 +
-+			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
-+			ct->proto.sctp.vtag[!dir] = ih->init_tag;
- 		}
- 
- 		ct->proto.sctp.state = new_state;
++ROUTER_NS=$(mktemp -u router-XXXXXXXX)
++CLIENT_GW="198.51.200.2"
++SERVER_GW="198.51.100.2"
++
++# setup the topo
++setup() {
++	ip net add $CLIENT_NS
++	ip net add $SERVER_NS
++	ip net add $ROUTER_NS
++	ip -n $SERVER_NS link add link0 type veth peer name link1 netns $ROUTER_NS
++	ip -n $CLIENT_NS link add link3 type veth peer name link2 netns $ROUTER_NS
++
++	ip -n $SERVER_NS link set link0 up
++	ip -n $SERVER_NS addr add $SERVER_IP/24 dev link0
++	ip -n $SERVER_NS route add $CLIENT_IP dev link0 via $SERVER_GW
++
++	ip -n $ROUTER_NS link set link1 up
++	ip -n $ROUTER_NS link set link2 up
++	ip -n $ROUTER_NS addr add $SERVER_GW/24 dev link1
++	ip -n $ROUTER_NS addr add $CLIENT_GW/24 dev link2
++	ip net exec $ROUTER_NS sysctl -wq net.ipv4.ip_forward=1
++
++	ip -n $CLIENT_NS link set link3 up
++	ip -n $CLIENT_NS addr add $CLIENT_IP/24 dev link3
++	ip -n $CLIENT_NS route add $SERVER_IP dev link3 via $CLIENT_GW
++
++	# simulate the delay on OVS upcall by setting up a delay for INIT_ACK with
++	# tc on $SERVER_NS side
++	tc -n $SERVER_NS qdisc add dev link0 root handle 1: htb
++	tc -n $SERVER_NS class add dev link0 parent 1: classid 1:1 htb rate 100mbit
++	tc -n $SERVER_NS filter add dev link0 parent 1: protocol ip u32 match ip protocol 132 \
++		0xff match u8 2 0xff at 32 flowid 1:1
++	tc -n $SERVER_NS qdisc add dev link0 parent 1:1 handle 10: netem delay 1200ms
++
++	# simulate the ctstate check on OVS nf_conntrack
++	ip net exec $ROUTER_NS iptables -A FORWARD -m state --state INVALID,UNTRACKED -j DROP
++	ip net exec $ROUTER_NS iptables -A INPUT -p sctp -j DROP
++
++	# use a smaller number for assoc's max_retrans to reproduce the issue
++	modprobe sctp
++	ip net exec $CLIENT_NS sysctl -wq net.sctp.association_max_retrans=3
++}
++
++cleanup() {
++	ip net exec $CLIENT_NS pkill sctp_collision 2>&1 >/dev/null
++	ip net exec $SERVER_NS pkill sctp_collision 2>&1 >/dev/null
++	ip net del "$CLIENT_NS"
++	ip net del "$SERVER_NS"
++	ip net del "$ROUTER_NS"
++}
++
++do_test() {
++	ip net exec $SERVER_NS ./sctp_collision server \
++		$SERVER_IP $SERVER_PORT $CLIENT_IP $CLIENT_PORT &
++	ip net exec $CLIENT_NS ./sctp_collision client \
++		$CLIENT_IP $CLIENT_PORT $SERVER_IP $SERVER_PORT
++}
++
++# NOTE: one way to work around the issue is set a smaller hb_interval
++# ip net exec $CLIENT_NS sysctl -wq net.sctp.hb_interval=3500
++
++# run the test case
++trap cleanup EXIT
++setup && \
++echo "Test for SCTP Collision in nf_conntrack:" && \
++do_test && echo "PASS!"
++exit $?
+diff --git a/tools/testing/selftests/netfilter/sctp_collision.c b/tools/testing/selftests/netfilter/sctp_collision.c
+new file mode 100644
+index 000000000000..21bb1cfd8a85
+--- /dev/null
++++ b/tools/testing/selftests/netfilter/sctp_collision.c
+@@ -0,0 +1,99 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <arpa/inet.h>
++
++int main(int argc, char *argv[])
++{
++	struct sockaddr_in saddr = {}, daddr = {};
++	int sd, ret, len = sizeof(daddr);
++	struct timeval tv = {25, 0};
++	char buf[] = "hello";
++
++	if (argc != 6 || (strcmp(argv[1], "server") && strcmp(argv[1], "client"))) {
++		printf("%s <server|client> <LOCAL_IP> <LOCAL_PORT> <REMOTE_IP> <REMOTE_PORT>\n",
++		       argv[0]);
++		return -1;
++	}
++
++	sd = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_SCTP);
++	if (sd < 0) {
++		printf("Failed to create sd\n");
++		return -1;
++	}
++
++	saddr.sin_family = AF_INET;
++	saddr.sin_addr.s_addr = inet_addr(argv[2]);
++	saddr.sin_port = htons(atoi(argv[3]));
++
++	ret = bind(sd, (struct sockaddr *)&saddr, sizeof(saddr));
++	if (ret < 0) {
++		printf("Failed to bind to address\n");
++		goto out;
++	}
++
++	ret = listen(sd, 5);
++	if (ret < 0) {
++		printf("Failed to listen on port\n");
++		goto out;
++	}
++
++	daddr.sin_family = AF_INET;
++	daddr.sin_addr.s_addr = inet_addr(argv[4]);
++	daddr.sin_port = htons(atoi(argv[5]));
++
++	/* make test shorter than 25s */
++	ret = setsockopt(sd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
++	if (ret < 0) {
++		printf("Failed to setsockopt SO_RCVTIMEO\n");
++		goto out;
++	}
++
++	if (!strcmp(argv[1], "server")) {
++		sleep(1); /* wait a bit for client's INIT */
++		ret = connect(sd, (struct sockaddr *)&daddr, len);
++		if (ret < 0) {
++			printf("Failed to connect to peer\n");
++			goto out;
++		}
++		ret = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr *)&daddr, &len);
++		if (ret < 0) {
++			printf("Failed to recv msg %d\n", ret);
++			goto out;
++		}
++		ret = sendto(sd, buf, strlen(buf) + 1, 0, (struct sockaddr *)&daddr, len);
++		if (ret < 0) {
++			printf("Failed to send msg %d\n", ret);
++			goto out;
++		}
++		printf("Server: sent! %d\n", ret);
++	}
++
++	if (!strcmp(argv[1], "client")) {
++		usleep(300000); /* wait a bit for server's listening */
++		ret = connect(sd, (struct sockaddr *)&daddr, len);
++		if (ret < 0) {
++			printf("Failed to connect to peer\n");
++			goto out;
++		}
++		sleep(1); /* wait a bit for server's delayed INIT_ACK to reproduce the issue */
++		ret = sendto(sd, buf, strlen(buf) + 1, 0, (struct sockaddr *)&daddr, len);
++		if (ret < 0) {
++			printf("Failed to send msg %d\n", ret);
++			goto out;
++		}
++		ret = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr *)&daddr, &len);
++		if (ret < 0) {
++			printf("Failed to recv msg %d\n", ret);
++			goto out;
++		}
++		printf("Client: rcvd! %d\n", ret);
++	}
++	ret = 0;
++out:
++	close(sd);
++	return ret;
++}
 -- 
 2.41.0
 
