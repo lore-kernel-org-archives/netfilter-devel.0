@@ -2,33 +2,33 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D671BE7B61E
-	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F674E7B61F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  4 Oct 2023 14:14:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242853AbjJDOOe (ORCPT
+        id S242790AbjJDOOi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 4 Oct 2023 10:14:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58358 "EHLO
+        Wed, 4 Oct 2023 10:14:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242863AbjJDOOd (ORCPT
+        with ESMTP id S242863AbjJDOOh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2023 10:14:33 -0400
+        Wed, 4 Oct 2023 10:14:37 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51C4FCE;
-        Wed,  4 Oct 2023 07:14:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB96ECC;
+        Wed,  4 Oct 2023 07:14:33 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qo2dp-0002M3-EC; Wed, 04 Oct 2023 16:14:21 +0200
+        id 1qo2dt-0002MQ-Gc; Wed, 04 Oct 2023 16:14:25 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>, Xin Long <lucien.xin@gmail.com>
-Subject: [PATCH net 3/6] selftests: netfilter: test for sctp collision processing in nf_conntrack
-Date:   Wed,  4 Oct 2023 16:13:47 +0200
-Message-ID: <20231004141405.28749-4-fw@strlen.de>
+        <netfilter-devel@vger.kernel.org>, Phil Sutter <phil@nwl.cc>
+Subject: [PATCH net 4/6] selftests: netfilter: Extend nft_audit.sh
+Date:   Wed,  4 Oct 2023 16:13:48 +0200
+Message-ID: <20231004141405.28749-5-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231004141405.28749-1-fw@strlen.de>
 References: <20231004141405.28749-1-fw@strlen.de>
@@ -38,253 +38,165 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Xin Long <lucien.xin@gmail.com>
+From: Phil Sutter <phil@nwl.cc>
 
-This patch adds a test case to reproduce the SCTP DATA chunk retransmission
-timeout issue caused by the improper SCTP collision processing in netfilter
-nf_conntrack_proto_sctp.
+Add tests for sets and elements and deletion of all kinds. Also
+reorder rule reset tests: By moving the bulk rule add command up, the
+two 'reset rules' tests become identical.
 
-In this test, client sends a INIT chunk, but the INIT_ACK replied from
-server is delayed until the server sends a INIT chunk to start a new
-connection from its side. After the connection is complete from server
-side, the delayed INIT_ACK arrives in nf_conntrack_proto_sctp.
+While at it, fix for a failing bulk rule add test's error status getting
+lost due to its use in a pipe. Avoid this by using a temporary file.
 
-The delayed INIT_ACK should be dropped in nf_conntrack_proto_sctp instead
-of updating the vtag with the out-of-date init_tag, otherwise, the vtag
-in DATA chunks later sent by client don't match the vtag in the conntrack
-entry and the DATA chunks get dropped.
+Headings in diff output for failing tests contain no useful data, strip
+them.
 
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tools/testing/selftests/netfilter/Makefile    |  5 +-
- .../netfilter/conntrack_sctp_collision.sh     | 89 +++++++++++++++++
- .../selftests/netfilter/sctp_collision.c      | 99 +++++++++++++++++++
- 3 files changed, 191 insertions(+), 2 deletions(-)
- create mode 100755 tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
- create mode 100644 tools/testing/selftests/netfilter/sctp_collision.c
+ .../testing/selftests/netfilter/nft_audit.sh  | 97 ++++++++++++++++---
+ 1 file changed, 81 insertions(+), 16 deletions(-)
 
-diff --git a/tools/testing/selftests/netfilter/Makefile b/tools/testing/selftests/netfilter/Makefile
-index 321db8850da0..ef90aca4cc96 100644
---- a/tools/testing/selftests/netfilter/Makefile
-+++ b/tools/testing/selftests/netfilter/Makefile
-@@ -6,13 +6,14 @@ TEST_PROGS := nft_trans_stress.sh nft_fib.sh nft_nat.sh bridge_brouter.sh \
- 	nft_concat_range.sh nft_conntrack_helper.sh \
- 	nft_queue.sh nft_meta.sh nf_nat_edemux.sh \
- 	ipip-conntrack-mtu.sh conntrack_tcp_unreplied.sh \
--	conntrack_vrf.sh nft_synproxy.sh rpath.sh nft_audit.sh
-+	conntrack_vrf.sh nft_synproxy.sh rpath.sh nft_audit.sh \
-+	conntrack_sctp_collision.sh
+diff --git a/tools/testing/selftests/netfilter/nft_audit.sh b/tools/testing/selftests/netfilter/nft_audit.sh
+index 83c271b1c735..0b3255e7b353 100755
+--- a/tools/testing/selftests/netfilter/nft_audit.sh
++++ b/tools/testing/selftests/netfilter/nft_audit.sh
+@@ -12,10 +12,11 @@ nft --version >/dev/null 2>&1 || {
+ }
  
- HOSTPKG_CONFIG := pkg-config
+ logfile=$(mktemp)
++rulefile=$(mktemp)
+ echo "logging into $logfile"
+ ./audit_logread >"$logfile" &
+ logread_pid=$!
+-trap 'kill $logread_pid; rm -f $logfile' EXIT
++trap 'kill $logread_pid; rm -f $logfile $rulefile' EXIT
+ exec 3<"$logfile"
  
- CFLAGS += $(shell $(HOSTPKG_CONFIG) --cflags libmnl 2>/dev/null)
- LDLIBS += $(shell $(HOSTPKG_CONFIG) --libs libmnl 2>/dev/null || echo -lmnl)
+ do_test() { # (cmd, log)
+@@ -26,12 +27,14 @@ do_test() { # (cmd, log)
+ 	res=$(diff -a -u <(echo "$2") - <&3)
+ 	[ $? -eq 0 ] && { echo "OK"; return; }
+ 	echo "FAIL"
+-	echo "$res"
+-	((RC++))
++	grep -v '^\(---\|+++\|@@\)' <<< "$res"
++	((RC--))
+ }
  
--TEST_GEN_FILES =  nf-queue connect_close audit_logread
-+TEST_GEN_FILES =  nf-queue connect_close audit_logread sctp_collision
+ nft flush ruleset
  
- include ../lib.mk
-diff --git a/tools/testing/selftests/netfilter/conntrack_sctp_collision.sh b/tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
-new file mode 100755
-index 000000000000..a924e595cfd8
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/conntrack_sctp_collision.sh
-@@ -0,0 +1,89 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Testing For SCTP COLLISION SCENARIO as Below:
-+#
-+#   14:35:47.655279 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT] [init tag: 2017837359]
-+#   14:35:48.353250 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT] [init tag: 1187206187]
-+#   14:35:48.353275 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [INIT ACK] [init tag: 2017837359]
-+#   14:35:48.353283 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [COOKIE ECHO]
-+#   14:35:48.353977 IP CLIENT_IP.PORT > SERVER_IP.PORT: sctp (1) [COOKIE ACK]
-+#   14:35:48.855335 IP SERVER_IP.PORT > CLIENT_IP.PORT: sctp (1) [INIT ACK] [init tag: 164579970]
-+#
-+# TOPO: SERVER_NS (link0)<--->(link1) ROUTER_NS (link2)<--->(link3) CLIENT_NS
++# adding tables, chains and rules
 +
-+CLIENT_NS=$(mktemp -u client-XXXXXXXX)
-+CLIENT_IP="198.51.200.1"
-+CLIENT_PORT=1234
+ for table in t1 t2; do
+ 	do_test "nft add table $table" \
+ 	"table=$table family=2 entries=1 op=nft_register_table"
+@@ -62,6 +65,28 @@ for table in t1 t2; do
+ 	"table=$table family=2 entries=6 op=nft_register_rule"
+ done
+ 
++for ((i = 0; i < 500; i++)); do
++	echo "add rule t2 c3 counter accept comment \"rule $i\""
++done >$rulefile
++do_test "nft -f $rulefile" \
++'table=t2 family=2 entries=500 op=nft_register_rule'
 +
-+SERVER_NS=$(mktemp -u server-XXXXXXXX)
-+SERVER_IP="198.51.100.1"
-+SERVER_PORT=1234
++# adding sets and elements
 +
-+ROUTER_NS=$(mktemp -u router-XXXXXXXX)
-+CLIENT_GW="198.51.200.2"
-+SERVER_GW="198.51.100.2"
++settype='type inet_service; counter'
++setelem='{ 22, 80, 443 }'
++setblock="{ $settype; elements = $setelem; }"
++do_test "nft add set t1 s $setblock" \
++"table=t1 family=2 entries=4 op=nft_register_set"
 +
-+# setup the topo
-+setup() {
-+	ip net add $CLIENT_NS
-+	ip net add $SERVER_NS
-+	ip net add $ROUTER_NS
-+	ip -n $SERVER_NS link add link0 type veth peer name link1 netns $ROUTER_NS
-+	ip -n $CLIENT_NS link add link3 type veth peer name link2 netns $ROUTER_NS
++do_test "nft add set t1 s2 $setblock; add set t1 s3 { $settype; }" \
++"table=t1 family=2 entries=5 op=nft_register_set"
 +
-+	ip -n $SERVER_NS link set link0 up
-+	ip -n $SERVER_NS addr add $SERVER_IP/24 dev link0
-+	ip -n $SERVER_NS route add $CLIENT_IP dev link0 via $SERVER_GW
++do_test "nft add element t1 s3 $setelem" \
++"table=t1 family=2 entries=3 op=nft_register_setelem"
 +
-+	ip -n $ROUTER_NS link set link1 up
-+	ip -n $ROUTER_NS link set link2 up
-+	ip -n $ROUTER_NS addr add $SERVER_GW/24 dev link1
-+	ip -n $ROUTER_NS addr add $CLIENT_GW/24 dev link2
-+	ip net exec $ROUTER_NS sysctl -wq net.ipv4.ip_forward=1
++# resetting rules
 +
-+	ip -n $CLIENT_NS link set link3 up
-+	ip -n $CLIENT_NS addr add $CLIENT_IP/24 dev link3
-+	ip -n $CLIENT_NS route add $SERVER_IP dev link3 via $CLIENT_GW
+ do_test 'nft reset rules t1 c2' \
+ 'table=t1 family=2 entries=3 op=nft_reset_rule'
+ 
+@@ -70,19 +95,6 @@ do_test 'nft reset rules table t1' \
+ table=t1 family=2 entries=3 op=nft_reset_rule
+ table=t1 family=2 entries=3 op=nft_reset_rule'
+ 
+-do_test 'nft reset rules' \
+-'table=t1 family=2 entries=3 op=nft_reset_rule
+-table=t1 family=2 entries=3 op=nft_reset_rule
+-table=t1 family=2 entries=3 op=nft_reset_rule
+-table=t2 family=2 entries=3 op=nft_reset_rule
+-table=t2 family=2 entries=3 op=nft_reset_rule
+-table=t2 family=2 entries=3 op=nft_reset_rule'
+-
+-for ((i = 0; i < 500; i++)); do
+-	echo "add rule t2 c3 counter accept comment \"rule $i\""
+-done | do_test 'nft -f -' \
+-'table=t2 family=2 entries=500 op=nft_register_rule'
+-
+ do_test 'nft reset rules t2 c3' \
+ 'table=t2 family=2 entries=189 op=nft_reset_rule
+ table=t2 family=2 entries=188 op=nft_reset_rule
+@@ -105,4 +117,57 @@ table=t2 family=2 entries=180 op=nft_reset_rule
+ table=t2 family=2 entries=188 op=nft_reset_rule
+ table=t2 family=2 entries=135 op=nft_reset_rule'
+ 
++# resetting sets and elements
 +
-+	# simulate the delay on OVS upcall by setting up a delay for INIT_ACK with
-+	# tc on $SERVER_NS side
-+	tc -n $SERVER_NS qdisc add dev link0 root handle 1: htb
-+	tc -n $SERVER_NS class add dev link0 parent 1: classid 1:1 htb rate 100mbit
-+	tc -n $SERVER_NS filter add dev link0 parent 1: protocol ip u32 match ip protocol 132 \
-+		0xff match u8 2 0xff at 32 flowid 1:1
-+	tc -n $SERVER_NS qdisc add dev link0 parent 1:1 handle 10: netem delay 1200ms
++elem=(22 ,80 ,443)
++relem=""
++for i in {1..3}; do
++	relem+="${elem[((i - 1))]}"
++	do_test "nft reset element t1 s { $relem }" \
++	"table=t1 family=2 entries=$i op=nft_reset_setelem"
++done
 +
-+	# simulate the ctstate check on OVS nf_conntrack
-+	ip net exec $ROUTER_NS iptables -A FORWARD -m state --state INVALID,UNTRACKED -j DROP
-+	ip net exec $ROUTER_NS iptables -A INPUT -p sctp -j DROP
++do_test 'nft reset set t1 s' \
++'table=t1 family=2 entries=3 op=nft_reset_setelem'
 +
-+	# use a smaller number for assoc's max_retrans to reproduce the issue
-+	modprobe sctp
-+	ip net exec $CLIENT_NS sysctl -wq net.sctp.association_max_retrans=3
-+}
++# deleting rules
 +
-+cleanup() {
-+	ip net exec $CLIENT_NS pkill sctp_collision 2>&1 >/dev/null
-+	ip net exec $SERVER_NS pkill sctp_collision 2>&1 >/dev/null
-+	ip net del "$CLIENT_NS"
-+	ip net del "$SERVER_NS"
-+	ip net del "$ROUTER_NS"
-+}
++readarray -t handles < <(nft -a list chain t1 c1 | \
++			 sed -n 's/.*counter.* handle \(.*\)$/\1/p')
 +
-+do_test() {
-+	ip net exec $SERVER_NS ./sctp_collision server \
-+		$SERVER_IP $SERVER_PORT $CLIENT_IP $CLIENT_PORT &
-+	ip net exec $CLIENT_NS ./sctp_collision client \
-+		$CLIENT_IP $CLIENT_PORT $SERVER_IP $SERVER_PORT
-+}
++do_test "nft delete rule t1 c1 handle ${handles[0]}" \
++'table=t1 family=2 entries=1 op=nft_unregister_rule'
 +
-+# NOTE: one way to work around the issue is set a smaller hb_interval
-+# ip net exec $CLIENT_NS sysctl -wq net.sctp.hb_interval=3500
++cmd='delete rule t1 c1 handle'
++do_test "nft $cmd ${handles[1]}; $cmd ${handles[2]}" \
++'table=t1 family=2 entries=2 op=nft_unregister_rule'
 +
-+# run the test case
-+trap cleanup EXIT
-+setup && \
-+echo "Test for SCTP Collision in nf_conntrack:" && \
-+do_test && echo "PASS!"
-+exit $?
-diff --git a/tools/testing/selftests/netfilter/sctp_collision.c b/tools/testing/selftests/netfilter/sctp_collision.c
-new file mode 100644
-index 000000000000..21bb1cfd8a85
---- /dev/null
-+++ b/tools/testing/selftests/netfilter/sctp_collision.c
-@@ -0,0 +1,99 @@
-+// SPDX-License-Identifier: GPL-2.0
++do_test 'nft flush chain t1 c2' \
++'table=t1 family=2 entries=3 op=nft_unregister_rule'
 +
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <arpa/inet.h>
++do_test 'nft flush table t2' \
++'table=t2 family=2 entries=509 op=nft_unregister_rule'
 +
-+int main(int argc, char *argv[])
-+{
-+	struct sockaddr_in saddr = {}, daddr = {};
-+	int sd, ret, len = sizeof(daddr);
-+	struct timeval tv = {25, 0};
-+	char buf[] = "hello";
++# deleting chains
 +
-+	if (argc != 6 || (strcmp(argv[1], "server") && strcmp(argv[1], "client"))) {
-+		printf("%s <server|client> <LOCAL_IP> <LOCAL_PORT> <REMOTE_IP> <REMOTE_PORT>\n",
-+		       argv[0]);
-+		return -1;
-+	}
++do_test 'nft delete chain t2 c2' \
++'table=t2 family=2 entries=1 op=nft_unregister_chain'
 +
-+	sd = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_SCTP);
-+	if (sd < 0) {
-+		printf("Failed to create sd\n");
-+		return -1;
-+	}
++# deleting sets and elements
 +
-+	saddr.sin_family = AF_INET;
-+	saddr.sin_addr.s_addr = inet_addr(argv[2]);
-+	saddr.sin_port = htons(atoi(argv[3]));
++do_test 'nft delete element t1 s { 22 }' \
++'table=t1 family=2 entries=1 op=nft_unregister_setelem'
 +
-+	ret = bind(sd, (struct sockaddr *)&saddr, sizeof(saddr));
-+	if (ret < 0) {
-+		printf("Failed to bind to address\n");
-+		goto out;
-+	}
++do_test 'nft delete element t1 s { 80, 443 }' \
++'table=t1 family=2 entries=2 op=nft_unregister_setelem'
 +
-+	ret = listen(sd, 5);
-+	if (ret < 0) {
-+		printf("Failed to listen on port\n");
-+		goto out;
-+	}
++do_test 'nft flush set t1 s2' \
++'table=t1 family=2 entries=3 op=nft_unregister_setelem'
 +
-+	daddr.sin_family = AF_INET;
-+	daddr.sin_addr.s_addr = inet_addr(argv[4]);
-+	daddr.sin_port = htons(atoi(argv[5]));
++do_test 'nft delete set t1 s2' \
++'table=t1 family=2 entries=1 op=nft_unregister_set'
 +
-+	/* make test shorter than 25s */
-+	ret = setsockopt(sd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-+	if (ret < 0) {
-+		printf("Failed to setsockopt SO_RCVTIMEO\n");
-+		goto out;
-+	}
++do_test 'nft delete set t1 s3' \
++'table=t1 family=2 entries=1 op=nft_unregister_set'
 +
-+	if (!strcmp(argv[1], "server")) {
-+		sleep(1); /* wait a bit for client's INIT */
-+		ret = connect(sd, (struct sockaddr *)&daddr, len);
-+		if (ret < 0) {
-+			printf("Failed to connect to peer\n");
-+			goto out;
-+		}
-+		ret = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr *)&daddr, &len);
-+		if (ret < 0) {
-+			printf("Failed to recv msg %d\n", ret);
-+			goto out;
-+		}
-+		ret = sendto(sd, buf, strlen(buf) + 1, 0, (struct sockaddr *)&daddr, len);
-+		if (ret < 0) {
-+			printf("Failed to send msg %d\n", ret);
-+			goto out;
-+		}
-+		printf("Server: sent! %d\n", ret);
-+	}
-+
-+	if (!strcmp(argv[1], "client")) {
-+		usleep(300000); /* wait a bit for server's listening */
-+		ret = connect(sd, (struct sockaddr *)&daddr, len);
-+		if (ret < 0) {
-+			printf("Failed to connect to peer\n");
-+			goto out;
-+		}
-+		sleep(1); /* wait a bit for server's delayed INIT_ACK to reproduce the issue */
-+		ret = sendto(sd, buf, strlen(buf) + 1, 0, (struct sockaddr *)&daddr, len);
-+		if (ret < 0) {
-+			printf("Failed to send msg %d\n", ret);
-+			goto out;
-+		}
-+		ret = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr *)&daddr, &len);
-+		if (ret < 0) {
-+			printf("Failed to recv msg %d\n", ret);
-+			goto out;
-+		}
-+		printf("Client: rcvd! %d\n", ret);
-+	}
-+	ret = 0;
-+out:
-+	close(sd);
-+	return ret;
-+}
+ exit $RC
 -- 
 2.41.0
 
