@@ -2,76 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C9DAE7AD45
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 16:13:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F94E92719
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 16:13:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240107AbjJEQN3 (ORCPT
+        id S240216AbjJEQNa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Oct 2023 12:13:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54176 "EHLO
+        Thu, 5 Oct 2023 12:13:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240972AbjJEQMU (ORCPT
+        with ESMTP id S240938AbjJEQMS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Oct 2023 12:12:20 -0400
+        Thu, 5 Oct 2023 12:12:18 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ADDA26A42;
-        Thu,  5 Oct 2023 05:31:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68FF583FA
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Oct 2023 01:02:08 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@strlen.de>)
-        id 1qoNVT-0008M5-La; Thu, 05 Oct 2023 14:31:07 +0200
-Date:   Thu, 5 Oct 2023 14:31:07 +0200
+        id 1qoJJ7-0007M7-Ew; Thu, 05 Oct 2023 10:02:05 +0200
+Date:   Thu, 5 Oct 2023 10:02:05 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     xiaolinkui <xiaolinkui@126.com>
-Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, justinstitt@google.com, kuniyu@amazon.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Linkui Xiao <xiaolinkui@kylinos.cn>
-Subject: Re: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
-Message-ID: <20231005123107.GB9350@breakpoint.cc>
-References: <20231005115022.12902-1-xiaolinkui@126.com>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH 0/5] nf_tables: nft_rule_dump_ctx fits into
+ netlink_callback
+Message-ID: <20231005080205.GA11420@breakpoint.cc>
+References: <20230929191922.6230-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231005115022.12902-1-xiaolinkui@126.com>
+In-Reply-To: <20230929191922.6230-1-phil@nwl.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-xiaolinkui <xiaolinkui@126.com> wrote:
-> From: Linkui Xiao <xiaolinkui@kylinos.cn>
+Phil Sutter <phil@nwl.cc> wrote:
+> Struct netlink_callback has a 48byte scratch area for use by dump
+> callbacks to keep personal stuff.
 > 
-> Before destroying the ipset, take a check on sequence to ensure that the
-> ip_set_test operation of this ipset has been completed.
+> In rule dumps set up by nf_tables_getrule(), this is used only to store
+> a cursor into the list of rules being dumped. Other data is allocated
+> and the pointer value assigned to struct netlink_callback::data.
 > 
-> The code of set_match_v4 is protected by addend=xt_write_recseq_begin() and
-> xt_write_recseq_end(addend). So we can ensure that the test operation is
-> completed by reading seqcount.
+> Since the allocated data structure is small and fits into the scratch
+> area even after adding some more fields, move it there.
+> 
+> Patch 1 "simplifies" nf_tables_dump_rules_start() a bit, but actually
+> exists only to reduce patch 5's size.
+> 
+> Patch 2 is more or less fallout: The memset would mess things up after
+> this series, but it was pointless in the first place.
+> 
+> Patches 3 and 4 extend struct nft_rule_dump_ctx and make
+> struct netlink_callback's scratch area unused.
+> 
+> Patch 5 then finally eliminates the allocation.
+> 
+> All this is early preparation for reset command locking but unrelated
+> enough to go alone.
 
-Nope, please don't do this, the xt_set can also be used from nft_compat
-which doesn't use the xtables packet traversers.
-
-I'd rather use synchonize_rcu() once in ip_set_destroy(), that will
-make sure all concurrent traversers are gone.
-
-That said, I still do not understand this fix, the
-match / target destroy hooks are called after the table has
-been completely replaced, i.e., while packets can still be in flight
-no packets should be within the ipset lookup functions when
-this happens, and no more packets should be able to enter them.
-
-AFAICS the request to delete the set will fail if its still referenced
-via any rule. xt_set holds references to the sets.
-
-So:
-1. set have dropped all references
-2. userspace *can* delete the set
-3. we get crash because xt_set was still within a sets eval
-  function.
-
-I don't see how 3) can happen, xt table replace isn't supposed
-to call the xt_set destroy functions until after table replace.
-
-We even release the entire x_table blob right afterwards.
+LGTM, I've applied this to nf-next:testing to have the buildbots
+check it out.
