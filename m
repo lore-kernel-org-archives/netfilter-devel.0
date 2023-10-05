@@ -2,66 +2,147 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29F94E92719
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 16:13:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF08EE92719
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 16:15:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240216AbjJEQNa (ORCPT
+        id S241011AbjJEQPm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Oct 2023 12:13:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38684 "EHLO
+        Thu, 5 Oct 2023 12:15:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240938AbjJEQMS (ORCPT
+        with ESMTP id S241188AbjJEQNr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Oct 2023 12:12:18 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68FF583FA
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Oct 2023 01:02:08 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qoJJ7-0007M7-Ew; Thu, 05 Oct 2023 10:02:05 +0200
-Date:   Thu, 5 Oct 2023 10:02:05 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH 0/5] nf_tables: nft_rule_dump_ctx fits into
- netlink_callback
-Message-ID: <20231005080205.GA11420@breakpoint.cc>
-References: <20230929191922.6230-1-phil@nwl.cc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230929191922.6230-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        Thu, 5 Oct 2023 12:13:47 -0400
+X-Greylist: delayed 4506 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 05 Oct 2023 08:38:25 PDT
+Received: from m15.mail.126.com (m15.mail.126.com [45.254.50.224])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6AD0F27B1C;
+        Thu,  5 Oct 2023 08:38:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id; bh=LfDP8Q3SbfxhvYe2p+
+        Jc+kb6Bw/OvEf2Np0A9Pqlpqc=; b=dgrd4JPXyQ6ZcExPM/hkFnTtmxUL3A3ORB
+        TZtgNUJyUf32zlFMQ+xgijCtSL/Ln8596DnwVQhRzEG+J2HyAbOcvvTL3U3+Hqct
+        zYiDRcrXGG4gIGyf3LkycViSLAiVrWSX17CgKF7yBRR/cPoimddzy7arBfrrUVaj
+        dREcK0vq4=
+Received: from localhost.localdomain (unknown [111.48.58.12])
+        by zwqz-smtp-mta-g1-1 (Coremail) with SMTP id _____wD3HxwAox5lI+7GBA--.31668S2;
+        Thu, 05 Oct 2023 19:50:25 +0800 (CST)
+From:   xiaolinkui <xiaolinkui@126.com>
+To:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, justinstitt@google.com, kuniyu@amazon.com
+Cc:     netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linkui Xiao <xiaolinkui@kylinos.cn>
+Subject: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
+Date:   Thu,  5 Oct 2023 19:50:22 +0800
+Message-Id: <20231005115022.12902-1-xiaolinkui@126.com>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID: _____wD3HxwAox5lI+7GBA--.31668S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxGF48Ww45Gr1Utw13Wr4DJwb_yoWrXw1xpF
+        W5Wr13Kr48ZFnrAr1DAr10yry5twnxAa1UtF4fGw1fWF17Gw1UWF18tFW7KF17Xr9Yqr13
+        tw1Dt340qr1UWaUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jzJP_UUUUU=
+X-Originating-IP: [111.48.58.12]
+X-CM-SenderInfo: p0ld0z5lqn3xa6rslhhfrp/1tbibQYA1lpEFCD44QAAsO
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Struct netlink_callback has a 48byte scratch area for use by dump
-> callbacks to keep personal stuff.
-> 
-> In rule dumps set up by nf_tables_getrule(), this is used only to store
-> a cursor into the list of rules being dumped. Other data is allocated
-> and the pointer value assigned to struct netlink_callback::data.
-> 
-> Since the allocated data structure is small and fits into the scratch
-> area even after adding some more fields, move it there.
-> 
-> Patch 1 "simplifies" nf_tables_dump_rules_start() a bit, but actually
-> exists only to reduce patch 5's size.
-> 
-> Patch 2 is more or less fallout: The memset would mess things up after
-> this series, but it was pointless in the first place.
-> 
-> Patches 3 and 4 extend struct nft_rule_dump_ctx and make
-> struct netlink_callback's scratch area unused.
-> 
-> Patch 5 then finally eliminates the allocation.
-> 
-> All this is early preparation for reset command locking but unrelated
-> enough to go alone.
+From: Linkui Xiao <xiaolinkui@kylinos.cn>
 
-LGTM, I've applied this to nf-next:testing to have the buildbots
-check it out.
+Before destroying the ipset, take a check on sequence to ensure that the
+ip_set_test operation of this ipset has been completed.
+
+The code of set_match_v4 is protected by addend=xt_write_recseq_begin() and
+xt_write_recseq_end(addend). So we can ensure that the test operation is
+completed by reading seqcount.
+
+Otherwise, there will be a low probability of use-after-free problems
+occurring:
+
+ PC: ffff0000033c0168  [hash_net4_kadt+56]
+ LR: ffff000002b811bc  [ip_set_test+188]
+ SP: ffff8003fff3f8d0  PSTATE: 60400005
+X29: ffff8003fff3f8d0  X28: ffff8003ab915c4e  X27: ffff8003b0c7a000
+X26: ffff8003b9780040  X25: ffff000000c70600  X24: ffff8003ac2c0200
+X23: ffff000002f70fcc  X22: 0000000000000002  X21: ffff8003ac2c0200
+X20: ffff8003be8e2800  X19: ffff8003fff3f9c8  X18: 0000000000000000
+X17: 0000000000000000  X16: 0000000000000000  X15: 0000000000000000
+X14: 970000002d494600  X13: 0000000000000000  X12: c5d405f139e6e418
+X11: ffff000000c70600  X10: ffff8003b0c7a000   X9: 0000000000000001
+ X8: 0000000000000000   X7: 000000000000005f   X6: 0000000000000000
+ X5: ffff0000033c0130   X4: ffff8003fff3f9c8   X3: 0000000000000002
+ X2: ffff0000033d01d8   X1: 00000000ffffffff   X0: 0000000000000000
+[ffff8003fff3f8d0] hash_net4_kadt at ffff0000033c0164 [ip_set_hash_net]
+[ffff8003fff3f940] ip_set_test at ffff000002b811b8 [ip_set]
+[ffff8003fff3f990] set_match_v4 at ffff000002f70fc8 [xt_set]
+[ffff8003fff3fa20] ipt_do_table at ffff000000c504e0 [ip_tables]
+[ffff8003fff3fb60] iptable_filter_hook at ffff00000266006c [iptable_filter]
+[ffff8003fff3fb80] nf_hook_slow at ffff000008ac7a84
+[ffff8003fff3fbc0] ip_local_deliver at ffff000008ad5d88
+[ffff8003fff3fc10] ip_rcv_finish at ffff000008ad59b4
+[ffff8003fff3fc40] ip_rcv at ffff000008ad5dec
+[ffff8003fff3fca0] __netif_receive_skb_one_core at ffff000008a6c344
+[ffff8003fff3fce0] __netif_receive_skb at ffff000008a6c3ac
+[ffff8003fff3fd00] netif_receive_skb_internal at ffff000008a6c440
+[ffff8003fff3fd30] napi_gro_receive at ffff000008a6d3ec
+[ffff8003fff3fd60] receive_buf at ffff000001c934d8 [virtio_net]
+[ffff8003fff3fe20] virtnet_poll at ffff000001c953e8 [virtio_net]
+[ffff8003fff3fec0] net_rx_action at ffff000008a6c9ec
+[ffff8003fff3ff60] __softirqentry_text_start at ffff0000080819f0
+[ffff8003fff3fff0] irq_exit at ffff0000080f1228
+[ffff8003fff40010] __handle_domain_irq at ffff000008162a10
+
+Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
+---
+ net/netfilter/ipset/ip_set_core.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 46f4f47e29e4..53561176162f 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1187,6 +1187,24 @@ ip_set_destroy_set(struct ip_set *set)
+ 	kfree(set);
+ }
+ 
++static void wait_xt_recseq(void)
++{
++	unsigned int cpu;
++
++	/* wait for even xt_recseq on all cpus */
++	for_each_possible_cpu(cpu) {
++		seqcount_t *s = &per_cpu(xt_recseq, cpu);
++		u32 seq = raw_read_seqcount(s);
++
++		if (seq & 1) {
++			do {
++				cond_resched();
++				cpu_relax();
++			} while (seq == raw_read_seqcount(s));
++		}
++	}
++}
++
+ static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *info,
+ 			  const struct nlattr * const attr[])
+ {
+@@ -1225,6 +1243,7 @@ static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *info,
+ 		for (i = 0; i < inst->ip_set_max; i++) {
+ 			s = ip_set(inst, i);
+ 			if (s) {
++				wait_xt_recseq();
+ 				ip_set(inst, i) = NULL;
+ 				ip_set_destroy_set(s);
+ 			}
+@@ -1243,6 +1262,7 @@ static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *info,
+ 			ret = -IPSET_ERR_BUSY;
+ 			goto out;
+ 		}
++		wait_xt_recseq();
+ 		ip_set(inst, i) = NULL;
+ 		read_unlock_bh(&ip_set_ref_lock);
+ 
+-- 
+2.17.1
+
