@@ -2,63 +2,76 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4669E9270D
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 15:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C9DAE7AD45
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 16:13:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236705AbjJEP4d (ORCPT
+        id S240107AbjJEQN3 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Oct 2023 11:56:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43760 "EHLO
+        Thu, 5 Oct 2023 12:13:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237517AbjJEPzo (ORCPT
+        with ESMTP id S240972AbjJEQMU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Oct 2023 11:55:44 -0400
-X-Greylist: delayed 4201 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 05 Oct 2023 08:15:36 PDT
-Received: from mail.projectinc.pl (mail.projectinc.pl [151.236.21.30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2232185E4
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Oct 2023 08:15:36 -0700 (PDT)
-Received: by mail.projectinc.pl (Postfix, from userid 1001)
-        id 651D13DA6D; Thu,  5 Oct 2023 09:55:48 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=projectinc.pl;
-        s=mail; t=1696492550;
-        bh=lIHTK8URpqixZz6NHWxMXvKMyyZ1ujcgjAp/F0bQcns=;
-        h=Date:From:To:Subject:From;
-        b=FmGf35iiktomf1d3dTNNgSIHThuEA3ljaFOF4ibOud4kvD0gti+c5jHYXCCHclXwH
-         vSgcS+LbeMo9eK8BZJui5D2mPO4NuyPFa5R1qZmZBXLF8V4oyD8LKYx+mFrTWHnqtY
-         YUlOl9z7hiy5xh96xtAZGvStk1cN+lElUzmpW1Pr495NmtG7WNNjAkStDOL3L9VCSb
-         j0w1E2Cus/eVB9+MsVtUEKnhAGmWvRJVIxRfowFOcJYFVVnWLz6LSEO3QoZJzXT/DB
-         y/bqXIi02B2S/XsY3IgepXD50WKJd//QKI+EuPkD46PQo2utN16VdfMDg0OERBoDME
-         0l1twILe9+lYQ==
-Received: by mail.projectinc.pl for <netfilter-devel@vger.kernel.org>; Thu,  5 Oct 2023 07:55:47 GMT
-Message-ID: <20231005084500-0.1.bg.36gn5.0.ne32xlxqko@projectinc.pl>
-Date:   Thu,  5 Oct 2023 07:55:47 GMT
-From:   =?UTF-8?Q? "Jakub_Wr=C3=B3bel" ?= <jakub.wrobel@projectinc.pl>
-To:     <netfilter-devel@vger.kernel.org>
-Subject: Pozycjonowanie- informacja
-X-Mailer: mail.projectinc.pl
+        Thu, 5 Oct 2023 12:12:20 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ADDA26A42;
+        Thu,  5 Oct 2023 05:31:39 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qoNVT-0008M5-La; Thu, 05 Oct 2023 14:31:07 +0200
+Date:   Thu, 5 Oct 2023 14:31:07 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     xiaolinkui <xiaolinkui@126.com>
+Cc:     pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, justinstitt@google.com, kuniyu@amazon.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linkui Xiao <xiaolinkui@kylinos.cn>
+Subject: Re: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
+Message-ID: <20231005123107.GB9350@breakpoint.cc>
+References: <20231005115022.12902-1-xiaolinkui@126.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231005115022.12902-1-xiaolinkui@126.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
+xiaolinkui <xiaolinkui@126.com> wrote:
+> From: Linkui Xiao <xiaolinkui@kylinos.cn>
+> 
+> Before destroying the ipset, take a check on sequence to ensure that the
+> ip_set_test operation of this ipset has been completed.
+> 
+> The code of set_match_v4 is protected by addend=xt_write_recseq_begin() and
+> xt_write_recseq_end(addend). So we can ensure that the test operation is
+> completed by reading seqcount.
 
-jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
-j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
-e Google.=20
+Nope, please don't do this, the xt_set can also be used from nft_compat
+which doesn't use the xtables packet traversers.
 
-Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
-=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
-w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
-owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
-dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
+I'd rather use synchonize_rcu() once in ip_set_destroy(), that will
+make sure all concurrent traversers are gone.
 
-Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
-edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
-edstawi=C4=87 ofert=C4=99?
+That said, I still do not understand this fix, the
+match / target destroy hooks are called after the table has
+been completely replaced, i.e., while packets can still be in flight
+no packets should be within the ipset lookup functions when
+this happens, and no more packets should be able to enter them.
 
+AFAICS the request to delete the set will fail if its still referenced
+via any rule. xt_set holds references to the sets.
 
-Pozdrawiam serdecznie,
-Jakub Wr=C3=B3bel
+So:
+1. set have dropped all references
+2. userspace *can* delete the set
+3. we get crash because xt_set was still within a sets eval
+  function.
+
+I don't see how 3) can happen, xt table replace isn't supposed
+to call the xt_set destroy functions until after table replace.
+
+We even release the entire x_table blob right afterwards.
