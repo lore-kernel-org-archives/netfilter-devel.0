@@ -2,105 +2,147 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1100E92714
-	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 15:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F7BBE9270D
+	for <netfilter-devel@archiver.kernel.org>; Thu,  5 Oct 2023 15:48:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234000AbjJEPql (ORCPT
+        id S234396AbjJEPst (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 5 Oct 2023 11:46:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36366 "EHLO
+        Thu, 5 Oct 2023 11:48:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233929AbjJEPpR (ORCPT
+        with ESMTP id S233191AbjJEPsH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Oct 2023 11:45:17 -0400
-X-Greylist: delayed 585 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 05 Oct 2023 08:02:08 PDT
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87EEA21D00;
-        Thu,  5 Oct 2023 08:02:07 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 16261CC02C3;
-        Thu,  5 Oct 2023 16:50:46 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu,  5 Oct 2023 16:50:43 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 52ACACC02C0;
-        Thu,  5 Oct 2023 16:50:42 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 096853431A9; Thu,  5 Oct 2023 16:50:42 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 076443431A8;
-        Thu,  5 Oct 2023 16:50:42 +0200 (CEST)
-Date:   Thu, 5 Oct 2023 16:50:42 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     Florian Westphal <fw@strlen.de>
-cc:     xiaolinkui <xiaolinkui@126.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        David Miller <davem@davemloft.net>, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, justinstitt@google.com,
-        kuniyu@amazon.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Linkui Xiao <xiaolinkui@kylinos.cn>
-Subject: Re: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
-In-Reply-To: <20231005123107.GB9350@breakpoint.cc>
-Message-ID: <2c9efd36-f1f6-b77b-d4eb-f65932cfaba@netfilter.org>
-References: <20231005115022.12902-1-xiaolinkui@126.com> <20231005123107.GB9350@breakpoint.cc>
+        Thu, 5 Oct 2023 11:48:07 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FC09AFAE
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Oct 2023 07:18:56 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qoPBl-0000ZB-Hb; Thu, 05 Oct 2023 16:18:53 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Timo Sigurdsson <public_timo.s@silentcreek.de>
+Subject: [PATCH nf] netfilter: nf_tables: work around newrule after chain binding
+Date:   Thu,  5 Oct 2023 16:18:39 +0200
+Message-ID: <20231005141843.8203-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 5 Oct 2023, Florian Westphal wrote:
+nftables versions prior to
+commit 3975430b12d9 ("src: expand table command before evaluation"), i.e.
+1.0.6 and earlier, will handle the following snippet in the wrong order:
 
-> xiaolinkui <xiaolinkui@126.com> wrote:
-> > From: Linkui Xiao <xiaolinkui@kylinos.cn>
-> > 
-> > Before destroying the ipset, take a check on sequence to ensure that the
-> > ip_set_test operation of this ipset has been completed.
-> > 
-> > The code of set_match_v4 is protected by addend=xt_write_recseq_begin() and
-> > xt_write_recseq_end(addend). So we can ensure that the test operation is
-> > completed by reading seqcount.
-> 
-> Nope, please don't do this, the xt_set can also be used from nft_compat
-> which doesn't use the xtables packet traversers.
-> 
-> I'd rather use synchonize_rcu() once in ip_set_destroy(), that will
-> make sure all concurrent traversers are gone.
+table ip t {
+	chain c {
+		jump { counter; }
+	}
+}
 
-But ip_set_destroy() can be called only when there's no reference to the 
-set in the kernel and thus there's no ipset function whatsoever in the 
-packet path which would access it.
+1. create the table, chain,c and an anon chain.
+2. append a rule to chain c to jump to the anon chain.
+3. append the rule(s) (here: "counter") to the anon chain.
 
-> That said, I still do not understand this fix, the
-> match / target destroy hooks are called after the table has
-> been completely replaced, i.e., while packets can still be in flight
-> no packets should be within the ipset lookup functions when
-> this happens, and no more packets should be able to enter them.
-> 
-> AFAICS the request to delete the set will fail if its still referenced
-> via any rule. xt_set holds references to the sets.
-> 
-> So:
-> 1. set have dropped all references
-> 2. userspace *can* delete the set
-> 3. we get crash because xt_set was still within a sets eval
->   function.
-> 
-> I don't see how 3) can happen, xt table replace isn't supposed
-> to call the xt_set destroy functions until after table replace.
-> 
-> We even release the entire x_table blob right afterwards.
+(step 3 should be before 2).
 
-I'd expect the author to send patches to netfilter-devel@vger.kernel.org 
-first in order to review netfilter and ipset related patches there.
+With below commit, this is now rejected by the kernel.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Reason is that the 'jump {' rule added to chain c adds an explicit binding
+(dependency), i.e. the kernel will automatically remove the anon chain when
+userspace later asks to delete the 'jump {' rule from chain c.
+
+This caused crashes in the kernel in case of a errors further down
+in the same transaction.
+
+The abort part has to unroll all pending changes, including the request to
+add the rule 'jump {'.  As its already bound, all the rules added to it
+get deleted as well.
+
+Because we tolerated late-add-after-bind, the transaction log also contains
+the NEWRULE requests (here "counter"), so those were deleted again.
+
+Instead of rejecting newrule-to-bound-chain, allow it iff the anon chain
+is new in this transaction and we are appending.
+
+Mark the newrule transaction as already_bound so abort path skips them.
+
+Fixes: 0ebc1064e487 ("netfilter: nf_tables: disallow rule addition to bound chain via NFTA_RULE_CHAIN_ID")
+Reported-by: Timo Sigurdsson <public_timo.s@silentcreek.de>
+Closes: https://lore.kernel.org/netfilter-devel/20230911213750.5B4B663206F5@dd20004.kasserver.com/
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a72b6aeefb1b..dd5b78a58023 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3805,6 +3805,26 @@ static struct nft_rule *nft_rule_lookup_byid(const struct net *net,
+ 					     const struct nft_chain *chain,
+ 					     const struct nlattr *nla);
+ 
++/* nft <= 1.0.6 appends rules to anon chains after they have been bound */
++static bool nft_rule_work_around_old_version(const struct nfnl_info *info,
++					     struct nft_chain *chain)
++{
++	/* bound (anonymous) chain is already used */
++	if (nft_is_active(info->net, chain))
++		return false;
++
++	/* nft never asks to replace rules here */
++	if (info->nlh->nlmsg_flags & (NLM_F_REPLACE | NLM_F_EXCL))
++		return false;
++
++	/* nft and it only ever appends. */
++	if ((info->nlh->nlmsg_flags & NLM_F_APPEND) == 0)
++		return false;
++
++	pr_warn_once("enabling workaround for nftables 1.0.6 and older\n");
++	return true;
++}
++
+ #define NFT_RULE_MAXEXPRS	128
+ 
+ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+@@ -3818,6 +3838,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 	struct nft_expr_info *expr_info = NULL;
+ 	u8 family = info->nfmsg->nfgen_family;
+ 	struct nft_flow_rule *flow = NULL;
++	bool add_after_bind = false;
+ 	struct net *net = info->net;
+ 	struct nft_userdata *udata;
+ 	struct nft_table *table;
+@@ -3857,8 +3878,12 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (nft_chain_is_bound(chain))
+-		return -EOPNOTSUPP;
++	if (nft_chain_is_bound(chain)) {
++		if (!nft_rule_work_around_old_version(info, chain))
++			return -EOPNOTSUPP;
++
++		add_after_bind = true;
++	}
+ 
+ 	if (nla[NFTA_RULE_HANDLE]) {
+ 		handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_HANDLE]));
+@@ -4003,6 +4028,10 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
+ 			goto err_destroy_flow_rule;
+ 		}
+ 
++		/* work around nftables versions <= 1.0.5 that append rules after bind. */
++		if (add_after_bind)
++			nft_trans_rule_bound(trans) = true;
++
+ 		if (info->nlh->nlmsg_flags & NLM_F_APPEND) {
+ 			if (old_rule)
+ 				list_add_rcu(&rule->list, &old_rule->list);
+-- 
+2.41.0
+
