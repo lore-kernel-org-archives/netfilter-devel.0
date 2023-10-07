@@ -2,192 +2,67 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F69DE95A60
-	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Oct 2023 12:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36B3BE95A61
+	for <netfilter-devel@archiver.kernel.org>; Sat,  7 Oct 2023 14:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343884AbjJGMQV (ORCPT
+        id S1343880AbjJGOr1 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 7 Oct 2023 08:16:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47546 "EHLO
+        Sat, 7 Oct 2023 10:47:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343867AbjJGMQV (ORCPT
+        with ESMTP id S229824AbjJGOr0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Oct 2023 08:16:21 -0400
-Received: from mail-yw1-x1136.google.com (mail-yw1-x1136.google.com [IPv6:2607:f8b0:4864:20::1136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A00ABD
-        for <netfilter-devel@vger.kernel.org>; Sat,  7 Oct 2023 05:16:20 -0700 (PDT)
-Received: by mail-yw1-x1136.google.com with SMTP id 00721157ae682-59f4db9e11eso35454307b3.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Oct 2023 05:16:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696680979; x=1697285779; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=lPC81XSbWrxB09nfN6IcYeUdhakwt7oXr8uEJmPnBbI=;
-        b=j+vAwULNDVPy+uvgXyB81BnSeuBKnlW5JRLVguyWChS8IuvxhtmOe0OQL03s4Id9wK
-         XQfG5Ue0NLkWRO96KTQDMmgvaAeVUsvjXhncSyra3frJkjg1QXkIHxy+AcSK05CywcEi
-         hXX7jErwnNNCaK+a8GZ+ljD7eF+8asubBbTxXVjtZ1DbDe1J+CY6avHyCLHVOQHseSvA
-         xoFiRm8eCXDIlR6De4uBhG5R6HD3djC4PamyJaWC1VOiPo4zTtnWY1D9sXSrsHIHntsq
-         T2G23I67ja/wwGMm3Ak42ybGPy5/5E2G2tNlG8zDaXsmIwB6Yje+P92v1GNzymC+zdIS
-         PliA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696680979; x=1697285779;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=lPC81XSbWrxB09nfN6IcYeUdhakwt7oXr8uEJmPnBbI=;
-        b=pDEsyzE3TI/N3t/Xmt9uCnRgogGqhjCZnOhZ2GP7KSlgtnsjMaT98VtHxLN4bG855z
-         Afj8HcGdcSthEmpXQr2hp7Mxjgr8TXkEHyKjMcPKx70LSQchIcQ5YESMNajZQ/UFbWIz
-         zBWoikeMnFh2mjxm+STnygtq5m41AJ1UYWHIoqYGQvfDvSefaYYR17T9ydRQi8zcsfE3
-         tvhmWMOOJfJEdOj9DAyHUukCbWZvfjacyLdmhI0DuxLP83AnLd95RnpTxRroSnIw7tG8
-         l1J/mPWF54sy4QD+zVliGOi7apZlU3DYqoyfOpeCa31+rnale0durMuPKVoGDLMLsrG7
-         JhcQ==
-X-Gm-Message-State: AOJu0YxvxJujGFIMIKim3bpse9SyItKx5ZKxpRvtJ39wqKNQMkgIX49/
-        pcRFa9AV6DDSNiUF7UxqX29eytHeKYsQvflkK57gdOF4/qfJsg==
-X-Google-Smtp-Source: AGHT+IHzsHg7nz1/kMoqKhCez40HAeAAIYASNvXNKuN6CxTyqOvwOrcD2iBwvz/vDNqQ5psqmjjQadfKz4eWsNZXfUs=
-X-Received: by 2002:a81:83c3:0:b0:59b:1b87:a95b with SMTP id
- t186-20020a8183c3000000b0059b1b87a95bmr11936845ywf.20.1696680978974; Sat, 07
- Oct 2023 05:16:18 -0700 (PDT)
+        Sat, 7 Oct 2023 10:47:26 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A994DBD;
+        Sat,  7 Oct 2023 07:47:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2F05C433C7;
+        Sat,  7 Oct 2023 14:47:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696690045;
+        bh=toBbiQLzqioyx3ESZzgeMUmDaIvxlXr2inUPTTVY7VM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=npVi0yxa2LNPlvtS1ysPrOCYdtE8fIhgoJ1yeYf9EZqv87t95Uk6c7uVO0YCLLM4B
+         NNceouB6JIkkKaVmqZIWZ5bdgO+zJTc4TMX5IYVZUMhY8xrq/oDsqFad6NUe5LKm1V
+         Ft8uERIUV5vLe6PH9QdUsaroLDYzgBlVw0nUcxGdyVnMUZpdAcX0nbqq9bA8UAaiUc
+         7zVBvT56NAd2dWgjdq7dCxlVJpMb09dP5S2gUIutPOg1PVVEE9q35AX2m2kLyYSMnN
+         xP62TxCInwwMqnhWqgQqmDjBFtX+HBCmQt/EG5PBJDiQGl7iJTHD6vDiT0tXTiTxJo
+         hIxJAfTM9/a0g==
+Date:   Sat, 7 Oct 2023 16:47:20 +0200
+From:   Simon Horman <horms@kernel.org>
+To:     Xin Long <lucien.xin@gmail.com>
+Cc:     network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
+        davem@davemloft.net, kuba@kernel.org,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCHv2 nf 0/2] netfilter: handle the sctp collision properly
+ and add selftest
+Message-ID: <20231007144720.GA831234@kernel.org>
+References: <cover.1696353375.git.lucien.xin@gmail.com>
 MIME-Version: 1.0
-From:   wenli xie <wlxie7296@gmail.com>
-Date:   Sat, 7 Oct 2023 20:16:07 +0800
-Message-ID: <CABRboy3zL_MD+wS_0L1f_Ou+y7Nw9U+UD4Bt5OEP0qEXmsQ89Q@mail.gmail.com>
-Subject: iptales-restore cmd crash
-To:     netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1696353375.git.lucien.xin@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Maintainer:
+On Tue, Oct 03, 2023 at 01:17:52PM -0400, Xin Long wrote:
+> Patch 1/2 is to fix the insufficient processing for sctp collision in netfilter
+> nf_conntrack, and Patch 2/2 is to add a selftest for it, as Florian suggested.
+> 
+> Xin Long (2):
+>   netfilter: handle the connecting collision properly in
+>     nf_conntrack_proto_sctp
+>   selftests: netfilter: test for sctp collision processing in
+>     nf_conntrack
 
-Recently I met an issue on the iptables-restore command, when I run the command:
+For series,
 
-iptables-restore -T filter --noflush < replace
+Reviewed-by: Simon Horman <horms@kernel.org>
 
-It shows the Segmentation fault error.
-
-Then I did further check. Here are my findings.
- backtrace
-
-Reading symbols from /home/centos/bin/iptbales/sbin/iptables-restore...
-
-[New LWP 3272596]
-
-[Thread debugging using libthread_db enabled]
-
-Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
-
-Core was generated by `/home/centos/bin/iptbales/sbin/iptables-restore
--T filter --noflush'.
-
-Program terminated with signal SIGSEGV, Segmentation fault.
-
-#0  __strcmp_evex () at ../sysdeps/x86_64/multiarch/strcmp-evex.S:139
-
-139 ../sysdeps/x86_64/multiarch/strcmp-evex.S: No such file or directory.
-
-(gdb) bt
-
-#0  __strcmp_evex () at ../sysdeps/x86_64/multiarch/strcmp-evex.S:139
-
-#1  0x00007f2c961c4810 in __iptcc_bsearch_chain_index
-(name=name@entry=0x55b9b4177490 "SNTL_F_set_d2ebb6067e1f5247",
-offset=offset@entry=0,
-
-    idx=idx@entry=0x7ffc5ed6e654, handle=handle@entry=0x55b9b37ad2b0,
-type=type@entry=BSEARCH_NAME) at
-/root/iptables-1.8.9/libiptc/libiptc.c:402
-
-#2  0x00007f2c961c4c2c in iptcc_bsearch_chain_index
-(handle=0x55b9b37ad2b0, idx=0x7ffc5ed6e654, name=0x55b9b4177490
-"SNTL_F_set_d2ebb6067e1f5247")
-
-    at /root/iptables-1.8.9/libiptc/libiptc.c:425
-
-#3  iptcc_find_label (name=name@entry=0x55b9b4177490
-"SNTL_F_set_d2ebb6067e1f5247", handle=handle@entry=0x55b9b37ad2b0)
-
-    at /root/iptables-1.8.9/libiptc/libiptc.c:734
-
-#4  0x00007f2c961c67d0 in iptc_rename_chain
-(oldname=oldname@entry=0x55b9b4177460 "STMP_F_set_d2ebb6067e1f5247",
-
-    newname=newname@entry=0x55b9b4177490
-"SNTL_F_set_d2ebb6067e1f5247", handle=0x55b9b37ad2b0) at
-/root/iptables-1.8.9/libiptc/libiptc.c:2373
-
-#5  0x000055b9b2db67a5 in do_command4 (argc=<optimized out>,
-argv=argv@entry=0x7ffc5ed6ea58, table=table@entry=0x7ffc5ed6ea68,
-
-    handle=handle@entry=0x7ffc5ed6ea28, restore=restore@entry=true) at
-iptables.c:861
-
-#6  0x000055b9b2db3f30 in ip46tables_restore_main (cb=0x55b9b2dbca00
-<ipt_restore_cb>, argc=argc@entry=4, argv=argv@entry=0x7ffc5ed71ff8,
-
-    cb=0x55b9b2dbca00 <ipt_restore_cb>) at iptables-restore.c:338
-
-#7  0x000055b9b2db4744 in iptables_restore_main (argc=4,
-argv=0x7ffc5ed71ff8) at iptables-restore.c:388
-
-#8  0x00007f2c95fbbd90 in __libc_start_call_main
-(main=main@entry=0x55b9b2daddc0 <main>, argc=argc@entry=4,
-argv=argv@entry=0x7ffc5ed71ff8)
-
-    at ../sysdeps/nptl/libc_start_call_main.h:58
-
-#9  0x00007f2c95fbbe40 in __libc_start_main_impl (main=0x55b9b2daddc0
-<main>, argc=4, argv=0x7ffc5ed71ff8, init=<optimized out>,
-fini=<optimized out>,
-
-    rtld_fini=<optimized out>, stack_end=0x7ffc5ed71fe8) at
-../csu/libc-start.c:392
-
-#10 0x000055b9b2daddf5 in _start ()
-
-
-
-
-This is the line that code crashed:
-
-https://git.netfilter.org/iptables/tree/libiptc/libiptc.c#n402
-
-Looks like the pos+1 out of the bound of array handle->chain_index
-
-
-After I enabled the debug logs of iptables, then we can see the context:
-
-https://git.netfilter.org/iptables/tree/libiptc/libiptc.c#n341
-
-
-bsearch Find chain:SNTL_F_set_cf70fcb2da2c9d75 (pos:2 end:5) (offset:0)
-
-bsearch Index[2] name:SNTL_F_set_847f79f7c669e9bb res:43 jump forward
-to pos:3 (end:5)
-
-bsearch Index[3] name:SNTL_F_set_c8da4e747a025ea3 res:46
-
-
-We can see that when pos=3, then pos+1 will out the boundary of array
-handle->chain_index, but the array size supposed to be
-handle->chain_index_sz = 5.
-
-
-So there should be code bugs in the iptables-restore command.
-
-
-After check for more, I'd think it triggered by following code path:
-
-TC_RENAME_CHAIN->iptcc_chain_index_delete_chain->iptcc_chain_index_rebuild
-
-In this function, there are chain deleted
-(https://git.netfilter.org/iptables/tree/libiptc/libiptc.c#n605),
-which makes the num_chain to be decreased from 161 to 160 (In the
-test, we are restore for 161 chains), then it will generate the array
-handle->chain_index with  only 4 elements (160/40), but keep
-handle->chain_index_sz = 5.
-https://git.netfilter.org/iptables/tree/libiptc/libiptc.c#n544
-
-I had requested an account for bugzilla to report this bug, but for a
-long time no response.
-
-Appreciate that someone can have a check for this issue, thanks.
