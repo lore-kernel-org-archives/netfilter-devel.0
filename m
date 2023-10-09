@@ -2,66 +2,88 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43BB4E95A67
-	for <netfilter-devel@archiver.kernel.org>; Sun,  8 Oct 2023 17:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD8F1E95A8F
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Oct 2023 02:54:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234251AbjJHRhw (ORCPT
+        id S231542AbjJICyf (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Oct 2023 13:37:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60728 "EHLO
+        Sun, 8 Oct 2023 22:54:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231167AbjJHRhw (ORCPT
+        with ESMTP id S230429AbjJICyf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Oct 2023 13:37:52 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEF7EA3;
-        Sun,  8 Oct 2023 10:37:50 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qpXiu-0003p2-Ef; Sun, 08 Oct 2023 19:37:48 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     netfilter@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        =?UTF-8?q?Bla=C5=BEej=20Kraj=C5=88=C3=A1k?= <krajnak@levonet.sk>
-Subject: [PATCH nf] netfilter: nft_payload: fix wrong mac header matching
-Date:   Sun,  8 Oct 2023 19:36:53 +0200
-Message-ID: <20231008173730.137689-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <7E750C75-70FF-4078-8462-11387E1F1324@levonet.sk>
-References: <7E750C75-70FF-4078-8462-11387E1F1324@levonet.sk>
+        Sun, 8 Oct 2023 22:54:35 -0400
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92388A4;
+        Sun,  8 Oct 2023 19:54:33 -0700 (PDT)
+X-UUID: 32ffd98f3bf5458f9196de2ce6920fc6-20231009
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.32,REQID:5774f625-9af4-41ad-8b8e-617d319afdd0,IP:-15
+        ,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTI
+        ON:release,TS:-20
+X-CID-INFO: VERSION:1.1.32,REQID:5774f625-9af4-41ad-8b8e-617d319afdd0,IP:-15,U
+        RL:0,TC:0,Content:0,EDM:0,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTION
+        :release,TS:-20
+X-CID-META: VersionHash:5f78ec9,CLOUDID:6fb8b8bf-14cc-44ca-b657-2d2783296e72,B
+        ulkID:231009105417AZF97K5Y,BulkQuantity:0,Recheck:0,SF:100|17|19|42|101|24
+        |102,TC:nil,Content:0,EDM:-3,IP:nil,URL:0,File:nil,Bulk:nil,QS:nil,BEC:nil
+        ,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
+X-CID-BVR: 0,NGT
+X-CID-BAS: 0,NGT,0,_
+X-CID-FACTOR: TF_CID_SPAM_FSD,TF_CID_SPAM_FSI,TF_CID_SPAM_SNR,TF_CID_SPAM_FAS
+X-UUID: 32ffd98f3bf5458f9196de2ce6920fc6-20231009
+X-User: guodongtai@kylinos.cn
+Received: from localhost.localdomain [(39.156.73.14)] by mailgw
+        (envelope-from <guodongtai@kylinos.cn>)
+        (Generic MTA)
+        with ESMTP id 260471370; Mon, 09 Oct 2023 10:54:16 +0800
+From:   George Guo <guodongtai@kylinos.cn>
+To:     fw@strlen.de
+Cc:     coreteam@netfilter.org, davem@davemloft.net, dongtai.guo@linux.dev,
+        edumazet@google.com, guodongtai@kylinos.cn, kadlec@netfilter.org,
+        kuba@kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pabeni@redhat.com, pablo@netfilter.org
+Subject: [PATCH v2] netfilter: cleanup struct nft_table
+Date:   Mon,  9 Oct 2023 10:55:48 +0800
+Message-Id: <20231009025548.3522409-1-guodongtai@kylinos.cn>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20231007105335.GB20662@breakpoint.cc>
+References: <20231007105335.GB20662@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-mcast packets get looped back to the local machine.
-Such packets have a 0-length mac header, we should treat
-this like "mac header not set" and abort rule evaluation.
+Add comments for nlpid, family, udlen and udata in struct nft_table, and
+afinfo is no longer a member of struct nft_table, so remove the comment
+for it.
 
-As-is, we just copy data from the network header instead.
-
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Reported-by: Blažej Krajňák <krajnak@levonet.sk>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: George Guo <guodongtai@kylinos.cn>
 ---
- net/netfilter/nft_payload.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 120f6d395b98..0a689c8e0295 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -179,7 +179,7 @@ void nft_payload_eval(const struct nft_expr *expr,
- 
- 	switch (priv->base) {
- 	case NFT_PAYLOAD_LL_HEADER:
--		if (!skb_mac_header_was_set(skb))
-+		if (!skb_mac_header_was_set(skb) || skb_mac_header_len(skb) == 0)
- 			goto err;
- 
- 		if (skb_vlan_tag_present(skb) &&
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 7c816359d5a9..9fb16485d08f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1198,10 +1198,13 @@ static inline void nft_use_inc_restore(u32 *use)
+  *	@hgenerator: handle generator state
+  *	@handle: table handle
+  *	@use: number of chain references to this table
++ *	@family:address family
+  *	@flags: table flag (see enum nft_table_flags)
+  *	@genmask: generation mask
+- *	@afinfo: address family info
++ *	@nlpid: netlink port ID
+  *	@name: name of the table
++ *	@udlen: length of the user data
++ *	@udata: user data
+  *	@validate_state: internal, set when transaction adds jumps
+  */
+ struct nft_table {
 -- 
-2.41.0
+2.34.1
 
