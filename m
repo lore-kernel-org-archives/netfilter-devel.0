@@ -2,88 +2,107 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD8F1E95A8F
-	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Oct 2023 02:54:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCCAE95A96
+	for <netfilter-devel@archiver.kernel.org>; Mon,  9 Oct 2023 10:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231542AbjJICyf (ORCPT
+        id S1345781AbjJIKfL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 8 Oct 2023 22:54:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33822 "EHLO
+        Mon, 9 Oct 2023 06:35:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230429AbjJICyf (ORCPT
+        with ESMTP id S1345716AbjJIKfK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 8 Oct 2023 22:54:35 -0400
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92388A4;
-        Sun,  8 Oct 2023 19:54:33 -0700 (PDT)
-X-UUID: 32ffd98f3bf5458f9196de2ce6920fc6-20231009
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.32,REQID:5774f625-9af4-41ad-8b8e-617d319afdd0,IP:-15
-        ,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTI
-        ON:release,TS:-20
-X-CID-INFO: VERSION:1.1.32,REQID:5774f625-9af4-41ad-8b8e-617d319afdd0,IP:-15,U
-        RL:0,TC:0,Content:0,EDM:0,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTION
-        :release,TS:-20
-X-CID-META: VersionHash:5f78ec9,CLOUDID:6fb8b8bf-14cc-44ca-b657-2d2783296e72,B
-        ulkID:231009105417AZF97K5Y,BulkQuantity:0,Recheck:0,SF:100|17|19|42|101|24
-        |102,TC:nil,Content:0,EDM:-3,IP:nil,URL:0,File:nil,Bulk:nil,QS:nil,BEC:nil
-        ,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
-X-CID-BVR: 0,NGT
-X-CID-BAS: 0,NGT,0,_
-X-CID-FACTOR: TF_CID_SPAM_FSD,TF_CID_SPAM_FSI,TF_CID_SPAM_SNR,TF_CID_SPAM_FAS
-X-UUID: 32ffd98f3bf5458f9196de2ce6920fc6-20231009
-X-User: guodongtai@kylinos.cn
-Received: from localhost.localdomain [(39.156.73.14)] by mailgw
-        (envelope-from <guodongtai@kylinos.cn>)
-        (Generic MTA)
-        with ESMTP id 260471370; Mon, 09 Oct 2023 10:54:16 +0800
-From:   George Guo <guodongtai@kylinos.cn>
-To:     fw@strlen.de
-Cc:     coreteam@netfilter.org, davem@davemloft.net, dongtai.guo@linux.dev,
-        edumazet@google.com, guodongtai@kylinos.cn, kadlec@netfilter.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pabeni@redhat.com, pablo@netfilter.org
-Subject: [PATCH v2] netfilter: cleanup struct nft_table
-Date:   Mon,  9 Oct 2023 10:55:48 +0800
-Message-Id: <20231009025548.3522409-1-guodongtai@kylinos.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20231007105335.GB20662@breakpoint.cc>
-References: <20231007105335.GB20662@breakpoint.cc>
+        Mon, 9 Oct 2023 06:35:10 -0400
+Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com [IPv6:2607:f8b0:4864:20::443])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAF7A9C
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Oct 2023 03:35:09 -0700 (PDT)
+Received: by mail-pf1-x443.google.com with SMTP id d2e1a72fcca58-690d2e13074so3178690b3a.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Oct 2023 03:35:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1696847709; x=1697452509; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Qywk7MQlzijgGkjhjBs5R3JKd5Xqn4FHnYfi31GCSls=;
+        b=NwIKhE2QgtVmzX4qP8P3UL+T65mu3LRdvyVoiazOOh2LYtCabLQ9nBhuH/P1OeVigw
+         bUp6R99XoqY06nrqfWu2DRliqgV3ImDGFq7FRhVFwyuEfa6rwF2DS5yKZuBxCWP0c4ta
+         RKwaevAktJY9jDgxjcG7Kqfph7hQ28VfdR9hO+HlAj/Rm/9ro2TsVckhrui1m2S6zCG4
+         nVc1kdLKq52S0tevvg0GL/KBPN6W/HG8MVOTbTTSVKYtGbwe7HlbyvK8pXeabNODnhhx
+         Zy8DaOm//CBk3WSoIlFdiYixPUqiJZPLPC5cXc0RAKPOPaijOtdoUNcYkZuG4uVdqG+j
+         ekAQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696847709; x=1697452509;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Qywk7MQlzijgGkjhjBs5R3JKd5Xqn4FHnYfi31GCSls=;
+        b=Je4Wtr8Fup3RmHxVpWibpMjPY7bgk/qWIUqPSpEDgxaZAqQgsiF1mLyqLyanZ0WxF6
+         uFdLYDH5+thfB/CBenPzwTyUzJoq+Ao81njZRh+nHVxjmiW6NTlUQDrvNQsPKbufMtWg
+         Hhx4HPdpE5rXfywX/etVjPwgmPIhLqkpqsoewdaJWyD2AdKY+yUiNLmRAC/lqBYd0+bR
+         3kNOkLhQTFxN3e5X2sPcQZONs0Cuxa3a7JAF7syic4jRwbMgxXOZIup3+deNcN3T8B6u
+         4zDAkDi5ZZcZ2HHo0tE1zgppX5Wzj1Q/UckhbXxOGfHO6xogUI29FepzT5XQfFuhreME
+         VCLg==
+X-Gm-Message-State: AOJu0Yzb6GElTfYlWhBfmLjQsj3fTwTQfjyFnOfRmyHDcq6omQ0tjp2l
+        za2xHF92EdYjgKdmPflcHMQ=
+X-Google-Smtp-Source: AGHT+IHu0trQaGvklRJfJNRuanIpHSQi/xKCGw3vRu2YLklsSowyxs33PbSDi5cvfWT2D2hOV/3BRw==
+X-Received: by 2002:a05:6a20:548c:b0:16b:9285:69f5 with SMTP id i12-20020a056a20548c00b0016b928569f5mr8239486pzk.35.1696847709063;
+        Mon, 09 Oct 2023 03:35:09 -0700 (PDT)
+Received: from localhost ([219.223.232.167])
+        by smtp.gmail.com with ESMTPSA id j10-20020a170902690a00b001c625d6ffccsm9155546plk.129.2023.10.09.03.35.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Oct 2023 03:35:08 -0700 (PDT)
+From:   Xingyuan Mo <hdthky0@gmail.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org (open list:NETFILTER)
+Cc:     Xingyuan Mo <hdthky0@gmail.com>
+Subject: [PATCH nf 1/2] nf_tables: fix NULL pointer dereference in nft_inner_init()
+Date:   Mon,  9 Oct 2023 18:34:58 +0800
+Message-Id: <20231009103459.12594-1-hdthky0@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add comments for nlpid, family, udlen and udata in struct nft_table, and
-afinfo is no longer a member of struct nft_table, so remove the comment
-for it.
+We should check whether the NFTA_INNER_NUM netlink attribute is present
+before accessing it, otherwise a null pointer deference error will occur.
 
-Signed-off-by: George Guo <guodongtai@kylinos.cn>
+Call Trace:
+ dump_stack_lvl+0x4f/0x90
+ print_report+0x3f0/0x620
+ kasan_report+0xcd/0x110
+ __asan_load4+0x84/0xa0
+ nft_inner_init+0x128/0x2e0
+ nf_tables_newrule+0x813/0x1230
+ nfnetlink_rcv_batch+0xec3/0x1170
+ nfnetlink_rcv+0x1e4/0x220
+ netlink_unicast+0x34e/0x4b0
+ netlink_sendmsg+0x45c/0x7e0
+ __sys_sendto+0x355/0x370
+ __x64_sys_sendto+0x84/0xa0
+ do_syscall_64+0x3f/0x90
+ entry_SYSCALL_64_after_hwframe+0x6e/0xd8
+
+Fixes: 3a07327d10a0 ("netfilter: nft_inner: support for inner tunnel header matching")
+Signed-off-by: Xingyuan Mo <hdthky0@gmail.com>
 ---
- include/net/netfilter/nf_tables.h | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/netfilter/nft_inner.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7c816359d5a9..9fb16485d08f 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1198,10 +1198,13 @@ static inline void nft_use_inc_restore(u32 *use)
-  *	@hgenerator: handle generator state
-  *	@handle: table handle
-  *	@use: number of chain references to this table
-+ *	@family:address family
-  *	@flags: table flag (see enum nft_table_flags)
-  *	@genmask: generation mask
-- *	@afinfo: address family info
-+ *	@nlpid: netlink port ID
-  *	@name: name of the table
-+ *	@udlen: length of the user data
-+ *	@udata: user data
-  *	@validate_state: internal, set when transaction adds jumps
-  */
- struct nft_table {
+diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+index 28e2873ba24e..928312d01eb1 100644
+--- a/net/netfilter/nft_inner.c
++++ b/net/netfilter/nft_inner.c
+@@ -298,6 +298,7 @@ static int nft_inner_init(const struct nft_ctx *ctx,
+ 	int err;
+ 
+ 	if (!tb[NFTA_INNER_FLAGS] ||
++	    !tb[NFTA_INNER_NUM] ||
+ 	    !tb[NFTA_INNER_HDRSIZE] ||
+ 	    !tb[NFTA_INNER_TYPE] ||
+ 	    !tb[NFTA_INNER_EXPR])
 -- 
-2.34.1
+2.25.1
 
