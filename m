@@ -2,74 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 659C7CD8C9C
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Oct 2023 14:54:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0170CD8C99
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Oct 2023 14:58:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233161AbjJJOym (ORCPT
+        id S233259AbjJJO60 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Oct 2023 10:54:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51334 "EHLO
+        Tue, 10 Oct 2023 10:58:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232586AbjJJOym (ORCPT
+        with ESMTP id S232634AbjJJO6Z (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Oct 2023 10:54:42 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A45799;
-        Tue, 10 Oct 2023 07:54:41 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qqE7o-0001RC-7N; Tue, 10 Oct 2023 16:54:20 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     <netdev@vger.kernel.org>
-Cc:     Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        <netfilter-devel@vger.kernel.org>,
-        George Guo <guodongtai@kylinos.cn>
-Subject: [PATCH net-next 8/8] netfilter: cleanup struct nft_table
-Date:   Tue, 10 Oct 2023 16:53:38 +0200
-Message-ID: <20231010145343.12551-9-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20231010145343.12551-1-fw@strlen.de>
-References: <20231010145343.12551-1-fw@strlen.de>
+        Tue, 10 Oct 2023 10:58:25 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C37D4C6
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2023 07:58:23 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qqEBg-0004W7-NV; Tue, 10 Oct 2023 16:58:21 +0200
+Date:   Tue, 10 Oct 2023 16:58:20 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] doc: remove references to timeout in reset command
+Message-ID: <ZSVmjCI7mPy44lIT@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20231010142704.54741-1-pablo@netfilter.org>
+ <ZSVgOhTI8mWeeNIp@orbyte.nwl.cc>
+ <20231010144813.GA1407@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231010144813.GA1407@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: George Guo <guodongtai@kylinos.cn>
+On Tue, Oct 10, 2023 at 04:48:13PM +0200, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > On Tue, Oct 10, 2023 at 04:27:04PM +0200, Pablo Neira Ayuso wrote:
+> > > After Linux kernel's patch ("netfilter: nf_tables: do not refresh
+> > > timeout when resetting element") timers are not reset anymore, update
+> > > documentation to keep this in sync.
+> > 
+> > How is limit statement being reset? The dump callbacks in nft_limit.c
+> > ignore the 'bool reset' parameter.
+> 
+> Was that deliberate?  I don't see why it would be exempt?
 
-Add comments for nlpid, family, udlen and udata in struct nft_table, and
-afinfo is no longer a member of struct nft_table, so remove the comment
-for it.
+One could reset internal tokens and last values, indeed. I don't see a
+patch pending to do that, though.
 
-Signed-off-by: George Guo <guodongtai@kylinos.cn>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_tables.h | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+BTW: nft also does not support for 'reset limit(s)'.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7c816359d5a9..9fb16485d08f 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1198,10 +1198,13 @@ static inline void nft_use_inc_restore(u32 *use)
-  *	@hgenerator: handle generator state
-  *	@handle: table handle
-  *	@use: number of chain references to this table
-+ *	@family:address family
-  *	@flags: table flag (see enum nft_table_flags)
-  *	@genmask: generation mask
-- *	@afinfo: address family info
-+ *	@nlpid: netlink port ID
-  *	@name: name of the table
-+ *	@udlen: length of the user data
-+ *	@udata: user data
-  *	@validate_state: internal, set when transaction adds jumps
-  */
- struct nft_table {
--- 
-2.41.0
-
+Cheers, Phil
