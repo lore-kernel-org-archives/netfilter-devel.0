@@ -2,247 +2,507 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65893CD80A4
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Oct 2023 11:05:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDB95CD80A8
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Oct 2023 11:21:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229994AbjJJLFc (ORCPT
+        id S231343AbjJJLVM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Oct 2023 07:05:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53238 "EHLO
+        Tue, 10 Oct 2023 07:21:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230223AbjJJLFb (ORCPT
+        with ESMTP id S231348AbjJJLVK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Oct 2023 07:05:31 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6F00AC;
-        Tue, 10 Oct 2023 04:05:29 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qqAYF-0001Ys-Q0; Tue, 10 Oct 2023 13:05:23 +0200
-Date:   Tue, 10 Oct 2023 13:05:23 +0200
-From:   Phil Sutter <phil@netfilter.org>
-To:     netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc:     netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
-Subject: [ANNOUNCE] iptables 1.8.10 release
-Message-ID: <ZSUv81gBDQb2kqHs@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@netfilter.org>,
-        netfilter <netfilter@vger.kernel.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        netdev@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-        lwn@lwn.net
+        Tue, 10 Oct 2023 07:21:10 -0400
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A090FA9;
+        Tue, 10 Oct 2023 04:21:07 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4S4YKn22PBz6D8q7;
+        Tue, 10 Oct 2023 19:18:05 +0800 (CST)
+Received: from [10.123.123.126] (10.123.123.126) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.31; Tue, 10 Oct 2023 12:21:04 +0100
+Message-ID: <952326a1-eb96-39d6-e9a1-0c291fdc2a1c@huawei.com>
+Date:   Tue, 10 Oct 2023 14:21:03 +0300
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="2gznOYqojtGKBm51"
-Content-Disposition: inline
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.1
+Subject: Re: [PATCH v12 08/12] landlock: Add network rules and TCP hooks
+ support
+Content-Language: ru
+To:     =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+CC:     <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+        <linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+        <artem.kuzin@huawei.com>, Eric Dumazet <edumazet@google.com>
+References: <20230920092641.832134-1-konstantin.meskhidze@huawei.com>
+ <20230920092641.832134-9-konstantin.meskhidze@huawei.com>
+ <20231001.oobeez8AeYae@digikod.net>
+ <d549bf7c-bf7a-939a-4aa7-a438abbc2e4d@huawei.com>
+ <20231010.Queiwi7ohngi@digikod.net>
+From:   "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
+In-Reply-To: <20231010.Queiwi7ohngi@digikod.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.123.123.126]
+X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
---2gznOYqojtGKBm51
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi!
+10/10/2023 12:28 PM, Mickaël Salaün пишет:
+> On Tue, Oct 10, 2023 at 06:29:56AM +0300, Konstantin Meskhidze (A) wrote:
+>> 
+>> 
+>> 10/2/2023 11:26 PM, Mickaël Salaün пишет:
+>> > Thanks for this new version Konstantin. I pushed this series, with minor
+>> > changes, to -next. So far, no warning. But it needs some changes, mostly
+>> > kernel-only, but also one with the handling of port 0 with bind (see my
+>> > review below).
+>> > 
+>> > On Wed, Sep 20, 2023 at 05:26:36PM +0800, Konstantin Meskhidze wrote:
+>> > > This commit adds network rules support in the ruleset management
+>> > > helpers and the landlock_create_ruleset syscall.
+>> > > Refactor user space API to support network actions. Add new network
+>> > > access flags, network rule and network attributes. Increment Landlock
+>> > > ABI version. Expand access_masks_t to u32 to be sure network access
+>> > > rights can be stored. Implement socket_bind() and socket_connect()
+>> > > LSM hooks, which enables to restrict TCP socket binding and connection
+>> > > to specific ports.
+>> > > The new landlock_net_port_attr structure has two fields. The allowed_access
+>> > > field contains the LANDLOCK_ACCESS_NET_* rights. The port field contains
+>> > > the port value according to the allowed protocol. This field can
+>> > > take up to a 64-bit value [1] but the maximum value depends on the related
+>> > > protocol (e.g. 16-bit for TCP).
+>> > > 
+>> > > [1]
+>> > > https://lore.kernel.org/r/278ab07f-7583-a4e0-3d37-1bacd091531d@digikod.net
+>> > > 
+>> > > Signed-off-by: Mickaël Salaün <mic@digikod.net>
+>> > > Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+>> > > ---
+>> > > 
+>> > > Changes since v11:
+>> > > * Replace dates with "2022-2023" in net.c/h files headers.
+>> > > * Removes WARN_ON_ONCE(!domain) in check_socket_access().
+>> > > * Using "typeof(*address)" instead of offsetofend(struct sockaddr, sa_family).
+>> > > * Renames LANDLOCK_RULE_NET_SERVICE to LANDLOCK_RULE_NET_PORT.
+>> > > * Renames landlock_net_service_attr to landlock_net_port_attr.
+>> > > * Defines two add_rule_net_service() functions according to
+>> > >   IS_ENABLED(CONFIG_INET) instead of changing the body of the only
+>> > >   function.
+>> > > * Adds af_family consistency check while handling AF_UNSPEC specifically.
+>> > > * Adds bind_access_mask in add_rule_net_service() to deny all rules with bind
+>> > >   action on port zero.
+>> > > * Minor fixes.
+>> > > * Refactors commit message.
+>> > > 
+>> > > Changes since v10:
+>> > > * Removes "packed" attribute.
+>> > > * Applies Mickaёl's patch with some refactoring.
+>> > > * Deletes get_port() and check_addrlen() helpers.
+>> > > * Refactors check_socket_access() by squashing get_port() and
+>> > >   check_addrlen() helpers into it.
+>> > > * Fixes commit message.
+>> > > 
+>> > > Changes since v9:
+>> > > * Changes UAPI port field to __u64.
+>> > > * Moves shared code into check_socket_access().
+>> > > * Adds get_raw_handled_net_accesses() and
+>> > >   get_current_net_domain() helpers.
+>> > > * Minor fixes.
+>> > > 
+>> > > Changes since v8:
+>> > > * Squashes commits.
+>> > > * Refactors commit message.
+>> > > * Changes UAPI port field to __be16.
+>> > > * Changes logic of bind/connect hooks with AF_UNSPEC families.
+>> > > * Adds address length checking.
+>> > > * Minor fixes.
+>> > > 
+>> > > Changes since v7:
+>> > > * Squashes commits.
+>> > > * Increments ABI version to 4.
+>> > > * Refactors commit message.
+>> > > * Minor fixes.
+>> > > 
+>> > > Changes since v6:
+>> > > * Renames landlock_set_net_access_mask() to landlock_add_net_access_mask()
+>> > >   because it OR values.
+>> > > * Makes landlock_add_net_access_mask() more resilient incorrect values.
+>> > > * Refactors landlock_get_net_access_mask().
+>> > > * Renames LANDLOCK_MASK_SHIFT_NET to LANDLOCK_SHIFT_ACCESS_NET and use
+>> > >   LANDLOCK_NUM_ACCESS_FS as value.
+>> > > * Updates access_masks_t to u32 to support network access actions.
+>> > > * Refactors landlock internal functions to support network actions with
+>> > >   landlock_key/key_type/id types.
+>> > > 
+>> > > Changes since v5:
+>> > > * Gets rid of partial revert from landlock_add_rule
+>> > > syscall.
+>> > > * Formats code with clang-format-14.
+>> > > 
+>> > > Changes since v4:
+>> > > * Refactors landlock_create_ruleset() - splits ruleset and
+>> > > masks checks.
+>> > > * Refactors landlock_create_ruleset() and landlock mask
+>> > > setters/getters to support two rule types.
+>> > > * Refactors landlock_add_rule syscall add_rule_path_beneath
+>> > > function by factoring out get_ruleset_from_fd() and
+>> > > landlock_put_ruleset().
+>> > > 
+>> > > Changes since v3:
+>> > > * Splits commit.
+>> > > * Adds network rule support for internal landlock functions.
+>> > > * Adds set_mask and get_mask for network.
+>> > > * Adds rb_root root_net_port.
+>> > > 
+>> > > ---
+>> > >  include/uapi/linux/landlock.h                |  47 ++++
+>> > >  security/landlock/Kconfig                    |   3 +-
+>> > >  security/landlock/Makefile                   |   2 +
+>> > >  security/landlock/limits.h                   |   5 +
+>> > >  security/landlock/net.c                      | 241 +++++++++++++++++++
+>> > >  security/landlock/net.h                      |  35 +++
+>> > >  security/landlock/ruleset.c                  |  62 ++++-
+>> > >  security/landlock/ruleset.h                  |  59 ++++-
+>> > >  security/landlock/setup.c                    |   2 +
+>> > >  security/landlock/syscalls.c                 |  33 ++-
+>> > >  tools/testing/selftests/landlock/base_test.c |   2 +-
+>> > >  11 files changed, 467 insertions(+), 24 deletions(-)
+>> > >  create mode 100644 security/landlock/net.c
+>> > >  create mode 100644 security/landlock/net.h
+>> > > 
+>> > > diff --git a/include/uapi/linux/landlock.h b/include/uapi/linux/landlock.h
+>> > > index 81d09ef9aa50..3b8400e8a4d9 100644
+>> > > --- a/include/uapi/linux/landlock.h
+>> > > +++ b/include/uapi/linux/landlock.h
+>> > > @@ -31,6 +31,12 @@ struct landlock_ruleset_attr {
+>> > >  	 * this access right.
+>> > >  	 */
+>> > >  	__u64 handled_access_fs;
+>> > > +	/**
+>> > > +	 * @handled_access_net: Bitmask of actions (cf. `Network flags`_)
+>> > > +	 * that is handled by this ruleset and should then be forbidden if no
+>> > > +	 * rule explicitly allow them.
+>> > > +	 */
+>> > > +	__u64 handled_access_net;
+>> > >  };
+>> > > 
+>> > >  /*
+>> > > @@ -54,6 +60,11 @@ enum landlock_rule_type {
+>> > >  	 * landlock_path_beneath_attr .
+>> > >  	 */
+>> > >  	LANDLOCK_RULE_PATH_BENEATH = 1,
+>> > > +	/**
+>> > > +	 * @LANDLOCK_RULE_NET_PORT: Type of a &struct
+>> > > +	 * landlock_net_port_attr .
+>> > > +	 */
+>> > > +	LANDLOCK_RULE_NET_PORT = 2,
+>> > >  };
+>> > > 
+>> > >  /**
+>> > > @@ -79,6 +90,23 @@ struct landlock_path_beneath_attr {
+>> > >  	 */
+>> > >  } __attribute__((packed));
+>> > > 
+>> > > +/**
+>> > > + * struct landlock_net_port_attr - Network service definition
+>> > 
+>> > "Network port definition"
+>> 
+>>    Ok. Thanks.
+>> > 
+>> > 
+>> > > diff --git a/security/landlock/Kconfig b/security/landlock/Kconfig
+>> > > index c1e862a38410..10c099097533 100644
+>> > > --- a/security/landlock/Kconfig
+>> > > +++ b/security/landlock/Kconfig
+>> > > @@ -2,7 +2,8 @@
+>> > > 
+>> > >  config SECURITY_LANDLOCK
+>> > >  	bool "Landlock support"
+>> > > -	depends on SECURITY
+>> > > +	depends on SECURITY && !ARCH_EPHEMERAL_INODES
+>> > 
+>> > !ARCH_EPHEMERAL_INODES is definitely gone now.
+>> 
+>>   Ok. Got it.
+>> > 
+>> > > +	select SECURITY_NETWORK
+>> > >  	select SECURITY_PATH
+>> > >  	help
+>> > >  	  Landlock is a sandboxing mechanism that enables processes to restrict
+>> > > diff --git a/security/landlock/Makefile b/security/landlock/Makefile
+>> > > index 7bbd2f413b3e..53d3c92ae22e 100644
+>> > > --- a/security/landlock/Makefile
+>> > > +++ b/security/landlock/Makefile
+>> > > @@ -2,3 +2,5 @@ obj-$(CONFIG_SECURITY_LANDLOCK) := landlock.o
+>> > > 
+>> > >  landlock-y := setup.o syscalls.o object.o ruleset.o \
+>> > >  	cred.o ptrace.o fs.o
+>> > > +
+>> > > +landlock-$(CONFIG_INET) += net.o
+>> > > \ No newline at end of file
+>> > > diff --git a/security/landlock/limits.h b/security/landlock/limits.h
+>> > > index bafb3b8dc677..93c9c6f91556 100644
+>> > > --- a/security/landlock/limits.h
+>> > > +++ b/security/landlock/limits.h
+>> > > @@ -23,6 +23,11 @@
+>> > >  #define LANDLOCK_NUM_ACCESS_FS		__const_hweight64(LANDLOCK_MASK_ACCESS_FS)
+>> > >  #define LANDLOCK_SHIFT_ACCESS_FS	0
+>> > > 
+>> > > +#define LANDLOCK_LAST_ACCESS_NET	LANDLOCK_ACCESS_NET_CONNECT_TCP
+>> > > +#define LANDLOCK_MASK_ACCESS_NET	((LANDLOCK_LAST_ACCESS_NET << 1) - 1)
+>> > > +#define LANDLOCK_NUM_ACCESS_NET		__const_hweight64(LANDLOCK_MASK_ACCESS_NET)
+>> > > +#define LANDLOCK_SHIFT_ACCESS_NET	LANDLOCK_NUM_ACCESS_FS
+>> > > +
+>> > >  /* clang-format on */
+>> > > 
+>> > >  #endif /* _SECURITY_LANDLOCK_LIMITS_H */
+>> > > diff --git a/security/landlock/net.c b/security/landlock/net.c
+>> > > new file mode 100644
+>> > > index 000000000000..62b830653e25
+>> > > --- /dev/null
+>> > > +++ b/security/landlock/net.c
+>> > > @@ -0,0 +1,241 @@
+>> > > +// SPDX-License-Identifier: GPL-2.0-only
+>> > > +/*
+>> > > + * Landlock LSM - Network management and hooks
+>> > > + *
+>> > > + * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
+>> > > + * Copyright © 2022-2023 Microsoft Corporation
+>> > > + */
+>> > > +
+>> > > +#include <linux/in.h>
+>> > > +#include <linux/net.h>
+>> > > +#include <linux/socket.h>
+>> > > +#include <net/ipv6.h>
+>> > > +
+>> > > +#include "common.h"
+>> > > +#include "cred.h"
+>> > > +#include "limits.h"
+>> > > +#include "net.h"
+>> > > +#include "ruleset.h"
+>> > > +
+>> > > +int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
+>> > > +			     const u16 port, access_mask_t access_rights)
+>> > 
+>> > This function is only used in add_rule_net_service(), so it should not
+>> > be exported, and we can merge it (into landlock_add_rule_net_port).
+>> > 
+>>  Do I have to ignore it according your next mail thread:
+>>  https://lore.kernel.org/netdev/20231009.meet7uTaeghu@digikod.net/
+>> ????
+> 
+> Yes please ignore this part, the latest mail prevails. This should be a
+> static function.
 
-The Netfilter project proudly presents:
+  Ok.
+> 
+>> > > +{
+>> > > +	int err;
+>> > > +	const struct landlock_id id = {
+>> > > +		.key.data = (__force uintptr_t)htons(port),
+>> > > +		.type = LANDLOCK_KEY_NET_PORT,
+>> > > +	};
+>> > > +
+>> > > +	BUILD_BUG_ON(sizeof(port) > sizeof(id.key.data));
+>> > > +
+>> > > +	/* Transforms relative access rights to absolute ones. */
+>> > > +	access_rights |= LANDLOCK_MASK_ACCESS_NET &
+>> > > +			 ~landlock_get_net_access_mask(ruleset, 0);
+>> > > +
+>> > > +	mutex_lock(&ruleset->lock);
+>> > > +	err = landlock_insert_rule(ruleset, id, access_rights);
+>> > > +	mutex_unlock(&ruleset->lock);
+>> > > +
+>> > > +	return err;
+>> > > +}
+>> > > +
+>> > > +int add_rule_net_service(struct landlock_ruleset *ruleset,
+>> > 
+>> > We should only export functions with a "landlock_" prefix, and "service"
+>> > is now replaced with "port", which gives landlock_add_rule_net_port().
+>> > 
+>> > For consistency, we should also rename add_rule_path_beneath() into
+>> > landlock_add_rule_path_beneath(), move it into fs.c, and merge
+>> > landlock_append_fs_rule() into it (being careful to not move the related
+>> > code to ease review). This change should be part of the "landlock:
+>> > Refactor landlock_add_rule() syscall" patch. Please be careful to keep
+>> > the other changes happening in other patches.
+>> > 
+>>   Should I still update prefix according your suggestions (keep
+>> add_rule_net_service() in syscalls.c) in the next mail thread or keep it as
+>> it is:
+>>   https://lore.kernel.org/netdev/20231009.meet7uTaeghu@digikod.net/
+>> ????
+> 
+> No, the prefix notation is only useful for exported functions, just
+> renamed it to add_rule_net_port() and make it static.
 
-        iptables 1.8.10
+   Ok. Thanks!!
+> 
+>> > 
+>> > > +			 const void __user *const rule_attr)
+>> > > +{
+>> > > +	struct landlock_net_port_attr net_port_attr;
+>> > > +	int res;
+>> > > +	access_mask_t mask, bind_access_mask;
+>> > > +
+>> > > +	/* Copies raw user space buffer. */
+>> > > +	res = copy_from_user(&net_port_attr, rule_attr, sizeof(net_port_attr));
+>> > 
+>> > We should include <linux/uaccess.h> because of copy_from_user().
+>> > 
+>> > Same for landlock_add_rule_path_beneath().
+> 
+> Same as above, this is not relevant anymore.
 
-This release contains new features:
+   Got it. thanks.
+> 
+>> > 
+>> > > +	if (res)
+>> > > +		return -EFAULT;
+>> > > +
+>> > > +	/*
+>> > > +	 * Informs about useless rule: empty allowed_access (i.e. deny rules)
+>> > > +	 * are ignored by network actions.
+>> > > +	 */
+>> > > +	if (!net_port_attr.allowed_access)
+>> > > +		return -ENOMSG;
+>> > > +
+>> > > +	/*
+>> > > +	 * Checks that allowed_access matches the @ruleset constraints
+>> > > +	 * (ruleset->access_masks[0] is automatically upgraded to 64-bits).
+>> > > +	 */
+>> > > +	mask = landlock_get_net_access_mask(ruleset, 0);
+>> > > +	if ((net_port_attr.allowed_access | mask) != mask)
+>> > > +		return -EINVAL;
+>> > > +
+>> > > +	/*
+>> > > +	 * Denies inserting a rule with port 0 (for bind action) or
+>> > > +	 * higher than 65535.
+>> > > +	 */
+>> > > +	bind_access_mask = net_port_attr.allowed_access &
+>> > > +			   LANDLOCK_ACCESS_NET_BIND_TCP;
+>> > > +	if (((net_port_attr.port == 0) &&
+>> > > +	     (bind_access_mask == LANDLOCK_ACCESS_NET_BIND_TCP)) ||
+>> > 
+>> > For context about "port 0 binding" see
+>> > https://lore.kernel.org/all/7cb458f1-7aff-ccf3-abfd-b563bfc65b84@huawei.com/
+>> > 
+>> > I previously said:
+>> > > > > To say it another way, we should not allow to add a rule with port
+>> > > > > 0 for
+>> > > > > LANDLOCK_ACCESS_NET_BIND_TCP, but return -EINVAL in this case. This
+>> > > > > limitation should be explained, documented and tested.
+>> > 
+>> > Thinking more about this port 0 for bind (and after an interesting
+>> > discussion with Eric), it would be a mistake to forbid a rule to bind on
+>> > port 0 because this is very useful for some network services, and
+>> > because it would not be reasonable to have an LSM hook to control such
+>> > "random ports". Instead we should document what using this value means
+>> > (i.e. pick a dynamic available port in a range defined by the sysadmin)
+>> > and highlight the fact that it is controlled with the
+>> > /proc/sys/net/ipv4/ip_local_port_range sysctl, which is also used by
+>> > IPv6.
+>> > 
+>> > We then need to test binding on port zero by getting the binded port
+>> > (cf. getsockopt/getsockname) and checking that we can indeed connect to
+>> > it.
+>> 
+>>   So like I understand refactoring will be like this:
+>> 	1. Allow bind for zero port.
+>> 	2. Update tests:
+>> 		- add rule with port 0;
+>> 		- bind "random" port;
+>> 		- using getsockname to get binded port;
+>> 		- connect to the socket using binded port;
+>> 		
+>>  Correct??
+> 
+> Yes. You can also extend this test to try binding to a lower port (e.g.
+> 1024, value of srv0.port), not part of ip_local_port_range, which should
+> then be denied.
 
-- xtables-translate: Support rule insert with index
-- Broute table support in ebtables-nft
-- nft-variants' debug output (pass multiple '-v' flags) now contains
-  sets if present
-- Add mld-listener type names to icmp6 match
-- Correctly parse meta mark statements in rules even though iptables-nft
-  does not emit those
-
-... and fixes:
-
-- Compiler warnings with -Werror=format-security
-- Needless install of unsupported xtables.conf file
-- Wrong "unknown argument" error message in some corner cases
-- ebtables-nft allowed implicitly calling targets by one of their
-  options, require '-j <target>' first for consistency with legacy
-- Various bugs in ebtables-translate
-- Corner-case bug in iptables-nft-restore when deleting a rule inside
-  the batch file
-- Sloppy rule check command in ip6tables-legacy, producing
-  false-positives
-- Arptables-nft omitted some inverted options when listing rules
-- Parser would not accept long-options with appended argument
-  (in form '--opt=arg')
-- Ip6tables-nft ignored counter argument ('-c')
-- Wrong error message when listing a non-existent chain with
-  iptables-nft
-- Pointless creation of unused anonymous sets when deleting an
-  ebtables-nft rule containing an among match
-- Ineffective among match comparison causing ebtables-nft to potentially
-  delete the wrong rule
-- Sloppy iptables-restore parser accepting junk where chain counters are
-  expected
-- Missing target name validation in chain rename command
-- Icmp match confused type 255 and code 255 with special type "any"
-- NDEBUG compiler flag breaks iptables-nft
-- Non-functional chain policy counters with iptables-nft
-- Zeroing a rule's counters would zero chain policy counters with legacy
-  iptables
-- Reject '-m conntrack --ctproto 0', it will never match
-- Stale meta expression when stripping a match on interface "+" (i.e.,
-  any interface name)
-- Harmless compiler warning with recent Linux headers
-
-... and documentation updates:
-
-- Add missing chunk types to SCTP match help text (use 'iptables -p sctp
-  --help' to see them)
-- Document possible false negatives when using 'string' match's BM
-  algorithm
-- Missing return codes 3 and 4 descriptions in iptables man page
-- Misc minor fixes in man pages
-
-You can download the new release from:
-
-https://netfilter.org/projects/iptables/downloads.html#iptables-1.8.10
-
-To build the code, libnftnl 1.2.6 is required:
-
-* http://netfilter.org/projects/libnftnl/downloads.html#libnftnl-1.2.6
-
-In case of bugs, file them via:
-
-* https://bugzilla.netfilter.org
-
-Happy firewalling!
-
---2gznOYqojtGKBm51
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.8.10.txt"
-
-Alyssa Ross (1):
-  build: use pkg-config for libpcap
-
-Arturo Borrero Gonzalez (1):
-  iptables-test.py: make explicit use of python3
-
-Florian Westphal (6):
-  xtables-eb: fix crash when opts isn't reallocated
-  iptables-nft: make builtin tables static
-  iptables-nft: remove unused function argument
-  include: update nf_tables uapi header
-  ebtables-nft: add broute table emulation
-  nft-ruleparse: parse meta mark set as MARK target
-
-Jacek Tomasiak (2):
-  iptables: Fix setting of ipv6 counters
-  iptables: Fix handling of non-existent chains
-
-Jan Engelhardt (1):
-  xshared: dissolve should_load_proto
-
-Jan Palus (1):
-  nft: move processing logic out of asserts
-
-Jeremy Sowden (1):
-  man: string: document BM false negatives
-
-Markus Boehme (1):
-  ip6tables: Fix checking existence of rule
-
-Pablo Neira Ayuso (3):
-  nft: check for source and destination address in first place
-  nft: use payload matching for layer 4 protocol
-  nft-bridge: pass context structure to ops->add() to improve anonymous
-    set support
-
-Phil Sutter (76):
-  extensions: NAT: Fix for -Werror=format-security
-  etc: Drop xtables.conf
-  Proper fix for "unknown argument" error message
-  ebtables: Refuse unselected targets' options
-  ebtables-translate: Drop exec_style
-  ebtables-translate: Use OPT_* from xshared.h
-  ebtables-translate: Ignore '-j CONTINUE'
-  ebtables-translate: Print flush command after parsing is finished
-  tests: xlate: Support testing multiple individual files
-  tests: CLUSTERIP: Drop test file
-  nft-shared: Lookup matches in iptables_command_state
-  nft-shared: Use nft_create_match() in one more spot
-  nft-shared: Simplify using nft_create_match()
-  tests: xlate: Properly split input in replay mode
-  tests: xlate: Print file names even if specified
-  extensions: libebt_redirect: Fix target translation
-  extensions: libebt_redirect: Fix for wrong syntax in translation
-  extensions: libebt_ip: Do not use 'ip dscp' for translation
-  extensions: libebt_ip: Translation has to match on ether type
-  ebtables: ip and ip6 matches depend on protocol match
-  xtables-translate: Support insert with index
-  include: Add missing linux/netfilter/xt_LOG.h
-  nft-restore: Fix for deletion of new, referenced rule
-  tests: shell: Test for false-positive rule check
-  utils: nfbpf_compile: Replace pcap_compile_nopcap()
-  nft-shared: Drop unused include
-  arptables: Fix parsing of inverted 'arp operation' match
-  arptables: Don't omit standard matches if inverted
-  xshared: Fix parsing of option arguments in same word
-  nft: Introduce nft-ruleparse.{c,h}
-  nft: Extract rule parsing callbacks from nft_family_ops
-  nft: ruleparse: Create family-specific source files
-  tests: shell: Sanitize nft-only/0009-needless-bitwise_0
-  nft: Special casing for among match in compare_matches()
-  nft: More verbose extension comparison debugging
-  nft: Do not pass nft_rule_ctx to add_nft_among()
-  nft: Include sets in debug output
-  *tables-restore: Enforce correct counters syntax if present
-  *tables: Reject invalid chain names when renaming
-  ebtables: Improve invalid chain name detection
-  tests: shell: Fix and extend chain rename test
-  iptables-restore: Drop dead code
-  iptables-apply: Eliminate shellcheck warnings
-  extensions: libipt_icmp: Fix confusion between 255/255 and any
-  tests: libipt_icmp.t: Enable tests with numeric output
-  man: iptables.8: Extend exit code description
-  man: iptables.8: Trivial spelling fixes
-  man: iptables.8: Fix intra page reference
-  man: iptables.8: Clarify --goto description
-  man: Use HTTPS for links to netfilter.org
-  man: iptables.8: Trivial font fixes
-  man: iptables-restore.8: Fix --modprobe description
-  man: iptables-restore.8: Consistently document -w option
-  man: iptables-restore.8: Drop -W option from synopsis
-  man: iptables-restore.8: Put 'file' in italics in synopsis
-  man: iptables-restore.8: Start paragraphs in upper-case
-  man: Trivial: Missing space after comma
-  man: iptables-save.8: Clarify 'available tables'
-  man: iptables-save.8: Fix --modprobe description
-  man: iptables-save.8: Start paragraphs in upper-case
-  extensions: libip6t_icmp: Add names for mld-listener types
-  nft-ruleparse: Introduce nft_create_target()
-  tests: iptables-test: Fix command segfault reports
-  nft: Create builtin chains with counters enabled
-  Revert "libiptc: fix wrong maptype of base chain counters on restore"
-  tests: shell: Test chain policy counter behaviour
-  Use SOCK_CLOEXEC/O_CLOEXEC where available
-  nft: Pass nft_handle to add_{target,action}()
-  nft: Introduce and use bool nft_handle::compat
-  Add --compat option to *tables-nft and *-nft-restore commands
-  tests: Test compat mode
-  Revert --compat option related commits
-  tests: shell: Fix for ineffective 0007-mid-restore-flush_0
-  nft: Fix for useless meta expressions in rule
-  include: linux: Update kernel.h
-  build: Bump dependency on libnftnl
-
-Quentin Armitage (1):
-  extensions: Fix checking of conntrack --ctproto 0
-
-Victor Julien (1):
-  doc: fix example of xt_cpu
-
-Xin Long (1):
-  xt_sctp: add the missing chunk types in sctp_help
-
---2gznOYqojtGKBm51--
+   Ok. I will extend zero port tests with lower port value.
+   Thanks.
+> 
+>> > 
+>> > > +	    (net_port_attr.port > U16_MAX))
+>> > > +		return -EINVAL;
+>> > > +
+>> > > +	/* Imports the new rule. */
+>> > > +	return landlock_append_net_rule(ruleset, net_port_attr.port,
+>> > > +					net_port_attr.allowed_access);
+>> > > +}
+>> > 
+>> > > diff --git a/security/landlock/ruleset.h b/security/landlock/ruleset.h
+>> > > index 1ede2b9a79b7..9bd0483c64d4 100644
+>> > > --- a/security/landlock/ruleset.h
+>> > > +++ b/security/landlock/ruleset.h
+>> > > @@ -33,13 +33,16 @@
+>> > >  typedef u16 access_mask_t;
+>> > >  /* Makes sure all filesystem access rights can be stored. */
+>> > >  static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_FS);
+>> > > +/* Makes sure all network access rights can be stored. */
+>> > > +static_assert(BITS_PER_TYPE(access_mask_t) >= LANDLOCK_NUM_ACCESS_NET);
+>> > >  /* Makes sure for_each_set_bit() and for_each_clear_bit() calls are OK. */
+>> > >  static_assert(sizeof(unsigned long) >= sizeof(access_mask_t));
+>> > > 
+>> > >  /* Ruleset access masks. */
+>> > > -typedef u16 access_masks_t;
+>> > > +typedef u32 access_masks_t;
+>> > >  /* Makes sure all ruleset access rights can be stored. */
+>> > > -static_assert(BITS_PER_TYPE(access_masks_t) >= LANDLOCK_NUM_ACCESS_FS);
+>> > > +static_assert(BITS_PER_TYPE(access_masks_t) >=
+>> > > +	      LANDLOCK_NUM_ACCESS_FS + LANDLOCK_NUM_ACCESS_NET);
+>> > > 
+>> > >  typedef u16 layer_mask_t;
+>> > >  /* Makes sure all layers can be checked. */
+>> > > @@ -84,6 +87,11 @@ enum landlock_key_type {
+>> > >  	 * keys.
+>> > >  	 */
+>> > >  	LANDLOCK_KEY_INODE = 1,
+>> > > +	/**
+>> > > +	 * @LANDLOCK_KEY_NET_PORT: Type of &landlock_ruleset.root_net_port's
+>> > > +	 * node keys.
+>> > > +	 */
+>> > > +	LANDLOCK_KEY_NET_PORT = 2,
+>> > 
+>> > You don't need to specify "2".
+>> 
+>>   Ok. thanks.
+>> > 
+>> > 
+>> > > diff --git a/security/landlock/syscalls.c b/security/landlock/syscalls.c
+>> > > index 8a54e87dbb17..da6cbd0032ca 100644
+>> > > --- a/security/landlock/syscalls.c
+>> > > +++ b/security/landlock/syscalls.c
+>> > > @@ -29,6 +29,7 @@
+>> > >  #include "cred.h"
+>> > >  #include "fs.h"
+>> > >  #include "limits.h"
+>> > > +#include "net.h"
+>> > >  #include "ruleset.h"
+>> > >  #include "setup.h"
+>> > > 
+>> > > @@ -74,7 +75,8 @@ static void build_check_abi(void)
+>> > >  {
+>> > >  	struct landlock_ruleset_attr ruleset_attr;
+>> > >  	struct landlock_path_beneath_attr path_beneath_attr;
+>> > > -	size_t ruleset_size, path_beneath_size;
+>> > > +	struct landlock_net_port_attr net_port_attr;
+>> > > +	size_t ruleset_size, path_beneath_size, net_service_size;
+>> > 
+>> > net_port_size
+>> 
+>>   right. will be fixed.
+>> > .
+> .
