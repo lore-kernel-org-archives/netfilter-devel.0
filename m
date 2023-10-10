@@ -2,145 +2,107 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01772CD80CD
-	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Oct 2023 13:18:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0B73CD80D2
+	for <netfilter-devel@archiver.kernel.org>; Tue, 10 Oct 2023 13:30:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbjJJNSF (ORCPT
+        id S231926AbjJJNa5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 10 Oct 2023 09:18:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37988 "EHLO
+        Tue, 10 Oct 2023 09:30:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231580AbjJJNSE (ORCPT
+        with ESMTP id S231897AbjJJNa4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Oct 2023 09:18:04 -0400
+        Tue, 10 Oct 2023 09:30:56 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99C13AF
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2023 06:18:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F35F0A9
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2023 06:30:53 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qqCca-0003HD-ND; Tue, 10 Oct 2023 15:18:00 +0200
-Date:   Tue, 10 Oct 2023 15:18:00 +0200
+        id 1qqCox-0003TY-Nl; Tue, 10 Oct 2023 15:30:47 +0200
+Date:   Tue, 10 Oct 2023 15:30:47 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Jeremy Sowden <jeremy@azazel.net>,
         netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: do not refresh timeout when
- resetting element
-Message-ID: <ZSVPCIMbH9zj22an@orbyte.nwl.cc>
+Subject: Re: [RFC] nftables 1.0.6 -stable backports
+Message-ID: <ZSVSB6uHXnLMm3L7@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-References: <ZRxNnYWrsw0VXBNn@calendula>
- <ZRxU3+ZWP5JQVm3I@orbyte.nwl.cc>
- <ZRxXXr5H0grbSb9j@calendula>
- <ZRx1omPdNIq5UdRN@orbyte.nwl.cc>
- <ZR0b693BiY6KzD3k@calendula>
- <20231004080702.GD15013@breakpoint.cc>
- <ZR0hFIIqdTixdPi4@calendula>
- <20231004084623.GA9350@breakpoint.cc>
- <ZR0v54xJwllozQhR@calendula>
- <20231004124845.GA3974@breakpoint.cc>
+        Florian Westphal <fw@strlen.de>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Jeremy Sowden <jeremy@azazel.net>, netfilter-devel@vger.kernel.org
+References: <ZSPZiekbEmjDfIF2@calendula>
+ <e11f0179-6738-4b6f-8238-585fffad9a57@debian.org>
+ <20231009111543.GB27648@breakpoint.cc>
+ <ZSPm7SQhO/ziVMaw@calendula>
+ <ZSUNswK5nSC0IUvS@orbyte.nwl.cc>
+ <ZSUpeo2ozoPapyzg@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231004124845.GA3974@breakpoint.cc>
+In-Reply-To: <ZSUpeo2ozoPapyzg@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 04, 2023 at 02:48:45PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Oct 04, 2023 at 10:46:23AM +0200, Florian Westphal wrote:
-> > > I don't think the dump paths were ever designed to munge existing
-> > > data.  For those parts that provide full/consistent serialization,
-> > > e.g. single rule is fetched, its fine.
+On Tue, Oct 10, 2023 at 12:37:46PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Oct 10, 2023 at 10:39:15AM +0200, Phil Sutter wrote:
+> > On Mon, Oct 09, 2023 at 01:41:33PM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Oct 09, 2023 at 01:15:43PM +0200, Florian Westphal wrote:
+> > > > Arturo Borrero Gonzalez <arturo@debian.org> wrote:
+> > > > > On 10/9/23 12:44, Pablo Neira Ayuso wrote:
+> > > > > > - Another possibility is to make a nftables 1.0.6.1 or 1.0.6a -stable
+> > > > > > release from netfilter.org. netfilter.org did not follow this procedure
+> > > > > > very often (a few cases in the past in iptables IIRC).
+> > > > > 
+> > > > > Given the amount of patches, this would be the preferred method from the
+> > > > > Debian point of view.
+> > > > > 
+> > > > > 1.0.6.1 as version should be fine.
 > > > 
-> > > But whenever we may yield in between successive partial dumps, its not.
+> > > Only one thing: I just wonder if this new 4 numbers scheme might
+> > > create confusion, as there will be release with 3 numbers and -stable
+> > > releases with 4 numbers.
 > > 
-> > Yes, netlink dumps do not provide atomic listing semantics, that is
-> > why there is the generation ID from userspace. I am trying to think of
-> > a way to achieve this from the kernel but I did not come with any so
-> > far.
+> > An upcoming 1.0.9 might be a good chance to switch upstream numbering
+> > scheme: Depending on whether it is deemed acceptable to reorder patches
+> > in public git history, one could make 1.0.9 contain only the fixes since
+> > 1.0.8 and release a 1.1.0 containing what remains. And from then on
+> > collect just fixes to 1.1.0 into 1.1.N and new features into 1.2.0.
 > >
-> > From userspace, it should be possible to keep a generation ID per
-> > object in the cache, so the cache becomes a collection of objects of
-> > different generations, then when listing, just take the objects that
-> > are still current. Or it should be possible to disambiguate this from
-> > userspace with the u64 handle, ie. keep stale objects around and merge
-> > them to new ones when fetching the counters.
-> > 
-> > But this is lots of work from userspace, and it might get more
-> > complicated if more transactions happen while retrying (see test
-> > script from Phil where transaction happens in an infinite loop).
-> >
-> > This is the other open issue we have been discussing lately :)
+> > Assuming that downstream does its own "stable releases" already,
+> > skipping a 1.0.6.1 or 0.9.8.1 should be OK. Was a 0.9.10, being
+> > 0.9-stable, acceptable or are there too many new features between 0.9.8
+> > and 0.9.9?
 > 
-> Right, there is an amalgamation of different issues, lets not get swamped
-> trying to solve everything at once :-)
+> I made a bit of digging in the history, and we already pulled the 4
+> digits handle in the past for iptables.
 > 
-> I've collected a few patches and pushed them out to :testing.
-> Stresstest is still running but so far it looks good to me.
-> 
-> The updated audit selftest passes, as does Xins sctp test case.
-> 
-> I expect to do the PR in the next few hours or so.
-> 
-> I will followup on nf-next once upstream has pulled the PR
-> into net and did a net -> net-next merge, which might take a
-> while. Followup as in "send rebased patches that get rid of
-> the async gc in nft_set_rbtree".
-> 
-> Let me know if there is anything else I can help
-> with.
-> 
-> Phil, I know all of this sucks from your point of view,
-> this is also my fault, I did not pay too close attention
-> to the reset patches, and, to be clear, even if I would have
-> its likely I would have missed all of the implications
-> of reusing the dump infrastructure for this.
-> 
-> I have not applied Pablos patch to revert the "timeout reset"
-> because its relatively fresh compared to the other patches
-> in the batch (and the batch is already large enough).
-> 
-> But I do agree with having a separate facility for timeout
-> resets (timeout updates) would be better.
+> https://www.netfilter.org/projects/iptables/files/changes-iptables-1.4.19.1.txt
 
-I still think they are orthogonal in practice (even though they
-"clash"):
+Appending another "dot digit" is not uncommon in other projects, so I
+guess most parsers should get it right.
 
-Dynamic sets use a timeout as they are populated from packet path and
-may grow exceedingly large over time. Manual intervention means deleting
-elements (which "resets" them) or adding ones (as an alternative to
-packet path).
+> As for 0.9.10, it would skip 0.9.9:
 
-Would non-dynamic sets use both a timeout and other state? I can't
-imagine a use-case for this.
+I did not mean for 0.9.10 to be 0.9.8 + fixes, but 0.9.9 + only fixes.
+So not skip, but include.
 
-> I also think we need to find a different strategy for the
-> dump-and-reset part when the reset could be interrupted
-> by a transaction.
-> 
-> ATM userspace would have to add a userspace lock like
-> iptables-legacy to prevent any generation id changes while
-> a "reset dump" is happening and I hope we can all agree that
-> this is something we definitely do not want :-)
+> $ git log --oneline v0.9.8..v0.9.9 | wc -l
+> 150
 
-I suggest to communicate the situation (for now) and make 'reset rule'
-return the rule to user space so the non-plural reset commands (apart
-from 'reset set') become reliable alternatives for those depending upon
-it.
+Skimming the list, I think there's not too much in there which is not a
+fix. While there are only 20 commits having a Fixes: tag, there's the
+parser keyword scoping and some cache rework also. In other words,
+requiring downstream to update to 0.9.9 from 0.9.8 in order to benefit
+from upstream's blessed 0.9-stable release might be acceptable.
 
-Setting expectations straight is still the easiest fix to both the
-inconsistency problem and the "resets also timeouts" problem. In the
-latter case, this should be fine already as nft(8) explicitly states
-"resets timeout or other state" when describing 'reset element' and
-'reset set'.
+> We can start with a few -stable branches, namely 0.9.8.y and 1.0.6.y
+> as it has been suggested, I am going to push patches to the branches,
+> I will keep you posted.
 
-Then, consistent output for plural reset commands becomes a missing
-feature one may add or not. Reset with or without timeout requires a
-use-case (see above). The only real bug left is the concurrent reset
-messing up values.
+Fine with me, too.
 
 Cheers, Phil
