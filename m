@@ -2,243 +2,91 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25C27CD6E7E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Oct 2023 15:07:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF31DCD6E7D
+	for <netfilter-devel@archiver.kernel.org>; Wed, 11 Oct 2023 15:26:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232596AbjJKPHJ (ORCPT
+        id S232802AbjJKP0H (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 11 Oct 2023 11:07:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47744 "EHLO
+        Wed, 11 Oct 2023 11:26:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232629AbjJKPHI (ORCPT
+        with ESMTP id S232741AbjJKP0G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2023 11:07:08 -0400
+        Wed, 11 Oct 2023 11:26:06 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06DA492;
-        Wed, 11 Oct 2023 08:07:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-        List-Post:List-Owner:List-Archive;
-        bh=qAhJPV2BPBzeLEQdVzl6nOEBmPdCMsT21a1DgtSFvxE=; b=cGdtaBcUZlSkr70St1oiyNWQtR
-        1c0ES2/jcNazy7ZJIm7JdYMAdqLiZeL51Pl0wG6aq1+rCrDvnbkDSIA6gpVo/MZu4cRo3MnX2X6QW
-        XHUNmEKvvkYGStONwrWSg2xxUgPq97mZrMH1APJKGmQZtiMGPvcvvW8CvJ8tlciENY0VTpueT6s+i
-        pj6Fp0Ivw+hk0lR46K6Q9pAuai1Pgv6nR5yBvxg+DosC9Q6TMlfEGgsR7I5dmdWL8p5C7elAoNll/
-        9JO0XJox2XlIh00g7LktapyElOtzZoD1TzvL4WDIbAvGHRIqKBvDRBEBg1/qrV33QtoMgKrLIU5nS
-        yaU4dlaw==;
-Received: from localhost ([::1] helo=xic)
-        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
-        (envelope-from <phil@nwl.cc>)
-        id 1qqane-0005QU-So; Wed, 11 Oct 2023 17:07:03 +0200
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52781AF
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Oct 2023 08:26:04 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qqb5z-0005vV-HH; Wed, 11 Oct 2023 17:25:59 +0200
+Date:   Wed, 11 Oct 2023 17:25:59 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, audit@vger.kernel.org,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Paul Moore <paul@paul-moore.com>
-Subject: [nf PATCH v2] netfilter: nf_tables: audit log object reset once per table
-Date:   Wed, 11 Oct 2023 17:06:59 +0200
-Message-ID: <20231011150659.398-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.41.0
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Arturo Borrero Gonzalez <arturo@debian.org>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [RFC] nftables 1.0.6 -stable backports
+Message-ID: <ZSa+h18/ZNRxLpzq@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Jeremy Sowden <jeremy@azazel.net>, netfilter-devel@vger.kernel.org,
+        fw@strlen.de
+References: <ZSPZiekbEmjDfIF2@calendula>
+ <ZSZWS7StJ9nSP6cK@calendula>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZSZWS7StJ9nSP6cK@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-When resetting multiple objects at once (via dump request), emit a log
-message per table (or filled skb) and resurrect the 'entries' parameter
-to contain the number of objects being logged for.
+On Wed, Oct 11, 2023 at 10:01:15AM +0200, Pablo Neira Ayuso wrote:
+> For the record, I have pushed out this 1.0.6.y branch:
+> 
+> http://git.netfilter.org/nftables/log/?h=1.0.6.y
 
-To test the skb exhaustion path, perform some bulk counter and quota
-adds in the kselftest.
+I have this shell script collecting potential backports based on Fixes:
+tags. It identified 34 additional backports for v1.0.6 tag (hashes are
+meaningless):
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Reviewed-by: Richard Guy Briggs <rgb@redhat.com>
-Acked-by: Paul Moore <paul@paul-moore.com> (Audit)
----
-Changes since v1:
-- Rebased onto nf/main, eliminated the dependency on reset locking
-  series
-- Dropped a leftover paragraph from the commit message talking about
-  audit_logread adjustment which was avoided by patch reordering before
-  v1 already
----
- net/netfilter/nf_tables_api.c                 | 50 +++++++++++--------
- .../testing/selftests/netfilter/nft_audit.sh  | 46 +++++++++++++++++
- 2 files changed, 74 insertions(+), 22 deletions(-)
+e5b4169ee25ab json: expose dynamic flag
+0a7e53f2e0913 parser_json: Default meter size to zero
+522e207b0a836 parser_json: Catch nonsense ops in match statement
+725b096b99e56 parser_json: Wrong check in json_parse_ct_timeout_policy()
+91401c4115b51 parser_json: Fix synproxy object mss/wscale parsing
+7aee3e7754b22 parser_json: Fix limit object burst value parsing
+60504c1817c42 parser_json: Fix flowtable prio value parsing
+3b2f35cee7e1c parser_json: Proper ct expectation attribute parsing
+d804aa93a5988 parser_json: Fix typo in json_parse_cmd_add_object()
+7e4eb93535418 parser_json: Catch wrong "reset" payload
+ed0c72352193e netlink: handle invalid etype in set_make_key()
+733470961f792 datatype: initialize TYPE_CT_EVENTBIT slot in datatype array
+6e674db5d2990 datatype: initialize TYPE_CT_LABEL slot in datatype array
+f8ccde9188013 datatype: fix leak and cleanup reference counting for struct datatype
+4b46a3fa44813 include: drop "format" attribute from nft_gmp_print()
+930756f09a750 evaluate: fix check for truncation in stmt_evaluate_log_prefix()
+987ae8d4b20de tests: monitor: Fix for wrong ordering in expected JSON output
+ad6cfbace2d2d tests: monitor: Fix for wrong syntax in set-interval.t
+b83bd8b441e41 tests: monitor: Fix monitor JSON output for insert command
+0f8798917093a evaluate: Drop dead code from expr_evaluate_mapping()
+2f2320a434300 tests: shell: Stabilize sets/0043concatenated_ranges_0 test
+fa841d99b3795 tests: fix inet nat prio tests
+5604dd5b1f365 cache: include set elements in "nft set list"
+8d1f462e157bc evaluate: set NFT_SET_EVAL flag if dynamic set already exists
+d572772659392 tests: shell: Fix for unstable sets/0043concatenated_ranges_0
+4e4f7fd8334aa xt: Fix translation error path
+ca2fbde1ceeeb evaluate: insert byte-order conversions for expressions between 9 and 15 bits
+c0e5aba1bc963 xt: Fix fallback printing for extensions matching keywords
+62a416b9eac19 tests: shell: cover rule insertion by index
+0e5ea5fae26a3 evaluate: print error on missing family in nat statement
+cf35149fd378a netlink_delinearize: Sanitize concat data element decoding
+1fb4c25073ed6 mnl: dump_nf_hooks() leaks memory in error path
+2f14b059afd88 meta: parse_iso_date() returns boolean
+99d6c23b32160 netlink: Fix for potential NULL-pointer deref
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a72b6aeefb1b5..adab5524bd901 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7615,6 +7615,16 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
- 	return -1;
- }
- 
-+static void audit_log_obj_reset(const struct nft_table *table,
-+				unsigned int base_seq, unsigned int nentries)
-+{
-+	char *buf = kasprintf(GFP_ATOMIC, "%s:%u", table->name, base_seq);
-+
-+	audit_log_nfcfg(buf, table->family, nentries,
-+			AUDIT_NFT_OP_OBJ_RESET, GFP_ATOMIC);
-+	kfree(buf);
-+}
-+
- struct nft_obj_filter {
- 	char		*table;
- 	u32		type;
-@@ -7629,8 +7639,10 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 	struct net *net = sock_net(skb->sk);
- 	int family = nfmsg->nfgen_family;
- 	struct nftables_pernet *nft_net;
-+	unsigned int entries = 0;
- 	struct nft_object *obj;
- 	bool reset = false;
-+	int rc = 0;
- 
- 	if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) == NFT_MSG_GETOBJ_RESET)
- 		reset = true;
-@@ -7643,6 +7655,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 		if (family != NFPROTO_UNSPEC && family != table->family)
- 			continue;
- 
-+		entries = 0;
- 		list_for_each_entry_rcu(obj, &table->objects, list) {
- 			if (!nft_is_active(net, obj))
- 				goto cont;
-@@ -7658,34 +7671,27 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 			    filter->type != NFT_OBJECT_UNSPEC &&
- 			    obj->ops->type->type != filter->type)
- 				goto cont;
--			if (reset) {
--				char *buf = kasprintf(GFP_ATOMIC,
--						      "%s:%u",
--						      table->name,
--						      nft_net->base_seq);
--
--				audit_log_nfcfg(buf,
--						family,
--						obj->handle,
--						AUDIT_NFT_OP_OBJ_RESET,
--						GFP_ATOMIC);
--				kfree(buf);
--			}
- 
--			if (nf_tables_fill_obj_info(skb, net, NETLINK_CB(cb->skb).portid,
--						    cb->nlh->nlmsg_seq,
--						    NFT_MSG_NEWOBJ,
--						    NLM_F_MULTI | NLM_F_APPEND,
--						    table->family, table,
--						    obj, reset) < 0)
--				goto done;
-+			rc = nf_tables_fill_obj_info(skb, net,
-+						     NETLINK_CB(cb->skb).portid,
-+						     cb->nlh->nlmsg_seq,
-+						     NFT_MSG_NEWOBJ,
-+						     NLM_F_MULTI | NLM_F_APPEND,
-+						     table->family, table,
-+						     obj, reset);
-+			if (rc < 0)
-+				break;
- 
-+			entries++;
- 			nl_dump_check_consistent(cb, nlmsg_hdr(skb));
- cont:
- 			idx++;
- 		}
-+		if (reset && entries)
-+			audit_log_obj_reset(table, nft_net->base_seq, entries);
-+		if (rc < 0)
-+			break;
- 	}
--done:
- 	rcu_read_unlock();
- 
- 	cb->args[0] = idx;
-@@ -7790,7 +7796,7 @@ static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 		audit_log_nfcfg(buf,
- 				family,
--				obj->handle,
-+				1,
- 				AUDIT_NFT_OP_OBJ_RESET,
- 				GFP_ATOMIC);
- 		kfree(buf);
-diff --git a/tools/testing/selftests/netfilter/nft_audit.sh b/tools/testing/selftests/netfilter/nft_audit.sh
-index bb34329e02a7f..e94a80859bbdb 100755
---- a/tools/testing/selftests/netfilter/nft_audit.sh
-+++ b/tools/testing/selftests/netfilter/nft_audit.sh
-@@ -93,6 +93,12 @@ do_test 'nft add counter t1 c1' \
- do_test 'nft add counter t2 c1; add counter t2 c2' \
- 'table=t2 family=2 entries=2 op=nft_register_obj'
- 
-+for ((i = 3; i <= 500; i++)); do
-+	echo "add counter t2 c$i"
-+done >$rulefile
-+do_test "nft -f $rulefile" \
-+'table=t2 family=2 entries=498 op=nft_register_obj'
-+
- # adding/updating quotas
- 
- do_test 'nft add quota t1 q1 { 10 bytes }' \
-@@ -101,6 +107,12 @@ do_test 'nft add quota t1 q1 { 10 bytes }' \
- do_test 'nft add quota t2 q1 { 10 bytes }; add quota t2 q2 { 10 bytes }' \
- 'table=t2 family=2 entries=2 op=nft_register_obj'
- 
-+for ((i = 3; i <= 500; i++)); do
-+	echo "add quota t2 q$i { 10 bytes }"
-+done >$rulefile
-+do_test "nft -f $rulefile" \
-+'table=t2 family=2 entries=498 op=nft_register_obj'
-+
- # changing the quota value triggers obj update path
- do_test 'nft add quota t1 q1 { 20 bytes }' \
- 'table=t1 family=2 entries=1 op=nft_register_obj'
-@@ -150,6 +162,40 @@ done
- do_test 'nft reset set t1 s' \
- 'table=t1 family=2 entries=3 op=nft_reset_setelem'
- 
-+# resetting counters
-+
-+do_test 'nft reset counter t1 c1' \
-+'table=t1 family=2 entries=1 op=nft_reset_obj'
-+
-+do_test 'nft reset counters t1' \
-+'table=t1 family=2 entries=1 op=nft_reset_obj'
-+
-+do_test 'nft reset counters t2' \
-+'table=t2 family=2 entries=342 op=nft_reset_obj
-+table=t2 family=2 entries=158 op=nft_reset_obj'
-+
-+do_test 'nft reset counters' \
-+'table=t1 family=2 entries=1 op=nft_reset_obj
-+table=t2 family=2 entries=341 op=nft_reset_obj
-+table=t2 family=2 entries=159 op=nft_reset_obj'
-+
-+# resetting quotas
-+
-+do_test 'nft reset quota t1 q1' \
-+'table=t1 family=2 entries=1 op=nft_reset_obj'
-+
-+do_test 'nft reset quotas t1' \
-+'table=t1 family=2 entries=1 op=nft_reset_obj'
-+
-+do_test 'nft reset quotas t2' \
-+'table=t2 family=2 entries=315 op=nft_reset_obj
-+table=t2 family=2 entries=185 op=nft_reset_obj'
-+
-+do_test 'nft reset quotas' \
-+'table=t1 family=2 entries=1 op=nft_reset_obj
-+table=t2 family=2 entries=314 op=nft_reset_obj
-+table=t2 family=2 entries=186 op=nft_reset_obj'
-+
- # deleting rules
- 
- readarray -t handles < <(nft -a list chain t1 c1 | \
--- 
-2.41.0
+Should I submit the series for review? Or were they intentionally
+omitted?
 
+Cheers, Phil
