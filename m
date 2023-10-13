@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 360EBCDB482
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Oct 2023 12:18:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 644F4CDB47E
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Oct 2023 12:18:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231537AbjJMMSe (ORCPT
+        id S231409AbjJMMSj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Oct 2023 08:18:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40136 "EHLO
+        Fri, 13 Oct 2023 08:18:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231409AbjJMMSe (ORCPT
+        with ESMTP id S231553AbjJMMSi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Oct 2023 08:18:34 -0400
+        Fri, 13 Oct 2023 08:18:38 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93C86BD
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Oct 2023 05:18:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2417C0
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Oct 2023 05:18:36 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qrH7f-0007eK-7m; Fri, 13 Oct 2023 14:18:31 +0200
+        id 1qrH7j-0007eT-9q; Fri, 13 Oct 2023 14:18:35 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/3] netfilter: nf_tables: de-constify set commit ops function argument
-Date:   Fri, 13 Oct 2023 14:18:14 +0200
-Message-ID: <20231013121821.31322-2-fw@strlen.de>
+Subject: [PATCH nf-next 2/3] netfilter: nft_set_rbtree: rename gc deactivate+erase function
+Date:   Fri, 13 Oct 2023 14:18:15 +0200
+Message-ID: <20231013121821.31322-3-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231013121821.31322-1-fw@strlen.de>
 References: <20231013121821.31322-1-fw@strlen.de>
@@ -34,56 +34,58 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The set backend using this already has to work around this via ugly
-cast, don't spread this pattern.
+Next patch adds a cllaer that doesn't hold the priv->write lock and
+will need a similar function.
+
+Rename the existing function to make it clear that it can only
+be used for opportunistic gc during insertion.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables.h | 2 +-
- net/netfilter/nft_set_pipapo.c    | 7 +++----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9fb16485d08f..8de040d2d2cf 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -462,7 +462,7 @@ struct nft_set_ops {
- 					       const struct nft_set *set,
- 					       const struct nft_set_elem *elem,
- 					       unsigned int flags);
--	void				(*commit)(const struct nft_set *set);
-+	void				(*commit)(struct nft_set *set);
- 	void				(*abort)(const struct nft_set *set);
- 	u64				(*privsize)(const struct nlattr * const nla[],
- 						    const struct nft_set_desc *desc);
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index c0dcc40de358..75a9dee353e2 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1549,12 +1549,11 @@ static void nft_pipapo_gc_deactivate(struct net *net, struct nft_set *set,
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 2660ceab3759..e137a0fd4179 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -221,14 +221,15 @@ static void *nft_rbtree_get(const struct net *net, const struct nft_set *set,
+ 	return rbe;
+ }
  
- /**
-  * pipapo_gc() - Drop expired entries from set, destroy start and end elements
-- * @_set:	nftables API set representation
-+ * @set:	nftables API set representation
-  * @m:		Matching data
-  */
--static void pipapo_gc(const struct nft_set *_set, struct nft_pipapo_match *m)
-+static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
+-static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
+-				 struct nft_rbtree *priv,
+-				 struct nft_rbtree_elem *rbe)
++static void nft_rbtree_gc_elem_remove(struct net *net, struct nft_set *set,
++				      struct nft_rbtree *priv,
++				      struct nft_rbtree_elem *rbe)
  {
--	struct nft_set *set = (struct nft_set *) _set;
- 	struct nft_pipapo *priv = nft_set_priv(set);
- 	struct net *net = read_pnet(&set->net);
- 	int rules_f0, first_rule = 0;
-@@ -1672,7 +1671,7 @@ static void pipapo_reclaim_match(struct rcu_head *rcu)
-  * We also need to create a new working copy for subsequent insertions and
-  * deletions.
-  */
--static void nft_pipapo_commit(const struct nft_set *set)
-+static void nft_pipapo_commit(struct nft_set *set)
- {
- 	struct nft_pipapo *priv = nft_set_priv(set);
- 	struct nft_pipapo_match *new_clone, *old;
+ 	struct nft_set_elem elem = {
+ 		.priv	= rbe,
+ 	};
+ 
++	lockdep_assert_held_write(&priv->lock);
+ 	nft_setelem_data_deactivate(net, set, &elem);
+ 	rb_erase(&rbe->node, &priv->root);
+ }
+@@ -263,7 +264,7 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
+ 	rbe_prev = NULL;
+ 	if (prev) {
+ 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
+-		nft_rbtree_gc_remove(net, set, priv, rbe_prev);
++		nft_rbtree_gc_elem_remove(net, set, priv, rbe_prev);
+ 
+ 		/* There is always room in this trans gc for this element,
+ 		 * memory allocation never actually happens, hence, the warning
+@@ -277,7 +278,7 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
+ 		nft_trans_gc_elem_add(gc, rbe_prev);
+ 	}
+ 
+-	nft_rbtree_gc_remove(net, set, priv, rbe);
++	nft_rbtree_gc_elem_remove(net, set, priv, rbe);
+ 	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
+ 	if (WARN_ON_ONCE(!gc))
+ 		return ERR_PTR(-ENOMEM);
 -- 
 2.41.0
 
