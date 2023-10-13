@@ -2,71 +2,91 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF0B0CDB47E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Oct 2023 09:26:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AF6ACDB483
+	for <netfilter-devel@archiver.kernel.org>; Fri, 13 Oct 2023 09:29:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230369AbjJMJ0V (ORCPT
+        id S230410AbjJMJ3B (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 13 Oct 2023 05:26:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49210 "EHLO
+        Fri, 13 Oct 2023 05:29:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230380AbjJMJ0U (ORCPT
+        with ESMTP id S230396AbjJMJ3A (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Oct 2023 05:26:20 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4688EC0;
-        Fri, 13 Oct 2023 02:26:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16C37C433C8;
-        Fri, 13 Oct 2023 09:26:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1697189177;
-        bh=E9/0n9LD/3cTgp1J3dMrzLvgcdHdGIWkLFZiOEzQPe4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=S4MivpCeIlf5lPj5gu87Vx6jggV0nhy+otJc08N5cogxnNrWLh2fZz60tA4fE+nzb
-         NojezG0O4S76IxeOpzQvWS7XTej8HHXZDlAD48TCogl58KWFBZAh6xSnTMTxNpZ07T
-         l3wdwWSTBx/AWenQP6TL4SFqge12GHcXeegxRxYbEvLotsrEpWIv3rnqbXwMGehwpz
-         LsrhuEWijiCcLpngvCw/fxMIpbZh+l66av3hrv64HY+Xnyk1zapl2onqQKWGLbKV0r
-         ChitxTpt6s9z/LXg2UHt5CtZ68tzY9YrPi2cJYZTadzNaOMp1vCaJWHGJmyXJaoVoq
-         Y7eqpxl9ZehHg==
-Date:   Fri, 13 Oct 2023 11:26:12 +0200
-From:   Simon Horman <horms@kernel.org>
-To:     George Guo <guodongtai@kylinos.cn>
-Cc:     fw@strlen.de, coreteam@netfilter.org, davem@davemloft.net,
-        dongtai.guo@linux.dev, edumazet@google.com, kadlec@netfilter.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pabeni@redhat.com, pablo@netfilter.org
-Subject: Re: [PATCH v2] netfilter: cleanup struct nft_table
-Message-ID: <20231013092612.GA29570@kernel.org>
-References: <20231007105335.GB20662@breakpoint.cc>
- <20231009025548.3522409-1-guodongtai@kylinos.cn>
+        Fri, 13 Oct 2023 05:29:00 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 940FABD
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Oct 2023 02:28:55 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qrETV-0000zz-OS; Fri, 13 Oct 2023 11:28:53 +0200
+Date:   Fri, 13 Oct 2023 11:28:53 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] extensions: string: Clarify description of --to
+Message-ID: <ZSkN1c1hIMokOV76@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+References: <20231012160842.18584-1-phil@nwl.cc>
+ <ZShNU7wRaTuNWUjv@calendula>
+ <ZShTp0ppM71bUYu0@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231009025548.3522409-1-guodongtai@kylinos.cn>
+In-Reply-To: <ZShTp0ppM71bUYu0@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, Oct 09, 2023 at 10:55:48AM +0800, George Guo wrote:
-> Add comments for nlpid, family, udlen and udata in struct nft_table, and
-> afinfo is no longer a member of struct nft_table, so remove the comment
-> for it.
+On Thu, Oct 12, 2023 at 10:14:31PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Oct 12, 2023 at 09:47:38PM +0200, Pablo Neira Ayuso wrote:
+> > On Thu, Oct 12, 2023 at 06:08:42PM +0200, Phil Sutter wrote:
+> > > String match indeed returns a match as long as the given pattern starts
+> > > in the range of --from and --to, update the text accordingly.
+> > > Also add a note regarding fragment boundaries.
+> > >
+> > > Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1707
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > >  extensions/libxt_string.man | 8 ++++++--
+> > >  1 file changed, 6 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/extensions/libxt_string.man b/extensions/libxt_string.man
+> > > index 2a470ece19c9d..efdda492ae78d 100644
+> > > --- a/extensions/libxt_string.man
+> > > +++ b/extensions/libxt_string.man
+> > > @@ -7,9 +7,13 @@ Select the pattern matching strategy. (bm = Boyer-Moore, kmp = Knuth-Pratt-Morri
+> > >  Set the offset from which it starts looking for any matching. If not passed, default is 0.
+> > >  .TP
+> > >  \fB\-\-to\fP \fIoffset\fP
+> > > -Set the offset up to which should be scanned. That is, byte \fIoffset\fP-1
+> > > -(counting from 0) is the last one that is scanned.
+> > > +Set the offset up to which should be scanned. If the pattern does not start
+> > > +within this offset, it is not considered a match.
+> > >  If not passed, default is the packet size.
+> > > +A second function of this parameter is instructing the kernel how much data
+> > > +from the packet should be provided. With non-linear skbuffs (e.g. due to
+> > > +fragmentation), a pattern extending past this offset may not be found. Also see
+> > > +the related note below about Boyer-Moore algorithm in these cases.
+> > 
+> > Then, matching on:
+> > 
+> > - linear skbuff: if the pattern falls within from-to, all good.
+> > - non-linear skbuff: if pattern falls within from-to, but remaining
+> >   patter
+> > 
+> > This is clearly broken, the fix is just to document this?
+> > 
+> > No attempt to fix it this from the kernel?
 > 
-> Signed-off-by: George Guo <guodongtai@kylinos.cn>
+> I would align linear skbuff behaviour to how non-linear skbuff works,
+> that is, pattern matching stops at to. This requires a small patch for
+> xt_string.
 
-Thanks,
+Sounds reasonable. My efforts at documenting the current behaviour
+probably show how unintuitive this currently is.
 
-I checked that the fields of the structure now match the kernel doc
-for struct nft_table.
+Thanks for the suggestion!
 
-I might have mentioned kernel doc, or similar in the subject,
-but I don't think there is a need to respin because of that.
-
-As a follow-up, you may want to consider addressing
-other kernel doc problems in the same file.
-The following command may be helpful there.
-
-  ./scripts/kernel-doc -none include/net/netfilter/nf_tables.h
-
-Reviewed-by: Simon Horman <horms@kernel.org>
+Cheers, Phil
