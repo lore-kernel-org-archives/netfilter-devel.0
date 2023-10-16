@@ -2,227 +2,176 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD3E5CDB465
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Oct 2023 19:44:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B475CDB465
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Oct 2023 19:47:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232068AbjJPToA (ORCPT
+        id S232198AbjJPTrF (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Oct 2023 15:44:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33396 "EHLO
+        Mon, 16 Oct 2023 15:47:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232055AbjJPTn7 (ORCPT
+        with ESMTP id S232055AbjJPTrE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Oct 2023 15:43:59 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56EB883
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 12:43:57 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id AF42CCC02B7;
-        Mon, 16 Oct 2023 21:43:52 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 16 Oct 2023 21:43:50 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 76984CC011E;
-        Mon, 16 Oct 2023 21:43:49 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 698A93431A8; Mon, 16 Oct 2023 21:43:49 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 67C51340D74;
-        Mon, 16 Oct 2023 21:43:49 +0200 (CEST)
-Date:   Mon, 16 Oct 2023 21:43:49 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     xiaolinkui <xiaolinkui@gmail.com>
-cc:     pablo@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        justinstitt@google.com, kuniyu@amazon.com,
-        netfilter-devel@vger.kernel.org,
-        Linkui Xiao <xiaolinkui@kylinos.cn>
-Subject: Re: [PATCH 1/2] netfilter: ipset: rename ref_netlink to
- ref_swapping
-In-Reply-To: <20231016135204.27443-1-xiaolinkui@gmail.com>
-Message-ID: <8bfa286f-d311-745a-495-f7fce859b7c3@netfilter.org>
-References: <20231016135204.27443-1-xiaolinkui@gmail.com>
+        Mon, 16 Oct 2023 15:47:04 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5619FD
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 12:46:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1697485580;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=MCaKT4BR9vTAqa1Dz7vZJOMkTOV+xCXMH8DbrugmMtE=;
+        b=RHl4kutP5nKdjackfoxbpKEP0LojC2V6z4vrEy/Yw43nc9DOWoJU5zPOp88qg1g/Noqoqa
+        tPmBnPR71z0VqFOI1d5+9bAAGt5Bs+232GsACIkE3grnPqofx0DuvqBP8LGijy8UvhliF6
+        LVvFbrNEezVGhgWdGRapzFbjcVYr6rA=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-634-ympfp7gxNJ6tq470tulSig-1; Mon, 16 Oct 2023 15:46:18 -0400
+X-MC-Unique: ympfp7gxNJ6tq470tulSig-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 09103185A7B9
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 19:46:18 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.93])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 57D1A492BFA;
+        Mon, 16 Oct 2023 19:46:17 +0000 (UTC)
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft v2 2/2] tests/shell: honor NFT_TEST_VERBOSE_TEST variable to debug tests via `bash -x`
+Date:   Mon, 16 Oct 2023 21:43:08 +0200
+Message-ID: <20231016194505.1095075-1-thaller@redhat.com>
+In-Reply-To: <20231016133019.1134188-2-thaller@redhat.com>
+References: <20231016133019.1134188-2-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.10
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+It can be cumbersome to debug why a test fails. Our tests are just shell
+scripts, which for the most part don't print much. That is good, but for
+debugging, it can be useful to run the test via `bash -x`. Previously,
+we would just patch the source file while debugging.
 
-On Mon, 16 Oct 2023, xiaolinkui wrote:
+Add an option "-x" and NFT_TEST_VERBOSE_TEST=y environment variable. If set,
+"test-wrapper.sh" will check whether the shebang is "#!/bin/bash" and add
+"-x" to the command line.
 
-> From: Linkui Xiao <xiaolinkui@kylinos.cn>
-> 
-> The ref_netlink appears to solve the swap race problem. In addition to the
-> netlink events, there are other factors that trigger this race condition.
-> The race condition in the ip_set_test will be fixed in the next patch.
+While at it, let test-wrapper.sh also log a line like
 
-Sorry, I do not accept this patch. It adds nothing to the code, it's just 
-renaming. Additionally it renames a generic, netlink-centric object to a 
-specific one which just confuses the reader of the code.
+    Command: $CMD
 
-Best regards,
-Jozsef
+With this, we see in the log the command that was run, and how
+NFT_TEST_VERBOSE_TEST may have affected it. This is anyway useful,
+because many tests don't print anything at all, and we end up with an
+empty "testout.log". Empty files are cumbersome, e.g. I like to use
+`grep -R ^` to show the content of all files, which does not show empty
+files. Ensuring that something is always written is desirable.
+
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+---
+This replaces "[PATCH nft 2/2] tests/shell: honor NFT_TEST_VERBOSE_TEST variable to debug tests via `bash -x`"
+Compared to v1, add a comment about how parsing of the shebang is done
+differently by the script (compared to execve). Also, log the actually
+executed command to "testout.log" file.
+
+ tests/shell/helpers/test-wrapper.sh | 15 ++++++++++++++-
+ tests/shell/run-tests.sh            | 15 ++++++++++++++-
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
+index 13b918f8b8e1..872a0c56ed54 100755
+--- a/tests/shell/helpers/test-wrapper.sh
++++ b/tests/shell/helpers/test-wrapper.sh
+@@ -93,7 +93,20 @@ if [ "$rc_test" -eq 0 ] ; then
+ fi
  
-> Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
-> ---
->  include/linux/netfilter/ipset/ip_set.h |  4 +--
->  net/netfilter/ipset/ip_set_core.c      | 34 +++++++++++++-------------
->  2 files changed, 19 insertions(+), 19 deletions(-)
-> 
-> diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-> index e8c350a3ade1..32c56f1a43f2 100644
-> --- a/include/linux/netfilter/ipset/ip_set.h
-> +++ b/include/linux/netfilter/ipset/ip_set.h
-> @@ -248,10 +248,10 @@ struct ip_set {
->  	spinlock_t lock;
->  	/* References to the set */
->  	u32 ref;
-> -	/* References to the set for netlink events like dump,
-> +	/* References to the set for netlink/test events,
->  	 * ref can be swapped out by ip_set_swap
->  	 */
-> -	u32 ref_netlink;
-> +	u32 ref_swapping;
->  	/* The core set type */
->  	struct ip_set_type *type;
->  	/* The type variant doing the real job */
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 35d2f9c9ada0..e5d25df5c64c 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -59,7 +59,7 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
->  		lockdep_is_held(&ip_set_ref_lock))
->  #define ip_set(inst, id)		\
->  	ip_set_dereference((inst)->ip_set_list)[id]
-> -#define ip_set_ref_netlink(inst,id)	\
-> +#define ip_set_ref_swapping(inst, id)	\
->  	rcu_dereference_raw((inst)->ip_set_list)[id]
->  
->  /* The set types are implemented in modules and registered set types
-> @@ -683,19 +683,19 @@ __ip_set_put(struct ip_set *set)
->   * a separate reference counter
->   */
->  static void
-> -__ip_set_get_netlink(struct ip_set *set)
-> +__ip_set_get_swapping(struct ip_set *set)
->  {
->  	write_lock_bh(&ip_set_ref_lock);
-> -	set->ref_netlink++;
-> +	set->ref_swapping++;
->  	write_unlock_bh(&ip_set_ref_lock);
->  }
->  
->  static void
-> -__ip_set_put_netlink(struct ip_set *set)
-> +__ip_set_put_swapping(struct ip_set *set)
->  {
->  	write_lock_bh(&ip_set_ref_lock);
-> -	BUG_ON(set->ref_netlink == 0);
-> -	set->ref_netlink--;
-> +	BUG_ON(set->ref_swapping == 0);
-> +	set->ref_swapping--;
->  	write_unlock_bh(&ip_set_ref_lock);
->  }
->  
-> @@ -1213,7 +1213,7 @@ static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *info,
->  	if (!attr[IPSET_ATTR_SETNAME]) {
->  		for (i = 0; i < inst->ip_set_max; i++) {
->  			s = ip_set(inst, i);
-> -			if (s && (s->ref || s->ref_netlink)) {
-> +			if (s && (s->ref || s->ref_swapping)) {
->  				ret = -IPSET_ERR_BUSY;
->  				goto out;
->  			}
-> @@ -1237,7 +1237,7 @@ static int ip_set_destroy(struct sk_buff *skb, const struct nfnl_info *info,
->  			if (!(flags & IPSET_FLAG_EXIST))
->  				ret = -ENOENT;
->  			goto out;
-> -		} else if (s->ref || s->ref_netlink) {
-> +		} else if (s->ref || s->ref_swapping) {
->  			ret = -IPSET_ERR_BUSY;
->  			goto out;
->  		}
-> @@ -1321,7 +1321,7 @@ static int ip_set_rename(struct sk_buff *skb, const struct nfnl_info *info,
->  		return -ENOENT;
->  
->  	write_lock_bh(&ip_set_ref_lock);
-> -	if (set->ref != 0 || set->ref_netlink != 0) {
-> +	if (set->ref != 0 || set->ref_swapping != 0) {
->  		ret = -IPSET_ERR_REFERENCED;
->  		goto out;
->  	}
-> @@ -1383,7 +1383,7 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
->  
->  	write_lock_bh(&ip_set_ref_lock);
->  
-> -	if (from->ref_netlink || to->ref_netlink) {
-> +	if (from->ref_swapping || to->ref_swapping) {
->  		write_unlock_bh(&ip_set_ref_lock);
->  		return -EBUSY;
->  	}
-> @@ -1441,12 +1441,12 @@ ip_set_dump_done(struct netlink_callback *cb)
->  		struct ip_set_net *inst =
->  			(struct ip_set_net *)cb->args[IPSET_CB_NET];
->  		ip_set_id_t index = (ip_set_id_t)cb->args[IPSET_CB_INDEX];
-> -		struct ip_set *set = ip_set_ref_netlink(inst, index);
-> +		struct ip_set *set = ip_set_ref_swapping(inst, index);
->  
->  		if (set->variant->uref)
->  			set->variant->uref(set, cb, false);
->  		pr_debug("release set %s\n", set->name);
-> -		__ip_set_put_netlink(set);
-> +		__ip_set_put_swapping(set);
->  	}
->  	return 0;
->  }
-> @@ -1580,7 +1580,7 @@ ip_set_dump_do(struct sk_buff *skb, struct netlink_callback *cb)
->  		if (!cb->args[IPSET_CB_ARG0]) {
->  			/* Start listing: make sure set won't be destroyed */
->  			pr_debug("reference set\n");
-> -			set->ref_netlink++;
-> +			set->ref_swapping++;
->  		}
->  		write_unlock_bh(&ip_set_ref_lock);
->  		nlh = start_msg(skb, NETLINK_CB(cb->skb).portid,
-> @@ -1646,11 +1646,11 @@ ip_set_dump_do(struct sk_buff *skb, struct netlink_callback *cb)
->  release_refcount:
->  	/* If there was an error or set is done, release set */
->  	if (ret || !cb->args[IPSET_CB_ARG0]) {
-> -		set = ip_set_ref_netlink(inst, index);
-> +		set = ip_set_ref_swapping(inst, index);
->  		if (set->variant->uref)
->  			set->variant->uref(set, cb, false);
->  		pr_debug("release set %s\n", set->name);
-> -		__ip_set_put_netlink(set);
-> +		__ip_set_put_swapping(set);
->  		cb->args[IPSET_CB_ARG0] = 0;
->  	}
->  out:
-> @@ -1701,11 +1701,11 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
->  
->  	do {
->  		if (retried) {
-> -			__ip_set_get_netlink(set);
-> +			__ip_set_get_swapping(set);
->  			nfnl_unlock(NFNL_SUBSYS_IPSET);
->  			cond_resched();
->  			nfnl_lock(NFNL_SUBSYS_IPSET);
-> -			__ip_set_put_netlink(set);
-> +			__ip_set_put_swapping(set);
->  		}
->  
->  		ip_set_lock(set);
-> -- 
-> 2.17.1
-> 
-> 
-
+ if [ "$rc_test" -eq 0 ] ; then
+-	"$TEST" &>> "$NFT_TEST_TESTTMPDIR/testout.log" || rc_test=$?
++	CMD=( "$TEST" )
++	if [ "$NFT_TEST_VERBOSE_TEST" = y ] ; then
++		X="$(sed -n '1 s/^#!\(\/bin\/bash\>.*$\)/\1/p' "$TEST" 2>/dev/null)"
++		if [ -n "$X" ] ; then
++			# Note that kernel parses the shebang differently and does not
++			# word splitting for the arguments. We do split the arguments here
++			# which would matter if there are spaces. For our tests, there
++			# are either no arguments or only one argument without space. So
++			# this is good enough.
++			CMD=( $X -x "$TEST" )
++		fi
++	fi
++	printf "Command: $(printf '%q ' "${CMD[@]}")\n" &>> "$NFT_TEST_TESTTMPDIR/testout.log"
++	"${CMD[@]}" &>> "$NFT_TEST_TESTTMPDIR/testout.log" || rc_test=$?
+ fi
+ 
+ $NFT list ruleset > "$NFT_TEST_TESTTMPDIR/ruleset-after"
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index 22105c2e90e2..27a0ec43042a 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -163,6 +163,7 @@ usage() {
+ 	echo " -R|--without-realroot : Sets NFT_TEST_HAS_REALROOT=n."
+ 	echo " -U|--no-unshare : Sets NFT_TEST_UNSHARE_CMD=\"\"."
+ 	echo " -k|--keep-logs  : Sets NFT_TEST_KEEP_LOGS=y."
++	echo " -x              : Sets NFT_TEST_VERBOSE_TEST=y."
+ 	echo " -s|--sequential : Sets NFT_TEST_JOBS=0, which also enables global cleanups."
+ 	echo "                   Also sets NFT_TEST_SHUFFLE_TESTS=n if left unspecified."
+ 	echo " -Q|--quick      : Sets NFT_TEST_SKIP_slow=y."
+@@ -181,6 +182,8 @@ usage() {
+ 	echo " NFT_REAL=<CMD> : Real nft comand. Usually this is just the same as \$NFT,"
+ 	echo "                 however, you may set NFT='valgrind nft' and NFT_REAL to the real command."
+ 	echo " VERBOSE=*|y   : Enable verbose output."
++	echo " NFT_TEST_VERBOSE_TEST=*|y: if true, enable verbose output for tests. For bash scripts, this means"
++	echo "                 to pass \"-x\" to the interpreter."
+ 	echo " DUMPGEN=*|y   : Regenerate dump files. Dump files are only recreated if the"
+ 	echo "                 test completes successfully and the \"dumps\" directory for the"
+ 	echo "                 test exits."
+@@ -275,6 +278,7 @@ _NFT_TEST_JOBS_DEFAULT="$(nproc)"
+ _NFT_TEST_JOBS_DEFAULT="$(( _NFT_TEST_JOBS_DEFAULT + (_NFT_TEST_JOBS_DEFAULT + 1) / 2 ))"
+ 
+ VERBOSE="$(bool_y "$VERBOSE")"
++NFT_TEST_VERBOSE_TEST="$(bool_y "$NFT_TEST_VERBOSE_TEST")"
+ DUMPGEN="$(bool_y "$DUMPGEN")"
+ VALGRIND="$(bool_y "$VALGRIND")"
+ KMEMLEAK="$(bool_y "$KMEMLEAK")"
+@@ -327,6 +331,9 @@ while [ $# -gt 0 ] ; do
+ 		-v)
+ 			VERBOSE=y
+ 			;;
++		-x)
++			NFT_TEST_VERBOSE_TEST=y
++			;;
+ 		-g)
+ 			DUMPGEN=y
+ 			;;
+@@ -627,6 +634,7 @@ exec &> >(tee "$NFT_TEST_TMPDIR/test.log")
+ msg_info "conf: NFT=$(printf '%q' "$NFT")"
+ msg_info "conf: NFT_REAL=$(printf '%q' "$NFT_REAL")"
+ msg_info "conf: VERBOSE=$(printf '%q' "$VERBOSE")"
++msg_info "conf: NFT_TEST_VERBOSE_TEST=$(printf '%q' "$NFT_TEST_VERBOSE_TEST")"
+ msg_info "conf: DUMPGEN=$(printf '%q' "$DUMPGEN")"
+ msg_info "conf: VALGRIND=$(printf '%q' "$VALGRIND")"
+ msg_info "conf: KMEMLEAK=$(printf '%q' "$KMEMLEAK")"
+@@ -832,7 +840,12 @@ job_start() {
+ 	fi
+ 
+ 	NFT_TEST_TESTTMPDIR="${JOBS_TEMPDIR["$testfile"]}" \
+-	NFT="$NFT" NFT_REAL="$NFT_REAL" DIFF="$DIFF" DUMPGEN="$DUMPGEN" $NFT_TEST_UNSHARE_CMD "$NFT_TEST_BASEDIR/helpers/test-wrapper.sh" "$testfile"
++	NFT="$NFT" \
++	NFT_REAL="$NFT_REAL" \
++	DIFF="$DIFF" \
++	DUMPGEN="$DUMPGEN" \
++	NFT_TEST_VERBOSE_TEST="$NFT_TEST_VERBOSE_TEST" \
++	$NFT_TEST_UNSHARE_CMD "$NFT_TEST_BASEDIR/helpers/test-wrapper.sh" "$testfile"
+ 	local rc_got=$?
+ 
+ 	if [ "$NFT_TEST_JOBS" -le 1 ] ; then
 -- 
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+2.41.0
+
