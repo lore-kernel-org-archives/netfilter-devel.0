@@ -2,71 +2,109 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ADB8CDB465
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Oct 2023 09:38:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31F03CDB465
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Oct 2023 12:56:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231149AbjJPJi1 (ORCPT
+        id S233403AbjJPM4X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Oct 2023 05:38:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54630 "EHLO
+        Mon, 16 Oct 2023 08:56:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230104AbjJPJi0 (ORCPT
+        with ESMTP id S233652AbjJPM4U (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Oct 2023 05:38:26 -0400
-X-Greylist: delayed 910 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 16 Oct 2023 02:38:23 PDT
-Received: from m1325.mail.163.com (m1325.mail.163.com [220.181.13.25])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4FEB4AB;
-        Mon, 16 Oct 2023 02:38:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=Date:From:Subject:Content-Type:MIME-Version:
-        Message-ID; bh=IHf1ZEy9uQ92Bpj/YslkjkDb4QSvVvjC97Qn/wYsbGk=; b=F
-        1dIr8+hFx0Agv1LGde5HXT4efc4LstQhNHyvHeUC49yz46ij1iVruvi/C5ZNnX7J
-        iDD1lpFwIj6Bq1/yuZH0P8t5/IWWk3d7ixEW0DkAse+65xh9Tf6VBX0o4qKv/J2V
-        pZAYul7wp/XggzA8/MINweUIo50BryeNEhjOZ6Y1DM=
-Received: from 00107082$163.com ( [111.35.185.232] ) by ajax-webmail-wmsvr25
- (Coremail) ; Mon, 16 Oct 2023 17:22:36 +0800 (CST)
-X-Originating-IP: [111.35.185.232]
-Date:   Mon, 16 Oct 2023 17:22:36 +0800 (CST)
-From:   "David Wang" <00107082@163.com>
-To:     "Florian Westphal" <fw@strlen.de>
-Cc:     "Daniel Xu" <dxu@dxuuu.xyz>,
-        "Pablo Neira Ayuso" <pablo@netfilter.org>,
-        "Jozsef Kadlecsik" <kadlec@netfilter.org>,
+        Mon, 16 Oct 2023 08:56:20 -0400
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CF99F1;
+        Mon, 16 Oct 2023 05:56:14 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by smtp2.kfki.hu (Postfix) with ESMTP id 6C1E8CC010E;
+        Mon, 16 Oct 2023 14:56:11 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP; Mon, 16 Oct 2023 14:56:09 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+        by smtp2.kfki.hu (Postfix) with ESMTP id AE4D6CC010A;
+        Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+        id 8B45C3431A8; Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by blackhole.kfki.hu (Postfix) with ESMTP id 89D09340D74;
+        Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
+Date:   Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
+From:   Jozsef Kadlecsik <kadlec@netfilter.org>
+To:     xiaolinkui <xiaolinkui@126.com>
+cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, justinstitt@google.com,
+        kuniyu@amazon.com, oe-kbuild-all@lists.linux.dev,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, bpf@vger.kernel.org
-Subject: Re:Re: [PATCH] uapi/netfilter: Change netfilter hook verdict code
- definition from macro to enum
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version XT5.0.14 build 20230109(dcb5de15)
- Copyright (c) 2002-2023 www.mailtech.cn 163com
-In-Reply-To: <20230928115359.GB27208@breakpoint.cc>
-References: <20230904130201.14632-1-00107082@163.com>
- <cc6e3tukgqhi5y4uhepntrpf272o652pytuynj4nijsf5bkgjq@rgnbhckr3p4w>
- <19d2362f.5c85.18a6647817b.Coremail.00107082@163.com>
- <20230928115359.GB27208@breakpoint.cc>
-X-NTES-SC: AL_QuySBfift0ku4CGRYukXn0oTju85XMCzuv8j3YJeN500kinOwzsydmZPLETk1v6PBB+iqQGLQBJK2utLW6NHVpsjqcGzyTwrHW7h1YZ4nFyx
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=GBK
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linkui Xiao <xiaolinkui@kylinos.cn>
+Subject: Re: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
+In-Reply-To: <202310161625.GDDBP8SZ-lkp@intel.com>
+Message-ID: <20ae91c-155-32c5-c388-9fdaea5b1eed@netfilter.org>
+References: <20231005115022.12902-1-xiaolinkui@126.com> <202310161625.GDDBP8SZ-lkp@intel.com>
 MIME-Version: 1.0
-Message-ID: <269646ef.6122.18b37cb5c27.Coremail.00107082@163.com>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID: GcGowAD3_3biAC1lmbISAA--.6595W
-X-CM-SenderInfo: qqqrilqqysqiywtou0bp/1tbiEBoLql8YLwmJiwACsK
-X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-CgoKQXQgMjAyMy0wOS0yOCAxOTo1Mzo1OSwgIkZsb3JpYW4gV2VzdHBoYWwiIDxmd0BzdHJsZW4u
-ZGU+IHdyb3RlOgoKPgo+SSB3YXMgYWJvdXQgdG8gYXBwbHkgdGhpcyBhcy1pcywgYnV0IFBhYmxv
-IE5laXJhIHdvdWxkIHByZWZlciB0bwo+a2VlcCB0aGUgZGVmaW5lcyBhcyB3ZWxsLgo+Cj5Tbywg
-YXMgYSBjb21wcm9taXNlLCBJIHdvdWxkIHN1Z2dlc3QgdG8ganVzdCAqYWRkKgo+Cj4vKiB2ZXJk
-aWN0cyBhdmFpbGFibGUgdG8gQlBGIGFyZSBleHBvcnRlZCB2aWEgdm1saW51eC5oICovCj5lbnVt
-IHsKPglORl9EUk9QID0gMCwKPglORl9BQ0NFUFQgPSAxLAo+fTsKPgo+I2RlZmluZSBORl9EUk9Q
-IDAKPi4uLgo+Cj5UaGlzIHdheSBCVEYgd29uJ3QgaGF2ZSB0aGUgb3RoZXIgdmVyZGljdHMsIGJ1
-dCBBVE0gdGhvc2UKPmNhbm5vdCBiZSB1c2VkIGluIEJQRiBwcm9ncmFtcyBhbnl3YXkuCj4KPldv
-dWxkIHlvdSBtaW5kIG1ha2luZyBhIG5ldyB2ZXJzaW9uIG9mIHRoZSBwYXRjaD8KPk90aGVyd2lz
-ZSBJIGNhbiBtYW5nbGUgaXQgbG9jYWxseSBoZXJlIGFzIG5lZWRlZC4KCgpTb3JyeSBmb3IgdGhp
-cyBsYXRlIHJlc3BvbnNlLCBJIGdvdCBjYXVnaHQgdXAgYnkgYW4gdW5leHBlY3RlZCBwZXJzb25h
-bCAiY3Jpc2lzIiBmb3IgcXVpdGUgYSBsb25nIHdoaWxlLi4KSG9wZSB5b3UgaGF2ZSBhbHJlYWR5
-IG1hZGUgdGhlIGNoYW5nZSwgYW5kIGl0IGlzIE9LLgoKRGF2aWQK
+Hello,
+
+Besides the broken patch, the description simply cannot be true:
+
+"Before destroying the ipset, take a check on sequence to ensure that the 
+ip_set_test operation of this ipset has been completed."
+
+Set can only be destroyed when there is no iptables rule (match/target) 
+which refers to it. If this condition is not true, then the real reason 
+must be fixed.
+
+How can one reproduce the issue?
+
+Best regards,
+Jozsef
+
+On Mon, 16 Oct 2023, kernel test robot wrote:
+
+> Hi xiaolinkui,
+> 
+> kernel test robot noticed the following build errors:
+> 
+> [auto build test ERROR on netfilter-nf/main]
+> [also build test ERROR on nf-next/master horms-ipvs/master linus/master v6.6-rc6 next-20231016]
+> [If your patch is applied to the wrong git tree, kindly drop us a note.
+> And when submitting patch, we suggest to use '--base' as documented in
+> https://git-scm.com/docs/git-format-patch#_base_tree_information]
+> 
+> url:    https://github.com/intel-lab-lkp/linux/commits/xiaolinkui/netfilter-ipset-wait-for-xt_recseq-on-all-cpus/20231005-234042
+> base:   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+> patch link:    https://lore.kernel.org/r/20231005115022.12902-1-xiaolinkui%40126.com
+> patch subject: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
+> config: x86_64-buildonly-randconfig-006-20231016 (https://download.01.org/0day-ci/archive/20231016/202310161625.GDDBP8SZ-lkp@intel.com/config)
+> compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231016/202310161625.GDDBP8SZ-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/oe-kbuild-all/202310161625.GDDBP8SZ-lkp@intel.com/
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    ld: vmlinux.o: in function `wait_xt_recseq':
+> >> ip_set_core.c:(.text+0x1c561ac): undefined reference to `xt_recseq'
+> 
+> -- 
+> 0-DAY CI Kernel Test Service
+> https://github.com/intel/lkp-tests/wiki
+> 
+
+-- 
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
