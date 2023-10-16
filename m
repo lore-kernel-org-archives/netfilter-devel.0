@@ -2,109 +2,72 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31F03CDB465
-	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Oct 2023 12:56:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 205CBCDB465
+	for <netfilter-devel@archiver.kernel.org>; Mon, 16 Oct 2023 13:13:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233403AbjJPM4X (ORCPT
+        id S230017AbjJPNNG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 16 Oct 2023 08:56:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43990 "EHLO
+        Mon, 16 Oct 2023 09:13:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233652AbjJPM4U (ORCPT
+        with ESMTP id S229459AbjJPNNG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Oct 2023 08:56:20 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CF99F1;
-        Mon, 16 Oct 2023 05:56:14 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 6C1E8CC010E;
-        Mon, 16 Oct 2023 14:56:11 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 16 Oct 2023 14:56:09 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id AE4D6CC010A;
-        Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id 8B45C3431A8; Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by blackhole.kfki.hu (Postfix) with ESMTP id 89D09340D74;
-        Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
-Date:   Mon, 16 Oct 2023 14:56:06 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     xiaolinkui <xiaolinkui@126.com>
-cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        David Miller <davem@davemloft.net>, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, justinstitt@google.com,
-        kuniyu@amazon.com, oe-kbuild-all@lists.linux.dev,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Linkui Xiao <xiaolinkui@kylinos.cn>
-Subject: Re: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
-In-Reply-To: <202310161625.GDDBP8SZ-lkp@intel.com>
-Message-ID: <20ae91c-155-32c5-c388-9fdaea5b1eed@netfilter.org>
-References: <20231005115022.12902-1-xiaolinkui@126.com> <202310161625.GDDBP8SZ-lkp@intel.com>
+        Mon, 16 Oct 2023 09:13:06 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4DACAB
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 06:12:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1697461945;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=vPbL7CLbF4+myvjVEiH0ztdpRmqSoihSooDfuw2zU0A=;
+        b=dc5bTj9KrMyjrvahibhft/Aenwc8zGncJ3ztyqNIsMcy1Fk9leURO3KpI3UlLYyapvTAUy
+        r0SMVEDNvnAKaKni48hiJc6SCDI0hTDmRKx2TriHBlgjZiGXTs0x9aU4611uDEbbn0WdiN
+        VjL7D5F9l37uwOQlRPRANxVMKa2apDo=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-624-ft6iWH1APKyHiwQ8nUAOnQ-1; Mon, 16 Oct 2023 09:12:23 -0400
+X-MC-Unique: ft6iWH1APKyHiwQ8nUAOnQ-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6B078380391A
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 13:12:23 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.192.156])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id C51F3492BEE;
+        Mon, 16 Oct 2023 13:12:22 +0000 (UTC)
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft 3/3] tests/shell: add missing "vlan_8021ad_tag.nodump" file
+Date:   Mon, 16 Oct 2023 15:12:09 +0200
+Message-ID: <20231016131209.1127298-3-thaller@redhat.com>
+In-Reply-To: <20231016131209.1127298-1-thaller@redhat.com>
+References: <20231016131209.1127298-1-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.9
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+This is an inconsistency. The test should have either a .nft or a
+.nodump file. "./tools/check-tree.sh" enforces that and will in the
+future run by `make check`.
 
-Besides the broken patch, the description simply cannot be true:
+Fixes: 74cf3d16d8e9 ('tests: shell: add vlan match test case')
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+---
+ tests/shell/testcases/packetpath/dumps/vlan_8021ad_tag.nodump | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/vlan_8021ad_tag.nodump
 
-"Before destroying the ipset, take a check on sequence to ensure that the 
-ip_set_test operation of this ipset has been completed."
-
-Set can only be destroyed when there is no iptables rule (match/target) 
-which refers to it. If this condition is not true, then the real reason 
-must be fixed.
-
-How can one reproduce the issue?
-
-Best regards,
-Jozsef
-
-On Mon, 16 Oct 2023, kernel test robot wrote:
-
-> Hi xiaolinkui,
-> 
-> kernel test robot noticed the following build errors:
-> 
-> [auto build test ERROR on netfilter-nf/main]
-> [also build test ERROR on nf-next/master horms-ipvs/master linus/master v6.6-rc6 next-20231016]
-> [If your patch is applied to the wrong git tree, kindly drop us a note.
-> And when submitting patch, we suggest to use '--base' as documented in
-> https://git-scm.com/docs/git-format-patch#_base_tree_information]
-> 
-> url:    https://github.com/intel-lab-lkp/linux/commits/xiaolinkui/netfilter-ipset-wait-for-xt_recseq-on-all-cpus/20231005-234042
-> base:   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-> patch link:    https://lore.kernel.org/r/20231005115022.12902-1-xiaolinkui%40126.com
-> patch subject: [PATCH] netfilter: ipset: wait for xt_recseq on all cpus
-> config: x86_64-buildonly-randconfig-006-20231016 (https://download.01.org/0day-ci/archive/20231016/202310161625.GDDBP8SZ-lkp@intel.com/config)
-> compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231016/202310161625.GDDBP8SZ-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202310161625.GDDBP8SZ-lkp@intel.com/
-> 
-> All errors (new ones prefixed by >>):
-> 
->    ld: vmlinux.o: in function `wait_xt_recseq':
-> >> ip_set_core.c:(.text+0x1c561ac): undefined reference to `xt_recseq'
-> 
-> -- 
-> 0-DAY CI Kernel Test Service
-> https://github.com/intel/lkp-tests/wiki
-> 
-
+diff --git a/tests/shell/testcases/packetpath/dumps/vlan_8021ad_tag.nodump b/tests/shell/testcases/packetpath/dumps/vlan_8021ad_tag.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
 -- 
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-PGP key : https://wigner.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+2.41.0
+
