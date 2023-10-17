@@ -2,169 +2,326 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20180CDB474
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 06:23:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85FCFCDB474
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 06:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234284AbjJQGXg (ORCPT
+        id S233654AbjJQG3c (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Oct 2023 02:23:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33478 "EHLO
+        Tue, 17 Oct 2023 02:29:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230343AbjJQGXf (ORCPT
+        with ESMTP id S230343AbjJQG3b (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2023 02:23:35 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B24A18F
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 23:22:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1697523773;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=W0bEk7SY8Xjz6IJPdE3DgwMTVkMBNcTeou93v3yvcp4=;
-        b=e3XjA7pmY+Qot4BE0QgyH0AyHZoFAA6X8PmwdbYxPKXt1VI3gRRrPLR3x+ikQD181ZG3Xv
-        SVZ9n76dgW+aH47WT2JMUY9oYvYoCFzyzgtzpO6q7jst7nVAjqcP1vm0ofA31p3crhqR70
-        2wjXUbFu5W28EIU3AdVK3CKqTA8Me5c=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-322-MU5tF4HQM8GWqhhvAC-WVQ-1; Tue, 17 Oct 2023 02:22:51 -0400
-X-MC-Unique: MU5tF4HQM8GWqhhvAC-WVQ-1
-Received: by mail-ed1-f69.google.com with SMTP id 4fb4d7f45d1cf-534838150afso634965a12.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 23:22:51 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697523770; x=1698128570;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+        Tue, 17 Oct 2023 02:29:31 -0400
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DE4A8F
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 23:29:29 -0700 (PDT)
+Received: by mail-pj1-x1033.google.com with SMTP id 98e67ed59e1d1-27d087c4276so3340382a91.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2023 23:29:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1697524169; x=1698128969; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=W0bEk7SY8Xjz6IJPdE3DgwMTVkMBNcTeou93v3yvcp4=;
-        b=Mxu8K8jcrusLBQ4FAOWuqby+ZcPeJudl4EgUGgIT3cQE+4xLaK8lbH+vzInc4ceFr9
-         Mp5Hw5JIeV9b4SZkm9ts+0mYmpqEWBs3iBBOqu3MX4BIKJs6IWU139zeq7llXSlGmj5K
-         CXCSTFrnMf7J7f5vCt1K6ArG4XyGrtTEalArTGnrsJ33NmGlW1XM4RIJRrdR5ium5YRu
-         GX7WICkyqldPKvKnNjnNv+3/o26CQKgDArqjiYwI+Xoyb7K79Wt1xQzUlpv65n8oFNuc
-         R2fiJuz2fvoiyqXcALGfaQjetGIQxvJlW/A2yl5zQQTi3imAROIaOntKaRchqUTs8A7T
-         l4tQ==
-X-Gm-Message-State: AOJu0Yy7GhGN6YSevl0PBl2KV9Q03/VLDF/0EFkeRBzk17tqYQAHB5If
-        wer1Fv6hCPV9/Q84r9xb+rR+FbfWYE1JuY8TDebBZo5bCtupwAGCp2UecpV2uJbLum1308G/4ZW
-        At8TYRBtYFlSFYEvac4yVul2ZuTYG7f27gMNv
-X-Received: by 2002:a50:f60d:0:b0:521:66b4:13b4 with SMTP id c13-20020a50f60d000000b0052166b413b4mr929347edn.0.1697523770486;
-        Mon, 16 Oct 2023 23:22:50 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFK+u/JtUASuUOKIdUb0thTMaOqw2DdXVQzRfjtOQ+s/ZkRDfqbYpLNPTuBorSlyNduNAvA3w==
-X-Received: by 2002:a50:f60d:0:b0:521:66b4:13b4 with SMTP id c13-20020a50f60d000000b0052166b413b4mr929340edn.0.1697523770120;
-        Mon, 16 Oct 2023 23:22:50 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.167.64])
-        by smtp.gmail.com with ESMTPSA id eh15-20020a0564020f8f00b0053e775e428csm559339edb.83.2023.10.16.23.22.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Oct 2023 23:22:49 -0700 (PDT)
-Message-ID: <a64bccda9ab11f18f13d0512001985d1bf9f04ff.camel@redhat.com>
-Subject: Re: [PATCH nft 1/3] tests/shell: skip "table_onoff" test if kernel
- patch is missing
-From:   Thomas Haller <thaller@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Tue, 17 Oct 2023 08:22:48 +0200
-In-Reply-To: <ZS2bKZVAN5d5dax-@strlen.de>
-References: <20231016131209.1127298-1-thaller@redhat.com>
-         <ZS2bKZVAN5d5dax-@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        bh=WTTTEg0Z1SQXHng7z4gcO5o3D7Ncp2TQ/WSUye0OFJ8=;
+        b=Mupjv/UKZC9NzCbYAl1xdpUx0Xdoigk/sTZ1kJkq31K1nJBrfRECIbAV8s84vKMiB5
+         XcVz8KLLWaImtz86cMW4qhYWT0HKw9wt5S/Fc/Oe94WTK6Jdy3dnYnHlOboTag89voRA
+         YLJaCMgNtpiy2iazAgrr5viWt72ZlM35aNNWWJW6erRAZB+CQhfHU5wP6w9r7n5EU7vX
+         vlMjA2EjZQpbjCN3zlcoa4sktwXkhvTg7Xnuk341Dvc25Dyt9mseB+rDv7K/ffwN5J+P
+         6CuKkGYIkSuMHYu31Yf/lLracRZcWd/ynGU/JCm3agRCkTvkwdBsHSRCH60+QS+B70Cq
+         C/Ug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697524169; x=1698128969;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=WTTTEg0Z1SQXHng7z4gcO5o3D7Ncp2TQ/WSUye0OFJ8=;
+        b=dS3faBdlzSYIzPju8TKsomsC9wLK3fkvU1rTmgs4t63zel61obWExrLLB3LUrG9akY
+         lgDjOaXa+9CuOgszOQYfgz2zmWeFmE5M4w5qTxZg5aNL5E6QuKGX1vfTLLaPI3cfU8Bc
+         j3P1aRRumTpE0oNqy6Pm4gI246t1axDQPXMJZVTJpRf9HbDcqv/mk9qNZErMfSR4e793
+         wwrYg6x9wAkrkFRNfzUXNuB5HQKGtl/OW/z5vyJbyQRNFJJuW4xgOl9Grbck9bASTPa5
+         5nGswt3R05LnQrQCvUBVS8GGoNf/JHROtO0qYbGVTI+nXCyLafQvw8nn47Sjunc4oNK/
+         kU7g==
+X-Gm-Message-State: AOJu0YzTtKYDuD18S2avSOj65J/7yVZPEaAmkRk64Z3oyyDYkWUW22XQ
+        71l6P9J/VNirrvMdjOi2Qsw=
+X-Google-Smtp-Source: AGHT+IGy1CRJt8QIaCOJ1FXDJkjr9EchQBbM0l99fWEFe2yL0iOAlk1iKOya+z+osq35JsGevTyzEQ==
+X-Received: by 2002:a17:90a:bb94:b0:27d:6dfb:405c with SMTP id v20-20020a17090abb9400b0027d6dfb405cmr1141992pjr.42.1697524168758;
+        Mon, 16 Oct 2023 23:29:28 -0700 (PDT)
+Received: from [192.168.42.10] ([23.91.97.158])
+        by smtp.gmail.com with ESMTPSA id 25-20020a17090a195900b0027463889e72sm628201pjh.55.2023.10.16.23.29.25
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 16 Oct 2023 23:29:28 -0700 (PDT)
+Message-ID: <96163a1d-81ed-1739-96da-f1a7b5f63dd7@gmail.com>
+Date:   Tue, 17 Oct 2023 14:29:14 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH 2/2] netfilter: ipset: fix race condition in ipset swap,
+ destroy and test
+Content-Language: en-US
+To:     Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, justinstitt@google.com,
+        kuniyu@amazon.com, netfilter-devel@vger.kernel.org,
+        Linkui Xiao <xiaolinkui@kylinos.cn>
+References: <20231016135204.27443-1-xiaolinkui@gmail.com>
+ <20231016135204.27443-2-xiaolinkui@gmail.com>
+ <3ad078fa-fa61-95a8-dbd2-33d5faa2a8b@netfilter.org>
+From:   Linkui Xiao <xiaolinkui@gmail.com>
+In-Reply-To: <3ad078fa-fa61-95a8-dbd2-33d5faa2a8b@netfilter.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hi,
+Thanks for your reply.
+On 10/17/23 03:52, Jozsef Kadlecsik wrote:
+> Hello,
+>
+> On Mon, 16 Oct 2023, xiaolinkui wrote:
+>
+>> From: Linkui Xiao <xiaolinkui@kylinos.cn>
+>>
+>> There is a race condition which can be demonstrated by the following
+>> script:
+>>
+>> ipset create hash_ip1 hash:net family inet hashsize 1024 maxelem 1048576
+>> ipset add hash_ip1 172.20.0.0/16
+>> ipset add hash_ip1 192.168.0.0/16
+>> iptables -A INPUT -m set --match-set hash_ip1 src -j ACCEPT
+>> while [ 1 ]
+>> do
+>> 	ipset create hash_ip2 hash:net family inet hashsize 1024 maxelem 1048576
+>> 	ipset add hash_ip2 172.20.0.0/16
+>> 	ipset swap hash_ip1 hash_ip2
+>> 	ipset destroy hash_ip2
+>> 	sleep 0.05
+>> done
+> I have been running the script above for more than two hours and nothing
+> happened. What else is needed to trigger the bug? (I have been
+> continuously sending ping to the tested host.)
+This is an extremely low probability event. In our k8s cluster, hundreds
+of virtual machines ran for several months before experiencing a crash.
+Perhaps due to some special reasons, the ip_set_test run time has been
+increased, during this period, other CPU completed the swap and destroy
+operations on the ipset.
+In order to quickly trigger this bug, we can add a delay and destroy 
+operations
+to the test kernel to simulate the actual environment, such as:
 
+@@ -733,11 +733,13 @@ ip_set_unlock(struct ip_set *set)
+                 spin_unlock_bh(&set->lock);
+  }
 
-On Mon, 2023-10-16 at 22:20 +0200, Florian Westphal wrote:
-> Thomas Haller <thaller@redhat.com> wrote:
-> > Passing the test suite must not require latest kernel patches.=C2=A0 If
-> > test
-> > "table_onoff" appears to not work due to a missing kernel patch,
-> > skip
-> > it.
-> >=20
-> > If you run a special kernel and expect that all test pass, set
-> > NFT_TEST_FAIL_ON_SKIP=3Dy to catch unexpected skips.
->=20
-> This makes the test suite and all feature probing moot for my use
-> cases.
-> If I see SKIP, I assume that the feature is missing.
++static void ip_set_destroy_set(struct ip_set *set);
+  int
+  ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+             const struct xt_action_param *par, struct ip_set_adt_opt *opt)
+  {
+         struct ip_set *set = ip_set_rcu_get(xt_net(par), index);
++       struct ip_set_net *inst = ip_set_pernet(xt_net(par));
+         int ret = 0;
 
-As you probably run a self-built kernel, wouldn't you just `export
-NFT_TEST_FAIL_ON_SKIP=3Dy` and reject all skips as failures? What's the
-problem with that? That exists exactly for your use case.
+         BUG_ON(!set);
+@@ -747,6 +749,17 @@ ip_set_test(ip_set_id_t index, const struct sk_buff 
+*skb,
+             !(opt->family == set->family || set->family == 
+NFPROTO_UNSPEC))
+                 return 0;
 
-The test suite should be usable on some recent + popular distro kernels
-(like Fedora 38). That will also be rather important, once the tests
-are invoked by `make check` (I have patches for that, it's very simple
-and rather nice!).
++       mdelay(100); // Waiting for swap to complete
++
++       read_lock_bh(&ip_set_ref_lock);
++       if (set->ref == 0 && set->ref_netlink == 0) { // set can be 
+destroyed with ref = 0
++               pr_warn("set %s, index %u, ref %u\n", set->name, index, 
+set->ref);
++               read_unlock_bh(&ip_set_ref_lock);
++               ip_set(inst, index) = NULL;
++               ip_set_destroy_set(set);
++       } else
++               read_unlock_bh(&ip_set_ref_lock);
++
+         ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
 
+         if (ret == -EAGAIN) {
 
->=20
-> This is a bug, and it tells me that I might have to do something
-> about it.
+Then run the above script on the test kernel, crash will appear on 
+hash_net4_kadt:
+(need sending ping to the tested host.)
 
-OK, do you intend to fix this bug in a very timely manner on Fedora 38
-(and other popular kernels)? Then maybe hold back the test until that
-happend? (or let it skip for now, and in a few weeks, upgrade to hard
-failure -- the only problem is not to forget about that).
+[   93.021792] BUG: kernel NULL pointer dereference, address: 
+000000000000009c
+[   93.021796] #PF: supervisor read access in kernel mode
+[   93.021798] #PF: error_code(0x0000) - not-present page
+[   93.021800] PGD 0 P4D 0
+[   93.021804] Oops: 0000 [#1] PREEMPT SMP PTI
+[   93.021807] CPU: 4 PID: 0 Comm: swapper/4 Kdump: loaded Not tainted 
+6.6.0-rc5 #29
+[   93.021811] Hardware name: VMware, Inc. VMware Virtual Platform/440BX 
+Desktop Reference Platform, BIOS 6.00 11/12/2020
+[   93.021813] RIP: 0010:hash_net4_kadt+0x5f/0x1b0 [ip_set_hash_net]
+[   93.021825] Code: 00 48 89 44 24 48 48 8b 87 80 00 00 00 45 8b 60 30 
+c7 44 24 08 00 00 00 00 4c 8b 54 ca 10 31 d2 c6 44 24 0e 00 66 89 54 24 
+0c <0f> b6 b0 9c 00 00 00 40 84 f6 0f 84 bf 00 00 00 48 8d 54 24 10 83
+[   93.021827] RSP: 0018:ffffb0180058c9c0 EFLAGS: 00010246
+[   93.021830] RAX: 0000000000000000 RBX: 0000000000000002 RCX: 
+0000000000000002
+[   93.021832] RDX: 0000000000000000 RSI: ffff956d747cdd00 RDI: 
+ffff956d9348ba80
+[   93.021835] RBP: ffffb0180058ca30 R08: ffffb0180058ca88 R09: 
+ffff956d9348ba80
+[   93.021837] R10: ffffffffc102f4f0 R11: ffff956d747cdd00 R12: 
+00000000ffffffff
+[   93.021839] R13: 0000000000000054 R14: ffffb0180058ca88 R15: 
+ffff956d747cdd00
+[   93.021862] FS:  0000000000000000(0000) GS:ffff956d9b100000(0000) 
+knlGS:0000000000000000
+[   93.021870] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   93.021873] CR2: 000000000000009c CR3: 0000000031e3a006 CR4: 
+00000000003706e0
+[   93.021887] Call Trace:
+[   93.021891]  <IRQ>
+[   93.021893]  ? __die+0x24/0x70
+[   93.021900]  ? page_fault_oops+0x82/0x150
+[   93.021905]  ? exc_page_fault+0x69/0x150
+[   93.021911]  ? asm_exc_page_fault+0x26/0x30
+[   93.021915]  ? __pfx_hash_net4_test+0x10/0x10 [ip_set_hash_net]
+[   93.021922]  ? hash_net4_kadt+0x5f/0x1b0 [ip_set_hash_net]
+[   93.021931]  ip_set_test+0x119/0x250 [ip_set]
+[   93.021943]  set_match_v4+0xa2/0xe0 [xt_set]
+[   93.021973]  nft_match_eval+0x65/0xb0 [nft_compat]
+[   93.021982]  nft_do_chain+0xe1/0x430 [nf_tables]
+[   93.022008]  ? resolve_normal_ct+0xc1/0x200 [nf_conntrack]
+[   93.022026]  ? nf_conntrack_icmpv4_error+0x123/0x1a0 [nf_conntrack]
+[   93.022046]  nft_do_chain_ipv4+0x6b/0x90 [nf_tables]
+[   93.022066]  nf_hook_slow+0x40/0xc0
+[   93.022071]  ip_local_deliver+0xdb/0x130
+[   93.022075]  ? __pfx_ip_local_deliver_finish+0x10/0x10
+[   93.022078]  __netif_receive_skb_core.constprop.0+0x6e1/0x10a0
+[   93.022086]  ? find_busiest_group+0x43/0x240
+[   93.022091]  __netif_receive_skb_list_core+0x136/0x2c0
+[   93.022096]  netif_receive_skb_list_internal+0x1c9/0x300
+[   93.022101]  ? e1000_clean_rx_irq+0x316/0x4c0 [e1000]
+[   93.022113]  napi_complete_done+0x73/0x1b0
+[   93.022117]  e1000_clean+0x7c/0x1e0 [e1000]
+[   93.022127]  __napi_poll+0x29/0x1b0
+[   93.022131]  net_rx_action+0x29f/0x370
+[   93.022136]  __do_softirq+0xcc/0x2af
+[   93.022142]  __irq_exit_rcu+0xa1/0xc0
+[   93.022147]  sysvec_apic_timer_interrupt+0x76/0x90
+>
+>> Swap will exchange the values of ref so destroy will see ref = 0 instead of
+>> ref = 1. So after running this script for a period of time, the following
+>> race situations may occur:
+>> 	CPU0:                CPU1:
+>> 	ipt_do_table
+>> 	->set_match_v4
+>> 	->ip_set_test
+>> 			ipset swap hash_ip1 hash_ip2
+>> 			ipset destroy hash_ip2
+>> 	->hash_net4_kadt
+>>
+>> CPU0 found ipset through the index, and at this time, hash_ip2 has been
+>> destroyed by CPU1 through name search. So CPU0 will crash when accessing
+>> set->data in the function hash_net4_kadt.
+>>
+>> With this fix in place swap will not succeed because ip_set_test still has
+>> ref_swapping on the set.
+>>
+>> Both destroy and swap will error out if ref_swapping != 0 on the set.
+>>
+>> Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
+>> ---
+>>   net/netfilter/ipset/ip_set_core.c | 6 +++++-
+>>   1 file changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+>> index e5d25df5c64c..d6bd37010bfb 100644
+>> --- a/net/netfilter/ipset/ip_set_core.c
+>> +++ b/net/netfilter/ipset/ip_set_core.c
+>> @@ -741,11 +741,13 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+>>   	int ret = 0;
+>>   
+>>   	BUG_ON(!set);
+>> +
+>> +	__ip_set_get_swapping(set);
+>>   	pr_debug("set %s, index %u\n", set->name, index);
+>>   
+>>   	if (opt->dim < set->type->dimension ||
+>>   	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+>> -		return 0;
+>> +		goto out;
+>>   
+>>   	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+>>   
+>> @@ -764,6 +766,8 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+>>   			ret = -ret;
+>>   	}
+>>   
+>> +out:
+>> +	__ip_set_put_swapping(set);
+>>   	/* Convert error codes to nomatch */
+>>   	return (ret < 0 ? 0 : ret);
+>>   }
+>> -- 
+>> 2.17.1
+> The patch above alas is also not acceptable: it adds locking to a lockless
+> area and thus slows down the execution unnecessarily.
+Use seq of cpu in destroy can avoid this issue, but Florian Westphal says
+it's not suitable: 
+https://lore.kernel.org/all/20231005123107.GB9350@breakpoint.cc/
+>
+> If there's a bug, then that must be handled in ip_set_swap() itself, like
+> for example adding a quiescent time and waiting for the ongoing users of
+> the swapped set to finish their job. You can make it slow there, because
+> swapping is not performance critical.
+Can we add read seq of cpu to swap to wait for the test to complete? 
+Such as:
 
->=20
-> If you absolutely cannot have a failure because of this, then
-> please add another error state for this, so that I can see that
-> something is wrong.
->=20
-> This is NOT the same as a skip because some distro kernel lacks
-> anonymous chain support.
->=20
-> That said, I would STRONLGY perfer failure here.
-> Distros will ship updates that eventually also include this bug fix.
+@@ -1357,6 +1357,7 @@ static int ip_set_swap(struct sk_buff *skb, const 
+struct nfnl_info *info,
+         struct ip_set *from, *to;
+         ip_set_id_t from_id, to_id;
+         char from_name[IPSET_MAXNAMELEN];
++       unsigned int cpu;
 
->=20
-> This fix is included in 6.5.6 for example.
->=20
+         if (unlikely(protocol_min_failed(attr) ||
+                      !attr[IPSET_ATTR_SETNAME] ||
+@@ -1395,8 +1396,21 @@ static int ip_set_swap(struct sk_buff *skb, const 
+struct nfnl_info *info,
+         swap(from->ref, to->ref);
+         ip_set(inst, from_id) = to;
+         ip_set(inst, to_id) = from;
+-       write_unlock_bh(&ip_set_ref_lock);
 
-Ah right. "tests/shell/testcases/transactions/table_onoff" is fixed on
-6.5.6-200.fc38.x86_64. There still is a general problem. For example
-what about tests/shell/testcases/packetpath/vlan_8021ad_tag ?
++       /* wait for even xt_recseq on all cpus */
++       for_each_possible_cpu(cpu) {
++               seqcount_t *s = &per_cpu(xt_recseq, cpu);
++               u32 seq = raw_read_seqcount(s);
++
++               if (seq & 1) {
++                       do {
++                               cond_resched();
++                               cpu_relax();
++                       } while (seq == raw_read_seqcount(s));
++               }
++       }
++
++       write_unlock_bh(&ip_set_ref_lock);
+         return 0;
+  }
 
+Of course, this solution cannot be verified in the test kernel above.
+>
+> Best regards,
+> Jozsef
+Do you have a better solution for this race condition?
+Looking forward to your reply.
 
-
-Maybe there could be two levels of NFT_TEST_FAIL_ON_SKIP. Maybe
-"always" or "bugs-only". Then either:
-
-1) the test would exit 78 instead of 77. And run-test.sh would treat 78
-either as failure or as skip, based on NFT_TEST_FAIL_ON_SKIP
-
-2) the test itself could look at NFT_TEST_FAIL_ON_SKIP and decide
-whether to exit with 77 or 1.
-
-
-Or how about adding a mechanism, that compares the kernel version and
-decides whether to skip? For example
-
-
-if ! printf "%s" "$OUT" | grep -q 'counter packets 1 bytes 84' ; then
-    echo "Filter did not match. Assume kernel lacks fix https://git.kernel.=
-org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3Daf84f9e447a65b=
-4b9f79e7e5d69e19039b431c56"
-    "$NFT_TEST_BASEDIR/helpers/eval-exit-code" kernel 6.5.6 || exit $?
-fi
-
-
-where "eval-exit-code" will either exit with 1 or 77 and log a message
-(about the result of the comparison).
-
-The "kernel" arguments indicates to compare the `uname` output in some
-useful >=3D way.
-
-
-
-How about "eval-exit-code"?
-
-
-Thomas
-
+Best regards,
+Linkui Xiao
