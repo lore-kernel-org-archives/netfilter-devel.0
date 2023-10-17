@@ -2,80 +2,49 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39E48CDB482
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 09:04:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8C8ACDB474
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 09:24:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234793AbjJQJEw (ORCPT
+        id S234861AbjJQJYj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Oct 2023 05:04:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39500 "EHLO
+        Tue, 17 Oct 2023 05:24:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234779AbjJQJEv (ORCPT
+        with ESMTP id S234833AbjJQJYg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2023 05:04:51 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E32798E
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 02:04:48 -0700 (PDT)
-Received: from [78.30.34.192] (port=51750 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qsg0I-004IbP-JM; Tue, 17 Oct 2023 11:04:44 +0200
-Date:   Tue, 17 Oct 2023 11:04:41 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Tue, 17 Oct 2023 05:24:36 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80AABEB
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 02:24:32 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qsgJR-000785-TR; Tue, 17 Oct 2023 11:24:29 +0200
+Date:   Tue, 17 Oct 2023 11:24:29 +0200
+From:   Florian Westphal <fw@strlen.de>
 To:     Thomas Haller <thaller@redhat.com>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v2 2/3] tests/shell: skip "table_onoff" test on older
- kernels
-Message-ID: <ZS5OKQycMX0cScgb@calendula>
+Subject: Re: [PATCH nft v2 0/3] add "eval-exit-code" and skip tests based on
+ kernel version
+Message-ID: <20231017092429.GA10901@breakpoint.cc>
 References: <20231017085133.1203402-1-thaller@redhat.com>
- <20231017085133.1203402-3-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231017085133.1203402-3-thaller@redhat.com>
+In-Reply-To: <20231017085133.1203402-1-thaller@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 17, 2023 at 10:49:07AM +0200, Thomas Haller wrote:
-> The "table_onoff" test can only pass with certain (recent) kernels.
-> Conditionally exit with status 77, if "eval-exit-code" determines that
-> we don't have a suitable kernel version.
+Thomas Haller <thaller@redhat.com> wrote:
+> This is a follow-up and replaces the two patches:
 > 
-> In this case, we can find the fixes in:
+>   [PATCH nft 1/3] tests/shell: skip "table_onoff" test if kernel patch is missing
+>   [PATCH nft 2/3] tests/shell: skip "vlan_8021ad_tag" test instead of failing
 > 
->  v6.6      : https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c9bd26513b3a11b3adb3c2ed8a31a01a87173ff1
->  v6.5.6    : https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=5e5754e9e77ce400d70ff3c30fea466c8dfe9a9f
->  v6.1.56   : https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c4b0facd5c20ceae3d07018a3417f06302fa9cd1
->  v5.15.135 : https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0dcc9b4097d860d9af52db5366a8755c13468d13
+> Instead, add a helper script "eval-exit-code" which makes it easy(?) to
+> conditionally downgrade a test failure to a SKIP (exit 77) based on the
+> kernel version.
 
-I am not sure it worth this level of tracking.
-
-Soon these patches will be in upstream stable and this extra shell
-code will be simply deadcode in little time.
-
-> Fixes: bcca2d67656f ('tests: add test for dormant on/off/on bug')
-> Signed-off-by: Thomas Haller <thaller@redhat.com>
-> ---
->  tests/shell/testcases/transactions/table_onoff | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/tests/shell/testcases/transactions/table_onoff b/tests/shell/testcases/transactions/table_onoff
-> index 831d4614c1f2..0e70ad2cc3f4 100755
-> --- a/tests/shell/testcases/transactions/table_onoff
-> +++ b/tests/shell/testcases/transactions/table_onoff
-> @@ -11,7 +11,9 @@ delete table ip t
->  EOF
->  
->  if [ $? -eq 0 ]; then
-> -	exit 1
-> +	echo "Command to re-awaken a dormant table did not fail. Lacking https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c9bd26513b3a11b3adb3c2ed8a31a01a87173ff1 ?"
-> +	"$NFT_TEST_BASEDIR/helpers/eval-exit-code" kernel  6.6  6.5.6  6.1.56  5.15.135
-> +	exit $?
->  fi
->  
->  set -e
-> -- 
-> 2.41.0
-> 
+Unfortunately kernel versions are meaningless, especially for the
+average commericial frankenkernels.
