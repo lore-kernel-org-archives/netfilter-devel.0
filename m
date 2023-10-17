@@ -2,52 +2,58 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ABF5CDB474
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 10:09:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A0ECDB474
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 10:28:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234947AbjJQKJr (ORCPT
+        id S234791AbjJQK2e (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Oct 2023 06:09:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33014 "EHLO
+        Tue, 17 Oct 2023 06:28:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234944AbjJQKJr (ORCPT
+        with ESMTP id S233570AbjJQK2d (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2023 06:09:47 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 438F88E;
-        Tue, 17 Oct 2023 03:09:45 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qsh19-0007UK-8J; Tue, 17 Oct 2023 12:09:39 +0200
-Date:   Tue, 17 Oct 2023 12:09:39 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Phil Sutter <phil@nwl.cc>
-Cc:     David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [net-next PATCH v2] net: skb_find_text: Ignore patterns
- extending past 'to'
-Message-ID: <20231017100939.GC10901@breakpoint.cc>
-References: <20231017093906.26310-1-phil@nwl.cc>
+        Tue, 17 Oct 2023 06:28:33 -0400
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 812358E
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 03:28:31 -0700 (PDT)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nf] netfilter: nft_set_rbtree: .deactivate fails if element has expired
+Date:   Tue, 17 Oct 2023 12:28:27 +0200
+Message-Id: <20231017102827.1307-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231017093906.26310-1-phil@nwl.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Assume that caller's 'to' offset really represents an upper boundary for
-> the pattern search, so patterns extending past this offset are to be
-> rejected.
-> 
-> The old behaviour also was kind of inconsistent when it comes to
-> fragmentation (or otherwise non-linear skbs): If the pattern started in
-> between 'to' and 'from' offsets but extended to the next fragment, it
-> was not found if 'to' offset was still within the current fragment.
-> 
-> Test the new behaviour in a kselftest using iptables' string match.
+This allows to remove an expired element which is not possible in other
+existing set backends, this is more noticeable if gc-interval is high so
+expired elements remain in the tree. On-demand gc also does not help in
+this case, because this is delete element path. Return NULL if element
+has expired.
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+Fixes: 8d8540c4f5e0 ("netfilter: nft_set_rbtree: add timeout support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_set_rbtree.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 2660ceab3759..e34662f4a71e 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -568,6 +568,8 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 				   nft_rbtree_interval_end(this)) {
+ 				parent = parent->rb_right;
+ 				continue;
++			} else if (nft_set_elem_expired(&rbe->ext)) {
++				break;
+ 			} else if (!nft_set_elem_active(&rbe->ext, genmask)) {
+ 				parent = parent->rb_left;
+ 				continue;
+-- 
+2.30.2
+
