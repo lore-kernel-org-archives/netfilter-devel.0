@@ -2,211 +2,150 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5B7ACDB483
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 15:07:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42243CDB474
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 18:05:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344210AbjJQPHh (ORCPT
+        id S233493AbjJQSFC (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Oct 2023 11:07:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48268 "EHLO
+        Tue, 17 Oct 2023 14:05:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344220AbjJQPHW (ORCPT
+        with ESMTP id S234954AbjJQSFB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2023 11:07:22 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CAA6170C;
-        Tue, 17 Oct 2023 08:05:20 -0700 (PDT)
-Received: from [78.30.34.192] (port=39190 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qsldA-006BhI-Ts; Tue, 17 Oct 2023 17:05:15 +0200
-Date:   Tue, 17 Oct 2023 17:05:12 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     xiaolinkui <xiaolinkui@gmail.com>
-Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-        kuniyu@amazon.com, justinstitt@google.com,
-        netfilter-devel@vger.kernel.org,
-        Linkui Xiao <xiaolinkui@kylinos.cn>, stable@vger.kernel.org
-Subject: Re: [PATCH] netfilter: ipset: fix race condition in ipset swap,
- destroy and test/add/del
-Message-ID: <ZS6iqG5XIEwGvDrR@calendula>
-References: <20231017125256.23056-1-xiaolinkui@gmail.com>
+        Tue, 17 Oct 2023 14:05:01 -0400
+Received: from mail-oi1-f207.google.com (mail-oi1-f207.google.com [209.85.167.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7723B90
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 11:04:59 -0700 (PDT)
+Received: by mail-oi1-f207.google.com with SMTP id 5614622812f47-3b2e21c06f9so824289b6e.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 11:04:59 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697565899; x=1698170699;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=wBc6OrybcBoGw+HylW8Uo0tWXXs4E0MyVL0SByuv/FE=;
+        b=vAWlg9/UKWTverWWHQ3ZqNjnUk8C5QyxZtsbJU0jJqPTBstWSQ4MVZwp34+RtkM/pU
+         oTIOkhOocgbBowQvNAXVGiSdCHLO4rJHPDCA3xNCKTgGVZX/SU8EBw+NDIkyKTXElhwj
+         R7NAFq/8ou57n7WydxA8sFqmJRc0xhGyo6cx5DXY2KzSkAaYQEiCWiTKCG9XSaMoFyIn
+         hpTUkKYH7QuYCHH9ssBBfW+lFVCdpq5H0GGqp8h7xzFu+tTp73Q/je1yk2G3XDV6vxKm
+         6KITPtnakq8PSACtZkFYZ3JSBzexogQGqs/joqrCJ72AQhBI/qQjfdoQvSbJrpkrzT8U
+         445Q==
+X-Gm-Message-State: AOJu0YyGGHwJaAa8gkYTRygT5f1DbjdET5TON1Gd/8/Lfg0QZ7hy6W0U
+        WSHjsGvnLCswdm3L4xjbeenM8MMWI53bdNbvhR6KO9bwULLv
+X-Google-Smtp-Source: AGHT+IFDLXwS2Vt5zHggEQpkomEJqnHYyAN3Csq2jsoFAXyYPB2sV9AY3Aa42Q6OvUiS/pNC1LY6b3Hq2Bk0utkT1ufHiC9io0x/
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20231017125256.23056-1-xiaolinkui@gmail.com>
+X-Received: by 2002:a05:6808:3602:b0:3ae:61f:335e with SMTP id
+ ct2-20020a056808360200b003ae061f335emr1021489oib.5.1697565898921; Tue, 17 Oct
+ 2023 11:04:58 -0700 (PDT)
+Date:   Tue, 17 Oct 2023 11:04:58 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000635bfa0607ed5cdc@google.com>
+Subject: [syzbot] [netfilter?] WARNING in __nf_unregister_net_hook (6)
+From:   syzbot <syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com>
+To:     bpf@vger.kernel.org, coreteam@netfilter.org, davem@davemloft.net,
+        edumazet@google.com, fw@strlen.de, kadlec@netfilter.org,
+        kuba@kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pabeni@redhat.com, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Hello,
 
-This means then that Jozsef's patch is fixing the issue that you
-reported, then a Tested-by: tag would be nice to have from you :)
+syzbot found the following issue on:
 
-If all is OK, then please, let Jozsef submit his own patch to
-netfilter-devel@ so it can follow its trip to the nf.git tree.
+HEAD commit:    6465e260f487 Linux 6.6-rc3
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=1376e3bc680000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8d7d7928f78936aa
+dashboard link: https://syzkaller.appspot.com/bug?extid=de4025c006ec68ac56fc
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=17f218da680000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=149ff8c6680000
 
-Thanks!
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/563852357aa6/disk-6465e260.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/df22793fe953/vmlinux-6465e260.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/84c2aad43ae3/bzImage-6465e260.xz
 
-On Tue, Oct 17, 2023 at 08:52:56PM +0800, xiaolinkui wrote:
-> From: Linkui Xiao <xiaolinkui@kylinos.cn>
-> 
-> There is a race condition which can be demonstrated by the following
-> script:
-> 
-> ipset create hash_ip1 hash:net family inet hashsize 1024 maxelem 1048576
-> ipset add hash_ip1 172.20.0.0/16
-> ipset add hash_ip1 192.168.0.0/16
-> iptables -A INPUT -m set --match-set hash_ip1 src -j ACCEPT
-> while [ 1 ]
-> do
->         ipset create hash_ip2 hash:net family inet hashsize 1024 maxelem 1048576
->         ipset add hash_ip2 172.20.0.0/16
->         ipset swap hash_ip1 hash_ip2
->         ipset destroy hash_ip2
->         sleep 0.05
-> done
-> 
-> Swap will exchange the values of ref so destroy will see ref = 0 instead of
-> ref = 1. So after running this script for a period of time, the following
-> race situations may occur:
->         CPU0:                CPU1:
->         ipt_do_table
->         ->set_match_v4
->         ->ip_set_test
->                         ipset swap hash_ip1 hash_ip2
->                         ipset destroy hash_ip2
->         ->hash_net4_kadt
-> 
-> CPU0 found ipset through the index, and at this time, hash_ip2 has been
-> destroyed by CPU1 through name search. So CPU0 will crash when accessing
-> set->data in the function hash_net4_kadt.
-> 
-> With this fix in place swap will wait for the ongoing operations to be
-> finished.
-> 
-> V1->V2 changes:
-> - replace ref_netlink with rcu synchonize_rcu()
-> 
-> Closes: https://lore.kernel.org/all/69e7963b-e7f8-3ad0-210-7b86eebf7f78@netfilter.org/
-> Cc: stable@vger.kernel.org
-> Suggested-by: Jozsef Kadlecsik <kadlec@netfilter.org>
-> Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
-> 
-> ---
->  net/netfilter/ipset/ip_set_core.c | 31 ++++++++++++++++++++++++++-----
->  1 file changed, 26 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 35d2f9c9ada0..62ee4de6ffee 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -712,13 +712,18 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
->  	struct ip_set_net *inst = ip_set_pernet(net);
->  
->  	rcu_read_lock();
-> -	/* ip_set_list itself needs to be protected */
-> +	/* ip_set_list and the set pointer need to be protected */
->  	set = rcu_dereference(inst->ip_set_list)[index];
-> -	rcu_read_unlock();
->  
->  	return set;
->  }
->  
-> +static inline void
-> +ip_set_rcu_put(struct ip_set *set __always_unused)
-> +{
-> +	rcu_read_unlock();
-> +}
-> +
->  static inline void
->  ip_set_lock(struct ip_set *set)
->  {
-> @@ -744,8 +749,10 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
->  	pr_debug("set %s, index %u\n", set->name, index);
->  
->  	if (opt->dim < set->type->dimension ||
-> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
-> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
-> +		ip_set_rcu_put(set);
->  		return 0;
-> +	}
->  
->  	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
->  
-> @@ -764,6 +771,7 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
->  			ret = -ret;
->  	}
->  
-> +	ip_set_rcu_put(set);
->  	/* Convert error codes to nomatch */
->  	return (ret < 0 ? 0 : ret);
->  }
-> @@ -780,12 +788,15 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
->  	pr_debug("set %s, index %u\n", set->name, index);
->  
->  	if (opt->dim < set->type->dimension ||
-> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
-> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
-> +		ip_set_rcu_put(set);
->  		return -IPSET_ERR_TYPE_MISMATCH;
-> +	}
->  
->  	ip_set_lock(set);
->  	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
->  	ip_set_unlock(set);
-> +	ip_set_rcu_put(set);
->  
->  	return ret;
->  }
-> @@ -802,12 +813,15 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
->  	pr_debug("set %s, index %u\n", set->name, index);
->  
->  	if (opt->dim < set->type->dimension ||
-> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
-> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
-> +		ip_set_rcu_put(set);
->  		return -IPSET_ERR_TYPE_MISMATCH;
-> +	}
->  
->  	ip_set_lock(set);
->  	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
->  	ip_set_unlock(set);
-> +	ip_set_rcu_put(set);
->  
->  	return ret;
->  }
-> @@ -882,6 +896,7 @@ ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name)
->  	read_lock_bh(&ip_set_ref_lock);
->  	strscpy_pad(name, set->name, IPSET_MAXNAMELEN);
->  	read_unlock_bh(&ip_set_ref_lock);
-> +	ip_set_rcu_put(set);
->  }
->  EXPORT_SYMBOL_GPL(ip_set_name_byindex);
->  
-> @@ -1348,6 +1363,9 @@ static int ip_set_rename(struct sk_buff *skb, const struct nfnl_info *info,
->   * protected by the ip_set_ref_lock. The kernel interfaces
->   * do not hold the mutex but the pointer settings are atomic
->   * so the ip_set_list always contains valid pointers to the sets.
-> + * However after swapping, a userspace set destroy command could
-> + * remove a set still processed by kernel side add/del/test.
-> + * Therefore we need to wait for the ongoing operations to be finished.
->   */
->  
->  static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
-> @@ -1397,6 +1415,9 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
->  	ip_set(inst, to_id) = from;
->  	write_unlock_bh(&ip_set_ref_lock);
->  
-> +	/* Make sure all readers of the old set pointers are completed. */
-> +	synchronize_rcu();
-> +
->  	return 0;
->  }
->  
-> -- 
-> 2.17.1
-> 
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+de4025c006ec68ac56fc@syzkaller.appspotmail.com
+
+------------[ cut here ]------------
+hook not found, pf 2 num 1
+WARNING: CPU: 1 PID: 5062 at net/netfilter/core.c:517 __nf_unregister_net_hook+0x1de/0x670 net/netfilter/core.c:517
+Modules linked in:
+CPU: 1 PID: 5062 Comm: syz-executor417 Not tainted 6.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/04/2023
+RIP: 0010:__nf_unregister_net_hook+0x1de/0x670 net/netfilter/core.c:517
+Code: 14 02 4c 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 7a 04 00 00 8b 53 1c 48 c7 c7 c0 d4 a8 8b 8b 74 24 04 e8 b2 ce dc f8 <0f> 0b e9 ec 00 00 00 e8 46 a5 16 f9 48 89 e8 48 c1 e0 04 49 8d 7c
+RSP: 0018:ffffc9000355f2b8 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: ffff8880218dde00 RCX: 0000000000000000
+RDX: ffff888019aee000 RSI: ffffffff814cf016 RDI: 0000000000000001
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000001 R12: ffffffff92611690
+R13: ffff888016fff020 R14: ffff888016fff000 R15: ffff8880218dde1c
+FS:  00007f76ca1526c0(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f76ca1e86b8 CR3: 0000000020292000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ nf_unregister_net_hook+0xd5/0x110 net/netfilter/core.c:539
+ __nf_tables_unregister_hook net/netfilter/nf_tables_api.c:361 [inline]
+ __nf_tables_unregister_hook+0x1a0/0x220 net/netfilter/nf_tables_api.c:340
+ nf_tables_unregister_hook net/netfilter/nf_tables_api.c:368 [inline]
+ nf_tables_commit+0x410f/0x59f0 net/netfilter/nf_tables_api.c:9992
+ nfnetlink_rcv_batch+0xf36/0x2500 net/netfilter/nfnetlink.c:569
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:639 [inline]
+ nfnetlink_rcv+0x3bf/0x430 net/netfilter/nfnetlink.c:657
+ netlink_unicast_kernel net/netlink/af_netlink.c:1342 [inline]
+ netlink_unicast+0x536/0x810 net/netlink/af_netlink.c:1368
+ netlink_sendmsg+0x93c/0xe40 net/netlink/af_netlink.c:1910
+ sock_sendmsg_nosec net/socket.c:730 [inline]
+ sock_sendmsg+0xd9/0x180 net/socket.c:753
+ ____sys_sendmsg+0x6ac/0x940 net/socket.c:2541
+ ___sys_sendmsg+0x135/0x1d0 net/socket.c:2595
+ __sys_sendmsg+0x117/0x1e0 net/socket.c:2624
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x38/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f76ca192059
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 51 18 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f76ca152208 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f76ca21c3e8 RCX: 00007f76ca192059
+RDX: 0000000000000000 RSI: 000000002000c2c0 RDI: 0000000000000004
+RBP: 00007f76ca21c3e0 R08: 0000000000000003 R09: 0000000000000000
+R10: 0000000000000a00 R11: 0000000000000246 R12: 00007f76ca1e917c
+R13: 0000000000000001 R14: 0000000000000008 R15: 0200000000000000
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the bug is already fixed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite bug's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the bug is a duplicate of another bug, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
