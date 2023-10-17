@@ -2,110 +2,211 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EE4CCDB474
-	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 13:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5B7ACDB483
+	for <netfilter-devel@archiver.kernel.org>; Tue, 17 Oct 2023 15:07:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235019AbjJQN64 (ORCPT
+        id S1344210AbjJQPHh (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Oct 2023 09:58:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51982 "EHLO
+        Tue, 17 Oct 2023 11:07:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343571AbjJQN6t (ORCPT
+        with ESMTP id S1344220AbjJQPHW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2023 09:58:49 -0400
+        Tue, 17 Oct 2023 11:07:22 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91D4FF0
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 06:58:46 -0700 (PDT)
-Received: from [78.30.34.192] (port=33176 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CAA6170C;
+        Tue, 17 Oct 2023 08:05:20 -0700 (PDT)
+Received: from [78.30.34.192] (port=39190 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qskao-005rC8-HG; Tue, 17 Oct 2023 15:58:44 +0200
-Date:   Tue, 17 Oct 2023 15:58:41 +0200
+        id 1qsldA-006BhI-Ts; Tue, 17 Oct 2023 17:05:15 +0200
+Date:   Tue, 17 Oct 2023 17:05:12 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v2 2/3] tests/shell: skip "table_onoff" test on older
- kernels
-Message-ID: <ZS6TEdWIe7yiPGgo@calendula>
-References: <20231017085133.1203402-1-thaller@redhat.com>
- <20231017085133.1203402-3-thaller@redhat.com>
- <ZS5OKQycMX0cScgb@calendula>
- <fa46d54e30cc0c603d555b7446d5a5485374b49a.camel@redhat.com>
- <ZS5yrFEVapwXier3@calendula>
- <5a785173b19c30e64ffa96e491f16757e7a4b21e.camel@redhat.com>
+To:     xiaolinkui <xiaolinkui@gmail.com>
+Cc:     kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        kuniyu@amazon.com, justinstitt@google.com,
+        netfilter-devel@vger.kernel.org,
+        Linkui Xiao <xiaolinkui@kylinos.cn>, stable@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ipset: fix race condition in ipset swap,
+ destroy and test/add/del
+Message-ID: <ZS6iqG5XIEwGvDrR@calendula>
+References: <20231017125256.23056-1-xiaolinkui@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5a785173b19c30e64ffa96e491f16757e7a4b21e.camel@redhat.com>
+In-Reply-To: <20231017125256.23056-1-xiaolinkui@gmail.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 17, 2023 at 02:43:56PM +0200, Thomas Haller wrote:
-> On Tue, 2023-10-17 at 13:40 +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Oct 17, 2023 at 01:21:54PM +0200, Thomas Haller wrote:
-> > > On Tue, 2023-10-17 at 11:04 +0200, Pablo Neira Ayuso wrote:
-> > > > On Tue, Oct 17, 2023 at 10:49:07AM +0200, Thomas Haller wrote:
-> > > > > The "table_onoff" test can only pass with certain (recent)
-> > > > > kernels.
-> > > > > Conditionally exit with status 77, if "eval-exit-code"
-> > > > > determines
-> > > > > that
-> > > > > we don't have a suitable kernel version.
-> > > > > 
-> > > > > In this case, we can find the fixes in:
-> > > > > 
-> > > > >  v6.6      :
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c9bd26513b3a11b3adb3c2ed8a31a01a87173ff1
-> > > > >  v6.5.6    :
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=5e5754e9e77ce400d70ff3c30fea466c8dfe9a9f
-> > > > >  v6.1.56   :
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c4b0facd5c20ceae3d07018a3417f06302fa9cd1
-> > > > >  v5.15.135 :
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0dcc9b4097d860d9af52db5366a8755c13468d13
-> > > > 
-> > > > I am not sure it worth this level of tracking.
-> > > > 
-> > > > Soon these patches will be in upstream stable and this extra
-> > > > shell
-> > > > code will be simply deadcode in little time.
-> > > 
-> > > I am not concerned about dead code in old tests that keep passing.
-> > > The code was useful once, now the test passes. No need to revisit
-> > > them,
-> > > unless you see a real problem with them.
-> > > 
-> > > If it would be only little time, the tests should wait. But how
-> > > much is
-> > > the right time? You are not waiting for your use-case, you are
-> > > holding
-> > > back to not to break the unknown use cases of others.
-> > > 
-> > > IMO merging tests is good. The problem just needs a good solution.
-> > 
-> > Apologies, I don't think this kind of hints is worth.
-> 
-> 
-> Which hint do you mean?
-> 
-> Do you mean the commit message, or the
-> 
->     echo "Command to re-awaken a dormant table did not fail. Lacking https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c9bd26513b3a11b3adb3c2ed8a31a01a87173ff1 ?"
-> 
-> The echo is really just an elaborate code-comment. But it also ends up
-> in "testout.log", which makes it better.
-> 
-> 
-> I don't mind rewording commit message or the echo statement (or even
-> dropping it entirely). But I find this information more useful than
-> not.
+Hi,
 
-But I still don't get the point on skipping this test in older kernels,
-this test tells you your kernel is buggy.
+This means then that Jozsef's patch is fixing the issue that you
+reported, then a Tested-by: tag would be nice to have from you :)
 
-Who is going to run this in older kernels? We only run these tests
-these days.
+If all is OK, then please, let Jozsef submit his own patch to
+netfilter-devel@ so it can follow its trip to the nf.git tree.
 
-Skipping a test that tells you that you kernel is buggy is misleading?
+Thanks!
+
+On Tue, Oct 17, 2023 at 08:52:56PM +0800, xiaolinkui wrote:
+> From: Linkui Xiao <xiaolinkui@kylinos.cn>
+> 
+> There is a race condition which can be demonstrated by the following
+> script:
+> 
+> ipset create hash_ip1 hash:net family inet hashsize 1024 maxelem 1048576
+> ipset add hash_ip1 172.20.0.0/16
+> ipset add hash_ip1 192.168.0.0/16
+> iptables -A INPUT -m set --match-set hash_ip1 src -j ACCEPT
+> while [ 1 ]
+> do
+>         ipset create hash_ip2 hash:net family inet hashsize 1024 maxelem 1048576
+>         ipset add hash_ip2 172.20.0.0/16
+>         ipset swap hash_ip1 hash_ip2
+>         ipset destroy hash_ip2
+>         sleep 0.05
+> done
+> 
+> Swap will exchange the values of ref so destroy will see ref = 0 instead of
+> ref = 1. So after running this script for a period of time, the following
+> race situations may occur:
+>         CPU0:                CPU1:
+>         ipt_do_table
+>         ->set_match_v4
+>         ->ip_set_test
+>                         ipset swap hash_ip1 hash_ip2
+>                         ipset destroy hash_ip2
+>         ->hash_net4_kadt
+> 
+> CPU0 found ipset through the index, and at this time, hash_ip2 has been
+> destroyed by CPU1 through name search. So CPU0 will crash when accessing
+> set->data in the function hash_net4_kadt.
+> 
+> With this fix in place swap will wait for the ongoing operations to be
+> finished.
+> 
+> V1->V2 changes:
+> - replace ref_netlink with rcu synchonize_rcu()
+> 
+> Closes: https://lore.kernel.org/all/69e7963b-e7f8-3ad0-210-7b86eebf7f78@netfilter.org/
+> Cc: stable@vger.kernel.org
+> Suggested-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+> Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
+> 
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 31 ++++++++++++++++++++++++++-----
+>  1 file changed, 26 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 35d2f9c9ada0..62ee4de6ffee 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -712,13 +712,18 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
+>  	struct ip_set_net *inst = ip_set_pernet(net);
+>  
+>  	rcu_read_lock();
+> -	/* ip_set_list itself needs to be protected */
+> +	/* ip_set_list and the set pointer need to be protected */
+>  	set = rcu_dereference(inst->ip_set_list)[index];
+> -	rcu_read_unlock();
+>  
+>  	return set;
+>  }
+>  
+> +static inline void
+> +ip_set_rcu_put(struct ip_set *set __always_unused)
+> +{
+> +	rcu_read_unlock();
+> +}
+> +
+>  static inline void
+>  ip_set_lock(struct ip_set *set)
+>  {
+> @@ -744,8 +749,10 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+>  	pr_debug("set %s, index %u\n", set->name, index);
+>  
+>  	if (opt->dim < set->type->dimension ||
+> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
+> +		ip_set_rcu_put(set);
+>  		return 0;
+> +	}
+>  
+>  	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+>  
+> @@ -764,6 +771,7 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+>  			ret = -ret;
+>  	}
+>  
+> +	ip_set_rcu_put(set);
+>  	/* Convert error codes to nomatch */
+>  	return (ret < 0 ? 0 : ret);
+>  }
+> @@ -780,12 +788,15 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+>  	pr_debug("set %s, index %u\n", set->name, index);
+>  
+>  	if (opt->dim < set->type->dimension ||
+> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
+> +		ip_set_rcu_put(set);
+>  		return -IPSET_ERR_TYPE_MISMATCH;
+> +	}
+>  
+>  	ip_set_lock(set);
+>  	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+>  	ip_set_unlock(set);
+> +	ip_set_rcu_put(set);
+>  
+>  	return ret;
+>  }
+> @@ -802,12 +813,15 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+>  	pr_debug("set %s, index %u\n", set->name, index);
+>  
+>  	if (opt->dim < set->type->dimension ||
+> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
+> +		ip_set_rcu_put(set);
+>  		return -IPSET_ERR_TYPE_MISMATCH;
+> +	}
+>  
+>  	ip_set_lock(set);
+>  	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
+>  	ip_set_unlock(set);
+> +	ip_set_rcu_put(set);
+>  
+>  	return ret;
+>  }
+> @@ -882,6 +896,7 @@ ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name)
+>  	read_lock_bh(&ip_set_ref_lock);
+>  	strscpy_pad(name, set->name, IPSET_MAXNAMELEN);
+>  	read_unlock_bh(&ip_set_ref_lock);
+> +	ip_set_rcu_put(set);
+>  }
+>  EXPORT_SYMBOL_GPL(ip_set_name_byindex);
+>  
+> @@ -1348,6 +1363,9 @@ static int ip_set_rename(struct sk_buff *skb, const struct nfnl_info *info,
+>   * protected by the ip_set_ref_lock. The kernel interfaces
+>   * do not hold the mutex but the pointer settings are atomic
+>   * so the ip_set_list always contains valid pointers to the sets.
+> + * However after swapping, a userspace set destroy command could
+> + * remove a set still processed by kernel side add/del/test.
+> + * Therefore we need to wait for the ongoing operations to be finished.
+>   */
+>  
+>  static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
+> @@ -1397,6 +1415,9 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
+>  	ip_set(inst, to_id) = from;
+>  	write_unlock_bh(&ip_set_ref_lock);
+>  
+> +	/* Make sure all readers of the old set pointers are completed. */
+> +	synchronize_rcu();
+> +
+>  	return 0;
+>  }
+>  
+> -- 
+> 2.17.1
+> 
