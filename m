@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72643CDB484
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 08:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8728CDB482
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 08:51:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229482AbjJRIvs (ORCPT
+        id S229576AbjJRIvx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Oct 2023 04:51:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43988 "EHLO
+        Wed, 18 Oct 2023 04:51:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229576AbjJRIvq (ORCPT
+        with ESMTP id S229582AbjJRIvt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Oct 2023 04:51:46 -0400
+        Wed, 18 Oct 2023 04:51:49 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BF8DF9;
-        Wed, 18 Oct 2023 01:51:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09BE5C6;
+        Wed, 18 Oct 2023 01:51:48 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qt2HD-0006L3-8M; Wed, 18 Oct 2023 10:51:39 +0200
+        id 1qt2HH-0006LQ-A8; Wed, 18 Oct 2023 10:51:43 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -26,9 +26,9 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>
-Subject: [PATCH net-next 4/7] netfilter: nf_nat: mask out non-verdict bits when checking return value
-Date:   Wed, 18 Oct 2023 10:51:08 +0200
-Message-ID: <20231018085118.10829-5-fw@strlen.de>
+Subject: [PATCH net-next 5/7] netfilter: make nftables drops visible in net dropmonitor
+Date:   Wed, 18 Oct 2023 10:51:09 +0200
+Message-ID: <20231018085118.10829-6-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231018085118.10829-1-fw@strlen.de>
 References: <20231018085118.10829-1-fw@strlen.de>
@@ -38,38 +38,92 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Same as previous change: we need to mask out the non-verdict bits, as
-upcoming patches may embed an errno value in NF_STOLEN verdicts too.
+net_dropmonitor blames core.c:nf_hook_slow.
+Add NF_DROP_REASON() helper and use it in nft_do_chain().
 
-NF_DROP could already do this, but not all called functions do this.
+The helper releases the skb, so exact drop location becomes
+available. Calling code will observe the NF_STOLEN verdict
+instead.
 
-Checks that only test ret vs NF_ACCEPT are fine, the 'errno parts'
-are always 0 for those.
+Adjust nf_hook_slow so we can embed an erro value wih
+NF_STOLEN verdicts, just like we do for NF_DROP.
+
+After this, drop in nftables can be pinpointed to a drop due
+to a rule or the chain policy.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_nat_proto.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/netfilter.h      | 10 ++++++++++
+ net/netfilter/core.c           |  6 +++---
+ net/netfilter/nf_tables_core.c |  6 +++++-
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index 5a049740758f..6d969468c779 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -999,11 +999,12 @@ static unsigned int
- nf_nat_ipv6_in(void *priv, struct sk_buff *skb,
- 	       const struct nf_hook_state *state)
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index d68644b7c299..80900d910992 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -22,6 +22,16 @@ static inline int NF_DROP_GETERR(int verdict)
+ 	return -(verdict >> NF_VERDICT_QBITS);
+ }
+ 
++static __always_inline int
++NF_DROP_REASON(struct sk_buff *skb, enum skb_drop_reason reason, u32 err)
++{
++	BUILD_BUG_ON(err > 0xffff);
++
++	kfree_skb_reason(skb, reason);
++
++	return ((err << 16) | NF_STOLEN);
++}
++
+ static inline int nf_inet_addr_cmp(const union nf_inet_addr *a1,
+ 				   const union nf_inet_addr *a2)
  {
--	unsigned int ret;
-+	unsigned int ret, verdict;
- 	struct in6_addr daddr = ipv6_hdr(skb)->daddr;
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index ef4e76e5aef9..3126911f5042 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -639,10 +639,10 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
+ 			if (ret == 1)
+ 				continue;
+ 			return ret;
++		case NF_STOLEN:
++			return NF_DROP_GETERR(verdict);
+ 		default:
+-			/* Implicit handling for NF_STOLEN, as well as any other
+-			 * non conventional verdicts.
+-			 */
++			WARN_ON_ONCE(1);
+ 			return 0;
+ 		}
+ 	}
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 6009b423f60a..8b536d7ef6c2 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -308,10 +308,11 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
  
- 	ret = nf_nat_ipv6_fn(priv, skb, state);
--	if (ret != NF_DROP && ret != NF_STOLEN &&
-+	verdict = ret & NF_VERDICT_MASK;
-+	if (verdict != NF_DROP && verdict != NF_STOLEN &&
- 	    ipv6_addr_cmp(&daddr, &ipv6_hdr(skb)->daddr))
- 		skb_dst_drop(skb);
+ 	switch (regs.verdict.code & NF_VERDICT_MASK) {
+ 	case NF_ACCEPT:
+-	case NF_DROP:
+ 	case NF_QUEUE:
+ 	case NF_STOLEN:
+ 		return regs.verdict.code;
++	case NF_DROP:
++		return NF_DROP_REASON(pkt->skb, SKB_DROP_REASON_NETFILTER_DROP, EPERM);
+ 	}
  
+ 	switch (regs.verdict.code) {
+@@ -342,6 +343,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	if (static_branch_unlikely(&nft_counters_enabled))
+ 		nft_update_chain_stats(basechain, pkt);
+ 
++	if (nft_base_chain(basechain)->policy == NF_DROP)
++		return NF_DROP_REASON(pkt->skb, SKB_DROP_REASON_NETFILTER_DROP, EPERM);
++
+ 	return nft_base_chain(basechain)->policy;
+ }
+ EXPORT_SYMBOL_GPL(nft_do_chain);
 -- 
 2.41.0
 
