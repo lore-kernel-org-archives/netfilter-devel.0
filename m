@@ -2,83 +2,72 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE9EDCDB47E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 10:10:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAA51CDB47E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 10:20:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229801AbjJRKKZ (ORCPT
+        id S230473AbjJRKU2 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Oct 2023 06:10:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38130 "EHLO
+        Wed, 18 Oct 2023 06:20:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229552AbjJRKKY (ORCPT
+        with ESMTP id S230459AbjJRKU1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Oct 2023 06:10:24 -0400
+        Wed, 18 Oct 2023 06:20:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8233595
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Oct 2023 03:10:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 28AE0C433CA;
-        Wed, 18 Oct 2023 10:10:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87301BA
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Oct 2023 03:20:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 31682C433D9;
+        Wed, 18 Oct 2023 10:20:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1697623823;
-        bh=WuXUZXR6Fqzg/9JZerRXRjWDA8H5BHBFcBiSCLvFMiI=;
+        s=k20201202; t=1697624424;
+        bh=abcaJaLEdDZuVGIJhG4m3B++7sbDPLq+MwLkRRMVbhA=;
         h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=h42bS60IcySv71gfgESP05vUUViquk8C4qlcx5lEbXN3xF69+ZahfgceImdhNw/EY
-         0w8NaF4berxwJyWmn1biV0L4NKkEfqT2Z7T7Q7QnquDgP/yxw2v4YTTmMKE5GTO0nt
-         Aw1nbAs1ZkdLJ46JwdTjaPEaCJlBiqfzoIIVyYf9Jw/nzM0q99S3ydj37FnLnRw1T0
-         tumiZEsPCCqYjgjbIX4imqTw60VFmJr5tKFXCw12h5YSTlq+78i2x87C3M62NWBMJM
-         Kob6zHEeXE7ej5/SnXezlzHYl1Tu/Bw1zRJYMag63kVkHSNqRcN95hjcnew8iFlBOb
-         /ZbMF0A/98Fkw==
+        b=PNuXdEIv/pe1A6YHsEiDi5+5PJz8YVflFHYa1k+4JQzEjlLivmI2nJlfsc0jbLeuX
+         zZwBz8kziO92I05iAqEeudoz/CNq+94IoDNW8WczucMJKc3REAhgWzN5ala7yMzfiG
+         VGKLjloirYXW9Bj9NbhRfCFWWpPMiDG9bXT0qGrGnx6JwUBA04ErddYRx6agx6QtaE
+         TX2iFuR60HIwGte1naToK3cf60yoSLADjq20DS5KUosok2q2CZtcV48H94Ps7Gc17A
+         AB6bIp+VyQMXIQaFyseicpqDDnqba5LSyd/lIMA5+KqiemNIyXjLp7+QiVtaJ97HjI
+         MUWsg0rLftW5w==
 Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 16674C04E27;
-        Wed, 18 Oct 2023 10:10:23 +0000 (UTC)
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 1F050C04E24;
+        Wed, 18 Oct 2023 10:20:24 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/7] netfilter: xt_mangle: only check verdict part of
- return value
+Subject: Re: [net-next PATCH v2] net: skb_find_text: Ignore patterns extending
+ past 'to'
 From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169762382308.3133.9060197209130107475.git-patchwork-notify@kernel.org>
-Date:   Wed, 18 Oct 2023 10:10:23 +0000
-References: <20231018085118.10829-2-fw@strlen.de>
-In-Reply-To: <20231018085118.10829-2-fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
-        edumazet@google.com, kuba@kernel.org,
-        netfilter-devel@vger.kernel.org
+Message-Id: <169762442412.8273.16759719638129839234.git-patchwork-notify@kernel.org>
+Date:   Wed, 18 Oct 2023 10:20:24 +0000
+References: <20231017093906.26310-1-phil@nwl.cc>
+In-Reply-To: <20231017093906.26310-1-phil@nwl.cc>
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, fw@strlen.de, pablo@netfilter.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 Hello:
 
-This series was applied to netdev/net-next.git (main)
-by Florian Westphal <fw@strlen.de>:
+This patch was applied to netdev/net-next.git (main)
+by David S. Miller <davem@davemloft.net>:
 
-On Wed, 18 Oct 2023 10:51:05 +0200 you wrote:
-> These checks assume that the caller only returns NF_DROP without
-> any errno embedded in the upper bits.
+On Tue, 17 Oct 2023 11:39:06 +0200 you wrote:
+> Assume that caller's 'to' offset really represents an upper boundary for
+> the pattern search, so patterns extending past this offset are to be
+> rejected.
 > 
-> This is fine right now, but followup patches will start to propagate
-> such errors to allow kfree_skb_drop_reason() in the called functions,
-> those would then indicate 'errno << 8 | NF_STOLEN'.
+> The old behaviour also was kind of inconsistent when it comes to
+> fragmentation (or otherwise non-linear skbs): If the pattern started in
+> between 'to' and 'from' offsets but extended to the next fragment, it
+> was not found if 'to' offset was still within the current fragment.
 > 
 > [...]
 
 Here is the summary with links:
-  - [net-next,1/7] netfilter: xt_mangle: only check verdict part of return value
-    https://git.kernel.org/netdev/net-next/c/e15e5027106f
-  - [net-next,2/7] netfilter: nf_tables: mask out non-verdict bits when checking return value
-    https://git.kernel.org/netdev/net-next/c/4d26ab0086aa
-  - [net-next,3/7] netfilter: conntrack: convert nf_conntrack_update to netfilter verdicts
-    https://git.kernel.org/netdev/net-next/c/6291b3a67ad5
-  - [net-next,4/7] netfilter: nf_nat: mask out non-verdict bits when checking return value
-    https://git.kernel.org/netdev/net-next/c/35c038b0a4be
-  - [net-next,5/7] netfilter: make nftables drops visible in net dropmonitor
-    https://git.kernel.org/netdev/net-next/c/e0d4593140b0
-  - [net-next,6/7] netfilter: bridge: convert br_netfilter to NF_DROP_REASON
-    https://git.kernel.org/netdev/net-next/c/cf8b7c1a5be7
-  - [net-next,7/7] netfilter: nf_tables: de-constify set commit ops function argument
-    https://git.kernel.org/netdev/net-next/c/256001672153
+  - [net-next,v2] net: skb_find_text: Ignore patterns extending past 'to'
+    https://git.kernel.org/netdev/net-next/c/c4eee56e14fe
 
 You are awesome, thank you!
 -- 
