@@ -2,23 +2,23 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8728CDB482
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 08:51:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 869C8CDB47E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 08:51:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229576AbjJRIvx (ORCPT
+        id S229629AbjJRIvz (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Oct 2023 04:51:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44020 "EHLO
+        Wed, 18 Oct 2023 04:51:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229582AbjJRIvt (ORCPT
+        with ESMTP id S229654AbjJRIvy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Oct 2023 04:51:49 -0400
+        Wed, 18 Oct 2023 04:51:54 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09BE5C6;
-        Wed, 18 Oct 2023 01:51:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE089101;
+        Wed, 18 Oct 2023 01:51:51 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qt2HH-0006LQ-A8; Wed, 18 Oct 2023 10:51:43 +0200
+        id 1qt2HL-0006Lt-Bv; Wed, 18 Oct 2023 10:51:47 +0200
 From:   Florian Westphal <fw@strlen.de>
 To:     <netdev@vger.kernel.org>
 Cc:     Paolo Abeni <pabeni@redhat.com>,
@@ -26,9 +26,9 @@ Cc:     Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         <netfilter-devel@vger.kernel.org>
-Subject: [PATCH net-next 5/7] netfilter: make nftables drops visible in net dropmonitor
-Date:   Wed, 18 Oct 2023 10:51:09 +0200
-Message-ID: <20231018085118.10829-6-fw@strlen.de>
+Subject: [PATCH net-next 6/7] netfilter: bridge: convert br_netfilter to NF_DROP_REASON
+Date:   Wed, 18 Oct 2023 10:51:10 +0200
+Message-ID: <20231018085118.10829-7-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231018085118.10829-1-fw@strlen.de>
 References: <20231018085118.10829-1-fw@strlen.de>
@@ -38,92 +38,135 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-net_dropmonitor blames core.c:nf_hook_slow.
-Add NF_DROP_REASON() helper and use it in nft_do_chain().
+errno is 0 because these hooks are called from prerouting and forward.
+There is no socket that the errno would ever be propagated to.
 
-The helper releases the skb, so exact drop location becomes
-available. Calling code will observe the NF_STOLEN verdict
-instead.
-
-Adjust nf_hook_slow so we can embed an erro value wih
-NF_STOLEN verdicts, just like we do for NF_DROP.
-
-After this, drop in nftables can be pinpointed to a drop due
-to a rule or the chain policy.
+Other netfilter modules (e.g. nf_nat, conntrack, ...) can be converted
+in a similar way.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter.h      | 10 ++++++++++
- net/netfilter/core.c           |  6 +++---
- net/netfilter/nf_tables_core.c |  6 +++++-
- 3 files changed, 18 insertions(+), 4 deletions(-)
+ net/bridge/br_netfilter_hooks.c | 26 +++++++++++++-------------
+ net/bridge/br_netfilter_ipv6.c  |  6 +++---
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index d68644b7c299..80900d910992 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -22,6 +22,16 @@ static inline int NF_DROP_GETERR(int verdict)
- 	return -(verdict >> NF_VERDICT_QBITS);
- }
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 033034d68f1f..4c0c9f838f5c 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -486,11 +486,11 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 	struct brnf_net *brnet;
  
-+static __always_inline int
-+NF_DROP_REASON(struct sk_buff *skb, enum skb_drop_reason reason, u32 err)
-+{
-+	BUILD_BUG_ON(err > 0xffff);
-+
-+	kfree_skb_reason(skb, reason);
-+
-+	return ((err << 16) | NF_STOLEN);
-+}
-+
- static inline int nf_inet_addr_cmp(const union nf_inet_addr *a1,
- 				   const union nf_inet_addr *a2)
- {
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index ef4e76e5aef9..3126911f5042 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -639,10 +639,10 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
- 			if (ret == 1)
- 				continue;
- 			return ret;
-+		case NF_STOLEN:
-+			return NF_DROP_GETERR(verdict);
- 		default:
--			/* Implicit handling for NF_STOLEN, as well as any other
--			 * non conventional verdicts.
--			 */
-+			WARN_ON_ONCE(1);
- 			return 0;
+ 	if (unlikely(!pskb_may_pull(skb, len)))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_PKT_TOO_SMALL, 0);
+ 
+ 	p = br_port_get_rcu(state->in);
+ 	if (p == NULL)
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+ 	br = p->br;
+ 
+ 	brnet = net_generic(state->net, brnf_net_id);
+@@ -501,7 +501,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 			return NF_ACCEPT;
+ 		if (!ipv6_mod_enabled()) {
+ 			pr_warn_once("Module ipv6 is disabled, so call_ip6tables is not supported.");
+-			return NF_DROP;
++			return NF_DROP_REASON(skb, SKB_DROP_REASON_IPV6DISABLED, 0);
  		}
+ 
+ 		nf_bridge_pull_encap_header_rcsum(skb);
+@@ -518,12 +518,12 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 	nf_bridge_pull_encap_header_rcsum(skb);
+ 
+ 	if (br_validate_ipv4(state->net, skb))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
+ 
+ 	if (!nf_bridge_alloc(skb))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_NOMEM, 0);
+ 	if (!setup_pre_routing(skb, state->net))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
+ 	nf_bridge->ipv4_daddr = ip_hdr(skb)->daddr;
+@@ -590,15 +590,15 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 	/* Need exclusive nf_bridge_info since we might have multiple
+ 	 * different physoutdevs. */
+ 	if (!nf_bridge_unshare(skb))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_NOMEM, 0);
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
+ 	if (!nf_bridge)
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_NOMEM, 0);
+ 
+ 	parent = bridge_parent(state->out);
+ 	if (!parent)
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+ 
+ 	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
+ 	    is_pppoe_ip(skb, state->net))
+@@ -618,13 +618,13 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 
+ 	if (pf == NFPROTO_IPV4) {
+ 		if (br_validate_ipv4(state->net, skb))
+-			return NF_DROP;
++			return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
+ 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
  	}
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 6009b423f60a..8b536d7ef6c2 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -308,10 +308,11 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
  
- 	switch (regs.verdict.code & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
--	case NF_DROP:
- 	case NF_QUEUE:
- 	case NF_STOLEN:
- 		return regs.verdict.code;
-+	case NF_DROP:
-+		return NF_DROP_REASON(pkt->skb, SKB_DROP_REASON_NETFILTER_DROP, EPERM);
+ 	if (pf == NFPROTO_IPV6) {
+ 		if (br_validate_ipv6(state->net, skb))
+-			return NF_DROP;
++			return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
+ 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
  	}
  
- 	switch (regs.verdict.code) {
-@@ -342,6 +343,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 	if (static_branch_unlikely(&nft_counters_enabled))
- 		nft_update_chain_stats(basechain, pkt);
+@@ -666,7 +666,7 @@ static unsigned int br_nf_forward_arp(void *priv,
+ 	}
  
-+	if (nft_base_chain(basechain)->policy == NF_DROP)
-+		return NF_DROP_REASON(pkt->skb, SKB_DROP_REASON_NETFILTER_DROP, EPERM);
-+
- 	return nft_base_chain(basechain)->policy;
- }
- EXPORT_SYMBOL_GPL(nft_do_chain);
+ 	if (unlikely(!pskb_may_pull(skb, sizeof(struct arphdr))))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_PKT_TOO_SMALL, 0);
+ 
+ 	if (arp_hdr(skb)->ar_pln != 4) {
+ 		if (is_vlan_arp(skb, state->net))
+@@ -831,7 +831,7 @@ static unsigned int br_nf_post_routing(void *priv,
+ 		return NF_ACCEPT;
+ 
+ 	if (!realoutdev)
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+ 
+ 	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
+ 	    is_pppoe_ip(skb, state->net))
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index 550039dfc31a..2e24a743f917 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -161,13 +161,13 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
+ 	struct nf_bridge_info *nf_bridge;
+ 
+ 	if (br_validate_ipv6(state->net, skb))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
+ 
+ 	nf_bridge = nf_bridge_alloc(skb);
+ 	if (!nf_bridge)
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_NOMEM, 0);
+ 	if (!setup_pre_routing(skb, state->net))
+-		return NF_DROP;
++		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
+ 	nf_bridge->ipv6_daddr = ipv6_hdr(skb)->daddr;
 -- 
 2.41.0
 
