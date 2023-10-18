@@ -2,112 +2,154 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BB48CDB47E
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 11:50:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E372DCDB47E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 11:54:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229757AbjJRLuI (ORCPT
+        id S229955AbjJRLyc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 18 Oct 2023 07:50:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36134 "EHLO
+        Wed, 18 Oct 2023 07:54:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229846AbjJRLuH (ORCPT
+        with ESMTP id S229846AbjJRLyb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Oct 2023 07:50:07 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D96DDF7;
-        Wed, 18 Oct 2023 04:50:05 -0700 (PDT)
-Received: from [78.30.34.192] (port=45006 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qt53o-00ClTF-G1; Wed, 18 Oct 2023 13:50:02 +0200
-Date:   Wed, 18 Oct 2023 13:49:59 +0200
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Wed, 18 Oct 2023 07:54:31 -0400
+Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1962F7;
+        Wed, 18 Oct 2023 04:54:29 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.west.internal (Postfix) with ESMTP id D66713200A63;
+        Wed, 18 Oct 2023 07:54:28 -0400 (EDT)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute5.internal (MEProxy); Wed, 18 Oct 2023 07:54:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=plushkava.net;
+         h=cc:cc:content-transfer-encoding:content-type:content-type
+        :date:date:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to;
+         s=fm1; t=1697630068; x=1697716468; bh=1gGqnibbva9eW14coSmCGtj86
+        v04dw3N2U7HGKRvwCg=; b=kAlLpF1FoRfr1dvl+XNacQGvNpGd6KiKGig7YGJPu
+        KJNf4Lxm3L/6mq/gNrIffZ9KAFT38duKe2YXjdMe+j6RF/tHo2Gz87QRr3uH+ca6
+        yPSF/zNsoNXt1Tzeh33RYj9Ibv3SYZhSXF6HKc0RrM6FUwDrz1ahvqOzmHi0F/9a
+        727D5Qtz8BKkC7zHWsrIX7TUcjHybsEVr6zozDH2MLsalhsYAO2Jjq0zd2wwI8E7
+        Fuwd/E7XBH69p6SMfnvm5Wi0rDBGB7FrwdbDzFTFdZ7tLNhw/6PMiNq7OPF0qW4Q
+        VQAkBMjlXTL6dwebSX38UNAAT3d/gyFUmc7guqnF7LVsQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:content-type:date:date:feedback-id:feedback-id
+        :from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+        1697630068; x=1697716468; bh=1gGqnibbva9eW14coSmCGtj86v04dw3N2U7
+        HGKRvwCg=; b=ACZ63ga+1D16m3MQ0K1Egncs+YjwW2/AC5Lq75/cUPOtb6XzJ/K
+        YcPiMeW/VrsVbb3s5+MswXq+llgpnAwu6nInfh4uxf+iyMg0itGKqXnCt81l5LEr
+        Ystvjl4rYthvh60UZ3NEKWAlkg8YQ9tZgP/28+LEBLrj/skuen+GXAG011bQBU9H
+        RpDq/4P5LnLz5Xk9o6ooMh0zpCVbR0FPtJgn01Y7dkO0v9Fu5FMBNt54NGcVgvqn
+        YoNlMmIJi5NurDmqdWDHSip+2fH4v9lYbXa532zkhoSg7gvEC6ujy7O4PEIqlalS
+        y0rOaGb82vsb0JGlt/uZ+/8fTkR/tSGKiYw==
+X-ME-Sender: <xms:dMcvZVfmGlIfRoxPw0KwyCzYeGN9SGkEd8CQqC7DZn7PQ0Pvr1oNfw>
+    <xme:dMcvZTNZkDIeLAFPrbLdkeJtFclbS80iS9OoyWgwY1KTa5QTgOrRDFzxE-Be0duir
+    lChh2Qyk5DXefSD>
+X-ME-Received: <xmr:dMcvZegk_qMBlwL7_F-QSy1g8sW1nBLKaQ_d54hAKUbUl62tuBPWAJG1qZEEO3iGUOXxD8ztx_RAxOCOP76q>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrjeeggdeggecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpeffhffvvefukfgjfhfogggtgfesthejredtjfdtvdenucfhrhhomhepmfgvrhhi
+    nhcuofhilhhlrghruceokhhfmhesphhluhhshhhkrghvrgdrnhgvtheqnecuggftrfgrth
+    htvghrnhepiefhteethfegfeetgfehueegfeefheekudekfeffjeeguedtgeegjedtieeh
+    hfevnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepkh
+    hfmhesphhluhhshhhkrghvrgdrnhgvth
+X-ME-Proxy: <xmx:dMcvZe-SIaOiMNWxr_M67VjBnlkKq35ydMGkhAYZS5WNv0mWMBZBSA>
+    <xmx:dMcvZRsO5pGnV_igN8J6Dz-KA0w9zBlH6gtHqi6hVGMMnxEBDGC6vA>
+    <xmx:dMcvZdHfarsExeCU1c-RqjFKjq1pqAfGHgYax3GqmclFzHdsPmHmqg>
+    <xmx:dMcvZZIOp5cnCmwHvVR6pipbcuW7uLEHmdjl90JWcUCsvyLVkyiWQw>
+Feedback-ID: i2431475f:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 18 Oct 2023 07:54:25 -0400 (EDT)
+Date:   Wed, 18 Oct 2023 12:54:23 +0100
+From:   Kerin Millar <kfm@plushkava.net>
 To:     "U.Mutlu" <um@mutluit.com>
-Cc:     imnozi@gmail.com, netfilter-devel@vger.kernel.org,
-        netfilter@vger.kernel.org
+Cc:     Pablo Neira Ayuso <pablo@netfilter.org>, imnozi@gmail.com,
+        netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Subject: Re: [nftables/nft] nft equivalent of "ipset test"
-Message-ID: <ZS/GZxyC4vTx3Ln2@calendula>
+Message-Id: <20231018125423.a165a43e90e7f93994677244@plushkava.net>
+In-Reply-To: <652FAB56.5060200@mutluit.com>
 References: <652EC034.7090501@mutluit.com>
- <20231017213507.GD5770@breakpoint.cc>
- <652F02EC.2050807@mutluit.com>
- <20231017220539.GE5770@breakpoint.cc>
- <652F0C75.8010006@mutluit.com>
- <20231017200057.57cfce21@playground>
- <ZS+nJS/4dolCsIk8@calendula>
- <652FAB56.5060200@mutluit.com>
- <ZS+srsBsJSynJ7Tm@calendula>
- <652FBC5B.5000006@mutluit.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <652FBC5B.5000006@mutluit.com>
+        <20231017213507.GD5770@breakpoint.cc>
+        <652F02EC.2050807@mutluit.com>
+        <20231017220539.GE5770@breakpoint.cc>
+        <652F0C75.8010006@mutluit.com>
+        <20231017200057.57cfce21@playground>
+        <ZS+nJS/4dolCsIk8@calendula>
+        <652FAB56.5060200@mutluit.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-unknown-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Oct 18, 2023 at 01:07:07PM +0200, U.Mutlu wrote:
-> Pablo Neira Ayuso wrote on 10/18/23 12:00:
-> > On Wed, Oct 18, 2023 at 11:54:30AM +0200, U.Mutlu wrote:
-[...]
-> > > I just don't understand why the author cannot simply add a real 'test'
-> > > function to the nft tool...
-> > 
-> > I just don't understand your usecase :-), why do you need this atomic
-> > check on two different sets?
-> > 
-> > Could you explain your ruleset in more detail?
+On Wed, 18 Oct 2023 11:54:30 +0200
+"U.Mutlu" <um@mutluit.com> wrote:
+
+> Pablo Neira Ayuso wrote on 10/18/23 11:36:
+> > On Tue, Oct 17, 2023 at 08:00:57PM -0400, imnozi@gmail.com wrote:
+> >> On Wed, 18 Oct 2023 00:36:37 +0200
+> >> "U.Mutlu" <um@mutluit.com> wrote:
+> >>
+> >>> ...
+> >>> Actualy I need to do this monster:   :-)
+> >>>
+> >>> IP="1.2.3.4"
+> >>> ! nft "get element inet mytable myset  { $IP }" > /dev/null 2>&1 && \
+> >>> ! nft "get element inet mytable myset2 { $IP }" > /dev/null 2>&1 && \
+> >>>     nft "add element inet mytable myset  { $IP }"
+> >>
+> >> Try using '||', akin to:
+> >
+> > Please, use 'nft create' for this, no need for an explicit test and
+> > then add from command line.
+> >
+> > The idiom above is an antipattern, because it is not atomic, the
+> > 'create' command provides a way to first test if the element exists
+> > (if so it fails) then add it.
 > 
-> It's maybe complicated: I've a restrictive firewall where
-> the default is to block all ports for traffic from INPUT,
-> except those explicitly allowed.
-
-INPUT is late if you know what ports you want to allow, use
-netdev/ingress instead.
-
-> Then, at the end of the firewall rules I can _auto-add_ all
-> the unhandled IPs to such a set for blocking. The blocking
-> happens at top by testing whether the IP is in that set.
-
-This should be easy to handle with a dynamic set, which allows for
-packet path to add elements to set.
-
-> But another feature of this solution is that not only
-> the firewall can (auto-) add IPs to the set for blocking,
-> but also the external handlers after ACCEPT can do it,
-> ie. say a mailserver. It too has to be able to add an IP
-> to the same set for  blocking. The blockign itself happens
-> centrally in the firewall script at the next attempt of the attacker.
+> Pablo, unfortunately your solution with 'create' cannot be used
+> in my above said special use-case of testing first in BOTH sets...
 > 
-> Lately I've extended this to make it a 2-stage: if blocked IP
-> continues sending more than x packets while in timeout of y minutes,
-> then add this attacker to the second set that has a much higher timeout of z
-> minutes.
->
-> One additional practical benefit of this approach is that
-> now one sees the hardcore attackers grouped (they are those in set2).
-> 
-> The correct managing of these two sets requires the said
-> atomicity by testing of BOTH sets before adding the IP to the first set...
->
-> If you have got a better solution for this use-case,
-> so let me/us know please. As said I'm new even to ipset
-> but which I find very effective & useful in practice.
+> I just don't understand why the author cannot simply add a real 'test' 
+> function to the nft tool...
 
-You should look at nftables concatenations, you do not have to split
-this information accross two sets in nftables. For adding entries from
-packet path, have a look at dynamic sets.
+One a feature has been added, it usually has to be maintained forever so it is to be expected that the use case has to be strongly justified. In my opinion, the principal shortcomings of "get element" are twofold.
 
-Two sets also means two lookups from packet path.
+Firstly, there is no way to distinguish between nft(8) failing because it did not find the specified element or for some other, wholly unrelated, reason. In both cases, the exit status is likely to be 1. That makes it a poor interface. One solution could be for nft to at least promise to exit >=2 in the case of syntax errors, syscall failures etc.
 
-> If you have got a better solution for this use-case,
-> so let me/us know please. As said I'm new even to ipset
-> but which I find very effective & useful in practice.
-> As said I'm still continuing using iptables with ipset,
-> just evaluating whether it would make sense to switch to nftables/nft,
-> though the learning-curve seems not that small, IMO.
+Secondly, the use of "get element" entails spewing a diagnostic message to STDERR in the case that the element isn't found. The user is thus presented with the unenviable choice of silencing STDERR. This is a bad thing because, in doing so, *all* errors and dignostics will be silenced.
 
-You pick your poison. I keep listening to this argument, I think
-things got a lot better. There is still room to improve documentation,
-that I can take. I don't think it makes sense to start a firewall with
-iptables/ipset in 2023.
+Now, as concerns the matter of producing monstrosities, there is always the option to write the code in a more elegant fashion. One way would be to compose a function.
+
+in_all_sets() {
+	local ip=$1 set
+	shift
+	for set; do
+		nft -t "get element $set { $ip }" >/dev/null 2>&1 || return
+	done
+}
+
+if ! in_all_sets "$ip" "inet mytable myset" "inet mytable myset"; then
+	nft "add element inet mytable myset { $ip }"
+fi
+
+Of course, this does not address the aformentioned shortcomings of the interface but the legibility and maintainability of the code is improved.
+
+Another would be to apply the redirections to a compound command.
+
+{
+	# Neither of the following will be seen
+	echo "stdout"
+	echo "stderr" >&2
+} >/dev/null 2>&1
+
+Though Pablo already mentioned it, the overall approach amounts to a TOCTOU race. The prospect of being able to atomically check for the existence of an element in multiple sets is a curious one. I, too, would be interested in understanding the underlying use case.
+
+-- 
+Kerin Millar
