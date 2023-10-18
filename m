@@ -2,130 +2,95 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44C28CDB474
-	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 00:01:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4A1CDB482
+	for <netfilter-devel@archiver.kernel.org>; Wed, 18 Oct 2023 08:51:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229960AbjJRABC (ORCPT
+        id S229510AbjJRIvc (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 17 Oct 2023 20:01:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36698 "EHLO
+        Wed, 18 Oct 2023 04:51:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229459AbjJRABC (ORCPT
+        with ESMTP id S229482AbjJRIvb (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2023 20:01:02 -0400
-Received: from mail-qt1-x833.google.com (mail-qt1-x833.google.com [IPv6:2607:f8b0:4864:20::833])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4BD790
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 17:01:00 -0700 (PDT)
-Received: by mail-qt1-x833.google.com with SMTP id d75a77b69052e-41cb9419975so3194941cf.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2023 17:01:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697587260; x=1698192060; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:to:from:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=nogZjDiDuhV0mg/6rFchRVkxEvWkLYQ3TDgYbQSl8Sw=;
-        b=muNuXDgtTln8gRzfjSXtCk/nbatLuCnAA9Fnn+nblJAG15yb5VkHgBSYWyBy9rALbb
-         qiw/12RwB4Zwhm7rAJAg4cSF0GV0ie0ftDQDepg4YZEt9SB3wp4+SpAUyxr4pCXC8H9c
-         L9lQc52kVNf2BjNw3W2RO4BDvoV/ZrQHGbijRrTVeabZ9dUFr2o1DxT2LEOAUOciKX+L
-         q0DW6ScD9bcsbPSY+GI9XtIXVrTQq0rbsNL6jCkGbhuc3HNy36qM8LfNeS2+NGcfDe2A
-         Qy1AAMOTuzopdT56febN7G3abOfNqGmuN4R9uukJqRijGjAI53kRDNe/m6dBsqt9YJ/3
-         mtww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697587260; x=1698192060;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:subject:to:from:date:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=nogZjDiDuhV0mg/6rFchRVkxEvWkLYQ3TDgYbQSl8Sw=;
-        b=QfwIHo6jOBmFmAhsoOHuEWHdPRTyDlW8VKDhVaOyFBUYi5H2JDhuN+SPKnqPExve19
-         6JDXSDP/HyYtr57koT45YlF9Rh6HBOna4MkqcwfZbE86T45kVVDc6YNqpsUtzVfimeFU
-         FpSpUdb/V5cZh9UHDd+s/vMtEeKqaahun0BfnHj1GoR6tefc9qiIiOU7/T0wgy4cyqi2
-         NZZqdopqeedCCT8XqCBqI4Qfb9dGTBgtm7OMBXg5C8BBp7qu1C2lDqasFrErLCZnfed6
-         MPymwIMaqL6muIgEekr1w3ohvASk+cH1XqtAfkK2qIQ5OTy5reMbLxavKmE81PhDRPEq
-         O00A==
-X-Gm-Message-State: AOJu0YxqGJmHuSyxSC3sadE/KChKh/HbMWxfPNzSsgUg38usHAOaJK4f
-        nfbUpoYzgxY2qQzy6MtG0o/Fv1BsUo0=
-X-Google-Smtp-Source: AGHT+IHH7rnZ+3/rm5UTt6PKYrINs5WUR8acQi8vtFQlk9tfPc8mtLpr0BvPv0HjiNyJCj8B9he0kg==
-X-Received: by 2002:ac8:5885:0:b0:417:d4b1:ea28 with SMTP id t5-20020ac85885000000b00417d4b1ea28mr4055344qta.7.1697587259660;
-        Tue, 17 Oct 2023 17:00:59 -0700 (PDT)
-Received: from playground (c-73-148-50-133.hsd1.va.comcast.net. [73.148.50.133])
-        by smtp.gmail.com with ESMTPSA id gd7-20020a05622a5c0700b0041977932fc6sm1003587qtb.18.2023.10.17.17.00.58
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Oct 2023 17:00:59 -0700 (PDT)
-Date:   Tue, 17 Oct 2023 20:00:57 -0400
-From:   <imnozi@gmail.com>
-To:     netfilter-devel@vger.kernel.org
-Subject: Re: [nftables/nft] nft equivalent of "ipset test"
-Message-ID: <20231017200057.57cfce21@playground>
-In-Reply-To: <652F0C75.8010006@mutluit.com>
-References: <652EC034.7090501@mutluit.com>
-        <20231017213507.GD5770@breakpoint.cc>
-        <652F02EC.2050807@mutluit.com>
-        <20231017220539.GE5770@breakpoint.cc>
-        <652F0C75.8010006@mutluit.com>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.37; x86_64-pc-linux-gnu)
+        Wed, 18 Oct 2023 04:51:31 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA39AB6;
+        Wed, 18 Oct 2023 01:51:29 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qt2Gw-0006Je-Vy; Wed, 18 Oct 2023 10:51:22 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netdev@vger.kernel.org>
+Cc:     Paolo Abeni <pabeni@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        <netfilter-devel@vger.kernel.org>
+Subject: [PATCH net-next 0/7] netfilter updates for net-next
+Date:   Wed, 18 Oct 2023 10:51:04 +0200
+Message-ID: <20231018085118.10829-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, 18 Oct 2023 00:36:37 +0200
-"U.Mutlu" <um@mutluit.com> wrote:
+Hello,
 
-> ...
-> Actualy I need to do this monster:   :-)
-> 
-> IP="1.2.3.4"
-> ! nft "get element inet mytable myset  { $IP }" > /dev/null 2>&1 && \
-> ! nft "get element inet mytable myset2 { $IP }" > /dev/null 2>&1 && \
->    nft "add element inet mytable myset  { $IP }"
+This series contains initial netfilter skb drop_reason support, from
+myself.
 
-Try using '||', akin to:
+First few patches fix up a few spots to make sure we won't trip
+when followup patches embed error numbers in the upper bits
+(we already do this in some places).
 
-----
-mkdir aaaa; cd aaaa
-touch a b
+Then, nftables and bridge netfilter get converted to call kfree_skb_reason
+directly to let tooling pinpoint exact location of packet drops,
+rather than the existing NF_DROP catchall in nf_hook_slow().
 
-(
-  ls a || \
-  ls b
-) >/dev/null 2>&1 || \
-echo "not found"
+I would like to eventually convert all netfilter modules, but as some
+callers cannot deal with NF_STOLEN (notably act_ct), more preparation
+work is needed for this.
 
-(
-  ls c || \
-  ls b
-) >/dev/null 2>&1 || \
-echo "not found"
+Last patch gets rid of an ugly 'de-const' cast in nftables.
 
-(
-  ls a || \
-  ls d
-) >/dev/null 2>&1 || \
-echo "not found"
+The following changes since commit a0a86022474304e012aad5d41943fdd31a036284:
 
-(
-  ls c || \
-  ls d
-) >/dev/null 2>&1 || \
-echo "not found"
+  Merge branch 'devlink-deadlock' (2023-10-18 09:23:02 +0100)
 
-cd ..
-rm -rf aaaa
-----
+are available in the Git repository at:
 
-Only if neither file is found will the echo execute.
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-23-10-18
 
-So this should do the trick for you:
+for you to fetch changes up to 256001672153af5786c6ca148114693d7d76d836:
 
-----
-(
-    nft "get element inet mytable myset  { $IP }" || \
-    nft "get element inet mytable myset2 { $IP }"
-) >/dev/null 2>&1 || \
-  nft "add element inet mytable myset  { $IP }"
-----
+  netfilter: nf_tables: de-constify set commit ops function argument (2023-10-18 10:26:43 +0200)
 
-N
+----------------------------------------------------------------
+netfilter next pull request 2023-10-18
+
+----------------------------------------------------------------
+Florian Westphal (7):
+      netfilter: xt_mangle: only check verdict part of return value
+      netfilter: nf_tables: mask out non-verdict bits when checking return value
+      netfilter: conntrack: convert nf_conntrack_update to netfilter verdicts
+      netfilter: nf_nat: mask out non-verdict bits when checking return value
+      netfilter: make nftables drops visible in net dropmonitor
+      netfilter: bridge: convert br_netfilter to NF_DROP_REASON
+      netfilter: nf_tables: de-constify set commit ops function argument
+
+ include/linux/netfilter.h            | 10 +++++++
+ include/net/netfilter/nf_tables.h    |  2 +-
+ net/bridge/br_netfilter_hooks.c      | 26 ++++++++--------
+ net/bridge/br_netfilter_ipv6.c       |  6 ++--
+ net/ipv4/netfilter/iptable_mangle.c  |  9 +++---
+ net/ipv6/netfilter/ip6table_mangle.c |  9 +++---
+ net/netfilter/core.c                 |  6 ++--
+ net/netfilter/nf_conntrack_core.c    | 58 ++++++++++++++++++++----------------
+ net/netfilter/nf_nat_proto.c         |  5 ++--
+ net/netfilter/nf_tables_core.c       |  8 +++--
+ net/netfilter/nf_tables_trace.c      |  8 +++--
+ net/netfilter/nfnetlink_queue.c      | 15 ++++++----
+ net/netfilter/nft_set_pipapo.c       |  7 ++---
+ 13 files changed, 100 insertions(+), 69 deletions(-)
