@@ -2,133 +2,97 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D55A7CDB483
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 13:03:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF1F6CDB465
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 13:04:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235387AbjJSNDK (ORCPT
+        id S1345629AbjJSNEm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Oct 2023 09:03:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45806 "EHLO
+        Thu, 19 Oct 2023 09:04:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235456AbjJSNC6 (ORCPT
+        with ESMTP id S1345770AbjJSNEi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2023 09:02:58 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 040DE6A45
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 06:01:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1697720483;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=zVG8ciedwP/ZYgu2AO3RcbwEEBcp2HEQVS+7k0qPYDs=;
-        b=CexOfsFRsqwytwPuZYktZHat3wTEZlc4GgibYdJ93h8scbQIO0tC7BjnyzLtfdyRKOc0LL
-        7sBLbpy4YF2FbdNWRyNEudDj9x/1zfHBCOCVJrIb1GrxBghbiXkQ3wj/S29JveC2Gxz26e
-        T7oV13rQs3if512Hlf137uqMc2BPvAg=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-83-TO04UvOnMWCY3YK86GlP8A-1; Thu, 19 Oct 2023 09:01:13 -0400
-X-MC-Unique: TO04UvOnMWCY3YK86GlP8A-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E64703C17089
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 13:01:12 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.93])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 683E8503C;
-        Thu, 19 Oct 2023 13:01:12 +0000 (UTC)
-From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft v2 6/7] build: no recursive make for "examples/Makefile.am"
-Date:   Thu, 19 Oct 2023 15:00:05 +0200
-Message-ID: <20231019130057.2719096-7-thaller@redhat.com>
-In-Reply-To: <20231019130057.2719096-1-thaller@redhat.com>
-References: <20231019130057.2719096-1-thaller@redhat.com>
+        Thu, 19 Oct 2023 09:04:38 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18043187
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 06:04:36 -0700 (PDT)
+Received: from [78.30.34.192] (port=40402 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qtShT-0036T6-8W; Thu, 19 Oct 2023 15:04:34 +0200
+Date:   Thu, 19 Oct 2023 15:04:30 +0200
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v3 3/3] netfilter: nf_tables: Add locking for
+ NFT_MSG_GETRULE_RESET requests
+Message-ID: <ZTEpXnJ1sWvB8rrt@calendula>
+References: <20231019113347.8753-1-phil@nwl.cc>
+ <20231019113347.8753-4-phil@nwl.cc>
+ <ZTEVHOLSk/SSMJNM@calendula>
+ <ZTEiLqJuiq5karTL@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.5
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ZTEiLqJuiq5karTL@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Merge the Makefile.am under "examples/" into the toplevel Makefile.am.
-This is a step in the effort of dropping recursive make.
+On Thu, Oct 19, 2023 at 02:33:50PM +0200, Phil Sutter wrote:
+> On Thu, Oct 19, 2023 at 01:38:04PM +0200, Pablo Neira Ayuso wrote:
+> > On Thu, Oct 19, 2023 at 01:33:47PM +0200, Phil Sutter wrote:
+> > > Rule reset is not concurrency-safe per-se, so multiple CPUs may reset
+> > > the same rule at the same time. At least counter and quota expressions
+> > > will suffer from value underruns in this case.
+> > > 
+> > > Prevent this by introducing dedicated locking callbacks for nfnetlink
+> > > and the asynchronous dump handling to serialize access.
+> > > 
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > > Changes since v2:
+> > > - Keep local variable 'nft_net' in nf_tables_getrule_reset()
+> > > - No need for local variable 'family' in same function (used only once
+> > >   after all the churn)
+> > > ---
+> > >  net/netfilter/nf_tables_api.c | 74 ++++++++++++++++++++++++++++-------
+> > >  1 file changed, 60 insertions(+), 14 deletions(-)
+> > > 
+> > > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > > index 584d3b204372..fbb688c9903c 100644
+> > > --- a/net/netfilter/nf_tables_api.c
+> > > +++ b/net/netfilter/nf_tables_api.c
+> > [...]
+> > > +static int nf_tables_dumpreset_rules(struct sk_buff *skb,
+> > > +				     struct netlink_callback *cb)
+> > > +{
+> > > +	struct nftables_pernet *nft_net = nft_pernet(sock_net(skb->sk));
+> > > +	int ret;
+> > > +
+> > > +	mutex_lock(&nft_net->commit_mutex);
+> > > +	ret = nf_tables_dump_rules(skb, cb);
+> > > +	mutex_unlock(&nft_net->commit_mutex);
+> > 
+> > NACK.
+> > 
+> > This just mitigates the problem we are discussing, when there is an
+> > interference with an ongoing transaction.
+> 
+> This fixes for user space's ability to underrun counters and quotas
+> because expressions' dump callbacks are not concurrency safe in reset
+> mode.
+> 
+> What you're concerned with is a different issue.
 
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- Makefile.am          | 19 ++++++++++++++++---
- configure.ac         |  1 -
- examples/Makefile.am |  6 ------
- 3 files changed, 16 insertions(+), 10 deletions(-)
- delete mode 100644 examples/Makefile.am
+I'd suggest you add comment to this code, feel free to add better
+wording:
 
-diff --git a/Makefile.am b/Makefile.am
-index b89d60e32d8c..af82f021203a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -26,9 +26,11 @@ ACLOCAL_AMFLAGS = -I m4
- 
- EXTRA_DIST =
- BUILT_SOURCES =
-+LDADD =
- lib_LTLIBRARIES =
- noinst_LTLIBRARIES =
- sbin_PROGRAMS =
-+check_PROGRAMS =
- 
- ###############################################################################
- 
-@@ -288,9 +290,20 @@ src_nft_LDADD = src/libnftables.la
- 
- ###############################################################################
- 
--SUBDIRS = \
--		doc	\
--		examples
-+SUBDIRS = doc
-+
-+###############################################################################
-+
-+
-+check_PROGRAMS += examples/nft-buffer
-+
-+examples_nft_buffer_AM_CPPFLAGS = -I$(srcdir)/include
-+examples_nft_buffer_LDADD = src/libnftables.la
-+
-+check_PROGRAMS += examples/nft-json-file
-+
-+examples_nft_json_file_AM_CPPFLAGS = -I$(srcdir)/include
-+examples_nft_json_file_LDADD = src/libnftables.la
- 
- ###############################################################################
- 
-diff --git a/configure.ac b/configure.ac
-index 79024e49ab28..c5e4113898a0 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -118,7 +118,6 @@ AC_CONFIG_FILES([					\
- 		Makefile				\
- 		libnftables.pc				\
- 		doc/Makefile				\
--		examples/Makefile			\
- 		])
- AC_OUTPUT
- 
-diff --git a/examples/Makefile.am b/examples/Makefile.am
-deleted file mode 100644
-index 3b8b0b6708dc..000000000000
---- a/examples/Makefile.am
-+++ /dev/null
-@@ -1,6 +0,0 @@
--check_PROGRAMS	= nft-buffer		\
--		  nft-json-file
--
--AM_CPPFLAGS = -I$(top_srcdir)/include
--
--LDADD = $(top_builddir)/src/libnftables.la
--- 
-2.41.0
-
+        /* Mutex is held is to prevent that two concurrent dump-and-reset calls
+         * do not underrun counters and quotas. The commit_mutex is used for the
+         * lack a better lock, this is not transaction path.
+         */
+        mutex_lock(&nft_net->commit_mutex);
+        ret = nf_tables_dump_rules(skb, cb);
+        mutex_unlock(&nft_net->commit_mutex);
