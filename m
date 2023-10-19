@@ -2,50 +2,48 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1524CDB465
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 16:26:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2B50CDB465
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 16:41:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235467AbjJSQ0n (ORCPT
+        id S233020AbjJSQlm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Oct 2023 12:26:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43650 "EHLO
+        Thu, 19 Oct 2023 12:41:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbjJSQ0l (ORCPT
+        with ESMTP id S232326AbjJSQll (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2023 12:26:41 -0400
+        Thu, 19 Oct 2023 12:41:41 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A71F39B
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 09:26:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D57C311F
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 09:41:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
         Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
         Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
         In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=nr7rJDt9wHYVpjCQTJn4RIspDnLT9G+qisLH9e1VYes=; b=CXm09Bje6JSz+jAcG+cSDAAw/+
-        Iybq0DS4ND8PnmLAZMPVnuTNFvIhF3o8JQcQ63bRr6gefrdL6m09K+CwsnaW+L0QQ49TIdiaxtOta
-        ZKOfFq+xFY1GR43/usjIBfW4K/XxbZpx0yaqGqTnqKlNpVlyW0RYxUxVqBV69NxYofOofRbykZwmD
-        icNvvzW1e/BhDF/c3ARCrCjxY7Lkg9IPg/xrTN4VWDJz4NjvcldKpSbgsazvSmEuw6lRlH3wSY0Gp
-        TGWZb9oWj+ELbfvIA7D8hPMionz6e4Ki/5Tx645EZybzaYheAdP5TZm7Do25x2X+/gsA4ku3soE2/
-        HeGsOQKQ==;
+        bh=vL0a8hG2Ow4aIgJzeO/61peFLwtlJp4oBqCGfaiE73s=; b=Q4eKG890liXid4LtmKpfdmSMNj
+        bfV7+SQehNmUs68YUwBM49ZpygSZzkMUyLnb8FNrju22/enBcdoCpPEGLPC2DH2KtxqL9BgRX9Rcr
+        w3wceOGnO/PMiMQQ1WkWiPgkuTCeercUOVN+mvgNk9umSTKlNdyn6kllEiR7G0eDAWvHIK/pdlsBq
+        wHBmui6U21JymIBDqCBPYtll0aWEm5Z7P1RiSZDbO2noC5WAmV0ViErFt4pr8VFXkcRKo8L8huGLr
+        wsT66Gn6yx+zmnQrwB8ien0hwRU+XuxVcl/yoq/KwW6aYiCfZ5PgwzH0yyi3+XFBi1UMeu6fDeaJ9
+        VjdO90bw==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qtVr1-0004M0-Cg; Thu, 19 Oct 2023 18:26:35 +0200
+        id 1qtW5a-0004YI-7N; Thu, 19 Oct 2023 18:41:38 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org, Phil Sutter <psutter@redhat.com>
-Subject: [nft PATCH] parser_bison: Fix for broken compatibility with older dumps
-Date:   Thu, 19 Oct 2023 18:26:31 +0200
-Message-ID: <20231019162631.19430-1-phil@nwl.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [nft PATCH v2] parser_bison: Fix for broken compatibility with older dumps
+Date:   Thu, 19 Oct 2023 18:41:34 +0200
+Message-ID: <20231019164134.23478-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
-
-From: Phil Sutter <psutter@redhat.com>
 
 Commit e6d1d0d611958 ("src: add set element multi-statement
 support") changed the order of expressions and other state attached to set
@@ -56,6 +54,9 @@ Restore compatibility by also accepting the old ordering.
 
 Fixes: e6d1d0d611958 ("src: add set element multi-statement support")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Fix author email address to match SoB.
 ---
  src/parser_bison.y                            |  6 ++++
  tests/shell/testcases/sets/elem_opts_compat_0 | 29 +++++++++++++++++++
