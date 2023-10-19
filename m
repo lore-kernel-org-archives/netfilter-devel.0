@@ -2,52 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E06ECDB465
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 12:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BE83C41513
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 12:34:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235319AbjJSM3G (ORCPT
+        id S1345513AbjJSMeA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Oct 2023 08:29:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41622 "EHLO
+        Thu, 19 Oct 2023 08:34:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233195AbjJSM3G (ORCPT
+        with ESMTP id S1345654AbjJSMdz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2023 08:29:06 -0400
+        Thu, 19 Oct 2023 08:33:55 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E59FCF
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 05:29:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CFDAAB
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 05:33:53 -0700 (PDT)
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
         (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qtS98-00019i-Ao; Thu, 19 Oct 2023 14:29:02 +0200
-Date:   Thu, 19 Oct 2023 14:29:02 +0200
+        id 1qtSDm-0001FW-Lf; Thu, 19 Oct 2023 14:33:50 +0200
+Date:   Thu, 19 Oct 2023 14:33:50 +0200
 From:   Phil Sutter <phil@nwl.cc>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH v3 1/3] netfilter: nf_tables: Open-code audit log
- call in nf_tables_getrule()
-Message-ID: <ZTEhDhBwd0RDKSjq@orbyte.nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH v3 3/3] netfilter: nf_tables: Add locking for
+ NFT_MSG_GETRULE_RESET requests
+Message-ID: <ZTEiLqJuiq5karTL@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 References: <20231019113347.8753-1-phil@nwl.cc>
- <20231019113347.8753-2-phil@nwl.cc>
- <20231019115252.GG12544@breakpoint.cc>
+ <20231019113347.8753-4-phil@nwl.cc>
+ <ZTEVHOLSk/SSMJNM@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231019115252.GG12544@breakpoint.cc>
+In-Reply-To: <ZTEVHOLSk/SSMJNM@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Oct 19, 2023 at 01:52:52PM +0200, Florian Westphal wrote:
-> > -	return nfnetlink_unicast(skb2, net, NETLINK_CB(skb).portid);
-> > +	tablename = nla_strdup(nla[NFTA_RULE_TABLE], GFP_ATOMIC);
-> > +	buf = kasprintf(GFP_ATOMIC, "%s:%u", tablename, nft_net->base_seq);
+On Thu, Oct 19, 2023 at 01:38:04PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Oct 19, 2023 at 01:33:47PM +0200, Phil Sutter wrote:
+> > Rule reset is not concurrency-safe per-se, so multiple CPUs may reset
+> > the same rule at the same time. At least counter and quota expressions
+> > will suffer from value underruns in this case.
+> > 
+> > Prevent this by introducing dedicated locking callbacks for nfnetlink
+> > and the asynchronous dump handling to serialize access.
+> > 
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> > Changes since v2:
+> > - Keep local variable 'nft_net' in nf_tables_getrule_reset()
+> > - No need for local variable 'family' in same function (used only once
+> >   after all the churn)
+> > ---
+> >  net/netfilter/nf_tables_api.c | 74 ++++++++++++++++++++++++++++-------
+> >  1 file changed, 60 insertions(+), 14 deletions(-)
+> > 
+> > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> > index 584d3b204372..fbb688c9903c 100644
+> > --- a/net/netfilter/nf_tables_api.c
+> > +++ b/net/netfilter/nf_tables_api.c
+> [...]
+> > +static int nf_tables_dumpreset_rules(struct sk_buff *skb,
+> > +				     struct netlink_callback *cb)
+> > +{
+> > +	struct nftables_pernet *nft_net = nft_pernet(sock_net(skb->sk));
+> > +	int ret;
+> > +
+> > +	mutex_lock(&nft_net->commit_mutex);
+> > +	ret = nf_tables_dump_rules(skb, cb);
+> > +	mutex_unlock(&nft_net->commit_mutex);
 > 
-> You can use %.*s:%u", nla_len(nla[NFTA_RULE_TABLE]), nla_data(nla[NFTA_RULE_TABLE) ...
-> here to avoid the extra strdup.
+> NACK.
+> 
+> This just mitigates the problem we are discussing, when there is an
+> interference with an ongoing transaction.
 
-Nice, thanks!
+This fixes for user space's ability to underrun counters and quotas
+because expressions' dump callbacks are not concurrency safe in reset
+mode.
+
+What you're concerned with is a different issue.
