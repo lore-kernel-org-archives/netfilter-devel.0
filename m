@@ -2,49 +2,67 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1786CDB483
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 09:20:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0F00CDB465
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 11:33:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbjJSJUg (ORCPT
+        id S233048AbjJSLd7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Oct 2023 05:20:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53026 "EHLO
+        Thu, 19 Oct 2023 07:33:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229830AbjJSJUg (ORCPT
+        with ESMTP id S1345348AbjJSLdz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2023 05:20:36 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D705FA3
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 02:20:33 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qtPCi-0006qr-27; Thu, 19 Oct 2023 11:20:32 +0200
-Date:   Thu, 19 Oct 2023 11:20:32 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/1] tests/shell: add NFT_TEST_FAIL_ON_SKIP_EXCEPT
- for allow-list of skipped tests (XFAIL)
-Message-ID: <20231019092032.GA2230@breakpoint.cc>
-References: <20231017223450.2613981-1-thaller@redhat.com>
- <ZS+mfyhHzEld2gJ6@calendula>
- <651666347a414eecbb11ad97d6a75a0e1a401bf3.camel@redhat.com>
+        Thu, 19 Oct 2023 07:33:55 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21F89134
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 04:33:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+        Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+        Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+        In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=hd07u3EdFt0KRsZUY07krZJYf36MxKLKJrHEaOCmJO0=; b=kBL2hRA6s1GDsLoC1Zzlmy500P
+        NHZVktyBzVSSmVPGfAH+IEFmAmHxn9ykTBsttrFsZni4PgB+G2hx/TYTj5b338X/4PGlLw8bjdwsz
+        Jcyb+Si6yZIiOnQZxuywJqGaLDR/fLyax5yKuq+Zj40/qBQQ2cyMeiIt0GYkzrypCuM2dO6NPasaQ
+        Bd46URKn/CXH1RDKEdzH0qOJnE80jlZYNMJHQBq1iuyHwHPa+SQeSYzTKAvatYbu4/j78J39srgJp
+        EhCS7XERYkZMrLttN2A1u8uQjAlD1VvZ6KnZN0Gt00unIkH/AjPO5DLaHhFhvXXivKWWEaaS3MQ9m
+        r/+DHOcA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1qtRHj-0000Sp-Ik; Thu, 19 Oct 2023 13:33:51 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: [nf-next PATCH v3 0/3] Introduce locking for rule reset requests
+Date:   Thu, 19 Oct 2023 13:33:44 +0200
+Message-ID: <20231019113347.8753-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <651666347a414eecbb11ad97d6a75a0e1a401bf3.camel@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Thomas Haller <thaller@redhat.com> wrote:
-> Unless you think, that the current SKIP mechanism (feature
-> detection/probing) in master is 100% reliable, and there is no need to
-> worry about SKIP hiding a bug.
+Extracted series from the previous v2 of "Introduce locking for reset
+requests". If consensus is reached over the implementation details,
+respective series for object and set element reset follow.
 
-Yes, I do not worry about SKIP, because I never see a SKIP *unless*
-I run the test suite on an old kernel.
+Changes since v2:
+- Aim at nf-next with this.
+- Refactoring of nft_rule_dump_ctx already accepted.
+- New patch 1 streamlining the changes in the remaining patches.
+- Some reorg of local variables.
 
-"Old" here means 5.14.y or so.
+Phil Sutter (3):
+  netfilter: nf_tables: Open-code audit log call in nf_tables_getrule()
+  netfilter: nf_tables: Introduce nf_tables_getrule_single()
+  netfilter: nf_tables: Add locking for NFT_MSG_GETRULE_RESET requests
+
+ net/netfilter/nf_tables_api.c | 139 +++++++++++++++++++++++++---------
+ 1 file changed, 104 insertions(+), 35 deletions(-)
+
+-- 
+2.41.0
+
