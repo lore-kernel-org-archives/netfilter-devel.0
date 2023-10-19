@@ -2,219 +2,270 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EC3FCDB483
-	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 19:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C244DCDB465
+	for <netfilter-devel@archiver.kernel.org>; Thu, 19 Oct 2023 20:25:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345872AbjJSTTq (ORCPT
+        id S230321AbjJSUZT (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 19 Oct 2023 15:19:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34862 "EHLO
+        Thu, 19 Oct 2023 16:25:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346334AbjJSTTq (ORCPT
+        with ESMTP id S229892AbjJSUZT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2023 15:19:46 -0400
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AAFBCF
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 12:19:43 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id E6A63CC02C5;
-        Thu, 19 Oct 2023 21:19:40 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        blackhole.kfki.hu; h=mime-version:references:in-reply-to
-        :x-mailer:message-id:date:date:from:from:received:received
-        :received; s=20151130; t=1697743178; x=1699557579; bh=n7MqbeVNSY
-        ZzgO900Lf4v1aSl3huwnLNfn1Psh3CoLk=; b=JMGTh4n0kcuw0WNXLt4VdMKpj5
-        nvZoRYpcas/ciXGgI1khfppIsBdxrUqzmCdCwCI5xoATS0esiIK9la2ryK4W1uyB
-        9vAoU6YCNEwrjwm9ru3IwPNdYOz3e8WWykVBf2Hdi0debNOLaMlljnrAfyBQb6zG
-        t0BTeZ7EnJ4GAUn4I=
-X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
-        by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Thu, 19 Oct 2023 21:19:38 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 2F7EFCC02BE;
-        Thu, 19 Oct 2023 21:19:37 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id D79763431A8; Thu, 19 Oct 2023 21:19:37 +0200 (CEST)
-From:   Jozsef Kadlecsik <kadlec@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Linkui Xiao <xiaolinkui@kylinos.cn>
-Subject: [PATCH 1/1] netfilter: ipset: fix race condition between swap/destroy and kernel side add/del/test
-Date:   Thu, 19 Oct 2023 21:19:37 +0200
-Message-Id: <20231019191937.3931271-2-kadlec@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20231019191937.3931271-1-kadlec@netfilter.org>
-References: <20231019191937.3931271-1-kadlec@netfilter.org>
+        Thu, 19 Oct 2023 16:25:19 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03C37116
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2023 13:25:16 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qtZZy-0002P1-Kl; Thu, 19 Oct 2023 22:25:14 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>,
+        Lorenzo Bianconi <lorenzo@kernel.org>
+Subject: [PATCH RFC] netfilter: nf_tables: add flowtable map for xdp offload
+Date:   Thu, 19 Oct 2023 22:25:04 +0200
+Message-ID: <20231019202507.16439-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Linkui Xiao reported that there's a race condition when ipset swap and de=
-stroy is
-called, which can lead to crash in add/del/test element operations. Swap =
-then
-destroy are usual operations to replace a set with another one in a produ=
-ction
-system. The issue can in some cases be reproduced with the script:
+This adds a small internal mapping table so that a new bpf (xdp) kfunc
+can perform lookups in a flowtable.
 
-ipset create hash_ip1 hash:net family inet hashsize 1024 maxelem 1048576
-ipset add hash_ip1 172.20.0.0/16
-ipset add hash_ip1 192.168.0.0/16
-iptables -A INPUT -m set --match-set hash_ip1 src -j ACCEPT
-while [ 1 ]
-do
-	# ... Ongoing traffic...
-        ipset create hash_ip2 hash:net family inet hashsize 1024 maxelem =
-1048576
-        ipset add hash_ip2 172.20.0.0/16
-        ipset swap hash_ip1 hash_ip2
-        ipset destroy hash_ip2
-        sleep 0.05
-done
+I have no intent to push this without nft integration of the xdp program,
+this RFC is just to get comments on the general direction because there
+is a chicken/egg issue:
 
-In the race case the possible order of the operations are
+As-is, xdp program has access to the device pointer, but no way to do a
+lookup in a flowtable -- there is no way to obtain the needed struct
+without whacky stunts.
 
-	CPU0			CPU1
-	ip_set_test
-				ipset swap hash_ip1 hash_ip2
-				ipset destroy hash_ip2
-	hash_net_kadt
+This would allow to such lookup just from device address: the bpf
+kfunc would call nf_flowtable_by_dev() internally.
 
-Swap replaces hash_ip1 with hash_ip2 and then destroy removes hash_ip2 wh=
-ich
-is the original hash_ip1. ip_set_test was called on hash_ip1 and because =
-destroy
-removed it, hash_net_kadt crashes.
+Limitation:
 
-The fix is to protect both the list of the sets and the set pointers in a=
-n extended RCU
-region and before calling destroy, wait to finish all started rcu_read_lo=
-ck().
+A device cannot be added to multiple flowtables, the mapping needs
+to be unique.
 
-The first version of the patch was written by Linkui Xiao <xiaolinkui@kyl=
-inos.cn>.
+As for integration with the kernel, there are several options:
 
-Closes: https://lore.kernel.org/all/69e7963b-e7f8-3ad0-210-7b86eebf7f78@n=
-etfilter.org/
-Reported by: Linkui Xiao <xiaolinkui@kylinos.cn>
-Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+1. Auto-add to the dev-xdp table whenever HW offload is requested.
+
+2. Add to the dev-xdp table, but only if the HW offload request fails.
+   (softfallback).
+
+3. add a dedicated 'xdp offload' flag to UAPI.
+
+3) should not be needed, because userspace already controls this:
+   to make it work userspace needs to attach the xdp program to the
+   network device in the first place.
+
+My thinking is to add a xdp-offload flag to the nft grammer only.
+Its not needed on nf uapi side and it would tell nft to attach the xdp
+flowtable forward program to the devices listed in the flowtable.
+
+Also, packet flow is altered (qdiscs is bypassed), which is a strong
+argument against default-usage.
+
+The xdp prog source would be included with nftables.git and nft
+would either attach/detach them or ship an extra prog that does this (TBD).
+
+Open questions:
+
+Do we need to support dev-in-multiple flowtables?  I would like to
+avoid this, this likely means the future "xdp" flag in nftables would
+be restricted to "inet" family.  Alternative would be to change the key to
+'device address plus protocol family', the xdp prog could derive that from the
+packet data.
+
+Timeout handling.  Should the XDP program even bother to refresh the
+flowtable timeout?
+
+It might make more sense to intentionally have packets
+flow through the normal path periodically so neigh entries are up to date.
+
+Also note that flow_offload_xdp struct likely needs to have a refcount
+or genmask so that it integrates with the two-phase commit protocol on
+netfilter side
+(i.e., we should allow 're-add' because its needed to make flush+reload
+ work).
+
+Not SoB, too raw for my taste.
+
+CC: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ net/netfilter/nf_flow_table_offload.c | 131 +++++++++++++++++++++++++-
+ 1 file changed, 130 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
-et_core.c
-index e564b5174261..7eedd2825e0c 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -704,13 +704,18 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
- 	struct ip_set_net *inst =3D ip_set_pernet(net);
-=20
- 	rcu_read_lock();
--	/* ip_set_list itself needs to be protected */
-+	/* ip_set_list and the set pointer need to be protected */
- 	set =3D rcu_dereference(inst->ip_set_list)[index];
--	rcu_read_unlock();
-=20
- 	return set;
- }
-=20
-+static inline void
-+ip_set_rcu_put(struct ip_set *set __always_unused)
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index a010b25076ca..10313d296a8a 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -17,6 +17,92 @@ static struct workqueue_struct *nf_flow_offload_add_wq;
+ static struct workqueue_struct *nf_flow_offload_del_wq;
+ static struct workqueue_struct *nf_flow_offload_stats_wq;
+ 
++struct flow_offload_xdp {
++	struct hlist_node hnode;
++
++	unsigned long net_device_addr;
++	struct nf_flowtable *ft;
++
++	struct rcu_head	rcuhead;
++};
++
++#define NF_XDP_HT_BITS	4
++static DEFINE_HASHTABLE(nf_xdp_hashtable, NF_XDP_HT_BITS);
++static DEFINE_MUTEX(nf_xdp_hashtable_lock);
++
++/* caller must hold rcu read lock */
++struct nf_flowtable *nf_flowtable_by_dev(const struct net_device *dev)
 +{
-+	rcu_read_unlock();
++	unsigned long key = (unsigned long)dev;
++	const struct flow_offload_xdp *cur;
++
++	hash_for_each_possible_rcu(nf_xdp_hashtable, cur, hnode, key) {
++		if (key == cur->net_device_addr)
++			return cur->ft;
++	}
++
++	return NULL;
 +}
 +
- static inline void
- ip_set_lock(struct ip_set *set)
- {
-@@ -736,8 +741,10 @@ ip_set_test(ip_set_id_t index, const struct sk_buff =
-*skb,
- 	pr_debug("set %s, index %u\n", set->name, index);
-=20
- 	if (opt->dim < set->type->dimension ||
--	    !(opt->family =3D=3D set->family || set->family =3D=3D NFPROTO_UNSP=
-EC))
-+	    !(opt->family =3D=3D set->family || set->family =3D=3D NFPROTO_UNSP=
-EC)) {
-+		ip_set_rcu_put(set);
- 		return 0;
-+	}
-=20
- 	ret =3D set->variant->kadt(set, skb, par, IPSET_TEST, opt);
-=20
-@@ -756,6 +763,7 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *=
-skb,
- 			ret =3D -ret;
- 	}
-=20
-+	ip_set_rcu_put(set);
- 	/* Convert error codes to nomatch */
- 	return (ret < 0 ? 0 : ret);
- }
-@@ -772,12 +780,15 @@ ip_set_add(ip_set_id_t index, const struct sk_buff =
-*skb,
- 	pr_debug("set %s, index %u\n", set->name, index);
-=20
- 	if (opt->dim < set->type->dimension ||
--	    !(opt->family =3D=3D set->family || set->family =3D=3D NFPROTO_UNSP=
-EC))
-+	    !(opt->family =3D=3D set->family || set->family =3D=3D NFPROTO_UNSP=
-EC)) {
-+		ip_set_rcu_put(set);
- 		return -IPSET_ERR_TYPE_MISMATCH;
-+	}
-=20
- 	ip_set_lock(set);
- 	ret =3D set->variant->kadt(set, skb, par, IPSET_ADD, opt);
- 	ip_set_unlock(set);
-+	ip_set_rcu_put(set);
-=20
- 	return ret;
- }
-@@ -794,12 +805,15 @@ ip_set_del(ip_set_id_t index, const struct sk_buff =
-*skb,
- 	pr_debug("set %s, index %u\n", set->name, index);
-=20
- 	if (opt->dim < set->type->dimension ||
--	    !(opt->family =3D=3D set->family || set->family =3D=3D NFPROTO_UNSP=
-EC))
-+	    !(opt->family =3D=3D set->family || set->family =3D=3D NFPROTO_UNSP=
-EC)) {
-+		ip_set_rcu_put(set);
- 		return -IPSET_ERR_TYPE_MISMATCH;
-+	}
-=20
- 	ip_set_lock(set);
- 	ret =3D set->variant->kadt(set, skb, par, IPSET_DEL, opt);
- 	ip_set_unlock(set);
-+	ip_set_rcu_put(set);
-=20
- 	return ret;
- }
-@@ -874,6 +888,7 @@ ip_set_name_byindex(struct net *net, ip_set_id_t inde=
-x, char *name)
- 	read_lock_bh(&ip_set_ref_lock);
- 	strscpy_pad(name, set->name, IPSET_MAXNAMELEN);
- 	read_unlock_bh(&ip_set_ref_lock);
-+	ip_set_rcu_put(set);
- }
- EXPORT_SYMBOL_GPL(ip_set_name_byindex);
-=20
-@@ -1188,6 +1203,9 @@ static int ip_set_destroy(struct sk_buff *skb, cons=
-t struct nfnl_info *info,
- 	if (unlikely(protocol_min_failed(attr)))
- 		return -IPSET_ERR_PROTOCOL;
-=20
-+	/* Make sure all readers of the old set pointers are completed. */
-+	synchronize_rcu();
++static int nf_flowtable_by_dev_insert(struct nf_flowtable *ft,
++				      const struct net_device *dev)
++{
++	unsigned long key = (unsigned long)dev;
++	struct flow_offload_xdp *cur;
++	int err = 0;
 +
- 	/* Must wait for flush to be really finished in list:set */
- 	rcu_barrier();
-=20
---=20
-2.30.2
++	mutex_lock(&nf_xdp_hashtable_lock);
++	hash_for_each_possible(nf_xdp_hashtable, cur, hnode, key) {
++		if (key != cur->net_device_addr)
++			continue;
++		err = -EEXIST;
++		break;
++	}
++
++	if (err == 0) {
++		struct flow_offload_xdp *new;
++
++		new = kzalloc(sizeof(*new), GFP_KERNEL);
++		if (new) {
++			new->net_device_addr = key;
++			new->ft = ft;
++
++			hash_add_rcu(nf_xdp_hashtable, &new->hnode, key);
++		} else {
++			err = -ENOMEM;
++		}
++	}
++
++	mutex_unlock(&nf_xdp_hashtable_lock);
++
++	DEBUG_NET_WARN_ON_ONCE(err == 0 && nf_flowtable_by_dev(dev) != ft);
++
++	return err;
++}
++
++static void nf_flowtable_by_dev_remove(const struct net_device *dev)
++{
++	unsigned long key = (unsigned long)dev;
++	struct flow_offload_xdp *cur;
++	bool found = false;
++
++	mutex_lock(&nf_xdp_hashtable_lock);
++
++	hash_for_each_possible(nf_xdp_hashtable, cur, hnode, key) {
++		if (key != cur->net_device_addr)
++			continue;
++
++		hash_del_rcu(&cur->hnode);
++		kfree_rcu(cur, rcuhead);
++		found = true;
++		break;
++	}
++
++	mutex_unlock(&nf_xdp_hashtable_lock);
++
++	WARN_ON_ONCE(!found);
++}
++
+ struct flow_offload_work {
+ 	struct list_head	list;
+ 	enum flow_cls_command	cmd;
+@@ -1183,6 +1269,38 @@ static int nf_flow_table_offload_cmd(struct flow_block_offload *bo,
+ 	return 0;
+ }
+ 
++static int nf_flow_offload_xdp_setup(struct nf_flowtable *flowtable,
++				     struct net_device *dev,
++				     enum flow_block_command cmd)
++{
++	switch (cmd) {
++	case FLOW_BLOCK_BIND:
++		return nf_flowtable_by_dev_insert(flowtable, dev);
++	case FLOW_BLOCK_UNBIND:
++		nf_flowtable_by_dev_remove(dev);
++		return 0;
++	}
++
++	WARN_ON_ONCE(1);
++	return 0;
++}
++
++static void nf_flow_offload_xdp_cancel(struct nf_flowtable *flowtable,
++				       struct net_device *dev,
++				       enum flow_block_command cmd)
++{
++	switch (cmd) {
++	case FLOW_BLOCK_BIND:
++		nf_flowtable_by_dev_remove(dev);
++		return;
++	case FLOW_BLOCK_UNBIND:
++		/* We do not re-bind in case hw offload would report error
++		 * on *unregister*.
++		 */
++		break;
++	}
++}
++
+ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 				struct net_device *dev,
+ 				enum flow_block_command cmd)
+@@ -1191,6 +1309,15 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 	struct flow_block_offload bo;
+ 	int err;
+ 
++	/* XXX:
++	 *
++	 * XDP offload could be made 'never fails', as xdp
++	 * frames that don't match are simply passed up to
++	 * normal nf hooks (skb sw flowtable), or to stack.
++	 */
++	if (nf_flow_offload_xdp_setup(flowtable, dev, cmd))
++		return -EBUSY;
++
+ 	if (!nf_flowtable_hw_offload(flowtable))
+ 		return 0;
+ 
+@@ -1200,8 +1327,10 @@ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 	else
+ 		err = nf_flow_table_indr_offload_cmd(&bo, flowtable, dev, cmd,
+ 						     &extack);
+-	if (err < 0)
++	if (err < 0) {
++		nf_flow_offload_xdp_cancel(flowtable, dev, cmd);
+ 		return err;
++	}
+ 
+ 	return nf_flow_table_block_setup(flowtable, &bo, cmd);
+ }
+-- 
+2.41.0
 
