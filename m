@@ -2,72 +2,181 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0FBAC001DF
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Oct 2023 10:56:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD119C001DF
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Oct 2023 11:14:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376860AbjJTK4C (ORCPT
+        id S1377048AbjJTLOn (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Oct 2023 06:56:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38522 "EHLO
+        Fri, 20 Oct 2023 07:14:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376699AbjJTK4C (ORCPT
+        with ESMTP id S1377053AbjJTLOl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Oct 2023 06:56:02 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06679E8;
-        Fri, 20 Oct 2023 03:56:00 -0700 (PDT)
-Received: from [2a02:8108:8980:2478:8cde:aa2c:f324:937e]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1qtnAc-0001wr-FQ; Fri, 20 Oct 2023 12:55:58 +0200
-Message-ID: <37c2c8ee-d909-413d-9cf7-e67efd7fdb30@leemhuis.info>
-Date:   Fri, 20 Oct 2023 12:55:57 +0200
+        Fri, 20 Oct 2023 07:14:41 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5A4F18F
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Oct 2023 04:14:38 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qtnSe-0006h5-MQ; Fri, 20 Oct 2023 13:14:36 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH  nf-next] br_netfilter: use single forward hook for ip and arp
+Date:   Fri, 20 Oct 2023 13:14:25 +0200
+Message-ID: <20231020111429.29083-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Fwd: High cpu usage caused by kernel process when upgraded to
- linux 5.19.17 or later
-Content-Language: en-US, de-DE
-To:     Linux Regressions <regressions@lists.linux.dev>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Netfilter Development <netfilter-devel@vger.kernel.org>,
-        Netfilter Core Developers <coreteam@netfilter.org>,
-        Linux Networking <netdev@vger.kernel.org>,
-        Linux Power Management <linux-pm@vger.kernel.org>
-References: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
-From:   "Linux regression tracking #update (Thorsten Leemhuis)" 
-        <regressions@leemhuis.info>
-Reply-To: Linux regressions mailing list <regressions@lists.linux.dev>
-In-Reply-To: <01ac399d-f793-49d4-844b-72cd8e0034df@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1697799360;0c50cbf2;
-X-HE-SMSGID: 1qtnAc-0001wr-FQ
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-[TLDR: This mail in primarily relevant for Linux kernel regression
-tracking. See link in footer if these mails annoy you.]
+br_netfilter registers two forward hooks, one for ip and one for arp.
 
-On 23.06.23 02:58, Bagas Sanjaya wrote:
-> 
-> I notice a regression report on Bugzilla [1]. Quoting from it:
-> 
->> kernel process "kworker/events_power_efficient" uses a lot of cpu power (100% on ESXI 6.7, ~30% on ESXI 7.0U3 or later) after upgrading from 5.17.3 to 5.19.17 or later.
-> [...]
-> #regzbot introduced: v5.17.3..v5.19.17 https://bugzilla.kernel.org/show_bug.cgi?id=217586
-> #regzbot title: kworker/events_power_efficient utilizes full CPU power after kernel upgrade
-> 
-> Thanks.
-> 
-> [1]: https://bugzilla.kernel.org/show_bug.cgi?id=217586
+Just use a common function for both and then call the arp/ip helper
+as needed.
 
-#regzbot resolve: afaics: misconfiguration became more problematic due
-to new mitigations
-#regzbot ignore-activity
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/br_netfilter_hooks.c | 72 ++++++++++++++++-----------------
+ 1 file changed, 34 insertions(+), 38 deletions(-)
 
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
---
-Everything you wanna know about Linux kernel regression tracking:
-https://linux-regtracking.leemhuis.info/about/#tldr
-That page also explains what to do if mails like this annoy you.
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 4c0c9f838f5c..6adcb45bca75 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -570,18 +570,12 @@ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff
+ }
+ 
+ 
+-/* This is the 'purely bridged' case.  For IP, we pass the packet to
+- * netfilter with indev and outdev set to the bridge device,
+- * but we are still able to filter on the 'real' indev/outdev
+- * because of the physdev module. For ARP, indev and outdev are the
+- * bridge ports. */
+-static unsigned int br_nf_forward_ip(void *priv,
+-				     struct sk_buff *skb,
+-				     const struct nf_hook_state *state)
++static unsigned int br_nf_forward_ip(struct sk_buff *skb,
++				     const struct nf_hook_state *state,
++				     u8 pf)
+ {
+ 	struct nf_bridge_info *nf_bridge;
+ 	struct net_device *parent;
+-	u_int8_t pf;
+ 
+ 	nf_bridge = nf_bridge_info_get(skb);
+ 	if (!nf_bridge)
+@@ -600,15 +594,6 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 	if (!parent)
+ 		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+ 
+-	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
+-	    is_pppoe_ip(skb, state->net))
+-		pf = NFPROTO_IPV4;
+-	else if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
+-		 is_pppoe_ipv6(skb, state->net))
+-		pf = NFPROTO_IPV6;
+-	else
+-		return NF_ACCEPT;
+-
+ 	nf_bridge_pull_encap_header(skb);
+ 
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+@@ -620,19 +605,18 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 		if (br_validate_ipv4(state->net, skb))
+ 			return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
+ 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
+-	}
+-
+-	if (pf == NFPROTO_IPV6) {
++		skb->protocol = htons(ETH_P_IP);
++	} else if (pf == NFPROTO_IPV6) {
+ 		if (br_validate_ipv6(state->net, skb))
+ 			return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
+ 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
++		skb->protocol = htons(ETH_P_IPV6);
++	} else {
++		WARN_ON_ONCE(1);
++		return NF_DROP;
+ 	}
+ 
+ 	nf_bridge->physoutdev = skb->dev;
+-	if (pf == NFPROTO_IPV4)
+-		skb->protocol = htons(ETH_P_IP);
+-	else
+-		skb->protocol = htons(ETH_P_IPV6);
+ 
+ 	NF_HOOK(pf, NF_INET_FORWARD, state->net, NULL, skb,
+ 		brnf_get_logical_dev(skb, state->in, state->net),
+@@ -641,8 +625,7 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 	return NF_STOLEN;
+ }
+ 
+-static unsigned int br_nf_forward_arp(void *priv,
+-				      struct sk_buff *skb,
++static unsigned int br_nf_forward_arp(struct sk_buff *skb,
+ 				      const struct nf_hook_state *state)
+ {
+ 	struct net_bridge_port *p;
+@@ -659,11 +642,8 @@ static unsigned int br_nf_forward_arp(void *priv,
+ 	if (!brnet->call_arptables && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
+ 		return NF_ACCEPT;
+ 
+-	if (!IS_ARP(skb)) {
+-		if (!is_vlan_arp(skb, state->net))
+-			return NF_ACCEPT;
++	if (is_vlan_arp(skb, state->net))
+ 		nf_bridge_pull_encap_header(skb);
+-	}
+ 
+ 	if (unlikely(!pskb_may_pull(skb, sizeof(struct arphdr))))
+ 		return NF_DROP_REASON(skb, SKB_DROP_REASON_PKT_TOO_SMALL, 0);
+@@ -680,6 +660,28 @@ static unsigned int br_nf_forward_arp(void *priv,
+ 	return NF_STOLEN;
+ }
+ 
++/* This is the 'purely bridged' case.  For IP, we pass the packet to
++ * netfilter with indev and outdev set to the bridge device,
++ * but we are still able to filter on the 'real' indev/outdev
++ * because of the physdev module. For ARP, indev and outdev are the
++ * bridge ports.
++ */
++static unsigned int br_nf_forward(void *priv,
++				  struct sk_buff *skb,
++				  const struct nf_hook_state *state)
++{
++	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
++	    is_pppoe_ip(skb, state->net))
++		return br_nf_forward_ip(skb, state, NFPROTO_IPV4);
++	if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
++	    is_pppoe_ipv6(skb, state->net))
++		return br_nf_forward_ip(skb, state, NFPROTO_IPV6);
++	if (IS_ARP(skb) || is_vlan_arp(skb, state->net))
++		return br_nf_forward_arp(skb, state);
++
++	return NF_ACCEPT;
++}
++
+ static int br_nf_push_frag_xmit(struct net *net, struct sock *sk, struct sk_buff *skb)
+ {
+ 	struct brnf_frag_data *data;
+@@ -937,13 +939,7 @@ static const struct nf_hook_ops br_nf_ops[] = {
+ 		.priority = NF_BR_PRI_BRNF,
+ 	},
+ 	{
+-		.hook = br_nf_forward_ip,
+-		.pf = NFPROTO_BRIDGE,
+-		.hooknum = NF_BR_FORWARD,
+-		.priority = NF_BR_PRI_BRNF - 1,
+-	},
+-	{
+-		.hook = br_nf_forward_arp,
++		.hook = br_nf_forward,
+ 		.pf = NFPROTO_BRIDGE,
+ 		.hooknum = NF_BR_FORWARD,
+ 		.priority = NF_BR_PRI_BRNF,
+-- 
+2.41.0
 
