@@ -2,19 +2,19 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE95C0032E
-	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Oct 2023 17:34:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E12FFC25B40
+	for <netfilter-devel@archiver.kernel.org>; Fri, 20 Oct 2023 17:34:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377895AbjJTRen (ORCPT
+        id S1377915AbjJTRep (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 20 Oct 2023 13:34:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59688 "EHLO
+        Fri, 20 Oct 2023 13:34:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377710AbjJTRem (ORCPT
+        with ESMTP id S230007AbjJTRem (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 20 Oct 2023 13:34:42 -0400
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52BB113E
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED62FD68
         for <netfilter-devel@vger.kernel.org>; Fri, 20 Oct 2023 10:34:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -22,22 +22,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=VGQ6fD9kLVLcgUF/ag+n5F0YTTZqbH1dPE7ly/H3QGs=; b=dI+2BXcuilYe2JyHIml1ckzeTb
-        PrDnNHF7DhpkErfhARhaG+as33oKTjaulaLdXsFYDBm3s1Ax9sDwgZuaZDwYCN9Cdx8/uwPymvpFD
-        v7hLhFT1UZV+OAJL5FxX/xTKQlToIm0fTAUmLWxYkyUdddPFGLa6Xbip+hczJWMRpgWyAm4HWqlCz
-        QUzuTPTZZOCY2baLevKrsJZyAD8JhNZS3IuZltZ8Rt1CiDJTpBRKH1kYTfXoZ16Q5qLfU7cO7mYmk
-        2cohasI1U8PlM5kuqyeyzV3Dr0K3XwL47fwXzOdQQE5rAipz9bAkaWXADj1AgoKNmibFYAMQ7a76q
-        kDTN5bMQ==;
+        bh=Iu+53/w5OWCGWed8Iv1zc0bWnDgl4BGKxDc4yJ32RaI=; b=Ro/C7HkeVyToJllOXA5+cuAQvA
+        UXex2hI9S4RK2rnNtrc57NQnpFFLHsqKRRpFtrC13miYiBqXOahlr5KfB7O/x9ufAWIjsP5HOPQJO
+        MpptkUOzh1mcourF233TFUmAFd2gGsI3k4ngxE096JpEOE9c2P0u5v2FXF1lLxYgQT7ZbZMz491Ri
+        sHWsu0WyJk/0pfeS+YcFyXoqlRDBZ8hXMCUXf//CiFm0tVC64e8ZsfMmuR/M+usq0mhSiYeEkzQrB
+        E3zgTWKU7tUv5ub8JWvMaUCpDpbU8eRgN0GkwrsjlyK43hsP29UzdpQ7ptmtq7PCpzIVD0CqHYdeY
+        KgpPHJfQ==;
 Received: from localhost ([::1] helo=xic)
         by orbyte.nwl.cc with esmtp (Exim 4.94.2)
         (envelope-from <phil@nwl.cc>)
-        id 1qttOP-0003kl-Nh; Fri, 20 Oct 2023 19:34:37 +0200
+        id 1qttOQ-0003kv-Bh; Fri, 20 Oct 2023 19:34:38 +0200
 From:   Phil Sutter <phil@nwl.cc>
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: [nf-next PATCH 4/6] netfilter: nf_tables: Carry s_idx in nft_obj_dump_ctx
-Date:   Fri, 20 Oct 2023 19:34:31 +0200
-Message-ID: <20231020173433.4611-5-phil@nwl.cc>
+Subject: [nf-next PATCH 1/6] netfilter: nf_tables: Drop pointless memset in nf_tables_dump_obj
+Date:   Fri, 20 Oct 2023 19:34:28 +0200
+Message-ID: <20231020173433.4611-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231020173433.4611-1-phil@nwl.cc>
 References: <20231020173433.4611-1-phil@nwl.cc>
@@ -47,61 +47,28 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Prep work for moving the context into struct netlink_callback scratch
-area.
+The code does not make use of cb->args fields past the first one, no
+need to zero them.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- net/netfilter/nf_tables_api.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 20b49b11938a..a6877544f936 100644
+index 20734fbb0d94..0f7ee76ad64f 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -7690,6 +7690,7 @@ static void audit_log_obj_reset(const struct nft_table *table,
- }
- 
- struct nft_obj_dump_ctx {
-+	unsigned int	s_idx;
- 	char		*table;
- 	u32		type;
- };
-@@ -7697,14 +7698,14 @@ struct nft_obj_dump_ctx {
- static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
--	const struct nft_table *table;
--	unsigned int idx = 0, s_idx = cb->args[0];
- 	struct nft_obj_dump_ctx *ctx = cb->data;
- 	struct net *net = sock_net(skb->sk);
- 	int family = nfmsg->nfgen_family;
- 	struct nftables_pernet *nft_net;
-+	const struct nft_table *table;
- 	unsigned int entries = 0;
- 	struct nft_object *obj;
-+	unsigned int idx = 0;
- 	bool reset = false;
- 	int rc = 0;
- 
-@@ -7723,7 +7724,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 		list_for_each_entry_rcu(obj, &table->objects, list) {
- 			if (!nft_is_active(net, obj))
+@@ -7725,9 +7725,6 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
  				goto cont;
--			if (idx < s_idx)
-+			if (idx < ctx->s_idx)
+ 			if (idx < s_idx)
  				goto cont;
- 			if (ctx->table && strcmp(ctx->table, table->name))
+-			if (idx > s_idx)
+-				memset(&cb->args[1], 0,
+-				       sizeof(cb->args) - sizeof(cb->args[0]));
+ 			if (filter && filter->table &&
+ 			    strcmp(filter->table, table->name))
  				goto cont;
-@@ -7753,7 +7754,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
- 	}
- 	rcu_read_unlock();
- 
--	cb->args[0] = idx;
-+	ctx->s_idx = idx;
- 	return skb->len;
- }
- 
 -- 
 2.41.0
 
