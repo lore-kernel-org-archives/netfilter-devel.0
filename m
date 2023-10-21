@@ -2,37 +2,69 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF213C0032E
-	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Oct 2023 11:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2782DC001E0
+	for <netfilter-devel@archiver.kernel.org>; Sat, 21 Oct 2023 13:26:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229668AbjJULXt (ORCPT
+        id S230090AbjJUN0H (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sat, 21 Oct 2023 07:23:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41626 "EHLO
+        Sat, 21 Oct 2023 09:26:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbjJULXt (ORCPT
+        with ESMTP id S229831AbjJUN0F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Oct 2023 07:23:49 -0400
-Received: from bmailout2.hostsharing.net (bmailout2.hostsharing.net [83.223.78.240])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA5CC1A4;
-        Sat, 21 Oct 2023 04:23:43 -0700 (PDT)
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256
-         client-signature RSA-PSS (4096 bits) client-digest SHA256)
-        (Client CN "*.hostsharing.net", Issuer "RapidSSL Global TLS RSA4096 SHA256 2022 CA1" (verified OK))
-        by bmailout2.hostsharing.net (Postfix) with ESMTPS id 71EBC2800B75F;
-        Sat, 21 Oct 2023 13:23:41 +0200 (CEST)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-        id 64FAB11768A; Sat, 21 Oct 2023 13:23:41 +0200 (CEST)
-Message-Id: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
-From:   Lukas Wunner <lukas@wunner.de>
-Date:   Sat, 21 Oct 2023 13:23:44 +0200
-Subject: [PATCH] treewide: Add SPDX identifier to IETF ASN.1 modules
-To:     Thomas Gleixner <tglx@linutronix.de>,
+        Sat, 21 Oct 2023 09:26:05 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BC4DD67
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Oct 2023 06:24:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1697894649;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=sAJJoylF1cW1oW2mCcwy+DSGsa9dllVFEwoULjFHt7U=;
+        b=bavzUNnJWFisWT60X4K6nCXnzfZeiMBQpSuOzflL9KYThC9ogtneKFS6foFLEfyb/2DmPI
+        9Om0M68ZmsV7S4klCWWyGEFwhNzcs2SczuMretQlVcF5wfM9TGDoygqitGyKHW+zAwcgbs
+        h9+8PQxoLQJs99WFA164zDWLbcCaXhg=
+Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
+ [209.85.208.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-640-6Axf9W80OOCFSbIY_5p7ig-1; Sat, 21 Oct 2023 09:24:08 -0400
+X-MC-Unique: 6Axf9W80OOCFSbIY_5p7ig-1
+Received: by mail-ed1-f72.google.com with SMTP id 4fb4d7f45d1cf-53ffd4937d6so368218a12.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Oct 2023 06:24:07 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697894647; x=1698499447;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=sAJJoylF1cW1oW2mCcwy+DSGsa9dllVFEwoULjFHt7U=;
+        b=AUiJr9ypQExZAEfyMphR8j7org3c1obskya1YzEFhQfQKw7FXImWdTgqjWKnUCOZni
+         vlNxgKQTYB7P3UaYm8KLh5Z+5/nhL55T2URQxkwaZZq2uCz+LTqKiWgv8LHePf0xjNVN
+         jHlzpn3joi+cF0aMWQ4FEmRLdwOft9IeCGiV1IAg4b5GSgXeGNA6lAD/ECeR0dxafYkN
+         B4PZ76D5GEnHenzIdx0Mps7NLUY7dc4jEDglJucFvATOzS4iTqdz+RTcuh1dspGMlxnf
+         lSuiC8Qv1BwWccY1/EeslCWOZaY15hynemFdYrlot+RBNedt4bHBmn49LvyKPPMTM2uc
+         imOg==
+X-Gm-Message-State: AOJu0YxklXU3Hu487Qm9FGeAHVzJrH+YF/ZDzUWGyk1SlBb/7JjoXCP2
+        yOWnM2bwSDFB3+N1AlFgxLzRu4byFBEximcfpNZaxTQwzfU/rgFMSv7LL5qkiI1z+KRESVawigZ
+        l3JGfzqthWOWrCK8HmErsSfhUmD5pQTvScHnEax+dHqeT
+X-Received: by 2002:a50:aacf:0:b0:53e:1388:cb2e with SMTP id r15-20020a50aacf000000b0053e1388cb2emr3332771edc.35.1697894647035;
+        Sat, 21 Oct 2023 06:24:07 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEyy9uSFCMUqfgN2rj17ch/G/jvq1QTWJGPAXTF5FtC6Qouo5v3kERhMpzgMczbfZXe5FR3mAcf/aFuBhBAvjs=
+X-Received: by 2002:a50:aacf:0:b0:53e:1388:cb2e with SMTP id
+ r15-20020a50aacf000000b0053e1388cb2emr3332740edc.35.1697894646692; Sat, 21
+ Oct 2023 06:24:06 -0700 (PDT)
+MIME-Version: 1.0
+References: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
+In-Reply-To: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
+From:   Richard Fontana <rfontana@redhat.com>
+Date:   Sat, 21 Oct 2023 09:23:55 -0400
+Message-ID: <CAC1cPGx-cb+YZ9KgEFvSjtf+fp9Dhcn4sm9qHmFFDRDxb=7fHg@mail.gmail.com>
+Subject: Re: [PATCH] treewide: Add SPDX identifier to IETF ASN.1 modules
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-spdx@vger.kernel.org
-Cc:     David Howells <dhowells@redhat.com>,
+        linux-spdx@vger.kernel.org, David Howells <dhowells@redhat.com>,
         Tadeusz Struk <tadeusz.struk@linaro.org>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         "David S. Miller" <davem@davemloft.net>, keyrings@vger.kernel.org,
@@ -46,184 +78,35 @@ Cc:     David Howells <dhowells@redhat.com>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         Florian Westphal <fw@strlen.de>, coreteam@netfilter.org,
         netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Per section 4.c. of the IETF Trust Legal Provisions, "Code Components"
-in IETF Documents are licensed on the terms of the BSD-3-Clause license:
+On Sat, Oct 21, 2023 at 7:25=E2=80=AFAM Lukas Wunner <lukas@wunner.de> wrot=
+e:
+>
+> Per section 4.c. of the IETF Trust Legal Provisions, "Code Components"
+> in IETF Documents are licensed on the terms of the BSD-3-Clause license:
+>
+> https://trustee.ietf.org/documents/trust-legal-provisions/tlp-5/
+>
+> The term "Code Components" specifically includes ASN.1 modules:
+>
+> https://trustee.ietf.org/documents/trust-legal-provisions/code-components=
+-list-3/
 
-https://trustee.ietf.org/documents/trust-legal-provisions/tlp-5/
+Sorry if this seems super-pedantic but I am pretty sure the license
+text in the IETF Trust Legal Provisions does not actually match SPDX
+`BSD-3-Clause` because of one additional word in clause 3 ("specific"
+before "contributors"), so IMO you should get SPDX to modify its
+definition of `BSD-3-Clause` prior to applying this patch (or get IETF
+to change its version of the license, but I imagine that would be more
+difficult). This issue of a multitude of nonsubstantively different,
+non-matching versions of clause 3 is a common issue that has been
+coming up in the Fedora project's adoption of SPDX identifiers for
+license metadata.
 
-The term "Code Components" specifically includes ASN.1 modules:
-
-https://trustee.ietf.org/documents/trust-legal-provisions/code-components-list-3/
-
-Add an SPDX identifier as well as a copyright notice pursuant to section
-6.d. of the Trust Legal Provisions to all ASN.1 modules in the tree
-which are derived from IETF Documents.
-
-Section 4.d. of the Trust Legal Provisions requests that each Code
-Component identify the RFC from which it is taken, so link that RFC
-in every ASN.1 module.
-
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
----
- I'm adding a new IETF ASN.1 module for PCI device authentication, hence
- had to research what the correct license is.  Thought I'd fix this up
- treewide while at it.
-
- Not included here is fs/smb/client/cifs_spnego_negtokeninit.asn1,
- which is similar to fs/smb/client/ksmbd_spnego_negtokeninit.asn1,
- but contains a Microsoft extension published as Open Specifications
- Documentation.  It's unclear to me what license they use:
- https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-spng/
-
- crypto/asymmetric_keys/pkcs7.asn1            | 7 +++++++
- crypto/asymmetric_keys/pkcs8.asn1            | 6 ++++++
- crypto/asymmetric_keys/x509.asn1             | 7 +++++++
- crypto/asymmetric_keys/x509_akid.asn1        | 5 +++++
- crypto/rsaprivkey.asn1                       | 7 +++++++
- crypto/rsapubkey.asn1                        | 7 +++++++
- fs/smb/server/ksmbd_spnego_negtokeninit.asn1 | 8 ++++++++
- fs/smb/server/ksmbd_spnego_negtokentarg.asn1 | 7 +++++++
- net/ipv4/netfilter/nf_nat_snmp_basic.asn1    | 8 ++++++++
- 9 files changed, 62 insertions(+)
-
-diff --git a/crypto/asymmetric_keys/pkcs7.asn1 b/crypto/asymmetric_keys/pkcs7.asn1
-index 1eca740..28e1f4a 100644
---- a/crypto/asymmetric_keys/pkcs7.asn1
-+++ b/crypto/asymmetric_keys/pkcs7.asn1
-@@ -1,3 +1,10 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 2009 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc5652#section-3
-+
- PKCS7ContentInfo ::= SEQUENCE {
- 	contentType	ContentType ({ pkcs7_check_content_type }),
- 	content		[0] EXPLICIT SignedData OPTIONAL
-diff --git a/crypto/asymmetric_keys/pkcs8.asn1 b/crypto/asymmetric_keys/pkcs8.asn1
-index 702c41a..a2a8af2 100644
---- a/crypto/asymmetric_keys/pkcs8.asn1
-+++ b/crypto/asymmetric_keys/pkcs8.asn1
-@@ -1,3 +1,9 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 2010 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc5958#section-2
- --
- -- This is the unencrypted variant
- --
-diff --git a/crypto/asymmetric_keys/x509.asn1 b/crypto/asymmetric_keys/x509.asn1
-index 92d59c3..feb9573 100644
---- a/crypto/asymmetric_keys/x509.asn1
-+++ b/crypto/asymmetric_keys/x509.asn1
-@@ -1,3 +1,10 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 2008 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc5280#section-4
-+
- Certificate ::= SEQUENCE {
- 	tbsCertificate		TBSCertificate ({ x509_note_tbs_certificate }),
- 	signatureAlgorithm	AlgorithmIdentifier,
-diff --git a/crypto/asymmetric_keys/x509_akid.asn1 b/crypto/asymmetric_keys/x509_akid.asn1
-index 1a33231..164b2ed 100644
---- a/crypto/asymmetric_keys/x509_akid.asn1
-+++ b/crypto/asymmetric_keys/x509_akid.asn1
-@@ -1,3 +1,8 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 2008 IETF Trust and the persons identified as authors
-+-- of the code
-+--
- -- X.509 AuthorityKeyIdentifier
- -- rfc5280 section 4.2.1.1
- 
-diff --git a/crypto/rsaprivkey.asn1 b/crypto/rsaprivkey.asn1
-index 4ce0675..76865124 100644
---- a/crypto/rsaprivkey.asn1
-+++ b/crypto/rsaprivkey.asn1
-@@ -1,3 +1,10 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 2016 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc8017#appendix-A.1.2
-+
- RsaPrivKey ::= SEQUENCE {
- 	version		INTEGER,
- 	n		INTEGER ({ rsa_get_n }),
-diff --git a/crypto/rsapubkey.asn1 b/crypto/rsapubkey.asn1
-index 725498e..0d32b1c 100644
---- a/crypto/rsapubkey.asn1
-+++ b/crypto/rsapubkey.asn1
-@@ -1,3 +1,10 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 2016 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc8017#appendix-A.1.1
-+
- RsaPubKey ::= SEQUENCE {
- 	n INTEGER ({ rsa_get_n }),
- 	e INTEGER ({ rsa_get_e })
-diff --git a/fs/smb/server/ksmbd_spnego_negtokeninit.asn1 b/fs/smb/server/ksmbd_spnego_negtokeninit.asn1
-index 0065f19..00151380 100644
---- a/fs/smb/server/ksmbd_spnego_negtokeninit.asn1
-+++ b/fs/smb/server/ksmbd_spnego_negtokeninit.asn1
-@@ -1,3 +1,11 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 1998, 2000 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc2478#section-3.2.1
-+-- https://www.rfc-editor.org/rfc/rfc2743#section-3.1
-+
- GSSAPI ::=
- 	[APPLICATION 0] IMPLICIT SEQUENCE {
- 		thisMech
-diff --git a/fs/smb/server/ksmbd_spnego_negtokentarg.asn1 b/fs/smb/server/ksmbd_spnego_negtokentarg.asn1
-index 1151933..797e485 100644
---- a/fs/smb/server/ksmbd_spnego_negtokentarg.asn1
-+++ b/fs/smb/server/ksmbd_spnego_negtokentarg.asn1
-@@ -1,3 +1,10 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 1998 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc2478#section-3.2.1
-+
- GSSAPI ::=
- 	CHOICE {
- 		negTokenInit
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.asn1 b/net/ipv4/netfilter/nf_nat_snmp_basic.asn1
-index 24b7326..dc2cc57 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.asn1
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.asn1
-@@ -1,3 +1,11 @@
-+-- SPDX-License-Identifier: BSD-3-Clause
-+--
-+-- Copyright (C) 1990, 2002 IETF Trust and the persons identified as authors
-+-- of the code
-+--
-+-- https://www.rfc-editor.org/rfc/rfc1157#section-4
-+-- https://www.rfc-editor.org/rfc/rfc3416#section-3
-+
- Message ::=
- 	SEQUENCE {
- 		version
--- 
-2.40.1
+Richard
 
