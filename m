@@ -2,236 +2,110 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34590CDB474
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Oct 2023 01:34:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0C5BC0032E
+	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Oct 2023 02:26:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232971AbjJWBeD convert rfc822-to-8bit (ORCPT
+        id S229507AbjJWC0F (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 22 Oct 2023 21:34:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44884 "EHLO
+        Sun, 22 Oct 2023 22:26:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233060AbjJWBeB (ORCPT
+        with ESMTP id S229468AbjJWC0E (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 22 Oct 2023 21:34:01 -0400
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2811F1
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Oct 2023 18:33:55 -0700 (PDT)
-X-UUID: 67ff8c12f71542e4ae515b1eebc7bded-20231023
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.32,REQID:70b5d17e-b734-41ba-af86-1a9a529cf6ee,IP:15,
-        URL:0,TC:0,Content:0,EDM:0,RT:0,SF:-9,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
-        N:release,TS:6
-X-CID-INFO: VERSION:1.1.32,REQID:70b5d17e-b734-41ba-af86-1a9a529cf6ee,IP:15,UR
-        L:0,TC:0,Content:0,EDM:0,RT:0,SF:-9,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-        release,TS:6
-X-CID-META: VersionHash:5f78ec9,CLOUDID:4a252fd7-04a0-4e50-8742-3543eab8cb8e,B
-        ulkID:231020165232WM5C82SF,BulkQuantity:2,Recheck:0,SF:17|19|44|64|66|24|1
-        02,TC:nil,Content:0,EDM:-3,IP:-2,URL:1,File:nil,Bulk:40,QS:nil,BEC:nil,COL
-        :0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0
-X-CID-BVR: 1,UOG
-X-CID-BAS: 1,UOG,0,_
-X-CID-FACTOR: TF_CID_SPAM_FAS,TF_CID_SPAM_FSD,TF_CID_SPAM_FSI,TF_CID_SPAM_ULS,
-        TF_CID_SPAM_SNR
-X-UUID: 67ff8c12f71542e4ae515b1eebc7bded-20231023
-Received: from node4.com.cn [(39.156.73.12)] by mailgw
-        (envelope-from <xiaolinkui@kylinos.cn>)
-        (Generic MTA)
-        with ESMTP id 1828576068; Mon, 23 Oct 2023 09:33:44 +0800
-Received: from node4.com.cn (localhost [127.0.0.1])
-        by node4.com.cn (NSMail) with SMTP id 66F5016001CC9;
-        Mon, 23 Oct 2023 09:33:44 +0800 (CST)
-X-ns-mid: postfix-6535CD78-335374171
-Received: from [172.20.125.11] (unknown [172.20.125.11])
-        by node4.com.cn (NSMail) with ESMTPA id 2CAB616001CC9;
-        Mon, 23 Oct 2023 01:33:42 +0000 (UTC)
-Message-ID: <930d54b4-7573-f83a-e0ac-7d341c8a1aec@kylinos.cn>
-Date:   Mon, 23 Oct 2023 09:33:42 +0800
+        Sun, 22 Oct 2023 22:26:04 -0400
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 697C919E
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Oct 2023 19:26:00 -0700 (PDT)
+Received: by mail-pf1-x42c.google.com with SMTP id d2e1a72fcca58-6b20a48522fso2163939b3a.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Oct 2023 19:26:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1698027960; x=1698632760; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=UJLwrsVY6XmyAIP1SnoymnbfQYmOGrLFkHuYsXveVxo=;
+        b=AX5bqqJi3LsLGMmI5wp8i2SZeF2z9t/gXlHYBF8MIpwoA9fQmyRlE6i6GJqui/O326
+         2CV96v1u1yyHe39zWfH3t48Hgu5vKlFejblP3p5WLMDkCIyU06gBUYkrFnEXgnhjVi+4
+         8NiNSy0Wd7aS+uqdiJWXxSKW1LsidGPujZIqtuElrceI68kwzlLkYoWj96/2Rg7MMBS8
+         EIhukF+Pj2tGGvt1s2VUeEeWCJOYIPGiuJVknmk9YLdNNynqIQ47hLCVh+qRHazyf4Q9
+         6JmHeG56VSxwYf67JdJhpqGks6QVWXdaNyH6rGL99Fvc8XyF/ZDI7m94RITMSlzwEjV3
+         8/Yw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1698027960; x=1698632760;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UJLwrsVY6XmyAIP1SnoymnbfQYmOGrLFkHuYsXveVxo=;
+        b=ZuSH1A9abow8P6wMe81n8f11qwbhiWEqkjGeYh1UWZ+NGwNyQ9OHGLb2d1Nc8PukJC
+         Yn5Ur+oGAC+36sqbO4qGXib553xdmWS+lZTnMlZvLu4x2nGVclvBjUero19bsxhXY3RR
+         SgpKMMpkHzI9GybEIsmqfPOZg5QXBs605isYmgo2b/e6UYlewu3wXZteyxx3DRVwUtVe
+         05Le0DUFQL6Cqds/hxGodXFBnd7+Fz8UQU46ia0kR6QBaueqlI18GdT6DRGbUEwijzoL
+         qxpPGipj3djt4eD/HzI1JzaZAKYK6xO3gWlkAG/Jf460QT+B7eeMpmrOeiqMBdQ4Jja6
+         vwQg==
+X-Gm-Message-State: AOJu0YymAozrpZQLJmfF5obZUkIa/OCkkQe/ALX3OJDIOXr0tjHeI8/Q
+        f2SoMyams2hq6Mwb6hC1pt//eXXYXh4=
+X-Google-Smtp-Source: AGHT+IHPMcHufaE7DlZlQHIzlGzCLxcNV6Qxmf4v0b8Y0lluDK38g/rFNc0nMa2SDuCzL39kqZF6/w==
+X-Received: by 2002:a05:6a00:1788:b0:6b5:86c3:ccaf with SMTP id s8-20020a056a00178800b006b586c3ccafmr7063501pfg.22.1698027959675;
+        Sun, 22 Oct 2023 19:25:59 -0700 (PDT)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id y10-20020aa79e0a000000b006875df4773fsm5111251pfq.163.2023.10.22.19.25.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 22 Oct 2023 19:25:59 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue] include: all: remove trailing spaces
+Date:   Mon, 23 Oct 2023 13:25:55 +1100
+Message-Id: <20231023022555.18740-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH 1/1] netfilter: ipset: fix race condition between
- swap/destroy and kernel side add/del/test
-Content-Language: en-US
-To:     Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc:     netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20231019191937.3931271-1-kadlec@netfilter.org>
- <20231019191937.3931271-2-kadlec@netfilter.org>
- <0fb13f84-821f-7131-e67e-d51e15153692@kylinos.cn>
- <c221a55-ed44-3b2d-ad96-4f8b835745de@netfilter.org>
-From:   Linkui Xiao <xiaolinkui@kylinos.cn>
-In-Reply-To: <c221a55-ed44-3b2d-ad96-4f8b835745de@netfilter.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hello,
+Also use as many leading tabs as posssible.
 
-On 10/20/23 17:18, Jozsef Kadlecsik wrote:
-> On Fri, 20 Oct 2023, Linkui Xiao wrote:
->
->> On 10/20/23 03:19, Jozsef Kadlecsik wrote:
->>> Linkui Xiao reported that there's a race condition when ipset swap and
->>> destroy is
->>> called, which can lead to crash in add/del/test element operations. Swap
->>> then
->>> destroy are usual operations to replace a set with another one in a
->>> production
->>> system. The issue can in some cases be reproduced with the script:
->>>
->>> ipset create hash_ip1 hash:net family inet hashsize 1024 maxelem 1048576
->>> ipset add hash_ip1 172.20.0.0/16
->>> ipset add hash_ip1 192.168.0.0/16
->>> iptables -A INPUT -m set --match-set hash_ip1 src -j ACCEPT
->>> while [ 1 ]
->>> do
->>> 	# ... Ongoing traffic...
->>>           ipset create hash_ip2 hash:net family inet hashsize 1024 maxelem
->>> 1048576
->>>           ipset add hash_ip2 172.20.0.0/16
->>>           ipset swap hash_ip1 hash_ip2
->>>           ipset destroy hash_ip2
->>>           sleep 0.05
->>> done
->>>
->>> In the race case the possible order of the operations are
->>>
->>> 	CPU0			CPU1
->>> 	ip_set_test
->>> 				ipset swap hash_ip1 hash_ip2
->>> 				ipset destroy hash_ip2
->>> 	hash_net_kadt
->>>
->>> Swap replaces hash_ip1 with hash_ip2 and then destroy removes hash_ip2 which
->>> is the original hash_ip1. ip_set_test was called on hash_ip1 and because
->>> destroy
->>> removed it, hash_net_kadt crashes.
->>>
->>> The fix is to protect both the list of the sets and the set pointers in an
->>> extended RCU
->>> region and before calling destroy, wait to finish all started
->>> rcu_read_lock().
->>>
->>> The first version of the patch was written by Linkui Xiao
->>> <xiaolinkui@kylinos.cn>.
->>>
->>> Closes:
->>> https://lore.kernel.org/all/69e7963b-e7f8-3ad0-210-7b86eebf7f78@netfilter.org/
->>> Reported by: Linkui Xiao <xiaolinkui@kylinos.cn>
->>> Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
->>> ---
->>>    net/netfilter/ipset/ip_set_core.c | 28 +++++++++++++++++++++++-----
->>>    1 file changed, 23 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/net/netfilter/ipset/ip_set_core.c
->>> b/net/netfilter/ipset/ip_set_core.c
->>> index e564b5174261..7eedd2825e0c 100644
->>> --- a/net/netfilter/ipset/ip_set_core.c
->>> +++ b/net/netfilter/ipset/ip_set_core.c
->>> @@ -704,13 +704,18 @@ ip_set_rcu_get(struct net *net, ip_set_id_t index)
->>>    	struct ip_set_net *inst = ip_set_pernet(net);
->>>      	rcu_read_lock();
->>> -	/* ip_set_list itself needs to be protected */
->>> +	/* ip_set_list and the set pointer need to be protected */
->>>    	set = rcu_dereference(inst->ip_set_list)[index];
->>> -	rcu_read_unlock();
->>>      	return set;
->>>    }
->>>    +static inline void
->>> +ip_set_rcu_put(struct ip_set *set __always_unused)
->>> +{
->>> +	rcu_read_unlock();
->>> +}
->>> +
->>>    static inline void
->>>    ip_set_lock(struct ip_set *set)
->>>    {
->>> @@ -736,8 +741,10 @@ ip_set_test(ip_set_id_t index, const struct sk_buff
->>> *skb,
->>>    	pr_debug("set %s, index %u\n", set->name, index);
->>>      	if (opt->dim < set->type->dimension ||
->>> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
->>> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
->>> +		ip_set_rcu_put(set);
->>>    		return 0;
->>> +	}
->>>      	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
->>>    @@ -756,6 +763,7 @@ ip_set_test(ip_set_id_t index, const struct sk_buff
->>> *skb,
->>>    			ret = -ret;
->>>    	}
->>>    +	ip_set_rcu_put(set);
->>>    	/* Convert error codes to nomatch */
->>>    	return (ret < 0 ? 0 : ret);
->>>    }
->>> @@ -772,12 +780,15 @@ ip_set_add(ip_set_id_t index, const struct sk_buff
->>> *skb,
->>>    	pr_debug("set %s, index %u\n", set->name, index);
->>>      	if (opt->dim < set->type->dimension ||
->>> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
->>> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
->>> +		ip_set_rcu_put(set);
->>>    		return -IPSET_ERR_TYPE_MISMATCH;
->>> +	}
->>>      	ip_set_lock(set);
->>>    	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
->>>    	ip_set_unlock(set);
->>> +	ip_set_rcu_put(set);
->>>      	return ret;
->>>    }
->>> @@ -794,12 +805,15 @@ ip_set_del(ip_set_id_t index, const struct sk_buff
->>> *skb,
->>>    	pr_debug("set %s, index %u\n", set->name, index);
->>>      	if (opt->dim < set->type->dimension ||
->>> -	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
->>> +	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC)) {
->>> +		ip_set_rcu_put(set);
->>>    		return -IPSET_ERR_TYPE_MISMATCH;
->>> +	}
->>>      	ip_set_lock(set);
->>>    	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
->>>    	ip_set_unlock(set);
->>> +	ip_set_rcu_put(set);
->>>      	return ret;
->>>    }
->>> @@ -874,6 +888,7 @@ ip_set_name_byindex(struct net *net, ip_set_id_t index,
->>> char *name)
->>>    	read_lock_bh(&ip_set_ref_lock);
->>>    	strscpy_pad(name, set->name, IPSET_MAXNAMELEN);
->>>    	read_unlock_bh(&ip_set_ref_lock);
->>> +	ip_set_rcu_put(set);
->>>    }
->>>    EXPORT_SYMBOL_GPL(ip_set_name_byindex);
->>>    @@ -1188,6 +1203,9 @@ static int ip_set_destroy(struct sk_buff *skb, const
->>> struct nfnl_info *info,
->>>    	if (unlikely(protocol_min_failed(attr)))
->>>    		return -IPSET_ERR_PROTOCOL;
->>>    +	/* Make sure all readers of the old set pointers are completed. */
->>> +	synchronize_rcu();
->>> +
->>>    	/* Must wait for flush to be really finished in list:set */
->>>    	rcu_barrier();
->>>    
->> This patch is valid in my case.But I have a question, if there are many
->> concurrent ipsets. One ip_set_test was not completed, and another
->> ip_set_test also came in, there are always some rcu_read_lock() without
->> unlock. The ip_set_destroy will always wait to finish all started
->> rcu_read_lock().  Is there a problem? Actually, ip_set_destroy should
->> only need to wait for the ipset (the one that was swapped) to finish
->> ip_set_test. It is unnecessary to wait for other ipsets ongoing traffic.
-> synchronize_rcu() waits for already initiated rcu_read_lock() regions to
-> be completed with rcu_read_unlock(). If a parallel processing enters an
-> rcu_read_lock() protected area while synchronize_rcu() is working, it
-> won't wait for those to be completed as well. So it does exactly what we'd
-> like to achieve.
->
-> Somewhere we have to pay the price for excluding clashing operations.
-> ip_set_destroy() is the best place because we can destroy sets only which
-> are not used by ipset match/target/ematch and thus it does not affect
-> ongoing traffic at all.
-I understand. Thank you very much.
->
-> Best regards,
-> Jozsef
+Fixes: c5bcd787a6a5 ("src: Always use pktb as formal arg of type struct pkt_buff")
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ include/libnetfilter_queue/libnetfilter_queue.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index a19122f..ec727fc 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -3,9 +3,9 @@
+  * (C) 2005 by Harald Welte <laforge@gnumonks.org>
+  *
+  *
+- * Changelog : 
++ * Changelog :
+  * 	(2005/08/11)  added  parsing function (Eric Leblond <regit@inl.fr>)
+- * 
++ *
+  * This software may be used and distributed according to the terms
+  * of the GNU General Public License, incorporated herein by reference.
+  */
+@@ -82,7 +82,7 @@ extern int nfq_set_verdict_batch2(struct nfq_q_handle *qh,
+ 			    uint32_t mark);
+ 
+ extern __attribute__((deprecated))
+-int nfq_set_verdict_mark(struct nfq_q_handle *qh, 
++int nfq_set_verdict_mark(struct nfq_q_handle *qh,
+ 			 uint32_t id,
+ 			 uint32_t verdict,
+ 			 uint32_t mark,
+@@ -111,7 +111,7 @@ extern int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata);
+ extern int nfq_get_indev_name(struct nlif_handle *nlif_handle,
+ 			      struct nfq_data *nfad, char *name);
+ extern int nfq_get_physindev_name(struct nlif_handle *nlif_handle,
+-			          struct nfq_data *nfad, char *name);
++				  struct nfq_data *nfad, char *name);
+ extern int nfq_get_outdev_name(struct nlif_handle *nlif_handle,
+ 			       struct nfq_data *nfad, char *name);
+ extern int nfq_get_physoutdev_name(struct nlif_handle *nlif_handle,
+-- 
+2.35.8
+
