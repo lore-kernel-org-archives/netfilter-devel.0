@@ -2,46 +2,72 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33360C00A8F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 10:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB131C00A8F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 10:40:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234014AbjJXK3P (ORCPT
+        id S234017AbjJXKkx (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Oct 2023 06:29:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46518 "EHLO
+        Tue, 24 Oct 2023 06:40:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233885AbjJXK3O (ORCPT
+        with ESMTP id S232782AbjJXKkw (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2023 06:29:14 -0400
+        Tue, 24 Oct 2023 06:40:52 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC6D4DE
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2023 03:29:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01AFE110
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2023 03:40:49 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qvEel-0007Zv-SD; Tue, 24 Oct 2023 12:29:03 +0200
-Date:   Tue, 24 Oct 2023 12:29:03 +0200
+        (envelope-from <fw@breakpoint.cc>)
+        id 1qvEq8-0007fp-KG; Tue, 24 Oct 2023 12:40:48 +0200
 From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/3] tests/shell: add
- "bogons/nft-f/zero_length_devicename2_assert"
-Message-ID: <20231024102903.GC2255@breakpoint.cc>
-References: <20231023170058.919275-1-thaller@redhat.com>
- <ZTeVIzWLhSWn4wsA@calendula>
- <24637db2fe827e321ea152b5b24cfa3a29d3660d.camel@redhat.com>
- <ZTebRvOP2pEoHsV+@calendula>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] check-tree.sh: check and flag /bin/sh usage
+Date:   Tue, 24 Oct 2023 12:40:40 +0200
+Message-ID: <20231024104044.18669-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZTebRvOP2pEoHsV+@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> /tmp/nft-test.latest.root/test-testcases-sets-elem_opts_compat_0.1/testout.log:testcases/sets/elem_opts_compat_0: 20: Syntax error: redirection unexpected
-> /tmp/nft-test.latest.root/test-testcases-sets-elem_opts_compat_0.1/rc-failed-exit:2
+Almost all shell tests use /bin/bash already.
 
-The test case is broken, it uses /bin/sh but needs /bin/bash.
+In some cases we've had shell tests use /bin/sh, but still having
+a bashism.  This causes failures on systems where sh is dash or another,
+strict bourne shell.
+
+Flag those via check-tree.sh.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/shell/testcases/sets/elem_opts_compat_0 | 2 +-
+ tools/check-tree.sh                           | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/tests/shell/testcases/sets/elem_opts_compat_0 b/tests/shell/testcases/sets/elem_opts_compat_0
+index e0129536fcb7..3467cc07e646 100755
+--- a/tests/shell/testcases/sets/elem_opts_compat_0
++++ b/tests/shell/testcases/sets/elem_opts_compat_0
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/bash
+ 
+ # ordering of element options and expressions has changed, make sure parser
+ # accepts both ways
+diff --git a/tools/check-tree.sh b/tools/check-tree.sh
+index c3aaa08d05ce..e3ddf8bdea58 100755
+--- a/tools/check-tree.sh
++++ b/tools/check-tree.sh
+@@ -68,6 +68,7 @@ if [ "${#SHELL_TESTS[@]}" -eq 0 ] ; then
+ fi
+ for t in "${SHELL_TESTS[@]}" ; do
+ 	check_shell_dumps "$t"
++	head -n 1 "$t" |grep -q  '^#!/bin/sh' && echo "$t uses sh instead of bash" && EXIT_CODE=1
+ done
+ 
+ ##############################################################################
+-- 
+2.41.0
+
