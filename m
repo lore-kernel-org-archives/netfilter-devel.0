@@ -2,122 +2,93 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E4B9C00A8F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 19:38:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DF47C07545
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 19:41:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344046AbjJXTi1 (ORCPT
+        id S1344291AbjJXTk6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 24 Oct 2023 15:38:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59100 "EHLO
+        Tue, 24 Oct 2023 15:40:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343815AbjJXTi1 (ORCPT
+        with ESMTP id S234963AbjJXTk4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2023 15:38:27 -0400
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8A62FB3
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2023 12:38:24 -0700 (PDT)
+        Tue, 24 Oct 2023 15:40:56 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9657210DD
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2023 12:40:52 -0700 (PDT)
+Received: from [78.30.35.151] (port=58708 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qvNGg-008gpR-D7; Tue, 24 Oct 2023 21:40:49 +0200
+Date:   Tue, 24 Oct 2023 21:40:45 +0200
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     vladbu@nvidia.com, fw@strlen.de, paulb@nvidia.com
-Subject: [PATCH nf] netfilter: nf_flow_table: GC pushes back packets to classic path
-Date:   Tue, 24 Oct 2023 21:38:15 +0200
-Message-Id: <20231024193815.1987-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Vlad Buslov <vladbu@nvidia.com>
+Cc:     netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
+        fw@strlen.de, Paul Blakey <paulb@nvidia.com>
+Subject: Re: [PATCH net] netfilter: flowtable: additional checks for outdated
+ flows
+Message-ID: <ZTgdvbb3Z8RrFWzJ@calendula>
+References: <20231024171718.4080012-1-vladbu@nvidia.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231024171718.4080012-1-vladbu@nvidia.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Since 41f2c7c342d3 ("net/sched: act_ct: Fix promotion of offloaded
-unreplied tuple"), flowtable GC pushes back flows with IPS_SEEN_REPLY
-back to classic path in every run, ie. every second. This is because of
-a new check for NF_FLOW_HW_ESTABLISHED which is specific of sched/act_ct.
+Hi Vlad,
 
-In Netfilter's flowtable case, NF_FLOW_HW_ESTABLISHED never gets set on
-and IPS_SEEN_REPLY is unreliable since users decide when to offload the
-flow before, such bit might be set on at a later stage.
+On Tue, Oct 24, 2023 at 07:17:18PM +0200, Vlad Buslov wrote:
+> Current nf_flow_is_outdated() implementation considers any flow table flow
+> which state diverged from its underlying CT connection status for teardown
+> which can be problematic in the following cases:
+> 
+> - Flow has never been offloaded to hardware in the first place either
+> because flow table has hardware offload disabled (flag
+> NF_FLOWTABLE_HW_OFFLOAD is not set) or because it is still pending on 'add'
+> workqueue to be offloaded for the first time. The former is incorrect, the
+> later generates excessive deletions and additions of flows.
+> 
+> - Flow is already pending to be updated on the workqueue. Tearing down such
+> flows will also generate excessive removals from the flow table, especially
+> on highly loaded system where the latency to re-offload a flow via 'add'
+> workqueue can be quite high.
+> 
+> When considering a flow for teardown as outdated verify that it is both
+> offloaded to hardware and doesn't have any pending updates.
 
-Fix it by adding a custom .gc handler that sched/act_ct can use to
-deal with its NF_FLOW_HW_ESTABLISHED bit.
+Thanks.
 
-Fixes: 41f2c7c342d3 ("net/sched: act_ct: Fix promotion of offloaded unreplied tuple")
-Reported-by: Vladimir Smelhaus <vl.sm@email.cz>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_flow_table.h |  1 +
- net/netfilter/nf_flow_table_core.c    | 14 +++++++-------
- net/sched/act_ct.c                    |  7 +++++++
- 3 files changed, 15 insertions(+), 7 deletions(-)
+I have posted an alternative patch to move the handling of
+NF_FLOW_HW_ESTABLISHED, which is specific for sched/act_ct:
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index d466e1a3b0b1..fe1507c1db82 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -53,6 +53,7 @@ struct nf_flowtable_type {
- 	struct list_head		list;
- 	int				family;
- 	int				(*init)(struct nf_flowtable *ft);
-+	bool				(*gc)(const struct flow_offload *flow);
- 	int				(*setup)(struct nf_flowtable *ft,
- 						 struct net_device *dev,
- 						 enum flow_block_command cmd);
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 1d34d700bd09..920a5a29ae1d 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -316,12 +316,6 @@ void flow_offload_refresh(struct nf_flowtable *flow_table,
- }
- EXPORT_SYMBOL_GPL(flow_offload_refresh);
- 
--static bool nf_flow_is_outdated(const struct flow_offload *flow)
--{
--	return test_bit(IPS_SEEN_REPLY_BIT, &flow->ct->status) &&
--		!test_bit(NF_FLOW_HW_ESTABLISHED, &flow->flags);
--}
--
- static inline bool nf_flow_has_expired(const struct flow_offload *flow)
- {
- 	return nf_flow_timeout_delta(flow->timeout) <= 0;
-@@ -407,12 +401,18 @@ nf_flow_table_iterate(struct nf_flowtable *flow_table,
- 	return err;
- }
- 
-+static bool nf_flow_custom_gc(struct nf_flowtable *flow_table,
-+			      const struct flow_offload *flow)
-+{
-+	return flow_table->type->gc && flow_table->type->gc(flow);
-+}
-+
- static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
- 				    struct flow_offload *flow, void *data)
- {
- 	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
--	    nf_flow_is_outdated(flow))
-+	    nf_flow_custom_gc(flow_table, flow))
- 		flow_offload_teardown(flow);
- 
- 	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 7c652d14528b..0d44da4e8c8e 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -278,7 +278,14 @@ static int tcf_ct_flow_table_fill_actions(struct net *net,
- 	return err;
- }
- 
-+static bool tcf_ct_flow_is_outdated(const struct flow_offload *flow)
-+{
-+	return test_bit(IPS_SEEN_REPLY_BIT, &flow->ct->status) &&
-+	       !test_bit(NF_FLOW_HW_ESTABLISHED, &flow->flags);
-+}
-+
- static struct nf_flowtable_type flowtable_ct = {
-+	.gc		= tcf_ct_flow_is_outdated,
- 	.action		= tcf_ct_flow_table_fill_actions,
- 	.owner		= THIS_MODULE,
- };
--- 
-2.30.2
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20231024193815.1987-1-pablo@netfilter.org/
 
+it is a bit more code, but it makes it easier to understand for the
+code reader that this bit is net/sched specific.
+
+> Fixes: 41f2c7c342d3 ("net/sched: act_ct: Fix promotion of offloaded unreplied tuple")
+> Reviewed-by: Paul Blakey <paulb@nvidia.com>
+> Signed-off-by: Vlad Buslov <vladbu@nvidia.com>
+> ---
+>  net/netfilter/nf_flow_table_core.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 1d34d700bd09..db404f89d3d7 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -319,6 +319,8 @@ EXPORT_SYMBOL_GPL(flow_offload_refresh);
+>  static bool nf_flow_is_outdated(const struct flow_offload *flow)
+>  {
+>  	return test_bit(IPS_SEEN_REPLY_BIT, &flow->ct->status) &&
+> +		test_bit(IPS_HW_OFFLOAD_BIT, &flow->ct->status) &&
+> +		!test_bit(NF_FLOW_HW_PENDING, &flow->flags) &&
+>  		!test_bit(NF_FLOW_HW_ESTABLISHED, &flow->flags);
+>  }
+>  
+> -- 
+> 2.39.2
+> 
