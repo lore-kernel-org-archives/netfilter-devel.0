@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 490CAC07545
-	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 03:19:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B092C25B6B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 03:29:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230284AbjJXDTG (ORCPT
+        id S231982AbjJXD3x (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Oct 2023 23:19:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39486 "EHLO
+        Mon, 23 Oct 2023 23:29:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229688AbjJXDTF (ORCPT
+        with ESMTP id S229688AbjJXD3w (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Oct 2023 23:19:05 -0400
+        Mon, 23 Oct 2023 23:29:52 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B4E4D7D;
-        Mon, 23 Oct 2023 20:18:59 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.200])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4SDy1j0JsTz67nNy;
-        Tue, 24 Oct 2023 11:18:17 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC72883;
+        Mon, 23 Oct 2023 20:29:46 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4SDxLc48vtz6J9bM;
+        Tue, 24 Oct 2023 10:47:52 +0800 (CST)
 Received: from [10.123.123.126] (10.123.123.126) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Tue, 24 Oct 2023 04:18:55 +0100
-Message-ID: <ea02392e-4460-9695-050f-7519aecebec2@huawei.com>
-Date:   Tue, 24 Oct 2023 06:18:54 +0300
+ 15.1.2507.31; Tue, 24 Oct 2023 03:51:29 +0100
+Message-ID: <a627592b-0e31-761c-828a-5c6c4cdf45cf@huawei.com>
+Date:   Tue, 24 Oct 2023 05:51:28 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.4.1
@@ -46,7 +46,7 @@ In-Reply-To: <20231020.ido6Aih0eiGh@digikod.net>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Originating-IP: [10.123.123.126]
-X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
  lhrpeml500004.china.huawei.com (7.191.163.9)
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -728,23 +728,14 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 > ipv4_tcp.with_fs and make it check ruleset->access_masks[] and rule
 > addition of different types.
 
-   About my previous comment.
-
-   Checking the code we can  notice that adding fs mask goes first:
-
-...
-if (fs_access_mask)
-		landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
-if (net_access_mask)
-		landlock_add_net_access_mask(new_ruleset, net_access_mask, 0);
-....
-
-So with we change "ruleset->access_masks[layer_level] |="
- >> > to "ruleset->access_masks[layer_level] =" in 
-landlock_add_fs_access_mask() nothing bad will happen.
-But if we do that in landlock_add_net_access_mask()
-fs mask will be overwritten and adding fs rule will fail
-(as unhandled allowed_accesss).
+Thinking about this test. We don't need to add any additional ASSERT 
+here. Anyway if we accidentally change 
+"ruleset->access_masks[layer_level] |=" to 
+"ruleset->access_masks[layer_level] =" we will fail either in opening 
+directory or in port binding, cause adding a second rule (fs or net) 
+will overwrite a first one's mask. it does not matter which one goes 
+first. I will check it and send you a message.
+What do you think?
 
 > 
 >> > 
