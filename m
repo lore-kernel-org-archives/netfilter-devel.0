@@ -2,172 +2,85 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CCB7C25B47
-	for <netfilter-devel@archiver.kernel.org>; Mon, 23 Oct 2023 17:34:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCEE8C00A8F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 24 Oct 2023 00:51:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230081AbjJWReD (ORCPT
+        id S231172AbjJXAvU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 23 Oct 2023 13:34:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39998 "EHLO
+        Mon, 23 Oct 2023 20:51:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59582 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233593AbjJWRdx (ORCPT
+        with ESMTP id S231152AbjJXAvT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Oct 2023 13:33:53 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F313C94
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Oct 2023 10:33:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1698082391;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=3dzxKQ5mnOM3P9EGuL92ja1HRn79vJ1JUhLdUk3kVIc=;
-        b=aN/519yPHtEAujIOOEmRurg4EnXpcfnPKbTJdJAMFKznxCAMHM8ftwYjA/yIKmmMPh6VOe
-        z/4QDMO2PnN/lUVYiv7NxSnaK9OrGj21vT6X9r8ErJ0dCNiq93ytLl3eOGgSC8fUqqzpsc
-        xSGiVDm0VmamYEV6BClboTJuZ6wr2FM=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-110-Vv4YzkOzNiCdNKbAU4LUQw-1; Mon, 23 Oct 2023 13:33:09 -0400
-X-MC-Unique: Vv4YzkOzNiCdNKbAU4LUQw-1
-Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-507e110795aso809826e87.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Oct 2023 10:33:09 -0700 (PDT)
+        Mon, 23 Oct 2023 20:51:19 -0400
+Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38E9DC0
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Oct 2023 17:51:15 -0700 (PDT)
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-6b2018a11efso3819488b3a.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Oct 2023 17:51:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1698108675; x=1698713475; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=Rx+NYSMQLKncZ9DsNSCnZDiVltv1MslaEdc9dFB//Y8=;
+        b=VmhRQjMILRP2n9j3i0F3YtUOAuLIGzhUkkoJ/O2S8IvIuksRC9x66nwepmz51is60N
+         6ADxI0I0LcBNgB5LR0W43RYO88gaznhrPLYIZne7FYN11RFErm6X7w1bjvR4+n0U9Xw7
+         r774ATQ58fRXZuTbXp3SO5SwrCMW7qmHjngfooG+I2OzsjrfcYXXDZeJU9lH+Ye53Pfr
+         QTQ4cRIASgKufifL1IT/tW/OxEGKNkjDrFGGOvBs/amGx5+UU6jJWZcOHDwCNORYaurh
+         KKntZfW9fyw1qz7GOfzy2ZQ1C/vVNhtkqYHW9aFu24+6OnTtdaPnxmQ+vXaTFs0OFSGh
+         gN5w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698082387; x=1698687187;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=3dzxKQ5mnOM3P9EGuL92ja1HRn79vJ1JUhLdUk3kVIc=;
-        b=QaJ9EuMAI2mNZMetn0OZT5mhBbKw50IOLLI7ne0UM9noPJGni8CxuLXfWd+kyvLKiv
-         KH9odcIfjFf4ARrvh84SOQPgmTNsfZev0ZleCanK0g8Uog3f90XDTWAhrrjvMOcv5QRr
-         qvCUMJKH/iNpUTRTSA0Y/OZlI3PceD8PPOTkCZErbGYia311AppWHy0n95mFPUO/ORzL
-         4Rj41bmCqOpf139F8/0Yia8Qt+n0cNidGYGOZYBc4IPbFrchDorE3mbQjd9YMABiIh54
-         L8bX1NbUIF2P1IKWUTGgGAT8z+hK+hnKlMRdAC46A8csX+rmjnpTMWz3n9aIG0l8ro62
-         mK6A==
-X-Gm-Message-State: AOJu0Yyn857gj8lspq3mV8WRTdr6LdYwlHLazeNk/1Q0tM/8XoDqRPMv
-        3Qw87Ku5R8A7GQcUMnZucmaZ2ISX/QO/32Wk2WIW721PQXgnaDzwFqrSKNwfClkp/kdY1W/4JCk
-        DcgSYo4M48x8sJx8nwkrqsdmQsG0b0iZvoIKL
-X-Received: by 2002:a05:6512:1594:b0:503:404:b44c with SMTP id bp20-20020a056512159400b005030404b44cmr6818697lfb.1.1698082387396;
-        Mon, 23 Oct 2023 10:33:07 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IG9DTK4lyPibir6iJsVbo6x6X/y70lSoKTpp45mRzMkKydFhu2c5W19cCFFnaeYhtETCCbJDg==
-X-Received: by 2002:a05:6512:1594:b0:503:404:b44c with SMTP id bp20-20020a056512159400b005030404b44cmr6818685lfb.1.1698082387018;
-        Mon, 23 Oct 2023 10:33:07 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.169.33])
-        by smtp.gmail.com with ESMTPSA id qq21-20020a17090720d500b00988f168811bsm7006877ejb.135.2023.10.23.10.33.06
+        d=1e100.net; s=20230601; t=1698108675; x=1698713475;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Rx+NYSMQLKncZ9DsNSCnZDiVltv1MslaEdc9dFB//Y8=;
+        b=F1NvkOF9vi7mE/FXcGhUew+rsA6Yis4bn6SBhA9ZieUaLvsVxuuIDb05ZUXib1eJZ7
+         yFwEPqz+2zADgNB5MPOf1vjOCh5i6V5zvbildxZZMvsnZFY5Zvo2PEMHOwdyLA5caqFo
+         HgU3CdoPn/naMDNC37av2FBfHDkTfZRCF0TFgMT20moRBZtEBY0UlI8RA6jXtLNfkBfD
+         B/B4RHUA0EXguluBn4ebq08dyYf4I3B8IfBVJjWn3sQl6LkrutlYVh/abf+T+Bm8pT0u
+         TS8XhehSRpYvoBIAs4j83tzLtMOfhivlNErHxGm4RhYndIGLfRx2aQIZ4P9miTb9xwhA
+         XCIw==
+X-Gm-Message-State: AOJu0YzI/58uaEzVVNHGmuj4ImmpFEPJjuNTfogJyHl3nvOGR1PZH/7o
+        Ri1H6gMbp6USWFuVDSPjOBtIxjX4swQ=
+X-Google-Smtp-Source: AGHT+IGWV+PZdj3AeXYtHT37AoXi01oGPCfP5Parcue4BjZPmwpn5h3SY6mhaoHXnfxddaj9kfjq2w==
+X-Received: by 2002:a05:6a00:1747:b0:6b1:c1c4:ae98 with SMTP id j7-20020a056a00174700b006b1c1c4ae98mr13071258pfc.18.1698108674695;
+        Mon, 23 Oct 2023 17:51:14 -0700 (PDT)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id q12-20020aa7982c000000b006bfb91ac2afsm1809497pfl.140.2023.10.23.17.51.13
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Oct 2023 10:33:06 -0700 (PDT)
-Message-ID: <84b4439a830c7898376a054edacaf0a3cb0f00b5.camel@redhat.com>
-Subject: Re: [PATCH nft 3/3] parser_bison: fix length check for ifname in
- ifname_expr_alloc()
-From:   Thomas Haller <thaller@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Mon, 23 Oct 2023 19:33:05 +0200
-In-Reply-To: <ZTaqeZ3kgMNj/WZK@calendula>
-References: <20231023170058.919275-1-thaller@redhat.com>
-         <20231023170058.919275-3-thaller@redhat.com> <ZTaqG+UTE/3JHdyW@calendula>
-         <ZTaqeZ3kgMNj/WZK@calendula>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Mon, 23 Oct 2023 17:51:14 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue 0/1] libnfnetlink dependency elimination
+Date:   Tue, 24 Oct 2023 11:51:09 +1100
+Message-Id: <20231024005110.19686-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Mon, 2023-10-23 at 19:16 +0200, Pablo Neira Ayuso wrote:
-> On Mon, Oct 23, 2023 at 07:15:10PM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Oct 23, 2023 at 07:00:47PM +0200, Thomas Haller wrote:
-> > > IFNAMSIZ is 16, and the allowed byte length of the name is one
-> > > less than
-> > > that. Fix the length check and adjust a test for covering the
-> > > longest
-> > > allowed interface name.
-> > >=20
-> > > This is obviously a change in behavior, because previously
-> > > interface
-> > > names with length 16 were accepted and were silently truncated
-> > > along the
-> > > way. Now they are rejected as invalid.
-> > >=20
-> > > Fixes: fa52bc225806 ('parser: reject zero-length interface
-> > > names')
-> > > Signed-off-by: Thomas Haller <thaller@redhat.com>
-> > > ---
-> > > =C2=A0src/parser_bison.y=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 3 ++-
-> > > =C2=A0tests/shell/testcases/chains/0042chain_variable_0 | 7 +------
-> > > =C2=A02 files changed, 3 insertions(+), 7 deletions(-)
-> > >=20
-> > > diff --git a/src/parser_bison.y b/src/parser_bison.y
-> > > index f0652ba651c6..9bfc3cdb2d12 100644
-> > > --- a/src/parser_bison.y
-> > > +++ b/src/parser_bison.y
-> > > @@ -16,6 +16,7 @@
-> > > =C2=A0#include <stdio.h>
-> > > =C2=A0#include <inttypes.h>
-> > > =C2=A0#include <syslog.h>
-> > > +#include <net/if.h>
-> > > =C2=A0#include <netinet/ip.h>
-> > > =C2=A0#include <netinet/tcp.h>
-> > > =C2=A0#include <netinet/if_ether.h>
-> > > @@ -158,7 +159,7 @@ static struct expr *ifname_expr_alloc(const
-> > > struct location *location,
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0return NULL;
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
-> > > =C2=A0
-> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (length > 16) {
-> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (length >=3D IFNAMSIZ) =
-{
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0xfree(name);
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0erec_queue(error(location, "interface name too
-> > > long"), queue);
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0return NULL;
-> > > diff --git a/tests/shell/testcases/chains/0042chain_variable_0
-> > > b/tests/shell/testcases/chains/0042chain_variable_0
-> > > index 739dc05a1777..a4b929f7344c 100755
-> > > --- a/tests/shell/testcases/chains/0042chain_variable_0
-> > > +++ b/tests/shell/testcases/chains/0042chain_variable_0
-> > > @@ -26,18 +26,13 @@ table netdev filter2 {
-> > > =C2=A0
-> > > =C2=A0rc=3D0
-> > > =C2=A0$NFT -f - <<< $EXPECTED || rc=3D$?
-> > > -test "$rc" =3D 0
-> > > +test "$rc" =3D 1
-> > > =C2=A0cat <<EOF | $DIFF -u <($NFT list ruleset) -
-> > > =C2=A0table netdev filter1 {
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0chain Main_Ingress1 {
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0type filter hook ingress device "lo" priority -
-> > > 500; policy accept;
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
-> > > =C2=A0}
-> > > -table netdev filter2 {
-> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0chain Main_Ingress2 {
-> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0type filter hook ingress devices =3D {
-> > > d23456789012345, lo } priority -500; policy accept;
-> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
-> > > -}
-> >=20
-> > Please, do not remove it, fix this test.
->=20
-> Or maybe I am missing the reason for this change? It seems this
-> d23456789012345 was added to your previous patch in this series.
->=20
->=20
+Hi Pablo,
 
-The point is to add a test for the bug first.
+This is the first step towards moving to 100% libmnl use.
 
-Followed by the fix. And the change to the test shows how the fix
-fixes.
+AFAICS these 2 funtions just have to go otherwise we are stuck with
+libnfnetlink for ever.
 
+Cheers ... Duncan.
 
-Thomas
+Duncan Roe (1):
+  Retire 2 libnfnetlink-specific functions
+
+ .gitignore                                      | 1 +
+ include/libnetfilter_queue/libnetfilter_queue.h | 2 --
+ src/libnetfilter_queue.c                        | 5 +++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+-- 
+2.35.8
 
