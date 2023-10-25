@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB8C4C27C46
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Oct 2023 21:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DEBCC25B72
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Oct 2023 21:26:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229672AbjJYV0M (ORCPT
+        id S230222AbjJYV0N (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Oct 2023 17:26:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49404 "EHLO
+        Wed, 25 Oct 2023 17:26:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230222AbjJYV0J (ORCPT
+        with ESMTP id S229944AbjJYV0J (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 25 Oct 2023 17:26:09 -0400
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 99446193;
-        Wed, 25 Oct 2023 14:26:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D7BDE183;
+        Wed, 25 Oct 2023 14:26:07 -0700 (PDT)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com, fw@strlen.de
-Subject: [PATCH net-next 06/19] br_netfilter: use single forward hook for ip and arp
-Date:   Wed, 25 Oct 2023 23:25:42 +0200
-Message-Id: <20231025212555.132775-7-pablo@netfilter.org>
+Subject: [PATCH net-next 10/19] netfilter: nf_tables: A better name for nft_obj_filter
+Date:   Wed, 25 Oct 2023 23:25:46 +0200
+Message-Id: <20231025212555.132775-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231025212555.132775-1-pablo@netfilter.org>
 References: <20231025212555.132775-1-pablo@netfilter.org>
@@ -32,154 +32,98 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-br_netfilter registers two forward hooks, one for ip and one for arp.
+Name it for what it is supposed to become, a real nft_obj_dump_ctx. No
+functional change intended.
 
-Just use a common function for both and then call the arp/ip helper
-as needed.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/br_netfilter_hooks.c | 72 ++++++++++++++++-----------------
- 1 file changed, 34 insertions(+), 38 deletions(-)
+ net/netfilter/nf_tables_api.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 4c0c9f838f5c..6adcb45bca75 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -570,18 +570,12 @@ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e2e0586307f5..2b81069ea3f6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7681,7 +7681,7 @@ static void audit_log_obj_reset(const struct nft_table *table,
+ 	kfree(buf);
  }
  
+-struct nft_obj_filter {
++struct nft_obj_dump_ctx {
+ 	char		*table;
+ 	u32		type;
+ };
+@@ -7691,7 +7691,7 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+ 	const struct nft_table *table;
+ 	unsigned int idx = 0, s_idx = cb->args[0];
+-	struct nft_obj_filter *filter = cb->data;
++	struct nft_obj_dump_ctx *ctx = cb->data;
+ 	struct net *net = sock_net(skb->sk);
+ 	int family = nfmsg->nfgen_family;
+ 	struct nftables_pernet *nft_net;
+@@ -7717,10 +7717,10 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+ 				goto cont;
+ 			if (idx < s_idx)
+ 				goto cont;
+-			if (filter->table && strcmp(filter->table, table->name))
++			if (ctx->table && strcmp(ctx->table, table->name))
+ 				goto cont;
+-			if (filter->type != NFT_OBJECT_UNSPEC &&
+-			    obj->ops->type->type != filter->type)
++			if (ctx->type != NFT_OBJECT_UNSPEC &&
++			    obj->ops->type->type != ctx->type)
+ 				goto cont;
  
--/* This is the 'purely bridged' case.  For IP, we pass the packet to
-- * netfilter with indev and outdev set to the bridge device,
-- * but we are still able to filter on the 'real' indev/outdev
-- * because of the physdev module. For ARP, indev and outdev are the
-- * bridge ports. */
--static unsigned int br_nf_forward_ip(void *priv,
--				     struct sk_buff *skb,
--				     const struct nf_hook_state *state)
-+static unsigned int br_nf_forward_ip(struct sk_buff *skb,
-+				     const struct nf_hook_state *state,
-+				     u8 pf)
+ 			rc = nf_tables_fill_obj_info(skb, net,
+@@ -7752,33 +7752,33 @@ static int nf_tables_dump_obj(struct sk_buff *skb, struct netlink_callback *cb)
+ static int nf_tables_dump_obj_start(struct netlink_callback *cb)
  {
- 	struct nf_bridge_info *nf_bridge;
- 	struct net_device *parent;
--	u_int8_t pf;
+ 	const struct nlattr * const *nla = cb->data;
+-	struct nft_obj_filter *filter = NULL;
++	struct nft_obj_dump_ctx *ctx = NULL;
  
- 	nf_bridge = nf_bridge_info_get(skb);
- 	if (!nf_bridge)
-@@ -600,15 +594,6 @@ static unsigned int br_nf_forward_ip(void *priv,
- 	if (!parent)
- 		return NF_DROP_REASON(skb, SKB_DROP_REASON_DEV_READY, 0);
+-	filter = kzalloc(sizeof(*filter), GFP_ATOMIC);
+-	if (!filter)
++	ctx = kzalloc(sizeof(*ctx), GFP_ATOMIC);
++	if (!ctx)
+ 		return -ENOMEM;
  
--	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
--	    is_pppoe_ip(skb, state->net))
--		pf = NFPROTO_IPV4;
--	else if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
--		 is_pppoe_ipv6(skb, state->net))
--		pf = NFPROTO_IPV6;
--	else
--		return NF_ACCEPT;
--
- 	nf_bridge_pull_encap_header(skb);
- 
- 	if (skb->pkt_type == PACKET_OTHERHOST) {
-@@ -620,19 +605,18 @@ static unsigned int br_nf_forward_ip(void *priv,
- 		if (br_validate_ipv4(state->net, skb))
- 			return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
- 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
--	}
--
--	if (pf == NFPROTO_IPV6) {
-+		skb->protocol = htons(ETH_P_IP);
-+	} else if (pf == NFPROTO_IPV6) {
- 		if (br_validate_ipv6(state->net, skb))
- 			return NF_DROP_REASON(skb, SKB_DROP_REASON_IP_INHDR, 0);
- 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
-+		skb->protocol = htons(ETH_P_IPV6);
-+	} else {
-+		WARN_ON_ONCE(1);
-+		return NF_DROP;
+ 	if (nla[NFTA_OBJ_TABLE]) {
+-		filter->table = nla_strdup(nla[NFTA_OBJ_TABLE], GFP_ATOMIC);
+-		if (!filter->table) {
+-			kfree(filter);
++		ctx->table = nla_strdup(nla[NFTA_OBJ_TABLE], GFP_ATOMIC);
++		if (!ctx->table) {
++			kfree(ctx);
+ 			return -ENOMEM;
+ 		}
  	}
  
- 	nf_bridge->physoutdev = skb->dev;
--	if (pf == NFPROTO_IPV4)
--		skb->protocol = htons(ETH_P_IP);
--	else
--		skb->protocol = htons(ETH_P_IPV6);
+ 	if (nla[NFTA_OBJ_TYPE])
+-		filter->type = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
++		ctx->type = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
  
- 	NF_HOOK(pf, NF_INET_FORWARD, state->net, NULL, skb,
- 		brnf_get_logical_dev(skb, state->in, state->net),
-@@ -641,8 +625,7 @@ static unsigned int br_nf_forward_ip(void *priv,
- 	return NF_STOLEN;
+-	cb->data = filter;
++	cb->data = ctx;
+ 	return 0;
  }
  
--static unsigned int br_nf_forward_arp(void *priv,
--				      struct sk_buff *skb,
-+static unsigned int br_nf_forward_arp(struct sk_buff *skb,
- 				      const struct nf_hook_state *state)
+ static int nf_tables_dump_obj_done(struct netlink_callback *cb)
  {
- 	struct net_bridge_port *p;
-@@ -659,11 +642,8 @@ static unsigned int br_nf_forward_arp(void *priv,
- 	if (!brnet->call_arptables && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
- 		return NF_ACCEPT;
+-	struct nft_obj_filter *filter = cb->data;
++	struct nft_obj_dump_ctx *ctx = cb->data;
  
--	if (!IS_ARP(skb)) {
--		if (!is_vlan_arp(skb, state->net))
--			return NF_ACCEPT;
-+	if (is_vlan_arp(skb, state->net))
- 		nf_bridge_pull_encap_header(skb);
--	}
+-	kfree(filter->table);
+-	kfree(filter);
++	kfree(ctx->table);
++	kfree(ctx);
  
- 	if (unlikely(!pskb_may_pull(skb, sizeof(struct arphdr))))
- 		return NF_DROP_REASON(skb, SKB_DROP_REASON_PKT_TOO_SMALL, 0);
-@@ -680,6 +660,28 @@ static unsigned int br_nf_forward_arp(void *priv,
- 	return NF_STOLEN;
+ 	return 0;
  }
- 
-+/* This is the 'purely bridged' case.  For IP, we pass the packet to
-+ * netfilter with indev and outdev set to the bridge device,
-+ * but we are still able to filter on the 'real' indev/outdev
-+ * because of the physdev module. For ARP, indev and outdev are the
-+ * bridge ports.
-+ */
-+static unsigned int br_nf_forward(void *priv,
-+				  struct sk_buff *skb,
-+				  const struct nf_hook_state *state)
-+{
-+	if (IS_IP(skb) || is_vlan_ip(skb, state->net) ||
-+	    is_pppoe_ip(skb, state->net))
-+		return br_nf_forward_ip(skb, state, NFPROTO_IPV4);
-+	if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
-+	    is_pppoe_ipv6(skb, state->net))
-+		return br_nf_forward_ip(skb, state, NFPROTO_IPV6);
-+	if (IS_ARP(skb) || is_vlan_arp(skb, state->net))
-+		return br_nf_forward_arp(skb, state);
-+
-+	return NF_ACCEPT;
-+}
-+
- static int br_nf_push_frag_xmit(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
- 	struct brnf_frag_data *data;
-@@ -937,13 +939,7 @@ static const struct nf_hook_ops br_nf_ops[] = {
- 		.priority = NF_BR_PRI_BRNF,
- 	},
- 	{
--		.hook = br_nf_forward_ip,
--		.pf = NFPROTO_BRIDGE,
--		.hooknum = NF_BR_FORWARD,
--		.priority = NF_BR_PRI_BRNF - 1,
--	},
--	{
--		.hook = br_nf_forward_arp,
-+		.hook = br_nf_forward,
- 		.pf = NFPROTO_BRIDGE,
- 		.hooknum = NF_BR_FORWARD,
- 		.priority = NF_BR_PRI_BRNF,
 -- 
 2.30.2
 
