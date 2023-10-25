@@ -2,226 +2,137 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F245C25B6D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Oct 2023 11:29:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58CE6C0032E
+	for <netfilter-devel@archiver.kernel.org>; Wed, 25 Oct 2023 12:32:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234719AbjJYL3h (ORCPT
+        id S234732AbjJYMcj (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 25 Oct 2023 07:29:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52342 "EHLO
+        Wed, 25 Oct 2023 08:32:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233766AbjJYL3g (ORCPT
+        with ESMTP id S232775AbjJYMci (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Oct 2023 07:29:36 -0400
-Received: from smtp-190c.mail.infomaniak.ch (smtp-190c.mail.infomaniak.ch [IPv6:2001:1600:4:17::190c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A2D2192
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Oct 2023 04:29:29 -0700 (PDT)
-Received: from smtp-2-0001.mail.infomaniak.ch (unknown [10.5.36.108])
-        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4SFmsy0xz2zMpvff;
-        Wed, 25 Oct 2023 11:29:26 +0000 (UTC)
-Received: from unknown by smtp-2-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4SFmsx3n9DzMpnPn;
-        Wed, 25 Oct 2023 13:29:25 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
-        s=20191114; t=1698233366;
-        bh=Q3GfLm/wl5qsxpCx/PoVD6qiO8tOiUfUm2gWs7I37eg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=T0O3I08cZdyn7fpbFy+ubIqzNnrV0et33RTLvJWq97INMsOaII5Eplx3MCJ1f1UWQ
-         C1tG7o4N6c14uH0rN2WRsleIWPoP3O125Mg7dF9g2Z1IpvL1i0vIH7nZkkk4+z5wLv
-         DA+yqiG0cgmwZ9gxuaz0rlgA24WM5tGd8Todi9XM=
-Date:   Wed, 25 Oct 2023 13:29:24 +0200
-From:   =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To:     "Konstantin Meskhidze (A)" <konstantin.meskhidze@huawei.com>
-Cc:     willemdebruijn.kernel@gmail.com, gnoack3000@gmail.com,
-        linux-security-module@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, yusongping@huawei.com,
-        artem.kuzin@huawei.com
-Subject: Re: [PATCH v13 08/12] landlock: Add network rules and TCP hooks
- support
-Message-ID: <20231025.ooG0Uach9aes@digikod.net>
-References: <20231016015030.1684504-1-konstantin.meskhidze@huawei.com>
- <20231016015030.1684504-9-konstantin.meskhidze@huawei.com>
- <20231017.xahKoo9Koo8v@digikod.net>
- <57f150b2-0920-8567-8351-1bdb74684cfa@huawei.com>
- <20231020.ido6Aih0eiGh@digikod.net>
- <ea02392e-4460-9695-050f-7519aecebec2@huawei.com>
- <20231024.Ahdeepoh7wos@digikod.net>
- <bc4699d7-ab54-a3b8-06a0-1724a63c6076@huawei.com>
+        Wed, 25 Oct 2023 08:32:38 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C10F5192
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Oct 2023 05:32:34 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qvd3o-0007na-Mr
+        for netfilter-devel@vger.kernel.org; Wed, 25 Oct 2023 14:32:32 +0200
+Date:   Wed, 25 Oct 2023 14:32:32 +0200
+From:   Florian Westphal <fw@strlen.de>
+To:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Netfilter queue is unable to mangle fragmented UDP6: bug?
+Message-ID: <20231025123232.GA27882@breakpoint.cc>
+References: <ZTSj8oazCy7PQfxY@slk15.local.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <bc4699d7-ab54-a3b8-06a0-1724a63c6076@huawei.com>
-X-Infomaniak-Routing: alpha
+In-Reply-To: <ZTSj8oazCy7PQfxY@slk15.local.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Oct 24, 2023 at 12:12:01PM +0300, Konstantin Meskhidze (A) wrote:
+Duncan Roe <duncan_roe@optusnet.com.au> wrote:
+> My libnetfilter_queue application is unable to mangle UDP6 messages that have
+> been fragmented. The kernel only delivers the first fragment of such a message
+> to the application.
 > 
+> Is this a permanent restriction or a bug?
+
+There is not enough information here to answer this question,
+see below.
+
+> messages. "Something else" in the kernel re-combines UDP4 fragments before they
+> are queued to my application, so they mangle OK.
+
+I'm not sure what you mean or what you expect to happen.
+
+> In summary:
+>  - GSO re-combines TCP fragments before tcpdump can see them.
+
+Do you mean "segments"?  Its the other way around, with GSO/TSO, stack
+builds large superpackes, one tcp header with lots of data.
+
+Such superpackets are split at the last possible moment;
+ideally by NIC/hardware.
+
+>  - Some other kernel code re-combines UDP4 fragments before netfilter queues
+>    them
+>  - Some other different kernel code re-combines UDP6 fragments for the user
+>    application but after netfilter queues them
+>  - It's been this way for a number of years
+
+GSO is just the software fallback of TSO, i.e. local stack passes
+large skb down to the driver which will do pseudo segmentation,
+this needs hardware that can handle scatterlist, which is true for
+almost all nics.
+
+There is some segmentation support for UDP to handle encapsulation
+(tunneling) use cases, where stack can pass large skb and then can
+have hardware or software fallback do the segmentation for us, i.e.
+split according to inner protocol and add the outer udp encapsulation
+to all packets.
+
+> ================ Testing with GSO
 > 
-> 10/24/2023 12:03 PM, Mickaël Salaün пишет:
-> > On Tue, Oct 24, 2023 at 06:18:54AM +0300, Konstantin Meskhidze (A) wrote:
-> > > 
-> > > 
-> > > 10/20/2023 12:49 PM, Mickaël Salaün пишет:
-> > > > On Fri, Oct 20, 2023 at 07:08:33AM +0300, Konstantin Meskhidze (A) wrote:
-> > > > > > > > > 10/18/2023 3:29 PM, Mickaël Salaün пишет:
-> > > > > > On Mon, Oct 16, 2023 at 09:50:26AM +0800, Konstantin Meskhidze wrote:
-> > 
-> > > > > > > diff --git a/security/landlock/net.h b/security/landlock/net.h
-> > > > > > > new file mode 100644
-> > > > > > > index 000000000000..588a49fd6907
-> > > > > > > --- /dev/null
-> > > > > > > +++ b/security/landlock/net.h
-> > > > > > > @@ -0,0 +1,33 @@
-> > > > > > > +/* SPDX-License-Identifier: GPL-2.0-only */
-> > > > > > > +/*
-> > > > > > > + * Landlock LSM - Network management and hooks
-> > > > > > > + *
-> > > > > > > + * Copyright © 2022-2023 Huawei Tech. Co., Ltd.
-> > > > > > > + */
-> > > > > > > +
-> > > > > > > +#ifndef _SECURITY_LANDLOCK_NET_H
-> > > > > > > +#define _SECURITY_LANDLOCK_NET_H
-> > > > > > > +
-> > > > > > > +#include "common.h"
-> > > > > > > +#include "ruleset.h"
-> > > > > > > +#include "setup.h"
-> > > > > > > +
-> > > > > > > +#if IS_ENABLED(CONFIG_INET)
-> > > > > > > +__init void landlock_add_net_hooks(void);
-> > > > > > > +
-> > > > > > > +int landlock_append_net_rule(struct landlock_ruleset *const ruleset,
-> > > > > > > +			     const u16 port, access_mask_t access_rights);
-> > > > > > > +#else /* IS_ENABLED(CONFIG_INET) */
-> > > > > > > +static inline void landlock_add_net_hooks(void)
-> > > > > > > +{
-> > > > > > > +}
-> > > > > > > +
-> > > > > > > +static inline int
-> > > > > > > +landlock_append_net_rule(struct landlock_ruleset *const ruleset, const u16 port,
-> > > > > > > +			 access_mask_t access_rights);
-> > > > > > > +{
-> > > > > > > +	return -EAFNOSUPPORT;
-> > > > > > > +}
-> > > > > > > +#endif /* IS_ENABLED(CONFIG_INET) */
-> > > > > > > +
-> > > > > > > +#endif /* _SECURITY_LANDLOCK_NET_H */
-> > > > > > > diff --git a/security/landlock/ruleset.c b/security/landlock/ruleset.c
-> > > > > > > index 4c209acee01e..1fe4298ff4a7 100644
-> > > > > > > --- a/security/landlock/ruleset.c
-> > > > > > > +++ b/security/landlock/ruleset.c
-> > > > > > > @@ -36,6 +36,11 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
-> > > > > > >  	refcount_set(&new_ruleset->usage, 1);
-> > > > > > >  	mutex_init(&new_ruleset->lock);
-> > > > > > >  	new_ruleset->root_inode = RB_ROOT;
-> > > > > > > +
-> > > > > > > +#if IS_ENABLED(CONFIG_INET)
-> > > > > > > +	new_ruleset->root_net_port = RB_ROOT;
-> > > > > > > +#endif /* IS_ENABLED(CONFIG_INET) */
-> > > > > > > +
-> > > > > > >  	new_ruleset->num_layers = num_layers;
-> > > > > > >  	/*
-> > > > > > >  	 * hierarchy = NULL
-> > > > > > > @@ -46,16 +51,21 @@ static struct landlock_ruleset *create_ruleset(const u32 num_layers)
-> > > > > > >  }
-> > > > > > > > >  struct landlock_ruleset *
-> > > > > > > -landlock_create_ruleset(const access_mask_t fs_access_mask)
-> > > > > > > +landlock_create_ruleset(const access_mask_t fs_access_mask,
-> > > > > > > +			const access_mask_t net_access_mask)
-> > > > > > >  {
-> > > > > > >  	struct landlock_ruleset *new_ruleset;
-> > > > > > > > >  	/* Informs about useless ruleset. */
-> > > > > > > -	if (!fs_access_mask)
-> > > > > > > +	if (!fs_access_mask && !net_access_mask)
-> > > > > > >  		return ERR_PTR(-ENOMSG);
-> > > > > > >  	new_ruleset = create_ruleset(1);
-> > > > > > > -	if (!IS_ERR(new_ruleset))
-> > > > > > > +	if (IS_ERR(new_ruleset))
-> > > > > > > +		return new_ruleset;
-> > > > > > > +	if (fs_access_mask)
-> > > > > > >  		landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
-> > > > > > > +	if (net_access_mask)
-> > > > > > > +		landlock_add_net_access_mask(new_ruleset, net_access_mask, 0);
-> > > > > > > This is good, but it is not tested: we need to add a test that
-> > > > > both
-> > > > > > handle FS and net restrictions. You can add one in net.c, just handling
-> > > > > > LANDLOCK_ACCESS_FS_READ_DIR and LANDLOCK_ACCESS_NET_BIND_TCP, add one
-> > > > > > rule with path_beneath (e.g. /dev) and another with net_port, and check
-> > > > > > that open("/") is denied, open("/dev") is allowed, and and only the
-> > > > > > allowed port is allowed with bind(). This test should be simple and can
-> > > > > > only check against an IPv4 socket, i.e. using ipv4_tcp fixture, just
-> > > > > > after port_endianness. fcntl.h should then be included by net.c
-> > > > > > >   Ok.
-> > > > > > > I guess that was the purpose of layout1.with_net (in fs_test.c)
-> > > > > but it
-> > > > > > >   Yep. I added this kind of nest in fs_test.c to test both
-> > > fs and network
-> > > > > rules together.
-> > > > > > is not complete. You can revamp this test and move it to net.c
-> > > > > > following the above suggestions, keeping it consistent with other tests
-> > > > > > in net.c . You don't need the test_open() nor create_ruleset() helpers.
-> > > > > > > This test must failed if we change
-> > > > > "ruleset->access_masks[layer_level] |="
-> > > > > > to "ruleset->access_masks[layer_level] =" in
-> > > > > > landlock_add_fs_access_mask() or landlock_add_net_access_mask().
-> > > > > > >   Do you want to change it? Why?
-> > > > > The kernel code is correct and must not be changed. However, if
-> > > by
-> > > > mistake we change it and remove the OR, a test should catch that. We
-> > > > need a test to assert this assumption.
-> > > > > >   Fs and network masks are ORed to not intersect with each
-> > > other.
-> > > > > Yes, they are ORed, and we need a test to check that. Noting is
-> > > > currently testing this OR (and the different rule type consistency).
-> > > > I'm suggesting to revamp the layout1.with_net test into
-> > > > ipv4_tcp.with_fs and make it check ruleset->access_masks[] and rule
-> > > > addition of different types.
-> > 
-> > > From the other email:
-> > > Thinking about this test. We don't need to add any additional ASSERT here.
-> > > Anyway if we accidentally change "ruleset->access_masks[layer_level] |=" to
-> > > "ruleset->access_masks[layer_level] =" we will fail either in opening
-> > > directory or in port binding, cause adding a second rule (fs or net) will
-> > > overwrite a first one's mask. it does not matter which one goes first. I
-> > > will check it and send you a message.
-> > > What do you think?
-> > 
-> > > 
-> > >   About my previous comment.
-> > > 
-> > >   Checking the code we can  notice that adding fs mask goes first:
-> > > 
-> > > ...
-> > > if (fs_access_mask)
-> > > 		landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
-> > > if (net_access_mask)
-> > > 		landlock_add_net_access_mask(new_ruleset, net_access_mask, 0);
-> > > ....
-> > > 
-> > > So with we change "ruleset->access_masks[layer_level] |="
-> > > >> > to "ruleset->access_masks[layer_level] =" in
-> > > landlock_add_fs_access_mask() nothing bad will happen.
-> > > But if we do that in landlock_add_net_access_mask()
-> > > fs mask will be overwritten and adding fs rule will fail
-> > > (as unhandled allowed_accesss).
-> > 
-> > Right. What is the conclusion here? Are you OK with my test proposal?
+>  nfq6 cmd: nfq6 -t6 -t7 -t8 -t17 -t18 24
+>  tcpdump cmd: tcpdump -i eth1 'ether host 18:60:24:bb:02:d6 && (tcp || udp) &&
+>                       ! port x11'
 > 
->   So we just check if landlock_add_net_access_mask() would be changed by
-> mistake?
+> > netcat cmds: nc -6 -q0 -u fe80::1ac0:4dff:fe04:75ba%eth0 1042 <zxc2k : nc -6 -k -l -n -p 1042 -q0 -u -v
+> >               nfq6 output                                   # tcpdump o/p (early fields omitted)
+> > packet received (id=169 hw=0x86dd hook=1, payload len 1496) # frag (0|1448) 33020 > 1042: UDP, length 2048
+> > Packet too short to get UDP payload                         #
+> >                                                             # frag (1448|608)
 
-With the current kernel code, yes.
+You are sending a large udp packet via ipv6, it doesn't fit the device mtu,
+fragmentation is needed.  This has nothing to do with GSO.
 
-> Changing landlock_add_fs_access_mask() does not break the logic. Am
-> I correct here?
+> > packet received (id=176 hw=0x0800 hook=1, payload len 60)                           # > Flags [S], seq 821055799, win 64240, options [mss 1460,sackOK,TS val 3739788506 ecr 0,nop,wscale 7], length 0
+> > packet received (id=177 hw=0x0800 hook=3, payload len 60, checksum not ready)       # < Flags [S.], seq 1085807033, ack 821055800, win 65160, options [mss 1460,sackOK,TS val 4164299250 ecr 3739788506,nop,wscale 7], length 0
+> > packet received (id=178 hw=0x0800 hook=1, payload len 52)                           # > Flags [.], ack 1, win 502, options [nop,nop,TS val 3739788506 ecr 4164299250], length 0
+> > GSO packet received (id=179 hw=0x0800 hook=1, payload len 2100, checksum not ready) # > Flags [P.], seq 1:2049, ack 1, win 502, options [nop,nop,TS val 3739788506 ecr 4164299250], length 2048
 
-Yes, only landlock_add_net_access_mask() changes would be detected with
-the current kernel code, but the test checks the whole semantic, so even
-the following code with a buggy landlock_add_fs_access_mask() would be
-detected:
+Stack built a larger packet, device or software fallback will segment
+them as needed.
 
-if (net_access_mask)
-	landlock_add_net_access_mask(new_ruleset, net_access_mask, 0);
-if (fs_access_mask)
-	landlock_add_fs_access_mask(new_ruleset, fs_access_mask, 0);
+> ================ Testing without GSO (needs v2 nfq6)
+> 
+>  nfq6 cmd: nfq6 -t6 -t7 -t8 -t17 -t18 -t20 24
+>  tcpdump cmd: (as above)
+> 
+> > netcat cmds: nc -6 -q0 -u fe80::1ac0:4dff:fe04:75ba%eth0 1042 <zxc2k : nc -6 -k -l -n -p 1042 -q0 -u -v
+> >               nfq6 output                                   # tcpdump o/p (early fields and source port omitted)
+> > packet received (id=1 hw=0x86dd hook=1, payload len 1496)   # frag (0|1448) > 1042: UDP, length 2048
+> > Packet too short to get UDP payload                         #
+> >                                                             # frag (1448|608)
+> > -----------------------------------------------------------------------------
+> > netcat cmds: nc -4 -q0 -u dimstar 1042 <zxc2k : nc -4 -k -l -n -p 1042 -q0 -u -v
+> >               nfq6 output                                   # tcpdump o/p (early fields omitted)
+> >                                                             # UDP, length 2048
+> > packet received (id=3 hw=0x0800 hook=1, payload len 2076)   # udp
+> > -----------------------------------------------------------------------------
+
+It would help if you could explain what is wrong here.
+
+You also removed tcpdump info, I suspect it was "flags [+]"
+with two fragments for udp:ipv4 too?
+
+Frag handling depends on a lot of factors, such as ip defrag being
+enabled or not, where queueing happens (hook and prio), if userspace
+does mtu probing (like 'ping6 -M do') or not.
+
+And the NIC driver too.
+
+For incoming data it also depends on sysctl settings and if
+GRO/LRO is enabled.
+
+> > packet received (id=49 hw=0x86dd hook=1, payload len 72)    # > Flags [.], ack 1, win 507, options [nop,nop,TS val 925571377 ecr 2923572945], length 0
+> > packet received (id=50 hw=0x86dd hook=1, payload len 1500)  # > Flags [.], seq 1:1429, ack 1, win 507, options [nop,nop,TS val 925571377 ecr 2923572945], length 1428
+> > packet received (id=51 hw=0x86dd hook=3, payload len 72)    # < Flags [.], ack 1429, win 501, options [nop,nop,TS val 2923572945 ecr 925571377], length 0
+> > packet received (id=52 hw=0x86dd hook=1, payload len 692)   # > Flags [P.], seq 1429:2049, ack 1, win 507, options [nop,nop,TS val 925571377 ecr 2923572945], length 620
+
+Kernel does software segmentation here, this is slow.
