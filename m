@@ -2,120 +2,148 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D117C25B48
-	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Oct 2023 15:10:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7913C25B6B
+	for <netfilter-devel@archiver.kernel.org>; Thu, 26 Oct 2023 19:01:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231511AbjJZPKN (ORCPT
+        id S229501AbjJZTBL (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 26 Oct 2023 11:10:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48666 "EHLO
+        Thu, 26 Oct 2023 15:01:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231691AbjJZPKN (ORCPT
+        with ESMTP id S229991AbjJZTBK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Oct 2023 11:10:13 -0400
-Received: from a3.inai.de (a3.inai.de [IPv6:2a01:4f8:10b:45d8::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0FBA1B6
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2023 08:10:09 -0700 (PDT)
-Received: by a3.inai.de (Postfix, from userid 25121)
-        id A45F2589164F4; Thu, 26 Oct 2023 17:10:07 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by a3.inai.de (Postfix) with ESMTP id A199060EB154C;
-        Thu, 26 Oct 2023 17:10:07 +0200 (CEST)
-Date:   Thu, 26 Oct 2023 17:10:07 +0200 (CEST)
-From:   Jan Engelhardt <jengelh@inai.de>
-To:     Phil Sutter <phil@nwl.cc>
-cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 07/10] man: grammar fixes to some manpages
-In-Reply-To: <ZTphOV/bYuotL2l0@orbyte.nwl.cc>
-Message-ID: <nn5s78o8-170p-rn49-97np-4082so7q1s20@vanv.qr>
-References: <20231026085506.94343-1-jengelh@inai.de> <20231026085506.94343-7-jengelh@inai.de> <ZTphOV/bYuotL2l0@orbyte.nwl.cc>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+        Thu, 26 Oct 2023 15:01:10 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FF9CD7;
+        Thu, 26 Oct 2023 12:01:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEB37C433C7;
+        Thu, 26 Oct 2023 19:01:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1698346868;
+        bh=Zt0u6/5yjWvfQjaE7CB0100aQqTkMVSs6sc0OBl6Scw=;
+        h=From:To:Cc:Subject:Date:From;
+        b=HOHdtexBWDxHWU+J9CjxvmeZXCoBxZ8Oazg4JSUbWjEXp4mMJuN7bN/+4eQJrOfrN
+         w9DAxXktMeNmNtxTLeBH0vs9m9tgBtHrp4YIzWJWhpsavW9CQKx/M1NqPo4UYh1Qzm
+         48GeyVTL4bFxPD07c1Ioe2FGgPHu5zHRBt8n0xDnypGI0YD8UmGDd01IV+DQ53lrkV
+         IIPTx6Gx14FeQxc9SE4ArILlCkpR3vJ41snO5ZyvUM7tn61xh5n0EyjimRFE5xDt6u
+         i7Ucl7m3L2CU09kMdE+uv/7OZOD6zR6pwQxQUgm/FfBInKEk2k1Hr7ao9fzdeBSAzR
+         mNlDaMwyh5EHQ==
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     davem@davemloft.net
+Cc:     netdev@vger.kernel.org, edumazet@google.com, pabeni@redhat.com,
+        Jakub Kicinski <kuba@kernel.org>,
+        linux-wireless@vger.kernel.org, jhs@mojatatu.com,
+        netfilter-devel@vger.kernel.org, razor@blackwall.org,
+        bpf@vger.kernel.org, krzysztof.kozlowski@linaro.org
+Subject: [PATCH net-next 0/4] net: fill in 18 MODULE_DESCRIPTION()s
+Date:   Thu, 26 Oct 2023 12:00:57 -0700
+Message-ID: <20231026190101.1413939-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+W=1 builds now warn if module is built without a MODULE_DESCRIPTION().
 
-On Thursday 2023-10-26 14:53, Phil Sutter wrote:
->> diff --git a/extensions/libxt_MASQUERADE.man b/extensions/libxt_MASQUERADE.man
->> index e2009086..7cc2bb7a 100644
->> --- a/extensions/libxt_MASQUERADE.man
->> +++ b/extensions/libxt_MASQUERADE.man
->> @@ -15,7 +15,7 @@ any established connections are lost anyway).
->>  \fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
->>  This specifies a range of source ports to use, overriding the default
->>  .B SNAT
->> -source port-selection heuristics (see above).  This is only valid
->> +source port-selection heuristics (see above). This is only valid
->
->Do you miss a dash in:
->
->"default SNAT source port selection heuristics"? I lean towards putting
->dashes everywhere, but my language spoils me. ;)
+Fill in the first 18 that jumped out at me, and those missing
+in modules I maintain.
 
-Third time's the charm, hopefully?
+FWIW here is the list of places we're still missing some,
+as far as I can grep. Please lend a hand and populate
+the missing descriptions in your area of expertise if you have
+the cycles:
 
+CC: linux-wireless@vger.kernel.org
+CC: jhs@mojatatu.com
+CC: netfilter-devel@vger.kernel.org
+CC: razor@blackwall.org
+CC: bpf@vger.kernel.org
+CC: krzysztof.kozlowski@linaro.org
 
+     46 in drivers/net/wireless
+     34 in net/sched
+     25 in net/netfilter
+     18 in net/dsa
+     17 in net/ipv4
+     11 in net/ipv6
+     11 in drivers/net/arcnet
+      6 in net/bridge
+      5 in drivers/net/ppp
+      5 in drivers/net/phy
+      5 in drivers/net/mdio
+      5 in drivers/net/ethernet/broadcom
+      4 in net/caif
+      3 in net/sunrpc
+      3 in net/nfc
+      3 in net/mptcp
+      3 in net/atm
+      3 in drivers/net/pcs
+      3 in drivers/net/ethernet/smsc
+      3 in drivers/net/ethernet/freescale
+      2 in net/xfrm
+      2 in net/packet
+      2 in net/ieee802154
+      2 in drivers/net/slip
+      2 in drivers/net/ethernet/qualcomm
+      1 in net/xdp
+      1 in net/vmw_vsock
+      1 in net/unix
+      1 in net/tipc
+      1 in net/smc
+      1 in net/sctp
+      1 in net/netlink
+      1 in net/key
+      1 in net/kcm
+      1 in net/hsr
+      1 in net/bpfilter
+      1 in net/6lowpan
+      1 in drivers/net/xen-netback
+      1 in drivers/net/wan
+      1 in drivers/net/ieee802154
+      1 in drivers/net/fddi
+      1 in drivers/net/ethernet/wangxun
+      1 in drivers/net/ethernet/ti
+      1 in drivers/net/ethernet/stmicro
+      1 in drivers/net/ethernet/neterion
+      1 in drivers/net/ethernet/mscc
+      1 in drivers/net/ethernet/microchip
+      1 in drivers/net/ethernet/marvell
+      1 in drivers/net/ethernet/litex
+      1 in drivers/net/ethernet/ezchip
+      1 in drivers/net/ethernet/ec_bhf.o
+      1 in drivers/net/ethernet/cirrus
+      1 in drivers/net/ethernet/cavium
+      1 in drivers/net/ethernet/8390
+      1 in drivers/net/dsa
 
+Jakub Kicinski (4):
+  net: fill in MODULE_DESCRIPTION()s in kuba@'s modules
+  net: fill in MODULE_DESCRIPTION()s under net/core
+  net: fill in MODULE_DESCRIPTION()s under net/802*
+  net: fill in MODULE_DESCRIPTION()s under drivers/net/
 
-The following changes since commit ccecb1b90ae2af6e963d27ada8d5fd69d40231c4:
+ drivers/net/amt.c                           | 1 +
+ drivers/net/dummy.c                         | 1 +
+ drivers/net/eql.c                           | 1 +
+ drivers/net/ifb.c                           | 1 +
+ drivers/net/macvtap.c                       | 1 +
+ drivers/net/netdevsim/netdev.c              | 1 +
+ drivers/net/sungem_phy.c                    | 1 +
+ drivers/net/tap.c                           | 1 +
+ drivers/net/wireless/mediatek/mt7601u/usb.c | 1 +
+ net/802/fddi.c                              | 1 +
+ net/802/garp.c                              | 1 +
+ net/802/mrp.c                               | 1 +
+ net/802/p8022.c                             | 1 +
+ net/802/psnap.c                             | 1 +
+ net/802/stp.c                               | 1 +
+ net/8021q/vlan.c                            | 1 +
+ net/core/dev_addr_lists_test.c              | 1 +
+ net/core/selftests.c                        | 1 +
+ 18 files changed, 18 insertions(+)
 
-  extensions: string: Adjust description of --to to recent kernel changes (2023-10-25 17:23:57 +0200)
+-- 
+2.41.0
 
-are available in the Git repository at:
-
-  https://github.com/jengelh/iptables 
-
-for you to fetch changes up to 0342b75582b98a175ee804fa636161e91be1d696:
-
-  man: reveal rateest's combination categories (2023-10-26 15:56:24 +0200)
-
-----------------------------------------------------------------
-Jan Engelhardt (7):
-      man: display number ranges with an en dash
-      man: encode minushyphen the way groff/man requires it
-      man: encode emdash the way groff/man requires it
-      man: encode hyphens the way groff/man requires it
-      man: consistent casing of "IPv[46]"
-      man: grammar fixes to some manpages
-      man: use native bullet point markup
-
-Phil Sutter (2):
-      man: use .TP for lists in xt_osf man page
-      man: reveal rateest's combination categories
-
- extensions/libip6t_DNPT.man     |  2 +-
- extensions/libip6t_REJECT.man   |  7 ++++---
- extensions/libip6t_SNPT.man     |  2 +-
- extensions/libipt_REJECT.man    |  7 ++++---
- extensions/libipt_ULOG.man      |  4 ++--
- extensions/libxt_CT.man         |  4 ++--
- extensions/libxt_HMARK.man      |  2 +-
- extensions/libxt_LED.man        |  4 ++--
- extensions/libxt_MASQUERADE.man |  6 +++---
- extensions/libxt_NFLOG.man      |  4 ++--
- extensions/libxt_NFQUEUE.man    | 11 ++++++-----
- extensions/libxt_SET.man        |  4 ++--
- extensions/libxt_SNAT.man       |  2 +-
- extensions/libxt_SYNPROXY.man   |  4 ++--
- extensions/libxt_TRACE.man      |  4 ++--
- extensions/libxt_bpf.man        |  8 ++++----
- extensions/libxt_cgroup.man     |  2 +-
- extensions/libxt_cluster.man    |  8 ++++----
- extensions/libxt_connlabel.man  | 10 +++++-----
- extensions/libxt_connlimit.man  | 31 ++++++++++++++++++-------------
- extensions/libxt_cpu.man        |  2 +-
- extensions/libxt_dscp.man       |  2 +-
- extensions/libxt_hashlimit.man  |  6 +++---
- extensions/libxt_helper.man     | 10 +++++-----
- extensions/libxt_limit.man      |  2 +-
- extensions/libxt_nfacct.man     |  2 +-
- extensions/libxt_osf.man        | 40 +++++++++++++++++++++++++---------------
- extensions/libxt_owner.man      |  2 +-
- extensions/libxt_rateest.man    | 16 ++++++++++------
- extensions/libxt_socket.man     |  2 +-
- extensions/libxt_time.man       |  2 +-
- extensions/libxt_u32.man        | 16 ++++++++--------
- iptables/ebtables-nft.8         | 22 +++++++++++-----------
- 33 files changed, 136 insertions(+), 114 deletions(-)
