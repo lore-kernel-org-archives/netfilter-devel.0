@@ -2,105 +2,96 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 375BFC25B47
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Oct 2023 10:41:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1ACAC25B70
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Oct 2023 10:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229633AbjJ0KlJ (ORCPT
+        id S1345691AbjJ0K4n (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Oct 2023 06:41:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53754 "EHLO
+        Fri, 27 Oct 2023 06:56:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229503AbjJ0KlI (ORCPT
+        with ESMTP id S1345598AbjJ0K4m (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Oct 2023 06:41:08 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18FE4191
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Oct 2023 03:41:03 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qwKGz-0004b5-G0; Fri, 27 Oct 2023 12:41:01 +0200
-Date:   Fri, 27 Oct 2023 12:41:01 +0200
-From:   Florian Westphal <fw@strlen.de>
-To:     Florian Westphal <fw@strlen.de>,
-        Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: Netfilter queue is unable to mangle fragmented UDP6: bug?
-Message-ID: <20231027104101.GA6174@breakpoint.cc>
-References: <ZTSj8oazCy7PQfxY@slk15.local.net>
- <20231025123232.GA27882@breakpoint.cc>
- <ZTscICNz5aUmLYSr@slk15.local.net>
+        Fri, 27 Oct 2023 06:56:42 -0400
+Received: from abb.hmeau.com (abb.hmeau.com [144.6.53.87])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE4329C;
+        Fri, 27 Oct 2023 03:56:39 -0700 (PDT)
+Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
+        by formenos.hmeau.com with smtp (Exim 4.94.2 #2 (Debian))
+        id 1qwKVK-00Bece-Dv; Fri, 27 Oct 2023 18:55:51 +0800
+Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Fri, 27 Oct 2023 18:55:56 +0800
+Date:   Fri, 27 Oct 2023 18:55:56 +0800
+From:   Herbert Xu <herbert@gondor.apana.org.au>
+To:     Lukas Wunner <lukas@wunner.de>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-spdx@vger.kernel.org, David Howells <dhowells@redhat.com>,
+        Tadeusz Struk <tadeusz.struk@linaro.org>,
+        "David S. Miller" <davem@davemloft.net>, keyrings@vger.kernel.org,
+        linux-crypto@vger.kernel.org, Hyunchul Lee <hyc.lee@gmail.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Steve French <sfrench@samba.org>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Tom Talpey <tom@talpey.com>, linux-cifs@vger.kernel.org,
+        Taehee Yoo <ap420073@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] treewide: Add SPDX identifier to IETF ASN.1 modules
+Message-ID: <ZTuXPAZWVkLvVPHq@gondor.apana.org.au>
+References: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZTscICNz5aUmLYSr@slk15.local.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Duncan Roe <duncan_roe@optusnet.com.au> wrote:
-> I expected the netfilter program to see the full UDP datagram as sent. With
-> UDP/IPv4 it does see the full datagram, but not with UDP/IPv6.
-
-For INPUT ipv4 stack will defrag before INPUT hooks are called.
-
-From ipv6 point of view, the ipv6 next header protocol value isn't
-relevant at that stage, so it doesn't matter if thats IPPROTO_TCP,
-IPPROTO_UDP or, in this case, IPPROTO_FRAGMENT.
-
-INPUT hook runs on the arrived packets, then the packets are delivered
-to the next handler, i.e. the fragment-collection done by the IPPROTO_FRAGMENT
-handlers is done AFTER the INPUT hook.
-
-To get the behaviour you want you need to enable netfilter ipv6 defrag.
-
-There is currently no way to do this standalone, you will need to add
-a dummy tproxy or conntrack rule (the latter will enable conntrack too
-which might not be what you want).
-
-Or you modify your ruleset to also queue fragments to userspace and
-do ipv6 defrag yourself in the nfqueue application.
-
-> > Do you mean "segments"?  Its the other way around, with GSO/TSO, stack
-> > builds large superpackes, one tcp header with lots of data.
+On Sat, Oct 21, 2023 at 01:23:44PM +0200, Lukas Wunner wrote:
+> Per section 4.c. of the IETF Trust Legal Provisions, "Code Components"
+> in IETF Documents are licensed on the terms of the BSD-3-Clause license:
 > 
-> Sorry for the confusion here. I only meant to say that there is no problem with
-> TCP.
-
-Yes, because no ipv6 fragmentation takes place.
-
-> IOW kernel delivers to filter program exactly what was in the buffer when the
-> remote application did a write(2) (for buffer size up to just under 64KB).
-
-Not really, it depends on the protocols involved and the network, think
-e.g. of a traffic policier that enforces some rate limit.
-
-> I don't know what GSO is, only that it's strongly recommended to use it.
-
-https://en.wikipedia.org/wiki/TCP_offload_engine
-
-But if you are talking about F_GSO flag for nfqueue -- it does NOT
-enable GSO, on the contrary.  It tells the kernel "This program
-can handle large packets with "bogus" (to-be-filled-by-hardware)
-checksum".
-
-Without the flag, tcp packets need to be splitted in software and their
-checksums need to be computed too (i.e. all the data needs to be read).
-
-> This example shows a UDP4 2KB datagram being successfully mangled and a UDP6 2KB
-> datagram failing to be mangled.
-> >
-> > You also removed tcpdump info, I suspect it was "flags [+]"
-> > with two fragments for udp:ipv4 too?
+> https://trustee.ietf.org/documents/trust-legal-provisions/tlp-5/
 > 
-> There are 2 fragments for both IPv4 and IPv6.
+> The term "Code Components" specifically includes ASN.1 modules:
 > 
-> tcpdump does not report any flags:
+> https://trustee.ietf.org/documents/trust-legal-provisions/code-components-list-3/
 > 
-> > 08:16:09.713395 IP6 fe80::1a60:24ff:febb:2d6 > fe80::1ac0:4dff:fe04:75ba: frag (0|1448) 47843 > 1042: UDP, length 2048
-> > 08:16:09.713395 IP6 fe80::1a60:24ff:febb:2d6 > fe80::1ac0:4dff:fe04:75ba: frag (1448|608)
-> > 08:17:22.924883 IP smallstar.local.net.55288 > dimstar.local.net.1042: UDP, length 2048
-> > 08:17:22.924883 IP smallstar.local.net > dimstar.local.net: udp
+> Add an SPDX identifier as well as a copyright notice pursuant to section
+> 6.d. of the Trust Legal Provisions to all ASN.1 modules in the tree
+> which are derived from IETF Documents.
+> 
+> Section 4.d. of the Trust Legal Provisions requests that each Code
+> Component identify the RFC from which it is taken, so link that RFC
+> in every ASN.1 module.
+> 
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> ---
+>  I'm adding a new IETF ASN.1 module for PCI device authentication, hence
+>  had to research what the correct license is.  Thought I'd fix this up
+>  treewide while at it.
+> 
+>  Not included here is fs/smb/client/cifs_spnego_negtokeninit.asn1,
+>  which is similar to fs/smb/client/ksmbd_spnego_negtokeninit.asn1,
+>  but contains a Microsoft extension published as Open Specifications
+>  Documentation.  It's unclear to me what license they use:
+>  https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-spng/
+> 
+>  crypto/asymmetric_keys/pkcs7.asn1            | 7 +++++++
+>  crypto/asymmetric_keys/pkcs8.asn1            | 6 ++++++
+>  crypto/asymmetric_keys/x509.asn1             | 7 +++++++
+>  crypto/asymmetric_keys/x509_akid.asn1        | 5 +++++
+>  crypto/rsaprivkey.asn1                       | 7 +++++++
+>  crypto/rsapubkey.asn1                        | 7 +++++++
+>  fs/smb/server/ksmbd_spnego_negtokeninit.asn1 | 8 ++++++++
+>  fs/smb/server/ksmbd_spnego_negtokentarg.asn1 | 7 +++++++
+>  net/ipv4/netfilter/nf_nat_snmp_basic.asn1    | 8 ++++++++
+>  9 files changed, 62 insertions(+)
 
-Forgot to mention: in the future when debugging problems, please use
--vvvv (as many as needed), tcpdump elides a lot of information
-otherwise.
+Patch applied.  Thanks.
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
