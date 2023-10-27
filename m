@@ -2,96 +2,64 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1ACAC25B70
-	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Oct 2023 10:56:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86825C25B67
+	for <netfilter-devel@archiver.kernel.org>; Fri, 27 Oct 2023 11:10:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345691AbjJ0K4n (ORCPT
+        id S1345713AbjJ0LKm (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 27 Oct 2023 06:56:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53982 "EHLO
+        Fri, 27 Oct 2023 07:10:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345598AbjJ0K4m (ORCPT
+        with ESMTP id S1345705AbjJ0LKl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Oct 2023 06:56:42 -0400
-Received: from abb.hmeau.com (abb.hmeau.com [144.6.53.87])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE4329C;
-        Fri, 27 Oct 2023 03:56:39 -0700 (PDT)
-Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
-        by formenos.hmeau.com with smtp (Exim 4.94.2 #2 (Debian))
-        id 1qwKVK-00Bece-Dv; Fri, 27 Oct 2023 18:55:51 +0800
-Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Fri, 27 Oct 2023 18:55:56 +0800
-Date:   Fri, 27 Oct 2023 18:55:56 +0800
-From:   Herbert Xu <herbert@gondor.apana.org.au>
-To:     Lukas Wunner <lukas@wunner.de>
-Cc:     Thomas Gleixner <tglx@linutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-spdx@vger.kernel.org, David Howells <dhowells@redhat.com>,
-        Tadeusz Struk <tadeusz.struk@linaro.org>,
-        "David S. Miller" <davem@davemloft.net>, keyrings@vger.kernel.org,
-        linux-crypto@vger.kernel.org, Hyunchul Lee <hyc.lee@gmail.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Steve French <sfrench@samba.org>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Tom Talpey <tom@talpey.com>, linux-cifs@vger.kernel.org,
-        Taehee Yoo <ap420073@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] treewide: Add SPDX identifier to IETF ASN.1 modules
-Message-ID: <ZTuXPAZWVkLvVPHq@gondor.apana.org.au>
-References: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
+        Fri, 27 Oct 2023 07:10:41 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDEE718F
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Oct 2023 04:10:35 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qwKjY-0005tu-Ng; Fri, 27 Oct 2023 13:10:32 +0200
+Date:   Fri, 27 Oct 2023 13:10:32 +0200
+From:   Phil Sutter <phil@nwl.cc>
+To:     Jan Engelhardt <jengelh@inai.de>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 07/10] man: grammar fixes to some manpages
+Message-ID: <ZTuaqMniOXYLI23N@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+References: <20231026085506.94343-1-jengelh@inai.de>
+ <20231026085506.94343-7-jengelh@inai.de>
+ <ZTphOV/bYuotL2l0@orbyte.nwl.cc>
+ <nn5s78o8-170p-rn49-97np-4082so7q1s20@vanv.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
+In-Reply-To: <nn5s78o8-170p-rn49-97np-4082so7q1s20@vanv.qr>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Oct 21, 2023 at 01:23:44PM +0200, Lukas Wunner wrote:
-> Per section 4.c. of the IETF Trust Legal Provisions, "Code Components"
-> in IETF Documents are licensed on the terms of the BSD-3-Clause license:
+On Thu, Oct 26, 2023 at 05:10:07PM +0200, Jan Engelhardt wrote:
+> On Thursday 2023-10-26 14:53, Phil Sutter wrote:
+> >> diff --git a/extensions/libxt_MASQUERADE.man b/extensions/libxt_MASQUERADE.man
+> >> index e2009086..7cc2bb7a 100644
+> >> --- a/extensions/libxt_MASQUERADE.man
+> >> +++ b/extensions/libxt_MASQUERADE.man
+> >> @@ -15,7 +15,7 @@ any established connections are lost anyway).
+> >>  \fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
+> >>  This specifies a range of source ports to use, overriding the default
+> >>  .B SNAT
+> >> -source port-selection heuristics (see above).  This is only valid
+> >> +source port-selection heuristics (see above). This is only valid
+> >
+> >Do you miss a dash in:
+> >
+> >"default SNAT source port selection heuristics"? I lean towards putting
+> >dashes everywhere, but my language spoils me. ;)
 > 
-> https://trustee.ietf.org/documents/trust-legal-provisions/tlp-5/
-> 
-> The term "Code Components" specifically includes ASN.1 modules:
-> 
-> https://trustee.ietf.org/documents/trust-legal-provisions/code-components-list-3/
-> 
-> Add an SPDX identifier as well as a copyright notice pursuant to section
-> 6.d. of the Trust Legal Provisions to all ASN.1 modules in the tree
-> which are derived from IETF Documents.
-> 
-> Section 4.d. of the Trust Legal Provisions requests that each Code
-> Component identify the RFC from which it is taken, so link that RFC
-> in every ASN.1 module.
-> 
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> ---
->  I'm adding a new IETF ASN.1 module for PCI device authentication, hence
->  had to research what the correct license is.  Thought I'd fix this up
->  treewide while at it.
-> 
->  Not included here is fs/smb/client/cifs_spnego_negtokeninit.asn1,
->  which is similar to fs/smb/client/ksmbd_spnego_negtokeninit.asn1,
->  but contains a Microsoft extension published as Open Specifications
->  Documentation.  It's unclear to me what license they use:
->  https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-spng/
-> 
->  crypto/asymmetric_keys/pkcs7.asn1            | 7 +++++++
->  crypto/asymmetric_keys/pkcs8.asn1            | 6 ++++++
->  crypto/asymmetric_keys/x509.asn1             | 7 +++++++
->  crypto/asymmetric_keys/x509_akid.asn1        | 5 +++++
->  crypto/rsaprivkey.asn1                       | 7 +++++++
->  crypto/rsapubkey.asn1                        | 7 +++++++
->  fs/smb/server/ksmbd_spnego_negtokeninit.asn1 | 8 ++++++++
->  fs/smb/server/ksmbd_spnego_negtokentarg.asn1 | 7 +++++++
->  net/ipv4/netfilter/nf_nat_snmp_basic.asn1    | 8 ++++++++
->  9 files changed, 62 insertions(+)
+> Third time's the charm, hopefully?
 
-Patch applied.  Thanks.
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Did you intentionally revert from '\[-]' back to '\-' in math formulae?
+Apart from that, your updated series looks good to me.
+
+Thanks, Phil
