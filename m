@@ -2,166 +2,108 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBC5EC4332F
-	for <netfilter-devel@archiver.kernel.org>; Mon, 30 Oct 2023 08:38:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C66CCC4167B
+	for <netfilter-devel@archiver.kernel.org>; Tue, 31 Oct 2023 03:08:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231467AbjJ3Iiu (ORCPT
+        id S231551AbjJaDIO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 30 Oct 2023 04:38:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53358 "EHLO
+        Mon, 30 Oct 2023 23:08:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229517AbjJ3Iit (ORCPT
+        with ESMTP id S230084AbjJaDIN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Oct 2023 04:38:49 -0400
-Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9204AA7;
-        Mon, 30 Oct 2023 01:38:47 -0700 (PDT)
-Received: by mail-pj1-x1030.google.com with SMTP id 98e67ed59e1d1-27e0c1222d1so2746027a91.0;
-        Mon, 30 Oct 2023 01:38:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1698655127; x=1699259927; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=JIJZsc0cgq2Yj9yNo8faOgPCZmuoXrx5otYy0EkayaU=;
-        b=ROqysX8/cSMc1ZYKCJpWqeGJljQVFznpcBWMMbM0xBxs7o4EE70tMdQOVTvHUs8SpZ
-         iJJ/A5ksSOMMbaTzSo6Zt0AKqqH3U4IOc6B3V5vFozCyxFJqFm95si0++N6ayaGdFkEN
-         msMs1RA+5P2cPMo+oosob86wVrlAOjFRuE+wV3+Xr4zAW1Is40pXfng0WsiiSy7O35oy
-         mvewwspRnR4r02sh82ZvkfzkRbc20M+gw9oVopr8yQWWjlLthdjwIttjezRBbapyXFLb
-         VFMxJ7AWfK1wEABp4kA/bA/xQD2dnv3/T9Ss7z+1PgZqM89kc8QkR5fqf4UkiqiM7tty
-         zYMw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698655127; x=1699259927;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JIJZsc0cgq2Yj9yNo8faOgPCZmuoXrx5otYy0EkayaU=;
-        b=qdpeKWM3AoMlpg4PFBljfkhDhJ3YcdHIaj0f38NWKlaeUcSwckdx5beJJky7C2rU0C
-         nSKZjw29aQvrvIjYyPidV7GjovPvfETtn1SwiuDzeOstVaeQU0lZeOAM1X5f35lkqG0t
-         uOzH3sFdMH90pNunYaKiXsQh3s/YjdYAL8CUSZ/vjufNvVABZr1wYo/l49oLEiVwudBH
-         arIiptSQXC2XNWh14C4Uw+Vkw7HtuiFgPDWvq9ulH5DrHOhLBXZKXQnK81q+GXXiVGgC
-         Xd+btxFopcRAtrVtdVMMFicLc37TEFE1iBCpjHYNU7pYyXE3/HAPMea1UsTJcG+V7L/v
-         coZA==
-X-Gm-Message-State: AOJu0YzrAP6ZwFajLVvkBOphZ4PB8mWJB/efcLES24nNLeEzaQFmc4Fj
-        qSGmz5mCOdqjL6HT0VP4WNk=
-X-Google-Smtp-Source: AGHT+IEgAsk6Pr2yTS6DIeP2R5UiKvd/XA6m5Go89YS81CcCyBFgmYMZz2+swhzs71/WGyAt+2MVZw==
-X-Received: by 2002:a17:90a:1a50:b0:27d:3296:b3e with SMTP id 16-20020a17090a1a5000b0027d32960b3emr6159143pjl.41.1698655126959;
-        Mon, 30 Oct 2023 01:38:46 -0700 (PDT)
-Received: from Laptop-X1 ([43.228.180.230])
-        by smtp.gmail.com with ESMTPSA id c11-20020a17090a020b00b00256b67208b1sm2560039pjc.56.2023.10.30.01.38.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Oct 2023 01:38:45 -0700 (PDT)
-Date:   Mon, 30 Oct 2023 16:38:41 +0800
-From:   Hangbin Liu <liuhangbin@gmail.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Ido Schimmel <idosch@idosch.org>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        Roopa Prabhu <roopa@nvidia.com>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [RFC Draft PATCHv2 net-next] Doc: update bridge doc
-Message-ID: <ZT9rkYsR0F3M+IxU@Laptop-X1>
-References: <20231027071842.2705262-1-liuhangbin@gmail.com>
- <ZTutokxEXya0rqYs@strlen.de>
+        Mon, 30 Oct 2023 23:08:13 -0400
+X-Greylist: delayed 2679 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 30 Oct 2023 20:08:10 PDT
+Received: from mx1.supremebox.com (mx2.supremebox.com [198.23.53.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6DFCC5;
+        Mon, 30 Oct 2023 20:08:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=jilayne.com
+        ; s=default; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=/gjbVBqD6wUd83Ic/WpsYkTAScFG89GoRNlWHJQ3pyY=; b=VrGRTETHeUXeMg6iB+ujy5itQJ
+        dAieB6ad/PZVlJCtyprHmz/ZEW2BwJfm/uh67cFTRrvAP2Hh+Y5YCDKIZeEn/hm/zQGwSD/2Waqat
+        DlU2ogG0KEtbQFm7TbqXakazRbrpQbEm2cqKPakg3jDm/RWbnnlsPh/p8DDCksE45TLk=;
+Received: from 71-211-137-107.hlrn.qwest.net ([71.211.137.107] helo=[192.168.1.162])
+        by mx1.supremebox.com with esmtpa (Exim 4.92)
+        (envelope-from <opensource@jilayne.com>)
+        id 1qxePf-0005Ei-PH; Tue, 31 Oct 2023 02:23:27 +0000
+Message-ID: <ccf41bd2-e627-424c-8486-47f22553820d@jilayne.com>
+Date:   Mon, 30 Oct 2023 20:23:25 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZTutokxEXya0rqYs@strlen.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] treewide: Add SPDX identifier to IETF ASN.1 modules
+Content-Language: en-US
+To:     Lukas Wunner <lukas@wunner.de>,
+        Richard Fontana <rfontana@redhat.com>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-spdx@vger.kernel.org, David Howells <dhowells@redhat.com>,
+        Tadeusz Struk <tadeusz.struk@linaro.org>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        "David S. Miller" <davem@davemloft.net>, keyrings@vger.kernel.org,
+        linux-crypto@vger.kernel.org, Hyunchul Lee <hyc.lee@gmail.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Steve French <sfrench@samba.org>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Tom Talpey <tom@talpey.com>, linux-cifs@vger.kernel.org,
+        Taehee Yoo <ap420073@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org
+References: <143690ecc1102c0f67fa7faec437ec7b02bb2304.1697885975.git.lukas@wunner.de>
+ <CAC1cPGx-cb+YZ9KgEFvSjtf+fp9Dhcn4sm9qHmFFDRDxb=7fHg@mail.gmail.com>
+ <20231022085319.GA25981@wunner.de>
+From:   J Lovejoy <opensource@jilayne.com>
+In-Reply-To: <20231022085319.GA25981@wunner.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Sender-Ident-agJab5osgicCis: opensource@jilayne.com
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
 
-Thanks Florian, very appreciate for your comments. I'm not familiar with
-the bridge netfilter history and usage. I will summary and update the doc
-with your comments in next version(with the other's comments).
 
-Hope you could review it again.
+On 10/22/23 4:53 AM, Lukas Wunner wrote:
+> On Sat, Oct 21, 2023 at 09:23:55AM -0400, Richard Fontana wrote:
+>> On Sat, Oct 21, 2023 at 7:25???AM Lukas Wunner <lukas@wunner.de> wrote:
+>>> Per section 4.c. of the IETF Trust Legal Provisions, "Code Components"
+>>> in IETF Documents are licensed on the terms of the BSD-3-Clause license:
+>>>
+>>> https://trustee.ietf.org/documents/trust-legal-provisions/tlp-5/
+>>>
+>>> The term "Code Components" specifically includes ASN.1 modules:
+>>>
+>>> https://trustee.ietf.org/documents/trust-legal-provisions/code-components-list-3/
+>> Sorry if this seems super-pedantic but I am pretty sure the license
+>> text in the IETF Trust Legal Provisions does not actually match SPDX
+>> `BSD-3-Clause` because of one additional word in clause 3 ("specific"
+>> before "contributors"), so IMO you should get SPDX to modify its
+>> definition of `BSD-3-Clause` prior to applying this patch (or get IETF
+>> to change its version of the license, but I imagine that would be more
+>> difficult).
+> I've submitted a pull request to modify the SPDX definition of
+> BSD-3-Clause for the IETF variant:
+>
+> https://github.com/spdx/license-list-XML/pull/2218
+>
+> I assume this addresses your concern?  Let me know if it doesn't.
+>
+> If anyone has further objections to this patch please speak up.
+Thanks for submitting the PR! Usually this is something that would be 
+discussed via an issue before making a PR. I made one here 
+https://github.com/spdx/license-list-XML/issues/2242 and will have a 
+closer look shortly. Also ideally, this patch would not be applied until 
+the additional markup is confirmed by SPDX (in case this is deemed a new 
+license and needs a new/different identifier)
 
-Regards
-Hangbin
+thanks,
+Jilayne
+> Thanks,
+>
+> Lukas
 
-On Fri, Oct 27, 2023 at 02:31:30PM +0200, Florian Westphal wrote:
-> Hangbin Liu <liuhangbin@gmail.com> wrote:
-> 
-> [ cc nf-devel ]
-> 
-> > The current bridge kernel doc is too old. It only pointed to the
-> > linuxfoundation wiki page which lacks of the new features.
-> 
-> Indeed, thanks for taking time to improve the documention.
-> 
-> > +Netfilter
-> > +=========
-> > +
-> > +The bridge netfilter module allows packet filtering and firewall functionality
-> > +on bridge interfaces. As the Linux bridge, which traditionally operates at
-> > +Layer 2 and connects multiple network interfaces or segments, doesn't have
-> > +built-in packet filtering capabilities.
-> 
-> No, this is not what this module does.  br_netfilter module should NEVER
-> be used.  I'd love to remove it, but its very popular unfortunately.
-> 
-> Suggestion:
-> 
-> The bridge netfilter module is a legacy feature that allows to filter bridged
-> packets with iptables and ip6tables.  Its use is discouraged.  Users
-> should consider using nftables for packet filtering.
-> 
-> The older ebtables tool is more feature-limited compared to nftables, but
-> just like nftables it doesn't need this module either to function.
-> 
-> The br_netfilter module intercepts packets entering the bridge, performs
-> minimal sanity tests on ipv4 and ipv6 packets and then pretends that
-> these packets are being routed, not bridged.  br_netfilter then calls
-> the ip and ipv6 netfilter hooks from the bridge layer, i.e. ip(6)tables
-> rulesets will also see these packets.
-> 
-> br_netfilter is also the reason for the iptables 'physdev' match:
-> This match is the only way to reliably tell routed and bridged packets
-> apart in an iptables ruleset.
-> 
-> Side note:
-> 
-> You might want to somehow massage the bits below, perhaps it would be
-> good to have the historical context as to why br_netfilter exists in the
-> first place.
-> 
-> > +With bridge netfilter, you can define rules to filter or manipulate Ethernet
-> > +frames as they traverse the bridge. These rules are typically based on
-> > +Ethernet frame attributes such as MAC addresses, VLAN tags, and more.
-> > +You can use the *ebtables* or *nftables* tools to create and manage these
-> > +rules. *ebtables* is a tool specifically designed for managing Ethernet frame
-> > +filtering rules, while *nftables* is a more versatile framework for managing
-> > +rules that can also be used for bridge filtering.
-> 
-> ebtables and nftables will work fine without the br_netfilter module.
-> 
-> iptables/ip6tables/arptables do not work for bridged traffic because they
-> plug in the routing stack.
-> 
-> nftables rules in ip/ip6/inet/arp families won't see traffic that is
-> forwarded by a bridge either, but thats very much how it should be.
-> 
-> br_netfilter is only needed if users, for some reason, need to use
-> ip(6)tables to filter packets forwarded by the bridge, or NAT bridged
-> traffic.
-> 
-> Historically the feature set of ebtables was very limited (it still is),
-> so this module was added to pretend packets are routed and invoke the
-> ipv4/ipv6 netfilter hooks from the bridge so users had access to the
-> more feature-rich iptables matching capabilities (including conntrack).
-> 
-> nftables doesn't have this limitation, pretty much all features work
-> regardless of the protocol family.
-> 
-> > +The bridge netfilter is commonly used in scenarios where you want to apply
-> > +security policies to the traffic at the data link layer. This can be useful
-> > +for segmenting and securing networks, enforcing access control policies,
-> > +and isolating different parts of a network.
-> 
-> See above, for pure link layer filtering, this module isn't needed.
