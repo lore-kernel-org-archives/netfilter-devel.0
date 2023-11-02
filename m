@@ -2,132 +2,150 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9ADAC4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 08:39:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 351CFC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 10:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229500AbjKBIjz (ORCPT
+        id S1346245AbjKBKQl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Nov 2023 04:39:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51748 "EHLO
+        Thu, 2 Nov 2023 06:16:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229497AbjKBIjy (ORCPT
+        with ESMTP id S1345944AbjKBKQk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2023 04:39:54 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EEAE133
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 01:39:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1698914348;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-        bh=lvAfQnxbWN4TQEKwWvQ+fNy+qHgicclDAjmER/px+50=;
-        b=OKp5fwCNibQwLWTkkSjUVdD2dnUcisLdzxCTsjbb1zCnDV95rcVhD/syW3RJxAwalPGEUU
-        9rbqIUI8ddxmWBPmG0o+xulrUZRCigvJiI7rkTVbRA7em4ByCgw/A/eoxHhtWv69xr50Pm
-        QYCeAvN/n+IKoqJDZqpfMr3mPOgxnRo=
-Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
- [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-637-9NUCm0arNOGnnPKFJ_Buyg-1; Thu, 02 Nov 2023 04:39:07 -0400
-X-MC-Unique: 9NUCm0arNOGnnPKFJ_Buyg-1
-Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-9c439446b73so7158166b.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Nov 2023 01:39:06 -0700 (PDT)
+        Thu, 2 Nov 2023 06:16:40 -0400
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92F47131
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 03:16:34 -0700 (PDT)
+Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-53e2dc8fa02so1190523a12.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Nov 2023 03:16:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1698920193; x=1699524993; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=02xkZqOKKz9d+moFfG7ERv43EDw24szAgy8uy4/RXNc=;
+        b=Dsc6HVVl0B5n+tG36McAUl9jsQbCec3w4zgQobK2LkQS+8NYuc8Dk3PhhVrYi0HSCS
+         98ha4aiSpab1vlIouEGstnJiTkUb0ObG+5b7TsuWsNwH3iMscOESBIeAIobPdHU6C52j
+         lPRynfl0kc9on886tJNG0yc68UXR8VE8D6Sezjbfvk+tzKs+xAyS5xdXQg/Slo5cTaXb
+         ynqyZ4tvid7jYFkBE6ifqZ3UgeYQuPLPx5iSeY54KE7PU7ydg+A41audtycFah+UUd9C
+         0gzzP4bFaTOG5U3yvHoOuj+bfYWtf60mq9c/DaXrkCORbvZPdzcjYb2pZn5pi+oLbWcc
+         AD+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698914345; x=1699519145;
-        h=mime-version:user-agent:content-transfer-encoding:autocrypt
-         :references:in-reply-to:date:cc:to:from:subject:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=lvAfQnxbWN4TQEKwWvQ+fNy+qHgicclDAjmER/px+50=;
-        b=K2wUkaqG6pcsNzYYqIhgvTkU5KWKdi/xI+A8ibypZ0wXw0xLvYUFVI3AqDfjSk06O/
-         +MRDw7RG8JzyDzcwVoSeKIXQTFK80m8xuM2YfMnBt8+dx5o0XDlqxByHbM4It6fCHlCc
-         0A2DgsztmPNIrlEIT/WWhiBmVGEoxtrZMpb0b3KnA5tnveQdsROzCG+93OfS1t5/VwuM
-         0EualdGSQWSxoojWKv+vV+OCOyYrvE7/cnjzdHDQm4RgBcF1w3DPZ+Odzju4J+AbgsHF
-         weoBZ5Uq6KNgRJ+H4ztvPUF1kYiCsDG490bhYgb5RqZl7zQ7j+N0uSsMLGzg7droXHCu
-         bqGg==
-X-Gm-Message-State: AOJu0Yx2RwAl0sRSNa2V+dEOwapY4xDAPWOXLTeN2f0Bc28H9s2MonGv
-        hHeUsLm5yAnWBgrTcabtvu9UPs/dkL78dRvciQ+eLt14KgKsb1ApsJkQKZf42Q9RX6Xz8wrh1Iv
-        FRM8kaPWPc38ao5N50UFD6MLybmdRbIwpt5UQ
-X-Received: by 2002:a17:906:6547:b0:9b2:b149:b816 with SMTP id u7-20020a170906654700b009b2b149b816mr10586771ejn.7.1698914345579;
-        Thu, 02 Nov 2023 01:39:05 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IF3knVQ0L/tnfNAgJEZeTnlmPjnsgBBj50DPjoYVaHoexGentqerhlSklSJA3JS4kMaWSDBjg==
-X-Received: by 2002:a17:906:6547:b0:9b2:b149:b816 with SMTP id u7-20020a170906654700b009b2b149b816mr10586760ejn.7.1698914345221;
-        Thu, 02 Nov 2023 01:39:05 -0700 (PDT)
-Received: from [10.0.0.196] ([37.186.169.33])
-        by smtp.gmail.com with ESMTPSA id gl4-20020a170906e0c400b009786c8249d6sm849959ejb.175.2023.11.02.01.39.04
+        d=1e100.net; s=20230601; t=1698920193; x=1699524993;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=02xkZqOKKz9d+moFfG7ERv43EDw24szAgy8uy4/RXNc=;
+        b=jFkxfcdOblIJhgsCQPORtWAKpE8nJdGzLWfGdX/bfbdQ+T65ZV1OZlAVdL/wu087Bn
+         neDoZMxQMaAyGCRvMJIpJnX03cyjYMQzLpi6X9qDoYLNCwS+Sj8ZRalULp8hkOrxtHDA
+         3qdxLh1iuYyQ3Cr1fSFrGuff3KaQztFFsFKW/d9F1nLkcIqS2gq+PV+P3gUA3xrrbd3v
+         4EqsA1zTPlGJX5eJOk7SNoHTo0vahHWiUFqJF21ykKljTntM5u8+1X83bFajhnv9u//t
+         SPUWAXJOO/1o59wie2NUU6RP/dW4e4bq3FbAyn+V3vx3+TIsKAGe1r3z+TBrXaSkDaWw
+         bz2g==
+X-Gm-Message-State: AOJu0YzDy5nhS61So2ekcFkQaJE+1XCajSvGTtng7amfR1zk7eNT6jbG
+        Q2uzVdBqp7Ako3y6zD7A5ruwzw==
+X-Google-Smtp-Source: AGHT+IGAIpKlpb139ceS6EcClNVt5Z+NaIbDHk76iPL/T7wUBC0B/lAuYL7CQFzy391iCAo+wQDcCA==
+X-Received: by 2002:a50:9544:0:b0:543:595a:8280 with SMTP id v4-20020a509544000000b00543595a8280mr7273567eda.37.1698920193032;
+        Thu, 02 Nov 2023 03:16:33 -0700 (PDT)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id u22-20020aa7d896000000b0054354da96e5sm2146543edq.55.2023.11.02.03.16.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Nov 2023 01:39:04 -0700 (PDT)
-Message-ID: <9a0026db5f43f2b8eeff4b35404387e48dbac0fd.camel@redhat.com>
-Subject: Re: [PATCH nft 2/7] json: drop messages "warning: stmt ops chain
- have no json callback"
-From:   Thomas Haller <thaller@redhat.com>
-To:     Florian Westphal <fw@strlen.de>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Thu, 02 Nov 2023 09:39:03 +0100
-In-Reply-To: <20231102080454.GA23579@breakpoint.cc>
-References: <20231031185449.1033380-1-thaller@redhat.com>
-         <20231031185449.1033380-3-thaller@redhat.com>
-         <20231102080454.GA23579@breakpoint.cc>
-Autocrypt: addr=thaller@redhat.com; prefer-encrypt=mutual; keydata=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
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.0 (3.50.0-1.fc39) 
+        Thu, 02 Nov 2023 03:16:32 -0700 (PDT)
+Date:   Thu, 2 Nov 2023 13:16:28 +0300
+From:   Dan Carpenter <dan.carpenter@linaro.org>
+To:     Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
+Cc:     netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Harshit Mogalapalli <harshit.m.mogalapalli@gmail.com>
+Subject: Re: [PATCH v2] netfilter: nf_tables: prevent OOB access in
+ nft_byteorder_eval
+Message-ID: <d7e42ffd-aabf-46d7-b02a-a7337708a29a@moroto.mountain>
+References: <20230705201232.GG3751@breakpoint.cc>
+ <20230705210535.943194-1-cascardo@canonical.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230705210535.943194-1-cascardo@canonical.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, 2023-11-02 at 09:04 +0100, Florian Westphal wrote:
-> Thomas Haller <thaller@redhat.com> wrote:
-> > This message purely depends on the internal callbacks and at the
-> > program
-> > code. This is not useful. What is the user going to do with this
-> > warning?
->=20
-> Report a bug.
+On Wed, Jul 05, 2023 at 06:05:35PM -0300, Thadeu Lima de Souza Cascardo wrote:
+> diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+> index 9a85e797ed58..e596d1a842f7 100644
+> --- a/net/netfilter/nft_byteorder.c
+> +++ b/net/netfilter/nft_byteorder.c
+> @@ -30,11 +30,11 @@ void nft_byteorder_eval(const struct nft_expr *expr,
+>  	const struct nft_byteorder *priv = nft_expr_priv(expr);
+>  	u32 *src = &regs->data[priv->sreg];
+>  	u32 *dst = &regs->data[priv->dreg];
+> -	union { u32 u32; u16 u16; } *s, *d;
+> +	u16 *s16, *d16;
+>  	unsigned int i;
+>  
+> -	s = (void *)src;
+> -	d = (void *)dst;
+> +	s16 = (void *)src;
+> +	d16 = (void *)dst;
+>  
+>  	switch (priv->size) {
+>  	case 8: {
 
-The way the message is worded ("warning:"), doesn't sound as if a user
-should feel invited to report a bug.
+This patch is correct, but shouldn't we fix the code for 64 bit writes
+as well?
 
+net/netfilter/nft_byteorder.c
+    26  void nft_byteorder_eval(const struct nft_expr *expr,
+    27                          struct nft_regs *regs,
+    28                          const struct nft_pktinfo *pkt)
+    29  {
+    30          const struct nft_byteorder *priv = nft_expr_priv(expr);
+    31          u32 *src = &regs->data[priv->sreg];
+    32          u32 *dst = &regs->data[priv->dreg];
+    33          u16 *s16, *d16;
+    34          unsigned int i;
+    35  
+    36          s16 = (void *)src;
+    37          d16 = (void *)dst;
+    38  
+    39          switch (priv->size) {
+    40          case 8: {
+    41                  u64 src64;
+    42  
+    43                  switch (priv->op) {
+    44                  case NFT_BYTEORDER_NTOH:
+    45                          for (i = 0; i < priv->len / 8; i++) {
+    46                                  src64 = nft_reg_load64(&src[i]);
+    47                                  nft_reg_store64(&dst[i],
+    48                                                  be64_to_cpu((__force __be64)src64));
 
-> > Maybe there is a bug here, but then we shouldn't print a warning
-> > but fix
-> > the bug.
->=20
-> How on earth do we do that, fix a bug before we know its there?
+We're writing 8 bytes, then moving forward 4 bytes and writing 8 bytes
+again.  Each subsequent write over-writes 4 bytes from the previous
+write.
 
-Writing tests that perform basic consistency checks of things that must
-hold.
+    49                          }
+    50                          break;
+    51                  case NFT_BYTEORDER_HTON:
+    52                          for (i = 0; i < priv->len / 8; i++) {
+    53                                  src64 = (__force __u64)
+    54                                          cpu_to_be64(nft_reg_load64(&src[i]));
+    55                                  nft_reg_store64(&dst[i], src64);
 
-A unit test should check whether ops structs are consistent. This
-patchset also enables a test that hits this problem (for "chain" ops).
+Same.
 
-If there is a bug, then an assertion (or just a plain crash) would be
-preferable over printing a "warning" to stderr.
+    56                          }
+    57                          break;
+    58                  }
+    59                  break;
+    60          }
+    61          case 4:
+    62                  switch (priv->op) {
+    63                  case NFT_BYTEORDER_NTOH:
+    64                          for (i = 0; i < priv->len / 4; i++)
+    65                                  dst[i] = ntohl((__force __be32)src[i]);
+    66                          break;
+    67                  case NFT_BYTEORDER_HTON:
 
->=20
-> > For example, calling `nft -j list ruleset` after test
-> > "tests/shell/testcases/chains/0041chain_binding_0"
-> > will trigger messages like:
-> >=20
-> > =C2=A0 warning: stmt ops chain have no json callback
-> > =C2=A0 warning: stmt ops chain have no json callback
->=20
-> That means that chain ops needs a bug fix as they do not support
-> json output?
-
-I don't know. The message might just trying to be helpful, and there is
-no actual problem. The condition is attempted to be handled by the
-following code.
-
-I don't know which it is. Me sending the patch is basically asking that
-question.
-
-
-
-Thomas
+regards,
+dan carpenter
 
