@@ -2,84 +2,107 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DD83C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 08:17:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 890DBC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 08:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345379AbjKBIRK (ORCPT
+        id S233226AbjKBIar (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Nov 2023 04:17:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55250 "EHLO
+        Thu, 2 Nov 2023 04:30:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345365AbjKBIRD (ORCPT
+        with ESMTP id S229506AbjKBIar (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2023 04:17:03 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDC71182
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 01:16:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1698912976;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=xNrTht97+0FRPvxo+w+8ZAHmWFax25OFefF5vMLzOtY=;
-        b=fxtnJhETulPLmYa+ZKnDG1f2JlV8Ms8eOoXHqfrTsvl/CmoQcH9rk2VFkxOcpkGerW7xlp
-        lln4oZUoopsiYsTzXKhPA5+nsD5u3EdYDs6tj1vzDEEwp74iudUPNjVyL8fZOEFRdnqNi3
-        pZkicX6XDLxWVEx3b7GVUhLFotGC+p0=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-663-SlXOb-8xP7OPbrjxf11ouQ-1; Thu, 02 Nov 2023 04:16:12 -0400
-X-MC-Unique: SlXOb-8xP7OPbrjxf11ouQ-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7BA00185A784
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 08:16:12 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.193.47])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id E1E4640C6EBC;
-        Thu,  2 Nov 2023 08:16:11 +0000 (UTC)
-From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 1/1] tests/shell: fix mount command in "test-wrapper.sh"
-Date:   Thu,  2 Nov 2023 09:15:41 +0100
-Message-ID: <20231102081601.154862-1-thaller@redhat.com>
+        Thu, 2 Nov 2023 04:30:47 -0400
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50E3F128
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 01:30:44 -0700 (PDT)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@strlen.de>)
+        id 1qyT6B-0006JP-01; Thu, 02 Nov 2023 09:30:43 +0100
+Date:   Thu, 2 Nov 2023 09:30:42 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     netfilter-devel@vger.kernel.org,
+        Lorenzo Bianconi <lorenzo@kernel.org>
+Subject: Re: [PATCH RFC] netfilter: nf_tables: add flowtable map for xdp
+ offload
+Message-ID: <20231102083042.GB6174@breakpoint.cc>
+References: <20231019202507.16439-1-fw@strlen.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231019202507.16439-1-fw@strlen.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-With Fedora 39 (util-linux-core-2.39.2-1.fc39), the mount command starts
-to fail. It was still working with Fedora 38 (util-linux-core-2.38.1-4.fc38).
+Florian Westphal <fw@strlen.de> wrote:
+> This adds a small internal mapping table so that a new bpf (xdp) kfunc
+> A device cannot be added to multiple flowtables, the mapping needs
+> to be unique.
 
-  $ unshare -f -p -m --mount-proc -U --map-root-user -n bash -c 'mount -t tmpfs --make-private /var/run && mount'
-  mount: /run: mount failed: Invalid argument.
+This breaks two cases:
+1.  Two-Phase commmit protocol:
+nft -f - <<EOF
+flush ruleset
+table t {
+	flowtable ...
+EOF
 
-Not sure why this starts to fail. But arguably the command line
-arguments were wrong. Fix it, we need a pseudo name for the device.
+fails when called a 2nd time.  This problem also exists
+for at least the mlx hw offload too.
 
-Fixes: df6f1a3e0803 ("tests/shell: bind mount private /var/run/netns in test container")
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- tests/shell/helpers/test-wrapper.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It would be good to fix this generically but I do not see
+how given this problem is nftables specific and not really
+flowtable related.
 
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-index 872a0c56ed54..b74c56168768 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -48,7 +48,7 @@ if [ "$NFT_TEST_HAS_UNSHARED_MOUNT" = y ] ; then
- 	# Note that this also hides everything that might reside in /var/run.
- 	# That is desirable, as tests should not depend on content there (or if
- 	# they do, we need to explicitly handle it as appropriate).
--	if mount -t tmpfs --make-private "/var/run" ; then
-+	if mount -t tmpfs --make-private tmpfs "/var/run" ; then
- 		CLEANUP_UMOUNT_VAR_RUN=y
- 	fi
- 	mkdir -p /var/run/netns
--- 
-2.41.0
+2. currently nftables supports
+table ip t {
+	flowtable f {
+		devices = { eth0 ...
 
+table ip6 t {
+	flowtable f {
+		devices = { eth0 ...
+
+table inet t {
+	flowtable f {
+		devices = { eth0 ...
+
+... and this works, i.e. same device can be part of
+up to 6 flowtables.
+
+This one is easier to fix, the program can guess ip/ip6
+based to packet data and can a family to the kfunc as a
+function argument.
+
+inet would be shadowed / hidden when an ip/ip6 flowtable
+mapping exists as well.
+
+This is not nice, but the ip(6) and inet thing should
+not occur in practice and nothing breaks here because
+existing sw path is still going to work.
+
+> +static int nf_flow_offload_xdp_setup(struct nf_flowtable *flowtable,
+> +				     struct net_device *dev,
+> +				     enum flow_block_command cmd)
+> +{
+> +	switch (cmd) {
+> +	case FLOW_BLOCK_BIND:
+> +		return nf_flowtable_by_dev_insert(flowtable, dev);
+
+This is fine or at least can be made to work.
+
+> +	case FLOW_BLOCK_UNBIND:
+> +		nf_flowtable_by_dev_remove(dev);
+
+This is broken.  UNBIND comes too late when things are torn down.
+
+I only see two solutions:
+
+1. add a new nf_flow_offload_unbind_prepare() that does this
+2. Decouple nf_flowtable from nft_flowtable and make nf_flowtable
+   refcounted.  As-is, the UNBIND will result in UAF because the
+   underlying structures will be free'd immediately after this,
+   without any synchronize_rcu().
