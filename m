@@ -2,63 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 922D9C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 11:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44E32C4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 11:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347273AbjKBL1X (ORCPT
+        id S229742AbjKBLar (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Nov 2023 07:27:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48950 "EHLO
+        Thu, 2 Nov 2023 07:30:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347243AbjKBL1W (ORCPT
+        with ESMTP id S229637AbjKBLaq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2023 07:27:22 -0400
+        Thu, 2 Nov 2023 07:30:46 -0400
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73807111
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 04:27:19 -0700 (PDT)
-Received: from [78.30.35.151] (port=33608 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B2F2133
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 04:30:40 -0700 (PDT)
+Received: from [78.30.35.151] (port=53974 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1qyVr1-008ctg-R4; Thu, 02 Nov 2023 12:27:17 +0100
-Date:   Thu, 2 Nov 2023 12:27:15 +0100
+        id 1qyVuD-008f8A-PV; Thu, 02 Nov 2023 12:30:38 +0100
+Date:   Thu, 2 Nov 2023 12:30:32 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 2/2] json: drop handling missing json() hook for
- "struct expr_ops"
-Message-ID: <ZUOHkxVCA1FyJvNd@calendula>
-References: <20231102112122.383527-1-thaller@redhat.com>
- <20231102112122.383527-2-thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>, fw@strlen.de
+Subject: Re: [PATCH nft v2 4/7] build: no recursive make for
+ "files/**/Makefile.am"
+Message-ID: <ZUOIWNT3sjmqd8EM@calendula>
+References: <20231019130057.2719096-1-thaller@redhat.com>
+ <20231019130057.2719096-5-thaller@redhat.com>
+ <ZUOEpOU96ai+dmT7@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20231102112122.383527-2-thaller@redhat.com>
+In-Reply-To: <ZUOEpOU96ai+dmT7@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 02, 2023 at 12:20:29PM +0100, Thomas Haller wrote:
-> By now, all "struct expr_ops" have a json() hook set. Thus, drop
-> handling the possibility that they might not. From now on, it's a bug
-> to create a ops without the hook.
+On Thu, Nov 02, 2023 at 12:14:49PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Oct 19, 2023 at 03:00:03PM +0200, Thomas Haller wrote:
+> > diff --git a/Makefile.am b/Makefile.am
+> > index 8b8de7bd141a..83f25dd8574b 100644
+> > --- a/Makefile.am
+> > +++ b/Makefile.am
+> > @@ -2,6 +2,8 @@ ACLOCAL_AMFLAGS = -I m4
+> >  
+> >  EXTRA_DIST =
+> >  
+> > +###############################################################################
 > 
-> It's not clear what the code tried to do. It bothered to implement a
-> fallback via fmemopen(), but apparently that fallback is no considered a
-> good solution as it also printed a "warning". Either the fallback is
-> good and does not warrant a warning. Or the condition is to be avoided
-> to begin with, which we should do by testing the expr_ops structures.
+> This marker shows that this Makefile.am is really getting too big.
 > 
-> As the fallback path has an overhead to create the memory stream, the
-> fallback path is indeed not great. That is the reason to outlaw a
-> missing json() hook, to require that all hooks are present, and to drop
-> the fallback path.
+> Can we find a middle point?
 > 
-> A missing hook is very easy to cover with unit tests. Such a test shall
-> be added soon.
+> I understand that a single Makefile for something as little as
+> examples/Makefile.am is probably too much.
+> 
+> No revert please, something incremental, otherwise this looks like
+> iptables' Makefile.
 
-That's fine to simplify code.
-
-But then, in 1/2 you better set some STUB that hits BUG() because we
-should not ever see variable and symbol expression from json listing
-path ever.
+Correction: Actually iptables' Makefiles show a better balance in how
+things are split accross Makefiles, with some possibilities to
+consolidate things but it looks much better these days.
