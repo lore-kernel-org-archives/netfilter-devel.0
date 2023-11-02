@@ -2,65 +2,61 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B59A8C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 11:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEEAEC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  2 Nov 2023 11:14:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229635AbjKBLLj (ORCPT
+        id S229654AbjKBLO6 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 2 Nov 2023 07:11:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48538 "EHLO
+        Thu, 2 Nov 2023 07:14:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229483AbjKBLLj (ORCPT
+        with ESMTP id S229728AbjKBLO5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2023 07:11:39 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E062E111
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 04:11:36 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qyVbr-00075o-J9; Thu, 02 Nov 2023 12:11:35 +0100
-Date:   Thu, 2 Nov 2023 12:11:35 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Toke =?iso-8859-15?Q?H=F8iland-J=F8rgensen?= <toke@kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        Lorenzo Bianconi <lorenzo@kernel.org>
-Subject: Re: [PATCH RFC] netfilter: nf_tables: add flowtable map for xdp
- offload
-Message-ID: <20231102111135.GI6174@breakpoint.cc>
-References: <20231019202507.16439-1-fw@strlen.de>
- <87il6k1lbz.fsf@toke.dk>
- <20231102105434.GF6174@breakpoint.cc>
- <87fs1o1ki4.fsf@toke.dk>
+        Thu, 2 Nov 2023 07:14:57 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80ADCE7
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Nov 2023 04:14:51 -0700 (PDT)
+Received: from [78.30.35.151] (port=54810 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qyVev-008aIs-7w; Thu, 02 Nov 2023 12:14:49 +0100
+Date:   Thu, 2 Nov 2023 12:14:44 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>, fw@strlen.de
+Subject: Re: [PATCH nft v2 4/7] build: no recursive make for
+ "files/**/Makefile.am"
+Message-ID: <ZUOEpOU96ai+dmT7@calendula>
+References: <20231019130057.2719096-1-thaller@redhat.com>
+ <20231019130057.2719096-5-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <87fs1o1ki4.fsf@toke.dk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20231019130057.2719096-5-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Toke Høiland-Jørgensen <toke@kernel.org> wrote:
-> > From nft based flowtable offload we already had a feature request to
-> > bounce flows back to normal path periodially, this was because people
-> > wanted to make sure that long-living flows get revalidated vs. current
-> > netfilter ruleset and not the one that was active at flow offload time.
-> >
-> > There was a patch for it, using a new sysctl, and author never came
-> > back with an updated patch to handle this via the ruleset instead.
-> 
-> Right, if there's an existing policy knob for this it makes sense to
-> support it in the XDP case as well, of course.
-> 
-> Does HW flow offload deal with that reordering case at all, BTW? I
-> assume it could happen for that as well?
+On Thu, Oct 19, 2023 at 03:00:03PM +0200, Thomas Haller wrote:
+> diff --git a/Makefile.am b/Makefile.am
+> index 8b8de7bd141a..83f25dd8574b 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -2,6 +2,8 @@ ACLOCAL_AMFLAGS = -I m4
+>  
+>  EXTRA_DIST =
+>  
+> +###############################################################################
 
-We do not have such a feature, only a request.  The patch was never
-applied because we belive a sysctl based approach is not very flexible.
+This marker shows that this Makefile.am is really getting too big.
 
-HW can bounce offloaded packets at any time.
-SW fallback bounces packets that it cannot handle, currently those
-are ip options or ip fragments.
+Can we find a middle point?
 
-FIN or RST moves flow back to slowpath permanently.
+I understand that a single Makefile for something as little as
+examples/Makefile.am is probably too much.
+
+No revert please, something incremental, otherwise this looks like
+iptables' Makefile.
+
+Thanks.
