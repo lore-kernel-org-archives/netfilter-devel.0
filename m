@@ -2,29 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C03E2C4167B
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 10:26:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B90BC4167D
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 10:26:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230479AbjKCK0U (ORCPT
+        id S229900AbjKCK0X (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Nov 2023 06:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54130 "EHLO
+        Fri, 3 Nov 2023 06:26:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233083AbjKCK0R (ORCPT
+        with ESMTP id S232511AbjKCK0W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2023 06:26:17 -0400
+        Fri, 3 Nov 2023 06:26:22 -0400
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EBD4D4F
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 03:26:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 280FB18B
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 03:26:19 -0700 (PDT)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1qyrNV-00055n-Pi; Fri, 03 Nov 2023 11:26:13 +0100
+        id 1qyrNZ-00055y-Re; Fri, 03 Nov 2023 11:26:17 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables 2/4] nft-arp: add missing mask support
-Date:   Fri,  3 Nov 2023 11:23:24 +0100
-Message-ID: <20231103102330.27578-3-fw@strlen.de>
+Subject: [PATCH iptables 3/4] nft-arp: add arptables-translate
+Date:   Fri,  3 Nov 2023 11:23:25 +0100
+Message-ID: <20231103102330.27578-4-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231103102330.27578-1-fw@strlen.de>
 References: <20231103102330.27578-1-fw@strlen.de>
@@ -34,129 +34,349 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-arptables-legacy supports masks for --h-type, --opcode
-and --proto-type, but arptables-nft did not.
-
-Add this.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- iptables/nft-arp.c           | 21 +++++++++++++++++++--
- iptables/nft-ruleparse-arp.c |  8 ++++++++
- 2 files changed, 27 insertions(+), 2 deletions(-)
+ extensions/libarpt_mangle.c  |  47 +++++++++++
+ iptables/nft-arp.c           | 153 +++++++++++++++++++++++++++++++++++
+ iptables/xtables-multi.h     |   1 +
+ iptables/xtables-nft-multi.c |   1 +
+ iptables/xtables-translate.c |  35 +++++++-
+ 5 files changed, 236 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index a0f4e1547f4e..6ca9ae8ffb87 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -58,41 +58,56 @@ static int nft_arp_add(struct nft_handle *h, struct nft_rule_ctx *ctx,
- 	}
- 
- 	if (fw->arp.arhrd != 0 ||
-+	    fw->arp.arhrd_mask != 0xffff ||
- 	    fw->arp.invflags & ARPT_INV_ARPHRD) {
- 		uint8_t reg;
- 
- 		op = nft_invflags2cmp(fw->arp.invflags, ARPT_INV_ARPHRD);
- 		add_payload(h, r, offsetof(struct arphdr, ar_hrd), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER, &reg);
-+		if (fw->arp.arhrd_mask != 0xffff)
-+			add_bitwise_u16(h, r, fw->arp.arhrd_mask, 0, reg, &reg);
- 		add_cmp_u16(r, fw->arp.arhrd, op, reg);
- 	}
- 
- 	if (fw->arp.arpro != 0 ||
-+	    fw->arp.arpro_mask != 0xffff ||
- 	    fw->arp.invflags & ARPT_INV_ARPPRO) {
- 		uint8_t reg;
- 
- 		op = nft_invflags2cmp(fw->arp.invflags, ARPT_INV_ARPPRO);
- 	        add_payload(h, r, offsetof(struct arphdr, ar_pro), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER, &reg);
-+		if (fw->arp.arpro_mask != 0xffff)
-+			add_bitwise_u16(h, r, fw->arp.arpro_mask, 0, reg, &reg);
- 		add_cmp_u16(r, fw->arp.arpro, op, reg);
- 	}
- 
- 	if (fw->arp.arhln != 0 ||
-+	    fw->arp.arhln_mask != 255 ||
- 	    fw->arp.invflags & ARPT_INV_ARPHLN) {
-+		uint8_t reg;
-+
- 		op = nft_invflags2cmp(fw->arp.invflags, ARPT_INV_ARPHLN);
--		add_proto(h, r, offsetof(struct arphdr, ar_hln), 1,
--			  fw->arp.arhln, op);
-+		add_payload(h, r, offsetof(struct arphdr, ar_hln), 1,
-+			    NFT_PAYLOAD_NETWORK_HEADER, &reg);
-+		if (fw->arp.arhln_mask != 255)
-+			add_bitwise(h, r, &fw->arp.arhln_mask, 1, reg, &reg);
-+		add_cmp_u8(r, fw->arp.arhln, op, reg);
- 	}
- 
- 	add_proto(h, r, offsetof(struct arphdr, ar_pln), 1, 4, NFT_CMP_EQ);
- 
- 	if (fw->arp.arpop != 0 ||
-+	    fw->arp.arpop_mask != 0xffff ||
- 	    fw->arp.invflags & ARPT_INV_ARPOP) {
- 		uint8_t reg;
- 
- 		op = nft_invflags2cmp(fw->arp.invflags, ARPT_INV_ARPOP);
- 		add_payload(h, r, offsetof(struct arphdr, ar_op), 2,
- 			    NFT_PAYLOAD_NETWORK_HEADER, &reg);
-+		if (fw->arp.arpop_mask != 0xffff)
-+			add_bitwise_u16(h, r, fw->arp.arpop_mask, 0, reg, &reg);
- 		add_cmp_u16(r, fw->arp.arpop, op, reg);
- 	}
- 
-@@ -556,6 +571,8 @@ static void nft_arp_init_cs(struct iptables_command_state *cs)
- 	cs->arp.arp.arhln_mask = 255;
- 	cs->arp.arp.arhrd = htons(ARPHRD_ETHER);
- 	cs->arp.arp.arhrd_mask = 65535;
-+	cs->arp.arp.arpop_mask = 65535;
-+	cs->arp.arp.arpro_mask = 65535;
+diff --git a/extensions/libarpt_mangle.c b/extensions/libarpt_mangle.c
+index 765edf34781f..104f603bf6b0 100644
+--- a/extensions/libarpt_mangle.c
++++ b/extensions/libarpt_mangle.c
+@@ -170,6 +170,52 @@ static void arpmangle_save(const void *ip, const struct xt_entry_target *target)
+ 	arpmangle_print(ip, target, 0);
  }
  
- static int
-diff --git a/iptables/nft-ruleparse-arp.c b/iptables/nft-ruleparse-arp.c
-index a9b92d8048f4..7cd0f9fcd97c 100644
---- a/iptables/nft-ruleparse-arp.c
-+++ b/iptables/nft-ruleparse-arp.c
-@@ -90,6 +90,8 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
- 		fw->arp.arhrd_mask = 0xffff;
- 		if (inv)
- 			fw->arp.invflags |= ARPT_INV_ARPHRD;
-+		if (reg->bitwise.set)
-+			fw->arp.arhrd_mask = reg->bitwise.mask[0];
- 		break;
- 	case offsetof(struct arphdr, ar_pro):
- 		get_cmp_data(e, &ar_pro, sizeof(ar_pro), &inv);
-@@ -97,6 +99,8 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
- 		fw->arp.arpro_mask = 0xffff;
- 		if (inv)
- 			fw->arp.invflags |= ARPT_INV_ARPPRO;
-+		if (reg->bitwise.set)
-+			fw->arp.arpro_mask = reg->bitwise.mask[0];
- 		break;
- 	case offsetof(struct arphdr, ar_op):
- 		get_cmp_data(e, &ar_op, sizeof(ar_op), &inv);
-@@ -104,6 +108,8 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
- 		fw->arp.arpop_mask = 0xffff;
- 		if (inv)
- 			fw->arp.invflags |= ARPT_INV_ARPOP;
-+		if (reg->bitwise.set)
-+			fw->arp.arpop_mask = reg->bitwise.mask[0];
- 		break;
- 	case offsetof(struct arphdr, ar_hln):
- 		get_cmp_data(e, &ar_hln, sizeof(ar_hln), &inv);
-@@ -111,6 +117,8 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
- 		fw->arp.arhln_mask = 0xff;
- 		if (inv)
- 			fw->arp.invflags |= ARPT_INV_ARPHLN;
-+		if (reg->bitwise.set)
-+			fw->arp.arhln_mask = reg->bitwise.mask[0];
- 		break;
- 	case offsetof(struct arphdr, ar_pln):
- 		get_cmp_data(e, &ar_pln, sizeof(ar_pln), &inv);
++static void print_devaddr_xlate(const char *macaddress, struct xt_xlate *xl)
++{
++	unsigned int i;
++
++	xt_xlate_add(xl, "%02x", macaddress[0]);
++	for (i = 1; i < ETH_ALEN; ++i)
++		xt_xlate_add(xl, ":%02x", macaddress[i]);
++}
++
++static int arpmangle_xlate(struct xt_xlate *xl,
++			 const struct xt_xlate_tg_params *params)
++{
++	const struct arpt_mangle *m = (const void *)params->target->data;
++
++	if (m->flags & ARPT_MANGLE_SIP)
++		xt_xlate_add(xl, "arp saddr ip set %s ",
++			     xtables_ipaddr_to_numeric(&m->u_s.src_ip));
++
++	if (m->flags & ARPT_MANGLE_SDEV) {
++		xt_xlate_add(xl, "arp %caddr ether set ", 's');
++		print_devaddr_xlate(m->src_devaddr, xl);
++	}
++
++	if (m->flags & ARPT_MANGLE_TIP)
++		xt_xlate_add(xl, "arp daddr ip set %s ",
++			     xtables_ipaddr_to_numeric(&m->u_t.tgt_ip));
++
++	if (m->flags & ARPT_MANGLE_TDEV) {
++		xt_xlate_add(xl, "arp %caddr ether set ", 'd');
++		print_devaddr_xlate(m->tgt_devaddr, xl);
++	}
++
++	switch (m->target) {
++	case NF_ACCEPT:
++		xt_xlate_add(xl, "accept");
++		break;
++	case NF_DROP:
++		xt_xlate_add(xl, "drop");
++		break;
++	default:
++		break;
++	}
++
++	return 1;
++}
++
+ static struct xtables_target arpmangle_target = {
+ 	.name		= "mangle",
+ 	.revision	= 0,
+@@ -184,6 +230,7 @@ static struct xtables_target arpmangle_target = {
+ 	.print		= arpmangle_print,
+ 	.save		= arpmangle_save,
+ 	.extra_opts	= arpmangle_opts,
++	.xlate		= arpmangle_xlate,
+ };
+ 
+ void _init(void)
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 6ca9ae8ffb87..36166c733956 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -18,6 +18,7 @@
+ 
+ #include <xtables.h>
+ #include <libiptc/libxtc.h>
++#include <arpa/inet.h>
+ #include <net/if_arp.h>
+ #include <netinet/if_ether.h>
+ 
+@@ -663,6 +664,157 @@ nft_arp_replace_entry(struct nft_handle *h,
+ 	return nft_cmd_rule_replace(h, chain, table, cs, rulenum, verbose);
+ }
+ 
++static void nft_arp_xlate_mac_and_mask(const struct arpt_devaddr_info *devaddr,
++				       const char *addr,
++				       bool invert,
++				       struct xt_xlate *xl)
++{
++	unsigned int i;
++
++	for (i = 0; i < 6; ++i) {
++		if (devaddr->mask[i])
++			break;
++	}
++
++	if (i == 6)
++		return;
++
++	xt_xlate_add(xl, "arp %s ether ", addr);
++	if (invert)
++		xt_xlate_add(xl, "!= ");
++
++	xt_xlate_add(xl, "%02x", (uint8_t)devaddr->addr[0]);
++	for (i = 1; i < 6; ++i)
++		xt_xlate_add(xl, ":%02x", (uint8_t)devaddr->addr[i]);
++
++	for (i = 0; i < 6; ++i) {
++		int j;
++
++		if ((uint8_t)devaddr->mask[i] == 0xff)
++			continue;
++
++		xt_xlate_add(xl, "/%02x", (uint8_t)devaddr->mask[0]);
++
++		for (j = 1; j < 6; ++j)
++			xt_xlate_add(xl, ":%02x", (uint8_t)devaddr->mask[j]);
++		return;
++	}
++}
++
++static void nft_arp_xlate16(uint16_t v, uint16_t m, const char *what,
++			    bool hex, bool inverse,
++			    struct xt_xlate *xl)
++{
++	const char *fmt = hex ? "0x%x " : "%d ";
++
++	if (m) {
++		xt_xlate_add(xl, "arp %s ", what);
++		if (inverse)
++			xt_xlate_add(xl, " !=");
++		if (m != 0xffff) {
++			xt_xlate_add(xl, "& ");
++			xt_xlate_add(xl, fmt, ntohs(m));;
++
++		}
++		xt_xlate_add(xl, fmt, ntohs(v));
++	}
++}
++
++static void nft_arp_xlate_ipv4_addr(const char *what, const struct in_addr *addr,
++				    const struct in_addr *mask,
++				    bool inv, struct xt_xlate *xl)
++{
++	char mbuf[INET_ADDRSTRLEN], abuf[INET_ADDRSTRLEN];
++	const char *op = inv ? "!= " : "";
++	int cidr;
++
++	if (!inv && !addr->s_addr && !mask->s_addr)
++		return;
++
++	inet_ntop(AF_INET, addr, abuf, sizeof(abuf));
++
++	cidr = xtables_ipmask_to_cidr(mask);
++	switch (cidr) {
++	case -1:
++		xt_xlate_add(xl, "arp %s ip & %s %s %s ", what,
++			     inet_ntop(AF_INET, mask, mbuf, sizeof(mbuf)),
++			     inv ? "!=" : "==", abuf);
++		break;
++	case 32:
++		xt_xlate_add(xl, "arp %s ip %s%s ", what, op, abuf);
++		break;
++	default:
++		xt_xlate_add(xl, "arp %s ip %s%s/%d ", what, op, abuf, cidr);
++	}
++}
++
++static int nft_arp_xlate(const struct iptables_command_state *cs,
++			 struct xt_xlate *xl)
++{
++	const struct arpt_entry *fw = &cs->arp;
++	int ret;
++
++	xlate_ifname(xl, "iifname", fw->arp.iniface,
++		     fw->arp.invflags & ARPT_INV_VIA_IN);
++	xlate_ifname(xl, "oifname", fw->arp.outiface,
++		     fw->arp.invflags & ARPT_INV_VIA_OUT);
++
++	if (fw->arp.arhrd ||
++	    fw->arp.arhrd_mask != 0xffff ||
++	    fw->arp.invflags & ARPT_INV_ARPHRD)
++		nft_arp_xlate16(fw->arp.arhrd, fw->arp.arhrd_mask,
++				"htype", false,
++				 fw->arp.invflags & ARPT_INV_ARPHRD, xl);
++
++	if (fw->arp.arhln_mask != 255 || fw->arp.arhln ||
++	    fw->arp.invflags & ARPT_INV_ARPHLN) {
++		xt_xlate_add(xl, "arp hlen ");
++		if (fw->arp.invflags & ARPT_INV_ARPHLN)
++			xt_xlate_add(xl, " !=");
++		if (fw->arp.arhln_mask != 255)
++			xt_xlate_add(xl, "& %d ", fw->arp.arhln_mask);
++		xt_xlate_add(xl, "%d ", fw->arp.arhln);
++	}
++
++	/* added implicitly by arptables-nft */
++	xt_xlate_add(xl, "arp plen %d", 4);
++
++	if (fw->arp.arpop_mask != 65535 ||
++	    fw->arp.arpop != 0 ||
++	    fw->arp.invflags & ARPT_INV_ARPOP)
++		nft_arp_xlate16(fw->arp.arpop, fw->arp.arpop_mask,
++				"operation", false,
++				fw->arp.invflags & ARPT_INV_ARPOP, xl);
++
++	if (fw->arp.arpro_mask != 65535 ||
++	    fw->arp.invflags & ARPT_INV_ARPPRO ||
++	    fw->arp.arpro)
++		nft_arp_xlate16(fw->arp.arpro, fw->arp.arpro_mask,
++				"ptype", true,
++				fw->arp.invflags & ARPT_INV_ARPPRO, xl);
++
++	if (fw->arp.smsk.s_addr != 0L)
++		nft_arp_xlate_ipv4_addr("saddr", &fw->arp.src, &fw->arp.smsk,
++					fw->arp.invflags & ARPT_INV_SRCIP, xl);
++
++	if (fw->arp.tmsk.s_addr != 0L)
++		nft_arp_xlate_ipv4_addr("daddr", &fw->arp.tgt, &fw->arp.tmsk,
++					fw->arp.invflags & ARPT_INV_TGTIP, xl);
++
++	nft_arp_xlate_mac_and_mask(&fw->arp.src_devaddr, "saddr",
++				   fw->arp.invflags & ARPT_INV_SRCDEVADDR, xl);
++	nft_arp_xlate_mac_and_mask(&fw->arp.tgt_devaddr, "daddr",
++				   fw->arp.invflags & ARPT_INV_TGTDEVADDR, xl);
++
++	ret = xlate_matches(cs, xl);
++	if (!ret)
++		return ret;
++
++	/* Always add counters per rule, as in iptables */
++	xt_xlate_add(xl, "counter");
++	return xlate_action(cs, false, xl);
++}
++
+ struct nft_family_ops nft_family_ops_arp = {
+ 	.add			= nft_arp_add,
+ 	.is_same		= nft_arp_is_same,
+@@ -678,6 +830,7 @@ struct nft_family_ops nft_family_ops_arp = {
+ 	.rule_to_cs		= nft_rule_to_iptables_command_state,
+ 	.init_cs		= nft_arp_init_cs,
+ 	.clear_cs		= xtables_clear_iptables_command_state,
++	.xlate			= nft_arp_xlate,
+ 	.add_entry		= nft_arp_add_entry,
+ 	.delete_entry		= nft_arp_delete_entry,
+ 	.check_entry		= nft_arp_check_entry,
+diff --git a/iptables/xtables-multi.h b/iptables/xtables-multi.h
+index 833c11a2ac91..760d3e4f2b6e 100644
+--- a/iptables/xtables-multi.h
++++ b/iptables/xtables-multi.h
+@@ -9,6 +9,7 @@ extern int xtables_ip4_restore_main(int, char **);
+ extern int xtables_ip6_main(int, char **);
+ extern int xtables_ip6_save_main(int, char **);
+ extern int xtables_ip6_restore_main(int, char **);
++extern int xtables_arp_xlate_main(int, char **);
+ extern int xtables_ip4_xlate_main(int, char **);
+ extern int xtables_ip6_xlate_main(int, char **);
+ extern int xtables_eb_xlate_main(int, char **);
+diff --git a/iptables/xtables-nft-multi.c b/iptables/xtables-nft-multi.c
+index e2b7c641f85d..48265d8e0afa 100644
+--- a/iptables/xtables-nft-multi.c
++++ b/iptables/xtables-nft-multi.c
+@@ -30,6 +30,7 @@ static const struct subcommand multi_subcommands[] = {
+ 	{"ip6tables-translate",		xtables_ip6_xlate_main},
+ 	{"iptables-restore-translate",	xtables_ip4_xlate_restore_main},
+ 	{"ip6tables-restore-translate",	xtables_ip6_xlate_restore_main},
++	{"arptables-translate",		xtables_arp_xlate_main},
+ 	{"arptables",			xtables_arp_main},
+ 	{"arptables-nft",		xtables_arp_main},
+ 	{"arptables-restore",		xtables_arp_restore_main},
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 88e0a6b63949..ea9dce204dfc 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -140,6 +140,7 @@ bool xlate_find_match(const struct iptables_command_state *cs, const char *p_nam
+ }
+ 
+ const char *family2str[] = {
++	[NFPROTO_ARP]	= "arp",
+ 	[NFPROTO_IPV4]	= "ip",
+ 	[NFPROTO_IPV6]	= "ip6",
+ };
+@@ -196,6 +197,15 @@ static int xlate(struct nft_handle *h, struct xt_cmd_parse *p,
+ 
+ 	for (i = 0; i < args->s.naddrs; i++) {
+ 		switch (h->family) {
++		case NFPROTO_ARP:
++			cs->arp.arp.src.s_addr = args->s.addr.v4[i].s_addr;
++			cs->arp.arp.smsk.s_addr = args->s.mask.v4[i].s_addr;
++			for (j = 0; j < args->d.naddrs; j++) {
++				cs->arp.arp.tgt.s_addr = args->d.addr.v4[j].s_addr;
++				cs->arp.arp.tmsk.s_addr = args->d.mask.v4[j].s_addr;
++				ret = cb(h, p, cs, append);
++			}
++			break;
+ 		case AF_INET:
+ 			cs->fw.ip.src.s_addr = args->s.addr.v4[i].s_addr;
+ 			cs->fw.ip.smsk.s_addr = args->s.mask.v4[i].s_addr;
+@@ -475,7 +485,24 @@ static int xtables_xlate_main_common(struct nft_handle *h,
+ 
+ 	xtables_globals.program_name = progname;
+ 	xtables_globals.compat_rev = dummy_compat_rev;
+-	ret = xtables_init_all(&xtables_globals, family);
++
++	switch (family) {
++	case NFPROTO_IPV4:
++		ret = xtables_init_all(&xtables_globals, family);
++		break;
++	case NFPROTO_IPV6:
++		ret = xtables_init_all(&xtables_globals, family);
++		break;
++	case NFPROTO_ARP:
++		arptables_globals.program_name = progname;
++		arptables_globals.compat_rev = dummy_compat_rev;
++		ret = xtables_init_all(&arptables_globals, family);
++		break;
++	default:
++		ret = -1;
++		break;
++	}
++
+ 	if (ret < 0) {
+ 		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
+ 			xtables_globals.program_name,
+@@ -590,6 +617,12 @@ static int xtables_restore_xlate_main(int family, const char *progname,
+ 	exit(0);
+ }
+ 
++int xtables_arp_xlate_main(int argc, char *argv[])
++{
++	return xtables_xlate_main(NFPROTO_ARP, "arptables-translate",
++				  argc, argv);
++}
++
+ int xtables_ip4_xlate_main(int argc, char *argv[])
+ {
+ 	return xtables_xlate_main(NFPROTO_IPV4, "iptables-translate",
 -- 
 2.41.0
 
