@@ -2,71 +2,70 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F18FEC4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 12:58:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A37E9C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 13:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229447AbjKCM6k (ORCPT
+        id S1376633AbjKCNJR (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Nov 2023 08:58:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42020 "EHLO
+        Fri, 3 Nov 2023 09:09:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229379AbjKCM6j (ORCPT
+        with ESMTP id S1376554AbjKCNJQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2023 08:58:39 -0400
+        Fri, 3 Nov 2023 09:09:16 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7ADE83
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 05:57:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F9D483
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 06:08:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1699016270;
+        s=mimecast20190719; t=1699016904;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-        bh=KlkSv1VJiiF9/Gz0uELIc8IxqanO3U8W0t5BA4roHD0=;
-        b=NS7qi1MXRWzBNudG6MPaYoJt0xMHboSLd2l24SmehvOgUVyfGChUe/M33IILPqoCjndA5f
-        PncdU7LrzxM6HWZqARpPdkRs08pz7T1j5pCqlbwPVLeEL6/UjpcXJJSDYH17Ub8tmNd6/w
-        TkWQpx5Z8QxvXozVO4fsn+cG0dyoKhM=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=HhOzXPaZene3iWjejkMgue4w/jVaGmDbiqz2n/mCgMQ=;
+        b=EZoExf2GIGBkV2rCg+CA5f0L+NEnfBtQSPDTAOwukemhwPpSpOFs3T8WGkmJycwKxRd8/q
+        3oLrEBQM6CtOCGomId+D+bj8iD4v4qk/GkRZYZ28X3YcGW02i/rqST+IS3HM884FG/5a7C
+        yL7aq9z3Wj8Reorqt/hgMcbRjOoG6go=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-664--ccNnAtRMn2oCF-Ue8Nyfg-1; Fri, 03 Nov 2023 08:57:49 -0400
-X-MC-Unique: -ccNnAtRMn2oCF-Ue8Nyfg-1
-Received: by mail-ed1-f72.google.com with SMTP id 4fb4d7f45d1cf-534838150afso287774a12.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Nov 2023 05:57:49 -0700 (PDT)
+ us-mta-42-oPEpqiIoMOe8cHJsccohhw-1; Fri, 03 Nov 2023 09:08:20 -0400
+X-MC-Unique: oPEpqiIoMOe8cHJsccohhw-1
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-40778b52dbaso3345435e9.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Nov 2023 06:08:20 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699016268; x=1699621068;
+        d=1e100.net; s=20230601; t=1699016899; x=1699621699;
         h=mime-version:user-agent:content-transfer-encoding:autocrypt
          :references:in-reply-to:date:cc:to:from:subject:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=KlkSv1VJiiF9/Gz0uELIc8IxqanO3U8W0t5BA4roHD0=;
-        b=RCNolzJtqmoX0qC9PS/eVFqrDlVptly1bA67E35oDcVnQNiNOerDIB7NCAJtfHCsjQ
-         OfxadSLY0AiJ6E4J3hcXmNTvPJ9W30HgQao2jWX8EnqOZdgJBUWqoYVvZ+cAj2kTzx7p
-         Xy7Y3P1/i34cPsMeWAYcbYeLaZknYuGbjryW9EbVmvSXX5ZQaOhgBIsDlmzQi72Pgt5m
-         W1AqInAYwDob1epIUO8fsvEdBfLpOkSim0SZHcqaoYGaWJh/9/WSnWdy7s5SzR3pz63g
-         LUZxP1PRh71jAQAZ8x446MYw/LdHfZUoGA7S1AJ93h+soeolo8YdWi5FKqaafBnig6OD
-         9/lg==
-X-Gm-Message-State: AOJu0YwhJvAdwG62EZghPHwQPRT/rRy+xGUScmHh2/wQx1TTG9WkOaKd
-        zai33ENxAciepZnccBsrJATL6BkMlmHzEo6DlmTSJmFw3nw9SontHqGIBavhnUCvnevWcfxcKIM
-        AwB4V2GwTI/WWQYKnCuC/8ER7reB/j/Wb7vOz
-X-Received: by 2002:a50:d554:0:b0:53f:e6a9:5b2a with SMTP id f20-20020a50d554000000b0053fe6a95b2amr15221359edj.2.1699016268154;
-        Fri, 03 Nov 2023 05:57:48 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IF1gtamYMY9r4+Xi203WJhRfvpCMxtH4RlsmRt56PnJpt+qGraRRq5VeBddaIFCknzJN6XT0A==
-X-Received: by 2002:a50:d554:0:b0:53f:e6a9:5b2a with SMTP id f20-20020a50d554000000b0053fe6a95b2amr15221344edj.2.1699016267858;
-        Fri, 03 Nov 2023 05:57:47 -0700 (PDT)
+        bh=HhOzXPaZene3iWjejkMgue4w/jVaGmDbiqz2n/mCgMQ=;
+        b=qVBRB/dUTCs6Pwxy1ra2tED6n01Wk7DjRQkPhv9GGasmjjAmUwDQQ+cRnSa16sBhEh
+         E6yhaRQMvB/cIg1hCH52R/p2IlS8/Cm79KXxAZGTl5OHlolDot9e3NEAZ6vXPCVO3c4G
+         yL+fRUMI6Syaa3ZC4Ws2hSRIkJ6Hy57x5MIuOoxhnraNdMHXcBlqsqeBtWfXIKwVJBXv
+         BNQRwxki84qTiW3Qee+3ZGP1jCpg25KwTD8CLm/llDHmZ9CPuwbEl45CYmn19Lx4LGuU
+         MurpggKQoSpJ8v2/Vp3nzOCDvaY6m50ZuvLems4RcU9rXLjHWKj/ItwnaA5HVAQbDl+F
+         /Dvw==
+X-Gm-Message-State: AOJu0YzIPjn7mA08aalGUDmEOrb5a06RJ/qjxeNTDEPntgBpZiT0505q
+        52n5iubLKJNNPLDHuOt0QA4VMvdfJqcluodfGK+x2zHMmyloTDcAqGohtHpmL/CtFM3uhpMjm+c
+        3RGjD9ScBV63XdU0fJJtp+yvrpdsgUzT5VJ2H
+X-Received: by 2002:a05:600c:5128:b0:401:c07f:72bd with SMTP id o40-20020a05600c512800b00401c07f72bdmr17529769wms.4.1699016899269;
+        Fri, 03 Nov 2023 06:08:19 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEujVxryIWlOE6nt/cxqBvEvcQcbBrvuWvh7EQzhKjX9Rekocx4Yq1LlFgJwUzQdtLBm3+yag==
+X-Received: by 2002:a05:600c:5128:b0:401:c07f:72bd with SMTP id o40-20020a05600c512800b00401c07f72bdmr17529750wms.4.1699016898883;
+        Fri, 03 Nov 2023 06:08:18 -0700 (PDT)
 Received: from [10.0.0.196] ([37.186.169.33])
-        by smtp.gmail.com with ESMTPSA id m30-20020a50d7de000000b00542d3e470f9sm958048edj.10.2023.11.03.05.57.47
+        by smtp.gmail.com with ESMTPSA id q6-20020a05600c2e4600b003feae747ff2sm2376024wmf.35.2023.11.03.06.08.18
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 03 Nov 2023 05:57:47 -0700 (PDT)
-Message-ID: <127e4235fa9b521b32efa7443312bffe69f7f851.camel@redhat.com>
-Subject: Re: [PATCH nft 1/6] gitignore: ignore build artifacts from top
- level file
+        Fri, 03 Nov 2023 06:08:18 -0700 (PDT)
+Message-ID: <62276e014e13568699f4d61f4ba123adb0c8430d.camel@redhat.com>
+Subject: Re: [PATCH nft 0/6] add infrastructure for unit tests
 From:   Thomas Haller <thaller@redhat.com>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
 Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Date:   Fri, 03 Nov 2023 13:57:46 +0100
-In-Reply-To: <ZUTZy09Y+FyQjA6e@calendula>
+Date:   Fri, 03 Nov 2023 14:08:17 +0100
+In-Reply-To: <20231103122641.GC8035@breakpoint.cc>
 References: <20231103111102.2801624-1-thaller@redhat.com>
-         <20231103111102.2801624-2-thaller@redhat.com> <ZUTZy09Y+FyQjA6e@calendula>
+         <20231103122641.GC8035@breakpoint.cc>
 Autocrypt: addr=thaller@redhat.com; prefer-encrypt=mutual; keydata=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
@@ -80,11 +79,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, 2023-11-03 at 12:30 +0100, Pablo Neira Ayuso wrote:
+On Fri, 2023-11-03 at 13:26 +0100, Florian Westphal wrote:
+> Thomas Haller <thaller@redhat.com> wrote:
 >=20
-> Please, move things where they used to be.
+> Thanks for sending an initial empty skeleton.
+>=20
+> > There are new new make targets:
+> >=20
+> > =C2=A0 - "build-all"
+> > =C2=A0 - "check" (runs "normal" tests, like unit tests and "tools/check=
+-
+> > tree.sh").
+> > =C2=A0 - "check-more" (runs extra tests, like "tests/build")
+> > =C2=A0 - "check-all" (runs "check" + "check-more")
+> > =C2=A0 - "check-local" (a subset of "check")
+> > =C2=A0 - "check-TESTS" (the unit tests)
+>=20
+> "check-unit" perhaps?=C2=A0 TESTS isn't very descriptive.=C2=A0 Also,
+> why CAPS? If this is some pre-established standard, then maybe just
+> document that in the commit changelog.
 
-will do in v2.
+"TESTS" is an autotools/automake thing. "check-TESTS" runs the tests
+that are setup via "TESTS=3D".
 
-Thomas
+AFAIU, with autotools, `make check` basically runs the targets `make
+check-local` and `make check-TESTS`.
+
+
+Anyway, I can just alias it via:
+
+  check-unit: check-TESTS
+
+
+
+Note that other targets are currently called
+
+  `make check-tests-build`
+  `make check-tests-shell` (patch not yet send).
+
+It reminds of the directories "tests/{build,shell,unit}" and would lead
+to a name `make check-tests-unit`.
+
+But reconsidering, in v2 I will drop this "check-tests-" prefix then
+and call them just "check-{unit,build,shell}".
+
+>=20
+> Please don't do anything yet and wait for more comments, but
+> I would prefer 'make check' to run all tests that we have.
+
+currently `make check-more` only entails `make check-tests-build` (i.e.
+`tests/build/run-tests.sh`). Note that
+
+ - `tests/build/run-tests.sh` calls `make distcheck`
+ - `make distcheck` runs `make check`.
+
+I don't think it would make sense, to include the build check in `make
+check`.
+
+So I think there is a (small) place for "check-more" (and thus "check-
+all"). But yes, probably most other tests should be included by the
+common `make check`!
+
+
+
+>=20
+> I would suggest
+> - "check" (run all tests)
+> - "check-unit" (the unit tests only)
+> - "check-shell" (shell tests only)
+> - "check-py" (python based tests only)
+> - "check-json" (python based tests in json mode and json_echo)
+>=20
+> ...=C2=A0 and so on.
+>=20
+
+ACK. Will send in v2.
 
