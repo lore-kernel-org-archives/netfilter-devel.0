@@ -2,28 +2,29 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27FEFC4167D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 09:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15894C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 09:45:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346953AbjKCJS1 (ORCPT
+        id S1347251AbjKCJpg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Nov 2023 05:18:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48880 "EHLO
+        Fri, 3 Nov 2023 05:45:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346878AbjKCJSZ (ORCPT
+        with ESMTP id S1347166AbjKCJpg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2023 05:18:25 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58170DE;
-        Fri,  3 Nov 2023 02:18:21 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1qyqJV-0004lH-Ne; Fri, 03 Nov 2023 10:18:01 +0100
-Date:   Fri, 3 Nov 2023 10:18:01 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Dan Carpenter <dan.carpenter@linaro.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Fri, 3 Nov 2023 05:45:36 -0400
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2CE11BD;
+        Fri,  3 Nov 2023 02:45:31 -0700 (PDT)
+Received: from [78.30.35.151] (port=34830 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1qyqk1-00EAjx-Tf; Fri, 03 Nov 2023 10:45:27 +0100
+Date:   Fri, 3 Nov 2023 10:45:25 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Dan Carpenter <dan.carpenter@linaro.org>,
         Jozsef Kadlecsik <kadlec@netfilter.org>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
@@ -34,27 +35,52 @@ Cc:     Florian Westphal <fw@strlen.de>,
         kernel-janitors@vger.kernel.org
 Subject: Re: [PATCH net] netfilter: nf_tables: fix pointer math issue in
  nft_byteorder_eval()
-Message-ID: <20231103091801.GA8035@breakpoint.cc>
+Message-ID: <ZUTBNcA7ApLu5DMA@calendula>
 References: <15fdceb5-2de5-4453-98b3-cfa9d486e8da@moroto.mountain>
+ <20231103091801.GA8035@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <15fdceb5-2de5-4453-98b3-cfa9d486e8da@moroto.mountain>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20231103091801.GA8035@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Dan Carpenter <dan.carpenter@linaro.org> wrote:
-> The problem is in nft_byteorder_eval() where we are iterating through a
-> loop and writing to dst[0], dst[1], dst[2] and so on...  On each
-> iteration we are writing 8 bytes.  But dst[] is an array of u32 so each
-> element only has space for 4 bytes.  That means that every iteration
-> overwrites part of the previous element.
+On Fri, Nov 03, 2023 at 10:18:01AM +0100, Florian Westphal wrote:
+> Dan Carpenter <dan.carpenter@linaro.org> wrote:
+> > The problem is in nft_byteorder_eval() where we are iterating through a
+> > loop and writing to dst[0], dst[1], dst[2] and so on...  On each
+> > iteration we are writing 8 bytes.  But dst[] is an array of u32 so each
+> > element only has space for 4 bytes.  That means that every iteration
+> > overwrites part of the previous element.
+> > 
+> > I spotted this bug while reviewing commit caf3ef7468f7 ("netfilter:
+> > nf_tables: prevent OOB access in nft_byteorder_eval") which is a related
+> > issue.  I think that the reason we have not detected this bug in testing
+> > is that most of time we only write one element.
 > 
-> I spotted this bug while reviewing commit caf3ef7468f7 ("netfilter:
-> nf_tables: prevent OOB access in nft_byteorder_eval") which is a related
-> issue.  I think that the reason we have not detected this bug in testing
-> is that most of time we only write one element.
+> LGTM, thanks Dan.  We will route this via nf.git.
 
-LGTM, thanks Dan.  We will route this via nf.git.
+Thanks for your patch.
+
+One question, is this update really required?
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 3bbd13ab1ecf..b157c5cafd14 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -178,9 +178,9 @@ static inline __be32 nft_reg_load_be32(const u32 *sreg)
+        return *(__force __be32 *)sreg;
+ }
+
+-static inline void nft_reg_store64(u32 *dreg, u64 val)
++static inline void nft_reg_store64(u64 *dreg, u64 val)
+ {
+-       put_unaligned(val, (u64 *)dreg);
++       put_unaligned(val, dreg);
+ }
+
+ static inline u64 nft_reg_load64(const u32 *sreg)
+
+because one of the goals of nft_reg_store64() is to avoid that caller
+casts the register to 64-bits.
