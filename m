@@ -2,104 +2,115 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46433C4167D
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 10:26:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 761A1C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 10:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229985AbjKCK0a (ORCPT
+        id S1346873AbjKCKoy (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Nov 2023 06:26:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51094 "EHLO
+        Fri, 3 Nov 2023 06:44:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230022AbjKCK03 (ORCPT
+        with ESMTP id S1346763AbjKCKox (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2023 06:26:29 -0400
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43C6013E
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 03:26:23 -0700 (PDT)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1qyrNd-00056D-UM; Fri, 03 Nov 2023 11:26:21 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>
-Subject: [PATCH iptables 4/4] arptables-txlate: add test cases
-Date:   Fri,  3 Nov 2023 11:23:26 +0100
-Message-ID: <20231103102330.27578-5-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20231103102330.27578-1-fw@strlen.de>
-References: <20231103102330.27578-1-fw@strlen.de>
+        Fri, 3 Nov 2023 06:44:53 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9013DD4E
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 03:44:46 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qyrfP-0000YD-RX; Fri, 03 Nov 2023 11:44:43 +0100
+Date:   Fri, 3 Nov 2023 11:44:43 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Jeremy Sowden <jeremy@azazel.net>,
+        netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [RFC] nftables 1.0.6 -stable backports
+Message-ID: <ZUTPG3XsdIFu8RRb@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Jeremy Sowden <jeremy@azazel.net>, netfilter-devel@vger.kernel.org,
+        fw@strlen.de
+References: <ZSPZiekbEmjDfIF2@calendula>
+ <ZSZWS7StJ9nSP6cK@calendula>
+ <ZSa+h18/ZNRxLpzq@orbyte.nwl.cc>
+ <ZSbD9fPv2Ltx8Cx2@calendula>
+ <ZTE8xaZfFJoQRhjY@calendula>
+ <ZTFJ4yXd7nZxjAJz@orbyte.nwl.cc>
+ <ZUOJNnKJRKwj379J@calendula>
+ <ZUOVrlIgCSIM8Ule@orbyte.nwl.cc>
+ <ZUQTWSEXbw2paJ3v@calendula>
+ <ZUTEfXMw2e5kMJ5A@orbyte.nwl.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="ZrQl2pp4aMGNuQlU"
+Content-Disposition: inline
+In-Reply-To: <ZUTEfXMw2e5kMJ5A@orbyte.nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Add test cases for libarpt_mangle and extend the generic
-tests to cover basic arptables matches.
 
-Note that there are several historic artefacts that could be revised.
-For example, arptables-legacy and arptables-nft both ignore "-p"
-instead of returning an error about an unsupported option.
+--ZrQl2pp4aMGNuQlU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The ptype could be hard-wired to 0x800 and set unconditionally.
-OTOH, this should always match for ethernet arp packets anyway.
+On Fri, Nov 03, 2023 at 10:59:25AM +0100, Phil Sutter wrote:
+[...]
+> One would have to change it to work based on *.y branches and the actual
+> commits in there. I'll give it a quick try, shouldn't be too hard
+> indeed.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- extensions/generic.txlate        | 6 ++++++
- extensions/libarpt_mangle.txlate | 6 ++++++
- xlate-test.py                    | 4 +++-
- 3 files changed, 15 insertions(+), 1 deletion(-)
- create mode 100644 extensions/libarpt_mangle.txlate
+Please kindly find attached a "stable branch fork" of
+collect_backports.sh. I was too lazy to check its output for missing
+commits, but the ones it returns seem entirely valid.
 
-diff --git a/extensions/generic.txlate b/extensions/generic.txlate
-index c24ed1568884..b79239f1a063 100644
---- a/extensions/generic.txlate
-+++ b/extensions/generic.txlate
-@@ -1,3 +1,9 @@
-+arptables-translate -A OUTPUT --proto-type ipv4 -s 1.2.3.4 -j ACCEPT
-+nft 'add rule arp filter OUTPUT arp htype 1 arp hlen 6 arp plen 4 arp ptype 0x800 arp saddr ip 1.2.3.4 counter accept'
-+
-+arptables-translate -I OUTPUT -o oifname
-+nft 'insert rule arp filter OUTPUT oifname "oifname" arp htype 1 arp hlen 6 arp plen 4 counter'
-+
- iptables-translate -I OUTPUT -p udp -d 8.8.8.8 -j ACCEPT
- nft 'insert rule ip filter OUTPUT ip protocol udp ip daddr 8.8.8.8 counter accept'
- 
-diff --git a/extensions/libarpt_mangle.txlate b/extensions/libarpt_mangle.txlate
-new file mode 100644
-index 000000000000..e884d3289a76
---- /dev/null
-+++ b/extensions/libarpt_mangle.txlate
-@@ -0,0 +1,6 @@
-+arptables-translate -A OUTPUT -d 10.21.22.129 -j mangle --mangle-ip-s 10.21.22.161
-+nft 'add rule arp filter OUTPUT arp htype 1 arp hlen 6 arp plen 4 arp daddr ip 10.21.22.129 counter arp saddr ip set 10.21.22.161 accept'
-+arptables-translate -A OUTPUT -d 10.2.22.129/24 -j mangle --mangle-ip-d 10.2.22.1 --mangle-target CONTINUE
-+nft 'add rule arp filter OUTPUT arp htype 1 arp hlen 6 arp plen 4 arp daddr ip 10.2.22.0/24 counter arp daddr ip set 10.2.22.1'
-+arptables-translate -A OUTPUT -d 10.2.22.129/24 -j mangle --mangle-ip-d 10.2.22.1 --mangle-mac-d a:b:c:d:e:f
-+nft 'add rule arp filter OUTPUT arp htype 1 arp hlen 6 arp plen 4 arp daddr ip 10.2.22.0/24 counter arp daddr ip set 10.2.22.1 arp daddr ether set 0a:0b:0c:0d:0e:0f accept'
-diff --git a/xlate-test.py b/xlate-test.py
-index 6a1165986847..ddd68b91d3a7 100755
---- a/xlate-test.py
-+++ b/xlate-test.py
-@@ -14,7 +14,7 @@ def run_proc(args, shell = False, input = None):
-     output, error = process.communicate(input)
-     return (process.returncode, output, error)
- 
--keywords = ("iptables-translate", "ip6tables-translate", "ebtables-translate")
-+keywords = ("iptables-translate", "ip6tables-translate", "arptables-translate", "ebtables-translate")
- xtables_nft_multi = 'xtables-nft-multi'
- 
- if sys.stdout.isatty():
-@@ -95,6 +95,8 @@ def test_one_replay(name, sourceline, expected, result):
-     fam = ""
-     if srccmd.startswith("ip6"):
-         fam = "ip6 "
-+    elif srccmd.startswith("arp"):
-+        fam = "arp "
-     elif srccmd.startswith("ebt"):
-         fam = "bridge "
- 
--- 
-2.41.0
+Cheers, Phil
 
+--ZrQl2pp4aMGNuQlU
+Content-Type: application/x-sh
+Content-Disposition: attachment; filename="collect_stable_backports.sh"
+Content-Transfer-Encoding: quoted-printable
+
+#!/bin/sh=0A=0A# name of remote with the stable branches=0AREMOTENAME=3D"or=
+igin"=0A=0A# branch to fetch fixes from=0AMASTERBRANCH=3D"$REMOTENAME/maste=
+r"=0A=0A# paths=0Acd $(dirname $0)=0Abackports=3D./backports=0A=0Abrlist() =
+{ # ()=0A	git branch -r | sed -n 's, *\('$REMOTENAME'/[0-9.]\+y\)$,\1,p'=0A=
+}=0A=0Acommit_in_branch() { # (branch, commithash)=0A	# does commit exist i=
+n branch?=0A	git merge-base --is-ancestor $2 $1 && return 0=0A=0A	# was it =
+backported already?=0A	local parent_tag=3D$(git describe --tags --long $bra=
+nch | \=0A			   sed 's/\(.*)-[^-]\+-[^-]\+$/\1/')=0A	git log $parent_tag..$=
+1 | grep -q "^ *commit $2 upstream.$" && return 0=0A=0A	# does commit exist=
+ in backport list?=0A	local brbase=3D${1#$REMOTENAME/}=0A	grep -q "^$2$" $b=
+ackports/$brbase && return 0=0A=0A	return 1=0A}=0A=0Adeclare -A fixes_info=
+=0A=0A# the while-loop is run in a sub-shell, so=0A# have this helper print=
+ the list of hashes to stdout=0A__commit_fixes() { # (commithash)=0A	git lo=
+g -1 $1 | grep '^ *Fixes: ' | while read fxs fshash fdesc; do=0A		# Fix for=
+ wrong formatting of Fixes: line in commit=0A		# 164a9ff401e58 ("tc: flower=
+: Fix parsing ip address")=0A		[[ $fshash =3D=3D '("'* ]] && fshash=3D${fsh=
+ash#(\"}=0A=0A		# Fix for wrong formatting of Fixes: line in commit=0A		# 3=
+5893864c87bb ("gre6: fix copy/paste bugs in GREv6 attribute manipulation")=
+=0A		[[ $fshash =3D=3D *'("'* ]] && fshash=3D${fshash%(\"*}=0A=0A		# Fix fo=
+r wrong formatting of Fixes: line in commit=0A		# 8df708afd62e4 ("ipaddress=
+: Fix and make consistent label match handling")=0A		[[ $fshash =3D=3D "com=
+mit" ]] && fshash=3D${fdesc%% *}=0A=0A		echo -n "$(git log -1 --oneline --f=
+ormat=3D"%H" $fshash) "=0A	done=0A}=0A=0Acommit_fixes() { # (commithash)=0A=
+	if [[ -v fixes_info[$1] ]]; then=0A		echo ${fixes_info[$1]}=0A		return=0A	=
+fi=0A=0A	fixes_info[$1]=3D$(__commit_fixes $1)=0A=0A	# print found commits=
+=0A	echo ${fixes_info[$1]}=0A}=0A=0Ashould_backport() { # (branch/tag, comm=
+ithash)=0A	local hash=0A=0A	# does fixing commit exist in branch already?=
+=0A	commit_in_branch $1 $2 && return 1=0A=0A	# check what this commit fixes=
+=0A	for hash in $(commit_fixes $2); do=0A		# does fixed commit exist in bra=
+nch?=0A		commit_in_branch $1 $hash && return 0=0A	done=0A=0A	# none of the =
+fixed commits exist in this branch=0A	return 1=0A}=0A=0Acommits_since_base_=
+of() { # (tag)=0A	local mergebase=3D$(git merge-base $1 $MASTERBRANCH)=0A	g=
+it log --format=3D"%H" --reverse ${mergebase}..$MASTERBRANCH=0A}=0A=0Amkdir=
+ -p $backports=0A=0A[[ -n $1 ]] && branches=3D$1 || branches=3D$(brlist)=0A=
+for branch in $branches; do=0A	brbase=3D${branch#$REMOTENAME/}=0A	echo -n "=
+$brbase: "=0A	touch $backports/$brbase=0A	for hash in $(commits_since_base_=
+of $branch); do=0A		#echo "checking commit $hash"=0A=0A		# does it fix anyt=
+hing?=0A		git log -1 $hash | grep -q ' *Fixes: ' || continue=0A=0A		# does =
+it apply to this branch?=0A		should_backport $branch $hash || continue=0A=
+=0A		echo -n "."=0A		# add it to backport list=0A		echo $hash >>$backports/=
+$brbase=0A	done=0A	echo ""=0Adone=0A
+--ZrQl2pp4aMGNuQlU--
