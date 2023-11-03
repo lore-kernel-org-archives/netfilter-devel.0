@@ -2,66 +2,62 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29268C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 15:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F3E7C4332F
+	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 15:56:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233086AbjKCPd7 (ORCPT
+        id S234245AbjKCP4k (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Nov 2023 11:33:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44556 "EHLO
+        Fri, 3 Nov 2023 11:56:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233072AbjKCPd7 (ORCPT
+        with ESMTP id S230110AbjKCP4j (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2023 11:33:59 -0400
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 421C7112
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 08:33:53 -0700 (PDT)
-Received: from [78.30.35.151] (port=42010 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1qywB7-00FcCy-IX; Fri, 03 Nov 2023 16:33:51 +0100
-Date:   Fri, 3 Nov 2023 16:33:44 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
+        Fri, 3 Nov 2023 11:56:39 -0400
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF4FAD42
+        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 08:56:33 -0700 (PDT)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1qywXA-00063n-3X; Fri, 03 Nov 2023 16:56:32 +0100
+Date:   Fri, 3 Nov 2023 16:56:32 +0100
+From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 0/6] add infrastructure for unit tests
-Message-ID: <ZUUS2CuHJAVxc7Ih@calendula>
-References: <20231103111102.2801624-1-thaller@redhat.com>
- <20231103122641.GC8035@breakpoint.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables 1/4] arptables-nft: use ARPT_INV flags
+ consistently
+Message-ID: <ZUUYMEGTRN2OFBwn@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20231103102330.27578-1-fw@strlen.de>
+ <20231103102330.27578-2-fw@strlen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231103122641.GC8035@breakpoint.cc>
+In-Reply-To: <20231103102330.27578-2-fw@strlen.de>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 03, 2023 at 01:26:41PM +0100, Florian Westphal wrote:
-> Thomas Haller <thaller@redhat.com> wrote:
+On Fri, Nov 03, 2023 at 11:23:23AM +0100, Florian Westphal wrote:
+> These values are not always interchangeable, e.g.:
 > 
-> Thanks for sending an initial empty skeleton.
+> define IPT_INV_SRCDEVADDR	0x0080
+> but:
+> define ARPT_INV_SRCDEVADDR	0x0010
 > 
-> > There are new new make targets:
-> > 
-> >   - "build-all"
-> >   - "check" (runs "normal" tests, like unit tests and "tools/check-tree.sh").
-> >   - "check-more" (runs extra tests, like "tests/build")
-> >   - "check-all" (runs "check" + "check-more")
-> >   - "check-local" (a subset of "check")
-> >   - "check-TESTS" (the unit tests)
-> 
-> "check-unit" perhaps?  TESTS isn't very descriptive.  Also,
-> why CAPS? If this is some pre-established standard, then maybe just
-> document that in the commit changelog.
-> 
-> Please don't do anything yet and wait for more comments, but
-> I would prefer 'make check' to run all tests that we have.
+> as these flags can be tested by libarp_foo.so such
+> checks can yield incorrect results.
 
-We had a few tests that have been shown to be unstable.
+Hmm. This is a partial revert of 44457c0805905 ("xtables-arp: Don't use
+ARPT_INV_*") and therefore very likely incomplete - e.g. it does not
+reinstate ipt_to_arpt_flags() which was used in nft_arp_parse_meta().
 
-I just would like that I don't hit this when making the release and
-hold back a release because a test fails occasionally.
+Above commit introduced IPT_INV_SRCDEVADDR in the first place, iptables
+does not make use of it.
 
-If we go for `make check' then all test runs must be reliable.
+A revert of that commit requires a thorough review of later changes in
+arptables code as it may have allowed for some code-sharing which is no
+longer possible then. So please hold back with this a bit, I'll check if
+any follow-ups are required.
+
+Thanks, Phil
