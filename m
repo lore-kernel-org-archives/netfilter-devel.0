@@ -2,99 +2,73 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE3D6C4332F
-	for <netfilter-devel@archiver.kernel.org>; Fri,  3 Nov 2023 21:47:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4375FC4332F
+	for <netfilter-devel@archiver.kernel.org>; Sat,  4 Nov 2023 03:40:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229850AbjKCVr6 (ORCPT
+        id S230302AbjKDDk0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 3 Nov 2023 17:47:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46606 "EHLO
+        Fri, 3 Nov 2023 23:40:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229512AbjKCVr5 (ORCPT
+        with ESMTP id S229509AbjKDDkZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2023 17:47:57 -0400
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E122D5A
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2023 14:47:50 -0700 (PDT)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qz216-0004IX-Rd; Fri, 03 Nov 2023 22:47:48 +0100
-Date:   Fri, 3 Nov 2023 22:47:48 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v3 2/2] json: drop warning on stderr for missing
- json() hook in stmt_print_json()
-Message-ID: <ZUVqhFgp4KJy8bqI@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20231103162937.3352069-1-thaller@redhat.com>
- <20231103162937.3352069-3-thaller@redhat.com>
+        Fri, 3 Nov 2023 23:40:25 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84478BF;
+        Fri,  3 Nov 2023 20:40:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=4mCxdG9T2wmKjWyKacxf7Q3fDFsqsmniLHS/1fYzUhw=; b=2VJ7ChI6RysLfYXFkxskUFnrQI
+        h3HQEUaIQcovrCqDginVglHl66WEtTXngyjtNFIGD17jcpUI7Gwi6gM/q2/Dy6NCD9c8qjKvvruDi
+        v8PawS3YXhXo6N9r1oHY4x7rPoJH1uAgc7/lZYyTAVcF9JiCaGYBLQZWzLBEDEPWQg0qtJiFfEKuK
+        awVqDSxQUSsfl2/Nwd2LT2k0vPfGQqrlHkfmIddYf4hSfUt/FWjsMPhg2cAMmkkpJWqbrJ+LA92pI
+        3jree4dQK7uUi3on9LX0F+nP/4YVO3Za8eYloFjkteAoIOj+JtGFJVrZZ9Cg8uIhbUcp1qujlCHtZ
+        m8PiYYMw==;
+Received: from [50.53.46.231] (helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+        id 1qz7WG-00CZj5-3B;
+        Sat, 04 Nov 2023 03:40:21 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     netdev@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: [PATCH] netfilter: nat: add MODULE_DESCRIPTION
+Date:   Fri,  3 Nov 2023 20:40:17 -0700
+Message-ID: <20231104034017.14909-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.42.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231103162937.3352069-3-thaller@redhat.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 03, 2023 at 05:25:14PM +0100, Thomas Haller wrote:
-> All "struct stmt_ops" really must have a json hook set, to handle the
-> statement. And almost all of them do, except "struct chain_stmt_ops".
-> 
-> Soon a unit test will be added, to check that all stmt_ops have a json()
-> hook. Also, the missing hook in "struct chain_stmt_ops" is a bug, that
-> is now understood and shall be fixed soon/later.
-> 
-> Note that we can already hit the bug, if we would call `nft -j list
-> ruleset` at the end of test "tests/shell/testcases/nft-f/sample-ruleset":
-> 
->     warning: stmt ops chain have no json callback
-> 
-> Soon tests will be added, that hit this condition. Printing a message to
-> stderr breaks those tests, and blocks adding the tests.
+Add a MODULE_DESCRIPTION() to iptable_nat.c to avoid a build warning:
 
-Why not make the tests tolerate messages on stderr instead?
+WARNING: modpost: missing MODULE_DESCRIPTION() in net/ipv4/netfilter/iptable_nat.o
 
-> Drop this warning on stderr, so we can add those other tests sooner, as
-> those tests are useful for testing JSON code in general. The warning
-> stderr was useful for finding the problem, but the problem is now
-> understood and will be addressed separately. Drop the message to unblock
-> adding those tests.
+This is only exposed when using "W=n".
 
-What do you mean with "the problem is now understood"?
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+---
+ net/ipv4/netfilter/iptable_nat.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-> Signed-off-by: Thomas Haller <thaller@redhat.com>
-> ---
->  src/json.c      | 10 ++++++++--
->  src/statement.c |  1 +
->  2 files changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/src/json.c b/src/json.c
-> index 25e349155394..8fff401dfb3e 100644
-> --- a/src/json.c
-> +++ b/src/json.c
-> @@ -83,8 +83,14 @@ static json_t *stmt_print_json(const struct stmt *stmt, struct output_ctx *octx)
->  	if (stmt->ops->json)
->  		return stmt->ops->json(stmt, octx);
->  
-> -	fprintf(stderr, "warning: stmt ops %s have no json callback\n",
-> -		stmt->ops->name);
-
-Converting this to using octx->error_fp does not help?
-
-> +	/* In general, all "struct stmt_ops" must implement json() hook. Otherwise
-> +	 * we have a bug, and a unit test should check that all ops are correct.
-> +	 *
-> +	 * Currently, "chain_stmt_ops.json" is known to be NULL. That is a bug that
-> +	 * needs fixing.
-> +	 *
-> +	 * After the bug is fixed, and the unit test in place, this fallback code
-> +	 * can be dropped. */
-
-How will those unit tests cover new statements added at a later time? We
-don't have a registration process, are you planning to discover them
-based on enum stmt_types or something like that?
-
-Cheers, Phil
+diff -- a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -169,4 +169,5 @@ static void __exit iptable_nat_exit(void
+ module_init(iptable_nat_init);
+ module_exit(iptable_nat_exit);
+ 
++MODULE_DESCRIPTION("Netfilter NAT module");
+ MODULE_LICENSE("GPL");
