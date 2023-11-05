@@ -2,101 +2,95 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFE9BC4332F
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Nov 2023 10:40:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21207C4332F
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Nov 2023 15:11:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229594AbjKEKka (ORCPT
+        id S230260AbjKEPLA (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Nov 2023 05:40:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52586 "EHLO
+        Sun, 5 Nov 2023 10:11:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbjKEKk3 (ORCPT
+        with ESMTP id S229608AbjKEPK7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Nov 2023 05:40:29 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9011BA2
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Nov 2023 02:40:25 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1qzaYI-0002db-Te; Sun, 05 Nov 2023 11:40:22 +0100
-Date:   Sun, 5 Nov 2023 11:40:22 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v3 1/2] json: drop handling missing json() hook in
- expr_print_json()
-Message-ID: <ZUdxFhzlm42rDpC3@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20231103162937.3352069-1-thaller@redhat.com>
- <20231103162937.3352069-2-thaller@redhat.com>
- <ZUVoLKrYbqHu6Hby@orbyte.nwl.cc>
- <ff945f754eb5a12409563d0aca79a0d2e10fb157.camel@redhat.com>
+        Sun, 5 Nov 2023 10:10:59 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 073F4D9
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Nov 2023 07:10:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1699197010;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=CBqvhMUqWTfrVsi8m2wo7qGXb9pvTeAKTMdaPqZT7UI=;
+        b=hkAVz/4ah/E4MfOyp98Fno2Hzf7p4PgKKcWCiYUgKXjb8Jf65kQvm8Mf6+b7aW0ugzrrAK
+        /GCFMTaQZT+aMe3HN9EXEBvTLk2hxA3JxLP2U9GdOihoDuSOraz+c0S9UmZofWN+gTirV5
+        /tWtcMyKyBqc2JBV1Q/aKUWPry8IN+A=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-170-HbBa_BWeP3GA7a4YXW6oxA-1; Sun, 05 Nov 2023 10:10:08 -0500
+X-MC-Unique: HbBa_BWeP3GA7a4YXW6oxA-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 49319810FC1
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Nov 2023 15:10:08 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.193.47])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id BB5E6492BFA;
+        Sun,  5 Nov 2023 15:10:07 +0000 (UTC)
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft v2 2/5] build: add `make check-build` to run `./tests/build/run-tests.sh`
+Date:   Sun,  5 Nov 2023 16:08:38 +0100
+Message-ID: <20231105150955.349966-3-thaller@redhat.com>
+In-Reply-To: <20231105150955.349966-1-thaller@redhat.com>
+References: <20231105150955.349966-1-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ff945f754eb5a12409563d0aca79a0d2e10fb157.camel@redhat.com>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.10
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sat, Nov 04, 2023 at 06:28:30AM +0100, Thomas Haller wrote:
-> On Fri, 2023-11-03 at 22:37 +0100, Phil Sutter wrote:
-> > On Fri, Nov 03, 2023 at 05:25:13PM +0100, Thomas Haller wrote:
-> > [...]
-> > > +	/* The json() hooks of "symbol_expr_ops" and
-> > > "variable_expr_ops" are
-> > > +	 * known to be NULL, but for such expressions we never
-> > > expect to call
-> > > +	 * expr_print_json().
-> > > +	 *
-> > > +	 * All other expr_ops must have a json() hook.
-> > > +	 *
-> > > +	 * Unconditionally access the hook (and segfault in case
-> > > of a bug).  */
-> > > +	return expr_ops(expr)->json(expr, octx);
-> > 
-> > This does not make sense to me. You're deliberately dropping any
-> > error
-> > handling
-> 
-> Error handling for what is clearly a bug. Don't try to handle bugs.
-> Avoid bugs and fix them.
+`./tests/build/run-tests.sh` performs a build check. Integrate it in
+make as `make check-build` target.
 
-Yeah, indeed. Let's go ahead and drop all BUG() statements as well.
-Seriously, I doubt nftables users agree the software should segfault
-instead of aborting with an error message.
+`make check-build` is hooked into `make check-more`, which in turn is
+hooked as `make check-all`.
 
-> > and accept a segfault because "it should never happen"? All it
-> > takes is someone to add a new expression type and forget about the
-> > JSON
-> > API.
-> 
-> There will be a unit test guarding against that, once the unit test
-> basics are done.
-> 
-> Also, if you "forget" to implement the JSON hook and test it (manually)
-> only a single time, then you'll notice right away.
+Note that this is intentionally not part of `make check`, because `make
+check` is run by `make distcheck`, and the build test itself calls `make
+distcheck`. Even if that cycle would be resolved, doing a build check
+several times during `make check` seems wrong and would add another
+minute to the test runtime.
 
-Actually, all it takes to notice things don't add up is running the py
-testsuite with '-j' arg after adding the obligatory "unit" tests there.
-Feel free to search the git history for late additions of .json
-callbacks. I think the message is pretty clear.
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+---
+ Makefile.am | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-> > If you absolutely have to remove that fallback code, at least add a
-> > BUG() explaining the situation. The sysadmin looking at the segfault
-> > report in syslog won't see your comment above.
-> 
-> I am in favor of adding assertions all over the place. The project
-> doesn't use enough asserions for my taste.
-> 
-> In this case, it seems hard to mess up the condition, and you get a
-> very clear signal when you do (segfault). That makes the assert()/BUG()
-> kinda unecessary.
+diff --git a/Makefile.am b/Makefile.am
+index 93bd47970077..6a0b04641afc 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -421,6 +421,14 @@ build-all: all $(check_PROGRAMS) $(check_LTLIBRARIES)
+ 
+ ###############################################################################
+ 
++check-build: build-all
++	cd "$(srcdir)/tests/build/" ; \
++	CC="$(CC)" CFLAGS='-Werror' ./run-tests.sh
++
++check_more += check-build
++
++###############################################################################
++
+ check-local: build-all $(check_local)
+ 
+ .PHONY: check-local $(check_local)
+-- 
+2.41.0
 
-The clear signal being "oops, my program crashed" when it could be a
-dubious "oops, there is no JSON callback for this expression type".
-
-Cheers, Phil
