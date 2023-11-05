@@ -2,106 +2,116 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4A63C4332F
-	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Nov 2023 19:59:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9354EC4167B
+	for <netfilter-devel@archiver.kernel.org>; Sun,  5 Nov 2023 21:28:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229573AbjKET7g (ORCPT
+        id S229451AbjKEV3A (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Sun, 5 Nov 2023 14:59:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60362 "EHLO
+        Sun, 5 Nov 2023 16:29:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjKET7f (ORCPT
+        with ESMTP id S229447AbjKEV27 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Nov 2023 14:59:35 -0500
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8734DD
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Nov 2023 11:59:31 -0800 (PST)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-40837124e1cso59725e9.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 05 Nov 2023 11:59:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1699214370; x=1699819170; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=tFIPYnVdamLKhFflgsxmJ79fD0yXj+XAKLnTfE6bT4E=;
-        b=XWpfQs1Q2bILvQCuj/N1O4YB40ZvD1BourJMl2eSjtiXMxC5BzJsahaTVKuZ8yCOp8
-         CNAgeAs9/Ws6KnPgSMTPOX2H3DVlPWkZZGaAwH9iGxoFfA/6SvRL/X8fS4oTZ5vWTbLt
-         pDqgiim9iqQGywxJLAvNTR0WEvchboTaG9jX0WNH8vJJes+XY3szQeUzxKwMvxi30aYj
-         4iX9rrXzB61yutbdD3FoAMVuVHZ0CnZh0onjx4roNghPPSY0lhl9cFDjqLh1ERdclm8p
-         +Qe7kboAJ+sGxv+C5mtCfv6PydPg5Hvt3wz+06qyy5N2lY3wcnZrNghuCr1zbEHUtZnj
-         /8KA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699214370; x=1699819170;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=tFIPYnVdamLKhFflgsxmJ79fD0yXj+XAKLnTfE6bT4E=;
-        b=Lk0xS9C1IXcdhNE1QZhZoVawU7C2lZbdrgSmne/TTGjfd3QJChEqgloU7evva/K9s3
-         MUh4cYgee4/Piniu/DwZBhYNq9Jtm3r3E2vZ+pdubBgZ9g5qVQb+nn/9NYOcuK47qud1
-         50JS2QJoylv+LGye4z8EAZ6npdvi+QFkjrPLvFvnx1wew/c1Iexx//VXAa+aN465nyIr
-         nmqlRfA/k//Xo3mbhmbjVTs/QEDiTeMhUVQqBgSEtlKIuBT0YjKIZKDW+SGFg8DnhK7z
-         hrJv9zJsfPlVyNGKqkziEj4P6kIDtQyvPqbgdNsQx3lkpizMyHOP3xXRCnZPfO505Kg5
-         kr2A==
-X-Gm-Message-State: AOJu0YwPB6qsB+bTyB9kTY1UGqOF6DrMTR9323h5BWZmqusgfmvzrAtE
-        zD1joAey2v9bBc1X/ZGDqZh4jkvTatlR0eg51Iwc77rLkbG2WDh4qS9GMw==
-X-Google-Smtp-Source: AGHT+IG6h8cw+Mxa4Zm6/AqXHuovmIrUlnPfE2l9vGfthCt4OLZDPeV0ZQErMwjrgllfTniJBenjIlc3pQmGStLYI+Q=
-X-Received: by 2002:a05:600c:1c8f:b0:3fe:eb42:7ec with SMTP id
- k15-20020a05600c1c8f00b003feeb4207ecmr69404wms.1.1699214369933; Sun, 05 Nov
- 2023 11:59:29 -0800 (PST)
+        Sun, 5 Nov 2023 16:28:59 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 45444CC
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Nov 2023 13:28:56 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     fw@strlen.de
+Subject: [PATCH nft] evaluate: place byteorder conversion before rshift in payload expressions
+Date:   Sun,  5 Nov 2023 22:28:46 +0100
+Message-Id: <20231105212846.311755-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-References: <20231104210053.343149-1-maze@google.com> <1654342n-nn1q-959p-s6r0-3846psss5on6@vanv.qr>
-In-Reply-To: <1654342n-nn1q-959p-s6r0-3846psss5on6@vanv.qr>
-From:   =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>
-Date:   Sun, 5 Nov 2023 11:59:18 -0800
-Message-ID: <CANP3RGdCQ6REeZV9hE2HjaAN0gMtT8nuBhwQ-CQxVPTD1=k_zg@mail.gmail.com>
-Subject: Re: [PATCH net] net: xt_recent: fix (increase) ipv6 literal buffer length
-To:     Jan Engelhardt <jengelh@inai.de>
-Cc:     "David S . Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Linux Network Development Mailing List 
-        <netdev@vger.kernel.org>,
-        Netfilter Development Mailing List 
-        <netfilter-devel@vger.kernel.org>,
-        Patrick McHardy <kaber@trash.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Sun, Nov 5, 2023 at 12:08=E2=80=AFAM Jan Engelhardt <jengelh@inai.de> wr=
-ote:
->
->
-> On Saturday 2023-11-04 22:00, Maciej =C5=BBenczykowski wrote:
-> >
-> >IPv4 in IPv6 is supported by in6_pton [...]
-> >but the provided buffer is too short:
->
-> If in6_pton were to support tunnel traffic.. wait that sounds
-> unusual, and would require dst to be at least 20 bytes, which the
-> function documentation contradicts.
->
-> As the RFCs make no precise name proposition
->
->         (IPv6 Text Representation, third alternative,
->         IPv4 "decimal value" of the "four low-order 8-bit pieces")
->
-> so let's just call it
->
->         "low-32-bit dot-decimal representation"
->
-> which should avoid the tunnel term.
+Use the key from the evaluation context to perform the byteorder
+conversion in case that this expression is used for lookups and updates
+on explicit sets.
 
-Resent [ https://patchwork.kernel.org/project/netdevbpf/patch/2023110519560=
-0.522779-1-maze@google.com/
-], hopefully this is better.
-Also:
-- used your (Jan's) new email in the CC.
-- changed net to netfilter in the commit title
-(but as it is such a trivial bug fix, it does still feel like it
-should go straight into net/main... rather than via netfilter repos)
+ # nft --debug=netlink add rule ip6 t output ip6 dscp @mapv6
+ ip6 t output
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]   <-------------- this was missing!
+  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+  [ lookup reg 1 set mapv6 ]
 
-Cheers,
-Maciej
+Also with set statements (updates from packet path):
+
+ # nft --debug=netlink add rule ip6 t output update @mapv6 { ip6 dscp }
+ ip6 t output
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]   <------------- also here!
+  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+  [ dynset update reg_key 1 set mapv6 ]
+
+Simple matches on values and implicit sets rely on the binary transfer
+mechanism to propagate the shift to the constant, no explicit byteorder
+is required in such case.
+
+Fixes: 668c18f67203 ("evaluate: place byteorder conversion before rshift in payload statement")
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Test not yet in this patch, I plan to send a v2.
+
+ src/evaluate.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 65e4cef9c147..5bbb834b6a6d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -545,7 +545,8 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
+ 	and->len	= masklen;
+ 
+ 	if (shift) {
+-		if (ctx->stmt_len > 0 && div_round_up(masklen, BITS_PER_BYTE) > 1) {
++		if ((ctx->ectx.key || ctx->stmt_len > 0) &&
++		    div_round_up(masklen, BITS_PER_BYTE) > 1) {
+ 			int op = byteorder_conversion_op(expr, BYTEORDER_HOST_ENDIAN);
+ 			and = unary_expr_alloc(&expr->location, op, and);
+ 			and->len = masklen;
+@@ -574,6 +575,7 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
+ 
+ static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
+ {
++	const struct expr *key = ctx->ectx.key;
+ 	struct expr *expr = *exprp;
+ 
+ 	if (expr->exthdr.flags & NFT_EXTHDR_F_PRESENT)
+@@ -582,6 +584,8 @@ static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
+ 	if (expr_evaluate_primary(ctx, exprp) < 0)
+ 		return -1;
+ 
++	ctx->ectx.key = key;
++
+ 	if (expr->exthdr.offset % BITS_PER_BYTE != 0 ||
+ 	    expr->len % BITS_PER_BYTE != 0)
+ 		expr_evaluate_bits(ctx, exprp);
+@@ -878,6 +882,7 @@ static bool payload_needs_adjustment(const struct expr *expr)
+ 
+ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+ {
++	const struct expr *key = ctx->ectx.key;
+ 	struct expr *expr = *exprp;
+ 
+ 	if (expr->payload.evaluated)
+@@ -889,6 +894,8 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+ 	if (expr_evaluate_primary(ctx, exprp) < 0)
+ 		return -1;
+ 
++	ctx->ectx.key = key;
++
+ 	if (payload_needs_adjustment(expr))
+ 		expr_evaluate_bits(ctx, exprp);
+ 
+-- 
+2.30.2
+
