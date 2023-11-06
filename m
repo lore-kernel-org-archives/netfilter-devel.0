@@ -2,165 +2,191 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A235DC4167D
-	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Nov 2023 11:45:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5F9BC4167B
+	for <netfilter-devel@archiver.kernel.org>; Mon,  6 Nov 2023 11:45:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230155AbjKFLp6 (ORCPT
+        id S230192AbjKFLp7 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 6 Nov 2023 06:45:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50372 "EHLO
+        Mon, 6 Nov 2023 06:45:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229583AbjKFLp5 (ORCPT
+        with ESMTP id S229799AbjKFLp7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Nov 2023 06:45:57 -0500
+        Mon, 6 Nov 2023 06:45:59 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8DF61EA
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2023 03:45:53 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E34E6134
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2023 03:45:54 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, davidson.brian@gmail.com
-Subject: [PATCH nft,v2 1/2] evaluate: reset statement length context only for set mappings
-Date:   Mon,  6 Nov 2023 12:45:47 +0100
-Message-Id: <20231106114548.14637-1-pablo@netfilter.org>
+Subject: [PATCH nft,v2 2/2] evaluate: place byteorder conversion before rshift in payload expressions
+Date:   Mon,  6 Nov 2023 12:45:48 +0100
+Message-Id: <20231106114548.14637-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20231106114548.14637-1-pablo@netfilter.org>
+References: <20231106114548.14637-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-map expression (which is used a key to look up for the mapping) needs to
-consider the statement length context, otherwise incorrect bytecode is
-generated when {ct,meta} statement is generated.
+Use the key from the evaluation context to perform the byteorder
+conversion in case that this expression is used for lookups and updates
+on explicit sets.
 
- # nft -f - <<EOF
- add table ip6 t
- add chain ip6 t c
- add map ip6 t mapv6 { typeof ip6 dscp : meta mark; }
- EOF
+ # nft --debug=netlink add rule ip6 t output ip6 dscp @mapv6
+ ip6 t output
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]   <-------------- this was missing!
+  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+  [ lookup reg 1 set mapv6 ]
 
- # nft -d netlink add rule ip6 t c meta mark set ip6 dscp map @mapv6
- ip6 t c
-   [ payload load 2b @ network header + 0 => reg 1 ]
-   [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
-   ... missing byteorder conversion here before shift ...
-   [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-   [ lookup reg 1 set mapv6 dreg 1 ]
-   [ meta set mark with reg 1 ]
+Also with set statements (updates from packet path):
 
-Reset statement length context only for the mapping side for the
-elements in the set.
+ # nft --debug=netlink add rule ip6 t output update @mapv6 { ip6 dscp }
+ ip6 t output
+  [ payload load 2b @ network header + 0 => reg 1 ]
+  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
+  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]   <------------- also here!
+  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
+  [ dynset update reg_key 1 set mapv6 ]
 
-Fixes: edecd58755a8 ("evaluate: support shifts larger than the width of the left operand")
-Reported-by: Brian Davidson <davidson.brian@gmail.com>
+Simple matches on values and implicit sets rely on the binary transfer
+mechanism to propagate the shift to the constant, no explicit byteorder
+is required in such case.
+
+Fixes: 668c18f67203 ("evaluate: place byteorder conversion before rshift in payload statement")
+Reported-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: extend coverage for tests/py.
+v2: extend coverage for tests/py and fix concatenations.
 
- src/evaluate.c                  |  2 +-
- tests/py/ip6/ip6.t              |  5 +++
- tests/py/ip6/ip6.t.json         | 58 +++++++++++++++++++++++++++++++++
- tests/py/ip6/ip6.t.payload.inet | 23 +++++++++++++
- tests/py/ip6/ip6.t.payload.ip6  | 19 +++++++++++
- 5 files changed, 106 insertions(+), 1 deletion(-)
+ src/evaluate.c                  | 10 +++++++-
+ tests/py/ip6/ip6.t              |  4 ++++
+ tests/py/ip6/ip6.t.json         | 42 +++++++++++++++++++++++++++++++++
+ tests/py/ip6/ip6.t.payload.inet | 21 +++++++++++++++++
+ tests/py/ip6/ip6.t.payload.ip6  | 17 +++++++++++++
+ 5 files changed, 93 insertions(+), 1 deletion(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 894987df7895..65e4cef9c147 100644
+index 65e4cef9c147..788cac1fc2b5 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -1918,13 +1918,13 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 	}
+@@ -545,7 +545,8 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
+ 	and->len	= masklen;
  
- 	expr_set_context(&ctx->ectx, NULL, 0);
--	ctx->stmt_len = 0;
- 	if (expr_evaluate(ctx, &map->map) < 0)
+ 	if (shift) {
+-		if (ctx->stmt_len > 0 && div_round_up(masklen, BITS_PER_BYTE) > 1) {
++		if ((ctx->ectx.key || ctx->stmt_len > 0) &&
++		    div_round_up(masklen, BITS_PER_BYTE) > 1) {
+ 			int op = byteorder_conversion_op(expr, BYTEORDER_HOST_ENDIAN);
+ 			and = unary_expr_alloc(&expr->location, op, and);
+ 			and->len = masklen;
+@@ -574,6 +575,7 @@ static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
+ 
+ static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
+ {
++	const struct expr *key = ctx->ectx.key;
+ 	struct expr *expr = *exprp;
+ 
+ 	if (expr->exthdr.flags & NFT_EXTHDR_F_PRESENT)
+@@ -582,6 +584,8 @@ static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
+ 	if (expr_evaluate_primary(ctx, exprp) < 0)
  		return -1;
- 	if (expr_is_constant(map->map))
- 		return expr_error(ctx->msgs, map->map,
- 				  "Map expression can not be constant");
  
-+	ctx->stmt_len = 0;
- 	mappings = map->mappings;
- 	mappings->set_flags |= NFT_SET_MAP;
++	ctx->ectx.key = key;
++
+ 	if (expr->exthdr.offset % BITS_PER_BYTE != 0 ||
+ 	    expr->len % BITS_PER_BYTE != 0)
+ 		expr_evaluate_bits(ctx, exprp);
+@@ -878,6 +882,7 @@ static bool payload_needs_adjustment(const struct expr *expr)
  
+ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+ {
++	const struct expr *key = ctx->ectx.key;
+ 	struct expr *expr = *exprp;
+ 
+ 	if (expr->payload.evaluated)
+@@ -889,6 +894,8 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+ 	if (expr_evaluate_primary(ctx, exprp) < 0)
+ 		return -1;
+ 
++	ctx->ectx.key = key;
++
+ 	if (payload_needs_adjustment(expr))
+ 		expr_evaluate_bits(ctx, exprp);
+ 
+@@ -1508,6 +1515,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+ 		}
+ 
+ 		__expr_set_context(&ctx->ectx, tmp, bo, dsize, 0);
++		ctx->ectx.key = i;
+ 
+ 		if (list_member_evaluate(ctx, &i) < 0)
+ 			return -1;
 diff --git a/tests/py/ip6/ip6.t b/tests/py/ip6/ip6.t
-index 2ffe318e1e6d..60ea22333057 100644
+index 60ea22333057..430dd5715f97 100644
 --- a/tests/py/ip6/ip6.t
 +++ b/tests/py/ip6/ip6.t
-@@ -17,6 +17,11 @@ ip6 dscp != 0x20;ok;ip6 dscp != cs4
- ip6 dscp {cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43, ef};ok
- ip6 dscp vmap { 0x04 : accept, 0x3f : continue } counter;ok
+@@ -21,6 +21,10 @@ ip6 dscp vmap { 0x04 : accept, 0x3f : continue } counter;ok
+ meta mark set ip6 dscp map @map1;ok
+ !map2 type dscp . ipv6_addr : mark;ok
+ meta mark set ip6 dscp . ip6 daddr map @map2;ok
++!map3 type dscp : mark;ok
++ip6 dscp @map3;ok
++!map4 type dscp . ipv6_addr : mark;ok
++ip6 dscp . ip6 daddr @map4;ok
  
-+!map1 type dscp : mark;ok
-+meta mark set ip6 dscp map @map1;ok
-+!map2 type dscp . ipv6_addr : mark;ok
-+meta mark set ip6 dscp . ip6 daddr map @map2;ok
-+
  ip6 flowlabel 22;ok
  ip6 flowlabel != 233;ok
- - ip6 flowlabel 33-45;ok
 diff --git a/tests/py/ip6/ip6.t.json b/tests/py/ip6/ip6.t.json
-index cf802175b792..5411190d6bb3 100644
+index 5411190d6bb3..49e5a2dd6355 100644
 --- a/tests/py/ip6/ip6.t.json
 +++ b/tests/py/ip6/ip6.t.json
-@@ -135,6 +135,64 @@
+@@ -193,6 +193,48 @@
      }
  ]
  
-+# meta mark set ip6 dscp map @map1
++# ip6 dscp @map3
 +[
 +    {
-+        "mangle": {
-+            "key": {
-+                "meta": {
-+                    "key": "mark"
++        "match": {
++            "left": {
++                "payload": {
++                    "field": "dscp",
++                    "protocol": "ip6"
 +                }
 +            },
-+            "value": {
-+                "map": {
-+                    "data": "@map1",
-+                    "key": {
-+                        "payload": {
-+                            "field": "dscp",
-+                            "protocol": "ip6"
-+                        }
-+                    }
-+                }
-+            }
++            "op": "==",
++            "right": "@map3"
 +        }
 +    }
 +]
 +
-+# meta mark set ip6 dscp . ip6 daddr map @map2
++# ip6 dscp . ip6 daddr @map4
 +[
 +    {
-+        "mangle": {
-+            "key": {
-+                "meta": {
-+                    "key": "mark"
-+                }
-+            },
-+            "value": {
-+                "map": {
-+                    "data": "@map2",
-+                    "key": {
-+                        "concat": [
-+                            {
-+                                "payload": {
-+                                    "field": "dscp",
-+                                    "protocol": "ip6"
-+                                }
-+                            },
-+                            {
-+                                "payload": {
-+                                    "field": "daddr",
-+                                    "protocol": "ip6"
-+                                }
-+                            }
-+                        ]
++        "match": {
++            "left": {
++                "concat": [
++                    {
++                        "payload": {
++                            "field": "dscp",
++                            "protocol": "ip6"
++                        }
++                    },
++                    {
++                        "payload": {
++                            "field": "daddr",
++                            "protocol": "ip6"
++                        }
 +                    }
-+                }
-+            }
++                ]
++            },
++            "op": "==",
++            "right": "@map4"
 +        }
 +    }
 +]
@@ -169,14 +195,14 @@ index cf802175b792..5411190d6bb3 100644
  [
      {
 diff --git a/tests/py/ip6/ip6.t.payload.inet b/tests/py/ip6/ip6.t.payload.inet
-index 20dfe5497367..214a0ed9f90f 100644
+index 214a0ed9f90f..dbb430af7ff6 100644
 --- a/tests/py/ip6/ip6.t.payload.inet
 +++ b/tests/py/ip6/ip6.t.payload.inet
-@@ -53,6 +53,29 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __map%d dreg 0 ]
-   [ counter pkts 0 bytes 0 ]
+@@ -76,6 +76,27 @@ inet test-inet input
+   [ lookup reg 1 set map2 dreg 1 ]
+   [ meta set mark with reg 1 ]
  
-+# meta mark set ip6 dscp map @map1
++# ip6 dscp @map3
 +inet test-inet input
 +  [ meta load nfproto => reg 1 ]
 +  [ cmp eq reg 1 0x0000000a ]
@@ -184,10 +210,9 @@ index 20dfe5497367..214a0ed9f90f 100644
 +  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
 +  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
 +  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-+  [ lookup reg 1 set map1 dreg 1 ]
-+  [ meta set mark with reg 1 ]
++  [ lookup reg 1 set map3 ]
 +
-+# meta mark set ip6 dscp . ip6 daddr map @map2
++# ip6 dscp . ip6 daddr @map4
 +inet test-inet input
 +  [ meta load nfproto => reg 1 ]
 +  [ cmp eq reg 1 0x0000000a ]
@@ -196,38 +221,35 @@ index 20dfe5497367..214a0ed9f90f 100644
 +  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
 +  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
 +  [ payload load 16b @ network header + 24 => reg 9 ]
-+  [ lookup reg 1 set map2 dreg 1 ]
-+  [ meta set mark with reg 1 ]
++  [ lookup reg 1 set map4 ]
 +
  # ip6 flowlabel 22
  inet test-inet input
    [ meta load nfproto => reg 1 ]
 diff --git a/tests/py/ip6/ip6.t.payload.ip6 b/tests/py/ip6/ip6.t.payload.ip6
-index f8e3ca3cb622..428b8ea41278 100644
+index 428b8ea41278..b1289232f932 100644
 --- a/tests/py/ip6/ip6.t.payload.ip6
 +++ b/tests/py/ip6/ip6.t.payload.ip6
-@@ -41,6 +41,25 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __map%d dreg 0 ]
-   [ counter pkts 0 bytes 0 ]
+@@ -60,6 +60,23 @@ ip6 test-ip6 input
+   [ lookup reg 1 set map2 dreg 1 ]
+   [ meta set mark with reg 1 ]
  
-+# meta mark set ip6 dscp map @map1
++# ip6 dscp @map3
 +ip6 test-ip6 input
 +  [ payload load 2b @ network header + 0 => reg 1 ]
 +  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
 +  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
 +  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
-+  [ lookup reg 1 set map1 dreg 1 ]
-+  [ meta set mark with reg 1 ]
++  [ lookup reg 1 set map3 ]
 +
-+# meta mark set ip6 dscp . ip6 daddr map @map2
++# ip6 dscp . ip6 daddr @map4
 +ip6 test-ip6 input
 +  [ payload load 2b @ network header + 0 => reg 1 ]
 +  [ bitwise reg 1 = ( reg 1 & 0x0000c00f ) ^ 0x00000000 ]
 +  [ byteorder reg 1 = ntoh(reg 1, 2, 2) ]
 +  [ bitwise reg 1 = ( reg 1 >> 0x00000006 ) ]
 +  [ payload load 16b @ network header + 24 => reg 9 ]
-+  [ lookup reg 1 set map2 dreg 1 ]
-+  [ meta set mark with reg 1 ]
++  [ lookup reg 1 set map4 ]
 +
  # ip6 flowlabel 22
  ip6 test-ip6 input
