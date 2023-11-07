@@ -2,91 +2,63 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60775C4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Nov 2023 10:38:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD75DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue,  7 Nov 2023 11:16:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233957AbjKGKi0 (ORCPT
+        id S234337AbjKGLQJ (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Nov 2023 05:38:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49324 "EHLO
+        Tue, 7 Nov 2023 06:16:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233951AbjKGKiZ (ORCPT
+        with ESMTP id S234317AbjKGLQG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Nov 2023 05:38:25 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A50EB0
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2023 02:38:22 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1r0JTO-0001Zx-UH; Tue, 07 Nov 2023 11:38:19 +0100
-Date:   Tue, 7 Nov 2023 11:38:18 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Thomas Haller <thaller@redhat.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] tests: shell: Fix sets/reset_command_0 for current
- kernels
-Message-ID: <ZUoTmq8cwj+A9WO+@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Thomas Haller <thaller@redhat.com>, netfilter-devel@vger.kernel.org
-References: <20231102150342.3543-1-phil@nwl.cc>
- <08a7ddd943c17548bbe4a72d6c0aae3110b0d39e.camel@redhat.com>
- <ZUPXGnrqVajvEryb@orbyte.nwl.cc>
- <ZUQHXkoa+Nr6byb/@calendula>
+        Tue, 7 Nov 2023 06:16:06 -0500
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1026A102
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2023 03:15:56 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+        (envelope-from <fw@breakpoint.cc>)
+        id 1r0K3m-0002EA-II; Tue, 07 Nov 2023 12:15:54 +0100
+From:   Florian Westphal <fw@strlen.de>
+To:     <netfilter-devel@vger.kernel.org>
+Cc:     Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 iptables 0/4] xtables-nft: add arptranslate support
+Date:   Tue,  7 Nov 2023 12:15:36 +0100
+Message-ID: <20231107111544.17166-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZUQHXkoa+Nr6byb/@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Thu, Nov 02, 2023 at 09:32:30PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Nov 02, 2023 at 06:06:34PM +0100, Phil Sutter wrote:
-> > On Thu, Nov 02, 2023 at 04:29:34PM +0100, Thomas Haller wrote:
-> > > On Thu, 2023-11-02 at 16:03 +0100, Phil Sutter wrote:
-> > > >  
-> > > > +# Note: Element expiry is no longer reset since kernel commit
-> > > > 4c90bba60c26
-> > > > +# ("netfilter: nf_tables: do not refresh timeout when resetting
-> > > > element"),
-> > > > +# the respective parts of the test have therefore been commented
-> > > > out.
-> > > 
-> > > Hi Phil,
-> > > 
-> > > do you expect that the old behavior ever comes back?
-> > 
-> > A recent nfbz comment[1] from Pablo made me doubt the decision is final,
-> > though I may have misread it.
-> 
-> I hesitate on changing --stateless behaviour, but I don't find a
-> usecase for this option all alone unless it is combined with --terse,
-> to store an initial ruleset skeleton with no elements and no states.
-> Sets with timeout likely contain elements that get dynamically added
-> either via control plane or packet path based on some heuristics.
+This series adds support for arptranslate to xtables-nft.
+First patch adds missing value/mask support, second patch
+adds arptranslate.
 
-Unrelated to the expires vs. reset question, I wonder if one should
-treat set elements with timeout as state themselves. If one leaves the
-ruleset alone for long enough, they all will eventually vanish. So one
-may argue the ruleset in its stateless form does not have elements in a
-set with defined timeout.
+Patch 3 adds test cases.  Finally, patch 4 fixes -j MARK and adds
+test cases for it.
 
-> > > Why keep the old checks (commented out)? Maybe drop them? We can get it
-> > > from git history.
-> > 
-> > Should the change be permanent, one should change the tests to assert
-> > the opposite, namely that expires values are unaffected by the reset.
-> 
-> I think it is fine as it is now in the kernel. I have posted patches
-> to allow to update element timeouts via transaction, which looks more
-> flexible and run through the transaction path. As for counter and
-> quota, users likely only want to either: 1) restore a previous state
-> (after reboot) or 2) dump-and-reset counters for stats collection
-> (e.g. fetch counters at the end of the day).
+Florian Westphal (4):
+  nft-arp: add missing mask support
+  nft-arp: add arptables-translate
+  arptables-txlate: add test cases
+  extensions: MARK: fix arptables support
 
-I still doubt there's a use-case to do (1) or (2) in sets with
-temporary elements.
+ extensions/generic.txlate        |   6 ++
+ extensions/libarpt_mangle.c      |  47 +++++++++
+ extensions/libarpt_mangle.txlate |   6 ++
+ extensions/libxt_MARK.c          |   2 +
+ extensions/libxt_MARK.txlate     |   9 ++
+ iptables/nft-arp.c               | 174 ++++++++++++++++++++++++++++++-
+ iptables/nft-ruleparse-arp.c     |   8 ++
+ iptables/xtables-multi.h         |   1 +
+ iptables/xtables-nft-multi.c     |   1 +
+ iptables/xtables-translate.c     |  35 ++++++-
+ xlate-test.py                    |   4 +-
+ 11 files changed, 289 insertions(+), 4 deletions(-)
+ create mode 100644 extensions/libarpt_mangle.txlate
 
-Cheers, Phil
+-- 
+2.41.0
+
