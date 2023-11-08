@@ -2,52 +2,68 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEFE4C4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 02:51:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7D4DC4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 03:31:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229581AbjKHCvh (ORCPT
+        id S229844AbjKHDbi (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 7 Nov 2023 21:51:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57008 "EHLO
+        Tue, 7 Nov 2023 22:31:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229503AbjKHCvg (ORCPT
+        with ESMTP id S229753AbjKHDbi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Nov 2023 21:51:36 -0500
+        Tue, 7 Nov 2023 22:31:38 -0500
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4769CD79
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2023 18:51:34 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1r0YfE-0001yu-9L; Wed, 08 Nov 2023 03:51:32 +0100
-Date:   Wed, 8 Nov 2023 03:51:32 +0100
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11CDC10C9
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2023 19:31:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=rmv9j8JfORrsDRCOQDCuhIFBMAvzY7yUl8x8tv5OkxU=; b=OuwaBMGfdlb9JVDnlE4uARVAQu
+        10HcdG0gEELvUJ1t4CneAwgFFrDhVu2fZnisYggPdF0M+ud5m0O2tCUKJLBVDpylQ0WhtAPo9PEeb
+        07i13j5K/BkGpAvfr4hnO+ZtvoJylPLBBESRQC1P8IQhpi9Sat8LLcoi/SjpiPH76mU2htzFfBmNl
+        9Tlnn3bPgJYoM4LgGr9LW5GcNjDO5KobBsu28+TPEnkuMHy4+on1HFZrc5UcA1pwLS0Y3gP8rz4To
+        T3Hdg0o5xIpRjqciLhtPN5FG1gL+1PfT3cgTjGvVsjyaDbSrw2kMSyiY5rl8xagtNKu4q3EYhCOte
+        iI1BdOfA==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1r0ZHy-0002N9-FQ; Wed, 08 Nov 2023 04:31:34 +0100
 From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
 Cc:     netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v2 iptables 0/4] xtables-nft: add arptranslate support
-Message-ID: <ZUr3tPmC0SyBmVx7@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20231107111544.17166-1-fw@strlen.de>
+Subject: [iptables PATCH 3/3] extensions: libarpt_standard.t: Add a rule with builtin option masks
+Date:   Wed,  8 Nov 2023 04:31:30 +0100
+Message-ID: <20231108033130.18747-3-phil@nwl.cc>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20231108033130.18747-1-phil@nwl.cc>
+References: <20231108033130.18747-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231107111544.17166-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Tue, Nov 07, 2023 at 12:15:36PM +0100, Florian Westphal wrote:
-> This series adds support for arptranslate to xtables-nft.
-> First patch adds missing value/mask support, second patch
-> adds arptranslate.
-> 
-> Patch 3 adds test cases.  Finally, patch 4 fixes -j MARK and adds
-> test cases for it.
-> 
-> Florian Westphal (4):
->   nft-arp: add missing mask support
->   nft-arp: add arptables-translate
->   arptables-txlate: add test cases
->   extensions: MARK: fix arptables support
+Just some random values in hope this starts failing if masks support
+changes or breaks.
 
-Series applied, thanks!
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ extensions/libarpt_standard.t | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/extensions/libarpt_standard.t b/extensions/libarpt_standard.t
+index b9a3560660372..153540903f786 100644
+--- a/extensions/libarpt_standard.t
++++ b/extensions/libarpt_standard.t
+@@ -20,3 +20,4 @@
+ --proto-type 10/10;--proto-type 0xa/0xa;OK
+ --proto-type 0x10;=;OK
+ --proto-type 0x10/0x10;=;OK
++--h-length 6/15 --opcode 1/235 --h-type 0x8/0xcf --proto-type 0x800/0xde00;=;OK
+-- 
+2.41.0
+
