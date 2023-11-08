@@ -2,122 +2,105 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D70AC4332F
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 12:19:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57961C4332F
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 15:58:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344588AbjKHMTH (ORCPT
+        id S232692AbjKHP6O (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Nov 2023 07:19:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51390 "EHLO
+        Wed, 8 Nov 2023 10:58:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344296AbjKHMTF (ORCPT
+        with ESMTP id S229558AbjKHP6N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Nov 2023 07:19:05 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82C821BD7
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Nov 2023 04:19:03 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1r0hWP-0006p0-BJ; Wed, 08 Nov 2023 13:19:01 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Daniel Huhardeaux <tech@tootai.net>
-Subject: [PATCH nf] netfilter: nat: fix ipv6 nat redirect with mapped and scoped addresses
-Date:   Wed,  8 Nov 2023 13:18:53 +0100
-Message-ID: <20231108121856.23809-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Wed, 8 Nov 2023 10:58:13 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8DED2172E;
+        Wed,  8 Nov 2023 07:58:09 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
+        kadlec@netfilter.org
+Subject: [PATCH net 2/5] netfilter: nf_tables: remove catchall element in GC sync path
+Date:   Wed,  8 Nov 2023 16:57:59 +0100
+Message-Id: <20231108155802.84617-3-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20231108155802.84617-1-pablo@netfilter.org>
+References: <20231108155802.84617-1-pablo@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The ipv6 redirect target was derived from the ipv4 one, i.e. its
-identical to a 'dnat' with the first (primary) address assigned to the
-network interface.  The code has been moved around to make it usable
-from nf_tables too, but its still the same as it was back when this
-was added in 2012.
+The expired catchall element is not deactivated and removed from GC sync
+path. This path holds mutex so just call nft_setelem_data_deactivate()
+and nft_setelem_catchall_remove() before queueing the GC work.
 
-IPv6, however, has different types of addresses, if the 'wrong' address
-comes first the redirection does not work.
-
-In Daniels case, the addresses are:
-  inet6 ::ffff:192 ...
-  inet6 2a01: ...
-
-... so the function attempts to redirect to the mapped address.
-
-Add more checks before the address is deemed correct:
-1. If the packets' daddr is scoped, search for a scoped address too
-2. skip tentative addresses
-3. skip mapped addresses
-
-Use the first address that appears to match our needs.
-
-Reported-by: Daniel Huhardeaux <tech@tootai.net>
-Closes: https://lore.kernel.org/netfilter/71be06b8-6aa0-4cf9-9e0b-e2839b01b22f@tootai.net/
-Fixes: 115e23ac78f8 ("netfilter: ip6tables: add REDIRECT target")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 4a9e12ea7e70 ("netfilter: nft_set_pipapo: call nft_trans_gc_queue_sync() in catchall GC")
+Reported-by: lonial con <kongln9170@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- This bug is very old, we could also route this fix via nf-next
- if you think its too intrusive.
+ net/netfilter/nf_tables_api.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
- net/netfilter/nf_nat_redirect.c | 27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index 6616ba5d0b04..5b37487d9d11 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -80,6 +80,26 @@ EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv4);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 146b7447a969..a761ee6796f6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -6520,6 +6520,12 @@ static int nft_setelem_deactivate(const struct net *net,
+ 	return ret;
+ }
  
- static const struct in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
- 
-+static bool nf_nat_redirect_ipv6_usable(const struct inet6_ifaddr *ifa, unsigned int scope)
++static void nft_setelem_catchall_destroy(struct nft_set_elem_catchall *catchall)
 +{
-+	unsigned int ifa_addr_type = ipv6_addr_type(&ifa->addr);
-+
-+	if (ifa_addr_type & IPV6_ADDR_MAPPED)
-+		return false;
-+
-+	if ((ifa->flags & IFA_F_TENTATIVE) && (!(ifa->flags & IFA_F_OPTIMISTIC)))
-+		return false;
-+
-+	if (scope) {
-+		unsigned int ifa_scope = ifa_addr_type & IPV6_ADDR_SCOPE_MASK;
-+
-+		if (!(scope & ifa_scope))
-+			return false;
-+	}
-+
-+	return true;
++	list_del_rcu(&catchall->list);
++	kfree_rcu(catchall, rcu);
 +}
 +
- unsigned int
- nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		     unsigned int hooknum)
-@@ -89,14 +109,19 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 	if (hooknum == NF_INET_LOCAL_OUT) {
- 		newdst.in6 = loopback_addr;
- 	} else {
-+		unsigned int scope = ipv6_addr_scope(&ipv6_hdr(skb)->daddr);
- 		struct inet6_dev *idev;
--		struct inet6_ifaddr *ifa;
- 		bool addr = false;
+ static void nft_setelem_catchall_remove(const struct net *net,
+ 					const struct nft_set *set,
+ 					struct nft_elem_priv *elem_priv)
+@@ -6528,8 +6534,7 @@ static void nft_setelem_catchall_remove(const struct net *net,
  
- 		idev = __in6_dev_get(skb->dev);
- 		if (idev != NULL) {
-+			const struct inet6_ifaddr *ifa;
+ 	list_for_each_entry_safe(catchall, next, &set->catchall_list, list) {
+ 		if (catchall->elem == elem_priv) {
+-			list_del_rcu(&catchall->list);
+-			kfree_rcu(catchall, rcu);
++			nft_setelem_catchall_destroy(catchall);
+ 			break;
+ 		}
+ 	}
+@@ -9678,11 +9683,12 @@ static struct nft_trans_gc *nft_trans_gc_catchall(struct nft_trans_gc *gc,
+ 						  unsigned int gc_seq,
+ 						  bool sync)
+ {
+-	struct nft_set_elem_catchall *catchall;
++	struct nft_set_elem_catchall *catchall, *next;
+ 	const struct nft_set *set = gc->set;
++	struct nft_elem_priv *elem_priv;
+ 	struct nft_set_ext *ext;
+ 
+-	list_for_each_entry_rcu(catchall, &set->catchall_list, list) {
++	list_for_each_entry_safe(catchall, next, &set->catchall_list, list) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
+ 
+ 		if (!nft_set_elem_expired(ext))
+@@ -9700,7 +9706,13 @@ static struct nft_trans_gc *nft_trans_gc_catchall(struct nft_trans_gc *gc,
+ 		if (!gc)
+ 			return NULL;
+ 
+-		nft_trans_gc_elem_add(gc, catchall->elem);
++		elem_priv = catchall->elem;
++		if (sync) {
++			nft_setelem_data_deactivate(gc->net, gc->set, elem_priv);
++			nft_setelem_catchall_destroy(catchall);
++		}
 +
- 			read_lock_bh(&idev->lock);
- 			list_for_each_entry(ifa, &idev->addr_list, if_list) {
-+				if (!nf_nat_redirect_ipv6_usable(ifa, scope))
-+					continue;
-+
- 				newdst.in6 = ifa->addr;
- 				addr = true;
- 				break;
++		nft_trans_gc_elem_add(gc, elem_priv);
+ 	}
+ 
+ 	return gc;
 -- 
-2.41.0
+2.30.2
 
