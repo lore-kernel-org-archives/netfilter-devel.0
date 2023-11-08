@@ -2,28 +2,28 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01084C04E83
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 15:58:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83EF0C04A95
+	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 15:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232466AbjKHP6P (ORCPT
+        id S232420AbjKHP6Q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Nov 2023 10:58:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34458 "EHLO
+        Wed, 8 Nov 2023 10:58:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232420AbjKHP6N (ORCPT
+        with ESMTP id S232661AbjKHP6N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 8 Nov 2023 10:58:13 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1D5F31BD7;
-        Wed,  8 Nov 2023 07:58:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7AF021FDB;
+        Wed,  8 Nov 2023 07:58:11 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
         kadlec@netfilter.org
-Subject: [PATCH net 3/5] ipvs: add missing module descriptions
-Date:   Wed,  8 Nov 2023 16:58:00 +0100
-Message-Id: <20231108155802.84617-4-pablo@netfilter.org>
+Subject: [PATCH net 5/5] netfilter: nat: fix ipv6 nat redirect with mapped and scoped addresses
+Date:   Wed,  8 Nov 2023 16:58:02 +0100
+Message-Id: <20231108155802.84617-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231108155802.84617-1-pablo@netfilter.org>
 References: <20231108155802.84617-1-pablo@netfilter.org>
@@ -35,175 +35,89 @@ X-Mailing-List: netfilter-devel@vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-W=1 builds warn on missing MODULE_DESCRIPTION, add them.
+The ipv6 redirect target was derived from the ipv4 one, i.e. its
+identical to a 'dnat' with the first (primary) address assigned to the
+network interface.  The code has been moved around to make it usable
+from nf_tables too, but its still the same as it was back when this
+was added in 2012.
 
+IPv6, however, has different types of addresses, if the 'wrong' address
+comes first the redirection does not work.
+
+In Daniels case, the addresses are:
+  inet6 ::ffff:192 ...
+  inet6 2a01: ...
+
+... so the function attempts to redirect to the mapped address.
+
+Add more checks before the address is deemed correct:
+1. If the packets' daddr is scoped, search for a scoped address too
+2. skip tentative addresses
+3. skip mapped addresses
+
+Use the first address that appears to match our needs.
+
+Reported-by: Daniel Huhardeaux <tech@tootai.net>
+Closes: https://lore.kernel.org/netfilter/71be06b8-6aa0-4cf9-9e0b-e2839b01b22f@tootai.net/
+Fixes: 115e23ac78f8 ("netfilter: ip6tables: add REDIRECT target")
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c   | 1 +
- net/netfilter/ipvs/ip_vs_dh.c     | 1 +
- net/netfilter/ipvs/ip_vs_fo.c     | 1 +
- net/netfilter/ipvs/ip_vs_ftp.c    | 1 +
- net/netfilter/ipvs/ip_vs_lblc.c   | 1 +
- net/netfilter/ipvs/ip_vs_lblcr.c  | 1 +
- net/netfilter/ipvs/ip_vs_lc.c     | 1 +
- net/netfilter/ipvs/ip_vs_nq.c     | 1 +
- net/netfilter/ipvs/ip_vs_ovf.c    | 1 +
- net/netfilter/ipvs/ip_vs_pe_sip.c | 1 +
- net/netfilter/ipvs/ip_vs_rr.c     | 1 +
- net/netfilter/ipvs/ip_vs_sed.c    | 1 +
- net/netfilter/ipvs/ip_vs_sh.c     | 1 +
- net/netfilter/ipvs/ip_vs_twos.c   | 1 +
- net/netfilter/ipvs/ip_vs_wlc.c    | 1 +
- net/netfilter/ipvs/ip_vs_wrr.c    | 1 +
- 16 files changed, 16 insertions(+)
+ net/netfilter/nf_nat_redirect.c | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 3230506ae3ff..a2c16b501087 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2450,3 +2450,4 @@ static void __exit ip_vs_cleanup(void)
- module_init(ip_vs_init);
- module_exit(ip_vs_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("IP Virtual Server");
-diff --git a/net/netfilter/ipvs/ip_vs_dh.c b/net/netfilter/ipvs/ip_vs_dh.c
-index 5e6ec32aff2b..75f4c231f4a0 100644
---- a/net/netfilter/ipvs/ip_vs_dh.c
-+++ b/net/netfilter/ipvs/ip_vs_dh.c
-@@ -270,3 +270,4 @@ static void __exit ip_vs_dh_cleanup(void)
- module_init(ip_vs_dh_init);
- module_exit(ip_vs_dh_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs destination hashing scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_fo.c b/net/netfilter/ipvs/ip_vs_fo.c
-index b846cc385279..ab117e5bc34e 100644
---- a/net/netfilter/ipvs/ip_vs_fo.c
-+++ b/net/netfilter/ipvs/ip_vs_fo.c
-@@ -72,3 +72,4 @@ static void __exit ip_vs_fo_cleanup(void)
- module_init(ip_vs_fo_init);
- module_exit(ip_vs_fo_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs weighted failover scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index ef1f45e43b63..f53899d12416 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -635,3 +635,4 @@ static void __exit ip_vs_ftp_exit(void)
- module_init(ip_vs_ftp_init);
- module_exit(ip_vs_ftp_exit);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs ftp helper");
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index cf78ba4ce5ff..8ceec7a2fa8f 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -632,3 +632,4 @@ static void __exit ip_vs_lblc_cleanup(void)
- module_init(ip_vs_lblc_init);
- module_exit(ip_vs_lblc_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs locality-based least-connection scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index 9eddf118b40e..0fb64707213f 100644
---- a/net/netfilter/ipvs/ip_vs_lblcr.c
-+++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-@@ -817,3 +817,4 @@ static void __exit ip_vs_lblcr_cleanup(void)
- module_init(ip_vs_lblcr_init);
- module_exit(ip_vs_lblcr_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs locality-based least-connection with replication scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_lc.c b/net/netfilter/ipvs/ip_vs_lc.c
-index 9d34d81fc6f1..c2764505e380 100644
---- a/net/netfilter/ipvs/ip_vs_lc.c
-+++ b/net/netfilter/ipvs/ip_vs_lc.c
-@@ -86,3 +86,4 @@ static void __exit ip_vs_lc_cleanup(void)
- module_init(ip_vs_lc_init);
- module_exit(ip_vs_lc_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs least connection scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_nq.c b/net/netfilter/ipvs/ip_vs_nq.c
-index f56862a87518..ed7f5c889b41 100644
---- a/net/netfilter/ipvs/ip_vs_nq.c
-+++ b/net/netfilter/ipvs/ip_vs_nq.c
-@@ -136,3 +136,4 @@ static void __exit ip_vs_nq_cleanup(void)
- module_init(ip_vs_nq_init);
- module_exit(ip_vs_nq_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs never queue scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_ovf.c b/net/netfilter/ipvs/ip_vs_ovf.c
-index c03066fdd5ca..c7708b809700 100644
---- a/net/netfilter/ipvs/ip_vs_ovf.c
-+++ b/net/netfilter/ipvs/ip_vs_ovf.c
-@@ -79,3 +79,4 @@ static void __exit ip_vs_ovf_cleanup(void)
- module_init(ip_vs_ovf_init);
- module_exit(ip_vs_ovf_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs overflow connection scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_pe_sip.c b/net/netfilter/ipvs/ip_vs_pe_sip.c
-index 0ac6705a61d3..e4ce1d9a63f9 100644
---- a/net/netfilter/ipvs/ip_vs_pe_sip.c
-+++ b/net/netfilter/ipvs/ip_vs_pe_sip.c
-@@ -185,3 +185,4 @@ static void __exit ip_vs_sip_cleanup(void)
- module_init(ip_vs_sip_init);
- module_exit(ip_vs_sip_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs sip helper");
-diff --git a/net/netfilter/ipvs/ip_vs_rr.c b/net/netfilter/ipvs/ip_vs_rr.c
-index 38495c6f6c7c..6baa34dff9f0 100644
---- a/net/netfilter/ipvs/ip_vs_rr.c
-+++ b/net/netfilter/ipvs/ip_vs_rr.c
-@@ -122,4 +122,5 @@ static void __exit ip_vs_rr_cleanup(void)
+diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
+index 6616ba5d0b04..5b37487d9d11 100644
+--- a/net/netfilter/nf_nat_redirect.c
++++ b/net/netfilter/nf_nat_redirect.c
+@@ -80,6 +80,26 @@ EXPORT_SYMBOL_GPL(nf_nat_redirect_ipv4);
  
- module_init(ip_vs_rr_init);
- module_exit(ip_vs_rr_cleanup);
-+MODULE_DESCRIPTION("ipvs round-robin scheduler");
- MODULE_LICENSE("GPL");
-diff --git a/net/netfilter/ipvs/ip_vs_sed.c b/net/netfilter/ipvs/ip_vs_sed.c
-index 7663288e5358..a46f99a56618 100644
---- a/net/netfilter/ipvs/ip_vs_sed.c
-+++ b/net/netfilter/ipvs/ip_vs_sed.c
-@@ -137,3 +137,4 @@ static void __exit ip_vs_sed_cleanup(void)
- module_init(ip_vs_sed_init);
- module_exit(ip_vs_sed_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs shortest expected delay scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_sh.c b/net/netfilter/ipvs/ip_vs_sh.c
-index c2028e412092..92e77d7a6b50 100644
---- a/net/netfilter/ipvs/ip_vs_sh.c
-+++ b/net/netfilter/ipvs/ip_vs_sh.c
-@@ -376,3 +376,4 @@ static void __exit ip_vs_sh_cleanup(void)
- module_init(ip_vs_sh_init);
- module_exit(ip_vs_sh_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs source hashing scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_twos.c b/net/netfilter/ipvs/ip_vs_twos.c
-index 3308e4cc740a..8d5419edde50 100644
---- a/net/netfilter/ipvs/ip_vs_twos.c
-+++ b/net/netfilter/ipvs/ip_vs_twos.c
-@@ -137,3 +137,4 @@ static void __exit ip_vs_twos_cleanup(void)
- module_init(ip_vs_twos_init);
- module_exit(ip_vs_twos_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs power of twos choice scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_wlc.c b/net/netfilter/ipvs/ip_vs_wlc.c
-index 09f584b564a0..9fa500927c0a 100644
---- a/net/netfilter/ipvs/ip_vs_wlc.c
-+++ b/net/netfilter/ipvs/ip_vs_wlc.c
-@@ -109,3 +109,4 @@ static void __exit ip_vs_wlc_cleanup(void)
- module_init(ip_vs_wlc_init);
- module_exit(ip_vs_wlc_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs weighted least connection scheduler");
-diff --git a/net/netfilter/ipvs/ip_vs_wrr.c b/net/netfilter/ipvs/ip_vs_wrr.c
-index 1bc7a0789d85..85ce0d04afac 100644
---- a/net/netfilter/ipvs/ip_vs_wrr.c
-+++ b/net/netfilter/ipvs/ip_vs_wrr.c
-@@ -263,3 +263,4 @@ static void __exit ip_vs_wrr_cleanup(void)
- module_init(ip_vs_wrr_init);
- module_exit(ip_vs_wrr_cleanup);
- MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("ipvs weighted round-robin scheduler");
+ static const struct in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
+ 
++static bool nf_nat_redirect_ipv6_usable(const struct inet6_ifaddr *ifa, unsigned int scope)
++{
++	unsigned int ifa_addr_type = ipv6_addr_type(&ifa->addr);
++
++	if (ifa_addr_type & IPV6_ADDR_MAPPED)
++		return false;
++
++	if ((ifa->flags & IFA_F_TENTATIVE) && (!(ifa->flags & IFA_F_OPTIMISTIC)))
++		return false;
++
++	if (scope) {
++		unsigned int ifa_scope = ifa_addr_type & IPV6_ADDR_SCOPE_MASK;
++
++		if (!(scope & ifa_scope))
++			return false;
++	}
++
++	return true;
++}
++
+ unsigned int
+ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 		     unsigned int hooknum)
+@@ -89,14 +109,19 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
+ 	if (hooknum == NF_INET_LOCAL_OUT) {
+ 		newdst.in6 = loopback_addr;
+ 	} else {
++		unsigned int scope = ipv6_addr_scope(&ipv6_hdr(skb)->daddr);
+ 		struct inet6_dev *idev;
+-		struct inet6_ifaddr *ifa;
+ 		bool addr = false;
+ 
+ 		idev = __in6_dev_get(skb->dev);
+ 		if (idev != NULL) {
++			const struct inet6_ifaddr *ifa;
++
+ 			read_lock_bh(&idev->lock);
+ 			list_for_each_entry(ifa, &idev->addr_list, if_list) {
++				if (!nf_nat_redirect_ipv6_usable(ifa, scope))
++					continue;
++
+ 				newdst.in6 = ifa->addr;
+ 				addr = true;
+ 				break;
 -- 
 2.30.2
 
