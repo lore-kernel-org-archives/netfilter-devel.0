@@ -2,91 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99787C4332F
-	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Nov 2023 11:09:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E05DFC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Nov 2023 14:56:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231878AbjKILJe (ORCPT
+        id S232308AbjKIO4G (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 9 Nov 2023 06:09:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34232 "EHLO
+        Thu, 9 Nov 2023 09:56:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231877AbjKILJd (ORCPT
+        with ESMTP id S231659AbjKIO4G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Nov 2023 06:09:33 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86D312D44
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Nov 2023 03:09:31 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1r12ue-0000h6-IW; Thu, 09 Nov 2023 12:09:28 +0100
-Date:   Thu, 9 Nov 2023 12:09:28 +0100
-From:   Florian Westphal <fw@strlen.de>
+        Thu, 9 Nov 2023 09:56:06 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 566883588
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Nov 2023 06:56:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+        Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=r+aqpnH+7EpWw6b5N7mHtDMc+lZmhOpPFX+9khrsSCo=; b=kzGiv7n6beC4wje64mbSBq7wbr
+        U42RgwUdAWfRSZJvPCjomIF1SnhXV0fdSLmSm+1W/swY4t6O2Ho5goGyHgfB65wUBbHtyANhi3Sim
+        10R5/9GJmA5V/V/O/HvkzFFYKBIWqcVI4IW1o+EAFL6/RuhxjzXrW5YRfFk9iOLsVLtvHtab+9D1L
+        QhjA9HSPASj0IvHTvMyTNisTAa3erFkCl8uK9G4USxA5su51Q6igC0aKo9kp7HEUFcwig72vb+5GE
+        g8dnSSQKVwj5uAFUg3Bn1Kapy11RKFcb1SC/xihjuk78mX2ruyt3hud6Pzgihpv3jgXLd9j/zfxPJ
+        hjYzPOJg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1r16Rs-0005so-FL; Thu, 09 Nov 2023 15:56:00 +0100
+Date:   Thu, 9 Nov 2023 15:56:00 +0100
+From:   Phil Sutter <phil@nwl.cc>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        Lorenzo Bianconi <lorenzo@kernel.org>
-Subject: Re: [PATCH RFC] netfilter: nf_tables: add flowtable map for xdp
- offload
-Message-ID: <20231109110928.GB26681@breakpoint.cc>
-References: <20231019202507.16439-1-fw@strlen.de>
- <20231102083042.GB6174@breakpoint.cc>
+Cc:     netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH 1/3] arptables: Fix formatting of numeric
+ --h-type output
+Message-ID: <ZUzzAPy3ZlPatrNx@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+        Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20231108033130.18747-1-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231102083042.GB6174@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20231108033130.18747-1-phil@nwl.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-
-Pablo, I am going to make changes to the flowtable infra, it would
-be nice if you could nack/ack the following approach before I start to
-spend cycles on this:
-
-> Florian Westphal <fw@strlen.de> wrote:
-> This is fine or at least can be made to work.
+On Wed, Nov 08, 2023 at 04:31:28AM +0100, Phil Sutter wrote:
+> Arptables expects numeric arguments to --h-type option in hexadecimal
+> form, even if no '0x'-prefix is present. In contrast, it prints such
+> values in decimal. This is not just inconsistent, but makes it
+> impossible to save and later restore a ruleset without fixing up the
+> values in between.
 > 
-> > +	case FLOW_BLOCK_UNBIND:
-> > +		nf_flowtable_by_dev_remove(dev);
+> Assuming that the parser side can't be changed for compatibility
+> reasons, fix the output side instead.
 > 
-> This is broken.  UNBIND comes too late when things are torn down.
+> This is a day 1 bug and present in legacy arptables as well, so treat
+> this as a "feature" of arptables-nft and omit a Fixes: tag.
 > 
-> I only see two solutions:
-> 
-> 1. add a new nf_flow_offload_unbind_prepare() that does this
-> 2. Decouple nf_flowtable from nft_flowtable and make nf_flowtable
->    refcounted.  As-is, the UNBIND will result in UAF because the
->    underlying structures will be free'd immediately after this,
->    without any synchronize_rcu().
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-I'll go with 2).  Rough Plan is:
-
-1. Do not embed nf_flowtable into nft_flowtable or the act_ct struct,
-   make this a pointer, which is allocated/freed via kmalloc/kfree.
-
-2. add a refcount_t to nf_flowtable, so the nf_flowtable can have
-   its reference incremented for as long as an XDP program might
-   be using this.
-
-3. Change nf_flowtable_free so that it will honor the reference count.
-   Last _put will queue destruction to rcu worker, so the teardown of
-   the rhashtable and other items passes through another
-   synchronize_rcu().  This will also move kfree() of nf_flowtable into
-   nf_flowtable_free.
-
-4. Refactor the nf_flowtable init function so it will allocate and
-   return the flowtable structure.
-
-Only alternative I see is to rework both act_ct and nf_tables_api.c
-to perform UNBINDs *before* synchronize_rcu (and the flowtable
-teardown).
-
-Doing that means that the xdp prog will not be able to 'pin' the
-underlying nf_flowtable (as its embedded in another data structure,
-either tcf_ct_flow_table or nft_flowtable), and would have to rely
-on the callers to prevent the kfunc from every returning an nf_flowtable
-that has already been free'd.
-
-Not a problem now, but would be a problem in case bpf would gain
-the ability to expose struct nf_flowtable as a refcounted kptr.
+Series applied.
