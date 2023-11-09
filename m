@@ -2,97 +2,82 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38CF1C4167B
-	for <netfilter-devel@archiver.kernel.org>; Wed,  8 Nov 2023 18:25:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F53EC4332F
+	for <netfilter-devel@archiver.kernel.org>; Thu,  9 Nov 2023 02:50:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231970AbjKHSZc (ORCPT
+        id S231195AbjKICue (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 8 Nov 2023 13:25:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39910 "EHLO
+        Wed, 8 Nov 2023 21:50:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230327AbjKHSZb (ORCPT
+        with ESMTP id S230444AbjKICud (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Nov 2023 13:25:31 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48E9D1FF9
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Nov 2023 10:24:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1699467884;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=2JZ210fJ0tEw07Bwiu3CLdHawHE7XOl6rV1PTHNZVcc=;
-        b=Ln2JeYQ5N9mz2UfKprtnVXq87n4rpHTmE2wXcOCBVQB1FILV2yc1dO7isJ+1FM2D5DpVGg
-        JdslJeObUb+bQOU1HNi1JmkPWwt5Ux1NLO+YdOEQ8M1jf4wtYhEnau8FigGoClwPEO3Zog
-        T0pupxoiZsPkjVYpRza3EplCfvU2D/Q=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-1-H9G1MyfHMmGJM2lJbj63Lg-1; Wed, 08 Nov 2023 13:24:42 -0500
-X-MC-Unique: H9G1MyfHMmGJM2lJbj63Lg-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 8B6CF857C20
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Nov 2023 18:24:42 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.193.47])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0C6D71C060AE;
-        Wed,  8 Nov 2023 18:24:41 +0000 (UTC)
-From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 1/2] utils: add memory_allocation_check() helper
-Date:   Wed,  8 Nov 2023 19:24:24 +0100
-Message-ID: <20231108182431.4005745-1-thaller@redhat.com>
+        Wed, 8 Nov 2023 21:50:33 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B7521BFF
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Nov 2023 18:50:31 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1F9BEC433CB;
+        Thu,  9 Nov 2023 02:50:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1699498231;
+        bh=VAnSgq2vHO6r9GYdHRDXUWM7fSo8b2tlS7BMYakyjOA=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=T/UouuWPy0q7EJrEfUQ9Sm4r4PensBcRonos19dwtzB8nuIOvArIf3/BeTgG8cPef
+         6peKg/k/AMPg3Am4bDHkf58q/c/irzJll5hSRq/BX+9iGm24Wpl79smbMu1lqweBgK
+         vksqEZV84gVoWO6NeRpAPmT4jpXqyMj6PG+fYq8sMqYS3wqYm8j6WO11dZzv1FwTMi
+         Sq/VBIMvT4kwPIvLJRLTc8aw2670hzSzMqvrCpjFUXdJLsazOJYAzoWPYFhZuSnfnz
+         EPokmjgsUiOUti78aNAjA2DcRmi5g2hapsVgm1wUBAgs1HXYh/ezJPEDEIgXQWoPLm
+         77mdcXZVSLISw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 08080E00084;
+        Thu,  9 Nov 2023 02:50:31 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.7
+Subject: Re: [PATCH net 1/5] netfilter: add missing module descriptions
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <169949823102.3016.9749220544999389931.git-patchwork-notify@kernel.org>
+Date:   Thu, 09 Nov 2023 02:50:31 +0000
+References: <20231108155802.84617-2-pablo@netfilter.org>
+In-Reply-To: <20231108155802.84617-2-pablo@netfilter.org>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+        edumazet@google.com, fw@strlen.de, kadlec@netfilter.org
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-libnftables kills the process on out of memory (xmalloc()), so
-when we use libraries that propagate ENOMEM to libnftables, we
-also abort the process.
+Hello:
 
-For example:
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-     nlr = nftnl_rule_alloc();
-     if (!nlr)
-          memory_allocation_error();
+On Wed,  8 Nov 2023 16:57:58 +0100 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> W=1 builds warn on missing MODULE_DESCRIPTION, add them.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
 
-Add memory_allocation_check() macro which can simplify this common
-check to:
+Here is the summary with links:
+  - [net,1/5] netfilter: add missing module descriptions
+    https://git.kernel.org/netdev/net/c/94090b23f3f7
+  - [net,2/5] netfilter: nf_tables: remove catchall element in GC sync path
+    https://git.kernel.org/netdev/net/c/93995bf4af2c
+  - [net,3/5] ipvs: add missing module descriptions
+    https://git.kernel.org/netdev/net/c/17cd01e4d1e3
+  - [net,4/5] netfilter: xt_recent: fix (increase) ipv6 literal buffer length
+    https://git.kernel.org/netdev/net/c/7b308feb4fd2
+  - [net,5/5] netfilter: nat: fix ipv6 nat redirect with mapped and scoped addresses
+    https://git.kernel.org/netdev/net/c/80abbe8a8263
 
-     nlr = memory_allocation_check(nftnl_rule_alloc());
-
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- include/utils.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/include/utils.h b/include/utils.h
-index 36a28f893667..fcd7c598fe9f 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -142,6 +142,16 @@ extern void __memory_allocation_error(const char *filename, uint32_t line) __nor
- #define memory_allocation_error()		\
- 	__memory_allocation_error(__FILE__, __LINE__);
- 
-+#define memory_allocation_check(cmd)               \
-+	({                                         \
-+		typeof((cmd)) _v = (cmd);          \
-+		const void *const _v2 = _v;        \
-+                                                   \
-+		if (!_v2)                          \
-+			memory_allocation_error(); \
-+		_v;                                \
-+	})
-+
- extern void xfree(const void *ptr);
- extern void *xmalloc(size_t size);
- extern void *xmalloc_array(size_t nmemb, size_t size);
+You are awesome, thank you!
 -- 
-2.41.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
