@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 385EAC05021
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Nov 2023 13:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3C92C072AB
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Nov 2023 13:39:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229847AbjKMNjP (ORCPT
+        id S231328AbjKMNjO (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Nov 2023 08:39:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43728 "EHLO
+        Mon, 13 Nov 2023 08:39:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231288AbjKMNjM (ORCPT
+        with ESMTP id S229847AbjKMNjM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 13 Nov 2023 08:39:12 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AEEEA19F
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2023 05:39:08 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A8C2E172C
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2023 05:39:07 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, thaller@redhat.com
-Subject: [PATCH nft,v2 07/11] tests: shell: skip if kernel does not support bitshift
-Date:   Mon, 13 Nov 2023 14:38:54 +0100
-Message-Id: <20231113133858.121324-7-pablo@netfilter.org>
+Subject: [PATCH nft,v2 05/11] tests: shell: skip comment tests if kernel lacks support
+Date:   Mon, 13 Nov 2023 14:38:52 +0100
+Message-Id: <20231113133858.121324-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231113133858.121324-1-pablo@netfilter.org>
 References: <20231113133858.121324-1-pablo@netfilter.org>
@@ -31,206 +31,101 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-A few tests are missing bitshift checks that has been added to
-885845468408 ("tests/shell: skip bitshift tests if kernel lacks
-support").
+Skip tests that require comment support
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: no changes
+v2: use git describe --contains, requested by Florian.
 
- .../shell/testcases/maps/vmap_mark_bitwise_0  |  2 +
- tests/shell/testcases/sets/typeof_sets_0      | 86 +++++++++----------
- 2 files changed, 45 insertions(+), 43 deletions(-)
+ tests/shell/features/comment.sh                    | 14 ++++++++++++++
+ tests/shell/testcases/json/0006obj_comment_0       |  1 +
+ tests/shell/testcases/optionals/comments_chain_0   |  2 ++
+ tests/shell/testcases/optionals/comments_objects_0 |  2 ++
+ tests/shell/testcases/optionals/comments_table_0   |  2 ++
+ tests/shell/testcases/sets/0020comments_0          |  2 ++
+ 6 files changed, 23 insertions(+)
+ create mode 100755 tests/shell/features/comment.sh
 
-diff --git a/tests/shell/testcases/maps/vmap_mark_bitwise_0 b/tests/shell/testcases/maps/vmap_mark_bitwise_0
-index 0d933553e6b8..2f305b27bc33 100755
---- a/tests/shell/testcases/maps/vmap_mark_bitwise_0
-+++ b/tests/shell/testcases/maps/vmap_mark_bitwise_0
+diff --git a/tests/shell/features/comment.sh b/tests/shell/features/comment.sh
+new file mode 100755
+index 000000000000..0ad24d04cd4d
+--- /dev/null
++++ b/tests/shell/features/comment.sh
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++# 002f21765320 ("netfilter: nf_tables: add userdata attributes to nft_chain")
++# v5.10-rc1~107^2~60^2~5
++
++EXPECTED="table ip x {
++	chain y {
++		comment \"test\"
++	}
++}"
++
++$NFT -f - <<< $EXPECTED
++
++diff -u <($NFT list ruleset) - <<<"$EXPECTED"
+diff --git a/tests/shell/testcases/json/0006obj_comment_0 b/tests/shell/testcases/json/0006obj_comment_0
+index 4c2a0e8c0880..7ce859d2529f 100755
+--- a/tests/shell/testcases/json/0006obj_comment_0
++++ b/tests/shell/testcases/json/0006obj_comment_0
+@@ -1,6 +1,7 @@
+ #!/bin/bash
+ 
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_json)
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_comment)
+ 
+ set -e
+ 
+diff --git a/tests/shell/testcases/optionals/comments_chain_0 b/tests/shell/testcases/optionals/comments_chain_0
+index fba961c76841..1a84cfa67a2a 100755
+--- a/tests/shell/testcases/optionals/comments_chain_0
++++ b/tests/shell/testcases/optionals/comments_chain_0
 @@ -1,5 +1,7 @@
  #!/bin/bash
  
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_bitshift)
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_comment)
++
+ EXPECTED='table ip test_table {
+ 	chain test_chain {
+ 		comment "test"
+diff --git a/tests/shell/testcases/optionals/comments_objects_0 b/tests/shell/testcases/optionals/comments_objects_0
+index 301f5518fb80..28041ebd2a43 100755
+--- a/tests/shell/testcases/optionals/comments_objects_0
++++ b/tests/shell/testcases/optionals/comments_objects_0
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_comment)
 +
  set -e
  
- RULESET="table ip x {
-diff --git a/tests/shell/testcases/sets/typeof_sets_0 b/tests/shell/testcases/sets/typeof_sets_0
-index 35c572c1e537..92555a1f923e 100755
---- a/tests/shell/testcases/sets/typeof_sets_0
-+++ b/tests/shell/testcases/sets/typeof_sets_0
-@@ -17,22 +17,53 @@ INPUT_OSF_SET="
- 		elements = { \"Linux\" }
- 	}
- "
+ COMMENT128="12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678"
+diff --git a/tests/shell/testcases/optionals/comments_table_0 b/tests/shell/testcases/optionals/comments_table_0
+index a0dfd7494661..56bb206bddcf 100755
+--- a/tests/shell/testcases/optionals/comments_table_0
++++ b/tests/shell/testcases/optionals/comments_table_0
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_comment)
 +
-+INPUT_FRAG_SET="
-+	set s4 {
-+		typeof frag frag-off
-+		elements = { 1, 1024 }
-+	}
-+"
+ # comments are shown
+ 
+ $NFT add table test { comment \"test_comment\"\; }
+diff --git a/tests/shell/testcases/sets/0020comments_0 b/tests/shell/testcases/sets/0020comments_0
+index 44d451a8ad3a..1df38326ab57 100755
+--- a/tests/shell/testcases/sets/0020comments_0
++++ b/tests/shell/testcases/sets/0020comments_0
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_comment)
 +
-+INPUT_VERSION_SET="
-+	set s8 {
-+		typeof ip version
-+		elements = { 4, 6 }
-+	}
-+"
-+
- INPUT_OSF_CHAIN="
- 	chain c1 {
- 		osf name @s1 accept
- 	}
- "
+ # Test that comments are added to set elements in standard sets.
+ # Explicitly test bitmap backend set implementation.
  
-+INPUT_FRAG_CHAIN="
-+	chain c4 {
-+		frag frag-off @s4 accept
-+	}
-+"
-+
- INPUT_SCTP_CHAIN="
- 	chain c7 {
- 		sctp chunk init num-inbound-streams @s7 accept
- 	}
- "
-+INPUT_VERSION_CHAIN="
-+	chain c8 {
-+		ip version @s8 accept
-+	}
-+"
- 
- if [ "$NFT_TEST_HAVE_sctp_chunks" = n ] ; then
- 	INPUT_SCTP_CHAIN=
- fi
- 
-+if [ "$NFT_TEST_HAVE_bitshift" = n ] ; then
-+	INPUT_FRAG_CHAIN=
-+	INPUT_VERSION_CHAIN=
-+fi
-+
- if [ "$NFT_TEST_HAVE_osf" = n ] ; then
- 	if [ "$((RANDOM % 2))" -eq 1 ] ; then
- 		# Regardless of $NFT_TEST_HAVE_osf, we can define the set.
-@@ -51,12 +82,7 @@ INPUT="table inet t {$INPUT_OSF_SET
- 	set s3 {
- 		typeof meta ibrpvid
- 		elements = { 2, 3, 103 }
--	}
--
--	set s4 {
--		typeof frag frag-off
--		elements = { 1, 1024 }
--	}
-+	}$INPUT_FRAG_SET
- 
- 	set s5 {
- 		typeof ip option ra value
-@@ -71,12 +97,7 @@ INPUT="table inet t {$INPUT_OSF_SET
- 	set s7 {
- 		typeof sctp chunk init num-inbound-streams
- 		elements = { 1, 4 }
--	}
--
--	set s8 {
--		typeof ip version
--		elements = { 4, 6 }
--	}
-+	}$INPUT_VERSION_SET
- 
- 	set s9 {
- 		typeof ip hdrlength
-@@ -96,11 +117,7 @@ $INPUT_OSF_CHAIN
- 	chain c2 {
- 		ether type vlan vlan id @s2 accept
- 	}
--
--	chain c4 {
--		frag frag-off @s4 accept
--	}
--
-+$INPUT_FRAG_CHAIN
- 	chain c5 {
- 		ip option ra value @s5 accept
- 	}
-@@ -109,10 +126,7 @@ $INPUT_OSF_CHAIN
- 		tcp option maxseg size @s6 accept
- 	}
- $INPUT_SCTP_CHAIN
--	chain c8 {
--		ip version @s8 accept
--	}
--
-+$INPUT_VERSION_CHAIN
- 	chain c9 {
- 		ip hdrlength @s9 accept
- 	}
-@@ -136,12 +150,7 @@ EXPECTED="table inet t {$INPUT_OSF_SET
- 		typeof meta ibrpvid
- 		elements = { 2, 3, 103 }
- 	}
--
--	set s4 {
--		typeof frag frag-off
--		elements = { 1, 1024 }
--	}
--
-+$INPUT_FRAG_SET
- 	set s5 {
- 		typeof ip option ra value
- 		elements = { 1, 1024 }
-@@ -156,12 +165,7 @@ EXPECTED="table inet t {$INPUT_OSF_SET
- 		typeof sctp chunk init num-inbound-streams
- 		elements = { 1, 4 }
- 	}
--
--	set s8 {
--		typeof ip version
--		elements = { 4, 6 }
--	}
--
-+$INPUT_VERSION_SET
- 	set s9 {
- 		typeof ip hdrlength
- 		elements = { 0, 1, 2, 3, 4,
-@@ -181,11 +185,7 @@ $INPUT_OSF_CHAIN
- 	chain c2 {
- 		vlan id @s2 accept
- 	}
--
--	chain c4 {
--		frag frag-off @s4 accept
--	}
--
-+$INPUT_FRAG_CHAIN
- 	chain c5 {
- 		ip option ra value @s5 accept
- 	}
-@@ -193,11 +193,7 @@ $INPUT_OSF_CHAIN
- 	chain c6 {
- 		tcp option maxseg size @s6 accept
- 	}
--$INPUT_SCTP_CHAIN
--	chain c8 {
--		ip version @s8 accept
--	}
--
-+$INPUT_SCTP_CHAIN$INPUT_VERSION_CHAIN
- 	chain c9 {
- 		ip hdrlength @s9 accept
- 	}
-@@ -216,6 +212,10 @@ $NFT -f - <<< "$INPUT" || die $'nft command failed to process input:\n'">$INPUT<
- 
- $DIFF -u <($NFT list ruleset) - <<<"$EXPECTED" || die $'diff failed between ruleset and expected data.\nExpected:\n'">$EXPECTED<"
- 
-+if [ "$NFT_TEST_HAVE_bitshift" = n ] ; then
-+	echo "Partial test due to NFT_TEST_HAVE_bitshift=n. Skip"
-+	exit 77
-+fi
- if [ "$NFT_TEST_HAVE_osf" = n ] ; then
- 	echo "Partial test due to NFT_TEST_HAVE_osf=n. Skip"
- 	exit 77
 -- 
 2.30.2
 
