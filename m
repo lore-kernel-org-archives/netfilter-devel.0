@@ -2,26 +2,26 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6981C074FD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 385EAC05021
 	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Nov 2023 13:39:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231288AbjKMNjP (ORCPT
+        id S229847AbjKMNjP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
         Mon, 13 Nov 2023 08:39:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36648 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231346AbjKMNjN (ORCPT
+        with ESMTP id S231288AbjKMNjM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Nov 2023 08:39:13 -0500
+        Mon, 13 Nov 2023 08:39:12 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 505A7D72
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2023 05:39:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AEEEA19F
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2023 05:39:08 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     fw@strlen.de, thaller@redhat.com
-Subject: [PATCH nft,v2 08/11] tests: shell: split set NAT interval test
-Date:   Mon, 13 Nov 2023 14:38:55 +0100
-Message-Id: <20231113133858.121324-8-pablo@netfilter.org>
+Subject: [PATCH nft,v2 07/11] tests: shell: skip if kernel does not support bitshift
+Date:   Mon, 13 Nov 2023 14:38:54 +0100
+Message-Id: <20231113133858.121324-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231113133858.121324-1-pablo@netfilter.org>
 References: <20231113133858.121324-1-pablo@netfilter.org>
@@ -31,115 +31,206 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Split test in two, one for interval sets and another with concatenation
-+ intervals, so at least intervals are tested in older kernels with no
-pipapo support.
+A few tests are missing bitshift checks that has been added to
+885845468408 ("tests/shell: skip bitshift tests if kernel lacks
+support").
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2: no changes
 
- .../testcases/sets/0067nat_concat_interval_0   | 17 ++---------------
- tests/shell/testcases/sets/0067nat_interval_0  | 18 ++++++++++++++++++
- .../sets/dumps/0067nat_concat_interval_0.nft   |  7 -------
- .../sets/dumps/0067nat_interval_0.nft          | 12 ++++++++++++
- 4 files changed, 32 insertions(+), 22 deletions(-)
- create mode 100755 tests/shell/testcases/sets/0067nat_interval_0
- create mode 100644 tests/shell/testcases/sets/dumps/0067nat_interval_0.nft
+ .../shell/testcases/maps/vmap_mark_bitwise_0  |  2 +
+ tests/shell/testcases/sets/typeof_sets_0      | 86 +++++++++----------
+ 2 files changed, 45 insertions(+), 43 deletions(-)
 
-diff --git a/tests/shell/testcases/sets/0067nat_concat_interval_0 b/tests/shell/testcases/sets/0067nat_concat_interval_0
-index 55cc0d4b43df..816219573870 100755
---- a/tests/shell/testcases/sets/0067nat_concat_interval_0
-+++ b/tests/shell/testcases/sets/0067nat_concat_interval_0
-@@ -1,21 +1,8 @@
+diff --git a/tests/shell/testcases/maps/vmap_mark_bitwise_0 b/tests/shell/testcases/maps/vmap_mark_bitwise_0
+index 0d933553e6b8..2f305b27bc33 100755
+--- a/tests/shell/testcases/maps/vmap_mark_bitwise_0
++++ b/tests/shell/testcases/maps/vmap_mark_bitwise_0
+@@ -1,5 +1,7 @@
  #!/bin/bash
  
--set -e
--
--EXPECTED="table ip nat {
--       map ipportmap {
--                type ipv4_addr : interval ipv4_addr . inet_service
--                flags interval
--                elements = { 192.168.1.2 : 10.141.10.1-10.141.10.3 . 8888-8999 }
--       }
--       chain prerouting {
--                type nat hook prerouting priority dstnat; policy accept;
--                ip protocol tcp dnat ip to ip saddr map @ipportmap
--       }
--}"
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_pipapo)
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_bitshift)
++
+ set -e
  
--$NFT -f - <<< $EXPECTED
--$NFT add element ip nat ipportmap { 192.168.2.0/24 : 10.141.11.5-10.141.11.20 . 8888-8999 }
-+set -e
+ RULESET="table ip x {
+diff --git a/tests/shell/testcases/sets/typeof_sets_0 b/tests/shell/testcases/sets/typeof_sets_0
+index 35c572c1e537..92555a1f923e 100755
+--- a/tests/shell/testcases/sets/typeof_sets_0
++++ b/tests/shell/testcases/sets/typeof_sets_0
+@@ -17,22 +17,53 @@ INPUT_OSF_SET="
+ 		elements = { \"Linux\" }
+ 	}
+ "
++
++INPUT_FRAG_SET="
++	set s4 {
++		typeof frag frag-off
++		elements = { 1, 1024 }
++	}
++"
++
++INPUT_VERSION_SET="
++	set s8 {
++		typeof ip version
++		elements = { 4, 6 }
++	}
++"
++
+ INPUT_OSF_CHAIN="
+ 	chain c1 {
+ 		osf name @s1 accept
+ 	}
+ "
  
- EXPECTED="table ip nat {
-         map ipportmap2 {
-diff --git a/tests/shell/testcases/sets/0067nat_interval_0 b/tests/shell/testcases/sets/0067nat_interval_0
-new file mode 100755
-index 000000000000..c90203d0d648
---- /dev/null
-+++ b/tests/shell/testcases/sets/0067nat_interval_0
-@@ -0,0 +1,18 @@
-+#!/bin/bash
++INPUT_FRAG_CHAIN="
++	chain c4 {
++		frag frag-off @s4 accept
++	}
++"
 +
-+set -e
+ INPUT_SCTP_CHAIN="
+ 	chain c7 {
+ 		sctp chunk init num-inbound-streams @s7 accept
+ 	}
+ "
++INPUT_VERSION_CHAIN="
++	chain c8 {
++		ip version @s8 accept
++	}
++"
+ 
+ if [ "$NFT_TEST_HAVE_sctp_chunks" = n ] ; then
+ 	INPUT_SCTP_CHAIN=
+ fi
+ 
++if [ "$NFT_TEST_HAVE_bitshift" = n ] ; then
++	INPUT_FRAG_CHAIN=
++	INPUT_VERSION_CHAIN=
++fi
 +
-+EXPECTED="table ip nat {
-+       map ipportmap {
-+                type ipv4_addr : interval ipv4_addr . inet_service
-+                flags interval
-+                elements = { 192.168.1.2 : 10.141.10.1-10.141.10.3 . 8888-8999 }
-+       }
-+       chain prerouting {
-+                type nat hook prerouting priority dstnat; policy accept;
-+                ip protocol tcp dnat ip to ip saddr map @ipportmap
-+       }
-+}"
-+
-+$NFT -f - <<< $EXPECTED
-+$NFT add element ip nat ipportmap { 192.168.2.0/24 : 10.141.11.5-10.141.11.20 . 8888-8999 }
-diff --git a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
-index 0215691e28ee..9ac3774a7222 100644
---- a/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0067nat_concat_interval_0.nft
-@@ -1,10 +1,4 @@
- table ip nat {
--	map ipportmap {
--		type ipv4_addr : interval ipv4_addr . inet_service
--		flags interval
--		elements = { 192.168.1.2 : 10.141.10.1-10.141.10.3 . 8888-8999, 192.168.2.0/24 : 10.141.11.5-10.141.11.20 . 8888-8999 }
+ if [ "$NFT_TEST_HAVE_osf" = n ] ; then
+ 	if [ "$((RANDOM % 2))" -eq 1 ] ; then
+ 		# Regardless of $NFT_TEST_HAVE_osf, we can define the set.
+@@ -51,12 +82,7 @@ INPUT="table inet t {$INPUT_OSF_SET
+ 	set s3 {
+ 		typeof meta ibrpvid
+ 		elements = { 2, 3, 103 }
 -	}
 -
- 	map ipportmap2 {
- 		type ipv4_addr . ipv4_addr : interval ipv4_addr . inet_service
- 		flags interval
-@@ -33,7 +27,6 @@ table ip nat {
+-	set s4 {
+-		typeof frag frag-off
+-		elements = { 1, 1024 }
+-	}
++	}$INPUT_FRAG_SET
  
- 	chain prerouting {
- 		type nat hook prerouting priority dstnat; policy accept;
--		ip protocol tcp dnat ip to ip saddr map @ipportmap
- 		ip protocol tcp dnat ip to ip saddr . ip daddr map @ipportmap2
- 		meta l4proto { tcp, udp } dnat ip to ip daddr . th dport map @fwdtoip_th
- 		dnat ip to iifname . ip saddr map @ipportmap4
-diff --git a/tests/shell/testcases/sets/dumps/0067nat_interval_0.nft b/tests/shell/testcases/sets/dumps/0067nat_interval_0.nft
-new file mode 100644
-index 000000000000..b6d07fcdc248
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0067nat_interval_0.nft
-@@ -0,0 +1,12 @@
-+table ip nat {
-+	map ipportmap {
-+		type ipv4_addr : interval ipv4_addr . inet_service
-+		flags interval
-+		elements = { 192.168.1.2 : 10.141.10.1-10.141.10.3 . 8888-8999, 192.168.2.0/24 : 10.141.11.5-10.141.11.20 . 8888-8999 }
-+	}
-+
-+	chain prerouting {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		ip protocol tcp dnat ip to ip saddr map @ipportmap
-+	}
-+}
+ 	set s5 {
+ 		typeof ip option ra value
+@@ -71,12 +97,7 @@ INPUT="table inet t {$INPUT_OSF_SET
+ 	set s7 {
+ 		typeof sctp chunk init num-inbound-streams
+ 		elements = { 1, 4 }
+-	}
+-
+-	set s8 {
+-		typeof ip version
+-		elements = { 4, 6 }
+-	}
++	}$INPUT_VERSION_SET
+ 
+ 	set s9 {
+ 		typeof ip hdrlength
+@@ -96,11 +117,7 @@ $INPUT_OSF_CHAIN
+ 	chain c2 {
+ 		ether type vlan vlan id @s2 accept
+ 	}
+-
+-	chain c4 {
+-		frag frag-off @s4 accept
+-	}
+-
++$INPUT_FRAG_CHAIN
+ 	chain c5 {
+ 		ip option ra value @s5 accept
+ 	}
+@@ -109,10 +126,7 @@ $INPUT_OSF_CHAIN
+ 		tcp option maxseg size @s6 accept
+ 	}
+ $INPUT_SCTP_CHAIN
+-	chain c8 {
+-		ip version @s8 accept
+-	}
+-
++$INPUT_VERSION_CHAIN
+ 	chain c9 {
+ 		ip hdrlength @s9 accept
+ 	}
+@@ -136,12 +150,7 @@ EXPECTED="table inet t {$INPUT_OSF_SET
+ 		typeof meta ibrpvid
+ 		elements = { 2, 3, 103 }
+ 	}
+-
+-	set s4 {
+-		typeof frag frag-off
+-		elements = { 1, 1024 }
+-	}
+-
++$INPUT_FRAG_SET
+ 	set s5 {
+ 		typeof ip option ra value
+ 		elements = { 1, 1024 }
+@@ -156,12 +165,7 @@ EXPECTED="table inet t {$INPUT_OSF_SET
+ 		typeof sctp chunk init num-inbound-streams
+ 		elements = { 1, 4 }
+ 	}
+-
+-	set s8 {
+-		typeof ip version
+-		elements = { 4, 6 }
+-	}
+-
++$INPUT_VERSION_SET
+ 	set s9 {
+ 		typeof ip hdrlength
+ 		elements = { 0, 1, 2, 3, 4,
+@@ -181,11 +185,7 @@ $INPUT_OSF_CHAIN
+ 	chain c2 {
+ 		vlan id @s2 accept
+ 	}
+-
+-	chain c4 {
+-		frag frag-off @s4 accept
+-	}
+-
++$INPUT_FRAG_CHAIN
+ 	chain c5 {
+ 		ip option ra value @s5 accept
+ 	}
+@@ -193,11 +193,7 @@ $INPUT_OSF_CHAIN
+ 	chain c6 {
+ 		tcp option maxseg size @s6 accept
+ 	}
+-$INPUT_SCTP_CHAIN
+-	chain c8 {
+-		ip version @s8 accept
+-	}
+-
++$INPUT_SCTP_CHAIN$INPUT_VERSION_CHAIN
+ 	chain c9 {
+ 		ip hdrlength @s9 accept
+ 	}
+@@ -216,6 +212,10 @@ $NFT -f - <<< "$INPUT" || die $'nft command failed to process input:\n'">$INPUT<
+ 
+ $DIFF -u <($NFT list ruleset) - <<<"$EXPECTED" || die $'diff failed between ruleset and expected data.\nExpected:\n'">$EXPECTED<"
+ 
++if [ "$NFT_TEST_HAVE_bitshift" = n ] ; then
++	echo "Partial test due to NFT_TEST_HAVE_bitshift=n. Skip"
++	exit 77
++fi
+ if [ "$NFT_TEST_HAVE_osf" = n ] ; then
+ 	echo "Partial test due to NFT_TEST_HAVE_osf=n. Skip"
+ 	exit 77
 -- 
 2.30.2
 
