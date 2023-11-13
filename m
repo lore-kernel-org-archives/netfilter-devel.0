@@ -2,51 +2,51 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFA1DC4167D
-	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Nov 2023 20:09:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9803BC4167B
+	for <netfilter-devel@archiver.kernel.org>; Mon, 13 Nov 2023 20:13:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231515AbjKMUJe (ORCPT
+        id S229718AbjKMUNa (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Mon, 13 Nov 2023 15:09:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53010 "EHLO
+        Mon, 13 Nov 2023 15:13:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230347AbjKMUJd (ORCPT
+        with ESMTP id S229689AbjKMUNa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Nov 2023 15:09:33 -0500
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [IPv6:2001:738:5001::48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 854F010A
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2023 12:09:30 -0800 (PST)
+        Mon, 13 Nov 2023 15:13:30 -0500
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18A4710A
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2023 12:13:27 -0800 (PST)
 Received: from localhost (localhost [127.0.0.1])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 09C99CC02CD;
-        Mon, 13 Nov 2023 21:09:26 +0100 (CET)
+        by smtp2.kfki.hu (Postfix) with ESMTP id 8514BCC02CE;
+        Mon, 13 Nov 2023 21:13:25 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         blackhole.kfki.hu; h=mime-version:references:in-reply-to
         :x-mailer:message-id:date:date:from:from:received:received
-        :received; s=20151130; t=1699906163; x=1701720564; bh=VosZ10HIpm
-        XlMrQHuqBUmgdhMOqWsfvd5wWyAqDyQkw=; b=StKUsHxA+4WCPH/XJBcrw53cps
-        7Cb4RbY4N2NBhFJ0BJ5mKA45jsrcdzpVt0PrENwckkTHG3hunUEj1KtEKKduB38N
-        HOzHOO/LbK9aRCmjs+gHXLt0fstrtLGAf8nI1cTqV7LcV+z36Qv9g8VBzJ62UFOJ
-        WOb4kdnrGZLy0GwNE=
+        :received; s=20151130; t=1699906403; x=1701720804; bh=VosZ10HIpm
+        XlMrQHuqBUmgdhMOqWsfvd5wWyAqDyQkw=; b=PohcC+AwAmGNh4n4xYGIpIwTL7
+        WfKOiWKvKYv/c1JqPkC0psCp5bpCCFJOx524f8aPQpkvEf51ujkjo8QTzHmqv8Cs
+        pf/6w7EkWPevY8W6lUeMTK3J/5dIg+6fnHfFMCydUhRjn5ZRhum7vG0qctKOZOzq
+        c8tEJO4KJ5W5wbwls=
 X-Virus-Scanned: Debian amavisd-new at smtp2.kfki.hu
 Received: from smtp2.kfki.hu ([127.0.0.1])
         by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP; Mon, 13 Nov 2023 21:09:23 +0100 (CET)
+        with ESMTP; Mon, 13 Nov 2023 21:13:23 +0100 (CET)
 Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-        by smtp2.kfki.hu (Postfix) with ESMTP id 37ADFCC02CC;
-        Mon, 13 Nov 2023 21:09:22 +0100 (CET)
+        by smtp2.kfki.hu (Postfix) with ESMTP id 544BACC02CB;
+        Mon, 13 Nov 2023 21:13:23 +0100 (CET)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-        id E02813431A8; Mon, 13 Nov 2023 21:09:22 +0100 (CET)
+        id 1553C3431A8; Mon, 13 Nov 2023 21:13:23 +0100 (CET)
 From:   Jozsef Kadlecsik <kadlec@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
         Linkui Xiao <xiaolinkui@kylinos.cn>,
         Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/1] netfilter: ipset: fix race condition between swap/destroy and kernel side add/del/test, v2
-Date:   Mon, 13 Nov 2023 21:09:22 +0100
-Message-Id: <20231113200922.1746736-2-kadlec@netfilter.org>
+Subject: [PATCH 1/1] netfilter: ipset: fix race condition between swap/destroy and kernel side add/del/test, v3
+Date:   Mon, 13 Nov 2023 21:13:23 +0100
+Message-Id: <20231113201323.1747378-2-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20231113200922.1746736-1-kadlec@netfilter.org>
-References: <20231113200922.1746736-1-kadlec@netfilter.org>
+In-Reply-To: <20231113201323.1747378-1-kadlec@netfilter.org>
+References: <20231113201323.1747378-1-kadlec@netfilter.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
