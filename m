@@ -2,148 +2,65 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA41FC4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 12:31:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C925CC4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 15:02:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232997AbjKNMbc (ORCPT
+        id S233297AbjKNPCg (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Nov 2023 07:31:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44514 "EHLO
+        Tue, 14 Nov 2023 10:02:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232988AbjKNMbb (ORCPT
+        with ESMTP id S229456AbjKNPCg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Nov 2023 07:31:31 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 26655D1
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 04:31:28 -0800 (PST)
+        Tue, 14 Nov 2023 10:02:36 -0500
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09F7B114
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 07:02:31 -0800 (PST)
+Received: from [78.30.43.141] (port=59278 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1r2uvq-0070pe-Ep; Tue, 14 Nov 2023 16:02:28 +0100
+Date:   Tue, 14 Nov 2023 16:02:25 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] src: expand create commands
-Date:   Tue, 14 Nov 2023 13:31:23 +0100
-Message-Id: <20231114123123.269297-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To:     Jeremy Sowden <jeremy@azazel.net>
+Cc:     Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libmnl v2] nlmsg: fix false positives when validating
+ buffer sizes
+Message-ID: <ZVOMAUFOnC7EFzHV@calendula>
+References: <20231104230154.2006144-1-jeremy@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231104230154.2006144-1-jeremy@azazel.net>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-create commands also need to be expanded, otherwise elements are never
-evaluated:
+On Sat, Nov 04, 2023 at 11:01:54PM +0000, Jeremy Sowden wrote:
+> The `len` parameter of `mnl_nlmsg_ok`, which holds the buffer length and
+> is compared to the size of the object expected to fit into the buffer,
+> is signed because the function validates the length, and it can be
+> negative in the case of malformed messages.  Comparing it to unsigned
+> operands used to lead to compiler warnings:
+> 
+>   msg.c: In function 'mnl_nlmsg_ok':
+>   msg.c:136: warning: comparison between signed and unsigned
+>   msg.c:138: warning: comparison between signed and unsigned
+> 
+> and so commit 73661922bc3b ("fix warning in compilation due to different
+> signess") added casts of the unsigned operands to `int`.  However, the
+> comparison to `nlh->nlmsg_len`:
+> 
+>   (int)nlh->nlmsg_len <= len
+> 
+> is problematic, since `nlh->nlmsg_len` is of type `__u32` and so may
+> hold values greater than `INT_MAX`.  In the case where `len` is positive
+> and `nlh->nlmsg_len` is greater than `INT_MAX`, the cast will yield a
+> negative value and `mnl_nlmsg_ok` will incorrectly return true.
+> 
+> Instead, assign `len` to an unsigned local variable, check for a
+> negative value first, then use the unsigned local for the other
+> comparisons, and remove the casts.
 
- # cat ruleset.nft
- define ip-block-4 = { 1.1.1.1 }
- create set netdev filter ip-block-4-test {
-        type ipv4_addr
-	flags interval
-	auto-merge
-	elements = $ip-block-4
- }
- # nft -f ruleset.nft
- BUG: unhandled expression type 0
- nft: src/intervals.c:211: interval_expr_key: Assertion `0' failed.
- Aborted
-
-Same applies to chains in the form of:
-
- create chain x y {
-	counter
- }
-
-which is also accepted by the parser.
-
-Update tests/shell to improve coverage for these use cases.
-
-Fixes: 56c90a2dd2eb ("evaluate: expand sets and maps before evaluation")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/libnftables.c                                    |  3 ++-
- tests/shell/testcases/include/0020include_chain_0    |  7 +++++++
- .../testcases/include/dumps/0020include_chain_0.nft  |  5 +++++
- tests/shell/testcases/sets/0049set_define_0          | 12 ++++++++++++
- .../shell/testcases/sets/dumps/0049set_define_0.nft  |  7 +++++++
- 5 files changed, 33 insertions(+), 1 deletion(-)
-
-diff --git a/src/libnftables.c b/src/libnftables.c
-index ec902009e002..0dee1bacb0db 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -532,7 +532,8 @@ static int nft_evaluate(struct nft_ctx *nft, struct list_head *msgs,
- 		collapsed = true;
- 
- 	list_for_each_entry(cmd, cmds, list) {
--		if (cmd->op != CMD_ADD)
-+		if (cmd->op != CMD_ADD &&
-+		    cmd->op != CMD_CREATE)
- 			continue;
- 
- 		nft_cmd_expand(cmd);
-diff --git a/tests/shell/testcases/include/0020include_chain_0 b/tests/shell/testcases/include/0020include_chain_0
-index 8f78e8c606ec..49b6f76c6a8d 100755
---- a/tests/shell/testcases/include/0020include_chain_0
-+++ b/tests/shell/testcases/include/0020include_chain_0
-@@ -20,4 +20,11 @@ RULESET2="chain inet filter input2 {
- 
- echo "$RULESET2" > $tmpfile1
- 
-+RULESET3="create chain inet filter output2 {
-+	type filter hook output priority filter; policy accept;
-+	ip daddr 1.2.3.4 tcp dport { 22, 443, 123 } drop
-+}"
-+
-+echo "$RULESET3" >> $tmpfile1
-+
- $NFT -o -f - <<< $RULESET
-diff --git a/tests/shell/testcases/include/dumps/0020include_chain_0.nft b/tests/shell/testcases/include/dumps/0020include_chain_0.nft
-index 3ad6db14d2f5..bf596ffb3067 100644
---- a/tests/shell/testcases/include/dumps/0020include_chain_0.nft
-+++ b/tests/shell/testcases/include/dumps/0020include_chain_0.nft
-@@ -3,4 +3,9 @@ table inet filter {
- 		type filter hook input priority filter; policy accept;
- 		ip saddr 1.2.3.4 tcp dport { 22, 123, 443 } drop
- 	}
-+
-+	chain output2 {
-+		type filter hook output priority filter; policy accept;
-+		ip daddr 1.2.3.4 tcp dport { 22, 123, 443 } drop
-+	}
- }
-diff --git a/tests/shell/testcases/sets/0049set_define_0 b/tests/shell/testcases/sets/0049set_define_0
-index 1d512f7b5a54..756afdc1e965 100755
---- a/tests/shell/testcases/sets/0049set_define_0
-+++ b/tests/shell/testcases/sets/0049set_define_0
-@@ -14,3 +14,15 @@ table inet filter {
- "
- 
- $NFT -f - <<< "$EXPECTED"
-+
-+EXPECTED="define ip-block-4 = { 1.1.1.1 }
-+
-+     create set inet filter ip-block-4-test {
-+            type ipv4_addr
-+            flags interval
-+            auto-merge
-+            elements = \$ip-block-4
-+     }
-+"
-+
-+$NFT -f - <<< "$EXPECTED"
-diff --git a/tests/shell/testcases/sets/dumps/0049set_define_0.nft b/tests/shell/testcases/sets/dumps/0049set_define_0.nft
-index 998b387a8151..d654420c00a1 100644
---- a/tests/shell/testcases/sets/dumps/0049set_define_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0049set_define_0.nft
-@@ -1,4 +1,11 @@
- table inet filter {
-+	set ip-block-4-test {
-+		type ipv4_addr
-+		flags interval
-+		auto-merge
-+		elements = { 1.1.1.1 }
-+	}
-+
- 	chain input {
- 		type filter hook input priority filter; policy drop;
- 		tcp dport { 22, 80, 443 } ct state new counter packets 0 bytes 0 accept
--- 
-2.30.2
-
+Applied, thanks Jeremy
