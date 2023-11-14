@@ -2,214 +2,102 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC221C4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 18:18:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C44DAC46CC7
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 23:04:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233812AbjKNSSc (ORCPT
+        id S231518AbjKNXE5 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Nov 2023 13:18:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54144 "EHLO
+        Tue, 14 Nov 2023 18:04:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbjKNSSb (ORCPT
+        with ESMTP id S229796AbjKNXE4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Nov 2023 13:18:31 -0500
-Received: from mail-pf1-f207.google.com (mail-pf1-f207.google.com [209.85.210.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AF1412A
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 10:18:26 -0800 (PST)
-Received: by mail-pf1-f207.google.com with SMTP id d2e1a72fcca58-6bfd5856509so8202133b3a.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 10:18:26 -0800 (PST)
+        Tue, 14 Nov 2023 18:04:56 -0500
+Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A18FD2
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 15:04:53 -0800 (PST)
+Received: by mail-pj1-x1030.google.com with SMTP id 98e67ed59e1d1-28035cf6a30so5243742a91.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 15:04:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1700003092; x=1700607892; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=QRGfFV/08xkfUG2VQcu+cgAkHB1GFi9yAVO6n8qKxtw=;
+        b=NRb3CssAmhXazrLPaXOxpuqo8cgtdxBXMJo8dKdemXZECl8XEqF5ILzLolC5WOjX0u
+         p9GLQzLa8odNRJTpZWFEpGe0r2UVxLvItbKePiFByiNlVXjcKmIw5bbvk9j3eDvKewZK
+         2UhEBe/rMaOeEiizwk1WB6coL5hafArdXifAsp6ztaJkP5VDyla7wA3UOR5+xVxFPxCF
+         fhdB0ZDhla7VXhvs/YfTK++5KrG6UzNNHqULMtGAGSXG3Qzx68c0pGK2zstfuHo1GTDz
+         1HGknL+9xrCwDvj6GBZ7gGzcv83MN1LSIGpEIVZe9gMS7xvmBP88vz4Hs4yPJRkvAQhQ
+         yZEw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699985906; x=1700590706;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
+        d=1e100.net; s=20230601; t=1700003092; x=1700607892;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Nmq3sA/5qirDYLDWr1c7vN6b9d9XYljC8rUAXD8oKFI=;
-        b=rKNmGnyW9xHOTFXzen9+f0Yk+L1YRsNP47POvkUd+MPePlTrecKhIvZPrpUOrIETcF
-         eQDVROOvK2YO9DYYO4vkKqJj5AtroxJlO4DgebD356gN8wfEDshHHmTtQiRAd651nBke
-         Yv4gvP1r6qxdkpucHRsUHR1/7YQWpgP7oKbxjkF8hNnpO61YXNYJdjhA4wG3ziWm40ha
-         iH6PZhS2mXtVM7JBCf0/Io9oPG0EU2Lvdr9VFjnYrv38D2e9+QLIbexHPCfrVB7dzWAS
-         l/yKQTaUDeg9smL9I0E+idZM6e04jbuXDtfdjxPs5DZopGU5Hb8kUi6NAWKnSpv9vXCb
-         pd1g==
-X-Gm-Message-State: AOJu0Yxc0YCNxJZX+Hw+YWMslR7C74lgreDFe9ttvoR8o4+CpC5R1CCX
-        6ata7RsqzbBh9277A8UkC2Xqu001TfYg3UXRVDIq3CvAmJF/
-X-Google-Smtp-Source: AGHT+IGO7oMUxHG/fEjzy5nnebPQzHxwaR7G01RM1H2FRFp1+VNwL4qLiM5qrLmaWjypnoeiWoHIW3+dUJ2Qbx0usZRQAKijACuJ
+        bh=QRGfFV/08xkfUG2VQcu+cgAkHB1GFi9yAVO6n8qKxtw=;
+        b=mfGLPmsJyMmsnJvmqusM2IdCF5O7aj/qxE4Y1vE1jrHQXX+q1oV4UAhUmpjYKL195C
+         81IHiHAZmvETZWX+LcDFuWq0r9SeCckCo1zj9xdNlFohdMjd+hvgfdpWZBotseBkl3h7
+         SO5EFHeTs4acQ3wAAya7Mts/JwvFm71IqXabgO34yz5p+0ZeFSFxtmdA4+1n4CGx1R6y
+         3Xa2mpQjcGHWowDHxEqjBve7LARTdgDJRBX0gGvruXeJo5Q7Cc/NCnaWmQHD+MPG240P
+         TOIgBW5cPdj/BCQ0VlABFOVf0ByDDhHJ9ew85qoYYyS0LvJVwMxk9IoaKpj9QIg6mTbQ
+         lExg==
+X-Gm-Message-State: AOJu0Ywz4ESmvz83dOV6P82DAsY8ZGQ1YQAb+1oJa+46SMSUx/oMf02u
+        +y/zbGjrwMPjDoCYuNNJoa6s1Ow2RGE=
+X-Google-Smtp-Source: AGHT+IHehLQeq7iGUGceuqwrKHsNgfrbpWzSbUoMiixfie3AP9+SOmQUMJJw4NATIamdez8S8lWgdQ==
+X-Received: by 2002:a17:90b:4b90:b0:281:554d:b317 with SMTP id lr16-20020a17090b4b9000b00281554db317mr9237444pjb.38.1700003092439;
+        Tue, 14 Nov 2023 15:04:52 -0800 (PST)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id ha24-20020a17090af3d800b002776288537fsm5691934pjb.53.2023.11.14.15.04.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 14 Nov 2023 15:04:52 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date:   Wed, 15 Nov 2023 10:04:47 +1100
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: libnfnetlink dependency elimination (doc)
+Message-ID: <ZVP9D9KPgMkxLiB/@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20231112065922.3414-1-duncan_roe@optusnet.com.au>
+ <ZVORGxjxolo3vnz1@calendula>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6a00:330b:b0:6be:2a27:63f0 with SMTP id
- cq11-20020a056a00330b00b006be2a2763f0mr3413246pfb.6.1699985905960; Tue, 14
- Nov 2023 10:18:25 -0800 (PST)
-Date:   Tue, 14 Nov 2023 10:18:25 -0800
-In-Reply-To: <0000000000003495bf060724994a@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000000c5617060a20d06b@google.com>
-Subject: Re: [syzbot] [batman?] INFO: rcu detected stall in worker_thread (9)
-From:   syzbot <syzbot+225bfad78b079744fd5e@syzkaller.appspotmail.com>
-To:     a@unstable.cc, admini@syzkaller.appspotmail.com,
-        b.a.t.m.a.n@lists.open-mesh.org, bpf@vger.kernel.org,
-        coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-        fw@strlen.de, gregkh@linuxfoundation.org, hdanton@sina.com,
-        horms@kernel.org, jiri@nvidia.com, kadlec@netfilter.org,
-        kuba@kernel.org, linux-kernel@vger.kernel.org,
-        linux-usb@vger.kernel.org, mareklindner@neomailbox.ch,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pabeni@redhat.com, pablo@netfilter.org, rafael@kernel.org,
-        server@syzkaller.appspotmail.com, sven@narfation.org,
-        sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com,
-        twuufnxlz@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZVORGxjxolo3vnz1@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-syzbot has found a reproducer for the following issue on:
+Hi Pablo,
 
-HEAD commit:    9bacdd8996c7 Merge tag 'for-6.7-rc1-tag' of git://git.kern..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=13e932ff680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=d05dd66e2eb2c872
-dashboard link: https://syzkaller.appspot.com/bug?extid=225bfad78b079744fd5e
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1041f91f680000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10cc7b98e80000
+On Tue, Nov 14, 2023 at 04:24:11PM +0100, Pablo Neira Ayuso wrote:
+> On Sun, Nov 12, 2023 at 05:59:21PM +1100, Duncan Roe wrote:
+> > Some of these documented changes haven't happened yet.
+>
+> Then we have to start by changes first, not the other way around.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/8e9d5e2b6665/disk-9bacdd89.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/b8ee67db540d/vmlinux-9bacdd89.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/3477230ef7a9/bzImage-9bacdd89.xz
+Yes I know that, obviously:)
 
-The issue was bisected to:
+The point here is that nfnl_rcvbufsiz() has been advertised in the main page of
+libnetfilter_queue HTML for a long time and there are likely a number of systems
+out there that use it. When libnfnetlink is removed, libnetfilter_queue will
+have to provide nfnl_rcvbufsiz() or those systems will start failing.
 
-commit c2368b19807affd7621f7c4638cd2e17fec13021
-Author: Jiri Pirko <jiri@nvidia.com>
-Date:   Fri Jul 29 07:10:35 2022 +0000
+I have in mind that although libnetfilter_queue will provide nfnl_rcvbufsiz(),
+there will be no documentation for it.
 
-    net: devlink: introduce "unregistering" mark and use it during devlinks iteration
+You will see in
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20231112065922.3414-2-duncan_roe@optusnet.com.au/
+I replaced the advice to use nfnl_rcvbufsiz() (in 2 places) with advice to use
+setsocketopt(). I only mentioned that programs calling nfnl_rcvbufsiz() will
+continue to run.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1758e1e3680000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=14d8e1e3680000
-console output: https://syzkaller.appspot.com/x/log.txt?x=10d8e1e3680000
+So I offered this patch as the only documentation of how to use
+nfnl_rcvbufsiz(). I need it for my testing, but it's fine with me if you don't
+want to take it.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+225bfad78b079744fd5e@syzkaller.appspotmail.com
-Fixes: c2368b19807a ("net: devlink: introduce "unregistering" mark and use it during devlinks iteration")
-
-rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
-rcu: 	0-...!: (1 ticks this GP) idle=3b94/1/0x4000000000000000 softirq=6057/6057 fqs=9
-rcu: 	(detected by 1, t=10502 jiffies, g=6949, q=188 ncpus=2)
-Sending NMI from CPU 1 to CPUs 0:
-NMI backtrace for cpu 0
-CPU: 0 PID: 8 Comm: kworker/0:0 Not tainted 6.7.0-rc1-syzkaller-00012-g9bacdd8996c7 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/10/2023
-Workqueue: events_power_efficient gc_worker
-RIP: 0010:pv_queued_spin_unlock arch/x86/include/asm/paravirt.h:591 [inline]
-RIP: 0010:queued_spin_unlock arch/x86/include/asm/qspinlock.h:57 [inline]
-RIP: 0010:do_raw_spin_unlock+0x117/0x8b0 kernel/locking/spinlock_debug.c:141
-Code: 49 c7 45 00 ff ff ff ff 0f b6 04 2b 84 c0 0f 85 c9 03 00 00 41 c7 06 ff ff ff ff 48 c7 c0 60 b8 79 8d 48 c1 e8 03 80 3c 28 00 <74> 0c 48 c7 c7 60 b8 79 8d e8 9b d3 7b 00 48 83 3d 73 30 0b 0c 00
-RSP: 0018:ffffc90000007c20 EFLAGS: 00000046
-RAX: 1ffffffff1af370c RBX: 1ffff110042eac5e RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff8880217562e8
-RBP: dffffc0000000000 R08: ffff8880217562eb R09: 1ffff110042eac5d
-R10: dffffc0000000000 R11: ffffed10042eac5e R12: 1ffff110042eac5f
-R13: ffff8880217562f8 R14: ffff8880217562f0 R15: ffff8880217562e8
-FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000600 CR3: 000000000d730000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <NMI>
- </NMI>
- <IRQ>
- __raw_spin_unlock include/linux/spinlock_api_smp.h:142 [inline]
- _raw_spin_unlock+0x1e/0x40 kernel/locking/spinlock.c:186
- spin_unlock include/linux/spinlock.h:391 [inline]
- advance_sched+0x9bd/0xcb0 net/sched/sch_taprio.c:992
- __run_hrtimer kernel/time/hrtimer.c:1688 [inline]
- __hrtimer_run_queues+0x59f/0xd20 kernel/time/hrtimer.c:1752
- hrtimer_interrupt+0x396/0x980 kernel/time/hrtimer.c:1814
- local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1065 [inline]
- __sysvec_apic_timer_interrupt+0x104/0x3a0 arch/x86/kernel/apic/apic.c:1082
- sysvec_apic_timer_interrupt+0x92/0xb0 arch/x86/kernel/apic/apic.c:1076
- </IRQ>
- <TASK>
- asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
-RIP: 0010:lock_acquire+0x25a/0x530 kernel/locking/lockdep.c:5757
-Code: 2b 00 74 08 4c 89 f7 e8 04 33 7d 00 f6 44 24 61 02 0f 85 8a 01 00 00 41 f7 c7 00 02 00 00 74 01 fb 48 c7 44 24 40 0e 36 e0 45 <4b> c7 44 25 00 00 00 00 00 43 c7 44 25 09 00 00 00 00 43 c7 44 25
-RSP: 0018:ffffc900000d7940 EFLAGS: 00000206
-RAX: 0000000000000001 RBX: 1ffff9200001af34 RCX: 0000000000000001
-RDX: dffffc0000000000 RSI: ffffffff8b6ac0c0 RDI: ffffffff8bbdf300
-RBP: ffffc900000d7a88 R08: ffffffff90dd4367 R09: 1ffffffff21ba86c
-R10: dffffc0000000000 R11: fffffbfff21ba86d R12: 1ffff9200001af30
-R13: dffffc0000000000 R14: ffffc900000d79a0 R15: 0000000000000246
- rcu_lock_acquire include/linux/rcupdate.h:301 [inline]
- rcu_read_lock include/linux/rcupdate.h:747 [inline]
- gc_worker+0x28c/0x15a0 net/netfilter/nf_conntrack_core.c:1488
- process_one_work kernel/workqueue.c:2630 [inline]
- process_scheduled_works+0x90f/0x1420 kernel/workqueue.c:2703
- worker_thread+0xa5f/0x1000 kernel/workqueue.c:2784
- kthread+0x2d3/0x370 kernel/kthread.c:388
- ret_from_fork+0x48/0x80 arch/x86/kernel/process.c:147
- ret_from_fork_asm+0x11/0x20 arch/x86/entry/entry_64.S:242
- </TASK>
-INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.422 msecs
-rcu: rcu_preempt kthread starved for 9734 jiffies! g6949 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=1
-rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
-rcu: RCU grace-period kthread stack dump:
-task:rcu_preempt     state:R  running task     stack:26576 pid:17    tgid:17    ppid:2      flags:0x00004000
-Call Trace:
- <TASK>
- context_switch kernel/sched/core.c:5376 [inline]
- __schedule+0x1961/0x4ab0 kernel/sched/core.c:6688
- __schedule_loop kernel/sched/core.c:6763 [inline]
- schedule+0x149/0x260 kernel/sched/core.c:6778
- schedule_timeout+0x1bd/0x300 kernel/time/timer.c:2167
- rcu_gp_fqs_loop+0x30a/0x1500 kernel/rcu/tree.c:1631
- rcu_gp_kthread+0xa7/0x3b0 kernel/rcu/tree.c:1830
- kthread+0x2d3/0x370 kernel/kthread.c:388
- ret_from_fork+0x48/0x80 arch/x86/kernel/process.c:147
- ret_from_fork_asm+0x11/0x20 arch/x86/entry/entry_64.S:242
- </TASK>
-rcu: Stack dump where RCU GP kthread last ran:
-CPU: 1 PID: 1272 Comm: kworker/u4:6 Not tainted 6.7.0-rc1-syzkaller-00012-g9bacdd8996c7 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/10/2023
-Workqueue: events_unbound toggle_allocation_gate
-RIP: 0010:csd_lock_wait kernel/smp.c:311 [inline]
-RIP: 0010:smp_call_function_many_cond+0x1832/0x2940 kernel/smp.c:855
-Code: 45 8b 65 00 44 89 e6 83 e6 01 31 ff e8 97 88 0b 00 41 83 e4 01 49 bc 00 00 00 00 00 fc ff df 75 07 e8 d2 84 0b 00 eb 38 f3 90 <42> 0f b6 04 23 84 c0 75 11 41 f7 45 00 01 00 00 00 74 1e e8 b6 84
-RSP: 0018:ffffc9000562f720 EFLAGS: 00000293
-RAX: ffffffff8182f9fa RBX: 1ffff110173087c5 RCX: ffff8880201a0000
-RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
-RBP: ffffc9000562f920 R08: ffffffff8182f9c9 R09: 1ffffffff21ba86c
-R10: dffffc0000000000 R11: fffffbfff21ba86d R12: dffffc0000000000
-R13: ffff8880b9843e28 R14: ffff8880b993d480 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ffe63960000 CR3: 000000000d730000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <IRQ>
- </IRQ>
- <TASK>
- on_each_cpu_cond_mask+0x3f/0x80 kernel/smp.c:1023
- on_each_cpu include/linux/smp.h:71 [inline]
- text_poke_sync arch/x86/kernel/alternative.c:2006 [inline]
- text_poke_bp_batch+0x352/0xb30 arch/x86/kernel/alternative.c:2216
- text_poke_flush arch/x86/kernel/alternative.c:2407 [inline]
- text_poke_finish+0x30/0x50 arch/x86/kernel/alternative.c:2414
- arch_jump_label_transform_apply+0x1c/0x30 arch/x86/kernel/jump_label.c:146
- static_key_enable_cpuslocked+0x132/0x260 kernel/jump_label.c:205
- static_key_enable+0x1a/0x20 kernel/jump_label.c:218
- toggle_allocation_gate+0xb5/0x250 mm/kfence/core.c:830
- process_one_work kernel/workqueue.c:2630 [inline]
- process_scheduled_works+0x90f/0x1420 kernel/workqueue.c:2703
- worker_thread+0xa5f/0x1000 kernel/workqueue.c:2784
- kthread+0x2d3/0x370 kernel/kthread.c:388
- ret_from_fork+0x48/0x80 arch/x86/kernel/process.c:147
- ret_from_fork_asm+0x11/0x20 arch/x86/entry/entry_64.S:242
- </TASK>
-
-
----
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+Cheers ... Duncan.
