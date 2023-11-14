@@ -2,138 +2,338 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4825DC4332F
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 15:55:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 704B7C4332F
+	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 16:09:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233632AbjKNPzC (ORCPT
+        id S233506AbjKNQJV (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Nov 2023 10:55:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48858 "EHLO
+        Tue, 14 Nov 2023 11:09:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230200AbjKNPzB (ORCPT
+        with ESMTP id S233320AbjKNQJV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Nov 2023 10:55:01 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61581FE
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 07:54:57 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@breakpoint.cc>)
-        id 1r2vkd-0001CU-43; Tue, 14 Nov 2023 16:54:55 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     <netfilter-devel@vger.kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Lorenzo Bianconi <lorenzo@kernel.org>
-Subject: [RFC nf-next] netfilter: nf_tables: reject flowtable hw offload for same device
-Date:   Tue, 14 Nov 2023 16:54:47 +0100
-Message-ID: <20231114155450.30813-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+        Tue, 14 Nov 2023 11:09:21 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 607E712C
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 08:09:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1699978156;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=lhFc9gnxxBn11aRTv8+FeMuVVDLwRvChiZC3R5D7mp0=;
+        b=G+54uwmdWiVWCOCopmJZNRztkLox2zlujLUbxoV7tmXd0elVhVmwMEQx1gRnB+Ncl7bmOP
+        aEFgLMYeGY6y1j2Dj5ym4tUGOhvOKtev2EdF/1a0Hr8YZBddG3OEiOX5vnUpz+oeGq5pTp
+        hfU+0IIyHGwsNwPqdwpqNW0NbZuV2Fo=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-645-l9Wc0kItM7K9tlws85lgJA-1; Tue,
+ 14 Nov 2023 11:09:15 -0500
+X-MC-Unique: l9Wc0kItM7K9tlws85lgJA-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C87BE2825E8B
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 16:09:14 +0000 (UTC)
+Received: from localhost.localdomain (unknown [10.39.194.84])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 2914C5028;
+        Tue, 14 Nov 2023 16:09:14 +0000 (UTC)
+From:   Thomas Haller <thaller@redhat.com>
+To:     NetFilter <netfilter-devel@vger.kernel.org>
+Cc:     Thomas Haller <thaller@redhat.com>
+Subject: [PATCH nft v3 2/6] tests/shell: check and generate JSON dump files
+Date:   Tue, 14 Nov 2023 17:08:27 +0100
+Message-ID: <20231114160903.409552-1-thaller@redhat.com>
+In-Reply-To: <20231114153150.406334-1-thaller@redhat.com>
+References: <20231114153150.406334-1-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.5
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The existing check is not sufficient, as it only considers flowtables
-within the same table.
+The rules after a successful test are good opportunity to test
+`nft -j list ruleset` and `nft -j --check`. This quite possibly touches
+code paths that are not hit by other tests yet.
 
-In case of HW offload, we need check all flowtables that exist in
-the same net namespace.
+The only downside is the increase of the test runtime (which seems
+negligible, given the benefits of increasing test coverage).
 
-We can skip flowtables that are slated for removal (not active in next gen).
+Future commits will generate and commit those ".json-nft" dump files.
 
-Ideally this check would supersede the existing one, but this is
-probably too risky and might prevent existing configs from working.
+"DUMPGEN=y" will, like before, regenerate only the existing
+"*.{nodump,nft,json-nft}" files (unless a test has none of the 3 files,
+in which case they are all generated and the user is suggested to commit
+the correct ones). Now also "DUMPGEN=all" is honored, that will generate
+all 3 files, regardless of whether they already existed. That is useful
+if you start out with a test that only has a .nft file, and then you
+want to generate a .json-nft file too.
 
-As is, you can do all of the following:
-
-table ip t { flowtable f { devices = { lo  } } }
-table ip6 t { flowtable f { devices = { lo  } } }
-table inet t { flowtable f { devices = { lo  } } }
-
-... but IMO this should not be possible in the first place.
-
-Disable this at least when hw offlaod is requested.
-
-This is related to XDP flowtable work, the idea is to keep a small
-hashtable that has a 'struct net_device := struct nf_flowtable' map so
-that xdp program can obtain the flowtable that the net_device is
-part of.
-
-This mapping must be unique.  The idea is to add a "XDP OFFLOAD"
-flag to nftables api and then have this function run for 'xdp offload'
-case too.
-
-This is useful, because it would permit the "xdp offload" hashtable
-to tolerate duplicate keys -- they would only occur during transactional
-updates, e.g. a flush of the current table combined with atomic reload.
-
-Without this change, the nf_flowtable core cannot tell when flowtable
-is a real duplicate, or just a temporary artefact of the
-two-phase-commit protocol (i.e., the clashing entry is queued for removal).
-
-NB: This also disables ip and ip6 family for same device, plan would be
-to support 'xdp offload' only for NFPROTO_INET for simplicity.
-
-CC: Lorenzo Bianconi <lorenzo@kernel.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Thomas Haller <thaller@redhat.com>
 ---
- net/netfilter/nf_tables_api.c | 36 +++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ tests/shell/helpers/json-sanitize-ruleset.sh |  23 +++
+ tests/shell/helpers/test-wrapper.sh          | 143 ++++++++++++++-----
+ tests/shell/run-tests.sh                     |  11 +-
+ 3 files changed, 138 insertions(+), 39 deletions(-)
+ create mode 100755 tests/shell/helpers/json-sanitize-ruleset.sh
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3c1fd8283bf4..0c3485410efc 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8183,6 +8183,37 @@ static void nft_unregister_flowtable_net_hooks(struct net *net,
- 	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
- }
- 
-+static bool nft_flowtable_offload_clash(struct net *net,
-+				        const struct nft_hook *hook,
-+				        struct nft_flowtable *flowtable)
-+{
-+	const struct nftables_pernet *nft_net;
-+	struct nft_flowtable *existing_ft;
-+	const struct nft_table *table;
+diff --git a/tests/shell/helpers/json-sanitize-ruleset.sh b/tests/shell/helpers/json-sanitize-ruleset.sh
+new file mode 100755
+index 000000000000..270a6107e0aa
+--- /dev/null
++++ b/tests/shell/helpers/json-sanitize-ruleset.sh
+@@ -0,0 +1,23 @@
++#!/bin/bash -e
 +
-+	/* No offload requested, no need to validate */
-+	if (!nf_flowtable_hw_offload(&flowtable->data))
-+		return false;
-+
-+	nft_net = nft_pernet(net);
-+
-+	list_for_each_entry(table, &nft_net->tables, list) {
-+		list_for_each_entry(existing_ft, &table->flowtables, list) {
-+		        const struct nft_hook *hook2;
-+
-+			if (!nft_is_active_next(net, existing_ft))
-+				continue;
-+
-+			list_for_each_entry(hook2, &existing_ft->hook_list, list) {
-+				if (hook->ops.dev == hook2->ops.dev)
-+					return true;
-+			}
-+		}
-+	}
-+
-+	return false;
++die() {
++	printf "%s\n" "$*"
++	exit 1
 +}
 +
- static int nft_register_flowtable_net_hooks(struct net *net,
- 					    struct nft_table *table,
- 					    struct list_head *hook_list,
-@@ -8193,6 +8224,11 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 	int err, i = 0;
- 
- 	list_for_each_entry(hook, hook_list, list) {
-+		if (nft_flowtable_offload_clash(net, hook, flowtable)) {
-+			err = -EEXIST;
-+			goto err_unregister_net_hooks;
-+		}
++do_sed() {
++	sed '1s/\({"nftables": \[{"metainfo": {"version": "\)[0-9.]\+\(", "release_name": "\)[^"]\+\(", "\)/\1VERSION\2RELEASE_NAME\3/' "$@"
++}
 +
- 		list_for_each_entry(ft, &table->flowtables, list) {
- 			if (!nft_is_active_next(net, ft))
- 				continue;
++if [ "$#" = 0 ] ; then
++	do_sed
++	exit $?
++fi
++
++for f ; do
++	test -f "$f" || die "$0: file \"$f\" does not exist"
++done
++
++for f ; do
++	do_sed -i "$f" || die "$0: \`sed -i\` failed for \"$f\""
++done
+diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
+index b74c56168768..62414d0db074 100755
+--- a/tests/shell/helpers/test-wrapper.sh
++++ b/tests/shell/helpers/test-wrapper.sh
+@@ -15,6 +15,16 @@ array_contains() {
+ 	return 1
+ }
+ 
++show_file() {
++	local filename="$1"
++	shift
++	local msg="$*"
++
++	printf '%s\n>>>>\n' "$msg"
++	cat "$filename"
++	printf "<<<<\n"
++}
++
+ TEST="$1"
+ TESTBASE="$(basename "$TEST")"
+ TESTDIR="$(dirname "$TEST")"
+@@ -109,55 +119,108 @@ if [ "$rc_test" -eq 0 ] ; then
+ 	"${CMD[@]}" &>> "$NFT_TEST_TESTTMPDIR/testout.log" || rc_test=$?
+ fi
+ 
+-$NFT list ruleset > "$NFT_TEST_TESTTMPDIR/ruleset-after"
++rc_chkdump=0
++rc=0
++$NFT list ruleset > "$NFT_TEST_TESTTMPDIR/ruleset-after" 2> "$NFT_TEST_TESTTMPDIR/chkdump" || rc=$?
++if [ "$rc" -ne 0 -o -s "$NFT_TEST_TESTTMPDIR/chkdump" ] ; then
++	show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT list ruleset\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++	rc_chkdump=1
++fi
++if [ "$NFT_TEST_HAVE_json" != n ] ; then
++	rc=0
++	$NFT -j list ruleset > "$NFT_TEST_TESTTMPDIR/ruleset-after.json" 2> "$NFT_TEST_TESTTMPDIR/chkdump" || rc=$?
++
++	# Workaround known bug in stmt_print_json(), due to
++	# "chain_stmt_ops.json" being NULL. This spams stderr.
++	sed -i '/^warning: stmt ops chain have no json callback$/d' "$NFT_TEST_TESTTMPDIR/chkdump"
++
++	if [ "$rc" -ne 0 -o -s "$NFT_TEST_TESTTMPDIR/chkdump" ] ; then
++		show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j list ruleset\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++		rc_chkdump=1
++	fi
++	# Normalize the version number from the JSON output. Otherwise, we'd
++	# have to regenerate the .json-nft files upon release.
++	"$NFT_TEST_BASEDIR/helpers/json-sanitize-ruleset.sh" "$NFT_TEST_TESTTMPDIR/ruleset-after.json"
++fi
+ 
+ read tainted_after < /proc/sys/kernel/tainted
+ 
+ DUMPPATH="$TESTDIR/dumps"
+ DUMPFILE="$DUMPPATH/$TESTBASE.nft"
++JDUMPFILE="$DUMPPATH/$TESTBASE.json-nft"
+ NODUMPFILE="$DUMPPATH/$TESTBASE.nodump"
+ 
+-dump_written=
+-
+-# The caller can request a re-geneating of the dumps, by setting
+-# DUMPGEN=y.
+-#
+-# This only will happen if the command completed with success.
++# The caller can request a re-geneating of the .nft, .nodump, .json-nft dump files
++# by setting DUMPGEN=y. In that case, only the existing files will be regenerated
++# (unless all three files are missing, in which case all of them are generated).
+ #
+-# It also will only happen for tests, that have a "$DUMPPATH" directory. There
+-# might be tests, that don't want to have dumps created. The existence of the
+-# directory controls that. Tests that have a "$NODUMPFILE" file, don't get a dump generated.
+-if [ "$rc_test" -eq 0 -a "$DUMPGEN" = y -a -d "$DUMPPATH" -a ! -f "$NODUMPFILE" ] ; then
++# By setting DUMPGEN=all, all 3 files are always regenerated.
++dump_written=n
++if [ "$rc_test" -eq 0 -a '(' "$DUMPGEN" = all -o "$DUMPGEN" = y ')' ] ; then
+ 	dump_written=y
+-	if [ ! -f "$DUMPFILE" ] ; then
+-		# No dumpfile exists yet. We generate both a .nft and a .nodump
+-		# file. The user can pick which one to commit to git.
++	if [ ! -d "$DUMPPATH" ] ; then
++		mkdir "$DUMPPATH"
++	fi
++	if [ "$DUMPGEN" = all ] ; then
++		gen_nodumpfile=y
++		gen_dumpfile=y
++		gen_jdumpfile=y
++	else
++		# by default, only regenerate the files that we already have on disk.
++		gen_nodumpfile=n
++		gen_dumpfile=n
++		gen_jdumpfile=n
++		test -f "$DUMPFILE"  && gen_dumpfile=y
++		test -f "$JDUMPFILE" && gen_jdumpfile=y
++		test -f "$NODUMPFILE" && gen_nodumpfile=y
++		if [ "$gen_dumpfile" != y -a "$gen_jdumpfile" != y -a "$gen_nodumpfile" != y ] ; then
++			# Except, if no files exist. Them generate all files.
++			gen_dumpfile=y
++			gen_jdumpfile=y
++			gen_nodumpfile=y
++		fi
++	fi
++	if [ "$gen_nodumpfile" = y ] ; then
+ 		: > "$NODUMPFILE"
+ 	fi
+-	cat "$NFT_TEST_TESTTMPDIR/ruleset-after" > "$DUMPFILE"
++	if [ "$gen_dumpfile" = y ] ; then
++		cat "$NFT_TEST_TESTTMPDIR/ruleset-after" > "$DUMPFILE"
++	fi
++	if [ "$NFT_TEST_HAVE_json" != n -a "$gen_jdumpfile" = y ] ; then
++		cat "$NFT_TEST_TESTTMPDIR/ruleset-after.json" > "$JDUMPFILE"
++	fi
+ fi
+ 
+ rc_dump=0
+-if [ "$rc_test" -ne 77 -a -f "$DUMPFILE" ] ; then
+-	if [ "$dump_written" != y ] ; then
++if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
++	if [ -f "$DUMPFILE" ] ; then
+ 		if ! $DIFF -u "$DUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff" ; then
++			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff" "Failed \`$DIFF -u \"$DUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
+ 			rc_dump=1
+ 		else
+ 			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff"
+ 		fi
+ 	fi
+-fi
+-if [ "$rc_dump" -ne 0 ] ; then
+-	echo "$DUMPFILE" > "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
++	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
++		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
++			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
++			rc_dump=1
++		else
++			rm -f "$NFT_TEST_TESTTMPDIR/ruleset-diff.json"
++		fi
++	fi
+ fi
+ 
+-rc_chkdump=0
+ # check that a flush after the test succeeds. We anyway need a clean ruleset
+ # for the `nft --check` next.
+-$NFT flush ruleset &> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump" || rc_chkdump=1
++rc=0
++$NFT flush ruleset &> "$NFT_TEST_TESTTMPDIR/chkdump" || rc=1
++if [ "$rc" = 1 -o -s "$NFT_TEST_TESTTMPDIR/chkdump" ] ; then
++	show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT flush ruleset\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++	rc_chkdump=1
++fi
++# For the dumpfiles, call `nft --check` to possibly cover new code paths.
+ if [ -f "$DUMPFILE" ] ; then
+-	# We have a dumpfile. Call `nft --check` to possibly cover new code
+-	# paths.
+ 	if [ "$rc_test" -eq 77 ] ; then
+ 		# The test was skipped. Possibly we don't have the required
+ 		# features to process this file. Ignore any output and exit
+@@ -165,20 +228,30 @@ if [ -f "$DUMPFILE" ] ; then
+ 		# issue we hope to find).
+ 		$NFT --check -f "$DUMPFILE" &>/dev/null || :
+ 	else
+-		$NFT --check -f "$DUMPFILE" &>> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump" || rc_chkdump=1
++		fail=n
++		$NFT --check -f "$DUMPFILE" &> "$NFT_TEST_TESTTMPDIR/chkdump" || fail=y
++		test -s "$NFT_TEST_TESTTMPDIR/chkdump" && fail=y
++		if [ "$fail" = y ] ; then
++			show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT --check -f \"$DUMPFILE\"\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++			rc_chkdump=1
++		fi
++		rm -f "$NFT_TEST_TESTTMPDIR/chkdump"
+ 	fi
+ fi
+-if [ -s "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump" ] ; then
+-	# Non-empty output? That is wrong.
+-	rc_chkdump=1
+-elif [ "$rc_chkdump" -eq 0 ] ; then
+-	rm -rf "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
+-fi
+-if [ "$rc_chkdump" -ne 0 ] ; then
+-	# Ensure we don't have empty output files. Always write something, so
+-	# that `grep ^ -R` lists the file.
+-	echo -e "<<<<<\n\nCalling \`nft --check\` (or \`nft flush ruleset\`) failed for \"$DUMPFILE\"" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
++	if [ "$rc_test" -eq 77 ] ; then
++		$NFT -j --check -f "$JDUMPFILE" &>/dev/null || :
++	else
++		fail=n
++		$NFT -j --check -f "$JDUMPFILE" &> "$NFT_TEST_TESTTMPDIR/chkdump" || fail=y
++		test -s "$NFT_TEST_TESTTMPDIR/chkdump" && fail=y
++		if [ "$fail" = y ] ; then
++			show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j --check -f \"$JDUMPFILE\"\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
++			rc_chkdump=1
++		fi
++	fi
+ fi
++rm -f "$NFT_TEST_TESTTMPDIR/chkdump"
+ 
+ rc_valgrind=0
+ [ -f "$NFT_TEST_TESTTMPDIR/rc-failed-valgrind" ] && rc_valgrind=1
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index 27a0ec43042a..3cde97b7ea17 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -184,9 +184,10 @@ usage() {
+ 	echo " VERBOSE=*|y   : Enable verbose output."
+ 	echo " NFT_TEST_VERBOSE_TEST=*|y: if true, enable verbose output for tests. For bash scripts, this means"
+ 	echo "                 to pass \"-x\" to the interpreter."
+-	echo " DUMPGEN=*|y   : Regenerate dump files. Dump files are only recreated if the"
+-	echo "                 test completes successfully and the \"dumps\" directory for the"
+-	echo "                 test exits."
++	echo " DUMPGEN=*|y|all : Regenerate dump files \".{nft,json-nft,nodump}\". \"DUMPGEN=y\" only regenerates existing"
++	echo "                 files, unless the test has no files (then all three files are generated, and you need to"
++	echo "                 choose which to keep). With \"DUMPGEN=all\" all 3 files are regenerated, regardless"
++	echo "                 whether they already exist."
+ 	echo " VALGRIND=*|y  : Run \$NFT in valgrind."
+ 	echo " KMEMLEAK=*|y  : Check for kernel memleaks."
+ 	echo " NFT_TEST_HAS_REALROOT=*|y : To indicate whether the test has real root permissions."
+@@ -279,7 +280,9 @@ _NFT_TEST_JOBS_DEFAULT="$(( _NFT_TEST_JOBS_DEFAULT + (_NFT_TEST_JOBS_DEFAULT + 1
+ 
+ VERBOSE="$(bool_y "$VERBOSE")"
+ NFT_TEST_VERBOSE_TEST="$(bool_y "$NFT_TEST_VERBOSE_TEST")"
+-DUMPGEN="$(bool_y "$DUMPGEN")"
++if [ "$DUMPGEN" != "all" ] ; then
++	DUMPGEN="$(bool_y "$DUMPGEN")"
++fi
+ VALGRIND="$(bool_y "$VALGRIND")"
+ KMEMLEAK="$(bool_y "$KMEMLEAK")"
+ NFT_TEST_KEEP_LOGS="$(bool_y "$NFT_TEST_KEEP_LOGS")"
 -- 
 2.41.0
 
