@@ -2,74 +2,66 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCC91C47076
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 09:42:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D69E9C07548
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 09:54:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234800AbjKOJmn (ORCPT
+        id S234826AbjKOJyP (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Nov 2023 04:42:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57886 "EHLO
+        Wed, 15 Nov 2023 04:54:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234816AbjKOJml (ORCPT
+        with ESMTP id S234773AbjKOJyO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2023 04:42:41 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 87DDB11D
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 01:42:38 -0800 (PST)
+        Wed, 15 Nov 2023 04:54:14 -0500
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CB9411C
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 01:54:11 -0800 (PST)
+Received: from [78.30.43.141] (port=55214 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1r3Cb1-00BFG7-CO; Wed, 15 Nov 2023 10:54:09 +0100
+Date:   Wed, 15 Nov 2023 10:54:06 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Cc:     fw@strlen.de, thaller@redhat.com
-Subject: [PATCH nft 4/4] tests: shell: restore pipapo and chain binding coverage in standalone 30s-stress
-Date:   Wed, 15 Nov 2023 10:42:31 +0100
-Message-Id: <20231115094231.168870-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20231115094231.168870-1-pablo@netfilter.org>
-References: <20231115094231.168870-1-pablo@netfilter.org>
+To:     Florian Westphal <fw@strlen.de>
+Cc:     Thomas Haller <thaller@redhat.com>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft v3 2/6] tests/shell: check and generate JSON dump
+ files
+Message-ID: <ZVSVPgRFv9tTF4yQ@calendula>
+References: <20231114153150.406334-1-thaller@redhat.com>
+ <20231114160903.409552-1-thaller@redhat.com>
+ <20231115082427.GC14621@breakpoint.cc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231115082427.GC14621@breakpoint.cc>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Do not disable pipapo and chain binding coverage for standalone runs by
-default. Instead, turn them on by default and allow users to disable them
-through:
+On Wed, Nov 15, 2023 at 09:24:27AM +0100, Florian Westphal wrote:
+> Thomas Haller <thaller@redhat.com> wrote:
+> > The rules after a successful test are good opportunity to test
+> > `nft -j list ruleset` and `nft -j --check`. This quite possibly touches
+> > code paths that are not hit by other tests yet.
+> 
+> This series looks good to me, I'll apply it in the next few hours if
+> noone else takes any action by then.
 
- # export NFT_TEST_HAVE_chain_binding=n; bash tests/shell/testcases/transactions/30s-stress 3600
- ...
- running standalone with:
- NFT_TEST_HAVE_chain_binding=n
- NFT_TEST_HAVE_pipapo=y
+Just a question, patch 3 is missing in patchwork. I guess it is too
+big.
 
-given feature detection is not available in this case, thus, user has to
-provide an explicit hint on what this kernel supports.
+My understanding is that this performs the json tests if nft comes with
+json support.
 
-Fixes: c5b5b1044fdd ("tests/shell: add feature probing via "features/*.nft" files")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tests/shell/testcases/transactions/30s-stress | 9 +++++++++
- 1 file changed, 9 insertions(+)
+I wanted to give this a run, description says a few tests are failing.
+Last time we talked it is chain binding support, then there is a good
+number of tests that are going to fail (or there is a mechanism to
+temporarily disable json tests for this without losing coverage?).
 
-diff --git a/tests/shell/testcases/transactions/30s-stress b/tests/shell/testcases/transactions/30s-stress
-index b6ad06abed32..5c0a9465711b 100755
---- a/tests/shell/testcases/transactions/30s-stress
-+++ b/tests/shell/testcases/transactions/30s-stress
-@@ -6,6 +6,15 @@ runtime=30
- 
- # allow stand-alone execution as well, e.g. '$0 3600'
- if [ x"$1" != "x" ] ;then
-+	echo "running standalone with:"
-+	if [ -z "${NFT_TEST_HAVE_chain_binding+x}" ]; then
-+		NFT_TEST_HAVE_chain_binding=y
-+	fi
-+	if [ -z "${NFT_TEST_HAVE_pipapo+x}" ]; then
-+		NFT_TEST_HAVE_pipapo=y
-+	fi
-+	echo "NFT_TEST_HAVE_chain_binding="$NFT_TEST_HAVE_chain_binding
-+	echo "NFT_TEST_HAVE_pipapo="$NFT_TEST_HAVE_pipapo
- 	if [ $1 -ge 0 ]; then
- 		runtime="$1"
- 	else
--- 
-2.30.2
+What is the current output from tests? I wanted to make this run
+myself so I don't need to ask.
 
+I am asking all this because I am finishing backports for older stable
+kernels while this is also going on.
