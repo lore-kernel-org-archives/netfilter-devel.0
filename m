@@ -2,92 +2,155 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47989C46CA6
-	for <netfilter-devel@archiver.kernel.org>; Tue, 14 Nov 2023 23:14:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D352C07548
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 07:56:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231518AbjKNXOv (ORCPT
+        id S234619AbjKOH45 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:14:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37024 "EHLO
+        Wed, 15 Nov 2023 02:56:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230162AbjKNXOu (ORCPT
+        with ESMTP id S229551AbjKOH44 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Nov 2023 18:14:50 -0500
-Received: from mail-pg1-x52f.google.com (mail-pg1-x52f.google.com [IPv6:2607:f8b0:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B436ED9
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 15:14:47 -0800 (PST)
-Received: by mail-pg1-x52f.google.com with SMTP id 41be03b00d2f7-5aa7172bafdso4103669a12.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 15:14:47 -0800 (PST)
+        Wed, 15 Nov 2023 02:56:56 -0500
+Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C82E6E7
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 23:56:51 -0800 (PST)
+Received: by mail-pl1-x62f.google.com with SMTP id d9443c01a7336-1cc921a4632so58974745ad.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Nov 2023 23:56:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1700003687; x=1700608487; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1700035011; x=1700639811; darn=vger.kernel.org;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=DMIsgSklNu0qC3COok6Thi5dCPXKRxXeWFICK+RLoEk=;
-        b=h77T1/By3Vmv6ndiS13/zLltROYZMOSLFgkPg8FHjynW/qiO72d0XFJs1Ol7vdPB8X
-         8PA7OZCw19v47rdhNX0xrdFPmfYoF3bXygU5vCrwfO0/ajwiUkfO5ECJS9nGhVcOzmZx
-         /4TUv/6A0V9xfjpkJAE+RA7csfUQq1uhcM9kk8KuvmZqp+jv/INa1om/DGuYP3dWYxmw
-         AbX5jc1ilzXVpu2D5s/AM+wT6++YdbHVJBfts7ROoS37GbX70DRJKaFHBsDtYDz0ETmI
-         OuT80RU58lHv5G/nfDJ1yOVHf+mvaxIfnuBOlveoB9+9tE8c+zD2mUA0N+DB6gWINN9K
-         aboA==
+        bh=50BOdDYfJYlLjuRxm/i8F+ZVAKKZL/i6kJSVEbDIvNQ=;
+        b=OYJ2fp0HkfaV0D91phhHxbioEcw2LZ3uVF0diOMC9Mhp4d+riyqgddJeyNsjX+gkgN
+         Mn4gHUVLmxwhb4/KnOWP76vzfrEFcO/aPcMtMVuFmGcfJicGa6mPOdZ0vUT8aXClGMn6
+         84Ft10tSoYBLeNHNDcmjp1OYDkbtVUNg4R70KCTmCOPp49Q53rB8twTltdJ4ERKocgw6
+         vIs7Gol89US7QwCOumrVudURZZujbJdkbjyTEnoHjgtkNfA0ocb9IimwFDLxGRj5jtzH
+         pCfWJG4UPcv6D/B9jhrYYte0tZqIV9NRpgziUEHzEf4u01vnGQOvrQe6CiDBDcvWovn/
+         VNkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700003687; x=1700608487;
+        d=1e100.net; s=20230601; t=1700035011; x=1700639811;
         h=in-reply-to:content-disposition:mime-version:references
          :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=DMIsgSklNu0qC3COok6Thi5dCPXKRxXeWFICK+RLoEk=;
-        b=jcePSZDwHXrte4xDyDdNf0knHfRq3C0zee2HRCNbu+HnwhZ+Z0CJK9s3aee0jDWTkL
-         sNyzDO4A0/ws0elSOLTF77CDe4tOLvae5JMDos+vFdT2tTGx0PchS7/I3CDZL56EvJYm
-         I7UiQ5/RHuhTaqzsH1/HFWdLD56YIbVW2sONHepxGpAw9QS5DSPIab6DTi8Yogd1xo53
-         zRNMUiTgSaNsRP31Lk9rWVAIQuJx2zGkOsGPVdSvegaKJ0dBZ7Z/R+vl/26ZdzMh5zR0
-         iQXxKlJE7q4N95uZ2YkGQUzbrJW8S1dZClswP/CV2p5PnhWZQnyqysESb9Ef/Ski7EBo
-         lgNg==
-X-Gm-Message-State: AOJu0Yz8UMB13sBXwbq2xc92BgVm+96DUAIbIlmdayJeWEIi82DY/PoJ
-        KvJKH3ieW0TXmt3aKM1iu9tlM779gMw=
-X-Google-Smtp-Source: AGHT+IFhirbdclKdGv6OqtL1zxi9b4hLPcmVFoDDDlte/2bXhliWQLj0Not+tteeP0CBijz5nTp5vg==
-X-Received: by 2002:a05:6a20:6a04:b0:186:7c17:62ce with SMTP id p4-20020a056a206a0400b001867c1762cemr7126565pzk.61.1700003687147;
-        Tue, 14 Nov 2023 15:14:47 -0800 (PST)
+        bh=50BOdDYfJYlLjuRxm/i8F+ZVAKKZL/i6kJSVEbDIvNQ=;
+        b=Wb/plvm/eJ2pi1ZILN46bHTRRFmapf2IHgjSMLZLDN4EW/X5dKs8eg7B/ClQncFDcH
+         e8H8mYX1BNVZ8Oi2Cju2UER41IuiSCGrUQp2d1IFR1tSxoxqaKx7ZEycLFsRk3jKZPlH
+         Awu/cEg6WUWEvToYHKlzjov7xc7wlnjZbRYBYHNYg/edaDJDM4cpqg8yDlJENRf7P1dO
+         0nIrxuRnjNO1nUTZQ1RV+I5zgsZ0pPB4JBRjow8x/f5hKyezPFxtnu2sfLsECdJq2lSq
+         t4i6nH5xR2fey/7IHWl6JYJfYmRgQ2JLsS0GISGAXWZDSjn/I522sxmvrzQda0CsyxBG
+         d9eQ==
+X-Gm-Message-State: AOJu0YwFYTemA55H5yu/YJnhv2auoBvq6nyOP/Hantojs0ds2LQBkkTO
+        Xh5bpkkv4G6N0Dw0doRP6FWdW5rIfkI=
+X-Google-Smtp-Source: AGHT+IGkO5NKizJja1Y1MYdQ0gqFZhSyDt+uFHFWW/AhO4xllyJVNavtrBDSoEFO4Ot45mmwO/V7gw==
+X-Received: by 2002:a17:902:d4ce:b0:1ce:15cb:630b with SMTP id o14-20020a170902d4ce00b001ce15cb630bmr6088166plg.54.1700035011187;
+        Tue, 14 Nov 2023 23:56:51 -0800 (PST)
 Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
-        by smtp.gmail.com with ESMTPSA id c3-20020a17090ad90300b002805740d668sm7681369pjv.4.2023.11.14.15.14.45
+        by smtp.gmail.com with ESMTPSA id 12-20020a170902c24c00b001c7453fae33sm6811153plg.280.2023.11.14.23.56.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Nov 2023 15:14:46 -0800 (PST)
+        Tue, 14 Nov 2023 23:56:50 -0800 (PST)
 Sender: Duncan Roe <duncan.roe2@gmail.com>
 From:   Duncan Roe <duncan_roe@optusnet.com.au>
 X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
-Date:   Wed, 15 Nov 2023 10:14:43 +1100
+Date:   Wed, 15 Nov 2023 18:56:47 +1100
 To:     Pablo Neira Ayuso <pablo@netfilter.org>
 Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: libnfnetlink dependency elimination (doc)
-Message-ID: <ZVP/YwVnHtFvdxE5@slk15.local.net>
+Subject: Re: [PATCH libnetfilter_queue] utils: Add example of setting socket
+ buffer size
+Message-ID: <ZVR5v0wQXXgVn+w1@slk15.local.net>
 Reply-To: duncan_roe@optusnet.com.au
 Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <20231112065922.3414-1-duncan_roe@optusnet.com.au>
- <ZVORGxjxolo3vnz1@calendula>
+References: <20231110041604.11564-1-duncan_roe@optusnet.com.au>
+ <ZVOQsqQg9P+ymB6e@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZVORGxjxolo3vnz1@calendula>
+In-Reply-To: <ZVOQsqQg9P+ymB6e@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
+Cc'ing list this time
+
+----- Forwarded message from Duncan Roe <dunc@slk15.local.net> -----
+
+Date: Wed, 15 Nov 2023 10:46:34 +1100
+From: Duncan Roe <dunc@slk15.local.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH libnetfilter_queue] utils: Add example of setting socket buffer size
+
 Hi Pablo,
 
-On Tue, Nov 14, 2023 at 04:24:11PM +0100, Pablo Neira Ayuso wrote:
-> On Sun, Nov 12, 2023 at 05:59:21PM +1100, Duncan Roe wrote:
-> > Some of these documented changes haven't happened yet.
+On Tue, Nov 14, 2023 at 04:22:26PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Nov 10, 2023 at 03:16:04PM +1100, Duncan Roe wrote:
+> > The libnetfilter_queue main HTML page mentions nfnl_rcvbufsiz() so the new
+> > libmnl-only libnetfilter_queue will have to support it.
+> >
+> > The added call acts as a demo and a test case.
+> >
+> > Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+> > ---
+> >  utils/nfqnl_test.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> > diff --git a/utils/nfqnl_test.c b/utils/nfqnl_test.c
+> > index 682f3d7..6d2305e 100644
+> > --- a/utils/nfqnl_test.c
+> > +++ b/utils/nfqnl_test.c
+> > @@ -91,6 +91,7 @@ int main(int argc, char **argv)
+> >     int fd;
+> >     int rv;
+> >     uint32_t queue = 0;
+> > +   uint32_t ret;
+> >     char buf[4096] __attribute__ ((aligned));
+> >
+> >     if (argc == 2) {
+> > @@ -107,6 +108,10 @@ int main(int argc, char **argv)
+> >             fprintf(stderr, "error during nfq_open()\n");
+> >             exit(1);
+> >     }
+> > +   printf("setting socket buffer size to 2MB\n");
+> > +   ret = nfnl_rcvbufsiz(nfq_nfnlh(h), 1024 * 1024);
 >
-> Then we have to start by changes first, not the other way around.
+> libnfnetlink is deprecated.
 
-It's my development model to document before coding. That way:
- - I know what I'm working towards
- - The documentation often improves with time. That would be unlikely if I left
-   it until last
+Yes I know that, obviously:)
+>
+> maybe call setsockopt and use nfq_fd() instead if you would like that
+> this shows in the example file.
+>
+> > +   printf("Read buffer set to 0x%x bytes (%gMB)\n", ret,
+> > +          ret / 1024.0 / 1024);
+> >
+> >     printf("unbinding existing nf_queue handler for AF_INET (if any)\n");
+> >     if (nfq_unbind_pf(h, AF_INET) < 0) {
+> > --
+> > 2.35.8
+> >
 
-Could you therefore just treat these patches as RFC (for now) and reply if you'd
-like to see changes,
+The point here is that nfnl_rcvbufsiz() has been advertised in the main page of
+libnetfilter_queue HTML for a long time and there are likely a number of systems
+out there that use it. When libnfnetlink is removed, libnetfilter_queue will
+have to provide nfnl_rcvbufsiz() or those systems will start failing.
 
-There wiil be a v2 of this one with a more positive take on using the nfnl API.
+I have in mind that although libnetfilter_queue will provide nfnl_rcvbufsiz(),
+there will be no documentation for it.
+
+You will see in
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20231112065922.3414-2-duncan_roe@optusnet.com.au/
+I replaced the advice to use nfnl_rcvbufsiz() (in 2 places) with advice to use
+setsocketopt(). I only mentioned that programs calling nfnl_rcvbufsiz() will
+continue to run.
+
+So I offered this patch as the only documentation of how to use
+nfnl_rcvbufsiz(). I need it for my testing, but it's fine with me if you don't
+want to take it.
+
+I could add a setsockopt() example to nf-queue or nfqnl_test if you like.
 
 Cheers ... Duncan.
+
+----- End forwarded message -----
