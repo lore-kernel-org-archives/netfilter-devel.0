@@ -2,51 +2,164 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 806D6C47072
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 10:10:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A2DC07548
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 10:11:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234651AbjKOKK0 (ORCPT
+        id S234678AbjKOKLU (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Nov 2023 05:10:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43460 "EHLO
+        Wed, 15 Nov 2023 05:11:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234680AbjKOKK0 (ORCPT
+        with ESMTP id S234688AbjKOKLT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2023 05:10:26 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 533C210F
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 02:10:22 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1r3Cqi-0006Mw-IO; Wed, 15 Nov 2023 11:10:20 +0100
-Date:   Wed, 15 Nov 2023 11:10:20 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
+        Wed, 15 Nov 2023 05:11:19 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A3FF120
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 02:11:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1700043074;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+        bh=oZpBIAOhGXkLGe3Nd6W6B1ZsTvMw3e220jYBNcwBZlo=;
+        b=CAt1ItTU0iHXdeW2v78BkKsGstWUaqLWN4o56j3qT1B7ejyY3JCNuF0f6JHTX7oOBi4qol
+        wXhYNJcLk69/reoqmo6Zt1aWygl+UHNIkWBVtXfxyddUVDNXf2D7hIaNHRLihNwRicF9yE
+        3HO6MfOKr54XnXN7vfILBOI+7kZMNSQ=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-533-ddCGIFC1O66Iy44as4Fm1g-1; Wed, 15 Nov 2023 05:11:13 -0500
+X-MC-Unique: ddCGIFC1O66Iy44as4Fm1g-1
+Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-9c39f53775fso48456366b.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 02:11:13 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700043072; x=1700647872;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=oZpBIAOhGXkLGe3Nd6W6B1ZsTvMw3e220jYBNcwBZlo=;
+        b=KyUeMuOYcPcOM7KjVXP6aLiqWXB3YDGeXw0kxEWLiYn51nfW4hsOdK1TMLGCcosJuB
+         wKmo8C7TAaXE+OSoAX1L+QVeHt6HAvzmB9zP5K8iqqD1zenJpY0QYk0aYoFbBhZQH1Qi
+         ON7HqLkGB9aG31p9YB7EEWgm5qEVQ2x6+IcXKvD4qulVzED9LhwoTFApBXGlhd74I1Yu
+         7W9k9Zps6esDNvNjpIPNw/+CXarJhipP4fbXMQ8wSC1gMPX2PgB0FdmNVSGR8spQU/m0
+         edCXSKmKARQqWZ6MvxwgGCzSk1LcmZxrvAE0skOEx3mBV4sfwjk1OCucxDuwKzzOMY7H
+         5RVg==
+X-Gm-Message-State: AOJu0YyBeqx2PzpbX7xJIeZudHDMhiGamfkEjGitJgTF1f59JrF3cgGZ
+        dsVNR7dYZTSz9v1kv4Njd0GN0bEhkCbdBUQIptUfWLdPiXpotP0YMPMIoGTURgkyiGTONztlHeB
+        /wjTRUxbwSeiQNILOcR6Ln8EDVHqk
+X-Received: by 2002:a17:906:74c7:b0:9c4:4b20:44a5 with SMTP id z7-20020a17090674c700b009c44b2044a5mr3374090ejl.4.1700043072172;
+        Wed, 15 Nov 2023 02:11:12 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEu3e9XqxODnSQnMR8AR9CMZt9i23vhcoSZCZcXZ6GQ5ZiqDJs2s8yjKP267+/502J/iiPinQ==
+X-Received: by 2002:a17:906:74c7:b0:9c4:4b20:44a5 with SMTP id z7-20020a17090674c700b009c44b2044a5mr3374083ejl.4.1700043071778;
+        Wed, 15 Nov 2023 02:11:11 -0800 (PST)
+Received: from [10.0.0.196] ([37.186.166.196])
+        by smtp.gmail.com with ESMTPSA id tb16-20020a1709078b9000b009f2b7282387sm802577ejc.46.2023.11.15.02.11.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Nov 2023 02:11:11 -0800 (PST)
+Message-ID: <ae718b9a5c02ac981c2f5b854056ab3ec15ba163.camel@redhat.com>
 Subject: Re: [PATCH nft v3 2/6] tests/shell: check and generate JSON dump
  files
-Message-ID: <20231115101020.GB23742@breakpoint.cc>
+From:   Thomas Haller <thaller@redhat.com>
+To:     Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Wed, 15 Nov 2023 11:11:10 +0100
+In-Reply-To: <ZVSVPgRFv9tTF4yQ@calendula>
 References: <20231114153150.406334-1-thaller@redhat.com>
- <20231114160903.409552-1-thaller@redhat.com>
- <20231115082427.GC14621@breakpoint.cc>
- <ZVSVPgRFv9tTF4yQ@calendula>
- <20231115100101.GA23742@breakpoint.cc>
- <ZVSX/lO7/0sOmHQS@calendula>
+         <20231114160903.409552-1-thaller@redhat.com>
+         <20231115082427.GC14621@breakpoint.cc> <ZVSVPgRFv9tTF4yQ@calendula>
+Autocrypt: addr=thaller@redhat.com; prefer-encrypt=mutual; keydata=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
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.50.0 (3.50.0-1.fc39) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZVSX/lO7/0sOmHQS@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> because I am currently figuring out how to detach pipapo support from
-> it without losing coverage.
+On Wed, 2023-11-15 at 10:54 +0100, Pablo Neira Ayuso wrote:
+> On Wed, Nov 15, 2023 at 09:24:27AM +0100, Florian Westphal wrote:
+> > Thomas Haller <thaller@redhat.com> wrote:
+> > > The rules after a successful test are good opportunity to test
+> > > `nft -j list ruleset` and `nft -j --check`. This quite possibly
+> > > touches
+> > > code paths that are not hit by other tests yet.
+> >=20
+> > This series looks good to me, I'll apply it in the next few hours
+> > if
+> > noone else takes any action by then.
+>=20
+> Just a question, patch 3 is missing in patchwork. I guess it is too
+> big.
 
-Is it worth the pain?  I'd probably lean towards skipping the test
-entirely, splitting it in two is possible but we'd end up with quite
-some duplicated scripting.
+
+Yes, it's not on the list, as it's too large. I CC-ed you and Florian
+on patch 2/6.
+
+You can also find it here:
+https://gitlab.freedesktop.org/thaller/nftables/-/commit/b0edc64d005510b8c3=
+db8a8ebe496a8296271bf4.patch
+
+>=20
+> My understanding is that this performs the json tests if nft comes
+> with
+> json support.
+
+right.
+
+>=20
+> I wanted to give this a run, description says a few tests are
+> failing.
+
+For tests that fail, the patch 2/6 does not add a `.json-nft` file.
+
+If you get any failure, that's wrong. Then the corresponding .json-nft
+should be excluded from patch 2/6.
+
+> Last time we talked it is chain binding support, then there is a good
+> number of tests that are going to fail (or there is a mechanism to
+> temporarily disable json tests for this without losing coverage?).
+
+If chain binding support is missing, then that is detected via the
+common mechanism (NFT_TEST_HAVE_chain_binding=3Dn) and the test will be
+marked as SKIPPED.
+
+SKIPPED tests don't get their .nft dump checked. The same for .json-nft
+files.
+
+(of course, it also honors NFT_TEST_HAVE_json=3Dn to skip the check).
+
+>=20
+> What is the current output from tests? I wanted to make this run
+> myself so I don't need to ask.
+
+it's the same as with .nft files.
+
+If the .nft/.json-nft dump does not match, the test fails with [DUMP
+FAIL]. As always, you can find the result data in /tmp.
+
+I find it most useful to run
+
+  grep --color=3Dalways ^ -a -R /tmp/nft-test.latest.*/ | less -R
+
+but whatever works for you.
+
+
+Also, the test wrapper will call `nft --check -f x.nft` and `nft -j --
+check -f x.json-nft` after tests. When those fail, you'll see [CHK
+DUMP].
+
+You can see that with:
+
+  DUMPGEN=3Dall ./tests/shell/run-tests.sh tests/shell/testcases/chains/001=
+1endless_jump_loop_1
+
+
+
+Thomas
+
