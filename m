@@ -2,27 +2,27 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 119B0C2BB3F
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 18:45:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C305CC072A2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 18:45:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229500AbjKOSpZ (ORCPT
+        id S229648AbjKOSp0 (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Nov 2023 13:45:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52060 "EHLO
+        Wed, 15 Nov 2023 13:45:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229648AbjKOSpY (ORCPT
+        with ESMTP id S229726AbjKOSp0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2023 13:45:24 -0500
+        Wed, 15 Nov 2023 13:45:26 -0500
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E73EDD5C;
-        Wed, 15 Nov 2023 10:45:20 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4D50DD6D;
+        Wed, 15 Nov 2023 10:45:22 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     netfilter-devel@vger.kernel.org
 Cc:     davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
         pabeni@redhat.com, edumazet@google.com, fw@strlen.de
-Subject: [PATCH net 2/6] netfilter: nf_conntrack_bridge: initialize err to 0
-Date:   Wed, 15 Nov 2023 19:45:10 +0100
-Message-Id: <20231115184514.8965-3-pablo@netfilter.org>
+Subject: [PATCH net 4/6] netfilter: nf_tables: bogus ENOENT when destroying element which does not exist
+Date:   Wed, 15 Nov 2023 19:45:12 +0100
+Message-Id: <20231115184514.8965-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231115184514.8965-1-pablo@netfilter.org>
 References: <20231115184514.8965-1-pablo@netfilter.org>
@@ -32,38 +32,39 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-From: Linkui Xiao <xiaolinkui@kylinos.cn>
+destroy element command bogusly reports ENOENT in case a set element
+does not exist. ENOENT errors are skipped, however, err is still set
+and propagated to userspace.
 
-K2CI reported a problem:
+ # nft destroy element ip raw BLACKLIST { 1.2.3.4 }
+ Error: Could not process rule: No such file or directory
+ destroy element ip raw BLACKLIST { 1.2.3.4 }
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-	consume_skb(skb);
-	return err;
-[nf_br_ip_fragment() error]  uninitialized symbol 'err'.
-
-err is not initialized, because returning 0 is expected, initialize err
-to 0.
-
-Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
-Reported-by: k2ci <kernel-bot@kylinos.cn>
-Signed-off-by: Linkui Xiao <xiaolinkui@kylinos.cn>
+Fixes: f80a612dd77c ("netfilter: nf_tables: add support to destroy operation")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/nf_conntrack_bridge.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index b5c406a6e765..abb090f94ed2 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -37,7 +37,7 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
- 	ktime_t tstamp = skb->tstamp;
- 	struct ip_frag_state state;
- 	struct iphdr *iph;
--	int err;
-+	int err = 0;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a761ee6796f6..debea1c67701 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7263,10 +7263,11 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
  
- 	/* for offloaded checksums cleanup checksum before fragmentation */
- 	if (skb->ip_summed == CHECKSUM_PARTIAL &&
+ 		if (err < 0) {
+ 			NL_SET_BAD_ATTR(extack, attr);
+-			break;
++			return err;
+ 		}
+ 	}
+-	return err;
++
++	return 0;
+ }
+ 
+ /*
 -- 
 2.30.2
 
