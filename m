@@ -2,53 +2,55 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76955C07548
-	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 10:31:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DE10C07548
+	for <netfilter-devel@archiver.kernel.org>; Wed, 15 Nov 2023 10:31:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234420AbjKOKbS (ORCPT
+        id S234427AbjKOKbb (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 15 Nov 2023 05:31:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43792 "EHLO
+        Wed, 15 Nov 2023 05:31:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234116AbjKOKbR (ORCPT
+        with ESMTP id S234116AbjKOKba (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2023 05:31:17 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77304C2
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 02:31:14 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1r3DAu-0006f4-Kb; Wed, 15 Nov 2023 11:31:12 +0100
-Date:   Wed, 15 Nov 2023 11:31:12 +0100
-From:   Florian Westphal <fw@strlen.de>
-To:     Pablo Neira Ayuso <pablo@netfilter.org>
-Cc:     Florian Westphal <fw@strlen.de>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v3 2/6] tests/shell: check and generate JSON dump
- files
-Message-ID: <20231115103112.GC23742@breakpoint.cc>
-References: <20231114153150.406334-1-thaller@redhat.com>
- <20231114160903.409552-1-thaller@redhat.com>
- <20231115082427.GC14621@breakpoint.cc>
- <ZVSVPgRFv9tTF4yQ@calendula>
- <20231115100101.GA23742@breakpoint.cc>
- <ZVSX/lO7/0sOmHQS@calendula>
- <20231115101020.GB23742@breakpoint.cc>
- <ZVScxgV0mWorg0PR@calendula>
+        Wed, 15 Nov 2023 05:31:30 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B982210F
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2023 02:31:27 -0800 (PST)
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
+To:     netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 5/4] tests: shell: skip sets/sets_with_ifnames if no pipapo backend is available
+Date:   Wed, 15 Nov 2023 11:31:23 +0100
+Message-Id: <20231115103123.178743-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZVScxgV0mWorg0PR@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I can skip it by now, that is easy, I was just trying not to reduce
-> coverage.
+Skip this test by now for older kernels until someone detaches the tests
+that require the pipapo set backend.
 
-Sure, I understand that, but OTOH I think there are limitations
-as to what we should provide for, in this case the work/benefit ratio
-is quite bad...
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+bonus patch on "more tests/shell updates to run on 5.4 kernels" series
+
+ tests/shell/testcases/sets/sets_with_ifnames | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/tests/shell/testcases/sets/sets_with_ifnames b/tests/shell/testcases/sets/sets_with_ifnames
+index 9531c8566631..a4bc5072938e 100755
+--- a/tests/shell/testcases/sets/sets_with_ifnames
++++ b/tests/shell/testcases/sets/sets_with_ifnames
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_pipapo)
++
+ dumpfile=$(dirname $0)/dumps/$(basename $0).nft
+ 
+ [ -z "$NFT" ] && exit 111
+-- 
+2.30.2
+
