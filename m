@@ -2,32 +2,33 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 841C4C197A0
-	for <netfilter-devel@archiver.kernel.org>; Thu, 16 Nov 2023 23:02:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8306C197A0
+	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Nov 2023 08:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345563AbjKPXCu (ORCPT
+        id S229599AbjKQI1x (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Thu, 16 Nov 2023 18:02:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48462 "EHLO
+        Fri, 17 Nov 2023 03:27:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345551AbjKPXCu (ORCPT
+        with ESMTP id S229952AbjKQI1w (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Nov 2023 18:02:50 -0500
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA30DAD
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2023 15:02:46 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-        (envelope-from <fw@strlen.de>)
-        id 1r3lNl-00018A-0E; Fri, 17 Nov 2023 00:02:45 +0100
-Date:   Fri, 17 Nov 2023 00:02:44 +0100
-From:   Florian Westphal <fw@strlen.de>
+        Fri, 17 Nov 2023 03:27:52 -0500
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A70C130
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 00:27:48 -0800 (PST)
+Received: from [78.30.43.141] (port=59656 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1r3uCV-003tkb-DY; Fri, 17 Nov 2023 09:27:45 +0100
+Date:   Fri, 17 Nov 2023 09:27:42 +0100
+From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Florian Westphal <fw@strlen.de>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Thomas Haller <thaller@redhat.com>,
+Cc:     Thomas Haller <thaller@redhat.com>,
         NetFilter <netfilter-devel@vger.kernel.org>
 Subject: Re: [PATCH nft v3 2/6] tests/shell: check and generate JSON dump
  files
-Message-ID: <20231116230244.GB1206@breakpoint.cc>
+Message-ID: <ZVcj/vvZB+EoRUoA@calendula>
 References: <20231114160903.409552-1-thaller@redhat.com>
  <20231115082427.GC14621@breakpoint.cc>
  <ZVSVPgRFv9tTF4yQ@calendula>
@@ -39,15 +40,14 @@ References: <20231114160903.409552-1-thaller@redhat.com>
  <ZVY++RiqayXOZSBQ@calendula>
  <20231116230024.GA1206@breakpoint.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 In-Reply-To: <20231116230024.GA1206@breakpoint.cc>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
+On Fri, Nov 17, 2023 at 12:00:24AM +0100, Florian Westphal wrote:
 > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 > > Hi Thomas,
 > > 
@@ -75,7 +75,9 @@ Florian Westphal <fw@strlen.de> wrote:
 > > It seems that handles are a problem in this diff.
 > 
 > Are you running tests with -s option?
-> 
+
+This is plain run with no options.
+
 > In that case, modules are removed after each test.
 > 
 > I suspect its because we can then hit -EAGAIN mid-transaction
@@ -95,9 +97,11 @@ Florian Westphal <fw@strlen.de> wrote:
 > 
 > What do you think?
 
-Oh, wait, on older kernels the entire handle counter is global,
-so "unshare -n" has no effect on it.
+I don't think this needs a kernel fix.
 
-But the rmmod scenario explained above happens as well, this
-"breaks" json dumps on centos stream 9, which does have the
-pernet handle generator fix backported.
+The kernel is free to allocate handle, the guarantee is that they are
+unique. How this handles are allocated could change in the future.
+There is no way userspace can forecast how handles are allocated.
+
+Phil made some code to skip comparing handles in tests/py that I
+remember to deal with this.
