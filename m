@@ -2,242 +2,83 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A6EC54FB9
-	for <netfilter-devel@archiver.kernel.org>; Fri, 17 Nov 2023 22:31:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7318AC072A2
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Nov 2023 00:07:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235135AbjKQWbC (ORCPT
+        id S232504AbjKRAHN (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Nov 2023 17:31:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58904 "EHLO
+        Fri, 17 Nov 2023 19:07:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235024AbjKQWbA (ORCPT
+        with ESMTP id S229737AbjKRAHM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Nov 2023 17:31:00 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 624B91994
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 14:30:38 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1r47M9-0001Yd-Vd; Fri, 17 Nov 2023 23:30:34 +0100
-Date:   Fri, 17 Nov 2023 23:30:33 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft v3 2/6] tests/shell: check and generate JSON dump
- files
-Message-ID: <ZVfpicuyee/GF9B/@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <ZVS530oqzSu/cgQS@calendula>
- <7f0da90a92e339594c9a86a6eda6d0be2df6155b.camel@redhat.com>
- <ZVY++RiqayXOZSBQ@calendula>
- <20231116230024.GA1206@breakpoint.cc>
- <797cf41472ad1481cb3cc6e4abdbd0853d4b253c.camel@redhat.com>
- <ZVeWh0xZA30H/tVM@calendula>
- <ZVebe9GK7VHbc4Rm@orbyte.nwl.cc>
- <8fb19cee0ad20e5cf13318b9449310ace75622ee.camel@redhat.com>
- <ZVeesPraB1QucCEG@orbyte.nwl.cc>
- <859777cb74f7edb825c71dd1d01ae976c8416551.camel@redhat.com>
+        Fri, 17 Nov 2023 19:07:12 -0500
+Received: from mail-pf1-x430.google.com (mail-pf1-x430.google.com [IPv6:2607:f8b0:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3007D7E
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 16:07:08 -0800 (PST)
+Received: by mail-pf1-x430.google.com with SMTP id d2e1a72fcca58-6bd73395bceso1945238b3a.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 16:07:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1700266028; x=1700870828; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=cC71JIpv7ejrgGLyJtHWfW1MIZcnMyB0YlCyayKGi18=;
+        b=VBGPCsD9KSbwd1ontkdrJzWhLcZBfXr/3E5BVVKb2Yjg5kDpFebIAlBBP2G8eIc6NH
+         8Pvo9xJYObS2oOQ2mLeDogYoDvspSsIYcycWNvYkpwpx2hKv+UEiBes+coFCfEeIaa0i
+         t+oiXeSYMVdBstcHLt/1VwWMxPndr+Vjp9i3a9DBwg0j0jdiwVJFZKqe6veW1KpL9IGH
+         9Dzkj1GwhjV+S+1RzRm3bqSOPhGargIQN0SMmXw8oC1C8iMz0SfRri5/4jy+BpLk4xF6
+         gEWcz+sDmVodu1VElYrkNcg+/CjtRQYQPMh4E2Ecqa1KanHhhQVIMQUj5K4r7CL1mRts
+         JV9A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700266028; x=1700870828;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cC71JIpv7ejrgGLyJtHWfW1MIZcnMyB0YlCyayKGi18=;
+        b=KLQL4FRvSL8wpid3EWr/ndTHrfQR4DouX1jmmzAFOF0FEBASTsTW8JzergXYqNsF9j
+         Kmv4sTMJIosxfRV3fU74DHOYyC6czFREIrJY5JjNhi0eBhcO2YRTrGFEbCRiXwWsnp67
+         MdDKk0R4DcQ5d2qX+/0ABCGM56GurayCSePYxlwziC3wvr6f6FXm+KEzOpsdQ4kqn/vG
+         Cq2UWznq8vYHJfneLZkjbsS1Fw5FemD08lj0cC0J10tOICItaPu3/5iraAyotcsYt7uy
+         +errBAMrIQSnkkOSRwsjwcZTbN6cY9OI+jpHbKwzlQSOH5FNIackyJeAbdBqdtgxBvHX
+         cg4Q==
+X-Gm-Message-State: AOJu0YxztAWG1z9sU68h+mmIbQfLN248QqgdjnuF3001Wfi4S8GM+DLm
+        PS5FCaI3gNFMmsn+Y1hDoe7I6YrYsIo=
+X-Google-Smtp-Source: AGHT+IHD2LoD7+PR+WJ7uthIhK3x895Dqzhm0Gq5edDTsSBzAvsUHgJpJ9unHwRAZEscwFfcjz353w==
+X-Received: by 2002:a05:6a00:1d84:b0:68c:44ed:fb6 with SMTP id z4-20020a056a001d8400b0068c44ed0fb6mr876329pfw.16.1700266028031;
+        Fri, 17 Nov 2023 16:07:08 -0800 (PST)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id q20-20020a62e114000000b006c003d9897bsm1936979pfh.138.2023.11.17.16.07.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Nov 2023 16:07:07 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+To:     pablo@netfilter.org
+Cc:     netfilter-devel@vger.kernel.org
+Subject: [PATCH libnetfilter_queue 0/1] libnfnetlink dependency elimination
+Date:   Sat, 18 Nov 2023 11:07:01 +1100
+Message-Id: <20231118000702.9202-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <859777cb74f7edb825c71dd1d01ae976c8416551.camel@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 17, 2023 at 06:23:35PM +0100, Thomas Haller wrote:
-> On Fri, 2023-11-17 at 18:11 +0100, Phil Sutter wrote:
-> > On Fri, Nov 17, 2023 at 06:06:16PM +0100, Thomas Haller wrote:
-> > > On Fri, 2023-11-17 at 17:57 +0100, Phil Sutter wrote:
-> > > > On Fri, Nov 17, 2023 at 05:36:23PM +0100, Pablo Neira Ayuso
-> > > > wrote:
-> > > > > On Fri, Nov 17, 2023 at 05:16:02PM +0100, Thomas Haller wrote:
-> > > > > > On Fri, 2023-11-17 at 00:00 +0100, Florian Westphal wrote:
-> > > > > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > > > > > Hi Thomas,
-> > > > > > > > 
-> > > > > > > > On Wed, Nov 15, 2023 at 01:36:40PM +0100, Thomas Haller
-> > > > > > > > wrote:
-> > > > > > > > > On Wed, 2023-11-15 at 13:30 +0100, Pablo Neira Ayuso
-> > > > > > > > > wrote:
-> > > > > > > > [...]
-> > > > > > > > > > I see _lots_ of DUMP FAIL with kernel 5.4
-> > > > > > > > > 
-> > > > > > > > > Hi,
-> > > > > > > > > 
-> > > > > > > > > Could you provide more details?
-> > > > > > > > > 
-> > > > > > > > > For example,
-> > > > > > > > > 
-> > > > > > > > >     make -j && ./tests/shell/run-tests.sh
-> > > > > > > > > tests/shell/testcases/include/0007glob_double_0 -x
-> > > > > > > > >     grep ^ -a -R /tmp/nft-test.latest.*/
-> > > > > > > > 
-> > > > > > > > # cat [...]/ruleset-diff.json
-> > > > > > > > --- testcases/include/dumps/0007glob_double_0.json-nft 
-> > > > > > > > 2023-
-> > > > > > > > 11-15
-> > > > > > > > 13:27:20.272084254 +0100
-> > > > > > > > +++ /tmp/nft-test.20231116-170617.584.lrZzMy/test-
-> > > > > > > > testcases-
-> > > > > > > > include-0007glob_double_0.1/ruleset-after.json      2023-
-> > > > > > > > 11-
-> > > > > > > > 16
-> > > > > > > > 17:06:18.332535411 +0100
-> > > > > > > > @@ -1 +1 @@
-> > > > > > > > -{"nftables": [{"metainfo": {"version": "VERSION",
-> > > > > > > > "release_name":
-> > > > > > > > "RELEASE_NAME", "json_schema_version": 1}}, {"table":
-> > > > > > > > {"family":
-> > > > > > > > "ip", "name": "x", "handle": 1}}, {"table": {"family":
-> > > > > > > > "ip",
-> > > > > > > > "name": "y", "handle": 2}}]}
-> > > > > > > > +{"nftables": [{"metainfo": {"version": "VERSION",
-> > > > > > > > "release_name":
-> > > > > > > > "RELEASE_NAME", "json_schema_version": 1}}, {"table":
-> > > > > > > > {"family":
-> > > > > > > > "ip", "name": "x", "handle": 158}}, {"table": {"family":
-> > > > > > > > "ip",
-> > > > > > > > "name": "y", "handle": 159}}]}
-> > > > > > > > 
-> > > > > > > > It seems that handles are a problem in this diff.
-> > > > > > > 
-> > > > > > > Are you running tests with -s option?
-> > > > > > > 
-> > > > > > > In that case, modules are removed after each test.
-> > > > > > > 
-> > > > > > > I suspect its because we can then hit -EAGAIN mid-
-> > > > > > > transaction
-> > > > > > > because module is missing (again), then replay logic does
-> > > > > > > its
-> > > > > > > thing.
-> > > > > > > 
-> > > > > > > But the handle generator isn't transaction aware,
-> > > > > > > so it has advanced vs. the aborted partial transaction.
-> > > > > > 
-> > > > > > > I'm not sure what to do here.
-> > > > > > 
-> > > > > > a combination of:
-> > > > > > 
-> > > > > > a) make an effort, that kernel behavior is consistent and
-> > > > > > reproducible.
-> > > > > > Stable output seems important to me, and the automatic
-> > > > > > loading of
-> > > > > > a
-> > > > > > kernel module should not make a difference. This is IMO a
-> > > > > > bug.
-> > > > > 
-> > > > > This is not a bug in the kernel. The kernel guarantees that the
-> > > > > handle
-> > > > > is unique, but the handle allocation strategy is up to the
-> > > > > kernel.
-> > > > > Userspace cannot forecast what handle will get, such thing
-> > > > > might
-> > > > > lead
-> > > > > to easy to break assumptions from userspace.
-> > > > > 
-> > > > > > b) let `nft -j list ruleset` honor (the lack of) `--handle`
-> > > > > > option and
-> > > > > > not print those handles. That bugfix would change behavior,
-> > > > > > so
-> > > > > > maybe
-> > > > > > instead add a "--no-handle" option for `nft -j` dumps.
-> > > > 
-> > > > 
-> > > > > 
-> > > > > Will honoring -a/--handle break firewalld? I think it is the
-> > > > > main
-> > > > > user
-> > > > > of the JSON API. That might help disentangle if this makes
-> > > > > sense or
-> > > > > not and what the chances of breaking third party applications
-> > > > > are.
-> > > > > 
-> > > > > I'd prefer not to see a --no-handle that will only work for
-> > > > > JSON
-> > > > > and
-> > > > > that is only useful for this test infrastructure (noone else
-> > > > > asked
-> > > > > for
-> > > > > this).
-> > > > > 
-> > > > > > c) sanitize the output with the sed command (my other mail).
-> > > > > > 
-> > > > > > This also means, that the .json-nft dumps won't work, if you
-> > > > > > run
-> > > > > > without `unshare`. IMO, the mode without unshare should not
-> > > > > > be
-> > > > > > supported anymore. But if it's deemed important, then it
-> > > > > > requires
-> > > > > > b) or
-> > > > > > c) or detect the case and skip the diffs with .json-nft.
-> > > > 
-> > > > What is the problem without unshare? Looking at your patch, it
-> > > > seems
-> > > > possible to drop the handle attributes in json-sanitize-
-> > > > ruleset.sh.
-> > > 
-> > > Yes, (b) would suffice. I said "or" :)
-> > > 
-> > > No further problem, but without-unshare seems not a useful thing to
-> > > support. The test-run takes significantly longer, interferes with
-> > > the
-> > > caller's netns and requires CAP_NET_ADMIN.
-> > 
-> > No, I was wondering why with option (c) "This also means, that the
-> > .json-nft dumps won't work, if you run without `unshare`."
-> > 
-> > Because I vote for that option. ;)
-> 
-> Yes, sorry. I got confused with my own numbering :)
-> 
-> I meant also c)
-> 
-> 
-> > > > 
-> > > > > a) is no-go (kernel update to make test infrastructure or to
-> > > > > allow
-> > > > > userspace application to make fragile assumptions on how
-> > > > > handles
-> > > > > are
-> > > > > allocated is not correct).
-> > > > > 
-> > > > > b) needs to evaluated, you maintain firewalld, let us know.
-> > > > 
-> > > > Given the inherent importance of the handle value for ruleset
-> > > > manipulations, I assume *any* application will need to be updated
-> > > > to
-> > > > pass --handle (or the libnftables-equivalent) to remain
-> > > > functional.
-> > > 
-> > > Right. So a "--no-handle" / NFT_CTX_OUTPUT_NO_HANDLE flag for JSON
-> > > output?
-> > 
-> > Should not be needed. IIUC, the test infrastructure you're about to
-> > introduce sanitizes the JSON output already anyway, right?
-> 
-> Right. c) alone may very well suffice.
-> 
-> I just sent a patch to that amount.
-> 
-> 
-> I still think that `nft -j` ignoring the lack of "--no-handle" /
-> NFT_CTX_OUTPUT_NO_HANDLE is a bug. At the very last a documentation
-> bug.
+Hi Pablo,
 
-It is per design. Same with --numeric. JSON formatting is meant for
-programmatic consumption, no point in increasing readability. I don't
-see a reason why one would not want the handle attribute included in
-dumps apart from your use-case and there is a solution at hand. See for
-instance how nft-test.py strips the handle attribute when comparing JSON
-output against the record or creating *.json.got files for missing
-records.
+This is the next one for parking as RFC. LMK if I should leave nfq_errno
+(would only be set in 1 place now).
 
-Cheers, Phil
+Cheers ... Duncan.
+
+Duncan Roe (1):
+  Convert nfq_create_queue(), nfq_bind_pf() & nfq_unbind_pf() to use
+    libmnl
+
+ .../libnetfilter_queue/libnetfilter_queue.h   |  4 +-
+ src/libnetfilter_queue.c                      | 37 ++++++++-----------
+ 2 files changed, 17 insertions(+), 24 deletions(-)
+
+-- 
+2.35.8
+
