@@ -2,87 +2,130 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E95A4C072A2
-	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Nov 2023 02:36:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8619DC47071
+	for <netfilter-devel@archiver.kernel.org>; Sat, 18 Nov 2023 04:12:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232181AbjKRCgf (ORCPT
+        id S229789AbjKREMG (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Fri, 17 Nov 2023 21:36:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55422 "EHLO
+        Fri, 17 Nov 2023 23:12:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230036AbjKRCge (ORCPT
+        with ESMTP id S229737AbjKREMF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Nov 2023 21:36:34 -0500
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E5E6A7
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 18:36:30 -0800 (PST)
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-        (envelope-from <n0-1@orbyte.nwl.cc>)
-        id 1r4BC8-0004u0-AQ; Sat, 18 Nov 2023 03:36:28 +0100
-Date:   Sat, 18 Nov 2023 03:36:28 +0100
-From:   Phil Sutter <phil@nwl.cc>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/1] tests/shell: sanitize "handle" in JSON output
-Message-ID: <ZVgjLFGvHqoXXvjd@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-        Thomas Haller <thaller@redhat.com>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-References: <20231117171948.897229-1-thaller@redhat.com>
+        Fri, 17 Nov 2023 23:12:05 -0500
+Received: from mail-oo1-xc29.google.com (mail-oo1-xc29.google.com [IPv6:2607:f8b0:4864:20::c29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCE3AD7E
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 20:12:00 -0800 (PST)
+Received: by mail-oo1-xc29.google.com with SMTP id 006d021491bc7-5842ea6f4d5so1547704eaf.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Nov 2023 20:12:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1700280720; x=1700885520; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=inaERidEz7oV8pGDwmqIhajLVxcELiJ34CvxX2f/XWM=;
+        b=iYlPK27KXj5M9U91vkWdSqyRxO/+ga+x4YMesoV8LYjBaeXR3CXjqljkL/MEdGpoDY
+         tHLXmNV/u14KofMGfM1duQRd8Ziv4dQVhS0W9kT1w0fEAfeIF2Ujj0j85Apabk5GiUJp
+         2JwzS6IGgEKTgr2Vi14x+nJRqIowrradkR1iOJ1vak64Qr77Fdi1v9qEuz8PCgfd+VbJ
+         3Sv9+d5Vhh4dGpKVssDQMxQ83bj6CocASeNxcpIe2MzDqlhdzgRQOzESaV/UEHJTunH9
+         mbB55uHi8Lv0HjtH9QFhN+3IjfdTtn2b08VfsoMkapI5t/0hFOnDmx9LEdiNXWJgXWkH
+         Y8gg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700280720; x=1700885520;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=inaERidEz7oV8pGDwmqIhajLVxcELiJ34CvxX2f/XWM=;
+        b=jR5/ggfYpd0BcSYARDtxscIj9bX2hEHL0oN5zOyt/9RPLa8Fs4WerwmycEChFg/aT8
+         yiLWSxLreUe7oadoe5omVdBmNl0n8iSG4AFizjLRyA8ukP7qLRFy75Ur3ZrTWcuXbVsM
+         wohxnzZR0DbQjelyYRDs8UYBRAZGRIFr0c0rcBjTc0zqJrFbWjNrNRk+10mCKeirCL9a
+         PNDASLvh9dBnDkx4Df+vKP4RsQGBxhyttLeE4+Re2VRHSDKSQkvCmwuo+0e5j2psprNG
+         dxW0gEZIQppbgx8/KCEYrBR+NdCrXjcxjbfBnOZMfC0F+VxHiCzV1F+6UQwAQAI+xwO1
+         pxmw==
+X-Gm-Message-State: AOJu0YzmJ4rjNt89p5OsLgPE3+ECVjf2W6J1/Dx1nR6PxBbZWzjC0GVp
+        /FQhyr8EmvUZ2FgqIDaHJnyagpS2ED8=
+X-Google-Smtp-Source: AGHT+IEeamOrTe+KdeRmxRAF4Bagfw7v61HRj4WFyHQgKAmzNzNGS9Zw/vnk337Pb/CYZpAFvaHTuQ==
+X-Received: by 2002:a05:6358:7f0d:b0:16b:c64b:5dad with SMTP id p13-20020a0563587f0d00b0016bc64b5dadmr2008440rwn.10.1700280719918;
+        Fri, 17 Nov 2023 20:11:59 -0800 (PST)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id z10-20020a630a4a000000b005bdbe9a597fsm2184976pgk.57.2023.11.17.20.11.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Nov 2023 20:11:59 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From:   Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date:   Sat, 18 Nov 2023 15:11:56 +1100
+To:     Pablo Neira Ayuso <pablo@netfilter.org>
+Cc:     Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v3 1/1] src: Add nfq_nlmsg_put2() -
+ user specifies header flags
+Message-ID: <ZVg5jArFjdXUuzPN@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <ZVSkE1fzi68CN+uo@calendula>
+ <20231115113011.6620-1-duncan_roe@optusnet.com.au>
+ <ZVSuTwfVBEsCcthA@calendula>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20231117171948.897229-1-thaller@redhat.com>
+In-Reply-To: <ZVSuTwfVBEsCcthA@calendula>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Fri, Nov 17, 2023 at 06:18:45PM +0100, Thomas Haller wrote:
-> The "handle" in JSON output is not stable. Sanitize/normalizeit to 1216.
-> 
-> The number is chosen arbitrarily, but it's somewhat unique in the code
-> base. So when you see it, you may guess it originates from sanitization.
+Hi Pablo,
 
-Valid handles are monotonic starting at 1. Using 0 as a replacement is
-too simple?
+Can we please sort out just what you want before I send nfq_nlmsg_put2 v4?
 
-> Signed-off-by: Thomas Haller <thaller@redhat.com>
-> ---
-> Note that only a few .json-nft files are adjusted, because otherwise the
-> patch is too large. Before applying, you need to adjust them all, by
-> running `./tests/shell/run-tests.sh -g`.
+And, where applicable, would you like the same changes made to nfq_nlmsg_put?
 
-Just put the bulk change into a second patch?
+On Wed, Nov 15, 2023 at 12:41:03PM +0100, Pablo Neira Ayuso wrote:
+> [...]
+> > + * nfq_nlmsg_put2 - Convert memory buffer into a Netlink buffer with
+> > + * user-specified flags
+>
+> This is setting up a netlink header in the memory buffer.
+propose
+> > + * nfq_nlmsg_put2 - Set up a netlink header with user-specified flags
+> > + *                  in a memory buffer
+> [...]
+> > + * \param flags additional (to NLM_F_REQUEST) flags to put in message header,
+> > + *              commonly NLM_F_ACK
+>
+> remove NLM_F_REQUEST here.
+propose
+> > + * \param flags flags to put in message header, commonly NLM_F_ACK
+> [...]
+> > + * \returns Pointer to netlink message
+>
+>                Pointer to netlink header
+propose
+> > + * \returns Pointer to netlink header
+> [...]
+> > + * Use NLM_F_ACK before performing an action that might fail, e.g.
+>
+> Failures are always reported.
+>
+> if you set NLM_F_ACK, then you always get an acknowledgment from the
+> kernel, either 0 to report success or negative to report failure.
+>
+> if you do not set NLM_F_ACK, then only failures are reported by the
+> kernel.
+>
+> > + * attempt to configure NFQA_CFG_F_SECCTX on a system not runnine SELinux.
+> > + * \n
+> > + * NLM_F_ACK instructs the kernel to send a message in response
+> > + * to a successful command.
+>
+> As I said above, this is not accurate.
+> > + * The kernel always sends a message in response to a failed command.
+I dispute that my description was inaccurate, but admit it could be clearer,
+maybe if I change the order and elaborate a bit.
+propose
+> > + * The kernel always sends a message in response to a failed command.
+> > + * NLM_F_ACK instructs the kernel to also send a message in response
+> > + * to a successful command. This ensures a following read() will not block.
+> [...]
 
-[...]
-> diff --git a/tests/shell/helpers/json-sanitize-ruleset.sh b/tests/shell/helpers/json-sanitize-ruleset.sh
-> index 270a6107e0aa..3b66adabf055 100755
-> --- a/tests/shell/helpers/json-sanitize-ruleset.sh
-> +++ b/tests/shell/helpers/json-sanitize-ruleset.sh
-> @@ -6,7 +6,14 @@ die() {
->  }
->  
->  do_sed() {
-> -	sed '1s/\({"nftables": \[{"metainfo": {"version": "\)[0-9.]\+\(", "release_name": "\)[^"]\+\(", "\)/\1VERSION\2RELEASE_NAME\3/' "$@"
-> +	# Normalize the "version"/"release_name", otherwise we have to regenerate the
-> +	# JSON output upon new release.
-> +	#
-> +	# Also, "handle" are not stable. Normalize them to 1216 (arbitrarily chosen).
-> +	sed \
-> +		-e '1s/\({"nftables": \[{"metainfo": {"version": "\)[0-9.]\+\(", "release_name": "\)[^"]\+\(", "\)/\1VERSION\2RELEASE_NAME\3/' \
-> +		-e '1s/"handle": [0-9]\+\>/"handle": 1216/g' \
-> +		"$@"
->  }
-
-Why not just drop the whole metainfo object? A dedicated test could
-still ensure its existence.
-
-Also, scoping these replacements to line 1 is funny with single line
-input. Worse is identifying the change in the resulting diff. Maybe
-write a helper in python which lets you more comfortably sanitize input,
-sort attributes by key and output pretty-printed?
-
-In general, the long lines in your scripts make them quite hard to read.
-Any particular reason why you don't stick to the 80 columns maxim?
-
-Cheers, Phil
+Cheers ... Duncan.
