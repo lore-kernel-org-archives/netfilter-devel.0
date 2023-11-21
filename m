@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D058EC61D94
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 12:28:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65332C61D94
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 12:28:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234690AbjKUM2m (ORCPT
+        id S234746AbjKUM2q (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Nov 2023 07:28:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34002 "EHLO
+        Tue, 21 Nov 2023 07:28:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230428AbjKUM2l (ORCPT
+        with ESMTP id S230428AbjKUM2q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Nov 2023 07:28:41 -0500
+        Tue, 21 Nov 2023 07:28:46 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A81D92;
-        Tue, 21 Nov 2023 04:28:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B457197;
+        Tue, 21 Nov 2023 04:28:42 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1r5Prp-0005C6-62; Tue, 21 Nov 2023 13:28:37 +0100
+        id 1r5Prt-0005CT-7q; Tue, 21 Nov 2023 13:28:41 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     lorenzo@kernel.org, <netdev@vger.kernel.org>,
         Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/8] netfilter: nf_flowtable: delay flowtable release a second time
-Date:   Tue, 21 Nov 2023 13:27:47 +0100
-Message-ID: <20231121122800.13521-5-fw@strlen.de>
+Subject: [PATCH nf-next 5/8] netfilter: nf_tables: reject flowtable hw offload for same device
+Date:   Tue, 21 Nov 2023 13:27:48 +0100
+Message-ID: <20231121122800.13521-6-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231121122800.13521-1-fw@strlen.de>
 References: <20231121122800.13521-1-fw@strlen.de>
@@ -35,79 +35,102 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-At this time the frontends (tc, nftables) ensure that the nf_flowtable
-is removed after the frontend hooks are gone (tc action, netfilter hooks).
+The existing check is not sufficient, as it only considers flowtables
+within the same table.
 
-In both cases the nf_flowtable can be safely free'd as no packets will
-be traversing these hooks anymore.
+In case of HW offload, we need check all flowtables that exist in
+the same net namespace.
 
-However, the upcoming nf_flowtable kfunc for XDP will still have a
-pointer to the nf_flowtable in its own net_device -> nf_flowtable
-mapping.
+We can skip flowtables that are slated for removal (not active
+in next gen).
 
-This mapping is removed via the flow_block UNBIND callback.
+Ideally this check would supersede the existing one, but this is
+probably too risky and might prevent existing configs from working.
 
-This callback however comes after an rcu grace period, not before.
+As is, you can do all of the following:
 
-Therefore defer the real freeing via call_rcu so that no kfunc can
-possibly be using the nf_flowtable (or flow entries within) anymore.
+table ip t { flowtable f { devices = { lo  } } }
+table ip6 t { flowtable f { devices = { lo  } } }
+table inet t { flowtable f { devices = { lo  } } }
+
+... but IMO this should not be possible in the first place.
+
+Disable this for HW offload.
+
+This is related to XDP flowtable work, the idea is to keep a small
+hashtable that has a 'struct net_device := struct nf_flowtable' map.
+
+This mapping must be unique.  The idea is to add a "XDP OFFLOAD"
+flag to nftables api and then have this function run for 'xdp offload'
+case too.
+
+This is useful, because it would permit the "xdp offload" hashtable
+to tolerate duplicate keys -- they would only occur during transactional
+updates, e.g. a flush of the current table combined with atomic reload.
+
+Without this change, the nf_flowtable core cannot tell when flowtable
+is a real duplicate, or just a temporary artefact of the
+two-phase-commit protocol (i.e., the clashing entry is queued for removal).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_flow_table.h |  2 ++
- net/netfilter/nf_flow_table_core.c    | 18 ++++++++++++++----
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 36 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index d365eabd4a3c..6598ac455d17 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -83,6 +83,8 @@ struct nf_flowtable {
- 	struct flow_block		flow_block;
- 	struct rw_semaphore		flow_block_lock; /* Guards flow_block */
- 	possible_net_t			net;
-+
-+	struct rcu_work			rwork;
- };
- 
- static inline bool nf_flowtable_hw_offload(struct nf_flowtable *flowtable)
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 70cc4e0d5ac9..cae27f8f0f68 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -599,11 +599,11 @@ void nf_flow_table_cleanup(struct net_device *dev)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index e779e275d694..7437b997ca7e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -8189,6 +8189,37 @@ static void nft_unregister_flowtable_net_hooks(struct net *net,
+ 	__nft_unregister_flowtable_net_hooks(net, hook_list, false);
  }
- EXPORT_SYMBOL_GPL(nf_flow_table_cleanup);
  
--void nf_flow_table_free(struct nf_flowtable *flow_table)
-+static void nf_flow_table_free_rwork(struct work_struct *work)
- {
--	mutex_lock(&flowtable_lock);
--	list_del(&flow_table->list);
--	mutex_unlock(&flowtable_lock);
-+	struct nf_flowtable *flow_table;
-+
-+	flow_table = container_of(to_rcu_work(work), struct nf_flowtable, rwork);
- 
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_offload_flush(flow_table);
-@@ -615,6 +615,16 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	module_put(flow_table->type->owner);
- 	kfree(flow_table);
- }
-+
-+void nf_flow_table_free(struct nf_flowtable *flow_table)
++static bool nft_flowtable_offload_clash(struct net *net,
++					const struct nft_hook *hook,
++					struct nft_flowtable *flowtable)
 +{
-+	mutex_lock(&flowtable_lock);
-+	list_del(&flow_table->list);
-+	mutex_unlock(&flowtable_lock);
++	const struct nftables_pernet *nft_net;
++	struct nft_flowtable *existing_ft;
++	const struct nft_table *table;
 +
-+	INIT_RCU_WORK(&flow_table->rwork, nf_flow_table_free_rwork);
-+	queue_rcu_work(system_power_efficient_wq, &flow_table->rwork);
++	/* No offload requested, no need to validate */
++	if (!nf_flowtable_hw_offload(flowtable->ft))
++		return false;
++
++	nft_net = nft_pernet(net);
++
++	list_for_each_entry(table, &nft_net->tables, list) {
++		list_for_each_entry(existing_ft, &table->flowtables, list) {
++			const struct nft_hook *hook2;
++
++			if (!nft_is_active_next(net, existing_ft))
++				continue;
++
++			list_for_each_entry(hook2, &existing_ft->hook_list, list) {
++				if (hook->ops.dev == hook2->ops.dev)
++					return true;
++			}
++		}
++	}
++
++	return false;
 +}
- EXPORT_SYMBOL_GPL(nf_flow_table_free);
++
+ static int nft_register_flowtable_net_hooks(struct net *net,
+ 					    struct nft_table *table,
+ 					    struct list_head *hook_list,
+@@ -8199,6 +8230,11 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 	int err, i = 0;
  
- static int nf_flow_table_init_net(struct net *net)
+ 	list_for_each_entry(hook, hook_list, list) {
++		if (nft_flowtable_offload_clash(net, hook, flowtable)) {
++			err = -EEXIST;
++			goto err_unregister_net_hooks;
++		}
++
+ 		list_for_each_entry(ft, &table->flowtables, list) {
+ 			if (!nft_is_active_next(net, ft))
+ 				continue;
 -- 
 2.41.0
 
