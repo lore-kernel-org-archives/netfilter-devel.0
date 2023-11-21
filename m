@@ -2,30 +2,30 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0259FC61D94
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 12:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D058EC61D94
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 12:28:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234697AbjKUM2i (ORCPT
+        id S234690AbjKUM2m (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Nov 2023 07:28:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33978 "EHLO
+        Tue, 21 Nov 2023 07:28:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230428AbjKUM2i (ORCPT
+        with ESMTP id S230428AbjKUM2l (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Nov 2023 07:28:38 -0500
+        Tue, 21 Nov 2023 07:28:41 -0500
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7111B126;
-        Tue, 21 Nov 2023 04:28:34 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A81D92;
+        Tue, 21 Nov 2023 04:28:38 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
         (envelope-from <fw@breakpoint.cc>)
-        id 1r5Prl-0005Bo-4H; Tue, 21 Nov 2023 13:28:33 +0100
+        id 1r5Prp-0005C6-62; Tue, 21 Nov 2023 13:28:37 +0100
 From:   Florian Westphal <fw@strlen.de>
 To:     <netfilter-devel@vger.kernel.org>
 Cc:     lorenzo@kernel.org, <netdev@vger.kernel.org>,
         Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/8] netfilter: nf_flowtable: make free a real free function
-Date:   Tue, 21 Nov 2023 13:27:46 +0100
-Message-ID: <20231121122800.13521-4-fw@strlen.de>
+Subject: [PATCH nf-next 4/8] netfilter: nf_flowtable: delay flowtable release a second time
+Date:   Tue, 21 Nov 2023 13:27:47 +0100
+Message-ID: <20231121122800.13521-5-fw@strlen.de>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231121122800.13521-1-fw@strlen.de>
 References: <20231121122800.13521-1-fw@strlen.de>
@@ -35,126 +35,79 @@ Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The nf_flowtable 'free' function only frees the internal data
-structures, e.g. the rhashtable.
+At this time the frontends (tc, nftables) ensure that the nf_flowtable
+is removed after the frontend hooks are gone (tc action, netfilter hooks).
 
-Make it so it releases the entire nf_flowtable.
+In both cases the nf_flowtable can be safely free'd as no packets will
+be traversing these hooks anymore.
 
-This wasn't done before because the nf_flowtable structure used to be
-embedded into another frontend-representation struct.
+However, the upcoming nf_flowtable kfunc for XDP will still have a
+pointer to the nf_flowtable in its own net_device -> nf_flowtable
+mapping.
 
-This is no longer the case, nf_flowtable gets allocated by ->create(),
-and therefore should also be released via ->free().
+This mapping is removed via the flow_block UNBIND callback.
 
-This also moves the module_put call into the nf_flowtable core.
+This callback however comes after an rcu grace period, not before.
 
-A followup patch will delay the actual freeing until another
-rcu grace period has elapsed.
+Therefore defer the real freeing via call_rcu so that no kfunc can
+possibly be using the nf_flowtable (or flow entries within) anymore.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_flow_table_core.c |  2 ++
- net/netfilter/nf_tables_api.c      | 12 ++++--------
- net/sched/act_ct.c                 |  6 ++----
- 3 files changed, 8 insertions(+), 12 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  2 ++
+ net/netfilter/nf_flow_table_core.c    | 18 ++++++++++++++----
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index d365eabd4a3c..6598ac455d17 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -83,6 +83,8 @@ struct nf_flowtable {
+ 	struct flow_block		flow_block;
+ 	struct rw_semaphore		flow_block_lock; /* Guards flow_block */
+ 	possible_net_t			net;
++
++	struct rcu_work			rwork;
+ };
+ 
+ static inline bool nf_flowtable_hw_offload(struct nf_flowtable *flowtable)
 diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 375fc9c24149..70cc4e0d5ac9 100644
+index 70cc4e0d5ac9..cae27f8f0f68 100644
 --- a/net/netfilter/nf_flow_table_core.c
 +++ b/net/netfilter/nf_flow_table_core.c
-@@ -612,6 +612,8 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
- 	nf_flow_table_gc_run(flow_table);
- 	nf_flow_table_offload_flush_cleanup(flow_table);
- 	rhashtable_destroy(&flow_table->rhashtable);
-+	module_put(flow_table->type->owner);
-+	kfree(flow_table);
+@@ -599,11 +599,11 @@ void nf_flow_table_cleanup(struct net_device *dev)
  }
+ EXPORT_SYMBOL_GPL(nf_flow_table_cleanup);
+ 
+-void nf_flow_table_free(struct nf_flowtable *flow_table)
++static void nf_flow_table_free_rwork(struct work_struct *work)
+ {
+-	mutex_lock(&flowtable_lock);
+-	list_del(&flow_table->list);
+-	mutex_unlock(&flowtable_lock);
++	struct nf_flowtable *flow_table;
++
++	flow_table = container_of(to_rcu_work(work), struct nf_flowtable, rwork);
+ 
+ 	cancel_delayed_work_sync(&flow_table->gc_work);
+ 	nf_flow_table_offload_flush(flow_table);
+@@ -615,6 +615,16 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	module_put(flow_table->type->owner);
+ 	kfree(flow_table);
+ }
++
++void nf_flow_table_free(struct nf_flowtable *flow_table)
++{
++	mutex_lock(&flowtable_lock);
++	list_del(&flow_table->list);
++	mutex_unlock(&flowtable_lock);
++
++	INIT_RCU_WORK(&flow_table->rwork, nf_flow_table_free_rwork);
++	queue_rcu_work(system_power_efficient_wq, &flow_table->rwork);
++}
  EXPORT_SYMBOL_GPL(nf_flow_table_free);
  
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index cce82fef4488..e779e275d694 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -8402,8 +8402,9 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 
- 	flowtable->ft = type->create(net, type);
- 	if (!flowtable->ft) {
-+		module_put(type->owner);
- 		err = -ENOMEM;
--		goto err3;
-+		goto err2;
- 	}
- 
- 	if (nla[NFTA_FLOWTABLE_FLAGS]) {
-@@ -8411,7 +8412,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 			ntohl(nla_get_be32(nla[NFTA_FLOWTABLE_FLAGS]));
- 		if (flowtable->ft->flags & ~NFT_FLOWTABLE_MASK) {
- 			err = -EOPNOTSUPP;
--			goto err3;
-+			goto err4;
- 		}
- 	}
- 
-@@ -8447,9 +8448,6 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 	}
- err4:
- 	flowtable->ft->type->free(flowtable->ft);
--err3:
--	kfree(flowtable->ft);
--	module_put(type->owner);
- err2:
- 	kfree(flowtable->name);
- err1:
-@@ -8824,7 +8822,6 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- {
- 	struct nft_hook *hook, *next;
- 
--	flowtable->ft->type->free(flowtable->ft);
- 	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
- 		flowtable->ft->type->setup(flowtable->ft, hook->ops.dev,
- 					   FLOW_BLOCK_UNBIND);
-@@ -8832,8 +8829,7 @@ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- 		kfree(hook);
- 	}
- 	kfree(flowtable->name);
--	module_put(flowtable->ft->type->owner);
--	kfree(flowtable->ft);
-+	flowtable->ft->type->free(flowtable->ft);
- 	kfree(flowtable);
- }
- 
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 80869cc52348..dc17b313c175 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -321,6 +321,7 @@ static int tcf_ct_flow_table_get(struct net *net, struct tcf_ct_params *params)
- 	ct_ft->nf_ft->flags |= NF_FLOWTABLE_HW_OFFLOAD |
- 			       NF_FLOWTABLE_COUNTER;
- 
-+	/* released via nf_flow_table_free() */
- 	__module_get(THIS_MODULE);
- out_unlock:
- 	params->ct_ft = ct_ft;
-@@ -347,7 +348,6 @@ static void tcf_ct_flow_table_cleanup_work(struct work_struct *work)
- 
- 	ct_ft = container_of(to_rcu_work(work), struct tcf_ct_flow_table,
- 			     rwork);
--	nf_flow_table_free(ct_ft->nf_ft);
- 
- 	/* Remove any remaining callbacks before cleanup */
- 	block = &ct_ft->nf_ft->flow_block;
-@@ -357,10 +357,8 @@ static void tcf_ct_flow_table_cleanup_work(struct work_struct *work)
- 		flow_block_cb_free(block_cb);
- 	}
- 	up_write(&ct_ft->nf_ft->flow_block_lock);
--	kfree(ct_ft->nf_ft);
-+	nf_flow_table_free(ct_ft->nf_ft);
- 	kfree(ct_ft);
--
--	module_put(THIS_MODULE);
- }
- 
- static void tcf_ct_flow_table_put(struct tcf_ct_flow_table *ct_ft)
+ static int nf_flow_table_init_net(struct net *net)
 -- 
 2.41.0
 
