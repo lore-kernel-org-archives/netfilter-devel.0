@@ -2,465 +2,186 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80958C61D93
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 12:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D103C61D92
+	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 12:10:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234596AbjKUMJW (ORCPT
+        id S231439AbjKUMKW (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Nov 2023 07:09:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57388 "EHLO
+        Tue, 21 Nov 2023 07:10:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234601AbjKUMJU (ORCPT
+        with ESMTP id S233857AbjKUMKV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Nov 2023 07:09:20 -0500
+        Tue, 21 Nov 2023 07:10:21 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28E5F191
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Nov 2023 04:09:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10B95138
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Nov 2023 04:10:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1700568553;
+        s=mimecast20190719; t=1700568617;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=BCcOU+fWchgrjevyW4vdUniYfIfWc93zPJTNG/9T01c=;
-        b=drLKGS9P747kwg6dXU4bblyVIjfQeYb8JRtU9L4enlfe5tg3mhPDqEAsTrEzRd+15U9m1f
-        FPKT8iBGe89cKTTWodFZlM92+cNqEHoqGE3R3DFxRmfSbQWOd094DZsV+P5oQ/tAikK/pk
-        RZ0N8s2cPHcq3bPgUujORiRQLFgSFQU=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-410-xEKRYLnEO_mzjnyIoMSZtQ-1; Tue,
- 21 Nov 2023 07:09:11 -0500
-X-MC-Unique: xEKRYLnEO_mzjnyIoMSZtQ-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2A25B1C060C3
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Nov 2023 12:09:11 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.192.165])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 580462166B28;
-        Tue, 21 Nov 2023 12:09:10 +0000 (UTC)
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+        bh=ocL8wINrFVIvdVJcGYbWdTrro5itXOx1/IACu+CRJHc=;
+        b=V4u/o9Ei8wZO4SxLukQHe4uchQj++02wMI3CM0VAE9LtvRc4vYzQfTQ3mU5i9pRR/iJY+W
+        AkC5JHAUR0jOxGdKDnN/04iCwAkPWHkbXJsgQYGcM5z1GgSSdmV1RSkKM9SxamBP9J3Jgv
+        XtD3hnZsPB2EBqC5PerBsikfBwjx42k=
+Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
+ [209.85.167.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-230-9UhoHiGONcmEePZ9jPuwOw-1; Tue, 21 Nov 2023 07:10:15 -0500
+X-MC-Unique: 9UhoHiGONcmEePZ9jPuwOw-1
+Received: by mail-lf1-f70.google.com with SMTP id 2adb3069b0e04-50aa94aeec4so606412e87.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Nov 2023 04:10:15 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700568614; x=1701173414;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ocL8wINrFVIvdVJcGYbWdTrro5itXOx1/IACu+CRJHc=;
+        b=PaEPUBJu8ktbZOI5wR/IlIrnUu8X5Okr2iCNg9p1O3VTdw1uakLvrz0LFyR654qruy
+         oSe0lTW87FPFEkLls3PjB79uefnjzkt20nYwsWzzq5PuHlsapU5UAOLMqdbbGrSNUHdb
+         eNmG6ALou20PK7kk3SpH0kIsWB5EeBJnVzAN9NSW6VtAk7oJyqylWvqnCW8H+p35IRae
+         +Nn664FvWuoJ3T1aIlaKkhJi1SmJQJt/7I5kDKQ4w5W2Dv5HS8A2I1kezbnZ1LAmBBdu
+         XiPlT1eIQ/RfMGqeMSogjzq/rxAzRvNLMWZjesQUL+ZpqTZktXCBN90NOSftV4HH3rBU
+         us3A==
+X-Gm-Message-State: AOJu0YxvyHG7cZBLN5cDc05t9KLD567erEq18dssw0Twj3s/ngvIShf2
+        2/a7KTCQSKkJnyDmAy03PbYrsEFFH6fohazsTxf9QPl49ZLEN9ApI4tKCmqIP4xZqaMKV3wBFTP
+        mexSXUW5KSE9K3Jon+yhO7RPyxddhNu2D2bzP
+X-Received: by 2002:ac2:5616:0:b0:507:9701:98dc with SMTP id v22-20020ac25616000000b00507970198dcmr6628943lfd.1.1700568613853;
+        Tue, 21 Nov 2023 04:10:13 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHrKUp/VNjUKxH7C6O7Nugh0I8zLj8Z0UtseNkI+t3PNT3f/o3yjwMSIlsPDYY3bOYeuZKkVA==
+X-Received: by 2002:ac2:5616:0:b0:507:9701:98dc with SMTP id v22-20020ac25616000000b00507970198dcmr6628925lfd.1.1700568613367;
+        Tue, 21 Nov 2023 04:10:13 -0800 (PST)
+Received: from [10.0.0.196] ([37.186.166.196])
+        by smtp.gmail.com with ESMTPSA id w3-20020ac25983000000b0050aa51bd5b5sm1198137lfn.136.2023.11.21.04.10.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Nov 2023 04:10:12 -0800 (PST)
+Message-ID: <f4b86e5318556be07a8c86c3fdd551ad5e22a831.camel@redhat.com>
+Subject: Re: [PATCH nft 1/1] tests/shell: sanitize "handle" in JSON output
 From:   Thomas Haller <thaller@redhat.com>
-To:     NetFilter <netfilter-devel@vger.kernel.org>
-Cc:     Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft v2 1/1] tests/shell: sanitize "handle" in JSON output
-Date:   Tue, 21 Nov 2023 13:08:28 +0100
-Message-ID: <20231121120854.3392539-1-thaller@redhat.com>
-MIME-Version: 1.0
+To:     Phil Sutter <phil@nwl.cc>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Date:   Tue, 21 Nov 2023 13:10:11 +0100
+In-Reply-To: <ZVgjLFGvHqoXXvjd@orbyte.nwl.cc>
+References: <20231117171948.897229-1-thaller@redhat.com>
+         <ZVgjLFGvHqoXXvjd@orbyte.nwl.cc>
+Autocrypt: addr=thaller@redhat.com; prefer-encrypt=mutual; keydata=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
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.6
+User-Agent: Evolution 3.50.1 (3.50.1-1.fc39) 
+MIME-Version: 1.0
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-The "handle" in JSON output is not stable. Sanitize/normalize to zero.
+Hi,
 
-Adjust the sanitize code, and regenerate the .json-nft files.
 
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
-Changes to v2:
+On Sat, 2023-11-18 at 03:36 +0100, Phil Sutter wrote:
+> On Fri, Nov 17, 2023 at 06:18:45PM +0100, Thomas Haller wrote:
+> > The "handle" in JSON output is not stable. Sanitize/normalizeit to
+> > 1216.
+> >=20
+> > The number is chosen arbitrarily, but it's somewhat unique in the
+> > code
+> > base. So when you see it, you may guess it originates from
+> > sanitization.
+>=20
+> Valid handles are monotonic starting at 1. Using 0 as a replacement
+> is
+> too simple?
 
-- normalize handle to zero
-- wrap 2 lines
+Changed.
 
- tests/shell/helpers/json-sanitize-ruleset.sh             | 9 ++++++++-
- tests/shell/helpers/test-wrapper.sh                      | 3 +--
- .../testcases/bitwise/dumps/0040mark_binop_0.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_1.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_2.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_3.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_4.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_5.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_6.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_7.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_8.json-nft    | 2 +-
- .../testcases/bitwise/dumps/0040mark_binop_9.json-nft    | 2 +-
- .../sets/dumps/0043concatenated_ranges_0.json-nft        | 2 +-
- .../testcases/sets/dumps/0044interval_overlap_1.json-nft | 2 +-
- 14 files changed, 21 insertions(+), 15 deletions(-)
+>=20
+> > Signed-off-by: Thomas Haller <thaller@redhat.com>
+> > ---
+> > Note that only a few .json-nft files are adjusted, because
+> > otherwise the
+> > patch is too large. Before applying, you need to adjust them all,
+> > by
+> > running `./tests/shell/run-tests.sh -g`.
+>=20
+> Just put the bulk change into a second patch?
 
-diff --git a/tests/shell/helpers/json-sanitize-ruleset.sh b/tests/shell/hel=
-pers/json-sanitize-ruleset.sh
-index 270a6107e0aa..31b85cbd8435 100755
---- a/tests/shell/helpers/json-sanitize-ruleset.sh
-+++ b/tests/shell/helpers/json-sanitize-ruleset.sh
-@@ -6,7 +6,14 @@ die() {
- }
-=20
- do_sed() {
--	sed '1s/\({"nftables": \[{"metainfo": {"version": "\)[0-9.]\+\(", "releas=
-e_name": "\)[^"]\+\(", "\)/\1VERSION\2RELEASE_NAME\3/' "$@"
-+	# Normalize the "version"/"release_name", otherwise we have to
-+	# regenerate the JSON output upon new release.
-+	#
-+	# Also, "handle" are not stable. Normalize them 0.
-+	sed \
-+		-e '1s/^\({"nftables": \[{"metainfo": {"version": "\)[0-9.]\+\(", "relea=
-se_name": "\)[^"]\+\(", "\)/\1VERSION\2RELEASE_NAME\3/' \
-+		-e '1s/"handle": [0-9]\+\>/"handle": 0/g' \
-+		"$@"
- }
-=20
- if [ "$#" =3D 0 ] ; then
-diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test=
--wrapper.sh
-index 62414d0db074..9e8e60581890 100755
---- a/tests/shell/helpers/test-wrapper.sh
-+++ b/tests/shell/helpers/test-wrapper.sh
-@@ -138,8 +138,7 @@ if [ "$NFT_TEST_HAVE_json" !=3D n ] ; then
- 		show_file "$NFT_TEST_TESTTMPDIR/chkdump" "Command \`$NFT -j list ruleset=
-\` failed" >> "$NFT_TEST_TESTTMPDIR/rc-failed-chkdump"
- 		rc_chkdump=3D1
- 	fi
--	# Normalize the version number from the JSON output. Otherwise, we'd
--	# have to regenerate the .json-nft files upon release.
-+	# JSON output needs normalization/sanitization, otherwise it's not stable.
- 	"$NFT_TEST_BASEDIR/helpers/json-sanitize-ruleset.sh" "$NFT_TEST_TESTTMPDI=
-R/ruleset-after.json"
- fi
-=20
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_0.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_0.json-nft
-index 782cde4225ff..2111fe13ab11 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_0.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_0.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 1, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"}}=
-, {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 2, "expr"=
-: [{"match": {"op": "=3D=3D", "left": {"meta": {"key": "oif"}}, "right": "l=
-o"}}, {"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"<<": [{"|": [{=
-"meta": {"key": "mark"}}, 16]}, 8]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 0, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"}}=
-, {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr"=
-: [{"match": {"op": "=3D=3D", "left": {"meta": {"key": "oif"}}, "right": "l=
-o"}}, {"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"<<": [{"|": [{=
-"meta": {"key": "mark"}}, 16]}, 8]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_1.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_1.json-nft
-index b887fb5befa4..538a02b7888a 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_1.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_1.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 1, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}},=
- {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 2, "expr":=
- [{"match": {"op": "=3D=3D", "left": {"meta": {"key": "iif"}}, "right": "lo=
-"}}, {"match": {"op": "=3D=3D", "left": {"&": [{"ct": {"key": "mark"}}, 255=
-]}, "right": 16}}, {"mangle": {"key": {"meta": {"key": "mark"}}, "value": {=
-">>": [{"ct": {"key": "mark"}}, 8]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 0, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}},=
- {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr":=
- [{"match": {"op": "=3D=3D", "left": {"meta": {"key": "iif"}}, "right": "lo=
-"}}, {"match": {"op": "=3D=3D", "left": {"&": [{"ct": {"key": "mark"}}, 255=
-]}, "right": 16}}, {"mangle": {"key": {"meta": {"key": "mark"}}, "value": {=
-">>": [{"ct": {"key": "mark"}}, 8]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_2.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_2.json-nft
-index 4ebe509c1cf6..2dfe2beee439 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_2.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_2.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 1, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"}}=
-, {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 2, "expr"=
-: [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{"pa=
-yload": {"protocol": "ip", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 0, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"}}=
-, {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr"=
-: [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{"pa=
-yload": {"protocol": "ip", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_3.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_3.json-nft
-index df64f4e1ba84..666601757605 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_3.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_3.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 1, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}},=
- {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 2, "expr":=
- [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [{"p=
-ayload": {"protocol": "ip", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 0, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}},=
- {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr":=
- [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [{"p=
-ayload": {"protocol": "ip", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_4.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_4.json-nft
-index 76bb83cff96f..32dad902eccd 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_4.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_4.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 1, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"}}=
-, {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 2, "expr"=
-: [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{"pa=
-yload": {"protocol": "ip", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 0, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"}}=
-, {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr"=
-: [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{"pa=
-yload": {"protocol": "ip", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_5.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_5.json-nft
-index eaa9df04fa3c..587a71c04ad0 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_5.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_5.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 1, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}},=
- {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 2, "expr":=
- [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [{"p=
-ayload": {"protocol": "ip", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"chain": {"family": "ip", "table": "t", "name": "c", "hand=
-le": 0, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}},=
- {"rule": {"family": "ip", "table": "t", "chain": "c", "handle": 0, "expr":=
- [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [{"p=
-ayload": {"protocol": "ip", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_6.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_6.json-nft
-index 100c604ba5c5..b42e62199299 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_6.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_6.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 1}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 1, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"=
-}}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 2, "ex=
-pr": [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{=
-"payload": {"protocol": "ip6", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 0}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 0, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"=
-}}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 0, "ex=
-pr": [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{=
-"payload": {"protocol": "ip6", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_7.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_7.json-nft
-index 0e61a15eee2a..9186f47b81df 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_7.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_7.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 1}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 1, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}=
-}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 2, "exp=
-r": [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [=
-{"payload": {"protocol": "ip6", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 0}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 0, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}=
-}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 0, "exp=
-r": [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [=
-{"payload": {"protocol": "ip6", "field": "dscp"}}, 2]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_8.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_8.json-nft
-index f077295c7b42..50c40ddac803 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_8.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_8.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 1}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 1, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"=
-}}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 2, "ex=
-pr": [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{=
-"payload": {"protocol": "ip6", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 0}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 0, "type": "filter", "hook": "output", "prio": 0, "policy": "accept"=
-}}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 0, "ex=
-pr": [{"mangle": {"key": {"ct": {"key": "mark"}}, "value": {"|": [{"<<": [{=
-"payload": {"protocol": "ip6", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/bitwise/dumps/0040mark_binop_9.json-nft =
-b/tests/shell/testcases/bitwise/dumps/0040mark_binop_9.json-nft
-index a71eebaea7f4..da7025051acc 100644
---- a/tests/shell/testcases/bitwise/dumps/0040mark_binop_9.json-nft
-+++ b/tests/shell/testcases/bitwise/dumps/0040mark_binop_9.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 1}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 1, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}=
-}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 2, "exp=
-r": [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [=
-{"payload": {"protocol": "ip6", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip6", "name": "t"=
-, "handle": 0}}, {"chain": {"family": "ip6", "table": "t", "name": "c", "ha=
-ndle": 0, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}=
-}, {"rule": {"family": "ip6", "table": "t", "chain": "c", "handle": 0, "exp=
-r": [{"mangle": {"key": {"meta": {"key": "mark"}}, "value": {"|": [{"<<": [=
-{"payload": {"protocol": "ip6", "field": "dscp"}}, 26]}, 16]}}}]}}]}
-diff --git a/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.jso=
-n-nft b/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.json-nft
-index 9d5ef47dfd7c..95c5791ad057 100644
---- a/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0043concatenated_ranges_0.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "inet", "name": "f=
-ilter", "handle": 192}}, {"map": {"family": "inet", "name": "test", "table"=
-: "filter", "type": ["mark", "inet_service", "inet_proto"], "handle": 2, "m=
-ap": "mark", "flags": ["interval", "timeout"]}}, {"chain": {"family": "inet=
-", "table": "filter", "name": "output", "handle": 1, "type": "filter", "hoo=
-k": "output", "prio": 0, "policy": "accept"}}, {"rule": {"family": "inet", =
-"table": "filter", "chain": "output", "handle": 3, "expr": [{"mangle": {"ke=
-y": {"meta": {"key": "mark"}}, "value": {"map": {"key": {"concat": [{"meta"=
-: {"key": "mark"}}, {"payload": {"protocol": "tcp", "field": "dport"}}, {"m=
-eta": {"key": "l4proto"}}]}, "data": "@test"}}}}, {"counter": {"packets": 0=
-, "bytes": 0}}]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "inet", "name": "f=
-ilter", "handle": 0}}, {"map": {"family": "inet", "name": "test", "table": =
-"filter", "type": ["mark", "inet_service", "inet_proto"], "handle": 0, "map=
-": "mark", "flags": ["interval", "timeout"]}}, {"chain": {"family": "inet",=
- "table": "filter", "name": "output", "handle": 0, "type": "filter", "hook"=
-: "output", "prio": 0, "policy": "accept"}}, {"rule": {"family": "inet", "t=
-able": "filter", "chain": "output", "handle": 0, "expr": [{"mangle": {"key"=
-: {"meta": {"key": "mark"}}, "value": {"map": {"key": {"concat": [{"meta": =
-{"key": "mark"}}, {"payload": {"protocol": "tcp", "field": "dport"}}, {"met=
-a": {"key": "l4proto"}}]}, "data": "@test"}}}}, {"counter": {"packets": 0, =
-"bytes": 0}}]}}]}
-diff --git a/tests/shell/testcases/sets/dumps/0044interval_overlap_1.json-n=
-ft b/tests/shell/testcases/sets/dumps/0044interval_overlap_1.json-nft
-index db9340bcd1a1..f3ba37e99669 100644
---- a/tests/shell/testcases/sets/dumps/0044interval_overlap_1.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0044interval_overlap_1.json-nft
-@@ -1 +1 @@
--{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 1}}, {"set": {"family": "ip", "name": "s", "table": "t", "type":=
- "inet_service", "handle": 1, "flags": ["interval"], "elem": [25, 30, 82, 1=
-19, 349, 745, 748, 1165, 1233, 1476, 1550, 1562, 1743, 1745, 1882, 2070, 21=
-94, 2238, 2450, 2455, 2642, 2671, 2906, 3093, 3203, 3287, 3348, 3411, 3540,=
- 3892, 3943, 4133, 4205, 4317, 4733, 5095, 5156, 5223, 5230, 5432, 5826, 58=
-28, 6044, 6377, 6388, 6491, 6952, 6986, 7012, 7187, 7300, 7305, 7549, 7664,=
- 8111, 8206, 8396, 8782, 8920, 8981, 9067, 9216, 9245, 9315, 9432, 9587, 96=
-89, 9844, 9991, 10045, 10252, 10328, 10670, 10907, 11021, 11337, 11427, 114=
-97, 11502, 11523, 11552, 11577, 11721, 11943, 12474, 12718, 12764, 12794, 1=
-2922, 13186, 13232, 13383, 13431, 13551, 13676, 13685, 13747, 13925, 13935,=
- 14015, 14090, 14320, 14392, 14515, 14647, 14911, 15096, 15105, 15154, 1544=
-0, 15583, 15623, 15677, 15710, 15926, 15934, 15960, 16068, 16166, 16486, 16=
-489, 16528, 16646, 16650, 16770, 16882, 17052, 17237, 17387, 17431, 17886, =
-17939, 17999, 18092, 18123, 18238, 18562, 18698, 19004, 19229, 19237, 19585=
-, 19879, 19938, 19950, 19958, 20031, 20138, 20157, 20205, 20368, 20682, 206=
-87, 20873, 20910, 20919, 21019, 21068, 21115, 21188, 21236, 21319, 21563, 2=
-1734, 21806, 21810, 21959, 21982, 22078, 22181, 22308, 22480, 22643, 22854,=
- 22879, 22961, 23397, 23534, 23845, 23893, 24130, 24406, 24794, 24997, 2501=
-9, 25143, 25179, 25439, 25603, 25718, 25859, 25949, 26006, 26022, 26047, 26=
-170, 26193, 26725, 26747, 26924, 27023, 27040, 27233, 27344, 27478, 27593, =
-27600, 27664, 27678, 27818, 27822, 28003, 28038, 28709, 28808, 29010, 29057=
-, 29228, 29485, 30132, 30160, 30415, 30469, 30673, 30736, 30776, 30780, 314=
-50, 31537, 31669, 31839, 31873, 32019, 32229, 32685, 32879, 33318, 33337, 3=
-3404, 33517, 33906, 34214, 34346, 34416, 34727, 34848, 35325, 35400, 35451,=
- 35501, 35637, 35653, 35710, 35761, 35767, 36238, 36258, 36279, 36464, 3658=
-6, 36603, 36770, 36774, 36805, 36851, 37079, 37189, 37209, 37565, 37570, 37=
-585, 37832, 37931, 37954, 38006, 38015, 38045, 38109, 38114, 38200, 38209, =
-38214, 38277, 38306, 38402, 38606, 38697, 38960, 39004, 39006, 39197, 39217=
-, 39265, 39319, 39460, 39550, 39615, 39871, 39886, 40088, 40135, 40244, 403=
-23, 40339, 40355, 40385, 40428, 40538, 40791, 40848, 40959, 41003, 41131, 4=
-1349, 41643, 41710, 41826, 41904, 42027, 42148, 42235, 42255, 42498, 42680,=
- 42973, 43118, 43135, 43233, 43349, 43411, 43487, 43840, 43843, 43870, 4404=
-0, 44204, 44817, 44883, 44894, 44958, 45201, 45259, 45283, 45357, 45423, 45=
-473, 45498, 45519, 45561, 45611, 45627, 45831, 46043, 46105, 46116, 46147, =
-46169, 46349, 47147, 47252, 47314, 47335, 47360, 47546, 47617, 47648, 47772=
-, 47793, 47846, 47913, 47952, 48095, 48325, 48334, 48412, 48419, 48540, 485=
-69, 48628, 48751, 48944, 48971, 49008, 49025, 49503, 49505, 49613, 49767, 4=
-9839, 49925, 50022, 50028, 50238, 51057, 51477, 51617, 51910, 52044, 52482,=
- 52550, 52643, 52832, 53382, 53690, 53809, 53858, 54001, 54198, 54280, 5432=
-7, 54376, 54609, 54776, 54983, 54984, 55019, 55038, 55094, 55368, 55737, 55=
-793, 55904, 55941, 55960, 55978, 56063, 56121, 56314, 56505, 56548, 56568, =
-56696, 56798, 56855, 57102, 57236, 57333, 57334, 57441, 57574, 57659, 57987=
-, 58325, 58404, 58509, 58782, 58876, 59116, 59544, 59685, 59700, 59750, 597=
-99, 59866, 59870, 59894, 59984, 60343, 60481, 60564, 60731, 61075, 61087, 6=
-1148, 61174, 61655, 61679, 61691, 61723, 61730, 61758, 61824, 62035, 62056,=
- 62661, 62768, 62946, 63059, 63116, 63338, 63387, 63672, 63719, 63881, 6399=
-5, 64197, 64374, 64377, 64472, 64606, 64662, 64777, 64795, 64906, 65049, 65=
-122, 65318]}}]}
-+{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE=
-_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "t",=
- "handle": 0}}, {"set": {"family": "ip", "name": "s", "table": "t", "type":=
- "inet_service", "handle": 0, "flags": ["interval"], "elem": [25, 30, 82, 1=
-19, 349, 745, 748, 1165, 1233, 1476, 1550, 1562, 1743, 1745, 1882, 2070, 21=
-94, 2238, 2450, 2455, 2642, 2671, 2906, 3093, 3203, 3287, 3348, 3411, 3540,=
- 3892, 3943, 4133, 4205, 4317, 4733, 5095, 5156, 5223, 5230, 5432, 5826, 58=
-28, 6044, 6377, 6388, 6491, 6952, 6986, 7012, 7187, 7300, 7305, 7549, 7664,=
- 8111, 8206, 8396, 8782, 8920, 8981, 9067, 9216, 9245, 9315, 9432, 9587, 96=
-89, 9844, 9991, 10045, 10252, 10328, 10670, 10907, 11021, 11337, 11427, 114=
-97, 11502, 11523, 11552, 11577, 11721, 11943, 12474, 12718, 12764, 12794, 1=
-2922, 13186, 13232, 13383, 13431, 13551, 13676, 13685, 13747, 13925, 13935,=
- 14015, 14090, 14320, 14392, 14515, 14647, 14911, 15096, 15105, 15154, 1544=
-0, 15583, 15623, 15677, 15710, 15926, 15934, 15960, 16068, 16166, 16486, 16=
-489, 16528, 16646, 16650, 16770, 16882, 17052, 17237, 17387, 17431, 17886, =
-17939, 17999, 18092, 18123, 18238, 18562, 18698, 19004, 19229, 19237, 19585=
-, 19879, 19938, 19950, 19958, 20031, 20138, 20157, 20205, 20368, 20682, 206=
-87, 20873, 20910, 20919, 21019, 21068, 21115, 21188, 21236, 21319, 21563, 2=
-1734, 21806, 21810, 21959, 21982, 22078, 22181, 22308, 22480, 22643, 22854,=
- 22879, 22961, 23397, 23534, 23845, 23893, 24130, 24406, 24794, 24997, 2501=
-9, 25143, 25179, 25439, 25603, 25718, 25859, 25949, 26006, 26022, 26047, 26=
-170, 26193, 26725, 26747, 26924, 27023, 27040, 27233, 27344, 27478, 27593, =
-27600, 27664, 27678, 27818, 27822, 28003, 28038, 28709, 28808, 29010, 29057=
-, 29228, 29485, 30132, 30160, 30415, 30469, 30673, 30736, 30776, 30780, 314=
-50, 31537, 31669, 31839, 31873, 32019, 32229, 32685, 32879, 33318, 33337, 3=
-3404, 33517, 33906, 34214, 34346, 34416, 34727, 34848, 35325, 35400, 35451,=
- 35501, 35637, 35653, 35710, 35761, 35767, 36238, 36258, 36279, 36464, 3658=
-6, 36603, 36770, 36774, 36805, 36851, 37079, 37189, 37209, 37565, 37570, 37=
-585, 37832, 37931, 37954, 38006, 38015, 38045, 38109, 38114, 38200, 38209, =
-38214, 38277, 38306, 38402, 38606, 38697, 38960, 39004, 39006, 39197, 39217=
-, 39265, 39319, 39460, 39550, 39615, 39871, 39886, 40088, 40135, 40244, 403=
-23, 40339, 40355, 40385, 40428, 40538, 40791, 40848, 40959, 41003, 41131, 4=
-1349, 41643, 41710, 41826, 41904, 42027, 42148, 42235, 42255, 42498, 42680,=
- 42973, 43118, 43135, 43233, 43349, 43411, 43487, 43840, 43843, 43870, 4404=
-0, 44204, 44817, 44883, 44894, 44958, 45201, 45259, 45283, 45357, 45423, 45=
-473, 45498, 45519, 45561, 45611, 45627, 45831, 46043, 46105, 46116, 46147, =
-46169, 46349, 47147, 47252, 47314, 47335, 47360, 47546, 47617, 47648, 47772=
-, 47793, 47846, 47913, 47952, 48095, 48325, 48334, 48412, 48419, 48540, 485=
-69, 48628, 48751, 48944, 48971, 49008, 49025, 49503, 49505, 49613, 49767, 4=
-9839, 49925, 50022, 50028, 50238, 51057, 51477, 51617, 51910, 52044, 52482,=
- 52550, 52643, 52832, 53382, 53690, 53809, 53858, 54001, 54198, 54280, 5432=
-7, 54376, 54609, 54776, 54983, 54984, 55019, 55038, 55094, 55368, 55737, 55=
-793, 55904, 55941, 55960, 55978, 56063, 56121, 56314, 56505, 56548, 56568, =
-56696, 56798, 56855, 57102, 57236, 57333, 57334, 57441, 57574, 57659, 57987=
-, 58325, 58404, 58509, 58782, 58876, 59116, 59544, 59685, 59700, 59750, 597=
-99, 59866, 59870, 59894, 59984, 60343, 60481, 60564, 60731, 61075, 61087, 6=
-1148, 61174, 61655, 61679, 61691, 61723, 61730, 61758, 61824, 62035, 62056,=
- 62661, 62768, 62946, 63059, 63116, 63338, 63387, 63672, 63719, 63881, 6399=
-5, 64197, 64374, 64377, 64472, 64606, 64662, 64777, 64795, 64906, 65049, 65=
-122, 65318]}}]}
---=20
-2.42.0
+it would require 3 patches to stay below the limit.
+
+Also, it blows up the inbox by everybody on the list by 850K (57k
+gzipped). The rest of the patch is generated. Just generate it.
+
+Alternatively,
+
+  git fetch https://gitlab.freedesktop.org/thaller/nftables df984038a33c6da=
+5b159e6f6458351c4fa673bf1
+  git merge FETCH_HEAD
+ =20
+
+
+>=20
+> [...]
+> > diff --git a/tests/shell/helpers/json-sanitize-ruleset.sh
+> > b/tests/shell/helpers/json-sanitize-ruleset.sh
+> > index 270a6107e0aa..3b66adabf055 100755
+> > --- a/tests/shell/helpers/json-sanitize-ruleset.sh
+> > +++ b/tests/shell/helpers/json-sanitize-ruleset.sh
+> > @@ -6,7 +6,14 @@ die() {
+> > =C2=A0}
+> > =C2=A0
+> > =C2=A0do_sed() {
+> > -	sed '1s/\({"nftables": \[{"metainfo": {"version": "\)[0-
+> > 9.]\+\(", "release_name": "\)[^"]\+\(",
+> > "\)/\1VERSION\2RELEASE_NAME\3/' "$@"
+> > +	# Normalize the "version"/"release_name", otherwise we
+> > have to regenerate the
+> > +	# JSON output upon new release.
+> > +	#
+> > +	# Also, "handle" are not stable. Normalize them to 1216
+> > (arbitrarily chosen).
+> > +	sed \
+> > +		-e '1s/\({"nftables": \[{"metainfo": {"version":
+> > "\)[0-9.]\+\(", "release_name": "\)[^"]\+\(",
+> > "\)/\1VERSION\2RELEASE_NAME\3/' \
+> > +		-e '1s/"handle": [0-9]\+\>/"handle": 1216/g' \
+> > +		"$@"
+> > =C2=A0}
+>=20
+> Why not just drop the whole metainfo object? A dedicated test could
+> still ensure its existence.
+
+Normalization should only perform the absolute minimal of tampering.
+
+
+> Also, scoping these replacements to line 1 is funny with single line
+> input. Worse is identifying the change in the resulting diff. Maybe
+> write a helper in python which lets you more comfortably sanitize
+> input,
+> sort attributes by key and output pretty-printed?
+
+You mean, to parse and re-encode the JSON? That introduces additional
+changes, which seems undesirable. That's why the regex is limited to
+the first line (even if we only expect to ever see one line there).
+
+Also, normalization via 2 regex seems simpler than writing some python.
+
+Well, pretty-printing the output with `jq` would have the advantage,
+that future diffs might be smaller (changing individual lines, vs.
+replace one large line). Still, I think it's better to keep the amount
+of post-processing minimal.
+
+
+>=20
+> In general, the long lines in your scripts make them quite hard to
+> read.
+> Any particular reason why you don't stick to the 80 columns maxim?
+
+I wrapped two lines in the patch.
+
+
+
+Thomas
 
