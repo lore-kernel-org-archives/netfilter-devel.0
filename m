@@ -2,51 +2,51 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E43C61D99
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 15:37:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DFB7C61D9B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 15:38:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344518AbjKVPiA (ORCPT
+        id S1344567AbjKVPim (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Nov 2023 10:38:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59220 "EHLO
+        Wed, 22 Nov 2023 10:38:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344527AbjKVPhe (ORCPT
+        with ESMTP id S1344546AbjKVPiT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2023 10:37:34 -0500
+        Wed, 22 Nov 2023 10:38:19 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C57361734;
-        Wed, 22 Nov 2023 07:35:24 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB6CDC433D9;
-        Wed, 22 Nov 2023 15:35:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 215FE1BE;
+        Wed, 22 Nov 2023 07:35:57 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E03C433CB;
+        Wed, 22 Nov 2023 15:35:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1700667324;
-        bh=Ix+7p0GeTshUCvz1IW8R8XazXW6e+BBqnWSJ2H2SN/0=;
+        s=k20201202; t=1700667356;
+        bh=xw+kXe/3vX+t/DUPTYnxIcFZgJ9gJsbbL8FRwBeJtMA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=P3KPhLEfD8qWSB0qrPZOfaPGK58ahd4vaCnrAmKq7g+Hq24L5pRVgLtfOijgTo+15
-         Nk5CNheiIxpgwJ+QrmB+zYSNOby1NRAq9nbdBPb/YvWs/uIADklbFgsLiVXGvX3COY
-         ii27dP1tYszdECKFWQp5ZIuRWzkPPAU6WxK+/6ItuUZH9mbhwIRbW4Pn8dXD5VLxJZ
-         YNrEG2eIQnrua0qm9aX8tLoc4FrU+1d/RXOthYihkzKn4lwytDDlC4rJgEanwPxmP0
-         z4Tb/91+Sq+9mjNNaQQ62eQnFIoHISk4ZKT2V7OTllpSKCqzH9Yz/wu5aIOIbfbbTp
-         1paX7RFPTltow==
+        b=D0dfSqpSby4ouYkG/sbTx8Utr+1m5zfPbtBoQtgEEaCKZHHX0emUDKO5gokB6ezGp
+         MU28JfCV8sT/94WoxcTY48Y0XC3C+Z36wnWHBVge2LjA9AlkyMrvawtVQCtZEVAwAa
+         +QMezaE+SSAxP0BNX3MZyspblAXroT+AYglkriEczxr9rgK2iHuMG426U3Q+myjuM2
+         rHSUeacA8OmAS4Ly0v5m5u6oW7ylzl0d7MOu6I7ga0+Uc3R6Ke3odlU9bXom9lTIA8
+         EomWiGn/bxLTEhrHNowZv/O0e747S4gkkCEqBxQweiawwEEajR5Bp96Qtnx0b9dNq6
+         gbhYd7dYRpSuQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jozsef Kadlecsik <kadlec@netfilter.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Sasha Levin <sashal@kernel.org>, fw@strlen.de,
         davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, justinstitt@google.com, kuniyu@amazon.com,
+        pabeni@redhat.com, kuniyu@amazon.com, justinstitt@google.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 3/7] netfilter: ipset: fix race condition between swap/destroy and kernel side add/del/test
-Date:   Wed, 22 Nov 2023 10:35:03 -0500
-Message-ID: <20231122153512.853015-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 3/7] netfilter: ipset: fix race condition between swap/destroy and kernel side add/del/test
+Date:   Wed, 22 Nov 2023 10:35:31 -0500
+Message-ID: <20231122153541.853179-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.42.0
-In-Reply-To: <20231122153512.853015-1-sashal@kernel.org>
-References: <20231122153512.853015-1-sashal@kernel.org>
+In-Reply-To: <20231122153541.853179-1-sashal@kernel.org>
+References: <20231122153541.853179-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.15.139
+X-stable-base: Linux 5.10.201
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -108,7 +108,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 33869db42bb6b..978014928d07a 100644
+index 26613e3731d02..24f81826ed4a5 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
 @@ -61,6 +61,8 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
@@ -138,7 +138,7 @@ index 33869db42bb6b..978014928d07a 100644
  }
  
  static inline void
-@@ -1399,6 +1396,9 @@ static int ip_set_swap(struct sk_buff *skb, const struct nfnl_info *info,
+@@ -1407,6 +1404,9 @@ static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
  	ip_set(inst, to_id) = from;
  	write_unlock_bh(&ip_set_ref_lock);
  
