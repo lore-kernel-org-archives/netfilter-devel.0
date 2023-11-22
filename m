@@ -2,62 +2,94 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CC19C61D85
-	for <netfilter-devel@archiver.kernel.org>; Tue, 21 Nov 2023 21:40:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3220DC072A2
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 08:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234621AbjKUVkL (ORCPT
+        id S230316AbjKVI7Z (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Tue, 21 Nov 2023 16:40:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35734 "EHLO
+        Wed, 22 Nov 2023 03:59:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234723AbjKUVkH (ORCPT
+        with ESMTP id S230267AbjKVI7Y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Nov 2023 16:40:07 -0500
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D43D78;
-        Tue, 21 Nov 2023 13:40:01 -0800 (PST)
-Received: from [78.30.43.141] (port=53182 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1r5YTL-009ZNJ-MZ; Tue, 21 Nov 2023 22:39:57 +0100
-Date:   Tue, 21 Nov 2023 22:39:54 +0100
+        Wed, 22 Nov 2023 03:59:24 -0500
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 699129E
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 00:59:18 -0800 (PST)
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Sasha Levin <sashal@kernel.org>
-Cc:     Florian Westphal <fw@strlen.de>, stable@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH 6.6.y 0/2] netfilter: fix catchall element double-free
-Message-ID: <ZV0jmKNgQpxCvf/R@calendula>
-References: <20231121121431.8612-1-fw@strlen.de>
+To:     netfilter-devel@vger.kernel.org
+Cc:     martin.gignac@gmail.com
+Subject: [PATCH nft] evaluate: bogus error when adding devices to flowtable
+Date:   Wed, 22 Nov 2023 09:59:12 +0100
+Message-Id: <20231122085912.3098-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20231121121431.8612-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi Greg, Sasha,
+Bail out if flowtable declaration is missing and no devices are
+specified.
 
-On Tue, Nov 21, 2023 at 01:14:20PM +0100, Florian Westphal wrote:
-> Hello,
-> 
-> This series contains the backports of two related changes to fix
-> removal of timed-out catchall elements.
-> 
-> As-is, removed element remains on the list and will be collected
-> again.
->
-> The adjustments are needed because of missing commit
-> 0e1ea651c971 ("netfilter: nf_tables: shrink memory consumption of set elements"),
-> so we need to pass set_elem container struct instead of "elem_priv".
+Otherwise, this reports a bogus error when adding new devices to an
+existing flowtable.
 
-Please, also apply this series to -stable 5.15, 6.1 and 6.5.
+ # nft -v
+ nftables v1.0.9 (Old Doc Yak #3)
+ # ip link add dummy1 type dummy
+ # ip link set dummy1 up
+ # nft 'create flowtable inet filter f1 { hook ingress priority 0; counter }'
+ # nft 'add flowtable inet filter f1 { devices = { dummy1 } ; }'
+ Error: missing hook and priority in flowtable declaration
+ add flowtable inet filter f1 { devices = { dummy1 } ; }
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
 
-This series apply cleanly to these -stable kernels, I have also tested
-this series on them.
+Fixes: 5ad475fce5a1 ("evaluate: bail out if new flowtable does not specify hook and priority")
+Reported-by: Martin Gignac <martin.gignac@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c                                | 2 +-
+ tests/shell/testcases/flowtable/0015destroy_0 | 8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-Tested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 13b6a603de22..bcf83d804f32 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -4867,7 +4867,7 @@ static int flowtable_evaluate(struct eval_ctx *ctx, struct flowtable *ft)
+ 		return table_not_found(ctx);
+ 
+ 	if (!ft_cache_find(table, ft->handle.flowtable.name)) {
+-		if (!ft->hook.name)
++		if (!ft->hook.name && !ft->dev_expr)
+ 			return chain_error(ctx, ft, "missing hook and priority in flowtable declaration");
+ 
+ 		ft_cache_add(flowtable_get(ft), table);
+diff --git a/tests/shell/testcases/flowtable/0015destroy_0 b/tests/shell/testcases/flowtable/0015destroy_0
+index d2a87da080fb..cea33524831f 100755
+--- a/tests/shell/testcases/flowtable/0015destroy_0
++++ b/tests/shell/testcases/flowtable/0015destroy_0
+@@ -2,6 +2,11 @@
+ 
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_destroy)
+ 
++trap "ip link del dummy1" EXIT
++
++ip link add dummy1 type dummy
++ip link set dummy1 up
++
+ $NFT add table t
+ 
+ # pass for non-existent flowtable
+@@ -9,4 +14,7 @@ $NFT destroy flowtable t f
+ 
+ # successfully delete existing flowtable
+ $NFT add flowtable t f '{ hook ingress priority 10; devices = { lo }; }'
++
++$NFT 'add flowtable t f { devices = { dummy1 } ; }'
++
+ $NFT destroy flowtable t f
+-- 
+2.30.2
 
-Thanks.
