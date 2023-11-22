@@ -2,185 +2,60 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D16C7C61D9D
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 10:32:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC955C61D9B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 10:36:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230285AbjKVKcd (ORCPT
+        id S229995AbjKVKgM (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Nov 2023 05:32:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56192 "EHLO
+        Wed, 22 Nov 2023 05:36:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230267AbjKVKca (ORCPT
+        with ESMTP id S234138AbjKVKgL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2023 05:32:30 -0500
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C3A9DBC
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 02:32:26 -0800 (PST)
+        Wed, 22 Nov 2023 05:36:11 -0500
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EF40BC
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 02:36:06 -0800 (PST)
+Received: from [78.30.43.141] (port=32844 helo=gnumonks.org)
+        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <pablo@gnumonks.org>)
+        id 1r5kaQ-00CEjY-D4; Wed, 22 Nov 2023 11:36:04 +0100
+Date:   Wed, 22 Nov 2023 11:36:00 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/8] tests: shell: detach synproxy test
-Date:   Wed, 22 Nov 2023 11:32:16 +0100
-Message-Id: <20231122103221.90160-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20231122103221.90160-1-pablo@netfilter.org>
-References: <20231122103221.90160-1-pablo@netfilter.org>
+To:     Thomas Haller <thaller@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
+        Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft v3 1/1] tests/shell: sanitize "handle" in JSON output
+Message-ID: <ZV3ZkD0Yi15ICNZT@calendula>
+References: <ZVymYDwWLQBQUAAg@calendula>
+ <20231121132331.3401846-1-thaller@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231121132331.3401846-1-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Old kernels do not support synproxy, split existing tests with stateful objects.
+On Tue, Nov 21, 2023 at 02:22:54PM +0100, Thomas Haller wrote:
+> The "handle" in JSON output is not stable. Sanitize/normalize to zero.
+> 
+> Adjust the sanitize code, and regenerate the .json-nft files.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- .../shell/testcases/sets/0024named_objects_0  | 15 ----------
- tests/shell/testcases/sets/0024synproxy_0     | 29 +++++++++++++++++++
- .../sets/dumps/0024named_objects_0.nft        | 18 ------------
- .../testcases/sets/dumps/0024synproxy_0.nft   | 23 +++++++++++++++
- 4 files changed, 52 insertions(+), 33 deletions(-)
- create mode 100755 tests/shell/testcases/sets/0024synproxy_0
- create mode 100644 tests/shell/testcases/sets/dumps/0024synproxy_0.nft
+Applied, thanks.
 
-diff --git a/tests/shell/testcases/sets/0024named_objects_0 b/tests/shell/testcases/sets/0024named_objects_0
-index 6d21e3884da9..21200c3cca3c 100755
---- a/tests/shell/testcases/sets/0024named_objects_0
-+++ b/tests/shell/testcases/sets/0024named_objects_0
-@@ -18,15 +18,6 @@ table inet x {
- 	quota user124 {
- 		over 2000 bytes
- 	}
--	synproxy https-synproxy {
--		mss 1460
--		wscale 7
--		timestamp sack-perm
--	}
--	synproxy other-synproxy {
--		mss 1460
--		wscale 5
--	}
- 	set y {
- 		type ipv4_addr
- 	}
-@@ -34,15 +25,9 @@ table inet x {
- 		type ipv4_addr : quota
- 		elements = { 192.168.2.2 : "user124", 192.168.2.3 : "user124"}
- 	}
--	map test2 {
--		type ipv4_addr : synproxy
--		flags interval
--		elements = { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
--	}
- 	chain y {
- 		type filter hook input priority 0; policy accept;
- 		counter name ip saddr map { 192.168.2.2 : "user123", 1.1.1.1 : "user123", 2.2.2.2 : "user123"}
--		synproxy name ip saddr map { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
- 		quota name ip saddr map @test drop
- 	}
- }"
-diff --git a/tests/shell/testcases/sets/0024synproxy_0 b/tests/shell/testcases/sets/0024synproxy_0
-new file mode 100755
-index 000000000000..ccaed0325d44
---- /dev/null
-+++ b/tests/shell/testcases/sets/0024synproxy_0
-@@ -0,0 +1,29 @@
-+#!/bin/bash
-+
-+# * creating valid named objects
-+# * referencing them from a valid rule
-+
-+RULESET="
-+table inet x {
-+	synproxy https-synproxy {
-+		mss 1460
-+		wscale 7
-+		timestamp sack-perm
-+	}
-+	synproxy other-synproxy {
-+		mss 1460
-+		wscale 5
-+	}
-+	map test2 {
-+		type ipv4_addr : synproxy
-+		flags interval
-+		elements = { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
-+	}
-+	chain y {
-+		type filter hook input priority 0; policy accept;
-+		synproxy name ip saddr map { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
-+	}
-+}"
-+
-+set -e
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/sets/dumps/0024named_objects_0.nft b/tests/shell/testcases/sets/dumps/0024named_objects_0.nft
-index 52d1bf64b686..2ffa4f2ff757 100644
---- a/tests/shell/testcases/sets/dumps/0024named_objects_0.nft
-+++ b/tests/shell/testcases/sets/dumps/0024named_objects_0.nft
-@@ -15,17 +15,6 @@ table inet x {
- 		over 2000 bytes
- 	}
- 
--	synproxy https-synproxy {
--		mss 1460
--		wscale 7
--		timestamp sack-perm
--	}
--
--	synproxy other-synproxy {
--		mss 1460
--		wscale 5
--	}
--
- 	set y {
- 		type ipv4_addr
- 	}
-@@ -35,16 +24,9 @@ table inet x {
- 		elements = { 192.168.2.2 : "user124", 192.168.2.3 : "user124" }
- 	}
- 
--	map test2 {
--		type ipv4_addr : synproxy
--		flags interval
--		elements = { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
--	}
--
- 	chain y {
- 		type filter hook input priority filter; policy accept;
- 		counter name ip saddr map { 1.1.1.1 : "user123", 2.2.2.2 : "user123", 192.168.2.2 : "user123" }
--		synproxy name ip saddr map { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
- 		quota name ip saddr map @test drop
- 	}
- }
-diff --git a/tests/shell/testcases/sets/dumps/0024synproxy_0.nft b/tests/shell/testcases/sets/dumps/0024synproxy_0.nft
-new file mode 100644
-index 000000000000..e0ee86db2217
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0024synproxy_0.nft
-@@ -0,0 +1,23 @@
-+table inet x {
-+	synproxy https-synproxy {
-+		mss 1460
-+		wscale 7
-+		timestamp sack-perm
-+	}
-+
-+	synproxy other-synproxy {
-+		mss 1460
-+		wscale 5
-+	}
-+
-+	map test2 {
-+		type ipv4_addr : synproxy
-+		flags interval
-+		elements = { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
-+	}
-+
-+	chain y {
-+		type filter hook input priority filter; policy accept;
-+		synproxy name ip saddr map { 192.168.1.0/24 : "https-synproxy", 192.168.2.0/24 : "other-synproxy" }
-+	}
-+}
--- 
-2.30.2
+I had to adjust a json dump, this diff is not so difficult:
 
+--- testcases/sets/dumps/0062set_connlimit_0.json-nft   2023-11-22 10:34:55.767232540 +0100
++++ /tmp/nft-test.20231122-103617.664.6hTWZt/test-testcases-sets-0062set_connlimit_0.1/ruleset-after.json       2023-11-22 10:36:19.338350215 +0100
+@@ -1 +1 @@
+-{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "x", "handle": 0}}, {"set": {"family": "ip", "name": "est-connlimit", "table": "x", "type": "ipv4_addr", "handle": 0, "size": 65535, "flags": ["dynamic"], "elem": [{"elem": {"val": "84.245.120.167", "ct count": {"val": 20, "inv": true}}}]}}, {"set": {"family": "ip", "name": "new-connlimit", "table": "x", "type": "ipv4_addr", "handle": 0, "size": 65535, "flags": ["dynamic"], "elem": [{"elem": {"val": "84.245.120.167", "ct count": {"val": 20, "inv": true}}}], "stmt": [{"ct count": {"val": 20, "inv": true}}]}}]}
++{"nftables": [{"metainfo": {"version": "VERSION", "release_name": "RELEASE_NAME", "json_schema_version": 1}}, {"table": {"family": "ip", "name": "x", "handle": 0}}, {"set": {"family": "ip", "name": "est-connlimit", "table": "x", "type": "ipv4_addr", "handle": 0, "size": 65535, "flags": ["dynamic"]}}, {"set": {"family": "ip", "name": "new-connlimit", "table": "x", "type": "ipv4_addr", "handle": 0, "size": 65535, "flags": ["dynamic"], "stmt": [{"ct count": {"val": 20, "inv": true}}]}}]}
+
+I had to adjust a different much larger dump though, and it feels a
+bit like searching the needle in the stack in the diff (if a bug ever
+shows up in this path). Usability improvement via python script
+similar to what tests/py does would be really great to have.
+
+Thanks.
