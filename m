@@ -2,133 +2,73 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3CA5C61D9B
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 12:33:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC399C61D9B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 12:54:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235084AbjKVMdl (ORCPT
+        id S234981AbjKVMyq (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Nov 2023 07:33:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34672 "EHLO
+        Wed, 22 Nov 2023 07:54:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230510AbjKVMdk (ORCPT
+        with ESMTP id S231286AbjKVMyp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2023 07:33:40 -0500
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C79A91
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 04:33:37 -0800 (PST)
-Received: from [78.30.43.141] (port=57258 helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.94.2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1r5mQ8-00Ce1z-P3; Wed, 22 Nov 2023 13:33:35 +0100
-Date:   Wed, 22 Nov 2023 13:33:30 +0100
-From:   Pablo Neira Ayuso <pablo@netfilter.org>
-To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft 1/1] tests: prettify JSON in test output and add
- helper
-Message-ID: <ZV31GgRsu6Y7UScC@calendula>
-References: <20231122111946.439474-1-thaller@redhat.com>
+        Wed, 22 Nov 2023 07:54:45 -0500
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8934810C
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 04:54:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+        s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+        Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+        Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+        :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+        List-Post:List-Owner:List-Archive;
+        bh=5CR0iZqmVnzx6OwryvZsEG1/4wDokFx0FhGgP0EhYGo=; b=Km91QfWIlP6z8ki33ohfcl+aw4
+        99nZ+7pKAnU0Y1uI0sF9N7ZHdjVmoKxa0UTF0LWLeDIl85s0fZgjRWP5KhtxM4fJU4lBD38LzYgOX
+        E4U173j6+hk5ZtA8mJyFyOzihncJ8WZvK/EBB7+ZXCDcn/kPw+TtFmZfeu63A2bFjpT6aFlO7+xwT
+        +VP3Srnl6MWWbWDwUzGo9g5CzxfA/ckhlKBFZUoM2wb3Ij8HMXyeEP3tTc0ITra2lic7x6ckX7Fqe
+        NPrLBNQrD7cROS2bG9y/M6x7G/C1gT4kn5JToS+mDKNpXWlYuioU6PAgG7dowhSZVrB9/x3tee2uF
+        JLxtwvIQ==;
+Received: from localhost ([::1] helo=xic)
+        by orbyte.nwl.cc with esmtp (Exim 4.94.2)
+        (envelope-from <phil@nwl.cc>)
+        id 1r5mkT-0005S1-O8
+        for netfilter-devel@vger.kernel.org; Wed, 22 Nov 2023 13:54:33 +0100
+From:   Phil Sutter <phil@nwl.cc>
+To:     netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 10/12] ebtables: Align line number formatting with legacy
+Date:   Wed, 22 Nov 2023 14:02:20 +0100
+Message-ID: <20231122130222.29453-11-phil@nwl.cc>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20231122130222.29453-1-phil@nwl.cc>
+References: <20231122130222.29453-1-phil@nwl.cc>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20231122111946.439474-1-thaller@redhat.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-Hi,
+Legacy ebtables appends a dot to the number printed in first column if
+--Ln flag was given.
 
-On Wed, Nov 22, 2023 at 12:19:40PM +0100, Thomas Haller wrote:
-> - add helper script "json-pretty.sh" for prettify/format JSON.
->   It uses either `jq` or a `python` fallback. In my tests, they
->   produce the same output, but the output is not guaranteed to be
->   stable. This is mainly for informational purpose.
-> 
-> - add a "json-diff-pretty.sh" which prettifies two JSON inputs and
->   shows a diff of them.
-> 
-> - in "test-wrapper.sh", after the check for a .json-nft dump fails, also
->   call "json-diff-pretty.sh" and write the output to "ruleset-diff.json.pretty".
->   This is beside "ruleset-diff.json", which contains the original diff.
+Fixes: da871de2a6efb ("nft: bootstrap ebtables-compat")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft-bridge.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-One silly question: Does the prettify hightlights the difference?
+diff --git a/iptables/nft-bridge.c b/iptables/nft-bridge.c
+index 772525e1b45a9..1fcdeaf2cad68 100644
+--- a/iptables/nft-bridge.c
++++ b/iptables/nft-bridge.c
+@@ -354,7 +354,7 @@ static void nft_bridge_print_rule(struct nft_handle *h, struct nftnl_rule *r,
+ 	struct iptables_command_state cs = {};
+ 
+ 	if (format & FMT_LINENUMBERS)
+-		printf("%d ", num);
++		printf("%d. ", num);
+ 
+ 	nft_rule_to_ebtables_command_state(h, r, &cs);
+ 	__nft_bridge_save_rule(&cs, format);
+-- 
+2.41.0
 
-tests/py clearly shows what is the difference in the JSON diff that
-quickly helps you identify what is missing.
-
-Thanks!
-
-> Signed-off-by: Thomas Haller <thaller@redhat.com>
-> ---
->  tests/shell/helpers/json-diff-pretty.sh | 17 +++++++++++++++++
->  tests/shell/helpers/json-pretty.sh      | 17 +++++++++++++++++
->  tests/shell/helpers/test-wrapper.sh     |  4 ++++
->  3 files changed, 38 insertions(+)
->  create mode 100755 tests/shell/helpers/json-diff-pretty.sh
->  create mode 100755 tests/shell/helpers/json-pretty.sh
-> 
-> diff --git a/tests/shell/helpers/json-diff-pretty.sh b/tests/shell/helpers/json-diff-pretty.sh
-> new file mode 100755
-> index 000000000000..bebb7e8ed006
-> --- /dev/null
-> +++ b/tests/shell/helpers/json-diff-pretty.sh
-> @@ -0,0 +1,17 @@
-> +#!/bin/bash -e
-> +
-> +BASEDIR="$(dirname "$0")"
-> +
-> +[ $# -eq 2 ] || (echo "$0: expects two JSON files as arguments" ; exit 1)
-> +
-> +FILE1="$1"
-> +FILE2="$2"
-> +
-> +pretty()
-> +{
-> +	"$BASEDIR/json-pretty.sh" < "$1" 2>&1 || :
-> +}
-> +
-> +echo "Cmd: \"$0\" \"$FILE1\" \"$FILE2\""
-> +diff -u "$FILE1" "$FILE2" 2>&1 || :
-> +diff -u <(pretty "$FILE1") <(pretty "$FILE2") 2>&1 || :
-> diff --git a/tests/shell/helpers/json-pretty.sh b/tests/shell/helpers/json-pretty.sh
-> new file mode 100755
-> index 000000000000..0d6972b81e2f
-> --- /dev/null
-> +++ b/tests/shell/helpers/json-pretty.sh
-> @@ -0,0 +1,17 @@
-> +#!/bin/bash -e
-> +
-> +# WARNING: the output is not guaranteed to be stable.
-> +
-> +if command -v jq &>/dev/null ; then
-> +	# If we have, use `jq`
-> +	exec jq
-> +fi
-> +
-> +# Fallback to python.
-> +exec python -c '
-> +import json
-> +import sys
-> +
-> +parsed = json.load(sys.stdin)
-> +print(json.dumps(parsed, indent=2))
-> +'
-> diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
-> index 9e8e60581890..4ffc48184dd7 100755
-> --- a/tests/shell/helpers/test-wrapper.sh
-> +++ b/tests/shell/helpers/test-wrapper.sh
-> @@ -202,6 +202,10 @@ if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
->  	fi
->  	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
->  		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
-> +			"$NFT_TEST_BASEDIR/helpers/json-diff-pretty.sh" \
-> +				"$JDUMPFILE" \
-> +				"$NFT_TEST_TESTTMPDIR/ruleset-after.json" \
-> +				2>&1 > "$NFT_TEST_TESTTMPDIR/ruleset-diff.json.pretty"
->  			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
->  			rc_dump=1
->  		else
-> -- 
-> 2.42.0
-> 
