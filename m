@@ -2,80 +2,133 @@ Return-Path: <netfilter-devel-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11448C61D97
-	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 12:32:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3CA5C61D9B
+	for <netfilter-devel@archiver.kernel.org>; Wed, 22 Nov 2023 12:33:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234999AbjKVMcP (ORCPT
+        id S235084AbjKVMdl (ORCPT
         <rfc822;netfilter-devel@archiver.kernel.org>);
-        Wed, 22 Nov 2023 07:32:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42014 "EHLO
+        Wed, 22 Nov 2023 07:33:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230510AbjKVMcO (ORCPT
+        with ESMTP id S230510AbjKVMdk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2023 07:32:14 -0500
+        Wed, 22 Nov 2023 07:33:40 -0500
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EF2491
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 04:32:07 -0800 (PST)
-Received: from [78.30.43.141] (port=40514 helo=gnumonks.org)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C79A91
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2023 04:33:37 -0800 (PST)
+Received: from [78.30.43.141] (port=57258 helo=gnumonks.org)
         by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.94.2)
         (envelope-from <pablo@gnumonks.org>)
-        id 1r5mOg-00CdwR-ME; Wed, 22 Nov 2023 13:32:04 +0100
-Date:   Wed, 22 Nov 2023 13:32:01 +0100
+        id 1r5mQ8-00Ce1z-P3; Wed, 22 Nov 2023 13:33:35 +0100
+Date:   Wed, 22 Nov 2023 13:33:30 +0100
 From:   Pablo Neira Ayuso <pablo@netfilter.org>
 To:     Thomas Haller <thaller@redhat.com>
-Cc:     NetFilter <netfilter-devel@vger.kernel.org>,
-        Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft v3 1/1] tests/shell: sanitize "handle" in JSON output
-Message-ID: <ZV30waZKED0YpnNx@calendula>
-References: <ZVymYDwWLQBQUAAg@calendula>
- <20231121132331.3401846-1-thaller@redhat.com>
- <ZV3ZkD0Yi15ICNZT@calendula>
- <8a1e3a2451a770d49a9e130103b8a657e9c23c18.camel@redhat.com>
- <ZV3kjlO+DmfWm9DH@calendula>
- <f8d50ac543975cb9683eb652597370108f66320f.camel@redhat.com>
+Cc:     NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 1/1] tests: prettify JSON in test output and add
+ helper
+Message-ID: <ZV31GgRsu6Y7UScC@calendula>
+References: <20231122111946.439474-1-thaller@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <f8d50ac543975cb9683eb652597370108f66320f.camel@redhat.com>
+In-Reply-To: <20231122111946.439474-1-thaller@redhat.com>
 Precedence: bulk
 List-ID: <netfilter-devel.vger.kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 
-On Wed, Nov 22, 2023 at 01:16:38PM +0100, Thomas Haller wrote:
-[...]
+Hi,
+
+On Wed, Nov 22, 2023 at 12:19:40PM +0100, Thomas Haller wrote:
+> - add helper script "json-pretty.sh" for prettify/format JSON.
+>   It uses either `jq` or a `python` fallback. In my tests, they
+>   produce the same output, but the output is not guaranteed to be
+>   stable. This is mainly for informational purpose.
 > 
-> Note that on `master` there are
+> - add a "json-diff-pretty.sh" which prettifies two JSON inputs and
+>   shows a diff of them.
 > 
->   - 386 shell tests
->   - 14 tests with .nodump files
->   - 372 tests with .nft dump files (386-14)
->   - 339 tests with .json-nft files
->   - 33 tests that lack .json-nft files (372-339)
+> - in "test-wrapper.sh", after the check for a .json-nft dump fails, also
+>   call "json-diff-pretty.sh" and write the output to "ruleset-diff.json.pretty".
+>   This is beside "ruleset-diff.json", which contains the original diff.
+
+One silly question: Does the prettify hightlights the difference?
+
+tests/py clearly shows what is the difference in the JSON diff that
+quickly helps you identify what is missing.
+
+Thanks!
+
+> Signed-off-by: Thomas Haller <thaller@redhat.com>
+> ---
+>  tests/shell/helpers/json-diff-pretty.sh | 17 +++++++++++++++++
+>  tests/shell/helpers/json-pretty.sh      | 17 +++++++++++++++++
+>  tests/shell/helpers/test-wrapper.sh     |  4 ++++
+>  3 files changed, 38 insertions(+)
+>  create mode 100755 tests/shell/helpers/json-diff-pretty.sh
+>  create mode 100755 tests/shell/helpers/json-pretty.sh
 > 
-> Meaning, that they are IMO useful already, and there is no immediate
-> hurry to address the missing 33 files.
-
-This is useful, almost complete coverage is better than no coverage :)
-
-> PS: Reminder: you can identify missing .json-nft files by running
-> `./tools/check-tree.sh`.
-
-Thanks. Maybe update tests/shell/README to add a few lines, I like to
-go there when I forget things and...
-
-$ git grep check-tree README
-$
-
-shows nothing.
-
-> You can generate missing files either via
+> diff --git a/tests/shell/helpers/json-diff-pretty.sh b/tests/shell/helpers/json-diff-pretty.sh
+> new file mode 100755
+> index 000000000000..bebb7e8ed006
+> --- /dev/null
+> +++ b/tests/shell/helpers/json-diff-pretty.sh
+> @@ -0,0 +1,17 @@
+> +#!/bin/bash -e
+> +
+> +BASEDIR="$(dirname "$0")"
+> +
+> +[ $# -eq 2 ] || (echo "$0: expects two JSON files as arguments" ; exit 1)
+> +
+> +FILE1="$1"
+> +FILE2="$2"
+> +
+> +pretty()
+> +{
+> +	"$BASEDIR/json-pretty.sh" < "$1" 2>&1 || :
+> +}
+> +
+> +echo "Cmd: \"$0\" \"$FILE1\" \"$FILE2\""
+> +diff -u "$FILE1" "$FILE2" 2>&1 || :
+> +diff -u <(pretty "$FILE1") <(pretty "$FILE2") 2>&1 || :
+> diff --git a/tests/shell/helpers/json-pretty.sh b/tests/shell/helpers/json-pretty.sh
+> new file mode 100755
+> index 000000000000..0d6972b81e2f
+> --- /dev/null
+> +++ b/tests/shell/helpers/json-pretty.sh
+> @@ -0,0 +1,17 @@
+> +#!/bin/bash -e
+> +
+> +# WARNING: the output is not guaranteed to be stable.
+> +
+> +if command -v jq &>/dev/null ; then
+> +	# If we have, use `jq`
+> +	exec jq
+> +fi
+> +
+> +# Fallback to python.
+> +exec python -c '
+> +import json
+> +import sys
+> +
+> +parsed = json.load(sys.stdin)
+> +print(json.dumps(parsed, indent=2))
+> +'
+> diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
+> index 9e8e60581890..4ffc48184dd7 100755
+> --- a/tests/shell/helpers/test-wrapper.sh
+> +++ b/tests/shell/helpers/test-wrapper.sh
+> @@ -202,6 +202,10 @@ if [ "$rc_test" -ne 77 -a "$dump_written" != y ] ; then
+>  	fi
+>  	if [ "$NFT_TEST_HAVE_json" != n -a -f "$JDUMPFILE" ] ; then
+>  		if ! $DIFF -u "$JDUMPFILE" "$NFT_TEST_TESTTMPDIR/ruleset-after.json" &> "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" ; then
+> +			"$NFT_TEST_BASEDIR/helpers/json-diff-pretty.sh" \
+> +				"$JDUMPFILE" \
+> +				"$NFT_TEST_TESTTMPDIR/ruleset-after.json" \
+> +				2>&1 > "$NFT_TEST_TESTTMPDIR/ruleset-diff.json.pretty"
+>  			show_file "$NFT_TEST_TESTTMPDIR/ruleset-diff.json" "Failed \`$DIFF -u \"$JDUMPFILE\" \"$NFT_TEST_TESTTMPDIR/ruleset-after.json\"\`" >> "$NFT_TEST_TESTTMPDIR/rc-failed-dump"
+>  			rc_dump=1
+>  		else
+> -- 
+> 2.42.0
 > 
->   $ DUMPGEN=all ./tests/shell/run-tests.sh tests/shell/testcases/cache/0010_implicit_chain_0
-> 
-> or just
-> 
->   $ touch tests/shell/testcases/cache/dumps/0010_implicit_chain_0.json-nft
->   $ ./tests/shell/run-tests.sh tests/shell/testcases/cache/0010_implicit_chain_0 -g
-
-Yes, that is missing.
