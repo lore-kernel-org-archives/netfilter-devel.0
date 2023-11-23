@@ -1,361 +1,130 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IEUGmk8v"
-Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E075B1AE;
-	Thu, 23 Nov 2023 03:13:02 -0800 (PST)
-Received: by mail-ed1-x536.google.com with SMTP id 4fb4d7f45d1cf-548f853fc9eso1038744a12.1;
-        Thu, 23 Nov 2023 03:13:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1700737981; x=1701342781; darn=vger.kernel.org;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2ETRJxI0jYA8eO15FtbRSONvqohxyMW+Q9fmUG4iFDY=;
-        b=IEUGmk8vbD/lXdKN7pZDE9//YQNbs5F2SBAt9gb60LD6kAQ6YUwklv9ClN1r8N/Vsl
-         qgsEFTPFvtWLWdkt9++MY6dNJczuQwpQKgO+VFNx8t4oMSLz4sL88FlsmERHG4Q2qRWT
-         zCLPJ/m2DIpzNdV5PJx9G1MyxAHxNhGJ7fA9YVsGbfrqKZih06UB0C58+Q7rlczhDP1p
-         w9eTzMIyi4zSEFGMU87O83mCCFpg4Kh+rvFOKUtoz/l94RjjiMwdmxjeSiXRLMUHMZnT
-         iTw3LsSTgb1JgvAPZIEDL7EzHJbwN57+5QEtNlBbIlRS5uZRlRzgZPIb8oiI5tb/3DaA
-         9esQ==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gXEAbsi7"
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74BE31AE
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Nov 2023 05:07:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1700744876;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=rcLUnZiLUv4jXexjrcy+eYgNvrpmaq3+GkNtlMTDLf4=;
+	b=gXEAbsi70izw1JZpbYjfRbDk0SQsdc/kHFlycQkpHxVkb2NtZE8rNW9WiHqFCSwtOyhQTz
+	3tubg0kCM6BtEpPHr7bN7LjMQ4ggagJQyr5bpHXcZivdUdDgJwxHSQq9JkJNtFNpEogkd4
+	ohaGipFQqHmf2oCEnGMhyZjrRVSdSIc=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-575-3TI2iHezP1aDwIYHFhHmQA-1; Thu, 23 Nov 2023 08:07:52 -0500
+X-MC-Unique: 3TI2iHezP1aDwIYHFhHmQA-1
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-32d933dde69so121028f8f.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Nov 2023 05:07:52 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700737981; x=1701342781;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2ETRJxI0jYA8eO15FtbRSONvqohxyMW+Q9fmUG4iFDY=;
-        b=HhYiNfghHpCMeroE6ONkWthZak/BdoQyI9+sJBjbboxd/h5eDfUsaZa/jhhb2qR4pB
-         Qe3ElKC581IDa4EMKJ54SwHsrqGzm4yJ9KvCg9sBfJk4bu4dwfM8eyVZleOfIk2RQEtu
-         RnL5qgLc5+XoSzWSDSaKks+KJi/fuXR10SLuLroZIYz/mFge6l6gT66cEakAIS9+h/ik
-         mhzMksUeB9t1RB/Ri91Ma6olY4hsShsphTxfqopV34XHyvgq8BDYNUs9u0gLsmQIGb6m
-         8DfRSY3kCKpfOhxM+pqZuvYSAEzi/JweM/PQP43fkRo+0TOGsPRO0aRylgzcGjO/0xqK
-         3/ag==
-X-Gm-Message-State: AOJu0Yw/c4iXDk6IlEdBLiotLKBOCpUjIkMMZMh2mkAwZBEf53DUnbPO
-	qVKy2h68m0KABla/tkvDnNU=
-X-Google-Smtp-Source: AGHT+IGDcx2v11UllY0MPwVs59OUelQ1fQzHkONutC5jBwKmQP7TQh2iBL8GZFvs8pVUkQNqXV7mWg==
-X-Received: by 2002:a17:906:340e:b0:9e5:fdd7:f521 with SMTP id c14-20020a170906340e00b009e5fdd7f521mr3755277ejb.41.1700737981121;
-        Thu, 23 Nov 2023 03:13:01 -0800 (PST)
-Received: from felia.fritz.box ([2a02:810d:7e40:14b0:d183:a5d9:39a9:cd13])
-        by smtp.gmail.com with ESMTPSA id kz15-20020a17090777cf00b009fd50aa6984sm646420ejc.83.2023.11.23.03.12.59
+        d=1e100.net; s=20230601; t=1700744871; x=1701349671;
+        h=mime-version:user-agent:content-transfer-encoding:autocrypt
+         :references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=rcLUnZiLUv4jXexjrcy+eYgNvrpmaq3+GkNtlMTDLf4=;
+        b=hMQjWPruIjXhTnq7TYHKRnJJEv9x/6M8R2g+AqgCsfvibsuVafGuSu3HZuaxHIqyfq
+         q204ow1e+yUjM0yMQoyC7WHmWrYS2EYVorBYssskE2s+yuKWPRchFUaYve/Y6bqMLmLY
+         Vc2XO4bXA35HyNTg5n0FgCakoDBV0+P7e3x9tlHJNRqikFaqfy9ydrYTnjYHr8OdOp9n
+         bImLUIq97yFdK6cA5DqmkRdgLtELSqdi1u4+HZwfQsEtcvWKYVfhWR6fcCAioK5xGpeO
+         gctzvWF1g+YErJcGyA7kVhJyOTrGG+gcelKZJWDLCwkJBLn9Pw91qoG+efz6S5NargVq
+         iN4w==
+X-Gm-Message-State: AOJu0YyOYt9sVAZfX7IXsvu8CppZFYn77sAmRxdwxDWK/Uc+uBkVb9HZ
+	kltR1ke9Qb9SiTd7gfMryqMO+dbTSXkSffU2+1fQ5j8UdxyAIwUlSba+p0QziAIgJ5G/fAIr4Td
+	70hl2jkeN88YBrcaYmZ8nUmrrPEzm9BKboIKw
+X-Received: by 2002:a5d:5b8d:0:b0:32d:c293:1ab4 with SMTP id df13-20020a5d5b8d000000b0032dc2931ab4mr3573777wrb.6.1700744871332;
+        Thu, 23 Nov 2023 05:07:51 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEc4ofOEHz7qeW96LwlIGUd3M+MoysXpRelzoNdYdeuntsMHbmPRbMug9coV7SlnbFVEB68tQ==
+X-Received: by 2002:a5d:5b8d:0:b0:32d:c293:1ab4 with SMTP id df13-20020a5d5b8d000000b0032dc2931ab4mr3573748wrb.6.1700744870510;
+        Thu, 23 Nov 2023 05:07:50 -0800 (PST)
+Received: from [10.0.0.196] ([37.186.166.196])
+        by smtp.gmail.com with ESMTPSA id w3-20020a5d5443000000b003140f47224csm1624551wrv.15.2023.11.23.05.07.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Nov 2023 03:13:00 -0800 (PST)
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-To: "David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Cc: kernel-janitors@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: [PATCH] net: make config lines follow common pattern
-Date: Thu, 23 Nov 2023 12:12:56 +0100
-Message-Id: <20231123111256.10757-1-lukas.bulwahn@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        Thu, 23 Nov 2023 05:07:50 -0800 (PST)
+Message-ID: <17362139899b24a4433c6f1ec18106a064bd85f7.camel@redhat.com>
+Subject: Re: [PATCH nft 1/1] tests/shell: accept name of dump files in place
+ of test names
+From: Thomas Haller <thaller@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: NetFilter <netfilter-devel@vger.kernel.org>
+Date: Thu, 23 Nov 2023 14:07:49 +0100
+In-Reply-To: <ZV8uCk27rVe5ts9t@calendula>
+References: <20231122182227.759051-1-thaller@redhat.com>
+	 <ZV8uCk27rVe5ts9t@calendula>
+Autocrypt: addr=thaller@redhat.com; prefer-encrypt=mutual; keydata=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
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.50.1 (3.50.1-1.fc39) 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
 
-The Kconfig parser is quite relaxed when parsing config definition lines.
-However, there are just a few config definition lines that do not follow
-the common regular expression 'config [0-9A-Z]', i.e., there are only a few
-cases where config is not followed by exactly one whitespace.
+On Thu, 2023-11-23 at 11:48 +0100, Pablo Neira Ayuso wrote:
+> On Wed, Nov 22, 2023 at 07:22:25PM +0100, Thomas Haller wrote:
+> > diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+> > index 3cde97b7ea17..c26142b7ff17 100755
+> > --- a/tests/shell/run-tests.sh
+> > +++ b/tests/shell/run-tests.sh
+> > @@ -431,6 +431,19 @@ for t in "${TESTSOLD[@]}" ; do
+> > =C2=A0	elif [ -d "$t" ] ; then
+> > =C2=A0		TESTS+=3D( $(find_tests "$t") )
+> > =C2=A0	else
+> > +		if [ -f "$t" ] ; then
+> > +			# If the test name looks like a dumps
+> > file, autodetect
+> > +			# the correct test name. It's not useful
+> > to bother the
+> > +			# user with a failure in this case.
+> > +			rx=3D"^(.*/)?dumps/([^/]+)\\.(nodump|nft|jso
+> > n-nft)$"
+> > +			if [[ "$t" =3D~ $rx ]] ; then
+> > +				t2=3D"${BASH_REMATCH[1]}${BASH_REMAT
+> > CH[2]}"
+> > +				if [ -f "$t2" -a -x "$t2" ] ; then
+> > +					TESTS+=3D( "$t2" )
+> > +					continue
+> > +				fi
+> > +			fi
+> > +		fi
+>=20
+> I think it is not worth, users of this infrastructure is very small.
+>=20
+> So let's keep back this usability feature for tests/shell.
 
-To simplify life for kernel developers that use basic regular expressions
-to find and extract kernel configs, make all config lines follow this
-common pattern.
+OK. Fine.
 
-No functional change, just helpful stylistic clean-up.
+But while closing and dropping it, let me still make the use case
+clear.
 
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
----
- drivers/net/ethernet/cavium/Kconfig |  4 +--
- net/caif/Kconfig                    |  2 +-
- net/netfilter/ipvs/Kconfig          | 54 ++++++++++++++---------------
- net/unix/Kconfig                    |  2 +-
- 4 files changed, 31 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/net/ethernet/cavium/Kconfig b/drivers/net/ethernet/cavium/Kconfig
-index ca742cc146d7..fe4203b1bc5f 100644
---- a/drivers/net/ethernet/cavium/Kconfig
-+++ b/drivers/net/ethernet/cavium/Kconfig
-@@ -32,7 +32,7 @@ config THUNDER_NIC_VF
- 	help
- 	  This driver supports Thunder's NIC virtual function
- 
--config	THUNDER_NIC_BGX
-+config THUNDER_NIC_BGX
- 	tristate "Thunder MAC interface driver (BGX)"
- 	depends on 64BIT && PCI
- 	select PHYLIB
-@@ -42,7 +42,7 @@ config	THUNDER_NIC_BGX
- 	  This driver supports programming and controlling of MAC
- 	  interface from NIC physical function driver.
- 
--config	THUNDER_NIC_RGX
-+config THUNDER_NIC_RGX
- 	tristate "Thunder MAC interface driver (RGX)"
- 	depends on 64BIT && PCI
- 	select PHYLIB
-diff --git a/net/caif/Kconfig b/net/caif/Kconfig
-index 87205251cc25..1eb271125eb0 100644
---- a/net/caif/Kconfig
-+++ b/net/caif/Kconfig
-@@ -22,7 +22,7 @@ menuconfig CAIF
- 	See Documentation/networking/caif for a further explanation on how to
- 	use and configure CAIF.
- 
--config  CAIF_DEBUG
-+config CAIF_DEBUG
- 	bool "Enable Debug"
- 	depends on CAIF
- 	default n
-diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-index 2a3017b9c001..db6df2ca129d 100644
---- a/net/netfilter/ipvs/Kconfig
-+++ b/net/netfilter/ipvs/Kconfig
-@@ -26,7 +26,7 @@ menuconfig IP_VS
- 
- if IP_VS
- 
--config	IP_VS_IPV6
-+config IP_VS_IPV6
- 	bool "IPv6 support for IPVS"
- 	depends on IPV6 = y || IP_VS = IPV6
- 	select NF_DEFRAG_IPV6
-@@ -35,14 +35,14 @@ config	IP_VS_IPV6
- 
- 	  Say Y if unsure.
- 
--config	IP_VS_DEBUG
-+config IP_VS_DEBUG
- 	bool "IP virtual server debugging"
- 	help
- 	  Say Y here if you want to get additional messages useful in
- 	  debugging the IP virtual server code. You can change the debug
- 	  level in /proc/sys/net/ipv4/vs/debug_level
- 
--config	IP_VS_TAB_BITS
-+config IP_VS_TAB_BITS
- 	int "IPVS connection table size (the Nth power of 2)"
- 	range 8 20 if !64BIT
- 	range 8 27 if 64BIT
-@@ -76,34 +76,34 @@ config	IP_VS_TAB_BITS
- 
- comment "IPVS transport protocol load balancing support"
- 
--config	IP_VS_PROTO_TCP
-+config IP_VS_PROTO_TCP
- 	bool "TCP load balancing support"
- 	help
- 	  This option enables support for load balancing TCP transport
- 	  protocol. Say Y if unsure.
- 
--config	IP_VS_PROTO_UDP
-+config IP_VS_PROTO_UDP
- 	bool "UDP load balancing support"
- 	help
- 	  This option enables support for load balancing UDP transport
- 	  protocol. Say Y if unsure.
- 
--config	IP_VS_PROTO_AH_ESP
-+config IP_VS_PROTO_AH_ESP
- 	def_bool IP_VS_PROTO_ESP || IP_VS_PROTO_AH
- 
--config	IP_VS_PROTO_ESP
-+config IP_VS_PROTO_ESP
- 	bool "ESP load balancing support"
- 	help
- 	  This option enables support for load balancing ESP (Encapsulation
- 	  Security Payload) transport protocol. Say Y if unsure.
- 
--config	IP_VS_PROTO_AH
-+config IP_VS_PROTO_AH
- 	bool "AH load balancing support"
- 	help
- 	  This option enables support for load balancing AH (Authentication
- 	  Header) transport protocol. Say Y if unsure.
- 
--config  IP_VS_PROTO_SCTP
-+config IP_VS_PROTO_SCTP
- 	bool "SCTP load balancing support"
- 	select LIBCRC32C
- 	help
-@@ -112,7 +112,7 @@ config  IP_VS_PROTO_SCTP
- 
- comment "IPVS scheduler"
- 
--config	IP_VS_RR
-+config IP_VS_RR
- 	tristate "round-robin scheduling"
- 	help
- 	  The robin-robin scheduling algorithm simply directs network
-@@ -121,7 +121,7 @@ config	IP_VS_RR
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
-  
--config	IP_VS_WRR
-+config IP_VS_WRR
- 	tristate "weighted round-robin scheduling"
- 	help
- 	  The weighted robin-robin scheduling algorithm directs network
-@@ -134,7 +134,7 @@ config	IP_VS_WRR
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_LC
-+config IP_VS_LC
- 	tristate "least-connection scheduling"
- 	help
- 	  The least-connection scheduling algorithm directs network
-@@ -144,7 +144,7 @@ config	IP_VS_LC
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_WLC
-+config IP_VS_WLC
- 	tristate "weighted least-connection scheduling"
- 	help
- 	  The weighted least-connection scheduling algorithm directs network
-@@ -154,8 +154,8 @@ config	IP_VS_WLC
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config  IP_VS_FO
--		tristate "weighted failover scheduling"
-+config IP_VS_FO
-+	tristate "weighted failover scheduling"
- 	help
- 	  The weighted failover scheduling algorithm directs network
- 	  connections to the server with the highest weight that is
-@@ -164,7 +164,7 @@ config  IP_VS_FO
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config  IP_VS_OVF
-+config IP_VS_OVF
- 	tristate "weighted overflow scheduling"
- 	help
- 	  The weighted overflow scheduling algorithm directs network
-@@ -175,7 +175,7 @@ config  IP_VS_OVF
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_LBLC
-+config IP_VS_LBLC
- 	tristate "locality-based least-connection scheduling"
- 	help
- 	  The locality-based least-connection scheduling algorithm is for
-@@ -189,7 +189,7 @@ config	IP_VS_LBLC
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config  IP_VS_LBLCR
-+config IP_VS_LBLCR
- 	tristate "locality-based least-connection with replication scheduling"
- 	help
- 	  The locality-based least-connection with replication scheduling
-@@ -207,7 +207,7 @@ config  IP_VS_LBLCR
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_DH
-+config IP_VS_DH
- 	tristate "destination hashing scheduling"
- 	help
- 	  The destination hashing scheduling algorithm assigns network
-@@ -217,7 +217,7 @@ config	IP_VS_DH
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_SH
-+config IP_VS_SH
- 	tristate "source hashing scheduling"
- 	help
- 	  The source hashing scheduling algorithm assigns network
-@@ -227,7 +227,7 @@ config	IP_VS_SH
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_MH
-+config IP_VS_MH
- 	tristate "maglev hashing scheduling"
- 	help
- 	  The maglev consistent hashing scheduling algorithm provides the
-@@ -246,7 +246,7 @@ config	IP_VS_MH
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_SED
-+config IP_VS_SED
- 	tristate "shortest expected delay scheduling"
- 	help
- 	  The shortest expected delay scheduling algorithm assigns network
-@@ -259,7 +259,7 @@ config	IP_VS_SED
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_NQ
-+config IP_VS_NQ
- 	tristate "never queue scheduling"
- 	help
- 	  The never queue scheduling algorithm adopts a two-speed model.
-@@ -272,7 +272,7 @@ config	IP_VS_NQ
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_TWOS
-+config IP_VS_TWOS
- 	tristate "weighted random twos choice least-connection scheduling"
- 	help
- 	  The weighted random twos choice least-connection scheduling
-@@ -318,7 +318,7 @@ config IP_VS_MH_TAB_INDEX
- 
- comment 'IPVS application helper'
- 
--config	IP_VS_FTP
-+config IP_VS_FTP
- 	tristate "FTP protocol helper"
- 	depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT && \
- 		NF_CONNTRACK_FTP
-@@ -334,7 +334,7 @@ config	IP_VS_FTP
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--config	IP_VS_NFCT
-+config IP_VS_NFCT
- 	bool "Netfilter connection tracking"
- 	depends on NF_CONNTRACK
- 	help
-@@ -342,7 +342,7 @@ config	IP_VS_NFCT
- 	  connection state to be exported to the Netfilter framework
- 	  for filtering purposes.
- 
--config	IP_VS_PE_SIP
-+config IP_VS_PE_SIP
- 	tristate "SIP persistence engine"
- 	depends on IP_VS_PROTO_UDP
- 	depends on NF_CONNTRACK_SIP
-diff --git a/net/unix/Kconfig b/net/unix/Kconfig
-index 28b232f281ab..5f2502977042 100644
---- a/net/unix/Kconfig
-+++ b/net/unix/Kconfig
-@@ -21,7 +21,7 @@ config UNIX_SCM
- 	depends on UNIX
- 	default y
- 
--config	AF_UNIX_OOB
-+config AF_UNIX_OOB
- 	bool
- 	depends on UNIX
- 	default y
--- 
-2.17.1
+When I look at a patch in `git-log` and see for example the diff-stat:
+
+ src/json.c                                                       |  25 +++=
+++++++++++------------
+ src/parser_json.c                                                |  91 +++=
+++++++++++++++++++++++++++++++++++++++++++---------------------------------=
+-------------
+ tests/shell/testcases/chains/dumps/0021prio_0.json-nft           | Bin 615=
+09 -> 61639 bytes
+ tests/shell/testcases/chains/dumps/0042chain_variable_0.json-nft | Bin 952=
+ -> 1046 bytes
+ tests/shell/testcases/chains/dumps/0043chain_ingress_0.json-nft  | Bin 619=
+ -> 632 bytes
+
+I'd like to re-run those tests. I'd like to do that by copy-pasting the
+file names at hand into the terminal.
+
+
+
+Thomas
 
