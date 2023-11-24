@@ -1,69 +1,151 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B721433CD8;
-	Fri, 24 Nov 2023 16:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54FB233E9;
+	Fri, 24 Nov 2023 19:09:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="xIP/2vBz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D34A1C433C7;
-	Fri, 24 Nov 2023 16:24:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="V8I8DQDL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2A34C433C7;
+	Fri, 24 Nov 2023 19:09:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1700843043;
-	bh=cqkzBVnzAOUHRxUPbbIR8KFU106DKU3hJwtJMI7vK24=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=xIP/2vBz3NSF47hw6/mv7M3wu3WqiWFBYrC7pouQiOPTYvtOhtaJPEVH4M2uqEqjb
-	 XfyoYR1Rm2yclWS8rZH6R/KSKHEnDpdudYcq5I4pydL+JHKePmkFD+nugJvM0LbroM
-	 nwn56adN5FrRHOfzZI2qlakHOTK5jaNHJIKRoHNQ=
-Date: Fri, 24 Nov 2023 16:23:43 +0000
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Sasha Levin <sashal@kernel.org>, netfilter-devel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH -stable,5.4 23/26] netfilter: nftables: update table
- flags from the commit phase
-Message-ID: <2023112437-obliged-tilt-546c@gregkh>
-References: <20231121121333.294238-1-pablo@netfilter.org>
- <20231121121333.294238-24-pablo@netfilter.org>
- <ZV4qn2RI8a8cg3bL@sashalap>
- <ZV47LThJC3LMXmFp@calendula>
- <ZV8rNDHAdttpYrAJ@calendula>
+	s=korg; t=1700852960;
+	bh=tqyYb2uwXIq7K+3GccnY/cBYWAaM+yPikDAaelfESyI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=V8I8DQDLGgP7JPWLefyhWuxdwp39+wdz/LqNmKFoOItifHpZY9j5MQjJqjMx0F2b8
+	 JBIshRGddqaRjeK0q4Z63b/JtU0KzooGv8bl2xrtxk2DqxlzO8pHO7MuwNoyt1qo57
+	 BvK9fH87GmPi17fXLiVcwwsOZgWZAs44+IZCUWOs=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 5.10 191/193] netfilter: nftables: update table flags from the commit phase
+Date: Fri, 24 Nov 2023 17:55:18 +0000
+Message-ID: <20231124171954.832942175@linuxfoundation.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20231124171947.127438872@linuxfoundation.org>
+References: <20231124171947.127438872@linuxfoundation.org>
+User-Agent: quilt/0.67
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZV8rNDHAdttpYrAJ@calendula>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Nov 23, 2023 at 11:36:36AM +0100, Pablo Neira Ayuso wrote:
-> Hi again Sasha,
-> 
-> On Wed, Nov 22, 2023 at 06:32:32PM +0100, Pablo Neira Ayuso wrote:
-> > On Wed, Nov 22, 2023 at 11:21:51AM -0500, Sasha Levin wrote:
-> > > On Tue, Nov 21, 2023 at 01:13:30PM +0100, Pablo Neira Ayuso wrote:
-> > > > commit 0ce7cf4127f14078ca598ba9700d813178a59409 upstream.
-> > > > 
-> > > > Do not update table flags from the preparation phase. Store the flags
-> > > > update into the transaction, then update the flags from the commit
-> > > > phase.
-> > > 
-> > > We don't seem to have this or the following commits in the 5.10 tree,
-> > > are they just not needed there?
-> > 
-> > Let me have a look at 5.10, 23/26, 24/26 and 25/26 are likely
-> > candidates.
-> > 
-> > But not 26/26 in this series.
-> > 
-> > Let me test them and I will send you a specific patch series in
-> > another mail thread for 5.10 if they are required.
-> 
-> You can apply 23/26, 24/26 and 25/26 to 5.10 -stable coming in this
-> series for -stable 5.4. I haved tested here on -stable 5.10, they also
-> apply cleanly.
+5.10-stable review patch.  If anyone has any objections, please let me know.
 
-Now done, thanks.
+------------------
 
-greg k-h
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+
+commit 0ce7cf4127f14078ca598ba9700d813178a59409 upstream.
+
+Do not update table flags from the preparation phase. Store the flags
+update into the transaction, then update the flags from the commit
+phase.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ include/net/netfilter/nf_tables.h |    9 ++++++---
+ net/netfilter/nf_tables_api.c     |   31 ++++++++++++++++---------------
+ 2 files changed, 22 insertions(+), 18 deletions(-)
+
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1479,13 +1479,16 @@ struct nft_trans_chain {
+ 
+ struct nft_trans_table {
+ 	bool				update;
+-	bool				enable;
++	u8				state;
++	u32				flags;
+ };
+ 
+ #define nft_trans_table_update(trans)	\
+ 	(((struct nft_trans_table *)trans->data)->update)
+-#define nft_trans_table_enable(trans)	\
+-	(((struct nft_trans_table *)trans->data)->enable)
++#define nft_trans_table_state(trans)	\
++	(((struct nft_trans_table *)trans->data)->state)
++#define nft_trans_table_flags(trans)	\
++	(((struct nft_trans_table *)trans->data)->flags)
+ 
+ struct nft_trans_elem {
+ 	struct nft_set			*set;
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1074,6 +1074,12 @@ static void nf_tables_table_disable(stru
+ 	nft_table_disable(net, table, 0);
+ }
+ 
++enum {
++	NFT_TABLE_STATE_UNCHANGED	= 0,
++	NFT_TABLE_STATE_DORMANT,
++	NFT_TABLE_STATE_WAKEUP
++};
++
+ static int nf_tables_updtable(struct nft_ctx *ctx)
+ {
+ 	struct nft_trans *trans;
+@@ -1097,19 +1103,17 @@ static int nf_tables_updtable(struct nft
+ 
+ 	if ((flags & NFT_TABLE_F_DORMANT) &&
+ 	    !(ctx->table->flags & NFT_TABLE_F_DORMANT)) {
+-		nft_trans_table_enable(trans) = false;
++		nft_trans_table_state(trans) = NFT_TABLE_STATE_DORMANT;
+ 	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
+-		ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
+ 		ret = nf_tables_table_enable(ctx->net, ctx->table);
+ 		if (ret >= 0)
+-			nft_trans_table_enable(trans) = true;
+-		else
+-			ctx->table->flags |= NFT_TABLE_F_DORMANT;
++			nft_trans_table_state(trans) = NFT_TABLE_STATE_WAKEUP;
+ 	}
+ 	if (ret < 0)
+ 		goto err;
+ 
++	nft_trans_table_flags(trans) = flags;
+ 	nft_trans_table_update(trans) = true;
+ 	nft_trans_commit_list_add_tail(ctx->net, trans);
+ 	return 0;
+@@ -8475,11 +8479,10 @@ static int nf_tables_commit(struct net *
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWTABLE:
+ 			if (nft_trans_table_update(trans)) {
+-				if (!nft_trans_table_enable(trans)) {
+-					nf_tables_table_disable(net,
+-								trans->ctx.table);
+-					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
+-				}
++				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_DORMANT)
++					nf_tables_table_disable(net, trans->ctx.table);
++
++				trans->ctx.table->flags = nft_trans_table_flags(trans);
+ 			} else {
+ 				nft_clear(net, trans->ctx.table);
+ 			}
+@@ -8728,11 +8731,9 @@ static int __nf_tables_abort(struct net
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWTABLE:
+ 			if (nft_trans_table_update(trans)) {
+-				if (nft_trans_table_enable(trans)) {
+-					nf_tables_table_disable(net,
+-								trans->ctx.table);
+-					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
+-				}
++				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_WAKEUP)
++					nf_tables_table_disable(net, trans->ctx.table);
++
+ 				nft_trans_destroy(trans);
+ 			} else {
+ 				list_del_rcu(&trans->ctx.table->list);
+
+
