@@ -1,29 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBBCE35F1A;
-	Fri, 24 Nov 2023 19:28:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E1C6381A2;
+	Fri, 24 Nov 2023 19:28:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="oYgnecXf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69DEBC433C7;
-	Fri, 24 Nov 2023 19:28:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="npNNbKeH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCAA4C433C8;
+	Fri, 24 Nov 2023 19:28:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1700854101;
-	bh=2qkPU4Da+f23tR4KBie2TIBAtPY6mXa8XIGGM+ZC0ZY=;
+	s=korg; t=1700854104;
+	bh=eTa0wvDKpfl6j5Yc6jFg+JoxO73fFIpq2LQ/3mXGuEs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=oYgnecXfea7BCD4vKyKggTRhIIocrx9khuklNXYEpfIPbffWLeUJn5afP+Z0IaDop
-	 pu//zpnH4zlIhdpafmVL0WCI9LUGnWhMSn1lINBrsCtIMNO8Z8wHt95AwotiQ7zO9u
-	 NNaWyzNmL1lRGGwLXkB98vaDugU0tnv7pMOqBBKY=
+	b=npNNbKeHIyGjUmFiNwiG5ss0b/l+MAWUXzZV0VHLucnEbd+aCkhhAzmzCiSgaMYsa
+	 4+inE7BZcC15qvZA6d0PRENrX1WWB9moGcIPbv4Fq6qkvwXN9Xotl0F44HYS4elYgC
+	 DKAfuA7uJUFM5tG6VoRAspthcmXtjK5HCaSp2hsE=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	syzbot+7ad5cd1615f2d89c6e7e@syzkaller.appspotmail.com,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5.4 157/159] netfilter: nf_tables: fix table flag updates
-Date: Fri, 24 Nov 2023 17:56:14 +0000
-Message-ID: <20231124171948.326553575@linuxfoundation.org>
+	"Lee, Cherie-Anne" <cherie.lee@starlabs.sg>,
+	Bing-Jhong Billy Jheng <billy@starlabs.sg>,
+	info@starlabs.sg,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH 5.4 158/159] netfilter: nf_tables: disable toggling dormant table state more than once
+Date: Fri, 24 Nov 2023 17:56:15 +0000
+Message-ID: <20231124171948.373568182@linuxfoundation.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20231124171941.909624388@linuxfoundation.org>
 References: <20231124171941.909624388@linuxfoundation.org>
@@ -44,189 +46,51 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 179d9ba5559a756f4322583388b3213fe4e391b0 upstream.
+commit c9bd26513b3a11b3adb3c2ed8a31a01a87173ff1 upstream.
 
-The dormant flag need to be updated from the preparation phase,
-otherwise, two consecutive requests to dorm a table in the same batch
-might try to remove the same hooks twice, resulting in the following
-warning:
+nft -f -<<EOF
+add table ip t
+add table ip t { flags dormant; }
+add chain ip t c { type filter hook input priority 0; }
+add table ip t
+EOF
 
- hook not found, pf 3 num 0
- WARNING: CPU: 0 PID: 334 at net/netfilter/core.c:480 __nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
- Modules linked in:
- CPU: 0 PID: 334 Comm: kworker/u4:5 Not tainted 5.12.0-syzkaller #0
- Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
- Workqueue: netns cleanup_net
- RIP: 0010:__nf_unregister_net_hook+0x1eb/0x610 net/netfilter/core.c:480
+Triggers a splat from nf core on next table delete because we lose
+track of right hook register state:
 
-This patch is a partial revert of 0ce7cf4127f1 ("netfilter: nftables:
-update table flags from the commit phase") to restore the previous
-behaviour.
+WARNING: CPU: 2 PID: 1597 at net/netfilter/core.c:501 __nf_unregister_net_hook
+RIP: 0010:__nf_unregister_net_hook+0x41b/0x570
+ nf_unregister_net_hook+0xb4/0xf0
+ __nf_tables_unregister_hook+0x160/0x1d0
+[..]
 
-However, there is still another problem: A batch containing a series of
-dorm-wakeup-dorm table and vice-versa also trigger the warning above
-since hook unregistration happens from the preparation phase, while hook
-registration occurs from the commit phase.
+The above should have table in *active* state, but in fact no
+hooks were registered.
 
-To fix this problem, this patch adds two internal flags to annotate the
-original dormant flag status which are __NFT_TABLE_F_WAS_DORMANT and
-__NFT_TABLE_F_WAS_AWAKEN, to restore it from the abort path.
+Reject on/off/on games rather than attempting to fix this.
 
-The __NFT_TABLE_F_UPDATE bitmask allows to handle the dormant flag update
-with one single transaction.
-
-Reported-by: syzbot+7ad5cd1615f2d89c6e7e@syzkaller.appspotmail.com
-Fixes: 0ce7cf4127f1 ("netfilter: nftables: update table flags from the commit phase")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 179d9ba5559a ("netfilter: nf_tables: fix table flag updates")
+Reported-by: "Lee, Cherie-Anne" <cherie.lee@starlabs.sg>
+Cc: Bing-Jhong Billy Jheng <billy@starlabs.sg>
+Cc: info@starlabs.sg
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/netfilter/nf_tables.h        |    6 ---
- include/uapi/linux/netfilter/nf_tables.h |    1 
- net/netfilter/nf_tables_api.c            |   59 +++++++++++++++++++++----------
- 3 files changed, 41 insertions(+), 25 deletions(-)
+ net/netfilter/nf_tables_api.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1392,16 +1392,10 @@ struct nft_trans_chain {
- 
- struct nft_trans_table {
- 	bool				update;
--	u8				state;
--	u32				flags;
- };
- 
- #define nft_trans_table_update(trans)	\
- 	(((struct nft_trans_table *)trans->data)->update)
--#define nft_trans_table_state(trans)	\
--	(((struct nft_trans_table *)trans->data)->state)
--#define nft_trans_table_flags(trans)	\
--	(((struct nft_trans_table *)trans->data)->flags)
- 
- struct nft_trans_elem {
- 	struct nft_set			*set;
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -162,6 +162,7 @@ enum nft_hook_attributes {
- enum nft_table_flags {
- 	NFT_TABLE_F_DORMANT	= 0x1,
- };
-+#define NFT_TABLE_F_MASK       (NFT_TABLE_F_DORMANT)
- 
- /**
-  * enum nft_table_attributes - nf_tables table netlink attributes
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -701,7 +701,8 @@ static int nf_tables_fill_table_info(str
- 		goto nla_put_failure;
- 
- 	if (nla_put_string(skb, NFTA_TABLE_NAME, table->name) ||
--	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)) ||
-+	    nla_put_be32(skb, NFTA_TABLE_FLAGS,
-+			 htonl(table->flags & NFT_TABLE_F_MASK)) ||
- 	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)) ||
- 	    nla_put_be64(skb, NFTA_TABLE_HANDLE, cpu_to_be64(table->handle),
- 			 NFTA_TABLE_PAD))
-@@ -890,20 +891,22 @@ err:
- 
- static void nf_tables_table_disable(struct net *net, struct nft_table *table)
- {
-+	table->flags &= ~NFT_TABLE_F_DORMANT;
- 	nft_table_disable(net, table, 0);
-+	table->flags |= NFT_TABLE_F_DORMANT;
- }
- 
--enum {
--	NFT_TABLE_STATE_UNCHANGED	= 0,
--	NFT_TABLE_STATE_DORMANT,
--	NFT_TABLE_STATE_WAKEUP
--};
-+#define __NFT_TABLE_F_INTERNAL		(NFT_TABLE_F_MASK + 1)
-+#define __NFT_TABLE_F_WAS_DORMANT	(__NFT_TABLE_F_INTERNAL << 0)
-+#define __NFT_TABLE_F_WAS_AWAKEN	(__NFT_TABLE_F_INTERNAL << 1)
-+#define __NFT_TABLE_F_UPDATE		(__NFT_TABLE_F_WAS_DORMANT | \
-+					 __NFT_TABLE_F_WAS_AWAKEN)
- 
- static int nf_tables_updtable(struct nft_ctx *ctx)
- {
- 	struct nft_trans *trans;
- 	u32 flags;
--	int ret = 0;
-+	int ret;
- 
- 	if (!ctx->nla[NFTA_TABLE_FLAGS])
+@@ -918,6 +918,10 @@ static int nf_tables_updtable(struct nft
+ 	if (flags == ctx->table->flags)
  		return 0;
-@@ -922,21 +925,27 @@ static int nf_tables_updtable(struct nft
  
- 	if ((flags & NFT_TABLE_F_DORMANT) &&
- 	    !(ctx->table->flags & NFT_TABLE_F_DORMANT)) {
--		nft_trans_table_state(trans) = NFT_TABLE_STATE_DORMANT;
-+		ctx->table->flags |= NFT_TABLE_F_DORMANT;
-+		if (!(ctx->table->flags & __NFT_TABLE_F_UPDATE))
-+			ctx->table->flags |= __NFT_TABLE_F_WAS_AWAKEN;
- 	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
- 		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
--		ret = nf_tables_table_enable(ctx->net, ctx->table);
--		if (ret >= 0)
--			nft_trans_table_state(trans) = NFT_TABLE_STATE_WAKEUP;
-+		ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
-+		if (!(ctx->table->flags & __NFT_TABLE_F_UPDATE)) {
-+			ret = nf_tables_table_enable(ctx->net, ctx->table);
-+			if (ret < 0)
-+				goto err_register_hooks;
++	/* No dormant off/on/off/on games in single transaction */
++	if (ctx->table->flags & __NFT_TABLE_F_UPDATE)
++		return -EINVAL;
 +
-+			ctx->table->flags |= __NFT_TABLE_F_WAS_DORMANT;
-+		}
- 	}
--	if (ret < 0)
--		goto err;
- 
--	nft_trans_table_flags(trans) = flags;
- 	nft_trans_table_update(trans) = true;
- 	nft_trans_commit_list_add_tail(ctx->net, trans);
-+
- 	return 0;
--err:
-+
-+err_register_hooks:
- 	nft_trans_destroy(trans);
- 	return ret;
- }
-@@ -7302,10 +7311,14 @@ static int nf_tables_commit(struct net *
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWTABLE:
- 			if (nft_trans_table_update(trans)) {
--				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_DORMANT)
-+				if (!(trans->ctx.table->flags & __NFT_TABLE_F_UPDATE)) {
-+					nft_trans_destroy(trans);
-+					break;
-+				}
-+				if (trans->ctx.table->flags & NFT_TABLE_F_DORMANT)
- 					nf_tables_table_disable(net, trans->ctx.table);
- 
--				trans->ctx.table->flags = nft_trans_table_flags(trans);
-+				trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
- 			} else {
- 				nft_clear(net, trans->ctx.table);
- 			}
-@@ -7500,9 +7513,17 @@ static int __nf_tables_abort(struct net
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWTABLE:
- 			if (nft_trans_table_update(trans)) {
--				if (nft_trans_table_state(trans) == NFT_TABLE_STATE_WAKEUP)
-+				if (!(trans->ctx.table->flags & __NFT_TABLE_F_UPDATE)) {
-+					nft_trans_destroy(trans);
-+					break;
-+				}
-+				if (trans->ctx.table->flags & __NFT_TABLE_F_WAS_DORMANT) {
- 					nf_tables_table_disable(net, trans->ctx.table);
--
-+					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
-+				} else if (trans->ctx.table->flags & __NFT_TABLE_F_WAS_AWAKEN) {
-+					trans->ctx.table->flags &= ~NFT_TABLE_F_DORMANT;
-+				}
-+				trans->ctx.table->flags &= ~__NFT_TABLE_F_UPDATE;
- 				nft_trans_destroy(trans);
- 			} else {
- 				list_del_rcu(&trans->ctx.table->list);
+ 	trans = nft_trans_alloc(ctx, NFT_MSG_NEWTABLE,
+ 				sizeof(struct nft_trans_table));
+ 	if (trans == NULL)
 
 
