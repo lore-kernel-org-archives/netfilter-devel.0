@@ -1,28 +1,28 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toke.dk header.i=@toke.dk header.b="V+TLyLKy"
-X-Greylist: delayed 347 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 24 Nov 2023 02:54:00 PST
+	dkim=pass (2048-bit key) header.d=toke.dk header.i=@toke.dk header.b="JiseBQme"
 Received: from mail.toke.dk (mail.toke.dk [45.145.95.4])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA28D127;
-	Fri, 24 Nov 2023 02:54:00 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28C96D46;
+	Fri, 24 Nov 2023 02:59:15 -0800 (PST)
 From: Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=toke.dk; s=20161023;
-	t=1700822889; bh=ob2LQCkdRRVJVhFxnDtSSlxr7qwHzAzTS5rpGACd0V4=;
+	t=1700823553; bh=hQv1mFn0xf2droBvF8tHfDYDAZXFwZfl7wiNr1flmI8=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=V+TLyLKy8JDomAFV/YRVPKU86XHcGMfCtf75cUP055Fy5WAxzOPqwYStakhmGCKgF
-	 Wd6qzNdLBFySe+wo6ERE3x9+HrcvwWyyrvfw1mh66NWdO2pBNLwEoknnOR7Wi0k0/b
-	 JSIfEi9v7DeSVkGThrvTtk+9dxJa8G3Y6vUpUtfxfGko62FyGSzVxqb21hU3iJ/s76
-	 gRKBQDka+s1iV1rWkzei8tk8AeoWHjoPDL+y3+aAFAkSgDSK3GydJL2s6PXSuy8A1f
-	 CR/3hIB5l7iX2lZLSW+jWTPJy2IgbszmIEV5IBcQVcIjsE1V1IHzNUzWo2/bkGbzgl
-	 YlnuWhAGmmqLg==
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, lorenzo@kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/8] netfilter: make nf_flowtable lifetime
- differ from container struct
-In-Reply-To: <ZWBx4Em+8acC3JJN@calendula>
-References: <20231121122800.13521-1-fw@strlen.de> <ZWBx4Em+8acC3JJN@calendula>
-Date: Fri, 24 Nov 2023 11:48:09 +0100
+	b=JiseBQmeqh9av05ZxnOz2/iu9m8oniFN9hqR8xAPBUQdIMYNF/mkc96qv6guifQER
+	 rnf8gERnNT996BZtBp8lsYWxKbXrTvgjals6KllWR+1ik0V+LryNfYAuPnRbmGePuf
+	 r+kZI9RStw3QWvoIQmwVXbGYbFHG5KL+zpM3NAW1ncHVen5qWwPsK72w8Uwws4REFL
+	 Z7qCixahKlgjy3+4y+hdka4yeobztQqdIvG4VcXEeZyzjLcdh6KG07HB8TC4b3ITxn
+	 kkpqgaq1qEHLAKQ1QJEhjfsZQoIt06TASoWFc0aR0Z5jzUq4J3x/RsG2AyLVeaN7ku
+	 vY6WHFFXiDEFQ==
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: lorenzo@kernel.org, netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 7/8] netfilter: nf_tables: add flowtable map for
+ xdp offload
+In-Reply-To: <20231121122800.13521-8-fw@strlen.de>
+References: <20231121122800.13521-1-fw@strlen.de>
+ <20231121122800.13521-8-fw@strlen.de>
+Date: Fri, 24 Nov 2023 11:59:13 +0100
 X-Clacks-Overhead: GNU Terry Pratchett
-Message-ID: <87leane8ba.fsf@toke.dk>
+Message-ID: <87il5re7su.fsf@toke.dk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,36 +31,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain
 
-> My understand is that XDP is all about programmibility, if user
-> decides to go for XDP then simply fully implement the fast path is the
-> XDP framework? I know of software already does so and they are
-> perfectly fine with this approach.
+Florian Westphal <fw@strlen.de> writes:
 
-Yes, you can do that. But if you're reimplementing everything anyway,
-why bother with XDP at all? Might as well go with DPDK and full bypass
-then.
+> A device cannot be added to multiple flowtables, the mapping needs
+> to be unique.  This is enforced when a flowtables with the
+> NF_FLOWTABLE_XDP_OFFLOAD was added.
+>
+> Exposure of this NF_FLOWTABLE_XDP_OFFLOAD in UAPI could be avoided,
+> iff the 'net_device maps to 0 or 1 flowtable' paradigm is enforced
+> regardless of offload-or-not flag.
+>
+> HOWEVER, that does break existing behaviour.
 
-The benefit of XDP as a data path is the integration with the kernel
-infrastructure: we have robust implementations of a bunch of protocols,
-a control plane API that works with a bunch of userspace utilities
-(e.g., routing daemons), and lots of data battle-tested data structures
-for various things (e.g., the routing table fib). With XDP, you can use
-this infrastructure in a pick-and-choose manner and implement your fast
-path using just the features you care about for your use case, gaining
-performance while still using the kernel path for the slow path to get
-full functionality.
+I am not a huge fan of this flag, especially not as UAPI. Using the XDP
+offload functionality is already an explicit opt-in by userspace (you
+need to load the XDP program). So adding a second UAPI flag that you
+have to set for the flowtable to be compatible with XDP seems to just
+constrain things needlessly (and is bound to lead to bugs)?
 
-The first example of this paradigm was the bpf_fib_lookup() helper. With
-this you can accelerate the forwarding fast path and still have the
-kernel stack handle neighbour lookup, etc. Adding flowtable lookup
-support is a natural extension of this, adding another integration point
-you can use for a more complete forwarding acceleration, while still
-integrating with the rest of the stack.
-
-This was the "making XDP a magical go faster button" thing I was talking
-about at Netconf (and again at Netdevconf), BTW: we should work towards
-making XDP a complete (forwarding) acceleration solution, so we can
-replace all the crappy hardware "fast path" and kernel bypass
-implementations in the world :)
+If we can't change the behaviour, we could change the lookup mechanism?
+BPF is pretty flexible, nothing says it has to use an ifindex as the
+lookup key? The neatest thing would be to have some way for userspace to
+directly populate a reference to the flowtable struct in a map, but a
+simpler solution would be to just introduce an opaque ID for each
+flowtable instance and use that as the lookup key (userspace could
+trivially put that into a map for the BPF program to find)?
 
 -Toke
