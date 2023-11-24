@@ -1,20 +1,24 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84DE51A5;
-	Fri, 24 Nov 2023 01:55:15 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1r6Su0-0002um-Pd; Fri, 24 Nov 2023 10:55:12 +0100
-Date: Fri, 24 Nov 2023 10:55:12 +0100
-From: Florian Westphal <fw@strlen.de>
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E042F1AB
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2023 02:02:57 -0800 (PST)
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <n0-1@orbyte.nwl.cc>)
+	id 1r6T1S-0001IQ-Lf; Fri, 24 Nov 2023 11:02:54 +0100
+Date: Fri, 24 Nov 2023 11:02:54 +0100
+From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	lorenzo@kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/8] netfilter: make nf_flowtable lifetime differ
- from container struct
-Message-ID: <20231124095512.GB13062@breakpoint.cc>
-References: <20231121122800.13521-1-fw@strlen.de>
- <ZWBx4Em+8acC3JJN@calendula>
+	Thomas Haller <thaller@redhat.com>
+Subject: Re: [nft PATCH] tests/shell: Treat json-nft dumps as binary in git
+Message-ID: <ZWB0zqIFbTw4oHCO@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Thomas Haller <thaller@redhat.com>
+References: <20231123143712.17341-1-phil@nwl.cc>
+ <20231124084951.GA8873@breakpoint.cc>
+ <ZWBt/seCFvaAdvcO@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -23,41 +27,32 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZWBx4Em+8acC3JJN@calendula>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <ZWBt/seCFvaAdvcO@calendula>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Next, a new nftables flowtable flag is introduced to mark a flowtable
-> > for explicit XDP-based offload.
-> 
-> If XDP uses the hardware offload infrastructure, then I don't see how
-> would it be possible to combine a software dataplane with hardware
-> offload, ie. assuming XDP for software acceleration and hardware
-> offload, because it takes a while for the flowtable hw offload
-> workqueue to set up things and meanwhile that happens, the software
-> path is exercised.
+On Fri, Nov 24, 2023 at 10:33:50AM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Nov 24, 2023 at 09:49:51AM +0100, Florian Westphal wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > > The stored JSON dumps containing a single line of a thusand characters
+> > > in average mess up diffs in history and patches if they change. Mitigate
+> > > this by treating them as binary files.
+> > > 
+> > > In order to get useable diffs back, one may undo/override the attribute
+> > > within $GIT_DIR/info/attributes, preferrably by defining a custom diff
+> > > driver converting the single-line dumps into something digestable by
+> > > diff:
+> > 
+> > I'd say we convert the single-line dumps to jq format one-by-one
+> > if they need updating.
 
-Lorenzo adds a kfunc that gets called from the xdp program
-to do a lookup in the flowtable.
+This might work without a transitioning mechanism if jq output piped
+through jq does not change. The testsuite could just pipe the dump
+through jq before comparing regardless of whether it's pretty-printed
+already or not.
 
-This patchset prepares for the kfunc by adding a function that
-returns the flowtable based on net_device pointer.
+> I am also fine with .json-nft dumps in pretty format too, which is
+> friendlier to git diff.
 
-The work queue for hw offload (or ndo ops) are not used.
+Discuss that with Thomas, please. I tried and failed, alleviating the
+effects is my last resort.
 
-> > The XDP kfunc will be added in a followup patch.
-> 
-> What is the plan to support for stackable device? eg. VLAN, or even
-> tunneling drivers such as VxLAN. I have (incomplete) patches to use
-> dev_fill_forward_path() to discover the path then configure the
-> flowtable datapath forwarding.
-
-If the xdp program can't handle it packet will be pushed up the stack,
-i.e. nf ingress hook will handle it next.
-
-> My understand is that XDP is all about programmibility, if user
-> decides to go for XDP then simply fully implement the fast path is the
-> XDP framework? I know of software already does so and they are
-> perfectly fine with this approach.
-
-I don't understand, you mean no integration at all?
+Cheers, Phil
