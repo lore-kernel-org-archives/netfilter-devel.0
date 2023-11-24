@@ -1,28 +1,29 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40BF33306F;
-	Fri, 24 Nov 2023 19:27:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714D53306F;
+	Fri, 24 Nov 2023 19:27:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="vkfM4uLQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E3C0C433C8;
-	Fri, 24 Nov 2023 19:27:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="o18jp1Cw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5787C433C8;
+	Fri, 24 Nov 2023 19:27:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1700854049;
-	bh=a5lHd+mmU6XPE1qv2fAHtrUiGCBjsOIQfT9XBSjBEbU=;
+	s=korg; t=1700854052;
+	bh=R1MzdO+FKDO82JW6SFECCgaId7WCNY/2z6cI2m9Lm38=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vkfM4uLQcsP9jrlyzQEYPDz9ACi81riJirUU4HQcnml5u75msZtwShbUn0x4M8AEO
-	 KTxZAwFNu+9XfRcCGDlrjxqjfO1Qv5o2TSZH3f1/Q+t2CvZ09ldB94tMTQ8ouksXvb
-	 WynSDFOtjGOiqYhWXLb9we7ZLUWm+s9L/RrHTbQM=
+	b=o18jp1CwiLaSK7C2g/2ne1poqs6GiFydRParmQjfpxBFIWoNUuofGD/f3H2DSsJ7e
+	 uV+eqa52sb9rbaIRYgqYc+pM48KxQgDfM3EpSUvsqAJZT7BzsCknFwUjVSgmqTAXdV
+	 jzh+z9f+r9HyL3YIru4x1YtmI1V4lnIDU7zLDZPM=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
+	Stefano Brivio <sbrivio@redhat.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5.4 136/159] netfilter: nf_tables: drop map element references from preparation phase
-Date: Fri, 24 Nov 2023 17:55:53 +0000
-Message-ID: <20231124171947.465907905@linuxfoundation.org>
+Subject: [PATCH 5.4 137/159] netfilter: nft_set_rbtree: Switch to node list walk for overlap detection
+Date: Fri, 24 Nov 2023 17:55:54 +0000
+Message-ID: <20231124171947.512876319@linuxfoundation.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20231124171941.909624388@linuxfoundation.org>
 References: <20231124171941.909624388@linuxfoundation.org>
@@ -43,323 +44,318 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 628bd3e49cba1c066228e23d71a852c23e26da73 upstream.
+commit c9e6978e2725a7d4b6cd23b2facd3f11422c0643 upstream.
 
-set .destroy callback releases the references to other objects in maps.
-This is very late and it results in spurious EBUSY errors. Drop refcount
-from the preparation phase instead, update set backend not to drop
-reference counter from set .destroy path.
+...instead of a tree descent, which became overly complicated in an
+attempt to cover cases where expired or inactive elements would affect
+comparisons with the new element being inserted.
 
-Exceptions: NFT_TRANS_PREPARE_ERROR does not require to drop the
-reference counter because the transaction abort path releases the map
-references for each element since the set is unbound. The abort path
-also deals with releasing reference counter for new elements added to
-unbound sets.
+Further, it turned out that it's probably impossible to cover all those
+cases, as inactive nodes might entirely hide subtrees consisting of a
+complete interval plus a node that makes the current insertion not
+overlap.
 
-Fixes: 591054469b3e ("netfilter: nf_tables: revisit chain/object refcounting from elements")
+To speed up the overlap check, descent the tree to find a greater
+element that is closer to the key value to insert. Then walk down the
+node list for overlap detection. Starting the overlap check from
+rb_first() unconditionally is slow, it takes 10 times longer due to the
+full linear traversal of the list.
+
+Moreover, perform garbage collection of expired elements when walking
+down the node list to avoid bogus overlap reports.
+
+For the insertion operation itself, this essentially reverts back to the
+implementation before commit 7c84d41416d8 ("netfilter: nft_set_rbtree:
+Detect partial overlaps on insertion"), except that cases of complete
+overlap are already handled in the overlap detection phase itself, which
+slightly simplifies the loop to find the insertion point.
+
+Based on initial patch from Stefano Brivio, including text from the
+original patch description too.
+
+Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion")
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/netfilter/nf_tables.h |    5 +-
- net/netfilter/nf_tables_api.c     |   89 ++++++++++++++++++++++++++++++++++----
- net/netfilter/nft_set_bitmap.c    |    5 +-
- net/netfilter/nft_set_hash.c      |   23 +++++++--
- net/netfilter/nft_set_rbtree.c    |    5 +-
- 5 files changed, 108 insertions(+), 19 deletions(-)
+ net/netfilter/nft_set_rbtree.c |  223 ++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 198 insertions(+), 25 deletions(-)
 
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -371,7 +371,8 @@ struct nft_set_ops {
- 	int				(*init)(const struct nft_set *set,
- 						const struct nft_set_desc *desc,
- 						const struct nlattr * const nla[]);
--	void				(*destroy)(const struct nft_set *set);
-+	void				(*destroy)(const struct nft_ctx *ctx,
-+						   const struct nft_set *set);
- 	void				(*gc_init)(const struct nft_set *set);
- 
- 	unsigned int			elemsize;
-@@ -665,6 +666,8 @@ void *nft_set_elem_init(const struct nft
- 			u64 timeout, u64 expiration, gfp_t gfp);
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr);
-+void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
-+				const struct nft_set *set, void *elem);
- 
- /**
-  *	struct nft_set_gc_batch_head - nf_tables set garbage collection batch
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -403,6 +403,31 @@ static int nft_trans_set_add(const struc
- 	return 0;
- }
- 
-+static void nft_setelem_data_deactivate(const struct net *net,
-+					const struct nft_set *set,
-+					struct nft_set_elem *elem);
-+
-+static int nft_mapelem_deactivate(const struct nft_ctx *ctx,
-+				  struct nft_set *set,
-+				  const struct nft_set_iter *iter,
-+				  struct nft_set_elem *elem)
-+{
-+	nft_setelem_data_deactivate(ctx->net, set, elem);
-+
-+	return 0;
-+}
-+
-+static void nft_map_deactivate(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	struct nft_set_iter iter = {
-+		.genmask	= nft_genmask_next(ctx->net),
-+		.fn		= nft_mapelem_deactivate,
-+	};
-+
-+	set->ops->walk(ctx, set, &iter);
-+	WARN_ON_ONCE(iter.err);
-+}
-+
- static int nft_delset(const struct nft_ctx *ctx, struct nft_set *set)
- {
- 	int err;
-@@ -411,6 +436,9 @@ static int nft_delset(const struct nft_c
- 	if (err < 0)
- 		return err;
- 
-+	if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+		nft_map_deactivate(ctx, set);
-+
- 	nft_deactivate_next(ctx->net, set);
- 	nft_use_dec(&ctx->table->use);
- 
-@@ -3840,7 +3868,7 @@ static int nf_tables_newset(struct net *
- 	return 0;
- 
- err4:
--	ops->destroy(set);
-+	ops->destroy(&ctx, set);
- err3:
- 	kfree(set->name);
- err2:
-@@ -3857,7 +3885,7 @@ static void nft_set_destroy(const struct
- 	if (WARN_ON(set->use > 0))
- 		return;
- 
--	set->ops->destroy(set);
-+	set->ops->destroy(ctx, set);
- 	module_put(to_set_type(set->ops)->owner);
- 	kfree(set->name);
- 	kvfree(set);
-@@ -3981,10 +4009,39 @@ static void nf_tables_unbind_set(const s
- 	}
- }
- 
-+static void nft_setelem_data_activate(const struct net *net,
-+				      const struct nft_set *set,
-+				      struct nft_set_elem *elem);
-+
-+static int nft_mapelem_activate(const struct nft_ctx *ctx,
-+				struct nft_set *set,
-+				const struct nft_set_iter *iter,
-+				struct nft_set_elem *elem)
-+{
-+	nft_setelem_data_activate(ctx->net, set, elem);
-+
-+	return 0;
-+}
-+
-+static void nft_map_activate(const struct nft_ctx *ctx, struct nft_set *set)
-+{
-+	struct nft_set_iter iter = {
-+		.genmask	= nft_genmask_next(ctx->net),
-+		.fn		= nft_mapelem_activate,
-+	};
-+
-+	set->ops->walk(ctx, set, &iter);
-+	WARN_ON_ONCE(iter.err);
-+}
-+
- void nf_tables_activate_set(const struct nft_ctx *ctx, struct nft_set *set)
- {
--	if (nft_set_is_anonymous(set))
-+	if (nft_set_is_anonymous(set)) {
-+		if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+			nft_map_activate(ctx, set);
-+
- 		nft_clear(ctx->net, set);
-+	}
- 
- 	nft_use_inc_restore(&set->use);
- }
-@@ -4005,13 +4062,20 @@ void nf_tables_deactivate_set(const stru
- 		nft_use_dec(&set->use);
- 		break;
- 	case NFT_TRANS_PREPARE:
--		if (nft_set_is_anonymous(set))
--			nft_deactivate_next(ctx->net, set);
-+		if (nft_set_is_anonymous(set)) {
-+			if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+				nft_map_deactivate(ctx, set);
- 
-+			nft_deactivate_next(ctx->net, set);
-+		}
- 		nft_use_dec(&set->use);
- 		return;
- 	case NFT_TRANS_ABORT:
- 	case NFT_TRANS_RELEASE:
-+		if (nft_set_is_anonymous(set) &&
-+		    set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+			nft_map_deactivate(ctx, set);
-+
- 		nft_use_dec(&set->use);
- 		/* fall through */
- 	default:
-@@ -4574,6 +4638,7 @@ void *nft_set_elem_init(const struct nft
- 	return elem;
- }
- 
-+/* Drop references and destroy. Called from gc, dynset and abort path. */
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr)
- {
-@@ -4602,11 +4667,11 @@ void nft_set_elem_destroy(const struct n
- }
- EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
- 
--/* Only called from commit path, nft_setelem_data_deactivate() already deals
-- * with the refcounting from the preparation phase.
-+/* Destroy element. References have been already dropped in the preparation
-+ * path via nft_setelem_data_deactivate().
-  */
--static void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
--				       const struct nft_set *set, void *elem)
-+void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
-+				const struct nft_set *set, void *elem)
- {
- 	struct nft_set_ext *ext = nft_set_elem_ext(set, elem);
- 
-@@ -4614,6 +4679,7 @@ static void nf_tables_set_elem_destroy(c
- 		nf_tables_expr_destroy(ctx, nft_set_ext_expr(ext));
- 	kfree(elem);
- }
-+EXPORT_SYMBOL_GPL(nf_tables_set_elem_destroy);
- 
- static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			    const struct nlattr *attr, u32 nlmsg_flags)
-@@ -7263,6 +7329,8 @@ static int __nf_tables_abort(struct net
- 		case NFT_MSG_DELSET:
- 			nft_use_inc_restore(&trans->ctx.table->use);
- 			nft_clear(trans->ctx.net, nft_trans_set(trans));
-+			if (nft_trans_set(trans)->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+				nft_map_activate(&trans->ctx, nft_trans_set(trans));
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWSETELEM:
-@@ -7951,6 +8019,9 @@ static void __nft_release_table(struct n
- 	list_for_each_entry_safe(set, ns, &table->sets, list) {
- 		list_del(&set->list);
- 		nft_use_dec(&table->use);
-+		if (set->flags & (NFT_SET_MAP | NFT_SET_OBJECT))
-+			nft_map_deactivate(&ctx, set);
-+
- 		nft_set_destroy(&ctx, set);
- 	}
- 	list_for_each_entry_safe(obj, ne, &table->objects, list) {
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -270,13 +270,14 @@ static int nft_bitmap_init(const struct
- 	return 0;
- }
- 
--static void nft_bitmap_destroy(const struct nft_set *set)
-+static void nft_bitmap_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_set *set)
- {
- 	struct nft_bitmap *priv = nft_set_priv(set);
- 	struct nft_bitmap_elem *be, *n;
- 
- 	list_for_each_entry_safe(be, n, &priv->list, head)
--		nft_set_elem_destroy(set, be, true);
-+		nf_tables_set_elem_destroy(ctx, set, be);
- }
- 
- static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -380,19 +380,31 @@ static int nft_rhash_init(const struct n
- 	return 0;
- }
- 
-+struct nft_rhash_ctx {
-+	const struct nft_ctx	ctx;
-+	const struct nft_set	*set;
-+};
-+
- static void nft_rhash_elem_destroy(void *ptr, void *arg)
- {
--	nft_set_elem_destroy(arg, ptr, true);
-+	struct nft_rhash_ctx *rhash_ctx = arg;
-+
-+	nf_tables_set_elem_destroy(&rhash_ctx->ctx, rhash_ctx->set, ptr);
- }
- 
--static void nft_rhash_destroy(const struct nft_set *set)
-+static void nft_rhash_destroy(const struct nft_ctx *ctx,
-+			      const struct nft_set *set)
- {
- 	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_ctx rhash_ctx = {
-+		.ctx	= *ctx,
-+		.set	= set,
-+	};
- 
- 	cancel_delayed_work_sync(&priv->gc_work);
- 	rcu_barrier();
- 	rhashtable_free_and_destroy(&priv->ht, nft_rhash_elem_destroy,
--				    (void *)set);
-+				    (void *)&rhash_ctx);
- }
- 
- /* Number of buckets is stored in u32, so cap our result to 1U<<31 */
-@@ -621,7 +633,8 @@ static int nft_hash_init(const struct nf
- 	return 0;
- }
- 
--static void nft_hash_destroy(const struct nft_set *set)
-+static void nft_hash_destroy(const struct nft_ctx *ctx,
-+			     const struct nft_set *set)
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 	struct nft_hash_elem *he;
-@@ -631,7 +644,7 @@ static void nft_hash_destroy(const struc
- 	for (i = 0; i < priv->buckets; i++) {
- 		hlist_for_each_entry_safe(he, next, &priv->table[i], node) {
- 			hlist_del_rcu(&he->node);
--			nft_set_elem_destroy(set, he, true);
-+			nf_tables_set_elem_destroy(ctx, set, he);
- 		}
- 	}
- }
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -480,7 +480,8 @@ static int nft_rbtree_init(const struct
- 	return 0;
+@@ -38,10 +38,12 @@ static bool nft_rbtree_interval_start(co
+ 	return !nft_rbtree_interval_end(rbe);
  }
  
--static void nft_rbtree_destroy(const struct nft_set *set)
-+static void nft_rbtree_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_set *set)
+-static bool nft_rbtree_equal(const struct nft_set *set, const void *this,
+-			     const struct nft_rbtree_elem *interval)
++static int nft_rbtree_cmp(const struct nft_set *set,
++			  const struct nft_rbtree_elem *e1,
++			  const struct nft_rbtree_elem *e2)
  {
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe;
-@@ -491,7 +492,7 @@ static void nft_rbtree_destroy(const str
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
--		nft_set_elem_destroy(set, rbe, true);
-+		nf_tables_set_elem_destroy(ctx, set, rbe);
- 	}
+-	return memcmp(this, nft_set_ext_key(&interval->ext), set->klen) == 0;
++	return memcmp(nft_set_ext_key(&e1->ext), nft_set_ext_key(&e2->ext),
++		      set->klen);
  }
  
+ static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
+@@ -52,7 +54,6 @@ static bool __nft_rbtree_lookup(const st
+ 	const struct nft_rbtree_elem *rbe, *interval = NULL;
+ 	u8 genmask = nft_genmask_cur(net);
+ 	const struct rb_node *parent;
+-	const void *this;
+ 	int d;
+ 
+ 	parent = rcu_dereference_raw(priv->root.rb_node);
+@@ -62,12 +63,11 @@ static bool __nft_rbtree_lookup(const st
+ 
+ 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
+ 
+-		this = nft_set_ext_key(&rbe->ext);
+-		d = memcmp(this, key, set->klen);
++		d = memcmp(nft_set_ext_key(&rbe->ext), key, set->klen);
+ 		if (d < 0) {
+ 			parent = rcu_dereference_raw(parent->rb_left);
+ 			if (interval &&
+-			    nft_rbtree_equal(set, this, interval) &&
++			    !nft_rbtree_cmp(set, rbe, interval) &&
+ 			    nft_rbtree_interval_end(rbe) &&
+ 			    nft_rbtree_interval_start(interval))
+ 				continue;
+@@ -214,43 +214,216 @@ static void *nft_rbtree_get(const struct
+ 	return rbe;
+ }
+ 
++static int nft_rbtree_gc_elem(const struct nft_set *__set,
++			      struct nft_rbtree *priv,
++			      struct nft_rbtree_elem *rbe)
++{
++	struct nft_set *set = (struct nft_set *)__set;
++	struct rb_node *prev = rb_prev(&rbe->node);
++	struct nft_rbtree_elem *rbe_prev;
++	struct nft_set_gc_batch *gcb;
++
++	gcb = nft_set_gc_batch_check(set, NULL, GFP_ATOMIC);
++	if (!gcb)
++		return -ENOMEM;
++
++	/* search for expired end interval coming before this element. */
++	do {
++		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
++		if (nft_rbtree_interval_end(rbe_prev))
++			break;
++
++		prev = rb_prev(prev);
++	} while (prev != NULL);
++
++	rb_erase(&rbe_prev->node, &priv->root);
++	rb_erase(&rbe->node, &priv->root);
++	atomic_sub(2, &set->nelems);
++
++	nft_set_gc_batch_add(gcb, rbe);
++	nft_set_gc_batch_complete(gcb);
++
++	return 0;
++}
++
++static bool nft_rbtree_update_first(const struct nft_set *set,
++				    struct nft_rbtree_elem *rbe,
++				    struct rb_node *first)
++{
++	struct nft_rbtree_elem *first_elem;
++
++	first_elem = rb_entry(first, struct nft_rbtree_elem, node);
++	/* this element is closest to where the new element is to be inserted:
++	 * update the first element for the node list path.
++	 */
++	if (nft_rbtree_cmp(set, rbe, first_elem) < 0)
++		return true;
++
++	return false;
++}
++
+ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 			       struct nft_rbtree_elem *new,
+ 			       struct nft_set_ext **ext)
+ {
++	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
++	struct rb_node *node, *parent, **p, *first = NULL;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 genmask = nft_genmask_next(net);
+-	struct nft_rbtree_elem *rbe;
+-	struct rb_node *parent, **p;
+-	int d;
++	int d, err;
+ 
++	/* Descend the tree to search for an existing element greater than the
++	 * key value to insert that is greater than the new element. This is the
++	 * first element to walk the ordered elements to find possible overlap.
++	 */
+ 	parent = NULL;
+ 	p = &priv->root.rb_node;
+ 	while (*p != NULL) {
+ 		parent = *p;
+ 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
+-		d = memcmp(nft_set_ext_key(&rbe->ext),
+-			   nft_set_ext_key(&new->ext),
+-			   set->klen);
+-		if (d < 0)
++		d = nft_rbtree_cmp(set, rbe, new);
++
++		if (d < 0) {
+ 			p = &parent->rb_left;
+-		else if (d > 0)
++		} else if (d > 0) {
++			if (!first ||
++			    nft_rbtree_update_first(set, rbe, first))
++				first = &rbe->node;
++
+ 			p = &parent->rb_right;
+-		else {
+-			if (nft_rbtree_interval_end(rbe) &&
+-			    nft_rbtree_interval_start(new)) {
++		} else {
++			if (nft_rbtree_interval_end(rbe))
+ 				p = &parent->rb_left;
+-			} else if (nft_rbtree_interval_start(rbe) &&
+-				   nft_rbtree_interval_end(new)) {
++			else
+ 				p = &parent->rb_right;
+-			} else if (nft_set_elem_active(&rbe->ext, genmask)) {
+-				*ext = &rbe->ext;
+-				return -EEXIST;
+-			} else {
+-				p = &parent->rb_left;
++		}
++	}
++
++	if (!first)
++		first = rb_first(&priv->root);
++
++	/* Detect overlap by going through the list of valid tree nodes.
++	 * Values stored in the tree are in reversed order, starting from
++	 * highest to lowest value.
++	 */
++	for (node = first; node != NULL; node = rb_next(node)) {
++		rbe = rb_entry(node, struct nft_rbtree_elem, node);
++
++		if (!nft_set_elem_active(&rbe->ext, genmask))
++			continue;
++
++		/* perform garbage collection to avoid bogus overlap reports. */
++		if (nft_set_elem_expired(&rbe->ext)) {
++			err = nft_rbtree_gc_elem(set, priv, rbe);
++			if (err < 0)
++				return err;
++
++			continue;
++		}
++
++		d = nft_rbtree_cmp(set, rbe, new);
++		if (d == 0) {
++			/* Matching end element: no need to look for an
++			 * overlapping greater or equal element.
++			 */
++			if (nft_rbtree_interval_end(rbe)) {
++				rbe_le = rbe;
++				break;
++			}
++
++			/* first element that is greater or equal to key value. */
++			if (!rbe_ge) {
++				rbe_ge = rbe;
++				continue;
++			}
++
++			/* this is a closer more or equal element, update it. */
++			if (nft_rbtree_cmp(set, rbe_ge, new) != 0) {
++				rbe_ge = rbe;
++				continue;
+ 			}
++
++			/* element is equal to key value, make sure flags are
++			 * the same, an existing more or equal start element
++			 * must not be replaced by more or equal end element.
++			 */
++			if ((nft_rbtree_interval_start(new) &&
++			     nft_rbtree_interval_start(rbe_ge)) ||
++			    (nft_rbtree_interval_end(new) &&
++			     nft_rbtree_interval_end(rbe_ge))) {
++				rbe_ge = rbe;
++				continue;
++			}
++		} else if (d > 0) {
++			/* annotate element greater than the new element. */
++			rbe_ge = rbe;
++			continue;
++		} else if (d < 0) {
++			/* annotate element less than the new element. */
++			rbe_le = rbe;
++			break;
+ 		}
+ 	}
++
++	/* - new start element matching existing start element: full overlap
++	 *   reported as -EEXIST, cleared by caller if NLM_F_EXCL is not given.
++	 */
++	if (rbe_ge && !nft_rbtree_cmp(set, new, rbe_ge) &&
++	    nft_rbtree_interval_start(rbe_ge) == nft_rbtree_interval_start(new)) {
++		*ext = &rbe_ge->ext;
++		return -EEXIST;
++	}
++
++	/* - new end element matching existing end element: full overlap
++	 *   reported as -EEXIST, cleared by caller if NLM_F_EXCL is not given.
++	 */
++	if (rbe_le && !nft_rbtree_cmp(set, new, rbe_le) &&
++	    nft_rbtree_interval_end(rbe_le) == nft_rbtree_interval_end(new)) {
++		*ext = &rbe_le->ext;
++		return -EEXIST;
++	}
++
++	/* - new start element with existing closest, less or equal key value
++	 *   being a start element: partial overlap, reported as -ENOTEMPTY.
++	 *   Anonymous sets allow for two consecutive start element since they
++	 *   are constant, skip them to avoid bogus overlap reports.
++	 */
++	if (!nft_set_is_anonymous(set) && rbe_le &&
++	    nft_rbtree_interval_start(rbe_le) && nft_rbtree_interval_start(new))
++		return -ENOTEMPTY;
++
++	/* - new end element with existing closest, less or equal key value
++	 *   being a end element: partial overlap, reported as -ENOTEMPTY.
++	 */
++	if (rbe_le &&
++	    nft_rbtree_interval_end(rbe_le) && nft_rbtree_interval_end(new))
++		return -ENOTEMPTY;
++
++	/* - new end element with existing closest, greater or equal key value
++	 *   being an end element: partial overlap, reported as -ENOTEMPTY
++	 */
++	if (rbe_ge &&
++	    nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
++		return -ENOTEMPTY;
++
++	/* Accepted element: pick insertion point depending on key value */
++	parent = NULL;
++	p = &priv->root.rb_node;
++	while (*p != NULL) {
++		parent = *p;
++		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
++		d = nft_rbtree_cmp(set, rbe, new);
++
++		if (d < 0)
++			p = &parent->rb_left;
++		else if (d > 0)
++			p = &parent->rb_right;
++		else if (nft_rbtree_interval_end(rbe))
++			p = &parent->rb_left;
++		else
++			p = &parent->rb_right;
++	}
++
+ 	rb_link_node_rcu(&new->node, parent, p);
+ 	rb_insert_color(&new->node, &priv->root);
+ 	return 0;
 
 
