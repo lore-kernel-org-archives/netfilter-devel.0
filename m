@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C0F38DE8;
-	Fri, 24 Nov 2023 19:28:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D87539FEA;
+	Fri, 24 Nov 2023 19:28:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="jjDJZ/bv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8A0BC433C7;
-	Fri, 24 Nov 2023 19:28:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="uXB/7hJU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54424C433C7;
+	Fri, 24 Nov 2023 19:28:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1700854109;
-	bh=o3OoDPqzxaitrbwy9Bks/IZ4tTkgPJXASScT2hBJPDs=;
+	s=korg; t=1700854111;
+	bh=rzyZlNGUmrKgAua32Ak5jwY3VWhsNLk/zhulvqNaLBQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jjDJZ/bveEcUmurbHelfVacvzQSsPGzzRgqTm3ZLnVQu7mLwazOEXY5MFHax6lNDT
-	 XI3LQf61KMKRlruOV1DeiGzuFnbiJnjjwrrbIk0hxGWISF6GATtM4uKWmWhQP1zLrG
-	 bbZp97uxHootmuOkexA2oARD4QyF+rtTNVJwEkcg=
+	b=uXB/7hJUYHdgf/vcYIuzdA10zgh20hZL4+0Bp4KjUYmCGvRnkwt9BKZYhxezLT0k4
+	 sas8qQbz6QG8Q2PyA/ZWxy0kLmZ3X4ZZoP9lACwI/r5yihEuvBXZZpVlbJm1WozV60
+	 AhoYHUiXjjPSVwdxqFf9U4KbR4gUMX15Sr5ha5SU=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5.4 147/159] netfilter: nf_tables: GC transaction race with abort path
-Date: Fri, 24 Nov 2023 17:56:04 +0000
-Message-ID: <20231124171947.907250032@linuxfoundation.org>
+Subject: [PATCH 5.4 148/159] netfilter: nf_tables: use correct lock to protect gc_list
+Date: Fri, 24 Nov 2023 17:56:05 +0000
+Message-ID: <20231124171947.951671089@linuxfoundation.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20231124171941.909624388@linuxfoundation.org>
 References: <20231124171941.909624388@linuxfoundation.org>
@@ -43,34 +43,31 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-commit 720344340fb9be2765bbaab7b292ece0a4570eae upstream.
+commit 8357bc946a2abc2a10ca40e5a2105d2b4c57515e upstream.
 
-Abort path is missing a synchronization point with GC transactions. Add
-GC sequence number hence any GC transaction losing race will be
-discarded.
+Use nf_tables_gc_list_lock spinlock, not nf_tables_destroy_list_lock to
+protect the gc_list.
 
 Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- net/netfilter/nf_tables_api.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -7597,7 +7597,12 @@ static int nf_tables_abort(struct net *n
- 			   enum nfnl_abort_action action)
- {
- 	struct nftables_pernet *nft_net = net_generic(net, nf_tables_net_id);
--	int ret = __nf_tables_abort(net, action);
-+	unsigned int gc_seq;
-+	int ret;
-+
-+	gc_seq = nft_gc_seq_begin(nft_net);
-+	ret = __nf_tables_abort(net, action);
-+	nft_gc_seq_end(nft_net, gc_seq);
+@@ -7028,9 +7028,9 @@ static void nft_trans_gc_work(struct wor
+ 	struct nft_trans_gc *trans, *next;
+ 	LIST_HEAD(trans_gc_list);
  
- 	mutex_unlock(&nft_net->commit_mutex);
+-	spin_lock(&nf_tables_destroy_list_lock);
++	spin_lock(&nf_tables_gc_list_lock);
+ 	list_splice_init(&nf_tables_gc_list, &trans_gc_list);
+-	spin_unlock(&nf_tables_destroy_list_lock);
++	spin_unlock(&nf_tables_gc_list_lock);
  
+ 	list_for_each_entry_safe(trans, next, &trans_gc_list, list) {
+ 		list_del(&trans->list);
 
 
