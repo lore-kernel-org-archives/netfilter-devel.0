@@ -1,30 +1,30 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZQu/ntA6"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="dybUn3tT"
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1CF10EC
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2023 03:19:25 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 261E110F9
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2023 03:19:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Ckk5t0DTa+hOAnLfeGjngaroBVbF0+yMCzxhlA2vqHk=; b=ZQu/ntA6qj3RibJRyUhvHDtMrL
-	y6NpSkOZIJyxaacj/cwJsw1STy59Tn7RsoHZFsoNyMNTZl7aAeeMeCxTB8VRO6ND4pm9hkBTxXRwT
-	qhUzgDhp+lGwm1ARuDmNoJ03sI8X7Milyve12+QGN6//4frV8EDsjgE1V9u04zW0zzd5HEq+fU4jP
-	2YBYlu5LfFRDXEn4eOoPExTJYWXIhNvi10i3mDF5ee3eev5yxFKskFFQs24zvCtvDneN/YzH1mkcj
-	NAhF92lyZiJ8j394BoWpbDgvx7PdNM5tt6V4ijHgj6oxYFwyuOhixYK9iIO1WBJHSfIW42sP11P+J
-	trlkRSiA==;
+	bh=d2uXjecoL4dylpEubl4HSnxiITgFnIGfgHJiMgnBZTM=; b=dybUn3tT3fiKUyfVd6cg41wVy0
+	UhaBEBLG4WvIemIlFDFjiRvve4wruWdw0OwFU0ZzSBe6EsW9z/W7ErF4979dQA4o0t4FlW8CPGfof
+	NJhA9zcFhmR1ExCVm+6p9KDZBgBf7meESs3v2EqKSLDD7frQ/UPB/9OVgX7MNybcu1nqMoPxNMBtU
+	xdltdnypMHYKvZY//qg/QsK1XtR5ZTYYpps+6uJ55+T8vQ5zFxqW7YatdguwrfVL2IFfs6C9mFlt8
+	yn87TBitdGZDloeJd75lJwHskgpSQSkcuNzPPw25rOf2fKUXKQJ9FfSVK00hC7fplzhaSNFzOTZ1E
+	S50GdzxA==;
 Received: from localhost ([::1] helo=minime)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1r6UDU-0002UR-1R
+	id 1r6UDU-0002UV-HF
 	for netfilter-devel@vger.kernel.org; Fri, 24 Nov 2023 12:19:24 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 3/3] nft: Leave interface masks alone when parsing from kernel
-Date: Fri, 24 Nov 2023 12:28:34 +0100
-Message-ID: <20231124112834.5363-4-phil@nwl.cc>
+Subject: [iptables PATCH 2/3] xshared: Do not populate interface masks per default
+Date: Fri, 24 Nov 2023 12:28:33 +0100
+Message-ID: <20231124112834.5363-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231124112834.5363-1-phil@nwl.cc>
 References: <20231124112834.5363-1-phil@nwl.cc>
@@ -36,195 +36,142 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The mask is entirely unused by nft-variants in general and legacy ones
-when printing. It is relevant only when inserting a legacy rule into
-kernel as it doesn't detect the '+'-suffix.
+These are needed by legacy variants only, so introduce a simplified
+xtables_parse_interface() replacement which does not deal with them and
+a small function which sets the mask based on given interface name for
+use by legacy tools.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-ruleparse-arp.c    |  5 ++---
- iptables/nft-ruleparse-bridge.c |  3 ++-
- iptables/nft-ruleparse-ipv4.c   |  5 ++---
- iptables/nft-ruleparse-ipv6.c   |  3 +--
- iptables/nft-ruleparse.c        | 33 ++++++++-------------------------
- iptables/nft-ruleparse.h        |  3 +--
- 6 files changed, 16 insertions(+), 36 deletions(-)
+ iptables/ip6tables.c |  3 +++
+ iptables/iptables.c  |  3 +++
+ iptables/xshared.c   | 51 ++++++++++++++++++++++++++++++++++----------
+ iptables/xshared.h   |  2 ++
+ 4 files changed, 48 insertions(+), 11 deletions(-)
 
-diff --git a/iptables/nft-ruleparse-arp.c b/iptables/nft-ruleparse-arp.c
-index cd74747e91895..b0671cb0dfe8f 100644
---- a/iptables/nft-ruleparse-arp.c
-+++ b/iptables/nft-ruleparse-arp.c
-@@ -34,9 +34,8 @@ static void nft_arp_parse_meta(struct nft_xt_ctx *ctx,
- 	struct arpt_entry *fw = &cs->arp;
- 	uint8_t flags = 0;
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 21cd801892641..53eeb6e90bbb7 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -713,6 +713,9 @@ int do_command6(int argc, char *argv[], char **table,
+ 	smasks		= args.s.mask.v6;
+ 	dmasks		= args.d.mask.v6;
  
--	if (parse_meta(ctx, e, reg->meta_dreg.key, fw->arp.iniface, fw->arp.iniface_mask,
--		   fw->arp.outiface, fw->arp.outiface_mask,
--		   &flags) == 0) {
-+	if (parse_meta(ctx, e, reg->meta_dreg.key, fw->arp.iniface,
-+		       fw->arp.outiface, &flags) == 0) {
- 		fw->arp.invflags |= flags;
- 		return;
++	iface_to_mask(cs.fw6.ipv6.iniface, cs.fw6.ipv6.iniface_mask);
++	iface_to_mask(cs.fw6.ipv6.outiface, cs.fw6.ipv6.outiface_mask);
++
+ 	/* Attempt to acquire the xtables lock */
+ 	if (!restore)
+ 		xtables_lock_or_exit(wait);
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index ce65c30ad0b15..69dd289060528 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -706,6 +706,9 @@ int do_command4(int argc, char *argv[], char **table,
+ 	smasks		= args.s.mask.v4;
+ 	dmasks		= args.d.mask.v4;
+ 
++	iface_to_mask(cs.fw.ip.iniface, cs.fw.ip.iniface_mask);
++	iface_to_mask(cs.fw.ip.outiface, cs.fw.ip.outiface_mask);
++
+ 	/* Attempt to acquire the xtables lock */
+ 	if (!restore)
+ 		xtables_lock_or_exit(wait);
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 839a5bb68776c..dca744773d773 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -1322,6 +1322,44 @@ void xtables_clear_iptables_command_state(struct iptables_command_state *cs)
  	}
-diff --git a/iptables/nft-ruleparse-bridge.c b/iptables/nft-ruleparse-bridge.c
-index c6cc9af5ea198..aee08b1396c1a 100644
---- a/iptables/nft-ruleparse-bridge.c
-+++ b/iptables/nft-ruleparse-bridge.c
-@@ -43,7 +43,8 @@ static void nft_bridge_parse_meta(struct nft_xt_ctx *ctx,
- 		return;
- 	}
- 
--	if (parse_meta(ctx, e, reg->meta_dreg.key, iifname, NULL, oifname, NULL, &invflags) < 0) {
-+	if (parse_meta(ctx, e, reg->meta_dreg.key,
-+		       iifname, oifname, &invflags) < 0) {
- 		ctx->errmsg = "unknown meta key";
- 		return;
- 	}
-diff --git a/iptables/nft-ruleparse-ipv4.c b/iptables/nft-ruleparse-ipv4.c
-index 491cbf42c7754..fe65b33cf847b 100644
---- a/iptables/nft-ruleparse-ipv4.c
-+++ b/iptables/nft-ruleparse-ipv4.c
-@@ -41,9 +41,8 @@ static void nft_ipv4_parse_meta(struct nft_xt_ctx *ctx,
- 		break;
- 	}
- 
--	if (parse_meta(ctx, e, reg->meta_dreg.key, cs->fw.ip.iniface, cs->fw.ip.iniface_mask,
--		   cs->fw.ip.outiface, cs->fw.ip.outiface_mask,
--		   &cs->fw.ip.invflags) == 0)
-+	if (parse_meta(ctx, e, reg->meta_dreg.key, cs->fw.ip.iniface,
-+		       cs->fw.ip.outiface, &cs->fw.ip.invflags) == 0)
- 		return;
- 
- 	ctx->errmsg = "unknown ipv4 meta key";
-diff --git a/iptables/nft-ruleparse-ipv6.c b/iptables/nft-ruleparse-ipv6.c
-index 7581b8636e601..29b085802f76c 100644
---- a/iptables/nft-ruleparse-ipv6.c
-+++ b/iptables/nft-ruleparse-ipv6.c
-@@ -42,8 +42,7 @@ static void nft_ipv6_parse_meta(struct nft_xt_ctx *ctx,
- 	}
- 
- 	if (parse_meta(ctx, e, reg->meta_dreg.key, cs->fw6.ipv6.iniface,
--		   cs->fw6.ipv6.iniface_mask, cs->fw6.ipv6.outiface,
--		   cs->fw6.ipv6.outiface_mask, &cs->fw6.ipv6.invflags) == 0)
-+		       cs->fw6.ipv6.outiface, &cs->fw6.ipv6.invflags) == 0)
- 		return;
- 
- 	ctx->errmsg = "unknown ipv6 meta key";
-diff --git a/iptables/nft-ruleparse.c b/iptables/nft-ruleparse.c
-index c8322f936acd9..0bbdf44fafe03 100644
---- a/iptables/nft-ruleparse.c
-+++ b/iptables/nft-ruleparse.c
-@@ -983,18 +983,14 @@ bool nft_rule_to_iptables_command_state(struct nft_handle *h,
- 	return ret;
  }
  
--static void parse_ifname(const char *name, unsigned int len,
--			 char *dst, unsigned char *mask)
-+static void parse_ifname(const char *name, unsigned int len, char *dst)
- {
- 	if (len == 0)
- 		return;
++void iface_to_mask(const char *iface, unsigned char *mask)
++{
++	unsigned int len = strlen(iface);
++
++	memset(mask, 0, IFNAMSIZ);
++
++	if (!len) {
++		return;
++	} else if (iface[len - 1] == '+') {
++		memset(mask, 0xff, len - 1);
++		/* Don't remove `+' here! -HW */
++	} else {
++		/* Include nul-terminator in match */
++		memset(mask, 0xff, len + 1);
++	}
++}
++
++static void parse_interface(const char *arg, char *iface)
++{
++	unsigned int len = strlen(arg);
++
++	memset(iface, 0, IFNAMSIZ);
++
++	if (!len)
++		return;
++	if (len >= IFNAMSIZ)
++		xtables_error(PARAMETER_PROBLEM,
++			      "interface name `%s' must be shorter than %d characters",
++			      arg, IFNAMSIZ);
++
++	if (strchr(arg, '/') || strchr(arg, ' '))
++		fprintf(stderr,
++			"Warning: weird character in interface `%s' ('/' and ' ' are not allowed by the kernel).\n",
++			arg);
++
++	strcpy(iface, arg);
++}
++
+ void do_parse(int argc, char *argv[],
+ 	      struct xt_cmd_parse *p, struct iptables_command_state *cs,
+ 	      struct xtables_args *args)
+@@ -1600,9 +1638,7 @@ void do_parse(int argc, char *argv[],
+ 			check_inverse(args, optarg, &invert, argc, argv);
+ 			set_option(p->ops, &cs->options, OPT_VIANAMEIN,
+ 				   &args->invflags, invert);
+-			xtables_parse_interface(optarg,
+-						args->iniface,
+-						args->iniface_mask);
++			parse_interface(optarg, args->iniface);
+ 			break;
  
- 	memcpy(dst, name, len);
--	if (name[len - 1] == '\0') {
--		if (mask)
--			memset(mask, 0xff, strlen(name) + 1);
-+	if (name[len - 1] == '\0')
- 		return;
--	}
+ 		case 'o':
+@@ -1610,9 +1646,7 @@ void do_parse(int argc, char *argv[],
+ 			check_inverse(args, optarg, &invert, argc, argv);
+ 			set_option(p->ops, &cs->options, OPT_VIANAMEOUT,
+ 				   &args->invflags, invert);
+-			xtables_parse_interface(optarg,
+-						args->outiface,
+-						args->outiface_mask);
++			parse_interface(optarg, args->outiface);
+ 			break;
  
- 	if (len >= IFNAMSIZ)
- 		return;
-@@ -1004,12 +1000,9 @@ static void parse_ifname(const char *name, unsigned int len,
- 	if (len >= IFNAMSIZ)
- 		return;
- 	dst[len++] = 0;
--	if (mask)
--		memset(mask, 0xff, len - 2);
- }
+ 		case 'f':
+@@ -1873,12 +1907,7 @@ void ipv4_post_parse(int command, struct iptables_command_state *cs,
+ 	cs->fw.ip.invflags = args->invflags;
  
--static void parse_invalid_iface(char *iface, unsigned char *mask,
--				uint8_t *invflags, uint8_t invbit)
-+static void parse_invalid_iface(char *iface, uint8_t *invflags, uint8_t invbit)
- {
- 	if (*invflags & invbit || strcmp(iface, "INVAL/D"))
- 		return;
-@@ -1018,9 +1011,6 @@ static void parse_invalid_iface(char *iface, unsigned char *mask,
- 	*invflags |= invbit;
- 	iface[0] = '+';
- 	iface[1] = '\0';
--	mask[0] = 0xff;
--	mask[1] = 0xff;
--	memset(mask + 2, 0, IFNAMSIZ - 2);
- }
- 
- static uint32_t get_meta_mask(struct nft_xt_ctx *ctx, enum nft_registers sreg)
-@@ -1071,8 +1061,7 @@ static int parse_meta_pkttype(struct nft_xt_ctx *ctx, struct nftnl_expr *e)
- }
- 
- int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
--	       char *iniface, unsigned char *iniface_mask,
--	       char *outiface, unsigned char *outiface_mask, uint8_t *invflags)
-+	       char *iniface, char *outiface, uint8_t *invflags)
- {
- 	uint32_t value;
- 	const void *ifname;
-@@ -1085,8 +1074,6 @@ int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
- 			*invflags |= IPT_INV_VIA_IN;
- 
- 		if_indextoname(value, iniface);
+ 	memcpy(cs->fw.ip.iniface, args->iniface, IFNAMSIZ);
+-	memcpy(cs->fw.ip.iniface_mask,
+-	       args->iniface_mask, IFNAMSIZ*sizeof(unsigned char));
 -
--		memset(iniface_mask, 0xff, strlen(iniface)+1);
- 		break;
- 	case NFT_META_OIF:
- 		value = nftnl_expr_get_u32(e, NFTNL_EXPR_CMP_DATA);
-@@ -1094,8 +1081,6 @@ int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
- 			*invflags |= IPT_INV_VIA_OUT;
+ 	memcpy(cs->fw.ip.outiface, args->outiface, IFNAMSIZ);
+-	memcpy(cs->fw.ip.outiface_mask,
+-	       args->outiface_mask, IFNAMSIZ*sizeof(unsigned char));
  
- 		if_indextoname(value, outiface);
--
--		memset(outiface_mask, 0xff, strlen(outiface)+1);
- 		break;
- 	case NFT_META_BRI_IIFNAME:
- 	case NFT_META_IIFNAME:
-@@ -1103,9 +1088,8 @@ int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
- 		if (nftnl_expr_get_u32(e, NFTNL_EXPR_CMP_OP) == NFT_CMP_NEQ)
- 			*invflags |= IPT_INV_VIA_IN;
+ 	if (args->goto_set)
+ 		cs->fw.ip.flags |= IPT_F_GOTO;
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index 952fa8ab95fec..d2ce72e90824a 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -311,4 +311,6 @@ unsigned char *make_delete_mask(const struct xtables_rule_match *matches,
+ 				const struct xtables_target *target,
+ 				size_t entry_size);
  
--		parse_ifname(ifname, len, iniface, iniface_mask);
--		parse_invalid_iface(iniface, iniface_mask,
--				    invflags, IPT_INV_VIA_IN);
-+		parse_ifname(ifname, len, iniface);
-+		parse_invalid_iface(iniface, invflags, IPT_INV_VIA_IN);
- 		break;
- 	case NFT_META_BRI_OIFNAME:
- 	case NFT_META_OIFNAME:
-@@ -1113,9 +1097,8 @@ int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
- 		if (nftnl_expr_get_u32(e, NFTNL_EXPR_CMP_OP) == NFT_CMP_NEQ)
- 			*invflags |= IPT_INV_VIA_OUT;
- 
--		parse_ifname(ifname, len, outiface, outiface_mask);
--		parse_invalid_iface(outiface, outiface_mask,
--				    invflags, IPT_INV_VIA_OUT);
-+		parse_ifname(ifname, len, outiface);
-+		parse_invalid_iface(outiface, invflags, IPT_INV_VIA_OUT);
- 		break;
- 	case NFT_META_MARK:
- 		parse_meta_mark(ctx, e);
-diff --git a/iptables/nft-ruleparse.h b/iptables/nft-ruleparse.h
-index 25ce05d2e8644..62c9160d77711 100644
---- a/iptables/nft-ruleparse.h
-+++ b/iptables/nft-ruleparse.h
-@@ -128,8 +128,7 @@ bool nft_rule_to_iptables_command_state(struct nft_handle *h,
- #define max(x, y) ((x) > (y) ? (x) : (y))
- 
- int parse_meta(struct nft_xt_ctx *ctx, struct nftnl_expr *e, uint8_t key,
--	       char *iniface, unsigned char *iniface_mask, char *outiface,
--	       unsigned char *outiface_mask, uint8_t *invflags);
-+	       char *iniface, char *outiface, uint8_t *invflags);
- 
- int nft_parse_hl(struct nft_xt_ctx *ctx, struct nftnl_expr *e,
- 		 struct iptables_command_state *cs);
++void iface_to_mask(const char *ifname, unsigned char *mask);
++
+ #endif /* IPTABLES_XSHARED_H */
 -- 
 2.41.0
 
