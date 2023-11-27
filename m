@@ -1,68 +1,75 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GuMlm3Rp"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 084ABD72
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 11:17:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1701112650;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=v+yc3jnEqQW+8dBSJgRAMNAAJPMjhTLDt4uvck+ZskI=;
-	b=GuMlm3RpDapS0eMfNzyJMyRTLNTVkkzXo+q7ZhE9IfkZN1sazNw7BfhOpkCb1TLW6HY9B8
-	UXT+IrS9ezHf3HqfIXdPNwJ3AKTu0SM2pNaDPrYy86x61NzckP8Az2MSQ+3zXBFNsEBCac
-	qCDaowHcjN3MxlPDfi7OpGoh9fzmfKM=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-481-evBYDIxEPBGvil6gDHEFQw-1; Mon, 27 Nov 2023 14:17:27 -0500
-X-MC-Unique: evBYDIxEPBGvil6gDHEFQw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 28700803CE3
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 19:17:27 +0000 (UTC)
-Received: from localhost.localdomain (unknown [10.39.193.43])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 4EBB91121307;
-	Mon, 27 Nov 2023 19:17:26 +0000 (UTC)
-From: Thomas Haller <thaller@redhat.com>
-To: NetFilter <netfilter-devel@vger.kernel.org>
-Cc: Thomas Haller <thaller@redhat.com>
-Subject: [PATCH nft 2/2] tests/shell: workaround lack of $SRANDOM before bash 5.1
-Date: Mon, 27 Nov 2023 20:15:36 +0100
-Message-ID: <20231127191713.3528973-3-thaller@redhat.com>
-In-Reply-To: <20231127191713.3528973-1-thaller@redhat.com>
-References: <20231127191713.3528973-1-thaller@redhat.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PWzpU33u"
+Received: from mail-pg1-x533.google.com (mail-pg1-x533.google.com [IPv6:2607:f8b0:4864:20::533])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C32F1B8
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 15:26:02 -0800 (PST)
+Received: by mail-pg1-x533.google.com with SMTP id 41be03b00d2f7-5a9bc2ec556so2920083a12.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 15:26:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1701127561; x=1701732361; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=C4Jv/tWKhGE+oj13ImCiceTMYt7jHCzTduyggJd9Rms=;
+        b=PWzpU33ujva/EoKNORcRquLvK/ue/WjkUhHvOMeW8XE0HZXQ8OAHVeqIhPay06MgM5
+         Obt+aSWMmqpWnaqMmjhduYxAoI4O4eZNwl9amXexHxPt6HVN9C6c2OLKRXuiNQYYQK34
+         AbeKCiawQG0x+lyVuWwz7YSbyFGzZQ5yuQnWqfTnbCKDZPJr4pjVGPQaQm8ymgZOTtSU
+         3nDwklyVn0GKYQKkwkgFRjm8X9yIjaHawmbBSRigFXHdB+301IFwvJEGTnEEBZ0rr8kU
+         5qMBJ3dY9bI1pBcxmPu4ILBfMkKtCqZ6OYQny841qfwzfvq+rsX3s0jcaj6ljT8EohzD
+         JhsA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1701127561; x=1701732361;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=C4Jv/tWKhGE+oj13ImCiceTMYt7jHCzTduyggJd9Rms=;
+        b=XHtPbIFyXn/XpMNIRpZW8/HLpeKKSXHvqnOZ4Bj8FNlVvGe+33yLICVFzVUwrC2iJW
+         CK2PyF0XtXsZARZxZfZx4HJDCF9KoA9d7gKS5KWZt54+V6G/KnBt/gxcJPV4LtaVOMo4
+         smgWpAY8fjMYXaVDh5JGvn/cdhfPno52p0BtHBik1eOfY9DJqL55LHSvk1/a3VQ//ZT3
+         HSm4i5hvxyvjsPS85rIWxIDZw/QYXv3EYoBCftBy/ixf9GPhr2V4B/dKCfmViqM+CeN6
+         0yRpt2gCbCmH9MdLjq5yQka70g8Mw6DTwAjOQ+q+SV0CwkYfYQAXXY67jVPFc6y7HpTz
+         d4nw==
+X-Gm-Message-State: AOJu0YxSokDqvAC2KHDvmQwBDzVNrld0fy/99u5NtNbq6mlvKjpjnDpU
+	DcyJA9xTT/szpp8hyIBe9FNYavUinvU=
+X-Google-Smtp-Source: AGHT+IG9VxX9mpT4iMqXf5f/AzUl3g+UoaQe8dQO4GmUDUo2ZTwlUnMxEoWdfzsZ53aUDVTWKr7FMg==
+X-Received: by 2002:a17:90b:4f8e:b0:280:cc73:4c79 with SMTP id qe14-20020a17090b4f8e00b00280cc734c79mr12808772pjb.7.1701127561606;
+        Mon, 27 Nov 2023 15:26:01 -0800 (PST)
+Received: from slk15.local.net (n58-108-90-185.meb1.vic.optusnet.com.au. [58.108.90.185])
+        by smtp.gmail.com with ESMTPSA id 11-20020a17090a004b00b00285cee21489sm2556259pjb.1.2023.11.27.15.25.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Nov 2023 15:26:01 -0800 (PST)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Tue, 28 Nov 2023 10:25:57 +1100
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue v3 0/1] New example program nfq6
+Message-ID: <ZWUlhePUtgFDxn5h@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20231126061359.17332-1-duncan_roe@optusnet.com.au>
+ <ZWSSTNYrVsJO7qeE@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZWSSTNYrVsJO7qeE@calendula>
 
-$SRANDOM is only supported since bash 5.1. Add a fallback to $RANDOM.
-
-Signed-off-by: Thomas Haller <thaller@redhat.com>
----
- tests/shell/run-tests.sh | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index f1345bb14e7c..e54f8bf3e3ee 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -314,6 +314,7 @@ DO_LIST_TESTS=
- if [ -z "$NFT_TEST_RANDOM_SEED" ] ; then
- 	# Choose a random value.
- 	n="$SRANDOM"
-+	[ -z "$n" ] && n="$RANDOM"
- else
- 	# Parse as number.
- 	n="$(strtonum "$NFT_TEST_RANDOM_SEED")"
--- 
-2.43.0
-
+On Mon, Nov 27, 2023 at 01:57:48PM +0100, Pablo Neira Ayuso wrote:
+> On Sun, Nov 26, 2023 at 05:13:58PM +1100, Duncan Roe wrote:
+> > Hi Pablo,
+> >
+> > I've been using nfq6 as a patch testbed for some time.
+>
+> Thanks for offering. Please find an alternative spot to store this
+> file, you can write a webpage and documentation for ti, this does not
+> really need to be in libnetfilter_queue.
+>
+And link to it from the Main page? I don't have a website, would have to be a
+link to GitHub, but I could put more in README.md there.
