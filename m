@@ -1,52 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kasaioranje.com header.i=@kasaioranje.com header.b="aVG1wuKp"
-X-Greylist: delayed 495 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 27 Nov 2023 01:14:29 PST
-Received: from mail.kasaioranje.com (mail.kasaioranje.com [135.125.203.239])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB7B41FE2
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 01:14:29 -0800 (PST)
-Received: by mail.kasaioranje.com (Postfix, from userid 1002)
-	id 599C3A2D41; Mon, 27 Nov 2023 09:05:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kasaioranje.com;
-	s=mail; t=1701075972;
-	bh=M9k2lPRvhlCI3aV1pBXwlT5gBaDEgRBSrVeWasDDZ3M=;
-	h=Date:From:To:Subject:From;
-	b=aVG1wuKp0xyzagVfPZk5yRC/YU0DTadjRHmvHEfbYAZxF5nPYAEOY3t5awWnVkMbQ
-	 xTCjJlb3RBdpDL4ZiSGX3/1nCMw+NlhkKeiJ96ZIisLioXD+zSxEjG4TF2zvZaKvAU
-	 axuHO1JP09FCsEvT4LZ/3VZE9j6IKUQxNhkpRA/ktHpeOT2uumTo0S3tmQdQDxvjnB
-	 bS45HFkV4t/ls8fK6qj+Fr//E3PaNWseh7mXViV5UIGv7ayTAXMUwe7BMU58hyFGjP
-	 vzfg5L2BOodwktg1CXjpVJvzAtfo2ywDn/9ppxO0aRfWgzmbeYon/3AMESp3evgnCe
-	 hgEdCxZdHbI2A==
-Received: by mail.kasaioranje.com for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 09:05:51 GMT
-Message-ID: <20231127074500-0.1.ag.107bb.0.6pqr4f0anz@kasaioranje.com>
-Date: Mon, 27 Nov 2023 09:05:51 GMT
-From: =?UTF-8?Q?"Stanislav_Kov=C3=A1=C4=8D"?= <stanislav.kovac@kasaioranje.com>
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4253CF0
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 02:00:51 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1r7YQ5-0004jt-76; Mon, 27 Nov 2023 11:00:49 +0100
+From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Subject: New parts in stock/offering
-X-Mailer: mail.kasaioranje.com
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nf_tables: mark newset as dead on transaction abort
+Date: Mon, 27 Nov 2023 11:00:37 +0100
+Message-ID: <20231127100040.1944-1-fw@strlen.de>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi,
+If a transaction is aborted, we should mark the to-be-released NEWSET dead,
+just like commit path does for DEL and DESTROYSET commands.
 
-We are interested in collaborating with your company.
+In both cases all remaining elements will be released via
+set->ops->destroy().
 
-I am writing to you because we supply high-quality metal parts for sports=
- cars to wholesalers and distribution networks worldwide, which could enr=
-ich your offerings.
+The existing abort code does NOT post the actual release to the work queue.
+Also the entire __nf_tables_abort() function is wrapped in gc_seq
+begin/end pair.
 
-Whether you need engine components, suspension systems, body modification=
- kits, or interior enhancements, we offer a wide range of products that c=
-an meet your customers' needs.
+Therefore, async gc worker will never try to release the pending set
+elements, as gc sequence is always stale.
 
-Let us know if you're interested in additional profit while maintaining c=
-ompetitive prices and attractive margins.
+It might be possible to speed up transaction aborts via work queue too,
+this would result in a race and a possible use-after-free.
 
+So fix this before it becomes an issue.
 
-Best regards
-Stanislav Kov=C3=A1=C4=8D
+Fixes: 5f68718b34a5 ("netfilter: nf_tables: GC transaction API to avoid race with control plane")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c0a42989b982..0eafbc9f773c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -10382,6 +10382,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+ 				nft_trans_destroy(trans);
+ 				break;
+ 			}
++			nft_trans_set(trans)->dead = 1;
+ 			list_del_rcu(&nft_trans_set(trans)->list);
+ 			break;
+ 		case NFT_MSG_DELSET:
+-- 
+2.42.0
+
