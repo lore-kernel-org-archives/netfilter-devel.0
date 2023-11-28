@@ -1,43 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Gf3vKk++"
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7E97C1
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 16:19:43 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FDf5n6yO"
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 475AA94
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2023 17:16:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1701130784; x=1732666784;
+  t=1701134189; x=1732670189;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=SkTqX8hlsddW4reO79XjBqo2yCRVDIOjUwvm/nqeuyI=;
-  b=Gf3vKk++mHNU/04pwUc0MGpjcWhIcpy44FOSzj/FoIbtvCuZMY/JvI+K
-   Dxclx8VCCHwvx2EQXtP+sD5mBg0sqgjvsP+j1nrzRieavnd3r3+ZvnqsP
-   QA02rMAFhp/hJHxtkqYVIVLucCa+HLLz1PKPdr+wNWonyebpHswJawICk
-   GcPLV8VoZDc6ZUirmsXPwF76IsnuYFRDsVL5w6pPtcSzYKGL01c75+Stx
-   n6MO97/tcNkFX8BOqCzKTUeADEcOHWJH4nHIl3WZqi60vvErDsRu4YSyC
-   yV8tvOoqaYw7Vh3awEaoYZ7ldJonYJ0ePTEQd3wFHnTfCkDY/7iBr26FC
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="14374386"
+  bh=YDz9hWUvUATuWmvDGxT/fuLuzqOrnW4uF6ibmQAmBzU=;
+  b=FDf5n6yOj+6NJciPC91UVV9j/MlfdbgRCu9H89aWVJWx7LpAXVfy4Pzu
+   t68CkZfyRgfdDxqKnLGftveZYQwIsJxXntYJMgxaCAUHHb2Fg4nPvCpWl
+   KLoMiznL69KcLP2oFJg3LzNNLm0E6NV4ZkOmiDUCfLLqIHcDnAzORGPw0
+   XTwy8ejaQVnsTNGCKJ4imOH2i0UBLPtFO9ab8M2VoDPqwyNi2tFOskc/T
+   I1DPABtkH7mSNKh1jKQYGGUD/brpzcYdcPnINAtm2U5xlTJioAZjAcPU0
+   EH+tUK/aXHPXH/FdwVjz3p4Lxgh91qDItW0i1M/q/RtFikJfQqjGYoiQD
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="377856424"
 X-IronPort-AV: E=Sophos;i="6.04,232,1695711600"; 
-   d="scan'208";a="14374386"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2023 16:19:43 -0800
+   d="scan'208";a="377856424"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2023 17:16:28 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="941743835"
+X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="838901749"
 X-IronPort-AV: E=Sophos;i="6.04,232,1695711600"; 
-   d="scan'208";a="941743835"
+   d="scan'208";a="838901749"
 Received: from lkp-server01.sh.intel.com (HELO d584ee6ebdcc) ([10.239.97.150])
-  by orsmga005.jf.intel.com with ESMTP; 27 Nov 2023 16:19:41 -0800
+  by fmsmga004.fm.intel.com with ESMTP; 27 Nov 2023 17:16:27 -0800
 Received: from kbuild by d584ee6ebdcc with local (Exim 4.96)
 	(envelope-from <lkp@intel.com>)
-	id 1r7lpD-0006o0-1s;
-	Tue, 28 Nov 2023 00:19:39 +0000
-Date: Tue, 28 Nov 2023 08:19:18 +0800
+	id 1r7mi8-0006qa-2k;
+	Tue, 28 Nov 2023 01:16:24 +0000
+Date: Tue, 28 Nov 2023 09:15:38 +0800
 From: kernel test robot <lkp@intel.com>
 To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, Florian Westphal <fw@strlen.de>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH nf-next] netfilter: nf_tables: mark newset as dead on
  transaction abort
-Message-ID: <202311280410.7aUI1BHd-lkp@intel.com>
+Message-ID: <202311280656.UdPzWRXm-lkp@intel.com>
 References: <20231127100040.1944-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -59,21 +60,21 @@ url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilte
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
 patch link:    https://lore.kernel.org/r/20231127100040.1944-1-fw%40strlen.de
 patch subject: [PATCH nf-next] netfilter: nf_tables: mark newset as dead on transaction abort
-config: m68k-allyesconfig (https://download.01.org/0day-ci/archive/20231128/202311280410.7aUI1BHd-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231128/202311280410.7aUI1BHd-lkp@intel.com/reproduce)
+config: x86_64-rhel-8.3-rust (https://download.01.org/0day-ci/archive/20231128/202311280656.UdPzWRXm-lkp@intel.com/config)
+compiler: clang version 16.0.4 (https://github.com/llvm/llvm-project.git ae42196bc493ffe877a7e3dff8be32035dea4d07)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231128/202311280656.UdPzWRXm-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202311280410.7aUI1BHd-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202311280656.UdPzWRXm-lkp@intel.com/
 
 All errors (new ones prefixed by >>):
 
-   net/netfilter/nf_tables_api.c: In function '__nf_tables_abort':
->> net/netfilter/nf_tables_api.c:9037:45: error: 'struct nft_set' has no member named 'dead'
-    9037 |                         nft_trans_set(trans)->dead = 1;
-         |                                             ^~
+>> net/netfilter/nf_tables_api.c:9037:26: error: no member named 'dead' in 'struct nft_set'
+                           nft_trans_set(trans)->dead = 1;
+                           ~~~~~~~~~~~~~~~~~~~~  ^
+   1 error generated.
 
 
 vim +9037 net/netfilter/nf_tables_api.c
