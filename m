@@ -1,31 +1,33 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="lOBUMKK+"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="IiPjXTwk"
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B33FAFAA
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40F2EAFAF
 	for <netfilter-devel@vger.kernel.org>; Tue, 28 Nov 2023 13:14:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=zeGYiVxkgOJDjuyKGD2aOHjrHMvlcaDgYCMyErvdESQ=; b=lOBUMKK+hF4U7bjs3Jl1rgxQLd
-	QIo6V3n6OsIN2CCykF8MQlxkA7FURedJBbcc8DAo0Cuy2lzAEpDHrJVWgusWLZ++WOvndnH6uKJZb
-	Oz/nuirM7UUrFHVTZL2vzZ2aPCra26ajAQtjvY0WHGQOX0UscnI2rCHaknLM5uSR85mhIHx+RtIvg
-	LgGuCP266++gPKdM2aZ2Y8W28QLxsZMZBblUKBSGXQ3kkKyBpX9ZWuZpJYKDWNmmgibbt4pwGTNGc
-	W0LFajAT78N1mWBu/FjYkrVkAHy3LZio2G3byjpGi5snHJZXGTo8/TGi1JJ5ocCJIJxUZMqcYj0zg
-	c/0AJjUg==;
+	bh=hTUc9UTm+HTNYvdwaP5TYnKZtEWGjC78Z3JLO/jAUy0=; b=IiPjXTwk3wHrgmDEuozMVVxw9S
+	SNCb6RYyfOcxIyW27ymRoITXBHkS+Q5T09/ndo2nCOHZXSlTpTmv3jAPjkU3U+2lfJhPDSxwUMI7F
+	HXUCJR7gfmcz0PG7YnMaTQVuYwXWefYheEybjgJ66boVb+Q9FDVEbgIX+BT99NVJ3258MHNrWRIb/
+	jqS9r2sj1vFflfv+ypV+IjyfMZtHXt50HPuW6H7XewglFZ9xylD/Mo5IGMC/Jm6sHDJcfoenOVcMs
+	XcZDNZvpwQz32/m2jInO8cs30K4ItEhKgFo3tT87WpRr9k1d2OfC5sRsQaup6rnRIws3E2v/oAQiJ
+	yzL92QeA==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1r85PF-0003yi-Fm
+	id 1r85PF-0003ym-QG
 	for netfilter-devel@vger.kernel.org; Tue, 28 Nov 2023 22:14:09 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 0/2] libxtables: Fix two xtoptions bugs
-Date: Tue, 28 Nov 2023 22:26:29 +0100
-Message-ID: <20231128212631.811-1-phil@nwl.cc>
+Subject: [iptables PATCH 2/2] libxtables: xtoptions: Fix for non-CIDR-compatible hostmasks
+Date: Tue, 28 Nov 2023 22:26:31 +0100
+Message-ID: <20231128212631.811-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20231128212631.811-1-phil@nwl.cc>
+References: <20231128212631.811-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,19 +36,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-While the first one is clearly a bug in my recent code deduplication
-effort, the second one may be reckoned a missing feature.
-XTTYPE_HOSTMASK is but used in many places and nothing claims the masks
-must be contiguous.
+In order to parse the mask, xtopt_parse_hostmask() calls
+xtopt_parse_plenmask() thereby limiting netmask support to prefix
+lengths (alternatively specified in IP address notation).
 
-Phil Sutter (2):
-  libxtables: xtoptions: Fix for garbage access in
-    xtables_options_xfrm()
-  libxtables: xtoptions: Fix for non-CIDR-compatible hostmasks
+In order to lift this impractical restriction, make
+xtopt_parse_plenmask() aware of the fact that xtopt_parse_plen() may
+fall back to xtopt_parse_mask() which correctly initializes val.hmask
+itself and indicates non-CIDR-compatible masks by setting val.hlen to
+-1.
 
- libxtables/xtoptions.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+So in order to support these odd masks, it is sufficient for
+xtopt_parse_plenmask() to skip its mask building from val.hlen value and
+take whatever val.hmask contains.
 
+Fixes: 66266abd17adc ("libxtables: XTTYPE_HOSTMASK support")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ libxtables/xtoptions.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
+index 433a686c2b595..02025e99d4832 100644
+--- a/libxtables/xtoptions.c
++++ b/libxtables/xtoptions.c
+@@ -692,6 +692,10 @@ static void xtopt_parse_plenmask(struct xt_option_call *cb)
+ 
+ 	xtopt_parse_plen(cb);
+ 
++	/* may not be convertible to CIDR notation */
++	if (cb->val.hlen == (uint8_t)-1)
++		goto out_put;
++
+ 	memset(mask, 0xFF, sizeof(union nf_inet_addr));
+ 	/* This shifting is AF-independent. */
+ 	if (cb->val.hlen == 0) {
+@@ -712,6 +716,7 @@ static void xtopt_parse_plenmask(struct xt_option_call *cb)
+ 	mask[1] = htonl(mask[1]);
+ 	mask[2] = htonl(mask[2]);
+ 	mask[3] = htonl(mask[3]);
++out_put:
+ 	if (entry->flags & XTOPT_PUT)
+ 		memcpy(XTOPT_MKPTR(cb), mask, sizeof(union nf_inet_addr));
+ }
 -- 
 2.41.0
 
