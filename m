@@ -1,30 +1,30 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pXEg4erX"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qXU5iilx"
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC798D7F
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 05:15:42 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 313E51A8
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 05:15:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=93FZ81YMjx38BgShSrEX+i3cU71Z+4T6pfE8YPZcuN8=; b=pXEg4erXS92dPXZ9YD006JhaEF
-	D3Eu3xkn3L7BcTix27IPA/TA/fRc6csa3JuqXpvnX7DP30m3a65Yhkz5IQkaLcx4Ii5XEYT2+Iab3
-	dzmsDqKzi8AbBZqRn5UZjpPyACwcQdhAT0sxyTmA78wi+eYdggmzmU6rndiM6ZxsSQ49UYX3ig0zl
-	U3ofs0ONtb++C56QKVsjCpb16xlqFcSb3YgVhxeybS9dblO8RK9plJ+/sjhfLmdpNoggwH7P+4CeY
-	tnJIXo7ZzwmogTJkPpjUuZTEN47PcYNxA/EU4fIlssP4ybChNoJZyjNA8LL2LCgR3Zfqb16lkguNx
-	g44hSGkw==;
+	bh=BIZfeMXhWjjvENrylSWL9FA5RbfMQ2Zj83oOK9K9nZQ=; b=qXU5iilxnTS5O6Snnn2UzOy+kF
+	ZygsA63WMSfFlduJZIUEEq6pFTc3aXvVjphcY1XjyBM163iT9WUMjgc7q/ylHAouBdgEH4PB8NtwJ
+	7DZ12ckQ6NUCBAPkGGmrBTHkxTAu8cahTCMNw4BQPHj0gX9SOKCmSsqLfhdGKj4+9O01vcoYzJTas
+	p1nusBQmMBCT5NzR7uTzqKtXpc+PgBkRsVFBJbYdmkv2ECB99aqm1N9ofh/LPQh7Vqqio150YtQn5
+	2JH7t0Y/l3IG9/FJmEVVyEeN8kuNayy3jNDEZ1CQwtQlO7RDLU2kr89vyRzxjTP5CrDiMs8H3dfiS
+	4QDHOzVA==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1r8KPl-0001jS-3r
-	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:41 +0100
+	id 1r8KPj-0001jD-HI
+	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:39 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 12/13] xshared: Introduce option_test_and_reject()
-Date: Wed, 29 Nov 2023 14:28:26 +0100
-Message-ID: <20231129132827.18166-13-phil@nwl.cc>
+Subject: [iptables PATCH 05/13] xshared: Support rule range deletion in do_parse()
+Date: Wed, 29 Nov 2023 14:28:19 +0100
+Message-ID: <20231129132827.18166-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231129132827.18166-1-phil@nwl.cc>
 References: <20231129132827.18166-1-phil@nwl.cc>
@@ -36,57 +36,88 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Just a small helper eliminating the repetitive code there.
+This is a distinct ebtables feature. Introduce struct
+xt_cmd_parse::rule_ranges boolean indicating support for it and bail
+otherwise if a range was specified by the user.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xshared.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ iptables/xshared.c | 34 +++++++++++++++++++++++++++++++++-
+ iptables/xshared.h |  2 ++
+ 2 files changed, 35 insertions(+), 1 deletion(-)
 
 diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 50f23757d4aff..ebe172223486e 100644
+index 177f3ddd1c19e..62ae4141325ed 100644
 --- a/iptables/xshared.c
 +++ b/iptables/xshared.c
-@@ -1439,6 +1439,15 @@ static void parse_change_counters_rule(int argc, char **argv,
- 			      "Packet counter '%s' invalid", argv[optind - 1]);
+@@ -903,6 +903,38 @@ static int parse_rulenumber(const char *rule)
+ 	return rulenum;
  }
  
-+static void option_test_and_reject(struct xt_cmd_parse *p,
-+				   struct iptables_command_state *cs,
-+				   unsigned int option)
++static void parse_rule_range(struct xt_cmd_parse *p, const char *argv)
 +{
-+	if (cs->options & option)
-+		xtables_error(PARAMETER_PROBLEM, "Can't use %s with %s",
-+			      p->ops->option_name(option), p->chain);
++	char *colon = strchr(argv, ':'), *buffer;
++
++	if (colon) {
++		if (!p->rule_ranges)
++			xtables_error(PARAMETER_PROBLEM,
++				      "Rule ranges are not supported");
++
++		*colon = '\0';
++		if (*(colon + 1) == '\0')
++			p->rulenum_end = -1; /* Until the last rule */
++		else {
++			p->rulenum_end = strtol(colon + 1, &buffer, 10);
++			if (*buffer != '\0' || p->rulenum_end == 0)
++				xtables_error(PARAMETER_PROBLEM,
++					      "Invalid rule range end`%s'",
++					      colon + 1);
++		}
++	}
++	if (colon == argv)
++		p->rulenum = 1; /* Beginning with the first rule */
++	else {
++		p->rulenum = strtol(argv, &buffer, 10);
++		if (*buffer != '\0' || p->rulenum == 0)
++			xtables_error(PARAMETER_PROBLEM,
++				      "Invalid rule number `%s'", argv);
++	}
++	if (!colon)
++		p->rulenum_end = p->rulenum;
 +}
 +
- void do_parse(int argc, char *argv[],
- 	      struct xt_cmd_parse *p, struct iptables_command_state *cs,
- 	      struct xtables_args *args)
-@@ -1924,21 +1933,13 @@ void do_parse(int argc, char *argv[],
- 		if (strcmp(p->chain, "PREROUTING") == 0
- 		    || strcmp(p->chain, "INPUT") == 0) {
- 			/* -o not valid with incoming packets. */
--			if (cs->options & OPT_VIANAMEOUT)
--				xtables_error(PARAMETER_PROBLEM,
--					      "Can't use %s with %s\n",
--					      p->ops->option_name(OPT_VIANAMEOUT),
--					      p->chain);
-+			option_test_and_reject(p, cs, OPT_VIANAMEOUT);
- 		}
+ /* list the commands an option is allowed with */
+ #define CMD_IDRAC	CMD_INSERT | CMD_DELETE | CMD_REPLACE | \
+ 			CMD_APPEND | CMD_CHECK
+@@ -1411,7 +1443,7 @@ void do_parse(int argc, char *argv[],
+ 			add_command(&p->command, CMD_DELETE, CMD_NONE, invert);
+ 			p->chain = optarg;
+ 			if (xs_has_arg(argc, argv)) {
+-				p->rulenum = parse_rulenumber(argv[optind++]);
++				parse_rule_range(p, argv[optind++]);
+ 				p->command = CMD_DELETE_NUM;
+ 			}
+ 			break;
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index 69f50e505cb9b..2fd15c725faaf 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -280,6 +280,7 @@ struct xt_cmd_parse_ops {
+ struct xt_cmd_parse {
+ 	unsigned int			command;
+ 	unsigned int			rulenum;
++	unsigned int			rulenum_end;
+ 	char				*table;
+ 	const char			*chain;
+ 	const char			*newname;
+@@ -287,6 +288,7 @@ struct xt_cmd_parse {
+ 	bool				restore;
+ 	int				line;
+ 	int				verbose;
++	bool				rule_ranges;
+ 	struct xt_cmd_parse_ops		*ops;
+ };
  
- 		if (strcmp(p->chain, "POSTROUTING") == 0
- 		    || strcmp(p->chain, "OUTPUT") == 0) {
- 			/* -i not valid with outgoing packets */
--			if (cs->options & OPT_VIANAMEIN)
--				xtables_error(PARAMETER_PROBLEM,
--					      "Can't use %s with %s\n",
--					      p->ops->option_name(OPT_VIANAMEIN),
--					      p->chain);
-+			option_test_and_reject(p, cs, OPT_VIANAMEIN);
- 		}
- 	}
- }
 -- 
 2.41.0
 
