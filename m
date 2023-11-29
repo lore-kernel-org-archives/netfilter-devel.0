@@ -1,7 +1,7 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="MqZBDt0I"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ThQ6fLny"
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68F0B19A
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E23810A
 	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 05:15:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -9,22 +9,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=JZqsfWOknLtp2WpFwIXCIyCIxeQ8nhpHi4Q48weCE44=; b=MqZBDt0IfdhpZVsZZMIlCwpkIQ
-	9yZIgEOmcbh02guwEbXCLb//7kTeNix2CCqArHOAd43wCnfMCDG965a5yCuxvW4s+hDY4hqbnhPdm
-	57uh/tJrE6rzIhCnqtQt5MlDjELg2Er0KAB+c36rGHhnvIlBxy5wlRdo9/RMp+4KSJeQnzjLZDbbV
-	Q2qZSdanMTV++jcoX9ci25dvI4P9RSQicMuBR3qqqoeieO5C2lqtRzSfHmjD3z9N7VzpTsHVdomxs
-	jIcYpOHZM30+yw0mvmclF73nKTxK1EZU/GJ4hGSHd1MtAobM+c//OcUpP2ZeNqHjsrzNDlEvhRmX1
-	1/N0qugQ==;
+	bh=LX03F5ZwCADDJEyWZ6+uuGTjpov9WP0rhX6xumsVnhM=; b=ThQ6fLnyoc/EVmoh8Is7FO9JPN
+	P1troriTRbcS52Y+2vgMd7JksQgcDEZcLgP9bfxUx4UuJj146gJz8BwI6eUbVAD0J6dy0lkpyuoen
+	QWXN1qXLM7RNvNfAPC+N1O+o/PF57AAJF8kn8ARQclU+sRI/5emK6lK/j101ShC4i/Cgo+/z/r2S6
+	Z9cluzG197uOmE7jcKyFqpxsivOwWr4MWCoNrX9vhL1kTkLpQ7xwrXf2aK1cjNCNfAqILschE824+
+	I7OD2h+5jUqH+e7Rxw4gWMTLWEQbhlhEZjfQrz4WQk+O33kEpvMwqoeuDtgFt0BWpRyBT0oUQiZA8
+	Vm+X2MOA==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1r8KPi-0001j7-Qo
+	id 1r8KPi-0001j2-GE
 	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:38 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 06/13] xshared: Support for ebtables' --change-counters command
-Date: Wed, 29 Nov 2023 14:28:20 +0100
-Message-ID: <20231129132827.18166-7-phil@nwl.cc>
+Subject: [iptables PATCH 04/13] xshared: Introduce print_help callback (again)
+Date: Wed, 29 Nov 2023 14:28:18 +0100
+Message-ID: <20231129132827.18166-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231129132827.18166-1-phil@nwl.cc>
 References: <20231129132827.18166-1-phil@nwl.cc>
@@ -36,159 +36,126 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is tricky because the short-option clashes with the --check
-command. OTOH, ebtables supports --check as well (though without
-short-option), so making do_parse() detect ebtables based on struct
-xtables_args::family is probably still the least messy option.
+Prep work for ebtables parser to use do_parse(). Adding more special
+casing to xtables_printhelp() causes a mess, so work with a callback
+again.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/nft-cmd.h |  7 ------
- iptables/xshared.c | 57 +++++++++++++++++++++++++++++++++++++++++++++-
- iptables/xshared.h | 11 ++++++++-
- 3 files changed, 66 insertions(+), 9 deletions(-)
+ iptables/ip6tables.c | 1 +
+ iptables/iptables.c  | 1 +
+ iptables/nft-arp.c   | 1 +
+ iptables/nft-ipv4.c  | 1 +
+ iptables/nft-ipv6.c  | 1 +
+ iptables/xshared.c   | 6 +++---
+ iptables/xshared.h   | 2 ++
+ 7 files changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/iptables/nft-cmd.h b/iptables/nft-cmd.h
-index 8163b82c3511f..00ecc80249f0d 100644
---- a/iptables/nft-cmd.h
-+++ b/iptables/nft-cmd.h
-@@ -7,13 +7,6 @@
- 
- struct nftnl_rule;
- 
--enum {
--	CTR_OP_INC_PKTS = 1 << 0,
--	CTR_OP_DEC_PKTS = 1 << 1,
--	CTR_OP_INC_BYTES = 1 << 2,
--	CTR_OP_DEC_BYTES = 1 << 3,
--};
--
- struct nft_cmd {
- 	struct list_head		head;
- 	int				command;
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 96603756324a5..4b5d4ac6878b7 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -671,6 +671,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 		.option_name	= ip46t_option_name,
+ 		.option_invert	= ip46t_option_invert,
+ 		.command_default = command_default,
++		.print_help	= xtables_printhelp,
+ 	};
+ 	struct xt_cmd_parse p = {
+ 		.table		= *table,
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index b57483ef44514..5ae28fe04a5f5 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -665,6 +665,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 		.option_name	= ip46t_option_name,
+ 		.option_invert	= ip46t_option_invert,
+ 		.command_default = command_default,
++		.print_help	= xtables_printhelp,
+ 	};
+ 	struct xt_cmd_parse p = {
+ 		.table		= *table,
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index f3e2920ac6d15..6011620cf52a7 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -859,6 +859,7 @@ struct nft_family_ops nft_family_ops_arp = {
+ 		.option_name	= nft_arp_option_name,
+ 		.option_invert	= nft_arp_option_invert,
+ 		.command_default = command_default,
++		.print_help	= xtables_printhelp,
+ 	},
+ 	.rule_to_cs		= nft_rule_to_iptables_command_state,
+ 	.init_cs		= nft_arp_init_cs,
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index 754c776473143..979880a3e7702 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -355,6 +355,7 @@ struct nft_family_ops nft_family_ops_ipv4 = {
+ 		.option_name	= ip46t_option_name,
+ 		.option_invert	= ip46t_option_invert,
+ 		.command_default = command_default,
++		.print_help	= xtables_printhelp,
+ 	},
+ 	.rule_to_cs		= nft_rule_to_iptables_command_state,
+ 	.clear_cs		= xtables_clear_iptables_command_state,
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index b1b5891013577..e4b1714d00c2f 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -346,6 +346,7 @@ struct nft_family_ops nft_family_ops_ipv6 = {
+ 		.option_name	= ip46t_option_name,
+ 		.option_invert	= ip46t_option_invert,
+ 		.command_default = command_default,
++		.print_help	= xtables_printhelp,
+ 	},
+ 	.rule_to_cs		= nft_rule_to_iptables_command_state,
+ 	.clear_cs		= xtables_clear_iptables_command_state,
 diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 62ae4141325ed..50f23757d4aff 100644
+index 29b3992904e68..177f3ddd1c19e 100644
 --- a/iptables/xshared.c
 +++ b/iptables/xshared.c
-@@ -937,7 +937,7 @@ static void parse_rule_range(struct xt_cmd_parse *p, const char *argv)
- 
- /* list the commands an option is allowed with */
- #define CMD_IDRAC	CMD_INSERT | CMD_DELETE | CMD_REPLACE | \
--			CMD_APPEND | CMD_CHECK
-+			CMD_APPEND | CMD_CHECK | CMD_CHANGE_COUNTERS
- static const unsigned int options_v_commands[NUMBER_OF_OPT] = {
- /*OPT_NUMERIC*/		CMD_LIST,
- /*OPT_SOURCE*/		CMD_IDRAC,
-@@ -1392,10 +1392,58 @@ static void parse_interface(const char *arg, char *iface)
- 	strcpy(iface, arg);
+@@ -1108,9 +1108,9 @@ int print_match_save(const struct xt_entry_match *e, const void *ip)
+ 	return 0;
  }
  
-+static bool
-+parse_signed_counter(char *argv, unsigned long long *val, uint8_t *ctr_op,
-+		     uint8_t flag_inc, uint8_t flag_dec)
-+{
-+	char *endptr, *p = argv;
-+
-+	switch (*p) {
-+	case '+':
-+		*ctr_op |= flag_inc;
-+		p++;
-+		break;
-+	case '-':
-+		*ctr_op |= flag_dec;
-+		p++;
-+		break;
-+	}
-+	*val = strtoull(p, &endptr, 10);
-+	return *endptr == '\0';
-+}
-+
-+static void parse_change_counters_rule(int argc, char **argv,
-+				       struct xt_cmd_parse *p,
-+				       struct xtables_args *args)
-+{
-+	if (optind + 1 >= argc ||
-+	    (argv[optind][0] == '-' && !isdigit(argv[optind][1])) ||
-+	    (argv[optind + 1][0] == '-' && !isdigit(argv[optind + 1][1])))
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "The command -C needs at least 2 arguments");
-+	if (optind + 2 < argc &&
-+	    (argv[optind + 2][0] != '-' || isdigit(argv[optind + 2][1]))) {
-+		if (optind + 3 != argc)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "No extra options allowed with -C start_nr[:end_nr] pcnt bcnt");
-+		parse_rule_range(p, argv[optind++]);
-+	}
-+
-+	if (!parse_signed_counter(argv[optind++], &args->pcnt_cnt,
-+				  &args->counter_op,
-+				  CTR_OP_INC_PKTS, CTR_OP_DEC_PKTS) ||
-+	    !parse_signed_counter(argv[optind++], &args->bcnt_cnt,
-+				  &args->counter_op,
-+				  CTR_OP_INC_BYTES, CTR_OP_DEC_BYTES))
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "Packet counter '%s' invalid", argv[optind - 1]);
-+}
-+
- void do_parse(int argc, char *argv[],
- 	      struct xt_cmd_parse *p, struct iptables_command_state *cs,
- 	      struct xtables_args *args)
+-static void
+-xtables_printhelp(const struct xtables_rule_match *matches)
++void xtables_printhelp(struct iptables_command_state *cs)
  {
-+	bool family_is_bridge = args->family == NFPROTO_BRIDGE;
- 	struct xtables_match *m;
- 	struct xtables_rule_match *matchp;
- 	bool wait_interval_set = false;
-@@ -1435,6 +1483,13 @@ void do_parse(int argc, char *argv[],
- 			break;
++	const struct xtables_rule_match *matches = cs->matches;
+ 	const char *prog_name = xt_params->program_name;
+ 	const char *prog_vers = xt_params->program_version;
  
- 		case 'C':
-+			if (family_is_bridge) {
-+				add_command(&p->command, CMD_CHANGE_COUNTERS,
-+					    CMD_NONE, invert);
-+				p->chain = optarg;
-+				parse_change_counters_rule(argc, argv, p, args);
-+				break;
-+			}
- 			add_command(&p->command, CMD_CHECK, CMD_NONE, invert);
- 			p->chain = optarg;
- 			break;
+@@ -1527,7 +1527,7 @@ void do_parse(int argc, char *argv[],
+ 				xtables_find_match(cs->protocol,
+ 					XTF_TRY_LOAD, &cs->matches);
+ 
+-			xtables_printhelp(cs->matches);
++			p->ops->print_help(cs);
+ 			xtables_clear_iptables_command_state(cs);
+ 			xtables_free_opts(1);
+ 			xtables_fini();
 diff --git a/iptables/xshared.h b/iptables/xshared.h
-index 2fd15c725faaf..68acfb4b406fb 100644
+index bf24fd568a6f5..69f50e505cb9b 100644
 --- a/iptables/xshared.h
 +++ b/iptables/xshared.h
-@@ -69,8 +69,9 @@ enum {
- 	CMD_LIST_RULES		= 1 << 12,
- 	CMD_ZERO_NUM		= 1 << 13,
- 	CMD_CHECK		= 1 << 14,
-+	CMD_CHANGE_COUNTERS	= 1 << 15, /* ebtables only */
- };
--#define NUMBER_OF_CMD		16
-+#define NUMBER_OF_CMD		17
- 
- struct xtables_globals;
- struct xtables_rule_match;
-@@ -247,6 +248,13 @@ struct addr_mask {
- 	} mask;
+@@ -274,6 +274,7 @@ struct xt_cmd_parse_ops {
+ 	int	(*option_invert)(int option);
+ 	int	(*command_default)(struct iptables_command_state *cs,
+ 				   struct xtables_globals *gl, bool invert);
++	void	(*print_help)(struct iptables_command_state *cs);
  };
  
-+enum {
-+	CTR_OP_INC_PKTS = 1 << 0,
-+	CTR_OP_DEC_PKTS = 1 << 1,
-+	CTR_OP_INC_BYTES = 1 << 2,
-+	CTR_OP_DEC_BYTES = 1 << 3,
-+};
-+
- struct xtables_args {
- 	int		family;
- 	uint8_t		flags;
-@@ -261,6 +269,7 @@ struct xtables_args {
- 	const char	*arp_hlen, *arp_opcode;
- 	const char	*arp_htype, *arp_ptype;
- 	unsigned long long pcnt_cnt, bcnt_cnt;
-+	uint8_t		counter_op;
- 	int		wait;
+ struct xt_cmd_parse {
+@@ -289,6 +290,7 @@ struct xt_cmd_parse {
+ 	struct xt_cmd_parse_ops		*ops;
  };
  
++void xtables_printhelp(struct iptables_command_state *cs);
+ const char *ip46t_option_name(int option);
+ int ip46t_option_invert(int option);
+ int command_default(struct iptables_command_state *cs,
 -- 
 2.41.0
 
