@@ -1,51 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="RiNFBHBk"
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFF5993
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Nov 2023 17:21:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=3DxygCv+8aVToKW0D5DA7ZjMhELiaR7Q+J0uNfdyqG4=; b=RiNFBHBku4IvIhIYB3lESn0SbV
-	gstmiPUJiQiTMPtAQHYVJrgmtlmKuqmfbUL4j/faoVgyZBX6cjUKDwgdXcXQSNa3z/T5fSsSWjzas
-	XLbe+LpCf5Etv29ECGXtxqknNidjz9GTdZU7qxuuBtS/95tlqee6adKJXq8tr4GH4KDABDfduoMXm
-	NLjbZX5VHluxPFupylcAKJsYW3rD628AjUpCQ4nu9wQ7cE+8PXU4p4KaW1a0yKNSlF5jLVGL9sP7X
-	8AHoC0lbkEPX7UFFkHgWRX881S5z/wv0oBwik7buHpBp/6r/UOewQpU4M0oWR/U2g57zZgUtae5qY
-	eQoPYv9g==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1r89Gq-0007p9-As
-	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 02:21:44 +0100
-Date: Wed, 29 Nov 2023 02:21:44 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH 0/2] libxtables: Fix two xtoptions bugs
-Message-ID: <ZWaSKEVQ5NSzu2BO@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org
-References: <20231128212631.811-1-phil@nwl.cc>
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6696FC4;
+	Wed, 29 Nov 2023 02:16:10 -0800 (PST)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VxNr3Ss_1701252962;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VxNr3Ss_1701252962)
+          by smtp.aliyun-inc.com;
+          Wed, 29 Nov 2023 18:16:08 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de
+Cc: bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	ast@kernel.org
+Subject: [PATCH net] net/netfilter: bpf: avoid leakage of skb
+Date: Wed, 29 Nov 2023 18:16:02 +0800
+Message-Id: <1701252962-63418-1-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231128212631.811-1-phil@nwl.cc>
 
-On Tue, Nov 28, 2023 at 10:26:29PM +0100, Phil Sutter wrote:
-> While the first one is clearly a bug in my recent code deduplication
-> effort, the second one may be reckoned a missing feature.
-> XTTYPE_HOSTMASK is but used in many places and nothing claims the masks
-> must be contiguous.
-> 
-> Phil Sutter (2):
->   libxtables: xtoptions: Fix for garbage access in
->     xtables_options_xfrm()
->   libxtables: xtoptions: Fix for non-CIDR-compatible hostmasks
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Series applied.
+A malicious eBPF program can interrupt the subsequent processing of
+a skb by returning an exceptional retval, and no one will be responsible
+for releasing the very skb.
+
+Moreover, normal programs can also have the demand to return NF_STOLEN,
+usually, the hook needs to take responsibility for releasing this skb
+itself, but currently, there is no such helper function to achieve that.
+Ignoring NF_STOLEN will also lead to skb leakage.
+
+Fixes: fd9c663b9ad6 ("bpf: minimal support for programs hooked into netfilter framework")
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
+ net/netfilter/nf_bpf_link.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index e502ec0..03c47d6 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -12,12 +12,29 @@ static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
+ 				    const struct nf_hook_state *s)
+ {
+ 	const struct bpf_prog *prog = bpf_prog;
++	unsigned int verdict;
+ 	struct bpf_nf_ctx ctx = {
+ 		.state = s,
+ 		.skb = skb,
+ 	};
+ 
+-	return bpf_prog_run(prog, &ctx);
++	verdict = bpf_prog_run(prog, &ctx);
++	switch (verdict) {
++	case NF_STOLEN:
++		consume_skb(skb);
++		fallthrough;
++	case NF_ACCEPT:
++	case NF_DROP:
++	case NF_QUEUE:
++		/* restrict the retval of the ebpf programs */
++		break;
++	default:
++		/* force it to be dropped */
++		verdict = NF_DROP_ERR(-EINVAL);
++		break;
++	}
++
++	return verdict;
+ }
+ 
+ struct bpf_nf_link {
+-- 
+1.8.3.1
+
