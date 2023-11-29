@@ -1,30 +1,30 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="iDz7kGdS"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pXEg4erX"
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEB2BD68
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 05:15:41 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC798D7F
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 05:15:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Z7Xe+vB7HcXssf9unKSAeNbJnWNwd0tPHNJqRh2JpVc=; b=iDz7kGdSmgBsrjd4HOOPs2OJ1i
-	c6ZVWeRnfZiThLeYK476daWt5mbxDGclQe/OgSN/2mfkT+r5xKu0ESVGNVC2utQY9E7cCZI3hS6XU
-	7FaE1S78lQShwsjb8fDoclIU7lTzCRYJCpxCr3v4wf8RboECbqbK+og/mv73dynyvyPcL/KoFuSbF
-	ee88b0ttfdIU7BsbgZ7t+He/MlEw7+Qz7RKC0MpAQpj+O2iqoCK3yWMiO0TarbqqvTxvJ07KiVm+P
-	J/3aK+YpC0kcWL7miP+w0gRHNRQHA0jrKK/TC1wzdEXPmU3B6+KL/udgT0u4yvTESTE53FXoDUcrL
-	wGk006Qw==;
+	bh=93FZ81YMjx38BgShSrEX+i3cU71Z+4T6pfE8YPZcuN8=; b=pXEg4erXS92dPXZ9YD006JhaEF
+	D3Eu3xkn3L7BcTix27IPA/TA/fRc6csa3JuqXpvnX7DP30m3a65Yhkz5IQkaLcx4Ii5XEYT2+Iab3
+	dzmsDqKzi8AbBZqRn5UZjpPyACwcQdhAT0sxyTmA78wi+eYdggmzmU6rndiM6ZxsSQ49UYX3ig0zl
+	U3ofs0ONtb++C56QKVsjCpb16xlqFcSb3YgVhxeybS9dblO8RK9plJ+/sjhfLmdpNoggwH7P+4CeY
+	tnJIXo7ZzwmogTJkPpjUuZTEN47PcYNxA/EU4fIlssP4ybChNoJZyjNA8LL2LCgR3Zfqb16lkguNx
+	g44hSGkw==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1r8KPk-0001jK-BA
-	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:40 +0100
+	id 1r8KPl-0001jS-3r
+	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:41 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 09/13] ebtables: Pass struct iptables_command_state to print_help()
-Date: Wed, 29 Nov 2023 14:28:23 +0100
-Message-ID: <20231129132827.18166-10-phil@nwl.cc>
+Subject: [iptables PATCH 12/13] xshared: Introduce option_test_and_reject()
+Date: Wed, 29 Nov 2023 14:28:26 +0100
+Message-ID: <20231129132827.18166-13-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231129132827.18166-1-phil@nwl.cc>
 References: <20231129132827.18166-1-phil@nwl.cc>
@@ -36,52 +36,57 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Parameters passed by the sole caller came from there already, apart from
-'table' which is not used (ebtables-nft does not have per-table help
-texts).
+Just a small helper eliminating the repetitive code there.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xtables-eb.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ iptables/xshared.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index 9afaa614bac5b..017e1ad364840 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -303,9 +303,11 @@ static struct option *merge_options(struct option *oldopts,
- 	return merge;
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 50f23757d4aff..ebe172223486e 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -1439,6 +1439,15 @@ static void parse_change_counters_rule(int argc, char **argv,
+ 			      "Packet counter '%s' invalid", argv[optind - 1]);
  }
  
--static void print_help(const struct xtables_target *t,
--		       const struct xtables_rule_match *m, const char *table)
-+static void print_help(struct iptables_command_state *cs)
- {
-+	const struct xtables_rule_match *m = cs->matches;
-+	struct xtables_target *t = cs->target;
++static void option_test_and_reject(struct xt_cmd_parse *p,
++				   struct iptables_command_state *cs,
++				   unsigned int option)
++{
++	if (cs->options & option)
++		xtables_error(PARAMETER_PROBLEM, "Can't use %s with %s",
++			      p->ops->option_name(option), p->chain);
++}
 +
- 	printf("%s %s\n", prog_name, prog_vers);
- 	printf(
- "Usage:\n"
-@@ -354,9 +356,6 @@ static void print_help(const struct xtables_target *t,
- 		printf("\n");
- 		t->help();
+ void do_parse(int argc, char *argv[],
+ 	      struct xt_cmd_parse *p, struct iptables_command_state *cs,
+ 	      struct xtables_args *args)
+@@ -1924,21 +1933,13 @@ void do_parse(int argc, char *argv[],
+ 		if (strcmp(p->chain, "PREROUTING") == 0
+ 		    || strcmp(p->chain, "INPUT") == 0) {
+ 			/* -o not valid with incoming packets. */
+-			if (cs->options & OPT_VIANAMEOUT)
+-				xtables_error(PARAMETER_PROBLEM,
+-					      "Can't use %s with %s\n",
+-					      p->ops->option_name(OPT_VIANAMEOUT),
+-					      p->chain);
++			option_test_and_reject(p, cs, OPT_VIANAMEOUT);
+ 		}
+ 
+ 		if (strcmp(p->chain, "POSTROUTING") == 0
+ 		    || strcmp(p->chain, "OUTPUT") == 0) {
+ 			/* -i not valid with outgoing packets */
+-			if (cs->options & OPT_VIANAMEIN)
+-				xtables_error(PARAMETER_PROBLEM,
+-					      "Can't use %s with %s\n",
+-					      p->ops->option_name(OPT_VIANAMEIN),
+-					      p->chain);
++			option_test_and_reject(p, cs, OPT_VIANAMEIN);
+ 		}
  	}
--
--//	if (table->help)
--//		table->help(ebt_hooknames);
  }
- 
- /* Execute command L */
-@@ -1144,7 +1143,7 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
- 		ebt_print_error2("Bad table name");*/
- 
- 	if (command == 'h' && !(flags & OPT_ZERO)) {
--		print_help(cs.target, cs.matches, *table);
-+		print_help(&cs);
- 		ret = 1;
- 	}
- 
 -- 
 2.41.0
 
