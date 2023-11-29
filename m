@@ -1,59 +1,32 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B836A3;
-	Wed, 29 Nov 2023 07:02:04 -0800 (PST)
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R451e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VxOW.jE_1701270121;
-Received: from 30.39.190.97(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VxOW.jE_1701270121)
-          by smtp.aliyun-inc.com;
-          Wed, 29 Nov 2023 23:02:02 +0800
-Message-ID: <d8262b12-3ac9-8608-fc6f-d48c33a4225e@linux.alibaba.com>
-Date: Wed, 29 Nov 2023 23:02:01 +0800
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AFEE99
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 10:55:43 -0800 (PST)
+Received: from [78.30.43.141] (port=40754 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1r8Pij-00CF7o-Gm; Wed, 29 Nov 2023 19:55:39 +0100
+Date: Wed, 29 Nov 2023 19:55:36 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Thomas Haller <thaller@redhat.com>
+Cc: NetFilter <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 0/2] tests/shell: workaround for bash
+Message-ID: <ZWeJKDOvIMXQhcrJ@calendula>
+References: <20231127191713.3528973-1-thaller@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.15.1
-Subject: Re: [PATCH net] net/netfilter: bpf: avoid leakage of skb
-Content-Language: en-US
-To: Florian Westphal <fw@strlen.de>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, bpf@vger.kernel.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
- coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
- davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
- pabeni@redhat.com, ast@kernel.org
-References: <1701252962-63418-1-git-send-email-alibuda@linux.alibaba.com>
- <20231129131846.GC27744@breakpoint.cc>
- <aa83bf32-789f-fec2-ea42-74b0ae05426e@linux.alibaba.com>
- <20231129144736.GB24754@breakpoint.cc>
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <20231129144736.GB24754@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231127191713.3528973-1-thaller@redhat.com>
+X-Spam-Score: -1.9 (-)
 
+On Mon, Nov 27, 2023 at 08:15:34PM +0100, Thomas Haller wrote:
+> RHEL8 has bash 4.4. Make some adjustments so that the test script works
+> there.
 
-
-On 11/29/23 10:47 PM, Florian Westphal wrote:
-> D. Wythe <alibuda@linux.alibaba.com> wrote:
->> And my origin intention was to allow ebpf progs to return NF_STOLEN, we are
->> trying to modify some netfilter modules via ebpf,
->> and some scenarios require the use of NF_STOLEN, but from your description,
-> NF_STOLEN can only be supported via a trusted helper, as least as far as
-> I understand.
->
-> Otherwise verifier would have to guarantee that any branch that returns
-> NF_STOLEN has released the skb, or passed it to a function that will
-> release the skb in the near future.
-
-Thank you very much for your help. I now understand the difficulty here.
-The verifier cannot determine whether the consume_skb() was executed or not,
-when the return value  goes to NF_STOLEN.
-
-We may use NF_DROP at first, it won't be make much difference for us now.
-
-Also, do you have any plans to support this helper?
-
-Best wishes,
-D. Wythe
+Applied, thanks.
