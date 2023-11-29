@@ -1,7 +1,7 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ea7pV/Ok"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Ubf1S4T+"
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16E1F85
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA59BC4
 	for <netfilter-devel@vger.kernel.org>; Wed, 29 Nov 2023 05:15:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
@@ -9,22 +9,22 @@ DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=BgjE3LazCOEi/oVaZwc7f/T2/TeTz0xpQM6b/3Mkj1U=; b=ea7pV/OkDDh7T79JIo/Q5puYuN
-	I9EJyhHGzaCl3xeJCeffOnBj2+JG8P9K/ciszQJE9beAYCwe7LdNVlBDp1DNsDE6e2oVQlstKTBDe
-	yORGV5hlz3FHTaApsU8DS7b052GDdgm/amIcjuT0CwINiyGqa2Y6WnKxEhcFWwQ+hmuM5GUwadSni
-	ysLMA7kaTiQ2vk1gFYSx82mwzMZDxoZMA9CMfR9rZfN1T+0hQLaxorYfJL9vWf0EJJIjlWQeSvLvl
-	yYS3c3Cl0xNjGfpufRVjMJksNBcYfIRfbH0/Zj2Qv974XnrlpKz0G/zuPqCcI6OaBsHrx2O8zeynW
-	67O3W14g==;
+	bh=4TkhuKzb/wjlUvntsy6XWtLJ7Js6pu8c3kPwgNifcUM=; b=Ubf1S4T+HpU1zScNta80nKEpOL
+	1hQJQMB8iYb7g7oomQvSjMGm2dmDI4d4mvhOSgAqjnhG/0wvVxPLpPSdjtYeuqR2XXdRqSFypiNLU
+	py6XY+Ja9yzKsZJvirRyqYa8A0UFSzfBYQ5ijo5nIThZPK1A79OcaHTlP8uTftxP/nsh3Be8Os7/b
+	5F5JSkOYbpIZQm5euJH5ofjvVg2sYteVha5QZifxnic+Q1L/mTct1SsAbl+yh0ywdTU3Rv+uGoMz+
+	65D+299LpF3vbA3LehhroLewuvxAb1lOq3T7ino4bz7pQ5+9osgZnwEs155cK1KFrskQQIT8kodbM
+	qdfNDcSQ==;
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.94.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1r8KPh-0001iq-EY
-	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:37 +0100
+	id 1r8KPi-0001iy-5J
+	for netfilter-devel@vger.kernel.org; Wed, 29 Nov 2023 14:15:38 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH 02/13] xshared: Perform protocol value parsing in callback
-Date: Wed, 29 Nov 2023 14:28:16 +0100
-Message-ID: <20231129132827.18166-3-phil@nwl.cc>
+Subject: [iptables PATCH 10/13] ebtables: Make 'h' case just a call to print_help()
+Date: Wed, 29 Nov 2023 14:28:24 +0100
+Message-ID: <20231129132827.18166-11-phil@nwl.cc>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20231129132827.18166-1-phil@nwl.cc>
 References: <20231129132827.18166-1-phil@nwl.cc>
@@ -36,75 +36,122 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The code is same in iptables and ip6tables, but different in ebtables.
-Therefore move it into the callback to keep that part of do_parse()
-generic.
+Move the special ebtables help parameter handling into its print_help()
+function to prepare for it turning into a callback. Add new field 'argc'
+to struct iptables_command_state to make this possible. It is actually
+kind of consistent as it holds 'argv' already.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- iptables/xshared.c | 22 ++++++++++++++--------
- iptables/xshared.h |  1 -
- 2 files changed, 14 insertions(+), 9 deletions(-)
+ iptables/xshared.h    |  1 +
+ iptables/xtables-eb.c | 61 +++++++++++++++++++++----------------------
+ 2 files changed, 31 insertions(+), 31 deletions(-)
 
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 53e6720169950..ff809f2be3438 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -1547,12 +1547,6 @@ void do_parse(int argc, char *argv[],
- 				*cs->protocol = tolower(*cs->protocol);
- 
- 			cs->protocol = optarg;
--			args->proto = xtables_parse_protocol(cs->protocol);
--
--			if (args->proto == 0 &&
--			    (args->invflags & XT_INV_PROTO))
--				xtables_error(PARAMETER_PROBLEM,
--					   "rule would never match protocol");
- 
- 			/* This needs to happen here to parse extensions */
- 			if (p->ops->proto_parse)
-@@ -1865,7 +1859,13 @@ void do_parse(int argc, char *argv[],
- void ipv4_proto_parse(struct iptables_command_state *cs,
- 		      struct xtables_args *args)
- {
--	cs->fw.ip.proto = args->proto;
-+	cs->fw.ip.proto = xtables_parse_protocol(cs->protocol);
-+
-+	if (cs->fw.ip.proto == 0 &&
-+	    (args->invflags & XT_INV_PROTO))
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "rule would never match protocol");
-+
- 	cs->fw.ip.invflags = args->invflags;
- }
- 
-@@ -1881,7 +1881,13 @@ static int is_exthdr(uint16_t proto)
- void ipv6_proto_parse(struct iptables_command_state *cs,
- 		      struct xtables_args *args)
- {
--	cs->fw6.ipv6.proto = args->proto;
-+	cs->fw6.ipv6.proto = xtables_parse_protocol(cs->protocol);
-+
-+	if (cs->fw6.ipv6.proto == 0 &&
-+	    (args->invflags & XT_INV_PROTO))
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "rule would never match protocol");
-+
- 	cs->fw6.ipv6.invflags = args->invflags;
- 
- 	/* this is needed for ip6tables-legacy only */
 diff --git a/iptables/xshared.h b/iptables/xshared.h
-index d2ce72e90824a..3df2153fd6a10 100644
+index 68acfb4b406fb..de32198fa0b67 100644
 --- a/iptables/xshared.h
 +++ b/iptables/xshared.h
-@@ -249,7 +249,6 @@ struct addr_mask {
+@@ -137,6 +137,7 @@ struct iptables_command_state {
+ 	char *protocol;
+ 	int proto_used;
+ 	const char *jumpto;
++	int argc;
+ 	char **argv;
+ 	bool restore;
+ };
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 017e1ad364840..8ab479237faa8 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -308,6 +308,33 @@ static void print_help(struct iptables_command_state *cs)
+ 	const struct xtables_rule_match *m = cs->matches;
+ 	struct xtables_target *t = cs->target;
  
- struct xtables_args {
- 	int		family;
--	uint16_t	proto;
- 	uint8_t		flags;
- 	uint16_t	invflags;
- 	char		iniface[IFNAMSIZ], outiface[IFNAMSIZ];
++	while (optind < cs->argc) {
++		/*struct ebt_u_match *m;
++		struct ebt_u_watcher *w;*/
++
++		if (!strcasecmp("list_extensions", cs->argv[optind])) {
++			ebt_list_extensions(xtables_targets, cs->matches);
++			exit(0);
++		}
++		/*if ((m = ebt_find_match(cs->argv[optind])))
++			ebt_add_match(new_entry, m);
++		else if ((w = ebt_find_watcher(cs->argv[optind])))
++			ebt_add_watcher(new_entry, w);
++		else {*/
++			if (!(t = xtables_find_target(cs->argv[optind],
++						      XTF_TRY_LOAD)))
++				xtables_error(PARAMETER_PROBLEM,
++					      "Extension '%s' not found",
++					      cs->argv[optind]);
++			if (cs->options & OPT_JUMP)
++				xtables_error(PARAMETER_PROBLEM,
++					      "Sorry, you can only see help for one target extension at a time");
++			cs->options |= OPT_JUMP;
++			cs->target = t;
++		//}
++		optind++;
++	}
++
+ 	printf("%s %s\n", prog_name, prog_vers);
+ 	printf(
+ "Usage:\n"
+@@ -735,6 +762,7 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
+ 	unsigned int flags = 0;
+ 	struct xtables_target *t;
+ 	struct iptables_command_state cs = {
++		.argc = argc,
+ 		.argv = argv,
+ 		.jumpto	= "",
+ 		.eb.bitmask = EBT_NOPROTO,
+@@ -897,32 +925,8 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
+ 			if (OPT_COMMANDS)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					      "Multiple commands are not allowed");
+-			command = 'h';
+-
+-			/* All other arguments should be extension names */
+-			while (optind < argc) {
+-				/*struct ebt_u_match *m;
+-				struct ebt_u_watcher *w;*/
+-
+-				if (!strcasecmp("list_extensions", argv[optind])) {
+-					ebt_list_extensions(xtables_targets, cs.matches);
+-					exit(0);
+-				}
+-				/*if ((m = ebt_find_match(argv[optind])))
+-					ebt_add_match(new_entry, m);
+-				else if ((w = ebt_find_watcher(argv[optind])))
+-					ebt_add_watcher(new_entry, w);
+-				else {*/
+-					if (!(t = xtables_find_target(argv[optind], XTF_TRY_LOAD)))
+-						xtables_error(PARAMETER_PROBLEM,"Extension '%s' not found", argv[optind]);
+-					if (flags & OPT_JUMP)
+-						xtables_error(PARAMETER_PROBLEM,"Sorry, you can only see help for one target extension at a time");
+-					flags |= OPT_JUMP;
+-					cs.target = t;
+-				//}
+-				optind++;
+-			}
+-			break;
++			print_help(&cs);
++			exit(0);
+ 		case 't': /* Table */
+ 			if (restore && table_set)
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1142,11 +1146,6 @@ int do_commandeb(struct nft_handle *h, int argc, char *argv[], char **table,
+ 	if (!(table = ebt_find_table(replace->name)))
+ 		ebt_print_error2("Bad table name");*/
+ 
+-	if (command == 'h' && !(flags & OPT_ZERO)) {
+-		print_help(&cs);
+-		ret = 1;
+-	}
+-
+ 	/* Do the final checks */
+ 	if (command == 'A' || command == 'I' ||
+ 	    command == 'D' || command == 'C' || command == 14) {
 -- 
 2.41.0
 
