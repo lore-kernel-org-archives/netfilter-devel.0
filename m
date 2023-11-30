@@ -1,81 +1,191 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toke.dk header.i=@toke.dk header.b="opAj57fh"
-Received: from mail.toke.dk (mail.toke.dk [45.145.95.4])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AF5883;
-	Thu, 30 Nov 2023 06:17:08 -0800 (PST)
-From: Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=toke.dk; s=20161023;
-	t=1701353825; bh=yghvjtwfe2VoJIk53aHU8FWUgdXH2HkotJ7JMAjgvv8=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=opAj57fhbJfKcAE+hZ9nHFm8WYWDky/N8TsuvNmO4LDnhlqLTO5cjxjfYo6u2ZQwO
-	 PkOyD5UMD0UQISsL5XQl4QfTiIy8RGzOI1pQqbcfCN3wMtEzFTwZdatn+AeKtMG1ZH
-	 aL8KOYAXk426EIKQ/M6grA3PNsf9Nr7Z/ivWZ4eN10uDCpLP89bgrHBqtd5NsjM6F8
-	 3QWycqSQbZrxZzvqkjttTMlE8SLPd6sYIzyB44o73jicXkxtra7C9CrwGY26NOTeK/
-	 4uv9oL4YX4aVBRM9gcRBjsRUfDwYIazz5D9HmAXPlpf1XdWdFCZv+4/w2CWEXXo53W
-	 LroZ6qNQ5LUOg==
-To: Florian Westphal <fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
- lorenzo@kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next 7/8] netfilter: nf_tables: add flowtable map for
- xdp offload
-In-Reply-To: <20231130135308.GA5447@breakpoint.cc>
-References: <20231121122800.13521-1-fw@strlen.de>
- <20231121122800.13521-8-fw@strlen.de> <87il5re7su.fsf@toke.dk>
- <20231130135308.GA5447@breakpoint.cc>
-Date: Thu, 30 Nov 2023 15:17:05 +0100
-X-Clacks-Overhead: GNU Terry Pratchett
-Message-ID: <87ttp31g2m.fsf@toke.dk>
+	dkim=pass (2048-bit key) header.d=dxuuu.xyz header.i=@dxuuu.xyz header.b="h7EerN8f";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="CE3/bb8J"
+Received: from out4-smtp.messagingengine.com (out4-smtp.messagingengine.com [66.111.4.28])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B5A710FA;
+	Thu, 30 Nov 2023 10:08:32 -0800 (PST)
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+	by mailout.nyi.internal (Postfix) with ESMTP id 5D7ED5C0322;
+	Thu, 30 Nov 2023 13:08:32 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute3.internal (MEProxy); Thu, 30 Nov 2023 13:08:32 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=dxuuu.xyz; h=cc
+	:cc:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:sender
+	:subject:subject:to:to; s=fm3; t=1701367712; x=1701454112; bh=9z
+	3uJU+Hi5KH4UzL0oER4ME1Qi2Yb8XEo51IkVsy0gY=; b=h7EerN8faAB17E4ILq
+	ZIZVbEY7zPwMtiNqL2KIdPC9eagTZEgzm1MtW6RiyDbu0Jt6tJz5v4Vqt67JQWJm
+	FHsW1qP2+rm009mZs+fYUm3BlLQMPt2Ceb1oPyxSY3/XIlGLa8SHIq66GUmZ4VyG
+	/NkkkdrOqbYrixunq0lkNLiTJfgEn+gvy0kLZHD7iNi5orSWrqifnbqphAIW2r8f
+	fet5UVQcjA1AMlIDRK8Y/VYBxiggVSU12MmEYKU/cpL1pgj1BTuXl9dBwD2ma/su
+	c6PG6TGY6/Xl6us3bidZOo6H7Ygsf8BFywiDb7ph9aFSAMqQYu2c9aH77Hhvq0k/
+	djZw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:sender:subject
+	:subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+	:x-sasl-enc; s=fm1; t=1701367712; x=1701454112; bh=9z3uJU+Hi5KH4
+	UzL0oER4ME1Qi2Yb8XEo51IkVsy0gY=; b=CE3/bb8JRXoF06z43ggo3eodWcMzd
+	HlX0VKnvWJUESTOkKajLpoJEdjGIwQcEsJQKThxKQpl0gHBzQyz15UPlACHC1p1n
+	fnPWnEVuPnnMGxegaTxPY+au30ACoNvhWldsZ9llrpIYtfba9oHCg8P7RW/e0KrW
+	nkzI6lOD4YCijiDqn8PYMR/MDv0IZ7CPAm6vmY3+dnhlj5hNnh85hjLUXKovwh6Z
+	oz6IHw4yciXKz0CrDIYArk/Y/8t9Mj9dM9DVNIWpgR5MLbwxRjJBBg7abrMbvDhr
+	Py+QtrCTxChTcxWRScpgBFR8clfSd24QwSL+wICnAafFY1wvVH2gPO4DA==
+X-ME-Sender: <xms:ns9oZQDrZkfxa-EWqNR_fOBJJ4_NcKpy3YKWyvXSTvnLHBw344-DqA>
+    <xme:ns9oZSgr6sn6oBVKWs0MYPJgfbIIlzjxAskQW8g7RiA9j1-QwH6s5zNtcS8oNwjkr
+    sEgYkSRDbsLzWqSew>
+X-ME-Received: <xmr:ns9oZTmousuvPPHhp9ehWOMKyGbm6kFD-HSwgIWRk5n0j-Zy4JTHE2QETyn7gpam0_WN-Uf7Eiq-GIW1gJ8ciwRNGisP5OEyfV9zZYM>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrudeijedguddtkecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecufghrlhcuvffnffculdefhedmnecujfgurhepff
+    fhvfevuffkfhggtggujgesthdtsfdttddtvdenucfhrhhomhepffgrnhhivghlucgiuhcu
+    oegugihusegugihuuhhurdighiiiqeenucggtffrrghtthgvrhhnpeefffeffefhtdefgf
+    fgleevueekgfeltdefleevgffhjeefveekkeejhfdtveevudenucffohhmrghinhepqhgv
+    mhhurdhorhhgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrh
+    homhepugiguhesugiguhhuuhdrgiihii
+X-ME-Proxy: <xmx:ns9oZWxCDDmnepTWR5WAfJtsI6hXfhvlcxyNzyoNfYhSCaQqdO_ttQ>
+    <xmx:ns9oZVQUuW0okS6jqNtfyZ77RtufopI2FB1atZOClv_Cl---yILM-Q>
+    <xmx:ns9oZRa8ZxbHz2m3kTSF2ubUUmEeqcnjw1QnCxQ4fxtmDiflX8jEKA>
+    <xmx:oM9oZULs-FkcSj14zxnBm7rJr3LzNRgrpCsiDkMOXqNgifNGqQcRHA>
+Feedback-ID: i6a694271:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 30 Nov 2023 13:08:29 -0500 (EST)
+Date: Thu, 30 Nov 2023 11:08:28 -0700
+From: Daniel Xu <dxu@dxuuu.xyz>
+To: "D. Wythe" <alibuda@linux.alibaba.com>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, 
+	bpf@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org, davem@davemloft.net, 
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, ast@kernel.org
+Subject: Re: [PATCH net] net/netfilter: bpf: fix bad registration on nf_defrag
+Message-ID: <jyuh3mrw2x4ev53trb7spctljr62fyrjqpgkgbh7ng4tfhimxm@kalweu7l5gbk>
+References: <1701329003-14564-1-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1701329003-14564-1-git-send-email-alibuda@linux.alibaba.com>
 
-Florian Westphal <fw@strlen.de> writes:
+On Thu, Nov 30, 2023 at 03:23:23PM +0800, D. Wythe wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
+> 
+> We should pass a pointer to global_hook to the get_proto_defrag_hook()
+> instead of its value, since the passed value won't be updated even if
+> the request module was loaded successfully.
+> 
+> Log:
+> 
+> [   54.915713] nf_defrag_ipv4 has bad registration
 
-> Toke H=C3=B8iland-J=C3=B8rgensen <toke@toke.dk> wrote:
->> I am not a huge fan of this flag, especially not as UAPI. Using the XDP
->> offload functionality is already an explicit opt-in by userspace (you
->> need to load the XDP program). So adding a second UAPI flag that you
->> have to set for the flowtable to be compatible with XDP seems to just
->> constrain things needlessly (and is bound to lead to bugs)?
->
-> I can remove it.  But it leads to issues, for example one flowtable
-> can shadow another one.
->
-> I'd prefer to handle this from control plane and reject such config.
-> Alternative is to ignore this and handle it as "self sabotage, don't
-> care" combined with "do not do that, then".
+Gah, I really thought I had tested this codepath.
 
-I do see your point about avoiding invalid configurations, but, well XDP
-is already very much a "use it right or it will break on you" kind of
-thing, so I think that bit is kinda unavoidable. As in, upon loading the
-XDP program that does the lookup, you can validate the configuration and
-reject loading if it's setup in a way that your program can support.
-Whereas if you have to set a flag on the flowtable itself, that means
-you have to make changes to the nft ruleset itself to be compatible with
-XDP acceleration (right?), you can't just go "accelerate my existing
-ruleset".
+> [   54.915779] WARNING: CPU: 3 PID: 6323 at net/netfilter/nf_bpf_link.c:62 get_proto_defrag_hook+0x137/0x160
+> [   54.915835] CPU: 3 PID: 6323 Comm: fentry Kdump: loaded Tainted: G            E      6.7.0-rc2+ #35
+> [   54.915839] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org 04/01/2014
+> [   54.915841] RIP: 0010:get_proto_defrag_hook+0x137/0x160
+> [   54.915844] Code: 4f 8c e8 2c cf 68 ff 80 3d db 83 9a 01 00 0f 85 74 ff ff ff 48 89 ee 48 c7 c7 8f 12 4f 8c c6 05 c4 83 9a 01 01 e8 09 ee 5f ff <0f> 0b e9 57 ff ff ff 49 8b 3c 24 4c 63 e5 e8 36 28 6c ff 4c 89 e0
+> [   54.915849] RSP: 0018:ffffb676003fbdb0 EFLAGS: 00010286
+> [   54.915852] RAX: 0000000000000023 RBX: ffff9596503d5600 RCX: ffff95996fce08c8
+> [   54.915854] RDX: 00000000ffffffd8 RSI: 0000000000000027 RDI: ffff95996fce08c0
+> [   54.915855] RBP: ffffffff8c4f12de R08: 0000000000000000 R09: 00000000fffeffff
+> [   54.915859] R10: ffffb676003fbc70 R11: ffffffff8d363ae8 R12: 0000000000000000
+> [   54.915861] R13: ffffffff8e1f75c0 R14: ffffb676003c9000 R15: 00007ffd15e78ef0
+> [   54.915864] FS:  00007fb6e9cab740(0000) GS:ffff95996fcc0000(0000) knlGS:0000000000000000
+> [   54.915867] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   54.915868] CR2: 00007ffd15e75c40 CR3: 0000000101e62006 CR4: 0000000000360ef0
+> [   54.915870] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [   54.915871] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> [   54.915873] Call Trace:
+> [   54.915891]  <TASK>
+> [   54.915894]  ? __warn+0x84/0x140
+> [   54.915905]  ? get_proto_defrag_hook+0x137/0x160
+> [   54.915908]  ? __report_bug+0xea/0x100
+> [   54.915925]  ? report_bug+0x2b/0x80
+> [   54.915928]  ? handle_bug+0x3c/0x70
+> [   54.915939]  ? exc_invalid_op+0x18/0x70
+> [   54.915942]  ? asm_exc_invalid_op+0x1a/0x20
+> [   54.915948]  ? get_proto_defrag_hook+0x137/0x160
+> [   54.915950]  bpf_nf_link_attach+0x1eb/0x240
+> [   54.915953]  link_create+0x173/0x290
+> [   54.915969]  __sys_bpf+0x588/0x8f0
+> [   54.915974]  __x64_sys_bpf+0x20/0x30
+> [   54.915977]  do_syscall_64+0x45/0xf0
+> [   54.915989]  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+> [   54.915998] RIP: 0033:0x7fb6e9daa51d
+> [   54.916001] Code: 00 c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 2b 89 0c 00 f7 d8 64 89 01 48
+> [   54.916003] RSP: 002b:00007ffd15e78ed8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+> [   54.916006] RAX: ffffffffffffffda RBX: 00007ffd15e78fc0 RCX: 00007fb6e9daa51d
+> [   54.916007] RDX: 0000000000000040 RSI: 00007ffd15e78ef0 RDI: 000000000000001c
+> [   54.916009] RBP: 000000000000002d R08: 00007fb6e9e73a60 R09: 0000000000000001
+> [   54.916010] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000006
+> [   54.916012] R13: 0000000000000006 R14: 0000000000000000 R15: 0000000000000000
+> [   54.916014]  </TASK>
+> [   54.916015] ---[ end trace 0000000000000000 ]---
+> 
+> Fixes: 91721c2d02d3 ("netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link")
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> ---
+>  net/netfilter/nf_bpf_link.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+> index e502ec0..0e4beae 100644
+> --- a/net/netfilter/nf_bpf_link.c
+> +++ b/net/netfilter/nf_bpf_link.c
+> @@ -31,7 +31,7 @@ struct bpf_nf_link {
+>  #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+>  static const struct nf_defrag_hook *
+>  get_proto_defrag_hook(struct bpf_nf_link *link,
+> -		      const struct nf_defrag_hook __rcu *global_hook,
+> +		      const struct nf_defrag_hook __rcu **ptr_global_hook,
+>  		      const char *mod)
+>  {
+>  	const struct nf_defrag_hook *hook;
+> @@ -39,7 +39,7 @@ struct bpf_nf_link {
+>  
+>  	/* RCU protects us from races against module unloading */
+>  	rcu_read_lock();
+> -	hook = rcu_dereference(global_hook);
+> +	hook = rcu_dereference(*ptr_global_hook);
+>  	if (!hook) {
+>  		rcu_read_unlock();
+>  		err = request_module(mod);
+> @@ -47,7 +47,7 @@ struct bpf_nf_link {
+>  			return ERR_PTR(err < 0 ? err : -EINVAL);
+>  
+>  		rcu_read_lock();
+> -		hook = rcu_dereference(global_hook);
+> +		hook = rcu_dereference(*ptr_global_hook);
+>  	}
+>  
+>  	if (hook && try_module_get(hook->owner)) {
+> @@ -78,7 +78,7 @@ static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
+>  	switch (link->hook_ops.pf) {
+>  #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+>  	case NFPROTO_IPV4:
+> -		hook = get_proto_defrag_hook(link, nf_defrag_v4_hook, "nf_defrag_ipv4");
+> +		hook = get_proto_defrag_hook(link, &nf_defrag_v4_hook, "nf_defrag_ipv4");
+>  		if (IS_ERR(hook))
+>  			return PTR_ERR(hook);
+>  
+> @@ -87,7 +87,7 @@ static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
+>  #endif
+>  #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+>  	case NFPROTO_IPV6:
+> -		hook = get_proto_defrag_hook(link, nf_defrag_v6_hook, "nf_defrag_ipv6");
+> +		hook = get_proto_defrag_hook(link, &nf_defrag_v6_hook, "nf_defrag_ipv6");
+>  		if (IS_ERR(hook))
+>  			return PTR_ERR(hook);
+>  
+> -- 
+> 1.8.3.1
+> 
 
->> If we can't change the behaviour, we could change the lookup mechanism?
->> BPF is pretty flexible, nothing says it has to use an ifindex as the
->> lookup key? The neatest thing would be to have some way for userspace to
->> directly populate a reference to the flowtable struct in a map, but a
->> simpler solution would be to just introduce an opaque ID for each
->> flowtable instance and use that as the lookup key (userspace could
->> trivially put that into a map for the BPF program to find)?
->
-> Won't that complicate things?  Userspace will have to use netlink
-> events to discover when a flowtable is removed, no?
+I think I've convinced myself this is right.
 
-Well, I am kinda assuming that userspace is the entity doing the
-removing, in which case it should already know this, right? I must admit
-to being a little fuzzy on the details of when a flowtable object is
-replaced, though. For instance, does reloading an nft ruleset always
-replace the flowtable with a new one (even if there's no change to the
-flowtable config itself)?
-
--Toke
+Acked-by: Daniel Xu <dxu@dxuuu.xyz>
