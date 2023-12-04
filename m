@@ -1,18 +1,19 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2627DE6
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Dec 2023 05:13:47 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E439E6
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Dec 2023 01:43:53 -0800 (PST)
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@strlen.de>)
-	id 1r9mI4-0001sx-Lk; Sun, 03 Dec 2023 14:13:44 +0100
-Date: Sun, 3 Dec 2023 14:13:44 +0100
+	id 1rA5UV-0006tM-CS; Mon, 04 Dec 2023 10:43:51 +0100
+Date: Mon, 4 Dec 2023 10:43:51 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>
 Subject: Re: does nft 'tcp option ... exists' work?
-Message-ID: <20231203131344.GB5972@breakpoint.cc>
+Message-ID: <20231204094351.GC5972@breakpoint.cc>
 References: <CAHo-OozyEqHUjL2-ntATzeZOiuftLWZ_HU6TOM_js4qLfDEAJg@mail.gmail.com>
  <CAHo-Oow4CJGe-xfhweZWzWZ0kaJiwg7HOjKCU-r7HLV_TYGNLQ@mail.gmail.com>
+ <20231203131344.GB5972@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -22,60 +23,28 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHo-Oow4CJGe-xfhweZWzWZ0kaJiwg7HOjKCU-r7HLV_TYGNLQ@mail.gmail.com>
+In-Reply-To: <20231203131344.GB5972@breakpoint.cc>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Maciej Żenczykowski <zenczykowski@gmail.com> wrote:
-> FYI, I upgraded the router to OpenWrt 23.05.2 with 5.15.137 and it
-> doesn't appear to have changed anything, ie. 'tcp option fastopen
-> exists' still does not appear to match.
+Florian Westphal <fw@strlen.de> wrote:
+> Maciej Żenczykowski <zenczykowski@gmail.com> wrote:
+> > FYI, I upgraded the router to OpenWrt 23.05.2 with 5.15.137 and it
+> > doesn't appear to have changed anything, ie. 'tcp option fastopen
+> > exists' still does not appear to match.
+> > 
+> > Also note that I'm putting this in table inet filter postrouting like
+> > below... but that shouldn't matter should it?
 > 
-> Also note that I'm putting this in table inet filter postrouting like
-> below... but that shouldn't matter should it?
+> No, this is an endianess bug, on BE the compared byte is always 0.
 
-No, this is an endianess bug, on BE the compared byte is always 0.
+We could fix this from userspace too:
 
-I suspect this will fix it:
+... exists  -> reg32 != 0
+... missing -> reg32 == 0
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -214,7 +214,7 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 
- 		offset = i + priv->offset;
- 		if (priv->flags & NFT_EXTHDR_F_PRESENT) {
--			*dest = 1;
-+			nft_reg_store8(dest, 1);
- 		} else {
- 			if (priv->len % NFT_REG32_SIZE)
- 				dest[priv->len / NFT_REG32_SIZE] = 0;
-@@ -461,7 +461,7 @@ static void nft_exthdr_dccp_eval(const struct nft_expr *expr,
- 		type = bufp[0];
- 
- 		if (type == priv->type) {
--			*dest = 1;
-+			nft_reg_store8(dest, 1);
- 			return;
- 		}
- 
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -145,11 +145,15 @@ void nft_fib_store_result(void *reg, const struct nft_fib *priv,
- 	switch (priv->result) {
- 	case NFT_FIB_RESULT_OIF:
- 		index = dev ? dev->ifindex : 0;
--		*dreg = (priv->flags & NFTA_FIB_F_PRESENT) ? !!index : index;
-+		if (priv->flags & NFTA_FIB_F_PRESENT)
-+			nft_reg_store8(dreg, !!index);
-+		else
-+			*dreg = index;
-+
- 		break;
- 	case NFT_FIB_RESULT_OIFNAME:
- 		if (priv->flags & NFTA_FIB_F_PRESENT)
--			*dreg = !!dev;
-+			nft_reg_store8(dreg, !!dev);
- 		else
- 			strscpy_pad(reg, dev ? dev->name : "", IFNAMSIZ);
- 		break;
+currently nftables uses &boolean_type, so the
+compare is for 1 byte.  We could switch this to
+32 bit integer type, this way it will no longer
+matter if the kernel stores the number at offset 0 or 3.
+
+Phil, Pablo, what do you think?
