@@ -1,213 +1,79 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5845C120
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 05:09:33 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1rAVB5-0008LJ-0n; Tue, 05 Dec 2023 14:09:31 +0100
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] intervals: don't assert when symbolic expression is to be split into a range
-Date: Tue,  5 Dec 2023 14:09:19 +0100
-Message-ID: <20231205130923.3633-1-fw@strlen.de>
-X-Mailer: git-send-email 2.41.0
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="A+vK4fF9"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30BD3129
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 05:10:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=k3Q07HRREuSwnAeuO3NfHfI+Sbzy1RiGdj/sxaN9Aiw=; b=A+vK4fF9R8utQvIjuiFSfNpuWI
+	fxAPXCAjDlmK6LHcAiyHi87soKDayp60V+/6Ay/UXidTWYABEnvuA9hadSPl/lZs5uISIrakfn8in
+	huftAXJsUxuqKFRua+v6WFBKm4fZaYtlJg4hhuuhFXALskHDFSueYq+e+HTQKNPhiI/C/C5O0E9F5
+	AtLp2gFE4ZBOE8KtOnjvW2CmMfyHDkgeWZKXHARxx3G8O4yACob0AJPnydCBOoeq/biam2GAIuWxh
+	QU3UajYOwxwBXtjjlXp7gXNr12p23NdRvII6Ga8oT6FnPPbDLDGYY1y56Y5vcO7i3ZV62z9XRUw6d
+	hQfYFIDw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rAVCC-000234-Qs; Tue, 05 Dec 2023 14:10:40 +0100
+Date: Tue, 5 Dec 2023 14:10:40 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: validate family when
+ identifying table via handle
+Message-ID: <ZW8hUKEizy9bNbML@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20231204135444.3881-1-pablo@netfilter.org>
+ <20231204140341.GC29636@breakpoint.cc>
+ <ZW3cuXX5H55V3xUN@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZW3cuXX5H55V3xUN@calendula>
 
-tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert
-BUG: unhandled key type 2
-nft: src/intervals.c:59: setelem_expr_to_range: Assertion `0' failed.
+On Mon, Dec 04, 2023 at 03:05:45PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Dec 04, 2023 at 03:03:41PM +0100, Florian Westphal wrote:
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > Validate table family when looking up for it via NFTA_TABLE_HANDLE.
+> > > 
+> > > Reported-by: Xingyuan Mo <hdthky0@gmail.com>
+> > > Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
+> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > ---
+> > >  net/netfilter/nf_tables_api.c | 5 +++--
+> > >  1 file changed, 3 insertions(+), 2 deletions(-)
+> > 
+> > This changes behaviour, before this change you can do
+> > 
+> > nft delete table handle 42
+> > 
+> > and it will delete the table with handle 42.
+> 
+> Default family is 'ip' if not specified, that is inconsistent with
+> other objects?
 
-Fixes: 3975430b12d9 ("src: expand table command before evaluation")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/intervals.h                           |  1 -
- src/intervals.c                               | 60 +++++++++++++++----
- .../nft-f/set_definition_with_no_key_assert   | 12 ++++
- 3 files changed, 60 insertions(+), 13 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert
+I would say the table's handle is a complete replacement of its family
+and name, also because it's pernet-unique. Though looking at the docs,
+we surprisingly claim to support:
 
-diff --git a/include/intervals.h b/include/intervals.h
-index 964804b19dda..ef0fb53e7577 100644
---- a/include/intervals.h
-+++ b/include/intervals.h
-@@ -1,7 +1,6 @@
- #ifndef NFTABLES_INTERVALS_H
- #define NFTABLES_INTERVALS_H
- 
--void set_to_range(struct expr *init);
- int set_automerge(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 		  struct expr *init, unsigned int debug_mask);
- int set_delete(struct list_head *msgs, struct cmd *cmd, struct set *set,
-diff --git a/src/intervals.c b/src/intervals.c
-index 85de0199c373..7181af58013e 100644
---- a/src/intervals.c
-+++ b/src/intervals.c
-@@ -13,7 +13,9 @@
- #include <intervals.h>
- #include <rule.h>
- 
--static void setelem_expr_to_range(struct expr *expr)
-+static int set_to_range(struct expr *init);
-+
-+static int setelem_expr_to_range(struct expr *expr)
- {
- 	unsigned char data[sizeof(struct in6_addr) * BITS_PER_BYTE];
- 	struct expr *key, *value;
-@@ -55,9 +57,13 @@ static void setelem_expr_to_range(struct expr *expr)
- 		expr_free(expr->key);
- 		expr->key = key;
- 		break;
-+	case EXPR_SYMBOL:
-+		return -1;
- 	default:
- 		BUG("unhandled key type %d\n", expr->key->etype);
- 	}
-+
-+	return 0;
- }
- 
- struct set_automerge_ctx {
-@@ -120,24 +126,33 @@ static bool merge_ranges(struct set_automerge_ctx *ctx,
- 	return false;
- }
- 
--static void set_sort_splice(struct expr *init, struct set *set)
-+static int set_sort_splice(struct expr *init, struct set *set)
- {
- 	struct set *existing_set = set->existing_set;
-+	int err;
-+
-+	err = set_to_range(init);
-+	if (err)
-+		return err;
- 
--	set_to_range(init);
- 	list_expr_sort(&init->expressions);
- 
- 	if (!existing_set)
--		return;
-+		return 0;
- 
- 	if (existing_set->init) {
--		set_to_range(existing_set->init);
-+		err = set_to_range(existing_set->init);
-+		if (err)
-+			return err;
-+
- 		list_splice_sorted(&existing_set->init->expressions,
- 				   &init->expressions);
- 		init_list_head(&existing_set->init->expressions);
- 	} else {
- 		existing_set->init = set_expr_alloc(&internal_location, set);
- 	}
-+
-+	return 0;
- }
- 
- static void setelem_automerge(struct set_automerge_ctx *ctx)
-@@ -215,14 +230,21 @@ static struct expr *interval_expr_key(struct expr *i)
- 	return elem;
- }
- 
--void set_to_range(struct expr *init)
-+static int set_to_range(struct expr *init)
- {
- 	struct expr *i, *elem;
- 
- 	list_for_each_entry(i, &init->expressions, list) {
-+		int err;
-+
- 		elem = interval_expr_key(i);
--		setelem_expr_to_range(elem);
-+
-+		err = setelem_expr_to_range(elem);
-+		if (err < 0)
-+			return err;
- 	}
-+
-+	return 0;
- }
- 
- int set_automerge(struct list_head *msgs, struct cmd *cmd, struct set *set,
-@@ -237,14 +259,21 @@ int set_automerge(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 	struct expr *i, *next, *clone;
- 	struct cmd *purge_cmd;
- 	struct handle h = {};
-+	int err;
- 
- 	if (set->flags & NFT_SET_MAP) {
--		set_to_range(init);
-+		err = set_to_range(init);
-+
-+		if (err < 0)
-+			return err;
-+
- 		list_expr_sort(&init->expressions);
- 		return 0;
- 	}
- 
--	set_sort_splice(init, set);
-+	err = set_sort_splice(init, set);
-+	if (err)
-+		return err;
- 
- 	ctx.purge = set_expr_alloc(&internal_location, set);
- 
-@@ -478,12 +507,17 @@ int set_delete(struct list_head *msgs, struct cmd *cmd, struct set *set,
- 	LIST_HEAD(del_list);
- 	int err;
- 
--	set_to_range(init);
-+	err = set_to_range(init);
-+	if (err)
-+		return err;
-+
- 	if (set->automerge)
- 		automerge_delete(msgs, set, init, debug_mask);
- 
- 	if (existing_set->init) {
--		set_to_range(existing_set->init);
-+		err = set_to_range(existing_set->init);
-+		if (err)
-+			return err;
- 	} else {
- 		existing_set->init = set_expr_alloc(&internal_location, set);
- 	}
-@@ -611,7 +645,9 @@ int set_overlap(struct list_head *msgs, struct set *set, struct expr *init)
- 	struct expr *i, *n, *clone;
- 	int err;
- 
--	set_sort_splice(init, set);
-+	err = set_sort_splice(init, set);
-+	if (err)
-+		return err;
- 
- 	err = setelem_overlap(msgs, set, init);
- 
-diff --git a/tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert b/tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert
-new file mode 100644
-index 000000000000..59ef1ab3b5cb
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert
-@@ -0,0 +1,12 @@
-+table inet testifsets {
-+	map map_wild {	elements = { "abcdex*",
-+			     "othername",
-+			     "ppp0" }
-+	}
-+	map map_wild {
-+		type ifname : verdict
-+		flags interval
-+		elements = { "abcdez*" : jump do_nothing,
-+			     "eth0" : jump do_nothing }
-+	}
-+}
--- 
-2.41.0
+| delete table [<family>] handle <handle>
 
+So either we accept user space is wrong and the family value doesn't
+matter there or we artificially limit table lookup by handle to the
+given family. IMHO either way kind of breaks user space.
+
+Off-topic here, but I would prefer for all handles to be pernet-unique
+so user space could 'nft delete <whatever> handle <handle>'. Why was a
+table-unique value chosen here?
+
+Cheers, Phil
