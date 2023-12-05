@@ -1,24 +1,22 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 107C018D
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 06:10:08 -0800 (PST)
-Received: from [78.30.43.141] (port=42724 helo=gnumonks.org)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E05790
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 06:17:15 -0800 (PST)
+Received: from [78.30.43.141] (port=33804 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1rAW7f-000IAl-U7; Tue, 05 Dec 2023 15:10:06 +0100
-Date: Tue, 5 Dec 2023 15:10:02 +0100
+	id 1rAWEZ-000IVZ-MM; Tue, 05 Dec 2023 15:17:13 +0100
+Date: Tue, 5 Dec 2023 15:17:10 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH v2 nft] parser: tcpopt: fix tcp option parsing with NUM +
- length field
-Message-ID: <ZW8vOk8C3zTR3R8K@calendula>
-References: <20231205115610.19791-1-fw@strlen.de>
- <ZW8Sl6M+1bkLihy9@calendula>
- <20231205122026.GA13832@breakpoint.cc>
- <ZW8cgUtUjMGS/apR@calendula>
- <20231205131448.GB13832@breakpoint.cc>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_tables: validate family when
+ identifying table via handle
+Message-ID: <ZW8w5v3LISAH/NZg@calendula>
+References: <20231204135444.3881-1-pablo@netfilter.org>
+ <20231204140341.GC29636@breakpoint.cc>
+ <ZW3cuXX5H55V3xUN@calendula>
+ <ZW8hUKEizy9bNbML@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -27,30 +25,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20231205131448.GB13832@breakpoint.cc>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <ZW8hUKEizy9bNbML@orbyte.nwl.cc>
+X-Spam-Score: -1.8 (-)
 
-On Tue, Dec 05, 2023 at 02:14:48PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Tue, Dec 05, 2023 at 01:20:26PM +0100, Florian Westphal wrote:
+On Tue, Dec 05, 2023 at 02:10:40PM +0100, Phil Sutter wrote:
+> On Mon, Dec 04, 2023 at 03:05:45PM +0100, Pablo Neira Ayuso wrote:
+> > On Mon, Dec 04, 2023 at 03:03:41PM +0100, Florian Westphal wrote:
 > > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > >  	if (!desc) {
-> > > > > -		if (field != TCPOPT_COMMON_KIND || kind > 255)
-> > > > > +		if (kind > 255)
-> > > > >  			return NULL;
+> > > > Validate table family when looking up for it via NFTA_TABLE_HANDLE.
 > > > > 
-> > > > Another suggestion: Remove this NULL, it leaves lhs as NULL in the
-> > > > relational. kind > 255 cannot ever happen, parser rejects numbers over
-> > > > 255.
+> > > > Reported-by: Xingyuan Mo <hdthky0@gmail.com>
+> > > > Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
+> > > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > > ---
+> > > >  net/netfilter/nf_tables_api.c | 5 +++--
+> > > >  1 file changed, 3 insertions(+), 2 deletions(-)
 > > > 
-> > > We can also feed this via input from udata (typeof).
-> > > So I'd rather not assert() or rely on bison checks.
+> > > This changes behaviour, before this change you can do
+> > > 
+> > > nft delete table handle 42
+> > > 
+> > > and it will delete the table with handle 42.
 > > 
-> > OK, but then NULL does not help either, that will crash on evaluation too.
-> > 
-> > You could narrow down kind and field in tcpopt_expr_alloc() to uint8_t.
+> > Default family is 'ip' if not specified, that is inconsistent with
+> > other objects?
 > 
-> Unfortunately, no.  'kind' is overloaded, SACK blocks 1/2/3/4 use values
-> gt 255, see TCPOPT_KIND_SACK3 at end of enum tcpopt_kind.
+> I would say the table's handle is a complete replacement of its family
+> and name, also because it's pernet-unique.
 
-OK, patch is fine then.
+Only tables and newer kernels >= 5.15 -stable, yes.
+
+> Though looking at the docs, we surprisingly claim to support:
+> 
+> | delete table [<family>] handle <handle>
+
+For consistency with existing objects, yes.
+
+> So either we accept user space is wrong and the family value doesn't
+> matter there or we artificially limit table lookup by handle to the
+> given family. IMHO either way kind of breaks user space.
+>
+> Off-topic here, but I would prefer for all handles to be pernet-unique
+> so user space could 'nft delete <whatever> handle <handle>'. Why was a
+> table-unique value chosen here?
