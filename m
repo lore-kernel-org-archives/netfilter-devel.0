@@ -1,19 +1,18 @@
 Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1909B90
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 06:18:43 -0800 (PST)
-Received: from [78.30.43.141] (port=33960 helo=gnumonks.org)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA8DD90
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 06:19:39 -0800 (PST)
+Received: from [78.30.43.141] (port=58446 helo=gnumonks.org)
 	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.94.2)
 	(envelope-from <pablo@gnumonks.org>)
-	id 1rAWFz-000IaF-GO; Tue, 05 Dec 2023 15:18:41 +0100
-Date: Tue, 5 Dec 2023 15:18:38 +0100
+	id 1rAWGu-000IdA-4p; Tue, 05 Dec 2023 15:19:38 +0100
+Date: Tue, 5 Dec 2023 15:19:35 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] intervals: don't assert when symbolic expression is
- to be split into a range
-Message-ID: <ZW8xPv2DVo5J0Pd5@calendula>
-References: <20231205130923.3633-1-fw@strlen.de>
+Subject: Re: [PATCH nft] evaluate: fix double free on dtype release
+Message-ID: <ZW8xd0KXzA3SiM6L@calendula>
+References: <20231205120820.20346-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -22,44 +21,50 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20231205130923.3633-1-fw@strlen.de>
+In-Reply-To: <20231205120820.20346-1-fw@strlen.de>
 X-Spam-Score: -1.9 (-)
 
-On Tue, Dec 05, 2023 at 02:09:19PM +0100, Florian Westphal wrote:
-> tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert
-> BUG: unhandled key type 2
-> nft: src/intervals.c:59: setelem_expr_to_range: Assertion `0' failed.
+On Tue, Dec 05, 2023 at 01:08:17PM +0100, Florian Westphal wrote:
+> We release ->dtype twice, will either segfault or assert
+> on dtype->refcount != 0 check in datatype_free().
 > 
-> Fixes: 3975430b12d9 ("src: expand table command before evaluation")
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  include/intervals.h                           |  1 -
->  src/intervals.c                               | 60 +++++++++++++++----
->  .../nft-f/set_definition_with_no_key_assert   | 12 ++++
->  3 files changed, 60 insertions(+), 13 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-f/set_definition_with_no_key_assert
+>  src/evaluate.c                                              | 2 +-
+>  .../bogons/nft-f/double-free-on-binop-dtype_assert          | 6 ++++++
+>  2 files changed, 7 insertions(+), 1 deletion(-)
+>  create mode 100644 tests/shell/testcases/bogons/nft-f/double-free-on-binop-dtype_assert
 > 
-[...]
-> diff --git a/src/intervals.c b/src/intervals.c
-> index 85de0199c373..7181af58013e 100644
-> --- a/src/intervals.c
-> +++ b/src/intervals.c
-> @@ -13,7 +13,9 @@
->  #include <intervals.h>
->  #include <rule.h>
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 16ad6473db1a..58cc811aca9a 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1171,7 +1171,7 @@ static int expr_evaluate_prefix(struct eval_ctx *ctx, struct expr **expr)
+>  	base = prefix->prefix;
+>  	assert(expr_is_constant(base));
 >  
-> -static void setelem_expr_to_range(struct expr *expr)
-> +static int set_to_range(struct expr *init);
-> +
-> +static int setelem_expr_to_range(struct expr *expr)
->  {
->  	unsigned char data[sizeof(struct in6_addr) * BITS_PER_BYTE];
->  	struct expr *key, *value;
-> @@ -55,9 +57,13 @@ static void setelem_expr_to_range(struct expr *expr)
->  		expr_free(expr->key);
->  		expr->key = key;
->  		break;
-> +	case EXPR_SYMBOL:
-> +		return -1;
+> -	prefix->dtype	  = base->dtype;
+> +	prefix->dtype	  = datatype_get(base->dtype);
 
-How can we get EXPR_SYMBOL in this path?
+I prefer datatype_clone() just in case base->dtype gets updated for
+whatever reason.
+
+>  	prefix->byteorder = base->byteorder;
+>  	prefix->len	  = base->len;
+>  	prefix->flags	 |= EXPR_F_CONSTANT;
+> diff --git a/tests/shell/testcases/bogons/nft-f/double-free-on-binop-dtype_assert b/tests/shell/testcases/bogons/nft-f/double-free-on-binop-dtype_assert
+> new file mode 100644
+> index 000000000000..b7a9a1cc7e8b
+> --- /dev/null
+> +++ b/tests/shell/testcases/bogons/nft-f/double-free-on-binop-dtype_assert
+> @@ -0,0 +1,6 @@
+> +table inet t {
+> +	chain c {
+> +		udp length . @th,160,118 vmap { 47-63 . 0xe3731353631303331313037353532/3 : accept }
+> +		jump noexist # only here so this fails to load after patch.
+> +	}
+> +}
+> -- 
+> 2.41.0
+> 
+> 
