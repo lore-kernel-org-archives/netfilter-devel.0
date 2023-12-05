@@ -1,49 +1,64 @@
-Received: from mail22.mail.schwarz (mail22.mail.schwarz [185.124.192.54])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F390BD3;
-	Tue,  5 Dec 2023 01:39:58 -0800 (PST)
-X-SCHWARZ-TO: coreteam@netfilter.org, netdev@vger.kernel.org, pabeni@redhat.com,
- edumazet@google.com, kadlec@netfilter.org, pablo@netfilter.org,
- linux-kernel@vger.kernel.org, davem@davemloft.net,
- netfilter-devel@vger.kernel.org, linux-kselftest@vger.kernel.org,
- shuah@kernel.org, fw@strlen.de
-X-SCHWARZ-ENVELOPEFROM: felix.huettner@mail.schwarz
-Received: from felix.runs.onstackit.cloud ([45.129.43.133])
-  by mail22.mail.schwarz with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Dec 2023 09:39:57 +0000
-Date: Tue, 5 Dec 2023 09:39:56 +0000
-From: Felix Huettner <felix.huettner@mail.schwarz>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, kadlec@netfilter.org, fw@strlen.de,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	shuah@kernel.org, luca.czesla@mail.schwarz,
-	max.lamprecht@mail.schwarz
-Subject: Re: [PATCH net-next v2] net: ctnetlink: support filtering by zone
-Message-ID: <ZW7v7NIvDxxYI+qv@felix.runs.onstackit.cloud>
-References: <ZWSCPKtDuYRG1XWt@kernel-bug-kernel-bug>
- <ZWSNrlHYdp+URAy6@calendula>
- <ZWnD4SqjhHXmtXlR@kernel-bug-kernel-bug>
+Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 988EFC3
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Dec 2023 03:44:40 -0800 (PST)
+Received: from [78.30.43.141] (port=39760 helo=gnumonks.org)
+	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <pablo@gnumonks.org>)
+	id 1rATqs-00HY0C-Ou; Tue, 05 Dec 2023 12:44:36 +0100
+Date: Tue, 5 Dec 2023 12:44:34 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH nft] parser: tcpopt: fix tcp option parsing with NUM +
+ length field
+Message-ID: <ZW8NIi20utwRiF9B@calendula>
+References: <CAHo-Oox+54BTFAXewt-9AyDdk_2nZTx+tm488efXpa+7_7wQ5g@mail.gmail.com>
+ <20231205010027.9339-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ZWnD4SqjhHXmtXlR@kernel-bug-kernel-bug>
+In-Reply-To: <20231205010027.9339-1-fw@strlen.de>
+X-Spam-Score: -1.9 (-)
 
-Hi,
+On Tue, Dec 05, 2023 at 02:00:01AM +0100, Florian Westphal wrote:
+[...]
+> @@ -182,13 +189,21 @@ struct expr *tcpopt_expr_alloc(const struct location *loc,
+>  		desc = tcpopt_protocols[kind];
+>  
+>  	if (!desc) {
+> -		if (field != TCPOPT_COMMON_KIND || kind > 255)
+> +		if (kind > 255)
+> +			return NULL;
+> +
+> +		switch (field) {
+> +		case TCPOPT_COMMON_KIND:
+> +		case TCPOPT_COMMON_LENGTH:
+> +			break;
+> +		default:
+>  			return NULL;
+> +		}
+>  
+>  		expr = expr_alloc(loc, EXPR_EXTHDR, &integer_type,
+>  				  BYTEORDER_BIG_ENDIAN, 8);
+>  
+> -		desc = tcpopt_protocols[TCPOPT_NOP];
+> +		desc = &tcpopt_fallback;
+>  		tmpl = &desc->templates[field];
+>  		expr->exthdr.desc   = desc;
+>  		expr->exthdr.tmpl   = tmpl;
 
-> > 
-> > Please, extend libnetfilter_conntrack to support for this feature,
-> > there is a filter API that can be used for this purpose.
-> 
-> I will do that and post it here (or in the next version) once i am done.
-> 
+I believe this is missing in this patch:
 
-A patch for this is now on netfilter-devel at [1].
+                expr->exthdr.offset = tmpl->offset;
 
-[1]: https://marc.info/?l=netfilter-devel&m=170176886315385&w=2
+so it matches at offset 1, not 0:
 
-Thanks
+  [ exthdr load tcpopt 1b @ 255 + 1 => reg 1 ]
+  [ cmp eq reg 1 0x00000004 ]
