@@ -1,61 +1,67 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3E919A
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 04:14:59 -0800 (PST)
-Received: from [78.30.43.141] (port=34744 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1rAqnm-003Muf-FY; Wed, 06 Dec 2023 13:14:56 +0100
-Date: Wed, 6 Dec 2023 13:14:53 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17AF19A
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 04:16:55 -0800 (PST)
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1rAqph-0007oc-Az; Wed, 06 Dec 2023 13:16:53 +0100
+Date: Wed, 6 Dec 2023 13:16:53 +0100
+From: Florian Westphal <fw@strlen.de>
 To: Thomas Haller <thaller@redhat.com>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: flush ruleset with -U after feature
- probing
-Message-ID: <ZXBlvcV3jUfJCnMs@calendula>
-References: <20231205154306.154220-1-pablo@netfilter.org>
- <20231205192929.GB8352@breakpoint.cc>
- <80b4cbbb54cf17a83ccbadaa3cd194790f87f67f.camel@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH v2 nft] parser: tcpopt: fix tcp option parsing with NUM +
+ length field
+Message-ID: <20231206121653.GH8352@breakpoint.cc>
+References: <20231205115610.19791-1-fw@strlen.de>
+ <fcb3ef457002c89246c24a79290d25498ef7b0b0.camel@redhat.com>
+ <20231206113836.GE8352@breakpoint.cc>
+ <5aece71107a2716d9e6742cbc4e159c8c65a5ba0.camel@redhat.com>
+ <20231206115906.GF8352@breakpoint.cc>
+ <20231206120447.GG8352@breakpoint.cc>
+ <9d11bf95bd1b07e15cd7160ab310794ea5d4b8b0.camel@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <80b4cbbb54cf17a83ccbadaa3cd194790f87f67f.camel@redhat.com>
-X-Spam-Score: -1.9 (-)
+In-Reply-To: <9d11bf95bd1b07e15cd7160ab310794ea5d4b8b0.camel@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On Wed, Dec 06, 2023 at 07:47:44AM +0100, Thomas Haller wrote:
-> On Tue, 2023-12-05 at 20:29 +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > feature probe script leave a ruleset in place, flush it once
-> > > probing is
-> > > complete.
-> > 
-> > Perhaps change feature_probe() to always use 'unshare -n'?
+Thomas Haller <thaller@redhat.com> wrote:
+> > Instead, feed the json-nft file to nft, then do a normal list-
+> > ruleset,
+> > then compare that vs. normal .nft file.
 > 
-> feature_probe already uses unshare, unless the caller opts out of it.
+> The .nft and .json-nft files are all fed back into `nft --check -f`. So
+> that is happening too.
 
-I am opting out with -I as the patch title specifies.
+Not really, this checks that the parser eats the input.
 
-> Maybe don't do that.
->
-> > Some scripts also create netdevices.
-> 
-> Some tests also create netdevices and may not clean them up properly.
-> It's even desirable that tests don't clean them up, because it removes
-> boilerplate from tests. But more importantly: not deleting those
-> devices leaves a certain state after the test, that can be checked by
-> `.nft`/`.json-nft` dumps.
+> It will also comparing the raw files (after sanitize+prettify), which
+> is closer to the original thing that is supposed to be tested. That is
+> why it's done.
 
-I see, those were not a problem for me when running -U so far.
+"metainfo": {
+-        "json_schema_version": 1,
++        "version": "VERSION",
+"release_name": "RELEASE_NAME",
+-        "version": "VERSION"
++        "json_schema_version": 1
+}
+},
 
-> The mode without unshare exists for historic reasons, as unshare was
-> added initially. At this point, what is the use of supporting or using
-> that?
+i.e. it fails validation because the on-record file has a different
+layout/ordering than what is expected.
 
-This provides an easy way for me to test 'nft monitor'.
+But if you feed it into nft, nft list ruleset will generate the expected
+(non-json) output.
 
-I can keep it out of tree if you prefer -U remains broken.
+> What issues do you mean? I don't see any. Did you test/review the two
+> patches?
+
+The first one is applied.  The second one I applied locally.
+
+But its still picky about the formatting.
