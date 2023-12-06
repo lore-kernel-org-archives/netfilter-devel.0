@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTP id E77FAD51;
-	Wed,  6 Dec 2023 10:04:05 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 47344139;
+	Wed,  6 Dec 2023 10:04:06 -0800 (PST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -9,9 +9,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 5/6] netfilter: nf_tables: validate family when identifying table via handle
-Date: Wed,  6 Dec 2023 19:03:56 +0100
-Message-Id: <20231206180357.959930-6-pablo@netfilter.org>
+Subject: [PATCH net 6/6] netfilter: xt_owner: Fix for unsafe access of sk->sk_socket
+Date: Wed,  6 Dec 2023 19:03:57 +0100
+Message-Id: <20231206180357.959930-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231206180357.959930-1-pablo@netfilter.org>
 References: <20231206180357.959930-1-pablo@netfilter.org>
@@ -23,45 +23,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Validate table family when looking up for it via NFTA_TABLE_HANDLE.
+From: Phil Sutter <phil@nwl.cc>
 
-Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
-Reported-by: Xingyuan Mo <hdthky0@gmail.com>
+A concurrently running sock_orphan() may NULL the sk_socket pointer in
+between check and deref. Follow other users (like nft_meta.c for
+instance) and acquire sk_callback_lock before dereferencing sk_socket.
+
+Fixes: 0265ab44bacc ("[NETFILTER]: merge ipt_owner/ip6t_owner in xt_owner")
+Reported-by: Jann Horn <jannh@google.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/xt_owner.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c0a42989b982..c5c17c6e80ed 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -803,7 +803,7 @@ static struct nft_table *nft_table_lookup(const struct net *net,
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index e85ce69924ae..50332888c8d2 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -76,18 +76,23 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 */
+ 		return false;
  
- static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
- 						   const struct nlattr *nla,
--						   u8 genmask, u32 nlpid)
-+						   int family, u8 genmask, u32 nlpid)
- {
- 	struct nftables_pernet *nft_net;
- 	struct nft_table *table;
-@@ -811,6 +811,7 @@ static struct nft_table *nft_table_lookup_byhandle(const struct net *net,
- 	nft_net = nft_pernet(net);
- 	list_for_each_entry(table, &nft_net->tables, list) {
- 		if (be64_to_cpu(nla_get_be64(nla)) == table->handle &&
-+		    table->family == family &&
- 		    nft_active_genmask(table, genmask)) {
- 			if (nft_table_has_owner(table) &&
- 			    nlpid && table->nlpid != nlpid)
-@@ -1544,7 +1545,7 @@ static int nf_tables_deltable(struct sk_buff *skb, const struct nfnl_info *info,
+-	filp = sk->sk_socket->file;
+-	if (filp == NULL)
++	read_lock_bh(&sk->sk_callback_lock);
++	filp = sk->sk_socket ? sk->sk_socket->file : NULL;
++	if (filp == NULL) {
++		read_unlock_bh(&sk->sk_callback_lock);
+ 		return ((info->match ^ info->invert) &
+ 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
++	}
  
- 	if (nla[NFTA_TABLE_HANDLE]) {
- 		attr = nla[NFTA_TABLE_HANDLE];
--		table = nft_table_lookup_byhandle(net, attr, genmask,
-+		table = nft_table_lookup_byhandle(net, attr, family, genmask,
- 						  NETLINK_CB(skb).portid);
- 	} else {
- 		attr = nla[NFTA_TABLE_NAME];
+ 	if (info->match & XT_OWNER_UID) {
+ 		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
+ 		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
+ 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
+ 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
+-		    !(info->invert & XT_OWNER_UID))
++		    !(info->invert & XT_OWNER_UID)) {
++			read_unlock_bh(&sk->sk_callback_lock);
+ 			return false;
++		}
+ 	}
+ 
+ 	if (info->match & XT_OWNER_GID) {
+@@ -112,10 +117,13 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 			}
+ 		}
+ 
+-		if (match ^ !(info->invert & XT_OWNER_GID))
++		if (match ^ !(info->invert & XT_OWNER_GID)) {
++			read_unlock_bh(&sk->sk_callback_lock);
+ 			return false;
++		}
+ 	}
+ 
++	read_unlock_bh(&sk->sk_callback_lock);
+ 	return true;
+ }
+ 
 -- 
 2.30.2
 
