@@ -1,26 +1,37 @@
-Received: from ganesha.gnumonks.org (ganesha.gnumonks.org [IPv6:2001:780:45:1d:225:90ff:fe52:c662])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0E7ED4B;
-	Wed,  6 Dec 2023 08:48:37 -0800 (PST)
-Received: from [78.30.43.141] (port=41630 helo=gnumonks.org)
-	by ganesha.gnumonks.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <pablo@gnumonks.org>)
-	id 1rAv4b-003yIw-SR; Wed, 06 Dec 2023 17:48:35 +0100
-Date: Wed, 6 Dec 2023 17:48:32 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3165248CCE;
+	Wed,  6 Dec 2023 16:49:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nxXEzb3u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFF0DC433C8;
+	Wed,  6 Dec 2023 16:49:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1701881397;
+	bh=rMAoUjOmr5QtbI6rn6eo4WOMrnTR1D6zBGzrt2Afy9A=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nxXEzb3uTcRmZMsipF5O+JnEPiOGWtYp0M/22/GFpAre2r31rmbRgosxfeQy7MBQX
+	 kq8PRy7iC0/1XmiUQDXu771Y4nV++RTEguPHotHNSz/zO8Sxmi8ZRt0oc0eGgydDKU
+	 6z4+YiNKQsrUHsKsGlGi5GrM0njU/F+OjNTDACkIJ4+7s+F+IMG1KvaQFi9ZSbRohG
+	 x/2v6f1Eypy+DwRBuqEQt18Z4FTSuZe4spozrr8nFoBOw+otVxNv0UhACO7mKs7tOe
+	 wyI2+KtO36rz1L/KZv6o1fr6TvEOCuHeLv9/jd26pDrwgG1ZDVWRLVRQGYE0pOaUnp
+	 vr1RQcbqs13XQ==
+Date: Wed, 6 Dec 2023 17:49:51 +0100
+From: Christian Brauner <brauner@kernel.org>
 To: Jann Horn <jannh@google.com>
-Cc: Phil Sutter <phil@nwl.cc>, Jozsef Kadlecsik <kadlec@netfilter.org>,
+Cc: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	coreteam@netfilter.org, Christian Brauner <brauner@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
+	coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
 	Network Development <netdev@vger.kernel.org>,
 	kernel list <linux-kernel@vger.kernel.org>
 Subject: Re: Is xt_owner's owner_mt() racy with sock_orphan()? [worse with
  new TYPESAFE_BY_RCU file lifetime?]
-Message-ID: <ZXCl4N58qyv2hLj1@calendula>
+Message-ID: <20231206-fixpunkt-annehmbar-d191785a09a3@brauner>
 References: <CAG48ez0TfTAkaRWFCTb44x=TWP_sDZVx-5U2hvfQSFOhghNrCA@mail.gmail.com>
  <CAG48ez1hXk_cffp3dy-bYMcoyCCj-EySYR5SzYrNiRHGD=hOUg@mail.gmail.com>
  <ZW+Yv6TR+EMBp03f@orbyte.nwl.cc>
@@ -35,7 +46,6 @@ Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 In-Reply-To: <CAG48ez2G4q-50242WRE01iaKfAhd0D+XT9Ry0uS767ceHEzHXA@mail.gmail.com>
-X-Spam-Score: -1.9 (-)
 
 On Wed, Dec 06, 2023 at 05:28:44PM +0100, Jann Horn wrote:
 > On Tue, Dec 5, 2023 at 10:40 PM Phil Sutter <phil@nwl.cc> wrote:
@@ -74,8 +84,9 @@ On Wed, Dec 06, 2023 at 05:28:44PM +0100, Jann Horn wrote:
 > that that's a potentially racy read, but I don't feel strongly about
 > that.
 
-The lack of READ_ONCE() on sk->sk_socket also got me thinking here,
-given this sk_set_socket(sk, NULL) in sock_orphan is done under the
-lock.
+It should be possible to split it into two static inlin helpers:
 
-I am taking Phil's patch, I think it is leaving things in better shape.
+owner_mt_fast()
+owner_mt_slow()
+
+And then abstract the lockless and locked fetches into the two helpers.
