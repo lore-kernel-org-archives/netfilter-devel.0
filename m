@@ -1,64 +1,58 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [IPv6:2a0a:51c0:0:237:300::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 624CBD47
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 05:24:41 -0800 (PST)
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1rArtH-0008ET-Rq; Wed, 06 Dec 2023 14:24:39 +0100
-Date: Wed, 6 Dec 2023 14:24:39 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Thomas Haller <thaller@redhat.com>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH v2 nft] parser: tcpopt: fix tcp option parsing with NUM +
- length field
-Message-ID: <20231206132439.GM8352@breakpoint.cc>
-References: <20231205115610.19791-1-fw@strlen.de>
- <fcb3ef457002c89246c24a79290d25498ef7b0b0.camel@redhat.com>
- <20231206113836.GE8352@breakpoint.cc>
- <5aece71107a2716d9e6742cbc4e159c8c65a5ba0.camel@redhat.com>
- <20231206115906.GF8352@breakpoint.cc>
- <20231206120447.GG8352@breakpoint.cc>
- <9d11bf95bd1b07e15cd7160ab310794ea5d4b8b0.camel@redhat.com>
- <20231206121653.GH8352@breakpoint.cc>
- <1f932f8ddf653979454537b5be2739182ba3cab7.camel@redhat.com>
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="mJfwc69D"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FA14D44
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 05:30:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=KAgd1d8ftfSgEydQPQxbT+qo5AHNyFYwo8z3hI+J1Ng=; b=mJfwc69DjboZUh6JqiKBzSs8+N
+	vx6AbrVkMI341Ec+lQo4bjynfMJhHMkkntshEugabFz/yqCp8bggXf6LI+e3K7TXPYfrcViXmRuaA
+	fNyQolqyqESgGTHwZ0ehMGCGslEOdE9DoJRnY1kbRrD6t/WYgW7gLWEN17w7j0w+or0M/0HpSmUUW
+	ojKIsRnJbRQnivgtQ+Q1DbNbp6IvnuFNzCOYcHEY8CC8bvYm6fV2sR1VmmjD17cLuStzwD0TSkQHM
+	zua8V/r2IMthTBV5xzo2IOACtwsQS8FOPnMQyfVA2Ru8AVtJ+83lEtiHpXOy4ikxmoUPcgXuo11kD
+	0DHiAtIQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rArzG-00084U-HT; Wed, 06 Dec 2023 14:30:50 +0100
+Date: Wed, 6 Dec 2023 14:30:50 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] initial support for the afl++ (american fuzzy lop++)
+ fuzzer
+Message-ID: <ZXB3ikEXjBz9r1pS@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20231201154307.13622-1-fw@strlen.de>
+ <ZW/YVpeUtn5dfcmA@orbyte.nwl.cc>
+ <20231206074342.GC8352@breakpoint.cc>
+ <ZXBxKEhprUVUvG7m@orbyte.nwl.cc>
+ <20231206131340.GL8352@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1f932f8ddf653979454537b5be2739182ba3cab7.camel@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20231206131340.GL8352@breakpoint.cc>
 
-Thomas Haller <thaller@redhat.com> wrote:
-> > "metainfo": {
-> > -        "json_schema_version": 1,
-> > +        "version": "VERSION",
-> > "release_name": "RELEASE_NAME",
-> > -        "version": "VERSION"
-> > +        "json_schema_version": 1
-> > }
-> > },
-> > 
-> > i.e. it fails validation because the on-record file has a different
-> > layout/ordering than what is expected.
+On Wed, Dec 06, 2023 at 02:13:40PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > Hmm. Probably I miss the point regarding struct nft_afl_input. IMO, if
+> > save_candidate() writes data into the file despite called savebuf()
+> > setting use_filename = false, nft_afl_run_cmd() will try to read from
+> > ->buffer when it should read from ->fname.
 > 
-> Does this mean all tests on `master` have this problem?
+> In that case buffer should have same content as the on-disk file,
+> so there is no need to open/read/close.
 
-No, those are all raw binary-like oneline dumps.
+Ah, heh. I managed to ignore the mandatory snprintf() call in savebuf().
+So it's indeed just "file backed buffer storage". Thanks for explaining!
 
-> > But if you feed it into nft, nft list ruleset will generate the
-> > expected
-> > (non-json) output.
-> 
-> where do you encounter that? How to reproduce this?
-> 
-> Is this an old libjansson? Since 2.8 (2016), JSON_PRESERVE_ORDER is
-> implied. Maybe libnftables needs to set JSON_PRESERVE_ORDER flag at a
-> few places.
-
-Just format any existing json dump file with a different formatting
-tool, e.g. json_pp.
+Cheers, Phil
