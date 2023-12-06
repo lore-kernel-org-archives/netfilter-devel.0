@@ -1,58 +1,82 @@
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78347381AA;
+	Wed,  6 Dec 2023 13:58:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="mJfwc69D"
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FA14D44
-	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 05:30:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=KAgd1d8ftfSgEydQPQxbT+qo5AHNyFYwo8z3hI+J1Ng=; b=mJfwc69DjboZUh6JqiKBzSs8+N
-	vx6AbrVkMI341Ec+lQo4bjynfMJhHMkkntshEugabFz/yqCp8bggXf6LI+e3K7TXPYfrcViXmRuaA
-	fNyQolqyqESgGTHwZ0ehMGCGslEOdE9DoJRnY1kbRrD6t/WYgW7gLWEN17w7j0w+or0M/0HpSmUUW
-	ojKIsRnJbRQnivgtQ+Q1DbNbp6IvnuFNzCOYcHEY8CC8bvYm6fV2sR1VmmjD17cLuStzwD0TSkQHM
-	zua8V/r2IMthTBV5xzo2IOACtwsQS8FOPnMQyfVA2Ru8AVtJ+83lEtiHpXOy4ikxmoUPcgXuo11kD
-	0DHiAtIQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1rArzG-00084U-HT; Wed, 06 Dec 2023 14:30:50 +0100
-Date: Wed, 6 Dec 2023 14:30:50 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] initial support for the afl++ (american fuzzy lop++)
- fuzzer
-Message-ID: <ZXB3ikEXjBz9r1pS@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20231201154307.13622-1-fw@strlen.de>
- <ZW/YVpeUtn5dfcmA@orbyte.nwl.cc>
- <20231206074342.GC8352@breakpoint.cc>
- <ZXBxKEhprUVUvG7m@orbyte.nwl.cc>
- <20231206131340.GL8352@breakpoint.cc>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NuZBxUDR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B72FC433C7;
+	Wed,  6 Dec 2023 13:58:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1701871122;
+	bh=igbPsqBqoC6Yx2+ikp9QT1gV4CGkTMXJP7iKBjWdZ3o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=NuZBxUDRhHT/RUByFl8OswuDT+o0oA7/OX5J4+UiSHxe2O6k9gLNxFAZtfXxO0uiq
+	 R71x2H6o0RrTHC0eVqeJNL+K3VlpWwLf+zMNsf7i/JmNRHQNoFX9id6su73i+rqncg
+	 dOrrWdyjbFbeY2LB+cHc0SE6yWdnoE+X80I68lpt+R3HI7km/6fSMLn1B5Lk6legQa
+	 KVqqlpEk3X/wEyIG7ytGOPaaga7jCka2AWPIi3Ato9IfoM5t9OTFnrxbhg/x2xx/yc
+	 nYdgYtarnKjk4VxveyJNg5pFi7OgQXomKaf5r/dUe3R1i0KcQCpWYe8NPGLK4e//bU
+	 EA6jxYRGTg4+Q==
+Date: Wed, 6 Dec 2023 14:58:36 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Jann Horn <jannh@google.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Network Development <netdev@vger.kernel.org>,
+	kernel list <linux-kernel@vger.kernel.org>
+Subject: Re: Is xt_owner's owner_mt() racy with sock_orphan()? [worse with
+ new TYPESAFE_BY_RCU file lifetime?]
+Message-ID: <20231206-refinanzieren-werkhalle-22db5334f256@brauner>
+References: <CAG48ez0TfTAkaRWFCTb44x=TWP_sDZVx-5U2hvfQSFOhghNrCA@mail.gmail.com>
+ <CAG48ez1hXk_cffp3dy-bYMcoyCCj-EySYR5SzYrNiRHGD=hOUg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20231206131340.GL8352@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAG48ez1hXk_cffp3dy-bYMcoyCCj-EySYR5SzYrNiRHGD=hOUg@mail.gmail.com>
 
-On Wed, Dec 06, 2023 at 02:13:40PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Hmm. Probably I miss the point regarding struct nft_afl_input. IMO, if
-> > save_candidate() writes data into the file despite called savebuf()
-> > setting use_filename = false, nft_afl_run_cmd() will try to read from
-> > ->buffer when it should read from ->fname.
+On Tue, Dec 05, 2023 at 06:08:29PM +0100, Jann Horn wrote:
+> On Tue, Dec 5, 2023 at 5:40 PM Jann Horn <jannh@google.com> wrote:
+> >
+> > Hi!
+> >
+> > I think this code is racy, but testing that seems like a pain...
+> >
+> > owner_mt() in xt_owner runs in context of a NF_INET_LOCAL_OUT or
+> > NF_INET_POST_ROUTING hook. It first checks that sk->sk_socket is
+> > non-NULL, then checks that sk->sk_socket->file is non-NULL, then
+> > accesses the ->f_cred of that file.
+> >
+> > I don't see anything that protects this against a concurrent
+> > sock_orphan(), which NULLs out the sk->sk_socket pointer, if we're in
 > 
-> In that case buffer should have same content as the on-disk file,
-> so there is no need to open/read/close.
+> Ah, and all the other users of ->sk_socket in net/netfilter/ do it
+> under the sk_callback_lock... so I guess the fix would be to add the
+> same in owner_mt?
 
-Ah, heh. I managed to ignore the mandatory snprintf() call in savebuf().
-So it's indeed just "file backed buffer storage". Thanks for explaining!
+In your other mail you wrote:
 
-Cheers, Phil
+> I also think we have no guarantee here that the socket's ->file won't
+> go away due to a concurrent __sock_release(), which could cause us to
+> continue reading file credentials out of a file whose refcount has
+> already dropped to zero?
+
+Is this an independent worry or can the concurrent __sock_release()
+issue only happen due to a sock_orphan() having happened first? I think
+that it requires a sock_orphan() having happend, presumably because the
+socket gets marked SOCK_DEAD and can thus be released via
+__sock_release() asynchronously?
+
+If so then taking sk_callback_lock() in owner_mt() should fix this.
+(Otherwise we might need an additional get_active_file() on
+sk->sk_socker->file in owner_mt() in addition to the other fix.)
