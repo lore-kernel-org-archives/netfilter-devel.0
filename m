@@ -1,39 +1,41 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78347381AA;
-	Wed,  6 Dec 2023 13:58:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NuZBxUDR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B72FC433C7;
-	Wed,  6 Dec 2023 13:58:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1701871122;
-	bh=igbPsqBqoC6Yx2+ikp9QT1gV4CGkTMXJP7iKBjWdZ3o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NuZBxUDRhHT/RUByFl8OswuDT+o0oA7/OX5J4+UiSHxe2O6k9gLNxFAZtfXxO0uiq
-	 R71x2H6o0RrTHC0eVqeJNL+K3VlpWwLf+zMNsf7i/JmNRHQNoFX9id6su73i+rqncg
-	 dOrrWdyjbFbeY2LB+cHc0SE6yWdnoE+X80I68lpt+R3HI7km/6fSMLn1B5Lk6legQa
-	 KVqqlpEk3X/wEyIG7ytGOPaaga7jCka2AWPIi3Ato9IfoM5t9OTFnrxbhg/x2xx/yc
-	 nYdgYtarnKjk4VxveyJNg5pFi7OgQXomKaf5r/dUe3R1i0KcQCpWYe8NPGLK4e//bU
-	 EA6jxYRGTg4+Q==
-Date: Wed, 6 Dec 2023 14:58:36 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Jann Horn <jannh@google.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Network Development <netdev@vger.kernel.org>,
-	kernel list <linux-kernel@vger.kernel.org>
-Subject: Re: Is xt_owner's owner_mt() racy with sock_orphan()? [worse with
- new TYPESAFE_BY_RCU file lifetime?]
-Message-ID: <20231206-refinanzieren-werkhalle-22db5334f256@brauner>
-References: <CAG48ez0TfTAkaRWFCTb44x=TWP_sDZVx-5U2hvfQSFOhghNrCA@mail.gmail.com>
- <CAG48ez1hXk_cffp3dy-bYMcoyCCj-EySYR5SzYrNiRHGD=hOUg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="T9dr21/w"
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [IPv6:2001:41d0:e:133a::1])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49F56D40
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Dec 2023 06:20:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Xz9u+hYuwecI014wwH2lrhOvnMVo2SFShrJIWkfK87M=; b=T9dr21/wmdMqUvz9qy8z/1CPWf
+	dvyIdaBd5EmPA+BXP1qOROCU9VzsKI5TFN/Xy6PMBsmD4RXh4jiby6gDqI3sjLGNur0UFgqyD1z9L
+	meYpbXURvezjCxytrEbW1qQt4X0Sm4UkA5fmdB6qFFysTRgE2dSMtudjH+WrAxQc4JunBw/SmSfu5
+	STw8v3FVcd2+1q1XE2yqcBiIGfCMSzn/WH1tt+jLvCrWAP9Bm786YXV8f4oSFX/aoSUo4rBnLHqFs
+	ZKI8sXpTz5TYAULCp4VdyAbt6b+TShJEdVBbf2jyhKbb1wOmfvshxQsL/XKb2DPUfBXGhb8DjvKjT
+	wVOba+kQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.94.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1rAsko-00008i-At; Wed, 06 Dec 2023 15:19:58 +0100
+Date: Wed, 6 Dec 2023 15:19:58 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Thomas Haller <thaller@redhat.com>, netfilter-devel@vger.kernel.org,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH v2 nft] parser: tcpopt: fix tcp option parsing with NUM +
+ length field
+Message-ID: <ZXCDDgEhAV3KOCwt@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>, Thomas Haller <thaller@redhat.com>,
+	netfilter-devel@vger.kernel.org,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+References: <20231205115610.19791-1-fw@strlen.de>
+ <fcb3ef457002c89246c24a79290d25498ef7b0b0.camel@redhat.com>
+ <20231206113836.GE8352@breakpoint.cc>
+ <5aece71107a2716d9e6742cbc4e159c8c65a5ba0.camel@redhat.com>
+ <20231206115906.GF8352@breakpoint.cc>
+ <20231206120447.GG8352@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,40 +45,64 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAG48ez1hXk_cffp3dy-bYMcoyCCj-EySYR5SzYrNiRHGD=hOUg@mail.gmail.com>
+In-Reply-To: <20231206120447.GG8352@breakpoint.cc>
 
-On Tue, Dec 05, 2023 at 06:08:29PM +0100, Jann Horn wrote:
-> On Tue, Dec 5, 2023 at 5:40 PM Jann Horn <jannh@google.com> wrote:
-> >
-> > Hi!
-> >
-> > I think this code is racy, but testing that seems like a pain...
-> >
-> > owner_mt() in xt_owner runs in context of a NF_INET_LOCAL_OUT or
-> > NF_INET_POST_ROUTING hook. It first checks that sk->sk_socket is
-> > non-NULL, then checks that sk->sk_socket->file is non-NULL, then
-> > accesses the ->f_cred of that file.
-> >
-> > I don't see anything that protects this against a concurrent
-> > sock_orphan(), which NULLs out the sk->sk_socket pointer, if we're in
+On Wed, Dec 06, 2023 at 01:04:47PM +0100, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > Thomas Haller <thaller@redhat.com> wrote:
+> > > On Wed, 2023-12-06 at 12:38 +0100, Florian Westphal wrote:
+> > > > Thomas Haller <thaller@redhat.com> wrote:
+> > > > > Hi Florian,
+> > > > > 
+> > > > > On Tue, 2023-12-05 at 12:56 +0100, Florian Westphal wrote:
+> > > > > >  .../packetpath/dumps/tcp_options.nft          | 14 +++++++
+> > > > > 
+> > > > > is there a reason not to also generate a .json-nft file?
+> > > > 
+> > > > Yes, I am not adding more one-line monsters.
+> > > > 
+> > > > I'll add one once there is a solution in place that has human
+> > > > readable
+> > > > json dumps that don't fail validation because of identical but
+> > > > differently formatted output.
+> > > > 
+> > > 
+> > > What about the "[PATCH nft 0/2] pretty print .json-nft files" patches?
+> > 
+> > I'm fine with that. Phil? Pablo? This is re:
+> > 
+> > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20231124124759.3269219-3-thaller@redhat.com/
+
+What I don't like is that we'll still get these huge patches/mails if
+the dumps are converted. Those that remain are still hard to handle in
+case of errors.
+
+> What about making it so we NEVER compare json-nft at all?
 > 
-> Ah, and all the other users of ->sk_socket in net/netfilter/ do it
-> under the sk_callback_lock... so I guess the fix would be to add the
-> same in owner_mt?
+> Instead, feed the json-nft file to nft, then do a normal list-ruleset,
+> then compare that vs. normal .nft file.
+> 
+> This avoids any and all formatting issues and also avoids breakage when
+> the json-nft file is formatted differently.
 
-In your other mail you wrote:
+We may hide problems because nft might inadvertently sanitize the input.
+Also, conversion from standard syntax to JSON may be symmetrically
+broken, so standard->JSON->standard won't detect the problem.
 
-> I also think we have no guarantee here that the socket's ->file won't
-> go away due to a concurrent __sock_release(), which could cause us to
-> continue reading file credentials out of a file whose refcount has
-> already dropped to zero?
+> Eg. postprocessing via json_pp won't match what this patch above
+> expects.
 
-Is this an independent worry or can the concurrent __sock_release()
-issue only happen due to a sock_orphan() having happened first? I think
-that it requires a sock_orphan() having happend, presumably because the
-socket gets marked SOCK_DEAD and can thus be released via
-__sock_release() asynchronously?
+Python natively supports JSON. Converting stuff into comparable strings
+(which also look pretty when printed) is a simple matter of:
 
-If so then taking sk_callback_lock() in owner_mt() should fix this.
-(Otherwise we might need an additional get_active_file() on
-sk->sk_socker->file in owner_mt() in addition to the other fix.)
+| import json
+| 
+| json.dumps(json.loads(<dump as string>), \
+| 	   sort_keys = True, indent = 4, \
+| 	   separators = (',', ': '))
+
+We rely upon Python for the testsuite already, so I don't see why
+there's all the fuss. JSON dump create, load and compare have not been a
+problem in the 5 years tests/py does it.
+
+Cheers, Phil
