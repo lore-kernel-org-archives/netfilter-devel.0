@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 47344139;
-	Wed,  6 Dec 2023 10:04:06 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 546A0122;
+	Wed,  6 Dec 2023 10:04:05 -0800 (PST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -9,9 +9,9 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 6/6] netfilter: xt_owner: Fix for unsafe access of sk->sk_socket
-Date: Wed,  6 Dec 2023 19:03:57 +0100
-Message-Id: <20231206180357.959930-7-pablo@netfilter.org>
+Subject: [PATCH net 4/6] netfilter: nf_tables: bail out on mismatching dynset and set expressions
+Date: Wed,  6 Dec 2023 19:03:55 +0100
+Message-Id: <20231206180357.959930-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20231206180357.959930-1-pablo@netfilter.org>
 References: <20231206180357.959930-1-pablo@netfilter.org>
@@ -23,66 +23,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Phil Sutter <phil@nwl.cc>
+If dynset expressions provided by userspace is larger than the declared
+set expressions, then bail out.
 
-A concurrently running sock_orphan() may NULL the sk_socket pointer in
-between check and deref. Follow other users (like nft_meta.c for
-instance) and acquire sk_callback_lock before dereferencing sk_socket.
-
-Fixes: 0265ab44bacc ("[NETFILTER]: merge ipt_owner/ip6t_owner in xt_owner")
-Reported-by: Jann Horn <jannh@google.com>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
+Reported-by: Xingyuan Mo <hdthky0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_owner.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ net/netfilter/nft_dynset.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index e85ce69924ae..50332888c8d2 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -76,18 +76,23 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		 */
- 		return false;
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index b18a79039125..c09dba57354c 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -280,10 +280,15 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 			priv->expr_array[i] = dynset_expr;
+ 			priv->num_exprs++;
  
--	filp = sk->sk_socket->file;
--	if (filp == NULL)
-+	read_lock_bh(&sk->sk_callback_lock);
-+	filp = sk->sk_socket ? sk->sk_socket->file : NULL;
-+	if (filp == NULL) {
-+		read_unlock_bh(&sk->sk_callback_lock);
- 		return ((info->match ^ info->invert) &
- 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
-+	}
- 
- 	if (info->match & XT_OWNER_UID) {
- 		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
- 		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
- 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
- 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
--		    !(info->invert & XT_OWNER_UID))
-+		    !(info->invert & XT_OWNER_UID)) {
-+			read_unlock_bh(&sk->sk_callback_lock);
- 			return false;
-+		}
- 	}
- 
- 	if (info->match & XT_OWNER_GID) {
-@@ -112,10 +117,13 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+-			if (set->num_exprs &&
+-			    dynset_expr->ops != set->exprs[i]->ops) {
+-				err = -EOPNOTSUPP;
+-				goto err_expr_free;
++			if (set->num_exprs) {
++				if (i >= set->num_exprs) {
++					err = -EINVAL;
++					goto err_expr_free;
++				}
++				if (dynset_expr->ops != set->exprs[i]->ops) {
++					err = -EOPNOTSUPP;
++					goto err_expr_free;
++				}
  			}
+ 			i++;
  		}
- 
--		if (match ^ !(info->invert & XT_OWNER_GID))
-+		if (match ^ !(info->invert & XT_OWNER_GID)) {
-+			read_unlock_bh(&sk->sk_callback_lock);
- 			return false;
-+		}
- 	}
- 
-+	read_unlock_bh(&sk->sk_callback_lock);
- 	return true;
- }
- 
 -- 
 2.30.2
 
