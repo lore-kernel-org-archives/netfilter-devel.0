@@ -1,6 +1,6 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.188.207])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3B064D42;
-	Wed,  6 Dec 2023 10:04:02 -0800 (PST)
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5F41FD44;
+	Wed,  6 Dec 2023 10:04:03 -0800 (PST)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -9,83 +9,130 @@ Cc: davem@davemloft.net,
 	pabeni@redhat.com,
 	edumazet@google.com,
 	fw@strlen.de
-Subject: [PATCH net 0/6] Netfilter fixes for net
-Date: Wed,  6 Dec 2023 19:03:51 +0100
-Message-Id: <20231206180357.959930-1-pablo@netfilter.org>
+Subject: [PATCH net 1/6] netfilter: bpf: fix bad registration on nf_defrag
+Date: Wed,  6 Dec 2023 19:03:52 +0100
+Message-Id: <20231206180357.959930-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20231206180357.959930-1-pablo@netfilter.org>
+References: <20231206180357.959930-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-The following patchset contains Netfilter fixes for net:
+We should pass a pointer to global_hook to the get_proto_defrag_hook()
+instead of its value, since the passed value won't be updated even if
+the request module was loaded successfully.
 
-1) Incorrect nf_defrag registration for bpf link infra, from D. Wythe.
+Log:
 
-2) Skip inactive elements in pipapo set backend walk to avoid double
-   deactivation, from Florian Westphal.
+[   54.915713] nf_defrag_ipv4 has bad registration
+[   54.915779] WARNING: CPU: 3 PID: 6323 at net/netfilter/nf_bpf_link.c:62 get_proto_defrag_hook+0x137/0x160
+[   54.915835] CPU: 3 PID: 6323 Comm: fentry Kdump: loaded Tainted: G            E      6.7.0-rc2+ #35
+[   54.915839] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org 04/01/2014
+[   54.915841] RIP: 0010:get_proto_defrag_hook+0x137/0x160
+[   54.915844] Code: 4f 8c e8 2c cf 68 ff 80 3d db 83 9a 01 00 0f 85 74 ff ff ff 48 89 ee 48 c7 c7 8f 12 4f 8c c6 05 c4 83 9a 01 01 e8 09 ee 5f ff <0f> 0b e9 57 ff ff ff 49 8b 3c 24 4c 63 e5 e8 36 28 6c ff 4c 89 e0
+[   54.915849] RSP: 0018:ffffb676003fbdb0 EFLAGS: 00010286
+[   54.915852] RAX: 0000000000000023 RBX: ffff9596503d5600 RCX: ffff95996fce08c8
+[   54.915854] RDX: 00000000ffffffd8 RSI: 0000000000000027 RDI: ffff95996fce08c0
+[   54.915855] RBP: ffffffff8c4f12de R08: 0000000000000000 R09: 00000000fffeffff
+[   54.915859] R10: ffffb676003fbc70 R11: ffffffff8d363ae8 R12: 0000000000000000
+[   54.915861] R13: ffffffff8e1f75c0 R14: ffffb676003c9000 R15: 00007ffd15e78ef0
+[   54.915864] FS:  00007fb6e9cab740(0000) GS:ffff95996fcc0000(0000) knlGS:0000000000000000
+[   54.915867] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   54.915868] CR2: 00007ffd15e75c40 CR3: 0000000101e62006 CR4: 0000000000360ef0
+[   54.915870] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[   54.915871] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[   54.915873] Call Trace:
+[   54.915891]  <TASK>
+[   54.915894]  ? __warn+0x84/0x140
+[   54.915905]  ? get_proto_defrag_hook+0x137/0x160
+[   54.915908]  ? __report_bug+0xea/0x100
+[   54.915925]  ? report_bug+0x2b/0x80
+[   54.915928]  ? handle_bug+0x3c/0x70
+[   54.915939]  ? exc_invalid_op+0x18/0x70
+[   54.915942]  ? asm_exc_invalid_op+0x1a/0x20
+[   54.915948]  ? get_proto_defrag_hook+0x137/0x160
+[   54.915950]  bpf_nf_link_attach+0x1eb/0x240
+[   54.915953]  link_create+0x173/0x290
+[   54.915969]  __sys_bpf+0x588/0x8f0
+[   54.915974]  __x64_sys_bpf+0x20/0x30
+[   54.915977]  do_syscall_64+0x45/0xf0
+[   54.915989]  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+[   54.915998] RIP: 0033:0x7fb6e9daa51d
+[   54.916001] Code: 00 c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 2b 89 0c 00 f7 d8 64 89 01 48
+[   54.916003] RSP: 002b:00007ffd15e78ed8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+[   54.916006] RAX: ffffffffffffffda RBX: 00007ffd15e78fc0 RCX: 00007fb6e9daa51d
+[   54.916007] RDX: 0000000000000040 RSI: 00007ffd15e78ef0 RDI: 000000000000001c
+[   54.916009] RBP: 000000000000002d R08: 00007fb6e9e73a60 R09: 0000000000000001
+[   54.916010] R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000006
+[   54.916012] R13: 0000000000000006 R14: 0000000000000000 R15: 0000000000000000
+[   54.916014]  </TASK>
+[   54.916015] ---[ end trace 0000000000000000 ]---
 
-3) Fix NFT_*_F_PRESENT check with big endian arch, also from Florian.
+Fixes: 91721c2d02d3 ("netfilter: bpf: Support BPF_F_NETFILTER_IP_DEFRAG in netfilter link")
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+Acked-by: Daniel Xu <dxu@dxuuu.xyz>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_bpf_link.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-4) Bail out if number of expressions in NFTA_DYNSET_EXPRESSIONS mismatch
-   stateful expressions in set declaration.
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index e502ec00b2fe..0e4beae421f8 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -31,7 +31,7 @@ struct bpf_nf_link {
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ static const struct nf_defrag_hook *
+ get_proto_defrag_hook(struct bpf_nf_link *link,
+-		      const struct nf_defrag_hook __rcu *global_hook,
++		      const struct nf_defrag_hook __rcu **ptr_global_hook,
+ 		      const char *mod)
+ {
+ 	const struct nf_defrag_hook *hook;
+@@ -39,7 +39,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
+ 
+ 	/* RCU protects us from races against module unloading */
+ 	rcu_read_lock();
+-	hook = rcu_dereference(global_hook);
++	hook = rcu_dereference(*ptr_global_hook);
+ 	if (!hook) {
+ 		rcu_read_unlock();
+ 		err = request_module(mod);
+@@ -47,7 +47,7 @@ get_proto_defrag_hook(struct bpf_nf_link *link,
+ 			return ERR_PTR(err < 0 ? err : -EINVAL);
+ 
+ 		rcu_read_lock();
+-		hook = rcu_dereference(global_hook);
++		hook = rcu_dereference(*ptr_global_hook);
+ 	}
+ 
+ 	if (hook && try_module_get(hook->owner)) {
+@@ -78,7 +78,7 @@ static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
+ 	switch (link->hook_ops.pf) {
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+ 	case NFPROTO_IPV4:
+-		hook = get_proto_defrag_hook(link, nf_defrag_v4_hook, "nf_defrag_ipv4");
++		hook = get_proto_defrag_hook(link, &nf_defrag_v4_hook, "nf_defrag_ipv4");
+ 		if (IS_ERR(hook))
+ 			return PTR_ERR(hook);
+ 
+@@ -87,7 +87,7 @@ static int bpf_nf_enable_defrag(struct bpf_nf_link *link)
+ #endif
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ 	case NFPROTO_IPV6:
+-		hook = get_proto_defrag_hook(link, nf_defrag_v6_hook, "nf_defrag_ipv6");
++		hook = get_proto_defrag_hook(link, &nf_defrag_v6_hook, "nf_defrag_ipv6");
+ 		if (IS_ERR(hook))
+ 			return PTR_ERR(hook);
+ 
+-- 
+2.30.2
 
-5) Honor family in table lookup by handle. Broken since 4.16.
-
-6) Use sk_callback_lock to protect access to sk->sk_socket in xt_owner.
-   sock_orphan() might zap this pointer, from Phil Sutter.
-
-All of these fixes address broken stuff for several releases.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-23-12-06
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 54d4434da824460a190d547404530eff12a7907d:
-
-  Merge branch 'hv_netvsc-fix-race-of-netvsc-vf-register-and-slave-bit' (2023-11-21 13:15:05 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-23-12-06
-
-for you to fetch changes up to 7ae836a3d630e146b732fe8ef7d86b243748751f:
-
-  netfilter: xt_owner: Fix for unsafe access of sk->sk_socket (2023-12-06 17:52:15 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 23-12-06
-
-----------------------------------------------------------------
-D. Wythe (1):
-      netfilter: bpf: fix bad registration on nf_defrag
-
-Florian Westphal (2):
-      netfilter: nft_set_pipapo: skip inactive elements during set walk
-      netfilter: nf_tables: fix 'exist' matching on bigendian arches
-
-Pablo Neira Ayuso (2):
-      netfilter: nf_tables: bail out on mismatching dynset and set expressions
-      netfilter: nf_tables: validate family when identifying table via handle
-
-Phil Sutter (1):
-      netfilter: xt_owner: Fix for unsafe access of sk->sk_socket
-
- net/netfilter/nf_bpf_link.c    | 10 +++++-----
- net/netfilter/nf_tables_api.c  |  5 +++--
- net/netfilter/nft_dynset.c     | 13 +++++++++----
- net/netfilter/nft_exthdr.c     |  4 ++--
- net/netfilter/nft_fib.c        |  8 ++++++--
- net/netfilter/nft_set_pipapo.c |  3 +++
- net/netfilter/xt_owner.c       | 16 ++++++++++++----
- 7 files changed, 40 insertions(+), 19 deletions(-)
